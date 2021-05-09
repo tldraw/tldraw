@@ -1,4 +1,10 @@
-import styled, { css, globalStyles, light, dark } from "./stitches.config"
+import styled, {
+  css,
+  getCssString,
+  globalStyles,
+  light,
+  dark,
+} from "./stitches.config"
 
 export default styled
-export { css, globalStyles, light, dark }
+export { css, getCssString, globalStyles, light, dark }

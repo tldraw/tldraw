@@ -1,11 +1,22 @@
-import { createCss, global } from "@stitches/react"
+import { createCss, defaultThemeMap } from "@stitches/react"
 
-const { styled, css, theme } = createCss({
+const { styled, global, css, theme, getCssString } = createCss({
+  themeMap: {
+    ...defaultThemeMap,
+  },
   theme: {
     colors: {},
     space: {},
-    fontSizes: {},
-    fonts: {},
+    fontSizes: {
+      0: "10px",
+      1: "12px",
+      2: "13px",
+      3: "16px",
+      4: "18px",
+    },
+    fonts: {
+      ui: `"Recursive", system-ui, sans-serif`,
+    },
     fontWeights: {},
     lineHeights: {},
     letterSpacings: {},
@@ -26,12 +37,14 @@ const dark = theme({})
 const globalStyles = global({
   "*": { boxSizing: "border-box" },
   "html, body": {
-    padding: "0",
-    margin: "0",
+    padding: "0px",
+    margin: "0px",
     overscrollBehavior: "none",
+    fontFamily: "$ui",
+    fontSize: "$2",
   },
 })
 
 export default styled
 
-export { css, globalStyles, light, dark }
+export { css, getCssString, globalStyles, light, dark }

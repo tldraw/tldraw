@@ -1,21 +1,32 @@
-import Document, {
-  DocumentContext,
-  Html,
-  Head,
-  Main,
-  NextScript,
-} from "next/document"
-import { dark } from "styles"
+import NextDocument, { Html, Head, Main, NextScript } from "next/document"
+import { dark, getCssString } from "styles"
 
-class MyDocument extends Document {
-  static async getInitialProps(ctx: DocumentContext) {
-    const initialProps = await Document.getInitialProps(ctx)
-    return { ...initialProps }
+class MyDocument extends NextDocument {
+  static async getInitialProps(ctx) {
+    try {
+      const initialProps = await NextDocument.getInitialProps(ctx)
+
+      return {
+        ...initialProps,
+        styles: (
+          <>
+            {initialProps.styles}
+            <style
+              id="stitches"
+              dangerouslySetInnerHTML={{ __html: getCssString() }}
+            />
+          </>
+        ),
+      }
+    } catch (e) {
+      console.log(e.message)
+    } finally {
+    }
   }
 
   render() {
     return (
-      <Html>
+      <Html lang="en">
         <Head />
         <body className={dark}>
           <Main />

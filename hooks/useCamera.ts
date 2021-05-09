@@ -6,9 +6,7 @@ import state from "state"
  * the SVG group to reflect the correct zoom and pan.
  * @param ref
  */
-export default function useZoomPanEffect(
-  ref: React.MutableRefObject<SVGGElement>
-) {
+export default function useCamera(ref: React.MutableRefObject<SVGGElement>) {
   useEffect(() => {
     let { camera } = state.data
 
@@ -19,7 +17,6 @@ export default function useZoomPanEffect(
       const { point, zoom } = data.camera
 
       if (point !== camera.point || zoom !== camera.zoom) {
-        console.log("changed!")
         g.setAttribute(
           "transform",
           `scale(${zoom}) translate(${point[0]} ${point[1]})`

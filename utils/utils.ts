@@ -1,8 +1,8 @@
-import { IData } from "types"
+import { Data } from "types"
 import * as svg from "./svg"
 import * as vec from "./vec"
 
-export function screenToWorld(point: number[], data: IData) {
+export function screenToWorld(point: number[], data: Data) {
   return vec.add(vec.div(point, data.camera.zoom), data.camera.point)
 }
 

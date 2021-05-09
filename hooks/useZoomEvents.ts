@@ -2,6 +2,11 @@ import React, { useEffect, useRef } from "react"
 import state from "state"
 import * as vec from "utils/vec"
 
+/**
+ * Capture zoom gestures (pinches, wheels and pans) and send to the state.
+ * @param ref
+ * @returns
+ */
 export default function useZoomEvents(
   ref: React.MutableRefObject<SVGSVGElement>
 ) {
@@ -30,17 +35,19 @@ export default function useZoomEvents(
     }
 
     function handleTouchMove(e: TouchEvent) {
-      if (e.ctrlKey) {
-        e.preventDefault()
-      }
+      e.preventDefault()
 
       if (e.touches.length === 2) {
         const { clientX: x0, clientY: y0 } = e.touches[0]
         const { clientX: x1, clientY: y1 } = e.touches[1]
 
         const dist = vec.dist([x0, y0], [x1, y1])
+        const point = vec.med([x0, y0], [x1, y1])
 
-        state.send("WHEELED", { delta: [0, dist - rTouchDist.current] })
+        state.send("WHEELED", {
+          delta: dist - rTouchDist.current,
+          point,
+        })
 
         rTouchDist.current = dist
       }

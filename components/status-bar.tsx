@@ -35,6 +35,7 @@ const StatusBarContainer = styled("div", {
   alignItems: "center",
   backgroundColor: "white",
   gap: 8,
+  fontSize: "$1",
   padding: "0 16px",
   zIndex: 200,
 })
