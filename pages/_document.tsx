@@ -16,9 +16,7 @@ class MyDocument extends Document {
   render() {
     return (
       <Html>
-        <Head>
-          <title>ScribbleScript</title>
-        </Head>
+        <Head />
         <body className={dark}>
           <Main />
           <NextScript />

@@ -25,6 +25,11 @@ const dark = theme({})
 
 const globalStyles = global({
   "*": { boxSizing: "border-box" },
+  "html, body": {
+    padding: "0",
+    margin: "0",
+    overscrollBehavior: "none",
+  },
 })
 
 export default styled
