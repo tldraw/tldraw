@@ -1,0 +1,24 @@
+{
+  "name": "code-slate",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@state-designer/react": "^1.7.1",
+    "@stitches/react": "^0.1.9",
+    "next": "10.2.0",
+    "perfect-freehand": "^0.4.7",
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
+  },
+  "devDependencies": {
+    "@types/next": "^9.0.0",
+    "@types/react": "^17.0.5",
+    "@types/react-dom": "^17.0.3",
+    "typescript": "^4.2.4"
+  }
+}
