@@ -3,7 +3,7 @@ import * as svg from "./svg"
 import * as vec from "./vec"
 
 export function screenToWorld(point: number[], data: Data) {
-  return vec.add(vec.div(point, data.camera.zoom), data.camera.point)
+  return vec.sub(vec.div(point, data.camera.zoom), data.camera.point)
 }
 
 export function getBoundsFromPoints(a: number[], b: number[]) {
@@ -844,7 +844,7 @@ export async function postJsonToEndpoint(
   return await d.json()
 }
 
-export function getPointerEventInfo(e: React.PointerEvent) {
+export function getPointerEventInfo(e: React.PointerEvent | WheelEvent) {
   const { shiftKey, ctrlKey, metaKey, altKey } = e
   return { point: [e.clientX, e.clientY], shiftKey, ctrlKey, metaKey, altKey }
 }

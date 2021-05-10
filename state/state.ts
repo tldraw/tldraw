@@ -38,6 +38,7 @@ const state = createState({
       onEnter: "startBrushSession",
       on: {
         MOVED_POINTER: "updateBrushSession",
+        PANNED_CAMERA: "updateBrushSession",
         STOPPED_POINTING: { do: "completeSession", to: "selecting" },
         CANCELLED: { do: "cancelSession", to: "selecting" },
       },
@@ -52,11 +53,14 @@ const state = createState({
       session.complete(data)
       session = undefined
     },
-    startBrushSession(data, { point }) {
-      session = new Sessions.BrushSession(data, point)
+    startBrushSession(data, payload: { point: number[] }) {
+      session = new Sessions.BrushSession(
+        data,
+        screenToWorld(payload.point, data)
+      )
     },
-    updateBrushSession(data, { point }) {
-      session.update(data, point)
+    updateBrushSession(data, payload: { point: number[] }) {
+      session.update(data, screenToWorld(payload.point, data))
     },
     zoomCamera(data, payload: { delta: number; point: number[] }) {
       const { camera } = data
