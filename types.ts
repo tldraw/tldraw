@@ -3,9 +3,10 @@ export interface Data {
     point: number[]
     zoom: number
   }
+  brush?: Bounds
   currentPageId: string
   selectedIds: string[]
-  pointedId: string
+  pointedId?: string
   document: {
     pages: Record<string, Page>
   }
@@ -93,3 +94,12 @@ export type Shape =
   | RayShape
   | LineSegmentShape
   | RectangleShape
+
+export interface Bounds {
+  minX: number
+  minY: number
+  maxX: number
+  maxY: number
+  width: number
+  height: number
+}

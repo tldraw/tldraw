@@ -5,7 +5,10 @@ const { styled, global, css, theme, getCssString } = createCss({
     ...defaultThemeMap,
   },
   theme: {
-    colors: {},
+    colors: {
+      brushFill: "rgba(0,0,0,.1)",
+      brushStroke: "rgba(0,0,0,.5)",
+    },
     space: {},
     fontSizes: {
       0: "10px",

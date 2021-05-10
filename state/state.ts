@@ -1,56 +1,20 @@
 import { createSelectorHook, createState } from "@state-designer/react"
 import { clamp, screenToWorld } from "utils/utils"
 import * as vec from "utils/vec"
-import { Data, ShapeType } from "types"
+import { Data } from "types"
+import { defaultDocument } from "./data"
+import * as Sessions from "./sessions"
 
 const initialData: Data = {
   camera: {
     point: [0, 0],
     zoom: 1,
   },
+  brush: undefined,
+  pointedId: null,
+  selectedIds: [],
   currentPageId: "page0",
-  document: {
-    pages: {
-      page0: {
-        id: "page0",
-        type: "page",
-        name: "Page 0",
-        childIndex: 0,
-        shapes: {
-          shape0: {
-            id: "shape0",
-            type: ShapeType.Circle,
-            name: "Shape 0",
-            parentId: "page0",
-            childIndex: 1,
-            point: [100, 100],
-            radius: 50,
-            rotation: 0,
-          },
-          shape1: {
-            id: "shape1",
-            type: ShapeType.Rectangle,
-            name: "Shape 1",
-            parentId: "page0",
-            childIndex: 1,
-            point: [300, 300],
-            size: [200, 200],
-            rotation: 0,
-          },
-          shape2: {
-            id: "shape2",
-            type: ShapeType.Circle,
-            name: "Shape 2",
-            parentId: "page0",
-            childIndex: 2,
-            point: [200, 800],
-            radius: 25,
-            rotation: 0,
-          },
-        },
-      },
-    },
-  },
+  document: defaultDocument,
 }
 
 const state = createState({
@@ -63,7 +27,37 @@ const state = createState({
       do: "panCamera",
     },
   },
+  initial: "selecting",
+  states: {
+    selecting: {
+      on: {
+        POINTED_CANVAS: { to: "brushSelecting" },
+      },
+    },
+    brushSelecting: {
+      onEnter: "startBrushSession",
+      on: {
+        MOVED_POINTER: "updateBrushSession",
+        STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+        CANCELLED: { do: "cancelSession", to: "selecting" },
+      },
+    },
+  },
   actions: {
+    cancelSession(data) {
+      session.cancel(data)
+      session = undefined
+    },
+    completeSession(data) {
+      session.complete(data)
+      session = undefined
+    },
+    startBrushSession(data, { point }) {
+      session = new Sessions.BrushSession(data, point)
+    },
+    updateBrushSession(data, { point }) {
+      session.update(data, point)
+    },
     zoomCamera(data, payload: { delta: number; point: number[] }) {
       const { camera } = data
       const p0 = screenToWorld(payload.point, data)
@@ -84,6 +78,8 @@ const state = createState({
     },
   },
 })
+
+let session: Sessions.BaseSession
 
 export default state
 

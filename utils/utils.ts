@@ -6,6 +6,22 @@ export function screenToWorld(point: number[], data: Data) {
   return vec.add(vec.div(point, data.camera.zoom), data.camera.point)
 }
 
+export function getBoundsFromPoints(a: number[], b: number[]) {
+  const minX = Math.min(a[0], b[0])
+  const maxX = Math.max(a[0], b[0])
+  const minY = Math.min(a[1], b[1])
+  const maxY = Math.max(a[1], b[1])
+
+  return {
+    minX,
+    maxX,
+    minY,
+    maxY,
+    width: maxX - minX,
+    height: maxY - minY,
+  }
+}
+
 // A helper for getting tangents.
 export function getCircleTangentToPoint(
   A: number[],
@@ -826,4 +842,9 @@ export async function postJsonToEndpoint(
   )
 
   return await d.json()
+}
+
+export function getPointerEventInfo(e: React.PointerEvent) {
+  const { shiftKey, ctrlKey, metaKey, altKey } = e
+  return { point: [e.clientX, e.clientY], shiftKey, ctrlKey, metaKey, altKey }
 }
