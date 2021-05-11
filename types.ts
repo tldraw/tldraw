@@ -21,18 +21,17 @@ export interface Page {
 }
 
 export enum ShapeType {
+  Dot = "dot",
   Circle = "circle",
   Ellipse = "ellipse",
-  Square = "square",
-  Rectangle = "rectangle",
   Line = "line",
-  LineSegment = "lineSegment",
-  Dot = "dot",
   Ray = "ray",
-  Glob = "glob",
-  Spline = "spline",
-  Cubic = "cubic",
-  Conic = "conic",
+  LineSegment = "lineSegment",
+  Rectangle = "rectangle",
+  // Glob = "glob",
+  // Spline = "spline",
+  // Cubic = "cubic",
+  // Conic = "conic",
 }
 
 export interface BaseShape {
@@ -87,9 +86,9 @@ export interface RectangleShape extends BaseShape {
 }
 
 export type Shape =
+  | DotShape
   | CircleShape
   | EllipseShape
-  | DotShape
   | LineShape
   | RayShape
   | LineSegmentShape
@@ -102,4 +101,14 @@ export interface Bounds {
   maxY: number
   width: number
   height: number
+}
+
+export interface Shapes extends Record<ShapeType, Shape> {
+  [ShapeType.Dot]: DotShape
+  [ShapeType.Circle]: CircleShape
+  [ShapeType.Ellipse]: EllipseShape
+  [ShapeType.Line]: LineShape
+  [ShapeType.Ray]: RayShape
+  [ShapeType.LineSegment]: LineSegmentShape
+  [ShapeType.Rectangle]: RectangleShape
 }

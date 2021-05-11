@@ -2,6 +2,7 @@ import { memo } from "react"
 import { useSelector } from "state"
 import { ShapeType } from "types"
 import Circle from "./shapes/circle"
+import Dot from "./shapes/dot"
 import Rectangle from "./shapes/rectangle"
 
 /*
@@ -17,6 +18,8 @@ function Shape({ id }: { id: string }) {
   })
 
   switch (shape.type) {
+    case ShapeType.Dot:
+      return <Dot {...shape} />
     case ShapeType.Circle:
       return <Circle {...shape} />
     case ShapeType.Rectangle:

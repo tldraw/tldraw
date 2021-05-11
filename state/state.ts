@@ -35,13 +35,21 @@ const state = createState({
       },
     },
     brushSelecting: {
-      onEnter: "startBrushSession",
+      onEnter: [
+        { unless: "isPressingShiftKey", do: "clearSelection" },
+        "startBrushSession",
+      ],
       on: {
         MOVED_POINTER: "updateBrushSession",
         PANNED_CAMERA: "updateBrushSession",
         STOPPED_POINTING: { do: "completeSession", to: "selecting" },
         CANCELLED: { do: "cancelSession", to: "selecting" },
       },
+    },
+  },
+  conditions: {
+    isPressingShiftKey(data, payload: { shiftKey: boolean }) {
+      return payload.shiftKey
     },
   },
   actions: {
@@ -62,6 +70,11 @@ const state = createState({
     updateBrushSession(data, payload: { point: number[] }) {
       session.update(data, screenToWorld(payload.point, data))
     },
+    // Selection
+    clearSelection(data) {
+      data.selectedIds = []
+    },
+    // Camera
     zoomCamera(data, payload: { delta: number; point: number[] }) {
       const { camera } = data
       const p0 = screenToWorld(payload.point, data)
@@ -79,6 +92,11 @@ const state = createState({
         camera.point,
         vec.div(payload.delta, camera.zoom)
       )
+    },
+  },
+  values: {
+    selectedIds(data) {
+      return new Set(data.selectedIds)
     },
   },
 })
