@@ -9,7 +9,7 @@ import * as vec from "./vec"
 
 type BaseShapeUtils<K extends ShapeType> = {
   getBounds(shape: Shapes[K]): Bounds
-  hitTest(shape: Shapes[K], test: number[] | Bounds): boolean
+  hitTest(shape: Shapes[K], test: number[]): boolean
   rotate(shape: Shapes[K]): Shapes[K]
   translate(shape: Shapes[K]): Shapes[K]
   scale(shape: Shapes[K], scale: number): Shapes[K]
@@ -35,9 +35,6 @@ const DotUtils: BaseShapeUtils<ShapeType.Dot> = {
   },
 
   hitTest(shape, test) {
-    if ("minX" in test) {
-      return pointInBounds(shape.point, test)
-    }
     return vec.dist(shape.point, test) < 4
   },
 
@@ -68,24 +65,19 @@ const CircleUtils: BaseShapeUtils<ShapeType.Circle> = {
     } = shape
 
     return {
-      minX: cx - radius,
-      maxX: cx + radius,
-      minY: cy - radius,
-      maxY: cy + radius,
+      minX: cx,
+      maxX: cx + radius * 2,
+      minY: cy,
+      maxY: cy + radius * 2,
       width: radius * 2,
       height: radius * 2,
     }
   },
 
   hitTest(shape, test) {
-    if ("minX" in test) {
-      const bounds = CircleUtils.getBounds(shape)
-      return (
-        boundsContain(bounds, test) ||
-        intersectCircleBounds(shape.point, shape.radius, bounds).length > 0
-      )
-    }
-    return vec.dist(shape.point, test) < 4
+    return (
+      vec.dist(vec.addScalar(shape.point, shape.radius), test) < shape.radius
+    )
   },
 
   rotate(shape) {
