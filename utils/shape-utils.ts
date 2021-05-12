@@ -3,19 +3,7 @@ import {
   boundsContain,
   pointInBounds,
 } from "state/sessions/brush-session"
-import {
-  Shape,
-  Bounds,
-  ShapeType,
-  CircleShape,
-  DotShape,
-  RectangleShape,
-  Shapes,
-  EllipseShape,
-  LineShape,
-  RayShape,
-  LineSegmentShape,
-} from "types"
+import { Bounds, ShapeType, Shapes } from "types"
 import { intersectCircleBounds } from "./intersections"
 import * as vec from "./vec"
 
@@ -224,15 +212,27 @@ const RayUtils: BaseShapeUtils<ShapeType.Ray> = {
 
 /* ------------------ Line Segment ------------------ */
 
-const LineSegmentUtils: BaseShapeUtils<ShapeType.LineSegment> = {
+const PolylineUtils: BaseShapeUtils<ShapeType.Polyline> = {
   getBounds(shape) {
+    let minX = 0
+    let minY = 0
+    let maxX = 0
+    let maxY = 0
+
+    for (let [x, y] of shape.points) {
+      minX = Math.min(x, minX)
+      minY = Math.min(y, minY)
+      maxX = Math.max(x, maxX)
+      maxY = Math.max(y, maxY)
+    }
+
     return {
-      minX: 0,
-      minY: 0,
-      maxX: 0,
-      maxY: 0,
-      width: 0,
-      height: 0,
+      minX: minX + shape.point[0],
+      minY: minY + shape.point[1],
+      maxX: maxX + shape.point[0],
+      maxY: maxY + shape.point[1],
+      width: maxX - minX,
+      height: maxY - minY,
     }
   },
 
@@ -303,7 +303,7 @@ const shapeUtils: { [K in ShapeType]: BaseShapeUtils<K> } = {
   [ShapeType.Ellipse]: EllipseUtils,
   [ShapeType.Line]: LineUtils,
   [ShapeType.Ray]: RayUtils,
-  [ShapeType.LineSegment]: LineSegmentUtils,
+  [ShapeType.Polyline]: PolylineUtils,
   [ShapeType.Rectangle]: RectangleUtils,
 }
 

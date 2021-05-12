@@ -1,17 +1,19 @@
 import React from "react"
 import state from "state"
-import { Shape } from "types"
 import { getPointerEventInfo } from "utils/utils"
 
 export default function ShapeGroup({
   id,
   children,
+  point,
 }: {
   id: string
   children: React.ReactNode
+  point: number[]
 }) {
   return (
     <g
+      transform={`translate(${point})`}
       onPointerDown={(e) =>
         state.send("POINTED_SHAPE", { id, ...getPointerEventInfo(e) })
       }

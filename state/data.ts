@@ -30,12 +30,16 @@ export const defaultDocument: Data["document"] = {
         },
         shape2: {
           id: "shape2",
-          type: ShapeType.Circle,
+          type: ShapeType.Polyline,
           name: "Shape 2",
           parentId: "page0",
           childIndex: 2,
-          point: [200, 800],
-          radius: 25,
+          point: [200, 600],
+          points: [
+            [0, 0],
+            [75, 200],
+            [100, 50],
+          ],
           rotation: 0,
         },
         shape3: {

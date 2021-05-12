@@ -1,9 +1,8 @@
 import { useSelector } from "state"
 import { RectangleShape } from "types"
-import ShapeGroup from "./shape-group"
+import ShapeGroup from "./shape-g"
 
-interface BaseRectangleProps {
-  point: number[]
+interface BaseRectangleProps extends Pick<RectangleShape, "size"> {
   size: number[]
   fill?: string
   stroke?: string
@@ -11,7 +10,6 @@ interface BaseRectangleProps {
 }
 
 function BaseRectangle({
-  point,
   size,
   fill = "#ccc",
   stroke = "none",
@@ -19,8 +17,8 @@ function BaseRectangle({
 }: BaseRectangleProps) {
   return (
     <rect
-      x={point[0] + strokeWidth}
-      y={point[1] + strokeWidth}
+      x={strokeWidth}
+      y={strokeWidth}
       width={size[0] - strokeWidth * 2}
       height={size[1] - strokeWidth * 2}
       fill={fill}
@@ -33,16 +31,10 @@ function BaseRectangle({
 export default function Rectangle({ id, point, size }: RectangleShape) {
   const isSelected = useSelector((state) => state.values.selectedIds.has(id))
   return (
-    <ShapeGroup id={id}>
-      <BaseRectangle point={point} size={size} />
+    <ShapeGroup id={id} point={point}>
+      <BaseRectangle size={size} />
       {isSelected && (
-        <BaseRectangle
-          point={point}
-          size={size}
-          fill="none"
-          stroke="blue"
-          strokeWidth={1}
-        />
+        <BaseRectangle size={size} fill="none" stroke="blue" strokeWidth={1} />
       )}
     </ShapeGroup>
   )

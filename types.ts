@@ -26,7 +26,7 @@ export enum ShapeType {
   Ellipse = "ellipse",
   Line = "line",
   Ray = "ray",
-  LineSegment = "lineSegment",
+  Polyline = "Polyline",
   Rectangle = "rectangle",
   // Glob = "glob",
   // Spline = "spline",
@@ -40,48 +40,42 @@ export interface BaseShape {
   parentId: string
   childIndex: number
   name: string
+  point: number[]
   rotation: 0
 }
 
 export interface DotShape extends BaseShape {
   type: ShapeType.Dot
-  point: number[]
 }
 
 export interface CircleShape extends BaseShape {
   type: ShapeType.Circle
-  point: number[]
   radius: number
 }
 
 export interface EllipseShape extends BaseShape {
   type: ShapeType.Ellipse
-  point: number[]
   radiusX: number
   radiusY: number
 }
 
 export interface LineShape extends BaseShape {
   type: ShapeType.Line
-  point: number[]
   vector: number[]
 }
 
 export interface RayShape extends BaseShape {
   type: ShapeType.Ray
-  point: number[]
   vector: number[]
 }
 
-export interface LineSegmentShape extends BaseShape {
-  type: ShapeType.LineSegment
-  start: number[]
-  end: number[]
+export interface PolylineShape extends BaseShape {
+  type: ShapeType.Polyline
+  points: number[][]
 }
 
 export interface RectangleShape extends BaseShape {
   type: ShapeType.Rectangle
-  point: number[]
   size: number[]
 }
 
@@ -91,7 +85,7 @@ export type Shape =
   | EllipseShape
   | LineShape
   | RayShape
-  | LineSegmentShape
+  | PolylineShape
   | RectangleShape
 
 export interface Bounds {
@@ -109,6 +103,6 @@ export interface Shapes extends Record<ShapeType, Shape> {
   [ShapeType.Ellipse]: EllipseShape
   [ShapeType.Line]: LineShape
   [ShapeType.Ray]: RayShape
-  [ShapeType.LineSegment]: LineSegmentShape
+  [ShapeType.Polyline]: PolylineShape
   [ShapeType.Rectangle]: RectangleShape
 }

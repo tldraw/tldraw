@@ -3,6 +3,7 @@ import { useSelector } from "state"
 import { ShapeType } from "types"
 import Circle from "./shapes/circle"
 import Dot from "./shapes/dot"
+import Polyline from "./shapes/polyline"
 import Rectangle from "./shapes/rectangle"
 
 /*
@@ -24,6 +25,8 @@ function Shape({ id }: { id: string }) {
       return <Circle {...shape} />
     case ShapeType.Rectangle:
       return <Rectangle {...shape} />
+    case ShapeType.Polyline:
+      return <Polyline {...shape} />
     default:
       return null
   }

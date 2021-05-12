@@ -1,10 +1,8 @@
-import state, { useSelector } from "state"
+import { useSelector } from "state"
 import { CircleShape } from "types"
-import ShapeGroup from "./shape-group"
-import { getPointerEventInfo } from "utils/utils"
+import ShapeGroup from "./shape-g"
 
-interface BaseCircleProps {
-  point: number[]
+interface BaseCircleProps extends Pick<CircleShape, "radius"> {
   radius: number
   fill?: string
   stroke?: string
@@ -12,7 +10,6 @@ interface BaseCircleProps {
 }
 
 function BaseCircle({
-  point,
   radius,
   fill = "#ccc",
   stroke = "none",
@@ -20,8 +17,8 @@ function BaseCircle({
 }: BaseCircleProps) {
   return (
     <circle
-      cx={point[0] + strokeWidth}
-      cy={point[1] + strokeWidth}
+      cx={strokeWidth}
+      cy={strokeWidth}
       r={radius - strokeWidth}
       fill={fill}
       stroke={stroke}
@@ -33,16 +30,10 @@ function BaseCircle({
 export default function Circle({ id, point, radius }: CircleShape) {
   const isSelected = useSelector((state) => state.values.selectedIds.has(id))
   return (
-    <ShapeGroup id={id}>
-      <BaseCircle point={point} radius={radius} />
+    <ShapeGroup id={id} point={point}>
+      <BaseCircle radius={radius} />
       {isSelected && (
-        <BaseCircle
-          point={point}
-          radius={radius}
-          fill="none"
-          stroke="blue"
-          strokeWidth={1}
-        />
+        <BaseCircle radius={radius} fill="none" stroke="blue" strokeWidth={1} />
       )}
     </ShapeGroup>
   )

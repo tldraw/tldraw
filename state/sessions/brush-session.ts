@@ -1,14 +1,17 @@
 import { current } from "immer"
 import { Bounds, Data, Shape, ShapeType } from "types"
 import BaseSession from "./base-session"
-import shapeUtils from "utils/shapes"
+import shapeUtils from "utils/shape-utils"
 import { getBoundsFromPoints } from "utils/utils"
 import * as vec from "utils/vec"
-import { intersectCircleBounds } from "utils/intersections"
+import {
+  intersectCircleBounds,
+  intersectPolylineBounds,
+} from "utils/intersections"
 
 interface BrushSnapshot {
   selectedIds: string[]
-  shapes: { shape: Shape; bounds: Bounds }[]
+  shapes: { shape: Shape; test: (bounds: Bounds) => boolean }[]
 }
 
 export default class BrushSession extends BaseSession {
@@ -31,32 +34,7 @@ export default class BrushSession extends BaseSession {
     data.selectedIds = [
       ...snapshot.selectedIds,
       ...snapshot.shapes
-        .filter(({ shape, bounds }) => {
-          switch (shape.type) {
-            case ShapeType.Circle: {
-              return (
-                boundsContained(bounds, brushBounds) ||
-                intersectCircleBounds(shape.point, shape.radius, brushBounds)
-                  .length
-              )
-            }
-            case ShapeType.Dot: {
-              return (
-                boundsContained(bounds, brushBounds) ||
-                intersectCircleBounds(shape.point, 4, brushBounds).length
-              )
-            }
-            case ShapeType.Rectangle: {
-              return (
-                boundsContained(bounds, brushBounds) ||
-                boundsCollide(bounds, brushBounds)
-              )
-            }
-            default: {
-              return boundsContained(bounds, brushBounds)
-            }
-          }
-        })
+        .filter(({ test }) => test(brushBounds))
         .map(({ shape }) => shape.id),
     ]
 
@@ -72,7 +50,7 @@ export default class BrushSession extends BaseSession {
     data.brush = undefined
   }
 
-  static getSnapshot(data: Data) {
+  static getSnapshot(data: Data): BrushSnapshot {
     const {
       selectedIds,
       document: { pages },
@@ -88,21 +66,47 @@ export default class BrushSession extends BaseSession {
         .map((shape) => {
           switch (shape.type) {
             case ShapeType.Dot: {
+              const bounds = shapeUtils[shape.type].getBounds(shape)
+
               return {
                 shape,
-                bounds: shapeUtils[shape.type].getBounds(shape),
+                test: (brushBounds: Bounds) =>
+                  boundsContained(bounds, brushBounds) ||
+                  intersectCircleBounds(shape.point, 4, brushBounds).length > 0,
               }
             }
             case ShapeType.Circle: {
+              const bounds = shapeUtils[shape.type].getBounds(shape)
+
               return {
                 shape,
-                bounds: shapeUtils[shape.type].getBounds(shape),
+                test: (brushBounds: Bounds) =>
+                  boundsContained(bounds, brushBounds) ||
+                  intersectCircleBounds(shape.point, shape.radius, brushBounds)
+                    .length > 0,
               }
             }
             case ShapeType.Rectangle: {
+              const bounds = shapeUtils[shape.type].getBounds(shape)
+
               return {
                 shape,
-                bounds: shapeUtils[shape.type].getBounds(shape),
+                test: (brushBounds: Bounds) =>
+                  boundsContained(bounds, brushBounds) ||
+                  boundsCollide(bounds, brushBounds),
+              }
+            }
+            case ShapeType.Polyline: {
+              const bounds = shapeUtils[shape.type].getBounds(shape)
+              const points = shape.points.map((point) =>
+                vec.add(point, shape.point)
+              )
+
+              return {
+                shape,
+                test: (brushBounds: Bounds) =>
+                  boundsContained(bounds, brushBounds) ||
+                  intersectPolylineBounds(points, brushBounds).length > 0,
               }
             }
             default: {
