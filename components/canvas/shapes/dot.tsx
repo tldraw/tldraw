@@ -1,40 +1,39 @@
-import { useSelector } from "state"
+import { Indicator, HoverIndicator } from "./indicator"
 import { DotShape, ShapeProps } from "types"
 import ShapeGroup from "./shape-g"
+
+const dotRadius = 4
 
 function BaseDot({
   fill = "#999",
   stroke = "none",
-  strokeWidth = 0,
+  strokeWidth = 1,
 }: ShapeProps<DotShape>) {
   return (
     <>
-      <circle
-        cx={strokeWidth}
-        cy={strokeWidth}
-        r={8}
-        fill="transparent"
-        stroke="none"
-        strokeWidth="0"
+      <HoverIndicator
+        as="circle"
+        cx={dotRadius}
+        cy={dotRadius}
+        r={dotRadius - 1}
       />
       <circle
-        cx={strokeWidth}
-        cy={strokeWidth}
-        r={Math.max(1, 4 - strokeWidth)}
+        cx={dotRadius}
+        cy={dotRadius}
+        r={dotRadius - strokeWidth / 2}
         fill={fill}
         stroke={stroke}
         strokeWidth={strokeWidth}
       />
+      <Indicator as="circle" cx={dotRadius} cy={dotRadius} r={dotRadius - 1} />
     </>
   )
 }
 
 export default function Dot({ id, point }: DotShape) {
-  const isSelected = useSelector((state) => state.values.selectedIds.has(id))
   return (
     <ShapeGroup id={id} point={point}>
       <BaseDot />
-      {isSelected && <BaseDot fill="none" stroke="blue" strokeWidth={1} />}
     </ShapeGroup>
   )
 }

@@ -5,7 +5,7 @@ export interface Data {
   }
   brush?: Bounds
   currentPageId: string
-  selectedIds: string[]
+  selectedIds: Set<string>
   pointedId?: string
   document: {
     pages: Record<string, Page>
@@ -121,4 +121,6 @@ export type ShapeSpecificProps<T extends Shape> = Pick<
 >
 
 export type ShapeProps<T extends Shape> = Partial<BaseShapeStyles> &
-  ShapeSpecificProps<T>
+  ShapeSpecificProps<T> & { id?: Shape["id"] }
+
+export type ShapeIndicatorProps<T extends Shape> = ShapeSpecificProps<T>

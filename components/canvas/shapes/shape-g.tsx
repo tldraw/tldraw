@@ -1,6 +1,8 @@
-import state from "state"
+import state, { useSelector } from "state"
 import React, { useCallback, useRef } from "react"
 import { getPointerEventInfo } from "utils/utils"
+import { Indicator, HoverIndicator } from "./indicator"
+import styled from "styles"
 
 export default function ShapeGroup({
   id,
@@ -12,6 +14,7 @@ export default function ShapeGroup({
   point: number[]
 }) {
   const rGroup = useRef<SVGGElement>(null)
+  const isSelected = useSelector((state) => state.values.selectedIds.has(id))
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -44,8 +47,9 @@ export default function ShapeGroup({
   )
 
   return (
-    <g
+    <StyledGroup
       ref={rGroup}
+      isSelected={isSelected}
       transform={`translate(${point})`}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
@@ -53,6 +57,31 @@ export default function ShapeGroup({
       onPointerLeave={handlePointerLeave}
     >
       {children}
-    </g>
+    </StyledGroup>
   )
 }
+
+const StyledGroup = styled("g", {
+  [`& ${HoverIndicator}`]: {
+    opacity: "0",
+  },
+  variants: {
+    isSelected: {
+      true: {
+        [`& ${Indicator}`]: {
+          stroke: "$selected",
+        },
+        [`&:hover ${HoverIndicator}`]: {
+          opacity: "1",
+          stroke: "$hint",
+        },
+      },
+      false: {
+        [`&:hover ${HoverIndicator}`]: {
+          opacity: "1",
+          stroke: "$hint",
+        },
+      },
+    },
+  },
+})

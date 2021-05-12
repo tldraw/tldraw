@@ -1,5 +1,5 @@
-import { useSelector } from "state"
 import { PolylineShape, ShapeProps } from "types"
+import { Indicator, HoverIndicator } from "./indicator"
 import ShapeGroup from "./shape-g"
 
 function BasePolyline({
@@ -10,28 +10,24 @@ function BasePolyline({
 }: ShapeProps<PolylineShape>) {
   return (
     <>
-      <polyline
-        points={points.toString()}
-        fill="none"
-        stroke="transparent"
-        strokeWidth={12}
-      />
+      <HoverIndicator as="polyline" points={points.toString()} />
       <polyline
         points={points.toString()}
         fill={fill}
         stroke={stroke}
         strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
+      <Indicator as="polyline" points={points.toString()} />
     </>
   )
 }
 
 export default function Polyline({ id, point, points }: PolylineShape) {
-  const isSelected = useSelector((state) => state.values.selectedIds.has(id))
   return (
     <ShapeGroup id={id} point={point}>
       <BasePolyline points={points} />
-      {isSelected && <BasePolyline points={points} fill="none" stroke="blue" />}
     </ShapeGroup>
   )
 }

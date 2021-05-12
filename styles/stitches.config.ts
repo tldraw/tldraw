@@ -8,6 +8,8 @@ const { styled, global, css, theme, getCssString } = createCss({
     colors: {
       brushFill: "rgba(0,0,0,.1)",
       brushStroke: "rgba(0,0,0,.5)",
+      hint: "rgba(66, 133, 244, 0.200)",
+      selected: "rgba(66, 133, 244, 1.000)",
     },
     space: {},
     fontSizes: {

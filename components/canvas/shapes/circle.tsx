@@ -1,5 +1,5 @@
-import { useSelector } from "state"
 import { CircleShape, ShapeProps } from "types"
+import { Indicator, HoverIndicator } from "./indicator"
 import ShapeGroup from "./shape-g"
 
 function BaseCircle({
@@ -9,25 +9,25 @@ function BaseCircle({
   strokeWidth = 0,
 }: ShapeProps<CircleShape>) {
   return (
-    <circle
-      cx={radius}
-      cy={radius}
-      r={radius}
-      fill={fill}
-      stroke={stroke}
-      strokeWidth={strokeWidth}
-    />
+    <>
+      <HoverIndicator as="circle" cx={radius} cy={radius} r={radius - 1} />
+      <circle
+        cx={radius}
+        cy={radius}
+        r={radius - strokeWidth / 2}
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={strokeWidth}
+      />
+      <Indicator as="circle" cx={radius} cy={radius} r={radius - 1} />
+    </>
   )
 }
 
 export default function Circle({ id, point, radius }: CircleShape) {
-  const isSelected = useSelector((state) => state.values.selectedIds.has(id))
   return (
     <ShapeGroup id={id} point={point}>
       <BaseCircle radius={radius} />
-      {isSelected && (
-        <BaseCircle radius={radius} fill="none" stroke="blue" strokeWidth={1} />
-      )}
     </ShapeGroup>
   )
 }

@@ -12,7 +12,7 @@ const initialData: Data = {
   },
   brush: undefined,
   pointedId: null,
-  selectedIds: [],
+  selectedIds: new Set([]),
   currentPageId: "page0",
   document: defaultDocument,
 }
@@ -61,7 +61,7 @@ const state = createState({
   },
   conditions: {
     isPointedShapeSelected(data) {
-      return data.selectedIds.includes(data.pointedId)
+      return data.selectedIds.has(data.pointedId)
     },
     isPressingShiftKey(data, payload: { shiftKey: boolean }) {
       return payload.shiftKey
@@ -93,14 +93,14 @@ const state = createState({
       data.pointedId = undefined
     },
     clearSelectedIds(data) {
-      data.selectedIds = []
+      data.selectedIds.clear()
     },
     pullPointedIdFromSelectedIds(data) {
       const { selectedIds, pointedId } = data
-      selectedIds.splice(selectedIds.indexOf(pointedId, 1))
+      selectedIds.delete(pointedId)
     },
     pushPointedIdToSelectedIds(data) {
-      data.selectedIds.push(data.pointedId)
+      data.selectedIds.add(data.pointedId)
     },
     // Camera
     zoomCamera(data, payload: { delta: number; point: number[] }) {

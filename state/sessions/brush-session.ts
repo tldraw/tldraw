@@ -10,8 +10,8 @@ import {
 } from "utils/intersections"
 
 interface BrushSnapshot {
-  selectedIds: string[]
-  shapes: { shape: Shape; test: (bounds: Bounds) => boolean }[]
+  selectedIds: Set<string>
+  shapes: { id: string; test: (bounds: Bounds) => boolean }[]
 }
 
 export default class BrushSession extends BaseSession {
@@ -31,25 +31,33 @@ export default class BrushSession extends BaseSession {
 
     const brushBounds = getBoundsFromPoints(origin, point)
 
-    data.selectedIds = [
-      ...snapshot.selectedIds,
-      ...snapshot.shapes
-        .filter(({ test }) => test(brushBounds))
-        .map(({ shape }) => shape.id),
-    ]
+    for (let { test, id } of snapshot.shapes) {
+      if (test(brushBounds)) {
+        data.selectedIds.add(id)
+      } else if (data.selectedIds.has(id)) {
+        data.selectedIds.delete(id)
+      }
+    }
 
     data.brush = brushBounds
   }
 
   cancel = (data: Data) => {
     data.brush = undefined
-    data.selectedIds = this.snapshot.selectedIds
+    data.selectedIds = new Set(this.snapshot.selectedIds)
   }
 
   complete = (data: Data) => {
     data.brush = undefined
   }
 
+  /**
+   * Get a snapshot of the current selected ids, for each shape that is
+   * not already selected, the shape's id and a test to see whether the
+   * brush will intersect that shape. For tests, start broad -> fine.
+   * @param data
+   * @returns
+   */
   static getSnapshot(data: Data): BrushSnapshot {
     const {
       selectedIds,
@@ -57,19 +65,17 @@ export default class BrushSession extends BaseSession {
       currentPageId,
     } = current(data)
 
-    const currentlySelected = new Set(selectedIds)
-
     return {
-      selectedIds: [...data.selectedIds],
+      selectedIds: new Set(data.selectedIds),
       shapes: Object.values(pages[currentPageId].shapes)
-        .filter((shape) => !currentlySelected.has(shape.id))
+        .filter((shape) => !selectedIds.has(shape.id))
         .map((shape) => {
           switch (shape.type) {
             case ShapeType.Dot: {
               const bounds = shapeUtils[shape.type].getBounds(shape)
 
               return {
-                shape,
+                id: shape.id,
                 test: (brushBounds: Bounds) =>
                   boundsContained(bounds, brushBounds) ||
                   intersectCircleBounds(shape.point, 4, brushBounds).length > 0,
@@ -79,7 +85,7 @@ export default class BrushSession extends BaseSession {
               const bounds = shapeUtils[shape.type].getBounds(shape)
 
               return {
-                shape,
+                id: shape.id,
                 test: (brushBounds: Bounds) =>
                   boundsContained(bounds, brushBounds) ||
                   intersectCircleBounds(
@@ -93,7 +99,7 @@ export default class BrushSession extends BaseSession {
               const bounds = shapeUtils[shape.type].getBounds(shape)
 
               return {
-                shape,
+                id: shape.id,
                 test: (brushBounds: Bounds) =>
                   boundsContained(bounds, brushBounds) ||
                   boundsCollide(bounds, brushBounds),
@@ -106,10 +112,11 @@ export default class BrushSession extends BaseSession {
               )
 
               return {
-                shape,
+                id: shape.id,
                 test: (brushBounds: Bounds) =>
                   boundsContained(bounds, brushBounds) ||
-                  intersectPolylineBounds(points, brushBounds).length > 0,
+                  (boundsCollide(bounds, brushBounds) &&
+                    intersectPolylineBounds(points, brushBounds).length > 0),
               }
             }
             default: {

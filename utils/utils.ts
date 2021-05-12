@@ -848,3 +848,8 @@ export function getPointerEventInfo(e: React.PointerEvent | WheelEvent) {
   const { shiftKey, ctrlKey, metaKey, altKey } = e
   return { point: [e.clientX, e.clientY], shiftKey, ctrlKey, metaKey, altKey }
 }
+
+export function getKeyboardEventInfo(e: React.KeyboardEvent | KeyboardEvent) {
+  const { shiftKey, ctrlKey, metaKey, altKey } = e
+  return { key: e.key, shiftKey, ctrlKey, metaKey, altKey }
+}
