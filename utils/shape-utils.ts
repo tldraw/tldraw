@@ -25,10 +25,10 @@ const DotUtils: BaseShapeUtils<ShapeType.Dot> = {
     } = shape
 
     return {
-      minX: cx - 2,
-      maxX: cx + 2,
-      minY: cy - 2,
-      maxY: cy + 2,
+      minX: cx,
+      maxX: cx + 4,
+      minY: cy,
+      maxY: cy + 4,
       width: 4,
       height: 4,
     }
