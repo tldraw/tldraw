@@ -1,31 +1,26 @@
 import { Indicator, HoverIndicator } from "./indicator"
 import { DotShape, ShapeProps } from "types"
-import ShapeGroup from "./shape-g"
+import ShapeGroup from "./shape-group"
 
 const dotRadius = 4
 
 function BaseDot({
   fill = "#999",
   stroke = "none",
-  strokeWidth = 1,
+  strokeWidth = 0,
 }: ShapeProps<DotShape>) {
   return (
     <>
-      <HoverIndicator
-        as="circle"
-        cx={dotRadius}
-        cy={dotRadius}
-        r={dotRadius - 1}
-      />
+      <HoverIndicator as="circle" cx={dotRadius} cy={dotRadius} r={dotRadius} />
       <circle
         cx={dotRadius}
         cy={dotRadius}
-        r={dotRadius - strokeWidth / 2}
+        r={dotRadius}
         fill={fill}
         stroke={stroke}
         strokeWidth={strokeWidth}
       />
-      <Indicator as="circle" cx={dotRadius} cy={dotRadius} r={dotRadius - 1} />
+      <Indicator as="circle" cx={dotRadius} cy={dotRadius} r={dotRadius} />
     </>
   )
 }

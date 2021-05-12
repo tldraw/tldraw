@@ -113,6 +113,11 @@ const state = createState({
       )
       const p1 = screenToWorld(payload.point, data)
       camera.point = vec.add(camera.point, vec.sub(p1, p0))
+
+      document.documentElement.style.setProperty(
+        "--camera-zoom",
+        camera.zoom.toString()
+      )
     },
     panCamera(data, payload: { delta: number[]; point: number[] }) {
       const { camera } = data

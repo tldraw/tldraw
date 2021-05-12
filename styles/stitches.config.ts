@@ -41,6 +41,9 @@ const dark = theme({})
 
 const globalStyles = global({
   "*": { boxSizing: "border-box" },
+  ":root": {
+    "--camera-zoom": 1,
+  },
   "html, body": {
     padding: "0px",
     margin: "0px",

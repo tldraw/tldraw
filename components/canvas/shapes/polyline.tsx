@@ -1,6 +1,6 @@
 import { PolylineShape, ShapeProps } from "types"
 import { Indicator, HoverIndicator } from "./indicator"
-import ShapeGroup from "./shape-g"
+import ShapeGroup from "./shape-group"
 
 function BasePolyline({
   points,

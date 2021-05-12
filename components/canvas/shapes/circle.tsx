@@ -1,6 +1,6 @@
 import { CircleShape, ShapeProps } from "types"
 import { Indicator, HoverIndicator } from "./indicator"
-import ShapeGroup from "./shape-g"
+import ShapeGroup from "./shape-group"
 
 function BaseCircle({
   radius,
@@ -10,16 +10,16 @@ function BaseCircle({
 }: ShapeProps<CircleShape>) {
   return (
     <>
-      <HoverIndicator as="circle" cx={radius} cy={radius} r={radius - 1} />
+      <HoverIndicator as="circle" cx={radius} cy={radius} r={radius} />
       <circle
         cx={radius}
         cy={radius}
-        r={radius - strokeWidth / 2}
+        r={radius}
         fill={fill}
         stroke={stroke}
         strokeWidth={strokeWidth}
       />
-      <Indicator as="circle" cx={radius} cy={radius} r={radius - 1} />
+      <Indicator as="circle" cx={radius} cy={radius} r={radius} />
     </>
   )
 }

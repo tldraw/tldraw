@@ -1,6 +1,6 @@
 import { RectangleShape, ShapeProps } from "types"
 import { HoverIndicator, Indicator } from "./indicator"
-import ShapeGroup from "./shape-g"
+import ShapeGroup from "./shape-group"
 
 function BaseRectangle({
   size,
@@ -10,29 +10,15 @@ function BaseRectangle({
 }: ShapeProps<RectangleShape>) {
   return (
     <>
-      <HoverIndicator
-        as="rect"
-        x={1}
-        y={1}
-        width={size[0] - 2}
-        height={size[1] - 2}
-      />
+      <HoverIndicator as="rect" width={size[0]} height={size[1]} />
       <rect
-        x={strokeWidth / 2}
-        y={strokeWidth / 2}
-        width={size[0] - strokeWidth}
-        height={size[1] - strokeWidth}
+        width={size[0]}
+        height={size[1]}
         fill={fill}
         stroke={stroke}
         strokeWidth={strokeWidth}
       />
-      <Indicator
-        as="rect"
-        x={1}
-        y={1}
-        width={size[0] - 2}
-        height={size[1] - 2}
-      />
+      <Indicator as="rect" width={size[0]} height={size[1]} />
     </>
   )
 }
