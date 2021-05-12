@@ -1,3 +1,5 @@
+import React from "react"
+
 export interface Data {
   camera: {
     point: number[]
@@ -26,7 +28,7 @@ export enum ShapeType {
   Ellipse = "ellipse",
   Line = "line",
   Ray = "ray",
-  Polyline = "Polyline",
+  Polyline = "polyline",
   Rectangle = "rectangle",
   // Glob = "glob",
   // Spline = "spline",
@@ -42,6 +44,7 @@ export interface BaseShape {
   name: string
   point: number[]
   rotation: 0
+  style: Partial<React.SVGProps<SVGUseElement>>
 }
 
 export interface DotShape extends BaseShape {
@@ -107,12 +110,6 @@ export interface Shapes extends Record<ShapeType, Shape> {
   [ShapeType.Rectangle]: RectangleShape
 }
 
-export interface BaseShapeStyles {
-  fill: string
-  stroke: string
-  strokeWidth: number
-}
-
 export type Difference<A, B> = A extends B ? never : A
 
 export type ShapeSpecificProps<T extends Shape> = Pick<
@@ -120,7 +117,15 @@ export type ShapeSpecificProps<T extends Shape> = Pick<
   Difference<keyof T, keyof BaseShape>
 >
 
-export type ShapeProps<T extends Shape> = Partial<BaseShapeStyles> &
-  ShapeSpecificProps<T> & { id?: Shape["id"] }
-
 export type ShapeIndicatorProps<T extends Shape> = ShapeSpecificProps<T>
+
+export type BaseLibShape<K extends ShapeType> = {
+  create(props: Partial<Shapes[K]>): Shapes[K]
+  getBounds(shape: Shapes[K]): Bounds
+  hitTest(shape: Shapes[K], test: number[]): boolean
+  rotate(shape: Shapes[K]): Shapes[K]
+  translate(shape: Shapes[K]): Shapes[K]
+  scale(shape: Shapes[K], scale: number): Shapes[K]
+  stretch(shape: Shapes[K], scaleX: number, scaleY: number): Shapes[K]
+  render(shape: Shapes[K]): JSX.Element
+}

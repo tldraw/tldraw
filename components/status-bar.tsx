@@ -12,7 +12,7 @@ export default function StatusBar() {
 
   return (
     <StatusBarContainer>
-      <States>{active.join(" | ")}</States>
+      <Section>{active.join(" | ")}</Section>
       <Section>| {log}</Section>
       <Section title="Renders | Time">
         {count} | {time.toString().padStart(3, "0")}
@@ -44,8 +44,6 @@ const Section = styled("div", {
   whiteSpace: "nowrap",
   overflow: "hidden",
 })
-
-const States = styled("div", {})
 
 function useRenderCount() {
   const rTime = useRef(Date.now())

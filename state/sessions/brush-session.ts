@@ -1,7 +1,7 @@
 import { current } from "immer"
-import { Bounds, Data, Shape, ShapeType } from "types"
+import { Bounds, Data, ShapeType } from "types"
 import BaseSession from "./base-session"
-import shapeUtils from "utils/shape-utils"
+import Shapes from "lib/shapes"
 import { getBoundsFromPoints } from "utils/utils"
 import * as vec from "utils/vec"
 import {
@@ -72,7 +72,7 @@ export default class BrushSession extends BaseSession {
         .map((shape) => {
           switch (shape.type) {
             case ShapeType.Dot: {
-              const bounds = shapeUtils[shape.type].getBounds(shape)
+              const bounds = Shapes[shape.type].getBounds(shape)
 
               return {
                 id: shape.id,
@@ -82,7 +82,7 @@ export default class BrushSession extends BaseSession {
               }
             }
             case ShapeType.Circle: {
-              const bounds = shapeUtils[shape.type].getBounds(shape)
+              const bounds = Shapes[shape.type].getBounds(shape)
 
               return {
                 id: shape.id,
@@ -96,7 +96,7 @@ export default class BrushSession extends BaseSession {
               }
             }
             case ShapeType.Rectangle: {
-              const bounds = shapeUtils[shape.type].getBounds(shape)
+              const bounds = Shapes[shape.type].getBounds(shape)
 
               return {
                 id: shape.id,
@@ -106,7 +106,7 @@ export default class BrushSession extends BaseSession {
               }
             }
             case ShapeType.Polyline: {
-              const bounds = shapeUtils[shape.type].getBounds(shape)
+              const bounds = Shapes[shape.type].getBounds(shape)
               const points = shape.points.map((point) =>
                 vec.add(point, shape.point)
               )

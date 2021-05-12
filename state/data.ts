@@ -1,4 +1,5 @@
 import { Data, ShapeType } from "types"
+import Shapes from "lib/shapes"
 
 export const defaultDocument: Data["document"] = {
   pages: {
@@ -8,31 +9,32 @@ export const defaultDocument: Data["document"] = {
       name: "Page 0",
       childIndex: 0,
       shapes: {
-        shape0: {
+        shape3: Shapes[ShapeType.Dot].create({
+          id: "shape3",
+          name: "Shape 3",
+          childIndex: 3,
+          point: [500, 100],
+          style: {
+            fill: "#aaa",
+            stroke: "#777",
+            strokeWidth: 1,
+          },
+        }),
+        shape0: Shapes[ShapeType.Circle].create({
           id: "shape0",
-          type: ShapeType.Circle,
           name: "Shape 0",
-          parentId: "page0",
           childIndex: 1,
           point: [100, 100],
           radius: 50,
-          rotation: 0,
-        },
-        shape1: {
-          id: "shape1",
-          type: ShapeType.Rectangle,
-          name: "Shape 1",
-          parentId: "page0",
-          childIndex: 1,
-          point: [300, 300],
-          size: [200, 200],
-          rotation: 0,
-        },
-        shape2: {
+          style: {
+            fill: "#aaa",
+            stroke: "#777",
+            strokeWidth: 1,
+          },
+        }),
+        shape2: Shapes[ShapeType.Polyline].create({
           id: "shape2",
-          type: ShapeType.Polyline,
           name: "Shape 2",
-          parentId: "page0",
           childIndex: 2,
           point: [200, 600],
           points: [
@@ -40,17 +42,24 @@ export const defaultDocument: Data["document"] = {
             [75, 200],
             [100, 50],
           ],
-          rotation: 0,
-        },
-        shape3: {
-          id: "shape3",
-          type: ShapeType.Dot,
-          name: "Shape 3",
-          parentId: "page0",
-          childIndex: 3,
-          point: [500, 100],
-          rotation: 0,
-        },
+          style: {
+            fill: "none",
+            stroke: "#777",
+            strokeWidth: 2,
+          },
+        }),
+        shape1: Shapes[ShapeType.Rectangle].create({
+          id: "shape1",
+          name: "Shape 1",
+          childIndex: 1,
+          point: [300, 300],
+          size: [200, 200],
+          style: {
+            fill: "#aaa",
+            stroke: "#777",
+            strokeWidth: 1,
+          },
+        }),
       },
     },
   },

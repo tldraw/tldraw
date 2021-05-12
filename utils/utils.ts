@@ -844,12 +844,14 @@ export async function postJsonToEndpoint(
   return await d.json()
 }
 
-export function getPointerEventInfo(e: React.PointerEvent | WheelEvent) {
+export function getPointerEventInfo(
+  e: PointerEvent | React.PointerEvent | WheelEvent
+) {
   const { shiftKey, ctrlKey, metaKey, altKey } = e
   return { point: [e.clientX, e.clientY], shiftKey, ctrlKey, metaKey, altKey }
 }
 
-export function getKeyboardEventInfo(e: React.KeyboardEvent | KeyboardEvent) {
+export function getKeyboardEventInfo(e: KeyboardEvent | React.KeyboardEvent) {
   const { shiftKey, ctrlKey, metaKey, altKey } = e
   return { key: e.key, shiftKey, ctrlKey, metaKey, altKey }
 }
