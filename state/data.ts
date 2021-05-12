@@ -46,6 +46,8 @@ export const defaultDocument: Data["document"] = {
             fill: "none",
             stroke: "#777",
             strokeWidth: 2,
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
           },
         }),
         shape1: Shapes[ShapeType.Rectangle].create({
