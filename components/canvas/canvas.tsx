@@ -6,6 +6,8 @@ import useCamera from "hooks/useCamera"
 import Page from "./page"
 import Brush from "./brush"
 import state from "state"
+import Bounds from "./bounds"
+import BoundsBg from "./bounds-bg"
 
 export default function Canvas() {
   const rCanvas = useRef<SVGSVGElement>(null)
@@ -37,7 +39,9 @@ export default function Canvas() {
       onPointerUp={handlePointerUp}
     >
       <MainGroup ref={rGroup}>
+        <BoundsBg />
         <Page />
+        <Bounds />
         <Brush />
       </MainGroup>
     </MainSVG>

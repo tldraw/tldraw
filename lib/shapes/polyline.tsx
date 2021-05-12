@@ -1,6 +1,7 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
 import { BaseLibShape, PolylineShape, ShapeType } from "types"
+import { boundsCache } from "./index"
 
 const Polyline: BaseLibShape<ShapeType.Polyline> = {
   create(props): PolylineShape {
@@ -23,6 +24,10 @@ const Polyline: BaseLibShape<ShapeType.Polyline> = {
   },
 
   getBounds(shape) {
+    if (boundsCache.has(shape)) {
+      return boundsCache.get(shape)
+    }
+
     let minX = 0
     let minY = 0
     let maxX = 0
@@ -35,7 +40,7 @@ const Polyline: BaseLibShape<ShapeType.Polyline> = {
       maxY = Math.max(y, maxY)
     }
 
-    return {
+    const bounds = {
       minX: minX + shape.point[0],
       minY: minY + shape.point[1],
       maxX: maxX + shape.point[0],
@@ -43,6 +48,9 @@ const Polyline: BaseLibShape<ShapeType.Polyline> = {
       width: maxX - minX,
       height: maxY - minY,
     }
+
+    boundsCache.set(shape, bounds)
+    return bounds
   },
 
   hitTest(shape) {

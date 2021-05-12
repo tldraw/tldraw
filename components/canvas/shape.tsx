@@ -1,19 +1,8 @@
-import React, { useCallback, useRef } from "react"
+import React, { useCallback, useRef, memo } from "react"
 import state, { useSelector } from "state"
-import styled from "styles"
 import { getPointerEventInfo } from "utils/utils"
-import { memo } from "react"
-import Shapes from "lib/shapes"
-
-/*
-Gets the shape from the current page's shapes, using the
-provided ID. Depending on the shape's type, return the
-component for that type.
-
-This component takes an SVG shape as its children. It handles
-events for the shape as well as provides indicators for hover
- and selected status
-*/
+import shapes from "lib/shapes"
+import styled from "styles"
 
 function Shape({ id }: { id: string }) {
   const rGroup = useRef<SVGGElement>(null)
@@ -66,7 +55,7 @@ function Shape({ id }: { id: string }) {
       onPointerLeave={handlePointerLeave}
     >
       <defs>
-        {Shapes[shape.type] ? Shapes[shape.type].render(shape) : null}
+        {shapes[shape.type] ? shapes[shape.type].render(shape) : null}
       </defs>
       <HoverIndicator as="use" xlinkHref={"#" + id} />
       <use xlinkHref={"#" + id} {...shape.style} />
@@ -78,7 +67,7 @@ function Shape({ id }: { id: string }) {
 const Indicator = styled("path", {
   fill: "none",
   stroke: "transparent",
-  strokeWidth: "max(1, calc(2 / var(--camera-zoom)))",
+  zStrokeWidth: 1,
   pointerEvents: "none",
   strokeLineCap: "round",
   strokeLinejoin: "round",
@@ -87,7 +76,7 @@ const Indicator = styled("path", {
 const HoverIndicator = styled("path", {
   fill: "none",
   stroke: "transparent",
-  strokeWidth: "max(1, calc(8 / var(--camera-zoom)))",
+  zStrokeWidth: 8,
   pointerEvents: "all",
   strokeLinecap: "round",
   strokeLinejoin: "round",

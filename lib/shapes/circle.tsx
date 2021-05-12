@@ -1,6 +1,7 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
 import { BaseLibShape, CircleShape, ShapeType } from "types"
+import { boundsCache } from "./index"
 
 const Circle: BaseLibShape<ShapeType.Circle> = {
   create(props): CircleShape {
@@ -23,19 +24,26 @@ const Circle: BaseLibShape<ShapeType.Circle> = {
   },
 
   getBounds(shape) {
+    if (boundsCache.has(shape)) {
+      return boundsCache.get(shape)
+    }
+
     const {
-      point: [cx, cy],
+      point: [x, y],
       radius,
     } = shape
 
-    return {
-      minX: cx,
-      maxX: cx + radius * 2,
-      minY: cy,
-      maxY: cy + radius * 2,
+    const bounds = {
+      minX: x,
+      maxX: x + radius * 2,
+      minY: y,
+      maxY: y + radius * 2,
       width: radius * 2,
       height: radius * 2,
     }
+
+    boundsCache.set(shape, bounds)
+    return bounds
   },
 
   hitTest(shape, test) {

@@ -1,6 +1,7 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
 import { BaseLibShape, RectangleShape, ShapeType } from "types"
+import { boundsCache } from "./index"
 
 const Rectangle: BaseLibShape<ShapeType.Rectangle> = {
   create(props): RectangleShape {
@@ -23,12 +24,16 @@ const Rectangle: BaseLibShape<ShapeType.Rectangle> = {
   },
 
   getBounds(shape) {
+    if (boundsCache.has(shape)) {
+      return boundsCache.get(shape)
+    }
+
     const {
       point: [x, y],
       size: [width, height],
     } = shape
 
-    return {
+    const bounds = {
       minX: x,
       maxX: x + width,
       minY: y,
@@ -36,6 +41,9 @@ const Rectangle: BaseLibShape<ShapeType.Rectangle> = {
       width,
       height,
     }
+
+    boundsCache.set(shape, bounds)
+    return bounds
   },
 
   hitTest(shape) {

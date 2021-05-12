@@ -3,11 +3,15 @@ import Dot from "./dot"
 import Polyline from "./polyline"
 import Rectangle from "./rectangle"
 
-import { ShapeType } from "types"
+import { Bounds, Shape, ShapeType } from "types"
 
-export default {
+export const boundsCache = new WeakMap<Shape, Bounds>([])
+
+const shapes = {
   [ShapeType.Circle]: Circle,
   [ShapeType.Dot]: Dot,
   [ShapeType.Polyline]: Polyline,
   [ShapeType.Rectangle]: Rectangle,
 }
+
+export default shapes

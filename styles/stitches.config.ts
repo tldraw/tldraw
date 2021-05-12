@@ -10,6 +10,8 @@ const { styled, global, css, theme, getCssString } = createCss({
       brushStroke: "rgba(0,0,0,.5)",
       hint: "rgba(66, 133, 244, 0.200)",
       selected: "rgba(66, 133, 244, 1.000)",
+      bounds: "rgba(65, 132, 244, 1.000)",
+      boundsBg: "rgba(65, 132, 244, 0.100)",
     },
     space: {},
     fontSizes: {
@@ -32,6 +34,11 @@ const { styled, global, css, theme, getCssString } = createCss({
     shadows: {},
     zIndices: {},
     transitions: {},
+  },
+  utils: {
+    zStrokeWidth: () => (value: number) => ({
+      strokeWidth: `calc(${value}px / var(--camera-zoom))`,
+    }),
   },
 })
 

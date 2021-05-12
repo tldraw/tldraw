@@ -1,6 +1,7 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
 import { BaseLibShape, DotShape, ShapeType } from "types"
+import { boundsCache } from "./index"
 
 const Dot: BaseLibShape<ShapeType.Dot> = {
   create(props): DotShape {
@@ -22,18 +23,25 @@ const Dot: BaseLibShape<ShapeType.Dot> = {
   },
 
   getBounds(shape) {
+    if (boundsCache.has(shape)) {
+      return boundsCache.get(shape)
+    }
+
     const {
-      point: [cx, cy],
+      point: [x, y],
     } = shape
 
-    return {
-      minX: cx,
-      maxX: cx + 4,
-      minY: cy,
-      maxY: cy + 4,
-      width: 4,
-      height: 4,
+    const bounds = {
+      minX: x,
+      maxX: x + 8,
+      minY: y,
+      maxY: y + 8,
+      width: 8,
+      height: 8,
     }
+
+    boundsCache.set(shape, bounds)
+    return bounds
   },
 
   hitTest(shape, test) {

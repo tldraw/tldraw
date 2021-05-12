@@ -1,8 +1,9 @@
 import { createSelectorHook, createState } from "@state-designer/react"
-import { clamp, screenToWorld } from "utils/utils"
+import { clamp, getCommonBounds, screenToWorld } from "utils/utils"
 import * as vec from "utils/vec"
-import { Data } from "types"
+import { Bounds, Data, Shape, ShapeType } from "types"
 import { defaultDocument } from "./data"
+import Shapes from "lib/shapes"
 import * as Sessions from "./sessions"
 
 const initialData: Data = {
@@ -130,6 +131,42 @@ const state = createState({
   values: {
     selectedIds(data) {
       return new Set(data.selectedIds)
+    },
+    selectedBounds(data) {
+      const {
+        selectedIds,
+        currentPageId,
+        document: { pages },
+      } = data
+
+      return getCommonBounds(
+        ...Array.from(selectedIds.values())
+          .map((id) => {
+            const shape = pages[currentPageId].shapes[id]
+
+            switch (shape.type) {
+              case ShapeType.Dot: {
+                return Shapes[shape.type].getBounds(shape)
+              }
+              case ShapeType.Circle: {
+                return Shapes[shape.type].getBounds(shape)
+              }
+              case ShapeType.Line: {
+                return Shapes[shape.type].getBounds(shape)
+              }
+              case ShapeType.Polyline: {
+                return Shapes[shape.type].getBounds(shape)
+              }
+              case ShapeType.Rectangle: {
+                return Shapes[shape.type].getBounds(shape)
+              }
+              default: {
+                return null
+              }
+            }
+          })
+          .filter(Boolean)
+      )
     },
   },
 })
