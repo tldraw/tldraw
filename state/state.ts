@@ -32,11 +32,23 @@ const state = createState({
     selecting: {
       on: {
         POINTED_CANVAS: { to: "brushSelecting" },
+        POINTED_SHAPE: [
+          "setPointedId",
+          {
+            if: "isPressingShiftKey",
+            then: {
+              if: "isPointedShapeSelected",
+              do: "pullPointedIdFromSelectedIds",
+              else: "pushPointedIdToSelectedIds",
+            },
+            else: ["clearSelectedIds", "pushPointedIdToSelectedIds"],
+          },
+        ],
       },
     },
     brushSelecting: {
       onEnter: [
-        { unless: "isPressingShiftKey", do: "clearSelection" },
+        { unless: "isPressingShiftKey", do: "clearSelectedIds" },
         "startBrushSession",
       ],
       on: {
@@ -48,6 +60,9 @@ const state = createState({
     },
   },
   conditions: {
+    isPointedShapeSelected(data) {
+      return data.selectedIds.includes(data.pointedId)
+    },
     isPressingShiftKey(data, payload: { shiftKey: boolean }) {
       return payload.shiftKey
     },
@@ -71,8 +86,21 @@ const state = createState({
       session.update(data, screenToWorld(payload.point, data))
     },
     // Selection
-    clearSelection(data) {
+    setPointedId(data, payload: { id: string }) {
+      data.pointedId = payload.id
+    },
+    clearPointedId(data) {
+      data.pointedId = undefined
+    },
+    clearSelectedIds(data) {
       data.selectedIds = []
+    },
+    pullPointedIdFromSelectedIds(data) {
+      const { selectedIds, pointedId } = data
+      selectedIds.splice(selectedIds.indexOf(pointedId, 1))
+    },
+    pushPointedIdToSelectedIds(data) {
+      data.selectedIds.push(data.pointedId)
     },
     // Camera
     zoomCamera(data, payload: { delta: number; point: number[] }) {

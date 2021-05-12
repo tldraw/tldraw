@@ -106,3 +106,19 @@ export interface Shapes extends Record<ShapeType, Shape> {
   [ShapeType.Polyline]: PolylineShape
   [ShapeType.Rectangle]: RectangleShape
 }
+
+export interface BaseShapeStyles {
+  fill: string
+  stroke: string
+  strokeWidth: number
+}
+
+export type Difference<A, B> = A extends B ? never : A
+
+export type ShapeSpecificProps<T extends Shape> = Pick<
+  T,
+  Difference<keyof T, keyof BaseShape>
+>
+
+export type ShapeProps<T extends Shape> = Partial<BaseShapeStyles> &
+  ShapeSpecificProps<T>

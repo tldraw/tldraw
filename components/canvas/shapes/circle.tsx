@@ -1,25 +1,18 @@
 import { useSelector } from "state"
-import { CircleShape } from "types"
+import { CircleShape, ShapeProps } from "types"
 import ShapeGroup from "./shape-g"
-
-interface BaseCircleProps extends Pick<CircleShape, "radius"> {
-  radius: number
-  fill?: string
-  stroke?: string
-  strokeWidth?: number
-}
 
 function BaseCircle({
   radius,
-  fill = "#ccc",
+  fill = "#999",
   stroke = "none",
   strokeWidth = 0,
-}: BaseCircleProps) {
+}: ShapeProps<CircleShape>) {
   return (
     <circle
-      cx={strokeWidth}
-      cy={strokeWidth}
-      r={radius - strokeWidth}
+      cx={radius}
+      cy={radius}
+      r={radius}
       fill={fill}
       stroke={stroke}
       strokeWidth={strokeWidth}

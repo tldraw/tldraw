@@ -1,20 +1,13 @@
 import { useSelector } from "state"
-import { RectangleShape } from "types"
+import { RectangleShape, ShapeProps } from "types"
 import ShapeGroup from "./shape-g"
-
-interface BaseRectangleProps extends Pick<RectangleShape, "size"> {
-  size: number[]
-  fill?: string
-  stroke?: string
-  strokeWidth?: number
-}
 
 function BaseRectangle({
   size,
-  fill = "#ccc",
+  fill = "#999",
   stroke = "none",
   strokeWidth = 0,
-}: BaseRectangleProps) {
+}: ShapeProps<RectangleShape>) {
   return (
     <rect
       x={strokeWidth}

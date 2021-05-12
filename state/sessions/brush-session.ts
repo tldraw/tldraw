@@ -82,8 +82,11 @@ export default class BrushSession extends BaseSession {
                 shape,
                 test: (brushBounds: Bounds) =>
                   boundsContained(bounds, brushBounds) ||
-                  intersectCircleBounds(shape.point, shape.radius, brushBounds)
-                    .length > 0,
+                  intersectCircleBounds(
+                    vec.addScalar(shape.point, shape.radius),
+                    shape.radius,
+                    brushBounds
+                  ).length > 0,
               }
             }
             case ShapeType.Rectangle: {

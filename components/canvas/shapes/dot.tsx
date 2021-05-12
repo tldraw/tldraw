@@ -1,18 +1,12 @@
 import { useSelector } from "state"
-import { DotShape } from "types"
+import { DotShape, ShapeProps } from "types"
 import ShapeGroup from "./shape-g"
 
-interface BaseCircleProps {
-  fill?: string
-  stroke?: string
-  strokeWidth?: number
-}
-
 function BaseDot({
-  fill = "#ccc",
+  fill = "#999",
   stroke = "none",
   strokeWidth = 0,
-}: BaseCircleProps) {
+}: ShapeProps<DotShape>) {
   return (
     <>
       <circle

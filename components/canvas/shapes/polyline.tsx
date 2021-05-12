@@ -1,26 +1,28 @@
 import { useSelector } from "state"
-import { PolylineShape } from "types"
+import { PolylineShape, ShapeProps } from "types"
 import ShapeGroup from "./shape-g"
-
-interface BasePolylineProps extends Pick<PolylineShape, "points"> {
-  fill?: string
-  stroke?: string
-  strokeWidth?: number
-}
 
 function BasePolyline({
   points,
   fill = "none",
-  stroke = "#ccc",
-  strokeWidth = 2,
-}: BasePolylineProps) {
+  stroke = "#999",
+  strokeWidth = 1,
+}: ShapeProps<PolylineShape>) {
   return (
-    <polyline
-      points={points.toString()}
-      fill={fill}
-      stroke={stroke}
-      strokeWidth={strokeWidth}
-    />
+    <>
+      <polyline
+        points={points.toString()}
+        fill="none"
+        stroke="transparent"
+        strokeWidth={12}
+      />
+      <polyline
+        points={points.toString()}
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={strokeWidth}
+      />
+    </>
   )
 }
 

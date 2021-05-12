@@ -27,12 +27,30 @@ export function add(A: number[], B: number[]) {
 }
 
 /**
+ * Add scalar to vector.
+ * @param A
+ * @param B
+ */
+export function addScalar(A: number[], n: number) {
+  return [A[0] + n, A[1] + n]
+}
+
+/**
  * Subtract vectors.
  * @param A
  * @param B
  */
 export function sub(A: number[], B: number[]) {
   return [A[0] - B[0], A[1] - B[1]]
+}
+
+/**
+ * Subtract scalar from vector.
+ * @param A
+ * @param B
+ */
+export function subScalar(A: number[], n: number) {
+  return [A[0] - n, A[1] - n]
 }
 
 /**
