@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react"
 import state from "state"
-import { getPointerEventInfo } from "utils/utils"
+import inputs from "state/inputs"
 import * as vec from "utils/vec"
 
 /**
@@ -24,14 +24,14 @@ export default function useZoomEvents(
       if (e.ctrlKey) {
         state.send("ZOOMED_CAMERA", {
           delta: e.deltaY,
-          ...getPointerEventInfo(e),
+          ...inputs.wheel(e),
         })
         return
       }
 
       state.send("PANNED_CAMERA", {
         delta: [e.deltaX, e.deltaY],
-        ...getPointerEventInfo(e),
+        ...inputs.wheel(e),
       })
     }
 

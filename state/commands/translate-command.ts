@@ -1,5 +1,5 @@
 import Command from "./command"
-import history from "./history"
+import history from "../history"
 import { TranslateSnapshot } from "state/sessions/translate-session"
 import { Data } from "types"
 

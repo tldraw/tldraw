@@ -1,5 +1,4 @@
 import styled from "styles"
-import { getPointerEventInfo } from "utils/utils"
 import React, { useCallback, useRef } from "react"
 import useZoomEvents from "hooks/useZoomEvents"
 import useCamera from "hooks/useCamera"

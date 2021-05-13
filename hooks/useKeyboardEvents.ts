@@ -1,12 +1,18 @@
 import { useEffect } from "react"
 import state from "state"
-import { getKeyboardEventInfo } from "utils/utils"
+import { getKeyboardEventInfo, isDarwin } from "utils/utils"
 
 export default function useKeyboardEvents() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         state.send("CANCELLED")
+      } else if (e.key === "z" && (isDarwin() ? e.metaKey : e.ctrlKey)) {
+        if (e.shiftKey) {
+          state.send("REDO")
+        } else {
+          state.send("UNDO")
+        }
       }
 
       state.send("PRESSED_KEY", getKeyboardEventInfo(e))

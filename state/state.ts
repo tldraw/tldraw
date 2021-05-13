@@ -4,6 +4,7 @@ import * as vec from "utils/vec"
 import { Bounds, Data, PointerInfo, Shape, ShapeType } from "types"
 import { defaultDocument } from "./data"
 import Shapes from "lib/shapes"
+import history from "state/history"
 import * as Sessions from "./sessions"
 
 const initialData: Data = {
@@ -32,6 +33,10 @@ const state = createState({
   initial: "selecting",
   states: {
     selecting: {
+      on: {
+        UNDO: { do: "undo" },
+        REDO: { do: "redo" },
+      },
       initial: "notPointing",
       states: {
         notPointing: {
@@ -118,6 +123,21 @@ const state = createState({
     },
   },
   actions: {
+    // History
+    enableHistory() {
+      history.enable()
+    },
+    disableHistory() {
+      history.disable()
+    },
+    undo(data) {
+      history.undo(data)
+    },
+    redo(data) {
+      history.redo(data)
+    },
+
+    // Sessions
     cancelSession(data) {
       session.cancel(data)
       session = undefined
@@ -126,6 +146,7 @@ const state = createState({
       session.complete(data)
       session = undefined
     },
+
     // Brushing
     startBrushSession(data, payload: { point: number[] }) {
       session = new Sessions.BrushSession(

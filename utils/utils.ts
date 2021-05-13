@@ -877,14 +877,17 @@ export async function postJsonToEndpoint(
   return await d.json()
 }
 
-export function getPointerEventInfo(
-  e: PointerEvent | React.PointerEvent | WheelEvent
-) {
-  const { shiftKey, ctrlKey, metaKey, altKey } = e
-  return { point: [e.clientX, e.clientY], shiftKey, ctrlKey, metaKey, altKey }
-}
-
 export function getKeyboardEventInfo(e: KeyboardEvent | React.KeyboardEvent) {
   const { shiftKey, ctrlKey, metaKey, altKey } = e
-  return { key: e.key, shiftKey, ctrlKey, metaKey, altKey }
+  return {
+    key: e.key,
+    shiftKey,
+    ctrlKey,
+    metaKey: isDarwin() ? metaKey : ctrlKey,
+    altKey,
+  }
+}
+
+export function isDarwin() {
+  return /Mac|iPod|iPhone|iPad/.test(window.navigator.platform)
 }

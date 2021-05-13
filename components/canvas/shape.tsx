@@ -1,6 +1,5 @@
 import React, { useCallback, useRef, memo } from "react"
 import state, { useSelector } from "state"
-import { getPointerEventInfo } from "utils/utils"
 import inputs from "state/inputs"
 import shapes from "lib/shapes"
 import styled from "styles"

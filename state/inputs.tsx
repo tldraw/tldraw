@@ -1,4 +1,5 @@
 import { PointerInfo } from "types"
+import { isDarwin } from "utils/utils"
 
 class Inputs {
   points: Record<string, PointerInfo> = {}
@@ -6,46 +7,66 @@ class Inputs {
   pointerDown(e: PointerEvent | React.PointerEvent) {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    this.points[e.pointerId] = {
+    const info = {
       pointerId: e.pointerId,
       origin: [e.clientX, e.clientY],
       point: [e.clientX, e.clientY],
       shiftKey,
       ctrlKey,
-      metaKey,
+      metaKey: isDarwin() ? metaKey : ctrlKey,
       altKey,
     }
 
-    return this.points[e.pointerId]
+    this.points[e.pointerId] = info
+
+    return info
   }
 
   pointerMove(e: PointerEvent | React.PointerEvent) {
-    if (this.points[e.pointerId]) {
-      this.points[e.pointerId].point = [e.clientX, e.clientY]
-      return this.points[e.pointerId]
-    }
-
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    return {
+    const prev = this.points[e.pointerId]
+
+    const info = {
       pointerId: e.pointerId,
-      origin: [e.clientX, e.clientY],
+      origin: prev?.origin || [e.clientX, e.clientY],
       point: [e.clientX, e.clientY],
       shiftKey,
       ctrlKey,
-      metaKey,
+      metaKey: isDarwin() ? metaKey : ctrlKey,
       altKey,
     }
+
+    if (this.points[e.pointerId]) {
+      this.points[e.pointerId] = info
+    }
+
+    return info
   }
 
   pointerUp(e: PointerEvent | React.PointerEvent) {
-    this.points[e.pointerId].point = [e.clientX, e.clientY]
+    const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    const info = this.points[e.pointerId]
+    const prev = this.points[e.pointerId]
+
+    const info = {
+      pointerId: e.pointerId,
+      origin: prev?.origin || [e.clientX, e.clientY],
+      point: [e.clientX, e.clientY],
+      shiftKey,
+      ctrlKey,
+      metaKey: isDarwin() ? metaKey : ctrlKey,
+      altKey,
+    }
 
     delete this.points[e.pointerId]
 
     return info
+  }
+
+  wheel(e: WheelEvent) {
+    const { shiftKey, ctrlKey, metaKey, altKey } = e
+    return { point: [e.clientX, e.clientY], shiftKey, ctrlKey, metaKey, altKey }
   }
 }
 

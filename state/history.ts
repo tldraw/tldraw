@@ -1,5 +1,5 @@
 import { Data } from "types"
-import { BaseCommand } from "./command"
+import { BaseCommand } from "./commands/command"
 
 // A singleton to manage history changes.
 
