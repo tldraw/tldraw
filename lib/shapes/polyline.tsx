@@ -1,10 +1,13 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
-import { BaseLibShape, PolylineShape, ShapeType } from "types"
+import { PolylineShape, ShapeType } from "types"
 import { boundsCache } from "./index"
+import { intersectPolylineBounds } from "utils/intersections"
+import { boundsCollide, boundsContained } from "utils/bounds"
+import { createShape } from "./base-shape"
 
-const Polyline: BaseLibShape<ShapeType.Polyline> = {
-  create(props): PolylineShape {
+const polyline = createShape<PolylineShape>({
+  create(props) {
     return {
       id: uuid(),
       type: ShapeType.Polyline,
@@ -57,6 +60,18 @@ const Polyline: BaseLibShape<ShapeType.Polyline> = {
     return true
   },
 
+  hitTestBounds(this, shape, bounds) {
+    const shapeBounds = this.getBounds(shape)
+    return (
+      boundsContained(shapeBounds, bounds) ||
+      (boundsCollide(shapeBounds, bounds) &&
+        intersectPolylineBounds(
+          shape.points.map((point) => vec.add(point, shape.point)),
+          bounds
+        ).length > 0)
+    )
+  },
+
   rotate(shape) {
     return shape
   },
@@ -73,6 +88,6 @@ const Polyline: BaseLibShape<ShapeType.Polyline> = {
   stretch(shape, scaleX: number, scaleY: number) {
     return shape
   },
-}
+})
 
-export default Polyline
+export default polyline

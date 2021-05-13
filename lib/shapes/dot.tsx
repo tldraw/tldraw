@@ -1,10 +1,13 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
-import { BaseLibShape, DotShape, ShapeType } from "types"
+import { DotShape, ShapeType } from "types"
 import { boundsCache } from "./index"
+import { boundsContained } from "utils/bounds"
+import { intersectCircleBounds } from "utils/intersections"
+import { createShape } from "./base-shape"
 
-const Dot: BaseLibShape<ShapeType.Dot> = {
-  create(props): DotShape {
+const dot = createShape<DotShape>({
+  create(props) {
     return {
       id: uuid(),
       type: ShapeType.Dot,
@@ -48,6 +51,14 @@ const Dot: BaseLibShape<ShapeType.Dot> = {
     return vec.dist(shape.point, test) < 4
   },
 
+  hitTestBounds(this, shape, brushBounds) {
+    const shapeBounds = this.getBounds(shape)
+    return (
+      boundsContained(shapeBounds, brushBounds) ||
+      intersectCircleBounds(shape.point, 4, brushBounds).length > 0
+    )
+  },
+
   rotate(shape) {
     return shape
   },
@@ -64,6 +75,6 @@ const Dot: BaseLibShape<ShapeType.Dot> = {
   stretch(shape, scaleX: number, scaleY: number) {
     return shape
   },
-}
+})
 
-export default Dot
+export default dot

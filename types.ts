@@ -44,7 +44,7 @@ export interface BaseShape {
   childIndex: number
   name: string
   point: number[]
-  rotation: 0
+  rotation: number
   style: Partial<React.SVGProps<SVGUseElement>>
 }
 
@@ -120,15 +120,16 @@ export type ShapeSpecificProps<T extends Shape> = Pick<
 
 export type ShapeIndicatorProps<T extends Shape> = ShapeSpecificProps<T>
 
-export type BaseLibShape<K extends ShapeType> = {
-  create(props: Partial<Shapes[K]>): Shapes[K]
-  getBounds(shape: Shapes[K]): Bounds
-  hitTest(shape: Shapes[K], test: number[]): boolean
-  rotate(shape: Shapes[K]): Shapes[K]
-  translate(shape: Shapes[K], delta: number[]): Shapes[K]
-  scale(shape: Shapes[K], scale: number): Shapes[K]
-  stretch(shape: Shapes[K], scaleX: number, scaleY: number): Shapes[K]
-  render(shape: Shapes[K]): JSX.Element
+export type BaseLibShape<K extends Shape> = {
+  create(props: Partial<K>): K
+  getBounds(shape: K): Bounds
+  hitTest(shape: K, test: number[]): boolean
+  hitTestBounds(shape: K, bounds: Bounds): boolean
+  rotate(shape: K): K
+  translate(shape: K, delta: number[]): K
+  scale(shape: K, scale: number): K
+  stretch(shape: K, scaleX: number, scaleY: number): K
+  render(shape: K): JSX.Element
 }
 
 export interface PointerInfo {

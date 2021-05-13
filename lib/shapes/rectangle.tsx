@@ -1,10 +1,12 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
-import { BaseLibShape, RectangleShape, ShapeType } from "types"
+import { RectangleShape, ShapeType } from "types"
 import { boundsCache } from "./index"
+import { boundsContained, boundsCollide } from "utils/bounds"
+import { createShape } from "./base-shape"
 
-const Rectangle: BaseLibShape<ShapeType.Rectangle> = {
-  create(props): RectangleShape {
+const rectangle = createShape<RectangleShape>({
+  create(props) {
     return {
       id: uuid(),
       type: ShapeType.Rectangle,
@@ -50,6 +52,14 @@ const Rectangle: BaseLibShape<ShapeType.Rectangle> = {
     return true
   },
 
+  hitTestBounds(shape, brushBounds) {
+    const shapeBounds = this.getBounds(shape)
+    return (
+      boundsContained(shapeBounds, brushBounds) ||
+      boundsCollide(shapeBounds, brushBounds)
+    )
+  },
+
   rotate(shape) {
     return shape
   },
@@ -59,13 +69,13 @@ const Rectangle: BaseLibShape<ShapeType.Rectangle> = {
     return shape
   },
 
-  scale(shape, scale: number) {
+  scale(shape, scale) {
     return shape
   },
 
-  stretch(shape, scaleX: number, scaleY: number) {
+  stretch(shape, scaleX, scaleY) {
     return shape
   },
-}
+})
 
-export default Rectangle
+export default rectangle

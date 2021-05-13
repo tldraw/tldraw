@@ -12,6 +12,9 @@ const shapes = {
   [ShapeType.Dot]: Dot,
   [ShapeType.Polyline]: Polyline,
   [ShapeType.Rectangle]: Rectangle,
+  [ShapeType.Ellipse]: Rectangle,
+  [ShapeType.Line]: Rectangle,
+  [ShapeType.Ray]: Rectangle,
 }
 
 export default shapes

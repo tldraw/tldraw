@@ -1,10 +1,13 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
-import { BaseLibShape, CircleShape, ShapeType } from "types"
+import { CircleShape, ShapeType } from "types"
 import { boundsCache } from "./index"
+import { boundsContained } from "utils/bounds"
+import { intersectCircleBounds } from "utils/intersections"
+import { createShape } from "./base-shape"
 
-const Circle: BaseLibShape<ShapeType.Circle> = {
-  create(props): CircleShape {
+const circle = createShape<CircleShape>({
+  create(props) {
     return {
       id: uuid(),
       type: ShapeType.Circle,
@@ -52,6 +55,19 @@ const Circle: BaseLibShape<ShapeType.Circle> = {
     )
   },
 
+  hitTestBounds(shape, bounds) {
+    const shapeBounds = this.getBounds(shape)
+
+    return (
+      boundsContained(shapeBounds, bounds) ||
+      intersectCircleBounds(
+        vec.addScalar(shape.point, shape.radius),
+        shape.radius,
+        bounds
+      ).length > 0
+    )
+  },
+
   rotate(shape) {
     return shape
   },
@@ -61,13 +77,13 @@ const Circle: BaseLibShape<ShapeType.Circle> = {
     return shape
   },
 
-  scale(shape, scale: number) {
+  scale(shape, scale) {
     return shape
   },
 
-  stretch(shape, scaleX: number, scaleY: number) {
+  stretch(shape, scaleX, scaleY) {
     return shape
   },
-}
+})
 
-export default Circle
+export default circle
