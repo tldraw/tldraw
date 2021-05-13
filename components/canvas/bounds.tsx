@@ -2,11 +2,12 @@ import state, { useSelector } from "state"
 import { motion } from "framer-motion"
 import styled from "styles"
 import inputs from "state/inputs"
+import { useRef } from "react"
 
 export default function Bounds() {
+  const zoom = useSelector((state) => state.data.camera.zoom)
   const bounds = useSelector((state) => state.values.selectedBounds)
   const isBrushing = useSelector((state) => state.isIn("brushSelecting"))
-  const zoom = useSelector((state) => state.data.camera.zoom)
 
   if (!bounds) return null
 
@@ -29,97 +30,61 @@ export default function Bounds() {
           <Corner
             x={minX}
             y={minY}
-            corner={0}
             width={cp}
             height={cp}
-            cursor="nwse-resize"
+            corner="top_left_corner"
           />
           <Corner
             x={maxX}
             y={minY}
-            corner={1}
             width={cp}
             height={cp}
-            cursor="nesw-resize"
+            corner="top_right_corner"
           />
           <Corner
             x={maxX}
             y={maxY}
-            corner={2}
             width={cp}
             height={cp}
-            cursor="nwse-resize"
+            corner="bottom_right_corner"
           />
           <Corner
             x={minX}
             y={maxY}
-            corner={3}
             width={cp}
             height={cp}
-            cursor="nesw-resize"
+            corner="bottom_left_corner"
+          />
+          <EdgeHorizontal
+            x={minX + p}
+            y={minY}
+            width={Math.max(0, width - p * 2)}
+            height={p}
+            edge="top_edge"
+          />
+          <EdgeVertical
+            x={maxX}
+            y={minY + p}
+            width={p}
+            height={Math.max(0, height - p * 2)}
+            edge="right_edge"
+          />
+          <EdgeHorizontal
+            x={minX + p}
+            y={maxY}
+            width={Math.max(0, width - p * 2)}
+            height={p}
+            edge="bottom_edge"
+          />
+          <EdgeVertical
+            x={minX}
+            y={minY + p}
+            width={p}
+            height={Math.max(0, height - p * 2)}
+            edge="left_edge"
           />
         </>
       )}
-      <EdgeHorizontal
-        x={minX + p}
-        y={minY}
-        width={Math.max(0, width - p * 2)}
-        height={p}
-        onSelect={(e) => {
-          e.stopPropagation()
-          if (e.buttons !== 1) return
-          state.send("POINTED_BOUNDS_EDGE", {
-            edge: 0,
-            ...inputs.pointerDown(e),
-          })
-          document.body.style.cursor = "ns-resize"
-        }}
-      />
-      <EdgeVertical
-        x={maxX}
-        y={minY + p}
-        width={p}
-        height={Math.max(0, height - p * 2)}
-        onSelect={(e) => {
-          e.stopPropagation()
-          if (e.buttons !== 1) return
-          state.send("POINTED_BOUNDS_EDGE", {
-            edge: 1,
-            ...inputs.pointerDown(e),
-          })
-          document.body.style.cursor = "ew-resize"
-        }}
-      />
-      <EdgeHorizontal
-        x={minX + p}
-        y={maxY}
-        width={Math.max(0, width - p * 2)}
-        height={p}
-        onSelect={(e) => {
-          e.stopPropagation()
-          if (e.buttons !== 1) return
-          state.send("POINTED_BOUNDS_EDGE", {
-            edge: 2,
-            ...inputs.pointerDown(e),
-          })
-          document.body.style.cursor = "ns-resize"
-        }}
-      />
-      <EdgeVertical
-        x={minX}
-        y={minY + p}
-        width={p}
-        height={Math.max(0, height - p * 2)}
-        onSelect={(e) => {
-          e.stopPropagation()
-          if (e.buttons !== 1) return
-          state.send("POINTED_BOUNDS_EDGE", {
-            edge: 3,
-            ...inputs.pointerDown(e),
-          })
-          document.body.style.cursor = "ew-resize"
-        }}
-      />
     </g>
   )
 }
@@ -129,59 +94,62 @@ function Corner({
   y,
   width,
   height,
-  cursor,
-  onHover,
   corner,
 }: {
   x: number
   y: number
   width: number
   height: number
-  cursor: string
-  corner: number
-  onHover?: () => void
+  corner:
+    | "top_left_corner"
+    | "top_right_corner"
+    | "bottom_right_corner"
+    | "bottom_left_corner"
 }) {
-  const isTop = corner === 0 || corner === 1
-  const isLeft = corner === 0 || corner === 3
+  const rRotateCorner = useRef<SVGRectElement>(null)
+  const rCorner = useRef<SVGRectElement>(null)
+
+  const isTop = corner.includes("top")
+  const isLeft = corner.includes("bottom")
+
   return (
     <g>
-      <motion.rect
-        x={x + width * (isLeft ? -1.25 : -0.5)} // + width * 2 * transformOffset[0]}
-        y={y + width * (isTop ? -1.25 : -0.5)} // + height * 2 * transformOffset[1]}
+      <StyledRotateCorner
+        ref={rRotateCorner}
+        x={x + width * (isLeft ? -1.25 : -0.5)}
+        y={y + width * (isTop ? -1.25 : -0.5)}
         width={width * 1.75}
         height={height * 1.75}
-        onPanEnd={restoreCursor}
-        onTap={restoreCursor}
         onPointerDown={(e) => {
           e.stopPropagation()
-          if (e.buttons !== 1) return
-          state.send("POINTED_ROTATE_CORNER", {
-            corner,
-            ...inputs.pointerDown(e),
-          })
-          document.body.style.cursor = "grabbing"
+          rRotateCorner.current.setPointerCapture(e.pointerId)
+          state.send("POINTED_ROTATE_CORNER", inputs.pointerDown(e, corner))
         }}
-        style={{ cursor: "grab" }}
-        fill="transparent"
+        onPointerUp={(e) => {
+          e.stopPropagation()
+          rRotateCorner.current.releasePointerCapture(e.pointerId)
+          rRotateCorner.current.replaceWith(rRotateCorner.current)
+          state.send("STOPPED_POINTING", inputs.pointerDown(e, corner))
+        }}
       />
       <StyledCorner
+        ref={rCorner}
         x={x + width * -0.5}
         y={y + height * -0.5}
         width={width}
         height={height}
-        onPointerEnter={onHover}
+        corner={corner}
         onPointerDown={(e) => {
           e.stopPropagation()
-          if (e.buttons !== 1) return
-          state.send("POINTED_BOUNDS_CORNER", {
-            corner,
-            ...inputs.pointerDown(e),
-          })
-          document.body.style.cursor = "nesw-resize"
+          rCorner.current.setPointerCapture(e.pointerId)
+          state.send("POINTED_BOUNDS_CORNER", inputs.pointerDown(e, corner))
         }}
-        onPanEnd={restoreCursor}
-        onTap={restoreCursor}
-        style={{ cursor }}
+        onPointerUp={(e) => {
+          e.stopPropagation()
+          rCorner.current.releasePointerCapture(e.pointerId)
+          rCorner.current.replaceWith(rCorner.current)
+          state.send("STOPPED_POINTING", inputs.pointerDown(e, corner))
+        }}
       />
     </g>
   )
@@ -192,28 +160,36 @@ function EdgeHorizontal({
   y,
   width,
   height,
-  onHover,
-  onSelect,
+  edge,
 }: {
   x: number
   y: number
   width: number
   height: number
-  onHover?: () => void
-  onSelect?: (e: React.PointerEvent) => void
+  edge: "top_edge" | "bottom_edge"
 }) {
+  const rEdge = useRef<SVGRectElement>(null)
+
   return (
     <StyledEdge
+      ref={rEdge}
       x={x}
       y={y - height / 2}
       width={width}
       height={height}
-      onPointerEnter={onHover}
-      onPointerDown={onSelect}
-      onPanEnd={restoreCursor}
-      onTap={restoreCursor}
-      style={{ cursor: "ns-resize" }}
-      direction="horizontal"
+      onPointerDown={(e) => {
+        e.stopPropagation()
+        rEdge.current.setPointerCapture(e.pointerId)
+        state.send("POINTED_BOUNDS_EDGE", inputs.pointerDown(e, edge))
+      }}
+      onPointerUp={(e) => {
+        e.stopPropagation()
+        e.preventDefault()
+        state.send("STOPPED_POINTING", inputs.pointerUp(e))
+        rEdge.current.releasePointerCapture(e.pointerId)
+        rEdge.current.replaceWith(rEdge.current)
+      }}
+      edge={edge}
     />
   )
 }
@@ -223,27 +199,35 @@ function EdgeVertical({
   y,
   width,
   height,
-  onHover,
-  onSelect,
+  edge,
 }: {
   x: number
   y: number
   width: number
   height: number
-  onHover?: () => void
-  onSelect?: (e: React.PointerEvent) => void
+  edge: "right_edge" | "left_edge"
 }) {
+  const rEdge = useRef<SVGRectElement>(null)
+
   return (
     <StyledEdge
+      ref={rEdge}
       x={x - width / 2}
       y={y}
       width={width}
       height={height}
-      onPointerEnter={onHover}
-      onPointerDown={onSelect}
-      onPanEnd={restoreCursor}
-      onTap={restoreCursor}
-      direction="vertical"
+      onPointerDown={(e) => {
+        e.stopPropagation()
+        state.send("POINTED_BOUNDS_EDGE", inputs.pointerDown(e, edge))
+        rEdge.current.setPointerCapture(e.pointerId)
+      }}
+      onPointerUp={(e) => {
+        e.stopPropagation()
+        state.send("STOPPED_POINTING", inputs.pointerUp(e))
+        rEdge.current.releasePointerCapture(e.pointerId)
+        rEdge.current.replaceWith(rEdge.current)
+      }}
+      edge={edge}
     />
   )
 }
@@ -253,25 +237,40 @@ function restoreCursor(e: PointerEvent) {
   document.body.style.cursor = "default"
 }
 
-const StyledEdge = styled(motion.rect, {
+const StyledEdge = styled("rect", {
   stroke: "none",
   fill: "none",
-  variant: {
-    direction: {
-      horizontal: { cursor: "ns-resize" },
-      vertical: { cursor: "ew-resize" },
+  variants: {
+    edge: {
+      bottom_edge: { cursor: "ns-resize" },
+      right_edge: { cursor: "ew-resize" },
+      top_edge: { cursor: "ns-resize" },
+      left_edge: { cursor: "ew-resize" },
     },
   },
 })
 
-const StyledCorner = styled(motion.rect, {
+const StyledCorner = styled("rect", {
   stroke: "$bounds",
   fill: "#fff",
   zStrokeWidth: 2,
+  variants: {
+    corner: {
+      top_left_corner: { cursor: "nwse-resize" },
+      top_right_corner: { cursor: "nesw-resize" },
+      bottom_right_corner: { cursor: "nwse-resize" },
+      bottom_left_corner: { cursor: "nesw-resize" },
+    },
+  },
 })
 
 const StyledBounds = styled("rect", {
   fill: "none",
   stroke: "$bounds",
   zStrokeWidth: 2,
+})
+
+const StyledRotateCorner = styled("rect", {
+  cursor: "grab",
+  fill: "transparent",
 })

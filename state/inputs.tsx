@@ -4,10 +4,11 @@ import { isDarwin } from "utils/utils"
 class Inputs {
   points: Record<string, PointerInfo> = {}
 
-  pointerDown(e: PointerEvent | React.PointerEvent) {
+  pointerDown(e: PointerEvent | React.PointerEvent, target: string) {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     const info = {
+      target,
       pointerId: e.pointerId,
       origin: [e.clientX, e.clientY],
       point: [e.clientX, e.clientY],
@@ -28,8 +29,8 @@ class Inputs {
     const prev = this.points[e.pointerId]
 
     const info = {
+      ...prev,
       pointerId: e.pointerId,
-      origin: prev?.origin || [e.clientX, e.clientY],
       point: [e.clientX, e.clientY],
       shiftKey,
       ctrlKey,
@@ -50,7 +51,7 @@ class Inputs {
     const prev = this.points[e.pointerId]
 
     const info = {
-      pointerId: e.pointerId,
+      ...prev,
       origin: prev?.origin || [e.clientX, e.clientY],
       point: [e.clientX, e.clientY],
       shiftKey,

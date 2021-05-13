@@ -36,9 +36,23 @@ const { styled, global, css, theme, getCssString } = createCss({
     transitions: {},
   },
   utils: {
-    zStrokeWidth: () => (value: number) => ({
-      strokeWidth: `calc(${value}px / var(--camera-zoom))`,
-    }),
+    zStrokeWidth: () => (value: number | number[]) => {
+      if (Array.isArray(value)) {
+        const [val, min, max] = value
+        return {
+          strokeWidth:
+            min !== undefined && max !== undefined
+              ? `clamp(${min}, ${val} / var(--camera-zoom), ${max})`
+              : min !== undefined
+              ? `max(${min}, ${val} / var(--camera-zoom))`
+              : `calc(${val} / var(--camera-zoom))`,
+        }
+      }
+
+      return {
+        strokeWidth: `calc(${value} / var(--camera-zoom))`,
+      }
+    },
   },
 })
 

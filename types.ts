@@ -132,6 +132,7 @@ export type BaseLibShape<K extends ShapeType> = {
 }
 
 export interface PointerInfo {
+  target: string
   pointerId: number
   origin: number[]
   point: number[]

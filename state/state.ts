@@ -72,7 +72,7 @@ const state = createState({
           on: {
             STOPPED_POINTING: [
               {
-                unless: "isPressingShiftKey",
+                unless: ["isPointingBounds", "isPressingShiftKey"],
                 do: ["clearSelectedIds", "pushPointedIdToSelectedIds"],
               },
               { to: "notPointing" },
@@ -109,6 +109,9 @@ const state = createState({
     },
   },
   conditions: {
+    isPointingBounds(data, payload: PointerInfo) {
+      return payload.target === "bounds"
+    },
     isReadOnly(data) {
       return data.isReadOnly
     },
@@ -148,29 +151,29 @@ const state = createState({
     },
 
     // Brushing
-    startBrushSession(data, payload: { point: number[] }) {
+    startBrushSession(data, payload: PointerInfo) {
       session = new Sessions.BrushSession(
         data,
         screenToWorld(payload.point, data)
       )
     },
-    updateBrushSession(data, payload: { point: number[] }) {
+    updateBrushSession(data, payload: PointerInfo) {
       session.update(data, screenToWorld(payload.point, data))
     },
     // Dragging / Translating
-    startTranslateSession(data, payload: { point: number[] }) {
+    startTranslateSession(data, payload: PointerInfo) {
       session = new Sessions.TranslateSession(
         data,
         screenToWorld(payload.point, data)
       )
     },
-    updateTranslateSession(data, payload: { point: number[] }) {
+    updateTranslateSession(data, payload: PointerInfo) {
       session.update(data, screenToWorld(payload.point, data))
     },
 
     // Selection
-    setPointedId(data, payload: { id: string }) {
-      data.pointedId = payload.id
+    setPointedId(data, payload: PointerInfo) {
+      data.pointedId = payload.target
     },
     clearPointedId(data) {
       data.pointedId = undefined

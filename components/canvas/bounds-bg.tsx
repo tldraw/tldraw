@@ -20,8 +20,9 @@ export default function BoundsBg() {
       height={height}
       onPointerDown={(e) => {
         if (e.buttons !== 1) return
+        e.stopPropagation()
         rBounds.current.setPointerCapture(e.pointerId)
-        state.send("POINTED_BOUNDS", inputs.pointerDown(e))
+        state.send("POINTED_BOUNDS", inputs.pointerDown(e, "bounds"))
       }}
     />
   )

@@ -18,7 +18,7 @@ export default function Canvas() {
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     rCanvas.current.setPointerCapture(e.pointerId)
-    state.send("POINTED_CANVAS", inputs.pointerDown(e))
+    state.send("POINTED_CANVAS", inputs.pointerDown(e, "canvas"))
   }, [])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {

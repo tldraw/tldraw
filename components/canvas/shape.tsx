@@ -7,10 +7,10 @@ import styled from "styles"
 function Shape({ id }: { id: string }) {
   const rGroup = useRef<SVGGElement>(null)
 
-  const shape = useSelector((state) => {
-    const { currentPageId, document } = state.data
-    return document.pages[currentPageId].shapes[id]
-  })
+  const shape = useSelector(
+    ({ data: { currentPageId, document } }) =>
+      document.pages[currentPageId].shapes[id]
+  )
 
   const isSelected = useSelector((state) => state.values.selectedIds.has(id))
 
@@ -18,7 +18,7 @@ function Shape({ id }: { id: string }) {
     (e: React.PointerEvent) => {
       e.stopPropagation()
       rGroup.current.setPointerCapture(e.pointerId)
-      state.send("POINTED_SHAPE", { id, ...inputs.pointerDown(e) })
+      state.send("POINTED_SHAPE", inputs.pointerDown(e, id))
     },
     [id]
   )
@@ -27,7 +27,7 @@ function Shape({ id }: { id: string }) {
     (e: React.PointerEvent) => {
       e.stopPropagation()
       rGroup.current.releasePointerCapture(e.pointerId)
-      state.send("STOPPED_POINTING", { id, ...inputs.pointerUp(e) })
+      state.send("STOPPED_POINTING", inputs.pointerUp(e))
     },
     [id]
   )
@@ -74,7 +74,7 @@ const Indicator = styled("path", {
 const HoverIndicator = styled("path", {
   fill: "none",
   stroke: "transparent",
-  zStrokeWidth: 8,
+  zStrokeWidth: [8, 4],
   pointerEvents: "all",
   strokeLinecap: "round",
   strokeLinejoin: "round",
