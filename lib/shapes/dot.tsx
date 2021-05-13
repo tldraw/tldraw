@@ -52,7 +52,8 @@ const Dot: BaseLibShape<ShapeType.Dot> = {
     return shape
   },
 
-  translate(shape) {
+  translate(shape, delta) {
+    shape.point = vec.add(shape.point, delta)
     return shape
   },
 

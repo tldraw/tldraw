@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, memo } from "react"
 import state, { useSelector } from "state"
 import { getPointerEventInfo } from "utils/utils"
+import inputs from "state/inputs"
 import shapes from "lib/shapes"
 import styled from "styles"
 
@@ -18,7 +19,7 @@ function Shape({ id }: { id: string }) {
     (e: React.PointerEvent) => {
       e.stopPropagation()
       rGroup.current.setPointerCapture(e.pointerId)
-      state.send("POINTED_SHAPE", { id, ...getPointerEventInfo(e) })
+      state.send("POINTED_SHAPE", { id, ...inputs.pointerDown(e) })
     },
     [id]
   )
@@ -27,20 +28,18 @@ function Shape({ id }: { id: string }) {
     (e: React.PointerEvent) => {
       e.stopPropagation()
       rGroup.current.releasePointerCapture(e.pointerId)
-      state.send("STOPPED_POINTING_SHAPE", { id, ...getPointerEventInfo(e) })
+      state.send("STOPPED_POINTING", { id, ...inputs.pointerUp(e) })
     },
     [id]
   )
 
   const handlePointerEnter = useCallback(
-    (e: React.PointerEvent) =>
-      state.send("HOVERED_SHAPE", { id, ...getPointerEventInfo(e) }),
+    (e: React.PointerEvent) => state.send("HOVERED_SHAPE", { id }),
     [id]
   )
 
   const handlePointerLeave = useCallback(
-    (e: React.PointerEvent) =>
-      state.send("UNHOVERED_SHAPE", { id, ...getPointerEventInfo(e) }),
+    (e: React.PointerEvent) => state.send("UNHOVERED_SHAPE", { id }),
     [id]
   )
 

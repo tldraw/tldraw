@@ -61,7 +61,8 @@ const Polyline: BaseLibShape<ShapeType.Polyline> = {
     return shape
   },
 
-  translate(shape) {
+  translate(shape, delta) {
+    shape.point = vec.add(shape.point, delta)
     return shape
   },
 

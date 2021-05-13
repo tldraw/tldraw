@@ -8,6 +8,7 @@ import Brush from "./brush"
 import state from "state"
 import Bounds from "./bounds"
 import BoundsBg from "./bounds-bg"
+import inputs from "state/inputs"
 
 export default function Canvas() {
   const rCanvas = useRef<SVGSVGElement>(null)
@@ -18,16 +19,16 @@ export default function Canvas() {
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     rCanvas.current.setPointerCapture(e.pointerId)
-    state.send("POINTED_CANVAS", getPointerEventInfo(e))
+    state.send("POINTED_CANVAS", inputs.pointerDown(e))
   }, [])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    state.send("MOVED_POINTER", getPointerEventInfo(e))
+    state.send("MOVED_POINTER", inputs.pointerMove(e))
   }, [])
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     rCanvas.current.releasePointerCapture(e.pointerId)
-    state.send("STOPPED_POINTING", getPointerEventInfo(e))
+    state.send("STOPPED_POINTING", { id: "canvas", ...inputs.pointerUp(e) })
   }, [])
 
   return (

@@ -1,6 +1,7 @@
 import React from "react"
 
 export interface Data {
+  isReadOnly: boolean
   camera: {
     point: number[]
     zoom: number
@@ -124,8 +125,18 @@ export type BaseLibShape<K extends ShapeType> = {
   getBounds(shape: Shapes[K]): Bounds
   hitTest(shape: Shapes[K], test: number[]): boolean
   rotate(shape: Shapes[K]): Shapes[K]
-  translate(shape: Shapes[K]): Shapes[K]
+  translate(shape: Shapes[K], delta: number[]): Shapes[K]
   scale(shape: Shapes[K], scale: number): Shapes[K]
   stretch(shape: Shapes[K], scaleX: number, scaleY: number): Shapes[K]
   render(shape: Shapes[K]): JSX.Element
+}
+
+export interface PointerInfo {
+  pointerId: number
+  origin: number[]
+  point: number[]
+  shiftKey: boolean
+  ctrlKey: boolean
+  metaKey: boolean
+  altKey: boolean
 }

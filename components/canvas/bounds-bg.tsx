@@ -1,7 +1,10 @@
+import { useRef } from "react"
 import state, { useSelector } from "state"
+import inputs from "state/inputs"
 import styled from "styles"
 
 export default function BoundsBg() {
+  const rBounds = useRef<SVGRectElement>(null)
   const bounds = useSelector((state) => state.values.selectedBounds)
 
   if (!bounds) return null
@@ -10,19 +13,15 @@ export default function BoundsBg() {
 
   return (
     <StyledBoundsBg
+      ref={rBounds}
       x={minX}
       y={minY}
       width={width}
       height={height}
       onPointerDown={(e) => {
         if (e.buttons !== 1) return
-        state.send("POINTED_BOUNDS", {
-          shiftKey: e.shiftKey,
-          optionKey: e.altKey,
-          metaKey: e.metaKey || e.ctrlKey,
-          ctrlKey: e.ctrlKey,
-          buttons: e.buttons,
-        })
+        rBounds.current.setPointerCapture(e.pointerId)
+        state.send("POINTED_BOUNDS", inputs.pointerDown(e))
       }}
     />
   )

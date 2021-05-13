@@ -56,7 +56,8 @@ const Circle: BaseLibShape<ShapeType.Circle> = {
     return shape
   },
 
-  translate(shape) {
+  translate(shape, delta) {
+    shape.point = vec.add(shape.point, delta)
     return shape
   },
 

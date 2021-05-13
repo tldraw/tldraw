@@ -1,6 +1,7 @@
 import state, { useSelector } from "state"
 import { motion } from "framer-motion"
 import styled from "styles"
+import inputs from "state/inputs"
 
 export default function Bounds() {
   const bounds = useSelector((state) => state.values.selectedBounds)
@@ -23,38 +24,42 @@ export default function Bounds() {
         height={height}
         pointerEvents="none"
       />
-      <Corner
-        x={minX}
-        y={minY}
-        corner={0}
-        width={cp}
-        height={cp}
-        cursor="nwse-resize"
-      />
-      <Corner
-        x={maxX}
-        y={minY}
-        corner={1}
-        width={cp}
-        height={cp}
-        cursor="nesw-resize"
-      />
-      <Corner
-        x={maxX}
-        y={maxY}
-        corner={2}
-        width={cp}
-        height={cp}
-        cursor="nwse-resize"
-      />
-      <Corner
-        x={minX}
-        y={maxY}
-        corner={3}
-        width={cp}
-        height={cp}
-        cursor="nesw-resize"
-      />
+      {width * zoom > 8 && (
+        <>
+          <Corner
+            x={minX}
+            y={minY}
+            corner={0}
+            width={cp}
+            height={cp}
+            cursor="nwse-resize"
+          />
+          <Corner
+            x={maxX}
+            y={minY}
+            corner={1}
+            width={cp}
+            height={cp}
+            cursor="nesw-resize"
+          />
+          <Corner
+            x={maxX}
+            y={maxY}
+            corner={2}
+            width={cp}
+            height={cp}
+            cursor="nwse-resize"
+          />
+          <Corner
+            x={minX}
+            y={maxY}
+            corner={3}
+            width={cp}
+            height={cp}
+            cursor="nesw-resize"
+          />
+        </>
+      )}
       <EdgeHorizontal
         x={minX + p}
         y={minY}
@@ -65,11 +70,7 @@ export default function Bounds() {
           if (e.buttons !== 1) return
           state.send("POINTED_BOUNDS_EDGE", {
             edge: 0,
-            shiftKey: e.shiftKey,
-            optionKey: e.altKey,
-            metaKey: e.metaKey,
-            ctrlKey: e.ctrlKey,
-            buttons: e.buttons,
+            ...inputs.pointerDown(e),
           })
           document.body.style.cursor = "ns-resize"
         }}
@@ -84,11 +85,7 @@ export default function Bounds() {
           if (e.buttons !== 1) return
           state.send("POINTED_BOUNDS_EDGE", {
             edge: 1,
-            shiftKey: e.shiftKey,
-            optionKey: e.altKey,
-            metaKey: e.metaKey,
-            ctrlKey: e.ctrlKey,
-            buttons: e.buttons,
+            ...inputs.pointerDown(e),
           })
           document.body.style.cursor = "ew-resize"
         }}
@@ -103,11 +100,7 @@ export default function Bounds() {
           if (e.buttons !== 1) return
           state.send("POINTED_BOUNDS_EDGE", {
             edge: 2,
-            shiftKey: e.shiftKey,
-            optionKey: e.altKey,
-            metaKey: e.metaKey,
-            ctrlKey: e.ctrlKey,
-            buttons: e.buttons,
+            ...inputs.pointerDown(e),
           })
           document.body.style.cursor = "ns-resize"
         }}
@@ -122,11 +115,7 @@ export default function Bounds() {
           if (e.buttons !== 1) return
           state.send("POINTED_BOUNDS_EDGE", {
             edge: 3,
-            shiftKey: e.shiftKey,
-            optionKey: e.altKey,
-            metaKey: e.metaKey,
-            ctrlKey: e.ctrlKey,
-            buttons: e.buttons,
+            ...inputs.pointerDown(e),
           })
           document.body.style.cursor = "ew-resize"
         }}
@@ -168,11 +157,7 @@ function Corner({
           if (e.buttons !== 1) return
           state.send("POINTED_ROTATE_CORNER", {
             corner,
-            shiftKey: e.shiftKey,
-            optionKey: e.altKey,
-            metaKey: e.metaKey,
-            ctrlKey: e.ctrlKey,
-            buttons: e.buttons,
+            ...inputs.pointerDown(e),
           })
           document.body.style.cursor = "grabbing"
         }}
@@ -190,18 +175,13 @@ function Corner({
           if (e.buttons !== 1) return
           state.send("POINTED_BOUNDS_CORNER", {
             corner,
-            shiftKey: e.shiftKey,
-            optionKey: e.altKey,
-            metaKey: e.metaKey,
-            ctrlKey: e.ctrlKey,
-            buttons: e.buttons,
+            ...inputs.pointerDown(e),
           })
           document.body.style.cursor = "nesw-resize"
         }}
         onPanEnd={restoreCursor}
         onTap={restoreCursor}
         style={{ cursor }}
-        className="strokewidth-ui stroke-bounds fill-corner"
       />
     </g>
   )
@@ -268,9 +248,9 @@ function EdgeVertical({
   )
 }
 
-function restoreCursor() {
+function restoreCursor(e: PointerEvent) {
+  state.send("STOPPED_POINTING", { id: "bounds", ...inputs.pointerUp(e) })
   document.body.style.cursor = "default"
-  state.send("STOPPED_POINTING")
 }
 
 const StyledEdge = styled(motion.rect, {

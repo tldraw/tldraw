@@ -1,7 +1,9 @@
 import { Data } from "types"
 import { BaseCommand } from "./command"
 
-class BaseHistory<T> {
+// A singleton to manage history changes.
+
+class History<T> {
   private stack: BaseCommand<T>[] = []
   private pointer = -1
   private maxLength = 100
@@ -44,7 +46,7 @@ class BaseHistory<T> {
     if (typeof window === "undefined") return
     if (typeof localStorage === "undefined") return
 
-    localStorage.setItem("glob_aldata_v6", JSON.stringify(data))
+    localStorage.setItem("code_slate_0.0.1", JSON.stringify(data))
   }
 
   disable = () => {
@@ -60,4 +62,4 @@ class BaseHistory<T> {
   }
 }
 
-export default new BaseHistory<Data>()
+export default new History<Data>()

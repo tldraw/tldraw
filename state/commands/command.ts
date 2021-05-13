@@ -4,30 +4,14 @@ import { Data } from "types"
 
 export type CommandFn<T> = (data: T, initial?: boolean) => void
 
-export enum CommandType {
-  ChangeBounds,
-  CreateGlob,
-  CreateNode,
-  Delete,
-  Split,
-  Move,
-  MoveAnchor,
-  ReorderGlobs,
-  ReorderNodes,
-  Paste,
-  ToggleCap,
-  ToggleLocked,
-  SetProperty,
-  SetItems,
-  Transform,
-}
-
 /**
  * A command makes changes to some applicate state. Every command has an "undo"
  * method to reverse its changes. The apps history is a series of commands.
  */
 export class BaseCommand<T extends any> {
   timestamp = Date.now()
+  name: string
+  category: string
   private undoFn: CommandFn<T>
   private doFn: CommandFn<T>
   protected restoreBeforeSelectionState: (data: T) => void
@@ -36,11 +20,14 @@ export class BaseCommand<T extends any> {
   protected manualSelection: boolean
 
   constructor(options: {
-    type: CommandType
     do: CommandFn<T>
     undo: CommandFn<T>
+    name: string
+    category: string
     manualSelection?: boolean
   }) {
+    this.name = options.name
+    this.category = options.category
     this.doFn = options.do
     this.undoFn = options.undo
     this.manualSelection = options.manualSelection || false
@@ -87,8 +74,11 @@ export class BaseCommand<T extends any> {
  * to mutate the state's data. Actions do not effect the "active states" in
  * the app.
  */
-export class Command extends BaseCommand<Data> {
+export default class Command extends BaseCommand<Data> {
   saveSelectionState = (data: Data) => {
-    return (data: Data) => {}
+    const selectedIds = new Set(data.selectedIds)
+    return (data: Data) => {
+      data.selectedIds = selectedIds
+    }
   }
 }
