@@ -16,8 +16,6 @@ export default function Bounds() {
   const p = 4 / zoom
   const cp = p * 2
 
-  if (width < p || height < p) return null
-
   return (
     <g pointerEvents={isBrushing ? "none" : "all"}>
       <StyledBounds
@@ -27,66 +25,62 @@ export default function Bounds() {
         height={height}
         pointerEvents="none"
       />
-      {width * zoom > 8 && height * zoom > 8 && (
-        <>
-          <EdgeHorizontal
-            x={minX + p}
-            y={minY}
-            width={Math.max(0, width - p * 2)}
-            height={p}
-            edge={TransformEdge.Top}
-          />
-          <EdgeVertical
-            x={maxX}
-            y={minY + p}
-            width={p}
-            height={Math.max(0, height - p * 2)}
-            edge={TransformEdge.Right}
-          />
-          <EdgeHorizontal
-            x={minX + p}
-            y={maxY}
-            width={Math.max(0, width - p * 2)}
-            height={p}
-            edge={TransformEdge.Bottom}
-          />
-          <EdgeVertical
-            x={minX}
-            y={minY + p}
-            width={p}
-            height={Math.max(0, height - p * 2)}
-            edge={TransformEdge.Left}
-          />
-          <Corner
-            x={minX}
-            y={minY}
-            width={cp}
-            height={cp}
-            corner={TransformCorner.TopLeft}
-          />
-          <Corner
-            x={maxX}
-            y={minY}
-            width={cp}
-            height={cp}
-            corner={TransformCorner.TopRight}
-          />
-          <Corner
-            x={maxX}
-            y={maxY}
-            width={cp}
-            height={cp}
-            corner={TransformCorner.BottomRight}
-          />
-          <Corner
-            x={minX}
-            y={maxY}
-            width={cp}
-            height={cp}
-            corner={TransformCorner.BottomLeft}
-          />
-        </>
-      )}
+      <EdgeHorizontal
+        x={minX + p}
+        y={minY}
+        width={Math.max(0, width - p * 2)}
+        height={p}
+        edge={TransformEdge.Top}
+      />
+      <EdgeVertical
+        x={maxX}
+        y={minY + p}
+        width={p}
+        height={Math.max(0, height - p * 2)}
+        edge={TransformEdge.Right}
+      />
+      <EdgeHorizontal
+        x={minX + p}
+        y={maxY}
+        width={Math.max(0, width - p * 2)}
+        height={p}
+        edge={TransformEdge.Bottom}
+      />
+      <EdgeVertical
+        x={minX}
+        y={minY + p}
+        width={p}
+        height={Math.max(0, height - p * 2)}
+        edge={TransformEdge.Left}
+      />
+      <Corner
+        x={minX}
+        y={minY}
+        width={cp}
+        height={cp}
+        corner={TransformCorner.TopLeft}
+      />
+      <Corner
+        x={maxX}
+        y={minY}
+        width={cp}
+        height={cp}
+        corner={TransformCorner.TopRight}
+      />
+      <Corner
+        x={maxX}
+        y={maxY}
+        width={cp}
+        height={cp}
+        corner={TransformCorner.BottomRight}
+      />
+      <Corner
+        x={minX}
+        y={maxY}
+        width={cp}
+        height={cp}
+        corner={TransformCorner.BottomLeft}
+      />
     </g>
   )
 }
@@ -142,6 +136,7 @@ function Corner({
           rCorner.current.setPointerCapture(e.pointerId)
           state.send("POINTED_BOUNDS_CORNER", inputs.pointerDown(e, corner))
         }}
+        onPointerCancelCapture={() => console.log("oops")}
         onPointerUp={(e) => {
           e.stopPropagation()
           rCorner.current.releasePointerCapture(e.pointerId)

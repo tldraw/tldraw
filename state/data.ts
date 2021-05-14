@@ -90,4 +90,11 @@ export const defaultDocument: Data["document"] = {
       },
     },
   },
+  code: {
+    file0: {
+      id: "file0",
+      name: "index.ts",
+      code: "// Hello world",
+    },
+  },
 }

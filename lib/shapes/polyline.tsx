@@ -57,8 +57,19 @@ const polyline = createShape<PolylineShape>({
     return bounds
   },
 
-  hitTest(shape) {
-    return true
+  hitTest(shape, point) {
+    let pt = vec.sub(point, shape.point)
+    let prev = shape.points[0]
+
+    for (let i = 1; i < shape.points.length; i++) {
+      let curr = shape.points[i]
+      if (vec.distanceToLineSegment(prev, curr, pt) < 4) {
+        return true
+      }
+      prev = curr
+    }
+
+    return false
   },
 
   hitTestBounds(this, shape, bounds) {

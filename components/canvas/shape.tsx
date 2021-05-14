@@ -7,6 +7,7 @@ import styled from "styles"
 function Shape({ id }: { id: string }) {
   const rGroup = useRef<SVGGElement>(null)
 
+  const isHovered = useSelector((state) => state.data.hoveredId === id)
   const isSelected = useSelector((state) => state.values.selectedIds.has(id))
 
   const shape = useSelector(
@@ -32,23 +33,35 @@ function Shape({ id }: { id: string }) {
   )
 
   const handlePointerEnter = useCallback(
-    () => state.send("HOVERED_SHAPE", { id }),
-    [id]
+    (e: React.PointerEvent) => {
+      state.send("HOVERED_SHAPE", inputs.pointerEnter(e, id))
+    },
+    [id, shape]
+  )
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      state.send("MOVED_OVER_SHAPE", inputs.pointerEnter(e, id))
+    },
+    [id, shape]
   )
 
   const handlePointerLeave = useCallback(
-    () => state.send("UNHOVERED_SHAPE", { id }),
+    () => state.send("UNHOVERED_SHAPE", { target: id }),
     [id]
   )
+
   return (
     <StyledGroup
       ref={rGroup}
+      isHovered={isHovered}
       isSelected={isSelected}
       transform={`translate(${shape.point})`}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
+      onPointerMove={handlePointerMove}
     >
       <defs>{getShapeUtils(shape).render(shape)}</defs>
       <HoverIndicator as="use" xlinkHref={"#" + id} />
@@ -86,13 +99,12 @@ const StyledGroup = styled("g", {
         [`& ${Indicator}`]: {
           stroke: "$selected",
         },
-        [`&:hover ${HoverIndicator}`]: {
-          opacity: "1",
-          stroke: "$hint",
-        },
       },
-      false: {
-        [`&:hover ${HoverIndicator}`]: {
+      false: {},
+    },
+    isHovered: {
+      true: {
+        [`& ${HoverIndicator}`]: {
           opacity: "1",
           stroke: "$hint",
         },

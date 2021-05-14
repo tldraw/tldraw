@@ -59,7 +59,7 @@ const line = createShape<LineShape>({
   },
 
   hitTest(shape, test) {
-    return vec.dist(shape.point, test) < 4
+    return true
   },
 
   hitTestBounds(this, shape, brushBounds) {

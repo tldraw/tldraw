@@ -16,8 +16,8 @@ export default function BoundsBg() {
       ref={rBounds}
       x={minX}
       y={minY}
-      width={width}
-      height={height}
+      width={Math.max(1, width)}
+      height={Math.max(1, height)}
       onPointerDown={(e) => {
         if (e.buttons !== 1) return
         e.stopPropagation()

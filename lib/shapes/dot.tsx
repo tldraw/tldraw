@@ -50,7 +50,7 @@ const dot = createShape<DotShape>({
   },
 
   hitTest(shape, test) {
-    return vec.dist(shape.point, test) < 4
+    return true
   },
 
   hitTestBounds(this, shape, brushBounds) {

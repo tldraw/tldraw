@@ -23,6 +23,23 @@ class Inputs {
     return info
   }
 
+  pointerEnter(e: PointerEvent | React.PointerEvent, target: string) {
+    const { shiftKey, ctrlKey, metaKey, altKey } = e
+
+    const info = {
+      target,
+      pointerId: e.pointerId,
+      origin: [e.clientX, e.clientY],
+      point: [e.clientX, e.clientY],
+      shiftKey,
+      ctrlKey,
+      metaKey: isDarwin() ? metaKey : ctrlKey,
+      altKey,
+    }
+
+    return info
+  }
+
   pointerMove(e: PointerEvent | React.PointerEvent) {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 

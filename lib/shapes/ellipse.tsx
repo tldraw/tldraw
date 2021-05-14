@@ -57,7 +57,12 @@ const ellipse = createShape<EllipseShape>({
   },
 
   hitTest(shape, point) {
-    return pointInEllipse(point, shape.point, shape.radiusX, shape.radiusY)
+    return pointInEllipse(
+      point,
+      vec.add(shape.point, [shape.radiusX, shape.radiusY]),
+      shape.radiusX,
+      shape.radiusY
+    )
   },
 
   hitTestBounds(this, shape, brushBounds) {

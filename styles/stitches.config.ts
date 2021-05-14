@@ -12,6 +12,9 @@ const { styled, global, css, theme, getCssString } = createCss({
       selected: "rgba(66, 133, 244, 1.000)",
       bounds: "rgba(65, 132, 244, 1.000)",
       boundsBg: "rgba(65, 132, 244, 0.100)",
+      border: "#aaa",
+      panel: "#fefefe",
+      text: "#000",
     },
     space: {},
     fontSizes: {
@@ -22,7 +25,7 @@ const { styled, global, css, theme, getCssString } = createCss({
       4: "18px",
     },
     fonts: {
-      ui: `"Recursive", system-ui, sans-serif`,
+      ui: '"Recursive", system-ui, sans-serif',
     },
     fontWeights: {},
     lineHeights: {},

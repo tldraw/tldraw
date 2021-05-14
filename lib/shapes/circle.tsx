@@ -4,6 +4,7 @@ import { CircleShape, ShapeType } from "types"
 import { createShape } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
+import { pointInCircle } from "utils/hitTests"
 
 const circle = createShape<CircleShape>({
   boundsCache: new WeakMap([]),
@@ -16,8 +17,8 @@ const circle = createShape<CircleShape>({
       parentId: "page0",
       childIndex: 0,
       point: [0, 0],
-      radius: 20,
       rotation: 0,
+      radius: 20,
       style: {},
       ...props,
     }
@@ -51,9 +52,11 @@ const circle = createShape<CircleShape>({
     return bounds
   },
 
-  hitTest(shape, test) {
-    return (
-      vec.dist(vec.addScalar(shape.point, shape.radius), test) < shape.radius
+  hitTest(shape, point) {
+    return pointInCircle(
+      point,
+      vec.addScalar(shape.point, shape.radius),
+      shape.radius
     )
   },
 

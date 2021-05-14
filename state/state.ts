@@ -9,12 +9,17 @@ import * as Sessions from "./sessions"
 
 const initialData: Data = {
   isReadOnly: false,
+  settings: {
+    fontSize: 13,
+    darkMode: false,
+  },
   camera: {
     point: [0, 0],
     zoom: 1,
   },
   brush: undefined,
   pointedId: null,
+  hoveredId: null,
   selectedIds: new Set([]),
   currentPageId: "page0",
   document: defaultDocument,
@@ -45,6 +50,15 @@ const state = createState({
             POINTED_BOUNDS: { to: "pointingBounds" },
             POINTED_BOUNDS_EDGE: { to: "transformingSelection" },
             POINTED_BOUNDS_CORNER: { to: "transformingSelection" },
+            MOVED_OVER_SHAPE: {
+              if: "pointHitsShape",
+              then: {
+                unless: "shapeIsHovered",
+                do: "setHoveredId",
+              },
+              else: { if: "shapeIsHovered", do: "clearHoveredId" },
+            },
+            UNHOVERED_SHAPE: "clearHoveredId",
             POINTED_SHAPE: [
               "setPointedId",
               {
@@ -135,6 +149,22 @@ const state = createState({
     isPressingShiftKey(data, payload: { shiftKey: boolean }) {
       return payload.shiftKey
     },
+    shapeIsHovered(data, payload: { target: string }) {
+      return data.hoveredId === payload.target
+    },
+    pointHitsShape(data, payload: { target: string; point: number[] }) {
+      const shape =
+        data.document.pages[data.currentPageId].shapes[payload.target]
+
+      console.log(
+        getShapeUtils(shape).hitTest(shape, screenToWorld(payload.point, data))
+      )
+
+      return getShapeUtils(shape).hitTest(
+        shape,
+        screenToWorld(payload.point, data)
+      )
+    },
   },
   actions: {
     // History
@@ -199,6 +229,12 @@ const state = createState({
     },
 
     // Selection
+    setHoveredId(data, payload: PointerInfo) {
+      data.hoveredId = payload.target
+    },
+    clearHoveredId(data) {
+      data.hoveredId = undefined
+    },
     setPointedId(data, payload: PointerInfo) {
       data.pointedId = payload.target
     },

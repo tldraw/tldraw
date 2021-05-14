@@ -1,7 +1,13 @@
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api"
+
 import React from "react"
 
 export interface Data {
   isReadOnly: boolean
+  settings: {
+    fontSize: number
+    darkMode: boolean
+  }
   camera: {
     point: number[]
     zoom: number
@@ -10,9 +16,17 @@ export interface Data {
   currentPageId: string
   selectedIds: Set<string>
   pointedId?: string
+  hoveredId?: string
   document: {
     pages: Record<string, Page>
+    code: Record<string, CodeFile>
   }
+}
+
+export interface CodeFile {
+  id: string
+  name: string
+  code: string
 }
 
 export interface Page {
@@ -172,3 +186,7 @@ export enum TransformCorner {
   BottomRight = "bottom_right_corner",
   BottomLeft = "bottom_left_corner",
 }
+
+export type IMonaco = typeof monaco
+
+export type IMonacoEditor = monaco.editor.IStandaloneCodeEditor
