@@ -7,12 +7,11 @@ import styled from "styles"
 function Shape({ id }: { id: string }) {
   const rGroup = useRef<SVGGElement>(null)
 
-  const shape = useSelector(
-    ({ data: { currentPageId, document } }) =>
-      document.pages[currentPageId].shapes[id]
-  )
-
   const isSelected = useSelector((state) => state.values.selectedIds.has(id))
+
+  const shape = useSelector(
+    ({ data }) => data.document.pages[data.currentPageId].shapes[id]
+  )
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -33,12 +32,12 @@ function Shape({ id }: { id: string }) {
   )
 
   const handlePointerEnter = useCallback(
-    (e: React.PointerEvent) => state.send("HOVERED_SHAPE", { id }),
+    () => state.send("HOVERED_SHAPE", { id }),
     [id]
   )
 
   const handlePointerLeave = useCallback(
-    (e: React.PointerEvent) => state.send("UNHOVERED_SHAPE", { id }),
+    () => state.send("UNHOVERED_SHAPE", { id }),
     [id]
   )
   return (

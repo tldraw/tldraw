@@ -88,8 +88,12 @@ const circle = createShape<CircleShape>({
   },
 
   transform(shape, bounds) {
-    shape.point = [bounds.minX, bounds.minY]
+    // shape.point = [bounds.minX, bounds.minY]
     shape.radius = Math.min(bounds.width, bounds.height) / 2
+    shape.point = [
+      bounds.minX + bounds.width / 2 - shape.radius,
+      bounds.minY + bounds.height / 2 - shape.radius,
+    ]
 
     return shape
   },

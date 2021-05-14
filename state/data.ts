@@ -15,7 +15,7 @@ export const defaultDocument: Data["document"] = {
           childIndex: 3,
           point: [500, 100],
           style: {
-            fill: "#aaa",
+            fill: "#AAA",
             stroke: "#777",
             strokeWidth: 1,
           },
@@ -27,7 +27,7 @@ export const defaultDocument: Data["document"] = {
           point: [100, 100],
           radius: 50,
           style: {
-            fill: "#aaa",
+            fill: "#AAA",
             stroke: "#777",
             strokeWidth: 1,
           },
@@ -40,7 +40,7 @@ export const defaultDocument: Data["document"] = {
           radiusX: 50,
           radiusY: 30,
           style: {
-            fill: "#aaa",
+            fill: "#AAA",
             stroke: "#777",
             strokeWidth: 1,
           },
@@ -70,7 +70,19 @@ export const defaultDocument: Data["document"] = {
           point: [300, 300],
           size: [200, 200],
           style: {
-            fill: "#aaa",
+            fill: "#AAA",
+            stroke: "#777",
+            strokeWidth: 1,
+          },
+        }),
+        shape6: shapeUtils[ShapeType.Line].create({
+          id: "shape6",
+          name: "Shape 6",
+          childIndex: 1,
+          point: [400, 400],
+          direction: [0.2, 0.2],
+          style: {
+            fill: "#AAA",
             stroke: "#777",
             strokeWidth: 1,
           },

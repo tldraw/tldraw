@@ -16,7 +16,7 @@ const ray = createShape<RayShape>({
       parentId: "page0",
       childIndex: 0,
       point: [0, 0],
-      vector: [0, 0],
+      direction: [0, 0],
       rotation: 0,
       style: {},
       ...props,

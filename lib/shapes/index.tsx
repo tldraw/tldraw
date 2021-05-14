@@ -41,7 +41,14 @@ export interface ShapeUtility<K extends Shape> {
   translate(this: ShapeUtility<K>, shape: K, delta: number[]): K
 
   // Transform to fit a new bounding box.
-  transform(this: ShapeUtility<K>, shape: K, bounds: Bounds): K
+  transform(
+    this: ShapeUtility<K>,
+    shape: K,
+    bounds: Bounds & { isFlippedX: boolean; isFlippedY: boolean },
+    initialShape: K,
+    initialShapeBounds: BoundsSnapshot,
+    initialBounds: Bounds
+  ): K
 
   // Apply a scale to a shape.
   scale(this: ShapeUtility<K>, shape: K, scale: number): K

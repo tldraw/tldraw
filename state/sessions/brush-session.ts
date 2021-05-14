@@ -1,7 +1,7 @@
 import { current } from "immer"
 import { ShapeUtil, Bounds, Data, Shapes } from "types"
 import BaseSession from "./base-session"
-import shapes from "lib/shapes"
+import shapes, { getShapeUtils } from "lib/shapes"
 import { getBoundsFromPoints } from "utils/utils"
 import * as vec from "utils/vec"
 
@@ -68,9 +68,7 @@ export default class BrushSession extends BaseSession {
         .map((shape) => ({
           id: shape.id,
           test: (brushBounds: Bounds): boolean =>
-            (shapes[shape.type] as ShapeUtil<
-              Shapes[typeof shape.type]
-            >).hitTestBounds(shape, brushBounds),
+            getShapeUtils(shape).hitTestBounds(shape, brushBounds),
         })),
     }
   }

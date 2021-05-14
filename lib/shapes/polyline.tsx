@@ -90,15 +90,20 @@ const polyline = createShape<PolylineShape>({
     return shape
   },
 
-  transform(shape, bounds) {
-    const currentBounds = this.getBounds(shape)
+  transform(shape, bounds, initialShape, initialShapeBounds) {
+    shape.points = shape.points.map((_, i) => {
+      const [x, y] = initialShape.points[i]
 
-    const scaleX = bounds.width / currentBounds.width
-    const scaleY = bounds.height / currentBounds.height
-
-    shape.points = shape.points.map((point) => {
-      let pt = vec.mulV(point, [scaleX, scaleY])
-      return pt
+      return [
+        bounds.width *
+          (bounds.isFlippedX
+            ? 1 - x / initialShapeBounds.width
+            : x / initialShapeBounds.width),
+        bounds.height *
+          (bounds.isFlippedY
+            ? 1 - y / initialShapeBounds.height
+            : y / initialShapeBounds.height),
+      ]
     })
 
     shape.point = [bounds.minX, bounds.minY]

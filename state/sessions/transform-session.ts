@@ -1,4 +1,10 @@
-import { Data, TransformEdge, TransformCorner, Bounds } from "types"
+import {
+  Data,
+  TransformEdge,
+  TransformCorner,
+  Bounds,
+  BoundsSnapshot,
+} from "types"
 import * as vec from "utils/vec"
 import BaseSession from "./base-session"
 import commands from "state/commands"
@@ -11,7 +17,6 @@ export default class TransformSession extends BaseSession {
   transformType: TransformEdge | TransformCorner
   origin: number[]
   snapshot: TransformSnapshot
-  currentBounds: Bounds
   corners: {
     a: number[]
     b: number[]
@@ -29,8 +34,6 @@ export default class TransformSession extends BaseSession {
 
     const { minX, minY, maxX, maxY } = this.snapshot.initialBounds
 
-    this.currentBounds = { ...this.snapshot.initialBounds }
-
     this.corners = {
       a: [minX, minY],
       b: [maxX, maxY],
@@ -38,130 +41,144 @@ export default class TransformSession extends BaseSession {
   }
 
   update(data: Data, point: number[]) {
-    const { shapeBounds, currentPageId, selectedIds } = this.snapshot
     const {
-      document: { pages },
-    } = data
+      shapeBounds,
+      initialBounds,
+      currentPageId,
+      selectedIds,
+    } = this.snapshot
+
+    const { shapes } = data.document.pages[currentPageId]
 
     let [x, y] = point
-    const { corners, transformType } = this
+
+    const {
+      corners: { a, b },
+      transformType,
+    } = this
 
     // Edge Transform
 
     switch (transformType) {
       case TransformEdge.Top: {
-        corners.a[1] = y
+        a[1] = y
         break
       }
       case TransformEdge.Right: {
-        corners.b[0] = x
+        b[0] = x
         break
       }
       case TransformEdge.Bottom: {
-        corners.b[1] = y
+        b[1] = y
         break
       }
       case TransformEdge.Left: {
-        corners.a[0] = x
+        a[0] = x
         break
       }
       case TransformCorner.TopLeft: {
-        corners.a[1] = y
-        corners.a[0] = x
+        a[1] = y
+        a[0] = x
         break
       }
       case TransformCorner.TopRight: {
-        corners.b[0] = x
-        corners.a[1] = y
+        b[0] = x
+        a[1] = y
         break
       }
       case TransformCorner.BottomRight: {
-        corners.b[1] = y
-        corners.b[0] = x
+        b[1] = y
+        b[0] = x
         break
       }
       case TransformCorner.BottomLeft: {
-        corners.a[0] = x
-        corners.b[1] = y
+        a[0] = x
+        b[1] = y
         break
       }
     }
 
+    // Calculate new common (externior) bounding box
     const newBounds = {
-      minX: Math.min(corners.a[0], corners.b[0]),
-      minY: Math.min(corners.a[1], corners.b[1]),
-      maxX: Math.max(corners.a[0], corners.b[0]),
-      maxY: Math.max(corners.a[1], corners.b[1]),
-      width: Math.abs(corners.b[0] - corners.a[0]),
-      height: Math.abs(corners.b[1] - corners.a[1]),
+      minX: Math.min(a[0], b[0]),
+      minY: Math.min(a[1], b[1]),
+      maxX: Math.max(a[0], b[0]),
+      maxY: Math.max(a[1], b[1]),
+      width: Math.abs(b[0] - a[0]),
+      height: Math.abs(b[1] - a[1]),
     }
 
-    const isFlippedX = corners.b[0] - corners.a[0] < 0
-    const isFlippedY = corners.b[1] - corners.a[1] < 0
+    const isFlippedX = b[0] < a[0]
+    const isFlippedY = b[1] < a[1]
 
-    // const dx = newBounds.minX - currentBounds.minX
-    // const dy = newBounds.minY - currentBounds.minY
-    // const scaleX = newBounds.width / currentBounds.width
-    // const scaleY = newBounds.height / currentBounds.height
-
-    this.currentBounds = newBounds
+    // Now work backward to calculate a new bounding box for each of the shapes.
 
     selectedIds.forEach((id) => {
-      const { nx, nmx, nw, ny, nmy, nh } = shapeBounds[id]
+      const { initialShape, initialShapeBounds } = shapeBounds[id]
+      const { nx, nmx, nw, ny, nmy, nh } = initialShapeBounds
+      const shape = shapes[id]
 
       const minX = newBounds.minX + (isFlippedX ? nmx : nx) * newBounds.width
       const minY = newBounds.minY + (isFlippedY ? nmy : ny) * newBounds.height
       const width = nw * newBounds.width
       const height = nh * newBounds.height
 
-      const shape = pages[currentPageId].shapes[id]
-
-      getShapeUtils(shape).transform(shape, {
+      const newShapeBounds = {
         minX,
         minY,
         maxX: minX + width,
         maxY: minY + height,
         width,
         height,
-      })
-      // utils.stretch(shape, scaleX, scaleY)
+        isFlippedX,
+        isFlippedY,
+      }
+
+      // Pass the new data to the shape's transform utility for mutation.
+      // Most shapes should be able to transform using only the bounding box,
+      // however some shapes (e.g. those with internal points) will need more
+      // data here too.
+
+      getShapeUtils(shape).transform(
+        shape,
+        newShapeBounds,
+        initialShape,
+        initialShapeBounds,
+        initialBounds
+      )
     })
-
-    // switch (this.transformHandle) {
-    //   case TransformEdge.Top:
-    //   case TransformEdge.Left:
-    //   case TransformEdge.Right:
-    //   case TransformEdge.Bottom: {
-    //     for (let id in shapeBounds) {
-    //       const { ny, nmy, nh } = shapeBounds[id]
-    //       const minY = v.my + (v.y1 < v.y0 ? nmy : ny) * v.mh
-    //       const height = nh * v.mh
-
-    //       const shape = pages[currentPageId].shapes[id]
-
-    //       getShapeUtils(shape).transform(shape)
-    //     }
-    //   }
-    //   case TransformCorner.TopLeft:
-    //   case TransformCorner.TopRight:
-    //   case TransformCorner.BottomLeft:
-    //   case TransformCorner.BottomRight: {
-    //   }
-    // }
   }
 
   cancel(data: Data) {
-    const { currentPageId } = this.snapshot
-    const { document } = data
+    const {
+      shapeBounds,
+      initialBounds,
+      currentPageId,
+      selectedIds,
+    } = this.snapshot
 
-    // for (let id in shapes) {
-    // Restore shape using original bounds
-    // document.pages[currentPageId].shapes[id]
-    // }
+    const { shapes } = data.document.pages[currentPageId]
+
+    selectedIds.forEach((id) => {
+      const shape = shapes.shapes[id]
+      const { initialShape, initialShapeBounds } = shapeBounds[id]
+
+      getShapeUtils(shape).transform(
+        shape,
+        {
+          ...initialShapeBounds,
+          isFlippedX: false,
+          isFlippedY: false,
+        },
+        initialShape,
+        initialShapeBounds,
+        initialBounds
+      )
+    })
   }
 
   complete(data: Data) {
-    // commands.translate(data, this.snapshot, getTransformSnapshot(data))
+    commands.transform(data, this.snapshot, getTransformSnapshot(data))
   }
 }
 
@@ -172,21 +189,18 @@ export function getTransformSnapshot(data: Data) {
     currentPageId,
   } = current(data)
 
+  const pageShapes = pages[currentPageId].shapes
+
   // A mapping of selected shapes and their bounds
   const shapesBounds = Object.fromEntries(
     Array.from(selectedIds.values()).map((id) => {
-      const shape = pages[currentPageId].shapes[id]
+      const shape = pageShapes[id]
       return [shape.id, getShapeUtils(shape).getBounds(shape)]
     })
   )
 
   // The common (exterior) bounds of the selected shapes
-  const bounds = getCommonBounds(
-    ...Array.from(selectedIds.values()).map((id) => {
-      const shape = pages[currentPageId].shapes[id]
-      return getShapeUtils(shape).getBounds(shape)
-    })
-  )
+  const bounds = getCommonBounds(...Object.values(shapesBounds))
 
   // Return a mapping of shapes to bounds together with the relative
   // positions of the shape's bounds within the common bounds shape.
@@ -200,13 +214,16 @@ export function getTransformSnapshot(data: Data) {
         return [
           id,
           {
-            ...bounds,
-            nx: (minX - bounds.minX) / bounds.width,
-            ny: (minY - bounds.minY) / bounds.height,
-            nmx: 1 - (minX + width - bounds.minX) / bounds.width,
-            nmy: 1 - (minY + height - bounds.minY) / bounds.height,
-            nw: width / bounds.width,
-            nh: height / bounds.height,
+            initialShape: pageShapes[id],
+            initialShapeBounds: {
+              ...shapesBounds[id],
+              nx: (minX - bounds.minX) / bounds.width,
+              ny: (minY - bounds.minY) / bounds.height,
+              nmx: 1 - (minX + width - bounds.minX) / bounds.width,
+              nmy: 1 - (minY + height - bounds.minY) / bounds.height,
+              nw: width / bounds.width,
+              nh: height / bounds.height,
+            },
           },
         ]
       })

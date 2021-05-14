@@ -27,7 +27,7 @@ export default function Bounds() {
         height={height}
         pointerEvents="none"
       />
-      {width * zoom > 8 && (
+      {width * zoom > 8 && height * zoom > 8 && (
         <>
           <EdgeHorizontal
             x={minX + p}

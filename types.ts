@@ -65,12 +65,12 @@ export interface EllipseShape extends BaseShape {
 
 export interface LineShape extends BaseShape {
   type: ShapeType.Line
-  vector: number[]
+  direction: number[]
 }
 
 export interface RayShape extends BaseShape {
   type: ShapeType.Ray
-  vector: number[]
+  direction: number[]
 }
 
 export interface PolylineShape extends BaseShape {

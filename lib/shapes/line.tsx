@@ -16,15 +16,23 @@ const line = createShape<LineShape>({
       parentId: "page0",
       childIndex: 0,
       point: [0, 0],
-      vector: [0, 0],
+      direction: [0, 0],
       rotation: 0,
       style: {},
       ...props,
     }
   },
 
-  render({ id }) {
-    return <circle id={id} cx={4} cy={4} r={4} />
+  render({ id, direction }) {
+    const [x1, y1] = vec.add([0, 0], vec.mul(direction, 100000))
+    const [x2, y2] = vec.sub([0, 0], vec.mul(direction, 100000))
+
+    return (
+      <g id={id}>
+        <line x1={x1} y1={y1} x2={x2} y2={y2} />
+        <circle cx={0} cy={0} r={4} />
+      </g>
+    )
   },
 
   getBounds(shape) {
@@ -38,11 +46,11 @@ const line = createShape<LineShape>({
 
     const bounds = {
       minX: x,
-      maxX: x + 8,
+      maxX: x + 1,
       minY: y,
-      maxY: y + 8,
-      width: 8,
-      height: 8,
+      maxY: y + 1,
+      width: 1,
+      height: 1,
     }
 
     this.boundsCache.set(shape, bounds)
@@ -55,11 +63,7 @@ const line = createShape<LineShape>({
   },
 
   hitTestBounds(this, shape, brushBounds) {
-    const shapeBounds = this.getBounds(shape)
-    return (
-      boundsContained(shapeBounds, brushBounds) ||
-      intersectCircleBounds(shape.point, 4, brushBounds).length > 0
-    )
+    return true
   },
 
   rotate(shape) {
@@ -80,6 +84,8 @@ const line = createShape<LineShape>({
   },
 
   transform(shape, bounds) {
+    shape.point = [bounds.minX, bounds.minY]
+
     return shape
   },
 })
