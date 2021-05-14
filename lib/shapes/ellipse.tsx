@@ -1,29 +1,34 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
-import { DotShape, ShapeType } from "types"
+import { EllipseShape, ShapeType } from "types"
 import { createShape } from "./index"
 import { boundsContained } from "utils/bounds"
-import { intersectCircleBounds } from "utils/intersections"
+import { intersectEllipseBounds } from "utils/intersections"
+import { pointInEllipse } from "utils/hitTests"
 
-const dot = createShape<DotShape>({
+const ellipse = createShape<EllipseShape>({
   boundsCache: new WeakMap([]),
 
   create(props) {
     return {
       id: uuid(),
-      type: ShapeType.Dot,
-      name: "Dot",
+      type: ShapeType.Ellipse,
+      name: "Ellipse",
       parentId: "page0",
       childIndex: 0,
       point: [0, 0],
+      radiusX: 20,
+      radiusY: 20,
       rotation: 0,
       style: {},
       ...props,
     }
   },
 
-  render({ id }) {
-    return <circle id={id} cx={0} cy={0} r={4} />
+  render({ id, radiusX, radiusY }) {
+    return (
+      <ellipse id={id} cx={radiusX} cy={radiusY} rx={radiusX} ry={radiusY} />
+    )
   },
 
   getBounds(shape) {
@@ -33,15 +38,17 @@ const dot = createShape<DotShape>({
 
     const {
       point: [x, y],
+      radiusX,
+      radiusY,
     } = shape
 
     const bounds = {
       minX: x,
-      maxX: x + 1,
+      maxX: x + radiusX * 2,
       minY: y,
-      maxY: y + 1,
-      width: 1,
-      height: 1,
+      maxY: y + radiusY * 2,
+      width: radiusX * 2,
+      height: radiusY * 2,
     }
 
     this.boundsCache.set(shape, bounds)
@@ -49,15 +56,21 @@ const dot = createShape<DotShape>({
     return bounds
   },
 
-  hitTest(shape, test) {
-    return vec.dist(shape.point, test) < 4
+  hitTest(shape, point) {
+    return pointInEllipse(point, shape.point, shape.radiusX, shape.radiusY)
   },
 
   hitTestBounds(this, shape, brushBounds) {
     const shapeBounds = this.getBounds(shape)
+
     return (
       boundsContained(shapeBounds, brushBounds) ||
-      intersectCircleBounds(shape.point, 4, brushBounds).length > 0
+      intersectEllipseBounds(
+        vec.add(shape.point, [shape.radiusX, shape.radiusY]),
+        shape.radiusX,
+        shape.radiusY,
+        brushBounds
+      ).length > 0
     )
   },
 
@@ -80,9 +93,11 @@ const dot = createShape<DotShape>({
 
   transform(shape, bounds) {
     shape.point = [bounds.minX, bounds.minY]
+    shape.radiusX = bounds.width / 2
+    shape.radiusY = bounds.height / 2
 
     return shape
   },
 })
 
-export default dot
+export default ellipse

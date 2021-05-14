@@ -1,8 +1,8 @@
 import state, { useSelector } from "state"
-import { motion } from "framer-motion"
 import styled from "styles"
 import inputs from "state/inputs"
 import { useRef } from "react"
+import { TransformCorner, TransformEdge } from "types"
 
 export default function Bounds() {
   const zoom = useSelector((state) => state.data.camera.zoom)
@@ -16,6 +16,8 @@ export default function Bounds() {
   const p = 4 / zoom
   const cp = p * 2
 
+  if (width < p || height < p) return null
+
   return (
     <g pointerEvents={isBrushing ? "none" : "all"}>
       <StyledBounds
@@ -27,61 +29,61 @@ export default function Bounds() {
       />
       {width * zoom > 8 && (
         <>
-          <Corner
-            x={minX}
-            y={minY}
-            width={cp}
-            height={cp}
-            corner="top_left_corner"
-          />
-          <Corner
-            x={maxX}
-            y={minY}
-            width={cp}
-            height={cp}
-            corner="top_right_corner"
-          />
-          <Corner
-            x={maxX}
-            y={maxY}
-            width={cp}
-            height={cp}
-            corner="bottom_right_corner"
-          />
-          <Corner
-            x={minX}
-            y={maxY}
-            width={cp}
-            height={cp}
-            corner="bottom_left_corner"
-          />
           <EdgeHorizontal
             x={minX + p}
             y={minY}
             width={Math.max(0, width - p * 2)}
             height={p}
-            edge="top_edge"
+            edge={TransformEdge.Top}
           />
           <EdgeVertical
             x={maxX}
             y={minY + p}
             width={p}
             height={Math.max(0, height - p * 2)}
-            edge="right_edge"
+            edge={TransformEdge.Right}
           />
           <EdgeHorizontal
             x={minX + p}
             y={maxY}
             width={Math.max(0, width - p * 2)}
             height={p}
-            edge="bottom_edge"
+            edge={TransformEdge.Bottom}
           />
           <EdgeVertical
             x={minX}
             y={minY + p}
             width={p}
             height={Math.max(0, height - p * 2)}
-            edge="left_edge"
+            edge={TransformEdge.Left}
+          />
+          <Corner
+            x={minX}
+            y={minY}
+            width={cp}
+            height={cp}
+            corner={TransformCorner.TopLeft}
+          />
+          <Corner
+            x={maxX}
+            y={minY}
+            width={cp}
+            height={cp}
+            corner={TransformCorner.TopRight}
+          />
+          <Corner
+            x={maxX}
+            y={maxY}
+            width={cp}
+            height={cp}
+            corner={TransformCorner.BottomRight}
+          />
+          <Corner
+            x={minX}
+            y={maxY}
+            width={cp}
+            height={cp}
+            corner={TransformCorner.BottomLeft}
           />
         </>
       )}
@@ -100,11 +102,7 @@ function Corner({
   y: number
   width: number
   height: number
-  corner:
-    | "top_left_corner"
-    | "top_right_corner"
-    | "bottom_right_corner"
-    | "bottom_left_corner"
+  corner: TransformCorner
 }) {
   const rRotateCorner = useRef<SVGRectElement>(null)
   const rCorner = useRef<SVGRectElement>(null)
@@ -166,7 +164,7 @@ function EdgeHorizontal({
   y: number
   width: number
   height: number
-  edge: "top_edge" | "bottom_edge"
+  edge: TransformEdge.Top | TransformEdge.Bottom
 }) {
   const rEdge = useRef<SVGRectElement>(null)
 
@@ -205,7 +203,7 @@ function EdgeVertical({
   y: number
   width: number
   height: number
-  edge: "right_edge" | "left_edge"
+  edge: TransformEdge.Right | TransformEdge.Left
 }) {
   const rEdge = useRef<SVGRectElement>(null)
 
@@ -230,11 +228,6 @@ function EdgeVertical({
       edge={edge}
     />
   )
-}
-
-function restoreCursor(e: PointerEvent) {
-  state.send("STOPPED_POINTING", { id: "bounds", ...inputs.pointerUp(e) })
-  document.body.style.cursor = "default"
 }
 
 const StyledEdge = styled("rect", {

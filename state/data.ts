@@ -1,5 +1,5 @@
 import { Data, ShapeType } from "types"
-import Shapes from "lib/shapes"
+import shapeUtils from "lib/shapes"
 
 export const defaultDocument: Data["document"] = {
   pages: {
@@ -9,7 +9,7 @@ export const defaultDocument: Data["document"] = {
       name: "Page 0",
       childIndex: 0,
       shapes: {
-        shape3: Shapes[ShapeType.Dot].create({
+        shape3: shapeUtils[ShapeType.Dot].create({
           id: "shape3",
           name: "Shape 3",
           childIndex: 3,
@@ -20,7 +20,7 @@ export const defaultDocument: Data["document"] = {
             strokeWidth: 1,
           },
         }),
-        shape0: Shapes[ShapeType.Circle].create({
+        shape0: shapeUtils[ShapeType.Circle].create({
           id: "shape0",
           name: "Shape 0",
           childIndex: 1,
@@ -32,7 +32,20 @@ export const defaultDocument: Data["document"] = {
             strokeWidth: 1,
           },
         }),
-        shape2: Shapes[ShapeType.Polyline].create({
+        shape5: shapeUtils[ShapeType.Ellipse].create({
+          id: "shape5",
+          name: "Shape 5",
+          childIndex: 5,
+          point: [250, 100],
+          radiusX: 50,
+          radiusY: 30,
+          style: {
+            fill: "#aaa",
+            stroke: "#777",
+            strokeWidth: 1,
+          },
+        }),
+        shape2: shapeUtils[ShapeType.Polyline].create({
           id: "shape2",
           name: "Shape 2",
           childIndex: 2,
@@ -50,7 +63,7 @@ export const defaultDocument: Data["document"] = {
             strokeLinejoin: "round",
           },
         }),
-        shape1: Shapes[ShapeType.Rectangle].create({
+        shape1: shapeUtils[ShapeType.Rectangle].create({
           id: "shape1",
           name: "Shape 1",
           childIndex: 1,

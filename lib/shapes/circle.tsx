@@ -1,12 +1,13 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
 import { CircleShape, ShapeType } from "types"
-import { boundsCache } from "./index"
+import { createShape } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
-import { createShape } from "./base-shape"
 
 const circle = createShape<CircleShape>({
+  boundsCache: new WeakMap([]),
+
   create(props) {
     return {
       id: uuid(),
@@ -27,8 +28,8 @@ const circle = createShape<CircleShape>({
   },
 
   getBounds(shape) {
-    if (boundsCache.has(shape)) {
-      return boundsCache.get(shape)
+    if (this.boundsCache.has(shape)) {
+      return this.boundsCache.get(shape)
     }
 
     const {
@@ -45,7 +46,8 @@ const circle = createShape<CircleShape>({
       height: radius * 2,
     }
 
-    boundsCache.set(shape, bounds)
+    this.boundsCache.set(shape, bounds)
+
     return bounds
   },
 
@@ -82,6 +84,13 @@ const circle = createShape<CircleShape>({
   },
 
   stretch(shape, scaleX, scaleY) {
+    return shape
+  },
+
+  transform(shape, bounds) {
+    shape.point = [bounds.minX, bounds.minY]
+    shape.radius = Math.min(bounds.width, bounds.height) / 2
+
     return shape
   },
 })

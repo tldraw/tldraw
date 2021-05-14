@@ -249,6 +249,8 @@ export function rot(A: number[], r: number) {
  * @param r rotation in radians
  */
 export function rotWith(A: number[], C: number[], r: number) {
+  if (r === 0) return A
+
   const s = Math.sin(r)
   const c = Math.cos(r)
 

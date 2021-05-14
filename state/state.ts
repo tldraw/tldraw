@@ -1,9 +1,9 @@
 import { createSelectorHook, createState } from "@state-designer/react"
 import { clamp, getCommonBounds, screenToWorld } from "utils/utils"
 import * as vec from "utils/vec"
-import { Bounds, Data, PointerInfo, Shape, ShapeType } from "types"
+import { Data, PointerInfo, TransformCorner, TransformEdge } from "types"
 import { defaultDocument } from "./data"
-import Shapes from "lib/shapes"
+import { getShapeUtils } from "lib/shapes"
 import history from "state/history"
 import * as Sessions from "./sessions"
 
@@ -43,6 +43,8 @@ const state = createState({
           on: {
             POINTED_CANVAS: { to: "brushSelecting" },
             POINTED_BOUNDS: { to: "pointingBounds" },
+            POINTED_BOUNDS_EDGE: { to: "transformingSelection" },
+            POINTED_BOUNDS_CORNER: { to: "transformingSelection" },
             POINTED_SHAPE: [
               "setPointedId",
               {
@@ -82,6 +84,15 @@ const state = createState({
               if: "distanceImpliesDrag",
               to: "draggingSelection",
             },
+          },
+        },
+        transformingSelection: {
+          onEnter: "startTransformSession",
+          on: {
+            MOVED_POINTER: "updateTransformSession",
+            PANNED_CAMERA: "updateTransformSession",
+            STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+            CANCELLED: { do: "cancelSession", to: "selecting" },
           },
         },
         draggingSelection: {
@@ -160,6 +171,7 @@ const state = createState({
     updateBrushSession(data, payload: PointerInfo) {
       session.update(data, screenToWorld(payload.point, data))
     },
+
     // Dragging / Translating
     startTranslateSession(data, payload: PointerInfo) {
       session = new Sessions.TranslateSession(
@@ -168,6 +180,21 @@ const state = createState({
       )
     },
     updateTranslateSession(data, payload: PointerInfo) {
+      session.update(data, screenToWorld(payload.point, data))
+    },
+
+    // Dragging / Translating
+    startTransformSession(
+      data,
+      payload: PointerInfo & { target: TransformCorner | TransformEdge }
+    ) {
+      session = new Sessions.TransformSession(
+        data,
+        payload.target,
+        screenToWorld(payload.point, data)
+      )
+    },
+    updateTransformSession(data, payload: PointerInfo) {
       session.update(data, screenToWorld(payload.point, data))
     },
 
@@ -224,31 +251,13 @@ const state = createState({
         document: { pages },
       } = data
 
+      if (selectedIds.size === 0) return null
+
       return getCommonBounds(
         ...Array.from(selectedIds.values())
           .map((id) => {
             const shape = pages[currentPageId].shapes[id]
-
-            switch (shape.type) {
-              case ShapeType.Dot: {
-                return Shapes[shape.type].getBounds(shape)
-              }
-              case ShapeType.Circle: {
-                return Shapes[shape.type].getBounds(shape)
-              }
-              case ShapeType.Line: {
-                return Shapes[shape.type].getBounds(shape)
-              }
-              case ShapeType.Polyline: {
-                return Shapes[shape.type].getBounds(shape)
-              }
-              case ShapeType.Rectangle: {
-                return Shapes[shape.type].getBounds(shape)
-              }
-              default: {
-                return null
-              }
-            }
+            return getShapeUtils(shape).getBounds(shape)
           })
           .filter(Boolean)
       )

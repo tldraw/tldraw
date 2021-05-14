@@ -1,12 +1,13 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
 import { PolylineShape, ShapeType } from "types"
-import { boundsCache } from "./index"
+import { createShape } from "./index"
 import { intersectPolylineBounds } from "utils/intersections"
 import { boundsCollide, boundsContained } from "utils/bounds"
-import { createShape } from "./base-shape"
 
 const polyline = createShape<PolylineShape>({
+  boundsCache: new WeakMap([]),
+
   create(props) {
     return {
       id: uuid(),
@@ -27,8 +28,8 @@ const polyline = createShape<PolylineShape>({
   },
 
   getBounds(shape) {
-    if (boundsCache.has(shape)) {
-      return boundsCache.get(shape)
+    if (this.boundsCache.has(shape)) {
+      return this.boundsCache.get(shape)
     }
 
     let minX = 0
@@ -52,7 +53,7 @@ const polyline = createShape<PolylineShape>({
       height: maxY - minY,
     }
 
-    boundsCache.set(shape, bounds)
+    this.boundsCache.set(shape, bounds)
     return bounds
   },
 
@@ -86,6 +87,21 @@ const polyline = createShape<PolylineShape>({
   },
 
   stretch(shape, scaleX: number, scaleY: number) {
+    return shape
+  },
+
+  transform(shape, bounds) {
+    const currentBounds = this.getBounds(shape)
+
+    const scaleX = bounds.width / currentBounds.width
+    const scaleY = bounds.height / currentBounds.height
+
+    shape.points = shape.points.map((point) => {
+      let pt = vec.mulV(point, [scaleX, scaleY])
+      return pt
+    })
+
+    shape.point = [bounds.minX, bounds.minY]
     return shape
   },
 })

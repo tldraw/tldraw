@@ -101,6 +101,22 @@ export interface Bounds {
   height: number
 }
 
+export interface ShapeBounds extends Bounds {
+  id: string
+}
+
+export interface PointSnapshot extends Bounds {
+  nx: number
+  nmx: number
+  ny: number
+  nmy: number
+}
+
+export interface BoundsSnapshot extends PointSnapshot {
+  nw: number
+  nh: number
+}
+
 export interface Shapes extends Record<ShapeType, Shape> {
   [ShapeType.Dot]: DotShape
   [ShapeType.Circle]: CircleShape
@@ -120,7 +136,7 @@ export type ShapeSpecificProps<T extends Shape> = Pick<
 
 export type ShapeIndicatorProps<T extends Shape> = ShapeSpecificProps<T>
 
-export type BaseLibShape<K extends Shape> = {
+export type ShapeUtil<K extends Shape> = {
   create(props: Partial<K>): K
   getBounds(shape: K): Bounds
   hitTest(shape: K, test: number[]): boolean
@@ -141,4 +157,18 @@ export interface PointerInfo {
   ctrlKey: boolean
   metaKey: boolean
   altKey: boolean
+}
+
+export enum TransformEdge {
+  Top = "top_edge",
+  Right = "right_edge",
+  Bottom = "bottom_edge",
+  Left = "left_edge",
+}
+
+export enum TransformCorner {
+  TopLeft = "top_left_corner",
+  TopRight = "top_right_corner",
+  BottomRight = "bottom_right_corner",
+  BottomLeft = "bottom_left_corner",
 }

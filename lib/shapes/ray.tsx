@@ -1,29 +1,30 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
-import { RectangleShape, ShapeType } from "types"
+import { RayShape, ShapeType } from "types"
 import { createShape } from "./index"
-import { boundsContained, boundsCollide } from "utils/bounds"
+import { boundsContained } from "utils/bounds"
+import { intersectCircleBounds } from "utils/intersections"
 
-const rectangle = createShape<RectangleShape>({
+const ray = createShape<RayShape>({
   boundsCache: new WeakMap([]),
 
   create(props) {
     return {
       id: uuid(),
-      type: ShapeType.Rectangle,
-      name: "Rectangle",
+      type: ShapeType.Ray,
+      name: "Ray",
       parentId: "page0",
       childIndex: 0,
       point: [0, 0],
-      size: [1, 1],
+      vector: [0, 0],
       rotation: 0,
       style: {},
       ...props,
     }
   },
 
-  render({ id, size }) {
-    return <rect id={id} width={size[0]} height={size[1]} />
+  render({ id }) {
+    return <circle id={id} cx={4} cy={4} r={4} />
   },
 
   getBounds(shape) {
@@ -33,16 +34,15 @@ const rectangle = createShape<RectangleShape>({
 
     const {
       point: [x, y],
-      size: [width, height],
     } = shape
 
     const bounds = {
       minX: x,
-      maxX: x + width,
+      maxX: x + 8,
       minY: y,
-      maxY: y + height,
-      width,
-      height,
+      maxY: y + 8,
+      width: 8,
+      height: 8,
     }
 
     this.boundsCache.set(shape, bounds)
@@ -50,15 +50,15 @@ const rectangle = createShape<RectangleShape>({
     return bounds
   },
 
-  hitTest(shape) {
-    return true
+  hitTest(shape, test) {
+    return vec.dist(shape.point, test) < 4
   },
 
-  hitTestBounds(shape, brushBounds) {
+  hitTestBounds(this, shape, brushBounds) {
     const shapeBounds = this.getBounds(shape)
     return (
       boundsContained(shapeBounds, brushBounds) ||
-      boundsCollide(shapeBounds, brushBounds)
+      intersectCircleBounds(shape.point, 4, brushBounds).length > 0
     )
   },
 
@@ -71,21 +71,17 @@ const rectangle = createShape<RectangleShape>({
     return shape
   },
 
-  scale(shape, scale) {
+  scale(shape, scale: number) {
     return shape
   },
 
-  stretch(shape, scaleX, scaleY) {
-    shape.size = vec.mulV(shape.size, [scaleX, scaleY])
+  stretch(shape, scaleX: number, scaleY: number) {
     return shape
   },
 
   transform(shape, bounds) {
-    shape.point = [bounds.minX, bounds.minY]
-    shape.size = [bounds.width, bounds.height]
-
     return shape
   },
 })
 
-export default rectangle
+export default ray

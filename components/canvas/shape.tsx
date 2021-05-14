@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, memo } from "react"
 import state, { useSelector } from "state"
 import inputs from "state/inputs"
-import shapes from "lib/shapes"
+import { getShapeUtils } from "lib/shapes"
 import styled from "styles"
 
 function Shape({ id }: { id: string }) {
@@ -41,7 +41,6 @@ function Shape({ id }: { id: string }) {
     (e: React.PointerEvent) => state.send("UNHOVERED_SHAPE", { id }),
     [id]
   )
-
   return (
     <StyledGroup
       ref={rGroup}
@@ -52,9 +51,7 @@ function Shape({ id }: { id: string }) {
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
     >
-      <defs>
-        {shapes[shape.type] ? shapes[shape.type].render(shape) : null}
-      </defs>
+      <defs>{getShapeUtils(shape).render(shape)}</defs>
       <HoverIndicator as="use" xlinkHref={"#" + id} />
       <use xlinkHref={"#" + id} {...shape.style} />
       <Indicator as="use" xlinkHref={"#" + id} />
@@ -65,7 +62,7 @@ function Shape({ id }: { id: string }) {
 const Indicator = styled("path", {
   fill: "none",
   stroke: "transparent",
-  zStrokeWidth: 1,
+  zStrokeWidth: [1, 1],
   pointerEvents: "none",
   strokeLineCap: "round",
   strokeLinejoin: "round",
