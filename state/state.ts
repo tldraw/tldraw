@@ -58,7 +58,8 @@ const state = createState({
       on: {
         UNDO: { do: "undo" },
         REDO: { do: "redo" },
-        DELETED: { do: "deleteSelection" },
+        CANCELLED: { do: "clearSelectedIds" },
+        DELETED: { do: "deleteSelectedIds" },
         GENERATED_SHAPES_FROM_CODE: "setGeneratedShapes",
         INCREASED_CODE_FONT_SIZE: "increaseCodeFontSize",
         DECREASED_CODE_FONT_SIZE: "decreaseCodeFontSize",
@@ -171,7 +172,7 @@ const state = createState({
             PANNED_CAMERA: "updateTranslateSession",
             STOPPED_POINTING: { do: "completeSession", to: "selecting" },
             CANCELLED: {
-              do: ["cancelSession", "deleteSelection"],
+              do: ["cancelSession", "deleteSelectedIds"],
               to: "selecting",
             },
           },
@@ -221,9 +222,7 @@ const state = createState({
         point: screenToWorld(payload.point, data),
       })
 
-      data.selectedIds.clear()
-      data.selectedIds.add(shape.id)
-      data.document.pages[data.currentPageId].shapes[shape.id] = shape
+      commands.createShape(data, shape)
     },
 
     // History
@@ -299,7 +298,7 @@ const state = createState({
     },
 
     // Selection
-    deleteSelection(data) {
+    deleteSelectedIds(data) {
       const { document, currentPageId } = data
       const shapes = document.pages[currentPageId].shapes
 
@@ -312,7 +311,6 @@ const state = createState({
       data.hoveredId = undefined
       data.pointedId = undefined
     },
-
     setHoveredId(data, payload: PointerInfo) {
       data.hoveredId = payload.target
     },
