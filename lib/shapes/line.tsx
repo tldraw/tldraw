@@ -19,7 +19,10 @@ const line = createShape<LineShape>({
       point: [0, 0],
       direction: [0, 0],
       rotation: 0,
-      style: {},
+      style: {
+        fill: "#777",
+        stroke: "#000",
+      },
       ...props,
     }
   },

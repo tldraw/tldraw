@@ -12,7 +12,7 @@ export default class Line extends CodeShape<LineShape> {
       parentId: "page0",
       childIndex: 0,
       point: [0, 0],
-      direction: [0, 0],
+      direction: [-0.5, 0.5],
       rotation: 0,
       style: {
         fill: "#777",

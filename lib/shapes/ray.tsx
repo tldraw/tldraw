@@ -4,6 +4,7 @@ import { RayShape, ShapeType } from "types"
 import { createShape } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
+import styled from "styles"
 
 const ray = createShape<RayShape>({
   boundsCache: new WeakMap([]),
@@ -20,6 +21,7 @@ const ray = createShape<RayShape>({
       direction: [0, 1],
       rotation: 0,
       style: {
+        fill: "#777",
         stroke: "#000",
         strokeWidth: 1,
       },

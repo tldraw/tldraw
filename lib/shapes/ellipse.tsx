@@ -21,7 +21,10 @@ const ellipse = createShape<EllipseShape>({
       radiusX: 20,
       radiusY: 20,
       rotation: 0,
-      style: {},
+      style: {
+        fill: "#777",
+        stroke: "#000",
+      },
       ...props,
     }
   },

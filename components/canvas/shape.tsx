@@ -66,16 +66,20 @@ function Shape({ id }: { id: string }) {
     >
       <defs>{getShapeUtils(shape).render(shape)}</defs>
       <HoverIndicator as="use" xlinkHref={"#" + id} />
-      <use xlinkHref={"#" + id} {...shape.style} />
+      <MainShape as="use" xlinkHref={"#" + id} {...shape.style} />
       <Indicator as="use" xlinkHref={"#" + id} />
     </StyledGroup>
   )
 }
 
+const MainShape = styled("use", {
+  zStrokeWidth: 1,
+})
+
 const Indicator = styled("path", {
   fill: "none",
   stroke: "transparent",
-  zStrokeWidth: [1, 1],
+  zStrokeWidth: 1,
   pointerEvents: "none",
   strokeLineCap: "round",
   strokeLinejoin: "round",

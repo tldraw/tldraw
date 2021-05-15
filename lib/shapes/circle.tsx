@@ -20,7 +20,10 @@ const circle = createShape<CircleShape>({
       point: [0, 0],
       rotation: 0,
       radius: 20,
-      style: {},
+      style: {
+        fill: "#777",
+        stroke: "#000",
+      },
       ...props,
     }
   },

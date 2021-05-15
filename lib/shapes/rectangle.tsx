@@ -18,7 +18,10 @@ const rectangle = createShape<RectangleShape>({
       point: [0, 0],
       size: [1, 1],
       rotation: 0,
-      style: {},
+      style: {
+        fill: "#777",
+        stroke: "#000",
+      },
       ...props,
     }
   },
@@ -73,11 +76,6 @@ const rectangle = createShape<RectangleShape>({
   },
 
   scale(shape, scale) {
-    return shape
-  },
-
-  stretch(shape, scaleX, scaleY) {
-    shape.size = vec.mulV(shape.size, [scaleX, scaleY])
     return shape
   },
 

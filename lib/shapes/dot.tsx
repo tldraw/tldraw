@@ -18,7 +18,10 @@ const dot = createShape<DotShape>({
       childIndex: 0,
       point: [0, 0],
       rotation: 0,
-      style: {},
+      style: {
+        fill: "#777",
+        stroke: "#000",
+      },
       ...props,
     }
   },

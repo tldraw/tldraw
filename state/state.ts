@@ -166,14 +166,29 @@ const state = createState({
           },
         },
         editing: {
-          onEnter: "startTranslateSession",
           on: {
-            MOVED_POINTER: "updateTranslateSession",
-            PANNED_CAMERA: "updateTranslateSession",
             STOPPED_POINTING: { do: "completeSession", to: "selecting" },
             CANCELLED: {
               do: ["cancelSession", "deleteSelectedIds"],
               to: "selecting",
+            },
+          },
+          initial: "inactive",
+          states: {
+            inactive: {
+              on: {
+                MOVED_POINTER: {
+                  if: "distanceImpliesDrag",
+                  to: "dot.editing.active",
+                },
+              },
+            },
+            active: {
+              onEnter: "startTranslateSession",
+              on: {
+                MOVED_POINTER: "updateTranslateSession",
+                PANNED_CAMERA: "updateTranslateSession",
+              },
             },
           },
         },
@@ -193,20 +208,74 @@ const state = createState({
           },
         },
         editing: {
-          onEnter: "startDirectionSession",
           on: {
-            MOVED_POINTER: "updateDirectionSession",
-            PANNED_CAMERA: "updateDirectionSession",
             STOPPED_POINTING: { do: "completeSession", to: "selecting" },
             CANCELLED: {
               do: ["cancelSession", "deleteSelectedIds"],
               to: "selecting",
             },
           },
+          initial: "inactive",
+          states: {
+            inactive: {
+              on: {
+                MOVED_POINTER: {
+                  if: "distanceImpliesDrag",
+                  to: "ray.editing.active",
+                },
+              },
+            },
+            active: {
+              onEnter: "startDirectionSession",
+              on: {
+                MOVED_POINTER: "updateDirectionSession",
+                PANNED_CAMERA: "updateDirectionSession",
+              },
+            },
+          },
         },
       },
     },
-    line: {},
+    line: {
+      initial: "creating",
+      states: {
+        creating: {
+          on: {
+            POINTED_CANVAS: {
+              do: "createLine",
+              to: "line.editing",
+            },
+          },
+        },
+        editing: {
+          on: {
+            STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+            CANCELLED: {
+              do: ["cancelSession", "deleteSelectedIds"],
+              to: "selecting",
+            },
+          },
+          initial: "inactive",
+          states: {
+            inactive: {
+              on: {
+                MOVED_POINTER: {
+                  if: "distanceImpliesDrag",
+                  to: "line.editing.active",
+                },
+              },
+            },
+            active: {
+              onEnter: "startDirectionSession",
+              on: {
+                MOVED_POINTER: "updateDirectionSession",
+                PANNED_CAMERA: "updateDirectionSession",
+              },
+            },
+          },
+        },
+      },
+    },
     polyline: {},
     rectangle: {},
   },
@@ -262,15 +331,26 @@ const state = createState({
       data.selectedIds.add(shape.id)
     },
 
+    // Line
+    createLine(data, payload: PointerInfo) {
+      const shape = shapeUtilityMap[ShapeType.Line].create({
+        point: screenToWorld(payload.point, data),
+        direction: [0, 1],
+      })
+
+      commands.createShape(data, shape)
+      data.selectedIds.add(shape.id)
+    },
+
     /* -------------------- Sessions -------------------- */
 
     // Shared
     cancelSession(data) {
-      session.cancel(data)
+      session?.cancel(data)
       session = undefined
     },
     completeSession(data) {
-      session.complete(data)
+      session?.complete(data)
       session = undefined
     },
 
