@@ -5,6 +5,7 @@ import { createShape } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
 import styled from "styles"
+import { DotCircle } from "components/canvas/misc"
 
 const ray = createShape<RayShape>({
   boundsCache: new WeakMap([]),
@@ -35,7 +36,7 @@ const ray = createShape<RayShape>({
     return (
       <g id={id}>
         <line x1={0} y1={0} x2={x2} y2={y2} />
-        <circle cx={0} cy={0} r={4} />
+        <DotCircle cx={0} cy={0} r={4} />
       </g>
     )
   },

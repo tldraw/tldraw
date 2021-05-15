@@ -4,6 +4,8 @@ import { DotShape, ShapeType } from "types"
 import { createShape } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
+import styled from "styles"
+import { DotCircle } from "components/canvas/misc"
 
 const dot = createShape<DotShape>({
   boundsCache: new WeakMap([]),
@@ -27,7 +29,7 @@ const dot = createShape<DotShape>({
   },
 
   render({ id }) {
-    return <circle id={id} cx={0} cy={0} r={4} />
+    return <DotCircle id={id} cx={0} cy={0} r={4} />
   },
 
   getBounds(shape) {

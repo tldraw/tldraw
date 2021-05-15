@@ -67,6 +67,7 @@ const globalStyles = global({
   "*": { boxSizing: "border-box" },
   ":root": {
     "--camera-zoom": 1,
+    "--scale": "calc(1 / var(--camera-zoom))",
   },
   "html, body": {
     padding: "0px",

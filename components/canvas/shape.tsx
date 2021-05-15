@@ -52,6 +52,12 @@ function Shape({ id }: { id: string }) {
     [id]
   )
 
+  // This is a problem with deleted shapes. The hooks in this component
+  // may sometimes run before the hook in the Page component, which means
+  // a deleted shape will still be pulled here before the page component
+  // detects the change and pulls this component.
+  if (!shape) return null
+
   return (
     <StyledGroup
       ref={rGroup}

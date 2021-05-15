@@ -452,16 +452,18 @@ const state = createState({
     },
     deleteSelectedIds(data) {
       const { document, currentPageId } = data
-      const shapes = document.pages[currentPageId].shapes
+      const { shapes } = document.pages[currentPageId]
+
+      data.hoveredId = undefined
+      data.pointedId = undefined
 
       data.selectedIds.forEach((id) => {
         delete shapes[id]
         // TODO: recursively delete children
       })
 
+      data.document.pages[currentPageId].shapes = shapes
       data.selectedIds.clear()
-      data.hoveredId = undefined
-      data.pointedId = undefined
     },
 
     /* ---------------------- Misc ---------------------- */

@@ -9,10 +9,10 @@ here; and still cheaper than any other pattern I've found.
 */
 
 export default function Page() {
-  const currentPageShapeIds = useSelector((state) => {
-    const { currentPageId, document } = state.data
-    return Object.keys(document.pages[currentPageId].shapes)
-  }, deepCompareArrays)
+  const currentPageShapeIds = useSelector(
+    ({ data }) => Object.keys(data.document.pages[data.currentPageId].shapes),
+    deepCompareArrays
+  )
 
   return (
     <>
