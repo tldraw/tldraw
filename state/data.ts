@@ -9,6 +9,18 @@ export const defaultDocument: Data["document"] = {
       name: "Page 0",
       childIndex: 0,
       shapes: {
+        rayShape: shapeUtils[ShapeType.Ray].create({
+          id: "rayShape",
+          name: "Ray",
+          childIndex: 3,
+          point: [300, 300],
+          direction: [0.5, 0.5],
+          style: {
+            fill: "#AAA",
+            stroke: "#777",
+            strokeWidth: 1,
+          },
+        }),
         // shape3: shapeUtils[ShapeType.Dot].create({
         //   id: "shape3",
         //   name: "Shape 3",

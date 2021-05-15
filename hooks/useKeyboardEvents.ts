@@ -1,13 +1,13 @@
 import { useEffect } from "react"
 import state from "state"
-import { getKeyboardEventInfo, isDarwin } from "utils/utils"
+import { getKeyboardEventInfo, isDarwin, metaKey } from "utils/utils"
 
 export default function useKeyboardEvents() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         state.send("CANCELLED")
-      } else if (e.key === "z" && (isDarwin() ? e.metaKey : e.ctrlKey)) {
+      } else if (e.key === "z" && metaKey(e)) {
         if (e.shiftKey) {
           state.send("REDO")
         } else {
@@ -15,7 +15,41 @@ export default function useKeyboardEvents() {
         }
       }
 
-      state.send("PRESSED_KEY", getKeyboardEventInfo(e))
+      if (e.key === "Backspace" && !(metaKey(e) || e.shiftKey || e.altKey)) {
+        state.send("DELETED", getKeyboardEventInfo(e))
+      }
+
+      if (e.key === "v" && !(metaKey(e) || e.shiftKey || e.altKey)) {
+        state.send("SELECTED_SELECT_TOOL", getKeyboardEventInfo(e))
+      }
+
+      if (e.key === "d" && !(metaKey(e) || e.shiftKey || e.altKey)) {
+        state.send("SELECTED_DOT_TOOL", getKeyboardEventInfo(e))
+      }
+
+      if (e.key === "c" && !(metaKey(e) || e.shiftKey || e.altKey)) {
+        state.send("SELECTED_CIRCLE_TOOL", getKeyboardEventInfo(e))
+      }
+
+      if (e.key === "i" && !(metaKey(e) || e.shiftKey || e.altKey)) {
+        state.send("SELECTED_ELLIPSE_TOOL", getKeyboardEventInfo(e))
+      }
+
+      if (e.key === "l" && !(metaKey(e) || e.shiftKey || e.altKey)) {
+        state.send("SELECTED_LINE_TOOL", getKeyboardEventInfo(e))
+      }
+
+      if (e.key === "y" && !(metaKey(e) || e.shiftKey || e.altKey)) {
+        state.send("SELECTED_RAY_TOOL", getKeyboardEventInfo(e))
+      }
+
+      if (e.key === "p" && !(metaKey(e) || e.shiftKey || e.altKey)) {
+        state.send("SELECTED_POLYLINE_TOOL", getKeyboardEventInfo(e))
+      }
+
+      if (e.key === "r" && !(metaKey(e) || e.shiftKey || e.altKey)) {
+        state.send("SELECTED_RECTANGLE_TOOL", getKeyboardEventInfo(e))
+      }
     }
 
     function handleKeyUp(e: KeyboardEvent) {

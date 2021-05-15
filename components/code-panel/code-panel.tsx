@@ -180,7 +180,7 @@ export default function CodePanel() {
 
 const PanelContainer = styled(motion.div, {
   position: "absolute",
-  top: "8px",
+  top: "48px",
   right: "8px",
   bottom: "48px",
   backgroundColor: "$panel",

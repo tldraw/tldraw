@@ -1,9 +1,17 @@
 import { createSelectorHook, createState } from "@state-designer/react"
 import { clamp, getCommonBounds, screenToWorld } from "utils/utils"
 import * as vec from "utils/vec"
-import { Data, PointerInfo, Shape, TransformCorner, TransformEdge } from "types"
+import {
+  Data,
+  PointerInfo,
+  Shape,
+  ShapeType,
+  Shapes,
+  TransformCorner,
+  TransformEdge,
+} from "types"
 import { defaultDocument } from "./data"
-import { getShapeUtils } from "lib/shapes"
+import shapeUtilityMap, { getShapeUtils } from "lib/shapes"
 import history from "state/history"
 import * as Sessions from "./sessions"
 import commands from "./commands"
@@ -35,6 +43,14 @@ const state = createState({
     PANNED_CAMERA: {
       do: "panCamera",
     },
+    SELECTED_SELECT_TOOL: { to: "selecting" },
+    SELECTED_DOT_TOOL: { unless: "isReadOnly", to: "creatingDot" },
+    SELECTED_CIRCLE_TOOL: { unless: "isReadOnly", to: "creatingCircle" },
+    SELECTED_ELLIPSE_TOOL: { unless: "isReadOnly", to: "creatingEllipse" },
+    SELECTED_RAY_TOOL: { unless: "isReadOnly", to: "creatingRay" },
+    SELECTED_LINE_TOOL: { unless: "isReadOnly", to: "creatingLine" },
+    SELECTED_POLYLINE_TOOL: { unless: "isReadOnly", to: "creatingPolyline" },
+    SELECTED_RECTANGLE_TOOL: { unless: "isReadOnly", to: "creatingRectangle" },
   },
   initial: "selecting",
   states: {
@@ -42,6 +58,7 @@ const state = createState({
       on: {
         UNDO: { do: "undo" },
         REDO: { do: "redo" },
+        DELETED: { do: "deleteSelection" },
         GENERATED_SHAPES_FROM_CODE: "setGeneratedShapes",
         INCREASED_CODE_FONT_SIZE: "increaseCodeFontSize",
         DECREASED_CODE_FONT_SIZE: "decreaseCodeFontSize",
@@ -136,6 +153,37 @@ const state = createState({
         },
       },
     },
+    creatingDot: {
+      initial: "creating",
+      states: {
+        creating: {
+          on: {
+            POINTED_CANVAS: {
+              do: "createDot",
+              to: "creatingDot.positioning",
+            },
+          },
+        },
+        positioning: {
+          onEnter: "startTranslateSession",
+          on: {
+            MOVED_POINTER: "updateTranslateSession",
+            PANNED_CAMERA: "updateTranslateSession",
+            STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+            CANCELLED: {
+              do: ["cancelSession", "deleteSelection"],
+              to: "selecting",
+            },
+          },
+        },
+      },
+    },
+    creatingCircle: {},
+    creatingEllipse: {},
+    creatingRay: {},
+    creatingLine: {},
+    creatingPolyline: {},
+    creatingRectangle: {},
   },
   conditions: {
     isPointingBounds(data, payload: PointerInfo) {
@@ -167,6 +215,17 @@ const state = createState({
     },
   },
   actions: {
+    // Shapes
+    createDot(data, payload: PointerInfo) {
+      const shape = shapeUtilityMap[ShapeType.Dot].create({
+        point: screenToWorld(payload.point, data),
+      })
+
+      data.selectedIds.clear()
+      data.selectedIds.add(shape.id)
+      data.document.pages[data.currentPageId].shapes[shape.id] = shape
+    },
+
     // History
     enableHistory() {
       history.enable()
@@ -240,6 +299,20 @@ const state = createState({
     },
 
     // Selection
+    deleteSelection(data) {
+      const { document, currentPageId } = data
+      const shapes = document.pages[currentPageId].shapes
+
+      data.selectedIds.forEach((id) => {
+        delete shapes[id]
+        // TODO: recursively delete children
+      })
+
+      data.selectedIds.clear()
+      data.hoveredId = undefined
+      data.pointedId = undefined
+    },
+
     setHoveredId(data, payload: PointerInfo) {
       data.hoveredId = payload.target
     },

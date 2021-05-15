@@ -24,8 +24,15 @@ const ray = createShape<RayShape>({
     }
   },
 
-  render({ id }) {
-    return <circle id={id} cx={4} cy={4} r={4} />
+  render({ id, direction }) {
+    const [x2, y2] = vec.add([0, 0], vec.mul(direction, 100000))
+
+    return (
+      <g id={id}>
+        <line x1={0} y1={0} x2={x2} y2={y2} />
+        <circle cx={0} cy={0} r={4} />
+      </g>
+    )
   },
 
   getBounds(shape) {
@@ -52,7 +59,7 @@ const ray = createShape<RayShape>({
   },
 
   hitTest(shape, test) {
-    return vec.dist(shape.point, test) < 4
+    return true
   },
 
   hitTestBounds(this, shape, brushBounds) {

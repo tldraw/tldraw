@@ -1,3 +1,4 @@
+import React from "react"
 import { Data, Bounds, TransformEdge, TransformCorner } from "types"
 import * as svg from "./svg"
 import * as vec from "./vec"
@@ -890,6 +891,10 @@ export function getKeyboardEventInfo(e: KeyboardEvent | React.KeyboardEvent) {
 
 export function isDarwin() {
   return /Mac|iPod|iPhone|iPad/.test(window.navigator.platform)
+}
+
+export function metaKey(e: KeyboardEvent | React.KeyboardEvent) {
+  return isDarwin() ? e.metaKey : e.ctrlKey
 }
 
 export function getTransformAnchor(

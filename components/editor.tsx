@@ -1,6 +1,7 @@
 import useKeyboardEvents from "hooks/useKeyboardEvents"
 import Canvas from "./canvas/canvas"
 import StatusBar from "./status-bar"
+import Toolbar from "./toolbar"
 import CodePanel from "./code-panel/code-panel"
 
 export default function Editor() {
@@ -10,7 +11,8 @@ export default function Editor() {
     <>
       <Canvas />
       <StatusBar />
-      <CodePanel />
+      <Toolbar />
+      {/* <CodePanel /> */}
     </>
   )
 }
