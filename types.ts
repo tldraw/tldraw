@@ -56,6 +56,7 @@ export interface BaseShape {
   type: ShapeType
   parentId: string
   childIndex: number
+  isGenerated: boolean
   name: string
   point: number[]
   rotation: number

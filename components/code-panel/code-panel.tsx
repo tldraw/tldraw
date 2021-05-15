@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import React, { useEffect, useRef } from "react"
-import state, { useSelector } from "state"
-import { motion } from "framer-motion"
-import { CodeFile } from "types"
+import styled from "styles"
 import { useStateDesigner } from "@state-designer/react"
+import React, { useEffect, useRef } from "react"
+import { motion } from "framer-motion"
+import state, { useSelector } from "state"
+import { CodeFile } from "types"
 import CodeDocs from "./code-docs"
 import CodeEditor from "./code-editor"
+import { getShapesFromCode } from "lib/code/generate"
 import {
   X,
   Code,
@@ -14,9 +16,6 @@ import {
   ChevronUp,
   ChevronDown,
 } from "react-feather"
-import styled from "styles"
-
-// import evalCode from "lib/code"
 
 const getErrorLineAndColumn = (e: any) => {
   if ("line" in e) {
@@ -79,12 +78,13 @@ export default function CodePanel() {
       runCode(data) {
         let error = null
 
-        // try {
-        //   const { nodes, globs } = evalCode(data.code)
-        //   state.send("GENERATED_ITEMS", { nodes, globs })
-        // } catch (e) {
-        //   error = { message: e.message, ...getErrorLineAndColumn(e) }
-        // }
+        try {
+          const shapes = getShapesFromCode(data.code)
+          state.send("GENERATED_SHAPES_FROM_CODE", { shapes })
+        } catch (e) {
+          console.error(e)
+          error = { message: e.message, ...getErrorLineAndColumn(e) }
+        }
 
         data.error = error
       },
@@ -182,7 +182,7 @@ const PanelContainer = styled(motion.div, {
   position: "absolute",
   top: "8px",
   right: "8px",
-  bottom: "8px",
+  bottom: "48px",
   backgroundColor: "$panel",
   borderRadius: "4px",
   overflow: "hidden",
@@ -198,9 +198,7 @@ const PanelContainer = styled(motion.div, {
   variants: {
     isCollapsed: {
       true: {},
-      false: {
-        height: "400px",
-      },
+      false: {},
     },
   },
 })
@@ -240,11 +238,11 @@ const Content = styled("div", {
   display: "grid",
   gridTemplateColumns: "1fr",
   gridTemplateRows: "auto 1fr 28px",
-  minWidth: "100%",
+  height: "100%",
   width: 560,
+  minWidth: "100%",
   maxWidth: 560,
   overflow: "hidden",
-  height: "100%",
   userSelect: "none",
   pointerEvents: "all",
 })

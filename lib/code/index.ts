@@ -2,16 +2,22 @@ import { Shape } from "types"
 import * as vec from "utils/vec"
 import { getShapeUtils } from "lib/shapes"
 
+export const codeShapes = new Set<CodeShape<Shape>>([])
+
+/**
+ * A base class for code shapes. Note that creating a shape adds it to the
+ * shape map, while deleting it removes it from the collected shapes set
+ */
 export default class CodeShape<T extends Shape> {
   private _shape: T
 
   constructor(props: T) {
     this._shape = props
-    shapeMap.add(this)
+    codeShapes.add(this)
   }
 
   destroy() {
-    shapeMap.delete(this)
+    codeShapes.delete(this)
   }
 
   moveTo(point: number[]) {
@@ -50,5 +56,3 @@ export default class CodeShape<T extends Shape> {
     return this.shape.rotation
   }
 }
-
-export const shapeMap = new Set<CodeShape<Shape>>([])

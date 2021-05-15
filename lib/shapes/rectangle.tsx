@@ -11,6 +11,7 @@ const rectangle = createShape<RectangleShape>({
     return {
       id: uuid(),
       type: ShapeType.Rectangle,
+      isGenerated: false,
       name: "Rectangle",
       parentId: "page0",
       childIndex: 0,
@@ -86,6 +87,8 @@ const rectangle = createShape<RectangleShape>({
 
     return shape
   },
+
+  canTransform: true,
 })
 
 export default rectangle

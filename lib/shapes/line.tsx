@@ -12,6 +12,7 @@ const line = createShape<LineShape>({
     return {
       id: uuid(),
       type: ShapeType.Line,
+      isGenerated: false,
       name: "Line",
       parentId: "page0",
       childIndex: 0,
@@ -63,7 +64,11 @@ const line = createShape<LineShape>({
   },
 
   hitTestBounds(this, shape, brushBounds) {
-    return true
+    const shapeBounds = this.getBounds(shape)
+    return (
+      boundsContained(shapeBounds, brushBounds) ||
+      intersectCircleBounds(shape.point, 4, brushBounds).length > 0
+    )
   },
 
   rotate(shape) {
@@ -88,6 +93,8 @@ const line = createShape<LineShape>({
 
     return shape
   },
+
+  canTransform: false,
 })
 
 export default line

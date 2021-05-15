@@ -12,6 +12,7 @@ const dot = createShape<DotShape>({
     return {
       id: uuid(),
       type: ShapeType.Dot,
+      isGenerated: false,
       name: "Dot",
       parentId: "page0",
       childIndex: 0,
@@ -83,6 +84,8 @@ const dot = createShape<DotShape>({
 
     return shape
   },
+
+  canTransform: false,
 })
 
 export default dot

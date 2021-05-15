@@ -13,6 +13,7 @@ const ellipse = createShape<EllipseShape>({
     return {
       id: uuid(),
       type: ShapeType.Ellipse,
+      isGenerated: false,
       name: "Ellipse",
       parentId: "page0",
       childIndex: 0,
@@ -103,6 +104,8 @@ const ellipse = createShape<EllipseShape>({
 
     return shape
   },
+
+  canTransform: true,
 })
 
 export default ellipse

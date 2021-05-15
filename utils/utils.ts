@@ -1,4 +1,4 @@
-import { Data, Bounds } from "types"
+import { Data, Bounds, TransformEdge, TransformCorner } from "types"
 import * as svg from "./svg"
 import * as vec from "./vec"
 
@@ -890,4 +890,58 @@ export function getKeyboardEventInfo(e: KeyboardEvent | React.KeyboardEvent) {
 
 export function isDarwin() {
   return /Mac|iPod|iPhone|iPad/.test(window.navigator.platform)
+}
+
+export function getTransformAnchor(
+  type: TransformEdge | TransformCorner,
+  isFlippedX: boolean,
+  isFlippedY: boolean
+) {
+  let anchor: TransformCorner | TransformEdge = type
+
+  // Change corner anchors if flipped
+  switch (type) {
+    case TransformCorner.TopLeft: {
+      if (isFlippedX && isFlippedY) {
+        anchor = TransformCorner.BottomRight
+      } else if (isFlippedX) {
+        anchor = TransformCorner.TopRight
+      } else if (isFlippedY) {
+        anchor = TransformCorner.BottomLeft
+      }
+      break
+    }
+    case TransformCorner.TopRight: {
+      if (isFlippedX && isFlippedY) {
+        anchor = TransformCorner.BottomLeft
+      } else if (isFlippedX) {
+        anchor = TransformCorner.TopLeft
+      } else if (isFlippedY) {
+        anchor = TransformCorner.BottomRight
+      }
+      break
+    }
+    case TransformCorner.BottomRight: {
+      if (isFlippedX && isFlippedY) {
+        anchor = TransformCorner.TopLeft
+      } else if (isFlippedX) {
+        anchor = TransformCorner.BottomLeft
+      } else if (isFlippedY) {
+        anchor = TransformCorner.TopRight
+      }
+      break
+    }
+    case TransformCorner.BottomLeft: {
+      if (isFlippedX && isFlippedY) {
+        anchor = TransformCorner.TopRight
+      } else if (isFlippedX) {
+        anchor = TransformCorner.BottomRight
+      } else if (isFlippedY) {
+        anchor = TransformCorner.TopLeft
+      }
+      break
+    }
+  }
+
+  return anchor
 }

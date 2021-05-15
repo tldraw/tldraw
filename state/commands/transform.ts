@@ -1,13 +1,14 @@
 import Command from "./command"
 import history from "../history"
-import { Data } from "types"
+import { Data, TransformCorner, TransformEdge } from "types"
 import { TransformSnapshot } from "state/sessions/transform-session"
 import { getShapeUtils } from "lib/shapes"
 
 export default function translateCommand(
   data: Data,
   before: TransformSnapshot,
-  after: TransformSnapshot
+  after: TransformSnapshot,
+  anchor: TransformCorner | TransformEdge
 ) {
   history.execute(
     data,
@@ -15,28 +16,34 @@ export default function translateCommand(
       name: "translate_shapes",
       category: "canvas",
       do(data) {
-        const { shapeBounds, initialBounds, currentPageId, selectedIds } = after
+        const {
+          type,
+          shapeBounds,
+          initialBounds,
+          currentPageId,
+          selectedIds,
+        } = after
+
         const { shapes } = data.document.pages[currentPageId]
 
         selectedIds.forEach((id) => {
           const { initialShape, initialShapeBounds } = shapeBounds[id]
           const shape = shapes[id]
 
-          getShapeUtils(shape).transform(
-            shape,
-            {
-              ...initialShapeBounds,
-              isFlippedX: false,
-              isFlippedY: false,
-            },
+          getShapeUtils(shape).transform(shape, initialShapeBounds, {
+            type,
             initialShape,
             initialShapeBounds,
-            initialBounds
-          )
+            initialBounds,
+            isFlippedX: false,
+            isFlippedY: false,
+            anchor,
+          })
         })
       },
       undo(data) {
         const {
+          type,
           shapeBounds,
           initialBounds,
           currentPageId,
@@ -49,17 +56,15 @@ export default function translateCommand(
           const { initialShape, initialShapeBounds } = shapeBounds[id]
           const shape = shapes[id]
 
-          getShapeUtils(shape).transform(
-            shape,
-            {
-              ...initialShapeBounds,
-              isFlippedX: false,
-              isFlippedY: false,
-            },
+          getShapeUtils(shape).transform(shape, initialShapeBounds, {
+            type,
             initialShape,
             initialShapeBounds,
-            initialBounds
-          )
+            initialBounds,
+            isFlippedX: false,
+            isFlippedY: false,
+            anchor: type,
+          })
         })
       },
     })

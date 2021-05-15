@@ -1,9 +1,11 @@
 // This is the code library.
 
 export default `
+new Circle({
+  point: [200, 200],
+})
 
-// Hello world
-const name = "steve"
-const age = 93
-
+new Rectangle({
+  point: [400, 300],
+})
 `

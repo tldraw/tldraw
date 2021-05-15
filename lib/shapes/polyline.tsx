@@ -12,6 +12,7 @@ const polyline = createShape<PolylineShape>({
     return {
       id: uuid(),
       type: ShapeType.Polyline,
+      isGenerated: false,
       name: "Polyline",
       parentId: "page0",
       childIndex: 0,
@@ -101,17 +102,21 @@ const polyline = createShape<PolylineShape>({
     return shape
   },
 
-  transform(shape, bounds, initialShape, initialShapeBounds) {
+  transform(
+    shape,
+    bounds,
+    { initialShape, initialShapeBounds, isFlippedX, isFlippedY }
+  ) {
     shape.points = shape.points.map((_, i) => {
       const [x, y] = initialShape.points[i]
 
       return [
         bounds.width *
-          (bounds.isFlippedX
+          (isFlippedX
             ? 1 - x / initialShapeBounds.width
             : x / initialShapeBounds.width),
         bounds.height *
-          (bounds.isFlippedY
+          (isFlippedY
             ? 1 - y / initialShapeBounds.height
             : y / initialShapeBounds.height),
       ]
@@ -120,6 +125,8 @@ const polyline = createShape<PolylineShape>({
     shape.point = [bounds.minX, bounds.minY]
     return shape
   },
+
+  canTransform: true,
 })
 
 export default polyline

@@ -10,10 +10,12 @@ import BaseSession from "./base-session"
 import commands from "state/commands"
 import { current } from "immer"
 import { getShapeUtils } from "lib/shapes"
-import { getCommonBounds } from "utils/utils"
+import { getCommonBounds, getTransformAnchor } from "utils/utils"
 
 export default class TransformSession extends BaseSession {
   delta = [0, 0]
+  isFlippedX = false
+  isFlippedY = false
   transformType: TransformEdge | TransformCorner
   origin: number[]
   snapshot: TransformSnapshot
@@ -24,13 +26,13 @@ export default class TransformSession extends BaseSession {
 
   constructor(
     data: Data,
-    type: TransformCorner | TransformEdge,
+    transformType: TransformCorner | TransformEdge,
     point: number[]
   ) {
     super(data)
     this.origin = point
-    this.transformType = type
-    this.snapshot = getTransformSnapshot(data)
+    this.transformType = transformType
+    this.snapshot = getTransformSnapshot(data, transformType)
 
     const { minX, minY, maxX, maxY } = this.snapshot.initialBounds
 
@@ -108,8 +110,8 @@ export default class TransformSession extends BaseSession {
       height: Math.abs(b[1] - a[1]),
     }
 
-    const isFlippedX = b[0] < a[0]
-    const isFlippedY = b[1] < a[1]
+    this.isFlippedX = b[0] < a[0]
+    this.isFlippedY = b[1] < a[1]
 
     // Now work backward to calculate a new bounding box for each of the shapes.
 
@@ -118,8 +120,10 @@ export default class TransformSession extends BaseSession {
       const { nx, nmx, nw, ny, nmy, nh } = initialShapeBounds
       const shape = shapes[id]
 
-      const minX = newBounds.minX + (isFlippedX ? nmx : nx) * newBounds.width
-      const minY = newBounds.minY + (isFlippedY ? nmy : ny) * newBounds.height
+      const minX =
+        newBounds.minX + (this.isFlippedX ? nmx : nx) * newBounds.width
+      const minY =
+        newBounds.minY + (this.isFlippedY ? nmy : ny) * newBounds.height
       const width = nw * newBounds.width
       const height = nh * newBounds.height
 
@@ -130,8 +134,8 @@ export default class TransformSession extends BaseSession {
         maxY: minY + height,
         width,
         height,
-        isFlippedX,
-        isFlippedY,
+        isFlippedX: this.isFlippedX,
+        isFlippedY: this.isFlippedY,
       }
 
       // Pass the new data to the shape's transform utility for mutation.
@@ -139,13 +143,19 @@ export default class TransformSession extends BaseSession {
       // however some shapes (e.g. those with internal points) will need more
       // data here too.
 
-      getShapeUtils(shape).transform(
-        shape,
-        newShapeBounds,
+      getShapeUtils(shape).transform(shape, newShapeBounds, {
+        type: this.transformType,
         initialShape,
         initialShapeBounds,
-        initialBounds
-      )
+        initialBounds,
+        isFlippedX: this.isFlippedX,
+        isFlippedY: this.isFlippedY,
+        anchor: getTransformAnchor(
+          this.transformType,
+          this.isFlippedX,
+          this.isFlippedY
+        ),
+      })
     })
   }
 
@@ -163,26 +173,32 @@ export default class TransformSession extends BaseSession {
       const shape = shapes.shapes[id]
       const { initialShape, initialShapeBounds } = shapeBounds[id]
 
-      getShapeUtils(shape).transform(
-        shape,
-        {
-          ...initialShapeBounds,
-          isFlippedX: false,
-          isFlippedY: false,
-        },
+      getShapeUtils(shape).transform(shape, initialShapeBounds, {
+        type: this.transformType,
         initialShape,
         initialShapeBounds,
-        initialBounds
-      )
+        initialBounds,
+        isFlippedX: false,
+        isFlippedY: false,
+        anchor: getTransformAnchor(this.transformType, false, false),
+      })
     })
   }
 
   complete(data: Data) {
-    commands.transform(data, this.snapshot, getTransformSnapshot(data))
+    commands.transform(
+      data,
+      this.snapshot,
+      getTransformSnapshot(data, this.transformType),
+      getTransformAnchor(this.transformType, false, false)
+    )
   }
 }
 
-export function getTransformSnapshot(data: Data) {
+export function getTransformSnapshot(
+  data: Data,
+  transformType: TransformEdge | TransformCorner
+) {
   const {
     document: { pages },
     selectedIds,
@@ -206,6 +222,7 @@ export function getTransformSnapshot(data: Data) {
   // positions of the shape's bounds within the common bounds shape.
   return {
     currentPageId,
+    type: transformType,
     initialBounds: bounds,
     selectedIds: new Set(selectedIds),
     shapeBounds: Object.fromEntries(

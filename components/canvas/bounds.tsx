@@ -3,6 +3,7 @@ import styled from "styles"
 import inputs from "state/inputs"
 import { useRef } from "react"
 import { TransformCorner, TransformEdge } from "types"
+import { lerp } from "utils/utils"
 
 export default function Bounds() {
   const zoom = useSelector((state) => state.data.camera.zoom)
@@ -11,7 +12,7 @@ export default function Bounds() {
 
   if (!bounds) return null
 
-  const { minX, minY, maxX, maxY, width, height } = bounds
+  let { minX, minY, maxX, maxY, width, height } = bounds
 
   const p = 4 / zoom
   const cp = p * 2

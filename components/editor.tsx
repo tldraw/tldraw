@@ -10,7 +10,7 @@ export default function Editor() {
     <>
       <Canvas />
       <StatusBar />
-      {/* <CodePanel /> */}
+      <CodePanel />
     </>
   )
 }

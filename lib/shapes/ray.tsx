@@ -12,6 +12,7 @@ const ray = createShape<RayShape>({
     return {
       id: uuid(),
       type: ShapeType.Ray,
+      isGenerated: false,
       name: "Ray",
       parentId: "page0",
       childIndex: 0,
@@ -82,6 +83,8 @@ const ray = createShape<RayShape>({
   transform(shape, bounds) {
     return shape
   },
+
+  canTransform: false,
 })
 
 export default ray

@@ -78,6 +78,8 @@ export default class Command extends BaseCommand<Data> {
   saveSelectionState = (data: Data) => {
     const selectedIds = new Set(data.selectedIds)
     return (data: Data) => {
+      data.hoveredId = undefined
+      data.pointedId = undefined
       data.selectedIds = selectedIds
     }
   }

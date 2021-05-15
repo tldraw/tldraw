@@ -8,6 +8,7 @@ function Shape({ id }: { id: string }) {
   const rGroup = useRef<SVGGElement>(null)
 
   const isHovered = useSelector((state) => state.data.hoveredId === id)
+
   const isSelected = useSelector((state) => state.values.selectedIds.has(id))
 
   const shape = useSelector(
@@ -87,6 +88,7 @@ const HoverIndicator = styled("path", {
   pointerEvents: "all",
   strokeLinecap: "round",
   strokeLinejoin: "round",
+  transform: "all .2s",
 })
 
 const StyledGroup = styled("g", {
@@ -103,14 +105,45 @@ const StyledGroup = styled("g", {
       false: {},
     },
     isHovered: {
-      true: {
+      true: {},
+      false: {},
+    },
+  },
+  compoundVariants: [
+    {
+      isSelected: true,
+      isHovered: true,
+      css: {
         [`& ${HoverIndicator}`]: {
           opacity: "1",
           stroke: "$hint",
+          zStrokeWidth: [8, 4],
         },
       },
     },
-  },
+    {
+      isSelected: true,
+      isHovered: false,
+      css: {
+        [`& ${HoverIndicator}`]: {
+          opacity: "1",
+          stroke: "$hint",
+          zStrokeWidth: [6, 3],
+        },
+      },
+    },
+    {
+      isSelected: false,
+      isHovered: true,
+      css: {
+        [`& ${HoverIndicator}`]: {
+          opacity: "1",
+          stroke: "$hint",
+          zStrokeWidth: [8, 4],
+        },
+      },
+    },
+  ],
 })
 
 export { Indicator, HoverIndicator }

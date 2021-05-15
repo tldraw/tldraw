@@ -7,13 +7,18 @@ export default class Rectangle extends CodeShape<RectangleShape> {
     super({
       id: uuid(),
       type: ShapeType.Rectangle,
+      isGenerated: true,
       name: "Rectangle",
       parentId: "page0",
       childIndex: 0,
       point: [0, 0],
-      size: [1, 1],
+      size: [100, 100],
       rotation: 0,
-      style: {},
+      style: {
+        fill: "#777",
+        stroke: "#000",
+        strokeWidth: 1,
+      },
       ...props,
     })
   }

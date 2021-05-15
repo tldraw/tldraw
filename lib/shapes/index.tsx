@@ -1,4 +1,12 @@
-import { Bounds, BoundsSnapshot, Shape, Shapes, ShapeType } from "types"
+import {
+  Bounds,
+  BoundsSnapshot,
+  Shape,
+  Shapes,
+  ShapeType,
+  TransformCorner,
+  TransformEdge,
+} from "types"
 import circle from "./circle"
 import dot from "./dot"
 import polyline from "./polyline"
@@ -44,10 +52,16 @@ export interface ShapeUtility<K extends Shape> {
   transform(
     this: ShapeUtility<K>,
     shape: K,
-    bounds: Bounds & { isFlippedX: boolean; isFlippedY: boolean },
-    initialShape: K,
-    initialShapeBounds: BoundsSnapshot,
-    initialBounds: Bounds
+    bounds: Bounds,
+    info: {
+      type: TransformEdge | TransformCorner
+      initialShape: K
+      initialShapeBounds: BoundsSnapshot
+      initialBounds: Bounds
+      isFlippedX: boolean
+      isFlippedY: boolean
+      anchor: TransformEdge | TransformCorner
+    }
   ): K
 
   // Apply a scale to a shape.
@@ -58,6 +72,9 @@ export interface ShapeUtility<K extends Shape> {
 
   // Render a shape to JSX.
   render(this: ShapeUtility<K>, shape: K): JSX.Element
+
+  // Whether to show transform controls when this shape is selected.
+  canTransform: boolean
 }
 
 // A mapping of shape types to shape utilities.

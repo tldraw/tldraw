@@ -1,11 +1,12 @@
 import { createSelectorHook, createState } from "@state-designer/react"
 import { clamp, getCommonBounds, screenToWorld } from "utils/utils"
 import * as vec from "utils/vec"
-import { Data, PointerInfo, TransformCorner, TransformEdge } from "types"
+import { Data, PointerInfo, Shape, TransformCorner, TransformEdge } from "types"
 import { defaultDocument } from "./data"
 import { getShapeUtils } from "lib/shapes"
 import history from "state/history"
 import * as Sessions from "./sessions"
+import commands from "./commands"
 
 const initialData: Data = {
   isReadOnly: false,
@@ -41,6 +42,9 @@ const state = createState({
       on: {
         UNDO: { do: "undo" },
         REDO: { do: "redo" },
+        GENERATED_SHAPES_FROM_CODE: "setGeneratedShapes",
+        INCREASED_CODE_FONT_SIZE: "increaseCodeFontSize",
+        DECREASED_CODE_FONT_SIZE: "decreaseCodeFontSize",
       },
       initial: "notPointing",
       states: {
@@ -156,10 +160,6 @@ const state = createState({
       const shape =
         data.document.pages[data.currentPageId].shapes[payload.target]
 
-      console.log(
-        getShapeUtils(shape).hitTest(shape, screenToWorld(payload.point, data))
-      )
-
       return getShapeUtils(shape).hitTest(
         shape,
         screenToWorld(payload.point, data)
@@ -179,6 +179,17 @@ const state = createState({
     },
     redo(data) {
       history.redo(data)
+    },
+
+    // Code
+    setGeneratedShapes(data, payload: { shapes: Shape[] }) {
+      commands.generateShapes(data, data.currentPageId, payload.shapes)
+    },
+    increaseCodeFontSize(data) {
+      data.settings.fontSize++
+    },
+    decreaseCodeFontSize(data) {
+      data.settings.fontSize--
     },
 
     // Sessions
@@ -287,15 +298,18 @@ const state = createState({
         document: { pages },
       } = data
 
+      const shapes = Array.from(selectedIds.values()).map(
+        (id) => pages[currentPageId].shapes[id]
+      )
+
       if (selectedIds.size === 0) return null
 
+      if (selectedIds.size === 1 && !getShapeUtils(shapes[0]).canTransform) {
+        return null
+      }
+
       return getCommonBounds(
-        ...Array.from(selectedIds.values())
-          .map((id) => {
-            const shape = pages[currentPageId].shapes[id]
-            return getShapeUtils(shape).getBounds(shape)
-          })
-          .filter(Boolean)
+        ...shapes.map((shape) => getShapeUtils(shape).getBounds(shape))
       )
     },
   },
