@@ -44,13 +44,13 @@ const state = createState({
       do: "panCamera",
     },
     SELECTED_SELECT_TOOL: { to: "selecting" },
-    SELECTED_DOT_TOOL: { unless: "isReadOnly", to: "creatingDot" },
-    SELECTED_CIRCLE_TOOL: { unless: "isReadOnly", to: "creatingCircle" },
-    SELECTED_ELLIPSE_TOOL: { unless: "isReadOnly", to: "creatingEllipse" },
-    SELECTED_RAY_TOOL: { unless: "isReadOnly", to: "creatingRay" },
-    SELECTED_LINE_TOOL: { unless: "isReadOnly", to: "creatingLine" },
-    SELECTED_POLYLINE_TOOL: { unless: "isReadOnly", to: "creatingPolyline" },
-    SELECTED_RECTANGLE_TOOL: { unless: "isReadOnly", to: "creatingRectangle" },
+    SELECTED_DOT_TOOL: { unless: "isReadOnly", to: "dot" },
+    SELECTED_CIRCLE_TOOL: { unless: "isReadOnly", to: "circle" },
+    SELECTED_ELLIPSE_TOOL: { unless: "isReadOnly", to: "ellipse" },
+    SELECTED_RAY_TOOL: { unless: "isReadOnly", to: "ray" },
+    SELECTED_LINE_TOOL: { unless: "isReadOnly", to: "line" },
+    SELECTED_POLYLINE_TOOL: { unless: "isReadOnly", to: "polyline" },
+    SELECTED_RECTANGLE_TOOL: { unless: "isReadOnly", to: "rectangle" },
   },
   initial: "selecting",
   states: {
@@ -154,18 +154,18 @@ const state = createState({
         },
       },
     },
-    creatingDot: {
+    dot: {
       initial: "creating",
       states: {
         creating: {
           on: {
             POINTED_CANVAS: {
               do: "createDot",
-              to: "creatingDot.positioning",
+              to: "dot.editing",
             },
           },
         },
-        positioning: {
+        editing: {
           onEnter: "startTranslateSession",
           on: {
             MOVED_POINTER: "updateTranslateSession",
@@ -179,12 +179,36 @@ const state = createState({
         },
       },
     },
-    creatingCircle: {},
-    creatingEllipse: {},
-    creatingRay: {},
-    creatingLine: {},
-    creatingPolyline: {},
-    creatingRectangle: {},
+    circle: {},
+    ellipse: {},
+    ray: {
+      initial: "creating",
+      states: {
+        creating: {
+          on: {
+            POINTED_CANVAS: {
+              do: "createRay",
+              to: "ray.editing",
+            },
+          },
+        },
+        editing: {
+          onEnter: "startDirectionSession",
+          on: {
+            MOVED_POINTER: "updateDirectionSession",
+            PANNED_CAMERA: "updateDirectionSession",
+            STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+            CANCELLED: {
+              do: ["cancelSession", "deleteSelectedIds"],
+              to: "selecting",
+            },
+          },
+        },
+      },
+    },
+    line: {},
+    polyline: {},
+    rectangle: {},
   },
   conditions: {
     isPointingBounds(data, payload: PointerInfo) {
@@ -216,41 +240,31 @@ const state = createState({
     },
   },
   actions: {
-    // Shapes
+    /* --------------------- Shapes --------------------- */
+
+    // Dot
     createDot(data, payload: PointerInfo) {
       const shape = shapeUtilityMap[ShapeType.Dot].create({
         point: screenToWorld(payload.point, data),
       })
 
       commands.createShape(data, shape)
+      data.selectedIds.add(shape.id)
     },
 
-    // History
-    enableHistory() {
-      history.enable()
-    },
-    disableHistory() {
-      history.disable()
-    },
-    undo(data) {
-      history.undo(data)
-    },
-    redo(data) {
-      history.redo(data)
+    // Ray
+    createRay(data, payload: PointerInfo) {
+      const shape = shapeUtilityMap[ShapeType.Ray].create({
+        point: screenToWorld(payload.point, data),
+      })
+
+      commands.createShape(data, shape)
+      data.selectedIds.add(shape.id)
     },
 
-    // Code
-    setGeneratedShapes(data, payload: { shapes: Shape[] }) {
-      commands.generateShapes(data, data.currentPageId, payload.shapes)
-    },
-    increaseCodeFontSize(data) {
-      data.settings.fontSize++
-    },
-    decreaseCodeFontSize(data) {
-      data.settings.fontSize--
-    },
+    /* -------------------- Sessions -------------------- */
 
-    // Sessions
+    // Shared
     cancelSession(data) {
       session.cancel(data)
       session = undefined
@@ -297,20 +311,19 @@ const state = createState({
       session.update(data, screenToWorld(payload.point, data))
     },
 
-    // Selection
-    deleteSelectedIds(data) {
-      const { document, currentPageId } = data
-      const shapes = document.pages[currentPageId].shapes
-
-      data.selectedIds.forEach((id) => {
-        delete shapes[id]
-        // TODO: recursively delete children
-      })
-
-      data.selectedIds.clear()
-      data.hoveredId = undefined
-      data.pointedId = undefined
+    // Direction
+    startDirectionSession(data, payload: PointerInfo) {
+      session = new Sessions.DirectionSession(
+        data,
+        screenToWorld(payload.point, data)
+      )
     },
+    updateDirectionSession(data, payload: PointerInfo) {
+      session.update(data, screenToWorld(payload.point, data))
+    },
+
+    /* -------------------- Selection ------------------- */
+
     setHoveredId(data, payload: PointerInfo) {
       data.hoveredId = payload.target
     },
@@ -356,6 +369,46 @@ const state = createState({
         camera.point,
         vec.div(payload.delta, camera.zoom)
       )
+    },
+    deleteSelectedIds(data) {
+      const { document, currentPageId } = data
+      const shapes = document.pages[currentPageId].shapes
+
+      data.selectedIds.forEach((id) => {
+        delete shapes[id]
+        // TODO: recursively delete children
+      })
+
+      data.selectedIds.clear()
+      data.hoveredId = undefined
+      data.pointedId = undefined
+    },
+
+    /* ---------------------- Misc ---------------------- */
+
+    // History
+    enableHistory() {
+      history.enable()
+    },
+    disableHistory() {
+      history.disable()
+    },
+    undo(data) {
+      history.undo(data)
+    },
+    redo(data) {
+      history.redo(data)
+    },
+
+    // Code
+    setGeneratedShapes(data, payload: { shapes: Shape[] }) {
+      commands.generateShapes(data, data.currentPageId, payload.shapes)
+    },
+    increaseCodeFontSize(data) {
+      data.settings.fontSize++
+    },
+    decreaseCodeFontSize(data) {
+      data.settings.fontSize--
     },
   },
   values: {

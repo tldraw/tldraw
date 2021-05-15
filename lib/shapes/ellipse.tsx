@@ -93,10 +93,6 @@ const ellipse = createShape<EllipseShape>({
     return shape
   },
 
-  stretch(shape, scaleX: number, scaleY: number) {
-    return shape
-  },
-
   transform(shape, bounds) {
     shape.point = [bounds.minX, bounds.minY]
     shape.radiusX = bounds.width / 2

@@ -87,10 +87,6 @@ const circle = createShape<CircleShape>({
     return shape
   },
 
-  stretch(shape, scaleX, scaleY) {
-    return shape
-  },
-
   transform(shape, bounds, { anchor }) {
     // Set the new corner or position depending on the anchor
     switch (anchor) {

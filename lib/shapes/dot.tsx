@@ -66,16 +66,12 @@ const dot = createShape<DotShape>({
     return shape
   },
 
-  translate(shape, delta) {
-    shape.point = vec.add(shape.point, delta)
-    return shape
-  },
-
   scale(shape, scale: number) {
     return shape
   },
 
-  stretch(shape, scaleX: number, scaleY: number) {
+  translate(shape, delta) {
+    shape.point = vec.add(shape.point, delta)
     return shape
   },
 

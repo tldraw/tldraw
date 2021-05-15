@@ -67,9 +67,6 @@ export interface ShapeUtility<K extends Shape> {
   // Apply a scale to a shape.
   scale(this: ShapeUtility<K>, shape: K, scale: number): K
 
-  // Apply a stretch to a shape.
-  stretch(this: ShapeUtility<K>, shape: K, scaleX: number, scaleY: number): K
-
   // Render a shape to JSX.
   render(this: ShapeUtility<K>, shape: K): JSX.Element
 

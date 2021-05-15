@@ -6,13 +6,13 @@ export default function Toolbar() {
   const activeTool = useSelector((state) =>
     state.whenIn({
       selecting: "select",
-      creatingDot: "dot",
-      creatingCircle: "circle",
-      creatingEllipse: "ellipse",
-      creatingRay: "ray",
-      creatingLine: "line",
-      creatingPolyline: "polyline",
-      creatingRectangle: "rectangle",
+      dot: "dot",
+      circle: "circle",
+      ellipse: "ellipse",
+      ray: "ray",
+      line: "line",
+      polyline: "polyline",
+      rectangle: "rectangle",
     })
   )
 

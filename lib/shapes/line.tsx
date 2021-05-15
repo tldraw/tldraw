@@ -84,10 +84,6 @@ const line = createShape<LineShape>({
     return shape
   },
 
-  stretch(shape, scaleX: number, scaleY: number) {
-    return shape
-  },
-
   transform(shape, bounds) {
     shape.point = [bounds.minX, bounds.minY]
 

@@ -98,10 +98,6 @@ const polyline = createShape<PolylineShape>({
     return shape
   },
 
-  stretch(shape, scaleX: number, scaleY: number) {
-    return shape
-  },
-
   transform(
     shape,
     bounds,

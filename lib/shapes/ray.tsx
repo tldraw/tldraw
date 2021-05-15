@@ -17,9 +17,12 @@ const ray = createShape<RayShape>({
       parentId: "page0",
       childIndex: 0,
       point: [0, 0],
-      direction: [0, 0],
+      direction: [0, 1],
       rotation: 0,
-      style: {},
+      style: {
+        stroke: "#000",
+        strokeWidth: 1,
+      },
       ...props,
     }
   },
@@ -83,11 +86,9 @@ const ray = createShape<RayShape>({
     return shape
   },
 
-  stretch(shape, scaleX: number, scaleY: number) {
-    return shape
-  },
-
   transform(shape, bounds) {
+    shape.point = [bounds.minX, bounds.minY]
+
     return shape
   },
 
