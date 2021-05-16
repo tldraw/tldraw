@@ -13,10 +13,11 @@ export interface Data {
     zoom: number
   }
   brush?: Bounds
-  currentPageId: string
   selectedIds: Set<string>
   pointedId?: string
   hoveredId?: string
+  currentPageId: string
+  currentCodeFileId: string
   document: {
     pages: Record<string, Page>
     code: Record<string, CodeFile>

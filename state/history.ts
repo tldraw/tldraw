@@ -106,12 +106,12 @@ class History extends BaseHistory<Data> {
     const cameraInfo = localStorage.getItem("code_slate_camera")
 
     if (cameraInfo !== null) {
-      Object.assign(data.camera, JSON.parse(cameraInfo))
+      Object.assign(restoredData.camera, JSON.parse(cameraInfo))
 
       // And update the CSS property
       document.documentElement.style.setProperty(
         "--camera-zoom",
-        data.camera.zoom.toString()
+        restoredData.camera.zoom.toString()
       )
     }
 

@@ -14,7 +14,7 @@ export default function Editor() {
       <Canvas />
       <StatusBar />
       <Toolbar />
-      {/* <CodePanel /> */}
+      <CodePanel />
     </>
   )
 }

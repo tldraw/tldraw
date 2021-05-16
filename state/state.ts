@@ -31,6 +31,7 @@ const initialData: Data = {
   hoveredId: null,
   selectedIds: new Set([]),
   currentPageId: "page0",
+  currentCodeFileId: "file0",
   document: defaultDocument,
 }
 
@@ -68,6 +69,7 @@ const state = createState({
         REDO: { do: "redo" },
         CANCELLED: { do: "clearSelectedIds" },
         DELETED: { do: "deleteSelectedIds" },
+        SAVED_CODE: "saveCode",
         GENERATED_SHAPES_FROM_CODE: "setGeneratedShapes",
         INCREASED_CODE_FONT_SIZE: "increaseCodeFontSize",
         DECREASED_CODE_FONT_SIZE: "decreaseCodeFontSize",
@@ -502,6 +504,11 @@ const state = createState({
     },
 
     // Data
+    saveCode(data, payload: { code: string }) {
+      data.document.code[data.currentCodeFileId].code = payload.code
+      history.save(data)
+    },
+
     restoreSavedData(data) {
       history.load(data)
     },

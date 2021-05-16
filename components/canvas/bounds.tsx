@@ -137,7 +137,6 @@ function Corner({
           rCorner.current.setPointerCapture(e.pointerId)
           state.send("POINTED_BOUNDS_CORNER", inputs.pointerDown(e, corner))
         }}
-        onPointerCancelCapture={() => console.log("oops")}
         onPointerUp={(e) => {
           e.stopPropagation()
           rCorner.current.releasePointerCapture(e.pointerId)

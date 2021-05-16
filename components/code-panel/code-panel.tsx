@@ -30,10 +30,11 @@ const getErrorLineAndColumn = (e: any) => {
 
 export default function CodePanel() {
   const rContainer = useRef<HTMLDivElement>(null)
-
-  const fileId = "file0"
   const isReadOnly = useSelector((s) => s.data.isReadOnly)
-  const file = useSelector((s) => s.data.document.code[fileId])
+  const fileId = useSelector((s) => s.data.currentCodeFileId)
+  const file = useSelector(
+    (s) => s.data.document.code[s.data.currentCodeFileId]
+  )
   const isOpen = true
   const fontSize = useSelector((s) => s.data.settings.fontSize)
 
@@ -52,7 +53,7 @@ export default function CodePanel() {
         on: {
           RAN_CODE: "runCode",
           SAVED_CODE: ["runCode", "saveCode"],
-          CHANGED_CODE: [{ secretlyDo: "setCode" }],
+          CHANGED_CODE: { secretlyDo: "setCode" },
           CLEARED_ERROR: { if: "hasError", do: "clearError" },
           TOGGLED_DOCS: { to: "viewingDocs" },
         },
@@ -89,7 +90,8 @@ export default function CodePanel() {
         data.error = error
       },
       saveCode(data) {
-        state.send("CHANGED_CODE", { fileId, code: data.code })
+        const { code } = data
+        state.send("SAVED_CODE", { code })
       },
       clearError(data) {
         data.error = null
