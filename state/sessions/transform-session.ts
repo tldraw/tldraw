@@ -43,16 +43,12 @@ export default class TransformSession extends BaseSession {
   }
 
   update(data: Data, point: number[]) {
-    const {
-      shapeBounds,
-      initialBounds,
-      currentPageId,
-      selectedIds,
-    } = this.snapshot
+    const { shapeBounds, initialBounds, currentPageId, selectedIds } =
+      this.snapshot
 
     const { shapes } = data.document.pages[currentPageId]
 
-    let [x, y] = point
+    const delta = vec.vec(this.origin, point)
 
     const {
       corners: { a, b },
@@ -63,39 +59,39 @@ export default class TransformSession extends BaseSession {
 
     switch (transformType) {
       case TransformEdge.Top: {
-        a[1] = y
+        a[1] = initialBounds.minY + delta[1]
         break
       }
       case TransformEdge.Right: {
-        b[0] = x
+        b[0] = initialBounds.maxX + delta[0]
         break
       }
       case TransformEdge.Bottom: {
-        b[1] = y
+        b[1] = initialBounds.maxY + delta[1]
         break
       }
       case TransformEdge.Left: {
-        a[0] = x
+        a[0] = initialBounds.minX + delta[0]
         break
       }
       case TransformCorner.TopLeft: {
-        a[1] = y
-        a[0] = x
+        a[0] = initialBounds.minX + delta[0]
+        a[1] = initialBounds.minY + delta[1]
         break
       }
       case TransformCorner.TopRight: {
-        b[0] = x
-        a[1] = y
+        a[1] = initialBounds.minY + delta[1]
+        b[0] = initialBounds.maxX + delta[0]
         break
       }
       case TransformCorner.BottomRight: {
-        b[1] = y
-        b[0] = x
+        b[0] = initialBounds.maxX + delta[0]
+        b[1] = initialBounds.maxY + delta[1]
         break
       }
       case TransformCorner.BottomLeft: {
-        a[0] = x
-        b[1] = y
+        a[0] = initialBounds.minX + delta[0]
+        b[1] = initialBounds.maxY + delta[1]
         break
       }
     }
@@ -160,12 +156,8 @@ export default class TransformSession extends BaseSession {
   }
 
   cancel(data: Data) {
-    const {
-      shapeBounds,
-      initialBounds,
-      currentPageId,
-      selectedIds,
-    } = this.snapshot
+    const { shapeBounds, initialBounds, currentPageId, selectedIds } =
+      this.snapshot
 
     const { shapes } = data.document.pages[currentPageId]
 

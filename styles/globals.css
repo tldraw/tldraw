@@ -1,6 +1,1 @@
 @import url("https://fonts.googleapis.com/css2?family=Recursive:wght@500;700&display=swap");
-
-:root {
-  --camera-zoom: 1;
-  --scale: calc(1 / var(--camera-zoom));
-}
