@@ -56,6 +56,15 @@ export default class TransformSession extends BaseSession {
     } = this
 
     // Edge Transform
+    /*
+    Edge transform
+    
+    Corners a and b are the original top-left and bottom-right corners of the
+    bounding box. Depending on what the user is dragging, change one or both
+    points. To keep things smooth, calculate based by adding the delta (the 
+    vector between the current point and its original point) to the original
+    bounding box values.
+    */
 
     switch (transformType) {
       case TransformEdge.Top: {

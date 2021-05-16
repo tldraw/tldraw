@@ -21,6 +21,8 @@ export default function useCamera(ref: React.MutableRefObject<SVGGElement>) {
           "transform",
           `scale(${zoom}) translate(${point[0]} ${point[1]})`
         )
+
+        localStorage.setItem("code_slate_camera", JSON.stringify(data.camera))
       }
 
       camera = data.camera

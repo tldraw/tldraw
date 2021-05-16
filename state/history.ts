@@ -1,9 +1,10 @@
 import { Data } from "types"
 import { BaseCommand } from "./commands/command"
+import state from "./state"
 
 // A singleton to manage history changes.
 
-class History<T> {
+class BaseHistory<T> {
   private stack: BaseCommand<T>[] = []
   private pointer = -1
   private maxLength = 100
@@ -42,11 +43,22 @@ class History<T> {
     this.save(data)
   }
 
-  save = (data: T) => {
+  load(data: T, id = "code_slate_0.0.1") {
     if (typeof window === "undefined") return
     if (typeof localStorage === "undefined") return
 
-    localStorage.setItem("code_slate_0.0.1", JSON.stringify(data))
+    const savedData = localStorage.getItem(id)
+
+    if (savedData !== null) {
+      Object.assign(data, this.restoreSavedData(JSON.parse(savedData)))
+    }
+  }
+
+  save = (data: T, id = "code_slate_0.0.1") => {
+    if (typeof window === "undefined") return
+    if (typeof localStorage === "undefined") return
+
+    localStorage.setItem(id, JSON.stringify(this.prepareDataForSave(data)))
   }
 
   disable = () => {
@@ -57,9 +69,54 @@ class History<T> {
     this._enabled = true
   }
 
+  prepareDataForSave(data: T): any {
+    return { ...data }
+  }
+
+  restoreSavedData(data: any): T {
+    return { ...data }
+  }
+
   get disabled() {
     return !this._enabled
   }
 }
 
-export default new History<Data>()
+// App-specific
+
+class History extends BaseHistory<Data> {
+  constructor() {
+    super()
+  }
+
+  prepareDataForSave(data: Data): any {
+    const dataToSave: any = { ...data }
+
+    dataToSave.selectedIds = Array.from(data.selectedIds.values())
+
+    return dataToSave
+  }
+
+  restoreSavedData(data: any): Data {
+    const restoredData = { ...data }
+
+    restoredData.selectedIds = new Set(restoredData.selectedIds)
+
+    // Also restore camera position, which is saved separately in this app
+    const cameraInfo = localStorage.getItem("code_slate_camera")
+
+    if (cameraInfo !== null) {
+      Object.assign(data.camera, JSON.parse(cameraInfo))
+
+      // And update the CSS property
+      document.documentElement.style.setProperty(
+        "--camera-zoom",
+        data.camera.zoom.toString()
+      )
+    }
+
+    return restoredData
+  }
+}
+
+export default new History()

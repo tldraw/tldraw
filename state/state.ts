@@ -52,8 +52,16 @@ const state = createState({
     SELECTED_POLYLINE_TOOL: { unless: "isReadOnly", to: "polyline" },
     SELECTED_RECTANGLE_TOOL: { unless: "isReadOnly", to: "rectangle" },
   },
-  initial: "selecting",
+  initial: "loading",
   states: {
+    loading: {
+      on: {
+        MOUNTED: {
+          do: "restoreSavedData",
+          to: "selecting",
+        },
+      },
+    },
     selecting: {
       on: {
         UNDO: { do: "undo" },
@@ -491,6 +499,11 @@ const state = createState({
     },
     decreaseCodeFontSize(data) {
       data.settings.fontSize--
+    },
+
+    // Data
+    restoreSavedData(data) {
+      history.load(data)
     },
   },
   values: {
