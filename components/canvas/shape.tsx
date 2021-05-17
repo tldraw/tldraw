@@ -63,7 +63,9 @@ function Shape({ id }: { id: string }) {
       ref={rGroup}
       isHovered={isHovered}
       isSelected={isSelected}
-      transform={`translate(${shape.point})`}
+      transform={`rotate(${shape.rotation * (180 / Math.PI)},${getShapeUtils(
+        shape
+      ).getCenter(shape)}) translate(${shape.point})`}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       onPointerEnter={handlePointerEnter}

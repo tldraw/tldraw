@@ -17,7 +17,7 @@ export default class Dot extends CodeShape<DotShape> {
       point: [0, 0],
       rotation: 0,
       style: {
-        fill: "#777",
+        fill: "rgba(142, 143, 142, 1.000)",
         stroke: "#000",
         strokeWidth: 1,
       },

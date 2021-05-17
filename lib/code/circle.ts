@@ -18,7 +18,7 @@ export default class Circle extends CodeShape<CircleShape> {
       rotation: 0,
       radius: 20,
       style: {
-        fill: "#777",
+        fill: "rgba(142, 143, 142, 1.000)",
         stroke: "#000",
         strokeWidth: 1,
       },

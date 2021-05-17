@@ -4,7 +4,6 @@ import { RayShape, ShapeType } from "types"
 import { createShape } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
-import styled from "styles"
 import { DotCircle } from "components/canvas/misc"
 
 const ray = createShape<RayShape>({
@@ -22,7 +21,7 @@ const ray = createShape<RayShape>({
       direction: [0, 1],
       rotation: 0,
       style: {
-        fill: "#777",
+        fill: "rgba(142, 143, 142, 1.000)",
         stroke: "#000",
         strokeWidth: 1,
       },
@@ -62,6 +61,10 @@ const ray = createShape<RayShape>({
     this.boundsCache.set(shape, bounds)
 
     return bounds
+  },
+
+  getCenter(shape) {
+    return shape.point
   },
 
   hitTest(shape, test) {

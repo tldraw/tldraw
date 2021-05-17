@@ -4,5 +4,8 @@ import state from "state"
 export default function useLoadOnMount() {
   useEffect(() => {
     state.send("MOUNTED")
+    return () => {
+      state.send("UNMOUNTED")
+    }
   }, [])
 }

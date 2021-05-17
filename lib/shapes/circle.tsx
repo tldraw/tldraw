@@ -21,7 +21,7 @@ const circle = createShape<CircleShape>({
       rotation: 0,
       radius: 20,
       style: {
-        fill: "#777",
+        fill: "rgba(142, 143, 142, 1.000)",
         stroke: "#000",
       },
       ...props,
@@ -54,6 +54,10 @@ const circle = createShape<CircleShape>({
     this.boundsCache.set(shape, bounds)
 
     return bounds
+  },
+
+  getCenter(shape) {
+    return [shape.point[0] + shape.radius, shape.point[1] + shape.radius]
   },
 
   hitTest(shape, point) {

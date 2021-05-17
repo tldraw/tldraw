@@ -6,7 +6,6 @@ import {
   PointerInfo,
   Shape,
   ShapeType,
-  Shapes,
   TransformCorner,
   TransformEdge,
   CodeControl,
@@ -16,14 +15,14 @@ import shapeUtilityMap, { getShapeUtils } from "lib/shapes"
 import history from "state/history"
 import * as Sessions from "./sessions"
 import commands from "./commands"
-import { controls } from "lib/code/control"
-import { generateFromCode, updateFromCode } from "lib/code/generate"
+import { updateFromCode } from "lib/code/generate"
 
 const initialData: Data = {
   isReadOnly: false,
   settings: {
     fontSize: 13,
-    darkMode: false,
+    isDarkMode: false,
+    isCodeOpen: false,
   },
   camera: {
     point: [0, 0],
@@ -56,6 +55,7 @@ const state = createState({
     SELECTED_LINE_TOOL: { unless: "isReadOnly", to: "line" },
     SELECTED_POLYLINE_TOOL: { unless: "isReadOnly", to: "polyline" },
     SELECTED_RECTANGLE_TOOL: { unless: "isReadOnly", to: "rectangle" },
+    TOGGLED_CODE_PANEL_OPEN: "toggleCodePanel",
     RESET_CAMERA: "resetCamera",
   },
   initial: "loading",
@@ -64,236 +64,323 @@ const state = createState({
       on: {
         MOUNTED: {
           do: "restoreSavedData",
-          to: "selecting",
+          to: "ready",
         },
       },
     },
-    selecting: {
+    ready: {
       on: {
-        UNDO: { do: "undo" },
-        REDO: { do: "redo" },
-        CANCELLED: { do: "clearSelectedIds" },
-        DELETED: { do: "deleteSelectedIds" },
-        SAVED_CODE: "saveCode",
-        GENERATED_FROM_CODE: ["setCodeControls", "setGeneratedShapes"],
-        INCREASED_CODE_FONT_SIZE: "increaseCodeFontSize",
-        DECREASED_CODE_FONT_SIZE: "decreaseCodeFontSize",
-        CHANGED_CODE_CONTROL: "updateControls",
+        UNMOUNTED: [
+          { unless: "isReadOnly", do: "forceSave" },
+          { to: "loading" },
+        ],
       },
-      initial: "notPointing",
+      initial: "selecting",
       states: {
-        notPointing: {
+        selecting: {
           on: {
-            POINTED_CANVAS: { to: "brushSelecting" },
-            POINTED_BOUNDS: { to: "pointingBounds" },
-            POINTED_BOUNDS_EDGE: { to: "transformingSelection" },
-            POINTED_BOUNDS_CORNER: { to: "transformingSelection" },
-            MOVED_OVER_SHAPE: {
-              if: "pointHitsShape",
-              then: {
-                unless: "shapeIsHovered",
-                do: "setHoveredId",
-              },
-              else: { if: "shapeIsHovered", do: "clearHoveredId" },
-            },
-            UNHOVERED_SHAPE: "clearHoveredId",
-            POINTED_SHAPE: [
-              "setPointedId",
-              {
-                if: "isPressingShiftKey",
-                then: {
-                  if: "isPointedShapeSelected",
-                  do: "pullPointedIdFromSelectedIds",
-                  else: {
-                    do: "pushPointedIdToSelectedIds",
-                    to: "pointingBounds",
+            SAVED: "forceSave",
+            UNDO: { do: "undo" },
+            REDO: { do: "redo" },
+            CANCELLED: { do: "clearSelectedIds" },
+            DELETED: { do: "deleteSelectedIds" },
+            SAVED_CODE: "saveCode",
+            GENERATED_FROM_CODE: ["setCodeControls", "setGeneratedShapes"],
+            INCREASED_CODE_FONT_SIZE: "increaseCodeFontSize",
+            DECREASED_CODE_FONT_SIZE: "decreaseCodeFontSize",
+            CHANGED_CODE_CONTROL: "updateControls",
+          },
+          initial: "notPointing",
+          states: {
+            notPointing: {
+              on: {
+                SELECTED_ALL: "selectAll",
+                POINTED_CANVAS: { to: "brushSelecting" },
+                POINTED_BOUNDS: { to: "pointingBounds" },
+                POINTED_BOUNDS_EDGE: { to: "transformingSelection" },
+                POINTED_BOUNDS_CORNER: { to: "transformingSelection" },
+                POINTED_ROTATE_HANDLE: { to: "rotatingSelection" },
+                MOVED_OVER_SHAPE: {
+                  if: "pointHitsShape",
+                  then: {
+                    unless: "shapeIsHovered",
+                    do: "setHoveredId",
                   },
+                  else: { if: "shapeIsHovered", do: "clearHoveredId" },
                 },
-                else: [
+                UNHOVERED_SHAPE: "clearHoveredId",
+                POINTED_SHAPE: [
+                  "setPointedId",
                   {
-                    unless: "isPointedShapeSelected",
-                    do: ["clearSelectedIds", "pushPointedIdToSelectedIds"],
-                  },
-                  {
-                    to: "pointingBounds",
+                    if: "isPressingShiftKey",
+                    then: {
+                      if: "isPointedShapeSelected",
+                      do: "pullPointedIdFromSelectedIds",
+                      else: {
+                        do: "pushPointedIdToSelectedIds",
+                        to: "pointingBounds",
+                      },
+                    },
+                    else: [
+                      {
+                        unless: "isPointedShapeSelected",
+                        do: ["clearSelectedIds", "pushPointedIdToSelectedIds"],
+                      },
+                      {
+                        to: "pointingBounds",
+                      },
+                    ],
                   },
                 ],
               },
-            ],
-          },
-        },
-        pointingBounds: {
-          on: {
-            STOPPED_POINTING: [
-              {
-                unless: ["isPointingBounds", "isPressingShiftKey"],
-                do: ["clearSelectedIds", "pushPointedIdToSelectedIds"],
-              },
-              { to: "notPointing" },
-            ],
-            MOVED_POINTER: {
-              unless: "isReadOnly",
-              if: "distanceImpliesDrag",
-              to: "draggingSelection",
             },
-          },
-        },
-        transformingSelection: {
-          onEnter: "startTransformSession",
-          on: {
-            MOVED_POINTER: "updateTransformSession",
-            PANNED_CAMERA: "updateTransformSession",
-            STOPPED_POINTING: { do: "completeSession", to: "selecting" },
-            CANCELLED: { do: "cancelSession", to: "selecting" },
-          },
-        },
-        draggingSelection: {
-          onEnter: "startTranslateSession",
-          on: {
-            MOVED_POINTER: "updateTranslateSession",
-            PANNED_CAMERA: "updateTranslateSession",
-            STOPPED_POINTING: { do: "completeSession", to: "selecting" },
-            CANCELLED: { do: "cancelSession", to: "selecting" },
-          },
-        },
-        brushSelecting: {
-          onEnter: [
-            { unless: "isPressingShiftKey", do: "clearSelectedIds" },
-            "startBrushSession",
-          ],
-          on: {
-            MOVED_POINTER: "updateBrushSession",
-            PANNED_CAMERA: "updateBrushSession",
-            STOPPED_POINTING: { do: "completeSession", to: "selecting" },
-            CANCELLED: { do: "cancelSession", to: "selecting" },
-          },
-        },
-      },
-    },
-    dot: {
-      initial: "creating",
-      states: {
-        creating: {
-          on: {
-            POINTED_CANVAS: {
-              do: "createDot",
-              to: "dot.editing",
-            },
-          },
-        },
-        editing: {
-          on: {
-            STOPPED_POINTING: { do: "completeSession", to: "selecting" },
-            CANCELLED: {
-              do: ["cancelSession", "deleteSelectedIds"],
-              to: "selecting",
-            },
-          },
-          initial: "inactive",
-          states: {
-            inactive: {
+            pointingBounds: {
               on: {
+                STOPPED_POINTING: [
+                  {
+                    unless: ["isPointingBounds", "isPressingShiftKey"],
+                    do: ["clearSelectedIds", "pushPointedIdToSelectedIds"],
+                  },
+                  { to: "notPointing" },
+                ],
                 MOVED_POINTER: {
+                  unless: "isReadOnly",
                   if: "distanceImpliesDrag",
-                  to: "dot.editing.active",
+                  to: "draggingSelection",
                 },
               },
             },
-            active: {
+            rotatingSelection: {
+              onEnter: "startRotateSession",
+              on: {
+                MOVED_POINTER: "updateRotateSession",
+                PANNED_CAMERA: "updateRotateSession",
+                STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+                CANCELLED: { do: "cancelSession", to: "selecting" },
+              },
+            },
+            transformingSelection: {
+              onEnter: "startTransformSession",
+              on: {
+                MOVED_POINTER: "updateTransformSession",
+                PANNED_CAMERA: "updateTransformSession",
+                STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+                CANCELLED: { do: "cancelSession", to: "selecting" },
+              },
+            },
+            draggingSelection: {
               onEnter: "startTranslateSession",
               on: {
                 MOVED_POINTER: "updateTranslateSession",
                 PANNED_CAMERA: "updateTranslateSession",
+                STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+                CANCELLED: { do: "cancelSession", to: "selecting" },
+              },
+            },
+            brushSelecting: {
+              onEnter: [
+                { unless: "isPressingShiftKey", do: "clearSelectedIds" },
+                "startBrushSession",
+              ],
+              on: {
+                MOVED_POINTER: "updateBrushSession",
+                PANNED_CAMERA: "updateBrushSession",
+                STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+                CANCELLED: { do: "cancelSession", to: "selecting" },
               },
             },
           },
         },
-      },
-    },
-    circle: {},
-    ellipse: {},
-    ray: {
-      initial: "creating",
-      states: {
-        creating: {
-          on: {
-            POINTED_CANVAS: {
-              do: "createRay",
-              to: "ray.editing",
-            },
-          },
-        },
-        editing: {
-          on: {
-            STOPPED_POINTING: { do: "completeSession", to: "selecting" },
-            CANCELLED: {
-              do: ["cancelSession", "deleteSelectedIds"],
-              to: "selecting",
-            },
-          },
-          initial: "inactive",
+        dot: {
+          initial: "creating",
           states: {
-            inactive: {
+            creating: {
               on: {
-                MOVED_POINTER: {
-                  if: "distanceImpliesDrag",
-                  to: "ray.editing.active",
+                POINTED_CANVAS: {
+                  do: "createDot",
+                  to: "dot.editing",
                 },
               },
             },
-            active: {
-              onEnter: "startDirectionSession",
+            editing: {
               on: {
-                MOVED_POINTER: "updateDirectionSession",
-                PANNED_CAMERA: "updateDirectionSession",
+                STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+                CANCELLED: {
+                  do: ["cancelSession", "deleteSelectedIds"],
+                  to: "selecting",
+                },
               },
-            },
-          },
-        },
-      },
-    },
-    line: {
-      initial: "creating",
-      states: {
-        creating: {
-          on: {
-            POINTED_CANVAS: {
-              do: "createLine",
-              to: "line.editing",
-            },
-          },
-        },
-        editing: {
-          on: {
-            STOPPED_POINTING: { do: "completeSession", to: "selecting" },
-            CANCELLED: {
-              do: ["cancelSession", "deleteSelectedIds"],
-              to: "selecting",
-            },
-          },
-          initial: "inactive",
-          states: {
-            inactive: {
-              on: {
-                MOVED_POINTER: {
-                  if: "distanceImpliesDrag",
-                  to: "line.editing.active",
+              initial: "inactive",
+              states: {
+                inactive: {
+                  on: {
+                    MOVED_POINTER: {
+                      if: "distanceImpliesDrag",
+                      to: "dot.editing.active",
+                    },
+                  },
+                },
+                active: {
+                  onEnter: "startTranslateSession",
+                  on: {
+                    MOVED_POINTER: "updateTranslateSession",
+                    PANNED_CAMERA: "updateTranslateSession",
+                  },
                 },
               },
             },
-            active: {
-              onEnter: "startDirectionSession",
+          },
+        },
+        circle: {
+          initial: "creating",
+          states: {
+            creating: {
               on: {
-                MOVED_POINTER: "updateDirectionSession",
-                PANNED_CAMERA: "updateDirectionSession",
+                POINTED_CANVAS: {
+                  to: "circle.editing",
+                },
+              },
+            },
+            editing: {
+              on: {
+                STOPPED_POINTING: { to: "selecting" },
+                CANCELLED: { to: "selecting" },
+                MOVED_POINTER: {
+                  if: "distanceImpliesDrag",
+                  do: "createCircle",
+                  to: "drawingShape.bounds",
+                },
               },
             },
           },
         },
+        ellipse: {
+          initial: "creating",
+          states: {
+            creating: {
+              on: {
+                POINTED_CANVAS: {
+                  to: "ellipse.editing",
+                },
+              },
+            },
+            editing: {
+              on: {
+                STOPPED_POINTING: { to: "selecting" },
+                CANCELLED: { to: "selecting" },
+                MOVED_POINTER: {
+                  if: "distanceImpliesDrag",
+                  do: "createEllipse",
+                  to: "drawingShape.bounds",
+                },
+              },
+            },
+          },
+        },
+        rectangle: {
+          initial: "creating",
+          states: {
+            creating: {
+              on: {
+                POINTED_CANVAS: {
+                  to: "rectangle.editing",
+                },
+              },
+            },
+            editing: {
+              on: {
+                STOPPED_POINTING: { to: "selecting" },
+                CANCELLED: { to: "selecting" },
+                MOVED_POINTER: {
+                  if: "distanceImpliesDrag",
+                  do: "createRectangle",
+                  to: "drawingShape.bounds",
+                },
+              },
+            },
+          },
+        },
+        ray: {
+          initial: "creating",
+          states: {
+            creating: {
+              on: {
+                POINTED_CANVAS: {
+                  do: "createRay",
+                  to: "ray.editing",
+                },
+              },
+            },
+            editing: {
+              on: {
+                STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+                CANCELLED: {
+                  do: ["cancelSession", "deleteSelectedIds"],
+                  to: "selecting",
+                },
+                MOVED_POINTER: {
+                  if: "distanceImpliesDrag",
+                  to: "drawingShape.direction",
+                },
+              },
+            },
+          },
+        },
+        line: {
+          initial: "creating",
+          states: {
+            creating: {
+              on: {
+                POINTED_CANVAS: {
+                  do: "createLine",
+                  to: "line.editing",
+                },
+              },
+            },
+            editing: {
+              on: {
+                STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+                CANCELLED: {
+                  do: ["cancelSession", "deleteSelectedIds"],
+                  to: "selecting",
+                },
+                MOVED_POINTER: {
+                  if: "distanceImpliesDrag",
+                  to: "drawingShape.direction",
+                },
+              },
+            },
+          },
+        },
+        polyline: {},
       },
     },
-    polyline: {},
-    rectangle: {},
+    drawingShape: {
+      on: {
+        STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+        CANCELLED: {
+          do: ["cancelSession", "deleteSelectedIds"],
+          to: "selecting",
+        },
+      },
+      initial: "drawingShapeBounds",
+      states: {
+        bounds: {
+          onEnter: "startDrawTransformSession",
+          on: {
+            MOVED_POINTER: "updateTransformSession",
+            PANNED_CAMERA: "updateTransformSession",
+          },
+        },
+        direction: {
+          onEnter: "startDirectionSession",
+          on: {
+            MOVED_POINTER: "updateDirectionSession",
+            PANNED_CAMERA: "updateDirectionSession",
+          },
+        },
+      },
+    },
   },
   conditions: {
     isPointingBounds(data, payload: PointerInfo) {
@@ -358,6 +445,36 @@ const state = createState({
       data.selectedIds.add(shape.id)
     },
 
+    createCircle(data, payload: PointerInfo) {
+      const shape = shapeUtilityMap[ShapeType.Circle].create({
+        point: screenToWorld(payload.point, data),
+        radius: 1,
+      })
+
+      commands.createShape(data, shape)
+      data.selectedIds.add(shape.id)
+    },
+
+    createEllipse(data, payload: PointerInfo) {
+      const shape = shapeUtilityMap[ShapeType.Ellipse].create({
+        point: screenToWorld(payload.point, data),
+        radiusX: 1,
+        radiusY: 1,
+      })
+
+      commands.createShape(data, shape)
+      data.selectedIds.add(shape.id)
+    },
+
+    createRectangle(data, payload: PointerInfo) {
+      const shape = shapeUtilityMap[ShapeType.Rectangle].create({
+        point: screenToWorld(payload.point, data),
+        size: [1, 1],
+      })
+
+      commands.createShape(data, shape)
+      data.selectedIds.add(shape.id)
+    },
     /* -------------------- Sessions -------------------- */
 
     // Shared
@@ -378,6 +495,17 @@ const state = createState({
       )
     },
     updateBrushSession(data, payload: PointerInfo) {
+      session.update(data, screenToWorld(payload.point, data))
+    },
+
+    // Rotating
+    startRotateSession(data, payload: PointerInfo) {
+      session = new Sessions.RotateSession(
+        data,
+        screenToWorld(payload.point, data)
+      )
+    },
+    updateRotateSession(data, payload: PointerInfo) {
       session.update(data, screenToWorld(payload.point, data))
     },
 
@@ -403,6 +531,13 @@ const state = createState({
         screenToWorld(payload.point, data)
       )
     },
+    startDrawTransformSession(data, payload: PointerInfo) {
+      session = new Sessions.TransformSession(
+        data,
+        TransformCorner.BottomRight,
+        screenToWorld(payload.point, data)
+      )
+    },
     updateTransformSession(data, payload: PointerInfo) {
       session.update(data, screenToWorld(payload.point, data))
     },
@@ -420,6 +555,13 @@ const state = createState({
 
     /* -------------------- Selection ------------------- */
 
+    selectAll(data) {
+      const { selectedIds, document, currentPageId } = data
+      selectedIds.clear()
+      for (let id in document.pages[currentPageId].shapes) {
+        selectedIds.add(id)
+      }
+    },
     setHoveredId(data, payload: PointerInfo) {
       data.hoveredId = payload.target
     },
@@ -488,9 +630,12 @@ const state = createState({
       data.selectedIds.clear()
     },
 
-    /* ---------------------- Misc ---------------------- */
+    /* ---------------------- History ---------------------- */
 
     // History
+    forceSave(data) {
+      history.save(data)
+    },
     enableHistory() {
       history.enable()
     },
@@ -504,7 +649,16 @@ const state = createState({
       history.redo(data)
     },
 
-    // Code
+    /* ---------------------- Code ---------------------- */
+    closeCodePanel(data) {
+      data.settings.isCodeOpen = false
+    },
+    openCodePanel(data) {
+      data.settings.isCodeOpen = true
+    },
+    toggleCodePanel(data) {
+      data.settings.isCodeOpen = !data.settings.isCodeOpen
+    },
     setGeneratedShapes(
       data,
       payload: { shapes: Shape[]; controls: CodeControl[] }

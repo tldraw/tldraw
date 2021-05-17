@@ -19,7 +19,7 @@ const rectangle = createShape<RectangleShape>({
       size: [1, 1],
       rotation: 0,
       style: {
-        fill: "#777",
+        fill: "rgba(142, 143, 142, 1.000)",
         stroke: "#000",
       },
       ...props,
@@ -52,6 +52,11 @@ const rectangle = createShape<RectangleShape>({
     this.boundsCache.set(shape, bounds)
 
     return bounds
+  },
+
+  getCenter(shape) {
+    const bounds = this.getBounds(shape)
+    return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2]
   },
 
   hitTest(shape) {

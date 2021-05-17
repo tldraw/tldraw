@@ -12,9 +12,12 @@ export const Root = styled("div", {
   boxShadow: "0px 2px 25px rgba(0,0,0,.16)",
 
   variants: {
-    isCollapsed: {
+    isOpen: {
       true: {},
-      false: {},
+      false: {
+        height: 34,
+        width: 34,
+      },
     },
   },
 })

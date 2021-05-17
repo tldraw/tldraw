@@ -10,7 +10,8 @@ export interface Data {
   isReadOnly: boolean
   settings: {
     fontSize: number
-    darkMode: boolean
+    isDarkMode: boolean
+    isCodeOpen: boolean
   }
   camera: {
     point: number[]

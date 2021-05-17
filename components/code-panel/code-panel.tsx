@@ -37,7 +37,7 @@ export default function CodePanel() {
   const file = useSelector(
     (s) => s.data.document.code[s.data.currentCodeFileId]
   )
-  const isOpen = true
+  const isOpen = useSelector((s) => s.data.settings.isCodeOpen)
   const fontSize = useSelector((s) => s.data.settings.fontSize)
 
   const local = useStateDesigner({
@@ -115,11 +115,11 @@ export default function CodePanel() {
   const { error } = local.data
 
   return (
-    <Panel.Root data-bp-desktop ref={rContainer} isCollapsed={!isOpen}>
+    <Panel.Root data-bp-desktop ref={rContainer} isOpen={isOpen}>
       {isOpen ? (
         <Panel.Layout>
           <Panel.Header>
-            <IconButton onClick={() => state.send("CLOSED_CODE_PANEL")}>
+            <IconButton onClick={() => state.send("TOGGLED_CODE_PANEL_OPEN")}>
               <X />
             </IconButton>
             <h3>Code</h3>
@@ -169,7 +169,7 @@ export default function CodePanel() {
           </Panel.Footer>
         </Panel.Layout>
       ) : (
-        <IconButton onClick={() => state.send("OPENED_CODE_PANEL")}>
+        <IconButton onClick={() => state.send("TOGGLED_CODE_PANEL_OPEN")}>
           <Code />
         </IconButton>
       )}

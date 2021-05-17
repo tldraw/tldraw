@@ -171,7 +171,8 @@ export default class TransformSession extends BaseSession {
     const { shapes } = data.document.pages[currentPageId]
 
     selectedIds.forEach((id) => {
-      const shape = shapes.shapes[id]
+      const shape = shapes[id]
+
       const { initialShape, initialShapeBounds } = shapeBounds[id]
 
       getShapeUtils(shape).transform(shape, initialShapeBounds, {

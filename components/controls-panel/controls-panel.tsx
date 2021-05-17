@@ -14,10 +14,10 @@ export default function ControlPanel() {
     (state) => Object.keys(state.data.codeControls),
     deepCompareArrays
   )
-  const isOpen = true
+  const isOpen = useSelector((s) => Object.keys(s.data.codeControls).length > 0)
 
   return (
-    <Panel.Root data-bp-desktop ref={rContainer} isCollapsed={!isOpen}>
+    <Panel.Root data-bp-desktop ref={rContainer} isOpen={isOpen}>
       {isOpen ? (
         <Panel.Layout>
           <Panel.Header>

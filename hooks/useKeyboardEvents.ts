@@ -19,6 +19,15 @@ export default function useKeyboardEvents() {
         state.send("DELETED", getKeyboardEventInfo(e))
       }
 
+      if (e.key === "s" && metaKey(e)) {
+        e.preventDefault()
+        state.send("SAVED")
+      }
+      if (e.key === "a" && metaKey(e)) {
+        e.preventDefault()
+        state.send("SELECTED_ALL")
+      }
+
       if (e.key === "v" && !(metaKey(e) || e.shiftKey || e.altKey)) {
         state.send("SELECTED_SELECT_TOOL", getKeyboardEventInfo(e))
       }

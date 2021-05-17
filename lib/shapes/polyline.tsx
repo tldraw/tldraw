@@ -58,6 +58,11 @@ const polyline = createShape<PolylineShape>({
     return bounds
   },
 
+  getCenter(shape) {
+    const bounds = this.getBounds(shape)
+    return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2]
+  },
+
   hitTest(shape, point) {
     let pt = vec.sub(point, shape.point)
     let prev = shape.points[0]

@@ -8,6 +8,12 @@ import { lerp } from "utils/utils"
 export default function Bounds() {
   const zoom = useSelector((state) => state.data.camera.zoom)
   const bounds = useSelector((state) => state.values.selectedBounds)
+  const singleSelection = useSelector((s) => {
+    if (s.data.selectedIds.size === 1) {
+      const selected = Array.from(s.data.selectedIds.values())[0]
+      return s.data.document.pages[s.data.currentPageId].shapes[selected]
+    }
+  })
   const isBrushing = useSelector((state) => state.isIn("brushSelecting"))
 
   if (!bounds) return null
@@ -18,7 +24,15 @@ export default function Bounds() {
   const cp = p * 2
 
   return (
-    <g pointerEvents={isBrushing ? "none" : "all"}>
+    <g
+      pointerEvents={isBrushing ? "none" : "all"}
+      transform={
+        singleSelection &&
+        `rotate(${singleSelection.rotation * (180 / Math.PI)},${
+          minX + width / 2
+        }, ${minY + width / 2})`
+      }
+    >
       <StyledBounds
         x={minX}
         y={minY}
@@ -82,7 +96,32 @@ export default function Bounds() {
         height={cp}
         corner={TransformCorner.BottomLeft}
       />
+      <RotateHandle x={minX + width / 2} y={minY - cp * 2} r={cp / 2} />
     </g>
+  )
+}
+
+function RotateHandle({ x, y, r }: { x: number; y: number; r: number }) {
+  const rRotateHandle = useRef<SVGCircleElement>(null)
+
+  return (
+    <StyledRotateHandle
+      ref={rRotateHandle}
+      cx={x}
+      cy={y}
+      r={r}
+      onPointerDown={(e) => {
+        e.stopPropagation()
+        rRotateHandle.current.setPointerCapture(e.pointerId)
+        state.send("POINTED_ROTATE_HANDLE", inputs.pointerDown(e, "rotate"))
+      }}
+      onPointerUp={(e) => {
+        e.stopPropagation()
+        rRotateHandle.current.releasePointerCapture(e.pointerId)
+        rRotateHandle.current.replaceWith(rRotateHandle.current)
+        state.send("STOPPED_POINTING", inputs.pointerDown(e, "rotate"))
+      }}
+    />
   )
 }
 
@@ -99,32 +138,10 @@ function Corner({
   height: number
   corner: TransformCorner
 }) {
-  const rRotateCorner = useRef<SVGRectElement>(null)
   const rCorner = useRef<SVGRectElement>(null)
-
-  const isTop = corner.includes("top")
-  const isLeft = corner.includes("bottom")
 
   return (
     <g>
-      <StyledRotateCorner
-        ref={rRotateCorner}
-        x={x + width * (isLeft ? -1.25 : -0.5)}
-        y={y + width * (isTop ? -1.25 : -0.5)}
-        width={width * 1.75}
-        height={height * 1.75}
-        onPointerDown={(e) => {
-          e.stopPropagation()
-          rRotateCorner.current.setPointerCapture(e.pointerId)
-          state.send("POINTED_ROTATE_CORNER", inputs.pointerDown(e, corner))
-        }}
-        onPointerUp={(e) => {
-          e.stopPropagation()
-          rRotateCorner.current.releasePointerCapture(e.pointerId)
-          rRotateCorner.current.replaceWith(rRotateCorner.current)
-          state.send("STOPPED_POINTING", inputs.pointerDown(e, corner))
-        }}
-      />
       <StyledCorner
         ref={rCorner}
         x={x + width * -0.5}
@@ -252,13 +269,15 @@ const StyledCorner = styled("rect", {
   },
 })
 
+const StyledRotateHandle = styled("circle", {
+  stroke: "$bounds",
+  fill: "#fff",
+  zStrokeWidth: 2,
+  cursor: "grab",
+})
+
 const StyledBounds = styled("rect", {
   fill: "none",
   stroke: "$bounds",
   zStrokeWidth: 2,
-})
-
-const StyledRotateCorner = styled("rect", {
-  cursor: "grab",
-  fill: "transparent",
 })

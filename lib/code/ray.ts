@@ -19,7 +19,7 @@ export default class Ray extends CodeShape<RayShape> {
       direction: [0, 1],
       rotation: 0,
       style: {
-        fill: "#777",
+        fill: "rgba(142, 143, 142, 1.000)",
         stroke: "#000",
         strokeWidth: 1,
       },

@@ -22,7 +22,7 @@ const ellipse = createShape<EllipseShape>({
       radiusY: 20,
       rotation: 0,
       style: {
-        fill: "#777",
+        fill: "rgba(142, 143, 142, 1.000)",
         stroke: "#000",
       },
       ...props,
@@ -58,6 +58,10 @@ const ellipse = createShape<EllipseShape>({
     this.boundsCache.set(shape, bounds)
 
     return bounds
+  },
+
+  getCenter(shape) {
+    return [shape.point[0] + shape.radiusX, shape.point[1] + shape.radiusY]
   },
 
   hitTest(shape, point) {

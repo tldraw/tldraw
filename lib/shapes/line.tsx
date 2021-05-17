@@ -21,7 +21,7 @@ const line = createShape<LineShape>({
       direction: [0, 0],
       rotation: 0,
       style: {
-        fill: "#777",
+        fill: "rgba(142, 143, 142, 1.000)",
         stroke: "#000",
       },
       ...props,
@@ -61,6 +61,10 @@ const line = createShape<LineShape>({
     this.boundsCache.set(shape, bounds)
 
     return bounds
+  },
+
+  getCenter(shape) {
+    return shape.point
   },
 
   hitTest(shape, test) {

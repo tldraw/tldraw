@@ -36,6 +36,9 @@ export interface ShapeUtility<K extends Shape> {
   // Get the bounds of the a shape.
   getBounds(this: ShapeUtility<K>, shape: K): Bounds
 
+  // Get the center of the shape
+  getCenter(this: ShapeUtility<K>, shape: K): number[]
+
   // Test whether a point lies within a shape.
   hitTest(this: ShapeUtility<K>, shape: K, test: number[]): boolean
 

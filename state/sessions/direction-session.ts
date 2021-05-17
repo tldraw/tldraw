@@ -41,7 +41,7 @@ export default class DirectionSession extends BaseSession {
   }
 
   complete(data: Data) {
-    commands.direction(data, this.snapshot, getDirectionSnapshot(data))
+    commands.direct(data, this.snapshot, getDirectionSnapshot(data))
   }
 }
 
