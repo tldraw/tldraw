@@ -7,7 +7,9 @@ import state, { useSelector } from "state"
 import { CodeFile } from "types"
 import CodeDocs from "./code-docs"
 import CodeEditor from "./code-editor"
-import { getShapesFromCode } from "lib/code/generate"
+import { generateFromCode } from "lib/code/generate"
+import * as Panel from "../panel"
+import { IconButton } from "../shared"
 import {
   X,
   Code,
@@ -51,8 +53,8 @@ export default function CodePanel() {
     states: {
       editingCode: {
         on: {
-          RAN_CODE: "runCode",
-          SAVED_CODE: ["runCode", "saveCode"],
+          RAN_CODE: ["saveCode", "runCode"],
+          SAVED_CODE: ["saveCode", "runCode"],
           CHANGED_CODE: { secretlyDo: "setCode" },
           CLEARED_ERROR: { if: "hasError", do: "clearError" },
           TOGGLED_DOCS: { to: "viewingDocs" },
@@ -80,8 +82,8 @@ export default function CodePanel() {
         let error = null
 
         try {
-          const shapes = getShapesFromCode(data.code)
-          state.send("GENERATED_SHAPES_FROM_CODE", { shapes })
+          const { shapes, controls } = generateFromCode(data.code)
+          state.send("GENERATED_FROM_CODE", { shapes, controls })
         } catch (e) {
           console.error(e)
           error = { message: e.message, ...getErrorLineAndColumn(e) }
@@ -113,15 +115,10 @@ export default function CodePanel() {
   const { error } = local.data
 
   return (
-    <PanelContainer
-      data-bp-desktop
-      ref={rContainer}
-      dragMomentum={false}
-      isCollapsed={!isOpen}
-    >
+    <Panel.Root data-bp-desktop ref={rContainer} isCollapsed={!isOpen}>
       {isOpen ? (
-        <Content>
-          <Header>
+        <Panel.Layout>
+          <Panel.Header>
             <IconButton onClick={() => state.send("CLOSED_CODE_PANEL")}>
               <X />
             </IconButton>
@@ -151,8 +148,8 @@ export default function CodePanel() {
                 <PlayCircle />
               </IconButton>
             </ButtonsGroup>
-          </Header>
-          <EditorContainer>
+          </Panel.Header>
+          <Panel.Content>
             <CodeEditor
               fontSize={fontSize}
               readOnly={isReadOnly}
@@ -163,114 +160,22 @@ export default function CodePanel() {
               onKey={() => local.send("CLEARED_ERROR")}
             />
             <CodeDocs isHidden={!local.isIn("viewingDocs")} />
-          </EditorContainer>
-          <ErrorContainer>
+          </Panel.Content>
+          <Panel.Footer>
             {error &&
               (error.line
                 ? `(${Number(error.line) - 2}:${error.column}) ${error.message}`
                 : error.message)}
-          </ErrorContainer>
-        </Content>
+          </Panel.Footer>
+        </Panel.Layout>
       ) : (
         <IconButton onClick={() => state.send("OPENED_CODE_PANEL")}>
           <Code />
         </IconButton>
       )}
-    </PanelContainer>
+    </Panel.Root>
   )
 }
-
-const PanelContainer = styled(motion.div, {
-  position: "absolute",
-  top: "48px",
-  right: "8px",
-  bottom: "48px",
-  backgroundColor: "$panel",
-  borderRadius: "4px",
-  overflow: "hidden",
-  border: "1px solid $border",
-  pointerEvents: "all",
-  userSelect: "none",
-  zIndex: 200,
-
-  button: {
-    border: "none",
-  },
-
-  variants: {
-    isCollapsed: {
-      true: {},
-      false: {},
-    },
-  },
-})
-
-const IconButton = styled("button", {
-  height: "40px",
-  width: "40px",
-  backgroundColor: "$panel",
-  borderRadius: "4px",
-  border: "1px solid $border",
-  padding: "0",
-  margin: "0",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  outline: "none",
-  pointerEvents: "all",
-  cursor: "pointer",
-
-  "&:hover:not(:disabled)": {
-    backgroundColor: "$panel",
-  },
-
-  "&:disabled": {
-    opacity: "0.5",
-  },
-
-  svg: {
-    height: "20px",
-    width: "20px",
-    strokeWidth: "2px",
-    stroke: "$text",
-  },
-})
-
-const Content = styled("div", {
-  display: "grid",
-  gridTemplateColumns: "1fr",
-  gridTemplateRows: "auto 1fr 28px",
-  height: "100%",
-  width: 560,
-  minWidth: "100%",
-  maxWidth: 560,
-  overflow: "hidden",
-  userSelect: "none",
-  pointerEvents: "all",
-})
-
-const Header = styled("div", {
-  pointerEvents: "all",
-  display: "grid",
-  gridTemplateColumns: "auto 1fr",
-  alignItems: "center",
-  justifyContent: "center",
-  borderBottom: "1px solid $border",
-
-  "& button": {
-    gridColumn: "1",
-    gridRow: "1",
-  },
-
-  "& h3": {
-    gridColumn: "1 / span 3",
-    gridRow: "1",
-    textAlign: "center",
-    margin: "0",
-    padding: "0",
-    fontSize: "16px",
-  },
-})
 
 const ButtonsGroup = styled("div", {
   gridRow: "1",
@@ -278,34 +183,19 @@ const ButtonsGroup = styled("div", {
   display: "flex",
 })
 
-const EditorContainer = styled("div", {
-  position: "relative",
-  pointerEvents: "all",
-  overflowY: "scroll",
-})
-
-const ErrorContainer = styled("div", {
-  overflowX: "scroll",
-  color: "$text",
-  font: "$debug",
-  padding: "0 12px",
-  display: "flex",
-  alignItems: "center",
-})
-
 const FontSizeButtons = styled("div", {
   paddingRight: 4,
+  display: "flex",
+  flexDirection: "column",
 
   "& > button": {
     height: "50%",
-    width: "100%",
-
     "&:nth-of-type(1)": {
-      paddingTop: 4,
+      alignItems: "flex-end",
     },
 
     "&:nth-of-type(2)": {
-      paddingBottom: 4,
+      alignItems: "flex-start",
     },
 
     "& svg": {

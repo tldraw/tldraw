@@ -121,32 +121,32 @@ export const defaultDocument: Data["document"] = {
       name: "index.ts",
       code: `
 new Dot({
-  point: [0, 0],
+  point: new Vector(0, 0),
 })
 
 new Circle({
-  point: [200, 0],
+  point: new Vector(200, 0),
   radius: 50,
 })
 
 new Ellipse({
-  point: [400, 0],
+  point: new Vector(400, 0),
   radiusX: 50,
   radiusY: 75
 })
 
 new Rectangle({
-  point: [0, 300],
+  point: new Vector(0, 300),
 })
 
 new Line({
-  point: [200, 300],
-  direction: [1,0.2]
+  point: new Vector(200, 300),
+  direction: new Vector(1,0.2)
 })
 
 new Polyline({
-  point: [400, 300],
-  points: [[0, 200], [0,0], [200, 200], [200, 0]],
+  point: new Vector(400, 300),
+  points: [new Vector(0, 200), new Vector(0,0), new Vector(200, 200), new Vector(200, 0)],
 })
 `,
     },

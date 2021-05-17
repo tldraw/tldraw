@@ -1,9 +1,12 @@
 import CodeShape from "./index"
 import { v4 as uuid } from "uuid"
 import { CircleShape, ShapeType } from "types"
+import { vectorToPoint } from "utils/utils"
 
 export default class Circle extends CodeShape<CircleShape> {
   constructor(props = {} as Partial<CircleShape>) {
+    props.point = vectorToPoint(props.point)
+
     super({
       id: uuid(),
       type: ShapeType.Circle,
@@ -21,6 +24,14 @@ export default class Circle extends CodeShape<CircleShape> {
       },
       ...props,
     })
+  }
+
+  export() {
+    const shape = { ...this.shape }
+
+    shape.point = vectorToPoint(shape.point)
+
+    return shape
   }
 
   get radius() {

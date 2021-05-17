@@ -1,9 +1,12 @@
 import CodeShape from "./index"
 import { v4 as uuid } from "uuid"
 import { EllipseShape, ShapeType } from "types"
+import { vectorToPoint } from "utils/utils"
 
 export default class Ellipse extends CodeShape<EllipseShape> {
   constructor(props = {} as Partial<EllipseShape>) {
+    props.point = vectorToPoint(props.point)
+
     super({
       id: uuid(),
       type: ShapeType.Ellipse,
@@ -24,7 +27,19 @@ export default class Ellipse extends CodeShape<EllipseShape> {
     })
   }
 
-  get radius() {
-    return this.shape.radius
+  export() {
+    const shape = { ...this.shape }
+
+    shape.point = vectorToPoint(shape.point)
+
+    return shape
+  }
+
+  get radiusX() {
+    return this.shape.radiusX
+  }
+
+  get radiusY() {
+    return this.shape.radiusY
   }
 }

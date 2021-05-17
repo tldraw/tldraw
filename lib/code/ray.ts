@@ -1,9 +1,13 @@
 import CodeShape from "./index"
 import { v4 as uuid } from "uuid"
 import { RayShape, ShapeType } from "types"
+import { vectorToPoint } from "utils/utils"
 
 export default class Ray extends CodeShape<RayShape> {
   constructor(props = {} as Partial<RayShape>) {
+    props.point = vectorToPoint(props.point)
+    props.direction = vectorToPoint(props.direction)
+
     super({
       id: uuid(),
       type: ShapeType.Ray,
@@ -21,5 +25,18 @@ export default class Ray extends CodeShape<RayShape> {
       },
       ...props,
     })
+  }
+
+  export() {
+    const shape = { ...this.shape }
+
+    shape.point = vectorToPoint(shape.point)
+    shape.direction = vectorToPoint(shape.direction)
+
+    return shape
+  }
+
+  get direction() {
+    return this.shape.direction
   }
 }

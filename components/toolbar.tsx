@@ -70,20 +70,16 @@ export default function Toolbar() {
         >
           Rectangle
         </Button>
+        <Button onClick={() => state.send("RESET_CAMERA")}>Reset Camera</Button>
       </Section>
     </ToolbarContainer>
   )
 }
 
 const ToolbarContainer = styled("div", {
-  position: "absolute",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: 40,
+  gridArea: "toolbar",
   userSelect: "none",
   borderBottom: "1px solid black",
-  gridArea: "status",
   display: "grid",
   gridTemplateColumns: "auto 1fr auto",
   alignItems: "center",

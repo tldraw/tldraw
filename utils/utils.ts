@@ -1,3 +1,4 @@
+import Vector from "lib/code/vector"
 import React from "react"
 import { Data, Bounds, TransformEdge, TransformCorner } from "types"
 import * as svg from "./svg"
@@ -801,7 +802,7 @@ export function throttle<P extends any[], T extends (...args: P) => any>(
 ) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let inThrottle: boolean, lastFn: any, lastTime: number
-  return function(...args: P) {
+  return function (...args: P) {
     if (preventDefault) args[0].preventDefault()
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const context = this
@@ -811,7 +812,7 @@ export function throttle<P extends any[], T extends (...args: P) => any>(
       inThrottle = true
     } else {
       clearTimeout(lastFn)
-      lastFn = setTimeout(function() {
+      lastFn = setTimeout(function () {
         if (Date.now() - lastTime >= wait) {
           fn.apply(context, args)
           lastTime = Date.now()
@@ -949,4 +950,15 @@ export function getTransformAnchor(
   }
 
   return anchor
+}
+
+export function vectorToPoint(point: number[] | Vector | undefined) {
+  if (typeof point === "undefined") {
+    return [0, 0]
+  }
+
+  if (point instanceof Vector) {
+    return [point.x, point.y]
+  }
+  return point
 }

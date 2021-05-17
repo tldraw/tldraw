@@ -15,6 +15,8 @@ const { styled, global, css, theme, getCssString } = createCss({
       border: "#aaa",
       panel: "#fefefe",
       text: "#000",
+      input: "#f3f3f3",
+      inputBorder: "#ddd",
     },
     space: {},
     fontSizes: {
@@ -47,7 +49,7 @@ const { styled, global, css, theme, getCssString } = createCss({
             min !== undefined && max !== undefined
               ? `clamp(${min}, ${val} / var(--camera-zoom), ${max})`
               : min !== undefined
-              ? `max(${min}, ${val} / var(--camera-zoom))`
+              ? `min(${min}, ${val} / var(--camera-zoom))`
               : `calc(${val} / var(--camera-zoom))`,
         }
       }

@@ -1,8 +1,14 @@
 import { Shape } from "types"
-import * as vec from "utils/vec"
 import { getShapeUtils } from "lib/shapes"
+import * as vec from "utils/vec"
+import Vector from "./vector"
+import { vectorToPoint } from "utils/utils"
 
 export const codeShapes = new Set<CodeShape<Shape>>([])
+
+type WithVectors<T extends Shape> = {
+  [key in keyof T]: number[] extends T[key] ? Vector : T[key]
+}
 
 /**
  * A base class for code shapes. Note that creating a shape adds it to the
@@ -20,12 +26,12 @@ export default class CodeShape<T extends Shape> {
     codeShapes.delete(this)
   }
 
-  moveTo(point: number[]) {
-    this.shape.point = point
+  moveTo(point: Vector) {
+    this.shape.point = vectorToPoint(point)
   }
 
-  translate(delta: number[]) {
-    this.shape.point = vec.add(this._shape.point, delta)
+  translate(delta: Vector) {
+    this.shape.point = vec.add(this._shape.point, vectorToPoint(delta))
   }
 
   rotate(rotation: number) {
@@ -40,8 +46,8 @@ export default class CodeShape<T extends Shape> {
     return getShapeUtils(this.shape).getBounds(this.shape)
   }
 
-  hitTest(point: number[]) {
-    return getShapeUtils(this.shape).hitTest(this.shape, point)
+  hitTest(point: Vector) {
+    return getShapeUtils(this.shape).hitTest(this.shape, vectorToPoint(point))
   }
 
   get shape() {

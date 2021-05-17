@@ -2,6 +2,10 @@ import * as monaco from "monaco-editor/esm/vs/editor/editor.api"
 
 import React from "react"
 
+/* -------------------------------------------------- */
+/*                    Client State                    */
+/* -------------------------------------------------- */
+
 export interface Data {
   isReadOnly: boolean
   settings: {
@@ -18,17 +22,16 @@ export interface Data {
   hoveredId?: string
   currentPageId: string
   currentCodeFileId: string
+  codeControls: Record<string, CodeControl>
   document: {
     pages: Record<string, Page>
     code: Record<string, CodeFile>
   }
 }
 
-export interface CodeFile {
-  id: string
-  name: string
-  code: string
-}
+/* -------------------------------------------------- */
+/*                      Document                      */
+/* -------------------------------------------------- */
 
 export interface Page {
   id: string
@@ -46,11 +49,13 @@ export enum ShapeType {
   Ray = "ray",
   Polyline = "polyline",
   Rectangle = "rectangle",
-  // Glob = "glob",
-  // Spline = "spline",
-  // Cubic = "cubic",
-  // Conic = "conic",
 }
+
+// Consider:
+// Glob = "glob",
+// Spline = "spline",
+// Cubic = "cubic",
+// Conic = "conic",
 
 export interface BaseShape {
   id: string
@@ -108,31 +113,6 @@ export type Shape =
   | PolylineShape
   | RectangleShape
 
-export interface Bounds {
-  minX: number
-  minY: number
-  maxX: number
-  maxY: number
-  width: number
-  height: number
-}
-
-export interface ShapeBounds extends Bounds {
-  id: string
-}
-
-export interface PointSnapshot extends Bounds {
-  nx: number
-  nmx: number
-  ny: number
-  nmy: number
-}
-
-export interface BoundsSnapshot extends PointSnapshot {
-  nw: number
-  nh: number
-}
-
 export interface Shapes extends Record<ShapeType, Shape> {
   [ShapeType.Dot]: DotShape
   [ShapeType.Circle]: CircleShape
@@ -143,26 +123,15 @@ export interface Shapes extends Record<ShapeType, Shape> {
   [ShapeType.Rectangle]: RectangleShape
 }
 
-export type Difference<A, B> = A extends B ? never : A
-
-export type ShapeSpecificProps<T extends Shape> = Pick<
-  T,
-  Difference<keyof T, keyof BaseShape>
->
-
-export type ShapeIndicatorProps<T extends Shape> = ShapeSpecificProps<T>
-
-export type ShapeUtil<K extends Shape> = {
-  create(props: Partial<K>): K
-  getBounds(shape: K): Bounds
-  hitTest(shape: K, test: number[]): boolean
-  hitTestBounds(shape: K, bounds: Bounds): boolean
-  rotate(shape: K): K
-  translate(shape: K, delta: number[]): K
-  scale(shape: K, scale: number): K
-  stretch(shape: K, scaleX: number, scaleY: number): K
-  render(shape: K): JSX.Element
+export interface CodeFile {
+  id: string
+  name: string
+  code: string
 }
+
+/* -------------------------------------------------- */
+/*                      Editor UI                     */
+/* -------------------------------------------------- */
 
 export interface PointerInfo {
   target: string
@@ -189,6 +158,104 @@ export enum TransformCorner {
   BottomLeft = "bottom_left_corner",
 }
 
+export interface Bounds {
+  minX: number
+  minY: number
+  maxX: number
+  maxY: number
+  width: number
+  height: number
+}
+
+export interface ShapeBounds extends Bounds {
+  id: string
+}
+
+export interface PointSnapshot extends Bounds {
+  nx: number
+  nmx: number
+  ny: number
+  nmy: number
+}
+
+export interface BoundsSnapshot extends PointSnapshot {
+  nw: number
+  nh: number
+}
+
+export type Difference<A, B> = A extends B ? never : A
+
+export type ShapeSpecificProps<T extends Shape> = Pick<
+  T,
+  Difference<keyof T, keyof BaseShape>
+>
+
+export type ShapeIndicatorProps<T extends Shape> = ShapeSpecificProps<T>
+
+export type ShapeUtil<K extends Shape> = {
+  create(props: Partial<K>): K
+  getBounds(shape: K): Bounds
+  hitTest(shape: K, test: number[]): boolean
+  hitTestBounds(shape: K, bounds: Bounds): boolean
+  rotate(shape: K): K
+  translate(shape: K, delta: number[]): K
+  scale(shape: K, scale: number): K
+  stretch(shape: K, scaleX: number, scaleY: number): K
+  render(shape: K): JSX.Element
+}
+/* -------------------------------------------------- */
+/*                     Code Editor                    */
+/* -------------------------------------------------- */
+
 export type IMonaco = typeof monaco
 
 export type IMonacoEditor = monaco.editor.IStandaloneCodeEditor
+
+export enum ControlType {
+  Number = "number",
+  Vector = "vector",
+  Text = "text",
+  Select = "select",
+}
+
+export interface BaseCodeControl {
+  id: string
+  type: ControlType
+  label: string
+}
+
+export interface NumberCodeControl extends BaseCodeControl {
+  type: ControlType.Number
+  min?: number
+  max?: number
+  value: number
+  step: number
+  format?: (value: number) => number
+}
+
+export interface VectorCodeControl extends BaseCodeControl {
+  type: ControlType.Vector
+  value: number[]
+  isNormalized: boolean
+  format?: (value: number[]) => number[]
+}
+
+export interface TextCodeControl extends BaseCodeControl {
+  type: ControlType.Text
+  value: string
+  format?: (value: string) => string
+}
+
+export interface SelectCodeControl<T extends string = "">
+  extends BaseCodeControl {
+  type: ControlType.Select
+  value: T
+  options: T[]
+  format?: (string: T) => string
+}
+
+export type CodeControl =
+  | NumberCodeControl
+  | VectorCodeControl
+  | TextCodeControl
+  | SelectCodeControl

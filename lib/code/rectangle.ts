@@ -1,9 +1,13 @@
 import CodeShape from "./index"
 import { v4 as uuid } from "uuid"
 import { RectangleShape, ShapeType } from "types"
+import { vectorToPoint } from "utils/utils"
 
 export default class Rectangle extends CodeShape<RectangleShape> {
   constructor(props = {} as Partial<RectangleShape>) {
+    props.point = vectorToPoint(props.point)
+    props.size = vectorToPoint(props.size)
+
     super({
       id: uuid(),
       type: ShapeType.Rectangle,

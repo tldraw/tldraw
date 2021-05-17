@@ -9,12 +9,15 @@ import {
   Shapes,
   TransformCorner,
   TransformEdge,
+  CodeControl,
 } from "types"
 import { defaultDocument } from "./data"
 import shapeUtilityMap, { getShapeUtils } from "lib/shapes"
 import history from "state/history"
 import * as Sessions from "./sessions"
 import commands from "./commands"
+import { controls } from "lib/code/control"
+import { generateFromCode, updateFromCode } from "lib/code/generate"
 
 const initialData: Data = {
   isReadOnly: false,
@@ -32,6 +35,7 @@ const initialData: Data = {
   selectedIds: new Set([]),
   currentPageId: "page0",
   currentCodeFileId: "file0",
+  codeControls: {},
   document: defaultDocument,
 }
 
@@ -52,6 +56,7 @@ const state = createState({
     SELECTED_LINE_TOOL: { unless: "isReadOnly", to: "line" },
     SELECTED_POLYLINE_TOOL: { unless: "isReadOnly", to: "polyline" },
     SELECTED_RECTANGLE_TOOL: { unless: "isReadOnly", to: "rectangle" },
+    RESET_CAMERA: "resetCamera",
   },
   initial: "loading",
   states: {
@@ -70,9 +75,10 @@ const state = createState({
         CANCELLED: { do: "clearSelectedIds" },
         DELETED: { do: "deleteSelectedIds" },
         SAVED_CODE: "saveCode",
-        GENERATED_SHAPES_FROM_CODE: "setGeneratedShapes",
+        GENERATED_FROM_CODE: ["setCodeControls", "setGeneratedShapes"],
         INCREASED_CODE_FONT_SIZE: "increaseCodeFontSize",
         DECREASED_CODE_FONT_SIZE: "decreaseCodeFontSize",
+        CHANGED_CODE_CONTROL: "updateControls",
       },
       initial: "notPointing",
       states: {
@@ -437,6 +443,12 @@ const state = createState({
       data.selectedIds.add(data.pointedId)
     },
     // Camera
+    resetCamera(data) {
+      data.camera.zoom = 1
+      data.camera.point = [window.innerWidth / 2, window.innerHeight / 2]
+
+      document.documentElement.style.setProperty("--camera-zoom", "1")
+    },
     zoomCamera(data, payload: { delta: number; point: number[] }) {
       const { camera } = data
       const p0 = screenToWorld(payload.point, data)
@@ -493,14 +505,44 @@ const state = createState({
     },
 
     // Code
-    setGeneratedShapes(data, payload: { shapes: Shape[] }) {
-      commands.generateShapes(data, data.currentPageId, payload.shapes)
+    setGeneratedShapes(
+      data,
+      payload: { shapes: Shape[]; controls: CodeControl[] }
+    ) {
+      commands.generate(data, data.currentPageId, payload.shapes)
+    },
+    setCodeControls(data, payload: { controls: CodeControl[] }) {
+      data.codeControls = Object.fromEntries(
+        payload.controls.map((control) => [control.id, control])
+      )
     },
     increaseCodeFontSize(data) {
       data.settings.fontSize++
     },
     decreaseCodeFontSize(data) {
       data.settings.fontSize--
+    },
+    updateControls(data, payload: { [key: string]: any }) {
+      for (let key in payload) {
+        data.codeControls[key].value = payload[key]
+      }
+
+      history.disable()
+
+      data.selectedIds.clear()
+
+      try {
+        const { shapes } = updateFromCode(
+          data.document.code[data.currentCodeFileId].code,
+          data.codeControls
+        )
+
+        commands.generate(data, data.currentPageId, shapes)
+      } catch (e) {
+        console.error(e)
+      }
+
+      history.enable()
     },
 
     // Data
@@ -524,9 +566,9 @@ const state = createState({
         document: { pages },
       } = data
 
-      const shapes = Array.from(selectedIds.values()).map(
-        (id) => pages[currentPageId].shapes[id]
-      )
+      const shapes = Array.from(selectedIds.values())
+        .map((id) => pages[currentPageId].shapes[id])
+        .filter(Boolean)
 
       if (selectedIds.size === 0) return null
 

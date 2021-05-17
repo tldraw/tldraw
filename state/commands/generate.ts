@@ -1,6 +1,6 @@
 import Command from "./command"
 import history from "../history"
-import { Data, Shape } from "types"
+import { CodeControl, Data, Shape } from "types"
 import { current } from "immer"
 
 export default function setGeneratedShapes(
@@ -8,12 +8,24 @@ export default function setGeneratedShapes(
   currentPageId: string,
   generatedShapes: Shape[]
 ) {
+  const cData = current(data)
+
   const prevGeneratedShapes = Object.values(
-    current(data).document.pages[currentPageId].shapes
+    cData.document.pages[currentPageId].shapes
   ).filter((shape) => shape.isGenerated)
 
+  const currentShapes = data.document.pages[currentPageId].shapes
+
+  // Remove previous generated shapes
+  for (let id in currentShapes) {
+    if (currentShapes[id].isGenerated) {
+      delete currentShapes[id]
+    }
+  }
+
+  // Add new ones
   for (let shape of generatedShapes) {
-    data.document.pages[currentPageId].shapes[shape.id] = shape
+    currentShapes[shape.id] = shape
   }
 
   history.execute(
