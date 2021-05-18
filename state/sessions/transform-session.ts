@@ -32,6 +32,18 @@ export default class TransformSession extends BaseSession {
     super(data)
     this.origin = point
     this.transformType = transformType
+
+    // if (data.selectedIds.size === 1) {
+    //   const shape =
+    //     data.document.pages[data.currentPageId].shapes[
+    //       Array.from(data.selectedIds.values())[0]
+    //     ]
+
+    //   if (shape.rotation > 0) {
+
+    //   }
+    // }
+
     this.snapshot = getTransformSnapshot(data, transformType)
 
     const { minX, minY, maxX, maxY } = this.snapshot.initialBounds
@@ -43,21 +55,26 @@ export default class TransformSession extends BaseSession {
   }
 
   update(data: Data, point: number[]) {
-    const { shapeBounds, initialBounds, currentPageId, selectedIds } =
-      this.snapshot
-
-    const { shapes } = data.document.pages[currentPageId]
-
-    const delta = vec.vec(this.origin, point)
-
     const {
       corners: { a, b },
       transformType,
     } = this
 
-    // Edge Transform
+    const {
+      boundsRotation,
+      shapeBounds,
+      initialBounds,
+      currentPageId,
+      selectedIds,
+      isSingle,
+    } = this.snapshot
+
+    const { shapes } = data.document.pages[currentPageId]
+
+    const delta = vec.vec(this.origin, point)
+
     /*
-    Edge transform
+    Transforms
     
     Corners a and b are the original top-left and bottom-right corners of the
     bounding box. Depending on what the user is dragging, change one or both
@@ -153,8 +170,10 @@ export default class TransformSession extends BaseSession {
         initialShape,
         initialShapeBounds,
         initialBounds,
+        boundsRotation,
         isFlippedX: this.isFlippedX,
         isFlippedY: this.isFlippedY,
+        isSingle,
         anchor: getTransformAnchor(
           this.transformType,
           this.isFlippedX,
@@ -165,8 +184,14 @@ export default class TransformSession extends BaseSession {
   }
 
   cancel(data: Data) {
-    const { shapeBounds, initialBounds, currentPageId, selectedIds } =
-      this.snapshot
+    const {
+      shapeBounds,
+      boundsRotation,
+      initialBounds,
+      currentPageId,
+      selectedIds,
+      isSingle,
+    } = this.snapshot
 
     const { shapes } = data.document.pages[currentPageId]
 
@@ -180,8 +205,10 @@ export default class TransformSession extends BaseSession {
         initialShape,
         initialShapeBounds,
         initialBounds,
+        boundsRotation,
         isFlippedX: false,
         isFlippedY: false,
+        isSingle,
         anchor: getTransformAnchor(this.transformType, false, false),
       })
     })
@@ -205,6 +232,7 @@ export function getTransformSnapshot(
     document: { pages },
     selectedIds,
     currentPageId,
+    boundsRotation,
   } = current(data)
 
   const pageShapes = pages[currentPageId].shapes
@@ -226,6 +254,8 @@ export function getTransformSnapshot(
     currentPageId,
     type: transformType,
     initialBounds: bounds,
+    boundsRotation,
+    isSingle: selectedIds.size === 1,
     selectedIds: new Set(selectedIds),
     shapeBounds: Object.fromEntries(
       Array.from(selectedIds.values()).map((id) => {

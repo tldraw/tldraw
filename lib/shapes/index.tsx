@@ -61,11 +61,13 @@ export interface ShapeUtility<K extends Shape> {
     bounds: Bounds,
     info: {
       type: TransformEdge | TransformCorner
+      boundsRotation: number
       initialShape: K
       initialShapeBounds: BoundsSnapshot
       initialBounds: Bounds
       isFlippedX: boolean
       isFlippedY: boolean
+      isSingle: boolean
       anchor: TransformEdge | TransformCorner
     }
   ): K

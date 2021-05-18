@@ -73,6 +73,8 @@ const ellipse = createShape<EllipseShape>({
   },
 
   hitTestBounds(this, shape, brushBounds) {
+    // TODO: Account for rotation
+
     const shapeBounds = this.getBounds(shape)
 
     return (

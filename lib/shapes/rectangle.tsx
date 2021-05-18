@@ -103,9 +103,44 @@ const rectangle = createShape<RectangleShape>({
     return shape
   },
 
-  transform(shape, bounds) {
-    shape.point = [bounds.minX, bounds.minY]
-    shape.size = [bounds.width, bounds.height]
+  transform(
+    shape,
+    shapeBounds,
+    { initialShape, isSingle, initialShapeBounds, isFlippedX, isFlippedY }
+  ) {
+    // TODO: Apply rotation to single-selection items
+
+    if (shape.rotation === 0 || isSingle) {
+      shape.size = [shapeBounds.width, shapeBounds.height]
+      shape.point = [shapeBounds.minX, shapeBounds.minY]
+    } else {
+      shape.size = vec.mul(
+        initialShape.size,
+        Math.min(
+          shapeBounds.width / initialShapeBounds.width,
+          shapeBounds.height / initialShapeBounds.height
+        )
+      )
+
+      const newCenter = [
+        shapeBounds.minX + shapeBounds.width / 2,
+        shapeBounds.minY + shapeBounds.height / 2,
+      ]
+
+      shape.point = vec.sub(newCenter, vec.div(shape.size, 2))
+    }
+
+    // Rotation for flipped shapes
+
+    shape.rotation = initialShape.rotation
+
+    if (isFlippedX) {
+      shape.rotation *= -1
+    }
+
+    if (isFlippedY) {
+      shape.rotation *= -1
+    }
 
     return shape
   },

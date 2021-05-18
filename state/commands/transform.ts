@@ -22,6 +22,8 @@ export default function translateCommand(
           initialBounds,
           currentPageId,
           selectedIds,
+          isSingle,
+          boundsRotation,
         } = after
 
         const { shapes } = data.document.pages[currentPageId]
@@ -35,8 +37,10 @@ export default function translateCommand(
             initialShape,
             initialShapeBounds,
             initialBounds,
+            boundsRotation,
             isFlippedX: false,
             isFlippedY: false,
+            isSingle,
             anchor,
           })
         })
@@ -48,6 +52,8 @@ export default function translateCommand(
           initialBounds,
           currentPageId,
           selectedIds,
+          isSingle,
+          boundsRotation,
         } = before
 
         const { shapes } = data.document.pages[currentPageId]
@@ -61,8 +67,10 @@ export default function translateCommand(
             initialShape,
             initialShapeBounds,
             initialBounds,
+            boundsRotation,
             isFlippedX: false,
             isFlippedY: false,
+            isSingle,
             anchor: type,
           })
         })
