@@ -342,3 +342,21 @@ export function intersectPolylineBounds(points: number[][], bounds: Bounds) {
 
   return intersections
 }
+
+export function intersectPolygonBounds(points: number[][], bounds: Bounds) {
+  const { minX, minY, width, height } = bounds
+  const intersections: Intersection[] = []
+
+  for (let i = 1; i < points.length + 1; i++) {
+    intersections.push(
+      ...intersectRectangleLineSegment(
+        [minX, minY],
+        [width, height],
+        points[i - 1],
+        points[i % points.length]
+      )
+    )
+  }
+
+  return intersections
+}

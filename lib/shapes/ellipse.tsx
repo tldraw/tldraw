@@ -5,6 +5,7 @@ import { createShape } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectEllipseBounds } from "utils/intersections"
 import { pointInEllipse } from "utils/hitTests"
+import { translateBounds } from "utils/utils"
 
 const ellipse = createShape<EllipseShape>({
   boundsCache: new WeakMap([]),
@@ -36,28 +37,26 @@ const ellipse = createShape<EllipseShape>({
   },
 
   getBounds(shape) {
-    if (this.boundsCache.has(shape)) {
-      return this.boundsCache.get(shape)
+    if (!this.boundsCache.has(shape)) {
+      const { radiusX, radiusY } = shape
+
+      const bounds = {
+        minX: 0,
+        maxX: radiusX * 2,
+        minY: 0,
+        maxY: radiusY * 2,
+        width: radiusX * 2,
+        height: radiusY * 2,
+      }
+
+      this.boundsCache.set(shape, bounds)
     }
 
-    const {
-      point: [x, y],
-      radiusX,
-      radiusY,
-    } = shape
+    return translateBounds(this.boundsCache.get(shape), shape.point)
+  },
 
-    const bounds = {
-      minX: x,
-      maxX: x + radiusX * 2,
-      minY: y,
-      maxY: y + radiusY * 2,
-      width: radiusX * 2,
-      height: radiusY * 2,
-    }
-
-    this.boundsCache.set(shape, bounds)
-
-    return bounds
+  getRotatedBounds(shape) {
+    return this.getBounds(shape)
   },
 
   getCenter(shape) {

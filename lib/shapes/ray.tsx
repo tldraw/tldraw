@@ -5,6 +5,7 @@ import { createShape } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
 import { DotCircle } from "components/canvas/misc"
+import { translateBounds } from "utils/utils"
 
 const ray = createShape<RayShape>({
   boundsCache: new WeakMap([]),
@@ -40,27 +41,25 @@ const ray = createShape<RayShape>({
     )
   },
 
+  getRotatedBounds(shape) {
+    return this.getBounds(shape)
+  },
+
   getBounds(shape) {
-    if (this.boundsCache.has(shape)) {
-      return this.boundsCache.get(shape)
+    if (!this.boundsCache.has(shape)) {
+      const bounds = {
+        minX: 0,
+        maxX: 1,
+        minY: 0,
+        maxY: 1,
+        width: 1,
+        height: 1,
+      }
+
+      this.boundsCache.set(shape, bounds)
     }
 
-    const {
-      point: [x, y],
-    } = shape
-
-    const bounds = {
-      minX: x,
-      maxX: x + 8,
-      minY: y,
-      maxY: y + 8,
-      width: 8,
-      height: 8,
-    }
-
-    this.boundsCache.set(shape, bounds)
-
-    return bounds
+    return translateBounds(this.boundsCache.get(shape), shape.point)
   },
 
   getCenter(shape) {

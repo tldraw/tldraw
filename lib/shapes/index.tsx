@@ -36,6 +36,9 @@ export interface ShapeUtility<K extends Shape> {
   // Get the bounds of the a shape.
   getBounds(this: ShapeUtility<K>, shape: K): Bounds
 
+  // Get the routated bounds of the a shape.
+  getRotatedBounds(this: ShapeUtility<K>, shape: K): Bounds
+
   // Get the center of the shape
   getCenter(this: ShapeUtility<K>, shape: K): number[]
 

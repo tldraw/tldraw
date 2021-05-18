@@ -6,15 +6,19 @@ import { TransformCorner, TransformEdge } from "types"
 import { lerp } from "utils/utils"
 
 export default function Bounds() {
-  const zoom = useSelector((state) => state.data.camera.zoom)
-  const bounds = useSelector((state) => state.values.selectedBounds)
-  const singleSelection = useSelector((s) => {
+  const isBrushing = useSelector((s) => s.isIn("brushSelecting"))
+  const zoom = useSelector((s) => s.data.camera.zoom)
+  const bounds = useSelector((s) => s.values.selectedBounds)
+
+  const rotation = useSelector((s) => {
     if (s.data.selectedIds.size === 1) {
+      const { shapes } = s.data.document.pages[s.data.currentPageId]
       const selected = Array.from(s.data.selectedIds.values())[0]
-      return s.data.document.pages[s.data.currentPageId].shapes[selected]
+      return shapes[selected].rotation
+    } else {
+      return 0
     }
   })
-  const isBrushing = useSelector((state) => state.isIn("brushSelecting"))
 
   if (!bounds) return null
 
@@ -26,12 +30,9 @@ export default function Bounds() {
   return (
     <g
       pointerEvents={isBrushing ? "none" : "all"}
-      transform={
-        singleSelection &&
-        `rotate(${singleSelection.rotation * (180 / Math.PI)},${
-          minX + width / 2
-        }, ${minY + width / 2})`
-      }
+      transform={`rotate(${rotation * (180 / Math.PI)},${minX + width / 2}, ${
+        minY + height / 2
+      })`}
     >
       <StyledBounds
         x={minX}

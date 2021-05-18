@@ -29,6 +29,7 @@ const initialData: Data = {
     zoom: 1,
   },
   brush: undefined,
+  boundsRotation: 0,
   pointedId: null,
   hoveredId: null,
   selectedIds: new Set([]),
@@ -180,6 +181,7 @@ const state = createState({
             brushSelecting: {
               onEnter: [
                 { unless: "isPressingShiftKey", do: "clearSelectedIds" },
+                "clearBoundsRotation",
                 "startBrushSession",
               ],
               on: {
@@ -708,6 +710,10 @@ const state = createState({
     restoreSavedData(data) {
       history.load(data)
     },
+
+    clearBoundsRotation(data) {
+      data.boundsRotation = 0
+    },
   },
   values: {
     selectedIds(data) {
@@ -726,12 +732,14 @@ const state = createState({
 
       if (selectedIds.size === 0) return null
 
-      if (selectedIds.size === 1 && !getShapeUtils(shapes[0]).canTransform) {
-        return null
+      if (selectedIds.size === 1) {
+        const shapeUtils = getShapeUtils(shapes[0])
+        if (!shapeUtils.canTransform) return null
+        return shapeUtils.getBounds(shapes[0])
       }
 
       return getCommonBounds(
-        ...shapes.map((shape) => getShapeUtils(shape).getBounds(shape))
+        ...shapes.map((shape) => getShapeUtils(shape).getRotatedBounds(shape))
       )
     },
   },

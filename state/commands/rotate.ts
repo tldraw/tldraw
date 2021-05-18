@@ -16,16 +16,24 @@ export default function translateCommand(
       do(data) {
         const { shapes } = data.document.pages[after.currentPageId]
 
-        for (let { id, rotation } of after.shapes) {
-          shapes[id].rotation = rotation
+        for (let { id, point, rotation } of after.shapes) {
+          const shape = shapes[id]
+          shape.rotation = rotation
+          shape.point = point
         }
+
+        data.boundsRotation = after.boundsRotation
       },
       undo(data) {
         const { shapes } = data.document.pages[before.currentPageId]
 
-        for (let { id, rotation } of before.shapes) {
-          shapes[id].rotation = rotation
+        for (let { id, point, rotation } of before.shapes) {
+          const shape = shapes[id]
+          shape.rotation = rotation
+          shape.point = point
         }
+
+        data.boundsRotation = before.boundsRotation
       },
     })
   )

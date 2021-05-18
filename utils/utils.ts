@@ -41,21 +41,21 @@ export function getCommonBounds(...b: Bounds[]) {
   return bounds
 }
 
-export function getBoundsFromPoints(a: number[], b: number[]) {
-  const minX = Math.min(a[0], b[0])
-  const maxX = Math.max(a[0], b[0])
-  const minY = Math.min(a[1], b[1])
-  const maxY = Math.max(a[1], b[1])
+// export function getBoundsFromPoints(a: number[], b: number[]) {
+//   const minX = Math.min(a[0], b[0])
+//   const maxX = Math.max(a[0], b[0])
+//   const minY = Math.min(a[1], b[1])
+//   const maxY = Math.max(a[1], b[1])
 
-  return {
-    minX,
-    maxX,
-    minY,
-    maxY,
-    width: maxX - minX,
-    height: maxY - minY,
-  }
-}
+//   return {
+//     minX,
+//     maxX,
+//     minY,
+//     maxY,
+//     width: maxX - minX,
+//     height: maxY - minY,
+//   }
+// }
 
 // A helper for getting tangents.
 export function getCircleTangentToPoint(
@@ -961,4 +961,62 @@ export function vectorToPoint(point: number[] | Vector | undefined) {
     return [point.x, point.y]
   }
   return point
+}
+
+export function getBoundsFromPoints(points: number[][]): Bounds {
+  let minX = Infinity
+  let minY = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+
+  for (let [x, y] of points) {
+    minX = Math.min(x, minX)
+    minY = Math.min(y, minY)
+    maxX = Math.max(x, maxX)
+    maxY = Math.max(y, maxY)
+  }
+
+  return {
+    minX,
+    minY,
+    maxX,
+    maxY,
+    width: maxX - minX,
+    height: maxY - minY,
+  }
+}
+
+/**
+ * Move a bounding box without recalculating it.
+ * @param bounds
+ * @param delta
+ * @returns
+ */
+export function translateBounds(bounds: Bounds, delta: number[]) {
+  return {
+    minX: bounds.minX + delta[0],
+    minY: bounds.minY + delta[1],
+    maxX: bounds.maxX + delta[0],
+    maxY: bounds.maxY + delta[1],
+    width: bounds.width,
+    height: bounds.height,
+  }
+}
+
+export function rotateBounds(
+  bounds: Bounds,
+  center: number[],
+  rotation: number
+) {
+  const [minX, minY] = vec.rotWith([bounds.minX, bounds.minY], center, rotation)
+  const [maxX, maxY] = vec.rotWith([bounds.maxX, bounds.maxY], center, rotation)
+
+  return {
+    minX,
+    minY,
+    maxX,
+    maxY,
+    width: bounds.width,
+    height: bounds.height,
+  }
 }

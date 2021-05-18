@@ -18,24 +18,34 @@ export default class RotateSession extends BaseSession {
   }
 
   update(data: Data, point: number[]) {
-    const { currentPageId, center, shapes } = this.snapshot
+    const { currentPageId, boundsCenter, shapes } = this.snapshot
     const { document } = data
 
-    const a1 = vec.angle(center, this.origin)
-    const a2 = vec.angle(center, point)
+    const a1 = vec.angle(boundsCenter, this.origin)
+    const a2 = vec.angle(boundsCenter, point)
 
-    for (let { id, rotation } of shapes) {
+    data.boundsRotation =
+      (this.snapshot.boundsRotation + (a2 - a1)) % (Math.PI * 2)
+
+    for (let { id, center, offset, rotation } of shapes) {
       const shape = document.pages[currentPageId].shapes[id]
       shape.rotation = rotation + ((a2 - a1) % (Math.PI * 2))
+      const newCenter = vec.rotWith(
+        center,
+        boundsCenter,
+        (a2 - a1) % (Math.PI * 2)
+      )
+      shape.point = vec.sub(newCenter, offset)
     }
   }
 
   cancel(data: Data) {
     const { document } = data
 
-    for (let shape of this.snapshot.shapes) {
-      document.pages[this.snapshot.currentPageId].shapes[shape.id].rotation =
-        shape.rotation
+    for (let { id, point, rotation } of this.snapshot.shapes) {
+      const shape = document.pages[this.snapshot.currentPageId].shapes[id]
+      shape.rotation = rotation
+      shape.point = point
     }
   }
 
@@ -46,9 +56,10 @@ export default class RotateSession extends BaseSession {
 
 export function getRotateSnapshot(data: Data) {
   const {
+    boundsRotation,
     selectedIds,
-    document: { pages },
     currentPageId,
+    document: { pages },
   } = current(data)
 
   const shapes = Array.from(selectedIds.values()).map(
@@ -63,18 +74,28 @@ export function getRotateSnapshot(data: Data) {
   // The common (exterior) bounds of the selected shapes
   const bounds = getCommonBounds(...Object.values(shapesBounds))
 
-  const center = [
+  const boundsCenter = [
     bounds.minX + bounds.width / 2,
     bounds.minY + bounds.height / 2,
   ]
 
   return {
     currentPageId,
-    center,
-    shapes: shapes.map(({ id, rotation }) => ({
-      id,
-      rotation,
-    })),
+    boundsCenter,
+    boundsRotation,
+    shapes: shapes.map(({ id, point, rotation }) => {
+      const bounds = shapesBounds[id]
+      const offset = [bounds.width / 2, bounds.height / 2]
+      const center = vec.add(offset, [bounds.minX, bounds.minY])
+
+      return {
+        id,
+        point,
+        rotation,
+        offset,
+        center,
+      }
+    }),
   }
 }
 

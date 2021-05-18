@@ -1,4 +1,8 @@
 import { Bounds } from "types"
+import {
+  intersectPolygonBounds,
+  intersectPolylineBounds,
+} from "./intersections"
 
 /**
  * Get whether two bounds collide.
@@ -35,6 +39,23 @@ export function boundsContain(a: Bounds, b: Bounds) {
  */
 export function boundsContained(a: Bounds, b: Bounds) {
   return boundsContain(b, a)
+}
+
+/**
+ * Get whether a set of points are all contained by a bounding box.
+ * @returns
+ */
+export function boundsContainPolygon(a: Bounds, points: number[][]) {
+  return points.every((point) => pointInBounds(point, a))
+}
+
+/**
+ * Get whether a polygon collides a bounding box.
+ * @param points
+ * @param b
+ */
+export function boundsCollidePolygon(a: Bounds, points: number[][]) {
+  return intersectPolygonBounds(points, a).length > 0
 }
 
 /**

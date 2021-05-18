@@ -25,7 +25,7 @@ export default class BrushSession extends BaseSession {
   update = (data: Data, point: number[]) => {
     const { origin, snapshot } = this
 
-    const brushBounds = getBoundsFromPoints(origin, point)
+    const brushBounds = getBoundsFromPoints([origin, point])
 
     for (let { test, id } of snapshot.shapes) {
       if (test(brushBounds)) {

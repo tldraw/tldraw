@@ -18,6 +18,7 @@ export interface Data {
     zoom: number
   }
   brush?: Bounds
+  boundsRotation: number
   selectedIds: Set<string>
   pointedId?: string
   hoveredId?: string
@@ -166,6 +167,10 @@ export interface Bounds {
   maxY: number
   width: number
   height: number
+}
+
+export interface RotatedBounds extends Bounds {
+  rotation: number
 }
 
 export interface ShapeBounds extends Bounds {

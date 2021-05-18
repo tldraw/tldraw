@@ -3,7 +3,12 @@ import * as vec from "utils/vec"
 import { PolylineShape, ShapeType } from "types"
 import { createShape } from "./index"
 import { intersectPolylineBounds } from "utils/intersections"
-import { boundsCollide, boundsContained } from "utils/bounds"
+import {
+  boundsCollide,
+  boundsContained,
+  boundsContainPolygon,
+} from "utils/bounds"
+import { getBoundsFromPoints, translateBounds } from "utils/utils"
 
 const polyline = createShape<PolylineShape>({
   boundsCache: new WeakMap([]),
@@ -29,33 +34,16 @@ const polyline = createShape<PolylineShape>({
   },
 
   getBounds(shape) {
-    if (this.boundsCache.has(shape)) {
-      return this.boundsCache.get(shape)
+    if (!this.boundsCache.has(shape)) {
+      const bounds = getBoundsFromPoints(shape.points)
+      this.boundsCache.set(shape, bounds)
     }
 
-    let minX = 0
-    let minY = 0
-    let maxX = 0
-    let maxY = 0
+    return translateBounds(this.boundsCache.get(shape), shape.point)
+  },
 
-    for (let [x, y] of shape.points) {
-      minX = Math.min(x, minX)
-      minY = Math.min(y, minY)
-      maxX = Math.max(x, maxX)
-      maxY = Math.max(y, maxY)
-    }
-
-    const bounds = {
-      minX: minX + shape.point[0],
-      minY: minY + shape.point[1],
-      maxX: maxX + shape.point[0],
-      maxY: maxY + shape.point[1],
-      width: maxX - minX,
-      height: maxY - minY,
-    }
-
-    this.boundsCache.set(shape, bounds)
-    return bounds
+  getRotatedBounds(shape) {
+    return this.getBounds(shape)
   },
 
   getCenter(shape) {
@@ -78,15 +66,23 @@ const polyline = createShape<PolylineShape>({
     return false
   },
 
-  hitTestBounds(this, shape, bounds) {
-    const shapeBounds = this.getBounds(shape)
+  hitTestBounds(this, shape, brushBounds) {
+    const b = this.getBounds(shape)
+    const center = [b.minX + b.width / 2, b.minY + b.height / 2]
+
+    const rotatedCorners = [
+      [b.minX, b.minY],
+      [b.maxX, b.minY],
+      [b.maxX, b.maxY],
+      [b.minX, b.maxY],
+    ].map((point) => vec.rotWith(point, center, shape.rotation))
+
     return (
-      boundsContained(shapeBounds, bounds) ||
-      (boundsCollide(shapeBounds, bounds) &&
-        intersectPolylineBounds(
-          shape.points.map((point) => vec.add(point, shape.point)),
-          bounds
-        ).length > 0)
+      boundsContainPolygon(brushBounds, rotatedCorners) ||
+      intersectPolylineBounds(
+        shape.points.map((point) => vec.add(point, shape.point)),
+        brushBounds
+      ).length > 0
     )
   },
 

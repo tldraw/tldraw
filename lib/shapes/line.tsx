@@ -5,6 +5,7 @@ import { createShape } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
 import { DotCircle } from "components/canvas/misc"
+import { translateBounds } from "utils/utils"
 
 const line = createShape<LineShape>({
   boundsCache: new WeakMap([]),
@@ -41,26 +42,24 @@ const line = createShape<LineShape>({
   },
 
   getBounds(shape) {
-    if (this.boundsCache.has(shape)) {
-      return this.boundsCache.get(shape)
+    if (!this.boundsCache.has(shape)) {
+      const bounds = {
+        minX: 0,
+        maxX: 1,
+        minY: 0,
+        maxY: 1,
+        width: 1,
+        height: 1,
+      }
+
+      this.boundsCache.set(shape, bounds)
     }
 
-    const {
-      point: [x, y],
-    } = shape
+    return translateBounds(this.boundsCache.get(shape), shape.point)
+  },
 
-    const bounds = {
-      minX: x,
-      maxX: x + 1,
-      minY: y,
-      maxY: y + 1,
-      width: 1,
-      height: 1,
-    }
-
-    this.boundsCache.set(shape, bounds)
-
-    return bounds
+  getRotatedBounds(shape) {
+    return this.getBounds(shape)
   },
 
   getCenter(shape) {

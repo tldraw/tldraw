@@ -6,10 +6,14 @@ import styled from "styles"
 export default function BoundsBg() {
   const rBounds = useRef<SVGRectElement>(null)
   const bounds = useSelector((state) => state.values.selectedBounds)
-  const singleSelection = useSelector((s) => {
+
+  const rotation = useSelector((s) => {
     if (s.data.selectedIds.size === 1) {
+      const { shapes } = s.data.document.pages[s.data.currentPageId]
       const selected = Array.from(s.data.selectedIds.values())[0]
-      return s.data.document.pages[s.data.currentPageId].shapes[selected]
+      return shapes[selected].rotation
+    } else {
+      return 0
     }
   })
 
@@ -30,12 +34,9 @@ export default function BoundsBg() {
         rBounds.current.setPointerCapture(e.pointerId)
         state.send("POINTED_BOUNDS", inputs.pointerDown(e, "bounds"))
       }}
-      transform={
-        singleSelection &&
-        `rotate(${singleSelection.rotation * (180 / Math.PI)},${
-          minX + width / 2
-        }, ${minY + width / 2})`
-      }
+      transform={`rotate(${rotation * (180 / Math.PI)},${minX + width / 2}, ${
+        minY + height / 2
+      })`}
     />
   )
 }

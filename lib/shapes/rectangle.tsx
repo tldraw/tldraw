@@ -2,7 +2,8 @@ import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
 import { RectangleShape, ShapeType } from "types"
 import { createShape } from "./index"
-import { boundsContained, boundsCollide } from "utils/bounds"
+import { boundsCollidePolygon, boundsContainPolygon } from "utils/bounds"
+import { getBoundsFromPoints, rotateBounds, translateBounds } from "utils/utils"
 
 const rectangle = createShape<RectangleShape>({
   boundsCache: new WeakMap([]),
@@ -31,31 +32,40 @@ const rectangle = createShape<RectangleShape>({
   },
 
   getBounds(shape) {
-    if (this.boundsCache.has(shape)) {
-      return this.boundsCache.get(shape)
+    if (!this.boundsCache.has(shape)) {
+      const [width, height] = shape.size
+      const bounds = {
+        minX: 0,
+        maxX: width,
+        minY: 0,
+        maxY: height,
+        width,
+        height,
+      }
+
+      this.boundsCache.set(shape, bounds)
     }
 
-    const {
-      point: [x, y],
-      size: [width, height],
-    } = shape
+    return translateBounds(this.boundsCache.get(shape), shape.point)
+  },
 
-    const bounds = {
-      minX: x,
-      maxX: x + width,
-      minY: y,
-      maxY: y + height,
-      width,
-      height,
-    }
+  getRotatedBounds(shape) {
+    const b = this.getBounds(shape)
+    const center = [b.minX + b.width / 2, b.minY + b.height / 2]
 
-    this.boundsCache.set(shape, bounds)
+    // Rotate corners of the shape, then find the minimum among those points.
+    const rotatedCorners = [
+      [b.minX, b.minY],
+      [b.maxX, b.minY],
+      [b.maxX, b.maxY],
+      [b.minX, b.maxY],
+    ].map((point) => vec.rotWith(point, center, shape.rotation))
 
-    return bounds
+    return getBoundsFromPoints(rotatedCorners)
   },
 
   getCenter(shape) {
-    const bounds = this.getBounds(shape)
+    const bounds = this.getRotatedBounds(shape)
     return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2]
   },
 
@@ -64,10 +74,19 @@ const rectangle = createShape<RectangleShape>({
   },
 
   hitTestBounds(shape, brushBounds) {
-    const shapeBounds = this.getBounds(shape)
+    const b = this.getBounds(shape)
+    const center = [b.minX + b.width / 2, b.minY + b.height / 2]
+
+    const rotatedCorners = [
+      [b.minX, b.minY],
+      [b.maxX, b.minY],
+      [b.maxX, b.maxY],
+      [b.minX, b.maxY],
+    ].map((point) => vec.rotWith(point, center, shape.rotation))
+
     return (
-      boundsContained(shapeBounds, brushBounds) ||
-      boundsCollide(shapeBounds, brushBounds)
+      boundsContainPolygon(brushBounds, rotatedCorners) ||
+      boundsCollidePolygon(brushBounds, rotatedCorners)
     )
   },
 
