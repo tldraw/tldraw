@@ -19,7 +19,7 @@ export default class Rectangle extends CodeShape<RectangleShape> {
       size: [100, 100],
       rotation: 0,
       style: {
-        fill: "rgba(142, 143, 142, 1.000)",
+        fill: "#c6cacb",
         stroke: "#000",
         strokeWidth: 1,
       },

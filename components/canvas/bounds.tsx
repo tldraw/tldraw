@@ -7,9 +7,9 @@ import { lerp } from "utils/utils"
 
 export default function Bounds() {
   const isBrushing = useSelector((s) => s.isIn("brushSelecting"))
+  const isSelecting = useSelector((s) => s.isIn("selecting"))
   const zoom = useSelector((s) => s.data.camera.zoom)
   const bounds = useSelector((s) => s.values.selectedBounds)
-
   const rotation = useSelector((s) => {
     if (s.data.selectedIds.size === 1) {
       const { shapes } = s.data.document.pages[s.data.currentPageId]
@@ -21,6 +21,7 @@ export default function Bounds() {
   })
 
   if (!bounds) return null
+  if (!isSelecting) return null
 
   let { minX, minY, maxX, maxY, width, height } = bounds
 

@@ -123,6 +123,10 @@ const polyline = createShape<PolylineShape>({
     return shape
   },
 
+  transformSingle(shape, bounds, info) {
+    return this.transform(shape, bounds, info)
+  },
+
   canTransform: true,
 })
 

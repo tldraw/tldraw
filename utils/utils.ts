@@ -1,6 +1,7 @@
 import Vector from "lib/code/vector"
+import { getShapeUtils } from "lib/shapes"
 import React from "react"
-import { Data, Bounds, TransformEdge, TransformCorner } from "types"
+import { Data, Bounds, TransformEdge, TransformCorner, Shape } from "types"
 import * as svg from "./svg"
 import * as vec from "./vec"
 
@@ -1018,5 +1019,154 @@ export function rotateBounds(
     maxY,
     width: bounds.width,
     height: bounds.height,
+  }
+}
+
+export function getRotatedCorners(b: Bounds, rotation: number) {
+  const center = [b.minX + b.width / 2, b.minY + b.height / 2]
+
+  return [
+    [b.minX, b.minY],
+    [b.maxX, b.minY],
+    [b.maxX, b.maxY],
+    [b.minX, b.maxY],
+  ].map((point) => vec.rotWith(point, center, rotation))
+}
+
+export function getTransformedBoundingBox(
+  bounds: Bounds,
+  handle: TransformCorner | TransformEdge,
+  delta: number[],
+  rotation = 0
+) {
+  // Create top left and bottom right corners.
+  let [ax0, ay0] = [bounds.minX, bounds.minY]
+  let [ax1, ay1] = [bounds.maxX, bounds.maxY]
+
+  // Create a second set of corners for the result.
+  let [bx0, by0] = [bounds.minX, bounds.minY]
+  let [bx1, by1] = [bounds.maxX, bounds.maxY]
+
+  // Counter rotate the delta. This lets us make changes as if
+  // the (possibly rotated) boxes were axis aligned.
+  const [dx, dy] = vec.rot(delta, -rotation)
+
+  // Depending on the dragging handle (an edge or corner of
+  // the bounding box), find the anchor corner and use the delta
+  // to adjust the result's corners.
+
+  let anchor: TransformCorner | TransformEdge
+
+  switch (handle) {
+    case TransformEdge.Top: {
+      anchor = TransformCorner.BottomRight
+      by0 += dy
+      break
+    }
+    case TransformEdge.Right: {
+      anchor = TransformCorner.TopLeft
+      bx1 += dx
+      break
+    }
+    case TransformEdge.Bottom: {
+      anchor = TransformCorner.TopLeft
+      by1 += dy
+      break
+    }
+    case TransformEdge.Left: {
+      anchor = TransformCorner.BottomRight
+      bx0 += dx
+      break
+    }
+    case TransformCorner.TopLeft: {
+      anchor = TransformCorner.BottomRight
+      bx0 += dx
+      by0 += dy
+      break
+    }
+    case TransformCorner.TopRight: {
+      anchor = TransformCorner.BottomLeft
+      bx1 += dx
+      by0 += dy
+      break
+    }
+    case TransformCorner.BottomRight: {
+      anchor = TransformCorner.TopLeft
+      bx1 += dx
+      by1 += dy
+      break
+    }
+    case TransformCorner.BottomLeft: {
+      anchor = TransformCorner.TopRight
+      bx0 += dx
+      by1 += dy
+      break
+    }
+  }
+
+  // If the bounds are rotated, get a vector from the rotated anchor
+  // corner in the inital bounds to the rotated anchor corner in the
+  // result's bounds. Subtract this vector from the result's corners,
+  // so that the two anchor points (initial and result) will be equal.
+
+  if (rotation % (Math.PI * 2) !== 0) {
+    let cv = [0, 0]
+
+    const c0 = vec.med([ax0, ay0], [ax1, ay1])
+    const c1 = vec.med([bx0, by0], [bx1, by1])
+
+    switch (anchor) {
+      case TransformCorner.TopLeft: {
+        cv = vec.sub(
+          vec.rotWith([bx0, by0], c1, rotation),
+          vec.rotWith([ax0, ay0], c0, rotation)
+        )
+        break
+      }
+      case TransformCorner.TopRight: {
+        cv = vec.sub(
+          vec.rotWith([bx1, by0], c1, rotation),
+          vec.rotWith([ax1, ay0], c0, rotation)
+        )
+        break
+      }
+      case TransformCorner.BottomRight: {
+        cv = vec.sub(
+          vec.rotWith([bx1, by1], c1, rotation),
+          vec.rotWith([ax1, ay1], c0, rotation)
+        )
+        break
+      }
+      case TransformCorner.BottomLeft: {
+        cv = vec.sub(
+          vec.rotWith([bx0, by1], c1, rotation),
+          vec.rotWith([ax0, ay1], c0, rotation)
+        )
+        break
+      }
+    }
+
+    ;[bx0, by0] = vec.sub([bx0, by0], cv)
+    ;[bx1, by1] = vec.sub([bx1, by1], cv)
+  }
+
+  // If the axes are flipped (e.g. if the right edge has been dragged
+  // left past the initial left edge) then swap points on that axis.
+
+  if (bx1 < bx0) {
+    ;[bx1, bx0] = [bx0, bx1]
+  }
+
+  if (by1 < by0) {
+    ;[by1, by0] = [by0, by1]
+  }
+
+  return {
+    minX: bx0,
+    minY: by0,
+    maxX: bx1,
+    maxY: by1,
+    width: bx1 - bx0,
+    height: by1 - by0,
   }
 }

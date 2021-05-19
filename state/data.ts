@@ -17,7 +17,7 @@ export const defaultDocument: Data["document"] = {
           direction: [0.5, 0.5],
           style: {
             fill: "#AAA",
-            stroke: "rgba(142, 143, 142, 1.000)",
+            stroke: "#c6cacb",
             strokeWidth: 1,
           },
         }),
@@ -28,7 +28,7 @@ export const defaultDocument: Data["document"] = {
         //   point: [400, 500],
         //   style: {
         //     fill: "#AAA",
-        //     stroke: "rgba(142, 143, 142, 1.000)",
+        //     stroke: "#c6cacb",
         //     strokeWidth: 1,
         //   },
         // }),
@@ -40,7 +40,7 @@ export const defaultDocument: Data["document"] = {
           radius: 50,
           style: {
             fill: "#AAA",
-            stroke: "rgba(142, 143, 142, 1.000)",
+            stroke: "#c6cacb",
             strokeWidth: 1,
           },
         }),
@@ -53,7 +53,7 @@ export const defaultDocument: Data["document"] = {
           radiusY: 30,
           style: {
             fill: "#AAA",
-            stroke: "rgba(142, 143, 142, 1.000)",
+            stroke: "#c6cacb",
             strokeWidth: 1,
           },
         }),
@@ -66,7 +66,7 @@ export const defaultDocument: Data["document"] = {
         //   radiusY: 30,
         //   style: {
         //     fill: "#AAA",
-        //     stroke: "rgba(142, 143, 142, 1.000)",
+        //     stroke: "#c6cacb",
         //     strokeWidth: 1,
         //   },
         // }),
@@ -82,7 +82,7 @@ export const defaultDocument: Data["document"] = {
         //   ],
         //   style: {
         //     fill: "none",
-        //     stroke: "rgba(142, 143, 142, 1.000)",
+        //     stroke: "#c6cacb",
         //     strokeWidth: 2,
         //     strokeLinecap: "round",
         //     strokeLinejoin: "round",
@@ -96,7 +96,7 @@ export const defaultDocument: Data["document"] = {
           size: [200, 200],
           style: {
             fill: "#AAA",
-            stroke: "rgba(142, 143, 142, 1.000)",
+            stroke: "#c6cacb",
             strokeWidth: 1,
           },
         }),
@@ -108,7 +108,7 @@ export const defaultDocument: Data["document"] = {
         //   direction: [0.2, 0.2],
         //   style: {
         //     fill: "#AAA",
-        //     stroke: "rgba(142, 143, 142, 1.000)",
+        //     stroke: "#c6cacb",
         //     strokeWidth: 1,
         //   },
         // }),

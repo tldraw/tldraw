@@ -5,7 +5,12 @@ import { createShape } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectEllipseBounds } from "utils/intersections"
 import { pointInEllipse } from "utils/hitTests"
-import { translateBounds } from "utils/utils"
+import {
+  getBoundsFromPoints,
+  getRotatedCorners,
+  rotateBounds,
+  translateBounds,
+} from "utils/utils"
 
 const ellipse = createShape<EllipseShape>({
   boundsCache: new WeakMap([]),
@@ -23,7 +28,7 @@ const ellipse = createShape<EllipseShape>({
       radiusY: 20,
       rotation: 0,
       style: {
-        fill: "rgba(142, 143, 142, 1.000)",
+        fill: "#c6cacb",
         stroke: "#000",
       },
       ...props,
@@ -56,7 +61,7 @@ const ellipse = createShape<EllipseShape>({
   },
 
   getRotatedBounds(shape) {
-    return this.getBounds(shape)
+    return getBoundsFromPoints(getRotatedCorners(shape))
   },
 
   getCenter(shape) {
@@ -68,7 +73,8 @@ const ellipse = createShape<EllipseShape>({
       point,
       vec.add(shape.point, [shape.radiusX, shape.radiusY]),
       shape.radiusX,
-      shape.radiusY
+      shape.radiusY,
+      shape.rotation
     )
   },
 
@@ -83,7 +89,8 @@ const ellipse = createShape<EllipseShape>({
         vec.add(shape.point, [shape.radiusX, shape.radiusY]),
         shape.radiusX,
         shape.radiusY,
-        brushBounds
+        brushBounds,
+        shape.rotation
       ).length > 0
     )
   },
@@ -107,6 +114,10 @@ const ellipse = createShape<EllipseShape>({
     shape.radiusY = bounds.height / 2
 
     return shape
+  },
+
+  transformSingle(shape, bounds, info) {
+    return this.transform(shape, bounds, info)
   },
 
   canTransform: true,

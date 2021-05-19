@@ -22,7 +22,7 @@ const dot = createShape<DotShape>({
       point: [0, 0],
       rotation: 0,
       style: {
-        fill: "rgba(142, 143, 142, 1.000)",
+        fill: "#c6cacb",
         stroke: "#000",
       },
       ...props,
@@ -87,6 +87,10 @@ const dot = createShape<DotShape>({
     shape.point = [bounds.minX, bounds.minY]
 
     return shape
+  },
+
+  transformSingle(shape, bounds, info) {
+    return this.transform(shape, bounds, info)
   },
 
   canTransform: false,

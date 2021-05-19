@@ -72,6 +72,23 @@ export interface ShapeUtility<K extends Shape> {
     }
   ): K
 
+  transformSingle(
+    this: ShapeUtility<K>,
+    shape: K,
+    bounds: Bounds,
+    info: {
+      type: TransformEdge | TransformCorner
+      boundsRotation: number
+      initialShape: K
+      initialShapeBounds: BoundsSnapshot
+      initialBounds: Bounds
+      isFlippedX: boolean
+      isFlippedY: boolean
+      isSingle: boolean
+      anchor: TransformEdge | TransformCorner
+    }
+  ): K
+
   // Apply a scale to a shape.
   scale(this: ShapeUtility<K>, shape: K, scale: number): K
 

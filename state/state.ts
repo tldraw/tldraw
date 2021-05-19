@@ -527,11 +527,18 @@ const state = createState({
       data,
       payload: PointerInfo & { target: TransformCorner | TransformEdge }
     ) {
-      session = new Sessions.TransformSession(
-        data,
-        payload.target,
-        screenToWorld(payload.point, data)
-      )
+      session =
+        data.selectedIds.size === 1
+          ? new Sessions.TransformSingleSession(
+              data,
+              payload.target,
+              screenToWorld(payload.point, data)
+            )
+          : new Sessions.TransformSession(
+              data,
+              payload.target,
+              screenToWorld(payload.point, data)
+            )
     },
     startDrawTransformSession(data, payload: PointerInfo) {
       session = new Sessions.TransformSession(

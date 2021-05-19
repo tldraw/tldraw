@@ -6,7 +6,7 @@ import styled from "styles"
 export default function BoundsBg() {
   const rBounds = useRef<SVGRectElement>(null)
   const bounds = useSelector((state) => state.values.selectedBounds)
-
+  const isSelecting = useSelector((s) => s.isIn("selecting"))
   const rotation = useSelector((s) => {
     if (s.data.selectedIds.size === 1) {
       const { shapes } = s.data.document.pages[s.data.currentPageId]
@@ -18,6 +18,7 @@ export default function BoundsBg() {
   })
 
   if (!bounds) return null
+  if (!isSelecting) return null
 
   const { minX, minY, width, height } = bounds
 

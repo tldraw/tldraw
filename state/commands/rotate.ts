@@ -3,7 +3,7 @@ import history from "../history"
 import { Data } from "types"
 import { RotateSnapshot } from "state/sessions/rotate-session"
 
-export default function translateCommand(
+export default function rotateCommand(
   data: Data,
   before: RotateSnapshot,
   after: RotateSnapshot

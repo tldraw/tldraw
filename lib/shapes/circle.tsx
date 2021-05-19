@@ -22,7 +22,7 @@ const circle = createShape<CircleShape>({
       rotation: 0,
       radius: 20,
       style: {
-        fill: "rgba(142, 143, 142, 1.000)",
+        fill: "#c6cacb",
         stroke: "#000",
       },
       ...props,
@@ -155,6 +155,10 @@ const circle = createShape<CircleShape>({
     }
 
     return shape
+  },
+
+  transformSingle(shape, bounds, info) {
+    return this.transform(shape, bounds, info)
   },
 
   canTransform: true,

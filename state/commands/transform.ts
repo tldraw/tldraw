@@ -4,7 +4,7 @@ import { Data, TransformCorner, TransformEdge } from "types"
 import { TransformSnapshot } from "state/sessions/transform-session"
 import { getShapeUtils } from "lib/shapes"
 
-export default function translateCommand(
+export default function transformCommand(
   data: Data,
   before: TransformSnapshot,
   after: TransformSnapshot,
@@ -22,7 +22,6 @@ export default function translateCommand(
           initialBounds,
           currentPageId,
           selectedIds,
-          isSingle,
           boundsRotation,
         } = after
 
@@ -40,7 +39,7 @@ export default function translateCommand(
             boundsRotation,
             isFlippedX: false,
             isFlippedY: false,
-            isSingle,
+            isSingle: false,
             anchor,
           })
         })
@@ -52,7 +51,6 @@ export default function translateCommand(
           initialBounds,
           currentPageId,
           selectedIds,
-          isSingle,
           boundsRotation,
         } = before
 
@@ -70,7 +68,7 @@ export default function translateCommand(
             boundsRotation,
             isFlippedX: false,
             isFlippedY: false,
-            isSingle,
+            isSingle: false,
             anchor: type,
           })
         })

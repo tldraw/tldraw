@@ -3,7 +3,7 @@ import history from "../history"
 import { DirectionSnapshot } from "state/sessions/direction-session"
 import { Data, LineShape, RayShape } from "types"
 
-export default function translateCommand(
+export default function directCommand(
   data: Data,
   before: DirectionSnapshot,
   after: DirectionSnapshot

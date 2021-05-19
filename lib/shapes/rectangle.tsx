@@ -1,9 +1,19 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
-import { RectangleShape, ShapeType } from "types"
+import {
+  RectangleShape,
+  ShapeType,
+  TransformCorner,
+  TransformEdge,
+} from "types"
 import { createShape } from "./index"
 import { boundsCollidePolygon, boundsContainPolygon } from "utils/bounds"
-import { getBoundsFromPoints, rotateBounds, translateBounds } from "utils/utils"
+import {
+  getBoundsFromPoints,
+  getRotatedCorners,
+  rotateBounds,
+  translateBounds,
+} from "utils/utils"
 
 const rectangle = createShape<RectangleShape>({
   boundsCache: new WeakMap([]),
@@ -20,7 +30,7 @@ const rectangle = createShape<RectangleShape>({
       size: [1, 1],
       rotation: 0,
       style: {
-        fill: "rgba(142, 143, 142, 1.000)",
+        fill: "#c6cacb",
         stroke: "#000",
       },
       ...props,
@@ -50,18 +60,9 @@ const rectangle = createShape<RectangleShape>({
   },
 
   getRotatedBounds(shape) {
-    const b = this.getBounds(shape)
-    const center = [b.minX + b.width / 2, b.minY + b.height / 2]
-
-    // Rotate corners of the shape, then find the minimum among those points.
-    const rotatedCorners = [
-      [b.minX, b.minY],
-      [b.maxX, b.minY],
-      [b.maxX, b.maxY],
-      [b.minX, b.maxY],
-    ].map((point) => vec.rotWith(point, center, shape.rotation))
-
-    return getBoundsFromPoints(rotatedCorners)
+    return getBoundsFromPoints(
+      getRotatedCorners(this.getBounds(shape), shape.rotation)
+    )
   },
 
   getCenter(shape) {
@@ -74,15 +75,10 @@ const rectangle = createShape<RectangleShape>({
   },
 
   hitTestBounds(shape, brushBounds) {
-    const b = this.getBounds(shape)
-    const center = [b.minX + b.width / 2, b.minY + b.height / 2]
-
-    const rotatedCorners = [
-      [b.minX, b.minY],
-      [b.maxX, b.minY],
-      [b.maxX, b.maxY],
-      [b.minX, b.maxY],
-    ].map((point) => vec.rotWith(point, center, shape.rotation))
+    const rotatedCorners = getRotatedCorners(
+      this.getBounds(shape),
+      shape.rotation
+    )
 
     return (
       boundsContainPolygon(brushBounds, rotatedCorners) ||
@@ -108,8 +104,6 @@ const rectangle = createShape<RectangleShape>({
     shapeBounds,
     { initialShape, isSingle, initialShapeBounds, isFlippedX, isFlippedY }
   ) {
-    // TODO: Apply rotation to single-selection items
-
     if (shape.rotation === 0 || isSingle) {
       shape.size = [shapeBounds.width, shapeBounds.height]
       shape.point = [shapeBounds.minX, shapeBounds.minY]
@@ -141,6 +135,105 @@ const rectangle = createShape<RectangleShape>({
     if (isFlippedY) {
       shape.rotation *= -1
     }
+
+    return shape
+  },
+
+  transformSingle(
+    shape,
+    bounds,
+    { initialShape, initialShapeBounds, anchor, isFlippedY, isFlippedX }
+  ) {
+    shape.size = [bounds.width, bounds.height]
+    shape.point = [bounds.minX, bounds.minY]
+
+    // const prevCorners = getRotatedCorners(
+    //   initialShapeBounds,
+    //   initialShape.rotation
+    // )
+
+    // let currCorners = getRotatedCorners(this.getBounds(shape), shape.rotation)
+
+    // if (isFlippedX) {
+    //   let t = currCorners[3]
+    //   currCorners[3] = currCorners[2]
+    //   currCorners[2] = t
+
+    //   t = currCorners[0]
+    //   currCorners[0] = currCorners[1]
+    //   currCorners[1] = t
+    // }
+
+    // if (isFlippedY) {
+    //   let t = currCorners[3]
+    //   currCorners[3] = currCorners[0]
+    //   currCorners[0] = t
+
+    //   t = currCorners[2]
+    //   currCorners[2] = currCorners[1]
+    //   currCorners[1] = t
+    // }
+
+    // switch (anchor) {
+    //   case TransformCorner.TopLeft: {
+    //     shape.point = vec.sub(
+    //       shape.point,
+    //       vec.sub(currCorners[2], prevCorners[2])
+    //     )
+    //     break
+    //   }
+    //   case TransformCorner.TopRight: {
+    //     shape.point = vec.sub(
+    //       shape.point,
+    //       vec.sub(currCorners[3], prevCorners[3])
+    //     )
+    //     break
+    //   }
+    //   case TransformCorner.BottomRight: {
+    //     shape.point = vec.sub(
+    //       shape.point,
+    //       vec.sub(currCorners[0], prevCorners[0])
+    //     )
+    //     break
+    //   }
+    //   case TransformCorner.BottomLeft: {
+    //     shape.point = vec.sub(
+    //       shape.point,
+    //       vec.sub(currCorners[1], prevCorners[1])
+    //     )
+    //     break
+    //   }
+    //   case TransformEdge.Top: {
+    //     shape.point = vec.sub(
+    //       shape.point,
+    //       vec.sub(currCorners[3], prevCorners[3])
+    //     )
+    //     break
+    //   }
+    //   case TransformEdge.Right: {
+    //     shape.point = vec.sub(
+    //       shape.point,
+    //       vec.sub(currCorners[3], prevCorners[3])
+    //     )
+    //     break
+    //   }
+    //   case TransformEdge.Bottom: {
+    //     shape.point = vec.sub(
+    //       shape.point,
+    //       vec.sub(currCorners[0], prevCorners[0])
+    //     )
+    //     break
+    //   }
+    //   case TransformEdge.Left: {
+    //     shape.point = vec.sub(
+    //       shape.point,
+    //       vec.sub(currCorners[2], prevCorners[2])
+    //     )
+    //     break
+    //   }
+    // }
+
+    // console.log(shape.point, shape.size)
 
     return shape
   },

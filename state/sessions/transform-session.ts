@@ -66,12 +66,25 @@ export default class TransformSession extends BaseSession {
       initialBounds,
       currentPageId,
       selectedIds,
-      isSingle,
     } = this.snapshot
 
     const { shapes } = data.document.pages[currentPageId]
 
-    const delta = vec.vec(this.origin, point)
+    let delta = vec.vec(this.origin, point)
+
+    // if (isSingle) {
+    //   const center = [
+    //     initialBounds.minX + initialBounds.width / 2,
+    //     initialBounds.minY + initialBounds.height / 2,
+    //   ]
+
+    //   const rotation = shapes[Array.from(selectedIds.values())[0]].rotation
+
+    //   const rotatedOrigin = vec.rotWith(this.origin, center, -rotation)
+    //   const rotatedPoint = vec.rotWith(point, center, -rotation)
+
+    //   delta = vec.vec(rotatedOrigin, rotatedPoint)
+    // }
 
     /*
     Transforms
@@ -173,7 +186,7 @@ export default class TransformSession extends BaseSession {
         boundsRotation,
         isFlippedX: this.isFlippedX,
         isFlippedY: this.isFlippedY,
-        isSingle,
+        isSingle: false,
         anchor: getTransformAnchor(
           this.transformType,
           this.isFlippedX,
@@ -190,7 +203,6 @@ export default class TransformSession extends BaseSession {
       initialBounds,
       currentPageId,
       selectedIds,
-      isSingle,
     } = this.snapshot
 
     const { shapes } = data.document.pages[currentPageId]
@@ -208,7 +220,7 @@ export default class TransformSession extends BaseSession {
         boundsRotation,
         isFlippedX: false,
         isFlippedY: false,
-        isSingle,
+        isSingle: false,
         anchor: getTransformAnchor(this.transformType, false, false),
       })
     })
@@ -255,7 +267,6 @@ export function getTransformSnapshot(
     type: transformType,
     initialBounds: bounds,
     boundsRotation,
-    isSingle: selectedIds.size === 1,
     selectedIds: new Set(selectedIds),
     shapeBounds: Object.fromEntries(
       Array.from(selectedIds.values()).map((id) => {

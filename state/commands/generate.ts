@@ -3,7 +3,7 @@ import history from "../history"
 import { CodeControl, Data, Shape } from "types"
 import { current } from "immer"
 
-export default function setGeneratedShapes(
+export default function generateCommand(
   data: Data,
   currentPageId: string,
   generatedShapes: Shape[]

@@ -2,7 +2,7 @@ import Command from "./command"
 import history from "../history"
 import { Data, Shape } from "types"
 
-export default function createShape(data: Data, shape: Shape) {
+export default function createShapeCommand(data: Data, shape: Shape) {
   const { currentPageId } = data
 
   history.execute(
