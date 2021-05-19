@@ -10,6 +10,7 @@ import {
   TransformEdge,
   CodeControl,
 } from "types"
+import inputs from "./inputs"
 import { defaultDocument } from "./data"
 import shapeUtilityMap, { getShapeUtils } from "lib/shapes"
 import history from "state/history"
@@ -174,6 +175,8 @@ const state = createState({
               on: {
                 MOVED_POINTER: "updateTranslateSession",
                 PANNED_CAMERA: "updateTranslateSession",
+                PRESSED_ALT_KEY: "updateCloningTranslateSession",
+                RELEASED_ALT_KEY: "updateCloningTranslateSession",
                 STOPPED_POINTING: { do: "completeSession", to: "selecting" },
                 CANCELLED: { do: "cancelSession", to: "selecting" },
               },
@@ -261,6 +264,7 @@ const state = createState({
           states: {
             creating: {
               on: {
+                CANCELLED: { to: "selecting" },
                 POINTED_CANVAS: {
                   to: "ellipse.editing",
                 },
@@ -284,6 +288,7 @@ const state = createState({
           states: {
             creating: {
               on: {
+                CANCELLED: { to: "selecting" },
                 POINTED_CANVAS: {
                   to: "rectangle.editing",
                 },
@@ -307,6 +312,7 @@ const state = createState({
           states: {
             creating: {
               on: {
+                CANCELLED: { to: "selecting" },
                 POINTED_CANVAS: {
                   do: "createRay",
                   to: "ray.editing",
@@ -315,11 +321,8 @@ const state = createState({
             },
             editing: {
               on: {
-                STOPPED_POINTING: { do: "completeSession", to: "selecting" },
-                CANCELLED: {
-                  do: ["cancelSession", "deleteSelectedIds"],
-                  to: "selecting",
-                },
+                STOPPED_POINTING: { to: "selecting" },
+                CANCELLED: { to: "selecting" },
                 MOVED_POINTER: {
                   if: "distanceImpliesDrag",
                   to: "drawingShape.direction",
@@ -333,6 +336,7 @@ const state = createState({
           states: {
             creating: {
               on: {
+                CANCELLED: { to: "selecting" },
                 POINTED_CANVAS: {
                   do: "createLine",
                   to: "line.editing",
@@ -341,11 +345,8 @@ const state = createState({
             },
             editing: {
               on: {
-                STOPPED_POINTING: { do: "completeSession", to: "selecting" },
-                CANCELLED: {
-                  do: ["cancelSession", "deleteSelectedIds"],
-                  to: "selecting",
-                },
+                STOPPED_POINTING: { to: "selecting" },
+                CANCELLED: { to: "selecting" },
                 MOVED_POINTER: {
                   if: "distanceImpliesDrag",
                   to: "drawingShape.direction",
@@ -359,7 +360,10 @@ const state = createState({
     },
     drawingShape: {
       on: {
-        STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+        STOPPED_POINTING: {
+          do: "completeSession",
+          to: "selecting",
+        },
         CANCELLED: {
           do: ["cancelSession", "deleteSelectedIds"],
           to: "selecting",
@@ -422,7 +426,8 @@ const state = createState({
         point: screenToWorld(payload.point, data),
       })
 
-      commands.createShape(data, shape)
+      data.document.pages[data.currentPageId].shapes[shape.id] = shape
+      data.selectedIds.clear()
       data.selectedIds.add(shape.id)
     },
 
@@ -432,7 +437,8 @@ const state = createState({
         point: screenToWorld(payload.point, data),
       })
 
-      commands.createShape(data, shape)
+      data.document.pages[data.currentPageId].shapes[shape.id] = shape
+      data.selectedIds.clear()
       data.selectedIds.add(shape.id)
     },
 
@@ -443,7 +449,8 @@ const state = createState({
         direction: [0, 1],
       })
 
-      commands.createShape(data, shape)
+      data.document.pages[data.currentPageId].shapes[shape.id] = shape
+      data.selectedIds.clear()
       data.selectedIds.add(shape.id)
     },
 
@@ -453,7 +460,8 @@ const state = createState({
         radius: 1,
       })
 
-      commands.createShape(data, shape)
+      data.document.pages[data.currentPageId].shapes[shape.id] = shape
+      data.selectedIds.clear()
       data.selectedIds.add(shape.id)
     },
 
@@ -464,7 +472,8 @@ const state = createState({
         radiusY: 1,
       })
 
-      commands.createShape(data, shape)
+      data.document.pages[data.currentPageId].shapes[shape.id] = shape
+      data.selectedIds.clear()
       data.selectedIds.add(shape.id)
     },
 
@@ -474,7 +483,8 @@ const state = createState({
         size: [1, 1],
       })
 
-      commands.createShape(data, shape)
+      data.document.pages[data.currentPageId].shapes[shape.id] = shape
+      data.selectedIds.clear()
       data.selectedIds.add(shape.id)
     },
     /* -------------------- Sessions -------------------- */
@@ -518,8 +528,15 @@ const state = createState({
         screenToWorld(payload.point, data)
       )
     },
+    updateCloningTranslateSession(data, payload: { altKey: boolean }) {
+      session.update(
+        data,
+        screenToWorld(inputs.pointer.point, data),
+        payload.altKey
+      )
+    },
     updateTranslateSession(data, payload: PointerInfo) {
-      session.update(data, screenToWorld(payload.point, data))
+      session.update(data, screenToWorld(payload.point, data), payload.altKey)
     },
 
     // Dragging / Translating
@@ -544,7 +561,8 @@ const state = createState({
       session = new Sessions.TransformSingleSession(
         data,
         TransformCorner.BottomRight,
-        screenToWorld(payload.point, data)
+        screenToWorld(payload.point, data),
+        true
       )
     },
     updateTransformSession(data, payload: PointerInfo) {
@@ -642,6 +660,9 @@ const state = createState({
     /* ---------------------- History ---------------------- */
 
     // History
+    popHistory() {
+      history.pop()
+    },
     forceSave(data) {
       history.save(data)
     },

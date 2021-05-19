@@ -77,6 +77,13 @@ class BaseHistory<T> {
     return { ...data }
   }
 
+  pop() {
+    if (this.stack.length > 0) {
+      this.stack.pop()
+      this.pointer--
+    }
+  }
+
   get disabled() {
     return !this._enabled
   }

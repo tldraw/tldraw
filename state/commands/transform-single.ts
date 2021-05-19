@@ -2,6 +2,7 @@ import Command from "./command"
 import history from "../history"
 import { Data, TransformCorner, TransformEdge } from "types"
 import { getShapeUtils } from "lib/shapes"
+import { current } from "immer"
 import { TransformSingleSnapshot } from "state/sessions/transform-single-session"
 
 export default function transformSingleCommand(
@@ -9,38 +10,54 @@ export default function transformSingleCommand(
   before: TransformSingleSnapshot,
   after: TransformSingleSnapshot,
   scaleX: number,
-  scaleY: number
+  scaleY: number,
+  isCreating: boolean
 ) {
+  const shape =
+    current(data).document.pages[after.currentPageId].shapes[after.id]
+
   history.execute(
     data,
     new Command({
       name: "transform_single_shape",
       category: "canvas",
+      manualSelection: true,
       do(data) {
         const { id, currentPageId, type, initialShape, initialShapeBounds } =
           after
 
-        const shape = data.document.pages[currentPageId].shapes[id]
+        data.selectedIds.clear()
+        data.selectedIds.add(id)
 
-        getShapeUtils(shape).transformSingle(shape, initialShapeBounds, {
-          type,
-          initialShape,
-          scaleX,
-          scaleY,
-        })
+        if (isCreating) {
+          data.document.pages[currentPageId].shapes[id] = shape
+        } else {
+          getShapeUtils(shape).transformSingle(shape, initialShapeBounds, {
+            type,
+            initialShape,
+            scaleX,
+            scaleY,
+          })
+        }
       },
       undo(data) {
-        const { id, currentPageId, type, initialShape, initialShapeBounds } =
-          before
+        const { id, currentPageId, type, initialShapeBounds } = before
 
-        const shape = data.document.pages[currentPageId].shapes[id]
+        data.selectedIds.clear()
 
-        getShapeUtils(shape).transform(shape, initialShapeBounds, {
-          type,
-          initialShape: after.initialShape,
-          scaleX: 1,
-          scaleY: 1,
-        })
+        if (isCreating) {
+          delete data.document.pages[currentPageId].shapes[id]
+        } else {
+          const shape = data.document.pages[currentPageId].shapes[id]
+          data.selectedIds.add(id)
+
+          getShapeUtils(shape).transform(shape, initialShapeBounds, {
+            type,
+            initialShape: after.initialShape,
+            scaleX: 1,
+            scaleY: 1,
+          })
+        }
       },
     })
   )

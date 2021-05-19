@@ -6,25 +6,46 @@ import { Data } from "types"
 export default function translateCommand(
   data: Data,
   before: TranslateSnapshot,
-  after: TranslateSnapshot
+  after: TranslateSnapshot,
+  isCloning: boolean
 ) {
   history.execute(
     data,
     new Command({
-      name: "translate_shapes",
+      name: isCloning ? "clone_shapes" : "translate_shapes",
       category: "canvas",
-      do(data) {
-        const { shapes } = data.document.pages[after.currentPageId]
+      manualSelection: true,
+      do(data, initial) {
+        if (initial) return
 
-        for (let { id, point } of after.shapes) {
-          shapes[id].point = point
+        const { shapes } = data.document.pages[after.currentPageId]
+        const { initialShapes, clones } = after
+
+        data.selectedIds.clear()
+
+        for (let id in initialShapes) {
+          if (isCloning) {
+            shapes[id] = initialShapes[id]
+          } else {
+            shapes[id].point = initialShapes[id].point
+          }
+          data.selectedIds.add(id)
         }
       },
       undo(data) {
         const { shapes } = data.document.pages[before.currentPageId]
+        const { initialShapes, clones } = before
 
-        for (let { id, point } of before.shapes) {
-          shapes[id].point = point
+        data.selectedIds.clear()
+
+        for (let id in initialShapes) {
+          shapes[id].point = initialShapes[id].point
+          data.selectedIds.add(id)
+
+          if (isCloning) {
+            const clone = clones[id]
+            delete shapes[clone.id]
+          }
         }
       },
     })

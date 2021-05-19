@@ -86,6 +86,10 @@ class Inputs {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
     return { point: [e.clientX, e.clientY], shiftKey, ctrlKey, metaKey, altKey }
   }
+
+  get pointer() {
+    return this.points[Object.keys(this.points)[0]]
+  }
 }
 
 export default new Inputs()

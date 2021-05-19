@@ -12,22 +12,24 @@ import {
 } from "utils/utils"
 
 export default class TransformSingleSession extends BaseSession {
-  delta = [0, 0]
+  transformType: TransformEdge | TransformCorner
+  origin: number[]
   scaleX = 1
   scaleY = 1
-  transformType: TransformEdge | TransformCorner
   snapshot: TransformSingleSnapshot
-  origin: number[]
+  isCreating: boolean
 
   constructor(
     data: Data,
     transformType: TransformCorner | TransformEdge,
-    point: number[]
+    point: number[],
+    isCreating = false
   ) {
     super(data)
     this.origin = point
     this.transformType = transformType
     this.snapshot = getTransformSingleSnapshot(data, transformType)
+    this.isCreating = isCreating
   }
 
   update(data: Data, point: number[]) {
@@ -78,7 +80,8 @@ export default class TransformSingleSession extends BaseSession {
       this.snapshot,
       getTransformSingleSnapshot(data, this.transformType),
       this.scaleX,
-      this.scaleY
+      this.scaleY,
+      this.isCreating
     )
   }
 }

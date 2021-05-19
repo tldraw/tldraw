@@ -3,11 +3,13 @@ import * as vec from "utils/vec"
 import BaseSession from "./base-session"
 import commands from "state/commands"
 import { current } from "immer"
+import { v4 as uuid } from "uuid"
 
 export default class TranslateSession extends BaseSession {
   delta = [0, 0]
   origin: number[]
   snapshot: TranslateSnapshot
+  isCloning = false
 
   constructor(data: Data, point: number[]) {
     super(data)
@@ -15,31 +17,62 @@ export default class TranslateSession extends BaseSession {
     this.snapshot = getTranslateSnapshot(data)
   }
 
-  update(data: Data, point: number[]) {
-    const { currentPageId, shapes } = this.snapshot
+  update(data: Data, point: number[], isCloning: boolean) {
+    const { currentPageId, clones, initialShapes } = this.snapshot
     const { document } = data
+    const { shapes } = document.pages[this.snapshot.currentPageId]
 
     const delta = vec.vec(this.origin, point)
 
-    for (let shape of shapes) {
-      document.pages[currentPageId].shapes[shape.id].point = vec.add(
-        shape.point,
-        delta
-      )
+    if (isCloning && !this.isCloning) {
+      // Enter cloning state, create clones at shape points and move shapes
+      // back to initial point.
+      this.isCloning = true
+      data.selectedIds.clear()
+      for (let id in clones) {
+        const clone = clones[id]
+        data.selectedIds.add(clone.id)
+        shapes[id].point = initialShapes[id].point
+        data.document.pages[currentPageId].shapes[clone.id] = clone
+      }
+    } else if (!isCloning && this.isCloning) {
+      // Exit cloning state, delete up clones and move shapes to clone points
+      this.isCloning = false
+      data.selectedIds.clear()
+      for (let id in clones) {
+        const clone = clones[id]
+        data.selectedIds.add(id)
+        delete data.document.pages[currentPageId].shapes[clone.id]
+      }
+    }
+
+    // Calculate the new points and update data
+    for (let id in initialShapes) {
+      const point = vec.add(initialShapes[id].point, delta)
+      const targetId = this.isCloning ? clones[id].id : id
+      document.pages[currentPageId].shapes[targetId].point = point
     }
   }
 
   cancel(data: Data) {
     const { document } = data
+    const { initialShapes, clones, currentPageId } = this.snapshot
 
-    for (let shape of this.snapshot.shapes) {
-      document.pages[this.snapshot.currentPageId].shapes[shape.id].point =
-        shape.point
+    const { shapes } = document.pages[currentPageId]
+
+    for (let id in initialShapes) {
+      shapes[id].point = initialShapes[id].point
+      delete shapes[clones[id].id]
     }
   }
 
   complete(data: Data) {
-    commands.translate(data, this.snapshot, getTranslateSnapshot(data))
+    commands.translate(
+      data,
+      this.snapshot,
+      getTranslateSnapshot(data),
+      this.isCloning
+    )
   }
 }
 
@@ -49,13 +82,19 @@ export function getTranslateSnapshot(data: Data) {
     currentPageId,
   } = current(data)
 
-  const { shapes } = pages[currentPageId]
+  const shapes = Array.from(data.selectedIds.values()).map(
+    (id) => pages[currentPageId].shapes[id]
+  )
+
+  // Clones and shapes are keyed under the same id, though the clone itself
+  // has a different id.
 
   return {
     currentPageId,
-    shapes: Array.from(data.selectedIds.values())
-      .map((id) => shapes[id])
-      .map(({ id, point }) => ({ id, point })),
+    initialShapes: Object.fromEntries(shapes.map((shape) => [shape.id, shape])),
+    clones: Object.fromEntries(
+      shapes.map((shape) => [shape.id, { ...shape, id: uuid() }])
+    ),
   }
 }
 
