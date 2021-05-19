@@ -5,7 +5,7 @@ import { createShape } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
 import { pointInCircle } from "utils/hitTests"
-import { translateBounds } from "utils/utils"
+import { getTransformAnchor, translateBounds } from "utils/utils"
 
 const circle = createShape<CircleShape>({
   boundsCache: new WeakMap([]),
@@ -94,7 +94,9 @@ const circle = createShape<CircleShape>({
     return shape
   },
 
-  transform(shape, bounds, { anchor }) {
+  transform(shape, bounds, { type, initialShape, scaleX, scaleY }) {
+    const anchor = getTransformAnchor(type, scaleX < 0, scaleY < 0)
+
     // Set the new corner or position depending on the anchor
     switch (anchor) {
       case TransformCorner.TopLeft: {
@@ -112,7 +114,11 @@ const circle = createShape<CircleShape>({
       }
       case TransformCorner.BottomRight: {
         shape.radius = Math.min(bounds.width, bounds.height) / 2
-        shape.point = [bounds.minX, bounds.minY]
+        shape.point = [
+          bounds.maxX - shape.radius * 2,
+          bounds.maxY - shape.radius * 2,
+        ]
+        break
         break
       }
       case TransformCorner.BottomLeft: {

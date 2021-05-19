@@ -8,7 +8,8 @@ export default function transformCommand(
   data: Data,
   before: TransformSnapshot,
   after: TransformSnapshot,
-  anchor: TransformCorner | TransformEdge
+  scaleX: number,
+  scaleY: number
 ) {
   history.execute(
     data,
@@ -16,60 +17,32 @@ export default function transformCommand(
       name: "translate_shapes",
       category: "canvas",
       do(data) {
-        const {
-          type,
-          shapeBounds,
-          initialBounds,
-          currentPageId,
-          selectedIds,
-          boundsRotation,
-        } = after
-
-        const { shapes } = data.document.pages[currentPageId]
+        const { type, currentPageId, selectedIds } = after
 
         selectedIds.forEach((id) => {
-          const { initialShape, initialShapeBounds } = shapeBounds[id]
-          const shape = shapes[id]
+          const { initialShape, initialShapeBounds } = after.shapeBounds[id]
+          const shape = data.document.pages[currentPageId].shapes[id]
 
           getShapeUtils(shape).transform(shape, initialShapeBounds, {
             type,
             initialShape,
-            initialShapeBounds,
-            initialBounds,
-            boundsRotation,
-            isFlippedX: false,
-            isFlippedY: false,
-            isSingle: false,
-            anchor,
+            scaleX: 1,
+            scaleY: 1,
           })
         })
       },
       undo(data) {
-        const {
-          type,
-          shapeBounds,
-          initialBounds,
-          currentPageId,
-          selectedIds,
-          boundsRotation,
-        } = before
-
-        const { shapes } = data.document.pages[currentPageId]
+        const { type, currentPageId, selectedIds } = before
 
         selectedIds.forEach((id) => {
-          const { initialShape, initialShapeBounds } = shapeBounds[id]
-          const shape = shapes[id]
+          const { initialShape, initialShapeBounds } = before.shapeBounds[id]
+          const shape = data.document.pages[currentPageId].shapes[id]
 
           getShapeUtils(shape).transform(shape, initialShapeBounds, {
             type,
             initialShape,
-            initialShapeBounds,
-            initialBounds,
-            boundsRotation,
-            isFlippedX: false,
-            isFlippedY: false,
-            isSingle: false,
-            anchor: type,
+            scaleX: 1,
+            scaleY: 1,
           })
         })
       },

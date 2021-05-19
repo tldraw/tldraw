@@ -99,142 +99,34 @@ const rectangle = createShape<RectangleShape>({
     return shape
   },
 
-  transform(
-    shape,
-    shapeBounds,
-    { initialShape, isSingle, initialShapeBounds, isFlippedX, isFlippedY }
-  ) {
-    if (shape.rotation === 0 || isSingle) {
-      shape.size = [shapeBounds.width, shapeBounds.height]
-      shape.point = [shapeBounds.minX, shapeBounds.minY]
+  transform(shape, bounds, { initialShape, scaleX, scaleY }) {
+    if (shape.rotation === 0) {
+      shape.size = [bounds.width, bounds.height]
+      shape.point = [bounds.minX, bounds.minY]
     } else {
+      // Center shape in resized bounds
       shape.size = vec.mul(
         initialShape.size,
-        Math.min(
-          shapeBounds.width / initialShapeBounds.width,
-          shapeBounds.height / initialShapeBounds.height
-        )
+        Math.min(Math.abs(scaleX), Math.abs(scaleY))
       )
 
-      const newCenter = [
-        shapeBounds.minX + shapeBounds.width / 2,
-        shapeBounds.minY + shapeBounds.height / 2,
-      ]
-
-      shape.point = vec.sub(newCenter, vec.div(shape.size, 2))
+      shape.point = vec.sub(
+        vec.med([bounds.minX, bounds.minY], [bounds.maxX, bounds.maxY]),
+        vec.div(shape.size, 2)
+      )
     }
 
-    // Rotation for flipped shapes
-
+    // Set rotation for flipped shapes
     shape.rotation = initialShape.rotation
-
-    if (isFlippedX) {
-      shape.rotation *= -1
-    }
-
-    if (isFlippedY) {
-      shape.rotation *= -1
-    }
+    if (scaleX < 0) shape.rotation *= -1
+    if (scaleY < 0) shape.rotation *= -1
 
     return shape
   },
 
-  transformSingle(
-    shape,
-    bounds,
-    { initialShape, initialShapeBounds, anchor, isFlippedY, isFlippedX }
-  ) {
+  transformSingle(shape, bounds) {
     shape.size = [bounds.width, bounds.height]
     shape.point = [bounds.minX, bounds.minY]
-
-    // const prevCorners = getRotatedCorners(
-    //   initialShapeBounds,
-    //   initialShape.rotation
-    // )
-
-    // let currCorners = getRotatedCorners(this.getBounds(shape), shape.rotation)
-
-    // if (isFlippedX) {
-    //   let t = currCorners[3]
-    //   currCorners[3] = currCorners[2]
-    //   currCorners[2] = t
-
-    //   t = currCorners[0]
-    //   currCorners[0] = currCorners[1]
-    //   currCorners[1] = t
-    // }
-
-    // if (isFlippedY) {
-    //   let t = currCorners[3]
-    //   currCorners[3] = currCorners[0]
-    //   currCorners[0] = t
-
-    //   t = currCorners[2]
-    //   currCorners[2] = currCorners[1]
-    //   currCorners[1] = t
-    // }
-
-    // switch (anchor) {
-    //   case TransformCorner.TopLeft: {
-    //     shape.point = vec.sub(
-    //       shape.point,
-    //       vec.sub(currCorners[2], prevCorners[2])
-    //     )
-    //     break
-    //   }
-    //   case TransformCorner.TopRight: {
-    //     shape.point = vec.sub(
-    //       shape.point,
-    //       vec.sub(currCorners[3], prevCorners[3])
-    //     )
-    //     break
-    //   }
-    //   case TransformCorner.BottomRight: {
-    //     shape.point = vec.sub(
-    //       shape.point,
-    //       vec.sub(currCorners[0], prevCorners[0])
-    //     )
-    //     break
-    //   }
-    //   case TransformCorner.BottomLeft: {
-    //     shape.point = vec.sub(
-    //       shape.point,
-    //       vec.sub(currCorners[1], prevCorners[1])
-    //     )
-    //     break
-    //   }
-    //   case TransformEdge.Top: {
-    //     shape.point = vec.sub(
-    //       shape.point,
-    //       vec.sub(currCorners[3], prevCorners[3])
-    //     )
-    //     break
-    //   }
-    //   case TransformEdge.Right: {
-    //     shape.point = vec.sub(
-    //       shape.point,
-    //       vec.sub(currCorners[3], prevCorners[3])
-    //     )
-    //     break
-    //   }
-    //   case TransformEdge.Bottom: {
-    //     shape.point = vec.sub(
-    //       shape.point,
-    //       vec.sub(currCorners[0], prevCorners[0])
-    //     )
-    //     break
-    //   }
-    //   case TransformEdge.Left: {
-    //     shape.point = vec.sub(
-    //       shape.point,
-    //       vec.sub(currCorners[2], prevCorners[2])
-    //     )
-    //     break
-    //   }
-    // }
-
-    // console.log(shape.point, shape.size)
-
     return shape
   },
 

@@ -541,7 +541,7 @@ const state = createState({
             )
     },
     startDrawTransformSession(data, payload: PointerInfo) {
-      session = new Sessions.TransformSession(
+      session = new Sessions.TransformSingleSession(
         data,
         TransformCorner.BottomRight,
         screenToWorld(payload.point, data)

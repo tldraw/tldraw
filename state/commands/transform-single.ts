@@ -8,63 +8,38 @@ export default function transformSingleCommand(
   data: Data,
   before: TransformSingleSnapshot,
   after: TransformSingleSnapshot,
-  anchor: TransformCorner | TransformEdge
+  scaleX: number,
+  scaleY: number
 ) {
   history.execute(
     data,
     new Command({
-      name: "translate_shapes",
+      name: "transform_single_shape",
       category: "canvas",
       do(data) {
-        const {
+        const { id, currentPageId, type, initialShape, initialShapeBounds } =
+          after
+
+        const shape = data.document.pages[currentPageId].shapes[id]
+
+        getShapeUtils(shape).transformSingle(shape, initialShapeBounds, {
           type,
           initialShape,
-          initialShapeBounds,
-          currentPageId,
-          id,
-          boundsRotation,
-        } = after
-
-        const { shapes } = data.document.pages[currentPageId]
-
-        const shape = shapes[id]
-
-        getShapeUtils(shape).transform(shape, initialShapeBounds, {
-          type,
-          initialShape,
-          initialShapeBounds,
-          initialBounds: initialShapeBounds,
-          boundsRotation,
-          isFlippedX: false,
-          isFlippedY: false,
-          isSingle: false,
-          anchor,
+          scaleX,
+          scaleY,
         })
       },
       undo(data) {
-        const {
-          type,
-          initialShape,
-          initialShapeBounds,
-          currentPageId,
-          id,
-          boundsRotation,
-        } = before
+        const { id, currentPageId, type, initialShape, initialShapeBounds } =
+          before
 
-        const { shapes } = data.document.pages[currentPageId]
-
-        const shape = shapes[id]
+        const shape = data.document.pages[currentPageId].shapes[id]
 
         getShapeUtils(shape).transform(shape, initialShapeBounds, {
           type,
-          initialShape,
-          initialShapeBounds,
-          initialBounds: initialShapeBounds,
-          boundsRotation,
-          isFlippedX: false,
-          isFlippedY: false,
-          isSingle: false,
-          anchor,
+          initialShape: after.initialShape,
+          scaleX: 1,
+          scaleY: 1,
         })
       },
     })

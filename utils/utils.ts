@@ -915,6 +915,8 @@ export function getTransformAnchor(
         anchor = TransformCorner.TopRight
       } else if (isFlippedY) {
         anchor = TransformCorner.BottomLeft
+      } else {
+        anchor = TransformCorner.BottomRight
       }
       break
     }
@@ -925,6 +927,8 @@ export function getTransformAnchor(
         anchor = TransformCorner.TopLeft
       } else if (isFlippedY) {
         anchor = TransformCorner.BottomRight
+      } else {
+        anchor = TransformCorner.BottomLeft
       }
       break
     }
@@ -935,6 +939,8 @@ export function getTransformAnchor(
         anchor = TransformCorner.BottomLeft
       } else if (isFlippedY) {
         anchor = TransformCorner.TopRight
+      } else {
+        anchor = TransformCorner.TopLeft
       }
       break
     }
@@ -945,6 +951,8 @@ export function getTransformAnchor(
         anchor = TransformCorner.BottomRight
       } else if (isFlippedY) {
         anchor = TransformCorner.TopLeft
+      } else {
+        anchor = TransformCorner.TopRight
       }
       break
     }
@@ -1052,54 +1060,34 @@ export function getTransformedBoundingBox(
   const [dx, dy] = vec.rot(delta, -rotation)
 
   // Depending on the dragging handle (an edge or corner of
-  // the bounding box), find the anchor corner and use the delta
-  // to adjust the result's corners.
-
-  let anchor: TransformCorner | TransformEdge
+  // the bounding box), use the delta to adjust the result's corners.
 
   switch (handle) {
-    case TransformEdge.Top: {
-      anchor = TransformCorner.BottomRight
-      by0 += dy
-      break
-    }
-    case TransformEdge.Right: {
-      anchor = TransformCorner.TopLeft
-      bx1 += dx
-      break
-    }
-    case TransformEdge.Bottom: {
-      anchor = TransformCorner.TopLeft
-      by1 += dy
-      break
-    }
-    case TransformEdge.Left: {
-      anchor = TransformCorner.BottomRight
-      bx0 += dx
-      break
-    }
-    case TransformCorner.TopLeft: {
-      anchor = TransformCorner.BottomRight
-      bx0 += dx
-      by0 += dy
-      break
-    }
+    case TransformEdge.Top:
+    case TransformCorner.TopLeft:
     case TransformCorner.TopRight: {
-      anchor = TransformCorner.BottomLeft
-      bx1 += dx
       by0 += dy
       break
     }
+    case TransformEdge.Bottom:
+    case TransformCorner.BottomLeft:
     case TransformCorner.BottomRight: {
-      anchor = TransformCorner.TopLeft
-      bx1 += dx
       by1 += dy
       break
     }
+  }
+
+  switch (handle) {
+    case TransformEdge.Left:
+    case TransformCorner.TopLeft:
     case TransformCorner.BottomLeft: {
-      anchor = TransformCorner.TopRight
       bx0 += dx
-      by1 += dy
+      break
+    }
+    case TransformEdge.Right:
+    case TransformCorner.TopRight:
+    case TransformCorner.BottomRight: {
+      bx1 += dx
       break
     }
   }
@@ -1115,32 +1103,36 @@ export function getTransformedBoundingBox(
     const c0 = vec.med([ax0, ay0], [ax1, ay1])
     const c1 = vec.med([bx0, by0], [bx1, by1])
 
-    switch (anchor) {
-      case TransformCorner.TopLeft: {
-        cv = vec.sub(
-          vec.rotWith([bx0, by0], c1, rotation),
-          vec.rotWith([ax0, ay0], c0, rotation)
-        )
-        break
-      }
-      case TransformCorner.TopRight: {
-        cv = vec.sub(
-          vec.rotWith([bx1, by0], c1, rotation),
-          vec.rotWith([ax1, ay0], c0, rotation)
-        )
-        break
-      }
-      case TransformCorner.BottomRight: {
+    switch (handle) {
+      case TransformCorner.TopLeft:
+      case TransformEdge.Top:
+      case TransformEdge.Left: {
         cv = vec.sub(
           vec.rotWith([bx1, by1], c1, rotation),
           vec.rotWith([ax1, ay1], c0, rotation)
         )
         break
       }
-      case TransformCorner.BottomLeft: {
+      case TransformCorner.TopRight: {
         cv = vec.sub(
           vec.rotWith([bx0, by1], c1, rotation),
           vec.rotWith([ax0, ay1], c0, rotation)
+        )
+        break
+      }
+      case TransformCorner.BottomRight:
+      case TransformEdge.Bottom:
+      case TransformEdge.Right: {
+        cv = vec.sub(
+          vec.rotWith([bx0, by0], c1, rotation),
+          vec.rotWith([ax0, ay0], c0, rotation)
+        )
+        break
+      }
+      case TransformCorner.BottomLeft: {
+        cv = vec.sub(
+          vec.rotWith([bx1, by0], c1, rotation),
+          vec.rotWith([ax1, ay0], c0, rotation)
         )
         break
       }
@@ -1152,6 +1144,9 @@ export function getTransformedBoundingBox(
 
   // If the axes are flipped (e.g. if the right edge has been dragged
   // left past the initial left edge) then swap points on that axis.
+
+  let scaleX = (bx1 - bx0) / (ax1 - ax0)
+  let scaleY = (by1 - by0) / (ay1 - ay0)
 
   if (bx1 < bx0) {
     ;[bx1, bx0] = [bx0, bx1]
@@ -1168,5 +1163,44 @@ export function getTransformedBoundingBox(
     maxY: by1,
     width: bx1 - bx0,
     height: by1 - by0,
+    scaleX,
+    scaleY,
+  }
+}
+
+export function getRelativeTransformedBoundingBox(
+  bounds: Bounds,
+  initialBounds: Bounds,
+  initialShapeBounds: Bounds,
+  isFlippedX: boolean,
+  isFlippedY: boolean
+) {
+  const minX =
+    bounds.minX +
+    bounds.width *
+      ((isFlippedX
+        ? initialBounds.maxX - initialShapeBounds.maxX
+        : initialShapeBounds.minX - initialBounds.minX) /
+        initialBounds.width)
+
+  const minY =
+    bounds.minY +
+    bounds.height *
+      ((isFlippedY
+        ? initialBounds.maxY - initialShapeBounds.maxY
+        : initialShapeBounds.minY - initialBounds.minY) /
+        initialBounds.height)
+
+  const width = (initialShapeBounds.width / initialBounds.width) * bounds.width
+  const height =
+    (initialShapeBounds.height / initialBounds.height) * bounds.height
+
+  return {
+    minX,
+    minY,
+    maxX: minX + width,
+    maxY: minY + height,
+    width,
+    height,
   }
 }
