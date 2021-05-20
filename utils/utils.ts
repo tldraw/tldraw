@@ -1,5 +1,5 @@
 import Vector from "lib/code/vector"
-import { getShapeUtils } from "lib/shapes"
+import { getShapeUtils } from "lib/shape-utils"
 import React from "react"
 import { Data, Bounds, TransformEdge, TransformCorner, Shape } from "types"
 import * as svg from "./svg"

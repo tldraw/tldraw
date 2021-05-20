@@ -1,7 +1,7 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
 import { PolylineShape, ShapeType } from "types"
-import { createShape } from "./index"
+import { registerShapeUtils } from "./index"
 import { intersectPolylineBounds } from "utils/intersections"
 import {
   boundsCollide,
@@ -10,7 +10,7 @@ import {
 } from "utils/bounds"
 import { getBoundsFromPoints, translateBounds } from "utils/utils"
 
-const polyline = createShape<PolylineShape>({
+const polyline = registerShapeUtils<PolylineShape>({
   boundsCache: new WeakMap([]),
 
   create(props) {

@@ -1,5 +1,5 @@
 import { Shape } from "types"
-import { getShapeUtils } from "lib/shapes"
+import { getShapeUtils } from "lib/shape-utils"
 import * as vec from "utils/vec"
 import Vector from "./vector"
 import { vectorToPoint } from "utils/utils"

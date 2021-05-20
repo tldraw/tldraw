@@ -1,7 +1,7 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
 import { EllipseShape, ShapeType } from "types"
-import { createShape } from "./index"
+import { registerShapeUtils } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectEllipseBounds } from "utils/intersections"
 import { pointInEllipse } from "utils/hitTests"
@@ -12,7 +12,7 @@ import {
   translateBounds,
 } from "utils/utils"
 
-const ellipse = createShape<EllipseShape>({
+const ellipse = registerShapeUtils<EllipseShape>({
   boundsCache: new WeakMap([]),
 
   create(props) {

@@ -6,7 +6,7 @@ import {
   TransformCorner,
   TransformEdge,
 } from "types"
-import { createShape } from "./index"
+import { registerShapeUtils } from "./index"
 import { boundsCollidePolygon, boundsContainPolygon } from "utils/bounds"
 import {
   getBoundsFromPoints,
@@ -15,7 +15,7 @@ import {
   translateBounds,
 } from "utils/utils"
 
-const rectangle = createShape<RectangleShape>({
+const rectangle = registerShapeUtils<RectangleShape>({
   boundsCache: new WeakMap([]),
 
   create(props) {

@@ -1,7 +1,7 @@
 import { current } from "immer"
 import { ShapeUtil, Bounds, Data, Shapes } from "types"
 import BaseSession from "./base-session"
-import shapes, { getShapeUtils } from "lib/shapes"
+import shapes, { getShapeUtils } from "lib/shape-utils"
 import { getBoundsFromPoints } from "utils/utils"
 import * as vec from "utils/vec"
 

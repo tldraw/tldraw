@@ -1,5 +1,5 @@
 import { Data, ShapeType } from "types"
-import shapeUtils from "lib/shapes"
+import shapeUtils from "lib/shape-utils"
 
 export const defaultDocument: Data["document"] = {
   pages: {

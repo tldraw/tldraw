@@ -1,13 +1,13 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
 import { CircleShape, ShapeType, TransformCorner, TransformEdge } from "types"
-import { createShape } from "./index"
+import { registerShapeUtils } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
 import { pointInCircle } from "utils/hitTests"
 import { getTransformAnchor, translateBounds } from "utils/utils"
 
-const circle = createShape<CircleShape>({
+const circle = registerShapeUtils<CircleShape>({
   boundsCache: new WeakMap([]),
 
   create(props) {

@@ -3,7 +3,7 @@ import * as vec from "utils/vec"
 import BaseSession from "./base-session"
 import commands from "state/commands"
 import { current } from "immer"
-import { getShapeUtils } from "lib/shapes"
+import { getShapeUtils } from "lib/shape-utils"
 import {
   getTransformedBoundingBox,
   getCommonBounds,

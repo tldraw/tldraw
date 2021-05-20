@@ -114,7 +114,7 @@ export function getShapeUtils(shape: Shape): ShapeUtility<typeof shape> {
  * @param shape
  * @returns
  */
-export function createShape<T extends Shape>(
+export function registerShapeUtils<T extends Shape>(
   shape: ShapeUtility<T>
 ): ShapeUtility<T> {
   return Object.freeze(shape)

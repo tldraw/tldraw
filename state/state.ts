@@ -12,7 +12,7 @@ import {
 } from "types"
 import inputs from "./inputs"
 import { defaultDocument } from "./data"
-import shapeUtilityMap, { getShapeUtils } from "lib/shapes"
+import shapeUtilityMap, { getShapeUtils } from "lib/shape-utils"
 import history from "state/history"
 import * as Sessions from "./sessions"
 import commands from "./commands"

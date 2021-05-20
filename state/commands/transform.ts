@@ -2,7 +2,7 @@ import Command from "./command"
 import history from "../history"
 import { Data, TransformCorner, TransformEdge } from "types"
 import { TransformSnapshot } from "state/sessions/transform-session"
-import { getShapeUtils } from "lib/shapes"
+import { getShapeUtils } from "lib/shape-utils"
 
 export default function transformCommand(
   data: Data,

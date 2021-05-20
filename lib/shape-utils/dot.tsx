@@ -1,14 +1,14 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
 import { DotShape, ShapeType } from "types"
-import { createShape } from "./index"
+import { registerShapeUtils } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
 import styled from "styles"
 import { DotCircle } from "components/canvas/misc"
 import { translateBounds } from "utils/utils"
 
-const dot = createShape<DotShape>({
+const dot = registerShapeUtils<DotShape>({
   boundsCache: new WeakMap([]),
 
   create(props) {

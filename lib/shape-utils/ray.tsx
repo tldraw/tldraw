@@ -1,44 +1,48 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
-import { LineShape, ShapeType } from "types"
-import { createShape } from "./index"
+import { RayShape, ShapeType } from "types"
+import { registerShapeUtils } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
 import { DotCircle } from "components/canvas/misc"
 import { translateBounds } from "utils/utils"
 
-const line = createShape<LineShape>({
+const ray = registerShapeUtils<RayShape>({
   boundsCache: new WeakMap([]),
 
   create(props) {
     return {
       id: uuid(),
-      type: ShapeType.Line,
+      type: ShapeType.Ray,
       isGenerated: false,
-      name: "Line",
+      name: "Ray",
       parentId: "page0",
       childIndex: 0,
       point: [0, 0],
-      direction: [0, 0],
+      direction: [0, 1],
       rotation: 0,
       style: {
         fill: "#c6cacb",
         stroke: "#000",
+        strokeWidth: 1,
       },
       ...props,
     }
   },
 
   render({ id, direction }) {
-    const [x1, y1] = vec.add([0, 0], vec.mul(direction, 100000))
-    const [x2, y2] = vec.sub([0, 0], vec.mul(direction, 100000))
+    const [x2, y2] = vec.add([0, 0], vec.mul(direction, 100000))
 
     return (
       <g id={id}>
-        <line x1={x1} y1={y1} x2={x2} y2={y2} />
+        <line x1={0} y1={0} x2={x2} y2={y2} />
         <DotCircle cx={0} cy={0} r={4} />
       </g>
     )
+  },
+
+  getRotatedBounds(shape) {
+    return this.getBounds(shape)
   },
 
   getBounds(shape) {
@@ -56,10 +60,6 @@ const line = createShape<LineShape>({
     }
 
     return translateBounds(this.boundsCache.get(shape), shape.point)
-  },
-
-  getRotatedBounds(shape) {
-    return this.getBounds(shape)
   },
 
   getCenter(shape) {
@@ -97,11 +97,7 @@ const line = createShape<LineShape>({
     return shape
   },
 
-  transformSingle(shape, bounds, info) {
-    return this.transform(shape, bounds, info)
-  },
-
   canTransform: false,
 })
 
-export default line
+export default ray

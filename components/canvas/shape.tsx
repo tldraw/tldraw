@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, memo } from "react"
 import state, { useSelector } from "state"
 import inputs from "state/inputs"
-import { getShapeUtils } from "lib/shapes"
+import { getShapeUtils } from "lib/shape-utils"
 import styled from "styles"
 
 function Shape({ id }: { id: string }) {
