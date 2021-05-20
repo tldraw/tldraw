@@ -112,16 +112,18 @@ const state = createState({
                 },
                 UNHOVERED_SHAPE: "clearHoveredId",
                 POINTED_SHAPE: [
+                  {
+                    if: "isPressingMetaKey",
+                    to: "brushSelecting",
+                  },
                   "setPointedId",
                   {
-                    if: "isPressingShiftKey",
                     unless: "isPointedShapeSelected",
-                    do: ["pushPointedIdToSelectedIds", "clearPointedId"],
-                    to: "pointingBounds",
-                  },
-                  {
-                    unless: "isPointedShapeSelected",
-                    do: ["clearSelectedIds", "pushPointedIdToSelectedIds"],
+                    then: {
+                      if: "isPressingShiftKey",
+                      do: ["pushPointedIdToSelectedIds", "clearPointedId"],
+                      else: ["clearSelectedIds", "pushPointedIdToSelectedIds"],
+                    },
                   },
                   {
                     to: "pointingBounds",
@@ -139,7 +141,7 @@ const state = createState({
                       do: "pullPointedIdFromSelectedIds",
                     },
                     else: {
-                      if: "isPointingBounds",
+                      unless: "isPointingBounds",
                       do: ["clearSelectedIds", "pushPointedIdToSelectedIds"],
                     },
                   },
@@ -185,7 +187,10 @@ const state = createState({
             },
             brushSelecting: {
               onEnter: [
-                { unless: "isPressingShiftKey", do: "clearSelectedIds" },
+                {
+                  unless: ["isPressingMetaKey", "isPressingShiftKey"],
+                  do: "clearSelectedIds",
+                },
                 "clearBoundsRotation",
                 "startBrushSession",
               ],
@@ -403,8 +408,11 @@ const state = createState({
     isPointedShapeSelected(data) {
       return data.selectedIds.has(data.pointedId)
     },
-    isPressingShiftKey(data, payload: { shiftKey: boolean }) {
+    isPressingShiftKey(data, payload: PointerInfo) {
       return payload.shiftKey
+    },
+    isPressingMetaKey(data, payload: PointerInfo) {
+      return payload.metaKey
     },
     shapeIsHovered(data, payload: { target: string }) {
       return data.hoveredId === payload.target
@@ -543,7 +551,6 @@ const state = createState({
       )
     },
     updateTranslateSession(data, payload: PointerInfo) {
-      console.log(payload.altKey)
       session.update(
         data,
         screenToWorld(payload.point, data),

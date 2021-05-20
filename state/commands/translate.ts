@@ -24,9 +24,14 @@ export default function translateCommand(
 
         data.selectedIds.clear()
 
-        for (let id in initialShapes) {
-          shapes[id].point = initialShapes[id].point
-          shapes[clones[id].id] = clones[id]
+        if (isCloning) {
+          for (const clone of clones) {
+            shapes[clone.id] = clone
+          }
+        }
+
+        for (const { id, point } of initialShapes) {
+          shapes[id].point = point
           data.selectedIds.add(id)
         }
       },
@@ -36,14 +41,15 @@ export default function translateCommand(
 
         data.selectedIds.clear()
 
-        for (let id in initialShapes) {
-          shapes[id].point = initialShapes[id].point
-          data.selectedIds.add(id)
-
-          if (isCloning) {
-            const clone = clones[id]
-            delete shapes[clone.id]
+        if (isCloning) {
+          for (const { id } of clones) {
+            delete shapes[id]
           }
+        }
+
+        for (const { id, point } of initialShapes) {
+          shapes[id].point = point
+          data.selectedIds.add(id)
         }
       },
     })
