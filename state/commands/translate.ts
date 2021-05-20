@@ -19,16 +19,14 @@ export default function translateCommand(
         if (initial) return
 
         const { shapes } = data.document.pages[after.currentPageId]
-        const { initialShapes, clones } = after
+        const { initialShapes } = after
+        const { clones } = before // !
 
         data.selectedIds.clear()
 
         for (let id in initialShapes) {
-          if (isCloning) {
-            shapes[id] = initialShapes[id]
-          } else {
-            shapes[id].point = initialShapes[id].point
-          }
+          shapes[id].point = initialShapes[id].point
+          shapes[clones[id].id] = clones[id]
           data.selectedIds.add(id)
         }
       },

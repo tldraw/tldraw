@@ -115,23 +115,16 @@ const state = createState({
                   "setPointedId",
                   {
                     if: "isPressingShiftKey",
-                    then: {
-                      if: "isPointedShapeSelected",
-                      do: "pullPointedIdFromSelectedIds",
-                      else: {
-                        do: "pushPointedIdToSelectedIds",
-                        to: "pointingBounds",
-                      },
-                    },
-                    else: [
-                      {
-                        unless: "isPointedShapeSelected",
-                        do: ["clearSelectedIds", "pushPointedIdToSelectedIds"],
-                      },
-                      {
-                        to: "pointingBounds",
-                      },
-                    ],
+                    unless: "isPointedShapeSelected",
+                    do: ["pushPointedIdToSelectedIds", "clearPointedId"],
+                    to: "pointingBounds",
+                  },
+                  {
+                    unless: "isPointedShapeSelected",
+                    do: ["clearSelectedIds", "pushPointedIdToSelectedIds"],
+                  },
+                  {
+                    to: "pointingBounds",
                   },
                 ],
               },
@@ -140,8 +133,15 @@ const state = createState({
               on: {
                 STOPPED_POINTING: [
                   {
-                    unless: ["isPointingBounds", "isPressingShiftKey"],
-                    do: ["clearSelectedIds", "pushPointedIdToSelectedIds"],
+                    if: "isPressingShiftKey",
+                    then: {
+                      if: "isPointedShapeSelected",
+                      do: "pullPointedIdFromSelectedIds",
+                    },
+                    else: {
+                      if: "isPointingBounds",
+                      do: ["clearSelectedIds", "pushPointedIdToSelectedIds"],
+                    },
                   },
                   { to: "notPointing" },
                 ],
@@ -175,8 +175,10 @@ const state = createState({
               on: {
                 MOVED_POINTER: "updateTranslateSession",
                 PANNED_CAMERA: "updateTranslateSession",
-                PRESSED_ALT_KEY: "updateCloningTranslateSession",
-                RELEASED_ALT_KEY: "updateCloningTranslateSession",
+                PRESSED_SHIFT_KEY: "keyUpdateTranslateSession",
+                RELEASED_SHIFT_KEY: "keyUpdateTranslateSession",
+                PRESSED_ALT_KEY: "keyUpdateTranslateSession",
+                RELEASED_ALT_KEY: "keyUpdateTranslateSession",
                 STOPPED_POINTING: { do: "completeSession", to: "selecting" },
                 CANCELLED: { do: "cancelSession", to: "selecting" },
               },
@@ -525,18 +527,29 @@ const state = createState({
     startTranslateSession(data, payload: PointerInfo) {
       session = new Sessions.TranslateSession(
         data,
-        screenToWorld(payload.point, data)
+        screenToWorld(payload.point, data),
+        payload.altKey
       )
     },
-    updateCloningTranslateSession(data, payload: { altKey: boolean }) {
+    keyUpdateTranslateSession(
+      data,
+      payload: { shiftKey: boolean; altKey: boolean }
+    ) {
       session.update(
         data,
         screenToWorld(inputs.pointer.point, data),
+        payload.shiftKey,
         payload.altKey
       )
     },
     updateTranslateSession(data, payload: PointerInfo) {
-      session.update(data, screenToWorld(payload.point, data), payload.altKey)
+      console.log(payload.altKey)
+      session.update(
+        data,
+        screenToWorld(payload.point, data),
+        payload.shiftKey,
+        payload.altKey
+      )
     },
 
     // Dragging / Translating
@@ -761,6 +774,12 @@ const state = createState({
       if (selectedIds.size === 0) return null
 
       if (selectedIds.size === 1) {
+        if (!shapes[0]) {
+          console.error("Could not find that shape! Clearing selected IDs.")
+          data.selectedIds.clear()
+          return null
+        }
+
         const shapeUtils = getShapeUtils(shapes[0])
         if (!shapeUtils.canTransform) return null
         return shapeUtils.getBounds(shapes[0])

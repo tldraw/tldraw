@@ -15,7 +15,11 @@ export default function useKeyboardEvents() {
         }
       }
 
-      if (e.altKey) {
+      if (e.key === "Shift") {
+        state.send("PRESSED_SHIFT_KEY", getKeyboardEventInfo(e))
+      }
+
+      if (e.key === "Alt") {
         state.send("PRESSED_ALT_KEY", getKeyboardEventInfo(e))
       }
 
@@ -66,12 +70,12 @@ export default function useKeyboardEvents() {
     }
 
     function handleKeyUp(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        state.send("CANCELLED")
+      if (e.key === "Shift") {
+        state.send("RELEASED_SHIFT_KEY", getKeyboardEventInfo(e))
       }
 
-      if (e.altKey) {
-        state.send("RELEASED_ALT_KEY")
+      if (e.key === "Alt") {
+        state.send("RELEASED_ALT_KEY", getKeyboardEventInfo(e))
       }
 
       state.send("RELEASED_KEY", getKeyboardEventInfo(e))
