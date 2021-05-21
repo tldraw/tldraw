@@ -32,7 +32,7 @@ export default class TransformSingleSession extends BaseSession {
     this.isCreating = isCreating
   }
 
-  update(data: Data, point: number[]) {
+  update(data: Data, point: number[], isAspectRatioLocked = false) {
     const { transformType } = this
 
     const { initialShapeBounds, currentPageId, initialShape, id } =
@@ -44,7 +44,8 @@ export default class TransformSingleSession extends BaseSession {
       initialShapeBounds,
       transformType,
       vec.vec(this.origin, point),
-      shape.rotation
+      shape.rotation,
+      isAspectRatioLocked
     )
 
     this.scaleX = newBoundingBox.scaleX

@@ -1043,25 +1043,44 @@ export function getRotatedCorners(b: Bounds, rotation: number) {
 
 export function getTransformedBoundingBox(
   bounds: Bounds,
-  handle: TransformCorner | TransformEdge,
+  handle: TransformCorner | TransformEdge | "center",
   delta: number[],
-  rotation = 0
+  rotation = 0,
+  isAspectRatioLocked = false
 ) {
   // Create top left and bottom right corners.
   let [ax0, ay0] = [bounds.minX, bounds.minY]
   let [ax1, ay1] = [bounds.maxX, bounds.maxY]
 
-  // Create a second set of corners for the result.
+  // Create a second set of corners for the new box.
   let [bx0, by0] = [bounds.minX, bounds.minY]
   let [bx1, by1] = [bounds.maxX, bounds.maxY]
 
+  // If the drag is on the center, just translate the bounds.
+  if (handle === "center") {
+    return {
+      minX: bx0 + delta[0],
+      minY: by0 + delta[1],
+      maxX: bx1 + delta[0],
+      maxY: by1 + delta[1],
+      width: bx1 - bx0,
+      height: by1 - by0,
+      scaleX: 1,
+      scaleY: 1,
+    }
+  }
+
   // Counter rotate the delta. This lets us make changes as if
   // the (possibly rotated) boxes were axis aligned.
-  const [dx, dy] = vec.rot(delta, -rotation)
+  let [dx, dy] = vec.rot(delta, -rotation)
 
-  // Depending on the dragging handle (an edge or corner of
-  // the bounding box), use the delta to adjust the result's corners.
+  /*
+  1. Delta
 
+  Use the delta to adjust the new box by changing its corners.
+  The dragging handle (corner or edge) will determine which 
+  corners should change.
+  */
   switch (handle) {
     case TransformEdge.Top:
     case TransformCorner.TopLeft:
@@ -1092,10 +1111,76 @@ export function getTransformedBoundingBox(
     }
   }
 
-  // If the bounds are rotated, get a vector from the rotated anchor
-  // corner in the inital bounds to the rotated anchor corner in the
-  // result's bounds. Subtract this vector from the result's corners,
-  // so that the two anchor points (initial and result) will be equal.
+  const aw = ax1 - ax0
+  const ah = ay1 - ay0
+
+  const scaleX = (bx1 - bx0) / aw
+  const scaleY = (by1 - by0) / ah
+
+  const bw = Math.abs(bx1 - bx0)
+  const bh = Math.abs(by1 - by0)
+
+  /*
+  2. Aspect ratio
+
+  If the aspect ratio is locked, adjust the corners so that the
+  new box's aspect ratio matches the original aspect ratio.
+  */
+
+  if (isAspectRatioLocked) {
+    const ar = aw / ah
+    const isTall = ar < bw / bh
+    const tw = bw * (scaleY < 0 ? 1 : -1) * (1 / ar)
+    const th = bh * (scaleX < 0 ? 1 : -1) * ar
+
+    switch (handle) {
+      case TransformCorner.TopLeft: {
+        if (isTall) by0 = by1 + tw
+        else bx0 = bx1 + th
+        break
+      }
+      case TransformCorner.TopRight: {
+        if (isTall) by0 = by1 + tw
+        else bx1 = bx0 - th
+        break
+      }
+      case TransformCorner.BottomRight: {
+        if (isTall) by1 = by0 - tw
+        else bx1 = bx0 - th
+        break
+      }
+      case TransformCorner.BottomLeft: {
+        if (isTall) by1 = by0 - tw
+        else bx0 = bx1 + th
+        break
+      }
+      case TransformEdge.Bottom:
+      case TransformEdge.Top: {
+        const m = (bx0 + bx1) / 2
+        const w = bh * ar
+        bx0 = m - w / 2
+        bx1 = m + w / 2
+        break
+      }
+      case TransformEdge.Left:
+      case TransformEdge.Right: {
+        const m = (by0 + by1) / 2
+        const h = bw / ar
+        by0 = m - h / 2
+        by1 = m + h / 2
+        break
+      }
+    }
+  }
+
+  /*
+  3. Rotation
+
+  If the bounds are rotated, get a vector from the rotated anchor
+  corner in the inital bounds to the rotated anchor corner in the
+  result's bounds. Subtract this vector from the result's corners,
+  so that the two anchor points (initial and result) will be equal.
+  */
 
   if (rotation % (Math.PI * 2) !== 0) {
     let cv = [0, 0]
@@ -1104,9 +1189,7 @@ export function getTransformedBoundingBox(
     const c1 = vec.med([bx0, by0], [bx1, by1])
 
     switch (handle) {
-      case TransformCorner.TopLeft:
-      case TransformEdge.Top:
-      case TransformEdge.Left: {
+      case TransformCorner.TopLeft: {
         cv = vec.sub(
           vec.rotWith([bx1, by1], c1, rotation),
           vec.rotWith([ax1, ay1], c0, rotation)
@@ -1120,9 +1203,7 @@ export function getTransformedBoundingBox(
         )
         break
       }
-      case TransformCorner.BottomRight:
-      case TransformEdge.Bottom:
-      case TransformEdge.Right: {
+      case TransformCorner.BottomRight: {
         cv = vec.sub(
           vec.rotWith([bx0, by0], c1, rotation),
           vec.rotWith([ax0, ay0], c0, rotation)
@@ -1136,17 +1217,46 @@ export function getTransformedBoundingBox(
         )
         break
       }
+      case TransformEdge.Top: {
+        cv = vec.sub(
+          vec.rotWith(vec.med([bx0, by1], [bx1, by1]), c1, rotation),
+          vec.rotWith(vec.med([ax0, ay1], [ax1, ay1]), c0, rotation)
+        )
+        break
+      }
+      case TransformEdge.Left: {
+        cv = vec.sub(
+          vec.rotWith(vec.med([bx1, by0], [bx1, by1]), c1, rotation),
+          vec.rotWith(vec.med([ax1, ay0], [ax1, ay1]), c0, rotation)
+        )
+        break
+      }
+      case TransformEdge.Bottom: {
+        cv = vec.sub(
+          vec.rotWith(vec.med([bx0, by0], [bx1, by0]), c1, rotation),
+          vec.rotWith(vec.med([ax0, ay0], [ax1, ay0]), c0, rotation)
+        )
+        break
+      }
+      case TransformEdge.Right: {
+        cv = vec.sub(
+          vec.rotWith(vec.med([bx0, by0], [bx0, by1]), c1, rotation),
+          vec.rotWith(vec.med([ax0, ay0], [ax0, ay1]), c0, rotation)
+        )
+        break
+      }
     }
 
     ;[bx0, by0] = vec.sub([bx0, by0], cv)
     ;[bx1, by1] = vec.sub([bx1, by1], cv)
   }
 
-  // If the axes are flipped (e.g. if the right edge has been dragged
-  // left past the initial left edge) then swap points on that axis.
+  /*
+  4. Flips
 
-  let scaleX = (bx1 - bx0) / (ax1 - ax0)
-  let scaleY = (by1 - by0) / (ay1 - ay0)
+  If the axes are flipped (e.g. if the right edge has been dragged
+  left past the initial left edge) then swap points on that axis.
+  */
 
   if (bx1 < bx0) {
     ;[bx1, bx0] = [bx0, bx1]

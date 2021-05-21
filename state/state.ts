@@ -168,6 +168,8 @@ const state = createState({
               on: {
                 MOVED_POINTER: "updateTransformSession",
                 PANNED_CAMERA: "updateTransformSession",
+                PRESSED_SHIFT_KEY: "keyUpdateTransformSession",
+                RELEASED_SHIFT_KEY: "keyUpdateTransformSession",
                 STOPPED_POINTING: { do: "completeSession", to: "selecting" },
                 CANCELLED: { do: "cancelSession", to: "selecting" },
               },
@@ -569,7 +571,8 @@ const state = createState({
           ? new Sessions.TransformSingleSession(
               data,
               payload.target,
-              screenToWorld(payload.point, data)
+              screenToWorld(payload.point, data),
+              false
             )
           : new Sessions.TransformSession(
               data,
@@ -585,8 +588,21 @@ const state = createState({
         true
       )
     },
+    keyUpdateTransformSession(data, payload: PointerInfo) {
+      session.update(
+        data,
+        screenToWorld(inputs.pointer.point, data),
+        payload.shiftKey,
+        payload.altKey
+      )
+    },
     updateTransformSession(data, payload: PointerInfo) {
-      session.update(data, screenToWorld(payload.point, data))
+      session.update(
+        data,
+        screenToWorld(payload.point, data),
+        payload.shiftKey,
+        payload.altKey
+      )
     },
 
     // Direction
