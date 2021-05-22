@@ -66,19 +66,6 @@ export default class TransformSession extends BaseSession {
 
       const shape = shapes[id]
 
-      // const transformOrigins = {
-      //   [Edge.Top]: [0.5, 1],
-      //   [Edge.Right]: [0, 0.5],
-      //   [Edge.Bottom]: [0.5, 0],
-      //   [Edge.Left]: [1, 0.5],
-      //   [Corner.TopLeft]: [1, 1],
-      //   [Corner.TopRight]: [0, 1],
-      //   [Corner.BottomLeft]: [1, 0],
-      //   [Corner.BottomRight]: [0, 0],
-      // }
-
-      // const origin = transformOrigins[this.transformType]
-
       getShapeUtils(shape).transform(shape, newShapeBounds, {
         type: this.transformType,
         initialShape,
@@ -177,3 +164,16 @@ export function getTransformSnapshot(
 }
 
 export type TransformSnapshot = ReturnType<typeof getTransformSnapshot>
+
+// const transformOrigins = {
+//   [Edge.Top]: [0.5, 1],
+//   [Edge.Right]: [0, 0.5],
+//   [Edge.Bottom]: [0.5, 0],
+//   [Edge.Left]: [1, 0.5],
+//   [Corner.TopLeft]: [1, 1],
+//   [Corner.TopRight]: [0, 1],
+//   [Corner.BottomLeft]: [1, 0],
+//   [Corner.BottomRight]: [0, 0],
+// }
+
+// const origin = transformOrigins[this.transformType]

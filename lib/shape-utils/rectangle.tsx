@@ -1,14 +1,11 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
-import { RectangleShape, ShapeType, Corner, Edge } from "types"
+import { RectangleShape, ShapeType } from "types"
 import { registerShapeUtils } from "./index"
 import { boundsCollidePolygon, boundsContainPolygon } from "utils/bounds"
 import {
   getBoundsFromPoints,
   getRotatedCorners,
-  getRotatedSize,
-  lerp,
-  rotateBounds,
   translateBounds,
 } from "utils/utils"
 
@@ -98,16 +95,9 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
   transform(shape, bounds, { initialShape, transformOrigin, scaleX, scaleY }) {
     if (shape.rotation === 0) {
-      shape.size = [bounds.width, bounds.height]
       shape.point = [bounds.minX, bounds.minY]
+      shape.size = [bounds.width, bounds.height]
     } else {
-      // Size
-      shape.size = vec.mul(
-        initialShape.size,
-        Math.min(Math.abs(scaleX), Math.abs(scaleY))
-      )
-
-      // Point
       shape.point = [
         bounds.minX +
           (bounds.width - shape.size[0]) *
@@ -117,7 +107,11 @@ const rectangle = registerShapeUtils<RectangleShape>({
             (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
       ]
 
-      // Rotation
+      shape.size = vec.mul(
+        initialShape.size,
+        Math.min(Math.abs(scaleX), Math.abs(scaleY))
+      )
+
       shape.rotation =
         (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0)
           ? -initialShape.rotation
