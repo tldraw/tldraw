@@ -95,9 +95,14 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
   transform(shape, bounds, { initialShape, transformOrigin, scaleX, scaleY }) {
     if (shape.rotation === 0) {
-      shape.point = [bounds.minX, bounds.minY]
       shape.size = [bounds.width, bounds.height]
+      shape.point = [bounds.minX, bounds.minY]
     } else {
+      shape.size = vec.mul(
+        initialShape.size,
+        Math.min(Math.abs(scaleX), Math.abs(scaleY))
+      )
+
       shape.point = [
         bounds.minX +
           (bounds.width - shape.size[0]) *
@@ -106,11 +111,6 @@ const rectangle = registerShapeUtils<RectangleShape>({
           (bounds.height - shape.size[1]) *
             (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
       ]
-
-      shape.size = vec.mul(
-        initialShape.size,
-        Math.min(Math.abs(scaleX), Math.abs(scaleY))
-      )
 
       shape.rotation =
         (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0)
