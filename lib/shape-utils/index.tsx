@@ -4,8 +4,8 @@ import {
   Shape,
   Shapes,
   ShapeType,
-  TransformCorner,
-  TransformEdge,
+  Corner,
+  Edge,
 } from "types"
 import circle from "./circle"
 import dot from "./dot"
@@ -60,10 +60,11 @@ export interface ShapeUtility<K extends Shape> {
     shape: K,
     bounds: Bounds,
     info: {
-      type: TransformEdge | TransformCorner | "center"
+      type: Edge | Corner | "center"
       initialShape: K
       scaleX: number
       scaleY: number
+      transformOrigin: number[]
     }
   ): K
 
@@ -72,10 +73,11 @@ export interface ShapeUtility<K extends Shape> {
     shape: K,
     bounds: Bounds,
     info: {
-      type: TransformEdge | TransformCorner | "center"
+      type: Edge | Corner | "center"
       initialShape: K
       scaleX: number
       scaleY: number
+      transformOrigin: number[]
     }
   ): K
 

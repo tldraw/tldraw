@@ -1,14 +1,9 @@
 import { current } from "immer"
-import { ShapeUtil, Bounds, Data, Shapes } from "types"
+import { Bounds, Data } from "types"
 import BaseSession from "./base-session"
-import shapes, { getShapeUtils } from "lib/shape-utils"
-import { getBoundsFromPoints } from "utils/utils"
+import { getShapeUtils } from "lib/shape-utils"
+import { getBoundsFromPoints, getShapes } from "utils/utils"
 import * as vec from "utils/vec"
-
-interface BrushSnapshot {
-  selectedIds: Set<string>
-  shapes: { id: string; test: (bounds: Bounds) => boolean }[]
-}
 
 export default class BrushSession extends BaseSession {
   origin: number[]
@@ -19,7 +14,7 @@ export default class BrushSession extends BaseSession {
 
     this.origin = vec.round(point)
 
-    this.snapshot = BrushSession.getSnapshot(data)
+    this.snapshot = getBrushSnapshot(data)
   }
 
   update = (data: Data, point: number[]) => {
@@ -27,7 +22,8 @@ export default class BrushSession extends BaseSession {
 
     const brushBounds = getBoundsFromPoints([origin, point])
 
-    for (let { test, id } of snapshot.shapes) {
+    for (let id in snapshot.shapeHitTests) {
+      const test = snapshot.shapeHitTests[id]
       if (test(brushBounds)) {
         data.selectedIds.add(id)
       } else if (data.selectedIds.has(id)) {
@@ -46,30 +42,23 @@ export default class BrushSession extends BaseSession {
   complete = (data: Data) => {
     data.brush = undefined
   }
+}
 
-  /**
-   * Get a snapshot of the current selected ids, for each shape that is
-   * not already selected, the shape's id and a test to see whether the
-   * brush will intersect that shape. For tests, start broad -> fine.
-   * @param data
-   * @returns
-   */
-  static getSnapshot(data: Data): BrushSnapshot {
-    const {
-      selectedIds,
-      document: { pages },
-      currentPageId,
-    } = current(data)
-
-    return {
-      selectedIds: new Set(data.selectedIds),
-      shapes: Object.values(pages[currentPageId].shapes)
-        .filter((shape) => !selectedIds.has(shape.id))
-        .map((shape) => ({
-          id: shape.id,
-          test: (brushBounds: Bounds): boolean =>
-            getShapeUtils(shape).hitTestBounds(shape, brushBounds),
-        })),
-    }
+/**
+ * Get a snapshot of the current selected ids, for each shape that is
+ * not already selected, the shape's id and a test to see whether the
+ * brush will intersect that shape. For tests, start broad -> fine.
+ */
+export function getBrushSnapshot(data: Data) {
+  return {
+    selectedIds: new Set(data.selectedIds),
+    shapeHitTests: Object.fromEntries(
+      getShapes(current(data)).map((shape) => [
+        shape.id,
+        (bounds: Bounds) => getShapeUtils(shape).hitTestBounds(shape, bounds),
+      ])
+    ),
   }
 }
+
+export type BrushSnapshot = ReturnType<typeof getBrushSnapshot>

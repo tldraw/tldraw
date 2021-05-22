@@ -2,6 +2,7 @@ import Command from "./command"
 import history from "../history"
 import { TranslateSnapshot } from "state/sessions/translate-session"
 import { Data } from "types"
+import { getPage } from "utils/utils"
 
 export default function translateCommand(
   data: Data,
@@ -18,8 +19,8 @@ export default function translateCommand(
       do(data, initial) {
         if (initial) return
 
-        const { shapes } = data.document.pages[after.currentPageId]
-        const { initialShapes } = after
+        const { initialShapes, currentPageId } = after
+        const { shapes } = getPage(data, currentPageId)
         const { clones } = before // !
 
         data.selectedIds.clear()
@@ -36,8 +37,8 @@ export default function translateCommand(
         }
       },
       undo(data) {
-        const { shapes } = data.document.pages[before.currentPageId]
-        const { initialShapes, clones } = before
+        const { initialShapes, clones, currentPageId } = before
+        const { shapes } = getPage(data, currentPageId)
 
         data.selectedIds.clear()
 

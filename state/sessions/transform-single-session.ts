@@ -1,4 +1,4 @@
-import { Data, TransformEdge, TransformCorner } from "types"
+import { Data, Edge, Corner } from "types"
 import * as vec from "utils/vec"
 import BaseSession from "./base-session"
 import commands from "state/commands"
@@ -9,10 +9,13 @@ import {
   getCommonBounds,
   getRotatedCorners,
   getTransformAnchor,
+  getPage,
+  getShape,
+  getSelectedShapes,
 } from "utils/utils"
 
 export default class TransformSingleSession extends BaseSession {
-  transformType: TransformEdge | TransformCorner
+  transformType: Edge | Corner
   origin: number[]
   scaleX = 1
   scaleY = 1
@@ -21,7 +24,7 @@ export default class TransformSingleSession extends BaseSession {
 
   constructor(
     data: Data,
-    transformType: TransformCorner | TransformEdge,
+    transformType: Corner | Edge,
     point: number[],
     isCreating = false
   ) {
@@ -38,7 +41,7 @@ export default class TransformSingleSession extends BaseSession {
     const { initialShapeBounds, currentPageId, initialShape, id } =
       this.snapshot
 
-    const shape = data.document.pages[currentPageId].shapes[id]
+    const shape = getShape(data, id, currentPageId)
 
     const newBoundingBox = getTransformedBoundingBox(
       initialShapeBounds,
@@ -56,6 +59,7 @@ export default class TransformSingleSession extends BaseSession {
       type: this.transformType,
       scaleX: this.scaleX,
       scaleY: this.scaleY,
+      transformOrigin: [0.5, 0.5],
     })
   }
 
@@ -63,15 +67,14 @@ export default class TransformSingleSession extends BaseSession {
     const { id, initialShape, initialShapeBounds, currentPageId } =
       this.snapshot
 
-    const { shapes } = data.document.pages[currentPageId]
-
-    const shape = shapes[id]
+    const shape = getShape(data, id, currentPageId)
 
     getShapeUtils(shape).transform(shape, initialShapeBounds, {
       initialShape,
       type: this.transformType,
       scaleX: this.scaleX,
       scaleY: this.scaleY,
+      transformOrigin: [0.5, 0.5],
     })
   }
 
@@ -89,21 +92,14 @@ export default class TransformSingleSession extends BaseSession {
 
 export function getTransformSingleSnapshot(
   data: Data,
-  transformType: TransformEdge | TransformCorner
+  transformType: Edge | Corner
 ) {
-  const {
-    document: { pages },
-    selectedIds,
-    currentPageId,
-  } = current(data)
-
-  const id = Array.from(selectedIds)[0]
-  const shape = pages[currentPageId].shapes[id]
+  const shape = getSelectedShapes(current(data))[0]
   const bounds = getShapeUtils(shape).getBounds(shape)
 
   return {
-    id,
-    currentPageId,
+    id: shape.id,
+    currentPageId: data.currentPageId,
     type: transformType,
     initialShape: shape,
     initialShapeBounds: bounds,

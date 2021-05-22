@@ -1,16 +1,13 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
-import {
-  RectangleShape,
-  ShapeType,
-  TransformCorner,
-  TransformEdge,
-} from "types"
+import { RectangleShape, ShapeType, Corner, Edge } from "types"
 import { registerShapeUtils } from "./index"
 import { boundsCollidePolygon, boundsContainPolygon } from "utils/bounds"
 import {
   getBoundsFromPoints,
   getRotatedCorners,
+  getRotatedSize,
+  lerp,
   rotateBounds,
   translateBounds,
 } from "utils/utils"
@@ -99,27 +96,33 @@ const rectangle = registerShapeUtils<RectangleShape>({
     return shape
   },
 
-  transform(shape, bounds, { initialShape, scaleX, scaleY }) {
+  transform(shape, bounds, { initialShape, transformOrigin, scaleX, scaleY }) {
     if (shape.rotation === 0) {
       shape.size = [bounds.width, bounds.height]
       shape.point = [bounds.minX, bounds.minY]
     } else {
-      // Center shape in resized bounds
+      // Size
       shape.size = vec.mul(
         initialShape.size,
         Math.min(Math.abs(scaleX), Math.abs(scaleY))
       )
 
-      shape.point = vec.sub(
-        vec.med([bounds.minX, bounds.minY], [bounds.maxX, bounds.maxY]),
-        vec.div(shape.size, 2)
-      )
-    }
+      // Point
+      shape.point = [
+        bounds.minX +
+          (bounds.width - shape.size[0]) *
+            (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
+        bounds.minY +
+          (bounds.height - shape.size[1]) *
+            (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
+      ]
 
-    // Set rotation for flipped shapes
-    shape.rotation = initialShape.rotation
-    if (scaleX < 0) shape.rotation *= -1
-    if (scaleY < 0) shape.rotation *= -1
+      // Rotation
+      shape.rotation =
+        (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0)
+          ? -initialShape.rotation
+          : initialShape.rotation
+    }
 
     return shape
   },

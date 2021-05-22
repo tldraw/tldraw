@@ -3,6 +3,7 @@ import * as vec from "utils/vec"
 import BaseSession from "./base-session"
 import commands from "state/commands"
 import { current } from "immer"
+import { getPage } from "utils/utils"
 
 export default class DirectionSession extends BaseSession {
   delta = [0, 0]
@@ -16,26 +17,22 @@ export default class DirectionSession extends BaseSession {
   }
 
   update(data: Data, point: number[]) {
-    const { currentPageId, shapes } = this.snapshot
-    const { document } = data
+    const { shapes } = this.snapshot
+
+    const page = getPage(data)
 
     for (let { id } of shapes) {
-      const shape = document.pages[currentPageId].shapes[id] as
-        | RayShape
-        | LineShape
+      const shape = page.shapes[id] as RayShape | LineShape
 
       shape.direction = vec.uni(vec.vec(shape.point, point))
     }
   }
 
   cancel(data: Data) {
-    const { document } = data
+    const page = getPage(data, this.snapshot.currentPageId)
 
     for (let { id, direction } of this.snapshot.shapes) {
-      const shape = document.pages[this.snapshot.currentPageId].shapes[id] as
-        | RayShape
-        | LineShape
-
+      const shape = page.shapes[id] as RayShape | LineShape
       shape.direction = direction
     }
   }
@@ -46,12 +43,7 @@ export default class DirectionSession extends BaseSession {
 }
 
 export function getDirectionSnapshot(data: Data) {
-  const {
-    document: { pages },
-    currentPageId,
-  } = current(data)
-
-  const { shapes } = pages[currentPageId]
+  const { shapes } = getPage(current(data))
 
   let snapshapes: { id: string; direction: number[] }[] = []
 
@@ -63,7 +55,7 @@ export function getDirectionSnapshot(data: Data) {
   })
 
   return {
-    currentPageId,
+    currentPageId: data.currentPageId,
     shapes: snapshapes,
   }
 }

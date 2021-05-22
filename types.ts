@@ -146,14 +146,14 @@ export interface PointerInfo {
   altKey: boolean
 }
 
-export enum TransformEdge {
+export enum Edge {
   Top = "top_edge",
   Right = "right_edge",
   Bottom = "bottom_edge",
   Left = "left_edge",
 }
 
-export enum TransformCorner {
+export enum Corner {
   TopLeft = "top_left_corner",
   TopRight = "top_right_corner",
   BottomRight = "bottom_right_corner",

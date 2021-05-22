@@ -3,6 +3,7 @@ import state, { useSelector } from "state"
 import inputs from "state/inputs"
 import { getShapeUtils } from "lib/shape-utils"
 import styled from "styles"
+import { getPage } from "utils/utils"
 
 function Shape({ id }: { id: string }) {
   const rGroup = useRef<SVGGElement>(null)
@@ -11,9 +12,7 @@ function Shape({ id }: { id: string }) {
 
   const isSelected = useSelector((state) => state.values.selectedIds.has(id))
 
-  const shape = useSelector(
-    ({ data }) => data.document.pages[data.currentPageId].shapes[id]
-  )
+  const shape = useSelector(({ data }) => getPage(data).shapes[id])
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {

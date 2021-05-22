@@ -1,13 +1,19 @@
 import { createSelectorHook, createState } from "@state-designer/react"
-import { clamp, getCommonBounds, screenToWorld } from "utils/utils"
+import {
+  clamp,
+  getCommonBounds,
+  getPage,
+  getShape,
+  screenToWorld,
+} from "utils/utils"
 import * as vec from "utils/vec"
 import {
   Data,
   PointerInfo,
   Shape,
   ShapeType,
-  TransformCorner,
-  TransformEdge,
+  Corner,
+  Edge,
   CodeControl,
 } from "types"
 import inputs from "./inputs"
@@ -99,9 +105,11 @@ const state = createState({
                 SELECTED_ALL: "selectAll",
                 POINTED_CANVAS: { to: "brushSelecting" },
                 POINTED_BOUNDS: { to: "pointingBounds" },
-                POINTED_BOUNDS_EDGE: { to: "transformingSelection" },
-                POINTED_BOUNDS_CORNER: { to: "transformingSelection" },
-                POINTED_ROTATE_HANDLE: { to: "rotatingSelection" },
+                POINTED_BOUNDS_HANDLE: {
+                  if: "isPointingRotationHandle",
+                  to: "rotatingSelection",
+                  else: { to: "transformingSelection" },
+                },
                 MOVED_OVER_SHAPE: {
                   if: "pointHitsShape",
                   then: {
@@ -156,9 +164,12 @@ const state = createState({
             },
             rotatingSelection: {
               onEnter: "startRotateSession",
+              onExit: "clearBoundsRotation",
               on: {
                 MOVED_POINTER: "updateRotateSession",
                 PANNED_CAMERA: "updateRotateSession",
+                PRESSED_SHIFT_KEY: "keyUpdateRotateSession",
+                RELEASED_SHIFT_KEY: "keyUpdateRotateSession",
                 STOPPED_POINTING: { do: "completeSession", to: "selecting" },
                 CANCELLED: { do: "cancelSession", to: "selecting" },
               },
@@ -420,13 +431,18 @@ const state = createState({
       return data.hoveredId === payload.target
     },
     pointHitsShape(data, payload: { target: string; point: number[] }) {
-      const shape =
-        data.document.pages[data.currentPageId].shapes[payload.target]
+      const shape = getShape(data, payload.target)
 
       return getShapeUtils(shape).hitTest(
         shape,
         screenToWorld(payload.point, data)
       )
+    },
+    isPointingRotationHandle(
+      data,
+      payload: { target: Edge | Corner | "rotate" }
+    ) {
+      return payload.target === "rotate"
     },
   },
   actions: {
@@ -438,7 +454,7 @@ const state = createState({
         point: screenToWorld(payload.point, data),
       })
 
-      data.document.pages[data.currentPageId].shapes[shape.id] = shape
+      getPage(data).shapes[shape.id] = shape
       data.selectedIds.clear()
       data.selectedIds.add(shape.id)
     },
@@ -449,7 +465,7 @@ const state = createState({
         point: screenToWorld(payload.point, data),
       })
 
-      data.document.pages[data.currentPageId].shapes[shape.id] = shape
+      getPage(data).shapes[shape.id] = shape
       data.selectedIds.clear()
       data.selectedIds.add(shape.id)
     },
@@ -461,7 +477,7 @@ const state = createState({
         direction: [0, 1],
       })
 
-      data.document.pages[data.currentPageId].shapes[shape.id] = shape
+      getPage(data).shapes[shape.id] = shape
       data.selectedIds.clear()
       data.selectedIds.add(shape.id)
     },
@@ -472,7 +488,7 @@ const state = createState({
         radius: 1,
       })
 
-      data.document.pages[data.currentPageId].shapes[shape.id] = shape
+      getPage(data).shapes[shape.id] = shape
       data.selectedIds.clear()
       data.selectedIds.add(shape.id)
     },
@@ -484,7 +500,7 @@ const state = createState({
         radiusY: 1,
       })
 
-      data.document.pages[data.currentPageId].shapes[shape.id] = shape
+      getPage(data).shapes[shape.id] = shape
       data.selectedIds.clear()
       data.selectedIds.add(shape.id)
     },
@@ -495,7 +511,7 @@ const state = createState({
         size: [1, 1],
       })
 
-      data.document.pages[data.currentPageId].shapes[shape.id] = shape
+      getPage(data).shapes[shape.id] = shape
       data.selectedIds.clear()
       data.selectedIds.add(shape.id)
     },
@@ -529,8 +545,15 @@ const state = createState({
         screenToWorld(payload.point, data)
       )
     },
+    keyUpdateRotateSession(data, payload: PointerInfo) {
+      session.update(
+        data,
+        screenToWorld(inputs.pointer.point, data),
+        payload.shiftKey
+      )
+    },
     updateRotateSession(data, payload: PointerInfo) {
-      session.update(data, screenToWorld(payload.point, data))
+      session.update(data, screenToWorld(payload.point, data), payload.shiftKey)
     },
 
     // Dragging / Translating
@@ -564,7 +587,7 @@ const state = createState({
     // Dragging / Translating
     startTransformSession(
       data,
-      payload: PointerInfo & { target: TransformCorner | TransformEdge }
+      payload: PointerInfo & { target: Corner | Edge }
     ) {
       session =
         data.selectedIds.size === 1
@@ -583,7 +606,7 @@ const state = createState({
     startDrawTransformSession(data, payload: PointerInfo) {
       session = new Sessions.TransformSingleSession(
         data,
-        TransformCorner.BottomRight,
+        Corner.BottomRight,
         screenToWorld(payload.point, data),
         true
       )
@@ -619,9 +642,10 @@ const state = createState({
     /* -------------------- Selection ------------------- */
 
     selectAll(data) {
-      const { selectedIds, document, currentPageId } = data
+      const { selectedIds } = data
+      const page = getPage(data)
       selectedIds.clear()
-      for (let id in document.pages[currentPageId].shapes) {
+      for (let id in page.shapes) {
         selectedIds.add(id)
       }
     },
@@ -654,6 +678,14 @@ const state = createState({
 
       document.documentElement.style.setProperty("--camera-zoom", "1")
     },
+    centerCamera(data) {
+      const { shapes } = getPage(data)
+      getCommonBounds()
+      data.camera.zoom = 1
+      data.camera.point = [window.innerWidth / 2, window.innerHeight / 2]
+
+      document.documentElement.style.setProperty("--camera-zoom", "1")
+    },
     zoomCamera(data, payload: { delta: number; point: number[] }) {
       const { camera } = data
       const p0 = screenToWorld(payload.point, data)
@@ -678,18 +710,16 @@ const state = createState({
       )
     },
     deleteSelectedIds(data) {
-      const { document, currentPageId } = data
-      const { shapes } = document.pages[currentPageId]
+      const page = getPage(data)
 
       data.hoveredId = undefined
       data.pointedId = undefined
 
       data.selectedIds.forEach((id) => {
-        delete shapes[id]
+        delete page.shapes[id]
         // TODO: recursively delete children
       })
 
-      data.document.pages[currentPageId].shapes = shapes
       data.selectedIds.clear()
     },
 
@@ -784,14 +814,12 @@ const state = createState({
       return new Set(data.selectedIds)
     },
     selectedBounds(data) {
-      const {
-        selectedIds,
-        currentPageId,
-        document: { pages },
-      } = data
+      const { selectedIds } = data
+
+      const page = getPage(data)
 
       const shapes = Array.from(selectedIds.values())
-        .map((id) => pages[currentPageId].shapes[id])
+        .map((id) => page.shapes[id])
         .filter(Boolean)
 
       if (selectedIds.size === 0) return null

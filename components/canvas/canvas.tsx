@@ -5,8 +5,8 @@ import useCamera from "hooks/useCamera"
 import Page from "./page"
 import Brush from "./brush"
 import state from "state"
-import Bounds from "./bounds"
-import BoundsBg from "./bounds-bg"
+import Bounds from "./bounds/bounding-box"
+import BoundsBg from "./bounds/bounds-bg"
 import inputs from "state/inputs"
 
 export default function Canvas() {

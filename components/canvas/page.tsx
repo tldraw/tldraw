@@ -1,5 +1,5 @@
 import { useSelector } from "state"
-import { deepCompareArrays } from "utils/utils"
+import { deepCompareArrays, getPage } from "utils/utils"
 import Shape from "./shape"
 
 /* 
@@ -10,7 +10,7 @@ here; and still cheaper than any other pattern I've found.
 
 export default function Page() {
   const currentPageShapeIds = useSelector(
-    ({ data }) => Object.keys(data.document.pages[data.currentPageId].shapes),
+    ({ data }) => Object.keys(getPage(data).shapes),
     deepCompareArrays
   )
 

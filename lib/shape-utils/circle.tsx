@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
-import { CircleShape, ShapeType, TransformCorner, TransformEdge } from "types"
+import { CircleShape, ShapeType, Corner, Edge } from "types"
 import { registerShapeUtils } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
@@ -99,7 +99,7 @@ const circle = registerShapeUtils<CircleShape>({
 
     // Set the new corner or position depending on the anchor
     switch (anchor) {
-      case TransformCorner.TopLeft: {
+      case Corner.TopLeft: {
         shape.radius = Math.min(bounds.width, bounds.height) / 2
         shape.point = [
           bounds.maxX - shape.radius * 2,
@@ -107,12 +107,12 @@ const circle = registerShapeUtils<CircleShape>({
         ]
         break
       }
-      case TransformCorner.TopRight: {
+      case Corner.TopRight: {
         shape.radius = Math.min(bounds.width, bounds.height) / 2
         shape.point = [bounds.minX, bounds.maxY - shape.radius * 2]
         break
       }
-      case TransformCorner.BottomRight: {
+      case Corner.BottomRight: {
         shape.radius = Math.min(bounds.width, bounds.height) / 2
         shape.point = [
           bounds.maxX - shape.radius * 2,
@@ -121,12 +121,12 @@ const circle = registerShapeUtils<CircleShape>({
         break
         break
       }
-      case TransformCorner.BottomLeft: {
+      case Corner.BottomLeft: {
         shape.radius = Math.min(bounds.width, bounds.height) / 2
         shape.point = [bounds.maxX - shape.radius * 2, bounds.minY]
         break
       }
-      case TransformEdge.Top: {
+      case Edge.Top: {
         shape.radius = bounds.height / 2
         shape.point = [
           bounds.minX + (bounds.width / 2 - shape.radius),
@@ -134,7 +134,7 @@ const circle = registerShapeUtils<CircleShape>({
         ]
         break
       }
-      case TransformEdge.Right: {
+      case Edge.Right: {
         shape.radius = bounds.width / 2
         shape.point = [
           bounds.maxX - shape.radius * 2,
@@ -142,7 +142,7 @@ const circle = registerShapeUtils<CircleShape>({
         ]
         break
       }
-      case TransformEdge.Bottom: {
+      case Edge.Bottom: {
         shape.radius = bounds.height / 2
         shape.point = [
           bounds.minX + (bounds.width / 2 - shape.radius),
@@ -150,7 +150,7 @@ const circle = registerShapeUtils<CircleShape>({
         ]
         break
       }
-      case TransformEdge.Left: {
+      case Edge.Left: {
         shape.radius = bounds.width / 2
         shape.point = [
           bounds.minX,

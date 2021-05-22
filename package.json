@@ -13,6 +13,7 @@
     "@stitches/react": "^0.1.9",
     "@types/uuid": "^8.3.0",
     "framer-motion": "^4.1.16",
+    "ismobilejs": "^1.1.1",
     "next": "10.2.0",
     "perfect-freehand": "^0.4.7",
     "prettier": "^2.3.0",

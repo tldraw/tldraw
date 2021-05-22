@@ -2,6 +2,7 @@ import Command from "./command"
 import history from "../history"
 import { DirectionSnapshot } from "state/sessions/direction-session"
 import { Data, LineShape, RayShape } from "types"
+import { getPage } from "utils/utils"
 
 export default function directCommand(
   data: Data,
@@ -14,7 +15,7 @@ export default function directCommand(
       name: "set_direction",
       category: "canvas",
       do(data) {
-        const { shapes } = data.document.pages[after.currentPageId]
+        const { shapes } = getPage(data)
 
         for (let { id, direction } of after.shapes) {
           const shape = shapes[id] as RayShape | LineShape
@@ -23,7 +24,7 @@ export default function directCommand(
         }
       },
       undo(data) {
-        const { shapes } = data.document.pages[before.currentPageId]
+        const { shapes } = getPage(data, before.currentPageId)
 
         for (let { id, direction } of after.shapes) {
           const shape = shapes[id] as RayShape | LineShape

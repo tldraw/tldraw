@@ -1,25 +1,29 @@
-import { Data, TransformEdge, TransformCorner } from "types"
+import { Data, Edge, Corner } from "types"
 import * as vec from "utils/vec"
 import BaseSession from "./base-session"
 import commands from "state/commands"
 import { current } from "immer"
 import { getShapeUtils } from "lib/shape-utils"
 import {
+  getBoundsCenter,
+  getBoundsFromPoints,
   getCommonBounds,
+  getPage,
   getRelativeTransformedBoundingBox,
+  getShapes,
   getTransformedBoundingBox,
 } from "utils/utils"
 
 export default class TransformSession extends BaseSession {
   scaleX = 1
   scaleY = 1
-  transformType: TransformEdge | TransformCorner
+  transformType: Edge | Corner | "center"
   origin: number[]
   snapshot: TransformSnapshot
 
   constructor(
     data: Data,
-    transformType: TransformCorner | TransformEdge,
+    transformType: Corner | Edge | "center",
     point: number[]
   ) {
     super(data)
@@ -31,8 +35,9 @@ export default class TransformSession extends BaseSession {
   update(data: Data, point: number[], isAspectRatioLocked = false) {
     const { transformType } = this
 
-    const { currentPageId, selectedIds, shapeBounds, initialBounds } =
-      this.snapshot
+    const { selectedIds, shapeBounds, initialBounds } = this.snapshot
+
+    const { shapes } = getPage(data)
 
     const newBoundingBox = getTransformedBoundingBox(
       initialBounds,
@@ -48,7 +53,8 @@ export default class TransformSession extends BaseSession {
     // Now work backward to calculate a new bounding box for each of the shapes.
 
     selectedIds.forEach((id) => {
-      const { initialShape, initialShapeBounds } = shapeBounds[id]
+      const { initialShape, initialShapeBounds, transformOrigin } =
+        shapeBounds[id]
 
       const newShapeBounds = getRelativeTransformedBoundingBox(
         newBoundingBox,
@@ -58,13 +64,27 @@ export default class TransformSession extends BaseSession {
         this.scaleY < 0
       )
 
-      const shape = data.document.pages[currentPageId].shapes[id]
+      const shape = shapes[id]
+
+      // const transformOrigins = {
+      //   [Edge.Top]: [0.5, 1],
+      //   [Edge.Right]: [0, 0.5],
+      //   [Edge.Bottom]: [0.5, 0],
+      //   [Edge.Left]: [1, 0.5],
+      //   [Corner.TopLeft]: [1, 1],
+      //   [Corner.TopRight]: [0, 1],
+      //   [Corner.BottomLeft]: [1, 0],
+      //   [Corner.BottomRight]: [0, 0],
+      // }
+
+      // const origin = transformOrigins[this.transformType]
 
       getShapeUtils(shape).transform(shape, newShapeBounds, {
         type: this.transformType,
         initialShape,
         scaleX: this.scaleX,
         scaleY: this.scaleY,
+        transformOrigin,
       })
     })
   }
@@ -72,16 +92,20 @@ export default class TransformSession extends BaseSession {
   cancel(data: Data) {
     const { currentPageId, selectedIds, shapeBounds } = this.snapshot
 
-    selectedIds.forEach((id) => {
-      const shape = data.document.pages[currentPageId].shapes[id]
+    const page = getPage(data, currentPageId)
 
-      const { initialShape, initialShapeBounds } = shapeBounds[id]
+    selectedIds.forEach((id) => {
+      const shape = page.shapes[id]
+
+      const { initialShape, initialShapeBounds, transformOrigin } =
+        shapeBounds[id]
 
       getShapeUtils(shape).transform(shape, initialShapeBounds, {
         type: this.transformType,
         initialShape,
         scaleX: 1,
         scaleY: 1,
+        transformOrigin,
       })
     })
   }
@@ -99,7 +123,7 @@ export default class TransformSession extends BaseSession {
 
 export function getTransformSnapshot(
   data: Data,
-  transformType: TransformEdge | TransformCorner
+  transformType: Edge | Corner | "center"
 ) {
   const {
     document: { pages },
@@ -117,8 +141,12 @@ export function getTransformSnapshot(
     })
   )
 
+  const boundsArr = Object.values(shapesBounds)
+
   // The common (exterior) bounds of the selected shapes
-  const bounds = getCommonBounds(...Object.values(shapesBounds))
+  const bounds = getCommonBounds(...boundsArr)
+
+  const initialInnerBounds = getBoundsFromPoints(boundsArr.map(getBoundsCenter))
 
   // Return a mapping of shapes to bounds together with the relative
   // positions of the shape's bounds within the common bounds shape.
@@ -129,11 +157,18 @@ export function getTransformSnapshot(
     initialBounds: bounds,
     shapeBounds: Object.fromEntries(
       Array.from(selectedIds.values()).map((id) => {
+        const initialShapeBounds = shapesBounds[id]
+        const ic = getBoundsCenter(initialShapeBounds)
+
+        let ix = (ic[0] - initialInnerBounds.minX) / initialInnerBounds.width
+        let iy = (ic[1] - initialInnerBounds.minY) / initialInnerBounds.height
+
         return [
           id,
           {
             initialShape: pageShapes[id],
-            initialShapeBounds: shapesBounds[id],
+            initialShapeBounds,
+            transformOrigin: [ix, iy],
           },
         ]
       })

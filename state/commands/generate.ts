@@ -2,6 +2,7 @@ import Command from "./command"
 import history from "../history"
 import { CodeControl, Data, Shape } from "types"
 import { current } from "immer"
+import { getPage } from "utils/utils"
 
 export default function generateCommand(
   data: Data,
@@ -9,12 +10,13 @@ export default function generateCommand(
   generatedShapes: Shape[]
 ) {
   const cData = current(data)
+  const page = getPage(cData)
 
-  const prevGeneratedShapes = Object.values(
-    cData.document.pages[currentPageId].shapes
-  ).filter((shape) => shape.isGenerated)
+  const currentShapes = page.shapes
 
-  const currentShapes = data.document.pages[currentPageId].shapes
+  const prevGeneratedShapes = Object.values(currentShapes).filter(
+    (shape) => shape.isGenerated
+  )
 
   // Remove previous generated shapes
   for (let id in currentShapes) {
@@ -34,7 +36,7 @@ export default function generateCommand(
       name: "translate_shapes",
       category: "canvas",
       do(data) {
-        const { shapes } = data.document.pages[currentPageId]
+        const { shapes } = getPage(data)
 
         data.selectedIds.clear()
 
@@ -51,7 +53,7 @@ export default function generateCommand(
         }
       },
       undo(data) {
-        const { shapes } = data.document.pages[currentPageId]
+        const { shapes } = getPage(data)
 
         // Remove generated shapes
         for (let id in shapes) {

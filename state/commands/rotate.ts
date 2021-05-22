@@ -2,6 +2,7 @@ import Command from "./command"
 import history from "../history"
 import { Data } from "types"
 import { RotateSnapshot } from "state/sessions/rotate-session"
+import { getPage } from "utils/utils"
 
 export default function rotateCommand(
   data: Data,
@@ -14,7 +15,7 @@ export default function rotateCommand(
       name: "translate_shapes",
       category: "canvas",
       do(data) {
-        const { shapes } = data.document.pages[after.currentPageId]
+        const { shapes } = getPage(data)
 
         for (let { id, point, rotation } of after.shapes) {
           const shape = shapes[id]
@@ -25,7 +26,7 @@ export default function rotateCommand(
         data.boundsRotation = after.boundsRotation
       },
       undo(data) {
-        const { shapes } = data.document.pages[before.currentPageId]
+        const { shapes } = getPage(data, before.currentPageId)
 
         for (let { id, point, rotation } of before.shapes) {
           const shape = shapes[id]

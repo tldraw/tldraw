@@ -1,9 +1,10 @@
 import Command from "./command"
 import history from "../history"
-import { Data, TransformCorner, TransformEdge } from "types"
+import { Data, Corner, Edge } from "types"
 import { getShapeUtils } from "lib/shape-utils"
 import { current } from "immer"
 import { TransformSingleSnapshot } from "state/sessions/transform-single-session"
+import { getPage } from "utils/utils"
 
 export default function transformSingleCommand(
   data: Data,
@@ -13,8 +14,7 @@ export default function transformSingleCommand(
   scaleY: number,
   isCreating: boolean
 ) {
-  const shape =
-    current(data).document.pages[after.currentPageId].shapes[after.id]
+  const shape = getPage(data, after.currentPageId).shapes[after.id]
 
   history.execute(
     data,
@@ -23,32 +23,36 @@ export default function transformSingleCommand(
       category: "canvas",
       manualSelection: true,
       do(data) {
-        const { id, currentPageId, type, initialShape, initialShapeBounds } =
-          after
+        const { id, type, initialShape, initialShapeBounds } = after
+
+        const { shapes } = getPage(data, after.currentPageId)
 
         data.selectedIds.clear()
         data.selectedIds.add(id)
 
         if (isCreating) {
-          data.document.pages[currentPageId].shapes[id] = shape
+          shapes[id] = shape
         } else {
           getShapeUtils(shape).transformSingle(shape, initialShapeBounds, {
             type,
             initialShape,
             scaleX,
             scaleY,
+            transformOrigin: [0.5, 0.5],
           })
         }
       },
       undo(data) {
-        const { id, currentPageId, type, initialShapeBounds } = before
+        const { id, type, initialShapeBounds } = before
+
+        const { shapes } = getPage(data, before.currentPageId)
 
         data.selectedIds.clear()
 
         if (isCreating) {
-          delete data.document.pages[currentPageId].shapes[id]
+          delete shapes[id]
         } else {
-          const shape = data.document.pages[currentPageId].shapes[id]
+          const shape = shapes[id]
           data.selectedIds.add(id)
 
           getShapeUtils(shape).transform(shape, initialShapeBounds, {
@@ -56,6 +60,7 @@ export default function transformSingleCommand(
             initialShape: after.initialShape,
             scaleX: 1,
             scaleY: 1,
+            transformOrigin: [0.5, 0.5],
           })
         }
       },

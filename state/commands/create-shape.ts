@@ -1,6 +1,7 @@
 import Command from "./command"
 import history from "../history"
 import { Data, Shape } from "types"
+import { getPage } from "utils/utils"
 
 export default function registerShapeUtilsCommand(data: Data, shape: Shape) {
   const { currentPageId } = data
@@ -11,17 +12,17 @@ export default function registerShapeUtilsCommand(data: Data, shape: Shape) {
       name: "translate_shapes",
       category: "canvas",
       do(data) {
-        const { shapes } = data.document.pages[currentPageId]
+        const page = getPage(data)
 
-        shapes[shape.id] = shape
+        page.shapes[shape.id] = shape
         data.selectedIds.clear()
         data.pointedId = undefined
         data.hoveredId = undefined
       },
       undo(data) {
-        const { shapes } = data.document.pages[currentPageId]
+        const page = getPage(data)
 
-        delete shapes[shape.id]
+        delete page.shapes[shape.id]
 
         data.selectedIds.clear()
         data.pointedId = undefined
