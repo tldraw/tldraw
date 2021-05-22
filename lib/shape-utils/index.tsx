@@ -60,7 +60,7 @@ export interface ShapeUtility<K extends Shape> {
     shape: K,
     bounds: Bounds,
     info: {
-      type: TransformEdge | TransformCorner
+      type: TransformEdge | TransformCorner | "center"
       initialShape: K
       scaleX: number
       scaleY: number
@@ -72,7 +72,7 @@ export interface ShapeUtility<K extends Shape> {
     shape: K,
     bounds: Bounds,
     info: {
-      type: TransformEdge | TransformCorner
+      type: TransformEdge | TransformCorner | "center"
       initialShape: K
       scaleX: number
       scaleY: number
