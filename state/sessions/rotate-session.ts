@@ -4,6 +4,7 @@ import BaseSession from "./base-session"
 import commands from "state/commands"
 import { current } from "immer"
 import {
+  clampToRotationToSegments,
   getBoundsCenter,
   getCommonBounds,
   getPage,
@@ -31,10 +32,10 @@ export default class RotateSession extends BaseSession {
     const a1 = vec.angle(boundsCenter, this.origin)
     const a2 = vec.angle(boundsCenter, point)
 
-    let rot = (PI2 + (a2 - a1)) % PI2
+    let rot = a2 - a1
 
     if (isLocked) {
-      rot = Math.floor((rot + Math.PI / 8) / (Math.PI / 4)) * (Math.PI / 4)
+      rot = clampToRotationToSegments(rot, 24)
     }
 
     data.boundsRotation = (PI2 + (this.snapshot.boundsRotation + rot)) % PI2

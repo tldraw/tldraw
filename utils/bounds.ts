@@ -82,3 +82,25 @@ export function boundsAreEqual(a: Bounds, b: Bounds) {
 export function pointInBounds(A: number[], b: Bounds) {
   return !(A[0] < b.minX || A[0] > b.maxX || A[1] < b.minY || A[1] > b.maxY)
 }
+
+export function getRotatedEllipseBounds(
+  x: number,
+  y: number,
+  rx: number,
+  ry: number,
+  rotation: number
+) {
+  const c = Math.cos(rotation)
+  const s = Math.sin(rotation)
+  const w = Math.hypot(rx * c, ry * s)
+  const h = Math.hypot(rx * s, ry * c)
+
+  return {
+    minX: x + rx - w,
+    minY: y + ry - h,
+    maxX: x + rx + w,
+    maxY: y + ry + h,
+    width: w * 2,
+    height: h * 2,
+  }
+}

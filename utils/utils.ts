@@ -1366,3 +1366,12 @@ export function getShapeBounds(shape: Shape) {
 export function getBoundsCenter(bounds: Bounds) {
   return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2]
 }
+
+export function clampRadians(r: number) {
+  return (Math.PI * 2 + r) % (Math.PI * 2)
+}
+
+export function clampToRotationToSegments(r: number, segments: number) {
+  const seg = (Math.PI * 2) / segments
+  return Math.floor((clampRadians(r) + seg / 2) / seg) * seg
+}
