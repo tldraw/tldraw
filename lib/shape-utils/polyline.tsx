@@ -99,21 +99,18 @@ const polyline = registerShapeUtils<PolylineShape>({
     return shape
   },
 
-  transform(
-    shape,
-    bounds,
-    { initialShape, initialShapeBounds, isFlippedX, isFlippedY }
-  ) {
+  transform(shape, bounds, { initialShape, scaleX, scaleY }) {
+    const initialShapeBounds = this.getBounds(initialShape)
     shape.points = shape.points.map((_, i) => {
       const [x, y] = initialShape.points[i]
 
       return [
         bounds.width *
-          (isFlippedX
+          (scaleX < 0
             ? 1 - x / initialShapeBounds.width
             : x / initialShapeBounds.width),
         bounds.height *
-          (isFlippedY
+          (scaleY < 0
             ? 1 - y / initialShapeBounds.height
             : y / initialShapeBounds.height),
       ]
@@ -128,6 +125,7 @@ const polyline = registerShapeUtils<PolylineShape>({
   },
 
   canTransform: true,
+  canChangeAspectRatio: true,
 })
 
 export default polyline

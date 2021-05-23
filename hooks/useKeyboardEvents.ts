@@ -1,71 +1,135 @@
 import { useEffect } from "react"
 import state from "state"
-import { getKeyboardEventInfo, isDarwin, metaKey } from "utils/utils"
+import { getKeyboardEventInfo, metaKey } from "utils/utils"
 
 export default function useKeyboardEvents() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        state.send("CANCELLED")
-      } else if (e.key === "z" && metaKey(e)) {
-        if (e.shiftKey) {
-          state.send("REDO")
-        } else {
-          state.send("UNDO")
+      if (metaKey(e) && !["i", "r", "j"].includes(e.key)) {
+        e.preventDefault()
+      }
+
+      switch (e.key) {
+        case "Escape": {
+          state.send("CANCELLED")
+          break
         }
-      }
-
-      if (e.key === "Shift") {
-        state.send("PRESSED_SHIFT_KEY", getKeyboardEventInfo(e))
-      }
-
-      if (e.key === "Alt") {
-        state.send("PRESSED_ALT_KEY", getKeyboardEventInfo(e))
-      }
-
-      if (e.key === "Backspace" && !(metaKey(e) || e.shiftKey || e.altKey)) {
-        state.send("DELETED", getKeyboardEventInfo(e))
-      }
-
-      if (e.key === "s" && metaKey(e)) {
-        e.preventDefault()
-        state.send("SAVED")
-      }
-      if (e.key === "a" && metaKey(e)) {
-        e.preventDefault()
-        state.send("SELECTED_ALL")
-      }
-
-      if (e.key === "v" && !(metaKey(e) || e.shiftKey || e.altKey)) {
-        state.send("SELECTED_SELECT_TOOL", getKeyboardEventInfo(e))
-      }
-
-      if (e.key === "d" && !(metaKey(e) || e.shiftKey || e.altKey)) {
-        state.send("SELECTED_DOT_TOOL", getKeyboardEventInfo(e))
-      }
-
-      if (e.key === "c" && !(metaKey(e) || e.shiftKey || e.altKey)) {
-        state.send("SELECTED_CIRCLE_TOOL", getKeyboardEventInfo(e))
-      }
-
-      if (e.key === "i" && !(metaKey(e) || e.shiftKey || e.altKey)) {
-        state.send("SELECTED_ELLIPSE_TOOL", getKeyboardEventInfo(e))
-      }
-
-      if (e.key === "l" && !(metaKey(e) || e.shiftKey || e.altKey)) {
-        state.send("SELECTED_LINE_TOOL", getKeyboardEventInfo(e))
-      }
-
-      if (e.key === "y" && !(metaKey(e) || e.shiftKey || e.altKey)) {
-        state.send("SELECTED_RAY_TOOL", getKeyboardEventInfo(e))
-      }
-
-      if (e.key === "p" && !(metaKey(e) || e.shiftKey || e.altKey)) {
-        state.send("SELECTED_POLYLINE_TOOL", getKeyboardEventInfo(e))
-      }
-
-      if (e.key === "r" && !(metaKey(e) || e.shiftKey || e.altKey)) {
-        state.send("SELECTED_RECTANGLE_TOOL", getKeyboardEventInfo(e))
+        case "z": {
+          if (metaKey(e)) {
+            if (e.shiftKey) {
+              state.send("REDO", getKeyboardEventInfo(e))
+            } else {
+              state.send("UNDO", getKeyboardEventInfo(e))
+            }
+          }
+          break
+        }
+        case "]": {
+          if (metaKey(e)) {
+            if (e.altKey) {
+              state.send("MOVED_TO_FRONT", getKeyboardEventInfo(e))
+            } else {
+              state.send("MOVED_FORWARD", getKeyboardEventInfo(e))
+            }
+          }
+          break
+        }
+        case "[": {
+          if (metaKey(e)) {
+            if (e.altKey) {
+              state.send("MOVED_TO_BACK", getKeyboardEventInfo(e))
+            } else {
+              state.send("MOVED_BACKWARD", getKeyboardEventInfo(e))
+            }
+          }
+          break
+        }
+        case "Shift": {
+          state.send("PRESSED_SHIFT_KEY", getKeyboardEventInfo(e))
+          break
+        }
+        case "Alt": {
+          state.send("PRESSED_ALT_KEY", getKeyboardEventInfo(e))
+          break
+        }
+        case "Backspace": {
+          state.send("DELETED", getKeyboardEventInfo(e))
+          break
+        }
+        case "s": {
+          if (metaKey(e)) {
+            state.send("SAVED", getKeyboardEventInfo(e))
+          }
+          break
+        }
+        case "a": {
+          if (metaKey(e)) {
+            state.send("SELECTED_ALL", getKeyboardEventInfo(e))
+          }
+          break
+        }
+        case "v": {
+          if (metaKey(e)) {
+            state.send("PASTED", getKeyboardEventInfo(e))
+          } else {
+            state.send("SELECTED_SELECT_TOOL", getKeyboardEventInfo(e))
+          }
+          break
+        }
+        case "d": {
+          if (metaKey(e)) {
+            state.send("DUPLICATED", getKeyboardEventInfo(e))
+          } else {
+            state.send("SELECTED_DOT_TOOL", getKeyboardEventInfo(e))
+          }
+          break
+        }
+        case "c": {
+          if (metaKey(e)) {
+            state.send("COPIED", getKeyboardEventInfo(e))
+          } else {
+            state.send("SELECTED_CIRCLE_TOOL", getKeyboardEventInfo(e))
+          }
+          break
+        }
+        case "i": {
+          if (metaKey(e)) {
+          } else {
+            state.send("SELECTED_ELLIPSE_TOOL", getKeyboardEventInfo(e))
+          }
+          break
+        }
+        case "l": {
+          if (metaKey(e)) {
+          } else {
+            state.send("SELECTED_LINE_TOOL", getKeyboardEventInfo(e))
+          }
+          break
+        }
+        case "y": {
+          if (metaKey(e)) {
+          } else {
+            state.send("SELECTED_RAY_TOOL", getKeyboardEventInfo(e))
+          }
+          break
+        }
+        case "p": {
+          if (metaKey(e)) {
+          } else {
+            state.send("SELECTED_POLYLINE_TOOL", getKeyboardEventInfo(e))
+          }
+          break
+        }
+        case "r": {
+          if (metaKey(e)) {
+          } else {
+            state.send("SELECTED_RECTANGLE_TOOL", getKeyboardEventInfo(e))
+          }
+          break
+        }
+        default: {
+          state.send("PRESSED_KEY", getKeyboardEventInfo(e))
+        }
       }
     }
 

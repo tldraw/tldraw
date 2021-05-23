@@ -17,15 +17,11 @@ import {
 export default class TransformSession extends BaseSession {
   scaleX = 1
   scaleY = 1
-  transformType: Edge | Corner | "center"
+  transformType: Edge | Corner
   origin: number[]
   snapshot: TransformSnapshot
 
-  constructor(
-    data: Data,
-    transformType: Corner | Edge | "center",
-    point: number[]
-  ) {
+  constructor(data: Data, transformType: Corner | Edge, point: number[]) {
     super(data)
     this.origin = point
     this.transformType = transformType
@@ -108,10 +104,7 @@ export default class TransformSession extends BaseSession {
   }
 }
 
-export function getTransformSnapshot(
-  data: Data,
-  transformType: Edge | Corner | "center"
-) {
+export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
   const {
     document: { pages },
     selectedIds,
@@ -144,6 +137,7 @@ export function getTransformSnapshot(
     initialBounds: bounds,
     shapeBounds: Object.fromEntries(
       Array.from(selectedIds.values()).map((id) => {
+        const shape = pageShapes[id]
         const initialShapeBounds = shapesBounds[id]
         const ic = getBoundsCenter(initialShapeBounds)
 
@@ -153,7 +147,7 @@ export function getTransformSnapshot(
         return [
           id,
           {
-            initialShape: pageShapes[id],
+            initialShape: shape,
             initialShapeBounds,
             transformOrigin: [ix, iy],
           },

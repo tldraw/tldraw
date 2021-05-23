@@ -60,7 +60,7 @@ export interface ShapeUtility<K extends Shape> {
     shape: K,
     bounds: Bounds,
     info: {
-      type: Edge | Corner | "center"
+      type: Edge | Corner
       initialShape: K
       scaleX: number
       scaleY: number
@@ -73,7 +73,7 @@ export interface ShapeUtility<K extends Shape> {
     shape: K,
     bounds: Bounds,
     info: {
-      type: Edge | Corner | "center"
+      type: Edge | Corner
       initialShape: K
       scaleX: number
       scaleY: number
@@ -89,6 +89,9 @@ export interface ShapeUtility<K extends Shape> {
 
   // Whether to show transform controls when this shape is selected.
   canTransform: boolean
+
+  // Whether the shape's aspect ratio can change
+  canChangeAspectRatio: boolean
 }
 
 // A mapping of shape types to shape utilities.

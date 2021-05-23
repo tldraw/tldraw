@@ -97,7 +97,12 @@ const ray = registerShapeUtils<RayShape>({
     return shape
   },
 
+  transformSingle(shape, bounds, info) {
+    return this.transform(shape, bounds, info)
+  },
+
   canTransform: false,
+  canChangeAspectRatio: false,
 })
 
 export default ray

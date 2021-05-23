@@ -31,8 +31,23 @@ const rectangle = registerShapeUtils<RectangleShape>({
     }
   },
 
-  render({ id, size }) {
-    return <rect id={id} width={size[0]} height={size[1]} />
+  render({ id, size, parentId, childIndex }) {
+    return (
+      <g id={id}>
+        <rect id={id} width={size[0]} height={size[1]} />
+        <text
+          y={4}
+          x={4}
+          fontSize={18}
+          fill="black"
+          stroke="none"
+          alignmentBaseline="text-before-edge"
+          pointerEvents="none"
+        >
+          {childIndex}
+        </text>
+      </g>
+    )
   },
 
   getBounds(shape) {
@@ -128,6 +143,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
   },
 
   canTransform: true,
+  canChangeAspectRatio: true,
 })
 
 export default rectangle

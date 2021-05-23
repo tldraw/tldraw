@@ -56,6 +56,10 @@ const MainSVG = styled("svg", {
   height: "100%",
   touchAction: "none",
   zIndex: 100,
+
+  "& *": {
+    userSelect: "none",
+  },
 })
 
 const MainGroup = styled("g", {})

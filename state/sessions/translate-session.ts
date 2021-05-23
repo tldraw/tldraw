@@ -4,7 +4,7 @@ import BaseSession from "./base-session"
 import commands from "state/commands"
 import { current } from "immer"
 import { v4 as uuid } from "uuid"
-import { getPage, getSelectedShapes } from "utils/utils"
+import { getChildIndexAbove, getPage, getSelectedShapes } from "utils/utils"
 
 export default class TranslateSession extends BaseSession {
   delta = [0, 0]
@@ -94,12 +94,17 @@ export default class TranslateSession extends BaseSession {
 }
 
 export function getTranslateSnapshot(data: Data) {
-  const shapes = getSelectedShapes(current(data))
+  const cData = current(data)
+  const shapes = getSelectedShapes(cData)
 
   return {
     currentPageId: data.currentPageId,
     initialShapes: shapes.map(({ id, point }) => ({ id, point })),
-    clones: shapes.map((shape) => ({ ...shape, id: uuid() })),
+    clones: shapes.map((shape) => ({
+      ...shape,
+      id: uuid(),
+      childIndex: getChildIndexAbove(cData, shape.id),
+    })),
   }
 }
 

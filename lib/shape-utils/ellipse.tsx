@@ -130,6 +130,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
   },
 
   canTransform: true,
+  canChangeAspectRatio: true,
 })
 
 export default ellipse

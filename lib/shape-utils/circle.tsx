@@ -94,80 +94,30 @@ const circle = registerShapeUtils<CircleShape>({
     return shape
   },
 
-  transform(shape, bounds, { type, initialShape, scaleX, scaleY }) {
-    const anchor = getTransformAnchor(type, scaleX < 0, scaleY < 0)
+  transform(shape, bounds, { initialShape, transformOrigin, scaleX, scaleY }) {
+    shape.radius =
+      initialShape.radius * Math.min(Math.abs(scaleX), Math.abs(scaleY))
 
-    // Set the new corner or position depending on the anchor
-    switch (anchor) {
-      case Corner.TopLeft: {
-        shape.radius = Math.min(bounds.width, bounds.height) / 2
-        shape.point = [
-          bounds.maxX - shape.radius * 2,
-          bounds.maxY - shape.radius * 2,
-        ]
-        break
-      }
-      case Corner.TopRight: {
-        shape.radius = Math.min(bounds.width, bounds.height) / 2
-        shape.point = [bounds.minX, bounds.maxY - shape.radius * 2]
-        break
-      }
-      case Corner.BottomRight: {
-        shape.radius = Math.min(bounds.width, bounds.height) / 2
-        shape.point = [
-          bounds.maxX - shape.radius * 2,
-          bounds.maxY - shape.radius * 2,
-        ]
-        break
-        break
-      }
-      case Corner.BottomLeft: {
-        shape.radius = Math.min(bounds.width, bounds.height) / 2
-        shape.point = [bounds.maxX - shape.radius * 2, bounds.minY]
-        break
-      }
-      case Edge.Top: {
-        shape.radius = bounds.height / 2
-        shape.point = [
-          bounds.minX + (bounds.width / 2 - shape.radius),
-          bounds.minY,
-        ]
-        break
-      }
-      case Edge.Right: {
-        shape.radius = bounds.width / 2
-        shape.point = [
-          bounds.maxX - shape.radius * 2,
-          bounds.minY + (bounds.height / 2 - shape.radius),
-        ]
-        break
-      }
-      case Edge.Bottom: {
-        shape.radius = bounds.height / 2
-        shape.point = [
-          bounds.minX + (bounds.width / 2 - shape.radius),
-          bounds.maxY - shape.radius * 2,
-        ]
-        break
-      }
-      case Edge.Left: {
-        shape.radius = bounds.width / 2
-        shape.point = [
-          bounds.minX,
-          bounds.minY + (bounds.height / 2 - shape.radius),
-        ]
-        break
-      }
-    }
+    shape.point = [
+      bounds.minX +
+        (bounds.width - shape.radius * 2) *
+          (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
+      bounds.minY +
+        (bounds.height - shape.radius * 2) *
+          (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
+    ]
 
     return shape
   },
 
   transformSingle(shape, bounds, info) {
-    return this.transform(shape, bounds, info)
+    shape.radius = Math.min(bounds.width, bounds.height) / 2
+    shape.point = [bounds.minX, bounds.minY]
+    return shape
   },
 
   canTransform: true,
+  canChangeAspectRatio: false,
 })
 
 export default circle

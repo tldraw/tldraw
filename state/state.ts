@@ -1,9 +1,11 @@
 import { createSelectorHook, createState } from "@state-designer/react"
 import {
   clamp,
+  getChildren,
   getCommonBounds,
   getPage,
   getShape,
+  getSiblings,
   screenToWorld,
 } from "utils/utils"
 import * as vec from "utils/vec"
@@ -97,6 +99,10 @@ const state = createState({
             INCREASED_CODE_FONT_SIZE: "increaseCodeFontSize",
             DECREASED_CODE_FONT_SIZE: "decreaseCodeFontSize",
             CHANGED_CODE_CONTROL: "updateControls",
+            MOVED_TO_FRONT: "moveSelectionToFront",
+            MOVED_TO_BACK: "moveSelectionToBack",
+            MOVED_FORWARD: "moveSelectionForward",
+            MOVED_BACKWARD: "moveSelectionBackward",
           },
           initial: "notPointing",
           states: {
@@ -222,7 +228,8 @@ const state = createState({
             creating: {
               on: {
                 POINTED_CANVAS: {
-                  do: "createDot",
+                  get: "newDot",
+                  do: "createShape",
                   to: "dot.editing",
                 },
               },
@@ -272,8 +279,11 @@ const state = createState({
                 CANCELLED: { to: "selecting" },
                 MOVED_POINTER: {
                   if: "distanceImpliesDrag",
-                  do: "createCircle",
-                  to: "drawingShape.bounds",
+                  then: {
+                    get: "newDot",
+                    do: "createShape",
+                    to: "drawingShape.bounds",
+                  },
                 },
               },
             },
@@ -296,8 +306,11 @@ const state = createState({
                 CANCELLED: { to: "selecting" },
                 MOVED_POINTER: {
                   if: "distanceImpliesDrag",
-                  do: "createEllipse",
-                  to: "drawingShape.bounds",
+                  then: {
+                    get: "newEllipse",
+                    do: "createShape",
+                    to: "drawingShape.bounds",
+                  },
                 },
               },
             },
@@ -320,8 +333,11 @@ const state = createState({
                 CANCELLED: { to: "selecting" },
                 MOVED_POINTER: {
                   if: "distanceImpliesDrag",
-                  do: "createRectangle",
-                  to: "drawingShape.bounds",
+                  then: {
+                    get: "newRectangle",
+                    do: "createShape",
+                    to: "drawingShape.bounds",
+                  },
                 },
               },
             },
@@ -334,7 +350,8 @@ const state = createState({
               on: {
                 CANCELLED: { to: "selecting" },
                 POINTED_CANVAS: {
-                  do: "createRay",
+                  get: "newRay",
+                  do: "createShape",
                   to: "ray.editing",
                 },
               },
@@ -358,7 +375,8 @@ const state = createState({
               on: {
                 CANCELLED: { to: "selecting" },
                 POINTED_CANVAS: {
-                  do: "createLine",
+                  get: "newLine",
+                  do: "createShape",
                   to: "line.editing",
                 },
               },
@@ -408,6 +426,51 @@ const state = createState({
       },
     },
   },
+  results: {
+    // Dot
+    newDot(data, payload: PointerInfo) {
+      return shapeUtilityMap[ShapeType.Dot].create({
+        point: screenToWorld(payload.point, data),
+      })
+    },
+
+    // Ray
+    newRay(data, payload: PointerInfo) {
+      return shapeUtilityMap[ShapeType.Ray].create({
+        point: screenToWorld(payload.point, data),
+      })
+    },
+
+    // Line
+    newLine(data, payload: PointerInfo) {
+      return shapeUtilityMap[ShapeType.Line].create({
+        point: screenToWorld(payload.point, data),
+        direction: [0, 1],
+      })
+    },
+
+    newCircle(data, payload: PointerInfo) {
+      return shapeUtilityMap[ShapeType.Circle].create({
+        point: screenToWorld(payload.point, data),
+        radius: 1,
+      })
+    },
+
+    newEllipse(data, payload: PointerInfo) {
+      return shapeUtilityMap[ShapeType.Ellipse].create({
+        point: screenToWorld(payload.point, data),
+        radiusX: 1,
+        radiusY: 1,
+      })
+    },
+
+    newRectangle(data, payload: PointerInfo) {
+      return shapeUtilityMap[ShapeType.Rectangle].create({
+        point: screenToWorld(payload.point, data),
+        size: [1, 1],
+      })
+    },
+  },
   conditions: {
     isPointingBounds(data, payload: PointerInfo) {
       return payload.target === "bounds"
@@ -447,69 +510,10 @@ const state = createState({
   },
   actions: {
     /* --------------------- Shapes --------------------- */
-
-    // Dot
-    createDot(data, payload: PointerInfo) {
-      const shape = shapeUtilityMap[ShapeType.Dot].create({
-        point: screenToWorld(payload.point, data),
-      })
-
-      getPage(data).shapes[shape.id] = shape
-      data.selectedIds.clear()
-      data.selectedIds.add(shape.id)
-    },
-
-    // Ray
-    createRay(data, payload: PointerInfo) {
-      const shape = shapeUtilityMap[ShapeType.Ray].create({
-        point: screenToWorld(payload.point, data),
-      })
-
-      getPage(data).shapes[shape.id] = shape
-      data.selectedIds.clear()
-      data.selectedIds.add(shape.id)
-    },
-
-    // Line
-    createLine(data, payload: PointerInfo) {
-      const shape = shapeUtilityMap[ShapeType.Line].create({
-        point: screenToWorld(payload.point, data),
-        direction: [0, 1],
-      })
-
-      getPage(data).shapes[shape.id] = shape
-      data.selectedIds.clear()
-      data.selectedIds.add(shape.id)
-    },
-
-    createCircle(data, payload: PointerInfo) {
-      const shape = shapeUtilityMap[ShapeType.Circle].create({
-        point: screenToWorld(payload.point, data),
-        radius: 1,
-      })
-
-      getPage(data).shapes[shape.id] = shape
-      data.selectedIds.clear()
-      data.selectedIds.add(shape.id)
-    },
-
-    createEllipse(data, payload: PointerInfo) {
-      const shape = shapeUtilityMap[ShapeType.Ellipse].create({
-        point: screenToWorld(payload.point, data),
-        radiusX: 1,
-        radiusY: 1,
-      })
-
-      getPage(data).shapes[shape.id] = shape
-      data.selectedIds.clear()
-      data.selectedIds.add(shape.id)
-    },
-
-    createRectangle(data, payload: PointerInfo) {
-      const shape = shapeUtilityMap[ShapeType.Rectangle].create({
-        point: screenToWorld(payload.point, data),
-        size: [1, 1],
-      })
+    createShape(data, payload: PointerInfo, shape: Shape) {
+      const siblings = getChildren(data, shape.parentId)
+      shape.childIndex =
+        siblings.length > 0 ? siblings[siblings.length - 1].childIndex + 1 : 1
 
       getPage(data).shapes[shape.id] = shape
       data.selectedIds.clear()
@@ -671,7 +675,119 @@ const state = createState({
     pushPointedIdToSelectedIds(data) {
       data.selectedIds.add(data.pointedId)
     },
-    // Camera
+    moveSelectionToFront(data) {
+      const { selectedIds } = data
+    },
+    moveSelectionToBack(data) {
+      const { selectedIds } = data
+    },
+    moveSelectionForward(data) {
+      const { selectedIds } = data
+
+      const page = getPage(data)
+
+      const shapes = Array.from(selectedIds.values()).map(
+        (id) => page.shapes[id]
+      )
+
+      const shapesByParentId = shapes.reduce<Record<string, Shape[]>>(
+        (acc, shape) => {
+          if (acc[shape.parentId] === undefined) {
+            acc[shape.parentId] = []
+          }
+          acc[shape.parentId].push(shape)
+          return acc
+        },
+        {}
+      )
+
+      const visited = new Set<string>()
+
+      for (let id in shapesByParentId) {
+        const children = getChildren(data, id)
+
+        shapesByParentId[id]
+          .sort((a, b) => b.childIndex - a.childIndex)
+          .forEach((shape) => {
+            visited.add(shape.id)
+            children.sort((a, b) => a.childIndex - b.childIndex)
+            const index = children.indexOf(shape)
+
+            const nextSibling = children[index + 1]
+
+            if (!nextSibling || visited.has(nextSibling.id)) {
+              // At the top already, no change
+              return
+            }
+
+            const nextNextSibling = children[index + 2]
+
+            if (!nextNextSibling) {
+              // Moving to the top
+              shape.childIndex = nextSibling.childIndex + 1
+              return
+            }
+
+            shape.childIndex =
+              (nextSibling.childIndex + nextNextSibling.childIndex) / 2
+          })
+      }
+    },
+    moveSelectionBackward(data) {
+      const { selectedIds } = data
+
+      const page = getPage(data)
+
+      const shapes = Array.from(selectedIds.values()).map(
+        (id) => page.shapes[id]
+      )
+
+      const shapesByParentId = shapes.reduce<Record<string, Shape[]>>(
+        (acc, shape) => {
+          if (acc[shape.parentId] === undefined) {
+            acc[shape.parentId] = []
+          }
+          acc[shape.parentId].push(shape)
+          return acc
+        },
+        {}
+      )
+
+      const visited = new Set<string>()
+
+      for (let id in shapesByParentId) {
+        const children = getChildren(data, id)
+
+        shapesByParentId[id]
+          .sort((a, b) => a.childIndex - b.childIndex)
+          .forEach((shape) => {
+            visited.add(shape.id)
+            children.sort((a, b) => a.childIndex - b.childIndex)
+            const index = children.indexOf(shape)
+
+            const nextSibling = children[index - 1]
+
+            if (!nextSibling || visited.has(nextSibling.id)) {
+              // At the bottom already, no change
+              return
+            }
+
+            const nextNextSibling = children[index - 2]
+
+            if (!nextNextSibling) {
+              // Moving to the bottom
+              shape.childIndex = nextSibling.childIndex / 2
+              return
+            }
+
+            shape.childIndex =
+              (nextSibling.childIndex + nextNextSibling.childIndex) / 2
+          })
+      }
+    },
+
+    /* --------------------- Camera --------------------- */
+
     resetCamera(data) {
       data.camera.zoom = 1
       data.camera.point = [window.innerWidth / 2, window.innerHeight / 2]

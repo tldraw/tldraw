@@ -9,10 +9,11 @@ here; and still cheaper than any other pattern I've found.
 */
 
 export default function Page() {
-  const currentPageShapeIds = useSelector(
-    ({ data }) => Object.keys(getPage(data).shapes),
-    deepCompareArrays
-  )
+  const currentPageShapeIds = useSelector(({ data }) => {
+    return Object.values(getPage(data).shapes)
+      .sort((a, b) => a.childIndex - b.childIndex)
+      .map((shape) => shape.id)
+  }, deepCompareArrays)
 
   return (
     <>

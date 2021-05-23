@@ -1375,3 +1375,82 @@ export function clampToRotationToSegments(r: number, segments: number) {
   const seg = (Math.PI * 2) / segments
   return Math.floor((clampRadians(r) + seg / 2) / seg) * seg
 }
+
+export function getParent(data: Data, id: string, pageId = data.currentPageId) {
+  const page = getPage(data, pageId)
+  const shape = page.shapes[id]
+
+  return page.shapes[shape.parentId] || data.document.pages[shape.parentId]
+}
+
+export function getChildren(
+  data: Data,
+  id: string,
+  pageId = data.currentPageId
+) {
+  const page = getPage(data, pageId)
+  return Object.values(page.shapes)
+    .filter(({ parentId }) => parentId === id)
+    .sort((a, b) => a.childIndex - b.childIndex)
+}
+
+export function getSiblings(
+  data: Data,
+  id: string,
+  pageId = data.currentPageId
+) {
+  const page = getPage(data, pageId)
+  const shape = page.shapes[id]
+
+  return Object.values(page.shapes)
+    .filter(({ parentId }) => parentId === shape.parentId)
+    .sort((a, b) => a.childIndex - b.childIndex)
+}
+
+export function getChildIndexAbove(
+  data: Data,
+  id: string,
+  pageId = data.currentPageId
+) {
+  const page = getPage(data, pageId)
+
+  const shape = page.shapes[id]
+
+  const siblings = Object.values(page.shapes)
+    .filter(({ parentId }) => parentId === shape.parentId)
+    .sort((a, b) => a.childIndex - b.childIndex)
+
+  const index = siblings.indexOf(shape)
+
+  const nextSibling = siblings[index + 1]
+
+  if (!nextSibling) {
+    return shape.childIndex + 1
+  }
+
+  return (shape.childIndex + nextSibling.childIndex) / 2
+}
+
+export function getChildIndexBelow(
+  data: Data,
+  id: string,
+  pageId = data.currentPageId
+) {
+  const page = getPage(data, pageId)
+
+  const shape = page.shapes[id]
+
+  const siblings = Object.values(page.shapes)
+    .filter(({ parentId }) => parentId === shape.parentId)
+    .sort((a, b) => a.childIndex - b.childIndex)
+
+  const index = siblings.indexOf(shape)
+
+  const prevSibling = siblings[index - 1]
+
+  if (!prevSibling) {
+    return shape.childIndex / 2
+  }
+
+  return (shape.childIndex + prevSibling.childIndex) / 2
+}
