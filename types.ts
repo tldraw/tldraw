@@ -209,6 +209,14 @@ export type ShapeUtil<K extends Shape> = {
   stretch(shape: K, scaleX: number, scaleY: number): K
   render(shape: K): JSX.Element
 }
+
+export enum MoveType {
+  Backward,
+  Forward,
+  ToFront,
+  ToBack,
+}
+
 /* -------------------------------------------------- */
 /*                     Code Editor                    */
 /* -------------------------------------------------- */

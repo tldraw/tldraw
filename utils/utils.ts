@@ -1428,7 +1428,14 @@ export function getChildIndexAbove(
     return shape.childIndex + 1
   }
 
-  return (shape.childIndex + nextSibling.childIndex) / 2
+  let nextIndex = (shape.childIndex + nextSibling.childIndex) / 2
+
+  if (nextIndex === nextSibling.childIndex) {
+    forceIntegerChildIndices(siblings)
+    nextIndex = (shape.childIndex + nextSibling.childIndex) / 2
+  }
+
+  return nextIndex
 }
 
 export function getChildIndexBelow(
@@ -1452,5 +1459,18 @@ export function getChildIndexBelow(
     return shape.childIndex / 2
   }
 
+  let nextIndex = (shape.childIndex + prevSibling.childIndex) / 2
+
+  if (nextIndex === prevSibling.childIndex) {
+    forceIntegerChildIndices(siblings)
+    nextIndex = (shape.childIndex + prevSibling.childIndex) / 2
+  }
+
   return (shape.childIndex + prevSibling.childIndex) / 2
+}
+
+export function forceIntegerChildIndices(shapes: Shape[]) {
+  for (let i = 0; i < shapes.length; i++) {
+    shapes[i].childIndex = i + 1
+  }
 }

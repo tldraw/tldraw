@@ -24,23 +24,27 @@ export default function useKeyboardEvents() {
           }
           break
         }
+        case "‘": {
+          if (metaKey(e)) {
+            state.send("MOVED_TO_FRONT", getKeyboardEventInfo(e))
+          }
+          break
+        }
+        case "“": {
+          if (metaKey(e)) {
+            state.send("MOVED_TO_BACK", getKeyboardEventInfo(e))
+          }
+          break
+        }
         case "]": {
           if (metaKey(e)) {
-            if (e.altKey) {
-              state.send("MOVED_TO_FRONT", getKeyboardEventInfo(e))
-            } else {
-              state.send("MOVED_FORWARD", getKeyboardEventInfo(e))
-            }
+            state.send("MOVED_FORWARD", getKeyboardEventInfo(e))
           }
           break
         }
         case "[": {
           if (metaKey(e)) {
-            if (e.altKey) {
-              state.send("MOVED_TO_BACK", getKeyboardEventInfo(e))
-            } else {
-              state.send("MOVED_BACKWARD", getKeyboardEventInfo(e))
-            }
+            state.send("MOVED_BACKWARD", getKeyboardEventInfo(e))
           }
           break
         }

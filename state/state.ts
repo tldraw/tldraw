@@ -17,6 +17,7 @@ import {
   Corner,
   Edge,
   CodeControl,
+  MoveType,
 } from "types"
 import inputs from "./inputs"
 import { defaultDocument } from "./data"
@@ -280,7 +281,7 @@ const state = createState({
                 MOVED_POINTER: {
                   if: "distanceImpliesDrag",
                   then: {
-                    get: "newDot",
+                    get: "newCircle",
                     do: "createShape",
                     to: "drawingShape.bounds",
                   },
@@ -676,114 +677,16 @@ const state = createState({
       data.selectedIds.add(data.pointedId)
     },
     moveSelectionToFront(data) {
-      const { selectedIds } = data
+      commands.move(data, MoveType.ToFront)
     },
     moveSelectionToBack(data) {
-      const { selectedIds } = data
+      commands.move(data, MoveType.ToBack)
     },
     moveSelectionForward(data) {
-      const { selectedIds } = data
-
-      const page = getPage(data)
-
-      const shapes = Array.from(selectedIds.values()).map(
-        (id) => page.shapes[id]
-      )
-
-      const shapesByParentId = shapes.reduce<Record<string, Shape[]>>(
-        (acc, shape) => {
-          if (acc[shape.parentId] === undefined) {
-            acc[shape.parentId] = []
-          }
-          acc[shape.parentId].push(shape)
-          return acc
-        },
-        {}
-      )
-
-      const visited = new Set<string>()
-
-      for (let id in shapesByParentId) {
-        const children = getChildren(data, id)
-
-        shapesByParentId[id]
-          .sort((a, b) => b.childIndex - a.childIndex)
-          .forEach((shape) => {
-            visited.add(shape.id)
-            children.sort((a, b) => a.childIndex - b.childIndex)
-            const index = children.indexOf(shape)
-
-            const nextSibling = children[index + 1]
-
-            if (!nextSibling || visited.has(nextSibling.id)) {
-              // At the top already, no change
-              return
-            }
-
-            const nextNextSibling = children[index + 2]
-
-            if (!nextNextSibling) {
-              // Moving to the top
-              shape.childIndex = nextSibling.childIndex + 1
-              return
-            }
-
-            shape.childIndex =
-              (nextSibling.childIndex + nextNextSibling.childIndex) / 2
-          })
-      }
+      commands.move(data, MoveType.Forward)
     },
     moveSelectionBackward(data) {
-      const { selectedIds } = data
-
-      const page = getPage(data)
-
-      const shapes = Array.from(selectedIds.values()).map(
-        (id) => page.shapes[id]
-      )
-
-      const shapesByParentId = shapes.reduce<Record<string, Shape[]>>(
-        (acc, shape) => {
-          if (acc[shape.parentId] === undefined) {
-            acc[shape.parentId] = []
-          }
-          acc[shape.parentId].push(shape)
-          return acc
-        },
-        {}
-      )
-
-      const visited = new Set<string>()
-
-      for (let id in shapesByParentId) {
-        const children = getChildren(data, id)
-
-        shapesByParentId[id]
-          .sort((a, b) => a.childIndex - b.childIndex)
-          .forEach((shape) => {
-            visited.add(shape.id)
-            children.sort((a, b) => a.childIndex - b.childIndex)
-            const index = children.indexOf(shape)
-
-            const nextSibling = children[index - 1]
-
-            if (!nextSibling || visited.has(nextSibling.id)) {
-              // At the bottom already, no change
-              return
-            }
-
-            const nextNextSibling = children[index - 2]
-
-            if (!nextNextSibling) {
-              // Moving to the bottom
-              shape.childIndex = nextSibling.childIndex / 2
-              return
-            }
-
-            shape.childIndex =
-              (nextSibling.childIndex + nextNextSibling.childIndex) / 2
-          })
-      }
+      commands.move(data, MoveType.Backward)
     },
 
     /* --------------------- Camera --------------------- */
@@ -826,17 +729,7 @@ const state = createState({
       )
     },
     deleteSelectedIds(data) {
-      const page = getPage(data)
-
-      data.hoveredId = undefined
-      data.pointedId = undefined
-
-      data.selectedIds.forEach((id) => {
-        delete page.shapes[id]
-        // TODO: recursively delete children
-      })
-
-      data.selectedIds.clear()
+      commands.deleteSelected(data)
     },
 
     /* ---------------------- History ---------------------- */
