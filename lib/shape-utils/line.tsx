@@ -36,7 +36,7 @@ const line = registerShapeUtils<LineShape>({
     return (
       <g id={id}>
         <line x1={x1} y1={y1} x2={x2} y2={y2} />
-        <DotCircle cx={0} cy={0} r={4} />
+        <DotCircle cx={0} cy={0} r={3} />
       </g>
     )
   },

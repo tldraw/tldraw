@@ -95,7 +95,6 @@ const Indicator = styled("path", {
 const HoverIndicator = styled("path", {
   fill: "none",
   stroke: "transparent",
-  zStrokeWidth: [8, 4],
   pointerEvents: "all",
   strokeLinecap: "round",
   strokeLinejoin: "round",

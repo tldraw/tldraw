@@ -10,6 +10,27 @@ export default function useKeyboardEvents() {
       }
 
       switch (e.key) {
+        case "!": {
+          // Shift + 1
+          if (e.shiftKey) {
+            state.send("ZOOMED_TO_FIT")
+          }
+          break
+        }
+        case "@": {
+          // Shift + 2
+          if (e.shiftKey) {
+            state.send("ZOOMED_TO_SELECTION")
+          }
+          break
+        }
+        case ")": {
+          // Shift + 0
+          if (e.shiftKey) {
+            state.send("ZOOMED_TO_ACTUAL")
+          }
+          break
+        }
         case "Escape": {
           state.send("CANCELLED")
           break

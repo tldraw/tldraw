@@ -4,7 +4,6 @@ import { DotShape, ShapeType } from "types"
 import { registerShapeUtils } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
-import styled from "styles"
 import { DotCircle } from "components/canvas/misc"
 import { translateBounds } from "utils/utils"
 
@@ -23,7 +22,7 @@ const dot = registerShapeUtils<DotShape>({
       rotation: 0,
       style: {
         fill: "#c6cacb",
-        stroke: "#000",
+        strokeWidth: "0",
       },
       ...props,
     }

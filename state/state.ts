@@ -1,12 +1,16 @@
 import { createSelectorHook, createState } from "@state-designer/react"
 import {
   clamp,
+  getBoundsCenter,
   getChildren,
   getCommonBounds,
   getPage,
+  getSelectedBounds,
+  getSelectedShapes,
   getShape,
   getSiblings,
   screenToWorld,
+  setZoomCSS,
 } from "utils/utils"
 import * as vec from "utils/vec"
 import {
@@ -68,6 +72,13 @@ const state = createState({
     SELECTED_RECTANGLE_TOOL: { unless: "isReadOnly", to: "rectangle" },
     TOGGLED_CODE_PANEL_OPEN: "toggleCodePanel",
     RESET_CAMERA: "resetCamera",
+    ZOOMED_TO_FIT: "zoomCameraToFit",
+    ZOOMED_TO_SELECTION: { if: "hasSelection", do: "zoomCameraToSelection" },
+    ZOOMED_TO_ACTUAL: {
+      if: "hasSelection",
+      do: "zoomCameraToSelectionActual",
+      else: "zoomCameraToActual",
+    },
   },
   initial: "loading",
   states: {
@@ -480,7 +491,7 @@ const state = createState({
       return data.isReadOnly
     },
     distanceImpliesDrag(data, payload: PointerInfo) {
-      return vec.dist2(payload.origin, payload.point) > 16
+      return vec.dist2(payload.origin, payload.point) > 8
     },
     isPointedShapeSelected(data) {
       return data.selectedIds.has(data.pointedId)
@@ -507,6 +518,9 @@ const state = createState({
       payload: { target: Edge | Corner | "rotate" }
     ) {
       return payload.target === "rotate"
+    },
+    hasSelection(data) {
+      return data.selectedIds.size > 0
     },
   },
   actions: {
@@ -565,7 +579,7 @@ const state = createState({
     startTranslateSession(data, payload: PointerInfo) {
       session = new Sessions.TranslateSession(
         data,
-        screenToWorld(payload.point, data),
+        screenToWorld(inputs.pointer.origin, data),
         payload.altKey
       )
     },
@@ -697,29 +711,96 @@ const state = createState({
 
       document.documentElement.style.setProperty("--camera-zoom", "1")
     },
-    centerCamera(data) {
-      const { shapes } = getPage(data)
-      getCommonBounds()
-      data.camera.zoom = 1
-      data.camera.point = [window.innerWidth / 2, window.innerHeight / 2]
+    zoomCameraToSelection(data) {
+      const { camera } = data
 
-      document.documentElement.style.setProperty("--camera-zoom", "1")
+      const bounds = getSelectedBounds(data)
+
+      const zoom =
+        bounds.width > bounds.height
+          ? (window.innerWidth - 128) / bounds.width
+          : (window.innerHeight - 128) / bounds.height
+
+      const mx = window.innerWidth - bounds.width * zoom
+      const my = window.innerHeight - bounds.height * zoom
+
+      camera.zoom = zoom
+
+      camera.point = vec.add(
+        [-bounds.minX, -bounds.minY],
+        [mx / 2 / zoom, my / 2 / zoom]
+      )
+
+      setZoomCSS(camera.zoom)
+    },
+    zoomCameraToSelectionActual(data) {
+      const { camera } = data
+
+      const bounds = getSelectedBounds(data)
+
+      const zoom = 1
+
+      const mx = window.innerWidth - 128 - bounds.width * zoom
+      const my = window.innerHeight - 128 - bounds.height * zoom
+
+      camera.zoom = zoom
+      camera.point = vec.add(
+        [-bounds.minX, -bounds.minY],
+        [mx / 2 / zoom, my / 2 / zoom]
+      )
+
+      setZoomCSS(camera.zoom)
+    },
+    zoomCameraToActual(data) {
+      const { camera } = data
+
+      const center = [window.innerWidth / 2, window.innerHeight / 2]
+
+      const p0 = screenToWorld(center, data)
+      camera.zoom = 1
+      const p1 = screenToWorld(center, data)
+      camera.point = vec.add(camera.point, vec.sub(p1, p0))
+
+      setZoomCSS(camera.zoom)
+    },
+    zoomCameraToFit(data) {
+      const { camera } = data
+      const { shapes } = getPage(data)
+
+      const bounds = getCommonBounds(
+        ...Object.values(shapes).map((shape) =>
+          getShapeUtils(shape).getBounds(shape)
+        )
+      )
+
+      const zoom =
+        bounds.width > bounds.height
+          ? (window.innerWidth - 104) / bounds.width
+          : (window.innerHeight - 104) / bounds.height
+
+      const mx = window.innerWidth - bounds.width * zoom
+      const my = window.innerHeight - bounds.height * zoom
+
+      camera.zoom = zoom
+      camera.point = vec.add(
+        [-bounds.minX, -bounds.minY],
+        [mx / 2 / zoom, my / 2 / zoom]
+      )
+
+      setZoomCSS(camera.zoom)
     },
     zoomCamera(data, payload: { delta: number; point: number[] }) {
       const { camera } = data
       const p0 = screenToWorld(payload.point, data)
       camera.zoom = clamp(
         camera.zoom - (payload.delta / 100) * camera.zoom,
-        0.5,
+        0.1,
         3
       )
       const p1 = screenToWorld(payload.point, data)
       camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
-      document.documentElement.style.setProperty(
-        "--camera-zoom",
-        camera.zoom.toString()
-      )
+      setZoomCSS(camera.zoom)
     },
     panCamera(data, payload: { delta: number[]; point: number[] }) {
       const { camera } = data

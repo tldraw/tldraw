@@ -36,7 +36,7 @@ const ray = registerShapeUtils<RayShape>({
     return (
       <g id={id}>
         <line x1={0} y1={0} x2={x2} y2={y2} />
-        <DotCircle cx={0} cy={0} r={4} />
+        <DotCircle cx={0} cy={0} r={3} />
       </g>
     )
   },

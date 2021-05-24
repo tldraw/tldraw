@@ -1355,6 +1355,14 @@ export function getSelectedShapes(data: Data, pageId = data.currentPageId) {
   return ids.map((id) => page.shapes[id])
 }
 
+export function getSelectedBounds(data: Data) {
+  return getCommonBounds(
+    ...getSelectedShapes(data).map((shape) =>
+      getShapeUtils(shape).getBounds(shape)
+    )
+  )
+}
+
 export function isMobile() {
   return _isMobile()
 }
@@ -1473,4 +1481,7 @@ export function forceIntegerChildIndices(shapes: Shape[]) {
   for (let i = 0; i < shapes.length; i++) {
     shapes[i].childIndex = i + 1
   }
+}
+export function setZoomCSS(zoom: number) {
+  document.documentElement.style.setProperty("--camera-zoom", zoom.toString())
 }

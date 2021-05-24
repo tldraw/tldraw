@@ -43,16 +43,21 @@ const { styled, global, css, theme, getCssString } = createCss({
   utils: {
     zStrokeWidth: () => (value: number | number[]) => {
       if (Array.isArray(value)) {
-        const [val, min, max] = value
         return {
-          strokeWidth:
-            min !== undefined && max !== undefined
-              ? `clamp(${min}, ${val} / var(--camera-zoom), ${max})`
-              : min !== undefined
-              ? `min(${min}, ${val} / var(--camera-zoom))`
-              : `calc(${val} / var(--camera-zoom))`,
+          strokeWidth: `calc(${value[0]} / var(--camera-zoom))`,
         }
       }
+
+      // const [val, min, max] = value
+      // return {
+      //   strokeWidth:
+      //     min !== undefined && max !== undefined
+      //       ? `clamp(${min}, ${val} / var(--camera-zoom), ${max})`
+      //       : min !== undefined
+      //       ? `min(${min}, ${val} / var(--camera-zoom))`
+      //       : `calc(${val} / var(--camera-zoom))`,
+      // }
+      // }
 
       return {
         strokeWidth: `calc(${value} / var(--camera-zoom))`,
