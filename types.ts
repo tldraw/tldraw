@@ -106,7 +106,7 @@ export interface RectangleShape extends BaseShape {
   size: number[]
 }
 
-export type Shape = Readonly<
+export type MutableShape =
   | DotShape
   | CircleShape
   | EllipseShape
@@ -114,16 +114,17 @@ export type Shape = Readonly<
   | RayShape
   | PolylineShape
   | RectangleShape
->
+
+export type Shape = Readonly<MutableShape>
 
 export interface Shapes {
-  [ShapeType.Dot]: DotShape
-  [ShapeType.Circle]: CircleShape
-  [ShapeType.Ellipse]: EllipseShape
-  [ShapeType.Line]: LineShape
-  [ShapeType.Ray]: RayShape
-  [ShapeType.Polyline]: PolylineShape
-  [ShapeType.Rectangle]: RectangleShape
+  [ShapeType.Dot]: Readonly<DotShape>
+  [ShapeType.Circle]: Readonly<CircleShape>
+  [ShapeType.Ellipse]: Readonly<EllipseShape>
+  [ShapeType.Line]: Readonly<LineShape>
+  [ShapeType.Ray]: Readonly<RayShape>
+  [ShapeType.Polyline]: Readonly<PolylineShape>
+  [ShapeType.Rectangle]: Readonly<RectangleShape>
 }
 
 export type ShapeByType<T extends ShapeType> = Shapes[T]
