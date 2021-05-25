@@ -45,7 +45,14 @@ export default class RotateSession extends BaseSession {
       const shape = page.shapes[id]
 
       getShapeUtils(shape)
-        .rotateTo(shape, (PI2 + (rotation + rot)) % PI2)
+        .rotateTo(
+          shape,
+          (PI2 +
+            (isLocked
+              ? clampToRotationToSegments(rotation + rot, 24)
+              : rotation + rot)) %
+            PI2
+        )
         .translateTo(
           shape,
           vec.sub(vec.rotWith(center, boundsCenter, rot % PI2), offset)
@@ -70,20 +77,16 @@ export default class RotateSession extends BaseSession {
 export function getRotateSnapshot(data: Data) {
   const shapes = getSelectedShapes(current(data))
 
-  // A mapping of selected shapes and their bounds
   const shapesBounds = Object.fromEntries(
     shapes.map((shape) => [shape.id, getShapeBounds(shape)])
   )
 
-  // The common (exterior) bounds of the selected shapes
   const bounds = getCommonBounds(...Object.values(shapesBounds))
 
-  const boundsCenter = getBoundsCenter(bounds)
-
   return {
-    boundsCenter,
     currentPageId: data.currentPageId,
     boundsRotation: data.boundsRotation,
+    boundsCenter: getBoundsCenter(bounds),
     shapes: shapes.map(({ id, point, rotation }) => {
       const bounds = shapesBounds[id]
       const offset = [bounds.width / 2, bounds.height / 2]
