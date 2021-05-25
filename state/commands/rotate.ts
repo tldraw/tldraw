@@ -3,6 +3,7 @@ import history from "../history"
 import { Data } from "types"
 import { RotateSnapshot } from "state/sessions/rotate-session"
 import { getPage } from "utils/utils"
+import { getShapeUtils } from "lib/shape-utils"
 
 export default function rotateCommand(
   data: Data,
@@ -19,8 +20,9 @@ export default function rotateCommand(
 
         for (let { id, point, rotation } of after.shapes) {
           const shape = shapes[id]
-          shape.rotation = rotation
-          shape.point = point
+          const utils = getShapeUtils(shape)
+          utils.rotate(shape, rotation)
+          utils.translate(shape, point)
         }
 
         data.boundsRotation = after.boundsRotation
@@ -30,8 +32,9 @@ export default function rotateCommand(
 
         for (let { id, point, rotation } of before.shapes) {
           const shape = shapes[id]
-          shape.rotation = rotation
-          shape.point = point
+          const utils = getShapeUtils(shape)
+          utils.rotate(shape, rotation)
+          utils.translate(shape, point)
         }
 
         data.boundsRotation = before.boundsRotation

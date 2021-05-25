@@ -525,12 +525,16 @@ const state = createState({
   },
   actions: {
     /* --------------------- Shapes --------------------- */
-    createShape(data, payload: PointerInfo, shape: Shape) {
+    createShape(data, payload, shape: Shape) {
       const siblings = getChildren(data, shape.parentId)
-      shape.childIndex =
-        siblings.length > 0 ? siblings[siblings.length - 1].childIndex + 1 : 1
+      const childIndex = siblings.length
+        ? siblings[siblings.length - 1].childIndex + 1
+        : 1
+
+      getShapeUtils(shape).setChildIndex(shape, childIndex)
 
       getPage(data).shapes[shape.id] = shape
+
       data.selectedIds.clear()
       data.selectedIds.add(shape.id)
     },
@@ -608,19 +612,11 @@ const state = createState({
       data,
       payload: PointerInfo & { target: Corner | Edge }
     ) {
+      const point = screenToWorld(inputs.pointer.origin, data)
       session =
         data.selectedIds.size === 1
-          ? new Sessions.TransformSingleSession(
-              data,
-              payload.target,
-              screenToWorld(payload.point, data),
-              false
-            )
-          : new Sessions.TransformSession(
-              data,
-              payload.target,
-              screenToWorld(payload.point, data)
-            )
+          ? new Sessions.TransformSingleSession(data, payload.target, point)
+          : new Sessions.TransformSession(data, payload.target, point)
     },
     startDrawTransformSession(data, payload: PointerInfo) {
       session = new Sessions.TransformSingleSession(
@@ -651,7 +647,7 @@ const state = createState({
     startDirectionSession(data, payload: PointerInfo) {
       session = new Sessions.DirectionSession(
         data,
-        screenToWorld(payload.point, data)
+        screenToWorld(inputs.pointer.origin, data)
       )
     },
     updateDirectionSession(data, payload: PointerInfo) {

@@ -5,6 +5,7 @@ import commands from "state/commands"
 import { current } from "immer"
 import { v4 as uuid } from "uuid"
 import { getChildIndexAbove, getPage, getSelectedShapes } from "utils/utils"
+import { getShapeUtils } from "lib/shape-utils"
 
 export default class TranslateSession extends BaseSession {
   delta = [0, 0]
@@ -38,7 +39,8 @@ export default class TranslateSession extends BaseSession {
         data.selectedIds.clear()
 
         for (const { id, point } of initialShapes) {
-          shapes[id].point = point
+          const shape = shapes[id]
+          getShapeUtils(shape).translate(shape, point)
         }
 
         for (const clone of clones) {
@@ -48,7 +50,8 @@ export default class TranslateSession extends BaseSession {
       }
 
       for (const { id, point } of clones) {
-        shapes[id].point = vec.add(point, delta)
+        const shape = shapes[id]
+        getShapeUtils(shape).translate(shape, vec.add(point, delta))
       }
     } else {
       if (this.isCloning) {
@@ -65,7 +68,8 @@ export default class TranslateSession extends BaseSession {
       }
 
       for (const { id, point } of initialShapes) {
-        shapes[id].point = vec.add(point, delta)
+        const shape = shapes[id]
+        getShapeUtils(shape).translate(shape, vec.add(point, delta))
       }
     }
   }
@@ -75,7 +79,8 @@ export default class TranslateSession extends BaseSession {
     const { shapes } = getPage(data, currentPageId)
 
     for (const { id, point } of initialShapes) {
-      shapes[id].point = point
+      const shape = shapes[id]
+      getShapeUtils(shape).translate(shape, point)
     }
 
     for (const { id } of clones) {

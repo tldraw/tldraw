@@ -100,16 +100,12 @@ const ellipse = registerShapeUtils<EllipseShape>({
   },
 
   rotate(shape) {
-    return shape
+    return this
   },
 
   translate(shape, delta) {
     shape.point = vec.add(shape.point, delta)
-    return shape
-  },
-
-  scale(shape, scale: number) {
-    return shape
+    return this
   },
 
   transform(shape, bounds, { scaleX, scaleY, initialShape }) {
@@ -122,11 +118,21 @@ const ellipse = registerShapeUtils<EllipseShape>({
         ? -initialShape.rotation
         : initialShape.rotation
 
-    return shape
+    return this
   },
 
   transformSingle(shape, bounds, info) {
     return this.transform(shape, bounds, info)
+  },
+
+  setParent(shape, parentId) {
+    shape.parentId = parentId
+    return this
+  },
+
+  setChildIndex(shape, childIndex) {
+    shape.childIndex = childIndex
+    return this
   },
 
   canTransform: true,

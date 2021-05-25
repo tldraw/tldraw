@@ -1,14 +1,10 @@
 import { Shape } from "types"
-import { getShapeUtils } from "lib/shape-utils"
+import { getShapeUtils, ShapeUtility } from "lib/shape-utils"
 import * as vec from "utils/vec"
 import Vector from "./vector"
 import { vectorToPoint } from "utils/utils"
 
 export const codeShapes = new Set<CodeShape<Shape>>([])
-
-type WithVectors<T extends Shape> = {
-  [key in keyof T]: number[] extends T[key] ? Vector : T[key]
-}
 
 /**
  * A base class for code shapes. Note that creating a shape adds it to the
@@ -16,9 +12,12 @@ type WithVectors<T extends Shape> = {
  */
 export default class CodeShape<T extends Shape> {
   private _shape: T
+  private utils: ShapeUtility<Shape>
 
   constructor(props: T) {
     this._shape = props
+    this.utils = getShapeUtils(this.shape)
+
     codeShapes.add(this)
   }
 
@@ -27,27 +26,31 @@ export default class CodeShape<T extends Shape> {
   }
 
   moveTo(point: Vector) {
-    this.shape.point = vectorToPoint(point)
+    this.utils.translate(this._shape, vectorToPoint(point))
+    return this
   }
 
   translate(delta: Vector) {
-    this.shape.point = vec.add(this._shape.point, vectorToPoint(delta))
+    this.utils.translate(
+      this._shape,
+      vec.add(this._shape.point, vectorToPoint(delta))
+    )
+    return this
   }
 
   rotate(rotation: number) {
-    this.shape.rotation = rotation
-  }
-
-  scale(scale: number) {
-    return getShapeUtils(this.shape).scale(this.shape, scale)
+    this.utils.rotate(this._shape, rotation)
+    return this
   }
 
   getBounds() {
-    return getShapeUtils(this.shape).getBounds(this.shape)
+    this.utils.getBounds(this.shape)
+    return this
   }
 
   hitTest(point: Vector) {
-    return getShapeUtils(this.shape).hitTest(this.shape, vectorToPoint(point))
+    this.utils.hitTest(this.shape, vectorToPoint(point))
+    return this
   }
 
   get shape() {

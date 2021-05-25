@@ -3,6 +3,7 @@ import history from "../history"
 import { TranslateSnapshot } from "state/sessions/translate-session"
 import { Data } from "types"
 import { getPage } from "utils/utils"
+import { getShapeUtils } from "lib/shape-utils"
 
 export default function translateCommand(
   data: Data,
@@ -32,7 +33,8 @@ export default function translateCommand(
         }
 
         for (const { id, point } of initialShapes) {
-          shapes[id].point = point
+          const shape = shapes[id]
+          getShapeUtils(shape).translate(shape, point)
           data.selectedIds.add(id)
         }
       },
@@ -49,7 +51,8 @@ export default function translateCommand(
         }
 
         for (const { id, point } of initialShapes) {
-          shapes[id].point = point
+          const shape = shapes[id]
+          getShapeUtils(shape).translate(shape, point)
           data.selectedIds.add(id)
         }
       },

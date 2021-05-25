@@ -70,26 +70,33 @@ const dot = registerShapeUtils<DotShape>({
   },
 
   rotate(shape) {
-    return shape
-  },
-
-  scale(shape, scale: number) {
-    return shape
+    return this
   },
 
   translate(shape, delta) {
     shape.point = vec.add(shape.point, delta)
-    return shape
+    return this
   },
 
   transform(shape, bounds) {
     shape.point = [bounds.minX, bounds.minY]
 
-    return shape
+    return this
   },
 
   transformSingle(shape, bounds, info) {
-    return this.transform(shape, bounds, info)
+    this.transform(shape, bounds, info)
+    return this
+  },
+
+  setParent(shape, parentId) {
+    shape.parentId = parentId
+    return this
+  },
+
+  setChildIndex(shape, childIndex) {
+    shape.childIndex = childIndex
+    return this
   },
 
   canTransform: false,

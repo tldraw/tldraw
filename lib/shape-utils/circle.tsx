@@ -81,17 +81,13 @@ const circle = registerShapeUtils<CircleShape>({
     )
   },
 
-  rotate(shape) {
-    return shape
-  },
-
   translate(shape, delta) {
     shape.point = vec.add(shape.point, delta)
-    return shape
+    return this
   },
 
-  scale(shape, scale) {
-    return shape
+  rotate(shape) {
+    return this
   },
 
   transform(shape, bounds, { initialShape, transformOrigin, scaleX, scaleY }) {
@@ -107,13 +103,23 @@ const circle = registerShapeUtils<CircleShape>({
           (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
     ]
 
-    return shape
+    return this
   },
 
   transformSingle(shape, bounds, info) {
     shape.radius = Math.min(bounds.width, bounds.height) / 2
     shape.point = [bounds.minX, bounds.minY]
-    return shape
+    return this
+  },
+
+  setParent(shape, parentId) {
+    shape.parentId = parentId
+    return this
+  },
+
+  setChildIndex(shape, childIndex) {
+    shape.childIndex = childIndex
+    return this
   },
 
   canTransform: true,

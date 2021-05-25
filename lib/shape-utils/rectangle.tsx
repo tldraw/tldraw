@@ -96,16 +96,12 @@ const rectangle = registerShapeUtils<RectangleShape>({
   },
 
   rotate(shape) {
-    return shape
+    return this
   },
 
   translate(shape, delta) {
     shape.point = vec.add(shape.point, delta)
-    return shape
-  },
-
-  scale(shape, scale) {
-    return shape
+    return this
   },
 
   transform(shape, bounds, { initialShape, transformOrigin, scaleX, scaleY }) {
@@ -133,13 +129,23 @@ const rectangle = registerShapeUtils<RectangleShape>({
           : initialShape.rotation
     }
 
-    return shape
+    return this
   },
 
   transformSingle(shape, bounds) {
     shape.size = [bounds.width, bounds.height]
     shape.point = [bounds.minX, bounds.minY]
-    return shape
+    return this
+  },
+
+  setParent(shape, parentId) {
+    shape.parentId = parentId
+    return this
+  },
+
+  setChildIndex(shape, childIndex) {
+    shape.childIndex = childIndex
+    return this
   },
 
   canTransform: true,

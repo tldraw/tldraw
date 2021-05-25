@@ -6,6 +6,7 @@ import {
   ShapeType,
   Corner,
   Edge,
+  ShapeByType,
 } from "types"
 import circle from "./circle"
 import dot from "./dot"
@@ -26,12 +27,65 @@ Operations throughout the app will call these utility methods
 when performing tests (such as hit tests) or mutations, such as translations.
 */
 
-export interface ShapeUtility<K extends Shape> {
+export interface ShapeUtility<K extends Readonly<Shape>> {
   // A cache for the computed bounds of this kind of shape.
   boundsCache: WeakMap<K, Bounds>
 
+  // Whether to show transform controls when this shape is selected.
+  canTransform: boolean
+
+  // Whether the shape's aspect ratio can change
+  canChangeAspectRatio: boolean
+
   // Create a new shape.
   create(props: Partial<K>): K
+
+  // Apply a translation to a shape.
+  translate(this: ShapeUtility<K>, shape: K, delta: number[]): ShapeUtility<K>
+
+  // Apply a rotation to a shape.
+  rotate(this: ShapeUtility<K>, shape: K, rotation: number): ShapeUtility<K>
+
+  // Transform to fit a new bounding box when more than one shape is selected.
+  transform(
+    this: ShapeUtility<K>,
+    shape: K,
+    bounds: Bounds,
+    info: {
+      type: Edge | Corner
+      initialShape: K
+      scaleX: number
+      scaleY: number
+      transformOrigin: number[]
+    }
+  ): ShapeUtility<K>
+
+  // Transform a single shape to fit a new bounding box.
+  transformSingle(
+    this: ShapeUtility<K>,
+    shape: K,
+    bounds: Bounds,
+    info: {
+      type: Edge | Corner
+      initialShape: K
+      scaleX: number
+      scaleY: number
+      transformOrigin: number[]
+    }
+  ): ShapeUtility<K>
+
+  // Move a shape to a new parent.
+  setParent(this: ShapeUtility<K>, shape: K, parentId: string): ShapeUtility<K>
+
+  // Change the child index of a shape
+  setChildIndex(
+    this: ShapeUtility<K>,
+    shape: K,
+    childIndex: number
+  ): ShapeUtility<K>
+
+  // Render a shape to JSX.
+  render(this: ShapeUtility<K>, shape: K): JSX.Element
 
   // Get the bounds of the a shape.
   getBounds(this: ShapeUtility<K>, shape: K): Bounds
@@ -47,55 +101,10 @@ export interface ShapeUtility<K extends Shape> {
 
   // Test whether bounds collide with or contain a shape.
   hitTestBounds(this: ShapeUtility<K>, shape: K, bounds: Bounds): boolean
-
-  // Apply a rotation to a shape.
-  rotate(this: ShapeUtility<K>, shape: K): K
-
-  // Apply a translation to a shape.
-  translate(this: ShapeUtility<K>, shape: K, delta: number[]): K
-
-  // Transform to fit a new bounding box.
-  transform(
-    this: ShapeUtility<K>,
-    shape: K,
-    bounds: Bounds,
-    info: {
-      type: Edge | Corner
-      initialShape: K
-      scaleX: number
-      scaleY: number
-      transformOrigin: number[]
-    }
-  ): K
-
-  transformSingle(
-    this: ShapeUtility<K>,
-    shape: K,
-    bounds: Bounds,
-    info: {
-      type: Edge | Corner
-      initialShape: K
-      scaleX: number
-      scaleY: number
-      transformOrigin: number[]
-    }
-  ): K
-
-  // Apply a scale to a shape.
-  scale(this: ShapeUtility<K>, shape: K, scale: number): K
-
-  // Render a shape to JSX.
-  render(this: ShapeUtility<K>, shape: K): JSX.Element
-
-  // Whether to show transform controls when this shape is selected.
-  canTransform: boolean
-
-  // Whether the shape's aspect ratio can change
-  canChangeAspectRatio: boolean
 }
 
 // A mapping of shape types to shape utilities.
-const shapeUtilityMap: { [key in ShapeType]: ShapeUtility<Shapes[key]> } = {
+const shapeUtilityMap: Record<ShapeType, ShapeUtility<Shape>> = {
   [ShapeType.Circle]: circle,
   [ShapeType.Dot]: dot,
   [ShapeType.Polyline]: polyline,
@@ -110,8 +119,8 @@ const shapeUtilityMap: { [key in ShapeType]: ShapeUtility<Shapes[key]> } = {
  * @param shape
  * @returns
  */
-export function getShapeUtils(shape: Shape): ShapeUtility<typeof shape> {
-  return shapeUtilityMap[shape.type]
+export function getShapeUtils<T extends Shape>(shape: T): ShapeUtility<T> {
+  return shapeUtilityMap[shape.type] as ShapeUtility<T>
 }
 
 /**
@@ -123,6 +132,13 @@ export function registerShapeUtils<T extends Shape>(
   shape: ShapeUtility<T>
 ): ShapeUtility<T> {
   return Object.freeze(shape)
+}
+
+export function createShape<T extends ShapeType>(
+  type: T,
+  props: Partial<ShapeByType<T>>
+) {
+  return shapeUtilityMap[type].create(props) as ShapeByType<T>
 }
 
 export default shapeUtilityMap

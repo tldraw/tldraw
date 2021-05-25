@@ -11,6 +11,7 @@ import {
   getSelectedShapes,
   getShapeBounds,
 } from "utils/utils"
+import { getShapeUtils } from "lib/shape-utils"
 
 const PI2 = Math.PI * 2
 
@@ -42,9 +43,13 @@ export default class RotateSession extends BaseSession {
 
     for (let { id, center, offset, rotation } of shapes) {
       const shape = page.shapes[id]
-      shape.rotation = (PI2 + (rotation + rot)) % PI2
-      const newCenter = vec.rotWith(center, boundsCenter, rot % PI2)
-      shape.point = vec.sub(newCenter, offset)
+
+      getShapeUtils(shape)
+        .rotate(shape, (PI2 + (rotation + rot)) % PI2)
+        .translate(
+          shape,
+          vec.sub(vec.rotWith(center, boundsCenter, rot % PI2), offset)
+        )
     }
   }
 
@@ -53,8 +58,7 @@ export default class RotateSession extends BaseSession {
 
     for (let { id, point, rotation } of this.snapshot.shapes) {
       const shape = page.shapes[id]
-      shape.rotation = rotation
-      shape.point = point
+      getShapeUtils(shape).rotate(shape, rotation).translate(shape, point)
     }
   }
 

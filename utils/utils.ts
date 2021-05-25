@@ -1479,7 +1479,8 @@ export function getChildIndexBelow(
 
 export function forceIntegerChildIndices(shapes: Shape[]) {
   for (let i = 0; i < shapes.length; i++) {
-    shapes[i].childIndex = i + 1
+    const shape = shapes[i]
+    getShapeUtils(shape).setChildIndex(shape, i + 1)
   }
 }
 export function setZoomCSS(zoom: number) {

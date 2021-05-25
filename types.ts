@@ -106,7 +106,7 @@ export interface RectangleShape extends BaseShape {
   size: number[]
 }
 
-export type Shape =
+export type Shape = Readonly<
   | DotShape
   | CircleShape
   | EllipseShape
@@ -114,8 +114,9 @@ export type Shape =
   | RayShape
   | PolylineShape
   | RectangleShape
+>
 
-export interface Shapes extends Record<ShapeType, Shape> {
+export interface Shapes {
   [ShapeType.Dot]: DotShape
   [ShapeType.Circle]: CircleShape
   [ShapeType.Ellipse]: EllipseShape
@@ -124,6 +125,8 @@ export interface Shapes extends Record<ShapeType, Shape> {
   [ShapeType.Polyline]: PolylineShape
   [ShapeType.Rectangle]: RectangleShape
 }
+
+export type ShapeByType<T extends ShapeType> = Shapes[T]
 
 export interface CodeFile {
   id: string

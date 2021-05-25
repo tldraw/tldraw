@@ -2,6 +2,7 @@ import Command from "./command"
 import history from "../history"
 import { Data, MoveType, Shape } from "types"
 import { forceIntegerChildIndices, getChildren, getPage } from "utils/utils"
+import { getShapeUtils } from "lib/shape-utils"
 
 export default function moveCommand(data: Data, type: MoveType) {
   const { currentPageId } = data
@@ -75,7 +76,8 @@ export default function moveCommand(data: Data, type: MoveType) {
         const page = getPage(data)
 
         for (let id of selectedIds) {
-          page.shapes[id].childIndex = initialIndices[id]
+          const shape = page.shapes[id]
+          getShapeUtils(shape).setChildIndex(shape, initialIndices[id])
         }
       },
     })
@@ -93,7 +95,9 @@ function moveToFront(shapes: Shape[], siblings: Shape[]) {
 
   const startIndex = Math.ceil(diff[0].childIndex) + 1
 
-  shapes.forEach((shape, i) => (shape.childIndex = startIndex + i))
+  shapes.forEach((shape, i) =>
+    getShapeUtils(shape).setChildIndex(shape, startIndex + i)
+  )
 }
 
 function moveToBack(shapes: Shape[], siblings: Shape[]) {
@@ -109,7 +113,9 @@ function moveToBack(shapes: Shape[], siblings: Shape[]) {
 
   const step = startIndex / (shapes.length + 1)
 
-  shapes.forEach((shape, i) => (shape.childIndex = startIndex - (i + 1) * step))
+  shapes.forEach((shape, i) =>
+    getShapeUtils(shape).setChildIndex(shape, startIndex - (i + 1) * step)
+  )
 }
 
 function moveForward(shape: Shape, siblings: Shape[], visited: Set<string>) {
@@ -132,7 +138,7 @@ function moveForward(shape: Shape, siblings: Shape[], visited: Set<string>) {
         : Math.ceil(nextSibling.childIndex + 1)
     }
 
-    shape.childIndex = nextIndex
+    getShapeUtils(shape).setChildIndex(shape, nextIndex)
 
     siblings.sort((a, b) => a.childIndex - b.childIndex)
   }
@@ -158,7 +164,7 @@ function moveBackward(shape: Shape, siblings: Shape[], visited: Set<string>) {
         : nextSibling.childIndex / 2
     }
 
-    shape.childIndex = nextIndex
+    getShapeUtils(shape).setChildIndex(shape, nextIndex)
 
     siblings.sort((a, b) => a.childIndex - b.childIndex)
   }

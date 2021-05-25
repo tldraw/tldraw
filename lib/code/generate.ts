@@ -39,10 +39,9 @@ export function generateFromCode(code: string) {
 
   new Function(...Object.keys(scope), `${code}`)(...Object.values(scope))
 
-  const generatedShapes = Array.from(codeShapes.values()).map((instance) => {
-    instance.shape.isGenerated = true
-    return instance.shape
-  })
+  const generatedShapes = Array.from(codeShapes.values()).map(
+    (instance) => instance.shape
+  )
 
   const generatedControls = Array.from(codeControls.values())
 
@@ -73,10 +72,9 @@ export function updateFromCode(
 
   new Function(...Object.keys(scope), `${code}`)(...Object.values(scope))
 
-  const generatedShapes = Array.from(codeShapes.values()).map((instance) => {
-    instance.shape.isGenerated = true
-    return instance.shape
-  })
+  const generatedShapes = Array.from(codeShapes.values()).map(
+    (instance) => instance.shape
+  )
 
   return { shapes: generatedShapes }
 }
