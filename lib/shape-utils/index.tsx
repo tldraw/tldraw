@@ -40,11 +40,11 @@ export interface ShapeUtility<K extends Readonly<Shape>> {
   // Create a new shape.
   create(props: Partial<K>): K
 
-  // Apply a translation to a shape.
-  translate(this: ShapeUtility<K>, shape: K, delta: number[]): ShapeUtility<K>
+  // Set the shape's point.
+  translateTo(this: ShapeUtility<K>, shape: K, delta: number[]): ShapeUtility<K>
 
-  // Apply a rotation to a shape.
-  rotate(this: ShapeUtility<K>, shape: K, rotation: number): ShapeUtility<K>
+  // Set the shape's rotation.
+  rotateTo(this: ShapeUtility<K>, shape: K, rotation: number): ShapeUtility<K>
 
   // Transform to fit a new bounding box when more than one shape is selected.
   transform(

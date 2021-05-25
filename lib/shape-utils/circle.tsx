@@ -81,12 +81,13 @@ const circle = registerShapeUtils<CircleShape>({
     )
   },
 
-  translate(shape, delta) {
-    shape.point = vec.add(shape.point, delta)
+  rotateTo(shape, rotation) {
+    shape.rotation = rotation
     return this
   },
 
-  rotate(shape) {
+  translateTo(shape, point) {
+    shape.point = point
     return this
   },
 

@@ -69,12 +69,12 @@ const dot = registerShapeUtils<DotShape>({
     )
   },
 
-  rotate(shape) {
+  rotateTo(shape) {
     return this
   },
 
-  translate(shape, delta) {
-    shape.point = vec.add(shape.point, delta)
+  translateTo(shape, point) {
+    shape.point = point
     return this
   },
 

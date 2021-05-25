@@ -99,12 +99,13 @@ const ellipse = registerShapeUtils<EllipseShape>({
     )
   },
 
-  rotate(shape) {
+  rotateTo(shape, rotation) {
+    shape.rotation = rotation
     return this
   },
 
-  translate(shape, delta) {
-    shape.point = vec.add(shape.point, delta)
+  translateTo(shape, point) {
+    shape.point = point
     return this
   },
 

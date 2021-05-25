@@ -21,8 +21,7 @@ export default function rotateCommand(
         for (let { id, point, rotation } of after.shapes) {
           const shape = shapes[id]
           const utils = getShapeUtils(shape)
-          utils.rotate(shape, rotation)
-          utils.translate(shape, point)
+          utils.rotateTo(shape, rotation).translateTo(shape, point)
         }
 
         data.boundsRotation = after.boundsRotation
@@ -33,8 +32,7 @@ export default function rotateCommand(
         for (let { id, point, rotation } of before.shapes) {
           const shape = shapes[id]
           const utils = getShapeUtils(shape)
-          utils.rotate(shape, rotation)
-          utils.translate(shape, point)
+          utils.rotateTo(shape, rotation).translateTo(shape, point)
         }
 
         data.boundsRotation = before.boundsRotation

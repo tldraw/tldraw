@@ -72,15 +72,10 @@ const state = createState({
     SELECTED_RECTANGLE_TOOL: { unless: "isReadOnly", to: "rectangle" },
     TOGGLED_CODE_PANEL_OPEN: "toggleCodePanel",
     RESET_CAMERA: "resetCamera",
-    ZOOMED_TO_FIT: {
-      if: "hasSelection",
-      do: "zoomCameraToFit",
-      else: "resetCamera",
-    },
+    ZOOMED_TO_FIT: "zoomCameraToFit",
     ZOOMED_TO_SELECTION: {
       if: "hasSelection",
       do: "zoomCameraToSelection",
-      else: "resetCamera",
     },
     ZOOMED_TO_ACTUAL: {
       if: "hasSelection",
@@ -721,7 +716,7 @@ const state = createState({
       const bounds = getSelectedBounds(data)
 
       const zoom =
-        bounds.width > bounds.height
+        bounds.width < bounds.height
           ? (window.innerWidth - 128) / bounds.width
           : (window.innerHeight - 128) / bounds.height
 
@@ -742,17 +737,12 @@ const state = createState({
 
       const bounds = getSelectedBounds(data)
 
-      const zoom = 1
+      const mx = window.innerWidth - bounds.width
+      const my = window.innerHeight - bounds.height
 
-      const mx = window.innerWidth - 128 - bounds.width * zoom
-      const my = window.innerHeight - 128 - bounds.height * zoom
+      camera.zoom = 1
 
-      camera.zoom = zoom
-      camera.point = vec.add(
-        [-bounds.minX, -bounds.minY],
-        [mx / 2 / zoom, my / 2 / zoom]
-      )
-
+      camera.point = vec.add([-bounds.minX, -bounds.minY], [mx / 2, my / 2])
       setZoomCSS(camera.zoom)
     },
     zoomCameraToActual(data) {
@@ -769,7 +759,13 @@ const state = createState({
     },
     zoomCameraToFit(data) {
       const { camera } = data
-      const { shapes } = getPage(data)
+      const page = getPage(data)
+
+      const shapes = Object.values(page.shapes)
+
+      if (shapes.length === 0) {
+        return
+      }
 
       const bounds = getCommonBounds(
         ...Object.values(shapes).map((shape) =>
@@ -778,18 +774,15 @@ const state = createState({
       )
 
       const zoom =
-        bounds.width > bounds.height
-          ? (window.innerWidth - 104) / bounds.width
-          : (window.innerHeight - 104) / bounds.height
+        bounds.width < bounds.height
+          ? (window.innerWidth - 128) / bounds.width
+          : (window.innerHeight - 128) / bounds.height
 
-      const mx = window.innerWidth - bounds.width * zoom
-      const my = window.innerHeight - bounds.height * zoom
+      const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
+      const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
 
       camera.zoom = zoom
-      camera.point = vec.add(
-        [-bounds.minX, -bounds.minY],
-        [mx / 2 / zoom, my / 2 / zoom]
-      )
+      camera.point = vec.add([-bounds.minX, -bounds.minY], [mx, my])
 
       setZoomCSS(camera.zoom)
     },

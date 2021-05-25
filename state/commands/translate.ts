@@ -34,7 +34,7 @@ export default function translateCommand(
 
         for (const { id, point } of initialShapes) {
           const shape = shapes[id]
-          getShapeUtils(shape).translate(shape, point)
+          getShapeUtils(shape).translateTo(shape, point)
           data.selectedIds.add(id)
         }
       },
@@ -52,7 +52,7 @@ export default function translateCommand(
 
         for (const { id, point } of initialShapes) {
           const shape = shapes[id]
-          getShapeUtils(shape).translate(shape, point)
+          getShapeUtils(shape).translateTo(shape, point)
           data.selectedIds.add(id)
         }
       },
