@@ -11,7 +11,7 @@ export default class Line extends CodeShape<LineShape> {
     super({
       id: uuid(),
       type: ShapeType.Line,
-      isGenerated: false,
+      isGenerated: true,
       name: "Line",
       parentId: "page0",
       childIndex: 0,

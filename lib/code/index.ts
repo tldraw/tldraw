@@ -1,5 +1,9 @@
 import { Shape } from "types"
-import { getShapeUtils, ShapeUtility } from "lib/shape-utils"
+import shapeUtilityMap, {
+  createShape,
+  getShapeUtils,
+  ShapeUtility,
+} from "lib/shape-utils"
 import * as vec from "utils/vec"
 import Vector from "./vector"
 import { vectorToPoint } from "utils/utils"
@@ -12,12 +16,11 @@ export const codeShapes = new Set<CodeShape<Shape>>([])
  */
 export default class CodeShape<T extends Shape> {
   private _shape: T
-  private utils: ShapeUtility<Shape>
+  private utils: ShapeUtility<T>
 
   constructor(props: T) {
-    this._shape = props
-    this.utils = getShapeUtils(this.shape)
-
+    this._shape = createShape<T>(props.type, props)
+    this.utils = getShapeUtils<T>(this._shape)
     codeShapes.add(this)
   }
 

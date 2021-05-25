@@ -10,7 +10,7 @@ export default class Ellipse extends CodeShape<EllipseShape> {
     super({
       id: uuid(),
       type: ShapeType.Ellipse,
-      isGenerated: false,
+      isGenerated: true,
       name: "Ellipse",
       parentId: "page0",
       childIndex: 0,

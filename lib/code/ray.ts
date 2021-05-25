@@ -11,7 +11,7 @@ export default class Ray extends CodeShape<RayShape> {
     super({
       id: uuid(),
       type: ShapeType.Ray,
-      isGenerated: false,
+      isGenerated: true,
       name: "Ray",
       parentId: "page0",
       childIndex: 0,

@@ -19,7 +19,7 @@ class MyDocument extends NextDocument {
         ),
       }
     } catch (e) {
-      console.log(e.message)
+      console.error(e.message)
     } finally {
     }
   }

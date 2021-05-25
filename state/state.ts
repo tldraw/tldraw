@@ -72,8 +72,16 @@ const state = createState({
     SELECTED_RECTANGLE_TOOL: { unless: "isReadOnly", to: "rectangle" },
     TOGGLED_CODE_PANEL_OPEN: "toggleCodePanel",
     RESET_CAMERA: "resetCamera",
-    ZOOMED_TO_FIT: "zoomCameraToFit",
-    ZOOMED_TO_SELECTION: { if: "hasSelection", do: "zoomCameraToSelection" },
+    ZOOMED_TO_FIT: {
+      if: "hasSelection",
+      do: "zoomCameraToFit",
+      else: "resetCamera",
+    },
+    ZOOMED_TO_SELECTION: {
+      if: "hasSelection",
+      do: "zoomCameraToSelection",
+      else: "resetCamera",
+    },
     ZOOMED_TO_ACTUAL: {
       if: "hasSelection",
       do: "zoomCameraToSelectionActual",

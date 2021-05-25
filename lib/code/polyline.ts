@@ -11,7 +11,7 @@ export default class Polyline extends CodeShape<PolylineShape> {
     super({
       id: uuid(),
       type: ShapeType.Polyline,
-      isGenerated: false,
+      isGenerated: true,
       name: "Polyline",
       parentId: "page0",
       childIndex: 0,

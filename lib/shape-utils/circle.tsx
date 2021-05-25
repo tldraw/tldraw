@@ -1,7 +1,7 @@
 import { v4 as uuid } from "uuid"
 import * as vec from "utils/vec"
 import { CircleShape, ShapeType, Corner, Edge } from "types"
-import { registerShapeUtils } from "./index"
+import shapeUtilityMap, { registerShapeUtils } from "./index"
 import { boundsContained } from "utils/bounds"
 import { intersectCircleBounds } from "utils/intersections"
 import { pointInCircle } from "utils/hitTests"

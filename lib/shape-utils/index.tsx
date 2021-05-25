@@ -134,11 +134,11 @@ export function registerShapeUtils<T extends Shape>(
   return Object.freeze(shape)
 }
 
-export function createShape<T extends ShapeType>(
-  type: T,
-  props: Partial<ShapeByType<T>>
+export function createShape<T extends Shape>(
+  type: T["type"],
+  props: Partial<T>
 ) {
-  return shapeUtilityMap[type].create(props) as ShapeByType<T>
+  return shapeUtilityMap[type].create(props) as T
 }
 
 export default shapeUtilityMap
