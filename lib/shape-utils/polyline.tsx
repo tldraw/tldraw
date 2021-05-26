@@ -9,6 +9,7 @@ import {
   boundsContainPolygon,
 } from "utils/bounds"
 import { getBoundsFromPoints, translateBounds } from "utils/utils"
+import { colors } from "state/data"
 
 const polyline = registerShapeUtils<PolylineShape>({
   boundsCache: new WeakMap([]),
@@ -24,7 +25,11 @@ const polyline = registerShapeUtils<PolylineShape>({
       point: [0, 0],
       points: [[0, 0]],
       rotation: 0,
-      style: {},
+      style: {
+        strokeWidth: 2,
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+      },
       ...props,
     }
   },

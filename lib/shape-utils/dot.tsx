@@ -29,7 +29,7 @@ const dot = registerShapeUtils<DotShape>({
   },
 
   render({ id }) {
-    return <DotCircle id={id} cx={0} cy={0} r={4} />
+    return <DotCircle id={id} cx={0} cy={0} r={3} />
   },
 
   applyStyles(shape, style) {

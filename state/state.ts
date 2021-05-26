@@ -94,7 +94,7 @@ const state = createState({
     loading: {
       on: {
         MOUNTED: {
-          do: "restoreSavedData",
+          do: ["restoreSavedData", "zoomCameraToFit"],
           to: "ready",
         },
       },

@@ -7,6 +7,7 @@ import CodePanel from "./code-panel/code-panel"
 import ControlsPanel from "./controls-panel/controls-panel"
 import styled from "styles"
 import StylePanel from "./style-panel/style-panel"
+import { useSelector } from "state"
 
 export default function Editor() {
   useKeyboardEvents()
