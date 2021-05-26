@@ -41,6 +41,11 @@ const line = registerShapeUtils<LineShape>({
     )
   },
 
+  applyStyles(shape, style) {
+    Object.assign(shape.style, style)
+    return this
+  },
+
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
       const bounds = {

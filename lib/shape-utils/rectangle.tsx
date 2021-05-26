@@ -22,6 +22,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
       childIndex: 0,
       point: [0, 0],
       size: [1, 1],
+      radius: 2,
       rotation: 0,
       style: {
         fill: "#c6cacb",
@@ -31,10 +32,16 @@ const rectangle = registerShapeUtils<RectangleShape>({
     }
   },
 
-  render({ id, size, parentId, childIndex }) {
+  render({ id, size, radius, childIndex }) {
     return (
       <g id={id}>
-        <rect id={id} width={size[0]} height={size[1]} />
+        <rect
+          id={id}
+          width={size[0]}
+          height={size[1]}
+          rx={radius}
+          ry={radius}
+        />
         <text
           y={4}
           x={4}
@@ -48,6 +55,11 @@ const rectangle = registerShapeUtils<RectangleShape>({
         </text>
       </g>
     )
+  },
+
+  applyStyles(shape, style) {
+    Object.assign(shape.style, style)
+    return this
   },
 
   getBounds(shape) {

@@ -13,7 +13,10 @@ export const Root = styled("div", {
 
   variants: {
     isOpen: {
-      true: {},
+      true: {
+        width: "auto",
+        minWidth: 300,
+      },
       false: {
         height: 34,
         width: 34,
@@ -28,7 +31,7 @@ export const Layout = styled("div", {
   gridTemplateRows: "auto 1fr",
   gridAutoRows: "28px",
   height: "100%",
-  width: 560,
+  width: "100%",
   minWidth: "100%",
   maxWidth: 560,
   overflow: "hidden",

@@ -7,6 +7,7 @@ import {
   Corner,
   Edge,
   ShapeByType,
+  ShapeStyles,
 } from "types"
 import circle from "./circle"
 import dot from "./dot"
@@ -39,6 +40,12 @@ export interface ShapeUtility<K extends Readonly<Shape>> {
 
   // Create a new shape.
   create(props: Partial<K>): K
+
+  applyStyles(
+    this: ShapeUtility<K>,
+    shape: K,
+    style: ShapeStyles
+  ): ShapeUtility<K>
 
   // Set the shape's point.
   translateTo(this: ShapeUtility<K>, shape: K, delta: number[]): ShapeUtility<K>

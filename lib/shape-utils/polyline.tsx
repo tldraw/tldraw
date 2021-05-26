@@ -33,6 +33,11 @@ const polyline = registerShapeUtils<PolylineShape>({
     return <polyline id={id} points={points.toString()} />
   },
 
+  applyStyles(shape, style) {
+    Object.assign(shape.style, style)
+    return this
+  },
+
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
       const bounds = getBoundsFromPoints(shape.points)

@@ -5,6 +5,7 @@ import generate from "./generate"
 import direct from "./direct"
 import rotate from "./rotate"
 import move from "./move"
+import style from "./style"
 import deleteSelected from "./delete-selected"
 
 const commands = {
@@ -15,6 +16,7 @@ const commands = {
   direct,
   rotate,
   move,
+  style,
   deleteSelected,
 }
 

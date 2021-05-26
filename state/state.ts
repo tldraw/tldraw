@@ -1,18 +1,23 @@
 import { createSelectorHook, createState } from "@state-designer/react"
+import * as vec from "utils/vec"
+import inputs from "./inputs"
+import { colors, defaultDocument } from "./data"
+import { createShape, getShapeUtils } from "lib/shape-utils"
+import history from "state/history"
+import * as Sessions from "./sessions"
+import commands from "./commands"
+import { updateFromCode } from "lib/code/generate"
 import {
   clamp,
-  getBoundsCenter,
   getChildren,
   getCommonBounds,
+  getCurrent,
   getPage,
   getSelectedBounds,
-  getSelectedShapes,
   getShape,
-  getSiblings,
   screenToWorld,
   setZoomCSS,
 } from "utils/utils"
-import * as vec from "utils/vec"
 import {
   Data,
   PointerInfo,
@@ -22,14 +27,8 @@ import {
   Edge,
   CodeControl,
   MoveType,
+  ShapeStyles,
 } from "types"
-import inputs from "./inputs"
-import { defaultDocument } from "./data"
-import shapeUtilityMap, { getShapeUtils } from "lib/shape-utils"
-import history from "state/history"
-import * as Sessions from "./sessions"
-import commands from "./commands"
-import { updateFromCode } from "lib/code/generate"
 
 const initialData: Data = {
   isReadOnly: false,
@@ -37,6 +36,11 @@ const initialData: Data = {
     fontSize: 13,
     isDarkMode: false,
     isCodeOpen: false,
+    isStyleOpen: false,
+  },
+  currentStyle: {
+    fill: colors.lightGray,
+    stroke: colors.darkGray,
   },
   camera: {
     point: [0, 0],
@@ -71,6 +75,8 @@ const state = createState({
     SELECTED_POLYLINE_TOOL: { unless: "isReadOnly", to: "polyline" },
     SELECTED_RECTANGLE_TOOL: { unless: "isReadOnly", to: "rectangle" },
     TOGGLED_CODE_PANEL_OPEN: "toggleCodePanel",
+    TOGGLED_STYLE_PANEL_OPEN: "toggleStylePanel",
+    CHANGED_STYLE: ["updateStyles", "applyStylesToSelection"],
     RESET_CAMERA: "resetCamera",
     ZOOMED_TO_FIT: "zoomCameraToFit",
     ZOOMED_TO_SELECTION: {
@@ -442,48 +448,23 @@ const state = createState({
     },
   },
   results: {
-    // Dot
-    newDot(data, payload: PointerInfo) {
-      return shapeUtilityMap[ShapeType.Dot].create({
-        point: screenToWorld(payload.point, data),
-      })
+    newDot() {
+      return ShapeType.Dot
     },
-
-    // Ray
-    newRay(data, payload: PointerInfo) {
-      return shapeUtilityMap[ShapeType.Ray].create({
-        point: screenToWorld(payload.point, data),
-      })
+    newRay() {
+      return ShapeType.Ray
     },
-
-    // Line
-    newLine(data, payload: PointerInfo) {
-      return shapeUtilityMap[ShapeType.Line].create({
-        point: screenToWorld(payload.point, data),
-        direction: [0, 1],
-      })
+    newLine() {
+      return ShapeType.Line
     },
-
-    newCircle(data, payload: PointerInfo) {
-      return shapeUtilityMap[ShapeType.Circle].create({
-        point: screenToWorld(payload.point, data),
-        radius: 1,
-      })
+    newCircle() {
+      return ShapeType.Circle
     },
-
-    newEllipse(data, payload: PointerInfo) {
-      return shapeUtilityMap[ShapeType.Ellipse].create({
-        point: screenToWorld(payload.point, data),
-        radiusX: 1,
-        radiusY: 1,
-      })
+    newEllipse() {
+      return ShapeType.Ellipse
     },
-
-    newRectangle(data, payload: PointerInfo) {
-      return shapeUtilityMap[ShapeType.Rectangle].create({
-        point: screenToWorld(payload.point, data),
-        size: [1, 1],
-      })
+    newRectangle() {
+      return ShapeType.Rectangle
     },
   },
   conditions: {
@@ -528,7 +509,12 @@ const state = createState({
   },
   actions: {
     /* --------------------- Shapes --------------------- */
-    createShape(data, payload, shape: Shape) {
+    createShape(data, payload, type: ShapeType) {
+      const shape = createShape(type, {
+        point: screenToWorld(payload.point, data),
+        style: getCurrent(data.currentStyle),
+      })
+
       const siblings = getChildren(data, shape.parentId)
       const childIndex = siblings.length
         ? siblings[siblings.length - 1].childIndex + 1
@@ -710,41 +696,6 @@ const state = createState({
 
       document.documentElement.style.setProperty("--camera-zoom", "1")
     },
-    zoomCameraToSelection(data) {
-      const { camera } = data
-
-      const bounds = getSelectedBounds(data)
-
-      const zoom =
-        bounds.width < bounds.height
-          ? (window.innerWidth - 128) / bounds.width
-          : (window.innerHeight - 128) / bounds.height
-
-      const mx = window.innerWidth - bounds.width * zoom
-      const my = window.innerHeight - bounds.height * zoom
-
-      camera.zoom = zoom
-
-      camera.point = vec.add(
-        [-bounds.minX, -bounds.minY],
-        [mx / 2 / zoom, my / 2 / zoom]
-      )
-
-      setZoomCSS(camera.zoom)
-    },
-    zoomCameraToSelectionActual(data) {
-      const { camera } = data
-
-      const bounds = getSelectedBounds(data)
-
-      const mx = window.innerWidth - bounds.width
-      const my = window.innerHeight - bounds.height
-
-      camera.zoom = 1
-
-      camera.point = vec.add([-bounds.minX, -bounds.minY], [mx / 2, my / 2])
-      setZoomCSS(camera.zoom)
-    },
     zoomCameraToActual(data) {
       const { camera } = data
 
@@ -754,6 +705,37 @@ const state = createState({
       camera.zoom = 1
       const p1 = screenToWorld(center, data)
       camera.point = vec.add(camera.point, vec.sub(p1, p0))
+
+      setZoomCSS(camera.zoom)
+    },
+    zoomCameraToSelectionActual(data) {
+      const { camera } = data
+
+      const bounds = getSelectedBounds(data)
+
+      const mx = (window.innerWidth - bounds.width) / 2
+      const my = (window.innerHeight - bounds.height) / 2
+
+      camera.zoom = 1
+      camera.point = vec.add([-bounds.minX, -bounds.minY], [mx, my])
+
+      setZoomCSS(camera.zoom)
+    },
+    zoomCameraToSelection(data) {
+      const { camera } = data
+
+      const bounds = getSelectedBounds(data)
+
+      const zoom =
+        bounds.width > bounds.height
+          ? (window.innerWidth - 128) / bounds.width
+          : (window.innerHeight - 128) / bounds.height
+
+      const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
+      const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+
+      camera.zoom = zoom
+      camera.point = vec.add([-bounds.minX, -bounds.minY], [mx, my])
 
       setZoomCSS(camera.zoom)
     },
@@ -774,7 +756,7 @@ const state = createState({
       )
 
       const zoom =
-        bounds.width < bounds.height
+        bounds.width > bounds.height
           ? (window.innerWidth - 128) / bounds.width
           : (window.innerHeight - 128) / bounds.height
 
@@ -788,12 +770,10 @@ const state = createState({
     },
     zoomCamera(data, payload: { delta: number; point: number[] }) {
       const { camera } = data
+      const next = camera.zoom - (payload.delta / 100) * camera.zoom
+
       const p0 = screenToWorld(payload.point, data)
-      camera.zoom = clamp(
-        camera.zoom - (payload.delta / 100) * camera.zoom,
-        0.1,
-        3
-      )
+      camera.zoom = clamp(next, 0.1, 3)
       const p1 = screenToWorld(payload.point, data)
       camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
@@ -830,6 +810,18 @@ const state = createState({
     },
     redo(data) {
       history.redo(data)
+    },
+
+    /* --------------------- Styles --------------------- */
+
+    toggleStylePanel(data) {
+      data.settings.isStyleOpen = !data.settings.isStyleOpen
+    },
+    updateStyles(data, payload: Partial<ShapeStyles>) {
+      Object.assign(data.currentStyle, payload)
+    },
+    applyStylesToSelection(data, payload: Partial<ShapeStyles>) {
+      commands.style(data, payload)
     },
 
     /* ---------------------- Code ---------------------- */

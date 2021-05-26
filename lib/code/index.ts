@@ -29,12 +29,12 @@ export default class CodeShape<T extends Shape> {
   }
 
   moveTo(point: Vector) {
-    this.utils.translate(this._shape, vectorToPoint(point))
+    this.utils.translateTo(this._shape, vectorToPoint(point))
     return this
   }
 
   translate(delta: Vector) {
-    this.utils.translate(
+    this.utils.translateTo(
       this._shape,
       vec.add(this._shape.point, vectorToPoint(delta))
     )
@@ -42,7 +42,7 @@ export default class CodeShape<T extends Shape> {
   }
 
   rotate(rotation: number) {
-    this.utils.rotate(this._shape, rotation)
+    this.utils.rotateTo(this._shape, rotation)
     return this
   }
 

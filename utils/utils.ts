@@ -1,6 +1,6 @@
 import Vector from "lib/code/vector"
 import React from "react"
-import { Data, Bounds, Edge, Corner, Shape } from "types"
+import { Data, Bounds, Edge, Corner, Shape, ShapeStyles } from "types"
 import * as vec from "./vec"
 import _isMobile from "ismobilejs"
 import { getShapeUtils } from "lib/shape-utils"
@@ -1485,4 +1485,10 @@ export function forceIntegerChildIndices(shapes: Shape[]) {
 }
 export function setZoomCSS(zoom: number) {
   document.documentElement.style.setProperty("--camera-zoom", zoom.toString())
+}
+
+export function getCurrent<T extends object>(source: T): T {
+  return Object.fromEntries(
+    Object.entries(source).map(([key, value]) => [key, value])
+  ) as T
 }

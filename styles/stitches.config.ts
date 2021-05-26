@@ -14,6 +14,7 @@ const { styled, global, css, theme, getCssString } = createCss({
       boundsBg: "rgba(65, 132, 244, 0.100)",
       border: "#aaa",
       panel: "#fefefe",
+      hover: "#efefef",
       text: "#000",
       input: "#f3f3f3",
       inputBorder: "#ddd",

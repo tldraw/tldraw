@@ -18,6 +18,7 @@ export default class Rectangle extends CodeShape<RectangleShape> {
       point: [0, 0],
       size: [100, 100],
       rotation: 0,
+      radius: 2,
       style: {
         fill: "#c6cacb",
         stroke: "#000",

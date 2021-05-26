@@ -24,8 +24,8 @@ const ellipse = registerShapeUtils<EllipseShape>({
       parentId: "page0",
       childIndex: 0,
       point: [0, 0],
-      radiusX: 20,
-      radiusY: 20,
+      radiusX: 1,
+      radiusY: 1,
       rotation: 0,
       style: {
         fill: "#c6cacb",
@@ -39,6 +39,11 @@ const ellipse = registerShapeUtils<EllipseShape>({
     return (
       <ellipse id={id} cx={radiusX} cy={radiusY} rx={radiusX} ry={radiusY} />
     )
+  },
+
+  applyStyles(shape, style) {
+    Object.assign(shape.style, style)
+    return this
   },
 
   getBounds(shape) {

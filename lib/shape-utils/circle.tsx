@@ -20,7 +20,7 @@ const circle = registerShapeUtils<CircleShape>({
       childIndex: 0,
       point: [0, 0],
       rotation: 0,
-      radius: 20,
+      radius: 1,
       style: {
         fill: "#c6cacb",
         stroke: "#000",
@@ -31,6 +31,11 @@ const circle = registerShapeUtils<CircleShape>({
 
   render({ id, radius }) {
     return <circle id={id} cx={radius} cy={radius} r={radius} />
+  },
+
+  applyStyles(shape, style) {
+    Object.assign(shape.style, style)
+    return this
   },
 
   getBounds(shape) {

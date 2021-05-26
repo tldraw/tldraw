@@ -32,6 +32,11 @@ const dot = registerShapeUtils<DotShape>({
     return <DotCircle id={id} cx={0} cy={0} r={4} />
   },
 
+  applyStyles(shape, style) {
+    Object.assign(shape.style, style)
+    return this
+  },
+
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
       const bounds = {

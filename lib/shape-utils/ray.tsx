@@ -41,6 +41,11 @@ const ray = registerShapeUtils<RayShape>({
     )
   },
 
+  applyStyles(shape, style) {
+    Object.assign(shape.style, style)
+    return this
+  },
+
   getRotatedBounds(shape) {
     return this.getBounds(shape)
   },

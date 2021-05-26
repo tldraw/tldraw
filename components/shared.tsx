@@ -16,7 +16,7 @@ export const IconButton = styled("button", {
   cursor: "pointer",
 
   "&:hover:not(:disabled)": {
-    backgroundColor: "$panel",
+    backgroundColor: "$hover",
   },
 
   "&:disabled": {

@@ -12,7 +12,9 @@ export interface Data {
     fontSize: number
     isDarkMode: boolean
     isCodeOpen: boolean
+    isStyleOpen: boolean
   }
+  currentStyle: ShapeStyles
   camera: {
     point: number[]
     zoom: number
@@ -59,6 +61,8 @@ export enum ShapeType {
 // Cubic = "cubic",
 // Conic = "conic",
 
+export type ShapeStyles = Partial<React.SVGProps<SVGUseElement>>
+
 export interface BaseShape {
   id: string
   type: ShapeType
@@ -68,7 +72,7 @@ export interface BaseShape {
   name: string
   point: number[]
   rotation: number
-  style: Partial<React.SVGProps<SVGUseElement>>
+  style: ShapeStyles
 }
 
 export interface DotShape extends BaseShape {
@@ -104,6 +108,7 @@ export interface PolylineShape extends BaseShape {
 export interface RectangleShape extends BaseShape {
   type: ShapeType.Rectangle
   size: number[]
+  radius: number
 }
 
 export type MutableShape =
