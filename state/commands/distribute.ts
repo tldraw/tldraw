@@ -48,22 +48,14 @@ export default function distributeCommand(data: Data, type: DistributeType) {
 
         switch (type) {
           case DistributeType.Horizontal: {
-            const sortedByCenter = entries.sort(
-              ([a], [b]) => centers[a][0] - centers[b][0]
-            )
-
-            const span = sortedByCenter.reduce((a, c) => a + c[1].width, 0)
+            const span = entries.reduce((a, c) => a + c[1].width, 0)
 
             if (span > commonBounds.width) {
-              const left = sortedByCenter.sort(
-                (a, b) => a[1].minX - b[1].minX
-              )[0]
+              const left = entries.sort((a, b) => a[1].minX - b[1].minX)[0]
 
-              const right = sortedByCenter.sort(
-                (a, b) => b[1].maxX - a[1].maxX
-              )[0]
+              const right = entries.sort((a, b) => b[1].maxX - a[1].maxX)[0]
 
-              const entriesToMove = sortedByCenter
+              const entriesToMove = entries
                 .filter((a) => a !== left && a !== right)
                 .sort((a, b) => centers[a[0]][0] - centers[b[0]][0])
 
@@ -81,8 +73,12 @@ export default function distributeCommand(data: Data, type: DistributeType) {
                 ])
               }
             } else {
-              const step = (commonBounds.width - span) / (len - 1)
+              const sortedByCenter = entries.sort(
+                (a, b) => centers[a[0]][0] - centers[b[0]][0]
+              )
+
               let x = commonBounds.minX
+              const step = (commonBounds.width - span) / (len - 1)
 
               for (let i = 0; i < sortedByCenter.length - 1; i++) {
                 const [id, bounds] = sortedByCenter[i]
@@ -94,22 +90,14 @@ export default function distributeCommand(data: Data, type: DistributeType) {
             break
           }
           case DistributeType.Vertical: {
-            const sortedByCenter = entries.sort(
-              ([a], [b]) => centers[a][1] - centers[b][1]
-            )
-
-            const span = sortedByCenter.reduce((a, c) => a + c[1].height, 0)
+            const span = entries.reduce((a, c) => a + c[1].height, 0)
 
             if (span > commonBounds.height) {
-              const top = sortedByCenter.sort(
-                (a, b) => a[1].minY - b[1].minY
-              )[0]
+              const top = entries.sort((a, b) => a[1].minY - b[1].minY)[0]
 
-              const bottom = sortedByCenter.sort(
-                (a, b) => b[1].maxY - a[1].maxY
-              )[0]
+              const bottom = entries.sort((a, b) => b[1].maxY - a[1].maxY)[0]
 
-              const entriesToMove = sortedByCenter
+              const entriesToMove = entries
                 .filter((a) => a !== top && a !== bottom)
                 .sort((a, b) => centers[a[0]][1] - centers[b[0]][1])
 
@@ -127,8 +115,12 @@ export default function distributeCommand(data: Data, type: DistributeType) {
                 ])
               }
             } else {
-              const step = (commonBounds.height - span) / (len - 1)
+              const sortedByCenter = entries.sort(
+                (a, b) => centers[a[0]][1] - centers[b[0]][1]
+              )
+
               let y = commonBounds.minY
+              const step = (commonBounds.height - span) / (len - 1)
 
               for (let i = 0; i < sortedByCenter.length - 1; i++) {
                 const [id, bounds] = sortedByCenter[i]
