@@ -1,13 +1,16 @@
 import { Data, ShapeType } from "types"
 import shapeUtils from "lib/shape-utils"
 
-export const colors = {
+export const shades = {
   transparent: "transparent",
   white: "rgba(248, 249, 250, 1.000)",
   lightGray: "rgba(224, 226, 230, 1.000)",
   gray: "rgba(172, 181, 189, 1.000)",
   darkGray: "rgba(52, 58, 64, 1.000)",
   black: "rgba(0,0,0, 1.000)",
+}
+
+export const strokes = {
   lime: "rgba(115, 184, 23, 1.000)",
   green: "rgba(54, 178, 77, 1.000)",
   teal: "rgba(9, 167, 120, 1.000)",
@@ -20,6 +23,21 @@ export const colors = {
   red: "rgba(240, 63, 63, 1.000)",
   orange: "rgba(247, 103, 6, 1.000)",
   yellow: "rgba(245, 159, 0, 1.000)",
+}
+
+export const fills = {
+  lime: "rgba(217, 245, 162, 1.000)",
+  green: "rgba(177, 242, 188, 1.000)",
+  teal: "rgba(149, 242, 215, 1.000)",
+  cyan: "rgba(153, 233, 242, 1.000)",
+  blue: "rgba(166, 216, 255, 1.000)",
+  indigo: "rgba(186, 200, 255, 1.000)",
+  violet: "rgba(208, 191, 255, 1.000)",
+  grape: "rgba(237, 190, 250, 1.000)",
+  pink: "rgba(252, 194, 215, 1.000)",
+  red: "rgba(255, 201, 201, 1.000)",
+  orange: "rgba(255, 216, 168, 1.000)",
+  yellow: "rgba(255, 236, 153, 1.000)",
 }
 
 export const defaultDocument: Data["document"] = {
@@ -36,8 +54,8 @@ export const defaultDocument: Data["document"] = {
           childIndex: 3,
           point: [400, 500],
           style: {
-            stroke: colors.black,
-            fill: colors.lightGray,
+            stroke: shades.black,
+            fill: shades.lightGray,
             strokeWidth: 1,
           },
         }),
@@ -48,8 +66,8 @@ export const defaultDocument: Data["document"] = {
           point: [100, 600],
           radius: 50,
           style: {
-            stroke: colors.black,
-            fill: colors.lightGray,
+            stroke: shades.black,
+            fill: shades.lightGray,
             strokeWidth: 1,
           },
         }),
@@ -61,8 +79,8 @@ export const defaultDocument: Data["document"] = {
           radiusX: 50,
           radiusY: 100,
           style: {
-            stroke: colors.black,
-            fill: colors.lightGray,
+            stroke: shades.black,
+            fill: shades.lightGray,
             strokeWidth: 1,
           },
         }),
@@ -74,8 +92,8 @@ export const defaultDocument: Data["document"] = {
           radiusX: 50,
           radiusY: 30,
           style: {
-            stroke: colors.black,
-            fill: colors.lightGray,
+            stroke: shades.black,
+            fill: shades.lightGray,
             strokeWidth: 1,
           },
         }),
@@ -86,8 +104,8 @@ export const defaultDocument: Data["document"] = {
           point: [400, 400],
           direction: [0.2, 0.2],
           style: {
-            stroke: colors.black,
-            fill: colors.lightGray,
+            stroke: shades.black,
+            fill: shades.lightGray,
             strokeWidth: 1,
           },
         }),
@@ -98,8 +116,8 @@ export const defaultDocument: Data["document"] = {
           point: [300, 100],
           direction: [0.5, 0.5],
           style: {
-            stroke: colors.black,
-            fill: colors.lightGray,
+            stroke: shades.black,
+            fill: shades.lightGray,
             strokeWidth: 1,
           },
         }),
@@ -114,8 +132,8 @@ export const defaultDocument: Data["document"] = {
             [100, 50],
           ],
           style: {
-            stroke: colors.black,
-            fill: colors.transparent,
+            stroke: shades.black,
+            fill: shades.transparent,
             strokeWidth: 1,
           },
         }),
@@ -126,8 +144,8 @@ export const defaultDocument: Data["document"] = {
           point: [400, 600],
           size: [200, 200],
           style: {
-            stroke: colors.black,
-            fill: colors.lightGray,
+            stroke: shades.black,
+            fill: shades.lightGray,
             strokeWidth: 1,
           },
         }),

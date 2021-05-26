@@ -1,7 +1,7 @@
 import { createSelectorHook, createState } from "@state-designer/react"
 import * as vec from "utils/vec"
 import inputs from "./inputs"
-import { colors, defaultDocument } from "./data"
+import { shades, defaultDocument } from "./data"
 import { createShape, getShapeUtils } from "lib/shape-utils"
 import history from "state/history"
 import * as Sessions from "./sessions"
@@ -42,8 +42,8 @@ const initialData: Data = {
     isStyleOpen: false,
   },
   currentStyle: {
-    fill: colors.lightGray,
-    stroke: colors.darkGray,
+    fill: shades.lightGray,
+    stroke: shades.darkGray,
   },
   camera: {
     point: [0, 0],

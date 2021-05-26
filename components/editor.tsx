@@ -13,6 +13,10 @@ export default function Editor() {
   useKeyboardEvents()
   useLoadOnMount()
 
+  const hasControls = useSelector(
+    (s) => Object.keys(s.data.codeControls).length > 0
+  )
+
   return (
     <Layout>
       <Canvas />
@@ -20,7 +24,7 @@ export default function Editor() {
       <Toolbar />
       <LeftPanels>
         <CodePanel />
-        <ControlsPanel />
+        {hasControls && <ControlsPanel />}
       </LeftPanels>
       <RightPanels>
         <StylePanel />

@@ -72,6 +72,10 @@ export default function Toolbar() {
         </Button>
         <Button onClick={() => state.send("RESET_CAMERA")}>Reset Camera</Button>
       </Section>
+      <Section>
+        <Button onClick={() => state.send("UNDO")}>Undo</Button>
+        <Button onClick={() => state.send("REDO")}>Redo</Button>
+      </Section>
     </ToolbarContainer>
   )
 }
@@ -80,10 +84,10 @@ const ToolbarContainer = styled("div", {
   gridArea: "toolbar",
   userSelect: "none",
   borderBottom: "1px solid black",
-  display: "grid",
-  gridTemplateColumns: "auto 1fr auto",
+  display: "flex",
   alignItems: "center",
-  backgroundColor: "white",
+  justifyContent: "space-between",
+  backgroundColor: "$panel",
   gap: 8,
   fontSize: "$1",
   zIndex: 200,
@@ -102,6 +106,7 @@ const Button = styled("button", {
   font: "$ui",
   fontSize: "$ui",
   height: "40px",
+  outline: "none",
   borderRadius: 0,
   border: "none",
   padding: "0 12px",

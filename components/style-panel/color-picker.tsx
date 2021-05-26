@@ -1,15 +1,15 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import { Square } from "react-feather"
-import { colors } from "state/data"
 import styled from "styles"
 
 interface Props {
   label: string
   color: string
+  colors: Record<string, string>
   onChange: (color: string) => void
 }
 
-export default function ColorPicker({ label, color, onChange }: Props) {
+export default function ColorPicker({ label, color, colors, onChange }: Props) {
   return (
     <DropdownMenu.Root>
       <CurrentColor>

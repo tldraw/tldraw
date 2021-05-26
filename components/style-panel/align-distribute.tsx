@@ -55,38 +55,44 @@ function distributeHorizontally() {
   state.send("DISTRIBUTED", { type: DistributeType.Horizontal })
 }
 
-export default function AlignDistribute() {
+export default function AlignDistribute({
+  hasTwoOrMore,
+  hasThreeOrMore,
+}: {
+  hasTwoOrMore: boolean
+  hasThreeOrMore: boolean
+}) {
   return (
     <Container>
-      <IconButton onClick={alignTop}>
-        <AlignTopIcon />
-      </IconButton>
-      <IconButton onClick={alignCenterVertical}>
-        <AlignCenterVerticallyIcon />
-      </IconButton>
-      <IconButton onClick={alignBottom}>
-        <AlignBottomIcon />
-      </IconButton>
-      <IconButton onClick={stretchVertically}>
-        <StretchVerticallyIcon />
-      </IconButton>
-      <IconButton onClick={distributeVertically}>
-        <SpaceEvenlyVerticallyIcon />
-      </IconButton>
-      <IconButton onClick={alignLeft}>
+      <IconButton disabled={!hasTwoOrMore} onClick={alignLeft}>
         <AlignLeftIcon />
       </IconButton>
-      <IconButton onClick={alignCenterHorizontal}>
+      <IconButton disabled={!hasTwoOrMore} onClick={alignCenterHorizontal}>
         <AlignCenterHorizontallyIcon />
       </IconButton>
-      <IconButton onClick={alignRight}>
+      <IconButton disabled={!hasTwoOrMore} onClick={alignRight}>
         <AlignRightIcon />
       </IconButton>
-      <IconButton onClick={stretchHorizontally}>
+      <IconButton disabled={!hasTwoOrMore} onClick={stretchHorizontally}>
         <StretchHorizontallyIcon />
       </IconButton>
-      <IconButton onClick={distributeHorizontally}>
+      <IconButton disabled={!hasThreeOrMore} onClick={distributeHorizontally}>
         <SpaceEvenlyHorizontallyIcon />
+      </IconButton>
+      <IconButton disabled={!hasTwoOrMore} onClick={alignTop}>
+        <AlignTopIcon />
+      </IconButton>
+      <IconButton disabled={!hasTwoOrMore} onClick={alignCenterVertical}>
+        <AlignCenterVerticallyIcon />
+      </IconButton>
+      <IconButton disabled={!hasTwoOrMore} onClick={alignBottom}>
+        <AlignBottomIcon />
+      </IconButton>
+      <IconButton disabled={!hasTwoOrMore} onClick={stretchVertically}>
+        <StretchVerticallyIcon />
+      </IconButton>
+      <IconButton disabled={!hasThreeOrMore} onClick={distributeVertically}>
+        <SpaceEvenlyVerticallyIcon />
       </IconButton>
     </Container>
   )

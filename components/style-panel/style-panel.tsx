@@ -3,13 +3,16 @@ import state, { useSelector } from "state"
 import * as Panel from "components/panel"
 import { useRef } from "react"
 import { IconButton } from "components/shared"
-import { Circle, Square, Trash, X } from "react-feather"
+import { Circle, Trash, X } from "react-feather"
 import { deepCompare, deepCompareArrays, getSelectedShapes } from "utils/utils"
-import { colors } from "state/data"
+import { shades, fills, strokes } from "state/data"
 
 import ColorPicker from "./color-picker"
 import AlignDistribute from "./align-distribute"
-import { ShapeByType, ShapeStyles } from "types"
+import { ShapeStyles } from "types"
+
+const fillColors = { ...shades, ...fills }
+const strokeColors = { ...shades, ...strokes }
 
 export default function StylePanel() {
   const rContainer = useRef<HTMLDivElement>(null)
@@ -65,6 +68,8 @@ function SelectedShapeStyles({}: {}) {
     return style
   }, deepCompare)
 
+  const hasSelection = selectedIds.length > 0
+
   return (
     <Panel.Layout>
       <Panel.Header>
@@ -73,7 +78,10 @@ function SelectedShapeStyles({}: {}) {
         </IconButton>
         <h3>Style</h3>
         <Panel.ButtonsGroup>
-          <IconButton onClick={() => state.send("DELETED")}>
+          <IconButton
+            disabled={!hasSelection}
+            onClick={() => state.send("DELETED")}
+          >
             <Trash />
           </IconButton>
         </Panel.ButtonsGroup>
@@ -82,14 +90,19 @@ function SelectedShapeStyles({}: {}) {
         <ColorPicker
           label="Fill"
           color={shapesStyle.fill}
+          colors={fillColors}
           onChange={(color) => state.send("CHANGED_STYLE", { fill: color })}
         />
         <ColorPicker
           label="Stroke"
           color={shapesStyle.stroke}
+          colors={strokeColors}
           onChange={(color) => state.send("CHANGED_STYLE", { stroke: color })}
         />
-        <AlignDistribute />
+        <AlignDistribute
+          hasTwoOrMore={selectedIds.length > 1}
+          hasThreeOrMore={selectedIds.length > 2}
+        />
       </Content>
     </Panel.Layout>
   )
