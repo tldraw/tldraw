@@ -92,15 +92,15 @@ const CurrentColor = styled(DropdownMenu.Trigger, {
   outline: "none",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: "8px 8px 8px 12px",
+  padding: "4px 6px 4px 12px",
 
   "&::before": {
     content: "''",
     position: "absolute",
-    top: 4,
+    top: 0,
     left: 4,
     right: 4,
-    bottom: 4,
+    bottom: 0,
     pointerEvents: "none",
     zIndex: -1,
   },

@@ -28,6 +28,9 @@ import {
   CodeControl,
   MoveType,
   ShapeStyles,
+  DistributeType,
+  AlignType,
+  StretchType,
 } from "types"
 
 const initialData: Data = {
@@ -78,6 +81,8 @@ const state = createState({
     TOGGLED_STYLE_PANEL_OPEN: "toggleStylePanel",
     CHANGED_STYLE: ["updateStyles", "applyStylesToSelection"],
     RESET_CAMERA: "resetCamera",
+    ALIGNED: "alignSelection",
+    DISTRIBUTED: "distributeSelection",
     ZOOMED_TO_FIT: "zoomCameraToFit",
     ZOOMED_TO_SELECTION: {
       if: "hasSelection",
@@ -120,10 +125,7 @@ const state = createState({
             INCREASED_CODE_FONT_SIZE: "increaseCodeFontSize",
             DECREASED_CODE_FONT_SIZE: "decreaseCodeFontSize",
             CHANGED_CODE_CONTROL: "updateControls",
-            MOVED_TO_FRONT: "moveSelectionToFront",
-            MOVED_TO_BACK: "moveSelectionToBack",
-            MOVED_FORWARD: "moveSelectionForward",
-            MOVED_BACKWARD: "moveSelectionBackward",
+            MOVED: "moveSelection",
           },
           initial: "notPointing",
           states: {
@@ -675,17 +677,17 @@ const state = createState({
     pushPointedIdToSelectedIds(data) {
       data.selectedIds.add(data.pointedId)
     },
-    moveSelectionToFront(data) {
-      commands.move(data, MoveType.ToFront)
+    moveSelection(data, payload: { type: MoveType }) {
+      commands.move(data, payload.type)
     },
-    moveSelectionToBack(data) {
-      commands.move(data, MoveType.ToBack)
+    alignSelection(data, payload: { type: AlignType }) {
+      commands.align(data, payload.type)
     },
-    moveSelectionForward(data) {
-      commands.move(data, MoveType.Forward)
+    stretchSelection(data, payload: { type: StretchType }) {
+      commands.stretch(data, payload.type)
     },
-    moveSelectionBackward(data) {
-      commands.move(data, MoveType.Backward)
+    distributeSelection(data, payload: { type: DistributeType }) {
+      commands.distribute(data, payload.type)
     },
 
     /* --------------------- Camera --------------------- */

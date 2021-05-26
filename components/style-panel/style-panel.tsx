@@ -8,6 +8,7 @@ import { deepCompare, deepCompareArrays, getSelectedShapes } from "utils/utils"
 import { colors } from "state/data"
 
 import ColorPicker from "./color-picker"
+import AlignDistribute from "./align-distribute"
 import { ShapeByType, ShapeStyles } from "types"
 
 export default function StylePanel() {
@@ -77,34 +78,32 @@ function SelectedShapeStyles({}: {}) {
           </IconButton>
         </Panel.ButtonsGroup>
       </Panel.Header>
-      <Panel.Content>
-        <ColorsRow>
-          <ColorPicker
-            label="Fill"
-            color={shapesStyle.fill}
-            onChange={(color) => state.send("CHANGED_STYLE", { fill: color })}
-          />
-          <ColorPicker
-            label="Stroke"
-            color={shapesStyle.stroke}
-            onChange={(color) => state.send("CHANGED_STYLE", { stroke: color })}
-          />
-        </ColorsRow>
-      </Panel.Content>
+      <Content>
+        <ColorPicker
+          label="Fill"
+          color={shapesStyle.fill}
+          onChange={(color) => state.send("CHANGED_STYLE", { fill: color })}
+        />
+        <ColorPicker
+          label="Stroke"
+          color={shapesStyle.stroke}
+          onChange={(color) => state.send("CHANGED_STYLE", { stroke: color })}
+        />
+        <AlignDistribute />
+      </Content>
     </Panel.Layout>
   )
 }
 
 const StylePanelRoot = styled(Panel.Root, {
-  maxWidth: 260,
+  minWidth: 1,
+  width: 184,
+  maxWidth: 184,
   position: "relative",
 
   variants: {
     isOpen: {
-      true: {
-        width: "auto",
-        minWidth: 300,
-      },
+      true: {},
       false: {
         height: 34,
         width: 34,
@@ -113,7 +112,6 @@ const StylePanelRoot = styled(Panel.Root, {
   },
 })
 
-const ColorsRow = styled("div", {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
+const Content = styled(Panel.Content, {
+  padding: 8,
 })

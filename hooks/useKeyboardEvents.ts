@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import state from "state"
+import { MoveType } from "types"
 import { getKeyboardEventInfo, metaKey } from "utils/utils"
 
 export default function useKeyboardEvents() {
@@ -47,25 +48,37 @@ export default function useKeyboardEvents() {
         }
         case "‘": {
           if (metaKey(e)) {
-            state.send("MOVED_TO_FRONT", getKeyboardEventInfo(e))
+            state.send("MOVED", {
+              ...getKeyboardEventInfo(e),
+              type: MoveType.ToFront,
+            })
           }
           break
         }
         case "“": {
           if (metaKey(e)) {
-            state.send("MOVED_TO_BACK", getKeyboardEventInfo(e))
+            state.send("MOVED", {
+              ...getKeyboardEventInfo(e),
+              type: MoveType.ToBack,
+            })
           }
           break
         }
         case "]": {
           if (metaKey(e)) {
-            state.send("MOVED_FORWARD", getKeyboardEventInfo(e))
+            state.send("MOVED", {
+              ...getKeyboardEventInfo(e),
+              type: MoveType.Forward,
+            })
           }
           break
         }
         case "[": {
           if (metaKey(e)) {
-            state.send("MOVED_BACKWARD", getKeyboardEventInfo(e))
+            state.send("MOVED", {
+              ...getKeyboardEventInfo(e),
+              type: MoveType.Backward,
+            })
           }
           break
         }

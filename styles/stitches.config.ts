@@ -15,7 +15,7 @@ const { styled, global, css, theme, getCssString } = createCss({
       border: "#aaa",
       panel: "#fefefe",
       hover: "#efefef",
-      text: "#000",
+      text: "#333",
       input: "#f3f3f3",
       inputBorder: "#ddd",
     },

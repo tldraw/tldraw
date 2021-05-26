@@ -1,23 +1,29 @@
-import translate from "./translate"
+import align from "./align"
+import deleteSelected from "./delete-selected"
+import direct from "./direct"
+import distribute from "./distribute"
+import generate from "./generate"
+import move from "./move"
+import rotate from "./rotate"
+import stretch from "./stretch"
+import style from "./style"
 import transform from "./transform"
 import transformSingle from "./transform-single"
-import generate from "./generate"
-import direct from "./direct"
-import rotate from "./rotate"
-import move from "./move"
-import style from "./style"
-import deleteSelected from "./delete-selected"
+import translate from "./translate"
 
 const commands = {
-  translate,
+  align,
+  deleteSelected,
+  direct,
+  distribute,
+  generate,
+  move,
+  rotate,
+  stretch,
+  style,
   transform,
   transformSingle,
-  generate,
-  direct,
-  rotate,
-  move,
-  style,
-  deleteSelected,
+  translate,
 }
 
 export default commands
