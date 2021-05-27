@@ -3,13 +3,8 @@ import * as vec from "utils/vec"
 import { PolylineShape, ShapeType } from "types"
 import { registerShapeUtils } from "./index"
 import { intersectPolylineBounds } from "utils/intersections"
-import {
-  boundsCollide,
-  boundsContained,
-  boundsContainPolygon,
-} from "utils/bounds"
+import { boundsContainPolygon } from "utils/bounds"
 import { getBoundsFromPoints, translateBounds } from "utils/utils"
-import { colors } from "state/data"
 
 const polyline = registerShapeUtils<PolylineShape>({
   boundsCache: new WeakMap([]),
