@@ -1,10 +1,8 @@
 import Command from "./command"
 import history from "../history"
-import { AlignType, Data, DistributeType } from "types"
-import * as vec from "utils/vec"
+import { Data, DistributeType } from "types"
 import {
   getBoundsCenter,
-  getBoundsFromPoints,
   getCommonBounds,
   getPage,
   getSelectedShapes,
@@ -19,16 +17,10 @@ export default function distributeCommand(data: Data, type: DistributeType) {
   const entries = selectedShapes.map(
     (shape) => [shape.id, getShapeUtils(shape).getBounds(shape)] as const
   )
+
   const boundsForShapes = Object.fromEntries(entries)
 
   const commonBounds = getCommonBounds(...entries.map((entry) => entry[1]))
-
-  const innerBounds = getBoundsFromPoints(
-    entries.map((entry) => getBoundsCenter(entry[1]))
-  )
-
-  const midX = commonBounds.minX + commonBounds.width / 2
-  const midY = commonBounds.minY + commonBounds.height / 2
 
   const centers = Object.fromEntries(
     selectedShapes.map((shape) => [
@@ -73,15 +65,15 @@ export default function distributeCommand(data: Data, type: DistributeType) {
                 ])
               }
             } else {
-              const sortedByCenter = entries.sort(
+              const entriesToMove = entries.sort(
                 (a, b) => centers[a[0]][0] - centers[b[0]][0]
               )
 
               let x = commonBounds.minX
               const step = (commonBounds.width - span) / (len - 1)
 
-              for (let i = 0; i < sortedByCenter.length - 1; i++) {
-                const [id, bounds] = sortedByCenter[i]
+              for (let i = 0; i < entriesToMove.length - 1; i++) {
+                const [id, bounds] = entriesToMove[i]
                 const shape = shapes[id]
                 getShapeUtils(shape).translateTo(shape, [x, bounds.minY])
                 x += bounds.width + step
@@ -115,15 +107,15 @@ export default function distributeCommand(data: Data, type: DistributeType) {
                 ])
               }
             } else {
-              const sortedByCenter = entries.sort(
+              const entriesToMove = entries.sort(
                 (a, b) => centers[a[0]][1] - centers[b[0]][1]
               )
 
               let y = commonBounds.minY
               const step = (commonBounds.height - span) / (len - 1)
 
-              for (let i = 0; i < sortedByCenter.length - 1; i++) {
-                const [id, bounds] = sortedByCenter[i]
+              for (let i = 0; i < entriesToMove.length - 1; i++) {
+                const [id, bounds] = entriesToMove[i]
                 const shape = shapes[id]
                 getShapeUtils(shape).translateTo(shape, [bounds.minX, y])
                 y += bounds.height + step

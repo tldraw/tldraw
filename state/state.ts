@@ -81,8 +81,6 @@ const state = createState({
     TOGGLED_STYLE_PANEL_OPEN: "toggleStylePanel",
     CHANGED_STYLE: ["updateStyles", "applyStylesToSelection"],
     RESET_CAMERA: "resetCamera",
-    ALIGNED: "alignSelection",
-    DISTRIBUTED: "distributeSelection",
     ZOOMED_TO_FIT: "zoomCameraToFit",
     ZOOMED_TO_SELECTION: {
       if: "hasSelection",
@@ -125,6 +123,9 @@ const state = createState({
             INCREASED_CODE_FONT_SIZE: "increaseCodeFontSize",
             DECREASED_CODE_FONT_SIZE: "decreaseCodeFontSize",
             CHANGED_CODE_CONTROL: "updateControls",
+            ALIGNED: "alignSelection",
+            STRETCHED: "stretchSelection",
+            DISTRIBUTED: "distributeSelection",
             MOVED: "moveSelection",
           },
           initial: "notPointing",
