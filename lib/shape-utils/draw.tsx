@@ -5,6 +5,9 @@ import { registerShapeUtils } from "./index"
 import { intersectPolylineBounds } from "utils/intersections"
 import { boundsContainPolygon } from "utils/bounds"
 import { getBoundsFromPoints, translateBounds } from "utils/utils"
+import { DotCircle } from "components/canvas/misc"
+
+const pathCache = new WeakMap<DrawShape, string>([])
 
 const draw = registerShapeUtils<DrawShape>({
   boundsCache: new WeakMap([]),
@@ -31,8 +34,34 @@ const draw = registerShapeUtils<DrawShape>({
     }
   },
 
-  render({ id, points }) {
-    return <polyline id={id} points={points.toString()} />
+  render(shape) {
+    const { id, point, points } = shape
+
+    if (points.length < 2) {
+      return <DotCircle cx={point[0]} cy={point[1]} r={3} />
+    }
+
+    if (!pathCache.has(shape)) {
+      pathCache.set(
+        shape,
+        points
+          .reduce(
+            (acc, [x0, y0], i, arr) => {
+              if (i === points.length - 1) {
+                acc.push("L", x0, y0)
+              } else {
+                const [x1, y1] = arr[i + 1]
+                acc.push(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2)
+              }
+              return acc
+            },
+            ["M", ...points[0], "Q"]
+          )
+          .join(" ")
+      )
+    }
+
+    return <path id={id} d={pathCache.get(shape)} />
   },
 
   applyStyles(shape, style) {

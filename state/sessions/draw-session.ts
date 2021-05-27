@@ -2,7 +2,7 @@ import { current } from "immer"
 import { Data, DrawShape } from "types"
 import BaseSession from "./base-session"
 import { getShapeUtils } from "lib/shape-utils"
-import { getPage } from "utils/utils"
+import { getPage, simplify } from "utils/utils"
 import * as vec from "utils/vec"
 import commands from "state/commands"
 
@@ -42,7 +42,15 @@ export default class BrushSession extends BaseSession {
   }
 
   complete = (data: Data) => {
-    commands.points(data, this.shapeId, this.snapshot.points, this.points)
+    commands.points(
+      data,
+      this.shapeId,
+      this.snapshot.points,
+      simplify(this.points, 1).map(([x, y]) => [
+        Math.trunc(x * 100) / 100,
+        Math.trunc(y * 100) / 100,
+      ])
+    )
   }
 }
 

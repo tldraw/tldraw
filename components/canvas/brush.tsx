@@ -12,7 +12,6 @@ export default function Brush() {
       y={brush.minY}
       width={brush.width}
       height={brush.height}
-      className="brush"
     />
   )
 }
@@ -20,4 +19,5 @@ export default function Brush() {
 const BrushRect = styled("rect", {
   fill: "$brushFill",
   stroke: "$brushStroke",
+  zStrokeWidth: 1,
 })
