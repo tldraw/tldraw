@@ -4,8 +4,14 @@ import { DrawShape, ShapeType } from "types"
 import { registerShapeUtils } from "./index"
 import { intersectPolylineBounds } from "utils/intersections"
 import { boundsContainPolygon } from "utils/bounds"
-import { getBoundsFromPoints, translateBounds } from "utils/utils"
+import getStroke from "perfect-freehand"
+import {
+  getBoundsFromPoints,
+  getSvgPathFromStroke,
+  translateBounds,
+} from "utils/utils"
 import { DotCircle } from "components/canvas/misc"
+import { shades } from "lib/colors"
 
 const pathCache = new WeakMap<DrawShape, string>([])
 
@@ -29,7 +35,7 @@ const draw = registerShapeUtils<DrawShape>({
         strokeLinecap: "round",
         strokeLinejoin: "round",
         ...props.style,
-        fill: "transparent",
+        stroke: "transparent",
       },
     }
   },
@@ -42,23 +48,7 @@ const draw = registerShapeUtils<DrawShape>({
     }
 
     if (!pathCache.has(shape)) {
-      pathCache.set(
-        shape,
-        points
-          .reduce(
-            (acc, [x0, y0], i, arr) => {
-              if (i === points.length - 1) {
-                acc.push("L", x0, y0)
-              } else {
-                const [x1, y1] = arr[i + 1]
-                acc.push(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2)
-              }
-              return acc
-            },
-            ["M", ...points[0], "Q"]
-          )
-          .join(" ")
-      )
+      pathCache.set(shape, getSvgPathFromStroke(getStroke(points)))
     }
 
     return <path id={id} d={pathCache.get(shape)} />

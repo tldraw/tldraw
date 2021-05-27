@@ -1,7 +1,8 @@
 import { createSelectorHook, createState } from "@state-designer/react"
 import * as vec from "utils/vec"
 import inputs from "./inputs"
-import { shades, defaultDocument } from "./data"
+import { defaultDocument } from "./data"
+import { shades } from "lib/colors"
 import { createShape, getShapeUtils } from "lib/shape-utils"
 import history from "state/history"
 import * as Sessions from "./sessions"
@@ -92,6 +93,7 @@ const state = createState({
       do: "zoomCameraToSelectionActual",
       else: "zoomCameraToActual",
     },
+    SELECTED_ALL: { to: "selecting", do: "selectAll" },
   },
   initial: "loading",
   states: {
@@ -133,7 +135,6 @@ const state = createState({
           states: {
             notPointing: {
               on: {
-                SELECTED_ALL: "selectAll",
                 POINTED_CANVAS: { to: "brushSelecting" },
                 POINTED_BOUNDS: { to: "pointingBounds" },
                 POINTED_BOUNDS_HANDLE: {
@@ -262,7 +263,10 @@ const state = createState({
             editing: {
               onEnter: "startDrawSession",
               on: {
-                STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+                STOPPED_POINTING: {
+                  do: "completeSession",
+                  to: "draw.creating",
+                },
                 CANCELLED: {
                   do: ["cancelSession", "deleteSelectedIds"],
                   to: "selecting",
@@ -927,7 +931,7 @@ const state = createState({
     },
 
     restoreSavedData(data) {
-      // history.load(data)
+      history.load(data)
     },
 
     clearBoundsRotation(data) {

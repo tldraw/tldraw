@@ -6392,10 +6392,10 @@ pend@~1.2.0:
   resolved "https://registry.yarnpkg.com/pend/-/pend-1.2.0.tgz#7a57eb550a6783f9115331fcf4663d5c8e007a50"
   integrity sha1-elfrVQpng/kRUzH89GY9XI4AelA=
 
-perfect-freehand@^0.4.7:
-  version "0.4.7"
-  resolved "https://registry.yarnpkg.com/perfect-freehand/-/perfect-freehand-0.4.7.tgz#4d85fd64881ba81b2a4eaa6ac4e8983ccb21dd43"
-  integrity sha512-SSSFL8VzXiOHQdUTyNyOb0JC+btVZRy9bi6jos7Nb7PBTI0PHX5jM6RgCTSrubQ8Ul9qOYWmWgJBrwVGHwyJZQ==
+perfect-freehand@^0.4.71:
+  version "0.4.71"
+  resolved "https://registry.yarnpkg.com/perfect-freehand/-/perfect-freehand-0.4.71.tgz#b98ffc3cbc4e3cd930528e8d74a8849ee77475fb"
+  integrity sha512-bJ3w2E6WcUfZJTXWPlS7DI6FIT9rRIYSCXgDYjvST8sAe/c+zNnJnlfJp3q8Hk1uPt9dH7bFuj8Sico6CKZw7A==
 
 performance-now@^2.1.0:
   version "2.1.0"

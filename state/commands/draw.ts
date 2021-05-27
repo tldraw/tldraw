@@ -11,7 +11,6 @@ export default function drawCommand(
   before: number[][],
   after: number[][]
 ) {
-  const selectedIds = Array.from(data.selectedIds.values())
   const restoreShape = current(getPage(data).shapes[id])
   getShapeUtils(restoreShape).setPoints!(restoreShape, after)
 
@@ -31,9 +30,6 @@ export default function drawCommand(
       undo(data) {
         delete getPage(data).shapes[id]
         data.selectedIds.clear()
-        for (let id of selectedIds) {
-          data.selectedIds.add(id)
-        }
       },
     })
   )

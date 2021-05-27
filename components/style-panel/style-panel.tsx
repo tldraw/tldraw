@@ -5,7 +5,7 @@ import { useRef } from "react"
 import { IconButton } from "components/shared"
 import { Circle, Trash, X } from "react-feather"
 import { deepCompare, deepCompareArrays, getSelectedShapes } from "utils/utils"
-import { shades, fills, strokes } from "state/data"
+import { shades, fills, strokes } from "lib/colors"
 
 import ColorPicker from "./color-picker"
 import AlignDistribute from "./align-distribute"
