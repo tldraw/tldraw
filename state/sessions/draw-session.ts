@@ -8,6 +8,7 @@ import commands from "state/commands"
 
 export default class BrushSession extends BaseSession {
   origin: number[]
+  previous: number[]
   points: number[][]
   snapshot: DrawSnapshot
   shapeId: string
@@ -16,7 +17,8 @@ export default class BrushSession extends BaseSession {
     super(data)
     this.shapeId = id
     this.origin = point
-    this.points = [[0, 0]]
+    this.previous = point
+    this.points = []
     this.snapshot = getDrawSnapshot(data, id)
 
     const page = getPage(data)
@@ -27,7 +29,9 @@ export default class BrushSession extends BaseSession {
   update = (data: Data, point: number[]) => {
     const { shapeId } = this
 
-    this.points.push(vec.sub(point, this.origin))
+    const lp = vec.med(this.previous, point)
+    this.points.push(vec.sub(lp, this.origin))
+    this.previous = lp
 
     const page = getPage(data)
     const shape = page.shapes[shapeId]
@@ -42,11 +46,11 @@ export default class BrushSession extends BaseSession {
   }
 
   complete = (data: Data) => {
-    commands.points(
+    commands.draw(
       data,
       this.shapeId,
       this.snapshot.points,
-      simplify(this.points, 1).map(([x, y]) => [
+      simplify(this.points, 0.1 / data.camera.zoom).map(([x, y]) => [
         Math.trunc(x * 100) / 100,
         Math.trunc(y * 100) / 100,
       ])

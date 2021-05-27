@@ -5,7 +5,6 @@ import {
   VectorCodeControl,
 } from "types"
 import { v4 as uuid } from "uuid"
-import Vector from "./vector"
 
 export const controls: Record<string, any> = {}
 

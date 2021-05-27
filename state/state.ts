@@ -31,7 +31,6 @@ import {
   DistributeType,
   AlignType,
   StretchType,
-  DrawShape,
 } from "types"
 
 const initialData: Data = {
@@ -928,7 +927,7 @@ const state = createState({
     },
 
     restoreSavedData(data) {
-      history.load(data)
+      // history.load(data)
     },
 
     clearBoundsRotation(data) {

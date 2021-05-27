@@ -4,7 +4,7 @@ import direct from "./direct"
 import distribute from "./distribute"
 import generate from "./generate"
 import move from "./move"
-import points from "./points"
+import draw from "./draw"
 import rotate from "./rotate"
 import stretch from "./stretch"
 import style from "./style"
@@ -19,7 +19,7 @@ const commands = {
   distribute,
   generate,
   move,
-  points,
+  draw,
   rotate,
   stretch,
   style,
