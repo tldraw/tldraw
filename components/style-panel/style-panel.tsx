@@ -73,9 +73,6 @@ function SelectedShapeStyles({}: {}) {
   return (
     <Panel.Layout>
       <Panel.Header>
-        <IconButton onClick={() => state.send("TOGGLED_STYLE_PANEL_OPEN")}>
-          <X />
-        </IconButton>
         <h3>Style</h3>
         <Panel.ButtonsGroup>
           <IconButton
@@ -85,6 +82,9 @@ function SelectedShapeStyles({}: {}) {
             <Trash />
           </IconButton>
         </Panel.ButtonsGroup>
+        <IconButton onClick={() => state.send("TOGGLED_STYLE_PANEL_OPEN")}>
+          <X />
+        </IconButton>
       </Panel.Header>
       <Content>
         <ColorPicker
@@ -112,6 +112,7 @@ const StylePanelRoot = styled(Panel.Root, {
   minWidth: 1,
   width: 184,
   maxWidth: 184,
+  overflow: "hidden",
   position: "relative",
 
   variants: {

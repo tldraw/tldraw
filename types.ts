@@ -53,6 +53,7 @@ export enum ShapeType {
   Ray = "ray",
   Polyline = "polyline",
   Rectangle = "rectangle",
+  Draw = "draw",
 }
 
 // Consider:
@@ -111,6 +112,11 @@ export interface RectangleShape extends BaseShape {
   radius: number
 }
 
+export interface DrawShape extends BaseShape {
+  type: ShapeType.Draw
+  points: number[][]
+}
+
 export type MutableShape =
   | DotShape
   | CircleShape
@@ -118,6 +124,7 @@ export type MutableShape =
   | LineShape
   | RayShape
   | PolylineShape
+  | DrawShape
   | RectangleShape
 
 export type Shape = Readonly<MutableShape>
@@ -129,6 +136,7 @@ export interface Shapes {
   [ShapeType.Line]: Readonly<LineShape>
   [ShapeType.Ray]: Readonly<RayShape>
   [ShapeType.Polyline]: Readonly<PolylineShape>
+  [ShapeType.Draw]: Readonly<DrawShape>
   [ShapeType.Rectangle]: Readonly<RectangleShape>
 }
 

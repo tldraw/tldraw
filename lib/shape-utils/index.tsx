@@ -16,6 +16,7 @@ import rectangle from "./rectangle"
 import ellipse from "./ellipse"
 import line from "./line"
 import ray from "./ray"
+import draw from "./draw"
 
 /*
 Shape Utiliies
@@ -91,6 +92,13 @@ export interface ShapeUtility<K extends Readonly<Shape>> {
     childIndex: number
   ): ShapeUtility<K>
 
+  // Add a point
+  setPoints?(
+    this: ShapeUtility<K>,
+    shape: K,
+    points: number[][]
+  ): ShapeUtility<K>
+
   // Render a shape to JSX.
   render(this: ShapeUtility<K>, shape: K): JSX.Element
 
@@ -119,6 +127,7 @@ const shapeUtilityMap: Record<ShapeType, ShapeUtility<Shape>> = {
   [ShapeType.Ellipse]: ellipse,
   [ShapeType.Line]: line,
   [ShapeType.Ray]: ray,
+  [ShapeType.Draw]: draw,
 }
 
 /**

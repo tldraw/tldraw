@@ -31,6 +31,7 @@ import {
   DistributeType,
   AlignType,
   StretchType,
+  DrawShape,
 } from "types"
 
 const initialData: Data = {
@@ -70,6 +71,7 @@ const state = createState({
       do: "panCamera",
     },
     SELECTED_SELECT_TOOL: { to: "selecting" },
+    SELECTED_DRAW_TOOL: { unless: "isReadOnly", to: "draw" },
     SELECTED_DOT_TOOL: { unless: "isReadOnly", to: "dot" },
     SELECTED_CIRCLE_TOOL: { unless: "isReadOnly", to: "circle" },
     SELECTED_ELLIPSE_TOOL: { unless: "isReadOnly", to: "ellipse" },
@@ -242,6 +244,32 @@ const state = createState({
                 PANNED_CAMERA: "updateBrushSession",
                 STOPPED_POINTING: { do: "completeSession", to: "selecting" },
                 CANCELLED: { do: "cancelSession", to: "selecting" },
+              },
+            },
+          },
+        },
+        draw: {
+          initial: "creating",
+          states: {
+            creating: {
+              on: {
+                POINTED_CANVAS: {
+                  get: "newDraw",
+                  do: "createShape",
+                  to: "draw.editing",
+                },
+              },
+            },
+            editing: {
+              onEnter: "startDrawSession",
+              on: {
+                STOPPED_POINTING: { do: "completeSession", to: "selecting" },
+                CANCELLED: {
+                  do: ["cancelSession", "deleteSelectedIds"],
+                  to: "selecting",
+                },
+                MOVED_POINTER: "updateDrawSession",
+                PANNED_CAMERA: "updateDrawSession",
               },
             },
           },
@@ -451,6 +479,9 @@ const state = createState({
     },
   },
   results: {
+    newDraw() {
+      return ShapeType.Draw
+    },
     newDot() {
       return ShapeType.Dot
     },
@@ -643,6 +674,19 @@ const state = createState({
       )
     },
     updateDirectionSession(data, payload: PointerInfo) {
+      session.update(data, screenToWorld(payload.point, data))
+    },
+
+    // Drawing
+    startDrawSession(data) {
+      const id = Array.from(data.selectedIds.values())[0]
+      session = new Sessions.DrawSession(
+        data,
+        id,
+        screenToWorld(inputs.pointer.origin, data)
+      )
+    },
+    updateDrawSession(data, payload: PointerInfo) {
       session.update(data, screenToWorld(payload.point, data))
     },
 

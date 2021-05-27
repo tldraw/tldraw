@@ -13,6 +13,7 @@ export default function Toolbar() {
       line: "line",
       polyline: "polyline",
       rectangle: "rectangle",
+      draw: "draw",
     })
   )
 
@@ -27,6 +28,12 @@ export default function Toolbar() {
           onClick={() => state.send("SELECTED_SELECT_TOOL")}
         >
           Select
+        </Button>
+        <Button
+          isSelected={activeTool === "draw"}
+          onClick={() => state.send("SELECTED_DRAW_TOOL")}
+        >
+          Draw
         </Button>
         <Button
           isSelected={activeTool === "dot"}

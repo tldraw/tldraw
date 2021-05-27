@@ -31,7 +31,7 @@ export const Layout = styled("div", {
   gridTemplateRows: "auto 1fr",
   gridAutoRows: "28px",
   height: "100%",
-  width: "100%",
+  width: "auto",
   minWidth: "100%",
   maxWidth: 560,
   overflow: "hidden",
@@ -41,30 +41,32 @@ export const Layout = styled("div", {
 
 export const Header = styled("div", {
   pointerEvents: "all",
-  display: "grid",
-  gridTemplateColumns: "auto 1fr auto",
+  display: "flex",
+  width: "100%",
   alignItems: "center",
-  justifyContent: "center",
+  justifyContent: "space-between",
   borderBottom: "1px solid $border",
-
-  "& button": {
-    gridColumn: "1",
-    gridRow: "1",
-  },
+  position: "relative",
 
   "& h3": {
-    gridColumn: "1 / span 3",
-    gridRow: "1",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
     textAlign: "center",
-    margin: "0",
-    padding: "0",
+    padding: 0,
+    margin: 0,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
     fontSize: "13px",
+    pointerEvents: "none",
+    userSelect: "none",
   },
 })
 
 export const ButtonsGroup = styled("div", {
-  gridRow: "1",
-  gridColumn: "3",
   display: "flex",
 })
 

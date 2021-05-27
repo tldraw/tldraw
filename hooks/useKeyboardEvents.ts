@@ -115,6 +115,10 @@ export default function useKeyboardEvents() {
           break
         }
         case "d": {
+          state.send("SELECTED_DRAW_TOOL", getKeyboardEventInfo(e))
+          break
+        }
+        case "t": {
           if (metaKey(e)) {
             state.send("DUPLICATED", getKeyboardEventInfo(e))
           } else {
