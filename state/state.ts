@@ -258,6 +258,7 @@ const state = createState({
                 'startBrushSession',
               ],
               on: {
+                STARTED_PINCHING: { to: 'pinching' },
                 MOVED_POINTER: 'updateBrushSession',
                 PANNED_CAMERA: 'updateBrushSession',
                 STOPPED_POINTING: { do: 'completeSession', to: 'selecting' },
