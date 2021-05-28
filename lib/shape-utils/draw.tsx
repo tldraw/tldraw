@@ -7,11 +7,10 @@ import { boundsContainPolygon } from 'utils/bounds'
 import getStroke from 'perfect-freehand'
 import {
   getBoundsFromPoints,
+  getRotatedCorners,
   getSvgPathFromStroke,
   translateBounds,
 } from 'utils/utils'
-import { DotCircle } from 'components/canvas/misc'
-import { shades } from 'lib/colors'
 
 const pathCache = new WeakMap<number[][], string>([])
 
@@ -43,12 +42,17 @@ const draw = registerShapeUtils<DrawShape>({
   render(shape) {
     const { id, point, points } = shape
 
-    if (points.length < 2) {
-      return <DotCircle id={id} cx={point[0]} cy={point[1]} r={3} />
-    }
-
     if (!pathCache.has(points)) {
-      pathCache.set(points, getSvgPathFromStroke(getStroke(points)))
+      if (points.length < 2) {
+        const left = vec.add(point, [6, 0])
+        let d: number[][] = []
+        for (let i = 0; i < 10; i++) {
+          d.push(vec.rotWith(left, point, i * ((Math.PI * 2) / 8)))
+        }
+        pathCache.set(points, getSvgPathFromStroke(d))
+      } else {
+        pathCache.set(points, getSvgPathFromStroke(getStroke(points)))
+      }
     }
 
     return <path id={id} d={pathCache.get(points)} />
@@ -69,11 +73,13 @@ const draw = registerShapeUtils<DrawShape>({
   },
 
   getRotatedBounds(shape) {
-    return this.getBounds(shape)
+    return getBoundsFromPoints(
+      getRotatedCorners(this.getBounds(shape), shape.rotation)
+    )
   },
 
   getCenter(shape) {
-    const bounds = this.getBounds(shape)
+    const bounds = this.getRotatedBounds(shape)
     return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2]
   },
 
@@ -114,6 +120,10 @@ const draw = registerShapeUtils<DrawShape>({
 
   rotateTo(shape, rotation) {
     shape.rotation = rotation
+    // console.log(shape.points.map(([x, y]) => [x, y]))
+    // const bounds = this.getBounds(shape)
+    // const center = [bounds.width / 2, bounds.height / 2]
+    // shape.points = shape.points.map((pt) => vec.rotWith(pt, center, rotation))
     return this
   },
 

@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from "react"
-import state from "state"
-import inputs from "state/inputs"
-import * as vec from "utils/vec"
-import { usePinch } from "react-use-gesture"
+import React, { useEffect, useRef } from 'react'
+import state from 'state'
+import inputs from 'state/inputs'
+import * as vec from 'utils/vec'
+import { usePinch } from 'react-use-gesture'
 
 /**
  * Capture zoom gestures (pinches, wheels and pans) and send to the state.
@@ -21,16 +21,17 @@ export default function useZoomEvents(
 
     function handleWheel(e: WheelEvent) {
       e.preventDefault()
+      e.stopPropagation()
 
       if (e.ctrlKey) {
-        state.send("ZOOMED_CAMERA", {
+        state.send('ZOOMED_CAMERA', {
           delta: e.deltaY,
           ...inputs.wheel(e),
         })
         return
       }
 
-      state.send("PANNED_CAMERA", {
+      state.send('PANNED_CAMERA', {
         delta: [e.deltaX, e.deltaY],
         ...inputs.wheel(e),
       })
@@ -38,6 +39,7 @@ export default function useZoomEvents(
 
     function handleTouchMove(e: TouchEvent) {
       e.preventDefault()
+      e.stopPropagation()
 
       if (e.touches.length === 2) {
         const { clientX: x0, clientY: y0 } = e.touches[0]
@@ -46,7 +48,7 @@ export default function useZoomEvents(
         const dist = vec.dist([x0, y0], [x1, y1])
         const point = vec.med([x0, y0], [x1, y1])
 
-        state.send("WHEELED", {
+        state.send('WHEELED', {
           delta: dist - rTouchDist.current,
           point,
         })
@@ -55,38 +57,37 @@ export default function useZoomEvents(
       }
     }
 
-    element.addEventListener("wheel", handleWheel)
-    element.addEventListener("touchstart", handleTouchMove)
-    element.addEventListener("touchmove", handleTouchMove)
+    element.addEventListener('wheel', handleWheel, { passive: false })
+    element.addEventListener('touchstart', handleTouchMove, { passive: false })
+    element.addEventListener('touchmove', handleTouchMove, { passive: false })
 
     return () => {
-      element.removeEventListener("wheel", handleWheel)
-      element.removeEventListener("touchstart", handleTouchMove)
-      element.removeEventListener("touchmove", handleTouchMove)
+      element.removeEventListener('wheel', handleWheel)
+      element.removeEventListener('touchstart', handleTouchMove)
+      element.removeEventListener('touchmove', handleTouchMove)
     }
   }, [ref])
 
   const rPinchDa = useRef<number[] | undefined>(undefined)
-  const rPinchAngle = useRef<number>(undefined)
   const rPinchPoint = useRef<number[] | undefined>(undefined)
 
   const bind = usePinch(({ pinching, da, origin }) => {
     if (!pinching) {
-      state.send("STOPPED_PINCHING")
+      state.send('STOPPED_PINCHING')
       rPinchDa.current = undefined
       rPinchPoint.current = undefined
       return
     }
 
     if (rPinchPoint.current === undefined) {
-      state.send("STARTED_PINCHING")
+      state.send('STARTED_PINCHING')
       rPinchDa.current = da
       rPinchPoint.current = origin
     }
 
     const [distanceDelta, angleDelta] = vec.sub(rPinchDa.current, da)
 
-    state.send("PINCHED", {
+    state.send('PINCHED', {
       delta: vec.sub(rPinchPoint.current, origin),
       point: origin,
       distanceDelta,

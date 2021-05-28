@@ -1,48 +1,48 @@
 import styled from 'styles'
 import { useSelector } from 'state'
-import {
-  deepCompareArrays,
-  getBoundsCenter,
-  getPage,
-  getSelectedShapes,
-} from 'utils/utils'
-import * as vec from 'utils/vec'
+import { deepCompareArrays, getPage } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
-import { Bounds } from 'types'
 import useShapeEvents from 'hooks/useShapeEvents'
 import { useRef } from 'react'
 
-export default function Selected({ bounds }: { bounds: Bounds }) {
+export default function Selected() {
   const currentPageShapeIds = useSelector(({ data }) => {
     return Array.from(data.selectedIds.values())
   }, deepCompareArrays)
 
+  const isSelecting = useSelector((s) => s.isIn('selecting'))
+
+  if (!isSelecting) return null
+
   return (
     <g>
       {currentPageShapeIds.map((id) => (
-        <ShapeOutline key={id} id={id} bounds={bounds} />
+        <ShapeOutline key={id} id={id} />
       ))}
     </g>
   )
 }
 
-export function ShapeOutline({ id, bounds }: { id: string; bounds: Bounds }) {
+export function ShapeOutline({ id }: { id: string }) {
   const rIndicator = useRef<SVGUseElement>(null)
 
   const shape = useSelector(({ data }) => getPage(data).shapes[id])
 
-  const shapeBounds = getShapeUtils(shape).getBounds(shape)
-
   const events = useShapeEvents(id, rIndicator)
+
+  if (!shape) return null
+
+  const transform = `
+  rotate(${shape.rotation * (180 / Math.PI)},
+  ${getShapeUtils(shape).getCenter(shape)})
+  translate(${shape.point})`
 
   return (
     <Indicator
       ref={rIndicator}
       as="use"
       href={'#' + id}
-      transform={`rotate(${shape.rotation * (180 / Math.PI)},${getBoundsCenter(
-        shapeBounds
-      )}) translate(${vec.sub(shape.point, [bounds.minX, bounds.minY])})`}
+      transform={transform}
       {...events}
     />
   )

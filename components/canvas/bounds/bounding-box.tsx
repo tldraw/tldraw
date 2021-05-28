@@ -7,7 +7,6 @@ import CenterHandle from './center-handle'
 import CornerHandle from './corner-handle'
 import EdgeHandle from './edge-handle'
 import RotateHandle from './rotate-handle'
-import Selected from '../selected'
 
 export default function Bounds() {
   const isBrushing = useSelector((s) => s.isIn('brushSelecting'))
@@ -32,7 +31,6 @@ export default function Bounds() {
         ${(bounds.minY + bounds.maxY) / 2})
         translate(${bounds.minX},${bounds.minY})`}
     >
-      <Selected bounds={bounds} />
       <CenterHandle bounds={bounds} />
       <EdgeHandle size={size} bounds={bounds} edge={Edge.Top} />
       <EdgeHandle size={size} bounds={bounds} edge={Edge.Right} />

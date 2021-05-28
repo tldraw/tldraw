@@ -1,8 +1,8 @@
-import { Data } from "types"
-import * as vec from "utils/vec"
-import BaseSession from "./base-session"
-import commands from "state/commands"
-import { current } from "immer"
+import { Data } from 'types'
+import * as vec from 'utils/vec'
+import BaseSession from './base-session'
+import commands from 'state/commands'
+import { current } from 'immer'
 import {
   clampToRotationToSegments,
   getBoundsCenter,
@@ -10,8 +10,8 @@ import {
   getPage,
   getSelectedShapes,
   getShapeBounds,
-} from "utils/utils"
-import { getShapeUtils } from "lib/shape-utils"
+} from 'utils/utils'
+import { getShapeUtils } from 'lib/shape-utils'
 
 const PI2 = Math.PI * 2
 

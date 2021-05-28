@@ -1,6 +1,6 @@
-import { getShapeUtils } from "lib/shape-utils"
-import { useSelector } from "state"
-import { deepCompareArrays, getPage } from "utils/utils"
+import { getShapeUtils } from 'lib/shape-utils'
+import { useSelector } from 'state'
+import { deepCompareArrays, getPage } from 'utils/utils'
 
 export default function Defs() {
   const currentPageShapeIds = useSelector(({ data }) => {
@@ -20,6 +20,6 @@ export default function Defs() {
 
 export function Def({ id }: { id: string }) {
   const shape = useSelector(({ data }) => getPage(data).shapes[id])
-
+  if (!shape) return null
   return getShapeUtils(shape).render(shape)
 }

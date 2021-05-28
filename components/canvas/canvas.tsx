@@ -1,5 +1,5 @@
 import styled from 'styles'
-import state from 'state'
+import state, { useSelector } from 'state'
 import inputs from 'state/inputs'
 import React, { useCallback, useRef } from 'react'
 import useZoomEvents from 'hooks/useZoomEvents'
@@ -9,6 +9,7 @@ import Page from './page'
 import Brush from './brush'
 import Bounds from './bounds/bounding-box'
 import BoundsBg from './bounds/bounds-bg'
+import Selected from './selected'
 
 export default function Canvas() {
   const rCanvas = useRef<SVGSVGElement>(null)
@@ -16,6 +17,8 @@ export default function Canvas() {
   const events = useZoomEvents(rCanvas)
 
   useCamera(rGroup)
+
+  const isReady = useSelector((s) => s.isIn('ready'))
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     rCanvas.current.setPointerCapture(e.pointerId)
@@ -40,12 +43,15 @@ export default function Canvas() {
       onPointerUp={handlePointerUp}
     >
       <Defs />
-      <MainGroup ref={rGroup}>
-        <BoundsBg />
-        <Page />
-        <Bounds />
-        <Brush />
-      </MainGroup>
+      {isReady && (
+        <g ref={rGroup}>
+          <BoundsBg />
+          <Page />
+          <Bounds />
+          <Selected />
+          <Brush />
+        </g>
+      )}
     </MainSVG>
   )
 }
@@ -63,5 +69,3 @@ const MainSVG = styled('svg', {
     userSelect: 'none',
   },
 })
-
-const MainGroup = styled('g', {})
