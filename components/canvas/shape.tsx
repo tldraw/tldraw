@@ -36,7 +36,13 @@ function Shape({ id, isSelecting }: { id: string; isSelecting: boolean }) {
       transform={transform}
       {...events}
     >
-      {isSelecting && <HoverIndicator as="use" href={'#' + id} />}
+      {isSelecting && (
+        <HoverIndicator
+          as="use"
+          href={'#' + id}
+          strokeWidth={+shape.style.strokeWidth + 8}
+        />
+      )}
       <StyledShape id={id} style={shape.style} />
       {/* 
       <text
@@ -102,7 +108,8 @@ const StyledGroup = styled('g', {
         [`& ${HoverIndicator}`]: {
           opacity: '1',
           stroke: '$hint',
-          zStrokeWidth: [8, 4],
+          fill: '$hint',
+          // zStrokeWidth: [8, 4],
         },
       },
     },
@@ -113,7 +120,8 @@ const StyledGroup = styled('g', {
         [`& ${HoverIndicator}`]: {
           opacity: '1',
           stroke: '$hint',
-          zStrokeWidth: [6, 3],
+          fill: '$hint',
+          // zStrokeWidth: [6, 3],
         },
       },
     },
@@ -124,7 +132,8 @@ const StyledGroup = styled('g', {
         [`& ${HoverIndicator}`]: {
           opacity: '1',
           stroke: '$hint',
-          zStrokeWidth: [8, 4],
+          fill: '$hint',
+          // zStrokeWidth: [8, 4],
         },
       },
     },

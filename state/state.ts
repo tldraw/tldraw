@@ -274,6 +274,7 @@ const state = createState({
         },
         usingTool: {
           initial: 'draw',
+          onEnter: 'clearSelectedIds',
           states: {
             draw: {
               initial: 'creating',
@@ -281,6 +282,11 @@ const state = createState({
                 creating: {
                   on: {
                     CANCELLED: { to: 'selecting' },
+                    POINTED_SHAPE: {
+                      get: 'newDraw',
+                      do: 'createShape',
+                      to: 'draw.editing',
+                    },
                     POINTED_CANVAS: {
                       get: 'newDraw',
                       do: 'createShape',
@@ -313,6 +319,11 @@ const state = createState({
                 creating: {
                   on: {
                     CANCELLED: { to: 'selecting' },
+                    POINTED_SHAPE: {
+                      get: 'newDot',
+                      do: 'createShape',
+                      to: 'dot.editing',
+                    },
                     POINTED_CANVAS: {
                       get: 'newDot',
                       do: 'createShape',
@@ -364,6 +375,9 @@ const state = createState({
                 creating: {
                   on: {
                     CANCELLED: { to: 'selecting' },
+                    POINTED_SHAPE: {
+                      to: 'circle.editing',
+                    },
                     POINTED_CANVAS: {
                       to: 'circle.editing',
                     },
@@ -418,6 +432,9 @@ const state = createState({
                 creating: {
                   on: {
                     CANCELLED: { to: 'selecting' },
+                    POINTED_SHAPE: {
+                      to: 'rectangle.editing',
+                    },
                     POINTED_CANVAS: {
                       to: 'rectangle.editing',
                     },
@@ -445,6 +462,11 @@ const state = createState({
                 creating: {
                   on: {
                     CANCELLED: { to: 'selecting' },
+                    POINTED_SHAPE: {
+                      get: 'newRay',
+                      do: 'createShape',
+                      to: 'ray.editing',
+                    },
                     POINTED_CANVAS: {
                       get: 'newRay',
                       do: 'createShape',
@@ -470,6 +492,11 @@ const state = createState({
                 creating: {
                   on: {
                     CANCELLED: { to: 'selecting' },
+                    POINTED_SHAPE: {
+                      get: 'newLine',
+                      do: 'createShape',
+                      to: 'line.editing',
+                    },
                     POINTED_CANVAS: {
                       get: 'newLine',
                       do: 'createShape',

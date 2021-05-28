@@ -12,7 +12,7 @@ import {
   translateBounds,
 } from 'utils/utils'
 
-const pathCache = new WeakMap<number[][], string>([])
+const pathCache = new WeakMap<DrawShape, string>([])
 
 const draw = registerShapeUtils<DrawShape>({
   boundsCache: new WeakMap([]),
@@ -40,27 +40,27 @@ const draw = registerShapeUtils<DrawShape>({
   },
 
   render(shape) {
-    const { id, point, points, style } = shape
+    const { id, points, style } = shape
 
-    if (!pathCache.has(points)) {
+    if (!pathCache.has(shape)) {
       if (points.length < 2) {
-        const left = vec.add(point, [6, 0])
+        const left = [+style.strokeWidth, 0]
         let d: number[][] = []
         for (let i = 0; i < 10; i++) {
-          d.push(vec.rotWith(left, point, i * ((Math.PI * 2) / 8)))
+          d.push(vec.rotWith(left, [0, 0], i * ((Math.PI * 2) / 8)))
         }
-        pathCache.set(points, getSvgPathFromStroke(d))
+        pathCache.set(shape, getSvgPathFromStroke(d))
       } else {
         pathCache.set(
-          points,
+          shape,
           getSvgPathFromStroke(
-            getStroke(points, { size: Number(style.strokeWidth) * 2 })
+            getStroke(points, { size: +style.strokeWidth * 2 })
           )
         )
       }
     }
 
-    return <path id={id} d={pathCache.get(points)} />
+    return <path id={id} d={pathCache.get(shape)} />
   },
 
   applyStyles(shape, style) {
@@ -95,7 +95,9 @@ const draw = registerShapeUtils<DrawShape>({
 
     for (let i = 1; i < shape.points.length; i++) {
       let curr = shape.points[i]
-      if (vec.distanceToLineSegment(prev, curr, pt) < 4) {
+      if (
+        vec.distanceToLineSegment(prev, curr, pt) < +shape.style.strokeWidth
+      ) {
         return true
       }
       prev = curr

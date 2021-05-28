@@ -1,6 +1,6 @@
 import state, { useSelector } from 'state'
 import styled from 'styles'
-import { Lock, Menu, Unlock } from 'react-feather'
+import { Lock, Menu, RotateCcw, RotateCw, Unlock } from 'react-feather'
 import { IconButton } from './shared'
 
 export default function Toolbar() {
@@ -86,8 +86,12 @@ export default function Toolbar() {
         <Button onClick={() => state.send('RESET_CAMERA')}>Reset Camera</Button>
       </Section>
       <Section>
-        <Button onClick={() => state.send('UNDO')}>Undo</Button>
-        <Button onClick={() => state.send('REDO')}>Redo</Button>
+        <Button title="Undo" onClick={() => state.send('UNDO')}>
+          <RotateCcw />
+        </Button>
+        <Button title="Redo" onClick={() => state.send('REDO')}>
+          <RotateCw />
+        </Button>
       </Section>
     </ToolbarContainer>
   )
