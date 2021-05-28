@@ -130,6 +130,7 @@ const state = createState({
             STRETCHED: "stretchSelection",
             DISTRIBUTED: "distributeSelection",
             MOVED: "moveSelection",
+            STARTED_PINCHING: { to: "pinching" },
           },
           initial: "notPointing",
           states: {
@@ -246,6 +247,12 @@ const state = createState({
                 CANCELLED: { do: "cancelSession", to: "selecting" },
               },
             },
+          },
+        },
+        pinching: {
+          on: {
+            STOPPED_PINCHING: { to: "selecting" },
+            PINCHED: { do: "pinchCamera" },
           },
         },
         draw: {
@@ -831,12 +838,31 @@ const state = createState({
 
       setZoomCSS(camera.zoom)
     },
-    panCamera(data, payload: { delta: number[]; point: number[] }) {
+    panCamera(data, payload: { delta: number[] }) {
       const { camera } = data
-      data.camera.point = vec.sub(
-        camera.point,
-        vec.div(payload.delta, camera.zoom)
-      )
+      camera.point = vec.sub(camera.point, vec.div(payload.delta, camera.zoom))
+    },
+    pinchCamera(
+      data,
+      payload: {
+        delta: number[]
+        distanceDelta: number
+        angleDelta: number
+        point: number[]
+      }
+    ) {
+      const { camera } = data
+
+      camera.point = vec.sub(camera.point, vec.div(payload.delta, camera.zoom))
+
+      const next = camera.zoom - (payload.distanceDelta / 300) * camera.zoom
+
+      const p0 = screenToWorld(payload.point, data)
+      camera.zoom = clamp(next, 0.1, 3)
+      const p1 = screenToWorld(payload.point, data)
+      camera.point = vec.add(camera.point, vec.sub(p1, p0))
+
+      setZoomCSS(camera.zoom)
     },
     deleteSelectedIds(data) {
       commands.deleteSelected(data)

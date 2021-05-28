@@ -45,7 +45,7 @@ const { styled, global, css, theme, getCssString } = createCss({
     zStrokeWidth: () => (value: number | number[]) => {
       if (Array.isArray(value)) {
         return {
-          strokeWidth: `calc(${value[0]} / var(--camera-zoom))`,
+          strokeWidth: `calc(${value[0]}px / var(--camera-zoom))`,
         }
       }
 
@@ -61,7 +61,7 @@ const { styled, global, css, theme, getCssString } = createCss({
       // }
 
       return {
-        strokeWidth: `calc(${value} / var(--camera-zoom))`,
+        strokeWidth: `calc(${value}px / var(--camera-zoom))`,
       }
     },
   },

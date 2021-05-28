@@ -1,24 +1,25 @@
-import React, { useCallback, useRef, memo } from "react"
-import state, { useSelector } from "state"
-import inputs from "state/inputs"
-import styled from "styles"
-import { getShapeUtils } from "lib/shape-utils"
-import { getPage } from "utils/utils"
+import React, { useCallback, useRef, memo } from 'react'
+import state, { useSelector } from 'state'
+import inputs from 'state/inputs'
+import styled from 'styles'
+import { getShapeUtils } from 'lib/shape-utils'
+import { getPage } from 'utils/utils'
+import { ShapeStyles } from 'types'
 
-function Shape({ id }: { id: string }) {
-  const rGroup = useRef<SVGGElement>(null)
-
+function Shape({ id, isSelecting }: { id: string; isSelecting: boolean }) {
   const isHovered = useSelector((state) => state.data.hoveredId === id)
 
   const isSelected = useSelector((state) => state.values.selectedIds.has(id))
 
   const shape = useSelector(({ data }) => getPage(data).shapes[id])
 
+  const rGroup = useRef<SVGGElement>(null)
+
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
       e.stopPropagation()
       rGroup.current.setPointerCapture(e.pointerId)
-      state.send("POINTED_SHAPE", inputs.pointerDown(e, id))
+      state.send('POINTED_SHAPE', inputs.pointerDown(e, id))
     },
     [id]
   )
@@ -27,27 +28,27 @@ function Shape({ id }: { id: string }) {
     (e: React.PointerEvent) => {
       e.stopPropagation()
       rGroup.current.releasePointerCapture(e.pointerId)
-      state.send("STOPPED_POINTING", inputs.pointerUp(e))
+      state.send('STOPPED_POINTING', inputs.pointerUp(e))
     },
     [id]
   )
 
   const handlePointerEnter = useCallback(
     (e: React.PointerEvent) => {
-      state.send("HOVERED_SHAPE", inputs.pointerEnter(e, id))
+      state.send('HOVERED_SHAPE', inputs.pointerEnter(e, id))
     },
     [id, shape]
   )
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      state.send("MOVED_OVER_SHAPE", inputs.pointerEnter(e, id))
+      state.send('MOVED_OVER_SHAPE', inputs.pointerEnter(e, id))
     },
     [id, shape]
   )
 
   const handlePointerLeave = useCallback(
-    () => state.send("UNHOVERED_SHAPE", { target: id }),
+    () => state.send('UNHOVERED_SHAPE', { target: id }),
     [id]
   )
 
@@ -71,47 +72,38 @@ function Shape({ id }: { id: string }) {
       onPointerLeave={handlePointerLeave}
       onPointerMove={handlePointerMove}
     >
-      <defs>{getShapeUtils(shape).render(shape)}</defs>
-      <HoverIndicator as="use" xlinkHref={"#" + id} />
-      <MainShape as="use" xlinkHref={"#" + id} {...shape.style} />
-      <Indicator as="use" xlinkHref={"#" + id} />
+      {isSelecting && <HoverIndicator as="use" href={'#' + id} />}
+      <StyledShape id={id} style={shape.style} />
     </StyledGroup>
   )
 }
 
-const MainShape = styled("use", {
+const StyledShape = memo(
+  ({ id, style }: { id: string; style: ShapeStyles }) => {
+    return <MainShape as="use" href={'#' + id} {...style} />
+  }
+)
+
+const MainShape = styled('use', {
   zStrokeWidth: 1,
 })
 
-const Indicator = styled("path", {
-  fill: "none",
-  stroke: "transparent",
-  zStrokeWidth: 1,
-  pointerEvents: "none",
-  strokeLineCap: "round",
-  strokeLinejoin: "round",
+const HoverIndicator = styled('path', {
+  fill: 'none',
+  stroke: 'transparent',
+  pointerEvents: 'all',
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+  transform: 'all .2s',
 })
 
-const HoverIndicator = styled("path", {
-  fill: "none",
-  stroke: "transparent",
-  pointerEvents: "all",
-  strokeLinecap: "round",
-  strokeLinejoin: "round",
-  transform: "all .2s",
-})
-
-const StyledGroup = styled("g", {
+const StyledGroup = styled('g', {
   [`& ${HoverIndicator}`]: {
-    opacity: "0",
+    opacity: '0',
   },
   variants: {
     isSelected: {
-      true: {
-        [`& ${Indicator}`]: {
-          stroke: "$selected",
-        },
-      },
+      true: {},
       false: {},
     },
     isHovered: {
@@ -125,8 +117,8 @@ const StyledGroup = styled("g", {
       isHovered: true,
       css: {
         [`& ${HoverIndicator}`]: {
-          opacity: "1",
-          stroke: "$hint",
+          opacity: '1',
+          stroke: '$hint',
           zStrokeWidth: [8, 4],
         },
       },
@@ -136,8 +128,8 @@ const StyledGroup = styled("g", {
       isHovered: false,
       css: {
         [`& ${HoverIndicator}`]: {
-          opacity: "1",
-          stroke: "$hint",
+          opacity: '1',
+          stroke: '$hint',
           zStrokeWidth: [6, 3],
         },
       },
@@ -147,8 +139,8 @@ const StyledGroup = styled("g", {
       isHovered: true,
       css: {
         [`& ${HoverIndicator}`]: {
-          opacity: "1",
-          stroke: "$hint",
+          opacity: '1',
+          stroke: '$hint',
           zStrokeWidth: [8, 4],
         },
       },
@@ -156,6 +148,6 @@ const StyledGroup = styled("g", {
   ],
 })
 
-export { Indicator, HoverIndicator }
+export { HoverIndicator }
 
 export default memo(Shape)

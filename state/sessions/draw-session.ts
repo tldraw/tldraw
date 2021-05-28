@@ -1,10 +1,10 @@
-import { current } from "immer"
-import { Data, DrawShape } from "types"
-import BaseSession from "./base-session"
-import { getShapeUtils } from "lib/shape-utils"
-import { getPage, simplify } from "utils/utils"
-import * as vec from "utils/vec"
-import commands from "state/commands"
+import { current } from 'immer'
+import { Data, DrawShape } from 'types'
+import BaseSession from './base-session'
+import { getShapeUtils } from 'lib/shape-utils'
+import { getPage, simplify } from 'utils/utils'
+import * as vec from 'utils/vec'
+import commands from 'state/commands'
 
 export default class BrushSession extends BaseSession {
   origin: number[]
@@ -29,7 +29,7 @@ export default class BrushSession extends BaseSession {
   update = (data: Data, point: number[]) => {
     const { shapeId } = this
 
-    const lp = vec.med(this.previous, point)
+    const lp = vec.med(this.previous, vec.toPrecision(point))
     this.points.push(vec.sub(lp, this.origin))
     this.previous = lp
 
@@ -46,15 +46,7 @@ export default class BrushSession extends BaseSession {
   }
 
   complete = (data: Data) => {
-    commands.draw(
-      data,
-      this.shapeId,
-      this.snapshot.points,
-      simplify(this.points, 0.1 / data.camera.zoom).map(([x, y]) => [
-        Math.trunc(x * 100) / 100,
-        Math.trunc(y * 100) / 100,
-      ])
-    )
+    commands.draw(data, this.shapeId, this.snapshot.points, this.points)
   }
 }
 

@@ -1,16 +1,17 @@
-import * as React from "react"
-import { Edge, Corner } from "types"
-import { useSelector } from "state"
-import { getSelectedShapes, isMobile } from "utils/utils"
+import * as React from 'react'
+import { Edge, Corner } from 'types'
+import { useSelector } from 'state'
+import { getSelectedShapes, isMobile } from 'utils/utils'
 
-import CenterHandle from "./center-handle"
-import CornerHandle from "./corner-handle"
-import EdgeHandle from "./edge-handle"
-import RotateHandle from "./rotate-handle"
+import CenterHandle from './center-handle'
+import CornerHandle from './corner-handle'
+import EdgeHandle from './edge-handle'
+import RotateHandle from './rotate-handle'
+import Selected from '../selected'
 
 export default function Bounds() {
-  const isBrushing = useSelector((s) => s.isIn("brushSelecting"))
-  const isSelecting = useSelector((s) => s.isIn("selecting"))
+  const isBrushing = useSelector((s) => s.isIn('brushSelecting'))
+  const isSelecting = useSelector((s) => s.isIn('selecting'))
   const zoom = useSelector((s) => s.data.camera.zoom)
   const bounds = useSelector((s) => s.values.selectedBounds)
   const rotation = useSelector(({ data }) =>
@@ -20,17 +21,18 @@ export default function Bounds() {
   if (!bounds) return null
   if (!isSelecting) return null
 
-  const size = (isMobile().any ? 16 : 8) / zoom // Touch target size
+  const size = (isMobile().any ? 12 : 8) / zoom // Touch target size
 
   return (
     <g
-      pointerEvents={isBrushing ? "none" : "all"}
+      pointerEvents={isBrushing ? 'none' : 'all'}
       transform={`
         rotate(${rotation * (180 / Math.PI)}, 
         ${(bounds.minX + bounds.maxX) / 2}, 
         ${(bounds.minY + bounds.maxY) / 2})
         translate(${bounds.minX},${bounds.minY})`}
     >
+      <Selected bounds={bounds} />
       <CenterHandle bounds={bounds} />
       <EdgeHandle size={size} bounds={bounds} edge={Edge.Top} />
       <EdgeHandle size={size} bounds={bounds} edge={Edge.Right} />
