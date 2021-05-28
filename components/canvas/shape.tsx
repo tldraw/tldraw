@@ -23,9 +23,9 @@ function Shape({ id, isSelecting }: { id: string; isSelecting: boolean }) {
   // detects the change and pulls this component.
   if (!shape) return null
 
+  const center = getShapeUtils(shape).getCenter(shape)
   const transform = `
-  rotate(${shape.rotation * (180 / Math.PI)},
-  ${getShapeUtils(shape).getCenter(shape)})
+  rotate(${shape.rotation * (180 / Math.PI)}, ${center})
   translate(${shape.point})`
 
   return (
@@ -38,18 +38,37 @@ function Shape({ id, isSelecting }: { id: string; isSelecting: boolean }) {
     >
       {isSelecting && <HoverIndicator as="use" href={'#' + id} />}
       <StyledShape id={id} style={shape.style} />
+      {/* 
+      <text
+        y={4}
+        x={4}
+        fontSize={18}
+        fill="black"
+        stroke="none"
+        alignmentBaseline="text-before-edge"
+        pointerEvents="none"
+      >
+        {center.toString()}
+      </text> */}
     </StyledGroup>
   )
 }
 
 const StyledShape = memo(
   ({ id, style }: { id: string; style: ShapeStyles }) => {
-    return <MainShape as="use" href={'#' + id} {...style} />
+    return (
+      <MainShape
+        as="use"
+        href={'#' + id}
+        {...style}
+        // css={{ zStrokeWidth: Number(style.strokeWidth) }}
+      />
+    )
   }
 )
 
 const MainShape = styled('use', {
-  zStrokeWidth: 1,
+  // zStrokeWidth: 1,
 })
 
 const HoverIndicator = styled('path', {

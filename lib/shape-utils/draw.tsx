@@ -34,13 +34,13 @@ const draw = registerShapeUtils<DrawShape>({
         strokeLinecap: 'round',
         strokeLinejoin: 'round',
         ...props.style,
-        stroke: 'transparent',
+        fill: props.style.stroke,
       },
     }
   },
 
   render(shape) {
-    const { id, point, points } = shape
+    const { id, point, points, style } = shape
 
     if (!pathCache.has(points)) {
       if (points.length < 2) {
@@ -51,7 +51,12 @@ const draw = registerShapeUtils<DrawShape>({
         }
         pathCache.set(points, getSvgPathFromStroke(d))
       } else {
-        pathCache.set(points, getSvgPathFromStroke(getStroke(points)))
+        pathCache.set(
+          points,
+          getSvgPathFromStroke(
+            getStroke(points, { size: Number(style.strokeWidth) * 2 })
+          )
+        )
       }
     }
 
@@ -60,6 +65,7 @@ const draw = registerShapeUtils<DrawShape>({
 
   applyStyles(shape, style) {
     Object.assign(shape.style, style)
+    shape.style.fill = shape.style.stroke
     return this
   },
 
@@ -128,7 +134,7 @@ const draw = registerShapeUtils<DrawShape>({
   },
 
   translateTo(shape, point) {
-    shape.point = point
+    shape.point = vec.toPrecision(point)
     return this
   },
 

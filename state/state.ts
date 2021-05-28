@@ -41,10 +41,15 @@ const initialData: Data = {
     isDarkMode: false,
     isCodeOpen: false,
     isStyleOpen: false,
+    isToolLocked: false,
+    isPenLocked: false,
+    nudgeDistanceLarge: 10,
+    nudgeDistanceSmall: 1,
   },
   currentStyle: {
     fill: shades.lightGray,
     stroke: shades.darkGray,
+    strokeWidth: 2,
   },
   camera: {
     point: [0, 0],
@@ -94,6 +99,9 @@ const state = createState({
       else: 'zoomCameraToActual',
     },
     SELECTED_ALL: { to: 'selecting', do: 'selectAll' },
+    NUDGED: { do: 'nudgeSelection' },
+    USED_PEN_DEVICE: 'enablePenLock',
+    DISABLED_PEN_LOCK: 'disablePenLock',
   },
   initial: 'loading',
   states: {
@@ -124,20 +132,22 @@ const state = createState({
         selecting: {
           on: {
             SAVED: 'forceSave',
-            UNDO: { do: 'undo' },
-            REDO: { do: 'redo' },
-            CANCELLED: { do: 'clearSelectedIds' },
-            DELETED: { do: 'deleteSelectedIds' },
+            UNDO: 'undo',
+            REDO: 'redo',
             SAVED_CODE: 'saveCode',
-            GENERATED_FROM_CODE: ['setCodeControls', 'setGeneratedShapes'],
+            CANCELLED: 'clearSelectedIds',
+            DELETED: 'deleteSelectedIds',
+            STARTED_PINCHING: { to: 'pinching' },
             INCREASED_CODE_FONT_SIZE: 'increaseCodeFontSize',
             DECREASED_CODE_FONT_SIZE: 'decreaseCodeFontSize',
             CHANGED_CODE_CONTROL: 'updateControls',
-            ALIGNED: 'alignSelection',
-            STRETCHED: 'stretchSelection',
-            DISTRIBUTED: 'distributeSelection',
-            MOVED: 'moveSelection',
-            STARTED_PINCHING: { to: 'pinching' },
+            GENERATED_FROM_CODE: ['setCodeControls', 'setGeneratedShapes'],
+            TOGGLED_TOOL_LOCK: 'toggleToolLock',
+            MOVED: { if: 'hasSelection', do: 'moveSelection' },
+            ALIGNED: { if: 'hasSelection', do: 'alignSelection' },
+            STRETCHED: { if: 'hasSelection', do: 'stretchSelection' },
+            DISTRIBUTED: { if: 'hasSelection', do: 'distributeSelection' },
+            DUPLICATED: { if: 'hasSelection', do: 'duplicateSelection' },
           },
           initial: 'notPointing',
           states: {
@@ -262,239 +272,257 @@ const state = createState({
             PINCHED: { do: 'pinchCamera' },
           },
         },
-        draw: {
-          initial: 'creating',
+        usingTool: {
+          initial: 'draw',
           states: {
-            creating: {
-              on: {
-                CANCELLED: { to: 'selecting' },
-                POINTED_CANVAS: {
-                  get: 'newDraw',
-                  do: 'createShape',
-                  to: 'draw.editing',
-                },
-                UNDO: { do: 'undo' },
-                REDO: { do: 'redo' },
-              },
-            },
-            editing: {
-              onEnter: 'startDrawSession',
-              on: {
-                STOPPED_POINTING: {
-                  do: 'completeSession',
-                  to: 'draw.creating',
-                },
-                CANCELLED: {
-                  do: ['cancelSession', 'deleteSelectedIds'],
-                  to: 'selecting',
-                },
-                MOVED_POINTER: 'updateDrawSession',
-                PANNED_CAMERA: 'updateDrawSession',
-              },
-            },
-          },
-        },
-        dot: {
-          initial: 'creating',
-          states: {
-            creating: {
-              on: {
-                CANCELLED: { to: 'selecting' },
-                POINTED_CANVAS: {
-                  get: 'newDot',
-                  do: 'createShape',
-                  to: 'dot.editing',
-                },
-              },
-            },
-            editing: {
-              on: {
-                STOPPED_POINTING: { do: 'completeSession', to: 'selecting' },
-                CANCELLED: {
-                  do: ['cancelSession', 'deleteSelectedIds'],
-                  to: 'selecting',
-                },
-              },
-              initial: 'inactive',
+            draw: {
+              initial: 'creating',
               states: {
-                inactive: {
+                creating: {
                   on: {
-                    MOVED_POINTER: {
-                      if: 'distanceImpliesDrag',
-                      to: 'dot.editing.active',
+                    CANCELLED: { to: 'selecting' },
+                    POINTED_CANVAS: {
+                      get: 'newDraw',
+                      do: 'createShape',
+                      to: 'draw.editing',
+                    },
+                    UNDO: { do: 'undo' },
+                    REDO: { do: 'redo' },
+                  },
+                },
+                editing: {
+                  onEnter: 'startDrawSession',
+                  on: {
+                    STOPPED_POINTING: {
+                      do: 'completeSession',
+                      to: 'draw.creating',
+                    },
+                    CANCELLED: {
+                      do: ['cancelSession', 'deleteSelectedIds'],
+                      to: 'selecting',
+                    },
+                    MOVED_POINTER: 'updateDrawSession',
+                    PANNED_CAMERA: 'updateDrawSession',
+                  },
+                },
+              },
+            },
+            dot: {
+              initial: 'creating',
+              states: {
+                creating: {
+                  on: {
+                    CANCELLED: { to: 'selecting' },
+                    POINTED_CANVAS: {
+                      get: 'newDot',
+                      do: 'createShape',
+                      to: 'dot.editing',
                     },
                   },
                 },
-                active: {
-                  onEnter: 'startTranslateSession',
+                editing: {
                   on: {
-                    MOVED_POINTER: 'updateTranslateSession',
-                    PANNED_CAMERA: 'updateTranslateSession',
+                    STOPPED_POINTING: [
+                      'completeSession',
+                      {
+                        if: 'isToolLocked',
+                        to: 'dot.creating',
+                        else: {
+                          to: 'selecting',
+                        },
+                      },
+                    ],
+                    CANCELLED: {
+                      do: ['cancelSession', 'deleteSelectedIds'],
+                      to: 'selecting',
+                    },
+                  },
+                  initial: 'inactive',
+                  states: {
+                    inactive: {
+                      on: {
+                        MOVED_POINTER: {
+                          if: 'distanceImpliesDrag',
+                          to: 'dot.editing.active',
+                        },
+                      },
+                    },
+                    active: {
+                      onEnter: 'startTranslateSession',
+                      on: {
+                        MOVED_POINTER: 'updateTranslateSession',
+                        PANNED_CAMERA: 'updateTranslateSession',
+                      },
+                    },
                   },
                 },
               },
             },
-          },
-        },
-        circle: {
-          initial: 'creating',
-          states: {
-            creating: {
-              on: {
-                CANCELLED: { to: 'selecting' },
-                POINTED_CANVAS: {
-                  to: 'circle.editing',
+            circle: {
+              initial: 'creating',
+              states: {
+                creating: {
+                  on: {
+                    CANCELLED: { to: 'selecting' },
+                    POINTED_CANVAS: {
+                      to: 'circle.editing',
+                    },
+                  },
                 },
-              },
-            },
-            editing: {
-              on: {
-                STOPPED_POINTING: { to: 'selecting' },
-                CANCELLED: { to: 'selecting' },
-                MOVED_POINTER: {
-                  if: 'distanceImpliesDrag',
-                  then: {
-                    get: 'newCircle',
-                    do: 'createShape',
-                    to: 'drawingShape.bounds',
+                editing: {
+                  on: {
+                    STOPPED_POINTING: { to: 'selecting' },
+                    CANCELLED: { to: 'selecting' },
+                    MOVED_POINTER: {
+                      if: 'distanceImpliesDrag',
+                      then: {
+                        get: 'newCircle',
+                        do: 'createShape',
+                        to: 'drawingShape.bounds',
+                      },
+                    },
                   },
                 },
               },
             },
-          },
-        },
-        ellipse: {
-          initial: 'creating',
-          states: {
-            creating: {
-              on: {
-                CANCELLED: { to: 'selecting' },
-                POINTED_CANVAS: {
-                  to: 'ellipse.editing',
+            ellipse: {
+              initial: 'creating',
+              states: {
+                creating: {
+                  on: {
+                    CANCELLED: { to: 'selecting' },
+                    POINTED_CANVAS: {
+                      to: 'ellipse.editing',
+                    },
+                  },
                 },
-              },
-            },
-            editing: {
-              on: {
-                STOPPED_POINTING: { to: 'selecting' },
-                CANCELLED: { to: 'selecting' },
-                MOVED_POINTER: {
-                  if: 'distanceImpliesDrag',
-                  then: {
-                    get: 'newEllipse',
-                    do: 'createShape',
-                    to: 'drawingShape.bounds',
+                editing: {
+                  on: {
+                    STOPPED_POINTING: { to: 'selecting' },
+                    CANCELLED: { to: 'selecting' },
+                    MOVED_POINTER: {
+                      if: 'distanceImpliesDrag',
+                      then: {
+                        get: 'newEllipse',
+                        do: 'createShape',
+                        to: 'drawingShape.bounds',
+                      },
+                    },
                   },
                 },
               },
             },
-          },
-        },
-        rectangle: {
-          initial: 'creating',
-          states: {
-            creating: {
-              on: {
-                CANCELLED: { to: 'selecting' },
-                POINTED_CANVAS: {
-                  to: 'rectangle.editing',
+            rectangle: {
+              initial: 'creating',
+              states: {
+                creating: {
+                  on: {
+                    CANCELLED: { to: 'selecting' },
+                    POINTED_CANVAS: {
+                      to: 'rectangle.editing',
+                    },
+                  },
                 },
-              },
-            },
-            editing: {
-              on: {
-                STOPPED_POINTING: { to: 'selecting' },
-                CANCELLED: { to: 'selecting' },
-                MOVED_POINTER: {
-                  if: 'distanceImpliesDrag',
-                  then: {
-                    get: 'newRectangle',
-                    do: 'createShape',
-                    to: 'drawingShape.bounds',
+                editing: {
+                  on: {
+                    STOPPED_POINTING: { to: 'selecting' },
+                    CANCELLED: { to: 'selecting' },
+                    MOVED_POINTER: {
+                      if: 'distanceImpliesDrag',
+                      then: {
+                        get: 'newRectangle',
+                        do: 'createShape',
+                        to: 'drawingShape.bounds',
+                      },
+                    },
                   },
                 },
               },
             },
+            ray: {
+              initial: 'creating',
+              states: {
+                creating: {
+                  on: {
+                    CANCELLED: { to: 'selecting' },
+                    POINTED_CANVAS: {
+                      get: 'newRay',
+                      do: 'createShape',
+                      to: 'ray.editing',
+                    },
+                  },
+                },
+                editing: {
+                  on: {
+                    STOPPED_POINTING: { to: 'selecting' },
+                    CANCELLED: { to: 'selecting' },
+                    MOVED_POINTER: {
+                      if: 'distanceImpliesDrag',
+                      to: 'drawingShape.direction',
+                    },
+                  },
+                },
+              },
+            },
+            line: {
+              initial: 'creating',
+              states: {
+                creating: {
+                  on: {
+                    CANCELLED: { to: 'selecting' },
+                    POINTED_CANVAS: {
+                      get: 'newLine',
+                      do: 'createShape',
+                      to: 'line.editing',
+                    },
+                  },
+                },
+                editing: {
+                  on: {
+                    STOPPED_POINTING: { to: 'selecting' },
+                    CANCELLED: { to: 'selecting' },
+                    MOVED_POINTER: {
+                      if: 'distanceImpliesDrag',
+                      to: 'drawingShape.direction',
+                    },
+                  },
+                },
+              },
+            },
+            polyline: {},
           },
         },
-        ray: {
-          initial: 'creating',
-          states: {
-            creating: {
-              on: {
-                CANCELLED: { to: 'selecting' },
-                POINTED_CANVAS: {
-                  get: 'newRay',
-                  do: 'createShape',
-                  to: 'ray.editing',
-                },
-              },
-            },
-            editing: {
-              on: {
-                STOPPED_POINTING: { to: 'selecting' },
-                CANCELLED: { to: 'selecting' },
-                MOVED_POINTER: {
-                  if: 'distanceImpliesDrag',
-                  to: 'drawingShape.direction',
-                },
-              },
-            },
-          },
-        },
-        line: {
-          initial: 'creating',
-          states: {
-            creating: {
-              on: {
-                CANCELLED: { to: 'selecting' },
-                POINTED_CANVAS: {
-                  get: 'newLine',
-                  do: 'createShape',
-                  to: 'line.editing',
-                },
-              },
-            },
-            editing: {
-              on: {
-                STOPPED_POINTING: { to: 'selecting' },
-                CANCELLED: { to: 'selecting' },
-                MOVED_POINTER: {
-                  if: 'distanceImpliesDrag',
-                  to: 'drawingShape.direction',
-                },
-              },
-            },
-          },
-        },
-        polyline: {},
-      },
-    },
-    drawingShape: {
-      on: {
-        STOPPED_POINTING: {
-          do: 'completeSession',
-          to: 'selecting',
-        },
-        CANCELLED: {
-          do: ['cancelSession', 'deleteSelectedIds'],
-          to: 'selecting',
-        },
-      },
-      initial: 'drawingShapeBounds',
-      states: {
-        bounds: {
-          onEnter: 'startDrawTransformSession',
+        drawingShape: {
           on: {
-            MOVED_POINTER: 'updateTransformSession',
-            PANNED_CAMERA: 'updateTransformSession',
+            STOPPED_POINTING: [
+              'completeSession',
+              {
+                if: 'isToolLocked',
+                to: 'usingTool.previous',
+                else: { to: 'selecting' },
+              },
+            ],
+            CANCELLED: {
+              do: ['cancelSession', 'deleteSelectedIds'],
+              to: 'selecting',
+            },
           },
-        },
-        direction: {
-          onEnter: 'startDirectionSession',
-          on: {
-            MOVED_POINTER: 'updateDirectionSession',
-            PANNED_CAMERA: 'updateDirectionSession',
+          initial: 'drawingShapeBounds',
+          states: {
+            bounds: {
+              onEnter: 'startDrawTransformSession',
+              on: {
+                MOVED_POINTER: 'updateTransformSession',
+                PANNED_CAMERA: 'updateTransformSession',
+              },
+            },
+            direction: {
+              onEnter: 'startDirectionSession',
+              on: {
+                MOVED_POINTER: 'updateDirectionSession',
+                PANNED_CAMERA: 'updateDirectionSession',
+              },
+            },
           },
         },
       },
@@ -561,6 +589,12 @@ const state = createState({
     },
     hasSelection(data) {
       return data.selectedIds.size > 0
+    },
+    isToolLocked(data) {
+      return data.settings.isToolLocked
+    },
+    isPenLocked(data) {
+      return data.settings.isPenLocked
     },
   },
   actions: {
@@ -712,6 +746,19 @@ const state = createState({
       session.update(data, screenToWorld(payload.point, data))
     },
 
+    // Nudges
+    nudgeSelection(data, payload: { delta: number[]; shiftKey: boolean }) {
+      commands.nudge(
+        data,
+        vec.mul(
+          payload.delta,
+          payload.shiftKey
+            ? data.settings.nudgeDistanceLarge
+            : data.settings.nudgeDistanceSmall
+        )
+      )
+    },
+
     /* -------------------- Selection ------------------- */
 
     selectAll(data) {
@@ -755,6 +802,9 @@ const state = createState({
     },
     distributeSelection(data, payload: { type: DistributeType }) {
       commands.distribute(data, payload.type)
+    },
+    duplicateSelection(data) {
+      commands.duplicate(data)
     },
 
     /* --------------------- Camera --------------------- */
@@ -913,6 +963,7 @@ const state = createState({
     },
 
     /* ---------------------- Code ---------------------- */
+
     closeCodePanel(data) {
       data.settings.isCodeOpen = false
     },
@@ -962,7 +1013,20 @@ const state = createState({
       history.enable()
     },
 
-    // Data
+    /* -------------------- Settings -------------------- */
+
+    enablePenLock(data) {
+      data.settings.isPenLocked = true
+    },
+    disablePenLock(data) {
+      data.settings.isPenLocked = false
+    },
+    toggleToolLock(data) {
+      data.settings.isToolLocked = !data.settings.isToolLocked
+    },
+
+    /* ---------------------- Data ---------------------- */
+
     saveCode(data, payload: { code: string }) {
       data.document.code[data.currentCodeFileId].code = payload.code
       history.save(data)

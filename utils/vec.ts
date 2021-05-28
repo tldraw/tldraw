@@ -483,6 +483,6 @@ export function nudge(A: number[], B: number[], d: number) {
  * @param a
  * @param n
  */
-export function toPrecision(a: number[], n = 3) {
+export function toPrecision(a: number[], n = 4) {
   return [+a[0].toPrecision(n), +a[1].toPrecision(n)]
 }

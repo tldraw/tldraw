@@ -1,4 +1,4 @@
-import { createCss, defaultThemeMap } from "@stitches/react"
+import { createCss, defaultThemeMap } from '@stitches/react'
 
 const { styled, global, css, theme, getCssString } = createCss({
   themeMap: {
@@ -6,26 +6,27 @@ const { styled, global, css, theme, getCssString } = createCss({
   },
   theme: {
     colors: {
-      brushFill: "rgba(0,0,0,.1)",
-      brushStroke: "rgba(0,0,0,.5)",
-      hint: "rgba(66, 133, 244, 0.200)",
-      selected: "rgba(66, 133, 244, 1.000)",
-      bounds: "rgba(65, 132, 244, 1.000)",
-      boundsBg: "rgba(65, 132, 244, 0.100)",
-      border: "#aaa",
-      panel: "#fefefe",
-      hover: "#efefef",
-      text: "#333",
-      input: "#f3f3f3",
-      inputBorder: "#ddd",
+      brushFill: 'rgba(0,0,0,.1)',
+      brushStroke: 'rgba(0,0,0,.5)',
+      hint: 'rgba(66, 133, 244, 0.200)',
+      selected: 'rgba(66, 133, 244, 1.000)',
+      bounds: 'rgba(65, 132, 244, 1.000)',
+      boundsBg: 'rgba(65, 132, 244, 0.100)',
+      border: '#aaa',
+      panel: '#fefefe',
+      inactive: '#cccccf',
+      hover: '#efefef',
+      text: '#333',
+      input: '#f3f3f3',
+      inputBorder: '#ddd',
     },
     space: {},
     fontSizes: {
-      0: "10px",
-      1: "12px",
-      2: "13px",
-      3: "16px",
-      4: "18px",
+      0: '10px',
+      1: '12px',
+      2: '13px',
+      3: '16px',
+      4: '18px',
     },
     fonts: {
       ui: '"Recursive", system-ui, sans-serif',
@@ -72,17 +73,17 @@ const light = theme({})
 const dark = theme({})
 
 const globalStyles = global({
-  "*": { boxSizing: "border-box" },
-  ":root": {
-    "--camera-zoom": 1,
-    "--scale": "calc(1 / var(--camera-zoom))",
+  '*': { boxSizing: 'border-box' },
+  ':root': {
+    '--camera-zoom': 1,
+    '--scale': 'calc(1 / var(--camera-zoom))',
   },
-  "html, body": {
-    padding: "0px",
-    margin: "0px",
-    overscrollBehavior: "none",
-    fontFamily: "$ui",
-    fontSize: "$2",
+  'html, body': {
+    padding: '0px',
+    margin: '0px',
+    overscrollBehavior: 'none',
+    fontFamily: '$ui',
+    fontSize: '$2',
   },
 })
 

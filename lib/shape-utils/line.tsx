@@ -1,11 +1,11 @@
-import { v4 as uuid } from "uuid"
-import * as vec from "utils/vec"
-import { LineShape, ShapeType } from "types"
-import { registerShapeUtils } from "./index"
-import { boundsContained } from "utils/bounds"
-import { intersectCircleBounds } from "utils/intersections"
-import { DotCircle } from "components/canvas/misc"
-import { translateBounds } from "utils/utils"
+import { v4 as uuid } from 'uuid'
+import * as vec from 'utils/vec'
+import { LineShape, ShapeType } from 'types'
+import { registerShapeUtils } from './index'
+import { boundsContained } from 'utils/bounds'
+import { intersectCircleBounds } from 'utils/intersections'
+import { DotCircle } from 'components/canvas/misc'
+import { translateBounds } from 'utils/utils'
 
 const line = registerShapeUtils<LineShape>({
   boundsCache: new WeakMap([]),
@@ -15,15 +15,15 @@ const line = registerShapeUtils<LineShape>({
       id: uuid(),
       type: ShapeType.Line,
       isGenerated: false,
-      name: "Line",
-      parentId: "page0",
+      name: 'Line',
+      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       direction: [0, 0],
       rotation: 0,
       style: {
-        fill: "#c6cacb",
-        stroke: "#000",
+        fill: '#c6cacb',
+        stroke: '#000',
       },
       ...props,
     }
@@ -88,7 +88,7 @@ const line = registerShapeUtils<LineShape>({
   },
 
   translateTo(shape, point) {
-    shape.point = point
+    shape.point = vec.toPrecision(point)
     return this
   },
 

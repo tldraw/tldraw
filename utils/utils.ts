@@ -1,9 +1,9 @@
-import Vector from "lib/code/vector"
-import React from "react"
-import { Data, Bounds, Edge, Corner, Shape, ShapeStyles } from "types"
-import * as vec from "./vec"
-import _isMobile from "ismobilejs"
-import { getShapeUtils } from "lib/shape-utils"
+import Vector from 'lib/code/vector'
+import React from 'react'
+import { Data, Bounds, Edge, Corner, Shape, ShapeStyles } from 'types'
+import * as vec from './vec'
+import _isMobile from 'ismobilejs'
+import { getShapeUtils } from 'lib/shape-utils'
 
 export function screenToWorld(point: number[], data: Data) {
   return vec.sub(vec.div(point, data.camera.zoom), data.camera.point)
@@ -132,7 +132,7 @@ export function getBezierCurveSegments(points: number[][], tension = 0.4) {
     cpoints: number[][] = [...points]
 
   if (len < 2) {
-    throw Error("Curve must have at least two points.")
+    throw Error('Curve must have at least two points.')
   }
 
   for (let i = 1; i < len - 1; i++) {
@@ -260,12 +260,12 @@ export function copyToClipboard(string: string) {
     navigator.clipboard.writeText(string)
   } catch (e) {
     try {
-      textarea = document.createElement("textarea")
-      textarea.setAttribute("position", "fixed")
-      textarea.setAttribute("top", "0")
-      textarea.setAttribute("readonly", "true")
-      textarea.setAttribute("contenteditable", "true")
-      textarea.style.position = "fixed" // prevent scroll from jumping to the bottom when focus is set.
+      textarea = document.createElement('textarea')
+      textarea.setAttribute('position', 'fixed')
+      textarea.setAttribute('top', '0')
+      textarea.setAttribute('readonly', 'true')
+      textarea.setAttribute('contenteditable', 'true')
+      textarea.style.position = 'fixed' // prevent scroll from jumping to the bottom when focus is set.
       textarea.value = string
 
       document.body.appendChild(textarea)
@@ -281,7 +281,7 @@ export function copyToClipboard(string: string) {
       sel.addRange(range)
 
       textarea.setSelectionRange(0, textarea.value.length)
-      result = document.execCommand("copy")
+      result = document.execCommand('copy')
     } catch (err) {
       result = null
     } finally {
@@ -549,7 +549,7 @@ export function arrsIntersect<T>(
 
 export function getTouchDisplay() {
   return (
-    "ontouchstart" in window ||
+    'ontouchstart' in window ||
     navigator.maxTouchPoints > 0 ||
     navigator.msMaxTouchPoints > 0
   )
@@ -604,7 +604,7 @@ export function modulate(
 export function clamp(n: number, min: number): number
 export function clamp(n: number, min: number, max: number): number
 export function clamp(n: number, min: number, max?: number): number {
-  return Math.max(min, typeof max !== "undefined" ? Math.min(n, max) : n)
+  return Math.max(min, typeof max !== 'undefined' ? Math.min(n, max) : n)
 }
 
 // CURVES
@@ -871,8 +871,8 @@ export async function postJsonToEndpoint(
   const d = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_API_URL}/api/${endpoint}`,
     {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     }
   )
@@ -962,7 +962,7 @@ export function getTransformAnchor(
 }
 
 export function vectorToPoint(point: number[] | Vector | undefined) {
-  if (typeof point === "undefined") {
+  if (typeof point === 'undefined') {
     return [0, 0]
   }
 
@@ -1062,7 +1062,7 @@ export function getRotatedCorners(b: Bounds, rotation: number) {
 
 export function getTransformedBoundingBox(
   bounds: Bounds,
-  handle: Corner | Edge | "center",
+  handle: Corner | Edge | 'center',
   delta: number[],
   rotation = 0,
   isAspectRatioLocked = false
@@ -1076,7 +1076,7 @@ export function getTransformedBoundingBox(
   let [bx1, by1] = [bounds.maxX, bounds.maxY]
 
   // If the drag is on the center, just translate the bounds.
-  if (handle === "center") {
+  if (handle === 'center') {
     return {
       minX: bx0 + delta[0],
       minY: by0 + delta[1],
@@ -1491,7 +1491,7 @@ export function forceIntegerChildIndices(shapes: Shape[]) {
   }
 }
 export function setZoomCSS(zoom: number) {
-  document.documentElement.style.setProperty("--camera-zoom", zoom.toString())
+  document.documentElement.style.setProperty('--camera-zoom', zoom.toString())
 }
 
 export function getCurrent<T extends object>(source: T): T {
@@ -1539,7 +1539,7 @@ export function simplify(points: number[][], tolerance = 1) {
 }
 
 export function getSvgPathFromStroke(stroke: number[][]) {
-  if (!stroke.length) return ""
+  if (!stroke.length) return ''
 
   const d = stroke.reduce(
     (acc, [x0, y0], i, arr) => {
@@ -1547,9 +1547,9 @@ export function getSvgPathFromStroke(stroke: number[][]) {
       acc.push(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2)
       return acc
     },
-    ["M", ...stroke[0], "Q"]
+    ['M', ...stroke[0], 'Q']
   )
 
-  d.push("Z")
-  return d.join(" ")
+  d.push('Z')
+  return d.join(' ')
 }

@@ -1,10 +1,10 @@
-import { v4 as uuid } from "uuid"
-import * as vec from "utils/vec"
-import { PolylineShape, ShapeType } from "types"
-import { registerShapeUtils } from "./index"
-import { intersectPolylineBounds } from "utils/intersections"
-import { boundsContainPolygon } from "utils/bounds"
-import { getBoundsFromPoints, translateBounds } from "utils/utils"
+import { v4 as uuid } from 'uuid'
+import * as vec from 'utils/vec'
+import { PolylineShape, ShapeType } from 'types'
+import { registerShapeUtils } from './index'
+import { intersectPolylineBounds } from 'utils/intersections'
+import { boundsContainPolygon } from 'utils/bounds'
+import { getBoundsFromPoints, translateBounds } from 'utils/utils'
 
 const polyline = registerShapeUtils<PolylineShape>({
   boundsCache: new WeakMap([]),
@@ -14,16 +14,16 @@ const polyline = registerShapeUtils<PolylineShape>({
       id: uuid(),
       type: ShapeType.Polyline,
       isGenerated: false,
-      name: "Polyline",
-      parentId: "page0",
+      name: 'Polyline',
+      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       points: [[0, 0]],
       rotation: 0,
       style: {
         strokeWidth: 2,
-        strokeLinecap: "round",
-        strokeLinejoin: "round",
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
       },
       ...props,
     }
@@ -97,7 +97,7 @@ const polyline = registerShapeUtils<PolylineShape>({
   },
 
   translateTo(shape, point) {
-    shape.point = point
+    shape.point = vec.toPrecision(point)
     return this
   },
 

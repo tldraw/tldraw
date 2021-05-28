@@ -1,13 +1,13 @@
-import { v4 as uuid } from "uuid"
-import * as vec from "utils/vec"
-import { RectangleShape, ShapeType } from "types"
-import { registerShapeUtils } from "./index"
-import { boundsCollidePolygon, boundsContainPolygon } from "utils/bounds"
+import { v4 as uuid } from 'uuid'
+import * as vec from 'utils/vec'
+import { RectangleShape, ShapeType } from 'types'
+import { registerShapeUtils } from './index'
+import { boundsCollidePolygon, boundsContainPolygon } from 'utils/bounds'
 import {
   getBoundsFromPoints,
   getRotatedCorners,
   translateBounds,
-} from "utils/utils"
+} from 'utils/utils'
 
 const rectangle = registerShapeUtils<RectangleShape>({
   boundsCache: new WeakMap([]),
@@ -17,42 +17,31 @@ const rectangle = registerShapeUtils<RectangleShape>({
       id: uuid(),
       type: ShapeType.Rectangle,
       isGenerated: false,
-      name: "Rectangle",
-      parentId: "page0",
+      name: 'Rectangle',
+      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       size: [1, 1],
       radius: 2,
       rotation: 0,
       style: {
-        fill: "#c6cacb",
-        stroke: "#000",
+        fill: '#c6cacb',
+        stroke: '#000',
       },
       ...props,
     }
   },
 
-  render({ id, size, radius, childIndex }) {
+  render({ id, size, radius, style }) {
     return (
       <g id={id}>
         <rect
           id={id}
-          width={size[0]}
-          height={size[1]}
           rx={radius}
           ry={radius}
+          width={Math.max(0, size[0] - Number(style.strokeWidth) / 2)}
+          height={Math.max(0, size[1] - Number(style.strokeWidth) / 2)}
         />
-        <text
-          y={4}
-          x={4}
-          fontSize={18}
-          fill="black"
-          stroke="none"
-          alignmentBaseline="text-before-edge"
-          pointerEvents="none"
-        >
-          {childIndex}
-        </text>
       </g>
     )
   },
@@ -113,7 +102,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
   },
 
   translateTo(shape, point) {
-    shape.point = point
+    shape.point = vec.toPrecision(point)
     return this
   },
 

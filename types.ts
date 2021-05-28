@@ -1,6 +1,6 @@
-import * as monaco from "monaco-editor/esm/vs/editor/editor.api"
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 
-import React from "react"
+import React from 'react'
 
 /* -------------------------------------------------- */
 /*                    Client State                    */
@@ -13,6 +13,10 @@ export interface Data {
     isDarkMode: boolean
     isCodeOpen: boolean
     isStyleOpen: boolean
+    nudgeDistanceSmall: number
+    nudgeDistanceLarge: number
+    isToolLocked: boolean
+    isPenLocked: boolean
   }
   currentStyle: ShapeStyles
   camera: {
@@ -39,21 +43,21 @@ export interface Data {
 
 export interface Page {
   id: string
-  type: "page"
+  type: 'page'
   childIndex: number
   name: string
   shapes: Record<string, Shape>
 }
 
 export enum ShapeType {
-  Dot = "dot",
-  Circle = "circle",
-  Ellipse = "ellipse",
-  Line = "line",
-  Ray = "ray",
-  Polyline = "polyline",
-  Rectangle = "rectangle",
-  Draw = "draw",
+  Dot = 'dot',
+  Circle = 'circle',
+  Ellipse = 'ellipse',
+  Line = 'line',
+  Ray = 'ray',
+  Polyline = 'polyline',
+  Rectangle = 'rectangle',
+  Draw = 'draw',
 }
 
 // Consider:
@@ -164,17 +168,17 @@ export interface PointerInfo {
 }
 
 export enum Edge {
-  Top = "top_edge",
-  Right = "right_edge",
-  Bottom = "bottom_edge",
-  Left = "left_edge",
+  Top = 'top_edge',
+  Right = 'right_edge',
+  Bottom = 'bottom_edge',
+  Left = 'left_edge',
 }
 
 export enum Corner {
-  TopLeft = "top_left_corner",
-  TopRight = "top_right_corner",
-  BottomRight = "bottom_right_corner",
-  BottomLeft = "bottom_left_corner",
+  TopLeft = 'top_left_corner',
+  TopRight = 'top_right_corner',
+  BottomRight = 'bottom_right_corner',
+  BottomLeft = 'bottom_left_corner',
 }
 
 export interface Bounds {
@@ -262,10 +266,10 @@ export type IMonaco = typeof monaco
 export type IMonacoEditor = monaco.editor.IStandaloneCodeEditor
 
 export enum ControlType {
-  Number = "number",
-  Vector = "vector",
-  Text = "text",
-  Select = "select",
+  Number = 'number',
+  Vector = 'vector',
+  Text = 'text',
+  Select = 'select',
 }
 
 export interface BaseCodeControl {
@@ -296,7 +300,7 @@ export interface TextCodeControl extends BaseCodeControl {
   format?: (value: string) => string
 }
 
-export interface SelectCodeControl<T extends string = "">
+export interface SelectCodeControl<T extends string = ''>
   extends BaseCodeControl {
   type: ControlType.Select
   value: T

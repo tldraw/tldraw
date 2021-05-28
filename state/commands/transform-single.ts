@@ -1,10 +1,10 @@
-import Command from "./command"
-import history from "../history"
-import { Data, Corner, Edge } from "types"
-import { getShapeUtils } from "lib/shape-utils"
-import { current } from "immer"
-import { TransformSingleSnapshot } from "state/sessions/transform-single-session"
-import { getPage } from "utils/utils"
+import Command from './command'
+import history from '../history'
+import { Data, Corner, Edge } from 'types'
+import { getShapeUtils } from 'lib/shape-utils'
+import { current } from 'immer'
+import { TransformSingleSnapshot } from 'state/sessions/transform-single-session'
+import { getPage } from 'utils/utils'
 
 export default function transformSingleCommand(
   data: Data,
@@ -14,13 +14,13 @@ export default function transformSingleCommand(
   scaleY: number,
   isCreating: boolean
 ) {
-  const shape = getPage(data, after.currentPageId).shapes[after.id]
+  const shape = current(getPage(data, after.currentPageId).shapes[after.id])
 
   history.execute(
     data,
     new Command({
-      name: "transform_single_shape",
-      category: "canvas",
+      name: 'transform_single_shape',
+      category: 'canvas',
       manualSelection: true,
       do(data) {
         const { id, type, initialShape, initialShapeBounds } = after

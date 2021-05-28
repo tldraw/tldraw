@@ -9,50 +9,50 @@ import {
   SpaceEvenlyVerticallyIcon,
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
-} from "@radix-ui/react-icons"
-import { IconButton } from "components/shared"
-import state from "state"
-import styled from "styles"
-import { AlignType, DistributeType, StretchType } from "types"
+} from '@radix-ui/react-icons'
+import { IconButton } from 'components/shared'
+import state from 'state'
+import styled from 'styles'
+import { AlignType, DistributeType, StretchType } from 'types'
 
 function alignTop() {
-  state.send("ALIGNED", { type: AlignType.Top })
+  state.send('ALIGNED', { type: AlignType.Top })
 }
 
 function alignCenterVertical() {
-  state.send("ALIGNED", { type: AlignType.CenterVertical })
+  state.send('ALIGNED', { type: AlignType.CenterVertical })
 }
 
 function alignBottom() {
-  state.send("ALIGNED", { type: AlignType.Bottom })
+  state.send('ALIGNED', { type: AlignType.Bottom })
 }
 
 function stretchVertically() {
-  state.send("STRETCHED", { type: StretchType.Vertical })
+  state.send('STRETCHED', { type: StretchType.Vertical })
 }
 
 function distributeVertically() {
-  state.send("DISTRIBUTED", { type: DistributeType.Vertical })
+  state.send('DISTRIBUTED', { type: DistributeType.Vertical })
 }
 
 function alignLeft() {
-  state.send("ALIGNED", { type: AlignType.Left })
+  state.send('ALIGNED', { type: AlignType.Left })
 }
 
 function alignCenterHorizontal() {
-  state.send("ALIGNED", { type: AlignType.CenterHorizontal })
+  state.send('ALIGNED', { type: AlignType.CenterHorizontal })
 }
 
 function alignRight() {
-  state.send("ALIGNED", { type: AlignType.Right })
+  state.send('ALIGNED', { type: AlignType.Right })
 }
 
 function stretchHorizontally() {
-  state.send("STRETCHED", { type: StretchType.Horizontal })
+  state.send('STRETCHED', { type: StretchType.Horizontal })
 }
 
 function distributeHorizontally() {
-  state.send("DISTRIBUTED", { type: DistributeType.Horizontal })
+  state.send('DISTRIBUTED', { type: DistributeType.Horizontal })
 }
 
 export default function AlignDistribute({
@@ -98,15 +98,15 @@ export default function AlignDistribute({
   )
 }
 
-const Container = styled("div", {
-  display: "grid",
+const Container = styled('div', {
+  display: 'grid',
   padding: 4,
-  gridTemplateColumns: "repeat(5, auto)",
+  gridTemplateColumns: 'repeat(5, auto)',
   [`& ${IconButton}`]: {
-    color: "$text",
+    color: '$text',
   },
   [`& ${IconButton} > svg`]: {
-    fill: "red",
-    stroke: "transparent",
+    fill: 'red',
+    stroke: 'transparent',
   },
 })

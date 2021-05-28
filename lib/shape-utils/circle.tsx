@@ -1,11 +1,11 @@
-import { v4 as uuid } from "uuid"
-import * as vec from "utils/vec"
-import { CircleShape, ShapeType } from "types"
-import { registerShapeUtils } from "./index"
-import { boundsContained } from "utils/bounds"
-import { intersectCircleBounds } from "utils/intersections"
-import { pointInCircle } from "utils/hitTests"
-import { translateBounds } from "utils/utils"
+import { v4 as uuid } from 'uuid'
+import * as vec from 'utils/vec'
+import { CircleShape, ShapeType } from 'types'
+import { registerShapeUtils } from './index'
+import { boundsContained } from 'utils/bounds'
+import { intersectCircleBounds } from 'utils/intersections'
+import { pointInCircle } from 'utils/hitTests'
+import { translateBounds } from 'utils/utils'
 
 const circle = registerShapeUtils<CircleShape>({
   boundsCache: new WeakMap([]),
@@ -15,22 +15,29 @@ const circle = registerShapeUtils<CircleShape>({
       id: uuid(),
       type: ShapeType.Circle,
       isGenerated: false,
-      name: "Circle",
-      parentId: "page0",
+      name: 'Circle',
+      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       rotation: 0,
       radius: 1,
       style: {
-        fill: "#c6cacb",
-        stroke: "#000",
+        fill: '#c6cacb',
+        stroke: '#000',
       },
       ...props,
     }
   },
 
-  render({ id, radius }) {
-    return <circle id={id} cx={radius} cy={radius} r={radius} />
+  render({ id, radius, style }) {
+    return (
+      <circle
+        id={id}
+        cx={radius}
+        cy={radius}
+        r={Math.max(0, radius - Number(style.strokeWidth) / 2)}
+      />
+    )
   },
 
   applyStyles(shape, style) {
@@ -92,7 +99,7 @@ const circle = registerShapeUtils<CircleShape>({
   },
 
   translateTo(shape, point) {
-    shape.point = point
+    shape.point = vec.toPrecision(point)
     return this
   },
 

@@ -1358,6 +1358,17 @@
   dependencies:
     "@babel/runtime" "^7.13.10"
 
+"@radix-ui/react-label@0.0.13":
+  version "0.0.13"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-label/-/react-label-0.0.13.tgz#b71930fa16a2cf859296317436cb88e31efb8ecf"
+  integrity sha512-csNElm8qA38pOHr772CXIvBXd/eCGaoAMImuLdawUxQNzwxQ4npd8lr/f9fi/4OLkgeNOVOqjsaVamiNmF/lIw==
+  dependencies:
+    "@babel/runtime" "^7.13.10"
+    "@radix-ui/react-compose-refs" "0.0.5"
+    "@radix-ui/react-id" "0.0.6"
+    "@radix-ui/react-polymorphic" "0.0.11"
+    "@radix-ui/react-primitive" "0.0.13"
+
 "@radix-ui/react-menu@0.0.18":
   version "0.0.18"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-menu/-/react-menu-0.0.18.tgz#b36f7657eb6757c623ffc688c48a4781ffd82351"
@@ -1430,6 +1441,24 @@
   dependencies:
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-polymorphic" "0.0.11"
+
+"@radix-ui/react-radio-group@^0.0.16":
+  version "0.0.16"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-radio-group/-/react-radio-group-0.0.16.tgz#10fc6e5c3102599cf422e9f6f8d2766088e602a1"
+  integrity sha512-vOtgflNWcauSul+EvnPCxATdmPw7fb1cuqBJX07yJdjbrw1Iv5v/+d79fNyIwPR+KrkhP+uCMIBfF0gvo6K7ZQ==
+  dependencies:
+    "@babel/runtime" "^7.13.10"
+    "@radix-ui/primitive" "0.0.5"
+    "@radix-ui/react-compose-refs" "0.0.5"
+    "@radix-ui/react-context" "0.0.5"
+    "@radix-ui/react-label" "0.0.13"
+    "@radix-ui/react-polymorphic" "0.0.11"
+    "@radix-ui/react-presence" "0.0.14"
+    "@radix-ui/react-primitive" "0.0.13"
+    "@radix-ui/react-roving-focus" "0.0.13"
+    "@radix-ui/react-slot" "0.0.10"
+    "@radix-ui/react-use-callback-ref" "0.0.5"
+    "@radix-ui/react-use-controllable-state" "0.0.6"
 
 "@radix-ui/react-roving-focus@0.0.13":
   version "0.0.13"

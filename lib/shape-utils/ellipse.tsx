@@ -1,16 +1,16 @@
-import { v4 as uuid } from "uuid"
-import * as vec from "utils/vec"
-import { EllipseShape, ShapeType } from "types"
-import { registerShapeUtils } from "./index"
-import { boundsContained, getRotatedEllipseBounds } from "utils/bounds"
-import { intersectEllipseBounds } from "utils/intersections"
-import { pointInEllipse } from "utils/hitTests"
+import { v4 as uuid } from 'uuid'
+import * as vec from 'utils/vec'
+import { EllipseShape, ShapeType } from 'types'
+import { registerShapeUtils } from './index'
+import { boundsContained, getRotatedEllipseBounds } from 'utils/bounds'
+import { intersectEllipseBounds } from 'utils/intersections'
+import { pointInEllipse } from 'utils/hitTests'
 import {
   getBoundsFromPoints,
   getRotatedCorners,
   rotateBounds,
   translateBounds,
-} from "utils/utils"
+} from 'utils/utils'
 
 const ellipse = registerShapeUtils<EllipseShape>({
   boundsCache: new WeakMap([]),
@@ -20,24 +20,30 @@ const ellipse = registerShapeUtils<EllipseShape>({
       id: uuid(),
       type: ShapeType.Ellipse,
       isGenerated: false,
-      name: "Ellipse",
-      parentId: "page0",
+      name: 'Ellipse',
+      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       radiusX: 1,
       radiusY: 1,
       rotation: 0,
       style: {
-        fill: "#c6cacb",
-        stroke: "#000",
+        fill: '#c6cacb',
+        stroke: '#000',
       },
       ...props,
     }
   },
 
-  render({ id, radiusX, radiusY }) {
+  render({ id, radiusX, radiusY, style }) {
     return (
-      <ellipse id={id} cx={radiusX} cy={radiusY} rx={radiusX} ry={radiusY} />
+      <ellipse
+        id={id}
+        cx={radiusX}
+        cy={radiusY}
+        rx={Math.max(0, radiusX - Number(style.strokeWidth) / 2)}
+        ry={Math.max(0, radiusY - Number(style.strokeWidth) / 2)}
+      />
     )
   },
 
@@ -110,7 +116,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
   },
 
   translateTo(shape, point) {
-    shape.point = point
+    shape.point = vec.toPrecision(point)
     return this
   },
 

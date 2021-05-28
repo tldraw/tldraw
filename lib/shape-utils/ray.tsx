@@ -1,11 +1,11 @@
-import { v4 as uuid } from "uuid"
-import * as vec from "utils/vec"
-import { RayShape, ShapeType } from "types"
-import { registerShapeUtils } from "./index"
-import { boundsContained } from "utils/bounds"
-import { intersectCircleBounds } from "utils/intersections"
-import { DotCircle } from "components/canvas/misc"
-import { translateBounds } from "utils/utils"
+import { v4 as uuid } from 'uuid'
+import * as vec from 'utils/vec'
+import { RayShape, ShapeType } from 'types'
+import { registerShapeUtils } from './index'
+import { boundsContained } from 'utils/bounds'
+import { intersectCircleBounds } from 'utils/intersections'
+import { DotCircle } from 'components/canvas/misc'
+import { translateBounds } from 'utils/utils'
 
 const ray = registerShapeUtils<RayShape>({
   boundsCache: new WeakMap([]),
@@ -15,15 +15,15 @@ const ray = registerShapeUtils<RayShape>({
       id: uuid(),
       type: ShapeType.Ray,
       isGenerated: false,
-      name: "Ray",
-      parentId: "page0",
+      name: 'Ray',
+      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       direction: [0, 1],
       rotation: 0,
       style: {
-        fill: "#c6cacb",
-        stroke: "#000",
+        fill: '#c6cacb',
+        stroke: '#000',
         strokeWidth: 1,
       },
       ...props,
@@ -88,7 +88,7 @@ const ray = registerShapeUtils<RayShape>({
   },
 
   translateTo(shape, point) {
-    shape.point = point
+    shape.point = vec.toPrecision(point)
     return this
   },
 

@@ -1,0 +1,40 @@
+import Command from './command'
+import history from '../history'
+import { Data } from 'types'
+import { getPage, getSelectedShapes } from 'utils/utils'
+import { getShapeUtils } from 'lib/shape-utils'
+import * as vec from 'utils/vec'
+
+export default function nudgeCommand(data: Data, delta: number[]) {
+  const { currentPageId } = data
+  const selectedShapes = getSelectedShapes(data)
+  const shapeBounds = Object.fromEntries(
+    selectedShapes.map(
+      (shape) => [shape.id, getShapeUtils(shape).getBounds(shape)] as const
+    )
+  )
+
+  history.execute(
+    data,
+    new Command({
+      name: 'set_direction',
+      category: 'canvas',
+      do(data) {
+        const { shapes } = getPage(data, currentPageId)
+
+        for (let id in shapeBounds) {
+          const shape = shapes[id]
+          getShapeUtils(shape).translateTo(shape, vec.add(shape.point, delta))
+        }
+      },
+      undo(data) {
+        const { shapes } = getPage(data, currentPageId)
+
+        for (let id in shapeBounds) {
+          const shape = shapes[id]
+          getShapeUtils(shape).translateTo(shape, vec.sub(shape.point, delta))
+        }
+      },
+    })
+  )
+}

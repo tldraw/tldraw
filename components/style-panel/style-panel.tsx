@@ -1,15 +1,17 @@
-import styled from "styles"
-import state, { useSelector } from "state"
-import * as Panel from "components/panel"
-import { useRef } from "react"
-import { IconButton } from "components/shared"
-import { Circle, Trash, X } from "react-feather"
-import { deepCompare, deepCompareArrays, getSelectedShapes } from "utils/utils"
-import { shades, fills, strokes } from "lib/colors"
+import styled from 'styles'
+import state, { useSelector } from 'state'
+import * as Panel from 'components/panel'
+import { useRef } from 'react'
+import { IconButton } from 'components/shared'
+import { Circle, Copy, Lock, Trash, Unlock, X } from 'react-feather'
+import { deepCompare, deepCompareArrays, getSelectedShapes } from 'utils/utils'
+import { shades, fills, strokes } from 'lib/colors'
 
-import ColorPicker from "./color-picker"
-import AlignDistribute from "./align-distribute"
-import { ShapeStyles } from "types"
+import ColorPicker from './color-picker'
+import AlignDistribute from './align-distribute'
+import { ShapeStyles } from 'types'
+import WidthPicker from './width-picker'
+import { CopyIcon } from '@radix-ui/react-icons'
 
 const fillColors = { ...shades, ...fills }
 const strokeColors = { ...shades, ...strokes }
@@ -23,7 +25,7 @@ export default function StylePanel() {
       {isOpen ? (
         <SelectedShapeStyles />
       ) : (
-        <IconButton onClick={() => state.send("TOGGLED_STYLE_PANEL_OPEN")}>
+        <IconButton onClick={() => state.send('TOGGLED_STYLE_PANEL_OPEN')}>
           <Circle />
         </IconButton>
       )}
@@ -72,17 +74,9 @@ function SelectedShapeStyles({}: {}) {
 
   return (
     <Panel.Layout>
-      <Panel.Header>
+      <Panel.Header side="right">
         <h3>Style</h3>
-        <Panel.ButtonsGroup>
-          <IconButton
-            disabled={!hasSelection}
-            onClick={() => state.send("DELETED")}
-          >
-            <Trash />
-          </IconButton>
-        </Panel.ButtonsGroup>
-        <IconButton onClick={() => state.send("TOGGLED_STYLE_PANEL_OPEN")}>
+        <IconButton onClick={() => state.send('TOGGLED_STYLE_PANEL_OPEN')}>
           <X />
         </IconButton>
       </Panel.Header>
@@ -91,18 +85,40 @@ function SelectedShapeStyles({}: {}) {
           label="Fill"
           color={shapesStyle.fill}
           colors={fillColors}
-          onChange={(color) => state.send("CHANGED_STYLE", { fill: color })}
+          onChange={(color) => state.send('CHANGED_STYLE', { fill: color })}
         />
         <ColorPicker
           label="Stroke"
           color={shapesStyle.stroke}
           colors={strokeColors}
-          onChange={(color) => state.send("CHANGED_STYLE", { stroke: color })}
+          onChange={(color) => state.send('CHANGED_STYLE', { stroke: color })}
         />
+        <Row>
+          <label htmlFor="width">Width</label>
+          <WidthPicker strokeWidth={Number(shapesStyle.strokeWidth)} />
+        </Row>
         <AlignDistribute
           hasTwoOrMore={selectedIds.length > 1}
           hasThreeOrMore={selectedIds.length > 2}
         />
+        <ButtonsRow>
+          <IconButton
+            disabled={!hasSelection}
+            onClick={() => state.send('DELETED')}
+          >
+            <Trash />
+          </IconButton>
+          <IconButton
+            disabled={!hasSelection}
+            onClick={() => state.send('DUPLICATED')}
+          >
+            <Copy />
+          </IconButton>
+
+          <IconButton>
+            <Unlock />
+          </IconButton>
+        </ButtonsRow>
       </Content>
     </Panel.Layout>
   )
@@ -112,8 +128,8 @@ const StylePanelRoot = styled(Panel.Root, {
   minWidth: 1,
   width: 184,
   maxWidth: 184,
-  overflow: "hidden",
-  position: "relative",
+  overflow: 'hidden',
+  position: 'relative',
 
   variants: {
     isOpen: {
@@ -128,4 +144,42 @@ const StylePanelRoot = styled(Panel.Root, {
 
 const Content = styled(Panel.Content, {
   padding: 8,
+})
+
+const Row = styled('div', {
+  position: 'relative',
+  display: 'flex',
+  width: '100%',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  outline: 'none',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '4px 2px 4px 12px',
+
+  '& label': {
+    fontFamily: '$ui',
+    fontSize: '$2',
+    fontWeight: '$1',
+    margin: 0,
+    padding: 0,
+  },
+
+  '& > svg': {
+    position: 'relative',
+  },
+})
+
+const ButtonsRow = styled('div', {
+  position: 'relative',
+  display: 'flex',
+  width: '100%',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  outline: 'none',
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+  padding: 4,
 })

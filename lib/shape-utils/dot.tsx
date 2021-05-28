@@ -1,11 +1,11 @@
-import { v4 as uuid } from "uuid"
-import * as vec from "utils/vec"
-import { DotShape, ShapeType } from "types"
-import { registerShapeUtils } from "./index"
-import { boundsContained } from "utils/bounds"
-import { intersectCircleBounds } from "utils/intersections"
-import { DotCircle } from "components/canvas/misc"
-import { translateBounds } from "utils/utils"
+import { v4 as uuid } from 'uuid'
+import * as vec from 'utils/vec'
+import { DotShape, ShapeType } from 'types'
+import { registerShapeUtils } from './index'
+import { boundsContained } from 'utils/bounds'
+import { intersectCircleBounds } from 'utils/intersections'
+import { DotCircle } from 'components/canvas/misc'
+import { translateBounds } from 'utils/utils'
 
 const dot = registerShapeUtils<DotShape>({
   boundsCache: new WeakMap([]),
@@ -15,14 +15,14 @@ const dot = registerShapeUtils<DotShape>({
       id: uuid(),
       type: ShapeType.Dot,
       isGenerated: false,
-      name: "Dot",
-      parentId: "page0",
+      name: 'Dot',
+      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       rotation: 0,
       style: {
-        fill: "#c6cacb",
-        strokeWidth: "0",
+        fill: '#c6cacb',
+        strokeWidth: '0',
       },
       ...props,
     }
@@ -79,7 +79,7 @@ const dot = registerShapeUtils<DotShape>({
   },
 
   translateTo(shape, point) {
-    shape.point = point
+    shape.point = vec.toPrecision(point)
     return this
   },
 
