@@ -1,19 +1,19 @@
-import { v4 as uuid } from "uuid"
-import * as vec from "utils/vec"
-import { DrawShape, ShapeType } from "types"
-import { registerShapeUtils } from "./index"
-import { intersectPolylineBounds } from "utils/intersections"
-import { boundsContainPolygon } from "utils/bounds"
-import getStroke from "perfect-freehand"
+import { v4 as uuid } from 'uuid'
+import * as vec from 'utils/vec'
+import { DrawShape, ShapeType } from 'types'
+import { registerShapeUtils } from './index'
+import { intersectPolylineBounds } from 'utils/intersections'
+import { boundsContainPolygon } from 'utils/bounds'
+import getStroke from 'perfect-freehand'
 import {
   getBoundsFromPoints,
   getSvgPathFromStroke,
   translateBounds,
-} from "utils/utils"
-import { DotCircle } from "components/canvas/misc"
-import { shades } from "lib/colors"
+} from 'utils/utils'
+import { DotCircle } from 'components/canvas/misc'
+import { shades } from 'lib/colors'
 
-const pathCache = new WeakMap<DrawShape, string>([])
+const pathCache = new WeakMap<number[][], string>([])
 
 const draw = registerShapeUtils<DrawShape>({
   boundsCache: new WeakMap([]),
@@ -23,8 +23,8 @@ const draw = registerShapeUtils<DrawShape>({
       id: uuid(),
       type: ShapeType.Draw,
       isGenerated: false,
-      name: "Draw",
-      parentId: "page0",
+      name: 'Draw',
+      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       points: [[0, 0]],
@@ -32,10 +32,10 @@ const draw = registerShapeUtils<DrawShape>({
       ...props,
       style: {
         strokeWidth: 2,
-        strokeLinecap: "round",
-        strokeLinejoin: "round",
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
         ...props.style,
-        stroke: "transparent",
+        stroke: 'transparent',
       },
     }
   },
@@ -44,19 +44,18 @@ const draw = registerShapeUtils<DrawShape>({
     const { id, point, points } = shape
 
     if (points.length < 2) {
-      return <DotCircle cx={point[0]} cy={point[1]} r={3} />
+      return <DotCircle id={id} cx={point[0]} cy={point[1]} r={3} />
     }
 
-    if (!pathCache.has(shape)) {
-      pathCache.set(shape, getSvgPathFromStroke(getStroke(points)))
+    if (!pathCache.has(points)) {
+      pathCache.set(points, getSvgPathFromStroke(getStroke(points)))
     }
 
-    return <path id={id} d={pathCache.get(shape)} />
+    return <path id={id} d={pathCache.get(points)} />
   },
 
   applyStyles(shape, style) {
     Object.assign(shape.style, style)
-    shape.style.fill = "transparent"
     return this
   },
 

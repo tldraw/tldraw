@@ -6,7 +6,7 @@
 export function clamp(n: number, min: number): number
 export function clamp(n: number, min: number, max: number): number
 export function clamp(n: number, min: number, max?: number): number {
-  return Math.max(min, typeof max !== "undefined" ? Math.min(n, max) : n)
+  return Math.max(min, typeof max !== 'undefined' ? Math.min(n, max) : n)
 }
 
 /**
@@ -476,4 +476,13 @@ export function distanceToLineSegment(
  */
 export function nudge(A: number[], B: number[], d: number) {
   return add(A, mul(uni(vec(A, B)), d))
+}
+
+/**
+ * Round a vector to a precision length.
+ * @param a
+ * @param n
+ */
+export function toPrecision(a: number[], n = 3) {
+  return [+a[0].toPrecision(n), +a[1].toPrecision(n)]
 }

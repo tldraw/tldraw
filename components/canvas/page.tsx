@@ -1,6 +1,6 @@
-import { useSelector } from "state"
-import { deepCompareArrays, getPage } from "utils/utils"
-import Shape from "./shape"
+import { useSelector } from 'state'
+import { deepCompareArrays, getPage } from 'utils/utils'
+import Shape from './shape'
 
 /* 
 On each state change, compare node ids of all shapes
@@ -15,10 +15,12 @@ export default function Page() {
       .map((shape) => shape.id)
   }, deepCompareArrays)
 
+  const isSelecting = useSelector((s) => s.isIn('selecting'))
+
   return (
     <>
       {currentPageShapeIds.map((shapeId) => (
-        <Shape key={shapeId} id={shapeId} />
+        <Shape key={shapeId} id={shapeId} isSelecting={isSelecting} />
       ))}
     </>
   )
