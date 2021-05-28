@@ -1,18 +1,18 @@
-import { Data, ShapeType } from "types"
-import shapeUtils from "lib/shape-utils"
-import { shades } from "lib/colors"
+import { Data, ShapeType } from 'types'
+import shapeUtils from 'lib/shape-utils'
+import { shades } from 'lib/colors'
 
-export const defaultDocument: Data["document"] = {
+export const defaultDocument: Data['document'] = {
   pages: {
     page0: {
-      id: "page0",
-      type: "page",
-      name: "Page 0",
+      id: 'page0',
+      type: 'page',
+      name: 'Page 0',
       childIndex: 0,
       shapes: {
         shape3: shapeUtils[ShapeType.Dot].create({
-          id: "shape3",
-          name: "Shape 3",
+          id: 'shape3',
+          name: 'Shape 3',
           childIndex: 3,
           point: [400, 500],
           style: {
@@ -22,8 +22,8 @@ export const defaultDocument: Data["document"] = {
           },
         }),
         shape0: shapeUtils[ShapeType.Circle].create({
-          id: "shape0",
-          name: "Shape 0",
+          id: 'shape0',
+          name: 'Shape 0',
           childIndex: 1,
           point: [100, 600],
           radius: 50,
@@ -34,8 +34,8 @@ export const defaultDocument: Data["document"] = {
           },
         }),
         shape5: shapeUtils[ShapeType.Ellipse].create({
-          id: "shape5",
-          name: "Shape 5",
+          id: 'shape5',
+          name: 'Shape 5',
           childIndex: 5,
           point: [200, 200],
           radiusX: 50,
@@ -47,8 +47,8 @@ export const defaultDocument: Data["document"] = {
           },
         }),
         shape7: shapeUtils[ShapeType.Ellipse].create({
-          id: "shape7",
-          name: "Shape 7",
+          id: 'shape7',
+          name: 'Shape 7',
           childIndex: 7,
           point: [100, 100],
           radiusX: 50,
@@ -60,8 +60,8 @@ export const defaultDocument: Data["document"] = {
           },
         }),
         shape6: shapeUtils[ShapeType.Line].create({
-          id: "shape6",
-          name: "Shape 6",
+          id: 'shape6',
+          name: 'Shape 6',
           childIndex: 1,
           point: [400, 400],
           direction: [0.2, 0.2],
@@ -72,8 +72,8 @@ export const defaultDocument: Data["document"] = {
           },
         }),
         rayShape: shapeUtils[ShapeType.Ray].create({
-          id: "rayShape",
-          name: "Ray",
+          id: 'rayShape',
+          name: 'Ray',
           childIndex: 3,
           point: [300, 100],
           direction: [0.5, 0.5],
@@ -84,8 +84,8 @@ export const defaultDocument: Data["document"] = {
           },
         }),
         shape2: shapeUtils[ShapeType.Polyline].create({
-          id: "shape2",
-          name: "Shape 2",
+          id: 'shape2',
+          name: 'Shape 2',
           childIndex: 2,
           point: [200, 600],
           points: [
@@ -95,13 +95,13 @@ export const defaultDocument: Data["document"] = {
           ],
           style: {
             stroke: shades.black,
-            fill: shades.transparent,
+            fill: shades.none,
             strokeWidth: 1,
           },
         }),
         shape1: shapeUtils[ShapeType.Rectangle].create({
-          id: "shape1",
-          name: "Shape 1",
+          id: 'shape1',
+          name: 'Shape 1',
           childIndex: 1,
           point: [400, 600],
           size: [200, 200],
@@ -116,8 +116,8 @@ export const defaultDocument: Data["document"] = {
   },
   code: {
     file0: {
-      id: "file0",
-      name: "index.ts",
+      id: 'file0',
+      name: 'index.ts',
       code: `
 new Dot({
   point: new Vector(0, 0),
