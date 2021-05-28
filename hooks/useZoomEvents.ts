@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react"
 import state from "state"
 import inputs from "state/inputs"
 import * as vec from "utils/vec"
+import { usePinch } from "react-use-gesture"
 
 /**
  * Capture zoom gestures (pinches, wheels and pans) and send to the state.
@@ -65,5 +66,36 @@ export default function useZoomEvents(
     }
   }, [ref])
 
-  return {}
+  const rPinchDa = useRef<number[] | undefined>(undefined)
+  const rPinchAngle = useRef<number>(undefined)
+  const rPinchPoint = useRef<number[] | undefined>(undefined)
+
+  const bind = usePinch(({ pinching, da, origin }) => {
+    if (!pinching) {
+      state.send("STOPPED_PINCHING")
+      rPinchDa.current = undefined
+      rPinchPoint.current = undefined
+      return
+    }
+
+    if (rPinchPoint.current === undefined) {
+      state.send("STARTED_PINCHING")
+      rPinchDa.current = da
+      rPinchPoint.current = origin
+    }
+
+    const [distanceDelta, angleDelta] = vec.sub(rPinchDa.current, da)
+
+    state.send("PINCHED", {
+      delta: vec.sub(rPinchPoint.current, origin),
+      point: origin,
+      distanceDelta,
+      angleDelta,
+    })
+
+    rPinchDa.current = da
+    rPinchPoint.current = origin
+  })
+
+  return { ...bind() }
 }

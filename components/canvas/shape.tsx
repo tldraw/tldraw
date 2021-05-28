@@ -6,13 +6,13 @@ import { getShapeUtils } from "lib/shape-utils"
 import { getPage } from "utils/utils"
 
 function Shape({ id }: { id: string }) {
-  const rGroup = useRef<SVGGElement>(null)
-
   const isHovered = useSelector((state) => state.data.hoveredId === id)
 
   const isSelected = useSelector((state) => state.values.selectedIds.has(id))
 
   const shape = useSelector(({ data }) => getPage(data).shapes[id])
+
+  const rGroup = useRef<SVGGElement>(null)
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -72,9 +72,9 @@ function Shape({ id }: { id: string }) {
       onPointerMove={handlePointerMove}
     >
       <defs>{getShapeUtils(shape).render(shape)}</defs>
-      <HoverIndicator as="use" xlinkHref={"#" + id} />
-      <MainShape as="use" xlinkHref={"#" + id} {...shape.style} />
-      <Indicator as="use" xlinkHref={"#" + id} />
+      <HoverIndicator as="use" href={"#" + id} />
+      <MainShape as="use" href={"#" + id} {...shape.style} />
+      <Indicator as="use" href={"#" + id} />
     </StyledGroup>
   )
 }
