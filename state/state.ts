@@ -258,6 +258,8 @@ const state = createState({
                   do: "createShape",
                   to: "draw.editing",
                 },
+                UNDO: { do: "undo" },
+                REDO: { do: "redo" },
               },
             },
             editing: {

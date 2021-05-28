@@ -978,11 +978,18 @@ export function getBoundsFromPoints(points: number[][]): Bounds {
   let maxX = -Infinity
   let maxY = -Infinity
 
-  for (let [x, y] of points) {
-    minX = Math.min(x, minX)
-    minY = Math.min(y, minY)
-    maxX = Math.max(x, maxX)
-    maxY = Math.max(y, maxY)
+  if (points.length === 0) {
+    minX = 0
+    minY = 0
+    maxX = 1
+    maxY = 1
+  } else {
+    for (let [x, y] of points) {
+      minX = Math.min(x, minX)
+      minY = Math.min(y, minY)
+      maxX = Math.max(x, maxX)
+      maxY = Math.max(y, maxY)
+    }
   }
 
   return {
