@@ -9,16 +9,16 @@ interface Core {
 interface Instance extends Props, Core {}
 
 const defaults: Props = {
-  name: "Spot",
+  name: 'Spot',
 }
 
 const core: Core = {
-  id: "0",
+  id: '0',
 }
 
 class ClassInstance<T extends object = {}> implements Instance {
-  id = "0"
-  name = "Spot"
+  id = '0'
+  name = 'Spot'
 
   constructor(
     props: Partial<Props> &
@@ -51,7 +51,7 @@ function getInstance<T extends object = {}>(
 }
 
 const instance = getInstance({
-  name: "Steve",
+  name: 'Steve',
   age: 93,
   wag(this: Instance) {
     return this.name
@@ -76,29 +76,29 @@ const getAnimal = <T extends object>(
 ): Animal & T => {
   return {
     // Defaults
-    name: "Animal",
+    name: 'Animal',
     greet(name) {
-      return "Hey " + name
+      return 'Hey ' + name
     },
     // Overrides
     ...props,
     // Core
-    id: "hi",
+    id: 'hi',
     sleep() {},
   }
 }
 
 const dog = getAnimal({
-  name: "doggo",
+  name: 'doggo',
   greet(name) {
-    return "Woof " + this.name
+    return 'Woof ' + this.name
   },
   wag() {
-    return "wagging..."
+    return 'wagging...'
   },
 })
 
-dog.greet("steve")
+dog.greet('steve')
 dog.wag()
 dog.sleep()
 
@@ -111,5 +111,5 @@ export default shapeTest
 type Greet = (name: string) => string
 
 const greet: Greet = (name: string | number) => {
-  return "hello " + name
+  return 'hello ' + name
 }

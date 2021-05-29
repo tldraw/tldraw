@@ -26,63 +26,6 @@ export default function Toolbar() {
         <Button>
           <Menu />
         </Button>
-        <Button onClick={() => state.send('TOGGLED_TOOL_LOCK')}>
-          {isToolLocked ? <Lock /> : <Unlock />}
-        </Button>
-        <Button
-          isSelected={activeTool === 'select'}
-          onClick={() => state.send('SELECTED_SELECT_TOOL')}
-        >
-          Select
-        </Button>
-        <Button
-          isSelected={activeTool === 'draw'}
-          onClick={() => state.send('SELECTED_DRAW_TOOL')}
-        >
-          Draw
-        </Button>
-        <Button
-          isSelected={activeTool === 'dot'}
-          onClick={() => state.send('SELECTED_DOT_TOOL')}
-        >
-          Dot
-        </Button>
-        <Button
-          isSelected={activeTool === 'circle'}
-          onClick={() => state.send('SELECTED_CIRCLE_TOOL')}
-        >
-          Circle
-        </Button>
-        <Button
-          isSelected={activeTool === 'ellipse'}
-          onClick={() => state.send('SELECTED_ELLIPSE_TOOL')}
-        >
-          Ellipse
-        </Button>
-        <Button
-          isSelected={activeTool === 'ray'}
-          onClick={() => state.send('SELECTED_RAY_TOOL')}
-        >
-          Ray
-        </Button>
-        <Button
-          isSelected={activeTool === 'line'}
-          onClick={() => state.send('SELECTED_LINE_TOOL')}
-        >
-          Line
-        </Button>
-        <Button
-          isSelected={activeTool === 'polyline'}
-          onClick={() => state.send('SELECTED_POLYLINE_TOOL')}
-        >
-          Polyline
-        </Button>
-        <Button
-          isSelected={activeTool === 'rectangle'}
-          onClick={() => state.send('SELECTED_RECTANGLE_TOOL')}
-        >
-          Rectangle
-        </Button>
         <Button onClick={() => state.send('RESET_CAMERA')}>Reset Camera</Button>
       </Section>
       <Section>

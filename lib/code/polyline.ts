@@ -1,7 +1,7 @@
-import CodeShape from "./index"
-import { v4 as uuid } from "uuid"
-import { PolylineShape, ShapeType } from "types"
-import { vectorToPoint } from "utils/utils"
+import CodeShape from './index'
+import { v4 as uuid } from 'uuid'
+import { PolylineShape, ShapeType } from 'types'
+import { vectorToPoint } from 'utils/utils'
 
 export default class Polyline extends CodeShape<PolylineShape> {
   constructor(props = {} as Partial<PolylineShape>) {
@@ -12,15 +12,18 @@ export default class Polyline extends CodeShape<PolylineShape> {
       id: uuid(),
       type: ShapeType.Polyline,
       isGenerated: true,
-      name: "Polyline",
-      parentId: "page0",
+      name: 'Polyline',
+      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       points: [[0, 0]],
       rotation: 0,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
       style: {
-        fill: "none",
-        stroke: "#000",
+        fill: 'none',
+        stroke: '#000',
         strokeWidth: 1,
       },
       ...props,

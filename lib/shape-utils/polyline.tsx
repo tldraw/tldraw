@@ -20,6 +20,9 @@ const polyline = registerShapeUtils<PolylineShape>({
       point: [0, 0],
       points: [[0, 0]],
       rotation: 0,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
       style: {
         strokeWidth: 2,
         strokeLinecap: 'round',
@@ -127,13 +130,8 @@ const polyline = registerShapeUtils<PolylineShape>({
     return this
   },
 
-  setParent(shape, parentId) {
-    shape.parentId = parentId
-    return this
-  },
-
-  setChildIndex(shape, childIndex) {
-    shape.childIndex = childIndex
+  setProperty(shape, prop, value) {
+    shape[prop] = value
     return this
   },
 

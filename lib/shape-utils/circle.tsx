@@ -21,6 +21,9 @@ const circle = registerShapeUtils<CircleShape>({
       point: [0, 0],
       rotation: 0,
       radius: 1,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
       style: {
         fill: '#c6cacb',
         stroke: '#000',
@@ -125,13 +128,8 @@ const circle = registerShapeUtils<CircleShape>({
     return this
   },
 
-  setParent(shape, parentId) {
-    shape.parentId = parentId
-    return this
-  },
-
-  setChildIndex(shape, childIndex) {
-    shape.childIndex = childIndex
+  setProperty(shape, prop, value) {
+    shape[prop] = value
     return this
   },
 

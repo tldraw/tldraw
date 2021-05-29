@@ -28,6 +28,9 @@ const draw = registerShapeUtils<DrawShape>({
       point: [0, 0],
       points: [[0, 0]],
       rotation: 0,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
       ...props,
       style: {
         strokeWidth: 2,
@@ -169,25 +172,8 @@ const draw = registerShapeUtils<DrawShape>({
     return this
   },
 
-  setParent(shape, parentId) {
-    shape.parentId = parentId
-    return this
-  },
-
-  setChildIndex(shape, childIndex) {
-    shape.childIndex = childIndex
-    return this
-  },
-
-  setPoints(shape, points) {
-    // const bounds = getBoundsFromPoints(points)
-    // const corner = [bounds.minX, bounds.minY]
-    // const nudged = points.map((point) => vec.sub(point, corner))
-    // this.boundsCache.set(shape, translategetBoundsFromPoints(nudged))
-    // shape.point = vec.add(shape.point, corner)
-
-    shape.points = points
-
+  setProperty(shape, prop, value) {
+    shape[prop] = value
     return this
   },
 

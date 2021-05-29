@@ -1,7 +1,7 @@
-import CodeShape from "./index"
-import { v4 as uuid } from "uuid"
-import { RayShape, ShapeType } from "types"
-import { vectorToPoint } from "utils/utils"
+import CodeShape from './index'
+import { v4 as uuid } from 'uuid'
+import { RayShape, ShapeType } from 'types'
+import { vectorToPoint } from 'utils/utils'
 
 export default class Ray extends CodeShape<RayShape> {
   constructor(props = {} as Partial<RayShape>) {
@@ -12,15 +12,18 @@ export default class Ray extends CodeShape<RayShape> {
       id: uuid(),
       type: ShapeType.Ray,
       isGenerated: true,
-      name: "Ray",
-      parentId: "page0",
+      name: 'Ray',
+      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       direction: [0, 1],
       rotation: 0,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
       style: {
-        fill: "#c6cacb",
-        stroke: "#000",
+        fill: '#c6cacb',
+        stroke: '#000',
         strokeWidth: 1,
       },
       ...props,

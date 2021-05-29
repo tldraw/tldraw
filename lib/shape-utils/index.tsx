@@ -8,15 +8,16 @@ import {
   Edge,
   ShapeByType,
   ShapeStyles,
-} from "types"
-import circle from "./circle"
-import dot from "./dot"
-import polyline from "./polyline"
-import rectangle from "./rectangle"
-import ellipse from "./ellipse"
-import line from "./line"
-import ray from "./ray"
-import draw from "./draw"
+  PropsOfType,
+} from 'types'
+import circle from './circle'
+import dot from './dot'
+import polyline from './polyline'
+import rectangle from './rectangle'
+import ellipse from './ellipse'
+import line from './line'
+import ray from './ray'
+import draw from './draw'
 
 /*
 Shape Utiliies
@@ -82,21 +83,11 @@ export interface ShapeUtility<K extends Readonly<Shape>> {
     }
   ): ShapeUtility<K>
 
-  // Move a shape to a new parent.
-  setParent(this: ShapeUtility<K>, shape: K, parentId: string): ShapeUtility<K>
-
-  // Change the child index of a shape
-  setChildIndex(
+  setProperty<P extends keyof K>(
     this: ShapeUtility<K>,
     shape: K,
-    childIndex: number
-  ): ShapeUtility<K>
-
-  // Add a point
-  setPoints?(
-    this: ShapeUtility<K>,
-    shape: K,
-    points: number[][]
+    prop: P,
+    value: K[P]
   ): ShapeUtility<K>
 
   // Render a shape to JSX.
@@ -151,7 +142,7 @@ export function registerShapeUtils<T extends Shape>(
 }
 
 export function createShape<T extends Shape>(
-  type: T["type"],
+  type: T['type'],
   props: Partial<T>
 ) {
   return shapeUtilityMap[type].create(props) as T

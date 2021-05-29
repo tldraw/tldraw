@@ -24,6 +24,9 @@ const rectangle = registerShapeUtils<RectangleShape>({
       size: [1, 1],
       radius: 2,
       rotation: 0,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
       style: {
         fill: '#c6cacb',
         stroke: '#000',
@@ -140,13 +143,8 @@ const rectangle = registerShapeUtils<RectangleShape>({
     return this
   },
 
-  setParent(shape, parentId) {
-    shape.parentId = parentId
-    return this
-  },
-
-  setChildIndex(shape, childIndex) {
-    shape.childIndex = childIndex
+  setProperty(shape, prop, value) {
+    shape[prop] = value
     return this
   },
 

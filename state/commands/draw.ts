@@ -1,24 +1,20 @@
-import Command from "./command"
-import history from "../history"
-import { Data } from "types"
-import { getPage } from "utils/utils"
-import { getShapeUtils } from "lib/shape-utils"
-import { current } from "immer"
+import Command from './command'
+import history from '../history'
+import { Data, DrawShape } from 'types'
+import { getPage } from 'utils/utils'
+import { getShapeUtils } from 'lib/shape-utils'
+import { current } from 'immer'
 
-export default function drawCommand(
-  data: Data,
-  id: string,
-  before: number[][],
-  after: number[][]
-) {
-  const restoreShape = current(getPage(data).shapes[id])
-  getShapeUtils(restoreShape).setPoints!(restoreShape, after)
+export default function drawCommand(data: Data, id: string, after: number[][]) {
+  const restoreShape = current(getPage(data)).shapes[id] as DrawShape
+
+  getShapeUtils(restoreShape).setProperty!(restoreShape, 'points', after)
 
   history.execute(
     data,
     new Command({
-      name: "set_points",
-      category: "canvas",
+      name: 'set_points',
+      category: 'canvas',
       manualSelection: true,
       do(data, initial) {
         if (!initial) {

@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import styled from "styles"
-import { useStateDesigner } from "@state-designer/react"
-import React, { useEffect, useRef } from "react"
-import { motion } from "framer-motion"
-import state, { useSelector } from "state"
-import { CodeFile } from "types"
-import CodeDocs from "./code-docs"
-import CodeEditor from "./code-editor"
-import { generateFromCode } from "lib/code/generate"
-import * as Panel from "../panel"
-import { IconButton } from "../shared"
+import styled from 'styles'
+import { useStateDesigner } from '@state-designer/react'
+import React, { useEffect, useRef } from 'react'
+import { motion } from 'framer-motion'
+import state, { useSelector } from 'state'
+import { CodeFile } from 'types'
+import CodeDocs from './code-docs'
+import CodeEditor from './code-editor'
+import { generateFromCode } from 'lib/code/generate'
+import * as Panel from '../panel'
+import { IconButton } from '../shared'
 import {
   X,
   Code,
@@ -17,10 +17,10 @@ import {
   PlayCircle,
   ChevronUp,
   ChevronDown,
-} from "react-feather"
+} from 'react-feather'
 
 const getErrorLineAndColumn = (e: any) => {
-  if ("line" in e) {
+  if ('line' in e) {
     return { line: Number(e.line), column: e.column }
   }
 
@@ -46,23 +46,23 @@ export default function CodePanel() {
       error: null as { message: string; line: number; column: number } | null,
     },
     on: {
-      MOUNTED: "setCode",
-      CHANGED_FILE: "loadFile",
+      MOUNTED: 'setCode',
+      CHANGED_FILE: 'loadFile',
     },
-    initial: "editingCode",
+    initial: 'editingCode',
     states: {
       editingCode: {
         on: {
-          RAN_CODE: ["saveCode", "runCode"],
-          SAVED_CODE: ["saveCode", "runCode"],
-          CHANGED_CODE: { secretlyDo: "setCode" },
-          CLEARED_ERROR: { if: "hasError", do: "clearError" },
-          TOGGLED_DOCS: { to: "viewingDocs" },
+          RAN_CODE: ['saveCode', 'runCode'],
+          SAVED_CODE: ['saveCode', 'runCode'],
+          CHANGED_CODE: { secretlyDo: 'setCode' },
+          CLEARED_ERROR: { if: 'hasError', do: 'clearError' },
+          TOGGLED_DOCS: { to: 'viewingDocs' },
         },
       },
       viewingDocs: {
         on: {
-          TOGGLED_DOCS: { to: "editingCode" },
+          TOGGLED_DOCS: { to: 'editingCode' },
         },
       },
     },
@@ -83,7 +83,7 @@ export default function CodePanel() {
 
         try {
           const { shapes, controls } = generateFromCode(data.code)
-          state.send("GENERATED_FROM_CODE", { shapes, controls })
+          state.send('GENERATED_FROM_CODE', { shapes, controls })
         } catch (e) {
           console.error(e)
           error = { message: e.message, ...getErrorLineAndColumn(e) }
@@ -93,7 +93,7 @@ export default function CodePanel() {
       },
       saveCode(data) {
         const { code } = data
-        state.send("SAVED_CODE", { code })
+        state.send('SAVED_CODE', { code })
       },
       clearError(data) {
         data.error = null
@@ -102,13 +102,13 @@ export default function CodePanel() {
   })
 
   useEffect(() => {
-    local.send("CHANGED_FILE", { file })
+    local.send('CHANGED_FILE', { file })
   }, [file])
 
   useEffect(() => {
-    local.send("MOUNTED", { code: state.data.document.code[fileId].code })
+    local.send('MOUNTED', { code: state.data.document.code[fileId].code })
     return () => {
-      state.send("CHANGED_CODE", { fileId, code: local.data.code })
+      state.send('CHANGED_CODE', { fileId, code: local.data.code })
     }
   }, [])
 
@@ -118,32 +118,32 @@ export default function CodePanel() {
     <Panel.Root data-bp-desktop ref={rContainer} isOpen={isOpen}>
       {isOpen ? (
         <Panel.Layout>
-          <Panel.Header>
-            <IconButton onClick={() => state.send("TOGGLED_CODE_PANEL_OPEN")}>
+          <Panel.Header side="left">
+            <IconButton onClick={() => state.send('TOGGLED_CODE_PANEL_OPEN')}>
               <X />
             </IconButton>
             <h3>Code</h3>
             <ButtonsGroup>
               <FontSizeButtons>
                 <IconButton
-                  disabled={!local.isIn("editingCode")}
-                  onClick={() => state.send("INCREASED_CODE_FONT_SIZE")}
+                  disabled={!local.isIn('editingCode')}
+                  onClick={() => state.send('INCREASED_CODE_FONT_SIZE')}
                 >
                   <ChevronUp />
                 </IconButton>
                 <IconButton
-                  disabled={!local.isIn("editingCode")}
-                  onClick={() => state.send("DECREASED_CODE_FONT_SIZE")}
+                  disabled={!local.isIn('editingCode')}
+                  onClick={() => state.send('DECREASED_CODE_FONT_SIZE')}
                 >
                   <ChevronDown />
                 </IconButton>
               </FontSizeButtons>
-              <IconButton onClick={() => local.send("TOGGLED_DOCS")}>
+              <IconButton onClick={() => local.send('TOGGLED_DOCS')}>
                 <Info />
               </IconButton>
               <IconButton
-                disabled={!local.isIn("editingCode")}
-                onClick={() => local.send("SAVED_CODE")}
+                disabled={!local.isIn('editingCode')}
+                onClick={() => local.send('SAVED_CODE')}
               >
                 <PlayCircle />
               </IconButton>
@@ -155,11 +155,11 @@ export default function CodePanel() {
               readOnly={isReadOnly}
               value={file.code}
               error={error}
-              onChange={(code) => local.send("CHANGED_CODE", { code })}
-              onSave={() => local.send("SAVED_CODE")}
-              onKey={() => local.send("CLEARED_ERROR")}
+              onChange={(code) => local.send('CHANGED_CODE', { code })}
+              onSave={() => local.send('SAVED_CODE')}
+              onKey={() => local.send('CLEARED_ERROR')}
             />
-            <CodeDocs isHidden={!local.isIn("viewingDocs")} />
+            <CodeDocs isHidden={!local.isIn('viewingDocs')} />
           </Panel.Content>
           <Panel.Footer>
             {error &&
@@ -169,7 +169,7 @@ export default function CodePanel() {
           </Panel.Footer>
         </Panel.Layout>
       ) : (
-        <IconButton onClick={() => state.send("TOGGLED_CODE_PANEL_OPEN")}>
+        <IconButton onClick={() => state.send('TOGGLED_CODE_PANEL_OPEN')}>
           <Code />
         </IconButton>
       )}
@@ -177,28 +177,28 @@ export default function CodePanel() {
   )
 }
 
-const ButtonsGroup = styled("div", {
-  gridRow: "1",
-  gridColumn: "3",
-  display: "flex",
+const ButtonsGroup = styled('div', {
+  gridRow: '1',
+  gridColumn: '3',
+  display: 'flex',
 })
 
-const FontSizeButtons = styled("div", {
+const FontSizeButtons = styled('div', {
   paddingRight: 4,
-  display: "flex",
-  flexDirection: "column",
+  display: 'flex',
+  flexDirection: 'column',
 
-  "& > button": {
-    height: "50%",
-    "&:nth-of-type(1)": {
-      alignItems: "flex-end",
+  '& > button': {
+    height: '50%',
+    '&:nth-of-type(1)': {
+      alignItems: 'flex-end',
     },
 
-    "&:nth-of-type(2)": {
-      alignItems: "flex-start",
+    '&:nth-of-type(2)': {
+      alignItems: 'flex-start',
     },
 
-    "& svg": {
+    '& svg': {
       height: 12,
     },
   },

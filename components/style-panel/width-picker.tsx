@@ -1,6 +1,4 @@
-import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import * as RadioGroup from '@radix-ui/react-radio-group'
-import { IconButton } from 'components/shared'
 import { ChangeEvent } from 'react'
 import { Circle } from 'react-feather'
 import state from 'state'
@@ -26,7 +24,7 @@ export default function WidthPicker({
         <Circle size={12} />
       </RadioItem>
       <RadioItem value="8" isActive={strokeWidth === 8}>
-        <Circle size={18} />
+        <Circle size={22} />
       </RadioItem>
     </Group>
   )

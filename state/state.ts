@@ -75,6 +75,12 @@ const state = createState({
     PANNED_CAMERA: {
       do: 'panCamera',
     },
+    TOGGLED_SHAPE_LOCK: { if: 'hasSelection', do: 'lockSelection' },
+    TOGGLED_SHAPE_HIDE: { if: 'hasSelection', do: 'hideSelection' },
+    TOGGLED_SHAPE_ASPECT_LOCK: {
+      if: 'hasSelection',
+      do: 'aspectLockSelection',
+    },
     SELECTED_SELECT_TOOL: { to: 'selecting' },
     SELECTED_DRAW_TOOL: { unless: 'isReadOnly', to: 'draw' },
     SELECTED_DOT_TOOL: { unless: 'isReadOnly', to: 'dot' },
@@ -638,7 +644,7 @@ const state = createState({
         ? siblings[siblings.length - 1].childIndex + 1
         : 1
 
-      getShapeUtils(shape).setChildIndex(shape, childIndex)
+      getShapeUtils(shape).setProperty(shape, 'childIndex', childIndex)
 
       getPage(data).shapes[shape.id] = shape
 
@@ -833,6 +839,15 @@ const state = createState({
     },
     duplicateSelection(data) {
       commands.duplicate(data)
+    },
+    lockSelection(data) {
+      commands.toggle(data, 'isLocked')
+    },
+    hideSelection(data) {
+      commands.toggle(data, 'isHidden')
+    },
+    aspectLockSelection(data) {
+      commands.toggle(data, 'isAspectRatioLocked')
     },
 
     /* --------------------- Camera --------------------- */

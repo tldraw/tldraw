@@ -78,6 +78,9 @@ export interface BaseShape {
   point: number[]
   rotation: number
   style: ShapeStyles
+  isLocked: boolean
+  isHidden: boolean
+  isAspectRatioLocked: boolean
 }
 
 export interface DotShape extends BaseShape {
@@ -313,3 +316,7 @@ export type CodeControl =
   | VectorCodeControl
   | TextCodeControl
   | SelectCodeControl
+
+export type PropsOfType<T extends object, K> = {
+  [K in keyof T]: T[K] extends boolean ? K : never
+}[keyof T]

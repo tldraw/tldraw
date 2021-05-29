@@ -1,7 +1,7 @@
-import CodeShape from "./index"
-import { v4 as uuid } from "uuid"
-import { LineShape, ShapeType } from "types"
-import { vectorToPoint } from "utils/utils"
+import CodeShape from './index'
+import { v4 as uuid } from 'uuid'
+import { LineShape, ShapeType } from 'types'
+import { vectorToPoint } from 'utils/utils'
 
 export default class Line extends CodeShape<LineShape> {
   constructor(props = {} as Partial<LineShape>) {
@@ -12,15 +12,18 @@ export default class Line extends CodeShape<LineShape> {
       id: uuid(),
       type: ShapeType.Line,
       isGenerated: true,
-      name: "Line",
-      parentId: "page0",
+      name: 'Line',
+      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       direction: [-0.5, 0.5],
       rotation: 0,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
       style: {
-        fill: "#c6cacb",
-        stroke: "#000",
+        fill: '#c6cacb',
+        stroke: '#000',
         strokeWidth: 1,
       },
       ...props,

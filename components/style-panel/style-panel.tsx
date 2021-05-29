@@ -4,14 +4,29 @@ import * as Panel from 'components/panel'
 import { useRef } from 'react'
 import { IconButton } from 'components/shared'
 import { Circle, Copy, Lock, Trash, Unlock, X } from 'react-feather'
-import { deepCompare, deepCompareArrays, getSelectedShapes } from 'utils/utils'
+import {
+  deepCompare,
+  deepCompareArrays,
+  getPage,
+  getSelectedShapes,
+} from 'utils/utils'
 import { shades, fills, strokes } from 'lib/colors'
 
 import ColorPicker from './color-picker'
 import AlignDistribute from './align-distribute'
 import { ShapeStyles } from 'types'
 import WidthPicker from './width-picker'
-import { CopyIcon } from '@radix-ui/react-icons'
+import {
+  AspectRatioIcon,
+  BoxIcon,
+  CopyIcon,
+  EyeClosedIcon,
+  EyeOpenIcon,
+  LockClosedIcon,
+  LockOpen1Icon,
+  RotateCounterClockwiseIcon,
+  TrashIcon,
+} from '@radix-ui/react-icons'
 
 const fillColors = { ...shades, ...fills }
 const strokeColors = { ...shades, ...strokes }
@@ -43,31 +58,47 @@ function SelectedShapeStyles({}: {}) {
     deepCompareArrays
   )
 
-  const shapesStyle = useSelector((s) => {
-    const { currentStyle } = s.data
-    const shapes = getSelectedShapes(s.data)
+  const isAllLocked = useSelector((s) => {
+    const page = getPage(s.data)
+    return selectedIds.every((id) => page.shapes[id].isLocked)
+  })
 
-    if (shapes.length === 0) {
+  const isAllAspectLocked = useSelector((s) => {
+    const page = getPage(s.data)
+    return selectedIds.every((id) => page.shapes[id].isAspectRatioLocked)
+  })
+
+  const isAllHidden = useSelector((s) => {
+    const page = getPage(s.data)
+    return selectedIds.every((id) => page.shapes[id].isHidden)
+  })
+
+  const commonStyle = useSelector((s) => {
+    const { currentStyle } = s.data
+
+    if (selectedIds.length === 0) {
       return currentStyle
     }
+    const page = getPage(s.data)
+    const shapeStyles = selectedIds.map((id) => page.shapes[id].style)
 
-    const style: Partial<ShapeStyles> = {}
+    const commonStyle: Partial<ShapeStyles> = {}
     const overrides = new Set<string>([])
 
-    for (const shape of shapes) {
+    for (const shapeStyle of shapeStyles) {
       for (let key in currentStyle) {
         if (overrides.has(key)) continue
-        if (style[key] === undefined) {
-          style[key] = shape.style[key]
+        if (commonStyle[key] === undefined) {
+          commonStyle[key] = shapeStyle[key]
         } else {
-          if (style[key] === shape.style[key]) continue
-          style[key] = currentStyle[key]
+          if (commonStyle[key] === shapeStyle[key]) continue
+          commonStyle[key] = currentStyle[key]
           overrides.add(key)
         }
       }
     }
 
-    return style
+    return commonStyle
   }, deepCompare)
 
   const hasSelection = selectedIds.length > 0
@@ -83,19 +114,19 @@ function SelectedShapeStyles({}: {}) {
       <Content>
         <ColorPicker
           label="Fill"
-          color={shapesStyle.fill}
+          color={commonStyle.fill}
           colors={fillColors}
           onChange={(color) => state.send('CHANGED_STYLE', { fill: color })}
         />
         <ColorPicker
           label="Stroke"
-          color={shapesStyle.stroke}
+          color={commonStyle.stroke}
           colors={strokeColors}
           onChange={(color) => state.send('CHANGED_STYLE', { stroke: color })}
         />
         <Row>
           <label htmlFor="width">Width</label>
-          <WidthPicker strokeWidth={Number(shapesStyle.strokeWidth)} />
+          <WidthPicker strokeWidth={Number(commonStyle.strokeWidth)} />
         </Row>
         <AlignDistribute
           hasTwoOrMore={selectedIds.length > 1}
@@ -104,19 +135,39 @@ function SelectedShapeStyles({}: {}) {
         <ButtonsRow>
           <IconButton
             disabled={!hasSelection}
-            onClick={() => state.send('DELETED')}
+            onClick={() => state.send('DUPLICATED')}
           >
-            <Trash />
+            <CopyIcon />
           </IconButton>
           <IconButton
             disabled={!hasSelection}
-            onClick={() => state.send('DUPLICATED')}
+            onClick={() => state.send('ROTATED_CCW')}
           >
-            <Copy />
+            <RotateCounterClockwiseIcon />
           </IconButton>
-
-          <IconButton>
-            <Unlock />
+          <IconButton
+            disabled={!hasSelection}
+            onClick={() => state.send('DELETED')}
+          >
+            <TrashIcon />
+          </IconButton>
+          <IconButton
+            disabled={!hasSelection}
+            onClick={() => state.send('TOGGLED_SHAPE_HIDE')}
+          >
+            {isAllHidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
+          </IconButton>
+          <IconButton
+            disabled={!hasSelection}
+            onClick={() => state.send('TOGGLED_SHAPE_LOCK')}
+          >
+            {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
+          </IconButton>
+          <IconButton
+            disabled={!hasSelection}
+            onClick={() => state.send('TOGGLED_SHAPE_ASPECT_LOCK')}
+          >
+            {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
           </IconButton>
         </ButtonsRow>
       </Content>
