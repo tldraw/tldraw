@@ -141,7 +141,6 @@ const state = createState({
             UNDO: 'undo',
             REDO: 'redo',
             SAVED_CODE: 'saveCode',
-            CANCELLED: 'clearSelectedIds',
             DELETED: 'deleteSelectedIds',
             STARTED_PINCHING: { to: 'pinching' },
             INCREASED_CODE_FONT_SIZE: 'increaseCodeFontSize',
@@ -159,6 +158,7 @@ const state = createState({
           states: {
             notPointing: {
               on: {
+                CANCELLED: 'clearSelectedIds',
                 POINTED_CANVAS: { to: 'brushSelecting' },
                 POINTED_BOUNDS: { to: 'pointingBounds' },
                 POINTED_BOUNDS_HANDLE: {

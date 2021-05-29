@@ -1,18 +1,19 @@
-import { Data, Edge, Corner } from "types"
-import * as vec from "utils/vec"
-import BaseSession from "./base-session"
-import commands from "state/commands"
-import { current } from "immer"
-import { getShapeUtils } from "lib/shape-utils"
+import { Data, Edge, Corner } from 'types'
+import * as vec from 'utils/vec'
+import BaseSession from './base-session'
+import commands from 'state/commands'
+import { current } from 'immer'
+import { getShapeUtils } from 'lib/shape-utils'
 import {
   getBoundsCenter,
   getBoundsFromPoints,
   getCommonBounds,
   getPage,
   getRelativeTransformedBoundingBox,
+  getSelectedShapes,
   getShapes,
   getTransformedBoundingBox,
-} from "utils/utils"
+} from 'utils/utils'
 
 export default class TransformSession extends BaseSession {
   scaleX = 1
@@ -31,7 +32,7 @@ export default class TransformSession extends BaseSession {
   update(data: Data, point: number[], isAspectRatioLocked = false) {
     const { transformType } = this
 
-    const { selectedIds, shapeBounds, initialBounds } = this.snapshot
+    const { shapeBounds, initialBounds } = this.snapshot
 
     const { shapes } = getPage(data)
 
@@ -48,7 +49,7 @@ export default class TransformSession extends BaseSession {
 
     // Now work backward to calculate a new bounding box for each of the shapes.
 
-    selectedIds.forEach((id) => {
+    for (let id in shapeBounds) {
       const { initialShape, initialShapeBounds, transformOrigin } =
         shapeBounds[id]
 
@@ -69,15 +70,15 @@ export default class TransformSession extends BaseSession {
         scaleY: this.scaleY,
         transformOrigin,
       })
-    })
+    }
   }
 
   cancel(data: Data) {
-    const { currentPageId, selectedIds, shapeBounds } = this.snapshot
+    const { currentPageId, shapeBounds } = this.snapshot
 
     const page = getPage(data, currentPageId)
 
-    selectedIds.forEach((id) => {
+    for (let id in shapeBounds) {
       const shape = page.shapes[id]
 
       const { initialShape, initialShapeBounds, transformOrigin } =
@@ -90,35 +91,33 @@ export default class TransformSession extends BaseSession {
         scaleY: 1,
         transformOrigin,
       })
-    })
+    }
   }
 
   complete(data: Data) {
     commands.transform(
       data,
       this.snapshot,
-      getTransformSnapshot(data, this.transformType),
-      this.scaleX,
-      this.scaleY
+      getTransformSnapshot(data, this.transformType)
     )
   }
 }
 
 export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
-  const {
-    document: { pages },
-    selectedIds,
-    currentPageId,
-  } = current(data)
+  const cData = current(data)
+  const { currentPageId } = cData
 
-  const pageShapes = pages[currentPageId].shapes
+  const initialShapes = getSelectedShapes(cData).filter(
+    (shape) => !shape.isLocked
+  )
+  const hasShapes = initialShapes.length > 0
 
   // A mapping of selected shapes and their bounds
   const shapesBounds = Object.fromEntries(
-    Array.from(selectedIds.values()).map((id) => {
-      const shape = pageShapes[id]
-      return [shape.id, getShapeUtils(shape).getBounds(shape)]
-    })
+    initialShapes.map((shape) => [
+      shape.id,
+      getShapeUtils(shape).getBounds(shape),
+    ])
   )
 
   const boundsArr = Object.values(shapesBounds)
@@ -132,20 +131,19 @@ export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
   // positions of the shape's bounds within the common bounds shape.
   return {
     type: transformType,
+    hasShapes,
     currentPageId,
-    selectedIds: new Set(selectedIds),
     initialBounds: bounds,
     shapeBounds: Object.fromEntries(
-      Array.from(selectedIds.values()).map((id) => {
-        const shape = pageShapes[id]
-        const initialShapeBounds = shapesBounds[id]
+      initialShapes.map((shape) => {
+        const initialShapeBounds = shapesBounds[shape.id]
         const ic = getBoundsCenter(initialShapeBounds)
 
         let ix = (ic[0] - initialInnerBounds.minX) / initialInnerBounds.width
         let iy = (ic[1] - initialInnerBounds.minY) / initialInnerBounds.height
 
         return [
-          id,
+          shape.id,
           {
             initialShape: shape,
             initialShapeBounds,

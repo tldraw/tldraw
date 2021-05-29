@@ -1,11 +1,11 @@
-import { Data } from "types"
-import * as vec from "utils/vec"
-import BaseSession from "./base-session"
-import commands from "state/commands"
-import { current } from "immer"
-import { v4 as uuid } from "uuid"
-import { getChildIndexAbove, getPage, getSelectedShapes } from "utils/utils"
-import { getShapeUtils } from "lib/shape-utils"
+import { Data } from 'types'
+import * as vec from 'utils/vec'
+import BaseSession from './base-session'
+import commands from 'state/commands'
+import { current } from 'immer'
+import { v4 as uuid } from 'uuid'
+import { getChildIndexAbove, getPage, getSelectedShapes } from 'utils/utils'
+import { getShapeUtils } from 'lib/shape-utils'
 
 export default class TranslateSession extends BaseSession {
   delta = [0, 0]
@@ -89,6 +89,8 @@ export default class TranslateSession extends BaseSession {
   }
 
   complete(data: Data) {
+    if (!this.snapshot.hasShapes) return
+
     commands.translate(
       data,
       this.snapshot,
@@ -100,7 +102,8 @@ export default class TranslateSession extends BaseSession {
 
 export function getTranslateSnapshot(data: Data) {
   const cData = current(data)
-  const shapes = getSelectedShapes(cData)
+  const shapes = getSelectedShapes(cData).filter((shape) => !shape.isLocked)
+  const hasShapes = shapes.length > 0
 
   return {
     currentPageId: data.currentPageId,
@@ -110,6 +113,7 @@ export function getTranslateSnapshot(data: Data) {
       id: uuid(),
       childIndex: getChildIndexAbove(cData, shape.id),
     })),
+    hasShapes,
   }
 }
 

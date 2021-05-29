@@ -43,6 +43,11 @@ const { styled, global, css, theme, getCssString } = createCss({
     transitions: {},
   },
   utils: {
+    zDash: () => (value: number) => {
+      return {
+        strokeDasharray: `calc(${value}px / var(--camera-zoom)) calc(${value}px / var(--camera-zoom))`,
+      }
+    },
     zStrokeWidth: () => (value: number | number[]) => {
       if (Array.isArray(value)) {
         // const [val, min, max] = value

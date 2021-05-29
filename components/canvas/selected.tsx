@@ -43,6 +43,7 @@ export function ShapeOutline({ id }: { id: string }) {
       as="use"
       href={'#' + id}
       transform={transform}
+      isLocked={shape.isLocked}
       {...events}
     />
   )
@@ -55,4 +56,13 @@ const Indicator = styled('path', {
   stroke: '$selected',
   fill: 'transparent',
   pointerEvents: 'all',
+
+  variants: {
+    isLocked: {
+      true: {
+        zDash: 2,
+      },
+      false: {},
+    },
+  },
 })

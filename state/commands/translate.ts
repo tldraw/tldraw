@@ -1,9 +1,9 @@
-import Command from "./command"
-import history from "../history"
-import { TranslateSnapshot } from "state/sessions/translate-session"
-import { Data } from "types"
-import { getPage } from "utils/utils"
-import { getShapeUtils } from "lib/shape-utils"
+import Command from './command'
+import history from '../history'
+import { TranslateSnapshot } from 'state/sessions/translate-session'
+import { Data } from 'types'
+import { getPage } from 'utils/utils'
+import { getShapeUtils } from 'lib/shape-utils'
 
 export default function translateCommand(
   data: Data,
@@ -14,8 +14,8 @@ export default function translateCommand(
   history.execute(
     data,
     new Command({
-      name: isCloning ? "clone_shapes" : "translate_shapes",
-      category: "canvas",
+      name: isCloning ? 'clone_shapes' : 'translate_shapes',
+      category: 'canvas',
       manualSelection: true,
       do(data, initial) {
         if (initial) return
