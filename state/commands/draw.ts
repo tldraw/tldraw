@@ -5,10 +5,13 @@ import { getPage } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 import { current } from 'immer'
 
-export default function drawCommand(data: Data, id: string, after: number[][]) {
+export default function drawCommand(
+  data: Data,
+  id: string,
+  points: number[][]
+) {
   const restoreShape = current(getPage(data)).shapes[id] as DrawShape
-
-  getShapeUtils(restoreShape).setProperty!(restoreShape, 'points', after)
+  getShapeUtils(restoreShape).setProperty(restoreShape, 'points', points)
 
   history.execute(
     data,

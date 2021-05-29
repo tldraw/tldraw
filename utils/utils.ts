@@ -978,7 +978,7 @@ export function getBoundsFromPoints(points: number[][]): Bounds {
   let maxX = -Infinity
   let maxY = -Infinity
 
-  if (points.length === 0) {
+  if (points.length < 2) {
     minX = 0
     minY = 0
     maxX = 1

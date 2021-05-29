@@ -89,7 +89,7 @@ export default class TranslateSession extends BaseSession {
   }
 
   complete(data: Data) {
-    if (!this.snapshot.hasShapes) return
+    if (!this.snapshot.hasUnlockedShapes) return
 
     commands.translate(
       data,
@@ -103,9 +103,10 @@ export default class TranslateSession extends BaseSession {
 export function getTranslateSnapshot(data: Data) {
   const cData = current(data)
   const shapes = getSelectedShapes(cData).filter((shape) => !shape.isLocked)
-  const hasShapes = shapes.length > 0
+  const hasUnlockedShapes = shapes.length > 0
 
   return {
+    hasUnlockedShapes,
     currentPageId: data.currentPageId,
     initialShapes: shapes.map(({ id, point }) => ({ id, point })),
     clones: shapes.map((shape) => ({
@@ -113,7 +114,6 @@ export function getTranslateSnapshot(data: Data) {
       id: uuid(),
       childIndex: getChildIndexAbove(cData, shape.id),
     })),
-    hasShapes,
   }
 }
 

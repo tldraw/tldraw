@@ -70,24 +70,30 @@ export default class RotateSession extends BaseSession {
   }
 
   complete(data: Data) {
+    if (!this.snapshot.hasUnlockedShapes) return
     commands.rotate(data, this.snapshot, getRotateSnapshot(data))
   }
 }
 
 export function getRotateSnapshot(data: Data) {
-  const shapes = getSelectedShapes(current(data))
+  const initialShapes = getSelectedShapes(current(data)).filter(
+    (shape) => !shape.isLocked
+  )
+
+  const hasUnlockedShapes = initialShapes.length > 0
 
   const shapesBounds = Object.fromEntries(
-    shapes.map((shape) => [shape.id, getShapeBounds(shape)])
+    initialShapes.map((shape) => [shape.id, getShapeBounds(shape)])
   )
 
   const bounds = getCommonBounds(...Object.values(shapesBounds))
 
   return {
+    hasUnlockedShapes,
     currentPageId: data.currentPageId,
     boundsRotation: data.boundsRotation,
     boundsCenter: getBoundsCenter(bounds),
-    shapes: shapes.map(({ id, point, rotation }) => {
+    shapes: initialShapes.map(({ id, point, rotation }) => {
       const bounds = shapesBounds[id]
       const offset = [bounds.width / 2, bounds.height / 2]
       const center = getBoundsCenter(bounds)

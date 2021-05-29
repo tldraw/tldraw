@@ -1,9 +1,9 @@
-import { Data, Edge, Corner } from "types"
-import * as vec from "utils/vec"
-import BaseSession from "./base-session"
-import commands from "state/commands"
-import { current } from "immer"
-import { getShapeUtils } from "lib/shape-utils"
+import { Data, Edge, Corner } from 'types'
+import * as vec from 'utils/vec'
+import BaseSession from './base-session'
+import commands from 'state/commands'
+import { current } from 'immer'
+import { getShapeUtils } from 'lib/shape-utils'
 import {
   getTransformedBoundingBox,
   getCommonBounds,
@@ -12,7 +12,7 @@ import {
   getPage,
   getShape,
   getSelectedShapes,
-} from "utils/utils"
+} from 'utils/utils'
 
 export default class TransformSingleSession extends BaseSession {
   transformType: Edge | Corner
@@ -79,6 +79,8 @@ export default class TransformSingleSession extends BaseSession {
   }
 
   complete(data: Data) {
+    if (!this.snapshot.hasUnlockedShape) return
+
     commands.transformSingle(
       data,
       this.snapshot,
@@ -99,6 +101,7 @@ export function getTransformSingleSnapshot(
 
   return {
     id: shape.id,
+    hasUnlockedShape: !shape.isLocked,
     currentPageId: data.currentPageId,
     type: transformType,
     initialShape: shape,

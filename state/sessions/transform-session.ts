@@ -95,6 +95,8 @@ export default class TransformSession extends BaseSession {
   }
 
   complete(data: Data) {
+    if (!this.snapshot.hasUnlockedShapes) return
+
     commands.transform(
       data,
       this.snapshot,
@@ -110,9 +112,9 @@ export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
   const initialShapes = getSelectedShapes(cData).filter(
     (shape) => !shape.isLocked
   )
-  const hasShapes = initialShapes.length > 0
 
-  // A mapping of selected shapes and their bounds
+  const hasUnlockedShapes = initialShapes.length > 0
+
   const shapesBounds = Object.fromEntries(
     initialShapes.map((shape) => [
       shape.id,
@@ -122,8 +124,7 @@ export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
 
   const boundsArr = Object.values(shapesBounds)
 
-  // The common (exterior) bounds of the selected shapes
-  const bounds = getCommonBounds(...boundsArr)
+  const commonBounds = getCommonBounds(...boundsArr)
 
   const initialInnerBounds = getBoundsFromPoints(boundsArr.map(getBoundsCenter))
 
@@ -131,9 +132,9 @@ export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
   // positions of the shape's bounds within the common bounds shape.
   return {
     type: transformType,
-    hasShapes,
+    hasUnlockedShapes,
     currentPageId,
-    initialBounds: bounds,
+    initialBounds: commonBounds,
     shapeBounds: Object.fromEntries(
       initialShapes.map((shape) => {
         const initialShapeBounds = shapesBounds[shape.id]

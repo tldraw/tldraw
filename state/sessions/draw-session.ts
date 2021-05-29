@@ -11,11 +11,9 @@ export default class BrushSession extends BaseSession {
   previous: number[]
   points: number[][]
   snapshot: DrawSnapshot
-  shapeId: string
 
   constructor(data: Data, id: string, point: number[]) {
     super(data)
-    this.shapeId = id
     this.origin = point
     this.previous = point
     this.points = []
@@ -27,34 +25,36 @@ export default class BrushSession extends BaseSession {
   }
 
   update = (data: Data, point: number[]) => {
-    const { shapeId } = this
+    const { snapshot } = this
 
     const lp = vec.med(this.previous, vec.toPrecision(point))
     this.points.push(vec.sub(lp, this.origin))
     this.previous = lp
 
     const page = getPage(data)
-    const shape = page.shapes[shapeId]
-    getShapeUtils(shape).setPoints!(shape, [...this.points])
+    const shape = page.shapes[snapshot.id] as DrawShape
+    getShapeUtils(shape).setProperty(shape, 'points', [...this.points])
   }
 
   cancel = (data: Data) => {
-    const { shapeId, snapshot } = this
+    const { snapshot } = this
     const page = getPage(data)
-    const shape = page.shapes[shapeId]
-    getShapeUtils(shape).setPoints!(shape, snapshot.points)
+    const shape = page.shapes[snapshot.id] as DrawShape
+    getShapeUtils(shape).setProperty(shape, 'points', snapshot.points)
   }
 
   complete = (data: Data) => {
-    commands.draw(data, this.shapeId, this.snapshot.points, this.points)
+    commands.draw(data, this.snapshot.id, this.points)
   }
 }
 
 export function getDrawSnapshot(data: Data, shapeId: string) {
   const page = getPage(current(data))
-  const { points } = page.shapes[shapeId] as DrawShape
+  const { points, style } = page.shapes[shapeId] as DrawShape
   return {
+    id: shapeId,
     points,
+    strokeWidth: style.strokeWidth,
   }
 }
 

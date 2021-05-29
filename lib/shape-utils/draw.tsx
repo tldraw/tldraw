@@ -57,7 +57,7 @@ const draw = registerShapeUtils<DrawShape>({
         pathCache.set(
           shape,
           getSvgPathFromStroke(
-            getStroke(points, { size: +style.strokeWidth * 2 })
+            getStroke(points, { size: +style.strokeWidth * 2, thinning: 0.9 })
           )
         )
       }
