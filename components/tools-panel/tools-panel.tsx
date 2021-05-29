@@ -16,6 +16,7 @@ import React from 'react'
 import state, { useSelector } from 'state'
 import styled from 'styles'
 import { ShapeType } from 'types'
+import UndoRedo from './undo-redo'
 import Zoom from './zoom'
 
 const selectSelectTool = () => state.send('SELECTED_SELECT_TOOL')
@@ -129,6 +130,7 @@ export default function ToolsPanel() {
           </IconButton>
         )}
       </Container>
+      <UndoRedo />
     </OuterContainer>
   )
 }

@@ -20,7 +20,6 @@ export default function Editor() {
 
   return (
     <Layout>
-      <Toolbar />
       <Canvas />
       <LeftPanels>
         <CodePanel />
@@ -42,10 +41,9 @@ const Layout = styled('div', {
   bottom: 0,
   right: 0,
   display: 'grid',
-  gridTemplateRows: '40px 1fr auto 40px',
+  gridTemplateRows: '1fr auto 40px',
   gridTemplateColumns: 'minmax(50%, 400px) 1fr auto',
   gridTemplateAreas: `
-    "toolbar toolbar toolbar"
     "leftPanels main rightPanels"
     "tools tools tools"
     "statusbar statusbar statusbar"

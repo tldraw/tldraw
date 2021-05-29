@@ -143,6 +143,7 @@ const state = createState({
             SAVED: 'forceSave',
             UNDO: 'undo',
             REDO: 'redo',
+            CLEARED_PAGE: ['selectAll', 'deleteSelection'],
             SAVED_CODE: 'saveCode',
             DELETED: 'deleteSelection',
             STARTED_PINCHING: { to: 'pinching' },
