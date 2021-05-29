@@ -147,12 +147,6 @@ function SelectedShapeStyles({}: {}) {
           </IconButton>
           <IconButton
             disabled={!hasSelection}
-            onClick={() => state.send('DELETED')}
-          >
-            <TrashIcon />
-          </IconButton>
-          <IconButton
-            disabled={!hasSelection}
             onClick={() => state.send('TOGGLED_SHAPE_HIDE')}
           >
             {isAllHidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
@@ -168,6 +162,12 @@ function SelectedShapeStyles({}: {}) {
             onClick={() => state.send('TOGGLED_SHAPE_ASPECT_LOCK')}
           >
             {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
+          </IconButton>
+          <IconButton
+            disabled={!hasSelection}
+            onClick={() => state.send('DELETED')}
+          >
+            <TrashIcon />
           </IconButton>
         </ButtonsRow>
       </Content>

@@ -43,39 +43,32 @@ function Shape({ id, isSelecting }: { id: string; isSelecting: boolean }) {
           strokeWidth={+shape.style.strokeWidth + 8}
         />
       )}
-      <StyledShape id={id} style={shape.style} />
-      {/* 
-      <text
-        y={4}
-        x={4}
-        fontSize={18}
-        fill="black"
-        stroke="none"
-        alignmentBaseline="text-before-edge"
-        pointerEvents="none"
-      >
-        {center.toString()}
-      </text> */}
+      {!shape.isHidden && <StyledShape id={id} style={shape.style} />}
     </StyledGroup>
   )
 }
 
 const StyledShape = memo(
   ({ id, style }: { id: string; style: ShapeStyles }) => {
-    return (
-      <MainShape
-        as="use"
-        href={'#' + id}
-        {...style}
-        // css={{ zStrokeWidth: Number(style.strokeWidth) }}
-      />
-    )
+    return <use href={'#' + id} {...style} />
   }
 )
 
-const MainShape = styled('use', {
-  // zStrokeWidth: 1,
-})
+function Label({ text }: { text: string }) {
+  return (
+    <text
+      y={4}
+      x={4}
+      fontSize={18}
+      fill="black"
+      stroke="none"
+      alignmentBaseline="text-before-edge"
+      pointerEvents="none"
+    >
+      {text}
+    </text>
+  )
+}
 
 const HoverIndicator = styled('path', {
   fill: 'none',

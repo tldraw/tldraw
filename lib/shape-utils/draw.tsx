@@ -12,7 +12,7 @@ import {
   translateBounds,
 } from 'utils/utils'
 
-const pathCache = new WeakMap<DrawShape, string>([])
+const pathCache = new WeakMap<DrawShape['points'], string>([])
 
 const draw = registerShapeUtils<DrawShape>({
   boundsCache: new WeakMap([]),
@@ -45,25 +45,20 @@ const draw = registerShapeUtils<DrawShape>({
   render(shape) {
     const { id, points, style } = shape
 
-    if (!pathCache.has(shape)) {
-      if (points.length < 2) {
-        const left = [+style.strokeWidth, 0]
-        let d: number[][] = []
-        for (let i = 0; i < 10; i++) {
-          d.push(vec.rotWith(left, [0, 0], i * ((Math.PI * 2) / 8)))
-        }
-        pathCache.set(shape, getSvgPathFromStroke(d))
-      } else {
-        pathCache.set(
-          shape,
-          getSvgPathFromStroke(
-            getStroke(points, { size: +style.strokeWidth * 2, thinning: 0.9 })
-          )
+    if (!pathCache.has(points)) {
+      pathCache.set(
+        points,
+        getSvgPathFromStroke(
+          getStroke(points, { size: +style.strokeWidth * 2, thinning: 0.9 })
         )
-      }
+      )
     }
 
-    return <path id={id} d={pathCache.get(shape)} />
+    if (points.length < 2) {
+      return <circle id={id} r={+style.strokeWidth * 0.618} />
+    }
+
+    return <path id={id} d={pathCache.get(points)} />
   },
 
   applyStyles(shape, style) {

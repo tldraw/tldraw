@@ -27,6 +27,18 @@ export default function useKeyboardEvents() {
           state.send('NUDGED', { delta: [-1, 0], ...getKeyboardEventInfo(e) })
           break
         }
+        case '=': {
+          if (e.metaKey) {
+            state.send('ZOOMED_IN')
+          }
+          break
+        }
+        case '-': {
+          if (e.metaKey) {
+            state.send('ZOOMED_OUT')
+          }
+          break
+        }
         case '!': {
           // Shift + 1
           if (e.shiftKey) {

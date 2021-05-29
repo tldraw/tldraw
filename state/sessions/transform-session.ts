@@ -32,7 +32,7 @@ export default class TransformSession extends BaseSession {
   update(data: Data, point: number[], isAspectRatioLocked = false) {
     const { transformType } = this
 
-    const { shapeBounds, initialBounds } = this.snapshot
+    const { shapeBounds, initialBounds, isAllAspectRatioLocked } = this.snapshot
 
     const { shapes } = getPage(data)
 
@@ -41,7 +41,7 @@ export default class TransformSession extends BaseSession {
       transformType,
       vec.vec(this.origin, point),
       data.boundsRotation,
-      isAspectRatioLocked
+      isAspectRatioLocked || isAllAspectRatioLocked
     )
 
     this.scaleX = newBoundingBox.scaleX
@@ -115,6 +115,10 @@ export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
 
   const hasUnlockedShapes = initialShapes.length > 0
 
+  const isAllAspectRatioLocked = initialShapes.every(
+    (shape) => shape.isAspectRatioLocked
+  )
+
   const shapesBounds = Object.fromEntries(
     initialShapes.map((shape) => [
       shape.id,
@@ -133,6 +137,7 @@ export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
   return {
     type: transformType,
     hasUnlockedShapes,
+    isAllAspectRatioLocked,
     currentPageId,
     initialBounds: commonBounds,
     shapeBounds: Object.fromEntries(

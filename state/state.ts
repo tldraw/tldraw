@@ -75,6 +75,19 @@ const state = createState({
     PANNED_CAMERA: {
       do: 'panCamera',
     },
+    ZOOMED_TO_ACTUAL: {
+      if: 'hasSelection',
+      do: 'zoomCameraToSelectionActual',
+      else: 'zoomCameraToActual',
+    },
+    ZOOMED_TO_SELECTION: {
+      if: 'hasSelection',
+      do: 'zoomCameraToSelection',
+    },
+    ZOOMED_TO_FIT: ['zoomCameraToFit', 'zoomCameraToActual'],
+    ZOOMED_IN: 'zoomIn',
+    ZOOMED_OUT: 'zoomOut',
+    RESET_CAMERA: 'resetCamera',
     TOGGLED_SHAPE_LOCK: { if: 'hasSelection', do: 'lockSelection' },
     TOGGLED_SHAPE_HIDE: { if: 'hasSelection', do: 'hideSelection' },
     TOGGLED_SHAPE_ASPECT_LOCK: {
@@ -93,17 +106,6 @@ const state = createState({
     TOGGLED_CODE_PANEL_OPEN: 'toggleCodePanel',
     TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
     CHANGED_STYLE: ['updateStyles', 'applyStylesToSelection'],
-    RESET_CAMERA: 'resetCamera',
-    ZOOMED_TO_FIT: 'zoomCameraToFit',
-    ZOOMED_TO_SELECTION: {
-      if: 'hasSelection',
-      do: 'zoomCameraToSelection',
-    },
-    ZOOMED_TO_ACTUAL: {
-      if: 'hasSelection',
-      do: 'zoomCameraToSelectionActual',
-      else: 'zoomCameraToActual',
-    },
     SELECTED_ALL: { to: 'selecting', do: 'selectAll' },
     NUDGED: { do: 'nudgeSelection' },
     USED_PEN_DEVICE: 'enablePenLock',
@@ -116,17 +118,18 @@ const state = createState({
         MOUNTED: [
           'restoreSavedData',
           {
-            if: 'hasSelection',
-            do: 'zoomCameraToSelectionActual',
-            else: ['zoomCameraToFit', 'zoomCameraToActual'],
-          },
-          {
             to: 'ready',
           },
         ],
       },
     },
     ready: {
+      onEnter: {
+        wait: 0.01,
+        if: 'hasSelection',
+        do: 'zoomCameraToSelectionActual',
+        else: ['zoomCameraToFit', 'zoomCameraToActual'],
+      },
       on: {
         UNMOUNTED: [
           { unless: 'isReadOnly', do: 'forceSave' },
@@ -141,7 +144,7 @@ const state = createState({
             UNDO: 'undo',
             REDO: 'redo',
             SAVED_CODE: 'saveCode',
-            DELETED: 'deleteSelectedIds',
+            DELETED: 'deleteSelection',
             STARTED_PINCHING: { to: 'pinching' },
             INCREASED_CODE_FONT_SIZE: 'increaseCodeFontSize',
             DECREASED_CODE_FONT_SIZE: 'decreaseCodeFontSize',
@@ -282,6 +285,9 @@ const state = createState({
         usingTool: {
           initial: 'draw',
           onEnter: 'clearSelectedIds',
+          on: {
+            TOGGLED_TOOL_LOCK: 'toggleToolLock',
+          },
           states: {
             draw: {
               initial: 'creating',
@@ -311,7 +317,7 @@ const state = createState({
                       to: 'draw.creating',
                     },
                     CANCELLED: {
-                      do: ['cancelSession', 'deleteSelectedIds'],
+                      do: ['cancelSession', 'deleteSelection'],
                       to: 'selecting',
                     },
                     MOVED_POINTER: 'updateDrawSession',
@@ -351,7 +357,7 @@ const state = createState({
                       },
                     ],
                     CANCELLED: {
-                      do: ['cancelSession', 'deleteSelectedIds'],
+                      do: ['cancelSession', 'deleteSelection'],
                       to: 'selecting',
                     },
                   },
@@ -537,7 +543,7 @@ const state = createState({
               },
             ],
             CANCELLED: {
-              do: ['cancelSession', 'deleteSelectedIds'],
+              do: ['cancelSession', 'deleteSelection'],
               to: 'selecting',
             },
           },
@@ -849,14 +855,35 @@ const state = createState({
     aspectLockSelection(data) {
       commands.toggle(data, 'isAspectRatioLocked')
     },
+    deleteSelection(data) {
+      commands.deleteSelected(data)
+    },
 
     /* --------------------- Camera --------------------- */
 
-    resetCamera(data) {
-      data.camera.zoom = 1
-      data.camera.point = [window.innerWidth / 2, window.innerHeight / 2]
+    zoomIn(data) {
+      const { camera } = data
+      const i = Math.round((camera.zoom * 100) / 25)
+      const center = [window.innerWidth / 2, window.innerHeight / 2]
 
-      document.documentElement.style.setProperty('--camera-zoom', '1')
+      const p0 = screenToWorld(center, data)
+      camera.zoom = Math.min(3, (i + 1) * 0.25)
+      const p1 = screenToWorld(center, data)
+      camera.point = vec.add(camera.point, vec.sub(p1, p0))
+
+      setZoomCSS(camera.zoom)
+    },
+    zoomOut(data) {
+      const { camera } = data
+      const i = Math.round((camera.zoom * 100) / 25)
+      const center = [window.innerWidth / 2, window.innerHeight / 2]
+
+      const p0 = screenToWorld(center, data)
+      camera.zoom = Math.max(0.1, (i - 1) * 0.25)
+      const p1 = screenToWorld(center, data)
+      camera.point = vec.add(camera.point, vec.sub(p1, p0))
+
+      setZoomCSS(camera.zoom)
     },
     zoomCameraToActual(data) {
       const { camera } = data
@@ -967,8 +994,11 @@ const state = createState({
 
       setZoomCSS(camera.zoom)
     },
-    deleteSelectedIds(data) {
-      commands.deleteSelected(data)
+    resetCamera(data) {
+      data.camera.zoom = 1
+      data.camera.point = [window.innerWidth / 2, window.innerHeight / 2]
+
+      document.documentElement.style.setProperty('--camera-zoom', '1')
     },
 
     /* ---------------------- History ---------------------- */

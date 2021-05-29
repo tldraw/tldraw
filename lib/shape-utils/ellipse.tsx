@@ -124,6 +124,8 @@ const ellipse = registerShapeUtils<EllipseShape>({
   },
 
   transform(shape, bounds, { scaleX, scaleY, initialShape }) {
+    // TODO: Locked aspect ratio transform
+
     shape.point = [bounds.minX, bounds.minY]
     shape.radiusX = bounds.width / 2
     shape.radiusY = bounds.height / 2

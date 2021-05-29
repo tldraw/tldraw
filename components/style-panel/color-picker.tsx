@@ -29,10 +29,7 @@ export default function ColorPicker({ label, color, colors, onChange }: Props) {
 
 function ColorIcon({ color }: { color: string }) {
   return (
-    <Square
-      fill={color}
-      strokeDasharray={color === 'transparent' ? '2, 3' : 'none'}
-    />
+    <Square fill={color} strokeDasharray={color === 'none' ? '2, 3' : 'none'} />
   )
 }
 

@@ -110,7 +110,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
   },
 
   transform(shape, bounds, { initialShape, transformOrigin, scaleX, scaleY }) {
-    if (shape.rotation === 0) {
+    if (shape.rotation === 0 && !shape.isAspectRatioLocked) {
       shape.size = [bounds.width, bounds.height]
       shape.point = [bounds.minX, bounds.minY]
     } else {

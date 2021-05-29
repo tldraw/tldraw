@@ -16,6 +16,7 @@ import React from 'react'
 import state, { useSelector } from 'state'
 import styled from 'styles'
 import { ShapeType } from 'types'
+import Zoom from './zoom'
 
 const selectSelectTool = () => state.send('SELECTED_SELECT_TOOL')
 const selectDrawTool = () => state.send('SELECTED_DRAW_TOOL')
@@ -49,6 +50,7 @@ export default function ToolsPanel() {
 
   return (
     <OuterContainer>
+      <Zoom />
       <Container>
         <IconButton
           name="select"
@@ -131,7 +133,10 @@ export default function ToolsPanel() {
   )
 }
 
+const Spacer = styled('div', { flexGrow: 2 })
+
 const OuterContainer = styled('div', {
+  position: 'relative',
   gridArea: 'tools',
   padding: '0 8px 12px 8px',
   height: '100%',
