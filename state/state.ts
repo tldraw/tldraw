@@ -157,6 +157,7 @@ const state = createState({
             STRETCHED: { if: 'hasSelection', do: 'stretchSelection' },
             DISTRIBUTED: { if: 'hasSelection', do: 'distributeSelection' },
             DUPLICATED: { if: 'hasSelection', do: 'duplicateSelection' },
+            ROTATED_CCW: { if: 'hasSelection', do: 'rotateSelectionCcw' },
           },
           initial: 'notPointing',
           states: {
@@ -858,6 +859,9 @@ const state = createState({
     },
     deleteSelection(data) {
       commands.deleteSelected(data)
+    },
+    rotateSelectionCcw(data) {
+      commands.rotateCcw(data)
     },
 
     /* --------------------- Camera --------------------- */

@@ -6,6 +6,7 @@ import { intersectPolylineBounds } from 'utils/intersections'
 import { boundsContainPolygon } from 'utils/bounds'
 import getStroke from 'perfect-freehand'
 import {
+  getBoundsCenter,
   getBoundsFromPoints,
   getRotatedCorners,
   getSvgPathFromStroke,
@@ -77,9 +78,20 @@ const draw = registerShapeUtils<DrawShape>({
   },
 
   getRotatedBounds(shape) {
-    return getBoundsFromPoints(
-      getRotatedCorners(this.getBounds(shape), shape.rotation)
+    const bounds =
+      this.boundsCache.get(shape) || getBoundsFromPoints(shape.points)
+
+    const center = getBoundsCenter(bounds)
+
+    const rotatedPts = shape.points.map((pt) =>
+      vec.rotWith(pt, center, shape.rotation)
     )
+    const rotatedBounds = translateBounds(
+      getBoundsFromPoints(rotatedPts),
+      shape.point
+    )
+
+    return rotatedBounds
   },
 
   getCenter(shape) {

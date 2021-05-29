@@ -972,7 +972,7 @@ export function vectorToPoint(point: number[] | Vector | undefined) {
   return point
 }
 
-export function getBoundsFromPoints(points: number[][]): Bounds {
+export function getBoundsFromPoints(points: number[][], rotation = 0): Bounds {
   let minX = Infinity
   let minY = Infinity
   let maxX = -Infinity
@@ -990,6 +990,15 @@ export function getBoundsFromPoints(points: number[][]): Bounds {
       maxX = Math.max(x, maxX)
       maxY = Math.max(y, maxY)
     }
+  }
+
+  if (rotation !== 0) {
+    console.log('returning rotated bounds')
+    return getBoundsFromPoints(
+      points.map((pt) =>
+        vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], rotation)
+      )
+    )
   }
 
   return {
@@ -1372,6 +1381,10 @@ export function getSelectedBounds(data: Data) {
 
 export function isMobile() {
   return _isMobile()
+}
+
+export function getRotatedBounds(shape: Shape) {
+  return getShapeUtils(shape).getRotatedBounds(shape)
 }
 
 export function getShapeBounds(shape: Shape) {

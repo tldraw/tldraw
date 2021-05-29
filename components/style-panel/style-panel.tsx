@@ -14,9 +14,12 @@ import { shades, fills, strokes } from 'lib/colors'
 
 import ColorPicker from './color-picker'
 import AlignDistribute from './align-distribute'
-import { ShapeStyles } from 'types'
+import { MoveType, ShapeStyles } from 'types'
 import WidthPicker from './width-picker'
 import {
+  AlignTopIcon,
+  ArrowDownIcon,
+  ArrowUpIcon,
   AspectRatioIcon,
   BoxIcon,
   CopyIcon,
@@ -24,6 +27,8 @@ import {
   EyeOpenIcon,
   LockClosedIcon,
   LockOpen1Icon,
+  PinBottomIcon,
+  PinTopIcon,
   RotateCounterClockwiseIcon,
   TrashIcon,
 } from '@radix-ui/react-icons'
@@ -128,10 +133,6 @@ function SelectedShapeStyles({}: {}) {
           <label htmlFor="width">Width</label>
           <WidthPicker strokeWidth={Number(commonStyle.strokeWidth)} />
         </Row>
-        <AlignDistribute
-          hasTwoOrMore={selectedIds.length > 1}
-          hasThreeOrMore={selectedIds.length > 2}
-        />
         <ButtonsRow>
           <IconButton
             disabled={!hasSelection}
@@ -163,6 +164,32 @@ function SelectedShapeStyles({}: {}) {
           >
             {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
           </IconButton>
+        </ButtonsRow>
+        <ButtonsRow>
+          <IconButton
+            disabled={!hasSelection}
+            onClick={() => state.send('MOVED', { type: MoveType.ToBack })}
+          >
+            <PinBottomIcon />
+          </IconButton>
+          <IconButton
+            disabled={!hasSelection}
+            onClick={() => state.send('MOVED', { type: MoveType.Backward })}
+          >
+            <ArrowDownIcon />
+          </IconButton>
+          <IconButton
+            disabled={!hasSelection}
+            onClick={() => state.send('MOVED', { type: MoveType.Forward })}
+          >
+            <ArrowUpIcon />
+          </IconButton>
+          <IconButton
+            disabled={!hasSelection}
+            onClick={() => state.send('MOVED', { type: MoveType.ToFront })}
+          >
+            <PinTopIcon />
+          </IconButton>
           <IconButton
             disabled={!hasSelection}
             onClick={() => state.send('DELETED')}
@@ -170,6 +197,10 @@ function SelectedShapeStyles({}: {}) {
             <TrashIcon />
           </IconButton>
         </ButtonsRow>
+        <AlignDistribute
+          hasTwoOrMore={selectedIds.length > 1}
+          hasThreeOrMore={selectedIds.length > 2}
+        />
       </Content>
     </Panel.Layout>
   )

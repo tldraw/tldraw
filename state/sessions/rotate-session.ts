@@ -9,6 +9,7 @@ import {
   getCommonBounds,
   getPage,
   getSelectedShapes,
+  getRotatedBounds,
   getShapeBounds,
 } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
@@ -27,11 +28,11 @@ export default class RotateSession extends BaseSession {
   }
 
   update(data: Data, point: number[], isLocked: boolean) {
-    const { boundsCenter, shapes } = this.snapshot
+    const { commonBoundsCenter, initialShapes } = this.snapshot
 
     const page = getPage(data)
-    const a1 = vec.angle(boundsCenter, this.origin)
-    const a2 = vec.angle(boundsCenter, point)
+    const a1 = vec.angle(commonBoundsCenter, this.origin)
+    const a2 = vec.angle(commonBoundsCenter, point)
 
     let rot = a2 - a1
 
@@ -41,29 +42,28 @@ export default class RotateSession extends BaseSession {
 
     data.boundsRotation = (PI2 + (this.snapshot.boundsRotation + rot)) % PI2
 
-    for (let { id, center, offset, rotation } of shapes) {
+    for (let { id, center, offset, rotation } of initialShapes) {
       const shape = page.shapes[id]
 
+      const nextRotation = isLocked
+        ? clampToRotationToSegments(rotation + rot, 24)
+        : rotation + rot
+
+      const nextPoint = vec.sub(
+        vec.rotWith(center, commonBoundsCenter, rot),
+        offset
+      )
+
       getShapeUtils(shape)
-        .rotateTo(
-          shape,
-          (PI2 +
-            (isLocked
-              ? clampToRotationToSegments(rotation + rot, 24)
-              : rotation + rot)) %
-            PI2
-        )
-        .translateTo(
-          shape,
-          vec.sub(vec.rotWith(center, boundsCenter, rot % PI2), offset)
-        )
+        .rotateTo(shape, (PI2 + nextRotation) % PI2)
+        .translateTo(shape, nextPoint)
     }
   }
 
   cancel(data: Data) {
     const page = getPage(data, this.snapshot.currentPageId)
 
-    for (let { id, point, rotation } of this.snapshot.shapes) {
+    for (let { id, point, rotation } of this.snapshot.initialShapes) {
       const shape = page.shapes[id]
       getShapeUtils(shape).rotateTo(shape, rotation).translateTo(shape, point)
     }
@@ -88,20 +88,22 @@ export function getRotateSnapshot(data: Data) {
 
   const bounds = getCommonBounds(...Object.values(shapesBounds))
 
+  const commonBoundsCenter = getBoundsCenter(bounds)
+
   return {
     hasUnlockedShapes,
     currentPageId: data.currentPageId,
     boundsRotation: data.boundsRotation,
-    boundsCenter: getBoundsCenter(bounds),
-    shapes: initialShapes.map(({ id, point, rotation }) => {
-      const bounds = shapesBounds[id]
-      const offset = [bounds.width / 2, bounds.height / 2]
+    commonBoundsCenter,
+    initialShapes: initialShapes.map((shape) => {
+      const bounds = shapesBounds[shape.id]
       const center = getBoundsCenter(bounds)
+      const offset = vec.sub(center, shape.point)
 
       return {
-        id,
-        point,
-        rotation,
+        id: shape.id,
+        point: shape.point,
+        rotation: shape.rotation,
         offset,
         center,
       }

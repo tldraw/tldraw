@@ -14,6 +14,7 @@ import transformSingle from './transform-single'
 import translate from './translate'
 import nudge from './nudge'
 import toggle from './toggle'
+import rotateCcw from './rotate-ccw'
 
 const commands = {
   align,
@@ -32,6 +33,7 @@ const commands = {
   translate,
   nudge,
   toggle,
+  rotateCcw,
 }
 
 export default commands
