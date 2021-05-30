@@ -18,10 +18,10 @@ export default function Page() {
   const isSelecting = useSelector((s) => s.isIn('selecting'))
 
   return (
-    <>
+    <g pointerEvents={isSelecting ? 'all' : 'none'}>
       {currentPageShapeIds.map((shapeId) => (
         <Shape key={shapeId} id={shapeId} isSelecting={isSelecting} />
       ))}
-    </>
+    </g>
   )
 }

@@ -8,7 +8,6 @@ import getStroke from 'perfect-freehand'
 import {
   getBoundsCenter,
   getBoundsFromPoints,
-  getRotatedCorners,
   getSvgPathFromStroke,
   translateBounds,
 } from 'utils/utils'
@@ -27,7 +26,7 @@ const draw = registerShapeUtils<DrawShape>({
       parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
-      points: [[0, 0]],
+      points: [],
       rotation: 0,
       isAspectRatioLocked: false,
       isLocked: false,
@@ -50,7 +49,12 @@ const draw = registerShapeUtils<DrawShape>({
       pathCache.set(
         points,
         getSvgPathFromStroke(
-          getStroke(points, { size: +style.strokeWidth * 2, thinning: 0.9 })
+          getStroke(points, {
+            size: +style.strokeWidth * 2,
+            thinning: 0.9,
+            end: { taper: 100 },
+            start: { taper: 100 },
+          })
         )
       )
     }

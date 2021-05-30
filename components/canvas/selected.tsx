@@ -33,9 +33,10 @@ export function ShapeOutline({ id }: { id: string }) {
   if (!shape) return null
 
   const transform = `
-  rotate(${shape.rotation * (180 / Math.PI)},
-  ${getShapeUtils(shape).getCenter(shape)})
-  translate(${shape.point})`
+    rotate(${shape.rotation * (180 / Math.PI)},
+    ${getShapeUtils(shape).getCenter(shape)})
+    translate(${shape.point})
+  `
 
   return (
     <Indicator
