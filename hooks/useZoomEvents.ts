@@ -9,13 +9,11 @@ import { useGesture } from 'react-use-gesture'
  * @param ref
  * @returns
  */
-export default function useZoomEvents(
-  ref: React.MutableRefObject<SVGSVGElement>
-) {
+export default function useZoomEvents() {
   const rPinchDa = useRef<number[] | undefined>(undefined)
   const rPinchPoint = useRef<number[] | undefined>(undefined)
 
-  const bind = useGesture(
+  useGesture(
     {
       onWheel: ({ event, delta }) => {
         if (event.ctrlKey) {
@@ -63,6 +61,4 @@ export default function useZoomEvents(
       eventOptions: { passive: false },
     }
   )
-
-  return { ...bind() }
 }

@@ -13,7 +13,7 @@ export default class TranslateSession extends BaseSession {
   snapshot: TranslateSnapshot
   isCloning = false
 
-  constructor(data: Data, point: number[], isCloning = false) {
+  constructor(data: Data, point: number[]) {
     super(data)
     this.origin = point
     this.snapshot = getTranslateSnapshot(data)

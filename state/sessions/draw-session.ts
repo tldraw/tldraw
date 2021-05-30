@@ -2,34 +2,81 @@ import { current } from 'immer'
 import { Data, DrawShape } from 'types'
 import BaseSession from './base-session'
 import { getShapeUtils } from 'lib/shape-utils'
-import { getPage, simplify } from 'utils/utils'
+import { getPage } from 'utils/utils'
 import * as vec from 'utils/vec'
 import commands from 'state/commands'
+
+let prevEndPoint: number[]
 
 export default class BrushSession extends BaseSession {
   origin: number[]
   previous: number[]
   points: number[][]
   snapshot: DrawSnapshot
+  isLocked: boolean
+  lockedDirection: 'horizontal' | 'vertical'
 
-  constructor(data: Data, id: string, point: number[]) {
+  constructor(data: Data, id: string, point: number[], isLocked = false) {
     super(data)
     this.origin = point
     this.previous = point
     this.points = []
     this.snapshot = getDrawSnapshot(data, id)
 
+    // if (isLocked && prevEndPoint) {
+    //   const continuedPt = vec.sub([...prevEndPoint], this.origin)
+    //   this.points.push(continuedPt)
+    // }
+
     const page = getPage(data)
     const shape = page.shapes[id]
     getShapeUtils(shape).translateTo(shape, point)
   }
 
-  update = (data: Data, point: number[]) => {
+  update = (data: Data, point: number[], isLocked = false) => {
     const { snapshot } = this
 
-    const lp = vec.med(this.previous, vec.toPrecision(point))
-    this.points.push(vec.sub(lp, this.origin))
-    this.previous = lp
+    const delta = vec.vec(this.origin, point)
+
+    if (isLocked) {
+      if (!this.isLocked && this.points.length > 1) {
+        this.isLocked = true
+        const returning = [...this.previous]
+
+        if (Math.abs(delta[0]) < Math.abs(delta[1])) {
+          this.lockedDirection = 'vertical'
+          returning[0] = this.origin[0]
+        } else {
+          this.lockedDirection = 'horizontal'
+          returning[1] = this.origin[1]
+        }
+
+        this.previous = returning
+        this.points.push(vec.sub(returning, this.origin))
+      }
+    } else {
+      if (this.isLocked) {
+        this.isLocked = false
+      }
+    }
+
+    if (this.isLocked) {
+      if (this.lockedDirection === 'vertical') {
+        point[0] = this.origin[0]
+      } else {
+        point[1] = this.origin[1]
+      }
+    }
+
+    if (this.previous) {
+      point = vec.med(this.previous, point)
+    }
+
+    prevEndPoint = [...point]
+    const next = vec.sub(point, this.origin)
+
+    this.points.push(next)
+    this.previous = point
 
     const page = getPage(data)
     const shape = page.shapes[snapshot.id] as DrawShape

@@ -14,9 +14,9 @@ import Selected from './selected'
 export default function Canvas() {
   const rCanvas = useRef<SVGSVGElement>(null)
   const rGroup = useRef<SVGGElement>(null)
-  const events = useZoomEvents(rCanvas)
 
   useCamera(rGroup)
+  useZoomEvents()
 
   const isReady = useSelector((s) => s.isIn('ready'))
 
@@ -48,7 +48,6 @@ export default function Canvas() {
   return (
     <MainSVG
       ref={rCanvas}
-      {...events}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}

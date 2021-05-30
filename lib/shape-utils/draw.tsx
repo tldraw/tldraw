@@ -53,7 +53,7 @@ const draw = registerShapeUtils<DrawShape>({
             size: +style.strokeWidth * 2,
             thinning: 0.9,
             end: { taper: 100 },
-            start: { taper: 100 },
+            start: { taper: 40 },
           })
         )
       )

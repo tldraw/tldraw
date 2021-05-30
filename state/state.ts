@@ -335,6 +335,8 @@ const state = createState({
                       do: 'breakSession',
                       to: 'selecting',
                     },
+                    PRESSED_SHIFT: 'keyUpdateDrawSession',
+                    RELEASED_SHIFT: 'keyUpdateDrawSession',
                     MOVED_POINTER: 'updateDrawSession',
                     PANNED_CAMERA: 'updateDrawSession',
                   },
@@ -721,11 +723,10 @@ const state = createState({
     },
 
     // Dragging / Translating
-    startTranslateSession(data, payload: PointerInfo) {
+    startTranslateSession(data) {
       session = new Sessions.TranslateSession(
         data,
-        screenToWorld(inputs.pointer.origin, data),
-        payload.altKey
+        screenToWorld(inputs.pointer.origin, data)
       )
     },
     keyUpdateTranslateSession(
@@ -796,16 +797,24 @@ const state = createState({
     },
 
     // Drawing
-    startDrawSession(data) {
+    startDrawSession(data, payload: PointerInfo) {
       const id = Array.from(data.selectedIds.values())[0]
       session = new Sessions.DrawSession(
         data,
         id,
-        screenToWorld(inputs.pointer.origin, data)
+        screenToWorld(inputs.pointer.origin, data),
+        payload.shiftKey
+      )
+    },
+    keyUpdateDrawSession(data, payload: PointerInfo) {
+      session.update(
+        data,
+        screenToWorld(inputs.pointer.point, data),
+        payload.shiftKey
       )
     },
     updateDrawSession(data, payload: PointerInfo) {
-      session.update(data, screenToWorld(payload.point, data))
+      session.update(data, screenToWorld(payload.point, data), payload.shiftKey)
     },
 
     // Nudges

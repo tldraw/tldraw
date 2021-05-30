@@ -1006,8 +1006,8 @@ export function getBoundsFromPoints(points: number[][], rotation = 0): Bounds {
     minY,
     maxX,
     maxY,
-    width: maxX - minX,
-    height: maxY - minY,
+    width: Math.max(1, maxX - minX),
+    height: Math.max(1, maxY - minY),
   }
 }
 
