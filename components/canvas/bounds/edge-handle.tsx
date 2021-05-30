@@ -1,6 +1,6 @@
-import useHandleEvents from "hooks/useBoundsHandleEvents"
-import styled from "styles"
-import { Edge, Bounds } from "types"
+import useHandleEvents from 'hooks/useBoundsHandleEvents'
+import styled from 'styles'
+import { Edge, Bounds } from 'types'
 
 export default function EdgeHandle({
   size,
@@ -28,15 +28,15 @@ export default function EdgeHandle({
   )
 }
 
-const StyledEdge = styled("rect", {
-  stroke: "none",
-  fill: "none",
+const StyledEdge = styled('rect', {
+  stroke: 'none',
+  fill: 'none',
   variants: {
     edge: {
-      [Edge.Top]: { cursor: "ns-resize" },
-      [Edge.Right]: { cursor: "ew-resize" },
-      [Edge.Bottom]: { cursor: "ns-resize" },
-      [Edge.Left]: { cursor: "ew-resize" },
+      [Edge.Top]: { cursor: 'ns-resize' },
+      [Edge.Right]: { cursor: 'ew-resize' },
+      [Edge.Bottom]: { cursor: 'ns-resize' },
+      [Edge.Left]: { cursor: 'ew-resize' },
     },
   },
 })

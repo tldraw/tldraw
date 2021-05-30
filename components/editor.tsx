@@ -40,9 +40,11 @@ const Layout = styled('div', {
   left: 0,
   bottom: 0,
   right: 0,
+  height: '100%',
+  width: '100%',
   display: 'grid',
-  gridTemplateRows: '1fr auto 40px',
-  gridTemplateColumns: 'minmax(50%, 400px) 1fr auto',
+  gridTemplateRows: '1fr auto 144px',
+  gridTemplateColumns: 'minmax(0, 720px) 1fr auto',
   gridTemplateAreas: `
     "leftPanels main rightPanels"
     "tools tools tools"
@@ -59,11 +61,11 @@ const LeftPanels = styled('main', {
 })
 
 const RightPanels = styled('main', {
-  display: 'grid',
   gridArea: 'rightPanels',
-  gridTemplateRows: 'auto',
-  height: 'fit-content',
-  justifyContent: 'flex-end',
   padding: 8,
-  gap: 8,
+  // display: 'grid',
+  // gridTemplateRows: 'auto',
+  // height: 'fit-content',
+  // justifyContent: 'flex-end',
+  // gap: 8,
 })

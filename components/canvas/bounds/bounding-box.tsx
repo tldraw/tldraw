@@ -28,7 +28,7 @@ export default function Bounds() {
   if (!bounds) return null
   if (!isSelecting) return null
 
-  const size = (isMobile().any ? 12 : 8) / zoom // Touch target size
+  const size = (isMobile().any ? 10 : 8) / zoom // Touch target size
 
   return (
     <g

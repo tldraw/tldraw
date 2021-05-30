@@ -1,11 +1,11 @@
-import Editor, { Monaco } from "@monaco-editor/react"
-import useTheme from "hooks/useTheme"
-import prettier from "prettier/standalone"
-import parserTypeScript from "prettier/parser-typescript"
-import codeAsString from "./code-as-string"
-import React, { useCallback, useEffect, useRef } from "react"
-import styled from "styles"
-import { IMonaco, IMonacoEditor } from "types"
+import Editor, { Monaco } from '@monaco-editor/react'
+import useTheme from 'hooks/useTheme'
+import prettier from 'prettier/standalone'
+import parserTypeScript from 'prettier/parser-typescript'
+import codeAsString from './code-as-string'
+import React, { useCallback, useEffect, useRef } from 'react'
+import styled from 'styles'
+import { IMonaco, IMonacoEditor } from 'types'
 
 interface Props {
   value: string
@@ -48,7 +48,7 @@ export default function CodeEditor({
       checkJs: false,
       strict: false,
       noLib: true,
-      lib: ["es6"],
+      lib: ['es6'],
       target: monaco.languages.typescript.ScriptTarget.ES2015,
       allowNonTsExtensions: true,
     })
@@ -69,13 +69,13 @@ export default function CodeEditor({
 
     monaco.languages.typescript.javascriptDefaults.addExtraLib(codeAsString)
 
-    monaco.languages.registerDocumentFormattingEditProvider("javascript", {
+    monaco.languages.registerDocumentFormattingEditProvider('javascript', {
       async provideDocumentFormattingEdits(model) {
         const text = prettier.format(model.getValue(), {
-          parser: "typescript",
+          parser: 'typescript',
           plugins: [parserTypeScript],
           singleQuote: true,
-          trailingComma: "es5",
+          trailingComma: 'es5',
           semi: false,
         })
 
@@ -114,12 +114,12 @@ export default function CodeEditor({
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       onKey && onKey()
       e.stopPropagation()
-      const metaKey = navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey
-      if (e.key === "s" && metaKey) {
+      const metaKey = navigator.platform.match('Mac') ? e.metaKey : e.ctrlKey
+      if (e.key === 's' && metaKey) {
         const editor = rEditor.current
         if (!editor) return
         editor
-          .getAction("editor.action.formatDocument")
+          .getAction('editor.action.formatDocument')
           .run()
           .then(() =>
             onSave(rEditor.current?.getModel().getValue(), rEditor.current)
@@ -127,10 +127,10 @@ export default function CodeEditor({
 
         e.preventDefault()
       }
-      if (e.key === "p" && metaKey) {
+      if (e.key === 'p' && metaKey) {
         e.preventDefault()
       }
-      if (e.key === "d" && metaKey) {
+      if (e.key === 'd' && metaKey) {
         e.preventDefault()
       }
     },
@@ -167,7 +167,7 @@ export default function CodeEditor({
         ),
         options: {
           isWholeLine: true,
-          className: "editorLineError",
+          className: 'editorLineError',
         },
       },
     ])
@@ -176,7 +176,7 @@ export default function CodeEditor({
   useEffect(() => {
     const monaco = rMonaco.current
     if (!monaco) return
-    monaco.editor.setTheme(theme === "dark" ? "vs-dark" : "light")
+    monaco.editor.setTheme(theme === 'dark' ? 'vs-dark' : 'light')
   }, [theme])
 
   useEffect(() => {
@@ -194,7 +194,7 @@ export default function CodeEditor({
         height="100%"
         language="javascript"
         value={value}
-        theme={theme === "dark" ? "vs-dark" : "light"}
+        theme={theme === 'dark' ? 'vs-dark' : 'light'}
         beforeMount={handleBeforeMount}
         onMount={handleMount}
         onChange={handleChange}
@@ -203,12 +203,12 @@ export default function CodeEditor({
   )
 }
 
-const EditorContainer = styled("div", {
-  height: "100%",
-  pointerEvents: "all",
-  userSelect: "all",
+const EditorContainer = styled('div', {
+  height: '100%',
+  pointerEvents: 'all',
+  userSelect: 'all',
 
-  ".editorLineError": {
-    backgroundColor: "$lineError",
+  '.editorLineError': {
+    backgroundColor: '$lineError',
   },
 })

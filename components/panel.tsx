@@ -13,10 +13,7 @@ export const Root = styled('div', {
 
   variants: {
     isOpen: {
-      true: {
-        width: 'auto',
-        minWidth: 300,
-      },
+      true: {},
       false: {
         height: 34,
         width: 34,
