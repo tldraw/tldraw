@@ -4,7 +4,7 @@ import { RayShape, ShapeType } from 'types'
 import { registerShapeUtils } from './index'
 import { boundsContained } from 'utils/bounds'
 import { intersectCircleBounds } from 'utils/intersections'
-import { DotCircle } from 'components/canvas/misc'
+import { DotCircle, ThinLine } from 'components/canvas/misc'
 import { translateBounds } from 'utils/utils'
 
 const ray = registerShapeUtils<RayShape>({
@@ -34,11 +34,11 @@ const ray = registerShapeUtils<RayShape>({
   },
 
   render({ id, direction }) {
-    const [x2, y2] = vec.add([0, 0], vec.mul(direction, 100000))
+    const [x2, y2] = vec.add([0, 0], vec.mul(direction, 10000))
 
     return (
       <g id={id}>
-        <line x1={0} y1={0} x2={x2} y2={y2} />
+        <ThinLine x1={0} y1={0} x2={x2} y2={y2} />
         <DotCircle cx={0} cy={0} r={3} />
       </g>
     )

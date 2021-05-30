@@ -4,8 +4,9 @@ import { LineShape, ShapeType } from 'types'
 import { registerShapeUtils } from './index'
 import { boundsContained } from 'utils/bounds'
 import { intersectCircleBounds } from 'utils/intersections'
-import { DotCircle } from 'components/canvas/misc'
+import { DotCircle, ThinLine } from 'components/canvas/misc'
 import { translateBounds } from 'utils/utils'
+import styled from 'styles'
 
 const line = registerShapeUtils<LineShape>({
   boundsCache: new WeakMap([]),
@@ -33,12 +34,12 @@ const line = registerShapeUtils<LineShape>({
   },
 
   render({ id, direction }) {
-    const [x1, y1] = vec.add([0, 0], vec.mul(direction, 100000))
-    const [x2, y2] = vec.sub([0, 0], vec.mul(direction, 100000))
+    const [x1, y1] = vec.add([0, 0], vec.mul(direction, 10000))
+    const [x2, y2] = vec.sub([0, 0], vec.mul(direction, 10000))
 
     return (
       <g id={id}>
-        <line x1={x1} y1={y1} x2={x2} y2={y2} />
+        <ThinLine x1={x1} y1={y1} x2={x2} y2={y2} />
         <DotCircle cx={0} cy={0} r={3} />
       </g>
     )

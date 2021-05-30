@@ -1,8 +1,11 @@
-import styled from "styles"
+import styled from 'styles'
 
-const DotCircle = styled("circle", {
-  transform: "scale(var(--scale))",
-  strokeWidth: "2",
+export const DotCircle = styled('circle', {
+  transform: 'scale(var(--scale))',
+  fill: '$canvas',
+  strokeWidth: '2',
 })
 
-export { DotCircle }
+export const ThinLine = styled('line', {
+  zStrokeWidth: 1,
+})
