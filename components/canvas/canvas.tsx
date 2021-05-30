@@ -76,6 +76,7 @@ const MainSVG = styled('svg', {
   height: '100%',
   touchAction: 'none',
   zIndex: 100,
+  backgroundColor: '$canvas',
 
   '& *': {
     userSelect: 'none',

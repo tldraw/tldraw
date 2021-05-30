@@ -170,12 +170,13 @@ const Container = styled('div', {
   backgroundColor: '$panel',
   borderRadius: '4px',
   overflow: 'hidden',
-  border: '1px solid $border',
+  border: '1px solid $panel',
   pointerEvents: 'all',
   userSelect: 'none',
   height: '100%',
   display: 'flex',
   padding: 4,
+  boxShadow: '0px 2px 4px rgba(0,0,0,.12)',
 
   '& svg': {
     strokeWidth: 0,

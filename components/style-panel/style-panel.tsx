@@ -212,13 +212,16 @@ const StylePanelRoot = styled(Panel.Root, {
   maxWidth: 184,
   overflow: 'hidden',
   position: 'relative',
+  border: '1px solid $panel',
+  boxShadow: '0px 2px 4px rgba(0,0,0,.12)',
 
   variants: {
     isOpen: {
       true: {},
       false: {
-        height: 34,
-        width: 34,
+        padding: 2,
+        height: 38,
+        width: 38,
       },
     },
   },

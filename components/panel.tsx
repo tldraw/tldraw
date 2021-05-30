@@ -5,18 +5,19 @@ export const Root = styled('div', {
   backgroundColor: '$panel',
   borderRadius: '4px',
   overflow: 'hidden',
-  border: '1px solid $border',
   pointerEvents: 'all',
   userSelect: 'none',
   zIndex: 200,
-  boxShadow: '0px 2px 25px rgba(0,0,0,.16)',
+  border: '1px solid $panel',
+  boxShadow: '0px 2px 4px rgba(0,0,0,.12)',
 
   variants: {
     isOpen: {
       true: {},
       false: {
-        height: 34,
-        width: 34,
+        padding: 2,
+        height: 38,
+        width: 38,
       },
     },
   },
@@ -42,7 +43,7 @@ export const Header = styled('div', {
   width: '100%',
   alignItems: 'center',
   justifyContent: 'space-between',
-  borderBottom: '1px solid $border',
+  padding: 2,
   position: 'relative',
 
   '& h3': {
@@ -91,5 +92,4 @@ export const Footer = styled('div', {
   padding: '0 12px',
   display: 'flex',
   alignItems: 'center',
-  borderTop: '1px solid $border',
 })

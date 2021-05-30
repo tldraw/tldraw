@@ -13,6 +13,7 @@ const { styled, global, css, theme, getCssString } = createCss({
       bounds: 'rgba(65, 132, 244, 1.000)',
       boundsBg: 'rgba(65, 132, 244, 0.100)',
       border: '#aaa',
+      canvas: '#fafafa',
       panel: '#fefefe',
       inactive: '#cccccf',
       hover: '#efefef',

@@ -31,11 +31,11 @@ const Container = styled('div', {
   borderRadius: '4px',
   overflow: 'hidden',
   alignSelf: 'flex-end',
-  border: '1px solid $border',
   pointerEvents: 'all',
   userSelect: 'none',
   zIndex: 200,
-  boxShadow: '0px 2px 12px rgba(0,0,0,.08)',
+  border: '1px solid $panel',
+  boxShadow: '0px 2px 4px rgba(0,0,0,.12)',
   display: 'flex',
   padding: 4,
 
