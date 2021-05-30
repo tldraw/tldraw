@@ -9,7 +9,7 @@ const clear = () => state.send('CLEARED_PAGE')
 
 export default function UndoRedo() {
   return (
-    <Container>
+    <Container size={{ '@sm': 'small' }}>
       <IconButton onClick={undo}>
         <RotateCcw />
       </IconButton>
@@ -25,7 +25,7 @@ export default function UndoRedo() {
 
 const Container = styled('div', {
   position: 'absolute',
-  bottom: 12,
+  bottom: 64,
   right: 12,
   backgroundColor: '$panel',
   borderRadius: '4px',
@@ -42,5 +42,13 @@ const Container = styled('div', {
   '& svg': {
     height: 13,
     width: 13,
+  },
+
+  variants: {
+    size: {
+      small: {
+        bottom: 12,
+      },
+    },
   },
 })

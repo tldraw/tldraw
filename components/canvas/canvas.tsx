@@ -21,15 +21,26 @@ export default function Canvas() {
   const isReady = useSelector((s) => s.isIn('ready'))
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    if (!inputs.canAccept(e.pointerId)) return
     rCanvas.current.setPointerCapture(e.pointerId)
     state.send('POINTED_CANVAS', inputs.pointerDown(e, 'canvas'))
   }, [])
 
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      state.send('TOUCH_UNDO')
+    }
+  }, [])
+
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    state.send('MOVED_POINTER', inputs.pointerMove(e))
+    if (!inputs.canAccept(e.pointerId)) return
+    if (inputs.canAccept(e.pointerId)) {
+      state.send('MOVED_POINTER', inputs.pointerMove(e))
+    }
   }, [])
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (!inputs.canAccept(e.pointerId)) return
     rCanvas.current.releasePointerCapture(e.pointerId)
     state.send('STOPPED_POINTING', { id: 'canvas', ...inputs.pointerUp(e) })
   }, [])
@@ -41,14 +52,15 @@ export default function Canvas() {
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onTouchStart={handleTouchStart}
     >
       <Defs />
       {isReady && (
         <g ref={rGroup}>
           <BoundsBg />
           <Page />
-          <Bounds />
           <Selected />
+          <Bounds />
           <Brush />
         </g>
       )}

@@ -10,7 +10,7 @@ const zoomToActual = () => state.send('ZOOMED_TO_ACTUAL')
 
 export default function Zoom() {
   return (
-    <Container>
+    <Container size={{ '@sm': 'small' }}>
       <IconButton onClick={zoomOut}>
         <ZoomOutIcon />
       </IconButton>
@@ -33,8 +33,8 @@ function ZoomCounter() {
 
 const Container = styled('div', {
   position: 'absolute',
-  bottom: 12,
   left: 12,
+  bottom: 64,
   backgroundColor: '$panel',
   borderRadius: '4px',
   overflow: 'hidden',
@@ -49,6 +49,14 @@ const Container = styled('div', {
 
   '& svg': {
     strokeWidth: 0,
+  },
+
+  variants: {
+    size: {
+      small: {
+        bottom: 12,
+      },
+    },
   },
 })
 

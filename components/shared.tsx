@@ -26,12 +26,11 @@ export const IconButton = styled('button', {
   '& > svg': {
     height: '16px',
     width: '16px',
-    // strokeWidth: '2px',
-    // stroke: '$text',
   },
 
   variants: {
     size: {
+      small: {},
       medium: {
         height: 44,
         width: 44,

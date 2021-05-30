@@ -1,6 +1,6 @@
-import { Data } from "types"
-import { BaseCommand } from "./commands/command"
-import state from "./state"
+import { Data } from 'types'
+import { BaseCommand } from './commands/command'
+import state from './state'
 
 // A singleton to manage history changes.
 
@@ -11,10 +11,11 @@ class BaseHistory<T> {
   private _enabled = true
 
   execute = (data: T, command: BaseCommand<T>) => {
+    command.redo(data, true)
+
     if (this.disabled) return
     this.stack = this.stack.slice(0, this.pointer + 1)
     this.stack.push(command)
-    command.redo(data, true)
     this.pointer++
 
     if (this.stack.length > this.maxLength) {
@@ -26,26 +27,26 @@ class BaseHistory<T> {
   }
 
   undo = (data: T) => {
-    if (this.disabled) return
     if (this.pointer === -1) return
     const command = this.stack[this.pointer]
     command.undo(data)
+    if (this.disabled) return
     this.pointer--
     this.save(data)
   }
 
   redo = (data: T) => {
-    if (this.disabled) return
     if (this.pointer === this.stack.length - 1) return
     const command = this.stack[this.pointer + 1]
     command.redo(data, false)
+    if (this.disabled) return
     this.pointer++
     this.save(data)
   }
 
-  load(data: T, id = "code_slate_0.0.1") {
-    if (typeof window === "undefined") return
-    if (typeof localStorage === "undefined") return
+  load(data: T, id = 'code_slate_0.0.1') {
+    if (typeof window === 'undefined') return
+    if (typeof localStorage === 'undefined') return
 
     const savedData = localStorage.getItem(id)
 
@@ -54,9 +55,9 @@ class BaseHistory<T> {
     }
   }
 
-  save = (data: T, id = "code_slate_0.0.1") => {
-    if (typeof window === "undefined") return
-    if (typeof localStorage === "undefined") return
+  save = (data: T, id = 'code_slate_0.0.1') => {
+    if (typeof window === 'undefined') return
+    if (typeof localStorage === 'undefined') return
 
     localStorage.setItem(id, JSON.stringify(this.prepareDataForSave(data)))
   }
@@ -110,14 +111,14 @@ class History extends BaseHistory<Data> {
     restoredData.selectedIds = new Set(restoredData.selectedIds)
 
     // Also restore camera position, which is saved separately in this app
-    const cameraInfo = localStorage.getItem("code_slate_camera")
+    const cameraInfo = localStorage.getItem('code_slate_camera')
 
     if (cameraInfo !== null) {
       Object.assign(restoredData.camera, JSON.parse(cameraInfo))
 
       // And update the CSS property
       document.documentElement.style.setProperty(
-        "--camera-zoom",
+        '--camera-zoom',
         restoredData.camera.zoom.toString()
       )
     }

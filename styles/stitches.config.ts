@@ -42,6 +42,10 @@ const { styled, global, css, theme, getCssString } = createCss({
     zIndices: {},
     transitions: {},
   },
+  media: {
+    sm: '(min-width: 640px)',
+    md: '(min-width: 768px)',
+  },
   utils: {
     zDash: () => (value: number) => {
       return {

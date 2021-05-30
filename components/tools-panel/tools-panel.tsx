@@ -52,101 +52,117 @@ export default function ToolsPanel() {
   return (
     <OuterContainer>
       <Zoom />
-      <Container>
-        <IconButton
-          name="select"
-          size="large"
-          onClick={selectSelectTool}
-          isActive={activeTool === 'select'}
-        >
-          <CursorArrowIcon />
-        </IconButton>
-      </Container>
-      <Container>
-        <IconButton
-          name={ShapeType.Draw}
-          size="large"
-          onClick={selectDrawTool}
-          isActive={activeTool === ShapeType.Draw}
-        >
-          <Pencil1Icon />
-        </IconButton>
-        <IconButton
-          name={ShapeType.Rectangle}
-          size="large"
-          onClick={selectRectangleTool}
-          isActive={activeTool === ShapeType.Rectangle}
-        >
-          <SquareIcon />
-        </IconButton>
-        <IconButton
-          name={ShapeType.Circle}
-          size="large"
-          onClick={selectCircleTool}
-          isActive={activeTool === ShapeType.Circle}
-        >
-          <CircleIcon />
-        </IconButton>
-        <IconButton
-          name={ShapeType.Ellipse}
-          size="large"
-          onClick={selectEllipseTool}
-          isActive={activeTool === ShapeType.Ellipse}
-        >
-          <CircleIcon transform="rotate(-45) scale(1, .8)" />
-        </IconButton>
-        <IconButton
-          name={ShapeType.Line}
-          size="large"
-          onClick={selectLineTool}
-          isActive={activeTool === ShapeType.Line}
-        >
-          <DividerHorizontalIcon transform="rotate(-45)" />
-        </IconButton>
-        <IconButton
-          name={ShapeType.Ray}
-          size="large"
-          onClick={selectRayTool}
-          isActive={activeTool === ShapeType.Ray}
-        >
-          <SewingPinIcon transform="rotate(-135)" />
-        </IconButton>
-        <IconButton
-          name={ShapeType.Dot}
-          size="large"
-          onClick={selectDotTool}
-          isActive={activeTool === ShapeType.Dot}
-        >
-          <DotIcon />
-        </IconButton>
-      </Container>
-      <Container>
-        <IconButton size="medium" onClick={selectToolLock}>
-          {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
-        </IconButton>
-        {isPenLocked && (
-          <IconButton size="medium" onClick={selectToolLock}>
-            <Pencil2Icon />
+      <Flex>
+        <Container>
+          <IconButton
+            name="select"
+            size={{ '@sm': 'small', '@md': 'large' }}
+            onClick={selectSelectTool}
+            isActive={activeTool === 'select'}
+          >
+            <CursorArrowIcon />
           </IconButton>
-        )}
-      </Container>
+        </Container>
+        <Container>
+          <IconButton
+            name={ShapeType.Draw}
+            size={{ '@sm': 'small', '@md': 'large' }}
+            onClick={selectDrawTool}
+            isActive={activeTool === ShapeType.Draw}
+          >
+            <Pencil1Icon />
+          </IconButton>
+          <IconButton
+            name={ShapeType.Rectangle}
+            size={{ '@sm': 'small', '@md': 'large' }}
+            onClick={selectRectangleTool}
+            isActive={activeTool === ShapeType.Rectangle}
+          >
+            <SquareIcon />
+          </IconButton>
+          <IconButton
+            name={ShapeType.Circle}
+            size={{ '@sm': 'small', '@md': 'large' }}
+            onClick={selectCircleTool}
+            isActive={activeTool === ShapeType.Circle}
+          >
+            <CircleIcon />
+          </IconButton>
+          <IconButton
+            name={ShapeType.Ellipse}
+            size={{ '@sm': 'small', '@md': 'large' }}
+            onClick={selectEllipseTool}
+            isActive={activeTool === ShapeType.Ellipse}
+          >
+            <CircleIcon transform="rotate(-45) scale(1, .8)" />
+          </IconButton>
+          <IconButton
+            name={ShapeType.Line}
+            size={{ '@sm': 'small', '@md': 'large' }}
+            onClick={selectLineTool}
+            isActive={activeTool === ShapeType.Line}
+          >
+            <DividerHorizontalIcon transform="rotate(-45)" />
+          </IconButton>
+          <IconButton
+            name={ShapeType.Ray}
+            size={{ '@sm': 'small', '@md': 'large' }}
+            onClick={selectRayTool}
+            isActive={activeTool === ShapeType.Ray}
+          >
+            <SewingPinIcon transform="rotate(-135)" />
+          </IconButton>
+          <IconButton
+            name={ShapeType.Dot}
+            size={{ '@sm': 'small', '@md': 'large' }}
+            onClick={selectDotTool}
+            isActive={activeTool === ShapeType.Dot}
+          >
+            <DotIcon />
+          </IconButton>
+        </Container>
+        <Container>
+          <IconButton
+            size={{ '@sm': 'small', '@md': 'large' }}
+            onClick={selectToolLock}
+          >
+            {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
+          </IconButton>
+          {isPenLocked && (
+            <IconButton
+              size={{ '@sm': 'small', '@md': 'large' }}
+              onClick={selectToolLock}
+            >
+              <Pencil2Icon />
+            </IconButton>
+          )}
+        </Container>
+      </Flex>
       <UndoRedo />
     </OuterContainer>
   )
 }
 
-const Spacer = styled('div', { flexGrow: 2 })
-
 const OuterContainer = styled('div', {
-  position: 'relative',
-  gridArea: 'tools',
+  position: 'fixed',
+  bottom: 40,
+  left: 0,
+  right: 0,
   padding: '0 8px 12px 8px',
-  height: '100%',
   width: '100%',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  flexWrap: 'wrap',
   gap: 16,
+  zIndex: 200,
+})
+
+const Flex = styled('div', {
+  display: 'flex',
+  '& > *:nth-child(n+2)': {
+    marginLeft: 16,
+  },
 })
 
 const Container = styled('div', {
@@ -157,8 +173,6 @@ const Container = styled('div', {
   border: '1px solid $border',
   pointerEvents: 'all',
   userSelect: 'none',
-  zIndex: 200,
-  boxShadow: '0px 2px 25px rgba(0,0,0,.16)',
   height: '100%',
   display: 'flex',
   padding: 4,

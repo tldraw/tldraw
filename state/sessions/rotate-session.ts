@@ -45,6 +45,11 @@ export default class RotateSession extends BaseSession {
     for (let { id, center, offset, rotation } of initialShapes) {
       const shape = page.shapes[id]
 
+      // const rotationOffset = vec.sub(
+      //   getBoundsCenter(getShapeBounds(shape)),
+      //   getBoundsCenter(getRotatedBounds(shape))
+      // )
+
       const nextRotation = isLocked
         ? clampToRotationToSegments(rotation + rot, 24)
         : rotation + rot
@@ -100,11 +105,17 @@ export function getRotateSnapshot(data: Data) {
       const center = getBoundsCenter(bounds)
       const offset = vec.sub(center, shape.point)
 
+      const rotationOffset = vec.sub(
+        center,
+        getBoundsCenter(getRotatedBounds(shape))
+      )
+
       return {
         id: shape.id,
         point: shape.point,
         rotation: shape.rotation,
         offset,
+        rotationOffset,
         center,
       }
     }),

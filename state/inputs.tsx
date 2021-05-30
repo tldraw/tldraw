@@ -1,7 +1,8 @@
-import { PointerInfo } from "types"
-import { isDarwin } from "utils/utils"
+import { PointerInfo } from 'types'
+import { isDarwin } from 'utils/utils'
 
 class Inputs {
+  activePointerId?: number
   points: Record<string, PointerInfo> = {}
 
   pointerDown(e: PointerEvent | React.PointerEvent, target: string) {
@@ -19,6 +20,7 @@ class Inputs {
     }
 
     this.points[e.pointerId] = info
+    this.activePointerId = e.pointerId
 
     return info
   }
@@ -78,6 +80,7 @@ class Inputs {
     }
 
     delete this.points[e.pointerId]
+    delete this.activePointerId
 
     return info
   }
@@ -85,6 +88,12 @@ class Inputs {
   wheel(e: WheelEvent) {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
     return { point: [e.clientX, e.clientY], shiftKey, ctrlKey, metaKey, altKey }
+  }
+
+  canAccept(pointerId: PointerEvent['pointerId']) {
+    return (
+      this.activePointerId === undefined || this.activePointerId === pointerId
+    )
   }
 
   get pointer() {

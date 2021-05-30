@@ -69,47 +69,7 @@ const initialData: Data = {
 const state = createState({
   data: initialData,
   on: {
-    ZOOMED_CAMERA: {
-      do: 'zoomCamera',
-    },
-    PANNED_CAMERA: {
-      do: 'panCamera',
-    },
-    ZOOMED_TO_ACTUAL: {
-      if: 'hasSelection',
-      do: 'zoomCameraToSelectionActual',
-      else: 'zoomCameraToActual',
-    },
-    ZOOMED_TO_SELECTION: {
-      if: 'hasSelection',
-      do: 'zoomCameraToSelection',
-    },
-    ZOOMED_TO_FIT: ['zoomCameraToFit', 'zoomCameraToActual'],
-    ZOOMED_IN: 'zoomIn',
-    ZOOMED_OUT: 'zoomOut',
-    RESET_CAMERA: 'resetCamera',
-    TOGGLED_SHAPE_LOCK: { if: 'hasSelection', do: 'lockSelection' },
-    TOGGLED_SHAPE_HIDE: { if: 'hasSelection', do: 'hideSelection' },
-    TOGGLED_SHAPE_ASPECT_LOCK: {
-      if: 'hasSelection',
-      do: 'aspectLockSelection',
-    },
-    SELECTED_SELECT_TOOL: { to: 'selecting' },
-    SELECTED_DRAW_TOOL: { unless: 'isReadOnly', to: 'draw' },
-    SELECTED_DOT_TOOL: { unless: 'isReadOnly', to: 'dot' },
-    SELECTED_CIRCLE_TOOL: { unless: 'isReadOnly', to: 'circle' },
-    SELECTED_ELLIPSE_TOOL: { unless: 'isReadOnly', to: 'ellipse' },
-    SELECTED_RAY_TOOL: { unless: 'isReadOnly', to: 'ray' },
-    SELECTED_LINE_TOOL: { unless: 'isReadOnly', to: 'line' },
-    SELECTED_POLYLINE_TOOL: { unless: 'isReadOnly', to: 'polyline' },
-    SELECTED_RECTANGLE_TOOL: { unless: 'isReadOnly', to: 'rectangle' },
-    TOGGLED_CODE_PANEL_OPEN: 'toggleCodePanel',
-    TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
-    CHANGED_STYLE: ['updateStyles', 'applyStylesToSelection'],
-    SELECTED_ALL: { to: 'selecting', do: 'selectAll' },
-    NUDGED: { do: 'nudgeSelection' },
-    USED_PEN_DEVICE: 'enablePenLock',
-    DISABLED_PEN_LOCK: 'disablePenLock',
+    UNMOUNTED: [{ unless: 'isReadOnly', do: 'forceSave' }, { to: 'loading' }],
   },
   initial: 'loading',
   states: {
@@ -131,10 +91,48 @@ const state = createState({
         else: ['zoomCameraToFit', 'zoomCameraToActual'],
       },
       on: {
-        UNMOUNTED: [
-          { unless: 'isReadOnly', do: 'forceSave' },
-          { to: 'loading' },
-        ],
+        ZOOMED_CAMERA: {
+          do: 'zoomCamera',
+        },
+        PANNED_CAMERA: {
+          do: 'panCamera',
+        },
+        ZOOMED_TO_ACTUAL: {
+          if: 'hasSelection',
+          do: 'zoomCameraToSelectionActual',
+          else: 'zoomCameraToActual',
+        },
+        ZOOMED_TO_SELECTION: {
+          if: 'hasSelection',
+          do: 'zoomCameraToSelection',
+        },
+        ZOOMED_TO_FIT: ['zoomCameraToFit', 'zoomCameraToActual'],
+        ZOOMED_IN: 'zoomIn',
+        ZOOMED_OUT: 'zoomOut',
+        RESET_CAMERA: 'resetCamera',
+        TOGGLED_SHAPE_LOCK: { if: 'hasSelection', do: 'lockSelection' },
+        TOGGLED_SHAPE_HIDE: { if: 'hasSelection', do: 'hideSelection' },
+        TOGGLED_SHAPE_ASPECT_LOCK: {
+          if: 'hasSelection',
+          do: 'aspectLockSelection',
+        },
+        SELECTED_SELECT_TOOL: { to: 'selecting' },
+        SELECTED_DRAW_TOOL: { unless: 'isReadOnly', to: 'draw' },
+        SELECTED_DOT_TOOL: { unless: 'isReadOnly', to: 'dot' },
+        SELECTED_CIRCLE_TOOL: { unless: 'isReadOnly', to: 'circle' },
+        SELECTED_ELLIPSE_TOOL: { unless: 'isReadOnly', to: 'ellipse' },
+        SELECTED_RAY_TOOL: { unless: 'isReadOnly', to: 'ray' },
+        SELECTED_LINE_TOOL: { unless: 'isReadOnly', to: 'line' },
+        SELECTED_POLYLINE_TOOL: { unless: 'isReadOnly', to: 'polyline' },
+        SELECTED_RECTANGLE_TOOL: { unless: 'isReadOnly', to: 'rectangle' },
+        TOGGLED_CODE_PANEL_OPEN: 'toggleCodePanel',
+        TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
+        CHANGED_STYLE: ['updateStyles', 'applyStylesToSelection'],
+        SELECTED_ALL: { to: 'selecting', do: 'selectAll' },
+        NUDGED: { do: 'nudgeSelection' },
+        USED_PEN_DEVICE: 'enablePenLock',
+        DISABLED_PEN_LOCK: 'disablePenLock',
+        CLEARED_PAGE: ['selectAll', 'deleteSelection'],
       },
       initial: 'selecting',
       states: {
@@ -143,10 +141,8 @@ const state = createState({
             SAVED: 'forceSave',
             UNDO: 'undo',
             REDO: 'redo',
-            CLEARED_PAGE: ['selectAll', 'deleteSelection'],
             SAVED_CODE: 'saveCode',
             DELETED: 'deleteSelection',
-            STARTED_PINCHING: { to: 'pinching' },
             INCREASED_CODE_FONT_SIZE: 'increaseCodeFontSize',
             DECREASED_CODE_FONT_SIZE: 'decreaseCodeFontSize',
             CHANGED_CODE_CONTROL: 'updateControls',
@@ -164,6 +160,7 @@ const state = createState({
             notPointing: {
               on: {
                 CANCELLED: 'clearSelectedIds',
+                STARTED_PINCHING: { to: 'pinching' },
                 POINTED_CANVAS: { to: 'brushSelecting' },
                 POINTED_BOUNDS: { to: 'pointingBounds' },
                 POINTED_BOUNDS_HANDLE: {
@@ -269,7 +266,7 @@ const state = createState({
                 'startBrushSession',
               ],
               on: {
-                STARTED_PINCHING: { to: 'pinching' },
+                STARTED_PINCHING: { do: 'completeSession', to: 'pinching' },
                 MOVED_POINTER: 'updateBrushSession',
                 PANNED_CAMERA: 'updateBrushSession',
                 STOPPED_POINTING: { do: 'completeSession', to: 'selecting' },
@@ -280,14 +277,30 @@ const state = createState({
         },
         pinching: {
           on: {
-            STOPPED_PINCHING: { to: 'selecting' },
             PINCHED: { do: 'pinchCamera' },
+          },
+          initial: 'selectPinching',
+          states: {
+            selectPinching: {
+              on: {
+                STOPPED_PINCHING: { to: 'selecting' },
+              },
+            },
+            toolPinching: {
+              on: {
+                STOPPED_PINCHING: { to: 'usingTool.previous' },
+              },
+            },
           },
         },
         usingTool: {
           initial: 'draw',
           onEnter: 'clearSelectedIds',
           on: {
+            STARTED_PINCHING: {
+              do: 'breakSession',
+              to: 'pinching.toolPinching',
+            },
             TOGGLED_TOOL_LOCK: 'toggleToolLock',
           },
           states: {
@@ -319,7 +332,7 @@ const state = createState({
                       to: 'draw.creating',
                     },
                     CANCELLED: {
-                      do: ['cancelSession', 'deleteSelection'],
+                      do: 'breakSession',
                       to: 'selecting',
                     },
                     MOVED_POINTER: 'updateDrawSession',
@@ -359,7 +372,7 @@ const state = createState({
                       },
                     ],
                     CANCELLED: {
-                      do: ['cancelSession', 'deleteSelection'],
+                      do: 'breakSession',
                       to: 'selecting',
                     },
                   },
@@ -545,7 +558,7 @@ const state = createState({
               },
             ],
             CANCELLED: {
-              do: ['cancelSession', 'deleteSelection'],
+              do: 'breakSession',
               to: 'selecting',
             },
           },
@@ -662,6 +675,13 @@ const state = createState({
     /* -------------------- Sessions -------------------- */
 
     // Shared
+    breakSession(data) {
+      session?.cancel(data)
+      session = undefined
+      history.disable()
+      commands.deleteSelected(data)
+      history.enable()
+    },
     cancelSession(data) {
       session?.cancel(data)
       session = undefined

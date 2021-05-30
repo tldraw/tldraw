@@ -8,7 +8,8 @@ export default function useShapeEvents(
 ) {
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      e.stopPropagation()
+      if (!inputs.canAccept(e.pointerId)) return
+      // e.stopPropagation()
       rGroup.current.setPointerCapture(e.pointerId)
       state.send('POINTED_SHAPE', inputs.pointerDown(e, id))
     },
@@ -17,7 +18,8 @@ export default function useShapeEvents(
 
   const handlePointerUp = useCallback(
     (e: React.PointerEvent) => {
-      e.stopPropagation()
+      if (!inputs.canAccept(e.pointerId)) return
+      // e.stopPropagation()
       rGroup.current.releasePointerCapture(e.pointerId)
       state.send('STOPPED_POINTING', inputs.pointerUp(e))
     },
@@ -26,6 +28,7 @@ export default function useShapeEvents(
 
   const handlePointerEnter = useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.canAccept(e.pointerId)) return
       state.send('HOVERED_SHAPE', inputs.pointerEnter(e, id))
     },
     [id]
@@ -33,13 +36,17 @@ export default function useShapeEvents(
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.canAccept(e.pointerId)) return
       state.send('MOVED_OVER_SHAPE', inputs.pointerEnter(e, id))
     },
     [id]
   )
 
   const handlePointerLeave = useCallback(
-    () => state.send('UNHOVERED_SHAPE', { target: id }),
+    (e: React.PointerEvent) => {
+      if (!inputs.canAccept(e.pointerId)) return
+      state.send('UNHOVERED_SHAPE', { target: id })
+    },
     [id]
   )
 
