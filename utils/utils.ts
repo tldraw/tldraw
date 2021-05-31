@@ -750,7 +750,7 @@ export function det(
  * @param p0
  * @param p1
  * @param center
- * @returns
+ * @returns [x, y, r]
  */
 export function circleFromThreePoints(A: number[], B: number[], C: number[]) {
   const a = det(A[0], A[1], 1, B[0], B[1], 1, C[0], C[1], 1)
@@ -788,11 +788,12 @@ export function circleFromThreePoints(A: number[], B: number[], C: number[]) {
     C[0],
     C[1]
   )
-  return [
-    -bx / (2 * a),
-    -by / (2 * a),
-    Math.sqrt(bx * bx + by * by - 4 * a * c) / (2 * Math.abs(a)),
-  ]
+
+  const x = -bx / (2 * a)
+  const y = -by / (2 * a)
+  const r = Math.sqrt(bx * bx + by * by - 4 * a * c) / (2 * Math.abs(a))
+
+  return [x, y, r]
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -993,7 +994,6 @@ export function getBoundsFromPoints(points: number[][], rotation = 0): Bounds {
   }
 
   if (rotation !== 0) {
-    console.log('returning rotated bounds')
     return getBoundsFromPoints(
       points.map((pt) =>
         vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], rotation)
@@ -1304,8 +1304,8 @@ export function getTransformedBoundingBox(
     maxY: by1,
     width: bx1 - bx0,
     height: by1 - by0,
-    scaleX: ((bx1 - bx0) / (ax1 - ax0)) * (flipX ? -1 : 1),
-    scaleY: ((by1 - by0) / (ay1 - ay0)) * (flipY ? -1 : 1),
+    scaleX: ((bx1 - bx0) / (ax1 - ax0 || 1)) * (flipX ? -1 : 1),
+    scaleY: ((by1 - by0) / (ay1 - ay0 || 1)) * (flipY ? -1 : 1),
   }
 }
 

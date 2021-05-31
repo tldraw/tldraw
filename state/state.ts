@@ -118,6 +118,7 @@ const state = createState({
         },
         SELECTED_SELECT_TOOL: { to: 'selecting' },
         SELECTED_DRAW_TOOL: { unless: 'isReadOnly', to: 'draw' },
+        SELECTED_ARROW_TOOL: { unless: 'isReadOnly', to: 'arrow' },
         SELECTED_DOT_TOOL: { unless: 'isReadOnly', to: 'dot' },
         SELECTED_CIRCLE_TOOL: { unless: 'isReadOnly', to: 'circle' },
         SELECTED_ELLIPSE_TOOL: { unless: 'isReadOnly', to: 'ellipse' },
@@ -168,6 +169,7 @@ const state = createState({
                   to: 'rotatingSelection',
                   else: { to: 'transformingSelection' },
                 },
+                POINTED_HANDLE: { to: 'translatingHandles' },
                 MOVED_OVER_SHAPE: {
                   if: 'pointHitsShape',
                   then: {
@@ -216,7 +218,7 @@ const state = createState({
                 MOVED_POINTER: {
                   unless: 'isReadOnly',
                   if: 'distanceImpliesDrag',
-                  to: 'draggingSelection',
+                  to: 'translatingSelection',
                 },
               },
             },
@@ -243,7 +245,7 @@ const state = createState({
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
               },
             },
-            draggingSelection: {
+            translatingSelection: {
               onEnter: 'startTranslateSession',
               on: {
                 MOVED_POINTER: 'updateTranslateSession',
@@ -252,6 +254,17 @@ const state = createState({
                 RELEASED_SHIFT_KEY: 'keyUpdateTranslateSession',
                 PRESSED_ALT_KEY: 'keyUpdateTranslateSession',
                 RELEASED_ALT_KEY: 'keyUpdateTranslateSession',
+                STOPPED_POINTING: { do: 'completeSession', to: 'selecting' },
+                CANCELLED: { do: 'cancelSession', to: 'selecting' },
+              },
+            },
+            translatingHandles: {
+              onEnter: 'startHandleSession',
+              on: {
+                MOVED_POINTER: 'updateHandleSession',
+                PANNED_CAMERA: 'updateHandleSession',
+                PRESSED_SHIFT_KEY: 'keyUpdateHandleSession',
+                RELEASED_SHIFT_KEY: 'keyUpdateHandleSession',
                 STOPPED_POINTING: { do: 'completeSession', to: 'selecting' },
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
               },
@@ -395,6 +408,51 @@ const state = createState({
                         PANNED_CAMERA: 'updateTranslateSession',
                       },
                     },
+                  },
+                },
+              },
+            },
+            arrow: {
+              initial: 'creating',
+              states: {
+                creating: {
+                  on: {
+                    CANCELLED: { to: 'selecting' },
+                    POINTED_SHAPE: {
+                      get: 'newArrow',
+                      do: 'createShape',
+                      to: 'arrow.editing',
+                    },
+                    POINTED_CANVAS: {
+                      get: 'newArrow',
+                      do: 'createShape',
+                      to: 'arrow.editing',
+                    },
+                    UNDO: { do: 'undo' },
+                    REDO: { do: 'redo' },
+                  },
+                },
+                editing: {
+                  onEnter: 'startArrowSession',
+                  on: {
+                    STOPPED_POINTING: [
+                      'completeSession',
+                      {
+                        if: 'isToolLocked',
+                        to: 'arrow.creating',
+                        else: { to: 'selecting' },
+                      },
+                    ],
+                    CANCELLED: {
+                      do: 'breakSession',
+                      if: 'isToolLocked',
+                      to: 'arrow.creating',
+                      else: { to: 'selecting' },
+                    },
+                    PRESSED_SHIFT: 'keyUpdateArrowSession',
+                    RELEASED_SHIFT: 'keyUpdateArrowSession',
+                    MOVED_POINTER: 'updateArrowSession',
+                    PANNED_CAMERA: 'updateArrowSession',
                   },
                 },
               },
@@ -586,6 +644,9 @@ const state = createState({
     },
   },
   results: {
+    newArrow() {
+      return ShapeType.Arrow
+    },
     newDraw() {
       return ShapeType.Draw
     },
@@ -749,7 +810,39 @@ const state = createState({
       )
     },
 
-    // Dragging / Translating
+    // Dragging Handle
+    startHandleSession(data, payload: PointerInfo) {
+      const shapeId = Array.from(data.selectedIds.values())[0]
+      const handleId = payload.target
+
+      session = new Sessions.HandleSession(
+        data,
+        shapeId,
+        handleId,
+        screenToWorld(inputs.pointer.origin, data)
+      )
+    },
+    keyUpdateHandleSession(
+      data,
+      payload: { shiftKey: boolean; altKey: boolean }
+    ) {
+      session.update(
+        data,
+        screenToWorld(inputs.pointer.point, data),
+        payload.shiftKey,
+        payload.altKey
+      )
+    },
+    updateHandleSession(data, payload: PointerInfo) {
+      session.update(
+        data,
+        screenToWorld(payload.point, data),
+        payload.shiftKey,
+        payload.altKey
+      )
+    },
+
+    // Transforming
     startTransformSession(
       data,
       payload: PointerInfo & { target: Corner | Edge }
@@ -814,6 +907,27 @@ const state = createState({
       )
     },
     updateDrawSession(data, payload: PointerInfo) {
+      session.update(data, screenToWorld(payload.point, data), payload.shiftKey)
+    },
+
+    // Arrow
+    startArrowSession(data, payload: PointerInfo) {
+      const id = Array.from(data.selectedIds.values())[0]
+      session = new Sessions.ArrowSession(
+        data,
+        id,
+        screenToWorld(inputs.pointer.origin, data),
+        payload.shiftKey
+      )
+    },
+    keyUpdateArrowSession(data, payload: PointerInfo) {
+      session.update(
+        data,
+        screenToWorld(inputs.pointer.point, data),
+        payload.shiftKey
+      )
+    },
+    updateArrowSession(data, payload: PointerInfo) {
       session.update(data, screenToWorld(payload.point, data), payload.shiftKey)
     },
 

@@ -1,39 +1,43 @@
 import align from './align'
+import arrow from './arrow'
 import deleteSelected from './delete-selected'
 import direct from './direct'
 import distribute from './distribute'
+import draw from './draw'
 import duplicate from './duplicate'
 import generate from './generate'
 import move from './move'
-import draw from './draw'
+import nudge from './nudge'
 import rotate from './rotate'
+import rotateCcw from './rotate-ccw'
 import stretch from './stretch'
 import style from './style'
+import toggle from './toggle'
 import transform from './transform'
 import transformSingle from './transform-single'
 import translate from './translate'
-import nudge from './nudge'
-import toggle from './toggle'
-import rotateCcw from './rotate-ccw'
+import handle from './handle'
 
 const commands = {
   align,
+  arrow,
   deleteSelected,
   direct,
   distribute,
+  draw,
   duplicate,
   generate,
   move,
-  draw,
+  nudge,
   rotate,
+  rotateCcw,
   stretch,
   style,
+  toggle,
   transform,
   transformSingle,
   translate,
-  nudge,
-  toggle,
-  rotateCcw,
+  handle,
 }
 
 export default commands

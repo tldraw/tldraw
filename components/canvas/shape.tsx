@@ -26,7 +26,8 @@ function Shape({ id, isSelecting }: { id: string; isSelecting: boolean }) {
   const center = getShapeUtils(shape).getCenter(shape)
   const transform = `
   rotate(${shape.rotation * (180 / Math.PI)}, ${center})
-  translate(${shape.point})`
+  translate(${shape.point})
+  `
 
   return (
     <StyledGroup
@@ -53,22 +54,6 @@ const StyledShape = memo(
     return <use href={'#' + id} {...style} />
   }
 )
-
-function Label({ text }: { text: string }) {
-  return (
-    <text
-      y={4}
-      x={4}
-      fontSize={18}
-      fill="black"
-      stroke="none"
-      alignmentBaseline="text-before-edge"
-      pointerEvents="none"
-    >
-      {text}
-    </text>
-  )
-}
 
 const HoverIndicator = styled('path', {
   fill: 'none',
@@ -132,6 +117,22 @@ const StyledGroup = styled('g', {
     },
   ],
 })
+
+function Label({ text }: { text: string }) {
+  return (
+    <text
+      y={4}
+      x={4}
+      fontSize={18}
+      fill="black"
+      stroke="none"
+      alignmentBaseline="text-before-edge"
+      pointerEvents="none"
+    >
+      {text}
+    </text>
+  )
+}
 
 export { HoverIndicator }
 

@@ -1,14 +1,12 @@
 import {
   Bounds,
-  BoundsSnapshot,
   Shape,
-  Shapes,
   ShapeType,
   Corner,
   Edge,
-  ShapeByType,
   ShapeStyles,
-  PropsOfType,
+  ShapeHandle,
+  ShapeBinding,
 } from 'types'
 import circle from './circle'
 import dot from './dot'
@@ -18,6 +16,7 @@ import ellipse from './ellipse'
 import line from './line'
 import ray from './ray'
 import draw from './draw'
+import arrow from './arrow'
 
 /*
 Shape Utiliies
@@ -90,6 +89,20 @@ export interface ShapeUtility<K extends Readonly<Shape>> {
     value: K[P]
   ): ShapeUtility<K>
 
+  // Respond when a user moves one of the shape's bound elements.
+  onBindingMove?(
+    this: ShapeUtility<K>,
+    shape: K,
+    bindings: Record<string, ShapeBinding>
+  ): ShapeUtility<K>
+
+  // Respond when a user moves one of the shape's handles.
+  onHandleMove?(
+    this: ShapeUtility<K>,
+    shape: K,
+    handle: Partial<K['handles']>
+  ): ShapeUtility<K>
+
   // Render a shape to JSX.
   render(this: ShapeUtility<K>, shape: K): JSX.Element
 
@@ -119,6 +132,7 @@ const shapeUtilityMap: Record<ShapeType, ShapeUtility<Shape>> = {
   [ShapeType.Line]: line,
   [ShapeType.Ray]: ray,
   [ShapeType.Draw]: draw,
+  [ShapeType.Arrow]: arrow,
 }
 
 /**

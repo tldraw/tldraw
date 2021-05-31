@@ -58,6 +58,7 @@ export enum ShapeType {
   Polyline = 'polyline',
   Rectangle = 'rectangle',
   Draw = 'draw',
+  Arrow = 'arrow',
 }
 
 // Consider:
@@ -77,6 +78,8 @@ export interface BaseShape {
   name: string
   point: number[]
   rotation: number
+  bindings?: Record<string, ShapeBinding>
+  handles?: Record<string, ShapeHandle>
   style: ShapeStyles
   isLocked: boolean
   isHidden: boolean
@@ -124,6 +127,18 @@ export interface DrawShape extends BaseShape {
   points: number[][]
 }
 
+export interface ArrowShape extends BaseShape {
+  type: ShapeType.Arrow
+  points: number[][]
+  handles: Record<string, ShapeHandle>
+  bend: number
+  decorations?: {
+    start: Decoration
+    end: Decoration
+    middle: Decoration
+  }
+}
+
 export type MutableShape =
   | DotShape
   | CircleShape
@@ -133,6 +148,7 @@ export type MutableShape =
   | PolylineShape
   | DrawShape
   | RectangleShape
+  | ArrowShape
 
 export type Shape = Readonly<MutableShape>
 
@@ -145,6 +161,7 @@ export interface Shapes {
   [ShapeType.Polyline]: Readonly<PolylineShape>
   [ShapeType.Draw]: Readonly<DrawShape>
   [ShapeType.Rectangle]: Readonly<RectangleShape>
+  [ShapeType.Arrow]: Readonly<ArrowShape>
 }
 
 export type ShapeByType<T extends ShapeType> = Shapes[T]
@@ -153,6 +170,22 @@ export interface CodeFile {
   id: string
   name: string
   code: string
+}
+
+export enum Decoration {
+  Arrow,
+}
+
+export interface ShapeBinding {
+  id: string
+  index: number
+  point: number[]
+}
+
+export interface ShapeHandle {
+  id: string
+  index: number
+  point: number[]
 }
 
 /* -------------------------------------------------- */

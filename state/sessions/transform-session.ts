@@ -100,7 +100,9 @@ export default class TransformSession extends BaseSession {
     commands.transform(
       data,
       this.snapshot,
-      getTransformSnapshot(data, this.transformType)
+      getTransformSnapshot(data, this.transformType),
+      this.scaleX,
+      this.scaleY
     )
   }
 }

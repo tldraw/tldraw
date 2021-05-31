@@ -23,7 +23,7 @@ export default function transformSingleCommand(
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        const { id, type, initialShape, initialShapeBounds } = after
+        const { id, type, initialShapeBounds } = after
 
         const { shapes } = getPage(data, after.currentPageId)
 
@@ -35,7 +35,7 @@ export default function transformSingleCommand(
         } else {
           getShapeUtils(shape).transformSingle(shape, initialShapeBounds, {
             type,
-            initialShape,
+            initialShape: before.initialShape,
             scaleX,
             scaleY,
             transformOrigin: [0.5, 0.5],

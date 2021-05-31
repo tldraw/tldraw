@@ -23,11 +23,6 @@ export default class BrushSession extends BaseSession {
     this.points = []
     this.snapshot = getDrawSnapshot(data, id)
 
-    // if (isLocked && prevEndPoint) {
-    //   const continuedPt = vec.sub([...prevEndPoint], this.origin)
-    //   this.points.push(continuedPt)
-    // }
-
     const page = getPage(data)
     const shape = page.shapes[id]
     getShapeUtils(shape).translateTo(shape, point)

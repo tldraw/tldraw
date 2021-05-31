@@ -128,17 +128,19 @@ export default function useKeyboardEvents() {
           }
           break
         }
-        case 'a': {
-          if (metaKey(e)) {
-            state.send('SELECTED_ALL', getKeyboardEventInfo(e))
-          }
-          break
-        }
         case 'v': {
           if (metaKey(e)) {
             state.send('PASTED', getKeyboardEventInfo(e))
           } else {
             state.send('SELECTED_SELECT_TOOL', getKeyboardEventInfo(e))
+          }
+          break
+        }
+        case 'a': {
+          if (metaKey(e)) {
+            state.send('SELECTED_ALL', getKeyboardEventInfo(e))
+          } else {
+            state.send('SELECTED_ARROW_TOOL', getKeyboardEventInfo(e))
           }
           break
         }

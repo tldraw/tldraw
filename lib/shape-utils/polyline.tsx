@@ -43,8 +43,7 @@ const polyline = registerShapeUtils<PolylineShape>({
 
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
-      const bounds = getBoundsFromPoints(shape.points)
-      this.boundsCache.set(shape, bounds)
+      this.boundsCache.set(shape, getBoundsFromPoints(shape.points))
     }
 
     return translateBounds(this.boundsCache.get(shape), shape.point)
@@ -106,6 +105,7 @@ const polyline = registerShapeUtils<PolylineShape>({
 
   transform(shape, bounds, { initialShape, scaleX, scaleY }) {
     const initialShapeBounds = this.getBounds(initialShape)
+
     shape.points = shape.points.map((_, i) => {
       const [x, y] = initialShape.points[i]
 

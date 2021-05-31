@@ -1,12 +1,18 @@
 import * as React from 'react'
-import { Edge, Corner } from 'types'
+import { Edge, Corner, LineShape, ArrowShape } from 'types'
 import { useSelector } from 'state'
-import { getPage, getSelectedShapes, isMobile } from 'utils/utils'
+import {
+  deepCompareArrays,
+  getPage,
+  getSelectedShapes,
+  isMobile,
+} from 'utils/utils'
 
 import CenterHandle from './center-handle'
 import CornerHandle from './corner-handle'
 import EdgeHandle from './edge-handle'
 import RotateHandle from './rotate-handle'
+import Handles from './handles'
 
 export default function Bounds() {
   const isBrushing = useSelector((s) => s.isIn('brushSelecting'))
@@ -14,19 +20,30 @@ export default function Bounds() {
   const zoom = useSelector((s) => s.data.camera.zoom)
   const bounds = useSelector((s) => s.values.selectedBounds)
 
+  const selectedIds = useSelector(
+    (s) => Array.from(s.values.selectedIds.values()),
+    deepCompareArrays
+  )
+
   const rotation = useSelector(({ data }) =>
     data.selectedIds.size === 1 ? getSelectedShapes(data)[0].rotation : 0
   )
 
   const isAllLocked = useSelector((s) => {
     const page = getPage(s.data)
-    return Array.from(s.data.selectedIds.values()).every(
-      (id) => page.shapes[id].isLocked
-    )
+    return selectedIds.every((id) => page.shapes[id]?.isLocked)
+  })
+
+  const isAllHandles = useSelector((s) => {
+    const page = getPage(s.data)
+    return selectedIds.every((id) => page.shapes[id]?.handles !== undefined)
   })
 
   if (!bounds) return null
+
   if (!isSelecting) return null
+
+  if (isAllHandles) return null
 
   const size = (isMobile().any ? 10 : 8) / zoom // Touch target size
 

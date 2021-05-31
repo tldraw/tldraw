@@ -1,9 +1,9 @@
 import {
+  ArrowTopRightIcon,
   CircleIcon,
   CursorArrowIcon,
   DividerHorizontalIcon,
   DotIcon,
-  LineHeightIcon,
   LockClosedIcon,
   LockOpen1Icon,
   Pencil1Icon,
@@ -19,29 +19,31 @@ import { ShapeType } from 'types'
 import UndoRedo from './undo-redo'
 import Zoom from './zoom'
 
-const selectSelectTool = () => state.send('SELECTED_SELECT_TOOL')
-const selectDrawTool = () => state.send('SELECTED_DRAW_TOOL')
-const selectDotTool = () => state.send('SELECTED_DOT_TOOL')
+const selectArrowTool = () => state.send('SELECTED_ARROW_TOOL')
 const selectCircleTool = () => state.send('SELECTED_CIRCLE_TOOL')
+const selectDotTool = () => state.send('SELECTED_DOT_TOOL')
+const selectDrawTool = () => state.send('SELECTED_DRAW_TOOL')
 const selectEllipseTool = () => state.send('SELECTED_ELLIPSE_TOOL')
-const selectRayTool = () => state.send('SELECTED_RAY_TOOL')
 const selectLineTool = () => state.send('SELECTED_LINE_TOOL')
 const selectPolylineTool = () => state.send('SELECTED_POLYLINE_TOOL')
+const selectRayTool = () => state.send('SELECTED_RAY_TOOL')
 const selectRectangleTool = () => state.send('SELECTED_RECTANGLE_TOOL')
+const selectSelectTool = () => state.send('SELECTED_SELECT_TOOL')
 const selectToolLock = () => state.send('TOGGLED_TOOL_LOCK')
 
 export default function ToolsPanel() {
   const activeTool = useSelector((state) =>
     state.whenIn({
-      selecting: 'select',
-      dot: ShapeType.Dot,
+      arrow: ShapeType.Arrow,
       circle: ShapeType.Circle,
+      dot: ShapeType.Dot,
+      draw: ShapeType.Draw,
       ellipse: ShapeType.Ellipse,
-      ray: ShapeType.Ray,
       line: ShapeType.Line,
       polyline: ShapeType.Polyline,
+      ray: ShapeType.Ray,
       rectangle: ShapeType.Rectangle,
-      draw: ShapeType.Draw,
+      selecting: 'select',
     })
   )
 
@@ -83,19 +85,27 @@ export default function ToolsPanel() {
           <IconButton
             name={ShapeType.Circle}
             size={{ '@sm': 'small', '@md': 'large' }}
-            onClick={selectCircleTool}
-            isActive={activeTool === ShapeType.Circle}
+            onClick={selectEllipseTool}
+            isActive={activeTool === ShapeType.Ellipse}
           >
             <CircleIcon />
           </IconButton>
           <IconButton
-            name={ShapeType.Ellipse}
+            name={ShapeType.Arrow}
             size={{ '@sm': 'small', '@md': 'large' }}
-            onClick={selectEllipseTool}
-            isActive={activeTool === ShapeType.Ellipse}
+            onClick={selectArrowTool}
+            isActive={activeTool === ShapeType.Arrow}
           >
-            <CircleIcon transform="rotate(-45) scale(1, .8)" />
+            <ArrowTopRightIcon />
           </IconButton>
+          {/* <IconButton
+            name={ShapeType.Circle}
+            size={{ '@sm': 'small', '@md': 'large' }}
+            onClick={selectCircleTool}
+            isActive={activeTool === ShapeType.Circle}
+          >
+            <CircleIcon />
+          </IconButton> */}
           <IconButton
             name={ShapeType.Line}
             size={{ '@sm': 'small', '@md': 'large' }}

@@ -10,6 +10,7 @@ import Brush from './brush'
 import Bounds from './bounds/bounding-box'
 import BoundsBg from './bounds/bounds-bg'
 import Selected from './selected'
+import Handles from './bounds/handles'
 
 export default function Canvas() {
   const rCanvas = useRef<SVGSVGElement>(null)
@@ -60,6 +61,7 @@ export default function Canvas() {
           <Page />
           <Selected />
           <Bounds />
+          <Handles />
           <Brush />
         </g>
       )}

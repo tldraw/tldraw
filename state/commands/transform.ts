@@ -8,7 +8,9 @@ import { getPage } from 'utils/utils'
 export default function transformCommand(
   data: Data,
   before: TransformSnapshot,
-  after: TransformSnapshot
+  after: TransformSnapshot,
+  scaleX: number,
+  scaleY: number
 ) {
   history.execute(
     data,
@@ -29,8 +31,8 @@ export default function transformCommand(
             type,
             initialShape,
             transformOrigin,
-            scaleX: 1,
-            scaleY: 1,
+            scaleX,
+            scaleY,
           })
         }
       },
@@ -48,8 +50,8 @@ export default function transformCommand(
             type,
             initialShape,
             transformOrigin,
-            scaleX: 1,
-            scaleY: 1,
+            scaleX,
+            scaleY,
           })
         }
       },
