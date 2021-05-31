@@ -3,7 +3,7 @@ import * as vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
 import { current } from 'immer'
-import { getPage } from 'utils/utils'
+import { getBoundsFromPoints, getPage } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 
 export default class PointsSession extends BaseSession {
@@ -70,6 +70,34 @@ export default class PointsSession extends BaseSession {
   }
 
   complete(data: Data) {
+    const { id, initialShape } = this.snapshot
+
+    const shape = getPage(data).shapes[id] as ArrowShape
+
+    const { start, end, bend } = shape.handles
+
+    // Normalize point and handles
+
+    const bounds = getBoundsFromPoints([start.point, end.point])
+    const corner = [bounds.minX, bounds.minY]
+
+    const newPoint = vec.add(shape.point, corner)
+
+    const nextHandles = {
+      start: { ...start, point: vec.sub(start.point, corner) },
+      end: { ...end, point: vec.sub(end.point, corner) },
+      bend: { ...bend, point: vec.sub(bend.point, corner) },
+    }
+
+    getShapeUtils(shape)
+      .setProperty(shape, 'points', [
+        nextHandles.start.point,
+        nextHandles.end.point,
+      ])
+      .setProperty(shape, 'handles', nextHandles)
+      .translateTo(shape, newPoint)
+      .onHandleMove(shape, nextHandles)
+
     commands.arrow(
       data,
       this.snapshot,

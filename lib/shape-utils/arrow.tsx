@@ -145,14 +145,7 @@ const arrow = registerShapeUtils<ArrowShape>({
 
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
-      this.boundsCache.set(
-        shape,
-        getBoundsFromPoints([
-          ...shape.points,
-          shape.handles['bend'].point,
-          // vec.sub(shape.handles['bend'].point, shape.point),
-        ])
-      )
+      this.boundsCache.set(shape, getBoundsFromPoints(shape.points))
     }
 
     return translateBounds(this.boundsCache.get(shape), shape.point)
@@ -215,6 +208,8 @@ const arrow = registerShapeUtils<ArrowShape>({
   transform(shape, bounds, { initialShape, scaleX, scaleY }) {
     const initialShapeBounds = this.getBounds(initialShape)
 
+    // console.log([...shape.point], [bounds.minX, bounds.minY])
+
     shape.point = [bounds.minX, bounds.minY]
 
     shape.points = shape.points.map((_, i) => {
@@ -234,6 +229,28 @@ const arrow = registerShapeUtils<ArrowShape>({
       ]
     })
 
+    const { start, end, bend } = shape.handles
+
+    start.point = shape.points[0]
+    end.point = shape.points[1]
+
+    // start.point[0] = initialShape.handles.start.point[0] * scaleX
+    // end.point[0] = initialShape.handles.end.point[0] * scaleX
+
+    // start.point[1] = initialShape.handles.start.point[1] * scaleY
+    // end.point[1] = initialShape.handles.end.point[1] * scaleY
+
+    const bendDist = (vec.dist(start.point, end.point) / 2) * shape.bend
+    const midPoint = vec.med(start.point, end.point)
+    const u = vec.uni(vec.vec(start.point, end.point))
+
+    bend.point =
+      Math.abs(bendDist) > 10
+        ? vec.add(midPoint, vec.mul(vec.per(u), bendDist))
+        : midPoint
+
+    shape.points = [shape.handles.start.point, shape.handles.end.point]
+
     return this
   },
 
@@ -248,6 +265,8 @@ const arrow = registerShapeUtils<ArrowShape>({
   },
 
   onHandleMove(shape, handles) {
+    const { start, end, bend } = shape.handles
+
     for (let id in handles) {
       const handle = handles[id]
 
@@ -257,9 +276,6 @@ const arrow = registerShapeUtils<ArrowShape>({
         shape.points[handle.index] = handle.point
       }
 
-      const { start, end, bend } = shape.handles
-
-      const midPoint = vec.med(start.point, end.point)
       const dist = vec.dist(start.point, end.point)
 
       if (handle.id === 'bend') {
@@ -272,15 +288,17 @@ const arrow = registerShapeUtils<ArrowShape>({
         shape.bend = clamp(distance / (dist / 2), -1, 1)
         if (!vec.clockwise(start.point, bend.point, end.point)) shape.bend *= -1
       }
-
-      const bendDist = (dist / 2) * shape.bend
-      const u = vec.uni(vec.vec(start.point, end.point))
-
-      bend.point =
-        Math.abs(bendDist) > 10
-          ? vec.add(midPoint, vec.mul(vec.per(u), bendDist))
-          : midPoint
     }
+
+    const dist = vec.dist(start.point, end.point)
+    const midPoint = vec.med(start.point, end.point)
+    const bendDist = (dist / 2) * shape.bend
+    const u = vec.uni(vec.vec(start.point, end.point))
+
+    bend.point =
+      Math.abs(bendDist) > 10
+        ? vec.add(midPoint, vec.mul(vec.per(u), bendDist))
+        : midPoint
 
     return this
   },

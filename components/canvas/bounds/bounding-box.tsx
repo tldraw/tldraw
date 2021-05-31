@@ -34,16 +34,19 @@ export default function Bounds() {
     return selectedIds.every((id) => page.shapes[id]?.isLocked)
   })
 
-  const isAllHandles = useSelector((s) => {
+  const isSingleHandles = useSelector((s) => {
     const page = getPage(s.data)
-    return selectedIds.every((id) => page.shapes[id]?.handles !== undefined)
+    return (
+      selectedIds.length === 1 &&
+      page.shapes[selectedIds[0]]?.handles !== undefined
+    )
   })
 
   if (!bounds) return null
 
   if (!isSelecting) return null
 
-  if (isAllHandles) return null
+  if (isSingleHandles) return null
 
   const size = (isMobile().any ? 10 : 8) / zoom // Touch target size
 

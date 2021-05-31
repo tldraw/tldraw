@@ -5,6 +5,7 @@ import { useSelector } from 'state'
 import styled from 'styles'
 import { deepCompareArrays, getPage } from 'utils/utils'
 import * as vec from 'utils/vec'
+import { DotCircle } from '../misc'
 
 export default function Handles() {
   const selectedIds = useSelector(
@@ -47,10 +48,6 @@ function Handle({
   const rGroup = useRef<SVGGElement>(null)
   const events = useHandleEvents(id, rGroup)
 
-  const transform = `
-  translate(${point})
-  `
-
   return (
     <g
       key={id}
@@ -60,7 +57,7 @@ function Handle({
       transform={`translate(${point})`}
     >
       <HandleCircleOuter r={8} />
-      <HandleCircle r={4} />
+      <DotCircle r={4} />
     </g>
   )
 }

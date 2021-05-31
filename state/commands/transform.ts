@@ -17,7 +17,9 @@ export default function transformCommand(
     new Command({
       name: 'translate_shapes',
       category: 'canvas',
-      do(data) {
+      do(data, isInitial) {
+        if (isInitial) return
+
         const { type, shapeBounds } = after
 
         const { shapes } = getPage(data)
@@ -50,8 +52,8 @@ export default function transformCommand(
             type,
             initialShape,
             transformOrigin,
-            scaleX,
-            scaleY,
+            scaleX: scaleX < 0 ? scaleX * -1 : scaleX,
+            scaleY: scaleX < 0 ? scaleX * -1 : scaleX,
           })
         }
       },
