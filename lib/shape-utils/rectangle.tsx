@@ -150,6 +150,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
   canTransform: true,
   canChangeAspectRatio: true,
+  canStyleFill: true,
 })
 
 export default rectangle

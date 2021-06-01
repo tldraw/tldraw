@@ -1,9 +1,56 @@
+import React from 'react'
 import { PointerInfo } from 'types'
 import { isDarwin } from 'utils/utils'
 
 class Inputs {
   activePointerId?: number
   points: Record<string, PointerInfo> = {}
+
+  touchStart(e: TouchEvent | React.TouchEvent, target: string) {
+    const { shiftKey, ctrlKey, metaKey, altKey } = e
+
+    const touch = e.changedTouches[0]
+
+    const info = {
+      target,
+      pointerId: touch.identifier,
+      origin: [touch.clientX, touch.clientY],
+      point: [touch.clientX, touch.clientY],
+      shiftKey,
+      ctrlKey,
+      metaKey: isDarwin() ? metaKey : ctrlKey,
+      altKey,
+    }
+
+    this.points[touch.identifier] = info
+    this.activePointerId = touch.identifier
+
+    return info
+  }
+
+  touchMove(e: TouchEvent | React.TouchEvent) {
+    const { shiftKey, ctrlKey, metaKey, altKey } = e
+
+    const touch = e.changedTouches[0]
+
+    const prev = this.points[touch.identifier]
+
+    const info = {
+      ...prev,
+      pointerId: touch.identifier,
+      point: [touch.clientX, touch.clientY],
+      shiftKey,
+      ctrlKey,
+      metaKey: isDarwin() ? metaKey : ctrlKey,
+      altKey,
+    }
+
+    if (this.points[touch.identifier]) {
+      this.points[touch.identifier] = info
+    }
+
+    return info
+  }
 
   pointerDown(e: PointerEvent | React.PointerEvent, target: string) {
     const { shiftKey, ctrlKey, metaKey, altKey } = e

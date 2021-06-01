@@ -1566,3 +1566,18 @@ export function getSvgPathFromStroke(stroke: number[][]) {
   d.push('Z')
   return d.join(' ')
 }
+
+const PI2 = Math.PI * 2
+
+/**
+ * Is angle c between angles a and b?
+ * @param a
+ * @param b
+ * @param c
+ */
+export function isAngleBetween(a: number, b: number, c: number) {
+  if (c === a || c === b) return true
+  const AB = (b - a + PI2) % PI2
+  const AC = (c - a + PI2) % PI2
+  return AB <= Math.PI !== AC > AB
+}

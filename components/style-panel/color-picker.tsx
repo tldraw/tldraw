@@ -14,7 +14,7 @@ export default function ColorPicker({ colors, onChange, children }: Props) {
       {children}
       <Colors sideOffset={4}>
         {Object.entries(colors).map(([name, color]) => (
-          <ColorButton key={name} title={name} onSelect={() => onChange(color)}>
+          <ColorButton key={name} title={name} onSelect={() => onChange(name)}>
             <ColorIcon color={color} />
           </ColorButton>
         ))}
@@ -29,7 +29,7 @@ export function ColorIcon({ color }: { color: string }) {
   )
 }
 
-const Colors = styled(DropdownMenu.Content, {
+export const Colors = styled(DropdownMenu.Content, {
   display: 'grid',
   padding: 4,
   gridTemplateColumns: 'repeat(6, 1fr)',
@@ -116,5 +116,14 @@ export const CurrentColor = styled(DropdownMenu.Trigger, {
     stroke: 'rgba(0,0,0,.2)',
     strokeWidth: 1,
     zIndex: 1,
+  },
+
+  variants: {
+    size: {
+      icon: {
+        padding: '4px ',
+        width: 'auto',
+      },
+    },
   },
 })

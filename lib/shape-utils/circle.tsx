@@ -135,6 +135,7 @@ const circle = registerShapeUtils<CircleShape>({
 
   canTransform: true,
   canChangeAspectRatio: false,
+  canStyleFill: true,
 })
 
 export default circle

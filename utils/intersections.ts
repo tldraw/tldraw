@@ -1,5 +1,6 @@
-import { Bounds } from "types"
-import * as vec from "utils/vec"
+import { Bounds } from 'types'
+import * as vec from 'utils/vec'
+import { isAngleBetween } from './utils'
 
 interface Intersection {
   didIntersect: boolean
@@ -26,22 +27,22 @@ export function intersectLineSegments(
   const u_b = BV[1] * AV[0] - BV[0] * AV[1]
 
   if (ua_t === 0 || ub_t === 0) {
-    return getIntersection("coincident")
+    return getIntersection('coincident')
   }
 
   if (u_b === 0) {
-    return getIntersection("parallel")
+    return getIntersection('parallel')
   }
 
   if (u_b != 0) {
     const ua = ua_t / u_b
     const ub = ub_t / u_b
     if (0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
-      return getIntersection("intersection", vec.add(a1, vec.mul(AV, ua)))
+      return getIntersection('intersection', vec.add(a1, vec.mul(AV, ua)))
     }
   }
 
-  return getIntersection("no intersection")
+  return getIntersection('no intersection')
 }
 
 export function intersectCircleLineSegment(
@@ -65,11 +66,11 @@ export function intersectCircleLineSegment(
   const deter = b * b - 4 * a * cc
 
   if (deter < 0) {
-    return getIntersection("outside")
+    return getIntersection('outside')
   }
 
   if (deter === 0) {
-    return getIntersection("tangent")
+    return getIntersection('tangent')
   }
 
   var e = Math.sqrt(deter)
@@ -77,9 +78,9 @@ export function intersectCircleLineSegment(
   var u2 = (-b - e) / (2 * a)
   if ((u1 < 0 || u1 > 1) && (u2 < 0 || u2 > 1)) {
     if ((u1 < 0 && u2 < 0) || (u1 > 1 && u2 > 1)) {
-      return getIntersection("outside")
+      return getIntersection('outside')
     } else {
-      return getIntersection("inside")
+      return getIntersection('inside')
     }
   }
 
@@ -87,7 +88,7 @@ export function intersectCircleLineSegment(
   if (0 <= u1 && u1 <= 1) results.push(vec.lrp(a1, a2, u1))
   if (0 <= u2 && u2 <= 1) results.push(vec.lrp(a1, a2, u2))
 
-  return getIntersection("intersection", ...results)
+  return getIntersection('intersection', ...results)
 }
 
 export function intersectEllipseLineSegment(
@@ -100,7 +101,7 @@ export function intersectEllipseLineSegment(
 ) {
   // If the ellipse or line segment are empty, return no tValues.
   if (rx === 0 || ry === 0 || vec.isEqual(a1, a2)) {
-    return getIntersection("No intersection")
+    return getIntersection('No intersection')
   }
 
   // Get the semimajor and semiminor axes.
@@ -141,7 +142,32 @@ export function intersectEllipseLineSegment(
     .map((t) => vec.add(center, vec.add(a1, vec.mul(vec.sub(a2, a1), t))))
     .map((p) => vec.rotWith(p, center, rotation))
 
-  return getIntersection("intersection", ...points)
+  return getIntersection('intersection', ...points)
+}
+
+export function intersectArcLineSegment(
+  start: number[],
+  end: number[],
+  center: number[],
+  radius: number,
+  A: number[],
+  B: number[]
+) {
+  const sa = vec.angle(center, start)
+  const ea = vec.angle(center, end)
+  const ellipseTest = intersectEllipseLineSegment(center, radius, radius, A, B)
+
+  if (!ellipseTest.didIntersect) return getIntersection('No intersection')
+
+  const points = ellipseTest.points.filter((point) =>
+    isAngleBetween(sa, ea, vec.angle(center, point))
+  )
+
+  if (points.length === 0) {
+    return getIntersection('No intersection')
+  }
+
+  return getIntersection('intersection', ...points)
 }
 
 export function intersectCircleRectangle(
@@ -163,19 +189,19 @@ export function intersectCircleRectangle(
   const leftIntersection = intersectCircleLineSegment(c, r, tl, bl)
 
   if (topIntersection.didIntersect) {
-    intersections.push({ ...topIntersection, message: "top" })
+    intersections.push({ ...topIntersection, message: 'top' })
   }
 
   if (rightIntersection.didIntersect) {
-    intersections.push({ ...rightIntersection, message: "right" })
+    intersections.push({ ...rightIntersection, message: 'right' })
   }
 
   if (bottomIntersection.didIntersect) {
-    intersections.push({ ...bottomIntersection, message: "bottom" })
+    intersections.push({ ...bottomIntersection, message: 'bottom' })
   }
 
   if (leftIntersection.didIntersect) {
-    intersections.push({ ...leftIntersection, message: "left" })
+    intersections.push({ ...leftIntersection, message: 'left' })
   }
 
   return intersections
@@ -230,19 +256,19 @@ export function intersectEllipseRectangle(
   )
 
   if (topIntersection.didIntersect) {
-    intersections.push({ ...topIntersection, message: "top" })
+    intersections.push({ ...topIntersection, message: 'top' })
   }
 
   if (rightIntersection.didIntersect) {
-    intersections.push({ ...rightIntersection, message: "right" })
+    intersections.push({ ...rightIntersection, message: 'right' })
   }
 
   if (bottomIntersection.didIntersect) {
-    intersections.push({ ...bottomIntersection, message: "bottom" })
+    intersections.push({ ...bottomIntersection, message: 'bottom' })
   }
 
   if (leftIntersection.didIntersect) {
-    intersections.push({ ...leftIntersection, message: "left" })
+    intersections.push({ ...leftIntersection, message: 'left' })
   }
 
   return intersections
@@ -267,19 +293,86 @@ export function intersectRectangleLineSegment(
   const leftIntersection = intersectLineSegments(a1, a2, tl, bl)
 
   if (topIntersection.didIntersect) {
-    intersections.push({ ...topIntersection, message: "top" })
+    intersections.push({ ...topIntersection, message: 'top' })
   }
 
   if (rightIntersection.didIntersect) {
-    intersections.push({ ...rightIntersection, message: "right" })
+    intersections.push({ ...rightIntersection, message: 'right' })
   }
 
   if (bottomIntersection.didIntersect) {
-    intersections.push({ ...bottomIntersection, message: "bottom" })
+    intersections.push({ ...bottomIntersection, message: 'bottom' })
   }
 
   if (leftIntersection.didIntersect) {
-    intersections.push({ ...leftIntersection, message: "left" })
+    intersections.push({ ...leftIntersection, message: 'left' })
+  }
+
+  return intersections
+}
+
+export function intersectArcRectangle(
+  start: number[],
+  end: number[],
+  center: number[],
+  radius: number,
+  point: number[],
+  size: number[]
+) {
+  const tl = point
+  const tr = vec.add(point, [size[0], 0])
+  const br = vec.add(point, size)
+  const bl = vec.add(point, [0, size[1]])
+
+  const intersections: Intersection[] = []
+
+  const topIntersection = intersectArcLineSegment(
+    start,
+    end,
+    center,
+    radius,
+    tl,
+    tr
+  )
+  const rightIntersection = intersectArcLineSegment(
+    start,
+    end,
+    center,
+    radius,
+    tr,
+    br
+  )
+  const bottomIntersection = intersectArcLineSegment(
+    start,
+    end,
+    center,
+    radius,
+    bl,
+    br
+  )
+  const leftIntersection = intersectArcLineSegment(
+    start,
+    end,
+    center,
+    radius,
+    tl,
+    bl
+  )
+
+  if (topIntersection.didIntersect) {
+    intersections.push({ ...topIntersection, message: 'top' })
+  }
+
+  if (rightIntersection.didIntersect) {
+    intersections.push({ ...rightIntersection, message: 'right' })
+  }
+
+  if (bottomIntersection.didIntersect) {
+    intersections.push({ ...bottomIntersection, message: 'bottom' })
+  }
+
+  if (leftIntersection.didIntersect) {
+    intersections.push({ ...leftIntersection, message: 'left' })
   }
 
   return intersections
@@ -359,4 +452,23 @@ export function intersectPolygonBounds(points: number[][], bounds: Bounds) {
   }
 
   return intersections
+}
+
+export function intersectArcBounds(
+  start: number[],
+  end: number[],
+  center: number[],
+  radius: number,
+  bounds: Bounds
+) {
+  const { minX, minY, width, height } = bounds
+
+  return intersectArcRectangle(
+    start,
+    end,
+    center,
+    radius,
+    [minX, minY],
+    [width, height]
+  )
 }

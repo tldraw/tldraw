@@ -149,6 +149,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
 
   canTransform: true,
   canChangeAspectRatio: true,
+  canStyleFill: true,
 })
 
 export default ellipse

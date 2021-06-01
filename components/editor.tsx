@@ -33,7 +33,7 @@ export default function Editor() {
   )
 }
 
-const Layout = styled('div', {
+const Layout = styled('main', {
   position: 'fixed',
   top: 0,
   left: 0,
@@ -51,20 +51,24 @@ const Layout = styled('div', {
   `,
 })
 
-const LeftPanels = styled('main', {
+const LeftPanels = styled('div', {
   display: 'grid',
   gridArea: 'leftPanels',
   gridTemplateRows: '1fr auto',
   padding: 8,
   gap: 8,
+  zIndex: 250,
+  pointerEvents: 'none',
 })
 
-const RightPanels = styled('main', {
+const RightPanels = styled('div', {
   gridArea: 'rightPanels',
   padding: 8,
-  // display: 'grid',
-  // gridTemplateRows: 'auto',
-  // height: 'fit-content',
-  // justifyContent: 'flex-end',
-  // gap: 8,
+  display: 'grid',
+  gridTemplateRows: 'auto',
+  height: 'fit-content',
+  justifyContent: 'flex-end',
+  gap: 8,
+  zIndex: 300,
+  pointerEvents: 'none',
 })

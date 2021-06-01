@@ -1,10 +1,9 @@
-import * as RadioGroup from '@radix-ui/react-radio-group'
+import { Group, RadioItem } from './shared'
 import { ChangeEvent } from 'react'
 import { Circle } from 'react-feather'
 import state from 'state'
-import styled from 'styles'
 
-function setWidth(e: ChangeEvent<HTMLInputElement>) {
+function handleChange(e: ChangeEvent<HTMLInputElement>) {
   state.send('CHANGED_STYLE', {
     strokeWidth: Number(e.currentTarget.value),
   })
@@ -16,7 +15,7 @@ export default function WidthPicker({
   strokeWidth?: number
 }) {
   return (
-    <Group name="width" onValueChange={setWidth}>
+    <Group name="width" onValueChange={handleChange}>
       <RadioItem value="2" isActive={strokeWidth === 2}>
         <Circle size={6} />
       </RadioItem>
@@ -29,52 +28,3 @@ export default function WidthPicker({
     </Group>
   )
 }
-
-const Group = styled(RadioGroup.Root, {
-  display: 'flex',
-})
-
-const RadioItem = styled(RadioGroup.Item, {
-  height: '32px',
-  width: '32px',
-  backgroundColor: '$panel',
-  borderRadius: '4px',
-  padding: '0',
-  margin: '0',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  outline: 'none',
-  border: 'none',
-  pointerEvents: 'all',
-  cursor: 'pointer',
-
-  '&:hover:not(:disabled)': {
-    backgroundColor: '$hover',
-    '& svg': {
-      fill: '$text',
-      strokeWidth: '0',
-    },
-  },
-
-  '&:disabled': {
-    opacity: '0.5',
-  },
-
-  variants: {
-    isActive: {
-      true: {
-        '& svg': {
-          fill: '$text',
-          strokeWidth: '0',
-        },
-      },
-      false: {
-        '& svg': {
-          fill: '$inactive',
-          strokeWidth: '0',
-        },
-      },
-    },
-  },
-})

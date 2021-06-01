@@ -104,6 +104,7 @@ const dot = registerShapeUtils<DotShape>({
 
   canTransform: false,
   canChangeAspectRatio: false,
+  canStyleFill: true,
 })
 
 export default dot

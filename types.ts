@@ -67,7 +67,11 @@ export enum ShapeType {
 // Cubic = "cubic",
 // Conic = "conic",
 
-export type ShapeStyles = Partial<React.SVGProps<SVGUseElement>>
+export type ShapeStyles = Partial<
+  React.SVGProps<SVGUseElement> & {
+    dash: DashStyle
+  }
+>
 
 export interface BaseShape {
   id: string
@@ -173,7 +177,13 @@ export interface CodeFile {
 }
 
 export enum Decoration {
-  Arrow,
+  Arrow = 'Arrow',
+}
+
+export enum DashStyle {
+  Solid = 'Solid',
+  Dashed = 'Dashed',
+  Dotted = 'Dotted',
 }
 
 export interface ShapeBinding {

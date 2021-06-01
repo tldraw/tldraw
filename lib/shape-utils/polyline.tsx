@@ -137,6 +137,7 @@ const polyline = registerShapeUtils<PolylineShape>({
 
   canTransform: true,
   canChangeAspectRatio: true,
+  canStyleFill: false,
 })
 
 export default polyline

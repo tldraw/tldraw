@@ -3,27 +3,22 @@ import state, { useSelector } from 'state'
 import * as Panel from 'components/panel'
 import { useRef } from 'react'
 import { IconButton } from 'components/shared'
-import { Circle, Copy, Lock, Trash, Trash2, Unlock, X } from 'react-feather'
-import {
-  deepCompare,
-  deepCompareArrays,
-  getPage,
-  getSelectedShapes,
-} from 'utils/utils'
+import * as Checkbox from '@radix-ui/react-checkbox'
+import { Trash2, X } from 'react-feather'
+import { deepCompare, deepCompareArrays, getPage } from 'utils/utils'
 import { shades, fills, strokes } from 'lib/colors'
-
 import ColorPicker, { ColorIcon, CurrentColor } from './color-picker'
 import AlignDistribute from './align-distribute'
 import { MoveType, ShapeStyles } from 'types'
 import WidthPicker from './width-picker'
 import {
-  AlignTopIcon,
   ArrowDownIcon,
   ArrowUpIcon,
   AspectRatioIcon,
   BoxIcon,
+  CheckIcon,
   CopyIcon,
-  DotsHorizontalIcon,
+  DotsVerticalIcon,
   EyeClosedIcon,
   EyeOpenIcon,
   LockClosedIcon,
@@ -31,11 +26,17 @@ import {
   PinBottomIcon,
   PinTopIcon,
   RotateCounterClockwiseIcon,
-  TrashIcon,
 } from '@radix-ui/react-icons'
+import DashPicker from './dash-picker'
 
 const fillColors = { ...shades, ...fills }
 const strokeColors = { ...shades, ...strokes }
+const getFillColor = (color: string) => {
+  if (shades[color]) {
+    return '#fff'
+  }
+  return fillColors[color]
+}
 
 export default function StylePanel() {
   const rContainer = useRef<HTMLDivElement>(null)
@@ -46,11 +47,38 @@ export default function StylePanel() {
       {isOpen ? (
         <SelectedShapeStyles />
       ) : (
-        <IconButton onClick={() => state.send('TOGGLED_STYLE_PANEL_OPEN')}>
-          <DotsHorizontalIcon />
-        </IconButton>
+        <>
+          <QuickColorSelect prop="stroke" colors={strokeColors} />
+          <IconButton
+            title="Style"
+            onClick={() => state.send('TOGGLED_STYLE_PANEL_OPEN')}
+          >
+            <DotsVerticalIcon />
+          </IconButton>
+        </>
       )}
     </StylePanelRoot>
+  )
+}
+
+function QuickColorSelect({
+  prop,
+  colors,
+}: {
+  prop: ShapeStyles['fill'] | ShapeStyles['stroke']
+  colors: Record<string, string>
+}) {
+  const value = useSelector((s) => s.values.selectedStyle[prop])
+
+  return (
+    <ColorPicker
+      colors={colors}
+      onChange={(color) => state.send('CHANGED_STYLE', { [prop]: color })}
+    >
+      <CurrentColor size="icon" title={prop}>
+        <ColorIcon color={value} />
+      </CurrentColor>
+    </ColorPicker>
   )
 }
 
@@ -79,33 +107,7 @@ function SelectedShapeStyles({}: {}) {
     return selectedIds.every((id) => page.shapes[id].isHidden)
   })
 
-  const commonStyle = useSelector((s) => {
-    const { currentStyle } = s.data
-
-    if (selectedIds.length === 0) {
-      return currentStyle
-    }
-    const page = getPage(s.data)
-    const shapeStyles = selectedIds.map((id) => page.shapes[id].style)
-
-    const commonStyle: Partial<ShapeStyles> = {}
-    const overrides = new Set<string>([])
-
-    for (const shapeStyle of shapeStyles) {
-      for (let key in currentStyle) {
-        if (overrides.has(key)) continue
-        if (commonStyle[key] === undefined) {
-          commonStyle[key] = shapeStyle[key]
-        } else {
-          if (commonStyle[key] === shapeStyle[key]) continue
-          commonStyle[key] = currentStyle[key]
-          overrides.add(key)
-        }
-      }
-    }
-
-    return commonStyle
-  }, deepCompare)
+  const commonStyle = useSelector((s) => s.values.selectedStyle, deepCompare)
 
   const hasSelection = selectedIds.length > 0
 
@@ -119,26 +121,40 @@ function SelectedShapeStyles({}: {}) {
       </Panel.Header>
       <Content>
         <ColorPicker
-          colors={fillColors}
-          onChange={(color) => state.send('CHANGED_STYLE', { fill: color })}
-        >
-          <CurrentColor>
-            <label>Fill</label>
-            <ColorIcon color={commonStyle.fill} />
-          </CurrentColor>
-        </ColorPicker>
-        <ColorPicker
           colors={strokeColors}
-          onChange={(color) => state.send('CHANGED_STYLE', { stroke: color })}
+          onChange={(color) =>
+            state.send('CHANGED_STYLE', {
+              stroke: strokeColors[color],
+              fill: getFillColor(color),
+            })
+          }
         >
           <CurrentColor>
-            <label>Stroke</label>
+            <label>Color</label>
             <ColorIcon color={commonStyle.stroke} />
           </CurrentColor>
         </ColorPicker>
+        {/* <Row>
+          <label htmlFor="filled">Filled</label>
+          <StyledCheckbox
+            checked={commonStyle.isFilled}
+            onCheckedChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              console.log(e.target.value)
+              state.send('CHANGED_STYLE', {
+                isFilled: e.target.value === 'on',
+              })
+            }}
+          >
+            <Checkbox.Indicator as={CheckIcon} />
+          </StyledCheckbox> 
+        </Row>*/}
         <Row>
           <label htmlFor="width">Width</label>
           <WidthPicker strokeWidth={Number(commonStyle.strokeWidth)} />
+        </Row>
+        <Row>
+          <label htmlFor="dash">Dash</label>
+          <DashPicker dash={commonStyle.dash} />
         </Row>
         <ButtonsRow>
           <IconButton
@@ -221,14 +237,16 @@ const StylePanelRoot = styled(Panel.Root, {
   position: 'relative',
   border: '1px solid $panel',
   boxShadow: '0px 2px 4px rgba(0,0,0,.12)',
+  display: 'flex',
+  alignItems: 'center',
+  pointerEvents: 'all',
 
   variants: {
     isOpen: {
       true: {},
       false: {
         padding: 2,
-        height: 38,
-        width: 38,
+        width: 'fit-content',
       },
     },
   },
@@ -274,4 +292,23 @@ const ButtonsRow = styled('div', {
   alignItems: 'center',
   justifyContent: 'flex-start',
   padding: 4,
+})
+
+const StyledCheckbox = styled(Checkbox.Root, {
+  appearance: 'none',
+  backgroundColor: 'transparent',
+  border: 'none',
+  padding: 0,
+  boxShadow: 'inset 0 0 0 1px gainsboro',
+  width: 15,
+  height: 15,
+  borderRadius: 2,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+
+  '&:focus': {
+    outline: 'none',
+    boxShadow: 'inset 0 0 0 1px dodgerblue, 0 0 0 1px dodgerblue',
+  },
 })

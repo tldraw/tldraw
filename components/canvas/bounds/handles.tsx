@@ -18,9 +18,9 @@ export default function Handles() {
       selectedIds.length === 1 && getPage(data).shapes[selectedIds[0]]
   )
 
-  const isTranslatingHandles = useSelector((s) => s.isIn('translatingHandles'))
+  const isSelecting = useSelector((s) => s.isIn('selecting.notPointing'))
 
-  if (!shape.handles || isTranslatingHandles) return null
+  if (!shape.handles || !isSelecting) return null
 
   return (
     <g>
@@ -57,7 +57,7 @@ function Handle({
       pointerEvents="all"
       transform={`translate(${point})`}
     >
-      <HandleCircleOuter r={8} />
+      <HandleCircleOuter r={12} />
       <DotCircle r={4} />
     </g>
   )

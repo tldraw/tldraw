@@ -39,7 +39,7 @@ export function ShapeOutline({ id }: { id: string }) {
   `
 
   return (
-    <Indicator
+    <SelectIndicator
       ref={rIndicator}
       as="use"
       href={'#' + id}
@@ -50,13 +50,14 @@ export function ShapeOutline({ id }: { id: string }) {
   )
 }
 
-const Indicator = styled('path', {
-  zStrokeWidth: 1,
+const SelectIndicator = styled('path', {
+  zStrokeWidth: 3,
   strokeLineCap: 'round',
   strokeLinejoin: 'round',
   stroke: '$selected',
   fill: 'transparent',
-  pointerEvents: 'all',
+  pointerEvents: 'none',
+  paintOrder: 'stroke fill markers',
 
   variants: {
     isLocked: {
@@ -65,5 +66,6 @@ const Indicator = styled('path', {
       },
       false: {},
     },
+    variant: {},
   },
 })

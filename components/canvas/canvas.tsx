@@ -34,9 +34,19 @@ export default function Canvas() {
     } else {
       if (isMobile()) {
         state.send('TOUCHED_CANVAS')
+        // state.send('POINTED_CANVAS', inputs.touchStart(e, 'canvas'))
+        // e.preventDefault()
+        // e.stopPropagation()
       }
     }
   }, [])
+
+  // const handleTouchMove = useCallback((e: React.TouchEvent) => {
+  //   if (!inputs.canAccept(e.touches[0].identifier)) return
+  //   if (inputs.canAccept(e.touches[0].identifier)) {
+  //     state.send('MOVED_POINTER', inputs.touchMove(e))
+  //   }
+  // }, [])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!inputs.canAccept(e.pointerId)) return
@@ -58,6 +68,7 @@ export default function Canvas() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onTouchStart={handleTouchStart}
+      // onTouchMove={handleTouchMove}
     >
       <Defs />
       {isReady && (

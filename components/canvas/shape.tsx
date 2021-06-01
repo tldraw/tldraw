@@ -3,8 +3,9 @@ import { useSelector } from 'state'
 import styled from 'styles'
 import { getShapeUtils } from 'lib/shape-utils'
 import { getPage } from 'utils/utils'
-import { ShapeStyles } from 'types'
+import { DashStyle, ShapeStyles } from 'types'
 import useShapeEvents from 'hooks/useShapeEvents'
+import { shades, strokes } from 'lib/colors'
 
 function Shape({ id, isSelecting }: { id: string; isSelecting: boolean }) {
   const isHovered = useSelector((state) => state.data.hoveredId === id)
@@ -35,36 +36,61 @@ function Shape({ id, isSelecting }: { id: string; isSelecting: boolean }) {
       isHovered={isHovered}
       isSelected={isSelected}
       transform={transform}
-      {...events}
+      stroke={'red'}
+      strokeWidth={10}
     >
       {isSelecting && (
         <HoverIndicator
           as="use"
           href={'#' + id}
           strokeWidth={+shape.style.strokeWidth + 8}
+          variant={shape.style.fill === 'none' ? 'hollow' : 'filled'}
+          {...events}
         />
       )}
-      {!shape.isHidden && <StyledShape id={id} style={shape.style} />}
+      {!shape.isHidden && (
+        <RealShape id={id} style={sanitizeStyle(shape.style)} />
+      )}
     </StyledGroup>
   )
 }
 
-const StyledShape = memo(
-  ({ id, style }: { id: string; style: ShapeStyles }) => {
-    return <use href={'#' + id} {...style} />
-  }
-)
+const RealShape = memo(({ id, style }: { id: string; style: ShapeStyles }) => {
+  return (
+    <StyledShape
+      as="use"
+      href={'#' + id}
+      {...style}
+      strokeDasharray={getDash(style.dash, +style.strokeWidth)}
+    />
+  )
+})
+
+const StyledShape = styled('path', {
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+})
 
 const HoverIndicator = styled('path', {
-  fill: 'none',
+  fill: 'transparent',
   stroke: 'transparent',
-  pointerEvents: 'all',
   strokeLinecap: 'round',
   strokeLinejoin: 'round',
   transform: 'all .2s',
+  variants: {
+    variant: {
+      hollow: {
+        pointerEvents: 'stroke',
+      },
+      filled: {
+        pointerEvents: 'all',
+      },
+    },
+  },
 })
 
 const StyledGroup = styled('g', {
+  pointerEvents: 'none',
   [`& ${HoverIndicator}`]: {
     opacity: '0',
   },
@@ -84,10 +110,8 @@ const StyledGroup = styled('g', {
       isHovered: true,
       css: {
         [`& ${HoverIndicator}`]: {
-          opacity: '1',
-          stroke: '$hint',
-          fill: '$hint',
-          // zStrokeWidth: [8, 4],
+          opacity: '.4',
+          stroke: '$selected',
         },
       },
     },
@@ -96,10 +120,8 @@ const StyledGroup = styled('g', {
       isHovered: false,
       css: {
         [`& ${HoverIndicator}`]: {
-          opacity: '1',
-          stroke: '$hint',
-          fill: '$hint',
-          // zStrokeWidth: [6, 3],
+          opacity: '.2',
+          stroke: '$selected',
         },
       },
     },
@@ -108,10 +130,8 @@ const StyledGroup = styled('g', {
       isHovered: true,
       css: {
         [`& ${HoverIndicator}`]: {
-          opacity: '1',
-          stroke: '$hint',
-          fill: '$hint',
-          // zStrokeWidth: [8, 4],
+          opacity: '.2',
+          stroke: '$selected',
         },
       },
     },
@@ -132,6 +152,25 @@ function Label({ text }: { text: string }) {
       {text}
     </text>
   )
+}
+
+function getDash(dash: DashStyle, s: number) {
+  switch (dash) {
+    case DashStyle.Solid: {
+      return 'none'
+    }
+    case DashStyle.Dashed: {
+      return `${s} ${s * 2}`
+    }
+    case DashStyle.Dotted: {
+      return `0 ${s * 1.5}`
+    }
+  }
+}
+
+function sanitizeStyle(style: ShapeStyles) {
+  const next = { ...style }
+  return next
 }
 
 export { HoverIndicator }

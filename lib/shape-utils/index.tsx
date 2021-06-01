@@ -39,6 +39,9 @@ export interface ShapeUtility<K extends Readonly<Shape>> {
   // Whether the shape's aspect ratio can change
   canChangeAspectRatio: boolean
 
+  // Whether the shape's style can be filled
+  canStyleFill: boolean
+
   // Create a new shape.
   create(props: Partial<K>): K
 

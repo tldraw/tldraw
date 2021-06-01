@@ -11,6 +11,7 @@ import {
   getSvgPathFromStroke,
   translateBounds,
 } from 'utils/utils'
+import styled from 'styles'
 
 const pathCache = new WeakMap<DrawShape['points'], string>([])
 
@@ -190,6 +191,11 @@ const draw = registerShapeUtils<DrawShape>({
 
   canTransform: true,
   canChangeAspectRatio: true,
+  canStyleFill: false,
 })
 
 export default draw
+
+const DrawPath = styled('path', {
+  strokeWidth: 0,
+})

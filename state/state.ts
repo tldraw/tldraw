@@ -15,6 +15,7 @@ import {
   getCurrent,
   getPage,
   getSelectedBounds,
+  getSelectedShapes,
   getShape,
   screenToWorld,
   setZoomCSS,
@@ -32,6 +33,7 @@ import {
   DistributeType,
   AlignType,
   StretchType,
+  DashStyle,
 } from 'types'
 
 const initialData: Data = {
@@ -50,6 +52,7 @@ const initialData: Data = {
     fill: shades.lightGray,
     stroke: shades.darkGray,
     strokeWidth: 2,
+    dash: DashStyle.Solid,
   },
   camera: {
     point: [0, 0],
@@ -1295,6 +1298,35 @@ const state = createState({
       return getCommonBounds(
         ...shapes.map((shape) => getShapeUtils(shape).getRotatedBounds(shape))
       )
+    },
+    selectedStyle(data) {
+      const selectedIds = Array.from(data.selectedIds.values())
+      const { currentStyle } = data
+
+      if (selectedIds.length === 0) {
+        return currentStyle
+      }
+      const page = getPage(data)
+      const shapeStyles = selectedIds.map((id) => page.shapes[id].style)
+
+      const commonStyle: Partial<ShapeStyles> = {}
+
+      const overrides = new Set<string>([])
+
+      for (const shapeStyle of shapeStyles) {
+        for (let key in currentStyle) {
+          if (overrides.has(key)) continue
+          if (commonStyle[key] === undefined) {
+            commonStyle[key] = shapeStyle[key]
+          } else {
+            if (commonStyle[key] === shapeStyle[key]) continue
+            commonStyle[key] = currentStyle[key]
+            overrides.add(key)
+          }
+        }
+      }
+
+      return commonStyle
     },
   },
 })

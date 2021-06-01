@@ -3,13 +3,28 @@ import * as vec from 'utils/vec'
 import * as svg from 'utils/svg'
 import { ArrowShape, ShapeHandle, ShapeType } from 'types'
 import { registerShapeUtils } from './index'
-import { circleFromThreePoints, clamp, getSweep } from 'utils/utils'
-import { boundsContained } from 'utils/bounds'
-import { intersectCircleBounds } from 'utils/intersections'
+import { circleFromThreePoints, clamp, isAngleBetween } from 'utils/utils'
+import { pointInBounds } from 'utils/bounds'
+import {
+  intersectArcBounds,
+  intersectLineSegmentBounds,
+} from 'utils/intersections'
 import { getBoundsFromPoints, translateBounds } from 'utils/utils'
 import { pointInCircle } from 'utils/hitTests'
 
 const ctpCache = new WeakMap<ArrowShape['handles'], number[]>()
+
+function getCtp(shape: ArrowShape) {
+  if (!ctpCache.has(shape.handles)) {
+    const { start, end, bend } = shape.handles
+    ctpCache.set(
+      shape.handles,
+      circleFromThreePoints(start.point, end.point, bend.point)
+    )
+  }
+
+  return ctpCache.get(shape.handles)
+}
 
 const arrow = registerShapeUtils<ArrowShape>({
   boundsCache: new WeakMap([]),
@@ -69,7 +84,8 @@ const arrow = registerShapeUtils<ArrowShape>({
     }
   },
 
-  render({ id, bend, points, handles, style }) {
+  render(shape) {
+    const { id, bend, points, handles, style } = shape
     const { start, end, bend: _bend } = handles
 
     const arrowDist = vec.dist(start.point, end.point)
@@ -91,7 +107,7 @@ const arrow = registerShapeUtils<ArrowShape>({
       )
     }
 
-    const circle = showCircle && ctpCache.get(handles)
+    const circle = showCircle && getCtp(shape)
 
     return (
       <g id={id}>
@@ -114,12 +130,14 @@ const arrow = registerShapeUtils<ArrowShape>({
           cy={start.point[1]}
           r={+style.strokeWidth}
           fill={style.stroke}
+          strokeDasharray="none"
         />
         <polyline
           points={[b, points[1], c].join()}
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
+          strokeDasharray="none"
         />
       </g>
     )
@@ -127,6 +145,7 @@ const arrow = registerShapeUtils<ArrowShape>({
 
   applyStyles(shape, style) {
     Object.assign(shape.style, style)
+    shape.style.fill = 'none'
     return this
   },
 
@@ -159,24 +178,29 @@ const arrow = registerShapeUtils<ArrowShape>({
       )
     }
 
-    if (!ctpCache.has(shape.handles)) {
-      ctpCache.set(
-        shape.handles,
-        circleFromThreePoints(start.point, end.point, bend.point)
-      )
-    }
-
-    const [cx, cy, r] = ctpCache.get(shape.handles)
+    const [cx, cy, r] = getCtp(shape)
 
     return !pointInCircle(point, vec.add(shape.point, [cx, cy]), r - 4)
   },
 
   hitTestBounds(this, shape, brushBounds) {
-    const shapeBounds = this.getBounds(shape)
-    return (
-      boundsContained(shapeBounds, brushBounds) ||
-      intersectCircleBounds(shape.point, 4, brushBounds).length > 0
-    )
+    const { start, end, bend } = shape.handles
+
+    const sp = vec.add(shape.point, start.point)
+    const ep = vec.add(shape.point, end.point)
+
+    if (pointInBounds(sp, brushBounds) || pointInBounds(ep, brushBounds)) {
+      return true
+    }
+
+    if (vec.isEqual(vec.med(start.point, end.point), bend.point)) {
+      return intersectLineSegmentBounds(sp, ep, brushBounds).length > 0
+    } else {
+      const [cx, cy, r] = getCtp(shape)
+      const cp = vec.add(shape.point, [cx, cy])
+
+      return intersectArcBounds(sp, ep, cp, r, brushBounds).length > 0
+    }
   },
 
   rotateTo(shape, rotation) {
@@ -219,14 +243,7 @@ const arrow = registerShapeUtils<ArrowShape>({
     start.point = shape.points[0]
     end.point = shape.points[1]
 
-    const bendDist = (vec.dist(start.point, end.point) / 2) * shape.bend
-    const midPoint = vec.med(start.point, end.point)
-    const u = vec.uni(vec.vec(start.point, end.point))
-
-    bend.point =
-      Math.abs(bendDist) > 10
-        ? vec.add(midPoint, vec.mul(vec.per(u), bendDist))
-        : midPoint
+    bend.point = getBendPoint(shape)
 
     shape.points = [shape.handles.start.point, shape.handles.end.point]
 
@@ -244,8 +261,6 @@ const arrow = registerShapeUtils<ArrowShape>({
   },
 
   onHandleMove(shape, handles) {
-    const { start, end, bend } = shape.handles
-
     for (let id in handles) {
       const handle = handles[id]
 
@@ -255,38 +270,35 @@ const arrow = registerShapeUtils<ArrowShape>({
         shape.points[handle.index] = handle.point
       }
 
+      const { start, end, bend } = shape.handles
+
       const dist = vec.dist(start.point, end.point)
 
       if (handle.id === 'bend') {
-        const distance = vec.distanceToLineSegment(
-          start.point,
-          end.point,
-          handle.point,
-          true
-        )
-        shape.bend = clamp(distance / (dist / 2), -1, 1)
+        const midPoint = vec.med(start.point, end.point)
+        const u = vec.uni(vec.vec(start.point, end.point))
+        const ap = vec.add(midPoint, vec.mul(vec.per(u), dist / 2))
+        const bp = vec.sub(midPoint, vec.mul(vec.per(u), dist / 2))
 
-        const a0 = vec.angle(handle.point, end.point)
-        const a1 = vec.angle(start.point, end.point)
-        if (a0 - a1 < 0) shape.bend *= -1
+        bend.point = vec.nearestPointOnLineSegment(ap, bp, bend.point, true)
+        shape.bend = vec.dist(bend.point, midPoint) / (dist / 2)
+
+        const sa = vec.angle(end.point, start.point)
+        const la = sa - Math.PI / 2
+        if (isAngleBetween(sa, la, vec.angle(end.point, bend.point))) {
+          shape.bend *= -1
+        }
       }
     }
 
-    const dist = vec.dist(start.point, end.point)
-    const midPoint = vec.med(start.point, end.point)
-    const bendDist = (dist / 2) * shape.bend
-    const u = vec.uni(vec.vec(start.point, end.point))
-
-    shape.handles.bend.point =
-      Math.abs(bendDist) > 10
-        ? vec.add(midPoint, vec.mul(vec.per(u), bendDist))
-        : midPoint
+    shape.handles.bend.point = getBendPoint(shape)
 
     return this
   },
 
   canTransform: true,
   canChangeAspectRatio: true,
+  canStyleFill: false,
 })
 
 export default arrow
@@ -310,4 +322,17 @@ function getArrowArcPath(
     end.point[0],
     end.point[1],
   ].join(' ')
+}
+
+function getBendPoint(shape: ArrowShape) {
+  const { start, end, bend } = shape.handles
+
+  const dist = vec.dist(start.point, end.point)
+  const midPoint = vec.med(start.point, end.point)
+  const bendDist = (dist / 2) * shape.bend
+  const u = vec.uni(vec.vec(start.point, end.point))
+
+  return Math.abs(bendDist) < 10
+    ? midPoint
+    : vec.add(midPoint, vec.mul(vec.per(u), bendDist))
 }

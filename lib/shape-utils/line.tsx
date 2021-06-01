@@ -113,6 +113,7 @@ const line = registerShapeUtils<LineShape>({
 
   canTransform: false,
   canChangeAspectRatio: false,
+  canStyleFill: false,
 })
 
 export default line
