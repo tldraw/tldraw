@@ -44,8 +44,10 @@ export default function BoundsBg() {
 
   const isAllHandles = useSelector((s) => {
     const page = getPage(s.data)
-    return Array.from(s.values.selectedIds.values()).every(
-      (id) => page.shapes[id]?.handles !== undefined
+    const selectedIds = Array.from(s.values.selectedIds.values())
+    return (
+      selectedIds.length === 1 &&
+      page.shapes[selectedIds[0]]?.handles !== undefined
     )
   })
 

@@ -11,6 +11,7 @@ import Bounds from './bounds/bounding-box'
 import BoundsBg from './bounds/bounds-bg'
 import Selected from './selected'
 import Handles from './bounds/handles'
+import { isMobile } from 'utils/utils'
 
 export default function Canvas() {
   const rCanvas = useRef<SVGSVGElement>(null)
@@ -30,6 +31,10 @@ export default function Canvas() {
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       state.send('TOUCH_UNDO')
+    } else {
+      if (isMobile()) {
+        state.send('TOUCHED_CANVAS')
+      }
     }
   }, [])
 

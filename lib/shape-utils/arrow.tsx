@@ -74,16 +74,13 @@ const arrow = registerShapeUtils<ArrowShape>({
 
     const arrowDist = vec.dist(start.point, end.point)
     const bendDist = arrowDist * bend
-
     const showCircle = Math.abs(bendDist) > 20
 
-    const v = vec.rot(
-      vec.mul(
-        vec.neg(vec.uni(vec.sub(points[1], points[0]))),
-        Math.min(arrowDist / 2, 16 + +style.strokeWidth * 2)
-      ),
-      showCircle ? (bend * Math.PI) / 2 : 0
-    )
+    // Arrowhead
+    const length = Math.min(arrowDist / 2, 16 + +style.strokeWidth * 2)
+    const angle = showCircle ? bend * (Math.PI * 0.48) : 0
+    const u = vec.uni(vec.vec(start.point, end.point))
+    const v = vec.rot(vec.mul(vec.neg(u), length), angle)
     const b = vec.add(points[1], vec.rot(v, Math.PI / 6))
     const c = vec.add(points[1], vec.rot(v, -(Math.PI / 6)))
 
@@ -99,23 +96,13 @@ const arrow = registerShapeUtils<ArrowShape>({
     return (
       <g id={id}>
         {circle ? (
-          <path
-            d={[
-              'M',
-              start.point[0],
-              start.point[1],
-              'A',
-              circle[2],
-              circle[2],
-              0,
-              0,
-              bend < 0 ? 0 : 1,
-              end.point[0],
-              end.point[1],
-            ].join(' ')}
-            fill="none"
-            strokeLinecap="round"
-          />
+          <>
+            <path
+              d={getArrowArcPath(start, end, circle, bend)}
+              fill="none"
+              strokeLinecap="round"
+            />
+          </>
         ) : (
           <polyline
             points={[start.point, end.point].join(' ')}
@@ -208,8 +195,6 @@ const arrow = registerShapeUtils<ArrowShape>({
   transform(shape, bounds, { initialShape, scaleX, scaleY }) {
     const initialShapeBounds = this.getBounds(initialShape)
 
-    // console.log([...shape.point], [bounds.minX, bounds.minY])
-
     shape.point = [bounds.minX, bounds.minY]
 
     shape.points = shape.points.map((_, i) => {
@@ -233,12 +218,6 @@ const arrow = registerShapeUtils<ArrowShape>({
 
     start.point = shape.points[0]
     end.point = shape.points[1]
-
-    // start.point[0] = initialShape.handles.start.point[0] * scaleX
-    // end.point[0] = initialShape.handles.end.point[0] * scaleX
-
-    // start.point[1] = initialShape.handles.start.point[1] * scaleY
-    // end.point[1] = initialShape.handles.end.point[1] * scaleY
 
     const bendDist = (vec.dist(start.point, end.point) / 2) * shape.bend
     const midPoint = vec.med(start.point, end.point)
@@ -286,7 +265,10 @@ const arrow = registerShapeUtils<ArrowShape>({
           true
         )
         shape.bend = clamp(distance / (dist / 2), -1, 1)
-        if (!vec.clockwise(start.point, bend.point, end.point)) shape.bend *= -1
+
+        const a0 = vec.angle(handle.point, end.point)
+        const a1 = vec.angle(start.point, end.point)
+        if (a0 - a1 < 0) shape.bend *= -1
       }
     }
 
@@ -295,7 +277,7 @@ const arrow = registerShapeUtils<ArrowShape>({
     const bendDist = (dist / 2) * shape.bend
     const u = vec.uni(vec.vec(start.point, end.point))
 
-    bend.point =
+    shape.handles.bend.point =
       Math.abs(bendDist) > 10
         ? vec.add(midPoint, vec.mul(vec.per(u), bendDist))
         : midPoint
@@ -310,14 +292,22 @@ const arrow = registerShapeUtils<ArrowShape>({
 export default arrow
 
 function getArrowArcPath(
-  cx: number,
-  cy: number,
-  r: number,
-  start: number[],
-  end: number[]
+  start: ShapeHandle,
+  end: ShapeHandle,
+  circle: number[],
+  bend: number
 ) {
-  return `
-      A ${r},${r},0,
-      ${getSweep([cx, cy], start, end) > 0 ? '1' : '0'},
-      0,${end[0]},${end[1]}`
+  return [
+    'M',
+    start.point[0],
+    start.point[1],
+    'A',
+    circle[2],
+    circle[2],
+    0,
+    0,
+    bend < 0 ? 0 : 1,
+    end.point[0],
+    end.point[1],
+  ].join(' ')
 }

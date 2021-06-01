@@ -128,6 +128,7 @@ const state = createState({
         SELECTED_RECTANGLE_TOOL: { unless: 'isReadOnly', to: 'rectangle' },
         TOGGLED_CODE_PANEL_OPEN: 'toggleCodePanel',
         TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
+        TOUCHED_CANVAS: 'closeStylePanel',
         CHANGED_STYLE: ['updateStyles', 'applyStylesToSelection'],
         SELECTED_ALL: { to: 'selecting', do: 'selectAll' },
         NUDGED: { do: 'nudgeSelection' },
@@ -1175,6 +1176,9 @@ const state = createState({
 
     toggleStylePanel(data) {
       data.settings.isStyleOpen = !data.settings.isStyleOpen
+    },
+    closeStylePanel(data) {
+      data.settings.isStyleOpen = false
     },
     updateStyles(data, payload: Partial<ShapeStyles>) {
       Object.assign(data.currentStyle, payload)

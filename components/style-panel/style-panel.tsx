@@ -3,7 +3,7 @@ import state, { useSelector } from 'state'
 import * as Panel from 'components/panel'
 import { useRef } from 'react'
 import { IconButton } from 'components/shared'
-import { Circle, Copy, Lock, Trash, Unlock, X } from 'react-feather'
+import { Circle, Copy, Lock, Trash, Trash2, Unlock, X } from 'react-feather'
 import {
   deepCompare,
   deepCompareArrays,
@@ -12,7 +12,7 @@ import {
 } from 'utils/utils'
 import { shades, fills, strokes } from 'lib/colors'
 
-import ColorPicker from './color-picker'
+import ColorPicker, { ColorIcon, CurrentColor } from './color-picker'
 import AlignDistribute from './align-distribute'
 import { MoveType, ShapeStyles } from 'types'
 import WidthPicker from './width-picker'
@@ -23,6 +23,7 @@ import {
   AspectRatioIcon,
   BoxIcon,
   CopyIcon,
+  DotsHorizontalIcon,
   EyeClosedIcon,
   EyeOpenIcon,
   LockClosedIcon,
@@ -46,7 +47,7 @@ export default function StylePanel() {
         <SelectedShapeStyles />
       ) : (
         <IconButton onClick={() => state.send('TOGGLED_STYLE_PANEL_OPEN')}>
-          <Circle />
+          <DotsHorizontalIcon />
         </IconButton>
       )}
     </StylePanelRoot>
@@ -118,17 +119,23 @@ function SelectedShapeStyles({}: {}) {
       </Panel.Header>
       <Content>
         <ColorPicker
-          label="Fill"
-          color={commonStyle.fill}
           colors={fillColors}
           onChange={(color) => state.send('CHANGED_STYLE', { fill: color })}
-        />
+        >
+          <CurrentColor>
+            <label>Fill</label>
+            <ColorIcon color={commonStyle.fill} />
+          </CurrentColor>
+        </ColorPicker>
         <ColorPicker
-          label="Stroke"
-          color={commonStyle.stroke}
           colors={strokeColors}
           onChange={(color) => state.send('CHANGED_STYLE', { stroke: color })}
-        />
+        >
+          <CurrentColor>
+            <label>Stroke</label>
+            <ColorIcon color={commonStyle.stroke} />
+          </CurrentColor>
+        </ColorPicker>
         <Row>
           <label htmlFor="width">Width</label>
           <WidthPicker strokeWidth={Number(commonStyle.strokeWidth)} />
@@ -194,7 +201,7 @@ function SelectedShapeStyles({}: {}) {
             disabled={!hasSelection}
             onClick={() => state.send('DELETED')}
           >
-            <TrashIcon />
+            <Trash2 />
           </IconButton>
         </ButtonsRow>
         <AlignDistribute

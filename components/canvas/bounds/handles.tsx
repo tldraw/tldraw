@@ -53,6 +53,7 @@ function Handle({
       key={id}
       ref={rGroup}
       {...events}
+      cursor="pointer"
       pointerEvents="all"
       transform={`translate(${point})`}
     >

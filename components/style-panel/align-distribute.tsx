@@ -102,11 +102,7 @@ const Container = styled('div', {
   display: 'grid',
   padding: 4,
   gridTemplateColumns: 'repeat(5, auto)',
-  [`& ${IconButton}`]: {
-    color: '$text',
-  },
   [`& ${IconButton} > svg`]: {
-    fill: 'red',
     stroke: 'transparent',
   },
 })

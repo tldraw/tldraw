@@ -54,7 +54,7 @@ export default function ToolsPanel() {
   return (
     <OuterContainer>
       <Zoom />
-      <Flex>
+      <Flex size={{ '@sm': 'small' }}>
         <Container>
           <IconButton
             name="select"
@@ -170,8 +170,20 @@ const OuterContainer = styled('div', {
 
 const Flex = styled('div', {
   display: 'flex',
-  '& > *:nth-child(n+2)': {
-    marginLeft: 16,
+  justifyContent: 'space-between',
+  width: '100%',
+  padding: '0 4px',
+
+  variants: {
+    size: {
+      small: {
+        width: 'auto',
+        padding: '0',
+        '& > *:nth-child(n+2)': {
+          marginLeft: 16,
+        },
+      },
+    },
   },
 })
 

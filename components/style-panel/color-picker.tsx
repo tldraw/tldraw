@@ -3,19 +3,15 @@ import { Square } from 'react-feather'
 import styled from 'styles'
 
 interface Props {
-  label: string
-  color: string
   colors: Record<string, string>
   onChange: (color: string) => void
+  children: React.ReactNode
 }
 
-export default function ColorPicker({ label, color, colors, onChange }: Props) {
+export default function ColorPicker({ colors, onChange, children }: Props) {
   return (
     <DropdownMenu.Root>
-      <CurrentColor>
-        <label>{label}</label>
-        <ColorIcon color={color} />
-      </CurrentColor>
+      {children}
       <Colors sideOffset={4}>
         {Object.entries(colors).map(([name, color]) => (
           <ColorButton key={name} title={name} onSelect={() => onChange(color)}>
@@ -27,7 +23,7 @@ export default function ColorPicker({ label, color, colors, onChange }: Props) {
   )
 }
 
-function ColorIcon({ color }: { color: string }) {
+export function ColorIcon({ color }: { color: string }) {
   return (
     <Square fill={color} strokeDasharray={color === 'none' ? '2, 3' : 'none'} />
   )
@@ -43,7 +39,7 @@ const Colors = styled(DropdownMenu.Content, {
   boxShadow: '0px 5px 15px -5px hsla(206,22%,7%,.15)',
 })
 
-const ColorButton = styled(DropdownMenu.Item, {
+export const ColorButton = styled(DropdownMenu.Item, {
   position: 'relative',
   cursor: 'pointer',
   height: 32,
@@ -79,7 +75,7 @@ const ColorButton = styled(DropdownMenu.Item, {
   },
 })
 
-const CurrentColor = styled(DropdownMenu.Trigger, {
+export const CurrentColor = styled(DropdownMenu.Trigger, {
   position: 'relative',
   display: 'flex',
   width: '100%',

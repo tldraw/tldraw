@@ -70,7 +70,7 @@ export default class PointsSession extends BaseSession {
   }
 
   complete(data: Data) {
-    const { id, initialShape } = this.snapshot
+    const { id } = this.snapshot
 
     const shape = getPage(data).shapes[id] as ArrowShape
 
