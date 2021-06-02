@@ -21,7 +21,6 @@ import line from './line'
 import ray from './ray'
 import draw from './draw'
 import arrow from './arrow'
-import rectangleUtils from '../shapes/Rectangle'
 import {
   getBoundsCenter,
   getBoundsFromPoints,
