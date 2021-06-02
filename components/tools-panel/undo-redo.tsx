@@ -38,6 +38,7 @@ const Container = styled('div', {
   boxShadow: '0px 2px 4px rgba(0,0,0,.12)',
   display: 'flex',
   padding: 4,
+  flexDirection: 'column',
 
   '& svg': {
     height: 13,
@@ -48,6 +49,8 @@ const Container = styled('div', {
     size: {
       small: {
         bottom: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
       },
     },
   },

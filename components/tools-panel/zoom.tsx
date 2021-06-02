@@ -31,6 +31,11 @@ function ZoomCounter() {
   )
 }
 
+const ZoomButton = styled(IconButton, {
+  fontSize: '$0',
+  padding: 8,
+})
+
 const Container = styled('div', {
   position: 'absolute',
   left: 12,
@@ -46,6 +51,8 @@ const Container = styled('div', {
   boxShadow: '0px 2px 4px rgba(0,0,0,.12)',
   display: 'flex',
   padding: 4,
+  flexDirection: 'column',
+  alignItems: 'center',
 
   '& svg': {
     strokeWidth: 0,
@@ -55,13 +62,12 @@ const Container = styled('div', {
     size: {
       small: {
         bottom: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        [`& ${ZoomButton}`]: {
+          width: 44,
+        },
       },
     },
   },
-})
-
-const ZoomButton = styled(IconButton, {
-  fontSize: '$0',
-  padding: 8,
-  width: 44,
 })

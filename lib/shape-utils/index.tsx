@@ -5,10 +5,7 @@ import {
   Corner,
   Edge,
   ShapeStyles,
-  ShapeHandle,
   ShapeBinding,
-  BaseShape,
-  ShapeSpecificProps,
   Mutable,
 } from 'types'
 import { v4 as uuid } from 'uuid'
@@ -26,7 +23,6 @@ import {
   getBoundsFromPoints,
   getRotatedCorners,
 } from 'utils/utils'
-import shape from 'components/canvas/shape'
 import {
   boundsCollidePolygon,
   boundsContainPolygon,

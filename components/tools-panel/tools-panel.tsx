@@ -58,7 +58,7 @@ export default function ToolsPanel() {
         <Container>
           <IconButton
             name="select"
-            size={{ '@sm': 'small', '@md': 'large' }}
+            size={{ '@initial': 'small', '@sm': 'small', '@md': 'large' }}
             onClick={selectSelectTool}
             isActive={activeTool === 'select'}
           >
@@ -68,7 +68,7 @@ export default function ToolsPanel() {
         <Container>
           <IconButton
             name={ShapeType.Draw}
-            size={{ '@sm': 'small', '@md': 'large' }}
+            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
             onClick={selectDrawTool}
             isActive={activeTool === ShapeType.Draw}
           >
@@ -76,7 +76,7 @@ export default function ToolsPanel() {
           </IconButton>
           <IconButton
             name={ShapeType.Rectangle}
-            size={{ '@sm': 'small', '@md': 'large' }}
+            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
             onClick={selectRectangleTool}
             isActive={activeTool === ShapeType.Rectangle}
           >
@@ -84,7 +84,7 @@ export default function ToolsPanel() {
           </IconButton>
           <IconButton
             name={ShapeType.Circle}
-            size={{ '@sm': 'small', '@md': 'large' }}
+            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
             onClick={selectEllipseTool}
             isActive={activeTool === ShapeType.Ellipse}
           >
@@ -92,7 +92,7 @@ export default function ToolsPanel() {
           </IconButton>
           <IconButton
             name={ShapeType.Arrow}
-            size={{ '@sm': 'small', '@md': 'large' }}
+            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
             onClick={selectArrowTool}
             isActive={activeTool === ShapeType.Arrow}
           >
@@ -100,7 +100,7 @@ export default function ToolsPanel() {
           </IconButton>
           {/* <IconButton
             name={ShapeType.Circle}
-            size={{ '@sm': 'small', '@md': 'large' }}
+            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
             onClick={selectCircleTool}
             isActive={activeTool === ShapeType.Circle}
           >
@@ -108,7 +108,7 @@ export default function ToolsPanel() {
           </IconButton> */}
           {/* <IconButton
             name={ShapeType.Line}
-            size={{ '@sm': 'small', '@md': 'large' }}
+            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
             onClick={selectLineTool}
             isActive={activeTool === ShapeType.Line}
           >
@@ -116,7 +116,7 @@ export default function ToolsPanel() {
           </IconButton>
           <IconButton
             name={ShapeType.Ray}
-            size={{ '@sm': 'small', '@md': 'large' }}
+            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
             onClick={selectRayTool}
             isActive={activeTool === ShapeType.Ray}
           >
@@ -124,7 +124,7 @@ export default function ToolsPanel() {
           </IconButton>
           <IconButton
             name={ShapeType.Dot}
-            size={{ '@sm': 'small', '@md': 'large' }}
+            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
             onClick={selectDotTool}
             isActive={activeTool === ShapeType.Dot}
           >
@@ -133,14 +133,14 @@ export default function ToolsPanel() {
         </Container>
         <Container>
           <IconButton
-            size={{ '@sm': 'small', '@md': 'large' }}
+            size={{ '@initial': 'small', '@sm': 'small', '@md': 'large' }}
             onClick={selectToolLock}
           >
             {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
           </IconButton>
           {isPenLocked && (
             <IconButton
-              size={{ '@sm': 'small', '@md': 'large' }}
+              size={{ '@initial': 'small', '@sm': 'small', '@md': 'large' }}
               onClick={selectToolLock}
             >
               <Pencil2Icon />
@@ -161,7 +161,7 @@ const OuterContainer = styled('div', {
   padding: '0 8px 12px 8px',
   width: '100%',
   display: 'flex',
-  alignItems: 'center',
+  alignItems: 'flex-end',
   justifyContent: 'center',
   flexWrap: 'wrap',
   gap: 16,
@@ -170,15 +170,17 @@ const OuterContainer = styled('div', {
 
 const Flex = styled('div', {
   display: 'flex',
-  justifyContent: 'space-between',
   width: '100%',
   padding: '0 4px',
+  justifyContent: 'space-between',
+  alignItems: 'flex-end',
 
   variants: {
     size: {
       small: {
         width: 'auto',
         padding: '0',
+        justifyContent: 'center',
         '& > *:nth-child(n+2)': {
           marginLeft: 16,
         },
