@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid'
 import * as vec from 'utils/vec'
-import { DashStyle, DrawShape, ShapeType } from 'types'
+import { DashStyle, DrawShape, ShapeStyles, ShapeType } from 'types'
 import { registerShapeUtils } from './index'
 import { intersectPolylineBounds } from 'utils/intersections'
 import { boundsContainPolygon } from 'utils/bounds'
@@ -11,7 +11,6 @@ import {
   getSvgPathFromStroke,
   translateBounds,
 } from 'utils/utils'
-import styled from 'styles'
 import { defaultStyle, getShapeStyle } from 'lib/shape-styles'
 
 const pathCache = new WeakMap<DrawShape['points'], string>([])
@@ -48,17 +47,7 @@ const draw = registerShapeUtils<DrawShape>({
     const styles = getShapeStyle(style)
 
     if (!pathCache.has(points)) {
-      pathCache.set(
-        points,
-        getSvgPathFromStroke(
-          getStroke(points, {
-            size: +styles.strokeWidth * 2,
-            thinning: 0.9,
-            end: { taper: 100 },
-            start: { taper: 40 },
-          })
-        )
-      )
+      renderPath(shape, style)
     }
 
     if (points.length < 2) {
@@ -155,9 +144,11 @@ const draw = registerShapeUtils<DrawShape>({
   },
 
   applyStyles(shape, style) {
-    Object.assign(shape.style, style)
-    shape.style.isFilled = false
-    shape.style.dash = DashStyle.Solid
+    const styles = { ...shape.style, ...style }
+    styles.isFilled = false
+    styles.dash = DashStyle.Solid
+    shape.style = styles
+    shape.points = [...shape.points]
     return this
   },
 
@@ -166,6 +157,18 @@ const draw = registerShapeUtils<DrawShape>({
 
 export default draw
 
-const DrawPath = styled('path', {
-  strokeWidth: 0,
-})
+function renderPath(shape: DrawShape, style: ShapeStyles) {
+  const styles = getShapeStyle(style)
+
+  pathCache.set(
+    shape.points,
+    getSvgPathFromStroke(
+      getStroke(shape.points, {
+        size: +styles.strokeWidth * 2,
+        thinning: 0.9,
+        end: { taper: 100 },
+        start: { taper: 40 },
+      })
+    )
+  )
+}

@@ -58,6 +58,7 @@ const initialData: Data = {
     point: [0, 0],
     zoom: 1,
   },
+  activeTool: 'select',
   brush: undefined,
   boundsRotation: 0,
   pointedId: null,
@@ -142,6 +143,7 @@ const state = createState({
       initial: 'selecting',
       states: {
         selecting: {
+          onEnter: 'setActiveToolSelect',
           on: {
             SAVED: 'forceSave',
             UNDO: 'undo',
@@ -322,6 +324,7 @@ const state = createState({
           },
           states: {
             draw: {
+              onEnter: 'setActiveToolDraw',
               initial: 'creating',
               states: {
                 creating: {
@@ -361,6 +364,7 @@ const state = createState({
               },
             },
             dot: {
+              onEnter: 'setActiveToolDot',
               initial: 'creating',
               states: {
                 creating: {
@@ -417,6 +421,7 @@ const state = createState({
               },
             },
             arrow: {
+              onEnter: 'setActiveToolArrow',
               initial: 'creating',
               states: {
                 creating: {
@@ -462,6 +467,7 @@ const state = createState({
               },
             },
             circle: {
+              onEnter: 'setActiveToolCircle',
               initial: 'creating',
               states: {
                 creating: {
@@ -492,6 +498,7 @@ const state = createState({
               },
             },
             ellipse: {
+              onEnter: 'setActiveToolEllipse',
               initial: 'creating',
               states: {
                 creating: {
@@ -519,6 +526,7 @@ const state = createState({
               },
             },
             rectangle: {
+              onEnter: 'setActiveToolRectangle',
               initial: 'creating',
               states: {
                 creating: {
@@ -549,6 +557,7 @@ const state = createState({
               },
             },
             ray: {
+              onEnter: 'setActiveToolRay',
               initial: 'creating',
               states: {
                 creating: {
@@ -579,6 +588,7 @@ const state = createState({
               },
             },
             line: {
+              onEnter: 'setActiveToolLine',
               initial: 'creating',
               states: {
                 creating: {
@@ -608,7 +618,9 @@ const state = createState({
                 },
               },
             },
-            polyline: {},
+            polyline: {
+              onEnter: 'setActiveToolPolyline',
+            },
           },
         },
         drawingShape: {
@@ -1011,6 +1023,42 @@ const state = createState({
       commands.rotateCcw(data)
     },
 
+    /* ---------------------- Tool ---------------------- */
+
+    setActiveTool(data, payload: { tool: ShapeType | 'select' }) {
+      data.activeTool = payload.tool
+    },
+    setActiveToolSelect(data) {
+      data.activeTool = 'select'
+    },
+    setActiveToolDraw(data) {
+      data.activeTool = ShapeType.Draw
+    },
+    setActiveToolRectangle(data) {
+      data.activeTool = ShapeType.Rectangle
+    },
+    setActiveToolEllipse(data) {
+      data.activeTool = ShapeType.Ellipse
+    },
+    setActiveToolArrow(data) {
+      data.activeTool = ShapeType.Arrow
+    },
+    setActiveToolDot(data) {
+      data.activeTool = ShapeType.Dot
+    },
+    setActiveToolPolyline(data) {
+      data.activeTool = ShapeType.Polyline
+    },
+    setActiveToolRay(data) {
+      data.activeTool = ShapeType.Ray
+    },
+    setActiveToolCircle(data) {
+      data.activeTool = ShapeType.Circle
+    },
+    setActiveToolLine(data) {
+      data.activeTool = ShapeType.Line
+    },
+
     /* --------------------- Camera --------------------- */
 
     zoomIn(data) {
@@ -1019,7 +1067,7 @@ const state = createState({
       const center = [window.innerWidth / 2, window.innerHeight / 2]
 
       const p0 = screenToWorld(center, data)
-      camera.zoom = Math.min(3, (i + 1) * 0.25)
+      camera.zoom = getCameraZoom((i + 1) * 0.25)
       const p1 = screenToWorld(center, data)
       camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
@@ -1031,7 +1079,7 @@ const state = createState({
       const center = [window.innerWidth / 2, window.innerHeight / 2]
 
       const p0 = screenToWorld(center, data)
-      camera.zoom = Math.max(0.1, (i - 1) * 0.25)
+      camera.zoom = getCameraZoom((i - 1) * 0.25)
       const p1 = screenToWorld(center, data)
       camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
@@ -1067,10 +1115,11 @@ const state = createState({
 
       const bounds = getSelectedBounds(data)
 
-      const zoom =
+      const zoom = getCameraZoom(
         bounds.width > bounds.height
           ? (window.innerWidth - 128) / bounds.width
           : (window.innerHeight - 128) / bounds.height
+      )
 
       const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
       const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
@@ -1096,10 +1145,11 @@ const state = createState({
         )
       )
 
-      const zoom =
+      const zoom = getCameraZoom(
         bounds.width > bounds.height
           ? (window.innerWidth - 128) / bounds.width
           : (window.innerHeight - 128) / bounds.height
+      )
 
       const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
       const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
@@ -1114,7 +1164,7 @@ const state = createState({
       const next = camera.zoom - (payload.delta / 100) * camera.zoom
 
       const p0 = screenToWorld(payload.point, data)
-      camera.zoom = clamp(next, 0.1, 3)
+      camera.zoom = getCameraZoom(next)
       const p1 = screenToWorld(payload.point, data)
       camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
@@ -1140,7 +1190,7 @@ const state = createState({
       const next = camera.zoom - (payload.distanceDelta / 300) * camera.zoom
 
       const p0 = screenToWorld(payload.point, data)
-      camera.zoom = clamp(next, 0.1, 3)
+      camera.zoom = getCameraZoom(next)
       const p1 = screenToWorld(payload.point, data)
       camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
@@ -1336,3 +1386,7 @@ let session: Sessions.BaseSession
 export default state
 
 export const useSelector = createSelectorHook(state)
+
+function getCameraZoom(zoom: number) {
+  return clamp(zoom, 0.1, 5)
+}

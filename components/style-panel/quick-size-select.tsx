@@ -1,5 +1,6 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { IconButton } from 'components/shared'
+import Tooltip from 'components/tooltip'
 import { Circle } from 'react-feather'
 import state, { useSelector } from 'state'
 import { SizeStyle } from 'types'
@@ -16,8 +17,10 @@ export default function QuickSizeSelect() {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger as={IconButton} title="size">
-        <Circle size={sizes[size]} stroke="none" fill="currentColor" />
+      <DropdownMenu.Trigger as={IconButton}>
+        <Tooltip label="Size">
+          <Circle size={sizes[size]} stroke="none" fill="currentColor" />
+        </Tooltip>
       </DropdownMenu.Trigger>
       <DropdownContent direction="vertical">
         <SizeItem isActive={size === SizeStyle.Small} size={SizeStyle.Small} />

@@ -2,6 +2,7 @@ import { ZoomInIcon, ZoomOutIcon } from '@radix-ui/react-icons'
 import { IconButton } from 'components/shared'
 import state, { useSelector } from 'state'
 import styled from 'styles'
+import Tooltip from '../tooltip'
 
 const zoomIn = () => state.send('ZOOMED_IN')
 const zoomOut = () => state.send('ZOOMED_OUT')
@@ -11,13 +12,19 @@ const zoomToActual = () => state.send('ZOOMED_TO_ACTUAL')
 export default function Zoom() {
   return (
     <Container size={{ '@sm': 'small' }}>
-      <IconButton onClick={zoomOut}>
-        <ZoomOutIcon />
-      </IconButton>
-      <IconButton onClick={zoomIn}>
-        <ZoomInIcon />
-      </IconButton>
-      <ZoomCounter />
+      <Tooltip label="Zoom Out">
+        <IconButton onClick={zoomOut}>
+          <ZoomOutIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip label="Zoom In">
+        <IconButton onClick={zoomIn}>
+          <ZoomInIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip label="Reset Zoom">
+        <ZoomCounter />
+      </Tooltip>
     </Container>
   )
 }

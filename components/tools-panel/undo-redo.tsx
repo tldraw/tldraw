@@ -2,6 +2,7 @@ import { IconButton } from 'components/shared'
 import { RotateCcw, RotateCw, Trash2 } from 'react-feather'
 import state, { useSelector } from 'state'
 import styled from 'styles'
+import Tooltip from '../tooltip'
 
 const undo = () => state.send('UNDO')
 const redo = () => state.send('REDO')
@@ -10,15 +11,21 @@ const clear = () => state.send('CLEARED_PAGE')
 export default function UndoRedo() {
   return (
     <Container size={{ '@sm': 'small' }}>
-      <IconButton onClick={undo}>
-        <RotateCcw />
-      </IconButton>
-      <IconButton onClick={redo}>
-        <RotateCw />
-      </IconButton>
-      <IconButton onClick={clear}>
-        <Trash2 />
-      </IconButton>
+      <Tooltip label="Undo">
+        <IconButton onClick={undo}>
+          <RotateCcw />
+        </IconButton>
+      </Tooltip>
+      <Tooltip label="Redo">
+        <IconButton onClick={redo}>
+          <RotateCw />
+        </IconButton>
+      </Tooltip>
+      <Tooltip label="Clear Canvas">
+        <IconButton onClick={clear}>
+          <Trash2 />
+        </IconButton>
+      </Tooltip>
     </Container>
   )
 }

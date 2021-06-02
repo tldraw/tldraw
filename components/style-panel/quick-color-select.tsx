@@ -1,5 +1,6 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { IconButton } from 'components/shared'
+import Tooltip from 'components/tooltip'
 import { strokes } from 'lib/shape-styles'
 import { Square } from 'react-feather'
 import state, { useSelector } from 'state'
@@ -10,8 +11,10 @@ export default function QuickColorSelect() {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger as={IconButton} title="color">
-        <Square fill={strokes[color]} stroke={strokes[color]} />
+      <DropdownMenu.Trigger as={IconButton}>
+        <Tooltip label="Color">
+          <Square fill={strokes[color]} stroke={strokes[color]} />
+        </Tooltip>
       </DropdownMenu.Trigger>
       <ColorContent
         onChange={(color) => state.send('CHANGED_STYLE', { color })}

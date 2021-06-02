@@ -97,44 +97,60 @@ const arrow = registerShapeUtils<ArrowShape>({
     const { start, end, bend: _bend } = handles
 
     const arrowDist = vec.dist(start.point, end.point)
-    const bendDist = arrowDist * bend
-    const showCircle = Math.abs(bendDist) > 20
+    const showCircle = !vec.isEqual(
+      _bend.point,
+      vec.med(start.point, end.point)
+    )
 
     const style = getShapeStyle(shape.style)
 
+    let body: JSX.Element
+    let endAngle: number
+
+    if (showCircle) {
+      if (!ctpCache.has(handles)) {
+        ctpCache.set(
+          handles,
+          circleFromThreePoints(start.point, end.point, _bend.point)
+        )
+      }
+
+      const circle = getCtp(shape)
+
+      body = (
+        <path
+          d={getArrowArcPath(start, end, circle, bend)}
+          fill="none"
+          strokeLinecap="round"
+        />
+      )
+
+      const CE =
+        vec.angle([circle[0], circle[1]], end.point) -
+        vec.angle(start.point, end.point) +
+        (Math.PI / 2) * (bend > 0 ? 0.98 : -0.98)
+
+      endAngle = CE
+    } else {
+      body = (
+        <polyline
+          points={[start.point, end.point].join(' ')}
+          strokeLinecap="round"
+        />
+      )
+      endAngle = 0
+    }
+
     // Arrowhead
     const length = Math.min(arrowDist / 2, 16 + +style.strokeWidth * 2)
-    const angle = showCircle ? bend * (Math.PI * 0.48) : 0
     const u = vec.uni(vec.vec(start.point, end.point))
-    const v = vec.rot(vec.mul(vec.neg(u), length), angle)
+    const v = vec.rot(vec.mul(vec.neg(u), length), endAngle)
     const b = vec.add(points[1], vec.rot(v, Math.PI / 6))
     const c = vec.add(points[1], vec.rot(v, -(Math.PI / 6)))
 
-    if (showCircle && !ctpCache.has(handles)) {
-      ctpCache.set(
-        handles,
-        circleFromThreePoints(start.point, end.point, _bend.point)
-      )
-    }
-
-    const circle = showCircle && getCtp(shape)
-
     return (
       <g id={id}>
-        {circle ? (
-          <>
-            <path
-              d={getArrowArcPath(start, end, circle, bend)}
-              fill="none"
-              strokeLinecap="round"
-            />
-          </>
-        ) : (
-          <polyline
-            points={[start.point, end.point].join(' ')}
-            strokeLinecap="round"
-          />
-        )}
+        {body}
         <circle
           cx={start.point[0]}
           cy={start.point[1]}
@@ -301,11 +317,11 @@ function getArrowArcPath(
 }
 
 function getBendPoint(shape: ArrowShape) {
-  const { start, end, bend } = shape.handles
+  const { start, end } = shape.handles
 
   const dist = vec.dist(start.point, end.point)
   const midPoint = vec.med(start.point, end.point)
-  const bendDist = (dist / 2) * shape.bend
+  const bendDist = (dist / 2) * shape.bend * Math.min(1, dist / 128)
   const u = vec.uni(vec.vec(start.point, end.point))
 
   return Math.abs(bendDist) < 10

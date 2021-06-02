@@ -1,5 +1,6 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { IconButton } from 'components/shared'
+import Tooltip from 'components/tooltip'
 import state, { useSelector } from 'state'
 import { DashStyle } from 'types'
 import {
@@ -21,8 +22,8 @@ export default function QuickdashSelect() {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger as={IconButton} title="dash">
-        {dashes[dash]}
+      <DropdownMenu.Trigger as={IconButton}>
+        <Tooltip label="Dash">{dashes[dash]}</Tooltip>
       </DropdownMenu.Trigger>
       <DropdownContent direction="vertical">
         <DashItem isActive={dash === DashStyle.Solid} dash={DashStyle.Solid} />

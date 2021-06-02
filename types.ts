@@ -23,6 +23,7 @@ export interface Data {
     point: number[]
     zoom: number
   }
+  activeTool: ShapeType | 'select'
   brush?: Bounds
   boundsRotation: number
   selectedIds: Set<string>
@@ -72,15 +73,11 @@ export enum ColorStyle {
   LightGray = 'LightGray',
   Gray = 'Gray',
   Black = 'Black',
-  Lime = 'Lime',
   Green = 'Green',
-  Teal = 'Teal',
   Cyan = 'Cyan',
   Blue = 'Blue',
   Indigo = 'Indigo',
   Violet = 'Violet',
-  Grape = 'Grape',
-  Pink = 'Pink',
   Red = 'Red',
   Orange = 'Orange',
   Yellow = 'Yellow',

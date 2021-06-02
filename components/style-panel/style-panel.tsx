@@ -4,7 +4,7 @@ import * as Panel from 'components/panel'
 import { useRef } from 'react'
 import { IconButton } from 'components/shared'
 import * as Checkbox from '@radix-ui/react-checkbox'
-import { ChevronDown, Square, Trash2, X } from 'react-feather'
+import { ChevronDown, Square, Tool, Trash2, X } from 'react-feather'
 import { deepCompare, deepCompareArrays, getPage } from 'utils/utils'
 import { strokes } from 'lib/shape-styles'
 import AlignDistribute from './align-distribute'
@@ -35,6 +35,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import IsFilledPicker from './is-filled-picker'
 import QuickSizeSelect from './quick-size-select'
 import QuickdashSelect from './quick-dash-select'
+import Tooltip from 'components/tooltip'
 
 export default function StylePanel() {
   const rContainer = useRef<HTMLDivElement>(null)
@@ -54,7 +55,9 @@ export default function StylePanel() {
             size="small"
             onClick={() => state.send('TOGGLED_STYLE_PANEL_OPEN')}
           >
-            <ChevronDown />
+            <Tooltip label="More">
+              <ChevronDown />
+            </Tooltip>
           </IconButton>
         </>
       )}
@@ -125,35 +128,49 @@ function SelectedShapeStyles() {
             size="small"
             onClick={() => state.send('DUPLICATED')}
           >
-            <CopyIcon />
+            <Tooltip label="Duplicate">
+              <CopyIcon />
+            </Tooltip>
           </IconButton>
+
           <IconButton
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('ROTATED_CCW')}
           >
-            <RotateCounterClockwiseIcon />
+            <Tooltip label="Rotate">
+              <RotateCounterClockwiseIcon />
+            </Tooltip>
           </IconButton>
+
           <IconButton
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('TOGGLED_SHAPE_HIDE')}
           >
-            {isAllHidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
+            <Tooltip label="Toogle Hidden">
+              {isAllHidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
+            </Tooltip>
           </IconButton>
+
           <IconButton
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('TOGGLED_SHAPE_LOCK')}
           >
-            {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
+            <Tooltip label="Toogle Locked">
+              {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
+            </Tooltip>
           </IconButton>
+
           <IconButton
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('TOGGLED_SHAPE_ASPECT_LOCK')}
           >
-            {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
+            <Tooltip label="Toogle Aspect Ratio Lock">
+              {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
+            </Tooltip>
           </IconButton>
         </ButtonsRow>
         <ButtonsRow>
@@ -162,35 +179,49 @@ function SelectedShapeStyles() {
             size="small"
             onClick={() => state.send('MOVED', { type: MoveType.ToBack })}
           >
-            <PinBottomIcon />
+            <Tooltip label="Move to Back">
+              <PinBottomIcon />
+            </Tooltip>
           </IconButton>
+
           <IconButton
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('MOVED', { type: MoveType.Backward })}
           >
-            <ArrowDownIcon />
+            <Tooltip label="Move Backward">
+              <ArrowDownIcon />
+            </Tooltip>
           </IconButton>
+
           <IconButton
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('MOVED', { type: MoveType.Forward })}
           >
-            <ArrowUpIcon />
+            <Tooltip label="Move Forward">
+              <ArrowUpIcon />
+            </Tooltip>
           </IconButton>
+
           <IconButton
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('MOVED', { type: MoveType.ToFront })}
           >
-            <PinTopIcon />
+            <Tooltip label="More to Front">
+              <PinTopIcon />
+            </Tooltip>
           </IconButton>
+
           <IconButton
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('DELETED')}
           >
-            <Trash2 />
+            <Tooltip label="Delete">
+              <Trash2 size="15" />
+            </Tooltip>
           </IconButton>
         </ButtonsRow>
         <AlignDistribute

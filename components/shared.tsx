@@ -31,7 +31,7 @@ export const IconButton = styled('button', {
   variants: {
     size: {
       small: {
-        '& > svg': {
+        '& svg': {
           height: '16px',
           width: '16px',
         },
@@ -39,7 +39,7 @@ export const IconButton = styled('button', {
       medium: {
         height: 44,
         width: 44,
-        '& > svg': {
+        '& svg': {
           height: '20px',
           width: '20px',
         },
@@ -47,7 +47,7 @@ export const IconButton = styled('button', {
       large: {
         height: 44,
         width: 44,
-        '& > svg': {
+        '& svg': {
           height: '24px',
           width: '24px',
         },

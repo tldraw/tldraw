@@ -18,6 +18,7 @@ import styled from 'styles'
 import { ShapeType } from 'types'
 import UndoRedo from './undo-redo'
 import Zoom from './zoom'
+import Tooltip from '../tooltip'
 
 const selectArrowTool = () => state.send('SELECTED_ARROW_TOOL')
 const selectCircleTool = () => state.send('SELECTED_CIRCLE_TOOL')
@@ -32,20 +33,7 @@ const selectSelectTool = () => state.send('SELECTED_SELECT_TOOL')
 const selectToolLock = () => state.send('TOGGLED_TOOL_LOCK')
 
 export default function ToolsPanel() {
-  const activeTool = useSelector((state) =>
-    state.whenIn({
-      arrow: ShapeType.Arrow,
-      circle: ShapeType.Circle,
-      dot: ShapeType.Dot,
-      draw: ShapeType.Draw,
-      ellipse: ShapeType.Ellipse,
-      line: ShapeType.Line,
-      polyline: ShapeType.Polyline,
-      ray: ShapeType.Ray,
-      rectangle: ShapeType.Rectangle,
-      selecting: 'select',
-    })
-  )
+  const activeTool = useSelector((s) => s.data.activeTool)
 
   const isToolLocked = useSelector((s) => s.data.settings.isToolLocked)
 
@@ -56,48 +44,58 @@ export default function ToolsPanel() {
       <Zoom />
       <Flex size={{ '@sm': 'small' }}>
         <Container>
-          <IconButton
-            name="select"
-            size={{ '@initial': 'small', '@sm': 'small', '@md': 'large' }}
-            onClick={selectSelectTool}
-            isActive={activeTool === 'select'}
-          >
-            <CursorArrowIcon />
-          </IconButton>
+          <Tooltip label="Select">
+            <IconButton
+              name="select"
+              size={{ '@initial': 'small', '@sm': 'small', '@md': 'large' }}
+              onClick={selectSelectTool}
+              isActive={activeTool === 'select'}
+            >
+              <CursorArrowIcon />
+            </IconButton>
+          </Tooltip>
         </Container>
         <Container>
-          <IconButton
-            name={ShapeType.Draw}
-            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
-            onClick={selectDrawTool}
-            isActive={activeTool === ShapeType.Draw}
-          >
-            <Pencil1Icon />
-          </IconButton>
-          <IconButton
-            name={ShapeType.Rectangle}
-            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
-            onClick={selectRectangleTool}
-            isActive={activeTool === ShapeType.Rectangle}
-          >
-            <SquareIcon />
-          </IconButton>
-          <IconButton
-            name={ShapeType.Circle}
-            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
-            onClick={selectEllipseTool}
-            isActive={activeTool === ShapeType.Ellipse}
-          >
-            <CircleIcon />
-          </IconButton>
-          <IconButton
-            name={ShapeType.Arrow}
-            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
-            onClick={selectArrowTool}
-            isActive={activeTool === ShapeType.Arrow}
-          >
-            <ArrowTopRightIcon />
-          </IconButton>
+          <Tooltip label="Draw">
+            <IconButton
+              name={ShapeType.Draw}
+              size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
+              onClick={selectDrawTool}
+              isActive={activeTool === ShapeType.Draw}
+            >
+              <Pencil1Icon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip label="Rectangle">
+            <IconButton
+              name={ShapeType.Rectangle}
+              size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
+              onClick={selectRectangleTool}
+              isActive={activeTool === ShapeType.Rectangle}
+            >
+              <SquareIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip label="Ellipse">
+            <IconButton
+              name={ShapeType.Circle}
+              size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
+              onClick={selectEllipseTool}
+              isActive={activeTool === ShapeType.Ellipse}
+            >
+              <CircleIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip label="Arrow">
+            <IconButton
+              name={ShapeType.Arrow}
+              size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
+              onClick={selectArrowTool}
+              isActive={activeTool === ShapeType.Arrow}
+            >
+              <ArrowTopRightIcon />
+            </IconButton>
+          </Tooltip>
           {/* <IconButton
             name={ShapeType.Circle}
             size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
@@ -132,19 +130,23 @@ export default function ToolsPanel() {
           </IconButton> */}
         </Container>
         <Container>
-          <IconButton
-            size={{ '@initial': 'small', '@sm': 'small', '@md': 'large' }}
-            onClick={selectToolLock}
-          >
-            {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
-          </IconButton>
-          {isPenLocked && (
+          <Tooltip label="Lock Tool">
             <IconButton
               size={{ '@initial': 'small', '@sm': 'small', '@md': 'large' }}
               onClick={selectToolLock}
             >
-              <Pencil2Icon />
+              {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
             </IconButton>
+          </Tooltip>
+          {isPenLocked && (
+            <Tooltip label="Unlock Pen">
+              <IconButton
+                size={{ '@initial': 'small', '@sm': 'small', '@md': 'large' }}
+                onClick={selectToolLock}
+              >
+                <Pencil2Icon />
+              </IconButton>
+            </Tooltip>
           )}
         </Container>
       </Flex>
