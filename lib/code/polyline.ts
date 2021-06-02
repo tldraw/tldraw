@@ -2,6 +2,7 @@ import CodeShape from './index'
 import { v4 as uuid } from 'uuid'
 import { PolylineShape, ShapeType } from 'types'
 import { vectorToPoint } from 'utils/utils'
+import { defaultStyle } from 'lib/shape-styles'
 
 export default class Polyline extends CodeShape<PolylineShape> {
   constructor(props = {} as Partial<PolylineShape>) {
@@ -21,11 +22,7 @@ export default class Polyline extends CodeShape<PolylineShape> {
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: {
-        fill: 'none',
-        stroke: '#000',
-        strokeWidth: 1,
-      },
+      style: defaultStyle,
       ...props,
     })
   }

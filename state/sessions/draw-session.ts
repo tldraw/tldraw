@@ -117,11 +117,11 @@ export default class BrushSession extends BaseSession {
 
 export function getDrawSnapshot(data: Data, shapeId: string) {
   const page = getPage(current(data))
-  const { points, style } = page.shapes[shapeId] as DrawShape
+  const { points } = page.shapes[shapeId] as DrawShape
+
   return {
     id: shapeId,
     points,
-    strokeWidth: style.strokeWidth,
   }
 }
 

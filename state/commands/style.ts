@@ -1,19 +1,19 @@
-import Command from "./command"
-import history from "../history"
-import { Data, ShapeStyles } from "types"
-import { getPage, getSelectedShapes } from "utils/utils"
-import { getShapeUtils } from "lib/shape-utils"
-import { current } from "immer"
+import Command from './command'
+import history from '../history'
+import { Data, ShapeStyles } from 'types'
+import { getPage, getSelectedShapes } from 'utils/utils'
+import { getShapeUtils } from 'lib/shape-utils'
+import { current } from 'immer'
 
-export default function styleCommand(data: Data, styles: ShapeStyles) {
+export default function styleCommand(data: Data, styles: Partial<ShapeStyles>) {
   const { currentPageId } = data
   const initialShapes = getSelectedShapes(current(data))
 
   history.execute(
     data,
     new Command({
-      name: "changed_style",
-      category: "canvas",
+      name: 'changed_style',
+      category: 'canvas',
       manualSelection: true,
       do(data) {
         const { shapes } = getPage(data, currentPageId)

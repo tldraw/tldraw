@@ -6,6 +6,7 @@ import { boundsContained } from 'utils/bounds'
 import { intersectCircleBounds } from 'utils/intersections'
 import { DotCircle, ThinLine } from 'components/canvas/misc'
 import { translateBounds } from 'utils/utils'
+import { defaultStyle } from 'lib/shape-styles'
 
 const ray = registerShapeUtils<RayShape>({
   boundsCache: new WeakMap([]),
@@ -24,12 +25,12 @@ const ray = registerShapeUtils<RayShape>({
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: {
-        fill: '#c6cacb',
-        stroke: '#000',
-        strokeWidth: 1,
-      },
       ...props,
+      style: {
+        ...defaultStyle,
+        ...props.style,
+        isFilled: false,
+      },
     }
   },
 

@@ -2,7 +2,6 @@ import { createSelectorHook, createState } from '@state-designer/react'
 import * as vec from 'utils/vec'
 import inputs from './inputs'
 import { defaultDocument } from './data'
-import { shades } from 'lib/colors'
 import { createShape, getShapeUtils } from 'lib/shape-utils'
 import history from 'state/history'
 import * as Sessions from './sessions'
@@ -15,7 +14,6 @@ import {
   getCurrent,
   getPage,
   getSelectedBounds,
-  getSelectedShapes,
   getShape,
   screenToWorld,
   setZoomCSS,
@@ -34,6 +32,8 @@ import {
   AlignType,
   StretchType,
   DashStyle,
+  SizeStyle,
+  ColorStyle,
 } from 'types'
 
 const initialData: Data = {
@@ -49,10 +49,10 @@ const initialData: Data = {
     nudgeDistanceSmall: 1,
   },
   currentStyle: {
-    fill: shades.lightGray,
-    stroke: shades.darkGray,
-    strokeWidth: 2,
+    size: SizeStyle.Medium,
+    color: ColorStyle.Black,
     dash: DashStyle.Solid,
+    isFilled: false,
   },
   camera: {
     point: [0, 0],
@@ -131,7 +131,7 @@ const state = createState({
         SELECTED_RECTANGLE_TOOL: { unless: 'isReadOnly', to: 'rectangle' },
         TOGGLED_CODE_PANEL_OPEN: 'toggleCodePanel',
         TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
-        TOUCHED_CANVAS: 'closeStylePanel',
+        POINTED_CANVAS: 'closeStylePanel',
         CHANGED_STYLE: ['updateStyles', 'applyStylesToSelection'],
         SELECTED_ALL: { to: 'selecting', do: 'selectAll' },
         NUDGED: { do: 'nudgeSelection' },
@@ -1261,7 +1261,7 @@ const state = createState({
     },
 
     restoreSavedData(data) {
-      history.load(data)
+      // history.load(data)
     },
 
     clearBoundsRotation(data) {
@@ -1309,7 +1309,7 @@ const state = createState({
       const page = getPage(data)
       const shapeStyles = selectedIds.map((id) => page.shapes[id].style)
 
-      const commonStyle: Partial<ShapeStyles> = {}
+      const commonStyle: ShapeStyles = {} as ShapeStyles
 
       const overrides = new Set<string>([])
 

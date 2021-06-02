@@ -9,7 +9,7 @@ export const Root = styled('div', {
   userSelect: 'none',
   zIndex: 200,
   border: '1px solid $panel',
-  boxShadow: '0px 2px 4px rgba(0,0,0,.12)',
+  boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
 
   variants: {
     isOpen: {

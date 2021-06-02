@@ -2,6 +2,7 @@ import CodeShape from './index'
 import { v4 as uuid } from 'uuid'
 import { EllipseShape, ShapeType } from 'types'
 import { vectorToPoint } from 'utils/utils'
+import { defaultStyle } from 'lib/shape-styles'
 
 export default class Ellipse extends CodeShape<EllipseShape> {
   constructor(props = {} as Partial<EllipseShape>) {
@@ -21,11 +22,7 @@ export default class Ellipse extends CodeShape<EllipseShape> {
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: {
-        fill: '#c6cacb',
-        stroke: '#000',
-        strokeWidth: 1,
-      },
+      style: defaultStyle,
       ...props,
     })
   }

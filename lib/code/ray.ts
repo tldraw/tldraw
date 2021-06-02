@@ -2,6 +2,7 @@ import CodeShape from './index'
 import { v4 as uuid } from 'uuid'
 import { RayShape, ShapeType } from 'types'
 import { vectorToPoint } from 'utils/utils'
+import { defaultStyle } from 'lib/shape-styles'
 
 export default class Ray extends CodeShape<RayShape> {
   constructor(props = {} as Partial<RayShape>) {
@@ -21,12 +22,12 @@ export default class Ray extends CodeShape<RayShape> {
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: {
-        fill: '#c6cacb',
-        stroke: '#000',
-        strokeWidth: 1,
-      },
       ...props,
+      style: {
+        ...defaultStyle,
+        ...props.style,
+        isFilled: false,
+      },
     })
   }
 

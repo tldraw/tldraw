@@ -7,13 +7,18 @@ export const IconButton = styled('button', {
   borderRadius: '4px',
   padding: '0',
   margin: '0',
-  display: 'flex',
+  display: 'grid',
   alignItems: 'center',
   justifyContent: 'center',
   outline: 'none',
   border: 'none',
   pointerEvents: 'all',
   cursor: 'pointer',
+
+  '& > *': {
+    gridRow: 1,
+    gridColumn: 1,
+  },
 
   '&:hover:not(:disabled)': {
     backgroundColor: '$hover',
@@ -23,30 +28,28 @@ export const IconButton = styled('button', {
     opacity: '0.5',
   },
 
-  '& > svg': {
-    height: '16px',
-    width: '16px',
-  },
-
   variants: {
     size: {
-      small: {},
+      small: {
+        '& > svg': {
+          height: '16px',
+          width: '16px',
+        },
+      },
       medium: {
         height: 44,
         width: 44,
-        '& svg': {
-          height: 16,
-          width: 16,
-          strokeWidth: 0,
+        '& > svg': {
+          height: '16px',
+          width: '16px',
         },
       },
       large: {
         height: 44,
         width: 44,
-        '& svg': {
-          height: 24,
-          width: 24,
-          strokeWidth: 0,
+        '& > svg': {
+          height: '24px',
+          width: '24px',
         },
       },
     },

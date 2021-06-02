@@ -3,9 +3,11 @@ import { useSelector } from 'state'
 import { deepCompareArrays, getPage } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 import useShapeEvents from 'hooks/useShapeEvents'
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 
 export default function Selected() {
+  const selectedIds = useSelector((s) => s.data.selectedIds)
+
   const currentPageShapeIds = useSelector(({ data }) => {
     return Array.from(data.selectedIds.values())
   }, deepCompareArrays)
@@ -17,38 +19,40 @@ export default function Selected() {
   return (
     <g>
       {currentPageShapeIds.map((id) => (
-        <ShapeOutline key={id} id={id} />
+        <ShapeOutline key={id} id={id} isSelected={selectedIds.has(id)} />
       ))}
     </g>
   )
 }
 
-export function ShapeOutline({ id }: { id: string }) {
-  const rIndicator = useRef<SVGUseElement>(null)
+export const ShapeOutline = memo(
+  ({ id, isSelected }: { id: string; isSelected: boolean }) => {
+    const rIndicator = useRef<SVGUseElement>(null)
 
-  const shape = useSelector(({ data }) => getPage(data).shapes[id])
+    const shape = useSelector(({ data }) => getPage(data).shapes[id])
 
-  const events = useShapeEvents(id, rIndicator)
+    const events = useShapeEvents(id, rIndicator)
 
-  if (!shape) return null
+    if (!shape) return null
 
-  const transform = `
+    const transform = `
     rotate(${shape.rotation * (180 / Math.PI)},
     ${getShapeUtils(shape).getCenter(shape)})
     translate(${shape.point})
   `
 
-  return (
-    <SelectIndicator
-      ref={rIndicator}
-      as="use"
-      href={'#' + id}
-      transform={transform}
-      isLocked={shape.isLocked}
-      {...events}
-    />
-  )
-}
+    return (
+      <SelectIndicator
+        ref={rIndicator}
+        as="use"
+        href={'#' + id}
+        transform={transform}
+        isLocked={shape.isLocked}
+        {...events}
+      />
+    )
+  }
+)
 
 const SelectIndicator = styled('path', {
   zStrokeWidth: 3,

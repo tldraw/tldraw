@@ -2,6 +2,7 @@ import CodeShape from './index'
 import { v4 as uuid } from 'uuid'
 import { RectangleShape, ShapeType } from 'types'
 import { vectorToPoint } from 'utils/utils'
+import { defaultStyle } from 'lib/shape-styles'
 
 export default class Rectangle extends CodeShape<RectangleShape> {
   constructor(props = {} as Partial<RectangleShape>) {
@@ -22,11 +23,7 @@ export default class Rectangle extends CodeShape<RectangleShape> {
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: {
-        fill: '#c6cacb',
-        stroke: '#000',
-        strokeWidth: 1,
-      },
+      style: defaultStyle,
       ...props,
     })
   }

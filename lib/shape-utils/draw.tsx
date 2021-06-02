@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid'
 import * as vec from 'utils/vec'
-import { DrawShape, ShapeType } from 'types'
+import { DashStyle, DrawShape, ShapeType } from 'types'
 import { registerShapeUtils } from './index'
 import { intersectPolylineBounds } from 'utils/intersections'
 import { boundsContainPolygon } from 'utils/bounds'
@@ -12,6 +12,7 @@ import {
   translateBounds,
 } from 'utils/utils'
 import styled from 'styles'
+import { defaultStyle, getShapeStyle } from 'lib/shape-styles'
 
 const pathCache = new WeakMap<DrawShape['points'], string>([])
 
@@ -34,11 +35,9 @@ const draw = registerShapeUtils<DrawShape>({
       isHidden: false,
       ...props,
       style: {
-        strokeWidth: 2,
-        strokeLinecap: 'round',
-        strokeLinejoin: 'round',
+        ...defaultStyle,
         ...props.style,
-        fill: props.style.stroke,
+        isFilled: false,
       },
     }
   },
@@ -46,12 +45,14 @@ const draw = registerShapeUtils<DrawShape>({
   render(shape) {
     const { id, points, style } = shape
 
+    const styles = getShapeStyle(style)
+
     if (!pathCache.has(points)) {
       pathCache.set(
         points,
         getSvgPathFromStroke(
           getStroke(points, {
-            size: +style.strokeWidth * 2,
+            size: +styles.strokeWidth * 2,
             thinning: 0.9,
             end: { taper: 100 },
             start: { taper: 40 },
@@ -61,15 +62,18 @@ const draw = registerShapeUtils<DrawShape>({
     }
 
     if (points.length < 2) {
-      return <circle id={id} r={+style.strokeWidth * 0.618} />
+      return (
+        <circle id={id} r={+styles.strokeWidth * 0.618} fill={styles.stroke} />
+      )
     }
 
-    return <path id={id} d={pathCache.get(points)} />
+    return <path id={id} d={pathCache.get(points)} fill={styles.stroke} />
   },
 
   applyStyles(shape, style) {
     Object.assign(shape.style, style)
-    shape.style.fill = shape.style.stroke
+    shape.style.isFilled = false
+    shape.style.dash = DashStyle.Solid
     return this
   },
 
@@ -106,19 +110,11 @@ const draw = registerShapeUtils<DrawShape>({
 
   hitTest(shape, point) {
     let pt = vec.sub(point, shape.point)
-    let prev = shape.points[0]
-
-    for (let i = 1; i < shape.points.length; i++) {
-      let curr = shape.points[i]
-      if (
-        vec.distanceToLineSegment(prev, curr, pt) < +shape.style.strokeWidth
-      ) {
-        return true
-      }
-      prev = curr
-    }
-
-    return false
+    const min = +getShapeStyle(shape.style).strokeWidth
+    return shape.points.some(
+      (curr, i) =>
+        i > 0 && vec.distanceToLineSegment(shape.points[i - 1], curr, pt) < min
+    )
   },
 
   hitTestBounds(this, shape, brushBounds) {

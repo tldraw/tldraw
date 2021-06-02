@@ -6,6 +6,7 @@ import { boundsContained } from 'utils/bounds'
 import { intersectCircleBounds } from 'utils/intersections'
 import { DotCircle } from 'components/canvas/misc'
 import { translateBounds } from 'utils/utils'
+import { defaultStyle } from 'lib/shape-styles'
 
 const dot = registerShapeUtils<DotShape>({
   boundsCache: new WeakMap([]),
@@ -23,11 +24,12 @@ const dot = registerShapeUtils<DotShape>({
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: {
-        fill: '#c6cacb',
-        strokeWidth: '0',
-      },
       ...props,
+      style: {
+        ...defaultStyle,
+        ...props.style,
+        isFilled: false,
+      },
     }
   },
 

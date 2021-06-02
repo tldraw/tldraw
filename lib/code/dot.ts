@@ -2,6 +2,7 @@ import CodeShape from './index'
 import { v4 as uuid } from 'uuid'
 import { DotShape, ShapeType } from 'types'
 import { vectorToPoint } from 'utils/utils'
+import { defaultStyle } from 'lib/shape-styles'
 
 export default class Dot extends CodeShape<DotShape> {
   constructor(props = {} as Partial<DotShape>) {
@@ -19,12 +20,12 @@ export default class Dot extends CodeShape<DotShape> {
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: {
-        fill: '#c6cacb',
-        stroke: '#000',
-        strokeWidth: 1,
-      },
       ...props,
+      style: {
+        ...defaultStyle,
+        ...props.style,
+        isFilled: false,
+      },
     })
   }
 

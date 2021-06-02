@@ -48,7 +48,7 @@ export interface ShapeUtility<K extends Readonly<Shape>> {
   applyStyles(
     this: ShapeUtility<K>,
     shape: K,
-    style: ShapeStyles
+    style: Partial<ShapeStyles>
   ): ShapeUtility<K>
 
   // Set the shape's point.

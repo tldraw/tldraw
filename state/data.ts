@@ -1,6 +1,5 @@
 import { Data, ShapeType } from 'types'
 import shapeUtils from 'lib/shape-utils'
-import { shades } from 'lib/colors'
 
 export const defaultDocument: Data['document'] = {
   pages: {
@@ -10,23 +9,22 @@ export const defaultDocument: Data['document'] = {
       name: 'Page 0',
       childIndex: 0,
       shapes: {
-        arrowShape0: shapeUtils[ShapeType.Arrow].create({
-          id: 'arrowShape0',
-          point: [200, 200],
-          points: [
-            [0, 0],
-            [200, 200],
-          ],
-        }),
-        arrowShape1: shapeUtils[ShapeType.Arrow].create({
-          id: 'arrowShape1',
-          point: [100, 100],
-          points: [
-            [0, 0],
-            [300, 0],
-          ],
-        }),
-
+        // arrowShape0: shapeUtils[ShapeType.Arrow].create({
+        //   id: 'arrowShape0',
+        //   point: [200, 200],
+        //   points: [
+        //     [0, 0],
+        //     [200, 200],
+        //   ],
+        // }),
+        // arrowShape1: shapeUtils[ShapeType.Arrow].create({
+        //   id: 'arrowShape1',
+        //   point: [100, 100],
+        //   points: [
+        //     [0, 0],
+        //     [300, 0],
+        //   ],
+        // }),
         // shape3: shapeUtils[ShapeType.Dot].create({
         //   id: 'shape3',
         //   name: 'Shape 3',

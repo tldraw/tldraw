@@ -7,6 +7,7 @@ import { intersectCircleBounds } from 'utils/intersections'
 import { DotCircle, ThinLine } from 'components/canvas/misc'
 import { translateBounds } from 'utils/utils'
 import styled from 'styles'
+import { defaultStyle } from 'lib/shape-styles'
 
 const line = registerShapeUtils<LineShape>({
   boundsCache: new WeakMap([]),
@@ -25,11 +26,12 @@ const line = registerShapeUtils<LineShape>({
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: {
-        fill: '#c6cacb',
-        stroke: '#000',
-      },
       ...props,
+      style: {
+        ...defaultStyle,
+        ...props.style,
+        isFilled: false,
+      },
     }
   },
 

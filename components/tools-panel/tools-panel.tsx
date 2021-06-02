@@ -106,7 +106,7 @@ export default function ToolsPanel() {
           >
             <CircleIcon />
           </IconButton> */}
-          <IconButton
+          {/* <IconButton
             name={ShapeType.Line}
             size={{ '@sm': 'small', '@md': 'large' }}
             onClick={selectLineTool}
@@ -129,7 +129,7 @@ export default function ToolsPanel() {
             isActive={activeTool === ShapeType.Dot}
           >
             <DotIcon />
-          </IconButton>
+          </IconButton> */}
         </Container>
         <Container>
           <IconButton

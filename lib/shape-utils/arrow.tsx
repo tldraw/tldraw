@@ -1,7 +1,14 @@
 import { v4 as uuid } from 'uuid'
 import * as vec from 'utils/vec'
 import * as svg from 'utils/svg'
-import { ArrowShape, ShapeHandle, ShapeType } from 'types'
+import {
+  ArrowShape,
+  ColorStyle,
+  DashStyle,
+  ShapeHandle,
+  ShapeType,
+  SizeStyle,
+} from 'types'
 import { registerShapeUtils } from './index'
 import { circleFromThreePoints, clamp, isAngleBetween } from 'utils/utils'
 import { pointInBounds } from 'utils/bounds'
@@ -11,6 +18,7 @@ import {
 } from 'utils/intersections'
 import { getBoundsFromPoints, translateBounds } from 'utils/utils'
 import { pointInCircle } from 'utils/hitTests'
+import { defaultStyle, getShapeStyle } from 'lib/shape-styles'
 
 const ctpCache = new WeakMap<ArrowShape['handles'], number[]>()
 
@@ -77,20 +85,22 @@ const arrow = registerShapeUtils<ArrowShape>({
       },
       ...props,
       style: {
-        strokeWidth: 2,
+        ...defaultStyle,
         ...props.style,
-        fill: 'none',
+        isFilled: false,
       },
     }
   },
 
   render(shape) {
-    const { id, bend, points, handles, style } = shape
+    const { id, bend, points, handles } = shape
     const { start, end, bend: _bend } = handles
 
     const arrowDist = vec.dist(start.point, end.point)
     const bendDist = arrowDist * bend
     const showCircle = Math.abs(bendDist) > 20
+
+    const style = getShapeStyle(shape.style)
 
     // Arrowhead
     const length = Math.min(arrowDist / 2, 16 + +style.strokeWidth * 2)
@@ -145,7 +155,7 @@ const arrow = registerShapeUtils<ArrowShape>({
 
   applyStyles(shape, style) {
     Object.assign(shape.style, style)
-    shape.style.fill = 'none'
+    shape.style.isFilled = false
     return this
   },
 

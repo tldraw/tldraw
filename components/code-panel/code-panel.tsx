@@ -119,29 +119,38 @@ export default function CodePanel() {
       {isOpen ? (
         <Panel.Layout>
           <Panel.Header side="left">
-            <IconButton onClick={() => state.send('TOGGLED_CODE_PANEL_OPEN')}>
+            <IconButton
+              size="small"
+              onClick={() => state.send('TOGGLED_CODE_PANEL_OPEN')}
+            >
               <X />
             </IconButton>
             <h3>Code</h3>
             <ButtonsGroup>
               <FontSizeButtons>
                 <IconButton
+                  size="small"
                   disabled={!local.isIn('editingCode')}
                   onClick={() => state.send('INCREASED_CODE_FONT_SIZE')}
                 >
                   <ChevronUp />
                 </IconButton>
                 <IconButton
+                  size="small"
                   disabled={!local.isIn('editingCode')}
                   onClick={() => state.send('DECREASED_CODE_FONT_SIZE')}
                 >
                   <ChevronDown />
                 </IconButton>
               </FontSizeButtons>
-              <IconButton onClick={() => local.send('TOGGLED_DOCS')}>
+              <IconButton
+                size="small"
+                onClick={() => local.send('TOGGLED_DOCS')}
+              >
                 <Info />
               </IconButton>
               <IconButton
+                size="small"
                 disabled={!local.isIn('editingCode')}
                 onClick={() => local.send('SAVED_CODE')}
               >
@@ -169,7 +178,10 @@ export default function CodePanel() {
           </Panel.Footer>
         </Panel.Layout>
       ) : (
-        <IconButton onClick={() => state.send('TOGGLED_CODE_PANEL_OPEN')}>
+        <IconButton
+          size="small"
+          onClick={() => state.send('TOGGLED_CODE_PANEL_OPEN')}
+        >
           <Code />
         </IconButton>
       )}

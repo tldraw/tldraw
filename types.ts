@@ -67,11 +67,49 @@ export enum ShapeType {
 // Cubic = "cubic",
 // Conic = "conic",
 
-export type ShapeStyles = Partial<
-  React.SVGProps<SVGUseElement> & {
-    dash: DashStyle
-  }
->
+export enum ColorStyle {
+  White = 'White',
+  LightGray = 'LightGray',
+  Gray = 'Gray',
+  Black = 'Black',
+  Lime = 'Lime',
+  Green = 'Green',
+  Teal = 'Teal',
+  Cyan = 'Cyan',
+  Blue = 'Blue',
+  Indigo = 'Indigo',
+  Violet = 'Violet',
+  Grape = 'Grape',
+  Pink = 'Pink',
+  Red = 'Red',
+  Orange = 'Orange',
+  Yellow = 'Yellow',
+}
+
+export enum SizeStyle {
+  Small = 'Small',
+  Medium = 'Medium',
+  Large = 'Large',
+}
+
+export enum DashStyle {
+  Solid = 'Solid',
+  Dashed = 'Dashed',
+  Dotted = 'Dotted',
+}
+
+export type ShapeStyles = {
+  color: ColorStyle
+  size: SizeStyle
+  dash: DashStyle
+  isFilled: boolean
+}
+
+// export type ShapeStyles = Partial<
+//   React.SVGProps<SVGUseElement> & {
+//     dash: DashStyle
+//   }
+// >
 
 export interface BaseShape {
   id: string
@@ -178,12 +216,6 @@ export interface CodeFile {
 
 export enum Decoration {
   Arrow = 'Arrow',
-}
-
-export enum DashStyle {
-  Solid = 'Solid',
-  Dashed = 'Dashed',
-  Dotted = 'Dotted',
 }
 
 export interface ShapeBinding {

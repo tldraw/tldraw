@@ -8,6 +8,7 @@ import {
   getRotatedCorners,
   translateBounds,
 } from 'utils/utils'
+import { defaultStyle, getShapeStyle } from 'lib/shape-styles'
 
 const rectangle = registerShapeUtils<RectangleShape>({
   boundsCache: new WeakMap([]),
@@ -27,23 +28,21 @@ const rectangle = registerShapeUtils<RectangleShape>({
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: {
-        fill: '#c6cacb',
-        stroke: '#000',
-      },
+      style: defaultStyle,
       ...props,
     }
   },
 
   render({ id, size, radius, style }) {
+    const styles = getShapeStyle(style)
     return (
       <g id={id}>
         <rect
           id={id}
           rx={radius}
           ry={radius}
-          width={Math.max(0, size[0] - Number(style.strokeWidth) / 2)}
-          height={Math.max(0, size[1] - Number(style.strokeWidth) / 2)}
+          width={Math.max(0, size[0] - Number(styles.strokeWidth) / 2)}
+          height={Math.max(0, size[1] - Number(styles.strokeWidth) / 2)}
         />
       </g>
     )

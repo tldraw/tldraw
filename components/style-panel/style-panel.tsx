@@ -4,13 +4,12 @@ import * as Panel from 'components/panel'
 import { useRef } from 'react'
 import { IconButton } from 'components/shared'
 import * as Checkbox from '@radix-ui/react-checkbox'
-import { Trash2, X } from 'react-feather'
+import { ChevronDown, Square, Trash2, X } from 'react-feather'
 import { deepCompare, deepCompareArrays, getPage } from 'utils/utils'
-import { shades, fills, strokes } from 'lib/colors'
-import ColorPicker, { ColorIcon, CurrentColor } from './color-picker'
+import { strokes } from 'lib/shape-styles'
 import AlignDistribute from './align-distribute'
-import { MoveType, ShapeStyles } from 'types'
-import WidthPicker from './width-picker'
+import { MoveType } from 'types'
+import SizePicker from './size-picker'
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -28,15 +27,14 @@ import {
   RotateCounterClockwiseIcon,
 } from '@radix-ui/react-icons'
 import DashPicker from './dash-picker'
-
-const fillColors = { ...shades, ...fills }
-const strokeColors = { ...shades, ...strokes }
-const getFillColor = (color: string) => {
-  if (shades[color]) {
-    return '#fff'
-  }
-  return fillColors[color]
-}
+import QuickColorSelect from './quick-color-select'
+import ColorContent from './color-content'
+import { RowButton, IconWrapper } from './shared'
+import ColorPicker from './color-picker'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import IsFilledPicker from './is-filled-picker'
+import QuickSizeSelect from './quick-size-select'
+import QuickdashSelect from './quick-dash-select'
 
 export default function StylePanel() {
   const rContainer = useRef<HTMLDivElement>(null)
@@ -48,12 +46,15 @@ export default function StylePanel() {
         <SelectedShapeStyles />
       ) : (
         <>
-          <QuickColorSelect prop="stroke" colors={strokeColors} />
+          <QuickColorSelect />
+          <QuickSizeSelect />
+          <QuickdashSelect />
           <IconButton
             title="Style"
+            size="small"
             onClick={() => state.send('TOGGLED_STYLE_PANEL_OPEN')}
           >
-            <DotsVerticalIcon />
+            <ChevronDown />
           </IconButton>
         </>
       )}
@@ -61,32 +62,11 @@ export default function StylePanel() {
   )
 }
 
-function QuickColorSelect({
-  prop,
-  colors,
-}: {
-  prop: ShapeStyles['fill'] | ShapeStyles['stroke']
-  colors: Record<string, string>
-}) {
-  const value = useSelector((s) => s.values.selectedStyle[prop])
-
-  return (
-    <ColorPicker
-      colors={colors}
-      onChange={(color) => state.send('CHANGED_STYLE', { [prop]: color })}
-    >
-      <CurrentColor size="icon" title={prop}>
-        <ColorIcon color={value} />
-      </CurrentColor>
-    </ColorPicker>
-  )
-}
-
 // This panel is going to be hard to keep cool, as we're selecting computed
 // information, based on the user's current selection. We might have to keep
 // track of this data manually within our state.
 
-function SelectedShapeStyles({}: {}) {
+function SelectedShapeStyles() {
   const selectedIds = useSelector(
     (s) => Array.from(s.data.selectedIds.values()),
     deepCompareArrays
@@ -115,42 +95,25 @@ function SelectedShapeStyles({}: {}) {
     <Panel.Layout>
       <Panel.Header side="right">
         <h3>Style</h3>
-        <IconButton onClick={() => state.send('TOGGLED_STYLE_PANEL_OPEN')}>
+        <IconButton
+          size="small"
+          onClick={() => state.send('TOGGLED_STYLE_PANEL_OPEN')}
+        >
           <X />
         </IconButton>
       </Panel.Header>
       <Content>
         <ColorPicker
-          colors={strokeColors}
-          onChange={(color) =>
-            state.send('CHANGED_STYLE', {
-              stroke: strokeColors[color],
-              fill: getFillColor(color),
-            })
-          }
-        >
-          <CurrentColor>
-            <label>Color</label>
-            <ColorIcon color={commonStyle.stroke} />
-          </CurrentColor>
-        </ColorPicker>
-        {/* <Row>
-          <label htmlFor="filled">Filled</label>
-          <StyledCheckbox
-            checked={commonStyle.isFilled}
-            onCheckedChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              console.log(e.target.value)
-              state.send('CHANGED_STYLE', {
-                isFilled: e.target.value === 'on',
-              })
-            }}
-          >
-            <Checkbox.Indicator as={CheckIcon} />
-          </StyledCheckbox> 
-        </Row>*/}
+          color={commonStyle.color}
+          onChange={(color) => state.send('CHANGED_STYLE', { color })}
+        />
+        <IsFilledPicker
+          isFilled={commonStyle.isFilled}
+          onChange={(isFilled) => state.send('CHANGED_STYLE', { isFilled })}
+        />
         <Row>
-          <label htmlFor="width">Width</label>
-          <WidthPicker strokeWidth={Number(commonStyle.strokeWidth)} />
+          <label htmlFor="size">Size</label>
+          <SizePicker size={commonStyle.size} />
         </Row>
         <Row>
           <label htmlFor="dash">Dash</label>
@@ -159,30 +122,35 @@ function SelectedShapeStyles({}: {}) {
         <ButtonsRow>
           <IconButton
             disabled={!hasSelection}
+            size="small"
             onClick={() => state.send('DUPLICATED')}
           >
             <CopyIcon />
           </IconButton>
           <IconButton
             disabled={!hasSelection}
+            size="small"
             onClick={() => state.send('ROTATED_CCW')}
           >
             <RotateCounterClockwiseIcon />
           </IconButton>
           <IconButton
             disabled={!hasSelection}
+            size="small"
             onClick={() => state.send('TOGGLED_SHAPE_HIDE')}
           >
             {isAllHidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
           </IconButton>
           <IconButton
             disabled={!hasSelection}
+            size="small"
             onClick={() => state.send('TOGGLED_SHAPE_LOCK')}
           >
             {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
           </IconButton>
           <IconButton
             disabled={!hasSelection}
+            size="small"
             onClick={() => state.send('TOGGLED_SHAPE_ASPECT_LOCK')}
           >
             {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
@@ -191,30 +159,35 @@ function SelectedShapeStyles({}: {}) {
         <ButtonsRow>
           <IconButton
             disabled={!hasSelection}
+            size="small"
             onClick={() => state.send('MOVED', { type: MoveType.ToBack })}
           >
             <PinBottomIcon />
           </IconButton>
           <IconButton
             disabled={!hasSelection}
+            size="small"
             onClick={() => state.send('MOVED', { type: MoveType.Backward })}
           >
             <ArrowDownIcon />
           </IconButton>
           <IconButton
             disabled={!hasSelection}
+            size="small"
             onClick={() => state.send('MOVED', { type: MoveType.Forward })}
           >
             <ArrowUpIcon />
           </IconButton>
           <IconButton
             disabled={!hasSelection}
+            size="small"
             onClick={() => state.send('MOVED', { type: MoveType.ToFront })}
           >
             <PinTopIcon />
           </IconButton>
           <IconButton
             disabled={!hasSelection}
+            size="small"
             onClick={() => state.send('DELETED')}
           >
             <Trash2 />
@@ -236,7 +209,7 @@ const StylePanelRoot = styled(Panel.Root, {
   overflow: 'hidden',
   position: 'relative',
   border: '1px solid $panel',
-  boxShadow: '0px 2px 4px rgba(0,0,0,.12)',
+  boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
   display: 'flex',
   alignItems: 'center',
   pointerEvents: 'all',
@@ -262,7 +235,6 @@ const Row = styled('div', {
   width: '100%',
   background: 'none',
   border: 'none',
-  cursor: 'pointer',
   outline: 'none',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -292,23 +264,4 @@ const ButtonsRow = styled('div', {
   alignItems: 'center',
   justifyContent: 'flex-start',
   padding: 4,
-})
-
-const StyledCheckbox = styled(Checkbox.Root, {
-  appearance: 'none',
-  backgroundColor: 'transparent',
-  border: 'none',
-  padding: 0,
-  boxShadow: 'inset 0 0 0 1px gainsboro',
-  width: 15,
-  height: 15,
-  borderRadius: 2,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-
-  '&:focus': {
-    outline: 'none',
-    boxShadow: 'inset 0 0 0 1px dodgerblue, 0 0 0 1px dodgerblue',
-  },
 })

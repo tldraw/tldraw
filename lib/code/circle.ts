@@ -2,6 +2,7 @@ import CodeShape from './index'
 import { v4 as uuid } from 'uuid'
 import { CircleShape, ShapeType } from 'types'
 import { vectorToPoint } from 'utils/utils'
+import { defaultStyle } from 'lib/shape-styles'
 
 export default class Circle extends CodeShape<CircleShape> {
   constructor(props = {} as Partial<CircleShape>) {
@@ -20,11 +21,7 @@ export default class Circle extends CodeShape<CircleShape> {
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: {
-        fill: '#c6cacb',
-        stroke: '#000',
-        strokeWidth: 1,
-      },
+      style: defaultStyle,
       ...props,
     })
   }

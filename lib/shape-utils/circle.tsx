@@ -1,11 +1,12 @@
 import { v4 as uuid } from 'uuid'
 import * as vec from 'utils/vec'
-import { CircleShape, ShapeType } from 'types'
+import { CircleShape, ColorStyle, DashStyle, ShapeType, SizeStyle } from 'types'
 import { registerShapeUtils } from './index'
 import { boundsContained } from 'utils/bounds'
 import { intersectCircleBounds } from 'utils/intersections'
 import { pointInCircle } from 'utils/hitTests'
 import { translateBounds } from 'utils/utils'
+import { defaultStyle, getShapeStyle } from 'lib/shape-styles'
 
 const circle = registerShapeUtils<CircleShape>({
   boundsCache: new WeakMap([]),
@@ -24,21 +25,20 @@ const circle = registerShapeUtils<CircleShape>({
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: {
-        fill: '#c6cacb',
-        stroke: '#000',
-      },
+      style: defaultStyle,
       ...props,
     }
   },
 
   render({ id, radius, style }) {
+    const styles = getShapeStyle(style)
+
     return (
       <circle
         id={id}
         cx={radius}
         cy={radius}
-        r={Math.max(0, radius - Number(style.strokeWidth) / 2)}
+        r={Math.max(0, radius - Number(styles.strokeWidth) / 2)}
       />
     )
   },

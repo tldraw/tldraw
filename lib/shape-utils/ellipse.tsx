@@ -11,6 +11,7 @@ import {
   rotateBounds,
   translateBounds,
 } from 'utils/utils'
+import { defaultStyle, getShapeStyle } from 'lib/shape-styles'
 
 const ellipse = registerShapeUtils<EllipseShape>({
   boundsCache: new WeakMap([]),
@@ -30,22 +31,20 @@ const ellipse = registerShapeUtils<EllipseShape>({
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: {
-        fill: '#c6cacb',
-        stroke: '#000',
-      },
+      style: defaultStyle,
       ...props,
     }
   },
 
   render({ id, radiusX, radiusY, style }) {
+    const styles = getShapeStyle(style)
     return (
       <ellipse
         id={id}
         cx={radiusX}
         cy={radiusY}
-        rx={Math.max(0, radiusX - Number(style.strokeWidth) / 2)}
-        ry={Math.max(0, radiusY - Number(style.strokeWidth) / 2)}
+        rx={Math.max(0, radiusX - Number(styles.strokeWidth) / 2)}
+        ry={Math.max(0, radiusY - Number(styles.strokeWidth) / 2)}
       />
     )
   },

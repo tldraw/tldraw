@@ -5,6 +5,7 @@ import { registerShapeUtils } from './index'
 import { intersectPolylineBounds } from 'utils/intersections'
 import { boundsContainPolygon } from 'utils/bounds'
 import { getBoundsFromPoints, translateBounds } from 'utils/utils'
+import { defaultStyle } from 'lib/shape-styles'
 
 const polyline = registerShapeUtils<PolylineShape>({
   boundsCache: new WeakMap([]),
@@ -23,11 +24,7 @@ const polyline = registerShapeUtils<PolylineShape>({
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: {
-        strokeWidth: 2,
-        strokeLinecap: 'round',
-        strokeLinejoin: 'round',
-      },
+      style: defaultStyle,
       ...props,
     }
   },
