@@ -153,27 +153,12 @@ const arrow = registerShapeUtils<ArrowShape>({
     )
   },
 
-  applyStyles(shape, style) {
-    Object.assign(shape.style, style)
-    shape.style.isFilled = false
-    return this
-  },
-
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
       this.boundsCache.set(shape, getBoundsFromPoints(shape.points))
     }
 
     return translateBounds(this.boundsCache.get(shape), shape.point)
-  },
-
-  getRotatedBounds(shape) {
-    return this.getBounds(shape)
-  },
-
-  getCenter(shape) {
-    const bounds = this.getBounds(shape)
-    return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2]
   },
 
   hitTest(shape, point) {
@@ -247,16 +232,6 @@ const arrow = registerShapeUtils<ArrowShape>({
     return this
   },
 
-  transformSingle(shape, bounds, info) {
-    this.transform(shape, bounds, info)
-    return this
-  },
-
-  setProperty(shape, prop, value) {
-    shape[prop] = value
-    return this
-  },
-
   onHandleMove(shape, handles) {
     for (let id in handles) {
       const handle = handles[id]
@@ -293,8 +268,12 @@ const arrow = registerShapeUtils<ArrowShape>({
     return this
   },
 
-  canTransform: true,
-  canChangeAspectRatio: true,
+  applyStyles(shape, style) {
+    Object.assign(shape.style, style)
+    shape.style.isFilled = false
+    return this
+  },
+
   canStyleFill: false,
 })
 

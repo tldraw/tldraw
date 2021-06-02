@@ -2,12 +2,7 @@ import { v4 as uuid } from 'uuid'
 import * as vec from 'utils/vec'
 import { RectangleShape, ShapeType } from 'types'
 import { registerShapeUtils } from './index'
-import { boundsCollidePolygon, boundsContainPolygon } from 'utils/bounds'
-import {
-  getBoundsFromPoints,
-  getRotatedCorners,
-  translateBounds,
-} from 'utils/utils'
+import { translateBounds } from 'utils/utils'
 import { defaultStyle, getShapeStyle } from 'lib/shape-styles'
 
 const rectangle = registerShapeUtils<RectangleShape>({
@@ -48,11 +43,6 @@ const rectangle = registerShapeUtils<RectangleShape>({
     )
   },
 
-  applyStyles(shape, style) {
-    Object.assign(shape.style, style)
-    return this
-  },
-
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
       const [width, height] = shape.size
@@ -71,31 +61,8 @@ const rectangle = registerShapeUtils<RectangleShape>({
     return translateBounds(this.boundsCache.get(shape), shape.point)
   },
 
-  getRotatedBounds(shape) {
-    return getBoundsFromPoints(
-      getRotatedCorners(this.getBounds(shape), shape.rotation)
-    )
-  },
-
-  getCenter(shape) {
-    const bounds = this.getRotatedBounds(shape)
-    return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2]
-  },
-
-  hitTest(shape) {
+  hitTest() {
     return true
-  },
-
-  hitTestBounds(shape, brushBounds) {
-    const rotatedCorners = getRotatedCorners(
-      this.getBounds(shape),
-      shape.rotation
-    )
-
-    return (
-      boundsContainPolygon(brushBounds, rotatedCorners) ||
-      boundsCollidePolygon(brushBounds, rotatedCorners)
-    )
   },
 
   transform(shape, bounds, { initialShape, transformOrigin, scaleX, scaleY }) {
@@ -131,15 +98,6 @@ const rectangle = registerShapeUtils<RectangleShape>({
     shape.point = [bounds.minX, bounds.minY]
     return this
   },
-
-  setProperty(shape, prop, value) {
-    shape[prop] = value
-    return this
-  },
-
-  canTransform: true,
-  canChangeAspectRatio: true,
-  canStyleFill: true,
 })
 
 export default rectangle

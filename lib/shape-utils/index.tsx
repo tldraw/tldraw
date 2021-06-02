@@ -7,7 +7,11 @@ import {
   ShapeStyles,
   ShapeHandle,
   ShapeBinding,
+  BaseShape,
+  ShapeSpecificProps,
+  Mutable,
 } from 'types'
+import { v4 as uuid } from 'uuid'
 import circle from './circle'
 import dot from './dot'
 import polyline from './polyline'
@@ -17,6 +21,18 @@ import line from './line'
 import ray from './ray'
 import draw from './draw'
 import arrow from './arrow'
+import rectangleUtils from '../shapes/Rectangle'
+import {
+  getBoundsCenter,
+  getBoundsFromPoints,
+  getRotatedCorners,
+} from 'utils/utils'
+import shape from 'components/canvas/shape'
+import {
+  boundsCollidePolygon,
+  boundsContainPolygon,
+  pointInBounds,
+} from 'utils/bounds'
 
 /*
 Shape Utiliies
@@ -47,14 +63,14 @@ export interface ShapeUtility<K extends Shape> {
 
   applyStyles(
     this: ShapeUtility<K>,
-    shape: K,
+    shape: Mutable<K>,
     style: Partial<ShapeStyles>
   ): ShapeUtility<K>
 
   // Transform to fit a new bounding box when more than one shape is selected.
   transform(
     this: ShapeUtility<K>,
-    shape: K,
+    shape: Mutable<K>,
     bounds: Bounds,
     info: {
       type: Edge | Corner
@@ -68,7 +84,7 @@ export interface ShapeUtility<K extends Shape> {
   // Transform a single shape to fit a new bounding box.
   transformSingle(
     this: ShapeUtility<K>,
-    shape: K,
+    shape: Mutable<K>,
     bounds: Bounds,
     info: {
       type: Edge | Corner
@@ -81,7 +97,7 @@ export interface ShapeUtility<K extends Shape> {
 
   setProperty<P extends keyof K>(
     this: ShapeUtility<K>,
-    shape: K,
+    shape: Mutable<K>,
     prop: P,
     value: K[P]
   ): ShapeUtility<K>
@@ -89,14 +105,14 @@ export interface ShapeUtility<K extends Shape> {
   // Respond when a user moves one of the shape's bound elements.
   onBindingMove?(
     this: ShapeUtility<K>,
-    shape: K,
+    shape: Mutable<K>,
     bindings: Record<string, ShapeBinding>
   ): ShapeUtility<K>
 
   // Respond when a user moves one of the shape's handles.
   onHandleMove?(
     this: ShapeUtility<K>,
-    shape: K,
+    shape: Mutable<K>,
     handle: Partial<K['handles']>
   ): ShapeUtility<K>
 
@@ -141,15 +157,109 @@ export function getShapeUtils<T extends Shape>(shape: T): ShapeUtility<T> {
   return shapeUtilityMap[shape.type] as ShapeUtility<T>
 }
 
+function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
+  return {
+    boundsCache: new WeakMap(),
+    canTransform: true,
+    canChangeAspectRatio: true,
+    canStyleFill: true,
+
+    create(props) {
+      return {
+        id: uuid(),
+        isGenerated: false,
+        point: [0, 0],
+        name: 'Shape',
+        parentId: 'page0',
+        childIndex: 0,
+        rotation: 0,
+        isAspectRatioLocked: false,
+        isLocked: false,
+        isHidden: false,
+        ...props,
+      } as T
+    },
+
+    render(shape) {
+      return <circle id={shape.id} />
+    },
+
+    transform(shape, bounds) {
+      shape.point = [bounds.minX, bounds.minY]
+      return this
+    },
+
+    transformSingle(shape, bounds, info) {
+      return this.transform(shape, bounds, info)
+    },
+
+    onBindingMove() {
+      return this
+    },
+
+    onHandleMove() {
+      return this
+    },
+
+    getBounds(shape) {
+      const [x, y] = shape.point
+      return {
+        minX: x,
+        minY: y,
+        maxX: x + 1,
+        maxY: y + 1,
+        width: 1,
+        height: 1,
+      }
+    },
+
+    getRotatedBounds(shape) {
+      return getBoundsFromPoints(
+        getRotatedCorners(this.getBounds(shape), shape.rotation)
+      )
+    },
+
+    getCenter(shape) {
+      return getBoundsCenter(this.getBounds(shape))
+    },
+
+    hitTest(shape, point) {
+      return pointInBounds(point, this.getBounds(shape))
+    },
+
+    hitTestBounds(shape, brushBounds) {
+      const rotatedCorners = getRotatedCorners(
+        this.getBounds(shape),
+        shape.rotation
+      )
+
+      return (
+        boundsContainPolygon(brushBounds, rotatedCorners) ||
+        boundsCollidePolygon(brushBounds, rotatedCorners)
+      )
+    },
+
+    setProperty(shape, prop, value) {
+      shape[prop] = value
+      return this
+    },
+
+    applyStyles(shape, style) {
+      Object.assign(shape.style, style)
+      return this
+    },
+  }
+}
+
 /**
  *  A factory of shape utilities, with typing enforced.
  * @param shape
  * @returns
  */
-export function registerShapeUtils<T extends Shape>(
-  shape: ShapeUtility<T>
-): ShapeUtility<T> {
-  return Object.freeze(shape)
+export function registerShapeUtils<K extends Shape>(
+  shapeUtil: Partial<ShapeUtility<K>>
+): ShapeUtility<K> {
+  return Object.freeze({ ...getDefaultShapeUtil<K>(), ...shapeUtil })
 }
 
 export function createShape<T extends Shape>(

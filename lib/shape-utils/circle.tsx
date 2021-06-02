@@ -43,11 +43,6 @@ const circle = registerShapeUtils<CircleShape>({
     )
   },
 
-  applyStyles(shape, style) {
-    Object.assign(shape.style, style)
-    return this
-  },
-
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
       const { radius } = shape
@@ -118,14 +113,7 @@ const circle = registerShapeUtils<CircleShape>({
     return this
   },
 
-  setProperty(shape, prop, value) {
-    shape[prop] = value
-    return this
-  },
-
-  canTransform: true,
   canChangeAspectRatio: false,
-  canStyleFill: true,
 })
 
 export default circle

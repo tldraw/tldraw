@@ -49,11 +49,6 @@ const ellipse = registerShapeUtils<EllipseShape>({
     )
   },
 
-  applyStyles(shape, style) {
-    Object.assign(shape.style, style)
-    return this
-  },
-
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
       const { radiusX, radiusY } = shape
@@ -130,15 +125,6 @@ const ellipse = registerShapeUtils<EllipseShape>({
   transformSingle(shape, bounds, info) {
     return this.transform(shape, bounds, info)
   },
-
-  setProperty(shape, prop, value) {
-    shape[prop] = value
-    return this
-  },
-
-  canTransform: true,
-  canChangeAspectRatio: true,
-  canStyleFill: true,
 })
 
 export default ellipse

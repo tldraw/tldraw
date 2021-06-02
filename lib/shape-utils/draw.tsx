@@ -70,13 +70,6 @@ const draw = registerShapeUtils<DrawShape>({
     return <path id={id} d={pathCache.get(points)} fill={styles.stroke} />
   },
 
-  applyStyles(shape, style) {
-    Object.assign(shape.style, style)
-    shape.style.isFilled = false
-    shape.style.dash = DashStyle.Solid
-    return this
-  },
-
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
       const bounds = getBoundsFromPoints(shape.points)
@@ -161,18 +154,13 @@ const draw = registerShapeUtils<DrawShape>({
     return this
   },
 
-  transformSingle(shape, bounds, info) {
-    this.transform(shape, bounds, info)
+  applyStyles(shape, style) {
+    Object.assign(shape.style, style)
+    shape.style.isFilled = false
+    shape.style.dash = DashStyle.Solid
     return this
   },
 
-  setProperty(shape, prop, value) {
-    shape[prop] = value
-    return this
-  },
-
-  canTransform: true,
-  canChangeAspectRatio: true,
   canStyleFill: false,
 })
 

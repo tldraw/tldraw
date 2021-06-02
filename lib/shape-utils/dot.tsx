@@ -37,11 +37,6 @@ const dot = registerShapeUtils<DotShape>({
     return <DotCircle id={id} cx={0} cy={0} r={3} />
   },
 
-  applyStyles(shape, style) {
-    Object.assign(shape.style, style)
-    return this
-  },
-
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
       const bounds = {
@@ -85,19 +80,8 @@ const dot = registerShapeUtils<DotShape>({
     return this
   },
 
-  transformSingle(shape, bounds, info) {
-    this.transform(shape, bounds, info)
-    return this
-  },
-
-  setProperty(shape, prop, value) {
-    shape[prop] = value
-    return this
-  },
-
   canTransform: false,
   canChangeAspectRatio: false,
-  canStyleFill: true,
 })
 
 export default dot

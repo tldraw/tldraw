@@ -395,3 +395,5 @@ export type CodeControl =
 export type PropsOfType<T extends object, K> = {
   [K in keyof T]: T[K] extends boolean ? K : never
 }[keyof T]
+
+export type Mutable<T extends Shape> = { -readonly [K in keyof T]: T[K] }
