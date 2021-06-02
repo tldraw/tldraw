@@ -213,19 +213,6 @@ const arrow = registerShapeUtils<ArrowShape>({
     }
   },
 
-  rotateTo(shape, rotation) {
-    // const rot = rotation - shape.rotation
-    // const center = this.getCenter(shape)
-    // shape.points = shape.points.map((pt) => vec.rotWith(pt, shape.point, rot))
-    shape.rotation = rotation
-    return this
-  },
-
-  translateTo(shape, point) {
-    shape.point = vec.toPrecision(point)
-    return this
-  },
-
   transform(shape, bounds, { initialShape, scaleX, scaleY }) {
     const initialShapeBounds = this.getBounds(initialShape)
 

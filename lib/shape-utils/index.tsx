@@ -29,7 +29,7 @@ Operations throughout the app will call these utility methods
 when performing tests (such as hit tests) or mutations, such as translations.
 */
 
-export interface ShapeUtility<K extends Readonly<Shape>> {
+export interface ShapeUtility<K extends Shape> {
   // A cache for the computed bounds of this kind of shape.
   boundsCache: WeakMap<K, Bounds>
 
@@ -50,12 +50,6 @@ export interface ShapeUtility<K extends Readonly<Shape>> {
     shape: K,
     style: Partial<ShapeStyles>
   ): ShapeUtility<K>
-
-  // Set the shape's point.
-  translateTo(this: ShapeUtility<K>, shape: K, delta: number[]): ShapeUtility<K>
-
-  // Set the shape's rotation.
-  rotateTo(this: ShapeUtility<K>, shape: K, rotation: number): ShapeUtility<K>
 
   // Transform to fit a new bounding box when more than one shape is selected.
   transform(

@@ -112,16 +112,6 @@ const ellipse = registerShapeUtils<EllipseShape>({
     )
   },
 
-  rotateTo(shape, rotation) {
-    shape.rotation = rotation
-    return this
-  },
-
-  translateTo(shape, point) {
-    shape.point = vec.toPrecision(point)
-    return this
-  },
-
   transform(shape, bounds, { scaleX, scaleY, initialShape }) {
     // TODO: Locked aspect ratio transform
 

@@ -1,8 +1,8 @@
-import Command from "./command"
-import history from "../history"
-import { AlignType, Data } from "types"
-import { getCommonBounds, getPage, getSelectedShapes } from "utils/utils"
-import { getShapeUtils } from "lib/shape-utils"
+import Command from './command'
+import history from '../history'
+import { AlignType, Data } from 'types'
+import { getCommonBounds, getPage, getSelectedShapes } from 'utils/utils'
+import { getShapeUtils } from 'lib/shape-utils'
 
 export default function alignCommand(data: Data, type: AlignType) {
   const { currentPageId } = data
@@ -18,8 +18,8 @@ export default function alignCommand(data: Data, type: AlignType) {
   history.execute(
     data,
     new Command({
-      name: "aligned",
-      category: "canvas",
+      name: 'aligned',
+      category: 'canvas',
       do(data) {
         const { shapes } = getPage(data, currentPageId)
 
@@ -27,7 +27,7 @@ export default function alignCommand(data: Data, type: AlignType) {
           case AlignType.Top: {
             for (let id in boundsForShapes) {
               const shape = shapes[id]
-              getShapeUtils(shape).translateTo(shape, [
+              getShapeUtils(shape).setProperty(shape, 'point', [
                 shape.point[0],
                 commonBounds.minY,
               ])
@@ -37,7 +37,7 @@ export default function alignCommand(data: Data, type: AlignType) {
           case AlignType.CenterVertical: {
             for (let id in boundsForShapes) {
               const shape = shapes[id]
-              getShapeUtils(shape).translateTo(shape, [
+              getShapeUtils(shape).setProperty(shape, 'point', [
                 shape.point[0],
                 midY - boundsForShapes[id].height / 2,
               ])
@@ -47,7 +47,7 @@ export default function alignCommand(data: Data, type: AlignType) {
           case AlignType.Bottom: {
             for (let id in boundsForShapes) {
               const shape = shapes[id]
-              getShapeUtils(shape).translateTo(shape, [
+              getShapeUtils(shape).setProperty(shape, 'point', [
                 shape.point[0],
                 commonBounds.maxY - boundsForShapes[id].height,
               ])
@@ -57,7 +57,7 @@ export default function alignCommand(data: Data, type: AlignType) {
           case AlignType.Left: {
             for (let id in boundsForShapes) {
               const shape = shapes[id]
-              getShapeUtils(shape).translateTo(shape, [
+              getShapeUtils(shape).setProperty(shape, 'point', [
                 commonBounds.minX,
                 shape.point[1],
               ])
@@ -67,7 +67,7 @@ export default function alignCommand(data: Data, type: AlignType) {
           case AlignType.CenterHorizontal: {
             for (let id in boundsForShapes) {
               const shape = shapes[id]
-              getShapeUtils(shape).translateTo(shape, [
+              getShapeUtils(shape).setProperty(shape, 'point', [
                 midX - boundsForShapes[id].width / 2,
                 shape.point[1],
               ])
@@ -77,7 +77,7 @@ export default function alignCommand(data: Data, type: AlignType) {
           case AlignType.Right: {
             for (let id in boundsForShapes) {
               const shape = shapes[id]
-              getShapeUtils(shape).translateTo(shape, [
+              getShapeUtils(shape).setProperty(shape, 'point', [
                 commonBounds.maxX - boundsForShapes[id].width,
                 shape.point[1],
               ])
@@ -91,7 +91,7 @@ export default function alignCommand(data: Data, type: AlignType) {
         for (let id in boundsForShapes) {
           const shape = shapes[id]
           const initialBounds = boundsForShapes[id]
-          getShapeUtils(shape).translateTo(shape, [
+          getShapeUtils(shape).setProperty(shape, 'point', [
             initialBounds.minX,
             initialBounds.minY,
           ])

@@ -40,7 +40,7 @@ export default class TranslateSession extends BaseSession {
 
         for (const { id, point } of initialShapes) {
           const shape = shapes[id]
-          getShapeUtils(shape).translateTo(shape, point)
+          getShapeUtils(shape).setProperty(shape, 'point', point)
         }
 
         for (const clone of clones) {
@@ -51,7 +51,7 @@ export default class TranslateSession extends BaseSession {
 
       for (const { id, point } of clones) {
         const shape = shapes[id]
-        getShapeUtils(shape).translateTo(shape, vec.add(point, delta))
+        getShapeUtils(shape).setProperty(shape, 'point', vec.add(point, delta))
       }
     } else {
       if (this.isCloning) {
@@ -69,7 +69,7 @@ export default class TranslateSession extends BaseSession {
 
       for (const { id, point } of initialShapes) {
         const shape = shapes[id]
-        getShapeUtils(shape).translateTo(shape, vec.add(point, delta))
+        getShapeUtils(shape).setProperty(shape, 'point', vec.add(point, delta))
       }
     }
   }
@@ -80,7 +80,7 @@ export default class TranslateSession extends BaseSession {
 
     for (const { id, point } of initialShapes) {
       const shape = shapes[id]
-      getShapeUtils(shape).translateTo(shape, point)
+      getShapeUtils(shape).setProperty(shape, 'point', point)
     }
 
     for (const { id } of clones) {

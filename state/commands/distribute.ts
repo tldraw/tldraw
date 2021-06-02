@@ -1,13 +1,13 @@
-import Command from "./command"
-import history from "../history"
-import { Data, DistributeType } from "types"
+import Command from './command'
+import history from '../history'
+import { Data, DistributeType } from 'types'
 import {
   getBoundsCenter,
   getCommonBounds,
   getPage,
   getSelectedShapes,
-} from "utils/utils"
-import { getShapeUtils } from "lib/shape-utils"
+} from 'utils/utils'
+import { getShapeUtils } from 'lib/shape-utils'
 
 export default function distributeCommand(data: Data, type: DistributeType) {
   const { currentPageId } = data
@@ -32,8 +32,8 @@ export default function distributeCommand(data: Data, type: DistributeType) {
   history.execute(
     data,
     new Command({
-      name: "distributed",
-      category: "canvas",
+      name: 'distributed',
+      category: 'canvas',
       do(data) {
         const { shapes } = getPage(data, currentPageId)
         const len = entries.length
@@ -59,7 +59,7 @@ export default function distributeCommand(data: Data, type: DistributeType) {
               for (let i = 0; i < entriesToMove.length; i++) {
                 const [id, bounds] = entriesToMove[i]
                 const shape = shapes[id]
-                getShapeUtils(shape).translateTo(shape, [
+                getShapeUtils(shape).setProperty(shape, 'point', [
                   x + step * i - bounds.width / 2,
                   bounds.minY,
                 ])
@@ -75,7 +75,10 @@ export default function distributeCommand(data: Data, type: DistributeType) {
               for (let i = 0; i < entriesToMove.length - 1; i++) {
                 const [id, bounds] = entriesToMove[i]
                 const shape = shapes[id]
-                getShapeUtils(shape).translateTo(shape, [x, bounds.minY])
+                getShapeUtils(shape).setProperty(shape, 'point', [
+                  x,
+                  bounds.minY,
+                ])
                 x += bounds.width + step
               }
             }
@@ -101,7 +104,7 @@ export default function distributeCommand(data: Data, type: DistributeType) {
               for (let i = 0; i < entriesToMove.length; i++) {
                 const [id, bounds] = entriesToMove[i]
                 const shape = shapes[id]
-                getShapeUtils(shape).translateTo(shape, [
+                getShapeUtils(shape).setProperty(shape, 'point', [
                   bounds.minX,
                   y + step * i - bounds.height / 2,
                 ])
@@ -117,7 +120,10 @@ export default function distributeCommand(data: Data, type: DistributeType) {
               for (let i = 0; i < entriesToMove.length - 1; i++) {
                 const [id, bounds] = entriesToMove[i]
                 const shape = shapes[id]
-                getShapeUtils(shape).translateTo(shape, [bounds.minX, y])
+                getShapeUtils(shape).setProperty(shape, 'point', [
+                  bounds.minX,
+                  y,
+                ])
                 y += bounds.height + step
               }
             }
@@ -131,7 +137,7 @@ export default function distributeCommand(data: Data, type: DistributeType) {
         for (let id in boundsForShapes) {
           const shape = shapes[id]
           const initialBounds = boundsForShapes[id]
-          getShapeUtils(shape).translateTo(shape, [
+          getShapeUtils(shape).setProperty(shape, 'point', [
             initialBounds.minX,
             initialBounds.minY,
           ])

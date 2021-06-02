@@ -24,7 +24,11 @@ export default function nudgeCommand(data: Data, delta: number[]) {
 
         for (let id in shapeBounds) {
           const shape = shapes[id]
-          getShapeUtils(shape).translateTo(shape, vec.add(shape.point, delta))
+          getShapeUtils(shape).setProperty(
+            shape,
+            'point',
+            vec.add(shape.point, delta)
+          )
         }
       },
       undo(data) {
@@ -32,7 +36,11 @@ export default function nudgeCommand(data: Data, delta: number[]) {
 
         for (let id in shapeBounds) {
           const shape = shapes[id]
-          getShapeUtils(shape).translateTo(shape, vec.sub(shape.point, delta))
+          getShapeUtils(shape).setProperty(
+            shape,
+            'point',
+            vec.sub(shape.point, delta)
+          )
         }
       },
     })

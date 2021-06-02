@@ -98,16 +98,6 @@ const rectangle = registerShapeUtils<RectangleShape>({
     )
   },
 
-  rotateTo(shape, rotation) {
-    shape.rotation = rotation
-    return this
-  },
-
-  translateTo(shape, point) {
-    shape.point = vec.toPrecision(point)
-    return this
-  },
-
   transform(shape, bounds, { initialShape, transformOrigin, scaleX, scaleY }) {
     if (shape.rotation === 0 && !shape.isAspectRatioLocked) {
       shape.size = [bounds.width, bounds.height]

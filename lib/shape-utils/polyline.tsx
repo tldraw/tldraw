@@ -90,16 +90,6 @@ const polyline = registerShapeUtils<PolylineShape>({
     )
   },
 
-  rotateTo(shape, rotation) {
-    shape.rotation = rotation
-    return this
-  },
-
-  translateTo(shape, point) {
-    shape.point = vec.toPrecision(point)
-    return this
-  },
-
   transform(shape, bounds, { initialShape, scaleX, scaleY }) {
     const initialShapeBounds = this.getBounds(initialShape)
 

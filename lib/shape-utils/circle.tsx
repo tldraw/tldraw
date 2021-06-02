@@ -96,16 +96,6 @@ const circle = registerShapeUtils<CircleShape>({
     )
   },
 
-  rotateTo(shape, rotation) {
-    shape.rotation = rotation
-    return this
-  },
-
-  translateTo(shape, point) {
-    shape.point = vec.toPrecision(point)
-    return this
-  },
-
   transform(shape, bounds, { initialShape, transformOrigin, scaleX, scaleY }) {
     shape.radius =
       initialShape.radius * Math.min(Math.abs(scaleX), Math.abs(scaleY))

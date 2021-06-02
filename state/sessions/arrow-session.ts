@@ -66,7 +66,7 @@ export default class PointsSession extends BaseSession {
 
     getShapeUtils(shape)
       .onHandleMove(shape, { end: initialShape.handles.end })
-      .translateTo(shape, initialShape.point)
+      .setProperty(shape, 'point', initialShape.point)
   }
 
   complete(data: Data) {
@@ -95,7 +95,7 @@ export default class PointsSession extends BaseSession {
         nextHandles.end.point,
       ])
       .setProperty(shape, 'handles', nextHandles)
-      .translateTo(shape, newPoint)
+      .setProperty(shape, 'point', newPoint)
       .onHandleMove(shape, nextHandles)
 
     commands.arrow(

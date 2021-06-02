@@ -47,7 +47,9 @@ export default function rotateCcwCommand(data: Data) {
 
       const rot = (PI2 + (shape.rotation - PI2 / 4)) % PI2
 
-      getShapeUtils(shape).rotateTo(shape, rot).translateTo(shape, nextPoint)
+      getShapeUtils(shape)
+        .setProperty(shape, 'rotation', rot)
+        .setProperty(shape, 'point', nextPoint)
 
       return [id, shape]
     })
@@ -67,8 +69,8 @@ export default function rotateCcwCommand(data: Data) {
           const shape = shapes[id]
 
           getShapeUtils(shape)
-            .rotateTo(shape, nextShapes[id].rotation)
-            .translateTo(shape, nextShapes[id].point)
+            .setProperty(shape, 'rotation', nextShapes[id].rotation)
+            .setProperty(shape, 'point', nextShapes[id].point)
         }
 
         data.boundsRotation = nextboundsRotation
@@ -81,7 +83,9 @@ export default function rotateCcwCommand(data: Data) {
 
           const shape = shapes[id]
           const utils = getShapeUtils(shape)
-          utils.rotateTo(shape, rotation).translateTo(shape, point)
+          utils
+            .setProperty(shape, 'rotation', rotation)
+            .setProperty(shape, 'point', point)
         }
 
         data.boundsRotation = boundsRotation

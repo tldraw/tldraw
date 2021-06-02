@@ -137,20 +137,6 @@ const draw = registerShapeUtils<DrawShape>({
     )
   },
 
-  rotateTo(shape, rotation) {
-    shape.rotation = rotation
-    // console.log(shape.points.map(([x, y]) => [x, y]))
-    // const bounds = this.getBounds(shape)
-    // const center = [bounds.width / 2, bounds.height / 2]
-    // shape.points = shape.points.map((pt) => vec.rotWith(pt, center, rotation))
-    return this
-  },
-
-  translateTo(shape, point) {
-    shape.point = vec.toPrecision(point)
-    return this
-  },
-
   transform(shape, bounds, { initialShape, scaleX, scaleY }) {
     const initialShapeBounds = this.boundsCache.get(initialShape)
     shape.points = initialShape.points.map(([x, y]) => {

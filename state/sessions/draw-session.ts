@@ -25,7 +25,7 @@ export default class BrushSession extends BaseSession {
 
     const page = getPage(data)
     const shape = page.shapes[id]
-    getShapeUtils(shape).translateTo(shape, point)
+    getShapeUtils(shape).setProperty(shape, 'point', point)
   }
 
   update = (data: Data, point: number[], isLocked = false) => {
@@ -108,7 +108,7 @@ export default class BrushSession extends BaseSession {
 
       getShapeUtils(shape)
         .setProperty(shape, 'points', pts)
-        .translateTo(shape, vec.add(shape.point, [minX, minY]))
+        .setProperty(shape, 'point', vec.add(shape.point, [minX, minY]))
     }
 
     commands.draw(data, this.snapshot.id, this.points)

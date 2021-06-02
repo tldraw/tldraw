@@ -60,8 +60,8 @@ export default class RotateSession extends BaseSession {
       )
 
       getShapeUtils(shape)
-        .rotateTo(shape, (PI2 + nextRotation) % PI2)
-        .translateTo(shape, nextPoint)
+        .setProperty(shape, 'rotation', (PI2 + nextRotation) % PI2)
+        .setProperty(shape, 'point', nextPoint)
     }
   }
 
@@ -70,7 +70,9 @@ export default class RotateSession extends BaseSession {
 
     for (let { id, point, rotation } of this.snapshot.initialShapes) {
       const shape = page.shapes[id]
-      getShapeUtils(shape).rotateTo(shape, rotation).translateTo(shape, point)
+      getShapeUtils(shape)
+        .setProperty(shape, 'rotation', rotation)
+        .setProperty(shape, 'point', point)
     }
   }
 

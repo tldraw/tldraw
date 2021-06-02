@@ -1,12 +1,12 @@
-import { Shape } from "types"
+import { Shape } from 'types'
 import shapeUtilityMap, {
   createShape,
   getShapeUtils,
   ShapeUtility,
-} from "lib/shape-utils"
-import * as vec from "utils/vec"
-import Vector from "./vector"
-import { vectorToPoint } from "utils/utils"
+} from 'lib/shape-utils'
+import * as vec from 'utils/vec'
+import Vector from './vector'
+import { vectorToPoint } from 'utils/utils'
 
 export const codeShapes = new Set<CodeShape<Shape>>([])
 
@@ -29,20 +29,21 @@ export default class CodeShape<T extends Shape> {
   }
 
   moveTo(point: Vector) {
-    this.utils.translateTo(this._shape, vectorToPoint(point))
+    this.utils.setProperty(this._shape, 'point', vectorToPoint(point))
     return this
   }
 
   translate(delta: Vector) {
-    this.utils.translateTo(
+    this.utils.setProperty(
       this._shape,
+      'point',
       vec.add(this._shape.point, vectorToPoint(delta))
     )
     return this
   }
 
   rotate(rotation: number) {
-    this.utils.rotateTo(this._shape, rotation)
+    this.utils.setProperty(this._shape, 'rotation', rotation)
     return this
   }
 

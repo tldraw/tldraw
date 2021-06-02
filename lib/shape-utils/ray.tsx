@@ -87,15 +87,6 @@ const ray = registerShapeUtils<RayShape>({
     )
   },
 
-  rotateTo(shape) {
-    return this
-  },
-
-  translateTo(shape, point) {
-    shape.point = vec.toPrecision(point)
-    return this
-  },
-
   transform(shape, bounds) {
     shape.point = [bounds.minX, bounds.minY]
 
