@@ -141,6 +141,7 @@ const shapeUtilityMap: Record<ShapeType, ShapeUtility<Shape>> = {
   [ShapeType.Ray]: ray,
   [ShapeType.Draw]: draw,
   [ShapeType.Arrow]: arrow,
+  [ShapeType.Text]: arrow,
 }
 
 /**
