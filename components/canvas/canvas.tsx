@@ -56,14 +56,13 @@ export default function Canvas() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onTouchStart={handleTouchStart}
-      // onTouchMove={handleTouchMove}
     >
       <Defs />
       {isReady && (
         <g ref={rGroup}>
           <BoundsBg />
           <Page />
-          {/* <Selected /> */}
+          <Selected />
           <Bounds />
           <Handles />
           <Brush />

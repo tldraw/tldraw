@@ -8,8 +8,6 @@ import useShapeEvents from 'hooks/useShapeEvents'
 import { getShapeStyle } from 'lib/shape-styles'
 
 function Shape({ id, isSelecting }: { id: string; isSelecting: boolean }) {
-  const isSelected = useSelector((s) => s.values.selectedIds.has(id))
-
   const shape = useSelector(({ data }) => getPage(data).shapes[id])
 
   const rGroup = useRef<SVGGElement>(null)
@@ -32,7 +30,7 @@ function Shape({ id, isSelecting }: { id: string; isSelecting: boolean }) {
   const style = getShapeStyle(shape.style)
 
   return (
-    <StyledGroup ref={rGroup} isSelected={isSelected} transform={transform}>
+    <StyledGroup ref={rGroup} transform={transform}>
       {isSelecting && (
         <HoverIndicator
           as="use"
@@ -86,6 +84,9 @@ const StyledGroup = styled('g', {
   [`& ${HoverIndicator}`]: {
     opacity: '0',
   },
+  [`&:hover ${HoverIndicator}`]: {
+    opacity: '0.16',
+  },
   variants: {
     isSelected: {
       true: {
@@ -102,9 +103,6 @@ const StyledGroup = styled('g', {
       false: {
         [`& ${HoverIndicator}`]: {
           opacity: '0',
-        },
-        [`&:hover ${HoverIndicator}`]: {
-          opacity: '0.16',
         },
       },
     },

@@ -1,9 +1,9 @@
-import { current } from "immer"
-import { Bounds, Data } from "types"
-import BaseSession from "./base-session"
-import { getShapeUtils } from "lib/shape-utils"
-import { getBoundsFromPoints, getShapes } from "utils/utils"
-import * as vec from "utils/vec"
+import { current } from 'immer'
+import { Bounds, Data } from 'types'
+import BaseSession from './base-session'
+import { getShapeUtils } from 'lib/shape-utils'
+import { getBoundsFromPoints, getShapes } from 'utils/utils'
+import * as vec from 'utils/vec'
 
 export default class BrushSession extends BaseSession {
   origin: number[]
@@ -25,7 +25,9 @@ export default class BrushSession extends BaseSession {
     for (let id in snapshot.shapeHitTests) {
       const test = snapshot.shapeHitTests[id]
       if (test(brushBounds)) {
-        data.selectedIds.add(id)
+        if (!data.selectedIds.has(id)) {
+          data.selectedIds.add(id)
+        }
       } else if (data.selectedIds.has(id)) {
         data.selectedIds.delete(id)
       }
