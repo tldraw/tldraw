@@ -47,11 +47,15 @@ function Shape({ id, isSelecting }: { id: string; isSelecting: boolean }) {
   )
 }
 
-const RealShape = memo(
-  ({ id, style }: { id: string; style: ReturnType<typeof getShapeStyle> }) => {
-    return <StyledShape as="use" href={'#' + id} {...style} />
-  }
-)
+const RealShape = memo(function RealShape({
+  id,
+  style,
+}: {
+  id: string
+  style: ReturnType<typeof getShapeStyle>
+}) {
+  return <StyledShape as="use" href={'#' + id} {...style} />
+})
 
 const StyledShape = styled('path', {
   strokeLinecap: 'round',

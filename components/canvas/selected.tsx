@@ -25,34 +25,38 @@ export default function Selected() {
   )
 }
 
-export const ShapeOutline = memo(
-  ({ id, isSelected }: { id: string; isSelected: boolean }) => {
-    const rIndicator = useRef<SVGUseElement>(null)
+export const ShapeOutline = memo(function ShapeOutline({
+  id,
+  isSelected,
+}: {
+  id: string
+  isSelected: boolean
+}) {
+  const rIndicator = useRef<SVGUseElement>(null)
 
-    const shape = useSelector(({ data }) => getPage(data).shapes[id])
+  const shape = useSelector(({ data }) => getPage(data).shapes[id])
 
-    const events = useShapeEvents(id, rIndicator)
+  const events = useShapeEvents(id, rIndicator)
 
-    if (!shape) return null
+  if (!shape) return null
 
-    const transform = `
+  const transform = `
     rotate(${shape.rotation * (180 / Math.PI)},
     ${getShapeUtils(shape).getCenter(shape)})
     translate(${shape.point})
   `
 
-    return (
-      <SelectIndicator
-        ref={rIndicator}
-        as="use"
-        href={'#' + id}
-        transform={transform}
-        isLocked={shape.isLocked}
-        {...events}
-      />
-    )
-  }
-)
+  return (
+    <SelectIndicator
+      ref={rIndicator}
+      as="use"
+      href={'#' + id}
+      transform={transform}
+      isLocked={shape.isLocked}
+      {...events}
+    />
+  )
+})
 
 const SelectIndicator = styled('path', {
   zStrokeWidth: 3,

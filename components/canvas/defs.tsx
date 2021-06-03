@@ -24,7 +24,7 @@ export default function Defs() {
   )
 }
 
-const Def = memo(({ id }: { id: string }) => {
+const Def = memo(function Def({ id }: { id: string }) {
   const shape = useSelector(({ data }) => getPage(data).shapes[id])
   if (!shape) return null
   return getShapeUtils(shape).render(shape)
