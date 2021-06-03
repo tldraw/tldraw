@@ -1336,7 +1336,7 @@ const state = createState({
     },
 
     restoreSavedData(data) {
-      // history.load(data)
+      history.load(data)
     },
 
     clearBoundsRotation(data) {
