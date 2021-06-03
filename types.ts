@@ -65,6 +65,7 @@ export enum ShapeType {
   Rectangle = 'rectangle',
   Draw = 'draw',
   Arrow = 'arrow',
+  Text = 'text',
 }
 
 // Consider:
@@ -183,6 +184,11 @@ export interface ArrowShape extends BaseShape {
   }
 }
 
+export interface TextShape extends BaseShape {
+  type: ShapeType.Text
+  text: string
+}
+
 export type MutableShape =
   | DotShape
   | CircleShape
@@ -193,6 +199,7 @@ export type MutableShape =
   | DrawShape
   | RectangleShape
   | ArrowShape
+  | TextShape
 
 export type Shape = Readonly<MutableShape>
 
@@ -206,6 +213,7 @@ export interface Shapes {
   [ShapeType.Draw]: Readonly<DrawShape>
   [ShapeType.Rectangle]: Readonly<RectangleShape>
   [ShapeType.Arrow]: Readonly<ArrowShape>
+  [ShapeType.Text]: Readonly<TextShape>
 }
 
 export type ShapeByType<T extends ShapeType> = Shapes[T]

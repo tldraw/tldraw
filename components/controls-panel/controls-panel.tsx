@@ -22,6 +22,7 @@ export default function ControlPanel() {
         <Panel.Layout>
           <Panel.Header>
             <IconButton
+              bp={{ '@initial': 'mobile', '@sm': 'small' }}
               size="small"
               onClick={() => state.send('CLOSED_CODE_PANEL')}
             >
@@ -37,6 +38,7 @@ export default function ControlPanel() {
         </Panel.Layout>
       ) : (
         <IconButton
+          bp={{ '@initial': 'mobile', '@sm': 'small' }}
           size="small"
           onClick={() => state.send('OPENED_CODE_PANEL')}
         >

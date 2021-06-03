@@ -22,10 +22,13 @@ export default function QuickdashSelect() {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger as={IconButton}>
+      <DropdownMenu.Trigger
+        as={IconButton}
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+      >
         <Tooltip label="Dash">{dashes[dash]}</Tooltip>
       </DropdownMenu.Trigger>
-      <DropdownContent direction="vertical">
+      <DropdownContent sideOffset={8} direction="vertical">
         <DashItem isActive={dash === DashStyle.Solid} dash={DashStyle.Solid} />
         <DashItem
           isActive={dash === DashStyle.Dashed}

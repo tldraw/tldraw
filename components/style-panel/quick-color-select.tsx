@@ -11,7 +11,10 @@ export default function QuickColorSelect() {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger as={IconButton}>
+      <DropdownMenu.Trigger
+        as={IconButton}
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+      >
         <Tooltip label="Color">
           <Square fill={strokes[color]} stroke={strokes[color]} />
         </Tooltip>

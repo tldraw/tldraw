@@ -44,6 +44,7 @@ export default function StylePanel() {
           <QuickSizeSelect />
           <QuickdashSelect />
           <IconButton
+            bp={{ '@initial': 'mobile', '@sm': 'small' }}
             title="Style"
             size="small"
             onClick={() => state.send('TOGGLED_STYLE_PANEL_OPEN')}
@@ -92,6 +93,7 @@ function SelectedShapeStyles() {
       <Panel.Header side="right">
         <h3>Style</h3>
         <IconButton
+          bp={{ '@initial': 'mobile', '@sm': 'small' }}
           size="small"
           onClick={() => state.send('TOGGLED_STYLE_PANEL_OPEN')}
         >
@@ -117,6 +119,7 @@ function SelectedShapeStyles() {
         </Row>
         <ButtonsRow>
           <IconButton
+            bp={{ '@initial': 'mobile', '@sm': 'small' }}
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('DUPLICATED')}
@@ -137,6 +140,7 @@ function SelectedShapeStyles() {
           </IconButton>
 
           <IconButton
+            bp={{ '@initial': 'mobile', '@sm': 'small' }}
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('TOGGLED_SHAPE_HIDE')}
@@ -147,6 +151,7 @@ function SelectedShapeStyles() {
           </IconButton>
 
           <IconButton
+            bp={{ '@initial': 'mobile', '@sm': 'small' }}
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('TOGGLED_SHAPE_LOCK')}
@@ -157,6 +162,7 @@ function SelectedShapeStyles() {
           </IconButton>
 
           <IconButton
+            bp={{ '@initial': 'mobile', '@sm': 'small' }}
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('TOGGLED_SHAPE_ASPECT_LOCK')}
@@ -168,6 +174,7 @@ function SelectedShapeStyles() {
         </ButtonsRow>
         <ButtonsRow>
           <IconButton
+            bp={{ '@initial': 'mobile', '@sm': 'small' }}
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('MOVED', { type: MoveType.ToBack })}
@@ -178,6 +185,7 @@ function SelectedShapeStyles() {
           </IconButton>
 
           <IconButton
+            bp={{ '@initial': 'mobile', '@sm': 'small' }}
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('MOVED', { type: MoveType.Backward })}
@@ -188,6 +196,7 @@ function SelectedShapeStyles() {
           </IconButton>
 
           <IconButton
+            bp={{ '@initial': 'mobile', '@sm': 'small' }}
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('MOVED', { type: MoveType.Forward })}
@@ -198,6 +207,7 @@ function SelectedShapeStyles() {
           </IconButton>
 
           <IconButton
+            bp={{ '@initial': 'mobile', '@sm': 'small' }}
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('MOVED', { type: MoveType.ToFront })}
@@ -208,6 +218,7 @@ function SelectedShapeStyles() {
           </IconButton>
 
           <IconButton
+            bp={{ '@initial': 'mobile', '@sm': 'small' }}
             disabled={!hasSelection}
             size="small"
             onClick={() => state.send('DELETED')}

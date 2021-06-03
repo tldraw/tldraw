@@ -13,6 +13,7 @@ export default function IsFilledPicker({ isFilled, onChange }: Props) {
   return (
     <Checkbox.Root
       as={RowButton}
+      bp={{ '@initial': 'mobile', '@sm': 'small' }}
       checked={isFilled}
       onCheckedChange={(e: React.ChangeEvent<HTMLInputElement>) =>
         onChange(e.currentTarget.checked)

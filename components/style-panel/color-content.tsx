@@ -12,7 +12,7 @@ export default function ColorContent({
   onChange: (color: ColorStyle) => void
 }) {
   return (
-    <DropdownContent sideOffset={0} side="bottom">
+    <DropdownContent sideOffset={8} side="bottom">
       {Object.keys(strokes).map((color: ColorStyle) => (
         <DropdownMenu.DropdownMenuItem
           as={IconButton}

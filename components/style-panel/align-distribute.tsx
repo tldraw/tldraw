@@ -64,20 +64,32 @@ export default function AlignDistribute({
 }) {
   return (
     <Container>
-      <IconButton size="small" disabled={!hasTwoOrMore} onClick={alignLeft}>
+      <IconButton
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+        size="small"
+        disabled={!hasTwoOrMore}
+        onClick={alignLeft}
+      >
         <AlignLeftIcon />
       </IconButton>
       <IconButton
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
         size="small"
         disabled={!hasTwoOrMore}
         onClick={alignCenterHorizontal}
       >
         <AlignCenterHorizontallyIcon />
       </IconButton>
-      <IconButton size="small" disabled={!hasTwoOrMore} onClick={alignRight}>
+      <IconButton
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+        size="small"
+        disabled={!hasTwoOrMore}
+        onClick={alignRight}
+      >
         <AlignRightIcon />
       </IconButton>
       <IconButton
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
         size="small"
         disabled={!hasTwoOrMore}
         onClick={stretchHorizontally}
@@ -85,26 +97,39 @@ export default function AlignDistribute({
         <StretchHorizontallyIcon />
       </IconButton>
       <IconButton
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
         size="small"
         disabled={!hasThreeOrMore}
         onClick={distributeHorizontally}
       >
         <SpaceEvenlyHorizontallyIcon />
       </IconButton>
-      <IconButton size="small" disabled={!hasTwoOrMore} onClick={alignTop}>
+      <IconButton
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+        size="small"
+        disabled={!hasTwoOrMore}
+        onClick={alignTop}
+      >
         <AlignTopIcon />
       </IconButton>
       <IconButton
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
         size="small"
         disabled={!hasTwoOrMore}
         onClick={alignCenterVertical}
       >
         <AlignCenterVerticallyIcon />
       </IconButton>
-      <IconButton size="small" disabled={!hasTwoOrMore} onClick={alignBottom}>
+      <IconButton
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+        size="small"
+        disabled={!hasTwoOrMore}
+        onClick={alignBottom}
+      >
         <AlignBottomIcon />
       </IconButton>
       <IconButton
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
         size="small"
         disabled={!hasTwoOrMore}
         onClick={stretchVertically}
@@ -112,6 +137,7 @@ export default function AlignDistribute({
         <StretchVerticallyIcon />
       </IconButton>
       <IconButton
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
         size="small"
         disabled={!hasThreeOrMore}
         onClick={distributeVertically}

@@ -23,15 +23,19 @@ export const IconButton = styled('button', {
     gridColumn: 1,
   },
 
-  '&:hover:not(:disabled)': {
-    backgroundColor: '$hover',
-  },
-
   '&:disabled': {
     opacity: '0.5',
   },
 
   variants: {
+    bp: {
+      mobile: {},
+      small: {
+        '&:hover:not(:disabled)': {
+          backgroundColor: '$hover',
+        },
+      },
+    },
     size: {
       small: {
         '& svg': {
@@ -80,10 +84,6 @@ export const RowButton = styled('button', {
   padding: '4px 6px 4px 12px',
   borderRadius: 4,
 
-  '&:hover': {
-    backgroundColor: '$hover',
-  },
-
   '& label': {
     fontWeight: '$1',
     margin: 0,
@@ -98,6 +98,14 @@ export const RowButton = styled('button', {
   },
 
   variants: {
+    bp: {
+      mobile: {},
+      small: {
+        '&:hover:not(:disabled)': {
+          backgroundColor: '$hover',
+        },
+      },
+    },
     size: {
       icon: {
         padding: '4px ',

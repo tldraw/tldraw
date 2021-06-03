@@ -17,12 +17,15 @@ export default function QuickSizeSelect() {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger as={IconButton}>
+      <DropdownMenu.Trigger
+        as={IconButton}
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+      >
         <Tooltip label="Size">
           <Circle size={sizes[size]} stroke="none" fill="currentColor" />
         </Tooltip>
       </DropdownMenu.Trigger>
-      <DropdownContent direction="vertical">
+      <DropdownContent sideOffset={8} direction="vertical">
         <SizeItem isActive={size === SizeStyle.Small} size={SizeStyle.Small} />
         <SizeItem
           isActive={size === SizeStyle.Medium}

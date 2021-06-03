@@ -115,11 +115,18 @@ export default function CodePanel() {
   const { error } = local.data
 
   return (
-    <Panel.Root data-bp-desktop ref={rContainer} isOpen={isOpen}>
+    <Panel.Root
+      bp={{ '@initial': 'mobile', '@sm': 'small' }}
+      data-bp-desktop
+      ref={rContainer}
+      isOpen={isOpen}
+      variant="code"
+    >
       {isOpen ? (
         <Panel.Layout>
           <Panel.Header side="left">
             <IconButton
+              bp={{ '@initial': 'mobile', '@sm': 'small' }}
               size="small"
               onClick={() => state.send('TOGGLED_CODE_PANEL_OPEN')}
             >
@@ -129,6 +136,7 @@ export default function CodePanel() {
             <ButtonsGroup>
               <FontSizeButtons>
                 <IconButton
+                  bp={{ '@initial': 'mobile', '@sm': 'small' }}
                   size="small"
                   disabled={!local.isIn('editingCode')}
                   onClick={() => state.send('INCREASED_CODE_FONT_SIZE')}
@@ -144,12 +152,14 @@ export default function CodePanel() {
                 </IconButton>
               </FontSizeButtons>
               <IconButton
+                bp={{ '@initial': 'mobile', '@sm': 'small' }}
                 size="small"
                 onClick={() => local.send('TOGGLED_DOCS')}
               >
                 <Info />
               </IconButton>
               <IconButton
+                bp={{ '@initial': 'mobile', '@sm': 'small' }}
                 size="small"
                 disabled={!local.isIn('editingCode')}
                 onClick={() => local.send('SAVED_CODE')}
@@ -179,6 +189,7 @@ export default function CodePanel() {
         </Panel.Layout>
       ) : (
         <IconButton
+          bp={{ '@initial': 'mobile', '@sm': 'small' }}
           size="small"
           onClick={() => state.send('TOGGLED_CODE_PANEL_OPEN')}
         >

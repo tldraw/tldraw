@@ -13,7 +13,10 @@ interface Props {
 export default function ColorPicker({ color, onChange }: Props) {
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger as={RowButton}>
+      <DropdownMenu.Trigger
+        as={RowButton}
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+      >
         <label htmlFor="color">Color</label>
         <IconWrapper>
           <Square fill={strokes[color]} />

@@ -208,6 +208,11 @@ const EditorContainer = styled('div', {
   pointerEvents: 'all',
   userSelect: 'all',
 
+  '& > *': {
+    userSelect: 'all',
+    pointerEvents: 'all',
+  },
+
   '.editorLineError': {
     backgroundColor: '$lineError',
   },

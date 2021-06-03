@@ -12,6 +12,13 @@ export const Root = styled('div', {
   boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
 
   variants: {
+    bp: {
+      mobile: {},
+      small: {},
+    },
+    variant: {
+      code: {},
+    },
     isOpen: {
       true: {},
       false: {
@@ -21,6 +28,35 @@ export const Root = styled('div', {
       },
     },
   },
+  compoundVariants: [
+    {
+      isOpen: true,
+      variant: 'code',
+      css: {
+        position: 'absolute',
+        top: 8,
+        left: 8,
+        right: 8,
+        bottom: 48,
+        maxWidth: 720,
+        zIndex: 1000,
+      },
+    },
+    {
+      isOpen: true,
+      variant: 'code',
+      bp: 'small',
+      css: {
+        position: 'absolute',
+        top: 8,
+        left: 8,
+        right: 8,
+        bottom: 128,
+        maxWidth: 720,
+        zIndex: 1000,
+      },
+    },
+  ],
 })
 
 export const Layout = styled('div', {

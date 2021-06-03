@@ -11,7 +11,7 @@ import Bounds from './bounds/bounding-box'
 import BoundsBg from './bounds/bounds-bg'
 import Selected from './selected'
 import Handles from './bounds/handles'
-import { isMobile } from 'utils/utils'
+import { isMobile, throttle } from 'utils/utils'
 
 export default function Canvas() {
   const rCanvas = useRef<SVGSVGElement>(null)
@@ -34,25 +34,13 @@ export default function Canvas() {
     } else {
       if (isMobile()) {
         state.send('TOUCHED_CANVAS')
-        // state.send('POINTED_CANVAS', inputs.touchStart(e, 'canvas'))
-        // e.preventDefault()
-        // e.stopPropagation()
       }
     }
   }, [])
 
-  // const handleTouchMove = useCallback((e: React.TouchEvent) => {
-  //   if (!inputs.canAccept(e.touches[0].identifier)) return
-  //   if (inputs.canAccept(e.touches[0].identifier)) {
-  //     state.send('MOVED_POINTER', inputs.touchMove(e))
-  //   }
-  // }, [])
-
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!inputs.canAccept(e.pointerId)) return
-    if (inputs.canAccept(e.pointerId)) {
-      state.send('MOVED_POINTER', inputs.pointerMove(e))
-    }
+    throttledPointerMove(inputs.pointerMove(e))
   }, [])
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
@@ -94,8 +82,17 @@ const MainSVG = styled('svg', {
   touchAction: 'none',
   zIndex: 100,
   backgroundColor: '$canvas',
+  pointerEvents: 'all',
 
   '& *': {
     userSelect: 'none',
   },
 })
+
+// const throttledPointerMove = throttle((payload: any) => {
+//   state.send('MOVED_POINTER', payload)
+// }, 16)
+
+const throttledPointerMove = (payload: any) => {
+  state.send('MOVED_POINTER', payload)
+}

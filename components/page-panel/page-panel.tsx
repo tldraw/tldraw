@@ -29,89 +29,89 @@ export default function PagePanel() {
   )
 
   return (
-    <OuterContainer>
-      <DropdownMenu.Root
-        open={isOpen}
-        onOpenChange={(isOpen) => {
-          if (rIsOpen.current !== isOpen) {
-            setIsOpen(isOpen)
-          }
-        }}
-      >
-        <PanelRoot>
-          <DropdownMenu.Trigger as={RowButton}>
-            <span>{documentPages[currentPageId].name}</span>
-            <IconWrapper size="small">
-              <ChevronDownIcon />
-            </IconWrapper>
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Content sideOffset={8}>
-            <PanelRoot>
-              <DropdownMenu.RadioGroup
-                as={Content}
-                value={currentPageId}
-                onValueChange={(id) => {
-                  setIsOpen(false)
-                  state.send('CHANGED_CURRENT_PAGE', { id })
-                }}
-              >
-                {sorted.map(({ id, name }) => (
-                  <ContextMenu.Root key={id}>
-                    <ContextMenu.Trigger>
-                      <StyledRadioItem key={id} value={id}>
-                        <span>{name}</span>
-                        <DropdownMenu.ItemIndicator
-                          as={IconWrapper}
-                          size="small"
-                        >
-                          <CheckIcon />
-                        </DropdownMenu.ItemIndicator>
-                      </StyledRadioItem>
-                    </ContextMenu.Trigger>
-                    <StyledContextMenuContent>
-                      <ContextMenu.Group>
-                        <StyledContextMenuItem
-                          onSelect={() => state.send('RENAMED_PAGE', { id })}
-                        >
-                          Rename
-                        </StyledContextMenuItem>
-                        <StyledContextMenuItem
-                          onSelect={() => {
-                            setIsOpen(false)
-                            state.send('DELETED_PAGE', { id })
-                          }}
-                        >
-                          Delete
-                        </StyledContextMenuItem>
-                      </ContextMenu.Group>
-                    </StyledContextMenuContent>
-                  </ContextMenu.Root>
-                ))}
-              </DropdownMenu.RadioGroup>
-              <DropdownMenu.Separator />
-              <RowButton
-                onClick={() => {
-                  setIsOpen(false)
-                  state.send('CREATED_PAGE')
-                }}
-              >
-                <span>Create Page</span>
-                <IconWrapper size="small">
-                  <PlusIcon />
-                </IconWrapper>
-              </RowButton>
-            </PanelRoot>
-          </DropdownMenu.Content>
-        </PanelRoot>
-      </DropdownMenu.Root>
-    </OuterContainer>
+    <DropdownMenu.Root
+      open={isOpen}
+      onOpenChange={(isOpen) => {
+        if (rIsOpen.current !== isOpen) {
+          setIsOpen(isOpen)
+        }
+      }}
+    >
+      <PanelRoot>
+        <DropdownMenu.Trigger
+          as={RowButton}
+          bp={{ '@initial': 'mobile', '@sm': 'small' }}
+          css={{ paddingRight: 12 }}
+        >
+          <span>{documentPages[currentPageId].name}</span>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content sideOffset={8}>
+          <PanelRoot>
+            <DropdownMenu.RadioGroup
+              as={Content}
+              value={currentPageId}
+              onValueChange={(id) => {
+                setIsOpen(false)
+                state.send('CHANGED_CURRENT_PAGE', { id })
+              }}
+            >
+              {sorted.map(({ id, name }) => (
+                <ContextMenu.Root key={id}>
+                  <ContextMenu.Trigger>
+                    <StyledRadioItem
+                      key={id}
+                      value={id}
+                      bp={{ '@initial': 'mobile', '@sm': 'small' }}
+                    >
+                      <span>{name}</span>
+                      <DropdownMenu.ItemIndicator as={IconWrapper} size="small">
+                        <CheckIcon />
+                      </DropdownMenu.ItemIndicator>
+                    </StyledRadioItem>
+                  </ContextMenu.Trigger>
+                  <StyledContextMenuContent>
+                    <ContextMenu.Group>
+                      <StyledContextMenuItem
+                        onSelect={() => state.send('RENAMED_PAGE', { id })}
+                      >
+                        Rename
+                      </StyledContextMenuItem>
+                      <StyledContextMenuItem
+                        onSelect={() => {
+                          setIsOpen(false)
+                          state.send('DELETED_PAGE', { id })
+                        }}
+                      >
+                        Delete
+                      </StyledContextMenuItem>
+                    </ContextMenu.Group>
+                  </StyledContextMenuContent>
+                </ContextMenu.Root>
+              ))}
+            </DropdownMenu.RadioGroup>
+            <DropdownMenu.Separator />
+            <RowButton
+              bp={{ '@initial': 'mobile', '@sm': 'small' }}
+              onClick={() => {
+                setIsOpen(false)
+                state.send('CREATED_PAGE')
+              }}
+            >
+              <span>Create Page</span>
+              <IconWrapper size="small">
+                <PlusIcon />
+              </IconWrapper>
+            </RowButton>
+          </PanelRoot>
+        </DropdownMenu.Content>
+      </PanelRoot>
+    </DropdownMenu.Root>
   )
 }
 
 const PanelRoot = styled('div', {
-  minWidth: 1,
-  width: 184,
-  maxWidth: 184,
+  marginLeft: 8,
+  zIndex: 200,
   overflow: 'hidden',
   position: 'relative',
   display: 'flex',
@@ -128,11 +128,12 @@ const PanelRoot = styled('div', {
 
 const Content = styled(Panel.Content, {
   width: '100%',
+  minWidth: 128,
 })
 
 const StyledRadioItem = styled(DropdownMenu.RadioItem, {
   height: 32,
-  width: '100%',
+  width: 'auto',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -143,24 +144,19 @@ const StyledRadioItem = styled(DropdownMenu.RadioItem, {
   fontFamily: '$ui',
   backgroundColor: 'transparent',
   outline: 'none',
-  '&:hover': {
-    backgroundColor: '$hover',
+  variants: {
+    bp: {
+      mobile: {},
+      small: {
+        '&:hover': {
+          backgroundColor: '$hover',
+        },
+        '&:focus-within': {
+          backgroundColor: '$hover',
+        },
+      },
+    },
   },
-  '&:focus-within': {
-    backgroundColor: '$hover',
-  },
-})
-
-const OuterContainer = styled('div', {
-  position: 'fixed',
-  top: 8,
-  left: 0,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: '100%',
-  zIndex: 200,
-  height: 44,
 })
 
 const StyledContextMenuContent = styled(ContextMenu.Content, {
@@ -184,8 +180,13 @@ const StyledContextMenuItem = styled(ContextMenu.Item, {
   fontFamily: '$ui',
   backgroundColor: 'transparent',
   outline: 'none',
-  '&:hover': {
-    backgroundColor: '$hover',
+  bp: {
+    mobile: {},
+    small: {
+      '&:hover:not(:disabled)': {
+        backgroundColor: '$hover',
+      },
+    },
   },
 })
 

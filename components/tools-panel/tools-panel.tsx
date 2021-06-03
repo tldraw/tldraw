@@ -10,6 +10,7 @@ import {
   Pencil2Icon,
   SewingPinIcon,
   SquareIcon,
+  TextIcon,
 } from '@radix-ui/react-icons'
 import { IconButton } from 'components/shared'
 import React from 'react'
@@ -27,6 +28,7 @@ const selectDrawTool = () => state.send('SELECTED_DRAW_TOOL')
 const selectEllipseTool = () => state.send('SELECTED_ELLIPSE_TOOL')
 const selectLineTool = () => state.send('SELECTED_LINE_TOOL')
 const selectPolylineTool = () => state.send('SELECTED_POLYLINE_TOOL')
+const selectTextTool = () => state.send('SELECTED_TEXT_TOOL')
 const selectRayTool = () => state.send('SELECTED_RAY_TOOL')
 const selectRectangleTool = () => state.send('SELECTED_RECTANGLE_TOOL')
 const selectSelectTool = () => state.send('SELECTED_SELECT_TOOL')
@@ -47,6 +49,7 @@ export default function ToolsPanel() {
           <Tooltip label="Select">
             <IconButton
               name="select"
+              bp={{ '@initial': 'mobile', '@sm': 'small' }}
               size={{ '@initial': 'small', '@sm': 'small', '@md': 'large' }}
               onClick={selectSelectTool}
               isActive={activeTool === 'select'}
@@ -59,6 +62,7 @@ export default function ToolsPanel() {
           <Tooltip label="Draw">
             <IconButton
               name={ShapeType.Draw}
+              bp={{ '@initial': 'mobile', '@sm': 'small' }}
               size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
               onClick={selectDrawTool}
               isActive={activeTool === ShapeType.Draw}
@@ -69,6 +73,7 @@ export default function ToolsPanel() {
           <Tooltip label="Rectangle">
             <IconButton
               name={ShapeType.Rectangle}
+              bp={{ '@initial': 'mobile', '@sm': 'small' }}
               size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
               onClick={selectRectangleTool}
               isActive={activeTool === ShapeType.Rectangle}
@@ -79,6 +84,7 @@ export default function ToolsPanel() {
           <Tooltip label="Ellipse">
             <IconButton
               name={ShapeType.Circle}
+              bp={{ '@initial': 'mobile', '@sm': 'small' }}
               size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
               onClick={selectEllipseTool}
               isActive={activeTool === ShapeType.Ellipse}
@@ -89,11 +95,23 @@ export default function ToolsPanel() {
           <Tooltip label="Arrow">
             <IconButton
               name={ShapeType.Arrow}
+              bp={{ '@initial': 'mobile', '@sm': 'small' }}
               size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
               onClick={selectArrowTool}
               isActive={activeTool === ShapeType.Arrow}
             >
               <ArrowTopRightIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip label="Text">
+            <IconButton
+              name={ShapeType.Arrow}
+              bp={{ '@initial': 'mobile', '@sm': 'small' }}
+              size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
+              onClick={selectTextTool}
+              isActive={activeTool === ShapeType.Text}
+            >
+              <TextIcon />
             </IconButton>
           </Tooltip>
           {/* <IconButton
@@ -132,6 +150,7 @@ export default function ToolsPanel() {
         <Container>
           <Tooltip label="Lock Tool">
             <IconButton
+              bp={{ '@initial': 'mobile', '@sm': 'small' }}
               size={{ '@initial': 'small', '@sm': 'small', '@md': 'large' }}
               onClick={selectToolLock}
             >
@@ -141,6 +160,7 @@ export default function ToolsPanel() {
           {isPenLocked && (
             <Tooltip label="Unlock Pen">
               <IconButton
+                bp={{ '@initial': 'mobile', '@sm': 'small' }}
                 size={{ '@initial': 'small', '@sm': 'small', '@md': 'large' }}
                 onClick={selectToolLock}
               >

@@ -20,20 +20,25 @@ export default function Editor() {
 
   return (
     <Layout>
-      <Canvas />
+      <CodePanel />
       <PagePanel />
-      <LeftPanels>
+      <Spacer />
+      <StylePanel />
+      <Canvas />
+
+      {/* <LeftPanels>
         <CodePanel />
         {hasControls && <ControlsPanel />}
-      </LeftPanels>
-      <RightPanels>
-        <StylePanel />
-      </RightPanels>
+      </LeftPanels> */}
       <ToolsPanel />
       <StatusBar />
     </Layout>
   )
 }
+
+const Spacer = styled('div', {
+  flexGrow: 2,
+})
 
 const Layout = styled('main', {
   position: 'fixed',
@@ -43,34 +48,13 @@ const Layout = styled('main', {
   right: 0,
   height: '100%',
   width: '100%',
-  display: 'grid',
-  gridTemplateRows: '1fr auto 144px',
-  gridTemplateColumns: 'minmax(0, 720px) 1fr auto',
-  gridTemplateAreas: `
-    "leftPanels main rightPanels"
-    "tools tools tools"
-    "statusbar statusbar statusbar"
-  `,
-})
-
-const LeftPanels = styled('div', {
-  display: 'grid',
-  gridArea: 'leftPanels',
-  gridTemplateRows: '1fr auto',
-  padding: 8,
-  gap: 8,
-  zIndex: 250,
+  padding: '8px 8px 0 8px',
+  zIndex: 200,
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start',
   pointerEvents: 'none',
-})
-
-const RightPanels = styled('div', {
-  gridArea: 'rightPanels',
-  padding: 8,
-  display: 'grid',
-  gridTemplateRows: 'auto',
-  height: 'fit-content',
-  justifyContent: 'flex-end',
-  gap: 8,
-  zIndex: 300,
-  pointerEvents: 'none',
+  '& > *': {
+    PointerEvent: 'all',
+  },
 })

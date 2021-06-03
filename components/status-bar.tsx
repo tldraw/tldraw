@@ -32,6 +32,7 @@ const StatusBarContainer = styled('div', {
   bottom: 0,
   left: 0,
   width: '100%',
+  zIndex: 300,
   height: 40,
   userSelect: 'none',
   borderTop: '1px solid black',
@@ -43,7 +44,6 @@ const StatusBarContainer = styled('div', {
   gap: 8,
   fontSize: '$0',
   padding: '0 16px',
-  zIndex: 200,
 
   variants: {
     size: {
