@@ -151,6 +151,8 @@ const state = createState({
         DISABLED_PEN_LOCK: 'disablePenLock',
         CLEARED_PAGE: ['selectAll', 'deleteSelection'],
         CHANGED_CURRENT_PAGE: ['clearSelectedIds', 'setCurrentPage'],
+        CREATED_PAGE: ['clearSelectedIds', 'createPage'],
+        DELETED_PAGE: { unless: 'hasOnlyOnePage', do: 'deletePage' },
       },
       initial: 'selecting',
       states: {
@@ -742,11 +744,20 @@ const state = createState({
     isPenLocked(data) {
       return data.settings.isPenLocked
     },
+    hasOnlyOnePage(data) {
+      return Object.keys(data.document.pages).length === 1
+    },
   },
   actions: {
     /* ---------------------- Pages --------------------- */
     setCurrentPage(data, payload: { id: string }) {
       commands.changePage(data, payload.id)
+    },
+    createPage(data) {
+      commands.createPage(data)
+    },
+    deletePage(data, payload: { id: string }) {
+      commands.deletePage(data, payload.id)
     },
 
     /* --------------------- Shapes --------------------- */
@@ -1325,7 +1336,7 @@ const state = createState({
     },
 
     restoreSavedData(data) {
-      history.load(data)
+      // history.load(data)
     },
 
     clearBoundsRotation(data) {

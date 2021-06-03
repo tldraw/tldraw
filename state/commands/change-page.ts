@@ -5,7 +5,7 @@ import { getPage, getSelectedShapes } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 import * as vec from 'utils/vec'
 
-export default function nudgeCommand(data: Data, pageId: string) {
+export default function changePage(data: Data, pageId: string) {
   const { currentPageId: prevPageId } = data
 
   history.execute(

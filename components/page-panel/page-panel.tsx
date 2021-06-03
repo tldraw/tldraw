@@ -1,15 +1,28 @@
 import styled from 'styles'
+import * as ContextMenu from '@radix-ui/react-context-menu'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import * as RadioGroup from '@radix-ui/react-radio-group'
+import * as Dialog from '@radix-ui/react-dialog'
+
 import { IconWrapper, RowButton } from 'components/shared'
-import { CheckIcon, ChevronDownIcon } from '@radix-ui/react-icons'
+import { CheckIcon, ChevronDownIcon, PlusIcon } from '@radix-ui/react-icons'
 import * as Panel from '../panel'
 import state, { useSelector } from 'state'
-import { getPage } from 'utils/utils'
+import { useEffect, useRef, useState } from 'react'
 
 export default function PagePanel() {
-  const currentPageId = useSelector((s) => s.data.currentPageId)
+  const rIsOpen = useRef(false)
+  const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    if (rIsOpen.current !== isOpen) {
+      rIsOpen.current = isOpen
+    }
+  }, [isOpen])
+
   const documentPages = useSelector((s) => s.data.document.pages)
+  const currentPageId = useSelector((s) => s.data.currentPageId)
+
+  if (!documentPages[currentPageId]) return null
 
   const sorted = Object.values(documentPages).sort(
     (a, b) => a.childIndex - b.childIndex
@@ -17,7 +30,14 @@ export default function PagePanel() {
 
   return (
     <OuterContainer>
-      <DropdownMenu.Root>
+      <DropdownMenu.Root
+        open={isOpen}
+        onOpenChange={(isOpen) => {
+          if (rIsOpen.current !== isOpen) {
+            setIsOpen(isOpen)
+          }
+        }}
+      >
         <PanelRoot>
           <DropdownMenu.Trigger as={RowButton}>
             <span>{documentPages[currentPageId].name}</span>
@@ -30,19 +50,56 @@ export default function PagePanel() {
               <DropdownMenu.RadioGroup
                 as={Content}
                 value={currentPageId}
-                onValueChange={(id) =>
+                onValueChange={(id) => {
+                  setIsOpen(false)
                   state.send('CHANGED_CURRENT_PAGE', { id })
-                }
+                }}
               >
                 {sorted.map(({ id, name }) => (
-                  <StyledRadioItem key={id} value={id}>
-                    <span>{name}</span>
-                    <DropdownMenu.ItemIndicator as={IconWrapper} size="small">
-                      <CheckIcon />
-                    </DropdownMenu.ItemIndicator>
-                  </StyledRadioItem>
+                  <ContextMenu.Root key={id}>
+                    <ContextMenu.Trigger>
+                      <StyledRadioItem key={id} value={id}>
+                        <span>{name}</span>
+                        <DropdownMenu.ItemIndicator
+                          as={IconWrapper}
+                          size="small"
+                        >
+                          <CheckIcon />
+                        </DropdownMenu.ItemIndicator>
+                      </StyledRadioItem>
+                    </ContextMenu.Trigger>
+                    <StyledContextMenuContent>
+                      <ContextMenu.Group>
+                        <StyledContextMenuItem
+                          onSelect={() => state.send('RENAMED_PAGE', { id })}
+                        >
+                          Rename
+                        </StyledContextMenuItem>
+                        <StyledContextMenuItem
+                          onSelect={() => {
+                            setIsOpen(false)
+                            state.send('DELETED_PAGE', { id })
+                          }}
+                        >
+                          Delete
+                        </StyledContextMenuItem>
+                      </ContextMenu.Group>
+                    </StyledContextMenuContent>
+                  </ContextMenu.Root>
                 ))}
               </DropdownMenu.RadioGroup>
+              <DropdownMenu.Separator />
+              <RowButton
+                onClick={() => {
+                  setIsOpen(false)
+                  state.send('CREATED_PAGE')
+                }}
+              >
+                <span>Create Page</span>
+                <IconWrapper size="small">
+                  <PlusIcon />
+                </IconWrapper>
+              </RowButton>
             </PanelRoot>
           </DropdownMenu.Content>
         </PanelRoot>
@@ -58,6 +115,7 @@ const PanelRoot = styled('div', {
   overflow: 'hidden',
   position: 'relative',
   display: 'flex',
+  flexDirection: 'column',
   alignItems: 'center',
   pointerEvents: 'all',
   padding: '2px',
@@ -65,6 +123,7 @@ const PanelRoot = styled('div', {
   backgroundColor: '$panel',
   border: '1px solid $panel',
   boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
+  userSelect: 'none',
 })
 
 const Content = styled(Panel.Content, {
@@ -87,6 +146,9 @@ const StyledRadioItem = styled(DropdownMenu.RadioItem, {
   '&:hover': {
     backgroundColor: '$hover',
   },
+  '&:focus-within': {
+    backgroundColor: '$hover',
+  },
 })
 
 const OuterContainer = styled('div', {
@@ -99,4 +161,57 @@ const OuterContainer = styled('div', {
   width: '100%',
   zIndex: 200,
   height: 44,
+})
+
+const StyledContextMenuContent = styled(ContextMenu.Content, {
+  padding: '2px',
+  borderRadius: '4px',
+  backgroundColor: '$panel',
+  border: '1px solid $panel',
+  boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
+})
+
+const StyledContextMenuItem = styled(ContextMenu.Item, {
+  height: 32,
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '0 12px 0 12px',
+  cursor: 'pointer',
+  borderRadius: '4px',
+  fontSize: '$1',
+  fontFamily: '$ui',
+  backgroundColor: 'transparent',
+  outline: 'none',
+  '&:hover': {
+    backgroundColor: '$hover',
+  },
+})
+
+const StyledOverlay = styled(Dialog.Overlay, {
+  backgroundColor: 'rgba(0, 0, 0, .15)',
+  position: 'fixed',
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+})
+
+const StyledContent = styled(Dialog.Content, {
+  position: 'fixed',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  minWidth: 200,
+  maxWidth: 'fit-content',
+  maxHeight: '85vh',
+  padding: 20,
+  marginTop: '-5vh',
+  backgroundColor: 'white',
+  borderRadius: 6,
+
+  '&:focus': {
+    outline: 'none',
+  },
 })

@@ -1314,12 +1314,46 @@
   dependencies:
     "@babel/runtime" "^7.13.10"
 
+"@radix-ui/react-context-menu@^0.0.19":
+  version "0.0.19"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-context-menu/-/react-context-menu-0.0.19.tgz#47ef194d7bc925ff7f998889be9fd373ce4bd9a1"
+  integrity sha512-FR2jXeFqxD9n+1AC81+7jfMbnz80kdQNMfgIcPQL1S0M5SODADdDiTKKfok4Blc1nYWe7nEwBTYauMirF7avSQ==
+  dependencies:
+    "@babel/runtime" "^7.13.10"
+    "@radix-ui/primitive" "0.0.5"
+    "@radix-ui/react-context" "0.0.5"
+    "@radix-ui/react-menu" "0.0.18"
+    "@radix-ui/react-polymorphic" "0.0.11"
+    "@radix-ui/react-primitive" "0.0.13"
+    "@radix-ui/react-use-callback-ref" "0.0.5"
+
 "@radix-ui/react-context@0.0.5":
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-context/-/react-context-0.0.5.tgz#7c15f46795d7765dabfaf6f9c53791ad28c521c2"
   integrity sha512-bwrzAc0qc2EPepSTLBT4+93uCiI9wP78VSmPg2K+k71O/vpx7dPs0VqrewwCBNCHT54NIwaRr2hEsm2uqYi02A==
   dependencies:
     "@babel/runtime" "^7.13.10"
+
+"@radix-ui/react-dialog@^0.0.17":
+  version "0.0.17"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-dialog/-/react-dialog-0.0.17.tgz#736e37626c4e9e20d46546ddbbb8869a352578f0"
+  integrity sha512-DOSW8SdniyVLro+MvF0owaEEa8MUYGMuvuuSQpFnD/hA+K0pKzyTSjEuC7OeflPCImBFEbmKhgRoeWypfMZZOA==
+  dependencies:
+    "@babel/runtime" "^7.13.10"
+    "@radix-ui/primitive" "0.0.5"
+    "@radix-ui/react-compose-refs" "0.0.5"
+    "@radix-ui/react-context" "0.0.5"
+    "@radix-ui/react-dismissable-layer" "0.0.13"
+    "@radix-ui/react-focus-guards" "0.0.7"
+    "@radix-ui/react-focus-scope" "0.0.13"
+    "@radix-ui/react-id" "0.0.6"
+    "@radix-ui/react-polymorphic" "0.0.11"
+    "@radix-ui/react-portal" "0.0.13"
+    "@radix-ui/react-presence" "0.0.14"
+    "@radix-ui/react-primitive" "0.0.13"
+    "@radix-ui/react-use-controllable-state" "0.0.6"
+    aria-hidden "^1.1.1"
+    react-remove-scroll "^2.4.0"
 
 "@radix-ui/react-dismissable-layer@0.0.13":
   version "0.0.13"

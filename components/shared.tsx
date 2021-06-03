@@ -78,21 +78,10 @@ export const RowButton = styled('button', {
   fontSize: '$1',
   justifyContent: 'space-between',
   padding: '4px 6px 4px 12px',
+  borderRadius: 4,
 
-  '&::before': {
-    content: "''",
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    pointerEvents: 'none',
-    zIndex: -1,
-  },
-
-  '&:hover::before': {
+  '&:hover': {
     backgroundColor: '$hover',
-    borderRadius: 4,
   },
 
   '& label': {

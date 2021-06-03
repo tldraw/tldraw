@@ -1,7 +1,9 @@
 import align from './align'
 import arrow from './arrow'
 import changePage from './change-page'
+import createPage from './create-page'
 import deleteSelected from './delete-selected'
+import deletePage from './delete-page'
 import direct from './direct'
 import distribute from './distribute'
 import draw from './draw'
@@ -23,6 +25,8 @@ const commands = {
   align,
   arrow,
   changePage,
+  createPage,
+  deletePage,
   deleteSelected,
   direct,
   distribute,
