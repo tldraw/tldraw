@@ -1,7 +1,7 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { strokes } from 'lib/shape-styles'
 import { ColorStyle } from 'types'
-import { IconWrapper, RowButton } from './shared'
+import { RowButton, IconWrapper } from '../shared'
 import { Square } from 'react-feather'
 import ColorContent from './color-content'
 

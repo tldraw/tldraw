@@ -4,7 +4,7 @@ import Tooltip from 'components/tooltip'
 import { Circle } from 'react-feather'
 import state, { useSelector } from 'state'
 import { SizeStyle } from 'types'
-import { DropdownContent, Item } from './shared'
+import { DropdownContent, Item } from '../shared'
 
 const sizes = {
   [SizeStyle.Small]: 6,

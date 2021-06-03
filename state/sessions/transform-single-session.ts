@@ -85,8 +85,6 @@ export default class TransformSingleSession extends BaseSession {
       data,
       this.snapshot,
       getTransformSingleSnapshot(data, this.transformType),
-      this.scaleX,
-      this.scaleY,
       this.isCreating
     )
   }

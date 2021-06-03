@@ -8,6 +8,7 @@ import ToolsPanel from './tools-panel/tools-panel'
 import StylePanel from './style-panel/style-panel'
 import { useSelector } from 'state'
 import styled from 'styles'
+import PagePanel from './page-panel/page-panel'
 
 export default function Editor() {
   useKeyboardEvents()
@@ -20,6 +21,7 @@ export default function Editor() {
   return (
     <Layout>
       <Canvas />
+      <PagePanel />
       <LeftPanels>
         <CodePanel />
         {hasControls && <ControlsPanel />}

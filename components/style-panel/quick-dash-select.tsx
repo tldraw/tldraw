@@ -9,7 +9,7 @@ import {
   DashDottedIcon,
   DashSolidIcon,
   DashDashedIcon,
-} from './shared'
+} from '../shared'
 
 const dashes = {
   [DashStyle.Solid]: <DashSolidIcon />,

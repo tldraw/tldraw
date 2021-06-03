@@ -106,7 +106,7 @@ class History extends BaseHistory<Data> {
   }
 
   restoreSavedData(data: any): Data {
-    const restoredData = { ...data }
+    const restoredData: Data = { ...data }
 
     restoredData.selectedIds = new Set(restoredData.selectedIds)
 
@@ -114,12 +114,15 @@ class History extends BaseHistory<Data> {
     const cameraInfo = localStorage.getItem('code_slate_camera')
 
     if (cameraInfo !== null) {
-      Object.assign(restoredData.camera, JSON.parse(cameraInfo))
+      Object.assign(
+        restoredData.pageStates[data.currentPageId].camera,
+        JSON.parse(cameraInfo)
+      )
 
       // And update the CSS property
       document.documentElement.style.setProperty(
         '--camera-zoom',
-        restoredData.camera.zoom.toString()
+        restoredData.pageStates[data.currentPageId].camera.zoom.toString()
       )
     }
 

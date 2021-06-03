@@ -3,10 +3,8 @@ import state, { useSelector } from 'state'
 import * as Panel from 'components/panel'
 import { useRef } from 'react'
 import { IconButton } from 'components/shared'
-import * as Checkbox from '@radix-ui/react-checkbox'
-import { ChevronDown, Square, Tool, Trash2, X } from 'react-feather'
+import { ChevronDown, Trash2, X } from 'react-feather'
 import { deepCompare, deepCompareArrays, getPage } from 'utils/utils'
-import { strokes } from 'lib/shape-styles'
 import AlignDistribute from './align-distribute'
 import { MoveType } from 'types'
 import SizePicker from './size-picker'
@@ -15,9 +13,7 @@ import {
   ArrowUpIcon,
   AspectRatioIcon,
   BoxIcon,
-  CheckIcon,
   CopyIcon,
-  DotsVerticalIcon,
   EyeClosedIcon,
   EyeOpenIcon,
   LockClosedIcon,
@@ -28,10 +24,7 @@ import {
 } from '@radix-ui/react-icons'
 import DashPicker from './dash-picker'
 import QuickColorSelect from './quick-color-select'
-import ColorContent from './color-content'
-import { RowButton, IconWrapper } from './shared'
 import ColorPicker from './color-picker'
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import IsFilledPicker from './is-filled-picker'
 import QuickSizeSelect from './quick-size-select'
 import QuickdashSelect from './quick-dash-select'

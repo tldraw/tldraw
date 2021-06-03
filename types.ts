@@ -19,10 +19,6 @@ export interface Data {
     isPenLocked: boolean
   }
   currentStyle: ShapeStyles
-  camera: {
-    point: number[]
-    zoom: number
-  }
   activeTool: ShapeType | 'select'
   brush?: Bounds
   boundsRotation: number
@@ -36,6 +32,15 @@ export interface Data {
     pages: Record<string, Page>
     code: Record<string, CodeFile>
   }
+  pageStates: Record<
+    string,
+    {
+      camera: {
+        point: number[]
+        zoom: number
+      }
+    }
+  >
 }
 
 /* -------------------------------------------------- */

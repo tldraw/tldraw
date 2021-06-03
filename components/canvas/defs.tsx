@@ -1,10 +1,10 @@
 import { getShapeUtils } from 'lib/shape-utils'
 import { memo } from 'react'
 import { useSelector } from 'state'
-import { deepCompareArrays, getPage } from 'utils/utils'
+import { deepCompareArrays, getCurrentCamera, getPage } from 'utils/utils'
 
 export default function Defs() {
-  const zoom = useSelector((s) => s.data.camera.zoom)
+  const zoom = useSelector((s) => getCurrentCamera(s.data).zoom)
 
   const currentPageShapeIds = useSelector(({ data }) => {
     return Object.values(getPage(data).shapes)

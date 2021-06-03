@@ -10,8 +10,6 @@ export default function transformSingleCommand(
   data: Data,
   before: TransformSingleSnapshot,
   after: TransformSingleSnapshot,
-  scaleX: number,
-  scaleY: number,
   isCreating: boolean
 ) {
   const shape = current(getPage(data, after.currentPageId).shapes[after.id])
@@ -23,24 +21,14 @@ export default function transformSingleCommand(
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        const { id, type, initialShapeBounds } = after
+        const { id } = after
 
         const { shapes } = getPage(data, after.currentPageId)
 
         data.selectedIds.clear()
         data.selectedIds.add(id)
 
-        if (isCreating) {
-          shapes[id] = shape
-        } else {
-          getShapeUtils(shape).transformSingle(shape, initialShapeBounds, {
-            type,
-            initialShape: before.initialShape,
-            scaleX,
-            scaleY,
-            transformOrigin: [0.5, 0.5],
-          })
-        }
+        shapes[id] = shape
       },
       undo(data) {
         const { id, type, initialShapeBounds } = before

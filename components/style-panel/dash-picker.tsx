@@ -4,7 +4,7 @@ import {
   DashDashedIcon,
   DashDottedIcon,
   DashSolidIcon,
-} from './shared'
+} from '../shared'
 import * as RadioGroup from '@radix-ui/react-radio-group'
 import { DashStyle } from 'types'
 import state from 'state'

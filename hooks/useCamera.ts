@@ -1,5 +1,6 @@
-import React, { useEffect } from "react"
-import state from "state"
+import React, { useEffect } from 'react'
+import state from 'state'
+import { getCurrentCamera } from 'utils/utils'
 
 /**
  * When the state's camera changes, update the transform of
@@ -8,24 +9,27 @@ import state from "state"
  */
 export default function useCamera(ref: React.MutableRefObject<SVGGElement>) {
   useEffect(() => {
-    let { camera } = state.data
+    let prev = getCurrentCamera(state.data)
 
-    return state.onUpdate(({ data }) => {
+    return state.onUpdate(() => {
       const g = ref.current
       if (!g) return
 
-      const { point, zoom } = data.camera
+      const { point, zoom } = getCurrentCamera(state.data)
 
-      if (point !== camera.point || zoom !== camera.zoom) {
+      if (point !== prev.point || zoom !== prev.zoom) {
         g.setAttribute(
-          "transform",
+          'transform',
           `scale(${zoom}) translate(${point[0]} ${point[1]})`
         )
 
-        localStorage.setItem("code_slate_camera", JSON.stringify(data.camera))
-      }
+        localStorage.setItem(
+          'code_slate_camera',
+          JSON.stringify({ point, zoom })
+        )
 
-      camera = data.camera
+        prev = getCurrentCamera(state.data)
+      }
     })
   }, [state])
 }

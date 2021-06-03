@@ -128,6 +128,13 @@ export const defaultDocument: Data['document'] = {
         // }),
       },
     },
+    page1: {
+      id: 'page1',
+      type: 'page',
+      name: 'Page 1',
+      childIndex: 1,
+      shapes: {},
+    },
   },
   code: {
     file0: {

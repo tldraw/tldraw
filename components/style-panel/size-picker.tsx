@@ -1,4 +1,4 @@
-import { Group, Item } from './shared'
+import { Group, Item } from '../shared'
 import * as RadioGroup from '@radix-ui/react-radio-group'
 import { ChangeEvent } from 'react'
 import { Circle } from 'react-feather'

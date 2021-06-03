@@ -2,7 +2,7 @@ import * as Checkbox from '@radix-ui/react-checkbox'
 import { CheckIcon } from '@radix-ui/react-icons'
 import { strokes } from 'lib/shape-styles'
 import { Square } from 'react-feather'
-import { IconWrapper, RowButton } from './shared'
+import { IconWrapper, RowButton } from '../shared'
 
 interface Props {
   isFilled: boolean

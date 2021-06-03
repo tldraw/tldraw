@@ -1,8 +1,9 @@
 import * as React from 'react'
-import { Edge, Corner, LineShape, ArrowShape } from 'types'
+import { Edge, Corner } from 'types'
 import { useSelector } from 'state'
 import {
   deepCompareArrays,
+  getCurrentCamera,
   getPage,
   getSelectedShapes,
   isMobile,
@@ -17,7 +18,7 @@ import Handles from './handles'
 export default function Bounds() {
   const isBrushing = useSelector((s) => s.isIn('brushSelecting'))
   const isSelecting = useSelector((s) => s.isIn('selecting'))
-  const zoom = useSelector((s) => s.data.camera.zoom)
+  const zoom = useSelector((s) => getCurrentCamera(s.data).zoom)
   const bounds = useSelector((s) => s.values.selectedBounds)
 
   const selectedIds = useSelector(

@@ -12,6 +12,7 @@ import {
   getChildren,
   getCommonBounds,
   getCurrent,
+  getCurrentCamera,
   getPage,
   getSelectedBounds,
   getShape,
@@ -54,10 +55,6 @@ const initialData: Data = {
     dash: DashStyle.Solid,
     isFilled: false,
   },
-  camera: {
-    point: [0, 0],
-    zoom: 1,
-  },
   activeTool: 'select',
   brush: undefined,
   boundsRotation: 0,
@@ -68,6 +65,20 @@ const initialData: Data = {
   currentCodeFileId: 'file0',
   codeControls: {},
   document: defaultDocument,
+  pageStates: {
+    page0: {
+      camera: {
+        point: [0, 0],
+        zoom: 1,
+      },
+    },
+    page1: {
+      camera: {
+        point: [0, 0],
+        zoom: 1,
+      },
+    },
+  },
 }
 
 const state = createState({
@@ -139,6 +150,7 @@ const state = createState({
         USED_PEN_DEVICE: 'enablePenLock',
         DISABLED_PEN_LOCK: 'disablePenLock',
         CLEARED_PAGE: ['selectAll', 'deleteSelection'],
+        CHANGED_CURRENT_PAGE: ['clearSelectedIds', 'setCurrentPage'],
       },
       initial: 'selecting',
       states: {
@@ -732,6 +744,11 @@ const state = createState({
     },
   },
   actions: {
+    /* ---------------------- Pages --------------------- */
+    setCurrentPage(data, payload: { id: string }) {
+      commands.changePage(data, payload.id)
+    },
+
     /* --------------------- Shapes --------------------- */
     createShape(data, payload, type: ShapeType) {
       const shape = createShape(type, {
@@ -1062,7 +1079,7 @@ const state = createState({
     /* --------------------- Camera --------------------- */
 
     zoomIn(data) {
-      const { camera } = data
+      const camera = getCurrentCamera(data)
       const i = Math.round((camera.zoom * 100) / 25)
       const center = [window.innerWidth / 2, window.innerHeight / 2]
 
@@ -1074,7 +1091,7 @@ const state = createState({
       setZoomCSS(camera.zoom)
     },
     zoomOut(data) {
-      const { camera } = data
+      const camera = getCurrentCamera(data)
       const i = Math.round((camera.zoom * 100) / 25)
       const center = [window.innerWidth / 2, window.innerHeight / 2]
 
@@ -1086,8 +1103,7 @@ const state = createState({
       setZoomCSS(camera.zoom)
     },
     zoomCameraToActual(data) {
-      const { camera } = data
-
+      const camera = getCurrentCamera(data)
       const center = [window.innerWidth / 2, window.innerHeight / 2]
 
       const p0 = screenToWorld(center, data)
@@ -1098,7 +1114,7 @@ const state = createState({
       setZoomCSS(camera.zoom)
     },
     zoomCameraToSelectionActual(data) {
-      const { camera } = data
+      const camera = getCurrentCamera(data)
 
       const bounds = getSelectedBounds(data)
 
@@ -1111,8 +1127,7 @@ const state = createState({
       setZoomCSS(camera.zoom)
     },
     zoomCameraToSelection(data) {
-      const { camera } = data
-
+      const camera = getCurrentCamera(data)
       const bounds = getSelectedBounds(data)
 
       const zoom = getCameraZoom(
@@ -1130,7 +1145,7 @@ const state = createState({
       setZoomCSS(camera.zoom)
     },
     zoomCameraToFit(data) {
-      const { camera } = data
+      const camera = getCurrentCamera(data)
       const page = getPage(data)
 
       const shapes = Object.values(page.shapes)
@@ -1160,7 +1175,7 @@ const state = createState({
       setZoomCSS(camera.zoom)
     },
     zoomCamera(data, payload: { delta: number; point: number[] }) {
-      const { camera } = data
+      const camera = getCurrentCamera(data)
       const next = camera.zoom - (payload.delta / 100) * camera.zoom
 
       const p0 = screenToWorld(payload.point, data)
@@ -1171,7 +1186,7 @@ const state = createState({
       setZoomCSS(camera.zoom)
     },
     panCamera(data, payload: { delta: number[] }) {
-      const { camera } = data
+      const camera = getCurrentCamera(data)
       camera.point = vec.sub(camera.point, vec.div(payload.delta, camera.zoom))
     },
     pinchCamera(
@@ -1183,8 +1198,7 @@ const state = createState({
         point: number[]
       }
     ) {
-      const { camera } = data
-
+      const camera = getCurrentCamera(data)
       camera.point = vec.sub(camera.point, vec.div(payload.delta, camera.zoom))
 
       const next = camera.zoom - (payload.distanceDelta / 300) * camera.zoom
@@ -1197,9 +1211,9 @@ const state = createState({
       setZoomCSS(camera.zoom)
     },
     resetCamera(data) {
-      data.camera.zoom = 1
-      data.camera.point = [window.innerWidth / 2, window.innerHeight / 2]
-
+      const camera = getCurrentCamera(data)
+      camera.zoom = 1
+      camera.point = [window.innerWidth / 2, window.innerHeight / 2]
       document.documentElement.style.setProperty('--camera-zoom', '1')
     },
 

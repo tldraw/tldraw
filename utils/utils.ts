@@ -6,7 +6,8 @@ import _isMobile from 'ismobilejs'
 import { getShapeUtils } from 'lib/shape-utils'
 
 export function screenToWorld(point: number[], data: Data) {
-  return vec.sub(vec.div(point, data.camera.zoom), data.camera.point)
+  const camera = getCurrentCamera(data)
+  return vec.sub(vec.div(point, camera.zoom), camera.point)
 }
 
 /**
@@ -1580,4 +1581,8 @@ export function isAngleBetween(a: number, b: number, c: number) {
   const AB = (b - a + PI2) % PI2
   const AC = (c - a + PI2) % PI2
   return AB <= Math.PI !== AC > AB
+}
+
+export function getCurrentCamera(data: Data) {
+  return data.pageStates[data.currentPageId].camera
 }

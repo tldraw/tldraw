@@ -1,5 +1,6 @@
 import align from './align'
 import arrow from './arrow'
+import changePage from './change-page'
 import deleteSelected from './delete-selected'
 import direct from './direct'
 import distribute from './distribute'
@@ -21,6 +22,7 @@ import handle from './handle'
 const commands = {
   align,
   arrow,
+  changePage,
   deleteSelected,
   direct,
   distribute,

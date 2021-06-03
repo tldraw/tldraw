@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import { getPage, getSelectedShapes } from 'utils/utils'
+import { getCurrentCamera, getPage, getSelectedShapes } from 'utils/utils'
 import { v4 as uuid } from 'uuid'
 import { current } from 'immer'
 import * as vec from 'utils/vec'
@@ -12,7 +12,7 @@ export default function duplicateCommand(data: Data) {
   const duplicates = selectedShapes.map((shape) => ({
     ...shape,
     id: uuid(),
-    point: vec.add(shape.point, vec.div([16, 16], data.camera.zoom)),
+    point: vec.add(shape.point, vec.div([16, 16], getCurrentCamera(data).zoom)),
   }))
 
   history.execute(

@@ -4,7 +4,7 @@ import { ColorStyle } from 'types'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Square } from 'react-feather'
 import styled from 'styles'
-import { DropdownContent } from './shared'
+import { DropdownContent } from '../shared'
 
 export default function ColorContent({
   onChange,
