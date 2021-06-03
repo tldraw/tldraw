@@ -74,6 +74,8 @@ export const RowButton = styled('button', {
   cursor: 'pointer',
   outline: 'none',
   alignItems: 'center',
+  fontFamily: '$ui',
+  fontSize: '$1',
   justifyContent: 'space-between',
   padding: '4px 6px 4px 12px',
 
@@ -94,8 +96,6 @@ export const RowButton = styled('button', {
   },
 
   '& label': {
-    fontFamily: '$ui',
-    fontSize: '$2',
     fontWeight: '$1',
     margin: 0,
     padding: 0,

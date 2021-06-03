@@ -266,7 +266,7 @@ const Row = styled('div', {
 
   '& label': {
     fontFamily: '$ui',
-    fontSize: '$2',
+    fontSize: '$1',
     fontWeight: '$1',
     margin: 0,
     padding: 0,

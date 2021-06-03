@@ -3,10 +3,10 @@ import shapeUtils from 'lib/shape-utils'
 
 export const defaultDocument: Data['document'] = {
   pages: {
-    page0: {
-      id: 'page0',
+    page1: {
+      id: 'page1',
       type: 'page',
-      name: 'Page 0',
+      name: 'Page 1',
       childIndex: 0,
       shapes: {
         // arrowShape0: shapeUtils[ShapeType.Arrow].create({
@@ -128,10 +128,10 @@ export const defaultDocument: Data['document'] = {
         // }),
       },
     },
-    page1: {
-      id: 'page1',
+    page2: {
+      id: 'page2',
       type: 'page',
-      name: 'Page 1',
+      name: 'Page 2',
       childIndex: 1,
       shapes: {},
     },

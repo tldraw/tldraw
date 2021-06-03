@@ -1,6 +1,7 @@
 import { Data } from 'types'
 import { BaseCommand } from './commands/command'
-import state from './state'
+
+const CURRENT_VERSION = 'code_slate_0.0.2'
 
 // A singleton to manage history changes.
 
@@ -44,7 +45,7 @@ class BaseHistory<T> {
     this.save(data)
   }
 
-  load(data: T, id = 'code_slate_0.0.1') {
+  load(data: T, id = CURRENT_VERSION) {
     if (typeof window === 'undefined') return
     if (typeof localStorage === 'undefined') return
 
@@ -55,7 +56,7 @@ class BaseHistory<T> {
     }
   }
 
-  save = (data: T, id = 'code_slate_0.0.1') => {
+  save = (data: T, id = CURRENT_VERSION) => {
     if (typeof window === 'undefined') return
     if (typeof localStorage === 'undefined') return
 

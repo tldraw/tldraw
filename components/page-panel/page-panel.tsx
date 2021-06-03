@@ -80,6 +80,8 @@ const StyledRadioItem = styled(DropdownMenu.RadioItem, {
   padding: '0 6px 0 12px',
   cursor: 'pointer',
   borderRadius: '4px',
+  fontSize: '$1',
+  fontFamily: '$ui',
   backgroundColor: 'transparent',
   outline: 'none',
   '&:hover': {

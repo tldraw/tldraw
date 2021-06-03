@@ -61,18 +61,18 @@ const initialData: Data = {
   pointedId: null,
   hoveredId: null,
   selectedIds: new Set([]),
-  currentPageId: 'page0',
+  currentPageId: 'page1',
   currentCodeFileId: 'file0',
   codeControls: {},
   document: defaultDocument,
   pageStates: {
-    page0: {
+    page1: {
       camera: {
         point: [0, 0],
         zoom: 1,
       },
     },
-    page1: {
+    page2: {
       camera: {
         point: [0, 0],
         zoom: 1,
@@ -1325,7 +1325,7 @@ const state = createState({
     },
 
     restoreSavedData(data) {
-      // history.load(data)
+      history.load(data)
     },
 
     clearBoundsRotation(data) {
