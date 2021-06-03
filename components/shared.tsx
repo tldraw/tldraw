@@ -2,6 +2,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as RadioGroup from '@radix-ui/react-radio-group'
 import * as Panel from './panel'
 import styled from 'styles'
+import Tooltip from './tooltip'
 
 export const IconButton = styled('button', {
   height: '32px',
@@ -25,6 +26,13 @@ export const IconButton = styled('button', {
 
   '&:disabled': {
     opacity: '0.5',
+  },
+
+  '& > span': {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
   },
 
   variants: {
