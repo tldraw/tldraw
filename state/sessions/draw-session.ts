@@ -2,7 +2,7 @@ import { current } from 'immer'
 import { Data, DrawShape } from 'types'
 import BaseSession from './base-session'
 import { getShapeUtils } from 'lib/shape-utils'
-import { getPage } from 'utils/utils'
+import { getPage, getShape, updateParents } from 'utils/utils'
 import * as vec from 'utils/vec'
 import commands from 'state/commands'
 
@@ -25,7 +25,7 @@ export default class BrushSession extends BaseSession {
 
     const page = getPage(data)
     const shape = page.shapes[id]
-    getShapeUtils(shape).setProperty(shape, 'point', point)
+    getShapeUtils(shape).translateTo(shape, point)
   }
 
   update = (data: Data, point: number[], isLocked = false) => {
@@ -73,17 +73,16 @@ export default class BrushSession extends BaseSession {
     this.points.push(next)
     this.previous = point
 
-    const page = getPage(data)
-    const shape = page.shapes[snapshot.id] as DrawShape
-
+    const shape = getShape(data, snapshot.id) as DrawShape
     getShapeUtils(shape).setProperty(shape, 'points', [...this.points])
+    updateParents(data, [shape])
   }
 
   cancel = (data: Data) => {
     const { snapshot } = this
-    const page = getPage(data)
-    const shape = page.shapes[snapshot.id] as DrawShape
+    const shape = getShape(data, snapshot.id) as DrawShape
     getShapeUtils(shape).setProperty(shape, 'points', snapshot.points)
+    updateParents(data, [shape])
   }
 
   complete = (data: Data) => {

@@ -26,6 +26,7 @@ export interface Data {
   pointedId?: string
   hoveredId?: string
   currentPageId: string
+  currentParentId: string
   currentCodeFileId: string
   codeControls: Record<string, CodeControl>
   document: {
@@ -66,13 +67,8 @@ export enum ShapeType {
   Draw = 'draw',
   Arrow = 'arrow',
   Text = 'text',
+  Group = 'group',
 }
-
-// Consider:
-// Glob = "glob",
-// Spline = "spline",
-// Cubic = "cubic",
-// Conic = "conic",
 
 export enum ColorStyle {
   White = 'White',
@@ -108,12 +104,6 @@ export type ShapeStyles = {
   isFilled: boolean
 }
 
-// export type ShapeStyles = Partial<
-//   React.SVGProps<SVGUseElement> & {
-//     dash: DashStyle
-//   }
-// >
-
 export interface BaseShape {
   id: string
   type: ShapeType
@@ -122,10 +112,11 @@ export interface BaseShape {
   isGenerated: boolean
   name: string
   point: number[]
+  style: ShapeStyles
   rotation: number
+  children?: string[]
   bindings?: Record<string, ShapeBinding>
   handles?: Record<string, ShapeHandle>
-  style: ShapeStyles
   isLocked: boolean
   isHidden: boolean
   isAspectRatioLocked: boolean
@@ -189,6 +180,12 @@ export interface TextShape extends BaseShape {
   text: string
 }
 
+export interface GroupShape extends BaseShape {
+  type: ShapeType.Group
+  children: string[]
+  size: number[]
+}
+
 export type MutableShape =
   | DotShape
   | CircleShape
@@ -200,8 +197,7 @@ export type MutableShape =
   | RectangleShape
   | ArrowShape
   | TextShape
-
-export type Shape = Readonly<MutableShape>
+  | GroupShape
 
 export interface Shapes {
   [ShapeType.Dot]: Readonly<DotShape>
@@ -214,7 +210,10 @@ export interface Shapes {
   [ShapeType.Rectangle]: Readonly<RectangleShape>
   [ShapeType.Arrow]: Readonly<ArrowShape>
   [ShapeType.Text]: Readonly<TextShape>
+  [ShapeType.Group]: Readonly<GroupShape>
 }
+
+export type Shape = Readonly<MutableShape>
 
 export type ShapeByType<T extends ShapeType> = Shapes[T]
 
@@ -276,6 +275,7 @@ export interface Bounds {
   maxY: number
   width: number
   height: number
+  rotation?: number
 }
 
 export interface RotatedBounds extends Bounds {

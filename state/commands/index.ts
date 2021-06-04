@@ -20,6 +20,8 @@ import transform from './transform'
 import transformSingle from './transform-single'
 import translate from './translate'
 import handle from './handle'
+import group from './group'
+import ungroup from './ungroup'
 
 const commands = {
   align,
@@ -44,6 +46,8 @@ const commands = {
   transformSingle,
   translate,
   handle,
+  group,
+  ungroup,
 }
 
 export default commands

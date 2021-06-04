@@ -13,6 +13,7 @@ import {
   getSelectedShapes,
   getShapes,
   getTransformedBoundingBox,
+  updateParents,
 } from 'utils/utils'
 
 export default class TransformSession extends BaseSession {
@@ -71,15 +72,17 @@ export default class TransformSession extends BaseSession {
         transformOrigin,
       })
     }
+
+    updateParents(data, Object.keys(shapeBounds))
   }
 
   cancel(data: Data) {
     const { currentPageId, shapeBounds } = this.snapshot
 
-    const page = getPage(data, currentPageId)
+    const { shapes } = getPage(data, currentPageId)
 
     for (let id in shapeBounds) {
-      const shape = page.shapes[id]
+      const shape = shapes[id]
 
       const { initialShape, initialShapeBounds, transformOrigin } =
         shapeBounds[id]
@@ -91,6 +94,8 @@ export default class TransformSession extends BaseSession {
         scaleY: 1,
         transformOrigin,
       })
+
+      updateParents(data, Object.keys(shapeBounds))
     }
   }
 

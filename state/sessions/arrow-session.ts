@@ -3,7 +3,7 @@ import * as vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
 import { current } from 'immer'
-import { getBoundsFromPoints, getPage } from 'utils/utils'
+import { getBoundsFromPoints, getPage, updateParents } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 
 export default class PointsSession extends BaseSession {
@@ -51,12 +51,14 @@ export default class PointsSession extends BaseSession {
 
     const shape = getPage(data).shapes[id] as ArrowShape
 
-    getShapeUtils(shape).onHandleMove(shape, {
+    getShapeUtils(shape).onHandleChange(shape, {
       end: {
         ...shape.handles.end,
         point: vec.sub(point, shape.point),
       },
     })
+
+    updateParents(data, [shape])
   }
 
   cancel(data: Data) {
@@ -65,8 +67,10 @@ export default class PointsSession extends BaseSession {
     const shape = getPage(data).shapes[id] as ArrowShape
 
     getShapeUtils(shape)
-      .onHandleMove(shape, { end: initialShape.handles.end })
+      .onHandleChange(shape, { end: initialShape.handles.end })
       .setProperty(shape, 'point', initialShape.point)
+
+    updateParents(data, [shape])
   }
 
   complete(data: Data) {
@@ -96,7 +100,7 @@ export default class PointsSession extends BaseSession {
       ])
       .setProperty(shape, 'handles', nextHandles)
       .setProperty(shape, 'point', newPoint)
-      .onHandleMove(shape, nextHandles)
+      .onHandleChange(shape, nextHandles)
 
     commands.arrow(
       data,

@@ -66,7 +66,8 @@ export default function BoundsBg() {
         rotate(${rotation * (180 / Math.PI)}, 
         ${(bounds.minX + bounds.maxX) / 2}, 
         ${(bounds.minY + bounds.maxY) / 2})
-        translate(${bounds.minX},${bounds.minY})`}
+        translate(${bounds.minX},${bounds.minY})
+        rotate(${(bounds.rotation || 0) * (180 / Math.PI)}, 0, 0)`}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
     />

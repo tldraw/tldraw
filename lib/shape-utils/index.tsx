@@ -7,17 +7,9 @@ import {
   ShapeStyles,
   ShapeBinding,
   Mutable,
+  ShapeByType,
 } from 'types'
-import { v4 as uuid } from 'uuid'
-import circle from './circle'
-import dot from './dot'
-import polyline from './polyline'
-import rectangle from './rectangle'
-import ellipse from './ellipse'
-import line from './line'
-import ray from './ray'
-import draw from './draw'
-import arrow from './arrow'
+import * as vec from 'utils/vec'
 import {
   getBoundsCenter,
   getBoundsFromPoints,
@@ -28,6 +20,17 @@ import {
   boundsContainPolygon,
   pointInBounds,
 } from 'utils/bounds'
+import { v4 as uuid } from 'uuid'
+import circle from './circle'
+import dot from './dot'
+import polyline from './polyline'
+import rectangle from './rectangle'
+import ellipse from './ellipse'
+import line from './line'
+import ray from './ray'
+import draw from './draw'
+import arrow from './arrow'
+import group from './group'
 
 /*
 Shape Utiliies
@@ -60,6 +63,18 @@ export interface ShapeUtility<K extends Shape> {
     this: ShapeUtility<K>,
     shape: Mutable<K>,
     style: Partial<ShapeStyles>
+  ): ShapeUtility<K>
+
+  translateBy(
+    this: ShapeUtility<K>,
+    shape: Mutable<K>,
+    point: number[]
+  ): ShapeUtility<K>
+
+  translateTo(
+    this: ShapeUtility<K>,
+    shape: Mutable<K>,
+    point: number[]
   ): ShapeUtility<K>
 
   // Transform to fit a new bounding box when more than one shape is selected.
@@ -97,15 +112,22 @@ export interface ShapeUtility<K extends Shape> {
     value: K[P]
   ): ShapeUtility<K>
 
+  // Respond when any child of this shape changes.
+  onChildrenChange(
+    this: ShapeUtility<K>,
+    shape: Mutable<K>,
+    children: Shape[]
+  ): ShapeUtility<K>
+
   // Respond when a user moves one of the shape's bound elements.
-  onBindingMove?(
+  onBindingChange(
     this: ShapeUtility<K>,
     shape: Mutable<K>,
     bindings: Record<string, ShapeBinding>
   ): ShapeUtility<K>
 
   // Respond when a user moves one of the shape's handles.
-  onHandleMove?(
+  onHandleChange(
     this: ShapeUtility<K>,
     shape: Mutable<K>,
     handle: Partial<K['handles']>
@@ -142,6 +164,7 @@ const shapeUtilityMap: Record<ShapeType, ShapeUtility<Shape>> = {
   [ShapeType.Draw]: draw,
   [ShapeType.Arrow]: arrow,
   [ShapeType.Text]: arrow,
+  [ShapeType.Group]: group,
 }
 
 /**
@@ -180,6 +203,16 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
       return <circle id={shape.id} />
     },
 
+    translateBy(shape, delta) {
+      shape.point = vec.add(shape.point, delta)
+      return this
+    },
+
+    translateTo(shape, point) {
+      shape.point = point
+      return this
+    },
+
     transform(shape, bounds) {
       shape.point = [bounds.minX, bounds.minY]
       return this
@@ -189,11 +222,15 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
       return this.transform(shape, bounds, info)
     },
 
-    onBindingMove() {
+    onChildrenChange() {
       return this
     },
 
-    onHandleMove() {
+    onBindingChange() {
+      return this
+    },
+
+    onHandleChange() {
       return this
     },
 
@@ -258,11 +295,11 @@ export function registerShapeUtils<K extends Shape>(
   return Object.freeze({ ...getDefaultShapeUtil<K>(), ...shapeUtil })
 }
 
-export function createShape<T extends Shape>(
-  type: T['type'],
-  props: Partial<T>
-) {
-  return shapeUtilityMap[type].create(props) as T
+export function createShape<T extends ShapeType>(
+  type: T,
+  props: Partial<ShapeByType<T>>
+): ShapeByType<T> {
+  return shapeUtilityMap[type].create(props) as ShapeByType<T>
 }
 
 export default shapeUtilityMap

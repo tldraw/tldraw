@@ -15,9 +15,15 @@ import {
   getCurrentCamera,
   getPage,
   getSelectedBounds,
+  getSelectedShapes,
   getShape,
   screenToWorld,
   setZoomCSS,
+  translateBounds,
+  getParentOffset,
+  getParentRotation,
+  rotateBounds,
+  getBoundsCenter,
 } from 'utils/utils'
 import {
   Data,
@@ -62,6 +68,7 @@ const initialData: Data = {
   hoveredId: null,
   selectedIds: new Set([]),
   currentPageId: 'page1',
+  currentParentId: 'page1',
   currentCodeFileId: 'file0',
   codeControls: {},
   document: defaultDocument,
@@ -143,7 +150,7 @@ const state = createState({
         SELECTED_RECTANGLE_TOOL: { unless: 'isReadOnly', to: 'rectangle' },
         TOGGLED_CODE_PANEL_OPEN: 'toggleCodePanel',
         TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
-        POINTED_CANVAS: 'closeStylePanel',
+        POINTED_CANVAS: ['closeStylePanel', 'clearCurrentParentId'],
         CHANGED_STYLE: ['updateStyles', 'applyStylesToSelection'],
         SELECTED_ALL: { to: 'selecting', do: 'selectAll' },
         NUDGED: { do: 'nudgeSelection' },
@@ -170,11 +177,19 @@ const state = createState({
             GENERATED_FROM_CODE: ['setCodeControls', 'setGeneratedShapes'],
             TOGGLED_TOOL_LOCK: 'toggleToolLock',
             MOVED: { if: 'hasSelection', do: 'moveSelection' },
-            ALIGNED: { if: 'hasSelection', do: 'alignSelection' },
-            STRETCHED: { if: 'hasSelection', do: 'stretchSelection' },
-            DISTRIBUTED: { if: 'hasSelection', do: 'distributeSelection' },
             DUPLICATED: { if: 'hasSelection', do: 'duplicateSelection' },
             ROTATED_CCW: { if: 'hasSelection', do: 'rotateSelectionCcw' },
+            ALIGNED: { if: 'hasMultipleSelection', do: 'alignSelection' },
+            STRETCHED: { if: 'hasMultipleSelection', do: 'stretchSelection' },
+            DISTRIBUTED: {
+              if: 'hasMultipleSelection',
+              do: 'distributeSelection',
+            },
+            GROUPED: { if: 'hasMultipleSelection', do: 'groupSelection' },
+            UNGROUPED: {
+              if: ['hasSelection', 'selectionIncludesGroups'],
+              do: 'ungroupSelection',
+            },
           },
           initial: 'notPointing',
           states: {
@@ -199,6 +214,14 @@ const state = createState({
                   else: { if: 'shapeIsHovered', do: 'clearHoveredId' },
                 },
                 UNHOVERED_SHAPE: 'clearHoveredId',
+                DOUBLE_POINTED_SHAPE: [
+                  'setDrilledPointedId',
+                  'clearSelectedIds',
+                  'pushPointedIdToSelectedIds',
+                  {
+                    to: 'pointingBounds',
+                  },
+                ],
                 POINTED_SHAPE: [
                   {
                     if: 'isPressingMetaKey',
@@ -738,6 +761,9 @@ const state = createState({
     hasSelection(data) {
       return data.selectedIds.size > 0
     },
+    hasMultipleSelection(data) {
+      return data.selectedIds.size > 1
+    },
     isToolLocked(data) {
       return data.settings.isToolLocked
     },
@@ -746,6 +772,11 @@ const state = createState({
     },
     hasOnlyOnePage(data) {
       return Object.keys(data.document.pages).length === 1
+    },
+    selectionIncludesGroups(data) {
+      return getSelectedShapes(data).some(
+        (shape) => shape.type === ShapeType.Group
+      )
     },
   },
   actions: {
@@ -763,6 +794,7 @@ const state = createState({
     /* --------------------- Shapes --------------------- */
     createShape(data, payload, type: ShapeType) {
       const shape = createShape(type, {
+        parentId: data.currentPageId,
         point: screenToWorld(payload.point, data),
         style: getCurrent(data.currentStyle),
       })
@@ -1005,7 +1037,16 @@ const state = createState({
       data.hoveredId = undefined
     },
     setPointedId(data, payload: PointerInfo) {
-      data.pointedId = payload.target
+      data.pointedId = getPointedId(data, payload.target)
+      data.currentParentId = getParentId(data, data.pointedId)
+    },
+    setDrilledPointedId(data, payload: PointerInfo) {
+      data.pointedId = getDrilledPointedId(data, payload.target)
+      data.currentParentId = getParentId(data, data.pointedId)
+    },
+    clearCurrentParentId(data) {
+      data.currentParentId = data.currentPageId
+      data.pointedId = undefined
     },
     clearPointedId(data) {
       data.pointedId = undefined
@@ -1049,6 +1090,12 @@ const state = createState({
     },
     rotateSelectionCcw(data) {
       commands.rotateCcw(data)
+    },
+    groupSelection(data) {
+      commands.group(data)
+    },
+    ungroupSelection(data) {
+      commands.ungroup(data)
     },
 
     /* ---------------------- Tool ---------------------- */
@@ -1336,7 +1383,7 @@ const state = createState({
     },
 
     restoreSavedData(data) {
-      history.load(data)
+      // history.load(data)
     },
 
     clearBoundsRotation(data) {
@@ -1365,14 +1412,46 @@ const state = createState({
           return null
         }
 
-        const shapeUtils = getShapeUtils(shapes[0])
+        const shape = shapes[0]
+        const shapeUtils = getShapeUtils(shape)
+
         if (!shapeUtils.canTransform) return null
-        return shapeUtils.getBounds(shapes[0])
+
+        let bounds = shapeUtils.getBounds(shape)
+
+        let parentId = shape.parentId
+
+        while (parentId !== data.currentPageId) {
+          const parent = page.shapes[parentId]
+
+          bounds = rotateBounds(
+            bounds,
+            getBoundsCenter(getShapeUtils(parent).getBounds(parent)),
+            parent.rotation
+          )
+
+          bounds.rotation = parent.rotation
+
+          parentId = parent.parentId
+        }
+
+        return bounds
       }
 
-      return getCommonBounds(
-        ...shapes.map((shape) => getShapeUtils(shape).getRotatedBounds(shape))
+      const commonBounds = getCommonBounds(
+        ...shapes.map((shape) => {
+          const parentOffset = getParentOffset(data, shape.id)
+          const parentRotation = getParentRotation(data, shape.id)
+          const bounds = getShapeUtils(shape).getRotatedBounds(shape)
+
+          return translateBounds(
+            rotateBounds(bounds, getBoundsCenter(bounds), parentRotation),
+            vec.neg(parentOffset)
+          )
+        })
       )
+
+      return commonBounds
     },
     selectedStyle(data) {
       const selectedIds = Array.from(data.selectedIds.values())
@@ -1414,4 +1493,43 @@ export const useSelector = createSelectorHook(state)
 
 function getCameraZoom(zoom: number) {
   return clamp(zoom, 0.1, 5)
+}
+
+function getParentId(data: Data, id: string) {
+  const shape = getPage(data).shapes[id]
+  return shape.parentId
+}
+
+function getPointedId(data: Data, id: string) {
+  const shape = getPage(data).shapes[id]
+
+  return shape.parentId === data.currentParentId ||
+    shape.parentId === data.currentPageId
+    ? id
+    : getPointedId(data, shape.parentId)
+}
+
+function getDrilledPointedId(data: Data, id: string) {
+  const shape = getPage(data).shapes[id]
+  return shape.parentId === data.currentPageId ||
+    shape.parentId === data.pointedId ||
+    shape.parentId === data.currentParentId
+    ? id
+    : getDrilledPointedId(data, shape.parentId)
+}
+
+function hasPointedIdInChildren(data: Data, id: string, pointedId: string) {
+  const shape = getPage(data).shapes[id]
+
+  if (shape.type !== ShapeType.Group) {
+    return false
+  }
+
+  if (shape.children.includes(pointedId)) {
+    return true
+  }
+
+  return shape.children.some((childId) =>
+    hasPointedIdInChildren(data, childId, pointedId)
+  )
 }

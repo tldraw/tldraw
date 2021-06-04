@@ -4,11 +4,11 @@ import { deepCompareArrays, getPage } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 import useShapeEvents from 'hooks/useShapeEvents'
 import { memo, useRef } from 'react'
+import { ShapeType } from 'types'
+import * as vec from 'utils/vec'
 
 export default function Selected() {
-  const selectedIds = useSelector((s) => s.data.selectedIds)
-
-  const currentPageShapeIds = useSelector(({ data }) => {
+  const currentSelectedShapeIds = useSelector(({ data }) => {
     return Array.from(data.selectedIds.values())
   }, deepCompareArrays)
 
@@ -18,32 +18,33 @@ export default function Selected() {
 
   return (
     <g>
-      {currentPageShapeIds.map((id) => (
-        <ShapeOutline key={id} id={id} isSelected={selectedIds.has(id)} />
+      {currentSelectedShapeIds.map((id) => (
+        <ShapeOutline key={id} id={id} />
       ))}
     </g>
   )
 }
 
-export const ShapeOutline = memo(function ShapeOutline({
-  id,
-  isSelected,
-}: {
-  id: string
-  isSelected: boolean
-}) {
+export const ShapeOutline = memo(function ShapeOutline({ id }: { id: string }) {
   const rIndicator = useRef<SVGUseElement>(null)
 
-  const shape = useSelector(({ data }) => getPage(data).shapes[id])
+  const shape = useSelector((s) => getPage(s.data).shapes[id])
 
-  const events = useShapeEvents(id, rIndicator)
+  const events = useShapeEvents(id, shape?.type === ShapeType.Group, rIndicator)
 
   if (!shape) return null
 
+  // This needs computation from state, similar to bounds, in order
+  // to handle parent rotation.
+
+  const center = getShapeUtils(shape).getCenter(shape)
+  const bounds = getShapeUtils(shape).getBounds(shape)
+
   const transform = `
-    rotate(${shape.rotation * (180 / Math.PI)},
-    ${getShapeUtils(shape).getCenter(shape)})
-    translate(${shape.point})
+  rotate(${shape.rotation * (180 / Math.PI)}, 
+  ${center})
+  translate(${bounds.minX},${bounds.minY})
+  rotate(${(bounds.rotation || 0) * (180 / Math.PI)}, 0, 0)
   `
 
   return (
@@ -59,7 +60,7 @@ export const ShapeOutline = memo(function ShapeOutline({
 })
 
 const SelectIndicator = styled('path', {
-  zStrokeWidth: 3,
+  zStrokeWidth: 1,
   strokeLineCap: 'round',
   strokeLinejoin: 'round',
   stroke: '$selected',

@@ -33,7 +33,7 @@ export default class HandleSession extends BaseSession {
 
     const handles = initialShape.handles
 
-    getShapeUtils(shape).onHandleMove(shape, {
+    getShapeUtils(shape).onHandleChange(shape, {
       [handleId]: {
         ...handles[handleId],
         point: vec.add(handles[handleId].point, delta),

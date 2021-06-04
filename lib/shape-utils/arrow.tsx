@@ -248,7 +248,7 @@ const arrow = registerShapeUtils<ArrowShape>({
     return this
   },
 
-  onHandleMove(shape, handles) {
+  onHandleChange(shape, handles) {
     for (let id in handles) {
       const handle = handles[id]
 

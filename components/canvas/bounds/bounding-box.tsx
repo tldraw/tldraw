@@ -3,6 +3,7 @@ import { Edge, Corner } from 'types'
 import { useSelector } from 'state'
 import {
   deepCompareArrays,
+  getBoundsCenter,
   getCurrentCamera,
   getPage,
   getSelectedShapes,
@@ -58,7 +59,8 @@ export default function Bounds() {
         rotate(${rotation * (180 / Math.PI)}, 
         ${(bounds.minX + bounds.maxX) / 2}, 
         ${(bounds.minY + bounds.maxY) / 2})
-        translate(${bounds.minX},${bounds.minY})`}
+        translate(${bounds.minX},${bounds.minY})
+        rotate(${(bounds.rotation || 0) * (180 / Math.PI)}, 0, 0)`}
     >
       <CenterHandle bounds={bounds} isLocked={isAllLocked} />
       {!isAllLocked && (

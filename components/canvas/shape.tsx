@@ -3,16 +3,24 @@ import { useSelector } from 'state'
 import styled from 'styles'
 import { getShapeUtils } from 'lib/shape-utils'
 import { getPage } from 'utils/utils'
-import { DashStyle, ShapeStyles } from 'types'
+import { ShapeType } from 'types'
 import useShapeEvents from 'hooks/useShapeEvents'
+import * as vec from 'utils/vec'
 import { getShapeStyle } from 'lib/shape-styles'
 
-function Shape({ id, isSelecting }: { id: string; isSelecting: boolean }) {
+interface ShapeProps {
+  id: string
+  isSelecting: boolean
+  parentPoint: number[]
+  parentRotation: number
+}
+
+function Shape({ id, isSelecting, parentPoint, parentRotation }: ShapeProps) {
   const shape = useSelector(({ data }) => getPage(data).shapes[id])
 
   const rGroup = useRef<SVGGElement>(null)
 
-  const events = useShapeEvents(id, rGroup)
+  const events = useShapeEvents(id, shape?.type === ShapeType.Group, rGroup)
 
   // This is a problem with deleted shapes. The hooks in this component
   // may sometimes run before the hook in the Page component, which means
@@ -20,40 +28,44 @@ function Shape({ id, isSelecting }: { id: string; isSelecting: boolean }) {
   // detects the change and pulls this component.
   if (!shape) return null
 
+  const isGroup = shape.type === ShapeType.Group
+
   const center = getShapeUtils(shape).getCenter(shape)
 
   const transform = `
-  rotate(${shape.rotation * (180 / Math.PI)}, ${center})
-  translate(${shape.point})
+  rotate(${shape.rotation * (180 / Math.PI)}, ${vec.sub(center, parentPoint)})
+  translate(${vec.sub(shape.point, parentPoint)})
   `
 
   const style = getShapeStyle(shape.style)
 
   return (
-    <StyledGroup ref={rGroup} transform={transform}>
-      {isSelecting && (
-        <HoverIndicator
-          as="use"
-          href={'#' + id}
-          strokeWidth={+style.strokeWidth + 4}
-          variant={getShapeUtils(shape).canStyleFill ? 'filled' : 'hollow'}
-          {...events}
-        />
-      )}
-      {!shape.isHidden && <RealShape id={id} style={style} />}
-    </StyledGroup>
+    <>
+      <StyledGroup ref={rGroup} transform={transform}>
+        {isSelecting && !isGroup && (
+          <HoverIndicator
+            as="use"
+            href={'#' + id}
+            strokeWidth={+style.strokeWidth + 4}
+            variant={getShapeUtils(shape).canStyleFill ? 'filled' : 'hollow'}
+            {...events}
+          />
+        )}
+        {!shape.isHidden && <StyledShape as="use" href={'#' + id} {...style} />}
+        {isGroup &&
+          shape.children.map((shapeId) => (
+            <Shape
+              key={shapeId}
+              id={shapeId}
+              isSelecting={isSelecting}
+              parentPoint={shape.point}
+              parentRotation={shape.rotation}
+            />
+          ))}
+      </StyledGroup>
+    </>
   )
 }
-
-const RealShape = memo(function RealShape({
-  id,
-  style,
-}: {
-  id: string
-  style: ReturnType<typeof getShapeStyle>
-}) {
-  return <StyledShape as="use" href={'#' + id} {...style} />
-})
 
 const StyledShape = styled('path', {
   strokeLinecap: 'round',
@@ -109,18 +121,18 @@ const StyledGroup = styled('g', {
   },
 })
 
-function Label({ text }: { text: string }) {
+function Label({ children }: { children: React.ReactNode }) {
   return (
     <text
       y={4}
       x={4}
-      fontSize={18}
+      fontSize={12}
       fill="black"
       stroke="none"
       alignmentBaseline="text-before-edge"
       pointerEvents="none"
     >
-      {text}
+      {children}
     </text>
   )
 }
@@ -128,3 +140,7 @@ function Label({ text }: { text: string }) {
 export { HoverIndicator }
 
 export default memo(Shape)
+
+function pp(n: number[]) {
+  return '[' + n.map((v) => v.toFixed(1)).join(', ') + ']'
+}

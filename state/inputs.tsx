@@ -2,8 +2,11 @@ import React from 'react'
 import { PointerInfo } from 'types'
 import { isDarwin } from 'utils/utils'
 
+const DOUBLE_CLICK_DURATION = 300
+
 class Inputs {
   activePointerId?: number
+  lastPointerDownTime = 0
   points: Record<string, PointerInfo> = {}
 
   touchStart(e: TouchEvent | React.TouchEvent, target: string) {
@@ -128,6 +131,7 @@ class Inputs {
 
     delete this.points[e.pointerId]
     delete this.activePointerId
+    this.lastPointerDownTime = Date.now()
 
     return info
   }
@@ -141,6 +145,10 @@ class Inputs {
     return (
       this.activePointerId === undefined || this.activePointerId === pointerId
     )
+  }
+
+  isDoubleClick() {
+    return Date.now() - this.lastPointerDownTime < DOUBLE_CLICK_DURATION
   }
 
   get pointer() {

@@ -22,14 +22,14 @@ export default function handleCommand(
 
         const shape = getPage(data, currentPageId).shapes[initialShape.id]
 
-        getShapeUtils(shape).onHandleMove(shape, initialShape.handles)
+        getShapeUtils(shape).onHandleChange(shape, initialShape.handles)
       },
       undo(data) {
         const { initialShape, currentPageId } = before
 
         const shape = getPage(data, currentPageId).shapes[initialShape.id]
 
-        getShapeUtils(shape).onHandleMove(shape, initialShape.handles)
+        getShapeUtils(shape).onHandleChange(shape, initialShape.handles)
       },
     })
   )

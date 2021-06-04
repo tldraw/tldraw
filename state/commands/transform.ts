@@ -3,7 +3,7 @@ import history from '../history'
 import { Data } from 'types'
 import { TransformSnapshot } from 'state/sessions/transform-session'
 import { getShapeUtils } from 'lib/shape-utils'
-import { getPage } from 'utils/utils'
+import { getPage, updateParents } from 'utils/utils'
 
 export default function transformCommand(
   data: Data,
@@ -37,6 +37,8 @@ export default function transformCommand(
             scaleY,
           })
         }
+
+        updateParents(data, Object.keys(shapeBounds))
       },
       undo(data) {
         const { type, shapeBounds } = before
@@ -56,6 +58,8 @@ export default function transformCommand(
             scaleY: scaleX < 0 ? scaleX * -1 : scaleX,
           })
         }
+
+        updateParents(data, Object.keys(shapeBounds))
       },
     })
   )

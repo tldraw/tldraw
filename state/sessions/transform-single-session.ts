@@ -12,6 +12,7 @@ import {
   getPage,
   getShape,
   getSelectedShapes,
+  updateParents,
 } from 'utils/utils'
 
 export default class TransformSingleSession extends BaseSession {
@@ -61,6 +62,8 @@ export default class TransformSingleSession extends BaseSession {
       scaleY: this.scaleY,
       transformOrigin: [0.5, 0.5],
     })
+
+    updateParents(data, [id])
   }
 
   cancel(data: Data) {
@@ -76,6 +79,8 @@ export default class TransformSingleSession extends BaseSession {
       scaleY: this.scaleY,
       transformOrigin: [0.5, 0.5],
     })
+
+    updateParents(data, [id])
   }
 
   complete(data: Data) {

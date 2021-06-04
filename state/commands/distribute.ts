@@ -59,7 +59,7 @@ export default function distributeCommand(data: Data, type: DistributeType) {
               for (let i = 0; i < entriesToMove.length; i++) {
                 const [id, bounds] = entriesToMove[i]
                 const shape = shapes[id]
-                getShapeUtils(shape).setProperty(shape, 'point', [
+                getShapeUtils(shape).translateTo(shape, [
                   x + step * i - bounds.width / 2,
                   bounds.minY,
                 ])
@@ -75,10 +75,7 @@ export default function distributeCommand(data: Data, type: DistributeType) {
               for (let i = 0; i < entriesToMove.length - 1; i++) {
                 const [id, bounds] = entriesToMove[i]
                 const shape = shapes[id]
-                getShapeUtils(shape).setProperty(shape, 'point', [
-                  x,
-                  bounds.minY,
-                ])
+                getShapeUtils(shape).translateTo(shape, [x, bounds.minY])
                 x += bounds.width + step
               }
             }
@@ -104,7 +101,7 @@ export default function distributeCommand(data: Data, type: DistributeType) {
               for (let i = 0; i < entriesToMove.length; i++) {
                 const [id, bounds] = entriesToMove[i]
                 const shape = shapes[id]
-                getShapeUtils(shape).setProperty(shape, 'point', [
+                getShapeUtils(shape).translateTo(shape, [
                   bounds.minX,
                   y + step * i - bounds.height / 2,
                 ])
@@ -120,10 +117,7 @@ export default function distributeCommand(data: Data, type: DistributeType) {
               for (let i = 0; i < entriesToMove.length - 1; i++) {
                 const [id, bounds] = entriesToMove[i]
                 const shape = shapes[id]
-                getShapeUtils(shape).setProperty(shape, 'point', [
-                  bounds.minX,
-                  y,
-                ])
+                getShapeUtils(shape).translateTo(shape, [bounds.minX, y])
                 y += bounds.height + step
               }
             }
@@ -137,7 +131,7 @@ export default function distributeCommand(data: Data, type: DistributeType) {
         for (let id in boundsForShapes) {
           const shape = shapes[id]
           const initialBounds = boundsForShapes[id]
-          getShapeUtils(shape).setProperty(shape, 'point', [
+          getShapeUtils(shape).translateTo(shape, [
             initialBounds.minX,
             initialBounds.minY,
           ])

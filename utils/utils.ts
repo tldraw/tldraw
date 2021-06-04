@@ -1,6 +1,15 @@
 import Vector from 'lib/code/vector'
 import React from 'react'
-import { Data, Bounds, Edge, Corner, Shape, ShapeStyles } from 'types'
+import {
+  Data,
+  Bounds,
+  Edge,
+  Corner,
+  Shape,
+  ShapeStyles,
+  GroupShape,
+  ShapeType,
+} from 'types'
 import * as vec from './vec'
 import _isMobile from 'ismobilejs'
 import { getShapeUtils } from 'lib/shape-utils'
@@ -1585,4 +1594,56 @@ export function isAngleBetween(a: number, b: number, c: number) {
 
 export function getCurrentCamera(data: Data) {
   return data.pageStates[data.currentPageId].camera
+}
+
+// export function updateChildren(data: Data, changedShapes: Shape[]) {
+//   if (changedShapes.length === 0) return
+//   const { shapes } = getPage(data)
+
+//   changedShapes.forEach((shape) => {
+//     if (shape.type === ShapeType.Group) {
+//       for (let childId of shape.children) {
+//         const childShape = shapes[childId]
+//         getShapeUtils(childShape).translateBy(childShape, deltaForShape)
+//       }
+//     }
+//   })
+// }
+
+export function updateParents(data: Data, changedShapeIds: string[]) {
+  if (changedShapeIds.length === 0) return
+
+  const { shapes } = getPage(data)
+
+  const parentToUpdateIds = Array.from(
+    new Set(changedShapeIds.map((id) => shapes[id].parentId).values())
+  ).filter((id) => id !== data.currentPageId)
+
+  for (const parentId of parentToUpdateIds) {
+    const parent = shapes[parentId] as GroupShape
+    getShapeUtils(parent).onChildrenChange(
+      parent,
+      parent.children.map((id) => shapes[id])
+    )
+  }
+
+  updateParents(data, parentToUpdateIds)
+}
+
+export function getParentOffset(data: Data, shapeId: string, offset = [0, 0]) {
+  const shape = getShape(data, shapeId)
+  return shape.parentId === data.currentPageId
+    ? offset
+    : getParentOffset(data, shape.parentId, vec.add(offset, shape.point))
+}
+
+export function getParentRotation(
+  data: Data,
+  shapeId: string,
+  rotation = 0
+): number {
+  const shape = getShape(data, shapeId)
+  return shape.parentId === data.currentPageId
+    ? rotation + shape.rotation
+    : getParentRotation(data, shape.parentId, rotation + shape.rotation)
 }

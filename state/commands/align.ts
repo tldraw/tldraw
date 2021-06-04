@@ -27,7 +27,7 @@ export default function alignCommand(data: Data, type: AlignType) {
           case AlignType.Top: {
             for (let id in boundsForShapes) {
               const shape = shapes[id]
-              getShapeUtils(shape).setProperty(shape, 'point', [
+              getShapeUtils(shape).translateTo(shape, [
                 shape.point[0],
                 commonBounds.minY,
               ])
@@ -37,7 +37,7 @@ export default function alignCommand(data: Data, type: AlignType) {
           case AlignType.CenterVertical: {
             for (let id in boundsForShapes) {
               const shape = shapes[id]
-              getShapeUtils(shape).setProperty(shape, 'point', [
+              getShapeUtils(shape).translateTo(shape, [
                 shape.point[0],
                 midY - boundsForShapes[id].height / 2,
               ])
@@ -47,7 +47,7 @@ export default function alignCommand(data: Data, type: AlignType) {
           case AlignType.Bottom: {
             for (let id in boundsForShapes) {
               const shape = shapes[id]
-              getShapeUtils(shape).setProperty(shape, 'point', [
+              getShapeUtils(shape).translateTo(shape, [
                 shape.point[0],
                 commonBounds.maxY - boundsForShapes[id].height,
               ])
@@ -57,7 +57,7 @@ export default function alignCommand(data: Data, type: AlignType) {
           case AlignType.Left: {
             for (let id in boundsForShapes) {
               const shape = shapes[id]
-              getShapeUtils(shape).setProperty(shape, 'point', [
+              getShapeUtils(shape).translateTo(shape, [
                 commonBounds.minX,
                 shape.point[1],
               ])
@@ -67,7 +67,7 @@ export default function alignCommand(data: Data, type: AlignType) {
           case AlignType.CenterHorizontal: {
             for (let id in boundsForShapes) {
               const shape = shapes[id]
-              getShapeUtils(shape).setProperty(shape, 'point', [
+              getShapeUtils(shape).translateTo(shape, [
                 midX - boundsForShapes[id].width / 2,
                 shape.point[1],
               ])
@@ -77,7 +77,7 @@ export default function alignCommand(data: Data, type: AlignType) {
           case AlignType.Right: {
             for (let id in boundsForShapes) {
               const shape = shapes[id]
-              getShapeUtils(shape).setProperty(shape, 'point', [
+              getShapeUtils(shape).translateTo(shape, [
                 commonBounds.maxX - boundsForShapes[id].width,
                 shape.point[1],
               ])
@@ -91,7 +91,7 @@ export default function alignCommand(data: Data, type: AlignType) {
         for (let id in boundsForShapes) {
           const shape = shapes[id]
           const initialBounds = boundsForShapes[id]
-          getShapeUtils(shape).setProperty(shape, 'point', [
+          getShapeUtils(shape).translateTo(shape, [
             initialBounds.minX,
             initialBounds.minY,
           ])

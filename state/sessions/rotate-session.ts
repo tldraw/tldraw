@@ -11,6 +11,7 @@ import {
   getSelectedShapes,
   getRotatedBounds,
   getShapeBounds,
+  updateParents,
 } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 
@@ -63,17 +64,28 @@ export default class RotateSession extends BaseSession {
         .setProperty(shape, 'rotation', (PI2 + nextRotation) % PI2)
         .setProperty(shape, 'point', nextPoint)
     }
+
+    updateParents(
+      data,
+      initialShapes.map((s) => s.id)
+    )
   }
 
   cancel(data: Data) {
-    const page = getPage(data, this.snapshot.currentPageId)
+    const { currentPageId, initialShapes } = this.snapshot
+    const page = getPage(data, currentPageId)
 
-    for (let { id, point, rotation } of this.snapshot.initialShapes) {
+    for (let { id, point, rotation } of initialShapes) {
       const shape = page.shapes[id]
       getShapeUtils(shape)
         .setProperty(shape, 'rotation', rotation)
         .setProperty(shape, 'point', point)
     }
+
+    updateParents(
+      data,
+      initialShapes.map((s) => s.id)
+    )
   }
 
   complete(data: Data) {

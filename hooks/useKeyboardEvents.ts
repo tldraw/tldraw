@@ -122,6 +122,16 @@ export default function useKeyboardEvents() {
           state.send('DELETED', getKeyboardEventInfo(e))
           break
         }
+        case 'g': {
+          if (metaKey(e)) {
+            if (e.shiftKey) {
+              state.send('UNGROUPED', getKeyboardEventInfo(e))
+            } else {
+              state.send('GROUPED', getKeyboardEventInfo(e))
+            }
+          }
+          break
+        }
         case 's': {
           if (metaKey(e)) {
             state.send('SAVED', getKeyboardEventInfo(e))
