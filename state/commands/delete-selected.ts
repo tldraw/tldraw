@@ -58,6 +58,18 @@ export default function deleteSelected(data: Data) {
           page.shapes[shape.id] = shape
         }
 
+        for (let shape of childrenToDelete) {
+          if (shape.parentId !== data.currentPageId) {
+            const parent = page.shapes[shape.parentId]
+            getShapeUtils(parent)
+              .setProperty(parent, 'children', [...parent.children, shape.id])
+              .onChildrenChange(
+                parent,
+                parent.children.map((id) => page.shapes[id])
+              )
+          }
+        }
+
         data.selectedIds = new Set(selectedIds)
       },
     })

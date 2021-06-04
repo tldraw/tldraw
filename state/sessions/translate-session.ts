@@ -1,4 +1,4 @@
-import { Data, GroupShape, ShapeType } from 'types'
+import { Data, GroupShape, Shape, ShapeType } from 'types'
 import * as vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
@@ -54,13 +54,12 @@ export default class TranslateSession extends BaseSession {
         for (const clone of clones) {
           data.selectedIds.add(clone.id)
           shapes[clone.id] = { ...clone }
-          if (clone.parentId !== data.currentPageId) {
-            const parent = shapes[clone.parentId]
-            getShapeUtils(parent).setProperty(parent, 'children', [
-              ...parent.children,
-              clone.id,
-            ])
-          }
+          const parent = shapes[clone.parentId]
+          if (!parent) continue
+          getShapeUtils(parent).setProperty(parent, 'children', [
+            ...parent.children,
+            clone.id,
+          ])
         }
       }
 
@@ -164,6 +163,7 @@ export function getTranslateSnapshot(data: Data) {
   const selectedShapes = getSelectedShapes(cData).filter(
     (shape) => !shape.isLocked
   )
+
   const hasUnlockedShapes = selectedShapes.length > 0
 
   const parents = Array.from(
@@ -181,13 +181,47 @@ export function getTranslateSnapshot(data: Data) {
       point,
       parentId,
     })),
-    clones: selectedShapes.map((shape) => ({
-      ...shape,
-      id: uuid(),
-      parentId: shape.parentId,
-      childIndex: getChildIndexAbove(cData, shape.id),
-    })),
+    clones: selectedShapes
+      .filter((shape) => shape.type !== ShapeType.Group)
+      .flatMap((shape) => {
+        const clone = {
+          ...shape,
+          id: uuid(),
+          parentId: shape.parentId,
+          childIndex: getChildIndexAbove(cData, shape.id),
+        }
+
+        return clone
+
+        // cloneGroup(cData, {
+        //   ...shape,
+        //   id: uuid(),
+        //   parentId: shape.parentId,
+        //   childIndex: getChildIndexAbove(cData, shape.id),
+        // })
+      }),
   }
 }
 
 export type TranslateSnapshot = ReturnType<typeof getTranslateSnapshot>
+
+function cloneGroup(data: Data, clone: Shape): Shape[] {
+  if (clone.type !== ShapeType.Group) {
+    return [clone]
+  }
+
+  const page = getPage(data)
+  const childClones = clone.children.flatMap((id) => {
+    const newId = uuid()
+    const source = page.shapes[id]
+    const next = { ...source, id: newId, parentId: clone.id }
+
+    if (next.type === ShapeType.Group) {
+      return [next, ...cloneGroup(data, next)]
+    }
+
+    return [next]
+  })
+
+  return [clone, ...childClones]
+}

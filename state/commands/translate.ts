@@ -1,9 +1,10 @@
 import Command from './command'
 import history from '../history'
 import { TranslateSnapshot } from 'state/sessions/translate-session'
-import { Data } from 'types'
+import { Data, GroupShape, Shape, ShapeType } from 'types'
 import { getPage, updateParents } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
+import { v4 as uuid } from 'uuid'
 
 export default function translateCommand(
   data: Data,
@@ -33,6 +34,9 @@ export default function translateCommand(
                 ...parent.children,
                 clone.id,
               ])
+
+              if (clone.type === ShapeType.Group) {
+              }
             }
           }
         }
