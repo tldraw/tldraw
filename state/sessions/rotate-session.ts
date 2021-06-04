@@ -1,4 +1,4 @@
-import { Data } from 'types'
+import { Data, ShapeType } from 'types'
 import * as vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
@@ -12,6 +12,7 @@ import {
   getRotatedBounds,
   getShapeBounds,
   updateParents,
+  getDocumentBranch,
 } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 
@@ -95,9 +96,12 @@ export default class RotateSession extends BaseSession {
 }
 
 export function getRotateSnapshot(data: Data) {
-  const initialShapes = getSelectedShapes(current(data)).filter(
-    (shape) => !shape.isLocked
-  )
+  const cData = current(data)
+  const page = getPage(cData)
+
+  const initialShapes = Array.from(cData.selectedIds.values())
+    .flatMap((id) => getDocumentBranch(cData, id).map((id) => page.shapes[id]))
+    .filter((shape) => !shape.isLocked)
 
   const hasUnlockedShapes = initialShapes.length > 0
 
@@ -114,25 +118,27 @@ export function getRotateSnapshot(data: Data) {
     currentPageId: data.currentPageId,
     boundsRotation: data.boundsRotation,
     commonBoundsCenter,
-    initialShapes: initialShapes.map((shape) => {
-      const bounds = shapesBounds[shape.id]
-      const center = getBoundsCenter(bounds)
-      const offset = vec.sub(center, shape.point)
+    initialShapes: initialShapes
+      .filter((shape) => shape.type !== ShapeType.Group)
+      .map((shape) => {
+        const bounds = shapesBounds[shape.id]
+        const center = getBoundsCenter(bounds)
+        const offset = vec.sub(center, shape.point)
 
-      const rotationOffset = vec.sub(
-        center,
-        getBoundsCenter(getRotatedBounds(shape))
-      )
+        const rotationOffset = vec.sub(
+          center,
+          getBoundsCenter(getRotatedBounds(shape))
+        )
 
-      return {
-        id: shape.id,
-        point: shape.point,
-        rotation: shape.rotation,
-        offset,
-        rotationOffset,
-        center,
-      }
-    }),
+        return {
+          id: shape.id,
+          point: shape.point,
+          rotation: shape.rotation,
+          offset,
+          rotationOffset,
+          center,
+        }
+      }),
   }
 }
 
