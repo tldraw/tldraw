@@ -22,25 +22,21 @@ export default class BrushSession extends BaseSession {
 
     const brushBounds = getBoundsFromPoints([origin, point])
 
+    const hits = new Set<string>([])
+
     for (let id in snapshot.shapeHitTests) {
       const { test, selectId } = snapshot.shapeHitTests[id]
-      if (test(brushBounds)) {
-        // When brushing a shape, select its top group parent.
-        if (!data.selectedIds.has(selectId)) {
-          data.selectedIds.add(selectId)
+      if (!hits.has(selectId)) {
+        if (test(brushBounds)) {
+          hits.add(selectId)
+
+          // When brushing a shape, select its top group parent.
+          if (!data.selectedIds.has(selectId)) {
+            data.selectedIds.add(selectId)
+          }
+        } else if (data.selectedIds.has(selectId)) {
+          data.selectedIds.delete(selectId)
         }
-
-        // Possibly... select all of the top group parent's children too?
-        // const selectedId = getTopParentId(data, id)
-        // const idsToSelect = collectChildIds(data, selectedId)
-
-        // for (let id in idsToSelect) {
-        //   if (!data.selectedIds.has(id)) {
-        //     data.selectedIds.add(id)
-        //   }
-        // }
-      } else if (data.selectedIds.has(selectId)) {
-        data.selectedIds.delete(selectId)
       }
     }
 
@@ -88,17 +84,4 @@ function getTopParentId(data: Data, id: string): string {
     shape.parentId === data.currentParentId
     ? id
     : getTopParentId(data, shape.parentId)
-}
-
-function collectChildIds(data: Data, id: string): string[] {
-  const shape = getPage(data).shapes[id]
-
-  if (shape.type === ShapeType.Group) {
-    return [
-      id,
-      ...shape.children.flatMap((childId) => collectChildIds(data, childId)),
-    ]
-  }
-
-  return [id]
 }

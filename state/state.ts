@@ -1027,7 +1027,9 @@ const state = createState({
       const page = getPage(data)
       selectedIds.clear()
       for (let id in page.shapes) {
-        selectedIds.add(id)
+        if (page.shapes[id].parentId === data.currentPageId) {
+          selectedIds.add(id)
+        }
       }
     },
     setHoveredId(data, payload: PointerInfo) {

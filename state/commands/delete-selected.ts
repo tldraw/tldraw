@@ -1,8 +1,8 @@
 import Command from './command'
 import history from '../history'
 import { TranslateSnapshot } from 'state/sessions/translate-session'
-import { Data } from 'types'
-import { getPage, updateParents } from 'utils/utils'
+import { Data, ShapeType } from 'types'
+import { getDocumentBranch, getPage, updateParents } from 'utils/utils'
 import { current } from 'immer'
 import { getShapeUtils } from 'lib/shape-utils'
 
@@ -13,7 +13,9 @@ export default function deleteSelected(data: Data) {
 
   const page = getPage(current(data))
 
-  const shapes = selectedIds.map((id) => page.shapes[id])
+  const childrenToDelete = selectedIds
+    .flatMap((id) => getDocumentBranch(data, id))
+    .map((id) => page.shapes[id])
 
   data.selectedIds.clear()
 
@@ -41,18 +43,22 @@ export default function deleteSelected(data: Data) {
                 parent.children.map((id) => page.shapes[id])
               )
           }
-          delete page.shapes[id]
+
+          for (let shape of childrenToDelete) {
+            delete page.shapes[shape.id]
+          }
         }
 
         data.selectedIds.clear()
       },
       undo(data) {
         const page = getPage(data, currentPageId)
-        data.selectedIds.clear()
-        for (let shape of shapes) {
+
+        for (let shape of childrenToDelete) {
           page.shapes[shape.id] = shape
-          data.selectedIds.add(shape.id)
         }
+
+        data.selectedIds = new Set(selectedIds)
       },
     })
   )

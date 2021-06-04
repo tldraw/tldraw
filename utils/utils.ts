@@ -1610,6 +1610,8 @@ export function getCurrentCamera(data: Data) {
 //   })
 // }
 
+/* --------------------- Groups --------------------- */
+
 export function updateParents(data: Data, changedShapeIds: string[]) {
   if (changedShapeIds.length === 0) return
 
@@ -1646,4 +1648,14 @@ export function getParentRotation(
   return shape.parentId === data.currentPageId
     ? rotation + shape.rotation
     : getParentRotation(data, shape.parentId, rotation + shape.rotation)
+}
+
+export function getDocumentBranch(data: Data, id: string): string[] {
+  const shape = getPage(data).shapes[id]
+  if (shape.type !== ShapeType.Group) return [id]
+
+  return [
+    id,
+    ...shape.children.flatMap((childId) => getDocumentBranch(data, childId)),
+  ]
 }

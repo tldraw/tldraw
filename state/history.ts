@@ -1,7 +1,7 @@
 import { Data } from 'types'
 import { BaseCommand } from './commands/command'
 
-const CURRENT_VERSION = 'code_slate_0.0.2'
+const CURRENT_VERSION = 'code_slate_0.0.3'
 
 // A singleton to manage history changes.
 
