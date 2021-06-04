@@ -6,7 +6,7 @@ import { current } from 'immer'
 import { getBoundsFromPoints, getPage, updateParents } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 
-export default class PointsSession extends BaseSession {
+export default class ArrowSession extends BaseSession {
   points: number[][]
   origin: number[]
   snapshot: ArrowSnapshot
@@ -58,7 +58,7 @@ export default class PointsSession extends BaseSession {
       },
     })
 
-    updateParents(data, [shape])
+    updateParents(data, [shape.id])
   }
 
   cancel(data: Data) {
@@ -70,7 +70,7 @@ export default class PointsSession extends BaseSession {
       .onHandleChange(shape, { end: initialShape.handles.end })
       .setProperty(shape, 'point', initialShape.point)
 
-    updateParents(data, [shape])
+    updateParents(data, [shape.id])
   }
 
   complete(data: Data) {

@@ -75,14 +75,14 @@ export default class BrushSession extends BaseSession {
 
     const shape = getShape(data, snapshot.id) as DrawShape
     getShapeUtils(shape).setProperty(shape, 'points', [...this.points])
-    updateParents(data, [shape])
+    updateParents(data, [shape.id])
   }
 
   cancel = (data: Data) => {
     const { snapshot } = this
     const shape = getShape(data, snapshot.id) as DrawShape
     getShapeUtils(shape).setProperty(shape, 'points', snapshot.points)
-    updateParents(data, [shape])
+    updateParents(data, [shape.id])
   }
 
   complete = (data: Data) => {

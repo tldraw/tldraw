@@ -19,7 +19,7 @@ export default class CodeShape<T extends Shape> {
   private utils: ShapeUtility<T>
 
   constructor(props: T) {
-    this._shape = createShape<T>(props.type, props)
+    this._shape = createShape(props.type, props) as T
     this.utils = getShapeUtils<T>(this._shape)
     codeShapes.add(this)
   }
