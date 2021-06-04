@@ -48,9 +48,12 @@ const group = registerShapeUtils<GroupShape>({
     const { id, size } = shape
 
     return (
-      <g id={id}>
-        <StyledGroupShape id={id} width={size[0]} height={size[1]} />
-      </g>
+      <StyledGroupShape
+        id={id}
+        width={size[0]}
+        height={size[1]}
+        data-shy={true}
+      />
     )
   },
 

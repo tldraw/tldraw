@@ -10,8 +10,10 @@ export default function CenterHandle({
 }) {
   return (
     <StyledBounds
-      width={bounds.width}
-      height={bounds.height}
+      x={-1}
+      y={-1}
+      width={bounds.width + 2}
+      height={bounds.height + 2}
       pointerEvents="none"
       isLocked={isLocked}
     />

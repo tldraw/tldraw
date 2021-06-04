@@ -20,15 +20,15 @@ export default function CornerHandle({
     <g>
       <StyledCorner
         corner={corner}
-        x={(isLeft ? 0 : bounds.width) - size}
-        y={(isTop ? 0 : bounds.height) - size}
+        x={(isLeft ? -1 : bounds.width + 1) - size}
+        y={(isTop ? -1 : bounds.height + 1) - size}
         width={size * 2}
         height={size * 2}
         {...events}
       />
       <StyledCornerInner
-        x={(isLeft ? 0 : bounds.width) - size / 2}
-        y={(isTop ? 0 : bounds.height) - size / 2}
+        x={(isLeft ? -1 : bounds.width + 1) - size / 2}
+        y={(isTop ? -1 : bounds.height + 1) - size / 2}
         width={size}
         height={size}
         pointerEvents="none"

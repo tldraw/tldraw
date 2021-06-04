@@ -6,12 +6,12 @@ const { styled, global, css, theme, getCssString } = createCss({
   },
   theme: {
     colors: {
-      brushFill: 'rgba(0,0,0,.1)',
-      brushStroke: 'rgba(0,0,0,.5)',
+      brushFill: 'rgba(0,0,0,.05)',
+      brushStroke: 'rgba(0,0,0,.25)',
       hint: 'rgba(216, 226, 249, 1.000)',
       selected: 'rgba(66, 133, 244, 1.000)',
       bounds: 'rgba(65, 132, 244, 1.000)',
-      boundsBg: 'rgba(65, 132, 244, 0.100)',
+      boundsBg: 'rgba(65, 132, 244, 0.050)',
       border: '#aaa',
       canvas: '#fafafa',
       panel: '#fefefe',

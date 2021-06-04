@@ -24,6 +24,7 @@ import {
   getParentRotation,
   rotateBounds,
   getBoundsCenter,
+  getDocumentBranch,
 } from 'utils/utils'
 import {
   Data,
@@ -924,6 +925,7 @@ const state = createState({
       payload: PointerInfo & { target: Corner | Edge }
     ) {
       const point = screenToWorld(inputs.pointer.origin, data)
+      // session = new Sessions.TransformSession(data, payload.target, point)
       session =
         data.selectedIds.size === 1
           ? new Sessions.TransformSingleSession(data, payload.target, point)
@@ -1385,7 +1387,7 @@ const state = createState({
     },
 
     restoreSavedData(data) {
-      // history.load(data)
+      history.load(data)
     },
 
     clearBoundsRotation(data) {
@@ -1441,16 +1443,22 @@ const state = createState({
       }
 
       const commonBounds = getCommonBounds(
-        ...shapes.map((shape) => {
-          const parentOffset = getParentOffset(data, shape.id)
-          const parentRotation = getParentRotation(data, shape.id)
-          const bounds = getShapeUtils(shape).getRotatedBounds(shape)
+        ...shapes
+          .flatMap((shape) => getDocumentBranch(data, shape.id))
+          .map((id) => page.shapes[id])
+          .filter((shape) => shape.type !== ShapeType.Group)
+          .map((shape) => {
+            const parentOffset = getParentOffset(data, shape.id)
+            const parentRotation = getParentRotation(data, shape.id)
+            const bounds = getShapeUtils(shape).getRotatedBounds(shape)
 
-          return translateBounds(
-            rotateBounds(bounds, getBoundsCenter(bounds), parentRotation),
-            vec.neg(parentOffset)
-          )
-        })
+            return bounds
+
+            return translateBounds(
+              rotateBounds(bounds, getBoundsCenter(bounds), parentRotation),
+              vec.neg(parentOffset)
+            )
+          })
       )
 
       return commonBounds
@@ -1463,6 +1471,7 @@ const state = createState({
         return currentStyle
       }
       const page = getPage(data)
+
       const shapeStyles = selectedIds.map((id) => page.shapes[id].style)
 
       const commonStyle: ShapeStyles = {} as ShapeStyles

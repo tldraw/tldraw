@@ -40,30 +40,30 @@ function Shape({ id, isSelecting, parentPoint, parentRotation }: ShapeProps) {
   const style = getShapeStyle(shape.style)
 
   return (
-    <>
-      <StyledGroup ref={rGroup} transform={transform}>
-        {isSelecting && !isGroup && (
-          <HoverIndicator
-            as="use"
-            href={'#' + id}
-            strokeWidth={+style.strokeWidth + 4}
-            variant={getShapeUtils(shape).canStyleFill ? 'filled' : 'hollow'}
-            {...events}
+    <StyledGroup ref={rGroup} transform={transform}>
+      {isSelecting && !isGroup && (
+        <HoverIndicator
+          as="use"
+          href={'#' + id}
+          strokeWidth={+style.strokeWidth + 4}
+          variant={getShapeUtils(shape).canStyleFill ? 'filled' : 'hollow'}
+          {...events}
+        />
+      )}
+      {!shape.isHidden && (
+        <StyledShape as="use" data-shy={isGroup} href={'#' + id} {...style} />
+      )}
+      {isGroup &&
+        shape.children.map((shapeId) => (
+          <Shape
+            key={shapeId}
+            id={shapeId}
+            isSelecting={isSelecting}
+            parentPoint={shape.point}
+            parentRotation={shape.rotation}
           />
-        )}
-        {!shape.isHidden && <StyledShape as="use" href={'#' + id} {...style} />}
-        {isGroup &&
-          shape.children.map((shapeId) => (
-            <Shape
-              key={shapeId}
-              id={shapeId}
-              isSelecting={isSelecting}
-              parentPoint={shape.point}
-              parentRotation={shape.rotation}
-            />
-          ))}
-      </StyledGroup>
-    </>
+        ))}
+    </StyledGroup>
   )
 }
 
@@ -93,15 +93,25 @@ const HoverIndicator = styled('path', {
 })
 
 const StyledGroup = styled('g', {
+  outline: 'none',
+  [`& *[data-shy="true"]`]: {
+    opacity: '0',
+  },
   [`& ${HoverIndicator}`]: {
     opacity: '0',
   },
   [`&:hover ${HoverIndicator}`]: {
     opacity: '0.16',
   },
+  [`&:hover *[data-shy="true"]`]: {
+    opacity: '1',
+  },
   variants: {
     isSelected: {
       true: {
+        [`& *[data-shy="true"]`]: {
+          opacity: '1',
+        },
         [`& ${HoverIndicator}`]: {
           opacity: '0.2',
         },

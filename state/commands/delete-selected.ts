@@ -30,6 +30,11 @@ export default function deleteSelected(data: Data) {
 
         for (let id of selectedIds) {
           const shape = page.shapes[id]
+          if (!shape) {
+            console.error('no shape ' + id)
+            continue
+          }
+
           if (shape.parentId !== data.currentPageId) {
             const parent = page.shapes[shape.parentId]
             getShapeUtils(parent)
@@ -43,10 +48,10 @@ export default function deleteSelected(data: Data) {
                 parent.children.map((id) => page.shapes[id])
               )
           }
+        }
 
-          for (let shape of childrenToDelete) {
-            delete page.shapes[shape.id]
-          }
+        for (let shape of childrenToDelete) {
+          delete page.shapes[shape.id]
         }
 
         data.selectedIds.clear()

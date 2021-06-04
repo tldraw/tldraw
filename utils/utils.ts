@@ -1623,6 +1623,7 @@ export function updateParents(data: Data, changedShapeIds: string[]) {
 
   for (const parentId of parentToUpdateIds) {
     const parent = shapes[parentId] as GroupShape
+
     getShapeUtils(parent).onChildrenChange(
       parent,
       parent.children.map((id) => shapes[id])

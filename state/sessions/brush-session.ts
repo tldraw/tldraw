@@ -64,14 +64,16 @@ export function getBrushSnapshot(data: Data) {
     shapeHitTests: Object.fromEntries(
       getShapes(current(data))
         .filter((shape) => shape.type !== ShapeType.Group)
-        .map((shape) => [
-          shape.id,
-          {
-            selectId: getTopParentId(data, shape.id),
-            test: (bounds: Bounds) =>
-              getShapeUtils(shape).hitTestBounds(shape, bounds),
-          },
-        ])
+        .map((shape) => {
+          return [
+            shape.id,
+            {
+              selectId: getTopParentId(data, shape.id),
+              test: (bounds: Bounds) =>
+                getShapeUtils(shape).hitTestBounds(shape, bounds),
+            },
+          ]
+        })
     ),
   }
 }

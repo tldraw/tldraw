@@ -16,13 +16,15 @@ export default function EdgeHandle({
   const isHorizontal = edge === Edge.Top || edge === Edge.Bottom
   const isFarEdge = edge === Edge.Right || edge === Edge.Bottom
 
+  const { height, width } = bounds
+
   return (
     <StyledEdge
       edge={edge}
-      x={isHorizontal ? size / 2 : (isFarEdge ? bounds.width : 0) - size / 2}
-      y={isHorizontal ? (isFarEdge ? bounds.height : 0) - size / 2 : size / 2}
-      width={isHorizontal ? Math.max(0, bounds.width - size) : size}
-      height={isHorizontal ? size : Math.max(0, bounds.height - size)}
+      x={isHorizontal ? size / 2 : (isFarEdge ? width + 1 : -1) - size / 2}
+      y={isHorizontal ? (isFarEdge ? height + 1 : -1) - size / 2 : size / 2}
+      width={isHorizontal ? Math.max(0, width + 1 - size) : size}
+      height={isHorizontal ? size : Math.max(0, height + 1 - size)}
       {...events}
     />
   )

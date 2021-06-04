@@ -1,4 +1,4 @@
-import { Data, Edge, Corner } from 'types'
+import { Data, Edge, Corner, Bounds } from 'types'
 import * as vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
@@ -8,6 +8,7 @@ import {
   getBoundsCenter,
   getBoundsFromPoints,
   getCommonBounds,
+  getDocumentBranch,
   getPage,
   getRelativeTransformedBoundingBox,
   getSelectedShapes,
@@ -115,10 +116,11 @@ export default class TransformSession extends BaseSession {
 export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
   const cData = current(data)
   const { currentPageId } = cData
+  const page = getPage(cData)
 
-  const initialShapes = getSelectedShapes(cData).filter(
-    (shape) => !shape.isLocked
-  )
+  const initialShapes = Array.from(cData.selectedIds.values())
+    .flatMap((id) => getDocumentBranch(cData, id).map((id) => page.shapes[id]))
+    .filter((shape) => !shape.isLocked)
 
   const hasUnlockedShapes = initialShapes.length > 0
 
@@ -182,3 +184,27 @@ export type TransformSnapshot = ReturnType<typeof getTransformSnapshot>
 // }
 
 // const origin = transformOrigins[this.transformType]
+
+// function resizeDescendants(data: Data, shapeId: string, bounds: Bounds) {
+
+//   const { initialShape, initialShapeBounds, transformOrigin } =
+//     shapeBounds[id]
+
+//   const newShapeBounds = getRelativeTransformedBoundingBox(
+//     newBoundingBox,
+//     initialBounds,
+//     initialShapeBounds,
+//     this.scaleX < 0,
+//     this.scaleY < 0
+//   )
+
+//   const shape = shapes[id]
+
+//   getShapeUtils(shape).transform(shape, newShapeBounds, {
+//     type: this.transformType,
+//     initialShape,
+//     scaleX: this.scaleX,
+//     scaleY: this.scaleY,
+//     transformOrigin,
+//   })
+// }

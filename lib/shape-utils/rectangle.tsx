@@ -36,8 +36,10 @@ const rectangle = registerShapeUtils<RectangleShape>({
           id={id}
           rx={radius}
           ry={radius}
-          width={Math.max(0, size[0] - Number(styles.strokeWidth) / 2)}
-          height={Math.max(0, size[1] - Number(styles.strokeWidth) / 2)}
+          x={+styles.strokeWidth / 2}
+          y={+styles.strokeWidth / 2}
+          width={Math.max(0, size[0] + -styles.strokeWidth)}
+          height={Math.max(0, size[1] + -styles.strokeWidth)}
         />
       </g>
     )
