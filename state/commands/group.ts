@@ -27,9 +27,9 @@ export default function groupCommand(data: Data) {
 
   let newGroupParentId: string
   let newGroupShape: GroupShape
-  let oldGroupShape: GroupShape
+  let newGroupChildIndex: number
 
-  const selectedShapeIds = initialShapes.map((s) => s.id)
+  const initialShapeIds = initialShapes.map((s) => s.id)
 
   const parentIds = Array.from(
     new Set(initialShapes.map((s) => s.parentId)).values()
@@ -50,13 +50,11 @@ export default function groupCommand(data: Data) {
       const parent = getShape(data, parentId) as GroupShape
 
       if (parent.children.length === initialShapes.length) {
-        // !
-        // !
-        // !
-        // Hey! We're not going any further. We need to ungroup those shapes.
+        // !!! Hey! We're not going any further. We need to ungroup those shapes.
         commands.ungroup(data)
         return
       } else {
+        // Make the group inside of the current group
         newGroupParentId = parentId
       }
     }
@@ -77,7 +75,8 @@ export default function groupCommand(data: Data) {
     parentId: newGroupParentId,
     point: [commonBounds.minX, commonBounds.minY],
     size: [commonBounds.width, commonBounds.height],
-    children: selectedShapeIds,
+    children: initialShapeIds,
+    childIndex: initialShapes[0].childIndex,
   })
 
   history.execute(
@@ -85,43 +84,80 @@ export default function groupCommand(data: Data) {
     new Command({
       name: 'group_shapes',
       category: 'canvas',
+      manualSelection: true,
       do(data) {
         const { shapes } = getPage(data, currentPageId)
 
-        // Remove shapes from old parents
-        for (const parentId of parentIds) {
-          if (parentId === currentPageId) continue
+        // Create the new group
+        shapes[newGroupShape.id] = newGroupShape
 
-          const shape = shapes[parentId] as GroupShape
-          getShapeUtils(shape).setProperty(
-            shape,
-            'children',
-            shape.children.filter((id) => !selectedIds.has(id))
-          )
+        // Assign the group to its new parent
+        if (newGroupParentId !== data.currentPageId) {
+          const parent = shapes[newGroupParentId]
+          getShapeUtils(parent).setProperty(parent, 'children', [
+            ...parent.children,
+            newGroupShape.id,
+          ])
         }
 
-        shapes[newGroupShape.id] = newGroupShape
+        // Assign the shapes to their new parent
+        initialShapes.forEach((initialShape, i) => {
+          // Remove shape from its old parent
+          if (initialShape.parentId !== currentPageId) {
+            const oldParent = shapes[initialShape.parentId] as GroupShape
+            getShapeUtils(oldParent).setProperty(
+              oldParent,
+              'children',
+              oldParent.children.filter((id) => !selectedIds.has(id))
+            )
+          }
+
+          // Assign the shape to its new parent, with its new childIndex
+          const shape = shapes[initialShape.id]
+          getShapeUtils(shape)
+            .setProperty(shape, 'childIndex', i)
+            .setProperty(shape, 'parentId', newGroupShape.id)
+        })
+
         data.selectedIds.clear()
         data.selectedIds.add(newGroupShape.id)
-        initialShapes.forEach(({ id }, i) => {
-          const shape = shapes[id]
-          getShapeUtils(shape)
-            .setProperty(shape, 'parentId', newGroupShape.id)
-            .setProperty(shape, 'childIndex', i)
-        })
       },
       undo(data) {
         const { shapes } = getPage(data, currentPageId)
-        data.selectedIds.clear()
 
-        delete shapes[newGroupShape.id]
-        initialShapes.forEach(({ id, parentId, childIndex }, i) => {
-          data.selectedIds.add(id)
+        const group = shapes[newGroupShape.id]
+
+        // remove the group from its parent
+        if (group.parentId !== data.currentPageId) {
+          const parent = shapes[group.parentId]
+          getShapeUtils(parent).setProperty(
+            parent,
+            'children',
+            parent.children.filter((id) => id !== newGroupShape.id)
+          )
+        }
+
+        // Move the shapes back to their previous parent / childIndex
+        initialShapes.forEach(({ id, parentId, childIndex }) => {
           const shape = shapes[id]
           getShapeUtils(shape)
             .setProperty(shape, 'parentId', parentId)
             .setProperty(shape, 'childIndex', childIndex)
+
+          if (parentId !== data.currentPageId) {
+            const parent = shapes[parentId]
+            getShapeUtils(parent).setProperty(parent, 'children', [
+              ...parent.children,
+              id,
+            ])
+          }
         })
+
+        // Delete the group
+        delete shapes[newGroupShape.id]
+
+        // Reselect the children of the group
+        data.selectedIds = new Set(initialShapeIds)
       },
     })
   )

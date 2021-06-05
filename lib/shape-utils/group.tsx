@@ -28,7 +28,7 @@ const group = registerShapeUtils<GroupShape>({
       id: uuid(),
       type: ShapeType.Group,
       isGenerated: false,
-      name: 'Rectangle',
+      name: 'Group',
       parentId: 'page0',
       childIndex: 0,
       point: [0, 0],

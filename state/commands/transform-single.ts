@@ -33,26 +33,18 @@ export default function transformSingleCommand(
         updateParents(data, [id])
       },
       undo(data) {
-        const { id, type, initialShapeBounds } = before
+        const { id, initialShape } = before
 
         const { shapes } = getPage(data, before.currentPageId)
 
-        data.selectedIds.clear()
-
         if (isCreating) {
+          data.selectedIds.clear()
           delete shapes[id]
         } else {
-          const shape = shapes[id]
-          data.selectedIds.add(id)
-
-          getShapeUtils(shape).transform(shape, initialShapeBounds, {
-            type,
-            initialShape: after.initialShape,
-            scaleX: 1,
-            scaleY: 1,
-            transformOrigin: [0.5, 0.5],
-          })
+          const page = getPage(data)
+          page.shapes[id] = initialShape
           updateParents(data, [id])
+          data.selectedIds = new Set([id])
         }
       },
     })

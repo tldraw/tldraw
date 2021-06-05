@@ -29,7 +29,6 @@ export default function Page() {
           id={shapeId}
           isSelecting={isSelecting}
           parentPoint={noOffset}
-          parentRotation={0}
         />
       ))}
     </g>

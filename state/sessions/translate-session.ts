@@ -6,6 +6,7 @@ import { current } from 'immer'
 import { v4 as uuid } from 'uuid'
 import {
   getChildIndexAbove,
+  getDocumentBranch,
   getPage,
   getSelectedShapes,
   updateParents,
@@ -14,6 +15,7 @@ import { getShapeUtils } from 'lib/shape-utils'
 
 export default class TranslateSession extends BaseSession {
   delta = [0, 0]
+  prev = [0, 0]
   origin: number[]
   snapshot: TranslateSnapshot
   isCloning = false
@@ -30,6 +32,9 @@ export default class TranslateSession extends BaseSession {
     const { shapes } = getPage(data, currentPageId)
 
     const delta = vec.vec(this.origin, point)
+    const trueDelta = vec.sub(delta, this.prev)
+    this.delta = delta
+    this.prev = delta
 
     if (isAligned) {
       if (Math.abs(delta[0]) < Math.abs(delta[1])) {
@@ -92,17 +97,10 @@ export default class TranslateSession extends BaseSession {
       }
 
       for (const initialShape of initialShapes) {
-        const shape = shapes[initialShape.id]
-        const next = vec.add(initialShape.point, delta)
-        const deltaForShape = vec.sub(next, shape.point)
-        getShapeUtils(shape).translateTo(shape, next)
-
-        if (shape.type === ShapeType.Group) {
-          for (let childId of shape.children) {
-            const childShape = shapes[childId]
-            getShapeUtils(childShape).translateBy(childShape, deltaForShape)
-          }
-        }
+        getDocumentBranch(data, initialShape.id).forEach((id) => {
+          const shape = shapes[id]
+          getShapeUtils(shape).translateBy(shape, trueDelta)
+        })
       }
 
       updateParents(
@@ -117,17 +115,11 @@ export default class TranslateSession extends BaseSession {
       this.snapshot
     const { shapes } = getPage(data, currentPageId)
 
-    for (const { id, point } of initialShapes) {
-      const shape = shapes[id]
-      const deltaForShape = vec.sub(point, shape.point)
-      getShapeUtils(shape).translateTo(shape, point)
-
-      if (shape.type === ShapeType.Group) {
-        for (let childId of shape.children) {
-          const childShape = shapes[childId]
-          getShapeUtils(childShape).translateBy(childShape, deltaForShape)
-        }
-      }
+    for (const { id } of initialShapes) {
+      getDocumentBranch(data, id).forEach((id) => {
+        const shape = shapes[id]
+        getShapeUtils(shape).translateBy(shape, vec.neg(this.delta))
+      })
     }
 
     for (const { id } of clones) {
@@ -159,6 +151,14 @@ export default class TranslateSession extends BaseSession {
 
 export function getTranslateSnapshot(data: Data) {
   const cData = current(data)
+
+  // Get selected shapes
+  // Filter out the locked shapes
+  // Collect the branch children for each remaining shape
+  // Filter out doubles using a set
+  // End up with an array of ids for all of the shapes that will change
+  // Map into shapes from data snapshot
+
   const page = getPage(cData)
   const selectedShapes = getSelectedShapes(cData).filter(
     (shape) => !shape.isLocked

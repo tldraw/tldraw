@@ -3,7 +3,7 @@ import { useSelector } from 'state'
 import styled from 'styles'
 import { getShapeUtils } from 'lib/shape-utils'
 import { getPage } from 'utils/utils'
-import { ShapeType } from 'types'
+import { ShapeStyles, ShapeType } from 'types'
 import useShapeEvents from 'hooks/useShapeEvents'
 import * as vec from 'utils/vec'
 import { getShapeStyle } from 'lib/shape-styles'
@@ -12,10 +12,9 @@ interface ShapeProps {
   id: string
   isSelecting: boolean
   parentPoint: number[]
-  parentRotation: number
 }
 
-function Shape({ id, isSelecting, parentPoint, parentRotation }: ShapeProps) {
+function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
   const shape = useSelector(({ data }) => getPage(data).shapes[id])
 
   const rGroup = useRef<SVGGElement>(null)
@@ -26,7 +25,9 @@ function Shape({ id, isSelecting, parentPoint, parentRotation }: ShapeProps) {
   // may sometimes run before the hook in the Page component, which means
   // a deleted shape will still be pulled here before the page component
   // detects the change and pulls this component.
-  if (!shape) return null
+  if (!shape) {
+    return null
+  }
 
   const isGroup = shape.type === ShapeType.Group
 
@@ -50,9 +51,7 @@ function Shape({ id, isSelecting, parentPoint, parentRotation }: ShapeProps) {
           {...events}
         />
       )}
-      {!shape.isHidden && (
-        <StyledShape as="use" data-shy={isGroup} href={'#' + id} {...style} />
-      )}
+      {!shape.isHidden && <ReadShape isGroup={isGroup} id={id} style={style} />}
       {isGroup &&
         shape.children.map((shapeId) => (
           <Shape
@@ -60,12 +59,25 @@ function Shape({ id, isSelecting, parentPoint, parentRotation }: ShapeProps) {
             id={shapeId}
             isSelecting={isSelecting}
             parentPoint={shape.point}
-            parentRotation={shape.rotation}
           />
         ))}
     </StyledGroup>
   )
 }
+
+interface RealShapeProps {
+  isGroup: boolean
+  id: string
+  style: Partial<React.SVGProps<SVGUseElement>>
+}
+
+const ReadShape = memo(function RealShape({
+  isGroup,
+  id,
+  style,
+}: RealShapeProps) {
+  return <StyledShape as="use" data-shy={isGroup} href={'#' + id} {...style} />
+})
 
 const StyledShape = styled('path', {
   strokeLinecap: 'round',

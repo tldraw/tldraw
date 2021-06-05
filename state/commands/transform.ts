@@ -18,8 +18,6 @@ export default function transformCommand(
       name: 'translate_shapes',
       category: 'canvas',
       do(data, isInitial) {
-        if (isInitial) return
-
         const { type, shapeBounds } = after
 
         const { shapes } = getPage(data)
@@ -27,15 +25,18 @@ export default function transformCommand(
         for (let id in shapeBounds) {
           const { initialShape, initialShapeBounds, transformOrigin } =
             shapeBounds[id]
+
           const shape = shapes[id]
 
-          getShapeUtils(shape).transform(shape, initialShapeBounds, {
-            type,
-            initialShape,
-            transformOrigin,
-            scaleX,
-            scaleY,
-          })
+          getShapeUtils(shape)
+            .transform(shape, initialShapeBounds, {
+              type,
+              initialShape,
+              transformOrigin,
+              scaleX,
+              scaleY,
+            })
+            .onSessionComplete(shape)
         }
 
         updateParents(data, Object.keys(shapeBounds))
@@ -50,13 +51,15 @@ export default function transformCommand(
             shapeBounds[id]
           const shape = shapes[id]
 
-          getShapeUtils(shape).transform(shape, initialShapeBounds, {
-            type,
-            initialShape,
-            transformOrigin,
-            scaleX: scaleX < 0 ? scaleX * -1 : scaleX,
-            scaleY: scaleX < 0 ? scaleX * -1 : scaleX,
-          })
+          getShapeUtils(shape)
+            .transform(shape, initialShapeBounds, {
+              type,
+              initialShape,
+              transformOrigin,
+              scaleX: scaleX < 0 ? scaleX * -1 : scaleX,
+              scaleY: scaleX < 0 ? scaleX * -1 : scaleX,
+            })
+            .onSessionComplete(shape)
         }
 
         updateParents(data, Object.keys(shapeBounds))

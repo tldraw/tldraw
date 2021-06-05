@@ -67,18 +67,10 @@ export default class TransformSingleSession extends BaseSession {
   }
 
   cancel(data: Data) {
-    const { id, initialShape, initialShapeBounds, currentPageId } =
-      this.snapshot
+    const { id, initialShape } = this.snapshot
 
-    const shape = getShape(data, id, currentPageId)
-
-    getShapeUtils(shape).transform(shape, initialShapeBounds, {
-      initialShape,
-      type: this.transformType,
-      scaleX: this.scaleX,
-      scaleY: this.scaleY,
-      transformOrigin: [0.5, 0.5],
-    })
+    const page = getPage(data)
+    page.shapes[id] = initialShape
 
     updateParents(data, [id])
   }

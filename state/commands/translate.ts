@@ -2,7 +2,7 @@ import Command from './command'
 import history from '../history'
 import { TranslateSnapshot } from 'state/sessions/translate-session'
 import { Data, GroupShape, Shape, ShapeType } from 'types'
-import { getPage, updateParents } from 'utils/utils'
+import { getDocumentBranch, getPage, updateParents } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 import { v4 as uuid } from 'uuid'
 
@@ -43,8 +43,10 @@ export default function translateCommand(
 
         // Move shapes (these initialShapes will include clones if any)
         for (const { id, point } of initialShapes) {
-          const shape = shapes[id]
-          getShapeUtils(shape).translateTo(shape, point)
+          getDocumentBranch(data, id).forEach((id) => {
+            const shape = shapes[id]
+            getShapeUtils(shape).translateTo(shape, point)
+          })
         }
 
         // Set selected shapes
