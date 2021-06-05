@@ -22,6 +22,7 @@ export default class RotateSession extends BaseSession {
   delta = [0, 0]
   origin: number[]
   snapshot: RotateSnapshot
+  prev = 0
 
   constructor(data: Data, point: number[]) {
     super(data)
@@ -38,6 +39,9 @@ export default class RotateSession extends BaseSession {
 
     let rot = a2 - a1
 
+    const delta = rot - this.prev
+    this.prev = rot
+
     if (isLocked) {
       rot = clampToRotationToSegments(rot, 24)
     }
@@ -47,14 +51,12 @@ export default class RotateSession extends BaseSession {
     for (let { id, center, offset, rotation } of initialShapes) {
       const shape = page.shapes[id]
 
-      // const rotationOffset = vec.sub(
-      //   getBoundsCenter(getShapeBounds(shape)),
-      //   getBoundsCenter(getRotatedBounds(shape))
-      // )
-
-      const nextRotation = isLocked
-        ? clampToRotationToSegments(rotation + rot, 24)
-        : rotation + rot
+      const nextRotation =
+        PI2 +
+        ((isLocked
+          ? clampToRotationToSegments(rotation + rot, 24)
+          : rotation + rot) %
+          PI2)
 
       const nextPoint = vec.sub(
         vec.rotWith(center, commonBoundsCenter, rot),
@@ -62,8 +64,8 @@ export default class RotateSession extends BaseSession {
       )
 
       getShapeUtils(shape)
-        .setProperty(shape, 'rotation', (PI2 + nextRotation) % PI2)
-        .setProperty(shape, 'point', nextPoint)
+        .rotateTo(shape, nextRotation, delta)
+        .translateTo(shape, nextPoint)
     }
 
     updateParents(
@@ -79,8 +81,8 @@ export default class RotateSession extends BaseSession {
     for (let { id, point, rotation } of initialShapes) {
       const shape = page.shapes[id]
       getShapeUtils(shape)
-        .setProperty(shape, 'rotation', rotation)
-        .setProperty(shape, 'point', point)
+        .rotateTo(shape, rotation, rotation - shape.rotation)
+        .translateTo(shape, point)
     }
 
     updateParents(

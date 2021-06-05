@@ -1,10 +1,8 @@
 import Command from './command'
 import history from '../history'
-import { ArrowShape, Data } from 'types'
-import * as vec from 'utils/vec'
+import { Data } from 'types'
 import { getPage } from 'utils/utils'
 import { ArrowSnapshot } from 'state/sessions/arrow-session'
-import { getShapeUtils } from 'lib/shape-utils'
 
 export default function arrowCommand(
   data: Data,

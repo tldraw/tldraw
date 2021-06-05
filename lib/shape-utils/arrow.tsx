@@ -170,6 +170,28 @@ const arrow = registerShapeUtils<ArrowShape>({
     )
   },
 
+  rotateTo(shape, rotation, delta) {
+    const { start, end, bend } = shape.handles
+    // const mp = vec.med(start.point, end.point)
+    // start.point = vec.rotWith(start.point, mp, delta)
+    // end.point = vec.rotWith(end.point, mp, delta)
+    // bend.point = vec.rotWith(bend.point, mp, delta)
+    // this.onHandleChange(shape, shape.handles)
+
+    // const bounds = this.getBounds(shape)
+
+    // const offset = vec.sub([bounds.minX, bounds.minY], shape.point)
+
+    // this.translateTo(shape, vec.add(shape.point, offset))
+
+    // start.point = vec.sub(start.point, offset)
+    // end.point = vec.sub(end.point, offset)
+    // bend.point = vec.sub(bend.point, offset)
+
+    shape.rotation = rotation
+    return this
+  },
+
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
       const { start, end } = shape.handles

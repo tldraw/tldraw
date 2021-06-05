@@ -59,6 +59,7 @@ export interface ShapeUtility<K extends Shape> {
   // Create a new shape.
   create(props: Partial<K>): K
 
+  // Update a shape's styles
   applyStyles(
     this: ShapeUtility<K>,
     shape: Mutable<K>,
@@ -75,6 +76,19 @@ export interface ShapeUtility<K extends Shape> {
     this: ShapeUtility<K>,
     shape: Mutable<K>,
     point: number[]
+  ): ShapeUtility<K>
+
+  rotateBy(
+    this: ShapeUtility<K>,
+    shape: Mutable<K>,
+    rotation: number
+  ): ShapeUtility<K>
+
+  rotateTo(
+    this: ShapeUtility<K>,
+    shape: Mutable<K>,
+    rotation: number,
+    delta: number
   ): ShapeUtility<K>
 
   // Transform to fit a new bounding box when more than one shape is selected.
@@ -210,6 +224,16 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
 
     translateTo(shape, point) {
       shape.point = point
+      return this
+    },
+
+    rotateTo(shape, rotation) {
+      shape.rotation = rotation
+      return this
+    },
+
+    rotateBy(shape, rotation) {
+      shape.rotation += rotation
       return this
     },
 

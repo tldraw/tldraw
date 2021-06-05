@@ -51,14 +51,13 @@ export default function Bounds() {
   if (isSingleHandles) return null
 
   const size = (isMobile().any ? 10 : 8) / zoom // Touch target size
+  const center = getBoundsCenter(bounds)
 
   return (
     <g
       pointerEvents={isBrushing ? 'none' : 'all'}
       transform={`
-        rotate(${rotation * (180 / Math.PI)}, 
-        ${(bounds.minX + bounds.maxX) / 2}, 
-        ${(bounds.minY + bounds.maxY) / 2})
+        rotate(${rotation * (180 / Math.PI)},${center})
         translate(${bounds.minX},${bounds.minY})
         rotate(${(bounds.rotation || 0) * (180 / Math.PI)}, 0, 0)`}
     >

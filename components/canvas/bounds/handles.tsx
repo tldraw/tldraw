@@ -23,8 +23,10 @@ export default function Handles() {
 
   if (!shape.handles || !isSelecting) return null
 
+  const center = getShapeUtils(shape).getCenter(shape)
+
   return (
-    <g>
+    <g transform={`rotate(${shape.rotation * (180 / Math.PI)},${center})`}>
       {Object.values(shape.handles).map((handle) => (
         <Handle
           key={handle.id}

@@ -1,6 +1,10 @@
 # Todo
 
-## Groups
+## Done
+
+- fix select indicator placement for arrow
+
+## Todo
 
 - Restore select highlight, fix for children of rotated groups
 - Transforming on rotated shapes
