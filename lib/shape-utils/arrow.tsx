@@ -3,6 +3,7 @@ import * as vec from 'utils/vec'
 import * as svg from 'utils/svg'
 import {
   ArrowShape,
+  Bounds,
   ColorStyle,
   DashStyle,
   ShapeHandle,
@@ -10,7 +11,13 @@ import {
   SizeStyle,
 } from 'types'
 import { registerShapeUtils } from './index'
-import { circleFromThreePoints, clamp, isAngleBetween } from 'utils/utils'
+import {
+  circleFromThreePoints,
+  clamp,
+  getBoundsCenter,
+  isAngleBetween,
+  rotateBounds,
+} from 'utils/utils'
 import { pointInBounds } from 'utils/bounds'
 import {
   intersectArcBounds,
@@ -170,25 +177,27 @@ const arrow = registerShapeUtils<ArrowShape>({
     )
   },
 
+  rotateBy(shape, delta) {
+    const { start, end, bend } = shape.handles
+    const mp = vec.med(start.point, end.point)
+    start.point = vec.rotWith(start.point, mp, delta)
+    end.point = vec.rotWith(end.point, mp, delta)
+    bend.point = vec.rotWith(bend.point, mp, delta)
+
+    this.onHandleChange(shape, shape.handles)
+
+    return this
+  },
+
   rotateTo(shape, rotation, delta) {
     const { start, end, bend } = shape.handles
-    // const mp = vec.med(start.point, end.point)
-    // start.point = vec.rotWith(start.point, mp, delta)
-    // end.point = vec.rotWith(end.point, mp, delta)
-    // bend.point = vec.rotWith(bend.point, mp, delta)
-    // this.onHandleChange(shape, shape.handles)
+    const mp = vec.med(start.point, end.point)
+    start.point = vec.rotWith(start.point, mp, delta)
+    end.point = vec.rotWith(end.point, mp, delta)
+    bend.point = vec.rotWith(bend.point, mp, delta)
 
-    // const bounds = this.getBounds(shape)
+    this.onHandleChange(shape, shape.handles)
 
-    // const offset = vec.sub([bounds.minX, bounds.minY], shape.point)
-
-    // this.translateTo(shape, vec.add(shape.point, offset))
-
-    // start.point = vec.sub(start.point, offset)
-    // end.point = vec.sub(end.point, offset)
-    // bend.point = vec.sub(bend.point, offset)
-
-    shape.rotation = rotation
     return this
   },
 
@@ -202,11 +211,16 @@ const arrow = registerShapeUtils<ArrowShape>({
   },
 
   getRotatedBounds(shape) {
-    if (!this.boundsCache.has(shape)) {
-      this.boundsCache.set(shape, getBoundsFromPoints(shape.points))
-    }
+    const { start, end } = shape.handles
+    return translateBounds(
+      getBoundsFromPoints([start.point, end.point], shape.rotation),
+      shape.point
+    )
+  },
 
-    return translateBounds(this.boundsCache.get(shape), shape.point)
+  getCenter(shape) {
+    const { start, end } = shape.handles
+    return vec.add(shape.point, vec.med(start.point, end.point))
   },
 
   hitTest(shape, point) {
@@ -281,6 +295,9 @@ const arrow = registerShapeUtils<ArrowShape>({
   },
 
   onHandleChange(shape, handles) {
+    // const oldBounds = this.getRotatedBounds(shape)
+    // const prevCenter = getBoundsCenter(oldBounds)
+
     for (let id in handles) {
       const handle = handles[id]
 
@@ -312,6 +329,27 @@ const arrow = registerShapeUtils<ArrowShape>({
     }
 
     shape.handles.bend.point = getBendPoint(shape)
+
+    // const newBounds = this.getRotatedBounds(shape)
+    // const newCenter = getBoundsCenter(newBounds)
+
+    // shape.point = vec.add(shape.point, vec.neg(vec.sub(newCenter, prevCenter)))
+
+    return this
+  },
+
+  onSessionComplete(shape) {
+    const bounds = this.getBounds(shape)
+
+    const offset = vec.sub([bounds.minX, bounds.minY], shape.point)
+
+    this.translateTo(shape, vec.add(shape.point, offset))
+
+    const { start, end, bend } = shape.handles
+
+    start.point = vec.sub(start.point, offset)
+    end.point = vec.sub(end.point, offset)
+    bend.point = vec.sub(bend.point, offset)
 
     return this
   },
@@ -359,4 +397,45 @@ function getBendPoint(shape: ArrowShape) {
   return Math.abs(bendDist) < 10
     ? midPoint
     : vec.add(midPoint, vec.mul(vec.per(u), bendDist))
+}
+
+function getResizeOffset(a: Bounds, b: Bounds) {
+  const { minX: x0, minY: y0, width: w0, height: h0 } = a
+  const { minX: x1, minY: y1, width: w1, height: h1 } = b
+
+  let delta: number[]
+
+  if (h0 === h1 && w0 !== w1) {
+    if (x0 !== x1) {
+      // moving left edge, pin right edge
+      delta = vec.sub([x1, y1 + h1 / 2], [x0, y0 + h0 / 2])
+    } else {
+      // moving right edge, pin left edge
+      delta = vec.sub([x1 + w1, y1 + h1 / 2], [x0 + w0, y0 + h0 / 2])
+    }
+  } else if (h0 !== h1 && w0 === w1) {
+    if (y0 !== y1) {
+      // moving top edge, pin bottom edge
+      delta = vec.sub([x1 + w1 / 2, y1], [x0 + w0 / 2, y0])
+    } else {
+      // moving bottom edge, pin top edge
+      delta = vec.sub([x1 + w1 / 2, y1 + h1], [x0 + w0 / 2, y0 + h0])
+    }
+  } else if (x0 !== x1) {
+    if (y0 !== y1) {
+      // moving top left, pin bottom right
+      delta = vec.sub([x1, y1], [x0, y0])
+    } else {
+      // moving bottom left, pin top right
+      delta = vec.sub([x1, y1 + h1], [x0, y0 + h0])
+    }
+  } else if (y0 !== y1) {
+    // moving top right, pin bottom left
+    delta = vec.sub([x1 + w1, y1], [x0 + w0, y0])
+  } else {
+    // moving bottom right, pin top left
+    delta = vec.sub([x1 + w1, y1 + h1], [x0 + w0, y0 + h0])
+  }
+
+  return delta
 }

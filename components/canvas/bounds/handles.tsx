@@ -30,7 +30,6 @@ export default function Handles() {
       {Object.values(shape.handles).map((handle) => (
         <Handle
           key={handle.id}
-          shapeId={shape.id}
           id={handle.id}
           point={vec.add(handle.point, shape.point)}
         />
@@ -39,15 +38,7 @@ export default function Handles() {
   )
 }
 
-function Handle({
-  shapeId,
-  id,
-  point,
-}: {
-  shapeId: string
-  id: string
-  point: number[]
-}) {
+function Handle({ id, point }: { id: string; point: number[] }) {
   const rGroup = useRef<SVGGElement>(null)
   const events = useHandleEvents(id, rGroup)
 

@@ -24,26 +24,27 @@ export default function handleCommand(
         const page = getPage(data, currentPageId)
         const shape = page.shapes[initialShape.id]
 
-        getShapeUtils(shape).onHandleChange(shape, initialShape.handles)
+        getShapeUtils(shape)
+          .onHandleChange(shape, initialShape.handles)
+          .onSessionComplete(shape)
 
-        const bounds = getShapeUtils(shape).getBounds(shape)
+        // const bounds = getShapeUtils(shape).getBounds(shape)
 
-        const offset = vec.sub([bounds.minX, bounds.minY], shape.point)
+        // const offset = vec.sub([bounds.minX, bounds.minY], shape.point)
 
-        getShapeUtils(shape).translateTo(shape, vec.add(shape.point, offset))
+        // getShapeUtils(shape).translateTo(shape, vec.add(shape.point, offset))
 
-        const { start, end, bend } = page.shapes[initialShape.id].handles
+        // const { start, end, bend } = page.shapes[initialShape.id].handles
 
-        start.point = vec.sub(start.point, offset)
-        end.point = vec.sub(end.point, offset)
-        bend.point = vec.sub(bend.point, offset)
+        // start.point = vec.sub(start.point, offset)
+        // end.point = vec.sub(end.point, offset)
+        // bend.point = vec.sub(bend.point, offset)
       },
       undo(data) {
         const { initialShape, currentPageId } = before
 
-        const shape = getPage(data, currentPageId).shapes[initialShape.id]
-
-        getShapeUtils(shape).onHandleChange(shape, initialShape.handles)
+        const page = getPage(data, currentPageId)
+        page.shapes[initialShape.id] = initialShape
       },
     })
   )

@@ -925,7 +925,7 @@ const state = createState({
       payload: PointerInfo & { target: Corner | Edge }
     ) {
       const point = screenToWorld(inputs.pointer.origin, data)
-      // session = new Sessions.TransformSession(data, payload.target, point)
+      session = new Sessions.TransformSession(data, payload.target, point)
       session =
         data.selectedIds.size === 1
           ? new Sessions.TransformSingleSession(data, payload.target, point)
@@ -1442,9 +1442,16 @@ const state = createState({
         return bounds
       }
 
+      const uniqueSelectedShapeIds: string[] = Array.from(
+        new Set(
+          Array.from(selectedIds.values()).flatMap((id) =>
+            getDocumentBranch(data, id)
+          )
+        ).values()
+      )
+
       const commonBounds = getCommonBounds(
-        ...shapes
-          .flatMap((shape) => getDocumentBranch(data, shape.id))
+        ...uniqueSelectedShapeIds
           .map((id) => page.shapes[id])
           .filter((shape) => shape.type !== ShapeType.Group)
           .map((shape) => {

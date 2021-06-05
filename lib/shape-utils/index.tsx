@@ -147,6 +147,9 @@ export interface ShapeUtility<K extends Shape> {
     handle: Partial<K['handles']>
   ): ShapeUtility<K>
 
+  // Clean up changes when a session ends.
+  onSessionComplete(this: ShapeUtility<K>, shape: Mutable<K>): ShapeUtility<K>
+
   // Render a shape to JSX.
   render(this: ShapeUtility<K>, shape: K): JSX.Element
 
@@ -255,6 +258,10 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
     },
 
     onHandleChange() {
+      return this
+    },
+
+    onSessionComplete() {
       return this
     },
 

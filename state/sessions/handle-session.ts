@@ -33,17 +33,21 @@ export default class HandleSession extends BaseSession {
 
     const handles = initialShape.handles
 
+    // rotate the delta ?
+    // rotate the handle ?
+    // rotate the shape around the previous center point
+
     getShapeUtils(shape).onHandleChange(shape, {
       [handleId]: {
         ...handles[handleId],
-        point: vec.add(handles[handleId].point, delta),
+        point: vec.add(handles[handleId].point, delta), // vec.rot(delta, shape.rotation)),
       },
     })
   }
 
   cancel(data: Data) {
     const { currentPageId, handleId, initialShape } = this.snapshot
-    const shape = getPage(data, currentPageId).shapes[initialShape.id]
+    getPage(data, currentPageId).shapes[initialShape.id] = initialShape
   }
 
   complete(data: Data) {
