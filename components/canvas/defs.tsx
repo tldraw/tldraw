@@ -2,6 +2,7 @@ import { getShapeUtils } from 'lib/shape-utils'
 import { memo } from 'react'
 import { useSelector } from 'state'
 import { deepCompareArrays, getCurrentCamera, getPage } from 'utils/utils'
+import { DotCircle, Handle } from './misc'
 
 export default function Defs() {
   const zoom = useSelector((s) => getCurrentCamera(s.data).zoom)
@@ -17,6 +18,8 @@ export default function Defs() {
       {currentPageShapeIds.map((id) => (
         <Def key={id} id={id} />
       ))}
+      <DotCircle id="dot" r={4} />
+      <Handle id="handle" r={4} />
       <filter id="expand">
         <feMorphology operator="dilate" radius={2 / zoom} />
       </filter>

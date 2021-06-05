@@ -4,7 +4,7 @@ import { RayShape, ShapeType } from 'types'
 import { registerShapeUtils } from './index'
 import { boundsContained } from 'utils/bounds'
 import { intersectCircleBounds } from 'utils/intersections'
-import { DotCircle, ThinLine } from 'components/canvas/misc'
+import { ThinLine } from 'components/canvas/misc'
 import { translateBounds } from 'utils/utils'
 import { defaultStyle } from 'lib/shape-styles'
 
@@ -40,7 +40,7 @@ const ray = registerShapeUtils<RayShape>({
     return (
       <g id={id}>
         <ThinLine x1={0} y1={0} x2={x2} y2={y2} />
-        <DotCircle cx={0} cy={0} r={3} />
+        <use href="#dot" />
       </g>
     )
   },

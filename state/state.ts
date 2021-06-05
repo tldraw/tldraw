@@ -330,22 +330,22 @@ const state = createState({
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
               },
             },
-          },
-        },
-        pinching: {
-          on: {
-            PINCHED: { do: 'pinchCamera' },
-          },
-          initial: 'selectPinching',
-          states: {
-            selectPinching: {
+            pinching: {
               on: {
-                STOPPED_PINCHING: { to: 'selecting' },
+                PINCHED: { do: 'pinchCamera' },
               },
-            },
-            toolPinching: {
-              on: {
-                STOPPED_PINCHING: { to: 'usingTool.previous' },
+              initial: 'selectPinching',
+              states: {
+                selectPinching: {
+                  on: {
+                    STOPPED_PINCHING: { to: 'selecting' },
+                  },
+                },
+                toolPinching: {
+                  on: {
+                    STOPPED_PINCHING: { to: 'usingTool.previous' },
+                  },
+                },
               },
             },
           },

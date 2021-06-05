@@ -12,7 +12,7 @@ export default function Selected() {
     return Array.from(data.selectedIds.values())
   }, deepCompareArrays)
 
-  const isSelecting = useSelector((s) => s.isIn('selecting'))
+  const isSelecting = useSelector((s) => s.isInAny('notPointing', 'pinching'))
 
   if (!isSelecting) return null
 
@@ -44,7 +44,6 @@ export const ShapeOutline = memo(function ShapeOutline({ id }: { id: string }) {
   rotate(${shape.rotation * (180 / Math.PI)}, 
   ${center})
   translate(${bounds.minX},${bounds.minY})
-  rotate(${(bounds.rotation || 0) * (180 / Math.PI)}, 0, 0)
   `
 
   return (

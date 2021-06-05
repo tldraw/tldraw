@@ -62,7 +62,7 @@ export default function Canvas() {
         <g ref={rGroup}>
           <BoundsBg />
           <Page />
-          {/* <Selected /> */}
+          <Selected />
           <Bounds />
           <Handles />
           <Brush />

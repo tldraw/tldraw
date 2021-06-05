@@ -93,10 +93,11 @@ const arrow = registerShapeUtils<ArrowShape>({
   },
 
   render(shape) {
-    const { id, bend, points, handles } = shape
+    const { id, bend, handles } = shape
     const { start, end, bend: _bend } = handles
 
     const arrowDist = vec.dist(start.point, end.point)
+
     const showCircle = !vec.isEqual(
       _bend.point,
       vec.med(start.point, end.point)
@@ -145,8 +146,8 @@ const arrow = registerShapeUtils<ArrowShape>({
     const length = Math.min(arrowDist / 2, 16 + +style.strokeWidth * 2)
     const u = vec.uni(vec.vec(start.point, end.point))
     const v = vec.rot(vec.mul(vec.neg(u), length), endAngle)
-    const b = vec.add(points[1], vec.rot(v, Math.PI / 6))
-    const c = vec.add(points[1], vec.rot(v, -(Math.PI / 6)))
+    const b = vec.add(end.point, vec.rot(v, Math.PI / 6))
+    const c = vec.add(end.point, vec.rot(v, -(Math.PI / 6)))
 
     return (
       <g id={id}>
@@ -159,7 +160,7 @@ const arrow = registerShapeUtils<ArrowShape>({
           strokeDasharray="none"
         />
         <polyline
-          points={[b, points[1], c].join()}
+          points={[b, end.point, c].join()}
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
@@ -170,6 +171,15 @@ const arrow = registerShapeUtils<ArrowShape>({
   },
 
   getBounds(shape) {
+    if (!this.boundsCache.has(shape)) {
+      const { start, end } = shape.handles
+      this.boundsCache.set(shape, getBoundsFromPoints([start.point, end.point]))
+    }
+
+    return translateBounds(this.boundsCache.get(shape), shape.point)
+  },
+
+  getRotatedBounds(shape) {
     if (!this.boundsCache.has(shape)) {
       this.boundsCache.set(shape, getBoundsFromPoints(shape.points))
     }

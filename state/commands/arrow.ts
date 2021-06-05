@@ -1,6 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { ArrowShape, Data } from 'types'
+import * as vec from 'utils/vec'
 import { getPage } from 'utils/utils'
 import { ArrowSnapshot } from 'state/sessions/arrow-session'
 import { getShapeUtils } from 'lib/shape-utils'
@@ -21,7 +22,9 @@ export default function arrowCommand(
 
         const { initialShape, currentPageId } = after
 
-        getPage(data, currentPageId).shapes[initialShape.id] = initialShape
+        const page = getPage(data, currentPageId)
+
+        page.shapes[initialShape.id] = initialShape
 
         data.selectedIds.clear()
         data.selectedIds.add(initialShape.id)

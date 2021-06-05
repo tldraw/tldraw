@@ -5,7 +5,6 @@ import { useSelector } from 'state'
 import styled from 'styles'
 import { deepCompareArrays, getPage } from 'utils/utils'
 import * as vec from 'utils/vec'
-import { DotCircle } from '../misc'
 
 export default function Handles() {
   const selectedIds = useSelector(
@@ -18,7 +17,9 @@ export default function Handles() {
       selectedIds.length === 1 && getPage(data).shapes[selectedIds[0]]
   )
 
-  const isSelecting = useSelector((s) => s.isIn('selecting.notPointing'))
+  const isSelecting = useSelector((s) =>
+    s.isInAny('notPointing', 'pinching', 'translatingHandles')
+  )
 
   if (!shape.handles || !isSelecting) return null
 
@@ -49,29 +50,43 @@ function Handle({
   const events = useHandleEvents(id, rGroup)
 
   return (
-    <g
+    <StyledGroup
       key={id}
+      className="handles"
       ref={rGroup}
       {...events}
-      cursor="pointer"
       pointerEvents="all"
       transform={`translate(${point})`}
     >
       <HandleCircleOuter r={12} />
-      <DotCircle r={4} />
-    </g>
+      <use href="#handle" pointerEvents="none" />
+    </StyledGroup>
   )
 }
 
-const HandleCircleOuter = styled('circle', {
-  fill: 'transparent',
-  pointerEvents: 'all',
-  cursor: 'pointer',
+const StyledGroup = styled('g', {
+  '&:hover': {
+    cursor: 'pointer',
+  },
+  '&:active': {
+    cursor: 'none',
+  },
 })
 
-const HandleCircle = styled('circle', {
-  zStrokeWidth: 2,
-  stroke: '$text',
-  fill: '$panel',
-  pointerEvents: 'none',
+const HandleCircleOuter = styled('circle', {
+  fill: 'transparent',
+  stroke: 'none',
+  opacity: 0.2,
+  pointerEvents: 'all',
+  cursor: 'pointer',
+  transform: 'scale(var(--scale))',
+  '&:hover': {
+    fill: '$selected',
+    '& > *': {
+      stroke: '$selected',
+    },
+  },
+  '&:active': {
+    fill: '$selected',
+  },
 })
