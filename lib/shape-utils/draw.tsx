@@ -165,9 +165,9 @@ function renderPath(shape: DrawShape, style: ShapeStyles) {
     getSvgPathFromStroke(
       getStroke(shape.points, {
         size: 1 + +styles.strokeWidth * 2,
-        thinning: 0.83,
-        end: { taper: +styles.strokeWidth * 16 },
-        start: { taper: +styles.strokeWidth * 16 },
+        thinning: 0.85,
+        end: { taper: +styles.strokeWidth * 20 },
+        start: { taper: +styles.strokeWidth * 20 },
       })
     )
   )

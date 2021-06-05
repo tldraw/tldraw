@@ -61,8 +61,8 @@ class Inputs {
     const info = {
       target,
       pointerId: e.pointerId,
-      origin: [e.clientX, e.clientY],
-      point: [e.clientX, e.clientY],
+      origin: [e.clientX, e.clientY, e.pressure],
+      point: [e.clientX, e.clientY, e.pressure],
       shiftKey,
       ctrlKey,
       metaKey: isDarwin() ? metaKey : ctrlKey,
@@ -81,8 +81,8 @@ class Inputs {
     const info = {
       target,
       pointerId: e.pointerId,
-      origin: [e.clientX, e.clientY],
-      point: [e.clientX, e.clientY],
+      origin: [e.clientX, e.clientY, e.pressure],
+      point: [e.clientX, e.clientY, e.pressure],
       shiftKey,
       ctrlKey,
       metaKey: isDarwin() ? metaKey : ctrlKey,
@@ -100,7 +100,7 @@ class Inputs {
     const info = {
       ...prev,
       pointerId: e.pointerId,
-      point: [e.clientX, e.clientY],
+      point: [e.clientX, e.clientY, e.pressure],
       shiftKey,
       ctrlKey,
       metaKey: isDarwin() ? metaKey : ctrlKey,
