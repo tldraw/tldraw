@@ -159,7 +159,11 @@ const state = createState({
         NUDGED: { do: 'nudgeSelection' },
         USED_PEN_DEVICE: 'enablePenLock',
         DISABLED_PEN_LOCK: 'disablePenLock',
-        CLEARED_PAGE: ['selectAll', 'deleteSelection'],
+        CLEARED_PAGE: {
+          if: 'hasSelection',
+          do: 'deleteSelection',
+          else: ['selectAll', 'deleteSelection'],
+        },
         CHANGED_CURRENT_PAGE: ['clearSelectedIds', 'setCurrentPage'],
         CREATED_PAGE: ['clearSelectedIds', 'createPage'],
         DELETED_PAGE: { unless: 'hasOnlyOnePage', do: 'deletePage' },
