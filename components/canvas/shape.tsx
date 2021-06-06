@@ -2,7 +2,7 @@ import React, { useRef, memo } from 'react'
 import { useSelector } from 'state'
 import styled from 'styles'
 import { getShapeUtils } from 'lib/shape-utils'
-import { getPage } from 'utils/utils'
+import { getBoundsCenter, getPage } from 'utils/utils'
 import { ShapeStyles, ShapeType } from 'types'
 import useShapeEvents from 'hooks/useShapeEvents'
 import * as vec from 'utils/vec'
@@ -30,10 +30,12 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
   const isGroup = shape.type === ShapeType.Group
 
   const center = getShapeUtils(shape).getCenter(shape)
+  const rotation = shape.rotation * (180 / Math.PI)
 
   const transform = `
-  rotate(${shape.rotation * (180 / Math.PI)}, ${vec.sub(center, parentPoint)})
-  translate(${vec.sub(shape.point, parentPoint)})
+  translate(${vec.neg(parentPoint)})
+  rotate(${rotation}, ${center})
+  translate(${shape.point})
   `
 
   const style = getShapeStyle(shape.style)

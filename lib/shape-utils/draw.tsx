@@ -72,21 +72,14 @@ const draw = registerShapeUtils<DrawShape>({
   },
 
   getRotatedBounds(shape) {
-    const rBounds = translateBounds(
+    return translateBounds(
       getBoundsFromPoints(shape.points, shape.rotation),
       shape.point
     )
-
-    const bounds = this.getBounds(shape)
-
-    const delta = vec.sub(getBoundsCenter(bounds), getBoundsCenter(rBounds))
-
-    return translateBounds(rBounds, delta)
   },
 
   getCenter(shape) {
-    const bounds = this.getRotatedBounds(shape)
-    return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2]
+    return getBoundsCenter(this.getBounds(shape))
   },
 
   hitTest(shape, point) {
@@ -131,11 +124,11 @@ const draw = registerShapeUtils<DrawShape>({
     shape.points = initialShape.points.map(([x, y]) => {
       return [
         bounds.width *
-          (scaleX < 0
+          (scaleX < 0 // * sin?
             ? 1 - x / initialShapeBounds.width
             : x / initialShapeBounds.width),
         bounds.height *
-          (scaleY < 0
+          (scaleY < 0 // * cos?
             ? 1 - y / initialShapeBounds.height
             : y / initialShapeBounds.height),
       ]

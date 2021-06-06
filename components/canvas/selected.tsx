@@ -1,6 +1,6 @@
 import styled from 'styles'
 import { useSelector } from 'state'
-import { deepCompareArrays, getPage } from 'utils/utils'
+import { deepCompareArrays, getBoundsCenter, getPage } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 import useShapeEvents from 'hooks/useShapeEvents'
 import { memo, useRef } from 'react'
@@ -38,12 +38,10 @@ export const ShapeOutline = memo(function ShapeOutline({ id }: { id: string }) {
   // to handle parent rotation.
 
   const center = getShapeUtils(shape).getCenter(shape)
-  const bounds = getShapeUtils(shape).getBounds(shape)
 
   const transform = `
-  rotate(${shape.rotation * (180 / Math.PI)}, 
-  ${center})
-  translate(${bounds.minX},${bounds.minY})
+  rotate(${shape.rotation * (180 / Math.PI)}, ${center})
+  translate(${shape.point})
   `
 
   return (
