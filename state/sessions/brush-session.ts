@@ -4,6 +4,7 @@ import BaseSession from './base-session'
 import { getShapeUtils } from 'lib/shape-utils'
 import { getBoundsFromPoints, getPage, getShapes } from 'utils/utils'
 import * as vec from 'utils/vec'
+import state from 'state/state'
 
 export default class BrushSession extends BaseSession {
   origin: number[]
@@ -62,7 +63,7 @@ export function getBrushSnapshot(data: Data) {
   return {
     selectedIds: new Set(data.selectedIds),
     shapeHitTests: Object.fromEntries(
-      getShapes(current(data))
+      getShapes(state.data)
         .filter((shape) => shape.type !== ShapeType.Group)
         .map((shape) => {
           return [

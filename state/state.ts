@@ -25,6 +25,7 @@ import {
   rotateBounds,
   getBoundsCenter,
   getDocumentBranch,
+  getCameraZoom,
 } from 'utils/utils'
 import {
   Data,
@@ -43,6 +44,7 @@ import {
   SizeStyle,
   ColorStyle,
 } from 'types'
+import session from './session'
 
 const initialData: Data = {
   isReadOnly: false,
@@ -324,28 +326,31 @@ const state = createState({
               ],
               on: {
                 STARTED_PINCHING: { do: 'completeSession', to: 'pinching' },
-                MOVED_POINTER: 'updateBrushSession',
+                // Currently using hacks.fastBrushSelect
+                // MOVED_POINTER: 'updateBrushSession',
                 PANNED_CAMERA: 'updateBrushSession',
                 STOPPED_POINTING: { do: 'completeSession', to: 'selecting' },
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
               },
             },
-            pinching: {
+          },
+        },
+        pinching: {
+          on: {
+            // Pinching uses hacks.fastPinchCamera
+            // PINCHED: { do: 'pinchCamera' },
+          },
+          initial: 'selectPinching',
+          onExit: { secretlyDo: 'updateZoomCSS' },
+          states: {
+            selectPinching: {
               on: {
-                PINCHED: { do: 'pinchCamera' },
+                STOPPED_PINCHING: { to: 'selecting' },
               },
-              initial: 'selectPinching',
-              states: {
-                selectPinching: {
-                  on: {
-                    STOPPED_PINCHING: { to: 'selecting' },
-                  },
-                },
-                toolPinching: {
-                  on: {
-                    STOPPED_PINCHING: { to: 'usingTool.previous' },
-                  },
-                },
+            },
+            toolPinching: {
+              on: {
+                STOPPED_PINCHING: { to: 'usingTool.previous' },
               },
             },
           },
@@ -385,17 +390,17 @@ const state = createState({
                 editing: {
                   onEnter: 'startDrawSession',
                   on: {
-                    STOPPED_POINTING: {
-                      do: 'completeSession',
-                      to: 'draw.creating',
-                    },
                     CANCELLED: {
                       do: 'breakSession',
                       to: 'selecting',
                     },
+                    STOPPED_POINTING: {
+                      do: 'completeSession',
+                      to: 'draw.creating',
+                    },
                     PRESSED_SHIFT: 'keyUpdateDrawSession',
                     RELEASED_SHIFT: 'keyUpdateDrawSession',
-                    MOVED_POINTER: 'updateDrawSession',
+                    // MOVED_POINTER: 'updateDrawSession',
                     PANNED_CAMERA: 'updateDrawSession',
                   },
                 },
@@ -816,53 +821,57 @@ const state = createState({
 
     // Shared
     breakSession(data) {
-      session?.cancel(data)
-      session = undefined
+      session.current?.cancel(data)
+      session.clear()
       history.disable()
       commands.deleteSelected(data)
       history.enable()
     },
     cancelSession(data) {
-      session?.cancel(data)
-      session = undefined
+      session.current?.cancel(data)
+      session.clear()
     },
     completeSession(data) {
-      session?.complete(data)
-      session = undefined
+      session.current?.complete(data)
+      session.clear()
     },
 
     // Brushing
     startBrushSession(data, payload: PointerInfo) {
-      session = new Sessions.BrushSession(
+      session.current = new Sessions.BrushSession(
         data,
         screenToWorld(payload.point, data)
       )
     },
     updateBrushSession(data, payload: PointerInfo) {
-      session.update(data, screenToWorld(payload.point, data))
+      session.current.update(data, screenToWorld(payload.point, data))
     },
 
     // Rotating
     startRotateSession(data, payload: PointerInfo) {
-      session = new Sessions.RotateSession(
+      session.current = new Sessions.RotateSession(
         data,
         screenToWorld(payload.point, data)
       )
     },
     keyUpdateRotateSession(data, payload: PointerInfo) {
-      session.update(
+      session.current.update(
         data,
         screenToWorld(inputs.pointer.point, data),
         payload.shiftKey
       )
     },
     updateRotateSession(data, payload: PointerInfo) {
-      session.update(data, screenToWorld(payload.point, data), payload.shiftKey)
+      session.current.update(
+        data,
+        screenToWorld(payload.point, data),
+        payload.shiftKey
+      )
     },
 
     // Dragging / Translating
     startTranslateSession(data) {
-      session = new Sessions.TranslateSession(
+      session.current = new Sessions.TranslateSession(
         data,
         screenToWorld(inputs.pointer.origin, data)
       )
@@ -871,7 +880,7 @@ const state = createState({
       data,
       payload: { shiftKey: boolean; altKey: boolean }
     ) {
-      session.update(
+      session.current.update(
         data,
         screenToWorld(inputs.pointer.point, data),
         payload.shiftKey,
@@ -879,7 +888,7 @@ const state = createState({
       )
     },
     updateTranslateSession(data, payload: PointerInfo) {
-      session.update(
+      session.current.update(
         data,
         screenToWorld(payload.point, data),
         payload.shiftKey,
@@ -892,7 +901,7 @@ const state = createState({
       const shapeId = Array.from(data.selectedIds.values())[0]
       const handleId = payload.target
 
-      session = new Sessions.HandleSession(
+      session.current = new Sessions.HandleSession(
         data,
         shapeId,
         handleId,
@@ -903,7 +912,7 @@ const state = createState({
       data,
       payload: { shiftKey: boolean; altKey: boolean }
     ) {
-      session.update(
+      session.current.update(
         data,
         screenToWorld(inputs.pointer.point, data),
         payload.shiftKey,
@@ -911,7 +920,7 @@ const state = createState({
       )
     },
     updateHandleSession(data, payload: PointerInfo) {
-      session.update(
+      session.current.update(
         data,
         screenToWorld(payload.point, data),
         payload.shiftKey,
@@ -925,14 +934,13 @@ const state = createState({
       payload: PointerInfo & { target: Corner | Edge }
     ) {
       const point = screenToWorld(inputs.pointer.origin, data)
-      session = new Sessions.TransformSession(data, payload.target, point)
-      session =
+      session.current =
         data.selectedIds.size === 1
           ? new Sessions.TransformSingleSession(data, payload.target, point)
           : new Sessions.TransformSession(data, payload.target, point)
     },
     startDrawTransformSession(data, payload: PointerInfo) {
-      session = new Sessions.TransformSingleSession(
+      session.current = new Sessions.TransformSingleSession(
         data,
         Corner.BottomRight,
         screenToWorld(payload.point, data),
@@ -940,7 +948,7 @@ const state = createState({
       )
     },
     keyUpdateTransformSession(data, payload: PointerInfo) {
-      session.update(
+      session.current.update(
         data,
         screenToWorld(inputs.pointer.point, data),
         payload.shiftKey,
@@ -948,7 +956,7 @@ const state = createState({
       )
     },
     updateTransformSession(data, payload: PointerInfo) {
-      session.update(
+      session.current.update(
         data,
         screenToWorld(payload.point, data),
         payload.shiftKey,
@@ -958,19 +966,19 @@ const state = createState({
 
     // Direction
     startDirectionSession(data, payload: PointerInfo) {
-      session = new Sessions.DirectionSession(
+      session.current = new Sessions.DirectionSession(
         data,
         screenToWorld(inputs.pointer.origin, data)
       )
     },
     updateDirectionSession(data, payload: PointerInfo) {
-      session.update(data, screenToWorld(payload.point, data))
+      session.current.update(data, screenToWorld(payload.point, data))
     },
 
     // Drawing
     startDrawSession(data, payload: PointerInfo) {
       const id = Array.from(data.selectedIds.values())[0]
-      session = new Sessions.DrawSession(
+      session.current = new Sessions.DrawSession(
         data,
         id,
         screenToWorld(inputs.pointer.origin, data),
@@ -978,7 +986,7 @@ const state = createState({
       )
     },
     keyUpdateDrawSession(data, payload: PointerInfo) {
-      session.update(
+      session.current.update(
         data,
         screenToWorld(inputs.pointer.point, data),
         payload.pressure,
@@ -986,7 +994,7 @@ const state = createState({
       )
     },
     updateDrawSession(data, payload: PointerInfo) {
-      session.update(
+      session.current.update(
         data,
         screenToWorld(payload.point, data),
         payload.pressure,
@@ -997,7 +1005,7 @@ const state = createState({
     // Arrow
     startArrowSession(data, payload: PointerInfo) {
       const id = Array.from(data.selectedIds.values())[0]
-      session = new Sessions.ArrowSession(
+      session.current = new Sessions.ArrowSession(
         data,
         id,
         screenToWorld(inputs.pointer.origin, data),
@@ -1005,14 +1013,18 @@ const state = createState({
       )
     },
     keyUpdateArrowSession(data, payload: PointerInfo) {
-      session.update(
+      session.current.update(
         data,
         screenToWorld(inputs.pointer.point, data),
         payload.shiftKey
       )
     },
     updateArrowSession(data, payload: PointerInfo) {
-      session.update(data, screenToWorld(payload.point, data), payload.shiftKey)
+      session.current.update(
+        data,
+        screenToWorld(payload.point, data),
+        payload.shiftKey
+      )
     },
 
     // Nudges
@@ -1256,6 +1268,10 @@ const state = createState({
     panCamera(data, payload: { delta: number[] }) {
       const camera = getCurrentCamera(data)
       camera.point = vec.sub(camera.point, vec.div(payload.delta, camera.zoom))
+    },
+    updateZoomCSS(data) {
+      const camera = getCurrentCamera(data)
+      setZoomCSS(camera.zoom)
     },
     pinchCamera(
       data,
@@ -1509,15 +1525,9 @@ const state = createState({
   },
 })
 
-let session: Sessions.BaseSession
-
 export default state
 
 export const useSelector = createSelectorHook(state)
-
-function getCameraZoom(zoom: number) {
-  return clamp(zoom, 0.1, 5)
-}
 
 function getParentId(data: Data, id: string) {
   const shape = getPage(data).shapes[id]

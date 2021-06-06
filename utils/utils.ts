@@ -834,6 +834,10 @@ export function throttle<P extends any[], T extends (...args: P) => any>(
   }
 }
 
+export function getCameraZoom(zoom: number) {
+  return clamp(zoom, 0.1, 5)
+}
+
 export function pointInRect(
   point: number[],
   minX: number,

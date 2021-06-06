@@ -49,7 +49,7 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
           {...events}
         />
       )}
-      {!shape.isHidden && <ReadShape isGroup={isGroup} id={id} style={style} />}
+      {!shape.isHidden && <RealShape isGroup={isGroup} id={id} style={style} />}
       {isGroup &&
         shape.children.map((shapeId) => (
           <Shape
@@ -69,7 +69,7 @@ interface RealShapeProps {
   style: Partial<React.SVGProps<SVGUseElement>>
 }
 
-const ReadShape = memo(function RealShape({
+const RealShape = memo(function RealShape({
   isGroup,
   id,
   style,
@@ -157,10 +157,10 @@ function Label({ children }: { children: React.ReactNode }) {
   )
 }
 
-export { HoverIndicator }
-
-export default memo(Shape)
-
 function pp(n: number[]) {
   return '[' + n.map((v) => v.toFixed(1)).join(', ') + ']'
 }
+
+export { HoverIndicator }
+
+export default memo(Shape)

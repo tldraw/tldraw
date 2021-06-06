@@ -16,7 +16,7 @@
     "@radix-ui/react-icons": "^1.0.3",
     "@radix-ui/react-radio-group": "^0.0.16",
     "@radix-ui/react-tooltip": "^0.0.18",
-    "@state-designer/react": "^1.7.1",
+    "@state-designer/react": "^1.7.3",
     "@stitches/react": "^0.1.9",
     "framer-motion": "^4.1.16",
     "ismobilejs": "^1.1.1",

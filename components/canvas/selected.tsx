@@ -12,7 +12,7 @@ export default function Selected() {
     return Array.from(data.selectedIds.values())
   }, deepCompareArrays)
 
-  const isSelecting = useSelector((s) => s.isInAny('notPointing', 'pinching'))
+  const isSelecting = useSelector((s) => s.isIn('selecting'))
 
   if (!isSelecting) return null
 

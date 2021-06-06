@@ -3,6 +3,12 @@ import state from 'state'
 import inputs from 'state/inputs'
 import * as vec from 'utils/vec'
 import { useGesture } from 'react-use-gesture'
+import {
+  fastBrushSelect,
+  fastPanUpdate,
+  fastPinchCamera,
+  fastZoomUpdate,
+} from 'state/hacks'
 
 /**
  * Capture zoom gestures (pinches, wheels and pans) and send to the state.
@@ -17,10 +23,17 @@ export default function useZoomEvents() {
     {
       onWheel: ({ event, delta }) => {
         if (event.ctrlKey) {
-          state.send('ZOOMED_CAMERA', {
-            delta: delta[1],
-            ...inputs.wheel(event as WheelEvent),
-          })
+          const { point } = inputs.wheel(event as WheelEvent)
+          fastZoomUpdate(point, delta[1])
+          // state.send('ZOOMED_CAMERA', {
+          //   delta: delta[1],
+          //   ...inputs.wheel(event as WheelEvent),
+          // })
+          return
+        }
+
+        if (state.isIn('pointing')) {
+          fastPanUpdate(delta)
           return
         }
 
@@ -45,12 +58,19 @@ export default function useZoomEvents() {
 
         const [distanceDelta, angleDelta] = vec.sub(rPinchDa.current, da)
 
-        state.send('PINCHED', {
-          delta: vec.sub(rPinchPoint.current, origin),
-          point: origin,
+        fastPinchCamera(
+          origin,
+          vec.sub(rPinchPoint.current, origin),
           distanceDelta,
-          angleDelta,
-        })
+          angleDelta
+        )
+
+        // state.send('PINCHED', {
+        //   delta: vec.sub(rPinchPoint.current, origin),
+        //   point: origin,
+        //   distanceDelta,
+        //   angleDelta,
+        // })
 
         rPinchDa.current = da
         rPinchPoint.current = origin

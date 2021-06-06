@@ -33,15 +33,7 @@ export interface Data {
     pages: Record<string, Page>
     code: Record<string, CodeFile>
   }
-  pageStates: Record<
-    string,
-    {
-      camera: {
-        point: number[]
-        zoom: number
-      }
-    }
-  >
+  pageStates: Record<string, PageState>
 }
 
 /* -------------------------------------------------- */
@@ -54,6 +46,13 @@ export interface Page {
   childIndex: number
   name: string
   shapes: Record<string, Shape>
+}
+
+export interface PageState {
+  camera: {
+    point: number[]
+    zoom: number
+  }
 }
 
 export enum ShapeType {

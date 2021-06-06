@@ -47,6 +47,7 @@ export default function useShapeEvents(
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (!inputs.canAccept(e.pointerId)) return
+
       if (isGroup) {
         state.send('MOVED_OVER_GROUP', inputs.pointerEnter(e, id))
       } else {

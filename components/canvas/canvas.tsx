@@ -11,52 +11,26 @@ import Bounds from './bounds/bounding-box'
 import BoundsBg from './bounds/bounds-bg'
 import Selected from './selected'
 import Handles from './bounds/handles'
-import { isMobile, throttle } from 'utils/utils'
+import { isMobile, screenToWorld, throttle } from 'utils/utils'
+import session from 'state/session'
+import { PointerInfo } from 'types'
+import { fastDrawUpdate } from 'state/hacks'
+import useCanvasEvents from 'hooks/useCanvasEvents'
 
 export default function Canvas() {
   const rCanvas = useRef<SVGSVGElement>(null)
   const rGroup = useRef<SVGGElement>(null)
 
   useCamera(rGroup)
+
   useZoomEvents()
+
+  const events = useCanvasEvents(rCanvas)
 
   const isReady = useSelector((s) => s.isIn('ready'))
 
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    if (!inputs.canAccept(e.pointerId)) return
-    rCanvas.current.setPointerCapture(e.pointerId)
-    state.send('POINTED_CANVAS', inputs.pointerDown(e, 'canvas'))
-  }, [])
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      state.send('TOUCH_UNDO')
-    } else {
-      if (isMobile()) {
-        state.send('TOUCHED_CANVAS')
-      }
-    }
-  }, [])
-
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!inputs.canAccept(e.pointerId)) return
-    throttledPointerMove(inputs.pointerMove(e))
-  }, [])
-
-  const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    if (!inputs.canAccept(e.pointerId)) return
-    rCanvas.current.releasePointerCapture(e.pointerId)
-    state.send('STOPPED_POINTING', { id: 'canvas', ...inputs.pointerUp(e) })
-  }, [])
-
   return (
-    <MainSVG
-      ref={rCanvas}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onTouchStart={handleTouchStart}
-    >
+    <MainSVG ref={rCanvas} {...events}>
       <Defs />
       {isReady && (
         <g ref={rGroup}>
