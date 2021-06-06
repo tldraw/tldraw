@@ -1,4 +1,4 @@
-import { Shape } from 'types'
+import { Mutable, Shape } from 'types'
 import shapeUtilityMap, {
   createShape,
   getShapeUtils,
@@ -15,11 +15,11 @@ export const codeShapes = new Set<CodeShape<Shape>>([])
  * shape map, while deleting it removes it from the collected shapes set
  */
 export default class CodeShape<T extends Shape> {
-  private _shape: T
+  private _shape: Mutable<T>
   private utils: ShapeUtility<T>
 
   constructor(props: T) {
-    this._shape = createShape(props.type, props) as T
+    this._shape = createShape(props.type, props) as Mutable<T>
     this.utils = getShapeUtils<T>(this._shape)
     codeShapes.add(this)
   }
