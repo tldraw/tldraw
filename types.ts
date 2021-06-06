@@ -248,6 +248,7 @@ export interface PointerInfo {
   pointerId: number
   origin: number[]
   point: number[]
+  pressure: number
   shiftKey: boolean
   ctrlKey: boolean
   metaKey: boolean

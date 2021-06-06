@@ -981,11 +981,17 @@ const state = createState({
       session.update(
         data,
         screenToWorld(inputs.pointer.point, data),
+        payload.pressure,
         payload.shiftKey
       )
     },
     updateDrawSession(data, payload: PointerInfo) {
-      session.update(data, screenToWorld(payload.point, data), payload.shiftKey)
+      session.update(
+        data,
+        screenToWorld(payload.point, data),
+        payload.pressure,
+        payload.shiftKey
+      )
     },
 
     // Arrow

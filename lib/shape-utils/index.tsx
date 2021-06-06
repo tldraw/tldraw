@@ -8,6 +8,7 @@ import {
   ShapeBinding,
   Mutable,
   ShapeByType,
+  Data,
 } from 'types'
 import * as vec from 'utils/vec'
 import {

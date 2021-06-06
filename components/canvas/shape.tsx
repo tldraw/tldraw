@@ -15,7 +15,7 @@ interface ShapeProps {
 }
 
 function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
-  const shape = useSelector(({ data }) => getPage(data).shapes[id])
+  const shape = useSelector((s) => getPage(s.data).shapes[id])
 
   const rGroup = useRef<SVGGElement>(null)
 
@@ -25,9 +25,7 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
   // may sometimes run before the hook in the Page component, which means
   // a deleted shape will still be pulled here before the page component
   // detects the change and pulls this component.
-  if (!shape) {
-    return null
-  }
+  if (!shape) return null
 
   const isGroup = shape.type === ShapeType.Group
 

@@ -157,18 +157,35 @@ const draw = registerShapeUtils<DrawShape>({
 
 export default draw
 
+const simulatePressureSettings = {
+  simulatePressure: true,
+}
+
+const realPressureSettings = {
+  easing: (t: number) => t * t,
+  simulatePressure: false,
+  // start: { taper: 1 },
+  // end: { taper: 1 },
+}
+
 function renderPath(shape: DrawShape, style: ShapeStyles) {
   const styles = getShapeStyle(style)
 
-  pathCache.set(
-    shape.points,
-    getSvgPathFromStroke(
-      getStroke(shape.points, {
-        size: 1 + +styles.strokeWidth * 2,
-        thinning: 0.85,
-        end: { taper: +styles.strokeWidth * 20 },
-        start: { taper: +styles.strokeWidth * 20 },
-      })
-    )
-  )
+  if (shape.points.length < 2) {
+    pathCache.set(shape.points, '')
+    return
+  }
+
+  const options =
+    shape.points[1][2] === 0.5 ? simulatePressureSettings : realPressureSettings
+
+  const stroke = getStroke(shape.points, {
+    size: 1 + +styles.strokeWidth * 2,
+    thinning: 0.85,
+    end: { taper: +styles.strokeWidth * 20 },
+    start: { taper: +styles.strokeWidth * 20 },
+    ...options,
+  })
+
+  pathCache.set(shape.points, getSvgPathFromStroke(stroke))
 }

@@ -11,6 +11,7 @@ let prevEndPoint: number[]
 export default class BrushSession extends BaseSession {
   origin: number[]
   previous: number[]
+  last: number[]
   points: number[][]
   snapshot: DrawSnapshot
   isLocked: boolean
@@ -20,6 +21,7 @@ export default class BrushSession extends BaseSession {
     super(data)
     this.origin = point
     this.previous = point
+    this.last = point
     this.points = []
     this.snapshot = getDrawSnapshot(data, id)
 
@@ -28,7 +30,12 @@ export default class BrushSession extends BaseSession {
     getShapeUtils(shape).translateTo(shape, point)
   }
 
-  update = (data: Data, point: number[], isLocked = false) => {
+  update = (
+    data: Data,
+    point: number[],
+    pressure: number,
+    isLocked = false
+  ) => {
     const { snapshot } = this
 
     const delta = vec.vec(this.origin, point)
@@ -63,14 +70,16 @@ export default class BrushSession extends BaseSession {
       }
     }
 
-    if (this.previous) {
-      point = vec.med(this.previous, point)
-    }
+    point = vec.med(this.previous, point)
 
-    prevEndPoint = [...point]
-    const next = vec.sub(point, this.origin)
+    const next = [...vec.sub(point, this.origin), pressure]
+
+    // Don't add duplicate points
+    if (vec.isEqual(this.last, next)) return
 
     this.points.push(next)
+
+    this.last = next
     this.previous = point
 
     const shape = getShape(data, snapshot.id) as DrawShape
