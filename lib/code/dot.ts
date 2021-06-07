@@ -10,6 +10,7 @@ export default class Dot extends CodeShape<DotShape> {
 
     super({
       id: uuid(),
+      seed: Math.random(),
       type: ShapeType.Dot,
       isGenerated: true,
       name: 'Dot',

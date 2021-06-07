@@ -11,6 +11,7 @@ export default class Line extends CodeShape<LineShape> {
 
     super({
       id: uuid(),
+      seed: Math.random(),
       type: ShapeType.Line,
       isGenerated: true,
       name: 'Line',

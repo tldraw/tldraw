@@ -11,6 +11,7 @@ export default class Rectangle extends CodeShape<RectangleShape> {
 
     super({
       id: uuid(),
+      seed: Math.random(),
       type: ShapeType.Rectangle,
       isGenerated: true,
       name: 'Rectangle',

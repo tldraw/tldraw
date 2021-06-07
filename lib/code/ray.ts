@@ -11,6 +11,7 @@ export default class Ray extends CodeShape<RayShape> {
 
     super({
       id: uuid(),
+      seed: Math.random(),
       type: ShapeType.Ray,
       isGenerated: true,
       name: 'Ray',

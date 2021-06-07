@@ -10,6 +10,7 @@ export default class Circle extends CodeShape<CircleShape> {
 
     super({
       id: uuid(),
+      seed: Math.random(),
       type: ShapeType.Circle,
       isGenerated: true,
       name: 'Circle',

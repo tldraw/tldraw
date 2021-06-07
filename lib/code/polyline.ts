@@ -11,6 +11,7 @@ export default class Polyline extends CodeShape<PolylineShape> {
 
     super({
       id: uuid(),
+      seed: Math.random(),
       type: ShapeType.Polyline,
       isGenerated: true,
       name: 'Polyline',
