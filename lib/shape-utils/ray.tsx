@@ -14,6 +14,7 @@ const ray = registerShapeUtils<RayShape>({
   create(props) {
     return {
       id: uuid(),
+      seed: Math.random(),
       type: ShapeType.Ray,
       isGenerated: false,
       name: 'Ray',

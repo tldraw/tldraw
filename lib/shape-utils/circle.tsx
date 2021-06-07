@@ -14,6 +14,7 @@ const circle = registerShapeUtils<CircleShape>({
   create(props) {
     return {
       id: uuid(),
+      seed: Math.random(),
       type: ShapeType.Circle,
       isGenerated: false,
       name: 'Circle',

@@ -13,6 +13,7 @@ const dot = registerShapeUtils<DotShape>({
   create(props) {
     return {
       id: uuid(),
+      seed: Math.random(),
       type: ShapeType.Dot,
       isGenerated: false,
       name: 'Dot',

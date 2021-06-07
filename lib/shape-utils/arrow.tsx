@@ -1,23 +1,9 @@
 import { v4 as uuid } from 'uuid'
 import * as vec from 'utils/vec'
 import * as svg from 'utils/svg'
-import {
-  ArrowShape,
-  Bounds,
-  ColorStyle,
-  DashStyle,
-  ShapeHandle,
-  ShapeType,
-  SizeStyle,
-} from 'types'
+import { ArrowShape, Bounds, ShapeHandle, ShapeType } from 'types'
 import { registerShapeUtils } from './index'
-import {
-  circleFromThreePoints,
-  clamp,
-  getBoundsCenter,
-  isAngleBetween,
-  rotateBounds,
-} from 'utils/utils'
+import { circleFromThreePoints, isAngleBetween } from 'utils/utils'
 import { pointInBounds } from 'utils/bounds'
 import {
   intersectArcBounds,
@@ -72,6 +58,7 @@ const arrow = registerShapeUtils<ArrowShape>({
 
     return {
       id: uuid(),
+      seed: Math.random(),
       type: ShapeType.Arrow,
       isGenerated: false,
       name: 'Arrow',

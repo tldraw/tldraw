@@ -13,6 +13,7 @@ const polyline = registerShapeUtils<PolylineShape>({
   create(props) {
     return {
       id: uuid(),
+      seed: Math.random(),
       type: ShapeType.Polyline,
       isGenerated: false,
       name: 'Polyline',

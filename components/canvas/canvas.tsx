@@ -11,10 +11,6 @@ import Bounds from './bounds/bounding-box'
 import BoundsBg from './bounds/bounds-bg'
 import Selected from './selected'
 import Handles from './bounds/handles'
-import { isMobile, screenToWorld, throttle } from 'utils/utils'
-import session from 'state/session'
-import { PointerInfo } from 'types'
-import { fastDrawUpdate } from 'state/hacks'
 import useCanvasEvents from 'hooks/useCanvasEvents'
 
 export default function Canvas() {
@@ -56,16 +52,9 @@ const MainSVG = styled('svg', {
   zIndex: 100,
   backgroundColor: '$canvas',
   pointerEvents: 'all',
+  // cursor: 'none',
 
   '& *': {
     userSelect: 'none',
   },
 })
-
-// const throttledPointerMove = throttle((payload: any) => {
-//   state.send('MOVED_POINTER', payload)
-// }, 16)
-
-const throttledPointerMove = (payload: any) => {
-  state.send('MOVED_POINTER', payload)
-}

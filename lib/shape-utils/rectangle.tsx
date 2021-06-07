@@ -2,8 +2,11 @@ import { v4 as uuid } from 'uuid'
 import * as vec from 'utils/vec'
 import { RectangleShape, ShapeType } from 'types'
 import { registerShapeUtils } from './index'
-import { translateBounds } from 'utils/utils'
+import { getSvgPathFromStroke, translateBounds, getNoise } from 'utils/utils'
 import { defaultStyle, getShapeStyle } from 'lib/shape-styles'
+import getStroke from 'perfect-freehand'
+
+const pathCache = new WeakMap<RectangleShape, string>([])
 
 const rectangle = registerShapeUtils<RectangleShape>({
   boundsCache: new WeakMap([]),
@@ -11,6 +14,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
   create(props) {
     return {
       id: uuid(),
+      seed: Math.random(),
       type: ShapeType.Rectangle,
       isGenerated: false,
       name: 'Rectangle',
@@ -28,19 +32,28 @@ const rectangle = registerShapeUtils<RectangleShape>({
     }
   },
 
-  render({ id, size, radius, style }) {
+  render(shape) {
+    const { id, size, radius, style, point } = shape
     const styles = getShapeStyle(style)
+
+    if (!pathCache.has(shape)) {
+      renderPath(shape)
+    }
+
+    const path = pathCache.get(shape)
+
     return (
       <g id={id}>
         <rect
-          id={id}
           rx={radius}
           ry={radius}
           x={+styles.strokeWidth / 2}
           y={+styles.strokeWidth / 2}
           width={Math.max(0, size[0] + -styles.strokeWidth)}
           height={Math.max(0, size[1] + -styles.strokeWidth)}
+          strokeWidth={0}
         />
+        <path d={path} fill={styles.stroke} />
       </g>
     )
   },
@@ -103,3 +116,69 @@ const rectangle = registerShapeUtils<RectangleShape>({
 })
 
 export default rectangle
+
+function easeInOut(t: number) {
+  return t * (2 - t)
+}
+
+function ease(t: number) {
+  return t * t * t
+}
+
+function pointsBetween(a: number[], b: number[], steps = 6) {
+  return Array.from(Array(steps))
+    .map((_, i) => ease(i / steps))
+    .map((t) => [...vec.lrp(a, b, t), (1 - t) / 2])
+}
+
+function renderPath(shape: RectangleShape) {
+  const styles = getShapeStyle(shape.style)
+
+  const noise = getNoise(shape.seed)
+  const off = -0.25 + shape.seed / 2
+
+  const offsets = Array.from(Array(4)).map((_, i) => [
+    noise(i, i + 1) * off * 16,
+    noise(i + 2, i + 3) * off * 16,
+  ])
+
+  const [w, h] = shape.size
+  const tl = vec.add([0, 0], offsets[0])
+  const tr = vec.add([w, 0], offsets[1])
+  const br = vec.add([w, h], offsets[2])
+  const bl = vec.add([0, h], offsets[3])
+
+  const lines = shuffleArr(
+    [
+      pointsBetween(tr, br),
+      pointsBetween(br, bl),
+      pointsBetween(bl, tl),
+      pointsBetween(tl, tr),
+    ],
+    shape.id.charCodeAt(5)
+  )
+
+  const stroke = getStroke(
+    [
+      ...lines.flat().slice(4),
+      ...lines[0].slice(0, 4),
+      lines[0][4],
+      lines[0][5],
+      lines[0][5],
+    ],
+    {
+      size: 1 + +styles.strokeWidth * 2,
+      thinning: 0.6,
+      easing: (t) => t * t * t * t,
+      end: { taper: +styles.strokeWidth * 20 },
+      start: { taper: +styles.strokeWidth * 20 },
+      simulatePressure: false,
+    }
+  )
+
+  pathCache.set(shape, getSvgPathFromStroke(stroke))
+}
+
+function shuffleArr<T>(arr: T[], offset: number): T[] {
+  return arr.map((_, i) => arr[(i + offset) % arr.length])
+}

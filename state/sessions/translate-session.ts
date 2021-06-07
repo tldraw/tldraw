@@ -189,6 +189,7 @@ export function getTranslateSnapshot(data: Data) {
         const clone = {
           ...shape,
           id: uuid(),
+          seed: Math.random(),
           parentId: shape.parentId,
           childIndex: getChildIndexAbove(cData, shape.id),
         }

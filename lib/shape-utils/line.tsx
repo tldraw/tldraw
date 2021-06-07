@@ -15,6 +15,7 @@ const line = registerShapeUtils<LineShape>({
   create(props) {
     return {
       id: uuid(),
+      seed: Math.random(),
       type: ShapeType.Line,
       isGenerated: false,
       name: 'Line',
