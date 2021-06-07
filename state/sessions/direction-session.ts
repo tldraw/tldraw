@@ -1,9 +1,9 @@
-import { Data, LineShape, RayShape } from "types"
-import * as vec from "utils/vec"
-import BaseSession from "./base-session"
-import commands from "state/commands"
-import { current } from "immer"
-import { getPage } from "utils/utils"
+import { Data, LineShape, RayShape } from 'types'
+import * as vec from 'utils/vec'
+import BaseSession from './base-session'
+import commands from 'state/commands'
+import { current } from 'immer'
+import { getPage, getSelectedIds } from 'utils/utils'
 
 export default class DirectionSession extends BaseSession {
   delta = [0, 0]
@@ -47,9 +47,9 @@ export function getDirectionSnapshot(data: Data) {
 
   let snapshapes: { id: string; direction: number[] }[] = []
 
-  data.selectedIds.forEach((id) => {
+  getSelectedIds(data).forEach((id) => {
     const shape = shapes[id]
-    if ("direction" in shape) {
+    if ('direction' in shape) {
       snapshapes.push({ id: shape.id, direction: shape.direction })
     }
   })

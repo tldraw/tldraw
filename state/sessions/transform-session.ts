@@ -11,9 +11,11 @@ import {
   getDocumentBranch,
   getPage,
   getRelativeTransformedBoundingBox,
+  getSelectedIds,
   getSelectedShapes,
   getShapes,
   getTransformedBoundingBox,
+  setToArray,
   updateParents,
 } from 'utils/utils'
 
@@ -118,7 +120,7 @@ export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
   const { currentPageId } = cData
   const page = getPage(cData)
 
-  const initialShapes = Array.from(cData.selectedIds.values())
+  const initialShapes = setToArray(getSelectedIds(data))
     .flatMap((id) => getDocumentBranch(cData, id).map((id) => page.shapes[id]))
     .filter((shape) => !shape.isLocked)
 

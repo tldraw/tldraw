@@ -1,9 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import { getPage, getSelectedShapes } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
-import * as vec from 'utils/vec'
+import storage from 'state/storage'
 
 export default function changePage(data: Data, pageId: string) {
   const { currentPageId: prevPageId } = data
@@ -13,11 +11,15 @@ export default function changePage(data: Data, pageId: string) {
     new Command({
       name: 'change_page',
       category: 'canvas',
+      manualSelection: true,
       do(data) {
+        storage.savePage(data, data.currentPageId)
         data.currentPageId = pageId
+        storage.loadPage(data, data.currentPageId)
       },
       undo(data) {
         data.currentPageId = prevPageId
+        storage.loadPage(data, prevPageId)
       },
     })
   )

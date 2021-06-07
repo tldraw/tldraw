@@ -1,7 +1,13 @@
 import Command from './command'
 import history from '../history'
 import { Data, ShapeStyles } from 'types'
-import { getDocumentBranch, getPage, getSelectedShapes } from 'utils/utils'
+import {
+  getDocumentBranch,
+  getPage,
+  getSelectedIds,
+  getSelectedShapes,
+  setToArray,
+} from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 import { current } from 'immer'
 
@@ -10,7 +16,9 @@ export default function styleCommand(data: Data, styles: Partial<ShapeStyles>) {
   const page = getPage(cData)
   const { currentPageId } = cData
 
-  const shapesToStyle = Array.from(data.selectedIds.values())
+  const selectedIds = setToArray(getSelectedIds(data))
+
+  const shapesToStyle = selectedIds
     .flatMap((id) => getDocumentBranch(data, id))
     .map((id) => page.shapes[id])
 

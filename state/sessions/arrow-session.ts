@@ -3,7 +3,13 @@ import * as vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
 import { current } from 'immer'
-import { getBoundsFromPoints, getPage, updateParents } from 'utils/utils'
+import {
+  getBoundsFromPoints,
+  getPage,
+  getSelectedIds,
+  setToArray,
+  updateParents,
+} from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 
 export default class ArrowSession extends BaseSession {
@@ -116,7 +122,7 @@ export function getArrowSnapshot(data: Data, id: string) {
   return {
     id,
     initialShape,
-    selectedIds: new Set(data.selectedIds),
+    selectedIds: setToArray(getSelectedIds(data)),
     currentPageId: data.currentPageId,
   }
 }

@@ -1381,7 +1381,7 @@ export function getShapes(data: Data, pageId = data.currentPageId) {
 
 export function getSelectedShapes(data: Data, pageId = data.currentPageId) {
   const page = getPage(data, pageId)
-  const ids = Array.from(data.selectedIds.values())
+  const ids = setToArray(getSelectedIds(data))
   return ids.map((id) => page.shapes[id])
 }
 
@@ -1663,4 +1663,17 @@ export function getDocumentBranch(data: Data, id: string): string[] {
     id,
     ...shape.children.flatMap((childId) => getDocumentBranch(data, childId)),
   ]
+}
+
+export function getSelectedIds(data: Data) {
+  return data.pageStates[data.currentPageId].selectedIds
+}
+
+export function setSelectedIds(data: Data, ids: string[]) {
+  data.pageStates[data.currentPageId].selectedIds = new Set(ids)
+  return data.pageStates[data.currentPageId].selectedIds
+}
+
+export function setToArray<T>(set: Set<T>): T[] {
+  return Array.from(set.values())
 }

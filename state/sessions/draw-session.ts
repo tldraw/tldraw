@@ -95,31 +95,12 @@ export default class BrushSession extends BaseSession {
   }
 
   complete = (data: Data) => {
-    if (this.points.length > 1) {
-      let minX = Infinity
-      let minY = Infinity
-      const pts = [...this.points]
+    const { snapshot } = this
+    const page = getPage(data)
+    const shape = page.shapes[snapshot.id] as DrawShape
 
-      for (let pt of pts) {
-        minX = Math.min(pt[0], minX)
-        minY = Math.min(pt[1], minY)
-      }
-
-      for (let pt of pts) {
-        pt[0] -= minX
-        pt[1] -= minY
-      }
-
-      const { snapshot } = this
-      const page = getPage(data)
-      const shape = page.shapes[snapshot.id] as DrawShape
-
-      getShapeUtils(shape)
-        .setProperty(shape, 'points', pts)
-        .setProperty(shape, 'point', vec.add(shape.point, [minX, minY]))
-    }
-
-    commands.draw(data, this.snapshot.id, this.points)
+    getShapeUtils(shape).onSessionComplete(shape)
+    commands.draw(data, this.snapshot.id)
   }
 }
 

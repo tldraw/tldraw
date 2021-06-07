@@ -13,6 +13,8 @@ import {
   getShapeBounds,
   updateParents,
   getDocumentBranch,
+  setToArray,
+  getSelectedIds,
 } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 
@@ -101,7 +103,7 @@ export function getRotateSnapshot(data: Data) {
   const cData = current(data)
   const page = getPage(cData)
 
-  const initialShapes = Array.from(cData.selectedIds.values())
+  const initialShapes = setToArray(getSelectedIds(data))
     .flatMap((id) => getDocumentBranch(cData, id).map((id) => page.shapes[id]))
     .filter((shape) => !shape.isLocked)
 

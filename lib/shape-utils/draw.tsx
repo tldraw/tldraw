@@ -96,7 +96,10 @@ const draw = registerShapeUtils<DrawShape>({
     if (shape.rotation === 0) {
       return (
         boundsContain(brushBounds, this.getBounds(shape)) ||
-        intersectPolylineBounds(shape.points, brushBounds).length > 0
+        intersectPolylineBounds(
+          shape.points,
+          translateBounds(brushBounds, vec.neg(shape.point))
+        ).length > 0
       )
     }
 
@@ -104,18 +107,19 @@ const draw = registerShapeUtils<DrawShape>({
     const rBounds = this.getRotatedBounds(shape)
 
     if (!rotatedCache.has(shape)) {
-      const c = getBoundsCenter(rBounds)
+      const c = getBoundsCenter(getBoundsFromPoints(shape.points))
       rotatedCache.set(
         shape,
-        shape.points.map((pt) =>
-          vec.rotWith(vec.add(pt, shape.point), c, shape.rotation)
-        )
+        shape.points.map((pt) => vec.rotWith(pt, c, shape.rotation))
       )
     }
 
     return (
       boundsContain(brushBounds, rBounds) ||
-      intersectPolylineBounds(rotatedCache.get(shape), brushBounds).length > 0
+      intersectPolylineBounds(
+        rotatedCache.get(shape),
+        translateBounds(brushBounds, vec.neg(shape.point))
+      ).length > 0
     )
   },
 
@@ -152,6 +156,18 @@ const draw = registerShapeUtils<DrawShape>({
     return this
   },
 
+  onSessionComplete(shape) {
+    const bounds = this.getBounds(shape)
+
+    const [x1, y1] = vec.sub([bounds.minX, bounds.minY], shape.point)
+
+    shape.points = shape.points.map(([x0, y0, p]) => [x0 - x1, y0 - y1, p])
+
+    this.translateTo(shape, vec.add(shape.point, [x1, y1]))
+
+    return this
+  },
+
   canStyleFill: false,
 })
 
@@ -164,8 +180,8 @@ const simulatePressureSettings = {
 const realPressureSettings = {
   easing: (t: number) => t * t,
   simulatePressure: false,
-  // start: { taper: 1 },
-  // end: { taper: 1 },
+  start: { taper: 1 },
+  end: { taper: 1 },
 }
 
 function renderPath(shape: DrawShape, style: ShapeStyles) {

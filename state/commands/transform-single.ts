@@ -4,7 +4,12 @@ import { Data, Corner, Edge } from 'types'
 import { getShapeUtils } from 'lib/shape-utils'
 import { current } from 'immer'
 import { TransformSingleSnapshot } from 'state/sessions/transform-single-session'
-import { getPage, updateParents } from 'utils/utils'
+import {
+  getPage,
+  getSelectedIds,
+  setSelectedIds,
+  updateParents,
+} from 'utils/utils'
 
 export default function transformSingleCommand(
   data: Data,
@@ -25,8 +30,7 @@ export default function transformSingleCommand(
 
         const { shapes } = getPage(data, after.currentPageId)
 
-        data.selectedIds.clear()
-        data.selectedIds.add(id)
+        setSelectedIds(data, [id])
 
         shapes[id] = shape
 
@@ -38,13 +42,13 @@ export default function transformSingleCommand(
         const { shapes } = getPage(data, before.currentPageId)
 
         if (isCreating) {
-          data.selectedIds.clear()
+          setSelectedIds(data, [])
           delete shapes[id]
         } else {
           const page = getPage(data)
           page.shapes[id] = initialShape
           updateParents(data, [id])
-          data.selectedIds = new Set([id])
+          setSelectedIds(data, [id])
         }
       },
     })

@@ -1,7 +1,13 @@
 import Command from './command'
 import history from '../history'
 import { Data, MoveType, Shape } from 'types'
-import { forceIntegerChildIndices, getChildren, getPage } from 'utils/utils'
+import {
+  forceIntegerChildIndices,
+  getChildren,
+  getPage,
+  getSelectedIds,
+  setToArray,
+} from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 
 export default function moveCommand(data: Data, type: MoveType) {
@@ -9,7 +15,7 @@ export default function moveCommand(data: Data, type: MoveType) {
 
   const page = getPage(data)
 
-  const selectedIds = Array.from(data.selectedIds.values())
+  const selectedIds = setToArray(getSelectedIds(data))
 
   const initialIndices = Object.fromEntries(
     selectedIds.map((id) => [id, page.shapes[id].childIndex])

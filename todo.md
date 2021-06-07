@@ -19,3 +19,9 @@
 
 - shift dragging arrow handles should lock to directions
 - fix undo/redo on rotated arrows
+- fix shift-rotation
+
+## Pages
+
+- [x] Make selection part of page state
+- [ ] Allow only one page to be in the document at a time

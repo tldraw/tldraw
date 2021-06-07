@@ -2,7 +2,14 @@ import { current } from 'immer'
 import { Bounds, Data, ShapeType } from 'types'
 import BaseSession from './base-session'
 import { getShapeUtils } from 'lib/shape-utils'
-import { getBoundsFromPoints, getPage, getShapes } from 'utils/utils'
+import {
+  getBoundsFromPoints,
+  getPage,
+  getSelectedIds,
+  getShapes,
+  setSelectedIds,
+  setToArray,
+} from 'utils/utils'
 import * as vec from 'utils/vec'
 import state from 'state/state'
 
@@ -25,6 +32,8 @@ export default class BrushSession extends BaseSession {
 
     const hits = new Set<string>([])
 
+    const selectedIds = getSelectedIds(data)
+
     for (let id in snapshot.shapeHitTests) {
       const { test, selectId } = snapshot.shapeHitTests[id]
       if (!hits.has(selectId)) {
@@ -32,11 +41,11 @@ export default class BrushSession extends BaseSession {
           hits.add(selectId)
 
           // When brushing a shape, select its top group parent.
-          if (!data.selectedIds.has(selectId)) {
-            data.selectedIds.add(selectId)
+          if (!selectedIds.has(selectId)) {
+            selectedIds.add(selectId)
           }
-        } else if (data.selectedIds.has(selectId)) {
-          data.selectedIds.delete(selectId)
+        } else if (selectedIds.has(selectId)) {
+          selectedIds.delete(selectId)
         }
       }
     }
@@ -46,7 +55,7 @@ export default class BrushSession extends BaseSession {
 
   cancel = (data: Data) => {
     data.brush = undefined
-    data.selectedIds = new Set(this.snapshot.selectedIds)
+    setSelectedIds(data, this.snapshot.selectedIds)
   }
 
   complete = (data: Data) => {
@@ -61,7 +70,7 @@ export default class BrushSession extends BaseSession {
  */
 export function getBrushSnapshot(data: Data) {
   return {
-    selectedIds: new Set(data.selectedIds),
+    selectedIds: setToArray(getSelectedIds(data)),
     shapeHitTests: Object.fromEntries(
       getShapes(state.data)
         .filter((shape) => shape.type !== ShapeType.Group)

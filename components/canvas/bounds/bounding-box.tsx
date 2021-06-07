@@ -6,6 +6,7 @@ import {
   getBoundsCenter,
   getCurrentCamera,
   getPage,
+  getSelectedIds,
   getSelectedShapes,
   isMobile,
 } from 'utils/utils'
@@ -28,7 +29,7 @@ export default function Bounds() {
   )
 
   const rotation = useSelector(({ data }) =>
-    data.selectedIds.size === 1 ? getSelectedShapes(data)[0].rotation : 0
+    getSelectedIds(data).size === 1 ? getSelectedShapes(data)[0].rotation : 0
   )
 
   const isAllLocked = useSelector((s) => {

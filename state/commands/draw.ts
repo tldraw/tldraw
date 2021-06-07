@@ -1,17 +1,11 @@
 import Command from './command'
 import history from '../history'
 import { Data, DrawShape } from 'types'
-import { getPage } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getPage, setSelectedIds } from 'utils/utils'
 import { current } from 'immer'
 
-export default function drawCommand(
-  data: Data,
-  id: string,
-  points: number[][]
-) {
-  const restoreShape = current(getPage(data)).shapes[id] as DrawShape
-  getShapeUtils(restoreShape).setProperty(restoreShape, 'points', points)
+export default function drawCommand(data: Data, id: string) {
+  const restoreShape = getPage(current(data)).shapes[id] as DrawShape
 
   history.execute(
     data,
@@ -24,11 +18,11 @@ export default function drawCommand(
           getPage(data).shapes[id] = restoreShape
         }
 
-        data.selectedIds.clear()
+        setSelectedIds(data, [])
       },
       undo(data) {
+        setSelectedIds(data, [])
         delete getPage(data).shapes[id]
-        data.selectedIds.clear()
       },
     })
   )

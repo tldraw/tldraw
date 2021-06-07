@@ -4,8 +4,10 @@ import { Data, GroupShape, Shape, ShapeType } from 'types'
 import {
   getCommonBounds,
   getPage,
+  getSelectedIds,
   getSelectedShapes,
   getShape,
+  setSelectedIds,
 } from 'utils/utils'
 import { current } from 'immer'
 import { createShape, getShapeUtils } from 'lib/shape-utils'
@@ -15,7 +17,9 @@ import commands from '.'
 
 export default function groupCommand(data: Data) {
   const cData = current(data)
-  const { currentPageId, selectedIds } = cData
+  const { currentPageId } = cData
+
+  const oldSelectedIds = getSelectedIds(cData)
 
   const initialShapes = getSelectedShapes(cData).sort(
     (a, b) => a.childIndex - b.childIndex
@@ -108,7 +112,7 @@ export default function groupCommand(data: Data) {
             getShapeUtils(oldParent).setProperty(
               oldParent,
               'children',
-              oldParent.children.filter((id) => !selectedIds.has(id))
+              oldParent.children.filter((id) => !oldSelectedIds.has(id))
             )
           }
 
@@ -119,8 +123,7 @@ export default function groupCommand(data: Data) {
             .setProperty(shape, 'parentId', newGroupShape.id)
         })
 
-        data.selectedIds.clear()
-        data.selectedIds.add(newGroupShape.id)
+        setSelectedIds(data, [newGroupShape.id])
       },
       undo(data) {
         const { shapes } = getPage(data, currentPageId)
@@ -157,7 +160,7 @@ export default function groupCommand(data: Data) {
         delete shapes[newGroupShape.id]
 
         // Reselect the children of the group
-        data.selectedIds = new Set(initialShapeIds)
+        setSelectedIds(data, initialShapeIds)
       },
     })
   )

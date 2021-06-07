@@ -1,6 +1,12 @@
 import styled from 'styles'
 import { useSelector } from 'state'
-import { deepCompareArrays, getBoundsCenter, getPage } from 'utils/utils'
+import {
+  deepCompareArrays,
+  getBoundsCenter,
+  getPage,
+  getSelectedIds,
+  setToArray,
+} from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 import useShapeEvents from 'hooks/useShapeEvents'
 import { memo, useRef } from 'react'
@@ -8,9 +14,10 @@ import { ShapeType } from 'types'
 import * as vec from 'utils/vec'
 
 export default function Selected() {
-  const currentSelectedShapeIds = useSelector(({ data }) => {
-    return Array.from(data.selectedIds.values())
-  }, deepCompareArrays)
+  const currentSelectedShapeIds = useSelector(
+    ({ data }) => setToArray(getSelectedIds(data)),
+    deepCompareArrays
+  )
 
   const isSelecting = useSelector((s) => s.isIn('selecting'))
 

@@ -4,7 +4,13 @@ import * as Panel from 'components/panel'
 import { useRef } from 'react'
 import { IconButton } from 'components/shared'
 import { ChevronDown, Trash2, X } from 'react-feather'
-import { deepCompare, deepCompareArrays, getPage } from 'utils/utils'
+import {
+  deepCompare,
+  deepCompareArrays,
+  getPage,
+  getSelectedIds,
+  setToArray,
+} from 'utils/utils'
 import AlignDistribute from './align-distribute'
 import { MoveType } from 'types'
 import SizePicker from './size-picker'
@@ -65,7 +71,7 @@ export default function StylePanel() {
 
 function SelectedShapeStyles() {
   const selectedIds = useSelector(
-    (s) => Array.from(s.data.selectedIds.values()),
+    (s) => setToArray(getSelectedIds(s.data)),
     deepCompareArrays
   )
 

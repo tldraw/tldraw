@@ -22,7 +22,6 @@ export interface Data {
   activeTool: ShapeType | 'select'
   brush?: Bounds
   boundsRotation: number
-  selectedIds: Set<string>
   pointedId?: string
   hoveredId?: string
   currentPageId: string
@@ -49,6 +48,7 @@ export interface Page {
 }
 
 export interface PageState {
+  selectedIds: Set<string>
   camera: {
     point: number[]
     zoom: number

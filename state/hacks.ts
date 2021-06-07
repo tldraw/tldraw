@@ -2,7 +2,9 @@ import { PointerInfo } from 'types'
 import {
   getCameraZoom,
   getCurrentCamera,
+  getSelectedIds,
   screenToWorld,
+  setToArray,
   setZoomCSS,
 } from 'utils/utils'
 import session from './session'
@@ -26,7 +28,7 @@ export function fastDrawUpdate(info: PointerInfo) {
     info.shiftKey
   )
 
-  const selectedId = Array.from(data.selectedIds.values())[0]
+  const selectedId = setToArray(getSelectedIds(data))[0]
 
   const shape = data.document.pages[data.currentPageId].shapes[selectedId]
 
@@ -87,8 +89,6 @@ export function fastPinchCamera(
 export function fastBrushSelect(point: number[]) {
   const data = { ...state.data }
   session.current.update(data, screenToWorld(point, data))
-
-  data.selectedIds = new Set(data.selectedIds)
 
   state.forceData(Object.freeze(data))
 }

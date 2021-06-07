@@ -52,7 +52,7 @@ export default function PagePanel() {
               value={currentPageId}
               onValueChange={(id) => {
                 setIsOpen(false)
-                state.send('CHANGED_CURRENT_PAGE', { id })
+                state.send('CHANGED_PAGE', { id })
               }}
             >
               {sorted.map(({ id, name }) => (

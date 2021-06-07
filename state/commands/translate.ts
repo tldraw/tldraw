@@ -2,7 +2,12 @@ import Command from './command'
 import history from '../history'
 import { TranslateSnapshot } from 'state/sessions/translate-session'
 import { Data, GroupShape, Shape, ShapeType } from 'types'
-import { getDocumentBranch, getPage, updateParents } from 'utils/utils'
+import {
+  getDocumentBranch,
+  getPage,
+  setSelectedIds,
+  updateParents,
+} from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 import { v4 as uuid } from 'uuid'
 
@@ -50,7 +55,10 @@ export default function translateCommand(
         }
 
         // Set selected shapes
-        data.selectedIds = new Set(initialShapes.map((s) => s.id))
+        setSelectedIds(
+          data,
+          initialShapes.map((s) => s.id)
+        )
 
         // Update parents
         updateParents(
@@ -72,7 +80,10 @@ export default function translateCommand(
         if (isCloning) for (const { id } of clones) delete shapes[id]
 
         // Set selected shapes
-        data.selectedIds = new Set(initialShapes.map((s) => s.id))
+        setSelectedIds(
+          data,
+          initialShapes.map((s) => s.id)
+        )
 
         // Restore children on parents
         initialParents.forEach(({ id, children }) => {

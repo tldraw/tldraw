@@ -43,7 +43,6 @@ export default function Page() {
         .filter((shape) => shape.parentId === page.id)
         // .filter((shape) => {
         //   const shapeBounds = getShapeUtils(shape).getBounds(shape)
-        //   console.log(shapeBounds, viewport)
         //   return boundsContain(viewport, shapeBounds)
         // })
         .sort((a, b) => a.childIndex - b.childIndex)

@@ -1,8 +1,8 @@
-import Command from "./command"
-import history from "../history"
-import { CodeControl, Data, Shape } from "types"
-import { current } from "immer"
-import { getPage } from "utils/utils"
+import Command from './command'
+import history from '../history'
+import { CodeControl, Data, Shape } from 'types'
+import { current } from 'immer'
+import { getPage, getSelectedIds, setSelectedIds } from 'utils/utils'
 
 export default function generateCommand(
   data: Data,
@@ -33,12 +33,12 @@ export default function generateCommand(
   history.execute(
     data,
     new Command({
-      name: "translate_shapes",
-      category: "canvas",
+      name: 'translate_shapes',
+      category: 'canvas',
       do(data) {
         const { shapes } = getPage(data)
 
-        data.selectedIds.clear()
+        setSelectedIds(data, [])
 
         // Remove previous generated shapes
         for (let id in shapes) {

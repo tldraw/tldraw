@@ -1,12 +1,13 @@
 import { createSelectorHook, createState } from '@state-designer/react'
+import { updateFromCode } from 'lib/code/generate'
+import { createShape, getShapeUtils } from 'lib/shape-utils'
 import * as vec from 'utils/vec'
 import inputs from './inputs'
 import { defaultDocument } from './data'
-import { createShape, getShapeUtils } from 'lib/shape-utils'
-import history from 'state/history'
+import history from './history'
+import storage from './storage'
 import * as Sessions from './sessions'
 import commands from './commands'
-import { updateFromCode } from 'lib/code/generate'
 import {
   clamp,
   getChildren,
@@ -26,6 +27,8 @@ import {
   getBoundsCenter,
   getDocumentBranch,
   getCameraZoom,
+  getSelectedIds,
+  setSelectedIds,
 } from 'utils/utils'
 import {
   Data,
@@ -69,7 +72,6 @@ const initialData: Data = {
   boundsRotation: 0,
   pointedId: null,
   hoveredId: null,
-  selectedIds: new Set([]),
   currentPageId: 'page1',
   currentParentId: 'page1',
   currentCodeFileId: 'file0',
@@ -77,12 +79,14 @@ const initialData: Data = {
   document: defaultDocument,
   pageStates: {
     page1: {
+      selectedIds: new Set([]),
       camera: {
         point: [0, 0],
         zoom: 1,
       },
     },
     page2: {
+      selectedIds: new Set([]),
       camera: {
         point: [0, 0],
         zoom: 1,
@@ -164,7 +168,7 @@ const state = createState({
           do: 'deleteSelection',
           else: ['selectAll', 'deleteSelection'],
         },
-        CHANGED_CURRENT_PAGE: ['clearSelectedIds', 'setCurrentPage'],
+        CHANGED_PAGE: 'changePage',
         CREATED_PAGE: ['clearSelectedIds', 'createPage'],
         DELETED_PAGE: { unless: 'hasOnlyOnePage', do: 'deletePage' },
       },
@@ -743,7 +747,7 @@ const state = createState({
       return vec.dist2(payload.origin, payload.point) > 8
     },
     isPointedShapeSelected(data) {
-      return data.selectedIds.has(data.pointedId)
+      return getSelectedIds(data).has(data.pointedId)
     },
     isPressingShiftKey(data, payload: PointerInfo) {
       return payload.shiftKey
@@ -769,10 +773,10 @@ const state = createState({
       return payload.target === 'rotate'
     },
     hasSelection(data) {
-      return data.selectedIds.size > 0
+      return getSelectedIds(data).size > 0
     },
     hasMultipleSelection(data) {
-      return data.selectedIds.size > 1
+      return getSelectedIds(data).size > 1
     },
     isToolLocked(data) {
       return data.settings.isToolLocked
@@ -791,7 +795,7 @@ const state = createState({
   },
   actions: {
     /* ---------------------- Pages --------------------- */
-    setCurrentPage(data, payload: { id: string }) {
+    changePage(data, payload: { id: string }) {
       commands.changePage(data, payload.id)
     },
     createPage(data) {
@@ -818,8 +822,7 @@ const state = createState({
 
       getPage(data).shapes[shape.id] = shape
 
-      data.selectedIds.clear()
-      data.selectedIds.add(shape.id)
+      setSelectedIds(data, [shape.id])
     },
     /* -------------------- Sessions -------------------- */
 
@@ -902,7 +905,7 @@ const state = createState({
 
     // Dragging Handle
     startHandleSession(data, payload: PointerInfo) {
-      const shapeId = Array.from(data.selectedIds.values())[0]
+      const shapeId = Array.from(getSelectedIds(data).values())[0]
       const handleId = payload.target
 
       session.current = new Sessions.HandleSession(
@@ -939,7 +942,7 @@ const state = createState({
     ) {
       const point = screenToWorld(inputs.pointer.origin, data)
       session.current =
-        data.selectedIds.size === 1
+        getSelectedIds(data).size === 1
           ? new Sessions.TransformSingleSession(data, payload.target, point)
           : new Sessions.TransformSession(data, payload.target, point)
     },
@@ -981,7 +984,7 @@ const state = createState({
 
     // Drawing
     startDrawSession(data, payload: PointerInfo) {
-      const id = Array.from(data.selectedIds.values())[0]
+      const id = Array.from(getSelectedIds(data).values())[0]
       session.current = new Sessions.DrawSession(
         data,
         id,
@@ -1008,7 +1011,7 @@ const state = createState({
 
     // Arrow
     startArrowSession(data, payload: PointerInfo) {
-      const id = Array.from(data.selectedIds.values())[0]
+      const id = Array.from(getSelectedIds(data).values())[0]
       session.current = new Sessions.ArrowSession(
         data,
         id,
@@ -1047,7 +1050,7 @@ const state = createState({
     /* -------------------- Selection ------------------- */
 
     selectAll(data) {
-      const { selectedIds } = data
+      const selectedIds = getSelectedIds(data)
       const page = getPage(data)
       selectedIds.clear()
       for (let id in page.shapes) {
@@ -1078,14 +1081,15 @@ const state = createState({
       data.pointedId = undefined
     },
     clearSelectedIds(data) {
-      data.selectedIds.clear()
+      setSelectedIds(data, [])
     },
     pullPointedIdFromSelectedIds(data) {
-      const { selectedIds, pointedId } = data
+      const { pointedId } = data
+      const selectedIds = getSelectedIds(data)
       selectedIds.delete(pointedId)
     },
     pushPointedIdToSelectedIds(data) {
-      data.selectedIds.add(data.pointedId)
+      getSelectedIds(data).add(data.pointedId)
     },
     moveSelection(data, payload: { type: MoveType }) {
       commands.move(data, payload.type)
@@ -1311,9 +1315,6 @@ const state = createState({
     popHistory() {
       history.pop()
     },
-    forceSave(data) {
-      history.save(data)
-    },
     enableHistory() {
       history.enable()
     },
@@ -1377,7 +1378,7 @@ const state = createState({
 
       history.disable()
 
-      data.selectedIds.clear()
+      setSelectedIds(data, [])
 
       try {
         const { shapes } = updateFromCode(
@@ -1407,13 +1408,25 @@ const state = createState({
 
     /* ---------------------- Data ---------------------- */
 
+    forceSave(data) {
+      storage.save(data)
+    },
+
+    savePage(data) {
+      storage.savePage(data, data.currentPageId)
+    },
+
+    loadPage(data) {
+      storage.loadPage(data, data.currentPageId)
+    },
+
     saveCode(data, payload: { code: string }) {
       data.document.code[data.currentCodeFileId].code = payload.code
-      history.save(data)
+      storage.save(data)
     },
 
     restoreSavedData(data) {
-      history.load(data)
+      storage.load(data)
     },
 
     clearBoundsRotation(data) {
@@ -1422,10 +1435,10 @@ const state = createState({
   },
   values: {
     selectedIds(data) {
-      return new Set(data.selectedIds)
+      return new Set(getSelectedIds(data))
     },
     selectedBounds(data) {
-      const { selectedIds } = data
+      const selectedIds = getSelectedIds(data)
 
       const page = getPage(data)
 
@@ -1438,7 +1451,7 @@ const state = createState({
       if (selectedIds.size === 1) {
         if (!shapes[0]) {
           console.error('Could not find that shape! Clearing selected IDs.')
-          data.selectedIds.clear()
+          setSelectedIds(data, [])
           return null
         }
 
@@ -1497,7 +1510,7 @@ const state = createState({
       return commonBounds
     },
     selectedStyle(data) {
-      const selectedIds = Array.from(data.selectedIds.values())
+      const selectedIds = Array.from(getSelectedIds(data).values())
       const { currentStyle } = data
 
       if (selectedIds.length === 0) {

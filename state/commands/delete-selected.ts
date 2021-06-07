@@ -2,22 +2,30 @@ import Command from './command'
 import history from '../history'
 import { TranslateSnapshot } from 'state/sessions/translate-session'
 import { Data, ShapeType } from 'types'
-import { getDocumentBranch, getPage, updateParents } from 'utils/utils'
+import {
+  getDocumentBranch,
+  getPage,
+  getSelectedIds,
+  setSelectedIds,
+  setToArray,
+  updateParents,
+} from 'utils/utils'
 import { current } from 'immer'
 import { getShapeUtils } from 'lib/shape-utils'
 
 export default function deleteSelected(data: Data) {
   const { currentPageId } = data
 
-  const selectedIds = Array.from(data.selectedIds.values())
+  const selectedIds = getSelectedIds(data)
+  const selectedIdsArr = setToArray(selectedIds)
 
   const page = getPage(current(data))
 
-  const childrenToDelete = selectedIds
+  const childrenToDelete = selectedIdsArr
     .flatMap((id) => getDocumentBranch(data, id))
     .map((id) => page.shapes[id])
 
-  data.selectedIds.clear()
+  selectedIds.clear()
 
   history.execute(
     data,
@@ -28,7 +36,7 @@ export default function deleteSelected(data: Data) {
       do(data) {
         const page = getPage(data, currentPageId)
 
-        for (let id of selectedIds) {
+        for (let id of selectedIdsArr) {
           const shape = page.shapes[id]
           if (!shape) {
             console.error('no shape ' + id)
@@ -54,7 +62,7 @@ export default function deleteSelected(data: Data) {
           delete page.shapes[shape.id]
         }
 
-        data.selectedIds.clear()
+        setSelectedIds(data, [])
       },
       undo(data) {
         const page = getPage(data, currentPageId)
@@ -75,7 +83,7 @@ export default function deleteSelected(data: Data) {
           }
         }
 
-        data.selectedIds = new Set(selectedIds)
+        setSelectedIds(data, selectedIdsArr)
       },
     })
   )

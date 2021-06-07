@@ -1,11 +1,10 @@
-import { Data } from 'types'
+import { Data, Page, PageState } from 'types'
 import { BaseCommand } from './commands/command'
-
-const CURRENT_VERSION = 'code_slate_0.0.3'
+import storage from './storage'
 
 // A singleton to manage history changes.
 
-class BaseHistory<T> {
+class History<T extends Data> {
   private stack: BaseCommand<T>[] = []
   private pointer = -1
   private maxLength = 100
@@ -24,7 +23,7 @@ class BaseHistory<T> {
       this.pointer = this.maxLength - 1
     }
 
-    this.save(data)
+    storage.save(data)
   }
 
   undo = (data: T) => {
@@ -33,7 +32,7 @@ class BaseHistory<T> {
     command.undo(data)
     if (this.disabled) return
     this.pointer--
-    this.save(data)
+    storage.save(data)
   }
 
   redo = (data: T) => {
@@ -42,25 +41,7 @@ class BaseHistory<T> {
     command.redo(data, false)
     if (this.disabled) return
     this.pointer++
-    this.save(data)
-  }
-
-  load(data: T, id = CURRENT_VERSION) {
-    if (typeof window === 'undefined') return
-    if (typeof localStorage === 'undefined') return
-
-    const savedData = localStorage.getItem(id)
-
-    if (savedData !== null) {
-      Object.assign(data, this.restoreSavedData(JSON.parse(savedData)))
-    }
-  }
-
-  save = (data: T, id = CURRENT_VERSION) => {
-    if (typeof window === 'undefined') return
-    if (typeof localStorage === 'undefined') return
-
-    localStorage.setItem(id, JSON.stringify(this.prepareDataForSave(data)))
+    storage.save(data)
   }
 
   disable = () => {
@@ -69,14 +50,6 @@ class BaseHistory<T> {
 
   enable = () => {
     this._enabled = true
-  }
-
-  prepareDataForSave(data: T): any {
-    return { ...data }
-  }
-
-  restoreSavedData(data: any): T {
-    return { ...data }
   }
 
   pop() {
@@ -88,46 +61,6 @@ class BaseHistory<T> {
 
   get disabled() {
     return !this._enabled
-  }
-}
-
-// App-specific
-
-class History extends BaseHistory<Data> {
-  constructor() {
-    super()
-  }
-
-  prepareDataForSave(data: Data): any {
-    const dataToSave: any = { ...data }
-
-    dataToSave.selectedIds = Array.from(data.selectedIds.values())
-
-    return dataToSave
-  }
-
-  restoreSavedData(data: any): Data {
-    const restoredData: Data = { ...data }
-
-    restoredData.selectedIds = new Set(restoredData.selectedIds)
-
-    // Also restore camera position, which is saved separately in this app
-    const cameraInfo = localStorage.getItem('code_slate_camera')
-
-    if (cameraInfo !== null) {
-      Object.assign(
-        restoredData.pageStates[data.currentPageId].camera,
-        JSON.parse(cameraInfo)
-      )
-
-      // And update the CSS property
-      document.documentElement.style.setProperty(
-        '--camera-zoom',
-        restoredData.pageStates[data.currentPageId].camera.zoom.toString()
-      )
-    }
-
-    return restoredData
   }
 }
 

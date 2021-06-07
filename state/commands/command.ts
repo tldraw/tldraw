@@ -1,4 +1,5 @@
-import { Data } from "types"
+import { Data } from 'types'
+import { getSelectedIds, setSelectedIds, setToArray } from 'utils/utils'
 
 /* ------------------ Command Class ----------------- */
 
@@ -52,6 +53,12 @@ export class BaseCommand<T extends any> {
   }
 
   redo = (data: T, initial = false) => {
+    if (this.manualSelection) {
+      this.doFn(data, initial)
+
+      return
+    }
+
     if (initial) {
       this.restoreBeforeSelectionState = this.saveSelectionState(data)
     } else {
@@ -76,11 +83,13 @@ export class BaseCommand<T extends any> {
  */
 export default class Command extends BaseCommand<Data> {
   saveSelectionState = (data: Data) => {
-    const selectedIds = new Set(data.selectedIds)
-    return (data: Data) => {
-      data.hoveredId = undefined
-      data.pointedId = undefined
-      data.selectedIds = selectedIds
+    const { currentPageId } = data
+    const selectedIds = setToArray(getSelectedIds(data))
+    return (next: Data) => {
+      next.currentPageId = currentPageId
+      next.hoveredId = undefined
+      next.pointedId = undefined
+      setSelectedIds(next, selectedIds)
     }
   }
 }

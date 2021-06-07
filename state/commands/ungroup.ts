@@ -6,6 +6,7 @@ import {
   getPage,
   getSelectedShapes,
   getShape,
+  setSelectedIds,
 } from 'utils/utils'
 import { current } from 'immer'
 import { createShape, getShapeUtils } from 'lib/shape-utils'
@@ -14,7 +15,7 @@ import { v4 as uuid } from 'uuid'
 
 export default function ungroupCommand(data: Data) {
   const cData = current(data)
-  const { currentPageId, selectedIds } = cData
+  const { currentPageId } = cData
 
   const selectedGroups = getSelectedShapes(cData)
     .filter((shape) => shape.type === ShapeType.Group)
@@ -55,14 +56,11 @@ export default function ungroupCommand(data: Data) {
               (oldGroupShape.children.length + 1)
           }
 
-          data.selectedIds.clear()
-
           // Move shapes to page
           oldGroupShape.children
             .map((id) => shapes[id])
             .forEach(({ id }, i) => {
               const shape = shapes[id]
-              data.selectedIds.add(id)
               getShapeUtils(shape)
                 .setProperty(shape, 'parentId', oldGroupShape.parentId)
                 .setProperty(
@@ -72,14 +70,15 @@ export default function ungroupCommand(data: Data) {
                 )
             })
 
+          setSelectedIds(data, oldGroupShape.children)
+
           delete shapes[oldGroupShape.id]
         }
       },
       undo(data) {
         const { shapes } = getPage(data, currentPageId)
-        selectedIds.clear()
+
         selectedGroups.forEach((group) => {
-          selectedIds.add(group.id)
           shapes[group.id] = group
           group.children.forEach((id, i) => {
             const shape = shapes[id]
@@ -88,6 +87,11 @@ export default function ungroupCommand(data: Data) {
               .setProperty(shape, 'childIndex', i)
           })
         })
+
+        setSelectedIds(
+          data,
+          selectedGroups.map((g) => g.id)
+        )
       },
     })
   )

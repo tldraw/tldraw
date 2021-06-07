@@ -1,7 +1,13 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import { getCurrentCamera, getPage, getSelectedShapes } from 'utils/utils'
+import {
+  getCurrentCamera,
+  getPage,
+  getSelectedIds,
+  getSelectedShapes,
+  setSelectedIds,
+} from 'utils/utils'
 import { v4 as uuid } from 'uuid'
 import { current } from 'immer'
 import * as vec from 'utils/vec'
@@ -24,24 +30,26 @@ export default function duplicateCommand(data: Data) {
       do(data) {
         const { shapes } = getPage(data, currentPageId)
 
-        data.selectedIds.clear()
-
         for (const duplicate of duplicates) {
           shapes[duplicate.id] = duplicate
-          data.selectedIds.add(duplicate.id)
         }
+
+        setSelectedIds(
+          data,
+          duplicates.map((d) => d.id)
+        )
       },
       undo(data) {
         const { shapes } = getPage(data, currentPageId)
-        data.selectedIds.clear()
 
         for (const duplicate of duplicates) {
           delete shapes[duplicate.id]
         }
 
-        for (let id in selectedShapes) {
-          data.selectedIds.add(id)
-        }
+        setSelectedIds(
+          data,
+          selectedShapes.map((d) => d.id)
+        )
       },
     })
   )

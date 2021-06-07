@@ -9,6 +9,7 @@ import {
   getDocumentBranch,
   getPage,
   getSelectedShapes,
+  setSelectedIds,
   updateParents,
 } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
@@ -47,17 +48,13 @@ export default class TranslateSession extends BaseSession {
     if (isCloning) {
       if (!this.isCloning) {
         this.isCloning = true
-        data.selectedIds.clear()
 
         for (const { id, point } of initialShapes) {
           const shape = shapes[id]
           getShapeUtils(shape).translateTo(shape, point)
         }
 
-        data.selectedIds.clear()
-
         for (const clone of clones) {
-          data.selectedIds.add(clone.id)
           shapes[clone.id] = { ...clone }
           const parent = shapes[clone.parentId]
           if (!parent) continue
@@ -66,6 +63,11 @@ export default class TranslateSession extends BaseSession {
             clone.id,
           ])
         }
+
+        setSelectedIds(
+          data,
+          clones.map((c) => c.id)
+        )
       }
 
       for (const { id, point } of clones) {
@@ -80,11 +82,11 @@ export default class TranslateSession extends BaseSession {
     } else {
       if (this.isCloning) {
         this.isCloning = false
-        data.selectedIds.clear()
 
-        for (const { id } of initialShapes) {
-          data.selectedIds.add(id)
-        }
+        setSelectedIds(
+          data,
+          initialShapes.map((c) => c.id)
+        )
 
         for (const clone of clones) {
           delete shapes[clone.id]
