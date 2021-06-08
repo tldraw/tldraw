@@ -174,14 +174,14 @@ export default function useKeyboardEvents() {
           if (metaKey(e)) {
             state.send('COPIED', getKeyboardEventInfo(e))
           } else {
-            state.send('SELECTED_CIRCLE_TOOL', getKeyboardEventInfo(e))
+            state.send('SELECTED_ELLIPSE_TOOL', getKeyboardEventInfo(e))
           }
           break
         }
         case 'i': {
           if (metaKey(e)) {
           } else {
-            state.send('SELECTED_ELLIPSE_TOOL', getKeyboardEventInfo(e))
+            state.send('SELECTED_CIRCLE_TOOL', getKeyboardEventInfo(e))
           }
           break
         }

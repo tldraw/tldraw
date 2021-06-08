@@ -70,6 +70,7 @@ export default function BoundsBg() {
         rotate(${(bounds.rotation || 0) * (180 / Math.PI)}, 0, 0)`}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
+      pointerEvents="all"
     />
   )
 }

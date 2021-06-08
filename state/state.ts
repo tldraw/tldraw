@@ -9,7 +9,6 @@ import storage from './storage'
 import * as Sessions from './sessions'
 import commands from './commands'
 import {
-  clamp,
   getChildren,
   getCommonBounds,
   getCurrent,
@@ -46,8 +45,12 @@ import {
   DashStyle,
   SizeStyle,
   ColorStyle,
+  Bounds,
 } from 'types'
 import session from './session'
+import { pointInBounds } from 'utils/bounds'
+
+let currentBounds: Bounds
 
 const initialData: Data = {
   isReadOnly: false,
@@ -239,6 +242,7 @@ const state = createState({
                     to: 'brushSelecting',
                   },
                   'setPointedId',
+                  { if: 'pointInSelectionBounds', to: 'pointingBounds' },
                   {
                     unless: 'isPointedShapeSelected',
                     then: {
@@ -758,7 +762,13 @@ const state = createState({
     shapeIsHovered(data, payload: { target: string }) {
       return data.hoveredId === payload.target
     },
-    pointHitsShape(data, payload: { target: string; point: number[] }) {
+    pointInSelectionBounds(data, payload: PointerInfo) {
+      return (
+        currentBounds &&
+        pointInBounds(screenToWorld(payload.point, data), currentBounds)
+      )
+    },
+    pointHitsShape(data, payload: PointerInfo) {
       const shape = getShape(data, payload.target)
 
       return getShapeUtils(shape).hitTest(
@@ -1499,13 +1509,10 @@ const state = createState({
             const bounds = getShapeUtils(shape).getRotatedBounds(shape)
 
             return bounds
-
-            return translateBounds(
-              rotateBounds(bounds, getBoundsCenter(bounds), parentRotation),
-              vec.neg(parentOffset)
-            )
           })
       )
+
+      currentBounds = commonBounds
 
       return commonBounds
     },
