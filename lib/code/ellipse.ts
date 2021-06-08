@@ -11,10 +11,10 @@ export default class Ellipse extends CodeShape<EllipseShape> {
     super({
       id: uuid(),
       seed: Math.random(),
+      parentId: (window as any).currentPageId,
       type: ShapeType.Ellipse,
       isGenerated: true,
       name: 'Ellipse',
-      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       radiusX: 20,
@@ -23,8 +23,8 @@ export default class Ellipse extends CodeShape<EllipseShape> {
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: defaultStyle,
       ...props,
+      style: { ...defaultStyle, ...props.style },
     })
   }
 

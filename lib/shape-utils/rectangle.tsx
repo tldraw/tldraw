@@ -2,7 +2,13 @@ import { v4 as uuid } from 'uuid'
 import * as vec from 'utils/vec'
 import { RectangleShape, ShapeType } from 'types'
 import { registerShapeUtils } from './index'
-import { getSvgPathFromStroke, translateBounds, getNoise } from 'utils/utils'
+import {
+  getSvgPathFromStroke,
+  translateBounds,
+  rng,
+  shuffleArr,
+  pointsBetween,
+} from 'utils/utils'
 import { defaultStyle, getShapeStyle } from 'lib/shape-styles'
 import getStroke from 'perfect-freehand'
 
@@ -33,7 +39,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
   },
 
   render(shape) {
-    const { id, size, radius, style, point } = shape
+    const { id, size, radius, style } = shape
     const styles = getShapeStyle(style)
 
     if (!pathCache.has(shape)) {
@@ -117,29 +123,16 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
 export default rectangle
 
-function easeInOut(t: number) {
-  return t * (2 - t)
-}
-
-function ease(t: number) {
-  return t * t * t
-}
-
-function pointsBetween(a: number[], b: number[], steps = 6) {
-  return Array.from(Array(steps))
-    .map((_, i) => ease(i / steps))
-    .map((t) => [...vec.lrp(a, b, t), (1 - t) / 2])
-}
-
 function renderPath(shape: RectangleShape) {
   const styles = getShapeStyle(shape.style)
 
-  const noise = getNoise(shape.seed)
-  const off = -0.25 + shape.seed / 2
+  const getRandom = rng(shape.id)
+
+  const baseOffset = +styles.strokeWidth / 2
 
   const offsets = Array.from(Array(4)).map((_, i) => [
-    noise(i, i + 1) * off * 16,
-    noise(i + 2, i + 3) * off * 16,
+    getRandom() * baseOffset,
+    getRandom() * baseOffset,
   ])
 
   const [w, h] = shape.size
@@ -155,17 +148,11 @@ function renderPath(shape: RectangleShape) {
       pointsBetween(bl, tl),
       pointsBetween(tl, tr),
     ],
-    shape.id.charCodeAt(5)
+    Math.floor(5 + getRandom() * 4)
   )
 
   const stroke = getStroke(
-    [
-      ...lines.flat().slice(4),
-      ...lines[0].slice(0, 4),
-      lines[0][4],
-      lines[0][5],
-      lines[0][5],
-    ],
+    [...lines.flat().slice(2), ...lines[0], ...lines[0].slice(4)],
     {
       size: 1 + +styles.strokeWidth * 2,
       thinning: 0.6,
@@ -177,8 +164,4 @@ function renderPath(shape: RectangleShape) {
   )
 
   pathCache.set(shape, getSvgPathFromStroke(stroke))
-}
-
-function shuffleArr<T>(arr: T[], offset: number): T[] {
-  return arr.map((_, i) => arr[(i + offset) % arr.length])
 }

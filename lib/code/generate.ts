@@ -1,15 +1,15 @@
-import Rectangle from "./rectangle"
-import Circle from "./circle"
-import Ellipse from "./ellipse"
-import Polyline from "./polyline"
-import Dot from "./dot"
-import Ray from "./ray"
-import Line from "./line"
-import Vector from "./vector"
-import Utils from "./utils"
-import { NumberControl, VectorControl, codeControls, controls } from "./control"
-import { codeShapes } from "./index"
-import { CodeControl } from "types"
+import Rectangle from './rectangle'
+import Circle from './circle'
+import Ellipse from './ellipse'
+import Polyline from './polyline'
+import Dot from './dot'
+import Ray from './ray'
+import Line from './line'
+import Vector from './vector'
+import Utils from './utils'
+import { NumberControl, VectorControl, codeControls, controls } from './control'
+import { codeShapes } from './index'
+import { CodeControl, Data } from 'types'
 
 const baseScope = {
   Dot,
@@ -30,12 +30,14 @@ const baseScope = {
  * collected shapes as an array.
  * @param code
  */
-export function generateFromCode(code: string) {
+export function generateFromCode(data: Data, code: string) {
   codeControls.clear()
   codeShapes.clear()
   ;(window as any).isUpdatingCode = false
+  ;(window as any).currentPageId = data.currentPageId
 
-  const scope = { ...baseScope, controls }
+  const { currentPageId } = data
+  const scope = { ...baseScope, controls, currentPageId }
 
   new Function(...Object.keys(scope), `${code}`)(...Object.values(scope))
 
@@ -53,15 +55,16 @@ export function generateFromCode(code: string) {
  * collected shapes as an array.
  * @param code
  */
-export function updateFromCode(
-  code: string,
-  controls: Record<string, CodeControl>
-) {
+export function updateFromCode(data: Data, code: string) {
   codeShapes.clear()
   ;(window as any).isUpdatingCode = true
+  ;(window as any).currentPageId = data.currentPageId
+
+  const { currentPageId } = data
 
   const scope = {
     ...baseScope,
+    currentPageId,
     controls: Object.fromEntries(
       Object.entries(controls).map(([id, control]) => [
         control.label,

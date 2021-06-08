@@ -11,10 +11,10 @@ export default class Dot extends CodeShape<DotShape> {
     super({
       id: uuid(),
       seed: Math.random(),
+      parentId: (window as any).currentPageId,
       type: ShapeType.Dot,
       isGenerated: true,
       name: 'Dot',
-      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       rotation: 0,
@@ -25,7 +25,7 @@ export default class Dot extends CodeShape<DotShape> {
       style: {
         ...defaultStyle,
         ...props.style,
-        isFilled: false,
+        isFilled: true,
       },
     })
   }

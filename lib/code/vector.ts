@@ -16,7 +16,7 @@ export default class Vector {
   constructor(vector: Vector, b?: undefined)
   constructor(options: Point, b?: undefined)
   constructor(a: VectorOptions | Vector | number, b?: number) {
-    if (typeof a === "number") {
+    if (typeof a === 'number') {
       this.x = a
       this.y = b
     } else {
@@ -415,7 +415,7 @@ export default class Vector {
   }
 
   static cast(v: Point | Vector) {
-    return "cast" in v ? v : new Vector(v)
+    return 'cast' in v ? v : new Vector(v)
   }
 
   static from(v: Vector) {

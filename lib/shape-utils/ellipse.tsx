@@ -1,17 +1,25 @@
 import { v4 as uuid } from 'uuid'
 import * as vec from 'utils/vec'
 import { EllipseShape, ShapeType } from 'types'
-import { registerShapeUtils } from './index'
+import { getShapeUtils, registerShapeUtils } from './index'
 import { boundsContained, getRotatedEllipseBounds } from 'utils/bounds'
 import { intersectEllipseBounds } from 'utils/intersections'
 import { pointInEllipse } from 'utils/hitTests'
 import {
+  ease,
   getBoundsFromPoints,
   getRotatedCorners,
+  getSvgPathFromStroke,
+  pointsBetween,
+  rng,
   rotateBounds,
+  shuffleArr,
   translateBounds,
 } from 'utils/utils'
 import { defaultStyle, getShapeStyle } from 'lib/shape-styles'
+import getStroke from 'perfect-freehand'
+
+const pathCache = new WeakMap<EllipseShape, string>([])
 
 const ellipse = registerShapeUtils<EllipseShape>({
   boundsCache: new WeakMap([]),
@@ -37,17 +45,39 @@ const ellipse = registerShapeUtils<EllipseShape>({
     }
   },
 
-  render({ id, radiusX, radiusY, style }) {
+  render(shape) {
+    const { id, radiusX, radiusY, style } = shape
     const styles = getShapeStyle(style)
+
+    if (!pathCache.has(shape)) {
+      renderPath(shape)
+    }
+
+    const path = pathCache.get(shape)
+
     return (
-      <ellipse
-        id={id}
-        cx={radiusX}
-        cy={radiusY}
-        rx={Math.max(0, radiusX - Number(styles.strokeWidth) / 2)}
-        ry={Math.max(0, radiusY - Number(styles.strokeWidth) / 2)}
-      />
+      <g id={id}>
+        <ellipse
+          id={id}
+          cx={radiusX}
+          cy={radiusY}
+          rx={Math.max(0, radiusX - Number(styles.strokeWidth) / 2)}
+          ry={Math.max(0, radiusY - Number(styles.strokeWidth) / 2)}
+          stroke="none"
+        />
+        <path d={path} fill={styles.stroke} />
+      </g>
     )
+
+    // return (
+    //   <ellipse
+    //     id={id}
+    //     cx={radiusX}
+    //     cy={radiusY}
+    //     rx={Math.max(0, radiusX - Number(styles.strokeWidth) / 2)}
+    //     ry={Math.max(0, radiusY - Number(styles.strokeWidth) / 2)}
+    //   />
+    // )
   },
 
   getBounds(shape) {
@@ -129,3 +159,53 @@ const ellipse = registerShapeUtils<EllipseShape>({
 })
 
 export default ellipse
+
+function renderPath(shape: EllipseShape) {
+  const { style, id, radiusX, radiusY, point } = shape
+
+  const getRandom = rng(id)
+
+  const center = vec.sub(getShapeUtils(shape).getCenter(shape), point)
+
+  const strokeWidth = +getShapeStyle(style).strokeWidth
+
+  const rx = radiusX + getRandom() * strokeWidth
+  const ry = radiusY + getRandom() * strokeWidth
+
+  const points: number[][] = []
+  const start = Math.PI + Math.PI * getRandom()
+
+  const overlap = Math.PI / 12
+
+  for (let i = 2; i < 8; i++) {
+    const rads = start + overlap * 2 * (i / 8)
+    const x = rx * Math.cos(rads) + center[0]
+    const y = ry * Math.sin(rads) + center[1]
+    points.push([x, y])
+  }
+
+  for (let i = 5; i < 32; i++) {
+    const rads = start + overlap * 2 + Math.PI * 2.5 * ease(i / 35)
+    const x = rx * Math.cos(rads) + center[0]
+    const y = ry * Math.sin(rads) + center[1]
+    points.push([x, y])
+  }
+
+  for (let i = 0; i < 8; i++) {
+    const rads = start + overlap * 2 * (i / 4)
+    const x = rx * Math.cos(rads) + center[0]
+    const y = ry * Math.sin(rads) + center[1]
+    points.push([x, y])
+  }
+
+  const stroke = getStroke(points, {
+    size: 1 + strokeWidth * 2,
+    thinning: 0.6,
+    easing: (t) => t * t * t * t,
+    end: { taper: strokeWidth * 20 },
+    start: { taper: strokeWidth * 20 },
+    simulatePressure: false,
+  })
+
+  pathCache.set(shape, getSvgPathFromStroke(stroke))
+}

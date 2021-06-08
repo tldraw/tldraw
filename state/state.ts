@@ -1382,8 +1382,8 @@ const state = createState({
 
       try {
         const { shapes } = updateFromCode(
-          data.document.code[data.currentCodeFileId].code,
-          data.codeControls
+          data,
+          data.document.code[data.currentCodeFileId].code
         )
 
         commands.generate(data, data.currentPageId, shapes)

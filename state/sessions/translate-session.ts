@@ -33,9 +33,6 @@ export default class TranslateSession extends BaseSession {
     const { shapes } = getPage(data, currentPageId)
 
     const delta = vec.vec(this.origin, point)
-    const trueDelta = vec.sub(delta, this.prev)
-    this.delta = delta
-    this.prev = delta
 
     if (isAligned) {
       if (Math.abs(delta[0]) < Math.abs(delta[1])) {
@@ -45,13 +42,17 @@ export default class TranslateSession extends BaseSession {
       }
     }
 
+    const trueDelta = vec.sub(delta, this.prev)
+    this.delta = delta
+    this.prev = delta
+
     if (isCloning) {
       if (!this.isCloning) {
         this.isCloning = true
 
-        for (const { id, point } of initialShapes) {
+        for (const { id } of initialShapes) {
           const shape = shapes[id]
-          getShapeUtils(shape).translateTo(shape, point)
+          getShapeUtils(shape).translateBy(shape, trueDelta)
         }
 
         for (const clone of clones) {
@@ -70,9 +71,9 @@ export default class TranslateSession extends BaseSession {
         )
       }
 
-      for (const { id, point } of clones) {
+      for (const { id } of clones) {
         const shape = shapes[id]
-        getShapeUtils(shape).translateTo(shape, vec.add(point, delta))
+        getShapeUtils(shape).translateBy(shape, trueDelta)
       }
 
       updateParents(
@@ -186,6 +187,7 @@ export function getTranslateSnapshot(data: Data) {
     clones: selectedShapes
       .filter((shape) => shape.type !== ShapeType.Group)
       .flatMap((shape) => {
+        // TODO: Clone children recursively
         const clone = {
           ...shape,
           id: uuid(),

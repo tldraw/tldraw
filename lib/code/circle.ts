@@ -11,10 +11,10 @@ export default class Circle extends CodeShape<CircleShape> {
     super({
       id: uuid(),
       seed: Math.random(),
+      parentId: (window as any).currentPageId,
       type: ShapeType.Circle,
       isGenerated: true,
       name: 'Circle',
-      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       rotation: 0,
@@ -22,8 +22,8 @@ export default class Circle extends CodeShape<CircleShape> {
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: defaultStyle,
       ...props,
+      style: { ...defaultStyle, ...props.style },
     })
   }
 

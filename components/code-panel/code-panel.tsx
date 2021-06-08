@@ -82,7 +82,7 @@ export default function CodePanel() {
         let error = null
 
         try {
-          const { shapes, controls } = generateFromCode(data.code)
+          const { shapes, controls } = generateFromCode(state.data, data.code)
           state.send('GENERATED_FROM_CODE', { shapes, controls })
         } catch (e) {
           console.error(e)

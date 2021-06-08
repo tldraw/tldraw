@@ -1,5 +1,5 @@
-import { Bounds } from "types"
-import Vector, { Point } from "./vector"
+import { Bounds } from 'types'
+import Vector, { Point } from './vector'
 
 export default class Utils {
   static getRayRayIntersection(p0: Vector, n0: Vector, p1: Vector, n1: Vector) {

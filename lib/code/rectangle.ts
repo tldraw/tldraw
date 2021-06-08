@@ -12,10 +12,10 @@ export default class Rectangle extends CodeShape<RectangleShape> {
     super({
       id: uuid(),
       seed: Math.random(),
+      parentId: (window as any).currentPageId,
       type: ShapeType.Rectangle,
       isGenerated: true,
       name: 'Rectangle',
-      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       size: [100, 100],
@@ -24,8 +24,8 @@ export default class Rectangle extends CodeShape<RectangleShape> {
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: defaultStyle,
       ...props,
+      style: { ...defaultStyle, ...props.style },
     })
   }
 

@@ -6,7 +6,6 @@ export default function Cursor() {
 
   useEffect(() => {
     function updatePosition(e: PointerEvent) {
-      console.log('hi')
       const cursor = rCursor.current
 
       cursor.setAttribute(

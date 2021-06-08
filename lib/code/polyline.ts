@@ -12,10 +12,10 @@ export default class Polyline extends CodeShape<PolylineShape> {
     super({
       id: uuid(),
       seed: Math.random(),
+      parentId: (window as any).currentPageId,
       type: ShapeType.Polyline,
       isGenerated: true,
       name: 'Polyline',
-      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       points: [[0, 0]],

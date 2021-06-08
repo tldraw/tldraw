@@ -12,10 +12,10 @@ export default class Line extends CodeShape<LineShape> {
     super({
       id: uuid(),
       seed: Math.random(),
+      parentId: (window as any).currentPageId,
       type: ShapeType.Line,
       isGenerated: true,
       name: 'Line',
-      parentId: 'page0',
       childIndex: 0,
       point: [0, 0],
       direction: [-0.5, 0.5],

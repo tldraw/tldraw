@@ -34,7 +34,7 @@ const dot = registerShapeUtils<DotShape>({
   },
 
   render({ id }) {
-    return <use href="#dot" />
+    return <use id={id} href="#dot" fill="black" />
   },
 
   getBounds(shape) {
