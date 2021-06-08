@@ -5,17 +5,7 @@ import { getShapeUtils, registerShapeUtils } from './index'
 import { boundsContained, getRotatedEllipseBounds } from 'utils/bounds'
 import { intersectEllipseBounds } from 'utils/intersections'
 import { pointInEllipse } from 'utils/hitTests'
-import {
-  ease,
-  getBoundsFromPoints,
-  getRotatedCorners,
-  getSvgPathFromStroke,
-  pointsBetween,
-  rng,
-  rotateBounds,
-  shuffleArr,
-  translateBounds,
-} from 'utils/utils'
+import { ease, getSvgPathFromStroke, rng, translateBounds } from 'utils/utils'
 import { defaultStyle, getShapeStyle } from 'lib/shape-styles'
 import getStroke from 'perfect-freehand'
 

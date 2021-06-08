@@ -1,6 +1,13 @@
 import { v4 as uuid } from 'uuid'
 import * as vec from 'utils/vec'
-import * as svg from 'utils/svg'
+import {
+  ease,
+  getSvgPathFromStroke,
+  rng,
+  getBoundsFromPoints,
+  translateBounds,
+  pointsBetween,
+} from 'utils/utils'
 import { ArrowShape, Bounds, ShapeHandle, ShapeType } from 'types'
 import { registerShapeUtils } from './index'
 import { circleFromThreePoints, isAngleBetween } from 'utils/utils'
@@ -9,11 +16,12 @@ import {
   intersectArcBounds,
   intersectLineSegmentBounds,
 } from 'utils/intersections'
-import { getBoundsFromPoints, translateBounds } from 'utils/utils'
 import { pointInCircle } from 'utils/hitTests'
 import { defaultStyle, getShapeStyle } from 'lib/shape-styles'
+import getStroke from 'perfect-freehand'
 
 const ctpCache = new WeakMap<ArrowShape['handles'], number[]>()
+const pathCache = new WeakMap<ArrowShape, string>([])
 
 function getCtp(shape: ArrowShape) {
   if (!ctpCache.has(shape.handles)) {
@@ -100,7 +108,6 @@ const arrow = registerShapeUtils<ArrowShape>({
     const style = getShapeStyle(shape.style)
 
     let body: JSX.Element
-    let endAngle: number
 
     if (showCircle) {
       if (!ctpCache.has(handles)) {
@@ -112,54 +119,48 @@ const arrow = registerShapeUtils<ArrowShape>({
 
       const circle = getCtp(shape)
 
+      if (!pathCache.has(shape)) {
+        renderPath(
+          shape,
+          vec.angle([circle[0], circle[1]], end.point) -
+            vec.angle(start.point, end.point) +
+            (Math.PI / 2) * (bend > 0 ? 0.98 : -0.98)
+        )
+      }
+
+      const path = pathCache.get(shape)
+
       body = (
-        <path
-          d={getArrowArcPath(start, end, circle, bend)}
-          fill="none"
-          strokeLinecap="round"
-        />
+        <>
+          <path
+            d={getArrowArcPath(start, end, circle, bend)}
+            fill="none"
+            strokeWidth={+style.strokeWidth * 1.85}
+            strokeLinecap="round"
+          />
+          <path d={path} strokeWidth={+style.strokeWidth * 1.5} />
+        </>
       )
-
-      const CE =
-        vec.angle([circle[0], circle[1]], end.point) -
-        vec.angle(start.point, end.point) +
-        (Math.PI / 2) * (bend > 0 ? 0.98 : -0.98)
-
-      endAngle = CE
     } else {
-      body = (
-        <polyline
-          points={[start.point, end.point].join(' ')}
-          strokeLinecap="round"
-        />
-      )
-      endAngle = 0
-    }
+      if (!pathCache.has(shape)) {
+        renderPath(shape)
+      }
 
-    // Arrowhead
-    const length = Math.min(arrowDist / 2, 16 + +style.strokeWidth * 2)
-    const u = vec.uni(vec.vec(start.point, end.point))
-    const v = vec.rot(vec.mul(vec.neg(u), length), endAngle)
-    const b = vec.add(end.point, vec.rot(v, Math.PI / 6))
-    const c = vec.add(end.point, vec.rot(v, -(Math.PI / 6)))
+      const path = pathCache.get(shape)
+
+      body = <path d={path} />
+    }
 
     return (
       <g id={id}>
         {body}
-        <circle
+        {/* <circle
           cx={start.point[0]}
           cy={start.point[1]}
-          r={+style.strokeWidth}
+          r={Math.max(4, +style.strokeWidth)}
           fill={style.stroke}
           strokeDasharray="none"
-        />
-        <polyline
-          points={[b, end.point, c].join()}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-          strokeDasharray="none"
-        />
+        /> */}
       </g>
     )
   },
@@ -425,4 +426,83 @@ function getResizeOffset(a: Bounds, b: Bounds) {
   }
 
   return delta
+}
+
+function renderPath(shape: ArrowShape, endAngle = 0) {
+  const { style, id } = shape
+  const { start, end, bend } = shape.handles
+
+  const getRandom = rng(id)
+  const offsetA = getRandom()
+
+  const strokeWidth = +getShapeStyle(style).strokeWidth * 2
+
+  const arrowDist = vec.dist(start.point, end.point)
+
+  const styles = getShapeStyle(shape.style)
+
+  const sw = +styles.strokeWidth
+
+  const length = Math.min(arrowDist / 2, 24 + sw * 2)
+  const u = vec.uni(vec.vec(start.point, end.point))
+  const v = vec.rot(vec.mul(vec.neg(u), length), endAngle)
+
+  // Start
+  const a = start.point
+
+  // Middle
+  const m = vec.add(
+    vec.lrp(start.point, end.point, 0.25 + Math.abs(getRandom()) / 2),
+    [getRandom() * sw, getRandom() * sw]
+  )
+
+  // End
+  const b = end.point
+
+  // Left
+  let c = vec.add(
+    end.point,
+    vec.rot(v, Math.PI / 6 + (Math.PI / 8) * getRandom())
+  )
+
+  // Right
+  let d = vec.add(
+    end.point,
+    vec.rot(v, -(Math.PI / 6) + (Math.PI / 8) * getRandom())
+  )
+
+  if (getRandom() > 0.5) {
+    ;[c, d] = [d, c]
+  }
+
+  const points = endAngle
+    ? [
+        // Just the arrowhead
+        ...pointsBetween(b, c),
+        ...pointsBetween(c, b),
+        ...pointsBetween(b, d),
+        ...pointsBetween(d, b),
+      ]
+    : [
+        // The shaft too
+        b,
+        a,
+        ...pointsBetween(a, m),
+        ...pointsBetween(m, b),
+        ...pointsBetween(b, c),
+        ...pointsBetween(c, b),
+        ...pointsBetween(b, d),
+        ...pointsBetween(d, b),
+      ]
+
+  const stroke = getStroke(points, {
+    size: 1 + strokeWidth,
+    thinning: 0.6,
+    easing: (t) => t * t * t * t,
+    end: { taper: strokeWidth * 20 },
+    start: { taper: strokeWidth * 20 },
+    simulatePressure: false,
+  })
+
+  pathCache.set(shape, getSvgPathFromStroke(stroke))
 }
