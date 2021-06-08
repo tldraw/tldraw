@@ -199,7 +199,7 @@ function renderPath(shape: EllipseShape) {
   }
 
   const stroke = getStroke(points, {
-    size: 1 + strokeWidth * 2,
+    size: 1 + strokeWidth,
     thinning: 0.6,
     easing: (t) => t * t * t * t,
     end: { taper: strokeWidth * 20 },

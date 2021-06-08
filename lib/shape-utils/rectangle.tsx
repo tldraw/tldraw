@@ -154,7 +154,7 @@ function renderPath(shape: RectangleShape) {
   const stroke = getStroke(
     [...lines.flat().slice(2), ...lines[0], ...lines[0].slice(4)],
     {
-      size: 1 + +styles.strokeWidth * 2,
+      size: 1 + +styles.strokeWidth,
       thinning: 0.6,
       easing: (t) => t * t * t * t,
       end: { taper: +styles.strokeWidth * 20 },
