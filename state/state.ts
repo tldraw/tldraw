@@ -50,8 +50,6 @@ import {
 import session from './session'
 import { pointInBounds } from 'utils/bounds'
 
-let currentBounds: Bounds
-
 const initialData: Data = {
   isReadOnly: false,
   settings: {
@@ -212,7 +210,13 @@ const state = createState({
                 CANCELLED: 'clearSelectedIds',
                 STARTED_PINCHING: { to: 'pinching' },
                 POINTED_CANVAS: { to: 'brushSelecting' },
-                POINTED_BOUNDS: { to: 'pointingBounds' },
+                POINTED_BOUNDS: [
+                  {
+                    if: 'isPressingMetaKey',
+                    to: 'brushSelecting',
+                  },
+                  { to: 'pointingBounds' },
+                ],
                 POINTED_BOUNDS_HANDLE: {
                   if: 'isPointingRotationHandle',
                   to: 'rotatingSelection',
@@ -225,14 +229,20 @@ const state = createState({
                     unless: 'shapeIsHovered',
                     do: 'setHoveredId',
                   },
-                  else: { if: 'shapeIsHovered', do: 'clearHoveredId' },
+                  else: {
+                    if: 'shapeIsHovered',
+                    do: 'clearHoveredId',
+                  },
                 },
                 UNHOVERED_SHAPE: 'clearHoveredId',
                 DOUBLE_POINTED_SHAPE: [
-                  'setDrilledPointedId',
-                  'clearSelectedIds',
-                  'pushPointedIdToSelectedIds',
                   {
+                    unless: 'isPressingShiftKey',
+                    do: [
+                      'setDrilledPointedId',
+                      'clearSelectedIds',
+                      'pushPointedIdToSelectedIds',
+                    ],
                     to: 'pointingBounds',
                   },
                 ],
@@ -242,7 +252,10 @@ const state = createState({
                     to: 'brushSelecting',
                   },
                   'setPointedId',
-                  { if: 'pointInSelectionBounds', to: 'pointingBounds' },
+                  {
+                    if: 'pointInSelectionBounds',
+                    to: 'pointingBounds',
+                  },
                   {
                     unless: 'isPointedShapeSelected',
                     then: {
@@ -262,10 +275,12 @@ const state = createState({
                 STOPPED_POINTING: [
                   {
                     if: 'isPressingShiftKey',
-                    then: {
-                      if: 'isPointedShapeSelected',
-                      do: 'pullPointedIdFromSelectedIds',
-                    },
+                    then: [
+                      {
+                        if: 'isPointedShapeSelected',
+                        do: 'pullPointedIdFromSelectedIds',
+                      },
+                    ],
                     else: {
                       unless: 'isPointingBounds',
                       do: ['clearSelectedIds', 'pushPointedIdToSelectedIds'],
@@ -742,7 +757,7 @@ const state = createState({
   },
   conditions: {
     isPointingBounds(data, payload: PointerInfo) {
-      return payload.target === 'bounds'
+      return getSelectedIds(data).size > 0 && payload.target === 'bounds'
     },
     isReadOnly(data) {
       return data.isReadOnly
@@ -763,9 +778,11 @@ const state = createState({
       return data.hoveredId === payload.target
     },
     pointInSelectionBounds(data, payload: PointerInfo) {
-      return (
-        currentBounds &&
-        pointInBounds(screenToWorld(payload.point, data), currentBounds)
+      if (getSelectedIds(data).size === 0) return false
+
+      return pointInBounds(
+        screenToWorld(payload.point, data),
+        getSelectionBounds(data)
       )
     },
     pointHitsShape(data, payload: PointerInfo) {
@@ -1448,73 +1465,7 @@ const state = createState({
       return new Set(getSelectedIds(data))
     },
     selectedBounds(data) {
-      const selectedIds = getSelectedIds(data)
-
-      const page = getPage(data)
-
-      const shapes = Array.from(selectedIds.values())
-        .map((id) => page.shapes[id])
-        .filter(Boolean)
-
-      if (selectedIds.size === 0) return null
-
-      if (selectedIds.size === 1) {
-        if (!shapes[0]) {
-          console.error('Could not find that shape! Clearing selected IDs.')
-          setSelectedIds(data, [])
-          return null
-        }
-
-        const shape = shapes[0]
-        const shapeUtils = getShapeUtils(shape)
-
-        if (!shapeUtils.canTransform) return null
-
-        let bounds = shapeUtils.getBounds(shape)
-
-        let parentId = shape.parentId
-
-        while (parentId !== data.currentPageId) {
-          const parent = page.shapes[parentId]
-
-          bounds = rotateBounds(
-            bounds,
-            getBoundsCenter(getShapeUtils(parent).getBounds(parent)),
-            parent.rotation
-          )
-
-          bounds.rotation = parent.rotation
-
-          parentId = parent.parentId
-        }
-
-        return bounds
-      }
-
-      const uniqueSelectedShapeIds: string[] = Array.from(
-        new Set(
-          Array.from(selectedIds.values()).flatMap((id) =>
-            getDocumentBranch(data, id)
-          )
-        ).values()
-      )
-
-      const commonBounds = getCommonBounds(
-        ...uniqueSelectedShapeIds
-          .map((id) => page.shapes[id])
-          .filter((shape) => shape.type !== ShapeType.Group)
-          .map((shape) => {
-            const parentOffset = getParentOffset(data, shape.id)
-            const parentRotation = getParentRotation(data, shape.id)
-            const bounds = getShapeUtils(shape).getRotatedBounds(shape)
-
-            return bounds
-          })
-      )
-
-      currentBounds = commonBounds
-
-      return commonBounds
+      return getSelectionBounds(data)
     },
     selectedStyle(data) {
       const selectedIds = Array.from(getSelectedIds(data).values())
@@ -1590,4 +1541,66 @@ function hasPointedIdInChildren(data: Data, id: string, pointedId: string) {
   return shape.children.some((childId) =>
     hasPointedIdInChildren(data, childId, pointedId)
   )
+}
+
+function getSelectionBounds(data: Data) {
+  const selectedIds = getSelectedIds(data)
+
+  const page = getPage(data)
+
+  const shapes = Array.from(selectedIds.values())
+    .map((id) => page.shapes[id])
+    .filter(Boolean)
+
+  if (selectedIds.size === 0) return null
+
+  if (selectedIds.size === 1) {
+    if (!shapes[0]) {
+      console.error('Could not find that shape! Clearing selected IDs.')
+      setSelectedIds(data, [])
+      return null
+    }
+
+    const shape = shapes[0]
+    const shapeUtils = getShapeUtils(shape)
+
+    if (!shapeUtils.canTransform) return null
+
+    let bounds = shapeUtils.getBounds(shape)
+
+    let parentId = shape.parentId
+
+    while (parentId !== data.currentPageId) {
+      const parent = page.shapes[parentId]
+
+      bounds = rotateBounds(
+        bounds,
+        getBoundsCenter(getShapeUtils(parent).getBounds(parent)),
+        parent.rotation
+      )
+
+      bounds.rotation = parent.rotation
+
+      parentId = parent.parentId
+    }
+
+    return bounds
+  }
+
+  const uniqueSelectedShapeIds: string[] = Array.from(
+    new Set(
+      Array.from(selectedIds.values()).flatMap((id) =>
+        getDocumentBranch(data, id)
+      )
+    ).values()
+  )
+
+  const commonBounds = getCommonBounds(
+    ...uniqueSelectedShapeIds
+      .map((id) => page.shapes[id])
+      .filter((shape) => shape.type !== ShapeType.Group)
+      .map((shape) => getShapeUtils(shape).getRotatedBounds(shape))
+  )
+
+  return commonBounds
 }

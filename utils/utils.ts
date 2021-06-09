@@ -1370,6 +1370,10 @@ export function getPage(data: Data, pageId = data.currentPageId) {
   return data.document.pages[pageId]
 }
 
+export function getPageState(data: Data, pageId = data.currentPageId) {
+  return data.pageStates[pageId]
+}
+
 export function getCurrentCode(data: Data, fileId = data.currentCodeFileId) {
   return data.document.code[fileId]
 }

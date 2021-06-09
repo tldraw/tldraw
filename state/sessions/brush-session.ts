@@ -5,7 +5,7 @@ import { getShapeUtils } from 'lib/shape-utils'
 import {
   getBoundsFromPoints,
   getPage,
-  getSelectedIds,
+  getPageState,
   getShapes,
   setSelectedIds,
   setToArray,
@@ -32,9 +32,11 @@ export default class BrushSession extends BaseSession {
 
     const hits = new Set<string>([])
 
-    const selectedIds = getSelectedIds(data)
+    const selectedIds = new Set(snapshot.selectedIds)
 
     for (let id in snapshot.shapeHitTests) {
+      if (selectedIds.has(id)) continue
+
       const { test, selectId } = snapshot.shapeHitTests[id]
       if (!hits.has(selectId)) {
         if (test(brushBounds)) {
@@ -49,6 +51,8 @@ export default class BrushSession extends BaseSession {
         }
       }
     }
+
+    getPageState(data).selectedIds = selectedIds
 
     data.brush = brushBounds
   }
@@ -69,21 +73,28 @@ export default class BrushSession extends BaseSession {
  * brush will intersect that shape. For tests, start broad -> fine.
  */
 export function getBrushSnapshot(data: Data) {
+  const cData = current(data)
+  const { selectedIds } = getPageState(cData)
+
+  const shapesToTest = getShapes(cData)
+    .filter((shape) => shape.type !== ShapeType.Group)
+    .filter(
+      (shape) => !(selectedIds.has(shape.id) || selectedIds.has(shape.parentId))
+    )
+
   return {
-    selectedIds: setToArray(getSelectedIds(data)),
+    selectedIds: setToArray(selectedIds),
     shapeHitTests: Object.fromEntries(
-      getShapes(state.data)
-        .filter((shape) => shape.type !== ShapeType.Group)
-        .map((shape) => {
-          return [
-            shape.id,
-            {
-              selectId: getTopParentId(data, shape.id),
-              test: (bounds: Bounds) =>
-                getShapeUtils(shape).hitTestBounds(shape, bounds),
-            },
-          ]
-        })
+      shapesToTest.map((shape) => {
+        return [
+          shape.id,
+          {
+            selectId: getTopParentId(cData, shape.id),
+            test: (bounds: Bounds) =>
+              getShapeUtils(shape).hitTestBounds(shape, bounds),
+          },
+        ]
+      })
     ),
   }
 }

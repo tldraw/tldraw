@@ -13,11 +13,11 @@ export default function useShapeEvents(
       if (!inputs.canAccept(e.pointerId)) return
       e.stopPropagation()
       rGroup.current.setPointerCapture(e.pointerId)
+
       if (inputs.isDoubleClick()) {
         state.send('DOUBLE_POINTED_SHAPE', inputs.pointerDown(e, id))
-      } else {
-        state.send('POINTED_SHAPE', inputs.pointerDown(e, id))
       }
+      state.send('POINTED_SHAPE', inputs.pointerDown(e, id))
     },
     [id]
   )
