@@ -9,6 +9,7 @@ import StylePanel from './style-panel/style-panel'
 import { useSelector } from 'state'
 import styled from 'styles'
 import PagePanel from './page-panel/page-panel'
+import ContextMenu from './context-menu'
 
 export default function Editor() {
   useKeyboardEvents()
@@ -25,11 +26,6 @@ export default function Editor() {
       <Spacer />
       <StylePanel />
       <Canvas />
-
-      {/* <LeftPanels>
-        <CodePanel />
-        {hasControls && <ControlsPanel />}
-      </LeftPanels> */}
       <ToolsPanel />
       <StatusBar />
     </Layout>

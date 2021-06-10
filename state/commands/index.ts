@@ -2,14 +2,17 @@ import align from './align'
 import arrow from './arrow'
 import changePage from './change-page'
 import createPage from './create-page'
-import deleteSelected from './delete-selected'
 import deletePage from './delete-page'
+import deleteSelected from './delete-selected'
 import direct from './direct'
 import distribute from './distribute'
 import draw from './draw'
 import duplicate from './duplicate'
 import generate from './generate'
+import group from './group'
+import handle from './handle'
 import move from './move'
+import moveToPage from './move-to-page'
 import nudge from './nudge'
 import rotate from './rotate'
 import rotateCcw from './rotate-ccw'
@@ -19,8 +22,6 @@ import toggle from './toggle'
 import transform from './transform'
 import transformSingle from './transform-single'
 import translate from './translate'
-import handle from './handle'
-import group from './group'
 import ungroup from './ungroup'
 
 const commands = {
@@ -35,7 +36,10 @@ const commands = {
   draw,
   duplicate,
   generate,
+  group,
+  handle,
   move,
+  moveToPage,
   nudge,
   rotate,
   rotateCcw,
@@ -45,8 +49,6 @@ const commands = {
   transform,
   transformSingle,
   translate,
-  handle,
-  group,
   ungroup,
 }
 

@@ -51,7 +51,7 @@ export default function Bounds() {
 
   if (isSingleHandles) return null
 
-  const size = (isMobile().any ? 10 : 8) / zoom // Touch target size
+  const size = (isMobile() ? 10 : 8) / zoom // Touch target size
   const center = getBoundsCenter(bounds)
 
   return (

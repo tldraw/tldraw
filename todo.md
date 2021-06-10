@@ -24,4 +24,14 @@
 ## Pages
 
 - [x] Make selection part of page state
-- [ ] Allow only one page to be in the document at a time
+- [x] Allow only one page to be in the document at a time
+
+## Context Menu
+
+- [x] Create context Menu
+- [ ] Wire up events
+
+## Move to Page
+
+- [ ] Move to Page Command
+- [ ] Dialog

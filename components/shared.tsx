@@ -105,6 +105,10 @@ export const RowButton = styled('button', {
     zIndex: 1,
   },
 
+  '& :disabled': {
+    opacity: 0.5,
+  },
+
   variants: {
     bp: {
       mobile: {},

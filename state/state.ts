@@ -188,6 +188,10 @@ const state = createState({
             CHANGED_CODE_CONTROL: 'updateControls',
             GENERATED_FROM_CODE: ['setCodeControls', 'setGeneratedShapes'],
             TOGGLED_TOOL_LOCK: 'toggleToolLock',
+            MOVED_TO_PAGE: {
+              if: 'hasSelection',
+              do: ['moveSelectionToPage', 'zoomCameraToSelectionActual'],
+            },
             MOVED: { if: 'hasSelection', do: 'moveSelection' },
             DUPLICATED: { if: 'hasSelection', do: 'duplicateSelection' },
             ROTATED_CCW: { if: 'hasSelection', do: 'rotateSelectionCcw' },
@@ -266,6 +270,25 @@ const state = createState({
                   },
                   {
                     to: 'pointingBounds',
+                  },
+                ],
+                RIGHT_POINTED: [
+                  {
+                    if: 'isPointingCanvas',
+                    do: 'clearSelectedIds',
+                    else: {
+                      if: 'isPointingShape',
+                      then: [
+                        'setPointedId',
+                        {
+                          unless: 'isPointedShapeSelected',
+                          do: [
+                            'clearSelectedIds',
+                            'pushPointedIdToSelectedIds',
+                          ],
+                        },
+                      ],
+                    },
                   },
                 ],
               },
@@ -756,14 +779,27 @@ const state = createState({
     },
   },
   conditions: {
+    isPointingCanvas(data, payload: PointerInfo) {
+      return payload.target === 'canvas'
+    },
     isPointingBounds(data, payload: PointerInfo) {
       return getSelectedIds(data).size > 0 && payload.target === 'bounds'
+    },
+    isPointingShape(data, payload: PointerInfo) {
+      return (
+        payload.target &&
+        payload.target !== 'canvas' &&
+        payload.target !== 'bounds'
+      )
     },
     isReadOnly(data) {
       return data.isReadOnly
     },
     distanceImpliesDrag(data, payload: PointerInfo) {
       return vec.dist2(payload.origin, payload.point) > 8
+    },
+    hasPointedTarget(data, payload: PointerInfo) {
+      return payload.target !== undefined
     },
     isPointedShapeSelected(data) {
       return getSelectedIds(data).has(data.pointedId)
@@ -1120,6 +1156,9 @@ const state = createState({
     },
     moveSelection(data, payload: { type: MoveType }) {
       commands.move(data, payload.type)
+    },
+    moveSelectionToPage(data, payload: { id: string }) {
+      commands.moveToPage(data, payload.id)
     },
     alignSelection(data, payload: { type: AlignType }) {
       commands.align(data, payload.type)

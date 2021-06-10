@@ -1,7 +1,6 @@
 import styled from 'styles'
 import state, { useSelector } from 'state'
-import inputs from 'state/inputs'
-import React, { useCallback, useRef } from 'react'
+import React, { useRef } from 'react'
 import useZoomEvents from 'hooks/useZoomEvents'
 import useCamera from 'hooks/useCamera'
 import Defs from './defs'
@@ -12,6 +11,7 @@ import BoundsBg from './bounds/bounds-bg'
 import Selected from './selected'
 import Handles from './bounds/handles'
 import useCanvasEvents from 'hooks/useCanvasEvents'
+import ContextMenu from 'components/context-menu'
 
 export default function Canvas() {
   const rCanvas = useRef<SVGSVGElement>(null)
@@ -26,19 +26,21 @@ export default function Canvas() {
   const isReady = useSelector((s) => s.isIn('ready'))
 
   return (
-    <MainSVG ref={rCanvas} {...events}>
-      <Defs />
-      {isReady && (
-        <g ref={rGroup}>
-          <BoundsBg />
-          <Page />
-          <Selected />
-          <Bounds />
-          <Handles />
-          <Brush />
-        </g>
-      )}
-    </MainSVG>
+    <ContextMenu>
+      <MainSVG ref={rCanvas} {...events}>
+        <Defs />
+        {isReady && (
+          <g ref={rGroup}>
+            <BoundsBg />
+            <Page />
+            <Selected />
+            <Bounds />
+            <Handles />
+            <Brush />
+          </g>
+        )}
+      </MainSVG>
+    </ContextMenu>
   )
 }
 

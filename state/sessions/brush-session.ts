@@ -7,6 +7,7 @@ import {
   getPage,
   getPageState,
   getShapes,
+  getTopParentId,
   setSelectedIds,
   setToArray,
 } from 'utils/utils'
@@ -77,7 +78,7 @@ export function getBrushSnapshot(data: Data) {
   const { selectedIds } = getPageState(cData)
 
   const shapesToTest = getShapes(cData)
-    .filter((shape) => shape.type !== ShapeType.Group)
+    .filter((shape) => shape.type !== ShapeType.Group && !shape.isHidden)
     .filter(
       (shape) => !(selectedIds.has(shape.id) || selectedIds.has(shape.parentId))
     )
@@ -100,11 +101,3 @@ export function getBrushSnapshot(data: Data) {
 }
 
 export type BrushSnapshot = ReturnType<typeof getBrushSnapshot>
-
-function getTopParentId(data: Data, id: string): string {
-  const shape = getPage(data).shapes[id]
-  return shape.parentId === data.currentPageId ||
-    shape.parentId === data.currentParentId
-    ? id
-    : getTopParentId(data, shape.parentId)
-}

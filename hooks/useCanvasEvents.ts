@@ -9,8 +9,14 @@ export default function useCanvasEvents(
 ) {
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (!inputs.canAccept(e.pointerId)) return
+
     rCanvas.current.setPointerCapture(e.pointerId)
-    state.send('POINTED_CANVAS', inputs.pointerDown(e, 'canvas'))
+
+    if (e.button === 0) {
+      state.send('POINTED_CANVAS', inputs.pointerDown(e, 'canvas'))
+    } else if (e.button === 2) {
+      state.send('RIGHT_POINTED', inputs.pointerDown(e, 'canvas'))
+    }
   }, [])
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {

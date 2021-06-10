@@ -21,9 +21,11 @@ export default function Handles() {
     s.isInAny('notPointing', 'pinching', 'translatingHandles')
   )
 
-  if (!shape.handles || !isSelecting) return null
+  if (!shape || !shape.handles || !isSelecting) return null
 
   const center = getShapeUtils(shape).getCenter(shape)
+
+  console.log(shape)
 
   return (
     <g transform={`rotate(${shape.rotation * (180 / Math.PI)},${center})`}>

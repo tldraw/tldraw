@@ -1398,7 +1398,7 @@ export function getSelectedBounds(data: Data) {
 }
 
 export function isMobile() {
-  return _isMobile()
+  return _isMobile().any
 }
 
 export function getRotatedBounds(shape: Shape) {
@@ -1661,6 +1661,7 @@ export function getParentRotation(
 
 export function getDocumentBranch(data: Data, id: string): string[] {
   const shape = getPage(data).shapes[id]
+
   if (shape.type !== ShapeType.Group) return [id]
 
   return [
@@ -1740,4 +1741,20 @@ export function pointsBetween(a: number[], b: number[], steps = 6) {
 
 export function shuffleArr<T>(arr: T[], offset: number): T[] {
   return arr.map((_, i) => arr[(i + offset) % arr.length])
+}
+
+export function commandKey() {
+  return isDarwin() ? '⌘' : 'Ctrl'
+}
+
+export function getTopParentId(data: Data, id: string): string {
+  const shape = getPage(data).shapes[id]
+  return shape.parentId === data.currentPageId ||
+    shape.parentId === data.currentParentId
+    ? id
+    : getTopParentId(data, shape.parentId)
+}
+
+export function uniqueArray<T extends string | number | Symbol>(...items: T[]) {
+  return Array.from(new Set(items).values())
 }

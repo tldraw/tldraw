@@ -5,15 +5,18 @@ import styled from 'styles'
 import { deepCompareArrays, getPage } from 'utils/utils'
 
 function handlePointerDown(e: React.PointerEvent<SVGRectElement>) {
-  if (e.buttons !== 1) return
   if (!inputs.canAccept(e.pointerId)) return
   e.stopPropagation()
   e.currentTarget.setPointerCapture(e.pointerId)
-  state.send('POINTED_BOUNDS', inputs.pointerDown(e, 'bounds'))
+
+  if (e.button === 0) {
+    state.send('POINTED_BOUNDS', inputs.pointerDown(e, 'bounds'))
+  } else if (e.button === 2) {
+    state.send('RIGHT_POINTED', inputs.pointerDown(e, 'bounds'))
+  }
 }
 
 function handlePointerUp(e: React.PointerEvent<SVGRectElement>) {
-  if (e.buttons !== 1) return
   if (!inputs.canAccept(e.pointerId)) return
   e.stopPropagation()
   e.currentTarget.releasePointerCapture(e.pointerId)
@@ -36,7 +39,7 @@ export default function BoundsBg() {
     if (selectedIds.length === 1) {
       const { shapes } = getPage(s.data)
       const selected = Array.from(s.values.selectedIds.values())[0]
-      return shapes[selected].rotation
+      return shapes[selected]?.rotation
     } else {
       return 0
     }
