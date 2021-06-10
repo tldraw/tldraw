@@ -15,13 +15,22 @@ import { getShapeUtils } from 'lib/shape-utils'
 import * as vec from 'utils/vec'
 import storage from 'state/storage'
 
-export default function nudgeCommand(data: Data, toPageId: string) {
-  const { currentPageId: fromPageId } = data
+export default function nudgeCommand(data: Data, newPageId: string) {
+  const { currentPageId: oldPageId } = data
+  const oldPage = getPage(data)
   const selectedIds = setToArray(getSelectedIds(data))
 
-  const selectedParents = uniqueArray(
-    ...selectedIds.map((id) => getTopParentId(data, id))
+  const idsToMove = uniqueArray(
+    ...selectedIds.flatMap((id) => getDocumentBranch(data, id))
   )
+
+  const oldParentIds = Object.fromEntries(
+    idsToMove.map((id) => [id, oldPage.shapes[id].parentId])
+  )
+
+  // const selectedParents = uniqueArray(
+  //   ...selectedIds.map((id) => getTopParentId(data, id))
+  // )
 
   history.execute(
     data,
@@ -30,16 +39,33 @@ export default function nudgeCommand(data: Data, toPageId: string) {
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        // The page we're moving the shapes from
+        const fromPageId = oldPageId
+        const toPageId = newPageId
+
         const fromPage = getPage(data, fromPageId)
 
         // Get all of the selected shapes and their descendents
-        const shapesToMove = selectedParents.flatMap((id) =>
-          getDocumentBranch(data, id).map((id) => fromPage.shapes[id])
-        )
+        const shapesToMove = idsToMove.map((id) => fromPage.shapes[id])
 
-        // Delete the shapes from the "from" page
-        shapesToMove.forEach((shape) => delete fromPage.shapes[shape.id])
+        shapesToMove.forEach((shape) => {
+          // If the shape is a parent of a group that isn't selected,
+          // remove the shape's id from its parent's children.
+          if (
+            shape.parentId !== fromPageId &&
+            !idsToMove.includes(shape.parentId)
+          ) {
+            const parent = fromPage.shapes[shape.parentId]
+
+            getShapeUtils(parent).setProperty(
+              parent,
+              'children',
+              parent.children.filter((id) => id !== shape.id)
+            )
+          }
+
+          // Delete the shapes from the "from" page
+          delete fromPage.shapes[shape.id]
+        })
 
         // Clear the current page state's selected ids
         getPageState(data, fromPageId).selectedIds.clear()
@@ -53,20 +79,17 @@ export default function nudgeCommand(data: Data, toPageId: string) {
         // The page we're moving the shapes to
         const toPage = getPage(data, toPageId)
 
-        // Add all of the selected shapes to the "from" page. Any shapes that
-        // were children of the "from" page should become children of the "to"
-        // page. Grouped shapes should keep their same parent.
-
-        // What about shapes that were children of a group that we haven't moved?
+        // Add all of the selected shapes to the "from" page.
         shapesToMove.forEach((shape) => {
           toPage.shapes[shape.id] = shape
-          if (shape.parentId === fromPageId) {
+        })
+
+        // If a shape's parent isn't in the document, re-parent to the page.
+        shapesToMove.forEach((shape) => {
+          if (!toPage.shapes[shape.parentId]) {
             getShapeUtils(shape).setProperty(shape, 'parentId', toPageId)
           }
         })
-
-        console.log('from', getPage(data, fromPageId))
-        console.log('to', getPage(data, toPageId))
 
         // Select the selected ids on the new page
         getPageState(data, toPageId).selectedIds = new Set(selectedIds)
@@ -75,32 +98,58 @@ export default function nudgeCommand(data: Data, toPageId: string) {
         data.currentPageId = toPageId
       },
       undo(data) {
-        const toPage = getPage(data, fromPageId)
+        const fromPageId = newPageId
+        const toPageId = oldPageId
 
-        const shapesToMove = selectedParents.flatMap((id) =>
-          getDocumentBranch(data, id).map((id) => toPage.shapes[id])
-        )
+        const fromPage = getPage(data, fromPageId)
 
-        shapesToMove.forEach((shape) => delete toPage.shapes[shape.id])
-
-        getPageState(data, toPageId).selectedIds.clear()
-
-        storage.savePage(data, toPageId)
-
-        storage.loadPage(data, fromPageId)
-
-        const fromPage = getPage(data, toPageId)
+        const shapesToMove = idsToMove.map((id) => fromPage.shapes[id])
 
         shapesToMove.forEach((shape) => {
-          fromPage.shapes[shape.id] = shape
-          if (shape.parentId === toPageId) {
-            getShapeUtils(shape).setProperty(shape, 'parentId', fromPageId)
+          if (
+            shape.parentId !== fromPageId &&
+            !idsToMove.includes(shape.parentId)
+          ) {
+            const parent = fromPage.shapes[shape.parentId]
+
+            getShapeUtils(parent).setProperty(
+              parent,
+              'children',
+              parent.children.filter((id) => id !== shape.id)
+            )
+          }
+
+          delete fromPage.shapes[shape.id]
+        })
+
+        getPageState(data, fromPageId).selectedIds.clear()
+
+        storage.savePage(data, fromPageId)
+
+        storage.loadPage(data, toPageId)
+
+        const toPage = getPage(data, toPageId)
+
+        shapesToMove.forEach((shape) => {
+          toPage.shapes[shape.id] = shape
+
+          // Move shapes back to their old parent
+          const parentId = oldParentIds[shape.id]
+          getShapeUtils(shape).setProperty(shape, 'parentId', parentId)
+
+          // And add the shape back to the parent's children
+          if (parentId !== toPageId) {
+            const parent = toPage.shapes[parentId]
+            getShapeUtils(parent).setProperty(parent, 'children', [
+              ...parent.children,
+              shape.id,
+            ])
           }
         })
 
-        getPageState(data, fromPageId).selectedIds = new Set(selectedIds)
+        getPageState(data, toPageId).selectedIds = new Set(selectedIds)
 
-        data.currentPageId = fromPageId
+        data.currentPageId = toPageId
       },
     })
   )

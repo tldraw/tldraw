@@ -139,9 +139,7 @@ export default function ContextMenu({
             <StyledDivider />
 
             {/* <Button onSelect={() => state.send('MOVED_TO_PAGE')}> */}
-            <_ContextMenu.Item>
-              <MoveToPageDropDown>Move to Page</MoveToPageDropDown>
-            </_ContextMenu.Item>
+            <MoveToPageDropDown>Move to Page</MoveToPageDropDown>
             {/* </Button> */}
             <Button onSelect={() => state.send('DELETED')}>
               <span>Delete</span>
