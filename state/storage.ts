@@ -122,10 +122,11 @@ class Storage {
 
   saveAsToFileSystem = (data: Data) => {
     // Create a new document id when saving to the file system
+
     this.saveToFileSystem(data, uuid())
   }
 
-  saveToFileSystem = (data: Data, id = data.document.id) => {
+  saveToFileSystem = (data: Data, id?: string) => {
     // Save to local storage first
     this.saveToLocalStorage(data, id)
 
@@ -138,11 +139,15 @@ class Storage {
     fa.fileSave(
       blob,
       {
-        fileName: `${data.document.name}.tldr`,
+        fileName: `${
+          id
+            ? data.document.name
+            : this.previousSaveHandle?.name || 'My Document'
+        }.tldr`,
         description: 'tldraw file',
         extensions: ['.tldr'],
       },
-      this.previousSaveHandle,
+      id ? undefined : this.previousSaveHandle,
       true
     )
       .then((handle) => {

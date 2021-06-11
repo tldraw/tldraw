@@ -1499,7 +1499,6 @@ const state = createState({
     },
 
     forceSave(data) {
-      // storage.saveToLocalStorage(data)
       storage.saveToFileSystem(data)
     },
 
