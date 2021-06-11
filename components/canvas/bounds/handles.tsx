@@ -25,8 +25,6 @@ export default function Handles() {
 
   const center = getShapeUtils(shape).getCenter(shape)
 
-  console.log(shape)
-
   return (
     <g transform={`rotate(${shape.rotation * (180 / Math.PI)},${center})`}>
       {Object.values(shape.handles).map((handle) => (

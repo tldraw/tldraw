@@ -13,9 +13,9 @@ export default function changePage(data: Data, pageId: string) {
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        storage.savePage(data, data.currentPageId)
+        storage.savePage(data, data.document.id, prevPageId)
         data.currentPageId = pageId
-        storage.loadPage(data, data.currentPageId)
+        storage.loadPage(data)
       },
       undo(data) {
         data.currentPageId = prevPageId

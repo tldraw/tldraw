@@ -2,6 +2,8 @@ import { Data, ShapeType } from 'types'
 import shapeUtils from 'lib/shape-utils'
 
 export const defaultDocument: Data['document'] = {
+  id: '0001',
+  name: 'My Document',
   pages: {
     page1: {
       id: 'page1',

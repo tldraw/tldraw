@@ -172,15 +172,19 @@ const state = createState({
         CHANGED_PAGE: 'changePage',
         CREATED_PAGE: ['clearSelectedIds', 'createPage'],
         DELETED_PAGE: { unless: 'hasOnlyOnePage', do: 'deletePage' },
+        LOADED_FROM_FILE: 'loadDocumentFromJson',
       },
       initial: 'selecting',
       states: {
         selecting: {
           onEnter: 'setActiveToolSelect',
           on: {
-            SAVED: 'forceSave',
             UNDO: 'undo',
             REDO: 'redo',
+            SAVED: 'forceSave',
+            LOADED_FROM_FILE_STSTEM: 'loadFromFileSystem',
+            SAVED_TO_FILESYSTEM: 'saveToFileSystem',
+            SAVED_AS_TO_FILESYSTEM: 'saveAsToFileSystem',
             SAVED_CODE: 'saveCode',
             DELETED: 'deleteSelection',
             INCREASED_CODE_FONT_SIZE: 'increaseCodeFontSize',
@@ -433,8 +437,12 @@ const state = createState({
                       do: 'createShape',
                       to: 'draw.editing',
                     },
-                    UNDO: { do: 'undo' },
-                    REDO: { do: 'redo' },
+                    UNDO: 'undo',
+                    REDO: 'redo',
+                    SAVED: 'forceSave',
+                    LOADED_FROM_FILE_STSTEM: 'loadFromFileSystem',
+                    SAVED_TO_FILESYSTEM: 'saveToFileSystem',
+                    SAVED_AS_TO_FILESYSTEM: 'saveAsToFileSystem',
                   },
                 },
                 editing: {
@@ -1474,25 +1482,41 @@ const state = createState({
 
     /* ---------------------- Data ---------------------- */
 
+    saveToFileSystem(data) {
+      storage.saveToFileSystem(data)
+    },
+
+    saveAsToFileSystem(data) {
+      storage.saveAsToFileSystem(data)
+    },
+
+    loadFromFileSystem() {
+      storage.loadDocumentFromFilesystem()
+    },
+
+    loadDocumentFromJson(data, payload: { restoredData: any }) {
+      storage.load(data, payload.restoredData)
+    },
+
     forceSave(data) {
-      storage.save(data)
+      storage.saveToLocalStorage(data)
     },
 
     savePage(data) {
-      storage.savePage(data, data.currentPageId)
+      storage.savePage(data)
     },
 
     loadPage(data) {
-      storage.loadPage(data, data.currentPageId)
+      storage.loadPage(data)
     },
 
     saveCode(data, payload: { code: string }) {
       data.document.code[data.currentCodeFileId].code = payload.code
-      storage.save(data)
+      storage.saveToLocalStorage(data)
     },
 
     restoreSavedData(data) {
-      storage.load(data)
+      storage.loadDocumentFromLocalStorage(data)
     },
 
     clearBoundsRotation(data) {

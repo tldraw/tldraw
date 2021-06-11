@@ -5,6 +5,7 @@ import { current } from 'immer'
 import { getPage, getSelectedShapes } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
 import * as vec from 'utils/vec'
+import storage from 'state/storage'
 
 export default function changePage(data: Data, pageId: string) {
   const snapshot = getSnapshot(data, pageId)
@@ -18,11 +19,13 @@ export default function changePage(data: Data, pageId: string) {
         data.currentPageId = snapshot.nextPageId
         delete data.document.pages[pageId]
         delete data.pageStates[pageId]
+        storage.loadPage(data, snapshot.nextPageId)
       },
       undo(data) {
         data.currentPageId = snapshot.currentPageId
         data.document.pages[pageId] = snapshot.page
         data.pageStates[pageId] = snapshot.pageState
+        storage.loadPage(data, snapshot.currentPageId)
       },
     })
   )
@@ -37,16 +40,14 @@ function getSnapshot(data: Data, pageId: string) {
 
   const isCurrent = currentPageId === pageId
 
-  const nextIndex = isCurrent
-    ? page.childIndex === 0
-      ? 1
-      : page.childIndex - 1
-    : document.pages[currentPageId].childIndex
+  // const nextIndex = isCurrent
+  //   ? page.childIndex === 0
+  //     ? 1
+  //     : page.childIndex - 1
+  //   : document.pages[currentPageId].childIndex
 
   const nextPageId = isCurrent
-    ? Object.values(document.pages).find(
-        (page) => page.childIndex === nextIndex
-      )!.id
+    ? Object.values(document.pages).filter((page) => page.id !== pageId)[0]?.id // TODO: should be at nextIndex
     : cData.currentPageId
 
   return {

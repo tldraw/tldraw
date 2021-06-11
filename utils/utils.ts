@@ -1758,3 +1758,13 @@ export function getTopParentId(data: Data, id: string): string {
 export function uniqueArray<T extends string | number | Symbol>(...items: T[]) {
   return Array.from(new Set(items).values())
 }
+
+export function getPoint(
+  e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent
+) {
+  return [
+    Number(e.clientX.toPrecision(4)),
+    Number(e.clientY.toPrecision(4)),
+    'pressure' in e ? e.pressure || 0.5 : 0.5,
+  ]
+}

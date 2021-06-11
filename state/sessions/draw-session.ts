@@ -72,7 +72,7 @@ export default class BrushSession extends BaseSession {
 
     point = vec.med(this.previous, point)
 
-    const next = [...vec.sub(point, this.origin), pressure]
+    const next = vec.round([...vec.sub(point, this.origin), pressure])
 
     // Don't add duplicate points
     if (vec.isEqual(this.last, next)) return

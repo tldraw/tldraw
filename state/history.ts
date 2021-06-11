@@ -23,7 +23,7 @@ class History<T extends Data> {
       this.pointer = this.maxLength - 1
     }
 
-    storage.save(data)
+    storage.saveToLocalStorage(data)
   }
 
   undo = (data: T) => {
@@ -32,7 +32,7 @@ class History<T extends Data> {
     command.undo(data)
     if (this.disabled) return
     this.pointer--
-    storage.save(data)
+    storage.saveToLocalStorage(data)
   }
 
   redo = (data: T) => {
@@ -41,7 +41,7 @@ class History<T extends Data> {
     command.redo(data, false)
     if (this.disabled) return
     this.pointer++
-    storage.save(data)
+    storage.saveToLocalStorage(data)
   }
 
   disable = () => {

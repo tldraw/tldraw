@@ -19,7 +19,7 @@ export default function createPage(data: Data) {
         data.document.pages[page.id] = page
         data.pageStates[page.id] = pageState
         data.currentPageId = page.id
-        storage.savePage(data, page.id)
+        storage.savePage(data, data.document.id, page.id)
       },
       undo(data) {
         const { page, currentPageId } = snapshot

@@ -28,16 +28,20 @@ export interface Data {
   currentParentId: string
   currentCodeFileId: string
   codeControls: Record<string, CodeControl>
-  document: {
-    pages: Record<string, Page>
-    code: Record<string, CodeFile>
-  }
+  document: TLDocument
   pageStates: Record<string, PageState>
 }
 
 /* -------------------------------------------------- */
 /*                      Document                      */
 /* -------------------------------------------------- */
+
+export interface TLDocument {
+  id: string
+  name: string
+  pages: Record<string, Page>
+  code: Record<string, CodeFile>
+}
 
 export interface Page {
   id: string

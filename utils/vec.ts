@@ -339,13 +339,8 @@ export function clockwise(p1: number[], pc: number[], p2: number[]) {
   return isLeft(p1, pc, p2) > 0
 }
 
-const rounds = [1, 10, 100, 1000]
-
 export function round(a: number[], d = 2) {
-  return [
-    Math.round(a[0] * rounds[d]) / rounds[d],
-    Math.round(a[1] * rounds[d]) / rounds[d],
-  ]
+  return a.map((v) => +v.toFixed(d))
 }
 
 /**

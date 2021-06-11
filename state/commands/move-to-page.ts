@@ -71,7 +71,7 @@ export default function nudgeCommand(data: Data, newPageId: string) {
         getPageState(data, fromPageId).selectedIds.clear()
 
         // Save the "from" page
-        storage.savePage(data, fromPageId)
+        storage.savePage(data, data.document.id, fromPageId)
 
         // Load the "to" page
         storage.loadPage(data, toPageId)
@@ -124,7 +124,7 @@ export default function nudgeCommand(data: Data, newPageId: string) {
 
         getPageState(data, fromPageId).selectedIds.clear()
 
-        storage.savePage(data, fromPageId)
+        storage.savePage(data, data.document.id, fromPageId)
 
         storage.loadPage(data, toPageId)
 

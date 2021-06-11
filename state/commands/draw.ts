@@ -10,7 +10,7 @@ export default function drawCommand(data: Data, id: string) {
   history.execute(
     data,
     new Command({
-      name: 'set_points',
+      name: 'create_draw_shape',
       category: 'canvas',
       manualSelection: true,
       do(data, initial) {

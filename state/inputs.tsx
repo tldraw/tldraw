@@ -1,6 +1,6 @@
 import React from 'react'
 import { PointerInfo } from 'types'
-import { isDarwin } from 'utils/utils'
+import { isDarwin, getPoint } from 'utils/utils'
 
 const DOUBLE_CLICK_DURATION = 300
 
@@ -17,8 +17,8 @@ class Inputs {
     const info = {
       target,
       pointerId: touch.identifier,
-      origin: [touch.clientX, touch.clientY],
-      point: [touch.clientX, touch.clientY],
+      origin: getPoint(touch),
+      point: getPoint(touch),
       pressure: 0.5,
       shiftKey,
       ctrlKey,
@@ -42,7 +42,7 @@ class Inputs {
     const info = {
       ...prev,
       pointerId: touch.identifier,
-      point: [touch.clientX, touch.clientY],
+      point: getPoint(touch),
       pressure: 0.5,
       shiftKey,
       ctrlKey,
@@ -63,8 +63,8 @@ class Inputs {
     const info = {
       target,
       pointerId: e.pointerId,
-      origin: [e.clientX, e.clientY],
-      point: [e.clientX, e.clientY],
+      origin: getPoint(e),
+      point: getPoint(e),
       pressure: e.pressure || 0.5,
       shiftKey,
       ctrlKey,
@@ -84,8 +84,8 @@ class Inputs {
     const info = {
       target,
       pointerId: e.pointerId,
-      origin: [e.clientX, e.clientY],
-      point: [e.clientX, e.clientY],
+      origin: getPoint(e),
+      point: getPoint(e),
       pressure: e.pressure || 0.5,
       shiftKey,
       ctrlKey,
@@ -104,7 +104,7 @@ class Inputs {
     const info = {
       ...prev,
       pointerId: e.pointerId,
-      point: [e.clientX, e.clientY],
+      point: getPoint(e),
       pressure: e.pressure || 0.5,
       shiftKey,
       ctrlKey,
@@ -126,8 +126,8 @@ class Inputs {
 
     const info = {
       ...prev,
-      origin: prev?.origin || [e.clientX, e.clientY],
-      point: [e.clientX, e.clientY],
+      origin: prev?.origin || getPoint(e),
+      point: getPoint(e),
       pressure: e.pressure || 0.5,
       shiftKey,
       ctrlKey,
@@ -144,7 +144,7 @@ class Inputs {
 
   wheel(e: WheelEvent) {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
-    return { point: [e.clientX, e.clientY], shiftKey, ctrlKey, metaKey, altKey }
+    return { point: getPoint(e), shiftKey, ctrlKey, metaKey, altKey }
   }
 
   canAccept(pointerId: PointerEvent['pointerId']) {

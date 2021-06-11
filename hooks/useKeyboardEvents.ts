@@ -134,7 +134,11 @@ export default function useKeyboardEvents() {
         }
         case 's': {
           if (metaKey(e)) {
-            state.send('SAVED', getKeyboardEventInfo(e))
+            if (e.shiftKey) {
+              state.send('SAVED_AS_TO_FILESYSTEM', getKeyboardEventInfo(e))
+            } else {
+              state.send('SAVED', getKeyboardEventInfo(e))
+            }
           }
           break
         }
@@ -187,6 +191,9 @@ export default function useKeyboardEvents() {
         }
         case 'l': {
           if (metaKey(e)) {
+            if (e.shiftKey) {
+              state.send('LOADED_FROM_FILE_STSTEM', getKeyboardEventInfo(e))
+            }
           } else {
             state.send('SELECTED_LINE_TOOL', getKeyboardEventInfo(e))
           }
