@@ -7,7 +7,10 @@ export default function StatusBar() {
   const local = useStateDesigner(state)
   const { count, time } = useRenderCount()
 
-  const active = local.active.slice(1).map((s) => s.split('root.')[1])
+  const active = local.active.slice(1).map((s) => {
+    const states = s.split('.')
+    return states[states.length - 1]
+  })
   const log = local.log[0]
 
   return (
@@ -16,8 +19,9 @@ export default function StatusBar() {
         '@sm': 'small',
       }}
     >
-      <Section>{active.join(' | ')}</Section>
-      <Section>| {log}</Section>
+      <Section>
+        {active.join(' | ')} | {log}
+      </Section>
       {/* <Section
         title="Renders | Time"
       >
