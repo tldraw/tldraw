@@ -1495,7 +1495,7 @@ const state = createState({
     },
 
     loadDocumentFromJson(data, payload: { restoredData: any }) {
-      storage.load(data, payload.restoredData)
+      storage.loadDocumentFromJson(data, payload.restoredData)
     },
 
     forceSave(data) {

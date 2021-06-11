@@ -23,6 +23,7 @@ class History<T extends Data> {
       this.pointer = this.maxLength - 1
     }
 
+    storage.savePage(data)
     storage.saveToLocalStorage(data)
   }
 
@@ -32,6 +33,7 @@ class History<T extends Data> {
     command.undo(data)
     if (this.disabled) return
     this.pointer--
+    storage.savePage(data)
     storage.saveToLocalStorage(data)
   }
 
@@ -41,6 +43,7 @@ class History<T extends Data> {
     command.redo(data, false)
     if (this.disabled) return
     this.pointer++
+    storage.savePage(data)
     storage.saveToLocalStorage(data)
   }
 
