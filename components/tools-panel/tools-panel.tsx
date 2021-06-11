@@ -177,7 +177,7 @@ export default function ToolsPanel() {
 
 const OuterContainer = styled('div', {
   position: 'fixed',
-  bottom: 40,
+  bottom: 32,
   left: 0,
   right: 0,
   padding: '0 8px 12px 8px',

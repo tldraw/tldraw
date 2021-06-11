@@ -22,6 +22,7 @@
     "framer-motion": "^4.1.16",
     "ismobilejs": "^1.1.1",
     "next": "10.2.0",
+    "next-pwa": "^5.2.21",
     "perfect-freehand": "^0.4.8",
     "prettier": "^2.3.0",
     "react": "17.0.2",
