@@ -29,9 +29,19 @@
 ## Context Menu
 
 - [x] Create context Menu
-- [ ] Wire up events
+- [x] Wire up events
 
 ## Move to Page
 
-- [ ] Move to Page Command
-- [ ] Dialog
+- [x] Move to Page Command
+- [x] Picker for pages (provisional)
+
+## Local File System
+
+- [x] Save to local file
+- [x] Load from local file
+
+## Clipboard
+
+- [ ] Copy
+- [ ] Paste

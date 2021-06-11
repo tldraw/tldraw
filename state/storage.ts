@@ -12,6 +12,13 @@ function storageId(label: string, fileId: string, id: string) {
 }
 
 class Storage {
+  previousSaveHandle?: fa.FileSystemHandle
+
+  firstLoad(data: Data) {
+    const lastOpened = localStorage.getItem(`${CURRENT_VERSION}_lastOpened`)
+    this.loadDocumentFromLocalStorage(data, lastOpened || DOCUMENT_ID)
+  }
+
   load(data: Data, restoredData: any) {
     // Empty shapes in state for each page
     for (let key in restoredData.document.pages) {
@@ -36,6 +43,8 @@ class Storage {
       ...restoredData.document,
     }
 
+    localStorage.setItem(`${CURRENT_VERSION}_lastOpened`, data.document.id)
+
     // Load current page
     this.loadPage(data, data.currentPageId)
   }
@@ -54,6 +63,9 @@ class Storage {
       return
     }
 
+    // Save blob for future saves
+    this.previousSaveHandle = blob.handle
+
     state.send('LOADED_FROM_FILE', { restoredData })
   }
 
@@ -64,7 +76,12 @@ class Storage {
     // Load data from local storage
     const savedData = localStorage.getItem(fileId)
 
-    if (savedData === null) return false
+    if (savedData === null) {
+      // If we're going to use the default data, assign the
+      // current document a fresh random id.
+      data.document.id = uuid()
+      return false
+    }
 
     const restoredData = JSON.parse(savedData)
 
@@ -118,12 +135,18 @@ class Storage {
       type: 'application/vnd.tldraw+json',
     })
 
-    fa.fileSave(blob, {
-      fileName: `${data.document.name}.tldr`,
-      description: 'tldraw file',
-      extensions: ['.tldr'],
-    })
-      .then(() => {
+    fa.fileSave(
+      blob,
+      {
+        fileName: `${data.document.name}.tldr`,
+        description: 'tldraw file',
+        extensions: ['.tldr'],
+      },
+      this.previousSaveHandle,
+      true
+    )
+      .then((handle) => {
+        this.previousSaveHandle = handle
         state.send('SAVED_FILE_TO_FILE_SYSTEM')
       })
       .catch((e) => {

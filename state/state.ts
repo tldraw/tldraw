@@ -1499,7 +1499,8 @@ const state = createState({
     },
 
     forceSave(data) {
-      storage.saveToLocalStorage(data)
+      // storage.saveToLocalStorage(data)
+      storage.saveToFileSystem(data)
     },
 
     savePage(data) {
@@ -1516,7 +1517,7 @@ const state = createState({
     },
 
     restoreSavedData(data) {
-      storage.loadDocumentFromLocalStorage(data)
+      storage.firstLoad(data)
     },
 
     clearBoundsRotation(data) {
