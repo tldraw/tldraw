@@ -45,6 +45,9 @@ class Storage {
 
     localStorage.setItem(`${CURRENT_VERSION}_lastOpened`, data.document.id)
 
+    // Let's also save the loaded document to local storage
+    this.saveToLocalStorage(data, data.document.id)
+
     // Load current page
     this.loadPage(data, data.currentPageId)
   }
@@ -116,8 +119,6 @@ class Storage {
 
     // Save current page too
     this.savePage(data, id, data.currentPageId)
-
-    state.send('SAVED_FILE_TO_LOCAL_STORAGE')
   }
 
   saveAsToFileSystem = (data: Data) => {
