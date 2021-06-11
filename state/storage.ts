@@ -45,6 +45,8 @@ class Storage {
 
     localStorage.setItem(`${CURRENT_VERSION}_lastOpened`, data.document.id)
 
+    console.log('loaded', data.document)
+
     // Let's also save the loaded document to local storage
     this.saveToLocalStorage(data, data.document.id)
 

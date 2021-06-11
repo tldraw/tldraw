@@ -27,7 +27,7 @@ export default function Editor() {
       <StylePanel />
       <Canvas />
       <ToolsPanel />
-      {/* <StatusBar /> */}
+      <StatusBar />
     </Layout>
   )
 }

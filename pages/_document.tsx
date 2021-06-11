@@ -28,6 +28,8 @@ class MyDocument extends NextDocument {
     return (
       <Html lang="en">
         <Head>
+          <link rel="manifest" href="/manifest.json" />
+          <link rel="shortcut icon" href="/favicon.ico" />
           <meta name="application-name" content="tldraw" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="black" />
@@ -35,14 +37,7 @@ class MyDocument extends NextDocument {
           <meta name="description" content="A tiny little drawing app." />
           <meta name="format-detection" content="telephone=no" />
           <meta name="mobile-web-app-capable" content="yes" />
-          <meta
-            name="msapplication-config"
-            content="/static/icons/browserconfig.xml"
-          />
-          <meta name="msapplication-TileColor" content="#3174d7" />
-          <meta name="msapplication-tap-highlight" content="no" />
-          <meta name="theme-color" content="#ffffff" />
-
+          <meta name="theme-color" content="#fafafa" />
           <meta name="twitter:card" content="summary" />
           <meta name="twitter:url" content="https://tldraw.com" />
           <meta name="twitter:title" content="tldraw" />
