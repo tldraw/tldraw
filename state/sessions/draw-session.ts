@@ -80,29 +80,50 @@ export default class BrushSession extends BaseSession {
       }
     }
 
-    // Low pass the current input point against the previous one
-    point = vec.med(this.previous, point)
-
-    this.previous = point
-
     // Round the new point (helps keep our data tidy)
-    const next = vec.round([...vec.sub(point, this.origin), pressure])
+    const temporaryPoints = [0.7, 0.9, 0.95, 1].map((v) =>
+      vec.round([
+        ...vec.sub(vec.lrp(this.previous, point, v), this.origin),
+        pressure,
+      ])
+    )
+
+    // Low pass the current input point against the previous one
+    this.previous = vec.med(this.previous, point)
 
     // Don't add duplicate points. It's important to test against the
     // adjusted (low-passed) point rather than the input point.
-    if (vec.isEqual(this.last, next)) return
 
-    this.last = next
+    const newPoint = vec.round([
+      ...vec.sub(this.previous, this.origin),
+      pressure,
+    ])
 
-    this.points.push(next)
+    if (vec.isEqual(this.last, newPoint)) return
+
+    this.last = newPoint
+
+    this.points.push(newPoint)
 
     // We draw a dot when the number of points is 1 or 2, so this guard
     // prevents a "flash" of a dot when a user begins drawing a line.
     if (this.points.length <= 2) return
 
-    // ...otherwise, update the points and update the shape's parents.
+    // If the delta between the averaged point and the real point is
+    // too great, skip the temporary points. This avoids "sawblading".
+    const tooFarForTemporaryPoints = vec.dist(newPoint, temporaryPoints[3]) > 32
+
+    // Update the points and update the shape's parents.
     const shape = getShape(data, snapshot.id) as DrawShape
-    getShapeUtils(shape).setProperty(shape, 'points', [...this.points])
+
+    getShapeUtils(shape).setProperty(
+      shape,
+      'points',
+      tooFarForTemporaryPoints
+        ? [...this.points]
+        : [...this.points, ...temporaryPoints]
+    )
+
     updateParents(data, [shape.id])
   }
 
@@ -118,9 +139,11 @@ export default class BrushSession extends BaseSession {
     const page = getPage(data)
     const shape = page.shapes[snapshot.id] as DrawShape
 
-    getShapeUtils(shape)
-      .setProperty(shape, 'points', [...this.points])
-      .onSessionComplete(shape)
+    if (shape.points.length < this.points.length) {
+      getShapeUtils(shape).setProperty(shape, 'points', this.points)
+    }
+
+    getShapeUtils(shape).onSessionComplete(shape)
 
     updateParents(data, [shape.id])
 
