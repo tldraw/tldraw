@@ -2,7 +2,7 @@ import { current } from 'immer'
 import { Data, DrawShape } from 'types'
 import BaseSession from './base-session'
 import { getShapeUtils } from 'lib/shape-utils'
-import { getPage, getShape, updateParents } from 'utils/utils'
+import { getPage, getShape, isMobile, updateParents } from 'utils/utils'
 import * as vec from 'utils/vec'
 import commands from 'state/commands'
 
@@ -119,7 +119,8 @@ export default class BrushSession extends BaseSession {
 
     // If the delta between the averaged point and the real point is
     // too great, skip the temporary points. This avoids "sawblading".
-    const tooFarForTemporaryPoints = vec.dist(newPoint, temporaryPoints[3]) > 32
+    const tooFarForTemporaryPoints =
+      !isMobile() && vec.dist(newPoint, temporaryPoints[3]) > 32
 
     // Update the points and update the shape's parents.
     const shape = getShape(data, snapshot.id) as DrawShape
