@@ -84,7 +84,7 @@ export default class BrushSession extends BaseSession {
     const nextPrev = vec.med(this.previous, point)
 
     // A delta to project the projected point
-    const offset = vec.mul(vec.sub(nextPrev, this.previous), 2)
+    const offset = vec.sub(nextPrev, this.previous)
 
     this.previous = nextPrev
 
