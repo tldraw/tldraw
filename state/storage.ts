@@ -23,8 +23,6 @@ class Storage {
   }
 
   load(data: Data, restoredData: any) {
-    console.log('loading restored data', restoredData)
-
     // Before loading the state, save the pages / page states
     for (let key in restoredData.document.pages) {
       this.savePage(restoredData, restoredData.document.id, key)
@@ -245,8 +243,6 @@ class Storage {
       .then((blob) =>
         getTextFromBlob(blob).then((text) => {
           const restoredData = JSON.parse(text)
-
-          console.log('restoring data', restoredData)
 
           if (restoredData === null) {
             console.warn('Could not load that data.')

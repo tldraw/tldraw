@@ -54,7 +54,7 @@ const draw = registerShapeUtils<DrawShape>({
       renderPath(shape, style)
     }
 
-    if (points.length < 2) {
+    if (points.length > 0 && points.length < 3) {
       return (
         <circle id={id} r={+styles.strokeWidth * 0.618} fill={styles.stroke} />
       )

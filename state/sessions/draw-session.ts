@@ -22,12 +22,14 @@ export default class BrushSession extends BaseSession {
     this.origin = point
     this.previous = point
     this.last = point
-    this.points = []
+    this.points = [[0, 0]]
     this.snapshot = getDrawSnapshot(data, id)
 
     const page = getPage(data)
-    const shape = page.shapes[id]
+    const shape = page.shapes[id] as DrawShape
     getShapeUtils(shape).translateTo(shape, point)
+
+    updateParents(data, [shape.id])
   }
 
   update = (
@@ -99,7 +101,12 @@ export default class BrushSession extends BaseSession {
     const page = getPage(data)
     const shape = page.shapes[snapshot.id] as DrawShape
 
-    getShapeUtils(shape).onSessionComplete(shape)
+    getShapeUtils(shape)
+      .setProperty(shape, 'points', [...this.points])
+      .onSessionComplete(shape)
+
+    updateParents(data, [shape.id])
+
     commands.draw(data, this.snapshot.id)
   }
 }
