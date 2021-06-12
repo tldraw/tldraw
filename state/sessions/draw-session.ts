@@ -120,7 +120,7 @@ export default class BrushSession extends BaseSession {
     // If the delta between the averaged point and the real point is
     // too great, skip the temporary points. This avoids "sawblading".
     const tooFarForTemporaryPoints =
-      !isMobile() && vec.dist(newPoint, temporaryPoints[3]) > 32
+      isMobile() || vec.dist(newPoint, temporaryPoints[3]) > 32
 
     // Update the points and update the shape's parents.
     const shape = getShape(data, snapshot.id) as DrawShape
