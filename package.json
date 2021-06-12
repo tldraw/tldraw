@@ -20,6 +20,7 @@
     "@stitches/react": "^0.1.9",
     "browser-fs-access": "^0.17.3",
     "framer-motion": "^4.1.16",
+    "idb-keyval": "^5.0.6",
     "ismobilejs": "^1.1.1",
     "next": "10.2.0",
     "next-pwa": "^5.2.21",

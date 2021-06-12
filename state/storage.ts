@@ -2,23 +2,33 @@ import * as fa from 'browser-fs-access'
 import { Data, Page, PageState, TLDocument } from 'types'
 import { setToArray } from 'utils/utils'
 import state from './state'
+import { current } from 'immer'
 import { v4 as uuid } from 'uuid'
+import * as idb from 'idb-keyval'
 
 const CURRENT_VERSION = 'code_slate_0.0.5'
 const DOCUMENT_ID = '0001'
 
-function storageId(fileId: string, label: string, id: string) {
-  return `${CURRENT_VERSION}_doc_${fileId}_${label}_${id}`
+function storageId(fileId: string, label: string, id?: string) {
+  return [CURRENT_VERSION, fileId, label, id].filter(Boolean).join('_')
 }
 
 class Storage {
   previousSaveHandle?: fa.FileSystemHandle
 
+  constructor() {
+    // this.loadPreviousHandle() // Still needs debugging
+  }
+
   firstLoad(data: Data) {
     const lastOpened = localStorage.getItem(`${CURRENT_VERSION}_lastOpened`)
+
     this.loadDocumentFromLocalStorage(data, lastOpened || DOCUMENT_ID)
+
     this.loadPage(data, data.currentPageId)
+
     this.saveToLocalStorage(data, data.document.id)
+
     localStorage.setItem(`${CURRENT_VERSION}_lastOpened`, data.document.id)
   }
 
@@ -28,18 +38,14 @@ class Storage {
       this.savePage(restoredData, restoredData.document.id, key)
     }
 
-    // Empty shapes in state for each page
-    for (let key in restoredData.document.pages) {
-      // restoredData.document.pages[key].shapes = {}
-    }
-
+    // Empty current state.
     data.document = {} as TLDocument
     data.pageStates = {}
 
-    // Merge restored data into state
+    // Merge restored data into state.
     Object.assign(data, restoredData)
 
-    // Minor migrtation: add id and name to document
+    // Add id and name to document, just in case.
     data.document = {
       id: 'document0',
       name: 'My Document',
@@ -63,16 +69,20 @@ class Storage {
       return false
     }
 
-    const restoredData = JSON.parse(savedData)
+    const restoredData: any = JSON.parse(savedData)
+
+    for (let pageId in restoredData.document.pages) {
+      const selectedIds = restoredData.pageStates[pageId].selectedIds
+      restoredData.pageStates[pageId].selectedIds = new Set(selectedIds)
+    }
 
     this.load(data, restoredData)
   }
 
   getDataToSave = (data: Data) => {
-    const dataToSave: any = { ...data }
+    const dataToSave = current(data) as any
 
     for (let pageId in data.document.pages) {
-      // Page
       const savedPage = localStorage.getItem(
         storageId(data.document.id, 'page', pageId)
       )
@@ -82,20 +92,21 @@ class Storage {
         dataToSave.document.pages[pageId] = restored
       }
 
-      dataToSave.pageStates = {}
+      const pageState = dataToSave.pageStates[pageId]
+      pageState.selectedIds = setToArray(pageState.selectedIds)
     }
 
     return JSON.stringify(dataToSave, null, 2)
   }
 
-  saveToLocalStorage = (data: Data, id = data.document.id) => {
+  saveToLocalStorage = (data: Data, fileId = data.document.id) => {
     if (typeof window === 'undefined') return
     if (typeof localStorage === 'undefined') return
 
     const dataToSave = this.getDataToSave(data)
 
     // Save current data to local storage
-    localStorage.setItem(storageId(id, 'document', id), dataToSave)
+    localStorage.setItem(storageId(fileId, 'document', fileId), dataToSave)
   }
 
   loadDocumentFromJson(data: Data, restoredData: any) {
@@ -105,6 +116,15 @@ class Storage {
     localStorage.setItem(`${CURRENT_VERSION}_lastOpened`, data.document.id)
   }
   /* ---------------------- Pages --------------------- */
+
+  async loadPreviousHandle() {
+    const handle: fa.FileSystemHandle | undefined = await idb.get(
+      'previous_handle'
+    )
+    if (handle !== undefined) {
+      this.previousSaveHandle = handle
+    }
+  }
 
   savePage(data: Data, fileId = data.document.id, pageId = data.currentPageId) {
     if (typeof window === 'undefined') return
@@ -127,14 +147,12 @@ class Storage {
       ...data.pageStates[pageId],
     }
 
-    const pageState = {
-      ...currentPageState,
-      selectedIds: setToArray(currentPageState.selectedIds),
-    }
-
     localStorage.setItem(
       storageId(fileId, 'pageState', pageId),
-      JSON.stringify(pageState)
+      JSON.stringify({
+        ...currentPageState,
+        selectedIds: setToArray(currentPageState.selectedIds),
+      })
     )
   }
 
@@ -204,10 +222,10 @@ class Storage {
     this.saveDataToFileSystem(data, uuid(), true)
   }
 
-  saveDataToFileSystem = (data: Data, id: string, saveAs: boolean) => {
+  saveDataToFileSystem = (data: Data, fileId: string, saveAs: boolean) => {
     const json = this.getDataToSave(data)
 
-    this.saveToLocalStorage(data, id)
+    this.saveToLocalStorage(data, fileId)
 
     const blob = new Blob([json], {
       type: 'application/vnd.tldraw+json',
@@ -230,6 +248,7 @@ class Storage {
       .then((handle) => {
         this.previousSaveHandle = handle
         state.send('SAVED_FILE_TO_FILE_SYSTEM')
+        idb.set('previous_handle', handle)
       })
       .catch((e) => {
         state.send('CANCELLED_SAVE', { reason: e.message })
@@ -237,6 +256,7 @@ class Storage {
   }
 
   loadDocumentFromFilesystem() {
+    console.warn('Loading file from file system.')
     fa.fileOpen({
       description: 'tldraw files',
     })

@@ -5,9 +5,6 @@ import { getShapeUtils } from 'lib/shape-utils'
 import { getPage, getShape, isMobile, updateParents } from 'utils/utils'
 import * as vec from 'utils/vec'
 import commands from 'state/commands'
-
-let prevEndPoint: number[]
-
 export default class BrushSession extends BaseSession {
   origin: number[]
   previous: number[]
