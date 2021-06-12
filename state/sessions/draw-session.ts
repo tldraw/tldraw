@@ -80,16 +80,24 @@ export default class BrushSession extends BaseSession {
       }
     }
 
-    // Round the new point (helps keep our data tidy)
+    // Low pass the current input point against the previous one
+    const nextPrev = vec.med(this.previous, point)
+
+    // A delta to project the projected point
+    const offset = vec.mul(vec.sub(nextPrev, this.previous), 2)
+
+    this.previous = nextPrev
+
+    // Generate some temporary points towards a projected point
     const temporaryPoints = [0.7, 0.9, 0.95, 1].map((v) =>
       vec.round([
-        ...vec.sub(vec.lrp(this.previous, point, v), this.origin),
+        ...vec.sub(
+          vec.lrp(this.previous, vec.add(point, offset), v),
+          this.origin
+        ),
         pressure,
       ])
     )
-
-    // Low pass the current input point against the previous one
-    this.previous = vec.med(this.previous, point)
 
     // Don't add duplicate points. It's important to test against the
     // adjusted (low-passed) point rather than the input point.

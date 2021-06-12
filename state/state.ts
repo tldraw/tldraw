@@ -19,9 +19,6 @@ import {
   getShape,
   screenToWorld,
   setZoomCSS,
-  translateBounds,
-  getParentOffset,
-  getParentRotation,
   rotateBounds,
   getBoundsCenter,
   getDocumentBranch,
@@ -45,7 +42,6 @@ import {
   DashStyle,
   SizeStyle,
   ColorStyle,
-  Bounds,
 } from 'types'
 import session from './session'
 import { pointInBounds } from 'utils/bounds'
