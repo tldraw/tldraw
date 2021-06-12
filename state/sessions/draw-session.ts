@@ -22,11 +22,15 @@ export default class BrushSession extends BaseSession {
     this.origin = point
     this.previous = point
     this.last = point
-    this.points = [[0, 0]]
     this.snapshot = getDrawSnapshot(data, id)
 
-    const page = getPage(data)
-    const shape = page.shapes[id] as DrawShape
+    // Add a first point but don't update the shape yet. We'll update
+    // when the draw session ends; if the user hasn't added additional
+    // points, this single point will be interpreted as a "dot" shape.
+    this.points = [[0, 0]]
+
+    const shape = getPage(data).shapes[id]
+
     getShapeUtils(shape).translateTo(shape, point)
 
     updateParents(data, [shape.id])
@@ -42,12 +46,18 @@ export default class BrushSession extends BaseSession {
 
     const delta = vec.vec(this.origin, point)
 
+    // Drawing while holding shift will "lock" the pen to either the
+    // x or y axis, depending on which direction has the greater
+    // delta. Pressing shift will also add more points to "return"
+    // the pen to the axis.
     if (isLocked) {
       if (!this.isLocked && this.points.length > 1) {
         this.isLocked = true
         const returning = [...this.previous]
 
-        if (Math.abs(delta[0]) < Math.abs(delta[1])) {
+        const isVertical = Math.abs(delta[0]) < Math.abs(delta[1])
+
+        if (isVertical) {
           this.lockedDirection = 'vertical'
           returning[0] = this.origin[0]
         } else {
@@ -58,10 +68,8 @@ export default class BrushSession extends BaseSession {
         this.previous = returning
         this.points.push(vec.sub(returning, this.origin))
       }
-    } else {
-      if (this.isLocked) {
-        this.isLocked = false
-      }
+    } else if (this.isLocked) {
+      this.isLocked = false
     }
 
     if (this.isLocked) {
@@ -72,18 +80,27 @@ export default class BrushSession extends BaseSession {
       }
     }
 
+    // Low pass the current input point against the previous one
     point = vec.med(this.previous, point)
 
+    this.previous = point
+
+    // Round the new point (helps keep our data tidy)
     const next = vec.round([...vec.sub(point, this.origin), pressure])
 
-    // Don't add duplicate points
+    // Don't add duplicate points. It's important to test against the
+    // adjusted (low-passed) point rather than the input point.
     if (vec.isEqual(this.last, next)) return
+
+    this.last = next
 
     this.points.push(next)
 
-    this.last = next
-    this.previous = point
+    // We draw a dot when the number of points is 1 or 2, so this guard
+    // prevents a "flash" of a dot when a user begins drawing a line.
+    if (this.points.length <= 2) return
 
+    // ...otherwise, update the points and update the shape's parents.
     const shape = getShape(data, snapshot.id) as DrawShape
     getShapeUtils(shape).setProperty(shape, 'points', [...this.points])
     updateParents(data, [shape.id])
