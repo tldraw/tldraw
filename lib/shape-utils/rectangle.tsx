@@ -12,7 +12,7 @@ import {
 import { defaultStyle, getShapeStyle } from 'lib/shape-styles'
 import getStroke from 'perfect-freehand'
 
-const pathCache = new WeakMap<RectangleShape, string>([])
+const pathCache = new WeakMap<number[], string>([])
 
 const rectangle = registerShapeUtils<RectangleShape>({
   boundsCache: new WeakMap([]),
@@ -42,11 +42,11 @@ const rectangle = registerShapeUtils<RectangleShape>({
     const { id, size, radius, style } = shape
     const styles = getShapeStyle(style)
 
-    if (!pathCache.has(shape)) {
+    if (!pathCache.has(shape.size)) {
       renderPath(shape)
     }
 
-    const path = pathCache.get(shape)
+    const path = pathCache.get(shape.size)
 
     return (
       <g id={id}>
@@ -163,5 +163,5 @@ function renderPath(shape: RectangleShape) {
     }
   )
 
-  pathCache.set(shape, getSvgPathFromStroke(stroke))
+  pathCache.set(shape.size, getSvgPathFromStroke(stroke))
 }

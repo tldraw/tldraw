@@ -6,7 +6,7 @@ import { current } from 'immer'
 import { v4 as uuid } from 'uuid'
 import * as idb from 'idb-keyval'
 
-const CURRENT_VERSION = 'code_slate_0.0.6'
+const CURRENT_VERSION = 'code_slate_0.0.7'
 const DOCUMENT_ID = '0001'
 
 function storageId(fileId: string, label: string, id?: string) {
@@ -27,7 +27,7 @@ class Storage {
 
     this.loadPage(data, data.currentPageId)
 
-    // this.saveToLocalStorage(data, data.document.id)
+    this.saveToLocalStorage(data, data.document.id)
 
     localStorage.setItem(`${CURRENT_VERSION}_lastOpened`, data.document.id)
   }

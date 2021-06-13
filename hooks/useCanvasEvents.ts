@@ -1,6 +1,6 @@
 import { MutableRefObject, useCallback } from 'react'
 import state from 'state'
-import { fastBrushSelect, fastDrawUpdate } from 'state/hacks'
+import { fastBrushSelect, fastDrawUpdate, fastTranslate } from 'state/hacks'
 import inputs from 'state/inputs'
 import { isMobile } from 'utils/utils'
 
@@ -30,18 +30,24 @@ export default function useCanvasEvents(
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!inputs.canAccept(e.pointerId)) return
 
+    const info = inputs.pointerMove(e)
+
     if (state.isIn('draw.editing')) {
-      fastDrawUpdate(inputs.pointerMove(e))
+      fastDrawUpdate(info)
       return
     }
 
     if (state.isIn('brushSelecting')) {
-      const info = inputs.pointerMove(e)
       fastBrushSelect(info.point)
       return
     }
 
-    state.send('MOVED_POINTER', inputs.pointerMove(e))
+    if (state.isIn('translatingSelection')) {
+      fastTranslate(info)
+      return
+    }
+
+    state.send('MOVED_POINTER', info)
   }, [])
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {

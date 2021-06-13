@@ -14,14 +14,16 @@ export default function useShapeEvents(
       e.stopPropagation()
       rGroup.current.setPointerCapture(e.pointerId)
 
+      const info = inputs.pointerDown(e, id)
+
       if (e.button === 0) {
-        if (inputs.isDoubleClick()) {
-          state.send('DOUBLE_POINTED_SHAPE', inputs.pointerDown(e, id))
+        if (inputs.isDoubleClick() && !(info.altKey || info.metaKey)) {
+          state.send('DOUBLE_POINTED_SHAPE', info)
         }
 
-        state.send('POINTED_SHAPE', inputs.pointerDown(e, id))
+        state.send('POINTED_SHAPE', info)
       } else {
-        state.send('RIGHT_POINTED', inputs.pointerDown(e, id))
+        state.send('RIGHT_POINTED', info)
       }
     },
     [id]

@@ -56,6 +56,7 @@ export default class TranslateSession extends BaseSession {
         for (const { id, point } of initialShapes) {
           const shape = shapes[id]
           getShapeUtils(shape).translateTo(shape, point)
+          shapes[shape.id] = { ...shape }
         }
 
         for (const clone of clones) {
@@ -65,6 +66,8 @@ export default class TranslateSession extends BaseSession {
 
           getShapeUtils(shape).translateBy(shape, delta)
 
+          shapes[clone.id] = { ...shape }
+
           const parent = shapes[shape.parentId]
 
           if (!parent) continue
@@ -73,12 +76,15 @@ export default class TranslateSession extends BaseSession {
             ...parent.children,
             shape.id,
           ])
+
+          shapes[shape.parentId] = { ...parent }
         }
       }
 
       for (const { id } of clones) {
         const shape = shapes[id]
         getShapeUtils(shape).translateBy(shape, trueDelta)
+        shapes[id] = { ...shape }
       }
 
       setSelectedIds(
@@ -107,19 +113,22 @@ export default class TranslateSession extends BaseSession {
           getDocumentBranch(data, initialShape.id).forEach((id) => {
             const shape = shapes[id]
             getShapeUtils(shape).translateBy(shape, delta)
+            shapes[id] = { ...shape }
           })
         }
 
-        initialParents.forEach(
-          (parent) =>
-            ((shapes[parent.id] as GroupShape).children = parent.children)
-        )
+        initialParents.forEach((parent) => {
+          const shape = shapes[parent.id] as GroupShape
+          shapes[parent.id] = { ...shape, children: parent.children }
+        })
       }
 
       for (const initialShape of initialShapes) {
         getDocumentBranch(data, initialShape.id).forEach((id) => {
           const shape = shapes[id]
           getShapeUtils(shape).translateBy(shape, trueDelta)
+
+          shapes[id] = { ...shape }
         })
       }
 
@@ -204,7 +213,6 @@ export function getTranslateSnapshot(data: Data) {
     clones: selectedShapes
       .filter((shape) => shape.type !== ShapeType.Group)
       .flatMap((shape) => {
-        // TODO: Clone children recursively
         const clone = {
           ...shape,
           id: uuid(),
@@ -214,13 +222,6 @@ export function getTranslateSnapshot(data: Data) {
         }
 
         return clone
-
-        // cloneGroup(cData, {
-        //   ...shape,
-        //   id: uuid(),
-        //   parentId: shape.parentId,
-        //   childIndex: getChildIndexAbove(cData, shape.id),
-        // })
       }),
   }
 }

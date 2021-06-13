@@ -1636,6 +1636,8 @@ export function updateParents(data: Data, changedShapeIds: string[]) {
       parent,
       parent.children.map((id) => shapes[id])
     )
+
+    shapes[parentId] = { ...parent }
   }
 
   updateParents(data, parentToUpdateIds)
@@ -1770,6 +1772,7 @@ export function getPoint(
 }
 
 export function lzw_encode(s: string) {
+  return s
   const dict = {}
   const data = (s + '').split('')
 
@@ -1803,6 +1806,8 @@ export function lzw_encode(s: string) {
 
 // Decompress an LZW-encoded string
 export function lzw_decode(s: string) {
+  return s
+
   const dict = {}
   const data = (s + '').split('')
 
