@@ -80,21 +80,7 @@ export default class BrushSession extends BaseSession {
     // Low pass the current input point against the previous one
     const nextPrev = vec.med(this.previous, point)
 
-    // A delta to project the projected point
-    const offset = vec.sub(nextPrev, this.previous)
-
     this.previous = nextPrev
-
-    // Generate some temporary points towards a projected point
-    const temporaryPoints = [0.7, 0.9, 0.95, 1].map((v) =>
-      vec.round([
-        ...vec.sub(
-          vec.lrp(this.previous, vec.add(point, offset), v),
-          this.origin
-        ),
-        pressure,
-      ])
-    )
 
     // Don't add duplicate points. It's important to test against the
     // adjusted (low-passed) point rather than the input point.
@@ -114,21 +100,10 @@ export default class BrushSession extends BaseSession {
     // prevents a "flash" of a dot when a user begins drawing a line.
     if (this.points.length <= 2) return
 
-    // If the delta between the averaged point and the real point is
-    // too great, skip the temporary points. This avoids "sawblading".
-    const tooFarForTemporaryPoints =
-      isMobile() || vec.dist(newPoint, temporaryPoints[3]) > 32
-
     // Update the points and update the shape's parents.
     const shape = getShape(data, snapshot.id) as DrawShape
 
-    getShapeUtils(shape).setProperty(
-      shape,
-      'points',
-      tooFarForTemporaryPoints
-        ? [...this.points]
-        : [...this.points, ...temporaryPoints]
-    )
+    getShapeUtils(shape).setProperty(shape, 'points', [...this.points])
 
     updateParents(data, [shape.id])
   }
