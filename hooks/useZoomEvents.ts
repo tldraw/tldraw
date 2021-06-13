@@ -32,7 +32,7 @@ export default function useZoomEvents() {
           return
         }
 
-        if (state.isIn('pointing')) {
+        if (state.isInAny('pointing', 'drawing')) {
           fastPanUpdate(delta)
           return
         }

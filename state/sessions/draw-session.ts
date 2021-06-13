@@ -103,6 +103,16 @@ export default class BrushSession extends BaseSession {
     // Update the points and update the shape's parents.
     const shape = getShape(data, snapshot.id) as DrawShape
 
+    if (newPoint[0] < 0 || newPoint[1] < 0) {
+      const offset = [Math.min(newPoint[0], 0), Math.min(newPoint[1], 0)]
+
+      this.points = this.points.map((pt) => vec.sub(pt, offset))
+
+      this.origin = vec.sub(this.origin, offset)
+
+      getShapeUtils(shape).translateBy(shape, offset)
+    }
+
     getShapeUtils(shape).setProperty(shape, 'points', [...this.points])
 
     updateParents(data, [shape.id])

@@ -24,7 +24,7 @@ class History<T extends Data> {
     }
 
     storage.savePage(data)
-    storage.saveToLocalStorage(data)
+    // storage.saveToLocalStorage(data)
   }
 
   undo = (data: T) => {
@@ -34,7 +34,7 @@ class History<T extends Data> {
     if (this.disabled) return
     this.pointer--
     storage.savePage(data)
-    storage.saveToLocalStorage(data)
+    // storage.saveToLocalStorage(data)
   }
 
   redo = (data: T) => {
@@ -44,7 +44,7 @@ class History<T extends Data> {
     if (this.disabled) return
     this.pointer++
     storage.savePage(data)
-    storage.saveToLocalStorage(data)
+    // storage.saveToLocalStorage(data)
   }
 
   disable = () => {

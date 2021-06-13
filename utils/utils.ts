@@ -1763,9 +1763,9 @@ export function getPoint(
   e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent
 ) {
   return [
-    Number(e.clientX.toPrecision(4)),
-    Number(e.clientY.toPrecision(4)),
-    'pressure' in e ? e.pressure || 0.5 : 0.5,
+    Number(e.clientX.toPrecision(5)),
+    Number(e.clientY.toPrecision(5)),
+    'pressure' in e ? Number(e.pressure.toPrecision(5)) || 0.5 : 0.5,
   ]
 }
 

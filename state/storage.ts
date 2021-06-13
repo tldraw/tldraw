@@ -27,16 +27,13 @@ class Storage {
 
     this.loadPage(data, data.currentPageId)
 
-    this.saveToLocalStorage(data, data.document.id)
+    // this.saveToLocalStorage(data, data.document.id)
 
     localStorage.setItem(`${CURRENT_VERSION}_lastOpened`, data.document.id)
   }
 
   load(data: Data, restoredData: any) {
     // Before loading the state, save the pages / page states
-    for (let key in restoredData.document.pages) {
-      this.savePage(restoredData, restoredData.document.id, key)
-    }
 
     // Empty current state.
     data.document = {} as TLDocument
@@ -71,11 +68,6 @@ class Storage {
 
     const restoredData: any = JSON.parse(lzw_decode(savedData))
 
-    for (let pageId in restoredData.document.pages) {
-      const selectedIds = restoredData.pageStates[pageId].selectedIds
-      restoredData.pageStates[pageId].selectedIds = new Set(selectedIds)
-    }
-
     this.load(data, restoredData)
   }
 
@@ -92,7 +84,7 @@ class Storage {
         dataToSave.document.pages[pageId] = restored
       }
 
-      const pageState = dataToSave.pageStates[pageId]
+      const pageState = { ...dataToSave.pageStates[pageId] }
       pageState.selectedIds = setToArray(pageState.selectedIds)
     }
 
@@ -114,6 +106,11 @@ class Storage {
 
   loadDocumentFromJson(data: Data, restoredData: any) {
     this.load(data, restoredData)
+
+    for (let key in restoredData.document.pages) {
+      this.savePage(restoredData, restoredData.document.id, key)
+    }
+
     this.loadPage(data, data.currentPageId)
     this.saveToLocalStorage(data, data.document.id)
     localStorage.setItem(`${CURRENT_VERSION}_lastOpened`, data.document.id)
@@ -166,10 +163,10 @@ class Storage {
     const fileId = data.document.id
 
     // Page
-
     const savedPage = localStorage.getItem(storageId(fileId, 'page', pageId))
 
     if (savedPage !== null) {
+      console.log(lzw_decode(savedPage))
       data.document.pages[pageId] = JSON.parse(lzw_decode(savedPage))
     } else {
       data.document.pages[pageId] = {
@@ -182,7 +179,6 @@ class Storage {
     }
 
     // Page state
-
     const savedPageState = localStorage.getItem(
       storageId(fileId, 'pageState', pageId)
     )
@@ -200,15 +196,16 @@ class Storage {
       }
     }
 
-    data.pageStates[pageId].selectedIds = new Set(
-      data.pageStates[pageId].selectedIds
-    )
-
     // Empty shapes in state for other pages
 
     for (let key in data.document.pages) {
       if (key === pageId) continue
       data.document.pages[key].shapes = {}
+    }
+
+    // Force selected Ids into sets
+    for (let key in data.pageStates) {
+      data.pageStates[key].selectedIds = new Set([])
     }
 
     // Update camera for the new page state

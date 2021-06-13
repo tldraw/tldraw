@@ -339,8 +339,8 @@ export function clockwise(p1: number[], pc: number[], p2: number[]) {
   return isLeft(p1, pc, p2) > 0
 }
 
-export function round(a: number[], d = 2) {
-  return a.map((v) => +v.toFixed(d))
+export function round(a: number[], d = 5) {
+  return a.map((v) => Number(v.toPrecision(d)))
 }
 
 /**
