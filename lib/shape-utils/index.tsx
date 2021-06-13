@@ -32,6 +32,7 @@ import ray from './ray'
 import draw from './draw'
 import arrow from './arrow'
 import group from './group'
+import { getShapeStyle } from 'lib/shape-styles'
 
 /*
 Shape Utiliies
@@ -154,6 +155,9 @@ export interface ShapeUtility<K extends Shape> {
   // Render a shape to JSX.
   render(this: ShapeUtility<K>, shape: K): JSX.Element
 
+  // Render onto a canvas
+  getPath2D(this: ShapeUtility<K>, shape: K): Path2D
+
   // Get the bounds of the a shape.
   getBounds(this: ShapeUtility<K>, shape: K): Bounds
 
@@ -215,6 +219,13 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
         isHidden: false,
         ...props,
       } as T
+    },
+
+    getPath2D(shape) {
+      const bounds = this.getBounds(shape)
+      const path = new Path2D()
+      path.rect(0, 0, bounds.width, bounds.height)
+      return path
     },
 
     render(shape) {

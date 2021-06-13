@@ -45,6 +45,29 @@ const draw = registerShapeUtils<DrawShape>({
     }
   },
 
+  getPath2D(shape) {
+    const { points, style } = shape
+
+    const styles = getShapeStyle(style)
+    const bounds = this.getBounds(shape)
+
+    if (!pathCache.has(points)) {
+      renderPath(shape, style)
+    }
+    const radius = +styles.strokeWidth * 0.618
+
+    if (points.length > 0 && points.length < 3) {
+      const path = new Path2D()
+      for (let point of points) {
+        path.moveTo(point[0] + radius, point[1])
+        path.ellipse(point[0], point[1], radius, radius, 0, 0, Math.PI * 2)
+      }
+      return path
+    }
+
+    return new Path2D(pathCache.get(points))
+  },
+
   render(shape) {
     const { id, points, style } = shape
 
@@ -66,6 +89,8 @@ const draw = registerShapeUtils<DrawShape>({
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
       const bounds = getBoundsFromPoints(shape.points)
+      bounds.width = Math.max(4, bounds.width)
+      bounds.height = Math.max(4, bounds.height)
       this.boundsCache.set(shape, bounds)
     }
 
@@ -194,10 +219,12 @@ function renderPath(shape: DrawShape, style: ShapeStyles) {
   }
 
   const options =
-    shape.points[1][2] === 0.5 ? simulatePressureSettings : realPressureSettings
+    shape.points[1][2] !== undefined && shape.points[1][2] !== 0.5
+      ? realPressureSettings
+      : simulatePressureSettings
 
   const stroke = getStroke(shape.points, {
-    size: 1 + +styles.strokeWidth * 2,
+    size: +styles.strokeWidth * 2,
     thinning: 0.85,
     end: { taper: +styles.strokeWidth * 20 },
     start: { taper: +styles.strokeWidth * 20 },

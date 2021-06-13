@@ -1,6 +1,7 @@
 import useKeyboardEvents from 'hooks/useKeyboardEvents'
 import useLoadOnMount from 'hooks/useLoadOnMount'
 import Canvas from './canvas/canvas'
+import Canvas2 from './canvas2'
 import StatusBar from './status-bar'
 import CodePanel from './code-panel/code-panel'
 import ControlsPanel from './controls-panel/controls-panel'
@@ -21,11 +22,12 @@ export default function Editor() {
 
   return (
     <Layout>
+      {/* <Canvas /> */}
+      <Canvas2 />
       <CodePanel />
       <PagePanel />
       <Spacer />
       <StylePanel />
-      <Canvas />
       <ToolsPanel />
       <StatusBar />
     </Layout>

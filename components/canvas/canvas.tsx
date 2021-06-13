@@ -19,15 +19,15 @@ export default function Canvas() {
 
   useCamera(rGroup)
 
-  useZoomEvents()
+  // useZoomEvents()
 
-  const events = useCanvasEvents(rCanvas)
+  // const events = useCanvasEvents(rCanvas)
 
   const isReady = useSelector((s) => s.isIn('ready'))
 
   return (
     <ContextMenu>
-      <MainSVG ref={rCanvas} {...events}>
+      <MainSVG ref={rCanvas}>
         <Defs />
         {isReady && (
           <g ref={rGroup}>
@@ -46,6 +46,7 @@ export default function Canvas() {
 
 const MainSVG = styled('svg', {
   position: 'fixed',
+  opacity: 1,
   top: 0,
   left: 0,
   width: '100%',
@@ -54,7 +55,6 @@ const MainSVG = styled('svg', {
   zIndex: 100,
   backgroundColor: '$canvas',
   pointerEvents: 'all',
-  // cursor: 'none',
 
   '& *': {
     userSelect: 'none',

@@ -82,13 +82,13 @@ export default class BrushSession extends BaseSession {
 
     this.previous = nextPrev
 
-    // Don't add duplicate points. It's important to test against the
-    // adjusted (low-passed) point rather than the input point.
-
     const newPoint = vec.round([
       ...vec.sub(this.previous, this.origin),
       pressure,
     ])
+
+    // Don't add duplicate points. It's important to test against the
+    // adjusted (low-passed) point rather than the input point.
 
     if (vec.isEqual(this.last, newPoint)) return
 
@@ -102,6 +102,17 @@ export default class BrushSession extends BaseSession {
 
     // Update the points and update the shape's parents.
     const shape = getShape(data, snapshot.id) as DrawShape
+
+    // Offset the points and shapes to avoid negative numbers
+    const ox = Math.min(newPoint[0], 0)
+    const oy = Math.min(newPoint[1], 0)
+
+    if (ox < 0 || oy < 0) {
+      const offset = [ox, oy]
+      this.points = this.points.map((pt) => vec.sub(pt, offset))
+      this.origin = vec.add(this.origin, offset)
+      getShapeUtils(shape).translateBy(shape, offset)
+    }
 
     getShapeUtils(shape).setProperty(shape, 'points', [...this.points])
 
@@ -134,10 +145,11 @@ export default class BrushSession extends BaseSession {
 
 export function getDrawSnapshot(data: Data, shapeId: string) {
   const page = getPage(current(data))
-  const { points } = page.shapes[shapeId] as DrawShape
+  const { point, points } = page.shapes[shapeId] as DrawShape
 
   return {
     id: shapeId,
+    point,
     points,
   }
 }

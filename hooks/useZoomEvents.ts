@@ -22,27 +22,28 @@ export default function useZoomEvents() {
   useGesture(
     {
       onWheel: ({ event, delta }) => {
+        const d = vec.mul(delta, window.devicePixelRatio)
+
         if (event.ctrlKey) {
           const { point } = inputs.wheel(event as WheelEvent)
-          fastZoomUpdate(point, delta[1])
-          // state.send('ZOOMED_CAMERA', {
-          //   delta: delta[1],
-          //   ...inputs.wheel(event as WheelEvent),
-          // })
+          fastZoomUpdate(point, d[1])
           return
         }
 
         if (state.isIn('pointing')) {
-          fastPanUpdate(delta)
+          fastPanUpdate(d)
           return
         }
 
         state.send('PANNED_CAMERA', {
-          delta,
+          delta: d,
           ...inputs.wheel(event as WheelEvent),
         })
       },
       onPinch: ({ pinching, da, origin }) => {
+        const dpr = window.devicePixelRatio
+        const point = vec.mul(origin, dpr)
+
         if (!pinching) {
           state.send('STOPPED_PINCHING')
           rPinchDa.current = undefined
@@ -53,14 +54,14 @@ export default function useZoomEvents() {
         if (rPinchPoint.current === undefined) {
           state.send('STARTED_PINCHING')
           rPinchDa.current = da
-          rPinchPoint.current = origin
+          rPinchPoint.current = point
         }
 
         const [distanceDelta, angleDelta] = vec.sub(rPinchDa.current, da)
 
         fastPinchCamera(
-          origin,
-          vec.sub(rPinchPoint.current, origin),
+          point,
+          vec.sub(rPinchPoint.current, point),
           distanceDelta,
           angleDelta
         )
@@ -73,7 +74,7 @@ export default function useZoomEvents() {
         // })
 
         rPinchDa.current = da
-        rPinchPoint.current = origin
+        rPinchPoint.current = point
       },
     },
     {

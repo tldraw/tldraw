@@ -19,6 +19,11 @@ export function screenToWorld(point: number[], data: Data) {
   return vec.sub(vec.div(point, camera.zoom), camera.point)
 }
 
+export function worldToScreen(point: number[], data: Data) {
+  const camera = getCurrentCamera(data)
+  return vec.mul(vec.sub(point, camera.point), camera.zoom)
+}
+
 /**
  * Get a bounding box that includes two bounding boxes.
  * @param a Bounding box
@@ -1671,7 +1676,13 @@ export function getDocumentBranch(data: Data, id: string): string[] {
 }
 
 export function getSelectedIds(data: Data) {
-  return data.pageStates[data.currentPageId].selectedIds
+  const selectedIds = data.pageStates[data.currentPageId].selectedIds
+
+  if (!(selectedIds instanceof Set)) {
+    console.error('Something went wrong')
+  }
+
+  return selectedIds
 }
 
 export function setSelectedIds(data: Data, ids: string[]) {
@@ -1763,8 +1774,8 @@ export function getPoint(
   e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent
 ) {
   return [
-    Number(e.clientX.toPrecision(4)),
-    Number(e.clientY.toPrecision(4)),
+    Number(e.clientX.toPrecision(4)) * window.devicePixelRatio,
+    Number(e.clientY.toPrecision(4)) * window.devicePixelRatio,
     'pressure' in e ? e.pressure || 0.5 : 0.5,
   ]
 }

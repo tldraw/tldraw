@@ -38,6 +38,14 @@ const rectangle = registerShapeUtils<RectangleShape>({
     }
   },
 
+  getPath2D(shape) {
+    if (!pathCache.has(shape)) {
+      renderPath(shape)
+    }
+
+    return new Path2D(pathCache.get(shape))
+  },
+
   render(shape) {
     const { id, size, radius, style } = shape
     const styles = getShapeStyle(style)

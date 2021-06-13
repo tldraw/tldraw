@@ -25,6 +25,7 @@ import {
   getCameraZoom,
   getSelectedIds,
   setSelectedIds,
+  getPageState,
 } from 'utils/utils'
 import {
   Data,
@@ -110,12 +111,15 @@ const state = createState({
       },
     },
     ready: {
-      onEnter: {
-        wait: 0.01,
-        if: 'hasSelection',
-        do: 'zoomCameraToSelectionActual',
-        else: ['zoomCameraToFit', 'zoomCameraToActual'],
-      },
+      onEnter: [
+        'restoreSavedData', // again? sometimes the page isn't mounted correctly
+        {
+          wait: 0.01,
+          if: 'hasSelection',
+          do: 'zoomCameraToSelectionActual',
+          else: ['zoomCameraToFit', 'zoomCameraToActual'],
+        },
+      ],
       on: {
         ZOOMED_CAMERA: {
           do: 'zoomCamera',

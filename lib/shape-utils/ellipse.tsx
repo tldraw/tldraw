@@ -35,6 +35,14 @@ const ellipse = registerShapeUtils<EllipseShape>({
     }
   },
 
+  getPath2D(shape) {
+    if (!pathCache.has(shape)) {
+      renderPath(shape)
+    }
+
+    return new Path2D(pathCache.get(shape))
+  },
+
   render(shape) {
     const { id, radiusX, radiusY, style } = shape
     const styles = getShapeStyle(style)
@@ -58,16 +66,6 @@ const ellipse = registerShapeUtils<EllipseShape>({
         <path d={path} fill={styles.stroke} />
       </g>
     )
-
-    // return (
-    //   <ellipse
-    //     id={id}
-    //     cx={radiusX}
-    //     cy={radiusY}
-    //     rx={Math.max(0, radiusX - Number(styles.strokeWidth) / 2)}
-    //     ry={Math.max(0, radiusY - Number(styles.strokeWidth) / 2)}
-    //   />
-    // )
   },
 
   getBounds(shape) {

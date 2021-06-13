@@ -5,20 +5,8 @@ import inputs from 'state/inputs'
 import { isMobile } from 'utils/utils'
 
 export default function useCanvasEvents(
-  rCanvas: MutableRefObject<SVGGElement>
+  rCanvas: MutableRefObject<SVGGElement | HTMLDivElement>
 ) {
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    if (!inputs.canAccept(e.pointerId)) return
-
-    rCanvas.current.setPointerCapture(e.pointerId)
-
-    if (e.button === 0) {
-      state.send('POINTED_CANVAS', inputs.pointerDown(e, 'canvas'))
-    } else if (e.button === 2) {
-      state.send('RIGHT_POINTED', inputs.pointerDown(e, 'canvas'))
-    }
-  }, [])
-
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (isMobile()) {
       if (e.touches.length === 2) {
@@ -51,7 +39,6 @@ export default function useCanvasEvents(
   }, [])
 
   return {
-    onPointerDown: handlePointerDown,
     onTouchStart: handleTouchStart,
     onPointerMove: handlePointerMove,
     onPointerUp: handlePointerUp,
