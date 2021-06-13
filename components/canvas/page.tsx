@@ -51,8 +51,6 @@ export default function Page() {
       .map((shape) => shape.id)
   }, deepCompareArrays)
 
-  console.log(currentPageShapeIds.length)
-
   const isSelecting = useSelector((s) => s.isIn('selecting'))
 
   return (

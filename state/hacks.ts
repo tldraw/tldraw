@@ -88,7 +88,21 @@ export function fastPinchCamera(
 
 export function fastBrushSelect(point: number[]) {
   const data = { ...state.data }
+
   session.current.update(data, screenToWorld(point, data))
+
+  state.forceData(Object.freeze(data))
+}
+
+export function fastTranslate(info: PointerInfo) {
+  const data = { ...state.data }
+
+  session.current.update(
+    data,
+    screenToWorld(info.point, data),
+    info.shiftKey,
+    info.altKey
+  )
 
   state.forceData(Object.freeze(data))
 }

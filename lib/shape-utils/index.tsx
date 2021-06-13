@@ -222,12 +222,12 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
     },
 
     translateBy(shape, delta) {
-      shape.point = vec.add(shape.point, delta)
+      shape.point = vec.round(vec.add(shape.point, delta))
       return this
     },
 
     translateTo(shape, point) {
-      shape.point = point
+      shape.point = vec.round(point)
       return this
     },
 

@@ -24,7 +24,7 @@ export default class BrushSession extends BaseSession {
     // Add a first point but don't update the shape yet. We'll update
     // when the draw session ends; if the user hasn't added additional
     // points, this single point will be interpreted as a "dot" shape.
-    this.points = [[0, 0]]
+    this.points = [[0, 0, 0.5]]
 
     const shape = getPage(data).shapes[id]
 
@@ -103,13 +103,14 @@ export default class BrushSession extends BaseSession {
     // Update the points and update the shape's parents.
     const shape = getShape(data, snapshot.id) as DrawShape
 
-    if (newPoint[0] < 0 || newPoint[1] < 0) {
-      const offset = [Math.min(newPoint[0], 0), Math.min(newPoint[1], 0)]
+    // Offset the points and shapes to avoid negative numbers
+    const ox = Math.min(newPoint[0], 0)
+    const oy = Math.min(newPoint[1], 0)
 
-      this.points = this.points.map((pt) => vec.sub(pt, offset))
-
-      this.origin = vec.sub(this.origin, offset)
-
+    if (ox < 0 || oy < 0) {
+      const offset = [ox, oy]
+      this.points = this.points.map((pt) => [...vec.sub(pt, offset), pt[2]])
+      this.origin = vec.add(this.origin, offset)
       getShapeUtils(shape).translateBy(shape, offset)
     }
 
@@ -121,6 +122,7 @@ export default class BrushSession extends BaseSession {
   cancel = (data: Data) => {
     const { snapshot } = this
     const shape = getShape(data, snapshot.id) as DrawShape
+    getShapeUtils(shape).translateTo(shape, snapshot.point)
     getShapeUtils(shape).setProperty(shape, 'points', snapshot.points)
     updateParents(data, [shape.id])
   }
@@ -144,10 +146,11 @@ export default class BrushSession extends BaseSession {
 
 export function getDrawSnapshot(data: Data, shapeId: string) {
   const page = getPage(current(data))
-  const { points } = page.shapes[shapeId] as DrawShape
+  const { points, point } = page.shapes[shapeId] as DrawShape
 
   return {
     id: shapeId,
+    point,
     points,
   }
 }

@@ -12,8 +12,6 @@ import {
   getPage,
   getRelativeTransformedBoundingBox,
   getSelectedIds,
-  getSelectedShapes,
-  getShapes,
   getTransformedBoundingBox,
   setToArray,
   updateParents,

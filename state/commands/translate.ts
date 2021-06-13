@@ -72,8 +72,10 @@ export default function translateCommand(
 
         // Move shapes back to where they started
         for (const { id, point } of initialShapes) {
-          const shape = shapes[id]
-          getShapeUtils(shape).translateTo(shape, point)
+          getDocumentBranch(data, id).forEach((id) => {
+            const shape = shapes[id]
+            getShapeUtils(shape).translateTo(shape, point)
+          })
         }
 
         // Delete clones

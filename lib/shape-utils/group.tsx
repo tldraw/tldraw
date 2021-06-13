@@ -58,11 +58,6 @@ const group = registerShapeUtils<GroupShape>({
     )
   },
 
-  translateTo(shape, point) {
-    shape.point = point
-    return this
-  },
-
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
       const [width, height] = shape.size

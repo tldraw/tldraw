@@ -876,7 +876,7 @@ const state = createState({
     createShape(data, payload, type: ShapeType) {
       const shape = createShape(type, {
         parentId: data.currentPageId,
-        point: screenToWorld(payload.point, data),
+        point: vec.round(screenToWorld(payload.point, data)),
         style: getCurrent(data.currentStyle),
       })
 

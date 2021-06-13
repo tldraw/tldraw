@@ -8,8 +8,10 @@ import {
   getChildIndexAbove,
   getDocumentBranch,
   getPage,
+  getPageState,
   getSelectedShapes,
   setSelectedIds,
+  setToArray,
   updateParents,
 } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
@@ -50,31 +52,39 @@ export default class TranslateSession extends BaseSession {
       if (!this.isCloning) {
         this.isCloning = true
 
-        for (const { id } of initialShapes) {
+        // Move original shapes back to start
+        for (const { id, point } of initialShapes) {
           const shape = shapes[id]
-          getShapeUtils(shape).translateBy(shape, trueDelta)
+          getShapeUtils(shape).translateTo(shape, point)
         }
 
         for (const clone of clones) {
-          shapes[clone.id] = { ...clone }
-          const parent = shapes[clone.parentId]
+          shapes[clone.id] = { ...clone, point: [...clone.point] }
+
+          const shape = shapes[clone.id]
+
+          getShapeUtils(shape).translateBy(shape, delta)
+
+          const parent = shapes[shape.parentId]
+
           if (!parent) continue
+
           getShapeUtils(parent).setProperty(parent, 'children', [
             ...parent.children,
-            clone.id,
+            shape.id,
           ])
         }
-
-        setSelectedIds(
-          data,
-          clones.map((c) => c.id)
-        )
       }
 
       for (const { id } of clones) {
         const shape = shapes[id]
         getShapeUtils(shape).translateBy(shape, trueDelta)
       }
+
+      setSelectedIds(
+        data,
+        clones.map((c) => c.id)
+      )
 
       updateParents(
         data,
@@ -91,6 +101,13 @@ export default class TranslateSession extends BaseSession {
 
         for (const clone of clones) {
           delete shapes[clone.id]
+        }
+
+        for (const initialShape of initialShapes) {
+          getDocumentBranch(data, initialShape.id).forEach((id) => {
+            const shape = shapes[id]
+            getShapeUtils(shape).translateBy(shape, delta)
+          })
         }
 
         initialParents.forEach(

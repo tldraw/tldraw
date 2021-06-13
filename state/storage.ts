@@ -166,7 +166,6 @@ class Storage {
     const savedPage = localStorage.getItem(storageId(fileId, 'page', pageId))
 
     if (savedPage !== null) {
-      console.log(lzw_decode(savedPage))
       data.document.pages[pageId] = JSON.parse(lzw_decode(savedPage))
     } else {
       data.document.pages[pageId] = {
