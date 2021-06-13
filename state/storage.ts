@@ -1,12 +1,12 @@
 import * as fa from 'browser-fs-access'
 import { Data, Page, PageState, TLDocument } from 'types'
-import { setToArray } from 'utils/utils'
+import { lzw_decode, lzw_encode, setToArray } from 'utils/utils'
 import state from './state'
 import { current } from 'immer'
 import { v4 as uuid } from 'uuid'
 import * as idb from 'idb-keyval'
 
-const CURRENT_VERSION = 'code_slate_0.0.5'
+const CURRENT_VERSION = 'code_slate_0.0.6'
 const DOCUMENT_ID = '0001'
 
 function storageId(fileId: string, label: string, id?: string) {
@@ -69,7 +69,7 @@ class Storage {
       return false
     }
 
-    const restoredData: any = JSON.parse(savedData)
+    const restoredData: any = JSON.parse(lzw_decode(savedData))
 
     for (let pageId in restoredData.document.pages) {
       const selectedIds = restoredData.pageStates[pageId].selectedIds
@@ -88,7 +88,7 @@ class Storage {
       )
 
       if (savedPage !== null) {
-        const restored: Page = JSON.parse(savedPage)
+        const restored: Page = JSON.parse(lzw_decode(savedPage))
         dataToSave.document.pages[pageId] = restored
       }
 
@@ -106,7 +106,10 @@ class Storage {
     const dataToSave = this.getDataToSave(data)
 
     // Save current data to local storage
-    localStorage.setItem(storageId(fileId, 'document', fileId), dataToSave)
+    localStorage.setItem(
+      storageId(fileId, 'document', fileId),
+      lzw_encode(dataToSave)
+    )
   }
 
   loadDocumentFromJson(data: Data, restoredData: any) {
@@ -134,7 +137,7 @@ class Storage {
     const page = data.document.pages[pageId]
     const json = JSON.stringify(page)
 
-    localStorage.setItem(storageId(fileId, 'page', pageId), json)
+    localStorage.setItem(storageId(fileId, 'page', pageId), lzw_encode(json))
 
     // Save page state
 
@@ -167,7 +170,7 @@ class Storage {
     const savedPage = localStorage.getItem(storageId(fileId, 'page', pageId))
 
     if (savedPage !== null) {
-      data.document.pages[pageId] = JSON.parse(savedPage)
+      data.document.pages[pageId] = JSON.parse(lzw_decode(savedPage))
     } else {
       data.document.pages[pageId] = {
         id: pageId,
@@ -186,7 +189,6 @@ class Storage {
 
     if (savedPageState !== null) {
       const restored: PageState = JSON.parse(savedPageState)
-      restored.selectedIds = new Set(restored.selectedIds)
       data.pageStates[pageId] = restored
     } else {
       data.pageStates[pageId] = {
@@ -197,6 +199,10 @@ class Storage {
         selectedIds: new Set([]),
       }
     }
+
+    data.pageStates[pageId].selectedIds = new Set(
+      data.pageStates[pageId].selectedIds
+    )
 
     // Empty shapes in state for other pages
 

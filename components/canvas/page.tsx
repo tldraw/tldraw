@@ -1,7 +1,7 @@
 import { getShapeUtils } from 'lib/shape-utils'
 import state, { useSelector } from 'state'
 import { Bounds, GroupShape, PageState } from 'types'
-import { boundsContain } from 'utils/bounds'
+import { boundsCollide, boundsContain } from 'utils/bounds'
 import { deepCompareArrays, getPage, screenToWorld } from 'utils/utils'
 import Shape from './shape'
 
@@ -20,35 +20,38 @@ export default function Page() {
     const page = getPage(s.data)
     const pageState = s.data.pageStates[page.id]
 
-    // if (!viewportCache.has(pageState)) {
-    //   const [minX, minY] = screenToWorld([0, 0], s.data)
-    //   const [maxX, maxY] = screenToWorld(
-    //     [window.innerWidth, window.innerHeight],
-    //     s.data
-    //   )
-    //   viewportCache.set(pageState, {
-    //     minX,
-    //     minY,
-    //     maxX,
-    //     maxY,
-    //     height: maxX - minX,
-    //     width: maxY - minY,
-    //   })
-    // }
+    if (!viewportCache.has(pageState)) {
+      const [minX, minY] = screenToWorld([0, 0], s.data)
+      const [maxX, maxY] = screenToWorld(
+        [window.innerWidth, window.innerHeight],
+        s.data
+      )
+      viewportCache.set(pageState, {
+        minX,
+        minY,
+        maxX,
+        maxY,
+        height: maxX - minX,
+        width: maxY - minY,
+      })
+    }
 
-    // const viewport = viewportCache.get(pageState)
+    const viewport = viewportCache.get(pageState)
 
-    return (
-      Object.values(page.shapes)
-        .filter((shape) => shape.parentId === page.id)
-        // .filter((shape) => {
-        //   const shapeBounds = getShapeUtils(shape).getBounds(shape)
-        //   return boundsContain(viewport, shapeBounds)
-        // })
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    )
+    return Object.values(page.shapes)
+      .filter((shape) => shape.parentId === page.id)
+      .filter((shape) => {
+        const shapeBounds = getShapeUtils(shape).getBounds(shape)
+        return (
+          boundsContain(viewport, shapeBounds) ||
+          boundsCollide(viewport, shapeBounds)
+        )
+      })
+      .sort((a, b) => a.childIndex - b.childIndex)
+      .map((shape) => shape.id)
   }, deepCompareArrays)
+
+  console.log(currentPageShapeIds.length)
 
   const isSelecting = useSelector((s) => s.isIn('selecting'))
 
