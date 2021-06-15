@@ -23,12 +23,12 @@ export default function CenterHandle({
 const StyledBounds = styled('rect', {
   fill: 'none',
   stroke: '$bounds',
-  zStrokeWidth: 2,
+  zStrokeWidth: 1.5,
 
   variants: {
     isLocked: {
       true: {
-        zStrokeWidth: 1,
+        zStrokeWidth: 1.5,
         zDash: 2,
       },
     },

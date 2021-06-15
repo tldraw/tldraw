@@ -15,7 +15,6 @@ import CenterHandle from './center-handle'
 import CornerHandle from './corner-handle'
 import EdgeHandle from './edge-handle'
 import RotateHandle from './rotate-handle'
-import Handles from './handles'
 
 export default function Bounds() {
   const isBrushing = useSelector((s) => s.isIn('brushSelecting'))

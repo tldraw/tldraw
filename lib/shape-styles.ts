@@ -1,5 +1,5 @@
 import { SVGProps } from 'react'
-import { ColorStyle, DashStyle, Shape, ShapeStyles, SizeStyle } from 'types'
+import { ColorStyle, DashStyle, FontSize, ShapeStyles, SizeStyle } from 'types'
 
 export const strokes: Record<ColorStyle, string> = {
   [ColorStyle.White]: 'rgba(248, 249, 250, 1.000)',
@@ -43,12 +43,30 @@ const dashArrays = {
   [DashStyle.Dotted]: (sw: number) => `0 ${sw * 1.5}`,
 }
 
+const fontSizes = {
+  [FontSize.Small]: 16,
+  [FontSize.Medium]: 28,
+  [FontSize.Large]: 32,
+  [FontSize.ExtraLarge]: 72,
+  auto: 'auto',
+}
+
 function getStrokeWidth(size: SizeStyle) {
   return strokeWidths[size]
 }
 
 function getStrokeDashArray(dash: DashStyle, strokeWidth: number) {
   return dashArrays[dash](strokeWidth)
+}
+
+export function getFontSize(size: FontSize) {
+  return fontSizes[size]
+}
+
+export function getFontStyle(size: FontSize, style: ShapeStyles) {
+  const fontSize = getFontSize(size)
+
+  return `${fontSize}px Verveine Regular`
 }
 
 export function getShapeStyle(

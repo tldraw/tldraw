@@ -18,12 +18,13 @@ export interface Data {
     isToolLocked: boolean
     isPenLocked: boolean
   }
-  currentStyle: ShapeStyles
+  currentStyle: ShapeStyles & TextStyles
   activeTool: ShapeType | 'select'
   brush?: Bounds
   boundsRotation: number
   pointedId?: string
   hoveredId?: string
+  editingId?: string
   currentPageId: string
   currentParentId: string
   currentCodeFileId: string
@@ -100,11 +101,22 @@ export enum DashStyle {
   Dotted = 'Dotted',
 }
 
+export enum FontSize {
+  Small = 'Small',
+  Medium = 'Medium',
+  Large = 'Large',
+  ExtraLarge = 'ExtraLarge',
+}
+
 export type ShapeStyles = {
   color: ColorStyle
   size: SizeStyle
   dash: DashStyle
   isFilled: boolean
+}
+
+export type TextStyles = {
+  fontSize: FontSize
 }
 
 export interface BaseShape {
@@ -182,6 +194,8 @@ export interface ArrowShape extends BaseShape {
 export interface TextShape extends BaseShape {
   type: ShapeType.Text
   text: string
+  size: number[] | 'auto'
+  fontSize: FontSize
 }
 
 export interface GroupShape extends BaseShape {

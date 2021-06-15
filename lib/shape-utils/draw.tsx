@@ -28,7 +28,7 @@ const draw = registerShapeUtils<DrawShape>({
       type: ShapeType.Draw,
       isGenerated: false,
       name: 'Draw',
-      parentId: 'page0',
+      parentId: 'page1',
       childIndex: 0,
       point: [0, 0],
       points: [],

@@ -4,12 +4,12 @@ import inputs from 'state/inputs'
 
 export default function useShapeEvents(
   id: string,
-  isGroup: boolean,
+  isParent: boolean,
   rGroup: MutableRefObject<SVGElement>
 ) {
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      if (isGroup) return
+      if (isParent) return
       if (!inputs.canAccept(e.pointerId)) return
       e.stopPropagation()
       rGroup.current.setPointerCapture(e.pointerId)
@@ -42,7 +42,7 @@ export default function useShapeEvents(
   const handlePointerEnter = useCallback(
     (e: React.PointerEvent) => {
       if (!inputs.canAccept(e.pointerId)) return
-      if (isGroup) {
+      if (isParent) {
         state.send('HOVERED_GROUP', inputs.pointerEnter(e, id))
       } else {
         state.send('HOVERED_SHAPE', inputs.pointerEnter(e, id))
@@ -55,7 +55,7 @@ export default function useShapeEvents(
     (e: React.PointerEvent) => {
       if (!inputs.canAccept(e.pointerId)) return
 
-      if (isGroup) {
+      if (isParent) {
         state.send('MOVED_OVER_GROUP', inputs.pointerEnter(e, id))
       } else {
         state.send('MOVED_OVER_SHAPE', inputs.pointerEnter(e, id))
@@ -67,7 +67,7 @@ export default function useShapeEvents(
   const handlePointerLeave = useCallback(
     (e: React.PointerEvent) => {
       if (!inputs.canAccept(e.pointerId)) return
-      if (isGroup) {
+      if (isParent) {
         state.send('UNHOVERED_GROUP', { target: id })
       } else {
         state.send('UNHOVERED_SHAPE', { target: id })

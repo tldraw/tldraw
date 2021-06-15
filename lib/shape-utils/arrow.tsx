@@ -70,7 +70,7 @@ const arrow = registerShapeUtils<ArrowShape>({
       type: ShapeType.Arrow,
       isGenerated: false,
       name: 'Arrow',
-      parentId: 'page0',
+      parentId: 'page1',
       childIndex: 0,
       point,
       rotation: 0,

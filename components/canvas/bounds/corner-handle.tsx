@@ -1,4 +1,4 @@
-import useHandleEvents from 'hooks/useBoundsHandleEvents'
+import useBoundsEvents from 'hooks/useBoundsEvents'
 import styled from 'styles'
 import { Corner, Bounds } from 'types'
 
@@ -11,7 +11,7 @@ export default function CornerHandle({
   bounds: Bounds
   corner: Corner
 }) {
-  const events = useHandleEvents(corner)
+  const events = useBoundsEvents(corner)
 
   const isTop = corner === Corner.TopLeft || corner === Corner.TopRight
   const isLeft = corner === Corner.TopLeft || corner === Corner.BottomLeft
@@ -53,5 +53,5 @@ const StyledCorner = styled('rect', {
 const StyledCornerInner = styled('rect', {
   stroke: '$bounds',
   fill: '#fff',
-  zStrokeWidth: 2,
+  zStrokeWidth: 1.5,
 })

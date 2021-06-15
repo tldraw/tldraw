@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useRef } from 'react'
 import state, { useSelector } from 'state'
 import inputs from 'state/inputs'
 import styled from 'styles'
@@ -8,11 +8,12 @@ function handlePointerDown(e: React.PointerEvent<SVGRectElement>) {
   if (!inputs.canAccept(e.pointerId)) return
   e.stopPropagation()
   e.currentTarget.setPointerCapture(e.pointerId)
+  const info = inputs.pointerDown(e, 'bounds')
 
   if (e.button === 0) {
-    state.send('POINTED_BOUNDS', inputs.pointerDown(e, 'bounds'))
+    state.send('POINTED_BOUNDS', info)
   } else if (e.button === 2) {
-    state.send('RIGHT_POINTED', inputs.pointerDown(e, 'bounds'))
+    state.send('RIGHT_POINTED', info)
   }
 }
 

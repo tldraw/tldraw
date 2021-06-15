@@ -9,6 +9,8 @@ export default function Defs() {
 
   const currentPageShapeIds = useSelector(({ data }) => {
     return Object.values(getPage(data).shapes)
+      .filter(Boolean)
+      .filter((shape) => !getShapeUtils(shape).isForeignObject)
       .sort((a, b) => a.childIndex - b.childIndex)
       .map((shape) => shape.id)
   }, deepCompareArrays)
@@ -29,6 +31,7 @@ export default function Defs() {
 
 const Def = memo(function Def({ id }: { id: string }) {
   const shape = useSelector((s) => getPage(s.data).shapes[id])
+
   if (!shape) return null
-  return getShapeUtils(shape).render(shape)
+  return getShapeUtils(shape).render(shape, { isEditing: false })
 })

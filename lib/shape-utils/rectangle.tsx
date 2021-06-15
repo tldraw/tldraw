@@ -24,7 +24,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
       type: ShapeType.Rectangle,
       isGenerated: false,
       name: 'Rectangle',
-      parentId: 'page0',
+      parentId: 'page1',
       childIndex: 0,
       point: [0, 0],
       size: [1, 1],

@@ -1,1 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Recursive:wght@500;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Recursive:wght@500;700&display=swap');
+@font-face {
+  font-family: 'Verveine Regular';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Verveine Regular'), url('/VerveineRegular.woff') format('woff');
+}

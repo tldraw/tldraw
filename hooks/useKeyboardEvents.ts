@@ -6,7 +6,20 @@ import { getKeyboardEventInfo, metaKey } from 'utils/utils'
 export default function useKeyboardEvents() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (metaKey(e) && !['i', 'r', 'j'].includes(e.key)) {
+      if (
+        metaKey(e) &&
+        ![
+          'a',
+          'i',
+          'r',
+          'j',
+          'ArrowLeft',
+          'ArrowRight',
+          'ArrowUp',
+          'ArrowDown',
+          'z',
+        ].includes(e.key)
+      ) {
         e.preventDefault()
       }
 

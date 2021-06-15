@@ -23,6 +23,8 @@ import transform from './transform'
 import transformSingle from './transform-single'
 import translate from './translate'
 import ungroup from './ungroup'
+import edit from './edit'
+import resetBounds from './reset-bounds'
 
 const commands = {
   align,
@@ -35,12 +37,14 @@ const commands = {
   distribute,
   draw,
   duplicate,
+  edit,
   generate,
   group,
   handle,
   move,
   moveToPage,
   nudge,
+  resetBounds,
   rotate,
   rotateCcw,
   stretch,

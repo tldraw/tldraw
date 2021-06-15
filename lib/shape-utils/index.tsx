@@ -8,7 +8,6 @@ import {
   ShapeBinding,
   Mutable,
   ShapeByType,
-  Data,
 } from 'types'
 import * as vec from 'utils/vec'
 import {
@@ -32,6 +31,7 @@ import ray from './ray'
 import draw from './draw'
 import arrow from './arrow'
 import group from './group'
+import text from './text'
 
 /*
 Shape Utiliies
@@ -51,11 +51,23 @@ export interface ShapeUtility<K extends Shape> {
   // Whether to show transform controls when this shape is selected.
   canTransform: boolean
 
-  // Whether the shape's aspect ratio can change
+  // Whether the shape's aspect ratio can change.
   canChangeAspectRatio: boolean
 
-  // Whether the shape's style can be filled
+  // Whether the shape's style can be filled.
   canStyleFill: boolean
+
+  // Whether the shape may be edited in an editing mode
+  canEdit: boolean
+
+  // Whether the shape is a foreign object.
+  isForeignObject: boolean
+
+  // Whether the shape can contain other shapes.
+  isParent: boolean
+
+  // Whether the shape is only shown when on hovered.
+  isShy: boolean
 
   // Create a new shape.
   create(props: Partial<K>): K
@@ -148,11 +160,21 @@ export interface ShapeUtility<K extends Shape> {
     handle: Partial<K['handles']>
   ): ShapeUtility<K>
 
+  // Respond when a user double clicks the shape's bounds.
+  onBoundsReset(this: ShapeUtility<K>, shape: Mutable<K>): ShapeUtility<K>
+
+  // Respond when a user double clicks the center of the shape.
+  onDoubleFocus(this: ShapeUtility<K>, shape: Mutable<K>): ShapeUtility<K>
+
   // Clean up changes when a session ends.
   onSessionComplete(this: ShapeUtility<K>, shape: Mutable<K>): ShapeUtility<K>
 
   // Render a shape to JSX.
-  render(this: ShapeUtility<K>, shape: K): JSX.Element
+  render(
+    this: ShapeUtility<K>,
+    shape: K,
+    info: { isEditing: boolean }
+  ): JSX.Element
 
   // Get the bounds of the a shape.
   getBounds(this: ShapeUtility<K>, shape: K): Bounds
@@ -168,6 +190,8 @@ export interface ShapeUtility<K extends Shape> {
 
   // Test whether bounds collide with or contain a shape.
   hitTestBounds(this: ShapeUtility<K>, shape: K, bounds: Bounds): boolean
+
+  getShouldDelete(this: ShapeUtility<K>, shape: K): boolean
 }
 
 // A mapping of shape types to shape utilities.
@@ -181,7 +205,7 @@ const shapeUtilityMap: Record<ShapeType, ShapeUtility<Shape>> = {
   [ShapeType.Ray]: ray,
   [ShapeType.Draw]: draw,
   [ShapeType.Arrow]: arrow,
-  [ShapeType.Text]: arrow,
+  [ShapeType.Text]: text,
   [ShapeType.Group]: group,
 }
 
@@ -191,7 +215,7 @@ const shapeUtilityMap: Record<ShapeType, ShapeUtility<Shape>> = {
  * @returns
  */
 export function getShapeUtils<T extends Shape>(shape: T): ShapeUtility<T> {
-  return shapeUtilityMap[shape.type] as ShapeUtility<T>
+  return shapeUtilityMap[shape?.type] as ShapeUtility<T>
 }
 
 function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
@@ -200,6 +224,10 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
     canTransform: true,
     canChangeAspectRatio: true,
     canStyleFill: true,
+    canEdit: false,
+    isShy: false,
+    isParent: false,
+    isForeignObject: false,
 
     create(props) {
       return {
@@ -207,7 +235,7 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
         isGenerated: false,
         point: [0, 0],
         name: 'Shape',
-        parentId: 'page0',
+        parentId: 'page1',
         childIndex: 0,
         rotation: 0,
         isAspectRatioLocked: false,
@@ -262,6 +290,14 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
       return this
     },
 
+    onDoubleFocus() {
+      return this
+    },
+
+    onBoundsReset() {
+      return this
+    },
+
     onSessionComplete() {
       return this
     },
@@ -312,6 +348,10 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
     applyStyles(shape, style) {
       Object.assign(shape.style, style)
       return this
+    },
+
+    getShouldDelete(shape) {
+      return false
     },
   }
 }

@@ -17,7 +17,7 @@ const dot = registerShapeUtils<DotShape>({
       type: ShapeType.Dot,
       isGenerated: false,
       name: 'Dot',
-      parentId: 'page0',
+      parentId: 'page1',
       childIndex: 0,
       point: [0, 0],
       rotation: 0,

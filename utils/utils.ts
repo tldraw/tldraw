@@ -1771,8 +1771,9 @@ export function getPoint(
   ]
 }
 
-export function lzw_encode(s: string) {
+export function compress(s: string) {
   return s
+
   const dict = {}
   const data = (s + '').split('')
 
@@ -1805,7 +1806,7 @@ export function lzw_encode(s: string) {
 }
 
 // Decompress an LZW-encoded string
-export function lzw_decode(s: string) {
+export function decompress(s: string) {
   return s
 
   const dict = {}

@@ -8,6 +8,7 @@ import TransformSession from './transform-session'
 import TransformSingleSession from './transform-single-session'
 import TranslateSession from './translate-session'
 import HandleSession from './handle-session'
+import EditSession from './edit-session'
 
 export {
   ArrowSession,
@@ -20,4 +21,5 @@ export {
   TransformSingleSession,
   TranslateSession,
   HandleSession,
+  EditSession,
 }

@@ -1,9 +1,9 @@
-import { Data, ShapeType } from 'types'
+import { Data, FontSize, ShapeType } from 'types'
 import shapeUtils from 'lib/shape-utils'
 
 export const defaultDocument: Data['document'] = {
   id: '0001',
-  name: 'My Document',
+  name: 'My Default Document',
   pages: {
     page1: {
       id: 'page1',
@@ -11,6 +11,40 @@ export const defaultDocument: Data['document'] = {
       name: 'Page 1',
       childIndex: 0,
       shapes: {
+        // textShape0: shapeUtils[ShapeType.Text].create({
+        //   id: 'textShape0',
+        //   point: [0, 0],
+        //   text: 'Short',
+        //   childIndex: 0,
+        // }),
+        // textShape1: shapeUtils[ShapeType.Text].create({
+        //   id: 'textShape1',
+        //   point: [100, 150],
+        //   fontSize: FontSize.Small,
+        //   text: 'Well, this is a pretty long title. I hope it all still works',
+        //   childIndex: 1,
+        // }),
+        // textShape2: shapeUtils[ShapeType.Text].create({
+        //   id: 'textShape2',
+        //   point: [100, 200],
+        //   fontSize: FontSize.Medium,
+        //   text: 'Well, this is a pretty long title. I hope it all still works',
+        //   childIndex: 2,
+        // }),
+        // textShape3: shapeUtils[ShapeType.Text].create({
+        //   id: 'textShape3',
+        //   point: [100, 250],
+        //   fontSize: FontSize.Large,
+        //   text: 'Well, this is a pretty long title. I hope it all still works',
+        //   childIndex: 3,
+        // }),
+        // textShape4: shapeUtils[ShapeType.Text].create({
+        //   id: 'textShape4',
+        //   point: [100, 300],
+        //   fontSize: FontSize.ExtraLarge,
+        //   text: 'Well, this is a pretty long title. I hope it all still works',
+        //   childIndex: 4,
+        // }),
         // arrowShape0: shapeUtils[ShapeType.Arrow].create({
         //   id: 'arrowShape0',
         //   point: [200, 200],

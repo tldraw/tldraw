@@ -17,7 +17,7 @@ const polyline = registerShapeUtils<PolylineShape>({
       type: ShapeType.Polyline,
       isGenerated: false,
       name: 'Polyline',
-      parentId: 'page0',
+      parentId: 'page1',
       childIndex: 0,
       point: [0, 0],
       points: [[0, 0]],

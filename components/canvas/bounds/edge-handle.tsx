@@ -1,4 +1,4 @@
-import useHandleEvents from 'hooks/useBoundsHandleEvents'
+import useBoundsEvents from 'hooks/useBoundsEvents'
 import styled from 'styles'
 import { Edge, Bounds } from 'types'
 
@@ -11,7 +11,7 @@ export default function EdgeHandle({
   bounds: Bounds
   edge: Edge
 }) {
-  const events = useHandleEvents(edge)
+  const events = useBoundsEvents(edge)
 
   const isHorizontal = edge === Edge.Top || edge === Edge.Bottom
   const isFarEdge = edge === Edge.Right || edge === Edge.Bottom

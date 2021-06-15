@@ -1,4 +1,4 @@
-import useHandleEvents from 'hooks/useBoundsHandleEvents'
+import useHandleEvents from 'hooks/useBoundsEvents'
 import styled from 'styles'
 import { Bounds } from 'types'
 
@@ -33,6 +33,6 @@ export default function Rotate({
 const StyledRotateHandle = styled('circle', {
   stroke: '$bounds',
   fill: '#fff',
-  zStrokeWidth: 2,
+  zStrokeWidth: 1.5,
   cursor: 'grab',
 })

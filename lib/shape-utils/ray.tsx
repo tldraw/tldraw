@@ -18,7 +18,7 @@ const ray = registerShapeUtils<RayShape>({
       type: ShapeType.Ray,
       isGenerated: false,
       name: 'Ray',
-      parentId: 'page0',
+      parentId: 'page1',
       childIndex: 0,
       point: [0, 0],
       direction: [0, 1],

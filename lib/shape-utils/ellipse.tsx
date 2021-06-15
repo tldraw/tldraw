@@ -21,7 +21,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
       type: ShapeType.Ellipse,
       isGenerated: false,
       name: 'Ellipse',
-      parentId: 'page0',
+      parentId: 'page1',
       childIndex: 0,
       point: [0, 0],
       radiusX: 1,

@@ -1,12 +1,13 @@
 import React from 'react'
 import { PointerInfo } from 'types'
+import * as vec from 'utils/vec'
 import { isDarwin, getPoint } from 'utils/utils'
 
 const DOUBLE_CLICK_DURATION = 300
 
 class Inputs {
   activePointerId?: number
-  lastPointerDownTime = 0
+  lastPointerUpTime = 0
   points: Record<string, PointerInfo> = {}
 
   touchStart(e: TouchEvent | React.TouchEvent, target: string) {
@@ -119,7 +120,7 @@ class Inputs {
     return info
   }
 
-  pointerUp(e: PointerEvent | React.PointerEvent) {
+  pointerUp = (e: PointerEvent | React.PointerEvent) => {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     const prev = this.points[e.pointerId]
@@ -137,24 +138,31 @@ class Inputs {
 
     delete this.points[e.pointerId]
     delete this.activePointerId
-    this.lastPointerDownTime = Date.now()
+
+    if (vec.dist(info.origin, info.point) < 8) {
+      this.lastPointerUpTime = Date.now()
+    }
 
     return info
   }
 
-  wheel(e: WheelEvent) {
+  wheel = (e: WheelEvent) => {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
     return { point: getPoint(e), shiftKey, ctrlKey, metaKey, altKey }
   }
 
-  canAccept(pointerId: PointerEvent['pointerId']) {
+  canAccept = (pointerId: PointerEvent['pointerId']) => {
     return (
       this.activePointerId === undefined || this.activePointerId === pointerId
     )
   }
 
   isDoubleClick() {
-    return Date.now() - this.lastPointerDownTime < DOUBLE_CLICK_DURATION
+    const { origin, point } = this.pointer
+    return (
+      Date.now() - this.lastPointerUpTime < DOUBLE_CLICK_DURATION &&
+      vec.dist(origin, point) < 8
+    )
   }
 
   get pointer() {

@@ -19,7 +19,7 @@ const line = registerShapeUtils<LineShape>({
       type: ShapeType.Line,
       isGenerated: false,
       name: 'Line',
-      parentId: 'page0',
+      parentId: 'page1',
       childIndex: 0,
       point: [0, 0],
       direction: [0, 0],

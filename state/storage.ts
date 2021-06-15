@@ -1,6 +1,6 @@
 import * as fa from 'browser-fs-access'
 import { Data, Page, PageState, TLDocument } from 'types'
-import { lzw_decode, lzw_encode, setToArray } from 'utils/utils'
+import { decompress, compress, setToArray } from 'utils/utils'
 import state from './state'
 import { current } from 'immer'
 import { v4 as uuid } from 'uuid'
@@ -66,7 +66,7 @@ class Storage {
       return false
     }
 
-    const restoredData: any = JSON.parse(lzw_decode(savedData))
+    const restoredData: any = JSON.parse(decompress(savedData))
 
     this.load(data, restoredData)
   }
@@ -80,7 +80,7 @@ class Storage {
       )
 
       if (savedPage !== null) {
-        const restored: Page = JSON.parse(lzw_decode(savedPage))
+        const restored: Page = JSON.parse(decompress(savedPage))
         dataToSave.document.pages[pageId] = restored
       }
 
@@ -100,7 +100,7 @@ class Storage {
     // Save current data to local storage
     localStorage.setItem(
       storageId(fileId, 'document', fileId),
-      lzw_encode(dataToSave)
+      compress(dataToSave)
     )
   }
 
@@ -134,7 +134,7 @@ class Storage {
     const page = data.document.pages[pageId]
     const json = JSON.stringify(page)
 
-    localStorage.setItem(storageId(fileId, 'page', pageId), lzw_encode(json))
+    localStorage.setItem(storageId(fileId, 'page', pageId), compress(json))
 
     // Save page state
 
@@ -166,7 +166,7 @@ class Storage {
     const savedPage = localStorage.getItem(storageId(fileId, 'page', pageId))
 
     if (savedPage !== null) {
-      data.document.pages[pageId] = JSON.parse(lzw_decode(savedPage))
+      data.document.pages[pageId] = JSON.parse(decompress(savedPage))
     } else {
       data.document.pages[pageId] = {
         id: pageId,

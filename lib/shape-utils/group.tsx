@@ -22,6 +22,8 @@ import { boundsContainPolygon } from 'utils/bounds'
 
 const group = registerShapeUtils<GroupShape>({
   boundsCache: new WeakMap([]),
+  isShy: true,
+  isParent: true,
 
   create(props) {
     return {
@@ -30,7 +32,7 @@ const group = registerShapeUtils<GroupShape>({
       type: ShapeType.Group,
       isGenerated: false,
       name: 'Group',
-      parentId: 'page0',
+      parentId: 'page1',
       childIndex: 0,
       point: [0, 0],
       size: [1, 1],

@@ -26,6 +26,7 @@ export default function Page() {
         [window.innerWidth, window.innerHeight],
         s.data
       )
+
       viewportCache.set(pageState, {
         minX,
         minY,

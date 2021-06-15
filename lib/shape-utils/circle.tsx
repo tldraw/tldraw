@@ -18,7 +18,7 @@ const circle = registerShapeUtils<CircleShape>({
       type: ShapeType.Circle,
       isGenerated: false,
       name: 'Circle',
-      parentId: 'page0',
+      parentId: 'page1',
       childIndex: 0,
       point: [0, 0],
       rotation: 0,

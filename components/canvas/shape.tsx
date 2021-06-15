@@ -1,5 +1,5 @@
 import React, { useRef, memo } from 'react'
-import { useSelector } from 'state'
+import state, { useSelector } from 'state'
 import styled from 'styles'
 import { getShapeUtils } from 'lib/shape-utils'
 import { getBoundsCenter, getPage } from 'utils/utils'
@@ -18,9 +18,11 @@ interface ShapeProps {
 function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
   const shape = useSelector((s) => getPage(s.data).shapes[id])
 
+  const isEditing = useSelector((s) => s.data.editingId === id)
+
   const rGroup = useRef<SVGGElement>(null)
 
-  const events = useShapeEvents(id, shape?.type === ShapeType.Group, rGroup)
+  const events = useShapeEvents(id, getShapeUtils(shape)?.isParent, rGroup)
 
   // This is a problem with deleted shapes. The hooks in this component
   // may sometimes run before the hook in the Page component, which means
@@ -28,9 +30,13 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
   // detects the change and pulls this component.
   if (!shape) return null
 
-  const isGroup = shape.type === ShapeType.Group
+  const utils = getShapeUtils(shape)
+  const style = getShapeStyle(shape.style)
+  const shapeUtils = getShapeUtils(shape)
+  const { isShy, isParent, isForeignObject } = shapeUtils
 
-  const center = getShapeUtils(shape).getCenter(shape)
+  const bounds = shapeUtils.getBounds(shape)
+  const center = shapeUtils.getCenter(shape)
   const rotation = shape.rotation * (180 / Math.PI)
 
   const transform = `
@@ -39,22 +45,46 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
   translate(${shape.point})
   `
 
-  const style = getShapeStyle(shape.style)
-
   return (
-    <StyledGroup ref={rGroup} transform={transform}>
-      {isSelecting && !isGroup && (
-        <HoverIndicator
-          as="use"
-          href={'#' + id}
-          strokeWidth={+style.strokeWidth + 4}
-          variant={getShapeUtils(shape).canStyleFill ? 'filled' : 'hollow'}
-          {...events}
-        />
-      )}
+    <StyledGroup
+      ref={rGroup}
+      transform={transform}
+      onBlur={() => state.send('BLURRED_SHAPE', { target: id })}
+    >
+      {isSelecting &&
+        !isShy &&
+        (isForeignObject ? (
+          <HoverIndicator
+            as="rect"
+            width={bounds.width}
+            height={bounds.height}
+            strokeWidth={1.5}
+            variant={'ghost'}
+            {...events}
+          />
+        ) : (
+          <HoverIndicator
+            as="use"
+            href={'#' + id}
+            strokeWidth={+style.strokeWidth + 4}
+            variant={getShapeUtils(shape).canStyleFill ? 'filled' : 'hollow'}
+            {...events}
+          />
+        ))}
 
-      {!shape.isHidden && <RealShape isGroup={isGroup} id={id} style={style} />}
-      {isGroup &&
+      {!shape.isHidden &&
+        (isForeignObject ? (
+          shapeUtils.render(shape, { isEditing })
+        ) : (
+          <RealShape
+            isParent={isParent}
+            id={id}
+            style={style}
+            isEditing={isEditing}
+          />
+        ))}
+
+      {isParent &&
         shape.children.map((shapeId) => (
           <Shape
             key={shapeId}
@@ -68,17 +98,19 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
 }
 
 interface RealShapeProps {
-  isGroup: boolean
   id: string
   style: Partial<React.SVGProps<SVGUseElement>>
+  isParent: boolean
+  isEditing: boolean
 }
 
 const RealShape = memo(function RealShape({
-  isGroup,
   id,
   style,
+  isParent,
+  isEditing,
 }: RealShapeProps) {
-  return <StyledShape as="use" data-shy={isGroup} href={'#' + id} {...style} />
+  return <StyledShape as="use" data-shy={isParent} href={'#' + id} {...style} />
 })
 
 const StyledShape = styled('path', {
@@ -91,11 +123,15 @@ const HoverIndicator = styled('path', {
   stroke: '$selected',
   strokeLinecap: 'round',
   strokeLinejoin: 'round',
-  transform: 'all .2s',
   fill: 'transparent',
   filter: 'url(#expand)',
   variants: {
     variant: {
+      ghost: {
+        pointerEvents: 'all',
+        filter: 'none',
+        opacity: 0,
+      },
       hollow: {
         pointerEvents: 'stroke',
       },

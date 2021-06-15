@@ -25,6 +25,7 @@ import {
   getCameraZoom,
   getSelectedIds,
   setSelectedIds,
+  getPageState,
 } from 'utils/utils'
 import {
   Data,
@@ -42,6 +43,7 @@ import {
   DashStyle,
   SizeStyle,
   ColorStyle,
+  FontSize,
 } from 'types'
 import session from './session'
 import { pointInBounds } from 'utils/bounds'
@@ -62,6 +64,7 @@ const initialData: Data = {
     size: SizeStyle.Medium,
     color: ColorStyle.Black,
     dash: DashStyle.Solid,
+    fontSize: FontSize.Medium,
     isFilled: false,
   },
   activeTool: 'select',
@@ -69,6 +72,7 @@ const initialData: Data = {
   boundsRotation: 0,
   pointedId: null,
   hoveredId: null,
+  editingId: null,
   currentPageId: 'page1',
   currentParentId: 'page1',
   currentCodeFileId: 'file0',
@@ -117,47 +121,16 @@ const state = createState({
         else: ['zoomCameraToFit', 'zoomCameraToActual'],
       },
       on: {
-        ZOOMED_CAMERA: {
-          do: 'zoomCamera',
-        },
-        PANNED_CAMERA: {
-          do: 'panCamera',
-        },
-        ZOOMED_TO_ACTUAL: {
-          if: 'hasSelection',
-          do: 'zoomCameraToSelectionActual',
-          else: 'zoomCameraToActual',
-        },
-        ZOOMED_TO_SELECTION: {
-          if: 'hasSelection',
-          do: 'zoomCameraToSelection',
-        },
-        ZOOMED_TO_FIT: ['zoomCameraToFit', 'zoomCameraToActual'],
-        ZOOMED_IN: 'zoomIn',
-        ZOOMED_OUT: 'zoomOut',
-        RESET_CAMERA: 'resetCamera',
         TOGGLED_SHAPE_LOCK: { if: 'hasSelection', do: 'lockSelection' },
         TOGGLED_SHAPE_HIDE: { if: 'hasSelection', do: 'hideSelection' },
         TOGGLED_SHAPE_ASPECT_LOCK: {
           if: 'hasSelection',
           do: 'aspectLockSelection',
         },
-        SELECTED_SELECT_TOOL: { to: 'selecting' },
-        SELECTED_DRAW_TOOL: { unless: 'isReadOnly', to: 'draw' },
-        SELECTED_ARROW_TOOL: { unless: 'isReadOnly', to: 'arrow' },
-        SELECTED_DOT_TOOL: { unless: 'isReadOnly', to: 'dot' },
-        SELECTED_CIRCLE_TOOL: { unless: 'isReadOnly', to: 'circle' },
-        SELECTED_ELLIPSE_TOOL: { unless: 'isReadOnly', to: 'ellipse' },
-        SELECTED_RAY_TOOL: { unless: 'isReadOnly', to: 'ray' },
-        SELECTED_LINE_TOOL: { unless: 'isReadOnly', to: 'line' },
-        SELECTED_POLYLINE_TOOL: { unless: 'isReadOnly', to: 'polyline' },
-        SELECTED_RECTANGLE_TOOL: { unless: 'isReadOnly', to: 'rectangle' },
         TOGGLED_CODE_PANEL_OPEN: 'toggleCodePanel',
         TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
         POINTED_CANVAS: ['closeStylePanel', 'clearCurrentParentId'],
         CHANGED_STYLE: ['updateStyles', 'applyStylesToSelection'],
-        SELECTED_ALL: { to: 'selecting', do: 'selectAll' },
-        NUDGED: { do: 'nudgeSelection' },
         USED_PEN_DEVICE: 'enablePenLock',
         DISABLED_PEN_LOCK: 'disablePenLock',
         CLEARED_PAGE: {
@@ -169,6 +142,9 @@ const state = createState({
         CREATED_PAGE: ['clearSelectedIds', 'createPage'],
         DELETED_PAGE: { unless: 'hasOnlyOnePage', do: 'deletePage' },
         LOADED_FROM_FILE: 'loadDocumentFromJson',
+        PANNED_CAMERA: {
+          do: 'panCamera',
+        },
       },
       initial: 'selecting',
       states: {
@@ -206,6 +182,34 @@ const state = createState({
               if: ['hasSelection', 'selectionIncludesGroups'],
               do: 'ungroupSelection',
             },
+            SELECTED_ALL: { to: 'selecting', do: 'selectAll' },
+            NUDGED: { do: 'nudgeSelection' },
+            SELECTED_SELECT_TOOL: { to: 'selecting' },
+            SELECTED_DRAW_TOOL: { unless: 'isReadOnly', to: 'draw' },
+            SELECTED_ARROW_TOOL: { unless: 'isReadOnly', to: 'arrow' },
+            SELECTED_DOT_TOOL: { unless: 'isReadOnly', to: 'dot' },
+            SELECTED_CIRCLE_TOOL: { unless: 'isReadOnly', to: 'circle' },
+            SELECTED_ELLIPSE_TOOL: { unless: 'isReadOnly', to: 'ellipse' },
+            SELECTED_RAY_TOOL: { unless: 'isReadOnly', to: 'ray' },
+            SELECTED_LINE_TOOL: { unless: 'isReadOnly', to: 'line' },
+            SELECTED_POLYLINE_TOOL: { unless: 'isReadOnly', to: 'polyline' },
+            SELECTED_RECTANGLE_TOOL: { unless: 'isReadOnly', to: 'rectangle' },
+            ZOOMED_CAMERA: {
+              do: 'zoomCamera',
+            },
+            ZOOMED_TO_ACTUAL: {
+              if: 'hasSelection',
+              do: 'zoomCameraToSelectionActual',
+              else: 'zoomCameraToActual',
+            },
+            ZOOMED_TO_SELECTION: {
+              if: 'hasSelection',
+              do: 'zoomCameraToSelection',
+            },
+            ZOOMED_TO_FIT: ['zoomCameraToFit', 'zoomCameraToActual'],
+            ZOOMED_IN: 'zoomIn',
+            ZOOMED_OUT: 'zoomOut',
+            RESET_CAMERA: 'resetCamera',
           },
           initial: 'notPointing',
           states: {
@@ -226,6 +230,16 @@ const state = createState({
                   to: 'rotatingSelection',
                   else: { to: 'transformingSelection' },
                 },
+                STARTED_EDITING_SHAPE: {
+                  get: 'firstSelectedShape',
+                  if: ['hasSingleSelection', 'canEditSelectedShape'],
+                  do: 'setEditingId',
+                  to: 'editingShape',
+                },
+                DOUBLE_POINTED_BOUNDS_HANDLE: {
+                  if: 'hasSingleSelection',
+                  do: 'resetShapeBounds',
+                },
                 POINTED_HANDLE: { to: 'translatingHandles' },
                 MOVED_OVER_SHAPE: {
                   if: 'pointHitsShape',
@@ -240,6 +254,16 @@ const state = createState({
                 },
                 UNHOVERED_SHAPE: 'clearHoveredId',
                 DOUBLE_POINTED_SHAPE: [
+                  'setPointedId',
+                  {
+                    if: 'isPointedShapeSelected',
+                    then: {
+                      get: 'firstSelectedShape',
+                      if: 'canEditSelectedShape',
+                      do: 'setEditingId',
+                      to: 'editingShape',
+                    },
+                  },
                   {
                     unless: 'isPressingShiftKey',
                     do: [
@@ -385,6 +409,15 @@ const state = createState({
             },
           },
         },
+        editingShape: {
+          onEnter: 'startEditSession',
+          onExit: 'clearEditingId',
+          on: {
+            EDITED_SHAPE: { do: 'updateEditSession' },
+            BLURRED_SHAPE: { do: 'completeSession', to: 'selecting' },
+            CANCELLED: { do: 'cancelSession', to: 'selecting' },
+          },
+        },
         pinching: {
           on: {
             // Pinching uses hacks.fastPinchCamera
@@ -414,6 +447,35 @@ const state = createState({
               to: 'pinching.toolPinching',
             },
             TOGGLED_TOOL_LOCK: 'toggleToolLock',
+            SELECTED_SELECT_TOOL: { to: 'selecting' },
+            SELECTED_DRAW_TOOL: { unless: 'isReadOnly', to: 'draw' },
+            SELECTED_ARROW_TOOL: { unless: 'isReadOnly', to: 'arrow' },
+            SELECTED_DOT_TOOL: { unless: 'isReadOnly', to: 'dot' },
+            SELECTED_CIRCLE_TOOL: { unless: 'isReadOnly', to: 'circle' },
+            SELECTED_ELLIPSE_TOOL: { unless: 'isReadOnly', to: 'ellipse' },
+            SELECTED_RAY_TOOL: { unless: 'isReadOnly', to: 'ray' },
+            SELECTED_LINE_TOOL: { unless: 'isReadOnly', to: 'line' },
+            SELECTED_POLYLINE_TOOL: { unless: 'isReadOnly', to: 'polyline' },
+            SELECTED_RECTANGLE_TOOL: { unless: 'isReadOnly', to: 'rectangle' },
+            ZOOMED_CAMERA: {
+              do: 'zoomCamera',
+            },
+            PANNED_CAMERA: {
+              do: 'panCamera',
+            },
+            ZOOMED_TO_ACTUAL: {
+              if: 'hasSelection',
+              do: 'zoomCameraToSelectionActual',
+              else: 'zoomCameraToActual',
+            },
+            ZOOMED_TO_SELECTION: {
+              if: 'hasSelection',
+              do: 'zoomCameraToSelection',
+            },
+            ZOOMED_TO_FIT: ['zoomCameraToFit', 'zoomCameraToActual'],
+            ZOOMED_IN: 'zoomIn',
+            ZOOMED_OUT: 'zoomOut',
+            RESET_CAMERA: 'resetCamera',
           },
           states: {
             draw: {
@@ -781,6 +843,9 @@ const state = createState({
     newRectangle() {
       return ShapeType.Rectangle
     },
+    firstSelectedShape(data) {
+      return getSelectedShapes(data)[0]
+    },
   },
   conditions: {
     isPointingCanvas(data, payload: PointerInfo) {
@@ -798,6 +863,9 @@ const state = createState({
     },
     isReadOnly(data) {
       return data.isReadOnly
+    },
+    canEditSelectedShape(data, payload, result: Shape) {
+      return getShapeUtils(result).canEdit
     },
     distanceImpliesDrag(data, payload: PointerInfo) {
       return vec.dist2(payload.origin, payload.point) > 8
@@ -841,6 +909,9 @@ const state = createState({
     },
     hasSelection(data) {
       return getSelectedIds(data).size > 0
+    },
+    hasSingleSelection(data) {
+      return getSelectedIds(data).size === 1
     },
     hasMultipleSelection(data) {
       return getSelectedIds(data).size > 1
@@ -908,6 +979,14 @@ const state = createState({
     completeSession(data) {
       session.current?.complete(data)
       session.clear()
+    },
+
+    // Editing
+    startEditSession(data) {
+      session.current = new Sessions.EditSession(data)
+    },
+    updateEditSession(data, payload: { change: Partial<Shape> }) {
+      session.current.update(data, payload.change)
     },
 
     // Brushing
@@ -1197,6 +1276,23 @@ const state = createState({
     ungroupSelection(data) {
       commands.ungroup(data)
     },
+    resetShapeBounds(data) {
+      commands.resetBounds(data)
+    },
+
+    /* --------------------- Editing -------------------- */
+
+    setEditingId(data) {
+      const selectedShape = getSelectedShapes(data)[0]
+      if (getShapeUtils(selectedShape).canEdit) {
+        data.editingId = selectedShape.id
+      }
+
+      getPageState(data).selectedIds = new Set([selectedShape.id])
+    },
+    clearEditingId(data) {
+      data.editingId = null
+    },
 
     /* ---------------------- Tool ---------------------- */
 
@@ -1478,6 +1574,10 @@ const state = createState({
 
     /* ---------------------- Data ---------------------- */
 
+    restoreSavedData(data) {
+      storage.firstLoad(data)
+    },
+
     saveToFileSystem(data) {
       storage.saveToFileSystem(data)
     },
@@ -1509,10 +1609,6 @@ const state = createState({
     saveCode(data, payload: { code: string }) {
       data.document.code[data.currentCodeFileId].code = payload.code
       storage.saveToLocalStorage(data)
-    },
-
-    restoreSavedData(data) {
-      storage.firstLoad(data)
     },
 
     clearBoundsRotation(data) {
