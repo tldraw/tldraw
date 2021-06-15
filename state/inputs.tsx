@@ -9,6 +9,7 @@ class Inputs {
   activePointerId?: number
   lastPointerUpTime = 0
   points: Record<string, PointerInfo> = {}
+  lastPointer: PointerInfo
 
   touchStart(e: TouchEvent | React.TouchEvent, target: string) {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
@@ -30,6 +31,7 @@ class Inputs {
     this.points[touch.identifier] = info
     this.activePointerId = touch.identifier
 
+    this.lastPointer = info
     return info
   }
 
@@ -55,6 +57,7 @@ class Inputs {
       this.points[touch.identifier] = info
     }
 
+    this.lastPointer = info
     return info
   }
 
@@ -76,6 +79,7 @@ class Inputs {
     this.points[e.pointerId] = info
     this.activePointerId = e.pointerId
 
+    this.lastPointer = info
     return info
   }
 
@@ -94,6 +98,7 @@ class Inputs {
       altKey,
     }
 
+    this.lastPointer = info
     return info
   }
 
@@ -117,6 +122,7 @@ class Inputs {
       this.points[e.pointerId] = info
     }
 
+    this.lastPointer = info
     return info
   }
 
@@ -143,6 +149,7 @@ class Inputs {
       this.lastPointerUpTime = Date.now()
     }
 
+    this.lastPointer = info
     return info
   }
 
@@ -158,7 +165,10 @@ class Inputs {
   }
 
   isDoubleClick() {
-    const { origin, point } = this.pointer
+    if (!this.lastPointer) return
+
+    const { origin, point } = this.lastPointer
+
     return (
       Date.now() - this.lastPointerUpTime < DOUBLE_CLICK_DURATION &&
       vec.dist(origin, point) < 8

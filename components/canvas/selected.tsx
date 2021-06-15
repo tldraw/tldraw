@@ -64,13 +64,11 @@ export const ShapeOutline = memo(function ShapeOutline({ id }: { id: string }) {
 })
 
 const SelectIndicator = styled('path', {
-  zStrokeWidth: 1,
+  zStrokeWidth: 2,
   strokeLineCap: 'round',
   strokeLinejoin: 'round',
   stroke: '$selected',
-  fill: 'transparent',
   pointerEvents: 'none',
-  paintOrder: 'stroke fill markers',
 
   variants: {
     isLocked: {

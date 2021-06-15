@@ -135,7 +135,7 @@ const arrow = registerShapeUtils<ArrowShape>({
           <path
             d={getArrowArcPath(start, end, circle, bend)}
             fill="none"
-            strokeWidth={+style.strokeWidth * 1.85}
+            strokeWidth={(+style.strokeWidth * 1.85).toString()}
             strokeLinecap="round"
           />
           <path d={path} strokeWidth={+style.strokeWidth * 1.5} />

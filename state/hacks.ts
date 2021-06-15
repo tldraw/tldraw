@@ -81,7 +81,10 @@ export function fastPinchCamera(
   const p1 = screenToWorld(point, data)
   camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
-  data.pageStates[data.currentPageId].camera = { ...camera }
+  const pageState = data.pageStates[data.currentPageId]
+  pageState.camera = { ...camera }
+
+  data.pageStates[data.currentPageId] = { ...pageState }
 
   state.forceData(Object.freeze(data))
 }

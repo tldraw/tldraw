@@ -319,7 +319,12 @@ const state = createState({
             },
             pointingBounds: {
               on: {
+                STOPPED_POINTING_BOUNDS: [],
                 STOPPED_POINTING: [
+                  {
+                    if: 'isPointingBounds',
+                    do: 'clearSelectedIds',
+                  },
                   {
                     if: 'isPressingShiftKey',
                     then: [

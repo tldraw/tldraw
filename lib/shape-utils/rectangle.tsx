@@ -51,6 +51,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
     return (
       <g id={id}>
         <rect
+          className="hi"
           rx={radius}
           ry={radius}
           x={+styles.strokeWidth / 2}
@@ -58,6 +59,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
           width={Math.max(0, size[0] + -styles.strokeWidth)}
           height={Math.max(0, size[1] + -styles.strokeWidth)}
           strokeWidth={0}
+          fill={styles.fill}
         />
         <path d={path} fill={styles.stroke} />
       </g>
