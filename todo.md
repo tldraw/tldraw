@@ -30,7 +30,7 @@
 
 - [x] Create context Menu
 - [x] Wire up events
-- [ ] Use nested context menu
+- [x] Use nested context menus
 
 ## Move to Page
 
@@ -41,6 +41,9 @@
 
 - [x] Save to local file
 - [x] Load from local file
+- [ ] Show current file name
+- [ ] Create new file
+- [ ] View recent files
 
 ## Clipboard
 
