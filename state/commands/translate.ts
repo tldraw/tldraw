@@ -9,7 +9,7 @@ import {
   updateParents,
 } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
-import { v4 as uuid } from 'uuid'
+import { uniqueId } from 'utils/utils'
 
 export default function translateCommand(
   data: Data,

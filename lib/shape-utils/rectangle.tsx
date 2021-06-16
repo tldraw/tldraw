@@ -1,5 +1,5 @@
-import { v4 as uuid } from 'uuid'
-import * as vec from 'utils/vec'
+import { uniqueId } from 'utils/utils'
+import vec from 'utils/vec'
 import { RectangleShape, ShapeType } from 'types'
 import { registerShapeUtils } from './index'
 import {
@@ -19,7 +19,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
   create(props) {
     return {
-      id: uuid(),
+      id: uniqueId(),
       seed: Math.random(),
       type: ShapeType.Rectangle,
       isGenerated: false,

@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { fastTransform } from 'state/hacks'
 import inputs from 'state/inputs'
 import { Edge, Corner } from 'types'
 
@@ -29,7 +30,15 @@ export default function useBoundsEvents(handle: Edge | Corner | 'rotate') {
       if (e.buttons !== 1) return
       if (!inputs.canAccept(e.pointerId)) return
       e.stopPropagation()
-      state.send('MOVED_POINTER', inputs.pointerMove(e))
+
+      const info = inputs.pointerMove(e)
+
+      if (state.isIn('transformingSelection')) {
+        fastTransform(info)
+        return
+      }
+
+      state.send('MOVED_POINTER', info)
     },
     [handle]
   )

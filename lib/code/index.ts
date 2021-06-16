@@ -4,7 +4,7 @@ import shapeUtilityMap, {
   getShapeUtils,
   ShapeUtility,
 } from 'lib/shape-utils'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 import Vector from './vector'
 import { vectorToPoint } from 'utils/utils'
 

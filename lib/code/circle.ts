@@ -1,5 +1,5 @@
 import CodeShape from './index'
-import { v4 as uuid } from 'uuid'
+import { uniqueId } from 'utils/utils'
 import { CircleShape, ShapeType } from 'types'
 import { vectorToPoint } from 'utils/utils'
 import { defaultStyle } from 'lib/shape-styles'
@@ -9,7 +9,7 @@ export default class Circle extends CodeShape<CircleShape> {
     props.point = vectorToPoint(props.point)
 
     super({
-      id: uuid(),
+      id: uniqueId(),
       seed: Math.random(),
       parentId: (window as any).currentPageId,
       type: ShapeType.Circle,

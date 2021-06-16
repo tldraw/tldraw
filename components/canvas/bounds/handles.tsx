@@ -4,7 +4,7 @@ import { useRef } from 'react'
 import { useSelector } from 'state'
 import styled from 'styles'
 import { deepCompareArrays, getPage } from 'utils/utils'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 
 export default function Handles() {
   const selectedIds = useSelector(

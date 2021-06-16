@@ -1,6 +1,11 @@
 import { MutableRefObject, useCallback } from 'react'
 import state from 'state'
-import { fastBrushSelect, fastDrawUpdate, fastTranslate } from 'state/hacks'
+import {
+  fastBrushSelect,
+  fastDrawUpdate,
+  fastTransform,
+  fastTranslate,
+} from 'state/hacks'
 import inputs from 'state/inputs'
 import { isMobile } from 'utils/utils'
 
@@ -44,6 +49,11 @@ export default function useCanvasEvents(
 
     if (state.isIn('translatingSelection')) {
       fastTranslate(info)
+      return
+    }
+
+    if (state.isIn('transformingSelection')) {
+      fastTransform(info)
       return
     }
 

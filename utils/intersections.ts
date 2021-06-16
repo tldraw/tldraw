@@ -1,5 +1,5 @@
 import { Bounds } from 'types'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 import { isAngleBetween } from './utils'
 
 interface Intersection {

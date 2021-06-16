@@ -3,8 +3,8 @@ import history from '../history'
 import { Data } from 'types'
 import storage from 'state/storage'
 
-export default function changePage(data: Data, pageId: string) {
-  const { currentPageId: prevPageId } = data
+export default function changePage(data: Data, toPageId: string) {
+  const { currentPageId: fromPageId } = data
 
   history.execute(
     data,
@@ -13,13 +13,13 @@ export default function changePage(data: Data, pageId: string) {
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        storage.savePage(data, data.document.id, prevPageId)
-        data.currentPageId = pageId
-        storage.loadPage(data)
+        storage.savePage(data, data.document.id, fromPageId)
+        storage.loadPage(data, data.document.id, toPageId)
+        data.currentPageId = toPageId
       },
       undo(data) {
-        data.currentPageId = prevPageId
-        storage.loadPage(data, prevPageId)
+        storage.loadPage(data, data.document.id, fromPageId)
+        data.currentPageId = fromPageId
       },
     })
   )

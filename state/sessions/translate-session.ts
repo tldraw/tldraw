@@ -1,9 +1,9 @@
 import { Data, GroupShape, Shape, ShapeType } from 'types'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
 import { current } from 'immer'
-import { v4 as uuid } from 'uuid'
+import { uniqueId } from 'utils/utils'
 import {
   getChildIndexAbove,
   getDocumentBranch,
@@ -215,7 +215,7 @@ export function getTranslateSnapshot(data: Data) {
       .flatMap((shape) => {
         const clone = {
           ...shape,
-          id: uuid(),
+          id: uniqueId(),
           seed: Math.random(),
           parentId: shape.parentId,
           childIndex: getChildIndexAbove(cData, shape.id),
@@ -235,7 +235,7 @@ function cloneGroup(data: Data, clone: Shape): Shape[] {
 
   const page = getPage(data)
   const childClones = clone.children.flatMap((id) => {
-    const newId = uuid()
+    const newId = uniqueId()
     const source = page.shapes[id]
     const next = { ...source, id: newId, parentId: clone.id }
 

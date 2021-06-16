@@ -30,6 +30,7 @@
 
 - [x] Create context Menu
 - [x] Wire up events
+- [ ] Use nested context menu
 
 ## Move to Page
 

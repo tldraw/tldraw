@@ -1,5 +1,5 @@
-import { v4 as uuid } from 'uuid'
-import * as vec from 'utils/vec'
+import { uniqueId } from 'utils/utils'
+import vec from 'utils/vec'
 import { EllipseShape, ShapeType } from 'types'
 import { getShapeUtils, registerShapeUtils } from './index'
 import { boundsContained, getRotatedEllipseBounds } from 'utils/bounds'
@@ -16,7 +16,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
 
   create(props) {
     return {
-      id: uuid(),
+      id: uniqueId(),
       seed: Math.random(),
       type: ShapeType.Ellipse,
       isGenerated: false,

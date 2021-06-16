@@ -5,7 +5,7 @@ import { getShapeUtils } from 'lib/shape-utils'
 import { getBoundsCenter, getPage } from 'utils/utils'
 import { ShapeStyles, ShapeType } from 'types'
 import useShapeEvents from 'hooks/useShapeEvents'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 import { getShapeStyle } from 'lib/shape-styles'
 import ContextMenu from 'components/context-menu'
 
@@ -30,7 +30,6 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
   // detects the change and pulls this component.
   if (!shape) return null
 
-  const utils = getShapeUtils(shape)
   const style = getShapeStyle(shape.style)
   const shapeUtils = getShapeUtils(shape)
   const { isShy, isParent, isForeignObject } = shapeUtils

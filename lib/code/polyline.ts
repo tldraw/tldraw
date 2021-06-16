@@ -1,5 +1,5 @@
 import CodeShape from './index'
-import { v4 as uuid } from 'uuid'
+import { uniqueId } from 'utils/utils'
 import { PolylineShape, ShapeType } from 'types'
 import { vectorToPoint } from 'utils/utils'
 import { defaultStyle } from 'lib/shape-styles'
@@ -10,7 +10,7 @@ export default class Polyline extends CodeShape<PolylineShape> {
     props.points = props.points.map(vectorToPoint)
 
     super({
-      id: uuid(),
+      id: uniqueId(),
       seed: Math.random(),
       parentId: (window as any).currentPageId,
       type: ShapeType.Polyline,

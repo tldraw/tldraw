@@ -2,7 +2,6 @@ import styled from 'styles'
 import { useSelector } from 'state'
 import {
   deepCompareArrays,
-  getBoundsCenter,
   getPage,
   getSelectedIds,
   setToArray,
@@ -11,7 +10,7 @@ import { getShapeUtils } from 'lib/shape-utils'
 import useShapeEvents from 'hooks/useShapeEvents'
 import { memo, useRef } from 'react'
 import { ShapeType } from 'types'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 
 export default function Selected() {
   const currentSelectedShapeIds = useSelector(
@@ -69,6 +68,7 @@ const SelectIndicator = styled('path', {
   strokeLinejoin: 'round',
   stroke: '$selected',
   pointerEvents: 'none',
+  fill: 'none',
 
   variants: {
     isLocked: {

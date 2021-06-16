@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import state from 'state'
+import storage from 'state/storage'
 import { getCurrentCamera } from 'utils/utils'
 
 /**
@@ -23,10 +24,7 @@ export default function useCamera(ref: React.MutableRefObject<SVGGElement>) {
           `scale(${zoom}) translate(${point[0]} ${point[1]})`
         )
 
-        localStorage.setItem(
-          'code_slate_camera',
-          JSON.stringify({ point, zoom })
-        )
+        storage.savePageState(state.data)
 
         prev = getCurrentCamera(state.data)
       }

@@ -1,4 +1,4 @@
-import { Data, Page, PageState } from 'types'
+import { Data } from 'types'
 import { BaseCommand } from './commands/command'
 import storage from './storage'
 
@@ -24,7 +24,6 @@ class History<T extends Data> {
     }
 
     storage.savePage(data)
-    // storage.saveToLocalStorage(data)
   }
 
   undo = (data: T) => {
@@ -34,7 +33,6 @@ class History<T extends Data> {
     if (this.disabled) return
     this.pointer--
     storage.savePage(data)
-    // storage.saveToLocalStorage(data)
   }
 
   redo = (data: T) => {
@@ -44,7 +42,6 @@ class History<T extends Data> {
     if (this.disabled) return
     this.pointer++
     storage.savePage(data)
-    // storage.saveToLocalStorage(data)
   }
 
   disable = () => {
@@ -60,6 +57,13 @@ class History<T extends Data> {
       this.stack.pop()
       this.pointer--
     }
+  }
+
+  reset() {
+    this.stack = []
+    this.pointer = -1
+    this.maxLength = 100
+    this._enabled = true
   }
 
   get disabled() {

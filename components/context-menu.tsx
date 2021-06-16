@@ -1,7 +1,7 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import * as _Dropdown from '@radix-ui/react-dropdown-menu'
 import styled from 'styles'
-import { RowButton } from './shared'
+import { IconWrapper, RowButton } from './shared'
 import {
   commandKey,
   deepCompareArrays,
@@ -11,6 +11,7 @@ import {
 import state, { useSelector } from 'state'
 import { MoveType, ShapeType } from 'types'
 import React, { useRef } from 'react'
+import { ChevronRightIcon } from '@radix-ui/react-icons'
 
 export default function ContextMenu({
   children,
@@ -56,65 +57,9 @@ export default function ContextMenu({
               </kbd>
             </Button>
             <StyledDivider />
-            <Button
-              onSelect={() =>
-                state.send('MOVED', {
-                  type: MoveType.ToFront,
-                })
-              }
-            >
-              <span>Move To Front</span>
-              <kbd>
-                <span>{commandKey()}</span>
-                <span>⇧</span>
-                <span>]</span>
-              </kbd>
-            </Button>
-
-            <Button
-              onSelect={() =>
-                state.send('MOVED', {
-                  type: MoveType.Forward,
-                })
-              }
-            >
-              <span>Move Forward</span>
-              <kbd>
-                <span>{commandKey()}</span>
-                <span>]</span>
-              </kbd>
-            </Button>
-            <Button
-              onSelect={() =>
-                state.send('MOVED', {
-                  type: MoveType.Backward,
-                })
-              }
-            >
-              <span>Move Backward</span>
-              <kbd>
-                <span>{commandKey()}</span>
-                <span>[</span>
-              </kbd>
-            </Button>
-            <Button
-              onSelect={() =>
-                state.send('MOVED', {
-                  type: MoveType.ToBack,
-                })
-              }
-            >
-              <span>Move to Back</span>
-              <kbd>
-                <span>{commandKey()}</span>
-                <span>⇧</span>
-                <span>[</span>
-              </kbd>
-            </Button>
             {hasGroupSelectd ||
               (hasMultipleSelected && (
                 <>
-                  <StyledDivider />
                   {hasGroupSelectd && (
                     <Button onSelect={() => state.send('UNGROUPED')}>
                       <span>Ungroup</span>
@@ -136,11 +81,65 @@ export default function ContextMenu({
                   )}
                 </>
               ))}
-            <StyledDivider />
+            <SubMenu label="Move">
+              <Button
+                onSelect={() =>
+                  state.send('MOVED', {
+                    type: MoveType.ToFront,
+                  })
+                }
+              >
+                <span>To Front</span>
+                <kbd>
+                  <span>{commandKey()}</span>
+                  <span>⇧</span>
+                  <span>]</span>
+                </kbd>
+              </Button>
 
-            {/* <Button onSelect={() => state.send('MOVED_TO_PAGE')}> */}
-            <MoveToPageDropDown>Move to Page</MoveToPageDropDown>
-            {/* </Button> */}
+              <Button
+                onSelect={() =>
+                  state.send('MOVED', {
+                    type: MoveType.Forward,
+                  })
+                }
+              >
+                <span>Forward</span>
+                <kbd>
+                  <span>{commandKey()}</span>
+                  <span>]</span>
+                </kbd>
+              </Button>
+              <Button
+                onSelect={() =>
+                  state.send('MOVED', {
+                    type: MoveType.Backward,
+                  })
+                }
+              >
+                <span>Backward</span>
+                <kbd>
+                  <span>{commandKey()}</span>
+                  <span>[</span>
+                </kbd>
+              </Button>
+              <Button
+                onSelect={() =>
+                  state.send('MOVED', {
+                    type: MoveType.ToBack,
+                  })
+                }
+              >
+                <span>To Back</span>
+                <kbd>
+                  <span>{commandKey()}</span>
+                  <span>⇧</span>
+                  <span>[</span>
+                </kbd>
+              </Button>
+            </SubMenu>
+            <MoveToPageMenu />
+            <StyledDivider />
             <Button onSelect={() => state.send('DELETED')}>
               <span>Delete</span>
               <kbd>
@@ -180,8 +179,7 @@ const StyledContent = styled(_ContextMenu.Content, {
   pointerEvents: 'all',
   userSelect: 'none',
   zIndex: 200,
-  padding: 2,
-  border: '1px solid $panel',
+  padding: 3,
   boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
   minWidth: 128,
 
@@ -210,7 +208,7 @@ const StyledContent = styled(_ContextMenu.Content, {
 const StyledDivider = styled(_ContextMenu.Separator, {
   backgroundColor: '$hover',
   height: 1,
-  margin: '2px -2px',
+  margin: '3px -3px',
 })
 
 function Button({
@@ -234,7 +232,33 @@ function Button({
   )
 }
 
-function MoveToPageDropDown({ children }: { children: React.ReactNode }) {
+function SubMenu({
+  children,
+  label,
+}: {
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <_ContextMenu.Root>
+      <_ContextMenu.TriggerItem
+        as={RowButton}
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+      >
+        <span>{label}</span>
+        <IconWrapper size="small">
+          <ChevronRightIcon />
+        </IconWrapper>
+      </_ContextMenu.TriggerItem>
+      <StyledContent sideOffset={2} alignOffset={-2} isMobile={isMobile()}>
+        {children}
+        <StyledArrow offset={13} />
+      </StyledContent>
+    </_ContextMenu.Root>
+  )
+}
+
+function MoveToPageMenu() {
   const documentPages = useSelector((s) => s.data.document.pages)
   const currentPageId = useSelector((s) => s.data.currentPageId)
 
@@ -245,27 +269,29 @@ function MoveToPageDropDown({ children }: { children: React.ReactNode }) {
     .filter((a) => a.id !== currentPageId)
 
   return (
-    <_Dropdown.Root>
-      <_Dropdown.Trigger
+    <_ContextMenu.Root>
+      <_ContextMenu.TriggerItem
         as={RowButton}
         bp={{ '@initial': 'mobile', '@sm': 'small' }}
       >
-        {children}
-      </_Dropdown.Trigger>
-      <StyledDialogContent side="right" sideOffset={8}>
+        <span>Move To Page</span>
+        <IconWrapper size="small">
+          <ChevronRightIcon />
+        </IconWrapper>
+      </_ContextMenu.TriggerItem>
+      <StyledContent sideOffset={2} alignOffset={-2} isMobile={isMobile()}>
         {sorted.map(({ id, name }) => (
-          <_Dropdown.Item
-            as={RowButton}
+          <Button
             key={id}
-            bp={{ '@initial': 'mobile', '@sm': 'small' }}
             disabled={id === currentPageId}
             onSelect={() => state.send('MOVED_TO_PAGE', { id })}
           >
             <span>{name}</span>
-          </_Dropdown.Item>
+          </Button>
         ))}
-      </StyledDialogContent>
-    </_Dropdown.Root>
+        <StyledArrow offset={13} />
+      </StyledContent>
+    </_ContextMenu.Root>
   )
 }
 
@@ -292,4 +318,8 @@ const StyledDialogContent = styled(_Dropdown.Content, {
   '&:focus': {
     outline: 'none',
   },
+})
+
+const StyledArrow = styled(_ContextMenu.Arrow, {
+  fill: 'white',
 })

@@ -1,5 +1,5 @@
-import { Bounds } from "types"
-import * as vec from "./vec"
+import { Bounds } from 'types'
+import vec from './vec'
 
 /**
  * Get whether a point is inside of a bounds.

@@ -6,7 +6,7 @@ import { IconWrapper, RowButton } from '../shared'
 
 interface Props {
   isFilled: boolean
-  onChange: (isFilled: boolean) => void
+  onChange: (isFilled: boolean | string) => void
 }
 
 export default function IsFilledPicker({ isFilled, onChange }: Props) {
@@ -15,9 +15,7 @@ export default function IsFilledPicker({ isFilled, onChange }: Props) {
       as={RowButton}
       bp={{ '@initial': 'mobile', '@sm': 'small' }}
       checked={isFilled}
-      onCheckedChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-        onChange(e.currentTarget.checked)
-      }
+      onCheckedChange={onChange}
     >
       <label htmlFor="fill">Fill</label>
       <IconWrapper>

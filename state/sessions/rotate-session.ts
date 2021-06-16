@@ -1,5 +1,5 @@
 import { Data, ShapeType } from 'types'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
 import { current } from 'immer'

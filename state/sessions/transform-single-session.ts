@@ -1,14 +1,11 @@
 import { Data, Edge, Corner } from 'types'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
 import { current } from 'immer'
 import { getShapeUtils } from 'lib/shape-utils'
 import {
   getTransformedBoundingBox,
-  getCommonBounds,
-  getRotatedCorners,
-  getTransformAnchor,
   getPage,
   getShape,
   getSelectedShapes,
@@ -62,6 +59,8 @@ export default class TransformSingleSession extends BaseSession {
       scaleY: this.scaleY,
       transformOrigin: [0.5, 0.5],
     })
+
+    data.document.pages[data.currentPageId].shapes[shape.id] = { ...shape }
 
     updateParents(data, [id])
   }

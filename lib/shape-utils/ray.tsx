@@ -1,5 +1,5 @@
-import { v4 as uuid } from 'uuid'
-import * as vec from 'utils/vec'
+import { uniqueId } from 'utils/utils'
+import vec from 'utils/vec'
 import { RayShape, ShapeType } from 'types'
 import { registerShapeUtils } from './index'
 import { boundsContained } from 'utils/bounds'
@@ -13,7 +13,7 @@ const ray = registerShapeUtils<RayShape>({
 
   create(props) {
     return {
-      id: uuid(),
+      id: uniqueId(),
       seed: Math.random(),
       type: ShapeType.Ray,
       isGenerated: false,

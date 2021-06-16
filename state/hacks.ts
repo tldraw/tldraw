@@ -7,9 +7,10 @@ import {
   setToArray,
   setZoomCSS,
 } from 'utils/utils'
+import { freeze } from 'immer'
 import session from './session'
 import state from './state'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 
 /**
  * While a user is drawing with the draw tool, we want to update the shape without
@@ -34,7 +35,7 @@ export function fastDrawUpdate(info: PointerInfo) {
 
   data.document.pages[data.currentPageId].shapes[selectedId] = { ...shape }
 
-  state.forceData(Object.freeze(data))
+  state.forceData(freeze(data))
 }
 
 export function fastPanUpdate(delta: number[]) {
@@ -44,7 +45,7 @@ export function fastPanUpdate(delta: number[]) {
 
   data.pageStates[data.currentPageId].camera = { ...camera }
 
-  state.forceData(Object.freeze(data))
+  state.forceData(freeze(data))
 }
 
 export function fastZoomUpdate(point: number[], delta: number) {
@@ -60,7 +61,7 @@ export function fastZoomUpdate(point: number[], delta: number) {
 
   data.pageStates[data.currentPageId].camera = { ...camera }
 
-  state.forceData(Object.freeze(data))
+  state.forceData(freeze(data))
 }
 
 export function fastPinchCamera(
@@ -86,7 +87,7 @@ export function fastPinchCamera(
 
   data.pageStates[data.currentPageId] = { ...pageState }
 
-  state.forceData(Object.freeze(data))
+  state.forceData(freeze(data))
 }
 
 export function fastBrushSelect(point: number[]) {
@@ -94,7 +95,7 @@ export function fastBrushSelect(point: number[]) {
 
   session.current.update(data, screenToWorld(point, data))
 
-  state.forceData(Object.freeze(data))
+  state.forceData(freeze(data))
 }
 
 export function fastTranslate(info: PointerInfo) {
@@ -107,5 +108,18 @@ export function fastTranslate(info: PointerInfo) {
     info.altKey
   )
 
-  state.forceData(Object.freeze(data))
+  state.forceData(freeze(data))
+}
+
+export function fastTransform(info: PointerInfo) {
+  const data = { ...state.data }
+
+  session.current.update(
+    data,
+    screenToWorld(info.point, data),
+    info.shiftKey,
+    info.altKey
+  )
+
+  state.forceData(freeze(data))
 }

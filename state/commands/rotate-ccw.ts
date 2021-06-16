@@ -7,7 +7,7 @@ import {
   getPage,
   getSelectedShapes,
 } from 'utils/utils'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 import { getShapeUtils } from 'lib/shape-utils'
 
 const PI2 = Math.PI * 2

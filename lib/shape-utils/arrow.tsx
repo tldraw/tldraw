@@ -1,5 +1,5 @@
-import { v4 as uuid } from 'uuid'
-import * as vec from 'utils/vec'
+import { uniqueId } from 'utils/utils'
+import vec from 'utils/vec'
 import {
   ease,
   getSvgPathFromStroke,
@@ -65,7 +65,7 @@ const arrow = registerShapeUtils<ArrowShape>({
     } = props
 
     return {
-      id: uuid(),
+      id: uniqueId(),
       seed: Math.random(),
       type: ShapeType.Arrow,
       isGenerated: false,

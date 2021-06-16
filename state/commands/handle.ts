@@ -4,7 +4,7 @@ import { Data } from 'types'
 import { getPage } from 'utils/utils'
 import { HandleSnapshot } from 'state/sessions/handle-session'
 import { getShapeUtils } from 'lib/shape-utils'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 
 export default function handleCommand(
   data: Data,

@@ -1,14 +1,11 @@
 import { Group, Item } from '../shared'
 import * as RadioGroup from '@radix-ui/react-radio-group'
-import { ChangeEvent } from 'react'
 import { Circle } from 'react-feather'
 import state from 'state'
 import { SizeStyle } from 'types'
 
-function handleChange(e: ChangeEvent<HTMLInputElement>) {
-  state.send('CHANGED_STYLE', {
-    size: e.currentTarget.value as SizeStyle,
-  })
+function handleChange(size: string) {
+  state.send('CHANGED_STYLE', { size })
 }
 
 export default function SizePicker({ size }: { size: SizeStyle }) {

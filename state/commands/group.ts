@@ -12,7 +12,7 @@ import {
 import { current } from 'immer'
 import { createShape, getShapeUtils } from 'lib/shape-utils'
 import { PropsOfType } from 'types'
-import { v4 as uuid } from 'uuid'
+import { uniqueId } from 'utils/utils'
 import commands from '.'
 
 export default function groupCommand(data: Data) {

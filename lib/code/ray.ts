@@ -1,5 +1,5 @@
 import CodeShape from './index'
-import { v4 as uuid } from 'uuid'
+import { uniqueId } from 'utils/utils'
 import { RayShape, ShapeType } from 'types'
 import { vectorToPoint } from 'utils/utils'
 import { defaultStyle } from 'lib/shape-styles'
@@ -10,7 +10,7 @@ export default class Ray extends CodeShape<RayShape> {
     props.direction = vectorToPoint(props.direction)
 
     super({
-      id: uuid(),
+      id: uniqueId(),
       seed: Math.random(),
       type: ShapeType.Ray,
       isGenerated: true,

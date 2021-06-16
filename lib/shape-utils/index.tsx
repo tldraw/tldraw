@@ -9,7 +9,7 @@ import {
   Mutable,
   ShapeByType,
 } from 'types'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 import {
   getBoundsCenter,
   getBoundsFromPoints,
@@ -20,7 +20,7 @@ import {
   boundsContainPolygon,
   pointInBounds,
 } from 'utils/bounds'
-import { v4 as uuid } from 'uuid'
+import { uniqueId } from 'utils/utils'
 import circle from './circle'
 import dot from './dot'
 import polyline from './polyline'
@@ -231,7 +231,7 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
 
     create(props) {
       return {
-        id: uuid(),
+        id: uniqueId(),
         isGenerated: false,
         point: [0, 0],
         name: 'Shape',

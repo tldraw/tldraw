@@ -8,12 +8,9 @@ import {
 import * as RadioGroup from '@radix-ui/react-radio-group'
 import { DashStyle } from 'types'
 import state from 'state'
-import { ChangeEvent } from 'react'
 
-function handleChange(e: ChangeEvent<HTMLInputElement>) {
-  state.send('CHANGED_STYLE', {
-    dash: e.currentTarget.value,
-  })
+function handleChange(dash: string) {
+  state.send('CHANGED_STYLE', { dash })
 }
 
 interface Props {

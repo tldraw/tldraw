@@ -3,7 +3,7 @@ import history from '../history'
 import { Data } from 'types'
 import { getPage, getSelectedShapes } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 
 export default function nudgeCommand(data: Data, delta: number[]) {
   const { currentPageId } = data

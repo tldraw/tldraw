@@ -12,7 +12,7 @@ import {
   uniqueArray,
 } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 import storage from 'state/storage'
 
 export default function nudgeCommand(data: Data, newPageId: string) {

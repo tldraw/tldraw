@@ -1,7 +1,5 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 
-import React from 'react'
-
 /* -------------------------------------------------- */
 /*                    Client State                    */
 /* -------------------------------------------------- */
@@ -53,6 +51,7 @@ export interface Page {
 }
 
 export interface PageState {
+  id: string
   selectedIds: Set<string>
   camera: {
     point: number[]

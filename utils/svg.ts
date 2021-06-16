@@ -1,6 +1,6 @@
 // Some helpers for drawing SVGs.
 
-import * as vec from './vec'
+import vec from './vec'
 import { getSweep } from 'utils/utils'
 
 // General

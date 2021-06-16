@@ -1,9 +1,8 @@
 import { createSelectorHook, createState } from '@state-designer/react'
 import { updateFromCode } from 'lib/code/generate'
 import { createShape, getShapeUtils } from 'lib/shape-utils'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 import inputs from './inputs'
-import { defaultDocument } from './data'
 import history from './history'
 import storage from './storage'
 import * as Sessions from './sessions'
@@ -77,16 +76,29 @@ const initialData: Data = {
   currentParentId: 'page1',
   currentCodeFileId: 'file0',
   codeControls: {},
-  document: defaultDocument,
-  pageStates: {
-    page1: {
-      selectedIds: new Set([]),
-      camera: {
-        point: [0, 0],
-        zoom: 1,
+  document: {
+    id: '0001',
+    name: 'My Document',
+    pages: {
+      page1: {
+        id: 'page1',
+        type: 'page',
+        name: 'Page 1',
+        childIndex: 0,
+        shapes: {},
       },
     },
-    page2: {
+    code: {
+      file0: {
+        id: 'file0',
+        name: 'index.ts',
+        code: ``,
+      },
+    },
+  },
+  pageStates: {
+    page1: {
+      id: 'page1',
       selectedIds: new Set([]),
       camera: {
         point: [0, 0],
@@ -141,7 +153,7 @@ const state = createState({
         CHANGED_PAGE: 'changePage',
         CREATED_PAGE: ['clearSelectedIds', 'createPage'],
         DELETED_PAGE: { unless: 'hasOnlyOnePage', do: 'deletePage' },
-        LOADED_FROM_FILE: 'loadDocumentFromJson',
+        LOADED_FROM_FILE: ['loadDocumentFromJson', 'resetHistory'],
         PANNED_CAMERA: {
           do: 'panCamera',
         },
@@ -362,7 +374,7 @@ const state = createState({
             transformingSelection: {
               onEnter: 'startTransformSession',
               on: {
-                MOVED_POINTER: 'updateTransformSession',
+                // MOVED_POINTER: 'updateTransformSession', using hacks.fastTransform
                 PANNED_CAMERA: 'updateTransformSession',
                 PRESSED_SHIFT_KEY: 'keyUpdateTransformSession',
                 RELEASED_SHIFT_KEY: 'keyUpdateTransformSession',
@@ -405,8 +417,7 @@ const state = createState({
               ],
               on: {
                 STARTED_PINCHING: { do: 'completeSession', to: 'pinching' },
-                // Currently using hacks.fastBrushSelect
-                // MOVED_POINTER: 'updateBrushSession',
+                // MOVED_POINTER: 'updateBrushSession', using hacks.fastBrushSelect
                 PANNED_CAMERA: 'updateBrushSession',
                 STOPPED_POINTING: { do: 'completeSession', to: 'selecting' },
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
@@ -425,8 +436,7 @@ const state = createState({
         },
         pinching: {
           on: {
-            // Pinching uses hacks.fastPinchCamera
-            // PINCHED: { do: 'pinchCamera' },
+            // PINCHED: { do: 'pinchCamera' }, using hacks.fastPinchCamera
           },
           initial: 'selectPinching',
           onExit: { secretlyDo: 'updateZoomCSS' },
@@ -1498,6 +1508,9 @@ const state = createState({
     redo(data) {
       history.redo(data)
     },
+    resetHistory(data) {
+      history.reset()
+    },
 
     /* --------------------- Styles --------------------- */
 
@@ -1595,8 +1608,8 @@ const state = createState({
       storage.loadDocumentFromFilesystem()
     },
 
-    loadDocumentFromJson(data, payload: { restoredData: any }) {
-      storage.loadDocumentFromJson(data, payload.restoredData)
+    loadDocumentFromJson(data, payload: { json: any }) {
+      storage.loadDocumentFromJson(data, payload.json)
     },
 
     forceSave(data) {
@@ -1613,7 +1626,7 @@ const state = createState({
 
     saveCode(data, payload: { code: string }) {
       data.document.code[data.currentCodeFileId].code = payload.code
-      storage.saveToLocalStorage(data)
+      storage.saveDocumentToLocalStorage(data)
     },
 
     clearBoundsRotation(data) {

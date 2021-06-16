@@ -1,8 +1,8 @@
 import { Data, Edge, Corner, Bounds } from 'types'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
-import { current } from 'immer'
+import { current, freeze } from 'immer'
 import { getShapeUtils } from 'lib/shape-utils'
 import {
   getBoundsCenter,
@@ -72,6 +72,8 @@ export default class TransformSession extends BaseSession {
         scaleY: this.scaleY,
         transformOrigin,
       })
+
+      shapes[id] = { ...shape }
     }
 
     updateParents(data, Object.keys(shapeBounds))

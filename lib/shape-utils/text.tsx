@@ -1,5 +1,5 @@
-import { v4 as uuid } from 'uuid'
-import * as vec from 'utils/vec'
+import { uniqueId } from 'utils/utils'
+import vec from 'utils/vec'
 import { TextShape, ShapeType, FontSize } from 'types'
 import { registerShapeUtils } from './index'
 import { defaultStyle, getFontStyle, getShapeStyle } from 'lib/shape-styles'
@@ -36,7 +36,7 @@ const text = registerShapeUtils<TextShape>({
 
   create(props) {
     return {
-      id: uuid(),
+      id: uniqueId(),
       seed: Math.random(),
       type: ShapeType.Text,
       isGenerated: false,

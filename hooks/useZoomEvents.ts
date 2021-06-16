@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import state from 'state'
 import inputs from 'state/inputs'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 import { useGesture } from 'react-use-gesture'
 import {
   fastBrushSelect,

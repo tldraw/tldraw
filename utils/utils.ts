@@ -1,18 +1,14 @@
 import Vector from 'lib/code/vector'
 import React from 'react'
-import {
-  Data,
-  Bounds,
-  Edge,
-  Corner,
-  Shape,
-  ShapeStyles,
-  GroupShape,
-  ShapeType,
-} from 'types'
-import * as vec from './vec'
+import { Data, Bounds, Edge, Corner, Shape, GroupShape, ShapeType } from 'types'
+import { v4 as uuid } from 'uuid'
+import vec from './vec'
 import _isMobile from 'ismobilejs'
 import { getShapeUtils } from 'lib/shape-utils'
+
+export function uniqueId() {
+  return uuid()
+}
 
 export function screenToWorld(point: number[], data: Data) {
   const camera = getCurrentCamera(data)

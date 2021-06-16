@@ -11,7 +11,7 @@ import {
   setSelectedIds,
   setToArray,
 } from 'utils/utils'
-import * as vec from 'utils/vec'
+import vec from 'utils/vec'
 import state from 'state/state'
 
 export default class BrushSession extends BaseSession {

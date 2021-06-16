@@ -1,13 +1,11 @@
 import * as fa from 'browser-fs-access'
-import { Data, Page, PageState, TLDocument } from 'types'
+import { Data, PageState, TLDocument } from 'types'
 import { decompress, compress, setToArray } from 'utils/utils'
 import state from './state'
-import { current } from 'immer'
-import { v4 as uuid } from 'uuid'
+import { uniqueId } from 'utils/utils'
 import * as idb from 'idb-keyval'
 
 const CURRENT_VERSION = 'code_slate_0.0.7'
-const DOCUMENT_ID = '0001'
 
 function storageId(fileId: string, label: string, id?: string) {
   return [CURRENT_VERSION, fileId, label, id].filter(Boolean).join('_')
@@ -21,99 +19,186 @@ class Storage {
   }
 
   firstLoad(data: Data) {
-    const lastOpened = localStorage.getItem(`${CURRENT_VERSION}_lastOpened`)
-
-    this.loadDocumentFromLocalStorage(data, lastOpened || DOCUMENT_ID)
-
-    this.loadPage(data, data.currentPageId)
-
-    this.saveToLocalStorage(data, data.document.id)
-
-    localStorage.setItem(`${CURRENT_VERSION}_lastOpened`, data.document.id)
-  }
-
-  load(data: Data, restoredData: any) {
-    // Before loading the state, save the pages / page states
-
-    // Empty current state.
-    data.document = {} as TLDocument
-    data.pageStates = {}
-
-    // Merge restored data into state.
-    Object.assign(data, restoredData)
-
-    // Add id and name to document, just in case.
-    data.document = {
-      id: 'document0',
-      name: 'My Document',
-      ...restoredData.document,
-    }
-  }
-
-  loadDocumentFromLocalStorage(data: Data, fileId = DOCUMENT_ID) {
-    if (typeof window === 'undefined') return
-    if (typeof localStorage === 'undefined') return
-
-    // Load data from local storage
-    const savedData = localStorage.getItem(
-      storageId(fileId, 'document', fileId)
+    const lastOpenedFileId = localStorage.getItem(
+      `${CURRENT_VERSION}_lastOpened`
     )
 
-    if (savedData === null) {
-      // If we're going to use the default data, assign the
-      // current document a fresh random id.
-      data.document.id = uuid()
-      return false
+    // 1. Load Document from Local Storage
+    // Using the "last opened file id" in local storage.
+    if (lastOpenedFileId !== null) {
+      // Load document from local storage
+      const savedDocument = localStorage.getItem(
+        storageId(lastOpenedFileId, 'document', lastOpenedFileId)
+      )
+
+      if (savedDocument === null) {
+        // If no document found, create a fresh random id.
+        data.document.id = uniqueId()
+      } else {
+        // If we did find a document, load it into state.
+        const restoredDocument: TLDocument = JSON.parse(
+          decompress(savedDocument)
+        )
+
+        // Merge restored data into state.
+        data.document = restoredDocument
+      }
     }
 
-    const restoredData: any = JSON.parse(decompress(savedData))
-
-    this.load(data, restoredData)
+    this.load(data)
   }
 
-  getDataToSave = (data: Data) => {
-    const dataToSave = current(data) as any
+  saveDocumentToLocalStorage(data: Data) {
+    const document = this.getCompleteDocument(data)
 
-    for (let pageId in data.document.pages) {
+    localStorage.setItem(
+      storageId(data.document.id, 'document', data.document.id),
+      compress(JSON.stringify(document))
+    )
+  }
+
+  getCompleteDocument = (data: Data) => {
+    // Create a safely mutable copy of the data
+    const document: TLDocument = { ...data.document }
+
+    // Try to find the document's pages and page states in local storage.
+    Object.keys(document.pages).forEach((pageId) => {
+      const savedPage = localStorage.getItem(
+        storageId(document.id, 'page', pageId)
+      )
+
+      if (savedPage !== null) {
+        document.pages[pageId] = JSON.parse(decompress(savedPage))
+      }
+    })
+
+    return document
+  }
+
+  savePageState = (data: Data) => {
+    localStorage.setItem(
+      storageId(data.document.id, 'lastPageState', data.document.id),
+      JSON.stringify(data.pageStates[data.currentPageId])
+    )
+  }
+
+  loadDocumentFromJson(data: Data, json: string) {
+    const restoredDocument: { document: TLDocument; pageState: PageState } =
+      JSON.parse(json)
+
+    data.document = restoredDocument.document
+
+    // Save pages to local storage, possibly overwriting unsaved local copies
+    Object.values(data.document.pages).forEach((page) => {
+      localStorage.setItem(
+        storageId(data.document.id, 'page', page.id),
+        compress(JSON.stringify(page))
+      )
+    })
+
+    localStorage.setItem(
+      storageId(data.document.id, 'lastPageState', data.document.id),
+      JSON.stringify(restoredDocument.pageState)
+    )
+
+    // Save the new file as the last opened document id
+    localStorage.setItem(`${CURRENT_VERSION}_lastOpened`, data.document.id)
+
+    this.load(data)
+  }
+
+  load(data: Data) {
+    // Once we've loaded data either from local storage or json, run through these steps.
+    data.pageStates = {}
+
+    // 2. Load Pages from Local Storage
+    // Try to find the document's pages and page states in local storage.
+    Object.keys(data.document.pages).forEach((pageId) => {
       const savedPage = localStorage.getItem(
         storageId(data.document.id, 'page', pageId)
       )
 
       if (savedPage !== null) {
-        const restored: Page = JSON.parse(decompress(savedPage))
-        dataToSave.document.pages[pageId] = restored
+        // If we've found a page in local storage, set it into state.
+        data.document.pages[pageId] = JSON.parse(decompress(savedPage))
       }
 
-      const pageState = { ...dataToSave.pageStates[pageId] }
-      pageState.selectedIds = setToArray(pageState.selectedIds)
-    }
+      const savedPageState = localStorage.getItem(
+        storageId(data.document.id, 'pageState', pageId)
+      )
 
-    return JSON.stringify(dataToSave, null, 2)
-  }
+      if (savedPageState !== null) {
+        // If we've found a page state in local storage, set it into state.
+        data.pageStates[pageId] = JSON.parse(decompress(savedPageState))
+        data.pageStates[pageId].selectedIds = new Set([])
+      } else {
+        // Or else create a new one.
+        data.pageStates[pageId] = {
+          id: pageId,
+          selectedIds: new Set([]),
+          camera: {
+            point: [0, 0],
+            zoom: 1,
+          },
+        }
+      }
+    })
 
-  saveToLocalStorage = (data: Data, fileId = data.document.id) => {
-    if (typeof window === 'undefined') return
-    if (typeof localStorage === 'undefined') return
-
-    const dataToSave = this.getDataToSave(data)
-
-    // Save current data to local storage
-    localStorage.setItem(
-      storageId(fileId, 'document', fileId),
-      compress(dataToSave)
+    // 3. Restore the last page state
+    // Using the "last page state" in local storage.
+    const savedPageState = localStorage.getItem(
+      storageId(data.document.id, 'lastPageState', data.document.id)
     )
-  }
 
-  loadDocumentFromJson(data: Data, restoredData: any) {
-    this.load(data, restoredData)
-
-    for (let key in restoredData.document.pages) {
-      this.savePage(restoredData, restoredData.document.id, key)
+    if (savedPageState !== null) {
+      const pageState = JSON.parse(decompress(savedPageState))
+      pageState.selectedIds = new Set([])
+      data.pageStates[pageState.id] = pageState
+      data.currentPageId = pageState.id
     }
 
-    this.loadPage(data, data.currentPageId)
-    this.saveToLocalStorage(data, data.document.id)
+    // 4. Save the current document
+    // The document is now "full" and ready. Whether we've restored a
+    // document or created a new one, save the entire current document.
+    localStorage.setItem(
+      storageId(data.document.id, 'document', data.document.id),
+      compress(JSON.stringify(data.document))
+    )
+
+    // 4.1
+    // Also save out copies of each page separately.
+    Object.values(data.document.pages).forEach((page) => {
+      // Save page
+      localStorage.setItem(
+        storageId(data.document.id, 'page', page.id),
+        compress(JSON.stringify(page))
+      )
+    })
+
+    // Save the last page state
+    const currentPageState = data.pageStates[data.currentPageId]
+
+    localStorage.setItem(
+      storageId(data.document.id, 'lastPageState', data.document.id),
+      JSON.stringify(currentPageState)
+    )
+
+    // Finally, save the current document id as the "last opened" document id.
     localStorage.setItem(`${CURRENT_VERSION}_lastOpened`, data.document.id)
+
+    // 5. Prepare the new state.
+    // Clear out the other pages from state.
+    Object.values(data.document.pages).forEach((page) => {
+      if (page.id !== data.currentPageId) {
+        page.shapes = {}
+      }
+    })
+
+    // Update camera for the new page state
+    document.documentElement.style.setProperty(
+      '--camera-zoom',
+      data.pageStates[data.currentPageId].camera.zoom.toString()
+    )
   }
   /* ---------------------- Pages --------------------- */
 
@@ -127,25 +212,17 @@ class Storage {
   }
 
   savePage(data: Data, fileId = data.document.id, pageId = data.currentPageId) {
-    if (typeof window === 'undefined') return
-    if (typeof localStorage === 'undefined') return
+    const page = data.document.pages[pageId]
 
     // Save page
-    const page = data.document.pages[pageId]
-    const json = JSON.stringify(page)
 
-    localStorage.setItem(storageId(fileId, 'page', pageId), compress(json))
+    localStorage.setItem(
+      storageId(fileId, 'page', pageId),
+      compress(JSON.stringify(page))
+    )
 
     // Save page state
-
-    let currentPageState = {
-      camera: {
-        point: [0, 0],
-        zoom: 1,
-      },
-      selectedIds: new Set([]),
-      ...data.pageStates[pageId],
-    }
+    let currentPageState = data.pageStates[pageId]
 
     localStorage.setItem(
       storageId(fileId, 'pageState', pageId),
@@ -156,37 +233,42 @@ class Storage {
     )
   }
 
-  loadPage(data: Data, pageId = data.currentPageId) {
+  loadPage(data: Data, fileId = data.document.id, pageId = data.currentPageId) {
     if (typeof window === 'undefined') return
     if (typeof localStorage === 'undefined') return
 
-    const fileId = data.document.id
+    data.currentPageId = pageId
 
-    // Page
+    // Get saved page from local storage
     const savedPage = localStorage.getItem(storageId(fileId, 'page', pageId))
 
     if (savedPage !== null) {
+      // If we have a page, move it into state
       data.document.pages[pageId] = JSON.parse(decompress(savedPage))
     } else {
+      // If we don't have a page, create a new page
       data.document.pages[pageId] = {
         id: pageId,
         type: 'page',
-        childIndex: 0,
-        name: 'Page',
+        childIndex: Object.keys(data.document.pages).length,
+        name: 'New Page',
         shapes: {},
       }
     }
 
-    // Page state
+    // Get saved page state from local storage
     const savedPageState = localStorage.getItem(
       storageId(fileId, 'pageState', pageId)
     )
 
     if (savedPageState !== null) {
+      // If we have a page, move it into state
       const restored: PageState = JSON.parse(savedPageState)
       data.pageStates[pageId] = restored
+      data.pageStates[pageId].selectedIds = new Set(restored.selectedIds)
     } else {
       data.pageStates[pageId] = {
+        id: pageId,
         camera: {
           point: [0, 0],
           zoom: 1,
@@ -195,17 +277,20 @@ class Storage {
       }
     }
 
-    // Empty shapes in state for other pages
+    // Save the last page state
+    localStorage.setItem(
+      storageId(fileId, 'lastPageState'),
+      JSON.stringify(data.pageStates[pageId])
+    )
 
-    for (let key in data.document.pages) {
-      if (key === pageId) continue
-      data.document.pages[key].shapes = {}
-    }
+    // Prepare new state
 
-    // Force selected Ids into sets
-    for (let key in data.pageStates) {
-      data.pageStates[key].selectedIds = new Set([])
-    }
+    // Now clear out the other pages from state.
+    Object.values(data.document.pages).forEach((page) => {
+      if (page.id !== data.currentPageId) {
+        page.shapes = {}
+      }
+    })
 
     // Update camera for the new page state
     document.documentElement.style.setProperty(
@@ -217,21 +302,32 @@ class Storage {
   /* ------------------- File System ------------------ */
 
   saveToFileSystem = (data: Data) => {
+    this.saveDocumentToLocalStorage(data)
     this.saveDataToFileSystem(data, data.document.id, false)
   }
 
   saveAsToFileSystem = (data: Data) => {
-    this.saveDataToFileSystem(data, uuid(), true)
+    this.saveDocumentToLocalStorage(data)
+    this.saveDataToFileSystem(data, uniqueId(), true)
   }
 
   saveDataToFileSystem = (data: Data, fileId: string, saveAs: boolean) => {
-    const json = this.getDataToSave(data)
+    const document = this.getCompleteDocument(data)
 
-    this.saveToLocalStorage(data, fileId)
-
-    const blob = new Blob([json], {
-      type: 'application/vnd.tldraw+json',
-    })
+    // Then save to file system
+    const blob = new Blob(
+      [
+        compress(
+          JSON.stringify({
+            document,
+            pageState: data.pageStates[data.currentPageId],
+          })
+        ),
+      ],
+      {
+        type: 'application/vnd.tldraw+json',
+      }
+    )
 
     fa.fileSave(
       blob,
@@ -258,23 +354,15 @@ class Storage {
   }
 
   loadDocumentFromFilesystem() {
-    console.warn('Loading file from file system.')
     fa.fileOpen({
       description: 'tldraw files',
     })
       .then((blob) =>
-        getTextFromBlob(blob).then((text) => {
-          const restoredData = JSON.parse(text)
-
-          if (restoredData === null) {
-            console.warn('Could not load that data.')
-            return
-          }
-
+        getTextFromBlob(blob).then((json) => {
           // Save blob for future saves
           this.previousSaveHandle = blob.handle
 
-          state.send('LOADED_FROM_FILE', { restoredData: { ...restoredData } })
+          state.send('LOADED_FROM_FILE', { json: decompress(json) })
         })
       )
       .catch((e) => {
