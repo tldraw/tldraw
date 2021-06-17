@@ -5,7 +5,7 @@ import { uniqueId } from 'utils/utils'
 import { current } from 'immer'
 import storage from 'state/storage'
 
-export default function createPage(data: Data) {
+export default function createPage(data: Data, goToPage = true) {
   const snapshot = getSnapshot(data)
 
   history.execute(
@@ -14,12 +14,19 @@ export default function createPage(data: Data) {
       name: 'change_page',
       category: 'canvas',
       do(data) {
-        const { page, pageState } = snapshot
+        const { page, pageState, currentPageId } = snapshot
         data.document.pages[page.id] = page
         data.pageStates[page.id] = pageState
+
         data.currentPageId = page.id
         storage.savePage(data, data.document.id, page.id)
         storage.saveDocumentToLocalStorage(data)
+
+        if (goToPage) {
+          data.currentPageId = page.id
+        } else {
+          data.currentPageId = currentPageId
+        }
       },
       undo(data) {
         const { page, currentPageId } = snapshot
@@ -46,6 +53,7 @@ function getSnapshot(data: Data) {
     childIndex: pages.length,
     shapes: {},
   }
+
   const pageState: PageState = {
     id,
     selectedIds: new Set([]),

@@ -26,6 +26,7 @@ import {
   setSelectedIds,
   getPageState,
   getShapes,
+  setToArray,
 } from 'utils/utils'
 import {
   Data,
@@ -1001,12 +1002,11 @@ const state = createState({
       commands.changePage(data, payload.id)
     },
     createPage(data) {
-      commands.createPage(data)
+      commands.createPage(data, true)
     },
     deletePage(data, payload: { id: string }) {
       commands.deletePage(data, payload.id)
     },
-
     /* --------------------- Shapes --------------------- */
     resetShapes(data) {
       const page = getPage(data)

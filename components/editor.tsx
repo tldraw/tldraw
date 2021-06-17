@@ -9,7 +9,7 @@ import StylePanel from './style-panel/style-panel'
 import { useSelector } from 'state'
 import styled from 'styles'
 import PagePanel from './page-panel/page-panel'
-import ContextMenu from './context-menu'
+import ContextMenu from './canvas/context-menu/context-menu'
 
 export default function Editor() {
   useKeyboardEvents()

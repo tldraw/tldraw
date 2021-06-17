@@ -7,7 +7,7 @@ import { ShapeStyles, ShapeType } from 'types'
 import useShapeEvents from 'hooks/useShapeEvents'
 import vec from 'utils/vec'
 import { getShapeStyle } from 'lib/shape-styles'
-import ContextMenu from 'components/context-menu'
+import ContextMenu from 'components/canvas/context-menu/context-menu'
 
 interface ShapeProps {
   id: string

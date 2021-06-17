@@ -11,7 +11,7 @@ import BoundsBg from './bounds/bounds-bg'
 import Selected from './selected'
 import Handles from './bounds/handles'
 import useCanvasEvents from 'hooks/useCanvasEvents'
-import ContextMenu from 'components/context-menu'
+import ContextMenu from './context-menu/context-menu'
 
 export default function Canvas() {
   const rCanvas = useRef<SVGSVGElement>(null)

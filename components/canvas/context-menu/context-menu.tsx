@@ -1,7 +1,11 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import * as _Dropdown from '@radix-ui/react-dropdown-menu'
 import styled from 'styles'
-import { IconWrapper, RowButton } from './shared'
+import {
+  IconWrapper,
+  IconButton as _IconButton,
+  RowButton,
+} from 'components/shared'
 import {
   commandKey,
   deepCompareArrays,
@@ -9,9 +13,67 @@ import {
   isMobile,
 } from 'utils/utils'
 import state, { useSelector } from 'state'
-import { MoveType, ShapeType } from 'types'
+import {
+  AlignType,
+  DistributeType,
+  MoveType,
+  ShapeType,
+  StretchType,
+} from 'types'
 import React, { useRef } from 'react'
-import { ChevronRightIcon } from '@radix-ui/react-icons'
+import {
+  ChevronRightIcon,
+  AlignBottomIcon,
+  AlignCenterHorizontallyIcon,
+  AlignCenterVerticallyIcon,
+  AlignLeftIcon,
+  AlignRightIcon,
+  AlignTopIcon,
+  SpaceEvenlyHorizontallyIcon,
+  SpaceEvenlyVerticallyIcon,
+  StretchHorizontallyIcon,
+  StretchVerticallyIcon,
+} from '@radix-ui/react-icons'
+
+function alignTop() {
+  state.send('ALIGNED', { type: AlignType.Top })
+}
+
+function alignCenterVertical() {
+  state.send('ALIGNED', { type: AlignType.CenterVertical })
+}
+
+function alignBottom() {
+  state.send('ALIGNED', { type: AlignType.Bottom })
+}
+
+function stretchVertically() {
+  state.send('STRETCHED', { type: StretchType.Vertical })
+}
+
+function distributeVertically() {
+  state.send('DISTRIBUTED', { type: DistributeType.Vertical })
+}
+
+function alignLeft() {
+  state.send('ALIGNED', { type: AlignType.Left })
+}
+
+function alignCenterHorizontal() {
+  state.send('ALIGNED', { type: AlignType.CenterHorizontal })
+}
+
+function alignRight() {
+  state.send('ALIGNED', { type: AlignType.Right })
+}
+
+function stretchHorizontally() {
+  state.send('STRETCHED', { type: StretchType.Horizontal })
+}
+
+function distributeHorizontally() {
+  state.send('DISTRIBUTED', { type: DistributeType.Horizontal })
+}
 
 export default function ContextMenu({
   children,
@@ -26,7 +88,8 @@ export default function ContextMenu({
   const rContent = useRef<HTMLDivElement>(null)
 
   const hasGroupSelectd = selectedShapes.some((s) => s.type === ShapeType.Group)
-  const hasMultipleSelected = selectedShapes.length > 1
+  const hasTwoOrMore = selectedShapes.length > 1
+  const hasThreeOrMore = selectedShapes.length > 2
 
   return (
     <_ContextMenu.Root>
@@ -58,7 +121,7 @@ export default function ContextMenu({
             </Button>
             <StyledDivider />
             {hasGroupSelectd ||
-              (hasMultipleSelected && (
+              (hasTwoOrMore && (
                 <>
                   {hasGroupSelectd && (
                     <Button onSelect={() => state.send('UNGROUPED')}>
@@ -70,7 +133,7 @@ export default function ContextMenu({
                       </kbd>
                     </Button>
                   )}
-                  {hasMultipleSelected && (
+                  {hasTwoOrMore && (
                     <Button onSelect={() => state.send('GROUPED')}>
                       <span>Group</span>
                       <kbd>
@@ -138,6 +201,12 @@ export default function ContextMenu({
                 </kbd>
               </Button>
             </SubMenu>
+            {hasTwoOrMore && (
+              <AlignDistributeSubMenu
+                hasTwoOrMore={hasTwoOrMore}
+                hasThreeOrMore={hasThreeOrMore}
+              />
+            )}
             <MoveToPageMenu />
             <StyledDivider />
             <Button onSelect={() => state.send('DELETED')}>
@@ -232,6 +301,27 @@ function Button({
   )
 }
 
+function IconButton({
+  onSelect,
+  children,
+  disabled = false,
+}: {
+  onSelect: () => void
+  disabled?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <_ContextMenu.Item
+      as={_IconButton}
+      bp={{ '@initial': 'mobile', '@sm': 'small' }}
+      disabled={disabled}
+      onSelect={onSelect}
+    >
+      {children}
+    </_ContextMenu.Item>
+  )
+}
+
 function SubMenu({
   children,
   label,
@@ -258,6 +348,85 @@ function SubMenu({
   )
 }
 
+function AlignDistributeSubMenu({
+  hasTwoOrMore,
+  hasThreeOrMore,
+}: {
+  hasTwoOrMore: boolean
+  hasThreeOrMore: boolean
+}) {
+  return (
+    <_ContextMenu.Root>
+      <_ContextMenu.TriggerItem
+        as={RowButton}
+        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+      >
+        <span>Align / Distribute</span>
+        <IconWrapper size="small">
+          <ChevronRightIcon />
+        </IconWrapper>
+      </_ContextMenu.TriggerItem>
+      <StyledGrid
+        sideOffset={2}
+        alignOffset={-2}
+        isMobile={isMobile()}
+        selectedStyle={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}
+      >
+        <IconButton onSelect={alignLeft}>
+          <AlignLeftIcon />
+        </IconButton>
+        <IconButton onSelect={alignCenterHorizontal}>
+          <AlignCenterHorizontallyIcon />
+        </IconButton>
+        <IconButton onSelect={alignRight}>
+          <AlignRightIcon />
+        </IconButton>
+        <IconButton onSelect={stretchHorizontally}>
+          <StretchHorizontallyIcon />
+        </IconButton>
+        {hasThreeOrMore && (
+          <IconButton onSelect={distributeHorizontally}>
+            <SpaceEvenlyHorizontallyIcon />
+          </IconButton>
+        )}
+
+        <IconButton onSelect={alignTop}>
+          <AlignTopIcon />
+        </IconButton>
+        <IconButton onSelect={alignCenterVertical}>
+          <AlignCenterVerticallyIcon />
+        </IconButton>
+        <IconButton onSelect={alignBottom}>
+          <AlignBottomIcon />
+        </IconButton>
+        <IconButton onSelect={stretchVertically}>
+          <StretchVerticallyIcon />
+        </IconButton>
+        {hasThreeOrMore && (
+          <IconButton onSelect={distributeVertically}>
+            <SpaceEvenlyVerticallyIcon />
+          </IconButton>
+        )}
+        <StyledArrow offset={13} />
+      </StyledGrid>
+    </_ContextMenu.Root>
+  )
+}
+
+const StyledGrid = styled(StyledContent, {
+  display: 'grid',
+  variants: {
+    selectedStyle: {
+      threeOrMore: {
+        gridTemplateColumns: 'repeat(5, auto)',
+      },
+      twoOrMore: {
+        gridTemplateColumns: 'repeat(4, auto)',
+      },
+    },
+  },
+})
+
 function MoveToPageMenu() {
   const documentPages = useSelector((s) => s.data.document.pages)
   const currentPageId = useSelector((s) => s.data.currentPageId)
@@ -267,6 +436,8 @@ function MoveToPageMenu() {
   const sorted = Object.values(documentPages)
     .sort((a, b) => a.childIndex - b.childIndex)
     .filter((a) => a.id !== currentPageId)
+
+  if (sorted.length === 0) return null
 
   return (
     <_ContextMenu.Root>
