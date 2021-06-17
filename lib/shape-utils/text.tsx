@@ -1,33 +1,40 @@
 import { uniqueId } from 'utils/utils'
-import vec from 'utils/vec'
 import { TextShape, ShapeType, FontSize } from 'types'
 import { registerShapeUtils } from './index'
-import { defaultStyle, getFontStyle, getShapeStyle } from 'lib/shape-styles'
+import {
+  defaultStyle,
+  getFontSize,
+  getFontStyle,
+  getShapeStyle,
+} from 'lib/shape-styles'
 import styled from 'styles'
 import state from 'state'
-import { useEffect, useRef } from 'react'
-
-// A div used for measurement
+import React from 'react'
 
 if (document.getElementById('__textMeasure')) {
   document.getElementById('__textMeasure').remove()
 }
 
+// A div used for measurement
 const mdiv = document.createElement('pre')
 mdiv.id = '__textMeasure'
 mdiv.style.whiteSpace = 'pre'
 mdiv.style.width = 'auto'
 mdiv.style.border = '1px solid red'
 mdiv.style.padding = '4px'
-mdiv.style.lineHeight = '1'
 mdiv.style.margin = '0px'
 mdiv.style.opacity = '0'
 mdiv.style.position = 'absolute'
 mdiv.style.top = '-500px'
 mdiv.style.left = '0px'
 mdiv.style.zIndex = '9999'
+mdiv.tabIndex = -1
 mdiv.setAttribute('readonly', 'true')
 document.body.appendChild(mdiv)
+
+function normalizeText(text: string) {
+  return text.replace(/\t/g, '        ').replace(/\r?\n|\r/g, '\n')
+}
 
 const text = registerShapeUtils<TextShape>({
   isForeignObject: true,
@@ -66,6 +73,51 @@ const text = registerShapeUtils<TextShape>({
 
     const bounds = this.getBounds(shape)
 
+    function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+      state.send('EDITED_SHAPE', {
+        change: { text: normalizeText(e.currentTarget.value) },
+      })
+    }
+
+    function handleKeyDown(e: React.KeyboardEvent) {
+      e.stopPropagation()
+      if (e.key === 'Tab') {
+        e.preventDefault()
+      }
+    }
+
+    function handleBlur() {
+      state.send('BLURRED_EDITING_SHAPE')
+    }
+
+    function handleFocus(e: React.FocusEvent<HTMLTextAreaElement>) {
+      e.currentTarget.select()
+      state.send('FOCUSED_EDITING_SHAPE')
+    }
+
+    const lineHeight = getFontSize(shape.fontSize) * shape.scale
+    const gap = lineHeight * 0.4
+
+    if (!isEditing) {
+      return (
+        <g id={id} pointerEvents="none">
+          {text.split('\n').map((str, i) => (
+            <text
+              key={i}
+              x={4}
+              y={4 + gap / 2 + i * (lineHeight + gap)}
+              style={{ font }}
+              width={bounds.width}
+              height={bounds.height}
+              dominant-baseline="hanging"
+            >
+              {str}
+            </text>
+          ))}
+        </g>
+      )
+    }
+
     return (
       <foreignObject
         id={id}
@@ -82,22 +134,17 @@ const text = registerShapeUtils<TextShape>({
               font,
               color: styles.stroke,
             }}
+            tabIndex={0}
             value={text}
             autoComplete="false"
             autoCapitalize="false"
             autoCorrect="false"
-            onFocus={(e) => {
-              e.currentTarget.select()
-              state.send('FOCUSED_EDITING_SHAPE')
-            }}
-            onBlur={() => {
-              state.send('BLURRED_EDITING_SHAPE')
-            }}
-            onChange={(e) => {
-              state.send('EDITED_SHAPE', {
-                change: { text: e.currentTarget.value },
-              })
-            }}
+            spellCheck="false"
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            onChange={handleChange}
+            dir="auto"
           />
         ) : (
           <StyledText
@@ -115,7 +162,7 @@ const text = registerShapeUtils<TextShape>({
 
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
-      mdiv.innerHTML = shape.text || ' ' // + '&nbsp;'
+      mdiv.innerHTML = shape.text + '&zwj;'
       mdiv.style.font = getFontStyle(shape.fontSize, shape.scale, shape.style)
 
       const [minX, minY] = shape.point
@@ -180,14 +227,17 @@ const StyledText = styled('div', {
   border: 'none',
   padding: '4px',
   whiteSpace: 'pre',
-  resize: 'none',
   minHeight: 1,
   minWidth: 1,
-  outline: 'none',
+  outline: 0,
   backgroundColor: 'transparent',
   overflow: 'hidden',
   pointerEvents: 'none',
   userSelect: 'none',
+  backfaceVisibility: 'hidden',
+  display: 'inline-block',
+  position: 'relative',
+  zIndex: 0,
 })
 
 const StyledTextArea = styled('textarea', {
@@ -199,8 +249,10 @@ const StyledTextArea = styled('textarea', {
   resize: 'none',
   minHeight: 1,
   minWidth: 1,
-  outline: 'none',
-  overflow: 'hidden',
+  outline: 0,
   backgroundColor: '$boundsBg',
+  overflow: 'hidden',
   pointerEvents: 'all',
+  backfaceVisibility: 'hidden',
+  display: 'inline-block',
 })

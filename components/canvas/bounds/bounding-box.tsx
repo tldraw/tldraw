@@ -10,7 +10,6 @@ import {
   getSelectedShapes,
   isMobile,
 } from 'utils/utils'
-
 import CenterHandle from './center-handle'
 import CornerHandle from './corner-handle'
 import EdgeHandle from './edge-handle'
@@ -18,8 +17,11 @@ import RotateHandle from './rotate-handle'
 
 export default function Bounds() {
   const isBrushing = useSelector((s) => s.isIn('brushSelecting'))
+
   const isSelecting = useSelector((s) => s.isIn('selecting'))
+
   const zoom = useSelector((s) => getCurrentCamera(s.data).zoom)
+
   const bounds = useSelector((s) => s.values.selectedBounds)
 
   const selectedIds = useSelector(

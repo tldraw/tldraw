@@ -70,7 +70,7 @@ export function getFontStyle(
 ) {
   const fontSize = getFontSize(size)
 
-  return `${fontSize * scale}px Verveine Regular`
+  return `${fontSize * scale}px/1.4 Verveine Regular`
 }
 
 export function getShapeStyle(

@@ -46,8 +46,8 @@ export const ShapeOutline = memo(function ShapeOutline({ id }: { id: string }) {
   const center = getShapeUtils(shape).getCenter(shape)
 
   const transform = `
-  rotate(${shape.rotation * (180 / Math.PI)}, ${center})
-  translate(${shape.point})
+    rotate(${shape.rotation * (180 / Math.PI)}, ${center})
+    translate(${shape.point})
   `
 
   return (
@@ -68,7 +68,7 @@ const SelectIndicator = styled('path', {
   strokeLinejoin: 'round',
   stroke: '$selected',
   pointerEvents: 'none',
-  fill: 'none',
+  fill: 'transparent',
 
   variants: {
     isLocked: {

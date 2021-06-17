@@ -50,7 +50,7 @@ export default function ToolsPanel() {
             <IconButton
               name="select"
               bp={{ '@initial': 'mobile', '@sm': 'small' }}
-              size={{ '@initial': 'small', '@sm': 'small', '@md': 'large' }}
+              size={{ '@initial': 'small', '@sm': 'small', '@md': 'medium' }}
               onClick={selectSelectTool}
               isActive={activeTool === 'select'}
             >
@@ -114,44 +114,12 @@ export default function ToolsPanel() {
               <TextIcon />
             </IconButton>
           </Tooltip>
-          {/* <IconButton
-            name={ShapeType.Circle}
-            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
-            onClick={selectCircleTool}
-            isActive={activeTool === ShapeType.Circle}
-          >
-            <CircleIcon />
-          </IconButton> */}
-          {/* <IconButton
-            name={ShapeType.Line}
-            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
-            onClick={selectLineTool}
-            isActive={activeTool === ShapeType.Line}
-          >
-            <DividerHorizontalIcon transform="rotate(-45)" />
-          </IconButton>
-          <IconButton
-            name={ShapeType.Ray}
-            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
-            onClick={selectRayTool}
-            isActive={activeTool === ShapeType.Ray}
-          >
-            <SewingPinIcon transform="rotate(-135)" />
-          </IconButton>
-          <IconButton
-            name={ShapeType.Dot}
-            size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
-            onClick={selectDotTool}
-            isActive={activeTool === ShapeType.Dot}
-          >
-            <DotIcon />
-          </IconButton> */}
         </Container>
         <Container>
           <Tooltip label="Lock Tool">
             <IconButton
               bp={{ '@initial': 'mobile', '@sm': 'small' }}
-              size={{ '@initial': 'small', '@sm': 'small', '@md': 'large' }}
+              size={{ '@initial': 'small', '@sm': 'small', '@md': 'medium' }}
               onClick={selectToolLock}
             >
               {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
@@ -161,7 +129,7 @@ export default function ToolsPanel() {
             <Tooltip label="Unlock Pen">
               <IconButton
                 bp={{ '@initial': 'mobile', '@sm': 'small' }}
-                size={{ '@initial': 'small', '@sm': 'small', '@md': 'large' }}
+                size={{ '@initial': 'small', '@sm': 'small', '@md': 'medium' }}
                 onClick={selectToolLock}
               >
                 <Pencil2Icon />
