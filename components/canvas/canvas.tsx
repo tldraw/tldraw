@@ -1,6 +1,6 @@
 import styled from 'styles'
 import state, { useSelector } from 'state'
-import React, { useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import useZoomEvents from 'hooks/useZoomEvents'
 import useCamera from 'hooks/useCamera'
 import Defs from './defs'

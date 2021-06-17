@@ -180,11 +180,7 @@ export default function useKeyboardEvents() {
           break
         }
         case 't': {
-          if (metaKey(e)) {
-            state.send('DUPLICATED', getKeyboardEventInfo(e))
-          } else {
-            state.send('SELECTED_DOT_TOOL', getKeyboardEventInfo(e))
-          }
+          state.send('SELECTED_TEXT_TOOL', getKeyboardEventInfo(e))
           break
         }
         case 'c': {

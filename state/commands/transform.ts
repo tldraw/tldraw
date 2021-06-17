@@ -15,21 +15,20 @@ export default function transformCommand(
   history.execute(
     data,
     new Command({
-      name: 'translate_shapes',
+      name: 'transform_shapes',
       category: 'canvas',
-      do(data, isInitial) {
+      do(data) {
         const { type, shapeBounds } = after
 
         const { shapes } = getPage(data)
 
         for (let id in shapeBounds) {
-          const { initialShape, initialShapeBounds, transformOrigin } =
-            shapeBounds[id]
-
+          const { initialShapeBounds: bounds } = after.shapeBounds[id]
+          const { initialShape, transformOrigin } = before.shapeBounds[id]
           const shape = shapes[id]
 
           getShapeUtils(shape)
-            .transform(shape, initialShapeBounds, {
+            .transform(shape, bounds, {
               type,
               initialShape,
               transformOrigin,
@@ -42,24 +41,11 @@ export default function transformCommand(
         updateParents(data, Object.keys(shapeBounds))
       },
       undo(data) {
-        const { type, shapeBounds } = before
-
+        const { shapeBounds } = before
         const { shapes } = getPage(data)
 
         for (let id in shapeBounds) {
-          const { initialShape, initialShapeBounds, transformOrigin } =
-            shapeBounds[id]
-          const shape = shapes[id]
-
-          getShapeUtils(shape)
-            .transform(shape, initialShapeBounds, {
-              type,
-              initialShape,
-              transformOrigin,
-              scaleX: scaleX < 0 ? scaleX * -1 : scaleX,
-              scaleY: scaleX < 0 ? scaleX * -1 : scaleX,
-            })
-            .onSessionComplete(shape)
+          shapes[id] = shapeBounds[id].initialShape
         }
 
         updateParents(data, Object.keys(shapeBounds))

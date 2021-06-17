@@ -105,7 +105,7 @@ export default function ToolsPanel() {
           </Tooltip>
           <Tooltip label="Text">
             <IconButton
-              name={ShapeType.Arrow}
+              name={ShapeType.Text}
               bp={{ '@initial': 'mobile', '@sm': 'small' }}
               size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
               onClick={selectTextTool}

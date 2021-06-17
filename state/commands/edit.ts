@@ -24,7 +24,7 @@ export default function handleCommand(
 
         const shape = page.shapes[initialShape.id]
 
-        if (getShapeUtils(shape).getShouldDelete(shape)) {
+        if (getShapeUtils(shape).shouldDelete(shape)) {
           delete page.shapes[initialShape.id]
         }
       },

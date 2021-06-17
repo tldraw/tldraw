@@ -127,7 +127,8 @@ export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
   const hasUnlockedShapes = initialShapes.length > 0
 
   const isAllAspectRatioLocked = initialShapes.every(
-    (shape) => shape.isAspectRatioLocked
+    (shape) =>
+      shape.isAspectRatioLocked || !getShapeUtils(shape).canChangeAspectRatio
   )
 
   const shapesBounds = Object.fromEntries(

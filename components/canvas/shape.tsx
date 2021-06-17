@@ -1,4 +1,4 @@
-import React, { useRef, memo } from 'react'
+import React, { useRef, memo, useEffect } from 'react'
 import state, { useSelector } from 'state'
 import styled from 'styles'
 import { getShapeUtils } from 'lib/shape-utils'
@@ -16,13 +16,20 @@ interface ShapeProps {
 }
 
 function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
-  const shape = useSelector((s) => getPage(s.data).shapes[id])
+  const rGroup = useRef<SVGGElement>(null)
+  const rFocusable = useRef<HTMLTextAreaElement>(null)
 
   const isEditing = useSelector((s) => s.data.editingId === id)
 
-  const rGroup = useRef<SVGGElement>(null)
+  const shape = useSelector((s) => getPage(s.data).shapes[id])
 
   const events = useShapeEvents(id, getShapeUtils(shape)?.isParent, rGroup)
+
+  useEffect(() => {
+    if (isEditing) {
+      setTimeout(() => rFocusable.current?.focus(), 0)
+    }
+  }, [isEditing])
 
   // This is a problem with deleted shapes. The hooks in this component
   // may sometimes run before the hook in the Page component, which means
@@ -32,6 +39,7 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
 
   const style = getShapeStyle(shape.style)
   const shapeUtils = getShapeUtils(shape)
+
   const { isShy, isParent, isForeignObject } = shapeUtils
 
   const bounds = shapeUtils.getBounds(shape)
@@ -39,17 +47,13 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
   const rotation = shape.rotation * (180 / Math.PI)
 
   const transform = `
-  translate(${vec.neg(parentPoint)})
-  rotate(${rotation}, ${center})
-  translate(${shape.point})
+    translate(${vec.neg(parentPoint)})
+    rotate(${rotation}, ${center})
+    translate(${shape.point})
   `
 
   return (
-    <StyledGroup
-      ref={rGroup}
-      transform={transform}
-      onBlur={() => state.send('BLURRED_SHAPE', { target: id })}
-    >
+    <StyledGroup ref={rGroup} transform={transform}>
       {isSelecting &&
         !isShy &&
         (isForeignObject ? (
@@ -73,7 +77,7 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
 
       {!shape.isHidden &&
         (isForeignObject ? (
-          shapeUtils.render(shape, { isEditing })
+          shapeUtils.render(shape, { isEditing, ref: rFocusable })
         ) : (
           <RealShape
             isParent={isParent}
@@ -107,7 +111,6 @@ const RealShape = memo(function RealShape({
   id,
   style,
   isParent,
-  isEditing,
 }: RealShapeProps) {
   return <StyledShape as="use" data-shy={isParent} href={'#' + id} {...style} />
 })

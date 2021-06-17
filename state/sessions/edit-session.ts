@@ -5,6 +5,7 @@ import commands from 'state/commands'
 import { current } from 'immer'
 import {
   getPage,
+  getPageState,
   getSelectedIds,
   getSelectedShapes,
   getShape,

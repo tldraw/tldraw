@@ -25,6 +25,7 @@ import {
   getSelectedIds,
   setSelectedIds,
   getPageState,
+  getShapes,
 } from 'utils/utils'
 import {
   Data,
@@ -117,12 +118,10 @@ const state = createState({
   states: {
     loading: {
       on: {
-        MOUNTED: [
-          'restoreSavedData',
-          {
-            to: 'ready',
-          },
-        ],
+        MOUNTED: {
+          do: 'restoreSavedData',
+          to: 'ready',
+        },
       },
     },
     ready: {
@@ -133,6 +132,7 @@ const state = createState({
         else: ['zoomCameraToFit', 'zoomCameraToActual'],
       },
       on: {
+        LOADED_FONTS: 'resetShapes',
         TOGGLED_SHAPE_LOCK: { if: 'hasSelection', do: 'lockSelection' },
         TOGGLED_SHAPE_HIDE: { if: 'hasSelection', do: 'hideSelection' },
         TOGGLED_SHAPE_ASPECT_LOCK: {
@@ -206,6 +206,7 @@ const state = createState({
             SELECTED_LINE_TOOL: { unless: 'isReadOnly', to: 'line' },
             SELECTED_POLYLINE_TOOL: { unless: 'isReadOnly', to: 'polyline' },
             SELECTED_RECTANGLE_TOOL: { unless: 'isReadOnly', to: 'rectangle' },
+            SELECTED_TEXT_TOOL: { unless: 'isReadOnly', to: 'text' },
             ZOOMED_CAMERA: {
               do: 'zoomCamera',
             },
@@ -430,8 +431,17 @@ const state = createState({
           onExit: 'clearEditingId',
           on: {
             EDITED_SHAPE: { do: 'updateEditSession' },
-            BLURRED_SHAPE: { do: 'completeSession', to: 'selecting' },
-            CANCELLED: { do: 'cancelSession', to: 'selecting' },
+
+            BLURRED_EDITING_SHAPE: { do: 'completeSession', to: 'selecting' },
+            CANCELLED: [
+              {
+                get: 'editingShape',
+                if: 'shouldDeleteShape',
+                do: 'breakSession',
+                else: 'cancelSession',
+              },
+              { to: 'selecting' },
+            ],
           },
         },
         pinching: {
@@ -730,6 +740,36 @@ const state = createState({
                 },
               },
             },
+            text: {
+              onEnter: 'setActiveToolText',
+              initial: 'creating',
+              states: {
+                creating: {
+                  on: {
+                    CANCELLED: { to: 'selecting' },
+                    POINTED_SHAPE: [
+                      {
+                        get: 'newText',
+                        do: 'createShape',
+                      },
+                      {
+                        get: 'firstSelectedShape',
+                        if: 'canEditSelectedShape',
+                        do: 'setEditingId',
+                        to: 'editingShape',
+                      },
+                    ],
+                    POINTED_CANVAS: [
+                      {
+                        get: 'newText',
+                        do: 'createShape',
+                        to: 'editingShape',
+                      },
+                    ],
+                  },
+                },
+              },
+            },
             ray: {
               onEnter: 'setActiveToolRay',
               initial: 'creating',
@@ -834,12 +874,6 @@ const state = createState({
     },
   },
   results: {
-    newArrow() {
-      return ShapeType.Arrow
-    },
-    newDraw() {
-      return ShapeType.Draw
-    },
     newDot() {
       return ShapeType.Dot
     },
@@ -848,6 +882,15 @@ const state = createState({
     },
     newLine() {
       return ShapeType.Line
+    },
+    newText() {
+      return ShapeType.Text
+    },
+    newDraw() {
+      return ShapeType.Draw
+    },
+    newArrow() {
+      return ShapeType.Arrow
     },
     newCircle() {
       return ShapeType.Circle
@@ -861,8 +904,14 @@ const state = createState({
     firstSelectedShape(data) {
       return getSelectedShapes(data)[0]
     },
+    editingShape(data) {
+      return getShape(data, data.editingId)
+    },
   },
   conditions: {
+    shouldDeleteShape(data, payload, shape: Shape) {
+      return getShapeUtils(shape).shouldDelete(shape)
+    },
     isPointingCanvas(data, payload: PointerInfo) {
       return payload.target === 'canvas'
     },
@@ -959,6 +1008,13 @@ const state = createState({
     },
 
     /* --------------------- Shapes --------------------- */
+    resetShapes(data) {
+      const page = getPage(data)
+      Object.values(page.shapes).forEach((shape) => {
+        page.shapes[shape.id] = { ...shape }
+      })
+    },
+
     createShape(data, payload, type: ShapeType) {
       const shape = createShape(type, {
         parentId: data.currentPageId,
@@ -970,6 +1026,8 @@ const state = createState({
       const childIndex = siblings.length
         ? siblings[siblings.length - 1].childIndex + 1
         : 1
+
+      data.editingId = shape.id
 
       getShapeUtils(shape).setProperty(shape, 'childIndex', childIndex)
 
@@ -1343,6 +1401,9 @@ const state = createState({
     },
     setActiveToolLine(data) {
       data.activeTool = ShapeType.Line
+    },
+    setActiveToolText(data) {
+      data.activeTool = ShapeType.Text
     },
 
     /* --------------------- Camera --------------------- */
@@ -1777,3 +1838,6 @@ function getSelectionBounds(data: Data) {
 
   return commonBounds
 }
+
+// state.enableLog(true)
+// state.onUpdate((s) => console.log(s.log.filter((l) => l !== 'MOVED_POINTER')))

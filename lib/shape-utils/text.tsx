@@ -19,12 +19,14 @@ mdiv.style.whiteSpace = 'pre'
 mdiv.style.width = 'auto'
 mdiv.style.border = '1px solid red'
 mdiv.style.padding = '4px'
+mdiv.style.lineHeight = '1'
 mdiv.style.margin = '0px'
 mdiv.style.opacity = '0'
 mdiv.style.position = 'absolute'
 mdiv.style.top = '-500px'
 mdiv.style.left = '0px'
 mdiv.style.zIndex = '9999'
+mdiv.setAttribute('readonly', 'true')
 document.body.appendChild(mdiv)
 
 const text = registerShapeUtils<TextShape>({
@@ -50,22 +52,19 @@ const text = registerShapeUtils<TextShape>({
       isHidden: false,
       style: defaultStyle,
       text: '',
+      scale: 1,
       size: 'auto',
       fontSize: FontSize.Medium,
       ...props,
     }
   },
 
-  render(shape, { isEditing }) {
+  render(shape, { isEditing, ref }) {
     const { id, text, style } = shape
     const styles = getShapeStyle(style)
+    const font = getFontStyle(shape.fontSize, shape.scale, shape.style)
 
-    const font = getFontStyle(shape.fontSize, shape.style)
     const bounds = this.getBounds(shape)
-
-    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      state.send('EDITED_SHAPE', { change: { text: e.currentTarget.value } })
-    }
 
     return (
       <foreignObject
@@ -76,44 +75,63 @@ const text = registerShapeUtils<TextShape>({
         height={bounds.height}
         pointerEvents="none"
       >
-        <StyledText
-          key={id}
-          style={{
-            font,
-            color: styles.fill,
-          }}
-          value={text}
-          onChange={handleChange}
-          isEditing={isEditing}
-          onFocus={(e) => e.currentTarget.select()}
-        />
+        {isEditing ? (
+          <StyledTextArea
+            ref={ref}
+            style={{
+              font,
+              color: styles.stroke,
+            }}
+            value={text}
+            autoComplete="false"
+            autoCapitalize="false"
+            autoCorrect="false"
+            onFocus={(e) => {
+              e.currentTarget.select()
+              state.send('FOCUSED_EDITING_SHAPE')
+            }}
+            onBlur={() => {
+              state.send('BLURRED_EDITING_SHAPE')
+            }}
+            onChange={(e) => {
+              state.send('EDITED_SHAPE', {
+                change: { text: e.currentTarget.value },
+              })
+            }}
+          />
+        ) : (
+          <StyledText
+            style={{
+              font,
+              color: styles.stroke,
+            }}
+          >
+            {text}
+          </StyledText>
+        )}
       </foreignObject>
     )
   },
 
   getBounds(shape) {
-    const [minX, minY] = shape.point
-    let width: number
-    let height: number
+    if (!this.boundsCache.has(shape)) {
+      mdiv.innerHTML = shape.text || ' ' // + '&nbsp;'
+      mdiv.style.font = getFontStyle(shape.fontSize, shape.scale, shape.style)
 
-    if (shape.size === 'auto') {
-      // Calculate a size by rendering text into a div
-      mdiv.innerHTML = shape.text + '&nbsp;'
-      mdiv.style.font = getFontStyle(shape.fontSize, shape.style)
-      ;[width, height] = [mdiv.offsetWidth, mdiv.offsetHeight]
-    } else {
-      // Use the shape's explicit size for width and height.
-      ;[width, height] = shape.size
+      const [minX, minY] = shape.point
+      const [width, height] = [mdiv.offsetWidth, mdiv.offsetHeight]
+
+      this.boundsCache.set(shape, {
+        minX,
+        maxX: minX + width,
+        minY,
+        maxY: minY + height,
+        width,
+        height,
+      })
     }
 
-    return {
-      minX,
-      maxX: minX + width,
-      minY,
-      maxY: minY + height,
-      width,
-      height,
-    }
+    return this.boundsCache.get(shape)
   },
 
   hitTest(shape, test) {
@@ -122,37 +140,25 @@ const text = registerShapeUtils<TextShape>({
 
   transform(shape, bounds, { initialShape, transformOrigin, scaleX, scaleY }) {
     if (shape.rotation === 0 && !shape.isAspectRatioLocked) {
-      shape.size = [bounds.width, bounds.height]
       shape.point = [bounds.minX, bounds.minY]
+      shape.scale = initialShape.scale * Math.abs(scaleX)
     } else {
-      if (initialShape.size === 'auto') return
-
-      shape.size = vec.mul(
-        initialShape.size,
-        Math.min(Math.abs(scaleX), Math.abs(scaleY))
-      )
-
-      shape.point = [
-        bounds.minX +
-          (bounds.width - shape.size[0]) *
-            (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
-        bounds.minY +
-          (bounds.height - shape.size[1]) *
-            (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
-      ]
+      shape.point = [bounds.minX, bounds.minY]
 
       shape.rotation =
         (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0)
           ? -initialShape.rotation
           : initialShape.rotation
+
+      shape.scale = initialShape.scale * Math.abs(Math.min(scaleX, scaleY))
     }
 
     return this
   },
 
-  transformSingle(shape, bounds) {
-    shape.size = [bounds.width, bounds.height]
+  transformSingle(shape, bounds, { initialShape, scaleX }) {
     shape.point = [bounds.minX, bounds.minY]
+    shape.scale = initialShape.scale * Math.abs(scaleX)
     return this
   },
 
@@ -161,14 +167,14 @@ const text = registerShapeUtils<TextShape>({
     return this
   },
 
-  getShouldDelete(shape) {
+  shouldDelete(shape) {
     return shape.text.length === 0
   },
 })
 
 export default text
 
-const StyledText = styled('textarea', {
+const StyledText = styled('div', {
   width: '100%',
   height: '100%',
   border: 'none',
@@ -180,13 +186,21 @@ const StyledText = styled('textarea', {
   outline: 'none',
   backgroundColor: 'transparent',
   overflow: 'hidden',
+  pointerEvents: 'none',
+  userSelect: 'none',
+})
 
-  variants: {
-    isEditing: {
-      true: {
-        backgroundColor: '$boundsBg',
-        pointerEvents: 'all',
-      },
-    },
-  },
+const StyledTextArea = styled('textarea', {
+  width: '100%',
+  height: '100%',
+  border: 'none',
+  padding: '4px',
+  whiteSpace: 'pre',
+  resize: 'none',
+  minHeight: 1,
+  minWidth: 1,
+  outline: 'none',
+  overflow: 'hidden',
+  backgroundColor: '$boundsBg',
+  pointerEvents: 'all',
 })

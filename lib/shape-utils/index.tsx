@@ -32,6 +32,7 @@ import draw from './draw'
 import arrow from './arrow'
 import group from './group'
 import text from './text'
+import React from 'react'
 
 /*
 Shape Utiliies
@@ -173,8 +174,13 @@ export interface ShapeUtility<K extends Shape> {
   render(
     this: ShapeUtility<K>,
     shape: K,
-    info: { isEditing: boolean }
+    info: {
+      isEditing: boolean
+      ref: React.MutableRefObject<HTMLTextAreaElement>
+    }
   ): JSX.Element
+
+  invalidate(this: ShapeUtility<K>, shape: K): ShapeUtility<K>
 
   // Get the bounds of the a shape.
   getBounds(this: ShapeUtility<K>, shape: K): Bounds
@@ -191,7 +197,7 @@ export interface ShapeUtility<K extends Shape> {
   // Test whether bounds collide with or contain a shape.
   hitTestBounds(this: ShapeUtility<K>, shape: K, bounds: Bounds): boolean
 
-  getShouldDelete(this: ShapeUtility<K>, shape: K): boolean
+  shouldDelete(this: ShapeUtility<K>, shape: K): boolean
 }
 
 // A mapping of shape types to shape utilities.
@@ -350,8 +356,13 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
       return this
     },
 
-    getShouldDelete(shape) {
+    shouldDelete(shape) {
       return false
+    },
+
+    invalidate(shape) {
+      this.boundsCache.delete(shape)
+      return this
     },
   }
 }
