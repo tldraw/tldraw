@@ -1,15 +1,13 @@
 import { uniqueId } from 'utils/utils'
+import vec from 'utils/vec'
 import { TextShape, ShapeType, FontSize } from 'types'
 import { registerShapeUtils } from './index'
-import {
-  defaultStyle,
-  getFontSize,
-  getFontStyle,
-  getShapeStyle,
-} from 'lib/shape-styles'
+import { defaultStyle, getFontStyle, getShapeStyle } from 'lib/shape-styles'
 import styled from 'styles'
 import state from 'state'
-import React from 'react'
+import { useEffect, useRef } from 'react'
+
+// A div used for measurement
 
 if (document.getElementById('__textMeasure')) {
   document.getElementById('__textMeasure').remove()
@@ -18,18 +16,22 @@ if (document.getElementById('__textMeasure')) {
 // A div used for measurement
 const mdiv = document.createElement('pre')
 mdiv.id = '__textMeasure'
-mdiv.style.whiteSpace = 'pre'
-mdiv.style.width = 'auto'
-mdiv.style.border = '1px solid red'
-mdiv.style.padding = '4px'
-mdiv.style.margin = '0px'
-mdiv.style.opacity = '0'
-mdiv.style.position = 'absolute'
-mdiv.style.top = '-500px'
-mdiv.style.left = '0px'
-mdiv.style.zIndex = '9999'
+
+Object.assign(mdiv.style, {
+  whiteSpace: 'pre',
+  width: 'auto',
+  border: '1px solid red',
+  padding: '4px',
+  margin: '0px',
+  opacity: '0',
+  position: 'absolute',
+  top: '-500px',
+  left: '0px',
+  zIndex: '9999',
+})
+
 mdiv.tabIndex = -1
-mdiv.setAttribute('readonly', 'true')
+
 document.body.appendChild(mdiv)
 
 function normalizeText(text: string) {
@@ -95,29 +97,6 @@ const text = registerShapeUtils<TextShape>({
       state.send('FOCUSED_EDITING_SHAPE')
     }
 
-    const lineHeight = getFontSize(shape.fontSize) * shape.scale
-    const gap = lineHeight * 0.4
-
-    if (!isEditing) {
-      return (
-        <g id={id} pointerEvents="none">
-          {text.split('\n').map((str, i) => (
-            <text
-              key={i}
-              x={4}
-              y={4 + gap / 2 + i * (lineHeight + gap)}
-              style={{ font }}
-              width={bounds.width}
-              height={bounds.height}
-              dominant-baseline="hanging"
-            >
-              {str}
-            </text>
-          ))}
-        </g>
-      )
-    }
-
     return (
       <foreignObject
         id={id}
@@ -134,17 +113,15 @@ const text = registerShapeUtils<TextShape>({
               font,
               color: styles.stroke,
             }}
-            tabIndex={0}
             value={text}
+            tabIndex={0}
             autoComplete="false"
             autoCapitalize="false"
             autoCorrect="false"
-            spellCheck="false"
             onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             onChange={handleChange}
-            dir="auto"
           />
         ) : (
           <StyledText
@@ -234,10 +211,8 @@ const StyledText = styled('div', {
   overflow: 'hidden',
   pointerEvents: 'none',
   userSelect: 'none',
-  backfaceVisibility: 'hidden',
   display: 'inline-block',
   position: 'relative',
-  zIndex: 0,
 })
 
 const StyledTextArea = styled('textarea', {
