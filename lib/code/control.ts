@@ -4,7 +4,7 @@ import {
   NumberCodeControl,
   VectorCodeControl,
 } from 'types'
-import { v4 as uuid } from 'uuid'
+import { uniqueId } from 'utils/utils'
 
 export const controls: Record<string, any> = {}
 

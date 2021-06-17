@@ -176,7 +176,7 @@ export interface ShapeUtility<K extends Shape> {
     shape: K,
     info: {
       isEditing: boolean
-      ref: React.MutableRefObject<HTMLTextAreaElement>
+      ref?: React.MutableRefObject<HTMLTextAreaElement>
     }
   ): JSX.Element
 
