@@ -151,6 +151,7 @@ const state = createState({
           do: 'deleteSelection',
           else: ['selectAll', 'deleteSelection'],
         },
+        SELECTED_ALL: { to: 'selecting', do: 'selectAll' },
         CHANGED_PAGE: 'changePage',
         CREATED_PAGE: ['clearSelectedIds', 'createPage'],
         DELETED_PAGE: { unless: 'hasOnlyOnePage', do: 'deletePage' },
@@ -204,7 +205,6 @@ const state = createState({
               if: ['hasSelection', 'selectionIncludesGroups'],
               do: 'ungroupSelection',
             },
-            SELECTED_ALL: { to: 'selecting', do: 'selectAll' },
             NUDGED: { do: 'nudgeSelection' },
             ZOOMED_CAMERA: {
               do: 'zoomCamera',
@@ -361,29 +361,31 @@ const state = createState({
             },
             rotatingSelection: {
               onEnter: 'startRotateSession',
-              onExit: 'clearBoundsRotation',
+              onExit: ['completeSession', 'clearBoundsRotation'],
               on: {
                 MOVED_POINTER: 'updateRotateSession',
                 PANNED_CAMERA: 'updateRotateSession',
                 PRESSED_SHIFT_KEY: 'keyUpdateRotateSession',
                 RELEASED_SHIFT_KEY: 'keyUpdateRotateSession',
-                STOPPED_POINTING: { do: 'completeSession', to: 'selecting' },
+                STOPPED_POINTING: { to: 'selecting' },
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
               },
             },
             transformingSelection: {
               onEnter: 'startTransformSession',
+              onExit: 'completeSession',
               on: {
                 // MOVED_POINTER: 'updateTransformSession', using hacks.fastTransform
                 PANNED_CAMERA: 'updateTransformSession',
                 PRESSED_SHIFT_KEY: 'keyUpdateTransformSession',
                 RELEASED_SHIFT_KEY: 'keyUpdateTransformSession',
-                STOPPED_POINTING: { do: 'completeSession', to: 'selecting' },
+                STOPPED_POINTING: { to: 'selecting' },
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
               },
             },
             translatingSelection: {
               onEnter: 'startTranslateSession',
+              onExit: 'completeSession',
               on: {
                 MOVED_POINTER: 'updateTranslateSession',
                 PANNED_CAMERA: 'updateTranslateSession',
@@ -391,22 +393,24 @@ const state = createState({
                 RELEASED_SHIFT_KEY: 'keyUpdateTranslateSession',
                 PRESSED_ALT_KEY: 'keyUpdateTranslateSession',
                 RELEASED_ALT_KEY: 'keyUpdateTranslateSession',
-                STOPPED_POINTING: { do: 'completeSession', to: 'selecting' },
+                STOPPED_POINTING: { to: 'selecting' },
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
               },
             },
             translatingHandles: {
               onEnter: 'startHandleSession',
+              onExit: 'completeSession',
               on: {
                 MOVED_POINTER: 'updateHandleSession',
                 PANNED_CAMERA: 'updateHandleSession',
                 PRESSED_SHIFT_KEY: 'keyUpdateHandleSession',
                 RELEASED_SHIFT_KEY: 'keyUpdateHandleSession',
-                STOPPED_POINTING: { do: 'completeSession', to: 'selecting' },
+                STOPPED_POINTING: { to: 'selecting' },
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
               },
             },
             brushSelecting: {
+              onExit: 'completeSession',
               onEnter: [
                 {
                   unless: ['isPressingMetaKey', 'isPressingShiftKey'],
@@ -416,10 +420,9 @@ const state = createState({
                 'startBrushSession',
               ],
               on: {
-                STARTED_PINCHING: { do: 'completeSession', to: 'pinching' },
                 // MOVED_POINTER: 'updateBrushSession', using hacks.fastBrushSelect
                 PANNED_CAMERA: 'updateBrushSession',
-                STOPPED_POINTING: { do: 'completeSession', to: 'selecting' },
+                STOPPED_POINTING: { to: 'selecting' },
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
               },
             },
@@ -427,11 +430,11 @@ const state = createState({
         },
         editingShape: {
           onEnter: 'startEditSession',
-          onExit: 'clearEditingId',
+          onExit: ['completeSession', 'clearEditingId'],
           on: {
             EDITED_SHAPE: { do: 'updateEditSession' },
 
-            BLURRED_EDITING_SHAPE: { do: 'completeSession', to: 'selecting' },
+            BLURRED_EDITING_SHAPE: { to: 'selecting' },
             CANCELLED: [
               {
                 get: 'editingShape',
@@ -529,6 +532,7 @@ const state = createState({
                 },
                 editing: {
                   onEnter: 'startDrawSession',
+                  onExit: 'completeSession',
                   on: {
                     CANCELLED: {
                       do: 'breakSession',
@@ -572,9 +576,7 @@ const state = createState({
                       {
                         if: 'isToolLocked',
                         to: 'dot.creating',
-                        else: {
-                          to: 'selecting',
-                        },
+                        else: { to: 'selecting' },
                       },
                     ],
                     CANCELLED: {
@@ -593,6 +595,7 @@ const state = createState({
                       },
                     },
                     active: {
+                      onExit: 'completeSession',
                       onEnter: 'startTranslateSession',
                       on: {
                         MOVED_POINTER: 'updateTranslateSession',
@@ -625,6 +628,7 @@ const state = createState({
                   },
                 },
                 editing: {
+                  onExit: 'completeSession',
                   onEnter: 'startArrowSession',
                   on: {
                     STOPPED_POINTING: [
@@ -837,6 +841,7 @@ const state = createState({
           },
         },
         drawingShape: {
+          onExit: 'completeSession',
           on: {
             STOPPED_POINTING: [
               'completeSession',
@@ -862,6 +867,7 @@ const state = createState({
             },
             direction: {
               onEnter: 'startDirectionSession',
+              onExit: 'completeSession',
               on: {
                 MOVED_POINTER: 'updateDirectionSession',
                 PANNED_CAMERA: 'updateDirectionSession',
