@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import { getPage, getSelectedShapes } from 'utils/utils'
+import { getPage, getSelectedShapes, updateParents } from 'utils/utils'
 import { current } from 'immer'
 import { getShapeUtils } from 'lib/shape-utils'
 
@@ -19,12 +19,16 @@ export default function resetBoundsCommand(data: Data) {
         getSelectedShapes(data).forEach((shape) => {
           getShapeUtils(shape).onBoundsReset(shape)
         })
+
+        updateParents(data, Object.keys(initialShapes))
       },
       undo(data) {
         const page = getPage(data)
         getSelectedShapes(data).forEach((shape) => {
           page.shapes[shape.id] = initialShapes[shape.id]
         })
+
+        updateParents(data, Object.keys(initialShapes))
       },
     })
   )

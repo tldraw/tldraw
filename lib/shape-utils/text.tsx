@@ -1,6 +1,6 @@
 import { uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
-import { TextShape, ShapeType, FontSize } from 'types'
+import { TextShape, ShapeType, FontSize, SizeStyle } from 'types'
 import { registerShapeUtils } from './index'
 import { defaultStyle, getFontStyle, getShapeStyle } from 'lib/shape-styles'
 import styled from 'styles'
@@ -71,7 +71,7 @@ const text = registerShapeUtils<TextShape>({
   render(shape, { isEditing, ref }) {
     const { id, text, style } = shape
     const styles = getShapeStyle(style)
-    const font = getFontStyle(shape.fontSize, shape.scale, shape.style)
+    const font = getFontStyle(shape.scale, shape.style)
 
     const bounds = this.getBounds(shape)
 
@@ -140,7 +140,7 @@ const text = registerShapeUtils<TextShape>({
   getBounds(shape) {
     if (!this.boundsCache.has(shape)) {
       mdiv.innerHTML = shape.text + '&zwj;'
-      mdiv.style.font = getFontStyle(shape.fontSize, shape.scale, shape.style)
+      mdiv.style.font = getFontStyle(shape.scale, shape.style)
 
       const [minX, minY] = shape.point
       const [width, height] = [mdiv.offsetWidth, mdiv.offsetHeight]
@@ -183,11 +183,35 @@ const text = registerShapeUtils<TextShape>({
   transformSingle(shape, bounds, { initialShape, scaleX }) {
     shape.point = [bounds.minX, bounds.minY]
     shape.scale = initialShape.scale * Math.abs(scaleX)
+
     return this
   },
 
   onBoundsReset(shape) {
-    shape.size = 'auto'
+    const center = this.getCenter(shape)
+
+    this.boundsCache.delete(shape)
+
+    shape.scale = 1
+
+    const newCenter = this.getCenter(shape)
+
+    shape.point = vec.add(shape.point, vec.sub(center, newCenter))
+
+    return this
+  },
+
+  applyStyles(shape, style) {
+    const center = this.getCenter(shape)
+
+    this.boundsCache.delete(shape)
+
+    Object.assign(shape.style, style)
+
+    const newCenter = this.getCenter(shape)
+
+    shape.point = vec.add(shape.point, vec.sub(center, newCenter))
+
     return this
   },
 

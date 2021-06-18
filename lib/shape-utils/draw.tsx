@@ -126,7 +126,7 @@ const draw = registerShapeUtils<DrawShape>({
 
   transform(shape, bounds, { initialShape, scaleX, scaleY }) {
     const initialShapeBounds = this.boundsCache.get(initialShape)
-    shape.points = initialShape.points.map(([x, y]) => {
+    shape.points = initialShape.points.map(([x, y, r]) => {
       return [
         bounds.width *
           (scaleX < 0 // * sin?
@@ -136,6 +136,7 @@ const draw = registerShapeUtils<DrawShape>({
           (scaleY < 0 // * cos?
             ? 1 - y / initialShapeBounds.height
             : y / initialShapeBounds.height),
+        r,
       ]
     })
 

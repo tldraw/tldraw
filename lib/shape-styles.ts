@@ -44,10 +44,9 @@ const dashArrays = {
 }
 
 const fontSizes = {
-  [FontSize.Small]: 16,
-  [FontSize.Medium]: 28,
-  [FontSize.Large]: 32,
-  [FontSize.ExtraLarge]: 72,
+  [SizeStyle.Small]: 24,
+  [SizeStyle.Medium]: 48,
+  [SizeStyle.Large]: 72,
   auto: 'auto',
 }
 
@@ -59,16 +58,12 @@ function getStrokeDashArray(dash: DashStyle, strokeWidth: number) {
   return dashArrays[dash](strokeWidth)
 }
 
-export function getFontSize(size: FontSize) {
+export function getFontSize(size: SizeStyle) {
   return fontSizes[size]
 }
 
-export function getFontStyle(
-  size: FontSize,
-  scale: number,
-  style: ShapeStyles
-) {
-  const fontSize = getFontSize(size)
+export function getFontStyle(scale: number, style: ShapeStyles) {
+  const fontSize = getFontSize(style.size)
 
   return `${fontSize * scale}px/1.4 Verveine Regular`
 }
