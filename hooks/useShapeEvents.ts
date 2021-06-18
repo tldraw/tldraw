@@ -42,6 +42,7 @@ export default function useShapeEvents(
   const handlePointerEnter = useCallback(
     (e: React.PointerEvent) => {
       if (!inputs.canAccept(e.pointerId)) return
+
       if (isParent) {
         state.send('HOVERED_GROUP', inputs.pointerEnter(e, id))
       } else {
@@ -67,6 +68,7 @@ export default function useShapeEvents(
   const handlePointerLeave = useCallback(
     (e: React.PointerEvent) => {
       if (!inputs.canAccept(e.pointerId)) return
+
       if (isParent) {
         state.send('UNHOVERED_GROUP', { target: id })
       } else {

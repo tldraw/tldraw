@@ -75,7 +75,7 @@ export function fastPinchCamera(
 
   camera.point = vec.sub(camera.point, vec.div(delta, camera.zoom))
 
-  const next = camera.zoom - (distanceDelta / 300) * camera.zoom
+  const next = camera.zoom - (distanceDelta / 350) * camera.zoom
 
   const p0 = screenToWorld(point, data)
   camera.zoom = getCameraZoom(next)

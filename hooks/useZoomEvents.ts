@@ -1,14 +1,9 @@
-import React, { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import state from 'state'
 import inputs from 'state/inputs'
 import vec from 'utils/vec'
 import { useGesture } from 'react-use-gesture'
-import {
-  fastBrushSelect,
-  fastPanUpdate,
-  fastPinchCamera,
-  fastZoomUpdate,
-} from 'state/hacks'
+import { fastPanUpdate, fastPinchCamera, fastZoomUpdate } from 'state/hacks'
 
 /**
  * Capture zoom gestures (pinches, wheels and pans) and send to the state.

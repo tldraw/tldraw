@@ -2,12 +2,14 @@ import React, { useRef, memo, useEffect } from 'react'
 import state, { useSelector } from 'state'
 import styled from 'styles'
 import { getShapeUtils } from 'lib/shape-utils'
-import { getBoundsCenter, getPage } from 'utils/utils'
+import { getBoundsCenter, getPage, isMobile } from 'utils/utils'
 import { ShapeStyles, ShapeType } from 'types'
 import useShapeEvents from 'hooks/useShapeEvents'
 import vec from 'utils/vec'
 import { getShapeStyle } from 'lib/shape-styles'
 import ContextMenu from 'components/canvas/context-menu/context-menu'
+
+const isMobileDevice = isMobile()
 
 interface ShapeProps {
   id: string
@@ -57,28 +59,33 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
   `
 
   return (
-    <StyledGroup ref={rGroup} transform={transform}>
-      {isSelecting &&
-        !isShy &&
-        (isForeignObject ? (
-          <HoverIndicator
-            as="rect"
-            width={bounds.width}
-            height={bounds.height}
-            strokeWidth={1.5}
-            variant={'ghost'}
-            onDoubleClick={() => console.log('aux')}
-            {...events}
-          />
-        ) : (
-          <HoverIndicator
-            as="use"
-            href={'#' + id}
-            strokeWidth={+style.strokeWidth + 4}
-            variant={getShapeUtils(shape).canStyleFill ? 'filled' : 'hollow'}
-            {...events}
-          />
-        ))}
+    <StyledGroup
+      ref={rGroup}
+      transform={transform}
+      device={isMobileDevice ? 'mobile' : 'desktop'}
+    >
+      {isSelecting && !isShy && (
+        <>
+          {isForeignObject ? (
+            <HoverIndicator
+              as="rect"
+              width={bounds.width}
+              height={bounds.height}
+              strokeWidth={1.5}
+              variant={'ghost'}
+              {...events}
+            />
+          ) : (
+            <HoverIndicator
+              as="use"
+              href={'#' + id}
+              strokeWidth={+style.strokeWidth + 4}
+              variant={getShapeUtils(shape).canStyleFill ? 'filled' : 'hollow'}
+              {...events}
+            />
+          )}
+        </>
+      )}
 
       {!shape.isHidden &&
         (isForeignObject ? (
@@ -157,13 +164,11 @@ const StyledGroup = styled('g', {
   [`& ${HoverIndicator}`]: {
     opacity: '0',
   },
-  [`&:hover ${HoverIndicator}`]: {
-    opacity: '0.16',
-  },
-  [`&:hover *[data-shy="true"]`]: {
-    opacity: '1',
-  },
   variants: {
+    device: {
+      mobile: {},
+      desktop: {},
+    },
     isSelected: {
       true: {
         [`& *[data-shy="true"]`]: {
@@ -171,12 +176,6 @@ const StyledGroup = styled('g', {
         },
         [`& ${HoverIndicator}`]: {
           opacity: '0.2',
-        },
-        [`&:hover ${HoverIndicator}`]: {
-          opacity: '0.3',
-        },
-        [`&:active ${HoverIndicator}`]: {
-          opacity: '0.3',
         },
       },
       false: {
@@ -186,6 +185,32 @@ const StyledGroup = styled('g', {
       },
     },
   },
+  compoundVariants: [
+    {
+      device: 'desktop',
+      isSelected: 'false',
+      css: {
+        [`&:hover ${HoverIndicator}`]: {
+          opacity: '0.16',
+        },
+        [`&:hover *[data-shy="true"]`]: {
+          opacity: '1',
+        },
+      },
+    },
+    {
+      device: 'desktop',
+      isSelected: 'true',
+      css: {
+        [`&:hover ${HoverIndicator}`]: {
+          opacity: '0.3',
+        },
+        [`&:active ${HoverIndicator}`]: {
+          opacity: '0.3',
+        },
+      },
+    },
+  ],
 })
 
 function Label({ children }: { children: React.ReactNode }) {

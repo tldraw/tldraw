@@ -176,7 +176,7 @@ const state = createState({
       initial: 'selecting',
       states: {
         selecting: {
-          onEnter: 'setActiveToolSelect',
+          onEnter: ['setActiveToolSelect', 'clearInputs'],
           on: {
             UNDO: 'undo',
             REDO: 'redo',
@@ -391,6 +391,7 @@ const state = createState({
               onEnter: 'startTranslateSession',
               onExit: 'completeSession',
               on: {
+                STARTED_PINCHING: { to: 'pinching' },
                 MOVED_POINTER: 'updateTranslateSession',
                 PANNED_CAMERA: 'updateTranslateSession',
                 PRESSED_SHIFT_KEY: 'keyUpdateTranslateSession',
@@ -1248,6 +1249,10 @@ const state = createState({
 
     /* -------------------- Selection ------------------- */
 
+    clearInputs() {
+      inputs.clear()
+    },
+
     selectAll(data) {
       const selectedIds = getSelectedIds(data)
       const page = getPage(data)
@@ -1512,6 +1517,8 @@ const state = createState({
         point: number[]
       }
     ) {
+      // This is usually replaced with hacks.fastPinchCamera!
+
       const camera = getCurrentCamera(data)
       camera.point = vec.sub(camera.point, vec.div(payload.delta, camera.zoom))
 

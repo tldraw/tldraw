@@ -146,6 +146,7 @@ class Inputs {
     }
 
     delete this.points[e.pointerId]
+
     delete this.activePointerId
 
     if (vec.dist(info.origin, info.point) < 8) {
@@ -162,6 +163,7 @@ class Inputs {
   }
 
   canAccept = (pointerId: PointerEvent['pointerId']) => {
+    // return true
     return (
       this.activePointerId === undefined || this.activePointerId === pointerId
     )
@@ -176,6 +178,12 @@ class Inputs {
       Date.now() - this.pointerUpTime < DOUBLE_CLICK_DURATION &&
       vec.dist(origin, point) < 8
     )
+  }
+
+  clear() {
+    this.activePointerId = undefined
+    this.pointer = undefined
+    this.points = {}
   }
 }
 
