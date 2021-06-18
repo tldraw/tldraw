@@ -2,7 +2,12 @@ import { getShapeUtils } from 'lib/shape-utils'
 import state, { useSelector } from 'state'
 import { Bounds, GroupShape, PageState } from 'types'
 import { boundsCollide, boundsContain } from 'utils/bounds'
-import { deepCompareArrays, getPage, screenToWorld } from 'utils/utils'
+import {
+  deepCompareArrays,
+  getPage,
+  getViewport,
+  screenToWorld,
+} from 'utils/utils'
 import Shape from './shape'
 
 /* 
@@ -21,26 +26,13 @@ export default function Page() {
     const pageState = s.data.pageStates[page.id]
 
     if (!viewportCache.has(pageState)) {
-      const [minX, minY] = screenToWorld([0, 0], s.data)
-      const [maxX, maxY] = screenToWorld(
-        [window.innerWidth, window.innerHeight],
-        s.data
-      )
-
-      viewportCache.set(pageState, {
-        minX,
-        minY,
-        maxX,
-        maxY,
-        height: maxX - minX,
-        width: maxY - minY,
-      })
+      const viewport = getViewport(s.data)
+      viewportCache.set(pageState, viewport)
     }
 
     const viewport = viewportCache.get(pageState)
 
-    return Object.values(page.shapes)
-      .filter((shape) => shape.parentId === page.id)
+    return s.values.currentShapes
       .filter((shape) => {
         const shapeBounds = getShapeUtils(shape).getBounds(shape)
         return (
@@ -48,7 +40,6 @@ export default function Page() {
           boundsCollide(viewport, shapeBounds)
         )
       })
-      .sort((a, b) => a.childIndex - b.childIndex)
       .map((shape) => shape.id)
   }, deepCompareArrays)
 

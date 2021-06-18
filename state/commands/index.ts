@@ -15,6 +15,7 @@ import move from './move'
 import moveToPage from './move-to-page'
 import nudge from './nudge'
 import rotate from './rotate'
+import paste from './paste'
 import rotateCcw from './rotate-ccw'
 import stretch from './stretch'
 import style from './style'
@@ -44,6 +45,7 @@ const commands = {
   move,
   moveToPage,
   nudge,
+  paste,
   resetBounds,
   rotate,
   rotateCcw,

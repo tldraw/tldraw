@@ -5,6 +5,7 @@ import vec from 'utils/vec'
 import inputs from './inputs'
 import history from './history'
 import storage from './storage'
+import clipboard from './clipboard'
 import * as Sessions from './sessions'
 import commands from './commands'
 import {
@@ -133,6 +134,9 @@ const state = createState({
         else: ['zoomCameraToFit', 'zoomCameraToActual'],
       },
       on: {
+        COPIED: { if: 'hasSelection', do: 'copyToClipboard' },
+        PASTED: { do: 'pasteFromClipboard' },
+        PASTED_SHAPES_FROM_CLIPBOARD: 'pasteShapesFromClipboard',
         LOADED_FONTS: 'resetShapes',
         TOGGLED_SHAPE_LOCK: { if: 'hasSelection', do: 'lockSelection' },
         TOGGLED_SHAPE_HIDE: { if: 'hasSelection', do: 'hideSelection' },
@@ -1657,6 +1661,18 @@ const state = createState({
 
     /* ---------------------- Data ---------------------- */
 
+    copyToClipboard(data) {
+      clipboard.copy(getSelectedShapes(data))
+    },
+
+    pasteFromClipboard(data) {
+      clipboard.paste()
+    },
+
+    pasteShapesFromClipboard(data, payload: { shapes: Shape[] }) {
+      commands.paste(data, payload.shapes)
+    },
+
     restoreSavedData(data) {
       storage.firstLoad(data)
     },
@@ -1704,6 +1720,13 @@ const state = createState({
     },
     selectedBounds(data) {
       return getSelectionBounds(data)
+    },
+    currentShapes(data) {
+      const page = getPage(data)
+
+      return Object.values(page.shapes)
+        .filter((shape) => shape.parentId === page.id)
+        .sort((a, b) => a.childIndex - b.childIndex)
     },
     selectedStyle(data) {
       const selectedIds = Array.from(getSelectedIds(data).values())

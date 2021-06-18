@@ -15,6 +15,23 @@ export function screenToWorld(point: number[], data: Data) {
   return vec.sub(vec.div(point, camera.zoom), camera.point)
 }
 
+export function getViewport(data: Data): Bounds {
+  const [minX, minY] = screenToWorld([0, 0], data)
+  const [maxX, maxY] = screenToWorld(
+    [window.innerWidth, window.innerHeight],
+    data
+  )
+
+  return {
+    minX,
+    minY,
+    maxX,
+    maxY,
+    height: maxX - minX,
+    width: maxY - minY,
+  }
+}
+
 /**
  * Get a bounding box that includes two bounding boxes.
  * @param a Bounding box
