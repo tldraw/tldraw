@@ -67,6 +67,7 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
             height={bounds.height}
             strokeWidth={1.5}
             variant={'ghost'}
+            onDoubleClick={() => console.log('aux')}
             {...events}
           />
         ) : (

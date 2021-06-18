@@ -46,6 +46,7 @@ export default function Canvas() {
 
 const MainSVG = styled('svg', {
   position: 'fixed',
+  overflow: 'hidden',
   top: 0,
   left: 0,
   width: '100%',

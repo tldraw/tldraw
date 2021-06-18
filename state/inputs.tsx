@@ -7,12 +7,13 @@ const DOUBLE_CLICK_DURATION = 300
 
 class Inputs {
   activePointerId?: number
-  lastPointerUpTime = 0
+  pointerUpTime = 0
   points: Record<string, PointerInfo> = {}
-  lastPointer: PointerInfo
+  pointer: PointerInfo
 
   touchStart(e: TouchEvent | React.TouchEvent, target: string) {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
+    e.preventDefault()
 
     const touch = e.changedTouches[0]
 
@@ -31,12 +32,13 @@ class Inputs {
     this.points[touch.identifier] = info
     this.activePointerId = touch.identifier
 
-    this.lastPointer = info
+    this.pointer = info
     return info
   }
 
   touchMove(e: TouchEvent | React.TouchEvent) {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
+    e.preventDefault()
 
     const touch = e.changedTouches[0]
 
@@ -57,7 +59,7 @@ class Inputs {
       this.points[touch.identifier] = info
     }
 
-    this.lastPointer = info
+    this.pointer = info
     return info
   }
 
@@ -79,7 +81,7 @@ class Inputs {
     this.points[e.pointerId] = info
     this.activePointerId = e.pointerId
 
-    this.lastPointer = info
+    this.pointer = info
     return info
   }
 
@@ -98,7 +100,7 @@ class Inputs {
       altKey,
     }
 
-    this.lastPointer = info
+    this.pointer = info
     return info
   }
 
@@ -122,7 +124,8 @@ class Inputs {
       this.points[e.pointerId] = info
     }
 
-    this.lastPointer = info
+    this.pointer = info
+
     return info
   }
 
@@ -146,10 +149,10 @@ class Inputs {
     delete this.activePointerId
 
     if (vec.dist(info.origin, info.point) < 8) {
-      this.lastPointerUpTime = Date.now()
+      this.pointerUpTime = Date.now()
     }
 
-    this.lastPointer = info
+    this.pointer = info
     return info
   }
 
@@ -165,18 +168,14 @@ class Inputs {
   }
 
   isDoubleClick() {
-    if (!this.lastPointer) return
+    if (!this.pointer) return
 
-    const { origin, point } = this.lastPointer
+    const { origin, point } = this.pointer
 
     return (
-      Date.now() - this.lastPointerUpTime < DOUBLE_CLICK_DURATION &&
+      Date.now() - this.pointerUpTime < DOUBLE_CLICK_DURATION &&
       vec.dist(origin, point) < 8
     )
-  }
-
-  get pointer() {
-    return this.points[Object.keys(this.points)[0]]
   }
 }
 

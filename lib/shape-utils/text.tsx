@@ -28,6 +28,7 @@ Object.assign(mdiv.style, {
   top: '-500px',
   left: '0px',
   zIndex: '9999',
+  pointerEvents: 'none',
 })
 
 mdiv.tabIndex = -1
@@ -118,6 +119,9 @@ const text = registerShapeUtils<TextShape>({
             autoComplete="false"
             autoCapitalize="false"
             autoCorrect="false"
+            autoSave="false"
+            placeholder=""
+            name="text"
             autoFocus={isMobile() ? true : false}
             onFocus={handleFocus}
             onBlur={handleBlur}
@@ -236,10 +240,12 @@ const StyledText = styled('div', {
   overflow: 'hidden',
   pointerEvents: 'none',
   userSelect: 'none',
+  WebkitUserSelect: 'none',
   display: 'inline-block',
 })
 
 const StyledTextArea = styled('textarea', {
+  zIndex: 1,
   width: '100%',
   height: '100%',
   border: 'none',
@@ -256,4 +262,5 @@ const StyledTextArea = styled('textarea', {
   display: 'inline-block',
   userSelect: 'text',
   WebkitUserSelect: 'text',
+  WebkitTouchCallout: 'none',
 })

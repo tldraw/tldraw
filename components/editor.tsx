@@ -2,26 +2,26 @@ import useKeyboardEvents from 'hooks/useKeyboardEvents'
 import useLoadOnMount from 'hooks/useLoadOnMount'
 import Canvas from './canvas/canvas'
 import StatusBar from './status-bar'
-import CodePanel from './code-panel/code-panel'
-import ControlsPanel from './controls-panel/controls-panel'
 import ToolsPanel from './tools-panel/tools-panel'
 import StylePanel from './style-panel/style-panel'
-import { useSelector } from 'state'
 import styled from 'styles'
 import PagePanel from './page-panel/page-panel'
-import ContextMenu from './canvas/context-menu/context-menu'
+import dynamic from 'next/dynamic'
+import ControlsPanel from './controls-panel/controls-panel'
+// import { useSelector } from 'state'
+// const CodePanel = dynamic(() => import('./code-panel/code-panel'))
 
 export default function Editor() {
   useKeyboardEvents()
   useLoadOnMount()
 
-  const hasControls = useSelector(
-    (s) => Object.keys(s.data.codeControls).length > 0
-  )
+  // const hasControls = useSelector(
+  //   (s) => Object.keys(s.data.codeControls).length > 0
+  // )
 
   return (
     <Layout>
-      <CodePanel />
+      {/* <CodePanel /> */}
       <PagePanel />
       <Spacer />
       <StylePanel />
@@ -38,6 +38,7 @@ const Spacer = styled('div', {
 
 const Layout = styled('main', {
   position: 'fixed',
+  overflow: 'hidden',
   top: 0,
   left: 0,
   bottom: 0,

@@ -24,14 +24,6 @@ export default function useCanvasEvents(
     }
   }, [])
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (isMobile()) {
-      if (e.touches.length === 2) {
-        state.send('TOUCH_UNDO')
-      } else state.send('TOUCHED_CANVAS')
-    }
-  }, [])
-
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!inputs.canAccept(e.pointerId)) return
 
@@ -66,10 +58,18 @@ export default function useCanvasEvents(
     state.send('STOPPED_POINTING', { id: 'canvas', ...inputs.pointerUp(e) })
   }, [])
 
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    // if (isMobile()) {
+    //   if (e.touches.length === 2) {
+    //     state.send('TOUCH_UNDO')
+    //   } else state.send('TOUCHED_CANVAS')
+    // }
+  }, [])
+
   return {
     onPointerDown: handlePointerDown,
-    onTouchStart: handleTouchStart,
     onPointerMove: handlePointerMove,
     onPointerUp: handlePointerUp,
+    onTouchStart: handleTouchStart,
   }
 }

@@ -427,6 +427,7 @@ const state = createState({
                 // MOVED_POINTER: 'updateBrushSession', using hacks.fastBrushSelect
                 PANNED_CAMERA: 'updateBrushSession',
                 STOPPED_POINTING: { to: 'selecting' },
+                STARTED_PINCHING: { to: 'pinching' },
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
               },
             },
@@ -478,35 +479,6 @@ const state = createState({
               to: 'pinching.toolPinching',
             },
             TOGGLED_TOOL_LOCK: 'toggleToolLock',
-            SELECTED_SELECT_TOOL: { to: 'selecting' },
-            SELECTED_DRAW_TOOL: { unless: 'isReadOnly', to: 'draw' },
-            SELECTED_ARROW_TOOL: { unless: 'isReadOnly', to: 'arrow' },
-            SELECTED_DOT_TOOL: { unless: 'isReadOnly', to: 'dot' },
-            SELECTED_CIRCLE_TOOL: { unless: 'isReadOnly', to: 'circle' },
-            SELECTED_ELLIPSE_TOOL: { unless: 'isReadOnly', to: 'ellipse' },
-            SELECTED_RAY_TOOL: { unless: 'isReadOnly', to: 'ray' },
-            SELECTED_LINE_TOOL: { unless: 'isReadOnly', to: 'line' },
-            SELECTED_POLYLINE_TOOL: { unless: 'isReadOnly', to: 'polyline' },
-            SELECTED_RECTANGLE_TOOL: { unless: 'isReadOnly', to: 'rectangle' },
-            ZOOMED_CAMERA: {
-              do: 'zoomCamera',
-            },
-            PANNED_CAMERA: {
-              do: 'panCamera',
-            },
-            ZOOMED_TO_ACTUAL: {
-              if: 'hasSelection',
-              do: 'zoomCameraToSelectionActual',
-              else: 'zoomCameraToActual',
-            },
-            ZOOMED_TO_SELECTION: {
-              if: 'hasSelection',
-              do: 'zoomCameraToSelection',
-            },
-            ZOOMED_TO_FIT: ['zoomCameraToFit', 'zoomCameraToActual'],
-            ZOOMED_IN: 'zoomIn',
-            ZOOMED_OUT: 'zoomOut',
-            RESET_CAMERA: 'resetCamera',
           },
           states: {
             draw: {
