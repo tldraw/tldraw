@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils/utils'
+import { uniqueId, isMobile } from 'utils/utils'
 import vec from 'utils/vec'
 import { TextShape, ShapeType, FontSize, SizeStyle } from 'types'
 import { registerShapeUtils } from './index'
@@ -118,6 +118,7 @@ const text = registerShapeUtils<TextShape>({
             autoComplete="false"
             autoCapitalize="false"
             autoCorrect="false"
+            autoFocus={isMobile() ? true : false}
             onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
@@ -236,7 +237,6 @@ const StyledText = styled('div', {
   pointerEvents: 'none',
   userSelect: 'none',
   display: 'inline-block',
-  position: 'relative',
 })
 
 const StyledTextArea = styled('textarea', {
@@ -254,4 +254,6 @@ const StyledTextArea = styled('textarea', {
   pointerEvents: 'all',
   backfaceVisibility: 'hidden',
   display: 'inline-block',
+  userSelect: 'text',
+  WebkitUserSelect: 'text',
 })

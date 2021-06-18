@@ -27,7 +27,11 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
 
   useEffect(() => {
     if (isEditing) {
-      setTimeout(() => rFocusable.current?.focus(), 0)
+      setTimeout(() => {
+        const elm = rFocusable.current
+        if (!elm) return
+        elm.focus()
+      }, 0)
     }
   }, [isEditing])
 

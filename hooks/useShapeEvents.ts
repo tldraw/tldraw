@@ -1,4 +1,4 @@
-import { MutableRefObject, useCallback, useRef } from 'react'
+import React, { MutableRefObject, useCallback, useRef } from 'react'
 import state from 'state'
 import inputs from 'state/inputs'
 
@@ -76,11 +76,21 @@ export default function useShapeEvents(
     [id]
   )
 
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault()
+  }, [])
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault()
+  }, [])
+
   return {
     onPointerDown: handlePointerDown,
     onPointerUp: handlePointerUp,
     onPointerEnter: handlePointerEnter,
     onPointerMove: handlePointerMove,
     onPointerLeave: handlePointerLeave,
+    onTouchStart: handleTouchStart,
+    onTouchEnd: handleTouchEnd,
   }
 }

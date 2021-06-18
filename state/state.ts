@@ -114,7 +114,7 @@ const initialData: Data = {
 const state = createState({
   data: initialData,
   on: {
-    UNMOUNTED: [{ unless: 'isReadOnly', do: 'forceSave' }, { to: 'loading' }],
+    UNMOUNTED: { to: 'loading' },
   },
   initial: 'loading',
   states: {
