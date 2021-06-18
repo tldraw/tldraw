@@ -67,6 +67,7 @@ export default function rotateCcwCommand(data: Data) {
 
         for (let id in nextShapes) {
           const shape = shapes[id]
+          if (shape.isLocked) continue
 
           getShapeUtils(shape)
             .setProperty(shape, 'rotation', nextShapes[id].rotation)
@@ -82,6 +83,9 @@ export default function rotateCcwCommand(data: Data) {
           const { point, rotation } = initialShapes[id]
 
           const shape = shapes[id]
+
+          if (shape.isLocked) continue
+
           const utils = getShapeUtils(shape)
           utils
             .setProperty(shape, 'rotation', rotation)

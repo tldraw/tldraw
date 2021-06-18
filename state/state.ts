@@ -911,7 +911,7 @@ const state = createState({
       return data.isReadOnly
     },
     canEditSelectedShape(data, payload, result: Shape) {
-      return getShapeUtils(result).canEdit
+      return getShapeUtils(result).canEdit && !result.isLocked
     },
     distanceImpliesDrag(data, payload: PointerInfo) {
       return vec.dist2(payload.origin, payload.point) > 8

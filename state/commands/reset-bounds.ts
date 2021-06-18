@@ -17,6 +17,7 @@ export default function resetBoundsCommand(data: Data) {
       category: 'canvas',
       do(data) {
         getSelectedShapes(data).forEach((shape) => {
+          if (shape.isLocked) return
           getShapeUtils(shape).onBoundsReset(shape)
         })
 
@@ -25,6 +26,7 @@ export default function resetBoundsCommand(data: Data) {
       undo(data) {
         const page = getPage(data)
         getSelectedShapes(data).forEach((shape) => {
+          if (shape.isLocked) return
           page.shapes[shape.id] = initialShapes[shape.id]
         })
 

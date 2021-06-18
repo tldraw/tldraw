@@ -1,7 +1,6 @@
 import { uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import {
-  ease,
   getSvgPathFromStroke,
   rng,
   getBoundsFromPoints,
@@ -151,18 +150,7 @@ const arrow = registerShapeUtils<ArrowShape>({
       body = <path d={path} />
     }
 
-    return (
-      <g id={id}>
-        {body}
-        {/* <circle
-          cx={start.point[0]}
-          cy={start.point[1]}
-          r={Math.max(4, +style.strokeWidth)}
-          fill={style.stroke}
-          strokeDasharray="none"
-        /> */}
-      </g>
-    )
+    return <g id={id}>{body}</g>
   },
 
   rotateBy(shape, delta) {
@@ -379,7 +367,7 @@ function getBendPoint(shape: ArrowShape) {
 
   const dist = vec.dist(start.point, end.point)
   const midPoint = vec.med(start.point, end.point)
-  const bendDist = (dist / 2) * shape.bend * Math.min(1, dist / 128)
+  const bendDist = (dist / 2) * shape.bend
   const u = vec.uni(vec.vec(start.point, end.point))
 
   return Math.abs(bendDist) < 10
@@ -430,10 +418,9 @@ function getResizeOffset(a: Bounds, b: Bounds) {
 
 function renderPath(shape: ArrowShape, endAngle = 0) {
   const { style, id } = shape
-  const { start, end, bend } = shape.handles
+  const { start, end } = shape.handles
 
   const getRandom = rng(id)
-  const offsetA = getRandom()
 
   const strokeWidth = +getShapeStyle(style).strokeWidth * 2
 

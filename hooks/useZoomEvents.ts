@@ -20,10 +20,6 @@ export default function useZoomEvents() {
         if (event.ctrlKey) {
           const { point } = inputs.wheel(event as WheelEvent)
           fastZoomUpdate(point, delta[1])
-          // state.send('ZOOMED_CAMERA', {
-          //   delta: delta[1],
-          //   ...inputs.wheel(event as WheelEvent),
-          // })
           return
         }
 
@@ -59,13 +55,6 @@ export default function useZoomEvents() {
           distanceDelta,
           angleDelta
         )
-
-        // state.send('PINCHED', {
-        //   delta: vec.sub(rPinchPoint.current, origin),
-        //   point: origin,
-        //   distanceDelta,
-        //   angleDelta,
-        // })
 
         rPinchDa.current = da
         rPinchPoint.current = origin

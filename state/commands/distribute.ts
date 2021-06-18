@@ -12,7 +12,9 @@ import { getShapeUtils } from 'lib/shape-utils'
 export default function distributeCommand(data: Data, type: DistributeType) {
   const { currentPageId } = data
 
-  const selectedShapes = getSelectedShapes(data)
+  const selectedShapes = getSelectedShapes(data).filter(
+    (shape) => !shape.isLocked
+  )
 
   const entries = selectedShapes.map(
     (shape) => [shape.id, getShapeUtils(shape).getBounds(shape)] as const

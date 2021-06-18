@@ -5,7 +5,9 @@ import { Data, ShapeType } from 'types'
 import {
   getDocumentBranch,
   getPage,
+  getPageState,
   getSelectedIds,
+  getSelectedShapes,
   setSelectedIds,
   setToArray,
   updateParents,
@@ -16,8 +18,11 @@ import { getShapeUtils } from 'lib/shape-utils'
 export default function deleteSelected(data: Data) {
   const { currentPageId } = data
 
-  const selectedIds = getSelectedIds(data)
-  const selectedIdsArr = setToArray(selectedIds)
+  const selectedShapes = getSelectedShapes(data)
+
+  const selectedIdsArr = selectedShapes
+    .filter((shape) => !shape.isLocked)
+    .map((shape) => shape.id)
 
   const page = getPage(current(data))
 
@@ -25,7 +30,9 @@ export default function deleteSelected(data: Data) {
     .flatMap((id) => getDocumentBranch(data, id))
     .map((id) => page.shapes[id])
 
-  selectedIds.clear()
+  const remainingIds = selectedShapes
+    .filter((shape) => shape.isLocked)
+    .map((shape) => shape.id)
 
   history.execute(
     data,
@@ -62,7 +69,7 @@ export default function deleteSelected(data: Data) {
           delete page.shapes[shape.id]
         }
 
-        setSelectedIds(data, [])
+        setSelectedIds(data, remainingIds)
       },
       undo(data) {
         const page = getPage(data, currentPageId)

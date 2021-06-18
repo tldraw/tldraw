@@ -15,7 +15,7 @@ export default function handleCommand(
     new Command({
       name: 'edited_shape',
       category: 'canvas',
-      do(data, isInitial) {
+      do(data) {
         const { initialShape, currentPageId } = after
 
         const page = getPage(data, currentPageId)
