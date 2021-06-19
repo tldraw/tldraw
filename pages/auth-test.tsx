@@ -67,7 +67,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     console.log(
       JSON.stringify({
         user: session.user,
-        sponsors: sponsors,
+        sponsors: sponsors.map((sponsor: any) => sponsor.avatar),
         isSponsor: sponsor !== undefined,
       })
     )
