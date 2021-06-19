@@ -51,17 +51,19 @@ export default function Home({
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context)
 
+  const id = session?.user?.image.match(/u\/(.*)\?/)?.[1]
+
   const sponsors = await fetch(
     'https://sponsors.trnck.dev/sponsors/steveruizok'
   ).then((d) => d.json().then((d) => d.sponsors))
 
-  const sponsor = sponsors.find(
-    (sponsor: { avatar: string }) => sponsor.avatar === session?.user?.image
+  const sponsor = sponsors.find((sponsor: { avatar: string }) =>
+    sponsor.avatar.includes(id)
   )
 
   console.log(
     session?.user,
-    session?.user?.image,
+    id,
     sponsors.map((sponsor: any) => sponsor.avatar)
   )
 
