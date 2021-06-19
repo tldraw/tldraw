@@ -9,7 +9,7 @@ const SentryWebpackPluginOptions = {
   //   urlPrefix, include, ignore
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options.
-  silent: true,
+  silent: process.env.NODE_ENV === 'development',
 }
 
 module.exports = withSentryConfig(
