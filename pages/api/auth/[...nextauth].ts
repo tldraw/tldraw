@@ -7,6 +7,15 @@ const options = {
     Providers.GitHub({
       clientId: process.env.GITHUB_ID,
       clientSecret: process.env.GITHUB_SECRET,
+      profile(profile) {
+        return {
+          id: profile.id,
+          login: profile.login,
+          name: profile.name || profile.login,
+          email: profile.email,
+          image: profile.avatar_url,
+        } as any
+      },
     }),
   ],
   callbacks: {

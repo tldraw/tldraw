@@ -49,22 +49,22 @@ export default function Home({
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const session = await getSession(context)
+  const session: any = await getSession(context)
 
-  const id = session?.user?.image.match(/u\/(.*)\?/)?.[1]
+  const handle = session?.user?.login
 
   const sponsors = await fetch(
     'https://sponsors.trnck.dev/sponsors/steveruizok'
   ).then((d) => d.json().then((d) => d.sponsors))
 
-  const sponsor = sponsors.find((sponsor: { avatar: string }) =>
-    sponsor.avatar.includes(id)
+  const sponsor = sponsors.some(
+    (sponsor: { handle: string }) => sponsor.handle === handle
   )
 
   console.log(
-    session?.user,
-    id,
-    sponsors.map((sponsor: any) => sponsor.avatar)
+    session,
+    handle,
+    sponsors.map((sponsor: any) => sponsor.handle)
   )
 
   return {
