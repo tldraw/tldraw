@@ -69,7 +69,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      isOwner: session.user.email === 'steveruizok@gmail.com',
+      isOwner: session?.user?.email === 'steveruizok@gmail.com',
       isSponsor,
       ssrSession: session,
     },
