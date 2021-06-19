@@ -64,6 +64,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       sponsor.avatar.includes(id)
     )
 
+    console.log(
+      JSON.stringify({
+        user: session.user,
+        sponsors: sponsors,
+        isSponsor: sponsor !== undefined,
+      })
+    )
+
     isSponsor = sponsor !== undefined
   }
 
