@@ -1,11 +1,11 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import { getPage, getShape } from 'utils/utils'
+import { getPage } from 'utils/utils'
 import { EditSnapshot } from 'state/sessions/edit-session'
 import { getShapeUtils } from 'lib/shape-utils'
 
-export default function handleCommand(
+export default function editCommand(
   data: Data,
   before: EditSnapshot,
   after: EditSnapshot
@@ -13,7 +13,7 @@ export default function handleCommand(
   history.execute(
     data,
     new Command({
-      name: 'edited_shape',
+      name: 'edit_shape',
       category: 'canvas',
       do(data) {
         const { initialShape, currentPageId } = after

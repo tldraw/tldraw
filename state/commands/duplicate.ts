@@ -19,6 +19,7 @@ export default function duplicateCommand(data: Data) {
     ...shape,
     id: uniqueId(),
     point: vec.add(shape.point, vec.div([16, 16], getCurrentCamera(data).zoom)),
+    isGenerated: false,
   }))
 
   history.execute(

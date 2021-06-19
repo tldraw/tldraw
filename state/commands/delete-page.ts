@@ -2,18 +2,16 @@ import Command from './command'
 import history from '../history'
 import { Data } from 'types'
 import { current } from 'immer'
-import { getPage, getSelectedShapes } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
 import vec from 'utils/vec'
 import storage from 'state/storage'
 
-export default function changePage(data: Data, pageId: string) {
+export default function deletePage(data: Data, pageId: string) {
   const snapshot = getSnapshot(data, pageId)
 
   history.execute(
     data,
     new Command({
-      name: 'change_page',
+      name: 'delete_page',
       category: 'canvas',
       do(data) {
         data.currentPageId = snapshot.nextPageId

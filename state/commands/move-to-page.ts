@@ -15,7 +15,7 @@ import { getShapeUtils } from 'lib/shape-utils'
 import vec from 'utils/vec'
 import storage from 'state/storage'
 
-export default function nudgeCommand(data: Data, newPageId: string) {
+export default function moveToPageCommand(data: Data, newPageId: string) {
   const { currentPageId: oldPageId } = data
   const oldPage = getPage(data)
   const selectedIds = setToArray(getSelectedIds(data))
@@ -35,7 +35,7 @@ export default function nudgeCommand(data: Data, newPageId: string) {
   history.execute(
     data,
     new Command({
-      name: 'set_direction',
+      name: 'move_to_page',
       category: 'canvas',
       manualSelection: true,
       do(data) {

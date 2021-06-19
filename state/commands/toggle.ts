@@ -19,7 +19,7 @@ export default function toggleCommand(
   history.execute(
     data,
     new Command({
-      name: 'toggle_shape_prop',
+      name: 'toggle_prop',
       category: 'canvas',
       do(data) {
         const { shapes } = getPage(data, currentPageId)

@@ -13,7 +13,7 @@ export default function rotateCommand(
   history.execute(
     data,
     new Command({
-      name: 'translate_shapes',
+      name: 'rotate_shapes',
       category: 'canvas',
       do(data) {
         const { shapes } = getPage(data)

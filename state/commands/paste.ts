@@ -44,7 +44,7 @@ export default function pasteCommand(data: Data, initialShapes: Shape[]) {
   history.execute(
     data,
     new Command({
-      name: 'pasting_new_shapes',
+      name: 'paste_new_shapes',
       category: 'canvas',
       manualSelection: true,
       do(data) {

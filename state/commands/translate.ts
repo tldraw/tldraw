@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { TranslateSnapshot } from 'state/sessions/translate-session'
-import { Data, GroupShape, Shape, ShapeType } from 'types'
+import { Data, ShapeType } from 'types'
 import {
   getDocumentBranch,
   getPage,
@@ -9,7 +9,6 @@ import {
   updateParents,
 } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
-import { uniqueId } from 'utils/utils'
 
 export default function translateCommand(
   data: Data,

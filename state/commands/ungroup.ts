@@ -1,17 +1,14 @@
 import Command from './command'
 import history from '../history'
-import { Data, GroupShape, Shape, ShapeType } from 'types'
+import { Data, ShapeType } from 'types'
 import {
-  getCommonBounds,
   getPage,
   getSelectedShapes,
   getShape,
   setSelectedIds,
 } from 'utils/utils'
 import { current } from 'immer'
-import { createShape, getShapeUtils } from 'lib/shape-utils'
-import { PropsOfType } from 'types'
-import { uniqueId } from 'utils/utils'
+import { getShapeUtils } from 'lib/shape-utils'
 
 export default function ungroupCommand(data: Data) {
   const cData = current(data)

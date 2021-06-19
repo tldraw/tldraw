@@ -1,9 +1,9 @@
-import Command from "./command"
-import history from "../history"
-import { StretchType, Data, Edge, Corner } from "types"
-import { getCommonBounds, getPage, getSelectedShapes } from "utils/utils"
-import { getShapeUtils } from "lib/shape-utils"
-import { current } from "immer"
+import Command from './command'
+import history from '../history'
+import { StretchType, Data, Edge, Corner } from 'types'
+import { getCommonBounds, getPage, getSelectedShapes } from 'utils/utils'
+import { getShapeUtils } from 'lib/shape-utils'
+import { current } from 'immer'
 
 export default function stretchCommand(data: Data, type: StretchType) {
   const { currentPageId } = data
@@ -17,8 +17,8 @@ export default function stretchCommand(data: Data, type: StretchType) {
   history.execute(
     data,
     new Command({
-      name: "stretched",
-      category: "canvas",
+      name: 'stretched_shapes',
+      category: 'canvas',
       do(data) {
         const { shapes } = getPage(data, currentPageId)
 

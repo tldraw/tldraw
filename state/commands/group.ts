@@ -11,8 +11,6 @@ import {
 } from 'utils/utils'
 import { current } from 'immer'
 import { createShape, getShapeUtils } from 'lib/shape-utils'
-import { PropsOfType } from 'types'
-import { uniqueId } from 'utils/utils'
 import commands from '.'
 
 export default function groupCommand(data: Data) {

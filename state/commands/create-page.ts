@@ -11,7 +11,7 @@ export default function createPage(data: Data, goToPage = true) {
   history.execute(
     data,
     new Command({
-      name: 'change_page',
+      name: 'create_page',
       category: 'canvas',
       do(data) {
         const { page, pageState, currentPageId } = snapshot

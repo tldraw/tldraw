@@ -1,15 +1,9 @@
 import Command from './command'
 import history from '../history'
-import { Data, Corner, Edge } from 'types'
-import { getShapeUtils } from 'lib/shape-utils'
+import { Data } from 'types'
 import { current } from 'immer'
 import { TransformSingleSnapshot } from 'state/sessions/transform-single-session'
-import {
-  getPage,
-  getSelectedIds,
-  setSelectedIds,
-  updateParents,
-} from 'utils/utils'
+import { getPage, setSelectedIds, updateParents } from 'utils/utils'
 
 export default function transformSingleCommand(
   data: Data,

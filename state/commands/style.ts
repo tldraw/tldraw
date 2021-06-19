@@ -5,7 +5,6 @@ import {
   getDocumentBranch,
   getPage,
   getSelectedIds,
-  getSelectedShapes,
   setToArray,
 } from 'utils/utils'
 import { getShapeUtils } from 'lib/shape-utils'
@@ -25,7 +24,7 @@ export default function styleCommand(data: Data, styles: Partial<ShapeStyles>) {
   history.execute(
     data,
     new Command({
-      name: 'changed_style',
+      name: 'style_shapes',
       category: 'canvas',
       manualSelection: true,
       do(data) {

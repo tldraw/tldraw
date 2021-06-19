@@ -60,7 +60,7 @@ export default function rotateCcwCommand(data: Data) {
   history.execute(
     data,
     new Command({
-      name: 'translate_shapes',
+      name: 'rotate_ccw',
       category: 'canvas',
       do(data) {
         const { shapes } = getPage(data, currentPageId)

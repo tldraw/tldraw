@@ -37,7 +37,7 @@ export default function deleteSelected(data: Data) {
   history.execute(
     data,
     new Command({
-      name: 'delete_shapes',
+      name: 'delete_selection',
       category: 'canvas',
       manualSelection: true,
       do(data) {

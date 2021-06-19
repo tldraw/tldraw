@@ -34,7 +34,7 @@ export default function distributeCommand(data: Data, type: DistributeType) {
   history.execute(
     data,
     new Command({
-      name: 'distributed',
+      name: 'distribute_shapes',
       category: 'canvas',
       do(data) {
         const { shapes } = getPage(data, currentPageId)

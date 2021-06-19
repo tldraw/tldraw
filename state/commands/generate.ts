@@ -33,7 +33,7 @@ export default function generateCommand(
   history.execute(
     data,
     new Command({
-      name: 'translate_shapes',
+      name: 'generate_shapes',
       category: 'canvas',
       do(data) {
         const { shapes } = getPage(data)

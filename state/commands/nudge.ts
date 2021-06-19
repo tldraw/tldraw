@@ -17,7 +17,7 @@ export default function nudgeCommand(data: Data, delta: number[]) {
   history.execute(
     data,
     new Command({
-      name: 'set_direction',
+      name: 'nudge_shapes',
       category: 'canvas',
       do(data) {
         const { shapes } = getPage(data, currentPageId)

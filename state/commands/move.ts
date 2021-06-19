@@ -24,7 +24,7 @@ export default function moveCommand(data: Data, type: MoveType) {
   history.execute(
     data,
     new Command({
-      name: 'move_shapes',
+      name: 'change_child_index',
       category: 'canvas',
       manualSelection: true,
       do(data) {
