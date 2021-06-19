@@ -1,4 +1,5 @@
 import { Data } from 'types'
+import * as gtag from 'utils/gtag'
 import { BaseCommand } from './commands/command'
 import storage from './storage'
 
@@ -11,6 +12,13 @@ class History<T extends Data> {
   private _enabled = true
 
   execute = (data: T, command: BaseCommand<T>) => {
+    gtag.event({
+      action: command.name,
+      category: command.category,
+      label: '',
+      value: 0,
+    })
+
     command.redo(data, true)
 
     if (this.disabled) return
