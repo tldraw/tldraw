@@ -62,13 +62,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   console.log(
     session?.user,
     image,
-    sponsors.map((sponsor: any) => sponsor.avatar === image)
+    sponsors.map((sponsor: any) => sponsor.avatar)
   )
 
   return {
     props: {
       isOwner: session?.user?.email === 'steveruizok@gmail.com',
-      isSponsor: sponsor !== undefined,
+      isSponsor: sponsor,
       ssrSession: session,
     },
   }
