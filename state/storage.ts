@@ -45,7 +45,11 @@ class Storage {
       }
     }
 
-    this.load(data)
+    try {
+      this.load(data)
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   saveDocumentToLocalStorage(data: Data) {
