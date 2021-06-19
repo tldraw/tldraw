@@ -1,8 +1,8 @@
+import { NextApiRequest, NextApiResponse } from 'next'
 import NextAuth from 'next-auth'
 import Providers from 'next-auth/providers'
-import { redirect } from 'next/dist/next-server/server/api-utils'
 
-export default NextAuth({
+const options = {
   providers: [
     Providers.GitHub({
       clientId: process.env.GITHUB_ID,
@@ -10,8 +10,12 @@ export default NextAuth({
     }),
   ],
   callbacks: {
-    async redirect(url, baseUrl) {
+    async redirect(url: string, baseUrl: string) {
       return url.startsWith(baseUrl) ? url : baseUrl
     },
   },
-})
+}
+
+export default function (req: NextApiRequest, res: NextApiResponse) {
+  return NextAuth(req, res, options)
+}
