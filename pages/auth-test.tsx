@@ -60,16 +60,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       'https://sponsors.trnck.dev/sponsors/steveruizok'
     ).then((d) => d.json().then((d) => d.sponsors))
 
-    const sponsor = sponsors.find((sponsor: { avatar: string }) =>
-      sponsor.avatar.includes(id)
-    )
-
-    console.log(
-      JSON.stringify({
-        user: session.user,
-        sponsors: sponsors.map((sponsor: any) => sponsor.avatar),
-        isSponsor: sponsor !== undefined,
-      })
+    const sponsor = sponsors.find(
+      (sponsor: { avatar: string }) => sponsor.avatar === session.user.image
     )
 
     isSponsor = sponsor !== undefined
@@ -77,7 +69,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      isOwner: session?.user?.image.includes('23072548') || false,
+      isOwner: session.user.email === 'steveruizok@gmail.com',
       isSponsor,
       ssrSession: session,
     },
