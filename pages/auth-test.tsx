@@ -49,34 +49,26 @@ export default function Home({
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  let isSponsor = false
-
   const session = await getSession(context)
 
-  if (session?.user) {
-    const id = session.user.image.match(/u\/(.*)\?/)?.[1]
+  const sponsors = await fetch(
+    'https://sponsors.trnck.dev/sponsors/steveruizok'
+  ).then((d) => d.json().then((d) => d.sponsors))
 
-    const sponsors = await fetch(
-      'https://sponsors.trnck.dev/sponsors/steveruizok'
-    ).then((d) => d.json().then((d) => d.sponsors))
+  const sponsor = sponsors.find(
+    (sponsor: { avatar: string }) => sponsor.avatar === session?.user?.image
+  )
 
-    const sponsor = sponsors.find(
-      (sponsor: { avatar: string }) => sponsor.avatar === session.user.image
-    )
-
-    console.log(
-      session?.user?.image,
-      sponsors.map((sponsor) => sponsor.avatar),
-      sponsor
-    )
-
-    isSponsor = sponsor !== undefined
-  }
+  console.log(
+    session?.user,
+    session?.user?.image,
+    sponsors.map((sponsor: any) => sponsor.avatar)
+  )
 
   return {
     props: {
       isOwner: session?.user?.email === 'steveruizok@gmail.com',
-      isSponsor,
+      isSponsor: sponsor !== undefined,
       ssrSession: session,
     },
   }
