@@ -64,6 +64,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       (sponsor: { avatar: string }) => sponsor.avatar === session.user.image
     )
 
+    console.log(
+      session?.user?.image,
+      sponsors.map((sponsor) => sponsor.avatar),
+      sponsor
+    )
+
     isSponsor = sponsor !== undefined
   }
 
