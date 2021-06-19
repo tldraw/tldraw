@@ -9,8 +9,6 @@ export default NextAuth({
       clientSecret: process.env.GITHUB_SECRET,
     }),
   ],
-  // SQL or MongoDB database (or leave empty)
-  // database: process.env.DATABASE_URL,
   callbacks: {
     async redirect(url, baseUrl) {
       return url.startsWith(baseUrl) ? url : baseUrl
