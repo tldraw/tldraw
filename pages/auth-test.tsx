@@ -24,6 +24,25 @@ export default function Home({
         <pre>{JSON.stringify(session, null, 2)}</pre>
         <p>Is owner? {isOwner.toString()}</p>
         <p>Is sponsor? {isSponsor.toString()}</p>
+
+        {isSponsor ? (
+          <p>
+            <b>Hey, thanks for sponsoring me!</b>
+          </p>
+        ) : (
+          <p>
+            <b>
+              This site is just for my github sponsors.{' '}
+              <a
+                href="https://github.com/sponsors/steveruizok"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Sponsor here!
+              </a>
+            </b>
+          </p>
+        )}
       </div>
     </>
   )
