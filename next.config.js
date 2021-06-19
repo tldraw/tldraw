@@ -1,12 +1,27 @@
 const withPWA = require('next-pwa')
+const { withSentryConfig } = require('@sentry/nextjs')
 
-module.exports = withPWA({
-  future: {
-    webpack5: true,
-  },
-  pwa: {
-    dest: 'public',
-    scope: '/',
-    disable: process.env.NODE_ENV === 'development',
-  },
-})
+const SentryWebpackPluginOptions = {
+  // Additional config options for the Sentry Webpack plugin. Keep in mind that
+  // the following options are set automatically, and overriding them is not
+  // recommended:
+  //   release, url, org, project, authToken, configFile, stripPrefix,
+  //   urlPrefix, include, ignore
+  // For all available options, see:
+  // https://github.com/getsentry/sentry-webpack-plugin#options.
+  silent: true,
+}
+
+module.exports = withSentryConfig(
+  withPWA({
+    future: {
+      webpack5: true,
+    },
+    pwa: {
+      dest: 'public',
+      scope: '/',
+      disable: process.env.NODE_ENV === 'development',
+    },
+  }),
+  SentryWebpackPluginOptions
+)

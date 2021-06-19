@@ -1,5 +1,6 @@
 import NextDocument, { Html, Head, Main, NextScript } from 'next/document'
 import { dark, getCssString } from 'styles'
+import { GA_TRACKING_ID } from 'utils/gtag'
 
 class MyDocument extends NextDocument {
   static async getInitialProps(ctx) {
@@ -54,6 +55,22 @@ class MyDocument extends NextDocument {
           />
           <meta property="og:site_name" content="tldraw" />
           <meta property="og:url" content="https://tldraw.com" />
+          <script
+            async
+            src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
+          />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA_TRACKING_ID}', {
+                page_path: window.location.pathname,
+              });
+          `,
+            }}
+          />
         </Head>
         <body className={dark}>
           <Main />
