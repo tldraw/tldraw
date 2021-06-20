@@ -12,6 +12,7 @@ const { styled, global, css, theme, getCssString } = createCss({
       selected: 'rgba(66, 133, 244, 1.000)',
       bounds: 'rgba(65, 132, 244, 1.000)',
       boundsBg: 'rgba(65, 132, 244, 0.05)',
+      highlight: 'rgba(65, 132, 244, 0.15)',
       overlay: 'rgba(0, 0, 0, 0.15)',
       border: '#aaa',
       canvas: '#fafafa',

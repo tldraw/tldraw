@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import NextAuth from 'next-auth'
-import { signin } from 'next-auth/client'
 import Providers from 'next-auth/providers'
 
 export default function (req: NextApiRequest, res: NextApiResponse) {
