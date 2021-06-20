@@ -3,20 +3,19 @@ import vec from 'utils/vec'
 import { DashStyle, DrawShape, ShapeStyles, ShapeType } from 'types'
 import { registerShapeUtils } from './index'
 import { intersectPolylineBounds } from 'utils/intersections'
-import { boundsContain, boundsContainPolygon } from 'utils/bounds'
-import getStroke from 'perfect-freehand'
+import { boundsContain } from 'utils/bounds'
+import getStroke, { getStrokePoints } from 'perfect-freehand'
 import {
   getBoundsCenter,
   getBoundsFromPoints,
-  getRotatedCorners,
   getSvgPathFromStroke,
-  rotateBounds,
   translateBounds,
 } from 'utils/utils'
-import { defaultStyle, getShapeStyle } from 'lib/shape-styles'
+import { defaultStyle, getShapeStyle, strokes } from 'lib/shape-styles'
 
 const rotatedCache = new WeakMap<DrawShape, number[][]>([])
 const pathCache = new WeakMap<DrawShape['points'], string>([])
+const polygonCache = new WeakMap<DrawShape['points'], string>([])
 
 const draw = registerShapeUtils<DrawShape>({
   boundsCache: new WeakMap([]),
@@ -59,17 +58,24 @@ const draw = registerShapeUtils<DrawShape>({
       )
     }
 
+    const shouldFill =
+      points.length > 3 &&
+      vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
+
+    if (shouldFill && !polygonCache.has(points)) {
+      renderFill(shape, style)
+    }
+
     return (
       <g id={id}>
-        {points.length > 3 &&
-          vec.dist(points[0], points[points.length - 1]) < 8 && (
-            <polyline
-              points={points.map((pt) => pt.slice(0, 2)).join(',')}
-              fill={styles.fill}
-              stroke="none"
-              strokeWidth={0}
-            />
-          )}
+        {shouldFill && (
+          <path
+            d={polygonCache.get(points)}
+            fill={styles.fill}
+            strokeWidth="0"
+            stroke="none"
+          />
+        )}
         <path d={pathCache.get(points)} fill={styles.stroke} />
       </g>
     )
@@ -217,4 +223,25 @@ function renderPath(shape: DrawShape, style: ShapeStyles) {
   })
 
   pathCache.set(shape.points, getSvgPathFromStroke(stroke))
+}
+
+function renderFill(shape: DrawShape, style: ShapeStyles) {
+  const styles = getShapeStyle(style)
+
+  if (shape.points.length < 2) {
+    polygonCache.set(shape.points, '')
+    return
+  }
+
+  return polygonCache.set(
+    shape.points,
+    getSvgPathFromStroke(
+      getStrokePoints(shape.points, {
+        size: 1 + +styles.strokeWidth * 2,
+        thinning: 0.85,
+        end: { taper: +styles.strokeWidth * 20 },
+        start: { taper: +styles.strokeWidth * 20 },
+      }).map((pt) => pt.point)
+    )
+  )
 }

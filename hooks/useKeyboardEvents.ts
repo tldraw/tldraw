@@ -155,6 +155,13 @@ export default function useKeyboardEvents() {
           }
           break
         }
+        case 'o': {
+          if (metaKey(e)) {
+          } else {
+            state.send('SELECTED_DOT_TOOL', getKeyboardEventInfo(e))
+          }
+          break
+        }
         case 'v': {
           if (metaKey(e)) {
             state.send('PASTED', getKeyboardEventInfo(e))
