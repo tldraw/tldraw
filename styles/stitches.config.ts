@@ -20,6 +20,7 @@ const { styled, global, css, theme, getCssString } = createCss({
       inactive: '#cccccf',
       hover: '#efefef',
       text: '#333',
+      muted: '#777',
       input: '#f3f3f3',
       inputBorder: '#ddd',
     },
@@ -95,6 +96,7 @@ const globalStyles = global({
     overscrollBehavior: 'none',
     fontFamily: '$ui',
     fontSize: '$2',
+    backgroundColor: '$canvas',
   },
 })
 

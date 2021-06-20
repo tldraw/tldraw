@@ -13,6 +13,7 @@
     "@radix-ui/react-context-menu": "^0.0.21",
     "@radix-ui/react-dialog": "^0.0.18",
     "@radix-ui/react-dropdown-menu": "^0.0.20",
+    "@radix-ui/react-hover-card": "^0.0.3",
     "@radix-ui/react-icons": "^1.0.3",
     "@radix-ui/react-radio-group": "^0.0.17",
     "@radix-ui/react-tooltip": "^0.0.19",

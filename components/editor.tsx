@@ -6,8 +6,8 @@ import ToolsPanel from './tools-panel/tools-panel'
 import StylePanel from './style-panel/style-panel'
 import styled from 'styles'
 import PagePanel from './page-panel/page-panel'
-import dynamic from 'next/dynamic'
-import ControlsPanel from './controls-panel/controls-panel'
+// import dynamic from 'next/dynamic'
+// import ControlsPanel from './controls-panel/controls-panel'
 // import { useSelector } from 'state'
 // const CodePanel = dynamic(() => import('./code-panel/code-panel'))
 
