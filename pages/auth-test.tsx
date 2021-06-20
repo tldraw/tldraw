@@ -21,6 +21,11 @@ export default function Home({ session }: any) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getSession(context)
+    .then((c) => {
+      console.log(c)
+      return c
+    })
+    .catch((e) => console.log(e))
 
   return {
     props: {
