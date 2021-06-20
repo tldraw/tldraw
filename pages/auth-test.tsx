@@ -2,15 +2,7 @@ import Head from 'next/head'
 import { signIn, signOut, getSession, useSession } from 'next-auth/client'
 import { GetServerSidePropsContext } from 'next'
 
-export default function Home({
-  ssrSession,
-  isOwner,
-  isSponsor,
-}: {
-  isOwner: boolean
-  isSponsor: boolean
-  ssrSession: any
-}) {
+export default function Home() {
   const [session, loading] = useSession()
   return (
     <>
