@@ -7,14 +7,20 @@ export default function Sponsorware() {
   const [session, loading] = useSession()
 
   return (
-    <Content>
+    <Content
+      size={{
+        '@sm': 'small',
+      }}
+    >
       <h1>tldraw (is sponsorware)</h1>
       <p>
         Hey, thanks for visiting <a href="https://tldraw.com/">tldraw</a>, a
         tiny little drawing app by{' '}
         <a href="https://twitter.com/steveruizok">steveruizok</a>.
       </p>
-      <video src="images/hello.mp4" autoPlay muted loop />
+      <video autoPlay muted playsInline onClick={(e) => e.currentTarget.play()}>
+        <source src="images/hello.mp4" type="video/mp4" />
+      </video>
       <p>This project is currently: </p>
       <ul>
         <li>in development</li>
@@ -75,15 +81,15 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
 const Content = styled('div', {
   width: '720px',
-  maxWidth: 'calc(100% - 16px)',
+  maxWidth: '100%',
   backgroundColor: '$panel',
   margin: '32px auto',
-  borderRadius: '8px',
+  borderRadius: '0px',
   boxShadow: '0px 2px 24px rgba(0,0,0,.08), 0px 2px 4px rgba(0,0,0,.16)',
-  padding: '32px',
+  padding: '16px',
   overflow: 'hidden',
   color: '$text',
-  fontSize: '$3',
+  fontSize: '$2',
   fontFamily: '$body',
   lineHeight: 1.5,
 
@@ -95,7 +101,9 @@ const Content = styled('div', {
     borderRadius: '2px',
   },
 
-  '& p': {},
+  '& p': {
+    borderRadius: '8px',
+  },
 
   '& video': {
     maxWidth: '100%',
@@ -109,6 +117,15 @@ const Content = styled('div', {
     border: 'none',
     backgroundColor: 'none',
     background: 'none',
+  },
+
+  variants: {
+    size: {
+      small: {
+        fontSize: '$3',
+        padding: '32px',
+      },
+    },
   },
 })
 
