@@ -208,6 +208,14 @@ export default function ContextMenu({
               />
             )}
             <MoveToPageMenu />
+            <Button onSelect={() => state.send('COPIED_TO_SVG')}>
+              <span>Copy to SVG</span>
+              <kbd>
+                <span>{commandKey()}</span>
+                <span>⇧</span>
+                <span>C</span>
+              </kbd>
+            </Button>
             <StyledDivider />
             <Button onSelect={() => state.send('DELETED')}>
               <span>Delete</span>

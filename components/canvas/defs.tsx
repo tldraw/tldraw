@@ -1,5 +1,6 @@
+import { getShapeStyle } from 'lib/shape-styles'
 import { getShapeUtils } from 'lib/shape-utils'
-import { memo } from 'react'
+import React, { memo } from 'react'
 import { useSelector } from 'state'
 import { deepCompareArrays, getCurrentCamera, getPage } from 'utils/utils'
 import { DotCircle, Handle } from './misc'
@@ -33,5 +34,11 @@ const Def = memo(function Def({ id }: { id: string }) {
   const shape = useSelector((s) => getPage(s.data).shapes[id])
 
   if (!shape) return null
-  return getShapeUtils(shape).render(shape, { isEditing: false })
+
+  const style = getShapeStyle(shape.style)
+
+  return React.cloneElement(
+    getShapeUtils(shape).render(shape, { isEditing: false }),
+    { ...style }
+  )
 })

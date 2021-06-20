@@ -192,7 +192,11 @@ export default function useKeyboardEvents() {
         }
         case 'c': {
           if (metaKey(e)) {
-            state.send('COPIED', getKeyboardEventInfo(e))
+            if (e.shiftKey) {
+              state.send('COPIED_TO_SVG', getKeyboardEventInfo(e))
+            } else {
+              state.send('COPIED', getKeyboardEventInfo(e))
+            }
           } else {
             state.send('SELECTED_ELLIPSE_TOOL', getKeyboardEventInfo(e))
           }

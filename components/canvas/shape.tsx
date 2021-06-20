@@ -3,7 +3,7 @@ import state, { useSelector } from 'state'
 import styled from 'styles'
 import { getShapeUtils } from 'lib/shape-utils'
 import { getBoundsCenter, getPage, isMobile } from 'utils/utils'
-import { ShapeStyles, ShapeType } from 'types'
+import { ShapeStyles, ShapeType, Shape as _Shape } from 'types'
 import useShapeEvents from 'hooks/useShapeEvents'
 import vec from 'utils/vec'
 import { getShapeStyle } from 'lib/shape-styles'
@@ -60,6 +60,7 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
 
   return (
     <StyledGroup
+      id={id + '-group'}
       ref={rGroup}
       transform={transform}
       device={isMobileDevice ? 'mobile' : 'desktop'}
@@ -94,6 +95,7 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
           <RealShape
             isParent={isParent}
             id={id}
+            shape={shape}
             style={style}
             isEditing={isEditing}
           />
@@ -116,15 +118,17 @@ interface RealShapeProps {
   id: string
   style: Partial<React.SVGProps<SVGUseElement>>
   isParent: boolean
+  shape: _Shape
   isEditing: boolean
 }
 
 const RealShape = memo(function RealShape({
   id,
+  shape,
   style,
   isParent,
 }: RealShapeProps) {
-  return <StyledShape as="use" data-shy={isParent} href={'#' + id} {...style} />
+  return <StyledShape as="use" data-shy={isParent} href={'#' + id} />
 })
 
 const StyledShape = styled('path', {

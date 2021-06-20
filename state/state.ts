@@ -226,6 +226,7 @@ const state = createState({
             ZOOMED_IN: 'zoomIn',
             ZOOMED_OUT: 'zoomOut',
             RESET_CAMERA: 'resetCamera',
+            COPIED_TO_SVG: 'copyToSvg',
           },
           initial: 'notPointing',
           states: {
@@ -1639,6 +1640,10 @@ const state = createState({
     },
 
     /* ---------------------- Data ---------------------- */
+
+    copyToSvg(data) {
+      clipboard.copySelectionToSvg(data)
+    },
 
     copyToClipboard(data) {
       clipboard.copy(getSelectedShapes(data))

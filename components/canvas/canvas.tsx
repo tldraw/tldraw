@@ -30,10 +30,9 @@ export default function Canvas() {
       <MainSVG ref={rCanvas} {...events}>
         <Defs />
         {isReady && (
-          <g ref={rGroup}>
+          <g ref={rGroup} id="shapes">
             <BoundsBg />
             <Page />
-            {/* <Selected /> */}
             <Bounds />
             <Handles />
             <Brush />
