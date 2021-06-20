@@ -8,20 +8,17 @@ export default function (req: NextApiRequest, res: NextApiResponse) {
       Providers.GitHub({
         clientId: process.env.GITHUB_ID,
         clientSecret: process.env.GITHUB_SECRET,
+        scope: 'user',
       }),
     ],
     callbacks: {
       async redirect(url, baseUrl) {
         return url.startsWith(baseUrl) ? url : baseUrl
       },
-      async session(session, token) {
-        // @ts-ignore
-        session.user.id = token.id
-        return session
-      },
       async signIn(user, account, profile) {
         // @ts-ignore
         const canLogin = await isSponsoringMe(profile?.login)
+
         if (canLogin) {
           return canLogin
         } else {
