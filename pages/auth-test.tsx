@@ -1,6 +1,5 @@
 import Head from 'next/head'
-import { signIn, signOut, getSession, useSession } from 'next-auth/client'
-import { GetServerSidePropsContext } from 'next'
+import { signIn, signOut, useSession } from 'next-auth/client'
 
 export default function Home() {
   const [session, loading] = useSession()

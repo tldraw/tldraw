@@ -40,7 +40,6 @@ const draw = registerShapeUtils<DrawShape>({
       style: {
         ...defaultStyle,
         ...props.style,
-        isFilled: false,
       },
     }
   },
@@ -60,7 +59,20 @@ const draw = registerShapeUtils<DrawShape>({
       )
     }
 
-    return <path id={id} d={pathCache.get(points)} fill={styles.stroke} />
+    return (
+      <g id={id}>
+        {points.length > 3 &&
+          vec.dist(points[0], points[points.length - 1]) < 8 && (
+            <polyline
+              points={points.map((pt) => pt.slice(0, 2)).join(',')}
+              fill={styles.fill}
+              stroke="none"
+              strokeWidth={0}
+            />
+          )}
+        <path d={pathCache.get(points)} fill={styles.stroke} />
+      </g>
+    )
   },
 
   getBounds(shape) {
@@ -151,7 +163,6 @@ const draw = registerShapeUtils<DrawShape>({
 
   applyStyles(shape, style) {
     const styles = { ...shape.style, ...style }
-    styles.isFilled = false
     styles.dash = DashStyle.Solid
     shape.style = styles
     shape.points = [...shape.points]
@@ -170,7 +181,7 @@ const draw = registerShapeUtils<DrawShape>({
     return this
   },
 
-  canStyleFill: false,
+  canStyleFill: true,
 })
 
 export default draw
