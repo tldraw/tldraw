@@ -8,7 +8,7 @@ export default function (req: NextApiRequest, res: NextApiResponse) {
       Providers.GitHub({
         clientId: process.env.GITHUB_ID,
         clientSecret: process.env.GITHUB_SECRET,
-        scope: 'user',
+        scope: 'read:user',
       }),
     ],
     callbacks: {
