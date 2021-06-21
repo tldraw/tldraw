@@ -256,7 +256,7 @@ export const DropdownContent = styled(DropdownMenu.Content, {
   },
 })
 
-export function DashSolidIcon() {
+export function DashSolidIcon(): JSX.Element {
   return (
     <svg width="24" height="24" stroke="currentColor">
       <circle
@@ -271,7 +271,7 @@ export function DashSolidIcon() {
   )
 }
 
-export function DashDashedIcon() {
+export function DashDashedIcon(): JSX.Element {
   return (
     <svg width="24" height="24" stroke="currentColor">
       <circle
@@ -289,7 +289,7 @@ export function DashDashedIcon() {
 
 const dottedDasharray = `${50.26548 * 0.025} ${50.26548 * 0.1}`
 
-export function DashDottedIcon() {
+export function DashDottedIcon(): JSX.Element {
   return (
     <svg width="24" height="24" stroke="currentColor">
       <circle

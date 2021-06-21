@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data, Shape } from 'types'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 import { getPage, updateParents } from 'utils/utils'
 
 // Used when changing the properties of one or more shapes,
@@ -12,7 +12,7 @@ export default function mutateShapesCommand(
   before: Shape[],
   after: Shape[],
   name = 'mutate_shapes'
-) {
+): void {
   history.execute(
     data,
     new Command({

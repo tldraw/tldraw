@@ -4,7 +4,7 @@ import { Data, DrawShape } from 'types'
 import { getPage, setSelectedIds } from 'utils/utils'
 import { current } from 'immer'
 
-export default function drawCommand(data: Data, id: string) {
+export default function drawCommand(data: Data, id: string): void {
   const restoreShape = getPage(current(data)).shapes[id] as DrawShape
 
   history.execute(

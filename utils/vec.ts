@@ -16,7 +16,7 @@ export default class Vec {
    * Negate a vector.
    * @param A
    */
-  static neg = (A: number[]) => {
+  static neg = (A: number[]): number[] => {
     return [-A[0], -A[1]]
   }
 
@@ -25,7 +25,7 @@ export default class Vec {
    * @param A
    * @param B
    */
-  static add = (A: number[], B: number[]) => {
+  static add = (A: number[], B: number[]): number[] => {
     return [A[0] + B[0], A[1] + B[1]]
   }
 
@@ -34,7 +34,7 @@ export default class Vec {
    * @param A
    * @param B
    */
-  static addScalar = (A: number[], n: number) => {
+  static addScalar = (A: number[], n: number): number[] => {
     return [A[0] + n, A[1] + n]
   }
 
@@ -43,7 +43,7 @@ export default class Vec {
    * @param A
    * @param B
    */
-  static sub = (A: number[], B: number[]) => {
+  static sub = (A: number[], B: number[]): number[] => {
     return [A[0] - B[0], A[1] - B[1]]
   }
 
@@ -52,7 +52,7 @@ export default class Vec {
    * @param A
    * @param B
    */
-  static subScalar = (A: number[], n: number) => {
+  static subScalar = (A: number[], n: number): number[] => {
     return [A[0] - n, A[1] - n]
   }
 
@@ -61,7 +61,7 @@ export default class Vec {
    * @param A
    * @param B
    */
-  static vec = (A: number[], B: number[]) => {
+  static vec = (A: number[], B: number[]): number[] => {
     // A, B as vectors get the vector from A to B
     return [B[0] - A[0], B[1] - A[1]]
   }
@@ -71,11 +71,11 @@ export default class Vec {
    * @param A
    * @param n
    */
-  static mul = (A: number[], n: number) => {
+  static mul = (A: number[], n: number): number[] => {
     return [A[0] * n, A[1] * n]
   }
 
-  static mulV = (A: number[], B: number[]) => {
+  static mulV = (A: number[], B: number[]): number[] => {
     return [A[0] * B[0], A[1] * B[1]]
   }
 
@@ -84,7 +84,7 @@ export default class Vec {
    * @param A
    * @param n
    */
-  static div = (A: number[], n: number) => {
+  static div = (A: number[], n: number): number[] => {
     return [A[0] / n, A[1] / n]
   }
 
@@ -93,7 +93,7 @@ export default class Vec {
    * @param A
    * @param n
    */
-  static divV = (A: number[], B: number[]) => {
+  static divV = (A: number[], B: number[]): number[] => {
     return [A[0] / B[0], A[1] / B[1]]
   }
 
@@ -101,7 +101,7 @@ export default class Vec {
    * Perpendicular rotation of a vector A
    * @param A
    */
-  static per(A: number[]) {
+  static per = (A: number[]): number[] => {
     return [A[1], -A[0]]
   }
 
@@ -110,7 +110,7 @@ export default class Vec {
    * @param A
    * @param B
    */
-  static dpr = (A: number[], B: number[]) => {
+  static dpr = (A: number[], B: number[]): number => {
     return A[0] * B[0] + A[1] * B[1]
   }
 
@@ -119,7 +119,7 @@ export default class Vec {
    * @param A
    * @param B
    */
-  static cpr = (A: number[], B: number[]) => {
+  static cpr = (A: number[], B: number[]): number => {
     return A[0] * B[1] - B[0] * A[1]
   }
 
@@ -127,7 +127,7 @@ export default class Vec {
    * Length of the vector squared
    * @param A
    */
-  static len2 = (A: number[]) => {
+  static len2 = (A: number[]): number => {
     return A[0] * A[0] + A[1] * A[1]
   }
 
@@ -135,7 +135,7 @@ export default class Vec {
    * Length of the vector
    * @param A
    */
-  static len = (A: number[]) => {
+  static len = (A: number[]): number => {
     return Math.hypot(A[0], A[1])
   }
 
@@ -144,7 +144,7 @@ export default class Vec {
    * @param A
    * @param B
    */
-  static pry = (A: number[], B: number[]) => {
+  static pry = (A: number[], B: number[]): number => {
     return Vec.dpr(A, B) / Vec.len(B)
   }
 
@@ -152,7 +152,7 @@ export default class Vec {
    * Get normalized / unit vector.
    * @param A
    */
-  static uni = (A: number[]) => {
+  static uni = (A: number[]): number[] => {
     return Vec.div(A, Vec.len(A))
   }
 
@@ -160,7 +160,7 @@ export default class Vec {
    * Get normalized / unit vector.
    * @param A
    */
-  static normalize = (A: number[]) => {
+  static normalize = (A: number[]): number[] => {
     return Vec.uni(A)
   }
 
@@ -170,7 +170,7 @@ export default class Vec {
    * @param B
    * @returns
    */
-  static tangent = (A: number[], B: number[]) => {
+  static tangent = (A: number[], B: number[]): number[] => {
     return Vec.normalize(Vec.sub(A, B))
   }
 
@@ -179,7 +179,7 @@ export default class Vec {
    * @param A
    * @param B
    */
-  static dist2 = (A: number[], B: number[]) => {
+  static dist2 = (A: number[], B: number[]): number => {
     return Vec.len2(Vec.sub(A, B))
   }
 
@@ -188,7 +188,7 @@ export default class Vec {
    * @param A
    * @param B
    */
-  static dist = (A: number[], B: number[]) => {
+  static dist = (A: number[], B: number[]): number => {
     return Math.hypot(A[1] - B[1], A[0] - B[0])
   }
 
@@ -198,7 +198,7 @@ export default class Vec {
    * @param B
    * @returns
    */
-  static fastDist = (A: number[], B: number[]) => {
+  static fastDist = (A: number[], B: number[]): number[] => {
     const V = [B[0] - A[0], B[1] - A[1]]
     const aV = [Math.abs(V[0]), Math.abs(V[1])]
     let r = 1 / Math.max(aV[0], aV[1])
@@ -211,7 +211,7 @@ export default class Vec {
    * @param A
    * @param B
    */
-  static ang = (A: number[], B: number[]) => {
+  static ang = (A: number[], B: number[]): number => {
     return Math.atan2(Vec.cpr(A, B), Vec.dpr(A, B))
   }
 
@@ -220,7 +220,7 @@ export default class Vec {
    * @param A
    * @param B
    */
-  static angle = (A: number[], B: number[]) => {
+  static angle = (A: number[], B: number[]): number => {
     return Math.atan2(B[1] - A[1], B[0] - A[0])
   }
 
@@ -229,7 +229,7 @@ export default class Vec {
    * @param A
    * @param B
    */
-  static med = (A: number[], B: number[]) => {
+  static med = (A: number[], B: number[]): number[] => {
     return Vec.mul(Vec.add(A, B), 0.5)
   }
 
@@ -238,7 +238,7 @@ export default class Vec {
    * @param A
    * @param r rotation in radians
    */
-  static rot = (A: number[], r: number) => {
+  static rot = (A: number[], r: number): number[] => {
     return [
       A[0] * Math.cos(r) - A[1] * Math.sin(r),
       A[0] * Math.sin(r) + A[1] * Math.cos(r),
@@ -251,7 +251,7 @@ export default class Vec {
    * @param C center
    * @param r rotation in radians
    */
-  static rotWith = (A: number[], C: number[], r: number) => {
+  static rotWith = (A: number[], C: number[], r: number): number[] => {
     if (r === 0) return A
 
     const s = Math.sin(r)
@@ -271,7 +271,7 @@ export default class Vec {
    * @param A
    * @param B
    */
-  static isEqual = (A: number[], B: number[]) => {
+  static isEqual = (A: number[], B: number[]): boolean => {
     return A[0] === B[0] && A[1] === B[1]
   }
 
@@ -281,19 +281,25 @@ export default class Vec {
    * @param B
    * @param t scalar
    */
-  static lrp = (A: number[], B: number[], t: number) => {
+  static lrp = (A: number[], B: number[], t: number): number[] => {
     return Vec.add(A, Vec.mul(Vec.vec(A, B), t))
   }
 
   /**
-   * Interpolate from A to B when curVAL goes fromVAL => to
+   * Interpolate from A to B when curVAL goes fromVAL: number[] => to
    * @param A
    * @param B
    * @param from Starting value
    * @param to Ending value
    * @param s Strength
    */
-  static int = (A: number[], B: number[], from: number, to: number, s = 1) => {
+  static int = (
+    A: number[],
+    B: number[],
+    from: number,
+    to: number,
+    s = 1
+  ): number[] => {
     const t = (Vec.clamp(from, to) - from) / (to - from)
     return Vec.add(Vec.mul(A, 1 - t), Vec.mul(B, s))
   }
@@ -304,7 +310,7 @@ export default class Vec {
    * @param pc
    * @param p2
    */
-  static ang3 = (p1: number[], pc: number[], p2: number[]) => {
+  static ang3 = (p1: number[], pc: number[], p2: number[]): number => {
     // this,
     const v1 = Vec.vec(pc, p1)
     const v2 = Vec.vec(pc, p2)
@@ -316,11 +322,11 @@ export default class Vec {
    * @param A
    * @returns
    */
-  static abs = (A: number[]) => {
+  static abs = (A: number[]): number[] => {
     return [Math.abs(A[0]), Math.abs(A[1])]
   }
 
-  static rescale = (a: number[], n: number) => {
+  static rescale = (a: number[], n: number): number[] => {
     const l = Vec.len(a)
     return [(n * a[0]) / l, (n * a[1]) / l]
   }
@@ -331,18 +337,18 @@ export default class Vec {
    * @param pc
    * @param p2
    */
-  static isLeft = (p1: number[], pc: number[], p2: number[]) => {
+  static isLeft = (p1: number[], pc: number[], p2: number[]): number => {
     //  isLeft: >0 for counterclockwise
     //          =0 for none (degenerate)
     //          <0 for clockwise
     return (pc[0] - p1[0]) * (p2[1] - p1[1]) - (p2[0] - p1[0]) * (pc[1] - p1[1])
   }
 
-  static clockwise = (p1: number[], pc: number[], p2: number[]) => {
+  static clockwise = (p1: number[], pc: number[], p2: number[]): boolean => {
     return Vec.isLeft(p1, pc, p2) > 0
   }
 
-  static round = (a: number[], d = 5) => {
+  static round = (a: number[], d = 5): number[] => {
     return a.map((v) => Number(v.toPrecision(d)))
   }
 
@@ -398,7 +404,7 @@ export default class Vec {
     A: number[],
     u: number[],
     P: number[]
-  ) => {
+  ): number[] => {
     return Vec.add(A, Vec.mul(u, Vec.pry(Vec.sub(P, A), u)))
   }
 
@@ -413,7 +419,7 @@ export default class Vec {
     A: number[],
     u: number[],
     P: number[]
-  ) => {
+  ): number => {
     return Vec.dist(P, Vec.nearestPointOnLineThroughPoint(A, u, P))
   }
 
@@ -430,7 +436,7 @@ export default class Vec {
     B: number[],
     P: number[],
     clamp = true
-  ) => {
+  ): number[] => {
     const delta = Vec.sub(B, A)
     const length = Vec.len(delta)
     const u = Vec.div(delta, length)
@@ -461,7 +467,7 @@ export default class Vec {
     B: number[],
     P: number[],
     clamp = true
-  ) => {
+  ): number => {
     return Vec.dist(P, Vec.nearestPointOnLineSegment(A, B, P, clamp))
   }
 
@@ -472,7 +478,7 @@ export default class Vec {
    * @param d
    * @returns
    */
-  static nudge = (A: number[], B: number[], d: number) => {
+  static nudge = (A: number[], B: number[], d: number): number[] => {
     return Vec.add(A, Vec.mul(Vec.uni(Vec.vec(A, B)), d))
   }
 
@@ -481,7 +487,7 @@ export default class Vec {
    * @param a
    * @param n
    */
-  static toPrecision = (a: number[], n = 4) => {
+  static toPrecision = (a: number[], n = 4): number[] => {
     return [+a[0].toPrecision(n), +a[1].toPrecision(n)]
   }
 }

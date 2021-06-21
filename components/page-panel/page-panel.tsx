@@ -1,15 +1,14 @@
 import styled from 'styles'
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import * as Dialog from '@radix-ui/react-dialog'
 
 import { IconWrapper, RowButton } from 'components/shared'
-import { CheckIcon, ChevronDownIcon, PlusIcon } from '@radix-ui/react-icons'
+import { CheckIcon, PlusIcon } from '@radix-ui/react-icons'
 import * as Panel from '../panel'
 import state, { useSelector } from 'state'
 import { useEffect, useRef, useState } from 'react'
 
-export default function PagePanel() {
+export default function PagePanel(): JSX.Element {
   const rIsOpen = useRef(false)
   const [isOpen, setIsOpen] = useState(false)
 
@@ -187,32 +186,5 @@ const StyledContextMenuItem = styled(ContextMenu.Item, {
         backgroundColor: '$hover',
       },
     },
-  },
-})
-
-const StyledOverlay = styled(Dialog.Overlay, {
-  backgroundColor: 'rgba(0, 0, 0, .15)',
-  position: 'fixed',
-  top: 0,
-  right: 0,
-  bottom: 0,
-  left: 0,
-})
-
-const StyledContent = styled(Dialog.Content, {
-  position: 'fixed',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  minWidth: 200,
-  maxWidth: 'fit-content',
-  maxHeight: '85vh',
-  padding: 20,
-  marginTop: '-5vh',
-  backgroundColor: 'white',
-  borderRadius: 6,
-
-  '&:focus': {
-    outline: 'none',
   },
 })

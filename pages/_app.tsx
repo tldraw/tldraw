@@ -1,10 +1,10 @@
 import useGtag from 'hooks/useGtag'
 import { AppProps } from 'next/app'
 import { globalStyles } from 'styles'
-import 'styles/globals.css'
 import { Provider } from 'next-auth/client'
+import 'styles/globals.css'
 
-function MyApp({ Component, pageProps }: AppProps) {
+function MyApp({ Component, pageProps }: AppProps): JSX.Element {
   globalStyles()
 
   useGtag()

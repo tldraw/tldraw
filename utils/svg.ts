@@ -1,63 +1,66 @@
 // Some helpers for drawing SVGs.
-
-import vec from './vec'
 import { getSweep } from 'utils/utils'
 
 // General
 
-export function ellipse(A: number[], r: number) {
-  return `M ${A[0] - r},${A[1]}
+export default class Svg {
+  static ellipse = (A: number[], r: number): string => {
+    return `M ${A[0] - r},${A[1]}
       a ${r},${r} 0 1,0 ${r * 2},0
       a ${r},${r} 0 1,0 -${r * 2},0 `
-}
+  }
 
-export function moveTo(v: number[]) {
-  return `M ${v[0]},${v[1]} `
-}
+  static moveTo = (v: number[]): string => {
+    return `M ${v[0]},${v[1]} `
+  }
 
-export function lineTo(v: number[]) {
-  return `L ${v[0]},${v[1]} `
-}
+  static lineTo = (v: number[]): string => {
+    return `L ${v[0]},${v[1]} `
+  }
 
-export function line(a: number[], ...pts: number[][]) {
-  return moveTo(a) + pts.map((p) => lineTo(p)).join()
-}
+  static line = (a: number[], ...pts: number[][]): string => {
+    return Svg.moveTo(a) + pts.map((p): string => Svg.lineTo(p)).join()
+  }
 
-export function hLineTo(v: number[]) {
-  return `H ${v[0]},${v[1]} `
-}
+  static hLineTo = (v: number[]): string => {
+    return `H ${v[0]},${v[1]} `
+  }
 
-export function vLineTo(v: number[]) {
-  return `V ${v[0]},${v[1]} `
-}
+  static vLineTo = (v: number[]): string => {
+    return `V ${v[0]},${v[1]} `
+  }
 
-export function bezierTo(A: number[], B: number[], C: number[]) {
-  return `C ${A[0]},${A[1]} ${B[0]},${B[1]} ${C[0]},${C[1]} `
-}
+  static bezierTo = (A: number[], B: number[], C: number[]): string => {
+    return `C ${A[0]},${A[1]} ${B[0]},${B[1]} ${C[0]},${C[1]} `
+  }
 
-export function arcTo(C: number[], r: number, A: number[], B: number[]) {
-  return [
-    moveTo(A),
-    'A',
-    r,
-    r,
-    0,
-    getSweep(C, A, B) > 0 ? '1' : '0',
-    0,
-    B[0],
-    B[1],
-  ].join(' ')
-}
+  static arcTo = (C: number[], r: number, A: number[], B: number[]): string => {
+    return [
+      Svg.moveTo(A),
+      'A',
+      r,
+      r,
+      0,
+      getSweep(C, A, B) > 0 ? '1' : '0',
+      0,
+      B[0],
+      B[1],
+    ].join(' ')
+  }
 
-export function closePath() {
-  return 'Z'
-}
+  static closePath = (): string => {
+    return 'Z'
+  }
 
-export function rectTo(A: number[]) {
-  return ['R', A[0], A[1]].join(' ')
-}
+  static rectTo = (A: number[]): string => {
+    return ['R', A[0], A[1]].join(' ')
+  }
 
-export function getPointAtLength(path: SVGPathElement, length: number) {
-  const point = path.getPointAtLength(length)
-  return [point.x, point.y]
+  static getPointAtLength = (
+    path: SVGPathElement,
+    length: number
+  ): number[] => {
+    const point = path.getPointAtLength(length)
+    return [point.x, point.y]
+  }
 }

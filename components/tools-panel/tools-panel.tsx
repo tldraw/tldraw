@@ -2,13 +2,10 @@ import {
   ArrowTopRightIcon,
   CircleIcon,
   CursorArrowIcon,
-  DividerHorizontalIcon,
-  DotIcon,
   LockClosedIcon,
   LockOpen1Icon,
   Pencil1Icon,
   Pencil2Icon,
-  SewingPinIcon,
   SquareIcon,
   TextIcon,
 } from '@radix-ui/react-icons'
@@ -22,19 +19,14 @@ import Zoom from './zoom'
 import Tooltip from '../tooltip'
 
 const selectArrowTool = () => state.send('SELECTED_ARROW_TOOL')
-const selectCircleTool = () => state.send('SELECTED_CIRCLE_TOOL')
-const selectDotTool = () => state.send('SELECTED_DOT_TOOL')
 const selectDrawTool = () => state.send('SELECTED_DRAW_TOOL')
 const selectEllipseTool = () => state.send('SELECTED_ELLIPSE_TOOL')
-const selectLineTool = () => state.send('SELECTED_LINE_TOOL')
-const selectPolylineTool = () => state.send('SELECTED_POLYLINE_TOOL')
 const selectTextTool = () => state.send('SELECTED_TEXT_TOOL')
-const selectRayTool = () => state.send('SELECTED_RAY_TOOL')
 const selectRectangleTool = () => state.send('SELECTED_RECTANGLE_TOOL')
 const selectSelectTool = () => state.send('SELECTED_SELECT_TOOL')
 const selectToolLock = () => state.send('TOGGLED_TOOL_LOCK')
 
-export default function ToolsPanel() {
+export default function ToolsPanel(): JSX.Element {
   const activeTool = useSelector((s) => s.data.activeTool)
 
   const isToolLocked = useSelector((s) => s.data.settings.isToolLocked)

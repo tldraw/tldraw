@@ -3,7 +3,7 @@ import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
 import { current } from 'immer'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 import {
   getTransformedBoundingBox,
   getPage,
@@ -33,7 +33,7 @@ export default class TransformSingleSession extends BaseSession {
     this.isCreating = isCreating
   }
 
-  update(data: Data, point: number[], isAspectRatioLocked = false) {
+  update(data: Data, point: number[], isAspectRatioLocked = false): void {
     const { transformType } = this
 
     const { initialShapeBounds, currentPageId, initialShape, id } =
@@ -65,7 +65,7 @@ export default class TransformSingleSession extends BaseSession {
     updateParents(data, [id])
   }
 
-  cancel(data: Data) {
+  cancel(data: Data): void {
     const { id, initialShape } = this.snapshot
 
     const page = getPage(data)
@@ -74,7 +74,7 @@ export default class TransformSingleSession extends BaseSession {
     updateParents(data, [id])
   }
 
-  complete(data: Data) {
+  complete(data: Data): void {
     if (!this.snapshot.hasUnlockedShape) return
 
     commands.transformSingle(
@@ -86,6 +86,7 @@ export default class TransformSingleSession extends BaseSession {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getTransformSingleSnapshot(
   data: Data,
   transformType: Edge | Corner

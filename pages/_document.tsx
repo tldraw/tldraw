@@ -1,9 +1,19 @@
-import NextDocument, { Html, Head, Main, NextScript } from 'next/document'
+import NextDocument, {
+  Html,
+  Head,
+  Main,
+  NextScript,
+  DocumentContext,
+} from 'next/document'
 import { dark, getCssString } from 'styles'
 import { GA_TRACKING_ID } from 'utils/gtag'
 
 class MyDocument extends NextDocument {
-  static async getInitialProps(ctx) {
+  static async getInitialProps(ctx: DocumentContext): Promise<{
+    styles: JSX.Element
+    html: string
+    head?: JSX.Element[]
+  }> {
     try {
       const initialProps = await NextDocument.getInitialProps(ctx)
 
@@ -22,10 +32,11 @@ class MyDocument extends NextDocument {
     } catch (e) {
       console.error(e.message)
     } finally {
+      null
     }
   }
 
-  render() {
+  render(): JSX.Element {
     return (
       <Html lang="en">
         <Head>

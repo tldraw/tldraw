@@ -7,7 +7,7 @@ export default function CenterHandle({
 }: {
   bounds: Bounds
   isLocked: boolean
-}) {
+}): JSX.Element {
   return (
     <StyledBounds
       x={-1}

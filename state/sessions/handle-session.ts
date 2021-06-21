@@ -4,7 +4,7 @@ import BaseSession from './base-session'
 import commands from 'state/commands'
 import { current } from 'immer'
 import { getPage } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 
 export default class HandleSession extends BaseSession {
   delta = [0, 0]
@@ -17,7 +17,7 @@ export default class HandleSession extends BaseSession {
     this.snapshot = getHandleSnapshot(data, shapeId, handleId)
   }
 
-  update(data: Data, point: number[], isAligned: boolean) {
+  update(data: Data, point: number[], isAligned: boolean): void {
     const { currentPageId, handleId, initialShape } = this.snapshot
     const shape = getPage(data, currentPageId).shapes[initialShape.id]
 
@@ -45,12 +45,12 @@ export default class HandleSession extends BaseSession {
     })
   }
 
-  cancel(data: Data) {
-    const { currentPageId, handleId, initialShape } = this.snapshot
+  cancel(data: Data): void {
+    const { currentPageId, initialShape } = this.snapshot
     getPage(data, currentPageId).shapes[initialShape.id] = initialShape
   }
 
-  complete(data: Data) {
+  complete(data: Data): void {
     commands.handle(
       data,
       this.snapshot,
@@ -63,6 +63,7 @@ export default class HandleSession extends BaseSession {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getHandleSnapshot(
   data: Data,
   shapeId: string,

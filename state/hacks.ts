@@ -5,7 +5,6 @@ import {
   getSelectedIds,
   screenToWorld,
   setToArray,
-  setZoomCSS,
 } from 'utils/utils'
 import { freeze } from 'immer'
 import session from './session'
@@ -19,7 +18,7 @@ import vec from 'utils/vec'
  * directly to the state using `forceData`.
  * @param info
  */
-export function fastDrawUpdate(info: PointerInfo) {
+export function fastDrawUpdate(info: PointerInfo): void {
   const data = { ...state.data }
 
   session.current.update(
@@ -38,7 +37,7 @@ export function fastDrawUpdate(info: PointerInfo) {
   state.forceData(freeze(data))
 }
 
-export function fastPanUpdate(delta: number[]) {
+export function fastPanUpdate(delta: number[]): void {
   const data = { ...state.data }
   const camera = getCurrentCamera(data)
   camera.point = vec.sub(camera.point, vec.div(delta, camera.zoom))
@@ -48,7 +47,7 @@ export function fastPanUpdate(delta: number[]) {
   state.forceData(freeze(data))
 }
 
-export function fastZoomUpdate(point: number[], delta: number) {
+export function fastZoomUpdate(point: number[], delta: number): void {
   const data = { ...state.data }
   const camera = getCurrentCamera(data)
 
@@ -67,9 +66,8 @@ export function fastZoomUpdate(point: number[], delta: number) {
 export function fastPinchCamera(
   point: number[],
   delta: number[],
-  distanceDelta: number,
-  angleDelta: number
-) {
+  distanceDelta: number
+): void {
   const data = { ...state.data }
   const camera = getCurrentCamera(data)
 
@@ -90,7 +88,7 @@ export function fastPinchCamera(
   state.forceData(freeze(data))
 }
 
-export function fastBrushSelect(point: number[]) {
+export function fastBrushSelect(point: number[]): void {
   const data = { ...state.data }
 
   session.current.update(data, screenToWorld(point, data))
@@ -98,7 +96,7 @@ export function fastBrushSelect(point: number[]) {
   state.forceData(freeze(data))
 }
 
-export function fastTranslate(info: PointerInfo) {
+export function fastTranslate(info: PointerInfo): void {
   const data = { ...state.data }
 
   session.current.update(
@@ -111,7 +109,7 @@ export function fastTranslate(info: PointerInfo) {
   state.forceData(freeze(data))
 }
 
-export function fastTransform(info: PointerInfo) {
+export function fastTransform(info: PointerInfo): void {
   const data = { ...state.data }
 
   session.current.update(

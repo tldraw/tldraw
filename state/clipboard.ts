@@ -1,6 +1,6 @@
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from './shape-utils'
 import { Data, Shape } from 'types'
-import { getCommonBounds, getSelectedIds, getSelectedShapes } from 'utils/utils'
+import { getCommonBounds, getSelectedShapes } from 'utils/utils'
 import state from './state'
 
 class Clipboard {
@@ -99,10 +99,9 @@ class Clipboard {
   }
 
   static copyStringToClipboard(string: string) {
-    let textarea: HTMLTextAreaElement
     let result: boolean | null
 
-    textarea = document.createElement('textarea')
+    const textarea = document.createElement('textarea')
     textarea.setAttribute('position', 'fixed')
     textarea.setAttribute('top', '0')
     textarea.setAttribute('readonly', 'true')

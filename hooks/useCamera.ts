@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import React, { useEffect } from 'react'
 import state from 'state'
 import storage from 'state/storage'

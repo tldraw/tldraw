@@ -17,7 +17,7 @@ export function intersectLineSegments(
   a2: number[],
   b1: number[],
   b2: number[]
-) {
+): Intersection {
   const AB = vec.sub(a1, b1)
   const BV = vec.sub(b2, b1)
   const AV = vec.sub(a2, a1)
@@ -73,9 +73,9 @@ export function intersectCircleLineSegment(
     return getIntersection('tangent')
   }
 
-  var e = Math.sqrt(deter)
-  var u1 = (-b + e) / (2 * a)
-  var u2 = (-b - e) / (2 * a)
+  const e = Math.sqrt(deter)
+  const u1 = (-b + e) / (2 * a)
+  const u2 = (-b - e) / (2 * a)
   if ((u1 < 0 || u1 > 1) && (u2 < 0 || u2 > 1)) {
     if ((u1 < 0 && u2 < 0) || (u1 > 1 && u2 > 1)) {
       return getIntersection('outside')
@@ -98,7 +98,7 @@ export function intersectEllipseLineSegment(
   a1: number[],
   a2: number[],
   rotation = 0
-) {
+): Intersection {
   // If the ellipse or line segment are empty, return no tValues.
   if (rx === 0 || ry === 0 || vec.isEqual(a1, a2)) {
     return getIntersection('No intersection')
@@ -115,15 +115,15 @@ export function intersectEllipseLineSegment(
   // Calculate the quadratic parameters.
   const diff = vec.sub(a2, a1)
 
-  var A = (diff[0] * diff[0]) / rx / rx + (diff[1] * diff[1]) / ry / ry
-  var B = (2 * a1[0] * diff[0]) / rx / rx + (2 * a1[1] * diff[1]) / ry / ry
-  var C = (a1[0] * a1[0]) / rx / rx + (a1[1] * a1[1]) / ry / ry - 1
+  const A = (diff[0] * diff[0]) / rx / rx + (diff[1] * diff[1]) / ry / ry
+  const B = (2 * a1[0] * diff[0]) / rx / rx + (2 * a1[1] * diff[1]) / ry / ry
+  const C = (a1[0] * a1[0]) / rx / rx + (a1[1] * a1[1]) / ry / ry - 1
 
   // Make a list of t values (normalized points on the line where intersections occur).
-  var tValues: number[] = []
+  const tValues: number[] = []
 
   // Calculate the discriminant.
-  var discriminant = B * B - 4 * A * C
+  const discriminant = B * B - 4 * A * C
 
   if (discriminant === 0) {
     // One real solution.
@@ -152,7 +152,7 @@ export function intersectArcLineSegment(
   radius: number,
   A: number[],
   B: number[]
-) {
+): Intersection {
   const sa = vec.angle(center, start)
   const ea = vec.angle(center, end)
   const ellipseTest = intersectEllipseLineSegment(center, radius, radius, A, B)
@@ -279,7 +279,7 @@ export function intersectRectangleLineSegment(
   size: number[],
   a1: number[],
   a2: number[]
-) {
+): Intersection[] {
   const tl = point
   const tr = vec.add(point, [size[0], 0])
   const br = vec.add(point, size)
@@ -318,7 +318,7 @@ export function intersectArcRectangle(
   radius: number,
   point: number[],
   size: number[]
-) {
+): Intersection[] {
   const tl = point
   const tr = vec.add(point, [size[0], 0])
   const br = vec.add(point, size)
@@ -413,12 +413,15 @@ export function intersectLineSegmentBounds(
   a1: number[],
   a2: number[],
   bounds: Bounds
-) {
+): Intersection[] {
   const { minX, minY, width, height } = bounds
   return intersectRectangleLineSegment([minX, minY], [width, height], a1, a2)
 }
 
-export function intersectPolylineBounds(points: number[][], bounds: Bounds) {
+export function intersectPolylineBounds(
+  points: number[][],
+  bounds: Bounds
+): Intersection[] {
   const { minX, minY, width, height } = bounds
   const intersections: Intersection[] = []
 
@@ -436,7 +439,10 @@ export function intersectPolylineBounds(points: number[][], bounds: Bounds) {
   return intersections
 }
 
-export function intersectPolygonBounds(points: number[][], bounds: Bounds) {
+export function intersectPolygonBounds(
+  points: number[][],
+  bounds: Bounds
+): Intersection[] {
   const { minX, minY, width, height } = bounds
   const intersections: Intersection[] = []
 
@@ -460,7 +466,7 @@ export function intersectArcBounds(
   center: number[],
   radius: number,
   bounds: Bounds
-) {
+): Intersection[] {
   const { minX, minY, width, height } = bounds
 
   return intersectArcRectangle(

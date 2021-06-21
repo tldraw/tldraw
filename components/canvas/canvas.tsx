@@ -1,6 +1,6 @@
 import styled from 'styles'
-import state, { useSelector } from 'state'
-import React, { useEffect, useRef } from 'react'
+import { useSelector } from 'state'
+import React, { useRef } from 'react'
 import useZoomEvents from 'hooks/useZoomEvents'
 import useCamera from 'hooks/useCamera'
 import Defs from './defs'
@@ -8,12 +8,11 @@ import Page from './page'
 import Brush from './brush'
 import Bounds from './bounds/bounding-box'
 import BoundsBg from './bounds/bounds-bg'
-import Selected from './selected'
 import Handles from './bounds/handles'
 import useCanvasEvents from 'hooks/useCanvasEvents'
 import ContextMenu from './context-menu/context-menu'
 
-export default function Canvas() {
+export default function Canvas(): JSX.Element {
   const rCanvas = useRef<SVGSVGElement>(null)
   const rGroup = useRef<SVGGElement>(null)
 

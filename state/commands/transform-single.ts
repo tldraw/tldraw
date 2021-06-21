@@ -10,7 +10,7 @@ export default function transformSingleCommand(
   before: TransformSingleSnapshot,
   after: TransformSingleSnapshot,
   isCreating: boolean
-) {
+): void {
   const shape = current(getPage(data, after.currentPageId).shapes[after.id])
 
   history.execute(

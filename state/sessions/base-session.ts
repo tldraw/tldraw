@@ -1,17 +1,20 @@
-import { Data } from "types"
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Data } from 'types'
 
 export default class BaseSession {
-  constructor(data: Data) {}
+  constructor(data: Data) {
+    null
+  }
 
-  update(data: Data, ...args: unknown[]) {
+  update(data: Data, ...args: unknown[]): void {
     // Update the state
   }
 
-  complete(data: Data, ...args: unknown[]) {
+  complete(data: Data, ...args: unknown[]): void {
     // Create a command
   }
 
-  cancel(data: Data) {
+  cancel(data: Data): void {
     // Clean up the change
   }
 }

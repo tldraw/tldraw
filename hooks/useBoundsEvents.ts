@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { useCallback } from 'react'
 import { fastTransform } from 'state/hacks'
 import inputs from 'state/inputs'

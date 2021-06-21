@@ -5,7 +5,7 @@ import { uniqueId } from 'utils/utils'
 import { current } from 'immer'
 import storage from 'state/storage'
 
-export default function createPage(data: Data, goToPage = true) {
+export default function createPage(data: Data, goToPage = true): void {
   const snapshot = getSnapshot(data)
 
   history.execute(

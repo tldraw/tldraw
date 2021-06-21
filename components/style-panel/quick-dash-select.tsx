@@ -17,7 +17,7 @@ const dashes = {
   [DashStyle.Dotted]: <DashDottedIcon />,
 }
 
-export default function QuickdashSelect() {
+export default function QuickdashSelect(): JSX.Element {
   const dash = useSelector((s) => s.values.selectedStyle.dash)
 
   return (

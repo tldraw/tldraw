@@ -1,21 +1,21 @@
 import Command from './command'
 import history from '../history'
 import { TranslateSnapshot } from 'state/sessions/translate-session'
-import { Data, ShapeType } from 'types'
+import { Data } from 'types'
 import {
   getDocumentBranch,
   getPage,
   setSelectedIds,
   updateParents,
 } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 
 export default function translateCommand(
   data: Data,
   before: TranslateSnapshot,
   after: TranslateSnapshot,
   isCloning: boolean
-) {
+): void {
   history.execute(
     data,
     new Command({
@@ -39,8 +39,8 @@ export default function translateCommand(
                 clone.id,
               ])
 
-              if (clone.type === ShapeType.Group) {
-              }
+              // if (clone.type === ShapeType.Group) {
+              // }
             }
           }
         }

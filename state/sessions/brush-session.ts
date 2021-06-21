@@ -1,10 +1,9 @@
 import { current } from 'immer'
 import { Bounds, Data, ShapeType } from 'types'
 import BaseSession from './base-session'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 import {
   getBoundsFromPoints,
-  getPage,
   getPageState,
   getShapes,
   getTopParentId,
@@ -12,7 +11,6 @@ import {
   setToArray,
 } from 'utils/utils'
 import vec from 'utils/vec'
-import state from 'state/state'
 
 export default class BrushSession extends BaseSession {
   origin: number[]
@@ -26,7 +24,7 @@ export default class BrushSession extends BaseSession {
     this.snapshot = getBrushSnapshot(data)
   }
 
-  update = (data: Data, point: number[]) => {
+  update = (data: Data, point: number[]): void => {
     const { origin, snapshot } = this
 
     const brushBounds = getBoundsFromPoints([origin, point])
@@ -35,7 +33,7 @@ export default class BrushSession extends BaseSession {
 
     const selectedIds = new Set(snapshot.selectedIds)
 
-    for (let id in snapshot.shapeHitTests) {
+    for (const id in snapshot.shapeHitTests) {
       if (selectedIds.has(id)) continue
 
       const { test, selectId } = snapshot.shapeHitTests[id]
@@ -58,12 +56,12 @@ export default class BrushSession extends BaseSession {
     data.brush = brushBounds
   }
 
-  cancel = (data: Data) => {
+  cancel = (data: Data): void => {
     data.brush = undefined
     setSelectedIds(data, this.snapshot.selectedIds)
   }
 
-  complete = (data: Data) => {
+  complete = (data: Data): void => {
     data.brush = undefined
   }
 }
@@ -73,6 +71,7 @@ export default class BrushSession extends BaseSession {
  * not already selected, the shape's id and a test to see whether the
  * brush will intersect that shape. For tests, start broad -> fine.
  */
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getBrushSnapshot(data: Data) {
   const cData = current(data)
   const { selectedIds } = getPageState(cData)

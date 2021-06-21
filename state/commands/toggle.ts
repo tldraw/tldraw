@@ -2,13 +2,13 @@ import Command from './command'
 import history from '../history'
 import { Data, Shape } from 'types'
 import { getPage, getSelectedShapes } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 import { PropsOfType } from 'types'
 
 export default function toggleCommand(
   data: Data,
-  prop: PropsOfType<Shape, boolean>
-) {
+  prop: PropsOfType<Shape>
+): void {
   const { currentPageId } = data
   const selectedShapes = getSelectedShapes(data)
   const isAllToggled = selectedShapes.every((shape) => shape[prop])

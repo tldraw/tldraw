@@ -8,7 +8,7 @@ export default function arrowCommand(
   data: Data,
   before: ArrowSnapshot,
   after: ArrowSnapshot
-) {
+): void {
   history.execute(
     data,
     new Command({

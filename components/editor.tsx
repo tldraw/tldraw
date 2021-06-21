@@ -11,7 +11,7 @@ import PagePanel from './page-panel/page-panel'
 // import { useSelector } from 'state'
 // const CodePanel = dynamic(() => import('./code-panel/code-panel'))
 
-export default function Editor() {
+export default function Editor(): JSX.Element {
   useKeyboardEvents()
   useLoadOnMount()
 

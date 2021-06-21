@@ -2,16 +2,13 @@ import Command from './command'
 import history from '../history'
 import { Data } from 'types'
 import { TransformSnapshot } from 'state/sessions/transform-session'
-import { getShapeUtils } from 'lib/shape-utils'
 import { getPage, updateParents } from 'utils/utils'
 
 export default function transformCommand(
   data: Data,
   before: TransformSnapshot,
-  after: TransformSnapshot,
-  scaleX: number,
-  scaleY: number
-) {
+  after: TransformSnapshot
+): void {
   history.execute(
     data,
     new Command({
@@ -22,7 +19,7 @@ export default function transformCommand(
 
         const { shapes } = getPage(data)
 
-        for (let id in shapeBounds) {
+        for (const id in shapeBounds) {
           shapes[id] = shapeBounds[id].initialShape
         }
 
@@ -32,7 +29,7 @@ export default function transformCommand(
         const { shapeBounds } = before
         const { shapes } = getPage(data)
 
-        for (let id in shapeBounds) {
+        for (const id in shapeBounds) {
           shapes[id] = shapeBounds[id].initialShape
         }
 

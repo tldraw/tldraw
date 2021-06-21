@@ -8,9 +8,9 @@ import {
   getSelectedIds,
   setToArray,
 } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 
-export default function moveCommand(data: Data, type: MoveType) {
+export default function moveCommand(data: Data, type: MoveType): void {
   const { currentPageId } = data
 
   const page = getPage(data)
@@ -45,19 +45,19 @@ export default function moveCommand(data: Data, type: MoveType) {
 
         switch (type) {
           case MoveType.ToFront: {
-            for (let id in shapesByParentId) {
+            for (const id in shapesByParentId) {
               moveToFront(shapesByParentId[id], getChildren(data, id))
             }
             break
           }
           case MoveType.ToBack: {
-            for (let id in shapesByParentId) {
+            for (const id in shapesByParentId) {
               moveToBack(shapesByParentId[id], getChildren(data, id))
             }
             break
           }
           case MoveType.Forward: {
-            for (let id in shapesByParentId) {
+            for (const id in shapesByParentId) {
               const visited = new Set<string>()
               const siblings = getChildren(data, id)
               shapesByParentId[id]
@@ -67,7 +67,7 @@ export default function moveCommand(data: Data, type: MoveType) {
             break
           }
           case MoveType.Backward: {
-            for (let id in shapesByParentId) {
+            for (const id in shapesByParentId) {
               const visited = new Set<string>()
               const siblings = getChildren(data, id)
               shapesByParentId[id]
@@ -81,7 +81,7 @@ export default function moveCommand(data: Data, type: MoveType) {
       undo(data) {
         const page = getPage(data)
 
-        for (let id of selectedIds) {
+        for (const id of selectedIds) {
           const shape = page.shapes[id]
           getShapeUtils(shape).setProperty(
             shape,
@@ -166,7 +166,7 @@ function moveBackward(shape: Shape, siblings: Shape[], visited: Set<string>) {
   if (nextSibling && !visited.has(nextSibling.id)) {
     const nextNextSibling = siblings[index - 2]
 
-    let nextIndex = nextNextSibling
+    const nextIndex = nextNextSibling
       ? (nextSibling.childIndex + nextNextSibling.childIndex) / 2
       : nextSibling.childIndex / 2
 

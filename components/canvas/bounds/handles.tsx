@@ -1,12 +1,12 @@
 import useHandleEvents from 'hooks/useHandleEvents'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 import { useRef } from 'react'
 import { useSelector } from 'state'
 import styled from 'styles'
 import { deepCompareArrays, getPage } from 'utils/utils'
 import vec from 'utils/vec'
 
-export default function Handles() {
+export default function Handles(): JSX.Element {
   const selectedIds = useSelector(
     (s) => Array.from(s.values.selectedIds.values()),
     deepCompareArrays

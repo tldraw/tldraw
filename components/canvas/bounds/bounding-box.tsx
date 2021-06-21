@@ -15,7 +15,7 @@ import CornerHandle from './corner-handle'
 import EdgeHandle from './edge-handle'
 import RotateHandle from './rotate-handle'
 
-export default function Bounds() {
+export default function Bounds(): JSX.Element {
   const isBrushing = useSelector((s) => s.isIn('brushSelecting'))
 
   const isSelecting = useSelector((s) => s.isIn('selecting'))

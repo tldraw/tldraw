@@ -1,4 +1,4 @@
-import { ArrowShape, Data, LineShape, RayShape } from 'types'
+import { ArrowShape, Data } from 'types'
 import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
@@ -10,7 +10,7 @@ import {
   setToArray,
   updateParents,
 } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 
 export default class ArrowSession extends BaseSession {
   points: number[][]
@@ -21,12 +21,13 @@ export default class ArrowSession extends BaseSession {
 
   constructor(data: Data, id: string, point: number[], isLocked: boolean) {
     super(data)
+    isLocked
     this.origin = point
     this.points = [[0, 0]]
     this.snapshot = getArrowSnapshot(data, id)
   }
 
-  update(data: Data, point: number[], isLocked = false) {
+  update(data: Data, point: number[], isLocked = false): void {
     const { id } = this.snapshot
 
     const delta = vec.vec(this.origin, point)
@@ -67,7 +68,7 @@ export default class ArrowSession extends BaseSession {
     updateParents(data, [shape.id])
   }
 
-  cancel(data: Data) {
+  cancel(data: Data): void {
     const { id, initialShape } = this.snapshot
 
     const shape = getPage(data).shapes[id] as ArrowShape
@@ -79,7 +80,7 @@ export default class ArrowSession extends BaseSession {
     updateParents(data, [shape.id])
   }
 
-  complete(data: Data) {
+  complete(data: Data): void {
     const { id } = this.snapshot
 
     const shape = getPage(data).shapes[id] as ArrowShape
@@ -100,10 +101,6 @@ export default class ArrowSession extends BaseSession {
     }
 
     getShapeUtils(shape)
-      .setProperty(shape, 'points', [
-        nextHandles.start.point,
-        nextHandles.end.point,
-      ])
       .setProperty(shape, 'handles', nextHandles)
       .setProperty(shape, 'point', newPoint)
       .onHandleChange(shape, nextHandles)
@@ -116,6 +113,7 @@ export default class ArrowSession extends BaseSession {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getArrowSnapshot(data: Data, id: string) {
   const initialShape = getPage(current(data)).shapes[id] as ArrowShape
 

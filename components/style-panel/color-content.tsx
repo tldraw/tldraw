@@ -1,5 +1,5 @@
 import { IconButton } from 'components/shared'
-import { strokes } from 'lib/shape-styles'
+import { strokes } from 'state/shape-styles'
 import { ColorStyle } from 'types'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Square } from 'react-feather'
@@ -9,7 +9,7 @@ export default function ColorContent({
   onChange,
 }: {
   onChange: (color: ColorStyle) => void
-}) {
+}): JSX.Element {
   return (
     <DropdownContent sideOffset={8} side="bottom">
       {Object.keys(strokes).map((color: ColorStyle) => (

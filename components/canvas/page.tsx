@@ -1,13 +1,8 @@
-import { getShapeUtils } from 'lib/shape-utils'
-import state, { useSelector } from 'state'
-import { Bounds, GroupShape, PageState } from 'types'
+import { getShapeUtils } from 'state/shape-utils'
+import { useSelector } from 'state'
+import { Bounds, PageState } from 'types'
 import { boundsCollide, boundsContain } from 'utils/bounds'
-import {
-  deepCompareArrays,
-  getPage,
-  getViewport,
-  screenToWorld,
-} from 'utils/utils'
+import { deepCompareArrays, getPage, getViewport } from 'utils/utils'
 import Shape from './shape'
 
 /* 
@@ -20,7 +15,7 @@ const noOffset = [0, 0]
 
 const viewportCache = new WeakMap<PageState, Bounds>()
 
-export default function Page() {
+export default function Page(): JSX.Element {
   const currentPageShapeIds = useSelector((s) => {
     const page = getPage(s.data)
     const pageState = s.data.pageStates[page.id]

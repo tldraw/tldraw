@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import router from 'next/router'
 import { useEffect } from 'react'
 import * as gtag from 'utils/gtag'

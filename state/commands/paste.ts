@@ -2,24 +2,19 @@ import Command from './command'
 import history from '../history'
 import { Data, Shape } from 'types'
 import {
-  getChildIndexAbove,
   getCommonBounds,
-  getCurrentCamera,
   getPage,
   getSelectedIds,
-  getSelectedShapes,
-  getViewport,
   screenToWorld,
   setSelectedIds,
   setToArray,
 } from 'utils/utils'
 import { uniqueId } from 'utils/utils'
-import { current } from 'immer'
 import vec from 'utils/vec'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 import state from 'state/state'
 
-export default function pasteCommand(data: Data, initialShapes: Shape[]) {
+export default function pasteCommand(data: Data, initialShapes: Shape[]): void {
   const { currentPageId } = data
 
   const center = screenToWorld(

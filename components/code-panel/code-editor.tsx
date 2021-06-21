@@ -32,7 +32,7 @@ export default function CodeEditor({
   onChange,
   onSave,
   onKey,
-}: Props) {
+}: Props): JSX.Element {
   const { theme } = useTheme()
   const rEditor = useRef<IMonacoEditor>(null)
   const rMonaco = useRef<IMonaco>(null)

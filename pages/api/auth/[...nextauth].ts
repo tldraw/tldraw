@@ -1,8 +1,11 @@
-import { NextApiRequest, NextApiResponse } from 'next'
+import { NextApiHandler, NextApiRequest, NextApiResponse } from 'next'
 import NextAuth from 'next-auth'
 import Providers from 'next-auth/providers'
 
-export default function (req: NextApiRequest, res: NextApiResponse) {
+export default function Auth(
+  req: NextApiRequest,
+  res: NextApiResponse
+): ReturnType<NextApiHandler> {
   return NextAuth(req, res, {
     providers: [
       Providers.GitHub({
@@ -15,8 +18,7 @@ export default function (req: NextApiRequest, res: NextApiResponse) {
       async redirect(url, baseUrl) {
         return url.startsWith(baseUrl) ? url : baseUrl
       },
-      async signIn(user, account, profile) {
-        // @ts-ignore
+      async signIn(user, account, profile: any) {
         const canLogin = await isSponsoringMe(profile?.login)
 
         if (canLogin) {

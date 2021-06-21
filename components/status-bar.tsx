@@ -1,11 +1,9 @@
 import { useStateDesigner } from '@state-designer/react'
 import state from 'state'
 import styled from 'styles'
-import { useRef } from 'react'
 
-export default function StatusBar() {
+export default function StatusBar(): JSX.Element {
   const local = useStateDesigner(state)
-  const { count, time } = useRenderCount()
 
   const active = local.active.slice(1).map((s) => {
     const states = s.split('.')
@@ -22,11 +20,6 @@ export default function StatusBar() {
       <Section>
         {active.join(' | ')} | {log}
       </Section>
-      {/* <Section
-        title="Renders | Time"
-      >
-        {count} | {time.toString().padStart(3, '0')}
-      </Section> */}
     </StatusBarContainer>
   )
 }
@@ -62,18 +55,3 @@ const Section = styled('div', {
   whiteSpace: 'nowrap',
   overflow: 'hidden',
 })
-
-function useRenderCount() {
-  const rTime = useRef(Date.now())
-  const rCounter = useRef(0)
-
-  rCounter.current++
-  const now = Date.now()
-  let time = now - rTime.current
-  if (time > 100) {
-    time = 0
-  }
-  rTime.current = now
-
-  return { count: rCounter.current, time }
-}

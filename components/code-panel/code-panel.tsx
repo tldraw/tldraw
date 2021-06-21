@@ -2,12 +2,11 @@
 import styled from 'styles'
 import { useStateDesigner } from '@state-designer/react'
 import React, { useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
 import state, { useSelector } from 'state'
 import { CodeFile } from 'types'
 import CodeDocs from './code-docs'
 import CodeEditor from './code-editor'
-import { generateFromCode } from 'lib/code/generate'
+import { generateFromCode } from 'state/code/generate'
 import * as Panel from '../panel'
 import { IconButton } from '../shared'
 import {
@@ -30,7 +29,7 @@ const getErrorLineAndColumn = (e: any) => {
   }
 }
 
-export default function CodePanel() {
+export default function CodePanel(): JSX.Element {
   const rContainer = useRef<HTMLDivElement>(null)
   const isReadOnly = useSelector((s) => s.data.isReadOnly)
   const fileId = useSelector((s) => s.data.currentCodeFileId)

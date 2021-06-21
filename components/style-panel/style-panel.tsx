@@ -36,7 +36,7 @@ import QuickSizeSelect from './quick-size-select'
 import QuickdashSelect from './quick-dash-select'
 import Tooltip from 'components/tooltip'
 
-export default function StylePanel() {
+export default function StylePanel(): JSX.Element {
   const rContainer = useRef<HTMLDivElement>(null)
   const isOpen = useSelector((s) => s.data.settings.isStyleOpen)
 
@@ -69,7 +69,7 @@ export default function StylePanel() {
 // information, based on the user's current selection. We might have to keep
 // track of this data manually within our state.
 
-function SelectedShapeStyles() {
+function SelectedShapeStyles(): JSX.Element {
   const selectedIds = useSelector(
     (s) => setToArray(getSelectedIds(s.data)),
     deepCompareArrays

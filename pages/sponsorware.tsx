@@ -3,7 +3,7 @@ import { getSession, signin, signout, useSession } from 'next-auth/client'
 import { GetServerSideProps } from 'next'
 import React from 'react'
 
-export default function Sponsorware() {
+export default function Sponsorware(): JSX.Element {
   const [session, loading] = useSession()
 
   return (
@@ -27,7 +27,7 @@ export default function Sponsorware() {
         <li>only available for my sponsors</li>
       </ul>
       <p>
-        If you'd like to try it out,{' '}
+        If you&apos;d like to try it out,{' '}
         <a
           href="https://github.com/sponsors/steveruizok"
           target="_blank"
@@ -45,7 +45,7 @@ export default function Sponsorware() {
             </Button>
             <Detail>
               Signed in as {session?.user?.name} ({session?.user?.email}), but
-              it looks like you're not yet a sponsor.
+              it looks like you&apos;re not yet a sponsor.
               <br />
               Something wrong? Try <a href="/">reloading the page</a> or DM me
               on <a href="https://twitter.com/steveruizok">Twitter</a>.
@@ -67,7 +67,7 @@ export default function Sponsorware() {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession(context)
 
-  if (!!session?.user) {
+  if (session?.user) {
     context.res.setHeader('Location', `/`)
     context.res.statusCode = 307
   }

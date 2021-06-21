@@ -1,4 +1,4 @@
-export default function CreateError() {
+export default function CreateError(): JSX.Element {
   return (
     <div>
       <button

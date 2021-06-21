@@ -3,9 +3,9 @@ import history from '../history'
 import { Data } from 'types'
 import { getPage, getSelectedShapes, updateParents } from 'utils/utils'
 import { current } from 'immer'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 
-export default function resetBoundsCommand(data: Data) {
+export default function resetBoundsCommand(data: Data): void {
   const initialShapes = Object.fromEntries(
     getSelectedShapes(current(data)).map((shape) => [shape.id, shape])
   )

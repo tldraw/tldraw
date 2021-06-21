@@ -6,13 +6,10 @@ import {
   getSelectedIds,
   setToArray,
 } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
-import useShapeEvents from 'hooks/useShapeEvents'
-import { memo, useRef } from 'react'
-import { ShapeType } from 'types'
-import vec from 'utils/vec'
+import { getShapeUtils } from 'state/shape-utils'
+import { memo } from 'react'
 
-export default function Selected() {
+export default function Selected(): JSX.Element {
   const currentSelectedShapeIds = useSelector(
     ({ data }) => setToArray(getSelectedIds(data)),
     deepCompareArrays

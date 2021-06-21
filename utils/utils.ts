@@ -1,16 +1,26 @@
-import Vector from 'lib/code/vector'
 import React from 'react'
-import { Data, Bounds, Edge, Corner, Shape, GroupShape, ShapeType } from 'types'
+import {
+  Data,
+  Bounds,
+  Edge,
+  Corner,
+  Shape,
+  GroupShape,
+  ShapeType,
+  CodeFile,
+  Page,
+  PageState,
+} from 'types'
 import { v4 as uuid } from 'uuid'
 import vec from './vec'
 import _isMobile from 'ismobilejs'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 
-export function uniqueId() {
+export function uniqueId(): string {
   return uuid()
 }
 
-export function screenToWorld(point: number[], data: Data) {
+export function screenToWorld(point: number[], data: Data): number[] {
   const camera = getCurrentCamera(data)
   return vec.sub(vec.div(point, camera.zoom), camera.point)
 }
@@ -38,7 +48,7 @@ export function getViewport(data: Data): Bounds {
  * @param b Bounding box
  * @returns
  */
-export function getExpandedBounds(a: Bounds, b: Bounds) {
+export function getExpandedBounds(a: Bounds, b: Bounds): Bounds {
   const minX = Math.min(a.minX, b.minX),
     minY = Math.min(a.minY, b.minY),
     maxX = Math.max(a.maxX, b.maxX),
@@ -53,7 +63,7 @@ export function getExpandedBounds(a: Bounds, b: Bounds) {
  * Get the common bounds of a group of bounds.
  * @returns
  */
-export function getCommonBounds(...b: Bounds[]) {
+export function getCommonBounds(...b: Bounds[]): Bounds {
   if (b.length < 2) return b[0]
 
   let bounds = b[0]
@@ -65,29 +75,13 @@ export function getCommonBounds(...b: Bounds[]) {
   return bounds
 }
 
-// export function getBoundsFromTwoPoints(a: number[], b: number[]) {
-//   const minX = Math.min(a[0], b[0])
-//   const maxX = Math.max(a[0], b[0])
-//   const minY = Math.min(a[1], b[1])
-//   const maxY = Math.max(a[1], b[1])
-
-//   return {
-//     minX,
-//     maxX,
-//     minY,
-//     maxY,
-//     width: maxX - minX,
-//     height: maxY - minY,
-//   }
-// }
-
 // A helper for getting tangents.
 export function getCircleTangentToPoint(
   A: number[],
   r0: number,
   P: number[],
   side: number
-) {
+): number[] {
   const B = vec.lrp(A, P, 0.5),
     r1 = vec.dist(A, B),
     delta = vec.sub(B, A),
@@ -106,7 +100,10 @@ export function getCircleTangentToPoint(
   return side === 0 ? vec.add(p, k) : vec.sub(p, k)
 }
 
-export function circleCircleIntersections(a: number[], b: number[]) {
+export function circleCircleIntersections(
+  a: number[],
+  b: number[]
+): number[][] {
   const R = a[2],
     r = b[2]
 
@@ -131,26 +128,40 @@ export function getClosestPointOnCircle(
   r: number,
   P: number[],
   padding = 0
-) {
+): number[] {
   const v = vec.sub(C, P)
   return vec.sub(C, vec.mul(vec.div(v, vec.len(v)), r + padding))
 }
 
-export function projectPoint(p0: number[], a: number, d: number) {
+export function projectPoint(p0: number[], a: number, d: number): number[] {
   return [Math.cos(a) * d + p0[0], Math.sin(a) * d + p0[1]]
 }
 
-function shortAngleDist(a0: number, a1: number) {
+export function shortAngleDist(a0: number, a1: number): number {
   const max = Math.PI * 2
   const da = (a1 - a0) % max
   return ((2 * da) % max) - da
 }
 
-export function lerpAngles(a0: number, a1: number, t: number) {
+export function lerpAngles(a0: number, a1: number, t: number): number {
   return a0 + shortAngleDist(a0, a1) * t
 }
 
-export function getBezierCurveSegments(points: number[][], tension = 0.4) {
+interface BezierCurveSegment {
+  start: number[]
+  tangentStart: number[]
+  normalStart: number[]
+  pressureStart: number
+  end: number[]
+  tangentEnd: number[]
+  normalEnd: number[]
+  pressureEnd: number
+}
+
+export function getBezierCurveSegments(
+  points: number[][],
+  tension = 0.4
+): BezierCurveSegment[] {
   const len = points.length,
     cpoints: number[][] = [...points]
 
@@ -197,16 +208,7 @@ export function getBezierCurveSegments(points: number[][], tension = 0.4) {
   cpoints[len - 1][4] = (cpoints[len - 2][2] - points[len - 1][0]) / -d1
   cpoints[len - 1][5] = (cpoints[len - 2][3] - points[len - 1][1]) / -d1
 
-  const results: {
-    start: number[]
-    tangentStart: number[]
-    normalStart: number[]
-    pressureStart: number
-    end: number[]
-    tangentEnd: number[]
-    normalEnd: number[]
-    pressureEnd: number
-  }[] = []
+  const results: BezierCurveSegment[] = []
 
   for (let i = 1; i < cpoints.length; i++) {
     results.push({
@@ -230,7 +232,7 @@ export function cubicBezier(
   y1: number,
   x2: number,
   y2: number
-) {
+): number {
   // Inspired by Don Lancaster's two articles
   // http://www.tinaja.com/glib/cubemath.pdf
   // http://www.tinaja.com/text/bezmath.html
@@ -275,7 +277,7 @@ export function cubicBezier(
   return Math.abs(E * t * t * t + F * t * t + G * t * H)
 }
 
-export function copyToClipboard(string: string) {
+export function copyToClipboard(string: string): boolean {
   let textarea: HTMLTextAreaElement
   let result: boolean
 
@@ -321,7 +323,7 @@ export function copyToClipboard(string: string) {
  * @param k Tension
  * @returns An array of points as [cp1x, cp1y, cp2x, cp2y, px, py].
  */
-export function getSpline(pts: number[][], k = 0.5) {
+export function getSpline(pts: number[][], k = 0.5): number[][] {
   let p0: number[],
     [p1, p2, p3] = pts
 
@@ -350,7 +352,7 @@ export function getCurvePoints(
   tension = 0.5,
   isClosed = false,
   numOfSegments = 3
-) {
+): number[][] {
   const _pts = [...pts],
     len = pts.length,
     res: number[][] = [] // results
@@ -415,7 +417,7 @@ export function getCurvePoints(
   return res
 }
 
-export function angleDelta(a0: number, a1: number) {
+export function angleDelta(a0: number, a1: number): number {
   return shortAngleDist(a0, a1)
 }
 
@@ -427,7 +429,7 @@ export function angleDelta(a0: number, a1: number) {
  * @param cy The y-axis coordinate of the point to rotate round.
  * @param angle The distance (in radians) to rotate.
  */
-export function rotatePoint(A: number[], B: number[], angle: number) {
+export function rotatePoint(A: number[], B: number[], angle: number): number[] {
   const s = Math.sin(angle)
   const c = Math.cos(angle)
 
@@ -440,15 +442,20 @@ export function rotatePoint(A: number[], B: number[], angle: number) {
   return [nx + B[0], ny + B[1]]
 }
 
-export function degreesToRadians(d: number) {
+export function degreesToRadians(d: number): number {
   return (d * Math.PI) / 180
 }
 
-export function radiansToDegrees(r: number) {
+export function radiansToDegrees(r: number): number {
   return (r * 180) / Math.PI
 }
 
-export function getArcLength(C: number[], r: number, A: number[], B: number[]) {
+export function getArcLength(
+  C: number[],
+  r: number,
+  A: number[],
+  B: number[]
+): number {
   const sweep = getSweep(C, A, B)
   return r * (2 * Math.PI) * (sweep / (2 * Math.PI))
 }
@@ -459,28 +466,28 @@ export function getArcDashOffset(
   A: number[],
   B: number[],
   step: number
-) {
+): number {
   const del0 = getSweep(C, A, B)
   const len0 = getArcLength(C, r, A, B)
   const off0 = del0 < 0 ? len0 : 2 * Math.PI * C[2] - len0
   return -off0 / 2 + step
 }
 
-export function getEllipseDashOffset(A: number[], step: number) {
+export function getEllipseDashOffset(A: number[], step: number): number {
   const c = 2 * Math.PI * A[2]
   return -c / 2 + -step
 }
 
-export function getSweep(C: number[], A: number[], B: number[]) {
+export function getSweep(C: number[], A: number[], B: number[]): number {
   return angleDelta(vec.angle(C, A), vec.angle(C, B))
 }
 
-export function deepCompareArrays<T>(a: T[], b: T[]) {
+export function deepCompareArrays<T>(a: T[], b: T[]): boolean {
   if (a?.length !== b?.length) return false
   return deepCompare(a, b)
 }
 
-export function deepCompare<T>(a: T, b: T) {
+export function deepCompare<T>(a: T, b: T): boolean {
   return a === b || JSON.stringify(a) === JSON.stringify(b)
 }
 
@@ -499,7 +506,7 @@ export function getOuterTangents(
   r0: number,
   C1: number[],
   r1: number
-) {
+): number[][] {
   const a0 = vec.angle(C0, C1)
   const d = vec.dist(C0, C1)
 
@@ -528,49 +535,11 @@ export function arrsIntersect<T>(
   a: T[],
   b: unknown[],
   fn?: (item: unknown) => T
-) {
+): boolean {
   return a.some((item) => b.includes(fn ? fn(item) : item))
 }
 
-// /**
-//  * Will mutate an array to remove items.
-//  * @param arr
-//  * @param item
-//  */
-// export function pull<T>(arr: T[], ...items: T[]) {
-//   for (let item of items) {
-//     arr.splice(arr.indexOf(item), 1)
-//   }
-//   return arr
-// }
-
-// /**
-//  * Will mutate an array to remove items, based on a function
-//  * @param arr
-//  * @param fn
-//  * @returns
-//  */
-// export function pullWith<T>(arr: T[], fn: (item: T) => boolean) {
-//   pull(arr, ...arr.filter((item) => fn(item)))
-//   return arr
-// }
-
-// export function rectContainsRect(
-//   x0: number,
-//   y0: number,
-//   x1: number,
-//   y1: number,
-//   box: { x: number; y: number; width: number; height: number }
-// ) {
-//   return !(
-//     x0 > box.x ||
-//     x1 < box.x + box.width ||
-//     y0 > box.y ||
-//     y1 < box.y + box.height
-//   )
-// }
-
-export function getTouchDisplay() {
+export function getTouchDisplay(): boolean {
   return (
     'ontouchstart' in window ||
     navigator.maxTouchPoints > 0 ||
@@ -580,7 +549,7 @@ export function getTouchDisplay() {
 
 const rounds = [1, 10, 100, 1000]
 
-export function round(n: number, p = 2) {
+export function round(n: number, p = 2): number {
   return Math.floor(n * rounds[p]) / rounds[p]
 }
 
@@ -590,7 +559,7 @@ export function round(n: number, p = 2) {
  * @param y2
  * @param mu
  */
-export function lerp(y1: number, y2: number, mu: number) {
+export function lerp(y1: number, y2: number, mu: number): number {
   mu = clamp(mu, 0, 1)
   return y1 * (1 - mu) + y2 * mu
 }
@@ -607,7 +576,7 @@ export function modulate(
   rangeA: number[],
   rangeB: number[],
   clamp = false
-) {
+): number {
   const [fromLow, fromHigh] = rangeA
   const [v0, v1] = rangeB
   const result = v0 + ((value - fromLow) / (fromHigh - fromLow)) * (v1 - v0)
@@ -633,7 +602,7 @@ export function clamp(n: number, min: number, max?: number): number {
 // CURVES
 // Mostly adapted from https://github.com/Pomax/bezierjs
 
-export function computePointOnCurve(t: number, points: number[][]) {
+export function computePointOnCurve(t: number, points: number[][]): number[] {
   // shortcuts
   if (t === 0) {
     return points[0]
@@ -699,7 +668,12 @@ function distance2(p: DOMPoint, point: number[]) {
 export function getClosestPointOnPath(
   pathNode: SVGPathElement,
   point: number[]
-) {
+): {
+  point: number[]
+  distance: number
+  length: number
+  t: number
+} {
   const pathLen = pathNode.getTotalLength()
 
   let p = 8,
@@ -754,7 +728,7 @@ export function getClosestPointOnPath(
   }
 }
 
-export function det(
+function det(
   a: number,
   b: number,
   c: number,
@@ -764,7 +738,7 @@ export function det(
   g: number,
   h: number,
   i: number
-) {
+): number {
   return a * e * i + b * f * g + c * d * h - a * f * h - b * d * i - c * e * g
 }
 
@@ -775,7 +749,11 @@ export function det(
  * @param center
  * @returns [x, y, r]
  */
-export function circleFromThreePoints(A: number[], B: number[], C: number[]) {
+export function circleFromThreePoints(
+  A: number[],
+  B: number[],
+  C: number[]
+): number[] {
   const a = det(A[0], A[1], 1, B[0], B[1], 1, C[0], C[1], 1)
 
   const bx = -det(
@@ -819,35 +797,7 @@ export function circleFromThreePoints(A: number[], B: number[], C: number[]) {
   return [x, y, r]
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function throttle<P extends any[], T extends (...args: P) => any>(
-  fn: T,
-  wait: number,
-  preventDefault?: boolean
-) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let inThrottle: boolean, lastFn: any, lastTime: number
-  return function (...args: P) {
-    if (preventDefault) args[0].preventDefault()
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const context = this
-    if (!inThrottle) {
-      fn.apply(context, args)
-      lastTime = Date.now()
-      inThrottle = true
-    } else {
-      clearTimeout(lastFn)
-      lastFn = setTimeout(function () {
-        if (Date.now() - lastTime >= wait) {
-          fn.apply(context, args)
-          lastTime = Date.now()
-        }
-      }, Math.max(wait - (Date.now() - lastTime), 0))
-    }
-  }
-}
-
-export function getCameraZoom(zoom: number) {
+export function getCameraZoom(zoom: number): number {
   return clamp(zoom, 0.1, 5)
 }
 
@@ -857,7 +807,7 @@ export function pointInRect(
   minY: number,
   maxX: number,
   maxY: number
-) {
+): boolean {
   return !(
     point[0] < minX ||
     point[0] > maxX ||
@@ -879,7 +829,7 @@ export function getRayRayIntersection(
   n0: number[],
   p1: number[],
   n1: number[]
-) {
+): number[] {
   const p0e = vec.add(p0, n0),
     p1e = vec.add(p1, n1),
     m0 = (p0e[1] - p0[1]) / (p0e[0] - p0[0]),
@@ -895,7 +845,7 @@ export function getRayRayIntersection(
 export async function postJsonToEndpoint(
   endpoint: string,
   data: { [key: string]: unknown }
-) {
+): Promise<{ [key: string]: any }> {
   const d = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_API_URL}/api/${endpoint}`,
     {
@@ -908,7 +858,13 @@ export async function postJsonToEndpoint(
   return await d.json()
 }
 
-export function getKeyboardEventInfo(e: KeyboardEvent | React.KeyboardEvent) {
+export function getKeyboardEventInfo(e: KeyboardEvent | React.KeyboardEvent): {
+  key: string
+  shiftKey: boolean
+  ctrlKey: boolean
+  metaKey: boolean
+  altKey: boolean
+} {
   const { shiftKey, ctrlKey, metaKey, altKey } = e
   return {
     key: e.key,
@@ -919,11 +875,11 @@ export function getKeyboardEventInfo(e: KeyboardEvent | React.KeyboardEvent) {
   }
 }
 
-export function isDarwin() {
+export function isDarwin(): boolean {
   return /Mac|iPod|iPhone|iPad/.test(window.navigator.platform)
 }
 
-export function metaKey(e: KeyboardEvent | React.KeyboardEvent) {
+export function metaKey(e: KeyboardEvent | React.KeyboardEvent): boolean {
   return isDarwin() ? e.metaKey : e.ctrlKey
 }
 
@@ -931,7 +887,7 @@ export function getTransformAnchor(
   type: Edge | Corner,
   isFlippedX: boolean,
   isFlippedY: boolean
-) {
+): Corner | Edge {
   let anchor: Corner | Edge = type
 
   // Change corner anchors if flipped
@@ -989,17 +945,6 @@ export function getTransformAnchor(
   return anchor
 }
 
-export function vectorToPoint(point: number[] | Vector | undefined) {
-  if (typeof point === 'undefined') {
-    return [0, 0]
-  }
-
-  if (point instanceof Vector) {
-    return [point.x, point.y]
-  }
-  return point
-}
-
 export function getBoundsFromPoints(points: number[][], rotation = 0): Bounds {
   let minX = Infinity
   let minY = Infinity
@@ -1012,7 +957,7 @@ export function getBoundsFromPoints(points: number[][], rotation = 0): Bounds {
     maxX = 1
     maxY = 1
   } else {
-    for (let [x, y] of points) {
+    for (const [x, y] of points) {
       minX = Math.min(x, minX)
       minY = Math.min(y, minY)
       maxX = Math.max(x, maxX)
@@ -1044,7 +989,7 @@ export function getBoundsFromPoints(points: number[][], rotation = 0): Bounds {
  * @param delta
  * @returns
  */
-export function translateBounds(bounds: Bounds, delta: number[]) {
+export function translateBounds(bounds: Bounds, delta: number[]): Bounds {
   return {
     minX: bounds.minX + delta[0],
     minY: bounds.minY + delta[1],
@@ -1059,7 +1004,7 @@ export function rotateBounds(
   bounds: Bounds,
   center: number[],
   rotation: number
-) {
+): Bounds {
   const [minX, minY] = vec.rotWith([bounds.minX, bounds.minY], center, rotation)
   const [maxX, maxY] = vec.rotWith([bounds.maxX, bounds.maxY], center, rotation)
 
@@ -1073,7 +1018,7 @@ export function rotateBounds(
   }
 }
 
-export function getRotatedSize(size: number[], rotation: number) {
+export function getRotatedSize(size: number[], rotation: number): number[] {
   const center = vec.div(size, 2)
 
   const points = [[0, 0], [size[0], 0], size, [0, size[1]]].map((point) =>
@@ -1085,7 +1030,7 @@ export function getRotatedSize(size: number[], rotation: number) {
   return [bounds.width, bounds.height]
 }
 
-export function getRotatedCorners(b: Bounds, rotation: number) {
+export function getRotatedCorners(b: Bounds, rotation: number): number[][] {
   const center = [b.minX + b.width / 2, b.minY + b.height / 2]
 
   return [
@@ -1102,10 +1047,10 @@ export function getTransformedBoundingBox(
   delta: number[],
   rotation = 0,
   isAspectRatioLocked = false
-) {
+): Bounds & { scaleX: number; scaleY: number } {
   // Create top left and bottom right corners.
-  let [ax0, ay0] = [bounds.minX, bounds.minY]
-  let [ax1, ay1] = [bounds.maxX, bounds.maxY]
+  const [ax0, ay0] = [bounds.minX, bounds.minY]
+  const [ax1, ay1] = [bounds.maxX, bounds.maxY]
 
   // Create a second set of corners for the new box.
   let [bx0, by0] = [bounds.minX, bounds.minY]
@@ -1127,7 +1072,7 @@ export function getTransformedBoundingBox(
 
   // Counter rotate the delta. This lets us make changes as if
   // the (possibly rotated) boxes were axis aligned.
-  let [dx, dy] = vec.rot(delta, -rotation)
+  const [dx, dy] = vec.rot(delta, -rotation)
 
   /*
   1. Delta
@@ -1342,7 +1287,7 @@ export function getRelativeTransformedBoundingBox(
   initialShapeBounds: Bounds,
   isFlippedX: boolean,
   isFlippedY: boolean
-) {
+): Bounds {
   const nx =
     (isFlippedX
       ? initialBounds.maxX - initialShapeBounds.maxX
@@ -1375,67 +1320,64 @@ export function getShape(
   data: Data,
   shapeId: string,
   pageId = data.currentPageId
-) {
+): Shape {
   return data.document.pages[pageId].shapes[shapeId]
 }
 
-export function getPage(data: Data, pageId = data.currentPageId) {
+export function getPage(data: Data, pageId = data.currentPageId): Page {
   return data.document.pages[pageId]
 }
 
-export function getPageState(data: Data, pageId = data.currentPageId) {
+export function getPageState(
+  data: Data,
+  pageId = data.currentPageId
+): PageState {
   return data.pageStates[pageId]
 }
 
-export function getCurrentCode(data: Data, fileId = data.currentCodeFileId) {
+export function getCurrentCode(
+  data: Data,
+  fileId = data.currentCodeFileId
+): CodeFile {
   return data.document.code[fileId]
 }
 
-export function getShapes(data: Data, pageId = data.currentPageId) {
+export function getShapes(data: Data, pageId = data.currentPageId): Shape[] {
   const page = getPage(data, pageId)
   return Object.values(page.shapes)
 }
 
-export function getSelectedShapes(data: Data, pageId = data.currentPageId) {
+export function getSelectedShapes(
+  data: Data,
+  pageId = data.currentPageId
+): Shape[] {
   const page = getPage(data, pageId)
   const ids = setToArray(getSelectedIds(data))
   return ids.map((id) => page.shapes[id])
 }
 
-export function getSelectedBounds(data: Data) {
-  return getCommonBounds(
-    ...getSelectedShapes(data).map((shape) =>
-      getShapeUtils(shape).getBounds(shape)
-    )
-  )
-}
-
-export function isMobile() {
+export function isMobile(): boolean {
   return _isMobile().any
 }
 
-export function getRotatedBounds(shape: Shape) {
-  return getShapeUtils(shape).getRotatedBounds(shape)
-}
-
-export function getShapeBounds(shape: Shape) {
-  return getShapeUtils(shape).getBounds(shape)
-}
-
-export function getBoundsCenter(bounds: Bounds) {
+export function getBoundsCenter(bounds: Bounds): number[] {
   return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2]
 }
 
-export function clampRadians(r: number) {
+export function clampRadians(r: number): number {
   return (Math.PI * 2 + r) % (Math.PI * 2)
 }
 
-export function clampToRotationToSegments(r: number, segments: number) {
+export function clampToRotationToSegments(r: number, segments: number): number {
   const seg = (Math.PI * 2) / segments
   return Math.floor((clampRadians(r) + seg / 2) / seg) * seg
 }
 
-export function getParent(data: Data, id: string, pageId = data.currentPageId) {
+export function getParent(
+  data: Data,
+  id: string,
+  pageId = data.currentPageId
+): Shape | Page {
   const page = getPage(data, pageId)
   const shape = page.shapes[id]
 
@@ -1446,7 +1388,7 @@ export function getChildren(
   data: Data,
   id: string,
   pageId = data.currentPageId
-) {
+): Shape[] {
   const page = getPage(data, pageId)
   return Object.values(page.shapes)
     .filter(({ parentId }) => parentId === id)
@@ -1457,7 +1399,7 @@ export function getSiblings(
   data: Data,
   id: string,
   pageId = data.currentPageId
-) {
+): Shape[] {
   const page = getPage(data, pageId)
   const shape = page.shapes[id]
 
@@ -1470,7 +1412,7 @@ export function getChildIndexAbove(
   data: Data,
   id: string,
   pageId = data.currentPageId
-) {
+): number {
   const page = getPage(data, pageId)
 
   const shape = page.shapes[id]
@@ -1501,7 +1443,7 @@ export function getChildIndexBelow(
   data: Data,
   id: string,
   pageId = data.currentPageId
-) {
+): number {
   const page = getPage(data, pageId)
 
   const shape = page.shapes[id]
@@ -1528,17 +1470,18 @@ export function getChildIndexBelow(
   return (shape.childIndex + prevSibling.childIndex) / 2
 }
 
-export function forceIntegerChildIndices(shapes: Shape[]) {
+export function forceIntegerChildIndices(shapes: Shape[]): void {
   for (let i = 0; i < shapes.length; i++) {
     const shape = shapes[i]
     getShapeUtils(shape).setProperty(shape, 'childIndex', i + 1)
   }
 }
-export function setZoomCSS(zoom: number) {
+
+export function setZoomCSS(zoom: number): void {
   document.documentElement.style.setProperty('--camera-zoom', zoom.toString())
 }
 
-export function getCurrent<T extends object>(source: T): T {
+export function getCurrent<T extends Record<string, unknown>>(source: T): T {
   return Object.fromEntries(
     Object.entries(source).map(([key, value]) => [key, value])
   ) as T
@@ -1550,7 +1493,7 @@ export function getCurrent<T extends object>(source: T): T {
  * @param tolerance The minimum line distance (also called epsilon).
  * @returns Simplified array as [x, y, ...][]
  */
-export function simplify(points: number[][], tolerance = 1) {
+export function simplify(points: number[][], tolerance = 1): number[][] {
   const len = points.length,
     a = points[0],
     b = points[len - 1],
@@ -1558,9 +1501,9 @@ export function simplify(points: number[][], tolerance = 1) {
     [x2, y2] = b
 
   if (len > 2) {
-    let distance = 0,
-      index = 0,
-      max = Math.hypot(y2 - y1, x2 - x1)
+    let distance = 0
+    let index = 0
+    const max = Math.hypot(y2 - y1, x2 - x1)
 
     for (let i = 1; i < len - 1; i++) {
       const [x0, y0] = points[i],
@@ -1573,8 +1516,8 @@ export function simplify(points: number[][], tolerance = 1) {
     }
 
     if (distance > tolerance) {
-      let l0 = simplify(points.slice(0, index + 1), tolerance)
-      let l1 = simplify(points.slice(index + 1), tolerance)
+      const l0 = simplify(points.slice(0, index + 1), tolerance)
+      const l1 = simplify(points.slice(index + 1), tolerance)
       return l0.concat(l1.slice(1))
     }
   }
@@ -1582,7 +1525,7 @@ export function simplify(points: number[][], tolerance = 1) {
   return [a, b]
 }
 
-export function getSvgPathFromStroke(stroke: number[][]) {
+export function getSvgPathFromStroke(stroke: number[][]): string {
   if (!stroke.length) return ''
 
   const d = stroke.reduce(
@@ -1606,57 +1549,27 @@ const PI2 = Math.PI * 2
  * @param b
  * @param c
  */
-export function isAngleBetween(a: number, b: number, c: number) {
+export function isAngleBetween(a: number, b: number, c: number): boolean {
   if (c === a || c === b) return true
   const AB = (b - a + PI2) % PI2
   const AC = (c - a + PI2) % PI2
   return AB <= Math.PI !== AC > AB
 }
 
-export function getCurrentCamera(data: Data) {
+export function getCurrentCamera(data: Data): {
+  point: number[]
+  zoom: number
+} {
   return data.pageStates[data.currentPageId].camera
 }
 
-// export function updateChildren(data: Data, changedShapes: Shape[]) {
-//   if (changedShapes.length === 0) return
-//   const { shapes } = getPage(data)
-
-//   changedShapes.forEach((shape) => {
-//     if (shape.type === ShapeType.Group) {
-//       for (let childId of shape.children) {
-//         const childShape = shapes[childId]
-//         getShapeUtils(childShape).translateBy(childShape, deltaForShape)
-//       }
-//     }
-//   })
-// }
-
 /* --------------------- Groups --------------------- */
 
-export function updateParents(data: Data, changedShapeIds: string[]) {
-  if (changedShapeIds.length === 0) return
-
-  const { shapes } = getPage(data)
-
-  const parentToUpdateIds = Array.from(
-    new Set(changedShapeIds.map((id) => shapes[id].parentId).values())
-  ).filter((id) => id !== data.currentPageId)
-
-  for (const parentId of parentToUpdateIds) {
-    const parent = shapes[parentId] as GroupShape
-
-    getShapeUtils(parent).onChildrenChange(
-      parent,
-      parent.children.map((id) => shapes[id])
-    )
-
-    shapes[parentId] = { ...parent }
-  }
-
-  updateParents(data, parentToUpdateIds)
-}
-
-export function getParentOffset(data: Data, shapeId: string, offset = [0, 0]) {
+export function getParentOffset(
+  data: Data,
+  shapeId: string,
+  offset = [0, 0]
+): number[] {
   const shape = getShape(data, shapeId)
   return shape.parentId === data.currentPageId
     ? offset
@@ -1685,11 +1598,11 @@ export function getDocumentBranch(data: Data, id: string): string[] {
   ]
 }
 
-export function getSelectedIds(data: Data) {
+export function getSelectedIds(data: Data): Set<string> {
   return data.pageStates[data.currentPageId].selectedIds
 }
 
-export function setSelectedIds(data: Data, ids: string[]) {
+export function setSelectedIds(data: Data, ids: string[]): Set<string> {
   data.pageStates[data.currentPageId].selectedIds = new Set(ids)
   return data.pageStates[data.currentPageId].selectedIds
 }
@@ -1698,30 +1611,13 @@ export function setToArray<T>(set: Set<T>): T[] {
   return Array.from(set.values())
 }
 
-const G2 = (3.0 - Math.sqrt(3.0)) / 6.0
-
-const Grad = [
-  [1, 1],
-  [-1, 1],
-  [1, -1],
-  [-1, -1],
-  [1, 0],
-  [-1, 0],
-  [1, 0],
-  [-1, 0],
-  [0, 1],
-  [0, -1],
-  [0, 1],
-  [0, -1],
-]
-
 /**
  * Seeded random number generator, using [xorshift](https://en.wikipedia.org/wiki/Xorshift).
  * The result will always be betweeen -1 and 1.
  *
  * Adapted from [seedrandom](https://github.com/davidbau/seedrandom).
  */
-export function rng(seed = '') {
+export function rng(seed = ''): () => number {
   let x = 0
   let y = 0
   let z = 0
@@ -1736,7 +1632,7 @@ export function rng(seed = '') {
     return w / 0x100000000
   }
 
-  for (var k = 0; k < seed.length + 64; k++) {
+  for (let k = 0; k < seed.length + 64; k++) {
     x ^= seed.charCodeAt(k) | 0
     next()
   }
@@ -1744,11 +1640,11 @@ export function rng(seed = '') {
   return next
 }
 
-export function ease(t: number) {
+export function ease(t: number): number {
   return t * t * t
 }
 
-export function pointsBetween(a: number[], b: number[], steps = 6) {
+export function pointsBetween(a: number[], b: number[], steps = 6): number[][] {
   return Array.from(Array(steps))
     .map((_, i) => ease(i / steps))
     .map((t) => [...vec.lrp(a, b, t), (1 - t) / 2])
@@ -1758,7 +1654,7 @@ export function shuffleArr<T>(arr: T[], offset: number): T[] {
   return arr.map((_, i) => arr[(i + offset) % arr.length])
 }
 
-export function commandKey() {
+export function commandKey(): string {
   return isDarwin() ? '⌘' : 'Ctrl'
 }
 
@@ -1770,13 +1666,13 @@ export function getTopParentId(data: Data, id: string): string {
     : getTopParentId(data, shape.parentId)
 }
 
-export function uniqueArray<T extends string | number | Symbol>(...items: T[]) {
+export function uniqueArray<T extends string | number>(...items: T[]): T[] {
   return Array.from(new Set(items).values())
 }
 
 export function getPoint(
   e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent
-) {
+): number[] {
   return [
     Number(e.clientX.toPrecision(5)),
     Number(e.clientY.toPrecision(5)),
@@ -1784,118 +1680,62 @@ export function getPoint(
   ]
 }
 
-export function compress(s: string) {
+export function compress(s: string): string {
   return s
-
-  const dict = {}
-  const data = (s + '').split('')
-
-  let currChar: string
-  let phrase = data[0]
-  let code = 256
-
-  const out = []
-
-  for (var i = 1; i < data.length; i++) {
-    currChar = data[i]
-
-    if (dict[phrase + currChar] != null) {
-      phrase += currChar
-    } else {
-      out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0))
-      dict[phrase + currChar] = code
-      code++
-      phrase = currChar
-    }
-  }
-
-  out.push(phrase.length > 1 ? dict[phrase] : phrase.charCodeAt(0))
-
-  for (var i = 0; i < out.length; i++) {
-    out[i] = String.fromCharCode(out[i])
-  }
-
-  return out.join('')
 }
 
 // Decompress an LZW-encoded string
-export function decompress(s: string) {
+export function decompress(s: string): string {
   return s
-
-  const dict = {}
-  const data = (s + '').split('')
-
-  let currChar = data[0]
-  let oldPhrase = currChar
-  let code = 256
-  let phrase: string
-
-  const out = [currChar]
-
-  for (var i = 1; i < data.length; i++) {
-    let currCode = data[i].charCodeAt(0)
-
-    if (currCode < 256) {
-      phrase = data[i]
-    } else {
-      phrase = dict[currCode] ? dict[currCode] : oldPhrase + currChar
-    }
-
-    out.push(phrase)
-    currChar = phrase.charAt(0)
-    dict[code] = oldPhrase + currChar
-    code++
-    oldPhrase = phrase
-  }
-
-  return out.join('')
 }
 
-function getResizeOffset(a: Bounds, b: Bounds) {
-  const { minX: x0, minY: y0, width: w0, height: h0 } = a
-  const { minX: x1, minY: y1, width: w1, height: h1 } = b
+// function getResizeOffset(a: Bounds, b: Bounds): number[] {
+//   const { minX: x0, minY: y0, width: w0, height: h0 } = a
+//   const { minX: x1, minY: y1, width: w1, height: h1 } = b
 
-  let delta: number[]
+//   let delta: number[]
 
-  if (h0 === h1 && w0 !== w1) {
-    if (x0 !== x1) {
-      // moving left edge, pin right edge
-      delta = vec.sub([x1, y1 + h1 / 2], [x0, y0 + h0 / 2])
-    } else {
-      // moving right edge, pin left edge
-      delta = vec.sub([x1 + w1, y1 + h1 / 2], [x0 + w0, y0 + h0 / 2])
-    }
-  } else if (h0 !== h1 && w0 === w1) {
-    if (y0 !== y1) {
-      // moving top edge, pin bottom edge
-      delta = vec.sub([x1 + w1 / 2, y1], [x0 + w0 / 2, y0])
-    } else {
-      // moving bottom edge, pin top edge
-      delta = vec.sub([x1 + w1 / 2, y1 + h1], [x0 + w0 / 2, y0 + h0])
-    }
-  } else if (x0 !== x1) {
-    if (y0 !== y1) {
-      // moving top left, pin bottom right
-      delta = vec.sub([x1, y1], [x0, y0])
-    } else {
-      // moving bottom left, pin top right
-      delta = vec.sub([x1, y1 + h1], [x0, y0 + h0])
-    }
-  } else if (y0 !== y1) {
-    // moving top right, pin bottom left
-    delta = vec.sub([x1 + w1, y1], [x0 + w0, y0])
-  } else {
-    // moving bottom right, pin top left
-    delta = vec.sub([x1 + w1, y1 + h1], [x0 + w0, y0 + h0])
-  }
+//   if (h0 === h1 && w0 !== w1) {
+//     if (x0 !== x1) {
+//       // moving left edge, pin right edge
+//       delta = vec.sub([x1, y1 + h1 / 2], [x0, y0 + h0 / 2])
+//     } else {
+//       // moving right edge, pin left edge
+//       delta = vec.sub([x1 + w1, y1 + h1 / 2], [x0 + w0, y0 + h0 / 2])
+//     }
+//   } else if (h0 !== h1 && w0 === w1) {
+//     if (y0 !== y1) {
+//       // moving top edge, pin bottom edge
+//       delta = vec.sub([x1 + w1 / 2, y1], [x0 + w0 / 2, y0])
+//     } else {
+//       // moving bottom edge, pin top edge
+//       delta = vec.sub([x1 + w1 / 2, y1 + h1], [x0 + w0 / 2, y0 + h0])
+//     }
+//   } else if (x0 !== x1) {
+//     if (y0 !== y1) {
+//       // moving top left, pin bottom right
+//       delta = vec.sub([x1, y1], [x0, y0])
+//     } else {
+//       // moving bottom left, pin top right
+//       delta = vec.sub([x1, y1 + h1], [x0, y0 + h0])
+//     }
+//   } else if (y0 !== y1) {
+//     // moving top right, pin bottom left
+//     delta = vec.sub([x1 + w1, y1], [x0 + w0, y0])
+//   } else {
+//     // moving bottom right, pin top left
+//     delta = vec.sub([x1 + w1, y1 + h1], [x0 + w0, y0 + h0])
+//   }
 
-  return delta
-}
+//   return delta
+// }
 
-export function deepClone<T extends unknown[] | object>(obj: T): T {
+export function deepClone<T extends unknown[] | Record<string, unknown>>(
+  obj: T
+): T {
   if (obj === null) return null
 
-  let clone = { ...obj }
+  const clone = { ...obj }
 
   Object.keys(obj).forEach(
     (key) =>
@@ -1904,11 +1744,50 @@ export function deepClone<T extends unknown[] | object>(obj: T): T {
   )
 
   if (Array.isArray(obj)) {
-    // @ts-ignore
     clone.length = obj.length
-    // @ts-ignore
-    return Array.from(clone) as T
+    return Array.from(clone as unknown[]) as T
   }
 
   return clone
+}
+
+/* ----------------- Shapes Related ----------------- */
+
+export function getRotatedBounds(shape: Shape): Bounds {
+  return getShapeUtils(shape).getRotatedBounds(shape)
+}
+
+export function getShapeBounds(shape: Shape): Bounds {
+  return getShapeUtils(shape).getBounds(shape)
+}
+
+export function getSelectedBounds(data: Data): Bounds {
+  return getCommonBounds(
+    ...getSelectedShapes(data).map((shape) =>
+      getShapeUtils(shape).getBounds(shape)
+    )
+  )
+}
+
+export function updateParents(data: Data, changedShapeIds: string[]): void {
+  if (changedShapeIds.length === 0) return
+
+  const { shapes } = getPage(data)
+
+  const parentToUpdateIds = Array.from(
+    new Set(changedShapeIds.map((id) => shapes[id].parentId).values())
+  ).filter((id) => id !== data.currentPageId)
+
+  for (const parentId of parentToUpdateIds) {
+    const parent = shapes[parentId] as GroupShape
+
+    getShapeUtils(parent).onChildrenChange(
+      parent,
+      parent.children.map((id) => shapes[id])
+    )
+
+    shapes[parentId] = { ...parent }
+  }
+
+  updateParents(data, parentToUpdateIds)
 }

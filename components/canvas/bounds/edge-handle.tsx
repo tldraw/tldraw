@@ -10,7 +10,7 @@ export default function EdgeHandle({
   size: number
   bounds: Bounds
   edge: Edge
-}) {
+}): JSX.Element {
   const events = useBoundsEvents(edge)
 
   const isHorizontal = edge === Edge.Top || edge === Edge.Bottom

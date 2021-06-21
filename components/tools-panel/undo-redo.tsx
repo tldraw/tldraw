@@ -1,6 +1,6 @@
 import { IconButton } from 'components/shared'
 import { RotateCcw, RotateCw, Trash2 } from 'react-feather'
-import state, { useSelector } from 'state'
+import state from 'state'
 import styled from 'styles'
 import Tooltip from '../tooltip'
 
@@ -8,7 +8,7 @@ const undo = () => state.send('UNDO')
 const redo = () => state.send('REDO')
 const clear = () => state.send('CLEARED_PAGE')
 
-export default function UndoRedo() {
+export default function UndoRedo(): JSX.Element {
   return (
     <Container size={{ '@sm': 'small' }}>
       <Tooltip label="Undo">

@@ -1,6 +1,6 @@
 import Command from './command'
 import history from '../history'
-import { Data, GroupShape, Shape, ShapeType } from 'types'
+import { Data, GroupShape, ShapeType } from 'types'
 import {
   getCommonBounds,
   getPage,
@@ -10,10 +10,10 @@ import {
   setSelectedIds,
 } from 'utils/utils'
 import { current } from 'immer'
-import { createShape, getShapeUtils } from 'lib/shape-utils'
+import { createShape, getShapeUtils } from 'state/shape-utils'
 import commands from '.'
 
-export default function groupCommand(data: Data) {
+export default function groupCommand(data: Data): void {
   const cData = current(data)
   const { currentPageId } = cData
 
@@ -28,14 +28,8 @@ export default function groupCommand(data: Data) {
   )
 
   let newGroupParentId: string
-  let newGroupShape: GroupShape
-  let newGroupChildIndex: number
 
   const initialShapeIds = initialShapes.map((s) => s.id)
-
-  const parentIds = Array.from(
-    new Set(initialShapes.map((s) => s.parentId)).values()
-  )
 
   const commonBounds = getCommonBounds(
     ...initialShapes.map((shape) =>
@@ -64,7 +58,7 @@ export default function groupCommand(data: Data) {
     // Find the least-deep parent among the shapes and add the group as a child
     let minDepth = Infinity
 
-    for (let parentId of initialShapes.map((shape) => shape.parentId)) {
+    for (const parentId of initialShapes.map((shape) => shape.parentId)) {
       const depth = getShapeDepth(data, parentId)
       if (depth < minDepth) {
         minDepth = depth
@@ -73,7 +67,7 @@ export default function groupCommand(data: Data) {
     }
   }
 
-  newGroupShape = createShape(ShapeType.Group, {
+  const newGroupShape = createShape(ShapeType.Group, {
     parentId: newGroupParentId,
     point: [commonBounds.minX, commonBounds.minY],
     size: [commonBounds.width, commonBounds.height],

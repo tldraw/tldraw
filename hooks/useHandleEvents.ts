@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { MutableRefObject, useCallback } from 'react'
 import state from 'state'
 import inputs from 'state/inputs'

@@ -1,13 +1,12 @@
 import React, { useRef, memo, useEffect } from 'react'
-import state, { useSelector } from 'state'
+import { useSelector } from 'state'
 import styled from 'styles'
-import { getShapeUtils } from 'lib/shape-utils'
-import { getBoundsCenter, getPage, isMobile } from 'utils/utils'
-import { ShapeStyles, ShapeType, Shape as _Shape } from 'types'
+import { getShapeUtils } from 'state/shape-utils'
+import { getPage, isMobile } from 'utils/utils'
+import { Shape as _Shape } from 'types'
 import useShapeEvents from 'hooks/useShapeEvents'
 import vec from 'utils/vec'
-import { getShapeStyle } from 'lib/shape-styles'
-import ContextMenu from 'components/canvas/context-menu/context-menu'
+import { getShapeStyle } from 'state/shape-styles'
 
 const isMobileDevice = isMobile()
 
@@ -17,7 +16,7 @@ interface ShapeProps {
   parentPoint: number[]
 }
 
-function Shape({ id, isSelecting, parentPoint }: ShapeProps) {
+function Shape({ id, isSelecting, parentPoint }: ShapeProps): JSX.Element {
   const rGroup = useRef<SVGGElement>(null)
   const rFocusable = useRef<HTMLTextAreaElement>(null)
 
@@ -122,12 +121,7 @@ interface RealShapeProps {
   isEditing: boolean
 }
 
-const RealShape = memo(function RealShape({
-  id,
-  shape,
-  style,
-  isParent,
-}: RealShapeProps) {
+const RealShape = memo(function RealShape({ id, isParent }: RealShapeProps) {
   return <StyledShape as="use" data-shy={isParent} href={'#' + id} />
 })
 
@@ -217,25 +211,25 @@ const StyledGroup = styled('g', {
   ],
 })
 
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <text
-      y={4}
-      x={4}
-      fontSize={12}
-      fill="black"
-      stroke="none"
-      alignmentBaseline="text-before-edge"
-      pointerEvents="none"
-    >
-      {children}
-    </text>
-  )
-}
+// function Label({ children }: { children: React.ReactNode }) {
+//   return (
+//     <text
+//       y={4}
+//       x={4}
+//       fontSize={12}
+//       fill="black"
+//       stroke="none"
+//       alignmentBaseline="text-before-edge"
+//       pointerEvents="none"
+//     >
+//       {children}
+//     </text>
+//   )
+// }
 
-function pp(n: number[]) {
-  return '[' + n.map((v) => v.toFixed(1)).join(', ') + ']'
-}
+// function pp(n: number[]) {
+//   return '[' + n.map((v) => v.toFixed(1)).join(', ') + ']'
+// }
 
 export { HoverIndicator }
 

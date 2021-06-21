@@ -8,11 +8,11 @@ import {
   getSelectedShapes,
 } from 'utils/utils'
 import vec from 'utils/vec'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 
 const PI2 = Math.PI * 2
 
-export default function rotateCcwCommand(data: Data) {
+export default function rotateCcwCommand(data: Data): void {
   const { currentPageId, boundsRotation } = data
 
   const page = getPage(data)
@@ -65,7 +65,7 @@ export default function rotateCcwCommand(data: Data) {
       do(data) {
         const { shapes } = getPage(data, currentPageId)
 
-        for (let id in nextShapes) {
+        for (const id in nextShapes) {
           const shape = shapes[id]
           if (shape.isLocked) continue
 
@@ -79,7 +79,7 @@ export default function rotateCcwCommand(data: Data) {
       undo(data) {
         const { shapes } = getPage(data, currentPageId)
 
-        for (let id in initialShapes) {
+        for (const id in initialShapes) {
           const { point, rotation } = initialShapes[id]
 
           const shape = shapes[id]

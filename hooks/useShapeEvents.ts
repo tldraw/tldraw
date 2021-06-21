@@ -1,4 +1,5 @@
-import React, { MutableRefObject, useCallback, useRef } from 'react'
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import React, { MutableRefObject, useCallback } from 'react'
 import state from 'state'
 import inputs from 'state/inputs'
 

@@ -2,9 +2,9 @@ import Command from './command'
 import history from '../history'
 import { AlignType, Data } from 'types'
 import { getCommonBounds, getPage, getSelectedShapes } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 
-export default function alignCommand(data: Data, type: AlignType) {
+export default function alignCommand(data: Data, type: AlignType): void {
   const { currentPageId } = data
   const selectedShapes = getSelectedShapes(data)
   const entries = selectedShapes.map(
@@ -25,7 +25,7 @@ export default function alignCommand(data: Data, type: AlignType) {
 
         switch (type) {
           case AlignType.Top: {
-            for (let id in boundsForShapes) {
+            for (const id in boundsForShapes) {
               const shape = shapes[id]
               getShapeUtils(shape).translateTo(shape, [
                 shape.point[0],
@@ -35,7 +35,7 @@ export default function alignCommand(data: Data, type: AlignType) {
             break
           }
           case AlignType.CenterVertical: {
-            for (let id in boundsForShapes) {
+            for (const id in boundsForShapes) {
               const shape = shapes[id]
               getShapeUtils(shape).translateTo(shape, [
                 shape.point[0],
@@ -45,7 +45,7 @@ export default function alignCommand(data: Data, type: AlignType) {
             break
           }
           case AlignType.Bottom: {
-            for (let id in boundsForShapes) {
+            for (const id in boundsForShapes) {
               const shape = shapes[id]
               getShapeUtils(shape).translateTo(shape, [
                 shape.point[0],
@@ -55,7 +55,7 @@ export default function alignCommand(data: Data, type: AlignType) {
             break
           }
           case AlignType.Left: {
-            for (let id in boundsForShapes) {
+            for (const id in boundsForShapes) {
               const shape = shapes[id]
               getShapeUtils(shape).translateTo(shape, [
                 commonBounds.minX,
@@ -65,7 +65,7 @@ export default function alignCommand(data: Data, type: AlignType) {
             break
           }
           case AlignType.CenterHorizontal: {
-            for (let id in boundsForShapes) {
+            for (const id in boundsForShapes) {
               const shape = shapes[id]
               getShapeUtils(shape).translateTo(shape, [
                 midX - boundsForShapes[id].width / 2,
@@ -75,7 +75,7 @@ export default function alignCommand(data: Data, type: AlignType) {
             break
           }
           case AlignType.Right: {
-            for (let id in boundsForShapes) {
+            for (const id in boundsForShapes) {
               const shape = shapes[id]
               getShapeUtils(shape).translateTo(shape, [
                 commonBounds.maxX - boundsForShapes[id].width,
@@ -88,7 +88,7 @@ export default function alignCommand(data: Data, type: AlignType) {
       },
       undo(data) {
         const { shapes } = getPage(data, currentPageId)
-        for (let id in boundsForShapes) {
+        for (const id in boundsForShapes) {
           const shape = shapes[id]
           const initialBounds = boundsForShapes[id]
           getShapeUtils(shape).translateTo(shape, [

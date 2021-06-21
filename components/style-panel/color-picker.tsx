@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { strokes } from 'lib/shape-styles'
+import { strokes } from 'state/shape-styles'
 import { ColorStyle } from 'types'
 import { RowButton, IconWrapper } from '../shared'
 import { Square } from 'react-feather'
@@ -10,7 +10,7 @@ interface Props {
   onChange: (color: ColorStyle) => void
 }
 
-export default function ColorPicker({ color, onChange }: Props) {
+export default function ColorPicker({ color, onChange }: Props): JSX.Element {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger

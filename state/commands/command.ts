@@ -40,7 +40,7 @@ export class BaseCommand<T extends any> {
     }
   }
 
-  undo = (data: T) => {
+  undo = (data: T): void => {
     if (this.manualSelection) {
       this.undoFn(data)
       return
@@ -52,7 +52,7 @@ export class BaseCommand<T extends any> {
     this.restoreBeforeSelectionState(data)
   }
 
-  redo = (data: T, initial = false) => {
+  redo = (data: T, initial = false): void => {
     if (this.manualSelection) {
       this.doFn(data, initial)
 
@@ -82,7 +82,7 @@ export class BaseCommand<T extends any> {
  * the app.
  */
 export default class Command extends BaseCommand<Data> {
-  saveSelectionState = (data: Data) => {
+  saveSelectionState = (data: Data): ((next: Data) => void) => {
     const { currentPageId } = data
     const selectedIds = setToArray(getSelectedIds(data))
     return (next: Data) => {

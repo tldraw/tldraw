@@ -2,10 +2,10 @@ import Command from './command'
 import history from '../history'
 import { Data } from 'types'
 import { getPage, getSelectedShapes } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 import vec from 'utils/vec'
 
-export default function nudgeCommand(data: Data, delta: number[]) {
+export default function nudgeCommand(data: Data, delta: number[]): void {
   const { currentPageId } = data
   const selectedShapes = getSelectedShapes(data)
   const shapeBounds = Object.fromEntries(
@@ -22,7 +22,7 @@ export default function nudgeCommand(data: Data, delta: number[]) {
       do(data) {
         const { shapes } = getPage(data, currentPageId)
 
-        for (let id in shapeBounds) {
+        for (const id in shapeBounds) {
           const shape = shapes[id]
           getShapeUtils(shape).setProperty(
             shape,
@@ -34,7 +34,7 @@ export default function nudgeCommand(data: Data, delta: number[]) {
       undo(data) {
         const { shapes } = getPage(data, currentPageId)
 
-        for (let id in shapeBounds) {
+        for (const id in shapeBounds) {
           const shape = shapes[id]
           getShapeUtils(shape).setProperty(
             shape,

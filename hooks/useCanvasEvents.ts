@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { MutableRefObject, useCallback } from 'react'
 import state from 'state'
 import {
@@ -7,7 +8,6 @@ import {
   fastTranslate,
 } from 'state/hacks'
 import inputs from 'state/inputs'
-import { isMobile } from 'utils/utils'
 
 export default function useCanvasEvents(
   rCanvas: MutableRefObject<SVGGElement>
@@ -58,7 +58,7 @@ export default function useCanvasEvents(
     state.send('STOPPED_POINTING', { id: 'canvas', ...inputs.pointerUp(e) })
   }, [])
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+  const handleTouchStart = useCallback(() => {
     // if (isMobile()) {
     //   if (e.touches.length === 2) {
     //     state.send('TOUCH_UNDO')

@@ -1,4 +1,4 @@
-import { Data, GroupShape, Shape, ShapeType } from 'types'
+import { Data, GroupShape, ShapeType } from 'types'
 import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
@@ -8,13 +8,11 @@ import {
   getChildIndexAbove,
   getDocumentBranch,
   getPage,
-  getPageState,
   getSelectedShapes,
   setSelectedIds,
-  setToArray,
   updateParents,
 } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 
 export default class TranslateSession extends BaseSession {
   delta = [0, 0]
@@ -29,7 +27,12 @@ export default class TranslateSession extends BaseSession {
     this.snapshot = getTranslateSnapshot(data)
   }
 
-  update(data: Data, point: number[], isAligned: boolean, isCloning: boolean) {
+  update(
+    data: Data,
+    point: number[],
+    isAligned: boolean,
+    isCloning: boolean
+  ): void {
     const { currentPageId, clones, initialShapes, initialParents } =
       this.snapshot
     const { shapes } = getPage(data, currentPageId)
@@ -139,7 +142,7 @@ export default class TranslateSession extends BaseSession {
     }
   }
 
-  cancel(data: Data) {
+  cancel(data: Data): void {
     const { initialShapes, initialParents, clones, currentPageId } =
       this.snapshot
     const { shapes } = getPage(data, currentPageId)
@@ -166,7 +169,7 @@ export default class TranslateSession extends BaseSession {
     )
   }
 
-  complete(data: Data) {
+  complete(data: Data): void {
     if (!this.snapshot.hasUnlockedShapes) return
 
     commands.translate(
@@ -178,6 +181,7 @@ export default class TranslateSession extends BaseSession {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getTranslateSnapshot(data: Data) {
   const cData = current(data)
 
@@ -228,23 +232,23 @@ export function getTranslateSnapshot(data: Data) {
 
 export type TranslateSnapshot = ReturnType<typeof getTranslateSnapshot>
 
-function cloneGroup(data: Data, clone: Shape): Shape[] {
-  if (clone.type !== ShapeType.Group) {
-    return [clone]
-  }
+// function cloneGroup(data: Data, clone: Shape): Shape[] {
+//   if (clone.type !== ShapeType.Group) {
+//     return [clone]
+//   }
 
-  const page = getPage(data)
-  const childClones = clone.children.flatMap((id) => {
-    const newId = uniqueId()
-    const source = page.shapes[id]
-    const next = { ...source, id: newId, parentId: clone.id }
+//   const page = getPage(data)
+//   const childClones = clone.children.flatMap((id) => {
+//     const newId = uniqueId()
+//     const source = page.shapes[id]
+//     const next = { ...source, id: newId, parentId: clone.id }
 
-    if (next.type === ShapeType.Group) {
-      return [next, ...cloneGroup(data, next)]
-    }
+//     if (next.type === ShapeType.Group) {
+//       return [next, ...cloneGroup(data, next)]
+//     }
 
-    return [next]
-  })
+//     return [next]
+//   })
 
-  return [clone, ...childClones]
-}
+//   return [clone, ...childClones]
+// }

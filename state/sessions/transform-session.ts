@@ -1,9 +1,8 @@
-import { Data, Edge, Corner, Bounds } from 'types'
+import { Data, Edge, Corner } from 'types'
 import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
-import { current, freeze } from 'immer'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 import {
   deepClone,
   getBoundsCenter,
@@ -32,7 +31,7 @@ export default class TransformSession extends BaseSession {
     this.snapshot = getTransformSnapshot(data, transformType)
   }
 
-  update(data: Data, point: number[], isAspectRatioLocked = false) {
+  update(data: Data, point: number[], isAspectRatioLocked = false): void {
     const { transformType } = this
 
     const { shapeBounds, initialBounds, isAllAspectRatioLocked } = this.snapshot
@@ -52,7 +51,7 @@ export default class TransformSession extends BaseSession {
 
     // Now work backward to calculate a new bounding box for each of the shapes.
 
-    for (let id in shapeBounds) {
+    for (const id in shapeBounds) {
       const { initialShape, initialShapeBounds, transformOrigin } =
         shapeBounds[id]
 
@@ -80,12 +79,12 @@ export default class TransformSession extends BaseSession {
     updateParents(data, Object.keys(shapeBounds))
   }
 
-  cancel(data: Data) {
+  cancel(data: Data): void {
     const { currentPageId, shapeBounds } = this.snapshot
 
     const { shapes } = getPage(data, currentPageId)
 
-    for (let id in shapeBounds) {
+    for (const id in shapeBounds) {
       const shape = shapes[id]
 
       const { initialShape, initialShapeBounds, transformOrigin } =
@@ -103,7 +102,7 @@ export default class TransformSession extends BaseSession {
     }
   }
 
-  complete(data: Data) {
+  complete(data: Data): void {
     const { initialShapes, hasUnlockedShapes } = this.snapshot
 
     if (!hasUnlockedShapes) return
@@ -118,6 +117,7 @@ export default class TransformSession extends BaseSession {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
   const { currentPageId } = data
   const page = getPage(data)
@@ -161,8 +161,8 @@ export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
         const initialShapeBounds = shapesBounds[shape.id]
         const ic = getBoundsCenter(initialShapeBounds)
 
-        let ix = (ic[0] - initialInnerBounds.minX) / initialInnerBounds.width
-        let iy = (ic[1] - initialInnerBounds.minY) / initialInnerBounds.height
+        const ix = (ic[0] - initialInnerBounds.minX) / initialInnerBounds.width
+        const iy = (ic[1] - initialInnerBounds.minY) / initialInnerBounds.height
 
         return [
           shape.id,

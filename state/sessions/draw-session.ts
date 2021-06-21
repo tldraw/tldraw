@@ -1,8 +1,8 @@
 import { current } from 'immer'
 import { Data, DrawShape } from 'types'
 import BaseSession from './base-session'
-import { getShapeUtils } from 'lib/shape-utils'
-import { getPage, getShape, isMobile, updateParents } from 'utils/utils'
+import { getShapeUtils } from 'state/shape-utils'
+import { getPage, getShape, updateParents } from 'utils/utils'
 import vec from 'utils/vec'
 import commands from 'state/commands'
 export default class BrushSession extends BaseSession {
@@ -20,6 +20,7 @@ export default class BrushSession extends BaseSession {
     this.previous = point
     this.last = point
     this.snapshot = getDrawSnapshot(data, id)
+    isLocked
 
     // Add a first point but don't update the shape yet. We'll update
     // when the draw session ends; if the user hasn't added additional
@@ -38,7 +39,7 @@ export default class BrushSession extends BaseSession {
     point: number[],
     pressure: number,
     isLocked = false
-  ) => {
+  ): void => {
     const { snapshot } = this
 
     const delta = vec.vec(this.origin, point)
@@ -119,7 +120,7 @@ export default class BrushSession extends BaseSession {
     updateParents(data, [shape.id])
   }
 
-  cancel = (data: Data) => {
+  cancel = (data: Data): void => {
     const { snapshot } = this
     const shape = getShape(data, snapshot.id) as DrawShape
     getShapeUtils(shape).translateTo(shape, snapshot.point)
@@ -127,7 +128,7 @@ export default class BrushSession extends BaseSession {
     updateParents(data, [shape.id])
   }
 
-  complete = (data: Data) => {
+  complete = (data: Data): void => {
     const { snapshot } = this
     const page = getPage(data)
     const shape = page.shapes[snapshot.id] as DrawShape
@@ -144,6 +145,7 @@ export default class BrushSession extends BaseSession {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getDrawSnapshot(data: Data, shapeId: string) {
   const page = getPage(current(data))
   const { points, point } = page.shapes[shapeId] as DrawShape

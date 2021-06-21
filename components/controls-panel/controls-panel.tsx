@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import styled from 'styles'
-import React, { useEffect, useRef } from 'react'
+import React, { useRef } from 'react'
 import state, { useSelector } from 'state'
-import { X, Code, PlayCircle } from 'react-feather'
+import { X, Code } from 'react-feather'
 import { IconButton } from 'components/shared'
 import * as Panel from '../panel'
 import Control from './control'
 import { deepCompareArrays } from 'utils/utils'
 
-export default function ControlPanel() {
+export default function ControlPanel(): JSX.Element {
   const rContainer = useRef<HTMLDivElement>(null)
   const codeControls = useSelector(
     (state) => Object.keys(state.data.codeControls),

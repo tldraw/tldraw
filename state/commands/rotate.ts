@@ -3,13 +3,13 @@ import history from '../history'
 import { Data } from 'types'
 import { RotateSnapshot } from 'state/sessions/rotate-session'
 import { getPage } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 
 export default function rotateCommand(
   data: Data,
   before: RotateSnapshot,
   after: RotateSnapshot
-) {
+): void {
   history.execute(
     data,
     new Command({
@@ -18,7 +18,7 @@ export default function rotateCommand(
       do(data) {
         const { shapes } = getPage(data)
 
-        for (let { id, point, rotation } of after.initialShapes) {
+        for (const { id, point, rotation } of after.initialShapes) {
           const shape = shapes[id]
           getShapeUtils(shape)
             .rotateBy(shape, rotation - shape.rotation)
@@ -31,7 +31,7 @@ export default function rotateCommand(
       undo(data) {
         const { shapes } = getPage(data, before.currentPageId)
 
-        for (let { id, point, rotation } of before.initialShapes) {
+        for (const { id, point, rotation } of before.initialShapes) {
           const shape = shapes[id]
           getShapeUtils(shape)
             .rotateBy(shape, rotation - shape.rotation)

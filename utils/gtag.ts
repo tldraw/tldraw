@@ -7,16 +7,14 @@ type GTagEvent = {
   value: number
 }
 
-export const pageview = (url: URL) => {
-  // @ts-ignore
-  window.gtag('config', GA_TRACKING_ID, {
+export const pageview = (url: URL): void => {
+  ;(window as any).gtag('config', GA_TRACKING_ID, {
     page_path: url,
   })
 }
 
-export const event = ({ action, category, label, value }: GTagEvent) => {
-  // @ts-ignore
-  window.gtag('event', action, {
+export const event = ({ action, category, label, value }: GTagEvent): void => {
+  ;(window as any).gtag('event', action, {
     event_category: category,
     event_label: label,
     value: value,

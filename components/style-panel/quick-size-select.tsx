@@ -12,7 +12,7 @@ const sizes = {
   [SizeStyle.Large]: 22,
 }
 
-export default function QuickSizeSelect() {
+export default function QuickSizeSelect(): JSX.Element {
   const size = useSelector((s) => s.values.selectedStyle.size)
 
   return (

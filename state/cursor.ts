@@ -5,7 +5,7 @@ const cursorSvgs = {
 }
 
 class Cursor {
-  setCursor(cursor: keyof typeof cursorSvgs, rotation = 0) {
+  setCursor(cursor: keyof typeof cursorSvgs) {
     document.body.style.setProperty('cursor', `url(${cursorSvgs[cursor]}.svg)`)
   }
 

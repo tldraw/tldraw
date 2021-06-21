@@ -2,10 +2,9 @@ import Command from './command'
 import history from '../history'
 import { Data } from 'types'
 import { current } from 'immer'
-import vec from 'utils/vec'
 import storage from 'state/storage'
 
-export default function deletePage(data: Data, pageId: string) {
+export default function deletePage(data: Data, pageId: string): void {
   const snapshot = getSnapshot(data, pageId)
 
   history.execute(

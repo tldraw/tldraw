@@ -7,10 +7,13 @@ import {
   getSelectedIds,
   setToArray,
 } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 import { current } from 'immer'
 
-export default function styleCommand(data: Data, styles: Partial<ShapeStyles>) {
+export default function styleCommand(
+  data: Data,
+  styles: Partial<ShapeStyles>
+): void {
   const cData = current(data)
   const page = getPage(cData)
   const { currentPageId } = cData

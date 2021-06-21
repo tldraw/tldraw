@@ -7,7 +7,7 @@ import vec from './vec'
  * @param b
  * @returns
  */
-export function pointInBounds(A: number[], b: Bounds) {
+export function pointInBounds(A: number[], b: Bounds): boolean {
   return !(A[0] < b.minX || A[0] > b.maxX || A[1] < b.minY || A[1] > b.maxY)
 }
 
@@ -17,7 +17,7 @@ export function pointInBounds(A: number[], b: Bounds) {
  * @param b
  * @returns
  */
-export function pointInCircle(A: number[], C: number[], r: number) {
+export function pointInCircle(A: number[], C: number[], r: number): boolean {
   return vec.dist(A, C) <= r
 }
 
@@ -36,7 +36,7 @@ export function pointInEllipse(
   rx: number,
   ry: number,
   rotation = 0
-) {
+): boolean {
   rotation = rotation || 0
   const cos = Math.cos(rotation)
   const sin = Math.sin(rotation)

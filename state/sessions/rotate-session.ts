@@ -8,7 +8,6 @@ import {
   getBoundsCenter,
   getCommonBounds,
   getPage,
-  getSelectedShapes,
   getRotatedBounds,
   getShapeBounds,
   updateParents,
@@ -16,7 +15,7 @@ import {
   setToArray,
   getSelectedIds,
 } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 
 const PI2 = Math.PI * 2
 
@@ -32,7 +31,7 @@ export default class RotateSession extends BaseSession {
     this.snapshot = getRotateSnapshot(data)
   }
 
-  update(data: Data, point: number[], isLocked: boolean) {
+  update(data: Data, point: number[], isLocked: boolean): void {
     const { commonBoundsCenter, initialShapes } = this.snapshot
 
     const page = getPage(data)
@@ -50,7 +49,7 @@ export default class RotateSession extends BaseSession {
 
     data.boundsRotation = (PI2 + (this.snapshot.boundsRotation + rot)) % PI2
 
-    for (let { id, center, offset, rotation } of initialShapes) {
+    for (const { id, center, offset, rotation } of initialShapes) {
       const shape = page.shapes[id]
 
       const nextRotation =
@@ -76,11 +75,11 @@ export default class RotateSession extends BaseSession {
     )
   }
 
-  cancel(data: Data) {
+  cancel(data: Data): void {
     const { currentPageId, initialShapes } = this.snapshot
     const page = getPage(data, currentPageId)
 
-    for (let { id, point, rotation } of initialShapes) {
+    for (const { id, point, rotation } of initialShapes) {
       const shape = page.shapes[id]
       getShapeUtils(shape)
         .rotateTo(shape, rotation, rotation - shape.rotation)
@@ -93,12 +92,13 @@ export default class RotateSession extends BaseSession {
     )
   }
 
-  complete(data: Data) {
+  complete(data: Data): void {
     if (!this.snapshot.hasUnlockedShapes) return
     commands.rotate(data, this.snapshot, getRotateSnapshot(data))
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getRotateSnapshot(data: Data) {
   const cData = current(data)
   const page = getPage(cData)

@@ -10,7 +10,7 @@ const zoomOut = () => state.send('ZOOMED_OUT')
 const zoomToFit = () => state.send('ZOOMED_TO_FIT')
 const zoomToActual = () => state.send('ZOOMED_TO_ACTUAL')
 
-export default function Zoom() {
+export default function Zoom(): JSX.Element {
   return (
     <Container size={{ '@sm': 'small' }}>
       <Tooltip label="Zoom Out">

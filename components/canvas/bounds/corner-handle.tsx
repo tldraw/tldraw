@@ -10,7 +10,7 @@ export default function CornerHandle({
   size: number
   bounds: Bounds
   corner: Corner
-}) {
+}): JSX.Element {
   const events = useBoundsEvents(corner)
 
   const isTop = corner === Corner.TopLeft || corner === Corner.TopRight

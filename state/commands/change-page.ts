@@ -3,7 +3,7 @@ import history from '../history'
 import { Data } from 'types'
 import storage from 'state/storage'
 
-export default function changePage(data: Data, toPageId: string) {
+export default function changePage(data: Data, toPageId: string): void {
   const { currentPageId: fromPageId } = data
 
   history.execute(

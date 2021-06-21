@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import styled from 'styles'
 
-export default function Cursor() {
+export default function Cursor(): JSX.Element {
   const rCursor = useRef<SVGSVGElement>(null)
 
   useEffect(() => {

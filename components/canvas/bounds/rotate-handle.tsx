@@ -8,7 +8,7 @@ export default function Rotate({
 }: {
   bounds: Bounds
   size: number
-}) {
+}): JSX.Element {
   const events = useHandleEvents('rotate')
 
   return (

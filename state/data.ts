@@ -1,5 +1,4 @@
-import { Data, FontSize, ShapeType } from 'types'
-import shapeUtils from 'lib/shape-utils'
+import { Data } from 'types'
 
 export const defaultDocument: Data['document'] = {
   id: '0001',

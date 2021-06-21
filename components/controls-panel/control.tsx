@@ -1,14 +1,8 @@
-import state, { useSelector } from "state"
-import styled from "styles"
-import {
-  ControlType,
-  NumberCodeControl,
-  SelectCodeControl,
-  TextCodeControl,
-  VectorCodeControl,
-} from "types"
+import state, { useSelector } from 'state'
+import styled from 'styles'
+import { ControlType, NumberCodeControl, VectorCodeControl } from 'types'
 
-export default function Control({ id }: { id: string }) {
+export default function Control({ id }: { id: string }): JSX.Element {
   const control = useSelector((s) => s.data.codeControls[id])
 
   if (!control) return null
@@ -20,10 +14,6 @@ export default function Control({ id }: { id: string }) {
         <NumberControl {...control} />
       ) : control.type === ControlType.Vector ? (
         <VectorControl {...control} />
-      ) : control.type === ControlType.Text ? (
-        <TextControl {...control} />
-      ) : control.type === ControlType.Select ? (
-        <SelectControl {...control} />
       ) : null}
     </>
   )
@@ -39,7 +29,7 @@ function NumberControl({ id, min, max, step, value }: NumberCodeControl) {
         step={step}
         value={value}
         onChange={(e) =>
-          state.send("CHANGED_CODE_CONTROL", {
+          state.send('CHANGED_CODE_CONTROL', {
             [id]: Number(e.currentTarget.value),
           })
         }
@@ -51,7 +41,7 @@ function NumberControl({ id, min, max, step, value }: NumberCodeControl) {
         step={step}
         value={value}
         onChange={(e) =>
-          state.send("CHANGED_CODE_CONTROL", {
+          state.send('CHANGED_CODE_CONTROL', {
             [id]: Number(e.currentTarget.value),
           })
         }
@@ -70,7 +60,7 @@ function VectorControl({ id, value, isNormalized }: VectorCodeControl) {
         step={0.01}
         value={value[0]}
         onChange={(e) =>
-          state.send("CHANGED_CODE_CONTROL", {
+          state.send('CHANGED_CODE_CONTROL', {
             [id]: [Number(e.currentTarget.value), value[1]],
           })
         }
@@ -82,7 +72,7 @@ function VectorControl({ id, value, isNormalized }: VectorCodeControl) {
         step={0.01}
         value={value[0]}
         onChange={(e) =>
-          state.send("CHANGED_CODE_CONTROL", {
+          state.send('CHANGED_CODE_CONTROL', {
             [id]: [Number(e.currentTarget.value), value[1]],
           })
         }
@@ -94,7 +84,7 @@ function VectorControl({ id, value, isNormalized }: VectorCodeControl) {
         step={0.01}
         value={value[1]}
         onChange={(e) =>
-          state.send("CHANGED_CODE_CONTROL", {
+          state.send('CHANGED_CODE_CONTROL', {
             [id]: [value[0], Number(e.currentTarget.value)],
           })
         }
@@ -106,7 +96,7 @@ function VectorControl({ id, value, isNormalized }: VectorCodeControl) {
         step={0.01}
         value={value[1]}
         onChange={(e) =>
-          state.send("CHANGED_CODE_CONTROL", {
+          state.send('CHANGED_CODE_CONTROL', {
             [id]: [value[0], Number(e.currentTarget.value)],
           })
         }
@@ -115,28 +105,20 @@ function VectorControl({ id, value, isNormalized }: VectorCodeControl) {
   )
 }
 
-function TextControl({}: TextCodeControl) {
-  return <></>
-}
+const Inputs = styled('div', {
+  display: 'flex',
+  gap: '8px',
+  height: '100%',
 
-function SelectControl({}: SelectCodeControl) {
-  return <></>
-}
-
-const Inputs = styled("div", {
-  display: "flex",
-  gap: "8px",
-  height: "100%",
-
-  "& input": {
-    font: "$ui",
-    width: "64px",
-    fontSize: "$1",
-    border: "1px solid $inputBorder",
-    backgroundColor: "$input",
-    color: "$text",
-    height: "100%",
-    padding: "0px 6px",
+  '& input': {
+    font: '$ui',
+    width: '64px',
+    fontSize: '$1',
+    border: '1px solid $inputBorder',
+    backgroundColor: '$input',
+    color: '$text',
+    height: '100%',
+    padding: '0px 6px',
   },
   "& input[type='range']": {
     padding: 0,

@@ -1,4 +1,5 @@
-import { useRef } from 'react'
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */ import { useRef } from 'react'
+
 import state from 'state'
 import inputs from 'state/inputs'
 import vec from 'utils/vec'
@@ -47,13 +48,12 @@ export default function useZoomEvents() {
           rPinchPoint.current = origin
         }
 
-        const [distanceDelta, angleDelta] = vec.sub(rPinchDa.current, da)
+        const [distanceDelta] = vec.sub(rPinchDa.current, da)
 
         fastPinchCamera(
           origin,
           vec.sub(rPinchPoint.current, origin),
-          distanceDelta,
-          angleDelta
+          distanceDelta
         )
 
         rPinchDa.current = da

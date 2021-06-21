@@ -1,6 +1,6 @@
 import { createSelectorHook, createState } from '@state-designer/react'
-import { updateFromCode } from 'lib/code/generate'
-import { createShape, getShapeUtils } from 'lib/shape-utils'
+import { updateFromCode } from './code/generate'
+import { createShape, getShapeUtils } from './shape-utils'
 import vec from 'utils/vec'
 import inputs from './inputs'
 import history from './history'
@@ -26,8 +26,6 @@ import {
   getSelectedIds,
   setSelectedIds,
   getPageState,
-  getShapes,
-  setToArray,
 } from 'utils/utils'
 import {
   Data,
@@ -45,10 +43,9 @@ import {
   DashStyle,
   SizeStyle,
   ColorStyle,
-  FontSize,
 } from 'types'
 import session from './session'
-import { pointInBounds } from 'utils/bounds'
+import { pointInBounds } from 'utils/hitTests'
 
 const initialData: Data = {
   isReadOnly: false,
@@ -1172,7 +1169,7 @@ const state = createState({
     },
 
     // Direction
-    startDirectionSession(data, payload: PointerInfo) {
+    startDirectionSession(data) {
       session.current = new Sessions.DirectionSession(
         data,
         screenToWorld(inputs.pointer.origin, data)
@@ -1257,7 +1254,7 @@ const state = createState({
       const selectedIds = getSelectedIds(data)
       const page = getPage(data)
       selectedIds.clear()
-      for (let id in page.shapes) {
+      for (const id in page.shapes) {
         if (page.shapes[id].parentId === data.currentPageId) {
           selectedIds.add(id)
         }
@@ -1556,7 +1553,7 @@ const state = createState({
     redo(data) {
       history.redo(data)
     },
-    resetHistory(data) {
+    resetHistory() {
       history.reset()
     },
 
@@ -1604,7 +1601,7 @@ const state = createState({
       data.settings.fontSize--
     },
     updateControls(data, payload: { [key: string]: any }) {
-      for (let key in payload) {
+      for (const key in payload) {
         data.codeControls[key].value = payload[key]
       }
 
@@ -1648,7 +1645,7 @@ const state = createState({
       clipboard.copy(getSelectedShapes(data))
     },
 
-    pasteFromClipboard(data) {
+    pasteFromClipboard() {
       clipboard.paste()
     },
 
@@ -1727,7 +1724,7 @@ const state = createState({
       const overrides = new Set<string>([])
 
       for (const shapeStyle of shapeStyles) {
-        for (let key in currentStyle) {
+        for (const key in currentStyle) {
           if (overrides.has(key)) continue
           if (commonStyle[key] === undefined) {
             commonStyle[key] = shapeStyle[key]
@@ -1771,21 +1768,21 @@ function getDrilledPointedId(data: Data, id: string) {
     : getDrilledPointedId(data, shape.parentId)
 }
 
-function hasPointedIdInChildren(data: Data, id: string, pointedId: string) {
-  const shape = getPage(data).shapes[id]
+// function hasPointedIdInChildren(data: Data, id: string, pointedId: string) {
+//   const shape = getPage(data).shapes[id]
 
-  if (shape.type !== ShapeType.Group) {
-    return false
-  }
+//   if (shape.type !== ShapeType.Group) {
+//     return false
+//   }
 
-  if (shape.children.includes(pointedId)) {
-    return true
-  }
+//   if (shape.children.includes(pointedId)) {
+//     return true
+//   }
 
-  return shape.children.some((childId) =>
-    hasPointedIdInChildren(data, childId, pointedId)
-  )
-}
+//   return shape.children.some((childId) =>
+//     hasPointedIdInChildren(data, childId, pointedId)
+//   )
+// }
 
 function getSelectionBounds(data: Data) {
   const selectedIds = getSelectedIds(data)

@@ -16,36 +16,37 @@ export default class DirectionSession extends BaseSession {
     this.snapshot = getDirectionSnapshot(data)
   }
 
-  update(data: Data, point: number[]) {
+  update(data: Data, point: number[]): void {
     const { shapes } = this.snapshot
 
     const page = getPage(data)
 
-    for (let { id } of shapes) {
+    for (const { id } of shapes) {
       const shape = page.shapes[id] as RayShape | LineShape
 
       shape.direction = vec.uni(vec.vec(shape.point, point))
     }
   }
 
-  cancel(data: Data) {
+  cancel(data: Data): void {
     const page = getPage(data, this.snapshot.currentPageId)
 
-    for (let { id, direction } of this.snapshot.shapes) {
+    for (const { id, direction } of this.snapshot.shapes) {
       const shape = page.shapes[id] as RayShape | LineShape
       shape.direction = direction
     }
   }
 
-  complete(data: Data) {
+  complete(data: Data): void {
     commands.direct(data, this.snapshot, getDirectionSnapshot(data))
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getDirectionSnapshot(data: Data) {
   const { shapes } = getPage(current(data))
 
-  let snapshapes: { id: string; direction: number[] }[] = []
+  const snapshapes: { id: string; direction: number[] }[] = []
 
   getSelectedIds(data).forEach((id) => {
     const shape = shapes[id]

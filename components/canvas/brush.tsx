@@ -1,7 +1,7 @@
-import { useSelector } from "state"
-import styled from "styles"
+import { useSelector } from 'state'
+import styled from 'styles'
 
-export default function Brush() {
+export default function Brush(): JSX.Element {
   const brush = useSelector(({ data }) => data.brush)
 
   if (!brush) return null
@@ -16,8 +16,8 @@ export default function Brush() {
   )
 }
 
-const BrushRect = styled("rect", {
-  fill: "$brushFill",
-  stroke: "$brushStroke",
+const BrushRect = styled('rect', {
+  fill: '$brushFill',
+  stroke: '$brushStroke',
   zStrokeWidth: 1,
 })

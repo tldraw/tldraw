@@ -1,8 +1,6 @@
 import { Bounds } from 'types'
-import {
-  intersectPolygonBounds,
-  intersectPolylineBounds,
-} from './intersections'
+import { pointInBounds } from './hitTests'
+import { intersectPolygonBounds } from './intersections'
 
 /**
  * Get whether two bounds collide.
@@ -10,7 +8,7 @@ import {
  * @param b Bounds
  * @returns
  */
-export function boundsCollide(a: Bounds, b: Bounds) {
+export function boundsCollide(a: Bounds, b: Bounds): boolean {
   return !(
     a.maxX < b.minX ||
     a.minX > b.maxX ||
@@ -25,7 +23,7 @@ export function boundsCollide(a: Bounds, b: Bounds) {
  * @param b Bounds
  * @returns
  */
-export function boundsContain(a: Bounds, b: Bounds) {
+export function boundsContain(a: Bounds, b: Bounds): boolean {
   return (
     a.minX < b.minX && a.minY < b.minY && a.maxY > b.maxY && a.maxX > b.maxX
   )
@@ -37,7 +35,7 @@ export function boundsContain(a: Bounds, b: Bounds) {
  * @param b Bounds
  * @returns
  */
-export function boundsContained(a: Bounds, b: Bounds) {
+export function boundsContained(a: Bounds, b: Bounds): boolean {
   return boundsContain(b, a)
 }
 
@@ -45,7 +43,7 @@ export function boundsContained(a: Bounds, b: Bounds) {
  * Get whether a set of points are all contained by a bounding box.
  * @returns
  */
-export function boundsContainPolygon(a: Bounds, points: number[][]) {
+export function boundsContainPolygon(a: Bounds, points: number[][]): boolean {
   return points.every((point) => pointInBounds(point, a))
 }
 
@@ -54,7 +52,7 @@ export function boundsContainPolygon(a: Bounds, points: number[][]) {
  * @param points
  * @param b
  */
-export function boundsCollidePolygon(a: Bounds, points: number[][]) {
+export function boundsCollidePolygon(a: Bounds, points: number[][]): boolean {
   return intersectPolygonBounds(points, a).length > 0
 }
 
@@ -64,7 +62,7 @@ export function boundsCollidePolygon(a: Bounds, points: number[][]) {
  * @param b Bounds
  * @returns
  */
-export function boundsAreEqual(a: Bounds, b: Bounds) {
+export function boundsAreEqual(a: Bounds, b: Bounds): boolean {
   return !(
     b.maxX !== a.maxX ||
     b.minX !== a.minX ||
@@ -73,23 +71,13 @@ export function boundsAreEqual(a: Bounds, b: Bounds) {
   )
 }
 
-/**
- * Get whether a point is inside of a bounds.
- * @param A
- * @param b
- * @returns
- */
-export function pointInBounds(A: number[], b: Bounds) {
-  return !(A[0] < b.minX || A[0] > b.maxX || A[1] < b.minY || A[1] > b.maxY)
-}
-
 export function getRotatedEllipseBounds(
   x: number,
   y: number,
   rx: number,
   ry: number,
   rotation: number
-) {
+): Bounds {
   const c = Math.cos(rotation)
   const s = Math.sin(rotation)
   const w = Math.hypot(rx * c, ry * s)

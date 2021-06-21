@@ -6,16 +6,13 @@ import {
   getPage,
   getPageState,
   getSelectedIds,
-  getSelectedShapes,
-  getTopParentId,
   setToArray,
   uniqueArray,
 } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
-import vec from 'utils/vec'
+import { getShapeUtils } from 'state/shape-utils'
 import storage from 'state/storage'
 
-export default function moveToPageCommand(data: Data, newPageId: string) {
+export default function moveToPageCommand(data: Data, newPageId: string): void {
   const { currentPageId: oldPageId } = data
   const oldPage = getPage(data)
   const selectedIds = setToArray(getSelectedIds(data))

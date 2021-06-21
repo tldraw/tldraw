@@ -61,7 +61,7 @@ export default function AlignDistribute({
 }: {
   hasTwoOrMore: boolean
   hasThreeOrMore: boolean
-}) {
+}): JSX.Element {
   return (
     <Container>
       <IconButton

@@ -1,5 +1,4 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
-import * as _Dropdown from '@radix-ui/react-dropdown-menu'
 import styled from 'styles'
 import {
   IconWrapper,
@@ -79,7 +78,7 @@ export default function ContextMenu({
   children,
 }: {
   children: React.ReactNode
-}) {
+}): JSX.Element {
   const selectedShapes = useSelector(
     (s) => getSelectedShapes(s.data),
     deepCompareArrays
@@ -357,7 +356,6 @@ function SubMenu({
 }
 
 function AlignDistributeSubMenu({
-  hasTwoOrMore,
   hasThreeOrMore,
 }: {
   hasTwoOrMore: boolean
@@ -473,31 +471,6 @@ function MoveToPageMenu() {
     </_ContextMenu.Root>
   )
 }
-
-const StyledDialogContent = styled(_Dropdown.Content, {
-  // position: 'fixed',
-  // top: '50%',
-  // left: '50%',
-  // transform: 'translate(-50%, -50%)',
-  // minWidth: 200,
-  // maxWidth: 'fit-content',
-  // maxHeight: '85vh',
-  // marginTop: '-5vh',
-  minWidth: 128,
-  backgroundColor: '$panel',
-  borderRadius: '4px',
-  overflow: 'hidden',
-  pointerEvents: 'all',
-  userSelect: 'none',
-  zIndex: 200,
-  padding: 2,
-  border: '1px solid $panel',
-  boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
-
-  '&:focus': {
-    outline: 'none',
-  },
-})
 
 const StyledArrow = styled(_ContextMenu.Arrow, {
   fill: 'white',

@@ -1,11 +1,11 @@
 import Command from './command'
 import history from '../history'
-import { StretchType, Data, Edge, Corner } from 'types'
+import { StretchType, Data, Corner } from 'types'
 import { getCommonBounds, getPage, getSelectedShapes } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 import { current } from 'immer'
 
-export default function stretchCommand(data: Data, type: StretchType) {
+export default function stretchCommand(data: Data, type: StretchType): void {
   const { currentPageId } = data
   const initialShapes = getSelectedShapes(current(data))
   const entries = initialShapes.map(
@@ -24,7 +24,7 @@ export default function stretchCommand(data: Data, type: StretchType) {
 
         switch (type) {
           case StretchType.Horizontal: {
-            for (let id in boundsForShapes) {
+            for (const id in boundsForShapes) {
               const initialShape = initialShapes[id]
               const shape = shapes[id]
               const oldBounds = boundsForShapes[id]
@@ -44,7 +44,7 @@ export default function stretchCommand(data: Data, type: StretchType) {
             break
           }
           case StretchType.Vertical: {
-            for (let id in boundsForShapes) {
+            for (const id in boundsForShapes) {
               const initialShape = initialShapes[id]
               const shape = shapes[id]
               const oldBounds = boundsForShapes[id]
@@ -66,7 +66,7 @@ export default function stretchCommand(data: Data, type: StretchType) {
       },
       undo(data) {
         const { shapes } = getPage(data, currentPageId)
-        for (let id in boundsForShapes) {
+        for (const id in boundsForShapes) {
           const shape = shapes[id]
           const initialShape = initialShapes[id]
           const initialBounds = boundsForShapes[id]

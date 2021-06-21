@@ -1,12 +1,12 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { IconButton } from 'components/shared'
 import Tooltip from 'components/tooltip'
-import { strokes } from 'lib/shape-styles'
+import { strokes } from 'state/shape-styles'
 import { Square } from 'react-feather'
 import state, { useSelector } from 'state'
 import ColorContent from './color-content'
 
-export default function QuickColorSelect() {
+export default function QuickColorSelect(): JSX.Element {
   const color = useSelector((s) => s.values.selectedStyle.color)
 
   return (

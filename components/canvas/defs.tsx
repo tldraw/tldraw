@@ -1,11 +1,11 @@
-import { getShapeStyle } from 'lib/shape-styles'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeStyle } from 'state/shape-styles'
+import { getShapeUtils } from 'state/shape-utils'
 import React, { memo } from 'react'
 import { useSelector } from 'state'
 import { deepCompareArrays, getCurrentCamera, getPage } from 'utils/utils'
 import { DotCircle, Handle } from './misc'
 
-export default function Defs() {
+export default function Defs(): JSX.Element {
   const zoom = useSelector((s) => getCurrentCamera(s.data).zoom)
 
   const currentPageShapeIds = useSelector(({ data }) => {

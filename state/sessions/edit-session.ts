@@ -1,16 +1,9 @@
-import { Data, LineShape, RayShape, Shape } from 'types'
-import vec from 'utils/vec'
+import { Data, Shape } from 'types'
 import BaseSession from './base-session'
 import commands from 'state/commands'
 import { current } from 'immer'
-import {
-  getPage,
-  getPageState,
-  getSelectedIds,
-  getSelectedShapes,
-  getShape,
-} from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getPage, getSelectedShapes, getShape } from 'utils/utils'
+import { getShapeUtils } from 'state/shape-utils'
 
 export default class EditSession extends BaseSession {
   snapshot: EditSnapshot
@@ -20,7 +13,7 @@ export default class EditSession extends BaseSession {
     this.snapshot = getEditSnapshot(data)
   }
 
-  update(data: Data, change: Partial<Shape>) {
+  update(data: Data, change: Partial<Shape>): void {
     const initialShape = this.snapshot.initialShape
     const shape = getShape(data, initialShape.id)
     const utils = getShapeUtils(shape)
@@ -29,17 +22,18 @@ export default class EditSession extends BaseSession {
     })
   }
 
-  cancel(data: Data) {
+  cancel(data: Data): void {
     const initialShape = this.snapshot.initialShape
     const page = getPage(data)
     page.shapes[initialShape.id] = initialShape
   }
 
-  complete(data: Data) {
+  complete(data: Data): void {
     commands.edit(data, this.snapshot, getEditSnapshot(data))
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getEditSnapshot(data: Data) {
   const initialShape = getSelectedShapes(current(data))[0]
 

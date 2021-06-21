@@ -4,7 +4,6 @@ import { Data } from 'types'
 import {
   getCurrentCamera,
   getPage,
-  getSelectedIds,
   getSelectedShapes,
   setSelectedIds,
 } from 'utils/utils'
@@ -12,7 +11,7 @@ import { uniqueId } from 'utils/utils'
 import { current } from 'immer'
 import vec from 'utils/vec'
 
-export default function duplicateCommand(data: Data) {
+export default function duplicateCommand(data: Data): void {
   const { currentPageId } = data
   const selectedShapes = getSelectedShapes(current(data))
   const duplicates = selectedShapes.map((shape) => ({

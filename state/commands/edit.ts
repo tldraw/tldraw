@@ -3,13 +3,13 @@ import history from '../history'
 import { Data } from 'types'
 import { getPage } from 'utils/utils'
 import { EditSnapshot } from 'state/sessions/edit-session'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 
 export default function editCommand(
   data: Data,
   before: EditSnapshot,
   after: EditSnapshot
-) {
+): void {
   history.execute(
     data,
     new Command({

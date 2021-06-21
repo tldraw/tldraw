@@ -24,7 +24,7 @@ function handlePointerUp(e: React.PointerEvent<SVGRectElement>) {
   state.send('STOPPED_POINTING', inputs.pointerUp(e))
 }
 
-export default function BoundsBg() {
+export default function BoundsBg(): JSX.Element {
   const rBounds = useRef<SVGRectElement>(null)
 
   const bounds = useSelector((state) => state.values.selectedBounds)

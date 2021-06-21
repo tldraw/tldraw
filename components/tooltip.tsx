@@ -10,7 +10,7 @@ export default function Tooltip({
   children: React.ReactNode
   label: string
   side?: 'bottom' | 'left' | 'right' | 'top'
-}) {
+}): JSX.Element {
   return (
     <_Tooltip.Root>
       <_Tooltip.Trigger as="span">{children}</_Tooltip.Trigger>

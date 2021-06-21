@@ -8,7 +8,7 @@ function handleChange(size: string) {
   state.send('CHANGED_STYLE', { size })
 }
 
-export default function SizePicker({ size }: { size: SizeStyle }) {
+export default function SizePicker({ size }: { size: SizeStyle }): JSX.Element {
   return (
     <Group name="width" onValueChange={handleChange}>
       <Item

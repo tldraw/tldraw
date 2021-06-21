@@ -1,16 +1,11 @@
 import Command from './command'
 import history from '../history'
 import { Data, ShapeType } from 'types'
-import {
-  getPage,
-  getSelectedShapes,
-  getShape,
-  setSelectedIds,
-} from 'utils/utils'
+import { getPage, getSelectedShapes, setSelectedIds } from 'utils/utils'
 import { current } from 'immer'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 
-export default function ungroupCommand(data: Data) {
+export default function ungroupCommand(data: Data): void {
   const cData = current(data)
   const { currentPageId } = cData
 
@@ -94,10 +89,10 @@ export default function ungroupCommand(data: Data) {
   )
 }
 
-function getShapeDepth(data: Data, id: string, depth = 0) {
-  if (id === data.currentPageId) {
-    return depth
-  }
+// function getShapeDepth(data: Data, id: string, depth = 0) {
+//   if (id === data.currentPageId) {
+//     return depth
+//   }
 
-  return getShapeDepth(data, getShape(data, id).parentId, depth + 1)
-}
+//   return getShapeDepth(data, getShape(data, id).parentId, depth + 1)
+// }

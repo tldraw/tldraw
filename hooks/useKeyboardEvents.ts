@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { useEffect } from 'react'
 import state from 'state'
 import { MoveType } from 'types'
@@ -157,6 +158,7 @@ export default function useKeyboardEvents() {
         }
         case 'o': {
           if (metaKey(e)) {
+            break
           } else {
             state.send('SELECTED_DOT_TOOL', getKeyboardEventInfo(e))
           }
@@ -204,6 +206,7 @@ export default function useKeyboardEvents() {
         }
         case 'i': {
           if (metaKey(e)) {
+            break
           } else {
             state.send('SELECTED_CIRCLE_TOOL', getKeyboardEventInfo(e))
           }
@@ -221,6 +224,7 @@ export default function useKeyboardEvents() {
         }
         case 'y': {
           if (metaKey(e)) {
+            break
           } else {
             state.send('SELECTED_RAY_TOOL', getKeyboardEventInfo(e))
           }
@@ -228,6 +232,7 @@ export default function useKeyboardEvents() {
         }
         case 'p': {
           if (metaKey(e)) {
+            break
           } else {
             state.send('SELECTED_POLYLINE_TOOL', getKeyboardEventInfo(e))
           }
@@ -235,6 +240,7 @@ export default function useKeyboardEvents() {
         }
         case 'r': {
           if (metaKey(e)) {
+            break
           } else {
             state.send('SELECTED_RECTANGLE_TOOL', getKeyboardEventInfo(e))
           }

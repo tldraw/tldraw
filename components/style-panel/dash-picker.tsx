@@ -17,7 +17,7 @@ interface Props {
   dash: DashStyle
 }
 
-export default function DashPicker({ dash }: Props) {
+export default function DashPicker({ dash }: Props): JSX.Element {
   return (
     <Group name="Dash" onValueChange={handleChange}>
       <Item

@@ -1,6 +1,6 @@
 import * as Checkbox from '@radix-ui/react-checkbox'
 import { CheckIcon } from '@radix-ui/react-icons'
-import { strokes } from 'lib/shape-styles'
+import { strokes } from 'state/shape-styles'
 import { Square } from 'react-feather'
 import { IconWrapper, RowButton } from '../shared'
 
@@ -9,7 +9,10 @@ interface Props {
   onChange: (isFilled: boolean | string) => void
 }
 
-export default function IsFilledPicker({ isFilled, onChange }: Props) {
+export default function IsFilledPicker({
+  isFilled,
+  onChange,
+}: Props): JSX.Element {
   return (
     <Checkbox.Root
       as={RowButton}

@@ -226,7 +226,7 @@ class Storage {
     )
 
     // Save page state
-    let currentPageState = data.pageStates[pageId]
+    const currentPageState = data.pageStates[pageId]
 
     localStorage.setItem(
       storageId(fileId, 'pageState', pageId),

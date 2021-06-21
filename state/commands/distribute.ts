@@ -7,9 +7,12 @@ import {
   getPage,
   getSelectedShapes,
 } from 'utils/utils'
-import { getShapeUtils } from 'lib/shape-utils'
+import { getShapeUtils } from 'state/shape-utils'
 
-export default function distributeCommand(data: Data, type: DistributeType) {
+export default function distributeCommand(
+  data: Data,
+  type: DistributeType
+): void {
   const { currentPageId } = data
 
   const selectedShapes = getSelectedShapes(data).filter(
@@ -130,7 +133,7 @@ export default function distributeCommand(data: Data, type: DistributeType) {
       },
       undo(data) {
         const { shapes } = getPage(data, currentPageId)
-        for (let id in boundsForShapes) {
+        for (const id in boundsForShapes) {
           const shape = shapes[id]
           const initialBounds = boundsForShapes[id]
           getShapeUtils(shape).translateTo(shape, [
