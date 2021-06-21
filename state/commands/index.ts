@@ -19,6 +19,7 @@ import paste from './paste'
 import rotateCcw from './rotate-ccw'
 import stretch from './stretch'
 import style from './style'
+import mutate from './mutate'
 import toggle from './toggle'
 import transform from './transform'
 import transformSingle from './transform-single'
@@ -28,6 +29,7 @@ import edit from './edit'
 import resetBounds from './reset-bounds'
 
 const commands = {
+  mutate,
   align,
   arrow,
   changePage,

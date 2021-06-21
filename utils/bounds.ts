@@ -1,8 +1,8 @@
-import { Bounds } from "types"
+import { Bounds } from 'types'
 import {
   intersectPolygonBounds,
   intersectPolylineBounds,
-} from "./intersections"
+} from './intersections'
 
 /**
  * Get whether two bounds collide.

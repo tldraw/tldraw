@@ -66,7 +66,6 @@ const initialData: Data = {
     size: SizeStyle.Medium,
     color: ColorStyle.Black,
     dash: DashStyle.Solid,
-    fontSize: FontSize.Medium,
     isFilled: false,
   },
   activeTool: 'select',
@@ -131,7 +130,7 @@ const state = createState({
         wait: 0.01,
         if: 'hasSelection',
         do: 'zoomCameraToSelectionActual',
-        else: ['zoomCameraToFit', 'zoomCameraToActual'],
+        else: ['zoomCameraToActual'],
       },
       on: {
         COPIED: { if: 'hasSelection', do: 'copyToClipboard' },

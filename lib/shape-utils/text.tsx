@@ -2,7 +2,12 @@ import { uniqueId, isMobile } from 'utils/utils'
 import vec from 'utils/vec'
 import { TextShape, ShapeType, FontSize, SizeStyle } from 'types'
 import { registerShapeUtils } from './index'
-import { defaultStyle, getFontStyle, getShapeStyle } from 'lib/shape-styles'
+import {
+  defaultStyle,
+  getFontSize,
+  getFontStyle,
+  getShapeStyle,
+} from 'lib/shape-styles'
 import styled from 'styles'
 import state from 'state'
 import { useEffect, useRef } from 'react'
@@ -98,6 +103,32 @@ const text = registerShapeUtils<TextShape>({
       state.send('FOCUSED_EDITING_SHAPE')
     }
 
+    const fontSize = getFontSize(shape.style.size) * shape.scale
+    const gap = fontSize * 0.4
+
+    if (!isEditing) {
+      return (
+        <g id={id} pointerEvents="none">
+          {text.split('\n').map((str, i) => (
+            <text
+              key={i}
+              x={4}
+              y={4 + gap / 2 + i * (fontSize + gap)}
+              fontFamily="Verveine Regular"
+              fontStyle="normal"
+              fontWeight="regular"
+              fontSize={fontSize}
+              width={bounds.width}
+              height={bounds.height}
+              dominant-baseline="hanging"
+            >
+              {str}
+            </text>
+          ))}
+        </g>
+      )
+    }
+
     return (
       <foreignObject
         id={id}
@@ -107,37 +138,26 @@ const text = registerShapeUtils<TextShape>({
         height={bounds.height}
         pointerEvents="none"
       >
-        {isEditing ? (
-          <StyledTextArea
-            ref={ref}
-            style={{
-              font,
-              color: styles.stroke,
-            }}
-            value={text}
-            tabIndex={0}
-            autoComplete="false"
-            autoCapitalize="false"
-            autoCorrect="false"
-            autoSave="false"
-            placeholder=""
-            name="text"
-            autoFocus={isMobile() ? true : false}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            onChange={handleChange}
-          />
-        ) : (
-          <StyledText
-            style={{
-              font,
-              color: styles.stroke,
-            }}
-          >
-            {text}
-          </StyledText>
-        )}
+        <StyledTextArea
+          ref={ref}
+          style={{
+            font,
+            color: styles.stroke,
+          }}
+          value={text}
+          tabIndex={0}
+          autoComplete="false"
+          autoCapitalize="false"
+          autoCorrect="false"
+          autoSave="false"
+          placeholder=""
+          name="text"
+          autoFocus={isMobile() ? true : false}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          onChange={handleChange}
+        />
       </foreignObject>
     )
   },

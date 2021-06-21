@@ -5,6 +5,7 @@ import commands from 'state/commands'
 import { current, freeze } from 'immer'
 import { getShapeUtils } from 'lib/shape-utils'
 import {
+  deepClone,
   getBoundsCenter,
   getBoundsFromPoints,
   getCommonBounds,
@@ -103,26 +104,28 @@ export default class TransformSession extends BaseSession {
   }
 
   complete(data: Data) {
-    if (!this.snapshot.hasUnlockedShapes) return
+    const { initialShapes, hasUnlockedShapes } = this.snapshot
 
-    commands.transform(
-      data,
-      this.snapshot,
-      getTransformSnapshot(data, this.transformType),
-      this.scaleX,
-      this.scaleY
+    if (!hasUnlockedShapes) return
+
+    const page = getPage(data)
+
+    const finalShapes = initialShapes.map((shape) =>
+      deepClone(page.shapes[shape.id])
     )
+
+    commands.mutate(data, initialShapes, finalShapes)
   }
 }
 
 export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
-  const cData = current(data)
-  const { currentPageId } = cData
-  const page = getPage(cData)
+  const { currentPageId } = data
+  const page = getPage(data)
 
   const initialShapes = setToArray(getSelectedIds(data))
-    .flatMap((id) => getDocumentBranch(cData, id).map((id) => page.shapes[id]))
+    .flatMap((id) => getDocumentBranch(data, id).map((id) => page.shapes[id]))
     .filter((shape) => !shape.isLocked)
+    .map((shape) => deepClone(shape))
 
   const hasUnlockedShapes = initialShapes.length > 0
 
@@ -151,6 +154,7 @@ export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
     hasUnlockedShapes,
     isAllAspectRatioLocked,
     currentPageId,
+    initialShapes,
     initialBounds: commonBounds,
     shapeBounds: Object.fromEntries(
       initialShapes.map((shape) => {

@@ -47,5 +47,10 @@
 
 ## Clipboard
 
-- [ ] Copy
-- [ ] Paste
+- [x] Copy
+- [x] Paste shapes
+- [ ] Paste as text
+
+## Copy to SVG
+
+- [ ] Copy to SVG

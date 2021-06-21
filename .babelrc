@@ -1,0 +1,7 @@
+{
+  "env": {
+    "test": {
+      "presets": ["next/babel"]
+    }
+  }
+}

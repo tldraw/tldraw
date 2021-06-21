@@ -16,7 +16,7 @@ export interface Data {
     isToolLocked: boolean
     isPenLocked: boolean
   }
-  currentStyle: ShapeStyles & TextStyles
+  currentStyle: ShapeStyles
   activeTool: ShapeType | 'select'
   brush?: Bounds
   boundsRotation: number
@@ -114,10 +114,6 @@ export type ShapeStyles = {
   isFilled: boolean
 }
 
-export type TextStyles = {
-  fontSize: FontSize
-}
-
 export interface BaseShape {
   id: string
   seed: number
@@ -180,7 +176,6 @@ export interface DrawShape extends BaseShape {
 
 export interface ArrowShape extends BaseShape {
   type: ShapeType.Arrow
-  points: number[][]
   handles: Record<string, ShapeHandle>
   bend: number
   decorations?: {

@@ -1850,3 +1850,65 @@ export function decompress(s: string) {
 
   return out.join('')
 }
+
+function getResizeOffset(a: Bounds, b: Bounds) {
+  const { minX: x0, minY: y0, width: w0, height: h0 } = a
+  const { minX: x1, minY: y1, width: w1, height: h1 } = b
+
+  let delta: number[]
+
+  if (h0 === h1 && w0 !== w1) {
+    if (x0 !== x1) {
+      // moving left edge, pin right edge
+      delta = vec.sub([x1, y1 + h1 / 2], [x0, y0 + h0 / 2])
+    } else {
+      // moving right edge, pin left edge
+      delta = vec.sub([x1 + w1, y1 + h1 / 2], [x0 + w0, y0 + h0 / 2])
+    }
+  } else if (h0 !== h1 && w0 === w1) {
+    if (y0 !== y1) {
+      // moving top edge, pin bottom edge
+      delta = vec.sub([x1 + w1 / 2, y1], [x0 + w0 / 2, y0])
+    } else {
+      // moving bottom edge, pin top edge
+      delta = vec.sub([x1 + w1 / 2, y1 + h1], [x0 + w0 / 2, y0 + h0])
+    }
+  } else if (x0 !== x1) {
+    if (y0 !== y1) {
+      // moving top left, pin bottom right
+      delta = vec.sub([x1, y1], [x0, y0])
+    } else {
+      // moving bottom left, pin top right
+      delta = vec.sub([x1, y1 + h1], [x0, y0 + h0])
+    }
+  } else if (y0 !== y1) {
+    // moving top right, pin bottom left
+    delta = vec.sub([x1 + w1, y1], [x0 + w0, y0])
+  } else {
+    // moving bottom right, pin top left
+    delta = vec.sub([x1 + w1, y1 + h1], [x0 + w0, y0 + h0])
+  }
+
+  return delta
+}
+
+export function deepClone<T extends unknown[] | object>(obj: T): T {
+  if (obj === null) return null
+
+  let clone = { ...obj }
+
+  Object.keys(obj).forEach(
+    (key) =>
+      (clone[key] =
+        typeof obj[key] === 'object' ? deepClone(obj[key]) : obj[key])
+  )
+
+  if (Array.isArray(obj)) {
+    // @ts-ignore
+    clone.length = obj.length
+    // @ts-ignore
+    return Array.from(clone) as T
+  }
+
+  return clone
+}

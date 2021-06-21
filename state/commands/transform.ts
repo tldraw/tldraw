@@ -18,24 +18,12 @@ export default function transformCommand(
       name: 'transform_shapes',
       category: 'canvas',
       do(data) {
-        const { type, shapeBounds } = after
+        const { shapeBounds } = after
 
         const { shapes } = getPage(data)
 
         for (let id in shapeBounds) {
-          const { initialShapeBounds: bounds } = after.shapeBounds[id]
-          const { initialShape, transformOrigin } = before.shapeBounds[id]
-          const shape = shapes[id]
-
-          getShapeUtils(shape)
-            .transform(shape, bounds, {
-              type,
-              initialShape,
-              transformOrigin,
-              scaleX,
-              scaleY,
-            })
-            .onSessionComplete(shape)
+          shapes[id] = shapeBounds[id].initialShape
         }
 
         updateParents(data, Object.keys(shapeBounds))

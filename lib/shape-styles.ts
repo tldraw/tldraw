@@ -38,9 +38,9 @@ const strokeWidths = {
 }
 
 const dashArrays = {
-  [DashStyle.Solid]: () => 'none',
-  [DashStyle.Dashed]: (sw: number) => `${sw} ${sw * 2}`,
-  [DashStyle.Dotted]: (sw: number) => `0 ${sw * 1.5}`,
+  [DashStyle.Solid]: () => [1],
+  [DashStyle.Dashed]: (sw: number) => [sw * 2, sw * 4],
+  [DashStyle.Dotted]: (sw: number) => [0, sw * 3],
 }
 
 const fontSizes = {
@@ -50,11 +50,11 @@ const fontSizes = {
   auto: 'auto',
 }
 
-function getStrokeWidth(size: SizeStyle) {
+export function getStrokeWidth(size: SizeStyle) {
   return strokeWidths[size]
 }
 
-function getStrokeDashArray(dash: DashStyle, strokeWidth: number) {
+export function getStrokeDashArray(dash: DashStyle, strokeWidth: number) {
   return dashArrays[dash](strokeWidth)
 }
 
@@ -74,7 +74,7 @@ export function getShapeStyle(
   const { color, size, dash, isFilled } = style
 
   const strokeWidth = getStrokeWidth(size)
-  const strokeDasharray = getStrokeDashArray(dash, strokeWidth)
+  const strokeDasharray = getStrokeDashArray(dash, strokeWidth).join()
 
   return {
     stroke: strokes[color],
