@@ -4,11 +4,10 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'mjs', 'js', 'json', 'jsx'],
   testPathIgnorePatterns: ['<rootDir>[/\\\\](node_modules|.next)[/\\\\]'],
   transformIgnorePatterns: [
-    'node_modules/(?!(roughjs|points-on-curve|path-data-parser|points-on-path|browser-fs-access)/)'
+    'node_modules/(?!(browser-fs-access)/)',
   ],
   transform: {
     '^.+\\.(ts|tsx|mjs)$': 'babel-jest',
-    '^.+\\.mjs$': 'babel-jest',
   },
   modulePaths: ['<rootDir>', 'node_modules'],
   watchPlugins: [
