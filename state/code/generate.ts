@@ -1,5 +1,4 @@
 import Rectangle from './rectangle'
-import Circle from './circle'
 import Ellipse from './ellipse'
 import Polyline from './polyline'
 import Dot from './dot'
@@ -13,7 +12,6 @@ import { CodeControl, Data, Shape } from 'types'
 
 const baseScope = {
   Dot,
-  Circle,
   Ellipse,
   Ray,
   Line,

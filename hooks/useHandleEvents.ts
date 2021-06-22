@@ -12,7 +12,9 @@ export default function useHandleEvents(
       if (!inputs.canAccept(e.pointerId)) return
       e.stopPropagation()
       rGroup.current.setPointerCapture(e.pointerId)
-      state.send('POINTED_HANDLE', inputs.pointerDown(e, id))
+      const info = inputs.pointerDown(e, id)
+
+      state.send('POINTED_HANDLE', info)
     },
     [id]
   )
@@ -22,7 +24,14 @@ export default function useHandleEvents(
       if (!inputs.canAccept(e.pointerId)) return
       e.stopPropagation()
       rGroup.current.releasePointerCapture(e.pointerId)
-      state.send('STOPPED_POINTING', inputs.pointerUp(e))
+      const isDoubleClick = inputs.isDoubleClick()
+      const info = inputs.pointerUp(e, id)
+
+      if (isDoubleClick && !(info.altKey || info.metaKey)) {
+        state.send('DOUBLE_POINTED_HANDLE', info)
+      } else {
+        state.send('STOPPED_POINTING', inputs.pointerUp(e))
+      }
     },
     [id]
   )

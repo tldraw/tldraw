@@ -3,7 +3,7 @@ import { PointerInfo } from 'types'
 import vec from 'utils/vec'
 import { isDarwin, getPoint } from 'utils/utils'
 
-const DOUBLE_CLICK_DURATION = 300
+const DOUBLE_CLICK_DURATION = 250
 
 class Inputs {
   activePointerId?: number
@@ -104,13 +104,14 @@ class Inputs {
     return info
   }
 
-  pointerMove(e: PointerEvent | React.PointerEvent) {
+  pointerMove(e: PointerEvent | React.PointerEvent, target = '') {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     const prev = this.points[e.pointerId]
 
     const info = {
       ...prev,
+      target,
       pointerId: e.pointerId,
       point: getPoint(e),
       pressure: e.pressure || 0.5,
@@ -129,13 +130,14 @@ class Inputs {
     return info
   }
 
-  pointerUp = (e: PointerEvent | React.PointerEvent) => {
+  pointerUp = (e: PointerEvent | React.PointerEvent, target = '') => {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     const prev = this.points[e.pointerId]
 
     const info = {
       ...prev,
+      target,
       origin: prev?.origin || getPoint(e),
       point: getPoint(e),
       pressure: e.pressure || 0.5,

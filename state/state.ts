@@ -26,6 +26,7 @@ import {
   getSelectedIds,
   setSelectedIds,
   getPageState,
+  setToArray,
 } from 'utils/utils'
 import {
   Data,
@@ -161,7 +162,6 @@ const state = createState({
         SELECTED_DRAW_TOOL: { unless: 'isReadOnly', to: 'draw' },
         SELECTED_ARROW_TOOL: { unless: 'isReadOnly', to: 'arrow' },
         SELECTED_DOT_TOOL: { unless: 'isReadOnly', to: 'dot' },
-        SELECTED_CIRCLE_TOOL: { unless: 'isReadOnly', to: 'circle' },
         SELECTED_ELLIPSE_TOOL: { unless: 'isReadOnly', to: 'ellipse' },
         SELECTED_RAY_TOOL: { unless: 'isReadOnly', to: 'ray' },
         SELECTED_LINE_TOOL: { unless: 'isReadOnly', to: 'line' },
@@ -408,6 +408,10 @@ const state = createState({
                 PRESSED_SHIFT_KEY: 'keyUpdateHandleSession',
                 RELEASED_SHIFT_KEY: 'keyUpdateHandleSession',
                 STOPPED_POINTING: { to: 'selecting' },
+                DOUBLE_POINTED_HANDLE: {
+                  do: ['cancelSession', 'doublePointHandle'],
+                  to: 'selecting',
+                },
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
               },
             },
@@ -627,37 +631,6 @@ const state = createState({
                 },
               },
             },
-            circle: {
-              onEnter: 'setActiveToolCircle',
-              initial: 'creating',
-              states: {
-                creating: {
-                  on: {
-                    CANCELLED: { to: 'selecting' },
-                    POINTED_SHAPE: {
-                      to: 'circle.editing',
-                    },
-                    POINTED_CANVAS: {
-                      to: 'circle.editing',
-                    },
-                  },
-                },
-                editing: {
-                  on: {
-                    STOPPED_POINTING: { to: 'selecting' },
-                    CANCELLED: { to: 'selecting' },
-                    MOVED_POINTER: {
-                      if: 'distanceImpliesDrag',
-                      then: {
-                        get: 'newCircle',
-                        do: 'createShape',
-                        to: 'drawingShape.bounds',
-                      },
-                    },
-                  },
-                },
-              },
-            },
             ellipse: {
               onEnter: 'setActiveToolEllipse',
               initial: 'creating',
@@ -870,9 +843,6 @@ const state = createState({
     },
     newArrow() {
       return ShapeType.Arrow
-    },
-    newCircle() {
-      return ShapeType.Circle
     },
     newEllipse() {
       return ShapeType.Ellipse
@@ -1099,6 +1069,12 @@ const state = createState({
       )
     },
 
+    // Handles
+    doublePointHandle(data, payload: PointerInfo) {
+      const id = setToArray(getSelectedIds(data))[0]
+      commands.doublePointHandle(data, id, payload)
+    },
+
     // Dragging Handle
     startHandleSession(data, payload: PointerInfo) {
       const shapeId = Array.from(getSelectedIds(data).values())[0]
@@ -1230,6 +1206,8 @@ const state = createState({
       )
     },
 
+    /* -------------------- Selection ------------------- */
+
     // Nudges
     nudgeSelection(data, payload: { delta: number[]; shiftKey: boolean }) {
       commands.nudge(
@@ -1242,8 +1220,6 @@ const state = createState({
         )
       )
     },
-
-    /* -------------------- Selection ------------------- */
 
     clearInputs() {
       inputs.clear()
@@ -1376,9 +1352,6 @@ const state = createState({
     },
     setActiveToolRay(data) {
       data.activeTool = ShapeType.Ray
-    },
-    setActiveToolCircle(data) {
-      data.activeTool = ShapeType.Circle
     },
     setActiveToolLine(data) {
       data.activeTool = ShapeType.Line

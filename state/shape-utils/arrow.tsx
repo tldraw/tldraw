@@ -7,7 +7,13 @@ import {
   translateBounds,
   pointsBetween,
 } from 'utils/utils'
-import { ArrowShape, DashStyle, ShapeHandle, ShapeType } from 'types'
+import {
+  ArrowShape,
+  DashStyle,
+  Decoration,
+  ShapeHandle,
+  ShapeType,
+} from 'types'
 import { circleFromThreePoints, isAngleBetween } from 'utils/utils'
 import { pointInBounds } from 'utils/hitTests'
 import {
@@ -71,8 +77,8 @@ const arrow = registerShapeUtils<ArrowShape>({
       handles,
       decorations: {
         start: null,
-        end: null,
         middle: null,
+        end: Decoration.Arrow,
       },
       ...props,
       style: {
@@ -98,13 +104,19 @@ const arrow = registerShapeUtils<ArrowShape>({
 
     const arrowDist = vec.dist(start.point, end.point)
 
+    let shaftPath: JSX.Element
+    let startAngle: number
+    let endAngle: number
+
     if (isStraightLine) {
-      // Render a straight arrow as a freehand path.
-      if (!pathCache.has(shape)) {
-        renderPath(shape)
+      if (shape.style.dash === DashStyle.Solid && !pathCache.has(shape)) {
+        renderFreehandArrowShaft(shape)
       }
 
-      const path = pathCache.get(shape)
+      const path =
+        shape.style.dash === DashStyle.Solid
+          ? pathCache.get(shape)
+          : 'M' + start.point + 'L' + end.point
 
       const { strokeDasharray, strokeDashoffset } =
         shape.style.dash === DashStyle.Solid
@@ -119,9 +131,12 @@ const arrow = registerShapeUtils<ArrowShape>({
               2
             )
 
-      return (
-        <g id={id}>
-          {/* Improves hit testing */}
+      startAngle = Math.PI
+
+      endAngle = 0
+
+      shaftPath = (
+        <>
           <path
             d={path}
             stroke="transparent"
@@ -131,7 +146,6 @@ const arrow = registerShapeUtils<ArrowShape>({
             strokeDashoffset="none"
             strokeLinecap="round"
           />
-          {/* Arrowshaft */}
           <path
             d={path}
             fill="none"
@@ -141,79 +155,86 @@ const arrow = registerShapeUtils<ArrowShape>({
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
-          />
-          {/* Arrowhead */}
-          {style.dash !== DashStyle.Solid && (
-            <path
-              d={getArrowHeadPath(shape, 0)}
-              strokeWidth={strokeWidth * 1.618}
-              fill="none"
-              strokeDashoffset="none"
-              strokeDasharray="none"
-            />
-          )}
-        </g>
+          ></path>
+        </>
       )
-    }
+    } else {
+      const circle = getCtp(shape)
 
-    const circle = getCtp(shape)
+      const path = getArrowArcPath(start, end, circle, bend)
 
-    if (!pathCache.has(shape)) {
-      renderPath(
-        shape,
+      const { strokeDasharray, strokeDashoffset } =
+        shape.style.dash === DashStyle.Solid
+          ? {
+              strokeDasharray: 'none',
+              strokeDashoffset: '0',
+            }
+          : getPerfectDashProps(
+              getArcLength(
+                [circle[0], circle[1]],
+                circle[2],
+                start.point,
+                end.point
+              ) - 1,
+              strokeWidth * 1.618,
+              shape.style.dash === DashStyle.Dotted ? 'dotted' : 'dashed',
+              2
+            )
+
+      startAngle =
+        vec.angle([circle[0], circle[1]], start.point) -
+        vec.angle(end.point, start.point) +
+        (Math.PI / 2) * (bend > 0 ? 0.98 : -0.98)
+
+      endAngle =
         vec.angle([circle[0], circle[1]], end.point) -
-          vec.angle(start.point, end.point) +
-          (Math.PI / 2) * (bend > 0 ? 0.98 : -0.98)
+        vec.angle(start.point, end.point) +
+        (Math.PI / 2) * (bend > 0 ? 0.98 : -0.98)
+
+      shaftPath = (
+        <>
+          <path
+            d={path}
+            stroke="transparent"
+            fill="none"
+            strokeWidth={Math.max(8, strokeWidth * 2)}
+            strokeDasharray="none"
+            strokeDashoffset="none"
+            strokeLinecap="round"
+          />
+          <path
+            d={path}
+            fill="none"
+            strokeWidth={strokeWidth * 2}
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+          ></path>
+        </>
       )
     }
-
-    const path = getArrowArcPath(start, end, circle, bend)
-
-    const { strokeDasharray, strokeDashoffset } =
-      shape.style.dash === DashStyle.Solid
-        ? {
-            strokeDasharray: 'none',
-            strokeDashoffset: '0',
-          }
-        : getPerfectDashProps(
-            getArcLength(
-              [circle[0], circle[1]],
-              circle[2],
-              start.point,
-              end.point
-            ) - 1,
-            strokeWidth * 1.618,
-            shape.style.dash === DashStyle.Dotted ? 'dotted' : 'dashed',
-            2
-          )
 
     return (
       <g id={id}>
-        {/* Improves hit testing */}
-        <path
-          d={path}
-          stroke="transparent"
-          fill="none"
-          strokeWidth={Math.max(8, strokeWidth * 2)}
-          strokeLinecap="round"
-          strokeDasharray="none"
-        />
-        {/* Arrow Shaft */}
-        <path
-          d={path}
-          fill="none"
-          strokeWidth={strokeWidth * 1.618}
-          strokeLinecap="round"
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
-        />
-        {/* Arrowhead */}
-        <path
-          d={pathCache.get(shape)}
-          strokeWidth={strokeWidth * 1.618}
-          strokeDasharray="none"
-          fill="none"
-        />
+        {shaftPath}
+        {shape.decorations.start === Decoration.Arrow && (
+          <path
+            d={getArrowHeadPath(shape, start.point, startAngle)}
+            strokeWidth={strokeWidth * 1.618}
+            fill="none"
+            strokeDashoffset="none"
+            strokeDasharray="none"
+          />
+        )}
+        {shape.decorations.end === Decoration.Arrow && (
+          <path
+            d={getArrowHeadPath(shape, end.point, endAngle)}
+            strokeWidth={strokeWidth * 1.618}
+            fill="none"
+            strokeDashoffset="none"
+            strokeDasharray="none"
+          />
+        )}
       </g>
     )
   },
@@ -347,10 +368,29 @@ const arrow = registerShapeUtils<ArrowShape>({
     return this
   },
 
-  onHandleChange(shape, handles) {
-    // const oldBounds = this.getRotatedBounds(shape)
-    // const prevCenter = getBoundsCenter(oldBounds)
+  onDoublePointHandle(shape, handle) {
+    switch (handle) {
+      case 'bend': {
+        shape.bend = 0
+        shape.handles.bend.point = getBendPoint(shape)
+        break
+      }
+      case 'start': {
+        shape.decorations.start = shape.decorations.start
+          ? null
+          : Decoration.Arrow
+        break
+      }
+      case 'end': {
+        shape.decorations.end = shape.decorations.end ? null : Decoration.Arrow
+        break
+      }
+    }
 
+    return this
+  },
+
+  onHandleChange(shape, handles) {
     for (const id in handles) {
       const handle = handles[id]
 
@@ -450,7 +490,7 @@ function getBendPoint(shape: ArrowShape) {
     : vec.add(midPoint, vec.mul(vec.per(u), bendDist))
 }
 
-function renderPath(shape: ArrowShape, endAngle = 0) {
+function renderFreehandArrowShaft(shape: ArrowShape) {
   const { style, id } = shape
   const { start, end } = shape.handles
 
@@ -458,73 +498,38 @@ function renderPath(shape: ArrowShape, endAngle = 0) {
 
   const strokeWidth = +getShapeStyle(style).strokeWidth * 2
 
-  const sw = strokeWidth
-
-  // Start
-  const a = start.point
-
-  // End
-  const b = end.point
-
-  // Middle
   const m = vec.add(
     vec.lrp(start.point, end.point, 0.25 + Math.abs(getRandom()) / 2),
-    [getRandom() * sw, getRandom() * sw]
+    [getRandom() * strokeWidth, getRandom() * strokeWidth]
   )
 
-  // Left and right sides of the arrowhead
-  let { left: c, right: d } = getArrowHeadPoints(shape, endAngle)
-
-  // Switch which side of the arrow is drawn first
-  if (getRandom() > 0) [c, d] = [d, c]
-
-  if (style.dash !== DashStyle.Solid) {
-    pathCache.set(
-      shape,
-      (endAngle ? ['M', c, 'L', b, d] : ['M', a, 'L', b]).join(' ')
-    )
-    return
-  }
-
-  const points = endAngle
-    ? [
-        // Just the arrowhead
-        ...pointsBetween(b, c),
-        ...pointsBetween(c, b),
-        ...pointsBetween(b, d),
-        ...pointsBetween(d, b),
-      ]
-    : [
-        // The arrow shaft
-        b,
-        a,
-        ...pointsBetween(a, m),
-        ...pointsBetween(m, b),
-        ...pointsBetween(b, c),
-        ...pointsBetween(c, b),
-        ...pointsBetween(b, d),
-        ...pointsBetween(d, b),
-      ]
-
-  const stroke = getStroke(points, {
-    size: 1 + strokeWidth,
-    thinning: 0.6,
-    easing: (t) => t * t * t * t,
-    end: { taper: strokeWidth * 20 },
-    start: { taper: strokeWidth * 20 },
-    simulatePressure: false,
-  })
+  const stroke = getStroke(
+    [
+      ...pointsBetween(start.point, m),
+      ...pointsBetween(m, end.point),
+      end.point,
+      end.point,
+      end.point,
+    ],
+    {
+      size: 1 + strokeWidth,
+      thinning: 0.6,
+      easing: (t) => t * t * t * t,
+      end: { taper: strokeWidth * 2 },
+      start: { taper: strokeWidth * 2 },
+      simulatePressure: false,
+    }
+  )
 
   pathCache.set(shape, getSvgPathFromStroke(stroke))
 }
 
-function getArrowHeadPath(shape: ArrowShape, endAngle = 0) {
-  const { end } = shape.handles
-  const { left, right } = getArrowHeadPoints(shape, endAngle)
-  return ['M', left, 'L', end.point, right].join(' ')
+function getArrowHeadPath(shape: ArrowShape, point: number[], angle = 0) {
+  const { left, right } = getArrowHeadPoints(shape, point, angle)
+  return ['M', left, 'L', point, right].join(' ')
 }
 
-function getArrowHeadPoints(shape: ArrowShape, endAngle = 0) {
+function getArrowHeadPoints(shape: ArrowShape, point: number[], angle = 0) {
   const { start, end } = shape.handles
 
   const stroke = +getShapeStyle(shape.style).strokeWidth * 2
@@ -537,18 +542,15 @@ function getArrowHeadPoints(shape: ArrowShape, endAngle = 0) {
   const u = vec.uni(vec.vec(start.point, end.point))
 
   // The end of the arrowhead wings
-  const v = vec.rot(vec.mul(vec.neg(u), arrowHeadlength), endAngle)
+  const v = vec.rot(vec.mul(vec.neg(u), arrowHeadlength), angle)
 
   // Use the shape's random seed to create minor offsets for the angles
   const getRandom = rng(shape.id)
 
   return {
-    left: vec.add(
-      end.point,
-      vec.rot(v, Math.PI / 6 + (Math.PI / 8) * getRandom())
-    ),
+    left: vec.add(point, vec.rot(v, Math.PI / 6 + (Math.PI / 8) * getRandom())),
     right: vec.add(
-      end.point,
+      point,
       vec.rot(v, -(Math.PI / 6) + (Math.PI / 8) * getRandom())
     ),
   }

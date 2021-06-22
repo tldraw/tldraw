@@ -82,6 +82,10 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
       return this
     },
 
+    onDoublePointHandle() {
+      return this
+    },
+
     onDoubleFocus() {
       return this
     },

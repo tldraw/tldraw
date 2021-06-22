@@ -61,7 +61,6 @@ export interface PageState {
 
 export enum ShapeType {
   Dot = 'dot',
-  Circle = 'circle',
   Ellipse = 'ellipse',
   Line = 'line',
   Ray = 'ray',
@@ -137,11 +136,6 @@ export interface DotShape extends BaseShape {
   type: ShapeType.Dot
 }
 
-export interface CircleShape extends BaseShape {
-  type: ShapeType.Circle
-  radius: number
-}
-
 export interface EllipseShape extends BaseShape {
   type: ShapeType.Ellipse
   radiusX: number
@@ -201,7 +195,6 @@ export interface GroupShape extends BaseShape {
 
 export type MutableShape =
   | DotShape
-  | CircleShape
   | EllipseShape
   | LineShape
   | RayShape
@@ -214,7 +207,6 @@ export type MutableShape =
 
 export interface Shapes {
   [ShapeType.Dot]: Readonly<DotShape>
-  [ShapeType.Circle]: Readonly<CircleShape>
   [ShapeType.Ellipse]: Readonly<EllipseShape>
   [ShapeType.Line]: Readonly<LineShape>
   [ShapeType.Ray]: Readonly<RayShape>
@@ -536,6 +528,13 @@ export interface ShapeUtility<K extends Shape> {
     this: ShapeUtility<K>,
     shape: Mutable<K>,
     handle: Partial<K['handles']>
+  ): ShapeUtility<K>
+
+  onDoublePointHandle(
+    this: ShapeUtility<K>,
+    shape: Mutable<K>,
+    handle: keyof K['handles'],
+    info: PointerInfo
   ): ShapeUtility<K>
 
   // Respond when a user double clicks the shape's bounds.
