@@ -1,12 +1,16 @@
 import { uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
-import { EllipseShape, ShapeType } from 'types'
+import { DashStyle, EllipseShape, ShapeType } from 'types'
 import { getShapeUtils } from './index'
 import { boundsContained, getRotatedEllipseBounds } from 'utils/bounds'
 import { intersectEllipseBounds } from 'utils/intersections'
 import { pointInEllipse } from 'utils/hitTests'
 import { ease, getSvgPathFromStroke, rng, translateBounds } from 'utils/utils'
-import { defaultStyle, getShapeStyle } from 'state/shape-styles'
+import {
+  defaultStyle,
+  getShapeStyle,
+  getStrokeDashArray,
+} from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import { registerShapeUtils } from './register'
 
@@ -40,35 +44,43 @@ const ellipse = registerShapeUtils<EllipseShape>({
     const { id, radiusX, radiusY, style } = shape
     const styles = getShapeStyle(style)
 
-    if (!pathCache.has(shape)) {
-      renderPath(shape)
+    if (style.dash === DashStyle.Solid) {
+      if (!pathCache.has(shape)) {
+        renderPath(shape)
+      }
+
+      const path = pathCache.get(shape)
+
+      return (
+        <g id={id}>
+          <ellipse
+            id={id}
+            cx={radiusX}
+            cy={radiusY}
+            rx={Math.max(0, radiusX - +styles.strokeWidth / 2)}
+            ry={Math.max(0, radiusY - +styles.strokeWidth / 2)}
+            stroke="none"
+          />
+          <path d={path} fill={styles.stroke} />
+        </g>
+      )
     }
 
-    const path = pathCache.get(shape)
-
     return (
-      <g id={id}>
-        <ellipse
-          id={id}
-          cx={radiusX}
-          cy={radiusY}
-          rx={Math.max(0, radiusX - Number(styles.strokeWidth) / 2)}
-          ry={Math.max(0, radiusY - Number(styles.strokeWidth) / 2)}
-          stroke="none"
-        />
-        <path d={path} fill={styles.stroke} />
-      </g>
+      <ellipse
+        id={id}
+        cx={radiusX}
+        cy={radiusY}
+        rx={Math.max(0, radiusX - +styles.strokeWidth / 2)}
+        ry={Math.max(0, radiusY - +styles.strokeWidth / 2)}
+        fill={styles.fill}
+        stroke={styles.stroke}
+        strokeDasharray={getStrokeDashArray(
+          style.dash,
+          +styles.strokeWidth
+        ).join(' ')}
+      />
     )
-
-    // return (
-    //   <ellipse
-    //     id={id}
-    //     cx={radiusX}
-    //     cy={radiusY}
-    //     rx={Math.max(0, radiusX - Number(styles.strokeWidth) / 2)}
-    //     ry={Math.max(0, radiusY - Number(styles.strokeWidth) / 2)}
-    //   />
-    // )
   },
 
   getBounds(shape) {

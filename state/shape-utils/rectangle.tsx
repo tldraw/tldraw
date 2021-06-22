@@ -1,6 +1,6 @@
 import { uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
-import { RectangleShape, ShapeType } from 'types'
+import { DashStyle, RectangleShape, ShapeType } from 'types'
 import {
   getSvgPathFromStroke,
   translateBounds,
@@ -8,7 +8,11 @@ import {
   shuffleArr,
   pointsBetween,
 } from 'utils/utils'
-import { defaultStyle, getShapeStyle } from 'state/shape-styles'
+import {
+  defaultStyle,
+  getShapeStyle,
+  getStrokeDashArray,
+} from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import { registerShapeUtils } from './register'
 
@@ -40,29 +44,45 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
   render(shape) {
     const { id, size, radius, style } = shape
+
     const styles = getShapeStyle(style)
 
-    if (!pathCache.has(shape.size)) {
-      renderPath(shape)
+    if (style.dash === DashStyle.Solid) {
+      if (!pathCache.has(shape.size)) {
+        renderPath(shape)
+      }
+
+      const path = pathCache.get(shape.size)
+
+      return (
+        <g id={id}>
+          <rect
+            rx={radius}
+            ry={radius}
+            x={+styles.strokeWidth / 2}
+            y={+styles.strokeWidth / 2}
+            width={Math.max(0, size[0] + -styles.strokeWidth)}
+            height={Math.max(0, size[1] + -styles.strokeWidth)}
+            strokeWidth={0}
+            fill={styles.fill}
+          />
+          <path d={path} fill={styles.stroke} />
+        </g>
+      )
     }
 
-    const path = pathCache.get(shape.size)
-
     return (
-      <g id={id}>
-        <rect
-          className="hi"
-          rx={radius}
-          ry={radius}
-          x={+styles.strokeWidth / 2}
-          y={+styles.strokeWidth / 2}
-          width={Math.max(0, size[0] + -styles.strokeWidth)}
-          height={Math.max(0, size[1] + -styles.strokeWidth)}
-          strokeWidth={0}
-          fill={styles.fill}
-        />
-        <path d={path} fill={styles.stroke} />
-      </g>
+      <rect
+        id={id}
+        width={size[0]}
+        height={size[1]}
+        fill={styles.fill}
+        stroke={styles.stroke}
+        strokeDasharray={getStrokeDashArray(
+          style.dash,
+          +styles.strokeWidth
+        ).join(' ')}
+      />
     )
   },
 
