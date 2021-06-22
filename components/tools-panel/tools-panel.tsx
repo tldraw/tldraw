@@ -75,7 +75,7 @@ export default function ToolsPanel(): JSX.Element {
           </Tooltip>
           <Tooltip label="Ellipse">
             <IconButton
-              name={ShapeType.Circle}
+              name={ShapeType.Ellipse}
               bp={{ '@initial': 'mobile', '@sm': 'small' }}
               size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
               onClick={selectEllipseTool}
