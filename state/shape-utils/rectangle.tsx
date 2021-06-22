@@ -82,6 +82,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
           style.dash,
           +styles.strokeWidth
         ).join(' ')}
+        strokeDashoffset={-(size[0] + size[1])}
       />
     )
   },

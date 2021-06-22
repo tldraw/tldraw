@@ -1791,3 +1791,55 @@ export function updateParents(data: Data, changedShapeIds: string[]): void {
 
   updateParents(data, parentToUpdateIds)
 }
+
+export function perimeterOfEllipse(rx: number, ry: number): number {
+  const h = Math.pow(rx - ry, 2) / Math.pow(rx + ry, 2)
+  const p = Math.PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
+  return p
+}
+
+/**
+ * Get the stroke-dasharray and stroke-dashoffset properties for a dashed or dotted ellipse.
+ * @param rx The radius of the ellipse on the x axis.
+ * @param ry The radius of the ellipse on the y axis.
+ * @param strokeWidth The shape's stroke-width property.
+ * @param style "dashed" or "dotted" (default "dashed")
+ */
+export function getPerfectEllipseDashProps(
+  rx: number,
+  ry: number,
+  strokeWidth: number,
+  style: 'dashed' | 'dotted' = 'dashed'
+) {
+  let dashLength: number
+  let strokeDashoffset: number
+  let ratio: number
+
+  if (style === 'dashed') {
+    dashLength = strokeWidth * 2
+    ratio = 1
+    strokeDashoffset = dashLength / 2
+  } else {
+    dashLength = strokeWidth / 4
+    ratio = 4
+    strokeDashoffset = 0
+  }
+
+  // Find perimeter of the ellipse
+  const h = Math.pow(rx - ry, 2) / Math.pow(rx + ry, 2)
+  const perimeter =
+    Math.PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
+
+  // Find the number of dashes (with one more for good measure)
+  let dashes = perimeter / dashLength / (2 * ratio)
+  dashes = dashes - (dashes % 4)
+  // dashes++
+
+  // Find the gap length
+  const gapLength = (perimeter - dashes * dashLength) / dashes
+
+  return {
+    strokeDasharray: [dashLength, gapLength].join(' '),
+    strokeDashoffset,
+  }
+}

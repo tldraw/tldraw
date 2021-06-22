@@ -929,12 +929,11 @@ const state = createState({
       return data.hoveredId === payload.target
     },
     pointInSelectionBounds(data, payload: PointerInfo) {
-      if (getSelectedIds(data).size === 0) return false
+      const bounds = getSelectionBounds(data)
 
-      return pointInBounds(
-        screenToWorld(payload.point, data),
-        getSelectionBounds(data)
-      )
+      if (!bounds) return false
+
+      return pointInBounds(screenToWorld(payload.point, data), bounds)
     },
     pointHitsShape(data, payload: PointerInfo) {
       const shape = getShape(data, payload.target)
