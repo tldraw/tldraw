@@ -1,13 +1,16 @@
 module.exports = {
   roots: ['<rootDir>'],
   testEnvironment: 'jsdom',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'json', 'jsx'],
+  moduleFileExtensions: ['ts', 'tsx', 'mjs', 'js', 'json', 'jsx'],
   testPathIgnorePatterns: ['<rootDir>[/\\\\](node_modules|.next)[/\\\\]'],
-  transformIgnorePatterns: ['[/\\\\]node_modules[/\\\\].+\\.(ts|tsx)$'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(roughjs|points-on-curve|path-data-parser|points-on-path|browser-fs-access)/)'
+  ],
   transform: {
-    '^.+\\.(ts|tsx)$': 'babel-jest',
+    '^.+\\.(ts|tsx|mjs)$': 'babel-jest',
+    '^.+\\.mjs$': 'babel-jest',
   },
-  modulePaths: ['<rootDir>'],
+  modulePaths: ['<rootDir>', 'node_modules'],
   watchPlugins: [
     'jest-watch-typeahead/filename',
     'jest-watch-typeahead/testname',

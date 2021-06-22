@@ -1,18 +1,32 @@
 import Command from './command'
 import history from '../history'
 import { StretchType, Data, Corner } from 'types'
-import { getCommonBounds, getPage, getSelectedShapes } from 'utils/utils'
+import {
+  deepClone,
+  getCommonBounds,
+  getPage,
+  getSelectedShapes,
+} from 'utils/utils'
 import { getShapeUtils } from 'state/shape-utils'
-import { current } from 'immer'
 
 export default function stretchCommand(data: Data, type: StretchType): void {
   const { currentPageId } = data
-  const initialShapes = getSelectedShapes(current(data))
-  const entries = initialShapes.map(
-    (shape) => [shape.id, getShapeUtils(shape).getBounds(shape)] as const
+
+  const initialShapes = getSelectedShapes(data).map((shape) => deepClone(shape))
+
+  const snapshot = Object.fromEntries(
+    initialShapes.map((shape) => [
+      shape.id,
+      {
+        initialShape: shape,
+        initialBounds: getShapeUtils(shape).getBounds(shape),
+      },
+    ])
   )
-  const boundsForShapes = Object.fromEntries(entries)
-  const commonBounds = getCommonBounds(...entries.map((entry) => entry[1]))
+
+  const commonBounds = getCommonBounds(
+    ...initialShapes.map((shape) => getShapeUtils(shape).getBounds(shape))
+  )
 
   history.execute(
     data,
@@ -24,60 +38,52 @@ export default function stretchCommand(data: Data, type: StretchType): void {
 
         switch (type) {
           case StretchType.Horizontal: {
-            for (const id in boundsForShapes) {
-              const initialShape = initialShapes[id]
-              const shape = shapes[id]
-              const oldBounds = boundsForShapes[id]
-              const newBounds = { ...oldBounds }
-              newBounds.minX = commonBounds.minX
-              newBounds.width = commonBounds.width
-              newBounds.maxX = commonBounds.maxX
+            Object.values(snapshot).forEach(
+              ({ initialShape, initialBounds }) => {
+                const newBounds = { ...initialBounds }
+                newBounds.minX = commonBounds.minX
+                newBounds.width = commonBounds.width
+                newBounds.maxX = commonBounds.maxX
 
-              getShapeUtils(shape).transform(shape, newBounds, {
-                type: Corner.TopLeft,
-                scaleX: newBounds.width / oldBounds.width,
-                scaleY: 1,
-                initialShape,
-                transformOrigin: [0.5, 0.5],
-              })
-            }
+                const shape = shapes[initialShape.id]
+
+                getShapeUtils(shape).transform(shape, newBounds, {
+                  type: Corner.TopLeft,
+                  scaleX: newBounds.width / initialBounds.width,
+                  scaleY: 1,
+                  initialShape,
+                  transformOrigin: [0.5, 0.5],
+                })
+              }
+            )
+
             break
           }
           case StretchType.Vertical: {
-            for (const id in boundsForShapes) {
-              const initialShape = initialShapes[id]
-              const shape = shapes[id]
-              const oldBounds = boundsForShapes[id]
-              const newBounds = { ...oldBounds }
-              newBounds.minY = commonBounds.minY
-              newBounds.height = commonBounds.height
-              newBounds.maxY = commonBounds.maxY
+            Object.values(snapshot).forEach(
+              ({ initialShape, initialBounds }) => {
+                const newBounds = { ...initialBounds }
+                newBounds.minY = commonBounds.minY
+                newBounds.height = commonBounds.height
+                newBounds.maxY = commonBounds.maxY
 
-              getShapeUtils(shape).transform(shape, newBounds, {
-                type: Corner.TopLeft,
-                scaleX: 1,
-                scaleY: newBounds.height / oldBounds.height,
-                initialShape,
-                transformOrigin: [0.5, 0.5],
-              })
-            }
+                const shape = shapes[initialShape.id]
+
+                getShapeUtils(shape).transform(shape, newBounds, {
+                  type: Corner.TopLeft,
+                  scaleX: 1,
+                  scaleY: newBounds.height / initialBounds.height,
+                  initialShape,
+                  transformOrigin: [0.5, 0.5],
+                })
+              }
+            )
           }
         }
       },
       undo(data) {
         const { shapes } = getPage(data, currentPageId)
-        for (const id in boundsForShapes) {
-          const shape = shapes[id]
-          const initialShape = initialShapes[id]
-          const initialBounds = boundsForShapes[id]
-          getShapeUtils(shape).transform(shape, initialBounds, {
-            type: Corner.BottomRight,
-            scaleX: 1,
-            scaleY: 1,
-            initialShape,
-            transformOrigin: [0.5, 0.5],
-          })
-        }
+        initialShapes.forEach((shape) => (shapes[shape.id] = shape))
       },
     })
   )

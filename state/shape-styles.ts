@@ -74,16 +74,14 @@ export function getFontStyle(scale: number, style: ShapeStyles): string {
 export function getShapeStyle(
   style: ShapeStyles
 ): Partial<SVGProps<SVGUseElement>> {
-  const { color, size, dash, isFilled } = style
+  const { color, size, isFilled } = style
 
   const strokeWidth = getStrokeWidth(size)
-  const strokeDasharray = getStrokeDashArray(dash, strokeWidth).join()
 
   return {
     stroke: strokes[color],
     fill: isFilled ? fills[color] : 'none',
     strokeWidth,
-    strokeDasharray,
   }
 }
 

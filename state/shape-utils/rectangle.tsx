@@ -8,13 +8,10 @@ import {
   shuffleArr,
   pointsBetween,
 } from 'utils/utils'
-import {
-  defaultStyle,
-  getShapeStyle,
-  getStrokeDashArray,
-} from 'state/shape-styles'
+import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import { registerShapeUtils } from './register'
+import { getPerfectDashProps } from 'utils/dashes'
 
 const pathCache = new WeakMap<number[], string>([])
 
@@ -44,8 +41,8 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
   render(shape) {
     const { id, size, radius, style } = shape
-
     const styles = getShapeStyle(style)
+    const strokeWidth = +styles.strokeWidth
 
     if (style.dash === DashStyle.Solid) {
       if (!pathCache.has(shape.size)) {
@@ -61,8 +58,8 @@ const rectangle = registerShapeUtils<RectangleShape>({
             ry={radius}
             x={+styles.strokeWidth / 2}
             y={+styles.strokeWidth / 2}
-            width={Math.max(0, size[0] + -styles.strokeWidth)}
-            height={Math.max(0, size[1] + -styles.strokeWidth)}
+            width={Math.max(0, size[0] - strokeWidth)}
+            height={Math.max(0, size[1] - strokeWidth)}
             strokeWidth={0}
             fill={styles.fill}
           />
@@ -71,19 +68,53 @@ const rectangle = registerShapeUtils<RectangleShape>({
       )
     }
 
+    const sw = strokeWidth * 1.618
+
+    const w = Math.max(0, size[0])
+    const h = Math.max(0, size[1])
+
+    const strokes: [number[], number[], number][] = [
+      [[sw / 2, sw / 2], [w - sw, sw / 2], w - sw],
+      [[w - sw / 2, sw / 2], [w - sw / 2, h - sw / 2], h - sw],
+      [[w - sw / 2, h - sw / 2], [sw / 2, h - sw / 2], w - sw],
+      [[sw / 2, h - sw / 2], [sw / 2, sw / 2], h - sw],
+    ]
+
+    const paths = strokes.map(([start, end, length], i) => {
+      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+        length,
+        sw,
+        shape.style.dash === DashStyle.Dotted ? 'dotted' : 'dashed'
+      )
+
+      return (
+        <line
+          key={id + '_' + i}
+          x1={start[0]}
+          y1={start[1]}
+          x2={end[0]}
+          y2={end[1]}
+          stroke={styles.stroke}
+          strokeWidth={sw}
+          strokeLinecap="round"
+          strokeDasharray={strokeDasharray}
+          strokeDashoffset={strokeDashoffset}
+        />
+      )
+    })
+
     return (
-      <rect
-        id={id}
-        width={size[0]}
-        height={size[1]}
-        fill={styles.fill}
-        stroke={styles.stroke}
-        strokeDasharray={getStrokeDashArray(
-          style.dash,
-          +styles.strokeWidth
-        ).join(' ')}
-        strokeDashoffset={-(size[0] + size[1])}
-      />
+      <g id={id}>
+        <rect
+          x={sw / 2}
+          y={sw / 2}
+          width={size[0] - sw}
+          height={size[1] - sw}
+          fill={styles.fill}
+          stroke="none"
+        />
+        {paths}
+      </g>
     )
   },
 

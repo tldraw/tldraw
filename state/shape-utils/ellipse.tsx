@@ -1,11 +1,17 @@
-import { uniqueId, getPerfectEllipseDashProps } from 'utils/utils'
+import { getPerfectDashProps } from 'utils/dashes'
 import vec from 'utils/vec'
 import { DashStyle, EllipseShape, ShapeType } from 'types'
 import { getShapeUtils } from './index'
 import { boundsContained, getRotatedEllipseBounds } from 'utils/bounds'
 import { intersectEllipseBounds } from 'utils/intersections'
 import { pointInEllipse } from 'utils/hitTests'
-import { ease, getSvgPathFromStroke, rng, translateBounds } from 'utils/utils'
+import {
+  uniqueId,
+  ease,
+  getSvgPathFromStroke,
+  rng,
+  translateBounds,
+} from 'utils/utils'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import { registerShapeUtils } from './register'
@@ -41,6 +47,9 @@ const ellipse = registerShapeUtils<EllipseShape>({
     const styles = getShapeStyle(style)
     const strokeWidth = +styles.strokeWidth
 
+    const rx = Math.max(0, radiusX - strokeWidth / 2)
+    const ry = Math.max(0, radiusY - strokeWidth / 2)
+
     if (style.dash === DashStyle.Solid) {
       if (!pathCache.has(shape)) {
         renderPath(shape)
@@ -54,8 +63,8 @@ const ellipse = registerShapeUtils<EllipseShape>({
             id={id}
             cx={radiusX}
             cy={radiusY}
-            rx={Math.max(0, radiusX - strokeWidth / 2)}
-            ry={Math.max(0, radiusY - strokeWidth / 2)}
+            rx={rx}
+            ry={ry}
             stroke="none"
           />
           <path d={path} fill={styles.stroke} />
@@ -63,14 +72,15 @@ const ellipse = registerShapeUtils<EllipseShape>({
       )
     }
 
-    const rx = Math.max(0, radiusX - strokeWidth / 2)
-    const ry = Math.max(0, radiusY - strokeWidth / 2)
+    const h = Math.pow(rx - ry, 2) / Math.pow(rx + ry, 2)
+    const perimeter =
+      Math.PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
 
-    const { strokeDasharray, strokeDashoffset } = getPerfectEllipseDashProps(
-      rx,
-      ry,
-      strokeWidth,
-      shape.style.dash === DashStyle.Dotted ? 'dotted' : 'dashed'
+    const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+      perimeter,
+      strokeWidth * 1.618,
+      shape.style.dash === DashStyle.Dotted ? 'dotted' : 'dashed',
+      4
     )
 
     return (
@@ -83,6 +93,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
           ry={ry}
           fill={styles.fill}
           stroke={styles.stroke}
+          strokeWidth={strokeWidth * 1.618}
           strokeDasharray={strokeDasharray}
           strokeDashoffset={strokeDashoffset}
         />
