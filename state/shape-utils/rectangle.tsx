@@ -70,14 +70,14 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
     const sw = strokeWidth * 1.618
 
-    const w = Math.max(0, size[0])
-    const h = Math.max(0, size[1])
+    const w = Math.max(0, size[0] - sw / 2)
+    const h = Math.max(0, size[1] - sw / 2)
 
     const strokes: [number[], number[], number][] = [
-      [[sw / 2, sw / 2], [w - sw, sw / 2], w - sw],
-      [[w - sw / 2, sw / 2], [w - sw / 2, h - sw / 2], h - sw],
-      [[w - sw / 2, h - sw / 2], [sw / 2, h - sw / 2], w - sw],
-      [[sw / 2, h - sw / 2], [sw / 2, sw / 2], h - sw],
+      [[sw / 2, sw / 2], [w, sw / 2], w - sw / 2],
+      [[w, sw / 2], [w, h], h - sw / 2],
+      [[w, h], [sw / 2, h], w - sw / 2],
+      [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
     ]
 
     const paths = strokes.map(([start, end, length], i) => {
@@ -108,8 +108,8 @@ const rectangle = registerShapeUtils<RectangleShape>({
         <rect
           x={sw / 2}
           y={sw / 2}
-          width={size[0] - sw}
-          height={size[1] - sw}
+          width={w}
+          height={h}
           fill={styles.fill}
           stroke="none"
         />

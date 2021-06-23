@@ -2,7 +2,7 @@ import React, { useRef, memo, useEffect } from 'react'
 import { useSelector } from 'state'
 import styled from 'styles'
 import { getShapeUtils } from 'state/shape-utils'
-import { getPage, isMobile } from 'utils/utils'
+import { getPage, getSelectedIds, isMobile } from 'utils/utils'
 import { Shape as _Shape } from 'types'
 import useShapeEvents from 'hooks/useShapeEvents'
 import vec from 'utils/vec'
@@ -21,6 +21,8 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps): JSX.Element {
   const rFocusable = useRef<HTMLTextAreaElement>(null)
 
   const isEditing = useSelector((s) => s.data.editingId === id)
+
+  const isSelected = useSelector((s) => getSelectedIds(s.data).has(id))
 
   const shape = useSelector((s) => getPage(s.data).shapes[id])
 
@@ -62,9 +64,11 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps): JSX.Element {
       id={id + '-group'}
       ref={rGroup}
       transform={transform}
+      isSelected={isSelected}
       device={isMobileDevice ? 'mobile' : 'desktop'}
+      {...events}
     >
-      {isSelecting && !isShy && (
+      {!isShy && (
         <>
           {isForeignObject ? (
             <HoverIndicator
@@ -73,15 +77,13 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps): JSX.Element {
               height={bounds.height}
               strokeWidth={1.5}
               variant={'ghost'}
-              {...events}
             />
           ) : (
             <HoverIndicator
               as="use"
               href={'#' + id}
-              strokeWidth={+style.strokeWidth + 4}
+              strokeWidth={+style.strokeWidth + 5}
               variant={getShapeUtils(shape).canStyleFill ? 'filled' : 'hollow'}
-              {...events}
             />
           )}
         </>
@@ -201,10 +203,10 @@ const StyledGroup = styled('g', {
       isSelected: 'true',
       css: {
         [`&:hover ${HoverIndicator}`]: {
-          opacity: '0.3',
+          opacity: '0.25',
         },
         [`&:active ${HoverIndicator}`]: {
-          opacity: '0.3',
+          opacity: '0.25',
         },
       },
     },

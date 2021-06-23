@@ -35,7 +35,7 @@ export default function useShapeEvents(
       if (!inputs.canAccept(e.pointerId)) return
       e.stopPropagation()
       rGroup.current.releasePointerCapture(e.pointerId)
-      state.send('STOPPED_POINTING', inputs.pointerUp(e))
+      state.send('STOPPED_POINTING', inputs.pointerUp(e, id))
     },
     [id]
   )

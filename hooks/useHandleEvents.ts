@@ -30,7 +30,7 @@ export default function useHandleEvents(
       if (isDoubleClick && !(info.altKey || info.metaKey)) {
         state.send('DOUBLE_POINTED_HANDLE', info)
       } else {
-        state.send('STOPPED_POINTING', inputs.pointerUp(e))
+        state.send('STOPPED_POINTING', inputs.pointerUp(e, id))
       }
     },
     [id]

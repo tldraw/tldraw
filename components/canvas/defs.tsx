@@ -39,6 +39,6 @@ const Def = memo(function Def({ id }: { id: string }) {
 
   return React.cloneElement(
     getShapeUtils(shape).render(shape, { isEditing: false }),
-    { ...style }
+    { id, ...style }
   )
 })

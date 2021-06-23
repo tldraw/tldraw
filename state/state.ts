@@ -229,6 +229,7 @@ const state = createState({
           initial: 'notPointing',
           states: {
             notPointing: {
+              onEnter: 'clearPointedId',
               on: {
                 CANCELLED: 'clearSelectedIds',
                 STARTED_PINCHING: { to: 'pinching' },
@@ -282,7 +283,7 @@ const state = createState({
                     unless: 'isPointedShapeSelected',
                     then: {
                       if: 'isPressingShiftKey',
-                      do: 'pushPointedIdToSelectedIds',
+                      do: ['pushPointedIdToSelectedIds', 'clearPointedId'],
                       else: ['clearSelectedIds', 'pushPointedIdToSelectedIds'],
                     },
                   },
@@ -334,6 +335,7 @@ const state = createState({
             },
             pointingBounds: {
               on: {
+                CANCELLED: { to: 'notPointing' },
                 STOPPED_POINTING_BOUNDS: [],
                 STOPPED_POINTING: [
                   {
@@ -342,15 +344,17 @@ const state = createState({
                   },
                   {
                     if: 'isPressingShiftKey',
-                    then: [
-                      {
-                        if: 'isPointedShapeSelected',
-                        do: 'pullPointedIdFromSelectedIds',
-                      },
-                    ],
+                    then: {
+                      if: 'isPointedShapeSelected',
+                      do: 'pullPointedIdFromSelectedIds',
+                    },
                     else: {
-                      unless: 'isPointingBounds',
-                      do: ['clearSelectedIds', 'pushPointedIdToSelectedIds'],
+                      if: 'isPointingShape',
+                      do: [
+                        'clearSelectedIds',
+                        'setPointedId',
+                        'pushPointedIdToSelectedIds',
+                      ],
                     },
                   },
                   { to: 'notPointing' },
@@ -914,6 +918,9 @@ const state = createState({
         shape,
         screenToWorld(payload.point, data)
       )
+    },
+    hasPointedId(data, payload: PointerInfo) {
+      return getShape(data, payload.target) !== undefined
     },
     isPointingRotationHandle(
       data,
@@ -1743,6 +1750,7 @@ function getParentId(data: Data, id: string) {
 
 function getPointedId(data: Data, id: string) {
   const shape = getPage(data).shapes[id]
+  if (!shape) return id
 
   return shape.parentId === data.currentParentId ||
     shape.parentId === data.currentPageId

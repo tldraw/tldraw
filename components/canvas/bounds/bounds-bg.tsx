@@ -21,7 +21,7 @@ function handlePointerUp(e: React.PointerEvent<SVGRectElement>) {
   if (!inputs.canAccept(e.pointerId)) return
   e.stopPropagation()
   e.currentTarget.releasePointerCapture(e.pointerId)
-  state.send('STOPPED_POINTING', inputs.pointerUp(e))
+  state.send('STOPPED_POINTING', inputs.pointerUp(e, 'bounds'))
 }
 
 export default function BoundsBg(): JSX.Element {

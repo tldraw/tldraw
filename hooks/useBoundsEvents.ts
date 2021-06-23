@@ -50,7 +50,7 @@ export default function useBoundsEvents(handle: Edge | Corner | 'rotate') {
     e.stopPropagation()
     e.currentTarget.releasePointerCapture(e.pointerId)
     e.currentTarget.replaceWith(e.currentTarget)
-    state.send('STOPPED_POINTING', inputs.pointerUp(e))
+    state.send('STOPPED_POINTING', inputs.pointerUp(e, 'bounds'))
   }, [])
 
   return { onPointerDown, onPointerMove, onPointerUp }

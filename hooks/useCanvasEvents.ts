@@ -54,8 +54,14 @@ export default function useCanvasEvents(
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     if (!inputs.canAccept(e.pointerId)) return
+    e.stopPropagation()
+
     rCanvas.current.releasePointerCapture(e.pointerId)
-    state.send('STOPPED_POINTING', { id: 'canvas', ...inputs.pointerUp(e) })
+
+    state.send('STOPPED_POINTING', {
+      id: 'canvas',
+      ...inputs.pointerUp(e, 'canvas'),
+    })
   }, [])
 
   const handleTouchStart = useCallback(() => {
