@@ -1003,39 +1003,40 @@ const state = createState({
 
     // Editing
     startEditSession(data) {
-      session.current = new Sessions.EditSession(data)
+      session.start(new Sessions.EditSession(data))
     },
     updateEditSession(data, payload: { change: Partial<Shape> }) {
-      session.current.update(data, payload.change)
+      session.update<Sessions.EditSession>(data, payload.change)
     },
 
     // Brushing
     startBrushSession(data, payload: PointerInfo) {
-      session.current = new Sessions.BrushSession(
-        data,
-        screenToWorld(payload.point, data)
+      session.start(
+        new Sessions.BrushSession(data, screenToWorld(payload.point, data))
       )
     },
     updateBrushSession(data, payload: PointerInfo) {
-      session.current.update(data, screenToWorld(payload.point, data))
+      session.update<Sessions.BrushSession>(
+        data,
+        screenToWorld(payload.point, data)
+      )
     },
 
     // Rotating
     startRotateSession(data, payload: PointerInfo) {
-      session.current = new Sessions.RotateSession(
-        data,
-        screenToWorld(payload.point, data)
+      session.start(
+        new Sessions.RotateSession(data, screenToWorld(payload.point, data))
       )
     },
     keyUpdateRotateSession(data, payload: PointerInfo) {
-      session.current.update(
+      session.update<Sessions.RotateSession>(
         data,
         screenToWorld(inputs.pointer.point, data),
         payload.shiftKey
       )
     },
     updateRotateSession(data, payload: PointerInfo) {
-      session.current.update(
+      session.update<Sessions.RotateSession>(
         data,
         screenToWorld(payload.point, data),
         payload.shiftKey
@@ -1044,16 +1045,18 @@ const state = createState({
 
     // Dragging / Translating
     startTranslateSession(data) {
-      session.current = new Sessions.TranslateSession(
-        data,
-        screenToWorld(inputs.pointer.origin, data)
+      session.start(
+        new Sessions.TranslateSession(
+          data,
+          screenToWorld(inputs.pointer.origin, data)
+        )
       )
     },
     keyUpdateTranslateSession(
       data,
       payload: { shiftKey: boolean; altKey: boolean }
     ) {
-      session.current.update(
+      session.update<Sessions.TranslateSession>(
         data,
         screenToWorld(inputs.pointer.point, data),
         payload.shiftKey,
@@ -1061,7 +1064,7 @@ const state = createState({
       )
     },
     updateTranslateSession(data, payload: PointerInfo) {
-      session.current.update(
+      session.update<Sessions.TranslateSession>(
         data,
         screenToWorld(payload.point, data),
         payload.shiftKey,
@@ -1080,30 +1083,30 @@ const state = createState({
       const shapeId = Array.from(getSelectedIds(data).values())[0]
       const handleId = payload.target
 
-      session.current = new Sessions.HandleSession(
-        data,
-        shapeId,
-        handleId,
-        screenToWorld(inputs.pointer.origin, data)
+      session.start(
+        new Sessions.HandleSession(
+          data,
+          shapeId,
+          handleId,
+          screenToWorld(inputs.pointer.origin, data)
+        )
       )
     },
     keyUpdateHandleSession(
       data,
       payload: { shiftKey: boolean; altKey: boolean }
     ) {
-      session.current.update(
+      session.update<Sessions.HandleSession>(
         data,
         screenToWorld(inputs.pointer.point, data),
-        payload.shiftKey,
-        payload.altKey
+        payload.shiftKey
       )
     },
     updateHandleSession(data, payload: PointerInfo) {
-      session.current.update(
+      session.update<Sessions.HandleSession>(
         data,
         screenToWorld(payload.point, data),
-        payload.shiftKey,
-        payload.altKey
+        payload.shiftKey
       )
     },
 
@@ -1113,59 +1116,67 @@ const state = createState({
       payload: PointerInfo & { target: Corner | Edge }
     ) {
       const point = screenToWorld(inputs.pointer.origin, data)
-      session.current =
+      session.start(
         getSelectedIds(data).size === 1
           ? new Sessions.TransformSingleSession(data, payload.target, point)
           : new Sessions.TransformSession(data, payload.target, point)
+      )
     },
     startDrawTransformSession(data, payload: PointerInfo) {
-      session.current = new Sessions.TransformSingleSession(
-        data,
-        Corner.BottomRight,
-        screenToWorld(payload.point, data),
-        true
+      session.start(
+        new Sessions.TransformSingleSession(
+          data,
+          Corner.BottomRight,
+          screenToWorld(payload.point, data),
+          true
+        )
       )
     },
     keyUpdateTransformSession(data, payload: PointerInfo) {
-      session.current.update(
+      session.update<Sessions.TransformSession>(
         data,
         screenToWorld(inputs.pointer.point, data),
-        payload.shiftKey,
-        payload.altKey
+        payload.shiftKey
       )
     },
     updateTransformSession(data, payload: PointerInfo) {
-      session.current.update(
+      session.update<Sessions.TransformSession>(
         data,
         screenToWorld(payload.point, data),
-        payload.shiftKey,
-        payload.altKey
+        payload.shiftKey
       )
     },
 
     // Direction
     startDirectionSession(data) {
-      session.current = new Sessions.DirectionSession(
-        data,
-        screenToWorld(inputs.pointer.origin, data)
+      session.start(
+        new Sessions.DirectionSession(
+          data,
+          screenToWorld(inputs.pointer.origin, data)
+        )
       )
     },
     updateDirectionSession(data, payload: PointerInfo) {
-      session.current.update(data, screenToWorld(payload.point, data))
+      session.update<Sessions.DirectionSession>(
+        data,
+        screenToWorld(payload.point, data)
+      )
     },
 
     // Drawing
     startDrawSession(data, payload: PointerInfo) {
       const id = Array.from(getSelectedIds(data).values())[0]
-      session.current = new Sessions.DrawSession(
-        data,
-        id,
-        screenToWorld(inputs.pointer.origin, data),
-        payload.shiftKey
+      session.start(
+        new Sessions.DrawSession(
+          data,
+          id,
+          screenToWorld(inputs.pointer.origin, data),
+          payload.shiftKey
+        )
       )
     },
     keyUpdateDrawSession(data, payload: PointerInfo) {
-      session.current.update(
+      session.update<Sessions.DrawSession>(
         data,
         screenToWorld(inputs.pointer.point, data),
         payload.pressure,
@@ -1173,7 +1184,7 @@ const state = createState({
       )
     },
     updateDrawSession(data, payload: PointerInfo) {
-      session.current.update(
+      session.update<Sessions.DrawSession>(
         data,
         screenToWorld(payload.point, data),
         payload.pressure,
@@ -1184,22 +1195,25 @@ const state = createState({
     // Arrow
     startArrowSession(data, payload: PointerInfo) {
       const id = Array.from(getSelectedIds(data).values())[0]
-      session.current = new Sessions.ArrowSession(
-        data,
-        id,
-        screenToWorld(inputs.pointer.origin, data),
-        payload.shiftKey
+
+      session.start(
+        new Sessions.ArrowSession(
+          data,
+          id,
+          screenToWorld(inputs.pointer.origin, data),
+          payload.shiftKey
+        )
       )
     },
     keyUpdateArrowSession(data, payload: PointerInfo) {
-      session.current.update(
+      session.update<Sessions.ArrowSession>(
         data,
         screenToWorld(inputs.pointer.point, data),
         payload.shiftKey
       )
     },
     updateArrowSession(data, payload: PointerInfo) {
-      session.current.update(
+      session.update<Sessions.ArrowSession>(
         data,
         screenToWorld(payload.point, data),
         payload.shiftKey

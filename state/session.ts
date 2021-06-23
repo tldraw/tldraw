@@ -13,12 +13,28 @@ class SessionManager {
     return this
   }
 
-  get current() {
-    return this._current
+  update<T extends BaseSession>(...args: Parameters<T['update']>) {
+    this._current.update.call(null, ...args)
+    return this
   }
 
-  set current(session: BaseSession) {
+  start(session: BaseSession) {
     this._current = session
+    return this
+  }
+
+  compplete<T extends BaseSession>(...args: Parameters<T['complete']>) {
+    this._current.complete.call(null, ...args)
+    return this
+  }
+
+  cancel<T extends BaseSession>(...args: Parameters<T['cancel']>) {
+    this._current.cancel.call(null, ...args)
+    return this
+  }
+
+  get current() {
+    return this._current
   }
 }
 
