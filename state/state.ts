@@ -27,6 +27,7 @@ import {
   setSelectedIds,
   getPageState,
   setToArray,
+  copyToClipboard,
 } from 'utils/utils'
 import {
   Data,
@@ -134,6 +135,7 @@ const state = createState({
         COPIED: { if: 'hasSelection', do: 'copyToClipboard' },
         PASTED: { do: 'pasteFromClipboard' },
         PASTED_SHAPES_FROM_CLIPBOARD: 'pasteShapesFromClipboard',
+        COPIED_STATE_TO_CLIPBOARD: 'copyStateToClipboard',
         LOADED_FONTS: 'resetShapes',
         TOGGLED_SHAPE_LOCK: { if: 'hasSelection', do: 'lockSelection' },
         TOGGLED_SHAPE_HIDE: { if: 'hasSelection', do: 'hideSelection' },
@@ -266,6 +268,28 @@ const state = createState({
                   },
                 },
                 UNHOVERED_SHAPE: 'clearHoveredId',
+                POINTED_SHAPE: [
+                  {
+                    if: 'isPressingMetaKey',
+                    to: 'brushSelecting',
+                  },
+                  'setPointedId',
+                  {
+                    if: 'pointInSelectionBounds',
+                    to: 'pointingBounds',
+                  },
+                  {
+                    unless: 'isPointedShapeSelected',
+                    then: {
+                      if: 'isPressingShiftKey',
+                      do: 'pushPointedIdToSelectedIds',
+                      else: ['clearSelectedIds', 'pushPointedIdToSelectedIds'],
+                    },
+                  },
+                  {
+                    to: 'pointingBounds',
+                  },
+                ],
                 DOUBLE_POINTED_SHAPE: [
                   'setPointedId',
                   {
@@ -284,28 +308,6 @@ const state = createState({
                       'clearSelectedIds',
                       'pushPointedIdToSelectedIds',
                     ],
-                    to: 'pointingBounds',
-                  },
-                ],
-                POINTED_SHAPE: [
-                  {
-                    if: 'isPressingMetaKey',
-                    to: 'brushSelecting',
-                  },
-                  'setPointedId',
-                  {
-                    if: 'pointInSelectionBounds',
-                    to: 'pointingBounds',
-                  },
-                  {
-                    unless: 'isPointedShapeSelected',
-                    then: {
-                      if: 'isPressingShiftKey',
-                      do: ['pushPointedIdToSelectedIds', 'clearPointedId'],
-                      else: ['clearSelectedIds', 'pushPointedIdToSelectedIds'],
-                    },
-                  },
-                  {
                     to: 'pointingBounds',
                   },
                 ],
@@ -986,16 +988,16 @@ const state = createState({
 
     // Shared
     breakSession(data) {
-      session.cancel(data).clear()
+      session.cancel(data)
       history.disable()
       commands.deleteSelected(data)
       history.enable()
     },
     cancelSession(data) {
-      session.cancel(data).clear()
+      session.cancel(data)
     },
     completeSession(data) {
-      session.complete(data).clear()
+      session.complete(data)
     },
 
     // Editing
@@ -1618,7 +1620,7 @@ const state = createState({
       data.settings.isToolLocked = !data.settings.isToolLocked
     },
 
-    /* ---------------------- Data ---------------------- */
+    /* ------------------- Clipboard -------------------- */
 
     copyToSvg(data) {
       clipboard.copySelectionToSvg(data)
@@ -1628,6 +1630,10 @@ const state = createState({
       clipboard.copy(getSelectedShapes(data))
     },
 
+    copyStateToClipboard(data) {
+      copyToClipboard(JSON.stringify(data))
+    },
+
     pasteFromClipboard() {
       clipboard.paste()
     },
@@ -1635,6 +1641,8 @@ const state = createState({
     pasteShapesFromClipboard(data, payload: { shapes: Shape[] }) {
       commands.paste(data, payload.shapes)
     },
+
+    /* ---------------------- Data ---------------------- */
 
     restoreSavedData(data) {
       storage.firstLoad(data)
@@ -1772,9 +1780,7 @@ function getSelectionBounds(data: Data) {
 
   const page = getPage(data)
 
-  const shapes = Array.from(selectedIds.values())
-    .map((id) => page.shapes[id])
-    .filter(Boolean)
+  const shapes = getSelectedShapes(data)
 
   if (selectedIds.size === 0) return null
 

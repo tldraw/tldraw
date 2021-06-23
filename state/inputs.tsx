@@ -165,7 +165,6 @@ class Inputs {
   }
 
   canAccept = (pointerId: PointerEvent['pointerId']) => {
-    // return true
     return (
       this.activePointerId === undefined || this.activePointerId === pointerId
     )
@@ -186,6 +185,10 @@ class Inputs {
     this.activePointerId = undefined
     this.pointer = undefined
     this.points = {}
+  }
+
+  resetDoubleClick() {
+    this.pointerUpTime = 0
   }
 }
 

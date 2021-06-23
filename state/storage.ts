@@ -1,4 +1,3 @@
-import * as fa from 'browser-fs-access'
 import { Data, PageState, TLDocument } from 'types'
 import { decompress, compress, setToArray } from 'utils/utils'
 import state from './state'
@@ -12,7 +11,7 @@ function storageId(fileId: string, label: string, id?: string) {
 }
 
 class Storage {
-  previousSaveHandle?: fa.FileSystemHandle
+  previousSaveHandle?: any // FileSystemHandle
 
   constructor() {
     // this.loadPreviousHandle() // Still needs debugging
@@ -207,9 +206,8 @@ class Storage {
   /* ---------------------- Pages --------------------- */
 
   async loadPreviousHandle() {
-    const handle: fa.FileSystemHandle | undefined = await idb.get(
-      'previous_handle'
-    )
+    const handle = await idb.get('previous_handle')
+
     if (handle !== undefined) {
       this.previousSaveHandle = handle
     }
@@ -315,7 +313,11 @@ class Storage {
     this.saveDataToFileSystem(data, uniqueId(), true)
   }
 
-  saveDataToFileSystem = (data: Data, fileId: string, saveAs: boolean) => {
+  saveDataToFileSystem = async (
+    data: Data,
+    fileId: string,
+    saveAs: boolean
+  ) => {
     const document = this.getCompleteDocument(data)
 
     // Then save to file system
@@ -332,6 +334,8 @@ class Storage {
         type: 'application/vnd.tldraw+json',
       }
     )
+
+    const fa = await import('browser-fs-access')
 
     fa.fileSave(
       blob,
@@ -357,7 +361,9 @@ class Storage {
       })
   }
 
-  loadDocumentFromFilesystem() {
+  async loadDocumentFromFilesystem() {
+    const fa = await import('browser-fs-access')
+
     fa.fileOpen({
       description: 'tldraw files',
     })

@@ -10,6 +10,7 @@ import { freeze } from 'immer'
 import session from './session'
 import state from './state'
 import vec from 'utils/vec'
+import * as Session from './sessions'
 
 /**
  * While a user is drawing with the draw tool, we want to update the shape without
@@ -21,7 +22,7 @@ import vec from 'utils/vec'
 export function fastDrawUpdate(info: PointerInfo): void {
   const data = { ...state.data }
 
-  session.current.update(
+  session.update<Session.DrawSession>(
     data,
     screenToWorld(info.point, data),
     info.pressure,
@@ -91,7 +92,7 @@ export function fastPinchCamera(
 export function fastBrushSelect(point: number[]): void {
   const data = { ...state.data }
 
-  session.current.update(data, screenToWorld(point, data))
+  session.update<Session.BrushSession>(data, screenToWorld(point, data))
 
   state.forceData(freeze(data))
 }
@@ -99,7 +100,7 @@ export function fastBrushSelect(point: number[]): void {
 export function fastTranslate(info: PointerInfo): void {
   const data = { ...state.data }
 
-  session.current.update(
+  session.update<Session.TranslateSession>(
     data,
     screenToWorld(info.point, data),
     info.shiftKey,
@@ -112,11 +113,10 @@ export function fastTranslate(info: PointerInfo): void {
 export function fastTransform(info: PointerInfo): void {
   const data = { ...state.data }
 
-  session.current.update(
+  session.update<Session.TransformSession | Session.TransformSingleSession>(
     data,
     screenToWorld(info.point, data),
-    info.shiftKey,
-    info.altKey
+    info.shiftKey
   )
 
   state.forceData(freeze(data))

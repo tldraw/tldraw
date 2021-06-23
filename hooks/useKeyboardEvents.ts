@@ -246,6 +246,10 @@ export default function useKeyboardEvents() {
           }
           break
         }
+        case '|': {
+          state.send('COPIED_STATE_TO_CLIPBOARD')
+          break
+        }
         default: {
           state.send('PRESSED_KEY', getKeyboardEventInfo(e))
         }
