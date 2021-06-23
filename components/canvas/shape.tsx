@@ -68,7 +68,7 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps): JSX.Element {
       device={isMobileDevice ? 'mobile' : 'desktop'}
       {...events}
     >
-      {!isShy && (
+      {isSelecting && !isShy && (
         <>
           {isForeignObject ? (
             <HoverIndicator

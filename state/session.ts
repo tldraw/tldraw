@@ -71,11 +71,7 @@ class SessionManager {
    * ```
    */
   complete<T extends BaseSession>(...args: Parameters<T['complete']>) {
-    const session = this.#current
-
-    if (session === undefined) return this
-
-    session.complete.call(this.#current, ...args)
+    this.#current?.complete.call(this.#current, ...args)
     this.#current = undefined
     return this
   }
@@ -89,7 +85,7 @@ class SessionManager {
    * ```
    */
   cancel<T extends BaseSession>(...args: Parameters<T['cancel']>) {
-    this.#current.cancel.call(this.#current, ...args)
+    this.#current?.cancel.call(this.#current, ...args)
     this.#current = undefined
     return this
   }
