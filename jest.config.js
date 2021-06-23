@@ -8,7 +8,7 @@ module.exports = {
     '^.+\\.(ts|tsx|mjs)$': 'babel-jest',
   },
   modulePaths: ['<rootDir>', 'node_modules'],
-  testMatch: ["**/__tests__/**/*test.[t]s?(x)"],
+  testMatch: ['**/__tests__/**/*test.[t]s?(x)'],
   watchPlugins: [
     'jest-watch-typeahead/filename',
     'jest-watch-typeahead/testname',
