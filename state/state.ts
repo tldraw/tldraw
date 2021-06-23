@@ -986,24 +986,21 @@ const state = createState({
 
     // Shared
     breakSession(data) {
-      session.current?.cancel(data)
-      session.clear()
+      session.cancel(data).clear()
       history.disable()
       commands.deleteSelected(data)
       history.enable()
     },
     cancelSession(data) {
-      session.current?.cancel(data)
-      session.clear()
+      session.cancel(data).clear()
     },
     completeSession(data) {
-      session.current?.complete(data)
-      session.clear()
+      session.complete(data).clear()
     },
 
     // Editing
     startEditSession(data) {
-      session.start(new Sessions.EditSession(data))
+      session.begin(new Sessions.EditSession(data))
     },
     updateEditSession(data, payload: { change: Partial<Shape> }) {
       session.update<Sessions.EditSession>(data, payload.change)
@@ -1011,7 +1008,7 @@ const state = createState({
 
     // Brushing
     startBrushSession(data, payload: PointerInfo) {
-      session.start(
+      session.begin(
         new Sessions.BrushSession(data, screenToWorld(payload.point, data))
       )
     },
@@ -1024,7 +1021,7 @@ const state = createState({
 
     // Rotating
     startRotateSession(data, payload: PointerInfo) {
-      session.start(
+      session.begin(
         new Sessions.RotateSession(data, screenToWorld(payload.point, data))
       )
     },
@@ -1045,7 +1042,7 @@ const state = createState({
 
     // Dragging / Translating
     startTranslateSession(data) {
-      session.start(
+      session.begin(
         new Sessions.TranslateSession(
           data,
           screenToWorld(inputs.pointer.origin, data)
@@ -1083,7 +1080,7 @@ const state = createState({
       const shapeId = Array.from(getSelectedIds(data).values())[0]
       const handleId = payload.target
 
-      session.start(
+      session.begin(
         new Sessions.HandleSession(
           data,
           shapeId,
@@ -1116,14 +1113,14 @@ const state = createState({
       payload: PointerInfo & { target: Corner | Edge }
     ) {
       const point = screenToWorld(inputs.pointer.origin, data)
-      session.start(
+      session.begin(
         getSelectedIds(data).size === 1
           ? new Sessions.TransformSingleSession(data, payload.target, point)
           : new Sessions.TransformSession(data, payload.target, point)
       )
     },
     startDrawTransformSession(data, payload: PointerInfo) {
-      session.start(
+      session.begin(
         new Sessions.TransformSingleSession(
           data,
           Corner.BottomRight,
@@ -1149,7 +1146,7 @@ const state = createState({
 
     // Direction
     startDirectionSession(data) {
-      session.start(
+      session.begin(
         new Sessions.DirectionSession(
           data,
           screenToWorld(inputs.pointer.origin, data)
@@ -1166,7 +1163,7 @@ const state = createState({
     // Drawing
     startDrawSession(data, payload: PointerInfo) {
       const id = Array.from(getSelectedIds(data).values())[0]
-      session.start(
+      session.begin(
         new Sessions.DrawSession(
           data,
           id,
@@ -1196,7 +1193,7 @@ const state = createState({
     startArrowSession(data, payload: PointerInfo) {
       const id = Array.from(getSelectedIds(data).values())[0]
 
-      session.start(
+      session.begin(
         new Sessions.ArrowSession(
           data,
           id,
