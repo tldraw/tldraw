@@ -4,11 +4,14 @@ import Polyline from './polyline'
 import Dot from './dot'
 import Ray from './ray'
 import Line from './line'
-import Vector from './vector'
+import Arrow from './arrow'
+import Draw from './draw'
 import Utils from './utils'
+import Vec from 'utils/vec'
 import { NumberControl, VectorControl, codeControls, controls } from './control'
 import { codeShapes } from './index'
 import { CodeControl, Data, Shape } from 'types'
+import { getPage } from 'utils/utils'
 
 const baseScope = {
   Dot,
@@ -17,8 +20,10 @@ const baseScope = {
   Line,
   Polyline,
   Rectangle,
-  Vector,
+  Vec,
   Utils,
+  Arrow,
+  Draw,
   VectorControl,
   NumberControl,
 }
@@ -45,9 +50,11 @@ export function generateFromCode(
 
   new Function(...Object.keys(scope), `${code}`)(...Object.values(scope))
 
-  const generatedShapes = Array.from(codeShapes.values()).map(
-    (instance) => instance.shape
-  )
+  const generatedShapes = Array.from(codeShapes.values()).map((instance) => ({
+    ...instance.shape,
+    isGenerated: true,
+    parentId: getPage(data).id,
+  }))
 
   const generatedControls = Array.from(codeControls.values())
 

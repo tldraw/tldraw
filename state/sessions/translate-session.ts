@@ -1,4 +1,4 @@
-import { Data, GroupShape, ShapeType } from 'types'
+import { Data, GroupShape, Shape, ShapeType } from 'types'
 import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
@@ -217,12 +217,13 @@ export function getTranslateSnapshot(data: Data) {
     clones: selectedShapes
       .filter((shape) => shape.type !== ShapeType.Group)
       .flatMap((shape) => {
-        const clone = {
+        const clone: Shape = {
           ...shape,
           id: uniqueId(),
           seed: Math.random(),
           parentId: shape.parentId,
           childIndex: getChildIndexAbove(cData, shape.id),
+          isGenerated: false,
         }
 
         return clone

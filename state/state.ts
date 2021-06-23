@@ -93,7 +93,52 @@ const initialData: Data = {
       file0: {
         id: 'file0',
         name: 'index.ts',
-        code: ``,
+        code: `
+const draw = new Draw({
+  points: [
+    [0, 0],
+    [0, 50],
+    [20, 80],
+    [56, 56],
+    [52, 52],
+    [80, 20],
+    [90, 90],
+    [100, 100],
+  ],
+})
+
+const rectangle = new Rectangle({
+  point: [200, 0],
+  style: {
+    color: ColorStyle.Blue,
+  },
+})
+
+const ellipse = new Ellipse({
+  point: [400, 0],
+})
+
+const arrow = new Arrow({
+  start: [600, 0],
+  end: [700, 100],
+})
+
+const radius = 1000
+const count = 100
+const center = [350, 50]
+
+for (let i = 0; i < count; i++) {
+  const point = Vec.rotWith(
+    Vec.add(center, [radius, 0]),
+    center,
+    (Math.PI * 2 * i) / count
+  )
+
+  const dot = new Dot({
+    point,
+  })
+}
+        `,
       },
     },
   },

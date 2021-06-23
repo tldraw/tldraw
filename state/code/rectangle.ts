@@ -1,14 +1,13 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils/utils'
-import { RectangleShape, ShapeType } from 'types'
-import Utils from './utils'
+import { RectangleShape, ShapeStyles, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
+/**
+ * ## Rectangle
+ */
 export default class Rectangle extends CodeShape<RectangleShape> {
-  constructor(props = {} as Partial<RectangleShape>) {
-    props.point = Utils.vectorToPoint(props.point)
-    props.size = Utils.vectorToPoint(props.size)
-
+  constructor(props = {} as Partial<RectangleShape> & Partial<ShapeStyles>) {
     super({
       id: uniqueId(),
       seed: Math.random(),

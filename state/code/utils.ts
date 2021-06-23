@@ -1,6 +1,9 @@
 import { Bounds } from 'types'
 import Vector, { Point } from './vector'
 
+/**
+ * ## Utils
+ */
 export default class Utils {
   static vectorToPoint(point: number[] | Vector | undefined): number[] {
     if (typeof point === 'undefined') {

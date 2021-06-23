@@ -1,14 +1,13 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils/utils'
-import { LineShape, ShapeType } from 'types'
+import { LineShape, ShapeStyles, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
-import Utils from './utils'
 
+/**
+ * ## Line
+ */
 export default class Line extends CodeShape<LineShape> {
-  constructor(props = {} as Partial<LineShape>) {
-    props.point = Utils.vectorToPoint(props.point)
-    props.direction = Utils.vectorToPoint(props.direction)
-
+  constructor(props = {} as Partial<LineShape> & Partial<ShapeStyles>) {
     super({
       id: uniqueId(),
       seed: Math.random(),
@@ -30,15 +29,6 @@ export default class Line extends CodeShape<LineShape> {
         isFilled: false,
       },
     })
-  }
-
-  export(): LineShape {
-    const shape = { ...this.shape }
-
-    shape.point = Utils.vectorToPoint(shape.point)
-    shape.direction = Utils.vectorToPoint(shape.direction)
-
-    return shape
   }
 
   get direction(): number[] {

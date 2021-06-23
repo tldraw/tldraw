@@ -1,22 +1,23 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils/utils'
-import { DotShape, ShapeStyles, ShapeType } from 'types'
+import { DrawShape, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
 /**
- * ## Dot
+ * ## Draw
  */
-export default class Dot extends CodeShape<DotShape> {
-  constructor(props = {} as Partial<DotShape> & Partial<ShapeStyles>) {
+export default class Draw extends CodeShape<DrawShape> {
+  constructor(props = {} as Partial<DrawShape>) {
     super({
       id: uniqueId(),
       seed: Math.random(),
-      parentId: (window as any).currentPageId,
-      type: ShapeType.Dot,
-      isGenerated: true,
-      name: 'Dot',
+      type: ShapeType.Draw,
+      isGenerated: false,
+      name: 'Draw',
+      parentId: 'page1',
       childIndex: 0,
       point: [0, 0],
+      points: [],
       rotation: 0,
       isAspectRatioLocked: false,
       isLocked: false,
@@ -25,7 +26,6 @@ export default class Dot extends CodeShape<DotShape> {
       style: {
         ...defaultStyle,
         ...props.style,
-        isFilled: true,
       },
     })
   }

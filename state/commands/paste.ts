@@ -60,6 +60,7 @@ export default function pasteCommand(data: Data, initialShapes: Shape[]): void {
             parentId: oldSelectedIds[shape.parentId] || data.currentPageId,
             childIndex: childIndex++,
             point: vec.add(topLeft, topLeftOffset),
+            isGenerated: false,
           }
         }
 

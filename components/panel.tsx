@@ -38,7 +38,7 @@ export const Root = styled('div', {
         left: 8,
         right: 8,
         bottom: 48,
-        maxWidth: 720,
+        maxWidth: 680,
         zIndex: 1000,
       },
     },

@@ -1,13 +1,13 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils/utils'
-import { EllipseShape, ShapeType } from 'types'
-import Utils from './utils'
+import { EllipseShape, ShapeStyles, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
+/**
+ * ## Ellipse
+ */
 export default class Ellipse extends CodeShape<EllipseShape> {
-  constructor(props = {} as Partial<EllipseShape>) {
-    props.point = Utils.vectorToPoint(props.point)
-
+  constructor(props = {} as Partial<EllipseShape> & Partial<ShapeStyles>) {
     super({
       id: uniqueId(),
       seed: Math.random(),
@@ -17,8 +17,8 @@ export default class Ellipse extends CodeShape<EllipseShape> {
       name: 'Ellipse',
       childIndex: 0,
       point: [0, 0],
-      radiusX: 20,
-      radiusY: 20,
+      radiusX: 50,
+      radiusY: 50,
       rotation: 0,
       isAspectRatioLocked: false,
       isLocked: false,
@@ -26,14 +26,6 @@ export default class Ellipse extends CodeShape<EllipseShape> {
       ...props,
       style: { ...defaultStyle, ...props.style },
     })
-  }
-
-  export(): EllipseShape {
-    const shape = { ...this.shape }
-
-    shape.point = Utils.vectorToPoint(shape.point)
-
-    return shape
   }
 
   get radiusX(): number {

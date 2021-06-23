@@ -1,5 +1,3 @@
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
-
 /* -------------------------------------------------- */
 /*                    Client State                    */
 /* -------------------------------------------------- */
@@ -354,10 +352,6 @@ export enum DistributeType {
 /* -------------------------------------------------- */
 /*                     Code Editor                    */
 /* -------------------------------------------------- */
-
-export type IMonaco = typeof monaco
-
-export type IMonacoEditor = monaco.editor.IStandaloneCodeEditor
 
 export enum ControlType {
   Number = 'number',

@@ -1,14 +1,13 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils/utils'
-import { RayShape, ShapeType } from 'types'
+import { RayShape, ShapeStyles, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
-import Utils from './utils'
 
+/**
+ * ## Ray
+ */
 export default class Ray extends CodeShape<RayShape> {
-  constructor(props = {} as Partial<RayShape>) {
-    props.point = Utils.vectorToPoint(props.point)
-    props.direction = Utils.vectorToPoint(props.direction)
-
+  constructor(props = {} as Partial<RayShape> & Partial<ShapeStyles>) {
     super({
       id: uniqueId(),
       seed: Math.random(),
@@ -30,15 +29,6 @@ export default class Ray extends CodeShape<RayShape> {
         isFilled: false,
       },
     })
-  }
-
-  export(): RayShape {
-    const shape = { ...this.shape }
-
-    shape.point = Utils.vectorToPoint(shape.point)
-    shape.direction = Utils.vectorToPoint(shape.direction)
-
-    return shape
   }
 
   get direction(): number[] {

@@ -11,6 +11,7 @@
     "format": "prettier --write .",
     "lint": "eslint . --ext ts --ext tsx --ext js",
     "test": "jest",
+    "scripts": "node scripts/type-gen",
     "test:watch": "jest --watchAll",
     "test:update": "jest --updateSnapshot",
     "test-all": "yarn lint && yarn type-check && yarn test"

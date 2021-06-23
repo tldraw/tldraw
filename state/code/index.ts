@@ -1,8 +1,6 @@
 import { Mutable, Shape, ShapeUtility } from 'types'
 import { createShape, getShapeUtils } from 'state/shape-utils'
 import vec from 'utils/vec'
-import Vector from './vector'
-import Utils from './utils'
 
 export const codeShapes = new Set<CodeShape<Shape>>([])
 
@@ -20,20 +18,24 @@ export default class CodeShape<T extends Shape> {
     codeShapes.add(this)
   }
 
+  export(): Mutable<T> {
+    return { ...this._shape }
+  }
+
   destroy(): void {
     codeShapes.delete(this)
   }
 
-  moveTo(point: Vector): CodeShape<T> {
-    this.utils.setProperty(this._shape, 'point', Utils.vectorToPoint(point))
+  moveTo(point: number[]): CodeShape<T> {
+    this.utils.setProperty(this._shape, 'point', point)
     return this
   }
 
-  translate(delta: Vector): CodeShape<T> {
+  translate(delta: number[]): CodeShape<T> {
     this.utils.setProperty(
       this._shape,
       'point',
-      vec.add(this._shape.point, Utils.vectorToPoint(delta))
+      vec.add(this._shape.point, delta)
     )
     return this
   }
@@ -48,8 +50,8 @@ export default class CodeShape<T extends Shape> {
     return this
   }
 
-  hitTest(point: Vector): CodeShape<T> {
-    this.utils.hitTest(this.shape, Utils.vectorToPoint(point))
+  hitTest(point: number[]): CodeShape<T> {
+    this.utils.hitTest(this.shape, point)
     return this
   }
 

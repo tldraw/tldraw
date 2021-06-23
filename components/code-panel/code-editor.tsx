@@ -2,10 +2,15 @@ import Editor, { Monaco } from '@monaco-editor/react'
 import useTheme from 'hooks/useTheme'
 import prettier from 'prettier/standalone'
 import parserTypeScript from 'prettier/parser-typescript'
-import codeAsString from './code-as-string'
+// import codeAsString from './code-as-string'
+import typesImport from './types-import'
 import React, { useCallback, useEffect, useRef } from 'react'
 import styled from 'styles'
-import { IMonaco, IMonacoEditor } from 'types'
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
+
+export type IMonaco = typeof monaco
+
+export type IMonacoEditor = monaco.editor.IStandaloneCodeEditor
 
 interface Props {
   value: string
@@ -54,22 +59,27 @@ export default function CodeEditor({
     })
 
     monaco.languages.typescript.typescriptDefaults.setEagerModelSync(true)
-
     monaco.languages.typescript.javascriptDefaults.setEagerModelSync(true)
 
     monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: true,
-      noSyntaxValidation: true,
+      // noSemanticValidation: true,
+      // noSyntaxValidation: true,
     })
 
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: true,
-      noSyntaxValidation: true,
+      // noSemanticValidation: true,
+      // noSyntaxValidation: true,
     })
 
-    monaco.languages.typescript.javascriptDefaults.addExtraLib(codeAsString)
+    monaco.languages.typescript.typescriptDefaults.addExtraLib(
+      typesImport.content
+    )
 
-    monaco.languages.registerDocumentFormattingEditProvider('javascript', {
+    monaco.languages.typescript.javascriptDefaults.addExtraLib(
+      typesImport.content
+    )
+
+    monaco.languages.registerDocumentFormattingEditProvider('typescript', {
       async provideDocumentFormattingEdits(model) {
         const text = prettier.format(model.getValue(), {
           parser: 'typescript',
@@ -192,7 +202,7 @@ export default function CodeEditor({
     <EditorContainer onKeyDown={handleKeydown} onKeyUp={handleKeyUp}>
       <Editor
         height="100%"
-        language="javascript"
+        language="typescript"
         value={value}
         theme={theme === 'dark' ? 'vs-dark' : 'light'}
         beforeMount={handleBeforeMount}

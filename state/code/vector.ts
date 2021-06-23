@@ -8,6 +8,9 @@ export interface Point {
   y: number
 }
 
+/**
+ * ## Vector
+ */
 export default class Vector {
   x = 0
   y = 0

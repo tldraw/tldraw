@@ -1,14 +1,13 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils/utils'
-import { PolylineShape, ShapeType } from 'types'
+import { PolylineShape, ShapeStyles, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
-import Utils from './utils'
 
+/**
+ * ## Polyline
+ */
 export default class Polyline extends CodeShape<PolylineShape> {
-  constructor(props = {} as Partial<PolylineShape>) {
-    props.point = Utils.vectorToPoint(props.point)
-    props.points = props.points.map(Utils.vectorToPoint)
-
+  constructor(props = {} as Partial<PolylineShape> & Partial<ShapeStyles>) {
     super({
       id: uniqueId(),
       seed: Math.random(),
@@ -26,15 +25,6 @@ export default class Polyline extends CodeShape<PolylineShape> {
       style: defaultStyle,
       ...props,
     })
-  }
-
-  export(): PolylineShape {
-    const shape = { ...this.shape }
-
-    shape.point = Utils.vectorToPoint(shape.point)
-    shape.points = shape.points.map(Utils.vectorToPoint)
-
-    return shape
   }
 
   get points(): number[][] {
