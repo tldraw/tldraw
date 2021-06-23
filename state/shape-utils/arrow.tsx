@@ -102,7 +102,8 @@ const arrow = registerShapeUtils<ArrowShape>({
 
     const strokeWidth = +styles.strokeWidth
 
-    const sw = strokeWidth * (style.dash === DashStyle.Solid ? 1 : 1.618)
+    const sw =
+      strokeWidth * (style.dash === DashStyle.Solid && bend === 0 ? 1 : 1.618)
 
     const arrowDist = vec.dist(start.point, end.point)
 
