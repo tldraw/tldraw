@@ -30,28 +30,28 @@ Object {
 
 exports[`ellipse dash props renders dotted props on a circle correctly: large dotted circle dash props 1`] = `
 Object {
-  "strokeDasharray": "2 14.666666666666666",
+  "strokeDasharray": "0.08 16.586666666666666",
   "strokeDashoffset": "0",
 }
 `;
 
 exports[`ellipse dash props renders dotted props on a circle correctly: large dotted ellipse dash props 1`] = `
 Object {
-  "strokeDasharray": "2 14.666666666666666",
+  "strokeDasharray": "0.08 16.586666666666666",
   "strokeDashoffset": "0",
 }
 `;
 
 exports[`ellipse dash props renders dotted props on a circle correctly: small dotted circle dash props 1`] = `
 Object {
-  "strokeDasharray": "1 7.333333333333333",
+  "strokeDasharray": "0.04 8.293333333333333",
   "strokeDashoffset": "0",
 }
 `;
 
 exports[`ellipse dash props renders dotted props on a circle correctly: small dotted ellipse dash props 1`] = `
 Object {
-  "strokeDasharray": "1 7.333333333333333",
+  "strokeDasharray": "0.04 8.293333333333333",
   "strokeDashoffset": "0",
 }
 `;
