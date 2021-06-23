@@ -89,6 +89,10 @@ class SessionManager {
     this.#current = undefined
     return this
   }
+
+  get isInSession() {
+    return this.#current !== undefined
+  }
 }
 
 const session = new SessionManager()

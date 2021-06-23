@@ -132,44 +132,158 @@ const state = createState({
         else: ['zoomCameraToActual'],
       },
       on: {
-        COPIED: { if: 'hasSelection', do: 'copyToClipboard' },
-        PASTED: { do: 'pasteFromClipboard' },
-        PASTED_SHAPES_FROM_CLIPBOARD: 'pasteShapesFromClipboard',
-        COPIED_STATE_TO_CLIPBOARD: 'copyStateToClipboard',
         LOADED_FONTS: 'resetShapes',
-        TOGGLED_SHAPE_LOCK: { if: 'hasSelection', do: 'lockSelection' },
-        TOGGLED_SHAPE_HIDE: { if: 'hasSelection', do: 'hideSelection' },
+        USED_PEN_DEVICE: 'enablePenLock',
+        DISABLED_PEN_LOCK: 'disablePenLock',
+        TOGGLED_CODE_PANEL_OPEN: 'toggleCodePanel',
+        TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
+        PANNED_CAMERA: 'panCamera',
+        POINTED_CANVAS: ['closeStylePanel', 'clearCurrentParentId'],
+        COPIED_STATE_TO_CLIPBOARD: 'copyStateToClipboard',
+        COPIED: { if: 'hasSelection', do: 'copyToClipboard' },
+        PASTED: {
+          unlessAny: ['isReadOnly', 'isInSession'],
+          do: 'pasteFromClipboard',
+        },
+        PASTED_SHAPES_FROM_CLIPBOARD: {
+          unlessAny: ['isReadOnly', 'isInSession'],
+          do: 'pasteShapesFromClipboard',
+        },
+        TOGGLED_SHAPE_LOCK: {
+          unlessAny: ['isReadOnly', 'isInSession'],
+          if: 'hasSelection',
+          do: 'lockSelection',
+        },
+        TOGGLED_SHAPE_HIDE: {
+          unlessAny: ['isReadOnly', 'isInSession'],
+          if: 'hasSelection',
+          do: 'hideSelection',
+        },
         TOGGLED_SHAPE_ASPECT_LOCK: {
+          unlessAny: ['isReadOnly', 'isInSession'],
           if: 'hasSelection',
           do: 'aspectLockSelection',
         },
-        TOGGLED_CODE_PANEL_OPEN: 'toggleCodePanel',
-        TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
-        POINTED_CANVAS: ['closeStylePanel', 'clearCurrentParentId'],
-        CHANGED_STYLE: ['updateStyles', 'applyStylesToSelection'],
-        USED_PEN_DEVICE: 'enablePenLock',
-        DISABLED_PEN_LOCK: 'disablePenLock',
+        CHANGED_STYLE: {
+          unlessAny: ['isReadOnly', 'isInSession'],
+          do: ['updateStyles', 'applyStylesToSelection'],
+        },
         CLEARED_PAGE: {
+          unlessAny: ['isReadOnly', 'isInSession'],
           if: 'hasSelection',
           do: 'deleteSelection',
           else: ['selectAll', 'deleteSelection'],
         },
-        SELECTED_ALL: { to: 'selecting', do: 'selectAll' },
-        CHANGED_PAGE: 'changePage',
-        CREATED_PAGE: ['clearSelectedIds', 'createPage'],
-        DELETED_PAGE: { unless: 'hasOnlyOnePage', do: 'deletePage' },
-        LOADED_FROM_FILE: ['loadDocumentFromJson', 'resetHistory'],
-        PANNED_CAMERA: 'panCamera',
-        SELECTED_SELECT_TOOL: { to: 'selecting' },
-        SELECTED_DRAW_TOOL: { unless: 'isReadOnly', to: 'draw' },
-        SELECTED_ARROW_TOOL: { unless: 'isReadOnly', to: 'arrow' },
-        SELECTED_DOT_TOOL: { unless: 'isReadOnly', to: 'dot' },
-        SELECTED_ELLIPSE_TOOL: { unless: 'isReadOnly', to: 'ellipse' },
-        SELECTED_RAY_TOOL: { unless: 'isReadOnly', to: 'ray' },
-        SELECTED_LINE_TOOL: { unless: 'isReadOnly', to: 'line' },
-        SELECTED_POLYLINE_TOOL: { unless: 'isReadOnly', to: 'polyline' },
-        SELECTED_RECTANGLE_TOOL: { unless: 'isReadOnly', to: 'rectangle' },
-        SELECTED_TEXT_TOOL: { unless: 'isReadOnly', to: 'text' },
+        CREATED_PAGE: {
+          unless: ['isReadOnly', 'isInSession'],
+          do: ['clearSelectedIds', 'createPage'],
+        },
+        DELETED_PAGE: {
+          unlessAny: ['isReadOnly', 'isInSession', 'hasOnlyOnePage'],
+          do: 'deletePage',
+        },
+        SELECTED_SELECT_TOOL: {
+          unless: 'isInSession',
+          to: 'selecting',
+        },
+        SELECTED_DRAW_TOOL: {
+          unlessAny: ['isReadOnly', 'isInSession'],
+          to: 'draw',
+        },
+        SELECTED_ARROW_TOOL: {
+          unless: ['isReadOnly', 'isInSession'],
+          to: 'arrow',
+        },
+        SELECTED_DOT_TOOL: {
+          unless: ['isReadOnly', 'isInSession'],
+          to: 'dot',
+        },
+        SELECTED_ELLIPSE_TOOL: {
+          unless: ['isReadOnly', 'isInSession'],
+          to: 'ellipse',
+        },
+        SELECTED_RAY_TOOL: {
+          unless: ['isReadOnly', 'isInSession'],
+          to: 'ray',
+        },
+        SELECTED_LINE_TOOL: {
+          unless: ['isReadOnly', 'isInSession'],
+          to: 'line',
+        },
+        SELECTED_POLYLINE_TOOL: {
+          unless: ['isReadOnly', 'isInSession'],
+          to: 'polyline',
+        },
+        SELECTED_RECTANGLE_TOOL: {
+          unless: ['isReadOnly', 'isInSession'],
+          to: 'rectangle',
+        },
+        SELECTED_TEXT_TOOL: {
+          unless: ['isReadOnly', 'isInSession'],
+          to: 'text',
+        },
+        GENERATED_FROM_CODE: {
+          unless: ['isReadOnly', 'isInSession'],
+          do: ['setCodeControls', 'setGeneratedShapes'],
+        },
+        UNDO: {
+          unless: 'isInSession',
+          do: 'undo',
+        },
+        REDO: {
+          unless: 'isInSession',
+          do: 'redo',
+        },
+        SAVED: {
+          unlessAny: ['isInSession', 'isReadOnly'],
+          do: 'forceSave',
+        },
+        LOADED_FROM_FILE: {
+          unless: 'isInSession',
+          do: ['loadDocumentFromJson', 'resetHistory'],
+        },
+        SELECTED_ALL: {
+          unless: 'isInSession',
+          to: 'selecting',
+          do: 'selectAll',
+        },
+        CHANGED_PAGE: {
+          unless: 'isInSession',
+          do: 'changePage',
+        },
+        ZOOMED_TO_ACTUAL: {
+          if: 'hasSelection',
+          do: 'zoomCameraToSelectionActual',
+          else: 'zoomCameraToActual',
+        },
+        ZOOMED_CAMERA: 'zoomCamera',
+        INCREASED_CODE_FONT_SIZE: 'increaseCodeFontSize',
+        DECREASED_CODE_FONT_SIZE: 'decreaseCodeFontSize',
+        CHANGED_CODE_CONTROL: 'updateControls',
+        TOGGLED_TOOL_LOCK: 'toggleToolLock',
+        ZOOMED_TO_SELECTION: {
+          if: 'hasSelection',
+          do: 'zoomCameraToSelection',
+        },
+        STARTED_PINCHING: {
+          unless: 'isInSession',
+          to: 'pinching',
+        },
+        ZOOMED_TO_FIT: ['zoomCameraToFit', 'zoomCameraToActual'],
+        ZOOMED_IN: 'zoomIn',
+        ZOOMED_OUT: 'zoomOut',
+        RESET_CAMERA: 'resetCamera',
+        COPIED_TO_SVG: 'copyToSvg',
+        LOADED_FROM_FILE_STSTEM: 'loadFromFileSystem',
+        SAVED_AS_TO_FILESYSTEM: 'saveAsToFileSystem',
+        SAVED_TO_FILESYSTEM: {
+          unless: 'isReadOnly',
+          then: {
+            if: 'isReadOnly',
+            do: 'saveAsToFileSystem',
+            else: 'saveToFileSystem',
+          },
+        },
       },
       initial: 'selecting',
       states: {
@@ -179,52 +293,60 @@ const state = createState({
             UNDO: 'undo',
             REDO: 'redo',
             SAVED: 'forceSave',
-            LOADED_FROM_FILE_STSTEM: 'loadFromFileSystem',
-            SAVED_TO_FILESYSTEM: 'saveToFileSystem',
-            SAVED_AS_TO_FILESYSTEM: 'saveAsToFileSystem',
-            SAVED_CODE: 'saveCode',
-            DELETED: 'deleteSelection',
-            INCREASED_CODE_FONT_SIZE: 'increaseCodeFontSize',
-            DECREASED_CODE_FONT_SIZE: 'decreaseCodeFontSize',
-            CHANGED_CODE_CONTROL: 'updateControls',
-            GENERATED_FROM_CODE: ['setCodeControls', 'setGeneratedShapes'],
-            TOGGLED_TOOL_LOCK: 'toggleToolLock',
+            DELETED: {
+              unless: 'isReadOnly',
+              do: 'deleteSelection',
+            },
+            SAVED_CODE: {
+              unless: 'isReadOnly',
+              do: 'saveCode',
+            },
             MOVED_TO_PAGE: {
+              unless: 'isReadOnly',
               if: 'hasSelection',
               do: ['moveSelectionToPage', 'zoomCameraToSelectionActual'],
             },
-            MOVED: { if: 'hasSelection', do: 'moveSelection' },
-            DUPLICATED: { if: 'hasSelection', do: 'duplicateSelection' },
-            ROTATED_CCW: { if: 'hasSelection', do: 'rotateSelectionCcw' },
-            ALIGNED: { if: 'hasMultipleSelection', do: 'alignSelection' },
-            STRETCHED: { if: 'hasMultipleSelection', do: 'stretchSelection' },
+            MOVED: {
+              unless: 'isReadOnly',
+              if: 'hasSelection',
+              do: 'moveSelection',
+            },
+            DUPLICATED: {
+              unless: 'isReadOnly',
+              if: 'hasSelection',
+              do: 'duplicateSelection',
+            },
+            ROTATED_CCW: {
+              unless: 'isReadOnly',
+              if: 'hasSelection',
+              do: 'rotateSelectionCcw',
+            },
+            ALIGNED: {
+              unless: 'isReadOnly',
+              if: 'hasMultipleSelection',
+              do: 'alignSelection',
+            },
+            STRETCHED: {
+              unless: 'isReadOnly',
+              if: 'hasMultipleSelection',
+              do: 'stretchSelection',
+            },
             DISTRIBUTED: {
+              unless: 'isReadOnly',
               if: 'hasMultipleSelection',
               do: 'distributeSelection',
             },
-            GROUPED: { if: 'hasMultipleSelection', do: 'groupSelection' },
+            GROUPED: {
+              unless: 'isReadOnly',
+              if: 'hasMultipleSelection',
+              do: 'groupSelection',
+            },
             UNGROUPED: {
+              unless: 'isReadOnly',
               if: ['hasSelection', 'selectionIncludesGroups'],
               do: 'ungroupSelection',
             },
             NUDGED: { do: 'nudgeSelection' },
-            ZOOMED_CAMERA: {
-              do: 'zoomCamera',
-            },
-            ZOOMED_TO_ACTUAL: {
-              if: 'hasSelection',
-              do: 'zoomCameraToSelectionActual',
-              else: 'zoomCameraToActual',
-            },
-            ZOOMED_TO_SELECTION: {
-              if: 'hasSelection',
-              do: 'zoomCameraToSelection',
-            },
-            ZOOMED_TO_FIT: ['zoomCameraToFit', 'zoomCameraToActual'],
-            ZOOMED_IN: 'zoomIn',
-            ZOOMED_OUT: 'zoomOut',
-            RESET_CAMERA: 'resetCamera',
-            COPIED_TO_SVG: 'copyToSvg',
           },
           initial: 'notPointing',
           states: {
@@ -232,7 +354,6 @@ const state = createState({
               onEnter: 'clearPointedId',
               on: {
                 CANCELLED: 'clearSelectedIds',
-                STARTED_PINCHING: { to: 'pinching' },
                 POINTED_CANVAS: { to: 'brushSelecting' },
                 POINTED_BOUNDS: [
                   {
@@ -242,21 +363,27 @@ const state = createState({
                   { to: 'pointingBounds' },
                 ],
                 POINTED_BOUNDS_HANDLE: {
+                  unless: 'isReadOnly',
                   if: 'isPointingRotationHandle',
                   to: 'rotatingSelection',
                   else: { to: 'transformingSelection' },
                 },
                 STARTED_EDITING_SHAPE: {
+                  unless: 'isReadOnly',
                   get: 'firstSelectedShape',
                   if: ['hasSingleSelection', 'canEditSelectedShape'],
                   do: 'setEditingId',
                   to: 'editingShape',
                 },
                 DOUBLE_POINTED_BOUNDS_HANDLE: {
+                  unless: 'isReadOnly',
                   if: 'hasSingleSelection',
                   do: 'resetShapeBounds',
                 },
-                POINTED_HANDLE: { to: 'translatingHandles' },
+                POINTED_HANDLE: {
+                  unless: 'isReadOnly',
+                  to: 'translatingHandles',
+                },
                 MOVED_OVER_SHAPE: {
                   if: 'pointHitsShape',
                   then: {
@@ -360,7 +487,7 @@ const state = createState({
                   { to: 'notPointing' },
                 ],
                 MOVED_POINTER: {
-                  unless: 'isReadOnly',
+                  unless: ['isReadOnly', 'isInSession'],
                   if: 'distanceImpliesDrag',
                   to: 'translatingSelection',
                 },
@@ -506,12 +633,6 @@ const state = createState({
                       do: 'createShape',
                       to: 'draw.editing',
                     },
-                    UNDO: 'undo',
-                    REDO: 'redo',
-                    SAVED: 'forceSave',
-                    LOADED_FROM_FILE_STSTEM: 'loadFromFileSystem',
-                    SAVED_TO_FILESYSTEM: 'saveToFileSystem',
-                    SAVED_AS_TO_FILESYSTEM: 'saveAsToFileSystem',
                   },
                 },
                 editing: {
@@ -882,6 +1003,9 @@ const state = createState({
     },
     isReadOnly(data) {
       return data.isReadOnly
+    },
+    isInSession() {
+      return session.isInSession
     },
     canEditSelectedShape(data, payload, result: Shape) {
       return getShapeUtils(result).canEdit && !result.isLocked
