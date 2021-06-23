@@ -102,6 +102,8 @@ const arrow = registerShapeUtils<ArrowShape>({
 
     const strokeWidth = +styles.strokeWidth
 
+    const sw = strokeWidth * (style.dash === DashStyle.Solid ? 1 : 1.618)
+
     const arrowDist = vec.dist(start.point, end.point)
 
     let shaftPath: JSX.Element
@@ -126,7 +128,7 @@ const arrow = registerShapeUtils<ArrowShape>({
             }
           : getPerfectDashProps(
               arrowDist,
-              strokeWidth * 1.618,
+              sw,
               shape.style.dash === DashStyle.Dotted ? 'dotted' : 'dashed',
               2
             )
@@ -149,9 +151,7 @@ const arrow = registerShapeUtils<ArrowShape>({
           <path
             d={path}
             fill="none"
-            strokeWidth={
-              strokeWidth * (style.dash === DashStyle.Solid ? 1 : 1.618)
-            }
+            strokeWidth={sw}
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
@@ -176,7 +176,7 @@ const arrow = registerShapeUtils<ArrowShape>({
                 start.point,
                 end.point
               ) - 1,
-              strokeWidth * 1.618,
+              sw,
               shape.style.dash === DashStyle.Dotted ? 'dotted' : 'dashed',
               2
             )
@@ -205,7 +205,7 @@ const arrow = registerShapeUtils<ArrowShape>({
           <path
             d={path}
             fill="none"
-            strokeWidth={strokeWidth * 2}
+            strokeWidth={sw}
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
@@ -395,34 +395,30 @@ const arrow = registerShapeUtils<ArrowShape>({
       const handle = handles[id]
 
       shape.handles[handle.id] = handle
+    }
 
+    if ('bend' in handles) {
       const { start, end, bend } = shape.handles
 
       const dist = vec.dist(start.point, end.point)
 
-      if (handle.id === 'bend') {
-        const midPoint = vec.med(start.point, end.point)
-        const u = vec.uni(vec.vec(start.point, end.point))
-        const ap = vec.add(midPoint, vec.mul(vec.per(u), dist / 2))
-        const bp = vec.sub(midPoint, vec.mul(vec.per(u), dist / 2))
+      const midPoint = vec.med(start.point, end.point)
+      const u = vec.uni(vec.vec(start.point, end.point))
+      const ap = vec.add(midPoint, vec.mul(vec.per(u), dist / 2))
+      const bp = vec.sub(midPoint, vec.mul(vec.per(u), dist / 2))
 
-        bend.point = vec.nearestPointOnLineSegment(ap, bp, bend.point, true)
-        shape.bend = vec.dist(bend.point, midPoint) / (dist / 2)
+      bend.point = vec.nearestPointOnLineSegment(ap, bp, bend.point, true)
+      shape.bend = vec.dist(bend.point, midPoint) / (dist / 2)
 
-        const sa = vec.angle(end.point, start.point)
-        const la = sa - Math.PI / 2
-        if (isAngleBetween(sa, la, vec.angle(end.point, bend.point))) {
-          shape.bend *= -1
-        }
+      const sa = vec.angle(end.point, start.point)
+      const la = sa - Math.PI / 2
+
+      if (isAngleBetween(sa, la, vec.angle(end.point, bend.point))) {
+        shape.bend *= -1
       }
     }
 
     shape.handles.bend.point = getBendPoint(shape)
-
-    // const newBounds = this.getRotatedBounds(shape)
-    // const newCenter = getBoundsCenter(newBounds)
-
-    // shape.point = vec.add(shape.point, vec.neg(vec.sub(newCenter, prevCenter)))
 
     return this
   },

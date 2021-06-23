@@ -182,18 +182,24 @@ function renderPath(shape: RectangleShape) {
 
   const getRandom = rng(shape.id)
 
-  const baseOffset = +styles.strokeWidth / 2
+  const strokeWidth = +styles.strokeWidth
+
+  const baseOffset = strokeWidth / 2
 
   const offsets = Array.from(Array(4)).map(() => [
     getRandom() * baseOffset,
     getRandom() * baseOffset,
   ])
 
-  const [w, h] = shape.size
-  const tl = vec.add([0, 0], offsets[0])
-  const tr = vec.add([w, 0], offsets[1])
+  const sw = strokeWidth
+
+  const w = Math.max(0, shape.size[0] - sw / 2)
+  const h = Math.max(0, shape.size[1] - sw / 2)
+
+  const tl = vec.add([sw / 2, sw / 2], offsets[0])
+  const tr = vec.add([w, sw / 2], offsets[1])
   const br = vec.add([w, h], offsets[2])
-  const bl = vec.add([0, h], offsets[3])
+  const bl = vec.add([sw / 2, h], offsets[3])
 
   const lines = shuffleArr(
     [

@@ -73,6 +73,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
     }
 
     const h = Math.pow(rx - ry, 2) / Math.pow(rx + ry, 2)
+
     const perimeter =
       Math.PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
 
@@ -190,8 +191,8 @@ function renderPath(shape: EllipseShape) {
 
   const strokeWidth = +getShapeStyle(style).strokeWidth
 
-  const rx = radiusX + getRandom() * strokeWidth
-  const ry = radiusY + getRandom() * strokeWidth
+  const rx = radiusX + getRandom() * strokeWidth - strokeWidth / 2
+  const ry = radiusY + getRandom() * strokeWidth - strokeWidth / 2
 
   const points: number[][] = []
   const start = Math.PI + Math.PI * getRandom()

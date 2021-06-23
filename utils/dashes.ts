@@ -23,8 +23,8 @@ export function getPerfectDashProps(
     ratio = 1
     strokeDashoffset = (dashLength / 2).toString()
   } else {
-    dashLength = strokeWidth / 4
-    ratio = 4
+    dashLength = strokeWidth / 100
+    ratio = 100
     strokeDashoffset = '0'
   }
 
