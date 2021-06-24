@@ -2,7 +2,7 @@ import { ZoomInIcon, ZoomOutIcon } from '@radix-ui/react-icons'
 import { IconButton } from 'components/shared'
 import state, { useSelector } from 'state'
 import styled from 'styles'
-import { getCurrentCamera } from 'utils/utils'
+import { getCurrentCamera } from 'utils'
 import Tooltip from '../tooltip'
 
 const zoomIn = () => state.send('ZOOMED_IN')
@@ -34,7 +34,11 @@ function ZoomCounter() {
   const zoom = useSelector((s) => getCurrentCamera(s.data).zoom)
 
   return (
-    <ZoomButton onClick={zoomToActual} onDoubleClick={zoomToFit}>
+    <ZoomButton
+      onClick={zoomToActual}
+      onDoubleClick={zoomToFit}
+      style={{ width: '44px' }}
+    >
       {Math.round(zoom * 100)}%
     </ZoomButton>
   )
@@ -73,9 +77,6 @@ const Container = styled('div', {
         bottom: 12,
         flexDirection: 'row',
         alignItems: 'center',
-        [`& ${ZoomButton}`]: {
-          width: 44,
-        },
       },
     },
   },
