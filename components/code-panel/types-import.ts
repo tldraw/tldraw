@@ -970,9 +970,12 @@ interface ShapeUtility<K extends Shape> {
  * ## Utils
  */
  class Utils {
-  static pointsBetween(a: number[], b: number[], steps = 6): number[][] {
+  static getPointsBetween(a: number[], b: number[], steps = 6): number[][] {
     return Array.from(Array(steps))
-      .map((_, i) => ease(i / steps))
+      .map((_, i) => {
+        const t = i / steps
+        return t * t * t
+      })
       .map((t) => [...vec.lrp(a, b, t), (1 - t) / 2])
   }
 
@@ -1605,7 +1608,7 @@ interface ShapeUtility<K extends Shape> {
   }
 
   /**
-   * Get a vector d distance from A towards B.
+   * Push a point A towards point B by a given distance.
    * @param A
    * @param B
    * @param d
@@ -1616,12 +1619,37 @@ interface ShapeUtility<K extends Shape> {
   }
 
   /**
+   * Push a point in a given angle by a given distance.
+   * @param A
+   * @param B
+   * @param d
+   */
+  static nudgeAtAngle = (A: number[], a: number, d: number): number[] => {
+    return [Math.cos(a) * d + A[0], Math.sin(a) * d + A[1]]
+  }
+
+  /**
    * Round a vector to a precision length.
    * @param a
    * @param n
    */
   static toPrecision = (a: number[], n = 4): number[] => {
     return [+a[0].toPrecision(n), +a[1].toPrecision(n)]
+  }
+
+  /**
+   * Get a number of points between two points.
+   * @param a
+   * @param b
+   * @param steps
+   */
+  static pointsBetween = (a: number[], b: number[], steps = 6): number[][] => {
+    return Array.from(Array(steps))
+      .map((_, i) => {
+        const t = i / steps
+        return t * t * t
+      })
+      .map((t) => [...Vec.lrp(a, b, t), (1 - t) / 2])
   }
 }
 

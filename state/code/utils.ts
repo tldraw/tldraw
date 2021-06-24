@@ -5,6 +5,15 @@ import vec from 'utils/vec'
  * ## Utils
  */
 export default class Utils {
+  static getPointsBetween(a: number[], b: number[], steps = 6): number[][] {
+    return Array.from(Array(steps))
+      .map((_, i) => {
+        const t = i / steps
+        return t * t * t
+      })
+      .map((t) => [...vec.lrp(a, b, t), (1 - t) / 2])
+  }
+
   static getRayRayIntersection(
     p0: number[],
     n0: number[],
