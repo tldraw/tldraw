@@ -4,17 +4,17 @@
   "license": "MIT",
   "version": "1.0.0",
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "type-check": "tsc --pretty --noEmit",
+    "dev": "next dev",
     "format": "prettier --write .",
     "lint": "eslint . --ext ts --ext tsx --ext js",
-    "test": "jest",
-    "scripts": "node scripts/type-gen",
-    "test:watch": "jest --watchAll",
+    "scripts": "node scripts/type-gen && yarn format",
+    "start": "next start",
+    "test-all": "yarn lint && yarn type-check && yarn test",
     "test:update": "jest --updateSnapshot",
-    "test-all": "yarn lint && yarn type-check && yarn test"
+    "test:watch": "jest --watchAll",
+    "test": "jest",
+    "type-check": "tsc --pretty --noEmit"
   },
   "husky": {
     "hooks": {
