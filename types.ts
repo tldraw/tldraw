@@ -191,11 +191,9 @@ export interface GroupShape extends BaseShape {
   size: number[]
 }
 
-type DeepPartial<T> = {
-  [P in keyof T]?: DeepPartial<T[P]>
+export type ShapeProps<T extends Shape> = Partial<T> & {
+  style?: Partial<ShapeStyles>
 }
-
-export type ShapeProps<T extends Shape> = DeepPartial<T>
 
 export type MutableShape =
   | DotShape

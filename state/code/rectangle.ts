@@ -1,13 +1,13 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils'
-import { RectangleShape, ShapeStyles, ShapeType } from 'types'
+import { RectangleShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
 /**
  * ## Rectangle
  */
 export default class Rectangle extends CodeShape<RectangleShape> {
-  constructor(props = {} as Partial<RectangleShape> & Partial<ShapeStyles>) {
+  constructor(props = {} as ShapeProps<RectangleShape>) {
     super({
       id: uniqueId(),
       seed: Math.random(),

@@ -81,20 +81,29 @@ export default function CodeEditor({
 
     monaco.languages.registerDocumentFormattingEditProvider('typescript', {
       async provideDocumentFormattingEdits(model) {
-        const text = prettier.format(model.getValue(), {
-          parser: 'typescript',
-          plugins: [parserTypeScript],
-          singleQuote: true,
-          trailingComma: 'es5',
-          semi: false,
-        })
+        try {
+          const text = prettier.format(model.getValue(), {
+            parser: 'typescript',
+            plugins: [parserTypeScript],
+            singleQuote: true,
+            trailingComma: 'es5',
+            semi: false,
+          })
 
-        return [
-          {
-            range: model.getFullModelRange(),
-            text,
-          },
-        ]
+          return [
+            {
+              range: model.getFullModelRange(),
+              text,
+            },
+          ]
+        } catch (e) {
+          return [
+            {
+              range: model.getFullModelRange(),
+              text: model.getValue(),
+            },
+          ]
+        }
       },
     })
   }, [])

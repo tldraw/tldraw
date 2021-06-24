@@ -199,16 +199,6 @@ export function setToArray<T>(set: Set<T>): T[] {
 /* -------------------- Hit Tests ------------------- */
 
 /**
- * Get whether a point is inside of a bounds.
- * @param A
- * @param b
- * @returns
- */
-export function pointInBounds(A: number[], b: Bounds): boolean {
-  return !(A[0] < b.minX || A[0] > b.maxX || A[1] < b.minY || A[1] > b.maxY)
-}
-
-/**
  * Get whether a point is inside of a circle.
  * @param A
  * @param b
@@ -264,6 +254,16 @@ export function pointInRect(
 }
 
 /* --------------------- Bounds --------------------- */
+
+/**
+ * Get whether a point is inside of a bounds.
+ * @param A
+ * @param b
+ * @returns
+ */
+export function pointInBounds(A: number[], b: Bounds): boolean {
+  return !(A[0] < b.minX || A[0] > b.maxX || A[1] < b.minY || A[1] > b.maxY)
+}
 
 /**
  * Get whether two bounds collide.

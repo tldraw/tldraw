@@ -12,6 +12,7 @@ import { NumberControl, VectorControl, codeControls, controls } from './control'
 import { codeShapes } from './index'
 import { CodeControl, Data, Shape } from 'types'
 import { getPage } from 'utils'
+import { transform } from 'sucrase'
 
 const baseScope = {
   Dot,
@@ -48,7 +49,9 @@ export function generateFromCode(
   const { currentPageId } = data
   const scope = { ...baseScope, controls, currentPageId }
 
-  new Function(...Object.keys(scope), `${code}`)(...Object.values(scope))
+  const transformed = transform(code, { transforms: ['typescript'] }).code
+
+  new Function(...Object.keys(scope), `${transformed}`)(...Object.values(scope))
 
   const generatedShapes = Array.from(codeShapes.values()).map((instance) => ({
     ...instance.shape,

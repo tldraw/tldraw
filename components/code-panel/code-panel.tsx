@@ -5,7 +5,6 @@ import React, { useEffect, useRef } from 'react'
 import state, { useSelector } from 'state'
 import { CodeFile } from 'types'
 import CodeDocs from './code-docs'
-import CodeEditor from './code-editor'
 import { generateFromCode } from 'state/code/generate'
 import * as Panel from '../panel'
 import { IconButton } from '../shared'
@@ -17,6 +16,8 @@ import {
   ChevronUp,
   ChevronDown,
 } from 'react-feather'
+import dynamic from 'next/dynamic'
+const CodeEditor = dynamic(() => import('./code-editor'))
 
 const getErrorLineAndColumn = (e: any) => {
   if ('line' in e) {
@@ -84,7 +85,7 @@ export default function CodePanel(): JSX.Element {
           const { shapes, controls } = generateFromCode(state.data, data.code)
           state.send('GENERATED_FROM_CODE', { shapes, controls })
         } catch (e) {
-          console.error(e)
+          console.error('Got an error!', e)
           error = { message: e.message, ...getErrorLineAndColumn(e) }
         }
 
