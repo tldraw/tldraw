@@ -1,51 +1,45 @@
 import { Bounds } from 'types'
-import Vector, { Point } from './vector'
+import { ease } from 'utils'
+import vec from 'utils/vec'
 
 /**
  * ## Utils
  */
 export default class Utils {
-  static vectorToPoint(point: number[] | Vector | undefined): number[] {
-    if (typeof point === 'undefined') {
-      return [0, 0]
-    }
-
-    if (point instanceof Vector) {
-      return [point.x, point.y]
-    }
-    return point
+  static pointsBetween(a: number[], b: number[], steps = 6): number[][] {
+    return Array.from(Array(steps))
+      .map((_, i) => ease(i / steps))
+      .map((t) => [...vec.lrp(a, b, t), (1 - t) / 2])
   }
 
   static getRayRayIntersection(
-    p0: Vector,
-    n0: Vector,
-    p1: Vector,
-    n1: Vector
-  ): Vector {
-    const p0e = Vector.add(p0, n0),
-      p1e = Vector.add(p1, n1),
-      m0 = (p0e.y - p0.y) / (p0e.x - p0.x),
-      m1 = (p1e.y - p1.y) / (p1e.x - p1.x),
-      b0 = p0.y - m0 * p0.x,
-      b1 = p1.y - m1 * p1.x,
+    p0: number[],
+    n0: number[],
+    p1: number[],
+    n1: number[]
+  ): number[] {
+    const p0e = vec.add(p0, n0),
+      p1e = vec.add(p1, n1),
+      m0 = (p0e[1] - p0[1]) / (p0e[0] - p0[0]),
+      m1 = (p1e[1] - p1[1]) / (p1e[0] - p1[0]),
+      b0 = p0[1] - m0 * p0[0],
+      b1 = p1[1] - m1 * p1[0],
       x = (b1 - b0) / (m0 - m1),
       y = m0 * x + b0
 
-    return new Vector({ x, y })
+    return [x, y]
   }
 
   static getCircleTangentToPoint(
-    A: Point | Vector,
+    A: number[],
     r0: number,
-    P: Point | Vector,
+    P: number[],
     side: number
-  ): Vector {
-    const v0 = Vector.cast(A)
-    const v1 = Vector.cast(P)
-    const B = Vector.lrp(v0, v1, 0.5),
-      r1 = Vector.dist(v0, B),
-      delta = Vector.sub(B, v0),
-      d = Vector.len(delta)
+  ): number[] {
+    const B = vec.lrp(A, P, 0.5),
+      r1 = vec.dist(A, B),
+      delta = vec.sub(B, A),
+      d = vec.len(delta)
 
     if (!(d <= r0 + r1 && d >= Math.abs(r0 - r1))) {
       return
@@ -53,21 +47,25 @@ export default class Utils {
 
     const a = (r0 * r0 - r1 * r1 + d * d) / (2.0 * d),
       n = 1 / d,
-      p = Vector.add(v0, Vector.mul(delta, a * n)),
+      p = vec.add(A, vec.mul(delta, a * n)),
       h = Math.sqrt(r0 * r0 - a * a),
-      k = Vector.mul(Vector.per(delta), h * n)
+      k = vec.mul(vec.per(delta), h * n)
 
-    return side === 0 ? p.add(k) : p.sub(k)
+    return side === 0 ? vec.add(p, k) : vec.sub(p, k)
   }
 
-  static shortAngleDist(a: number, b: number): number {
+  static shortAngleDist(a0: number, a1: number): number {
     const max = Math.PI * 2
-    const da = (b - a) % max
+    const da = (a1 - a0) % max
     return ((2 * da) % max) - da
   }
 
-  static getSweep(C: Vector, A: Vector, B: Vector): number {
-    return Utils.shortAngleDist(Vector.ang(C, A), Vector.ang(C, B))
+  static angleDelta(a0: number, a1: number): number {
+    return this.shortAngleDist(a0, a1)
+  }
+
+  static getSweep(C: number[], A: number[], B: number[]): number {
+    return this.angleDelta(vec.angle(C, A), vec.angle(C, B))
   }
 
   static bez1d(a: number, b: number, c: number, d: number, t: number): number {
@@ -80,10 +78,10 @@ export default class Utils {
   }
 
   static getCubicBezierBounds(
-    p0: Point | Vector,
-    c0: Point | Vector,
-    c1: Point | Vector,
-    p1: Point | Vector
+    p0: number[],
+    c0: number[],
+    c1: number[],
+    p1: number[]
   ): Bounds {
     // solve for x
     let a = 3 * p1[0] - 9 * c1[0] + 9 * c0[0] - 3 * p0[0]

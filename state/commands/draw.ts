@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data, DrawShape } from 'types'
-import { getPage, setSelectedIds } from 'utils/utils'
+import { getPage, setSelectedIds } from 'utils'
 import { current } from 'immer'
 
 export default function drawCommand(data: Data, id: string): void {

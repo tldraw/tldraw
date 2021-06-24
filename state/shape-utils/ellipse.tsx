@@ -11,7 +11,7 @@ import {
   getSvgPathFromStroke,
   rng,
   translateBounds,
-} from 'utils/utils'
+} from 'utils'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import { registerShapeUtils } from './register'

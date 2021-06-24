@@ -2,7 +2,7 @@ import { current } from 'immer'
 import { Data, DrawShape } from 'types'
 import BaseSession from './base-session'
 import { getShapeUtils } from 'state/shape-utils'
-import { getPage, getShape, updateParents } from 'utils/utils'
+import { getPage, getShape, updateParents } from 'utils'
 import vec from 'utils/vec'
 import commands from 'state/commands'
 export default class BrushSession extends BaseSession {

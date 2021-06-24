@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import { getPage, getSelectedIds } from 'utils/utils'
+import { getPage, getSelectedIds } from 'utils'
 import { ArrowSnapshot } from 'state/sessions/arrow-session'
 
 export default function arrowCommand(

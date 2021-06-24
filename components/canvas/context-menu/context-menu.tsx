@@ -10,7 +10,7 @@ import {
   deepCompareArrays,
   getSelectedShapes,
   isMobile,
-} from 'utils/utils'
+} from 'utils'
 import state, { useSelector } from 'state'
 import {
   AlignType,

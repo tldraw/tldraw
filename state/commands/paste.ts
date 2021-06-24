@@ -8,8 +8,8 @@ import {
   screenToWorld,
   setSelectedIds,
   setToArray,
-} from 'utils/utils'
-import { uniqueId } from 'utils/utils'
+} from 'utils'
+import { uniqueId } from 'utils'
 import vec from 'utils/vec'
 import { getShapeUtils } from 'state/shape-utils'
 import state from 'state/state'

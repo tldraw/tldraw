@@ -8,7 +8,7 @@ import {
   getSelectedShapes,
   getShape,
   setSelectedIds,
-} from 'utils/utils'
+} from 'utils'
 import { current } from 'immer'
 import { createShape, getShapeUtils } from 'state/shape-utils'
 import commands from '.'

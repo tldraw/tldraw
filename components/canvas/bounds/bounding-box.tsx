@@ -9,7 +9,7 @@ import {
   getSelectedIds,
   getSelectedShapes,
   isMobile,
-} from 'utils/utils'
+} from 'utils'
 import CenterHandle from './center-handle'
 import CornerHandle from './corner-handle'
 import EdgeHandle from './edge-handle'

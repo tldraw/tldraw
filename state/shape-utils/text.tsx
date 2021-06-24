@@ -1,4 +1,4 @@
-import { uniqueId, isMobile } from 'utils/utils'
+import { uniqueId, isMobile } from 'utils'
 import vec from 'utils/vec'
 import { TextShape, ShapeType, FontSize } from 'types'
 import {

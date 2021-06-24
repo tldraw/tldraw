@@ -1,11 +1,6 @@
 import styled from 'styles'
 import { useSelector } from 'state'
-import {
-  deepCompareArrays,
-  getPage,
-  getSelectedIds,
-  setToArray,
-} from 'utils/utils'
+import { deepCompareArrays, getPage, getSelectedIds, setToArray } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 import { memo } from 'react'
 

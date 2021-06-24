@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data, Shape } from 'types'
-import { getPage, getSelectedShapes } from 'utils/utils'
+import { getPage, getSelectedShapes } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 import { PropsOfType } from 'types'
 

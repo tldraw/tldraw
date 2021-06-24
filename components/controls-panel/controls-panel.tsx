@@ -6,7 +6,7 @@ import { X, Code } from 'react-feather'
 import { IconButton } from 'components/shared'
 import * as Panel from '../panel'
 import Control from './control'
-import { deepCompareArrays } from 'utils/utils'
+import { deepCompareArrays } from 'utils'
 
 export default function ControlPanel(): JSX.Element {
   const rContainer = useRef<HTMLDivElement>(null)

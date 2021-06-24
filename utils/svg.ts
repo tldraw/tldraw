@@ -1,5 +1,5 @@
 // Some helpers for drawing SVGs.
-import { getSweep } from 'utils/utils'
+import { getSweep } from 'utils'
 
 // General
 

@@ -2,7 +2,7 @@
 import { useEffect } from 'react'
 import state from 'state'
 import { MoveType } from 'types'
-import { getKeyboardEventInfo, metaKey } from 'utils/utils'
+import { getKeyboardEventInfo, metaKey } from 'utils'
 
 export default function useKeyboardEvents() {
   useEffect(() => {

@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react'
 import state from 'state'
 import storage from 'state/storage'
-import { getCurrentCamera } from 'utils/utils'
+import { getCurrentCamera } from 'utils'
 
 /**
  * When the state's camera changes, update the transform of

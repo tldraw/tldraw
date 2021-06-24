@@ -8,7 +8,7 @@ import {
   getSelectedIds,
   setToArray,
   uniqueArray,
-} from 'utils/utils'
+} from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 import storage from 'state/storage'
 

@@ -6,8 +6,8 @@ import {
   getPage,
   getSelectedShapes,
   setSelectedIds,
-} from 'utils/utils'
-import { uniqueId } from 'utils/utils'
+} from 'utils'
+import { uniqueId } from 'utils'
 import { current } from 'immer'
 import vec from 'utils/vec'
 

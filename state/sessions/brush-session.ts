@@ -9,7 +9,7 @@ import {
   getTopParentId,
   setSelectedIds,
   setToArray,
-} from 'utils/utils'
+} from 'utils'
 import vec from 'utils/vec'
 
 export default class BrushSession extends BaseSession {

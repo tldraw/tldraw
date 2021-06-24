@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { AlignType, Data } from 'types'
-import { getCommonBounds, getPage, getSelectedShapes } from 'utils/utils'
+import { getCommonBounds, getPage, getSelectedShapes } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function alignCommand(data: Data, type: AlignType): void {

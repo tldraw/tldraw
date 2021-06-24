@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import state, { useSelector } from 'state'
 import inputs from 'state/inputs'
 import styled from 'styles'
-import { deepCompareArrays, getPage } from 'utils/utils'
+import { deepCompareArrays, getPage } from 'utils'
 
 function handlePointerDown(e: React.PointerEvent<SVGRectElement>) {
   if (!inputs.canAccept(e.pointerId)) return

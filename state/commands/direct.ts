@@ -2,7 +2,7 @@ import Command from './command'
 import history from '../history'
 import { DirectionSnapshot } from 'state/sessions/direction-session'
 import { Data, LineShape, RayShape } from 'types'
-import { getPage } from 'utils/utils'
+import { getPage } from 'utils'
 
 export default function directCommand(
   data: Data,

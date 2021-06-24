@@ -3,7 +3,7 @@ import { getShapeUtils } from 'state/shape-utils'
 import { useRef } from 'react'
 import { useSelector } from 'state'
 import styled from 'styles'
-import { deepCompareArrays, getPage } from 'utils/utils'
+import { deepCompareArrays, getPage } from 'utils'
 import vec from 'utils/vec'
 
 export default function Handles(): JSX.Element {

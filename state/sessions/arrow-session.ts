@@ -9,7 +9,7 @@ import {
   getSelectedIds,
   setToArray,
   updateParents,
-} from 'utils/utils'
+} from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default class ArrowSession extends BaseSession {

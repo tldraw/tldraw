@@ -2,7 +2,7 @@ import Command from './command'
 import history from '../history'
 import { Data, Shape } from 'types'
 import { getShapeUtils } from 'state/shape-utils'
-import { getPage, updateParents } from 'utils/utils'
+import { getPage, updateParents } from 'utils'
 
 // Used when changing the properties of one or more shapes,
 // without changing selection or deleting any shapes.

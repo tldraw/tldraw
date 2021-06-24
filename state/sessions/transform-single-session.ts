@@ -10,7 +10,7 @@ import {
   getShape,
   getSelectedShapes,
   updateParents,
-} from 'utils/utils'
+} from 'utils'
 
 export default class TransformSingleSession extends BaseSession {
   transformType: Edge | Corner

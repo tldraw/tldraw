@@ -10,7 +10,7 @@ import {
   getPage,
   getSelectedIds,
   setToArray,
-} from 'utils/utils'
+} from 'utils'
 import AlignDistribute from './align-distribute'
 import { MoveType } from 'types'
 import SizePicker from './size-picker'

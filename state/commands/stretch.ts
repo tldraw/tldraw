@@ -1,12 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { StretchType, Data, Corner } from 'types'
-import {
-  deepClone,
-  getCommonBounds,
-  getPage,
-  getSelectedShapes,
-} from 'utils/utils'
+import { deepClone, getCommonBounds, getPage, getSelectedShapes } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function stretchCommand(data: Data, type: StretchType): void {

@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils/utils'
+import { uniqueId } from 'utils'
 import vec from 'utils/vec'
 import { DashStyle, DrawShape, ShapeStyles, ShapeType } from 'types'
 import { intersectPolylineBounds } from 'utils/intersections'
@@ -9,7 +9,7 @@ import {
   getBoundsFromPoints,
   getSvgPathFromStroke,
   translateBounds,
-} from 'utils/utils'
+} from 'utils'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import { registerShapeUtils } from './register'
 

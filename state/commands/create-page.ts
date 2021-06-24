@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data, Page, PageState } from 'types'
-import { uniqueId } from 'utils/utils'
+import { uniqueId } from 'utils'
 import { current } from 'immer'
 import storage from 'state/storage'
 

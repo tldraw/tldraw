@@ -7,7 +7,7 @@ import {
   getPage,
   getSelectedIds,
   setToArray,
-} from 'utils/utils'
+} from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function moveCommand(data: Data, type: MoveType): void {

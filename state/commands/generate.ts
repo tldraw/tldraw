@@ -2,7 +2,7 @@ import Command from './command'
 import history from '../history'
 import { Data, Shape } from 'types'
 import { current } from 'immer'
-import { getPage, setSelectedIds } from 'utils/utils'
+import { getPage, setSelectedIds } from 'utils'
 
 export default function generateCommand(
   data: Data,

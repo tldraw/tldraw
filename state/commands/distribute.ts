@@ -6,7 +6,7 @@ import {
   getCommonBounds,
   getPage,
   getSelectedShapes,
-} from 'utils/utils'
+} from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function distributeCommand(

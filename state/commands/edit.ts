@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import { getPage } from 'utils/utils'
+import { getPage } from 'utils'
 import { EditSnapshot } from 'state/sessions/edit-session'
 import { getShapeUtils } from 'state/shape-utils'
 

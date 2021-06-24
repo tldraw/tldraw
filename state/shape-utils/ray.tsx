@@ -1,10 +1,10 @@
-import { uniqueId } from 'utils/utils'
+import { uniqueId } from 'utils'
 import vec from 'utils/vec'
 import { RayShape, ShapeType } from 'types'
 import { boundsContained } from 'utils/bounds'
 import { intersectCircleBounds } from 'utils/intersections'
 import { ThinLine } from 'components/canvas/misc'
-import { translateBounds } from 'utils/utils'
+import { translateBounds } from 'utils'
 import { defaultStyle } from 'state/shape-styles'
 import { registerShapeUtils } from './register'
 

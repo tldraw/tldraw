@@ -2,7 +2,7 @@ import Command from './command'
 import history from '../history'
 import { Data, PointerInfo } from 'types'
 import { getShapeUtils } from 'state/shape-utils'
-import { deepClone, getPage, getShape, updateParents } from 'utils/utils'
+import { deepClone, getPage, getShape, updateParents } from 'utils'
 
 export default function doublePointHandleCommand(
   data: Data,

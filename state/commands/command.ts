@@ -1,5 +1,5 @@
 import { Data } from 'types'
-import { getSelectedIds, setSelectedIds, setToArray } from 'utils/utils'
+import { getSelectedIds, setSelectedIds, setToArray } from 'utils'
 
 /* ------------------ Command Class ----------------- */
 

@@ -11,7 +11,7 @@ import Vec from 'utils/vec'
 import { NumberControl, VectorControl, codeControls, controls } from './control'
 import { codeShapes } from './index'
 import { CodeControl, Data, Shape } from 'types'
-import { getPage } from 'utils/utils'
+import { getPage } from 'utils'
 
 const baseScope = {
   Dot,

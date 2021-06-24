@@ -1,12 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data, ShapeStyles } from 'types'
-import {
-  getDocumentBranch,
-  getPage,
-  getSelectedIds,
-  setToArray,
-} from 'utils/utils'
+import { getDocumentBranch, getPage, getSelectedIds, setToArray } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 import { current } from 'immer'
 

@@ -1,7 +1,7 @@
 import { Data, PageState, TLDocument } from 'types'
-import { decompress, compress, setToArray } from 'utils/utils'
+import { decompress, compress, setToArray } from 'utils'
 import state from './state'
-import { uniqueId } from 'utils/utils'
+import { uniqueId } from 'utils'
 import * as idb from 'idb-keyval'
 
 const CURRENT_VERSION = 'code_slate_0.0.8'

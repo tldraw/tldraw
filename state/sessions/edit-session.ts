@@ -2,7 +2,7 @@ import { Data, Shape } from 'types'
 import BaseSession from './base-session'
 import commands from 'state/commands'
 import { current } from 'immer'
-import { getPage, getSelectedShapes, getShape } from 'utils/utils'
+import { getPage, getSelectedShapes, getShape } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default class EditSession extends BaseSession {

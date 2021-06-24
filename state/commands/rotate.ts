@@ -2,7 +2,7 @@ import Command from './command'
 import history from '../history'
 import { Data } from 'types'
 import { RotateSnapshot } from 'state/sessions/rotate-session'
-import { getPage } from 'utils/utils'
+import { getPage } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function rotateCommand(

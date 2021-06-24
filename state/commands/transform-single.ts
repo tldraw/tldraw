@@ -3,7 +3,7 @@ import history from '../history'
 import { Data } from 'types'
 import { current } from 'immer'
 import { TransformSingleSnapshot } from 'state/sessions/transform-single-session'
-import { getPage, setSelectedIds, updateParents } from 'utils/utils'
+import { getPage, setSelectedIds, updateParents } from 'utils'
 
 export default function transformSingleCommand(
   data: Data,

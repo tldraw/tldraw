@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils/utils'
+import { uniqueId } from 'utils'
 import vec from 'utils/vec'
 import { DashStyle, RectangleShape, ShapeType } from 'types'
 import {
@@ -7,7 +7,7 @@ import {
   rng,
   shuffleArr,
   pointsBetween,
-} from 'utils/utils'
+} from 'utils'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import { registerShapeUtils } from './register'

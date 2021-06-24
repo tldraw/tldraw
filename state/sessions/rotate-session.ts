@@ -14,7 +14,7 @@ import {
   getDocumentBranch,
   setToArray,
   getSelectedIds,
-} from 'utils/utils'
+} from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 
 const PI2 = Math.PI * 2

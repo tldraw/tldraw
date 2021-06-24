@@ -2,7 +2,7 @@ import { getShapeStyle } from 'state/shape-styles'
 import { getShapeUtils } from 'state/shape-utils'
 import React, { memo } from 'react'
 import { useSelector } from 'state'
-import { deepCompareArrays, getCurrentCamera, getPage } from 'utils/utils'
+import { deepCompareArrays, getCurrentCamera, getPage } from 'utils'
 import { DotCircle, Handle } from './misc'
 
 export default function Defs(): JSX.Element {

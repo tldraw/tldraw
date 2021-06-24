@@ -6,7 +6,7 @@ import {
   getCommonBounds,
   getPage,
   getSelectedShapes,
-} from 'utils/utils'
+} from 'utils'
 import vec from 'utils/vec'
 import { getShapeUtils } from 'state/shape-utils'
 

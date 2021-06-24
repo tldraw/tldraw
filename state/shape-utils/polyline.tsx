@@ -1,9 +1,9 @@
-import { uniqueId } from 'utils/utils'
+import { uniqueId } from 'utils'
 import vec from 'utils/vec'
 import { PolylineShape, ShapeType } from 'types'
 import { intersectPolylineBounds } from 'utils/intersections'
 import { boundsContainPolygon } from 'utils/bounds'
-import { getBoundsFromPoints, translateBounds } from 'utils/utils'
+import { getBoundsFromPoints, translateBounds } from 'utils'
 import { defaultStyle } from 'state/shape-styles'
 import { registerShapeUtils } from './register'
 

@@ -355,6 +355,17 @@ export enum DistributeType {
   Vertical,
 }
 
+export interface BezierCurveSegment {
+  start: number[]
+  tangentStart: number[]
+  normalStart: number[]
+  pressureStart: number
+  end: number[]
+  tangentEnd: number[]
+  normalEnd: number[]
+  pressureEnd: number
+}
+
 /* -------------------------------------------------- */
 /*                     Code Editor                    */
 /* -------------------------------------------------- */

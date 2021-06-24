@@ -2,7 +2,7 @@ import Command from './command'
 import history from '../history'
 import { Data } from 'types'
 import { TransformSnapshot } from 'state/sessions/transform-session'
-import { getPage, updateParents } from 'utils/utils'
+import { getPage, updateParents } from 'utils'
 
 export default function transformCommand(
   data: Data,

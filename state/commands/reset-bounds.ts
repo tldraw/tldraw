@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import { getPage, getSelectedShapes, updateParents } from 'utils/utils'
+import { getPage, getSelectedShapes, updateParents } from 'utils'
 import { current } from 'immer'
 import { getShapeUtils } from 'state/shape-utils'
 

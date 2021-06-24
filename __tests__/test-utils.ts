@@ -1,5 +1,5 @@
 import { Data } from 'types'
-import { getSelectedIds } from 'utils/utils'
+import { getSelectedIds } from 'utils'
 
 interface PointerOptions {
   id?: string

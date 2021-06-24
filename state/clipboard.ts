@@ -1,6 +1,6 @@
 import { getShapeUtils } from './shape-utils'
 import { Data, Shape } from 'types'
-import { getCommonBounds, getSelectedShapes } from 'utils/utils'
+import { getCommonBounds, getSelectedShapes } from 'utils'
 import state from './state'
 
 class Clipboard {

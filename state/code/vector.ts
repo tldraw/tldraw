@@ -494,3 +494,49 @@ export default class Vector {
     return Vector.dist(a, Vector.nearestPointOnLineSegment(a, p0, p1, clamp))
   }
 }
+
+export class Utils {
+  static getRayRayIntersection(
+    p0: Vector,
+    n0: Vector,
+    p1: Vector,
+    n1: Vector
+  ): Vector {
+    const p0e = Vector.add(p0, n0),
+      p1e = Vector.add(p1, n1),
+      m0 = (p0e.y - p0.y) / (p0e.x - p0.x),
+      m1 = (p1e.y - p1.y) / (p1e.x - p1.x),
+      b0 = p0.y - m0 * p0.x,
+      b1 = p1.y - m1 * p1.x,
+      x = (b1 - b0) / (m0 - m1),
+      y = m0 * x + b0
+
+    return new Vector({ x, y })
+  }
+
+  static getCircleTangentToPoint(
+    A: Point | Vector,
+    r0: number,
+    P: Point | Vector,
+    side: number
+  ): Vector {
+    const v0 = Vector.cast(A)
+    const v1 = Vector.cast(P)
+    const B = Vector.lrp(v0, v1, 0.5),
+      r1 = Vector.dist(v0, B),
+      delta = Vector.sub(B, v0),
+      d = Vector.len(delta)
+
+    if (!(d <= r0 + r1 && d >= Math.abs(r0 - r1))) {
+      return
+    }
+
+    const a = (r0 * r0 - r1 * r1 + d * d) / (2.0 * d),
+      n = 1 / d,
+      p = Vector.add(v0, Vector.mul(delta, a * n)),
+      h = Math.sqrt(r0 * r0 - a * a),
+      k = Vector.mul(Vector.per(delta), h * n)
+
+    return side === 0 ? p.add(k) : p.sub(k)
+  }
+}

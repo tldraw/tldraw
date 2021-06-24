@@ -1,7 +1,7 @@
 import React from 'react'
 import { PointerInfo } from 'types'
 import vec from 'utils/vec'
-import { isDarwin, getPoint } from 'utils/utils'
+import { isDarwin, getPoint } from 'utils'
 
 const DOUBLE_CLICK_DURATION = 250
 

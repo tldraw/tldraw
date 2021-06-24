@@ -3,7 +3,7 @@ import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
 import { current } from 'immer'
-import { uniqueId } from 'utils/utils'
+import { uniqueId } from 'utils'
 import {
   getChildIndexAbove,
   getDocumentBranch,
@@ -11,7 +11,7 @@ import {
   getSelectedShapes,
   setSelectedIds,
   updateParents,
-} from 'utils/utils'
+} from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default class TranslateSession extends BaseSession {

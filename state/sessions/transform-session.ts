@@ -15,7 +15,7 @@ import {
   getTransformedBoundingBox,
   setToArray,
   updateParents,
-} from 'utils/utils'
+} from 'utils'
 
 export default class TransformSession extends BaseSession {
   scaleX = 1

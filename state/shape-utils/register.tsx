@@ -1,12 +1,8 @@
 import { Shape, ShapeUtility } from 'types'
 import vec from 'utils/vec'
-import {
-  getBoundsCenter,
-  getBoundsFromPoints,
-  getRotatedCorners,
-} from 'utils/utils'
+import { getBoundsCenter, getBoundsFromPoints, getRotatedCorners } from 'utils'
 import { boundsCollidePolygon, boundsContainPolygon } from 'utils/bounds'
-import { uniqueId } from 'utils/utils'
+import { uniqueId } from 'utils'
 import React from 'react'
 import { pointInBounds } from 'utils/hitTests'
 

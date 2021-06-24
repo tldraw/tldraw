@@ -1,4 +1,4 @@
-import { getArcLength, uniqueId } from 'utils/utils'
+import { getArcLength, uniqueId } from 'utils'
 import vec from 'utils/vec'
 import {
   getSvgPathFromStroke,
@@ -6,7 +6,7 @@ import {
   getBoundsFromPoints,
   translateBounds,
   pointsBetween,
-} from 'utils/utils'
+} from 'utils'
 import {
   ArrowShape,
   DashStyle,
@@ -14,7 +14,7 @@ import {
   ShapeHandle,
   ShapeType,
 } from 'types'
-import { circleFromThreePoints, isAngleBetween } from 'utils/utils'
+import { circleFromThreePoints, isAngleBetween } from 'utils'
 import { pointInBounds } from 'utils/hitTests'
 import {
   intersectArcBounds,

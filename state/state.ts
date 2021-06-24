@@ -28,7 +28,7 @@ import {
   getPageState,
   setToArray,
   copyToClipboard,
-} from 'utils/utils'
+} from 'utils'
 import {
   Data,
   PointerInfo,

@@ -5,7 +5,7 @@ import {
   getSelectedIds,
   screenToWorld,
   setToArray,
-} from 'utils/utils'
+} from 'utils'
 import { freeze } from 'immer'
 import session from './session'
 import state from './state'
