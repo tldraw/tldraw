@@ -1095,6 +1095,24 @@ export function rotatePoint(A: number[], B: number[], angle: number): number[] {
 }
 
 /**
+ * Clamp radians within 0 and 2PI
+ * @param r
+ */
+export function clampRadians(r: number): number {
+  return (Math.PI * 2 + r) % (Math.PI * 2)
+}
+
+/**
+ * Clamp rotation to even segments.
+ * @param r
+ * @param segments
+ */
+export function clampToRotationToSegments(r: number, segments: number): number {
+  const seg = (Math.PI * 2) / segments
+  return Math.floor((clampRadians(r) + seg / 2) / seg) * seg
+}
+
+/**
  * Is angle c between angles a and b?
  * @param a
  * @param b
@@ -1486,6 +1504,44 @@ export function getCurvePoints(
   return res
 }
 
+/**
+ * Simplify a line (using Ramer-Douglas-Peucker algorithm).
+ * @param points An array of points as [x, y, ...][]
+ * @param tolerance The minimum line distance (also called epsilon).
+ * @returns Simplified array as [x, y, ...][]
+ */
+export function simplify(points: number[][], tolerance = 1): number[][] {
+  const len = points.length,
+    a = points[0],
+    b = points[len - 1],
+    [x1, y1] = a,
+    [x2, y2] = b
+
+  if (len > 2) {
+    let distance = 0
+    let index = 0
+    const max = Math.hypot(y2 - y1, x2 - x1)
+
+    for (let i = 1; i < len - 1; i++) {
+      const [x0, y0] = points[i],
+        d = Math.abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1) / max
+
+      if (distance > d) continue
+
+      distance = d
+      index = i
+    }
+
+    if (distance > tolerance) {
+      const l0 = simplify(points.slice(0, index + 1), tolerance)
+      const l1 = simplify(points.slice(index + 1), tolerance)
+      return l0.concat(l1.slice(1))
+    }
+  }
+
+  return [a, b]
+}
+
 /* ----------------- Browser and DOM ---------------- */
 
 /**
@@ -1504,6 +1560,13 @@ export function isTouchDisplay(): boolean {
  */
 export function isDarwin(): boolean {
   return /Mac|iPod|iPhone|iPad/.test(window.navigator.platform)
+}
+
+/**
+ * Get whether the current device is a mobile device.
+ */
+export function isMobile(): boolean {
+  return _isMobile().any
 }
 
 /**
@@ -1631,59 +1694,6 @@ export async function postJsonToEndpoint(
   )
 
   return await d.json()
-}
-
-/* ------------------ Intersections ----------------- */
-
-export function isMobile(): boolean {
-  return _isMobile().any
-}
-
-export function clampRadians(r: number): number {
-  return (Math.PI * 2 + r) % (Math.PI * 2)
-}
-
-export function clampToRotationToSegments(r: number, segments: number): number {
-  const seg = (Math.PI * 2) / segments
-  return Math.floor((clampRadians(r) + seg / 2) / seg) * seg
-}
-
-/**
- * Simplify a line (using Ramer-Douglas-Peucker algorithm).
- * @param points An array of points as [x, y, ...][]
- * @param tolerance The minimum line distance (also called epsilon).
- * @returns Simplified array as [x, y, ...][]
- */
-export function simplify(points: number[][], tolerance = 1): number[][] {
-  const len = points.length,
-    a = points[0],
-    b = points[len - 1],
-    [x1, y1] = a,
-    [x2, y2] = b
-
-  if (len > 2) {
-    let distance = 0
-    let index = 0
-    const max = Math.hypot(y2 - y1, x2 - x1)
-
-    for (let i = 1; i < len - 1; i++) {
-      const [x0, y0] = points[i],
-        d = Math.abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1) / max
-
-      if (distance > d) continue
-
-      distance = d
-      index = i
-    }
-
-    if (distance > tolerance) {
-      const l0 = simplify(points.slice(0, index + 1), tolerance)
-      const l1 = simplify(points.slice(index + 1), tolerance)
-      return l0.concat(l1.slice(1))
-    }
-  }
-
-  return [a, b]
 }
 
 /**
