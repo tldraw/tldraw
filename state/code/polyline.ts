@@ -1,13 +1,13 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils'
-import { PolylineShape, ShapeStyles, ShapeType } from 'types'
+import { PolylineShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
 /**
  * ## Polyline
  */
 export default class Polyline extends CodeShape<PolylineShape> {
-  constructor(props = {} as Partial<PolylineShape> & Partial<ShapeStyles>) {
+  constructor(props = {} as ShapeProps<PolylineShape>) {
     super({
       id: uniqueId(),
       seed: Math.random(),

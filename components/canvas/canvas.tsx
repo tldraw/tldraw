@@ -1,5 +1,6 @@
 import styled from 'styles'
-import { useSelector } from 'state'
+import { ErrorBoundary } from 'react-error-boundary'
+import state, { useSelector } from 'state'
 import React, { useRef } from 'react'
 import useZoomEvents from 'hooks/useZoomEvents'
 import useCamera from 'hooks/useCamera'
@@ -27,16 +28,23 @@ export default function Canvas(): JSX.Element {
   return (
     <ContextMenu>
       <MainSVG ref={rCanvas} {...events}>
-        <Defs />
-        {isReady && (
-          <g ref={rGroup} id="shapes">
-            <BoundsBg />
-            <Page />
-            <Bounds />
-            <Handles />
-            <Brush />
-          </g>
-        )}
+        <ErrorBoundary
+          FallbackComponent={ErrorFallback}
+          onReset={() => {
+            // reset the state of your app so the error doesn't happen again
+          }}
+        >
+          <Defs />
+          {isReady && (
+            <g ref={rGroup} id="shapes">
+              <BoundsBg />
+              <Page />
+              <Bounds />
+              <Handles />
+              <Brush />
+            </g>
+          )}
+        </ErrorBoundary>
       </MainSVG>
     </ContextMenu>
   )
@@ -59,3 +67,20 @@ const MainSVG = styled('svg', {
     userSelect: 'none',
   },
 })
+
+function ErrorFallback({ error, resetErrorBoundary }) {
+  React.useEffect(() => {
+    console.error(error)
+    const copy = 'Sorry, something went wrong. Clear canvas and continue?'
+    if (window.confirm(copy)) {
+      state.send('CLEARED_PAGE')
+      resetErrorBoundary()
+    }
+  }, [])
+
+  return (
+    <g>
+      <text>Oops</text>
+    </g>
+  )
+}

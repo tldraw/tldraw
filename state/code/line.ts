@@ -1,13 +1,13 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils'
-import { LineShape, ShapeStyles, ShapeType } from 'types'
+import { LineShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
 /**
  * ## Line
  */
 export default class Line extends CodeShape<LineShape> {
-  constructor(props = {} as Partial<LineShape> & Partial<ShapeStyles>) {
+  constructor(props = {} as ShapeProps<LineShape>) {
     super({
       id: uniqueId(),
       seed: Math.random(),

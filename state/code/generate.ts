@@ -10,8 +10,15 @@ import Utils from './utils'
 import Vec from 'utils/vec'
 import { NumberControl, VectorControl, codeControls, controls } from './control'
 import { codeShapes } from './index'
-import { CodeControl, Data, Shape } from 'types'
-import { getPage } from 'utils'
+import {
+  CodeControl,
+  Data,
+  Shape,
+  DashStyle,
+  ColorStyle,
+  SizeStyle,
+} from 'types'
+import { getPage, getShapes } from 'utils'
 import { transform } from 'sucrase'
 
 const baseScope = {
@@ -27,6 +34,9 @@ const baseScope = {
   Draw,
   VectorControl,
   NumberControl,
+  DashStyle,
+  ColorStyle,
+  SizeStyle,
 }
 
 /**
@@ -53,11 +63,19 @@ export function generateFromCode(
 
   new Function(...Object.keys(scope), `${transformed}`)(...Object.values(scope))
 
-  const generatedShapes = Array.from(codeShapes.values()).map((instance) => ({
-    ...instance.shape,
-    isGenerated: true,
-    parentId: getPage(data).id,
-  }))
+  const startingChildIndex =
+    getShapes(data)
+      .filter((shape) => shape.parentId === data.currentPageId)
+      .sort((a, b) => a.childIndex - b.childIndex)[0]?.childIndex || 1
+
+  const generatedShapes = Array.from(codeShapes.values())
+    .sort((a, b) => a.shape.childIndex - b.shape.childIndex)
+    .map((instance, i) => ({
+      ...instance.shape,
+      isGenerated: true,
+      parentId: getPage(data).id,
+      childIndex: startingChildIndex + i,
+    }))
 
   const generatedControls = Array.from(codeControls.values())
 

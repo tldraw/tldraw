@@ -496,12 +496,24 @@ export default class Utils {
     return -c / 2 + -step
   }
 
-  static getPointsBetween(a: number[], b: number[], steps = 6): number[][] {
+  /**
+   * Get an array of points between two points.
+   * @param a
+   * @param b
+   * @param options
+   */
+  static getPointsBetween(
+    a: number[],
+    b: number[],
+    options = {} as {
+      steps?: number
+      ease?: (t: number) => number
+    }
+  ): number[][] {
+    const { steps = 6, ease = (t) => t * t * t } = options
+
     return Array.from(Array(steps))
-      .map((_, i) => {
-        const t = i / steps
-        return t * t * t
-      })
+      .map((_, i) => ease(i / steps))
       .map((t) => [...vec.lrp(a, b, t), (1 - t) / 2])
   }
 

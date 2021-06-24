@@ -1,13 +1,13 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils'
-import { DrawShape, ShapeType } from 'types'
+import { DrawShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
 /**
  * ## Draw
  */
 export default class Draw extends CodeShape<DrawShape> {
-  constructor(props = {} as Partial<DrawShape>) {
+  constructor(props = {} as ShapeProps<DrawShape>) {
     super({
       id: uniqueId(),
       seed: Math.random(),

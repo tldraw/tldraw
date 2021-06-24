@@ -335,15 +335,15 @@ class Storage {
       }
     )
 
+    const documentName = data.document.name
+
     const fa = await import('browser-fs-access')
 
     fa.fileSave(
       blob,
       {
         fileName: `${
-          saveAs
-            ? data.document.name
-            : this.previousSaveHandle?.name || 'My Document'
+          saveAs ? documentName : this.previousSaveHandle?.name || 'My Document'
         }.tldr`,
         description: 'tldraw file',
         extensions: ['.tldr'],

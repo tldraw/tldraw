@@ -1,13 +1,13 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils'
-import { DotShape, ShapeStyles, ShapeType } from 'types'
+import { DotShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
 /**
  * ## Dot
  */
 export default class Dot extends CodeShape<DotShape> {
-  constructor(props = {} as Partial<DotShape> & Partial<ShapeStyles>) {
+  constructor(props = {} as ShapeProps<DotShape>) {
     super({
       id: uniqueId(),
       seed: Math.random(),

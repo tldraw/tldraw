@@ -1,6 +1,6 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils'
-import { ArrowShape, Decoration, ShapeStyles, ShapeType } from 'types'
+import { ArrowShape, Decoration, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 import { getShapeUtils } from 'state/shape-utils'
 import Vec from 'utils/vec'
@@ -10,8 +10,7 @@ import Vec from 'utils/vec'
  */
 export default class Arrow extends CodeShape<ArrowShape> {
   constructor(
-    props = {} as Partial<ArrowShape> &
-      Partial<ShapeStyles> & { start?: number[]; end?: number[] }
+    props = {} as ShapeProps<ArrowShape> & { start: number[]; end: number[] }
   ) {
     const { start = [0, 0], end = [0, 0] } = props
 

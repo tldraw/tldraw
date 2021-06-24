@@ -199,7 +199,7 @@ interface GroupShape extends BaseShape {
   size: number[]
 }
 
-type ShapeProps<T extends Shape> = Partial<T> & {
+type ShapeProps<T extends Shape> = Partial<Omit<T, 'style'>> & {
   style?: Partial<ShapeStyles>
 }
 
@@ -608,49 +608,227 @@ interface ShapeUtility<K extends Shape> {
     return { ...this._shape }
   }
 
+  /**
+   * Destroy the shape.
+   */
   destroy(): void {
     codeShapes.delete(this)
   }
 
+  /**
+   * Move the shape to a point.
+   * @param delta
+   */
   moveTo(point: number[]): CodeShape<T> {
-    this.utils.setProperty(this._shape, 'point', point)
+    return this.translateTo(point)
+  }
+
+  /**
+   * Move the shape to a point.
+   * @param delta
+   */
+  translateTo(point: number[]): CodeShape<T> {
+    this.utils.translateTo(this._shape, point)
     return this
   }
 
-  translate(delta: number[]): CodeShape<T> {
-    this.utils.setProperty(
-      this._shape,
-      'point',
-      vec.add(this._shape.point, delta)
-    )
+  /**
+   * Move the shape by a delta.
+   * @param delta
+   */
+  translateBy(delta: number[]): CodeShape<T> {
+    this.utils.translateTo(this._shape, delta)
     return this
   }
 
-  rotate(rotation: number): CodeShape<T> {
-    this.utils.setProperty(this._shape, 'rotation', rotation)
+  /**
+   * Rotate the shape.
+   */
+  rotateTo(rotation: number): CodeShape<T> {
+    this.utils.rotateTo(this._shape, rotation, this.shape.rotation - rotation)
     return this
   }
 
+  /**
+   * Rotate the shape by a delta.
+   */
+  rotateBy(rotation: number): CodeShape<T> {
+    this.utils.rotateBy(this._shape, rotation)
+    return this
+  }
+
+  /**
+   * Get the shape's bounding box.
+   */
   getBounds(): CodeShape<T> {
     this.utils.getBounds(this.shape)
     return this
   }
 
+  /**
+   * Test whether a point is inside of the shape.
+   */
   hitTest(point: number[]): CodeShape<T> {
     this.utils.hitTest(this.shape, point)
     return this
   }
 
+  /**
+   * Move the shape to the back of the painting order.
+   */
+  moveToBack(): CodeShape<T> {
+    const sorted = getOrderedShapes()
+
+    if (sorted.length <= 1) return
+
+    const first = sorted[0].childIndex
+    sorted.forEach((shape) => shape.childIndex++)
+    this.childIndex = first
+
+    codeShapes.clear()
+    sorted.forEach((shape) => codeShapes.add(shape))
+
+    return this
+  }
+
+  /**
+   * Move the shape to the top of the painting order.
+   */
+  moveToFront(): CodeShape<T> {
+    const sorted = getOrderedShapes()
+
+    if (sorted.length <= 1) return
+
+    const ahead = sorted.slice(sorted.indexOf(this))
+    const last = ahead[ahead.length - 1].childIndex
+    ahead.forEach((shape) => shape.childIndex--)
+    this.childIndex = last
+
+    codeShapes.clear()
+    sorted.forEach((shape) => codeShapes.add(shape))
+
+    return this
+  }
+
+  /**
+   * Move the shape backward in the painting order.
+   */
+  moveBackward(): CodeShape<T> {
+    const sorted = getOrderedShapes()
+
+    if (sorted.length <= 1) return
+
+    const next = sorted[sorted.indexOf(this) - 1]
+
+    if (!next) return
+
+    const index = next.childIndex
+    next.childIndex = this.childIndex
+    this.childIndex = index
+
+    codeShapes.clear()
+    sorted.forEach((shape) => codeShapes.add(shape))
+
+    return this
+  }
+
+  /**
+   * Move the shape forward in the painting order.
+   */
+  moveForward(): CodeShape<T> {
+    const sorted = getOrderedShapes()
+
+    if (sorted.length <= 1) return
+
+    const next = sorted[sorted.indexOf(this) + 1]
+
+    if (!next) return
+
+    const index = next.childIndex
+    next.childIndex = this.childIndex
+    this.childIndex = index
+
+    codeShapes.clear()
+    sorted.forEach((shape) => codeShapes.add(shape))
+
+    return this
+  }
+
+  /**
+   * The shape's underlying shape.
+   */
   get shape(): T {
     return this._shape
   }
 
+  /**
+   * The shape's current point.
+   */
   get point(): number[] {
     return [...this.shape.point]
   }
 
+  set point(point: number[]) {
+    getShapeUtils(this.shape).translateTo(this._shape, point)
+  }
+
+  /**
+   * The shape's rotation.
+   */
   get rotation(): number {
     return this.shape.rotation
+  }
+
+  set rotation(rotation: number) {
+    getShapeUtils(this.shape).rotateTo(
+      this._shape,
+      rotation,
+      rotation - this.shape.rotation
+    )
+  }
+
+  /**
+   * The shape's color style.
+   */
+  get color(): ColorStyle {
+    return this.shape.style.color
+  }
+
+  set color(color: ColorStyle) {
+    getShapeUtils(this.shape).applyStyles(this._shape, { color })
+  }
+
+  /**
+   * The shape's dash style.
+   */
+  get dash(): DashStyle {
+    return this.shape.style.dash
+  }
+
+  set dash(dash: DashStyle) {
+    getShapeUtils(this.shape).applyStyles(this._shape, { dash })
+  }
+
+  /**
+   * The shape's stroke width.
+   */
+  get strokeWidth(): SizeStyle {
+    return this.shape.style.size
+  }
+
+  set strokeWidth(size: SizeStyle) {
+    getShapeUtils(this.shape).applyStyles(this._shape, { size })
+  }
+
+  /**
+   * The shape's index in the painting order.
+   */
+  get childIndex(): number {
+    return this.shape.childIndex
+  }
+
+  set childIndex(childIndex: number) {
+    getShapeUtils(this.shape).setProperty(this._shape, 'childIndex', childIndex)
   }
 }
 
@@ -658,7 +836,7 @@ interface ShapeUtility<K extends Shape> {
  * ## Dot
  */
  class Dot extends CodeShape<DotShape> {
-  constructor(props = {} as Partial<DotShape> & Partial<ShapeStyles>) {
+  constructor(props = {} as ShapeProps<DotShape>) {
     super({
       id: uniqueId(),
       seed: Math.random(),
@@ -686,7 +864,7 @@ interface ShapeUtility<K extends Shape> {
  * ## Ellipse
  */
  class Ellipse extends CodeShape<EllipseShape> {
-  constructor(props = {} as Partial<EllipseShape> & Partial<ShapeStyles>) {
+  constructor(props = {} as ShapeProps<EllipseShape>) {
     super({
       id: uniqueId(),
       seed: Math.random(),
@@ -720,7 +898,7 @@ interface ShapeUtility<K extends Shape> {
  * ## Line
  */
  class Line extends CodeShape<LineShape> {
-  constructor(props = {} as Partial<LineShape> & Partial<ShapeStyles>) {
+  constructor(props = {} as ShapeProps<LineShape>) {
     super({
       id: uniqueId(),
       seed: Math.random(),
@@ -753,7 +931,7 @@ interface ShapeUtility<K extends Shape> {
  * ## Polyline
  */
  class Polyline extends CodeShape<PolylineShape> {
-  constructor(props = {} as Partial<PolylineShape> & Partial<ShapeStyles>) {
+  constructor(props = {} as ShapeProps<PolylineShape>) {
     super({
       id: uniqueId(),
       seed: Math.random(),
@@ -782,7 +960,7 @@ interface ShapeUtility<K extends Shape> {
  * ## Ray
  */
  class Ray extends CodeShape<RayShape> {
-  constructor(props = {} as Partial<RayShape> & Partial<ShapeStyles>) {
+  constructor(props = {} as ShapeProps<RayShape>) {
     super({
       id: uniqueId(),
       seed: Math.random(),
@@ -846,8 +1024,7 @@ interface ShapeUtility<K extends Shape> {
  */
  class Arrow extends CodeShape<ArrowShape> {
   constructor(
-    props = {} as Partial<ArrowShape> &
-      Partial<ShapeStyles> & { start?: number[]; end?: number[] }
+    props = {} as ShapeProps<ArrowShape> & { start: number[]; end: number[] }
   ) {
     const { start = [0, 0], end = [0, 0] } = props
 
@@ -940,7 +1117,7 @@ interface ShapeUtility<K extends Shape> {
  * ## Draw
  */
  class Draw extends CodeShape<DrawShape> {
-  constructor(props = {} as Partial<DrawShape>) {
+  constructor(props = {} as ShapeProps<DrawShape>) {
     super({
       id: uniqueId(),
       seed: Math.random(),
@@ -1459,12 +1636,24 @@ interface ShapeUtility<K extends Shape> {
     return -c / 2 + -step
   }
 
-  static getPointsBetween(a: number[], b: number[], steps = 6): number[][] {
+  /**
+   * Get an array of points between two points.
+   * @param a
+   * @param b
+   * @param options
+   */
+  static getPointsBetween(
+    a: number[],
+    b: number[],
+    options = {} as {
+      steps?: number
+      ease?: (t: number) => number
+    }
+  ): number[][] {
+    const { steps = 6, ease = (t) => t * t * t } = options
+
     return Array.from(Array(steps))
-      .map((_, i) => {
-        const t = i / steps
-        return t * t * t
-      })
+      .map((_, i) => ease(i / steps))
       .map((t) => [...vec.lrp(a, b, t), (1 - t) / 2])
   }
 

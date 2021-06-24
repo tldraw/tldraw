@@ -1,13 +1,13 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils'
-import { EllipseShape, ShapeStyles, ShapeType } from 'types'
+import { EllipseShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
 /**
  * ## Ellipse
  */
 export default class Ellipse extends CodeShape<EllipseShape> {
-  constructor(props = {} as Partial<EllipseShape> & Partial<ShapeStyles>) {
+  constructor(props = {} as ShapeProps<EllipseShape>) {
     super({
       id: uniqueId(),
       seed: Math.random(),

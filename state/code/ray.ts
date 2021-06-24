@@ -1,13 +1,13 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils'
-import { RayShape, ShapeStyles, ShapeType } from 'types'
+import { RayShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
 /**
  * ## Ray
  */
 export default class Ray extends CodeShape<RayShape> {
-  constructor(props = {} as Partial<RayShape> & Partial<ShapeStyles>) {
+  constructor(props = {} as ShapeProps<RayShape>) {
     super({
       id: uniqueId(),
       seed: Math.random(),

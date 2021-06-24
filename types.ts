@@ -191,7 +191,7 @@ export interface GroupShape extends BaseShape {
   size: number[]
 }
 
-export type ShapeProps<T extends Shape> = Partial<T> & {
+export type ShapeProps<T extends Shape> = Partial<Omit<T, 'style'>> & {
   style?: Partial<ShapeStyles>
 }
 
