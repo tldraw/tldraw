@@ -1,10 +1,15 @@
 import { Shape, ShapeUtility } from 'types'
 import vec from 'utils/vec'
-import { getBoundsCenter, getBoundsFromPoints, getRotatedCorners } from 'utils'
-import { boundsCollidePolygon, boundsContainPolygon } from 'utils/bounds'
+import {
+  pointInBounds,
+  getBoundsCenter,
+  getBoundsFromPoints,
+  getRotatedCorners,
+  boundsCollidePolygon,
+  boundsContainPolygon,
+} from 'utils'
 import { uniqueId } from 'utils'
 import React from 'react'
-import { pointInBounds } from 'utils/hitTests'
 
 function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
   return {

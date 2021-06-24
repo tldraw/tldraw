@@ -1,6 +1,9 @@
 import { Data } from 'types'
 import { getSelectedIds } from 'utils'
 
+export const rectangleId = '1f6c251c-e12e-40b4-8dd2-c1847d80b72f'
+export const arrowId = '5ca167d7-54de-47c9-aa8f-86affa25e44d'
+
 interface PointerOptions {
   id?: string
   x?: number

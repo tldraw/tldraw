@@ -76,8 +76,8 @@ export default class RotateSession extends BaseSession {
   }
 
   cancel(data: Data): void {
-    const { currentPageId, initialShapes } = this.snapshot
-    const page = getPage(data, currentPageId)
+    const { initialShapes } = this.snapshot
+    const page = getPage(data)
 
     for (const { id, point, rotation } of initialShapes) {
       const shape = page.shapes[id]

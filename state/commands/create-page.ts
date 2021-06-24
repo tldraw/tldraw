@@ -2,7 +2,6 @@ import Command from './command'
 import history from '../history'
 import { Data, Page, PageState } from 'types'
 import { uniqueId } from 'utils'
-import { current } from 'immer'
 import storage from 'state/storage'
 
 export default function createPage(data: Data, goToPage = true): void {
@@ -40,7 +39,7 @@ export default function createPage(data: Data, goToPage = true): void {
 }
 
 function getSnapshot(data: Data) {
-  const { currentPageId } = current(data)
+  const { currentPageId } = data
 
   const pages = Object.values(data.document.pages)
   const unchanged = pages.filter((page) => page.name.startsWith('Page '))

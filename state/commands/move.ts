@@ -11,8 +11,6 @@ import {
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function moveCommand(data: Data, type: MoveType): void {
-  const { currentPageId } = data
-
   const page = getPage(data)
 
   const selectedIds = setToArray(getSelectedIds(data))
@@ -28,7 +26,7 @@ export default function moveCommand(data: Data, type: MoveType): void {
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        const page = getPage(data, currentPageId)
+        const page = getPage(data)
 
         const shapes = selectedIds.map((id) => page.shapes[id])
 

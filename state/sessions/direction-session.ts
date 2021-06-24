@@ -29,7 +29,7 @@ export default class DirectionSession extends BaseSession {
   }
 
   cancel(data: Data): void {
-    const page = getPage(data, this.snapshot.currentPageId)
+    const page = getPage(data)
 
     for (const { id, direction } of this.snapshot.shapes) {
       const shape = page.shapes[id] as RayShape | LineShape

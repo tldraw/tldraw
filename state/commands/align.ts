@@ -5,7 +5,6 @@ import { getCommonBounds, getPage, getSelectedShapes } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function alignCommand(data: Data, type: AlignType): void {
-  const { currentPageId } = data
   const selectedShapes = getSelectedShapes(data)
   const entries = selectedShapes.map(
     (shape) => [shape.id, getShapeUtils(shape).getBounds(shape)] as const
@@ -21,7 +20,7 @@ export default function alignCommand(data: Data, type: AlignType): void {
       name: 'aligned',
       category: 'canvas',
       do(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         switch (type) {
           case AlignType.Top: {
@@ -87,7 +86,7 @@ export default function alignCommand(data: Data, type: AlignType): void {
         }
       },
       undo(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
         for (const id in boundsForShapes) {
           const shape = shapes[id]
           const initialBounds = boundsForShapes[id]

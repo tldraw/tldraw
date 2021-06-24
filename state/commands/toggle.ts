@@ -9,7 +9,6 @@ export default function toggleCommand(
   data: Data,
   prop: PropsOfType<Shape>
 ): void {
-  const { currentPageId } = data
   const selectedShapes = getSelectedShapes(data)
   const isAllToggled = selectedShapes.every((shape) => shape[prop])
   const initialShapes = Object.fromEntries(
@@ -22,7 +21,7 @@ export default function toggleCommand(
       name: 'toggle_prop',
       category: 'canvas',
       do(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         for (const id in initialShapes) {
           const shape = shapes[id]
@@ -34,7 +33,7 @@ export default function toggleCommand(
         }
       },
       undo(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         for (const id in initialShapes) {
           const shape = shapes[id]

@@ -1,8 +1,8 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import { current } from 'immer'
 import storage from 'state/storage'
+import { deepClone, getPage, getPageState } from 'utils'
 
 export default function deletePage(data: Data, pageId: string): void {
   const snapshot = getSnapshot(data, pageId)
@@ -29,23 +29,17 @@ export default function deletePage(data: Data, pageId: string): void {
 }
 
 function getSnapshot(data: Data, pageId: string) {
-  const cData = current(data)
-  const { currentPageId, document } = cData
+  const { currentPageId, document } = data
 
-  const page = document.pages[pageId]
-  const pageState = cData.pageStates[pageId]
+  const page = deepClone(getPage(data))
 
-  const isCurrent = currentPageId === pageId
+  const pageState = deepClone(getPageState(data))
 
-  // const nextIndex = isCurrent
-  //   ? page.childIndex === 0
-  //     ? 1
-  //     : page.childIndex - 1
-  //   : document.pages[currentPageId].childIndex
+  const isCurrent = data.currentPageId === pageId
 
   const nextPageId = isCurrent
     ? Object.values(document.pages).filter((page) => page.id !== pageId)[0]?.id // TODO: should be at nextIndex
-    : cData.currentPageId
+    : currentPageId
 
   return {
     nextPageId,

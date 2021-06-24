@@ -2,18 +2,18 @@ import Command from './command'
 import history from '../history'
 import { Data } from 'types'
 import {
+  deepClone,
   getCurrentCamera,
   getPage,
   getSelectedShapes,
   setSelectedIds,
 } from 'utils'
 import { uniqueId } from 'utils'
-import { current } from 'immer'
 import vec from 'utils/vec'
 
 export default function duplicateCommand(data: Data): void {
-  const { currentPageId } = data
-  const selectedShapes = getSelectedShapes(current(data))
+  const selectedShapes = getSelectedShapes(data).map(deepClone)
+
   const duplicates = selectedShapes.map((shape) => ({
     ...shape,
     id: uniqueId(),
@@ -28,7 +28,7 @@ export default function duplicateCommand(data: Data): void {
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         for (const duplicate of duplicates) {
           shapes[duplicate.id] = duplicate
@@ -40,7 +40,7 @@ export default function duplicateCommand(data: Data): void {
         )
       },
       undo(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         for (const duplicate of duplicates) {
           delete shapes[duplicate.id]

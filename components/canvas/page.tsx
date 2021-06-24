@@ -1,8 +1,13 @@
 import { getShapeUtils } from 'state/shape-utils'
 import { useSelector } from 'state'
 import { Bounds, PageState } from 'types'
-import { boundsCollide, boundsContain } from 'utils/bounds'
-import { deepCompareArrays, getPage, getViewport } from 'utils'
+import {
+  deepCompareArrays,
+  getPage,
+  getViewport,
+  boundsCollide,
+  boundsContain,
+} from 'utils'
 import Shape from './shape'
 
 /* 

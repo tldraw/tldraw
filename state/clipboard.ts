@@ -94,11 +94,11 @@ class Clipboard {
     try {
       navigator.clipboard.writeText(svgString)
     } catch (e) {
-      Clipboard.copyStringToClipboard(svgString)
+      this.copyStringToClipboard(svgString)
     }
   }
 
-  static copyStringToClipboard(string: string) {
+  copyStringToClipboard = (string: string) => {
     let result: boolean | null
 
     const textarea = document.createElement('textarea')

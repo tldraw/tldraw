@@ -36,10 +36,9 @@ export default class TransformSingleSession extends BaseSession {
   update(data: Data, point: number[], isAspectRatioLocked = false): void {
     const { transformType } = this
 
-    const { initialShapeBounds, currentPageId, initialShape, id } =
-      this.snapshot
+    const { initialShapeBounds, initialShape, id } = this.snapshot
 
-    const shape = getShape(data, id, currentPageId)
+    const shape = getShape(data, id)
 
     const newBoundingBox = getTransformedBoundingBox(
       initialShapeBounds,

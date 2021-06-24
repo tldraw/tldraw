@@ -16,9 +16,9 @@ export default function editCommand(
       name: 'edit_shape',
       category: 'canvas',
       do(data) {
-        const { initialShape, currentPageId } = after
+        const { initialShape } = after
 
-        const page = getPage(data, currentPageId)
+        const page = getPage(data)
 
         page.shapes[initialShape.id] = initialShape
 
@@ -29,9 +29,9 @@ export default function editCommand(
         }
       },
       undo(data) {
-        const { initialShape, currentPageId } = before
+        const { initialShape } = before
 
-        const page = getPage(data, currentPageId)
+        const page = getPage(data)
 
         page.shapes[initialShape.id] = initialShape
       },

@@ -1,13 +1,7 @@
 import { uniqueId } from 'utils'
 import vec from 'utils/vec'
 import { DashStyle, RectangleShape, ShapeType } from 'types'
-import {
-  getSvgPathFromStroke,
-  translateBounds,
-  rng,
-  shuffleArr,
-  pointsBetween,
-} from 'utils'
+import { getSvgPathFromStroke, translateBounds, rng, shuffleArr } from 'utils'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import { registerShapeUtils } from './register'
@@ -203,10 +197,10 @@ function renderPath(shape: RectangleShape) {
 
   const lines = shuffleArr(
     [
-      pointsBetween(tr, br),
-      pointsBetween(br, bl),
-      pointsBetween(bl, tl),
-      pointsBetween(tl, tr),
+      vec.pointsBetween(tr, br),
+      vec.pointsBetween(br, bl),
+      vec.pointsBetween(bl, tl),
+      vec.pointsBetween(tl, tr),
     ],
     Math.floor(5 + getRandom() * 4)
   )

@@ -39,7 +39,7 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
         const fromPageId = oldPageId
         const toPageId = newPageId
 
-        const fromPage = getPage(data, fromPageId)
+        const fromPage = getPage(data)
 
         // Get all of the selected shapes and their descendents
         const shapesToMove = idsToMove.map((id) => fromPage.shapes[id])
@@ -65,7 +65,7 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
         })
 
         // Clear the current page state's selected ids
-        getPageState(data, fromPageId).selectedIds.clear()
+        getPageState(data).selectedIds.clear()
 
         // Save the "from" page
         storage.savePage(data, data.document.id, fromPageId)
@@ -74,7 +74,7 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
         storage.loadPage(data, toPageId)
 
         // The page we're moving the shapes to
-        const toPage = getPage(data, toPageId)
+        const toPage = getPage(data)
 
         // Add all of the selected shapes to the "from" page.
         shapesToMove.forEach((shape) => {
@@ -89,7 +89,7 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
         })
 
         // Select the selected ids on the new page
-        getPageState(data, toPageId).selectedIds = new Set(selectedIds)
+        getPageState(data).selectedIds = new Set(selectedIds)
 
         // Move to the new page
         data.currentPageId = toPageId
@@ -98,7 +98,7 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
         const fromPageId = newPageId
         const toPageId = oldPageId
 
-        const fromPage = getPage(data, fromPageId)
+        const fromPage = getPage(data)
 
         const shapesToMove = idsToMove.map((id) => fromPage.shapes[id])
 
@@ -119,13 +119,13 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
           delete fromPage.shapes[shape.id]
         })
 
-        getPageState(data, fromPageId).selectedIds.clear()
+        getPageState(data).selectedIds.clear()
 
         storage.savePage(data, data.document.id, fromPageId)
 
         storage.loadPage(data, toPageId)
 
-        const toPage = getPage(data, toPageId)
+        const toPage = getPage(data)
 
         shapesToMove.forEach((shape) => {
           toPage.shapes[shape.id] = shape
@@ -144,7 +144,7 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
           }
         })
 
-        getPageState(data, toPageId).selectedIds = new Set(selectedIds)
+        getPageState(data).selectedIds = new Set(selectedIds)
 
         data.currentPageId = toPageId
       },

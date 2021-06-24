@@ -68,7 +68,7 @@ export default function ungroupCommand(data: Data): void {
         }
       },
       undo(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         selectedGroups.forEach((group) => {
           shapes[group.id] = group

@@ -2,28 +2,26 @@ import Command from './command'
 import history from '../history'
 import { Data } from 'types'
 import {
+  deepClone,
   getDocumentBranch,
   getPage,
   getSelectedShapes,
   setSelectedIds,
 } from 'utils'
-import { current } from 'immer'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function deleteSelected(data: Data): void {
-  const { currentPageId } = data
-
   const selectedShapes = getSelectedShapes(data)
 
   const selectedIdsArr = selectedShapes
     .filter((shape) => !shape.isLocked)
     .map((shape) => shape.id)
 
-  const page = getPage(current(data))
+  const page = getPage(data)
 
   const childrenToDelete = selectedIdsArr
     .flatMap((id) => getDocumentBranch(data, id))
-    .map((id) => page.shapes[id])
+    .map((id) => deepClone(page.shapes[id]))
 
   const remainingIds = selectedShapes
     .filter((shape) => shape.isLocked)
@@ -36,7 +34,7 @@ export default function deleteSelected(data: Data): void {
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        const page = getPage(data, currentPageId)
+        const page = getPage(data)
 
         for (const id of selectedIdsArr) {
           const shape = page.shapes[id]
@@ -67,7 +65,7 @@ export default function deleteSelected(data: Data): void {
         setSelectedIds(data, remainingIds)
       },
       undo(data) {
-        const page = getPage(data, currentPageId)
+        const page = getPage(data)
 
         for (const shape of childrenToDelete) {
           page.shapes[shape.id] = shape

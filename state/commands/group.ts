@@ -82,7 +82,7 @@ export default function groupCommand(data: Data): void {
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         // Create the new group
         shapes[newGroupShape.id] = newGroupShape
@@ -118,7 +118,7 @@ export default function groupCommand(data: Data): void {
         setSelectedIds(data, [newGroupShape.id])
       },
       undo(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         const group = shapes[newGroupShape.id]
 

@@ -1,11 +1,10 @@
 import Command from './command'
 import history from '../history'
 import { Data, DrawShape } from 'types'
-import { getPage, setSelectedIds } from 'utils'
-import { current } from 'immer'
+import { deepClone, getPage, getShape, setSelectedIds } from 'utils'
 
 export default function drawCommand(data: Data, id: string): void {
-  const restoreShape = getPage(current(data)).shapes[id] as DrawShape
+  const restoreShape = deepClone(getShape(data, id)) as DrawShape
 
   history.execute(
     data,

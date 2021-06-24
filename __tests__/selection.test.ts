@@ -1,10 +1,7 @@
 import state from 'state'
 import inputs from 'state/inputs'
-import { idsAreSelected, point } from './test-utils'
+import { idsAreSelected, point, rectangleId, arrowId } from './test-utils'
 import * as json from './__mocks__/document.json'
-
-const rectangleId = '1f6c251c-e12e-40b4-8dd2-c1847d80b72f'
-const arrowId = '5ca167d7-54de-47c9-aa8f-86affa25e44d'
 
 // Mount the state and load the test file from json
 state.reset()

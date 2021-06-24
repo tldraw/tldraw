@@ -80,9 +80,9 @@ export default class TransformSession extends BaseSession {
   }
 
   cancel(data: Data): void {
-    const { currentPageId, shapeBounds } = this.snapshot
+    const { shapeBounds } = this.snapshot
 
-    const { shapes } = getPage(data, currentPageId)
+    const { shapes } = getPage(data)
 
     for (const id in shapeBounds) {
       const shape = shapes[id]

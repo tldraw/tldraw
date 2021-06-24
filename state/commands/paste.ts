@@ -15,8 +15,6 @@ import { getShapeUtils } from 'state/shape-utils'
 import state from 'state/state'
 
 export default function pasteCommand(data: Data, initialShapes: Shape[]): void {
-  const { currentPageId } = data
-
   const center = screenToWorld(
     [window.innerWidth / 2, window.innerHeight / 2],
     data
@@ -43,7 +41,7 @@ export default function pasteCommand(data: Data, initialShapes: Shape[]): void {
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         let childIndex =
           (state.values.currentShapes[state.values.currentShapes.length - 1]
@@ -67,7 +65,7 @@ export default function pasteCommand(data: Data, initialShapes: Shape[]): void {
         setSelectedIds(data, Object.values(newIdMap))
       },
       undo(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         Object.values(newIdMap).forEach((id) => delete shapes[id])
 

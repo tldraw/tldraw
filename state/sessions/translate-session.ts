@@ -33,9 +33,8 @@ export default class TranslateSession extends BaseSession {
     isAligned: boolean,
     isCloning: boolean
   ): void {
-    const { currentPageId, clones, initialShapes, initialParents } =
-      this.snapshot
-    const { shapes } = getPage(data, currentPageId)
+    const { clones, initialShapes, initialParents } = this.snapshot
+    const { shapes } = getPage(data)
 
     const delta = vec.vec(this.origin, point)
 
@@ -143,9 +142,8 @@ export default class TranslateSession extends BaseSession {
   }
 
   cancel(data: Data): void {
-    const { initialShapes, initialParents, clones, currentPageId } =
-      this.snapshot
-    const { shapes } = getPage(data, currentPageId)
+    const { initialShapes, initialParents, clones } = this.snapshot
+    const { shapes } = getPage(data)
 
     for (const { id } of initialShapes) {
       getDocumentBranch(data, id).forEach((id) => {

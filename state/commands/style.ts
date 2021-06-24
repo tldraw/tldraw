@@ -11,7 +11,6 @@ export default function styleCommand(
 ): void {
   const cData = current(data)
   const page = getPage(cData)
-  const { currentPageId } = cData
 
   const selectedIds = setToArray(getSelectedIds(data))
 
@@ -26,7 +25,7 @@ export default function styleCommand(
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         for (const { id } of shapesToStyle) {
           const shape = shapes[id]
@@ -34,7 +33,7 @@ export default function styleCommand(
         }
       },
       undo(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         for (const { id, style } of shapesToStyle) {
           const shape = shapes[id]

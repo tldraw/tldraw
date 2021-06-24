@@ -6,7 +6,6 @@ import { getShapeUtils } from 'state/shape-utils'
 import vec from 'utils/vec'
 
 export default function nudgeCommand(data: Data, delta: number[]): void {
-  const { currentPageId } = data
   const selectedShapes = getSelectedShapes(data)
   const shapeBounds = Object.fromEntries(
     selectedShapes.map(
@@ -20,7 +19,7 @@ export default function nudgeCommand(data: Data, delta: number[]): void {
       name: 'nudge_shapes',
       category: 'canvas',
       do(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         for (const id in shapeBounds) {
           const shape = shapes[id]
@@ -32,7 +31,7 @@ export default function nudgeCommand(data: Data, delta: number[]): void {
         }
       },
       undo(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         for (const id in shapeBounds) {
           const shape = shapes[id]

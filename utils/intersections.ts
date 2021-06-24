@@ -12,6 +12,31 @@ function getIntersection(message: string, ...points: number[][]) {
   return { didIntersect: points.length > 0, message, points }
 }
 
+export function intersectRays(
+  p0: number[],
+  n0: number[],
+  p1: number[],
+  n1: number[]
+): Intersection {
+  const dx = p1[0] - p0[0]
+  const dy = p1[1] - p0[1]
+  const det = n1[0] * n0[1] - n1[1] * n0[0]
+  const u = (dy * n1[0] - dx * n1[1]) / det
+  const v = (dy * n0[0] - dx * n0[1]) / det
+  if (u < 0 || v < 0) return getIntersection('miss')
+
+  const m0 = n0[1] / n0[0]
+  const m1 = n1[1] / n1[0]
+  const b0 = p0[1] - m0 * p0[0]
+  const b1 = p1[1] - m1 * p1[0]
+  const x = (b1 - b0) / (m0 - m1)
+  const y = m0 * x + b0
+
+  return Number.isFinite(x)
+    ? getIntersection('intersection', [x, y])
+    : getIntersection('parallel')
+}
+
 export function intersectLineSegments(
   a1: number[],
   a2: number[],
@@ -43,6 +68,27 @@ export function intersectLineSegments(
   }
 
   return getIntersection('no intersection')
+}
+
+export function intersectCircleCircle(a: number[], b: number[]): Intersection {
+  const R = a[2],
+    r = b[2]
+
+  let dx = b[0] - a[0],
+    dy = b[1] - a[1]
+
+  const d = Math.sqrt(dx * dx + dy * dy),
+    x = (d * d - r * r + R * R) / (2 * d),
+    y = Math.sqrt(R * R - x * x)
+
+  dx /= d
+  dy /= d
+
+  return getIntersection(
+    'intersection',
+    [a[0] + dx * x - dy * y, a[1] + dy * x + dx * y],
+    [a[0] + dx * x + dy * y, a[1] + dy * x - dx * y]
+  )
 }
 
 export function intersectCircleLineSegment(

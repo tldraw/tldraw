@@ -5,7 +5,8 @@ import {
   rng,
   getBoundsFromPoints,
   translateBounds,
-  pointsBetween,
+  pointInBounds,
+  pointInCircle,
 } from 'utils'
 import {
   ArrowShape,
@@ -15,12 +16,10 @@ import {
   ShapeType,
 } from 'types'
 import { circleFromThreePoints, isAngleBetween } from 'utils'
-import { pointInBounds } from 'utils/hitTests'
 import {
   intersectArcBounds,
   intersectLineSegmentBounds,
 } from 'utils/intersections'
-import { pointInCircle } from 'utils/hitTests'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import React from 'react'
@@ -502,8 +501,8 @@ function renderFreehandArrowShaft(shape: ArrowShape) {
 
   const stroke = getStroke(
     [
-      ...pointsBetween(start.point, m),
-      ...pointsBetween(m, end.point),
+      ...vec.pointsBetween(start.point, m),
+      ...vec.pointsBetween(m, end.point),
       end.point,
       end.point,
       end.point,

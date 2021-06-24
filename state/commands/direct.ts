@@ -24,7 +24,7 @@ export default function directCommand(
         }
       },
       undo(data) {
-        const { shapes } = getPage(data, before.currentPageId)
+        const { shapes } = getPage(data)
 
         for (const { id, direction } of after.shapes) {
           const shape = shapes[id] as RayShape | LineShape

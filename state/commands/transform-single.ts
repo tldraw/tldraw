@@ -11,7 +11,7 @@ export default function transformSingleCommand(
   after: TransformSingleSnapshot,
   isCreating: boolean
 ): void {
-  const shape = current(getPage(data, after.currentPageId).shapes[after.id])
+  const shape = current(getPage(data).shapes[after.id])
 
   history.execute(
     data,
@@ -22,7 +22,7 @@ export default function transformSingleCommand(
       do(data) {
         const { id } = after
 
-        const { shapes } = getPage(data, after.currentPageId)
+        const { shapes } = getPage(data)
 
         setSelectedIds(data, [id])
 
@@ -33,7 +33,7 @@ export default function transformSingleCommand(
       undo(data) {
         const { id, initialShape } = before
 
-        const { shapes } = getPage(data, before.currentPageId)
+        const { shapes } = getPage(data)
 
         if (isCreating) {
           setSelectedIds(data, [])

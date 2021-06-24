@@ -18,8 +18,8 @@ export default class HandleSession extends BaseSession {
   }
 
   update(data: Data, point: number[], isAligned: boolean): void {
-    const { currentPageId, handleId, initialShape } = this.snapshot
-    const shape = getPage(data, currentPageId).shapes[initialShape.id]
+    const { handleId, initialShape } = this.snapshot
+    const shape = getPage(data).shapes[initialShape.id]
 
     const delta = vec.vec(this.origin, point)
 
@@ -46,8 +46,8 @@ export default class HandleSession extends BaseSession {
   }
 
   cancel(data: Data): void {
-    const { currentPageId, initialShape } = this.snapshot
-    getPage(data, currentPageId).shapes[initialShape.id] = initialShape
+    const { initialShape } = this.snapshot
+    getPage(data).shapes[initialShape.id] = initialShape
   }
 
   complete(data: Data): void {

@@ -2,15 +2,15 @@ import { getPerfectDashProps } from 'utils/dashes'
 import vec from 'utils/vec'
 import { DashStyle, EllipseShape, ShapeType } from 'types'
 import { getShapeUtils } from './index'
-import { boundsContained, getRotatedEllipseBounds } from 'utils/bounds'
 import { intersectEllipseBounds } from 'utils/intersections'
-import { pointInEllipse } from 'utils/hitTests'
 import {
   uniqueId,
-  ease,
   getSvgPathFromStroke,
   rng,
   translateBounds,
+  pointInEllipse,
+  boundsContained,
+  getRotatedEllipseBounds,
 } from 'utils'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
@@ -207,7 +207,8 @@ function renderPath(shape: EllipseShape) {
   }
 
   for (let i = 5; i < 32; i++) {
-    const rads = start + overlap * 2 + Math.PI * 2.5 * ease(i / 35)
+    const t = i / 35
+    const rads = start + overlap * 2 + Math.PI * 2.5 * (t * t * t)
     const x = rx * Math.cos(rads) + center[0]
     const y = ry * Math.sin(rads) + center[1]
     points.push([x, y])

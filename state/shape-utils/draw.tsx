@@ -2,13 +2,13 @@ import { uniqueId } from 'utils'
 import vec from 'utils/vec'
 import { DashStyle, DrawShape, ShapeStyles, ShapeType } from 'types'
 import { intersectPolylineBounds } from 'utils/intersections'
-import { boundsContain } from 'utils/bounds'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
 import {
   getBoundsCenter,
   getBoundsFromPoints,
   getSvgPathFromStroke,
   translateBounds,
+  boundsContain,
 } from 'utils'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import { registerShapeUtils } from './register'

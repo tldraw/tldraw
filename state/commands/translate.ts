@@ -25,8 +25,8 @@ export default function translateCommand(
       do(data, initial) {
         if (initial) return
 
-        const { initialShapes, currentPageId } = after
-        const { shapes } = getPage(data, currentPageId)
+        const { initialShapes } = after
+        const { shapes } = getPage(data)
 
         // Restore clones to document
         if (isCloning) {
@@ -66,8 +66,8 @@ export default function translateCommand(
         )
       },
       undo(data) {
-        const { initialShapes, clones, currentPageId, initialParents } = before
-        const { shapes } = getPage(data, currentPageId)
+        const { initialShapes, clones, initialParents } = before
+        const { shapes } = getPage(data)
 
         // Move shapes back to where they started
         for (const { id, point } of initialShapes) {

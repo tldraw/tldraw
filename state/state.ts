@@ -11,7 +11,6 @@ import commands from './commands'
 import {
   getChildren,
   getCommonBounds,
-  getCurrent,
   getCurrentCamera,
   getPage,
   getSelectedBounds,
@@ -27,8 +26,10 @@ import {
   setSelectedIds,
   getPageState,
   setToArray,
-  copyToClipboard,
+  deepClone,
+  pointInBounds,
 } from 'utils'
+
 import {
   Data,
   PointerInfo,
@@ -47,7 +48,6 @@ import {
   ColorStyle,
 } from 'types'
 import session from './session'
-import { pointInBounds } from 'utils/hitTests'
 
 const initialData: Data = {
   isReadOnly: false,
@@ -335,8 +335,6 @@ const state = createState({
         selecting: {
           onEnter: ['setActiveToolSelect', 'clearInputs'],
           on: {
-            UNDO: 'undo',
-            REDO: 'redo',
             SAVED: 'forceSave',
             DELETED: {
               unless: 'isReadOnly',
@@ -773,8 +771,6 @@ const state = createState({
                       do: 'createShape',
                       to: 'arrow.editing',
                     },
-                    UNDO: { do: 'undo' },
-                    REDO: { do: 'redo' },
                   },
                 },
                 editing: {
@@ -1144,7 +1140,7 @@ const state = createState({
       const shape = createShape(type, {
         parentId: data.currentPageId,
         point: vec.round(screenToWorld(payload.point, data)),
-        style: getCurrent(data.currentStyle),
+        style: deepClone(data.currentStyle),
       })
 
       const siblings = getChildren(data, shape.parentId)
@@ -1748,7 +1744,7 @@ const state = createState({
       data,
       payload: { shapes: Shape[]; controls: CodeControl[] }
     ) {
-      commands.generate(data, data.currentPageId, payload.shapes)
+      commands.generate(data, payload.shapes)
     },
     setCodeControls(data, payload: { controls: CodeControl[] }) {
       data.codeControls = Object.fromEntries(
@@ -1776,7 +1772,7 @@ const state = createState({
           data.document.code[data.currentCodeFileId].code
         )
 
-        commands.generate(data, data.currentPageId, shapes)
+        commands.generate(data, shapes)
       } catch (e) {
         console.error(e)
       }
@@ -1807,7 +1803,7 @@ const state = createState({
     },
 
     copyStateToClipboard(data) {
-      copyToClipboard(JSON.stringify(data))
+      clipboard.copyStringToClipboard(JSON.stringify(data))
     },
 
     pasteFromClipboard() {

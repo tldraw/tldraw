@@ -16,9 +16,9 @@ export default function handleCommand(
       name: 'moved_handle',
       category: 'canvas',
       do(data) {
-        const { initialShape, currentPageId } = after
+        const { initialShape } = after
 
-        const page = getPage(data, currentPageId)
+        const page = getPage(data)
         const shape = page.shapes[initialShape.id]
 
         getShapeUtils(shape)
@@ -26,9 +26,9 @@ export default function handleCommand(
           .onSessionComplete(shape)
       },
       undo(data) {
-        const { initialShape, currentPageId } = before
+        const { initialShape } = before
 
-        const page = getPage(data, currentPageId)
+        const page = getPage(data)
         page.shapes[initialShape.id] = initialShape
       },
     })

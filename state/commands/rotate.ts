@@ -29,7 +29,7 @@ export default function rotateCommand(
         data.boundsRotation = after.boundsRotation
       },
       undo(data) {
-        const { shapes } = getPage(data, before.currentPageId)
+        const { shapes } = getPage(data)
 
         for (const { id, point, rotation } of before.initialShapes) {
           const shape = shapes[id]

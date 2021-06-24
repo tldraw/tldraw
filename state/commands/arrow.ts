@@ -18,9 +18,9 @@ export default function arrowCommand(
       do(data, isInitial) {
         if (isInitial) return
 
-        const { initialShape, currentPageId } = after
+        const { initialShape } = after
 
-        const page = getPage(data, currentPageId)
+        const page = getPage(data)
 
         page.shapes[initialShape.id] = initialShape
 
@@ -31,8 +31,8 @@ export default function arrowCommand(
         data.pointedId = undefined
       },
       undo(data) {
-        const { initialShape, currentPageId } = before
-        const shapes = getPage(data, currentPageId).shapes
+        const { initialShape } = before
+        const shapes = getPage(data).shapes
 
         delete shapes[initialShape.id]
 

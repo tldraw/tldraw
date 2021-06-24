@@ -13,7 +13,7 @@ import { getShapeUtils } from 'state/shape-utils'
 const PI2 = Math.PI * 2
 
 export default function rotateCcwCommand(data: Data): void {
-  const { currentPageId, boundsRotation } = data
+  const { boundsRotation } = data
 
   const page = getPage(data)
 
@@ -63,7 +63,7 @@ export default function rotateCcwCommand(data: Data): void {
       name: 'rotate_ccw',
       category: 'canvas',
       do(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         for (const id in nextShapes) {
           const shape = shapes[id]
@@ -77,7 +77,7 @@ export default function rotateCcwCommand(data: Data): void {
         data.boundsRotation = nextboundsRotation
       },
       undo(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         for (const id in initialShapes) {
           const { point, rotation } = initialShapes[id]

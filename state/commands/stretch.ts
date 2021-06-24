@@ -5,8 +5,6 @@ import { deepClone, getCommonBounds, getPage, getSelectedShapes } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function stretchCommand(data: Data, type: StretchType): void {
-  const { currentPageId } = data
-
   const initialShapes = getSelectedShapes(data).map((shape) => deepClone(shape))
 
   const snapshot = Object.fromEntries(
@@ -29,7 +27,7 @@ export default function stretchCommand(data: Data, type: StretchType): void {
       name: 'stretched_shapes',
       category: 'canvas',
       do(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
 
         switch (type) {
           case StretchType.Horizontal: {
@@ -77,7 +75,7 @@ export default function stretchCommand(data: Data, type: StretchType): void {
         }
       },
       undo(data) {
-        const { shapes } = getPage(data, currentPageId)
+        const { shapes } = getPage(data)
         initialShapes.forEach((shape) => (shapes[shape.id] = shape))
       },
     })
