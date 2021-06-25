@@ -1,6 +1,6 @@
 import state from 'state'
 import { generateFromCode } from 'state/code/generate'
-import { getShapes } from 'utils'
+import { getShape, getShapes } from 'utils'
 import * as json from './__mocks__/document.json'
 
 jest.useRealTimers()
@@ -56,16 +56,9 @@ describe('selection', () => {
 
   it('creates a code control', async () => {
     const code = `
-    const rectangle = new Rectangle({
-      id: "test-rectangle",
-      name: 'Test Rectangle',
-      point: [100, 100],
-      size: [200, 200],
-      style: {
-        size: SizeStyle.Medium,
-        color: ColorStyle.Red,
-        dash: DashStyle.Dotted,
-      },
+    new NumberControl({
+      id: "test-number-control",
+      label: "x"
     })
     `
 
@@ -80,18 +73,6 @@ describe('selection', () => {
 
   it('updates a code control', async () => {
     const code = `
-    const rectangle = new Rectangle({
-      id: "test-rectangle",
-      name: 'Test Rectangle',
-      point: [100, 100],
-      size: [200, 200],
-      style: {
-        size: SizeStyle.Medium,
-        color: ColorStyle.Red,
-        dash: DashStyle.Dotted,
-      },
-    })
-
     new NumberControl({
       id: "test-number-control",
       label: "x"
@@ -100,6 +81,18 @@ describe('selection', () => {
     new VectorControl({
       id: "test-vector-control",
       label: "size"
+    })
+
+    const rectangle = new Rectangle({
+      id: "test-rectangle",
+      name: 'Test Rectangle',
+      point: [controls.x, 100],
+      size: controls.size,
+      style: {
+        size: SizeStyle.Medium,
+        color: ColorStyle.Red,
+        dash: DashStyle.Dotted,
+      },
     })
     `
 
@@ -111,6 +104,10 @@ describe('selection', () => {
 
     expect(state.data.codeControls).toMatchSnapshot(
       'data in state after changing control'
+    )
+
+    expect(getShape(state.data, 'test-rectangle')).toMatchSnapshot(
+      'rectangle in state after changing code control'
     )
   })
 
@@ -251,12 +248,35 @@ describe('selection', () => {
   it('generates an arrow shape', async () => {
     state.send('CLEARED_PAGE')
     const code = `
-    const ellipse = new Arrow({
+    const draw = new Arrow({
       id: 'test-draw',
       name: 'Test draw',
       points: [[100, 100], [200,200], [300,300]],
       style: {
         size: SizeStyle.Medium,
+        color: ColorStyle.Red,
+        dash: DashStyle.Dotted,
+      },
+    })
+    `
+
+    const { controls, shapes } = await generateFromCode(state.data, code)
+
+    state.send('GENERATED_FROM_CODE', { controls, shapes })
+
+    expect(getShapes(state.data)).toMatchSnapshot('generated draw from code')
+  })
+
+  it('generates a text shape', async () => {
+    state.send('CLEARED_PAGE')
+    const code = `
+    const text = new Text({
+      id: 'test-text',
+      name: 'Test text',
+      point: [100, 100],
+      text: 'Hello world!',
+      style: {
+        size: SizeStyle.Large,
         color: ColorStyle.Red,
         dash: DashStyle.Dotted,
       },

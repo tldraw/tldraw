@@ -182,7 +182,6 @@ export interface TextShape extends BaseShape {
   type: ShapeType.Text
   text: string
   scale: number
-  fontSize: FontSize
 }
 
 export interface GroupShape extends BaseShape {

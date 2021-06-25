@@ -17,6 +17,7 @@ import {
   Shape,
   DashStyle,
   ColorStyle,
+  FontSize,
   SizeStyle,
 } from 'types'
 import { getPage, getShapes } from 'utils'
@@ -39,6 +40,7 @@ const baseScope = {
   DashStyle,
   ColorStyle,
   SizeStyle,
+  FontSize,
 }
 
 /**

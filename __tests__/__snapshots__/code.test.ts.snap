@@ -1,6 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`selection creates a code control: generated code controls from code 1`] = `Object {}`;
+exports[`selection creates a code control: generated code controls from code 1`] = `
+Object {
+  "test-number-control": Object {
+    "id": "test-number-control",
+    "label": "x",
+    "step": 1,
+    "type": "number",
+    "value": 0,
+  },
+}
+`;
 
 exports[`selection generates a draw shape: generated draw from code 1`] = `
 Array [
@@ -71,6 +81,35 @@ Array [
       "size": "Medium",
     },
     "type": "rectangle",
+  },
+]
+`;
+
+exports[`selection generates a text shape: generated draw from code 1`] = `
+Array [
+  Object {
+    "childIndex": 1,
+    "id": "test-text",
+    "isAspectRatioLocked": false,
+    "isGenerated": true,
+    "isHidden": false,
+    "isLocked": false,
+    "name": "Test text",
+    "parentId": "page1",
+    "point": Array [
+      100,
+      100,
+    ],
+    "rotation": 0,
+    "scale": 1,
+    "style": Object {
+      "color": "Red",
+      "dash": "Dotted",
+      "isFilled": false,
+      "size": "Large",
+    },
+    "text": "Hello world!",
+    "type": "text",
   },
 ]
 `;
@@ -228,5 +267,35 @@ Object {
       0,
     ],
   },
+}
+`;
+
+exports[`selection updates a code control: rectangle in state after changing code control 1`] = `
+Object {
+  "childIndex": 1,
+  "id": "test-rectangle",
+  "isAspectRatioLocked": false,
+  "isGenerated": true,
+  "isHidden": false,
+  "isLocked": false,
+  "name": "Test Rectangle",
+  "parentId": "page1",
+  "point": Array [
+    0,
+    100,
+  ],
+  "radius": 2,
+  "rotation": 0,
+  "size": Array [
+    0,
+    0,
+  ],
+  "style": Object {
+    "color": "Red",
+    "dash": "Dotted",
+    "isFilled": false,
+    "size": "Medium",
+  },
+  "type": "rectangle",
 }
 `;

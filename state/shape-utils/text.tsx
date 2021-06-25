@@ -1,6 +1,6 @@
 import { uniqueId, isMobile } from 'utils'
 import vec from 'utils/vec'
-import { TextShape, ShapeType, FontSize } from 'types'
+import { TextShape, ShapeType } from 'types'
 import {
   defaultStyle,
   getFontSize,
@@ -53,7 +53,6 @@ const text = registerShapeUtils<TextShape>({
   create(props) {
     return {
       id: uniqueId(),
-
       type: ShapeType.Text,
       isGenerated: false,
       name: 'Text',
@@ -67,7 +66,6 @@ const text = registerShapeUtils<TextShape>({
       style: defaultStyle,
       text: '',
       scale: 1,
-      fontSize: FontSize.Medium,
       ...props,
     }
   },
@@ -118,6 +116,7 @@ const text = registerShapeUtils<TextShape>({
               fontSize={fontSize}
               width={bounds.width}
               height={bounds.height}
+              fill={styles.stroke}
               dominantBaseline="hanging"
             >
               {str}

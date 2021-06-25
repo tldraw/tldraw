@@ -1,7 +1,8 @@
 import CodeShape from './index'
 import { uniqueId } from 'utils'
-import { TextShape, ShapeProps, ShapeType, FontSize } from 'types'
+import { TextShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
+import { getShapeUtils } from 'state/shape-utils'
 
 /* ----------------- Start Copy Here ---------------- */
 
@@ -22,12 +23,19 @@ export default class Text extends CodeShape<TextShape> {
       isHidden: false,
       text: 'Text',
       scale: 1,
-      fontSize: FontSize.Medium,
       ...props,
       style: {
         ...defaultStyle,
         ...props.style,
       },
     })
+  }
+
+  get scale(): number {
+    return this.shape.scale
+  }
+
+  set scale(scale: number) {
+    getShapeUtils(this.shape).setProperty(this.shape, 'scale', scale)
   }
 }
