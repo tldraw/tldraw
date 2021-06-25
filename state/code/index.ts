@@ -184,6 +184,10 @@ export default class CodeShape<T extends Shape> {
     return this
   }
 
+  get id(): string {
+    return this._shape.id
+  }
+
   /**
    * The shape's underlying shape.
    */

@@ -300,7 +300,7 @@ const state = createState({
         ZOOMED_CAMERA: 'zoomCamera',
         INCREASED_CODE_FONT_SIZE: 'increaseCodeFontSize',
         DECREASED_CODE_FONT_SIZE: 'decreaseCodeFontSize',
-        CHANGED_CODE_CONTROL: 'updateControls',
+        CHANGED_CODE_CONTROL: { to: 'updatingControls' },
         TOGGLED_TOOL_LOCK: 'toggleToolLock',
         ZOOMED_TO_SELECTION: {
           if: 'hasSelection',
@@ -603,6 +603,13 @@ const state = createState({
                 STOPPED_POINTING: { to: 'selecting' },
                 STARTED_PINCHING: { to: 'pinching' },
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
+              },
+            },
+            updatingControls: {
+              onEnter: 'updateControls',
+              async: {
+                await: 'getUpdatedShapes',
+                onResolve: { do: 'updateGeneratedShapes', to: 'selecting' },
               },
             },
           },
@@ -1742,6 +1749,15 @@ const state = createState({
     ) {
       commands.generate(data, payload.shapes)
     },
+    updateGeneratedShapes(data, payload, result: { shapes: Shape[] }) {
+      setSelectedIds(data, [])
+
+      history.disable()
+
+      commands.generate(data, result.shapes)
+
+      history.enable()
+    },
     setCodeControls(data, payload: { controls: CodeControl[] }) {
       data.codeControls = Object.fromEntries(
         payload.controls.map((control) => [control.id, control])
@@ -1757,21 +1773,6 @@ const state = createState({
       for (const key in payload) {
         data.codeControls[key].value = payload[key]
       }
-
-      history.disable()
-
-      setSelectedIds(data, [])
-
-      try {
-        updateFromCode(
-          data,
-          data.document.code[data.currentCodeFileId].code
-        ).then(({ shapes }) => commands.generate(data, shapes))
-      } catch (e) {
-        console.error(e)
-      }
-
-      history.enable()
     },
 
     /* -------------------- Settings -------------------- */
@@ -1894,6 +1895,14 @@ const state = createState({
       }
 
       return commonStyle
+    },
+  },
+  asyncs: {
+    async getUpdatedShapes(data) {
+      return updateFromCode(
+        data,
+        data.document.code[data.currentCodeFileId].code
+      )
     },
   },
 })

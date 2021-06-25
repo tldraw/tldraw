@@ -36,7 +36,7 @@ export default class Arrow extends CodeShape<ArrowShape> {
 
     super({
       id: uniqueId(),
-      seed: Math.random(),
+
       type: ShapeType.Arrow,
       isGenerated: false,
       name: 'Arrow',

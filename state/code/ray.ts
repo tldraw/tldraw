@@ -9,7 +9,7 @@ export default class Ray extends CodeShape<RayShape> {
   constructor(props = {} as ShapeProps<RayShape>) {
     super({
       id: uniqueId(),
-      seed: Math.random(),
+
       type: ShapeType.Ray,
       isGenerated: true,
       name: 'Ray',

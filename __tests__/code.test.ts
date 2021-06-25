@@ -33,6 +33,7 @@ describe('selection', () => {
   it('generates shapes', async () => {
     const code = `
     const rectangle = new Rectangle({
+      id: "test-rectangle",
       name: 'Test Rectangle',
       point: [100, 100],
       size: [200, 200],
@@ -45,20 +46,72 @@ describe('selection', () => {
     `
 
     const { controls, shapes } = await generateFromCode(state.data, code)
+
     state.send('GENERATED_FROM_CODE', { controls, shapes })
-    expect(getShapes(state.data).length).toBe(1)
+
+    expect(getShapes(state.data)).toMatchSnapshot(
+      'generated rectangle from code'
+    )
   })
 
-  it('creates a code control', () => {
-    null
+  it('creates a code control', async () => {
+    const code = `
+    const rectangle = new Rectangle({
+      id: "test-rectangle",
+      name: 'Test Rectangle',
+      point: [100, 100],
+      size: [200, 200],
+      style: {
+        size: SizeStyle.Medium,
+        color: ColorStyle.Red,
+        dash: DashStyle.Dotted,
+      },
+    })
+    `
+
+    const { controls, shapes } = await generateFromCode(state.data, code)
+
+    state.send('GENERATED_FROM_CODE', { controls, shapes })
+
+    expect(state.data.codeControls).toMatchSnapshot(
+      'generated code controls from code'
+    )
   })
 
-  it('updates a code control', () => {
-    null
-  })
+  it('updates a code control', async () => {
+    const code = `
+    const rectangle = new Rectangle({
+      id: "test-rectangle",
+      name: 'Test Rectangle',
+      point: [100, 100],
+      size: [200, 200],
+      style: {
+        size: SizeStyle.Medium,
+        color: ColorStyle.Red,
+        dash: DashStyle.Dotted,
+      },
+    })
 
-  it('updates a code control', () => {
-    null
+    new NumberControl({
+      id: "test-number-control",
+      label: "x"
+    })
+
+    new VectorControl({
+      id: "test-vector-control",
+      label: "size"
+    })
+    `
+
+    const { controls, shapes } = await generateFromCode(state.data, code)
+
+    state.send('GENERATED_FROM_CODE', { controls, shapes })
+
+    state.send('CHANGED_CODE_CONTROL', { 'test-number-control': 100 })
+
+    expect(state.data.codeControls).toMatchSnapshot(
+      'data in state after changing control'
+    )
   })
 
   /* -------------------- Readonly -------------------- */

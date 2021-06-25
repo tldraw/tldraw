@@ -115,7 +115,6 @@ export type ShapeStyles = {
 
 export interface BaseShape {
   id: string
-  seed: number
   type: ShapeType
   parentId: string
   childIndex: number

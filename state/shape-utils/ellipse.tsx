@@ -24,7 +24,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
   create(props) {
     return {
       id: uniqueId(),
-      seed: Math.random(),
+
       type: ShapeType.Ellipse,
       isGenerated: false,
       name: 'Ellipse',

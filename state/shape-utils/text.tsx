@@ -53,7 +53,7 @@ const text = registerShapeUtils<TextShape>({
   create(props) {
     return {
       id: uniqueId(),
-      seed: Math.random(),
+
       type: ShapeType.Text,
       isGenerated: false,
       name: 'Text',

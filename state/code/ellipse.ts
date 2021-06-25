@@ -9,7 +9,6 @@ export default class Ellipse extends CodeShape<EllipseShape> {
   constructor(props = {} as ShapeProps<EllipseShape>) {
     super({
       id: uniqueId(),
-      seed: Math.random(),
       parentId: (window as any).currentPageId,
       type: ShapeType.Ellipse,
       isGenerated: true,

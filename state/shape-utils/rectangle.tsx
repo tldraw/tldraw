@@ -15,7 +15,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
   create(props) {
     return {
       id: uniqueId(),
-      seed: Math.random(),
+
       type: ShapeType.Rectangle,
       isGenerated: false,
       name: 'Rectangle',

@@ -13,17 +13,17 @@ export const codeControls = new Set<CodeControl>([])
 /* ----------------- Start Copy Here ---------------- */
 
 export class Control<T extends CodeControl> {
-  control: T
+  _control: T
 
-  constructor(control: Omit<T, 'id'>) {
-    this.control = { ...control, id: uniqueId() } as T
-    codeControls.add(this.control)
+  constructor(control: T) {
+    this._control = { ...control }
+    codeControls.add(this._control)
 
     // Could there be a better way to prevent this?
     // When updating, constructor should just bind to
     // the existing control rather than creating a new one?
     if (!(window as any).isUpdatingCode) {
-      controls[this.control.label] = this.control.value
+      controls[this._control.label] = this._control.value
     }
   }
 
@@ -32,39 +32,52 @@ export class Control<T extends CodeControl> {
     delete controls[this.control.label]
   }
 
+  get control(): T {
+    return this._control
+  }
+
+  get id(): string {
+    return this.control.id
+  }
+
   get value(): T['value'] {
     return this.control.value
   }
-
-  set value(value: T['value']) {
-    this.control.value = value
-  }
 }
 
-type ControlProps<T extends CodeControl> = Omit<Partial<T>, 'id' | 'type'>
+type ControlProps<T extends CodeControl> = Omit<Partial<T>, 'type'>
 
 export class NumberControl extends Control<NumberCodeControl> {
   constructor(options: ControlProps<NumberCodeControl>) {
-    const { label = 'Number', value = 0, step = 1 } = options
+    const { id = uniqueId(), label = 'Number', value = 0, step = 1 } = options
+
     super({
       type: ControlType.Number,
       ...options,
       label,
       value,
       step,
+      id,
     })
   }
 }
 
 export class VectorControl extends Control<VectorCodeControl> {
   constructor(options: ControlProps<VectorCodeControl>) {
-    const { label = 'Vector', value = [0, 0], isNormalized = false } = options
+    const {
+      id = uniqueId(),
+      label = 'Vector',
+      value = [0, 0],
+      isNormalized = false,
+    } = options
+
     super({
       type: ControlType.Vector,
       ...options,
       label,
       value,
       isNormalized,
+      id,
     })
   }
 }

@@ -9,7 +9,7 @@ export default class Rectangle extends CodeShape<RectangleShape> {
   constructor(props = {} as ShapeProps<RectangleShape>) {
     super({
       id: uniqueId(),
-      seed: Math.random(),
+
       parentId: (window as any).currentPageId,
       type: ShapeType.Rectangle,
       isGenerated: true,

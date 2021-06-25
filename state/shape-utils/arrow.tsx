@@ -61,7 +61,7 @@ const arrow = registerShapeUtils<ArrowShape>({
 
     return {
       id: uniqueId(),
-      seed: Math.random(),
+
       type: ShapeType.Arrow,
       isGenerated: false,
       name: 'Arrow',

@@ -9,7 +9,7 @@ export default class Draw extends CodeShape<DrawShape> {
   constructor(props = {} as ShapeProps<DrawShape>) {
     super({
       id: uniqueId(),
-      seed: Math.random(),
+
       type: ShapeType.Draw,
       isGenerated: false,
       parentId: (window as any).currentPageId,

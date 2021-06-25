@@ -9,7 +9,7 @@ export default class Polyline extends CodeShape<PolylineShape> {
   constructor(props = {} as ShapeProps<PolylineShape>) {
     super({
       id: uniqueId(),
-      seed: Math.random(),
+
       parentId: (window as any).currentPageId,
       type: ShapeType.Polyline,
       isGenerated: true,

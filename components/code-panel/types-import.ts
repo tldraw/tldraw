@@ -65,7 +65,6 @@ type ShapeStyles = {
 
 interface BaseShape {
   id: string
-  seed: number
   type: ShapeType
   parentId: string
   childIndex: number
@@ -335,27 +334,27 @@ interface BaseCodeControl {
 
 interface NumberCodeControl extends BaseCodeControl {
   type: ControlType.Number
-  min: number
-  max: number
   value: number
-  step: number
-  format: (value: number) => number
+  min?: number
+  max?: number
+  step?: number
+  format?: (value: number) => number
 }
 
 interface VectorCodeControl extends BaseCodeControl {
   type: ControlType.Vector
-  min: number
-  max: number
-  step: number
   value: number[]
-  isNormalized: boolean
-  format: (value: number[]) => number[]
+  min?: number
+  max?: number
+  step?: number
+  isNormalized?: boolean
+  format?: (value: number[]) => number[]
 }
 
 interface TextCodeControl extends BaseCodeControl {
   type: ControlType.Text
   value: string
-  format: (value: string) => string
+  format?: (value: string) => string
 }
 
 interface SelectCodeControl<T extends string = ''>
@@ -1972,6 +1971,10 @@ interface ShapeUtility<K extends Shape> {
     return this
   }
 
+  get id(): string {
+    return this._shape.id
+  }
+
   /**
    * The shape's underlying shape.
    */
@@ -2057,7 +2060,7 @@ interface ShapeUtility<K extends Shape> {
   constructor(props = {} as ShapeProps<DotShape>) {
     super({
       id: uniqueId(),
-      seed: Math.random(),
+
       parentId: (window as any).currentPageId,
       type: ShapeType.Dot,
       isGenerated: true,
@@ -2085,7 +2088,6 @@ interface ShapeUtility<K extends Shape> {
   constructor(props = {} as ShapeProps<EllipseShape>) {
     super({
       id: uniqueId(),
-      seed: Math.random(),
       parentId: (window as any).currentPageId,
       type: ShapeType.Ellipse,
       isGenerated: true,
@@ -2119,7 +2121,7 @@ interface ShapeUtility<K extends Shape> {
   constructor(props = {} as ShapeProps<LineShape>) {
     super({
       id: uniqueId(),
-      seed: Math.random(),
+
       parentId: (window as any).currentPageId,
       type: ShapeType.Line,
       isGenerated: true,
@@ -2152,7 +2154,7 @@ interface ShapeUtility<K extends Shape> {
   constructor(props = {} as ShapeProps<PolylineShape>) {
     super({
       id: uniqueId(),
-      seed: Math.random(),
+
       parentId: (window as any).currentPageId,
       type: ShapeType.Polyline,
       isGenerated: true,
@@ -2184,7 +2186,7 @@ interface ShapeUtility<K extends Shape> {
   constructor(props = {} as ShapeProps<RayShape>) {
     super({
       id: uniqueId(),
-      seed: Math.random(),
+
       type: ShapeType.Ray,
       isGenerated: true,
       name: 'Ray',
@@ -2242,7 +2244,7 @@ interface ShapeUtility<K extends Shape> {
 
     super({
       id: uniqueId(),
-      seed: Math.random(),
+
       type: ShapeType.Arrow,
       isGenerated: false,
       name: 'Arrow',
@@ -2311,7 +2313,7 @@ interface ShapeUtility<K extends Shape> {
   constructor(props = {} as ShapeProps<DrawShape>) {
     super({
       id: uniqueId(),
-      seed: Math.random(),
+
       type: ShapeType.Draw,
       isGenerated: false,
       parentId: (window as any).currentPageId,
@@ -2339,7 +2341,7 @@ interface ShapeUtility<K extends Shape> {
   constructor(props = {} as ShapeProps<RectangleShape>) {
     super({
       id: uniqueId(),
-      seed: Math.random(),
+
       parentId: (window as any).currentPageId,
       type: ShapeType.Rectangle,
       isGenerated: true,

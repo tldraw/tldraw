@@ -13,7 +13,7 @@ const line = registerShapeUtils<LineShape>({
   create(props) {
     return {
       id: uniqueId(),
-      seed: Math.random(),
+
       type: ShapeType.Line,
       isGenerated: false,
       name: 'Line',

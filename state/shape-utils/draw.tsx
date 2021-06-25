@@ -23,7 +23,7 @@ const draw = registerShapeUtils<DrawShape>({
   create(props) {
     return {
       id: uniqueId(),
-      seed: Math.random(),
+
       type: ShapeType.Draw,
       isGenerated: false,
       name: 'Draw',

@@ -15,7 +15,7 @@ const group = registerShapeUtils<GroupShape>({
   create(props) {
     return {
       id: uniqueId(),
-      seed: Math.random(),
+
       type: ShapeType.Group,
       isGenerated: false,
       name: 'Group',

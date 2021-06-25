@@ -9,7 +9,7 @@ export default class Line extends CodeShape<LineShape> {
   constructor(props = {} as ShapeProps<LineShape>) {
     super({
       id: uniqueId(),
-      seed: Math.random(),
+
       parentId: (window as any).currentPageId,
       type: ShapeType.Line,
       isGenerated: true,

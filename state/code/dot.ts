@@ -9,7 +9,7 @@ export default class Dot extends CodeShape<DotShape> {
   constructor(props = {} as ShapeProps<DotShape>) {
     super({
       id: uniqueId(),
-      seed: Math.random(),
+
       parentId: (window as any).currentPageId,
       type: ShapeType.Dot,
       isGenerated: true,
