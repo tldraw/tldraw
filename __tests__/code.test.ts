@@ -131,5 +131,142 @@ describe('selection', () => {
     expect(state.data.document.code[state.data.currentCodeFileId].code).toBe(
       code
     )
+
+    state.send('TOGGLED_READ_ONLY').send('SAVED_CODE', { code: '' })
+
+    expect(state.data.document.code[state.data.currentCodeFileId].code).toBe('')
+  })
+
+  /* --------------------- Methods -------------------- */
+
+  it('moves shape to front', async () => {
+    null
+  })
+
+  it('moves shape forward', async () => {
+    null
+  })
+
+  it('moves shape backward', async () => {
+    null
+  })
+
+  it('moves shape to back', async () => {
+    null
+  })
+
+  it('rotates a shape', async () => {
+    null
+  })
+
+  it('rotates a shape by a delta', async () => {
+    null
+  })
+
+  it('translates a shape', async () => {
+    null
+  })
+
+  it('translates a shape by a delta', async () => {
+    null
+  })
+
+  /* --------------------- Shapes --------------------- */
+
+  it('generates a rectangle shape', async () => {
+    state.send('CLEARED_PAGE')
+    const code = `
+    const rectangle = new Rectangle({
+      id: "test-rectangle",
+      name: 'Test Rectangle',
+      point: [100, 100],
+      size: [200, 200],
+      style: {
+        size: SizeStyle.Medium,
+        color: ColorStyle.Red,
+        dash: DashStyle.Dotted,
+      },
+    })
+    `
+
+    const { controls, shapes } = await generateFromCode(state.data, code)
+
+    state.send('GENERATED_FROM_CODE', { controls, shapes })
+
+    expect(getShapes(state.data)).toMatchSnapshot(
+      'generated rectangle from code'
+    )
+  })
+
+  it('changes a rectangle size', async () => {
+    null
+  })
+
+  it('generates an ellipse shape', async () => {
+    state.send('CLEARED_PAGE')
+    const code = `
+    const ellipse = new Ellipse({
+      id: 'test-ellipse',
+      name: 'Test ellipse',
+      point: [100, 100],
+      radiusX: 100,
+      radiusY: 200,
+      style: {
+        size: SizeStyle.Medium,
+        color: ColorStyle.Red,
+        dash: DashStyle.Dotted,
+      },
+    })
+    `
+
+    const { controls, shapes } = await generateFromCode(state.data, code)
+
+    state.send('GENERATED_FROM_CODE', { controls, shapes })
+
+    expect(getShapes(state.data)).toMatchSnapshot('generated ellipse from code')
+  })
+
+  it('generates a draw shape', async () => {
+    state.send('CLEARED_PAGE')
+    const code = `
+    const ellipse = new Draw({
+      id: 'test-draw',
+      name: 'Test draw',
+      points: [[100, 100], [200,200], [300,300]],
+      style: {
+        size: SizeStyle.Medium,
+        color: ColorStyle.Red,
+        dash: DashStyle.Dotted,
+      },
+    })
+    `
+
+    const { controls, shapes } = await generateFromCode(state.data, code)
+
+    state.send('GENERATED_FROM_CODE', { controls, shapes })
+
+    expect(getShapes(state.data)).toMatchSnapshot('generated draw from code')
+  })
+
+  it('generates an arrow shape', async () => {
+    state.send('CLEARED_PAGE')
+    const code = `
+    const ellipse = new Arrow({
+      id: 'test-draw',
+      name: 'Test draw',
+      points: [[100, 100], [200,200], [300,300]],
+      style: {
+        size: SizeStyle.Medium,
+        color: ColorStyle.Red,
+        dash: DashStyle.Dotted,
+      },
+    })
+    `
+
+    const { controls, shapes } = await generateFromCode(state.data, code)
+
+    state.send('GENERATED_FROM_CODE', { controls, shapes })
+
+    expect(getShapes(state.data)).toMatchSnapshot('generated draw from code')
   })
 })

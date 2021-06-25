@@ -85,7 +85,7 @@ export function getShapeStyle(
   }
 }
 
-export const defaultStyle = {
+export const defaultStyle: ShapeStyles = {
   color: ColorStyle.Black,
   size: SizeStyle.Medium,
   isFilled: false,

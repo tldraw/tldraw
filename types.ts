@@ -191,8 +191,12 @@ export interface GroupShape extends BaseShape {
   size: number[]
 }
 
-export type ShapeProps<T extends Shape> = Partial<Omit<T, 'style'>> & {
-  style?: Partial<ShapeStyles>
+// type DeepPartial<T> = {
+//   [P in keyof T]?: DeepPartial<T[P]>
+// }
+
+export type ShapeProps<T extends Shape> = {
+  [P in keyof T]?: P extends 'style' ? Partial<T[P]> : T[P]
 }
 
 export type MutableShape =
