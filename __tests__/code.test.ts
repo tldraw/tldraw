@@ -117,6 +117,19 @@ describe('selection', () => {
   /* -------------------- Readonly -------------------- */
 
   it('does not saves changes to code when readonly', () => {
-    null
+    state.send('CLEARED_PAGE')
+
+    expect(getShapes(state.data).length).toBe(0)
+
+    const code = `// hello world!`
+
+    state
+      .send('SAVED_CODE', { code })
+      .send('TOGGLED_READ_ONLY')
+      .send('SAVED_CODE', { code: '' })
+
+    expect(state.data.document.code[state.data.currentCodeFileId].code).toBe(
+      code
+    )
   })
 })

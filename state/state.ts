@@ -173,6 +173,7 @@ const state = createState({
         else: ['zoomCameraToActual'],
       },
       on: {
+        TOGGLED_READ_ONLY: 'toggleReadOnly',
         LOADED_FONTS: 'resetShapes',
         USED_PEN_DEVICE: 'enablePenLock',
         DISABLED_PEN_LOCK: 'disablePenLock',
@@ -1121,6 +1122,9 @@ const state = createState({
     },
   },
   actions: {
+    toggleReadOnly(data) {
+      data.isReadOnly = !data.isReadOnly
+    },
     /* ---------------------- Pages --------------------- */
     changePage(data, payload: { id: string }) {
       commands.changePage(data, payload.id)
