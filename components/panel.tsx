@@ -18,6 +18,10 @@ export const Root = styled('div', {
     },
     variant: {
       code: {},
+      controls: {
+        position: 'absolute',
+        right: 156,
+      },
     },
     isOpen: {
       true: {},

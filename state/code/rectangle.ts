@@ -3,9 +3,8 @@ import { uniqueId } from 'utils'
 import { RectangleShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
-/**
- * ## Rectangle
- */
+/* ----------------- Start Copy Here ---------------- */
+
 export default class Rectangle extends CodeShape<RectangleShape> {
   constructor(props = {} as ShapeProps<RectangleShape>) {
     super({
@@ -24,7 +23,10 @@ export default class Rectangle extends CodeShape<RectangleShape> {
       isLocked: false,
       isHidden: false,
       ...props,
-      style: { ...defaultStyle, ...props.style },
+      style: {
+        ...defaultStyle,
+        ...props.style,
+      },
     })
   }
 

@@ -21,6 +21,9 @@ function getOrderedShapes() {
  * A base class for code shapes. Note that creating a shape adds it to the
  * shape map, while deleting it removes it from the collected shapes set
  */
+
+/* ----------------- Start Copy Here ---------------- */
+
 export default class CodeShape<T extends Shape> {
   private _shape: Mutable<T>
   private utils: ShapeUtility<T>

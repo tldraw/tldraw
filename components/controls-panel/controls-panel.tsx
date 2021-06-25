@@ -17,7 +17,12 @@ export default function ControlPanel(): JSX.Element {
   const isOpen = useSelector((s) => Object.keys(s.data.codeControls).length > 0)
 
   return (
-    <Panel.Root data-bp-desktop ref={rContainer} isOpen={isOpen}>
+    <Panel.Root
+      data-bp-desktop
+      ref={rContainer}
+      isOpen={isOpen}
+      variant="controls"
+    >
       {isOpen ? (
         <Panel.Layout>
           <Panel.Header>

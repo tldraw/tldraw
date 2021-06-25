@@ -8,12 +8,12 @@
     "dev": "next dev",
     "format": "prettier --write .",
     "lint": "eslint . --ext ts --ext tsx --ext js",
-    "scripts": "node scripts/type-gen && yarn format",
+    "scripts": "node scripts/type-gen && prettier --write './components/code-panel/types-import.ts'",
     "start": "next start",
     "test-all": "yarn lint && yarn type-check && yarn test",
     "test:update": "jest --updateSnapshot",
     "test:watch": "jest --watchAll",
-    "test": "jest",
+    "test": "jest --watchAll=false",
     "type-check": "tsc --pretty --noEmit"
   },
   "husky": {
@@ -53,7 +53,7 @@
     "idb-keyval": "^5.0.6",
     "ismobilejs": "^1.1.1",
     "monaco-editor": "^0.25.2",
-    "next": "latest",
+    "next": "^11.0.1",
     "next-auth": "^3.27.0",
     "next-pwa": "^5.2.21",
     "perfect-freehand": "^0.4.9",
@@ -66,8 +66,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@testing-library/react": "^11.2.5",
-    "@testing-library/user-event": "^13.1.9",
+    "@babel/core": "^7.14.6",
     "@types/jest": "^26.0.23",
     "@types/node": "^14.14.25",
     "@types/react": "^17.0.1",
@@ -80,7 +79,8 @@
     "eslint-plugin-react": "^7.19.0",
     "husky": "^4.2.3",
     "identity-obj-proxy": "^3.0.0",
-    "jest": "^27.0.4",
+    "jest": "^27.0.5",
+    "jest-esm-transformer": "^1.0.0",
     "jest-watch-typeahead": "^0.6.1",
     "lint-staged": "^10.0.10",
     "prettier": "^2.3.1",

@@ -7,6 +7,7 @@ import StylePanel from './style-panel/style-panel'
 import styled from 'styles'
 import PagePanel from './page-panel/page-panel'
 import CodePanel from './code-panel/code-panel'
+import ControlsPanel from './controls-panel/controls-panel'
 
 export default function Editor(): JSX.Element {
   useKeyboardEvents()
@@ -16,6 +17,7 @@ export default function Editor(): JSX.Element {
     <Layout>
       <CodePanel />
       <PagePanel />
+      <ControlsPanel />
       <Spacer />
       <StylePanel />
       <Canvas />

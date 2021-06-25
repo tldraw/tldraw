@@ -46,3 +46,11 @@ export function idsAreSelected(
     ids.every((id) => selectedIds.has(id))
   )
 }
+
+export async function asyncDelay<T>(fn: () => T): Promise<T> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(fn())
+    }, 100)
+  })
+}

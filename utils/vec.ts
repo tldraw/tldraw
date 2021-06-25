@@ -1,5 +1,7 @@
 // A big collection of vector utilities. Collected into a class to improve logging / packaging.
 
+/* ----------------- Start Copy Here ---------------- */
+
 export default class Vec {
   /**
    * Clamp a value into a range.

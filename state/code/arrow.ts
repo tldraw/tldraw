@@ -5,9 +5,8 @@ import { defaultStyle } from 'state/shape-styles'
 import { getShapeUtils } from 'state/shape-utils'
 import Vec from 'utils/vec'
 
-/**
- * ## Draw
- */
+/* ----------------- Start Copy Here ---------------- */
+
 export default class Arrow extends CodeShape<ArrowShape> {
   constructor(
     props = {} as ShapeProps<ArrowShape> & { start: number[]; end: number[] }

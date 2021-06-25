@@ -50,14 +50,21 @@ function NumberControl({ id, min, max, step, value }: NumberCodeControl) {
   )
 }
 
-function VectorControl({ id, value, isNormalized }: VectorCodeControl) {
+function VectorControl({
+  id,
+  value,
+  min = -Infinity,
+  max = Infinity,
+  step = 0.01,
+  isNormalized = false,
+}: VectorCodeControl) {
   return (
     <Inputs>
       <input
         type="range"
-        min={isNormalized ? -1 : -Infinity}
-        max={isNormalized ? 1 : Infinity}
-        step={0.01}
+        min={isNormalized ? -1 : min}
+        max={isNormalized ? 1 : max}
+        step={step}
         value={value[0]}
         onChange={(e) =>
           state.send('CHANGED_CODE_CONTROL', {
@@ -67,9 +74,9 @@ function VectorControl({ id, value, isNormalized }: VectorCodeControl) {
       />
       <input
         type="number"
-        min={isNormalized ? -1 : -Infinity}
-        max={isNormalized ? 1 : Infinity}
-        step={0.01}
+        min={isNormalized ? -1 : min}
+        max={isNormalized ? 1 : max}
+        step={step}
         value={value[0]}
         onChange={(e) =>
           state.send('CHANGED_CODE_CONTROL', {
@@ -79,9 +86,9 @@ function VectorControl({ id, value, isNormalized }: VectorCodeControl) {
       />
       <input
         type="range"
-        min={isNormalized ? -1 : -Infinity}
-        max={isNormalized ? 1 : Infinity}
-        step={0.01}
+        min={isNormalized ? -1 : min}
+        max={isNormalized ? 1 : max}
+        step={step}
         value={value[1]}
         onChange={(e) =>
           state.send('CHANGED_CODE_CONTROL', {
@@ -91,9 +98,9 @@ function VectorControl({ id, value, isNormalized }: VectorCodeControl) {
       />
       <input
         type="number"
-        min={isNormalized ? -1 : -Infinity}
-        max={isNormalized ? 1 : Infinity}
-        step={0.01}
+        min={isNormalized ? -1 : min}
+        max={isNormalized ? 1 : max}
+        step={step}
         value={value[1]}
         onChange={(e) =>
           state.send('CHANGED_CODE_CONTROL', {

@@ -4,66 +4,10 @@
 
 export default {
   name: 'types.ts',
-  content: `    
+  content: `
+    
 
-/* -------------------------------------------------- */
-/*                    Client State                    */
-/* -------------------------------------------------- */
 
-interface Data {
-  isReadOnly: boolean
-  settings: {
-    fontSize: number
-    isDarkMode: boolean
-    isCodeOpen: boolean
-    isStyleOpen: boolean
-    nudgeDistanceSmall: number
-    nudgeDistanceLarge: number
-    isToolLocked: boolean
-    isPenLocked: boolean
-  }
-  currentStyle: ShapeStyles
-  activeTool: ShapeType | 'select'
-  brush?: Bounds
-  boundsRotation: number
-  pointedId?: string
-  hoveredId?: string
-  editingId?: string
-  currentPageId: string
-  currentParentId: string
-  currentCodeFileId: string
-  codeControls: Record<string, CodeControl>
-  document: TLDocument
-  pageStates: Record<string, PageState>
-}
-
-/* -------------------------------------------------- */
-/*                      Document                      */
-/* -------------------------------------------------- */
-
-interface TLDocument {
-  id: string
-  name: string
-  pages: Record<string, Page>
-  code: Record<string, CodeFile>
-}
-
-interface Page {
-  id: string
-  type: 'page'
-  childIndex: number
-  name: string
-  shapes: Record<string, Shape>
-}
-
-interface PageState {
-  id: string
-  selectedIds: Set<string>
-  camera: {
-    point: number[]
-    zoom: number
-  }
-}
 
 enum ShapeType {
   Dot = 'dot',
@@ -391,24 +335,27 @@ interface BaseCodeControl {
 
 interface NumberCodeControl extends BaseCodeControl {
   type: ControlType.Number
-  min?: number
-  max?: number
+  min: number
+  max: number
   value: number
   step: number
-  format?: (value: number) => number
+  format: (value: number) => number
 }
 
 interface VectorCodeControl extends BaseCodeControl {
   type: ControlType.Vector
+  min: number
+  max: number
+  step: number
   value: number[]
   isNormalized: boolean
-  format?: (value: number[]) => number[]
+  format: (value: number[]) => number[]
 }
 
 interface TextCodeControl extends BaseCodeControl {
   type: ControlType.Text
   value: string
-  format?: (value: string) => string
+  format: (value: string) => string
 }
 
 interface SelectCodeControl<T extends string = ''>
@@ -594,556 +541,528 @@ interface ShapeUtility<K extends Shape> {
 }
 
 
- class CodeShape<T extends Shape> {
-  private _shape: Mutable<T>
-  private utils: ShapeUtility<T>
 
-  constructor(props: T) {
-    this._shape = createShape(props.type, props) as Mutable<T>
-    this.utils = getShapeUtils<T>(this._shape)
-    codeShapes.add(this)
-  }
 
-  export(): Mutable<T> {
-    return { ...this._shape }
+ class Vec {
+  /**
+   * Clamp a value into a range.
+   * @param n
+   * @param min
+   */
+  static clamp(n: number, min: number): number
+  static clamp(n: number, min: number, max: number): number
+  static clamp(n: number, min: number, max?: number): number {
+    return Math.max(min, typeof max !== 'undefined' ? Math.min(n, max) : n)
   }
 
   /**
-   * Destroy the shape.
+   * Negate a vector.
+   * @param A
    */
-  destroy(): void {
-    codeShapes.delete(this)
+  static neg = (A: number[]): number[] => {
+    return [-A[0], -A[1]]
   }
 
   /**
-   * Move the shape to a point.
-   * @param delta
+   * Add vectors.
+   * @param A
+   * @param B
    */
-  moveTo(point: number[]): CodeShape<T> {
-    return this.translateTo(point)
+  static add = (A: number[], B: number[]): number[] => {
+    return [A[0] + B[0], A[1] + B[1]]
   }
 
   /**
-   * Move the shape to a point.
-   * @param delta
+   * Add scalar to vector.
+   * @param A
+   * @param B
    */
-  translateTo(point: number[]): CodeShape<T> {
-    this.utils.translateTo(this._shape, point)
-    return this
+  static addScalar = (A: number[], n: number): number[] => {
+    return [A[0] + n, A[1] + n]
   }
 
   /**
-   * Move the shape by a delta.
-   * @param delta
+   * Subtract vectors.
+   * @param A
+   * @param B
    */
-  translateBy(delta: number[]): CodeShape<T> {
-    this.utils.translateTo(this._shape, delta)
-    return this
+  static sub = (A: number[], B: number[]): number[] => {
+    return [A[0] - B[0], A[1] - B[1]]
   }
 
   /**
-   * Rotate the shape.
+   * Subtract scalar from vector.
+   * @param A
+   * @param B
    */
-  rotateTo(rotation: number): CodeShape<T> {
-    this.utils.rotateTo(this._shape, rotation, this.shape.rotation - rotation)
-    return this
+  static subScalar = (A: number[], n: number): number[] => {
+    return [A[0] - n, A[1] - n]
   }
 
   /**
-   * Rotate the shape by a delta.
+   * Get the vector from vectors A to B.
+   * @param A
+   * @param B
    */
-  rotateBy(rotation: number): CodeShape<T> {
-    this.utils.rotateBy(this._shape, rotation)
-    return this
+  static vec = (A: number[], B: number[]): number[] => {
+    // A, B as vectors get the vector from A to B
+    return [B[0] - A[0], B[1] - A[1]]
   }
 
   /**
-   * Get the shape's bounding box.
+   * Vector multiplication by scalar
+   * @param A
+   * @param n
    */
-  getBounds(): CodeShape<T> {
-    this.utils.getBounds(this.shape)
-    return this
+  static mul = (A: number[], n: number): number[] => {
+    return [A[0] * n, A[1] * n]
+  }
+
+  static mulV = (A: number[], B: number[]): number[] => {
+    return [A[0] * B[0], A[1] * B[1]]
   }
 
   /**
-   * Test whether a point is inside of the shape.
+   * Vector division by scalar.
+   * @param A
+   * @param n
    */
-  hitTest(point: number[]): CodeShape<T> {
-    this.utils.hitTest(this.shape, point)
-    return this
+  static div = (A: number[], n: number): number[] => {
+    return [A[0] / n, A[1] / n]
   }
 
   /**
-   * Move the shape to the back of the painting order.
+   * Vector division by vector.
+   * @param A
+   * @param n
    */
-  moveToBack(): CodeShape<T> {
-    const sorted = getOrderedShapes()
-
-    if (sorted.length <= 1) return
-
-    const first = sorted[0].childIndex
-    sorted.forEach((shape) => shape.childIndex++)
-    this.childIndex = first
-
-    codeShapes.clear()
-    sorted.forEach((shape) => codeShapes.add(shape))
-
-    return this
+  static divV = (A: number[], B: number[]): number[] => {
+    return [A[0] / B[0], A[1] / B[1]]
   }
 
   /**
-   * Move the shape to the top of the painting order.
+   * Perpendicular rotation of a vector A
+   * @param A
    */
-  moveToFront(): CodeShape<T> {
-    const sorted = getOrderedShapes()
-
-    if (sorted.length <= 1) return
-
-    const ahead = sorted.slice(sorted.indexOf(this))
-    const last = ahead[ahead.length - 1].childIndex
-    ahead.forEach((shape) => shape.childIndex--)
-    this.childIndex = last
-
-    codeShapes.clear()
-    sorted.forEach((shape) => codeShapes.add(shape))
-
-    return this
+  static per = (A: number[]): number[] => {
+    return [A[1], -A[0]]
   }
 
   /**
-   * Move the shape backward in the painting order.
+   * Dot product
+   * @param A
+   * @param B
    */
-  moveBackward(): CodeShape<T> {
-    const sorted = getOrderedShapes()
-
-    if (sorted.length <= 1) return
-
-    const next = sorted[sorted.indexOf(this) - 1]
-
-    if (!next) return
-
-    const index = next.childIndex
-    next.childIndex = this.childIndex
-    this.childIndex = index
-
-    codeShapes.clear()
-    sorted.forEach((shape) => codeShapes.add(shape))
-
-    return this
+  static dpr = (A: number[], B: number[]): number => {
+    return A[0] * B[0] + A[1] * B[1]
   }
 
   /**
-   * Move the shape forward in the painting order.
+   * Cross product (outer product) | A X B |
+   * @param A
+   * @param B
    */
-  moveForward(): CodeShape<T> {
-    const sorted = getOrderedShapes()
-
-    if (sorted.length <= 1) return
-
-    const next = sorted[sorted.indexOf(this) + 1]
-
-    if (!next) return
-
-    const index = next.childIndex
-    next.childIndex = this.childIndex
-    this.childIndex = index
-
-    codeShapes.clear()
-    sorted.forEach((shape) => codeShapes.add(shape))
-
-    return this
+  static cpr = (A: number[], B: number[]): number => {
+    return A[0] * B[1] - B[0] * A[1]
   }
 
   /**
-   * The shape's underlying shape.
+   * Length of the vector squared
+   * @param A
    */
-  get shape(): T {
-    return this._shape
+  static len2 = (A: number[]): number => {
+    return A[0] * A[0] + A[1] * A[1]
   }
 
   /**
-   * The shape's current point.
+   * Length of the vector
+   * @param A
    */
-  get point(): number[] {
-    return [...this.shape.point]
-  }
-
-  set point(point: number[]) {
-    getShapeUtils(this.shape).translateTo(this._shape, point)
+  static len = (A: number[]): number => {
+    return Math.hypot(A[0], A[1])
   }
 
   /**
-   * The shape's rotation.
+   * Project A over B
+   * @param A
+   * @param B
    */
-  get rotation(): number {
-    return this.shape.rotation
-  }
-
-  set rotation(rotation: number) {
-    getShapeUtils(this.shape).rotateTo(
-      this._shape,
-      rotation,
-      rotation - this.shape.rotation
-    )
+  static pry = (A: number[], B: number[]): number => {
+    return Vec.dpr(A, B) / Vec.len(B)
   }
 
   /**
-   * The shape's color style.
+   * Get normalized / unit vector.
+   * @param A
    */
-  get color(): ColorStyle {
-    return this.shape.style.color
-  }
-
-  set color(color: ColorStyle) {
-    getShapeUtils(this.shape).applyStyles(this._shape, { color })
+  static uni = (A: number[]): number[] => {
+    return Vec.div(A, Vec.len(A))
   }
 
   /**
-   * The shape's dash style.
+   * Get normalized / unit vector.
+   * @param A
    */
-  get dash(): DashStyle {
-    return this.shape.style.dash
-  }
-
-  set dash(dash: DashStyle) {
-    getShapeUtils(this.shape).applyStyles(this._shape, { dash })
+  static normalize = (A: number[]): number[] => {
+    return Vec.uni(A)
   }
 
   /**
-   * The shape's stroke width.
+   * Get the tangent between two vectors.
+   * @param A
+   * @param B
+   * @returns
    */
-  get strokeWidth(): SizeStyle {
-    return this.shape.style.size
-  }
-
-  set strokeWidth(size: SizeStyle) {
-    getShapeUtils(this.shape).applyStyles(this._shape, { size })
+  static tangent = (A: number[], B: number[]): number[] => {
+    return Vec.normalize(Vec.sub(A, B))
   }
 
   /**
-   * The shape's index in the painting order.
+   * Dist length from A to B squared.
+   * @param A
+   * @param B
    */
-  get childIndex(): number {
-    return this.shape.childIndex
+  static dist2 = (A: number[], B: number[]): number => {
+    return Vec.len2(Vec.sub(A, B))
   }
 
-  set childIndex(childIndex: number) {
-    getShapeUtils(this.shape).setProperty(this._shape, 'childIndex', childIndex)
+  /**
+   * Dist length from A to B
+   * @param A
+   * @param B
+   */
+  static dist = (A: number[], B: number[]): number => {
+    return Math.hypot(A[1] - B[1], A[0] - B[0])
+  }
+
+  /**
+   * A faster, though less accurate method for testing distances. Maybe faster?
+   * @param A
+   * @param B
+   * @returns
+   */
+  static fastDist = (A: number[], B: number[]): number[] => {
+    const V = [B[0] - A[0], B[1] - A[1]]
+    const aV = [Math.abs(V[0]), Math.abs(V[1])]
+    let r = 1 / Math.max(aV[0], aV[1])
+    r = r * (1.29289 - (aV[0] + aV[1]) * r * 0.29289)
+    return [V[0] * r, V[1] * r]
+  }
+
+  /**
+   * Angle between vector A and vector B in radians
+   * @param A
+   * @param B
+   */
+  static ang = (A: number[], B: number[]): number => {
+    return Math.atan2(Vec.cpr(A, B), Vec.dpr(A, B))
+  }
+
+  /**
+   * Angle between vector A and vector B in radians
+   * @param A
+   * @param B
+   */
+  static angle = (A: number[], B: number[]): number => {
+    return Math.atan2(B[1] - A[1], B[0] - A[0])
+  }
+
+  /**
+   * Mean between two vectors or mid vector between two vectors
+   * @param A
+   * @param B
+   */
+  static med = (A: number[], B: number[]): number[] => {
+    return Vec.mul(Vec.add(A, B), 0.5)
+  }
+
+  /**
+   * Vector rotation by r (radians)
+   * @param A
+   * @param r rotation in radians
+   */
+  static rot = (A: number[], r: number): number[] => {
+    return [
+      A[0] * Math.cos(r) - A[1] * Math.sin(r),
+      A[0] * Math.sin(r) + A[1] * Math.cos(r),
+    ]
+  }
+
+  /**
+   * Rotate a vector around another vector by r (radians)
+   * @param A vector
+   * @param C center
+   * @param r rotation in radians
+   */
+  static rotWith = (A: number[], C: number[], r: number): number[] => {
+    if (r === 0) return A
+
+    const s = Math.sin(r)
+    const c = Math.cos(r)
+
+    const px = A[0] - C[0]
+    const py = A[1] - C[1]
+
+    const nx = px * c - py * s
+    const ny = px * s + py * c
+
+    return [nx + C[0], ny + C[1]]
+  }
+
+  /**
+   * Check of two vectors are identical.
+   * @param A
+   * @param B
+   */
+  static isEqual = (A: number[], B: number[]): boolean => {
+    return A[0] === B[0] && A[1] === B[1]
+  }
+
+  /**
+   * Interpolate vector A to B with a scalar t
+   * @param A
+   * @param B
+   * @param t scalar
+   */
+  static lrp = (A: number[], B: number[], t: number): number[] => {
+    return Vec.add(A, Vec.mul(Vec.vec(A, B), t))
+  }
+
+  /**
+   * Interpolate from A to B when curVAL goes fromVAL: number[] => to
+   * @param A
+   * @param B
+   * @param from Starting value
+   * @param to Ending value
+   * @param s Strength
+   */
+  static int = (
+    A: number[],
+    B: number[],
+    from: number,
+    to: number,
+    s = 1
+  ): number[] => {
+    const t = (Vec.clamp(from, to) - from) / (to - from)
+    return Vec.add(Vec.mul(A, 1 - t), Vec.mul(B, s))
+  }
+
+  /**
+   * Get the angle between the three vectors A, B, and C.
+   * @param p1
+   * @param pc
+   * @param p2
+   */
+  static ang3 = (p1: number[], pc: number[], p2: number[]): number => {
+    // this,
+    const v1 = Vec.vec(pc, p1)
+    const v2 = Vec.vec(pc, p2)
+    return Vec.ang(v1, v2)
+  }
+
+  /**
+   * Absolute value of a vector.
+   * @param A
+   * @returns
+   */
+  static abs = (A: number[]): number[] => {
+    return [Math.abs(A[0]), Math.abs(A[1])]
+  }
+
+  static rescale = (a: number[], n: number): number[] => {
+    const l = Vec.len(a)
+    return [(n * a[0]) / l, (n * a[1]) / l]
+  }
+
+  /**
+   * Get whether p1 is left of p2, relative to pc.
+   * @param p1
+   * @param pc
+   * @param p2
+   */
+  static isLeft = (p1: number[], pc: number[], p2: number[]): number => {
+    //  isLeft: >0 for counterclockwise
+    //          =0 for none (degenerate)
+    //          <0 for clockwise
+    return (pc[0] - p1[0]) * (p2[1] - p1[1]) - (p2[0] - p1[0]) * (pc[1] - p1[1])
+  }
+
+  static clockwise = (p1: number[], pc: number[], p2: number[]): boolean => {
+    return Vec.isLeft(p1, pc, p2) > 0
+  }
+
+  static round = (a: number[], d = 5): number[] => {
+    return a.map((v) => Number(v.toPrecision(d)))
+  }
+
+  /**
+   * Get the minimum distance from a point P to a line with a segment AB.
+   * @param A The start of the line.
+   * @param B The end of the line.
+   * @param P A point.
+   * @returns
+   */
+  // static distanceToLine(A: number[], B: number[], P: number[]) {
+  //   const delta = sub(B, A)
+  //   const angle = Math.atan2(delta[1], delta[0])
+  //   const dir = rot(sub(P, A), -angle)
+  //   return dir[1]
+  // }
+
+  /**
+   * Get the nearest point on a line segment AB.
+   * @param A The start of the line.
+   * @param B The end of the line.
+   * @param P A point.
+   * @param clamp Whether to clamp the resulting point to the segment.
+   * @returns
+   */
+  // static nearestPointOnLine(
+  //   A: number[],
+  //   B: number[],
+  //   P: number[],
+  //   clamp = true
+  // ) {
+  //   const delta = sub(B, A)
+  //   const length = len(delta)
+  //   const angle = Math.atan2(delta[1], delta[0])
+  //   const dir = rot(sub(P, A), -angle)
+
+  //   if (clamp) {
+  //     if (dir[0] < 0) return A
+  //     if (dir[0] > length) return B
+  //   }
+
+  //   return add(A, div(mul(delta, dir[0]), length))
+  // }
+
+  /**
+   * Get the nearest point on a line with a known unit vector that passes through point A
+   * @param A Any point on the line
+   * @param u The unit vector for the line.
+   * @param P A point not on the line to test.
+   * @returns
+   */
+  static nearestPointOnLineThroughPoint = (
+    A: number[],
+    u: number[],
+    P: number[]
+  ): number[] => {
+    return Vec.add(A, Vec.mul(u, Vec.pry(Vec.sub(P, A), u)))
+  }
+
+  /**
+   * Distance between a point and a line with a known unit vector that passes through a point.
+   * @param A Any point on the line
+   * @param u The unit vector for the line.
+   * @param P A point not on the line to test.
+   * @returns
+   */
+  static distanceToLineThroughPoint = (
+    A: number[],
+    u: number[],
+    P: number[]
+  ): number => {
+    return Vec.dist(P, Vec.nearestPointOnLineThroughPoint(A, u, P))
+  }
+
+  /**
+   * Get the nearest point on a line segment between A and B
+   * @param A The start of the line segment
+   * @param B The end of the line segment
+   * @param P The off-line point
+   * @param clamp Whether to clamp the point between A and B.
+   * @returns
+   */
+  static nearestPointOnLineSegment = (
+    A: number[],
+    B: number[],
+    P: number[],
+    clamp = true
+  ): number[] => {
+    const delta = Vec.sub(B, A)
+    const length = Vec.len(delta)
+    const u = Vec.div(delta, length)
+
+    const pt = Vec.add(A, Vec.mul(u, Vec.pry(Vec.sub(P, A), u)))
+
+    if (clamp) {
+      const da = Vec.dist(A, pt)
+      const db = Vec.dist(B, pt)
+
+      if (db < da && da > length) return B
+      if (da < db && db > length) return A
+    }
+
+    return pt
+  }
+
+  /**
+   * Distance between a point and the nearest point on a line segment between A and B
+   * @param A The start of the line segment
+   * @param B The end of the line segment
+   * @param P The off-line point
+   * @param clamp Whether to clamp the point between A and B.
+   * @returns
+   */
+  static distanceToLineSegment = (
+    A: number[],
+    B: number[],
+    P: number[],
+    clamp = true
+  ): number => {
+    return Vec.dist(P, Vec.nearestPointOnLineSegment(A, B, P, clamp))
+  }
+
+  /**
+   * Push a point A towards point B by a given distance.
+   * @param A
+   * @param B
+   * @param d
+   * @returns
+   */
+  static nudge = (A: number[], B: number[], d: number): number[] => {
+    return Vec.add(A, Vec.mul(Vec.uni(Vec.vec(A, B)), d))
+  }
+
+  /**
+   * Push a point in a given angle by a given distance.
+   * @param A
+   * @param B
+   * @param d
+   */
+  static nudgeAtAngle = (A: number[], a: number, d: number): number[] => {
+    return [Math.cos(a) * d + A[0], Math.sin(a) * d + A[1]]
+  }
+
+  /**
+   * Round a vector to a precision length.
+   * @param a
+   * @param n
+   */
+  static toPrecision = (a: number[], n = 4): number[] => {
+    return [+a[0].toPrecision(n), +a[1].toPrecision(n)]
+  }
+
+  /**
+   * Get a number of points between two points.
+   * @param a
+   * @param b
+   * @param steps
+   */
+  static pointsBetween = (a: number[], b: number[], steps = 6): number[][] => {
+    return Array.from(Array(steps))
+      .map((_, i) => {
+        const t = i / steps
+        return t * t * t
+      })
+      .map((t) => [...Vec.lrp(a, b, t), (1 - t) / 2])
   }
 }
 
-/**
- * ## Dot
- */
- class Dot extends CodeShape<DotShape> {
-  constructor(props = {} as ShapeProps<DotShape>) {
-    super({
-      id: uniqueId(),
-      seed: Math.random(),
-      parentId: (window as any).currentPageId,
-      type: ShapeType.Dot,
-      isGenerated: true,
-      name: 'Dot',
-      childIndex: 0,
-      point: [0, 0],
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      ...props,
-      style: {
-        ...defaultStyle,
-        ...props.style,
-        isFilled: true,
-      },
-    })
-  }
-}
 
-/**
- * ## Ellipse
- */
- class Ellipse extends CodeShape<EllipseShape> {
-  constructor(props = {} as ShapeProps<EllipseShape>) {
-    super({
-      id: uniqueId(),
-      seed: Math.random(),
-      parentId: (window as any).currentPageId,
-      type: ShapeType.Ellipse,
-      isGenerated: true,
-      name: 'Ellipse',
-      childIndex: 0,
-      point: [0, 0],
-      radiusX: 50,
-      radiusY: 50,
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      ...props,
-      style: { ...defaultStyle, ...props.style },
-    })
-  }
 
-  get radiusX(): number {
-    return this.shape.radiusX
-  }
 
-  get radiusY(): number {
-    return this.shape.radiusY
-  }
-}
-
-/**
- * ## Line
- */
- class Line extends CodeShape<LineShape> {
-  constructor(props = {} as ShapeProps<LineShape>) {
-    super({
-      id: uniqueId(),
-      seed: Math.random(),
-      parentId: (window as any).currentPageId,
-      type: ShapeType.Line,
-      isGenerated: true,
-      name: 'Line',
-      childIndex: 0,
-      point: [0, 0],
-      direction: [-0.5, 0.5],
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      ...props,
-      style: {
-        ...defaultStyle,
-        ...props.style,
-        isFilled: false,
-      },
-    })
-  }
-
-  get direction(): number[] {
-    return this.shape.direction
-  }
-}
-
-/**
- * ## Polyline
- */
- class Polyline extends CodeShape<PolylineShape> {
-  constructor(props = {} as ShapeProps<PolylineShape>) {
-    super({
-      id: uniqueId(),
-      seed: Math.random(),
-      parentId: (window as any).currentPageId,
-      type: ShapeType.Polyline,
-      isGenerated: true,
-      name: 'Polyline',
-      childIndex: 0,
-      point: [0, 0],
-      points: [[0, 0]],
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      style: defaultStyle,
-      ...props,
-    })
-  }
-
-  get points(): number[][] {
-    return this.shape.points
-  }
-}
-
-/**
- * ## Ray
- */
- class Ray extends CodeShape<RayShape> {
-  constructor(props = {} as ShapeProps<RayShape>) {
-    super({
-      id: uniqueId(),
-      seed: Math.random(),
-      type: ShapeType.Ray,
-      isGenerated: true,
-      name: 'Ray',
-      parentId: 'page1',
-      childIndex: 0,
-      point: [0, 0],
-      direction: [0, 1],
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      ...props,
-      style: {
-        ...defaultStyle,
-        ...props.style,
-        isFilled: false,
-      },
-    })
-  }
-
-  get direction(): number[] {
-    return this.shape.direction
-  }
-}
-
-/**
- * ## Rectangle
- */
- class Rectangle extends CodeShape<RectangleShape> {
-  constructor(props = {} as ShapeProps<RectangleShape>) {
-    super({
-      id: uniqueId(),
-      seed: Math.random(),
-      parentId: (window as any).currentPageId,
-      type: ShapeType.Rectangle,
-      isGenerated: true,
-      name: 'Rectangle',
-      childIndex: 0,
-      point: [0, 0],
-      size: [100, 100],
-      rotation: 0,
-      radius: 2,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      ...props,
-      style: { ...defaultStyle, ...props.style },
-    })
-  }
-
-  get size(): number[] {
-    return this.shape.size
-  }
-}
-
-/**
- * ## Draw
- */
- class Arrow extends CodeShape<ArrowShape> {
-  constructor(
-    props = {} as ShapeProps<ArrowShape> & { start: number[]; end: number[] }
-  ) {
-    const { start = [0, 0], end = [0, 0] } = props
-
-    const {
-      point = [0, 0],
-      handles = {
-        start: {
-          id: 'start',
-          index: 0,
-          point: start,
-        },
-        end: {
-          id: 'end',
-          index: 1,
-          point: end,
-        },
-        bend: {
-          id: 'bend',
-          index: 2,
-          point: Vec.med(start, end),
-        },
-      },
-    } = props
-
-    super({
-      id: uniqueId(),
-      seed: Math.random(),
-      type: ShapeType.Arrow,
-      isGenerated: false,
-      name: 'Arrow',
-      parentId: 'page1',
-      childIndex: 0,
-      point,
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      bend: 0,
-      handles,
-      decorations: {
-        start: null,
-        middle: null,
-        end: Decoration.Arrow,
-      },
-      ...props,
-      style: {
-        ...defaultStyle,
-        ...props.style,
-        isFilled: false,
-      },
-    })
-  }
-
-  get start(): number[] {
-    return this.shape.handles.start.point
-  }
-
-  set start(point: number[]) {
-    getShapeUtils(this.shape).onHandleChange(this.shape, {
-      start: { ...this.shape.handles.start, point },
-    })
-  }
-
-  get middle(): number[] {
-    return this.shape.handles.bend.point
-  }
-
-  set middle(point: number[]) {
-    getShapeUtils(this.shape).onHandleChange(this.shape, {
-      bend: { ...this.shape.handles.bend, point },
-    })
-  }
-
-  get end(): number[] {
-    return this.shape.handles.end.point
-  }
-
-  set end(point: number[]) {
-    getShapeUtils(this.shape).onHandleChange(this.shape, {
-      end: { ...this.shape.handles.end, point },
-    })
-  }
-
-  get bend(): number {
-    return this.shape.bend
-  }
-}
-
-/**
- * ## Draw
- */
- class Draw extends CodeShape<DrawShape> {
-  constructor(props = {} as ShapeProps<DrawShape>) {
-    super({
-      id: uniqueId(),
-      seed: Math.random(),
-      type: ShapeType.Draw,
-      isGenerated: false,
-      name: 'Draw',
-      parentId: 'page1',
-      childIndex: 0,
-      point: [0, 0],
-      points: [],
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      ...props,
-      style: {
-        ...defaultStyle,
-        ...props.style,
-      },
-    })
-  }
-}
-
-/**
- * ## Utils
- */
  class Utils {
   /**
    * Linear interpolation betwen two numbers.
@@ -1890,524 +1809,623 @@ interface ShapeUtility<K extends Shape> {
   }
 }
 
-// A big collection of vector utilities. Collected into a class to improve logging / packaging.
 
- class Vec {
-  /**
-   * Clamp a value into a range.
-   * @param n
-   * @param min
-   */
-  static clamp(n: number, min: number): number
-  static clamp(n: number, min: number, max: number): number
-  static clamp(n: number, min: number, max?: number): number {
-    return Math.max(min, typeof max !== 'undefined' ? Math.min(n, max) : n)
+
+
+ class CodeShape<T extends Shape> {
+  private _shape: Mutable<T>
+  private utils: ShapeUtility<T>
+
+  constructor(props: T) {
+    this._shape = createShape(props.type, props) as Mutable<T>
+    this.utils = getShapeUtils<T>(this._shape)
+    codeShapes.add(this)
+  }
+
+  export(): Mutable<T> {
+    return { ...this._shape }
   }
 
   /**
-   * Negate a vector.
-   * @param A
+   * Destroy the shape.
    */
-  static neg = (A: number[]): number[] => {
-    return [-A[0], -A[1]]
+  destroy(): void {
+    codeShapes.delete(this)
   }
 
   /**
-   * Add vectors.
-   * @param A
-   * @param B
+   * Move the shape to a point.
+   * @param delta
    */
-  static add = (A: number[], B: number[]): number[] => {
-    return [A[0] + B[0], A[1] + B[1]]
+  moveTo(point: number[]): CodeShape<T> {
+    return this.translateTo(point)
   }
 
   /**
-   * Add scalar to vector.
-   * @param A
-   * @param B
+   * Move the shape to a point.
+   * @param delta
    */
-  static addScalar = (A: number[], n: number): number[] => {
-    return [A[0] + n, A[1] + n]
+  translateTo(point: number[]): CodeShape<T> {
+    this.utils.translateTo(this._shape, point)
+    return this
   }
 
   /**
-   * Subtract vectors.
-   * @param A
-   * @param B
+   * Move the shape by a delta.
+   * @param delta
    */
-  static sub = (A: number[], B: number[]): number[] => {
-    return [A[0] - B[0], A[1] - B[1]]
+  translateBy(delta: number[]): CodeShape<T> {
+    this.utils.translateTo(this._shape, delta)
+    return this
   }
 
   /**
-   * Subtract scalar from vector.
-   * @param A
-   * @param B
+   * Rotate the shape.
    */
-  static subScalar = (A: number[], n: number): number[] => {
-    return [A[0] - n, A[1] - n]
+  rotateTo(rotation: number): CodeShape<T> {
+    this.utils.rotateTo(this._shape, rotation, this.shape.rotation - rotation)
+    return this
   }
 
   /**
-   * Get the vector from vectors A to B.
-   * @param A
-   * @param B
+   * Rotate the shape by a delta.
    */
-  static vec = (A: number[], B: number[]): number[] => {
-    // A, B as vectors get the vector from A to B
-    return [B[0] - A[0], B[1] - A[1]]
+  rotateBy(rotation: number): CodeShape<T> {
+    this.utils.rotateBy(this._shape, rotation)
+    return this
   }
 
   /**
-   * Vector multiplication by scalar
-   * @param A
-   * @param n
+   * Get the shape's bounding box.
    */
-  static mul = (A: number[], n: number): number[] => {
-    return [A[0] * n, A[1] * n]
-  }
-
-  static mulV = (A: number[], B: number[]): number[] => {
-    return [A[0] * B[0], A[1] * B[1]]
+  getBounds(): CodeShape<T> {
+    this.utils.getBounds(this.shape)
+    return this
   }
 
   /**
-   * Vector division by scalar.
-   * @param A
-   * @param n
+   * Test whether a point is inside of the shape.
    */
-  static div = (A: number[], n: number): number[] => {
-    return [A[0] / n, A[1] / n]
+  hitTest(point: number[]): CodeShape<T> {
+    this.utils.hitTest(this.shape, point)
+    return this
   }
 
   /**
-   * Vector division by vector.
-   * @param A
-   * @param n
+   * Move the shape to the back of the painting order.
    */
-  static divV = (A: number[], B: number[]): number[] => {
-    return [A[0] / B[0], A[1] / B[1]]
+  moveToBack(): CodeShape<T> {
+    const sorted = getOrderedShapes()
+
+    if (sorted.length <= 1) return
+
+    const first = sorted[0].childIndex
+    sorted.forEach((shape) => shape.childIndex++)
+    this.childIndex = first
+
+    codeShapes.clear()
+    sorted.forEach((shape) => codeShapes.add(shape))
+
+    return this
   }
 
   /**
-   * Perpendicular rotation of a vector A
-   * @param A
+   * Move the shape to the top of the painting order.
    */
-  static per = (A: number[]): number[] => {
-    return [A[1], -A[0]]
+  moveToFront(): CodeShape<T> {
+    const sorted = getOrderedShapes()
+
+    if (sorted.length <= 1) return
+
+    const ahead = sorted.slice(sorted.indexOf(this))
+    const last = ahead[ahead.length - 1].childIndex
+    ahead.forEach((shape) => shape.childIndex--)
+    this.childIndex = last
+
+    codeShapes.clear()
+    sorted.forEach((shape) => codeShapes.add(shape))
+
+    return this
   }
 
   /**
-   * Dot product
-   * @param A
-   * @param B
+   * Move the shape backward in the painting order.
    */
-  static dpr = (A: number[], B: number[]): number => {
-    return A[0] * B[0] + A[1] * B[1]
+  moveBackward(): CodeShape<T> {
+    const sorted = getOrderedShapes()
+
+    if (sorted.length <= 1) return
+
+    const next = sorted[sorted.indexOf(this) - 1]
+
+    if (!next) return
+
+    const index = next.childIndex
+    next.childIndex = this.childIndex
+    this.childIndex = index
+
+    codeShapes.clear()
+    sorted.forEach((shape) => codeShapes.add(shape))
+
+    return this
   }
 
   /**
-   * Cross product (outer product) | A X B |
-   * @param A
-   * @param B
+   * Move the shape forward in the painting order.
    */
-  static cpr = (A: number[], B: number[]): number => {
-    return A[0] * B[1] - B[0] * A[1]
+  moveForward(): CodeShape<T> {
+    const sorted = getOrderedShapes()
+
+    if (sorted.length <= 1) return
+
+    const next = sorted[sorted.indexOf(this) + 1]
+
+    if (!next) return
+
+    const index = next.childIndex
+    next.childIndex = this.childIndex
+    this.childIndex = index
+
+    codeShapes.clear()
+    sorted.forEach((shape) => codeShapes.add(shape))
+
+    return this
   }
 
   /**
-   * Length of the vector squared
-   * @param A
+   * The shape's underlying shape.
    */
-  static len2 = (A: number[]): number => {
-    return A[0] * A[0] + A[1] * A[1]
+  get shape(): T {
+    return this._shape
   }
 
   /**
-   * Length of the vector
-   * @param A
+   * The shape's current point.
    */
-  static len = (A: number[]): number => {
-    return Math.hypot(A[0], A[1])
+  get point(): number[] {
+    return [...this.shape.point]
+  }
+
+  set point(point: number[]) {
+    getShapeUtils(this.shape).translateTo(this._shape, point)
   }
 
   /**
-   * Project A over B
-   * @param A
-   * @param B
+   * The shape's rotation.
    */
-  static pry = (A: number[], B: number[]): number => {
-    return Vec.dpr(A, B) / Vec.len(B)
+  get rotation(): number {
+    return this.shape.rotation
+  }
+
+  set rotation(rotation: number) {
+    getShapeUtils(this.shape).rotateTo(
+      this._shape,
+      rotation,
+      rotation - this.shape.rotation
+    )
   }
 
   /**
-   * Get normalized / unit vector.
-   * @param A
+   * The shape's color style.
    */
-  static uni = (A: number[]): number[] => {
-    return Vec.div(A, Vec.len(A))
+  get color(): ColorStyle {
+    return this.shape.style.color
+  }
+
+  set color(color: ColorStyle) {
+    getShapeUtils(this.shape).applyStyles(this._shape, { color })
   }
 
   /**
-   * Get normalized / unit vector.
-   * @param A
+   * The shape's dash style.
    */
-  static normalize = (A: number[]): number[] => {
-    return Vec.uni(A)
+  get dash(): DashStyle {
+    return this.shape.style.dash
+  }
+
+  set dash(dash: DashStyle) {
+    getShapeUtils(this.shape).applyStyles(this._shape, { dash })
   }
 
   /**
-   * Get the tangent between two vectors.
-   * @param A
-   * @param B
-   * @returns
+   * The shape's stroke width.
    */
-  static tangent = (A: number[], B: number[]): number[] => {
-    return Vec.normalize(Vec.sub(A, B))
+  get strokeWidth(): SizeStyle {
+    return this.shape.style.size
+  }
+
+  set strokeWidth(size: SizeStyle) {
+    getShapeUtils(this.shape).applyStyles(this._shape, { size })
   }
 
   /**
-   * Dist length from A to B squared.
-   * @param A
-   * @param B
+   * The shape's index in the painting order.
    */
-  static dist2 = (A: number[], B: number[]): number => {
-    return Vec.len2(Vec.sub(A, B))
+  get childIndex(): number {
+    return this.shape.childIndex
   }
 
-  /**
-   * Dist length from A to B
-   * @param A
-   * @param B
-   */
-  static dist = (A: number[], B: number[]): number => {
-    return Math.hypot(A[1] - B[1], A[0] - B[0])
-  }
-
-  /**
-   * A faster, though less accurate method for testing distances. Maybe faster?
-   * @param A
-   * @param B
-   * @returns
-   */
-  static fastDist = (A: number[], B: number[]): number[] => {
-    const V = [B[0] - A[0], B[1] - A[1]]
-    const aV = [Math.abs(V[0]), Math.abs(V[1])]
-    let r = 1 / Math.max(aV[0], aV[1])
-    r = r * (1.29289 - (aV[0] + aV[1]) * r * 0.29289)
-    return [V[0] * r, V[1] * r]
-  }
-
-  /**
-   * Angle between vector A and vector B in radians
-   * @param A
-   * @param B
-   */
-  static ang = (A: number[], B: number[]): number => {
-    return Math.atan2(Vec.cpr(A, B), Vec.dpr(A, B))
-  }
-
-  /**
-   * Angle between vector A and vector B in radians
-   * @param A
-   * @param B
-   */
-  static angle = (A: number[], B: number[]): number => {
-    return Math.atan2(B[1] - A[1], B[0] - A[0])
-  }
-
-  /**
-   * Mean between two vectors or mid vector between two vectors
-   * @param A
-   * @param B
-   */
-  static med = (A: number[], B: number[]): number[] => {
-    return Vec.mul(Vec.add(A, B), 0.5)
-  }
-
-  /**
-   * Vector rotation by r (radians)
-   * @param A
-   * @param r rotation in radians
-   */
-  static rot = (A: number[], r: number): number[] => {
-    return [
-      A[0] * Math.cos(r) - A[1] * Math.sin(r),
-      A[0] * Math.sin(r) + A[1] * Math.cos(r),
-    ]
-  }
-
-  /**
-   * Rotate a vector around another vector by r (radians)
-   * @param A vector
-   * @param C center
-   * @param r rotation in radians
-   */
-  static rotWith = (A: number[], C: number[], r: number): number[] => {
-    if (r === 0) return A
-
-    const s = Math.sin(r)
-    const c = Math.cos(r)
-
-    const px = A[0] - C[0]
-    const py = A[1] - C[1]
-
-    const nx = px * c - py * s
-    const ny = px * s + py * c
-
-    return [nx + C[0], ny + C[1]]
-  }
-
-  /**
-   * Check of two vectors are identical.
-   * @param A
-   * @param B
-   */
-  static isEqual = (A: number[], B: number[]): boolean => {
-    return A[0] === B[0] && A[1] === B[1]
-  }
-
-  /**
-   * Interpolate vector A to B with a scalar t
-   * @param A
-   * @param B
-   * @param t scalar
-   */
-  static lrp = (A: number[], B: number[], t: number): number[] => {
-    return Vec.add(A, Vec.mul(Vec.vec(A, B), t))
-  }
-
-  /**
-   * Interpolate from A to B when curVAL goes fromVAL: number[] => to
-   * @param A
-   * @param B
-   * @param from Starting value
-   * @param to Ending value
-   * @param s Strength
-   */
-  static int = (
-    A: number[],
-    B: number[],
-    from: number,
-    to: number,
-    s = 1
-  ): number[] => {
-    const t = (Vec.clamp(from, to) - from) / (to - from)
-    return Vec.add(Vec.mul(A, 1 - t), Vec.mul(B, s))
-  }
-
-  /**
-   * Get the angle between the three vectors A, B, and C.
-   * @param p1
-   * @param pc
-   * @param p2
-   */
-  static ang3 = (p1: number[], pc: number[], p2: number[]): number => {
-    // this,
-    const v1 = Vec.vec(pc, p1)
-    const v2 = Vec.vec(pc, p2)
-    return Vec.ang(v1, v2)
-  }
-
-  /**
-   * Absolute value of a vector.
-   * @param A
-   * @returns
-   */
-  static abs = (A: number[]): number[] => {
-    return [Math.abs(A[0]), Math.abs(A[1])]
-  }
-
-  static rescale = (a: number[], n: number): number[] => {
-    const l = Vec.len(a)
-    return [(n * a[0]) / l, (n * a[1]) / l]
-  }
-
-  /**
-   * Get whether p1 is left of p2, relative to pc.
-   * @param p1
-   * @param pc
-   * @param p2
-   */
-  static isLeft = (p1: number[], pc: number[], p2: number[]): number => {
-    //  isLeft: >0 for counterclockwise
-    //          =0 for none (degenerate)
-    //          <0 for clockwise
-    return (pc[0] - p1[0]) * (p2[1] - p1[1]) - (p2[0] - p1[0]) * (pc[1] - p1[1])
-  }
-
-  static clockwise = (p1: number[], pc: number[], p2: number[]): boolean => {
-    return Vec.isLeft(p1, pc, p2) > 0
-  }
-
-  static round = (a: number[], d = 5): number[] => {
-    return a.map((v) => Number(v.toPrecision(d)))
-  }
-
-  /**
-   * Get the minimum distance from a point P to a line with a segment AB.
-   * @param A The start of the line.
-   * @param B The end of the line.
-   * @param P A point.
-   * @returns
-   */
-  // static distanceToLine(A: number[], B: number[], P: number[]) {
-  //   const delta = sub(B, A)
-  //   const angle = Math.atan2(delta[1], delta[0])
-  //   const dir = rot(sub(P, A), -angle)
-  //   return dir[1]
-  // }
-
-  /**
-   * Get the nearest point on a line segment AB.
-   * @param A The start of the line.
-   * @param B The end of the line.
-   * @param P A point.
-   * @param clamp Whether to clamp the resulting point to the segment.
-   * @returns
-   */
-  // static nearestPointOnLine(
-  //   A: number[],
-  //   B: number[],
-  //   P: number[],
-  //   clamp = true
-  // ) {
-  //   const delta = sub(B, A)
-  //   const length = len(delta)
-  //   const angle = Math.atan2(delta[1], delta[0])
-  //   const dir = rot(sub(P, A), -angle)
-
-  //   if (clamp) {
-  //     if (dir[0] < 0) return A
-  //     if (dir[0] > length) return B
-  //   }
-
-  //   return add(A, div(mul(delta, dir[0]), length))
-  // }
-
-  /**
-   * Get the nearest point on a line with a known unit vector that passes through point A
-   * @param A Any point on the line
-   * @param u The unit vector for the line.
-   * @param P A point not on the line to test.
-   * @returns
-   */
-  static nearestPointOnLineThroughPoint = (
-    A: number[],
-    u: number[],
-    P: number[]
-  ): number[] => {
-    return Vec.add(A, Vec.mul(u, Vec.pry(Vec.sub(P, A), u)))
-  }
-
-  /**
-   * Distance between a point and a line with a known unit vector that passes through a point.
-   * @param A Any point on the line
-   * @param u The unit vector for the line.
-   * @param P A point not on the line to test.
-   * @returns
-   */
-  static distanceToLineThroughPoint = (
-    A: number[],
-    u: number[],
-    P: number[]
-  ): number => {
-    return Vec.dist(P, Vec.nearestPointOnLineThroughPoint(A, u, P))
-  }
-
-  /**
-   * Get the nearest point on a line segment between A and B
-   * @param A The start of the line segment
-   * @param B The end of the line segment
-   * @param P The off-line point
-   * @param clamp Whether to clamp the point between A and B.
-   * @returns
-   */
-  static nearestPointOnLineSegment = (
-    A: number[],
-    B: number[],
-    P: number[],
-    clamp = true
-  ): number[] => {
-    const delta = Vec.sub(B, A)
-    const length = Vec.len(delta)
-    const u = Vec.div(delta, length)
-
-    const pt = Vec.add(A, Vec.mul(u, Vec.pry(Vec.sub(P, A), u)))
-
-    if (clamp) {
-      const da = Vec.dist(A, pt)
-      const db = Vec.dist(B, pt)
-
-      if (db < da && da > length) return B
-      if (da < db && db > length) return A
-    }
-
-    return pt
-  }
-
-  /**
-   * Distance between a point and the nearest point on a line segment between A and B
-   * @param A The start of the line segment
-   * @param B The end of the line segment
-   * @param P The off-line point
-   * @param clamp Whether to clamp the point between A and B.
-   * @returns
-   */
-  static distanceToLineSegment = (
-    A: number[],
-    B: number[],
-    P: number[],
-    clamp = true
-  ): number => {
-    return Vec.dist(P, Vec.nearestPointOnLineSegment(A, B, P, clamp))
-  }
-
-  /**
-   * Push a point A towards point B by a given distance.
-   * @param A
-   * @param B
-   * @param d
-   * @returns
-   */
-  static nudge = (A: number[], B: number[], d: number): number[] => {
-    return Vec.add(A, Vec.mul(Vec.uni(Vec.vec(A, B)), d))
-  }
-
-  /**
-   * Push a point in a given angle by a given distance.
-   * @param A
-   * @param B
-   * @param d
-   */
-  static nudgeAtAngle = (A: number[], a: number, d: number): number[] => {
-    return [Math.cos(a) * d + A[0], Math.sin(a) * d + A[1]]
-  }
-
-  /**
-   * Round a vector to a precision length.
-   * @param a
-   * @param n
-   */
-  static toPrecision = (a: number[], n = 4): number[] => {
-    return [+a[0].toPrecision(n), +a[1].toPrecision(n)]
-  }
-
-  /**
-   * Get a number of points between two points.
-   * @param a
-   * @param b
-   * @param steps
-   */
-  static pointsBetween = (a: number[], b: number[], steps = 6): number[][] => {
-    return Array.from(Array(steps))
-      .map((_, i) => {
-        const t = i / steps
-        return t * t * t
-      })
-      .map((t) => [...Vec.lrp(a, b, t), (1 - t) / 2])
+  set childIndex(childIndex: number) {
+    getShapeUtils(this.shape).setProperty(this._shape, 'childIndex', childIndex)
   }
 }
 
+
+
+
+ class Dot extends CodeShape<DotShape> {
+  constructor(props = {} as ShapeProps<DotShape>) {
+    super({
+      id: uniqueId(),
+      seed: Math.random(),
+      parentId: (window as any).currentPageId,
+      type: ShapeType.Dot,
+      isGenerated: true,
+      name: 'Dot',
+      childIndex: 0,
+      point: [0, 0],
+      rotation: 0,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
+      ...props,
+      style: {
+        ...defaultStyle,
+        ...props.style,
+        isFilled: true,
+      },
+    })
+  }
+}
+
+
+
+
+ class Ellipse extends CodeShape<EllipseShape> {
+  constructor(props = {} as ShapeProps<EllipseShape>) {
+    super({
+      id: uniqueId(),
+      seed: Math.random(),
+      parentId: (window as any).currentPageId,
+      type: ShapeType.Ellipse,
+      isGenerated: true,
+      name: 'Ellipse',
+      childIndex: 0,
+      point: [0, 0],
+      radiusX: 50,
+      radiusY: 50,
+      rotation: 0,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
+      ...props,
+      style: { ...defaultStyle, ...props.style },
+    })
+  }
+
+  get radiusX(): number {
+    return this.shape.radiusX
+  }
+
+  get radiusY(): number {
+    return this.shape.radiusY
+  }
+}
+
+
+
+
+ class Line extends CodeShape<LineShape> {
+  constructor(props = {} as ShapeProps<LineShape>) {
+    super({
+      id: uniqueId(),
+      seed: Math.random(),
+      parentId: (window as any).currentPageId,
+      type: ShapeType.Line,
+      isGenerated: true,
+      name: 'Line',
+      childIndex: 0,
+      point: [0, 0],
+      direction: [-0.5, 0.5],
+      rotation: 0,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
+      ...props,
+      style: {
+        ...defaultStyle,
+        ...props.style,
+        isFilled: false,
+      },
+    })
+  }
+
+  get direction(): number[] {
+    return this.shape.direction
+  }
+}
+
+
+
+
+ class Polyline extends CodeShape<PolylineShape> {
+  constructor(props = {} as ShapeProps<PolylineShape>) {
+    super({
+      id: uniqueId(),
+      seed: Math.random(),
+      parentId: (window as any).currentPageId,
+      type: ShapeType.Polyline,
+      isGenerated: true,
+      name: 'Polyline',
+      childIndex: 0,
+      point: [0, 0],
+      points: [[0, 0]],
+      rotation: 0,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
+      ...props,
+      style: {
+        ...defaultStyle,
+        ...props.style,
+      },
+    })
+  }
+
+  get points(): number[][] {
+    return this.shape.points
+  }
+}
+
+
+
+
+ class Ray extends CodeShape<RayShape> {
+  constructor(props = {} as ShapeProps<RayShape>) {
+    super({
+      id: uniqueId(),
+      seed: Math.random(),
+      type: ShapeType.Ray,
+      isGenerated: true,
+      name: 'Ray',
+      parentId: 'page1',
+      childIndex: 0,
+      point: [0, 0],
+      direction: [0, 1],
+      rotation: 0,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
+      ...props,
+      style: {
+        ...defaultStyle,
+        ...props.style,
+        isFilled: false,
+      },
+    })
+  }
+
+  get direction(): number[] {
+    return this.shape.direction
+  }
+}
+
+
+
+
+ class Arrow extends CodeShape<ArrowShape> {
+  constructor(
+    props = {} as ShapeProps<ArrowShape> & { start: number[]; end: number[] }
+  ) {
+    const { start = [0, 0], end = [0, 0] } = props
+
+    const {
+      point = [0, 0],
+      handles = {
+        start: {
+          id: 'start',
+          index: 0,
+          point: start,
+        },
+        end: {
+          id: 'end',
+          index: 1,
+          point: end,
+        },
+        bend: {
+          id: 'bend',
+          index: 2,
+          point: Vec.med(start, end),
+        },
+      },
+    } = props
+
+    super({
+      id: uniqueId(),
+      seed: Math.random(),
+      type: ShapeType.Arrow,
+      isGenerated: false,
+      name: 'Arrow',
+      parentId: 'page1',
+      childIndex: 0,
+      point,
+      rotation: 0,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
+      bend: 0,
+      handles,
+      decorations: {
+        start: null,
+        middle: null,
+        end: Decoration.Arrow,
+      },
+      ...props,
+      style: {
+        ...defaultStyle,
+        ...props.style,
+        isFilled: false,
+      },
+    })
+  }
+
+  get start(): number[] {
+    return this.shape.handles.start.point
+  }
+
+  set start(point: number[]) {
+    getShapeUtils(this.shape).onHandleChange(this.shape, {
+      start: { ...this.shape.handles.start, point },
+    })
+  }
+
+  get middle(): number[] {
+    return this.shape.handles.bend.point
+  }
+
+  set middle(point: number[]) {
+    getShapeUtils(this.shape).onHandleChange(this.shape, {
+      bend: { ...this.shape.handles.bend, point },
+    })
+  }
+
+  get end(): number[] {
+    return this.shape.handles.end.point
+  }
+
+  set end(point: number[]) {
+    getShapeUtils(this.shape).onHandleChange(this.shape, {
+      end: { ...this.shape.handles.end, point },
+    })
+  }
+
+  get bend(): number {
+    return this.shape.bend
+  }
+}
+
+
+
+
+ class Draw extends CodeShape<DrawShape> {
+  constructor(props = {} as ShapeProps<DrawShape>) {
+    super({
+      id: uniqueId(),
+      seed: Math.random(),
+      type: ShapeType.Draw,
+      isGenerated: false,
+      parentId: (window as any).currentPageId,
+      name: 'Draw',
+      childIndex: 0,
+      point: [0, 0],
+      points: [],
+      rotation: 0,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
+      ...props,
+      style: {
+        ...defaultStyle,
+        ...props.style,
+      },
+    })
+  }
+}
+
+
+
+
+ class Rectangle extends CodeShape<RectangleShape> {
+  constructor(props = {} as ShapeProps<RectangleShape>) {
+    super({
+      id: uniqueId(),
+      seed: Math.random(),
+      parentId: (window as any).currentPageId,
+      type: ShapeType.Rectangle,
+      isGenerated: true,
+      name: 'Rectangle',
+      childIndex: 0,
+      point: [0, 0],
+      size: [100, 100],
+      rotation: 0,
+      radius: 2,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
+      ...props,
+      style: {
+        ...defaultStyle,
+        ...props.style,
+      },
+    })
+  }
+
+  get size(): number[] {
+    return this.shape.size
+  }
+}
+
+
+
+
+class Control<T extends CodeControl> {
+  control: T
+
+  constructor(control: Omit<T, 'id'>) {
+    this.control = { ...control, id: uniqueId() } as T
+    codeControls.add(this.control)
+
+    // Could there be a better way to prevent this?
+    // When updating, constructor should just bind to
+    // the existing control rather than creating a new one?
+    if (!(window as any).isUpdatingCode) {
+      controls[this.control.label] = this.control.value
+    }
+  }
+
+  destroy(): void {
+    codeControls.delete(this.control)
+    delete controls[this.control.label]
+  }
+
+  get value(): T['value'] {
+    return this.control.value
+  }
+
+  set value(value: T['value']) {
+    this.control.value = value
+  }
+}
+
+type ControlProps<T extends CodeControl> = Omit<Partial<T>, 'id' | 'type'>
+
+class NumberControl extends Control<NumberCodeControl> {
+  constructor(options: ControlProps<NumberCodeControl>) {
+    const { label = 'Number', value = 0, step = 1 } = options
+    super({
+      type: ControlType.Number,
+      ...options,
+      label,
+      value,
+      step,
+    })
+  }
+}
+
+class VectorControl extends Control<VectorCodeControl> {
+  constructor(options: ControlProps<VectorCodeControl>) {
+    const { label = 'Vector', value = [0, 0], isNormalized = false } = options
+    super({
+      type: ControlType.Vector,
+      ...options,
+      label,
+      value,
+      isNormalized,
+    })
+  }
+}
+
+
+declare const controls: {[key:string]: any} = {}
 `,
 }

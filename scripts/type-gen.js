@@ -1,52 +1,36 @@
 // @ts-check
 
 /*
-Type gen script
+This script will generate TypeScript content for the code editor. It inlines 
+the content of several files into one large string which can be passed to the
+Monaco editor as an extraLib.
 
-This script will generate TypeScript declarations for the code editor. It reads
-the global types, as well as all of the code classes, and writes them into a
-single file as a string. This string is fed into the Monaco editor as an extraLib. 
+Important notes:
+
+- Files must include the "Start Copy Here" comment indicated below. 
+
+- This comment must be placed BELOW any import statements.
+
+Run the script with `yarn scripts`.
 */
 
 const fs = require('fs/promises')
+const root = process.cwd()
+
+async function inlineFileContents(path) {
+  console.log(`📄 Inlining contents of ${path}`)
+  const text = await fs.readFile(`${root}${path}`, 'utf-8')
+  return text
+    .match(
+      /\/\* ----------------- Start Copy Here ---------------- \*\/(.|\n)*$/g
+    )[0]
+    .replaceAll('/* ----------------- Start Copy Here ---------------- */', '')
+    .replaceAll('export default', '')
+    .replaceAll('export ', '')
+}
 
 async function copyTypesToFile() {
-  const types = await fs.readFile(__dirname + '/../types.ts', 'utf8')
-  const codeIndex = await fs.readFile(
-    __dirname + '/../state/code/index.ts',
-    'utf8'
-  )
-  const codeDot = await fs.readFile(__dirname + '/../state/code/dot.ts', 'utf8')
-  const codeEllipse = await fs.readFile(
-    __dirname + '/../state/code/ellipse.ts',
-    'utf8'
-  )
-  const codeLine = await fs.readFile(
-    __dirname + '/../state/code/line.ts',
-    'utf8'
-  )
-  const codePolyline = await fs.readFile(
-    __dirname + '/../state/code/polyline.ts',
-    'utf8'
-  )
-  const codeRay = await fs.readFile(__dirname + '/../state/code/ray.ts', 'utf8')
-  const codeArrow = await fs.readFile(
-    __dirname + '/../state/code/arrow.ts',
-    'utf8'
-  )
-  const codeDraw = await fs.readFile(
-    __dirname + '/../state/code/draw.ts',
-    'utf8'
-  )
-  const codeRectangle = await fs.readFile(
-    __dirname + '/../state/code/rectangle.ts',
-    'utf8'
-  )
-  const codeVector = await fs.readFile(__dirname + '/../utils/vec.ts', 'utf8')
-  const codeUtils = await fs.readFile(
-    __dirname + '/../state/code/utils.ts',
-    'utf8'
-  )
+  console.log('⚙️  Generating types-import.ts')
 
   const content =
     `
@@ -57,30 +41,44 @@ async function copyTypesToFile() {
 export default {` +
     `
     name: "types.ts",
-    content: \`    
+    content: \`
+    
 
-${types}
+${await inlineFileContents('/types.ts')}
 
-${codeIndex.match(/export default(.|\n)*$/g)[0]}
-${codeDot.match(/\/\*\*(.|\n)*$/g)[0]}
-${codeEllipse.match(/\/\*\*(.|\n)*$/g)[0]}
-${codeLine.match(/\/\*\*(.|\n)*$/g)[0]}
-${codePolyline.match(/\/\*\*(.|\n)*$/g)[0]}
-${codeRay.match(/\/\*\*(.|\n)*$/g)[0]}
-${codeRectangle.match(/\/\*\*(.|\n)*$/g)[0]}
-${codeArrow.match(/\/\*\*(.|\n)*$/g)[0]}
-${codeDraw.match(/\/\*\*(.|\n)*$/g)[0]}
-${codeUtils.match(/\/\*\*(.|\n)*$/g)[0]}
-${codeVector}
-\`
-  }`
-      .replaceAll('export default', '')
-      .replaceAll('export ', '')
+${await inlineFileContents('/utils/vec.ts')}
+
+${await inlineFileContents('/state/code/utils.ts')}
+
+${await inlineFileContents('/state/code/index.ts')}
+
+${await inlineFileContents('/state/code/dot.ts')}
+
+${await inlineFileContents('/state/code/ellipse.ts')}
+
+${await inlineFileContents('/state/code/line.ts')}
+
+${await inlineFileContents('/state/code/polyline.ts')}
+
+${await inlineFileContents('/state/code/ray.ts')}
+
+${await inlineFileContents('/state/code/arrow.ts')}
+
+${await inlineFileContents('/state/code/draw.ts')}
+
+${await inlineFileContents('/state/code/rectangle.ts')}
+
+${await inlineFileContents('/state/code/control.ts')}
+
+declare const controls: {[key:string]: any} = {}
+\`}`
 
   await fs.writeFile(
     __dirname + '/../components/code-panel/types-import.ts',
     content
   )
+
+  console.log('✅ Process complete')
 }
 
 // Kickoff

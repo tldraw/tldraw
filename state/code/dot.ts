@@ -3,9 +3,8 @@ import { uniqueId } from 'utils'
 import { DotShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
-/**
- * ## Dot
- */
+/* ----------------- Start Copy Here ---------------- */
+
 export default class Dot extends CodeShape<DotShape> {
   constructor(props = {} as ShapeProps<DotShape>) {
     super({

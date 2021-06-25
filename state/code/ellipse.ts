@@ -3,9 +3,8 @@ import { uniqueId } from 'utils'
 import { EllipseShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
-/**
- * ## Ellipse
- */
+/* ----------------- Start Copy Here ---------------- */
+
 export default class Ellipse extends CodeShape<EllipseShape> {
   constructor(props = {} as ShapeProps<EllipseShape>) {
     super({

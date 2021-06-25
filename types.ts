@@ -57,6 +57,8 @@ export interface PageState {
   }
 }
 
+/* ----------------- Start Copy Here ---------------- */
+
 export enum ShapeType {
   Dot = 'dot',
   Ellipse = 'ellipse',
@@ -383,17 +385,20 @@ export interface BaseCodeControl {
 
 export interface NumberCodeControl extends BaseCodeControl {
   type: ControlType.Number
+  value: number
   min?: number
   max?: number
-  value: number
-  step: number
+  step?: number
   format?: (value: number) => number
 }
 
 export interface VectorCodeControl extends BaseCodeControl {
   type: ControlType.Vector
   value: number[]
-  isNormalized: boolean
+  min?: number
+  max?: number
+  step?: number
+  isNormalized?: boolean
   format?: (value: number[]) => number[]
 }
 

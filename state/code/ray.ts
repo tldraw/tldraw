@@ -3,9 +3,8 @@ import { uniqueId } from 'utils'
 import { RayShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
-/**
- * ## Ray
- */
+/* ----------------- Start Copy Here ---------------- */
+
 export default class Ray extends CodeShape<RayShape> {
   constructor(props = {} as ShapeProps<RayShape>) {
     super({

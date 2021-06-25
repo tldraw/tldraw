@@ -1,9 +1,7 @@
 module.exports = {
-  roots: ['<rootDir>'],
   testEnvironment: 'jsdom',
-  moduleFileExtensions: ['ts', 'tsx', 'mjs', 'js', 'json', 'jsx'],
-  testPathIgnorePatterns: ['<rootDir>[/\\\\](node_modules|.next)[/\\\\]'],
-  transformIgnorePatterns: ['node_modules/(?!(browser-fs-access)/)'],
+  testPathIgnorePatterns: ['node_modules', '.next'],
+  transformIgnorePatterns: ['node_modules/(?!(sucrase|browser-fs-access)/)'],
   transform: {
     '^.+\\.(ts|tsx|mjs)$': 'babel-jest',
   },

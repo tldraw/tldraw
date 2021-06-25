@@ -3,9 +3,8 @@ import { uniqueId } from 'utils'
 import { LineShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
-/**
- * ## Line
- */
+/* ----------------- Start Copy Here ---------------- */
+
 export default class Line extends CodeShape<LineShape> {
   constructor(props = {} as ShapeProps<LineShape>) {
     super({

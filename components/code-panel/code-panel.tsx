@@ -82,8 +82,11 @@ export default function CodePanel(): JSX.Element {
         let error = null
 
         try {
-          const { shapes, controls } = generateFromCode(state.data, data.code)
-          state.send('GENERATED_FROM_CODE', { shapes, controls })
+          generateFromCode(state.data, data.code).then(
+            ({ shapes, controls }) => {
+              state.send('GENERATED_FROM_CODE', { shapes, controls })
+            }
+          )
         } catch (e) {
           console.error('Got an error!', e)
           error = { message: e.message, ...getErrorLineAndColumn(e) }

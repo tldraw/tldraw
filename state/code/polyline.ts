@@ -3,9 +3,8 @@ import { uniqueId } from 'utils'
 import { PolylineShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 
-/**
- * ## Polyline
- */
+/* ----------------- Start Copy Here ---------------- */
+
 export default class Polyline extends CodeShape<PolylineShape> {
   constructor(props = {} as ShapeProps<PolylineShape>) {
     super({
@@ -22,8 +21,11 @@ export default class Polyline extends CodeShape<PolylineShape> {
       isAspectRatioLocked: false,
       isLocked: false,
       isHidden: false,
-      style: defaultStyle,
       ...props,
+      style: {
+        ...defaultStyle,
+        ...props.style,
+      },
     })
   }
 

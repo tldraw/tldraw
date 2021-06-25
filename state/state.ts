@@ -268,11 +268,11 @@ const state = createState({
           do: ['setCodeControls', 'setGeneratedShapes'],
         },
         UNDO: {
-          unless: 'isInSession',
+          unless: ['isReadOnly', 'isInSession'],
           do: 'undo',
         },
         REDO: {
-          unless: 'isInSession',
+          unless: ['isReadOnly', 'isInSession'],
           do: 'redo',
         },
         SAVED: {
@@ -1763,12 +1763,10 @@ const state = createState({
       setSelectedIds(data, [])
 
       try {
-        const { shapes } = updateFromCode(
+        updateFromCode(
           data,
           data.document.code[data.currentCodeFileId].code
-        )
-
-        commands.generate(data, shapes)
+        ).then(({ shapes }) => commands.generate(data, shapes))
       } catch (e) {
         console.error(e)
       }

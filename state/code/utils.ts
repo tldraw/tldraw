@@ -1,9 +1,8 @@
 import { Bounds } from 'types'
 import vec from 'utils/vec'
 
-/**
- * ## Utils
- */
+/* ----------------- Start Copy Here ---------------- */
+
 export default class Utils {
   /**
    * Linear interpolation betwen two numbers.
