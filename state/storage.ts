@@ -25,22 +25,20 @@ class Storage {
     // 1. Load Document from Local Storage
     // Using the "last opened file id" in local storage.
     if (lastOpenedFileId !== null) {
-      // Load document from local storage
-      const savedDocument = localStorage.getItem(
-        storageId(lastOpenedFileId, 'document', lastOpenedFileId)
+      // Load state from local storage
+      const savedState = localStorage.getItem(
+        storageId(lastOpenedFileId, 'document-state', lastOpenedFileId)
       )
 
-      if (savedDocument === null) {
-        // If no document found, create a fresh random id.
+      if (savedState === null) {
+        // If no state with that document was found, create a fresh random id.
         data.document.id = uniqueId()
       } else {
-        // If we did find a document, load it into state.
-        const restoredDocument: TLDocument = JSON.parse(
-          decompress(savedDocument)
-        )
+        // If we did find a state and document, load it into state.
+        const restoredDocument: Data = JSON.parse(decompress(savedState))
 
         // Merge restored data into state.
-        data.document = restoredDocument
+        Object.assign(data, restoredDocument)
       }
     }
 
@@ -57,6 +55,10 @@ class Storage {
     localStorage.setItem(
       storageId(data.document.id, 'document', data.document.id),
       compress(JSON.stringify(document))
+    )
+    localStorage.setItem(
+      storageId(data.document.id, 'document-state', data.document.id),
+      compress(JSON.stringify(data))
     )
   }
 
@@ -166,6 +168,11 @@ class Storage {
     localStorage.setItem(
       storageId(data.document.id, 'document', data.document.id),
       compress(JSON.stringify(data.document))
+    )
+
+    localStorage.setItem(
+      storageId(data.document.id, 'document-state', data.document.id),
+      compress(JSON.stringify(data))
     )
 
     // 4.1
