@@ -181,7 +181,6 @@ export interface ArrowShape extends BaseShape {
 export interface TextShape extends BaseShape {
   type: ShapeType.Text
   text: string
-  size: number[] | 'auto'
   scale: number
   fontSize: FontSize
 }

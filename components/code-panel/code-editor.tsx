@@ -43,9 +43,7 @@ export default function CodeEditor({
   const rMonaco = useRef<IMonaco>(null)
 
   const handleBeforeMount = useCallback((monaco: Monaco) => {
-    if (monacoRef) {
-      monacoRef.current = monaco
-    }
+    if (monacoRef) monacoRef.current = monaco
     rMonaco.current = monaco
 
     monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
@@ -58,23 +56,22 @@ export default function CodeEditor({
       allowNonTsExtensions: true,
     })
 
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      allowJs: true,
+      checkJs: false,
+      strict: false,
+      noLib: true,
+      lib: ['es6'],
+      target: monaco.languages.typescript.ScriptTarget.ES2015,
+      allowNonTsExtensions: true,
+    })
+
     monaco.languages.typescript.typescriptDefaults.setEagerModelSync(true)
     monaco.languages.typescript.javascriptDefaults.setEagerModelSync(true)
-
-    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-      // noSemanticValidation: true,
-      // noSyntaxValidation: true,
-    })
-
-    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-      // noSemanticValidation: true,
-      // noSyntaxValidation: true,
-    })
 
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
       typesImport.content
     )
-
     monaco.languages.typescript.javascriptDefaults.addExtraLib(
       typesImport.content
     )

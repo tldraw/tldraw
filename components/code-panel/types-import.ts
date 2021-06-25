@@ -131,7 +131,6 @@ interface ArrowShape extends BaseShape {
 interface TextShape extends BaseShape {
   type: ShapeType.Text
   text: string
-  size: number[] | 'auto'
   scale: number
   fontSize: FontSize
 }
@@ -2337,6 +2336,36 @@ interface ShapeUtility<K extends Shape> {
 
 
 
+ class Text extends CodeShape<TextShape> {
+  constructor(props = {} as ShapeProps<TextShape>) {
+    super({
+      id: uniqueId(),
+
+      parentId: (window as any).currentPageId,
+      type: ShapeType.Text,
+      isGenerated: true,
+      name: 'Text',
+      childIndex: 0,
+      point: [0, 0],
+      rotation: 0,
+      isAspectRatioLocked: false,
+      isLocked: false,
+      isHidden: false,
+      text: 'Text',
+      scale: 1,
+      fontSize: FontSize.Medium,
+      ...props,
+      style: {
+        ...defaultStyle,
+        ...props.style,
+      },
+    })
+  }
+}
+
+
+
+
  class Rectangle extends CodeShape<RectangleShape> {
   constructor(props = {} as ShapeProps<RectangleShape>) {
     super({
@@ -2371,17 +2400,17 @@ interface ShapeUtility<K extends Shape> {
 
 
 class Control<T extends CodeControl> {
-  control: T
+  _control: T
 
-  constructor(control: Omit<T, 'id'>) {
-    this.control = { ...control, id: uniqueId() } as T
-    codeControls.add(this.control)
+  constructor(control: T) {
+    this._control = { ...control }
+    codeControls.add(this._control)
 
     // Could there be a better way to prevent this?
     // When updating, constructor should just bind to
     // the existing control rather than creating a new one?
     if (!(window as any).isUpdatingCode) {
-      controls[this.control.label] = this.control.value
+      controls[this._control.label] = this._control.value
     }
   }
 
@@ -2390,39 +2419,52 @@ class Control<T extends CodeControl> {
     delete controls[this.control.label]
   }
 
+  get control(): T {
+    return this._control
+  }
+
+  get id(): string {
+    return this.control.id
+  }
+
   get value(): T['value'] {
     return this.control.value
   }
-
-  set value(value: T['value']) {
-    this.control.value = value
-  }
 }
 
-type ControlProps<T extends CodeControl> = Omit<Partial<T>, 'id' | 'type'>
+type ControlProps<T extends CodeControl> = Omit<Partial<T>, 'type'>
 
 class NumberControl extends Control<NumberCodeControl> {
   constructor(options: ControlProps<NumberCodeControl>) {
-    const { label = 'Number', value = 0, step = 1 } = options
+    const { id = uniqueId(), label = 'Number', value = 0, step = 1 } = options
+
     super({
       type: ControlType.Number,
       ...options,
       label,
       value,
       step,
+      id,
     })
   }
 }
 
 class VectorControl extends Control<VectorCodeControl> {
   constructor(options: ControlProps<VectorCodeControl>) {
-    const { label = 'Vector', value = [0, 0], isNormalized = false } = options
+    const {
+      id = uniqueId(),
+      label = 'Vector',
+      value = [0, 0],
+      isNormalized = false,
+    } = options
+
     super({
       type: ControlType.Vector,
       ...options,
       label,
       value,
       isNormalized,
+      id,
     })
   }
 }

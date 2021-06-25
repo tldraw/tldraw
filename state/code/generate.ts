@@ -6,6 +6,7 @@ import Ray from './ray'
 import Line from './line'
 import Arrow from './arrow'
 import Draw from './draw'
+import Text from './text'
 import Utils from './utils'
 import Vec from 'utils/vec'
 import { NumberControl, VectorControl, codeControls, controls } from './control'
@@ -32,6 +33,7 @@ const baseScope = {
   Utils,
   Arrow,
   Draw,
+  Text,
   VectorControl,
   NumberControl,
   DashStyle,

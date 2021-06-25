@@ -67,7 +67,6 @@ const text = registerShapeUtils<TextShape>({
       style: defaultStyle,
       text: '',
       scale: 1,
-      size: 'auto',
       fontSize: FontSize.Medium,
       ...props,
     }

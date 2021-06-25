@@ -66,6 +66,8 @@ ${await inlineFileContents('/state/code/arrow.ts')}
 
 ${await inlineFileContents('/state/code/draw.ts')}
 
+${await inlineFileContents('/state/code/text.ts')}
+
 ${await inlineFileContents('/state/code/rectangle.ts')}
 
 ${await inlineFileContents('/state/code/control.ts')}
