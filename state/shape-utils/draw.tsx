@@ -20,6 +20,8 @@ const polygonCache = new WeakMap<DrawShape['points'], string>([])
 const draw = registerShapeUtils<DrawShape>({
   boundsCache: new WeakMap([]),
 
+  canStyleFill: true,
+
   create(props) {
     return {
       id: uniqueId(),
@@ -41,6 +43,11 @@ const draw = registerShapeUtils<DrawShape>({
         ...props.style,
       },
     }
+  },
+
+  shouldRender(shape, prev) {
+    // return true
+    return shape.points !== prev.points || shape.style !== prev.style
   },
 
   render(shape) {
@@ -171,7 +178,6 @@ const draw = registerShapeUtils<DrawShape>({
     const styles = { ...shape.style, ...style }
     styles.dash = DashStyle.Solid
     shape.style = styles
-    shape.points = [...shape.points]
     return this
   },
 
@@ -186,8 +192,6 @@ const draw = registerShapeUtils<DrawShape>({
 
     return this
   },
-
-  canStyleFill: true,
 })
 
 export default draw

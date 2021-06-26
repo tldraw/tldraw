@@ -12,7 +12,7 @@
     "start": "next start",
     "test-all": "yarn lint && yarn type-check && yarn test",
     "test:update": "jest --updateSnapshot",
-    "test:watch": "jest --watchAll",
+    "test:watch": "jest --watchAll --verbose=false --silent=false",
     "test": "jest --watchAll=false",
     "type-check": "tsc --pretty --noEmit"
   },

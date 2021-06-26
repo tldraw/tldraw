@@ -24,21 +24,23 @@ export default function useKeyboardEvents() {
         e.preventDefault()
       }
 
+      const info = getKeyboardEventInfo(e)
+
       switch (e.key) {
         case 'ArrowUp': {
-          state.send('NUDGED', { delta: [0, -1], ...getKeyboardEventInfo(e) })
+          state.send('NUDGED', { delta: [0, -1], ...info })
           break
         }
         case 'ArrowRight': {
-          state.send('NUDGED', { delta: [1, 0], ...getKeyboardEventInfo(e) })
+          state.send('NUDGED', { delta: [1, 0], ...info })
           break
         }
         case 'ArrowDown': {
-          state.send('NUDGED', { delta: [0, 1], ...getKeyboardEventInfo(e) })
+          state.send('NUDGED', { delta: [0, 1], ...info })
           break
         }
         case 'ArrowLeft': {
-          state.send('NUDGED', { delta: [-1, 0], ...getKeyboardEventInfo(e) })
+          state.send('NUDGED', { delta: [-1, 0], ...info })
           break
         }
         case '=': {
@@ -81,9 +83,9 @@ export default function useKeyboardEvents() {
         case 'z': {
           if (metaKey(e)) {
             if (e.shiftKey) {
-              state.send('REDO', getKeyboardEventInfo(e))
+              state.send('REDO', info)
             } else {
-              state.send('UNDO', getKeyboardEventInfo(e))
+              state.send('UNDO', info)
             }
           }
           break
@@ -91,7 +93,7 @@ export default function useKeyboardEvents() {
         case '‘': {
           if (metaKey(e)) {
             state.send('MOVED', {
-              ...getKeyboardEventInfo(e),
+              ...info,
               type: MoveType.ToFront,
             })
           }
@@ -100,7 +102,7 @@ export default function useKeyboardEvents() {
         case '“': {
           if (metaKey(e)) {
             state.send('MOVED', {
-              ...getKeyboardEventInfo(e),
+              ...info,
               type: MoveType.ToBack,
             })
           }
@@ -109,7 +111,7 @@ export default function useKeyboardEvents() {
         case ']': {
           if (metaKey(e)) {
             state.send('MOVED', {
-              ...getKeyboardEventInfo(e),
+              ...info,
               type: MoveType.Forward,
             })
           }
@@ -118,30 +120,34 @@ export default function useKeyboardEvents() {
         case '[': {
           if (metaKey(e)) {
             state.send('MOVED', {
-              ...getKeyboardEventInfo(e),
+              ...info,
               type: MoveType.Backward,
             })
           }
           break
         }
         case 'Shift': {
-          state.send('PRESSED_SHIFT_KEY', getKeyboardEventInfo(e))
+          state.send('PRESSED_SHIFT_KEY', info)
           break
         }
         case 'Alt': {
-          state.send('PRESSED_ALT_KEY', getKeyboardEventInfo(e))
+          state.send('PRESSED_ALT_KEY', info)
           break
         }
         case 'Backspace': {
-          state.send('DELETED', getKeyboardEventInfo(e))
+          if (metaKey(e)) {
+            state.send('RESET_PAGE', info)
+          } else {
+            state.send('DELETED', info)
+          }
           break
         }
         case 'g': {
           if (metaKey(e)) {
             if (e.shiftKey) {
-              state.send('UNGROUPED', getKeyboardEventInfo(e))
+              state.send('UNGROUPED', info)
             } else {
-              state.send('GROUPED', getKeyboardEventInfo(e))
+              state.send('GROUPED', info)
             }
           }
           break
@@ -149,9 +155,9 @@ export default function useKeyboardEvents() {
         case 's': {
           if (metaKey(e)) {
             if (e.shiftKey) {
-              state.send('SAVED_AS_TO_FILESYSTEM', getKeyboardEventInfo(e))
+              state.send('SAVED_AS_TO_FILESYSTEM', info)
             } else {
-              state.send('SAVED', getKeyboardEventInfo(e))
+              state.send('SAVED', info)
             }
           }
           break
@@ -160,47 +166,47 @@ export default function useKeyboardEvents() {
           if (metaKey(e)) {
             break
           } else {
-            state.send('SELECTED_DOT_TOOL', getKeyboardEventInfo(e))
+            state.send('SELECTED_DOT_TOOL', info)
           }
           break
         }
         case 'v': {
           if (metaKey(e)) {
-            state.send('PASTED', getKeyboardEventInfo(e))
+            state.send('PASTED', info)
           } else {
-            state.send('SELECTED_SELECT_TOOL', getKeyboardEventInfo(e))
+            state.send('SELECTED_SELECT_TOOL', info)
           }
           break
         }
         case 'a': {
           if (metaKey(e)) {
-            state.send('SELECTED_ALL', getKeyboardEventInfo(e))
+            state.send('SELECTED_ALL', info)
           } else {
-            state.send('SELECTED_ARROW_TOOL', getKeyboardEventInfo(e))
+            state.send('SELECTED_ARROW_TOOL', info)
           }
           break
         }
         case 'd': {
           if (metaKey(e)) {
-            state.send('DUPLICATED', getKeyboardEventInfo(e))
+            state.send('DUPLICATED', info)
           } else {
-            state.send('SELECTED_DRAW_TOOL', getKeyboardEventInfo(e))
+            state.send('SELECTED_DRAW_TOOL', info)
           }
           break
         }
         case 't': {
-          state.send('SELECTED_TEXT_TOOL', getKeyboardEventInfo(e))
+          state.send('SELECTED_TEXT_TOOL', info)
           break
         }
         case 'c': {
           if (metaKey(e)) {
             if (e.shiftKey) {
-              state.send('COPIED_TO_SVG', getKeyboardEventInfo(e))
+              state.send('COPIED_TO_SVG', info)
             } else {
-              state.send('COPIED', getKeyboardEventInfo(e))
+              state.send('COPIED', info)
             }
           } else {
-            state.send('SELECTED_ELLIPSE_TOOL', getKeyboardEventInfo(e))
+            state.send('SELECTED_ELLIPSE_TOOL', info)
           }
           break
         }
@@ -208,17 +214,17 @@ export default function useKeyboardEvents() {
           if (metaKey(e)) {
             break
           } else {
-            state.send('SELECTED_CIRCLE_TOOL', getKeyboardEventInfo(e))
+            state.send('SELECTED_CIRCLE_TOOL', info)
           }
           break
         }
         case 'l': {
           if (metaKey(e)) {
             if (e.shiftKey) {
-              state.send('LOADED_FROM_FILE_STSTEM', getKeyboardEventInfo(e))
+              state.send('LOADED_FROM_FILE_STSTEM', info)
             }
           } else {
-            state.send('SELECTED_LINE_TOOL', getKeyboardEventInfo(e))
+            state.send('SELECTED_LINE_TOOL', info)
           }
           break
         }
@@ -226,7 +232,7 @@ export default function useKeyboardEvents() {
           if (metaKey(e)) {
             break
           } else {
-            state.send('SELECTED_RAY_TOOL', getKeyboardEventInfo(e))
+            state.send('SELECTED_RAY_TOOL', info)
           }
           break
         }
@@ -234,7 +240,7 @@ export default function useKeyboardEvents() {
           if (metaKey(e)) {
             break
           } else {
-            state.send('SELECTED_POLYLINE_TOOL', getKeyboardEventInfo(e))
+            state.send('SELECTED_POLYLINE_TOOL', info)
           }
           break
         }
@@ -242,7 +248,7 @@ export default function useKeyboardEvents() {
           if (metaKey(e)) {
             break
           } else {
-            state.send('SELECTED_RECTANGLE_TOOL', getKeyboardEventInfo(e))
+            state.send('SELECTED_RECTANGLE_TOOL', info)
           }
           break
         }
@@ -251,21 +257,23 @@ export default function useKeyboardEvents() {
           break
         }
         default: {
-          state.send('PRESSED_KEY', getKeyboardEventInfo(e))
+          state.send('PRESSED_KEY', info)
         }
       }
     }
 
     function handleKeyUp(e: KeyboardEvent) {
+      const info = getKeyboardEventInfo(e)
+
       if (e.key === 'Shift') {
-        state.send('RELEASED_SHIFT_KEY', getKeyboardEventInfo(e))
+        state.send('RELEASED_SHIFT_KEY', info)
       }
 
       if (e.key === 'Alt') {
-        state.send('RELEASED_ALT_KEY', getKeyboardEventInfo(e))
+        state.send('RELEASED_ALT_KEY', info)
       }
 
-      state.send('RELEASED_KEY', getKeyboardEventInfo(e))
+      state.send('RELEASED_KEY', info)
     }
 
     document.body.addEventListener('keydown', handleKeyDown)

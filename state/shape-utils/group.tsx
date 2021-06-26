@@ -108,6 +108,8 @@ const group = registerShapeUtils<GroupShape>({
   },
 
   onChildrenChange(shape, children) {
+    if (shape.children.length === 0) return
+
     const childBounds = getCommonBounds(
       ...children.map((child) => getShapeUtils(child).getRotatedBounds(child))
     )

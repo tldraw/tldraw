@@ -588,5 +588,9 @@ export interface ShapeUtility<K extends Shape> {
   // Test whether bounds collide with or contain a shape.
   hitTestBounds(this: ShapeUtility<K>, shape: K, bounds: Bounds): boolean
 
+  // Get whether the shape should delete
   shouldDelete(this: ShapeUtility<K>, shape: K): boolean
+
+  // Get whether the shape should render
+  shouldRender(this: ShapeUtility<K>, shape: K, previous: K): boolean
 }

@@ -7,7 +7,6 @@ describe('project', () => {
 
   it('mounts the state', () => {
     state.send('MOUNTED')
-    expect(state.data.document).toMatchSnapshot('data after initial mount')
     expect(state.isIn('ready')).toBe(true)
   })
 

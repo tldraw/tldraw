@@ -173,6 +173,7 @@ const state = createState({
         else: ['zoomCameraToActual'],
       },
       on: {
+        RESET_PAGE: 'resetPage',
         TOGGLED_READ_ONLY: 'toggleReadOnly',
         LOADED_FONTS: 'resetShapes',
         USED_PEN_DEVICE: 'enablePenLock',
@@ -1342,14 +1343,13 @@ const state = createState({
     },
 
     // Drawing
-    startDrawSession(data, payload: PointerInfo) {
+    startDrawSession(data) {
       const id = Array.from(getSelectedIds(data).values())[0]
       session.begin(
         new Sessions.DrawSession(
           data,
           id,
-          screenToWorld(inputs.pointer.origin, data),
-          payload.shiftKey
+          screenToWorld(inputs.pointer.origin, data)
         )
       )
     },
@@ -1500,6 +1500,9 @@ const state = createState({
     },
     resetShapeBounds(data) {
       commands.resetBounds(data)
+    },
+    resetPage(data) {
+      data.document.pages[data.currentPageId].shapes = {}
     },
 
     /* --------------------- Editing -------------------- */

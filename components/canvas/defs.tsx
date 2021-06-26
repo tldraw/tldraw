@@ -4,6 +4,7 @@ import React, { memo } from 'react'
 import { useSelector } from 'state'
 import { deepCompareArrays, getCurrentCamera, getPage } from 'utils'
 import { DotCircle, Handle } from './misc'
+import useShapeDef from 'hooks/useShape'
 
 export default function Defs(): JSX.Element {
   const zoom = useSelector((s) => getCurrentCamera(s.data).zoom)
@@ -31,7 +32,7 @@ export default function Defs(): JSX.Element {
 }
 
 const Def = memo(function Def({ id }: { id: string }) {
-  const shape = useSelector((s) => getPage(s.data).shapes[id])
+  const shape = useShapeDef(id)
 
   if (!shape) return null
 

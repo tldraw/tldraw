@@ -155,6 +155,10 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
       this.boundsCache.delete(shape)
       return this
     },
+
+    shouldRender() {
+      return true
+    },
   }
 }
 

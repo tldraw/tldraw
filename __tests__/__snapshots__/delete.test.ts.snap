@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`project loads file from json: data after mount from file 1`] = `
+exports[`deletes and restores grouped shapes creates a group: data after mount from file 1`] = `
 Object {
   "code": Object {
     "file0": Object {
