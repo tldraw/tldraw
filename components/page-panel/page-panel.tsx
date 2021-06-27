@@ -29,6 +29,7 @@ export default function PagePanel(): JSX.Element {
 
   return (
     <DropdownMenu.Root
+      dir="ltr"
       open={isOpen}
       onOpenChange={(isOpen) => {
         if (rIsOpen.current !== isOpen) {
@@ -36,7 +37,7 @@ export default function PagePanel(): JSX.Element {
         }
       }}
     >
-      <PanelRoot>
+      <PanelRoot dir="ltr">
         <DropdownMenu.Trigger
           as={RowButton}
           bp={{ '@initial': 'mobile', '@sm': 'small' }}
@@ -55,7 +56,7 @@ export default function PagePanel(): JSX.Element {
               }}
             >
               {sorted.map(({ id, name }) => (
-                <ContextMenu.Root key={id}>
+                <ContextMenu.Root dir="ltr" key={id}>
                   <ContextMenu.Trigger>
                     <StyledRadioItem
                       key={id}

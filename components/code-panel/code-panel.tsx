@@ -130,6 +130,7 @@ export default function CodePanel(): JSX.Element {
 
   return (
     <Panel.Root
+      dir="ltr"
       bp={{ '@initial': 'mobile', '@sm': 'small' }}
       data-bp-desktop
       ref={rContainer}

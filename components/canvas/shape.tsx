@@ -3,8 +3,8 @@ import { useSelector } from 'state'
 import styled from 'styles'
 import { getShapeUtils } from 'state/shape-utils'
 import { getPage, getSelectedIds, isMobile } from 'utils'
-import { Shape as _Shape } from 'types'
 import useShapeEvents from 'hooks/useShapeEvents'
+import { Shape as _Shape } from 'types'
 import vec from 'utils/vec'
 import { getShapeStyle } from 'state/shape-styles'
 
@@ -83,7 +83,7 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps): JSX.Element {
               as="use"
               href={'#' + id}
               strokeWidth={+style.strokeWidth + 5}
-              variant={getShapeUtils(shape).canStyleFill ? 'filled' : 'hollow'}
+              variant={shapeUtils.canStyleFill ? 'filled' : 'hollow'}
             />
           )}
         </>
@@ -93,13 +93,7 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps): JSX.Element {
         (isForeignObject ? (
           shapeUtils.render(shape, { isEditing, ref: rFocusable })
         ) : (
-          <RealShape
-            isParent={isParent}
-            id={id}
-            shape={shape}
-            style={style}
-            isEditing={isEditing}
-          />
+          <RealShape id={id} isParent={isParent} shape={shape} />
         ))}
 
       {isParent &&
@@ -117,10 +111,8 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps): JSX.Element {
 
 interface RealShapeProps {
   id: string
-  style: Partial<React.SVGProps<SVGUseElement>>
-  isParent: boolean
   shape: _Shape
-  isEditing: boolean
+  isParent: boolean
 }
 
 const RealShape = memo(function RealShape({ id, isParent }: RealShapeProps) {

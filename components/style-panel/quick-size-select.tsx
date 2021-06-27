@@ -16,7 +16,7 @@ export default function QuickSizeSelect(): JSX.Element {
   const size = useSelector((s) => s.values.selectedStyle.size)
 
   return (
-    <DropdownMenu.Root>
+    <DropdownMenu.Root dir="ltr">
       <DropdownMenu.Trigger
         as={IconButton}
         bp={{ '@initial': 'mobile', '@sm': 'small' }}

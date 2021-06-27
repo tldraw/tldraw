@@ -10,7 +10,7 @@ export default function QuickColorSelect(): JSX.Element {
   const color = useSelector((s) => s.values.selectedStyle.color)
 
   return (
-    <DropdownMenu.Root>
+    <DropdownMenu.Root dir="ltr">
       <DropdownMenu.Trigger
         as={IconButton}
         bp={{ '@initial': 'mobile', '@sm': 'small' }}

@@ -12,7 +12,7 @@ interface Props {
 
 export default function ColorPicker({ color, onChange }: Props): JSX.Element {
   return (
-    <DropdownMenu.Root>
+    <DropdownMenu.Root dir="ltr">
       <DropdownMenu.Trigger
         as={RowButton}
         bp={{ '@initial': 'mobile', '@sm': 'small' }}

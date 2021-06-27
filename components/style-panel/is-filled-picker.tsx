@@ -15,6 +15,7 @@ export default function IsFilledPicker({
 }: Props): JSX.Element {
   return (
     <Checkbox.Root
+      dir="ltr"
       as={RowButton}
       bp={{ '@initial': 'mobile', '@sm': 'small' }}
       checked={isFilled}

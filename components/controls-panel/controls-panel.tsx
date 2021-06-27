@@ -18,6 +18,7 @@ export default function ControlPanel(): JSX.Element {
 
   return (
     <Panel.Root
+      dir="ltr"
       data-bp-desktop
       ref={rContainer}
       isOpen={isOpen}

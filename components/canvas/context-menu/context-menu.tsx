@@ -96,7 +96,7 @@ export default function ContextMenu({
   const hasThreeOrMore = selectedShapeIds.length > 2
 
   return (
-    <_ContextMenu.Root>
+    <_ContextMenu.Root dir="ltr">
       <_ContextMenu.Trigger>{children}</_ContextMenu.Trigger>
       <StyledContent ref={rContent} isMobile={isMobile()}>
         {selectedShapeIds.length ? (
@@ -342,7 +342,7 @@ function SubMenu({
   children: React.ReactNode
 }) {
   return (
-    <_ContextMenu.Root>
+    <_ContextMenu.Root dir="ltr">
       <_ContextMenu.TriggerItem
         as={RowButton}
         bp={{ '@initial': 'mobile', '@sm': 'small' }}
@@ -367,7 +367,7 @@ function AlignDistributeSubMenu({
   hasThreeOrMore: boolean
 }) {
   return (
-    <_ContextMenu.Root>
+    <_ContextMenu.Root dir="ltr">
       <_ContextMenu.TriggerItem
         as={RowButton}
         bp={{ '@initial': 'mobile', '@sm': 'small' }}
@@ -451,7 +451,7 @@ function MoveToPageMenu() {
   if (sorted.length === 0) return null
 
   return (
-    <_ContextMenu.Root>
+    <_ContextMenu.Root dir="ltr">
       <_ContextMenu.TriggerItem
         as={RowButton}
         bp={{ '@initial': 'mobile', '@sm': 'small' }}

@@ -21,7 +21,7 @@ export default function QuickdashSelect(): JSX.Element {
   const dash = useSelector((s) => s.values.selectedStyle.dash)
 
   return (
-    <DropdownMenu.Root>
+    <DropdownMenu.Root dir="ltr">
       <DropdownMenu.Trigger
         as={IconButton}
         bp={{ '@initial': 'mobile', '@sm': 'small' }}

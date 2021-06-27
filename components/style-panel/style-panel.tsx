@@ -36,12 +36,28 @@ import QuickSizeSelect from './quick-size-select'
 import QuickdashSelect from './quick-dash-select'
 import Tooltip from 'components/tooltip'
 
+const breakpoints = { '@initial': 'mobile', '@sm': 'small' } as any
+const handleStylePanelOpen = () => state.send('TOGGLED_STYLE_PANEL_OPEN')
+const handleColorChange = (color) => state.send('CHANGED_STYLE', { color })
+const handleRotateCcw = () => () => state.send('ROTATED_CCW')
+const handleIsFilledChange = (dash) => state.send('CHANGED_STYLE', { dash })
+const handleDuplicate = () => state.send('DUPLICATED')
+const handleHide = () => state.send('TOGGLED_SHAPE_HIDE')
+const handleLock = () => state.send('TOGGLED_SHAPE_LOCK')
+const handleAspectLock = () => state.send('TOGGLED_SHAPE_ASPECT_LOCK')
+const handleMoveToBack = () => state.send('MOVED', { type: MoveType.ToBack })
+const handleMoveBackward = () =>
+  state.send('MOVED', { type: MoveType.Backward })
+const handleMoveForward = () => state.send('MOVED', { type: MoveType.Forward })
+const handleMoveToFront = () => state.send('MOVED', { type: MoveType.ToFront })
+const handleDelete = () => state.send('DELETED')
+
 export default function StylePanel(): JSX.Element {
   const rContainer = useRef<HTMLDivElement>(null)
   const isOpen = useSelector((s) => s.data.settings.isStyleOpen)
 
   return (
-    <StylePanelRoot ref={rContainer} isOpen={isOpen}>
+    <StylePanelRoot dir="ltr" ref={rContainer} isOpen={isOpen}>
       {isOpen ? (
         <SelectedShapeStyles />
       ) : (
@@ -50,10 +66,10 @@ export default function StylePanel(): JSX.Element {
           <QuickSizeSelect />
           <QuickdashSelect />
           <IconButton
-            bp={{ '@initial': 'mobile', '@sm': 'small' }}
+            bp={breakpoints}
             title="Style"
             size="small"
-            onClick={() => state.send('TOGGLED_STYLE_PANEL_OPEN')}
+            onClick={handleStylePanelOpen}
           >
             <Tooltip label="More">
               <ChevronDown />
@@ -99,21 +115,18 @@ function SelectedShapeStyles(): JSX.Element {
       <Panel.Header side="right">
         <h3>Style</h3>
         <IconButton
-          bp={{ '@initial': 'mobile', '@sm': 'small' }}
+          bp={breakpoints}
           size="small"
-          onClick={() => state.send('TOGGLED_STYLE_PANEL_OPEN')}
+          onClick={handleStylePanelOpen}
         >
           <X />
         </IconButton>
       </Panel.Header>
       <Content>
-        <ColorPicker
-          color={commonStyle.color}
-          onChange={(color) => state.send('CHANGED_STYLE', { color })}
-        />
+        <ColorPicker color={commonStyle.color} onChange={handleColorChange} />
         <IsFilledPicker
           isFilled={commonStyle.isFilled}
-          onChange={(isFilled) => state.send('CHANGED_STYLE', { isFilled })}
+          onChange={handleIsFilledChange}
         />
         <Row>
           <label htmlFor="size">Size</label>
@@ -125,10 +138,10 @@ function SelectedShapeStyles(): JSX.Element {
         </Row>
         <ButtonsRow>
           <IconButton
-            bp={{ '@initial': 'mobile', '@sm': 'small' }}
+            bp={breakpoints}
             disabled={!hasSelection}
             size="small"
-            onClick={() => state.send('DUPLICATED')}
+            onClick={handleDuplicate}
           >
             <Tooltip label="Duplicate">
               <CopyIcon />
@@ -138,7 +151,7 @@ function SelectedShapeStyles(): JSX.Element {
           <IconButton
             disabled={!hasSelection}
             size="small"
-            onClick={() => state.send('ROTATED_CCW')}
+            onClick={handleRotateCcw}
           >
             <Tooltip label="Rotate">
               <RotateCounterClockwiseIcon />
@@ -146,10 +159,10 @@ function SelectedShapeStyles(): JSX.Element {
           </IconButton>
 
           <IconButton
-            bp={{ '@initial': 'mobile', '@sm': 'small' }}
+            bp={breakpoints}
             disabled={!hasSelection}
             size="small"
-            onClick={() => state.send('TOGGLED_SHAPE_HIDE')}
+            onClick={handleHide}
           >
             <Tooltip label="Toogle Hidden">
               {isAllHidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
@@ -157,10 +170,10 @@ function SelectedShapeStyles(): JSX.Element {
           </IconButton>
 
           <IconButton
-            bp={{ '@initial': 'mobile', '@sm': 'small' }}
+            bp={breakpoints}
             disabled={!hasSelection}
             size="small"
-            onClick={() => state.send('TOGGLED_SHAPE_LOCK')}
+            onClick={handleLock}
           >
             <Tooltip label="Toogle Locked">
               {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
@@ -168,10 +181,10 @@ function SelectedShapeStyles(): JSX.Element {
           </IconButton>
 
           <IconButton
-            bp={{ '@initial': 'mobile', '@sm': 'small' }}
+            bp={breakpoints}
             disabled={!hasSelection}
             size="small"
-            onClick={() => state.send('TOGGLED_SHAPE_ASPECT_LOCK')}
+            onClick={handleAspectLock}
           >
             <Tooltip label="Toogle Aspect Ratio Lock">
               {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
@@ -180,10 +193,10 @@ function SelectedShapeStyles(): JSX.Element {
         </ButtonsRow>
         <ButtonsRow>
           <IconButton
-            bp={{ '@initial': 'mobile', '@sm': 'small' }}
+            bp={breakpoints}
             disabled={!hasSelection}
             size="small"
-            onClick={() => state.send('MOVED', { type: MoveType.ToBack })}
+            onClick={handleMoveToBack}
           >
             <Tooltip label="Move to Back">
               <PinBottomIcon />
@@ -191,10 +204,10 @@ function SelectedShapeStyles(): JSX.Element {
           </IconButton>
 
           <IconButton
-            bp={{ '@initial': 'mobile', '@sm': 'small' }}
+            bp={breakpoints}
             disabled={!hasSelection}
             size="small"
-            onClick={() => state.send('MOVED', { type: MoveType.Backward })}
+            onClick={handleMoveBackward}
           >
             <Tooltip label="Move Backward">
               <ArrowDownIcon />
@@ -202,10 +215,10 @@ function SelectedShapeStyles(): JSX.Element {
           </IconButton>
 
           <IconButton
-            bp={{ '@initial': 'mobile', '@sm': 'small' }}
+            bp={breakpoints}
             disabled={!hasSelection}
             size="small"
-            onClick={() => state.send('MOVED', { type: MoveType.Forward })}
+            onClick={handleMoveForward}
           >
             <Tooltip label="Move Forward">
               <ArrowUpIcon />
@@ -213,10 +226,10 @@ function SelectedShapeStyles(): JSX.Element {
           </IconButton>
 
           <IconButton
-            bp={{ '@initial': 'mobile', '@sm': 'small' }}
+            bp={breakpoints}
             disabled={!hasSelection}
             size="small"
-            onClick={() => state.send('MOVED', { type: MoveType.ToFront })}
+            onClick={handleMoveToFront}
           >
             <Tooltip label="More to Front">
               <PinTopIcon />
@@ -224,10 +237,10 @@ function SelectedShapeStyles(): JSX.Element {
           </IconButton>
 
           <IconButton
-            bp={{ '@initial': 'mobile', '@sm': 'small' }}
+            bp={breakpoints}
             disabled={!hasSelection}
             size="small"
-            onClick={() => state.send('DELETED')}
+            onClick={handleDelete}
           >
             <Tooltip label="Delete">
               <Trash2 size="15" />
