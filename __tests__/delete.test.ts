@@ -47,8 +47,6 @@ describe('deletes and restores grouped shapes', () => {
   state.send('MOUNTED').send('LOADED_FROM_FILE', { json: JSON.stringify(json) })
 
   it('creates a group', () => {
-    expect(state.data.document).toMatchSnapshot('data after mount from file')
-
     state
       .send('CANCELED')
       .send('POINTED_SHAPE', inputs.pointerDown(point(), rectangleId))
