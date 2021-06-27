@@ -29,7 +29,32 @@ export default class Polyline extends CodeShape<PolylineShape> {
     })
   }
 
+  /**
+   * Add a point to the polyline's points.
+   *
+   * ```ts
+   * shape.addPoint([100,100])
+   * ```
+   */
+  addPoint(point: number[]): CodeShape<PolylineShape> {
+    this.utils.setProperty(this.shape, 'points', [...this.points, point])
+    return this
+  }
+
+  /**
+   * The polyline's points.
+   *
+   * ```ts
+   * const shapePoints = shape.points
+   *
+   * shape.points = [[0,0], [100,100], [100,200]]
+   * ```
+   */
   get points(): number[][] {
     return this.shape.points
+  }
+
+  set points(points: number[][]) {
+    this.utils.setProperty(this.shape, 'points', points)
   }
 }

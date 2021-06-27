@@ -63,6 +63,15 @@ export default class Arrow extends CodeShape<ArrowShape> {
     })
   }
 
+  /**
+   * The arrow's start point.
+   *
+   * ```ts
+   * const startPoint = shape.start
+   *
+   * shape.start = [100, 100]
+   * ```
+   */
   get start(): number[] {
     return this.shape.handles.start.point
   }
@@ -73,6 +82,15 @@ export default class Arrow extends CodeShape<ArrowShape> {
     })
   }
 
+  /**
+   * The arrow's middle point.
+   *
+   * ```ts
+   * const middlePoint = shape.middle
+   *
+   * shape.middle = [100, 100]
+   * ```
+   */
   get middle(): number[] {
     return this.shape.handles.bend.point
   }
@@ -83,6 +101,15 @@ export default class Arrow extends CodeShape<ArrowShape> {
     })
   }
 
+  /**
+   * The arrow's end point.
+   *
+   * ```ts
+   * const endPoint = shape.end
+   *
+   * shape.end = [100, 100]
+   * ```
+   */
   get end(): number[] {
     return this.shape.handles.end.point
   }

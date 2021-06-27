@@ -26,11 +26,37 @@ export default class Ellipse extends CodeShape<EllipseShape> {
     })
   }
 
+  /**
+   * The ellipse's x radius.
+   *
+   * ```ts
+   * const shapeRadiusX = shape.radiusX
+   *
+   * shape.radiusX = 100
+   * ```
+   */
   get radiusX(): number {
     return this.shape.radiusX
   }
 
+  set radiusX(radiusX: number) {
+    this.utils.setProperty(this.shape, 'radiusX', radiusX)
+  }
+
+  /**
+   * The ellipse's y radius.
+   *
+   * ```ts
+   * const shapeRadiusY = shape.radiusY
+   *
+   * shape.radiusY = 100
+   * ```
+   */
   get radiusY(): number {
     return this.shape.radiusY
+  }
+
+  set radiusY(radiusY: number) {
+    this.utils.setProperty(this.shape, 'radiusY', radiusY)
   }
 }

@@ -2,6 +2,7 @@ import CodeShape from './index'
 import { uniqueId } from 'utils'
 import { RectangleShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
+import { getShapeUtils } from 'state/shape-utils'
 
 /* ----------------- Start Copy Here ---------------- */
 
@@ -30,7 +31,43 @@ export default class Rectangle extends CodeShape<RectangleShape> {
     })
   }
 
-  get size(): number[] {
-    return this.shape.size
+  /**
+   * The rectangle's width.
+   *
+   * ```ts
+   * const shapeWidth = shape.width
+   *
+   * shape.width = 100
+   * ```
+   */
+  get width(): number {
+    return this.shape.size[0]
+  }
+
+  set width(width: number) {
+    getShapeUtils(this.shape).setProperty(this.shape, 'size', [
+      width,
+      this.height,
+    ])
+  }
+
+  /**
+   * The rectangle's height.
+   *
+   * ```ts
+   * const shapeHeight = shape.height
+   *
+   * shape.height = 100
+   * ```
+   */
+  get height(): number {
+    return this.shape.size[1]
+  }
+
+  set height(height: number) {
+    getShapeUtils(this.shape).setProperty(this.shape, 'size', [
+      this.width,
+      height,
+    ])
   }
 }

@@ -30,7 +30,19 @@ export default class Line extends CodeShape<LineShape> {
     })
   }
 
+  /**
+   * The line's direction.
+   *
+   * ```ts
+   * const shapeDirection = shape.direction
+   *
+   * shape.direction = [0,0]
+   * ```
+   */
   get direction(): number[] {
     return this.shape.direction
+  }
+  set direction(direction: number[]) {
+    this.utils.setProperty(this.shape, 'direction', direction)
   }
 }

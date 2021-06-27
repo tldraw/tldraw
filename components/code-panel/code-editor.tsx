@@ -1,5 +1,6 @@
 import Editor, { Monaco } from '@monaco-editor/react'
 import useTheme from 'hooks/useTheme'
+import libImport from './es5-lib'
 import typesImport from './types-import'
 import React, { useCallback, useEffect, useRef } from 'react'
 import styled from 'styles'
@@ -46,17 +47,10 @@ export default function CodeEditor({
     if (monacoRef) {
       monacoRef.current = monaco
     }
+
     rMonaco.current = monaco
 
-    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-      allowJs: true,
-      checkJs: false,
-      strict: false,
-      noLib: true,
-      lib: ['es6'],
-      target: monaco.languages.typescript.ScriptTarget.ES2016,
-      allowNonTsExtensions: true,
-    })
+    // Set the compiler options.
 
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
       allowJs: true,
@@ -68,26 +62,30 @@ export default function CodeEditor({
       allowNonTsExtensions: true,
     })
 
-    monaco.languages.typescript.typescriptDefaults.setEagerModelSync(true)
-    monaco.languages.typescript.javascriptDefaults.setEagerModelSync(true)
+    // Sync the intellisense on load.
 
-    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: false,
-      noSyntaxValidation: false,
-    })
+    monaco.languages.typescript.typescriptDefaults.setEagerModelSync(true)
+
+    // Run both semantic and syntax validation.
 
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: false,
       noSyntaxValidation: false,
     })
 
+    // Add custom types
+
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
       typesImport.content
     )
 
-    monaco.languages.typescript.javascriptDefaults.addExtraLib(
-      typesImport.content
+    // Add es5 library types
+
+    monaco.languages.typescript.typescriptDefaults.addExtraLib(
+      libImport.content
     )
+
+    // Use prettier as a formatter
 
     monaco.languages.registerDocumentFormattingEditProvider('typescript', {
       async provideDocumentFormattingEdits(model) {
@@ -223,6 +221,7 @@ export default function CodeEditor({
         beforeMount={handleBeforeMount}
         onMount={handleMount}
         onChange={handleChange}
+        defaultPath="index.ts"
       />
     </EditorContainer>
   )

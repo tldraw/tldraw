@@ -31,6 +31,32 @@ export default class Text extends CodeShape<TextShape> {
     })
   }
 
+  /**
+   * The text shape's text content.
+   *
+   * ```ts
+   * const shapeText = shape.text
+   *
+   * shape.text = "Hello world!"
+   * ```
+   */
+  get text(): string {
+    return this.shape.text
+  }
+
+  set text(text: string) {
+    getShapeUtils(this.shape).setProperty(this.shape, 'text', text)
+  }
+
+  /**
+   * The text's scale.
+   *
+   * ```ts
+   * const shapeScale = shape.scale
+   *
+   * shape.scale = 2
+   * ```
+   */
   get scale(): number {
     return this.shape.scale
   }

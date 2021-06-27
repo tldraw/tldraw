@@ -7,7 +7,8 @@ import {
   SizeStyle,
 } from 'types'
 import { createShape, getShapeUtils } from 'state/shape-utils'
-import { setToArray } from 'utils'
+import { setToArray, uniqueId } from 'utils'
+import Vec from 'utils/vec'
 
 export const codeShapes = new Set<CodeShape<Shape>>([])
 
@@ -26,7 +27,7 @@ function getOrderedShapes() {
 
 export default class CodeShape<T extends Shape> {
   private _shape: Mutable<T>
-  private utils: ShapeUtility<T>
+  protected utils: ShapeUtility<T>
 
   constructor(props: T) {
     this._shape = createShape(props.type, props) as Mutable<T>
@@ -34,79 +35,130 @@ export default class CodeShape<T extends Shape> {
     codeShapes.add(this)
   }
 
-  export(): Mutable<T> {
-    return { ...this._shape }
-  }
-
   /**
    * Destroy the shape.
+   *
+   * ```ts
+   * shape.destroy()
+   * ```
    */
-  destroy(): void {
+  destroy = (): void => {
     codeShapes.delete(this)
   }
 
   /**
    * Move the shape to a point.
-   * @param delta
+   *
+   * ```ts
+   * shape.moveTo(100,100)
+   * ```
    */
-  moveTo(point: number[]): CodeShape<T> {
+  moveTo = (point: number[]): CodeShape<T> => {
     return this.translateTo(point)
   }
 
   /**
    * Move the shape to a point.
-   * @param delta
+   *
+   * ```ts
+   * shape.translateTo([100,100])
+   * ```
    */
-  translateTo(point: number[]): CodeShape<T> {
+  translateTo = (point: number[]): CodeShape<T> => {
     this.utils.translateTo(this._shape, point)
     return this
   }
 
   /**
    * Move the shape by a delta.
-   * @param delta
+   *
+   * ```ts
+   * shape.translateBy([100,100])
+   * ```
    */
-  translateBy(delta: number[]): CodeShape<T> {
+  translateBy = (delta: number[]): CodeShape<T> => {
     this.utils.translateTo(this._shape, delta)
     return this
   }
 
   /**
    * Rotate the shape.
+   *
+   * ```ts
+   * shape.rotateTo(Math.PI / 2)
+   * ```
    */
-  rotateTo(rotation: number): CodeShape<T> {
+  rotateTo = (rotation: number): CodeShape<T> => {
     this.utils.rotateTo(this._shape, rotation, this.shape.rotation - rotation)
     return this
   }
 
   /**
    * Rotate the shape by a delta.
+   *
+   * ```ts
+   * shape.rotateBy(Math.PI / 2)
+   * ```
    */
-  rotateBy(rotation: number): CodeShape<T> {
+  rotateBy = (rotation: number): CodeShape<T> => {
     this.utils.rotateBy(this._shape, rotation)
     return this
   }
 
   /**
    * Get the shape's bounding box.
+   *
+   * ```ts
+   * const bounds = shape.getBounds()
+   * ```
    */
-  getBounds(): CodeShape<T> {
+  getBounds = (): CodeShape<T> => {
     this.utils.getBounds(this.shape)
     return this
   }
 
   /**
    * Test whether a point is inside of the shape.
+   *
+   * ```ts
+   * const isHit = shape.hitTest()
+   * ```
    */
-  hitTest(point: number[]): CodeShape<T> {
+  hitTest = (point: number[]): CodeShape<T> => {
     this.utils.hitTest(this.shape, point)
     return this
   }
 
   /**
-   * Move the shape to the back of the painting order.
+   * Duplicate this shape.
+   *
+   * ```ts
+   * const shapeB = shape.duplicate()
+   * ```
    */
-  moveToBack(): CodeShape<T> {
+  duplicate = (): CodeShape<T> => {
+    const duplicate = Object.assign(
+      Object.create(Object.getPrototypeOf(this)),
+      this
+    )
+
+    duplicate._shape = createShape(this._shape.type, {
+      ...this._shape,
+      id: uniqueId(),
+    } as any)
+
+    codeShapes.add(duplicate)
+    return duplicate
+  }
+
+  /**
+   * Move the shape to the back of the painting order.
+   *
+   * ```ts
+   * shape.moveToBack()
+   * ```
+   */
+  moveToBack = (): CodeShape<T> => {
     const sorted = getOrderedShapes()
 
     if (sorted.length <= 1) return
@@ -123,8 +175,12 @@ export default class CodeShape<T extends Shape> {
 
   /**
    * Move the shape to the top of the painting order.
+   *
+   * ```ts
+   * shape.moveToFront()
+   * ```
    */
-  moveToFront(): CodeShape<T> {
+  moveToFront = (): CodeShape<T> => {
     const sorted = getOrderedShapes()
 
     if (sorted.length <= 1) return
@@ -142,8 +198,12 @@ export default class CodeShape<T extends Shape> {
 
   /**
    * Move the shape backward in the painting order.
+   *
+   * ```ts
+   * shape.moveBackward()
+   * ```
    */
-  moveBackward(): CodeShape<T> {
+  moveBackward = (): CodeShape<T> => {
     const sorted = getOrderedShapes()
 
     if (sorted.length <= 1) return
@@ -164,8 +224,12 @@ export default class CodeShape<T extends Shape> {
 
   /**
    * Move the shape forward in the painting order.
+   *
+   * ```ts
+   * shape.moveForward()
+   * ```
    */
-  moveForward(): CodeShape<T> {
+  moveForward = (): CodeShape<T> => {
     const sorted = getOrderedShapes()
 
     if (sorted.length <= 1) return
@@ -189,79 +253,166 @@ export default class CodeShape<T extends Shape> {
   }
 
   /**
-   * The shape's underlying shape.
+   * The shape's underlying shape (readonly).
+   *
+   * ```ts
+   * const underlyingShape = shape.shape
+   * ```
    */
-  get shape(): T {
+  get shape(): Readonly<T> {
     return this._shape
   }
 
   /**
    * The shape's current point.
+   *
+   * ```ts
+   * const shapePoint = shape.point()
+   * ```
    */
   get point(): number[] {
     return [...this.shape.point]
   }
 
   set point(point: number[]) {
-    getShapeUtils(this.shape).translateTo(this._shape, point)
+    this.utils.translateTo(this._shape, point)
+  }
+
+  /**
+   * The shape's current x position.
+   *
+   * ```ts
+   * const shapeX = shape.x
+   *
+   * shape.x = 100
+   * ```
+   */
+  get x(): number {
+    return this.point[0]
+  }
+
+  set x(x: number) {
+    this.utils.translateTo(this._shape, [x, this.y])
+  }
+
+  /**
+   * The shape's current y position.
+   *
+   * ```ts
+   * const shapeY = shape.y
+   *
+   * shape.y = 100
+   * ```
+   */
+  get y(): number {
+    return this.point[1]
+  }
+
+  set y(y: number) {
+    this.utils.translateTo(this._shape, [this.x, y])
   }
 
   /**
    * The shape's rotation.
+   *
+   * ```ts
+   * const shapeRotation = shape.rotation
+   *
+   * shape.rotation = Math.PI / 2
+   * ```
    */
   get rotation(): number {
     return this.shape.rotation
   }
 
   set rotation(rotation: number) {
-    getShapeUtils(this.shape).rotateTo(
-      this._shape,
-      rotation,
-      rotation - this.shape.rotation
-    )
+    this.utils.rotateTo(this._shape, rotation, rotation - this.shape.rotation)
   }
 
   /**
-   * The shape's color style.
+   * The shape's color style (ColorStyle).
+   *
+   * ```ts
+   * const shapeColor = shape.color
+   *
+   * shape.color = ColorStyle.Red
+   * ```
    */
   get color(): ColorStyle {
     return this.shape.style.color
   }
 
   set color(color: ColorStyle) {
-    getShapeUtils(this.shape).applyStyles(this._shape, { color })
+    this.utils.applyStyles(this._shape, { color })
   }
 
   /**
-   * The shape's dash style.
+   * The shape's dash style (DashStyle).
+   *
+   * ```ts
+   * const shapeDash = shape.dash
+   *
+   * shape.dash = DashStyle.Dotted
+   * ```
    */
   get dash(): DashStyle {
     return this.shape.style.dash
   }
 
   set dash(dash: DashStyle) {
-    getShapeUtils(this.shape).applyStyles(this._shape, { dash })
+    this.utils.applyStyles(this._shape, { dash })
   }
 
   /**
-   * The shape's stroke width.
+   * The shape's size (SizeStyle).
+   *
+   * ```ts
+   * const shapeSize = shape.size
+   *
+   * shape.size = SizeStyle.Large
+   * ```
    */
-  get strokeWidth(): SizeStyle {
+  get size(): SizeStyle {
     return this.shape.style.size
   }
 
-  set strokeWidth(size: SizeStyle) {
-    getShapeUtils(this.shape).applyStyles(this._shape, { size })
+  set size(size: SizeStyle) {
+    this.utils.applyStyles(this._shape, { size })
   }
 
   /**
    * The shape's index in the painting order.
+   *
+   * ```ts
+   * const shapeChildIndex = shape.childIndex
+   *
+   * shape.childIndex = 10
+   * ```
    */
   get childIndex(): number {
     return this.shape.childIndex
   }
 
   set childIndex(childIndex: number) {
-    getShapeUtils(this.shape).setProperty(this._shape, 'childIndex', childIndex)
+    this.utils.setProperty(this._shape, 'childIndex', childIndex)
+  }
+
+  /**
+   * The shape's center.
+   *
+   * ```ts
+   * const shapeCenter = shape.center
+   *
+   * shape.center = [100, 100]
+   * ```
+   */
+  get center(): number[] {
+    return this.utils.getCenter(this.shape)
+  }
+
+  set center(center: number[]) {
+    const oldCenter = this.utils.getCenter(this.shape)
+    const delta = Vec.sub(center, oldCenter)
+    this.translateBy(delta)
   }
 }

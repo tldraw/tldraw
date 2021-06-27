@@ -8,10 +8,6 @@ export default {
   name: 'types.ts',
   content: `
 
-type Partial<T> = { [P in keyof T]?: T[P]; };
-
-type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
-  
 type DeepPartial<T> = {
   [P in keyof T]?: DeepPartial<T[P]>;
 };
@@ -141,7 +137,6 @@ interface TextShape extends BaseShape {
   type: ShapeType.Text
   text: string
   scale: number
-  fontSize: FontSize
 }
 
 interface GroupShape extends BaseShape {
@@ -187,12 +182,6 @@ type Shape = Readonly<MutableShape>
 
 type ShapeByType<T extends ShapeType> = Shapes[T]
 
-interface CodeFile {
-  id: string
-  name: string
-  code: string
-}
-
 enum Decoration {
   Arrow = 'Arrow',
 }
@@ -207,6 +196,24 @@ interface ShapeHandle {
   id: string
   index: number
   point: number[]
+}
+
+interface CodeFile {
+  id: string
+  name: string
+  code: string
+}
+
+interface CodeError {
+  message: string
+  line: number
+  column: number
+}
+
+interface CodeResult {
+  shapes: Shape[]
+  controls: CodeControl[]
+  error: CodeError
 }
 
 /* -------------------------------------------------- */
@@ -548,7 +555,11 @@ interface ShapeUtility<K extends Shape> {
   // Test whether bounds collide with or contain a shape.
   hitTestBounds(this: ShapeUtility<K>, shape: K, bounds: Bounds): boolean
 
+  // Get whether the shape should delete
   shouldDelete(this: ShapeUtility<K>, shape: K): boolean
+
+  // Get whether the shape should render
+  shouldRender(this: ShapeUtility<K>, shape: K, previous: K): boolean
 }
 
 
@@ -1825,7 +1836,7 @@ interface ShapeUtility<K extends Shape> {
 
  class CodeShape<T extends Shape> {
   private _shape: Mutable<T>
-  private utils: ShapeUtility<T>
+  protected utils: ShapeUtility<T>
 
   constructor(props: T) {
     this._shape = createShape(props.type, props) as Mutable<T>
@@ -1833,79 +1844,130 @@ interface ShapeUtility<K extends Shape> {
     codeShapes.add(this)
   }
 
-  export(): Mutable<T> {
-    return { ...this._shape }
-  }
-
   /**
    * Destroy the shape.
+   *
+   * \`\`\`ts
+   * shape.destroy()
+   * \`\`\`
    */
-  destroy(): void {
+  destroy = (): void => {
     codeShapes.delete(this)
   }
 
   /**
    * Move the shape to a point.
-   * @param delta
+   *
+   * \`\`\`ts
+   * shape.moveTo(100,100)
+   * \`\`\`
    */
-  moveTo(point: number[]): CodeShape<T> {
+  moveTo = (point: number[]): CodeShape<T> => {
     return this.translateTo(point)
   }
 
   /**
    * Move the shape to a point.
-   * @param delta
+   *
+   * \`\`\`ts
+   * shape.translateTo([100,100])
+   * \`\`\`
    */
-  translateTo(point: number[]): CodeShape<T> {
+  translateTo = (point: number[]): CodeShape<T> => {
     this.utils.translateTo(this._shape, point)
     return this
   }
 
   /**
    * Move the shape by a delta.
-   * @param delta
+   *
+   * \`\`\`ts
+   * shape.translateBy([100,100])
+   * \`\`\`
    */
-  translateBy(delta: number[]): CodeShape<T> {
+  translateBy = (delta: number[]): CodeShape<T> => {
     this.utils.translateTo(this._shape, delta)
     return this
   }
 
   /**
    * Rotate the shape.
+   *
+   * \`\`\`ts
+   * shape.rotateTo(Math.PI / 2)
+   * \`\`\`
    */
-  rotateTo(rotation: number): CodeShape<T> {
+  rotateTo = (rotation: number): CodeShape<T> => {
     this.utils.rotateTo(this._shape, rotation, this.shape.rotation - rotation)
     return this
   }
 
   /**
    * Rotate the shape by a delta.
+   *
+   * \`\`\`ts
+   * shape.rotateBy(Math.PI / 2)
+   * \`\`\`
    */
-  rotateBy(rotation: number): CodeShape<T> {
+  rotateBy = (rotation: number): CodeShape<T> => {
     this.utils.rotateBy(this._shape, rotation)
     return this
   }
 
   /**
    * Get the shape's bounding box.
+   *
+   * \`\`\`ts
+   * const bounds = shape.getBounds()
+   * \`\`\`
    */
-  getBounds(): CodeShape<T> {
+  getBounds = (): CodeShape<T> => {
     this.utils.getBounds(this.shape)
     return this
   }
 
   /**
    * Test whether a point is inside of the shape.
+   *
+   * \`\`\`ts
+   * const isHit = shape.hitTest()
+   * \`\`\`
    */
-  hitTest(point: number[]): CodeShape<T> {
+  hitTest = (point: number[]): CodeShape<T> => {
     this.utils.hitTest(this.shape, point)
     return this
   }
 
   /**
-   * Move the shape to the back of the painting order.
+   * Duplicate this shape.
+   *
+   * \`\`\`ts
+   * const shapeB = shape.duplicate()
+   * \`\`\`
    */
-  moveToBack(): CodeShape<T> {
+  duplicate = (): CodeShape<T> => {
+    const duplicate = Object.assign(
+      Object.create(Object.getPrototypeOf(this)),
+      this
+    )
+
+    duplicate._shape = createShape(this._shape.type, {
+      ...this._shape,
+      id: uniqueId(),
+    } as any)
+
+    codeShapes.add(duplicate)
+    return duplicate
+  }
+
+  /**
+   * Move the shape to the back of the painting order.
+   *
+   * \`\`\`ts
+   * shape.moveToBack()
+   * \`\`\`
+   */
+  moveToBack = (): CodeShape<T> => {
     const sorted = getOrderedShapes()
 
     if (sorted.length <= 1) return
@@ -1922,8 +1984,12 @@ interface ShapeUtility<K extends Shape> {
 
   /**
    * Move the shape to the top of the painting order.
+   *
+   * \`\`\`ts
+   * shape.moveToFront()
+   * \`\`\`
    */
-  moveToFront(): CodeShape<T> {
+  moveToFront = (): CodeShape<T> => {
     const sorted = getOrderedShapes()
 
     if (sorted.length <= 1) return
@@ -1941,8 +2007,12 @@ interface ShapeUtility<K extends Shape> {
 
   /**
    * Move the shape backward in the painting order.
+   *
+   * \`\`\`ts
+   * shape.moveBackward()
+   * \`\`\`
    */
-  moveBackward(): CodeShape<T> {
+  moveBackward = (): CodeShape<T> => {
     const sorted = getOrderedShapes()
 
     if (sorted.length <= 1) return
@@ -1963,8 +2033,12 @@ interface ShapeUtility<K extends Shape> {
 
   /**
    * Move the shape forward in the painting order.
+   *
+   * \`\`\`ts
+   * shape.moveForward()
+   * \`\`\`
    */
-  moveForward(): CodeShape<T> {
+  moveForward = (): CodeShape<T> => {
     const sorted = getOrderedShapes()
 
     if (sorted.length <= 1) return
@@ -1988,80 +2062,167 @@ interface ShapeUtility<K extends Shape> {
   }
 
   /**
-   * The shape's underlying shape.
+   * The shape's underlying shape (readonly).
+   *
+   * \`\`\`ts
+   * const underlyingShape = shape.shape
+   * \`\`\`
    */
-  get shape(): T {
+  get shape(): Readonly<T> {
     return this._shape
   }
 
   /**
    * The shape's current point.
+   *
+   * \`\`\`ts
+   * const shapePoint = shape.point()
+   * \`\`\`
    */
   get point(): number[] {
     return [...this.shape.point]
   }
 
   set point(point: number[]) {
-    getShapeUtils(this.shape).translateTo(this._shape, point)
+    this.utils.translateTo(this._shape, point)
+  }
+
+  /**
+   * The shape's current x position.
+   *
+   * \`\`\`ts
+   * const shapeX = shape.x
+   *
+   * shape.x = 100
+   * \`\`\`
+   */
+  get x(): number {
+    return this.point[0]
+  }
+
+  set x(x: number) {
+    this.utils.translateTo(this._shape, [x, this.y])
+  }
+
+  /**
+   * The shape's current y position.
+   *
+   * \`\`\`ts
+   * const shapeY = shape.y
+   *
+   * shape.y = 100
+   * \`\`\`
+   */
+  get y(): number {
+    return this.point[1]
+  }
+
+  set y(y: number) {
+    this.utils.translateTo(this._shape, [this.x, y])
   }
 
   /**
    * The shape's rotation.
+   *
+   * \`\`\`ts
+   * const shapeRotation = shape.rotation
+   *
+   * shape.rotation = Math.PI / 2
+   * \`\`\`
    */
   get rotation(): number {
     return this.shape.rotation
   }
 
   set rotation(rotation: number) {
-    getShapeUtils(this.shape).rotateTo(
-      this._shape,
-      rotation,
-      rotation - this.shape.rotation
-    )
+    this.utils.rotateTo(this._shape, rotation, rotation - this.shape.rotation)
   }
 
   /**
-   * The shape's color style.
+   * The shape's color style (ColorStyle).
+   *
+   * \`\`\`ts
+   * const shapeColor = shape.color
+   *
+   * shape.color = ColorStyle.Red
+   * \`\`\`
    */
   get color(): ColorStyle {
     return this.shape.style.color
   }
 
   set color(color: ColorStyle) {
-    getShapeUtils(this.shape).applyStyles(this._shape, { color })
+    this.utils.applyStyles(this._shape, { color })
   }
 
   /**
-   * The shape's dash style.
+   * The shape's dash style (DashStyle).
+   *
+   * \`\`\`ts
+   * const shapeDash = shape.dash
+   *
+   * shape.dash = DashStyle.Dotted
+   * \`\`\`
    */
   get dash(): DashStyle {
     return this.shape.style.dash
   }
 
   set dash(dash: DashStyle) {
-    getShapeUtils(this.shape).applyStyles(this._shape, { dash })
+    this.utils.applyStyles(this._shape, { dash })
   }
 
   /**
-   * The shape's stroke width.
+   * The shape's size (SizeStyle).
+   *
+   * \`\`\`ts
+   * const shapeSize = shape.size
+   *
+   * shape.size = SizeStyle.Large
+   * \`\`\`
    */
-  get strokeWidth(): SizeStyle {
+  get size(): SizeStyle {
     return this.shape.style.size
   }
 
-  set strokeWidth(size: SizeStyle) {
-    getShapeUtils(this.shape).applyStyles(this._shape, { size })
+  set size(size: SizeStyle) {
+    this.utils.applyStyles(this._shape, { size })
   }
 
   /**
    * The shape's index in the painting order.
+   *
+   * \`\`\`ts
+   * const shapeChildIndex = shape.childIndex
+   *
+   * shape.childIndex = 10
+   * \`\`\`
    */
   get childIndex(): number {
     return this.shape.childIndex
   }
 
   set childIndex(childIndex: number) {
-    getShapeUtils(this.shape).setProperty(this._shape, 'childIndex', childIndex)
+    this.utils.setProperty(this._shape, 'childIndex', childIndex)
+  }
+
+  /**
+   * The shape's center.
+   *
+   * \`\`\`ts
+   * const shapeCenter = shape.center
+   *
+   * shape.center = [100, 100]
+   * \`\`\`
+   */
+  get center(): number[] {
+    return this.utils.getCenter(this.shape)
+  }
+
+  set center(center: number[]) {
+    const oldCenter = this.utils.getCenter(this.shape)
+    const delta = Vec.sub(center, oldCenter)
+    this.translateBy(delta)
   }
 }
 
@@ -2117,12 +2278,38 @@ interface ShapeUtility<K extends Shape> {
     })
   }
 
+  /**
+   * The ellipse's x radius.
+   *
+   * \`\`\`ts
+   * const shapeRadiusX = shape.radiusX
+   *
+   * shape.radiusX = 100
+   * \`\`\`
+   */
   get radiusX(): number {
     return this.shape.radiusX
   }
 
+  set radiusX(radiusX: number) {
+    this.utils.setProperty(this.shape, 'radiusX', radiusX)
+  }
+
+  /**
+   * The ellipse's y radius.
+   *
+   * \`\`\`ts
+   * const shapeRadiusY = shape.radiusY
+   *
+   * shape.radiusY = 100
+   * \`\`\`
+   */
   get radiusY(): number {
     return this.shape.radiusY
+  }
+
+  set radiusY(radiusY: number) {
+    this.utils.setProperty(this.shape, 'radiusY', radiusY)
   }
 }
 
@@ -2154,8 +2341,20 @@ interface ShapeUtility<K extends Shape> {
     })
   }
 
+  /**
+   * The line's direction.
+   *
+   * \`\`\`ts
+   * const shapeDirection = shape.direction
+   *
+   * shape.direction = [0,0]
+   * \`\`\`
+   */
   get direction(): number[] {
     return this.shape.direction
+  }
+  set direction(direction: number[]) {
+    this.utils.setProperty(this.shape, 'direction', direction)
   }
 }
 
@@ -2186,8 +2385,33 @@ interface ShapeUtility<K extends Shape> {
     })
   }
 
+  /**
+   * Add a point to the polyline's points.
+   *
+   * \`\`\`ts
+   * shape.addPoint([100,100])
+   * \`\`\`
+   */
+  addPoint(point: number[]): CodeShape<PolylineShape> {
+    this.utils.setProperty(this.shape, 'points', [...this.points, point])
+    return this
+  }
+
+  /**
+   * The polyline's points.
+   *
+   * \`\`\`ts
+   * const shapePoints = shape.points
+   *
+   * shape.points = [[0,0], [100,100], [100,200]]
+   * \`\`\`
+   */
   get points(): number[][] {
     return this.shape.points
+  }
+
+  set points(points: number[][]) {
+    this.utils.setProperty(this.shape, 'points', points)
   }
 }
 
@@ -2219,8 +2443,20 @@ interface ShapeUtility<K extends Shape> {
     })
   }
 
+  /**
+   * The ray's direction.
+   *
+   * \`\`\`ts
+   * const shapeDirection = shape.direction
+   *
+   * shape.direction = [0,0]
+   * \`\`\`
+   */
   get direction(): number[] {
     return this.shape.direction
+  }
+  set direction(direction: number[]) {
+    this.utils.setProperty(this.shape, 'direction', direction)
   }
 }
 
@@ -2283,6 +2519,15 @@ interface ShapeUtility<K extends Shape> {
     })
   }
 
+  /**
+   * The arrow's start point.
+   *
+   * \`\`\`ts
+   * const startPoint = shape.start
+   *
+   * shape.start = [100, 100]
+   * \`\`\`
+   */
   get start(): number[] {
     return this.shape.handles.start.point
   }
@@ -2293,6 +2538,15 @@ interface ShapeUtility<K extends Shape> {
     })
   }
 
+  /**
+   * The arrow's middle point.
+   *
+   * \`\`\`ts
+   * const middlePoint = shape.middle
+   *
+   * shape.middle = [100, 100]
+   * \`\`\`
+   */
   get middle(): number[] {
     return this.shape.handles.bend.point
   }
@@ -2303,6 +2557,15 @@ interface ShapeUtility<K extends Shape> {
     })
   }
 
+  /**
+   * The arrow's end point.
+   *
+   * \`\`\`ts
+   * const endPoint = shape.end
+   *
+   * shape.end = [100, 100]
+   * \`\`\`
+   */
   get end(): number[] {
     return this.shape.handles.end.point
   }
@@ -2366,13 +2629,46 @@ interface ShapeUtility<K extends Shape> {
       isHidden: false,
       text: 'Text',
       scale: 1,
-      fontSize: FontSize.Medium,
       ...props,
       style: {
         ...defaultStyle,
         ...props.style,
       },
     })
+  }
+
+  /**
+   * The text shape's text content.
+   *
+   * \`\`\`ts
+   * const shapeText = shape.text
+   *
+   * shape.text = "Hello world!"
+   * \`\`\`
+   */
+  get text(): string {
+    return this.shape.text
+  }
+
+  set text(text: string) {
+    getShapeUtils(this.shape).setProperty(this.shape, 'text', text)
+  }
+
+  /**
+   * The text's scale.
+   *
+   * \`\`\`ts
+   * const shapeScale = shape.scale
+   *
+   * shape.scale = 2
+   * \`\`\`
+   */
+  get scale(): number {
+    return this.shape.scale
+  }
+
+  set scale(scale: number) {
+    getShapeUtils(this.shape).setProperty(this.shape, 'scale', scale)
   }
 }
 
@@ -2404,8 +2700,44 @@ interface ShapeUtility<K extends Shape> {
     })
   }
 
-  get size(): number[] {
-    return this.shape.size
+  /**
+   * The rectangle's width.
+   *
+   * \`\`\`ts
+   * const shapeWidth = shape.width
+   *
+   * shape.width = 100
+   * \`\`\`
+   */
+  get width(): number {
+    return this.shape.size[0]
+  }
+
+  set width(width: number) {
+    getShapeUtils(this.shape).setProperty(this.shape, 'size', [
+      width,
+      this.height,
+    ])
+  }
+
+  /**
+   * The rectangle's height.
+   *
+   * \`\`\`ts
+   * const shapeHeight = shape.height
+   *
+   * shape.height = 100
+   * \`\`\`
+   */
+  get height(): number {
+    return this.shape.size[1]
+  }
+
+  set height(height: number) {
+    getShapeUtils(this.shape).setProperty(this.shape, 'size', [
+      this.width,
+      height,
+    ])
   }
 }
 

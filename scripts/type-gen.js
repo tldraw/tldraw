@@ -25,6 +25,7 @@ async function inlineFileContents(path) {
       /\/\* ----------------- Start Copy Here ---------------- \*\/(.|\n)*$/g
     )[0]
     .replaceAll('/* ----------------- Start Copy Here ---------------- */', '')
+    .replaceAll('```', '\\`\\`\\`')
     .replaceAll('export default', '')
     .replaceAll('export ', '')
     .replaceAll('vec.', 'Vec.')
@@ -46,13 +47,11 @@ async function copyTypesToFile() {
   name: "types.ts",
   content: \`
 
-type Partial<T> = { [P in keyof T]?: T[P]; };
-
-type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
-  
 type DeepPartial<T> = {
   [P in keyof T]?: DeepPartial<T[P]>;
 };
+
+${await inlineFileContents('/types.ts')}
 
 ${await inlineFileContents('/types.ts')}
 
