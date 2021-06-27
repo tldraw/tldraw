@@ -173,12 +173,13 @@ const state = createState({
         else: ['zoomCameraToActual'],
       },
       on: {
+        RESIZED_WINDW: 'updateOnResize',
         RESET_PAGE: 'resetPage',
         TOGGLED_READ_ONLY: 'toggleReadOnly',
         LOADED_FONTS: 'resetShapes',
         USED_PEN_DEVICE: 'enablePenLock',
         DISABLED_PEN_LOCK: 'disablePenLock',
-        TOGGLED_CODE_PANEL_OPEN: 'toggleCodePanel',
+        TOGGLED_CODE_PANEL_OPEN: ['toggleCodePanel', 'saveAppState'],
         TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
         PANNED_CAMERA: 'panCamera',
         POINTED_CANVAS: ['closeStylePanel', 'clearCurrentParentId'],
@@ -1123,6 +1124,10 @@ const state = createState({
     },
   },
   actions: {
+    updateOnResize(data) {
+      getPageState(data).camera.point = { ...getPageState(data).camera.point }
+    },
+
     toggleReadOnly(data) {
       data.isReadOnly = !data.isReadOnly
     },
@@ -1836,6 +1841,10 @@ const state = createState({
 
     loadDocumentFromJson(data, payload: { json: any }) {
       storage.loadDocumentFromJson(data, payload.json)
+    },
+
+    saveAppState(data) {
+      storage.saveAppStateToLocalStorage(data)
     },
 
     forceSave(data) {

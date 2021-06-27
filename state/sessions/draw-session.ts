@@ -5,7 +5,8 @@ import { getShapeUtils } from 'state/shape-utils'
 import { getBoundsFromPoints, getPage, getShape, updateParents } from 'utils'
 import vec from 'utils/vec'
 import commands from 'state/commands'
-export default class BrushSession extends BaseSession {
+
+export default class DrawSession extends BaseSession {
   origin: number[]
   previous: number[]
   last: number[]

@@ -49,16 +49,19 @@ class Storage {
     }
   }
 
+  saveAppStateToLocalStorage = (data: Data) => {
+    localStorage.setItem(
+      storageId(data.document.id, 'document-state', data.document.id),
+      compress(JSON.stringify(data))
+    )
+  }
+
   saveDocumentToLocalStorage(data: Data) {
     const document = this.getCompleteDocument(data)
 
     localStorage.setItem(
       storageId(data.document.id, 'document', data.document.id),
       compress(JSON.stringify(document))
-    )
-    localStorage.setItem(
-      storageId(data.document.id, 'document-state', data.document.id),
-      compress(JSON.stringify(data))
     )
   }
 
@@ -162,18 +165,14 @@ class Storage {
       data.currentPageId = pageState.id
     }
 
-    // 4. Save the current document
+    // 4. Save the current app state / document
     // The document is now "full" and ready. Whether we've restored a
     // document or created a new one, save the entire current document.
-    localStorage.setItem(
-      storageId(data.document.id, 'document', data.document.id),
-      compress(JSON.stringify(data.document))
-    )
+    this.saveDocumentToLocalStorage(data)
 
-    localStorage.setItem(
-      storageId(data.document.id, 'document-state', data.document.id),
-      compress(JSON.stringify(data))
-    )
+    // 4.1
+    // Also save the app state.
+    this.saveAppStateToLocalStorage(data)
 
     // 4.1
     // Also save out copies of each page separately.
@@ -311,11 +310,13 @@ class Storage {
   /* ------------------- File System ------------------ */
 
   saveToFileSystem = (data: Data) => {
+    this.saveAppStateToLocalStorage(data)
     this.saveDocumentToLocalStorage(data)
     this.saveDataToFileSystem(data, data.document.id, false)
   }
 
   saveAsToFileSystem = (data: Data) => {
+    this.saveAppStateToLocalStorage(data)
     this.saveDocumentToLocalStorage(data)
     this.saveDataToFileSystem(data, uniqueId(), true)
   }
