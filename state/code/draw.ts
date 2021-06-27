@@ -28,4 +28,33 @@ export default class Draw extends CodeShape<DrawShape> {
       },
     })
   }
+
+  /**
+   * Add a point to the draw shape's points.
+   *
+   * ```ts
+   * shape.addPoint([100,100])
+   * ```
+   */
+  addPoint(point: number[]): CodeShape<DrawShape> {
+    this.utils.setProperty(this.shape, 'points', [...this.points, point])
+    return this
+  }
+
+  /**
+   * The draw shape's points.
+   *
+   * ```ts
+   * const shapePoints = shape.points
+   *
+   * shape.points = [[0,0], [100,100], [100,200]]
+   * ```
+   */
+  get points(): number[][] {
+    return this.shape.points
+  }
+
+  set points(points: number[][]) {
+    this.utils.setProperty(this.shape, 'points', points)
+  }
 }
