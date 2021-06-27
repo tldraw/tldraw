@@ -8,15 +8,9 @@ import CodeDocs from './code-docs'
 import { generateFromCode } from 'state/code/generate'
 import * as Panel from '../panel'
 import { IconButton } from '../shared'
-import {
-  X,
-  Code,
-  Info,
-  PlayCircle,
-  ChevronUp,
-  ChevronDown,
-} from 'react-feather'
+import { X, Code, PlayCircle, ChevronUp, ChevronDown } from 'react-feather'
 import dynamic from 'next/dynamic'
+import { ReaderIcon } from '@radix-ui/react-icons'
 const CodeEditor = dynamic(() => import('./code-editor'))
 
 const increaseCodeSize = () => state.send('INCREASED_CODE_FONT_SIZE')
@@ -176,7 +170,7 @@ export default function CodePanel(): JSX.Element {
                 size="small"
                 onClick={toggleDocs}
               >
-                <Info />
+                <ReaderIcon />
               </IconButton>
               <IconButton
                 bp={{ '@initial': 'mobile', '@sm': 'small' }}
