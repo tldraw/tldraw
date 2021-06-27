@@ -1125,8 +1125,6 @@ const state = createState({
   },
   actions: {
     resetPageState(data) {
-      // getPageState(data).camera.point = { ...getPageState(data).camera.point }
-
       const pageState = data.pageStates[data.currentPageId]
       data.pageStates[data.currentPageId] = { ...pageState }
     },

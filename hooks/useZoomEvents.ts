@@ -4,7 +4,7 @@ import state from 'state'
 import inputs from 'state/inputs'
 import vec from 'utils/vec'
 import { useGesture } from 'react-use-gesture'
-import { fastPanUpdate, fastPinchCamera, fastZoomUpdate } from 'state/hacks'
+import { fastPinchCamera, fastZoomUpdate } from 'state/hacks'
 
 /**
  * Capture zoom gestures (pinches, wheels and pans) and send to the state.
@@ -21,11 +21,6 @@ export default function useZoomEvents() {
         if (event.ctrlKey) {
           const { point } = inputs.wheel(event as WheelEvent)
           fastZoomUpdate(point, delta[1])
-          return
-        }
-
-        if (state.isInAny('pointing', 'drawing')) {
-          fastPanUpdate(delta)
           return
         }
 
