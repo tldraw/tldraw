@@ -1,4 +1,6 @@
 import styled from 'styles'
+import ReactMarkdown from 'react-markdown'
+import docs from './docs-content'
 
 export default function CodeDocs({
   isHidden,
@@ -7,7 +9,7 @@ export default function CodeDocs({
 }): JSX.Element {
   return (
     <StyledDocs isHidden={isHidden}>
-      <h2>Docs</h2>
+      <ReactMarkdown>{docs.content}</ReactMarkdown>
     </StyledDocs>
   )
 }
@@ -20,10 +22,11 @@ const StyledDocs = styled('div', {
   width: '100%',
   height: '100%',
   padding: 16,
-  font: '$docs',
   overflowY: 'scroll',
   userSelect: 'none',
   paddingBottom: 64,
+  fontFamily: '$body',
+  fontWeight: 500,
 
   variants: {
     isHidden: {
@@ -36,11 +39,21 @@ const StyledDocs = styled('div', {
     },
   },
 
-  '& ol': {},
+  '& p': {
+    fontSize: '$3',
+    lineHeight: '1.3',
+  },
+
+  '& ol, ul': {
+    fontSize: '$3',
+    lineHeight: '1.3',
+    marginTop: 16,
+    marginBottom: 16,
+  },
 
   '& li': {
-    marginTop: 8,
-    marginBottom: 4,
+    fontSize: '$3',
+    lineHeight: '1.5',
   },
 
   '& code': {
@@ -53,7 +66,7 @@ const StyledDocs = styled('div', {
   },
 
   '& h2': {
-    margin: '24px 0px',
+    margin: '40px 0px 24px 0',
   },
 
   '& h3': {
@@ -63,7 +76,7 @@ const StyledDocs = styled('div', {
 
   '& h3 > code': {
     fontWeight: 600,
-    font: '$monoheading',
+    font: '$mono',
   },
 
   '& h4': {
@@ -71,7 +84,7 @@ const StyledDocs = styled('div', {
   },
 
   '& h4 > code': {
-    font: '$monoheading',
+    font: '$mono',
     fontSize: 16,
     userSelect: 'all',
   },
@@ -82,7 +95,10 @@ const StyledDocs = styled('div', {
   },
 
   '& pre': {
-    backgroundColor: '$bounds_bg',
+    border: '1px solid $brushStroke',
+    font: '$ui',
+    fontWeight: 420,
+    lineHeight: 1.5,
     padding: 16,
     borderRadius: 4,
     userSelect: 'all',
@@ -90,10 +106,10 @@ const StyledDocs = styled('div', {
   },
 
   '& p > code, blockquote > code': {
-    backgroundColor: '$bounds_bg',
     padding: '2px 4px',
     borderRadius: 2,
-    color: '$code',
+    color: '$text',
+    backgroundColor: '$codeHl',
   },
 
   '& blockquote': {

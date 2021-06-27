@@ -135,6 +135,7 @@ export default function CodePanel(): JSX.Element {
       ref={rContainer}
       isOpen={isOpen}
       variant="code"
+      onWheel={(e) => e.stopPropagation()}
     >
       {isOpen ? (
         <Panel.Layout>

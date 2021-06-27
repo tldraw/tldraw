@@ -433,7 +433,6 @@ export type CodeControl =
   | NumberCodeControl
   | VectorCodeControl
   | TextCodeControl
-  | SelectCodeControl
 
 export type PropsOfType<T extends Record<string, unknown>> = {
   [K in keyof T]: T[K] extends boolean ? K : never

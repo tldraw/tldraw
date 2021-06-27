@@ -8,7 +8,7 @@
     "dev": "next dev",
     "format": "prettier --write .",
     "lint": "eslint . --ext ts --ext tsx --ext js",
-    "scripts": "node scripts/type-gen && prettier --write './components/code-panel/types-import.ts'",
+    "scripts": "node scripts/type-gen && node scripts/docs-gen && prettier --write './components/code-panel/*'",
     "start": "next start",
     "test-all": "yarn lint && yarn type-check && yarn test",
     "test:update": "jest --updateSnapshot",
@@ -61,6 +61,7 @@
     "react-dom": "^17.0.2",
     "react-error-boundary": "^3.1.3",
     "react-feather": "^2.0.9",
+    "react-markdown": "^6.0.2",
     "react-use-gesture": "^9.1.3",
     "sucrase": "^3.19.0",
     "uuid": "^8.3.2"

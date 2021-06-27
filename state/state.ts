@@ -1863,6 +1863,7 @@ const state = createState({
     saveCode(data, payload: { code: string }) {
       data.document.code[data.currentCodeFileId].code = payload.code
       storage.saveDocumentToLocalStorage(data)
+      storage.saveAppStateToLocalStorage(data)
     },
 
     clearBoundsRotation(data) {

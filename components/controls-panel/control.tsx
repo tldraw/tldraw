@@ -1,6 +1,11 @@
 import state, { useSelector } from 'state'
 import styled from 'styles'
-import { ControlType, NumberCodeControl, VectorCodeControl } from 'types'
+import {
+  ControlType,
+  NumberCodeControl,
+  TextCodeControl,
+  VectorCodeControl,
+} from 'types'
 
 export default function Control({ id }: { id: string }): JSX.Element {
   const control = useSelector((s) => s.data.codeControls[id])
@@ -10,11 +15,16 @@ export default function Control({ id }: { id: string }): JSX.Element {
   return (
     <>
       <label>{control.label}</label>
-      {control.type === ControlType.Number ? (
-        <NumberControl {...control} />
-      ) : control.type === ControlType.Vector ? (
-        <VectorControl {...control} />
-      ) : null}
+      {(() => {
+        switch (control.type) {
+          case ControlType.Number:
+            return <NumberControl {...control} />
+          case ControlType.Vector:
+            return <VectorControl {...control} />
+          case ControlType.Text:
+            return <TextControl {...control} />
+        }
+      })()}
     </>
   )
 }
@@ -112,6 +122,22 @@ function VectorControl({
   )
 }
 
+function TextControl({ id, value }: TextCodeControl) {
+  return (
+    <Inputs>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) =>
+          state.send('CHANGED_CODE_CONTROL', {
+            [id]: e.currentTarget.value,
+          })
+        }
+      />
+    </Inputs>
+  )
+}
+
 const Inputs = styled('div', {
   display: 'flex',
   gap: '8px',
@@ -129,6 +155,11 @@ const Inputs = styled('div', {
   },
   "& input[type='range']": {
     padding: 0,
+    flexGrow: 2,
+  },
+  "& input[type='text']": {
+    minWidth: 200,
+    padding: 4,
     flexGrow: 2,
   },
 })

@@ -6,6 +6,7 @@ const { styled, global, css, theme, getCssString } = createCss({
   },
   theme: {
     colors: {
+      codeHl: 'rgba(144, 144, 144, .15)',
       brushFill: 'rgba(0,0,0,.05)',
       brushStroke: 'rgba(0,0,0,.25)',
       hint: 'rgba(216, 226, 249, 1.000)',
@@ -35,6 +36,8 @@ const { styled, global, css, theme, getCssString } = createCss({
     },
     fonts: {
       ui: '"Recursive", system-ui, sans-serif',
+      body: '"Recursive", system-ui, sans-serif',
+      mono: '"Recursive", monospace',
     },
     fontWeights: {},
     lineHeights: {},

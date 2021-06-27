@@ -2,6 +2,7 @@ import {
   CodeControl,
   ControlType,
   NumberCodeControl,
+  TextCodeControl,
   VectorCodeControl,
 } from 'types'
 import { uniqueId } from 'utils'
@@ -77,6 +78,20 @@ export class VectorControl extends Control<VectorCodeControl> {
       label,
       value,
       isNormalized,
+      id,
+    })
+  }
+}
+
+export class TextControl extends Control<TextCodeControl> {
+  constructor(options: ControlProps<TextCodeControl>) {
+    const { id = uniqueId(), label = 'Text', value = 'text' } = options
+
+    super({
+      type: ControlType.Text,
+      ...options,
+      label,
+      value,
       id,
     })
   }
