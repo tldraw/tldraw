@@ -227,12 +227,6 @@ export type Shape = Readonly<MutableShape>
 
 export type ShapeByType<T extends ShapeType> = Shapes[T]
 
-export interface CodeFile {
-  id: string
-  name: string
-  code: string
-}
-
 export enum Decoration {
   Arrow = 'Arrow',
 }
@@ -247,6 +241,24 @@ export interface ShapeHandle {
   id: string
   index: number
   point: number[]
+}
+
+export interface CodeFile {
+  id: string
+  name: string
+  code: string
+}
+
+export interface CodeError {
+  message: string
+  line: number
+  column: number
+}
+
+export interface CodeResult {
+  shapes: Shape[]
+  controls: CodeControl[]
+  error: CodeError
 }
 
 /* -------------------------------------------------- */

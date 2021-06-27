@@ -23,6 +23,7 @@ const { styled, global, css, theme, getCssString } = createCss({
       muted: '#777',
       input: '#f3f3f3',
       inputBorder: '#ddd',
+      lineError: 'rgba(255, 0, 0, .1)',
     },
     space: {},
     fontSizes: {

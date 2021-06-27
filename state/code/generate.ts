@@ -19,9 +19,11 @@ import {
   ColorStyle,
   FontSize,
   SizeStyle,
+  CodeError,
 } from 'types'
 import { getPage, getShapes } from 'utils'
 import { transform } from 'sucrase'
+import { getErrorWithLineAndColumn, getFormattedCode } from 'utils/code'
 
 const baseScope = {
   Dot,
@@ -54,6 +56,7 @@ export async function generateFromCode(
 ): Promise<{
   shapes: Shape[]
   controls: CodeControl[]
+  error: CodeError
 }> {
   codeControls.clear()
   codeShapes.clear()
@@ -63,29 +66,41 @@ export async function generateFromCode(
   const { currentPageId } = data
   const scope = { ...baseScope, controls, currentPageId }
 
-  const transformed = transform(code, {
-    transforms: ['typescript'],
-  }).code
+  let generatedShapes: Shape[] = []
+  let generatedControls: CodeControl[] = []
+  let error: CodeError | null = null
 
-  new Function(...Object.keys(scope), `${transformed}`)(...Object.values(scope))
+  try {
+    const formattedCode = getFormattedCode(code)
 
-  const startingChildIndex =
-    getShapes(data)
-      .filter((shape) => shape.parentId === data.currentPageId)
-      .sort((a, b) => a.childIndex - b.childIndex)[0]?.childIndex || 1
+    const transformedCode = transform(formattedCode, {
+      transforms: ['typescript'],
+    })?.code
 
-  const generatedShapes = Array.from(codeShapes.values())
-    .sort((a, b) => a.shape.childIndex - b.shape.childIndex)
-    .map((instance, i) => ({
-      ...instance.shape,
-      isGenerated: true,
-      parentId: getPage(data).id,
-      childIndex: startingChildIndex + i,
-    }))
+    new Function(...Object.keys(scope), `${transformedCode}`)(
+      ...Object.values(scope)
+    )
 
-  const generatedControls = Array.from(codeControls.values())
+    const startingChildIndex =
+      getShapes(data)
+        .filter((shape) => shape.parentId === data.currentPageId)
+        .sort((a, b) => a.childIndex - b.childIndex)[0]?.childIndex || 1
 
-  return { shapes: generatedShapes, controls: generatedControls }
+    generatedShapes = Array.from(codeShapes.values())
+      .sort((a, b) => a.shape.childIndex - b.shape.childIndex)
+      .map((instance, i) => ({
+        ...instance.shape,
+        isGenerated: true,
+        parentId: getPage(data).id,
+        childIndex: startingChildIndex + i,
+      }))
+
+    generatedControls = Array.from(codeControls.values())
+  } catch (e) {
+    error = getErrorWithLineAndColumn(e)
+  }
+
+  return { shapes: generatedShapes, controls: generatedControls, error }
 }
 
 /**

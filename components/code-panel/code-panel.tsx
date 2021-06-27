@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import styled from 'styles'
 import { useStateDesigner } from '@state-designer/react'
-import React, { useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 import state, { useSelector } from 'state'
-import { CodeFile } from 'types'
+import { CodeError, CodeFile, CodeResult } from 'types'
 import CodeDocs from './code-docs'
 import { generateFromCode } from 'state/code/generate'
 import * as Panel from '../panel'
@@ -19,16 +19,9 @@ import {
 import dynamic from 'next/dynamic'
 const CodeEditor = dynamic(() => import('./code-editor'))
 
-const getErrorLineAndColumn = (e: any) => {
-  if ('line' in e) {
-    return { line: Number(e.line), column: e.column }
-  }
-
-  const result = e.stack.match(/:([0-9]+):([0-9]+)/)
-  if (result) {
-    return { line: Number(result[1]) - 1, column: result[2] }
-  }
-}
+const increaseCodeSize = () => state.send('INCREASED_CODE_FONT_SIZE')
+const decreaseCodeSize = () => state.send('DECREASED_CODE_FONT_SIZE')
+const toggleCodePanel = () => state.send('TOGGLED_CODE_PANEL_OPEN')
 
 export default function CodePanel(): JSX.Element {
   const rContainer = useRef<HTMLDivElement>(null)
@@ -43,7 +36,7 @@ export default function CodePanel(): JSX.Element {
   const local = useStateDesigner({
     data: {
       code: file.code,
-      error: null as { message: string; line: number; column: number } | null,
+      error: null as CodeError | null,
     },
     on: {
       MOUNTED: 'setCode',
@@ -53,11 +46,21 @@ export default function CodePanel(): JSX.Element {
     states: {
       editingCode: {
         on: {
-          RAN_CODE: ['saveCode', 'runCode'],
-          SAVED_CODE: ['saveCode', 'runCode'],
+          RAN_CODE: { do: 'saveCode', to: 'evaluatingCode' },
+          SAVED_CODE: { do: 'saveCode', to: 'evaluatingCode' },
           CHANGED_CODE: { secretlyDo: 'setCode' },
           CLEARED_ERROR: { if: 'hasError', do: 'clearError' },
           TOGGLED_DOCS: { to: 'viewingDocs' },
+        },
+      },
+      evaluatingCode: {
+        async: {
+          await: 'evalCode',
+          onResolve: {
+            do: ['clearError', 'sendResultToGlobalState'],
+            to: 'editingCode',
+          },
+          onReject: { do: 'setErrorFromResult', to: 'editingCode' },
         },
       },
       viewingDocs: {
@@ -78,28 +81,31 @@ export default function CodePanel(): JSX.Element {
       setCode(data, payload: { code: string }) {
         data.code = payload.code
       },
-      runCode(data) {
-        let error = null
-
-        try {
-          generateFromCode(state.data, data.code).then(
-            ({ shapes, controls }) => {
-              state.send('GENERATED_FROM_CODE', { shapes, controls })
-            }
-          )
-        } catch (e) {
-          console.error('Got an error!', e)
-          error = { message: e.message, ...getErrorLineAndColumn(e) }
-        }
-
-        data.error = error
-      },
       saveCode(data) {
         const { code } = data
         state.send('SAVED_CODE', { code })
       },
       clearError(data) {
         data.error = null
+      },
+      setErrorFromResult(data, payload, result: CodeResult) {
+        data.error = result.error
+      },
+      sendResultToGlobalState(data, payload, result: CodeResult) {
+        state.send('GENERATED_FROM_CODE', result)
+      },
+    },
+    asyncs: {
+      evalCode(data) {
+        return new Promise((resolve, reject) => {
+          generateFromCode(state.data, data.code).then((result) => {
+            if (result.error !== null) {
+              reject(result)
+            } else {
+              resolve(result)
+            }
+          })
+        })
       },
     },
   })
@@ -114,6 +120,17 @@ export default function CodePanel(): JSX.Element {
       state.send('CHANGED_CODE', { fileId, code: local.data.code })
     }
   }, [])
+
+  const handleCodeChange = useCallback(
+    (code: string) => local.send('CHANGED_CODE', { code }),
+    [local]
+  )
+
+  const handleSave = useCallback(() => local.send('SAVED_CODE'), [local])
+
+  const handleKey = useCallback(() => local.send('CLEARED_ERROR'), [local])
+
+  const toggleDocs = useCallback(() => local.send('TOGGLED_DOCS'), [local])
 
   const { error } = local.data
 
@@ -131,7 +148,7 @@ export default function CodePanel(): JSX.Element {
             <IconButton
               bp={{ '@initial': 'mobile', '@sm': 'small' }}
               size="small"
-              onClick={() => state.send('TOGGLED_CODE_PANEL_OPEN')}
+              onClick={toggleCodePanel}
             >
               <X />
             </IconButton>
@@ -142,14 +159,14 @@ export default function CodePanel(): JSX.Element {
                   bp={{ '@initial': 'mobile', '@sm': 'small' }}
                   size="small"
                   disabled={!local.isIn('editingCode')}
-                  onClick={() => state.send('INCREASED_CODE_FONT_SIZE')}
+                  onClick={increaseCodeSize}
                 >
                   <ChevronUp />
                 </IconButton>
                 <IconButton
                   size="small"
                   disabled={!local.isIn('editingCode')}
-                  onClick={() => state.send('DECREASED_CODE_FONT_SIZE')}
+                  onClick={decreaseCodeSize}
                 >
                   <ChevronDown />
                 </IconButton>
@@ -157,7 +174,7 @@ export default function CodePanel(): JSX.Element {
               <IconButton
                 bp={{ '@initial': 'mobile', '@sm': 'small' }}
                 size="small"
-                onClick={() => local.send('TOGGLED_DOCS')}
+                onClick={toggleDocs}
               >
                 <Info />
               </IconButton>
@@ -165,7 +182,7 @@ export default function CodePanel(): JSX.Element {
                 bp={{ '@initial': 'mobile', '@sm': 'small' }}
                 size="small"
                 disabled={!local.isIn('editingCode')}
-                onClick={() => local.send('SAVED_CODE')}
+                onClick={handleSave}
               >
                 <PlayCircle />
               </IconButton>
@@ -177,24 +194,20 @@ export default function CodePanel(): JSX.Element {
               readOnly={isReadOnly}
               value={file.code}
               error={error}
-              onChange={(code) => local.send('CHANGED_CODE', { code })}
-              onSave={() => local.send('SAVED_CODE')}
-              onKey={() => local.send('CLEARED_ERROR')}
+              onChange={handleCodeChange}
+              onSave={handleSave}
+              onKey={handleKey}
             />
             <CodeDocs isHidden={!local.isIn('viewingDocs')} />
           </Panel.Content>
-          <Panel.Footer>
-            {error &&
-              (error.line
-                ? `(${Number(error.line) - 2}:${error.column}) ${error.message}`
-                : error.message)}
-          </Panel.Footer>
+
+          {error && <Panel.Footer>{error.message}</Panel.Footer>}
         </Panel.Layout>
       ) : (
         <IconButton
           bp={{ '@initial': 'mobile', '@sm': 'small' }}
           size="small"
-          onClick={() => state.send('TOGGLED_CODE_PANEL_OPEN')}
+          onClick={toggleCodePanel}
         >
           <Code />
         </IconButton>

@@ -1,20 +1,20 @@
 import Editor, { Monaco } from '@monaco-editor/react'
 import useTheme from 'hooks/useTheme'
-import prettier from 'prettier/standalone'
-import parserTypeScript from 'prettier/parser-typescript'
-// import codeAsString from './code-as-string'
 import typesImport from './types-import'
 import React, { useCallback, useEffect, useRef } from 'react'
 import styled from 'styles'
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
+import { getFormattedCode } from 'utils/code'
 
 export type IMonaco = typeof monaco
 
 export type IMonacoEditor = monaco.editor.IStandaloneCodeEditor
 
+const modifierKeys = ['Escape', 'Meta', 'Control', 'Shift', 'Option', 'Alt']
+
 interface Props {
   value: string
-  error: { line: number }
+  error: { line: number; column: number }
   fontSize: number
   monacoRef?: React.MutableRefObject<IMonaco>
   editorRef?: React.MutableRefObject<IMonacoEditor>
@@ -92,13 +92,7 @@ export default function CodeEditor({
     monaco.languages.registerDocumentFormattingEditProvider('typescript', {
       async provideDocumentFormattingEdits(model) {
         try {
-          const text = prettier.format(model.getValue(), {
-            parser: 'typescript',
-            plugins: [parserTypeScript],
-            singleQuote: true,
-            trailingComma: 'es5',
-            semi: false,
-          })
+          const text = getFormattedCode(model.getValue())
 
           return [
             {
@@ -126,6 +120,8 @@ export default function CodeEditor({
 
     editor.updateOptions({
       fontSize,
+      fontFamily: "'Recursive', monospace",
+      fontWeight: '420',
       wordBasedSuggestions: false,
       minimap: { enabled: false },
       lightbulb: {
@@ -141,8 +137,8 @@ export default function CodeEditor({
 
   const handleKeydown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
-      onKey && onKey()
       e.stopPropagation()
+      !modifierKeys.includes(e.key) && onKey?.()
       const metaKey = navigator.platform.match('Mac') ? e.metaKey : e.ctrlKey
       if (e.key === 's' && metaKey) {
         const editor = rEditor.current
