@@ -17,49 +17,31 @@
             "name": "Arrow",
             "parentId": "page1",
             "childIndex": 16,
-            "point": [
-              100,
-              100
-            ],
+            "point": [100, 100],
             "rotation": 0,
             "isAspectRatioLocked": false,
             "isLocked": false,
             "isHidden": false,
             "bend": 0,
             "points": [
-              [
-                6.503619523263069,
-                281.09020634582345
-              ],
-              [
-                0,
-                0
-              ]
+              [6.503619523263069, 281.09020634582345],
+              [0, 0]
             ],
             "handles": {
               "start": {
                 "id": "start",
                 "index": 0,
-                "point": [
-                  6.503619523263069,
-                  281.09020634582345
-                ]
+                "point": [6.503619523263069, 281.09020634582345]
               },
               "end": {
                 "id": "end",
                 "index": 1,
-                "point": [
-                  0,
-                  0
-                ]
+                "point": [0, 0]
               },
               "bend": {
                 "id": "bend",
                 "index": 2,
-                "point": [
-                  3.2518097616315345,
-                  140.54510317291172
-                ]
+                "point": [3.2518097616315345, 140.54510317291172]
               }
             },
             "decorations": {
@@ -82,14 +64,8 @@
             "name": "Rectangle",
             "parentId": "page1",
             "childIndex": 24,
-            "point": [
-              0,
-              0
-            ],
-            "size": [
-              67.22075383450237,
-              72.92795609221832
-            ],
+            "point": [0, 0],
+            "size": [67.22075383450237, 72.92795609221832],
             "radius": 2,
             "rotation": 0,
             "isAspectRatioLocked": false,
@@ -117,10 +93,7 @@
     "id": "page1",
     "selectedIds": {},
     "camera": {
-      "point": [
-        -776.1126994855964,
-        -404.44260065511594
-      ],
+      "point": [-776.1126994855964, -404.44260065511594],
       "zoom": 0.260047458798192
     }
   }

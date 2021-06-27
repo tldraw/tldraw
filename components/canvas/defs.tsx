@@ -2,31 +2,22 @@ import { getShapeStyle } from 'state/shape-styles'
 import { getShapeUtils } from 'state/shape-utils'
 import React, { memo } from 'react'
 import { useSelector } from 'state'
-import { deepCompareArrays, getCurrentCamera, getPage } from 'utils'
+import { getCurrentCamera } from 'utils'
 import { DotCircle, Handle } from './misc'
 import useShapeDef from 'hooks/useShape'
+import useShapesToRender from 'hooks/useShapesToRender'
 
 export default function Defs(): JSX.Element {
-  const zoom = useSelector((s) => getCurrentCamera(s.data).zoom)
-
-  const currentPageShapeIds = useSelector(({ data }) => {
-    return Object.values(getPage(data).shapes)
-      .filter(Boolean)
-      .filter((shape) => !getShapeUtils(shape).isForeignObject)
-      .sort((a, b) => a.childIndex - b.childIndex)
-      .map((shape) => shape.id)
-  }, deepCompareArrays)
+  const shapeIdsToRender = useShapesToRender()
 
   return (
     <defs>
-      {currentPageShapeIds.map((id) => (
+      {shapeIdsToRender.map((id) => (
         <Def key={id} id={id} />
       ))}
       <DotCircle id="dot" r={4} />
       <Handle id="handle" r={4} />
-      <filter id="expand">
-        <feMorphology operator="dilate" radius={2 / zoom} />
-      </filter>
+      <ExpandDef />
     </defs>
   )
 }
@@ -43,3 +34,12 @@ const Def = memo(function Def({ id }: { id: string }) {
     { id, ...style }
   )
 })
+
+function ExpandDef() {
+  const zoom = useSelector((s) => getCurrentCamera(s.data).zoom)
+  return (
+    <filter id="expand">
+      <feMorphology operator="dilate" radius={2 / zoom} />
+    </filter>
+  )
+}

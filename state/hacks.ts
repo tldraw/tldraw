@@ -1,4 +1,4 @@
-import { PointerInfo } from 'types'
+import { DrawShape, PointerInfo } from 'types'
 import {
   getCameraZoom,
   getCurrentCamera,
@@ -31,9 +31,14 @@ export function fastDrawUpdate(info: PointerInfo): void {
 
   const selectedId = setToArray(getSelectedIds(data))[0]
 
-  const shape = data.document.pages[data.currentPageId].shapes[selectedId]
+  const shape = data.document.pages[data.currentPageId].shapes[
+    selectedId
+  ] as DrawShape
 
-  data.document.pages[data.currentPageId].shapes[selectedId] = { ...shape }
+  ;(data.document.pages[data.currentPageId].shapes[selectedId] as DrawShape) = {
+    ...shape,
+    points: [...shape.points],
+  }
 
   state.forceData(freeze(data))
 }

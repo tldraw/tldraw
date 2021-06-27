@@ -104,7 +104,10 @@ export default class BrushSession extends BaseSession {
     // Update the points and update the shape's parents.
     const shape = getShape(data, snapshot.id) as DrawShape
 
-    getShapeUtils(shape).setProperty(shape, 'points', [...this.points])
+    // Note: Normally we would want to spread the points to create a new
+    // array, however we create the new array in hacks/fastDrawUpdate.
+    getShapeUtils(shape).setProperty(shape, 'points', this.points)
+
     updateParents(data, [shape.id])
   }
 

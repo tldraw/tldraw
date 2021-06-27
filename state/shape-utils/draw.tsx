@@ -46,7 +46,6 @@ const draw = registerShapeUtils<DrawShape>({
   },
 
   shouldRender(shape, prev) {
-    // return true
     return shape.points !== prev.points || shape.style !== prev.style
   },
 
@@ -61,7 +60,9 @@ const draw = registerShapeUtils<DrawShape>({
 
     if (points.length > 0 && points.length < 3) {
       return (
-        <circle id={id} r={+styles.strokeWidth * 0.618} fill={styles.stroke} />
+        <g id={id}>
+          <circle r={+styles.strokeWidth * 0.618} fill={styles.stroke} />
+        </g>
       )
     }
 

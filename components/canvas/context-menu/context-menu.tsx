@@ -8,8 +8,10 @@ import {
 import {
   commandKey,
   deepCompareArrays,
-  getSelectedShapes,
+  getSelectedIds,
+  getShape,
   isMobile,
+  setToArray,
 } from 'utils'
 import state, { useSelector } from 'state'
 import {
@@ -79,22 +81,25 @@ export default function ContextMenu({
 }: {
   children: React.ReactNode
 }): JSX.Element {
-  const selectedShapes = useSelector(
-    (s) => getSelectedShapes(s.data),
+  const selectedShapeIds = useSelector(
+    (s) => setToArray(getSelectedIds(s.data)),
     deepCompareArrays
   )
 
   const rContent = useRef<HTMLDivElement>(null)
 
-  const hasGroupSelectd = selectedShapes.some((s) => s.type === ShapeType.Group)
-  const hasTwoOrMore = selectedShapes.length > 1
-  const hasThreeOrMore = selectedShapes.length > 2
+  const hasGroupSelected = useSelector((s) =>
+    selectedShapeIds.some((id) => getShape(s.data, id).type === ShapeType.Group)
+  )
+
+  const hasTwoOrMore = selectedShapeIds.length > 1
+  const hasThreeOrMore = selectedShapeIds.length > 2
 
   return (
     <_ContextMenu.Root>
       <_ContextMenu.Trigger>{children}</_ContextMenu.Trigger>
       <StyledContent ref={rContent} isMobile={isMobile()}>
-        {selectedShapes.length ? (
+        {selectedShapeIds.length ? (
           <>
             {/* <Button onSelect={() => state.send('COPIED')}>
               <span>Copy</span>
@@ -119,10 +124,10 @@ export default function ContextMenu({
               </kbd>
             </Button>
             <StyledDivider />
-            {hasGroupSelectd ||
+            {hasGroupSelected ||
               (hasTwoOrMore && (
                 <>
-                  {hasGroupSelectd && (
+                  {hasGroupSelected && (
                     <Button onSelect={() => state.send('UNGROUPED')}>
                       <span>Ungroup</span>
                       <kbd>
