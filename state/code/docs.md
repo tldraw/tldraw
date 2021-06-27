@@ -1,18 +1,18 @@
 Welcome to the documentation for tldraw's code editor. You can use the code editor to create shapes using JavaScript or TypeScript code.
 
-```ts 
+```ts
 const rect = new Rectangle({
   point: [100, 100],
   size: [200, 200],
   style: {
-    color: ColorStyle.Blue
-  }
+    color: ColorStyle.Blue,
+  },
 })
 
 rect.x = 300
 ```
 
-To run your code, press **Command + S**. 
+To run your code, press **Command + S**.
 
 Your new shapes will appear on the canvas. You can interact with code-created shapes just like any other shape: you can move the shape, change its style, delete it, etc.
 
@@ -37,33 +37,32 @@ You can also create shapes that can _only_ be created with code:
 
 Each of these shapes is a `class`. To create the shape, use the following syntax:
 
-```ts 
+```ts
 const myShape = new Rectangle()
 ```
 
 You can also create a shape with custom properties like this:
 
-```ts 
+```ts
 const myShape = new Rectangle({
   point: [100, 100],
   size: [200, 200],
   style: {
     color: ColorStyle.Blue,
     size: SizeStyle.Large,
-    dash: DashStyle.Dotted
-  }
+    dash: DashStyle.Dotted,
+  },
 })
 ```
 
 Once you've created a shape, you can set its properties like this:
 
-```ts 
+```ts
 const myShape = new Rectangle()
 
 myShape.x = 100
 myShape.color = ColorStyle.Red
 ```
-
 
 You can find more information on each shape class by clicking its name in the list above.
 
@@ -73,12 +72,12 @@ In addition to shapes, you can also use code to create controls.
 
 ```ts
 new NumberControl({
-  label: "x",
-  value: 0
+  label: 'x',
+  value: 0,
 })
 
 const myShape = new Rectangle({
-  point: [controls.x, 0]
+  point: [controls.x, 0],
 })
 ```
 
@@ -92,10 +91,10 @@ There are two kinds of controls:
 
 Each of these controls is a `class`. To create the control, use the following syntax:
 
-```ts 
+```ts
 const control = new TextControl({
-  label: "myLabel",
-  value: "my value"
+  label: 'myLabel',
+  value: 'my value',
 })
 ```
 
@@ -103,12 +102,11 @@ Once you've created a control, you can use its value in your code like this:
 
 ```ts
 const myShape = new Text({
-  text: controls.myLabel
+  text: controls.myLabel,
 })
 ```
 
 You can find more information on each control class by clicking its name in the list above.
-
 
 ## Shape Classes
 

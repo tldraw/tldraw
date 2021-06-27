@@ -8,7 +8,7 @@
     "dev": "next dev",
     "format": "prettier --write .",
     "lint": "eslint . --ext ts --ext tsx --ext js",
-    "scripts": "node scripts/type-gen && node scripts/docs-gen && prettier --write './components/code-panel/*'",
+    "scripts": "prettier --write './state/code/docs.md' && node scripts/type-gen && node scripts/docs-gen && prettier --write './components/code-panel/*'",
     "start": "next start",
     "test-all": "yarn lint && yarn type-check && yarn test",
     "test:update": "jest --updateSnapshot",
