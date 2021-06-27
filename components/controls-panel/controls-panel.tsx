@@ -8,6 +8,9 @@ import * as Panel from '../panel'
 import Control from './control'
 import { deepCompareArrays } from 'utils'
 
+const stopKeyboardPropagation = (e: KeyboardEvent | React.KeyboardEvent) =>
+  e.stopPropagation()
+
 export default function ControlPanel(): JSX.Element {
   const rContainer = useRef<HTMLDivElement>(null)
   const codeControls = useSelector(
@@ -23,6 +26,8 @@ export default function ControlPanel(): JSX.Element {
       ref={rContainer}
       isOpen={isOpen}
       variant="controls"
+      onKeyDown={stopKeyboardPropagation}
+      onKeyUp={stopKeyboardPropagation}
     >
       {isOpen ? (
         <Panel.Layout>
