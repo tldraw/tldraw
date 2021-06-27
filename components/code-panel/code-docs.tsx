@@ -96,7 +96,7 @@ const StyledDocs = styled('div', {
 
   '& pre': {
     border: '1px solid $brushStroke',
-    font: '$ui',
+    font: '$mono',
     fontWeight: 420,
     lineHeight: 1.5,
     padding: 16,

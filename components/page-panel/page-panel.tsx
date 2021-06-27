@@ -142,6 +142,7 @@ const StyledRadioItem = styled(DropdownMenu.RadioItem, {
   borderRadius: '4px',
   fontSize: '$1',
   fontFamily: '$ui',
+  fontWeight: 400,
   backgroundColor: 'transparent',
   outline: 'none',
   variants: {
@@ -178,6 +179,7 @@ const StyledContextMenuItem = styled(ContextMenu.Item, {
   borderRadius: '4px',
   fontSize: '$1',
   fontFamily: '$ui',
+  fontWeight: 400,
   backgroundColor: 'transparent',
   outline: 'none',
   bp: {

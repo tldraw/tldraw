@@ -263,11 +263,13 @@ const StyledContent = styled(_ContextMenu.Content, {
   padding: 3,
   boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
   minWidth: 128,
+  font: '$ui',
 
   '& kbd': {
     marginLeft: '32px',
     fontSize: '$1',
     fontFamily: '$ui',
+    fontWeight: 400,
   },
 
   '& kbd > span': {

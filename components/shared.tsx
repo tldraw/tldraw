@@ -86,6 +86,7 @@ export const RowButton = styled('button', {
   outline: 'none',
   alignItems: 'center',
   fontFamily: '$ui',
+  fontWeight: 400,
   fontSize: '$1',
   justifyContent: 'space-between',
   padding: '4px 6px 4px 12px',

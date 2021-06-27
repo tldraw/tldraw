@@ -37,7 +37,7 @@ const { styled, global, css, theme, getCssString } = createCss({
     fonts: {
       ui: '"Recursive", system-ui, sans-serif',
       body: '"Recursive", system-ui, sans-serif',
-      mono: '"Recursive", monospace',
+      mono: '"Recursive Mono", monospace',
     },
     fontWeights: {},
     lineHeights: {},

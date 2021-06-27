@@ -118,8 +118,7 @@ export default function CodeEditor({
 
     editor.updateOptions({
       fontSize,
-      fontFamily: "'Recursive', monospace",
-      fontWeight: '420',
+      fontFamily: "'Recursive Mono', monospace",
       wordBasedSuggestions: false,
       minimap: { enabled: false },
       lightbulb: {

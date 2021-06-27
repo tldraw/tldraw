@@ -10,6 +10,7 @@ export const Root = styled('div', {
   zIndex: 200,
   border: '1px solid $panel',
   boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
+  font: '$ui',
 
   variants: {
     bp: {
