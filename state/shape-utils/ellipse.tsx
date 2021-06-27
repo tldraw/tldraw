@@ -42,6 +42,14 @@ const ellipse = registerShapeUtils<EllipseShape>({
     }
   },
 
+  shouldRender(shape, prev) {
+    return (
+      shape.radiusY !== prev.radiusY ||
+      shape.radiusX !== prev.radiusX ||
+      shape.style !== prev.style
+    )
+  },
+
   render(shape) {
     const { id, radiusX, radiusY, style } = shape
     const styles = getShapeStyle(style)

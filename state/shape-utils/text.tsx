@@ -70,6 +70,14 @@ const text = registerShapeUtils<TextShape>({
     }
   },
 
+  shouldRender(shape, prev) {
+    return (
+      shape.text !== prev.text ||
+      shape.scale !== prev.scale ||
+      shape.style !== prev.style
+    )
+  },
+
   render(shape, { isEditing, ref }) {
     const { id, text, style } = shape
     const styles = getShapeStyle(style)

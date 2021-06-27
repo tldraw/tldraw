@@ -1716,6 +1716,21 @@ export function getSvgPathFromStroke(stroke: number[][]): string {
   return d.join(' ')
 }
 
+export function debounce<T extends (...args: unknown[]) => unknown>(
+  callback: T,
+  waitFor: number
+): (...args: Parameters<T>) => ReturnType<T> {
+  let timeout: ReturnType<typeof setTimeout>
+  return (...args: Parameters<T>): ReturnType<T> => {
+    let result: any
+    timeout && clearTimeout(timeout)
+    timeout = setTimeout(() => {
+      result = callback(...args)
+    }, waitFor)
+    return result
+  }
+}
+
 /**
  * Get a precise point from an event.
  * @param e

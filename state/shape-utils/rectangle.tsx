@@ -33,6 +33,10 @@ const rectangle = registerShapeUtils<RectangleShape>({
     }
   },
 
+  shouldRender(shape, prev) {
+    return shape.size !== prev.size || shape.style !== prev.style
+  },
+
   render(shape) {
     const { id, size, radius, style } = shape
     const styles = getShapeStyle(style)

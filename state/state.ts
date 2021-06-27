@@ -173,7 +173,7 @@ const state = createState({
         else: ['zoomCameraToActual'],
       },
       on: {
-        RESIZED_WINDW: 'updateOnResize',
+        RESIZED_WINDOW: 'resetPageState',
         RESET_PAGE: 'resetPage',
         TOGGLED_READ_ONLY: 'toggleReadOnly',
         LOADED_FONTS: 'resetShapes',
@@ -1124,8 +1124,11 @@ const state = createState({
     },
   },
   actions: {
-    updateOnResize(data) {
-      getPageState(data).camera.point = { ...getPageState(data).camera.point }
+    resetPageState(data) {
+      // getPageState(data).camera.point = { ...getPageState(data).camera.point }
+
+      const pageState = data.pageStates[data.currentPageId]
+      data.pageStates[data.currentPageId] = { ...pageState }
     },
 
     toggleReadOnly(data) {

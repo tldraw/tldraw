@@ -34,6 +34,9 @@ const ray = registerShapeUtils<RayShape>({
     }
   },
 
+  shouldRender(shape, prev) {
+    return shape.direction !== prev.direction || shape.style !== prev.style
+  },
   render({ id, direction }) {
     const [x2, y2] = vec.add([0, 0], vec.mul(direction, 10000))
 

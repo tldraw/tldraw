@@ -88,6 +88,10 @@ const arrow = registerShapeUtils<ArrowShape>({
     }
   },
 
+  shouldRender(shape, prev) {
+    return shape.handles !== prev.handles || shape.style !== prev.style
+  },
+
   render(shape) {
     const { id, bend, handles, style } = shape
     const { start, end, bend: _bend } = handles

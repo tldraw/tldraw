@@ -33,6 +33,9 @@ const polyline = registerShapeUtils<PolylineShape>({
     }
   },
 
+  shouldRender(shape, prev) {
+    return shape.points !== prev.points || shape.style !== prev.style
+  },
   render({ id, points }) {
     return <polyline id={id} points={points.toString()} />
   },

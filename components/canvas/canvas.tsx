@@ -12,7 +12,6 @@ import BoundsBg from './bounds/bounds-bg'
 import Handles from './bounds/handles'
 import useCanvasEvents from 'hooks/useCanvasEvents'
 import ContextMenu from './context-menu/context-menu'
-import useWindowResize from 'hooks/useWindowResize'
 
 export default function Canvas(): JSX.Element {
   const rCanvas = useRef<SVGSVGElement>(null)
@@ -21,8 +20,6 @@ export default function Canvas(): JSX.Element {
   useCamera(rGroup)
 
   useZoomEvents()
-
-  useWindowResize()
 
   const events = useCanvasEvents(rCanvas)
 

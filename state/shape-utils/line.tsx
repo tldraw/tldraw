@@ -34,6 +34,10 @@ const line = registerShapeUtils<LineShape>({
     }
   },
 
+  shouldRender(shape, prev) {
+    return shape.direction !== prev.direction || shape.style !== prev.style
+  },
+
   render({ id, direction }) {
     const [x1, y1] = vec.add([0, 0], vec.mul(direction, 10000))
     const [x2, y2] = vec.sub([0, 0], vec.mul(direction, 10000))
