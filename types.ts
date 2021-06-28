@@ -14,6 +14,10 @@ export interface Data {
     isToolLocked: boolean
     isPenLocked: boolean
   }
+  room?: {
+    id: string
+    status: string
+  }
   currentStyle: ShapeStyles
   activeTool: ShapeType | 'select'
   brush?: Bounds

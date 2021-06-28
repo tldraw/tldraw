@@ -7,6 +7,7 @@ import history from './history'
 import storage from './storage'
 import clipboard from './clipboard'
 import * as Sessions from './sessions'
+import pusher from './pusher/client'
 import commands from './commands'
 import {
   getChildren,
@@ -28,6 +29,7 @@ import {
   setToArray,
   deepClone,
   pointInBounds,
+  uniqueId,
 } from 'utils'
 
 import {
@@ -173,6 +175,19 @@ const state = createState({
         else: ['zoomCameraToActual'],
       },
       on: {
+        // Network-Related
+        RT_LOADED_ROOM: [
+          'clearRoom',
+          { if: 'hasRoom', do: ['clearDocument', 'connectToRoom'] },
+        ],
+        RT_UNLOADED_ROOM: ['clearRoom', 'clearDocument'],
+        RT_DISCONNECTED_ROOM: ['clearRoom', 'clearDocument'],
+        RT_CREATED_SHAPE: 'addRtShape',
+        RT_CHANGED_STATUS: 'setRtStatus',
+        RT_DELETED_SHAPE: 'deleteRtShape',
+        RT_EDITED_SHAPE: 'editRtShape',
+        RT_MOVED_CURSOR: 'moveRtCursor',
+        // Client
         RESIZED_WINDOW: 'resetPageState',
         RESET_PAGE: 'resetPage',
         TOGGLED_READ_ONLY: 'toggleReadOnly',
@@ -1032,6 +1047,9 @@ const state = createState({
     },
   },
   conditions: {
+    hasRoom(_, payload: { id?: string }) {
+      return payload.id !== undefined
+    },
     shouldDeleteShape(data, payload, shape: Shape) {
       return getShapeUtils(shape).shouldDelete(shape)
     },
@@ -1124,6 +1142,68 @@ const state = createState({
     },
   },
   actions: {
+    // Networked Room
+    setRtStatus(data, payload: { id: string; status: string }) {
+      const { status } = payload
+      if (!data.room) {
+        data.room = { id: null, status: '' }
+      }
+
+      data.room.status = status
+    },
+    addRtShape(data, payload: { pageId: string; shape: Shape }) {
+      const { pageId, shape } = payload
+      // What if the page is in storage?
+      data.document.pages[pageId].shapes[shape.id] = shape
+    },
+    deleteRtShape(data, payload: { pageId: string; shapeId: string }) {
+      const { pageId, shapeId } = payload
+      // What if the page is in storage?
+      delete data.document[pageId].shapes[shapeId]
+    },
+    editRtShape(data, payload: { pageId: string; shape: Shape }) {
+      const { pageId, shape } = payload
+      // What if the page is in storage?
+      Object.assign(data.document[pageId].shapes[shape.id], shape)
+    },
+    moveRtCursor() {
+      null
+    },
+    clearRoom(data) {
+      data.room = undefined
+    },
+    clearDocument(data) {
+      data.document.id = uniqueId()
+
+      const newId = 'page1'
+
+      data.currentPageId = newId
+
+      data.document.pages = {
+        [newId]: {
+          id: newId,
+          name: 'Page 1',
+          type: 'page',
+          shapes: {},
+          childIndex: 1,
+        },
+      }
+
+      data.pageStates = {
+        [newId]: {
+          id: newId,
+          selectedIds: new Set(),
+          camera: {
+            point: [0, 0],
+            zoom: 1,
+          },
+        },
+      }
+    },
+    connectToRoom(data, payload: { id: string }) {
+      data.room = { id: payload.id, status: 'connecting' }
+      pusher.connect(payload.id)
+    },
     resetPageState(data) {
       const pageState = data.pageStates[data.currentPageId]
       data.pageStates[data.currentPageId] = { ...pageState }
@@ -1893,7 +1973,7 @@ const state = createState({
         .sort((a, b) => a.childIndex - b.childIndex)
     },
     selectedStyle(data) {
-      const selectedIds = Array.from(getSelectedIds(data).values())
+      const selectedIds = setToArray(getSelectedIds(data))
       const { currentStyle } = data
 
       if (selectedIds.length === 0) {

@@ -9,9 +9,9 @@ import PagePanel from './page-panel/page-panel'
 import CodePanel from './code-panel/code-panel'
 import ControlsPanel from './controls-panel/controls-panel'
 
-export default function Editor(): JSX.Element {
+export default function Editor({ roomId }: { roomId?: string }): JSX.Element {
   useKeyboardEvents()
-  useLoadOnMount()
+  useLoadOnMount(roomId)
 
   return (
     <Layout>

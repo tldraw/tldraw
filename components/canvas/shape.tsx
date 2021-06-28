@@ -1,5 +1,5 @@
-import React, { useRef, memo, useEffect } from 'react'
-import { useSelector } from 'state'
+import React, { useRef, memo, useEffect, useState } from 'react'
+import state, { useSelector } from 'state'
 import styled from 'styles'
 import { getShapeUtils } from 'state/shape-utils'
 import { deepCompareArrays, getPage, getShape } from 'utils'
@@ -16,24 +16,15 @@ interface ShapeProps {
 function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
   const rGroup = useRef<SVGGElement>(null)
 
-  const shapeUtils = useSelector((s) => {
-    const shape = getShape(s.data, id)
-    return getShapeUtils(shape)
-  })
-
   const isHidden = useSelector((s) => {
     const shape = getShape(s.data, id)
-    return shape.isHidden
+    return shape?.isHidden || false
   })
 
   const children = useSelector((s) => {
     const shape = getShape(s.data, id)
-    return shape.children
+    return shape?.children || []
   }, deepCompareArrays)
-
-  const isParent = shapeUtils.isParent
-
-  const isForeignObject = shapeUtils.isForeignObject
 
   const strokeWidth = useSelector((s) => {
     const shape = getShape(s.data, id)
@@ -41,9 +32,14 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
     return +style.strokeWidth
   })
 
+  const shapeUtils = useSelector((s) => {
+    const shape = getShape(s.data, id)
+    return getShapeUtils(shape)
+  })
+
   const transform = useSelector((s) => {
     const shape = getShape(s.data, id)
-    const center = shapeUtils.getCenter(shape)
+    const center = getShapeUtils(shape).getCenter(shape)
     const rotation = shape.rotation * (180 / Math.PI)
     const parentPoint = getShape(s.data, shape.parentId)?.point || [0, 0]
 
@@ -54,7 +50,15 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
   `
   })
 
-  const events = useShapeEvents(id, isParent, rGroup)
+  const events = useShapeEvents(id, shapeUtils?.isParent, rGroup)
+
+  const hasShape = useMissingShapeTest(id)
+
+  if (!hasShape) return null
+
+  const isParent = shapeUtils.isParent
+
+  const isForeignObject = shapeUtils.isForeignObject
 
   return (
     <StyledGroup
@@ -192,3 +196,17 @@ const StyledGroup = styled('g', {
 })
 
 export default memo(Shape)
+
+function useMissingShapeTest(id: string) {
+  const [isShape, setIsShape] = useState(true)
+
+  useEffect(() => {
+    return state.onUpdate((s) => {
+      if (isShape && !getShape(s.data, id)) {
+        setIsShape(false)
+      }
+    })
+  }, [isShape, id])
+
+  return isShape
+}
