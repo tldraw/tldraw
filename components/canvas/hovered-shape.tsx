@@ -27,10 +27,11 @@ function HoveredShape({ id }: { id: string }) {
   })
 
   return (
-    <g transform={transform}>
-      <StyledHoverShape href={'#' + id} strokeWidth={strokeWidth + 8} />
-      <text>hello</text>
-    </g>
+    <StyledHoverShape
+      href={'#' + id}
+      transform={transform}
+      strokeWidth={strokeWidth + 8}
+    />
   )
 }
 
