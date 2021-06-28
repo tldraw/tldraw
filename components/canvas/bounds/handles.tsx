@@ -3,18 +3,14 @@ import { getShapeUtils } from 'state/shape-utils'
 import { useRef } from 'react'
 import { useSelector } from 'state'
 import styled from 'styles'
-import { deepCompareArrays, getPage } from 'utils'
+import { getPage } from 'utils'
 import vec from 'utils/vec'
 
 export default function Handles(): JSX.Element {
-  const selectedIds = useSelector(
-    (s) => Array.from(s.values.selectedIds.values()),
-    deepCompareArrays
-  )
-
   const shape = useSelector(
-    ({ data }) =>
-      selectedIds.length === 1 && getPage(data).shapes[selectedIds[0]]
+    (s) =>
+      s.values.selectedIds.length === 1 &&
+      getPage(s.data).shapes[s.values.selectedIds[0]]
   )
 
   const isSelecting = useSelector((s) =>

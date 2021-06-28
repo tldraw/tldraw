@@ -2,24 +2,23 @@ import * as Checkbox from '@radix-ui/react-checkbox'
 import { CheckIcon } from '@radix-ui/react-icons'
 import { strokes } from 'state/shape-styles'
 import { Square } from 'react-feather'
-import { IconWrapper, RowButton } from '../shared'
+import { breakpoints, IconWrapper, RowButton } from '../shared'
+import state, { useSelector } from 'state'
 
-interface Props {
-  isFilled: boolean
-  onChange: (isFilled: boolean | string) => void
+function handleIsFilledChange(isFilled: boolean) {
+  state.send('CHANGED_STYLE', { isFilled })
 }
 
-export default function IsFilledPicker({
-  isFilled,
-  onChange,
-}: Props): JSX.Element {
+export default function IsFilledPicker(): JSX.Element {
+  const isFilled = useSelector((s) => s.values.selectedStyle.isFilled)
+
   return (
     <Checkbox.Root
       dir="ltr"
       as={RowButton}
-      bp={{ '@initial': 'mobile', '@sm': 'small' }}
+      bp={breakpoints}
       checked={isFilled}
-      onCheckedChange={onChange}
+      onCheckedChange={handleIsFilledChange}
     >
       <label htmlFor="fill">Fill</label>
       <IconWrapper>

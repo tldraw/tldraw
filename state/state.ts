@@ -1870,9 +1870,17 @@ const state = createState({
       data.boundsRotation = 0
     },
   },
+  asyncs: {
+    async getUpdatedShapes(data) {
+      return updateFromCode(
+        data,
+        data.document.code[data.currentCodeFileId].code
+      )
+    },
+  },
   values: {
     selectedIds(data) {
-      return new Set(getSelectedIds(data))
+      return setToArray(getSelectedIds(data))
     },
     selectedBounds(data) {
       return getSelectionBounds(data)
@@ -1913,14 +1921,6 @@ const state = createState({
       }
 
       return commonStyle
-    },
-  },
-  asyncs: {
-    async getUpdatedShapes(data) {
-      return updateFromCode(
-        data,
-        data.document.code[data.currentCodeFileId].code
-      )
     },
   },
 })

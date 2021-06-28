@@ -2,11 +2,9 @@ import * as React from 'react'
 import { Edge, Corner } from 'types'
 import { useSelector } from 'state'
 import {
-  deepCompareArrays,
   getBoundsCenter,
   getCurrentCamera,
   getPage,
-  getSelectedIds,
   getSelectedShapes,
   isMobile,
 } from 'utils'
@@ -24,25 +22,22 @@ export default function Bounds(): JSX.Element {
 
   const bounds = useSelector((s) => s.values.selectedBounds)
 
-  const selectedIds = useSelector(
-    (s) => Array.from(s.values.selectedIds.values()),
-    deepCompareArrays
-  )
-
-  const rotation = useSelector(({ data }) =>
-    getSelectedIds(data).size === 1 ? getSelectedShapes(data)[0].rotation : 0
+  const rotation = useSelector((s) =>
+    s.values.selectedIds.length === 1
+      ? getSelectedShapes(s.data)[0].rotation
+      : 0
   )
 
   const isAllLocked = useSelector((s) => {
     const page = getPage(s.data)
-    return selectedIds.every((id) => page.shapes[id]?.isLocked)
+    return s.values.selectedIds.every((id) => page.shapes[id]?.isLocked)
   })
 
   const isSingleHandles = useSelector((s) => {
     const page = getPage(s.data)
     return (
-      selectedIds.length === 1 &&
-      page.shapes[selectedIds[0]]?.handles !== undefined
+      s.values.selectedIds.length === 1 &&
+      page.shapes[s.values.selectedIds[0]]?.handles !== undefined
     )
   })
 

@@ -1,28 +1,25 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { strokes } from 'state/shape-styles'
-import { ColorStyle } from 'types'
-import { RowButton, IconWrapper } from '../shared'
+import { RowButton, IconWrapper, breakpoints } from '../shared'
 import { Square } from 'react-feather'
 import ColorContent from './color-content'
+import { memo } from 'react'
+import { useSelector } from 'state'
 
-interface Props {
-  color: ColorStyle
-  onChange: (color: ColorStyle) => void
-}
+function ColorPicker(): JSX.Element {
+  const color = useSelector((s) => s.values.selectedStyle.color)
 
-export default function ColorPicker({ color, onChange }: Props): JSX.Element {
   return (
     <DropdownMenu.Root dir="ltr">
-      <DropdownMenu.Trigger
-        as={RowButton}
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
-      >
+      <DropdownMenu.Trigger as={RowButton} bp={breakpoints}>
         <label htmlFor="color">Color</label>
         <IconWrapper>
           <Square fill={strokes[color]} />
         </IconWrapper>
       </DropdownMenu.Trigger>
-      <ColorContent onChange={onChange} />
+      <ColorContent />
     </DropdownMenu.Root>
   )
 }
+
+export default memo(ColorPicker)

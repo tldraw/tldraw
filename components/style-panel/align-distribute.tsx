@@ -10,7 +10,8 @@ import {
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
 } from '@radix-ui/react-icons'
-import { IconButton } from 'components/shared'
+import { breakpoints, IconButton } from 'components/shared'
+import { memo } from 'react'
 import state from 'state'
 import styled from 'styles'
 import { AlignType, DistributeType, StretchType } from 'types'
@@ -55,7 +56,7 @@ function distributeHorizontally() {
   state.send('DISTRIBUTED', { type: DistributeType.Horizontal })
 }
 
-export default function AlignDistribute({
+function AlignDistribute({
   hasTwoOrMore,
   hasThreeOrMore,
 }: {
@@ -65,7 +66,7 @@ export default function AlignDistribute({
   return (
     <Container>
       <IconButton
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+        bp={breakpoints}
         size="small"
         disabled={!hasTwoOrMore}
         onClick={alignLeft}
@@ -73,7 +74,7 @@ export default function AlignDistribute({
         <AlignLeftIcon />
       </IconButton>
       <IconButton
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+        bp={breakpoints}
         size="small"
         disabled={!hasTwoOrMore}
         onClick={alignCenterHorizontal}
@@ -81,7 +82,7 @@ export default function AlignDistribute({
         <AlignCenterHorizontallyIcon />
       </IconButton>
       <IconButton
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+        bp={breakpoints}
         size="small"
         disabled={!hasTwoOrMore}
         onClick={alignRight}
@@ -89,7 +90,7 @@ export default function AlignDistribute({
         <AlignRightIcon />
       </IconButton>
       <IconButton
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+        bp={breakpoints}
         size="small"
         disabled={!hasTwoOrMore}
         onClick={stretchHorizontally}
@@ -97,7 +98,7 @@ export default function AlignDistribute({
         <StretchHorizontallyIcon />
       </IconButton>
       <IconButton
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+        bp={breakpoints}
         size="small"
         disabled={!hasThreeOrMore}
         onClick={distributeHorizontally}
@@ -105,7 +106,7 @@ export default function AlignDistribute({
         <SpaceEvenlyHorizontallyIcon />
       </IconButton>
       <IconButton
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+        bp={breakpoints}
         size="small"
         disabled={!hasTwoOrMore}
         onClick={alignTop}
@@ -113,7 +114,7 @@ export default function AlignDistribute({
         <AlignTopIcon />
       </IconButton>
       <IconButton
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+        bp={breakpoints}
         size="small"
         disabled={!hasTwoOrMore}
         onClick={alignCenterVertical}
@@ -121,7 +122,7 @@ export default function AlignDistribute({
         <AlignCenterVerticallyIcon />
       </IconButton>
       <IconButton
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+        bp={breakpoints}
         size="small"
         disabled={!hasTwoOrMore}
         onClick={alignBottom}
@@ -129,7 +130,7 @@ export default function AlignDistribute({
         <AlignBottomIcon />
       </IconButton>
       <IconButton
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+        bp={breakpoints}
         size="small"
         disabled={!hasTwoOrMore}
         onClick={stretchVertically}
@@ -137,7 +138,7 @@ export default function AlignDistribute({
         <StretchVerticallyIcon />
       </IconButton>
       <IconButton
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
+        bp={breakpoints}
         size="small"
         disabled={!hasThreeOrMore}
         onClick={distributeVertically}
@@ -147,6 +148,8 @@ export default function AlignDistribute({
     </Container>
   )
 }
+
+export default memo(AlignDistribute)
 
 const Container = styled('div', {
   display: 'grid',

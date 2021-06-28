@@ -2,7 +2,7 @@ import styled from 'styles'
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 
-import { IconWrapper, RowButton } from 'components/shared'
+import { breakpoints, IconWrapper, RowButton } from 'components/shared'
 import { CheckIcon, PlusIcon } from '@radix-ui/react-icons'
 import * as Panel from '../panel'
 import state, { useSelector } from 'state'
@@ -40,8 +40,8 @@ export default function PagePanel(): JSX.Element {
       <PanelRoot dir="ltr">
         <DropdownMenu.Trigger
           as={RowButton}
-          bp={{ '@initial': 'mobile', '@sm': 'small' }}
-          css={{ paddingRight: 12 }}
+          bp={breakpoints}
+          variant="pageButton"
         >
           <span>{documentPages[currentPageId].name}</span>
         </DropdownMenu.Trigger>
@@ -58,11 +58,7 @@ export default function PagePanel(): JSX.Element {
               {sorted.map(({ id, name }) => (
                 <ContextMenu.Root dir="ltr" key={id}>
                   <ContextMenu.Trigger>
-                    <StyledRadioItem
-                      key={id}
-                      value={id}
-                      bp={{ '@initial': 'mobile', '@sm': 'small' }}
-                    >
+                    <StyledRadioItem key={id} value={id} bp={breakpoints}>
                       <span>{name}</span>
                       <DropdownMenu.ItemIndicator as={IconWrapper} size="small">
                         <CheckIcon />
@@ -91,7 +87,7 @@ export default function PagePanel(): JSX.Element {
             </DropdownMenu.RadioGroup>
             <DropdownMenu.Separator />
             <RowButton
-              bp={{ '@initial': 'mobile', '@sm': 'small' }}
+              bp={breakpoints}
               onClick={() => {
                 setIsOpen(false)
                 state.send('CREATED_PAGE')

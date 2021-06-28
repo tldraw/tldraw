@@ -2,31 +2,150 @@ import React, { useRef, memo, useEffect } from 'react'
 import { useSelector } from 'state'
 import styled from 'styles'
 import { getShapeUtils } from 'state/shape-utils'
-import { getPage, getSelectedIds, isMobile } from 'utils'
+import { deepCompareArrays, getPage, getShape } from 'utils'
 import useShapeEvents from 'hooks/useShapeEvents'
-import { Shape as _Shape } from 'types'
 import vec from 'utils/vec'
 import { getShapeStyle } from 'state/shape-styles'
-
-const isMobileDevice = isMobile()
+import useShapeDef from 'hooks/useShape'
 
 interface ShapeProps {
   id: string
   isSelecting: boolean
-  parentPoint: number[]
 }
 
-function Shape({ id, isSelecting, parentPoint }: ShapeProps): JSX.Element {
+function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
   const rGroup = useRef<SVGGElement>(null)
+
+  const shapeUtils = useSelector((s) => {
+    const shape = getShape(s.data, id)
+    return getShapeUtils(shape)
+  })
+
+  const isHidden = useSelector((s) => {
+    const shape = getShape(s.data, id)
+    return shape.isHidden
+  })
+
+  const children = useSelector((s) => {
+    const shape = getShape(s.data, id)
+    return shape.children
+  }, deepCompareArrays)
+
+  const isParent = shapeUtils.isParent
+
+  const isForeignObject = shapeUtils.isForeignObject
+
+  const strokeWidth = useSelector((s) => {
+    const shape = getShape(s.data, id)
+    const style = getShapeStyle(shape.style)
+    return +style.strokeWidth
+  })
+
+  const transform = useSelector((s) => {
+    const shape = getShape(s.data, id)
+    const center = shapeUtils.getCenter(shape)
+    const rotation = shape.rotation * (180 / Math.PI)
+    const parentPoint = getShape(s.data, shape.parentId)?.point || [0, 0]
+
+    return `
+      translate(${vec.neg(parentPoint)})
+      rotate(${rotation}, ${center})
+      translate(${shape.point})
+  `
+  })
+
+  const events = useShapeEvents(id, isParent, rGroup)
+
+  return (
+    <StyledGroup
+      id={id + '-group'}
+      ref={rGroup}
+      transform={transform}
+      {...events}
+    >
+      {isSelecting &&
+        (isForeignObject ? (
+          <ForeignObjectHover id={id} />
+        ) : (
+          <EventSoak
+            as="use"
+            href={'#' + id}
+            strokeWidth={strokeWidth + 8}
+            variant={shapeUtils.canStyleFill ? 'filled' : 'hollow'}
+          />
+        ))}
+
+      {!isHidden &&
+        (isForeignObject ? (
+          <ForeignObjectRender id={id} />
+        ) : (
+          <RealShape id={id} isParent={isParent} strokeWidth={strokeWidth} />
+        ))}
+
+      {isParent &&
+        children.map((shapeId) => (
+          <Shape key={shapeId} id={shapeId} isSelecting={isSelecting} />
+        ))}
+    </StyledGroup>
+  )
+}
+
+interface RealShapeProps {
+  id: string
+  isParent: boolean
+  strokeWidth: number
+}
+
+const RealShape = memo(function RealShape({
+  id,
+  isParent,
+  strokeWidth,
+}: RealShapeProps) {
+  return (
+    <StyledShape
+      as="use"
+      data-shy={isParent}
+      href={'#' + id}
+      strokeWidth={strokeWidth}
+    />
+  )
+})
+
+const ForeignObjectHover = memo(function ForeignObjectHover({
+  id,
+}: {
+  id: string
+}) {
+  const size = useSelector((s) => {
+    const shape = getPage(s.data).shapes[id]
+    const bounds = getShapeUtils(shape).getBounds(shape)
+
+    return [bounds.width, bounds.height]
+  }, deepCompareArrays)
+
+  return (
+    <EventSoak
+      as="rect"
+      width={size[0]}
+      height={size[1]}
+      strokeWidth={1.5}
+      variant={'ghost'}
+    />
+  )
+})
+
+const ForeignObjectRender = memo(function ForeignObjectRender({
+  id,
+}: {
+  id: string
+}) {
+  const shape = useShapeDef(id)
+
   const rFocusable = useRef<HTMLTextAreaElement>(null)
 
   const isEditing = useSelector((s) => s.data.editingId === id)
 
-  const isSelected = useSelector((s) => getSelectedIds(s.data).has(id))
-
-  const shape = useSelector((s) => getPage(s.data).shapes[id])
-
-  const events = useShapeEvents(id, getShapeUtils(shape)?.isParent, rGroup)
+  const shapeUtils = getShapeUtils(shape)
 
   useEffect(() => {
     if (isEditing) {
@@ -38,85 +157,7 @@ function Shape({ id, isSelecting, parentPoint }: ShapeProps): JSX.Element {
     }
   }, [isEditing])
 
-  // This is a problem with deleted shapes. The hooks in this component
-  // may sometimes run before the hook in the Page component, which means
-  // a deleted shape will still be pulled here before the page component
-  // detects the change and pulls this component.
-  if (!shape) return null
-
-  const style = getShapeStyle(shape.style)
-  const shapeUtils = getShapeUtils(shape)
-
-  const { isShy, isParent, isForeignObject } = shapeUtils
-
-  const bounds = shapeUtils.getBounds(shape)
-  const center = shapeUtils.getCenter(shape)
-  const rotation = shape.rotation * (180 / Math.PI)
-
-  const transform = `
-    translate(${vec.neg(parentPoint)})
-    rotate(${rotation}, ${center})
-    translate(${shape.point})
-  `
-
-  return (
-    <StyledGroup
-      id={id + '-group'}
-      ref={rGroup}
-      transform={transform}
-      isSelected={isSelected}
-      device={isMobileDevice ? 'mobile' : 'desktop'}
-      {...events}
-    >
-      {isSelecting && !isShy && (
-        <>
-          {isForeignObject ? (
-            <HoverIndicator
-              as="rect"
-              width={bounds.width}
-              height={bounds.height}
-              strokeWidth={1.5}
-              variant={'ghost'}
-            />
-          ) : (
-            <HoverIndicator
-              as="use"
-              href={'#' + id}
-              strokeWidth={+style.strokeWidth + 5}
-              variant={shapeUtils.canStyleFill ? 'filled' : 'hollow'}
-            />
-          )}
-        </>
-      )}
-
-      {!shape.isHidden &&
-        (isForeignObject ? (
-          shapeUtils.render(shape, { isEditing, ref: rFocusable })
-        ) : (
-          <RealShape id={id} isParent={isParent} shape={shape} />
-        ))}
-
-      {isParent &&
-        shape.children.map((shapeId) => (
-          <Shape
-            key={shapeId}
-            id={shapeId}
-            isSelecting={isSelecting}
-            parentPoint={shape.point}
-          />
-        ))}
-    </StyledGroup>
-  )
-}
-
-interface RealShapeProps {
-  id: string
-  shape: _Shape
-  isParent: boolean
-}
-
-const RealShape = memo(function RealShape({ id, isParent }: RealShapeProps) {
-  return <StyledShape as="use" data-shy={isParent} href={'#' + id} />
+  return shapeUtils.render(shape, { isEditing, ref: rFocusable })
 })
 
 const StyledShape = styled('path', {
@@ -125,12 +166,10 @@ const StyledShape = styled('path', {
   pointerEvents: 'none',
 })
 
-const HoverIndicator = styled('path', {
-  stroke: '$selected',
+const EventSoak = styled('use', {
+  opacity: 0,
   strokeLinecap: 'round',
   strokeLinejoin: 'round',
-  fill: 'transparent',
-  filter: 'url(#expand)',
   variants: {
     variant: {
       ghost: {
@@ -150,81 +189,6 @@ const HoverIndicator = styled('path', {
 
 const StyledGroup = styled('g', {
   outline: 'none',
-  [`& *[data-shy="true"]`]: {
-    opacity: '0',
-  },
-  [`& ${HoverIndicator}`]: {
-    opacity: '0',
-  },
-  variants: {
-    device: {
-      mobile: {},
-      desktop: {},
-    },
-    isSelected: {
-      true: {
-        [`& *[data-shy="true"]`]: {
-          opacity: '1',
-        },
-        [`& ${HoverIndicator}`]: {
-          opacity: '0.2',
-        },
-      },
-      false: {
-        [`& ${HoverIndicator}`]: {
-          opacity: '0',
-        },
-      },
-    },
-  },
-  compoundVariants: [
-    {
-      device: 'desktop',
-      isSelected: 'false',
-      css: {
-        [`&:hover ${HoverIndicator}`]: {
-          opacity: '0.16',
-        },
-        [`&:hover *[data-shy="true"]`]: {
-          opacity: '1',
-        },
-      },
-    },
-    {
-      device: 'desktop',
-      isSelected: 'true',
-      css: {
-        [`&:hover ${HoverIndicator}`]: {
-          opacity: '0.25',
-        },
-        [`&:active ${HoverIndicator}`]: {
-          opacity: '0.25',
-        },
-      },
-    },
-  ],
 })
-
-// function Label({ children }: { children: React.ReactNode }) {
-//   return (
-//     <text
-//       y={4}
-//       x={4}
-//       fontSize={12}
-//       fill="black"
-//       stroke="none"
-//       alignmentBaseline="text-before-edge"
-//       pointerEvents="none"
-//     >
-//       {children}
-//     </text>
-//   )
-// }
-
-// function pp(n: number[]) {
-//   return '[' + n.map((v) => v.toFixed(1)).join(', ') + ']'
-// }
-
-export { HoverIndicator }
 
 export default memo(Shape)

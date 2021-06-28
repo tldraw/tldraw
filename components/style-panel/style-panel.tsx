@@ -3,31 +3,10 @@ import state, { useSelector } from 'state'
 import * as Panel from 'components/panel'
 import { useRef } from 'react'
 import { IconButton } from 'components/shared'
-import { ChevronDown, Trash2, X } from 'react-feather'
-import {
-  deepCompare,
-  deepCompareArrays,
-  getPage,
-  getSelectedIds,
-  setToArray,
-} from 'utils'
+import { ChevronDown, X } from 'react-feather'
+import ShapesFunctions from './shapes-functions'
 import AlignDistribute from './align-distribute'
-import { MoveType } from 'types'
 import SizePicker from './size-picker'
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  AspectRatioIcon,
-  BoxIcon,
-  CopyIcon,
-  EyeClosedIcon,
-  EyeOpenIcon,
-  LockClosedIcon,
-  LockOpen1Icon,
-  PinBottomIcon,
-  PinTopIcon,
-  RotateCounterClockwiseIcon,
-} from '@radix-ui/react-icons'
 import DashPicker from './dash-picker'
 import QuickColorSelect from './quick-color-select'
 import ColorPicker from './color-picker'
@@ -37,23 +16,12 @@ import QuickdashSelect from './quick-dash-select'
 import Tooltip from 'components/tooltip'
 
 const breakpoints = { '@initial': 'mobile', '@sm': 'small' } as any
+
 const handleStylePanelOpen = () => state.send('TOGGLED_STYLE_PANEL_OPEN')
-const handleColorChange = (color) => state.send('CHANGED_STYLE', { color })
-const handleRotateCcw = () => () => state.send('ROTATED_CCW')
-const handleIsFilledChange = (dash) => state.send('CHANGED_STYLE', { dash })
-const handleDuplicate = () => state.send('DUPLICATED')
-const handleHide = () => state.send('TOGGLED_SHAPE_HIDE')
-const handleLock = () => state.send('TOGGLED_SHAPE_LOCK')
-const handleAspectLock = () => state.send('TOGGLED_SHAPE_ASPECT_LOCK')
-const handleMoveToBack = () => state.send('MOVED', { type: MoveType.ToBack })
-const handleMoveBackward = () =>
-  state.send('MOVED', { type: MoveType.Backward })
-const handleMoveForward = () => state.send('MOVED', { type: MoveType.Forward })
-const handleMoveToFront = () => state.send('MOVED', { type: MoveType.ToFront })
-const handleDelete = () => state.send('DELETED')
 
 export default function StylePanel(): JSX.Element {
   const rContainer = useRef<HTMLDivElement>(null)
+
   const isOpen = useSelector((s) => s.data.settings.isStyleOpen)
 
   return (
@@ -86,29 +54,7 @@ export default function StylePanel(): JSX.Element {
 // track of this data manually within our state.
 
 function SelectedShapeStyles(): JSX.Element {
-  const selectedIds = useSelector(
-    (s) => setToArray(getSelectedIds(s.data)),
-    deepCompareArrays
-  )
-
-  const isAllLocked = useSelector((s) => {
-    const page = getPage(s.data)
-    return selectedIds.every((id) => page.shapes[id].isLocked)
-  })
-
-  const isAllAspectLocked = useSelector((s) => {
-    const page = getPage(s.data)
-    return selectedIds.every((id) => page.shapes[id].isAspectRatioLocked)
-  })
-
-  const isAllHidden = useSelector((s) => {
-    const page = getPage(s.data)
-    return selectedIds.every((id) => page.shapes[id].isHidden)
-  })
-
-  const commonStyle = useSelector((s) => s.values.selectedStyle, deepCompare)
-
-  const hasSelection = selectedIds.length > 0
+  const selectedShapesCount = useSelector((s) => s.values.selectedIds.length)
 
   return (
     <Panel.Layout>
@@ -123,133 +69,20 @@ function SelectedShapeStyles(): JSX.Element {
         </IconButton>
       </Panel.Header>
       <Content>
-        <ColorPicker color={commonStyle.color} onChange={handleColorChange} />
-        <IsFilledPicker
-          isFilled={commonStyle.isFilled}
-          onChange={handleIsFilledChange}
-        />
+        <ColorPicker />
+        <IsFilledPicker />
         <Row>
           <label htmlFor="size">Size</label>
-          <SizePicker size={commonStyle.size} />
+          <SizePicker />
         </Row>
         <Row>
           <label htmlFor="dash">Dash</label>
-          <DashPicker dash={commonStyle.dash} />
+          <DashPicker />
         </Row>
-        <ButtonsRow>
-          <IconButton
-            bp={breakpoints}
-            disabled={!hasSelection}
-            size="small"
-            onClick={handleDuplicate}
-          >
-            <Tooltip label="Duplicate">
-              <CopyIcon />
-            </Tooltip>
-          </IconButton>
-
-          <IconButton
-            disabled={!hasSelection}
-            size="small"
-            onClick={handleRotateCcw}
-          >
-            <Tooltip label="Rotate">
-              <RotateCounterClockwiseIcon />
-            </Tooltip>
-          </IconButton>
-
-          <IconButton
-            bp={breakpoints}
-            disabled={!hasSelection}
-            size="small"
-            onClick={handleHide}
-          >
-            <Tooltip label="Toogle Hidden">
-              {isAllHidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
-            </Tooltip>
-          </IconButton>
-
-          <IconButton
-            bp={breakpoints}
-            disabled={!hasSelection}
-            size="small"
-            onClick={handleLock}
-          >
-            <Tooltip label="Toogle Locked">
-              {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
-            </Tooltip>
-          </IconButton>
-
-          <IconButton
-            bp={breakpoints}
-            disabled={!hasSelection}
-            size="small"
-            onClick={handleAspectLock}
-          >
-            <Tooltip label="Toogle Aspect Ratio Lock">
-              {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
-            </Tooltip>
-          </IconButton>
-        </ButtonsRow>
-        <ButtonsRow>
-          <IconButton
-            bp={breakpoints}
-            disabled={!hasSelection}
-            size="small"
-            onClick={handleMoveToBack}
-          >
-            <Tooltip label="Move to Back">
-              <PinBottomIcon />
-            </Tooltip>
-          </IconButton>
-
-          <IconButton
-            bp={breakpoints}
-            disabled={!hasSelection}
-            size="small"
-            onClick={handleMoveBackward}
-          >
-            <Tooltip label="Move Backward">
-              <ArrowDownIcon />
-            </Tooltip>
-          </IconButton>
-
-          <IconButton
-            bp={breakpoints}
-            disabled={!hasSelection}
-            size="small"
-            onClick={handleMoveForward}
-          >
-            <Tooltip label="Move Forward">
-              <ArrowUpIcon />
-            </Tooltip>
-          </IconButton>
-
-          <IconButton
-            bp={breakpoints}
-            disabled={!hasSelection}
-            size="small"
-            onClick={handleMoveToFront}
-          >
-            <Tooltip label="More to Front">
-              <PinTopIcon />
-            </Tooltip>
-          </IconButton>
-
-          <IconButton
-            bp={breakpoints}
-            disabled={!hasSelection}
-            size="small"
-            onClick={handleDelete}
-          >
-            <Tooltip label="Delete">
-              <Trash2 size="15" />
-            </Tooltip>
-          </IconButton>
-        </ButtonsRow>
+        <ShapesFunctions />
         <AlignDistribute
-          hasTwoOrMore={selectedIds.length > 1}
-          hasThreeOrMore={selectedIds.length > 2}
+          hasTwoOrMore={selectedShapesCount > 1}
+          hasThreeOrMore={selectedShapesCount > 2}
         />
       </Content>
     </Panel.Layout>
@@ -305,17 +138,4 @@ const Row = styled('div', {
   '& > svg': {
     position: 'relative',
   },
-})
-
-const ButtonsRow = styled('div', {
-  position: 'relative',
-  display: 'flex',
-  width: '100%',
-  background: 'none',
-  border: 'none',
-  cursor: 'pointer',
-  outline: 'none',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  padding: 4,
 })

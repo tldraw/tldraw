@@ -13,6 +13,10 @@ import Handles from './bounds/handles'
 import useCanvasEvents from 'hooks/useCanvasEvents'
 import ContextMenu from './context-menu/context-menu'
 
+function resetError() {
+  null
+}
+
 export default function Canvas(): JSX.Element {
   const rCanvas = useRef<SVGSVGElement>(null)
   const rGroup = useRef<SVGGElement>(null)
@@ -28,12 +32,7 @@ export default function Canvas(): JSX.Element {
   return (
     <ContextMenu>
       <MainSVG ref={rCanvas} {...events}>
-        <ErrorBoundary
-          FallbackComponent={ErrorFallback}
-          onReset={() => {
-            // reset the state of your app so the error doesn't happen again
-          }}
-        >
+        <ErrorBoundary FallbackComponent={ErrorFallback} onReset={resetError}>
           <Defs />
           {isReady && (
             <g ref={rGroup} id="shapes">

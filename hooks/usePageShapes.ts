@@ -26,7 +26,7 @@ export default function usePageShapes(): string[] {
   }, [])
 
   // Get the shapes that fit into the current window
-  return useSelector((s) => {
+  const visiblePageShapeIds = useSelector((s) => {
     const pageState = getPageState(s.data)
 
     if (!viewportCache.has(pageState)) {
@@ -46,4 +46,6 @@ export default function usePageShapes(): string[] {
       })
       .map((shape) => shape.id)
   }, deepCompareArrays)
+
+  return visiblePageShapeIds
 }

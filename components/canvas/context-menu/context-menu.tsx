@@ -5,14 +5,7 @@ import {
   IconButton as _IconButton,
   RowButton,
 } from 'components/shared'
-import {
-  commandKey,
-  deepCompareArrays,
-  getSelectedIds,
-  getShape,
-  isMobile,
-  setToArray,
-} from 'utils'
+import { commandKey, deepCompareArrays, getShape, isMobile } from 'utils'
 import state, { useSelector } from 'state'
 import {
   AlignType,
@@ -82,7 +75,7 @@ export default function ContextMenu({
   children: React.ReactNode
 }): JSX.Element {
   const selectedShapeIds = useSelector(
-    (s) => setToArray(getSelectedIds(s.data)),
+    (s) => s.values.selectedIds,
     deepCompareArrays
   )
 

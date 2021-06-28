@@ -1,37 +1,37 @@
 import { Group, Item } from '../shared'
 import * as RadioGroup from '@radix-ui/react-radio-group'
 import { Circle } from 'react-feather'
-import state from 'state'
+import state, { useSelector } from 'state'
 import { SizeStyle } from 'types'
+import { memo } from 'react'
+
+const sizes = {
+  [SizeStyle.Small]: 6,
+  [SizeStyle.Medium]: 12,
+  [SizeStyle.Large]: 22,
+}
 
 function handleChange(size: string) {
   state.send('CHANGED_STYLE', { size })
 }
 
-export default function SizePicker({ size }: { size: SizeStyle }): JSX.Element {
+function SizePicker(): JSX.Element {
+  const size = useSelector((s) => s.values.selectedStyle.size)
+
   return (
     <Group name="width" onValueChange={handleChange}>
-      <Item
-        as={RadioGroup.Item}
-        value={SizeStyle.Small}
-        isActive={size === SizeStyle.Small}
-      >
-        <Circle size={6} />
-      </Item>
-      <Item
-        as={RadioGroup.Item}
-        value={SizeStyle.Medium}
-        isActive={size === SizeStyle.Medium}
-      >
-        <Circle size={12} />
-      </Item>
-      <Item
-        as={RadioGroup.Item}
-        value={SizeStyle.Large}
-        isActive={size === SizeStyle.Large}
-      >
-        <Circle size={22} />
-      </Item>
+      {Object.keys(SizeStyle).map((sizeStyle: SizeStyle) => (
+        <RadioGroup.Item
+          key={sizeStyle}
+          as={Item}
+          isActive={size === sizeStyle}
+          value={sizeStyle}
+        >
+          <Circle size={sizes[sizeStyle]} />
+        </RadioGroup.Item>
+      ))}
     </Group>
   )
 }
+
+export default memo(SizePicker)

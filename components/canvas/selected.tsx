@@ -1,12 +1,12 @@
 import styled from 'styles'
 import { useSelector } from 'state'
-import { deepCompareArrays, getPage, getSelectedIds, setToArray } from 'utils'
+import { deepCompareArrays, getPage } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 import { memo } from 'react'
 
 export default function Selected(): JSX.Element {
   const currentSelectedShapeIds = useSelector(
-    ({ data }) => setToArray(getSelectedIds(data)),
+    (s) => s.values.selectedIds,
     deepCompareArrays
   )
 

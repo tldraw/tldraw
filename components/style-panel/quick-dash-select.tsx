@@ -1,6 +1,7 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { IconButton } from 'components/shared'
+import { breakpoints, IconButton } from 'components/shared'
 import Tooltip from 'components/tooltip'
+import { memo } from 'react'
 import state, { useSelector } from 'state'
 import { DashStyle } from 'types'
 import {
@@ -17,40 +18,35 @@ const dashes = {
   [DashStyle.Dotted]: <DashDottedIcon />,
 }
 
-export default function QuickdashSelect(): JSX.Element {
+function changeDashStyle(
+  e: Event & { currentTarget: { value: DashStyle } }
+): void {
+  state.send('CHANGED_STYLE', { dash: e.currentTarget.value })
+}
+
+function QuickdashSelect(): JSX.Element {
   const dash = useSelector((s) => s.values.selectedStyle.dash)
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DropdownMenu.Trigger
-        as={IconButton}
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
-      >
+      <DropdownMenu.Trigger as={IconButton} bp={breakpoints}>
         <Tooltip label="Dash">{dashes[dash]}</Tooltip>
       </DropdownMenu.Trigger>
       <DropdownContent sideOffset={8} direction="vertical">
-        <DashItem isActive={dash === DashStyle.Solid} dash={DashStyle.Solid} />
-        <DashItem
-          isActive={dash === DashStyle.Dashed}
-          dash={DashStyle.Dashed}
-        />
-        <DashItem
-          isActive={dash === DashStyle.Dotted}
-          dash={DashStyle.Dotted}
-        />
+        {Object.keys(DashStyle).map((dashStyle: DashStyle) => (
+          <DropdownMenu.DropdownMenuItem
+            as={Item}
+            key={dashStyle}
+            isActive={dash === dashStyle}
+            onSelect={changeDashStyle}
+            value={dashStyle}
+          >
+            {dashes[dashStyle]}
+          </DropdownMenu.DropdownMenuItem>
+        ))}
       </DropdownContent>
     </DropdownMenu.Root>
   )
 }
 
-function DashItem({ dash, isActive }: { isActive: boolean; dash: DashStyle }) {
-  return (
-    <Item
-      as={DropdownMenu.DropdownMenuItem}
-      isActive={isActive}
-      onSelect={() => state.send('CHANGED_STYLE', { dash })}
-    >
-      {dashes[dash]}
-    </Item>
-  )
-}
+export default memo(QuickdashSelect)

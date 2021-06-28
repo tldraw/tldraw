@@ -1,6 +1,7 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { IconButton } from 'components/shared'
+import { breakpoints, IconButton } from 'components/shared'
 import Tooltip from 'components/tooltip'
+import { memo } from 'react'
 import { Circle } from 'react-feather'
 import state, { useSelector } from 'state'
 import { SizeStyle } from 'types'
@@ -12,39 +13,37 @@ const sizes = {
   [SizeStyle.Large]: 22,
 }
 
-export default function QuickSizeSelect(): JSX.Element {
+function handleSizeChange(
+  e: Event & { currentTarget: { value: SizeStyle } }
+): void {
+  state.send('CHANGED_STYLE', { size: e.currentTarget.value })
+}
+
+function QuickSizeSelect(): JSX.Element {
   const size = useSelector((s) => s.values.selectedStyle.size)
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DropdownMenu.Trigger
-        as={IconButton}
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
-      >
+      <DropdownMenu.Trigger as={IconButton} bp={breakpoints}>
         <Tooltip label="Size">
           <Circle size={sizes[size]} stroke="none" fill="currentColor" />
         </Tooltip>
       </DropdownMenu.Trigger>
       <DropdownContent sideOffset={8} direction="vertical">
-        <SizeItem isActive={size === SizeStyle.Small} size={SizeStyle.Small} />
-        <SizeItem
-          isActive={size === SizeStyle.Medium}
-          size={SizeStyle.Medium}
-        />
-        <SizeItem isActive={size === SizeStyle.Large} size={SizeStyle.Large} />
+        {Object.keys(SizeStyle).map((sizeStyle: SizeStyle) => (
+          <DropdownMenu.DropdownMenuItem
+            key={sizeStyle}
+            as={Item}
+            isActive={size === sizeStyle}
+            value={sizeStyle}
+            onSelect={handleSizeChange}
+          >
+            <Circle size={sizes[sizeStyle]} />
+          </DropdownMenu.DropdownMenuItem>
+        ))}
       </DropdownContent>
     </DropdownMenu.Root>
   )
 }
 
-function SizeItem({ size, isActive }: { isActive: boolean; size: SizeStyle }) {
-  return (
-    <Item
-      as={DropdownMenu.DropdownMenuItem}
-      isActive={isActive}
-      onSelect={() => state.send('CHANGED_STYLE', { size })}
-    >
-      <Circle size={sizes[size]} />
-    </Item>
-  )
-}
+export default memo(QuickSizeSelect)

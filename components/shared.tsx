@@ -3,6 +3,8 @@ import * as RadioGroup from '@radix-ui/react-radio-group'
 import * as Panel from './panel'
 import styled from 'styles'
 
+export const breakpoints: any = { '@initial': 'mobile', '@sm': 'small' }
+
 export const IconButton = styled('button', {
   height: '32px',
   width: '32px',
@@ -122,6 +124,11 @@ export const RowButton = styled('button', {
       icon: {
         padding: '4px ',
         width: 'auto',
+      },
+    },
+    variant: {
+      pageButton: {
+        paddingRight: 12,
       },
     },
   },

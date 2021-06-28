@@ -7,40 +7,36 @@ import {
 } from '../shared'
 import * as RadioGroup from '@radix-ui/react-radio-group'
 import { DashStyle } from 'types'
-import state from 'state'
+import state, { useSelector } from 'state'
+import { memo } from 'react'
 
 function handleChange(dash: string) {
   state.send('CHANGED_STYLE', { dash })
 }
 
-interface Props {
-  dash: DashStyle
+const dashes = {
+  [DashStyle.Solid]: <DashSolidIcon />,
+  [DashStyle.Dashed]: <DashDashedIcon />,
+  [DashStyle.Dotted]: <DashDottedIcon />,
 }
 
-export default function DashPicker({ dash }: Props): JSX.Element {
+function DashPicker(): JSX.Element {
+  const dash = useSelector((s) => s.values.selectedStyle.dash)
+
   return (
     <Group name="Dash" onValueChange={handleChange}>
-      <Item
-        as={RadioGroup.RadioGroupItem}
-        value={DashStyle.Solid}
-        isActive={dash === DashStyle.Solid}
-      >
-        <DashSolidIcon />
-      </Item>
-      <Item
-        as={RadioGroup.RadioGroupItem}
-        value={DashStyle.Dashed}
-        isActive={dash === DashStyle.Dashed}
-      >
-        <DashDashedIcon />
-      </Item>
-      <Item
-        as={RadioGroup.RadioGroupItem}
-        value={DashStyle.Dotted}
-        isActive={dash === DashStyle.Dotted}
-      >
-        <DashDottedIcon />
-      </Item>
+      {Object.keys(DashStyle).map((dashStyle: DashStyle) => (
+        <RadioGroup.RadioGroupItem
+          as={Item}
+          key={dashStyle}
+          isActive={dash === dashStyle}
+          value={dashStyle}
+        >
+          {dashes[dashStyle]}
+        </RadioGroup.RadioGroupItem>
+      ))}
     </Group>
   )
 }
+
+export default memo(DashPicker)

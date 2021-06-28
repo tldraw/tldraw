@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import state, { useSelector } from 'state'
 import inputs from 'state/inputs'
 import styled from 'styles'
-import { deepCompareArrays, getPage } from 'utils'
+import { getPage } from 'utils'
 
 function handlePointerDown(e: React.PointerEvent<SVGRectElement>) {
   if (!inputs.canAccept(e.pointerId)) return
@@ -31,28 +31,30 @@ export default function BoundsBg(): JSX.Element {
 
   const isSelecting = useSelector((s) => s.isIn('selecting'))
 
-  const selectedIds = useSelector(
-    (s) => Array.from(s.values.selectedIds.values()),
-    deepCompareArrays
-  )
-
   const rotation = useSelector((s) => {
+    const selectedIds = s.values.selectedIds
+
     if (selectedIds.length === 1) {
-      const { shapes } = getPage(s.data)
-      const selected = Array.from(s.values.selectedIds.values())[0]
-      return shapes[selected]?.rotation
+      const selected = selectedIds[0]
+      const page = getPage(s.data)
+
+      return page.shapes[selected]?.rotation
     } else {
       return 0
     }
   })
 
   const isAllHandles = useSelector((s) => {
-    const page = getPage(s.data)
-    const selectedIds = Array.from(s.values.selectedIds.values())
-    return (
-      selectedIds.length === 1 &&
-      page.shapes[selectedIds[0]]?.handles !== undefined
-    )
+    const selectedIds = s.values.selectedIds
+
+    if (selectedIds.length === 1) {
+      const page = getPage(s.data)
+      const selected = selectedIds[0]
+
+      return (
+        selectedIds.length === 1 && page.shapes[selected]?.handles !== undefined
+      )
+    }
   })
 
   if (isAllHandles) return null
