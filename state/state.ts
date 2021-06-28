@@ -188,6 +188,7 @@ const state = createState({
         RT_EDITED_SHAPE: 'editRtShape',
         RT_MOVED_CURSOR: 'moveRtCursor',
         // Client
+        MOVED_POINTER: { secretlyDo: 'sendRtCursorMove' },
         RESIZED_WINDOW: 'resetPageState',
         RESET_PAGE: 'resetPage',
         TOGGLED_READ_ONLY: 'toggleReadOnly',
@@ -1145,10 +1146,16 @@ const state = createState({
     // Networked Room
     setRtStatus(data, payload: { id: string; status: string }) {
       const { status } = payload
+
       if (!data.room) {
-        data.room = { id: null, status: '' }
+        data.room = {
+          id: null,
+          status: '',
+          peers: {},
+        }
       }
 
+      data.room.peers = {}
       data.room.status = status
     },
     addRtShape(data, payload: { pageId: string; shape: Shape }) {
@@ -1166,8 +1173,26 @@ const state = createState({
       // What if the page is in storage?
       Object.assign(data.document[pageId].shapes[shape.id], shape)
     },
-    moveRtCursor() {
-      null
+    sendRtCursorMove(data, payload: PointerInfo) {
+      const point = screenToWorld(payload.point, data)
+      pusher.moveCursor(data.currentPageId, point)
+    },
+    moveRtCursor(
+      data,
+      payload: { id: string; pageId: string; point: number[] }
+    ) {
+      const { room } = data
+
+      if (room.peers[payload.id] === undefined) {
+        room.peers[payload.id] = {
+          id: payload.id,
+          cursor: {
+            point: payload.point,
+          },
+        }
+      }
+
+      room.peers[payload.id].cursor.point = payload.point
     },
     clearRoom(data) {
       data.room = undefined
@@ -1201,9 +1226,10 @@ const state = createState({
       }
     },
     connectToRoom(data, payload: { id: string }) {
-      data.room = { id: payload.id, status: 'connecting' }
+      data.room = { id: payload.id, status: 'connecting', peers: {} }
       pusher.connect(payload.id)
     },
+
     resetPageState(data) {
       const pageState = data.pageStates[data.currentPageId]
       data.pageStates[data.currentPageId] = { ...pageState }

@@ -17,6 +17,7 @@ export interface Data {
   room?: {
     id: string
     status: string
+    peers: Record<string, Peer>
   }
   currentStyle: ShapeStyles
   activeTool: ShapeType | 'select'
@@ -36,6 +37,13 @@ export interface Data {
 /* -------------------------------------------------- */
 /*                      Document                      */
 /* -------------------------------------------------- */
+
+export interface Peer {
+  id: string
+  cursor: {
+    point: number[]
+  }
+}
 
 export interface TLDocument {
   id: string

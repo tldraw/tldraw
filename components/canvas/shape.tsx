@@ -28,7 +28,7 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
 
   const strokeWidth = useSelector((s) => {
     const shape = getShape(s.data, id)
-    const style = getShapeStyle(shape.style)
+    const style = getShapeStyle(shape?.style)
     return +style.strokeWidth
   })
 
