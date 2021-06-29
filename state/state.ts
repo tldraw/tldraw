@@ -7,7 +7,7 @@ import history from './history'
 import storage from './storage'
 import clipboard from './clipboard'
 import * as Sessions from './sessions'
-import pusher from './pusher/client-supa'
+import pusher from './coop/client-supa'
 import commands from './commands'
 import {
   getCommonBounds,
@@ -36,7 +36,6 @@ import {
   SizeStyle,
   ColorStyle,
 } from 'types'
-
 import session from './session'
 
 const initialData: Data = {
