@@ -1,5 +1,5 @@
 import { DrawShape, PointerInfo } from 'types'
-import { setToArray } from 'utils'
+import { deepClone, setToArray } from 'utils'
 import tld from 'utils/tld'
 import { freeze } from 'immer'
 import session from './session'
@@ -82,7 +82,8 @@ export function fastPinchCamera(
   camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
   const pageState = data.pageStates[data.currentPageId]
-  pageState.camera = { ...camera }
+
+  pageState.camera = deepClone(camera)
 
   data.pageStates[data.currentPageId] = { ...pageState }
 
@@ -93,6 +94,8 @@ export function fastBrushSelect(point: number[]): void {
   const data = { ...state.data }
 
   session.update<Session.BrushSession>(data, tld.screenToWorld(point, data))
+
+  data.brush = deepClone(data.brush)
 
   state.forceData(freeze(data))
 }
