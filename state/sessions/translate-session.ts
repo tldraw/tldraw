@@ -4,15 +4,8 @@ import BaseSession from './base-session'
 import commands from 'state/commands'
 import { current } from 'immer'
 import { uniqueId } from 'utils'
-import {
-  getChildIndexAbove,
-  getDocumentBranch,
-  getPage,
-  getSelectedShapes,
-  setSelectedIds,
-  updateParents,
-} from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
+import tld from 'utils/tld'
 
 export default class TranslateSession extends BaseSession {
   delta = [0, 0]
@@ -34,7 +27,7 @@ export default class TranslateSession extends BaseSession {
     isCloning: boolean
   ): void {
     const { clones, initialShapes, initialParents } = this.snapshot
-    const { shapes } = getPage(data)
+    const { shapes } = tld.getPage(data)
 
     const delta = vec.vec(this.origin, point)
 
@@ -89,12 +82,12 @@ export default class TranslateSession extends BaseSession {
         shapes[id] = { ...shape }
       }
 
-      setSelectedIds(
+      tld.setSelectedIds(
         data,
         clones.map((c) => c.id)
       )
 
-      updateParents(
+      tld.updateParents(
         data,
         clones.map((c) => c.id)
       )
@@ -102,7 +95,7 @@ export default class TranslateSession extends BaseSession {
       if (this.isCloning) {
         this.isCloning = false
 
-        setSelectedIds(
+        tld.setSelectedIds(
           data,
           initialShapes.map((c) => c.id)
         )
@@ -112,7 +105,7 @@ export default class TranslateSession extends BaseSession {
         }
 
         for (const initialShape of initialShapes) {
-          getDocumentBranch(data, initialShape.id).forEach((id) => {
+          tld.getDocumentBranch(data, initialShape.id).forEach((id) => {
             const shape = shapes[id]
             getShapeUtils(shape).translateBy(shape, delta)
             shapes[id] = { ...shape }
@@ -126,7 +119,7 @@ export default class TranslateSession extends BaseSession {
       }
 
       for (const initialShape of initialShapes) {
-        getDocumentBranch(data, initialShape.id).forEach((id) => {
+        tld.getDocumentBranch(data, initialShape.id).forEach((id) => {
           const shape = shapes[id]
           getShapeUtils(shape).translateBy(shape, trueDelta)
 
@@ -134,7 +127,7 @@ export default class TranslateSession extends BaseSession {
         })
       }
 
-      updateParents(
+      tld.updateParents(
         data,
         initialShapes.map((s) => s.id)
       )
@@ -143,10 +136,10 @@ export default class TranslateSession extends BaseSession {
 
   cancel(data: Data): void {
     const { initialShapes, initialParents, clones } = this.snapshot
-    const { shapes } = getPage(data)
+    const { shapes } = tld.getPage(data)
 
     for (const { id } of initialShapes) {
-      getDocumentBranch(data, id).forEach((id) => {
+      tld.getDocumentBranch(data, id).forEach((id) => {
         const shape = shapes[id]
         getShapeUtils(shape).translateBy(shape, vec.neg(this.delta))
       })
@@ -161,7 +154,7 @@ export default class TranslateSession extends BaseSession {
       getShapeUtils(shape).setProperty(shape, 'children', children)
     })
 
-    updateParents(
+    tld.updateParents(
       data,
       initialShapes.map((s) => s.id)
     )
@@ -190,10 +183,10 @@ export function getTranslateSnapshot(data: Data) {
   // End up with an array of ids for all of the shapes that will change
   // Map into shapes from data snapshot
 
-  const page = getPage(cData)
-  const selectedShapes = getSelectedShapes(cData).filter(
-    (shape) => !shape.isLocked
-  )
+  const page = tld.getPage(cData)
+  const selectedShapes = tld
+    .getSelectedShapes(cData)
+    .filter((shape) => !shape.isLocked)
 
   const hasUnlockedShapes = selectedShapes.length > 0
 
@@ -220,7 +213,7 @@ export function getTranslateSnapshot(data: Data) {
           id: uniqueId(),
 
           parentId: shape.parentId,
-          childIndex: getChildIndexAbove(cData, shape.id),
+          childIndex: tld.getChildIndexAbove(cData, shape.id),
           isGenerated: false,
         }
 
@@ -236,7 +229,7 @@ export type TranslateSnapshot = ReturnType<typeof getTranslateSnapshot>
 //     return [clone]
 //   }
 
-//   const page = getPage(data)
+//   const page = tld.getPage(data)
 //   const childClones = clone.children.flatMap((id) => {
 //     const newId = uniqueId()
 //     const source = page.shapes[id]

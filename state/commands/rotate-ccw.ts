@@ -1,12 +1,8 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import {
-  getBoundsCenter,
-  getCommonBounds,
-  getPage,
-  getSelectedShapes,
-} from 'utils'
+import { getBoundsCenter, getCommonBounds } from 'utils'
+import tld from 'utils/tld'
 import vec from 'utils/vec'
 import { getShapeUtils } from 'state/shape-utils'
 
@@ -15,10 +11,10 @@ const PI2 = Math.PI * 2
 export default function rotateCcwCommand(data: Data): void {
   const { boundsRotation } = data
 
-  const page = getPage(data)
+  const page = tld.getPage(data)
 
   const initialShapes = Object.fromEntries(
-    getSelectedShapes(data).map((shape) => {
+    tld.getSelectedShapes(data).map((shape) => {
       const bounds = getShapeUtils(shape).getBounds(shape)
       return [
         shape.id,
@@ -63,7 +59,7 @@ export default function rotateCcwCommand(data: Data): void {
       name: 'rotate_ccw',
       category: 'canvas',
       do(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         for (const id in nextShapes) {
           const shape = shapes[id]
@@ -77,7 +73,7 @@ export default function rotateCcwCommand(data: Data): void {
         data.boundsRotation = nextboundsRotation
       },
       undo(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         for (const id in initialShapes) {
           const { point, rotation } = initialShapes[id]

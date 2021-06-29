@@ -2,7 +2,8 @@ import Command from './command'
 import history from '../history'
 import { Data } from 'types'
 import storage from 'state/storage'
-import { deepClone, getPage, getPageState } from 'utils'
+import { deepClone } from 'utils'
+import tld from 'utils/tld'
 
 export default function deletePage(data: Data, pageId: string): void {
   const snapshot = getSnapshot(data, pageId)
@@ -31,9 +32,9 @@ export default function deletePage(data: Data, pageId: string): void {
 function getSnapshot(data: Data, pageId: string) {
   const { currentPageId, document } = data
 
-  const page = deepClone(getPage(data))
+  const page = deepClone(tld.getPage(data))
 
-  const pageState = deepClone(getPageState(data))
+  const pageState = deepClone(tld.getPageState(data))
 
   const isCurrent = data.currentPageId === pageId
 

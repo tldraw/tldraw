@@ -1,6 +1,7 @@
 import { getShapeUtils } from './shape-utils'
 import { Data, Shape } from 'types'
-import { getCommonBounds, getSelectedShapes } from 'utils'
+import { getCommonBounds } from 'utils'
+import tld from 'utils/tld'
 import state from './state'
 
 class Clipboard {
@@ -47,7 +48,7 @@ class Clipboard {
   }
 
   copySelectionToSvg(data: Data) {
-    const shapes = getSelectedShapes(data)
+    const shapes = tld.getSelectedShapes(data)
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
 

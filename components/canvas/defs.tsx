@@ -2,7 +2,7 @@ import { getShapeStyle } from 'state/shape-styles'
 import { getShapeUtils } from 'state/shape-utils'
 import React from 'react'
 import { useSelector } from 'state'
-import { getCurrentCamera } from 'utils'
+import tld from 'utils/tld'
 import { DotCircle, Handle } from './misc'
 import useShapeDef from 'hooks/useShape'
 import useShapesToRender from 'hooks/useShapesToRender'
@@ -40,7 +40,7 @@ function Def({ id }: { id: string }) {
 }
 
 function ExpandDef() {
-  const zoom = useSelector((s) => getCurrentCamera(s.data).zoom)
+  const zoom = useSelector((s) => tld.getCurrentCamera(s.data).zoom)
   return (
     <filter id="expand">
       <feMorphology operator="dilate" radius={2 / zoom} />

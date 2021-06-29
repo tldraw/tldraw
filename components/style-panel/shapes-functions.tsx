@@ -1,11 +1,11 @@
+import tld from 'utils/tld'
+import state, { useSelector } from 'state'
 import { IconButton, breakpoints } from 'components/shared'
 import { memo } from 'react'
 import styled from 'styles'
 import { MoveType } from 'types'
 import { Trash2 } from 'react-feather'
-import state, { useSelector } from 'state'
 import Tooltip from 'components/tooltip'
-
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -20,7 +20,6 @@ import {
   PinTopIcon,
   RotateCounterClockwiseIcon,
 } from '@radix-ui/react-icons'
-import { getPage, getSelectedIds } from 'utils'
 
 function handleRotateCcw() {
   state.send('ROTATED_CCW')
@@ -64,24 +63,24 @@ function handleDelete() {
 
 function ShapesFunctions() {
   const isAllLocked = useSelector((s) => {
-    const page = getPage(s.data)
+    const page = tld.getPage(s.data)
     return s.values.selectedIds.every((id) => page.shapes[id].isLocked)
   })
 
   const isAllAspectLocked = useSelector((s) => {
-    const page = getPage(s.data)
+    const page = tld.getPage(s.data)
     return s.values.selectedIds.every(
       (id) => page.shapes[id].isAspectRatioLocked
     )
   })
 
   const isAllHidden = useSelector((s) => {
-    const page = getPage(s.data)
+    const page = tld.getPage(s.data)
     return s.values.selectedIds.every((id) => page.shapes[id].isHidden)
   })
 
   const hasSelection = useSelector((s) => {
-    return getSelectedIds(s.data).size > 0
+    return tld.getSelectedIds(s.data).size > 0
   })
 
   return (

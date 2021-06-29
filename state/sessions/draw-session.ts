@@ -2,7 +2,8 @@ import { current } from 'immer'
 import { Data, DrawShape } from 'types'
 import BaseSession from './base-session'
 import { getShapeUtils } from 'state/shape-utils'
-import { getBoundsFromPoints, getPage, getShape, updateParents } from 'utils'
+import { getBoundsFromPoints } from 'utils'
+import tld from 'utils/tld'
 import vec from 'utils/vec'
 import commands from 'state/commands'
 
@@ -27,11 +28,11 @@ export default class DrawSession extends BaseSession {
     // points, this single point will be interpreted as a "dot" shape.
     this.points = [[0, 0, 0.5]]
 
-    const shape = getPage(data).shapes[id]
+    const shape = tld.getPage(data).shapes[id]
 
     getShapeUtils(shape).translateTo(shape, point)
 
-    updateParents(data, [shape.id])
+    tld.updateParents(data, [shape.id])
   }
 
   update = (
@@ -103,26 +104,26 @@ export default class DrawSession extends BaseSession {
     if (this.points.length <= 2) return
 
     // Update the points and update the shape's parents.
-    const shape = getShape(data, snapshot.id) as DrawShape
+    const shape = tld.getShape(data, snapshot.id) as DrawShape
 
     // Note: Normally we would want to spread the points to create a new
     // array, however we create the new array in hacks/fastDrawUpdate.
     getShapeUtils(shape).setProperty(shape, 'points', this.points)
 
-    updateParents(data, [shape.id])
+    tld.updateParents(data, [shape.id])
   }
 
   cancel = (data: Data): void => {
     const { snapshot } = this
-    const shape = getShape(data, snapshot.id) as DrawShape
+    const shape = tld.getShape(data, snapshot.id) as DrawShape
     getShapeUtils(shape).translateTo(shape, snapshot.point)
     getShapeUtils(shape).setProperty(shape, 'points', snapshot.points)
-    updateParents(data, [shape.id])
+    tld.updateParents(data, [shape.id])
   }
 
   complete = (data: Data): void => {
     const { snapshot } = this
-    const page = getPage(data)
+    const page = tld.getPage(data)
     const shape = page.shapes[snapshot.id] as DrawShape
 
     if (shape.points.length < this.points.length) {
@@ -131,7 +132,7 @@ export default class DrawSession extends BaseSession {
 
     getShapeUtils(shape).onSessionComplete(shape)
 
-    updateParents(data, [shape.id])
+    tld.updateParents(data, [shape.id])
 
     commands.draw(data, this.snapshot.id)
   }
@@ -139,7 +140,7 @@ export default class DrawSession extends BaseSession {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getDrawSnapshot(data: Data, shapeId: string) {
-  const page = getPage(current(data))
+  const page = tld.getPage(current(data))
   const { points, point } = page.shapes[shapeId] as DrawShape
 
   return {

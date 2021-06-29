@@ -1,13 +1,8 @@
 import * as React from 'react'
 import { Edge, Corner } from 'types'
 import { useSelector } from 'state'
-import {
-  getBoundsCenter,
-  getCurrentCamera,
-  getPage,
-  getSelectedShapes,
-  isMobile,
-} from 'utils'
+import { getBoundsCenter, isMobile } from 'utils'
+import tld from 'utils/tld'
 import CenterHandle from './center-handle'
 import CornerHandle from './corner-handle'
 import EdgeHandle from './edge-handle'
@@ -18,23 +13,23 @@ export default function Bounds(): JSX.Element {
 
   const isSelecting = useSelector((s) => s.isIn('selecting'))
 
-  const zoom = useSelector((s) => getCurrentCamera(s.data).zoom)
+  const zoom = useSelector((s) => tld.getCurrentCamera(s.data).zoom)
 
   const bounds = useSelector((s) => s.values.selectedBounds)
 
   const rotation = useSelector((s) =>
     s.values.selectedIds.length === 1
-      ? getSelectedShapes(s.data)[0].rotation
+      ? tld.getSelectedShapes(s.data)[0].rotation
       : 0
   )
 
   const isAllLocked = useSelector((s) => {
-    const page = getPage(s.data)
+    const page = tld.getPage(s.data)
     return s.values.selectedIds.every((id) => page.shapes[id]?.isLocked)
   })
 
   const isSingleHandles = useSelector((s) => {
-    const page = getPage(s.data)
+    const page = tld.getPage(s.data)
     return (
       s.values.selectedIds.length === 1 &&
       page.shapes[s.values.selectedIds[0]]?.handles !== undefined

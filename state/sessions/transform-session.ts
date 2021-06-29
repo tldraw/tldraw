@@ -3,18 +3,15 @@ import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
 import { getShapeUtils } from 'state/shape-utils'
+import tld from 'utils/tld'
 import {
   deepClone,
   getBoundsCenter,
   getBoundsFromPoints,
   getCommonBounds,
-  getDocumentBranch,
-  getPage,
   getRelativeTransformedBoundingBox,
-  getSelectedIds,
   getTransformedBoundingBox,
   setToArray,
-  updateParents,
 } from 'utils'
 
 export default class TransformSession extends BaseSession {
@@ -36,7 +33,7 @@ export default class TransformSession extends BaseSession {
 
     const { shapeBounds, initialBounds, isAllAspectRatioLocked } = this.snapshot
 
-    const { shapes } = getPage(data)
+    const { shapes } = tld.getPage(data)
 
     const newBoundingBox = getTransformedBoundingBox(
       initialBounds,
@@ -76,13 +73,13 @@ export default class TransformSession extends BaseSession {
       shapes[id] = { ...shape }
     }
 
-    updateParents(data, Object.keys(shapeBounds))
+    tld.updateParents(data, Object.keys(shapeBounds))
   }
 
   cancel(data: Data): void {
     const { shapeBounds } = this.snapshot
 
-    const { shapes } = getPage(data)
+    const { shapes } = tld.getPage(data)
 
     for (const id in shapeBounds) {
       const shape = shapes[id]
@@ -98,7 +95,7 @@ export default class TransformSession extends BaseSession {
         transformOrigin,
       })
 
-      updateParents(data, Object.keys(shapeBounds))
+      tld.updateParents(data, Object.keys(shapeBounds))
     }
   }
 
@@ -107,7 +104,7 @@ export default class TransformSession extends BaseSession {
 
     if (!hasUnlockedShapes) return
 
-    const page = getPage(data)
+    const page = tld.getPage(data)
 
     const finalShapes = initialShapes.map((shape) =>
       deepClone(page.shapes[shape.id])
@@ -120,10 +117,12 @@ export default class TransformSession extends BaseSession {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
   const { currentPageId } = data
-  const page = getPage(data)
+  const page = tld.getPage(data)
 
-  const initialShapes = setToArray(getSelectedIds(data))
-    .flatMap((id) => getDocumentBranch(data, id).map((id) => page.shapes[id]))
+  const initialShapes = setToArray(tld.getSelectedIds(data))
+    .flatMap((id) =>
+      tld.getDocumentBranch(data, id).map((id) => page.shapes[id])
+    )
     .filter((shape) => !shape.isLocked)
     .map((shape) => deepClone(shape))
 

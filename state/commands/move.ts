@@ -1,19 +1,14 @@
 import Command from './command'
 import history from '../history'
 import { Data, MoveType, Shape } from 'types'
-import {
-  forceIntegerChildIndices,
-  getChildren,
-  getPage,
-  getSelectedIds,
-  setToArray,
-} from 'utils'
+import { setToArray } from 'utils'
+import tld from 'utils/tld'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function moveCommand(data: Data, type: MoveType): void {
-  const page = getPage(data)
+  const page = tld.getPage(data)
 
-  const selectedIds = setToArray(getSelectedIds(data))
+  const selectedIds = setToArray(tld.getSelectedIds(data))
 
   const initialIndices = Object.fromEntries(
     selectedIds.map((id) => [id, page.shapes[id].childIndex])
@@ -26,7 +21,7 @@ export default function moveCommand(data: Data, type: MoveType): void {
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        const page = getPage(data)
+        const page = tld.getPage(data)
 
         const shapes = selectedIds.map((id) => page.shapes[id])
 
@@ -44,20 +39,20 @@ export default function moveCommand(data: Data, type: MoveType): void {
         switch (type) {
           case MoveType.ToFront: {
             for (const id in shapesByParentId) {
-              moveToFront(shapesByParentId[id], getChildren(data, id))
+              moveToFront(shapesByParentId[id], tld.getChildren(data, id))
             }
             break
           }
           case MoveType.ToBack: {
             for (const id in shapesByParentId) {
-              moveToBack(shapesByParentId[id], getChildren(data, id))
+              moveToBack(shapesByParentId[id], tld.getChildren(data, id))
             }
             break
           }
           case MoveType.Forward: {
             for (const id in shapesByParentId) {
               const visited = new Set<string>()
-              const siblings = getChildren(data, id)
+              const siblings = tld.getChildren(data, id)
               shapesByParentId[id]
                 .sort((a, b) => b.childIndex - a.childIndex)
                 .forEach((shape) => moveForward(shape, siblings, visited))
@@ -67,7 +62,7 @@ export default function moveCommand(data: Data, type: MoveType): void {
           case MoveType.Backward: {
             for (const id in shapesByParentId) {
               const visited = new Set<string>()
-              const siblings = getChildren(data, id)
+              const siblings = tld.getChildren(data, id)
               shapesByParentId[id]
                 .sort((a, b) => a.childIndex - b.childIndex)
                 .forEach((shape) => moveBackward(shape, siblings, visited))
@@ -77,7 +72,7 @@ export default function moveCommand(data: Data, type: MoveType): void {
         }
       },
       undo(data) {
-        const page = getPage(data)
+        const page = tld.getPage(data)
 
         for (const id of selectedIds) {
           const shape = page.shapes[id]
@@ -143,7 +138,7 @@ function moveForward(shape: Shape, siblings: Shape[], visited: Set<string>) {
       : Math.ceil(nextSibling.childIndex + 1)
 
     if (nextIndex === nextSibling.childIndex) {
-      forceIntegerChildIndices(siblings)
+      tld.forceIntegerChildIndices(siblings)
 
       nextIndex = nextNextSibling
         ? (nextSibling.childIndex + nextNextSibling.childIndex) / 2
@@ -169,7 +164,7 @@ function moveBackward(shape: Shape, siblings: Shape[], visited: Set<string>) {
       : nextSibling.childIndex / 2
 
     if (shape.childIndex === nextSibling.childIndex) {
-      forceIntegerChildIndices(siblings)
+      tld.forceIntegerChildIndices(siblings)
 
       nextNextSibling
         ? (nextSibling.childIndex + nextNextSibling.childIndex) / 2

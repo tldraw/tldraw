@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import { getPage } from 'utils'
+import tld from 'utils/tld'
 import { EditSnapshot } from 'state/sessions/edit-session'
 import { getShapeUtils } from 'state/shape-utils'
 
@@ -18,7 +18,7 @@ export default function editCommand(
       do(data) {
         const { initialShape } = after
 
-        const page = getPage(data)
+        const page = tld.getPage(data)
 
         page.shapes[initialShape.id] = initialShape
 
@@ -31,7 +31,7 @@ export default function editCommand(
       undo(data) {
         const { initialShape } = before
 
-        const page = getPage(data)
+        const page = tld.getPage(data)
 
         page.shapes[initialShape.id] = initialShape
       },

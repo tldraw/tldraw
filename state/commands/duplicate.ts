@@ -1,23 +1,21 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import {
-  deepClone,
-  getCurrentCamera,
-  getPage,
-  getSelectedShapes,
-  setSelectedIds,
-} from 'utils'
+import { deepClone } from 'utils'
+import tld from 'utils/tld'
 import { uniqueId } from 'utils'
 import vec from 'utils/vec'
 
 export default function duplicateCommand(data: Data): void {
-  const selectedShapes = getSelectedShapes(data).map(deepClone)
+  const selectedShapes = tld.getSelectedShapes(data).map(deepClone)
 
   const duplicates = selectedShapes.map((shape) => ({
     ...shape,
     id: uniqueId(),
-    point: vec.add(shape.point, vec.div([16, 16], getCurrentCamera(data).zoom)),
+    point: vec.add(
+      shape.point,
+      vec.div([16, 16], tld.getCurrentCamera(data).zoom)
+    ),
     isGenerated: false,
   }))
 
@@ -28,25 +26,25 @@ export default function duplicateCommand(data: Data): void {
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         for (const duplicate of duplicates) {
           shapes[duplicate.id] = duplicate
         }
 
-        setSelectedIds(
+        tld.setSelectedIds(
           data,
           duplicates.map((d) => d.id)
         )
       },
       undo(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         for (const duplicate of duplicates) {
           delete shapes[duplicate.id]
         }
 
-        setSelectedIds(
+        tld.setSelectedIds(
           data,
           selectedShapes.map((d) => d.id)
         )

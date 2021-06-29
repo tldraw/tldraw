@@ -69,7 +69,7 @@ describe('deletes and restores grouped shapes', () => {
     // Should select the group
     expect(assertShapeProps(group, { type: ShapeType.Group }))
 
-    const arrow = getShape(state.data, arrowId)
+    const arrow = tld.getShape(state.data, arrowId)
 
     // The arrow should be have the group as its parent
     expect(assertShapeProps(arrow, { parentId: group.id }))

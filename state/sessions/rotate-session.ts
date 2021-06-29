@@ -7,14 +7,9 @@ import {
   clampToRotationToSegments,
   getBoundsCenter,
   getCommonBounds,
-  getPage,
-  getRotatedBounds,
-  getShapeBounds,
-  updateParents,
-  getDocumentBranch,
   setToArray,
-  getSelectedIds,
 } from 'utils'
+import tld from 'utils/tld'
 import { getShapeUtils } from 'state/shape-utils'
 
 const PI2 = Math.PI * 2
@@ -34,7 +29,7 @@ export default class RotateSession extends BaseSession {
   update(data: Data, point: number[], isLocked: boolean): void {
     const { commonBoundsCenter, initialShapes } = this.snapshot
 
-    const page = getPage(data)
+    const page = tld.getPage(data)
     const a1 = vec.angle(commonBoundsCenter, this.origin)
     const a2 = vec.angle(commonBoundsCenter, point)
 
@@ -69,7 +64,7 @@ export default class RotateSession extends BaseSession {
         .translateTo(shape, nextPoint)
     }
 
-    updateParents(
+    tld.updateParents(
       data,
       initialShapes.map((s) => s.id)
     )
@@ -77,7 +72,7 @@ export default class RotateSession extends BaseSession {
 
   cancel(data: Data): void {
     const { initialShapes } = this.snapshot
-    const page = getPage(data)
+    const page = tld.getPage(data)
 
     for (const { id, point, rotation } of initialShapes) {
       const shape = page.shapes[id]
@@ -86,7 +81,7 @@ export default class RotateSession extends BaseSession {
         .translateTo(shape, point)
     }
 
-    updateParents(
+    tld.updateParents(
       data,
       initialShapes.map((s) => s.id)
     )
@@ -101,16 +96,18 @@ export default class RotateSession extends BaseSession {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getRotateSnapshot(data: Data) {
   const cData = current(data)
-  const page = getPage(cData)
+  const page = tld.getPage(cData)
 
-  const initialShapes = setToArray(getSelectedIds(data))
-    .flatMap((id) => getDocumentBranch(cData, id).map((id) => page.shapes[id]))
+  const initialShapes = setToArray(tld.getSelectedIds(data))
+    .flatMap((id) =>
+      tld.getDocumentBranch(cData, id).map((id) => page.shapes[id])
+    )
     .filter((shape) => !shape.isLocked)
 
   const hasUnlockedShapes = initialShapes.length > 0
 
   const shapesBounds = Object.fromEntries(
-    initialShapes.map((shape) => [shape.id, getShapeBounds(shape)])
+    initialShapes.map((shape) => [shape.id, tld.getShapeBounds(shape)])
   )
 
   const bounds = getCommonBounds(...Object.values(shapesBounds))
@@ -131,7 +128,7 @@ export function getRotateSnapshot(data: Data) {
 
         const rotationOffset = vec.sub(
           center,
-          getBoundsCenter(getRotatedBounds(shape))
+          getBoundsCenter(tld.getRotatedBounds(shape))
         )
 
         return {

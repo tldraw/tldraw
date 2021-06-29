@@ -3,7 +3,7 @@ import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
 import { current } from 'immer'
-import { getPage } from 'utils'
+import tld from 'utils/tld'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default class HandleSession extends BaseSession {
@@ -19,7 +19,7 @@ export default class HandleSession extends BaseSession {
 
   update(data: Data, point: number[], isAligned: boolean): void {
     const { handleId, initialShape } = this.snapshot
-    const shape = getPage(data).shapes[initialShape.id]
+    const shape = tld.getPage(data).shapes[initialShape.id]
 
     const delta = vec.vec(this.origin, point)
 
@@ -47,7 +47,7 @@ export default class HandleSession extends BaseSession {
 
   cancel(data: Data): void {
     const { initialShape } = this.snapshot
-    getPage(data).shapes[initialShape.id] = initialShape
+    tld.getPage(data).shapes[initialShape.id] = initialShape
   }
 
   complete(data: Data): void {
@@ -69,7 +69,7 @@ export function getHandleSnapshot(
   shapeId: string,
   handleId: string
 ) {
-  const initialShape = getPage(current(data)).shapes[shapeId]
+  const initialShape = tld.getPage(current(data)).shapes[shapeId]
 
   return {
     currentPageId: data.currentPageId,

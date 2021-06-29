@@ -2,15 +2,9 @@ import { current } from 'immer'
 import { Bounds, Data, ShapeType } from 'types'
 import BaseSession from './base-session'
 import { getShapeUtils } from 'state/shape-utils'
-import {
-  getBoundsFromPoints,
-  getPageState,
-  getShapes,
-  getTopParentId,
-  setSelectedIds,
-  setToArray,
-} from 'utils'
+import { getBoundsFromPoints, setToArray } from 'utils'
 import vec from 'utils/vec'
+import tld from 'utils/tld'
 
 export default class BrushSession extends BaseSession {
   origin: number[]
@@ -51,14 +45,14 @@ export default class BrushSession extends BaseSession {
       }
     }
 
-    getPageState(data).selectedIds = selectedIds
+    tld.getPageState(data).selectedIds = selectedIds
 
     data.brush = brushBounds
   }
 
   cancel = (data: Data): void => {
     data.brush = undefined
-    setSelectedIds(data, this.snapshot.selectedIds)
+    tld.setSelectedIds(data, this.snapshot.selectedIds)
   }
 
   complete = (data: Data): void => {
@@ -74,9 +68,10 @@ export default class BrushSession extends BaseSession {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getBrushSnapshot(data: Data) {
   const cData = current(data)
-  const { selectedIds } = getPageState(cData)
+  const { selectedIds } = tld.getPageState(cData)
 
-  const shapesToTest = getShapes(cData)
+  const shapesToTest = tld
+    .getShapes(cData)
     .filter((shape) => shape.type !== ShapeType.Group && !shape.isHidden)
     .filter(
       (shape) => !(selectedIds.has(shape.id) || selectedIds.has(shape.parentId))
@@ -89,7 +84,7 @@ export function getBrushSnapshot(data: Data) {
         return [
           shape.id,
           {
-            selectId: getTopParentId(cData, shape.id),
+            selectId: tld.getTopParentId(cData, shape.id),
             test: (bounds: Bounds) =>
               getShapeUtils(shape).hitTestBounds(shape, bounds),
           },

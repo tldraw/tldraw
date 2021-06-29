@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { getShape } from 'utils'
+import tld from 'utils/tld'
 import { getShapeUtils } from 'state/shape-utils'
 import vec from 'utils/vec'
 import styled from 'styles'
@@ -8,10 +8,10 @@ import { getShapeStyle } from 'state/shape-styles'
 
 function HoveredShape({ id }: { id: string }) {
   const transform = useSelector((s) => {
-    const shape = getShape(s.data, id)
+    const shape = tld.getShape(s.data, id)
     const center = getShapeUtils(shape).getCenter(shape)
     const rotation = shape.rotation * (180 / Math.PI)
-    const parentPoint = getShape(s.data, shape.parentId)?.point || [0, 0]
+    const parentPoint = tld.getShape(s.data, shape.parentId)?.point || [0, 0]
 
     return `
       translate(${vec.neg(parentPoint)})
@@ -21,7 +21,7 @@ function HoveredShape({ id }: { id: string }) {
   })
 
   const strokeWidth = useSelector((s) => {
-    const shape = getShape(s.data, id)
+    const shape = tld.getShape(s.data, id)
     const style = getShapeStyle(shape.style)
     return +style.strokeWidth
   })

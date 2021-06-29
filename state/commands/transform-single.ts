@@ -3,7 +3,7 @@ import history from '../history'
 import { Data } from 'types'
 import { current } from 'immer'
 import { TransformSingleSnapshot } from 'state/sessions/transform-single-session'
-import { getPage, setSelectedIds, updateParents } from 'utils'
+import tld from 'utils/tld'
 
 export default function transformSingleCommand(
   data: Data,
@@ -11,7 +11,7 @@ export default function transformSingleCommand(
   after: TransformSingleSnapshot,
   isCreating: boolean
 ): void {
-  const shape = current(getPage(data).shapes[after.id])
+  const shape = current(tld.getPage(data).shapes[after.id])
 
   history.execute(
     data,
@@ -22,27 +22,27 @@ export default function transformSingleCommand(
       do(data) {
         const { id } = after
 
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
-        setSelectedIds(data, [id])
+        tld.setSelectedIds(data, [id])
 
         shapes[id] = shape
 
-        updateParents(data, [id])
+        tld.updateParents(data, [id])
       },
       undo(data) {
         const { id, initialShape } = before
 
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         if (isCreating) {
-          setSelectedIds(data, [])
+          tld.setSelectedIds(data, [])
           delete shapes[id]
         } else {
-          const page = getPage(data)
+          const page = tld.getPage(data)
           page.shapes[id] = initialShape
-          updateParents(data, [id])
-          setSelectedIds(data, [id])
+          tld.updateParents(data, [id])
+          tld.setSelectedIds(data, [id])
         }
       },
     })

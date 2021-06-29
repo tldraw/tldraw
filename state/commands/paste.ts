@@ -1,21 +1,15 @@
 import Command from './command'
 import history from '../history'
 import { Data, Shape } from 'types'
-import {
-  getCommonBounds,
-  getPage,
-  getSelectedIds,
-  screenToWorld,
-  setSelectedIds,
-  setToArray,
-} from 'utils'
+import { getCommonBounds, setToArray } from 'utils'
+import tld from 'utils/tld'
 import { uniqueId } from 'utils'
 import vec from 'utils/vec'
 import { getShapeUtils } from 'state/shape-utils'
 import state from 'state/state'
 
 export default function pasteCommand(data: Data, initialShapes: Shape[]): void {
-  const center = screenToWorld(
+  const center = tld.screenToWorld(
     [window.innerWidth / 2, window.innerHeight / 2],
     data
   )
@@ -32,7 +26,7 @@ export default function pasteCommand(data: Data, initialShapes: Shape[]): void {
     initialShapes.map((shape) => [shape.id, uniqueId()])
   )
 
-  const oldSelectedIds = setToArray(getSelectedIds(data))
+  const oldSelectedIds = setToArray(tld.getSelectedIds(data))
 
   history.execute(
     data,
@@ -41,7 +35,7 @@ export default function pasteCommand(data: Data, initialShapes: Shape[]): void {
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         let childIndex =
           (state.values.currentShapes[state.values.currentShapes.length - 1]
@@ -62,14 +56,14 @@ export default function pasteCommand(data: Data, initialShapes: Shape[]): void {
           }
         }
 
-        setSelectedIds(data, Object.values(newIdMap))
+        tld.setSelectedIds(data, Object.values(newIdMap))
       },
       undo(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         Object.values(newIdMap).forEach((id) => delete shapes[id])
 
-        setSelectedIds(data, oldSelectedIds)
+        tld.setSelectedIds(data, oldSelectedIds)
       },
     })
   )

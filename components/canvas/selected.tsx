@@ -1,6 +1,7 @@
 import styled from 'styles'
 import { useSelector } from 'state'
-import { deepCompareArrays, getPage } from 'utils'
+import tld from 'utils/tld'
+import { deepCompareArrays } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 import { memo } from 'react'
 
@@ -26,7 +27,7 @@ export default function Selected(): JSX.Element {
 export const ShapeOutline = memo(function ShapeOutline({ id }: { id: string }) {
   // const rIndicator = useRef<SVGUseElement>(null)
 
-  const shape = useSelector((s) => getPage(s.data).shapes[id])
+  const shape = useSelector((s) => tld.getShape(s.data, id))
 
   // const events = useShapeEvents(id, shape?.type === ShapeType.Group, rIndicator)
 

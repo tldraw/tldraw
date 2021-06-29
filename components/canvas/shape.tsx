@@ -2,7 +2,8 @@ import React, { useRef, memo, useEffect, useState } from 'react'
 import state, { useSelector } from 'state'
 import styled from 'styles'
 import { getShapeUtils } from 'state/shape-utils'
-import { deepCompareArrays, getPage, getShape } from 'utils'
+import { deepCompareArrays } from 'utils'
+import tld from 'utils/tld'
 import useShapeEvents from 'hooks/useShapeEvents'
 import vec from 'utils/vec'
 import { getShapeStyle } from 'state/shape-styles'
@@ -17,31 +18,31 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
   const rGroup = useRef<SVGGElement>(null)
 
   const isHidden = useSelector((s) => {
-    const shape = getShape(s.data, id)
+    const shape = tld.getShape(s.data, id)
     return shape?.isHidden || false
   })
 
   const children = useSelector((s) => {
-    const shape = getShape(s.data, id)
+    const shape = tld.getShape(s.data, id)
     return shape?.children || []
   }, deepCompareArrays)
 
   const strokeWidth = useSelector((s) => {
-    const shape = getShape(s.data, id)
+    const shape = tld.getShape(s.data, id)
     const style = getShapeStyle(shape?.style)
     return +style.strokeWidth
   })
 
   const shapeUtils = useSelector((s) => {
-    const shape = getShape(s.data, id)
+    const shape = tld.getShape(s.data, id)
     return getShapeUtils(shape)
   })
 
   const transform = useSelector((s) => {
-    const shape = getShape(s.data, id)
+    const shape = tld.getShape(s.data, id)
     const center = getShapeUtils(shape).getCenter(shape)
     const rotation = shape.rotation * (180 / Math.PI)
-    const parentPoint = getShape(s.data, shape.parentId)?.point || [0, 0]
+    const parentPoint = tld.getShape(s.data, shape.parentId)?.point || [0, 0]
 
     return `
       translate(${vec.neg(parentPoint)})
@@ -121,7 +122,7 @@ const ForeignObjectHover = memo(function ForeignObjectHover({
   id: string
 }) {
   const size = useSelector((s) => {
-    const shape = getPage(s.data).shapes[id]
+    const shape = tld.getPage(s.data).shapes[id]
     const bounds = getShapeUtils(shape).getBounds(shape)
 
     return [bounds.width, bounds.height]
@@ -202,7 +203,7 @@ function useMissingShapeTest(id: string) {
 
   useEffect(() => {
     return state.onUpdate((s) => {
-      if (isShape && !getShape(s.data, id)) {
+      if (isShape && !tld.getShape(s.data, id)) {
         setIsShape(false)
       }
     })

@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import { getPage } from 'utils'
+import tld from 'utils/tld'
 import { HandleSnapshot } from 'state/sessions/handle-session'
 import { getShapeUtils } from 'state/shape-utils'
 
@@ -18,7 +18,7 @@ export default function handleCommand(
       do(data) {
         const { initialShape } = after
 
-        const page = getPage(data)
+        const page = tld.getPage(data)
         const shape = page.shapes[initialShape.id]
 
         getShapeUtils(shape)
@@ -28,7 +28,7 @@ export default function handleCommand(
       undo(data) {
         const { initialShape } = before
 
-        const page = getPage(data)
+        const page = tld.getPage(data)
         page.shapes[initialShape.id] = initialShape
       },
     })

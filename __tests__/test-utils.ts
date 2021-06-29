@@ -1,5 +1,5 @@
 import { Data, Shape, ShapeType } from 'types'
-import { getSelectedIds, getSelectedShapes, getShape } from 'utils'
+import tld from 'utils/tld'
 
 export const rectangleId = '1f6c251c-e12e-40b4-8dd2-c1847d80b72f'
 export const arrowId = '5ca167d7-54de-47c9-aa8f-86affa25e44d'
@@ -40,7 +40,7 @@ export function idsAreSelected(
   ids: string[],
   strict = true
 ): boolean {
-  const selectedIds = getSelectedIds(data)
+  const selectedIds = tld.getSelectedIds(data)
   return (
     (strict ? selectedIds.size === ids.length : true) &&
     ids.every((id) => selectedIds.has(id))
@@ -52,11 +52,11 @@ export function hasParent(
   childId: string,
   parentId: string
 ): boolean {
-  return getShape(data, childId).parentId === parentId
+  return tld.getShape(data, childId).parentId === parentId
 }
 
 export function getOnlySelectedShape(data: Data): Shape {
-  const selectedShapes = getSelectedShapes(data)
+  const selectedShapes = tld.getSelectedShapes(data)
   return selectedShapes.length === 1 ? selectedShapes[0] : undefined
 }
 
@@ -65,7 +65,7 @@ export function assertShapeType(
   shapeId: string,
   type: ShapeType
 ): boolean {
-  const shape = getShape(data, shapeId)
+  const shape = tld.getShape(data, shapeId)
   if (shape.type !== type) {
     throw new TypeError(
       `expected shape ${shapeId} to be of type ${type}, found ${shape?.type} instead`

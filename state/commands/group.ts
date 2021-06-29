@@ -1,15 +1,9 @@
 import Command from './command'
 import history from '../history'
 import { Data, GroupShape, ShapeType } from 'types'
-import {
-  getCommonBounds,
-  getPage,
-  getSelectedIds,
-  getSelectedShapes,
-  getShape,
-  setSelectedIds,
-} from 'utils'
+import { getCommonBounds } from 'utils'
 import { current } from 'immer'
+import tld from 'utils/tld'
 import { createShape, getShapeUtils } from 'state/shape-utils'
 import commands from '.'
 
@@ -17,11 +11,11 @@ export default function groupCommand(data: Data): void {
   const cData = current(data)
   const { currentPageId } = cData
 
-  const oldSelectedIds = getSelectedIds(cData)
+  const oldSelectedIds = tld.getSelectedIds(cData)
 
-  const initialShapes = getSelectedShapes(cData).sort(
-    (a, b) => a.childIndex - b.childIndex
-  )
+  const initialShapes = tld
+    .getSelectedShapes(cData)
+    .sort((a, b) => a.childIndex - b.childIndex)
 
   const isAllSameParent = initialShapes.every(
     (shape, i) => i === 0 || shape.parentId === initialShapes[i - 1].parentId
@@ -43,7 +37,7 @@ export default function groupCommand(data: Data): void {
       newGroupParentId = currentPageId
     } else {
       // Are all of the parent's children selected?
-      const parent = getShape(data, parentId) as GroupShape
+      const parent = tld.getShape(data, parentId) as GroupShape
 
       if (parent.children.length === initialShapes.length) {
         // !!! Hey! We're not going any further. We need to ungroup those shapes.
@@ -82,7 +76,7 @@ export default function groupCommand(data: Data): void {
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         // Create the new group
         shapes[newGroupShape.id] = newGroupShape
@@ -115,10 +109,10 @@ export default function groupCommand(data: Data): void {
             .setProperty(shape, 'parentId', newGroupShape.id)
         })
 
-        setSelectedIds(data, [newGroupShape.id])
+        tld.setSelectedIds(data, [newGroupShape.id])
       },
       undo(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         const group = shapes[newGroupShape.id]
 
@@ -152,7 +146,7 @@ export default function groupCommand(data: Data): void {
         delete shapes[newGroupShape.id]
 
         // Reselect the children of the group
-        setSelectedIds(data, initialShapeIds)
+        tld.setSelectedIds(data, initialShapeIds)
       },
     })
   )
@@ -163,5 +157,5 @@ function getShapeDepth(data: Data, id: string, depth = 0) {
     return depth
   }
 
-  return getShapeDepth(data, getShape(data, id).parentId, depth + 1)
+  return getShapeDepth(data, tld.getShape(data, id).parentId, depth + 1)
 }

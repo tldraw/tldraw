@@ -27,7 +27,7 @@ import {
   SizeStyle,
   CodeError,
 } from 'types'
-import { getPage, getShapes } from 'utils'
+import tld from 'utils/tld'
 import { transform } from 'sucrase'
 import { getErrorWithLineAndColumn, getFormattedCode } from 'utils/code'
 
@@ -89,7 +89,8 @@ export async function generateFromCode(
     )
 
     const startingChildIndex =
-      getShapes(data)
+      tld
+        .getShapes(data)
         .filter((shape) => shape.parentId === data.currentPageId)
         .sort((a, b) => a.childIndex - b.childIndex)[0]?.childIndex || 1
 
@@ -98,7 +99,7 @@ export async function generateFromCode(
       .map((instance, i) => ({
         ...instance.shape,
         isGenerated: true,
-        parentId: getPage(data).id,
+        parentId: tld.getPage(data).id,
         childIndex: startingChildIndex + i,
       }))
 
@@ -141,7 +142,8 @@ export async function updateFromCode(
   }
 
   const startingChildIndex =
-    getShapes(data)
+    tld
+      .getShapes(data)
       .filter((shape) => shape.parentId === data.currentPageId)
       .sort((a, b) => a.childIndex - b.childIndex)[0]?.childIndex || 1
 
@@ -156,7 +158,7 @@ export async function updateFromCode(
     .map((instance, i) => ({
       ...instance.shape,
       isGenerated: true,
-      parentId: getPage(data).id,
+      parentId: tld.getPage(data).id,
       childIndex: startingChildIndex + i,
     }))
 

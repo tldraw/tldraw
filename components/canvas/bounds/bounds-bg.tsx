@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import state, { useSelector } from 'state'
 import inputs from 'state/inputs'
 import styled from 'styles'
-import { getPage } from 'utils'
+import tld from 'utils/tld'
 
 function handlePointerDown(e: React.PointerEvent<SVGRectElement>) {
   if (!inputs.canAccept(e.pointerId)) return
@@ -36,7 +36,7 @@ export default function BoundsBg(): JSX.Element {
 
     if (selectedIds.length === 1) {
       const selected = selectedIds[0]
-      const page = getPage(s.data)
+      const page = tld.getPage(s.data)
 
       return page.shapes[selected]?.rotation
     } else {
@@ -48,7 +48,7 @@ export default function BoundsBg(): JSX.Element {
     const selectedIds = s.values.selectedIds
 
     if (selectedIds.length === 1) {
-      const page = getPage(s.data)
+      const page = tld.getPage(s.data)
       const selected = selectedIds[0]
 
       return (

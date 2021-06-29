@@ -1,24 +1,19 @@
 import Command from './command'
 import history from '../history'
 import { Data, Shape } from 'types'
-import {
-  deepClone,
-  getDocumentBranch,
-  getPage,
-  getSelectedShapes,
-  setSelectedIds,
-} from 'utils'
+import { deepClone } from 'utils'
+import tld from 'utils/tld'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function deleteSelected(data: Data): void {
-  const selectedShapes = getSelectedShapes(data)
+  const selectedShapes = tld.getSelectedShapes(data)
 
   const selectedIdsArr = selectedShapes
     .filter((shape) => !shape.isLocked)
     .map((shape) => shape.id)
 
   const shapeIdsToDelete = selectedIdsArr.flatMap((id) =>
-    getDocumentBranch(data, id)
+    tld.getDocumentBranch(data, id)
   )
 
   const remainingIds = selectedShapes
@@ -35,16 +30,16 @@ export default function deleteSelected(data: Data): void {
       manualSelection: true,
       do(data) {
         // Update selected ids
-        setSelectedIds(data, remainingIds)
+        tld.setSelectedIds(data, remainingIds)
 
         // Recursively delete shapes (and maybe their parents too)
         deletedShapes = deleteShapes(data, shapeIdsToDelete)
       },
       undo(data) {
-        const page = getPage(data)
+        const page = tld.getPage(data)
 
         // Update selected ids
-        setSelectedIds(data, selectedIdsArr)
+        tld.setSelectedIds(data, selectedIdsArr)
 
         // Restore deleted shapes
         deletedShapes.forEach((shape) => (page.shapes[shape.id] = shape))
@@ -76,7 +71,7 @@ function deleteShapes(
 ): Shape[] {
   const parentsToDelete: string[] = []
 
-  const page = getPage(data)
+  const page = tld.getPage(data)
 
   const parentIds = new Set(shapeIds.map((id) => page.shapes[id].parentId))
 

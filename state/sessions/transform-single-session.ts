@@ -4,13 +4,8 @@ import BaseSession from './base-session'
 import commands from 'state/commands'
 import { current } from 'immer'
 import { getShapeUtils } from 'state/shape-utils'
-import {
-  getTransformedBoundingBox,
-  getPage,
-  getShape,
-  getSelectedShapes,
-  updateParents,
-} from 'utils'
+import { getTransformedBoundingBox } from 'utils'
+import tld from 'utils/tld'
 
 export default class TransformSingleSession extends BaseSession {
   transformType: Edge | Corner
@@ -38,7 +33,7 @@ export default class TransformSingleSession extends BaseSession {
 
     const { initialShapeBounds, initialShape, id } = this.snapshot
 
-    const shape = getShape(data, id)
+    const shape = tld.getShape(data, id)
 
     const newBoundingBox = getTransformedBoundingBox(
       initialShapeBounds,
@@ -61,16 +56,16 @@ export default class TransformSingleSession extends BaseSession {
 
     data.document.pages[data.currentPageId].shapes[shape.id] = { ...shape }
 
-    updateParents(data, [id])
+    tld.updateParents(data, [id])
   }
 
   cancel(data: Data): void {
     const { id, initialShape } = this.snapshot
 
-    const page = getPage(data)
+    const page = tld.getPage(data)
     page.shapes[id] = initialShape
 
-    updateParents(data, [id])
+    tld.updateParents(data, [id])
   }
 
   complete(data: Data): void {
@@ -90,7 +85,7 @@ export function getTransformSingleSnapshot(
   data: Data,
   transformType: Edge | Corner
 ) {
-  const shape = getSelectedShapes(current(data))[0]
+  const shape = tld.getSelectedShapes(current(data))[0]
   const bounds = getShapeUtils(shape).getBounds(shape)
 
   return {
