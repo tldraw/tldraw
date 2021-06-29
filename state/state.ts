@@ -7,7 +7,7 @@ import history from './history'
 import storage from './storage'
 import clipboard from './clipboard'
 import * as Sessions from './sessions'
-import pusher from './coop/client-supa'
+import coopClient from './coop/client-pusher'
 import commands from './commands'
 import {
   getCommonBounds,
@@ -1162,7 +1162,7 @@ const state = createState({
     },
     sendRtCursorMove(data, payload: PointerInfo) {
       const point = tld.screenToWorld(payload.point, data)
-      pusher.moveCursor(data.currentPageId, point)
+      coopClient.moveCursor(data.currentPageId, point)
     },
     moveRtCursor(
       data,
@@ -1214,7 +1214,7 @@ const state = createState({
     },
     connectToRoom(data, payload: { id: string }) {
       data.room = { id: payload.id, status: 'connecting', peers: {} }
-      pusher.connect(payload.id)
+      coopClient.connect(payload.id)
     },
 
     resetPageState(data) {

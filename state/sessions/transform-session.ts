@@ -11,7 +11,6 @@ import {
   getCommonBounds,
   getRelativeTransformedBoundingBox,
   getTransformedBoundingBox,
-  setToArray,
 } from 'utils'
 
 export default class TransformSession extends BaseSession {
@@ -117,14 +116,8 @@ export default class TransformSession extends BaseSession {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getTransformSnapshot(data: Data, transformType: Edge | Corner) {
   const { currentPageId } = data
-  const page = tld.getPage(data)
 
-  const initialShapes = setToArray(tld.getSelectedIds(data))
-    .flatMap((id) =>
-      tld.getDocumentBranch(data, id).map((id) => page.shapes[id])
-    )
-    .filter((shape) => !shape.isLocked)
-    .map((shape) => deepClone(shape))
+  const initialShapes = tld.getSelectedBranchSnapshot(data)
 
   const hasUnlockedShapes = initialShapes.length > 0
 

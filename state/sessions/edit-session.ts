@@ -1,9 +1,9 @@
 import { Data, Shape } from 'types'
 import BaseSession from './base-session'
 import commands from 'state/commands'
-import { current } from 'immer'
 import { getShapeUtils } from 'state/shape-utils'
 import tld from 'utils/tld'
+import { deepClone } from 'utils'
 
 export default class EditSession extends BaseSession {
   snapshot: EditSnapshot
@@ -35,7 +35,7 @@ export default class EditSession extends BaseSession {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getEditSnapshot(data: Data) {
-  const initialShape = tld.getSelectedShapes(current(data))[0]
+  const initialShape = deepClone(tld.getSelectedShapes(data)[0])
 
   return {
     currentPageId: data.currentPageId,

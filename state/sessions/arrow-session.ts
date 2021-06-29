@@ -2,8 +2,7 @@ import { ArrowShape, Data } from 'types'
 import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
-import { current } from 'immer'
-import { getBoundsFromPoints, setToArray } from 'utils'
+import { deepClone, getBoundsFromPoints, setToArray } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 import tld from 'utils/tld'
 
@@ -110,7 +109,7 @@ export default class ArrowSession extends BaseSession {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getArrowSnapshot(data: Data, id: string) {
-  const initialShape = tld.getPage(current(data)).shapes[id] as ArrowShape
+  const initialShape = deepClone(tld.getPage(data).shapes[id]) as ArrowShape
 
   return {
     id,

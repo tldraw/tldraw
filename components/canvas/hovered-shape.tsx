@@ -37,7 +37,6 @@ function HoveredShape({ id }: { id: string }) {
 
 const StyledHoverShape = styled('use', {
   stroke: '$selected',
-  filter: 'url(#expand)',
   opacity: 0.1,
 })
 

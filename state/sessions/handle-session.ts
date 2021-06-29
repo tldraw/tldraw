@@ -2,9 +2,9 @@ import { Data } from 'types'
 import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
-import { current } from 'immer'
 import tld from 'utils/tld'
 import { getShapeUtils } from 'state/shape-utils'
+import { deepClone } from 'utils'
 
 export default class HandleSession extends BaseSession {
   delta = [0, 0]
@@ -69,7 +69,7 @@ export function getHandleSnapshot(
   shapeId: string,
   handleId: string
 ) {
-  const initialShape = tld.getPage(current(data)).shapes[shapeId]
+  const initialShape = deepClone(tld.getShape(data, shapeId))
 
   return {
     currentPageId: data.currentPageId,

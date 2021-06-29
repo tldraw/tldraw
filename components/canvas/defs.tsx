@@ -6,6 +6,7 @@ import tld from 'utils/tld'
 import { DotCircle, Handle } from './misc'
 import useShapeDef from 'hooks/useShape'
 import useShapesToRender from 'hooks/useShapesToRender'
+import styled from 'styles'
 
 export default function Defs(): JSX.Element {
   const shapeIdsToRender = useShapesToRender()
@@ -15,6 +16,7 @@ export default function Defs(): JSX.Element {
       <DotCircle id="dot" r={4} />
       <Handle id="handle" r={4} />
       <ExpandDef />
+      <ShadowDef />
       {shapeIdsToRender.map((id) => (
         <Def key={id} id={id} />
       ))}
@@ -41,9 +43,22 @@ function Def({ id }: { id: string }) {
 
 function ExpandDef() {
   const zoom = useSelector((s) => tld.getCurrentCamera(s.data).zoom)
+
   return (
     <filter id="expand">
       <feMorphology operator="dilate" radius={2 / zoom} />
     </filter>
   )
 }
+
+function ShadowDef() {
+  return (
+    <filter id="hover">
+      <StyledShadow dx="0" dy="0" stdDeviation="1.2" floodOpacity="1" />
+    </filter>
+  )
+}
+
+const StyledShadow = styled('feDropShadow', {
+  floodColor: '$selected',
+})

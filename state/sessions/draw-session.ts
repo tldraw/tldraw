@@ -1,8 +1,7 @@
-import { current } from 'immer'
 import { Data, DrawShape } from 'types'
 import BaseSession from './base-session'
 import { getShapeUtils } from 'state/shape-utils'
-import { getBoundsFromPoints } from 'utils'
+import { deepClone, getBoundsFromPoints } from 'utils'
 import tld from 'utils/tld'
 import vec from 'utils/vec'
 import commands from 'state/commands'
@@ -140,8 +139,8 @@ export default class DrawSession extends BaseSession {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getDrawSnapshot(data: Data, shapeId: string) {
-  const page = tld.getPage(current(data))
-  const { points, point } = page.shapes[shapeId] as DrawShape
+  const page = tld.getPage(data)
+  const { points, point } = deepClone(page.shapes[shapeId]) as DrawShape
 
   return {
     id: shapeId,

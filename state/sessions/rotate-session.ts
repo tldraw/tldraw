@@ -2,12 +2,10 @@ import { Data, ShapeType } from 'types'
 import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
-import { current } from 'immer'
 import {
   clampToRotationToSegments,
   getBoundsCenter,
   getCommonBounds,
-  setToArray,
 } from 'utils'
 import tld from 'utils/tld'
 import { getShapeUtils } from 'state/shape-utils'
@@ -95,14 +93,7 @@ export default class RotateSession extends BaseSession {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getRotateSnapshot(data: Data) {
-  const cData = current(data)
-  const page = tld.getPage(cData)
-
-  const initialShapes = setToArray(tld.getSelectedIds(data))
-    .flatMap((id) =>
-      tld.getDocumentBranch(cData, id).map((id) => page.shapes[id])
-    )
-    .filter((shape) => !shape.isLocked)
+  const initialShapes = tld.getSelectedBranchSnapshot(data)
 
   const hasUnlockedShapes = initialShapes.length > 0
 

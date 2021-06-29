@@ -1,8 +1,7 @@
-import { current } from 'immer'
 import { Bounds, Data, ShapeType } from 'types'
 import BaseSession from './base-session'
 import { getShapeUtils } from 'state/shape-utils'
-import { getBoundsFromPoints, setToArray } from 'utils'
+import { deepClone, getBoundsFromPoints, setToArray } from 'utils'
 import vec from 'utils/vec'
 import tld from 'utils/tld'
 
@@ -67,7 +66,7 @@ export default class BrushSession extends BaseSession {
  */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getBrushSnapshot(data: Data) {
-  const cData = current(data)
+  const cData = data
   const { selectedIds } = tld.getPageState(cData)
 
   const shapesToTest = tld
@@ -76,6 +75,7 @@ export function getBrushSnapshot(data: Data) {
     .filter(
       (shape) => !(selectedIds.has(shape.id) || selectedIds.has(shape.parentId))
     )
+    .map(deepClone)
 
   return {
     selectedIds: setToArray(selectedIds),
@@ -84,9 +84,10 @@ export function getBrushSnapshot(data: Data) {
         return [
           shape.id,
           {
-            selectId: tld.getTopParentId(cData, shape.id),
-            test: (bounds: Bounds) =>
-              getShapeUtils(shape).hitTestBounds(shape, bounds),
+            selectId: tld.getTopParentId(data, shape.id),
+            test: (bounds: Bounds) => {
+              return getShapeUtils(shape).hitTestBounds(shape, bounds)
+            },
           },
         ]
       })

@@ -2,7 +2,6 @@ import { Data, GroupShape, Shape, ShapeType } from 'types'
 import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
-import { current } from 'immer'
 import { uniqueId } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 import tld from 'utils/tld'
@@ -174,32 +173,28 @@ export default class TranslateSession extends BaseSession {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getTranslateSnapshot(data: Data) {
-  const cData = current(data)
+  const page = tld.getPage(data)
 
-  // Get selected shapes
-  // Filter out the locked shapes
-  // Collect the branch children for each remaining shape
-  // Filter out doubles using a set
-  // End up with an array of ids for all of the shapes that will change
-  // Map into shapes from data snapshot
-
-  const page = tld.getPage(cData)
-  const selectedShapes = tld
-    .getSelectedShapes(cData)
-    .filter((shape) => !shape.isLocked)
+  const selectedShapes = tld.getSelectedShapeSnapshot(data)
 
   const hasUnlockedShapes = selectedShapes.length > 0
 
-  const parents = Array.from(
+  const initialParents = Array.from(
     new Set(selectedShapes.map((s) => s.parentId)).values()
   )
     .filter((id) => id !== data.currentPageId)
-    .map((id) => page.shapes[id])
+    .map((id) => {
+      const shape = page.shapes[id]
+      return {
+        id: shape.id,
+        children: shape.children,
+      }
+    })
 
   return {
     hasUnlockedShapes,
     currentPageId: data.currentPageId,
-    initialParents: parents.map(({ id, children }) => ({ id, children })),
+    initialParents,
     initialShapes: selectedShapes.map(({ id, point, parentId }) => ({
       id,
       point,
@@ -211,9 +206,8 @@ export function getTranslateSnapshot(data: Data) {
         const clone: Shape = {
           ...shape,
           id: uniqueId(),
-
           parentId: shape.parentId,
-          childIndex: tld.getChildIndexAbove(cData, shape.id),
+          childIndex: tld.getChildIndexAbove(data, shape.id),
           isGenerated: false,
         }
 

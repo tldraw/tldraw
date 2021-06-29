@@ -326,6 +326,40 @@ export default class ProjectUtils {
 
   /* ----------------- Shapes Related ----------------- */
 
+  /**
+   * Get a deep-cloned
+   * @param data
+   * @param fn
+   */
+  static getSelectedBranchSnapshot<K>(
+    data: Data,
+    fn: <T extends Shape>(shape: T) => K
+  ): ({ id: string } & K)[]
+  static getSelectedBranchSnapshot(data: Data): Shape[]
+  static getSelectedBranchSnapshot<
+    K,
+    F extends <T extends Shape>(shape: T) => K
+  >(data: Data, fn?: F): (Shape | K)[] {
+    const page = this.getPage(data)
+
+    const copies = setToArray(this.getSelectedIds(data))
+      .flatMap((id) =>
+        this.getDocumentBranch(data, id).map((id) => page.shapes[id])
+      )
+      .filter((shape) => !shape.isLocked)
+      .map(deepClone)
+
+    if (fn !== undefined) {
+      return copies.map((shape) => ({ id: shape.id, ...fn(shape) }))
+    }
+
+    return copies
+  }
+
+  /**
+   * Get a deep-cloned array of shapes
+   * @param data
+   */
   static getSelectedShapeSnapshot(data: Data): Shape[]
   static getSelectedShapeSnapshot<K>(
     data: Data,
@@ -337,13 +371,24 @@ export default class ProjectUtils {
   >(data: Data, fn?: F): (Shape | K)[] {
     const copies = this.getSelectedShapes(data)
       .filter((shape) => !shape.isLocked)
-      .map((shape) => deepClone(shape))
+      .map(deepClone)
 
     if (fn !== undefined) {
       return copies.map((shape) => ({ id: shape.id, ...fn(shape) }))
     }
 
     return copies
+  }
+
+  /**
+   * Get an array of all unique parentIds among a set of shapes.
+   * @param data
+   * @param shapes
+   */
+  static getUniqueParentIds(data: Data, shapes: Shape[]): string[] {
+    return Array.from(new Set(shapes.map((s) => s.parentId)).values()).filter(
+      (id) => id !== data.currentPageId
+    )
   }
 
   /**

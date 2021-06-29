@@ -2,9 +2,8 @@ import { Data, Edge, Corner } from 'types'
 import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
-import { current } from 'immer'
 import { getShapeUtils } from 'state/shape-utils'
-import { getTransformedBoundingBox } from 'utils'
+import { deepClone, getTransformedBoundingBox } from 'utils'
 import tld from 'utils/tld'
 
 export default class TransformSingleSession extends BaseSession {
@@ -85,7 +84,7 @@ export function getTransformSingleSnapshot(
   data: Data,
   transformType: Edge | Corner
 ) {
-  const shape = tld.getSelectedShapes(current(data))[0]
+  const shape = deepClone(tld.getSelectedShapes(data)[0])
   const bounds = getShapeUtils(shape).getBounds(shape)
 
   return {

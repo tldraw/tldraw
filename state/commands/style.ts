@@ -2,22 +2,20 @@ import Command from './command'
 import history from '../history'
 import { Data, ShapeStyles } from 'types'
 import tld from 'utils/tld'
-import { setToArray } from 'utils'
+import { deepClone, setToArray } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
-import { current } from 'immer'
 
 export default function styleCommand(
   data: Data,
   styles: Partial<ShapeStyles>
 ): void {
-  const cData = current(data)
-  const page = tld.getPage(cData)
+  const page = tld.getPage(data)
 
   const selectedIds = setToArray(tld.getSelectedIds(data))
 
   const shapesToStyle = selectedIds
     .flatMap((id) => tld.getDocumentBranch(data, id))
-    .map((id) => page.shapes[id])
+    .map((id) => deepClone(page.shapes[id]))
 
   history.execute(
     data,

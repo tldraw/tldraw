@@ -1,9 +1,9 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import { current } from 'immer'
 import { TransformSingleSnapshot } from 'state/sessions/transform-single-session'
 import tld from 'utils/tld'
+import { deepClone } from 'utils'
 
 export default function transformSingleCommand(
   data: Data,
@@ -11,7 +11,7 @@ export default function transformSingleCommand(
   after: TransformSingleSnapshot,
   isCreating: boolean
 ): void {
-  const shape = current(tld.getPage(data).shapes[after.id])
+  const shape = deepClone(tld.getPage(data).shapes[after.id])
 
   history.execute(
     data,

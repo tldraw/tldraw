@@ -1,25 +1,33 @@
 import Command from './command'
 import history from '../history'
 import { Data, GroupShape, ShapeType } from 'types'
-import { getCommonBounds } from 'utils'
-import { current } from 'immer'
+import { deepClone, getCommonBounds } from 'utils'
 import tld from 'utils/tld'
 import { createShape, getShapeUtils } from 'state/shape-utils'
 import commands from '.'
 
 export default function groupCommand(data: Data): void {
-  const cData = current(data)
-  const { currentPageId } = cData
+  const { currentPageId } = data
 
-  const oldSelectedIds = tld.getSelectedIds(cData)
+  const oldSelectedIds = tld.getSelectedIds(data)
 
   const initialShapes = tld
-    .getSelectedShapes(cData)
+    .getSelectedShapes(data)
     .sort((a, b) => a.childIndex - b.childIndex)
+    .map((shape) => deepClone(shape))
 
   const isAllSameParent = initialShapes.every(
     (shape, i) => i === 0 || shape.parentId === initialShapes[i - 1].parentId
   )
+
+  // Do we need to ungroup the selected shapes shapes, rather than group them?
+  if (isAllSameParent && initialShapes[0]?.parentId !== currentPageId) {
+    const parent = tld.getShape(data, initialShapes[0]?.parentId) as GroupShape
+    if (parent.children.length === initialShapes.length) {
+      commands.ungroup(data)
+      return
+    }
+  }
 
   let newGroupParentId: string
 
@@ -34,19 +42,11 @@ export default function groupCommand(data: Data): void {
   if (isAllSameParent) {
     const parentId = initialShapes[0].parentId
     if (parentId === currentPageId) {
+      // Create the new group on the current page
       newGroupParentId = currentPageId
     } else {
-      // Are all of the parent's children selected?
-      const parent = tld.getShape(data, parentId) as GroupShape
-
-      if (parent.children.length === initialShapes.length) {
-        // !!! Hey! We're not going any further. We need to ungroup those shapes.
-        commands.ungroup(data)
-        return
-      } else {
-        // Make the group inside of the current group
-        newGroupParentId = parentId
-      }
+      // Create the new group as a child of the shapes' current parent group
+      newGroupParentId = parentId
     }
   } else {
     // Find the least-deep parent among the shapes and add the group as a child
