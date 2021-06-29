@@ -19,6 +19,7 @@ export default function Cursor({
       viewBox="0 0 35 35"
       version="1.1"
       pointerEvents="none"
+      opacity="0"
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
     >

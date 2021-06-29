@@ -8,6 +8,7 @@ import useShapeEvents from 'hooks/useShapeEvents'
 import vec from 'utils/vec'
 import { getShapeStyle } from 'state/shape-styles'
 import useShapeDef from 'hooks/useShape'
+import { ShapeUtility } from 'types'
 
 interface ShapeProps {
   id: string
@@ -19,22 +20,26 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
 
   const isHidden = useSelector((s) => {
     const shape = tld.getShape(s.data, id)
-    return shape.isHidden
+    if (shape === undefined) return true
+    return shape?.isHidden
   })
 
   const children = useSelector((s) => {
     const shape = tld.getShape(s.data, id)
-    return shape.children
+    if (shape === undefined) return []
+    return shape?.children
   }, deepCompareArrays)
 
   const strokeWidth = useSelector((s) => {
     const shape = tld.getShape(s.data, id)
+    if (shape === undefined) return 0
     const style = getShapeStyle(shape?.style)
     return +style.strokeWidth
   })
 
   const transform = useSelector((s) => {
     const shape = tld.getShape(s.data, id)
+    if (shape === undefined) return ''
     const center = getShapeUtils(shape).getCenter(shape)
     const rotation = shape.rotation * (180 / Math.PI)
     const parentPoint = tld.getShape(s.data, shape.parentId)?.point || [0, 0]
@@ -51,11 +56,17 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
 
   const shape = tld.getShape(state.data, id)
 
-  const shapeUtils = getShapeUtils(shape)
+  const shapeUtils = shape ? getShapeUtils(shape) : ({} as ShapeUtility<any>)
 
-  const { isParent, isForeignObject, canStyleFill } = shapeUtils
+  const {
+    isParent = false,
+    isForeignObject = false,
+    canStyleFill = false,
+  } = shapeUtils
 
   const events = useShapeEvents(id, isParent, rGroup)
+
+  if (!shape) return null
 
   return (
     <StyledGroup
@@ -91,20 +102,7 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
   )
 }
 
-function ShapeGuard(props: ShapeProps): JSX.Element {
-  const hasShape = useSelector(
-    (s) => tld.getShape(s.data, props.id) !== undefined
-  )
-
-  if (!hasShape) {
-    console.warn('missing shape!')
-    return null
-  }
-
-  return <Shape {...props} />
-}
-
-export default memo(ShapeGuard)
+export default memo(Shape)
 
 interface RealShapeProps {
   id: string

@@ -163,19 +163,19 @@ const state = createState({
       },
       on: {
         // Network-Related
-        RT_LOADED_ROOM: [
-          'clearRoom',
-          { if: 'hasRoom', do: ['clearDocument', 'connectToRoom'] },
-        ],
-        RT_UNLOADED_ROOM: ['clearRoom', 'clearDocument'],
-        RT_DISCONNECTED_ROOM: ['clearRoom', 'clearDocument'],
-        RT_CREATED_SHAPE: 'addRtShape',
-        RT_CHANGED_STATUS: 'setRtStatus',
-        RT_DELETED_SHAPE: 'deleteRtShape',
-        RT_EDITED_SHAPE: 'editRtShape',
-        RT_MOVED_CURSOR: 'moveRtCursor',
+        // RT_LOADED_ROOM: [
+        //   'clearRoom',
+        //   { if: 'hasRoom', do: ['clearDocument', 'connectToRoom'] },
+        // ],
+        // RT_UNLOADED_ROOM: ['clearRoom', 'clearDocument'],
+        // RT_DISCONNECTED_ROOM: ['clearRoom', 'clearDocument'],
+        // RT_CREATED_SHAPE: 'addRtShape',
+        // RT_CHANGED_STATUS: 'setRtStatus',
+        // RT_DELETED_SHAPE: 'deleteRtShape',
+        // RT_EDITED_SHAPE: 'editRtShape',
+        // RT_MOVED_CURSOR: 'moveRtCursor',
+        // MOVED_POINTER: { secretlyDo: 'sendRtCursorMove' },
         // Client
-        MOVED_POINTER: { secretlyDo: 'sendRtCursorMove' },
         RESIZED_WINDOW: 'resetPageState',
         RESET_PAGE: 'resetPage',
         TOGGLED_READ_ONLY: 'toggleReadOnly',

@@ -77,6 +77,7 @@ function Peer({ id }: { id: string }): JSX.Element {
 
   return <Cursor point={point} />
 }
+
 const MainSVG = styled('svg', {
   position: 'fixed',
   overflow: 'hidden',
