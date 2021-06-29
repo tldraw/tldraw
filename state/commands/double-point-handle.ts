@@ -2,14 +2,15 @@ import Command from './command'
 import history from '../history'
 import { Data, PointerInfo } from 'types'
 import { getShapeUtils } from 'state/shape-utils'
-import { deepClone, getPage, getShape, updateParents } from 'utils'
+import { deepClone } from 'utils'
+import tld from 'utils/tld'
 
 export default function doublePointHandleCommand(
   data: Data,
   id: string,
   payload: PointerInfo
 ): void {
-  const initialShape = deepClone(getShape(data, id))
+  const initialShape = deepClone(tld.getShape(data, id))
 
   history.execute(
     data,
@@ -17,16 +18,16 @@ export default function doublePointHandleCommand(
       name: 'double_point_handle',
       category: 'canvas',
       do(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         const shape = shapes[id]
         getShapeUtils(shape).onDoublePointHandle(shape, payload.target, payload)
-        updateParents(data, [id])
+        tld.updateParents(data, [id])
       },
       undo(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
         shapes[id] = initialShape
-        updateParents(data, [id])
+        tld.updateParents(data, [id])
       },
     })
   )

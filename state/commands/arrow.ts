@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import { getPage, getSelectedIds } from 'utils'
+import tld from 'utils/tld'
 import { ArrowSnapshot } from 'state/sessions/arrow-session'
 
 export default function arrowCommand(
@@ -20,11 +20,11 @@ export default function arrowCommand(
 
         const { initialShape } = after
 
-        const page = getPage(data)
+        const page = tld.getPage(data)
 
         page.shapes[initialShape.id] = initialShape
 
-        const selectedIds = getSelectedIds(data)
+        const selectedIds = tld.getSelectedIds(data)
         selectedIds.clear()
         selectedIds.add(initialShape.id)
         data.hoveredId = undefined
@@ -32,11 +32,11 @@ export default function arrowCommand(
       },
       undo(data) {
         const { initialShape } = before
-        const shapes = getPage(data).shapes
+        const shapes = tld.getPage(data).shapes
 
         delete shapes[initialShape.id]
 
-        const selectedIds = getSelectedIds(data)
+        const selectedIds = tld.getSelectedIds(data)
         selectedIds.clear()
         data.hoveredId = undefined
         data.pointedId = undefined

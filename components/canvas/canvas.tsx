@@ -7,11 +7,13 @@ import useCamera from 'hooks/useCamera'
 import Defs from './defs'
 import Page from './page'
 import Brush from './brush'
+import Cursor from './cursor'
 import Bounds from './bounds/bounding-box'
 import BoundsBg from './bounds/bounds-bg'
 import Handles from './bounds/handles'
 import useCanvasEvents from 'hooks/useCanvasEvents'
 import ContextMenu from './context-menu/context-menu'
+import { deepCompareArrays } from 'utils'
 
 function resetError() {
   null
@@ -41,6 +43,7 @@ export default function Canvas(): JSX.Element {
               <Bounds />
               <Handles />
               <Brush />
+              <Peers />
             </g>
           )}
         </ErrorBoundary>
@@ -49,6 +52,31 @@ export default function Canvas(): JSX.Element {
   )
 }
 
+function Peers(): JSX.Element {
+  const peerIds = useSelector((s) => {
+    return s.data.room ? Object.keys(s.data.room?.peers) : []
+  }, deepCompareArrays)
+
+  return (
+    <>
+      {peerIds.map((id) => (
+        <Peer key={id} id={id} />
+      ))}
+    </>
+  )
+}
+
+function Peer({ id }: { id: string }): JSX.Element {
+  const hasPeer = useSelector((s) => {
+    return s.data.room && s.data.room.peers[id] !== undefined
+  })
+
+  const point = useSelector(
+    (s) => hasPeer && s.data.room.peers[id].cursor.point
+  )
+
+  return <Cursor point={point} />
+}
 const MainSVG = styled('svg', {
   position: 'fixed',
   overflow: 'hidden',

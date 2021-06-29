@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data, Shape } from 'types'
-import { getPage, getSelectedShapes } from 'utils'
+import tld from 'utils/tld'
 import { getShapeUtils } from 'state/shape-utils'
 import { PropsOfType } from 'types'
 
@@ -9,7 +9,7 @@ export default function toggleCommand(
   data: Data,
   prop: PropsOfType<Shape>
 ): void {
-  const selectedShapes = getSelectedShapes(data)
+  const selectedShapes = tld.getSelectedShapes(data)
   const isAllToggled = selectedShapes.every((shape) => shape[prop])
   const initialShapes = Object.fromEntries(
     selectedShapes.map((shape) => [shape.id, shape[prop]])
@@ -21,7 +21,7 @@ export default function toggleCommand(
       name: 'toggle_prop',
       category: 'canvas',
       do(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         for (const id in initialShapes) {
           const shape = shapes[id]
@@ -33,7 +33,7 @@ export default function toggleCommand(
         }
       },
       undo(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         for (const id in initialShapes) {
           const shape = shapes[id]

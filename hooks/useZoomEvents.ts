@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */ import { useRef } from 'react'
-
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { useRef } from 'react'
 import state from 'state'
 import inputs from 'state/inputs'
 import vec from 'utils/vec'

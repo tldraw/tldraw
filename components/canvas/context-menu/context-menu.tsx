@@ -4,8 +4,9 @@ import {
   IconWrapper,
   IconButton as _IconButton,
   RowButton,
+  breakpoints,
 } from 'components/shared'
-import { commandKey, deepCompareArrays, getShape, isMobile } from 'utils'
+import { commandKey, deepCompareArrays, isMobile } from 'utils'
 import state, { useSelector } from 'state'
 import {
   AlignType,
@@ -14,6 +15,7 @@ import {
   ShapeType,
   StretchType,
 } from 'types'
+import tld from 'utils/tld'
 import React, { useRef } from 'react'
 import {
   ChevronRightIcon,
@@ -82,7 +84,9 @@ export default function ContextMenu({
   const rContent = useRef<HTMLDivElement>(null)
 
   const hasGroupSelected = useSelector((s) =>
-    selectedShapeIds.some((id) => getShape(s.data, id).type === ShapeType.Group)
+    selectedShapeIds.some(
+      (id) => tld.getShape(s.data, id).type === ShapeType.Group
+    )
   )
 
   const hasTwoOrMore = selectedShapeIds.length > 1
@@ -300,7 +304,7 @@ function Button({
     <_ContextMenu.Item
       as={RowButton}
       disabled={disabled}
-      bp={{ '@initial': 'mobile', '@sm': 'small' }}
+      bp={breakpoints}
       onSelect={onSelect}
     >
       {children}
@@ -320,7 +324,7 @@ function IconButton({
   return (
     <_ContextMenu.Item
       as={_IconButton}
-      bp={{ '@initial': 'mobile', '@sm': 'small' }}
+      bp={breakpoints}
       disabled={disabled}
       onSelect={onSelect}
     >
@@ -338,10 +342,7 @@ function SubMenu({
 }) {
   return (
     <_ContextMenu.Root dir="ltr">
-      <_ContextMenu.TriggerItem
-        as={RowButton}
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
-      >
+      <_ContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
         <span>{label}</span>
         <IconWrapper size="small">
           <ChevronRightIcon />
@@ -363,10 +364,7 @@ function AlignDistributeSubMenu({
 }) {
   return (
     <_ContextMenu.Root dir="ltr">
-      <_ContextMenu.TriggerItem
-        as={RowButton}
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
-      >
+      <_ContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
         <span>Align / Distribute</span>
         <IconWrapper size="small">
           <ChevronRightIcon />
@@ -447,10 +445,7 @@ function MoveToPageMenu() {
 
   return (
     <_ContextMenu.Root dir="ltr">
-      <_ContextMenu.TriggerItem
-        as={RowButton}
-        bp={{ '@initial': 'mobile', '@sm': 'small' }}
-      >
+      <_ContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
         <span>Move To Page</span>
         <IconWrapper size="small">
           <ChevronRightIcon />

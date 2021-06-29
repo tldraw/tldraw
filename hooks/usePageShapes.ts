@@ -7,9 +7,8 @@ import {
   boundsContain,
   debounce,
   deepCompareArrays,
-  getPageState,
-  getViewport,
 } from 'utils'
+import tld from 'utils/tld'
 
 const viewportCache = new WeakMap<PageState, Bounds>()
 
@@ -27,10 +26,10 @@ export default function usePageShapes(): string[] {
 
   // Get the shapes that fit into the current window
   const visiblePageShapeIds = useSelector((s) => {
-    const pageState = getPageState(s.data)
+    const pageState = tld.getPageState(s.data)
 
     if (!viewportCache.has(pageState)) {
-      const viewport = getViewport(s.data)
+      const viewport = tld.getViewport(s.data)
       viewportCache.set(pageState, viewport)
     }
 

@@ -1,11 +1,6 @@
 import { DrawShape, PointerInfo } from 'types'
-import {
-  getCameraZoom,
-  getCurrentCamera,
-  getSelectedIds,
-  screenToWorld,
-  setToArray,
-} from 'utils'
+import { setToArray } from 'utils'
+import tld from 'utils/tld'
 import { freeze } from 'immer'
 import session from './session'
 import state from './state'
@@ -24,12 +19,12 @@ export function fastDrawUpdate(info: PointerInfo): void {
 
   session.update<Session.DrawSession>(
     data,
-    screenToWorld(info.point, data),
+    tld.screenToWorld(info.point, data),
     info.pressure,
     info.shiftKey
   )
 
-  const selectedId = setToArray(getSelectedIds(data))[0]
+  const selectedId = setToArray(tld.getSelectedIds(data))[0]
 
   const shape = data.document.pages[data.currentPageId].shapes[
     selectedId
@@ -45,7 +40,7 @@ export function fastDrawUpdate(info: PointerInfo): void {
 
 export function fastPanUpdate(delta: number[]): void {
   const data = { ...state.data }
-  const camera = getCurrentCamera(data)
+  const camera = tld.getCurrentCamera(data)
   camera.point = vec.sub(camera.point, vec.div(delta, camera.zoom))
 
   data.pageStates[data.currentPageId].camera = { ...camera }
@@ -55,13 +50,13 @@ export function fastPanUpdate(delta: number[]): void {
 
 export function fastZoomUpdate(point: number[], delta: number): void {
   const data = { ...state.data }
-  const camera = getCurrentCamera(data)
+  const camera = tld.getCurrentCamera(data)
 
   const next = camera.zoom - (delta / 100) * camera.zoom
 
-  const p0 = screenToWorld(point, data)
-  camera.zoom = getCameraZoom(next)
-  const p1 = screenToWorld(point, data)
+  const p0 = tld.screenToWorld(point, data)
+  camera.zoom = tld.getCameraZoom(next)
+  const p1 = tld.screenToWorld(point, data)
   camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
   data.pageStates[data.currentPageId].camera = { ...camera }
@@ -75,15 +70,15 @@ export function fastPinchCamera(
   distanceDelta: number
 ): void {
   const data = { ...state.data }
-  const camera = getCurrentCamera(data)
+  const camera = tld.getCurrentCamera(data)
 
   camera.point = vec.sub(camera.point, vec.div(delta, camera.zoom))
 
   const next = camera.zoom - (distanceDelta / 350) * camera.zoom
 
-  const p0 = screenToWorld(point, data)
-  camera.zoom = getCameraZoom(next)
-  const p1 = screenToWorld(point, data)
+  const p0 = tld.screenToWorld(point, data)
+  camera.zoom = tld.getCameraZoom(next)
+  const p1 = tld.screenToWorld(point, data)
   camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
   const pageState = data.pageStates[data.currentPageId]
@@ -97,7 +92,7 @@ export function fastPinchCamera(
 export function fastBrushSelect(point: number[]): void {
   const data = { ...state.data }
 
-  session.update<Session.BrushSession>(data, screenToWorld(point, data))
+  session.update<Session.BrushSession>(data, tld.screenToWorld(point, data))
 
   state.forceData(freeze(data))
 }
@@ -107,7 +102,7 @@ export function fastTranslate(info: PointerInfo): void {
 
   session.update<Session.TranslateSession>(
     data,
-    screenToWorld(info.point, data),
+    tld.screenToWorld(info.point, data),
     info.shiftKey,
     info.altKey
   )
@@ -120,7 +115,7 @@ export function fastTransform(info: PointerInfo): void {
 
   session.update<Session.TransformSession | Session.TransformSingleSession>(
     data,
-    screenToWorld(info.point, data),
+    tld.screenToWorld(info.point, data),
     info.shiftKey
   )
 

@@ -2,18 +2,14 @@
 import styled from 'styles'
 import React, { useRef } from 'react'
 import state, { useSelector } from 'state'
-import { X, Code } from 'react-feather'
+import { X } from 'react-feather'
 import { breakpoints, IconButton } from 'components/shared'
 import * as Panel from '../panel'
 import Control from './control'
 import { deepCompareArrays } from 'utils'
 
-function openCodePanel() {
-  state.send('CLOSED_CODE_PANEL')
-}
-
-function closeCodePanel() {
-  state.send('OPENED_CODE_PANEL')
+function handleClose() {
+  state.send('CLOSED_CONTROLS')
 }
 
 const stopKeyboardPropagation = (e: KeyboardEvent | React.KeyboardEvent) =>
@@ -22,10 +18,15 @@ const stopKeyboardPropagation = (e: KeyboardEvent | React.KeyboardEvent) =>
 export default function ControlPanel(): JSX.Element {
   const rContainer = useRef<HTMLDivElement>(null)
   const isOpen = useSelector((s) => Object.keys(s.data.codeControls).length > 0)
+
   const codeControls = useSelector(
     (state) => Object.keys(state.data.codeControls),
     deepCompareArrays
   )
+
+  if (codeControls.length === 0) {
+    return null
+  }
 
   return (
     <Panel.Root
@@ -37,25 +38,19 @@ export default function ControlPanel(): JSX.Element {
       onKeyDown={stopKeyboardPropagation}
       onKeyUp={stopKeyboardPropagation}
     >
-      {isOpen ? (
-        <Panel.Layout>
-          <Panel.Header>
-            <IconButton bp={breakpoints} size="small" onClick={closeCodePanel}>
-              <X />
-            </IconButton>
-            <h3>Controls</h3>
-          </Panel.Header>
-          <ControlsList>
-            {codeControls.map((id) => (
-              <Control key={id} id={id} />
-            ))}
-          </ControlsList>
-        </Panel.Layout>
-      ) : (
-        <IconButton bp={breakpoints} size="small" onClick={openCodePanel}>
-          <Code />
-        </IconButton>
-      )}
+      <Panel.Layout>
+        <Panel.Header>
+          <IconButton bp={breakpoints} size="small" onClick={handleClose}>
+            <X />
+          </IconButton>
+          <h3>Controls</h3>
+        </Panel.Header>
+        <ControlsList>
+          {codeControls.map((id) => (
+            <Control key={id} id={id} />
+          ))}
+        </ControlsList>
+      </Panel.Layout>
     </Panel.Root>
   )
 }

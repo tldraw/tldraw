@@ -2,12 +2,7 @@ import Command from './command'
 import history from '../history'
 import { TranslateSnapshot } from 'state/sessions/translate-session'
 import { Data } from 'types'
-import {
-  getDocumentBranch,
-  getPage,
-  setSelectedIds,
-  updateParents,
-} from 'utils'
+import tld from 'utils/tld'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function translateCommand(
@@ -26,7 +21,7 @@ export default function translateCommand(
         if (initial) return
 
         const { initialShapes } = after
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         // Restore clones to document
         if (isCloning) {
@@ -47,31 +42,31 @@ export default function translateCommand(
 
         // Move shapes (these initialShapes will include clones if any)
         for (const { id, point } of initialShapes) {
-          getDocumentBranch(data, id).forEach((id) => {
+          tld.getDocumentBranch(data, id).forEach((id) => {
             const shape = shapes[id]
             getShapeUtils(shape).translateTo(shape, point)
           })
         }
 
         // Set selected shapes
-        setSelectedIds(
+        tld.setSelectedIds(
           data,
           initialShapes.map((s) => s.id)
         )
 
         // Update parents
-        updateParents(
+        tld.updateParents(
           data,
           initialShapes.map((s) => s.id)
         )
       },
       undo(data) {
         const { initialShapes, clones, initialParents } = before
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         // Move shapes back to where they started
         for (const { id, point } of initialShapes) {
-          getDocumentBranch(data, id).forEach((id) => {
+          tld.getDocumentBranch(data, id).forEach((id) => {
             const shape = shapes[id]
             getShapeUtils(shape).translateTo(shape, point)
           })
@@ -81,7 +76,7 @@ export default function translateCommand(
         if (isCloning) for (const { id } of clones) delete shapes[id]
 
         // Set selected shapes
-        setSelectedIds(
+        tld.setSelectedIds(
           data,
           initialShapes.map((s) => s.id)
         )
@@ -93,7 +88,7 @@ export default function translateCommand(
         })
 
         // Update parents
-        updateParents(
+        tld.updateParents(
           data,
           initialShapes.map((s) => s.id)
         )

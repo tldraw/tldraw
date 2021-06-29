@@ -2,7 +2,7 @@ import Command from './command'
 import history from '../history'
 import { Data } from 'types'
 import { TransformSnapshot } from 'state/sessions/transform-session'
-import { getPage, updateParents } from 'utils'
+import tld from 'utils/tld'
 
 export default function transformCommand(
   data: Data,
@@ -17,23 +17,23 @@ export default function transformCommand(
       do(data) {
         const { shapeBounds } = after
 
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         for (const id in shapeBounds) {
           shapes[id] = shapeBounds[id].initialShape
         }
 
-        updateParents(data, Object.keys(shapeBounds))
+        tld.updateParents(data, Object.keys(shapeBounds))
       },
       undo(data) {
         const { shapeBounds } = before
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         for (const id in shapeBounds) {
           shapes[id] = shapeBounds[id].initialShape
         }
 
-        updateParents(data, Object.keys(shapeBounds))
+        tld.updateParents(data, Object.keys(shapeBounds))
       },
     })
   )

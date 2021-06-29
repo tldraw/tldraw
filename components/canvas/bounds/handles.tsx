@@ -3,14 +3,14 @@ import { getShapeUtils } from 'state/shape-utils'
 import { useRef } from 'react'
 import { useSelector } from 'state'
 import styled from 'styles'
-import { getPage } from 'utils'
+import tld from 'utils/tld'
 import vec from 'utils/vec'
 
 export default function Handles(): JSX.Element {
   const shape = useSelector(
     (s) =>
       s.values.selectedIds.length === 1 &&
-      getPage(s.data).shapes[s.values.selectedIds[0]]
+      tld.getPage(s.data).shapes[s.values.selectedIds[0]]
   )
 
   const isSelecting = useSelector((s) =>

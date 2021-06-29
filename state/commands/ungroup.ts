@@ -1,17 +1,18 @@
 import Command from './command'
 import history from '../history'
 import { Data, ShapeType } from 'types'
-import { getPage, getSelectedShapes, setSelectedIds } from 'utils'
-import { current } from 'immer'
 import { getShapeUtils } from 'state/shape-utils'
+import tld from 'utils/tld'
+import { deepClone } from 'utils'
 
 export default function ungroupCommand(data: Data): void {
-  const cData = current(data)
-  const { currentPageId } = cData
+  const { currentPageId } = data
 
-  const selectedGroups = getSelectedShapes(cData)
+  const selectedGroups = tld
+    .getSelectedShapes(data)
     .filter((shape) => shape.type === ShapeType.Group)
     .sort((a, b) => a.childIndex - b.childIndex)
+    .map((shape) => deepClone(shape))
 
   // Are all of the shapes already in the same group?
   // - ungroup the shapes
@@ -24,7 +25,7 @@ export default function ungroupCommand(data: Data): void {
       name: 'ungroup_shapes',
       category: 'canvas',
       do(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         // Remove shapes from old parents
         for (const oldGroupShape of selectedGroups) {
@@ -62,13 +63,13 @@ export default function ungroupCommand(data: Data): void {
                 )
             })
 
-          setSelectedIds(data, oldGroupShape.children)
+          tld.setSelectedIds(data, oldGroupShape.children)
 
           delete shapes[oldGroupShape.id]
         }
       },
       undo(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         selectedGroups.forEach((group) => {
           shapes[group.id] = group
@@ -80,7 +81,7 @@ export default function ungroupCommand(data: Data): void {
           })
         })
 
-        setSelectedIds(
+        tld.setSelectedIds(
           data,
           selectedGroups.map((g) => g.id)
         )
@@ -94,5 +95,5 @@ export default function ungroupCommand(data: Data): void {
 //     return depth
 //   }
 
-//   return getShapeDepth(data, getShape(data, id).parentId, depth + 1)
+//   return getShapeDepth(data, tld.getShape(data, id).parentId, depth + 1)
 // }

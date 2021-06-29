@@ -1,21 +1,17 @@
 import Command from './command'
 import history from '../history'
 import { Data, DistributeType } from 'types'
-import {
-  getBoundsCenter,
-  getCommonBounds,
-  getPage,
-  getSelectedShapes,
-} from 'utils'
+import { getBoundsCenter, getCommonBounds } from 'utils'
+import tld from 'utils/tld'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function distributeCommand(
   data: Data,
   type: DistributeType
 ): void {
-  const selectedShapes = getSelectedShapes(data).filter(
-    (shape) => !shape.isLocked
-  )
+  const selectedShapes = tld
+    .getSelectedShapes(data)
+    .filter((shape) => !shape.isLocked)
 
   const entries = selectedShapes.map(
     (shape) => [shape.id, getShapeUtils(shape).getBounds(shape)] as const
@@ -38,7 +34,7 @@ export default function distributeCommand(
       name: 'distribute_shapes',
       category: 'canvas',
       do(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
         const len = entries.length
 
         switch (type) {
@@ -130,7 +126,7 @@ export default function distributeCommand(
         }
       },
       undo(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
         for (const id in boundsForShapes) {
           const shape = shapes[id]
           const initialBounds = boundsForShapes[id]

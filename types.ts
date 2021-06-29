@@ -14,6 +14,11 @@ export interface Data {
     isToolLocked: boolean
     isPenLocked: boolean
   }
+  room?: {
+    id: string
+    status: string
+    peers: Record<string, Peer>
+  }
   currentStyle: ShapeStyles
   activeTool: ShapeType | 'select'
   brush?: Bounds
@@ -32,6 +37,13 @@ export interface Data {
 /* -------------------------------------------------- */
 /*                      Document                      */
 /* -------------------------------------------------- */
+
+export interface Peer {
+  id: string
+  cursor: {
+    point: number[]
+  }
+}
 
 export interface TLDocument {
   id: string
@@ -190,42 +202,38 @@ export interface GroupShape extends BaseShape {
   size: number[]
 }
 
-// type DeepPartial<T> = {
-//   [P in keyof T]?: DeepPartial<T[P]>
-// }
-
 export type ShapeProps<T extends Shape> = {
   [P in keyof T]?: P extends 'style' ? Partial<T[P]> : T[P]
 }
 
-export type MutableShape =
-  | DotShape
-  | EllipseShape
-  | LineShape
-  | RayShape
-  | PolylineShape
-  | DrawShape
-  | RectangleShape
-  | ArrowShape
-  | TextShape
-  | GroupShape
-
-export interface Shapes {
-  [ShapeType.Dot]: Readonly<DotShape>
-  [ShapeType.Ellipse]: Readonly<EllipseShape>
-  [ShapeType.Line]: Readonly<LineShape>
-  [ShapeType.Ray]: Readonly<RayShape>
-  [ShapeType.Polyline]: Readonly<PolylineShape>
-  [ShapeType.Draw]: Readonly<DrawShape>
-  [ShapeType.Rectangle]: Readonly<RectangleShape>
-  [ShapeType.Arrow]: Readonly<ArrowShape>
-  [ShapeType.Text]: Readonly<TextShape>
-  [ShapeType.Group]: Readonly<GroupShape>
+export interface MutableShapes {
+  [ShapeType.Dot]: DotShape
+  [ShapeType.Ellipse]: EllipseShape
+  [ShapeType.Line]: LineShape
+  [ShapeType.Ray]: RayShape
+  [ShapeType.Polyline]: PolylineShape
+  [ShapeType.Draw]: DrawShape
+  [ShapeType.Rectangle]: RectangleShape
+  [ShapeType.Arrow]: ArrowShape
+  [ShapeType.Text]: TextShape
+  [ShapeType.Group]: GroupShape
 }
+
+export type MutableShape = MutableShapes[keyof MutableShapes]
+
+export type Shapes = { [K in keyof MutableShapes]: Readonly<MutableShapes[K]> }
 
 export type Shape = Readonly<MutableShape>
 
 export type ShapeByType<T extends ShapeType> = Shapes[T]
+
+export type IsParent<T> = 'children' extends RequiredKeys<T> ? T : never
+
+export type ParentShape = {
+  [K in keyof MutableShapes]: IsParent<MutableShapes[K]>
+}[keyof MutableShapes]
+
+export type ParentTypes = ParentShape['type'] & 'page'
 
 export enum Decoration {
   Arrow = 'Arrow',
@@ -320,8 +328,6 @@ export interface BoundsSnapshot extends PointSnapshot {
   nw: number
   nh: number
 }
-
-export type Difference<A, B> = A extends B ? never : A
 
 export type ShapeSpecificProps<T extends Shape> = Pick<
   T,
@@ -605,3 +611,13 @@ export interface ShapeUtility<K extends Shape> {
   // Get whether the shape should render
   shouldRender(this: ShapeUtility<K>, shape: K, previous: K): boolean
 }
+
+/* -------------------------------------------------- */
+/*                      Utilities                     */
+/* -------------------------------------------------- */
+
+export type Difference<A, B> = A extends B ? never : A
+
+export type RequiredKeys<T> = {
+  [K in keyof T]-?: Record<string, unknown> extends Pick<T, K> ? never : K
+}[keyof T]

@@ -4,7 +4,6 @@ import changePage from './change-page'
 import createPage from './create-page'
 import deletePage from './delete-page'
 import deleteSelected from './delete-selected'
-import direct from './direct'
 import distribute from './distribute'
 import doublePointHandle from './double-point-handle'
 import draw from './draw'
@@ -36,7 +35,6 @@ const commands = {
   createPage,
   deletePage,
   deleteSelected,
-  direct,
   distribute,
   doublePointHandle,
   draw,

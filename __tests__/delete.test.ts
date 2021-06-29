@@ -1,7 +1,6 @@
 import state from 'state'
 import inputs from 'state/inputs'
 import { ShapeType } from 'types'
-import { getShape } from 'utils'
 import {
   idsAreSelected,
   point,
@@ -10,6 +9,7 @@ import {
   getOnlySelectedShape,
   assertShapeProps,
 } from './test-utils'
+import tld from 'utils/tld'
 import * as json from './__mocks__/document.json'
 
 describe('deleting single shapes', () => {
@@ -27,16 +27,16 @@ describe('deleting single shapes', () => {
     state.send('DELETED')
 
     expect(idsAreSelected(state.data, [])).toBe(true)
-    expect(getShape(state.data, rectangleId)).toBe(undefined)
+    expect(tld.getShape(state.data, rectangleId)).toBe(undefined)
 
     state.send('UNDO')
 
-    expect(getShape(state.data, rectangleId)).toBeTruthy()
+    expect(tld.getShape(state.data, rectangleId)).toBeTruthy()
     expect(idsAreSelected(state.data, [rectangleId])).toBe(true)
 
     state.send('REDO')
 
-    expect(getShape(state.data, rectangleId)).toBe(undefined)
+    expect(tld.getShape(state.data, rectangleId)).toBe(undefined)
 
     state.send('UNDO')
   })
@@ -69,7 +69,7 @@ describe('deletes and restores grouped shapes', () => {
     // Should select the group
     expect(assertShapeProps(group, { type: ShapeType.Group }))
 
-    const arrow = getShape(state.data, arrowId)
+    const arrow = tld.getShape(state.data, arrowId)
 
     // The arrow should be have the group as its parent
     expect(assertShapeProps(arrow, { parentId: group.id }))
@@ -142,16 +142,16 @@ describe('deletes and restores grouped shapes', () => {
 //   //   // Delete the rectangle first
 //   //   state.send('UNDO')
 
-//   //   expect(getShape(state.data, rectangleId)).toBeTruthy()
+//   //   expect(tld.getShape(state.data, rectangleId)).toBeTruthy()
 //   //   expect(idsAreSelected(state.data, [rectangleId])).toBe(true)
 
 //   //   state.send('REDO')
 
-//   //   expect(getShape(state.data, rectangleId)).toBe(undefined)
+//   //   expect(tld.getShape(state.data, rectangleId)).toBe(undefined)
 
 //   //   state.send('UNDO')
 
-//   //   expect(getShape(state.data, rectangleId)).toBeTruthy()
+//   //   expect(tld.getShape(state.data, rectangleId)).toBeTruthy()
 //   //   expect(idsAreSelected(state.data, [rectangleId])).toBe(true)
 //   // })
 // })

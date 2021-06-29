@@ -1,31 +1,33 @@
 import Command from './command'
 import history from '../history'
 import { Data, GroupShape, ShapeType } from 'types'
-import {
-  getCommonBounds,
-  getPage,
-  getSelectedIds,
-  getSelectedShapes,
-  getShape,
-  setSelectedIds,
-} from 'utils'
-import { current } from 'immer'
+import { deepClone, getCommonBounds } from 'utils'
+import tld from 'utils/tld'
 import { createShape, getShapeUtils } from 'state/shape-utils'
 import commands from '.'
 
 export default function groupCommand(data: Data): void {
-  const cData = current(data)
-  const { currentPageId } = cData
+  const { currentPageId } = data
 
-  const oldSelectedIds = getSelectedIds(cData)
+  const oldSelectedIds = tld.getSelectedIds(data)
 
-  const initialShapes = getSelectedShapes(cData).sort(
-    (a, b) => a.childIndex - b.childIndex
-  )
+  const initialShapes = tld
+    .getSelectedShapes(data)
+    .sort((a, b) => a.childIndex - b.childIndex)
+    .map((shape) => deepClone(shape))
 
   const isAllSameParent = initialShapes.every(
     (shape, i) => i === 0 || shape.parentId === initialShapes[i - 1].parentId
   )
+
+  // Do we need to ungroup the selected shapes shapes, rather than group them?
+  if (isAllSameParent && initialShapes[0]?.parentId !== currentPageId) {
+    const parent = tld.getShape(data, initialShapes[0]?.parentId) as GroupShape
+    if (parent.children.length === initialShapes.length) {
+      commands.ungroup(data)
+      return
+    }
+  }
 
   let newGroupParentId: string
 
@@ -40,19 +42,11 @@ export default function groupCommand(data: Data): void {
   if (isAllSameParent) {
     const parentId = initialShapes[0].parentId
     if (parentId === currentPageId) {
+      // Create the new group on the current page
       newGroupParentId = currentPageId
     } else {
-      // Are all of the parent's children selected?
-      const parent = getShape(data, parentId) as GroupShape
-
-      if (parent.children.length === initialShapes.length) {
-        // !!! Hey! We're not going any further. We need to ungroup those shapes.
-        commands.ungroup(data)
-        return
-      } else {
-        // Make the group inside of the current group
-        newGroupParentId = parentId
-      }
+      // Create the new group as a child of the shapes' current parent group
+      newGroupParentId = parentId
     }
   } else {
     // Find the least-deep parent among the shapes and add the group as a child
@@ -82,7 +76,7 @@ export default function groupCommand(data: Data): void {
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         // Create the new group
         shapes[newGroupShape.id] = newGroupShape
@@ -115,10 +109,10 @@ export default function groupCommand(data: Data): void {
             .setProperty(shape, 'parentId', newGroupShape.id)
         })
 
-        setSelectedIds(data, [newGroupShape.id])
+        tld.setSelectedIds(data, [newGroupShape.id])
       },
       undo(data) {
-        const { shapes } = getPage(data)
+        const { shapes } = tld.getPage(data)
 
         const group = shapes[newGroupShape.id]
 
@@ -152,7 +146,7 @@ export default function groupCommand(data: Data): void {
         delete shapes[newGroupShape.id]
 
         // Reselect the children of the group
-        setSelectedIds(data, initialShapeIds)
+        tld.setSelectedIds(data, initialShapeIds)
       },
     })
   )
@@ -163,5 +157,5 @@ function getShapeDepth(data: Data, id: string, depth = 0) {
     return depth
   }
 
-  return getShapeDepth(data, getShape(data, id).parentId, depth + 1)
+  return getShapeDepth(data, tld.getShape(data, id).parentId, depth + 1)
 }

@@ -1,7 +1,7 @@
 import state from 'state'
 import { generateFromCode } from 'state/code/generate'
-import { getShape, getShapes } from 'utils'
 import * as json from './__mocks__/document.json'
+import tld from 'utils/tld'
 
 jest.useRealTimers()
 
@@ -19,7 +19,7 @@ describe('selection', () => {
   })
 
   it('saves changes to code', () => {
-    expect(getShapes(state.data).length).toBe(0)
+    expect(tld.getShapes(state.data).length).toBe(0)
 
     const code = `// hello world!`
 
@@ -49,7 +49,7 @@ describe('selection', () => {
 
     state.send('GENERATED_FROM_CODE', { controls, shapes })
 
-    expect(getShapes(state.data)).toMatchSnapshot(
+    expect(tld.getShapes(state.data)).toMatchSnapshot(
       'generated rectangle from code'
     )
   })
@@ -106,7 +106,7 @@ describe('selection', () => {
       'data in state after changing control'
     )
 
-    expect(getShape(state.data, 'test-rectangle')).toMatchSnapshot(
+    expect(tld.getShape(state.data, 'test-rectangle')).toMatchSnapshot(
       'rectangle in state after changing code control'
     )
   })
@@ -116,7 +116,7 @@ describe('selection', () => {
   it('does not saves changes to code when readonly', () => {
     state.send('CLEARED_PAGE')
 
-    expect(getShapes(state.data).length).toBe(0)
+    expect(tld.getShapes(state.data).length).toBe(0)
 
     const code = `// hello world!`
 
@@ -190,7 +190,7 @@ describe('selection', () => {
 
     state.send('GENERATED_FROM_CODE', { controls, shapes })
 
-    expect(getShapes(state.data)).toMatchSnapshot(
+    expect(tld.getShapes(state.data)).toMatchSnapshot(
       'generated rectangle from code'
     )
   })
@@ -220,7 +220,9 @@ describe('selection', () => {
 
     state.send('GENERATED_FROM_CODE', { controls, shapes })
 
-    expect(getShapes(state.data)).toMatchSnapshot('generated ellipse from code')
+    expect(tld.getShapes(state.data)).toMatchSnapshot(
+      'generated ellipse from code'
+    )
   })
 
   it('generates a draw shape', async () => {
@@ -242,7 +244,9 @@ describe('selection', () => {
 
     state.send('GENERATED_FROM_CODE', { controls, shapes })
 
-    expect(getShapes(state.data)).toMatchSnapshot('generated draw from code')
+    expect(tld.getShapes(state.data)).toMatchSnapshot(
+      'generated draw from code'
+    )
   })
 
   it('generates an arrow shape', async () => {
@@ -264,7 +268,9 @@ describe('selection', () => {
 
     state.send('GENERATED_FROM_CODE', { controls, shapes })
 
-    expect(getShapes(state.data)).toMatchSnapshot('generated draw from code')
+    expect(tld.getShapes(state.data)).toMatchSnapshot(
+      'generated draw from code'
+    )
   })
 
   it('generates a text shape', async () => {
@@ -287,6 +293,8 @@ describe('selection', () => {
 
     state.send('GENERATED_FROM_CODE', { controls, shapes })
 
-    expect(getShapes(state.data)).toMatchSnapshot('generated draw from code')
+    expect(tld.getShapes(state.data)).toMatchSnapshot(
+      'generated draw from code'
+    )
   })
 })

@@ -2,15 +2,9 @@ import { ArrowShape, Data } from 'types'
 import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
-import { current } from 'immer'
-import {
-  getBoundsFromPoints,
-  getPage,
-  getSelectedIds,
-  setToArray,
-  updateParents,
-} from 'utils'
+import { deepClone, getBoundsFromPoints, setToArray } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
+import tld from 'utils/tld'
 
 export default class ArrowSession extends BaseSession {
   points: number[][]
@@ -56,7 +50,7 @@ export default class ArrowSession extends BaseSession {
       }
     }
 
-    const shape = getPage(data).shapes[id] as ArrowShape
+    const shape = tld.getPage(data).shapes[id] as ArrowShape
 
     getShapeUtils(shape).onHandleChange(shape, {
       end: {
@@ -65,25 +59,25 @@ export default class ArrowSession extends BaseSession {
       },
     })
 
-    updateParents(data, [shape.id])
+    tld.updateParents(data, [shape.id])
   }
 
   cancel(data: Data): void {
     const { id, initialShape } = this.snapshot
 
-    const shape = getPage(data).shapes[id] as ArrowShape
+    const shape = tld.getPage(data).shapes[id] as ArrowShape
 
     getShapeUtils(shape)
       .onHandleChange(shape, { end: initialShape.handles.end })
       .setProperty(shape, 'point', initialShape.point)
 
-    updateParents(data, [shape.id])
+    tld.updateParents(data, [shape.id])
   }
 
   complete(data: Data): void {
     const { id } = this.snapshot
 
-    const shape = getPage(data).shapes[id] as ArrowShape
+    const shape = tld.getPage(data).shapes[id] as ArrowShape
 
     const { start, end, bend } = shape.handles
 
@@ -115,12 +109,12 @@ export default class ArrowSession extends BaseSession {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getArrowSnapshot(data: Data, id: string) {
-  const initialShape = getPage(current(data)).shapes[id] as ArrowShape
+  const initialShape = deepClone(tld.getPage(data).shapes[id]) as ArrowShape
 
   return {
     id,
     initialShape,
-    selectedIds: setToArray(getSelectedIds(data)),
+    selectedIds: setToArray(tld.getSelectedIds(data)),
     currentPageId: data.currentPageId,
   }
 }

@@ -7,29 +7,18 @@ import history from './history'
 import storage from './storage'
 import clipboard from './clipboard'
 import * as Sessions from './sessions'
+import coopClient from './coop/client-pusher'
 import commands from './commands'
 import {
-  getChildren,
   getCommonBounds,
-  getCurrentCamera,
-  getPage,
-  getSelectedBounds,
-  getSelectedShapes,
-  getShape,
-  screenToWorld,
-  setZoomCSS,
   rotateBounds,
   getBoundsCenter,
-  getDocumentBranch,
-  getCameraZoom,
-  getSelectedIds,
-  setSelectedIds,
-  getPageState,
   setToArray,
   deepClone,
   pointInBounds,
+  uniqueId,
 } from 'utils'
-
+import tld from 'utils/tld'
 import {
   Data,
   PointerInfo,
@@ -173,6 +162,20 @@ const state = createState({
         else: ['zoomCameraToActual'],
       },
       on: {
+        // Network-Related
+        RT_LOADED_ROOM: [
+          'clearRoom',
+          { if: 'hasRoom', do: ['clearDocument', 'connectToRoom'] },
+        ],
+        RT_UNLOADED_ROOM: ['clearRoom', 'clearDocument'],
+        RT_DISCONNECTED_ROOM: ['clearRoom', 'clearDocument'],
+        RT_CREATED_SHAPE: 'addRtShape',
+        RT_CHANGED_STATUS: 'setRtStatus',
+        RT_DELETED_SHAPE: 'deleteRtShape',
+        RT_EDITED_SHAPE: 'editRtShape',
+        RT_MOVED_CURSOR: 'moveRtCursor',
+        // Client
+        MOVED_POINTER: { secretlyDo: 'sendRtCursorMove' },
         RESIZED_WINDOW: 'resetPageState',
         RESET_PAGE: 'resetPage',
         TOGGLED_READ_ONLY: 'toggleReadOnly',
@@ -1025,13 +1028,16 @@ const state = createState({
       return ShapeType.Rectangle
     },
     firstSelectedShape(data) {
-      return getSelectedShapes(data)[0]
+      return tld.getSelectedShapes(data)[0]
     },
     editingShape(data) {
-      return getShape(data, data.editingId)
+      return tld.getShape(data, data.editingId)
     },
   },
   conditions: {
+    hasRoom(_, payload: { id?: string }) {
+      return payload.id !== undefined
+    },
     shouldDeleteShape(data, payload, shape: Shape) {
       return getShapeUtils(shape).shouldDelete(shape)
     },
@@ -1039,7 +1045,7 @@ const state = createState({
       return payload.target === 'canvas'
     },
     isPointingBounds(data, payload: PointerInfo) {
-      return getSelectedIds(data).size > 0 && payload.target === 'bounds'
+      return tld.getSelectedIds(data).size > 0 && payload.target === 'bounds'
     },
     isPointingShape(data, payload: PointerInfo) {
       return (
@@ -1064,7 +1070,7 @@ const state = createState({
       return payload.target !== undefined
     },
     isPointedShapeSelected(data) {
-      return getSelectedIds(data).has(data.pointedId)
+      return tld.getSelectedIds(data).has(data.pointedId)
     },
     isPressingShiftKey(data, payload: PointerInfo) {
       return payload.shiftKey
@@ -1080,18 +1086,18 @@ const state = createState({
 
       if (!bounds) return false
 
-      return pointInBounds(screenToWorld(payload.point, data), bounds)
+      return pointInBounds(tld.screenToWorld(payload.point, data), bounds)
     },
     pointHitsShape(data, payload: PointerInfo) {
-      const shape = getShape(data, payload.target)
+      const shape = tld.getShape(data, payload.target)
 
       return getShapeUtils(shape).hitTest(
         shape,
-        screenToWorld(payload.point, data)
+        tld.screenToWorld(payload.point, data)
       )
     },
     hasPointedId(data, payload: PointerInfo) {
-      return getShape(data, payload.target) !== undefined
+      return tld.getShape(data, payload.target) !== undefined
     },
     isPointingRotationHandle(
       data,
@@ -1100,13 +1106,13 @@ const state = createState({
       return payload.target === 'rotate'
     },
     hasSelection(data) {
-      return getSelectedIds(data).size > 0
+      return tld.getSelectedIds(data).size > 0
     },
     hasSingleSelection(data) {
-      return getSelectedIds(data).size === 1
+      return tld.getSelectedIds(data).size === 1
     },
     hasMultipleSelection(data) {
-      return getSelectedIds(data).size > 1
+      return tld.getSelectedIds(data).size > 1
     },
     isToolLocked(data) {
       return data.settings.isToolLocked
@@ -1118,12 +1124,99 @@ const state = createState({
       return Object.keys(data.document.pages).length === 1
     },
     selectionIncludesGroups(data) {
-      return getSelectedShapes(data).some(
-        (shape) => shape.type === ShapeType.Group
-      )
+      return tld
+        .getSelectedShapes(data)
+        .some((shape) => shape.type === ShapeType.Group)
     },
   },
   actions: {
+    // Networked Room
+    setRtStatus(data, payload: { id: string; status: string }) {
+      const { status } = payload
+
+      if (!data.room) {
+        data.room = {
+          id: null,
+          status: '',
+          peers: {},
+        }
+      }
+
+      data.room.peers = {}
+      data.room.status = status
+    },
+    addRtShape(data, payload: { pageId: string; shape: Shape }) {
+      const { pageId, shape } = payload
+      // What if the page is in storage?
+      data.document.pages[pageId].shapes[shape.id] = shape
+    },
+    deleteRtShape(data, payload: { pageId: string; shapeId: string }) {
+      const { pageId, shapeId } = payload
+      // What if the page is in storage?
+      delete data.document[pageId].shapes[shapeId]
+    },
+    editRtShape(data, payload: { pageId: string; shape: Shape }) {
+      const { pageId, shape } = payload
+      // What if the page is in storage?
+      Object.assign(data.document[pageId].shapes[shape.id], shape)
+    },
+    sendRtCursorMove(data, payload: PointerInfo) {
+      const point = tld.screenToWorld(payload.point, data)
+      coopClient.moveCursor(data.currentPageId, point)
+    },
+    moveRtCursor(
+      data,
+      payload: { id: string; pageId: string; point: number[] }
+    ) {
+      const { room } = data
+
+      if (room.peers[payload.id] === undefined) {
+        room.peers[payload.id] = {
+          id: payload.id,
+          cursor: {
+            point: payload.point,
+          },
+        }
+      }
+
+      room.peers[payload.id].cursor.point = payload.point
+    },
+    clearRoom(data) {
+      data.room = undefined
+    },
+    clearDocument(data) {
+      data.document.id = uniqueId()
+
+      const newId = 'page1'
+
+      data.currentPageId = newId
+
+      data.document.pages = {
+        [newId]: {
+          id: newId,
+          name: 'Page 1',
+          type: 'page',
+          shapes: {},
+          childIndex: 1,
+        },
+      }
+
+      data.pageStates = {
+        [newId]: {
+          id: newId,
+          selectedIds: new Set(),
+          camera: {
+            point: [0, 0],
+            zoom: 1,
+          },
+        },
+      }
+    },
+    connectToRoom(data, payload: { id: string }) {
+      data.room = { id: payload.id, status: 'connecting', peers: {} }
+      coopClient.connect(payload.id)
+    },
+
     resetPageState(data) {
       const pageState = data.pageStates[data.currentPageId]
       data.pageStates[data.currentPageId] = { ...pageState }
@@ -1144,7 +1237,7 @@ const state = createState({
     },
     /* --------------------- Shapes --------------------- */
     resetShapes(data) {
-      const page = getPage(data)
+      const page = tld.getPage(data)
       Object.values(page.shapes).forEach((shape) => {
         page.shapes[shape.id] = { ...shape }
       })
@@ -1153,11 +1246,11 @@ const state = createState({
     createShape(data, payload, type: ShapeType) {
       const shape = createShape(type, {
         parentId: data.currentPageId,
-        point: vec.round(screenToWorld(payload.point, data)),
+        point: vec.round(tld.screenToWorld(payload.point, data)),
         style: deepClone(data.currentStyle),
       })
 
-      const siblings = getChildren(data, shape.parentId)
+      const siblings = tld.getChildren(data, shape.parentId)
       const childIndex = siblings.length
         ? siblings[siblings.length - 1].childIndex + 1
         : 1
@@ -1166,9 +1259,9 @@ const state = createState({
 
       getShapeUtils(shape).setProperty(shape, 'childIndex', childIndex)
 
-      getPage(data).shapes[shape.id] = shape
+      tld.getPage(data).shapes[shape.id] = shape
 
-      setSelectedIds(data, [shape.id])
+      tld.setSelectedIds(data, [shape.id])
     },
     /* -------------------- Sessions -------------------- */
 
@@ -1197,33 +1290,33 @@ const state = createState({
     // Brushing
     startBrushSession(data, payload: PointerInfo) {
       session.begin(
-        new Sessions.BrushSession(data, screenToWorld(payload.point, data))
+        new Sessions.BrushSession(data, tld.screenToWorld(payload.point, data))
       )
     },
     updateBrushSession(data, payload: PointerInfo) {
       session.update<Sessions.BrushSession>(
         data,
-        screenToWorld(payload.point, data)
+        tld.screenToWorld(payload.point, data)
       )
     },
 
     // Rotating
     startRotateSession(data, payload: PointerInfo) {
       session.begin(
-        new Sessions.RotateSession(data, screenToWorld(payload.point, data))
+        new Sessions.RotateSession(data, tld.screenToWorld(payload.point, data))
       )
     },
     keyUpdateRotateSession(data, payload: PointerInfo) {
       session.update<Sessions.RotateSession>(
         data,
-        screenToWorld(inputs.pointer.point, data),
+        tld.screenToWorld(inputs.pointer.point, data),
         payload.shiftKey
       )
     },
     updateRotateSession(data, payload: PointerInfo) {
       session.update<Sessions.RotateSession>(
         data,
-        screenToWorld(payload.point, data),
+        tld.screenToWorld(payload.point, data),
         payload.shiftKey
       )
     },
@@ -1233,7 +1326,7 @@ const state = createState({
       session.begin(
         new Sessions.TranslateSession(
           data,
-          screenToWorld(inputs.pointer.origin, data)
+          tld.screenToWorld(inputs.pointer.origin, data)
         )
       )
     },
@@ -1243,7 +1336,7 @@ const state = createState({
     ) {
       session.update<Sessions.TranslateSession>(
         data,
-        screenToWorld(inputs.pointer.point, data),
+        tld.screenToWorld(inputs.pointer.point, data),
         payload.shiftKey,
         payload.altKey
       )
@@ -1251,7 +1344,7 @@ const state = createState({
     updateTranslateSession(data, payload: PointerInfo) {
       session.update<Sessions.TranslateSession>(
         data,
-        screenToWorld(payload.point, data),
+        tld.screenToWorld(payload.point, data),
         payload.shiftKey,
         payload.altKey
       )
@@ -1259,13 +1352,13 @@ const state = createState({
 
     // Handles
     doublePointHandle(data, payload: PointerInfo) {
-      const id = setToArray(getSelectedIds(data))[0]
+      const id = setToArray(tld.getSelectedIds(data))[0]
       commands.doublePointHandle(data, id, payload)
     },
 
     // Dragging Handle
     startHandleSession(data, payload: PointerInfo) {
-      const shapeId = Array.from(getSelectedIds(data).values())[0]
+      const shapeId = Array.from(tld.getSelectedIds(data).values())[0]
       const handleId = payload.target
 
       session.begin(
@@ -1273,7 +1366,7 @@ const state = createState({
           data,
           shapeId,
           handleId,
-          screenToWorld(inputs.pointer.origin, data)
+          tld.screenToWorld(inputs.pointer.origin, data)
         )
       )
     },
@@ -1283,14 +1376,14 @@ const state = createState({
     ) {
       session.update<Sessions.HandleSession>(
         data,
-        screenToWorld(inputs.pointer.point, data),
+        tld.screenToWorld(inputs.pointer.point, data),
         payload.shiftKey
       )
     },
     updateHandleSession(data, payload: PointerInfo) {
       session.update<Sessions.HandleSession>(
         data,
-        screenToWorld(payload.point, data),
+        tld.screenToWorld(payload.point, data),
         payload.shiftKey
       )
     },
@@ -1300,9 +1393,9 @@ const state = createState({
       data,
       payload: PointerInfo & { target: Corner | Edge }
     ) {
-      const point = screenToWorld(inputs.pointer.origin, data)
+      const point = tld.screenToWorld(inputs.pointer.origin, data)
       session.begin(
-        getSelectedIds(data).size === 1
+        tld.getSelectedIds(data).size === 1
           ? new Sessions.TransformSingleSession(data, payload.target, point)
           : new Sessions.TransformSession(data, payload.target, point)
       )
@@ -1312,7 +1405,7 @@ const state = createState({
         new Sessions.TransformSingleSession(
           data,
           Corner.BottomRight,
-          screenToWorld(payload.point, data),
+          tld.screenToWorld(payload.point, data),
           true
         )
       )
@@ -1320,14 +1413,14 @@ const state = createState({
     keyUpdateTransformSession(data, payload: PointerInfo) {
       session.update<Sessions.TransformSession>(
         data,
-        screenToWorld(inputs.pointer.point, data),
+        tld.screenToWorld(inputs.pointer.point, data),
         payload.shiftKey
       )
     },
     updateTransformSession(data, payload: PointerInfo) {
       session.update<Sessions.TransformSession>(
         data,
-        screenToWorld(payload.point, data),
+        tld.screenToWorld(payload.point, data),
         payload.shiftKey
       )
     },
@@ -1337,32 +1430,32 @@ const state = createState({
       session.begin(
         new Sessions.DirectionSession(
           data,
-          screenToWorld(inputs.pointer.origin, data)
+          tld.screenToWorld(inputs.pointer.origin, data)
         )
       )
     },
     updateDirectionSession(data, payload: PointerInfo) {
       session.update<Sessions.DirectionSession>(
         data,
-        screenToWorld(payload.point, data)
+        tld.screenToWorld(payload.point, data)
       )
     },
 
     // Drawing
     startDrawSession(data) {
-      const id = Array.from(getSelectedIds(data).values())[0]
+      const id = Array.from(tld.getSelectedIds(data).values())[0]
       session.begin(
         new Sessions.DrawSession(
           data,
           id,
-          screenToWorld(inputs.pointer.origin, data)
+          tld.screenToWorld(inputs.pointer.origin, data)
         )
       )
     },
     keyUpdateDrawSession(data, payload: PointerInfo) {
       session.update<Sessions.DrawSession>(
         data,
-        screenToWorld(inputs.pointer.point, data),
+        tld.screenToWorld(inputs.pointer.point, data),
         payload.pressure,
         payload.shiftKey
       )
@@ -1370,7 +1463,7 @@ const state = createState({
     updateDrawSession(data, payload: PointerInfo) {
       session.update<Sessions.DrawSession>(
         data,
-        screenToWorld(payload.point, data),
+        tld.screenToWorld(payload.point, data),
         payload.pressure,
         payload.shiftKey
       )
@@ -1378,13 +1471,13 @@ const state = createState({
 
     // Arrow
     startArrowSession(data, payload: PointerInfo) {
-      const id = Array.from(getSelectedIds(data).values())[0]
+      const id = Array.from(tld.getSelectedIds(data).values())[0]
 
       session.begin(
         new Sessions.ArrowSession(
           data,
           id,
-          screenToWorld(inputs.pointer.origin, data),
+          tld.screenToWorld(inputs.pointer.origin, data),
           payload.shiftKey
         )
       )
@@ -1392,14 +1485,14 @@ const state = createState({
     keyUpdateArrowSession(data, payload: PointerInfo) {
       session.update<Sessions.ArrowSession>(
         data,
-        screenToWorld(inputs.pointer.point, data),
+        tld.screenToWorld(inputs.pointer.point, data),
         payload.shiftKey
       )
     },
     updateArrowSession(data, payload: PointerInfo) {
       session.update<Sessions.ArrowSession>(
         data,
-        screenToWorld(payload.point, data),
+        tld.screenToWorld(payload.point, data),
         payload.shiftKey
       )
     },
@@ -1424,8 +1517,8 @@ const state = createState({
     },
 
     selectAll(data) {
-      const selectedIds = getSelectedIds(data)
-      const page = getPage(data)
+      const selectedIds = tld.getSelectedIds(data)
+      const page = tld.getPage(data)
       selectedIds.clear()
       for (const id in page.shapes) {
         if (page.shapes[id].parentId === data.currentPageId) {
@@ -1455,15 +1548,15 @@ const state = createState({
       data.pointedId = undefined
     },
     clearSelectedIds(data) {
-      setSelectedIds(data, [])
+      tld.setSelectedIds(data, [])
     },
     pullPointedIdFromSelectedIds(data) {
       const { pointedId } = data
-      const selectedIds = getSelectedIds(data)
+      const selectedIds = tld.getSelectedIds(data)
       selectedIds.delete(pointedId)
     },
     pushPointedIdToSelectedIds(data) {
-      getSelectedIds(data).add(data.pointedId)
+      tld.getSelectedIds(data).add(data.pointedId)
     },
     moveSelection(data, payload: { type: MoveType }) {
       commands.move(data, payload.type)
@@ -1514,12 +1607,12 @@ const state = createState({
     /* --------------------- Editing -------------------- */
 
     setEditingId(data) {
-      const selectedShape = getSelectedShapes(data)[0]
+      const selectedShape = tld.getSelectedShapes(data)[0]
       if (getShapeUtils(selectedShape).canEdit) {
         data.editingId = selectedShape.id
       }
 
-      getPageState(data).selectedIds = new Set([selectedShape.id])
+      tld.getPageState(data).selectedIds = new Set([selectedShape.id])
     },
     clearEditingId(data) {
       data.editingId = null
@@ -1564,44 +1657,43 @@ const state = createState({
     /* --------------------- Camera --------------------- */
 
     zoomIn(data) {
-      const camera = getCurrentCamera(data)
+      const camera = tld.getCurrentCamera(data)
       const i = Math.round((camera.zoom * 100) / 25)
       const center = [window.innerWidth / 2, window.innerHeight / 2]
 
-      const p0 = screenToWorld(center, data)
-      camera.zoom = getCameraZoom((i + 1) * 0.25)
-      const p1 = screenToWorld(center, data)
+      const p0 = tld.screenToWorld(center, data)
+      camera.zoom = tld.getCameraZoom((i + 1) * 0.25)
+      const p1 = tld.screenToWorld(center, data)
       camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
-      setZoomCSS(camera.zoom)
+      tld.setZoomCSS(camera.zoom)
     },
     zoomOut(data) {
-      const camera = getCurrentCamera(data)
+      const camera = tld.getCurrentCamera(data)
       const i = Math.round((camera.zoom * 100) / 25)
       const center = [window.innerWidth / 2, window.innerHeight / 2]
 
-      const p0 = screenToWorld(center, data)
-      camera.zoom = getCameraZoom((i - 1) * 0.25)
-      const p1 = screenToWorld(center, data)
+      const p0 = tld.screenToWorld(center, data)
+      camera.zoom = tld.getCameraZoom((i - 1) * 0.25)
+      const p1 = tld.screenToWorld(center, data)
       camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
-      setZoomCSS(camera.zoom)
+      tld.setZoomCSS(camera.zoom)
     },
     zoomCameraToActual(data) {
-      const camera = getCurrentCamera(data)
+      const camera = tld.getCurrentCamera(data)
       const center = [window.innerWidth / 2, window.innerHeight / 2]
 
-      const p0 = screenToWorld(center, data)
+      const p0 = tld.screenToWorld(center, data)
       camera.zoom = 1
-      const p1 = screenToWorld(center, data)
+      const p1 = tld.screenToWorld(center, data)
       camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
-      setZoomCSS(camera.zoom)
+      tld.setZoomCSS(camera.zoom)
     },
     zoomCameraToSelectionActual(data) {
-      const camera = getCurrentCamera(data)
-
-      const bounds = getSelectedBounds(data)
+      const camera = tld.getCurrentCamera(data)
+      const bounds = tld.getSelectedBounds(data)
 
       const mx = (window.innerWidth - bounds.width) / 2
       const my = (window.innerHeight - bounds.height) / 2
@@ -1609,13 +1701,13 @@ const state = createState({
       camera.zoom = 1
       camera.point = vec.add([-bounds.minX, -bounds.minY], [mx, my])
 
-      setZoomCSS(camera.zoom)
+      tld.setZoomCSS(camera.zoom)
     },
     zoomCameraToSelection(data) {
-      const camera = getCurrentCamera(data)
-      const bounds = getSelectedBounds(data)
+      const camera = tld.getCurrentCamera(data)
+      const bounds = tld.getSelectedBounds(data)
 
-      const zoom = getCameraZoom(
+      const zoom = tld.getCameraZoom(
         bounds.width > bounds.height
           ? (window.innerWidth - 128) / bounds.width
           : (window.innerHeight - 128) / bounds.height
@@ -1627,11 +1719,11 @@ const state = createState({
       camera.zoom = zoom
       camera.point = vec.add([-bounds.minX, -bounds.minY], [mx, my])
 
-      setZoomCSS(camera.zoom)
+      tld.setZoomCSS(camera.zoom)
     },
     zoomCameraToFit(data) {
-      const camera = getCurrentCamera(data)
-      const page = getPage(data)
+      const camera = tld.getCurrentCamera(data)
+      const page = tld.getPage(data)
 
       const shapes = Object.values(page.shapes)
 
@@ -1645,7 +1737,7 @@ const state = createState({
         )
       )
 
-      const zoom = getCameraZoom(
+      const zoom = tld.getCameraZoom(
         bounds.width > bounds.height
           ? (window.innerWidth - 128) / bounds.width
           : (window.innerHeight - 128) / bounds.height
@@ -1657,26 +1749,26 @@ const state = createState({
       camera.zoom = zoom
       camera.point = vec.add([-bounds.minX, -bounds.minY], [mx, my])
 
-      setZoomCSS(camera.zoom)
+      tld.setZoomCSS(camera.zoom)
     },
     zoomCamera(data, payload: { delta: number; point: number[] }) {
-      const camera = getCurrentCamera(data)
+      const camera = tld.getCurrentCamera(data)
       const next = camera.zoom - (payload.delta / 100) * camera.zoom
 
-      const p0 = screenToWorld(payload.point, data)
-      camera.zoom = getCameraZoom(next)
-      const p1 = screenToWorld(payload.point, data)
+      const p0 = tld.screenToWorld(payload.point, data)
+      camera.zoom = tld.getCameraZoom(next)
+      const p1 = tld.screenToWorld(payload.point, data)
       camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
-      setZoomCSS(camera.zoom)
+      tld.setZoomCSS(camera.zoom)
     },
     panCamera(data, payload: { delta: number[] }) {
-      const camera = getCurrentCamera(data)
+      const camera = tld.getCurrentCamera(data)
       camera.point = vec.sub(camera.point, vec.div(payload.delta, camera.zoom))
     },
     updateZoomCSS(data) {
-      const camera = getCurrentCamera(data)
-      setZoomCSS(camera.zoom)
+      const camera = tld.getCurrentCamera(data)
+      tld.setZoomCSS(camera.zoom)
     },
     pinchCamera(
       data,
@@ -1689,20 +1781,20 @@ const state = createState({
     ) {
       // This is usually replaced with hacks.fastPinchCamera!
 
-      const camera = getCurrentCamera(data)
+      const camera = tld.getCurrentCamera(data)
       camera.point = vec.sub(camera.point, vec.div(payload.delta, camera.zoom))
 
       const next = camera.zoom - (payload.distanceDelta / 300) * camera.zoom
 
-      const p0 = screenToWorld(payload.point, data)
-      camera.zoom = getCameraZoom(next)
-      const p1 = screenToWorld(payload.point, data)
+      const p0 = tld.screenToWorld(payload.point, data)
+      camera.zoom = tld.getCameraZoom(next)
+      const p1 = tld.screenToWorld(payload.point, data)
       camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
-      setZoomCSS(camera.zoom)
+      tld.setZoomCSS(camera.zoom)
     },
     resetCamera(data) {
-      const camera = getCurrentCamera(data)
+      const camera = tld.getCurrentCamera(data)
       camera.zoom = 1
       camera.point = [window.innerWidth / 2, window.innerHeight / 2]
       document.documentElement.style.setProperty('--camera-zoom', '1')
@@ -1763,7 +1855,7 @@ const state = createState({
       commands.generate(data, payload.shapes)
     },
     updateGeneratedShapes(data, payload, result: { shapes: Shape[] }) {
-      setSelectedIds(data, [])
+      tld.setSelectedIds(data, [])
 
       history.disable()
 
@@ -1807,7 +1899,7 @@ const state = createState({
     },
 
     copyToClipboard(data) {
-      clipboard.copy(getSelectedShapes(data))
+      clipboard.copy(tld.getSelectedShapes(data))
     },
 
     copyStateToClipboard(data) {
@@ -1880,26 +1972,26 @@ const state = createState({
   },
   values: {
     selectedIds(data) {
-      return setToArray(getSelectedIds(data))
+      return setToArray(tld.getSelectedIds(data))
     },
     selectedBounds(data) {
       return getSelectionBounds(data)
     },
     currentShapes(data) {
-      const page = getPage(data)
+      const page = tld.getPage(data)
 
       return Object.values(page.shapes)
         .filter((shape) => shape.parentId === page.id)
         .sort((a, b) => a.childIndex - b.childIndex)
     },
     selectedStyle(data) {
-      const selectedIds = Array.from(getSelectedIds(data).values())
+      const selectedIds = setToArray(tld.getSelectedIds(data))
       const { currentStyle } = data
 
       if (selectedIds.length === 0) {
         return currentStyle
       }
-      const page = getPage(data)
+      const page = tld.getPage(data)
 
       const shapeStyles = selectedIds.map((id) => page.shapes[id].style)
 
@@ -1930,12 +2022,12 @@ export default state
 export const useSelector = createSelectorHook(state)
 
 function getParentId(data: Data, id: string) {
-  const shape = getPage(data).shapes[id]
+  const shape = tld.getPage(data).shapes[id]
   return shape.parentId
 }
 
 function getPointedId(data: Data, id: string) {
-  const shape = getPage(data).shapes[id]
+  const shape = tld.getPage(data).shapes[id]
   if (!shape) return id
 
   return shape.parentId === data.currentParentId ||
@@ -1945,7 +2037,7 @@ function getPointedId(data: Data, id: string) {
 }
 
 function getDrilledPointedId(data: Data, id: string) {
-  const shape = getPage(data).shapes[id]
+  const shape = tld.getPage(data).shapes[id]
   return shape.parentId === data.currentPageId ||
     shape.parentId === data.pointedId ||
     shape.parentId === data.currentParentId
@@ -1970,18 +2062,18 @@ function getDrilledPointedId(data: Data, id: string) {
 // }
 
 function getSelectionBounds(data: Data) {
-  const selectedIds = getSelectedIds(data)
+  const selectedIds = tld.getSelectedIds(data)
 
-  const page = getPage(data)
+  const page = tld.getPage(data)
 
-  const shapes = getSelectedShapes(data)
+  const shapes = tld.getSelectedShapes(data)
 
   if (selectedIds.size === 0) return null
 
   if (selectedIds.size === 1) {
     if (!shapes[0]) {
-      console.error('Could not find that shape! Clearing selected IDs.')
-      setSelectedIds(data, [])
+      console.warn('Could not find that shape! Clearing selected IDs.')
+      tld.setSelectedIds(data, [])
       return null
     }
 
@@ -2014,7 +2106,7 @@ function getSelectionBounds(data: Data) {
   const uniqueSelectedShapeIds: string[] = Array.from(
     new Set(
       Array.from(selectedIds.values()).flatMap((id) =>
-        getDocumentBranch(data, id)
+        tld.getDocumentBranch(data, id)
       )
     ).values()
   )
