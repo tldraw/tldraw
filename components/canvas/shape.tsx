@@ -14,28 +14,29 @@ interface ShapeProps {
   isSelecting: boolean
 }
 
+function ShapeGuard(props: ShapeProps): JSX.Element {
+  const hasShape = useMissingShapeTest(props.id)
+  if (!hasShape) return null
+  return <Shape {...props} />
+}
+
 function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
   const rGroup = useRef<SVGGElement>(null)
 
   const isHidden = useSelector((s) => {
     const shape = tld.getShape(s.data, id)
-    return shape?.isHidden || false
+    return shape.isHidden
   })
 
   const children = useSelector((s) => {
     const shape = tld.getShape(s.data, id)
-    return shape?.children || []
+    return shape.children
   }, deepCompareArrays)
 
   const strokeWidth = useSelector((s) => {
     const shape = tld.getShape(s.data, id)
     const style = getShapeStyle(shape?.style)
     return +style.strokeWidth
-  })
-
-  const shapeUtils = useSelector((s) => {
-    const shape = tld.getShape(s.data, id)
-    return getShapeUtils(shape)
   })
 
   const transform = useSelector((s) => {
@@ -51,15 +52,16 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
   `
   })
 
-  const events = useShapeEvents(id, shapeUtils?.isParent, rGroup)
+  // From here on, not reactive—if we're here, we can trust that the
+  // shape in state is a shape with changes that we need to render.
 
-  const hasShape = useMissingShapeTest(id)
+  const shape = tld.getShape(state.data, id)
 
-  if (!hasShape) return null
+  const shapeUtils = getShapeUtils(shape)
 
-  const isParent = shapeUtils.isParent
+  const { isParent, isForeignObject, canStyleFill } = shapeUtils
 
-  const isForeignObject = shapeUtils.isForeignObject
+  const events = useShapeEvents(id, isParent, rGroup)
 
   return (
     <StyledGroup
@@ -76,7 +78,7 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
             as="use"
             href={'#' + id}
             strokeWidth={strokeWidth + 8}
-            variant={shapeUtils.canStyleFill ? 'filled' : 'hollow'}
+            variant={canStyleFill ? 'filled' : 'hollow'}
           />
         ))}
 
@@ -196,7 +198,7 @@ const StyledGroup = styled('g', {
   outline: 'none',
 })
 
-export default memo(Shape)
+export default memo(ShapeGuard)
 
 function useMissingShapeTest(id: string) {
   const [isShape, setIsShape] = useState(true)
