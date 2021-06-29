@@ -26,12 +26,11 @@ export function fastDrawUpdate(info: PointerInfo): void {
 
   const selectedId = setToArray(tld.getSelectedIds(data))[0]
 
-  const shape = data.document.pages[data.currentPageId].shapes[
-    selectedId
-  ] as DrawShape
+  const { shapes } = data.document.pages[data.currentPageId]
 
-  ;(data.document.pages[data.currentPageId].shapes[selectedId] as DrawShape) =
-    deepClone(shape)
+  const shape = shapes[selectedId] as DrawShape
+
+  shapes[selectedId] = deepClone(shape)
 
   state.forceData(freeze(data))
 }
