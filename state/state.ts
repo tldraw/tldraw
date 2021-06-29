@@ -312,10 +312,6 @@ const state = createState({
           if: 'hasSelection',
           do: 'zoomCameraToSelection',
         },
-        STARTED_PINCHING: {
-          unless: 'isInSession',
-          to: 'pinching',
-        },
         ZOOMED_TO_FIT: ['zoomCameraToFit', 'zoomCameraToActual'],
         ZOOMED_IN: 'zoomIn',
         ZOOMED_OUT: 'zoomOut',
@@ -337,6 +333,10 @@ const state = createState({
         selecting: {
           onEnter: ['setActiveToolSelect', 'clearInputs'],
           on: {
+            STARTED_PINCHING: {
+              unless: 'isInSession',
+              to: 'pinching.selectPinching',
+            },
             SAVED: 'forceSave',
             DELETED: {
               unless: 'isReadOnly',

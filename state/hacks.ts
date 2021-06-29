@@ -30,10 +30,8 @@ export function fastDrawUpdate(info: PointerInfo): void {
     selectedId
   ] as DrawShape
 
-  ;(data.document.pages[data.currentPageId].shapes[selectedId] as DrawShape) = {
-    ...shape,
-    points: [...shape.points],
-  }
+  ;(data.document.pages[data.currentPageId].shapes[selectedId] as DrawShape) =
+    deepClone(shape)
 
   state.forceData(freeze(data))
 }
@@ -43,7 +41,7 @@ export function fastPanUpdate(delta: number[]): void {
   const camera = tld.getCurrentCamera(data)
   camera.point = vec.sub(camera.point, vec.div(delta, camera.zoom))
 
-  data.pageStates[data.currentPageId].camera = { ...camera }
+  data.pageStates[data.currentPageId].camera = deepClone(camera)
 
   state.forceData(freeze(data))
 }
@@ -59,7 +57,7 @@ export function fastZoomUpdate(point: number[], delta: number): void {
   const p1 = tld.screenToWorld(point, data)
   camera.point = vec.add(camera.point, vec.sub(p1, p0))
 
-  data.pageStates[data.currentPageId].camera = { ...camera }
+  data.pageStates[data.currentPageId].camera = deepClone(camera)
 
   state.forceData(freeze(data))
 }
