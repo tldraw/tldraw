@@ -1,4 +1,4 @@
-import React, { useRef, memo, useEffect, useState } from 'react'
+import React, { useRef, memo, useEffect } from 'react'
 import state, { useSelector } from 'state'
 import styled from 'styles'
 import { getShapeUtils } from 'state/shape-utils'
@@ -12,12 +12,6 @@ import useShapeDef from 'hooks/useShape'
 interface ShapeProps {
   id: string
   isSelecting: boolean
-}
-
-function ShapeGuard(props: ShapeProps): JSX.Element {
-  const hasShape = useMissingShapeTest(props.id)
-  if (!hasShape) return null
-  return <Shape {...props} />
 }
 
 function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
@@ -96,6 +90,21 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
     </StyledGroup>
   )
 }
+
+function ShapeGuard(props: ShapeProps): JSX.Element {
+  const hasShape = useSelector(
+    (s) => tld.getShape(s.data, props.id) !== undefined
+  )
+
+  if (!hasShape) {
+    console.warn('missing shape!')
+    return null
+  }
+
+  return <Shape {...props} />
+}
+
+export default memo(ShapeGuard)
 
 interface RealShapeProps {
   id: string
@@ -197,19 +206,3 @@ const EventSoak = styled('use', {
 const StyledGroup = styled('g', {
   outline: 'none',
 })
-
-export default memo(ShapeGuard)
-
-function useMissingShapeTest(id: string) {
-  const [isShape, setIsShape] = useState(true)
-
-  useEffect(() => {
-    return state.onUpdate((s) => {
-      if (isShape && !tld.getShape(s.data, id)) {
-        setIsShape(false)
-      }
-    })
-  }, [isShape, id])
-
-  return isShape
-}

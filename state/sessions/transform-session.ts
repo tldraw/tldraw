@@ -69,7 +69,7 @@ export default class TransformSession extends BaseSession {
         transformOrigin,
       })
 
-      shapes[id] = { ...shape }
+      shapes[id] = deepClone(shape)
     }
 
     tld.updateParents(data, Object.keys(shapeBounds))

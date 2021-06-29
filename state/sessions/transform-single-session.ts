@@ -53,7 +53,7 @@ export default class TransformSingleSession extends BaseSession {
       transformOrigin: [0.5, 0.5],
     })
 
-    data.document.pages[data.currentPageId].shapes[shape.id] = { ...shape }
+    data.document.pages[data.currentPageId].shapes[shape.id] = deepClone(shape)
 
     tld.updateParents(data, [id])
   }
