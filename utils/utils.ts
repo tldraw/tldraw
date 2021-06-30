@@ -1565,28 +1565,6 @@ export function metaKey(e: KeyboardEvent | React.KeyboardEvent): boolean {
 }
 
 /**
- * Extract info about a keyboard event.
- * @param e
- */
-export function getKeyboardEventInfo(e: KeyboardEvent | React.KeyboardEvent): {
-  key: string
-  shiftKey: boolean
-  ctrlKey: boolean
-  metaKey: boolean
-  altKey: boolean
-} {
-  const { shiftKey, ctrlKey, metaKey, altKey } = e
-
-  return {
-    key: e.key,
-    shiftKey,
-    ctrlKey,
-    metaKey: isDarwin() ? metaKey : ctrlKey,
-    altKey,
-  }
-}
-
-/**
  * Find the closest point on a SVG path to an off-path point.
  * @param pathNode
  * @param point

@@ -2,12 +2,6 @@ import React from 'react'
 import styled from 'styles'
 import { motion } from 'framer-motion'
 
-// const transition = {
-//   type: 'spring',
-//   mass: 2,
-//   damping: 20,
-// }
-
 export default function Cursor({
   color = 'dodgerblue',
   duration = 0,

@@ -173,8 +173,6 @@ const state = createState({
         // RT_CHANGED_STATUS: 'setRtStatus',
         // RT_DELETED_SHAPE: 'deleteRtShape',
         // RT_EDITED_SHAPE: 'editRtShape',
-        // RT_MOVED_CURSOR: 'moveRtCursor',
-        // MOVED_POINTER: { secretlyDo: 'sendRtCursorMove' },
         // Client
         RESIZED_WINDOW: 'resetPageState',
         RESET_DOCUMENT_STATE: 'resetDocumentState',
@@ -334,6 +332,7 @@ const state = createState({
         selecting: {
           onEnter: ['setActiveToolSelect', 'clearInputs'],
           on: {
+            KEYBOARD_PANNED_CAMERA: 'panCamera',
             STARTED_PINCHING: {
               unless: 'isInSession',
               to: 'pinching.selectPinching',

@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { useEffect } from 'react'
 import state from 'state'
+import inputs from 'state/inputs'
 import { MoveType } from 'types'
-import { getKeyboardEventInfo, metaKey } from 'utils'
+import { metaKey } from 'utils'
 
 export default function useKeyboardEvents() {
   useEffect(() => {
@@ -24,7 +25,7 @@ export default function useKeyboardEvents() {
         e.preventDefault()
       }
 
-      const info = getKeyboardEventInfo(e)
+      const info = inputs.keydown(e)
 
       switch (e.key) {
         case 'ArrowUp': {
@@ -269,7 +270,7 @@ export default function useKeyboardEvents() {
     }
 
     function handleKeyUp(e: KeyboardEvent) {
-      const info = getKeyboardEventInfo(e)
+      const info = inputs.keyup(e)
 
       if (e.key === 'Shift') {
         state.send('RELEASED_SHIFT_KEY', info)

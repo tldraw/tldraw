@@ -1,5 +1,5 @@
 import React from 'react'
-import { PointerInfo } from 'types'
+import { KeyboardInfo, PointerInfo } from 'types'
 import vec from 'utils/vec'
 import { isDarwin, getPoint } from 'utils'
 
@@ -8,8 +8,12 @@ const DOUBLE_CLICK_DURATION = 250
 class Inputs {
   activePointerId?: number
   pointerUpTime = 0
-  points: Record<string, PointerInfo> = {}
+
   pointer: PointerInfo
+  points: Record<string, PointerInfo> = {}
+
+  keyboard: KeyboardInfo
+  keys: Record<string, boolean> = {}
 
   touchStart(e: TouchEvent | React.TouchEvent, target: string) {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
@@ -189,6 +193,36 @@ class Inputs {
 
   resetDoubleClick() {
     this.pointerUpTime = 0
+  }
+
+  keydown = (e: KeyboardEvent | React.KeyboardEvent): KeyboardInfo => {
+    const { shiftKey, ctrlKey, metaKey, altKey } = e
+
+    this.keys[e.key] = true
+
+    return {
+      key: e.key,
+      keys: Object.keys(this.keys),
+      shiftKey,
+      ctrlKey,
+      metaKey: isDarwin() ? metaKey : ctrlKey,
+      altKey,
+    }
+  }
+
+  keyup = (e: KeyboardEvent | React.KeyboardEvent): KeyboardInfo => {
+    const { shiftKey, ctrlKey, metaKey, altKey } = e
+
+    delete this.keys[e.key]
+
+    return {
+      key: e.key,
+      keys: Object.keys(this.keys),
+      shiftKey,
+      ctrlKey,
+      metaKey: isDarwin() ? metaKey : ctrlKey,
+      altKey,
+    }
   }
 }
 

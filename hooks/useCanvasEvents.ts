@@ -8,6 +8,7 @@ import {
   fastTranslate,
 } from 'state/hacks'
 import inputs from 'state/inputs'
+import Vec from 'utils/vec'
 
 export default function useCanvasEvents(
   rCanvas: MutableRefObject<SVGGElement>
@@ -27,7 +28,13 @@ export default function useCanvasEvents(
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!inputs.canAccept(e.pointerId)) return
 
+    const prev = inputs.pointer?.point
     const info = inputs.pointerMove(e)
+
+    if (prev && state.isIn('selecting') && inputs.keys[' ']) {
+      state.send('KEYBOARD_PANNED_CAMERA', { delta: Vec.sub(prev, info.point) })
+      return
+    }
 
     if (state.isIn('draw.editing')) {
       fastDrawUpdate(info)

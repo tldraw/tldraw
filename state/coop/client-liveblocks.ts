@@ -1,5 +1,3 @@
-/* eslint-disable prefer-const */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Client, Room, createClient } from '@liveblocks/client'
 import coopState from './coop-state'
 import { CoopPresence } from 'types'
@@ -108,6 +106,7 @@ class CoopClient {
         bufferedYs: this.bufferedYs,
         times,
         duration,
+        pageId,
       })
 
       // Reset data for next update
@@ -118,6 +117,7 @@ class CoopClient {
       elapsed = 0
     }
 
+    // Add the new point and time
     this.bufferedXs.push(point[0])
     this.bufferedYs.push(point[1])
     this.bufferedTs.push(elapsed / 1000)

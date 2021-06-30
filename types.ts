@@ -44,6 +44,7 @@ export type CoopPresence = {
   bufferedYs: number[]
   times: number[]
   duration: number
+  pageId: string
 }
 
 export interface TLDocument {
@@ -280,6 +281,15 @@ export interface PointerInfo {
   origin: number[]
   point: number[]
   pressure: number
+  shiftKey: boolean
+  ctrlKey: boolean
+  metaKey: boolean
+  altKey: boolean
+}
+
+export interface KeyboardInfo {
+  key: string
+  keys: string[]
   shiftKey: boolean
   ctrlKey: boolean
   metaKey: boolean

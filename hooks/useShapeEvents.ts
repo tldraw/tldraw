@@ -2,6 +2,7 @@
 import React, { MutableRefObject, useCallback } from 'react'
 import state from 'state'
 import inputs from 'state/inputs'
+import Vec from 'utils/vec'
 
 export default function useShapeEvents(
   id: string,
@@ -56,6 +57,20 @@ export default function useShapeEvents(
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (!inputs.canAccept(e.pointerId)) return
+
+      const prev = inputs.pointer?.point
+      const info = inputs.pointerMove(e)
+
+      if (prev && state.isIn('selecting') && inputs.keys[' ']) {
+        if (!e.currentTarget.hasPointerCapture(e.pointerId)) {
+          e.currentTarget.setPointerCapture(e.pointerId)
+        }
+
+        state.send('KEYBOARD_PANNED_CAMERA', {
+          delta: Vec.sub(prev, info.point),
+        })
+        return
+      }
 
       if (isParent) {
         state.send('MOVED_OVER_GROUP', inputs.pointerEnter(e, id))
