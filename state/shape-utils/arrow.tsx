@@ -105,8 +105,7 @@ const arrow = registerShapeUtils<ArrowShape>({
 
     const strokeWidth = +styles.strokeWidth
 
-    const sw =
-      strokeWidth * (style.dash === DashStyle.Solid && bend === 0 ? 1 : 1.618)
+    const sw = strokeWidth * 1.618
 
     const arrowDist = vec.dist(start.point, end.point)
 
@@ -115,6 +114,9 @@ const arrow = registerShapeUtils<ArrowShape>({
     let endAngle: number
 
     if (isStraightLine) {
+      const straight_sw =
+        strokeWidth * (style.dash === DashStyle.Solid && bend === 0 ? 1 : 1.618)
+
       if (shape.style.dash === DashStyle.Solid && !pathCache.has(shape)) {
         renderFreehandArrowShaft(shape)
       }
@@ -141,6 +143,7 @@ const arrow = registerShapeUtils<ArrowShape>({
 
       endAngle = 0
 
+      // Straight arrow path
       shaftPath = (
         <>
           <path
@@ -154,12 +157,12 @@ const arrow = registerShapeUtils<ArrowShape>({
           />
           <path
             d={path}
-            fill="none"
-            strokeWidth={sw}
+            fill={styles.stroke}
+            strokeWidth={straight_sw}
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
-          ></path>
+          />
         </>
       )
     } else {
@@ -195,6 +198,7 @@ const arrow = registerShapeUtils<ArrowShape>({
         vec.angle(start.point, end.point) +
         (Math.PI / 2) * (bend > 0 ? 0.98 : -0.98)
 
+      // Curved arrow path
       shaftPath = (
         <>
           <path
@@ -224,7 +228,7 @@ const arrow = registerShapeUtils<ArrowShape>({
         {shape.decorations.start === Decoration.Arrow && (
           <path
             d={getArrowHeadPath(shape, start.point, startAngle)}
-            strokeWidth={strokeWidth * 1.618}
+            strokeWidth={sw}
             fill="none"
             strokeDashoffset="none"
             strokeDasharray="none"
@@ -233,7 +237,7 @@ const arrow = registerShapeUtils<ArrowShape>({
         {shape.decorations.end === Decoration.Arrow && (
           <path
             d={getArrowHeadPath(shape, end.point, endAngle)}
-            strokeWidth={strokeWidth * 1.618}
+            strokeWidth={sw}
             fill="none"
             strokeDashoffset="none"
             strokeDasharray="none"
@@ -401,6 +405,8 @@ const arrow = registerShapeUtils<ArrowShape>({
       shape.handles[handle.id] = handle
     }
 
+    const midPoint = vec.med(shape.handles.start.point, shape.handles.end.point)
+
     if ('bend' in handles) {
       const { start, end, bend } = shape.handles
 
@@ -423,6 +429,10 @@ const arrow = registerShapeUtils<ArrowShape>({
     }
 
     shape.handles.bend.point = getBendPoint(shape)
+
+    if (vec.isEqual(shape.handles.bend.point, midPoint)) {
+      shape.bend = 0
+    }
 
     return this
   },
@@ -512,11 +522,11 @@ function renderFreehandArrowShaft(shape: ArrowShape) {
       end.point,
     ],
     {
-      size: 1 + strokeWidth,
+      size: strokeWidth * 0.82,
       thinning: 0.6,
       easing: (t) => t * t * t * t,
-      end: { taper: strokeWidth * 2 },
-      start: { taper: strokeWidth * 2 },
+      end: { taper: 4 + getRandom() * 4 },
+      start: { taper: 4 + getRandom() * 4 },
       simulatePressure: false,
     }
   )
