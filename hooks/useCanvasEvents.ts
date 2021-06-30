@@ -31,22 +31,12 @@ export default function useCanvasEvents(
 
     if (state.isIn('draw.editing')) {
       fastDrawUpdate(info)
-      return
-    }
-
-    if (state.isIn('brushSelecting')) {
+    } else if (state.isIn('brushSelecting')) {
       fastBrushSelect(info.point)
-      return
-    }
-
-    if (state.isIn('translatingSelection')) {
+    } else if (state.isIn('translatingSelection')) {
       fastTranslate(info)
-      return
-    }
-
-    if (state.isIn('transformingSelection')) {
+    } else if (state.isIn('transformingSelection')) {
       fastTransform(info)
-      return
     }
 
     state.send('MOVED_POINTER', info)

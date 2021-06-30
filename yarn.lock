@@ -1206,6 +1206,30 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
+"@liveblocks/client@0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-0.8.0.tgz#b2cd1cc197d1ada76f4083d3a9065ee9f8fa1dc4"
+  integrity sha512-p7h7ZZpkyNjC/asdzjcZOzyTjINpQkgI5zrZGT7323VLXbn9ge/a+YL83N5sUosMtbjycfGLGHNN8fpSRgl7pA==
+
+"@liveblocks/client@^0.8.1":
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-0.8.1.tgz#4220542c84473d71fb4032442e6a9861a5983ba3"
+  integrity sha512-+5LNtyOUA7RyxsK2uRupEZ6SzNhi1p9119fuWFrbrgP0dMabV40U7SVuvMnMxIsGzFqC+RoDQWEQ+iJFcuBVaQ==
+
+"@liveblocks/node@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@liveblocks/node/-/node-0.3.0.tgz#f22ff0c3415502af2baf22250431852e198b12e0"
+  integrity sha512-3IJ6uN3QU71z6WXiDM97wW17fVVvrG9zMy4G4PY3zYzmeRfMnA+KBSBT1uPvlfgWm2D3d6/HNIXWxhwyv7bkfw==
+  dependencies:
+    node-fetch "^2.6.1"
+
+"@liveblocks/react@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-0.8.0.tgz#e538be3e0e3bcb5fe47e2f8ad5fcd2e9c379fc5d"
+  integrity sha512-eCCVOz15ldmeDIT0AB08ExQrBROeAig6EBI0hY9tUe5iehADDDSAJmrkujg0K/lwPvtvzjjrzGq1qW79x2ggkg==
+  dependencies:
+    "@liveblocks/client" "0.8.0"
+
 "@monaco-editor/loader@^1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@monaco-editor/loader/-/loader-1.1.1.tgz#37db648c81a86946d0febd391de00df9c28a0a3d"

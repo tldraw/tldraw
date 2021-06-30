@@ -17,7 +17,7 @@ export interface Data {
   room?: {
     id: string
     status: string
-    peers: Record<string, Peer>
+    peers: Record<string, CoopPresence>
   }
   currentStyle: ShapeStyles
   activeTool: ShapeType | 'select'
@@ -38,11 +38,12 @@ export interface Data {
 /*                      Document                      */
 /* -------------------------------------------------- */
 
-export interface Peer {
+export type CoopPresence = {
   id: string
-  cursor: {
-    point: number[]
-  }
+  bufferedXs: number[]
+  bufferedYs: number[]
+  times: number[]
+  duration: number
 }
 
 export interface TLDocument {

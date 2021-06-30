@@ -7,7 +7,7 @@ import history from './history'
 import storage from './storage'
 import clipboard from './clipboard'
 import * as Sessions from './sessions'
-import coopClient from './coop/client-pusher'
+import coopClient from './coop/client-liveblocks'
 import commands from './commands'
 import {
   getCommonBounds,
@@ -163,18 +163,17 @@ const state = createState({
       },
       on: {
         // Network-Related
-        // RT_LOADED_ROOM: [
-        //   'clearRoom',
-        //   { if: 'hasRoom', do: ['clearDocument', 'connectToRoom'] },
-        // ],
+        RT_LOADED_ROOM: [
+          'clearRoom',
+          { if: 'hasRoom', do: ['clearDocument', 'connectToRoom'] },
+        ],
+        RT_CHANGED_STATUS: 'setRtStatus',
+        MOVED_POINTER: { secretlyDo: 'sendRtCursorMove' },
         // RT_UNLOADED_ROOM: ['clearRoom', 'clearDocument'],
         // RT_DISCONNECTED_ROOM: ['clearRoom', 'clearDocument'],
         // RT_CREATED_SHAPE: 'addRtShape',
-        // RT_CHANGED_STATUS: 'setRtStatus',
         // RT_DELETED_SHAPE: 'deleteRtShape',
         // RT_EDITED_SHAPE: 'editRtShape',
-        // RT_MOVED_CURSOR: 'moveRtCursor',
-        // MOVED_POINTER: { secretlyDo: 'sendRtCursorMove' },
         // Client
         RESIZED_WINDOW: 'resetPageState',
         RESET_PAGE: 'resetPage',
@@ -554,7 +553,7 @@ const state = createState({
               onEnter: 'startTransformSession',
               onExit: 'completeSession',
               on: {
-                // MOVED_POINTER: 'updateTransformSession', using hacks.fastTransform
+                // MOVED_POINTER: 'updateTransformSession', (see hacks)
                 PANNED_CAMERA: 'updateTransformSession',
                 PRESSED_SHIFT_KEY: 'keyUpdateTransformSession',
                 RELEASED_SHIFT_KEY: 'keyUpdateTransformSession',
@@ -567,7 +566,7 @@ const state = createState({
               onExit: 'completeSession',
               on: {
                 STARTED_PINCHING: { to: 'pinching' },
-                MOVED_POINTER: 'updateTranslateSession',
+                // MOVED_POINTER: 'updateTranslateSession', (see hacks)
                 PANNED_CAMERA: 'updateTranslateSession',
                 PRESSED_SHIFT_KEY: 'keyUpdateTranslateSession',
                 RELEASED_SHIFT_KEY: 'keyUpdateTranslateSession',
@@ -604,7 +603,7 @@ const state = createState({
                 'startBrushSession',
               ],
               on: {
-                // MOVED_POINTER: 'updateBrushSession', using hacks.fastBrushSelect
+                // MOVED_POINTER: 'updateBrushSession',  (see hacks)
                 PANNED_CAMERA: 'updateBrushSession',
                 STOPPED_POINTING: { to: 'selecting' },
                 STARTED_PINCHING: { to: 'pinching' },
@@ -640,7 +639,7 @@ const state = createState({
         },
         pinching: {
           on: {
-            // PINCHED: { do: 'pinchCamera' }, using hacks.fastPinchCamera
+            // PINCHED: { do: 'pinchCamera' },  (see hacks)
           },
           initial: 'selectPinching',
           onExit: { secretlyDo: 'updateZoomCSS' },
@@ -701,7 +700,7 @@ const state = createState({
                     },
                     PRESSED_SHIFT: 'keyUpdateDrawSession',
                     RELEASED_SHIFT: 'keyUpdateDrawSession',
-                    // MOVED_POINTER: 'updateDrawSession',
+                    // MOVED_POINTER: 'updateDrawSession', (see hacks)
                     PANNED_CAMERA: 'updateDrawSession',
                   },
                 },
@@ -1163,23 +1162,6 @@ const state = createState({
     sendRtCursorMove(data, payload: PointerInfo) {
       const point = tld.screenToWorld(payload.point, data)
       coopClient.moveCursor(data.currentPageId, point)
-    },
-    moveRtCursor(
-      data,
-      payload: { id: string; pageId: string; point: number[] }
-    ) {
-      const { room } = data
-
-      if (room.peers[payload.id] === undefined) {
-        room.peers[payload.id] = {
-          id: payload.id,
-          cursor: {
-            point: payload.point,
-          },
-        }
-      }
-
-      room.peers[payload.id].cursor.point = payload.point
     },
     clearRoom(data) {
       data.room = undefined

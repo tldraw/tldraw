@@ -29,6 +29,9 @@
     ]
   },
   "dependencies": {
+    "@liveblocks/client": "^0.8.1",
+    "@liveblocks/node": "^0.3.0",
+    "@liveblocks/react": "^0.8.0",
     "@monaco-editor/react": "^4.2.1",
     "@radix-ui/react-checkbox": "^0.0.16",
     "@radix-ui/react-context-menu": "^0.0.22",

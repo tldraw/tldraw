@@ -1,25 +1,45 @@
 import React from 'react'
 import styled from 'styles'
+import { motion } from 'framer-motion'
+
+// const transition = {
+//   type: 'spring',
+//   mass: 2,
+//   damping: 20,
+// }
 
 export default function Cursor({
   color = 'dodgerblue',
-  point = [0, 0],
+  duration = 0,
+  bufferedXs = [],
+  bufferedYs = [],
+  times = [],
 }: {
-  color?: string
-  point: number[]
+  color: string
+  duration: number
+  bufferedXs: number[]
+  bufferedYs: number[]
+  times: number[]
 }): JSX.Element {
-  const transform = `translate(${point[0] - 12} ${point[1] - 10})`
-
   return (
     <StyledCursor
       color={color}
-      transform={transform}
+      initial={false}
+      animate={{
+        x: bufferedXs,
+        y: bufferedYs,
+        transition: {
+          type: 'tween',
+          ease: 'linear',
+          duration,
+          times,
+        },
+      }}
       width="35px"
       height="35px"
       viewBox="0 0 35 35"
       version="1.1"
       pointerEvents="none"
-      opacity="0"
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
     >
@@ -43,7 +63,7 @@ export default function Cursor({
   )
 }
 
-const StyledCursor = styled('g', {
+const StyledCursor = styled(motion.g, {
   position: 'absolute',
   zIndex: 1000,
   top: 0,

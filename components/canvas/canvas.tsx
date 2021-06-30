@@ -1,19 +1,18 @@
-import styled from 'styles'
 import { ErrorBoundary } from 'react-error-boundary'
-import state, { useSelector } from 'state'
-import React, { useRef } from 'react'
-import useZoomEvents from 'hooks/useZoomEvents'
-import useCamera from 'hooks/useCamera'
-import Defs from './defs'
-import Page from './page'
-import Brush from './brush'
-import Cursor from './cursor'
 import Bounds from './bounds/bounding-box'
 import BoundsBg from './bounds/bounds-bg'
-import Handles from './bounds/handles'
-import useCanvasEvents from 'hooks/useCanvasEvents'
+import Brush from './brush'
 import ContextMenu from './context-menu/context-menu'
-import { deepCompareArrays } from 'utils'
+import Coop from './coop/coop'
+import Defs from './defs'
+import Handles from './bounds/handles'
+import Page from './page'
+import React, { useRef } from 'react'
+import state, { useSelector } from 'state'
+import styled from 'styles'
+import useCamera from 'hooks/useCamera'
+import useCanvasEvents from 'hooks/useCanvasEvents'
+import useZoomEvents from 'hooks/useZoomEvents'
 
 function resetError() {
   null
@@ -40,42 +39,16 @@ export default function Canvas(): JSX.Element {
             <g ref={rGroup} id="shapes">
               <BoundsBg />
               <Page />
+              <Coop />
               <Bounds />
               <Handles />
               <Brush />
-              <Peers />
             </g>
           )}
         </ErrorBoundary>
       </MainSVG>
     </ContextMenu>
   )
-}
-
-function Peers(): JSX.Element {
-  const peerIds = useSelector((s) => {
-    return s.data.room ? Object.keys(s.data.room?.peers) : []
-  }, deepCompareArrays)
-
-  return (
-    <>
-      {peerIds.map((id) => (
-        <Peer key={id} id={id} />
-      ))}
-    </>
-  )
-}
-
-function Peer({ id }: { id: string }): JSX.Element {
-  const hasPeer = useSelector((s) => {
-    return s.data.room && s.data.room.peers[id] !== undefined
-  })
-
-  const point = useSelector(
-    (s) => hasPeer && s.data.room.peers[id].cursor.point
-  )
-
-  return <Cursor point={point} />
 }
 
 const MainSVG = styled('svg', {

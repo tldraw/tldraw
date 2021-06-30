@@ -142,6 +142,7 @@ export default class ProjectUtils {
 
   /**
    * Get the next child index above a shape.
+   * TODO: Make work for grouped shapes, make faster.
    * @param data
    * @param id
    */
@@ -158,9 +159,7 @@ export default class ProjectUtils {
 
     const nextSibling = siblings[index + 1]
 
-    if (!nextSibling) {
-      return shape.childIndex + 1
-    }
+    if (!nextSibling) return shape.childIndex + 1
 
     let nextIndex = (shape.childIndex + nextSibling.childIndex) / 2
 
