@@ -132,6 +132,7 @@ const ForeignObjectHover = memo(function ForeignObjectHover({
 }) {
   const size = useSelector((s) => {
     const shape = tld.getPage(s.data).shapes[id]
+    if (shape === undefined) return [0, 0]
     const bounds = getShapeUtils(shape).getBounds(shape)
 
     return [bounds.width, bounds.height]
@@ -159,8 +160,6 @@ const ForeignObjectRender = memo(function ForeignObjectRender({
 
   const isEditing = useSelector((s) => s.data.editingId === id)
 
-  const shapeUtils = getShapeUtils(shape)
-
   useEffect(() => {
     if (isEditing) {
       setTimeout(() => {
@@ -171,7 +170,9 @@ const ForeignObjectRender = memo(function ForeignObjectRender({
     }
   }, [isEditing])
 
-  return shapeUtils.render(shape, { isEditing, ref: rFocusable })
+  if (shape === undefined) return null
+
+  return getShapeUtils(shape).render(shape, { isEditing, ref: rFocusable })
 })
 
 const StyledShape = styled('path', {

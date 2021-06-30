@@ -625,8 +625,14 @@ const state = createState({
           onExit: ['completeSession', 'clearEditingId'],
           on: {
             EDITED_SHAPE: { do: 'updateEditSession' },
-
-            BLURRED_EDITING_SHAPE: { to: 'selecting' },
+            BLURRED_EDITING_SHAPE: [
+              {
+                get: 'editingShape',
+                if: 'shouldDeleteShape',
+                do: ['cancelSession', 'deleteSelection'],
+              },
+              { to: 'selecting' },
+            ],
             CANCELLED: [
               {
                 get: 'editingShape',

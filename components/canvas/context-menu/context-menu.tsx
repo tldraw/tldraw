@@ -85,7 +85,7 @@ export default function ContextMenu({
 
   const hasGroupSelected = useSelector((s) =>
     selectedShapeIds.some(
-      (id) => tld.getShape(s.data, id).type === ShapeType.Group
+      (id) => tld.getShape(s.data, id)?.type === ShapeType.Group
     )
   )
 
