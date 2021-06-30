@@ -7,7 +7,7 @@ import history from './history'
 import storage from './storage'
 import clipboard from './clipboard'
 import * as Sessions from './sessions'
-import coopClient from './coop/client-pusher'
+import coopClient from './coop/client-liveblocks'
 import commands from './commands'
 import {
   getCommonBounds,
