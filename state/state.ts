@@ -1165,23 +1165,6 @@ const state = createState({
       const point = tld.screenToWorld(payload.point, data)
       coopClient.moveCursor(data.currentPageId, point)
     },
-    moveRtCursor(
-      data,
-      payload: { id: string; pageId: string; point: number[] }
-    ) {
-      const { room } = data
-
-      if (room.peers[payload.id] === undefined) {
-        room.peers[payload.id] = {
-          id: payload.id,
-          cursor: {
-            point: payload.point,
-          },
-        }
-      }
-
-      room.peers[payload.id].cursor.point = payload.point
-    },
     clearRoom(data) {
       data.room = undefined
     },
