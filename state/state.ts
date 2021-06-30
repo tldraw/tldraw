@@ -165,10 +165,10 @@ const state = createState({
         // Network-Related
         // RT_LOADED_ROOM: [
         //   'clearRoom',
-        //   { if: 'hasRoom', do: ['clearDocument', 'connectToRoom'] },
+        //   { if: 'hasRoom', do: ['resetDocumentState', 'connectToRoom'] },
         // ],
-        // RT_UNLOADED_ROOM: ['clearRoom', 'clearDocument'],
-        // RT_DISCONNECTED_ROOM: ['clearRoom', 'clearDocument'],
+        // RT_UNLOADED_ROOM: ['clearRoom', 'resetDocumentState'],
+        // RT_DISCONNECTED_ROOM: ['clearRoom', 'resetDocumentState'],
         // RT_CREATED_SHAPE: 'addRtShape',
         // RT_CHANGED_STATUS: 'setRtStatus',
         // RT_DELETED_SHAPE: 'deleteRtShape',
@@ -177,7 +177,7 @@ const state = createState({
         // MOVED_POINTER: { secretlyDo: 'sendRtCursorMove' },
         // Client
         RESIZED_WINDOW: 'resetPageState',
-        RESET_PAGE: 'resetPage',
+        RESET_DOCUMENT_STATE: 'resetDocumentState',
         TOGGLED_READ_ONLY: 'toggleReadOnly',
         LOADED_FONTS: 'resetShapes',
         USED_PEN_DEVICE: 'enablePenLock',
@@ -215,6 +215,7 @@ const state = createState({
           unlessAny: ['isReadOnly', 'isInSession'],
           do: ['updateStyles', 'applyStylesToSelection'],
         },
+        FORCE_CLEARED_PAGE: ['selectAll', 'deleteSelection'],
         CLEARED_PAGE: {
           unlessAny: ['isReadOnly', 'isInSession'],
           if: 'hasSelection',
@@ -1184,7 +1185,7 @@ const state = createState({
     clearRoom(data) {
       data.room = undefined
     },
-    clearDocument(data) {
+    resetDocumentState(data) {
       data.document.id = uniqueId()
 
       const newId = 'page1'

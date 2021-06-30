@@ -136,7 +136,13 @@ export default function useKeyboardEvents() {
         }
         case 'Backspace': {
           if (metaKey(e)) {
-            state.send('RESET_PAGE', info)
+            if (e.shiftKey) {
+              if (window.confirm('Reset document and state?')) {
+                state.send('RESET_DOCUMENT_STATE', info)
+              }
+            } else {
+              state.send('FORCE_CLEARED_PAGE', info)
+            }
           } else {
             state.send('DELETED', info)
           }
