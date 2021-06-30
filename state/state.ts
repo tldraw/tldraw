@@ -7,7 +7,7 @@ import history from './history'
 import storage from './storage'
 import clipboard from './clipboard'
 import * as Sessions from './sessions'
-import coopClient from './coop/client-liveblocks'
+import coopClient from './coop/client-pusher'
 import commands from './commands'
 import {
   getCommonBounds,
@@ -163,20 +163,21 @@ const state = createState({
       },
       on: {
         // Network-Related
-        RT_LOADED_ROOM: [
-          'clearRoom',
-          { if: 'hasRoom', do: ['clearDocument', 'connectToRoom'] },
-        ],
-        RT_CHANGED_STATUS: 'setRtStatus',
-        MOVED_POINTER: { secretlyDo: 'sendRtCursorMove' },
-        // RT_UNLOADED_ROOM: ['clearRoom', 'clearDocument'],
-        // RT_DISCONNECTED_ROOM: ['clearRoom', 'clearDocument'],
+        // RT_LOADED_ROOM: [
+        //   'clearRoom',
+        //   { if: 'hasRoom', do: ['resetDocumentState', 'connectToRoom'] },
+        // ],
+        // RT_UNLOADED_ROOM: ['clearRoom', 'resetDocumentState'],
+        // RT_DISCONNECTED_ROOM: ['clearRoom', 'resetDocumentState'],
         // RT_CREATED_SHAPE: 'addRtShape',
+        // RT_CHANGED_STATUS: 'setRtStatus',
         // RT_DELETED_SHAPE: 'deleteRtShape',
         // RT_EDITED_SHAPE: 'editRtShape',
+        // RT_MOVED_CURSOR: 'moveRtCursor',
+        // MOVED_POINTER: { secretlyDo: 'sendRtCursorMove' },
         // Client
         RESIZED_WINDOW: 'resetPageState',
-        RESET_PAGE: 'resetPage',
+        RESET_DOCUMENT_STATE: 'resetDocumentState',
         TOGGLED_READ_ONLY: 'toggleReadOnly',
         LOADED_FONTS: 'resetShapes',
         USED_PEN_DEVICE: 'enablePenLock',
@@ -214,6 +215,7 @@ const state = createState({
           unlessAny: ['isReadOnly', 'isInSession'],
           do: ['updateStyles', 'applyStylesToSelection'],
         },
+        FORCE_CLEARED_PAGE: ['selectAll', 'deleteSelection'],
         CLEARED_PAGE: {
           unlessAny: ['isReadOnly', 'isInSession'],
           if: 'hasSelection',
@@ -553,7 +555,7 @@ const state = createState({
               onEnter: 'startTransformSession',
               onExit: 'completeSession',
               on: {
-                // MOVED_POINTER: 'updateTransformSession', (see hacks)
+                // MOVED_POINTER: 'updateTransformSession', using hacks.fastTransform
                 PANNED_CAMERA: 'updateTransformSession',
                 PRESSED_SHIFT_KEY: 'keyUpdateTransformSession',
                 RELEASED_SHIFT_KEY: 'keyUpdateTransformSession',
@@ -566,7 +568,7 @@ const state = createState({
               onExit: 'completeSession',
               on: {
                 STARTED_PINCHING: { to: 'pinching' },
-                // MOVED_POINTER: 'updateTranslateSession', (see hacks)
+                MOVED_POINTER: 'updateTranslateSession',
                 PANNED_CAMERA: 'updateTranslateSession',
                 PRESSED_SHIFT_KEY: 'keyUpdateTranslateSession',
                 RELEASED_SHIFT_KEY: 'keyUpdateTranslateSession',
@@ -603,7 +605,7 @@ const state = createState({
                 'startBrushSession',
               ],
               on: {
-                // MOVED_POINTER: 'updateBrushSession',  (see hacks)
+                // MOVED_POINTER: 'updateBrushSession', using hacks.fastBrushSelect
                 PANNED_CAMERA: 'updateBrushSession',
                 STOPPED_POINTING: { to: 'selecting' },
                 STARTED_PINCHING: { to: 'pinching' },
@@ -639,7 +641,7 @@ const state = createState({
         },
         pinching: {
           on: {
-            // PINCHED: { do: 'pinchCamera' },  (see hacks)
+            // PINCHED: { do: 'pinchCamera' }, using hacks.fastPinchCamera
           },
           initial: 'selectPinching',
           onExit: { secretlyDo: 'updateZoomCSS' },
@@ -700,7 +702,7 @@ const state = createState({
                     },
                     PRESSED_SHIFT: 'keyUpdateDrawSession',
                     RELEASED_SHIFT: 'keyUpdateDrawSession',
-                    // MOVED_POINTER: 'updateDrawSession', (see hacks)
+                    // MOVED_POINTER: 'updateDrawSession',
                     PANNED_CAMERA: 'updateDrawSession',
                   },
                 },
@@ -1163,10 +1165,27 @@ const state = createState({
       const point = tld.screenToWorld(payload.point, data)
       coopClient.moveCursor(data.currentPageId, point)
     },
+    moveRtCursor(
+      data,
+      payload: { id: string; pageId: string; point: number[] }
+    ) {
+      const { room } = data
+
+      if (room.peers[payload.id] === undefined) {
+        room.peers[payload.id] = {
+          id: payload.id,
+          cursor: {
+            point: payload.point,
+          },
+        }
+      }
+
+      room.peers[payload.id].cursor.point = payload.point
+    },
     clearRoom(data) {
       data.room = undefined
     },
-    clearDocument(data) {
+    resetDocumentState(data) {
       data.document.id = uniqueId()
 
       const newId = 'page1'
