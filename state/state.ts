@@ -163,10 +163,10 @@ const state = createState({
       },
       on: {
         // Network-Related
-        // RT_LOADED_ROOM: [
-        //   'clearRoom',
-        //   { if: 'hasRoom', do: ['resetDocumentState', 'connectToRoom'] },
-        // ],
+        RT_LOADED_ROOM: [
+          'clearRoom',
+          { if: 'hasRoom', do: ['resetDocumentState', 'connectToRoom'] },
+        ],
         // RT_UNLOADED_ROOM: ['clearRoom', 'resetDocumentState'],
         // RT_DISCONNECTED_ROOM: ['clearRoom', 'resetDocumentState'],
         // RT_CREATED_SHAPE: 'addRtShape',
