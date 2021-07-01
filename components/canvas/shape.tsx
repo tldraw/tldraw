@@ -8,11 +8,10 @@ import useShapeEvents from 'hooks/useShapeEvents'
 import vec from 'utils/vec'
 import { getShapeStyle } from 'state/shape-styles'
 import useShapeDef from 'hooks/useShape'
-import { BooleanArraySupportOption } from 'prettier'
 
 interface ShapeProps {
   id: string
-  isSelecting: BooleanArraySupportOption
+  isSelecting: boolean
 }
 
 function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
