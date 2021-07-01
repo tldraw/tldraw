@@ -1,19 +1,16 @@
 import tld from 'utils/tld'
 import state, { useSelector } from 'state'
-import { IconButton, breakpoints } from 'components/shared'
+import { IconButton, ButtonsRow, breakpoints } from 'components/shared'
 import { memo } from 'react'
-import styled from 'styles'
-import { MoveType } from 'types'
+import { MoveType, ShapeType } from 'types'
 import { Trash2 } from 'react-feather'
 import Tooltip from 'components/tooltip'
 import {
   ArrowDownIcon,
   ArrowUpIcon,
   AspectRatioIcon,
-  BoxIcon,
   CopyIcon,
-  EyeClosedIcon,
-  EyeOpenIcon,
+  GroupIcon,
   LockClosedIcon,
   LockOpen1Icon,
   PinBottomIcon,
@@ -29,8 +26,12 @@ function handleDuplicate() {
   state.send('DUPLICATED')
 }
 
-function handleHide() {
-  state.send('TOGGLED_SHAPE_HIDE')
+function handleGroup() {
+  state.send('GROUPED')
+}
+
+function handleUngroup() {
+  state.send('UNGROUPED')
 }
 
 function handleLock() {
@@ -74,13 +75,22 @@ function ShapesFunctions() {
     )
   })
 
-  const isAllHidden = useSelector((s) => {
-    const page = tld.getPage(s.data)
-    return s.values.selectedIds.every((id) => page.shapes[id].isHidden)
+  const isAllGrouped = useSelector((s) => {
+    const selectedShapes = tld.getSelectedShapes(s.data)
+    return selectedShapes.every(
+      (shape) =>
+        shape.type === ShapeType.Group ||
+        (shape.parentId === selectedShapes[0].parentId &&
+          selectedShapes[0].parentId !== s.data.currentPageId)
+    )
   })
 
   const hasSelection = useSelector((s) => {
     return tld.getSelectedIds(s.data).size > 0
+  })
+
+  const hasMultipleSelection = useSelector((s) => {
+    return tld.getSelectedIds(s.data).size > 1
   })
 
   return (
@@ -111,21 +121,10 @@ function ShapesFunctions() {
           bp={breakpoints}
           disabled={!hasSelection}
           size="small"
-          onClick={handleHide}
-        >
-          <Tooltip label="Toogle Hidden">
-            {isAllHidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
-          </Tooltip>
-        </IconButton>
-
-        <IconButton
-          bp={breakpoints}
-          disabled={!hasSelection}
-          size="small"
           onClick={handleLock}
         >
           <Tooltip label="Toogle Locked">
-            {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
+            {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon opacity={0.4} />}
           </Tooltip>
         </IconButton>
 
@@ -136,7 +135,18 @@ function ShapesFunctions() {
           onClick={handleAspectLock}
         >
           <Tooltip label="Toogle Aspect Ratio Lock">
-            {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
+            <AspectRatioIcon opacity={isAllAspectLocked ? 1 : 0.4} />
+          </Tooltip>
+        </IconButton>
+
+        <IconButton
+          bp={breakpoints}
+          disabled={!isAllGrouped && !hasMultipleSelection}
+          size="small"
+          onClick={isAllGrouped ? handleUngroup : handleGroup}
+        >
+          <Tooltip label="Group">
+            <GroupIcon opacity={isAllGrouped ? 1 : 0.4} />
           </Tooltip>
         </IconButton>
       </ButtonsRow>
@@ -201,16 +211,3 @@ function ShapesFunctions() {
 }
 
 export default memo(ShapesFunctions)
-
-const ButtonsRow = styled('div', {
-  position: 'relative',
-  display: 'flex',
-  width: '100%',
-  background: 'none',
-  border: 'none',
-  cursor: 'pointer',
-  outline: 'none',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  padding: 4,
-})

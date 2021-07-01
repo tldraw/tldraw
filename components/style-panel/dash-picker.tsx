@@ -4,6 +4,7 @@ import {
   DashDashedIcon,
   DashDottedIcon,
   DashSolidIcon,
+  DashDrawIcon,
 } from '../shared'
 import * as RadioGroup from '@radix-ui/react-radio-group'
 import { DashStyle } from 'types'
@@ -15,6 +16,7 @@ function handleChange(dash: string) {
 }
 
 const dashes = {
+  [DashStyle.Draw]: <DashDrawIcon />,
   [DashStyle.Solid]: <DashSolidIcon />,
   [DashStyle.Dashed]: <DashDashedIcon />,
   [DashStyle.Dotted]: <DashDottedIcon />,

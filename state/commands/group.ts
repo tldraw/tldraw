@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data, GroupShape, ShapeType } from 'types'
-import { deepClone, getCommonBounds } from 'utils'
+import { deepClone, getCommonBounds, uniqueId } from 'utils'
 import tld from 'utils/tld'
 import { createShape, getShapeUtils } from 'state/shape-utils'
 import commands from '.'
@@ -23,6 +23,7 @@ export default function groupCommand(data: Data): void {
   // Do we need to ungroup the selected shapes shapes, rather than group them?
   if (isAllSameParent && initialShapes[0]?.parentId !== currentPageId) {
     const parent = tld.getShape(data, initialShapes[0]?.parentId) as GroupShape
+
     if (parent.children.length === initialShapes.length) {
       commands.ungroup(data)
       return
@@ -62,6 +63,7 @@ export default function groupCommand(data: Data): void {
   }
 
   const newGroupShape = createShape(ShapeType.Group, {
+    id: uniqueId(),
     parentId: newGroupParentId,
     point: [commonBounds.minX, commonBounds.minY],
     size: [commonBounds.width, commonBounds.height],

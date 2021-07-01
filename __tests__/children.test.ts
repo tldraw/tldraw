@@ -80,11 +80,7 @@ describe('shapes with children', () => {
       type: MoveType.ToBack,
     })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['3', '1', '2', '4'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['3', '1', '2', '4'])
   })
 
   it('moves two adjacent siblings to back', () => {
@@ -92,11 +88,7 @@ describe('shapes with children', () => {
       type: MoveType.ToBack,
     })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['2', '4', '3', '1'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['2', '4', '3', '1'])
   })
 
   it('moves two non-adjacent siblings to back', () => {
@@ -104,11 +96,7 @@ describe('shapes with children', () => {
       type: MoveType.ToBack,
     })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['4', '1', '2', '3'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['4', '1', '2', '3'])
   })
 
   it('moves a shape backward', () => {
@@ -116,11 +104,7 @@ describe('shapes with children', () => {
       type: MoveType.Backward,
     })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['4', '1', '3', '2'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['4', '1', '3', '2'])
   })
 
   it('moves a shape at first index backward', () => {
@@ -128,11 +112,7 @@ describe('shapes with children', () => {
       type: MoveType.Backward,
     })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['4', '1', '3', '2'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['4', '1', '3', '2'])
   })
 
   it('moves two adjacent siblings backward', () => {
@@ -140,23 +120,15 @@ describe('shapes with children', () => {
       type: MoveType.Backward,
     })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['4', '3', '2', '1'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['4', '3', '2', '1'])
   })
 
   it('moves two non-adjacent siblings backward', () => {
-    tt.clickShape('3').clickShape('1', { shiftKey: true }).send('MOVED', {
-      type: MoveType.Backward,
-    })
+    tt.clickShape('3')
+      .clickShape('1', { shiftKey: true })
+      .send('MOVED', { type: MoveType.Backward })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['3', '4', '1', '2'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['3', '4', '1', '2'])
   })
 
   it('moves two adjacent siblings backward at zero index', () => {
@@ -164,11 +136,7 @@ describe('shapes with children', () => {
       type: MoveType.Backward,
     })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['3', '4', '1', '2'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['3', '4', '1', '2'])
   })
 
   it('moves a shape forward', () => {
@@ -176,11 +144,7 @@ describe('shapes with children', () => {
       type: MoveType.Forward,
     })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['3', '1', '4', '2'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['3', '1', '4', '2'])
   })
 
   it('moves a shape forward at the top index', () => {
@@ -188,11 +152,7 @@ describe('shapes with children', () => {
       type: MoveType.Forward,
     })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['3', '1', '4', '2'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['3', '1', '4', '2'])
   })
 
   it('moves two adjacent siblings forward', () => {
@@ -205,11 +165,7 @@ describe('shapes with children', () => {
 
     expect(tt.idsAreSelected(['1', '4'])).toBe(true)
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['3', '2', '1', '4'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['3', '2', '1', '4'])
   })
 
   it('moves two non-adjacent siblings forward', () => {
@@ -220,11 +176,7 @@ describe('shapes with children', () => {
         type: MoveType.Forward,
       })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['2', '3', '4', '1'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['2', '3', '4', '1'])
   })
 
   it('moves two adjacent siblings forward at top index', () => {
@@ -234,11 +186,7 @@ describe('shapes with children', () => {
       .send('MOVED', {
         type: MoveType.Forward,
       })
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['2', '4', '3', '1'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['2', '4', '3', '1'])
   })
 
   it('moves a shape to front', () => {
@@ -246,11 +194,7 @@ describe('shapes with children', () => {
       type: MoveType.ToFront,
     })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['4', '3', '1', '2'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['4', '3', '1', '2'])
   })
 
   it('moves two adjacent siblings to front', () => {
@@ -261,11 +205,7 @@ describe('shapes with children', () => {
         type: MoveType.ToFront,
       })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['4', '2', '3', '1'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['4', '2', '3', '1'])
   })
 
   it('moves two non-adjacent siblings to front', () => {
@@ -276,11 +216,7 @@ describe('shapes with children', () => {
         type: MoveType.ToFront,
       })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['2', '1', '4', '3'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['2', '1', '4', '3'])
   })
 
   it('moves siblings already at front to front', () => {
@@ -291,10 +227,6 @@ describe('shapes with children', () => {
         type: MoveType.ToFront,
       })
 
-    expect(
-      Object.values(tt.data.document.pages[tt.data.currentParentId].shapes)
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => shape.id)
-    ).toStrictEqual(['2', '1', '4', '3'])
+    expect(tt.getSortedPageShapeIds()).toStrictEqual(['2', '1', '4', '3'])
   })
 })

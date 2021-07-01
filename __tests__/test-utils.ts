@@ -92,6 +92,23 @@ class TestState {
   }
 
   /**
+   * Get the sorted ids of the page's children.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.getSortedPageShapes()
+   *```
+   */
+  getSortedPageShapeIds(): string[] {
+    return Object.values(
+      this.data.document.pages[this.data.currentParentId].shapes
+    )
+      .sort((a, b) => a.childIndex - b.childIndex)
+      .map((shape) => shape.id)
+  }
+
+  /**
    * Get whether the provided ids are the current selected ids. If the `strict` argument is `true`, then the result will be false if the state has selected ids in addition to those provided.
    *
    * ### Example

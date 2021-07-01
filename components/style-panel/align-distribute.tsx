@@ -10,10 +10,9 @@ import {
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
 } from '@radix-ui/react-icons'
-import { breakpoints, IconButton } from 'components/shared'
+import { breakpoints, ButtonsRow, IconButton } from 'components/shared'
 import { memo } from 'react'
 import state from 'state'
-import styled from 'styles'
 import { AlignType, DistributeType, StretchType } from 'types'
 
 function alignTop() {
@@ -64,98 +63,93 @@ function AlignDistribute({
   hasThreeOrMore: boolean
 }): JSX.Element {
   return (
-    <Container>
-      <IconButton
-        bp={breakpoints}
-        size="small"
-        disabled={!hasTwoOrMore}
-        onClick={alignLeft}
-      >
-        <AlignLeftIcon />
-      </IconButton>
-      <IconButton
-        bp={breakpoints}
-        size="small"
-        disabled={!hasTwoOrMore}
-        onClick={alignCenterHorizontal}
-      >
-        <AlignCenterHorizontallyIcon />
-      </IconButton>
-      <IconButton
-        bp={breakpoints}
-        size="small"
-        disabled={!hasTwoOrMore}
-        onClick={alignRight}
-      >
-        <AlignRightIcon />
-      </IconButton>
-      <IconButton
-        bp={breakpoints}
-        size="small"
-        disabled={!hasTwoOrMore}
-        onClick={stretchHorizontally}
-      >
-        <StretchHorizontallyIcon />
-      </IconButton>
-      <IconButton
-        bp={breakpoints}
-        size="small"
-        disabled={!hasThreeOrMore}
-        onClick={distributeHorizontally}
-      >
-        <SpaceEvenlyHorizontallyIcon />
-      </IconButton>
-      <IconButton
-        bp={breakpoints}
-        size="small"
-        disabled={!hasTwoOrMore}
-        onClick={alignTop}
-      >
-        <AlignTopIcon />
-      </IconButton>
-      <IconButton
-        bp={breakpoints}
-        size="small"
-        disabled={!hasTwoOrMore}
-        onClick={alignCenterVertical}
-      >
-        <AlignCenterVerticallyIcon />
-      </IconButton>
-      <IconButton
-        bp={breakpoints}
-        size="small"
-        disabled={!hasTwoOrMore}
-        onClick={alignBottom}
-      >
-        <AlignBottomIcon />
-      </IconButton>
-      <IconButton
-        bp={breakpoints}
-        size="small"
-        disabled={!hasTwoOrMore}
-        onClick={stretchVertically}
-      >
-        <StretchVerticallyIcon />
-      </IconButton>
-      <IconButton
-        bp={breakpoints}
-        size="small"
-        disabled={!hasThreeOrMore}
-        onClick={distributeVertically}
-      >
-        <SpaceEvenlyVerticallyIcon />
-      </IconButton>
-    </Container>
+    <>
+      <ButtonsRow>
+        <IconButton
+          bp={breakpoints}
+          size="small"
+          disabled={!hasTwoOrMore}
+          onClick={alignLeft}
+        >
+          <AlignLeftIcon />
+        </IconButton>
+        <IconButton
+          bp={breakpoints}
+          size="small"
+          disabled={!hasTwoOrMore}
+          onClick={alignCenterHorizontal}
+        >
+          <AlignCenterHorizontallyIcon />
+        </IconButton>
+        <IconButton
+          bp={breakpoints}
+          size="small"
+          disabled={!hasTwoOrMore}
+          onClick={alignRight}
+        >
+          <AlignRightIcon />
+        </IconButton>
+        <IconButton
+          bp={breakpoints}
+          size="small"
+          disabled={!hasTwoOrMore}
+          onClick={stretchHorizontally}
+        >
+          <StretchHorizontallyIcon />
+        </IconButton>
+        <IconButton
+          bp={breakpoints}
+          size="small"
+          disabled={!hasThreeOrMore}
+          onClick={distributeHorizontally}
+        >
+          <SpaceEvenlyHorizontallyIcon />
+        </IconButton>
+      </ButtonsRow>
+      <ButtonsRow>
+        <IconButton
+          bp={breakpoints}
+          size="small"
+          disabled={!hasTwoOrMore}
+          onClick={alignTop}
+        >
+          <AlignTopIcon />
+        </IconButton>
+        <IconButton
+          bp={breakpoints}
+          size="small"
+          disabled={!hasTwoOrMore}
+          onClick={alignCenterVertical}
+        >
+          <AlignCenterVerticallyIcon />
+        </IconButton>
+        <IconButton
+          bp={breakpoints}
+          size="small"
+          disabled={!hasTwoOrMore}
+          onClick={alignBottom}
+        >
+          <AlignBottomIcon />
+        </IconButton>
+        <IconButton
+          bp={breakpoints}
+          size="small"
+          disabled={!hasTwoOrMore}
+          onClick={stretchVertically}
+        >
+          <StretchVerticallyIcon />
+        </IconButton>
+        <IconButton
+          bp={breakpoints}
+          size="small"
+          disabled={!hasThreeOrMore}
+          onClick={distributeVertically}
+        >
+          <SpaceEvenlyVerticallyIcon />
+        </IconButton>
+      </ButtonsRow>
+    </>
   )
 }
 
 export default memo(AlignDistribute)
-
-const Container = styled('div', {
-  display: 'grid',
-  padding: 4,
-  gridTemplateColumns: 'repeat(5, auto)',
-  [`& ${IconButton} > svg`]: {
-    stroke: 'transparent',
-  },
-})

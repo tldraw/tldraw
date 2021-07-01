@@ -751,7 +751,9 @@ const state = createState({
                       {
                         if: 'isToolLocked',
                         to: 'dot.creating',
-                        else: { to: 'selecting' },
+                        else: {
+                          to: 'selecting',
+                        },
                       },
                     ],
                     CANCELLED: {
@@ -1152,20 +1154,6 @@ const state = createState({
   },
   actions: {
     // Networked Room
-    setRtStatus(data, payload: { id: string; status: string }) {
-      const { status } = payload
-
-      if (!data.room) {
-        data.room = {
-          id: null,
-          status: '',
-          peers: {},
-        }
-      }
-
-      data.room.peers = {}
-      data.room.status = status
-    },
     addRtShape(data, payload: { pageId: string; shape: Shape }) {
       const { pageId, shape } = payload
       // What if the page is in storage?
@@ -1264,6 +1252,7 @@ const state = createState({
       })
 
       const siblings = tld.getChildren(data, shape.parentId)
+
       const childIndex = siblings.length
         ? siblings[siblings.length - 1].childIndex + 1
         : 1

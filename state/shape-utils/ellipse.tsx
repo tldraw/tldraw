@@ -54,7 +54,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
     const rx = Math.max(0, radiusX - strokeWidth / 2)
     const ry = Math.max(0, radiusY - strokeWidth / 2)
 
-    if (style.dash === DashStyle.Solid) {
+    if (style.dash === DashStyle.Draw) {
       if (!pathCache.has(shape)) {
         renderPath(shape)
       }
@@ -84,7 +84,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
     const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
       perimeter,
       strokeWidth * 1.618,
-      shape.style.dash === DashStyle.Dotted ? 'dotted' : 'dashed',
+      shape.style.dash,
       4
     )
 

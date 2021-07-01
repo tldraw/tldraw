@@ -38,7 +38,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
     const styles = getShapeStyle(style)
     const strokeWidth = +styles.strokeWidth
 
-    if (style.dash === DashStyle.Solid) {
+    if (style.dash === DashStyle.Draw) {
       if (!pathCache.has(shape.size)) {
         renderPath(shape)
       }
@@ -78,7 +78,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
         length,
         sw,
-        shape.style.dash === DashStyle.Dotted ? 'dotted' : 'dashed'
+        shape.style.dash
       )
 
       return (

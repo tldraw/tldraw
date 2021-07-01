@@ -89,7 +89,10 @@ class Clipboard {
 
     // Take a snapshot of the element
     const s = new XMLSerializer()
-    const svgString = s.serializeToString(svg)
+    const svgString = s
+      .serializeToString(svg)
+      .replaceAll('&#10;      ', '')
+      .replaceAll(/((\s|")[0-9]*\.[0-9]{2})([0-9]*)(\b|"|\))/g, '$1')
 
     // Copy to clipboard!
     try {

@@ -37,12 +37,6 @@ const strokeWidths = {
   [SizeStyle.Large]: 8,
 }
 
-const dashArrays = {
-  [DashStyle.Solid]: () => [1],
-  [DashStyle.Dashed]: (sw: number) => [sw * 2, sw * 4],
-  [DashStyle.Dotted]: (sw: number) => [0, sw * 3],
-}
-
 const fontSizes = {
   [SizeStyle.Small]: 24,
   [SizeStyle.Medium]: 48,
@@ -52,13 +46,6 @@ const fontSizes = {
 
 export function getStrokeWidth(size: SizeStyle): number {
   return strokeWidths[size]
-}
-
-export function getStrokeDashArray(
-  dash: DashStyle,
-  strokeWidth: number
-): number[] {
-  return dashArrays[dash](strokeWidth)
 }
 
 export function getFontSize(size: SizeStyle): number {

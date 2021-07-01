@@ -7,12 +7,14 @@ import { DashStyle } from 'types'
 import {
   DropdownContent,
   Item,
+  DashDrawIcon,
   DashDottedIcon,
   DashSolidIcon,
   DashDashedIcon,
 } from '../shared'
 
 const dashes = {
+  [DashStyle.Draw]: <DashDrawIcon />,
   [DashStyle.Solid]: <DashSolidIcon />,
   [DashStyle.Dashed]: <DashDashedIcon />,
   [DashStyle.Dotted]: <DashDottedIcon />,

@@ -317,6 +317,7 @@ export default class StateUtils {
 
   static getTopParentId(data: Data, id: string): string {
     const shape = this.getPage(data).shapes[id]
+
     return shape.parentId === data.currentPageId ||
       shape.parentId === data.currentParentId
       ? id

@@ -108,6 +108,7 @@ export enum SizeStyle {
 }
 
 export enum DashStyle {
+  Draw = 'Draw',
   Solid = 'Solid',
   Dashed = 'Dashed',
   Dotted = 'Dotted',

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Bounds, Edge, Corner, BezierCurveSegment } from 'types'
+import { Bounds, Edge, Corner, BezierCurveSegment, DashStyle } from 'types'
 import { v4 as uuid } from 'uuid'
 import vec from './vec'
 import _isMobile from 'ismobilejs'
@@ -421,7 +421,7 @@ export function getArcLength(
 export function getPerfectDashProps(
   length: number,
   strokeWidth: number,
-  style: 'dashed' | 'dotted' = 'dashed',
+  style: DashStyle,
   snap = 1
 ): {
   strokeDasharray: string
@@ -431,7 +431,12 @@ export function getPerfectDashProps(
   let strokeDashoffset: string
   let ratio: number
 
-  if (style === 'dashed') {
+  if (style === DashStyle.Solid || style === DashStyle.Draw) {
+    return {
+      strokeDasharray: 'none',
+      strokeDashoffset: 'none',
+    }
+  } else if (style === DashStyle.Dashed) {
     dashLength = strokeWidth * 2
     ratio = 1
     strokeDashoffset = (dashLength / 2).toString()
@@ -1726,7 +1731,7 @@ export function getSvgPathFromStroke(stroke: number[][]): string {
   )
 
   d.push('Z')
-  return d.join(' ')
+  return d.join(' ').replaceAll(/(\s[0-9]*\.[0-9]{2})([0-9]*)\b/g, '$1')
 }
 
 export function debounce<T extends (...args: unknown[]) => unknown>(
