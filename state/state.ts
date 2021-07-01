@@ -396,7 +396,7 @@ const state = createState({
               if: ['hasSelection', 'selectionIncludesGroups'],
               do: 'ungroupSelection',
             },
-            NUDGED: { do: 'nudgeSelection' },
+            NUDGED: 'nudgeSelection',
           },
           initial: 'notPointing',
           states: {
