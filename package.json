@@ -19,7 +19,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged",
-      "pre-push": "yarn run type-check"
+      "pre-push": "yarn lint && yarn type-check"
     }
   },
   "lint-staged": {
