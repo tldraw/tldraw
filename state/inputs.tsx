@@ -160,6 +160,7 @@ class Inputs {
     }
 
     this.pointer = info
+
     return info
   }
 

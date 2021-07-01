@@ -1,139 +1,81 @@
-import state from 'state'
-import inputs from 'state/inputs'
-import { idsAreSelected, point, rectangleId, arrowId } from './test-utils'
-import * as json from './__mocks__/document.json'
-
-// Mount the state and load the test file from json
-state.reset()
-state.send('MOUNTED').send('LOADED_FROM_FILE', { json: JSON.stringify(json) })
+import TestState, { rectangleId, arrowId } from './test-utils'
 
 describe('selection', () => {
-  it('selects a shape', () => {
-    state
-      .send('CANCELED')
-      .send('POINTED_SHAPE', inputs.pointerDown(point(), rectangleId))
-      .send('STOPPED_POINTING', inputs.pointerUp(point(), rectangleId))
+  const tt = new TestState()
 
-    expect(idsAreSelected(state.data, [rectangleId])).toBe(true)
+  it('selects a shape', () => {
+    tt.deselectAll().clickShape(rectangleId)
+
+    expect(tt.idsAreSelected([rectangleId])).toBe(true)
   })
 
   it('selects and deselects a shape', () => {
-    state
-      .send('CANCELED')
-      .send('POINTED_SHAPE', inputs.pointerDown(point(), rectangleId))
-      .send('STOPPED_POINTING', inputs.pointerUp(point(), rectangleId))
+    tt.deselectAll().clickShape(rectangleId).clickCanvas()
 
-    expect(idsAreSelected(state.data, [rectangleId])).toBe(true)
-
-    state
-      .send('POINTED_CANVAS', inputs.pointerDown(point(), 'canvas'))
-      .send('STOPPED_POINTING', inputs.pointerUp(point(), 'canvas'))
-
-    expect(idsAreSelected(state.data, [])).toBe(true)
+    expect(tt.idsAreSelected([])).toBe(true)
   })
 
   it('selects multiple shapes', () => {
-    expect(idsAreSelected(state.data, [])).toBe(true)
+    tt.deselectAll()
+      .clickShape(rectangleId)
+      .clickShape(arrowId, { shiftKey: true })
 
-    state
-      .send('POINTED_SHAPE', inputs.pointerDown(point(), rectangleId))
-      .send('STOPPED_POINTING', inputs.pointerUp(point(), rectangleId))
-      .send(
-        'POINTED_SHAPE',
-        inputs.pointerDown(point({ shiftKey: true }), arrowId)
-      )
-      .send(
-        'STOPPED_POINTING',
-        inputs.pointerUp(point({ shiftKey: true }), arrowId)
-      )
-
-    expect(idsAreSelected(state.data, [rectangleId, arrowId])).toBe(true)
+    expect(tt.idsAreSelected([rectangleId, arrowId])).toBe(true)
   })
 
   it('shift-selects to deselect shapes', () => {
-    state
-      .send('CANCELLED')
-      .send('POINTED_SHAPE', inputs.pointerDown(point(), rectangleId))
-      .send('STOPPED_POINTING', inputs.pointerUp(point(), rectangleId))
-      .send(
-        'POINTED_SHAPE',
-        inputs.pointerDown(point({ shiftKey: true }), arrowId)
-      )
-      .send(
-        'STOPPED_POINTING',
-        inputs.pointerUp(point({ shiftKey: true }), arrowId)
-      )
-      .send(
-        'POINTED_SHAPE',
-        inputs.pointerDown(point({ shiftKey: true }), rectangleId)
-      )
-      .send(
-        'STOPPED_POINTING',
-        inputs.pointerUp(point({ shiftKey: true }), rectangleId)
-      )
+    tt.deselectAll()
+      .clickShape(rectangleId)
+      .clickShape(arrowId, { shiftKey: true })
+      .clickShape(rectangleId, { shiftKey: true })
 
-    expect(idsAreSelected(state.data, [arrowId])).toBe(true)
+    expect(tt.idsAreSelected([arrowId])).toBe(true)
   })
 
-  it('single-selects shape in selection on pointerup', () => {
-    state
-      .send('CANCELLED')
-      .send('POINTED_SHAPE', inputs.pointerDown(point(), rectangleId))
-      .send('STOPPED_POINTING', inputs.pointerUp(point(), rectangleId))
-      .send(
-        'POINTED_SHAPE',
-        inputs.pointerDown(point({ shiftKey: true }), arrowId)
-      )
-      .send(
-        'STOPPED_POINTING',
-        inputs.pointerUp(point({ shiftKey: true }), arrowId)
-      )
+  it('single-selects shape in selection on click', () => {
+    tt.deselectAll()
+      .clickShape(rectangleId)
+      .clickShape(arrowId, { shiftKey: true })
+      .clickShape(arrowId)
 
-    expect(idsAreSelected(state.data, [rectangleId, arrowId])).toBe(true)
+    expect(tt.idsAreSelected([arrowId])).toBe(true)
+  })
 
-    state.send('POINTED_SHAPE', inputs.pointerDown(point(), arrowId))
+  it('single-selects shape in selection on pointerup only', () => {
+    tt.deselectAll()
+      .clickShape(rectangleId)
+      .clickShape(arrowId, { shiftKey: true })
 
-    expect(idsAreSelected(state.data, [rectangleId, arrowId])).toBe(true)
+    expect(tt.idsAreSelected([rectangleId, arrowId])).toBe(true)
 
-    state.send('STOPPED_POINTING', inputs.pointerUp(point(), arrowId))
+    tt.startClick(arrowId)
 
-    expect(idsAreSelected(state.data, [arrowId])).toBe(true)
+    expect(tt.idsAreSelected([rectangleId, arrowId])).toBe(true)
+
+    tt.stopClick(arrowId)
+
+    expect(tt.idsAreSelected([arrowId])).toBe(true)
   })
 
   it('selects shapes if shift key is lifted before pointerup', () => {
-    state
-      .send('CANCELLED')
-      .send('POINTED_SHAPE', inputs.pointerDown(point(), rectangleId))
-      .send('STOPPED_POINTING', inputs.pointerUp(point(), rectangleId))
-      .send(
-        'POINTED_SHAPE',
-        inputs.pointerDown(point({ shiftKey: true }), arrowId)
-      )
-      .send(
-        'STOPPED_POINTING',
-        inputs.pointerUp(point({ shiftKey: true }), arrowId)
-      )
-      .send(
-        'POINTED_SHAPE',
-        inputs.pointerDown(point({ shiftKey: true }), arrowId)
-      )
-      .send('STOPPED_POINTING', inputs.pointerUp(point(), arrowId))
+    tt.deselectAll()
+      .clickShape(rectangleId)
+      .clickShape(arrowId, { shiftKey: true })
+      .startClick(rectangleId, { shiftKey: true })
+      .stopClick(rectangleId)
 
-    expect(idsAreSelected(state.data, [arrowId])).toBe(true)
+    expect(tt.idsAreSelected([rectangleId])).toBe(true)
   })
 
   it('does not select on meta-click', () => {
-    state
-      .send('CANCELLED')
-      .send(
-        'POINTED_SHAPE',
-        inputs.pointerDown(point({ ctrlKey: true }), rectangleId)
-      )
-      .send(
-        'STOPPED_POINTING',
-        inputs.pointerUp(point({ ctrlKey: true }), rectangleId)
-      )
+    tt.deselectAll().clickShape(rectangleId, { ctrlKey: true })
 
-    expect(idsAreSelected(state.data, [])).toBe(true)
+    expect(tt.idsAreSelected([])).toBe(true)
+  })
+
+  it('does not select on meta-shift-click', () => {
+    tt.deselectAll().clickShape(rectangleId, { ctrlKey: true, shiftKey: true })
+
+    expect(tt.idsAreSelected([])).toBe(true)
   })
 })

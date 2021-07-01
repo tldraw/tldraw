@@ -1,36 +1,32 @@
-import { uniqueId } from 'utils'
+import { uniqueId, getPerfectDashProps } from 'utils/utils'
 import vec from 'utils/vec'
 import { DashStyle, RectangleShape, ShapeType } from 'types'
 import { getSvgPathFromStroke, translateBounds, rng, shuffleArr } from 'utils'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import { registerShapeUtils } from './register'
-import { getPerfectDashProps } from 'utils/dashes'
 
 const pathCache = new WeakMap<number[], string>([])
 
 const rectangle = registerShapeUtils<RectangleShape>({
   boundsCache: new WeakMap([]),
 
-  create(props) {
-    return {
-      id: uniqueId(),
+  defaultProps: {
+    id: uniqueId(),
 
-      type: ShapeType.Rectangle,
-      isGenerated: false,
-      name: 'Rectangle',
-      parentId: 'page1',
-      childIndex: 0,
-      point: [0, 0],
-      size: [1, 1],
-      radius: 2,
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      style: defaultStyle,
-      ...props,
-    }
+    type: ShapeType.Rectangle,
+    isGenerated: false,
+    name: 'Rectangle',
+    parentId: 'page1',
+    childIndex: 0,
+    point: [0, 0],
+    size: [1, 1],
+    radius: 2,
+    rotation: 0,
+    isAspectRatioLocked: false,
+    isLocked: false,
+    isHidden: false,
+    style: defaultStyle,
   },
 
   shouldRender(shape, prev) {

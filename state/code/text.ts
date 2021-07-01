@@ -1,5 +1,5 @@
 import CodeShape from './index'
-import { uniqueId } from 'utils'
+import { uniqueId } from 'utils/utils'
 import { TextShape, ShapeProps, ShapeType } from 'types'
 import { defaultStyle } from 'state/shape-styles'
 import { getShapeUtils } from 'state/shape-utils'

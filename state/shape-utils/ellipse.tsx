@@ -1,4 +1,3 @@
-import { getPerfectDashProps } from 'utils/dashes'
 import vec from 'utils/vec'
 import { DashStyle, EllipseShape, ShapeType } from 'types'
 import { getShapeUtils } from './index'
@@ -11,6 +10,7 @@ import {
   pointInEllipse,
   boundsContained,
   getRotatedEllipseBounds,
+  getPerfectDashProps,
 } from 'utils'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
@@ -21,25 +21,21 @@ const pathCache = new WeakMap<EllipseShape, string>([])
 const ellipse = registerShapeUtils<EllipseShape>({
   boundsCache: new WeakMap([]),
 
-  create(props) {
-    return {
-      id: uniqueId(),
-
-      type: ShapeType.Ellipse,
-      isGenerated: false,
-      name: 'Ellipse',
-      parentId: 'page1',
-      childIndex: 0,
-      point: [0, 0],
-      radiusX: 1,
-      radiusY: 1,
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      style: defaultStyle,
-      ...props,
-    }
+  defaultProps: {
+    id: uniqueId(),
+    type: ShapeType.Ellipse,
+    isGenerated: false,
+    name: 'Ellipse',
+    parentId: 'page1',
+    childIndex: 0,
+    point: [0, 0],
+    radiusX: 1,
+    radiusY: 1,
+    rotation: 0,
+    isAspectRatioLocked: false,
+    isLocked: false,
+    isHidden: false,
+    style: defaultStyle,
   },
 
   shouldRender(shape, prev) {

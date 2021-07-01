@@ -145,42 +145,38 @@ interface GroupShape extends BaseShape {
   size: number[]
 }
 
-// type DeepPartial<T> = {
-//   [P in keyof T]?: DeepPartial<T[P]>
-// }
-
 type ShapeProps<T extends Shape> = {
   [P in keyof T]?: P extends 'style' ? Partial<T[P]> : T[P]
 }
 
-type MutableShape =
-  | DotShape
-  | EllipseShape
-  | LineShape
-  | RayShape
-  | PolylineShape
-  | DrawShape
-  | RectangleShape
-  | ArrowShape
-  | TextShape
-  | GroupShape
-
-interface Shapes {
-  [ShapeType.Dot]: Readonly<DotShape>
-  [ShapeType.Ellipse]: Readonly<EllipseShape>
-  [ShapeType.Line]: Readonly<LineShape>
-  [ShapeType.Ray]: Readonly<RayShape>
-  [ShapeType.Polyline]: Readonly<PolylineShape>
-  [ShapeType.Draw]: Readonly<DrawShape>
-  [ShapeType.Rectangle]: Readonly<RectangleShape>
-  [ShapeType.Arrow]: Readonly<ArrowShape>
-  [ShapeType.Text]: Readonly<TextShape>
-  [ShapeType.Group]: Readonly<GroupShape>
+interface MutableShapes {
+  [ShapeType.Dot]: DotShape
+  [ShapeType.Ellipse]: EllipseShape
+  [ShapeType.Line]: LineShape
+  [ShapeType.Ray]: RayShape
+  [ShapeType.Polyline]: PolylineShape
+  [ShapeType.Draw]: DrawShape
+  [ShapeType.Rectangle]: RectangleShape
+  [ShapeType.Arrow]: ArrowShape
+  [ShapeType.Text]: TextShape
+  [ShapeType.Group]: GroupShape
 }
+
+type MutableShape = MutableShapes[keyof MutableShapes]
+
+type Shapes = { [K in keyof MutableShapes]: Readonly<MutableShapes[K]> }
 
 type Shape = Readonly<MutableShape>
 
 type ShapeByType<T extends ShapeType> = Shapes[T]
+
+type IsParent<T> = 'children' extends RequiredKeys<T> ? T : never
+
+type ParentShape = {
+  [K in keyof MutableShapes]: IsParent<MutableShapes[K]>
+}[keyof MutableShapes]
+
+type ParentTypes = ParentShape['type'] & 'page'
 
 enum Decoration {
   Arrow = 'Arrow',
@@ -232,6 +228,15 @@ interface PointerInfo {
   altKey: boolean
 }
 
+interface KeyboardInfo {
+  key: string
+  keys: string[]
+  shiftKey: boolean
+  ctrlKey: boolean
+  metaKey: boolean
+  altKey: boolean
+}
+
 enum Edge {
   Top = 'top_edge',
   Right = 'right_edge',
@@ -275,8 +280,6 @@ interface BoundsSnapshot extends PointSnapshot {
   nw: number
   nh: number
 }
-
-type Difference<A, B> = A extends B ? never : A
 
 type ShapeSpecificProps<T extends Shape> = Pick<
   T,
@@ -560,6 +563,16 @@ interface ShapeUtility<K extends Shape> {
   // Get whether the shape should render
   shouldRender(this: ShapeUtility<K>, shape: K, previous: K): boolean
 }
+
+/* -------------------------------------------------- */
+/*                      Utilities                     */
+/* -------------------------------------------------- */
+
+type Difference<A, B> = A extends B ? never : A
+
+type RequiredKeys<T> = {
+  [K in keyof T]-?: Record<string, unknown> extends Pick<T, K> ? never : K
+}[keyof T]
 
 
 
@@ -695,42 +708,38 @@ interface GroupShape extends BaseShape {
   size: number[]
 }
 
-// type DeepPartial<T> = {
-//   [P in keyof T]?: DeepPartial<T[P]>
-// }
-
 type ShapeProps<T extends Shape> = {
   [P in keyof T]?: P extends 'style' ? Partial<T[P]> : T[P]
 }
 
-type MutableShape =
-  | DotShape
-  | EllipseShape
-  | LineShape
-  | RayShape
-  | PolylineShape
-  | DrawShape
-  | RectangleShape
-  | ArrowShape
-  | TextShape
-  | GroupShape
-
-interface Shapes {
-  [ShapeType.Dot]: Readonly<DotShape>
-  [ShapeType.Ellipse]: Readonly<EllipseShape>
-  [ShapeType.Line]: Readonly<LineShape>
-  [ShapeType.Ray]: Readonly<RayShape>
-  [ShapeType.Polyline]: Readonly<PolylineShape>
-  [ShapeType.Draw]: Readonly<DrawShape>
-  [ShapeType.Rectangle]: Readonly<RectangleShape>
-  [ShapeType.Arrow]: Readonly<ArrowShape>
-  [ShapeType.Text]: Readonly<TextShape>
-  [ShapeType.Group]: Readonly<GroupShape>
+interface MutableShapes {
+  [ShapeType.Dot]: DotShape
+  [ShapeType.Ellipse]: EllipseShape
+  [ShapeType.Line]: LineShape
+  [ShapeType.Ray]: RayShape
+  [ShapeType.Polyline]: PolylineShape
+  [ShapeType.Draw]: DrawShape
+  [ShapeType.Rectangle]: RectangleShape
+  [ShapeType.Arrow]: ArrowShape
+  [ShapeType.Text]: TextShape
+  [ShapeType.Group]: GroupShape
 }
+
+type MutableShape = MutableShapes[keyof MutableShapes]
+
+type Shapes = { [K in keyof MutableShapes]: Readonly<MutableShapes[K]> }
 
 type Shape = Readonly<MutableShape>
 
 type ShapeByType<T extends ShapeType> = Shapes[T]
+
+type IsParent<T> = 'children' extends RequiredKeys<T> ? T : never
+
+type ParentShape = {
+  [K in keyof MutableShapes]: IsParent<MutableShapes[K]>
+}[keyof MutableShapes]
+
+type ParentTypes = ParentShape['type'] & 'page'
 
 enum Decoration {
   Arrow = 'Arrow',
@@ -782,6 +791,15 @@ interface PointerInfo {
   altKey: boolean
 }
 
+interface KeyboardInfo {
+  key: string
+  keys: string[]
+  shiftKey: boolean
+  ctrlKey: boolean
+  metaKey: boolean
+  altKey: boolean
+}
+
 enum Edge {
   Top = 'top_edge',
   Right = 'right_edge',
@@ -825,8 +843,6 @@ interface BoundsSnapshot extends PointSnapshot {
   nw: number
   nh: number
 }
-
-type Difference<A, B> = A extends B ? never : A
 
 type ShapeSpecificProps<T extends Shape> = Pick<
   T,
@@ -1110,6 +1126,16 @@ interface ShapeUtility<K extends Shape> {
   // Get whether the shape should render
   shouldRender(this: ShapeUtility<K>, shape: K, previous: K): boolean
 }
+
+/* -------------------------------------------------- */
+/*                      Utilities                     */
+/* -------------------------------------------------- */
+
+type Difference<A, B> = A extends B ? never : A
+
+type RequiredKeys<T> = {
+  [K in keyof T]-?: Record<string, unknown> extends Pick<T, K> ? never : K
+}[keyof T]
 
 
 

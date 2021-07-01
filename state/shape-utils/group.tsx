@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils'
+import { uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { GroupShape, ShapeType } from 'types'
 import { getShapeUtils } from './index'
@@ -12,26 +12,21 @@ const group = registerShapeUtils<GroupShape>({
   isShy: true,
   isParent: true,
 
-  create(props) {
-    return {
-      id: uniqueId(),
-
-      type: ShapeType.Group,
-      isGenerated: false,
-      name: 'Group',
-      parentId: 'page1',
-      childIndex: 0,
-      point: [0, 0],
-      size: [1, 1],
-      radius: 2,
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      style: defaultStyle,
-      children: [],
-      ...props,
-    }
+  defaultProps: {
+    id: uniqueId(),
+    type: ShapeType.Group,
+    isGenerated: false,
+    name: 'Group',
+    parentId: 'page1',
+    childIndex: 0,
+    point: [0, 0],
+    size: [1, 1],
+    rotation: 0,
+    isAspectRatioLocked: false,
+    isLocked: false,
+    isHidden: false,
+    style: defaultStyle,
+    children: [],
   },
 
   render(shape) {

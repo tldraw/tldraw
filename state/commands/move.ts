@@ -57,6 +57,7 @@ export default function moveCommand(data: Data, type: MoveType): void {
                 .sort((a, b) => b.childIndex - a.childIndex)
                 .forEach((shape) => moveForward(shape, siblings, visited))
             }
+
             break
           }
           case MoveType.Backward: {

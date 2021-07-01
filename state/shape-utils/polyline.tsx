@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils'
+import { uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { PolylineShape, ShapeType } from 'types'
 import { intersectPolylineBounds } from 'utils/intersections'
@@ -13,24 +13,20 @@ import { registerShapeUtils } from './register'
 const polyline = registerShapeUtils<PolylineShape>({
   boundsCache: new WeakMap([]),
 
-  create(props) {
-    return {
-      id: uniqueId(),
-
-      type: ShapeType.Polyline,
-      isGenerated: false,
-      name: 'Polyline',
-      parentId: 'page1',
-      childIndex: 0,
-      point: [0, 0],
-      points: [[0, 0]],
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      style: defaultStyle,
-      ...props,
-    }
+  defaultProps: {
+    id: uniqueId(),
+    type: ShapeType.Polyline,
+    isGenerated: false,
+    name: 'Polyline',
+    parentId: 'page1',
+    childIndex: 0,
+    point: [0, 0],
+    points: [[0, 0]],
+    rotation: 0,
+    isAspectRatioLocked: false,
+    isLocked: false,
+    isHidden: false,
+    style: defaultStyle,
   },
 
   shouldRender(shape, prev) {

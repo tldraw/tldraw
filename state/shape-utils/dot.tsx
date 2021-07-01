@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils'
+import { uniqueId } from 'utils/utils'
 import { DotShape, ShapeType } from 'types'
 import { intersectCircleBounds } from 'utils/intersections'
 import { boundsContained, translateBounds } from 'utils'
@@ -8,27 +8,19 @@ import { registerShapeUtils } from './register'
 const dot = registerShapeUtils<DotShape>({
   boundsCache: new WeakMap([]),
 
-  create(props) {
-    return {
-      id: uniqueId(),
-
-      type: ShapeType.Dot,
-      isGenerated: false,
-      name: 'Dot',
-      parentId: 'page1',
-      childIndex: 0,
-      point: [0, 0],
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      ...props,
-      style: {
-        ...defaultStyle,
-        ...props.style,
-        isFilled: false,
-      },
-    }
+  defaultProps: {
+    id: uniqueId(),
+    type: ShapeType.Dot,
+    isGenerated: false,
+    name: 'Dot',
+    parentId: 'page1',
+    childIndex: 0,
+    point: [0, 0],
+    rotation: 0,
+    isAspectRatioLocked: false,
+    isLocked: false,
+    isHidden: false,
+    style: defaultStyle,
   },
 
   render({ id }) {

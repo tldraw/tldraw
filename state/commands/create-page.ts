@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data, Page, PageState } from 'types'
-import { uniqueId } from 'utils'
+import { uniqueId } from 'utils/utils'
 import storage from 'state/storage'
 
 export default function createPage(data: Data, goToPage = true): void {

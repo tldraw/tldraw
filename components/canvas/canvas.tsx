@@ -71,8 +71,8 @@ const MainSVG = styled('svg', {
 
 function ErrorFallback({ error, resetErrorBoundary }) {
   React.useEffect(() => {
-    console.error(error)
     const copy = 'Sorry, something went wrong. Clear canvas and continue?'
+    console.error(error)
     if (window.confirm(copy)) {
       state.send('CLEARED_PAGE')
       resetErrorBoundary()

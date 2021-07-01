@@ -1,6 +1,6 @@
-import { Shape, ShapeUtility } from 'types'
-import vec from 'utils/vec'
+import React from 'react'
 import {
+  vec,
   pointInBounds,
   getBoundsCenter,
   getBoundsFromPoints,
@@ -8,8 +8,7 @@ import {
   boundsCollidePolygon,
   boundsContainPolygon,
 } from 'utils'
-import { uniqueId } from 'utils'
-import React from 'react'
+import { Shape, ShapeUtility } from 'types'
 
 function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
   return {
@@ -22,19 +21,19 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
     isParent: false,
     isForeignObject: false,
 
+    defaultProps: {} as T,
+
     create(props) {
       return {
-        id: uniqueId(),
-        isGenerated: false,
-        point: [0, 0],
-        name: 'Shape',
-        parentId: 'page1',
-        childIndex: 0,
-        rotation: 0,
-        isAspectRatioLocked: false,
-        isLocked: false,
-        isHidden: false,
+        ...this.defaultProps,
         ...props,
+        style: {
+          ...this.defaultProps.style,
+          ...props.style,
+          isFilled: this.canStyleFill
+            ? props.style?.isFilled || this.defaultProps.style.isFilled
+            : false,
+        },
       } as T
     },
 

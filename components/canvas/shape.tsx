@@ -8,11 +8,11 @@ import useShapeEvents from 'hooks/useShapeEvents'
 import vec from 'utils/vec'
 import { getShapeStyle } from 'state/shape-styles'
 import useShapeDef from 'hooks/useShape'
-import { ShapeUtility } from 'types'
+import { BooleanArraySupportOption } from 'prettier'
 
 interface ShapeProps {
   id: string
-  isSelecting: boolean
+  isSelecting: BooleanArraySupportOption
 }
 
 function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
@@ -51,28 +51,27 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
   `
   })
 
-  // From here on, not reactive—if we're here, we can trust that the
-  // shape in state is a shape with changes that we need to render.
+  const isCurrentParent = useSelector((s) => {
+    return s.data.currentParentId === id
+  })
+
+  const events = useShapeEvents(id, isCurrentParent, rGroup)
 
   const shape = tld.getShape(state.data, id)
 
-  const shapeUtils = shape ? getShapeUtils(shape) : ({} as ShapeUtility<any>)
-
-  const {
-    isParent = false,
-    isForeignObject = false,
-    canStyleFill = false,
-  } = shapeUtils
-
-  const events = useShapeEvents(id, isParent, rGroup)
-
   if (!shape) return null
+
+  // From here on, not reactive—if we're here, we can trust that the
+  // shape in state is a shape with changes that we need to render.
+
+  const { isParent, isForeignObject, canStyleFill } = getShapeUtils(shape)
 
   return (
     <StyledGroup
       id={id + '-group'}
       ref={rGroup}
       transform={transform}
+      isCurrentParent={isCurrentParent}
       {...events}
     >
       {isSelecting &&
@@ -204,4 +203,24 @@ const EventSoak = styled('use', {
 
 const StyledGroup = styled('g', {
   outline: 'none',
+
+  '& > *[data-shy=true]': {
+    opacity: 0,
+  },
+
+  '&:hover': {
+    '& > *[data-shy=true]': {
+      opacity: 1,
+    },
+  },
+
+  variants: {
+    isCurrentParent: {
+      true: {
+        '& > *[data-shy=true]': {
+          opacity: 1,
+        },
+      },
+    },
+  },
 })

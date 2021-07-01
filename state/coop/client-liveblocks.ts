@@ -6,7 +6,7 @@ import {
   MyPresenceCallback,
   OthersEventCallback,
 } from '@liveblocks/client/lib/cjs/types'
-import { uniqueId } from 'utils'
+import { uniqueId } from 'utils/utils'
 
 class CoopClient {
   id = uniqueId()

@@ -7,62 +7,74 @@ state.send('CLEARED_PAGE')
 
 describe('arrow shape', () => {
   it('creates shape', () => {
+    // TODO
     null
   })
 
   it('cancels shape while creating', () => {
+    // TODO
     null
   })
 
   it('moves shape', () => {
+    // TODO
     null
   })
 
   it('rotates shape', () => {
+    // TODO
     null
   })
 
-  it('measures bounds', () => {
+  it('rotates shape in a group', () => {
+    // TODO
     null
   })
 
-  it('measures rotated bounds', () => {
+  it('measures shape bounds', () => {
+    // TODO
     null
   })
 
-  it('transforms single', () => {
+  it('measures shape rotated bounds', () => {
+    // TODO
+    null
+  })
+
+  it('transforms single shape', () => {
+    // TODO
     null
   })
 
   it('transforms in a group', () => {
+    // TODO
     null
   })
 
   /* -------------------- Specific -------------------- */
 
   it('creates compass-aligned shape with shift key', () => {
+    // TODO
     null
   })
 
   it('changes start handle', () => {
+    // TODO
     null
   })
 
   it('changes end handle', () => {
+    // TODO
     null
   })
 
   it('changes bend handle', () => {
+    // TODO
     null
   })
 
   it('resets bend handle when double-pointed', () => {
-    null
-  })
-
-  /* -------------------- Readonly -------------------- */
-
-  it('does not create shape when readonly', () => {
+    // TODO
     null
   })
 })

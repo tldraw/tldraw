@@ -6,14 +6,15 @@ import Vec from 'utils/vec'
 
 export default function useShapeEvents(
   id: string,
-  isParent: boolean,
+  isCurrentParent: boolean,
   rGroup: MutableRefObject<SVGElement>
 ) {
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      if (isParent) return
+      if (isCurrentParent) return
       if (!inputs.canAccept(e.pointerId)) return
       e.stopPropagation()
+
       rGroup.current.setPointerCapture(e.pointerId)
 
       const info = inputs.pointerDown(e, id)
@@ -28,30 +29,30 @@ export default function useShapeEvents(
         state.send('RIGHT_POINTED', info)
       }
     },
-    [id]
+    [id, isCurrentParent]
   )
 
   const handlePointerUp = useCallback(
     (e: React.PointerEvent) => {
+      if (isCurrentParent) return
       if (!inputs.canAccept(e.pointerId)) return
       e.stopPropagation()
+
       rGroup.current.releasePointerCapture(e.pointerId)
       state.send('STOPPED_POINTING', inputs.pointerUp(e, id))
     },
-    [id]
+    [id, isCurrentParent]
   )
 
   const handlePointerEnter = useCallback(
     (e: React.PointerEvent) => {
+      if (isCurrentParent) return
       if (!inputs.canAccept(e.pointerId)) return
+      e.stopPropagation()
 
-      if (isParent) {
-        state.send('HOVERED_GROUP', inputs.pointerEnter(e, id))
-      } else {
-        state.send('HOVERED_SHAPE', inputs.pointerEnter(e, id))
-      }
+      state.send('HOVERED_SHAPE', inputs.pointerEnter(e, id))
     },
-    [id]
+    [id, isCurrentParent]
   )
 
   const handlePointerMove = useCallback(
@@ -72,26 +73,22 @@ export default function useShapeEvents(
         return
       }
 
-      if (isParent) {
-        state.send('MOVED_OVER_GROUP', inputs.pointerEnter(e, id))
-      } else {
-        state.send('MOVED_OVER_SHAPE', inputs.pointerEnter(e, id))
-      }
+      if (isCurrentParent) return
+
+      state.send('MOVED_OVER_SHAPE', inputs.pointerEnter(e, id))
     },
-    [id]
+    [id, isCurrentParent]
   )
 
   const handlePointerLeave = useCallback(
     (e: React.PointerEvent) => {
+      if (isCurrentParent) return
       if (!inputs.canAccept(e.pointerId)) return
+      e.stopPropagation()
 
-      if (isParent) {
-        state.send('UNHOVERED_GROUP', { target: id })
-      } else {
-        state.send('UNHOVERED_SHAPE', { target: id })
-      }
+      state.send('UNHOVERED_SHAPE', { target: id })
     },
-    [id]
+    [id, isCurrentParent]
   )
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {

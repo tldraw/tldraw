@@ -3,7 +3,7 @@ import history from '../history'
 import { Data } from 'types'
 import { deepClone } from 'utils'
 import tld from 'utils/tld'
-import { uniqueId } from 'utils'
+import { uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 
 export default function duplicateCommand(data: Data): void {

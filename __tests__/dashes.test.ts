@@ -1,4 +1,4 @@
-import { getPerfectDashProps } from 'utils/dashes'
+import { getPerfectDashProps } from 'utils'
 
 describe('ellipse dash props', () => {
   it('renders dashed props on a circle correctly', () => {

@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils'
+import { uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { DashStyle, DrawShape, ShapeStyles, ShapeType } from 'types'
 import { intersectPolylineBounds } from 'utils/intersections'
@@ -22,27 +22,20 @@ const draw = registerShapeUtils<DrawShape>({
 
   canStyleFill: true,
 
-  create(props) {
-    return {
-      id: uniqueId(),
-
-      type: ShapeType.Draw,
-      isGenerated: false,
-      name: 'Draw',
-      parentId: 'page1',
-      childIndex: 0,
-      point: [0, 0],
-      points: [],
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      ...props,
-      style: {
-        ...defaultStyle,
-        ...props.style,
-      },
-    }
+  defaultProps: {
+    id: uniqueId(),
+    type: ShapeType.Draw,
+    isGenerated: false,
+    name: 'Draw',
+    parentId: 'page1',
+    childIndex: 0,
+    point: [0, 0],
+    points: [],
+    rotation: 0,
+    isAspectRatioLocked: false,
+    isLocked: false,
+    isHidden: false,
+    style: defaultStyle,
   },
 
   shouldRender(shape, prev) {

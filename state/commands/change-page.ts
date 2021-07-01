@@ -16,10 +16,12 @@ export default function changePage(data: Data, toPageId: string): void {
         storage.savePage(data, data.document.id, fromPageId)
         storage.loadPage(data, data.document.id, toPageId)
         data.currentPageId = toPageId
+        data.currentParentId = toPageId
       },
       undo(data) {
         storage.loadPage(data, data.document.id, fromPageId)
         data.currentPageId = fromPageId
+        data.currentParentId = fromPageId
       },
     })
   )

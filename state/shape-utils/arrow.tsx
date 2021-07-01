@@ -1,12 +1,16 @@
-import { getArcLength, uniqueId } from 'utils'
 import vec from 'utils/vec'
 import {
+  getArcLength,
+  uniqueId,
   getSvgPathFromStroke,
   rng,
   getBoundsFromPoints,
   translateBounds,
   pointInBounds,
   pointInCircle,
+  circleFromThreePoints,
+  isAngleBetween,
+  getPerfectDashProps,
 } from 'utils'
 import {
   ArrowShape,
@@ -15,7 +19,6 @@ import {
   ShapeHandle,
   ShapeType,
 } from 'types'
-import { circleFromThreePoints, isAngleBetween } from 'utils'
 import {
   intersectArcBounds,
   intersectLineSegmentBounds,
@@ -24,7 +27,6 @@ import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import React from 'react'
 import { registerShapeUtils } from './register'
-import { getPerfectDashProps } from 'utils/dashes'
 
 const pathCache = new WeakMap<ArrowShape, string>([])
 
@@ -37,55 +39,65 @@ function getCtp(shape: ArrowShape) {
 const arrow = registerShapeUtils<ArrowShape>({
   boundsCache: new WeakMap([]),
 
+  defaultProps: {
+    id: uniqueId(),
+    type: ShapeType.Arrow,
+    isGenerated: false,
+    name: 'Arrow',
+    parentId: 'page1',
+    childIndex: 0,
+    point: [0, 0],
+    rotation: 0,
+    isAspectRatioLocked: false,
+    isLocked: false,
+    isHidden: false,
+    bend: 0,
+    handles: {
+      start: {
+        id: 'start',
+        index: 0,
+        point: [0, 0],
+      },
+      end: {
+        id: 'end',
+        index: 1,
+        point: [1, 1],
+      },
+      bend: {
+        id: 'bend',
+        index: 2,
+        point: [0.5, 0.5],
+      },
+    },
+    decorations: {
+      start: null,
+      middle: null,
+      end: Decoration.Arrow,
+    },
+    style: {
+      ...defaultStyle,
+      isFilled: false,
+    },
+  },
+
   create(props) {
-    const {
-      point = [0, 0],
-      handles = {
-        start: {
-          id: 'start',
-          index: 0,
-          point: [0, 0],
-        },
-        end: {
-          id: 'end',
-          index: 1,
-          point: [1, 1],
-        },
-        bend: {
-          id: 'bend',
-          index: 2,
-          point: [0.5, 0.5],
-        },
-      },
-    } = props
-
-    return {
-      id: uniqueId(),
-
-      type: ShapeType.Arrow,
-      isGenerated: false,
-      name: 'Arrow',
-      parentId: 'page1',
-      childIndex: 0,
-      point,
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      bend: 0,
-      handles,
-      decorations: {
-        start: null,
-        middle: null,
-        end: Decoration.Arrow,
-      },
+    const shape = {
+      ...this.defaultProps,
       ...props,
+      decorations: {
+        ...this.defaultProps.decorations,
+        ...props.decorations,
+      },
       style: {
-        ...defaultStyle,
+        ...this.defaultProps.style,
         ...props.style,
         isFilled: false,
       },
     }
+
+    // shape.handles.bend.point = getBendPoint(shape)
+
+    return shape
   },
 
   shouldRender(shape, prev) {

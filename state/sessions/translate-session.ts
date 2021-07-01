@@ -2,7 +2,7 @@ import { Data, GroupShape, Shape, ShapeType } from 'types'
 import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
-import { uniqueId } from 'utils'
+import { uniqueId } from 'utils/utils'
 import { getShapeUtils } from 'state/shape-utils'
 import tld from 'utils/tld'
 

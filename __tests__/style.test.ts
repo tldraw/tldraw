@@ -5,23 +5,23 @@ state.reset()
 state.send('MOUNTED').send('LOADED_FROM_FILE', { json: JSON.stringify(json) })
 state.send('CLEARED_PAGE')
 
-describe('arrow shape', () => {
-  it('creates a shape', () => {
+describe('shape styles', () => {
+  it('sets the color style of a shape', () => {
     // TODO
     null
   })
 
-  it('cancels shape while creating', () => {
+  it('sets the size style of a shape', () => {
     // TODO
     null
   })
 
-  it('removes shape on undo and restores it on redo', () => {
+  it('sets the dash style of a shape', () => {
     // TODO
     null
   })
 
-  it('does not create shape when readonly', () => {
+  it('sets the isFilled style of a shape', () => {
     // TODO
     null
   })

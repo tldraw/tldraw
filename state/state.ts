@@ -1,15 +1,16 @@
 import { createSelectorHook, createState } from '@state-designer/react'
 import { updateFromCode } from './code/generate'
 import { createShape, getShapeUtils } from './shape-utils'
-import vec from 'utils/vec'
+import * as Sessions from './sessions'
 import inputs from './inputs'
 import history from './history'
 import storage from './storage'
+import session from './session'
 import clipboard from './clipboard'
-import * as Sessions from './sessions'
 import coopClient from './coop/client-liveblocks'
 import commands from './commands'
 import {
+  vec,
   getCommonBounds,
   rotateBounds,
   getBoundsCenter,
@@ -18,7 +19,7 @@ import {
   pointInBounds,
   uniqueId,
 } from 'utils'
-import tld from 'utils/tld'
+import tld from '../utils/tld'
 import {
   Data,
   PointerInfo,
@@ -36,7 +37,6 @@ import {
   SizeStyle,
   ColorStyle,
 } from 'types'
-import session from './session'
 
 const initialData: Data = {
   isReadOnly: false,
@@ -288,10 +288,15 @@ const state = createState({
           unless: 'isInSession',
           do: ['loadDocumentFromJson', 'resetHistory'],
         },
+        DESELECTED_ALL: {
+          unless: 'isInSession',
+          do: 'deselectAll',
+          to: 'selecting',
+        },
         SELECTED_ALL: {
           unless: 'isInSession',
-          to: 'selecting',
           do: 'selectAll',
+          to: 'selecting',
         },
         CHANGED_PAGE: {
           unless: 'isInSession',
@@ -398,8 +403,15 @@ const state = createState({
             notPointing: {
               onEnter: 'clearPointedId',
               on: {
-                CANCELLED: 'clearSelectedIds',
-                POINTED_CANVAS: { to: 'brushSelecting' },
+                CANCELLED: {
+                  if: 'hasCurrentParentShape',
+                  do: ['selectCurrentParentId', 'raiseCurrentParentId'],
+                  else: 'clearSelectedIds',
+                },
+                POINTED_CANVAS: {
+                  to: 'brushSelecting',
+                  do: 'setCurrentParentIdToPage',
+                },
                 POINTED_BOUNDS: [
                   {
                     if: 'isPressingMetaKey',
@@ -477,7 +489,7 @@ const state = createState({
                   {
                     unless: 'isPressingShiftKey',
                     do: [
-                      'setDrilledPointedId',
+                      'setCurrentParentId',
                       'clearSelectedIds',
                       'pushPointedIdToSelectedIds',
                     ],
@@ -1120,6 +1132,9 @@ const state = createState({
     hasMultipleSelection(data) {
       return tld.getSelectedIds(data).size > 1
     },
+    hasCurrentParentShape(data) {
+      return data.currentParentId !== data.currentPageId
+    },
     isToolLocked(data) {
       return data.settings.isToolLocked
     },
@@ -1180,6 +1195,14 @@ const state = createState({
 
       data.currentPageId = newId
 
+      data.pointedId = null
+      data.hoveredId = null
+      data.editingId = null
+      data.currentPageId = 'page1'
+      data.currentParentId = 'page1'
+      data.currentCodeFileId = 'file0'
+      data.codeControls = {}
+
       data.document.pages = {
         [newId]: {
           id: newId,
@@ -1234,6 +1257,7 @@ const state = createState({
 
     createShape(data, payload, type: ShapeType) {
       const shape = createShape(type, {
+        id: uniqueId(),
         parentId: data.currentPageId,
         point: vec.round(tld.screenToWorld(payload.point, data)),
         style: deepClone(data.currentStyle),
@@ -1500,11 +1524,12 @@ const state = createState({
         )
       )
     },
-
     clearInputs() {
       inputs.clear()
     },
-
+    deselectAll(data) {
+      tld.getSelectedIds(data).clear()
+    },
     selectAll(data) {
       const selectedIds = tld.getSelectedIds(data)
       const page = tld.getPage(data)
@@ -1525,9 +1550,23 @@ const state = createState({
       data.pointedId = getPointedId(data, payload.target)
       data.currentParentId = getParentId(data, data.pointedId)
     },
-    setDrilledPointedId(data, payload: PointerInfo) {
+    setCurrentParentId(data, payload: PointerInfo) {
       data.pointedId = getDrilledPointedId(data, payload.target)
       data.currentParentId = getParentId(data, data.pointedId)
+    },
+    raiseCurrentParentId(data) {
+      const currentParent = tld.getShape(data, data.currentParentId)
+
+      data.currentParentId =
+        currentParent.parentId === data.currentPageId
+          ? data.currentPageId
+          : currentParent.parentId
+    },
+    setCurrentParentIdToPage(data) {
+      data.currentParentId = data.currentPageId
+    },
+    selectCurrentParentId(data) {
+      tld.setSelectedIds(data, [data.currentParentId])
     },
     clearCurrentParentId(data) {
       data.currentParentId = data.currentPageId

@@ -1,4 +1,4 @@
-import { clamp, deepClone, getCommonBounds, setToArray } from './utils'
+import { clamp, deepClone, getCommonBounds, setToArray } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 import vec from './vec'
 import {
@@ -15,7 +15,7 @@ import {
 } from 'types'
 import { AssertionError } from 'assert'
 
-export default class ProjectUtils {
+export default class StateUtils {
   static getCameraZoom(zoom: number): number {
     return clamp(zoom, 0.1, 5)
   }

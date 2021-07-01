@@ -1,4 +1,4 @@
-import { uniqueId, isMobile } from 'utils'
+import { uniqueId, isMobile } from 'utils/utils'
 import vec from 'utils/vec'
 import { TextShape, ShapeType } from 'types'
 import {
@@ -47,27 +47,23 @@ const text = registerShapeUtils<TextShape>({
   isForeignObject: true,
   canChangeAspectRatio: false,
   canEdit: true,
-
   boundsCache: new WeakMap([]),
 
-  create(props) {
-    return {
-      id: uniqueId(),
-      type: ShapeType.Text,
-      isGenerated: false,
-      name: 'Text',
-      parentId: 'page1',
-      childIndex: 0,
-      point: [0, 0],
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      style: defaultStyle,
-      text: '',
-      scale: 1,
-      ...props,
-    }
+  defaultProps: {
+    id: uniqueId(),
+    type: ShapeType.Text,
+    isGenerated: false,
+    name: 'Text',
+    parentId: 'page1',
+    childIndex: 0,
+    point: [0, 0],
+    rotation: 0,
+    isAspectRatioLocked: false,
+    isLocked: false,
+    isHidden: false,
+    style: defaultStyle,
+    text: '',
+    scale: 1,
   },
 
   shouldRender(shape, prev) {

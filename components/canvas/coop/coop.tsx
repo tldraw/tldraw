@@ -6,23 +6,24 @@ export default function Presence(): JSX.Element {
   const others = useCoopSelector((s) => s.data.others)
   const currentPageId = useSelector((s) => s.data.currentPageId)
 
+  if (!others) return null
+
   return (
     <>
-      {Object.values(others).map(({ connectionId, presence }) => {
-        if (presence === null) return null
-        if (presence.pageId !== currentPageId) return null
-
-        return (
-          <Cursor
-            key={`cursor-${connectionId}`}
-            color={'red'}
-            duration={presence.duration}
-            times={presence.times}
-            bufferedXs={presence.bufferedXs}
-            bufferedYs={presence.bufferedYs}
-          />
-        )
-      })}
+      {Object.values(others)
+        .filter(({ presence }) => presence?.pageId === currentPageId)
+        .map(({ connectionId, presence }) => {
+          return (
+            <Cursor
+              key={`cursor-${connectionId}`}
+              color={'red'}
+              duration={presence.duration}
+              times={presence.times}
+              bufferedXs={presence.bufferedXs}
+              bufferedYs={presence.bufferedYs}
+            />
+          )
+        })}
     </>
   )
 }

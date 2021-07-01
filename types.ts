@@ -458,6 +458,9 @@ export type PropsOfType<T extends Record<string, unknown>> = {
 export type Mutable<T extends Shape> = { -readonly [K in keyof T]: T[K] }
 
 export interface ShapeUtility<K extends Shape> {
+  // Default properties when creating a new shape
+  defaultProps: K
+
   // A cache for the computed bounds of this kind of shape.
   boundsCache: WeakMap<K, Bounds>
 
@@ -483,7 +486,7 @@ export interface ShapeUtility<K extends Shape> {
   isShy: boolean
 
   // Create a new shape.
-  create(props: Partial<K>): K
+  create(this: ShapeUtility<K>, props: Partial<K>): K
 
   // Update a shape's styles
   applyStyles(

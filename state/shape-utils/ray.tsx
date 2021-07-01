@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils'
+import { uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { RayShape, ShapeType } from 'types'
 import { intersectCircleBounds } from 'utils/intersections'
@@ -10,28 +10,20 @@ import { registerShapeUtils } from './register'
 const ray = registerShapeUtils<RayShape>({
   boundsCache: new WeakMap([]),
 
-  create(props) {
-    return {
-      id: uniqueId(),
-
-      type: ShapeType.Ray,
-      isGenerated: false,
-      name: 'Ray',
-      parentId: 'page1',
-      childIndex: 0,
-      point: [0, 0],
-      direction: [0, 1],
-      rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
-      ...props,
-      style: {
-        ...defaultStyle,
-        ...props.style,
-        isFilled: false,
-      },
-    }
+  defaultProps: {
+    id: uniqueId(),
+    type: ShapeType.Ray,
+    isGenerated: false,
+    name: 'Ray',
+    parentId: 'page1',
+    childIndex: 0,
+    point: [0, 0],
+    direction: [0, 1],
+    rotation: 0,
+    isAspectRatioLocked: false,
+    isLocked: false,
+    isHidden: false,
+    style: defaultStyle,
   },
 
   shouldRender(shape, prev) {
