@@ -7,7 +7,6 @@ import history from './history'
 import storage from './storage'
 import session from './session'
 import clipboard from './clipboard'
-import coopClient from './coop/client-liveblocks'
 import commands from './commands'
 import {
   vec,
@@ -167,7 +166,7 @@ const state = createState({
         // Network-Related
         RT_LOADED_ROOM: [
           'clearRoom',
-          { if: 'hasRoom', do: ['resetDocumentState', 'connectToRoom'] },
+          { if: 'hasRoom', do: 'resetDocumentState' },
         ],
         // RT_UNLOADED_ROOM: ['clearRoom', 'resetDocumentState'],
         // RT_DISCONNECTED_ROOM: ['clearRoom', 'resetDocumentState'],
@@ -647,7 +646,7 @@ const state = createState({
           },
         },
         editingShape: {
-          onEnter: 'startEditSession',
+          onEnter: ['startEditSession', 'clearHoveredId'],
           onExit: ['completeSession', 'clearEditingId'],
           on: {
             EDITED_SHAPE: { do: 'updateEditSession' },
@@ -1221,10 +1220,6 @@ const state = createState({
       // What if the page is in storage?
       Object.assign(data.document[pageId].shapes[shape.id], shape)
     },
-    sendRtCursorMove(data, payload: PointerInfo) {
-      const point = tld.screenToWorld(payload.point, data)
-      coopClient.moveCursor(data.currentPageId, point)
-    },
     clearRoom(data) {
       data.room = undefined
     },
@@ -1266,11 +1261,6 @@ const state = createState({
         },
       }
     },
-    connectToRoom(data, payload: { id: string }) {
-      data.room = { id: payload.id, status: 'connecting', peers: {} }
-      coopClient.connect(payload.id)
-    },
-
     resetPageState(data) {
       const pageState = data.pageStates[data.currentPageId]
       data.pageStates[data.currentPageId] = { ...pageState }

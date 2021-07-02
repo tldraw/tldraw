@@ -128,4 +128,4 @@ class CoopClient {
   }
 }
 
-export default new CoopClient()
+export default CoopClient

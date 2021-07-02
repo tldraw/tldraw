@@ -1,5 +1,6 @@
 import { uniqueId, isMobile } from 'utils/utils'
 import vec from 'utils/vec'
+import TextAreaUtils from 'utils/text-area'
 import { TextShape, ShapeType } from 'types'
 import {
   defaultStyle,
@@ -42,7 +43,7 @@ mdiv.tabIndex = -1
 document.body.appendChild(mdiv)
 
 function normalizeText(text: string) {
-  return text.replace(/\t/g, '        ').replace(/\r?\n|\r/g, '\n')
+  return text.replace(/\r?\n|\r/g, '\n')
 }
 
 const text = registerShapeUtils<TextShape>({
@@ -97,6 +98,18 @@ const text = registerShapeUtils<TextShape>({
 
       if (e.key === 'Tab') {
         e.preventDefault()
+        if (e.shiftKey) {
+          TextAreaUtils.unindent(e.currentTarget)
+        } else {
+          TextAreaUtils.indent(e.currentTarget)
+        }
+
+        state.send('EDITED_SHAPE', {
+          id,
+          change: {
+            text: normalizeText(e.currentTarget.value),
+          },
+        })
       }
     }
 
@@ -107,6 +120,12 @@ const text = registerShapeUtils<TextShape>({
     function handleFocus(e: React.FocusEvent<HTMLTextAreaElement>) {
       e.currentTarget.select()
       state.send('FOCUSED_EDITING_SHAPE', { id })
+    }
+
+    function handlePointerDown(e: React.PointerEvent<HTMLTextAreaElement>) {
+      if (e.currentTarget.selectionEnd !== 0) {
+        e.currentTarget.selectionEnd = 0
+      }
     }
 
     const fontSize = getFontSize(shape.style.size) * shape.scale
@@ -141,8 +160,6 @@ const text = registerShapeUtils<TextShape>({
     return (
       <foreignObject
         id={id}
-        x={0}
-        y={0}
         width={bounds.width}
         height={bounds.height}
         pointerEvents="none"
@@ -153,19 +170,20 @@ const text = registerShapeUtils<TextShape>({
             font,
             color: styles.stroke,
           }}
-          value={text}
-          tabIndex={0}
+          name="text"
+          defaultValue={text}
+          tabIndex={-1}
           autoComplete="false"
           autoCapitalize="false"
           autoCorrect="false"
           autoSave="false"
           placeholder=""
-          name="text"
           autoFocus={isMobile() ? true : false}
           onFocus={handleFocus}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           onChange={handleChange}
+          onPointerDown={handlePointerDown}
         />
       </foreignObject>
     )

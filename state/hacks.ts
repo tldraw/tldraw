@@ -3,7 +3,7 @@ import { deepClone, setToArray } from 'utils'
 import tld from 'utils/tld'
 import { freeze } from 'immer'
 import session from './session'
-import coopClient from 'state/coop/client-liveblocks'
+import coopState from 'state/coop/coop-state'
 import state from './state'
 import vec from 'utils/vec'
 import * as Session from './sessions'
@@ -18,7 +18,10 @@ import * as Session from './sessions'
 export function fastDrawUpdate(info: PointerInfo): void {
   const data = { ...state.data }
 
-  coopClient.moveCursor(data.currentPageId, info.point)
+  coopState.send('MOVED_CURSOSR', {
+    pageId: data.currentPageId,
+    point: info.point,
+  })
 
   session.update<Session.DrawSession>(
     data,
