@@ -318,6 +318,11 @@ export default class StateUtils {
   static getTopParentId(data: Data, id: string): string {
     const shape = this.getPage(data).shapes[id]
 
+    if (shape.parentId === shape.id) {
+      console.error('Shape has the same id as its parent!', deepClone(shape))
+      return shape.parentId
+    }
+
     return shape.parentId === data.currentPageId ||
       shape.parentId === data.currentParentId
       ? id

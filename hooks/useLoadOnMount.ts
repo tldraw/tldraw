@@ -2,7 +2,7 @@
 import { useEffect } from 'react'
 import state from 'state'
 
-export default function useLoadOnMount(roomId?: string) {
+export default function useLoadOnMount(roomId: string = undefined) {
   useEffect(() => {
     const fonts = (document as any).fonts
 

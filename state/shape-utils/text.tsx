@@ -33,6 +33,8 @@ Object.assign(mdiv.style, {
   left: '0px',
   zIndex: '9999',
   pointerEvents: 'none',
+  alignmentBaseline: 'mathematical',
+  dominantBaseline: 'mathematical',
 })
 
 mdiv.tabIndex = -1
@@ -83,28 +85,32 @@ const text = registerShapeUtils<TextShape>({
 
     function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
       state.send('EDITED_SHAPE', {
+        id,
         change: { text: normalizeText(e.currentTarget.value) },
       })
     }
 
-    function handleKeyDown(e: React.KeyboardEvent) {
+    function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+      if (e.key === 'Escape') return
+
       e.stopPropagation()
+
       if (e.key === 'Tab') {
         e.preventDefault()
       }
     }
 
     function handleBlur() {
-      state.send('BLURRED_EDITING_SHAPE')
+      setTimeout(() => state.send('BLURRED_EDITING_SHAPE', { id }), 0)
     }
 
     function handleFocus(e: React.FocusEvent<HTMLTextAreaElement>) {
       e.currentTarget.select()
-      state.send('FOCUSED_EDITING_SHAPE')
+      state.send('FOCUSED_EDITING_SHAPE', { id })
     }
 
     const fontSize = getFontSize(shape.style.size) * shape.scale
-    const gap = fontSize * 0.4
+    const lineHeight = fontSize * 1.4
 
     if (!isEditing) {
       return (
@@ -113,7 +119,7 @@ const text = registerShapeUtils<TextShape>({
             <text
               key={i}
               x={4}
-              y={4 + gap / 2 + i * (fontSize + gap)}
+              y={4 + fontSize / 2 + i * lineHeight}
               fontFamily="Verveine Regular"
               fontStyle="normal"
               fontWeight="regular"
@@ -121,7 +127,9 @@ const text = registerShapeUtils<TextShape>({
               width={bounds.width}
               height={bounds.height}
               fill={styles.stroke}
-              dominantBaseline="hanging"
+              xmlSpace="preserve"
+              dominantBaseline="mathematical"
+              alignmentBaseline="mathematical"
             >
               {str}
             </text>
@@ -255,9 +263,12 @@ const StyledTextArea = styled('textarea', {
   border: 'none',
   padding: '4px',
   whiteSpace: 'pre',
+  alignmentBaseline: 'mathematical',
+  dominantBaseline: 'mathematical',
   resize: 'none',
   minHeight: 1,
   minWidth: 1,
+  lineHeight: 1.4,
   outline: 0,
   backgroundColor: '$boundsBg',
   overflow: 'hidden',

@@ -18,10 +18,16 @@ export default function useCanvasEvents(
 
     rCanvas.current.setPointerCapture(e.pointerId)
 
+    const info = inputs.pointerDown(e, 'canvas')
+
     if (e.button === 0) {
-      state.send('POINTED_CANVAS', inputs.pointerDown(e, 'canvas'))
+      if (inputs.isDoubleClick() && !(info.altKey || info.metaKey)) {
+        state.send('DOUBLE_POINTED_CANVAS', info)
+      }
+
+      state.send('POINTED_CANVAS', info)
     } else if (e.button === 2) {
-      state.send('RIGHT_POINTED', inputs.pointerDown(e, 'canvas'))
+      state.send('RIGHT_POINTED', info)
     }
   }, [])
 

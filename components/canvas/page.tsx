@@ -10,7 +10,9 @@ here; and still cheaper than any other pattern I've found.
 */
 
 export default function Page(): JSX.Element {
-  const isSelecting = useSelector((s) => s.isIn('selecting'))
+  const showHovers = useSelector((s) =>
+    s.isInAny('selecting', 'text', 'editingShape')
+  )
 
   const visiblePageShapeIds = usePageShapes()
 
@@ -19,12 +21,12 @@ export default function Page(): JSX.Element {
   })
 
   return (
-    <g pointerEvents={isSelecting ? 'all' : 'none'}>
-      {isSelecting && hoveredShapeId && (
+    <g pointerEvents={showHovers ? 'all' : 'none'}>
+      {showHovers && hoveredShapeId && (
         <HoveredShape key={hoveredShapeId} id={hoveredShapeId} />
       )}
       {visiblePageShapeIds.map((id) => (
-        <Shape key={id} id={id} isSelecting={isSelecting} />
+        <Shape key={id} id={id} />
       ))}
     </g>
   )

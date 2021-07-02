@@ -37,6 +37,7 @@ import {
   SizeStyle,
   ColorStyle,
 } from 'types'
+import { getFontSize } from './shape-styles'
 
 const initialData: Data = {
   isReadOnly: false,
@@ -141,15 +142,12 @@ for (let i = 0; i < count; i++) {
 
 const state = createState({
   data: initialData,
-  on: {
-    UNMOUNTED: { to: 'loading' },
-  },
   initial: 'loading',
   states: {
     loading: {
       on: {
         MOUNTED: {
-          do: 'restoreSavedData',
+          do: 'restoredPreviousDocument',
           to: 'ready',
         },
       },
@@ -162,6 +160,10 @@ const state = createState({
         else: ['zoomCameraToActual'],
       },
       on: {
+        UNMOUNTED: {
+          do: ['saveAppState', 'saveDocumentState', 'resetDocumentState'],
+          to: 'loading',
+        },
         // Network-Related
         RT_LOADED_ROOM: [
           'clearRoom',
@@ -396,6 +398,18 @@ const state = createState({
               if: ['hasSelection', 'selectionIncludesGroups'],
               do: 'ungroupSelection',
             },
+            MOVED_OVER_SHAPE: {
+              if: 'pointHitsShape',
+              then: {
+                unless: 'shapeIsHovered',
+                do: 'setHoveredId',
+              },
+              else: {
+                if: 'shapeIsHovered',
+                do: 'clearHoveredId',
+              },
+            },
+            UNHOVERED_SHAPE: 'clearHoveredId',
             NUDGED: 'nudgeSelection',
           },
           initial: 'notPointing',
@@ -412,6 +426,18 @@ const state = createState({
                   to: 'brushSelecting',
                   do: 'setCurrentParentIdToPage',
                 },
+                DOUBLE_POINTED_CANVAS: [
+                  {
+                    get: 'newText',
+                    do: 'createShape',
+                  },
+                  {
+                    get: 'firstSelectedShape',
+                    if: 'canEditSelectedShape',
+                    do: 'setEditingId',
+                    to: 'editingShape',
+                  },
+                ],
                 POINTED_BOUNDS: [
                   {
                     if: 'isPressingMetaKey',
@@ -441,18 +467,6 @@ const state = createState({
                   unless: 'isReadOnly',
                   to: 'translatingHandles',
                 },
-                MOVED_OVER_SHAPE: {
-                  if: 'pointHitsShape',
-                  then: {
-                    unless: 'shapeIsHovered',
-                    do: 'setHoveredId',
-                  },
-                  else: {
-                    if: 'shapeIsHovered',
-                    do: 'clearHoveredId',
-                  },
-                },
-                UNHOVERED_SHAPE: 'clearHoveredId',
                 POINTED_SHAPE: [
                   {
                     if: 'isPressingMetaKey',
@@ -638,6 +652,7 @@ const state = createState({
           on: {
             EDITED_SHAPE: { do: 'updateEditSession' },
             BLURRED_EDITING_SHAPE: [
+              { unless: 'isEditingShape' },
               {
                 get: 'editingShape',
                 if: 'shouldDeleteShape',
@@ -645,6 +660,19 @@ const state = createState({
               },
               { to: 'selecting' },
             ],
+            POINTED_SHAPE: {
+              unless: 'isPointingEditingShape',
+              if: 'isPointingTextShape',
+              do: [
+                'completeSession',
+                'clearEditingId',
+                'setPointedId',
+                'clearSelectedIds',
+                'pushPointedIdToSelectedIds',
+                'setEditingId',
+                'startEditSession',
+              ],
+            },
             CANCELLED: [
               {
                 get: 'editingShape',
@@ -896,6 +924,16 @@ const state = createState({
                     CANCELLED: { to: 'selecting' },
                     POINTED_SHAPE: [
                       {
+                        if: 'isPointingTextShape',
+                        unless: 'isPressingShiftKey',
+                        do: [
+                          'clearSelectedIds',
+                          'pushPointedIdToSelectedIds',
+                          'setEditingId',
+                        ],
+                        to: 'editingShape',
+                      },
+                      {
                         get: 'newText',
                         do: 'createShape',
                       },
@@ -1063,11 +1101,20 @@ const state = createState({
     hasRoom(_, payload: { id?: string }) {
       return payload.id !== undefined
     },
+    isEditingShape(data, payload: { id: string }) {
+      return payload.id === data.editingId
+    },
     shouldDeleteShape(data, payload, shape: Shape) {
       return getShapeUtils(shape).shouldDelete(shape)
     },
     isPointingCanvas(data, payload: PointerInfo) {
       return payload.target === 'canvas'
+    },
+    isPointingEditingShape(data, payload: { target: string }) {
+      return payload.target === data.editingId
+    },
+    isPointingTextShape(data, payload: { target: string }) {
+      return tld.getShape(data, payload.target)?.type === ShapeType.Text
     },
     isPointingBounds(data, payload: PointerInfo) {
       return tld.getSelectedIds(data).size > 0 && payload.target === 'bounds'
@@ -1184,6 +1231,8 @@ const state = createState({
     resetDocumentState(data) {
       data.document.id = uniqueId()
 
+      session.cancel(data)
+
       const newId = 'page1'
 
       data.currentPageId = newId
@@ -1249,10 +1298,17 @@ const state = createState({
     },
 
     createShape(data, payload, type: ShapeType) {
+      const style = deepClone(data.currentStyle)
+      let point = vec.round(tld.screenToWorld(payload.point, data))
+
+      if (type === ShapeType.Text) {
+        point = vec.sub(point, vec.mul([0, 1], getFontSize(style.size) * 0.8))
+      }
+
       const shape = createShape(type, {
         id: uniqueId(),
         parentId: data.currentPageId,
-        point: vec.round(tld.screenToWorld(payload.point, data)),
+        point,
         style: deepClone(data.currentStyle),
       })
 
@@ -1525,14 +1581,13 @@ const state = createState({
       tld.getSelectedIds(data).clear()
     },
     selectAll(data) {
-      const selectedIds = tld.getSelectedIds(data)
-      const page = tld.getPage(data)
-      selectedIds.clear()
-      for (const id in page.shapes) {
-        if (page.shapes[id].parentId === data.currentPageId) {
-          selectedIds.add(id)
-        }
-      }
+      tld.setSelectedIds(
+        data,
+        tld
+          .getShapes(data)
+          .filter((shape) => shape.parentId === data.currentPageId)
+          .map((shape) => shape.id)
+      )
     },
     setHoveredId(data, payload: PointerInfo) {
       data.hoveredId = payload.target
@@ -1571,6 +1626,9 @@ const state = createState({
     },
     clearSelectedIds(data) {
       tld.setSelectedIds(data, [])
+    },
+    selectId(data, payload: PointerInfo) {
+      tld.setSelectedIds(data, [payload.target])
     },
     pullPointedIdFromSelectedIds(data) {
       const { pointedId } = data
@@ -1938,7 +1996,7 @@ const state = createState({
 
     /* ---------------------- Data ---------------------- */
 
-    restoreSavedData(data) {
+    restoredPreviousDocument(data) {
       storage.firstLoad(data)
     },
 
@@ -1960,6 +2018,10 @@ const state = createState({
 
     saveAppState(data) {
       storage.saveAppStateToLocalStorage(data)
+    },
+
+    saveDocumentState(data) {
+      storage.saveDocumentToLocalStorage(data)
     },
 
     forceSave(data) {
@@ -2143,5 +2205,14 @@ function getSelectionBounds(data: Data) {
   return commonBounds
 }
 
+// const skippedLogs = new Set<string>([
+//   'MOVED_POINTER',
+//   'MOVED_OVER_SHAPE',
+//   'RESIZED_WINDOW',
+//   'HOVERED_SHAPE',
+//   'UNHOVERED_SHAPE',
+//   'PANNED_CAMERA',
+// ])
+
 // state.enableLog(true)
-// state.onUpdate((s) => console.log(s.log.filter((l) => l !== 'MOVED_POINTER')))
+// state.onUpdate((s) => console.log(s.log.filter((l) => !skippedLogs.has(l))))

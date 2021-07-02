@@ -264,7 +264,7 @@ export default function useKeyboardEvents() {
           break
         }
         default: {
-          state.send('PRESSED_KEY', info)
+          null
         }
       }
     }
@@ -279,8 +279,6 @@ export default function useKeyboardEvents() {
       if (e.key === 'Alt') {
         state.send('RELEASED_ALT_KEY', info)
       }
-
-      state.send('RELEASED_KEY', info)
     }
 
     document.body.addEventListener('keydown', handleKeyDown)

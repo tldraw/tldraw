@@ -17,6 +17,7 @@ export default class EditSession extends BaseSession {
     const initialShape = this.snapshot.initialShape
     const shape = tld.getShape(data, initialShape.id)
     const utils = getShapeUtils(shape)
+
     Object.entries(change).forEach(([key, value]) => {
       utils.setProperty(shape, key as keyof Shape, value as Shape[keyof Shape])
     })

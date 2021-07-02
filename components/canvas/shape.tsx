@@ -11,10 +11,9 @@ import useShapeDef from 'hooks/useShape'
 
 interface ShapeProps {
   id: string
-  isSelecting: boolean
 }
 
-function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
+function Shape({ id }: ShapeProps): JSX.Element {
   const rGroup = useRef<SVGGElement>(null)
 
   const isHidden = useSelector((s) => {
@@ -27,7 +26,7 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
     const shape = tld.getShape(s.data, id)
     if (shape === undefined) return []
     return shape?.children
-  }, deepCompareArrays)
+  })
 
   const strokeWidth = useSelector((s) => {
     const shape = tld.getShape(s.data, id)
@@ -58,7 +57,10 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
 
   const shape = tld.getShape(state.data, id)
 
-  if (!shape) return null
+  if (!shape) {
+    console.warn('Could not find that shape:', id)
+    return null
+  }
 
   // From here on, not reactive—if we're here, we can trust that the
   // shape in state is a shape with changes that we need to render.
@@ -73,17 +75,16 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
       isCurrentParent={isCurrentParent}
       {...events}
     >
-      {isSelecting &&
-        (isForeignObject ? (
-          <ForeignObjectHover id={id} />
-        ) : (
-          <EventSoak
-            as="use"
-            href={'#' + id}
-            strokeWidth={strokeWidth + 8}
-            variant={canStyleFill ? 'filled' : 'hollow'}
-          />
-        ))}
+      {isForeignObject ? (
+        <ForeignObjectHover id={id} />
+      ) : (
+        <EventSoak
+          as="use"
+          href={'#' + id}
+          strokeWidth={strokeWidth + 8}
+          variant={canStyleFill ? 'filled' : 'hollow'}
+        />
+      )}
 
       {!isHidden &&
         (isForeignObject ? (
@@ -93,9 +94,7 @@ function Shape({ id, isSelecting }: ShapeProps): JSX.Element {
         ))}
 
       {isParent &&
-        children.map((shapeId) => (
-          <Shape key={shapeId} id={shapeId} isSelecting={isSelecting} />
-        ))}
+        children.map((shapeId) => <Shape key={shapeId} id={shapeId} />)}
     </StyledGroup>
   )
 }
