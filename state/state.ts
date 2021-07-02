@@ -910,6 +910,11 @@ const state = createState({
                       {
                         get: 'newText',
                         do: 'createShape',
+                      },
+                      {
+                        get: 'firstSelectedShape',
+                        if: 'canEditSelectedShape',
+                        do: 'setEditingId',
                         to: 'editingShape',
                       },
                     ],
