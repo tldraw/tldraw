@@ -1,21 +1,21 @@
 ### VS Code Extension
+
 This folder contains code implementing a VS Code extension for working with tldraw within VS Code. Files are saved locally and thus play well with version control. Target use case is developer documentation.
 
 #### Good References
 
- - [VS Code Extension API/Landing Page](https://code.visualstudio.com/api)
-  - [Getting Started](https://code.visualstudio.com/api/get-started/your-first-extension)
-  - [Custom Editor API](https://code.visualstudio.com/api/extension-guides/custom-editors)
- - [github.com/microsoft/vscode-extension-samples](https://github.com/microsoft/vscode-extension-samples)
+- [VS Code Extension API/Landing Page](https://code.visualstudio.com/api)
+- [Getting Started](https://code.visualstudio.com/api/get-started/your-first-extension)
+- [Custom Editor API](https://code.visualstudio.com/api/extension-guides/custom-editors)
+- [github.com/microsoft/vscode-extension-samples](https://github.com/microsoft/vscode-extension-samples)
 
 **Todos**
- - Backlog
-   - Make sure extension works in Codespaces (when one of us gets into the beta)
-    - [Supporting Remote Development and GitHub Codespaces](https://code.visualstudio.com/api/advanced-topics/remote-extensions)
 
+- Backlog
+  - Make sure extension works in Codespaces (when one of us gets into the beta)
+  - [Supporting Remote Development and GitHub Codespaces](https://code.visualstudio.com/api/advanced-topics/remote-extensions)
 
 # ------- Original README.md below -------
-
 
 # Cat Customs - Custom Editor API Samples
 

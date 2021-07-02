@@ -1,12 +1,12 @@
 html {
-	box-sizing: border-box;
-	font-size: 13px;
+  box-sizing: border-box;
+  font-size: 13px;
 }
 
 *,
 *:before,
 *:after {
-	box-sizing: inherit;
+  box-sizing: inherit;
 }
 
 body,
@@ -19,12 +19,12 @@ h6,
 p,
 ol,
 ul {
-	margin: 0;
-	padding: 0;
-	font-weight: normal;
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
 }
 
 img {
-	max-width: 100%;
-	height: auto;
+  max-width: 100%;
+  height: auto;
 }
