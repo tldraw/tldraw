@@ -1,0 +1,83 @@
+html, body {
+	height: 100%;
+}
+
+.drawing-canvas {
+	width: 100%;
+	height: 100%;
+	flex: 1;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-repeat: repeat;
+	flex-direction: column;
+}
+
+.drawing-controls {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+}
+
+.drawing-controls button {
+	position: relative;
+	width: 100px;
+	height: 100px;
+	background: none;
+	border: none;
+	transform: translateY(30%);
+	transition: transform 0.1s linear;
+	outline: none;
+}
+
+.drawing-controls button:disabled {
+	opacity: 0.5;
+}
+
+.drawing-controls button.active:not(:disabled),
+.drawing-controls button:hover:not(:disabled) {
+	transform: translateY(10%);
+}
+
+.drawing-controls button:before,
+.drawing-controls button:after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.drawing-controls button:before {
+	-webkit-mask: url("./paw-color.svg") no-repeat 50% 50%;
+}
+
+.drawing-controls button:after {
+	background-color: #111;
+	-webkit-mask: url("./paw-outline.svg") no-repeat 50% 50%;
+}
+
+.drawing-controls button.black:before {
+	background-color: #333;
+}
+
+.drawing-controls button.white:before {
+	background-color: white;
+}
+
+.drawing-controls button.red:before {
+	background-color: red;
+}
+
+.drawing-controls button.green:before {
+	background-color: green;
+}
+
+.drawing-controls button.blue:before {
+	background-color: blue;
+}
