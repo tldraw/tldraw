@@ -1,6 +1,6 @@
 {
   "createComment": {
-    "scope": "typescript",
+    "scope": "typescript,typescriptreact",
     "prefix": "/**",
     "body": [
       "/**",

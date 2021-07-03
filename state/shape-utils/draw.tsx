@@ -1,6 +1,6 @@
 import { uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
-import { DashStyle, DrawShape, ShapeStyles, ShapeType } from 'types'
+import { DashStyle, DrawShape, ShapeType } from 'types'
 import { intersectPolylineBounds } from 'utils/intersections'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
 import {
@@ -51,7 +51,7 @@ const draw = registerShapeUtils<DrawShape>({
     const strokeWidth = +styles.strokeWidth
 
     if (!pathCache.has(points)) {
-      renderPath(shape, style)
+      pathCache.set(shape.points, getDrawStrokePath(shape))
     }
 
     if (points.length > 0 && points.length < 3) {
@@ -68,7 +68,7 @@ const draw = registerShapeUtils<DrawShape>({
 
     if (shape.style.dash === DashStyle.Draw) {
       if (shouldFill && !polygonCache.has(points)) {
-        renderFill(shape, style)
+        polygonCache.set(shape.points, getFillPath(shape))
       }
 
       return (
@@ -101,7 +101,7 @@ const draw = registerShapeUtils<DrawShape>({
     }[style.dash]
 
     if (!simplePathCache.has(points)) {
-      simplePathCache.set(points, getSolidStrokePath(points))
+      simplePathCache.set(points, getSolidStrokePath(shape))
     }
 
     const path = simplePathCache.get(points)
@@ -246,12 +246,46 @@ const realPressureSettings = {
   end: { taper: 1 },
 }
 
-function renderPath(shape: DrawShape, style: ShapeStyles) {
-  const styles = getShapeStyle(style)
+/**
+ * Get the fill path for a closed draw shape.
+ *
+ * ### Example
+ *
+ *```ts
+ * someCache.set(getFillPath(shape))
+ *```
+ */
+function getFillPath(shape: DrawShape) {
+  const styles = getShapeStyle(shape.style)
 
   if (shape.points.length < 2) {
-    pathCache.set(shape.points, '')
-    return
+    return ''
+  }
+
+  return getSvgPathFromStroke(
+    getStrokePoints(shape.points, {
+      size: 1 + +styles.strokeWidth * 2,
+      thinning: 0.85,
+      end: { taper: +styles.strokeWidth * 20 },
+      start: { taper: +styles.strokeWidth * 20 },
+    }).map((pt) => pt.point)
+  )
+}
+
+/**
+ * Get the path data for a draw stroke.
+ *
+ * ### Example
+ *
+ *```ts
+ * someCache.set(getDrawStrokePath(shape))
+ *```
+ */
+function getDrawStrokePath(shape: DrawShape) {
+  const styles = getShapeStyle(shape.style)
+
+  if (shape.points.length < 2) {
+    return ''
   }
 
   const options =
@@ -265,49 +299,39 @@ function renderPath(shape: DrawShape, style: ShapeStyles) {
     ...options,
   })
 
-  pathCache.set(shape.points, getSvgPathFromStroke(stroke))
+  return getSvgPathFromStroke(stroke)
 }
 
-function renderFill(shape: DrawShape, style: ShapeStyles) {
-  const styles = getShapeStyle(style)
+/**
+ * Get the path data for a solid draw stroke.
+ *
+ * ### Example
+ *
+ *```ts
+ * getSolidStrokePath(shape)
+ *```
+ */
+function getSolidStrokePath(shape: DrawShape) {
+  let { points } = shape
 
-  if (shape.points.length < 2) {
-    polygonCache.set(shape.points, '')
-    return
-  }
-
-  return polygonCache.set(
-    shape.points,
-    getSvgPathFromStroke(
-      getStrokePoints(shape.points, {
-        size: 1 + +styles.strokeWidth * 2,
-        thinning: 0.85,
-        end: { taper: +styles.strokeWidth * 20 },
-        start: { taper: +styles.strokeWidth * 20 },
-      }).map((pt) => pt.point)
-    )
-  )
-}
-
-function getSolidStrokePath(stroke: number[][]) {
-  let len = stroke.length
+  let len = points.length
 
   if (len === 0) return 'M 0 0 L 0 0'
-  if (len < 3) return `M ${stroke[0][0]} ${stroke[0][1]}`
+  if (len < 3) return `M ${points[0][0]} ${points[0][1]}`
 
   // Remove duplicates from points
-  stroke = stroke.reduce<number[][]>((acc, pt, i) => {
+  points = points.reduce<number[][]>((acc, pt, i) => {
     if (i === 0 || !vec.isEqual(pt, acc[i - 1])) {
       acc.push(pt)
     }
     return acc
   }, [])
 
-  len = stroke.length
+  len = points.length
 
-  const d = stroke.reduce(
+  const d = points.reduce(
     (acc, [x0, y0], i, arr) => {
-      if (i === stroke.length - 1) {
+      if (i === len - 1) {
         acc.push('L', x0, y0)
         return acc
       }
@@ -321,7 +345,7 @@ function getSolidStrokePath(stroke: number[][]) {
       )
       return acc
     },
-    ['M', stroke[0][0], stroke[0][1], 'Q']
+    ['M', points[0][0], points[0][1], 'Q']
   )
 
   const path = d.join(' ').replaceAll(/(\s[0-9]*\.[0-9]{2})([0-9]*)\b/g, '$1')

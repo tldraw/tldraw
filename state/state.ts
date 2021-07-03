@@ -343,7 +343,6 @@ const state = createState({
               unless: 'isInSession',
               to: 'pinching.selectPinching',
             },
-            SAVED: 'forceSave',
             DELETED: {
               unless: 'isReadOnly',
               do: 'deleteSelection',
