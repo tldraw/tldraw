@@ -4,7 +4,6 @@ A tiny little drawing app by [steveruizok](https://twitter.com/steveruizok).
 
 Visit [tldraw.com](https://tldraw.com/).
 
-
 ## Support
 
 To support this project (and gain access to the project while it is in development) you can [sponsor the author](https://github.com/sponsors/steveruizok) on GitHub. Thanks!
