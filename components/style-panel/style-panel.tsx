@@ -8,7 +8,6 @@ import {
   ButtonsRow,
   RowButton,
 } from 'components/shared'
-import { ChevronDown, X } from 'react-feather'
 import ShapesFunctions from './shapes-functions'
 import AlignDistribute from './align-distribute'
 import QuickColorSelect from './quick-color-select'
@@ -20,7 +19,9 @@ import { motion } from 'framer-motion'
 import {
   ClipboardCopyIcon,
   ClipboardIcon,
+  DotsHorizontalIcon,
   Share2Icon,
+  Cross2Icon,
 } from '@radix-ui/react-icons'
 
 const breakpoints = { '@initial': 'mobile', '@sm': 'small' } as any
@@ -45,7 +46,9 @@ export default function StylePanel(): JSX.Element {
           size="small"
           onClick={handleStylePanelOpen}
         >
-          <Tooltip label="More">{isOpen ? <X /> : <ChevronDown />}</Tooltip>
+          <Tooltip label="More">
+            {isOpen ? <Cross2Icon /> : <DotsHorizontalIcon />}
+          </Tooltip>
         </IconButton>
       </ButtonsRow>
       {isOpen && <SelectedShapeContent />}
@@ -60,10 +63,12 @@ function SelectedShapeContent(): JSX.Element {
     <>
       <hr />
       <ShapesFunctions />
+      <hr />
       <AlignDistribute
         hasTwoOrMore={selectedShapesCount > 1}
         hasThreeOrMore={selectedShapesCount > 2}
       />
+      <hr />
       <RowButton
         bp={breakpoints}
         disabled={selectedShapesCount === 0}
