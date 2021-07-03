@@ -96,14 +96,12 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
 
     // Receive message from the webview.
     webviewPanel.webview.onDidReceiveMessage((e) => {
-      // switch (e.type) {
-      //   case 'add':
-      //     this.addNewScratch(document)
-      //     return
-      //   case 'delete':
-      //     this.deleteScratch(document, e.id)
-      //     return
-      // }
+      switch (e.type) {
+        case 'save':
+          vscode.window.showInformationMessage('Saved .tdlr file')
+          this.updateTextDocument(document, JSON.parse(e.text))
+          return
+      }
     })
 
     updateWebview()

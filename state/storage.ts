@@ -328,20 +328,17 @@ class Storage {
   ) => {
     const document = this.getCompleteDocument(data)
 
+    const fileContent = JSON.stringify({
+      document,
+      pageState: data.pageStates[data.currentPageId],
+    })
+    window.parent.postMessage({ type: 'save', text: fileContent }, '*')
+    return
+
     // Then save to file system
-    const blob = new Blob(
-      [
-        compress(
-          JSON.stringify({
-            document,
-            pageState: data.pageStates[data.currentPageId],
-          })
-        ),
-      ],
-      {
-        type: 'application/vnd.tldraw+json',
-      }
-    )
+    const blob = new Blob([compress(fileContent)], {
+      type: 'application/vnd.tldraw+json',
+    })
 
     const documentName = data.document.name
 

@@ -35,9 +35,9 @@
    */
   function updateContent(/** @type {string} */ text) {
     //console.log(`${window.innerWidth},${window.innerHeight}`)
-    setTimeout(()=>{
-      iframe.contentWindow.postMessage({type: 'load', json:text}, '*');
-    },500);
+    setTimeout(() => {
+      iframe.contentWindow.postMessage({ type: 'load', json: text }, '*')
+    }, 2000)
     let json
     try {
       json = JSON.parse(text)
@@ -81,28 +81,40 @@
     // notesContainer.appendChild(addButtonContainer)
   }
 
-  // Handle messages sent from the extension to the webview
+  // Handle messages sent between
+  //   Extension <---> webview
+  //   webview <--> webview tldraw iframe
   window.addEventListener('message', (event) => {
     const message = event.data // The json data that the extension sent
     switch (message.type) {
+      // Send from extension when textdocument changed
       case 'update':
-        const text = message.text
+          const text = message.text
 
-        // Update our webview's content
-        updateContent(text)
+          // Update our webview's content
+          updateContent(text)
 
-        // Then persist state information.
-        // This state is returned in the call to `vscode.getState` below when a webview is reloaded.
-        vscode.setState({ text })
+          // Then persist state information.
+          // This state is returned in the call to `vscode.getState` below when a webview is reloaded.
+          vscode.setState({ text })
+          // Webviews are normally torn down when not visible and re-created when they become visible again.
+          // State lets us save information across these re-loads
+          const state = vscode.getState()
+          if (state) {
+            updateContent(state.text)
+          }
+        break;
 
-        return
+        case "save": 
+            console.log("tldraw editor requested a save")
+            console.log(message.text);
+            vscode.postMessage({
+              type: 'save',
+              text: message.text
+            })
+          break;
     }
   })
 
-  // Webviews are normally torn down when not visible and re-created when they become visible again.
-  // State lets us save information across these re-loads
-  const state = vscode.getState()
-  if (state) {
-    updateContent(state.text)
-  }
+  
 })()
