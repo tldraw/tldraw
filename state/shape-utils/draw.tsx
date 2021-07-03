@@ -15,6 +15,7 @@ import { registerShapeUtils } from './register'
 
 const rotatedCache = new WeakMap<DrawShape, number[][]>([])
 const pathCache = new WeakMap<DrawShape['points'], string>([])
+const simplePathCache = new WeakMap<DrawShape['points'], string>([])
 const polygonCache = new WeakMap<DrawShape['points'], string>([])
 
 const draw = registerShapeUtils<DrawShape>({
@@ -47,6 +48,8 @@ const draw = registerShapeUtils<DrawShape>({
 
     const styles = getShapeStyle(style)
 
+    const strokeWidth = +styles.strokeWidth
+
     if (!pathCache.has(points)) {
       renderPath(shape, style)
     }
@@ -54,7 +57,7 @@ const draw = registerShapeUtils<DrawShape>({
     if (points.length > 0 && points.length < 3) {
       return (
         <g id={id}>
-          <circle r={+styles.strokeWidth * 0.618} fill={styles.stroke} />
+          <circle r={strokeWidth * 0.618} fill={styles.stroke} />
         </g>
       )
     }
@@ -63,21 +66,63 @@ const draw = registerShapeUtils<DrawShape>({
       points.length > 3 &&
       vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
 
-    if (shouldFill && !polygonCache.has(points)) {
-      renderFill(shape, style)
+    if (shape.style.dash === DashStyle.Draw) {
+      if (shouldFill && !polygonCache.has(points)) {
+        renderFill(shape, style)
+      }
+
+      return (
+        <g id={id}>
+          {shouldFill && (
+            <path
+              d={polygonCache.get(points)}
+              fill={styles.fill}
+              strokeWidth="0"
+              stroke="none"
+            />
+          )}
+          <path d={pathCache.get(points)} fill={styles.stroke} />
+        </g>
+      )
     }
+
+    // For solid, dash and dotted lines, draw a regular stroke path
+
+    const strokeDasharray = {
+      [DashStyle.Dotted]: `${strokeWidth / 10} ${strokeWidth * 3}`,
+      [DashStyle.Dashed]: `${strokeWidth * 3} ${strokeWidth * 3}`,
+      [DashStyle.Solid]: `none`,
+    }[style.dash]
+
+    const strokeDashoffset = {
+      [DashStyle.Dotted]: `-${strokeWidth / 20}`,
+      [DashStyle.Dashed]: `-${strokeWidth}`,
+      [DashStyle.Solid]: `none`,
+    }[style.dash]
+
+    if (!simplePathCache.has(points)) {
+      simplePathCache.set(points, getSolidStrokePath(points))
+    }
+
+    const path = simplePathCache.get(points)
 
     return (
       <g id={id}>
-        {shouldFill && (
+        {style.dash !== DashStyle.Solid && (
           <path
-            d={polygonCache.get(points)}
-            fill={styles.fill}
-            strokeWidth="0"
-            stroke="none"
+            d={path}
+            strokeWidth={strokeWidth * 2}
+            fill="transparent"
+            stroke="transparent"
           />
         )}
-        <path d={pathCache.get(points)} fill={styles.stroke} />
+        <path
+          d={path}
+          strokeWidth={strokeWidth * 1.618}
+          fill={shouldFill ? styles.fill : 'none'}
+          strokeDasharray={strokeDasharray}
+          strokeDashoffset={strokeDashoffset}
+        />
       </g>
     )
   },
@@ -168,12 +213,12 @@ const draw = registerShapeUtils<DrawShape>({
     return this
   },
 
-  applyStyles(shape, style) {
-    const styles = { ...shape.style, ...style }
-    styles.dash = DashStyle.Solid
-    shape.style = styles
-    return this
-  },
+  // applyStyles(shape, style) {
+  //   const styles = { ...shape.style, ...style }
+  //   styles.dash = DashStyle.Solid
+  //   shape.style = styles
+  //   return this
+  // },
 
   onSessionComplete(shape) {
     const bounds = this.getBounds(shape)
@@ -242,4 +287,44 @@ function renderFill(shape: DrawShape, style: ShapeStyles) {
       }).map((pt) => pt.point)
     )
   )
+}
+
+function getSolidStrokePath(stroke: number[][]) {
+  let len = stroke.length
+
+  if (len === 0) return 'M 0 0 L 0 0'
+  if (len < 3) return `M ${stroke[0][0]} ${stroke[0][1]}`
+
+  // Remove duplicates from points
+  stroke = stroke.reduce<number[][]>((acc, pt, i) => {
+    if (i === 0 || !vec.isEqual(pt, acc[i - 1])) {
+      acc.push(pt)
+    }
+    return acc
+  }, [])
+
+  len = stroke.length
+
+  const d = stroke.reduce(
+    (acc, [x0, y0], i, arr) => {
+      if (i === stroke.length - 1) {
+        acc.push('L', x0, y0)
+        return acc
+      }
+
+      const [x1, y1] = arr[i + 1]
+      acc.push(
+        x0.toFixed(2),
+        y0.toFixed(2),
+        ((x0 + x1) / 2).toFixed(2),
+        ((y0 + y1) / 2).toFixed(2)
+      )
+      return acc
+    },
+    ['M', stroke[0][0], stroke[0][1], 'Q']
+  )
+
+  const path = d.join(' ').replaceAll(/(\s[0-9]*\.[0-9]{2})([0-9]*)\b/g, '$1')
+
+  return path
 }

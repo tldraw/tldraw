@@ -53,7 +53,7 @@ const initialData: Data = {
   currentStyle: {
     size: SizeStyle.Medium,
     color: ColorStyle.Black,
-    dash: DashStyle.Solid,
+    dash: DashStyle.Draw,
     isFilled: false,
   },
   activeTool: 'select',
