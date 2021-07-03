@@ -1,14 +1,14 @@
 {
-  "name": "cat-customs",
-  "displayName": "Cat Customs",
-  "description": "Custom Editor API Samples",
+  "name": "tldraw",
+  "displayName": "Tldraw Editor",
+  "description": "The tldraw editor for VS Code",
   "version": "0.0.1",
-  "publisher": "vscode-samples",
+  "publisher": "tldr",
   "private": true,
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Microsoft/vscode-extension-samples"
+    "url": "https://github.com/tldraw/tldraw"
   },
   "engines": {
     "vscode": "^1.52.0"
@@ -17,37 +17,27 @@
     "Other"
   ],
   "activationEvents": [
-    "onCustomEditor:catCustoms.catScratch",
-    "onCustomEditor:catCustoms.pawDraw",
-    "onCommand:catCustoms.pawDraw.new"
+    "onCustomEditor:tldraw.tldr",
+    "onCommand:tldraw.tldr.new"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "customEditors": [
       {
-        "viewType": "catCustoms.catScratch",
-        "displayName": "Cat Scratch",
+        "viewType": "tldraw.tldr",
+        "displayName": "Tldr Editor",
         "selector": [
           {
-            "filenamePattern": "*.cscratch"
-          }
-        ]
-      },
-      {
-        "viewType": "catCustoms.pawDraw",
-        "displayName": "Paw Draw",
-        "selector": [
-          {
-            "filenamePattern": "*.pawdraw"
+            "filenamePattern": "*.tldr"
           }
         ]
       }
     ],
-    "commands": [
+    "commands": [      
       {
-        "command": "catCustoms.pawDraw.new",
-        "title": "Create new Paw Draw Document",
-        "category": "Paw Draw"
+        "command": "tldraw.tldr.new",
+        "title": "Create new Tldr editor Document",
+        "category": "Tldraw document"
       }
     ]
   },

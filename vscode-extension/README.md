@@ -11,9 +11,11 @@ This folder contains code implementing a VS Code extension for working with tldr
 
 **Todos**
 
+- Investigate what happens when people have 2 editors instances (say two tabs pointed to same file). We may not be able to support
 - Backlog
   - Make sure extension works in Codespaces (when one of us gets into the beta)
   - [Supporting Remote Development and GitHub Codespaces](https://code.visualstudio.com/api/advanced-topics/remote-extensions)
+
 
 # ------- Original README.md below -------
 
