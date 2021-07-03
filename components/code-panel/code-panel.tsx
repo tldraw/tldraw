@@ -8,7 +8,8 @@ import CodeDocs from './code-docs'
 import { generateFromCode } from 'state/code/generate'
 import * as Panel from '../panel'
 import { IconButton } from '../shared'
-import { X, Code, PlayCircle, ChevronUp, ChevronDown } from 'react-feather'
+import { Code, PlayCircle, ChevronUp, ChevronDown } from 'react-feather'
+import { Cross2Icon } from '@radix-ui/react-icons'
 import dynamic from 'next/dynamic'
 import { ReaderIcon } from '@radix-ui/react-icons'
 const CodeEditor = dynamic(() => import('./code-editor'))
@@ -146,7 +147,7 @@ export default function CodePanel(): JSX.Element {
               size="small"
               onClick={toggleCodePanel}
             >
-              <X />
+              <Cross2Icon />
             </IconButton>
             <h3>Code</h3>
             <ButtonsGroup>

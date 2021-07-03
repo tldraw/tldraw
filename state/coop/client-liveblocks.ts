@@ -53,7 +53,7 @@ class CoopClient {
     }
   }
 
-  connect(roomId: string) {
+  connect(roomId: string): CoopClient {
     if (this.roomId) {
       this.client.leave(this.roomId)
     }
@@ -66,21 +66,24 @@ class CoopClient {
     this.room.subscribe('others', this.handleOthersEvent)
 
     coopState.send('JOINED_ROOM', { others: this.room.getOthers().toArray() })
+    return this
   }
 
-  disconnect() {
+  disconnect(): CoopClient {
     this.room.unsubscribe('connection', this.handleConnectionEvent)
     this.room.unsubscribe('my-presence', this.handleMyPresenceEvent)
     this.room.unsubscribe('others', this.handleOthersEvent)
 
     this.client.leave(this.roomId)
+    return this
   }
 
-  reconnect() {
+  reconnect(): CoopClient {
     this.connect(this.roomId)
+    return this
   }
 
-  moveCursor(pageId: string, point: number[]) {
+  moveCursor(pageId: string, point: number[]): CoopClient {
     if (!this.room) return
 
     const now = Date.now()
@@ -121,10 +124,12 @@ class CoopClient {
     this.bufferedXs.push(point[0])
     this.bufferedYs.push(point[1])
     this.bufferedTs.push(elapsed / 1000)
+    return this
   }
 
-  clearCursor() {
+  clearCursor(): CoopClient {
     this.room.updatePresence({ cursor: null })
+    return this
   }
 }
 

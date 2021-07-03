@@ -57,7 +57,6 @@ export default function useCanvasEvents(
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     if (!inputs.canAccept(e.pointerId)) return
-    e.stopPropagation()
 
     rCanvas.current.releasePointerCapture(e.pointerId)
 

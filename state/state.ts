@@ -53,7 +53,7 @@ const initialData: Data = {
   currentStyle: {
     size: SizeStyle.Medium,
     color: ColorStyle.Black,
-    dash: DashStyle.Solid,
+    dash: DashStyle.Draw,
     isFilled: false,
   },
   activeTool: 'select',
@@ -343,7 +343,6 @@ const state = createState({
               unless: 'isInSession',
               to: 'pinching.selectPinching',
             },
-            SAVED: 'forceSave',
             DELETED: {
               unless: 'isReadOnly',
               do: 'deleteSelection',

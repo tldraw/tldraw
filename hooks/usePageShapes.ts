@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import state, { useSelector } from 'state'
 import { getShapeUtils } from 'state/shape-utils'
-import { PageState, Bounds } from 'types'
+import { PageState, Bounds, ShapeType } from 'types'
 import {
   boundsCollide,
   boundsContain,
@@ -37,6 +37,10 @@ export default function usePageShapes(): string[] {
 
     return s.values.currentShapes
       .filter((shape) => {
+        if (shape.type === ShapeType.Ray || shape.type === ShapeType.Line) {
+          return true
+        }
+
         const shapeBounds = getShapeUtils(shape).getBounds(shape)
         return (
           boundsContain(viewport, shapeBounds) ||

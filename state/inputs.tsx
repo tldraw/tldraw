@@ -182,7 +182,7 @@ class Inputs {
 
     return (
       Date.now() - this.pointerUpTime < DOUBLE_CLICK_DURATION &&
-      vec.dist(origin, point) < 8
+      vec.dist(origin, point) < 4
     )
   }
 

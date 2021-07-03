@@ -5,9 +5,9 @@ import { getShapeUtils } from 'state/shape-utils'
 import { deepCompareArrays } from 'utils'
 import tld from 'utils/tld'
 import useShapeEvents from 'hooks/useShapeEvents'
+import useShape from 'hooks/useShape'
 import vec from 'utils/vec'
 import { getShapeStyle } from 'state/shape-styles'
-import useShapeDef from 'hooks/useShape'
 
 interface ShapeProps {
   id: string
@@ -151,7 +151,7 @@ const ForeignObjectRender = memo(function ForeignObjectRender({
 }: {
   id: string
 }) {
-  const shape = useShapeDef(id)
+  const shape = useShape(id)
 
   const rFocusable = useRef<HTMLTextAreaElement>(null)
 

@@ -2,8 +2,12 @@ import styled from 'styles'
 import state, { useSelector } from 'state'
 import * as Panel from 'components/panel'
 import { useRef } from 'react'
-import { IconButton, ButtonsRow } from 'components/shared'
-import { ChevronDown, X } from 'react-feather'
+import {
+  IconButton,
+  IconWrapper,
+  ButtonsRow,
+  RowButton,
+} from 'components/shared'
 import ShapesFunctions from './shapes-functions'
 import AlignDistribute from './align-distribute'
 import QuickColorSelect from './quick-color-select'
@@ -12,6 +16,13 @@ import QuickDashSelect from './quick-dash-select'
 import QuickFillSelect from './quick-fill-select'
 import Tooltip from 'components/tooltip'
 import { motion } from 'framer-motion'
+import {
+  ClipboardCopyIcon,
+  ClipboardIcon,
+  DotsHorizontalIcon,
+  Share2Icon,
+  Cross2Icon,
+} from '@radix-ui/react-icons'
 
 const breakpoints = { '@initial': 'mobile', '@sm': 'small' } as any
 
@@ -35,7 +46,9 @@ export default function StylePanel(): JSX.Element {
           size="small"
           onClick={handleStylePanelOpen}
         >
-          <Tooltip label="More">{isOpen ? <X /> : <ChevronDown />}</Tooltip>
+          <Tooltip label="More">
+            {isOpen ? <Cross2Icon /> : <DotsHorizontalIcon />}
+          </Tooltip>
         </IconButton>
       </ButtonsRow>
       {isOpen && <SelectedShapeContent />}
@@ -50,10 +63,53 @@ function SelectedShapeContent(): JSX.Element {
     <>
       <hr />
       <ShapesFunctions />
+      <hr />
       <AlignDistribute
         hasTwoOrMore={selectedShapesCount > 1}
         hasThreeOrMore={selectedShapesCount > 2}
       />
+      <hr />
+      <RowButton
+        bp={breakpoints}
+        disabled={selectedShapesCount === 0}
+        onClick={() => state.send('COPIED')}
+      >
+        <span>Copy</span>
+        <IconWrapper size="small">
+          <ClipboardCopyIcon />
+        </IconWrapper>
+      </RowButton>
+      <RowButton bp={breakpoints} onClick={() => state.send('PASTED')}>
+        <span>Paste</span>
+        <IconWrapper size="small">
+          <ClipboardIcon />
+        </IconWrapper>
+      </RowButton>
+      <RowButton
+        bp={breakpoints}
+        disabled={selectedShapesCount === 0}
+        onClick={() => state.send('COPIED_TO_SVG')}
+      >
+        <span>Copy to SVG</span>
+        <IconWrapper size="small">
+          <Share2Icon />
+        </IconWrapper>
+      </RowButton>
+      <hr />
+      <RowButton
+        bp={breakpoints}
+        disabled={selectedShapesCount === 0}
+        onClick={() => state.send('SAVED')}
+      >
+        <span>Save</span>
+      </RowButton>
+      <RowButton
+        bp={breakpoints}
+        disabled={selectedShapesCount === 0}
+        onClick={() => state.send('LOADED_FROM_FILE_STSTEM')}
+      >
+        <span>Load</span>
+      </RowButton>
     </>
   )
 }

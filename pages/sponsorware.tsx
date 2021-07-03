@@ -35,7 +35,7 @@ export default function Sponsorware(): JSX.Element {
         >
           sponsor me on Github
         </a>{' '}
-        (at $1 or more) and sign in below.
+        (at any level) and sign in below.
       </p>
       <ButtonGroup>
         {session ? (

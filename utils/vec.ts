@@ -351,7 +351,7 @@ export default class Vec {
   }
 
   static round = (a: number[], d = 5): number[] => {
-    return a.map((v) => Number(v.toPrecision(d)))
+    return a.map((v) => +v.toPrecision(d))
   }
 
   /**

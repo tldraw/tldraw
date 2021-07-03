@@ -159,7 +159,7 @@ on: {
 
 ### Event Handler Functions
 
-The configuration's event handlers work by calling event handler functions: `actions`, `conditions`, `results`, or `async`. While event handler function does a different job, all event handler functions receive the same three parameters:
+The configuration's event handlers work by calling event handler functions. While each event handler function does a different job, all event handler functions receive the _same_ three parameters:
 
 1. The machine's current `data` draft
 2. The payload sent by the event that has caused the function to run
@@ -187,7 +187,7 @@ pageIsCurrentPage(data, payload, result: Page) {
 }
 ```
 
-Actions may mutate the draft.
+Actions may mutate the `data` draft.
 
 ```ts
 setCurrentPageId(data, payload, result: Page) {
@@ -195,7 +195,7 @@ setCurrentPageId(data, payload, result: Page) {
 }
 ```
 
-In event handlers, event handler functions are referred to by name.
+In a state's event handlers, event handler functions are referred to by name.
 
 ```ts
 on: {
@@ -226,26 +226,6 @@ loadingUser: {
   }
 }
 ```
-
-### Events
-
-Events are sent from the user interface to the state.
-
-```ts
-import state from 'state'
-
-state.send('SELECTED_DRAW_TOOL')
-```
-
-Events may also include payloads of data.
-
-```ts
-state.send('ALIGNED', { type: AlignType.Right })
-```
-
-Note that with very few exceptions, we send events to the state regardless of whether the state can handle the event. Whether the event should have an effect—and what that effect should be—is left entirely to the state machine.
-
-> Note: You can send an event to the state from anywhere in the app: even from components that are not subscribed to the state. See the components/style-panel files for examples.
 
 ### State Updates
 
@@ -291,3 +271,117 @@ function SomeComponent() {
   return <div>The selected ids are {selectedIds.toString()}</div>
 }
 ```
+
+### Events
+
+Events are sent from the user interface to the state.
+
+```ts
+import state from 'state'
+
+state.send('SELECTED_DRAW_TOOL')
+```
+
+Events may also include payloads of data.
+
+```ts
+state.send('ALIGNED', { type: AlignType.Right })
+```
+
+The payload will become the second parameter of any event handler function that runs as a result of the event.
+
+Note that with very few exceptions, we send events to the state regardless of whether the state can handle the event. Whether the event should have an effect—and what that effect should be—these questions are left entirely to the state machine.
+
+> Note: You can send an event to the state from anywhere in the app: even from components that are not subscribed to the state. See the components/style-panel files for examples.
+
+### Commands and History
+
+The app uses a command pattern to keep track of what has happened in the app, and to support an undo and redo stack. Each command includes a `do` method and an `undo` method. When the command is created, it will run its `do` method. If is is "undone", it will run its `undo` method. If the command is "redone", it will run its `do` method again.
+
+```ts
+export default function nudgeCommand(data: Data, delta: number[]): void {
+  const initialShapes = tld.getSelectedShapeSnapshot(data, () => null)
+
+  history.execute(
+    data,
+    new Command({
+      name: 'nudge_shapes',
+      category: 'canvas',
+      do(data) {
+        tld.mutateShapes(
+          data,
+          initialShapes.map((shape) => shape.id),
+          (shape, utils) => {
+            utils.setProperty(shape, 'point', vec.add(shape.point, delta))
+          }
+        )
+      },
+      undo(data) {
+        tld.mutateShapes(
+          data,
+          initialShapes.map((shape) => shape.id),
+          (shape, utils) => {
+            utils.setProperty(shape, 'point', vec.sub(shape.point, delta))
+          }
+        )
+      },
+    })
+  )
+}
+```
+
+Undos are not done programatically. It's the responsibility of a command to ensure that any mutations made in its `do` method are correctly reversed in its `undo` method.
+
+> Note: All mutations to a shape must by done through a shape's utils (the structure returned by `getShapeUtils`). Currently, many commands do this directly: however we're currently working on a more robust API for this, with built-in support for side effects, such as shown with `mutateShapes` above.
+
+### Sessions
+
+Not every change to the app's state needs to be put into the undo / redo stack. Sessions are a way of managing the data associated with certain states that lie _between_ commands, such as when a user is dragging a shape to a new position.
+
+Sessions are managed by the SessionManager (`state/session`). It guarantees that only one session is active at a time and allows other parts of the app's state to access information about the current session.
+
+A session's life cycle are accessed via four methods, `begin`, `update`, `cancel` and `complete`. Different sessions will implemen these methods in different ways.
+
+A session begins when constructed.
+
+```ts
+session.begin(
+  new Sessions.TranslateSession(
+    data,
+    tld.screenToWorld(inputs.pointer.origin, data)
+  )
+)
+```
+
+Next, the session receives updates. Note that we're passing in the `data` draft from an action. The session will make any necessary changes to the draft.
+
+```ts
+session.update<Sessions.TranslateSession>(
+  data,
+  tld.screenToWorld(payload.point, data),
+  payload.shiftKey,
+  payload.altKey
+)
+```
+
+> Note: To get proper typing in `session.update`, you must provide the generic type of the session you're updating.
+
+When a session completes, the session call a method. This way, a user is able to travel back through the undo stack, visited only discrete commands (like deleting a shape) and those commands that marked the end of a session.
+
+```ts
+session.complete(data)
+)
+```
+
+A session may also be cancelled.
+
+```ts
+session.cancel(data)
+)
+```
+
+When cancelled, it is the responsibility of the session to restore the state to exactly how it was when the session began, reversing any changes that were made to the state during the session.
+
+For this reason, many sessions begin by taking a snapshot of the current draft.
+
+> Because the draft is a JavaScript Proxy, you must deep clone any parts of the draft that you want to include in a snapshot. (Direct references will fail as the underlying Proxy will have expired.) While the memory size of a snapshot is not usually a concern, this deep-cloning process is thread-blocking, so try to snapshot only the parts of the `dada` draft that you need.

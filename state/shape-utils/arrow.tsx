@@ -128,7 +128,7 @@ const arrow = registerShapeUtils<ArrowShape>({
     if (isStraightLine) {
       const straight_sw =
         strokeWidth *
-        (style.dash === DashStyle.Draw && bend === 0 ? 0.9 : 1.618)
+        (style.dash === DashStyle.Draw && bend === 0 ? 0.5 : 1.618)
 
       if (shape.style.dash === DashStyle.Draw && !pathCache.has(shape)) {
         renderFreehandArrowShaft(shape)
@@ -155,8 +155,8 @@ const arrow = registerShapeUtils<ArrowShape>({
         <>
           <path
             d={path}
-            stroke="transparent"
             fill="none"
+            stroke="transparent"
             strokeWidth={Math.max(8, strokeWidth * 2)}
             strokeDasharray="none"
             strokeDashoffset="none"
@@ -165,6 +165,7 @@ const arrow = registerShapeUtils<ArrowShape>({
           <path
             d={path}
             fill={styles.stroke}
+            stroke={styles.stroke}
             strokeWidth={straight_sw}
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
@@ -204,8 +205,8 @@ const arrow = registerShapeUtils<ArrowShape>({
         <>
           <path
             d={path}
-            stroke="transparent"
             fill="none"
+            stroke="transparent"
             strokeWidth={Math.max(8, strokeWidth * 2)}
             strokeDasharray="none"
             strokeDashoffset="none"
@@ -214,6 +215,7 @@ const arrow = registerShapeUtils<ArrowShape>({
           <path
             d={path}
             fill="none"
+            stroke={styles.stroke}
             strokeWidth={sw}
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
@@ -229,8 +231,9 @@ const arrow = registerShapeUtils<ArrowShape>({
         {shape.decorations.start === Decoration.Arrow && (
           <path
             d={getArrowHeadPath(shape, start.point, startAngle)}
-            strokeWidth={sw}
             fill="none"
+            stroke={styles.stroke}
+            strokeWidth={sw}
             strokeDashoffset="none"
             strokeDasharray="none"
           />
@@ -238,8 +241,9 @@ const arrow = registerShapeUtils<ArrowShape>({
         {shape.decorations.end === Decoration.Arrow && (
           <path
             d={getArrowHeadPath(shape, end.point, endAngle)}
-            strokeWidth={sw}
             fill="none"
+            stroke={styles.stroke}
+            strokeWidth={sw}
             strokeDashoffset="none"
             strokeDasharray="none"
           />

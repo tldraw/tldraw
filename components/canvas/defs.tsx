@@ -1,10 +1,9 @@
-import { getShapeStyle } from 'state/shape-styles'
 import { getShapeUtils } from 'state/shape-utils'
 import React from 'react'
 import { useSelector } from 'state'
 import tld from 'utils/tld'
 import { DotCircle, Handle } from './misc'
-import useShapeDef from 'hooks/useShape'
+import useShape from 'hooks/useShape'
 import useShapesToRender from 'hooks/useShapesToRender'
 import styled from 'styles'
 
@@ -25,25 +24,13 @@ export default function Defs(): JSX.Element {
 }
 
 function Def({ id }: { id: string }) {
-  const shape = useShapeDef(id)
-
+  const shape = useShape(id)
   if (!shape) return null
-
-  const style = getShapeStyle(shape.style)
-
-  return (
-    <>
-      {React.cloneElement(
-        getShapeUtils(shape).render(shape, { isEditing: false }),
-        { id, ...style, strokeWidth: undefined }
-      )}
-    </>
-  )
+  return getShapeUtils(shape).render(shape, { isEditing: false })
 }
 
 function ExpandDef() {
   const zoom = useSelector((s) => tld.getCurrentCamera(s.data).zoom)
-
   return (
     <filter id="expand">
       <feMorphology operator="dilate" radius={2 / zoom} />

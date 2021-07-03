@@ -4,7 +4,7 @@ import { LineShape, ShapeType } from 'types'
 import { intersectCircleBounds } from 'utils/intersections'
 import { ThinLine } from 'components/canvas/misc'
 import { translateBounds, boundsContained } from 'utils'
-import { defaultStyle } from 'state/shape-styles'
+import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import { registerShapeUtils } from './register'
 
 const line = registerShapeUtils<LineShape>({
@@ -30,14 +30,18 @@ const line = registerShapeUtils<LineShape>({
     return shape.direction !== prev.direction || shape.style !== prev.style
   },
 
-  render({ id, direction }) {
+  render(shape) {
+    const { id, direction } = shape
     const [x1, y1] = vec.add([0, 0], vec.mul(direction, 10000))
     const [x2, y2] = vec.sub([0, 0], vec.mul(direction, 10000))
 
+    const styles = getShapeStyle(shape.style)
+
     return (
       <g id={id}>
-        <ThinLine x1={x1} y1={y1} x2={x2} y2={y2} />
-        <use href="dot" />
+        <ThinLine x1={x1} y1={y1} x2={x2} y2={y2} stroke={styles.stroke} />
+        <circle r={4} fill="transparent" />
+        <use href="#dot" fill="black" />
       </g>
     )
   },
