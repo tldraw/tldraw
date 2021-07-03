@@ -2,18 +2,20 @@ import * as vscode from 'vscode'
 import { getNonce } from './util'
 
 /**
- * Provider for cat scratch editors.
+ * Provider for .tldr editor.
  *
- * Cat scratch editors are used for `.cscratch` files, which are just json files.
- * To get started, run this extension and open an empty `.cscratch` file in VS Code.
+ * Tldraw editors are used for `.tldr` files, which are just json files.
+ * To get started, run this extension and open an empty `.tldr` file in VS Code.
  *
  * This provider demonstrates:
  *
  * - Setting up the initial webview for a custom editor.
  * - Loading scripts and styles in a custom editor.
- * - Synchronizing changes between a text document and a custom editor.
+ * - Synchronizing changes between a text document and the tldraw custom editor.
  */
 export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
+  private document?: vscode.TextDocument
+
   private static newTldrawFileId = 1
   public static register(context: vscode.ExtensionContext): vscode.Disposable {
     vscode.commands.registerCommand('tldraw.tldr.new', () => {
@@ -60,6 +62,8 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
     webviewPanel: vscode.WebviewPanel,
     _token: vscode.CancellationToken
   ): Promise<void> {
+    this.document = document
+
     // Setup initial content for the webview
     webviewPanel.webview.options = {
       enableScripts: true,
@@ -97,10 +101,20 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
     // Receive message from the webview.
     webviewPanel.webview.onDidReceiveMessage((e) => {
       switch (e.type) {
-        case 'save':
-          vscode.window.showInformationMessage('Saved .tdlr file')
+        case 'update':
+          vscode.window.showInformationMessage('Upated .tdlr file')
           this.updateTextDocument(document, JSON.parse(e.text))
-          return
+          break
+        case 'save':
+          if (this.document !== undefined) {
+            const writeData = Buffer.from(e.text, 'utf8')
+
+            // I believe saving will automatically synchronize the in memory document
+            // so we don't need to call updateTextDocument here.
+            vscode.workspace.fs.writeFile(this.document?.uri, writeData)
+            vscode.window.showInformationMessage('Saved .tdlr file')
+          }
+          break
       }
     })
 
@@ -157,50 +171,13 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
 				<link href="${styleVSCodeUri}" rel="stylesheet" />
 				<link href="${styleMainUri}" rel="stylesheet" />
 
-				<title>Cat Scratch</title>
+				<title>Tldraw Editor</title>
 			</head>
 			<body>
         <iframe width="100%" height="100%" src="http://localhost:3000/shhh"></iframe>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`
-  }
-
-  /**
-   * Add a new scratch to the current document.
-   */
-  private addNewScratch(document: vscode.TextDocument) {
-    const json = this.getDocumentAsJson(document)
-    // const character =
-    //   CatScratchEditorProvider.scratchCharacters[
-    //     Math.floor(
-    //       Math.random() * CatScratchEditorProvider.scratchCharacters.length
-    //     )
-    //   ]
-    // json.scratches = [
-    //   ...(Array.isArray(json.scratches) ? json.scratches : []),
-    //   {
-    //     id: getNonce(),
-    //     text: character,
-    //     created: Date.now(),
-    //   },
-    // ]
-
-    return this.updateTextDocument(document, json)
-  }
-
-  /**
-   * Delete an existing scratch from a document.
-   */
-  private deleteScratch(document: vscode.TextDocument, id: string) {
-    const json = this.getDocumentAsJson(document)
-    // if (!Array.isArray(json.scratches)) {
-    //   return
-    // }
-
-    // json.scratches = json.scratches.filter((note: any) => note.id !== id)
-
-    return this.updateTextDocument(document, json)
   }
 
   /**

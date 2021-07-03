@@ -41,7 +41,7 @@
     let json
     try {
       json = JSON.parse(text)
-      errorContainer.innerText = `<code>Hello!</code>`
+      //errorContainer.innerText = `<code>Hello!</code>`
     } catch {
       notesContainer.style.display = 'none'
       errorContainer.innerText = 'Error: Document is not valid json'
@@ -107,7 +107,7 @@
 
       case 'save':
         console.log('tldraw editor requested a save')
-        console.log(message.text)
+        //console.log(message.text)
         vscode.postMessage({
           type: 'save',
           text: message.text,

@@ -326,13 +326,7 @@ class Storage {
     fileId: string,
     saveAs: boolean
   ) => {
-    const document = this.getCompleteDocument(data)
-
-    const fileContent = JSON.stringify({
-      document,
-      pageState: data.pageStates[data.currentPageId],
-    })
-    window.parent.postMessage({ type: 'save', text: fileContent }, '*')
+    window.parent.postMessage({ type: 'save' }, '*')
     return
 
     // Then save to file system
