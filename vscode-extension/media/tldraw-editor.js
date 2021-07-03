@@ -12,27 +12,36 @@
     document.querySelector('.notes')
   )
 
+  const iframe = document.querySelector('iframe')
+  //console.log(iframe);
+  // setTimeout(()=>{
+  //   iframe.contentWindow.postMessage({type: 'load', json:[]}, '*');
+  // },4000);
+
   const errorContainer = document.createElement('div')
   document.body.appendChild(errorContainer)
   errorContainer.className = 'error'
   errorContainer.style.display = 'none'
 
-  function resize(){
+  function resize() {
     document.body.style.width = `${window.innerWidth}px`
     document.body.style.height = `${window.innerHeight}px`
   }
-  window.addEventListener('resize', resize);
-  resize();
+  window.addEventListener('resize', resize)
+  resize()
 
   /**
    * Render the document in the webview.
    */
   function updateContent(/** @type {string} */ text) {
     //console.log(`${window.innerWidth},${window.innerHeight}`)
+    setTimeout(()=>{
+      iframe.contentWindow.postMessage({type: 'load', json:text}, '*');
+    },500);
     let json
     try {
       json = JSON.parse(text)
-      errorContainer.innerText = `<code>Hello!</code>`;
+      errorContainer.innerText = `<code>Hello!</code>`
     } catch {
       notesContainer.style.display = 'none'
       errorContainer.innerText = 'Error: Document is not valid json'

@@ -8,10 +8,20 @@ import styled from 'styles'
 import PagePanel from './page-panel/page-panel'
 import CodePanel from './code-panel/code-panel'
 import ControlsPanel from './controls-panel/controls-panel'
+import { useEffect } from 'react'
+import state from 'state'
 
 export default function Editor({ roomId }: { roomId?: string }): JSX.Element {
   useKeyboardEvents()
   useLoadOnMount(roomId)
+
+  useEffect(() => {
+    window.onmessage = function (e) {
+      if (e.data.type == 'load') {
+        state.send('LOADED_FROM_FILE', { json: e.data.json })
+      }
+    }
+  }, [])
 
   return (
     <Layout>

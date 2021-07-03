@@ -33,7 +33,7 @@
         ]
       }
     ],
-    "commands": [      
+    "commands": [
       {
         "command": "tldraw.tldr.new",
         "title": "Create new Tldr editor Document",

@@ -16,7 +16,6 @@ This folder contains code implementing a VS Code extension for working with tldr
   - Make sure extension works in Codespaces (when one of us gets into the beta)
   - [Supporting Remote Development and GitHub Codespaces](https://code.visualstudio.com/api/advanced-topics/remote-extensions)
 
-
 # ------- Original README.md below -------
 
 # Cat Customs - Custom Editor API Samples
