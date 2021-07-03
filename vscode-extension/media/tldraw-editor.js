@@ -36,7 +36,8 @@
   function updateContent(/** @type {string} */ text) {
     //console.log(`${window.innerWidth},${window.innerHeight}`)
     setTimeout(() => {
-      iframe.contentWindow.postMessage({ type: 'load', json: text }, '*')
+      console.log(`"load" (webview -> iframe)`)
+      iframe.contentWindow.postMessage({ type: 'load', text }, '*')
     }, 2000)
     let json
     try {
@@ -83,12 +84,12 @@
 
   // Handle messages sent between
   //   Extension <---> webview
-  //   webview <--> webview tldraw iframe
+  //   webview <--> tldraw iframe
   window.addEventListener('message', (event) => {
     const message = event.data // The json data that the extension sent
     switch (message.type) {
       // Send from extension when textdocument changed
-      case 'update':
+      case 'load':
         const text = message.text
 
         // Update our webview's content
@@ -105,9 +106,18 @@
         }
         break
 
+      case 'update':
+          console.log(`"update" (extension <- webview)`)
+          vscode.postMessage({
+            type: 'update',
+            text: message.text,
+          })
+          break
+
       case 'save':
         console.log('tldraw editor requested a save')
         //console.log(message.text)
+        console.log(`"save" (extension <- webview)`)
         vscode.postMessage({
           type: 'save',
           text: message.text,

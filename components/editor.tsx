@@ -18,7 +18,8 @@ export default function Editor({ roomId }: { roomId?: string }): JSX.Element {
   useEffect(() => {
     window.onmessage = function (e) {
       if (e.data.type == 'load') {
-        state.send('LOADED_FROM_FILE', { json: e.data.json })
+        //console.log(`"load" -> iframe`);
+        state.send('LOADED_FROM_FILE', { json: e.data.text })
       }
     }
   }, [])
