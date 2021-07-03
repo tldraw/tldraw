@@ -16,10 +16,12 @@ export default function Editor({ roomId }: { roomId?: string }): JSX.Element {
   useLoadOnMount(roomId)
 
   useEffect(() => {
-    window.onmessage = function (e) {
-      if (e.data.type == 'load') {
-        //console.log(`"load" -> iframe`);
-        state.send('LOADED_FROM_FILE', { json: e.data.text })
+    if (window.self !== window.top) {
+      window.onmessage = function (e) {
+        if (e.data.type == 'load') {
+          //console.log(`"load" -> iframe`);
+          state.send('LOADED_FROM_FILE', { json: e.data.text })
+        }
       }
     }
   }, [])

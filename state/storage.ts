@@ -225,10 +225,15 @@ class Storage {
     // Notify extension that something has changed. This ends up being called by
     // the history execute/redo/undo commands, so we put this here.
     //console.log(`"update" (webview <- iframe)`)
-    window.parent.postMessage(
-      { type: 'update', text: JSON.stringify(this.getCompleteDocument(data)) },
-      '*'
-    )
+    if (window.self !== window.top) {
+      window.parent.postMessage(
+        {
+          type: 'update',
+          text: JSON.stringify(this.getCompleteDocument(data)),
+        },
+        '*'
+      )
+    }
 
     // Save page
 
@@ -334,9 +339,11 @@ class Storage {
     fileId: string,
     saveAs: boolean
   ) => {
-    //console.log(`"save" (webview <- iframe)`)
-    window.parent.postMessage({ type: 'save' }, '*')
-    return
+    if (window.self !== window.top) {
+      //console.log(`"save" (webview <- iframe)`)
+      window.parent.postMessage({ type: 'save' }, '*')
+      return
+    }
 
     const document = this.getCompleteDocument(data)
 
