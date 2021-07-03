@@ -107,12 +107,12 @@
         break
 
       case 'update':
-          console.log(`"update" (extension <- webview)`)
-          vscode.postMessage({
-            type: 'update',
-            text: message.text,
-          })
-          break
+        console.log(`"update" (extension <- webview)`)
+        vscode.postMessage({
+          type: 'update',
+          text: message.text,
+        })
+        break
 
       case 'save':
         console.log('tldraw editor requested a save')
