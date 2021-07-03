@@ -63,15 +63,23 @@ const ellipse = registerShapeUtils<EllipseShape>({
 
       return (
         <g id={id}>
-          <ellipse
-            id={id}
-            cx={radiusX}
-            cy={radiusY}
-            rx={rx}
-            ry={ry}
-            stroke="none"
+          {style.isFilled && (
+            <ellipse
+              id={id}
+              cx={radiusX}
+              cy={radiusY}
+              rx={rx}
+              ry={ry}
+              stroke="none"
+              fill={styles.fill}
+            />
+          )}
+          <path
+            d={path}
+            fill={styles.stroke}
+            stroke={styles.stroke}
+            strokeWidth={styles.strokeWidth}
           />
-          <path d={path} fill={styles.stroke} />
         </g>
       )
     }

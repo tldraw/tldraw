@@ -56,8 +56,14 @@ const rectangle = registerShapeUtils<RectangleShape>({
             height={Math.max(0, size[1] - strokeWidth)}
             strokeWidth={0}
             fill={styles.fill}
+            stroke={styles.stroke}
           />
-          <path d={path} fill={styles.stroke} />
+          <path
+            d={path}
+            fill={styles.stroke}
+            stroke={styles.stroke}
+            strokeWidth={styles.strokeWidth}
+          />
         </g>
       )
     }

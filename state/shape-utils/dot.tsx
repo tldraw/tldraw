@@ -2,7 +2,7 @@ import { uniqueId } from 'utils/utils'
 import { DotShape, ShapeType } from 'types'
 import { intersectCircleBounds } from 'utils/intersections'
 import { boundsContained, translateBounds } from 'utils'
-import { defaultStyle } from 'state/shape-styles'
+import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import { registerShapeUtils } from './register'
 
 const dot = registerShapeUtils<DotShape>({
@@ -23,8 +23,14 @@ const dot = registerShapeUtils<DotShape>({
     style: defaultStyle,
   },
 
-  render({ id }) {
-    return <use id={id} href="#dot" fill="black" />
+  render(shape) {
+    const { id } = shape
+
+    const styles = getShapeStyle(shape.style)
+
+    return (
+      <use id={id} href="#dot" stroke={styles.stroke} fill={styles.stroke} />
+    )
   },
 
   getBounds(shape) {

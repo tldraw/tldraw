@@ -4,7 +4,7 @@ import { RayShape, ShapeType } from 'types'
 import { intersectCircleBounds } from 'utils/intersections'
 import { ThinLine } from 'components/canvas/misc'
 import { translateBounds, boundsContained } from 'utils'
-import { defaultStyle } from 'state/shape-styles'
+import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import { registerShapeUtils } from './register'
 
 const ray = registerShapeUtils<RayShape>({
@@ -29,12 +29,17 @@ const ray = registerShapeUtils<RayShape>({
   shouldRender(shape, prev) {
     return shape.direction !== prev.direction || shape.style !== prev.style
   },
-  render({ id, direction }) {
+  render(shape) {
+    const { id, direction } = shape
+
+    const styles = getShapeStyle(shape.style)
+
     const [x2, y2] = vec.add([0, 0], vec.mul(direction, 10000))
 
     return (
       <g id={id}>
-        <ThinLine x1={0} y1={0} x2={x2} y2={y2} />
+        <ThinLine x1={0} y1={0} x2={x2} y2={y2} stroke={styles.stroke} />
+        <circle r={4} fill="transparent" />
         <use href="#dot" />
       </g>
     )

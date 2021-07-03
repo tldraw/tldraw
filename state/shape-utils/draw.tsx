@@ -14,7 +14,7 @@ import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import { registerShapeUtils } from './register'
 
 const rotatedCache = new WeakMap<DrawShape, number[][]>([])
-const pathCache = new WeakMap<DrawShape['points'], string>([])
+const drawPathCache = new WeakMap<DrawShape['points'], string>([])
 const simplePathCache = new WeakMap<DrawShape['points'], string>([])
 const polygonCache = new WeakMap<DrawShape['points'], string>([])
 
@@ -50,23 +50,32 @@ const draw = registerShapeUtils<DrawShape>({
 
     const strokeWidth = +styles.strokeWidth
 
-    if (!pathCache.has(points)) {
-      pathCache.set(shape.points, getDrawStrokePath(shape))
-    }
-
-    if (points.length > 0 && points.length < 3) {
-      return (
-        <g id={id}>
-          <circle r={strokeWidth * 0.618} fill={styles.stroke} />
-        </g>
-      )
-    }
-
     const shouldFill =
       points.length > 3 &&
       vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
 
+    // For very short lines, draw a point instead of a line
+
+    if (points.length > 0 && points.length < 3) {
+      return (
+        <g id={id}>
+          <circle
+            r={strokeWidth * 0.618}
+            fill={styles.stroke}
+            stroke={styles.stroke}
+            strokeWidth={styles.strokeWidth}
+          />
+        </g>
+      )
+    }
+
+    // For drawn lines, draw a line from the path cache
+
     if (shape.style.dash === DashStyle.Draw) {
+      if (!drawPathCache.has(points)) {
+        drawPathCache.set(shape.points, getDrawStrokePath(shape))
+      }
+
       if (shouldFill && !polygonCache.has(points)) {
         polygonCache.set(shape.points, getFillPath(shape))
       }
@@ -76,12 +85,17 @@ const draw = registerShapeUtils<DrawShape>({
           {shouldFill && (
             <path
               d={polygonCache.get(points)}
-              fill={styles.fill}
               strokeWidth="0"
               stroke="none"
+              fill={styles.fill}
             />
           )}
-          <path d={pathCache.get(points)} fill={styles.stroke} />
+          <path
+            d={drawPathCache.get(points)}
+            fill={styles.stroke}
+            stroke={styles.stroke}
+            strokeWidth={strokeWidth / 2}
+          />
         </g>
       )
     }
@@ -111,15 +125,16 @@ const draw = registerShapeUtils<DrawShape>({
         {style.dash !== DashStyle.Solid && (
           <path
             d={path}
-            strokeWidth={strokeWidth * 2}
             fill="transparent"
             stroke="transparent"
+            strokeWidth={strokeWidth * 2}
           />
         )}
         <path
           d={path}
-          strokeWidth={strokeWidth * 1.618}
           fill={shouldFill ? styles.fill : 'none'}
+          stroke={styles.stroke}
+          strokeWidth={strokeWidth * 1.618}
           strokeDasharray={strokeDasharray}
           strokeDashoffset={strokeDashoffset}
         />

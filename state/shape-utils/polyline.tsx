@@ -7,7 +7,7 @@ import {
   getBoundsFromPoints,
   translateBounds,
 } from 'utils'
-import { defaultStyle } from 'state/shape-styles'
+import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import { registerShapeUtils } from './register'
 
 const polyline = registerShapeUtils<PolylineShape>({
@@ -32,8 +32,20 @@ const polyline = registerShapeUtils<PolylineShape>({
   shouldRender(shape, prev) {
     return shape.points !== prev.points || shape.style !== prev.style
   },
-  render({ id, points }) {
-    return <polyline id={id} points={points.toString()} />
+  render(shape) {
+    const { id, points } = shape
+
+    const styles = getShapeStyle(shape.style)
+
+    return (
+      <polyline
+        id={id}
+        points={points.toString()}
+        stroke={styles.stroke}
+        strokeWidth={styles.strokeWidth}
+        fill={shape.style.isFilled ? styles.fill : 'none'}
+      />
+    )
   },
 
   getBounds(shape) {
