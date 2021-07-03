@@ -34,6 +34,7 @@ Object.assign(mdiv.style, {
   left: '0px',
   zIndex: '9999',
   pointerEvents: 'none',
+  userSelect: 'none',
   alignmentBaseline: 'mathematical',
   dominantBaseline: 'mathematical',
 })

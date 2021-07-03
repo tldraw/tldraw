@@ -92,7 +92,7 @@ export const RowButton = styled('button', {
   fontWeight: 400,
   fontSize: '$1',
   justifyContent: 'space-between',
-  padding: '4px 6px 4px 12px',
+  padding: '4px 8px 4px 12px',
   borderRadius: 4,
 
   '& label': {
