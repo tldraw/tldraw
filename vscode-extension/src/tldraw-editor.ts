@@ -85,10 +85,17 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
     // Remember that a single text document can also be shared between multiple custom
     // editors (this happens for example when you split a custom editor)
 
+    let firstLoad = true
     const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
       (e) => {
         if (e.document.uri.toString() === document.uri.toString()) {
-          updateWebview()
+          if (firstLoad) {
+            console.log(`First load:${firstLoad}`)
+            updateWebview()
+            firstLoad = false
+          } else {
+            console.log("don't load")
+          }
         }
       }
     )
@@ -103,18 +110,20 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
       switch (e.type) {
         case 'update':
           console.log(`"update" extension <-`)
-          vscode.window.showInformationMessage('Upated .tdlr file')
+          //console.log(`Is it different? ${}`)
+          //vscode.window.showInformationMessage('Upated .tdlr file')
           this.updateTextDocument(document, JSON.parse(e.text))
           break
         case 'save':
           console.log(`"save" extension <-`)
           if (this.document !== undefined) {
-            const writeData = Buffer.from(e.text, 'utf8')
+            this.document.save()
+            // const writeData = Buffer.from(e.text, 'utf8')
 
-            // I believe saving will automatically synchronize the in memory document
-            // so we don't need to call updateTextDocument here.
-            vscode.workspace.fs.writeFile(this.document?.uri, writeData)
-            vscode.window.showInformationMessage('Saved .tdlr file')
+            // // I believe saving will automatically synchronize the in memory document
+            // // so we don't need to call updateTextDocument here.
+            // vscode.workspace.fs.writeFile(this.document?.uri, writeData)
+            //vscode.window.showInformationMessage('Saved .tdlr file')
           }
           break
       }
@@ -165,7 +174,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
 				Use a content security policy to only allow loading images from https or from our extension directory,
 				and only allow scripts that have a specific nonce.
 				-->
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; frame-src http://localhost:3000/; script-src 'nonce-${nonce}';">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; frame-src http://www.tldraw.com/; script-src 'nonce-${nonce}';">
 
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -176,7 +185,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
 				<title>Tldraw Editor</title>
 			</head>
 			<body>
-        <iframe width="100%" height="100%" src="http://localhost:3000/shhh"></iframe>
+        <iframe width="100%" height="100%" src="http://www.tldraw.com/shhh"></iframe>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`

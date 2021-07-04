@@ -38,7 +38,7 @@
     setTimeout(() => {
       console.log(`"load" (webview -> iframe)`)
       iframe.contentWindow.postMessage({ type: 'load', text }, '*')
-    }, 2000)
+    }, 1000)
     let json
     try {
       json = JSON.parse(text)
@@ -119,8 +119,7 @@
         //console.log(message.text)
         console.log(`"save" (extension <- webview)`)
         vscode.postMessage({
-          type: 'save',
-          text: message.text,
+          type: 'save'
         })
         break
     }

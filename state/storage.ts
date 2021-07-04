@@ -57,7 +57,7 @@ class Storage {
   }
 
   saveDocumentToLocalStorage(data: Data) {
-    const document = this.getCompleteDocument(data)
+    const document = this.getCompleteDocument(data, false)
 
     localStorage.setItem(
       storageId(data.document.id, 'document', data.document.id),
@@ -65,7 +65,7 @@ class Storage {
     )
   }
 
-  getCompleteDocument = (data: Data) => {
+  getCompleteDocument = (data: Data, preventUpdate: boolean) => {
     // Create a safely mutable copy of the data
     const document: TLDocument = { ...data.document }
 
@@ -75,7 +75,7 @@ class Storage {
         storageId(document.id, 'page', pageId)
       )
 
-      if (savedPage !== null) {
+      if (savedPage !== null && preventUpdate !== true) {
         document.pages[pageId] = JSON.parse(decompress(savedPage))
       }
     })
@@ -226,10 +226,14 @@ class Storage {
     // the history execute/redo/undo commands, so we put this here.
     //console.log(`"update" (webview <- iframe)`)
     if (window.self !== window.top) {
+      const document = this.getCompleteDocument(data, true)
       window.parent.postMessage(
         {
           type: 'update',
-          text: JSON.stringify(this.getCompleteDocument(data)),
+          text: JSON.stringify({
+            document,
+            pageState: data.pageStates[data.currentPageId],
+          }),
         },
         '*'
       )
@@ -345,7 +349,7 @@ class Storage {
       return
     }
 
-    const document = this.getCompleteDocument(data)
+    const document = this.getCompleteDocument(data, false)
 
     // Then save to file system
     const blob = new Blob(
