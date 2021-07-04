@@ -11,22 +11,30 @@ class Clipboard {
   copy = (shapes: Shape[], onComplete?: () => void) => {
     this.current = JSON.stringify({ id: 'tldr', shapes })
 
-    navigator.permissions.query({ name: 'clipboard-write' }).then((result) => {
-      if (result.state == 'granted' || result.state == 'prompt') {
-        navigator.clipboard.writeText(this.current).then(onComplete, () => {
-          console.warn('Error, could not copy to clipboard. Fallback?')
-          this.fallback = true
+    if ('permissions' in navigator && 'clipboard' in navigator) {
+      navigator.permissions
+        .query({ name: 'clipboard-write' })
+        .then((result) => {
+          if (result.state == 'granted' || result.state == 'prompt') {
+            navigator.clipboard.writeText(this.current).then(onComplete, () => {
+              console.warn('Error, could not copy to clipboard. Fallback?')
+              this.fallback = true
+            })
+          } else {
+            this.fallback = true
+          }
         })
-      } else {
-        this.fallback = true
-      }
-    })
+    }
   }
 
   paste = () => {
-    navigator.clipboard
-      .readText()
-      .then(this.sendPastedTextToState, this.sendPastedTextToState)
+    try {
+      navigator.clipboard.readText().then(this.sendPastedTextToState)
+    } catch (e) {
+      this.fallback = true
+    }
+
+    return this
   }
 
   sendPastedTextToState(text = this.current) {
@@ -34,6 +42,7 @@ class Clipboard {
 
     try {
       const clipboardData = JSON.parse(text)
+
       state.send('PASTED_SHAPES_FROM_CLIPBOARD', {
         shapes: clipboardData.shapes,
       })
@@ -41,10 +50,14 @@ class Clipboard {
       // The text wasn't valid JSON, or it wasn't ours, so paste it as a text object
       state.send('PASTED_TEXT_FROM_CLIPBOARD', { text })
     }
+
+    return this
   }
 
   clear = () => {
     this.current = undefined
+
+    return this
   }
 
   copySelectionToSvg(data: Data) {
@@ -59,6 +72,7 @@ class Clipboard {
         const node = document.getElementById(shape.id)
 
         const groupClone = group.cloneNode()
+
         groupClone.appendChild(node.cloneNode(true))
 
         svg.appendChild(groupClone)
@@ -100,11 +114,11 @@ class Clipboard {
     } catch (e) {
       this.copyStringToClipboard(svgString)
     }
+
+    return this
   }
 
   copyStringToClipboard = (string: string) => {
-    let result: boolean | null
-
     const textarea = document.createElement('textarea')
     textarea.setAttribute('position', 'fixed')
     textarea.setAttribute('top', '0')
@@ -125,16 +139,13 @@ class Clipboard {
       sel.addRange(range)
 
       textarea.setSelectionRange(0, textarea.value.length)
-      result = document.execCommand('copy')
     } catch (err) {
-      result = null
+      null // Could not copy to clipboard
     } finally {
       document.body.removeChild(textarea)
     }
 
-    if (!result) return false
-
-    return true
+    return this
   }
 }
 

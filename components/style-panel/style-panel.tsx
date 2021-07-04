@@ -96,16 +96,11 @@ function SelectedShapeContent(): JSX.Element {
         </IconWrapper>
       </RowButton>
       <hr />
-      <RowButton
-        bp={breakpoints}
-        disabled={selectedShapesCount === 0}
-        onClick={() => state.send('SAVED')}
-      >
+      <RowButton bp={breakpoints} onClick={() => state.send('SAVED')}>
         <span>Save</span>
       </RowButton>
       <RowButton
         bp={breakpoints}
-        disabled={selectedShapesCount === 0}
         onClick={() => state.send('LOADED_FROM_FILE_STSTEM')}
       >
         <span>Load</span>

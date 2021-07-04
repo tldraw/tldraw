@@ -35,7 +35,7 @@ export default function usePageShapes(): string[] {
 
     const viewport = viewportCache.get(pageState)
 
-    return s.values.currentShapes
+    const shapesToShow = s.values.currentShapes
       .filter((shape) => {
         if (shape.type === ShapeType.Ray || shape.type === ShapeType.Line) {
           return true
@@ -48,6 +48,8 @@ export default function usePageShapes(): string[] {
         )
       })
       .map((shape) => shape.id)
+
+    return shapesToShow
   }, deepCompareArrays)
 
   return visiblePageShapeIds

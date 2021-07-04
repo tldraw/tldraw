@@ -56,12 +56,12 @@ const initialData: Data = {
     dash: DashStyle.Draw,
     isFilled: false,
   },
-  activeTool: 'select',
   brush: undefined,
-  boundsRotation: 0,
+  activeTool: 'select',
   pointedId: null,
   hoveredId: null,
   editingId: null,
+  boundsRotation: 0,
   currentPageId: 'page1',
   currentParentId: 'page1',
   currentCodeFileId: 'file0',
@@ -1975,8 +1975,11 @@ const state = createState({
       clipboard.copyStringToClipboard(JSON.stringify(data))
     },
 
-    pasteFromClipboard() {
+    pasteFromClipboard(data) {
       clipboard.paste()
+      if (clipboard.fallback) {
+        commands.paste(data, JSON.parse(clipboard.current).shapes)
+      }
     },
 
     pasteShapesFromClipboard(data, payload: { shapes: Shape[] }) {

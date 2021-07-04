@@ -94,7 +94,7 @@ const draw = registerShapeUtils<DrawShape>({
             d={drawPathCache.get(points)}
             fill={styles.stroke}
             stroke={styles.stroke}
-            strokeWidth={strokeWidth / 2}
+            strokeWidth={strokeWidth}
           />
         </g>
       )
@@ -309,8 +309,8 @@ function getDrawStrokePath(shape: DrawShape) {
   const stroke = getStroke(shape.points, {
     size: 1 + +styles.strokeWidth * 2,
     thinning: 0.85,
-    end: { taper: +styles.strokeWidth * 20 },
-    start: { taper: +styles.strokeWidth * 20 },
+    end: { taper: +styles.strokeWidth * 10 },
+    start: { taper: +styles.strokeWidth * 10 },
     ...options,
   })
 
