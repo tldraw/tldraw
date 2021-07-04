@@ -13,16 +13,12 @@ const line = registerShapeUtils<LineShape>({
   defaultProps: {
     id: uniqueId(),
     type: ShapeType.Line,
-    isGenerated: false,
     name: 'Line',
     parentId: 'page1',
     childIndex: 0,
     point: [0, 0],
     direction: [0, 0],
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
     style: defaultStyle,
   },
 

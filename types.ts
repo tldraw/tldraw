@@ -133,7 +133,6 @@ export interface BaseShape {
   type: ShapeType
   parentId: string
   childIndex: number
-  isGenerated: boolean
   name: string
   point: number[]
   style: ShapeStyles
@@ -141,9 +140,11 @@ export interface BaseShape {
   children?: string[]
   bindings?: Record<string, ShapeBinding>
   handles?: Record<string, ShapeHandle>
-  isLocked: boolean
-  isHidden: boolean
-  isAspectRatioLocked: boolean
+  isLocked?: boolean
+  isHidden?: boolean
+  isEditing?: boolean
+  isGenerated?: boolean
+  isAspectRatioLocked?: boolean
 }
 
 export interface DotShape extends BaseShape {

@@ -18,9 +18,6 @@ export default class Ellipse extends CodeShape<EllipseShape> {
       radiusX: 50,
       radiusY: 50,
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       ...props,
       style: { ...defaultStyle, ...props.style },
     })

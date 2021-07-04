@@ -9,7 +9,6 @@ export default class Polyline extends CodeShape<PolylineShape> {
   constructor(props = {} as ShapeProps<PolylineShape>) {
     super({
       id: uniqueId(),
-
       parentId: (window as any).currentPageId,
       type: ShapeType.Polyline,
       isGenerated: true,
@@ -18,9 +17,6 @@ export default class Polyline extends CodeShape<PolylineShape> {
       point: [0, 0],
       points: [[0, 0]],
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       ...props,
       style: {
         ...defaultStyle,

@@ -9,7 +9,6 @@ export default class Ray extends CodeShape<RayShape> {
   constructor(props = {} as ShapeProps<RayShape>) {
     super({
       id: uniqueId(),
-
       type: ShapeType.Ray,
       isGenerated: true,
       name: 'Ray',
@@ -18,9 +17,6 @@ export default class Ray extends CodeShape<RayShape> {
       point: [0, 0],
       direction: [0, 1],
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       ...props,
       style: {
         ...defaultStyle,

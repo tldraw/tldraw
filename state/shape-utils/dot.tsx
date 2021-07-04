@@ -11,15 +11,11 @@ const dot = registerShapeUtils<DotShape>({
   defaultProps: {
     id: uniqueId(),
     type: ShapeType.Dot,
-    isGenerated: false,
     name: 'Dot',
     parentId: 'page1',
     childIndex: 0,
     point: [0, 0],
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
     style: defaultStyle,
   },
 

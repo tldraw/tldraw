@@ -26,16 +26,13 @@ const draw = registerShapeUtils<DrawShape>({
   defaultProps: {
     id: uniqueId(),
     type: ShapeType.Draw,
-    isGenerated: false,
     name: 'Draw',
     parentId: 'page1',
     childIndex: 0,
     point: [0, 0],
     points: [],
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
+
     style: defaultStyle,
   },
 

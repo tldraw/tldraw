@@ -13,9 +13,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
   defaultProps: {
     id: uniqueId(),
-
     type: ShapeType.Rectangle,
-    isGenerated: false,
     name: 'Rectangle',
     parentId: 'page1',
     childIndex: 0,
@@ -23,9 +21,6 @@ const rectangle = registerShapeUtils<RectangleShape>({
     size: [1, 1],
     radius: 2,
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
     style: defaultStyle,
   },
 

@@ -16,7 +16,6 @@ export default function duplicateCommand(data: Data): void {
       shape.point,
       vec.div([16, 16], tld.getCurrentCamera(data).zoom)
     ),
-    isGenerated: false,
   }))
 
   history.execute(

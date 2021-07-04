@@ -42,15 +42,13 @@ const arrow = registerShapeUtils<ArrowShape>({
   defaultProps: {
     id: uniqueId(),
     type: ShapeType.Arrow,
-    isGenerated: false,
+
     name: 'Arrow',
     parentId: 'page1',
     childIndex: 0,
     point: [0, 0],
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
+
     bend: 0,
     handles: {
       start: {

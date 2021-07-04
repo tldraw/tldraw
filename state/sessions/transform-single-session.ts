@@ -39,7 +39,9 @@ export default class TransformSingleSession extends BaseSession {
       transformType,
       vec.vec(this.origin, point),
       shape.rotation,
-      isAspectRatioLocked || !getShapeUtils(initialShape).canChangeAspectRatio
+      isAspectRatioLocked ||
+        shape.isAspectRatioLocked ||
+        !getShapeUtils(initialShape).canChangeAspectRatio
     )
 
     this.scaleX = newBoundingBox.scaleX

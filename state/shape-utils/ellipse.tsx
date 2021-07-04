@@ -24,7 +24,6 @@ const ellipse = registerShapeUtils<EllipseShape>({
   defaultProps: {
     id: uniqueId(),
     type: ShapeType.Ellipse,
-    isGenerated: false,
     name: 'Ellipse',
     parentId: 'page1',
     childIndex: 0,
@@ -32,9 +31,6 @@ const ellipse = registerShapeUtils<EllipseShape>({
     radiusX: 1,
     radiusY: 1,
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
     style: defaultStyle,
   },
 

@@ -74,7 +74,6 @@ interface BaseShape {
   type: ShapeType
   parentId: string
   childIndex: number
-  isGenerated: boolean
   name: string
   point: number[]
   style: ShapeStyles
@@ -82,9 +81,11 @@ interface BaseShape {
   children?: string[]
   bindings?: Record<string, ShapeBinding>
   handles?: Record<string, ShapeHandle>
-  isLocked: boolean
-  isHidden: boolean
-  isAspectRatioLocked: boolean
+  isLocked?: boolean
+  isHidden?: boolean
+  isEditing?: boolean
+  isGenerated?: boolean
+  isAspectRatioLocked?: boolean
 }
 
 interface DotShape extends BaseShape {
@@ -641,7 +642,6 @@ interface BaseShape {
   type: ShapeType
   parentId: string
   childIndex: number
-  isGenerated: boolean
   name: string
   point: number[]
   style: ShapeStyles
@@ -649,9 +649,11 @@ interface BaseShape {
   children?: string[]
   bindings?: Record<string, ShapeBinding>
   handles?: Record<string, ShapeHandle>
-  isLocked: boolean
-  isHidden: boolean
-  isAspectRatioLocked: boolean
+  isLocked?: boolean
+  isHidden?: boolean
+  isEditing?: boolean
+  isGenerated?: boolean
+  isAspectRatioLocked?: boolean
 }
 
 interface DotShape extends BaseShape {
@@ -1497,7 +1499,7 @@ type RequiredKeys<T> = {
   }
 
   static round = (a: number[], d = 5): number[] => {
-    return a.map((v) => Number(v.toPrecision(d)))
+    return a.map((v) => +v.toPrecision(d))
   }
 
   /**
@@ -2816,7 +2818,6 @@ type RequiredKeys<T> = {
   constructor(props = {} as ShapeProps<DotShape>) {
     super({
       id: uniqueId(),
-
       parentId: (window as any).currentPageId,
       type: ShapeType.Dot,
       isGenerated: true,
@@ -2824,9 +2825,6 @@ type RequiredKeys<T> = {
       childIndex: 0,
       point: [0, 0],
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       ...props,
       style: {
         ...defaultStyle,
@@ -2853,9 +2851,6 @@ type RequiredKeys<T> = {
       radiusX: 50,
       radiusY: 50,
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       ...props,
       style: { ...defaultStyle, ...props.style },
     })
@@ -2903,7 +2898,6 @@ type RequiredKeys<T> = {
   constructor(props = {} as ShapeProps<LineShape>) {
     super({
       id: uniqueId(),
-
       parentId: (window as any).currentPageId,
       type: ShapeType.Line,
       isGenerated: true,
@@ -2912,9 +2906,6 @@ type RequiredKeys<T> = {
       point: [0, 0],
       direction: [-0.5, 0.5],
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       ...props,
       style: {
         ...defaultStyle,
@@ -2948,7 +2939,6 @@ type RequiredKeys<T> = {
   constructor(props = {} as ShapeProps<PolylineShape>) {
     super({
       id: uniqueId(),
-
       parentId: (window as any).currentPageId,
       type: ShapeType.Polyline,
       isGenerated: true,
@@ -2957,9 +2947,6 @@ type RequiredKeys<T> = {
       point: [0, 0],
       points: [[0, 0]],
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       ...props,
       style: {
         ...defaultStyle,
@@ -3005,7 +2992,6 @@ type RequiredKeys<T> = {
   constructor(props = {} as ShapeProps<RayShape>) {
     super({
       id: uniqueId(),
-
       type: ShapeType.Ray,
       isGenerated: true,
       name: 'Ray',
@@ -3014,9 +3000,6 @@ type RequiredKeys<T> = {
       point: [0, 0],
       direction: [0, 1],
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       ...props,
       style: {
         ...defaultStyle,
@@ -3050,7 +3033,7 @@ type RequiredKeys<T> = {
   constructor(
     props = {} as ShapeProps<ArrowShape> & { start: number[]; end: number[] }
   ) {
-    const { start = [0, 0], end = [0, 0] } = props
+    const { start = [0, 0], end = [100, 100] } = props
 
     const {
       point = [0, 0],
@@ -3075,17 +3058,12 @@ type RequiredKeys<T> = {
 
     super({
       id: uniqueId(),
-
       type: ShapeType.Arrow,
-      isGenerated: false,
       name: 'Arrow',
       parentId: 'page1',
       childIndex: 0,
       point,
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       bend: 0,
       handles,
       decorations: {
@@ -3171,18 +3149,13 @@ type RequiredKeys<T> = {
   constructor(props = {} as ShapeProps<DrawShape>) {
     super({
       id: uniqueId(),
-
       type: ShapeType.Draw,
-      isGenerated: false,
       parentId: (window as any).currentPageId,
       name: 'Draw',
       childIndex: 0,
       point: [0, 0],
       points: [],
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       ...props,
       style: {
         ...defaultStyle,
@@ -3228,7 +3201,6 @@ type RequiredKeys<T> = {
   constructor(props = {} as ShapeProps<TextShape>) {
     super({
       id: uniqueId(),
-
       parentId: (window as any).currentPageId,
       type: ShapeType.Text,
       isGenerated: true,
@@ -3236,9 +3208,6 @@ type RequiredKeys<T> = {
       childIndex: 0,
       point: [0, 0],
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       text: 'Text',
       scale: 1,
       ...props,
@@ -3291,7 +3260,6 @@ type RequiredKeys<T> = {
   constructor(props = {} as ShapeProps<RectangleShape>) {
     super({
       id: uniqueId(),
-
       parentId: (window as any).currentPageId,
       type: ShapeType.Rectangle,
       isGenerated: true,
@@ -3301,9 +3269,6 @@ type RequiredKeys<T> = {
       size: [100, 100],
       rotation: 0,
       radius: 2,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       ...props,
       style: {
         ...defaultStyle,

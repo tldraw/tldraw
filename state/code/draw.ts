@@ -9,18 +9,13 @@ export default class Draw extends CodeShape<DrawShape> {
   constructor(props = {} as ShapeProps<DrawShape>) {
     super({
       id: uniqueId(),
-
       type: ShapeType.Draw,
-      isGenerated: false,
       parentId: (window as any).currentPageId,
       name: 'Draw',
       childIndex: 0,
       point: [0, 0],
       points: [],
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       ...props,
       style: {
         ...defaultStyle,

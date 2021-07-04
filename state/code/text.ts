@@ -10,7 +10,6 @@ export default class Text extends CodeShape<TextShape> {
   constructor(props = {} as ShapeProps<TextShape>) {
     super({
       id: uniqueId(),
-
       parentId: (window as any).currentPageId,
       type: ShapeType.Text,
       isGenerated: true,
@@ -18,9 +17,6 @@ export default class Text extends CodeShape<TextShape> {
       childIndex: 0,
       point: [0, 0],
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       text: 'Text',
       scale: 1,
       ...props,

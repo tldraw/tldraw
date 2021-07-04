@@ -17,10 +17,7 @@ Array [
   Object {
     "childIndex": 1,
     "id": "test-draw",
-    "isAspectRatioLocked": false,
     "isGenerated": true,
-    "isHidden": false,
-    "isLocked": false,
     "name": "Test draw",
     "parentId": "page1",
     "point": Array [
@@ -58,10 +55,7 @@ Array [
   Object {
     "childIndex": 1,
     "id": "test-rectangle",
-    "isAspectRatioLocked": false,
     "isGenerated": true,
-    "isHidden": false,
-    "isLocked": false,
     "name": "Test Rectangle",
     "parentId": "page1",
     "point": Array [
@@ -90,10 +84,7 @@ Array [
   Object {
     "childIndex": 1,
     "id": "test-text",
-    "isAspectRatioLocked": false,
     "isGenerated": true,
-    "isHidden": false,
-    "isLocked": false,
     "name": "Test text",
     "parentId": "page1",
     "point": Array [
@@ -151,10 +142,7 @@ Array [
       },
     },
     "id": "test-draw",
-    "isAspectRatioLocked": false,
     "isGenerated": true,
-    "isHidden": false,
-    "isLocked": false,
     "name": "Test draw",
     "parentId": "page1",
     "point": Array [
@@ -192,10 +180,7 @@ Array [
   Object {
     "childIndex": 1,
     "id": "test-ellipse",
-    "isAspectRatioLocked": false,
     "isGenerated": true,
-    "isHidden": false,
-    "isLocked": false,
     "name": "Test ellipse",
     "parentId": "page1",
     "point": Array [
@@ -221,10 +206,7 @@ Array [
   Object {
     "childIndex": 1,
     "id": "test-rectangle",
-    "isAspectRatioLocked": false,
     "isGenerated": true,
-    "isHidden": false,
-    "isLocked": false,
     "name": "Test Rectangle",
     "parentId": "page1",
     "point": Array [
@@ -274,10 +256,7 @@ exports[`selection updates a code control: rectangle in state after changing cod
 Object {
   "childIndex": 1,
   "id": "test-rectangle",
-  "isAspectRatioLocked": false,
   "isGenerated": true,
-  "isHidden": false,
-  "isLocked": false,
   "name": "Test Rectangle",
   "parentId": "page1",
   "point": Array [

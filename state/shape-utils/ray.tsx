@@ -13,16 +13,12 @@ const ray = registerShapeUtils<RayShape>({
   defaultProps: {
     id: uniqueId(),
     type: ShapeType.Ray,
-    isGenerated: false,
     name: 'Ray',
     parentId: 'page1',
     childIndex: 0,
     point: [0, 0],
     direction: [0, 1],
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
     style: defaultStyle,
   },
 

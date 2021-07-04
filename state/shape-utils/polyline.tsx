@@ -16,16 +16,12 @@ const polyline = registerShapeUtils<PolylineShape>({
   defaultProps: {
     id: uniqueId(),
     type: ShapeType.Polyline,
-    isGenerated: false,
     name: 'Polyline',
     parentId: 'page1',
     childIndex: 0,
     point: [0, 0],
     points: [[0, 0]],
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
     style: defaultStyle,
   },
 
