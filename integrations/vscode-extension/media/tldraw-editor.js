@@ -119,7 +119,7 @@
         //console.log(message.text)
         console.log(`"save" (extension <- webview)`)
         vscode.postMessage({
-          type: 'save'
+          type: 'save',
         })
         break
     }

@@ -174,7 +174,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
 				Use a content security policy to only allow loading images from https or from our extension directory,
 				and only allow scripts that have a specific nonce.
 				-->
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; frame-src http://www.tldraw.com/; script-src 'nonce-${nonce}';">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; frame-src http://localhost:3000/; script-src 'nonce-${nonce}';">
 
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -185,7 +185,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
 				<title>Tldraw Editor</title>
 			</head>
 			<body>
-        <iframe width="100%" height="100%" src="http://www.tldraw.com/shhh"></iframe>
+        <iframe width="100%" height="100%" src="http://localhost:3000/shhh"></iframe>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`
