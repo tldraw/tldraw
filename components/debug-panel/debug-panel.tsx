@@ -7,8 +7,10 @@ import { breakpoints, IconButton, RowButton, IconWrapper } from '../shared'
 import {
   Cross2Icon,
   PlayIcon,
+  DotIcon,
   CrumpledPaperIcon,
   StopIcon,
+  ClipboardIcon,
   ClipboardCopyIcon,
 } from '@radix-ui/react-icons'
 import logger from 'state/logger'
@@ -16,6 +18,7 @@ import { useStateDesigner } from '@state-designer/react'
 
 const stopPropagation = (e: React.KeyboardEvent) => e.stopPropagation()
 const toggleDebugPanel = () => state.send('TOGGLED_DEBUG_PANEL')
+const handleStateCopy = () => state.send('COPIED_STATE_TO_CLIPBOARD')
 
 export default function CodePanel(): JSX.Element {
   const rContainer = useRef<HTMLDivElement>(null)
@@ -105,11 +108,18 @@ export default function CodePanel(): JSX.Element {
           </Panel.Header>
           <Panel.Content>
             <hr />
+            <RowButton bp={breakpoints} onClick={handleStateCopy}>
+              <span>Copy State</span>
+              <IconWrapper size="small">
+                <ClipboardCopyIcon />
+              </IconWrapper>
+            </RowButton>
+            <hr />
             {local.isIn('stopped') ? (
               <RowButton bp={breakpoints} onClick={handleLoggingStart}>
                 <span>Start Logger</span>
                 <IconWrapper size="small">
-                  <PlayIcon />
+                  <DotIcon />
                 </IconWrapper>
               </RowButton>
             ) : (
@@ -120,19 +130,15 @@ export default function CodePanel(): JSX.Element {
                 </IconWrapper>
               </RowButton>
             )}
-            {
-              <RowButton
+            <JSONTextAreaWrapper>
+              <IconButton
                 bp={breakpoints}
                 onClick={handleLoggingCopy}
                 disabled={!local.can('COPIED_LOG')}
+                style={{ position: 'absolute', top: 2, right: 2 }}
               >
-                <span>Copy Log</span>
-                <IconWrapper size="small">
-                  <ClipboardCopyIcon />
-                </IconWrapper>
-              </RowButton>
-            }
-            <JSONTextAreaWrapper>
+                <ClipboardIcon />
+              </IconButton>
               <JSONTextArea
                 ref={rTextArea}
                 value={local.data.log}
@@ -147,6 +153,9 @@ export default function CodePanel(): JSX.Element {
               disabled={!local.can('PLAYED_BACK_LOG')}
             >
               <span>Play Back Log</span>
+              <IconWrapper size="small">
+                <PlayIcon />
+              </IconWrapper>
             </RowButton>
           </Panel.Content>
         </Panel.Layout>
@@ -185,7 +194,8 @@ const StylePanelRoot = styled(Panel.Root, {
 })
 
 const JSONTextAreaWrapper = styled('div', {
-  padding: '4px',
+  position: 'relative',
+  margin: '4px 0',
 })
 
 const JSONTextArea = styled('textarea', {
