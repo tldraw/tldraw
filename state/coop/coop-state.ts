@@ -61,6 +61,7 @@ const coopState = createState({
     },
     setOthers(data, payload: { others: User<CoopPresence>[] }) {
       const { others } = payload
+      if (!others) return
       data.others = Object.fromEntries(
         others.map((user) => [user.connectionId, user])
       )
