@@ -8,6 +8,8 @@ export interface Data {
     fontSize: number
     isDarkMode: boolean
     isCodeOpen: boolean
+    isDebugOpen: boolean
+    isDebugMode: boolean
     isStyleOpen: boolean
     nudgeDistanceSmall: number
     nudgeDistanceLarge: number

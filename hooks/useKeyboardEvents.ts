@@ -195,7 +195,11 @@ export default function useKeyboardEvents() {
         }
         case 'd': {
           if (metaKey(e)) {
-            state.send('DUPLICATED', info)
+            if (e.shiftKey) {
+              state.send('TOGGLED_DEBUG_MODE')
+            } else {
+              state.send('DUPLICATED', info)
+            }
           } else {
             state.send('SELECTED_DRAW_TOOL', info)
           }
@@ -228,6 +232,8 @@ export default function useKeyboardEvents() {
         case 'l': {
           if (metaKey(e)) {
             if (e.shiftKey) {
+              state.send('TOGGLED_LOGGER')
+            } else {
               state.send('LOADED_FROM_FILE_STSTEM', info)
             }
           } else {

@@ -7,6 +7,7 @@ import StylePanel from './style-panel/style-panel'
 import styled from 'styles'
 import PagePanel from './page-panel/page-panel'
 import CodePanel from './code-panel/code-panel'
+import DebugPanel from './debug-panel/debug-panel'
 import ControlsPanel from './controls-panel/controls-panel'
 
 export default function Editor({ roomId }: { roomId?: string }): JSX.Element {
@@ -15,6 +16,7 @@ export default function Editor({ roomId }: { roomId?: string }): JSX.Element {
 
   return (
     <Layout>
+      <DebugPanel />
       <CodePanel />
       <PagePanel />
       <ControlsPanel />

@@ -7,6 +7,7 @@ import {
   IconWrapper,
   ButtonsRow,
   RowButton,
+  breakpoints,
 } from 'components/shared'
 import ShapesFunctions from './shapes-functions'
 import AlignDistribute from './align-distribute'
@@ -24,9 +25,12 @@ import {
   Cross2Icon,
 } from '@radix-ui/react-icons'
 
-const breakpoints = { '@initial': 'mobile', '@sm': 'small' } as any
-
 const handleStylePanelOpen = () => state.send('TOGGLED_STYLE_PANEL_OPEN')
+const handleCopy = () => state.send('COPIED')
+const handlePaste = () => state.send('PASTED')
+const handleCopyToSvg = () => state.send('COPIED_TO_SVG')
+const handleSave = () => state.send('SAVED')
+const handleLoad = () => state.send('LOADED_FROM_FILE_STSTEM')
 
 export default function StylePanel(): JSX.Element {
   const rContainer = useRef<HTMLDivElement>(null)
@@ -72,14 +76,14 @@ function SelectedShapeContent(): JSX.Element {
       <RowButton
         bp={breakpoints}
         disabled={selectedShapesCount === 0}
-        onClick={() => state.send('COPIED')}
+        onClick={handleCopy}
       >
         <span>Copy</span>
         <IconWrapper size="small">
           <ClipboardCopyIcon />
         </IconWrapper>
       </RowButton>
-      <RowButton bp={breakpoints} onClick={() => state.send('PASTED')}>
+      <RowButton bp={breakpoints} onClick={handlePaste}>
         <span>Paste</span>
         <IconWrapper size="small">
           <ClipboardIcon />
@@ -88,7 +92,7 @@ function SelectedShapeContent(): JSX.Element {
       <RowButton
         bp={breakpoints}
         disabled={selectedShapesCount === 0}
-        onClick={() => state.send('COPIED_TO_SVG')}
+        onClick={handleCopyToSvg}
       >
         <span>Copy to SVG</span>
         <IconWrapper size="small">
@@ -96,13 +100,10 @@ function SelectedShapeContent(): JSX.Element {
         </IconWrapper>
       </RowButton>
       <hr />
-      <RowButton bp={breakpoints} onClick={() => state.send('SAVED')}>
+      <RowButton bp={breakpoints} onClick={handleSave}>
         <span>Save</span>
       </RowButton>
-      <RowButton
-        bp={breakpoints}
-        onClick={() => state.send('LOADED_FROM_FILE_STSTEM')}
-      >
+      <RowButton bp={breakpoints} onClick={handleLoad}>
         <span>Load</span>
       </RowButton>
     </>

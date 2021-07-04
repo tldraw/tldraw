@@ -120,16 +120,16 @@ Array [
         "id": "bend",
         "index": 2,
         "point": Array [
-          0,
-          0,
+          50,
+          50,
         ],
       },
       "end": Object {
         "id": "end",
         "index": 1,
         "point": Array [
-          0,
-          0,
+          100,
+          100,
         ],
       },
       "start": Object {

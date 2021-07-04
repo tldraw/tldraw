@@ -37,6 +37,7 @@ import {
   ColorStyle,
 } from 'types'
 import { getFontSize } from './shape-styles'
+import logger from './logger'
 
 const initialData: Data = {
   isReadOnly: false,
@@ -44,6 +45,8 @@ const initialData: Data = {
     fontSize: 13,
     isDarkMode: false,
     isCodeOpen: false,
+    isDebugMode: false,
+    isDebugOpen: false,
     isStyleOpen: false,
     isToolLocked: false,
     isPenLocked: false,
@@ -141,12 +144,22 @@ for (let i = 0; i < count; i++) {
 
 const state = createState({
   data: initialData,
+  on: {
+    TOGGLED_DEBUG_PANEL: 'toggleDebugPanel',
+    TOGGLED_DEBUG_MODE: 'toggleDebugMode',
+    TOGGLED_LOGGER: 'toggleLogger',
+    COPIED_DEBUG_LOG: 'copyDebugLog',
+    LOADED_FROM_SNAPSHOT: {
+      unless: 'isInSession',
+      do: ['loadDocumentFromJson', 'resetHistory'],
+    },
+  },
   initial: 'loading',
   states: {
     loading: {
       on: {
         MOUNTED: {
-          do: 'restoredPreviousDocument',
+          do: ['resetHistory', 'restoredPreviousDocument'],
           to: 'ready',
         },
       },
@@ -160,13 +173,18 @@ const state = createState({
       },
       on: {
         UNMOUNTED: {
-          do: ['saveAppState', 'saveDocumentState', 'resetDocumentState'],
+          do: [
+            'saveAppState',
+            'saveDocumentState',
+            'resetDocumentState',
+            'resetHistory',
+          ],
           to: 'loading',
         },
         // Network-Related
         RT_LOADED_ROOM: [
           'clearRoom',
-          { if: 'hasRoom', do: 'resetDocumentState' },
+          { if: 'hasRoom', do: ['resetDocumentState', 'resetHistory'] },
         ],
         // RT_UNLOADED_ROOM: ['clearRoom', 'resetDocumentState'],
         // RT_DISCONNECTED_ROOM: ['clearRoom', 'resetDocumentState'],
@@ -176,7 +194,11 @@ const state = createState({
         // RT_EDITED_SHAPE: 'editRtShape',
         // Client
         RESIZED_WINDOW: 'resetPageState',
-        RESET_DOCUMENT_STATE: 'resetDocumentState',
+        RESET_DOCUMENT_STATE: [
+          'resetHistory',
+          'resetDocumentState',
+          { to: 'selecting' },
+        ],
         TOGGLED_READ_ONLY: 'toggleReadOnly',
         LOADED_FONTS: 'resetShapes',
         USED_PEN_DEVICE: 'enablePenLock',
@@ -729,6 +751,9 @@ const state = createState({
                       do: 'createShape',
                       to: 'draw.editing',
                     },
+                    STOPPED_POINTING: {
+                      to: 'draw.creating',
+                    },
                   },
                 },
                 editing: {
@@ -745,8 +770,11 @@ const state = createState({
                     },
                     PRESSED_SHIFT: 'keyUpdateDrawSession',
                     RELEASED_SHIFT: 'keyUpdateDrawSession',
-                    // MOVED_POINTER: 'updateDrawSession',
                     PANNED_CAMERA: 'updateDrawSession',
+                    MOVED_POINTER: {
+                      if: 'isSimulating',
+                      do: 'updateDrawSession',
+                    },
                   },
                 },
               },
@@ -1041,7 +1069,7 @@ const state = createState({
               to: 'selecting',
             },
           },
-          initial: 'drawingShapeBounds',
+          initial: 'bounds',
           states: {
             bounds: {
               onEnter: 'startDrawTransformSession',
@@ -1096,6 +1124,9 @@ const state = createState({
     },
   },
   conditions: {
+    isSimulating() {
+      return logger.isSimulating
+    },
     hasRoom(_, payload: { id?: string }) {
       return payload.id !== undefined
     },
@@ -1203,6 +1234,30 @@ const state = createState({
     },
   },
   actions: {
+    /* ---------------------- Debug --------------------- */
+
+    closeDebugPanel(data) {
+      data.settings.isDebugOpen = false
+    },
+    openDebugPanel(data) {
+      data.settings.isDebugOpen = true
+    },
+    toggleDebugMode(data) {
+      data.settings.isDebugMode = !data.settings.isDebugMode
+    },
+    toggleDebugPanel(data) {
+      data.settings.isDebugOpen = !data.settings.isDebugOpen
+    },
+    toggleLogger(data) {
+      if (logger.isRunning) {
+        logger.stop(data)
+      } else {
+        logger.start(data)
+      }
+    },
+    copyDebugLog() {
+      logger.copyToJson()
+    },
     // Networked Room
     addRtShape(data, payload: { pageId: string; shape: Shape }) {
       const { pageId, shape } = payload
@@ -1226,6 +1281,8 @@ const state = createState({
       data.document.id = uniqueId()
 
       session.cancel(data)
+
+      inputs.reset()
 
       const newId = 'page1'
 
@@ -1315,6 +1372,7 @@ const state = createState({
 
       tld.setSelectedIds(data, [shape.id])
     },
+
     /* -------------------- Sessions -------------------- */
 
     // Shared
@@ -2089,6 +2147,11 @@ const state = createState({
       }
 
       return commonStyle
+    },
+  },
+  options: {
+    onSend(eventName, payload, didCauseUpdate) {
+      logger.addToLog(eventName, payload, didCauseUpdate)
     },
   },
 })

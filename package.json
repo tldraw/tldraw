@@ -47,7 +47,7 @@
     "@sentry/react": "^6.7.2",
     "@sentry/tracing": "^6.7.2",
     "@sentry/webpack-plugin": "^1.15.1",
-    "@state-designer/react": "^1.7.32",
+    "@state-designer/react": "^1.7.4",
     "@stitches/react": "^0.2.2",
     "@types/uuid": "^8.3.0",
     "browser-fs-access": "^0.17.3",
