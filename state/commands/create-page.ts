@@ -17,15 +17,14 @@ export default function createPage(data: Data, goToPage = true): void {
         data.document.pages[page.id] = page
         data.pageStates[page.id] = pageState
 
-        data.currentPageId = page.id
-        storage.savePage(data, data.document.id, page.id)
-        storage.saveDocumentToLocalStorage(data)
-
         if (goToPage) {
           data.currentPageId = page.id
         } else {
           data.currentPageId = currentPageId
         }
+
+        storage.savePage(data, data.document.id, page.id)
+        storage.saveDocumentToLocalStorage(data)
       },
       undo(data) {
         const { page, currentPageId } = snapshot

@@ -3,7 +3,10 @@ import Head from 'next/head'
 import { AppProps } from 'next/app'
 import { globalStyles } from 'styles'
 import { Provider } from 'next-auth/client'
+import { init } from 'utils/sentry'
 import 'styles/globals.css'
+
+init()
 
 function MyApp({ Component, pageProps }: AppProps): JSX.Element {
   globalStyles()

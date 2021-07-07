@@ -70,6 +70,8 @@ class CoopClient {
   }
 
   disconnect(): CoopClient {
+    if (!this.room) return
+
     this.room.unsubscribe('connection', this.handleConnectionEvent)
     this.room.unsubscribe('my-presence', this.handleMyPresenceEvent)
     this.room.unsubscribe('others', this.handleOthersEvent)
@@ -79,6 +81,8 @@ class CoopClient {
   }
 
   reconnect(): CoopClient {
+    if (!this.room) return
+
     this.connect(this.roomId)
     return this
   }
@@ -128,6 +132,8 @@ class CoopClient {
   }
 
   clearCursor(): CoopClient {
+    if (!this.room) return
+
     this.room.updatePresence({ cursor: null })
     return this
   }

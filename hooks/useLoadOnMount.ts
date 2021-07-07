@@ -10,10 +10,10 @@ export default function useLoadOnMount(roomId?: string) {
       fonts.load('12px Verveine Regular', 'Fonts are loaded!').then(() => {
         state.send('MOUNTED', { roomId })
 
-        if (roomId !== undefined) {
-          state.send('RT_LOADED_ROOM', { id: roomId })
-          coopState.send('JOINED_ROOM', { id: roomId })
-        }
+        // if (roomId !== undefined) {
+        //   state.send('RT_LOADED_ROOM', { id: roomId })
+        //   coopState.send('JOINED_ROOM', { id: roomId })
+        // }
       })
     } else {
       setTimeout(() => state.send('MOUNTED'), 1000)

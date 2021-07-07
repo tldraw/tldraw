@@ -34,6 +34,7 @@ const group = registerShapeUtils<GroupShape>({
         width={size[0]}
         height={size[1]}
         data-shy={true}
+        fill="none"
       />
     )
   },
@@ -169,6 +170,7 @@ const group = registerShapeUtils<GroupShape>({
 const StyledGroupShape = styled('rect', {
   zDash: 5,
   zStrokeWidth: 1,
+  stroke: '$text',
 })
 
 export default group

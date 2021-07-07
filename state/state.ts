@@ -160,7 +160,8 @@ const state = createState({
       on: {
         MOUNTED: [
           'resetHistory',
-          { unless: 'hasRoomId', do: 'restoredPreviousDocument' },
+          'resetStorage',
+          'restoredPreviousDocument',
           { to: 'ready' },
         ],
       },
@@ -174,26 +175,9 @@ const state = createState({
       },
       on: {
         UNMOUNTED: {
-          do: [
-            'saveAppState',
-            'saveDocumentState',
-            'resetDocumentState',
-            'resetHistory',
-          ],
+          do: ['saveDocumentState', 'resetDocumentState'],
           to: 'loading',
         },
-        // Network-Related
-        RT_LOADED_ROOM: [
-          'clearRoom',
-          { if: 'hasRoom', do: ['resetDocumentState', 'resetHistory'] },
-        ],
-        // RT_UNLOADED_ROOM: ['clearRoom', 'resetDocumentState'],
-        // RT_DISCONNECTED_ROOM: ['clearRoom', 'resetDocumentState'],
-        // RT_CREATED_SHAPE: 'addRtShape',
-        // RT_CHANGED_STATUS: 'setRtStatus',
-        // RT_DELETED_SHAPE: 'deleteRtShape',
-        // RT_EDITED_SHAPE: 'editRtShape',
-        // Client
         RESIZED_WINDOW: 'resetPageState',
         RESET_DOCUMENT_STATE: [
           'resetHistory',
@@ -306,7 +290,7 @@ const state = createState({
         },
         SAVED: {
           unlessAny: ['isInSession', 'isReadOnly'],
-          do: 'forceSave',
+          do: ['saveDocumentState', 'saveToFileSystem'],
         },
         LOADED_FROM_FILE: {
           unless: 'isInSession',
@@ -346,15 +330,18 @@ const state = createState({
         RESET_CAMERA: 'resetCamera',
         COPIED_TO_SVG: 'copyToSvg',
         LOADED_FROM_FILE_STSTEM: 'loadFromFileSystem',
-        SAVED_AS_TO_FILESYSTEM: 'saveAsToFileSystem',
-        SAVED_TO_FILESYSTEM: {
-          unless: 'isReadOnly',
-          then: {
-            if: 'isReadOnly',
-            do: 'saveAsToFileSystem',
-            else: 'saveToFileSystem',
+        SAVED_AS_TO_FILESYSTEM: ['saveDocumentState', 'saveAsToFileSystem'],
+        SAVED_TO_FILESYSTEM: [
+          'saveDocumentState',
+          {
+            unless: 'isReadOnly',
+            then: {
+              if: 'isReadOnly',
+              do: 'saveAsToFileSystem',
+              else: 'saveToFileSystem',
+            },
           },
-        },
+        ],
       },
       initial: 'selecting',
       states: {
@@ -1281,30 +1268,38 @@ const state = createState({
     clearRoom(data) {
       data.room = undefined
     },
-    resetDocumentState(data) {
-      data.document.id = uniqueId()
+    resetStorage() {
+      storage.reset()
+    },
+    resetDocumentState(data, payload: { roomId?: string }) {
+      // Save the current document and app state.
+      storage.savePage(data)
+      storage.savePageState(data)
+      storage.saveAppStateToLocalStorage(data)
+      storage.saveDocumentToLocalStorage(data)
 
+      // Cancel all current sessions, reset history, etc..
       session.cancel(data)
-
       inputs.reset()
-
       history.reset()
+      storage.reset()
 
-      const newId = 'page1'
+      // Populate a new app state.
+      const newDocumentId = payload?.roomId ? payload.roomId : uniqueId()
+      const newPageId = 'page1'
 
-      data.currentPageId = newId
-
+      data.document.id = newDocumentId
       data.pointedId = null
       data.hoveredId = null
       data.editingId = null
-      data.currentPageId = 'page1'
-      data.currentParentId = 'page1'
+      data.currentPageId = newPageId
+      data.currentParentId = newPageId
       data.currentCodeFileId = 'file0'
       data.codeControls = {}
 
       data.document.pages = {
-        [newId]: {
-          id: newId,
+        [newPageId]: {
+          id: newPageId,
           name: 'Page 1',
           type: 'page',
           shapes: {},
@@ -1313,8 +1308,8 @@ const state = createState({
       }
 
       data.pageStates = {
-        [newId]: {
-          id: newId,
+        [newPageId]: {
+          id: newPageId,
           selectedIds: new Set(),
           camera: {
             point: [0, 0],
@@ -1322,6 +1317,12 @@ const state = createState({
           },
         },
       }
+
+      // Save the new app state.
+      storage.savePage(data)
+      storage.savePageState(data)
+      storage.saveAppStateToLocalStorage(data)
+      storage.saveDocumentToLocalStorage(data)
     },
     resetPageState(data) {
       const pageState = data.pageStates[data.currentPageId]
@@ -1344,6 +1345,7 @@ const state = createState({
     /* --------------------- Shapes --------------------- */
     resetShapes(data) {
       const page = tld.getPage(data)
+
       Object.values(page.shapes).forEach((shape) => {
         page.shapes[shape.id] = { ...shape }
       })
@@ -2052,8 +2054,8 @@ const state = createState({
 
     /* ---------------------- Data ---------------------- */
 
-    restoredPreviousDocument(data) {
-      storage.firstLoad(data)
+    restoredPreviousDocument(data, payload: { roomId?: string }) {
+      storage.firstLoad(data, payload?.roomId)
     },
 
     saveToFileSystem(data) {
@@ -2077,19 +2079,14 @@ const state = createState({
     },
 
     saveDocumentState(data) {
+      storage.savePage(data)
+      storage.savePageState(data)
+      storage.saveAppStateToLocalStorage(data)
       storage.saveDocumentToLocalStorage(data)
     },
 
     forceSave(data) {
       storage.saveToFileSystem(data)
-    },
-
-    savePage(data) {
-      storage.savePage(data)
-    },
-
-    loadPage(data) {
-      storage.loadPage(data)
     },
 
     saveCode(data, payload: { code: string }) {
