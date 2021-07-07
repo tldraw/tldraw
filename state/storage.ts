@@ -13,7 +13,7 @@ function storageId(fileId: string, label: string, id?: string) {
 class Storage {
   previousSaveHandle?: any // FileSystemHandle
 
-  firstLoad(data: Data, roomId?: string) {
+  firstLoad(data: Data, roomId = 'TESTING') {
     const lastOpenedFileId =
       roomId || localStorage.getItem(`${CURRENT_VERSION}_lastOpened`)
 
@@ -88,6 +88,7 @@ class Storage {
       JSON.parse(json)
 
     data.document = restoredDocument.document
+    data.pageStates[restoredDocument.pageState.id] = restoredDocument.pageState
 
     // Save pages to local storage, possibly overwriting unsaved local copies
     Object.values(data.document.pages).forEach((page) => {
@@ -164,8 +165,6 @@ class Storage {
       data.pageStates[pageState.id] = pageState
       data.currentPageId = pageState.id
     } catch (e) {
-      console.error('Could not restore page state:', e.message)
-
       data.pageStates[data.currentPageId] = {
         id: data.currentPageId,
         selectedIds: new Set([]),

@@ -3,13 +3,13 @@ import tld from 'utils/tld'
 import inputs from 'state/inputs'
 import { createShape, getShapeUtils } from 'state/shape-utils'
 import { Data, Shape, ShapeType, ShapeUtility } from 'types'
-import { deepCompareArrays, uniqueId, vec } from 'utils'
-import * as json from './__mocks__/document.json'
+import { deepCompareArrays, setToArray, uniqueId, vec } from 'utils'
+import * as mockDocument from './__mocks__/document.json'
 
 type State = typeof _state
 
-export const rectangleId = '1f6c251c-e12e-40b4-8dd2-c1847d80b72f'
-export const arrowId = '5ca167d7-54de-47c9-aa8f-86affa25e44d'
+export const rectangleId = 'e43559cb-6f41-4ae4-9c49-158ed1ad2f72'
+export const arrowId = 'fee77127-e779-4576-882b-b1bf7c7e132f'
 
 interface PointerOptions {
   id?: number
@@ -40,8 +40,9 @@ class TestState {
   reset(): TestState {
     this.state.reset()
     this.state
-      .send('MOUNTED')
-      .send('LOADED_FROM_FILE', { json: JSON.stringify(json) })
+      .send('UNMOUNTED')
+      .send('MOUNTED', { roomId: 'TESTING' })
+      .send('LOADED_FROM_FILE', { json: JSON.stringify(mockDocument) })
 
     return this
   }
@@ -124,6 +125,10 @@ class TestState {
       (strict ? selectedIds.size === ids.length : true) &&
       ids.every((id) => selectedIds.has(id))
     )
+  }
+
+  get selectedIds(): string[] {
+    return setToArray(tld.getSelectedIds(this.data))
   }
 
   /**
@@ -220,9 +225,15 @@ class TestState {
    *```
    */
   clickShape(id: string, options: PointerOptions = {}): TestState {
-    this.state
-      .send('POINTED_SHAPE', inputs.pointerDown(TestState.point(options), id))
-      .send('STOPPED_POINTING', inputs.pointerUp(TestState.point(options), id))
+    this.state.send(
+      'POINTED_SHAPE',
+      inputs.pointerDown(TestState.point(options), id)
+    )
+
+    this.state.send(
+      'STOPPED_POINTING',
+      inputs.pointerUp(TestState.point(options), id)
+    )
 
     return this
   }
