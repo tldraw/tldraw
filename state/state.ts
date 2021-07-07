@@ -1288,6 +1288,8 @@ const state = createState({
 
       inputs.reset()
 
+      history.reset()
+
       const newId = 'page1'
 
       data.currentPageId = newId
