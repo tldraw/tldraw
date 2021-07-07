@@ -3,12 +3,12 @@ import { useEffect } from 'react'
 import state from 'state'
 import coopState from 'state/coop/coop-state'
 
-export default function useLoadOnMount(roomId: string = undefined) {
+export default function useLoadOnMount(roomId?: string) {
   useEffect(() => {
     if ('fonts' in document) {
       const fonts = (document as any).fonts
       fonts.load('12px Verveine Regular', 'Fonts are loaded!').then(() => {
-        state.send('MOUNTED')
+        state.send('MOUNTED', { roomId })
 
         if (roomId !== undefined) {
           state.send('RT_LOADED_ROOM', { id: roomId })
@@ -20,7 +20,7 @@ export default function useLoadOnMount(roomId: string = undefined) {
     }
 
     return () => {
-      state.send('UNMOUNTED').send('RT_UNLOADED_ROOM', { id: roomId })
+      state.send('UNMOUNTED', { roomId })
       coopState.send('LEFT_ROOM', { id: roomId })
     }
   }, [roomId])

@@ -158,10 +158,11 @@ const state = createState({
   states: {
     loading: {
       on: {
-        MOUNTED: {
-          do: ['resetHistory', 'restoredPreviousDocument'],
-          to: 'ready',
-        },
+        MOUNTED: [
+          'resetHistory',
+          { unless: 'hasRoomId', do: 'restoredPreviousDocument' },
+          { to: 'ready' },
+        ],
       },
     },
     ready: {
@@ -1124,6 +1125,9 @@ const state = createState({
     },
   },
   conditions: {
+    hasRoomId(data, payload: { roomId?: string }) {
+      return payload?.roomId !== undefined
+    },
     isSimulating() {
       return logger.isSimulating
     },
