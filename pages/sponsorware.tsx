@@ -67,11 +67,6 @@ export default function Sponsorware(): JSX.Element {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession(context)
 
-  if (session?.user) {
-    context.res.setHeader('Location', `/`)
-    context.res.statusCode = 307
-  }
-
   return {
     props: {
       session,

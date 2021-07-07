@@ -21,7 +21,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession(context)
   const { id } = context.query
 
-  if (!session?.user) {
+  if (!session?.user && process.env.NODE_ENV !== 'development') {
     context.res.setHeader('Location', `/sponsorware`)
     context.res.statusCode = 307
   }

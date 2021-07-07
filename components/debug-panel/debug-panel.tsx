@@ -12,6 +12,7 @@ import {
   StopIcon,
   ClipboardIcon,
   ClipboardCopyIcon,
+  TrashIcon,
 } from '@radix-ui/react-icons'
 import logger from 'state/logger'
 import { useStateDesigner } from '@state-designer/react'
@@ -19,6 +20,9 @@ import { useStateDesigner } from '@state-designer/react'
 const stopPropagation = (e: React.KeyboardEvent) => e.stopPropagation()
 const toggleDebugPanel = () => state.send('TOGGLED_DEBUG_PANEL')
 const handleStateCopy = () => state.send('COPIED_STATE_TO_CLIPBOARD')
+const handleError = () => {
+  throw Error('Error!')
+}
 
 export default function CodePanel(): JSX.Element {
   const rContainer = useRef<HTMLDivElement>(null)
@@ -112,6 +116,12 @@ export default function CodePanel(): JSX.Element {
               <span>Copy State</span>
               <IconWrapper size="small">
                 <ClipboardCopyIcon />
+              </IconWrapper>
+            </RowButton>
+            <RowButton bp={breakpoints} onClick={handleError}>
+              <span>Create Error</span>
+              <IconWrapper size="small">
+                <TrashIcon />
               </IconWrapper>
             </RowButton>
             <hr />

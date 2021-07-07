@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node'
 import { ErrorBoundary } from 'react-error-boundary'
 import Bounds from './bounds/bounding-box'
 import BoundsBg from './bounds/bounds-bg'
@@ -71,17 +72,18 @@ const MainSVG = styled('svg', {
 
 function ErrorFallback({ error, resetErrorBoundary }) {
   React.useEffect(() => {
-    const copy = 'Sorry, something went wrong. Clear canvas and continue?'
+    const copy =
+      'Sorry, something went wrong. Press Ok to reset the document, or press cancel to continue and see if it resolves itself.'
+
     console.error(error)
+
+    Sentry.captureException(error)
+
     if (window.confirm(copy)) {
-      state.send('CLEARED_PAGE')
+      state.send('RESET_DOCUMENT_STATE')
       resetErrorBoundary()
     }
   }, [])
 
-  return (
-    <g>
-      <text>Oops</text>
-    </g>
-  )
+  return <g />
 }
