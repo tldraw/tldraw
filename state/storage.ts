@@ -4,7 +4,7 @@ import state from './state'
 import { uniqueId } from 'utils/utils'
 import * as idb from 'idb-keyval'
 
-const CURRENT_VERSION = 'code_slate_0.0.8'
+const CURRENT_VERSION = 'code_slate_0.0.9'
 
 function storageId(fileId: string, label: string, id?: string) {
   return [CURRENT_VERSION, fileId, label, id].filter(Boolean).join('_')

@@ -11,7 +11,7 @@ export default function Home(): JSX.Element {
       <Head>
         <title>tldraw</title>
       </Head>
-      <Editor />
+      <Editor roomId="home" />
     </>
   )
 }

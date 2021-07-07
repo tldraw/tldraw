@@ -1112,14 +1112,8 @@ const state = createState({
     },
   },
   conditions: {
-    hasRoomId(data, payload: { roomId?: string }) {
-      return payload?.roomId !== undefined
-    },
     isSimulating() {
       return logger.isSimulating
-    },
-    hasRoom(_, payload: { id?: string }) {
-      return payload.id !== undefined
     },
     isEditingShape(data, payload: { id: string }) {
       return payload.id === data.editingId
