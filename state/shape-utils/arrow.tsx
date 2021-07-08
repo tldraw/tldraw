@@ -14,6 +14,7 @@ import {
   clampToRotationToSegments,
   lerpAngles,
   clamp,
+  getFromCache,
 } from 'utils'
 import {
   ArrowShape,
@@ -30,6 +31,8 @@ import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import React from 'react'
 import { registerShapeUtils } from './register'
+
+const pathCache = new WeakMap<ArrowShape['handles'], string>([])
 
 // A cache for semi-expensive circles calculated from three points
 function getCtp(shape: ArrowShape) {
@@ -126,7 +129,9 @@ const arrow = registerShapeUtils<ArrowShape>({
       const sw = strokeWidth * (isDraw ? 0.618 : 1.618)
 
       const path = isDraw
-        ? renderFreehandArrowShaft(shape)
+        ? getFromCache(pathCache, shape.handles, (cache) =>
+            cache.set(shape.handles, renderFreehandArrowShaft(shape))
+          )
         : 'M' + vec.round(start.point) + 'L' + vec.round(end.point)
 
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
@@ -168,7 +173,12 @@ const arrow = registerShapeUtils<ArrowShape>({
       const sw = strokeWidth * (isDraw ? 0.618 : 1.618)
 
       const path = isDraw
-        ? renderCurvedFreehandArrowShaft(shape, circle)
+        ? getFromCache(pathCache, shape.handles, (cache) =>
+            cache.set(
+              shape.handles,
+              renderCurvedFreehandArrowShaft(shape, circle)
+            )
+          )
         : getArrowArcPath(start, end, circle, bend)
 
       const arcLength = getArcLength(
@@ -277,15 +287,15 @@ const arrow = registerShapeUtils<ArrowShape>({
   },
 
   getBounds(shape) {
-    if (!this.boundsCache.has(shape)) {
+    const bounds = getFromCache(this.boundsCache, shape, (cache) => {
       const { start, bend, end } = shape.handles
-      this.boundsCache.set(
+      cache.set(
         shape,
         getBoundsFromPoints([start.point, bend.point, end.point])
       )
-    }
+    })
 
-    return translateBounds(this.boundsCache.get(shape), shape.point)
+    return translateBounds(bounds, shape.point)
   },
 
   getRotatedBounds(shape) {
@@ -597,8 +607,8 @@ function renderCurvedFreehandArrowShaft(shape: ArrowShape, circle: number[]) {
     size: strokeWidth / 2,
     thinning: 0.5 + getRandom() * 0.3,
     easing: (t) => t * t,
-    end: { taper: 0 },
-    start: { taper: 1 + 32 * (st * st * st) },
+    end: { taper: shape.decorations.end ? 1 : 1 + 32 * (st * st * st) },
+    start: { taper: shape.decorations.start ? 1 : 1 + 32 * (st * st * st) },
     simulatePressure: true,
     streamline: 0.01,
     last: true,

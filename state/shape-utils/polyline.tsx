@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils/utils'
+import { getFromCache, uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { PolylineShape, ShapeType } from 'types'
 import { intersectPolylineBounds } from 'utils/intersections'
@@ -45,11 +45,11 @@ const polyline = registerShapeUtils<PolylineShape>({
   },
 
   getBounds(shape) {
-    if (!this.boundsCache.has(shape)) {
-      this.boundsCache.set(shape, getBoundsFromPoints(shape.points))
-    }
+    const bounds = getFromCache(this.boundsCache, shape, (cache) => {
+      cache.set(shape, getBoundsFromPoints(shape.points))
+    })
 
-    return translateBounds(this.boundsCache.get(shape), shape.point)
+    return translateBounds(bounds, shape.point)
   },
 
   getRotatedBounds(shape) {

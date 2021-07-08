@@ -1,8 +1,13 @@
 # tldraw
 
-A tiny little drawing app by [steveruizok](https://twitter.com/steveruizok).
+A tiny little drawing app.
 
 Visit [tldraw.com](https://tldraw.com/).
+
+## Author
+
+- [steveruizok](https://twitter.com/steveruizok)
+- ...and more!
 
 ## Support
 

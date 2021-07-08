@@ -1,4 +1,4 @@
-import { uniqueId, getPerfectDashProps } from 'utils/utils'
+import { uniqueId, getPerfectDashProps, getFromCache } from 'utils/utils'
 import vec from 'utils/vec'
 import { DashStyle, RectangleShape, ShapeType } from 'types'
 import { getSvgPathFromStroke, translateBounds, rng, shuffleArr } from 'utils'
@@ -34,11 +34,9 @@ const rectangle = registerShapeUtils<RectangleShape>({
     const strokeWidth = +styles.strokeWidth
 
     if (style.dash === DashStyle.Draw) {
-      if (!pathCache.has(shape.size)) {
-        renderPath(shape)
-      }
-
-      const path = pathCache.get(shape.size)
+      const pathData = getFromCache(pathCache, shape.size, (cache) => {
+        cache.set(shape.size, renderPath(shape))
+      })
 
       return (
         <g id={id}>
@@ -54,7 +52,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
             stroke={styles.stroke}
           />
           <path
-            d={path}
+            d={pathData}
             fill={styles.stroke}
             stroke={styles.stroke}
             strokeWidth={styles.strokeWidth}
@@ -114,21 +112,19 @@ const rectangle = registerShapeUtils<RectangleShape>({
   },
 
   getBounds(shape) {
-    if (!this.boundsCache.has(shape)) {
+    const bounds = getFromCache(this.boundsCache, shape, (cache) => {
       const [width, height] = shape.size
-      const bounds = {
+      cache.set(shape, {
         minX: 0,
         maxX: width,
         minY: 0,
         maxY: height,
         width,
         height,
-      }
+      })
+    })
 
-      this.boundsCache.set(shape, bounds)
-    }
-
-    return translateBounds(this.boundsCache.get(shape), shape.point)
+    return translateBounds(bounds, shape.point)
   },
 
   hitTest() {
@@ -218,5 +214,5 @@ function renderPath(shape: RectangleShape) {
     }
   )
 
-  pathCache.set(shape.size, getSvgPathFromStroke(stroke))
+  return getSvgPathFromStroke(stroke)
 }
