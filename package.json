@@ -24,8 +24,8 @@
   },
   "lint-staged": {
     "*.@(ts|tsx)": [
-      "yarn lint",
-      "yarn format"
+      "yarn format",
+      "yarn lint"
     ]
   },
   "dependencies": {
