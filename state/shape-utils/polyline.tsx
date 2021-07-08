@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils/utils'
+import { getFromCache, uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { PolylineShape, ShapeType } from 'types'
 import { intersectPolylineBounds } from 'utils/intersections'
