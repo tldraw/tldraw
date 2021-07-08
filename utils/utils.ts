@@ -1510,6 +1510,35 @@ export function getBoundsCenter(bounds: Bounds): number[] {
 /* -------------------------------------------------- */
 
 /**
+ * Get a value from a cache (a WeakMap), filling the value if it is not present.
+ *
+ * ### Example
+ *
+ *```ts
+ * getFromCache(boundsCache, shape, (cache) => cache.set(shape, "value"))
+ *```
+ */
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function getFromCache<V, I extends object>(
+  cache: WeakMap<I, V>,
+  item: I,
+  replace: (cache: WeakMap<I, V>) => void
+): V {
+  let value = cache.get(item)
+
+  if (value === undefined) {
+    replace(cache)
+    value = cache.get(item)
+
+    if (value === undefined) {
+      throw Error('Cache did not include item!')
+    }
+  }
+
+  return value
+}
+
+/**
  * Get a unique string id.
  */
 export function uniqueId(): string {

@@ -1,4 +1,4 @@
-import { uniqueId, isMobile } from 'utils/utils'
+import { uniqueId, isMobile, getFromCache } from 'utils/utils'
 import vec from 'utils/vec'
 import TextAreaUtils from 'utils/text-area'
 import { TextShape, ShapeType } from 'types'
@@ -13,12 +13,8 @@ import state from 'state'
 import { registerShapeUtils } from './register'
 
 // A div used for measurement
+document.getElementById('__textMeasure')?.remove()
 
-if (document.getElementById('__textMeasure')) {
-  document.getElementById('__textMeasure').remove()
-}
-
-// A div used for measurement
 const mdiv = document.createElement('pre')
 mdiv.id = '__textMeasure'
 
@@ -128,6 +124,10 @@ const text = registerShapeUtils<TextShape>({
     const fontSize = getFontSize(shape.style.size) * shape.scale
     const lineHeight = fontSize * 1.4
 
+    if (ref === undefined) {
+      throw Error('This component should receive a ref.')
+    }
+
     if (!isEditing) {
       return (
         <g id={id} pointerEvents="none">
@@ -155,7 +155,6 @@ const text = registerShapeUtils<TextShape>({
         </g>
       )
     }
-
     return (
       <foreignObject
         id={id}
@@ -164,7 +163,7 @@ const text = registerShapeUtils<TextShape>({
         pointerEvents="none"
       >
         <StyledTextArea
-          ref={ref}
+          ref={ref as React.RefObject<HTMLTextAreaElement>}
           style={{
             font,
             color: styles.stroke,
@@ -178,7 +177,7 @@ const text = registerShapeUtils<TextShape>({
           autoSave="false"
           placeholder=""
           color={styles.stroke}
-          autoFocus={isMobile() ? true : false}
+          autoFocus={!!isMobile()}
           onFocus={handleFocus}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
@@ -190,14 +189,14 @@ const text = registerShapeUtils<TextShape>({
   },
 
   getBounds(shape) {
-    if (!this.boundsCache.has(shape)) {
-      mdiv.innerHTML = shape.text + '&zwj;'
+    const bounds = getFromCache(this.boundsCache, shape, (cache) => {
+      mdiv.innerHTML = `${shape.text}&zwj;`
       mdiv.style.font = getFontStyle(shape.scale, shape.style)
 
       const [minX, minY] = shape.point
       const [width, height] = [mdiv.offsetWidth, mdiv.offsetHeight]
 
-      this.boundsCache.set(shape, {
+      cache.set(shape, {
         minX,
         maxX: minX + width,
         minY,
@@ -205,9 +204,9 @@ const text = registerShapeUtils<TextShape>({
         width,
         height,
       })
-    }
+    })
 
-    return this.boundsCache.get(shape)
+    return bounds
   },
 
   hitTest() {

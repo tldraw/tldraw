@@ -11,6 +11,7 @@ import {
   circleFromThreePoints,
   isAngleBetween,
   getPerfectDashProps,
+  getFromCache,
 } from 'utils'
 import {
   ArrowShape,
@@ -275,15 +276,15 @@ const arrow = registerShapeUtils<ArrowShape>({
   },
 
   getBounds(shape) {
-    if (!this.boundsCache.has(shape)) {
+    const bounds = getFromCache(this.boundsCache, shape, (cache) => {
       const { start, bend, end } = shape.handles
-      this.boundsCache.set(
+      cache.set(
         shape,
         getBoundsFromPoints([start.point, bend.point, end.point])
       )
-    }
+    })
 
-    return translateBounds(this.boundsCache.get(shape), shape.point)
+    return translateBounds(bounds, shape.point)
   },
 
   getRotatedBounds(shape) {

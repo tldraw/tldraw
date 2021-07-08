@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils/utils'
+import { getFromCache, uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { LineShape, ShapeType } from 'types'
 import { intersectCircleBounds } from 'utils/intersections'
@@ -43,20 +43,18 @@ const line = registerShapeUtils<LineShape>({
   },
 
   getBounds(shape) {
-    if (!this.boundsCache.has(shape)) {
-      const bounds = {
+    const bounds = getFromCache(this.boundsCache, shape, (cache) => {
+      cache.set(shape, {
         minX: 0,
         maxX: 1,
         minY: 0,
         maxY: 1,
         width: 1,
         height: 1,
-      }
+      })
+    })
 
-      this.boundsCache.set(shape, bounds)
-    }
-
-    return translateBounds(this.boundsCache.get(shape), shape.point)
+    return translateBounds(bounds, shape.point)
   },
 
   getRotatedBounds(shape) {
