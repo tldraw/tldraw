@@ -112,7 +112,7 @@ const arrow = registerShapeUtils<ArrowShape>({
 
     const styles = getShapeStyle(style)
 
-    const strokeWidth = +styles.strokeWidth
+    const { strokeWidth } = styles
 
     const arrowDist = vec.dist(start.point, end.point)
 
@@ -587,24 +587,22 @@ function renderCurvedFreehandArrowShaft(shape: ArrowShape, circle: number[]) {
 
   const points: number[][] = []
 
-  for (let i = 0; i < 14; i++) {
-    const t = i / 13
+  for (let i = 0; i < 21; i++) {
+    const t = i / 20
     const angle = lerpAngles(startAngle, endAngle, t)
     points.push(vec.round(vec.nudgeAtAngle(center, angle, radius)))
   }
 
-  const stroke = getStroke(
-    [...points, end.point, end.point, end.point, end.point],
-    {
-      size: strokeWidth / 2,
-      thinning: 0.5 + getRandom() * 0.3,
-      easing: (t) => t * t,
-      end: { taper: 1 },
-      start: { taper: 1 + 32 * (st * st * st) },
-      simulatePressure: true,
-      last: true,
-    }
-  )
+  const stroke = getStroke([...points, end.point, end.point], {
+    size: strokeWidth / 2,
+    thinning: 0.5 + getRandom() * 0.3,
+    easing: (t) => t * t,
+    end: { taper: 0 },
+    start: { taper: 1 + 32 * (st * st * st) },
+    simulatePressure: true,
+    streamline: 0.01,
+    last: true,
+  })
 
   const path = getSvgPathFromStroke(stroke)
 
