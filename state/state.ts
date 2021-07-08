@@ -846,7 +846,7 @@ const state = createState({
                 },
                 editing: {
                   onExit: 'completeSession',
-                  onEnter: 'startArrowSession',
+                  onEnter: 'startArrowHandleSession',
                   on: {
                     STOPPED_POINTING: [
                       'completeSession',
@@ -862,10 +862,10 @@ const state = createState({
                       to: 'arrow.creating',
                       else: { to: 'selecting' },
                     },
-                    PRESSED_SHIFT: 'keyUpdateArrowSession',
-                    RELEASED_SHIFT: 'keyUpdateArrowSession',
-                    MOVED_POINTER: 'updateArrowSession',
-                    PANNED_CAMERA: 'updateArrowSession',
+                    PRESSED_SHIFT: 'keyUpdateHandleSession',
+                    RELEASED_SHIFT: 'keyUpdateHandleSession',
+                    MOVED_POINTER: 'updateHandleSession',
+                    PANNED_CAMERA: 'updateHandleSession',
                   },
                 },
               },
@@ -1186,7 +1186,7 @@ const state = createState({
       return tld.getShape(data, payload.target) !== undefined
     },
     isPointingRotationHandle(
-      data,
+      _data,
       payload: { target: Edge | Corner | 'rotate' }
     ) {
       return payload.target === 'rotate'
@@ -1484,19 +1484,23 @@ const state = createState({
     },
     keyUpdateHandleSession(
       data,
-      payload: { shiftKey: boolean; altKey: boolean }
+      payload: { shiftKey: boolean; altKey: boolean; metaKey: boolean }
     ) {
       session.update<Sessions.HandleSession>(
         data,
         tld.screenToWorld(inputs.pointer.point, data),
-        payload.shiftKey
+        payload.shiftKey,
+        payload.altKey,
+        payload.metaKey
       )
     },
     updateHandleSession(data, payload: PointerInfo) {
       session.update<Sessions.HandleSession>(
         data,
         tld.screenToWorld(payload.point, data),
-        payload.shiftKey
+        payload.shiftKey,
+        payload.altKey,
+        payload.metaKey
       )
     },
 
@@ -1582,30 +1586,17 @@ const state = createState({
     },
 
     // Arrow
-    startArrowSession(data, payload: PointerInfo) {
-      const id = Array.from(tld.getSelectedIds(data).values())[0]
+    startArrowHandleSession(data) {
+      const shapeId = Array.from(tld.getSelectedIds(data).values())[0]
+      const handleId = 'end'
 
       session.begin(
-        new Sessions.ArrowSession(
+        new Sessions.HandleSession(
           data,
-          id,
-          tld.screenToWorld(inputs.pointer.origin, data),
-          payload.shiftKey
+          shapeId,
+          handleId,
+          tld.screenToWorld(inputs.pointer.origin, data)
         )
-      )
-    },
-    keyUpdateArrowSession(data, payload: PointerInfo) {
-      session.update<Sessions.ArrowSession>(
-        data,
-        tld.screenToWorld(inputs.pointer.point, data),
-        payload.shiftKey
-      )
-    },
-    updateArrowSession(data, payload: PointerInfo) {
-      session.update<Sessions.ArrowSession>(
-        data,
-        tld.screenToWorld(payload.point, data),
-        payload.shiftKey
       )
     },
 

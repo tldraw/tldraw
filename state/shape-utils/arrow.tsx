@@ -11,6 +11,7 @@ import {
   circleFromThreePoints,
   isAngleBetween,
   getPerfectDashProps,
+  clampToRotationToSegments,
 } from 'utils'
 import {
   ArrowShape,
@@ -257,7 +258,10 @@ const arrow = registerShapeUtils<ArrowShape>({
     end.point = vec.rotWith(end.point, mp, delta)
     bend.point = vec.rotWith(bend.point, mp, delta)
 
-    this.onHandleChange(shape, shape.handles)
+    this.onHandleChange(shape, shape.handles, {
+      delta: [0, 0],
+      shiftKey: false,
+    })
 
     return this
   },
@@ -269,7 +273,10 @@ const arrow = registerShapeUtils<ArrowShape>({
     end.point = vec.rotWith(end.point, mp, delta)
     bend.point = vec.rotWith(bend.point, mp, delta)
 
-    this.onHandleChange(shape, shape.handles)
+    this.onHandleChange(shape, shape.handles, {
+      delta: [0, 0],
+      shiftKey: false,
+    })
 
     return this
   },
@@ -401,37 +408,63 @@ const arrow = registerShapeUtils<ArrowShape>({
     return this
   },
 
-  onHandleChange(shape, handles) {
+  onHandleChange(shape, handles, { shiftKey }) {
+    // Apple changes to the handles
     for (const id in handles) {
       const handle = handles[id]
-
       shape.handles[handle.id] = handle
+    }
+
+    // If the user is holding shift, we want to snap the handles to angles
+    for (const id in handles) {
+      if ((id === 'start' || id === 'end') && shiftKey) {
+        const point = handles[id].point
+        const other = id === 'start' ? shape.handles.end : shape.handles.start
+        const angle = vec.angle(other.point, point)
+        const distance = vec.dist(other.point, point)
+        const newAngle = clampToRotationToSegments(angle, 24)
+
+        shape.handles[id].point = vec.nudgeAtAngle(
+          other.point,
+          newAngle,
+          distance
+        )
+      }
     }
 
     const midPoint = vec.med(shape.handles.start.point, shape.handles.end.point)
 
+    // If the user is moving the bend handle, we want to move the bend point
     if ('bend' in handles) {
       const { start, end, bend } = shape.handles
 
-      const dist = vec.dist(start.point, end.point)
-
+      const distance = vec.dist(start.point, end.point)
       const midPoint = vec.med(start.point, end.point)
+      const angle = vec.angle(start.point, end.point)
       const u = vec.uni(vec.vec(start.point, end.point))
-      const ap = vec.add(midPoint, vec.mul(vec.per(u), dist / 2))
-      const bp = vec.sub(midPoint, vec.mul(vec.per(u), dist / 2))
 
-      bend.point = vec.nearestPointOnLineSegment(ap, bp, bend.point, true)
-      shape.bend = vec.dist(bend.point, midPoint) / (dist / 2)
+      // Create a line segment perendicular to the line between the start and end points
+      const ap = vec.add(midPoint, vec.mul(vec.per(u), distance / 2))
+      const bp = vec.sub(midPoint, vec.mul(vec.per(u), distance / 2))
 
-      const sa = vec.angle(end.point, start.point)
-      const la = sa - Math.PI / 2
+      // Find the nearest point on the line segment to the bend handle
+      bend.point = vec.round(
+        vec.nearestPointOnLineSegment(ap, bp, bend.point, true)
+      )
 
-      if (isAngleBetween(sa, la, vec.angle(end.point, bend.point))) {
+      // The "bend" is the distance between this point on the line segment
+      // and the midpoint, divided by the distance between the start and end points.
+      shape.bend = vec.dist(bend.point, midPoint) / (distance / 2)
+
+      // If the point is to the left of the line segment, we make the bend
+      // negative, otherwise it's positive.
+      const angleToBend = vec.angle(start.point, bend.point)
+      if (isAngleBetween(angle, angle + Math.PI / 2, angleToBend)) {
         shape.bend *= -1
       }
+    } else {
+      shape.handles.bend.point = getBendPoint(shape)
     }
-
-    shape.handles.bend.point = getBendPoint(shape)
 
     if (vec.isEqual(shape.handles.bend.point, midPoint)) {
       shape.bend = 0
@@ -498,9 +531,11 @@ function getBendPoint(shape: ArrowShape) {
   const bendDist = (dist / 2) * shape.bend
   const u = vec.uni(vec.vec(start.point, end.point))
 
-  return Math.abs(bendDist) < 10
-    ? midPoint
-    : vec.add(midPoint, vec.mul(vec.per(u), bendDist))
+  return vec.round(
+    Math.abs(bendDist) < 10
+      ? midPoint
+      : vec.add(midPoint, vec.mul(vec.per(u), bendDist))
+  )
 }
 
 function renderFreehandArrowShaft(shape: ArrowShape) {
@@ -513,23 +548,14 @@ function renderFreehandArrowShaft(shape: ArrowShape) {
 
   const st = Math.abs(getRandom())
 
-  const stroke = getStroke(
-    [
-      start.point,
-      ...vec.pointsBetween(start.point, end.point),
-      end.point,
-      end.point,
-      end.point,
-    ],
-    {
-      size: strokeWidth / 2,
-      thinning: 0.5 + getRandom() * 0.3,
-      easing: (t) => t * t,
-      end: { taper: 1 },
-      start: { taper: 1 + 32 * (st * st * st) },
-      simulatePressure: true,
-    }
-  )
+  const stroke = getStroke([...vec.pointsBetween(start.point, end.point)], {
+    size: strokeWidth / 2,
+    thinning: 0.5 + getRandom() * 0.3,
+    easing: (t) => t * t,
+    end: { taper: 1 },
+    start: { taper: 1 + 32 * (st * st * st) },
+    simulatePressure: true,
+  })
 
   pathCache.set(shape, getSvgPathFromStroke(stroke))
 }

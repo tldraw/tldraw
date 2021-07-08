@@ -1,4 +1,3 @@
-import ArrowSession from './arrow-session'
 import BaseSession from './base-session'
 import BrushSession from './brush-session'
 import DirectionSession from './direction-session'
@@ -11,7 +10,6 @@ import HandleSession from './handle-session'
 import EditSession from './edit-session'
 
 export {
-  ArrowSession,
   BaseSession,
   BrushSession,
   DirectionSession,
