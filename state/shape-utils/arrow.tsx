@@ -12,6 +12,8 @@ import {
   isAngleBetween,
   getPerfectDashProps,
   clampToRotationToSegments,
+  lerpAngles,
+  clamp,
 } from 'utils'
 import {
   ArrowShape,
@@ -106,26 +108,26 @@ const arrow = registerShapeUtils<ArrowShape>({
     const isStraightLine =
       vec.dist(_bend.point, vec.round(vec.med(start.point, end.point))) < 1
 
+    const isDraw = shape.style.dash === DashStyle.Draw
+
     const styles = getShapeStyle(style)
 
     const strokeWidth = +styles.strokeWidth
 
-    const sw = strokeWidth * 1.618
-
     const arrowDist = vec.dist(start.point, end.point)
 
+    const arrowHeadlength = Math.min(arrowDist / 3, strokeWidth * 8)
+
     let shaftPath: JSX.Element
-    let startAngle: number
-    let endAngle: number
+    let insetStart: number[]
+    let insetEnd: number[]
 
     if (isStraightLine) {
-      const straight_sw =
-        strokeWidth * (style.dash === DashStyle.Draw ? 0.618 : 1.618)
+      const sw = strokeWidth * (isDraw ? 0.618 : 1.618)
 
-      const path =
-        shape.style.dash === DashStyle.Draw
-          ? renderFreehandArrowShaft(shape)
-          : 'M' + vec.round(start.point) + 'L' + vec.round(end.point)
+      const path = isDraw
+        ? renderFreehandArrowShaft(shape)
+        : 'M' + vec.round(start.point) + 'L' + vec.round(end.point)
 
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
         arrowDist,
@@ -134,9 +136,8 @@ const arrow = registerShapeUtils<ArrowShape>({
         2
       )
 
-      startAngle = Math.PI
-
-      endAngle = 0
+      insetStart = vec.nudge(start.point, end.point, arrowHeadlength)
+      insetEnd = vec.nudge(end.point, start.point, arrowHeadlength)
 
       // Straight arrow path
       shaftPath = (
@@ -154,7 +155,7 @@ const arrow = registerShapeUtils<ArrowShape>({
             d={path}
             fill={styles.stroke}
             stroke={styles.stroke}
-            strokeWidth={straight_sw}
+            strokeWidth={sw}
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
@@ -164,29 +165,34 @@ const arrow = registerShapeUtils<ArrowShape>({
     } else {
       const circle = getCtp(shape)
 
-      const path = getArrowArcPath(start, end, circle, bend)
+      const sw = strokeWidth * (isDraw ? 0.618 : 1.618)
+
+      const path = isDraw
+        ? renderCurvedFreehandArrowShaft(shape, circle)
+        : getArrowArcPath(start, end, circle, bend)
+
+      const arcLength = getArcLength(
+        [circle[0], circle[1]],
+        circle[2],
+        start.point,
+        end.point
+      )
 
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-        getArcLength(
-          [circle[0], circle[1]],
-          circle[2],
-          start.point,
-          end.point
-        ) - 1,
+        arcLength - 1,
         sw,
         shape.style.dash,
         2
       )
 
-      startAngle =
-        vec.angle([circle[0], circle[1]], start.point) -
-        vec.angle(end.point, start.point) +
-        (Math.PI / 2) * (bend > 0 ? 0.98 : -0.98)
+      const center = [circle[0], circle[1]]
+      const radius = circle[2]
+      const sa = vec.angle(center, start.point)
+      const ea = vec.angle(center, end.point)
+      const t = arrowHeadlength / Math.abs(arcLength)
 
-      endAngle =
-        vec.angle([circle[0], circle[1]], end.point) -
-        vec.angle(start.point, end.point) +
-        (Math.PI / 2) * (bend > 0 ? 0.98 : -0.98)
+      insetStart = vec.nudgeAtAngle(center, lerpAngles(sa, ea, t), radius)
+      insetEnd = vec.nudgeAtAngle(center, lerpAngles(ea, sa, t), radius)
 
       // Curved arrow path
       shaftPath = (
@@ -202,7 +208,7 @@ const arrow = registerShapeUtils<ArrowShape>({
           />
           <path
             d={path}
-            fill="none"
+            fill={isDraw ? styles.stroke : 'none'}
             stroke={styles.stroke}
             strokeWidth={sw}
             strokeDasharray={strokeDasharray}
@@ -218,20 +224,20 @@ const arrow = registerShapeUtils<ArrowShape>({
         {shaftPath}
         {shape.decorations.start === Decoration.Arrow && (
           <path
-            d={getArrowHeadPath(shape, start.point, startAngle)}
+            d={getArrowHeadPath(shape, start.point, insetStart)}
             fill="none"
             stroke={styles.stroke}
-            strokeWidth={sw}
+            strokeWidth={strokeWidth * 1.618}
             strokeDashoffset="none"
             strokeDasharray="none"
           />
         )}
         {shape.decorations.end === Decoration.Arrow && (
           <path
-            d={getArrowHeadPath(shape, end.point, endAngle)}
+            d={getArrowHeadPath(shape, end.point, insetEnd)}
             fill="none"
             stroke={styles.stroke}
-            strokeWidth={sw}
+            strokeWidth={strokeWidth * 1.618}
             strokeDashoffset="none"
             strokeDasharray="none"
           />
@@ -434,23 +440,22 @@ const arrow = registerShapeUtils<ArrowShape>({
       const ap = vec.add(midPoint, vec.mul(vec.per(u), distance / 2))
       const bp = vec.sub(midPoint, vec.mul(vec.per(u), distance / 2))
 
+      const bendPoint = vec.nearestPointOnLineSegment(ap, bp, bend.point, true)
+
       // Find the distance between the midpoint and the nearest point on the
       // line segment to the bend handle's dragged point
-      const bendDist = vec.dist(
-        midPoint,
-        vec.round(vec.nearestPointOnLineSegment(ap, bp, bend.point, true))
-      )
+      const bendDist = vec.dist(midPoint, bendPoint)
 
       // The shape's "bend" is the ratio of the bend to the distance between
       // the start and end points. If the bend is below a certain amount, the
       // bend should be zero.
-      shape.bend = bendDist / (distance / 2)
+      shape.bend = clamp(bendDist / (distance / 2), -0.99, 0.99)
 
       // If the point is to the left of the line segment, we make the bend
       // negative, otherwise it's positive.
-      const angleToBend = vec.angle(start.point, bend.point)
+      const angleToBend = vec.angle(start.point, bendPoint)
 
-      if (isAngleBetween(angle, angle + Math.PI / 2, angleToBend)) {
+      if (isAngleBetween(angle, angle + Math.PI, angleToBend)) {
         shape.bend *= -1
       }
     }
@@ -520,11 +525,13 @@ function getBendPoint(shape: ArrowShape) {
   const bendDist = (dist / 2) * shape.bend
   const u = vec.uni(vec.vec(start.point, end.point))
 
-  return vec.round(
+  const point = vec.round(
     Math.abs(bendDist) < 10
       ? midPoint
       : vec.add(midPoint, vec.mul(vec.per(u), bendDist))
   )
+
+  return point
 }
 
 function renderFreehandArrowShaft(shape: ArrowShape) {
@@ -561,37 +568,68 @@ function renderFreehandArrowShaft(shape: ArrowShape) {
   return path
 }
 
-function getArrowHeadPath(shape: ArrowShape, point: number[], angle = 0) {
-  const { left, right } = getArrowHeadPoints(shape, point, angle)
+function renderCurvedFreehandArrowShaft(shape: ArrowShape, circle: number[]) {
+  const { style, id } = shape
+  const { start, end } = shape.handles
+
+  const getRandom = rng(id)
+
+  const strokeWidth = +getShapeStyle(style).strokeWidth * 2
+
+  const st = Math.abs(getRandom())
+
+  const center = [circle[0], circle[1]]
+  const radius = circle[2]
+
+  const startAngle = vec.angle(center, start.point)
+
+  const endAngle = vec.angle(center, end.point)
+
+  const points: number[][] = []
+
+  for (let i = 0; i < 14; i++) {
+    const t = i / 13
+    const angle = lerpAngles(startAngle, endAngle, t)
+    points.push(vec.round(vec.nudgeAtAngle(center, angle, radius)))
+  }
+
+  const stroke = getStroke(
+    [...points, end.point, end.point, end.point, end.point],
+    {
+      size: strokeWidth / 2,
+      thinning: 0.5 + getRandom() * 0.3,
+      easing: (t) => t * t,
+      end: { taper: 1 },
+      start: { taper: 1 + 32 * (st * st * st) },
+      simulatePressure: true,
+      last: true,
+    }
+  )
+
+  const path = getSvgPathFromStroke(stroke)
+
+  return path
+}
+
+function getArrowHeadPath(shape: ArrowShape, point: number[], inset: number[]) {
+  const { left, right } = getArrowHeadPoints(shape, point, inset)
   return ['M', left, 'L', point, right].join(' ')
 }
 
-function getArrowHeadPoints(shape: ArrowShape, point: number[], angle = 0) {
-  const { start, end } = shape.handles
-
-  const stroke = +getShapeStyle(shape.style).strokeWidth * 2
-
-  const arrowDist = vec.dist(start.point, end.point)
-
-  const arrowHeadlength = Math.min(arrowDist / 3, stroke * 4)
-
-  // Unit vector from start to end
-  const u = vec.uni(vec.vec(start.point, end.point))
-
-  // The end of the arrowhead wings
-  const v = vec.rot(vec.mul(vec.neg(u), arrowHeadlength), angle)
-
+function getArrowHeadPoints(
+  shape: ArrowShape,
+  point: number[],
+  inset: number[]
+) {
   // Use the shape's random seed to create minor offsets for the angles
   const getRandom = rng(shape.id)
 
   return {
-    left: vec.add(
+    left: vec.rotWith(inset, point, Math.PI / 6 + (Math.PI / 12) * getRandom()),
+    right: vec.rotWith(
+      inset,
       point,
-      vec.rot(v, Math.PI / 6 + (Math.PI / 12) * getRandom())
-    ),
-    right: vec.add(
-      point,
-      vec.rot(v, -(Math.PI / 6) + (Math.PI / 12) * getRandom())
+      -Math.PI / 6 + (Math.PI / 12) * getRandom()
     ),
   }
 }
