@@ -1347,7 +1347,7 @@ const state = createState({
 
     createShape(data, payload, type: ShapeType) {
       const style = deepClone(data.currentStyle)
-      let point = vec.round(tld.screenToWorld(payload.point, data))
+      let point = tld.screenToWorld(payload.point, data)
 
       if (type === ShapeType.Text) {
         point = vec.sub(point, vec.mul([0, 1], getFontSize(style.size) * 0.8))
@@ -1356,7 +1356,7 @@ const state = createState({
       const shape = createShape(type, {
         id: uniqueId(),
         parentId: data.currentPageId,
-        point,
+        point: vec.round(point),
         style: deepClone(data.currentStyle),
       })
 

@@ -1724,14 +1724,17 @@ export function getSvgPathFromStroke(stroke: number[][]): string {
   const d = stroke.reduce(
     (acc, [x0, y0], i, arr) => {
       const [x1, y1] = arr[(i + 1) % arr.length]
-      acc.push(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2)
+      acc.push(` ${x0},${y0} ${(x0 + x1) / 2},${(y0 + y1) / 2}`)
       return acc
     },
-    ['M', ...stroke[0], 'Q']
+    ['M ', `${stroke[0][0]},${stroke[0][1]}`, ' Q']
   )
 
-  d.push('Z')
-  return d.join(' ').replaceAll(/(\s[0-9]*\.[0-9]{2})([0-9]*)\b/g, '$1')
+  d.push(' Z')
+
+  return d
+    .join('')
+    .replaceAll(/(\s?[A-Z]?,?-?[0-9]*\.[0-9]{0,2})(([0-9]|e|-)*)/g, '$1')
 }
 
 export function debounce<T extends (...args: unknown[]) => unknown>(

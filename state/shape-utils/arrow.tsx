@@ -29,8 +29,6 @@ import getStroke from 'perfect-freehand'
 import React from 'react'
 import { registerShapeUtils } from './register'
 
-const pathCache = new WeakMap<ArrowShape, string>([])
-
 // A cache for semi-expensive circles calculated from three points
 function getCtp(shape: ArrowShape) {
   const { start, end, bend } = shape.handles
@@ -94,8 +92,6 @@ const arrow = registerShapeUtils<ArrowShape>({
       },
     }
 
-    // shape.handles.bend.point = getBendPoint(shape)
-
     return shape
   },
 
@@ -107,10 +103,8 @@ const arrow = registerShapeUtils<ArrowShape>({
     const { id, bend, handles, style } = shape
     const { start, end, bend: _bend } = handles
 
-    const isStraightLine = vec.isEqual(
-      _bend.point,
-      vec.med(start.point, end.point)
-    )
+    const isStraightLine =
+      vec.dist(_bend.point, vec.round(vec.med(start.point, end.point))) < 1
 
     const styles = getShapeStyle(style)
 
@@ -126,17 +120,12 @@ const arrow = registerShapeUtils<ArrowShape>({
 
     if (isStraightLine) {
       const straight_sw =
-        strokeWidth *
-        (style.dash === DashStyle.Draw && bend === 0 ? 0.5 : 1.618)
-
-      if (shape.style.dash === DashStyle.Draw && !pathCache.has(shape)) {
-        renderFreehandArrowShaft(shape)
-      }
+        strokeWidth * (style.dash === DashStyle.Draw ? 0.618 : 1.618)
 
       const path =
         shape.style.dash === DashStyle.Draw
-          ? pathCache.get(shape)
-          : 'M' + start.point + 'L' + end.point
+          ? renderFreehandArrowShaft(shape)
+          : 'M' + vec.round(start.point) + 'L' + vec.round(end.point)
 
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
         arrowDist,
@@ -432,8 +421,6 @@ const arrow = registerShapeUtils<ArrowShape>({
       }
     }
 
-    const midPoint = vec.med(shape.handles.start.point, shape.handles.end.point)
-
     // If the user is moving the bend handle, we want to move the bend point
     if ('bend' in handles) {
       const { start, end, bend } = shape.handles
@@ -447,28 +434,30 @@ const arrow = registerShapeUtils<ArrowShape>({
       const ap = vec.add(midPoint, vec.mul(vec.per(u), distance / 2))
       const bp = vec.sub(midPoint, vec.mul(vec.per(u), distance / 2))
 
-      // Find the nearest point on the line segment to the bend handle
-      bend.point = vec.round(
-        vec.nearestPointOnLineSegment(ap, bp, bend.point, true)
+      // Find the distance between the midpoint and the nearest point on the
+      // line segment to the bend handle's dragged point
+      const bendDist = vec.dist(
+        midPoint,
+        vec.round(vec.nearestPointOnLineSegment(ap, bp, bend.point, true))
       )
 
-      // The "bend" is the distance between this point on the line segment
-      // and the midpoint, divided by the distance between the start and end points.
-      shape.bend = vec.dist(bend.point, midPoint) / (distance / 2)
+      // The shape's "bend" is the ratio of the bend to the distance between
+      // the start and end points. If the bend is below a certain amount, the
+      // bend should be zero.
+      shape.bend = bendDist / (distance / 2)
 
       // If the point is to the left of the line segment, we make the bend
       // negative, otherwise it's positive.
       const angleToBend = vec.angle(start.point, bend.point)
+
       if (isAngleBetween(angle, angle + Math.PI / 2, angleToBend)) {
         shape.bend *= -1
       }
-    } else {
-      shape.handles.bend.point = getBendPoint(shape)
     }
 
-    if (vec.isEqual(shape.handles.bend.point, midPoint)) {
-      shape.bend = 0
-    }
+    shape.handles.start.point = vec.round(shape.handles.start.point)
+    shape.handles.end.point = vec.round(shape.handles.end.point)
+    shape.handles.bend.point = getBendPoint(shape)
 
     return this
   },
@@ -482,9 +471,9 @@ const arrow = registerShapeUtils<ArrowShape>({
 
     const { start, end, bend } = shape.handles
 
-    start.point = vec.sub(start.point, offset)
-    end.point = vec.sub(end.point, offset)
-    bend.point = vec.sub(bend.point, offset)
+    start.point = vec.round(vec.sub(start.point, offset))
+    end.point = vec.round(vec.sub(end.point, offset))
+    bend.point = vec.round(vec.sub(bend.point, offset))
 
     shape.handles = { ...shape.handles }
 
@@ -548,16 +537,28 @@ function renderFreehandArrowShaft(shape: ArrowShape) {
 
   const st = Math.abs(getRandom())
 
-  const stroke = getStroke([...vec.pointsBetween(start.point, end.point)], {
-    size: strokeWidth / 2,
-    thinning: 0.5 + getRandom() * 0.3,
-    easing: (t) => t * t,
-    end: { taper: 1 },
-    start: { taper: 1 + 32 * (st * st * st) },
-    simulatePressure: true,
-  })
+  const stroke = getStroke(
+    [
+      ...vec.pointsBetween(start.point, end.point),
+      end.point,
+      end.point,
+      end.point,
+      end.point,
+    ],
+    {
+      size: strokeWidth / 2,
+      thinning: 0.5 + getRandom() * 0.3,
+      easing: (t) => t * t,
+      end: { taper: 1 },
+      start: { taper: 1 + 32 * (st * st * st) },
+      simulatePressure: true,
+      last: true,
+    }
+  )
 
-  pathCache.set(shape, getSvgPathFromStroke(stroke))
+  const path = getSvgPathFromStroke(stroke)
+
+  return path
 }
 
 function getArrowHeadPath(shape: ArrowShape, point: number[], angle = 0) {
