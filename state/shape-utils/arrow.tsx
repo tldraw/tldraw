@@ -607,8 +607,12 @@ function renderCurvedFreehandArrowShaft(shape: ArrowShape, circle: number[]) {
     size: strokeWidth / 2,
     thinning: 0.5 + getRandom() * 0.3,
     easing: (t) => t * t,
-    end: { taper: shape.decorations.end ? 1 : 1 + 32 * (st * st * st) },
-    start: { taper: shape.decorations.start ? 1 : 1 + 32 * (st * st * st) },
+    end: {
+      taper: shape.decorations.end ? 1 : 1 + strokeWidth * 5 * (st * st * st),
+    },
+    start: {
+      taper: shape.decorations.start ? 1 : 1 + strokeWidth * 5 * (st * st * st),
+    },
     simulatePressure: true,
     streamline: 0.01,
     last: true,
