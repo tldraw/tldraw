@@ -32,8 +32,6 @@ import getStroke from 'perfect-freehand'
 import React from 'react'
 import { registerShapeUtils } from './register'
 
-const pathCache = new WeakMap<ArrowShape['handles'], string>([])
-
 // A cache for semi-expensive circles calculated from three points
 function getCtp(shape: ArrowShape) {
   const { start, end, bend } = shape.handles
@@ -129,9 +127,7 @@ const arrow = registerShapeUtils<ArrowShape>({
       const sw = strokeWidth * (isDraw ? 0.618 : 1.618)
 
       const path = isDraw
-        ? getFromCache(pathCache, shape.handles, (cache) =>
-            cache.set(shape.handles, renderFreehandArrowShaft(shape))
-          )
+        ? renderFreehandArrowShaft(shape)
         : 'M' + vec.round(start.point) + 'L' + vec.round(end.point)
 
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
@@ -173,12 +169,7 @@ const arrow = registerShapeUtils<ArrowShape>({
       const sw = strokeWidth * (isDraw ? 0.618 : 1.618)
 
       const path = isDraw
-        ? getFromCache(pathCache, shape.handles, (cache) =>
-            cache.set(
-              shape.handles,
-              renderCurvedFreehandArrowShaft(shape, circle)
-            )
-          )
+        ? renderCurvedFreehandArrowShaft(shape, circle)
         : getArrowArcPath(start, end, circle, bend)
 
       const arcLength = getArcLength(
