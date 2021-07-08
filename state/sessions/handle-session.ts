@@ -1,4 +1,4 @@
-import { Data } from 'types'
+import { Data, Shape } from 'types'
 import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
@@ -9,73 +9,58 @@ import { deepClone } from 'utils'
 export default class HandleSession extends BaseSession {
   delta = [0, 0]
   origin: number[]
-  snapshot: HandleSnapshot
+  shiftKey: boolean
+  initialShape: Shape
+  handleId: string
 
   constructor(data: Data, shapeId: string, handleId: string, point: number[]) {
     super(data)
     this.origin = point
-    this.snapshot = getHandleSnapshot(data, shapeId, handleId)
+    this.handleId = handleId
+    this.initialShape = deepClone(tld.getShape(data, shapeId))
   }
 
-  update(data: Data, point: number[], isAligned: boolean): void {
-    const { handleId, initialShape } = this.snapshot
-    const shape = tld.getPage(data).shapes[initialShape.id]
+  update(
+    data: Data,
+    point: number[],
+    shiftKey: boolean,
+    altKey: boolean,
+    metaKey: boolean
+  ): void {
+    const shape = tld.getPage(data).shapes[this.initialShape.id]
+
+    this.shiftKey = shiftKey
 
     const delta = vec.vec(this.origin, point)
 
-    if (isAligned) {
-      if (Math.abs(delta[0]) < Math.abs(delta[1])) {
-        delta[0] = 0
-      } else {
-        delta[1] = 0
-      }
-    }
+    const handles = this.initialShape.handles
 
-    const handles = initialShape.handles
-
-    // rotate the delta ?
-    // rotate the handle ?
-    // rotate the shape around the previous center point
-
-    getShapeUtils(shape).onHandleChange(shape, {
-      [handleId]: {
-        ...handles[handleId],
-        point: vec.add(handles[handleId].point, delta), // vec.rot(delta, shape.rotation)),
+    getShapeUtils(shape).onHandleChange(
+      shape,
+      {
+        [this.handleId]: {
+          ...handles[this.handleId],
+          point: vec.round(vec.add(handles[this.handleId].point, delta)), // vec.rot(delta, shape.rotation)),
+        },
       },
-    })
+      { delta, shiftKey, altKey, metaKey }
+    )
   }
 
   cancel(data: Data): void {
-    const { initialShape } = this.snapshot
-    tld.getPage(data).shapes[initialShape.id] = initialShape
+    tld.getPage(data).shapes[this.initialShape.id] = this.initialShape
   }
 
   complete(data: Data): void {
-    commands.handle(
-      data,
-      this.snapshot,
-      getHandleSnapshot(
-        data,
-        this.snapshot.initialShape.id,
-        this.snapshot.handleId
-      )
-    )
+    const before = this.initialShape
+    const after = deepClone(tld.getShape(data, before.id))
+    commands.mutate(data, [before], [after])
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function getHandleSnapshot(
-  data: Data,
-  shapeId: string,
-  handleId: string
-) {
-  const initialShape = deepClone(tld.getShape(data, shapeId))
-
-  return {
-    currentPageId: data.currentPageId,
-    handleId,
-    initialShape,
-  }
+export function getHandleSnapshot(data: Data, shapeId: string) {
+  return deepClone(tld.getShape(data, shapeId))
 }
 
 export type HandleSnapshot = ReturnType<typeof getHandleSnapshot>

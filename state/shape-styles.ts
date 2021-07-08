@@ -1,4 +1,3 @@
-import { SVGProps } from 'react'
 import { ColorStyle, DashStyle, ShapeStyles, SizeStyle } from 'types'
 
 export const strokes: Record<ColorStyle, string> = {
@@ -58,9 +57,11 @@ export function getFontStyle(scale: number, style: ShapeStyles): string {
   return `${fontSize * scale}px/1.4 Verveine Regular`
 }
 
-export function getShapeStyle(
-  style: ShapeStyles
-): Partial<SVGProps<SVGUseElement>> {
+export function getShapeStyle(style: ShapeStyles): {
+  stroke: string
+  fill: string
+  strokeWidth: number
+} {
   const { color, size, isFilled } = style
 
   const strokeWidth = getStrokeWidth(size)

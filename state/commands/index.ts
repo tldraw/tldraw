@@ -1,5 +1,4 @@
 import align from './align'
-import arrow from './arrow'
 import changePage from './change-page'
 import createPage from './create-page'
 import deletePage from './delete-page'
@@ -11,7 +10,6 @@ import duplicate from './duplicate'
 import edit from './edit'
 import generate from './generate'
 import group from './group'
-import handle from './handle'
 import move from './move'
 import moveToPage from './move-to-page'
 import mutate from './mutate'
@@ -30,7 +28,6 @@ import ungroup from './ungroup'
 
 const commands = {
   align,
-  arrow,
   changePage,
   createPage,
   deletePage,
@@ -42,7 +39,6 @@ const commands = {
   edit,
   generate,
   group,
-  handle,
   move,
   moveToPage,
   mutate,

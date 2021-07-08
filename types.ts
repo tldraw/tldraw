@@ -577,7 +577,13 @@ export interface ShapeUtility<K extends Shape> {
   onHandleChange(
     this: ShapeUtility<K>,
     shape: Mutable<K>,
-    handle: Partial<K['handles']>
+    handle: Partial<K['handles']>,
+    info?: Partial<{
+      delta: number[]
+      shiftKey: boolean
+      altKey: boolean
+      metaKey: boolean
+    }>
   ): ShapeUtility<K>
 
   onDoublePointHandle(

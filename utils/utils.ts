@@ -196,20 +196,6 @@ export function getClosestPointOnCircle(
   return vec.sub(C, vec.mul(vec.div(v, vec.len(v)), r))
 }
 
-function det(
-  a: number,
-  b: number,
-  c: number,
-  d: number,
-  e: number,
-  f: number,
-  g: number,
-  h: number,
-  i: number
-): number {
-  return a * e * i + b * f * g + c * d * h - a * f * h - b * d * i - c * e * g
-}
-
 /**
  * Get a circle from three points.
  * @param A
@@ -222,47 +208,27 @@ export function circleFromThreePoints(
   B: number[],
   C: number[]
 ): number[] {
-  const a = det(A[0], A[1], 1, B[0], B[1], 1, C[0], C[1], 1)
+  const [x1, y1] = A
+  const [x2, y2] = B
+  const [x3, y3] = C
 
-  const bx = -det(
-    A[0] * A[0] + A[1] * A[1],
-    A[1],
-    1,
-    B[0] * B[0] + B[1] * B[1],
-    B[1],
-    1,
-    C[0] * C[0] + C[1] * C[1],
-    C[1],
-    1
-  )
-  const by = det(
-    A[0] * A[0] + A[1] * A[1],
-    A[0],
-    1,
-    B[0] * B[0] + B[1] * B[1],
-    B[0],
-    1,
-    C[0] * C[0] + C[1] * C[1],
-    C[0],
-    1
-  )
-  const c = -det(
-    A[0] * A[0] + A[1] * A[1],
-    A[0],
-    A[1],
-    B[0] * B[0] + B[1] * B[1],
-    B[0],
-    B[1],
-    C[0] * C[0] + C[1] * C[1],
-    C[0],
-    C[1]
-  )
+  const a = x1 * (y2 - y3) - y1 * (x2 - x3) + x2 * y3 - x3 * y2
 
-  const x = -bx / (2 * a)
-  const y = -by / (2 * a)
-  const r = Math.sqrt(bx * bx + by * by - 4 * a * c) / (2 * Math.abs(a))
+  const b =
+    (x1 * x1 + y1 * y1) * (y3 - y2) +
+    (x2 * x2 + y2 * y2) * (y1 - y3) +
+    (x3 * x3 + y3 * y3) * (y2 - y1)
 
-  return [x, y, r]
+  const c =
+    (x1 * x1 + y1 * y1) * (x2 - x3) +
+    (x2 * x2 + y2 * y2) * (x3 - x1) +
+    (x3 * x3 + y3 * y3) * (x1 - x2)
+
+  const x = -b / (2 * a)
+
+  const y = -c / (2 * a)
+
+  return [x, y, Math.hypot(x - x1, y - y1)]
 }
 
 /**
@@ -281,7 +247,12 @@ export function perimeterOfEllipse(rx: number, ry: number): number {
  * @param a0
  * @param a1
  */
-export function shortAngleDist(a0: number, a1: number): number {
+export function shortAngleDist(a0: number, a1: number, clamp = true): number {
+  if (!clamp) {
+    const da = a1 - a0
+    return 2 * da - da
+  }
+
   const max = Math.PI * 2
   const da = (a1 - a0) % max
   return ((2 * da) % max) - da
@@ -303,7 +274,7 @@ export function longAngleDist(a0: number, a1: number): number {
  * @param t
  */
 export function lerpAngles(a0: number, a1: number, t: number): number {
-  return a0 + shortAngleDist(a0, a1) * t
+  return a0 + shortAngleDist(a0, a1, true) * t
 }
 
 /**
@@ -1753,14 +1724,17 @@ export function getSvgPathFromStroke(stroke: number[][]): string {
   const d = stroke.reduce(
     (acc, [x0, y0], i, arr) => {
       const [x1, y1] = arr[(i + 1) % arr.length]
-      acc.push(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2)
+      acc.push(` ${x0},${y0} ${(x0 + x1) / 2},${(y0 + y1) / 2}`)
       return acc
     },
-    ['M', ...stroke[0], 'Q']
+    ['M ', `${stroke[0][0]},${stroke[0][1]}`, ' Q']
   )
 
-  d.push('Z')
-  return d.join(' ').replaceAll(/(\s[0-9]*\.[0-9]{2})([0-9]*)\b/g, '$1')
+  d.push(' Z')
+
+  return d
+    .join('')
+    .replaceAll(/(\s?[A-Z]?,?-?[0-9]*\.[0-9]{0,2})(([0-9]|e|-)*)/g, '$1')
 }
 
 export function debounce<T extends (...args: unknown[]) => unknown>(
