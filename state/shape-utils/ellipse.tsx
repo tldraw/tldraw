@@ -42,7 +42,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
     )
   },
 
-  render(shape) {
+  render(shape, { isHovered }) {
     const { id, radiusX, radiusY, style } = shape
     const styles = getShapeStyle(style)
     const strokeWidth = +styles.strokeWidth
@@ -74,7 +74,8 @@ const ellipse = registerShapeUtils<EllipseShape>({
             d={path}
             fill={styles.stroke}
             stroke={styles.stroke}
-            strokeWidth={styles.strokeWidth}
+            strokeWidth={strokeWidth}
+            filter={isHovered ? 'url(#expand)' : 'none'}
           />
         </g>
       )
@@ -92,21 +93,22 @@ const ellipse = registerShapeUtils<EllipseShape>({
       4
     )
 
+    const sw = strokeWidth * 1.618
+
     return (
-      <g id={id}>
-        <ellipse
-          id={id}
-          cx={radiusX}
-          cy={radiusY}
-          rx={rx}
-          ry={ry}
-          fill={styles.fill}
-          stroke={styles.stroke}
-          strokeWidth={strokeWidth * 1.618}
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
-        />
-      </g>
+      <ellipse
+        id={id}
+        cx={radiusX}
+        cy={radiusY}
+        rx={rx}
+        ry={ry}
+        fill={styles.fill}
+        stroke={styles.stroke}
+        strokeWidth={sw}
+        strokeDasharray={strokeDasharray}
+        strokeDashoffset={strokeDashoffset}
+        filter={isHovered ? 'url(#expand)' : 'none'}
+      />
     )
   },
 

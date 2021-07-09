@@ -25,7 +25,7 @@ const ray = registerShapeUtils<RayShape>({
   shouldRender(shape, prev) {
     return shape.direction !== prev.direction || shape.style !== prev.style
   },
-  render(shape) {
+  render(shape, { isHovered }) {
     const { id, direction } = shape
 
     const styles = getShapeStyle(shape.style)
@@ -33,7 +33,7 @@ const ray = registerShapeUtils<RayShape>({
     const [x2, y2] = vec.add([0, 0], vec.mul(direction, 10000))
 
     return (
-      <g id={id}>
+      <g id={id} filter={isHovered ? 'url(#expand)' : 'none'}>
         <ThinLine x1={0} y1={0} x2={x2} y2={y2} stroke={styles.stroke} />
         <circle r={4} fill="transparent" />
         <use href="#dot" />

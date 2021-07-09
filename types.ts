@@ -607,8 +607,11 @@ export interface ShapeUtility<K extends Shape> {
   render(
     this: ShapeUtility<K>,
     shape: K,
-    info: {
-      isEditing: boolean
+    info?: {
+      isEditing?: boolean
+      isHovered?: boolean
+      isSelected?: boolean
+      isCurrentParent?: boolean
       ref?: React.MutableRefObject<HTMLTextAreaElement>
     }
   ): JSX.Element

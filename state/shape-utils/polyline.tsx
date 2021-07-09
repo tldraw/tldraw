@@ -28,7 +28,7 @@ const polyline = registerShapeUtils<PolylineShape>({
   shouldRender(shape, prev) {
     return shape.points !== prev.points || shape.style !== prev.style
   },
-  render(shape) {
+  render(shape, { isHovered }) {
     const { id, points } = shape
 
     const styles = getShapeStyle(shape.style)
@@ -40,6 +40,7 @@ const polyline = registerShapeUtils<PolylineShape>({
         stroke={styles.stroke}
         strokeWidth={styles.strokeWidth}
         fill={shape.style.isFilled ? styles.fill : 'none'}
+        filter={isHovered ? 'url(#expand)' : 'none'}
       />
     )
   },

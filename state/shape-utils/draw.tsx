@@ -40,7 +40,7 @@ const draw = registerShapeUtils<DrawShape>({
     return shape.points !== prev.points || shape.style !== prev.style
   },
 
-  render(shape) {
+  render(shape, { isHovered }) {
     const { id, points, style } = shape
 
     const styles = getShapeStyle(style)
@@ -54,15 +54,17 @@ const draw = registerShapeUtils<DrawShape>({
     // For very short lines, draw a point instead of a line
 
     if (points.length > 0 && points.length < 3) {
+      const sw = strokeWidth * 0.618
+
       return (
-        <g id={id}>
-          <circle
-            r={strokeWidth * 0.618}
-            fill={styles.stroke}
-            stroke={styles.stroke}
-            strokeWidth={styles.strokeWidth}
-          />
-        </g>
+        <circle
+          id={id}
+          r={strokeWidth * 0.618}
+          fill={styles.stroke}
+          stroke={styles.stroke}
+          strokeWidth={sw}
+          filter={isHovered ? 'url(#expand)' : 'none'}
+        />
       )
     }
 
@@ -85,6 +87,8 @@ const draw = registerShapeUtils<DrawShape>({
               strokeWidth="0"
               stroke="none"
               fill={styles.fill}
+              strokeLinejoin="round"
+              strokeLinecap="round"
             />
           )}
           <path
@@ -92,6 +96,9 @@ const draw = registerShapeUtils<DrawShape>({
             fill={styles.stroke}
             stroke={styles.stroke}
             strokeWidth={strokeWidth}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            filter={isHovered ? 'url(#expand)' : 'none'}
           />
         </g>
       )
@@ -119,6 +126,8 @@ const draw = registerShapeUtils<DrawShape>({
 
     const path = simplePathCache.get(points)
 
+    const sw = strokeWidth * 1.618
+
     return (
       <g id={id}>
         {style.dash !== DashStyle.Solid && (
@@ -127,15 +136,20 @@ const draw = registerShapeUtils<DrawShape>({
             fill="transparent"
             stroke="transparent"
             strokeWidth={strokeWidth * 2}
+            strokeLinejoin="round"
+            strokeLinecap="round"
           />
         )}
         <path
           d={path}
           fill={shouldFill ? styles.fill : 'none'}
           stroke={styles.stroke}
-          strokeWidth={strokeWidth * 1.618}
+          strokeWidth={sw}
           strokeDasharray={strokeDasharray}
           strokeDashoffset={strokeDashoffset}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          filter={isHovered ? 'url(#expand)' : 'none'}
         />
       </g>
     )

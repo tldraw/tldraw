@@ -1,4 +1,4 @@
-import { uniqueId, isMobile, getFromCache } from 'utils/utils'
+import { uniqueId, getFromCache } from 'utils/utils'
 import vec from 'utils/vec'
 import TextAreaUtils from 'utils/text-area'
 import { TextShape, ShapeType } from 'types'
@@ -70,7 +70,7 @@ const text = registerShapeUtils<TextShape>({
     )
   },
 
-  render(shape, { isEditing, ref }) {
+  render(shape, { isEditing, isHovered, ref }) {
     const { id, text, style } = shape
     const styles = getShapeStyle(style)
     const font = getFontStyle(shape.scale, shape.style)
@@ -106,31 +106,36 @@ const text = registerShapeUtils<TextShape>({
       }
     }
 
-    function handleBlur() {
+    function handleBlur(e: React.FocusEvent<HTMLTextAreaElement>) {
+      if (isEditing) {
+        e.currentTarget.focus()
+        e.currentTarget.select()
+        return
+      }
+
       setTimeout(() => state.send('BLURRED_EDITING_SHAPE', { id }), 0)
     }
 
-    function handleFocus(e: React.FocusEvent<HTMLTextAreaElement>) {
-      e.currentTarget.select()
+    function handleFocus() {
       state.send('FOCUSED_EDITING_SHAPE', { id })
     }
 
-    function handlePointerDown(e: React.PointerEvent<HTMLTextAreaElement>) {
-      if (e.currentTarget.selectionEnd !== 0) {
-        e.currentTarget.selectionEnd = 0
+    function handlePointerDown() {
+      if (ref.current.selectionEnd !== 0) {
+        ref.current.selectionEnd = 0
       }
     }
 
     const fontSize = getFontSize(shape.style.size) * shape.scale
     const lineHeight = fontSize * 1.4
 
-    if (ref === undefined) {
-      throw Error('This component should receive a ref.')
-    }
-
     if (!isEditing) {
       return (
-        <g id={id} pointerEvents="none">
+        <g
+          id={id}
+          pointerEvents="all"
+          filter={isHovered ? 'url(#expand)' : 'none'}
+        >
           {text.split('\n').map((str, i) => (
             <text
               key={i}
@@ -138,13 +143,13 @@ const text = registerShapeUtils<TextShape>({
               y={4 + fontSize / 2 + i * lineHeight}
               fontFamily="Verveine Regular"
               fontStyle="normal"
-              fontWeight="regular"
+              fontWeight="500"
               fontSize={fontSize}
               width={bounds.width}
               height={bounds.height}
               fill={styles.stroke}
               color={styles.stroke}
-              stroke={styles.stroke}
+              stroke="none"
               xmlSpace="preserve"
               dominantBaseline="mathematical"
               alignmentBaseline="mathematical"
@@ -155,12 +160,18 @@ const text = registerShapeUtils<TextShape>({
         </g>
       )
     }
+
+    if (ref === undefined) {
+      throw Error('This component should receive a ref when editing.')
+    }
+
     return (
       <foreignObject
         id={id}
         width={bounds.width}
         height={bounds.height}
         pointerEvents="none"
+        onPointerDown={(e) => e.stopPropagation()}
       >
         <StyledTextArea
           ref={ref as React.RefObject<HTMLTextAreaElement>}
@@ -177,7 +188,7 @@ const text = registerShapeUtils<TextShape>({
           autoSave="false"
           placeholder=""
           color={styles.stroke}
-          autoFocus={!!isMobile()}
+          autoFocus={true}
           onFocus={handleFocus}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
@@ -287,6 +298,7 @@ const StyledTextArea = styled('textarea', {
   minWidth: 1,
   lineHeight: 1.4,
   outline: 0,
+  fontWeight: '500',
   backgroundColor: '$boundsBg',
   overflow: 'hidden',
   pointerEvents: 'all',

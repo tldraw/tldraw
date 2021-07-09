@@ -28,7 +28,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
     return shape.size !== prev.size || shape.style !== prev.style
   },
 
-  render(shape) {
+  render(shape, { isHovered }) {
     const { id, size, radius, style } = shape
     const styles = getShapeStyle(style)
     const strokeWidth = +styles.strokeWidth
@@ -56,6 +56,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
             fill={styles.stroke}
             stroke={styles.stroke}
             strokeWidth={styles.strokeWidth}
+            filter={isHovered ? 'url(#expand)' : 'none'}
           />
         </g>
       )
@@ -106,7 +107,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
           fill={styles.fill}
           stroke="none"
         />
-        {paths}
+        <g filter={isHovered ? 'url(#expand)' : 'none'}>{paths}</g>
       </g>
     )
   },

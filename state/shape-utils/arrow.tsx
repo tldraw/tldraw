@@ -102,7 +102,7 @@ const arrow = registerShapeUtils<ArrowShape>({
     return shape.handles !== prev.handles || shape.style !== prev.style
   },
 
-  render(shape) {
+  render(shape, { isHovered }) {
     const { id, bend, handles, style } = shape
     const { start, end, bend: _bend } = handles
 
@@ -215,22 +215,26 @@ const arrow = registerShapeUtils<ArrowShape>({
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
-          ></path>
+          />
         </>
       )
     }
 
+    const sw = strokeWidth * 1.618
+
     return (
-      <g id={id}>
+      <g id={id} filter={isHovered ? 'url(#expand)' : 'none'}>
         {shaftPath}
         {shape.decorations.start === Decoration.Arrow && (
           <path
             d={getArrowHeadPath(shape, start.point, insetStart)}
             fill="none"
             stroke={styles.stroke}
-            strokeWidth={strokeWidth * 1.618}
+            strokeWidth={sw}
             strokeDashoffset="none"
             strokeDasharray="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         )}
         {shape.decorations.end === Decoration.Arrow && (
@@ -238,9 +242,11 @@ const arrow = registerShapeUtils<ArrowShape>({
             d={getArrowHeadPath(shape, end.point, insetEnd)}
             fill="none"
             stroke={styles.stroke}
-            strokeWidth={strokeWidth * 1.618}
+            strokeWidth={sw}
             strokeDashoffset="none"
             strokeDasharray="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         )}
       </g>

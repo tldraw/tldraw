@@ -8,59 +8,33 @@ import useShapeEvents from 'hooks/useShapeEvents'
 import useShape from 'hooks/useShape'
 import vec from 'utils/vec'
 import { getShapeStyle } from 'state/shape-styles'
+import { Shape as _Shape } from 'types'
 
 interface ShapeProps {
-  id: string
+  shape: _Shape
+  parent?: _Shape
 }
 
-function Shape({ id }: ShapeProps): JSX.Element {
+function Shape({ shape, parent }: ShapeProps): JSX.Element {
   const rGroup = useRef<SVGGElement>(null)
 
-  const isHidden = useSelector((s) => {
-    const shape = tld.getShape(s.data, id)
-    if (shape === undefined) return true
-    return shape?.isHidden
-  })
+  const { id, isHidden, children } = shape
+  const style = getShapeStyle(shape.style)
+  const { strokeWidth } = style
 
-  const children = useSelector((s) => {
-    const shape = tld.getShape(s.data, id)
-    if (shape === undefined) return []
-    return shape?.children
-  })
+  const center = getShapeUtils(shape).getCenter(shape)
+  const rotation = shape.rotation * (180 / Math.PI)
+  const parentPoint = parent?.point || [0, 0]
 
-  const strokeWidth = useSelector((s) => {
-    const shape = tld.getShape(s.data, id)
-    if (shape === undefined) return 0
-    const style = getShapeStyle(shape?.style)
-    return +style.strokeWidth
-  })
-
-  const transform = useSelector((s) => {
-    const shape = tld.getShape(s.data, id)
-    if (shape === undefined) return ''
-    const center = getShapeUtils(shape).getCenter(shape)
-    const rotation = shape.rotation * (180 / Math.PI)
-    const parentPoint = tld.getShape(s.data, shape.parentId)?.point || [0, 0]
-
-    return `
+  const transform = `
       translate(${vec.neg(parentPoint)})
       rotate(${rotation}, ${center})
       translate(${shape.point})
   `
-  })
 
-  const isCurrentParent = useSelector((s) => {
-    return s.data.currentParentId === id
-  })
+  const isCurrentParent = false
 
-  const events = useShapeEvents(id, isCurrentParent, rGroup)
-
-  const shape = tld.getShape(state.data, id)
-
-  if (!shape) {
-    console.warn('Could not find that shape:', id)
-    return null
-  }
+  const events = useShapeEvents(shape.id, isCurrentParent, rGroup)
 
   // From here on, not reactive—if we're here, we can trust that the
   // shape in state is a shape with changes that we need to render.
@@ -90,37 +64,54 @@ function Shape({ id }: ShapeProps): JSX.Element {
         (isForeignObject ? (
           <ForeignObjectRender id={id} />
         ) : (
-          <RealShape id={id} isParent={isParent} strokeWidth={strokeWidth} />
+          <RealShape
+            id={id}
+            isParent={isParent}
+            shape={shape}
+            strokeWidth={strokeWidth}
+          />
         ))}
 
       {isParent &&
-        children.map((shapeId) => <Shape key={shapeId} id={shapeId} />)}
+        children.map((shapeId) => (
+          <Shape
+            key={shapeId}
+            shape={tld.getShape(state.data, shapeId)}
+            parent={shape}
+          />
+        ))}
     </StyledGroup>
   )
 }
 
 export default memo(Shape)
 
+// function Def({ id }: { id: string }) {
+//   const shape = useShape(id)
+//   if (!shape) return null
+//   return getShapeUtils(shape).render(shape, { isEditing: false })
+// }
+
 interface RealShapeProps {
   id: string
   isParent: boolean
   strokeWidth: number
+  shape: _Shape
 }
 
-const RealShape = memo(function RealShape({
-  id,
-  isParent,
-  strokeWidth,
-}: RealShapeProps) {
-  return (
-    <StyledShape
-      as="use"
-      data-shy={isParent}
-      href={'#' + id}
-      strokeWidth={strokeWidth}
-    />
-  )
-})
+const RealShape = memo(
+  function RealShape({ shape }: RealShapeProps) {
+    return getShapeUtils(shape).render(shape, { isEditing: false })
+  },
+  (prev, next) => {
+    return (
+      prev.shape &&
+      next.shape &&
+      next.shape !== prev.shape &&
+      getShapeUtils(next.shape).shouldRender(next.shape, prev.shape)
+    )
+  }
+)
 
 const ForeignObjectHover = memo(function ForeignObjectHover({
   id,
@@ -170,12 +161,6 @@ const ForeignObjectRender = memo(function ForeignObjectRender({
   if (shape === undefined) return null
 
   return getShapeUtils(shape).render(shape, { isEditing, ref: rFocusable })
-})
-
-const StyledShape = styled('path', {
-  strokeLinecap: 'round',
-  strokeLinejoin: 'round',
-  pointerEvents: 'none',
 })
 
 const EventSoak = styled('use', {
