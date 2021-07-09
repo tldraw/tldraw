@@ -1,11 +1,2 @@
-name: CI
-on: push
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install modules
-      run: yarn
-    - name: Run tests
-      run: yarn test
+- name: Jest Annotations & Coverage
+  uses: mattallty/jest-github-action@v1.0.3
