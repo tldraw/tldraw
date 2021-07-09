@@ -68,12 +68,11 @@ class Clipboard {
     shapes
       .sort((a, b) => a.childIndex - b.childIndex)
       .forEach((shape) => {
-        const group = document.getElementById(shape.id + '-group')
-        const node = document.getElementById(shape.id)
+        const group = document.getElementById(shape.id)
 
-        const groupClone = group.cloneNode()
+        const groupClone = group.cloneNode(true)
 
-        groupClone.appendChild(node.cloneNode(true))
+        // TODO: Add children if the shape is a group
 
         svg.appendChild(groupClone)
       })

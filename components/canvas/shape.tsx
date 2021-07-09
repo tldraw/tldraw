@@ -3,6 +3,7 @@ import { Shape as _Shape, ShapeType, TextShape } from 'types'
 import { getShapeUtils } from 'state/shape-utils'
 import { shallowEqual } from 'utils'
 import { memo, useRef } from 'react'
+import styled from 'styles'
 
 interface ShapeProps {
   shape: _Shape
@@ -26,16 +27,14 @@ const Shape = memo(
 
     const center = utils.getCenter(shape)
     const rotation = shape.rotation * (180 / Math.PI)
-    const transform = `
-    rotate(${rotation}, ${center})
-    translate(${shape.point})
-    `
+    const transform = `rotate(${rotation}, ${center}) translate(${shape.point})`
 
     return (
-      <g
+      <ShapeGroup
         ref={rGroup}
         id={shape.id}
         transform={transform}
+        isCurrentParent={isCurrentParent}
         filter={isHovered ? 'url(#expand)' : 'none'}
         {...events}
       >
@@ -50,7 +49,7 @@ const Shape = memo(
             isCurrentParent={isCurrentParent}
           />
         )}
-      </g>
+      </ShapeGroup>
     )
   },
   shallowEqual
@@ -110,3 +109,27 @@ function EditingTextShape({ shape }: { shape: TextShape }) {
     isCurrentParent: false,
   })
 }
+
+const ShapeGroup = styled('g', {
+  outline: 'none',
+
+  '& > *[data-shy=true]': {
+    opacity: 0,
+  },
+
+  '&:hover': {
+    '& > *[data-shy=true]': {
+      opacity: 1,
+    },
+  },
+
+  variants: {
+    isCurrentParent: {
+      true: {
+        '& > *[data-shy=true]': {
+          opacity: 1,
+        },
+      },
+    },
+  },
+})

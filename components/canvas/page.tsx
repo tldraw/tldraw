@@ -114,8 +114,8 @@ function addToTree(
     shape.children
       .map((id) => tld.getShape(data, id))
       .sort((a, b) => a.childIndex - b.childIndex)
-      .forEach((shape) => {
-        addToTree(data, selectedIds, allowHovers, node.children, shape)
+      .forEach((childShape) => {
+        addToTree(data, selectedIds, allowHovers, node.children, childShape)
       })
   }
 }
