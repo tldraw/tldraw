@@ -41,13 +41,14 @@ const draw = registerShapeUtils<DrawShape>({
   },
 
   render(shape, { isHovered }) {
-    const { id, points, style } = shape
+    const { points, style } = shape
 
     const styles = getShapeStyle(style)
 
     const strokeWidth = +styles.strokeWidth
 
     const shouldFill =
+      style.isFilled &&
       points.length > 3 &&
       vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
 
@@ -58,11 +59,11 @@ const draw = registerShapeUtils<DrawShape>({
 
       return (
         <circle
-          id={id}
           r={strokeWidth * 0.618}
           fill={styles.stroke}
           stroke={styles.stroke}
           strokeWidth={sw}
+          pointerEvents="all"
           filter={isHovered ? 'url(#expand)' : 'none'}
         />
       )
@@ -80,15 +81,15 @@ const draw = registerShapeUtils<DrawShape>({
       })
 
       return (
-        <g id={id}>
+        <>
           {shouldFill && (
             <path
               d={polygonPathData}
-              strokeWidth="0"
               stroke="none"
               fill={styles.fill}
               strokeLinejoin="round"
               strokeLinecap="round"
+              pointerEvents="fill"
             />
           )}
           <path
@@ -98,9 +99,10 @@ const draw = registerShapeUtils<DrawShape>({
             strokeWidth={strokeWidth}
             strokeLinejoin="round"
             strokeLinecap="round"
+            pointerEvents="all"
             filter={isHovered ? 'url(#expand)' : 'none'}
           />
-        </g>
+        </>
       )
     }
 
@@ -129,29 +131,29 @@ const draw = registerShapeUtils<DrawShape>({
     const sw = strokeWidth * 1.618
 
     return (
-      <g id={id}>
-        {style.dash !== DashStyle.Solid && (
-          <path
-            d={path}
-            fill="transparent"
-            stroke="transparent"
-            strokeWidth={strokeWidth * 2}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-          />
-        )}
+      <>
         <path
           d={path}
           fill={shouldFill ? styles.fill : 'none'}
+          stroke="transparent"
+          strokeWidth={Math.min(4, strokeWidth * 2)}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          pointerEvents={shouldFill ? 'all' : 'stroke'}
+        />
+        <path
+          d={path}
+          fill="transparent"
           stroke={styles.stroke}
           strokeWidth={sw}
           strokeDasharray={strokeDasharray}
           strokeDashoffset={strokeDashoffset}
           strokeLinejoin="round"
           strokeLinecap="round"
+          pointerEvents="stroke"
           filter={isHovered ? 'url(#expand)' : 'none'}
         />
-      </g>
+      </>
     )
   },
 
@@ -174,13 +176,8 @@ const draw = registerShapeUtils<DrawShape>({
     return getBoundsCenter(this.getBounds(shape))
   },
 
-  hitTest(shape, point) {
-    const pt = vec.sub(point, shape.point)
-    const min = +getShapeStyle(shape.style).strokeWidth
-    return shape.points.some(
-      (curr, i) =>
-        i > 0 && vec.distanceToLineSegment(shape.points[i - 1], curr, pt) < min
-    )
+  hitTest() {
+    return true
   },
 
   hitTestBounds(this, shape, brushBounds) {

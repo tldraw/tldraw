@@ -58,16 +58,16 @@ const ellipse = registerShapeUtils<EllipseShape>({
       const path = pathCache.get(shape)
 
       return (
-        <g id={id}>
+        <g id={id} pointerEvents={style.isFilled ? 'all' : 'stroke'}>
           {style.isFilled && (
             <ellipse
-              id={id}
               cx={radiusX}
               cy={radiusY}
               rx={rx}
               ry={ry}
               stroke="none"
               fill={styles.fill}
+              pointerEvents="fill"
             />
           )}
           <path
@@ -75,6 +75,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
             fill={styles.stroke}
             stroke={styles.stroke}
             strokeWidth={strokeWidth}
+            pointerEvents="all"
             filter={isHovered ? 'url(#expand)' : 'none'}
           />
         </g>
@@ -97,7 +98,6 @@ const ellipse = registerShapeUtils<EllipseShape>({
 
     return (
       <ellipse
-        id={id}
         cx={radiusX}
         cy={radiusY}
         rx={rx}
@@ -107,6 +107,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
         strokeWidth={sw}
         strokeDasharray={strokeDasharray}
         strokeDashoffset={strokeDashoffset}
+        pointerEvents={style.isFilled ? 'all' : 'stroke'}
         filter={isHovered ? 'url(#expand)' : 'none'}
       />
     )

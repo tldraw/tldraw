@@ -127,8 +127,9 @@ const TranslatedShape = memo(
   }: TranslatedShapeProps) => {
     const rGroup = useRef<SVGGElement>(null)
     const events = useShapeEvents(shape.id, isCurrentParent, rGroup)
+    const utils = getShapeUtils(shape)
 
-    const center = getShapeUtils(shape).getCenter(shape)
+    const center = utils.getCenter(shape)
     const rotation = shape.rotation * (180 / Math.PI)
     const transform = `
     rotate(${rotation}, ${center})
@@ -136,7 +137,13 @@ const TranslatedShape = memo(
     `
 
     return (
-      <g ref={rGroup} transform={transform} pointerEvents="all" {...events}>
+      <g
+        ref={rGroup}
+        id={shape.id}
+        transform={transform}
+        filter={isHovered ? 'url(#expand)' : 'none'}
+        {...events}
+      >
         {isEditing && shape.type === ShapeType.Text ? (
           <EditingTextShape shape={shape} />
         ) : (

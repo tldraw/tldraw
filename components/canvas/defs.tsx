@@ -19,7 +19,7 @@ function ExpandDef() {
   const zoom = useSelector((s) => tld.getCurrentCamera(s.data).zoom)
   return (
     <filter id="expand">
-      <feMorphology operator="dilate" radius={1 / zoom} />
+      <feMorphology operator="dilate" radius={0.5 / zoom} />
     </filter>
   )
 }

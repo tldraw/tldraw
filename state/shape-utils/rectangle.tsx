@@ -39,26 +39,29 @@ const rectangle = registerShapeUtils<RectangleShape>({
       })
 
       return (
-        <g id={id}>
-          <rect
-            rx={radius}
-            ry={radius}
-            x={+styles.strokeWidth / 2}
-            y={+styles.strokeWidth / 2}
-            width={Math.max(0, size[0] - strokeWidth)}
-            height={Math.max(0, size[1] - strokeWidth)}
-            strokeWidth={0}
-            fill={styles.fill}
-            stroke={styles.stroke}
-          />
+        <>
+          {style.isFilled && (
+            <rect
+              rx={radius}
+              ry={radius}
+              x={+styles.strokeWidth / 2}
+              y={+styles.strokeWidth / 2}
+              width={Math.max(0, size[0] - strokeWidth)}
+              height={Math.max(0, size[1] - strokeWidth)}
+              strokeWidth={0}
+              fill={styles.fill}
+              stroke={styles.stroke}
+            />
+          )}
           <path
             d={pathData}
             fill={styles.stroke}
             stroke={styles.stroke}
             strokeWidth={styles.strokeWidth}
             filter={isHovered ? 'url(#expand)' : 'none'}
+            pointerEvents={style.isFilled ? 'all' : 'stroke'}
           />
-        </g>
+        </>
       )
     }
 
@@ -98,17 +101,21 @@ const rectangle = registerShapeUtils<RectangleShape>({
     })
 
     return (
-      <g id={id}>
+      <>
         <rect
           x={sw / 2}
           y={sw / 2}
           width={w}
           height={h}
           fill={styles.fill}
-          stroke="none"
+          stroke="transparent"
+          strokeWidth={sw}
+          pointerEvents={style.isFilled ? 'all' : 'stroke'}
         />
-        <g filter={isHovered ? 'url(#expand)' : 'none'}>{paths}</g>
-      </g>
+        <g filter={isHovered ? 'url(#expand)' : 'none'} pointerEvents="stroke">
+          {paths}
+        </g>
+      </>
     )
   },
 

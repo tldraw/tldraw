@@ -7,7 +7,6 @@ import {
   getBoundsFromPoints,
   translateBounds,
   pointInBounds,
-  pointInCircle,
   circleFromThreePoints,
   isAngleBetween,
   getPerfectDashProps,
@@ -102,8 +101,8 @@ const arrow = registerShapeUtils<ArrowShape>({
     return shape.handles !== prev.handles || shape.style !== prev.style
   },
 
-  render(shape, { isHovered }) {
-    const { id, bend, handles, style } = shape
+  render(shape) {
+    const { bend, handles, style } = shape
     const { start, end, bend: _bend } = handles
 
     const isStraightLine =
@@ -146,11 +145,11 @@ const arrow = registerShapeUtils<ArrowShape>({
           <path
             d={path}
             fill="none"
-            stroke="transparent"
             strokeWidth={Math.max(8, strokeWidth * 2)}
             strokeDasharray="none"
             strokeDashoffset="none"
             strokeLinecap="round"
+            strokeLinejoin="round"
           />
           <path
             d={path}
@@ -160,6 +159,7 @@ const arrow = registerShapeUtils<ArrowShape>({
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </>
       )
@@ -206,6 +206,7 @@ const arrow = registerShapeUtils<ArrowShape>({
             strokeDasharray="none"
             strokeDashoffset="none"
             strokeLinecap="round"
+            strokeLinejoin="round"
           />
           <path
             d={path}
@@ -215,6 +216,7 @@ const arrow = registerShapeUtils<ArrowShape>({
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </>
       )
@@ -223,7 +225,7 @@ const arrow = registerShapeUtils<ArrowShape>({
     const sw = strokeWidth * 1.618
 
     return (
-      <g id={id} filter={isHovered ? 'url(#expand)' : 'none'}>
+      <g pointerEvents="all">
         {shaftPath}
         {shape.decorations.start === Decoration.Arrow && (
           <path
@@ -235,6 +237,7 @@ const arrow = registerShapeUtils<ArrowShape>({
             strokeDasharray="none"
             strokeLinecap="round"
             strokeLinejoin="round"
+            pointerEvents="stroke"
           />
         )}
         {shape.decorations.end === Decoration.Arrow && (
@@ -247,6 +250,7 @@ const arrow = registerShapeUtils<ArrowShape>({
             strokeDasharray="none"
             strokeLinecap="round"
             strokeLinejoin="round"
+            pointerEvents="stroke"
           />
         )}
       </g>
@@ -308,21 +312,8 @@ const arrow = registerShapeUtils<ArrowShape>({
     return vec.add(shape.point, vec.med(start.point, end.point))
   },
 
-  hitTest(shape, point) {
-    const { start, end } = shape.handles
-    if (shape.bend === 0) {
-      return (
-        vec.distanceToLineSegment(
-          start.point,
-          end.point,
-          vec.sub(point, shape.point)
-        ) < 4
-      )
-    }
-
-    const [cx, cy, r] = getCtp(shape)
-
-    return !pointInCircle(point, vec.add(shape.point, [cx, cy]), r - 4)
+  hitTest() {
+    return true
   },
 
   hitTestBounds(this, shape, brushBounds) {
