@@ -679,8 +679,8 @@ const state = createState({
               },
             ],
             BLURRED_EDITING_SHAPE: [
-              { unless: 'isEditingShape' },
               {
+                unless: 'isEditingShape',
                 get: 'editingShape',
                 if: 'shouldDeleteShape',
                 do: ['cancelSession', 'deleteSelection'],
@@ -688,8 +688,8 @@ const state = createState({
               { to: 'selecting' },
             ],
             POINTED_CANVAS: [
-              { unless: 'isEditingShape' },
               {
+                unless: 'isEditingShape',
                 get: 'editingShape',
                 if: 'shouldDeleteShape',
                 do: ['cancelSession', 'deleteSelection'],
@@ -697,8 +697,8 @@ const state = createState({
               { to: 'selecting' },
             ],
             CANCELLED: [
-              { unless: 'isEditingShape' },
               {
+                unless: 'isEditingShape',
                 get: 'editingShape',
                 if: 'shouldDeleteShape',
                 do: ['cancelSession', 'deleteSelection'],
