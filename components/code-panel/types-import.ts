@@ -1841,14 +1841,6 @@ type RequiredKeys<T> = {
   }
 
   /**
-   * Convert a set to an array.
-   * @param set
-   */
-  static setToArray<T>(set: Set<T>): T[] {
-    return Array.from(set.values())
-  }
-
-  /**
    * Get the outer of between a circle and a point.
    * @param C The circle's center.
    * @param r The circle's radius.

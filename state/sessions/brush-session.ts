@@ -1,7 +1,7 @@
 import { Bounds, Data, ShapeType } from 'types'
 import BaseSession from './base-session'
 import { getShapeUtils } from 'state/shape-utils'
-import { deepClone, getBoundsFromPoints, setToArray } from 'utils'
+import { deepClone, getBoundsFromPoints } from 'utils'
 import vec from 'utils/vec'
 import tld from 'utils/tld'
 
@@ -24,10 +24,10 @@ export default class BrushSession extends BaseSession {
 
     const hits = new Set<string>([])
 
-    const selectedIds = new Set(snapshot.selectedIds)
+    const selectedIds = [...snapshot.selectedIds]
 
     for (const id in snapshot.shapeHitTests) {
-      if (selectedIds.has(id)) continue
+      if (selectedIds.includes(id)) continue
 
       const { test, selectId } = snapshot.shapeHitTests[id]
       if (!hits.has(selectId)) {
@@ -35,11 +35,11 @@ export default class BrushSession extends BaseSession {
           hits.add(selectId)
 
           // When brushing a shape, select its top group parent.
-          if (!selectedIds.has(selectId)) {
-            selectedIds.add(selectId)
+          if (!selectedIds.includes(selectId)) {
+            selectedIds.push(selectId)
           }
-        } else if (selectedIds.has(selectId)) {
-          selectedIds.delete(selectId)
+        } else if (selectedIds.includes(selectId)) {
+          selectedIds.splice(selectedIds.indexOf(selectId), 1)
         }
       }
     }
@@ -73,12 +73,15 @@ export function getBrushSnapshot(data: Data) {
     .getShapes(cData)
     .filter((shape) => shape.type !== ShapeType.Group && !shape.isHidden)
     .filter(
-      (shape) => !(selectedIds.has(shape.id) || selectedIds.has(shape.parentId))
+      (shape) =>
+        !(
+          selectedIds.includes(shape.id) || selectedIds.includes(shape.parentId)
+        )
     )
     .map(deepClone)
 
   return {
-    selectedIds: setToArray(selectedIds),
+    selectedIds: [...selectedIds],
     shapeHitTests: Object.fromEntries(
       shapesToTest.map((shape) => {
         return [

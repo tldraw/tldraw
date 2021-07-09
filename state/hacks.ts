@@ -1,5 +1,5 @@
 import { DrawShape, PointerInfo } from 'types'
-import { deepClone, setToArray } from 'utils'
+import { deepClone } from 'utils'
 import tld from 'utils/tld'
 import { freeze } from 'immer'
 import session from './session'
@@ -56,7 +56,7 @@ export function fastDrawUpdate(info: PointerInfo): void {
     info.shiftKey
   )
 
-  const selectedId = setToArray(tld.getSelectedIds(data))[0]
+  const selectedId = [...tld.getSelectedIds(data)][0]
 
   const { shapes } = data.document.pages[data.currentPageId]
 

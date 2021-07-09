@@ -133,22 +133,21 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
   transform(shape, bounds, { initialShape, transformOrigin, scaleX, scaleY }) {
     if (shape.rotation === 0 && !shape.isAspectRatioLocked) {
-      shape.size = [bounds.width, bounds.height]
-      shape.point = [bounds.minX, bounds.minY]
+      shape.size = vec.round([bounds.width, bounds.height])
+      shape.point = vec.round([bounds.minX, bounds.minY])
     } else {
-      shape.size = vec.mul(
-        initialShape.size,
-        Math.min(Math.abs(scaleX), Math.abs(scaleY))
+      shape.size = vec.round(
+        vec.mul(initialShape.size, Math.min(Math.abs(scaleX), Math.abs(scaleY)))
       )
 
-      shape.point = [
+      shape.point = vec.round([
         bounds.minX +
           (bounds.width - shape.size[0]) *
             (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
         bounds.minY +
           (bounds.height - shape.size[1]) *
             (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
-      ]
+      ])
 
       shape.rotation =
         (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0)
@@ -160,8 +159,8 @@ const rectangle = registerShapeUtils<RectangleShape>({
   },
 
   transformSingle(shape, bounds) {
-    shape.size = [bounds.width, bounds.height]
-    shape.point = [bounds.minX, bounds.minY]
+    shape.size = vec.round([bounds.width, bounds.height])
+    shape.point = vec.round([bounds.minX, bounds.minY])
     return this
   },
 })

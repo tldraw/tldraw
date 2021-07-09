@@ -1,11 +1,9 @@
-import state from 'state'
-import * as json from './__mocks__/document.json'
+import TestState from '../test-utils'
 
-state.reset()
-state.send('MOUNTED').send('LOADED_FROM_FILE', { json: JSON.stringify(json) })
-state.send('CLEARED_PAGE')
+describe('translate command', () => {
+  const tt = new TestState()
+  tt.resetDocumentState()
 
-describe('translates shapes', () => {
   it('translates a single selected shape', () => {
     // TODO
     null

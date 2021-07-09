@@ -2,7 +2,6 @@ import { Data } from 'types'
 import clipboard from './clipboard'
 import state from './state'
 import { isDraft, current } from 'immer'
-import { setToArray } from 'utils'
 import tld from 'utils/tld'
 import inputs from './inputs'
 
@@ -59,9 +58,9 @@ class Logger {
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    this.snapshotStart.pageStates[data.currentPageId].selectedIds = setToArray(
-      tld.getSelectedIds(data)
-    )
+    this.snapshotStart.pageStates[data.currentPageId].selectedIds = [
+      ...tld.getSelectedIds(data),
+    ]
 
     return this
   }
@@ -84,9 +83,9 @@ class Logger {
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    this.snapshotEnd.pageStates[data.currentPageId].selectedIds = setToArray(
-      tld.getSelectedIds(data)
-    )
+    this.snapshotEnd.pageStates[data.currentPageId].selectedIds = [
+      ...tld.getSelectedIds(data),
+    ]
 
     // if (window.confirm('Stopped logging. Copy to clipboard?')) {
     //   this.copyToJson()
@@ -138,9 +137,9 @@ class Logger {
     this.isSimulating = true
 
     try {
-      data.pageStates[data.currentPageId].selectedIds = new Set(
-        start.pageStates[start.currentPageId].selectedIds
-      )
+      data.pageStates[data.currentPageId].selectedIds = [
+        ...start.pageStates[start.currentPageId].selectedIds,
+      ]
 
       state.send('RESET_DOCUMENT_STATE').forceData(start)
 

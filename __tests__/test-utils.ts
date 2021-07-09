@@ -2,8 +2,8 @@ import _state from 'state'
 import tld from 'utils/tld'
 import inputs from 'state/inputs'
 import { createShape, getShapeUtils } from 'state/shape-utils'
-import { Data, Shape, ShapeType, ShapeUtility } from 'types'
-import { deepCompareArrays, setToArray, uniqueId, vec } from 'utils'
+import { Corner, Data, Edge, Shape, ShapeType, ShapeUtility } from 'types'
+import { deepClone, deepCompareArrays, uniqueId, vec } from 'utils'
 import * as mockDocument from './__mocks__/document.json'
 
 type State = typeof _state
@@ -22,9 +22,12 @@ interface PointerOptions {
 
 class TestState {
   state: State
+  snapshot: Data
 
   constructor() {
     this.state = _state
+    this.state.send('TOGGLED_TEST_MODE')
+    this.snapshot = deepClone(this.state.data)
     this.reset()
   }
 
@@ -57,7 +60,7 @@ class TestState {
    *```
    */
   resetDocumentState(): TestState {
-    this.state.send('RESET_DOCUMENT_STATE')
+    this.state.send('RESET_DOCUMENT_STATE').send('TOGGLED_TEST_MODE')
     return this
   }
 
@@ -122,13 +125,13 @@ class TestState {
   idsAreSelected(ids: string[], strict = true): boolean {
     const selectedIds = tld.getSelectedIds(this.data)
     return (
-      (strict ? selectedIds.size === ids.length : true) &&
-      ids.every((id) => selectedIds.has(id))
+      (strict ? selectedIds.length === ids.length : true) &&
+      ids.every((id) => selectedIds.includes(id))
     )
   }
 
   get selectedIds(): string[] {
-    return setToArray(tld.getSelectedIds(this.data))
+    return tld.getSelectedIds(this.data)
   }
 
   /**
@@ -336,6 +339,63 @@ class TestState {
         'STOPPED_POINTING',
         inputs.pointerUp(TestState.point(options), 'bounds')
       )
+
+    return this
+  }
+
+  /**
+   * Start clicking bounds.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.startClickingBounds()
+   *```
+   */
+  startClickingBounds(options: PointerOptions = {}): TestState {
+    this.state.send(
+      'POINTED_BOUNDS',
+      inputs.pointerDown(TestState.point(options), 'bounds')
+    )
+
+    return this
+  }
+
+  /**
+   * Stop clicking the bounding box.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.stopClickingBounds()
+   *```
+   */
+  stopClickingBounds(options: PointerOptions = {}): TestState {
+    this.state.send(
+      'STOPPED_POINTING',
+      inputs.pointerUp(TestState.point(options), 'bounds')
+    )
+
+    return this
+  }
+
+  /**
+   * Start clicking a bounds handle.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.startClickingBoundsHandle(Edge.Top)
+   *```
+   */
+  startClickingBoundsHandle(
+    handle: Corner | Edge | 'center',
+    options: PointerOptions = {}
+  ): TestState {
+    this.state.send(
+      'POINTED_BOUNDS_HANDLE',
+      inputs.pointerDown(TestState.point(options), handle)
+    )
 
     return this
   }
@@ -569,6 +629,35 @@ class TestState {
    */
   redo(): TestState {
     this.state.send('REDO')
+    return this
+  }
+
+  /**
+   * Save a snapshot of the state's current data.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.save()
+   *```
+   */
+  save(): TestState {
+    this.snapshot = deepClone(this.data)
+    return this
+  }
+
+  /**
+   * Restore the state's saved data.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.save()
+   * tt.restore()
+   *```
+   */
+  restore(): TestState {
+    this.state.forceData(this.snapshot)
     return this
   }
 

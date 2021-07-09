@@ -15,8 +15,8 @@
             "name": "Rectangle",
             "parentId": "page1",
             "childIndex": 3,
-            "point": [171.47, 288.63],
-            "size": [176.22, 192.26],
+            "point": [100, 100],
+            "size": [100, 100],
             "radius": 2,
             "rotation": 0,
             "style": {
@@ -32,8 +32,8 @@
             "name": "Rectangle",
             "parentId": "page1",
             "childIndex": 4,
-            "point": [511.7, 404.19],
-            "size": [181.08999999999992, 150.40999999999997],
+            "point": [500, 400],
+            "size": [200, 200],
             "radius": 2,
             "rotation": 0,
             "style": {

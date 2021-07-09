@@ -100,7 +100,7 @@ export default function groupCommand(data: Data): void {
             getShapeUtils(oldParent).setProperty(
               oldParent,
               'children',
-              oldParent.children.filter((id) => !oldSelectedIds.has(id))
+              oldParent.children.filter((id) => !oldSelectedIds.includes(id))
             )
           }
 

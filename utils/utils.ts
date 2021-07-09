@@ -1572,14 +1572,6 @@ export function uniqueArray<T extends string | number>(...items: T[]): T[] {
   return Array.from(new Set(items).values())
 }
 
-/**
- * Convert a set to an array.
- * @param set
- */
-export function setToArray<T>(set: Set<T>): T[] {
-  return Array.from(set.values())
-}
-
 /* -------------------------------------------------- */
 /*                   Browser and DOM                  */
 /* -------------------------------------------------- */

@@ -13,7 +13,6 @@ import {
   getCommonBounds,
   rotateBounds,
   getBoundsCenter,
-  setToArray,
   deepClone,
   pointInBounds,
   uniqueId,
@@ -43,6 +42,7 @@ const initialData: Data = {
   isReadOnly: false,
   settings: {
     fontSize: 13,
+    isTestMode: false,
     isDarkMode: false,
     isCodeOpen: false,
     isDebugMode: false,
@@ -133,7 +133,7 @@ for (let i = 0; i < count; i++) {
   pageStates: {
     page1: {
       id: 'page1',
-      selectedIds: new Set([]),
+      selectedIds: [],
       camera: {
         point: [0, 0],
         zoom: 1,
@@ -147,6 +147,7 @@ const state = createState({
   on: {
     TOGGLED_DEBUG_PANEL: 'toggleDebugPanel',
     TOGGLED_DEBUG_MODE: 'toggleDebugMode',
+    TOGGLED_TEST_MODE: 'toggleTestMode',
     TOGGLED_LOGGER: 'toggleLogger',
     COPIED_DEBUG_LOG: 'copyDebugLog',
     LOADED_FROM_SNAPSHOT: {
@@ -588,7 +589,10 @@ const state = createState({
               onEnter: 'startTransformSession',
               onExit: 'completeSession',
               on: {
-                // MOVED_POINTER: 'updateTransformSession', using hacks.fastTransform
+                MOVED_POINTER: {
+                  ifAny: ['isSimulating', 'isTestMode'],
+                  do: 'updateTransformSession',
+                },
                 PANNED_CAMERA: 'updateTransformSession',
                 PRESSED_SHIFT_KEY: 'keyUpdateTransformSession',
                 RELEASED_SHIFT_KEY: 'keyUpdateTransformSession',
@@ -638,7 +642,7 @@ const state = createState({
                 'startBrushSession',
               ],
               on: {
-                // MOVED_POINTER: 'updateBrushSession', using hacks.fastBrushSelect
+                MOVED_POINTER: { if: 'isTestMode', do: 'updateBrushSession' },
                 PANNED_CAMERA: 'updateBrushSession',
                 STOPPED_POINTING: { to: 'selecting' },
                 STARTED_PINCHING: { to: 'pinching' },
@@ -694,7 +698,7 @@ const state = createState({
         },
         pinching: {
           on: {
-            // PINCHED: { do: 'pinchCamera' }, using hacks.fastPinchCamera
+            PINCHED: { if: 'isTestMode', do: 'pinchCamera' },
           },
           initial: 'selectPinching',
           onExit: { secretlyDo: 'updateZoomCSS' },
@@ -760,7 +764,7 @@ const state = createState({
                     RELEASED_SHIFT: 'keyUpdateDrawSession',
                     PANNED_CAMERA: 'updateDrawSession',
                     MOVED_POINTER: {
-                      if: 'isSimulating',
+                      ifAny: ['isSimulating', 'isTestMode'],
                       do: 'updateDrawSession',
                     },
                   },
@@ -1115,6 +1119,9 @@ const state = createState({
     isSimulating() {
       return logger.isSimulating
     },
+    isTestMode(data) {
+      return data.settings.isTestMode
+    },
     isEditingShape(data, payload: { id: string }) {
       return payload.id === data.editingId
     },
@@ -1131,7 +1138,7 @@ const state = createState({
       return tld.getShape(data, payload.target)?.type === ShapeType.Text
     },
     isPointingBounds(data, payload: PointerInfo) {
-      return tld.getSelectedIds(data).size > 0 && payload.target === 'bounds'
+      return tld.getSelectedIds(data).length > 0 && payload.target === 'bounds'
     },
     isPointingShape(data, payload: PointerInfo) {
       return (
@@ -1156,7 +1163,7 @@ const state = createState({
       return payload.target !== undefined
     },
     isPointedShapeSelected(data) {
-      return tld.getSelectedIds(data).has(data.pointedId)
+      return tld.getSelectedIds(data).includes(data.pointedId)
     },
     isPressingShiftKey(data, payload: PointerInfo) {
       return payload.shiftKey
@@ -1192,13 +1199,13 @@ const state = createState({
       return payload.target === 'rotate'
     },
     hasSelection(data) {
-      return tld.getSelectedIds(data).size > 0
+      return tld.getSelectedIds(data).length > 0
     },
     hasSingleSelection(data) {
-      return tld.getSelectedIds(data).size === 1
+      return tld.getSelectedIds(data).length === 1
     },
     hasMultipleSelection(data) {
-      return tld.getSelectedIds(data).size > 1
+      return tld.getSelectedIds(data).length > 1
     },
     hasCurrentParentShape(data) {
       return data.currentParentId !== data.currentPageId
@@ -1229,6 +1236,9 @@ const state = createState({
     },
     toggleDebugMode(data) {
       data.settings.isDebugMode = !data.settings.isDebugMode
+    },
+    toggleTestMode(data) {
+      data.settings.isTestMode = !data.settings.isTestMode
     },
     toggleDebugPanel(data) {
       data.settings.isDebugOpen = !data.settings.isDebugOpen
@@ -1304,7 +1314,7 @@ const state = createState({
       data.pageStates = {
         [newPageId]: {
           id: newPageId,
-          selectedIds: new Set(),
+          selectedIds: [],
           camera: {
             point: [0, 0],
             zoom: 1,
@@ -1464,7 +1474,7 @@ const state = createState({
 
     // Handles
     doublePointHandle(data, payload: PointerInfo) {
-      const id = setToArray(tld.getSelectedIds(data))[0]
+      const id = tld.getSelectedIds(data)[0]
       commands.doublePointHandle(data, id, payload)
     },
 
@@ -1511,7 +1521,7 @@ const state = createState({
     ) {
       const point = tld.screenToWorld(inputs.pointer.origin, data)
       session.begin(
-        tld.getSelectedIds(data).size === 1
+        tld.getSelectedIds(data).length === 1
           ? new Sessions.TransformSingleSession(data, payload.target, point)
           : new Sessions.TransformSession(data, payload.target, point)
       )
@@ -1618,7 +1628,7 @@ const state = createState({
       inputs.clear()
     },
     deselectAll(data) {
-      tld.getSelectedIds(data).clear()
+      tld.setSelectedIds(data, [])
     },
     selectAll(data) {
       tld.setSelectedIds(
@@ -1673,10 +1683,10 @@ const state = createState({
     pullPointedIdFromSelectedIds(data) {
       const { pointedId } = data
       const selectedIds = tld.getSelectedIds(data)
-      selectedIds.delete(pointedId)
+      selectedIds.splice(selectedIds.indexOf(pointedId), 1)
     },
     pushPointedIdToSelectedIds(data) {
-      tld.getSelectedIds(data).add(data.pointedId)
+      tld.getSelectedIds(data).push(data.pointedId)
     },
     moveSelection(data, payload: { type: MoveType }) {
       commands.move(data, payload.type)
@@ -1732,7 +1742,7 @@ const state = createState({
         data.editingId = selectedShape.id
       }
 
-      tld.getPageState(data).selectedIds = new Set([selectedShape.id])
+      tld.getPageState(data).selectedIds = [selectedShape.id]
     },
     clearEditingId(data) {
       data.editingId = null
@@ -2094,7 +2104,7 @@ const state = createState({
   },
   values: {
     selectedIds(data) {
-      return setToArray(tld.getSelectedIds(data))
+      return tld.getSelectedIds(data)
     },
     selectedBounds(data) {
       return getSelectionBounds(data)
@@ -2107,7 +2117,7 @@ const state = createState({
         .sort((a, b) => a.childIndex - b.childIndex)
     },
     selectedStyle(data) {
-      const selectedIds = setToArray(tld.getSelectedIds(data))
+      const selectedIds = tld.getSelectedIds(data)
       const { currentStyle } = data
 
       if (selectedIds.length === 0) {
@@ -2195,9 +2205,9 @@ function getSelectionBounds(data: Data) {
 
   const shapes = tld.getSelectedShapes(data)
 
-  if (selectedIds.size === 0) return null
+  if (selectedIds.length === 0) return null
 
-  if (selectedIds.size === 1) {
+  if (selectedIds.length === 1) {
     if (!shapes[0]) {
       console.warn('Could not find that shape! Clearing selected IDs.')
       tld.setSelectedIds(data, [])

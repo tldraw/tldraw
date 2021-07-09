@@ -1,5 +1,5 @@
 import { Data, PageState, TLDocument } from 'types'
-import { decompress, compress, setToArray } from 'utils'
+import { decompress, compress } from 'utils'
 import state from './state'
 import { uniqueId } from 'utils/utils'
 import * as idb from 'idb-keyval'
@@ -132,14 +132,11 @@ class Storage {
       if (savedPageState !== null) {
         // If we've found a page state in local storage, set it into state.
         data.pageStates[pageId] = JSON.parse(decompress(savedPageState))
-        data.pageStates[pageId].selectedIds = new Set(
-          data.pageStates[pageId].selectedIds
-        )
       } else {
         // Or else create a new one.
         data.pageStates[pageId] = {
           id: pageId,
-          selectedIds: new Set([]),
+          selectedIds: [],
           camera: {
             point: [0, 0],
             zoom: 1,
@@ -161,13 +158,13 @@ class Storage {
         throw new Error('Page state id not in document')
       }
 
-      pageState.selectedIds = new Set([])
+      pageState.selectedIds = []
       data.pageStates[pageState.id] = pageState
       data.currentPageId = pageState.id
     } catch (e) {
       data.pageStates[data.currentPageId] = {
         id: data.currentPageId,
-        selectedIds: new Set([]),
+        selectedIds: [],
         camera: {
           point: [0, 0],
           zoom: 1,
@@ -249,7 +246,7 @@ class Storage {
       storageId(fileId, 'pageState', pageId),
       JSON.stringify({
         ...currentPageState,
-        selectedIds: setToArray(currentPageState.selectedIds),
+        selectedIds: [...currentPageState.selectedIds],
       })
     )
   }
@@ -286,7 +283,6 @@ class Storage {
       // If we have a page, move it into state
       const restored: PageState = JSON.parse(savedPageState)
       data.pageStates[pageId] = restored
-      data.pageStates[pageId].selectedIds = new Set(restored.selectedIds)
     } else {
       data.pageStates[pageId] = {
         id: pageId,
@@ -294,7 +290,7 @@ class Storage {
           point: [0, 0],
           zoom: 1,
         },
-        selectedIds: new Set([]),
+        selectedIds: [],
       }
     }
 
