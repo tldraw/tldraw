@@ -87,6 +87,8 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
 
         // Move to the new page
         data.currentPageId = toPageId
+
+        tld.setZoomCSS(tld.getPageState(data).camera.zoom)
       },
       undo(data) {
         const fromPageId = newPageId
@@ -141,6 +143,8 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
         tld.setSelectedIds(data, [...selectedIds])
 
         data.currentPageId = toPageId
+
+        tld.setZoomCSS(tld.getPageState(data).camera.zoom)
       },
     })
   )

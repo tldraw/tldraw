@@ -130,7 +130,6 @@ const TranslatedShape = memo(
 
     const center = getShapeUtils(shape).getCenter(shape)
     const rotation = shape.rotation * (180 / Math.PI)
-
     const transform = `
     rotate(${rotation}, ${center})
     translate(${shape.point})

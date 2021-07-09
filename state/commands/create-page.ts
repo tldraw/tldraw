@@ -2,6 +2,7 @@ import Command from './command'
 import history from '../history'
 import { Data, Page, PageState } from 'types'
 import { uniqueId } from 'utils/utils'
+import tld from 'utils/tld'
 import storage from 'state/storage'
 
 export default function createPage(data: Data, goToPage = true): void {
@@ -25,6 +26,7 @@ export default function createPage(data: Data, goToPage = true): void {
 
         storage.savePage(data, data.document.id, page.id)
         storage.saveDocumentToLocalStorage(data)
+        tld.setZoomCSS(tld.getPageState(data).camera.zoom)
       },
       undo(data) {
         const { page, currentPageId } = snapshot
@@ -32,6 +34,7 @@ export default function createPage(data: Data, goToPage = true): void {
         delete data.pageStates[page.id]
         data.currentPageId = currentPageId
         storage.saveDocumentToLocalStorage(data)
+        tld.setZoomCSS(tld.getPageState(data).camera.zoom)
       },
     })
   )
