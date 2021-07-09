@@ -2,7 +2,7 @@ import Command from './command'
 import history from '../history'
 import { Data, ShapeStyles } from 'types'
 import tld from 'utils/tld'
-import { deepClone, setToArray } from 'utils'
+import { deepClone } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function styleCommand(
@@ -11,7 +11,7 @@ export default function styleCommand(
 ): void {
   const page = tld.getPage(data)
 
-  const selectedIds = setToArray(tld.getSelectedIds(data))
+  const selectedIds = [...tld.getSelectedIds(data)]
 
   const shapesToStyle = selectedIds
     .flatMap((id) => tld.getDocumentBranch(data, id))

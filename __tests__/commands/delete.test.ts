@@ -1,7 +1,7 @@
 import { ShapeType } from 'types'
-import TestState, { rectangleId, arrowId } from './test-utils'
+import TestState, { rectangleId, arrowId } from '../test-utils'
 
-describe('deleting single shapes', () => {
+describe('delete command', () => {
   const tt = new TestState()
 
   describe('deleting single shapes', () => {

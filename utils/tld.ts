@@ -1,4 +1,4 @@
-import { clamp, deepClone, getCommonBounds, setToArray } from 'utils'
+import { clamp, deepClone, getCommonBounds } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 import vec from './vec'
 import {
@@ -98,7 +98,7 @@ export default class StateUtils {
    */
   static getSelectedShapes(data: Data): Shape[] {
     const page = this.getPage(data)
-    const ids = setToArray(this.getSelectedIds(data))
+    const ids = this.getSelectedIds(data)
     return ids.map((id) => page.shapes[id])
   }
 
@@ -306,12 +306,12 @@ export default class StateUtils {
     ]
   }
 
-  static getSelectedIds(data: Data): Set<string> {
+  static getSelectedIds(data: Data): string[] {
     return data.pageStates[data.currentPageId].selectedIds
   }
 
-  static setSelectedIds(data: Data, ids: string[]): Set<string> {
-    data.pageStates[data.currentPageId].selectedIds = new Set(ids)
+  static setSelectedIds(data: Data, ids: string[]): string[] {
+    data.pageStates[data.currentPageId].selectedIds = [...ids]
     return data.pageStates[data.currentPageId].selectedIds
   }
 
@@ -347,7 +347,7 @@ export default class StateUtils {
   >(data: Data, fn?: F): (Shape | K)[] {
     const page = this.getPage(data)
 
-    const copies = setToArray(this.getSelectedIds(data))
+    const copies = this.getSelectedIds(data)
       .flatMap((id) =>
         this.getDocumentBranch(data, id).map((id) => page.shapes[id])
       )

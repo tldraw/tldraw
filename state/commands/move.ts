@@ -1,14 +1,13 @@
 import Command from './command'
 import history from '../history'
 import { Data, MoveType, Shape } from 'types'
-import { setToArray } from 'utils'
 import tld from 'utils/tld'
 import { getShapeUtils } from 'state/shape-utils'
 
 export default function moveCommand(data: Data, type: MoveType): void {
   const page = tld.getPage(data)
 
-  const selectedIds = setToArray(tld.getSelectedIds(data))
+  const selectedIds = [...tld.getSelectedIds(data)]
 
   const initialIndices = Object.fromEntries(
     selectedIds.map((id) => [id, page.shapes[id].childIndex])

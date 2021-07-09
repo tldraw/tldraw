@@ -54,7 +54,7 @@ function getSnapshot(data: Data) {
 
   const pageState: PageState = {
     id,
-    selectedIds: new Set([]),
+    selectedIds: [],
     camera: {
       point: [0, 0],
       zoom: 1,

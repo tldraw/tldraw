@@ -8,6 +8,7 @@ export interface Data {
     fontSize: number
     isDarkMode: boolean
     isCodeOpen: boolean
+    isTestMode: boolean
     isDebugOpen: boolean
     isDebugMode: boolean
     isStyleOpen: boolean
@@ -66,7 +67,7 @@ export interface Page {
 
 export interface PageState {
   id: string
-  selectedIds: Set<string>
+  selectedIds: string[]
   camera: {
     point: number[]
     zoom: number

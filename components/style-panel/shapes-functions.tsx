@@ -86,11 +86,11 @@ function ShapesFunctions() {
   })
 
   const hasSelection = useSelector((s) => {
-    return tld.getSelectedIds(s.data).size > 0
+    return tld.getSelectedIds(s.data).length > 0
   })
 
   const hasMultipleSelection = useSelector((s) => {
-    return tld.getSelectedIds(s.data).size > 1
+    return tld.getSelectedIds(s.data).length > 1
   })
 
   return (

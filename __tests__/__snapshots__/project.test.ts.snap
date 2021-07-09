@@ -64,14 +64,14 @@ for (let i = 0; i < count; i++) {
           "name": "Rectangle",
           "parentId": "page1",
           "point": Array [
-            511.7,
-            404.19,
+            500,
+            400,
           ],
           "radius": 2,
           "rotation": 0,
           "size": Array [
-            181.08999999999992,
-            150.40999999999997,
+            200,
+            200,
           ],
           "style": Object {
             "color": "Black",
@@ -330,14 +330,14 @@ for (let i = 0; i < count; i++) {
           "name": "Rectangle",
           "parentId": "page1",
           "point": Array [
-            171.47,
-            288.63,
+            100,
+            100,
           ],
           "radius": 2,
           "rotation": 0,
           "size": Array [
-            176.22,
-            192.26,
+            100,
+            100,
           ],
           "style": Object {
             "color": "Black",
@@ -468,14 +468,14 @@ for (let i = 0; i < count; i++) {
           "name": "Rectangle",
           "parentId": "page1",
           "point": Array [
-            511.7,
-            404.19,
+            500,
+            400,
           ],
           "radius": 2,
           "rotation": 0,
           "size": Array [
-            181.08999999999992,
-            150.40999999999997,
+            200,
+            200,
           ],
           "style": Object {
             "color": "Black",
@@ -734,14 +734,14 @@ for (let i = 0; i < count; i++) {
           "name": "Rectangle",
           "parentId": "page1",
           "point": Array [
-            171.47,
-            288.63,
+            100,
+            100,
           ],
           "radius": 2,
           "rotation": 0,
           "size": Array [
-            176.22,
-            192.26,
+            100,
+            100,
           ],
           "style": Object {
             "color": "Black",
