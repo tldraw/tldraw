@@ -516,7 +516,13 @@ interface ShapeUtility<K extends Shape> {
   onHandleChange(
     this: ShapeUtility<K>,
     shape: Mutable<K>,
-    handle: Partial<K['handles']>
+    handle: Partial<K['handles']>,
+    info?: Partial<{
+      delta: number[]
+      shiftKey: boolean
+      altKey: boolean
+      metaKey: boolean
+    }>
   ): ShapeUtility<K>
 
   onDoublePointHandle(
@@ -1084,7 +1090,13 @@ interface ShapeUtility<K extends Shape> {
   onHandleChange(
     this: ShapeUtility<K>,
     shape: Mutable<K>,
-    handle: Partial<K['handles']>
+    handle: Partial<K['handles']>,
+    info?: Partial<{
+      delta: number[]
+      shiftKey: boolean
+      altKey: boolean
+      metaKey: boolean
+    }>
   ): ShapeUtility<K>
 
   onDoublePointHandle(
@@ -1663,7 +1675,7 @@ type RequiredKeys<T> = {
         const t = i / steps
         return t * t * t
       })
-      .map((t) => [...Vec.lrp(a, b, t), (1 - t) / 2])
+      .map((t) => Vec.round([...Vec.lrp(a, b, t), (1 - t) / 2]))
   }
 }
 
