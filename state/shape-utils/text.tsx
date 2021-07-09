@@ -116,7 +116,8 @@ const text = registerShapeUtils<TextShape>({
       setTimeout(() => state.send('BLURRED_EDITING_SHAPE', { id }), 0)
     }
 
-    function handleFocus() {
+    function handleFocus(e: React.FocusEvent<HTMLTextAreaElement>) {
+      e.currentTarget.select()
       state.send('FOCUSED_EDITING_SHAPE', { id })
     }
 
