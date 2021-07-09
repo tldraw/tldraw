@@ -42,8 +42,8 @@ const ellipse = registerShapeUtils<EllipseShape>({
     )
   },
 
-  render(shape, { isHovered }) {
-    const { id, radiusX, radiusY, style } = shape
+  render(shape) {
+    const { radiusX, radiusY, style } = shape
     const styles = getShapeStyle(style)
     const strokeWidth = +styles.strokeWidth
 
@@ -58,7 +58,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
       const path = pathCache.get(shape)
 
       return (
-        <g id={id} pointerEvents={style.isFilled ? 'all' : 'stroke'}>
+        <>
           {style.isFilled && (
             <ellipse
               cx={radiusX}
@@ -76,9 +76,8 @@ const ellipse = registerShapeUtils<EllipseShape>({
             stroke={styles.stroke}
             strokeWidth={strokeWidth}
             pointerEvents="all"
-            filter={isHovered ? 'url(#expand)' : 'none'}
           />
-        </g>
+        </>
       )
     }
 
@@ -108,7 +107,6 @@ const ellipse = registerShapeUtils<EllipseShape>({
         strokeDasharray={strokeDasharray}
         strokeDashoffset={strokeDashoffset}
         pointerEvents={style.isFilled ? 'all' : 'stroke'}
-        filter={isHovered ? 'url(#expand)' : 'none'}
       />
     )
   },

@@ -70,7 +70,7 @@ const text = registerShapeUtils<TextShape>({
     )
   },
 
-  render(shape, { isEditing, isHovered, ref }) {
+  render(shape, { isEditing, ref }) {
     const { id, text, style } = shape
     const styles = getShapeStyle(style)
     const font = getFontStyle(shape.scale, shape.style)
@@ -131,11 +131,7 @@ const text = registerShapeUtils<TextShape>({
 
     if (!isEditing) {
       return (
-        <g
-          id={id}
-          pointerEvents="all"
-          filter={isHovered ? 'url(#expand)' : 'none'}
-        >
+        <>
           {text.split('\n').map((str, i) => (
             <text
               key={i}
@@ -157,7 +153,7 @@ const text = registerShapeUtils<TextShape>({
               {str}
             </text>
           ))}
-        </g>
+        </>
       )
     }
 
@@ -167,7 +163,6 @@ const text = registerShapeUtils<TextShape>({
 
     return (
       <foreignObject
-        id={id}
         width={bounds.width}
         height={bounds.height}
         pointerEvents="none"
