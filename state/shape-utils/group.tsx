@@ -26,11 +26,10 @@ const group = registerShapeUtils<GroupShape>({
   },
 
   render(shape) {
-    const { id, size } = shape
+    const { size } = shape
 
     return (
       <StyledGroupShape
-        id={id}
         width={size[0]}
         height={size[1]}
         data-shy={true}

@@ -1,33 +1,121 @@
 import { useSelector } from 'state'
-import Shape from './shape'
-import HoveredShape from './hovered-shape'
-import usePageShapes from 'hooks/usePageShapes'
+import tld from 'utils/tld'
+import { Data, Shape, ShapeType } from 'types'
+import { getShapeUtils } from 'state/shape-utils'
+import { boundsCollide, boundsContain } from 'utils'
+import ShapeComponent from './shape'
 
 /* 
-On each state change, compare node ids of all shapes
-on the current page. Kind of expensive but only happens
-here; and still cheaper than any other pattern I've found.
+On each state change, populate a tree structure with all of
+the shapes that we need to render..
 */
 
+interface Node {
+  shape: Shape
+  children: Node[]
+  isEditing: boolean
+  isHovered: boolean
+  isSelected: boolean
+  isCurrentParent: boolean
+}
+
 export default function Page(): JSX.Element {
-  const showHovers = useSelector((s) =>
-    s.isInAny('selecting', 'text', 'editingShape')
-  )
+  // Get a tree of shapes to render
+  const shapeTree = useSelector((s) => {
+    // Get the shapes that fit into the current viewport
 
-  const visiblePageShapeIds = usePageShapes()
+    const viewport = tld.getViewport(s.data)
 
-  const hoveredShapeId = useSelector((s) => {
-    return visiblePageShapeIds.find((id) => id === s.data.hoveredId)
+    const shapesToShow = s.values.currentShapes.filter((shape) => {
+      const shapeBounds = getShapeUtils(shape).getBounds(shape)
+
+      return (
+        shape.type === ShapeType.Ray ||
+        shape.type === ShapeType.Line ||
+        boundsContain(viewport, shapeBounds) ||
+        boundsCollide(viewport, shapeBounds)
+      )
+    })
+
+    // Should we allow shapes to be hovered?
+    const allowHovers = s.isInAny('selecting', 'text', 'editingShape')
+
+    // Populate the shape tree
+    const tree: Node[] = []
+
+    shapesToShow.forEach((shape) =>
+      addToTree(s.data, s.values.selectedIds, allowHovers, tree, shape)
+    )
+
+    return tree
   })
 
   return (
-    <g pointerEvents={showHovers ? 'all' : 'none'}>
-      {showHovers && hoveredShapeId && (
-        <HoveredShape key={hoveredShapeId} id={hoveredShapeId} />
-      )}
-      {visiblePageShapeIds.map((id) => (
-        <Shape key={id} id={id} />
+    <>
+      {shapeTree.map((node) => (
+        <ShapeNode key={node.shape.id} node={node} />
       ))}
-    </g>
+    </>
   )
+}
+
+interface ShapeNodeProps {
+  node: Node
+  parentPoint?: number[]
+}
+
+const ShapeNode = ({
+  node: { shape, children, isEditing, isHovered, isSelected, isCurrentParent },
+}: ShapeNodeProps) => {
+  return (
+    <>
+      <ShapeComponent
+        shape={shape}
+        isEditing={isEditing}
+        isHovered={isHovered}
+        isSelected={isSelected}
+        isCurrentParent={isCurrentParent}
+      />
+      {children.map((childNode) => (
+        <ShapeNode key={childNode.shape.id} node={childNode} />
+      ))}
+    </>
+  )
+}
+
+/**
+ * Populate the shape tree. This helper is recursive and only one call is needed.
+ *
+ * ### Example
+ *
+ *```ts
+ * addDataToTree(data, selectedIds, allowHovers, branch, shape)
+ *```
+ */
+function addToTree(
+  data: Data,
+  selectedIds: string[],
+  allowHovers: boolean,
+  branch: Node[],
+  shape: Shape
+): void {
+  const node = {
+    shape,
+    children: [],
+    isHovered: data.hoveredId === shape.id,
+    isCurrentParent: data.currentParentId === shape.id,
+    isEditing: data.editingId === shape.id,
+    isSelected: selectedIds.includes(shape.id),
+  }
+
+  branch.push(node)
+
+  if (shape.children) {
+    shape.children
+      .map((id) => tld.getShape(data, id))
+      .sort((a, b) => a.childIndex - b.childIndex)
+      .forEach((shape) => {
+        addToTree(data, selectedIds, allowHovers, node.children, shape)
+      })
+  }
 }

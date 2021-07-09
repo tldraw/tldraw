@@ -90,6 +90,8 @@ export function fastZoomUpdate(point: number[], delta: number): void {
 
   data.pageStates[data.currentPageId].camera = deepClone(camera)
 
+  tld.setZoomCSS(camera.zoom)
+
   state.forceData(freeze(data))
 }
 
@@ -115,6 +117,8 @@ export function fastPinchCamera(
   pageState.camera = deepClone(camera)
 
   data.pageStates[data.currentPageId] = { ...pageState }
+
+  tld.setZoomCSS(camera.zoom)
 
   state.forceData(freeze(data))
 }

@@ -26,7 +26,7 @@ const line = registerShapeUtils<LineShape>({
     return shape.direction !== prev.direction || shape.style !== prev.style
   },
 
-  render(shape) {
+  render(shape, { isHovered }) {
     const { id, direction } = shape
     const [x1, y1] = vec.add([0, 0], vec.mul(direction, 10000))
     const [x2, y2] = vec.sub([0, 0], vec.mul(direction, 10000))
@@ -34,7 +34,7 @@ const line = registerShapeUtils<LineShape>({
     const styles = getShapeStyle(shape.style)
 
     return (
-      <g id={id}>
+      <g id={id} filter={isHovered ? 'url(#expand)' : 'none'}>
         <ThinLine x1={x1} y1={y1} x2={x2} y2={y2} stroke={styles.stroke} />
         <circle r={4} fill="transparent" />
         <use href="#dot" fill="black" />

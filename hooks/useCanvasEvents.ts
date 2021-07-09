@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { MutableRefObject, useCallback } from 'react'
+import { MutableRefObject, useCallback, useEffect } from 'react'
 import state from 'state'
 import {
   fastBrushSelect,
@@ -72,6 +72,19 @@ export default function useCanvasEvents(
     //     state.send('TOUCH_UNDO')
     //   } else state.send('TOUCHED_CANVAS')
     // }
+  }, [])
+
+  // Send event on iOS when a user presses the "Done" key while editing a text element
+  useEffect(() => {
+    function handleFocusOut() {
+      state.send('BLURRED_EDITING_SHAPE')
+    }
+
+    document.addEventListener('focusout', handleFocusOut)
+
+    return () => {
+      document.removeEventListener('focusout', handleFocusOut)
+    }
   }, [])
 
   return {

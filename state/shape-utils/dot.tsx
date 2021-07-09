@@ -20,13 +20,9 @@ const dot = registerShapeUtils<DotShape>({
   },
 
   render(shape) {
-    const { id } = shape
-
     const styles = getShapeStyle(shape.style)
 
-    return (
-      <use id={id} href="#dot" stroke={styles.stroke} fill={styles.stroke} />
-    )
+    return <use href="#dot" stroke={styles.stroke} fill={styles.stroke} />
   },
 
   getBounds(shape) {

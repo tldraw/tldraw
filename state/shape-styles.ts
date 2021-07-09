@@ -77,5 +77,5 @@ export const defaultStyle: ShapeStyles = {
   color: ColorStyle.Black,
   size: SizeStyle.Medium,
   isFilled: false,
-  dash: DashStyle.Solid,
+  dash: DashStyle.Draw,
 }

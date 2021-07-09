@@ -663,34 +663,45 @@ const state = createState({
           onExit: ['completeSession', 'clearEditingId'],
           on: {
             EDITED_SHAPE: { do: 'updateEditSession' },
-            BLURRED_EDITING_SHAPE: [
-              { unless: 'isEditingShape' },
+            POINTED_SHAPE: [
               {
+                unless: 'isPointingEditingShape',
+                if: 'isPointingTextShape',
+                do: [
+                  'completeSession',
+                  'clearEditingId',
+                  'setPointedId',
+                  'clearSelectedIds',
+                  'pushPointedIdToSelectedIds',
+                  'setEditingId',
+                  'startEditSession',
+                ],
+              },
+            ],
+            BLURRED_EDITING_SHAPE: [
+              {
+                unless: 'isEditingShape',
                 get: 'editingShape',
                 if: 'shouldDeleteShape',
                 do: ['cancelSession', 'deleteSelection'],
               },
               { to: 'selecting' },
             ],
-            POINTED_SHAPE: {
-              unless: 'isPointingEditingShape',
-              if: 'isPointingTextShape',
-              do: [
-                'completeSession',
-                'clearEditingId',
-                'setPointedId',
-                'clearSelectedIds',
-                'pushPointedIdToSelectedIds',
-                'setEditingId',
-                'startEditSession',
-              ],
-            },
-            CANCELLED: [
+            POINTED_CANVAS: [
               {
+                unless: 'isEditingShape',
                 get: 'editingShape',
                 if: 'shouldDeleteShape',
-                do: 'breakSession',
-                else: 'cancelSession',
+                do: ['cancelSession', 'deleteSelection'],
+              },
+              { to: 'selecting' },
+            ],
+            CANCELLED: [
+              {
+                unless: 'isEditingShape',
+                get: 'editingShape',
+                if: 'shouldDeleteShape',
+                do: ['cancelSession', 'deleteSelection'],
               },
               { to: 'selecting' },
             ],

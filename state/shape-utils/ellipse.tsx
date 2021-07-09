@@ -43,7 +43,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
   },
 
   render(shape) {
-    const { id, radiusX, radiusY, style } = shape
+    const { radiusX, radiusY, style } = shape
     const styles = getShapeStyle(style)
     const strokeWidth = +styles.strokeWidth
 
@@ -58,25 +58,26 @@ const ellipse = registerShapeUtils<EllipseShape>({
       const path = pathCache.get(shape)
 
       return (
-        <g id={id}>
+        <>
           {style.isFilled && (
             <ellipse
-              id={id}
               cx={radiusX}
               cy={radiusY}
               rx={rx}
               ry={ry}
               stroke="none"
               fill={styles.fill}
+              pointerEvents="fill"
             />
           )}
           <path
             d={path}
             fill={styles.stroke}
             stroke={styles.stroke}
-            strokeWidth={styles.strokeWidth}
+            strokeWidth={strokeWidth}
+            pointerEvents="all"
           />
-        </g>
+        </>
       )
     }
 
@@ -92,21 +93,21 @@ const ellipse = registerShapeUtils<EllipseShape>({
       4
     )
 
+    const sw = strokeWidth * 1.618
+
     return (
-      <g id={id}>
-        <ellipse
-          id={id}
-          cx={radiusX}
-          cy={radiusY}
-          rx={rx}
-          ry={ry}
-          fill={styles.fill}
-          stroke={styles.stroke}
-          strokeWidth={strokeWidth * 1.618}
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
-        />
-      </g>
+      <ellipse
+        cx={radiusX}
+        cy={radiusY}
+        rx={rx}
+        ry={ry}
+        fill={styles.fill}
+        stroke={styles.stroke}
+        strokeWidth={sw}
+        strokeDasharray={strokeDasharray}
+        strokeDashoffset={strokeDashoffset}
+        pointerEvents={style.isFilled ? 'all' : 'stroke'}
+      />
     )
   },
 

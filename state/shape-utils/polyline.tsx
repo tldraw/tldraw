@@ -29,17 +29,19 @@ const polyline = registerShapeUtils<PolylineShape>({
     return shape.points !== prev.points || shape.style !== prev.style
   },
   render(shape) {
-    const { id, points } = shape
+    const { points, style } = shape
 
-    const styles = getShapeStyle(shape.style)
+    const styles = getShapeStyle(style)
 
     return (
       <polyline
-        id={id}
         points={points.toString()}
         stroke={styles.stroke}
-        strokeWidth={styles.strokeWidth}
+        strokeWidth={styles.strokeWidth * 1.618}
         fill={shape.style.isFilled ? styles.fill : 'none'}
+        pointerEvents={style.isFilled ? 'all' : 'stroke'}
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     )
   },
@@ -61,19 +63,8 @@ const polyline = registerShapeUtils<PolylineShape>({
     return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2]
   },
 
-  hitTest(shape, point) {
-    const pt = vec.sub(point, shape.point)
-    let prev = shape.points[0]
-
-    for (let i = 1; i < shape.points.length; i++) {
-      const curr = shape.points[i]
-      if (vec.distanceToLineSegment(prev, curr, pt) < 4) {
-        return true
-      }
-      prev = curr
-    }
-
-    return false
+  hitTest() {
+    return true
   },
 
   hitTestBounds(this, shape, brushBounds) {
@@ -125,7 +116,7 @@ const polyline = registerShapeUtils<PolylineShape>({
 
   canTransform: true,
   canChangeAspectRatio: true,
-  canStyleFill: false,
+  canStyleFill: true,
 })
 
 export default polyline
