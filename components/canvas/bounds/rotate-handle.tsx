@@ -32,7 +32,7 @@ export default function Rotate({
 
 const StyledRotateHandle = styled('circle', {
   stroke: '$bounds',
-  fill: '#fff',
+  fill: '$canvas',
   zStrokeWidth: 1.5,
   cursor: 'grab',
 })
