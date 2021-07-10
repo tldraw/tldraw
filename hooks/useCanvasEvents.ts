@@ -8,7 +8,12 @@ import {
   fastTranslate,
 } from 'state/hacks'
 import inputs from 'state/inputs'
+import { isMobile } from 'utils'
 import Vec from 'utils/vec'
+
+function handleFocusOut() {
+  state.send('BLURRED_EDITING_SHAPE')
+}
 
 export default function useCanvasEvents(
   rCanvas: MutableRefObject<SVGGElement>
@@ -76,14 +81,12 @@ export default function useCanvasEvents(
 
   // Send event on iOS when a user presses the "Done" key while editing a text element
   useEffect(() => {
-    function handleFocusOut() {
-      state.send('BLURRED_EDITING_SHAPE')
-    }
+    if (isMobile()) {
+      document.addEventListener('focusout', handleFocusOut)
 
-    document.addEventListener('focusout', handleFocusOut)
-
-    return () => {
-      document.removeEventListener('focusout', handleFocusOut)
+      return () => {
+        document.removeEventListener('focusout', handleFocusOut)
+      }
     }
   }, [])
 

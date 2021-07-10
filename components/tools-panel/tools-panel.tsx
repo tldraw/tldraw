@@ -5,18 +5,16 @@ import {
   LockClosedIcon,
   LockOpen1Icon,
   Pencil1Icon,
-  Pencil2Icon,
   SquareIcon,
   TextIcon,
 } from '@radix-ui/react-icons'
-import { IconButton } from 'components/shared'
+import { PrimaryButton, SecondaryButton, Container } from './shared'
 import React from 'react'
 import state, { useSelector } from 'state'
 import styled from 'styles'
 import { ShapeType } from 'types'
 import UndoRedo from './undo-redo'
 import Zoom from './zoom'
-import Tooltip from '../tooltip'
 
 const selectArrowTool = () => state.send('SELECTED_ARROW_TOOL')
 const selectDrawTool = () => state.send('SELECTED_DRAW_TOOL')
@@ -24,167 +22,154 @@ const selectEllipseTool = () => state.send('SELECTED_ELLIPSE_TOOL')
 const selectTextTool = () => state.send('SELECTED_TEXT_TOOL')
 const selectRectangleTool = () => state.send('SELECTED_RECTANGLE_TOOL')
 const selectSelectTool = () => state.send('SELECTED_SELECT_TOOL')
-const selectToolLock = () => state.send('TOGGLED_TOOL_LOCK')
+const toggleToolLock = () => state.send('TOGGLED_TOOL_LOCK')
 
 export default function ToolsPanel(): JSX.Element {
   const activeTool = useSelector((s) => s.data.activeTool)
 
   const isToolLocked = useSelector((s) => s.data.settings.isToolLocked)
 
-  const isPenLocked = useSelector((s) => s.data.settings.isPenLocked)
-
   return (
-    <OuterContainer>
-      <Zoom />
-      <Flex size={{ '@sm': 'small' }}>
+    <ToolsPanelContainer>
+      <LeftWrap size={{ '@initial': 'mobile', '@sm': 'small' }}>
+        <Zoom />
         <Container>
-          <Tooltip label="Select">
-            <IconButton
-              name="select"
-              bp={{ '@initial': 'mobile', '@sm': 'small' }}
-              size={{ '@initial': 'small', '@sm': 'small', '@md': 'medium' }}
-              onClick={selectSelectTool}
-              isActive={activeTool === 'select'}
-            >
-              <CursorArrowIcon />
-            </IconButton>
-          </Tooltip>
+          <SecondaryButton
+            label={'Select'}
+            onClick={selectSelectTool}
+            isActive={activeTool === 'select'}
+          >
+            <CursorArrowIcon />
+          </SecondaryButton>
         </Container>
+      </LeftWrap>
+      <CenterWrap>
         <Container>
-          <Tooltip label="Draw">
-            <IconButton
-              name={ShapeType.Draw}
-              bp={{ '@initial': 'mobile', '@sm': 'small' }}
-              size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
-              onClick={selectDrawTool}
-              isActive={activeTool === ShapeType.Draw}
-            >
-              <Pencil1Icon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip label="Rectangle">
-            <IconButton
-              name={ShapeType.Rectangle}
-              bp={{ '@initial': 'mobile', '@sm': 'small' }}
-              size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
-              onClick={selectRectangleTool}
-              isActive={activeTool === ShapeType.Rectangle}
-            >
-              <SquareIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip label="Ellipse">
-            <IconButton
-              name={ShapeType.Ellipse}
-              bp={{ '@initial': 'mobile', '@sm': 'small' }}
-              size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
-              onClick={selectEllipseTool}
-              isActive={activeTool === ShapeType.Ellipse}
-            >
-              <CircleIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip label="Arrow">
-            <IconButton
-              name={ShapeType.Arrow}
-              bp={{ '@initial': 'mobile', '@sm': 'small' }}
-              size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
-              onClick={selectArrowTool}
-              isActive={activeTool === ShapeType.Arrow}
-            >
-              <ArrowTopRightIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip label="Text">
-            <IconButton
-              name={ShapeType.Text}
-              bp={{ '@initial': 'mobile', '@sm': 'small' }}
-              size={{ '@initial': 'medium', '@sm': 'small', '@md': 'large' }}
-              onClick={selectTextTool}
-              isActive={activeTool === ShapeType.Text}
-            >
-              <TextIcon />
-            </IconButton>
-          </Tooltip>
+          <PrimaryButton
+            label={ShapeType.Draw}
+            onClick={selectDrawTool}
+            isActive={activeTool === ShapeType.Draw}
+          >
+            <Pencil1Icon />
+          </PrimaryButton>
+          <PrimaryButton
+            label={ShapeType.Rectangle}
+            onClick={selectRectangleTool}
+            isActive={activeTool === ShapeType.Rectangle}
+          >
+            <SquareIcon />
+          </PrimaryButton>
+          <PrimaryButton
+            label={ShapeType.Ellipse}
+            onClick={selectEllipseTool}
+            isActive={activeTool === ShapeType.Ellipse}
+          >
+            <CircleIcon />
+          </PrimaryButton>
+          <PrimaryButton
+            label={ShapeType.Arrow}
+            onClick={selectArrowTool}
+            isActive={activeTool === ShapeType.Arrow}
+          >
+            <ArrowTopRightIcon />
+          </PrimaryButton>
+          <PrimaryButton
+            label={ShapeType.Text}
+            onClick={selectTextTool}
+            isActive={activeTool === ShapeType.Text}
+          >
+            <TextIcon />
+          </PrimaryButton>
         </Container>
+      </CenterWrap>
+      <RightWrap size={{ '@initial': 'mobile', '@sm': 'small' }}>
         <Container>
-          <Tooltip label="Lock Tool">
-            <IconButton
-              bp={{ '@initial': 'mobile', '@sm': 'small' }}
-              size={{ '@initial': 'small', '@sm': 'small', '@md': 'medium' }}
-              onClick={selectToolLock}
-            >
-              {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
-            </IconButton>
-          </Tooltip>
-          {isPenLocked && (
-            <Tooltip label="Unlock Pen">
-              <IconButton
-                bp={{ '@initial': 'mobile', '@sm': 'small' }}
-                size={{ '@initial': 'small', '@sm': 'small', '@md': 'medium' }}
-                onClick={selectToolLock}
-              >
-                <Pencil2Icon />
-              </IconButton>
-            </Tooltip>
-          )}
+          <SecondaryButton
+            label={'Lock Tool'}
+            onClick={toggleToolLock}
+            isActive={isToolLocked}
+          >
+            {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
+          </SecondaryButton>
         </Container>
-      </Flex>
-      <UndoRedo />
-    </OuterContainer>
+        <UndoRedo />
+      </RightWrap>
+    </ToolsPanelContainer>
   )
 }
 
-const OuterContainer = styled('div', {
+const ToolsPanelContainer = styled('div', {
   position: 'fixed',
   bottom: 44,
   left: 0,
   right: 0,
-  padding: '0 8px 12px 8px',
   width: '100%',
-  display: 'flex',
+  minWidth: 0,
+  maxWidth: '100%',
+  display: 'grid',
+  gridTemplateColumns: '1fr auto 1fr',
+  padding: '0 8px 12px 8px',
   alignItems: 'flex-end',
-  justifyContent: 'center',
-  flexWrap: 'wrap',
-  gap: 16,
   zIndex: 200,
+  gap: 12,
 })
 
-const Flex = styled('div', {
+const CenterWrap = styled('div', {
+  gridRow: 1,
+  gridColumn: 2,
   display: 'flex',
-  width: '100%',
-  padding: '0 4px',
-  justifyContent: 'space-between',
-  alignItems: 'flex-end',
+  width: 'fit-content',
+  justifyContent: 'center',
+})
 
+const LeftWrap = styled('div', {
+  gridRow: 1,
+  gridColumn: 1,
+  display: 'flex',
   variants: {
     size: {
+      mobile: {
+        flexDirection: 'column',
+        justifyContent: 'flex-end',
+        alignItems: 'flex-start',
+        '& > *:nth-of-type(1)': {
+          marginBottom: '8px',
+        },
+      },
       small: {
-        width: 'auto',
-        padding: '0',
-        justifyContent: 'center',
-        '& > *:nth-child(n+2)': {
-          marginLeft: 16,
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        justifyContent: 'space-between',
+        '& > *:nth-of-type(1)': {
+          marginBottom: '0px',
         },
       },
     },
   },
 })
 
-const Container = styled('div', {
-  position: 'relative',
-  backgroundColor: '$panel',
-  borderRadius: '4px',
-  overflow: 'hidden',
-  border: '1px solid $panel',
-  pointerEvents: 'all',
-  userSelect: 'none',
-  height: '100%',
+const RightWrap = styled('div', {
+  gridRow: 1,
+  gridColumn: 3,
   display: 'flex',
-  padding: 4,
-  boxShadow: '0px 2px 4px rgba(0,0,0,.12)',
-
-  '& svg': {
-    strokeWidth: 0,
+  variants: {
+    size: {
+      mobile: {
+        flexDirection: 'column-reverse',
+        justifyContent: 'flex-end',
+        alignItems: 'flex-end',
+        '& > *:nth-of-type(2)': {
+          marginBottom: '8px',
+        },
+      },
+      small: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        justifyContent: 'space-between',
+        '& > *:nth-of-type(2)': {
+          marginBottom: '0px',
+        },
+      },
+    },
   },
 })

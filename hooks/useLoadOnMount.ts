@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { useEffect } from 'react'
 import state from 'state'
-import coopState from 'state/coop/coop-state'
+// import coopState from 'state/coop/coop-state'
 
 export default function useLoadOnMount(roomId?: string) {
   useEffect(() => {
@@ -21,7 +21,7 @@ export default function useLoadOnMount(roomId?: string) {
 
     return () => {
       state.send('UNMOUNTED', { roomId })
-      coopState.send('LEFT_ROOM', { id: roomId })
+      // coopState.send('LEFT_ROOM', { id: roomId })
     }
   }, [roomId])
 }

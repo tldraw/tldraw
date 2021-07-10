@@ -7,6 +7,7 @@ import { forwardRef } from 'react'
 export const breakpoints: any = { '@initial': 'mobile', '@sm': 'small' }
 
 export const IconButton = styled('button', {
+  position: 'relative',
   height: '32px',
   width: '32px',
   backgroundColor: '$panel',
@@ -19,6 +20,7 @@ export const IconButton = styled('button', {
   outline: 'none',
   border: 'none',
   pointerEvents: 'all',
+  fontSize: '$0',
   cursor: 'pointer',
 
   '& > *': {
@@ -48,7 +50,9 @@ export const IconButton = styled('button', {
     },
     size: {
       small: {
-        '& svg': {
+        height: 32,
+        width: 32,
+        '& svg:nth-of-type(1)': {
           height: '16px',
           width: '16px',
         },
@@ -56,17 +60,17 @@ export const IconButton = styled('button', {
       medium: {
         height: 44,
         width: 44,
-        '& svg': {
-          height: '20px',
-          width: '20px',
+        '& svg:nth-of-type(1)': {
+          height: '18px',
+          width: '18px',
         },
       },
       large: {
         height: 44,
         width: 44,
-        '& svg': {
-          height: '24px',
-          width: '24px',
+        '& svg:nth-of-type(1)': {
+          height: '20px',
+          width: '20px',
         },
       },
     },
@@ -403,4 +407,11 @@ export const ButtonsRow = styled('div', {
   alignItems: 'center',
   justifyContent: 'flex-start',
   padding: 0,
+})
+
+export const VerticalDivider = styled('hr', {
+  width: '1px',
+  margin: '-2px 3px',
+  border: 'none',
+  backgroundColor: '$brushFill',
 })

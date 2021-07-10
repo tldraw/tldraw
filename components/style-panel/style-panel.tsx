@@ -123,6 +123,7 @@ const StylePanelRoot = styled(motion(Panel.Root), {
   alignItems: 'center',
   pointerEvents: 'all',
   padding: 2,
+  zIndex: 300,
 
   '& hr': {
     marginTop: 2,
