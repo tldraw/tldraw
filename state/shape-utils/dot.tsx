@@ -19,8 +19,8 @@ const dot = registerShapeUtils<DotShape>({
     style: defaultStyle,
   },
 
-  render(shape) {
-    const styles = getShapeStyle(shape.style)
+  render(shape, { isDarkMode }) {
+    const styles = getShapeStyle(shape.style, isDarkMode)
 
     return <use href="#dot" stroke={styles.stroke} fill={styles.stroke} />
   },

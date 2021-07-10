@@ -28,9 +28,9 @@ const rectangle = registerShapeUtils<RectangleShape>({
     return shape.size !== prev.size || shape.style !== prev.style
   },
 
-  render(shape, { isHovered }) {
+  render(shape, { isHovered, isDarkMode }) {
     const { id, size, radius, style } = shape
-    const styles = getShapeStyle(style)
+    const styles = getShapeStyle(style, isDarkMode)
     const strokeWidth = +styles.strokeWidth
 
     if (style.dash === DashStyle.Draw) {

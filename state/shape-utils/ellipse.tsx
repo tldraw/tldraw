@@ -42,9 +42,9 @@ const ellipse = registerShapeUtils<EllipseShape>({
     )
   },
 
-  render(shape) {
+  render(shape, { isDarkMode }) {
     const { radiusX, radiusY, style } = shape
-    const styles = getShapeStyle(style)
+    const styles = getShapeStyle(style, isDarkMode)
     const strokeWidth = +styles.strokeWidth
 
     const rx = Math.max(0, radiusX - strokeWidth / 2)

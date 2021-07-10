@@ -10,6 +10,7 @@ interface ShapeProps {
   isEditing: boolean
   isHovered: boolean
   isSelected: boolean
+  isDarkMode: boolean
   isCurrentParent: boolean
 }
 
@@ -19,6 +20,7 @@ const Shape = memo(
     isEditing,
     isHovered,
     isSelected,
+    isDarkMode,
     isCurrentParent,
   }: ShapeProps) => {
     const rGroup = useRef<SVGGElement>(null)
@@ -39,13 +41,14 @@ const Shape = memo(
         {...events}
       >
         {isEditing && shape.type === ShapeType.Text ? (
-          <EditingTextShape shape={shape} />
+          <EditingTextShape shape={shape} isDarkMode={isDarkMode} />
         ) : (
           <RenderedShape
             shape={shape}
             isEditing={isEditing}
             isHovered={isHovered}
             isSelected={isSelected}
+            isDarkMode={isDarkMode}
             isCurrentParent={isCurrentParent}
           />
         )}
@@ -62,6 +65,7 @@ interface RenderedShapeProps {
   isEditing: boolean
   isHovered: boolean
   isSelected: boolean
+  isDarkMode: boolean
   isCurrentParent: boolean
 }
 
@@ -71,12 +75,14 @@ const RenderedShape = memo(
     isEditing,
     isHovered,
     isSelected,
+    isDarkMode,
     isCurrentParent,
   }: RenderedShapeProps) {
     return getShapeUtils(shape).render(shape, {
       isEditing,
       isHovered,
       isSelected,
+      isDarkMode,
       isCurrentParent,
     })
   },
@@ -85,6 +91,7 @@ const RenderedShape = memo(
       prev.isEditing !== next.isEditing ||
       prev.isHovered !== next.isHovered ||
       prev.isSelected !== next.isSelected ||
+      prev.isDarkMode !== next.isDarkMode ||
       prev.isCurrentParent !== next.isCurrentParent
     ) {
       return false
@@ -98,7 +105,13 @@ const RenderedShape = memo(
   }
 )
 
-function EditingTextShape({ shape }: { shape: TextShape }) {
+function EditingTextShape({
+  shape,
+  isDarkMode,
+}: {
+  shape: TextShape
+  isDarkMode: boolean
+}) {
   const ref = useRef<HTMLTextAreaElement>(null)
 
   return getShapeUtils(shape).render(shape, {
@@ -106,6 +119,7 @@ function EditingTextShape({ shape }: { shape: TextShape }) {
     isEditing: true,
     isHovered: false,
     isSelected: false,
+    isDarkMode,
     isCurrentParent: false,
   })
 }

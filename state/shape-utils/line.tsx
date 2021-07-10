@@ -26,12 +26,12 @@ const line = registerShapeUtils<LineShape>({
     return shape.direction !== prev.direction || shape.style !== prev.style
   },
 
-  render(shape, { isHovered }) {
+  render(shape, { isHovered, isDarkMode }) {
     const { id, direction } = shape
     const [x1, y1] = vec.add([0, 0], vec.mul(direction, 10000))
     const [x2, y2] = vec.sub([0, 0], vec.mul(direction, 10000))
 
-    const styles = getShapeStyle(shape.style)
+    const styles = getShapeStyle(shape.style, isDarkMode)
 
     return (
       <g id={id} filter={isHovered ? 'url(#expand)' : 'none'}>

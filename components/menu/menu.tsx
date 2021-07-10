@@ -11,8 +11,9 @@ import {
   DropdownMenuButton,
   DropdownMenuSubMenu,
   DropdownMenuDivider,
+  DropdownMenuCheckboxItem,
 } from '../shared'
-import state from 'state'
+import state, { useSelector } from 'state'
 import { commandKey } from 'utils'
 
 const handleNew = () => state.send('CREATED_NEW_PROJECT')
@@ -28,7 +29,7 @@ function Menu() {
           <HamburgerMenuIcon />
         </IconButton>
         <Content as={MenuContent} sideOffset={8}>
-          <DropdownMenuButton onSelect={handleNew}>
+          <DropdownMenuButton onSelect={handleNew} disabled>
             <span>New Project</span>
             <kbd>
               <span>{commandKey()}</span>
@@ -72,7 +73,7 @@ export default memo(Menu)
 
 function RecentFiles() {
   return (
-    <DropdownMenuSubMenu label="Open Recent...">
+    <DropdownMenuSubMenu label="Open Recent..." disabled>
       <DropdownMenuButton>
         <span>Project A</span>
       </DropdownMenuButton>
@@ -87,16 +88,16 @@ function RecentFiles() {
 }
 
 function Preferences() {
+  const isDarkMode = useSelector((s) => s.data.settings.isDarkMode)
+
   return (
     <DropdownMenuSubMenu label="Preferences">
-      <DropdownMenuButton onSelect={toggleDarkMode}>
-        <span>Toggle Dark Mode</span>
-        <kbd>
-          <span>⇧</span>
-          <span>{commandKey()}</span>
-          <span>D</span>
-        </kbd>
-      </DropdownMenuButton>
+      <DropdownMenuCheckboxItem
+        checked={isDarkMode}
+        onCheckedChange={toggleDarkMode}
+      >
+        <span>Dark Mode</span>
+      </DropdownMenuCheckboxItem>
     </DropdownMenuSubMenu>
   )
 }

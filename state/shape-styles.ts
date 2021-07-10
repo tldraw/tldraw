@@ -1,33 +1,50 @@
-import { ColorStyle, DashStyle, ShapeStyles, SizeStyle } from 'types'
+import { Theme, ColorStyle, DashStyle, ShapeStyles, SizeStyle } from 'types'
+import { lerpColor } from 'utils'
 
-export const strokes: Record<ColorStyle, string> = {
-  [ColorStyle.White]: 'rgba(248, 249, 250, 1.000)',
-  [ColorStyle.LightGray]: 'rgba(224, 226, 230, 1.000)',
-  [ColorStyle.Gray]: 'rgba(172, 181, 189, 1.000)',
-  [ColorStyle.Black]: 'rgba(0,0,0, 1.000)',
-  [ColorStyle.Green]: 'rgba(54, 178, 77, 1.000)',
-  [ColorStyle.Cyan]: 'rgba(14, 152, 173, 1.000)',
-  [ColorStyle.Blue]: 'rgba(28, 126, 214, 1.000)',
-  [ColorStyle.Indigo]: 'rgba(66, 99, 235, 1.000)',
-  [ColorStyle.Violet]: 'rgba(112, 72, 232, 1.000)',
-  [ColorStyle.Red]: 'rgba(240, 63, 63, 1.000)',
-  [ColorStyle.Orange]: 'rgba(247, 103, 6, 1.000)',
-  [ColorStyle.Yellow]: 'rgba(245, 159, 0, 1.000)',
+const canvasLight = '#fafafa'
+
+const canvasDark = '#343d45'
+
+const colors = {
+  [ColorStyle.White]: '#f0f1f3',
+  [ColorStyle.LightGray]: '#c6cbd1',
+  [ColorStyle.Gray]: '#788492',
+  [ColorStyle.Black]: '#212528',
+  [ColorStyle.Green]: '#36b24d',
+  [ColorStyle.Cyan]: '#0e98ad',
+  [ColorStyle.Blue]: '#1c7ed6',
+  [ColorStyle.Indigo]: '#4263eb',
+  [ColorStyle.Violet]: '#7746f1',
+  [ColorStyle.Red]: '#ff2133',
+  [ColorStyle.Orange]: '#ff9433',
+  [ColorStyle.Yellow]: '#ffc936',
 }
 
-export const fills = {
-  [ColorStyle.White]: 'rgba(224, 226, 230, 1.000)',
-  [ColorStyle.LightGray]: 'rgba(255, 255, 255, 1.000)',
-  [ColorStyle.Gray]: 'rgba(224, 226, 230, 1.000)',
-  [ColorStyle.Black]: 'rgba(255, 255, 255, 1.000)',
-  [ColorStyle.Green]: 'rgba(235, 251, 238, 1.000)',
-  [ColorStyle.Cyan]: 'rgba(227, 250, 251, 1.000)',
-  [ColorStyle.Blue]: 'rgba(231, 245, 255, 1.000)',
-  [ColorStyle.Indigo]: 'rgba(237, 242, 255, 1.000)',
-  [ColorStyle.Violet]: 'rgba(242, 240, 255, 1.000)',
-  [ColorStyle.Red]: 'rgba(255, 245, 245, 1.000)',
-  [ColorStyle.Orange]: 'rgba(255, 244, 229, 1.000)',
-  [ColorStyle.Yellow]: 'rgba(255, 249, 219, 1.000)',
+export const strokes: Record<Theme, Record<ColorStyle, string>> = {
+  light: colors,
+  dark: {
+    ...(Object.fromEntries(
+      Object.entries(colors).map(([k, v]) => [k, lerpColor(v, canvasDark, 0.1)])
+    ) as Record<ColorStyle, string>),
+    [ColorStyle.White]: '#ffffff',
+    [ColorStyle.Black]: '#000',
+  },
+}
+
+export const fills: Record<Theme, Record<ColorStyle, string>> = {
+  light: {
+    ...(Object.fromEntries(
+      Object.entries(colors).map(([k, v]) => [
+        k,
+        lerpColor(v, canvasLight, 0.82),
+      ])
+    ) as Record<ColorStyle, string>),
+    [ColorStyle.White]: '#ffffff',
+    [ColorStyle.Black]: '#ffffff',
+  },
+  dark: Object.fromEntries(
+    Object.entries(colors).map(([k, v]) => [k, lerpColor(v, canvasDark, 0.618)])
+  ) as Record<ColorStyle, string>,
 }
 
 const strokeWidths = {
@@ -57,7 +74,10 @@ export function getFontStyle(scale: number, style: ShapeStyles): string {
   return `${fontSize * scale}px/1.4 Verveine Regular`
 }
 
-export function getShapeStyle(style: ShapeStyles): {
+export function getShapeStyle(
+  style: ShapeStyles,
+  isDarkMode = false
+): {
   stroke: string
   fill: string
   strokeWidth: number
@@ -66,9 +86,11 @@ export function getShapeStyle(style: ShapeStyles): {
 
   const strokeWidth = getStrokeWidth(size)
 
+  const theme: Theme = isDarkMode ? 'dark' : 'light'
+
   return {
-    stroke: strokes[color],
-    fill: isFilled ? fills[color] : 'none',
+    stroke: strokes[theme][color],
+    fill: isFilled ? fills[theme][color] : 'none',
     strokeWidth,
   }
 }

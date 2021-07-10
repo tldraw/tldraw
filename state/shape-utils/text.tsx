@@ -70,9 +70,9 @@ const text = registerShapeUtils<TextShape>({
     )
   },
 
-  render(shape, { isEditing, ref }) {
+  render(shape, { isEditing, isDarkMode, ref }) {
     const { id, text, style } = shape
-    const styles = getShapeStyle(style)
+    const styles = getShapeStyle(style, isDarkMode)
     const font = getFontStyle(shape.scale, shape.style)
 
     const bounds = this.getBounds(shape)

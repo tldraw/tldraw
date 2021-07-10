@@ -124,6 +124,8 @@ export enum FontSize {
   ExtraLarge = 'ExtraLarge',
 }
 
+export type Theme = 'dark' | 'light'
+
 export type ShapeStyles = {
   color: ColorStyle
   size: SizeStyle
@@ -612,6 +614,7 @@ export interface ShapeUtility<K extends Shape> {
       isHovered?: boolean
       isSelected?: boolean
       isCurrentParent?: boolean
+      isDarkMode?: boolean
       ref?: React.MutableRefObject<HTMLTextAreaElement>
     }
   ): JSX.Element

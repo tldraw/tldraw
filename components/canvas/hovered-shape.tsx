@@ -22,7 +22,7 @@ function HoveredShape({ id }: { id: string }) {
 
   const strokeWidth = useSelector((s) => {
     const shape = tld.getShape(s.data, id)
-    const style = getShapeStyle(shape.style)
+    const style = getShapeStyle(shape.style, s.data.settings.isDarkMode)
     return +style.strokeWidth
   })
 
