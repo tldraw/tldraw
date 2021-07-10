@@ -10,7 +10,7 @@ const zoomToActual = () => state.send('ZOOMED_TO_ACTUAL')
 
 export default function Zoom(): JSX.Element {
   return (
-    <TertiaryButtonsContainer>
+    <TertiaryButtonsContainer bp={{ '@initial': 'mobile', '@sm': 'small' }}>
       <TertiaryButton label="Zoom Out" onClick={zoomOut}>
         <ZoomOutIcon />
       </TertiaryButton>

@@ -8,7 +8,7 @@ import {
   SquareIcon,
   TextIcon,
 } from '@radix-ui/react-icons'
-import { PrimaryButton, SecondaryButton } from './shared'
+import { PrimaryButton, SecondaryButton, Container } from './shared'
 import React from 'react'
 import state, { useSelector } from 'state'
 import styled from 'styles'
@@ -112,19 +112,6 @@ const ToolsPanelContainer = styled('div', {
   alignItems: 'flex-end',
   zIndex: 200,
   gap: 8,
-})
-
-const Container = styled('div', {
-  position: 'relative',
-  backgroundColor: '$panel',
-  borderRadius: '4px',
-  border: '1px solid $panel',
-  pointerEvents: 'all',
-  userSelect: 'none',
-  height: 'fit-content',
-  display: 'flex',
-  padding: 2,
-  boxShadow: '0px 2px 4px rgba(0,0,0,.16)',
 })
 
 const CenterWrap = styled('div', {

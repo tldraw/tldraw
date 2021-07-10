@@ -8,7 +8,7 @@ const clear = () => state.send('CLEARED_PAGE')
 
 export default function UndoRedo(): JSX.Element {
   return (
-    <TertiaryButtonsContainer>
+    <TertiaryButtonsContainer bp={{ '@initial': 'mobile', '@sm': 'small' }}>
       <TertiaryButton label="Undo" onClick={undo}>
         <Undo />
       </TertiaryButton>

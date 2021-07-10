@@ -1,39 +1,6 @@
 import Tooltip from 'components/tooltip'
 import styled from 'styles'
 
-// small: {
-//   height: 32,
-//   width: 32,
-//   '& svg:nth-of-type(1)': {
-//     height: '16px',
-//     width: '16px',
-//   },
-// },
-// medium: {
-//   height: 44,
-//   width: 44,
-//   '& svg:nth-of-type(1)': {
-//     height: '18px',
-//     width: '18px',
-//   },
-// },
-// large: {
-//   height: 44,
-//   width: 44,
-//   '& svg:nth-of-type(1)': {
-//     height: '20px',
-//     width: '20px',
-//   },
-// },
-// tertiary: {
-//   height: 32,
-//   width: 44,
-//   '& svg:nth-of-type(1)': {
-//     height: '16px',
-//     width: '16px',
-//   },
-// },
-
 export const ToolButton = styled('button', {
   position: 'relative',
   height: '32px',
@@ -252,22 +219,31 @@ export function TertiaryButton({
   )
 }
 
-export const TertiaryButtonsContainer = styled('div', {
+export const Container = styled('div', {
   backgroundColor: '$panel',
+  border: '1px solid $panel',
   borderRadius: '4px',
-  overflow: 'hidden',
+  boxShadow: '0px 2px 4px rgba(0,0,0,.16)',
+  display: 'flex',
+  height: 'fit-content',
+  padding: 2,
   pointerEvents: 'all',
+  position: 'relative',
   userSelect: 'none',
   zIndex: 200,
-  minWidth: 36,
-  border: '1px solid $panel',
-  boxShadow: '0px 2px 4px rgba(0,0,0,.10)',
-  padding: 2,
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
+})
 
-  '& svg': {
-    strokeWidth: 0,
+export const TertiaryButtonsContainer = styled(Container, {
+  variants: {
+    bp: {
+      mobile: {
+        alignItems: 'center',
+        flexDirection: 'column',
+      },
+      small: {
+        alignItems: 'center',
+        flexDirection: 'row',
+      },
+    },
   },
 })
