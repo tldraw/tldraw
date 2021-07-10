@@ -16,7 +16,7 @@ const { styled, global, css, theme, getCssString } = createCss({
       highlight: 'rgba(65, 132, 244, 0.15)',
       overlay: 'rgba(0, 0, 0, 0.15)',
       border: '#aaa',
-      canvas: '#fafafa',
+      canvas: '#f8f9fa',
       panel: '#fefefe',
       inactive: '#cccccf',
       hover: '#efefef',

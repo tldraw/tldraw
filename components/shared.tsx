@@ -464,6 +464,23 @@ export const FloatingContainer = styled('div', {
   position: 'relative',
   userSelect: 'none',
   zIndex: 200,
+
+  variants: {
+    elevation: {
+      0: {
+        boxShadow: 'none',
+      },
+      2: {
+        boxShadow: '$2',
+      },
+      3: {
+        boxShadow: '$3',
+      },
+      4: {
+        boxShadow: '$4',
+      },
+    },
+  },
 })
 
 /* -------------------------------------------------- */
