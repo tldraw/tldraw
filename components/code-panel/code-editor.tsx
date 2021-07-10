@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import styled from 'styles'
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 import { getFormattedCode } from 'utils/code'
+import { metaKey } from 'utils'
 
 export type IMonaco = typeof monaco
 
@@ -136,11 +137,14 @@ export default function CodeEditor({
   const handleKeydown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       e.stopPropagation()
+
       !modifierKeys.includes(e.key) && onKey?.()
-      const metaKey = navigator.platform.match('Mac') ? e.metaKey : e.ctrlKey
-      if (e.key === 's' && metaKey) {
+
+      if ((e.key === 's' || e.key === 'Enter') && metaKey(e)) {
         const editor = rEditor.current
+
         if (!editor) return
+
         editor
           .getAction('editor.action.formatDocument')
           .run()
@@ -150,10 +154,11 @@ export default function CodeEditor({
 
         e.preventDefault()
       }
-      if (e.key === 'p' && metaKey) {
+      if (e.key === 'p' && metaKey(e)) {
         e.preventDefault()
       }
-      if (e.key === 'd' && metaKey) {
+
+      if (e.key === 'd' && metaKey(e)) {
         e.preventDefault()
       }
     },
