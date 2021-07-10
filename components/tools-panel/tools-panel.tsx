@@ -111,7 +111,7 @@ const ToolsPanelContainer = styled('div', {
   padding: '0 8px 12px 8px',
   alignItems: 'flex-end',
   zIndex: 200,
-  gap: 8,
+  gap: 12,
 })
 
 const CenterWrap = styled('div', {
