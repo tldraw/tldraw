@@ -132,6 +132,9 @@ const globalStyles = global({
     fontSize: '$2',
     backgroundColor: '$canvas',
   },
+  body: {
+    overflow: 'hidden',
+  },
 })
 
 export default styled
