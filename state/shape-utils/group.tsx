@@ -168,8 +168,8 @@ const group = registerShapeUtils<GroupShape>({
 
 const StyledGroupShape = styled('rect', {
   zDash: 5,
-  zStrokeWidth: 1,
-  stroke: '$text',
+  zStrokeWidth: 1.5,
+  stroke: '$border',
 })
 
 export default group
