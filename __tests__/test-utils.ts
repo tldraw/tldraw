@@ -228,15 +228,18 @@ class TestState {
    *```
    */
   clickShape(id: string, options: PointerOptions = {}): TestState {
-    this.state.send(
-      'POINTED_SHAPE',
-      inputs.pointerDown(TestState.point(options), id)
-    )
+    const shape = tld.getShape(this.data, id)
+    const [x, y] = shape ? vec.add(shape.point, [1, 1]) : [0, 0]
 
-    this.state.send(
-      'STOPPED_POINTING',
-      inputs.pointerUp(TestState.point(options), id)
-    )
+    this.state
+      .send(
+        'POINTED_SHAPE',
+        inputs.pointerDown(TestState.point({ x, y, ...options }), id)
+      )
+      .send(
+        'STOPPED_POINTING',
+        inputs.pointerUp(TestState.point({ x, y, ...options }), id)
+      )
 
     return this
   }
@@ -251,9 +254,12 @@ class TestState {
    *```
    */
   startClick(id: string, options: PointerOptions = {}): TestState {
+    const shape = tld.getShape(this.data, id)
+    const [x, y] = shape ? vec.add(shape.point, [1, 1]) : [0, 0]
+
     this.state.send(
       'POINTED_SHAPE',
-      inputs.pointerDown(TestState.point(options), id)
+      inputs.pointerDown(TestState.point({ x, y, ...options }), id)
     )
 
     return this
@@ -269,9 +275,12 @@ class TestState {
    *```
    */
   stopClick(id: string, options: PointerOptions = {}): TestState {
+    const shape = tld.getShape(this.data, id)
+    const [x, y] = shape ? vec.add(shape.point, [1, 1]) : [0, 0]
+
     this.state.send(
       'STOPPED_POINTING',
-      inputs.pointerUp(TestState.point(options), id)
+      inputs.pointerUp(TestState.point({ x, y, ...options }), id)
     )
 
     return this
@@ -287,12 +296,18 @@ class TestState {
    *```
    */
   doubleClickShape(id: string, options: PointerOptions = {}): TestState {
+    const shape = tld.getShape(this.data, id)
+    const [x, y] = shape ? vec.add(shape.point, [1, 1]) : [0, 0]
+
     this.state
       .send(
         'DOUBLE_POINTED_SHAPE',
-        inputs.pointerDown(TestState.point(options), id)
+        inputs.pointerDown(TestState.point({ x, y, ...options }), id)
       )
-      .send('STOPPED_POINTING', inputs.pointerUp(TestState.point(options), id))
+      .send(
+        'STOPPED_POINTING',
+        inputs.pointerUp(TestState.point({ x, y, ...options }), id)
+      )
 
     return this
   }
