@@ -1,3 +1,4 @@
+import { FloatingContainer } from 'components/shared'
 import Tooltip from 'components/tooltip'
 import styled from 'styles'
 
@@ -5,6 +6,7 @@ export const ToolButton = styled('button', {
   position: 'relative',
   height: '32px',
   width: '32px',
+  color: '$text',
   backgroundColor: '$panel',
   borderRadius: '4px',
   padding: '0',
@@ -219,21 +221,8 @@ export function TertiaryButton({
   )
 }
 
-export const Container = styled('div', {
-  backgroundColor: '$panel',
-  border: '1px solid $panel',
-  borderRadius: '4px',
-  boxShadow: '0px 2px 4px rgba(0,0,0,.16)',
-  display: 'flex',
-  height: 'fit-content',
-  padding: 2,
-  pointerEvents: 'all',
-  position: 'relative',
-  userSelect: 'none',
-  zIndex: 200,
-})
-
-export const TertiaryButtonsContainer = styled(Container, {
+export const TertiaryButtonsContainer = styled(FloatingContainer, {
+  boxShadow: '$3',
   variants: {
     bp: {
       mobile: {

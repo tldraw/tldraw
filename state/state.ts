@@ -203,6 +203,9 @@ const state = createState({
           unlessAny: ['isReadOnly', 'isInSession'],
           do: 'pasteShapesFromClipboard',
         },
+        TOGGLED_DARK_MODE: {
+          do: 'toggleDarkMode',
+        },
         TOGGLED_SHAPE_LOCK: {
           unlessAny: ['isReadOnly', 'isInSession'],
           if: 'hasSelection',
@@ -1263,6 +1266,7 @@ const state = createState({
     copyDebugLog() {
       logger.copyToJson()
     },
+
     // Networked Room
     addRtShape(data, payload: { pageId: string; shape: Shape }) {
       const { pageId, shape } = payload
@@ -1960,6 +1964,12 @@ const state = createState({
     },
     resetHistory() {
       history.reset()
+    },
+
+    /* ------------------- Preferences ------------------ */
+
+    toggleDarkMode(data) {
+      data.settings.isDarkMode = !data.settings.isDarkMode
     },
 
     /* --------------------- Styles --------------------- */

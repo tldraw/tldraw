@@ -80,7 +80,7 @@ const Content = styled('div', {
   backgroundColor: '$panel',
   margin: '32px auto',
   borderRadius: '0px',
-  boxShadow: '0px 2px 24px rgba(0,0,0,.08), 0px 2px 4px rgba(0,0,0,.16)',
+  boxShadow: '$12',
   padding: '16px',
   overflow: 'hidden',
   color: '$text',
@@ -154,7 +154,7 @@ const Button = styled('button', {
         fontWeight: 'bold',
         background: '$bounds',
         color: '$panel',
-        boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
+        boxShadow: '$4',
       },
       secondary: {
         border: '1px solid $overlay',

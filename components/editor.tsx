@@ -1,5 +1,6 @@
 import useKeyboardEvents from 'hooks/useKeyboardEvents'
 import useLoadOnMount from 'hooks/useLoadOnMount'
+import Menu from './menu/menu'
 import Canvas from './canvas/canvas'
 import StatusBar from './status-bar'
 import ToolsPanel from './tools-panel/tools-panel'
@@ -16,9 +17,12 @@ export default function Editor({ roomId }: { roomId?: string }): JSX.Element {
 
   return (
     <Layout>
-      <DebugPanel />
-      <CodePanel />
-      <PagePanel />
+      <MenuButtons>
+        <Menu />
+        <DebugPanel />
+        <CodePanel />
+        <PagePanel />
+      </MenuButtons>
       <ControlsPanel />
       <Spacer />
       <StylePanel />
@@ -31,6 +35,11 @@ export default function Editor({ roomId }: { roomId?: string }): JSX.Element {
 
 const Spacer = styled('div', {
   flexGrow: 2,
+})
+
+const MenuButtons = styled('div', {
+  display: 'flex',
+  gap: 8,
 })
 
 const Layout = styled('main', {

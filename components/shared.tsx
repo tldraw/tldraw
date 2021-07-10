@@ -1,8 +1,11 @@
+import * as ContextMenu from '@radix-ui/react-context-menu'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as RadioGroup from '@radix-ui/react-radio-group'
 import * as Panel from './panel'
 import styled from 'styles'
 import { forwardRef } from 'react'
+import { ChevronRightIcon } from '@radix-ui/react-icons'
+import { isMobile } from 'utils'
 
 export const breakpoints: any = { '@initial': 'mobile', '@sm': 'small' }
 
@@ -146,13 +149,13 @@ export const StylePanelRoot = styled(Panel.Root, {
   overflow: 'hidden',
   position: 'relative',
   border: '1px solid $panel',
-  boxShadow: '0px 2px 4px rgba(0,0,0,.12)',
+  boxShadow: '$4',
 
   variants: {
     isOpen: {
       true: {},
       false: {
-        padding: 2,
+        padding: '$0',
         height: 38,
         width: 38,
       },
@@ -258,7 +261,7 @@ export const DropdownContent = styled(DropdownMenu.Content, {
   backgroundColor: '$panel',
   borderRadius: 4,
   border: '1px solid $panel',
-  boxShadow: '0px 2px 4px rgba(0,0,0,.28)',
+  boxShadow: '$4',
 
   variants: {
     direction: {
@@ -415,3 +418,256 @@ export const VerticalDivider = styled('hr', {
   border: 'none',
   backgroundColor: '$brushFill',
 })
+
+export const FloatingContainer = styled('div', {
+  backgroundColor: '$panel',
+  border: '1px solid $panel',
+  borderRadius: '4px',
+  boxShadow: '$4',
+  display: 'flex',
+  height: 'fit-content',
+  padding: '$0',
+  pointerEvents: 'all',
+  position: 'relative',
+  userSelect: 'none',
+  zIndex: 200,
+})
+
+/* -------------------------------------------------- */
+/*                        Menus                       */
+/* -------------------------------------------------- */
+
+export const MenuContent = styled('div', {
+  position: 'relative',
+  backgroundColor: '$panel',
+  borderRadius: '4px',
+  overflow: 'hidden',
+  pointerEvents: 'all',
+  userSelect: 'none',
+  zIndex: 180,
+  border: '1px solid $panel',
+  padding: '$0',
+  boxShadow: '$4',
+  minWidth: 200,
+  font: '$ui',
+
+  '& kbd': {
+    marginLeft: '32px',
+    fontSize: '$1',
+    fontFamily: '$ui',
+    fontWeight: 400,
+  },
+
+  '& kbd > span': {
+    display: 'inline-block',
+    width: '12px',
+  },
+
+  variants: {
+    isMobile: {
+      true: {
+        '& kbd': {
+          display: 'none',
+        },
+      },
+    },
+  },
+})
+
+/* -------------------------------------------------- */
+/*                    Dropdown Menu                   */
+/* -------------------------------------------------- */
+
+export function DropdownMenuRoot({
+  isOpen,
+  onOpenChange,
+  children,
+}: {
+  isOpen?: boolean
+  onOpenChange?: (isOpen: boolean) => void
+  children: React.ReactNode
+}): JSX.Element {
+  return (
+    <DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange}>
+      {children}
+    </DropdownMenu.Root>
+  )
+}
+
+export function DropdownMenuSubMenu({
+  children,
+  label,
+}: {
+  label: string
+  children: React.ReactNode
+}): JSX.Element {
+  return (
+    <DropdownMenu.Root dir="ltr">
+      <DropdownMenu.TriggerItem as={RowButton} bp={breakpoints}>
+        <span>{label}</span>
+        <IconWrapper size="small">
+          <ChevronRightIcon />
+        </IconWrapper>
+      </DropdownMenu.TriggerItem>
+      <DropdownMenu.Content
+        as={MenuContent}
+        sideOffset={2}
+        alignOffset={-2}
+        isMobile={isMobile()}
+      >
+        {children}
+        <DropdownMenuArrow offset={13} />
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
+  )
+}
+
+export const DropdownMenuDivider = styled(DropdownMenu.Separator, {
+  backgroundColor: '$hover',
+  height: 1,
+  margin: '$2 -$2',
+})
+
+export const DropdownMenuArrow = styled(DropdownMenu.Arrow, {
+  fill: '$panel',
+})
+
+export function DropdownMenuButton({
+  onSelect,
+  children,
+  disabled = false,
+}: {
+  onSelect?: () => void
+  disabled?: boolean
+  children: React.ReactNode
+}): JSX.Element {
+  return (
+    <DropdownMenu.Item
+      as={RowButton}
+      bp={breakpoints}
+      disabled={disabled}
+      onSelect={onSelect}
+    >
+      {children}
+    </DropdownMenu.Item>
+  )
+}
+
+export function DropdownMenuIconButton({
+  onSelect,
+  children,
+  disabled = false,
+}: {
+  onSelect: () => void
+  disabled?: boolean
+  children: React.ReactNode
+}): JSX.Element {
+  return (
+    <DropdownMenu.Item
+      as={IconButton}
+      bp={breakpoints}
+      disabled={disabled}
+      onSelect={onSelect}
+    >
+      {children}
+    </DropdownMenu.Item>
+  )
+}
+
+/* -------------------------------------------------- */
+/*                    Context Menu                   */
+/* -------------------------------------------------- */
+
+export function ContextMenuRoot({
+  onOpenChange,
+  children,
+}: {
+  onOpenChange?: (isOpen: boolean) => void
+  children: React.ReactNode
+}): JSX.Element {
+  return (
+    <ContextMenu.Root dir="ltr" onOpenChange={onOpenChange}>
+      {children}
+    </ContextMenu.Root>
+  )
+}
+
+export function ContextMenuSubMenu({
+  children,
+  label,
+}: {
+  label: string
+  children: React.ReactNode
+}): JSX.Element {
+  return (
+    <ContextMenu.Root dir="ltr">
+      <ContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
+        <span>{label}</span>
+        <IconWrapper size="small">
+          <ChevronRightIcon />
+        </IconWrapper>
+      </ContextMenu.TriggerItem>
+      <ContextMenu.Content
+        as={MenuContent}
+        sideOffset={2}
+        alignOffset={-2}
+        isMobile={isMobile()}
+      >
+        {children}
+        <ContextMenuArrow offset={13} />
+      </ContextMenu.Content>
+    </ContextMenu.Root>
+  )
+}
+
+export const ContextMenuDivider = styled(ContextMenu.Separator, {
+  backgroundColor: '$hover',
+  height: 1,
+  margin: '$2 -$2',
+})
+
+export const ContextMenuArrow = styled(ContextMenu.Arrow, {
+  fill: '$panel',
+})
+
+export function ContextMenuButton({
+  onSelect,
+  children,
+  disabled = false,
+}: {
+  onSelect?: () => void
+  disabled?: boolean
+  children: React.ReactNode
+}): JSX.Element {
+  return (
+    <ContextMenu.Item
+      as={RowButton}
+      bp={breakpoints}
+      disabled={disabled}
+      onSelect={onSelect}
+    >
+      {children}
+    </ContextMenu.Item>
+  )
+}
+
+export function ContextMenuIconButton({
+  onSelect,
+  children,
+  disabled = false,
+}: {
+  onSelect: () => void
+  disabled?: boolean
+  children: React.ReactNode
+}): JSX.Element {
+  return (
+    <ContextMenu.Item
+      as={IconButton}
+      bp={breakpoints}
+      disabled={disabled}
+      onSelect={onSelect}
+    >
+      {children}
+    </ContextMenu.Item>
+  )
+}

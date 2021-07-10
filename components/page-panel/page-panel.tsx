@@ -106,7 +106,6 @@ export default function PagePanel(): JSX.Element {
 }
 
 const PanelRoot = styled('div', {
-  marginLeft: 8,
   zIndex: 200,
   overflow: 'hidden',
   position: 'relative',
@@ -114,11 +113,11 @@ const PanelRoot = styled('div', {
   flexDirection: 'column',
   alignItems: 'center',
   pointerEvents: 'all',
-  padding: '2px',
+  padding: '$0',
   borderRadius: '4px',
   backgroundColor: '$panel',
   border: '1px solid $panel',
-  boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
+  boxShadow: '$4',
   userSelect: 'none',
 })
 
@@ -157,11 +156,11 @@ const StyledRadioItem = styled(DropdownMenu.RadioItem, {
 })
 
 const StyledContextMenuContent = styled(ContextMenu.Content, {
-  padding: '2px',
+  padding: '$0',
   borderRadius: '4px',
   backgroundColor: '$panel',
   border: '1px solid $panel',
-  boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
+  boxShadow: '$4',
 })
 
 const StyledContextMenuItem = styled(ContextMenu.Item, {

@@ -8,7 +8,8 @@ import {
   SquareIcon,
   TextIcon,
 } from '@radix-ui/react-icons'
-import { PrimaryButton, SecondaryButton, Container } from './shared'
+import { PrimaryButton, SecondaryButton } from './shared'
+import { FloatingContainer } from '../shared'
 import React from 'react'
 import state, { useSelector } from 'state'
 import styled from 'styles'
@@ -33,7 +34,7 @@ export default function ToolsPanel(): JSX.Element {
     <ToolsPanelContainer>
       <LeftWrap size={{ '@initial': 'mobile', '@sm': 'small' }}>
         <Zoom />
-        <Container>
+        <FloatingContainer>
           <SecondaryButton
             label={'Select'}
             onClick={selectSelectTool}
@@ -41,10 +42,10 @@ export default function ToolsPanel(): JSX.Element {
           >
             <CursorArrowIcon />
           </SecondaryButton>
-        </Container>
+        </FloatingContainer>
       </LeftWrap>
       <CenterWrap>
-        <Container>
+        <FloatingContainer>
           <PrimaryButton
             label={ShapeType.Draw}
             onClick={selectDrawTool}
@@ -80,10 +81,10 @@ export default function ToolsPanel(): JSX.Element {
           >
             <TextIcon />
           </PrimaryButton>
-        </Container>
+        </FloatingContainer>
       </CenterWrap>
       <RightWrap size={{ '@initial': 'mobile', '@sm': 'small' }}>
-        <Container>
+        <FloatingContainer>
           <SecondaryButton
             label={'Lock Tool'}
             onClick={toggleToolLock}
@@ -91,7 +92,7 @@ export default function ToolsPanel(): JSX.Element {
           >
             {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
           </SecondaryButton>
-        </Container>
+        </FloatingContainer>
         <UndoRedo />
       </RightWrap>
     </ToolsPanelContainer>
