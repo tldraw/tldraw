@@ -734,7 +734,6 @@ const state = createState({
               do: 'breakSession',
               to: 'pinching.toolPinching',
             },
-            TOGGLED_TOOL_LOCK: 'toggleToolLock',
           },
           states: {
             draw: {
