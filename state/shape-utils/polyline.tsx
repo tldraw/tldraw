@@ -28,10 +28,10 @@ const polyline = registerShapeUtils<PolylineShape>({
   shouldRender(shape, prev) {
     return shape.points !== prev.points || shape.style !== prev.style
   },
-  render(shape) {
+  render(shape, { isDarkMode }) {
     const { points, style } = shape
 
-    const styles = getShapeStyle(style)
+    const styles = getShapeStyle(style, isDarkMode)
 
     return (
       <polyline

@@ -101,7 +101,7 @@ const arrow = registerShapeUtils<ArrowShape>({
     return shape.handles !== prev.handles || shape.style !== prev.style
   },
 
-  render(shape) {
+  render(shape, { isDarkMode }) {
     const { bend, handles, style } = shape
     const { start, end, bend: _bend } = handles
 
@@ -110,7 +110,7 @@ const arrow = registerShapeUtils<ArrowShape>({
 
     const isDraw = shape.style.dash === DashStyle.Draw
 
-    const styles = getShapeStyle(style)
+    const styles = getShapeStyle(style, isDarkMode)
 
     const { strokeWidth } = styles
 

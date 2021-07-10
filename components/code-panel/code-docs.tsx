@@ -113,7 +113,7 @@ const StyledDocs = styled('div', {
   },
 
   '& blockquote': {
-    backgroundColor: 'rgba(144, 144, 144, .05)',
+    backgroundColor: '$overlay',
     padding: 12,
     margin: '20px 0',
     borderRadius: 8,

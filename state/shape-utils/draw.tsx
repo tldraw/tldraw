@@ -40,10 +40,10 @@ const draw = registerShapeUtils<DrawShape>({
     return shape.points !== prev.points || shape.style !== prev.style
   },
 
-  render(shape, { isHovered }) {
+  render(shape, { isHovered, isDarkMode }) {
     const { points, style } = shape
 
-    const styles = getShapeStyle(style)
+    const styles = getShapeStyle(style, isDarkMode)
 
     const strokeWidth = +styles.strokeWidth
 

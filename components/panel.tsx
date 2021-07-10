@@ -9,7 +9,7 @@ export const Root = styled('div', {
   userSelect: 'none',
   zIndex: 200,
   border: '1px solid $panel',
-  boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
+  boxShadow: '$4',
   font: '$ui',
 
   variants: {
@@ -27,7 +27,7 @@ export const Root = styled('div', {
     isOpen: {
       true: {},
       false: {
-        padding: 2,
+        padding: '$0',
         height: 38,
         width: 38,
       },
@@ -84,7 +84,7 @@ export const Header = styled('div', {
   width: '100%',
   alignItems: 'center',
   justifyContent: 'space-between',
-  padding: 2,
+  padding: '$0',
   position: 'relative',
 
   '& h3': {

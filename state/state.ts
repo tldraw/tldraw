@@ -8,6 +8,7 @@ import storage from './storage'
 import session from './session'
 import clipboard from './clipboard'
 import commands from './commands'
+import { dark, light } from 'styles'
 import {
   vec,
   getCommonBounds,
@@ -43,7 +44,7 @@ const initialData: Data = {
   settings: {
     fontSize: 13,
     isTestMode: false,
-    isDarkMode: false,
+    isDarkMode: true,
     isCodeOpen: false,
     isDebugMode: false,
     isDebugOpen: false,
@@ -144,6 +145,7 @@ for (let i = 0; i < count; i++) {
 
 const state = createState({
   data: initialData,
+  onEnter: 'applyTheme',
   on: {
     TOGGLED_DEBUG_PANEL: 'toggleDebugPanel',
     TOGGLED_DEBUG_MODE: 'toggleDebugMode',
@@ -168,12 +170,15 @@ const state = createState({
       },
     },
     ready: {
-      onEnter: {
-        wait: 0.01,
-        if: 'hasSelection',
-        do: 'zoomCameraToSelectionActual',
-        else: ['zoomCameraToActual'],
-      },
+      onEnter: [
+        'applyTheme',
+        {
+          wait: 0.01,
+          if: 'hasSelection',
+          do: 'zoomCameraToSelectionActual',
+          else: ['zoomCameraToActual'],
+        },
+      ],
       on: {
         UNMOUNTED: {
           do: ['saveDocumentState', 'resetDocumentState'],
@@ -202,6 +207,9 @@ const state = createState({
         PASTED_SHAPES_FROM_CLIPBOARD: {
           unlessAny: ['isReadOnly', 'isInSession'],
           do: 'pasteShapesFromClipboard',
+        },
+        TOGGLED_DARK_MODE: {
+          do: ['toggleDarkMode', 'applyTheme'],
         },
         TOGGLED_SHAPE_LOCK: {
           unlessAny: ['isReadOnly', 'isInSession'],
@@ -1263,6 +1271,7 @@ const state = createState({
     copyDebugLog() {
       logger.copyToJson()
     },
+
     // Networked Room
     addRtShape(data, payload: { pageId: string; shape: Shape }) {
       const { pageId, shape } = payload
@@ -1960,6 +1969,21 @@ const state = createState({
     },
     resetHistory() {
       history.reset()
+    },
+
+    /* ------------------- Preferences ------------------ */
+
+    toggleDarkMode(data) {
+      data.settings.isDarkMode = !data.settings.isDarkMode
+    },
+    applyTheme(data) {
+      if (data.settings.isDarkMode && typeof document !== 'undefined') {
+        document.body.classList.remove(light)
+        document.body.classList.add(dark)
+      } else {
+        document.body.classList.remove(dark)
+        document.body.classList.add(light)
+      }
     },
 
     /* --------------------- Styles --------------------- */

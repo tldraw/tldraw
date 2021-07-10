@@ -16,6 +16,7 @@ interface Node {
   isEditing: boolean
   isHovered: boolean
   isSelected: boolean
+  isDarkMode: boolean
   isCurrentParent: boolean
 }
 
@@ -65,7 +66,15 @@ interface ShapeNodeProps {
 }
 
 const ShapeNode = ({
-  node: { shape, children, isEditing, isHovered, isSelected, isCurrentParent },
+  node: {
+    shape,
+    children,
+    isEditing,
+    isHovered,
+    isDarkMode,
+    isSelected,
+    isCurrentParent,
+  },
 }: ShapeNodeProps) => {
   return (
     <>
@@ -74,6 +83,7 @@ const ShapeNode = ({
         isEditing={isEditing}
         isHovered={isHovered}
         isSelected={isSelected}
+        isDarkMode={isDarkMode}
         isCurrentParent={isCurrentParent}
       />
       {children.map((childNode) => (
@@ -105,6 +115,7 @@ function addToTree(
     isHovered: data.hoveredId === shape.id,
     isCurrentParent: data.currentParentId === shape.id,
     isEditing: data.editingId === shape.id,
+    isDarkMode: data.settings.isDarkMode,
     isSelected: selectedIds.includes(shape.id),
   }
 

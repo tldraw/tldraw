@@ -29,8 +29,6 @@ const handleStylePanelOpen = () => state.send('TOGGLED_STYLE_PANEL_OPEN')
 const handleCopy = () => state.send('COPIED')
 const handlePaste = () => state.send('PASTED')
 const handleCopyToSvg = () => state.send('COPIED_TO_SVG')
-const handleSave = () => state.send('SAVED')
-const handleLoad = () => state.send('LOADED_FROM_FILE_STSTEM')
 
 export default function StylePanel(): JSX.Element {
   const rContainer = useRef<HTMLDivElement>(null)
@@ -99,13 +97,6 @@ function SelectedShapeContent(): JSX.Element {
           <Share2Icon />
         </IconWrapper>
       </RowButton>
-      <hr />
-      <RowButton bp={breakpoints} onClick={handleSave}>
-        <span>Save</span>
-      </RowButton>
-      <RowButton bp={breakpoints} onClick={handleLoad}>
-        <span>Load</span>
-      </RowButton>
     </>
   )
 }
@@ -117,18 +108,18 @@ const StylePanelRoot = styled(motion(Panel.Root), {
   overflow: 'hidden',
   position: 'relative',
   border: '1px solid $panel',
-  boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
+  boxShadow: '$4',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   pointerEvents: 'all',
-  padding: 2,
+  padding: '$0',
   zIndex: 300,
 
   '& hr': {
     marginTop: 2,
     marginBottom: 2,
-    marginLeft: '-2px',
+    marginLeft: '-$0',
     border: 'none',
     height: 1,
     backgroundColor: '$brushFill',

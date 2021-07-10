@@ -26,7 +26,20 @@ const { styled, global, css, theme, getCssString } = createCss({
       inputBorder: '#ddd',
       lineError: 'rgba(255, 0, 0, .1)',
     },
-    space: {},
+    shadows: {
+      2: '0px 1px 1px rgba(0, 0, 0, 0.14)',
+      3: '0px 2px 3px rgba(0, 0, 0, 0.14)',
+      4: '0px 4px 5px -1px rgba(0, 0, 0, 0.14)',
+      8: '0px 12px 17px rgba(0, 0, 0, 0.14)',
+      12: '0px 12px 17px rgba(0, 0, 0, 0.14)',
+      24: '0px 24px 38px rgba(0, 0, 0, 0.14)',
+    },
+    space: {
+      0: '2px',
+      1: '3px',
+      2: '4px',
+      3: '8px',
+    },
     fontSizes: {
       0: '10px',
       1: '12px',
@@ -43,10 +56,15 @@ const { styled, global, css, theme, getCssString } = createCss({
     lineHeights: {},
     letterSpacings: {},
     sizes: {},
-    borderWidths: {},
+    borderWidths: {
+      0: '$1',
+    },
     borderStyles: {},
-    radii: {},
-    shadows: {},
+    radii: {
+      0: '2px',
+      1: '4px',
+      2: '8px',
+    },
     zIndices: {},
     transitions: {},
   },
@@ -76,7 +94,37 @@ const { styled, global, css, theme, getCssString } = createCss({
 
 const light = theme({})
 
-const dark = theme({})
+const dark = theme({
+  colors: {
+    brushFill: 'rgba(0,0,0,.05)',
+    brushStroke: 'rgba(0,0,0,.25)',
+    hint: 'rgba(216, 226, 249, 1.000)',
+    selected: 'rgba(82, 143, 245, 1.000)',
+    bounds: 'rgba(82, 143, 245, 1.000)',
+    boundsBg: 'rgba(82, 143, 245, 0.05)',
+    highlight: 'rgba(82, 143, 245, 0.15)',
+    overlay: 'rgba(0, 0, 0, 0.15)',
+    border: '#202529',
+    canvas: '#343d45',
+    panel: '#49555f',
+    inactive: '#cccccf',
+    hover: '#343d45',
+    text: '#f8f9fa',
+    muted: '#e0e2e6',
+    input: '#f3f3f3',
+    inputBorder: '#ddd',
+    codeHl: 'rgba(144, 144, 144, .15)',
+    lineError: 'rgba(255, 0, 0, .1)',
+  },
+  shadows: {
+    2: '0px 1px 1px rgba(0, 0, 0, 0.24)',
+    3: '0px 2px 3px rgba(0, 0, 0, 0.24)',
+    4: '0px 4px 5px -1px rgba(0, 0, 0, 0.24)',
+    8: '0px 12px 17px rgba(0, 0, 0, 0.24)',
+    12: '0px 12px 17px rgba(0, 0, 0, 0.24)',
+    24: '0px 24px 38px rgba(0, 0, 0, 0.24)',
+  },
+})
 
 const globalStyles = global({
   '*': { boxSizing: 'border-box' },
@@ -90,7 +138,12 @@ const globalStyles = global({
     overscrollBehavior: 'none',
     fontFamily: '$ui',
     fontSize: '$2',
+    color: '$text',
     backgroundColor: '$canvas',
+    minHeight: '100vh',
+  },
+  body: {
+    overflow: 'hidden',
   },
 })
 

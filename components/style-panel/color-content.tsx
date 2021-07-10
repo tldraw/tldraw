@@ -6,6 +6,7 @@ import { Square } from 'react-feather'
 import { DropdownContent } from '../shared'
 import { memo } from 'react'
 import state from 'state'
+import useTheme from 'hooks/useTheme'
 
 function handleColorChange(
   e: Event & { currentTarget: { value: ColorStyle } }
@@ -14,9 +15,11 @@ function handleColorChange(
 }
 
 function ColorContent(): JSX.Element {
+  const { theme } = useTheme()
+
   return (
     <DropdownContent sideOffset={8} side="bottom">
-      {Object.keys(strokes).map((color: ColorStyle) => (
+      {Object.keys(strokes[theme]).map((color: ColorStyle) => (
         <DropdownMenu.DropdownMenuItem
           as={IconButton}
           key={color}
@@ -24,7 +27,7 @@ function ColorContent(): JSX.Element {
           value={color}
           onSelect={handleColorChange}
         >
-          <Square fill={strokes[color]} stroke="none" size="22" />
+          <Square fill={strokes[theme][color]} stroke="none" size="22" />
         </DropdownMenu.DropdownMenuItem>
       ))}
     </DropdownContent>

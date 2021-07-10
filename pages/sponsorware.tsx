@@ -7,60 +7,67 @@ export default function Sponsorware(): JSX.Element {
   const [session, loading] = useSession()
 
   return (
-    <Content
-      size={{
-        '@sm': 'small',
-      }}
-    >
-      <h1>tldraw (is sponsorware)</h1>
-      <p>
-        Hey, thanks for visiting <a href="https://tldraw.com/">tldraw</a>, a
-        tiny little drawing app by{' '}
-        <a href="https://twitter.com/steveruizok">steveruizok</a>.
-      </p>
-      <video autoPlay muted playsInline onClick={(e) => e.currentTarget.play()}>
-        <source src="images/hello.mp4" type="video/mp4" />
-      </video>
-      <p>This project is currently: </p>
-      <ul>
-        <li>in development</li>
-        <li>only available for my sponsors</li>
-      </ul>
-      <p>
-        If you&apos;d like to try it out,{' '}
-        <a
-          href="https://github.com/sponsors/steveruizok"
-          target="_blank"
-          rel="noopener noreferrer"
+    <OuterContent>
+      <Content
+        size={{
+          '@sm': 'small',
+        }}
+      >
+        <h1>tldraw (is sponsorware)</h1>
+        <p>
+          Hey, thanks for visiting <a href="https://tldraw.com/">tldraw</a>, a
+          tiny little drawing app by{' '}
+          <a href="https://twitter.com/steveruizok">steveruizok</a>.
+        </p>
+        <video
+          autoPlay
+          muted
+          playsInline
+          onClick={(e) => e.currentTarget.play()}
         >
-          sponsor me on Github
-        </a>{' '}
-        (at any level) and sign in below.
-      </p>
-      <ButtonGroup>
-        {session ? (
-          <>
-            <Button onClick={() => signout()} variant={'secondary'}>
-              Sign Out
-            </Button>
-            <Detail>
-              Signed in as {session?.user?.name} ({session?.user?.email}), but
-              it looks like you&apos;re not yet a sponsor.
-              <br />
-              Something wrong? Try <a href="/">reloading the page</a> or DM me
-              on <a href="https://twitter.com/steveruizok">Twitter</a>.
-            </Detail>
-          </>
-        ) : (
-          <>
-            <Button onClick={() => signin('github')} variant={'primary'}>
-              {loading ? 'Loading...' : 'Sign in With Github'}
-            </Button>
-            <Detail>Already a sponsor? Just sign in to visit the app.</Detail>
-          </>
-        )}
-      </ButtonGroup>
-    </Content>
+          <source src="images/hello.mp4" type="video/mp4" />
+        </video>
+        <p>This project is currently: </p>
+        <ul>
+          <li>in development</li>
+          <li>only available for my sponsors</li>
+        </ul>
+        <p>
+          If you&apos;d like to try it out,{' '}
+          <a
+            href="https://github.com/sponsors/steveruizok"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            sponsor me on Github
+          </a>{' '}
+          (at any level) and sign in below.
+        </p>
+        <ButtonGroup>
+          {session ? (
+            <>
+              <Button onClick={() => signout()} variant={'secondary'}>
+                Sign Out
+              </Button>
+              <Detail>
+                Signed in as {session?.user?.name} ({session?.user?.email}), but
+                it looks like you&apos;re not yet a sponsor.
+                <br />
+                Something wrong? Try <a href="/">reloading the page</a> or DM me
+                on <a href="https://twitter.com/steveruizok">Twitter</a>.
+              </Detail>
+            </>
+          ) : (
+            <>
+              <Button onClick={() => signin('github')} variant={'primary'}>
+                {loading ? 'Loading...' : 'Sign in With Github'}
+              </Button>
+              <Detail>Already a sponsor? Just sign in to visit the app.</Detail>
+            </>
+          )}
+        </ButtonGroup>
+      </Content>
+    </OuterContent>
   )
 }
 
@@ -74,15 +81,29 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 }
 
+const OuterContent = styled('div', {
+  backgroundColor: '$canvas',
+  padding: '32px',
+  margin: '0 auto',
+  overflow: 'scroll',
+  position: 'fixed',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'flex-start',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  width: '100%',
+  height: '100%',
+})
+
 const Content = styled('div', {
   width: '720px',
   maxWidth: '100%',
   backgroundColor: '$panel',
-  margin: '32px auto',
-  borderRadius: '0px',
-  boxShadow: '0px 2px 24px rgba(0,0,0,.08), 0px 2px 4px rgba(0,0,0,.16)',
-  padding: '16px',
-  overflow: 'hidden',
+  borderRadius: '4px',
+  boxShadow: '$12',
   color: '$text',
   fontSize: '$2',
   fontFamily: '$body',
@@ -154,7 +175,7 @@ const Button = styled('button', {
         fontWeight: 'bold',
         background: '$bounds',
         color: '$panel',
-        boxShadow: '0px 2px 4px rgba(0,0,0,.2)',
+        boxShadow: '$4',
       },
       secondary: {
         border: '1px solid $overlay',
