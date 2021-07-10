@@ -140,6 +140,7 @@ const globalStyles = global({
     fontSize: '$2',
     color: '$text',
     backgroundColor: '$canvas',
+    minHeight: '100vh',
   },
   body: {
     overflow: 'hidden',

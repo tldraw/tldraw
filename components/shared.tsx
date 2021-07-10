@@ -114,7 +114,7 @@ export const RowButton = styled('button', {
 
   '& svg': {
     position: 'relative',
-    stroke: 'rgba(0,0,0,.2)',
+    stroke: '$overlay',
     strokeWidth: 1,
     zIndex: 1,
   },
