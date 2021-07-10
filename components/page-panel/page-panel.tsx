@@ -51,7 +51,7 @@ export default function PagePanel(): JSX.Element {
       <MenuContent as={DropdownMenu.Content} sideOffset={8}>
         <DropdownMenu.RadioGroup
           value={currentPageId}
-          onChange={(id) => {
+          onValueChange={(id) => {
             setIsOpen(false)
             state.send('CHANGED_PAGE', { id })
           }}
