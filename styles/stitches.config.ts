@@ -15,15 +15,15 @@ const { styled, global, css, theme, getCssString } = createCss({
       boundsBg: 'rgba(65, 132, 244, 0.05)',
       highlight: 'rgba(65, 132, 244, 0.15)',
       overlay: 'rgba(0, 0, 0, 0.15)',
-      border: '#aaa',
+      border: '#aaaaaa',
       canvas: '#f8f9fa',
       panel: '#fefefe',
       inactive: '#cccccf',
       hover: '#efefef',
-      text: '#333',
-      muted: '#777',
+      text: '#333333',
+      muted: '#777777',
       input: '#f3f3f3',
-      inputBorder: '#ddd',
+      inputBorder: '#dddddd',
       lineError: 'rgba(255, 0, 0, .1)',
     },
     shadows: {
@@ -39,6 +39,7 @@ const { styled, global, css, theme, getCssString } = createCss({
       1: '3px',
       2: '4px',
       3: '8px',
+      4: '12px',
     },
     fontSizes: {
       0: '10px',
@@ -96,8 +97,8 @@ const light = theme({})
 
 const dark = theme({
   colors: {
-    brushFill: 'rgba(0,0,0,.05)',
-    brushStroke: 'rgba(0,0,0,.25)',
+    brushFill: 'rgba(180, 180, 180, .05)',
+    brushStroke: 'rgba(180, 180, 180, .25)',
     hint: 'rgba(216, 226, 249, 1.000)',
     selected: 'rgba(38, 150, 255, 1.000)',
     bounds: 'rgba(38, 150, 255, 1.000)',
@@ -136,6 +137,7 @@ const globalStyles = global({
     padding: '0px',
     margin: '0px',
     overscrollBehavior: 'none',
+    overscrollBehaviorX: 'none',
     fontFamily: '$ui',
     fontSize: '$2',
     color: '$text',

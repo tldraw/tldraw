@@ -83,7 +83,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
 const OuterContent = styled('div', {
   backgroundColor: '$canvas',
-  padding: '32px',
+  padding: '8px 8px 64px 8px',
   margin: '0 auto',
   overflow: 'scroll',
   position: 'fixed',
@@ -100,6 +100,7 @@ const OuterContent = styled('div', {
 
 const Content = styled('div', {
   width: '720px',
+  padding: '8px 16px',
   maxWidth: '100%',
   backgroundColor: '$panel',
   borderRadius: '4px',

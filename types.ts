@@ -278,6 +278,16 @@ export interface CodeResult {
   error: CodeError
 }
 
+export interface ShapeTreeNode {
+  shape: Shape
+  children: ShapeTreeNode[]
+  isEditing: boolean
+  isHovered: boolean
+  isSelected: boolean
+  isDarkMode: boolean
+  isCurrentParent: boolean
+}
+
 /* -------------------------------------------------- */
 /*                      Editor UI                     */
 /* -------------------------------------------------- */

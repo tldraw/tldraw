@@ -9,6 +9,8 @@ class Clipboard {
   fallback = false
 
   copy = (shapes: Shape[], onComplete?: () => void) => {
+    if (shapes === undefined) return
+
     this.current = JSON.stringify({ id: 'tldr', shapes })
 
     if ('permissions' in navigator && 'clipboard' in navigator) {
@@ -37,7 +39,7 @@ class Clipboard {
     return this
   }
 
-  sendPastedTextToState(text = this.current) {
+  sendPastedTextToState = (text = this.current) => {
     if (text === undefined) return
 
     try {
@@ -62,10 +64,13 @@ class Clipboard {
 
   copySelectionToSvg(data: Data) {
     const shapes = tld.getSelectedShapes(data)
+    const shapesToCopy = shapes.length > 0 ? shapes : tld.getShapes(data)
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
 
-    shapes
+    if (shapesToCopy.length === 0) return
+
+    shapesToCopy
       .sort((a, b) => a.childIndex - b.childIndex)
       .forEach((shape) => {
         const group = document.getElementById(shape.id)
@@ -78,7 +83,7 @@ class Clipboard {
       })
 
     const bounds = getCommonBounds(
-      ...shapes.map((shape) => getShapeUtils(shape).getBounds(shape))
+      ...shapesToCopy.map((shape) => getShapeUtils(shape).getBounds(shape))
     )
 
     // No content

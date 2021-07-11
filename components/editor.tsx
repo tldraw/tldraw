@@ -2,7 +2,6 @@ import useKeyboardEvents from 'hooks/useKeyboardEvents'
 import useLoadOnMount from 'hooks/useLoadOnMount'
 import Menu from './menu/menu'
 import Canvas from './canvas/canvas'
-import StatusBar from './status-bar'
 import ToolsPanel from './tools-panel/tools-panel'
 import StylePanel from './style-panel/style-panel'
 import styled from 'styles'
@@ -28,7 +27,6 @@ export default function Editor({ roomId }: { roomId?: string }): JSX.Element {
       <StylePanel />
       <Canvas />
       <ToolsPanel />
-      <StatusBar />
     </Layout>
   )
 }
@@ -56,6 +54,8 @@ const Layout = styled('main', {
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
+  boxSizing: 'border-box',
+
   pointerEvents: 'none',
   '& > *': {
     PointerEvent: 'all',

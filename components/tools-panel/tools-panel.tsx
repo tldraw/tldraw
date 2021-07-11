@@ -8,14 +8,16 @@ import {
   SquareIcon,
   TextIcon,
 } from '@radix-ui/react-icons'
-import { PrimaryButton, SecondaryButton } from './shared'
-import { FloatingContainer } from '../shared'
-import React from 'react'
+import * as React from 'react'
 import state, { useSelector } from 'state'
+import StatusBar from 'components/status-bar'
+import { FloatingContainer } from 'components/shared'
+import { PrimaryButton, SecondaryButton } from './shared'
 import styled from 'styles'
 import { ShapeType } from 'types'
 import UndoRedo from './undo-redo'
 import Zoom from './zoom'
+import BackToContent from './back-to-content'
 
 const selectArrowTool = () => state.send('SELECTED_ARROW_TOOL')
 const selectDrawTool = () => state.send('SELECTED_DRAW_TOOL')
@@ -45,6 +47,7 @@ export default function ToolsPanel(): JSX.Element {
         </FloatingContainer>
       </LeftWrap>
       <CenterWrap>
+        <BackToContent />
         <FloatingContainer>
           <PrimaryButton
             label={ShapeType.Draw}
@@ -95,13 +98,16 @@ export default function ToolsPanel(): JSX.Element {
         </FloatingContainer>
         <UndoRedo />
       </RightWrap>
+      <StatusWrap>
+        <StatusBar />
+      </StatusWrap>
     </ToolsPanelContainer>
   )
 }
 
 const ToolsPanelContainer = styled('div', {
   position: 'fixed',
-  bottom: 44,
+  bottom: 0,
   left: 0,
   right: 0,
   width: '100%',
@@ -109,10 +115,11 @@ const ToolsPanelContainer = styled('div', {
   maxWidth: '100%',
   display: 'grid',
   gridTemplateColumns: '1fr auto 1fr',
-  padding: '0 8px 12px 8px',
+  padding: '0',
   alignItems: 'flex-end',
   zIndex: 200,
-  gap: 12,
+  gridGap: '$4',
+  gridRowGap: '$4',
 })
 
 const CenterWrap = styled('div', {
@@ -120,13 +127,17 @@ const CenterWrap = styled('div', {
   gridColumn: 2,
   display: 'flex',
   width: 'fit-content',
+  alignItems: 'center',
   justifyContent: 'center',
+  flexDirection: 'column',
+  gap: 12,
 })
 
 const LeftWrap = styled('div', {
   gridRow: 1,
   gridColumn: 1,
   display: 'flex',
+  paddingLeft: '$3',
   variants: {
     size: {
       mobile: {
@@ -153,6 +164,7 @@ const RightWrap = styled('div', {
   gridRow: 1,
   gridColumn: 3,
   display: 'flex',
+  paddingRight: '$3',
   variants: {
     size: {
       mobile: {
@@ -173,4 +185,9 @@ const RightWrap = styled('div', {
       },
     },
   },
+})
+
+const StatusWrap = styled('div', {
+  gridRow: 2,
+  gridColumn: '1 / span 3',
 })

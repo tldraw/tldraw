@@ -2,8 +2,13 @@
 import styled from 'styles'
 import React, { useRef } from 'react'
 import state, { useSelector } from 'state'
-import * as Panel from '../panel'
-import { breakpoints, IconButton, RowButton, IconWrapper } from '../shared'
+import * as Panel from 'components/panel'
+import {
+  breakpoints,
+  IconButton,
+  RowButton,
+  IconWrapper,
+} from 'components/shared'
 import {
   Cross2Icon,
   PlayIcon,
@@ -179,7 +184,6 @@ export default function CodePanel(): JSX.Element {
 }
 
 const StylePanelRoot = styled(Panel.Root, {
-  marginRight: '8px',
   width: 'fit-content',
   maxWidth: 'fit-content',
   overflow: 'hidden',

@@ -3,7 +3,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as RadioGroup from '@radix-ui/react-radio-group'
 import * as Panel from './panel'
 import styled from 'styles'
-import { forwardRef } from 'react'
+import React, { forwardRef } from 'react'
 import { CheckIcon, ChevronRightIcon } from '@radix-ui/react-icons'
 import { isMobile } from 'utils'
 
@@ -466,6 +466,14 @@ export const FloatingContainer = styled('div', {
   zIndex: 200,
 
   variants: {
+    direction: {
+      row: {
+        flexDirection: 'row',
+      },
+      column: {
+        flexDirection: 'column',
+      },
+    },
     elevation: {
       0: {
         boxShadow: 'none',
@@ -483,6 +491,23 @@ export const FloatingContainer = styled('div', {
   },
 })
 
+export const StyledKbd = styled('kbd', {
+  marginLeft: '32px',
+  fontSize: '$1',
+  fontFamily: '$ui',
+  fontWeight: 400,
+
+  '& > span': {
+    display: 'inline-block',
+    width: '12px',
+  },
+})
+
+export function Kbd({ children }: { children: React.ReactNode }): JSX.Element {
+  if (isMobile()) return null
+  return <StyledKbd>{children}</StyledKbd>
+}
+
 /* -------------------------------------------------- */
 /*                        Menus                       */
 /* -------------------------------------------------- */
@@ -498,30 +523,17 @@ export const MenuContent = styled('div', {
   border: '1px solid $panel',
   padding: '$0',
   boxShadow: '$4',
-  minWidth: 200,
+  minWidth: 180,
   font: '$ui',
+})
 
-  '& kbd': {
-    marginLeft: '32px',
-    fontSize: '$1',
-    fontFamily: '$ui',
-    fontWeight: 400,
-  },
-
-  '& kbd > span': {
-    display: 'inline-block',
-    width: '12px',
-  },
-
-  variants: {
-    isMobile: {
-      true: {
-        '& kbd': {
-          display: 'none',
-        },
-      },
-    },
-  },
+export const Divider = styled('div', {
+  backgroundColor: '$hover',
+  height: 1,
+  marginTop: '$2',
+  marginRight: '-$2',
+  marginBottom: '$2',
+  marginLeft: '-$2',
 })
 
 /* -------------------------------------------------- */
@@ -565,12 +577,7 @@ export function DropdownMenuSubMenu({
           <ChevronRightIcon />
         </IconWrapper>
       </RowButton>
-      <MenuContent
-        as={DropdownMenu.Content}
-        sideOffset={2}
-        alignOffset={-2}
-        isMobile={isMobile()}
-      >
+      <MenuContent as={DropdownMenu.Content} sideOffset={2} alignOffset={-2}>
         {children}
         <DropdownMenuArrow offset={13} />
       </MenuContent>
@@ -699,12 +706,7 @@ export function ContextMenuSubMenu({
           <ChevronRightIcon />
         </IconWrapper>
       </ContextMenu.TriggerItem>
-      <ContextMenu.Content
-        as={MenuContent}
-        sideOffset={2}
-        alignOffset={-2}
-        isMobile={isMobile()}
-      >
+      <ContextMenu.Content as={MenuContent} sideOffset={2} alignOffset={-2}>
         {children}
         <ContextMenuArrow offset={13} />
       </ContextMenu.Content>
