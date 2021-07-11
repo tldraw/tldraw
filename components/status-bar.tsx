@@ -1,14 +1,13 @@
 import { useStateDesigner } from '@state-designer/react'
 import state from 'state'
-import { useCoopSelector } from 'state/coop/coop-state'
 import styled from 'styles'
 
 const size: any = { '@sm': 'small' }
 
 export default function StatusBar(): JSX.Element {
   const local = useStateDesigner(state)
-  const status = useCoopSelector((s) => s.data.status)
-  const others = useCoopSelector((s) => s.data.others)
+
+  const shapesInView = state.values.shapesToRender.length
 
   const active = local.active.slice(1).map((s) => {
     const states = s.split('.')
@@ -17,14 +16,14 @@ export default function StatusBar(): JSX.Element {
 
   const log = local.log[0]
 
-  if (process.env.NODE_ENV === 'development') return null
+  if (process.env.NODE_ENV !== 'development') return null
 
   return (
     <StatusBarContainer size={size}>
       <Section>
-        {active.join(' | ')} | {log} | {status} (
-        {Object.values(others).length || 0})
+        {active.join(' | ')} - {log}
       </Section>
+      <Section>{shapesInView || '0'} Shapes</Section>
     </StatusBarContainer>
   )
 }
@@ -34,9 +33,9 @@ const StatusBarContainer = styled('div', {
   userSelect: 'none',
   borderTop: '1px solid $border',
   gridArea: 'status',
-  display: 'grid',
+  display: 'flex',
   color: '$text',
-  gridTemplateColumns: 'auto 1fr auto',
+  justifyContent: 'space-between',
   alignItems: 'center',
   backgroundColor: '$panel',
   gap: 8,
