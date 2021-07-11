@@ -2,14 +2,9 @@ import { useSelector } from 'state'
 import { ShapeTreeNode } from 'types'
 import ShapeComponent from './shape'
 
-/* 
-On each state change, populate a tree structure with all of
-the shapes that we need to render..
-*/
-
 export default function Page(): JSX.Element {
-  // Get a tree of shapes to render
   const shapesToRender = useSelector((s) => s.values.shapesToRender)
+
   const allowHovers = useSelector((s) =>
     s.isInAny('selecting', 'text', 'editingShape')
   )

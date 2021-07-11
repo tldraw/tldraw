@@ -195,11 +195,7 @@ export default function useKeyboardEvents() {
         }
         case 'd': {
           if (metaKey(e)) {
-            if (e.shiftKey) {
-              state.send('TOGGLED_DEBUG_MODE')
-            } else {
-              state.send('DUPLICATED', info)
-            }
+            state.send('DUPLICATED', info)
           } else {
             state.send('SELECTED_DRAW_TOOL', info)
           }

@@ -15,6 +15,7 @@ import Coop from './coop/coop'
 import Brush from './brush'
 import Defs from './defs'
 import Page from './page'
+import useSafariFocusOutFix from 'hooks/useSafariFocusOutFix'
 
 function resetError() {
   null
@@ -27,6 +28,8 @@ export default function Canvas(): JSX.Element {
   useCamera(rGroup)
 
   useZoomEvents()
+
+  useSafariFocusOutFix()
 
   const events = useCanvasEvents(rCanvas)
 
@@ -62,9 +65,10 @@ const MainSVG = styled('svg', {
   height: '100%',
   touchAction: 'none',
   zIndex: 100,
-  backgroundColor: '$canvas',
   pointerEvents: 'all',
-  // cursor: 'none',
+  backgroundColor: '$canvas',
+  borderTop: '1px solid $border',
+  borderBottom: '1px solid $border',
 
   '& *': {
     userSelect: 'none',

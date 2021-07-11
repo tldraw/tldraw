@@ -2137,8 +2137,13 @@ const state = createState({
 
     pasteFromClipboard(data) {
       clipboard.paste()
+
       if (clipboard.fallback) {
-        commands.paste(data, JSON.parse(clipboard.current).shapes)
+        try {
+          commands.paste(data, JSON.parse(clipboard.current).shapes)
+        } catch (e) {
+          console.warn('Could not paste that text.')
+        }
       }
     },
 
@@ -2245,16 +2250,15 @@ const state = createState({
 
       return commonStyle
     },
+
     shapesToRender(data) {
       const viewport = tld.getViewport(data)
 
       const page = tld.getPage(data)
 
-      const currentShapes = Object.values(page.shapes)
-        .filter((shape) => shape.parentId === page.id)
-        .sort((a, b) => a.childIndex - b.childIndex)
+      const shapesToShow = Object.values(page.shapes).filter((shape) => {
+        if (shape.parentId !== page.id) return false
 
-      const shapesToShow = currentShapes.filter((shape) => {
         const shapeBounds = getShapeUtils(shape).getBounds(shape)
 
         return (
@@ -2270,9 +2274,9 @@ const state = createState({
 
       const selectedIds = tld.getSelectedIds(data)
 
-      shapesToShow.forEach((shape) =>
-        tld.addToShapeTree(data, selectedIds, tree, shape)
-      )
+      shapesToShow
+        .sort((a, b) => a.childIndex - b.childIndex)
+        .forEach((shape) => tld.addToShapeTree(data, selectedIds, tree, shape))
 
       return tree
     },

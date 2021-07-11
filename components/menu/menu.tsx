@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { HamburgerMenuIcon } from '@radix-ui/react-icons'
+import { ExitIcon, HamburgerMenuIcon } from '@radix-ui/react-icons'
 import { Trigger, Content } from '@radix-ui/react-dropdown-menu'
 import { memo } from 'react'
 import {
@@ -12,14 +12,18 @@ import {
   DropdownMenuSubMenu,
   DropdownMenuDivider,
   DropdownMenuCheckboxItem,
+  IconWrapper,
+  Kbd,
 } from '../shared'
 import state, { useSelector } from 'state'
 import { commandKey } from 'utils'
+import { signOut } from 'next-auth/client'
 
 const handleNew = () => state.send('CREATED_NEW_PROJECT')
 const handleSave = () => state.send('SAVED')
 const handleLoad = () => state.send('LOADED_FROM_FILE_STSTEM')
 const toggleDarkMode = () => state.send('TOGGLED_DARK_MODE')
+const toggleDebugMode = () => state.send('TOGGLED_DEBUG_MODE')
 
 function Menu() {
   return (
@@ -31,38 +35,45 @@ function Menu() {
         <Content as={MenuContent} sideOffset={8}>
           <DropdownMenuButton onSelect={handleNew} disabled>
             <span>New Project</span>
-            <kbd>
+            <Kbd>
               <span>{commandKey()}</span>
               <span>N</span>
-            </kbd>
+            </Kbd>
           </DropdownMenuButton>
           <DropdownMenuDivider />
           <DropdownMenuButton onSelect={handleLoad}>
             <span>Open...</span>
-            <kbd>
+            <Kbd>
               <span>{commandKey()}</span>
               <span>L</span>
-            </kbd>
+            </Kbd>
           </DropdownMenuButton>
           <RecentFiles />
           <DropdownMenuDivider />
           <DropdownMenuButton onSelect={handleSave}>
             <span>Save</span>
-            <kbd>
+            <Kbd>
               <span>{commandKey()}</span>
               <span>S</span>
-            </kbd>
+            </Kbd>
           </DropdownMenuButton>
           <DropdownMenuButton onSelect={handleSave}>
             <span>Save As...</span>
-            <kbd>
+            <Kbd>
               <span>⇧</span>
               <span>{commandKey()}</span>
               <span>S</span>
-            </kbd>
+            </Kbd>
           </DropdownMenuButton>
           <DropdownMenuDivider />
           <Preferences />
+          <DropdownMenuDivider />
+          <DropdownMenuButton onSelect={signOut}>
+            <span>Sign Out</span>
+            <IconWrapper size="small">
+              <ExitIcon />
+            </IconWrapper>
+          </DropdownMenuButton>
         </Content>
       </DropdownMenuRoot>
     </FloatingContainer>
@@ -88,6 +99,7 @@ function RecentFiles() {
 }
 
 function Preferences() {
+  const isDebugMode = useSelector((s) => s.data.settings.isDebugMode)
   const isDarkMode = useSelector((s) => s.data.settings.isDarkMode)
 
   return (
@@ -97,6 +109,12 @@ function Preferences() {
         onCheckedChange={toggleDarkMode}
       >
         <span>Dark Mode</span>
+      </DropdownMenuCheckboxItem>
+      <DropdownMenuCheckboxItem
+        checked={isDebugMode}
+        onCheckedChange={toggleDebugMode}
+      >
+        <span>Debug Mode</span>
       </DropdownMenuCheckboxItem>
     </DropdownMenuSubMenu>
   )

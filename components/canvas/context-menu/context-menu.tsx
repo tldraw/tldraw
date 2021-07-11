@@ -12,7 +12,7 @@ import {
   ContextMenuRoot,
   MenuContent,
 } from 'components/shared'
-import { commandKey, deepCompareArrays, isMobile } from 'utils'
+import { commandKey, deepCompareArrays } from 'utils'
 import state, { useSelector } from 'state'
 import {
   AlignType,
@@ -36,6 +36,7 @@ import {
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
 } from '@radix-ui/react-icons'
+import { Kbd } from 'components/shared'
 
 function alignTop() {
   state.send('ALIGNED', { type: AlignType.Top })
@@ -101,34 +102,30 @@ export default function ContextMenu({
   return (
     <ContextMenuRoot>
       <_ContextMenu.Trigger>{children}</_ContextMenu.Trigger>
-      <MenuContent
-        as={_ContextMenu.Content}
-        ref={rContent}
-        isMobile={isMobile()}
-      >
+      <MenuContent as={_ContextMenu.Content} ref={rContent}>
         {selectedShapeIds.length ? (
           <>
             {/* <ContextMenuButton onSelect={() => state.send('COPIED')}>
               <span>Copy</span>
-              <kbd>
+              <Kbd>
                 <span>{commandKey()}</span>
                 <span>C</span>
-              </kbd>
+              </Kbd>
             </ContextMenuButton>
             <ContextMenuButton onSelect={() => state.send('CUT')}>
               <span>Cut</span>
-              <kbd>
+              <Kbd>
                 <span>{commandKey()}</span>
                 <span>X</span>
-              </kbd>
+              </Kbd>
             </ContextMenuButton>
              */}
             <ContextMenuButton onSelect={() => state.send('DUPLICATED')}>
               <span>Duplicate</span>
-              <kbd>
+              <Kbd>
                 <span>{commandKey()}</span>
                 <span>D</span>
-              </kbd>
+              </Kbd>
             </ContextMenuButton>
             <ContextMenuDivider />
             {hasGroupSelected ||
@@ -137,20 +134,20 @@ export default function ContextMenu({
                   {hasGroupSelected && (
                     <ContextMenuButton onSelect={() => state.send('UNGROUPED')}>
                       <span>Ungroup</span>
-                      <kbd>
+                      <Kbd>
                         <span>{commandKey()}</span>
                         <span>⇧</span>
                         <span>G</span>
-                      </kbd>
+                      </Kbd>
                     </ContextMenuButton>
                   )}
                   {hasTwoOrMore && (
                     <ContextMenuButton onSelect={() => state.send('GROUPED')}>
                       <span>Group</span>
-                      <kbd>
+                      <Kbd>
                         <span>{commandKey()}</span>
                         <span>G</span>
-                      </kbd>
+                      </Kbd>
                     </ContextMenuButton>
                   )}
                 </>
@@ -164,11 +161,11 @@ export default function ContextMenu({
                 }
               >
                 <span>To Front</span>
-                <kbd>
+                <Kbd>
                   <span>{commandKey()}</span>
                   <span>⇧</span>
                   <span>]</span>
-                </kbd>
+                </Kbd>
               </ContextMenuButton>
 
               <ContextMenuButton
@@ -179,10 +176,10 @@ export default function ContextMenu({
                 }
               >
                 <span>Forward</span>
-                <kbd>
+                <Kbd>
                   <span>{commandKey()}</span>
                   <span>]</span>
-                </kbd>
+                </Kbd>
               </ContextMenuButton>
               <ContextMenuButton
                 onSelect={() =>
@@ -192,10 +189,10 @@ export default function ContextMenu({
                 }
               >
                 <span>Backward</span>
-                <kbd>
+                <Kbd>
                   <span>{commandKey()}</span>
                   <span>[</span>
-                </kbd>
+                </Kbd>
               </ContextMenuButton>
               <ContextMenuButton
                 onSelect={() =>
@@ -205,11 +202,11 @@ export default function ContextMenu({
                 }
               >
                 <span>To Back</span>
-                <kbd>
+                <Kbd>
                   <span>{commandKey()}</span>
                   <span>⇧</span>
                   <span>[</span>
-                </kbd>
+                </Kbd>
               </ContextMenuButton>
             </ContextMenuSubMenu>
             {hasTwoOrMore && (
@@ -221,36 +218,36 @@ export default function ContextMenu({
             <MoveToPageMenu />
             <ContextMenuButton onSelect={() => state.send('COPIED_TO_SVG')}>
               <span>Copy to SVG</span>
-              <kbd>
+              <Kbd>
                 <span>{commandKey()}</span>
                 <span>⇧</span>
                 <span>C</span>
-              </kbd>
+              </Kbd>
             </ContextMenuButton>
             <ContextMenuDivider />
             <ContextMenuButton onSelect={() => state.send('DELETED')}>
               <span>Delete</span>
-              <kbd>
+              <Kbd>
                 <span>⌫</span>
-              </kbd>
+              </Kbd>
             </ContextMenuButton>
           </>
         ) : (
           <>
             <ContextMenuButton onSelect={() => state.send('UNDO')}>
               <span>Undo</span>
-              <kbd>
+              <Kbd>
                 <span>{commandKey()}</span>
                 <span>Z</span>
-              </kbd>
+              </Kbd>
             </ContextMenuButton>
             <ContextMenuButton onSelect={() => state.send('REDO')}>
               <span>Redo</span>
-              <kbd>
+              <Kbd>
                 <span>{commandKey()}</span>
                 <span>⇧</span>
                 <span>Z</span>
-              </kbd>
+              </Kbd>
             </ContextMenuButton>
           </>
         )}
@@ -277,7 +274,6 @@ function AlignDistributeSubMenu({
         as={_ContextMenu.Content}
         sideOffset={2}
         alignOffset={-2}
-        isMobile={isMobile()}
         selectedStyle={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}
       >
         <ContextMenuIconButton onSelect={alignLeft}>
@@ -355,12 +351,7 @@ function MoveToPageMenu() {
           <ChevronRightIcon />
         </IconWrapper>
       </ContextMenuButton>
-      <MenuContent
-        as={_ContextMenu.Content}
-        sideOffset={2}
-        alignOffset={-2}
-        isMobile={isMobile()}
-      >
+      <MenuContent as={_ContextMenu.Content} sideOffset={2} alignOffset={-2}>
         {sorted.map(({ id, name }) => (
           <ContextMenuButton
             key={id}
