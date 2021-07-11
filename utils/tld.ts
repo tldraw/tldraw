@@ -12,6 +12,7 @@ import {
   PageState,
   ShapeUtility,
   ParentShape,
+  ShapeTreeNode,
 } from 'types'
 import { AssertionError } from 'assert'
 
@@ -536,5 +537,42 @@ export default class StateUtils {
     }
 
     this.updateParents(data, parentToUpdateIds)
+  }
+
+  /**
+   * Populate the shape tree. This helper is recursive and only one call is needed.
+   *
+   * ### Example
+   *
+   *```ts
+   * addDataToTree(data, selectedIds, allowHovers, branch, shape)
+   *```
+   */
+  static addToShapeTree(
+    data: Data,
+    selectedIds: string[],
+    branch: ShapeTreeNode[],
+    shape: Shape
+  ): void {
+    const node = {
+      shape,
+      children: [],
+      isHovered: data.hoveredId === shape.id,
+      isCurrentParent: data.currentParentId === shape.id,
+      isEditing: data.editingId === shape.id,
+      isDarkMode: data.settings.isDarkMode,
+      isSelected: selectedIds.includes(shape.id),
+    }
+
+    branch.push(node)
+
+    if (shape.children) {
+      shape.children
+        .map((id) => this.getShape(data, id))
+        .sort((a, b) => a.childIndex - b.childIndex)
+        .forEach((childShape) => {
+          this.addToShapeTree(data, selectedIds, node.children, childShape)
+        })
+    }
   }
 }

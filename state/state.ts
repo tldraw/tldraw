@@ -17,6 +17,8 @@ import {
   deepClone,
   pointInBounds,
   uniqueId,
+  boundsContain,
+  boundsCollide,
 } from 'utils'
 import tld from '../utils/tld'
 import {
@@ -35,6 +37,7 @@ import {
   DashStyle,
   SizeStyle,
   ColorStyle,
+  ShapeTreeNode,
 } from 'types'
 import { getFontSize } from './shape-styles'
 import logger from './logger'
@@ -196,7 +199,10 @@ const state = createState({
         DISABLED_PEN_LOCK: 'disablePenLock',
         TOGGLED_CODE_PANEL_OPEN: ['toggleCodePanel', 'saveAppState'],
         TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
-        PANNED_CAMERA: 'panCamera',
+        PANNED_CAMERA: {
+          ifAny: ['isSimulating', 'isTestMode'],
+          do: 'panCamera',
+        },
         POINTED_CANVAS: ['closeStylePanel', 'clearCurrentParentId'],
         COPIED_STATE_TO_CLIPBOARD: 'copyStateToClipboard',
         COPIED: { if: 'hasSelection', do: 'copyToClipboard' },
@@ -332,8 +338,10 @@ const state = createState({
         ZOOMED_TO_SELECTION: {
           if: 'hasSelection',
           do: 'zoomCameraToSelection',
+          else: 'zoomCameraToFit',
         },
-        ZOOMED_TO_FIT: ['zoomCameraToFit', 'zoomCameraToActual'],
+        ZOOMED_TO_CONTENT: 'zoomCameraToContent',
+        ZOOMED_TO_FIT: 'zoomCameraToFit',
         ZOOMED_IN: 'zoomIn',
         ZOOMED_OUT: 'zoomOut',
         RESET_CAMERA: 'resetCamera',
@@ -357,7 +365,10 @@ const state = createState({
         selecting: {
           onEnter: ['setActiveToolSelect', 'clearInputs'],
           on: {
-            KEYBOARD_PANNED_CAMERA: 'panCamera',
+            KEYBOARD_PANNED_CAMERA: {
+              ifAny: ['isSimulating', 'isTestMode'],
+              do: 'panCamera',
+            },
             STARTED_PINCHING: {
               unless: 'isInSession',
               to: 'pinching.selectPinching',
@@ -601,7 +612,10 @@ const state = createState({
                   ifAny: ['isSimulating', 'isTestMode'],
                   do: 'updateTransformSession',
                 },
-                PANNED_CAMERA: 'updateTransformSession',
+                PANNED_CAMERA: {
+                  ifAny: ['isSimulating', 'isTestMode'],
+                  do: 'updateTransformSession',
+                },
                 PRESSED_SHIFT_KEY: 'keyUpdateTransformSession',
                 RELEASED_SHIFT_KEY: 'keyUpdateTransformSession',
                 STOPPED_POINTING: { to: 'selecting' },
@@ -613,8 +627,14 @@ const state = createState({
               onExit: 'completeSession',
               on: {
                 STARTED_PINCHING: { to: 'pinching' },
-                MOVED_POINTER: 'updateTranslateSession',
-                PANNED_CAMERA: 'updateTranslateSession',
+                MOVED_POINTER: {
+                  ifAny: ['isSimulating', 'isTestMode'],
+                  do: 'updateTranslateSession',
+                },
+                PANNED_CAMERA: {
+                  ifAny: ['isSimulating', 'isTestMode'],
+                  do: 'updateTranslateSession',
+                },
                 PRESSED_SHIFT_KEY: 'keyUpdateTranslateSession',
                 RELEASED_SHIFT_KEY: 'keyUpdateTranslateSession',
                 PRESSED_ALT_KEY: 'keyUpdateTranslateSession',
@@ -650,8 +670,14 @@ const state = createState({
                 'startBrushSession',
               ],
               on: {
-                MOVED_POINTER: { if: 'isTestMode', do: 'updateBrushSession' },
-                PANNED_CAMERA: 'updateBrushSession',
+                MOVED_POINTER: {
+                  ifAny: ['isSimulating', 'isTestMode'],
+                  do: 'updateBrushSession',
+                },
+                PANNED_CAMERA: {
+                  ifAny: ['isSimulating', 'isTestMode'],
+                  do: 'updateBrushSession',
+                },
                 STOPPED_POINTING: { to: 'selecting' },
                 STARTED_PINCHING: { to: 'pinching' },
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
@@ -780,7 +806,10 @@ const state = createState({
                     },
                     PRESSED_SHIFT: 'keyUpdateDrawSession',
                     RELEASED_SHIFT: 'keyUpdateDrawSession',
-                    PANNED_CAMERA: 'updateDrawSession',
+                    PANNED_CAMERA: {
+                      ifAny: ['isSimulating', 'isTestMode'],
+                      do: 'updateDrawSession',
+                    },
                     MOVED_POINTER: {
                       ifAny: ['isSimulating', 'isTestMode'],
                       do: 'updateDrawSession',
@@ -839,8 +868,14 @@ const state = createState({
                       onExit: 'completeSession',
                       onEnter: 'startTranslateSession',
                       on: {
-                        MOVED_POINTER: 'updateTranslateSession',
-                        PANNED_CAMERA: 'updateTranslateSession',
+                        MOVED_POINTER: {
+                          ifAny: ['isSimulating', 'isTestMode'],
+                          do: 'updateTranslateSession',
+                        },
+                        PANNED_CAMERA: {
+                          ifAny: ['isSimulating', 'isTestMode'],
+                          do: 'updateTranslateSession',
+                        },
                       },
                     },
                   },
@@ -1084,16 +1119,24 @@ const state = createState({
             bounds: {
               onEnter: 'startDrawTransformSession',
               on: {
-                MOVED_POINTER: 'updateTransformSession',
-                PANNED_CAMERA: 'updateTransformSession',
+                MOVED_POINTER: {
+                  do: 'updateTransformSession',
+                },
+                PANNED_CAMERA: {
+                  do: 'updateTransformSession',
+                },
               },
             },
             direction: {
               onEnter: 'startDirectionSession',
               onExit: 'completeSession',
               on: {
-                MOVED_POINTER: 'updateDirectionSession',
-                PANNED_CAMERA: 'updateDirectionSession',
+                MOVED_POINTER: {
+                  do: 'updateDirectionSession',
+                },
+                PANNED_CAMERA: {
+                  do: 'updateDirectionSession',
+                },
               },
             },
           },
@@ -1900,6 +1943,28 @@ const state = createState({
 
       tld.setZoomCSS(camera.zoom)
     },
+    zoomCameraToContent(data) {
+      const camera = tld.getCurrentCamera(data)
+      const page = tld.getPage(data)
+
+      const shapes = Object.values(page.shapes)
+
+      if (shapes.length === 0) {
+        return
+      }
+
+      const bounds = getCommonBounds(
+        ...Object.values(shapes).map((shape) =>
+          getShapeUtils(shape).getBounds(shape)
+        )
+      )
+
+      const { zoom } = camera
+      const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
+      const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+
+      camera.point = vec.add([-bounds.minX, -bounds.minY], [mx, my])
+    },
     zoomCamera(data, payload: { delta: number; point: number[] }) {
       const camera = tld.getCurrentCamera(data)
       const next = camera.zoom - (payload.delta / 100) * camera.zoom
@@ -2179,6 +2244,37 @@ const state = createState({
       }
 
       return commonStyle
+    },
+    shapesToRender(data) {
+      const viewport = tld.getViewport(data)
+
+      const page = tld.getPage(data)
+
+      const currentShapes = Object.values(page.shapes)
+        .filter((shape) => shape.parentId === page.id)
+        .sort((a, b) => a.childIndex - b.childIndex)
+
+      const shapesToShow = currentShapes.filter((shape) => {
+        const shapeBounds = getShapeUtils(shape).getBounds(shape)
+
+        return (
+          shape.type === ShapeType.Ray ||
+          shape.type === ShapeType.Line ||
+          boundsContain(viewport, shapeBounds) ||
+          boundsCollide(viewport, shapeBounds)
+        )
+      })
+
+      // Populate the shape tree
+      const tree: ShapeTreeNode[] = []
+
+      const selectedIds = tld.getSelectedIds(data)
+
+      shapesToShow.forEach((shape) =>
+        tld.addToShapeTree(data, selectedIds, tree, shape)
+      )
+
+      return tree
     },
   },
   options: {

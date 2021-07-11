@@ -16,6 +16,7 @@ import styled from 'styles'
 import { ShapeType } from 'types'
 import UndoRedo from './undo-redo'
 import Zoom from './zoom'
+import BackToContent from './back-to-content'
 
 const selectArrowTool = () => state.send('SELECTED_ARROW_TOOL')
 const selectDrawTool = () => state.send('SELECTED_DRAW_TOOL')
@@ -45,6 +46,7 @@ export default function ToolsPanel(): JSX.Element {
         </FloatingContainer>
       </LeftWrap>
       <CenterWrap>
+        <BackToContent />
         <FloatingContainer>
           <PrimaryButton
             label={ShapeType.Draw}
@@ -120,7 +122,10 @@ const CenterWrap = styled('div', {
   gridColumn: 2,
   display: 'flex',
   width: 'fit-content',
+  alignItems: 'center',
   justifyContent: 'center',
+  flexDirection: 'column',
+  gap: 12,
 })
 
 const LeftWrap = styled('div', {

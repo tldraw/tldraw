@@ -4,6 +4,7 @@ import state from 'state'
 import {
   fastBrushSelect,
   fastDrawUpdate,
+  fastPanUpdate,
   fastTransform,
   fastTranslate,
 } from 'state/hacks'
@@ -43,6 +44,8 @@ export default function useCanvasEvents(
     const info = inputs.pointerMove(e)
 
     if (prev && state.isIn('selecting') && inputs.keys[' ']) {
+      const delta = Vec.sub(prev, info.point)
+      fastPanUpdate(delta)
       state.send('KEYBOARD_PANNED_CAMERA', { delta: Vec.sub(prev, info.point) })
       return
     }
