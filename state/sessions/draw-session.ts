@@ -125,11 +125,13 @@ export default class DrawSession extends BaseSession {
     const page = tld.getPage(data)
     const shape = page.shapes[snapshot.id] as DrawShape
 
-    if (shape.points.length < this.points.length) {
-      getShapeUtils(shape).setProperty(shape, 'points', this.points)
+    if (vec.dist(this.points[0], this.points[this.points.length - 1]) < 8) {
+      this.points.push(this.points[0])
     }
 
-    getShapeUtils(shape).onSessionComplete(shape)
+    getShapeUtils(shape)
+      .setProperty(shape, 'points', this.points)
+      .onSessionComplete(shape)
 
     tld.updateParents(data, [shape.id])
 
