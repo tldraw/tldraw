@@ -15,6 +15,7 @@ import {
   ShapeTreeNode,
 } from 'types'
 import { AssertionError } from 'assert'
+import { lerp } from './utils'
 
 export default class StateUtils {
   static getCameraZoom(zoom: number): number {
@@ -91,6 +92,155 @@ export default class StateUtils {
   static getShapes(data: Data): Shape[] {
     const page = this.getPage(data)
     return Object.values(page.shapes)
+  }
+
+  /**
+   * Add the shapes to the current page.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.createShape(data, [shape1])
+   * tld.createShape(data, [shape1, shape2, shape3])
+   *```
+   */
+  static createShapes(data: Data, shapes: Shape[]): void {
+    const page = this.getPage(data)
+    const shapeIds = shapes.map((shape) => shape.id)
+
+    // Update selected ids
+    this.setSelectedIds(data, shapeIds)
+
+    // Restore deleted shapes
+    shapes.forEach((shape) => {
+      const newShape = { ...shape }
+      page.shapes[shape.id] = newShape
+    })
+
+    // Update parents
+    shapes.forEach((shape) => {
+      if (shape.parentId === data.currentPageId) return
+
+      const parent = page.shapes[shape.parentId]
+
+      getShapeUtils(parent)
+        .setProperty(
+          parent,
+          'children',
+          parent.children.includes(shape.id)
+            ? parent.children
+            : [...parent.children, shape.id]
+        )
+        .onChildrenChange(
+          parent,
+          parent.children.map((id) => page.shapes[id])
+        )
+    })
+  }
+
+  /**
+   * Delete the shapes from the current page.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.deleteShape(data, [shape1])
+   * tld.deleteShape(data, [shape1, shape1, shape1])
+   *```
+   */
+  static deleteShapes(
+    data: Data,
+    shapeIds: string[] | Shape[],
+    shapesDeleted: Shape[] = []
+  ): Shape[] {
+    const ids =
+      typeof shapeIds[0] === 'string'
+        ? (shapeIds as string[])
+        : (shapeIds as Shape[]).map((shape) => shape.id)
+
+    const parentsToDelete: string[] = []
+
+    const page = this.getPage(data)
+
+    const parentIds = new Set(ids.map((id) => page.shapes[id].parentId))
+
+    // Delete shapes
+    ids.forEach((id) => {
+      shapesDeleted.push(deepClone(page.shapes[id]))
+      delete page.shapes[id]
+    })
+
+    // Update parents
+    parentIds.forEach((id) => {
+      const parent = page.shapes[id]
+
+      // The parent was either deleted or a is a page.
+      if (!parent) return
+
+      const utils = getShapeUtils(parent)
+
+      // Remove deleted ids from the parent's children and update the parent
+      utils
+        .setProperty(
+          parent,
+          'children',
+          parent.children.filter((childId) => !ids.includes(childId))
+        )
+        .onChildrenChange(
+          parent,
+          parent.children.map((id) => page.shapes[id])
+        )
+
+      if (utils.shouldDelete(parent)) {
+        // If the parent decides it should delete, then we need to reparent
+        // the parent's remaining children to the parent's parent, and
+        // assign them correct child indices, and then delete the parent on
+        // the next recursive step.
+
+        const nextIndex = this.getChildIndexAbove(data, parent.id)
+
+        const len = parent.children.length
+
+        // Reparent the children and assign them new child indices
+        parent.children.forEach((childId, i) => {
+          const child = this.getShape(data, childId)
+
+          getShapeUtils(child)
+            .setProperty(child, 'parentId', parent.parentId)
+            .setProperty(
+              child,
+              'childIndex',
+              lerp(parent.childIndex, nextIndex, i / len)
+            )
+        })
+
+        if (parent.parentId !== page.id) {
+          // If the parent is not a page, then we add the parent's children
+          // to the parent's parent shape before emptying that array. If the
+          // parent is a page, then we don't need to do this step.
+          // TODO: Consider adding explicit children array to page shapes.
+          const grandParent = page.shapes[parent.parentId]
+
+          getShapeUtils(grandParent)
+            .setProperty(grandParent, 'children', [...parent.children])
+            .onChildrenChange(
+              grandParent,
+              grandParent.children.map((id) => page.shapes[id])
+            )
+        }
+
+        // Empty the parent's children array and delete the parent on the next
+        // iteration step.
+        getShapeUtils(parent).setProperty(parent, 'children', [])
+        parentsToDelete.push(parent.id)
+      }
+    })
+
+    if (parentsToDelete.length > 0) {
+      return this.deleteShapes(data, parentsToDelete, shapesDeleted)
+    }
+
+    return shapesDeleted
   }
 
   /**

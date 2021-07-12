@@ -1,11 +1,9 @@
-import state from 'state'
-import * as json from '../__mocks__/document.json'
-
-state.reset()
-state.send('MOUNTED').send('LOADED_FROM_FILE', { json: JSON.stringify(json) })
-state.send('CLEARED_PAGE')
+import TestState from '../test-utils'
 
 describe('arrow shape', () => {
+  const tt = new TestState()
+  tt.resetDocumentState().send('SELECTED_ARROW_TOOL').save()
+
   it('creates shape', () => {
     // TODO
     null

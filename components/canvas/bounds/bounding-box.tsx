@@ -19,11 +19,7 @@ export default function Bounds(): JSX.Element {
 
   const bounds = useSelector((s) => s.values.selectedBounds)
 
-  const rotation = useSelector((s) =>
-    s.values.selectedIds.length === 1
-      ? tld.getSelectedShapes(s.data)[0].rotation
-      : 0
-  )
+  const rotation = useSelector((s) => s.values.selectedRotation)
 
   const isAllLocked = useSelector((s) => {
     const page = tld.getPage(s.data)

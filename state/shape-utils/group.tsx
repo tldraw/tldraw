@@ -98,6 +98,10 @@ const group = registerShapeUtils<GroupShape>({
     return this
   },
 
+  shouldDelete(shape) {
+    return shape.children.length === 0 // should be <= 1
+  },
+
   onChildrenChange(shape, children) {
     if (shape.children.length === 0) return
 

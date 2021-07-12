@@ -1,7 +1,9 @@
 module.exports = {
   testEnvironment: 'jsdom',
   testPathIgnorePatterns: ['node_modules', '.next'],
-  transformIgnorePatterns: ['node_modules/(?!(sucrase|browser-fs-access)/)'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(sucrase|@state-designer/core|@state-designer/react|browser-fs-access)/)',
+  ],
   transform: {
     '^.+\\.(ts|tsx|mjs)$': 'babel-jest',
   },
