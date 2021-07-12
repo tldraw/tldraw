@@ -40,26 +40,23 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
       return (
         <>
-          {style.isFilled && (
-            <rect
-              rx={radius}
-              ry={radius}
-              x={+styles.strokeWidth / 2}
-              y={+styles.strokeWidth / 2}
-              width={Math.max(0, size[0] - strokeWidth)}
-              height={Math.max(0, size[1] - strokeWidth)}
-              strokeWidth={0}
-              fill={styles.fill}
-              stroke={styles.stroke}
-            />
-          )}
+          <rect
+            rx={radius}
+            ry={radius}
+            x={+styles.strokeWidth / 2}
+            y={+styles.strokeWidth / 2}
+            width={Math.max(0, size[0] - strokeWidth)}
+            height={Math.max(0, size[1] - strokeWidth)}
+            fill={style.isFilled ? styles.fill : 'transparent'}
+            stroke="none"
+          />
           <path
             d={pathData}
             fill={styles.stroke}
             stroke={styles.stroke}
             strokeWidth={styles.strokeWidth}
             filter={isHovered ? 'url(#expand)' : 'none'}
-            pointerEvents={style.isFilled ? 'all' : 'stroke'}
+            pointerEvents="all"
           />
         </>
       )
@@ -110,7 +107,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
           fill={styles.fill}
           stroke="transparent"
           strokeWidth={sw}
-          pointerEvents={style.isFilled ? 'all' : 'stroke'}
+          pointerEvents="all"
         />
         <g filter={isHovered ? 'url(#expand)' : 'none'} pointerEvents="stroke">
           {paths}
