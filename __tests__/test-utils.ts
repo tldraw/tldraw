@@ -106,7 +106,7 @@ class TestState {
    */
   getSortedPageShapeIds(): string[] {
     return Object.values(
-      this.data.document.pages[this.data.currentParentId].shapes
+      this.data.document.pages[this.data.currentPageId].shapes
     )
       .sort((a, b) => a.childIndex - b.childIndex)
       .map((shape) => shape.id)
@@ -256,6 +256,14 @@ class TestState {
   startClick(id: string, options: PointerOptions = {}): TestState {
     const shape = tld.getShape(this.data, id)
     const [x, y] = shape ? vec.add(shape.point, [1, 1]) : [0, 0]
+
+    if (id === 'canvas') {
+      this.state.send(
+        'POINTED_CANVAS',
+        inputs.pointerDown(TestState.point({ x, y, ...options }), id)
+      )
+      return this
+    }
 
     this.state.send(
       'POINTED_SHAPE',

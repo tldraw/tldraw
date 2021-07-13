@@ -93,8 +93,8 @@ const initialData: Data = {
 const draw = new Draw({
   points: [
     ...Utils.getPointsBetween([0, 0], [20, 50]),
-    ...Utils.getPointsBetween([20, 50], [100, 20], 3),
-    ...Utils.getPointsBetween([100, 20], [100, 100], 10),
+    ...Utils.getPointsBetween([20, 50], [100, 20], { steps: 3 }),
+    ...Utils.getPointsBetween([100, 20], [100, 100], { steps: 10 }),
     [100, 100],
   ],
 })
@@ -884,9 +884,9 @@ const state = createState({
             },
             arrow: {
               onEnter: 'setActiveToolArrow',
-              initial: 'idle',
+              initial: 'creating',
               states: {
-                idle: {
+                creating: {
                   on: {
                     CANCELLED: { to: 'selecting' },
                     POINTED_SHAPE: {
@@ -935,6 +935,9 @@ const state = createState({
                   on: {
                     CANCELLED: { to: 'selecting' },
                     POINTED_CANVAS: {
+                      to: 'ellipse.editing',
+                    },
+                    POINTED_SHAPE: {
                       to: 'ellipse.editing',
                     },
                   },

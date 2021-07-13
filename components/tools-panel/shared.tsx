@@ -135,7 +135,7 @@ export function PrimaryButton({
   children,
 }: PrimaryToolButtonProps): JSX.Element {
   return (
-    <Tooltip label={label}>
+    <Tooltip label={label[0].toUpperCase() + label.slice(1)}>
       <PrimaryToolButton
         name={label}
         bp={{

@@ -1,4 +1,4 @@
-import isMobile from 'ismobilejs'
+import { isMobile } from 'utils'
 import { useEffect } from 'react'
 import state from 'state'
 
@@ -11,7 +11,7 @@ function handleFocusOut() {
 
 export default function useSafariFocusOutFix(): void {
   useEffect(() => {
-    if (isMobile().apple) {
+    if (isMobile()) {
       document.addEventListener('focusout', handleFocusOut)
 
       return () => {
