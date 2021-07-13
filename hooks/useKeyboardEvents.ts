@@ -105,7 +105,7 @@ export default function useKeyboardEvents() {
         }
         case '9': {
           if (meta) {
-            state.send('CHANGED_STYLE', { color: ColorStyle.Yello })
+            state.send('CHANGED_STYLE', { color: ColorStyle.Yellow })
             break
           }
           break
