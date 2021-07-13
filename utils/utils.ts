@@ -1586,17 +1586,21 @@ export function getFromCache<V, I extends object>(
   return value
 }
 
+const byteToHex = []
+
+for (let i = 0; i < 256; ++i) {
+  byteToHex.push((i + 0x100).toString(16).substr(1))
+}
+
 /**
  * Get a unique string id.
  */
-export function uniqueId(): string {
-  const array = new Uint32Array(8)
-  window.crypto.getRandomValues(array)
-  let str = ''
-  for (let i = 0; i < array.length; i++) {
-    str += (i < 2 || i > 5 ? '' : '-') + array[i].toString(16).slice(-4)
-  }
-  return str
+
+export function uniqueId(a = ''): string {
+  return a
+    ? /* eslint-disable no-bitwise */
+      ((Number(a) ^ (Math.random() * 16)) >> (Number(a) / 4)).toString(16)
+    : `${1e7}-${1e3}-${4e3}-${8e3}-${1e11}`.replace(/[018]/g, uniqueId)
 }
 
 /**
