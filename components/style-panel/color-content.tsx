@@ -8,29 +8,31 @@ import { memo } from 'react'
 import state from 'state'
 import useTheme from 'hooks/useTheme'
 
-function handleColorChange(
-  e: Event & { currentTarget: { value: ColorStyle } }
-): void {
-  state.send('CHANGED_STYLE', { color: e.currentTarget.value })
+function handleColorChange(color: ColorStyle): void {
+  state.send('CHANGED_STYLE', { color })
 }
 
-function ColorContent(): JSX.Element {
+function ColorContent({ color }: { color: ColorStyle }): JSX.Element {
   const { theme } = useTheme()
 
   return (
-    <DropdownContent sideOffset={8} side="bottom">
-      {Object.keys(strokes[theme]).map((color: ColorStyle) => (
-        <DropdownMenu.DropdownMenuItem
+    <DropdownMenu.DropdownMenuRadioGroup
+      value={color}
+      as={DropdownContent}
+      onValueChange={handleColorChange}
+      sideOffset={8}
+    >
+      {Object.keys(strokes[theme]).map((colorStyle: ColorStyle) => (
+        <DropdownMenu.DropdownMenuRadioItem
           as={IconButton}
-          key={color}
-          title={color}
-          value={color}
-          onSelect={handleColorChange}
+          key={colorStyle}
+          title={colorStyle}
+          value={colorStyle}
         >
-          <Square fill={strokes[theme][color]} stroke="none" size="22" />
-        </DropdownMenu.DropdownMenuItem>
+          <Square fill={strokes[theme][colorStyle]} stroke="none" size="22" />
+        </DropdownMenu.DropdownMenuRadioItem>
       ))}
-    </DropdownContent>
+    </DropdownMenu.DropdownMenuRadioGroup>
   )
 }
 

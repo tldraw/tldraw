@@ -216,6 +216,10 @@ export const Item = styled('button', {
   pointerEvents: 'all',
   cursor: 'pointer',
 
+  '&:focus': {
+    backgroundColor: '$hover',
+  },
+
   '&:hover:not(:disabled)': {
     backgroundColor: '$hover',
     '& svg': {
