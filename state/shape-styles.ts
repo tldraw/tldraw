@@ -6,10 +6,10 @@ const canvasLight = '#fafafa'
 const canvasDark = '#343d45'
 
 const colors = {
+  [ColorStyle.Black]: '#212528',
   [ColorStyle.White]: '#f0f1f3',
   [ColorStyle.LightGray]: '#c6cbd1',
   [ColorStyle.Gray]: '#788492',
-  [ColorStyle.Black]: '#212528',
   [ColorStyle.Green]: '#36b24d',
   [ColorStyle.Cyan]: '#0e98ad',
   [ColorStyle.Blue]: '#1c7ed6',
