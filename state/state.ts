@@ -93,8 +93,8 @@ const initialData: Data = {
 const draw = new Draw({
   points: [
     ...Utils.getPointsBetween([0, 0], [20, 50]),
-    ...Utils.getPointsBetween([20, 50], [100, 20], 3),
-    ...Utils.getPointsBetween([100, 20], [100, 100], 10),
+    ...Utils.getPointsBetween([20, 50], [100, 20], { steps: 3 }),
+    ...Utils.getPointsBetween([100, 20], [100, 100], { steps: 10 }),
     [100, 100],
   ],
 })
@@ -937,6 +937,9 @@ const state = createState({
                     POINTED_CANVAS: {
                       to: 'ellipse.editing',
                     },
+                    POINTED_SHAPE: {
+                      to: 'ellipse.editing',
+                    },
                   },
                 },
                 editing: {
@@ -1453,7 +1456,7 @@ const state = createState({
     breakSession(data) {
       session.cancel(data)
       history.disable()
-      commands.deleteSelected(data)
+      commands.deleteShapes(data, tld.getSelectedShapes(data))
       history.enable()
     },
     cancelSession(data) {
@@ -1550,7 +1553,8 @@ const state = createState({
           data,
           shapeId,
           handleId,
-          tld.screenToWorld(inputs.pointer.origin, data)
+          tld.screenToWorld(inputs.pointer.origin, data),
+          false
         )
       )
     },
@@ -1667,7 +1671,8 @@ const state = createState({
           data,
           shapeId,
           handleId,
-          tld.screenToWorld(inputs.pointer.origin, data)
+          tld.screenToWorld(inputs.pointer.origin, data),
+          true
         )
       )
     },
@@ -1778,7 +1783,7 @@ const state = createState({
       commands.toggle(data, 'isAspectRatioLocked')
     },
     deleteSelection(data) {
-      commands.deleteSelected(data)
+      commands.deleteShapes(data, tld.getSelectedShapes(data))
     },
     rotateSelectionCcw(data) {
       commands.rotateCcw(data)
@@ -2250,7 +2255,18 @@ const state = createState({
 
       return commonStyle
     },
+    selectedRotation(data) {
+      const selectedIds = tld.getSelectedIds(data)
 
+      if (selectedIds.length === 1) {
+        const selected = selectedIds[0]
+        const page = tld.getPage(data)
+
+        return page.shapes[selected]?.rotation
+      } else {
+        return 0
+      }
+    },
     shapesToRender(data) {
       const viewport = tld.getViewport(data)
 

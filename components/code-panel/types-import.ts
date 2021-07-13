@@ -62,6 +62,8 @@ enum FontSize {
   ExtraLarge = 'ExtraLarge',
 }
 
+type Theme = 'dark' | 'light'
+
 type ShapeStyles = {
   color: ColorStyle
   size: SizeStyle
@@ -212,6 +214,16 @@ interface CodeResult {
   shapes: Shape[]
   controls: CodeControl[]
   error: CodeError
+}
+
+interface ShapeTreeNode {
+  shape: Shape
+  children: ShapeTreeNode[]
+  isEditing: boolean
+  isHovered: boolean
+  isSelected: boolean
+  isDarkMode: boolean
+  isCurrentParent: boolean
 }
 
 /* -------------------------------------------------- */
@@ -545,8 +557,12 @@ interface ShapeUtility<K extends Shape> {
   render(
     this: ShapeUtility<K>,
     shape: K,
-    info: {
-      isEditing: boolean
+    info?: {
+      isEditing?: boolean
+      isHovered?: boolean
+      isSelected?: boolean
+      isCurrentParent?: boolean
+      isDarkMode?: boolean
       ref?: React.MutableRefObject<HTMLTextAreaElement>
     }
   ): JSX.Element
@@ -636,6 +652,8 @@ enum FontSize {
   ExtraLarge = 'ExtraLarge',
 }
 
+type Theme = 'dark' | 'light'
+
 type ShapeStyles = {
   color: ColorStyle
   size: SizeStyle
@@ -786,6 +804,16 @@ interface CodeResult {
   shapes: Shape[]
   controls: CodeControl[]
   error: CodeError
+}
+
+interface ShapeTreeNode {
+  shape: Shape
+  children: ShapeTreeNode[]
+  isEditing: boolean
+  isHovered: boolean
+  isSelected: boolean
+  isDarkMode: boolean
+  isCurrentParent: boolean
 }
 
 /* -------------------------------------------------- */
@@ -1119,8 +1147,12 @@ interface ShapeUtility<K extends Shape> {
   render(
     this: ShapeUtility<K>,
     shape: K,
-    info: {
-      isEditing: boolean
+    info?: {
+      isEditing?: boolean
+      isHovered?: boolean
+      isSelected?: boolean
+      isCurrentParent?: boolean
+      isDarkMode?: boolean
       ref?: React.MutableRefObject<HTMLTextAreaElement>
     }
   ): JSX.Element
@@ -1838,6 +1870,14 @@ type RequiredKeys<T> = {
    */
   static uniqueArray<T extends string | number>(...items: T[]): T[] {
     return Array.from(new Set(items).values())
+  }
+
+  /**
+   * Convert a set to an array.
+   * @param set
+   */
+  static setToArray<T>(set: Set<T>): T[] {
+    return Array.from(set.values())
   }
 
   /**

@@ -33,18 +33,7 @@ export default function BoundsBg(): JSX.Element {
     s.isInAny('selecting', 'selectPinching')
   )
 
-  const rotation = useSelector((s) => {
-    const selectedIds = s.values.selectedIds
-
-    if (selectedIds.length === 1) {
-      const selected = selectedIds[0]
-      const page = tld.getPage(s.data)
-
-      return page.shapes[selected]?.rotation
-    } else {
-      return 0
-    }
-  })
+  const rotation = useSelector((s) => s.values.selectedRotation)
 
   const isAllHandles = useSelector((s) => {
     const selectedIds = s.values.selectedIds

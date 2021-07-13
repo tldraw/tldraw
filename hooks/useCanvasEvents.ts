@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { MutableRefObject, useCallback } from 'react'
+import { MutableRefObject, useCallback, useEffect } from 'react'
 import state from 'state'
 import {
   fastBrushSelect,
@@ -83,6 +83,51 @@ export default function useCanvasEvents(
   const handleTouchStart = useCallback((e: React.TouchEvent<SVGSVGElement>) => {
     if ('safari' in window) {
       e.preventDefault()
+    }
+  }, [])
+
+  useEffect(() => {
+    const preventGestureNavigation = (event: TouchEvent) => {
+      event.preventDefault()
+    }
+
+    const preventNavigation = (event: TouchEvent) => {
+      // Center point of the touch area
+      const touchXPosition = event.touches[0].pageX
+      // Size of the touch area
+      const touchXRadius = event.touches[0].radiusX || 0
+
+      // We set a threshold (10px) on both sizes of the screen,
+      // if the touch area overlaps with the screen edges
+      // it's likely to trigger the navigation. We prevent the
+      // touchstart event in that case.
+      if (
+        touchXPosition - touchXRadius < 10 ||
+        touchXPosition + touchXRadius > window.innerWidth - 10
+      ) {
+        event.preventDefault()
+      }
+    }
+
+    rCanvas.current.addEventListener('gestureend', preventGestureNavigation)
+    rCanvas.current.addEventListener('gesturechange', preventGestureNavigation)
+    rCanvas.current.addEventListener('gesturestart', preventGestureNavigation)
+    rCanvas.current.addEventListener('touchstart', preventNavigation)
+
+    return () => {
+      rCanvas.current.removeEventListener(
+        'gestureend',
+        preventGestureNavigation
+      )
+      rCanvas.current.removeEventListener(
+        'gesturechange',
+        preventGestureNavigation
+      )
+      rCanvas.current.removeEventListener(
+        'gesturestart',
+        preventGestureNavigation
+      )
+      rCanvas.current.removeEventListener('touchstart', preventNavigation)
     }
   }, [])
 

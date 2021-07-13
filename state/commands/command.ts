@@ -55,13 +55,10 @@ export class BaseCommand<T extends any> {
   redo = (data: T, initial = false): void => {
     if (this.manualSelection) {
       this.doFn(data, initial)
-
       return
     }
 
-    if (initial) {
-      this.restoreBeforeSelectionState = this.saveSelectionState(data)
-    } else {
+    if (!initial) {
       this.restoreBeforeSelectionState(data)
     }
 

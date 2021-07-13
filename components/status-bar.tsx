@@ -9,10 +9,13 @@ export default function StatusBar(): JSX.Element {
 
   const shapesInView = state.values.shapesToRender.length
 
-  const active = local.active.slice(1).map((s) => {
-    const states = s.split('.')
-    return states[states.length - 1]
-  })
+  const active = local.active
+    .slice(1)
+    .map((s) => {
+      const states = s.split('.')
+      return states[states.length - 1]
+    })
+    .join(' | ')
 
   const log = local.log[0]
 
@@ -21,7 +24,7 @@ export default function StatusBar(): JSX.Element {
   return (
     <StatusBarContainer size={size}>
       <Section>
-        {active.join(' | ')} - {log}
+        {active} - {log}
       </Section>
       <Section>{shapesInView || '0'} Shapes</Section>
     </StatusBarContainer>

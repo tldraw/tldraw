@@ -12,12 +12,20 @@ export default class HandleSession extends BaseSession {
   shiftKey: boolean
   initialShape: Shape
   handleId: string
+  isCreating: boolean
 
-  constructor(data: Data, shapeId: string, handleId: string, point: number[]) {
+  constructor(
+    data: Data,
+    shapeId: string,
+    handleId: string,
+    point: number[],
+    isCreating: boolean
+  ) {
     super(data)
     this.origin = point
     this.handleId = handleId
     this.initialShape = deepClone(tld.getShape(data, shapeId))
+    this.isCreating = isCreating
   }
 
   update(
@@ -48,13 +56,21 @@ export default class HandleSession extends BaseSession {
   }
 
   cancel(data: Data): void {
-    tld.getPage(data).shapes[this.initialShape.id] = this.initialShape
+    if (this.isCreating) {
+      tld.deleteShapes(data, [this.initialShape])
+    } else {
+      tld.getPage(data).shapes[this.initialShape.id] = this.initialShape
+    }
   }
 
   complete(data: Data): void {
     const before = this.initialShape
     const after = deepClone(tld.getShape(data, before.id))
-    commands.mutate(data, [before], [after])
+    if (this.isCreating) {
+      commands.createShapes(data, [after])
+    } else {
+      commands.mutate(data, [before], [after])
+    }
   }
 }
 

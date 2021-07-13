@@ -21,7 +21,7 @@ export default function IsFilledPicker(): JSX.Element {
 
     return (
       selectedShapes.length === 0 ||
-      selectedShapes.every((shape) => getShapeUtils(shape).canStyleFill)
+      selectedShapes.some((shape) => getShapeUtils(shape).canStyleFill)
     )
   })
 
