@@ -55,9 +55,8 @@
     "idb-keyval": "^5.0.6",
     "immer": "^9.0.5",
     "ismobilejs": "^1.1.1",
-    "monaco-editor": "^0.25.2",
     "next": "^11.0.1",
-    "next-auth": "^3.27.0",
+    "next-auth": "^3.27.3",
     "next-pwa": "^5.2.23",
     "perfect-freehand": "^0.4.91",
     "react": "^17.0.2",
@@ -66,8 +65,7 @@
     "react-feather": "^2.0.9",
     "react-markdown": "^6.0.2",
     "react-use-gesture": "^9.1.3",
-    "sucrase": "^3.19.0",
-    "uuid": "^8.3.2"
+    "sucrase": "^3.19.0"
   },
   "devDependencies": {
     "@babel/core": "^7.14.6",
@@ -87,6 +85,7 @@
     "jest-esm-transformer": "^1.0.0",
     "jest-watch-typeahead": "^0.6.1",
     "lint-staged": "^10.0.10",
+    "monaco-editor": "^0.25.2",
     "prettier": "^2.3.1",
     "typescript": "^4.1.3"
   },

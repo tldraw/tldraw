@@ -1,6 +1,6 @@
 import { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/client'
-import { v4 as uuid } from 'uuid'
+import { uniqueId } from 'utils'
 
 export default function CreateNewRoom(): JSX.Element {
   return <div>You should not see this one</div>
@@ -14,7 +14,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     context.res.statusCode = 307
   }
 
-  context.res.setHeader('Location', `/room/${uuid()}`)
+  context.res.setHeader('Location', `/room/${uniqueId()}`)
   context.res.statusCode = 307
 
   return {

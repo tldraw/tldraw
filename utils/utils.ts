@@ -1,6 +1,5 @@
 import React from 'react'
 import { Bounds, Edge, Corner, BezierCurveSegment, DashStyle } from 'types'
-import { v4 as uuid } from 'uuid'
 import vec from './vec'
 import _isMobile from 'ismobilejs'
 import { intersectPolygonBounds } from './intersections'
@@ -1591,7 +1590,13 @@ export function getFromCache<V, I extends object>(
  * Get a unique string id.
  */
 export function uniqueId(): string {
-  return uuid()
+  const array = new Uint32Array(8)
+  window.crypto.getRandomValues(array)
+  let str = ''
+  for (let i = 0; i < array.length; i++) {
+    str += (i < 2 || i > 5 ? '' : '-') + array[i].toString(16).slice(-4)
+  }
+  return str
 }
 
 /**
