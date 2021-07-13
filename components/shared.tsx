@@ -216,13 +216,12 @@ export const Item = styled('button', {
   pointerEvents: 'all',
   cursor: 'pointer',
 
+  '&:focus': {
+    backgroundColor: '$hover',
+  },
+
   '&:hover:not(:disabled)': {
     backgroundColor: '$hover',
-    '& svg': {
-      stroke: '$text',
-      fill: '$text',
-      strokeWidth: '0',
-    },
   },
 
   '&:disabled': {
@@ -245,6 +244,16 @@ export const Item = styled('button', {
       },
     },
   },
+})
+
+export const ShortcutKey = styled('span', {
+  fontSize: '$0',
+  width: '16px',
+  height: '16px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  boxShadow: '1px 1px 0px rgba(0,0,0,.5)',
 })
 
 export const IconWrapper = styled('div', {

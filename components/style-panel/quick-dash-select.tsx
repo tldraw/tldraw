@@ -1,7 +1,7 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { breakpoints, IconButton } from 'components/shared'
 import Tooltip from 'components/tooltip'
-import { memo } from 'react'
+import React, { memo } from 'react'
 import state, { useSelector } from 'state'
 import { DashStyle } from 'types'
 import {
@@ -20,10 +20,8 @@ const dashes = {
   [DashStyle.Dotted]: <DashDottedIcon />,
 }
 
-function changeDashStyle(
-  e: Event & { currentTarget: { value: DashStyle } }
-): void {
-  state.send('CHANGED_STYLE', { dash: e.currentTarget.value })
+function changeDashStyle(dash: DashStyle): void {
+  state.send('CHANGED_STYLE', { dash })
 }
 
 function QuickdashSelect(): JSX.Element {
@@ -34,19 +32,24 @@ function QuickdashSelect(): JSX.Element {
       <DropdownMenu.Trigger as={IconButton} bp={breakpoints}>
         <Tooltip label="Dash">{dashes[dash]}</Tooltip>
       </DropdownMenu.Trigger>
-      <DropdownContent sideOffset={8} direction="vertical">
+      <DropdownMenu.DropdownMenuRadioGroup
+        as={DropdownContent}
+        sideOffset={8}
+        direction="vertical"
+        value={dash}
+        onValueChange={changeDashStyle}
+      >
         {Object.keys(DashStyle).map((dashStyle: DashStyle) => (
-          <DropdownMenu.DropdownMenuItem
+          <DropdownMenu.DropdownMenuRadioItem
             as={Item}
             key={dashStyle}
             isActive={dash === dashStyle}
-            onSelect={changeDashStyle}
             value={dashStyle}
           >
             {dashes[dashStyle]}
-          </DropdownMenu.DropdownMenuItem>
+          </DropdownMenu.DropdownMenuRadioItem>
         ))}
-      </DropdownContent>
+      </DropdownMenu.DropdownMenuRadioGroup>
     </DropdownMenu.Root>
   )
 }

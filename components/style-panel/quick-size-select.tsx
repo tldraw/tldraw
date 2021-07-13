@@ -13,10 +13,8 @@ const sizes = {
   [SizeStyle.Large]: 22,
 }
 
-function handleSizeChange(
-  e: Event & { currentTarget: { value: SizeStyle } }
-): void {
-  state.send('CHANGED_STYLE', { size: e.currentTarget.value })
+function changeSizeStyle(size: SizeStyle): void {
+  state.send('CHANGED_STYLE', { size })
 }
 
 function QuickSizeSelect(): JSX.Element {
@@ -29,19 +27,24 @@ function QuickSizeSelect(): JSX.Element {
           <Circle size={sizes[size]} stroke="none" fill="currentColor" />
         </Tooltip>
       </DropdownMenu.Trigger>
-      <DropdownContent sideOffset={8} direction="vertical">
+      <DropdownMenu.DropdownMenuRadioGroup
+        as={DropdownContent}
+        sideOffset={8}
+        direction="vertical"
+        value={size}
+        onValueChange={changeSizeStyle}
+      >
         {Object.keys(SizeStyle).map((sizeStyle: SizeStyle) => (
-          <DropdownMenu.DropdownMenuItem
+          <DropdownMenu.DropdownMenuRadioItem
             key={sizeStyle}
             as={Item}
             isActive={size === sizeStyle}
             value={sizeStyle}
-            onSelect={handleSizeChange}
           >
             <Circle size={sizes[sizeStyle]} />
-          </DropdownMenu.DropdownMenuItem>
+          </DropdownMenu.DropdownMenuRadioItem>
         ))}
-      </DropdownContent>
+      </DropdownMenu.DropdownMenuRadioGroup>
     </DropdownMenu.Root>
   )
 }

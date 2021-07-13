@@ -108,7 +108,7 @@ const dark = theme({
     border: '#202529',
     canvas: '#343d45',
     panel: '#49555f',
-    inactive: '#cccccf',
+    inactive: '#aaaaad',
     hover: '#343d45',
     text: '#f8f9fa',
     muted: '#e0e2e6',

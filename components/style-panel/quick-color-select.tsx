@@ -1,11 +1,15 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { breakpoints, IconButton } from 'components/shared'
 import Tooltip from 'components/tooltip'
-import { fills, strokes } from 'state/shape-styles'
-import { useSelector } from 'state'
-import ColorContent from './color-content'
-import { BoxIcon } from '../shared'
+import { strokes } from 'state/shape-styles'
+import state, { useSelector } from 'state'
+import { BoxIcon, Item, DropdownContent } from '../shared'
 import useTheme from 'hooks/useTheme'
+import { ColorStyle } from 'types'
+
+function handleColorChange(color: ColorStyle): void {
+  state.send('CHANGED_STYLE', { color })
+}
 
 export default function QuickColorSelect(): JSX.Element {
   const color = useSelector((s) => s.values.selectedStyle.color)
@@ -15,10 +19,33 @@ export default function QuickColorSelect(): JSX.Element {
     <DropdownMenu.Root dir="ltr">
       <DropdownMenu.Trigger as={IconButton} bp={breakpoints}>
         <Tooltip label="Color">
-          <BoxIcon fill={fills[theme][color]} stroke={strokes[theme][color]} />
+          <BoxIcon
+            fill={strokes[theme][color]}
+            stroke={strokes[theme][color]}
+          />
         </Tooltip>
       </DropdownMenu.Trigger>
-      <ColorContent />
+
+      <DropdownMenu.DropdownMenuRadioGroup
+        value={color}
+        as={DropdownContent}
+        onValueChange={handleColorChange}
+        sideOffset={8}
+      >
+        {Object.keys(strokes[theme]).map((colorStyle: ColorStyle) => (
+          <DropdownMenu.DropdownMenuRadioItem
+            as={Item}
+            key={colorStyle}
+            title={colorStyle}
+            value={colorStyle}
+          >
+            <BoxIcon
+              fill={strokes[theme][colorStyle]}
+              stroke={strokes[theme][colorStyle]}
+            />
+          </DropdownMenu.DropdownMenuRadioItem>
+        ))}
+      </DropdownMenu.DropdownMenuRadioGroup>
     </DropdownMenu.Root>
   )
 }
