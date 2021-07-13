@@ -1586,12 +1586,6 @@ export function getFromCache<V, I extends object>(
   return value
 }
 
-const byteToHex = []
-
-for (let i = 0; i < 256; ++i) {
-  byteToHex.push((i + 0x100).toString(16).substr(1))
-}
-
 /**
  * Get a unique string id.
  */
