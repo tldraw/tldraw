@@ -27,7 +27,6 @@ function QuickSizeSelect(): JSX.Element {
           <Circle size={sizes[size]} stroke="none" fill="currentColor" />
         </Tooltip>
       </DropdownMenu.Trigger>
-
       <DropdownMenu.DropdownMenuRadioGroup
         as={DropdownContent}
         sideOffset={8}

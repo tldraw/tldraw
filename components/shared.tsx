@@ -222,11 +222,6 @@ export const Item = styled('button', {
 
   '&:hover:not(:disabled)': {
     backgroundColor: '$hover',
-    '& svg': {
-      stroke: '$text',
-      fill: '$text',
-      strokeWidth: '0',
-    },
   },
 
   '&:disabled': {
