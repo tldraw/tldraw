@@ -44,7 +44,7 @@ export default function PagePanel(): JSX.Element {
       }}
     >
       <FloatingContainer>
-        <RowButton as={DropdownMenu.Trigger} bp={breakpoints}>
+        <RowButton as={DropdownMenu.Trigger} bp={breakpoints} variant="noIcon">
           <span>{documentPages[currentPageId].name}</span>
         </RowButton>
       </FloatingContainer>

@@ -146,6 +146,9 @@ export const RowButton = styled('button', {
       },
     },
     variant: {
+      noIcon: {
+        padding: '4px 12px',
+      },
       pageButton: {
         display: 'grid',
         gridTemplateColumns: '24px auto',
