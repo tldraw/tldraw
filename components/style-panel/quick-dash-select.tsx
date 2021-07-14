@@ -1,17 +1,16 @@
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { breakpoints, IconButton } from 'components/shared'
-import Tooltip from 'components/tooltip'
 import React, { memo } from 'react'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { DropdownMenuIconTriggerButton } from 'components/shared'
 import state, { useSelector } from 'state'
 import { DashStyle } from 'types'
 import {
-  DropdownContent,
-  Item,
   DashDrawIcon,
   DashDottedIcon,
   DashSolidIcon,
   DashDashedIcon,
-} from '../shared'
+  StyleDropdownContent,
+  StyleDropdownItem,
+} from './shared'
 
 const dashes = {
   [DashStyle.Draw]: <DashDrawIcon />,
@@ -29,27 +28,30 @@ function QuickdashSelect(): JSX.Element {
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DropdownMenu.Trigger as={IconButton} bp={breakpoints}>
-        <Tooltip label="Dash">{dashes[dash]}</Tooltip>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.DropdownMenuRadioGroup
-        as={DropdownContent}
+      <DropdownMenuIconTriggerButton label="Dash">
+        {dashes[dash]}
+      </DropdownMenuIconTriggerButton>
+      <DropdownMenu.Content
+        as={StyleDropdownContent}
         sideOffset={8}
         direction="vertical"
-        value={dash}
-        onValueChange={changeDashStyle}
       >
-        {Object.keys(DashStyle).map((dashStyle: DashStyle) => (
-          <DropdownMenu.DropdownMenuRadioItem
-            as={Item}
-            key={dashStyle}
-            isActive={dash === dashStyle}
-            value={dashStyle}
-          >
-            {dashes[dashStyle]}
-          </DropdownMenu.DropdownMenuRadioItem>
-        ))}
-      </DropdownMenu.DropdownMenuRadioGroup>
+        <DropdownMenu.DropdownMenuRadioGroup
+          value={dash}
+          onValueChange={changeDashStyle}
+        >
+          {Object.keys(DashStyle).map((dashStyle: DashStyle) => (
+            <DropdownMenu.DropdownMenuRadioItem
+              as={StyleDropdownItem}
+              key={dashStyle}
+              isActive={dash === dashStyle}
+              value={dashStyle}
+            >
+              {dashes[dashStyle]}
+            </DropdownMenu.DropdownMenuRadioItem>
+          ))}
+        </DropdownMenu.DropdownMenuRadioGroup>
+      </DropdownMenu.Content>
     </DropdownMenu.Root>
   )
 }

@@ -121,6 +121,7 @@ export const TertiaryToolButton = styled(ToolButton, {
 
 interface PrimaryToolButtonProps {
   label: string
+  kbd: string
   onClick: () => void
   onDoubleClick?: () => void
   isActive: boolean
@@ -129,13 +130,14 @@ interface PrimaryToolButtonProps {
 
 export function PrimaryButton({
   label,
+  kbd,
   onClick,
   onDoubleClick,
   isActive,
   children,
 }: PrimaryToolButtonProps): JSX.Element {
   return (
-    <Tooltip label={label[0].toUpperCase() + label.slice(1)}>
+    <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
       <PrimaryToolButton
         name={label}
         bp={{
@@ -156,6 +158,7 @@ export function PrimaryButton({
 
 interface SecondaryToolButtonProps {
   label: string
+  kbd: string
   onClick: () => void
   onDoubleClick?: () => void
   isActive: boolean
@@ -164,13 +167,14 @@ interface SecondaryToolButtonProps {
 
 export function SecondaryButton({
   label,
+  kbd,
   onClick,
   onDoubleClick,
   isActive,
   children,
 }: SecondaryToolButtonProps): JSX.Element {
   return (
-    <Tooltip label={label}>
+    <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
       <SecondaryToolButton
         name={label}
         bp={{
@@ -191,6 +195,7 @@ export function SecondaryButton({
 
 interface TertiaryToolProps {
   label: string
+  kbd: string
   onClick: () => void
   onDoubleClick?: () => void
   children: React.ReactNode
@@ -198,12 +203,13 @@ interface TertiaryToolProps {
 
 export function TertiaryButton({
   label,
+  kbd,
   onClick,
   onDoubleClick,
   children,
 }: TertiaryToolProps): JSX.Element {
   return (
-    <Tooltip label={label}>
+    <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
       <TertiaryToolButton
         name={label}
         bp={{

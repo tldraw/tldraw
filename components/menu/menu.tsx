@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ExitIcon, HamburgerMenuIcon } from '@radix-ui/react-icons'
-import { Trigger, Content } from '@radix-ui/react-dropdown-menu'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { memo } from 'react'
 import {
   FloatingContainer,
@@ -29,11 +29,11 @@ function Menu() {
   return (
     <FloatingContainer>
       <DropdownMenuRoot>
-        <IconButton as={Trigger} bp={breakpoints}>
+        <DropdownMenu.Trigger as={IconButton} bp={breakpoints}>
           <HamburgerMenuIcon />
-        </IconButton>
-        <Content as={MenuContent} sideOffset={8} align="start">
-          <DropdownMenuButton onSelect={handleNew} disabled>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content as={MenuContent} sideOffset={8} align="end">
+          <DropdownMenuButton onSelect={handleNew} disabled={true}>
             <span>New Project</span>
             <Kbd>
               <span>{commandKey()}</span>
@@ -74,7 +74,7 @@ function Menu() {
               <ExitIcon />
             </IconWrapper>
           </DropdownMenuButton>
-        </Content>
+        </DropdownMenu.Content>
       </DropdownMenuRoot>
     </FloatingContainer>
   )
@@ -84,7 +84,7 @@ export default memo(Menu)
 
 function RecentFiles() {
   return (
-    <DropdownMenuSubMenu label="Open Recent..." disabled>
+    <DropdownMenuSubMenu label="Open Recent..." disabled={true}>
       <DropdownMenuButton>
         <span>Project A</span>
       </DropdownMenuButton>
