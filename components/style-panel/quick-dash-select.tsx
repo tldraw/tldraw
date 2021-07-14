@@ -31,12 +31,10 @@ function QuickdashSelect(): JSX.Element {
       <DropdownMenuIconTriggerButton label="Dash">
         {dashes[dash]}
       </DropdownMenuIconTriggerButton>
-      <DropdownMenu.Content
-        as={StyleDropdownContent}
-        sideOffset={8}
-        direction="vertical"
-      >
+      <DropdownMenu.Content sideOffset={8}>
         <DropdownMenu.DropdownMenuRadioGroup
+          as={StyleDropdownContent}
+          direction="vertical"
           value={dash}
           onValueChange={changeDashStyle}
         >

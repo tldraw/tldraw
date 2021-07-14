@@ -24,12 +24,10 @@ function QuickSizeSelect(): JSX.Element {
       <DropdownMenuIconTriggerButton label="Size">
         <Circle size={sizes[size]} stroke="none" fill="currentColor" />
       </DropdownMenuIconTriggerButton>
-      <DropdownMenu.Content
-        as={StyleDropdownContent}
-        sideOffset={8}
-        direction="vertical"
-      >
+      <DropdownMenu.Content sideOffset={8}>
         <DropdownMenu.DropdownMenuRadioGroup
+          as={StyleDropdownContent}
+          direction="vertical"
           value={size}
           onValueChange={changeSizeStyle}
         >

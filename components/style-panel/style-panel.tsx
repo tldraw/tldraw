@@ -37,7 +37,7 @@ export default function StylePanel(): JSX.Element {
           bp={breakpoints}
           title="Style"
           size="small"
-          onClick={handleStylePanelOpen}
+          onPointerDown={handleStylePanelOpen}
         >
           <Tooltip label={isOpen ? 'Close' : 'More'}>
             {isOpen ? <Cross2Icon /> : <DotsHorizontalIcon />}
