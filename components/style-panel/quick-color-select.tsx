@@ -19,14 +19,11 @@ export default function QuickColorSelect(): JSX.Element {
       <DropdownMenuIconTriggerButton label="Color">
         <BoxIcon fill={strokes[theme][color]} stroke={strokes[theme][color]} />
       </DropdownMenuIconTriggerButton>
-      <DropdownMenu.Content
-        as={StyleDropdownContent}
-        sideOffset={8}
-        direction="vertical"
-      >
+      <DropdownMenu.Content sideOffset={8}>
         <DropdownMenu.DropdownMenuRadioGroup
           value={color}
           onValueChange={handleColorChange}
+          as={StyleDropdownContent}
         >
           {Object.keys(strokes[theme]).map((colorStyle: ColorStyle) => (
             <DropdownMenu.DropdownMenuRadioItem
