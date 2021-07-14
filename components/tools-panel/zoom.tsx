@@ -2,6 +2,7 @@ import { ZoomInIcon, ZoomOutIcon } from '@radix-ui/react-icons'
 import { TertiaryButton, TertiaryButtonsContainer } from './shared'
 import state, { useSelector } from 'state'
 import tld from 'utils/tld'
+import { commandKey } from 'utils'
 
 const zoomIn = () => state.send('ZOOMED_IN')
 const zoomOut = () => state.send('ZOOMED_OUT')
@@ -11,10 +12,14 @@ const zoomToActual = () => state.send('ZOOMED_TO_ACTUAL')
 export default function Zoom(): JSX.Element {
   return (
     <TertiaryButtonsContainer bp={{ '@initial': 'mobile', '@sm': 'small' }}>
-      <TertiaryButton label="Zoom Out" onClick={zoomOut}>
+      <TertiaryButton
+        label="Zoom Out"
+        kbd={`${commandKey()}−`}
+        onClick={zoomOut}
+      >
         <ZoomOutIcon />
       </TertiaryButton>
-      <TertiaryButton label="Zoom In" onClick={zoomIn}>
+      <TertiaryButton label="Zoom In" kbd={`${commandKey()}+`} onClick={zoomIn}>
         <ZoomInIcon />
       </TertiaryButton>
       <ZoomCounter />
@@ -28,6 +33,7 @@ function ZoomCounter() {
   return (
     <TertiaryButton
       label="Reset Zoom"
+      kbd="⇧0"
       onClick={zoomToActual}
       onDoubleClick={zoomToFit}
     >

@@ -39,7 +39,7 @@ export default function StylePanel(): JSX.Element {
           size="small"
           onClick={handleStylePanelOpen}
         >
-          <Tooltip label="More">
+          <Tooltip label={isOpen ? 'Close' : 'More'}>
             {isOpen ? <Cross2Icon /> : <DotsHorizontalIcon />}
           </Tooltip>
         </IconButton>

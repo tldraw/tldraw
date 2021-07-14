@@ -39,6 +39,7 @@ export default function ToolsPanel(): JSX.Element {
         <FloatingContainer>
           <SecondaryButton
             label={'Select'}
+            kbd={'1'}
             onClick={selectSelectTool}
             isActive={activeTool === 'select'}
           >
@@ -50,6 +51,7 @@ export default function ToolsPanel(): JSX.Element {
         <BackToContent />
         <FloatingContainer>
           <PrimaryButton
+            kbd={'2'}
             label={ShapeType.Draw}
             onClick={selectDrawTool}
             isActive={activeTool === ShapeType.Draw}
@@ -57,6 +59,7 @@ export default function ToolsPanel(): JSX.Element {
             <Pencil1Icon />
           </PrimaryButton>
           <PrimaryButton
+            kbd={'3'}
             label={ShapeType.Rectangle}
             onClick={selectRectangleTool}
             isActive={activeTool === ShapeType.Rectangle}
@@ -64,6 +67,7 @@ export default function ToolsPanel(): JSX.Element {
             <SquareIcon />
           </PrimaryButton>
           <PrimaryButton
+            kbd={'4'}
             label={ShapeType.Ellipse}
             onClick={selectEllipseTool}
             isActive={activeTool === ShapeType.Ellipse}
@@ -71,6 +75,7 @@ export default function ToolsPanel(): JSX.Element {
             <CircleIcon />
           </PrimaryButton>
           <PrimaryButton
+            kbd={'5'}
             label={ShapeType.Arrow}
             onClick={selectArrowTool}
             isActive={activeTool === ShapeType.Arrow}
@@ -78,6 +83,7 @@ export default function ToolsPanel(): JSX.Element {
             <ArrowTopRightIcon />
           </PrimaryButton>
           <PrimaryButton
+            kbd={'6'}
             label={ShapeType.Text}
             onClick={selectTextTool}
             isActive={activeTool === ShapeType.Text}
@@ -89,6 +95,7 @@ export default function ToolsPanel(): JSX.Element {
       <RightWrap size={{ '@initial': 'mobile', '@sm': 'small' }}>
         <FloatingContainer>
           <SecondaryButton
+            kbd={'7'}
             label={'Lock Tool'}
             onClick={toggleToolLock}
             isActive={isToolLocked}

@@ -1,9 +1,8 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { breakpoints, IconButton } from 'components/shared'
-import Tooltip from 'components/tooltip'
+import { DropdownMenuIconTriggerButton } from 'components/shared'
 import { strokes } from 'state/shape-styles'
 import state, { useSelector } from 'state'
-import { BoxIcon, Item, DropdownContent } from '../shared'
+import { BoxIcon, StyleDropdownItem, StyleDropdownContent } from './shared'
 import { useTheme } from 'next-themes'
 import { ColorStyle } from 'types'
 
@@ -17,35 +16,33 @@ export default function QuickColorSelect(): JSX.Element {
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DropdownMenu.Trigger as={IconButton} bp={breakpoints}>
-        <Tooltip label="Color">
-          <BoxIcon
-            fill={strokes[theme][color]}
-            stroke={strokes[theme][color]}
-          />
-        </Tooltip>
-      </DropdownMenu.Trigger>
-
-      <DropdownMenu.DropdownMenuRadioGroup
-        value={color}
-        as={DropdownContent}
-        onValueChange={handleColorChange}
+      <DropdownMenuIconTriggerButton label="Color">
+        <BoxIcon fill={strokes[theme][color]} stroke={strokes[theme][color]} />
+      </DropdownMenuIconTriggerButton>
+      <DropdownMenu.Content
+        as={StyleDropdownContent}
         sideOffset={8}
+        direction="vertical"
       >
-        {Object.keys(strokes[theme]).map((colorStyle: ColorStyle) => (
-          <DropdownMenu.DropdownMenuRadioItem
-            as={Item}
-            key={colorStyle}
-            title={colorStyle}
-            value={colorStyle}
-          >
-            <BoxIcon
-              fill={strokes[theme][colorStyle]}
-              stroke={strokes[theme][colorStyle]}
-            />
-          </DropdownMenu.DropdownMenuRadioItem>
-        ))}
-      </DropdownMenu.DropdownMenuRadioGroup>
+        <DropdownMenu.DropdownMenuRadioGroup
+          value={color}
+          onValueChange={handleColorChange}
+        >
+          {Object.keys(strokes[theme]).map((colorStyle: ColorStyle) => (
+            <DropdownMenu.DropdownMenuRadioItem
+              as={StyleDropdownItem}
+              key={colorStyle}
+              title={colorStyle}
+              value={colorStyle}
+            >
+              <BoxIcon
+                fill={strokes[theme][colorStyle]}
+                stroke={strokes[theme][colorStyle]}
+              />
+            </DropdownMenu.DropdownMenuRadioItem>
+          ))}
+        </DropdownMenu.DropdownMenuRadioGroup>
+      </DropdownMenu.Content>
     </DropdownMenu.Root>
   )
 }
