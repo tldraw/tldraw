@@ -2,6 +2,7 @@ import align from './align'
 import changePage from './change-page'
 import createPage from './create-page'
 import deletePage from './delete-page'
+import duplicatePage from './duplicate-page'
 import deleteShapes from './delete-shapes'
 import createShapes from './create-shapes'
 import distribute from './distribute'
@@ -34,6 +35,7 @@ const commands = {
   createShapes,
   deletePage,
   deleteShapes,
+  duplicatePage,
   distribute,
   doublePointHandle,
   draw,

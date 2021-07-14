@@ -1349,6 +1349,20 @@
   dependencies:
     "@babel/runtime" "^7.13.10"
 
+"@radix-ui/react-alert-dialog@^0.0.19":
+  version "0.0.19"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-alert-dialog/-/react-alert-dialog-0.0.19.tgz#5b69bfe063cdb13f49630ad2705e71228505d147"
+  integrity sha512-SJRUT2s0/WLCvCEbfuKL5EM6QNXjZQkX9ZgkwKvgRNYu5zYEmCmlCUWDJbPIX1Y7w/a6tuEm24f3Uywd8VcBxw==
+  dependencies:
+    "@babel/runtime" "^7.13.10"
+    "@radix-ui/primitive" "0.0.5"
+    "@radix-ui/react-compose-refs" "0.0.5"
+    "@radix-ui/react-context" "0.0.5"
+    "@radix-ui/react-dialog" "0.0.19"
+    "@radix-ui/react-polymorphic" "0.0.12"
+    "@radix-ui/react-primitive" "0.0.14"
+    "@radix-ui/react-slot" "0.0.12"
+
 "@radix-ui/react-arrow@0.0.14":
   version "0.0.14"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-arrow/-/react-arrow-0.0.14.tgz#70b2c66efbf3cde0c9dd0895417e39f6cdf31805"
@@ -1420,10 +1434,10 @@
   dependencies:
     "@babel/runtime" "^7.13.10"
 
-"@radix-ui/react-dialog@^0.0.18":
-  version "0.0.18"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-dialog/-/react-dialog-0.0.18.tgz#8d2d9f8816bb8447056031583a3a3cb2b6305281"
-  integrity sha512-EH8yxFh3hQQ/hIPQsBzdJgx3oWTEmLu2a2x2PfRjxbDhcDIjcYJWdeEMjkTUjkBwpz3h6L/JWqnYJ2dqA65Deg==
+"@radix-ui/react-dialog@0.0.19", "@radix-ui/react-dialog@^0.0.19":
+  version "0.0.19"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-dialog/-/react-dialog-0.0.19.tgz#5a76fa380142a7a97c15c585ab071f63fba5297d"
+  integrity sha512-7FbWaj/C/TDpfJ+VJ4wNAQIjENDNfwAqNvAfeb+TEtBjgjmsfRDgA1AMenlA5N1QuRtAokRMTHUs3ukW49oQ+g==
   dependencies:
     "@babel/runtime" "^7.13.10"
     "@radix-ui/primitive" "0.0.5"
@@ -1437,7 +1451,7 @@
     "@radix-ui/react-portal" "0.0.14"
     "@radix-ui/react-presence" "0.0.14"
     "@radix-ui/react-primitive" "0.0.14"
-    "@radix-ui/react-slot" "0.0.11"
+    "@radix-ui/react-slot" "0.0.12"
     "@radix-ui/react-use-controllable-state" "0.0.6"
     aria-hidden "^1.1.1"
     react-remove-scroll "^2.4.0"

@@ -120,7 +120,7 @@ export const RowButton = styled('button', {
   },
 
   '&:disabled': {
-    opacity: 0.1,
+    opacity: 0.3,
   },
 
   variants: {
@@ -163,9 +163,9 @@ export const RowButton = styled('button', {
         },
       },
     },
-    disabled: {
+    warn: {
       true: {
-        opacity: 0.3,
+        color: '$warn',
       },
     },
     isActive: {
@@ -518,21 +518,71 @@ export function Kbd({ children }: { children: React.ReactNode }): JSX.Element {
 }
 
 /* -------------------------------------------------- */
+/*                       Dialog                       */
+/* -------------------------------------------------- */
+
+export const DialogContent = styled('div', {
+  position: 'fixed',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  minWidth: 240,
+  maxWidth: 'fit-content',
+  maxHeight: '85vh',
+  marginTop: '-5vh',
+  pointerEvents: 'all',
+  backgroundColor: '$panel',
+  border: '1px solid $panel',
+  padding: '$0',
+  boxShadow: '$4',
+  borderRadius: '4px',
+  font: '$ui',
+
+  '&:focus': {
+    outline: 'none',
+  },
+})
+
+export const DialogOverlay = styled('div', {
+  backgroundColor: 'rgba(0, 0, 0, .15)',
+  position: 'fixed',
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+})
+
+export const DialogInputWrapper = styled('div', {
+  padding: '$4 $2',
+})
+
+export const DialogTitleRow = styled('div', {
+  display: 'flex',
+  padding: '0 0 0 $4',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+
+  h3: {
+    fontSize: '$1',
+  },
+})
+
+/* -------------------------------------------------- */
 /*                        Menus                       */
 /* -------------------------------------------------- */
 
 export const MenuContent = styled('div', {
   position: 'relative',
-  backgroundColor: '$panel',
-  borderRadius: '4px',
   overflow: 'hidden',
-  pointerEvents: 'all',
   userSelect: 'none',
   zIndex: 180,
+  minWidth: 180,
+  pointerEvents: 'all',
+  backgroundColor: '$panel',
   border: '1px solid $panel',
   padding: '$0',
   boxShadow: '$4',
-  minWidth: 180,
+  borderRadius: '4px',
   font: '$ui',
 })
 
@@ -543,6 +593,41 @@ export const Divider = styled('div', {
   marginRight: '-$2',
   marginBottom: '$2',
   marginLeft: '-$2',
+})
+
+export function MenuButton({
+  warn,
+  onSelect,
+  children,
+  disabled = false,
+}: {
+  warn?: boolean
+  onSelect?: () => void
+  disabled?: boolean
+  children: React.ReactNode
+}): JSX.Element {
+  return (
+    <RowButton
+      bp={breakpoints}
+      disabled={disabled}
+      warn={warn}
+      onSelect={onSelect}
+    >
+      {children}
+    </RowButton>
+  )
+}
+
+export const MenuTextInput = styled('input', {
+  backgroundColor: '$panel',
+  border: 'none',
+  padding: '$4 $3',
+  width: '100%',
+  outline: 'none',
+  background: '$input',
+  borderRadius: '4px',
+  font: '$ui',
+  fontSize: '$1',
 })
 
 /* -------------------------------------------------- */

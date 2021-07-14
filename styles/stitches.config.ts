@@ -24,6 +24,7 @@ const { styled, global, css, theme, getCssString } = createCss({
       muted: '#777777',
       input: '#f3f3f3',
       inputBorder: '#dddddd',
+      warn: 'rgba(255, 100, 100, 1)',
       lineError: 'rgba(255, 0, 0, .1)',
     },
     shadows: {
@@ -40,6 +41,7 @@ const { styled, global, css, theme, getCssString } = createCss({
       2: '4px',
       3: '8px',
       4: '12px',
+      5: '16px',
     },
     fontSizes: {
       0: '10px',

@@ -15,26 +15,33 @@ export default function createPage(data: Data, goToPage = true): void {
       category: 'canvas',
       do(data) {
         const { page, pageState, currentPageId } = snapshot
+
+        storage.savePage(data, data.document.id, currentPageId)
+
         data.document.pages[page.id] = page
         data.pageStates[page.id] = pageState
 
         if (goToPage) {
+          storage.savePage(data, data.document.id, currentPageId)
+          storage.loadPage(data, data.document.id, page.id)
           data.currentPageId = page.id
-        } else {
-          data.currentPageId = currentPageId
-        }
+          data.currentParentId = page.id
 
-        storage.savePage(data, data.document.id, page.id)
-        storage.saveDocumentToLocalStorage(data)
-        tld.setZoomCSS(tld.getPageState(data).camera.zoom)
+          tld.setZoomCSS(tld.getPageState(data).camera.zoom)
+        }
       },
       undo(data) {
         const { page, currentPageId } = snapshot
         delete data.document.pages[page.id]
         delete data.pageStates[page.id]
-        data.currentPageId = currentPageId
-        storage.saveDocumentToLocalStorage(data)
-        tld.setZoomCSS(tld.getPageState(data).camera.zoom)
+
+        if (goToPage) {
+          storage.loadPage(data, data.document.id, currentPageId)
+          data.currentPageId = currentPageId
+          data.currentParentId = currentPageId
+
+          tld.setZoomCSS(tld.getPageState(data).camera.zoom)
+        }
       },
     })
   )
