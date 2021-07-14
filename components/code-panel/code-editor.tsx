@@ -1,5 +1,5 @@
 import Editor, { Monaco } from '@monaco-editor/react'
-import useTheme from 'hooks/useTheme'
+import { useTheme } from 'next-themes'
 import libImport from './es5-lib'
 import typesImport from './types-import'
 import React, { useCallback, useEffect, useRef } from 'react'

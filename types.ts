@@ -6,12 +6,12 @@ export interface Data {
   isReadOnly: boolean
   settings: {
     fontSize: number
-    isDarkMode: boolean
     isCodeOpen: boolean
     isTestMode: boolean
     isDebugOpen: boolean
     isDebugMode: boolean
     isStyleOpen: boolean
+    isDarkMode: boolean
     nudgeDistanceSmall: number
     nudgeDistanceLarge: number
     isToolLocked: boolean

@@ -6,7 +6,7 @@ describe('project', () => {
   state.enableLog(true)
 
   it('mounts the state', () => {
-    state.send('MOUNTED')
+    state.send('MOUNTED').send('MOUNTED_SHAPES')
 
     expect(state.isIn('ready')).toBe(true)
   })
@@ -26,6 +26,7 @@ describe('restoring project', () => {
   it('remounts the state after mutating the current state', () => {
     state
       .send('MOUNTED')
+      .send('MOUNTED_SHAPES')
       .send('LOADED_FROM_FILE', { json: JSON.stringify(json) })
       .send('CLEARED_PAGE')
 
@@ -35,6 +36,7 @@ describe('restoring project', () => {
 
     state
       .send('MOUNTED')
+      .send('MOUNTED_SHAPES')
       .send('LOADED_FROM_FILE', { json: JSON.stringify(json) })
 
     expect(state.data.document).toMatchSnapshot('data after re-mount from file')

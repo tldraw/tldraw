@@ -8,7 +8,6 @@ import storage from './storage'
 import session from './session'
 import clipboard from './clipboard'
 import commands from './commands'
-import { dark, light } from 'styles'
 import {
   vec,
   getCommonBounds,
@@ -47,8 +46,8 @@ const initialData: Data = {
   settings: {
     fontSize: 13,
     isTestMode: false,
-    isDarkMode: true,
     isCodeOpen: false,
+    isDarkMode: false,
     isDebugMode: false,
     isDebugOpen: false,
     isStyleOpen: false,
@@ -148,8 +147,8 @@ for (let i = 0; i < count; i++) {
 
 const state = createState({
   data: initialData,
-  onEnter: 'applyTheme',
   on: {
+    CHANGED_DARK_MODE: 'setDarkMode',
     TOGGLED_DEBUG_PANEL: 'toggleDebugPanel',
     TOGGLED_DEBUG_MODE: 'toggleDebugMode',
     TOGGLED_TEST_MODE: 'toggleTestMode',
@@ -168,20 +167,23 @@ const state = createState({
           'resetHistory',
           'resetStorage',
           'restoredPreviousDocument',
+          { to: 'settingCamera' },
+        ],
+      },
+    },
+    settingCamera: {
+      on: {
+        MOUNTED_SHAPES: [
+          {
+            if: 'hasSelection',
+            do: 'zoomCameraToSelectionActual',
+            else: 'zoomCameraToFit',
+          },
           { to: 'ready' },
         ],
       },
     },
     ready: {
-      onEnter: [
-        'applyTheme',
-        {
-          wait: 0.01,
-          if: 'hasSelection',
-          do: 'zoomCameraToSelectionActual',
-          else: ['zoomCameraToActual'],
-        },
-      ],
       on: {
         UNMOUNTED: {
           do: ['saveDocumentState', 'resetDocumentState'],
@@ -213,9 +215,6 @@ const state = createState({
         PASTED_SHAPES_FROM_CLIPBOARD: {
           unlessAny: ['isReadOnly', 'isInSession'],
           do: 'pasteShapesFromClipboard',
-        },
-        TOGGLED_DARK_MODE: {
-          do: ['toggleDarkMode', 'applyTheme'],
         },
         TOGGLED_SHAPE_LOCK: {
           unlessAny: ['isReadOnly', 'isInSession'],
@@ -1290,6 +1289,10 @@ const state = createState({
     },
   },
   actions: {
+    setDarkMode(data, payload: { isDarkMode: boolean }) {
+      data.settings.isDarkMode = payload.isDarkMode
+    },
+
     /* ---------------------- Debug --------------------- */
 
     closeDebugPanel(data) {
@@ -2039,21 +2042,6 @@ const state = createState({
     },
     resetHistory() {
       history.reset()
-    },
-
-    /* ------------------- Preferences ------------------ */
-
-    toggleDarkMode(data) {
-      data.settings.isDarkMode = !data.settings.isDarkMode
-    },
-    applyTheme(data) {
-      if (data.settings.isDarkMode && typeof document !== 'undefined') {
-        document.body.classList.remove(light)
-        document.body.classList.add(dark)
-      } else {
-        document.body.classList.remove(dark)
-        document.body.classList.add(light)
-      }
     },
 
     /* --------------------- Styles --------------------- */

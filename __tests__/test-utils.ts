@@ -45,6 +45,7 @@ class TestState {
     this.state
       .send('UNMOUNTED')
       .send('MOUNTED', { roomId: 'TESTING' })
+      .send('MOUNTED_SHAPES')
       .send('LOADED_FROM_FILE', { json: JSON.stringify(mockDocument) })
 
     return this
@@ -110,6 +111,21 @@ class TestState {
     )
       .sort((a, b) => a.childIndex - b.childIndex)
       .map((shape) => shape.id)
+  }
+
+  /**
+   * Get shapes for the current page.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.getShapes()
+   *```
+   */
+  getShapes(): Shape[] {
+    return Object.values(
+      this.data.document.pages[this.data.currentPageId].shapes
+    )
   }
 
   /**

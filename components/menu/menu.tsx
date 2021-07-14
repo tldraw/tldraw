@@ -18,11 +18,11 @@ import {
 import state, { useSelector } from 'state'
 import { commandKey } from 'utils'
 import { signOut } from 'next-auth/client'
+import { useTheme } from 'next-themes'
 
 const handleNew = () => state.send('CREATED_NEW_PROJECT')
 const handleSave = () => state.send('SAVED')
 const handleLoad = () => state.send('LOADED_FROM_FILE_STSTEM')
-const toggleDarkMode = () => state.send('TOGGLED_DARK_MODE')
 const toggleDebugMode = () => state.send('TOGGLED_DEBUG_MODE')
 
 function Menu() {
@@ -99,14 +99,16 @@ function RecentFiles() {
 }
 
 function Preferences() {
+  const { theme, setTheme } = useTheme()
+
   const isDebugMode = useSelector((s) => s.data.settings.isDebugMode)
-  const isDarkMode = useSelector((s) => s.data.settings.isDarkMode)
+  const isDarkMode = theme === 'dark'
 
   return (
     <DropdownMenuSubMenu label="Preferences">
       <DropdownMenuCheckboxItem
         checked={isDarkMode}
-        onCheckedChange={toggleDarkMode}
+        onCheckedChange={() => setTheme(isDarkMode ? 'light' : 'dark')}
       >
         <span>Dark Mode</span>
       </DropdownMenuCheckboxItem>
