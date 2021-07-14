@@ -59,7 +59,7 @@
     "next-auth": "^3.27.3",
     "next-pwa": "^5.2.23",
     "next-themes": "^0.0.15",
-    "perfect-freehand": "^0.4.91",
+    "perfect-freehand": "^0.4.10",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-error-boundary": "^3.1.3",
