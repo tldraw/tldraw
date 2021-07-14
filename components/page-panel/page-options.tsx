@@ -10,11 +10,15 @@ import {
   DialogInputWrapper,
   Divider,
 } from 'components/shared'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import state, { useSelector } from 'state'
 import { Page } from 'types'
 
 export default function PageOptions({ page }: { page: Page }): JSX.Element {
+  const [isOpen, setIsOpen] = useState(false)
+
+  const rInput = useRef<HTMLInputElement>(null)
+
   const hasOnlyOnePage = useSelector(
     (s) => Object.keys(s.data.document.pages).length <= 1
   )
@@ -34,7 +38,11 @@ export default function PageOptions({ page }: { page: Page }): JSX.Element {
   }
 
   function handleOpenChange(isOpen: boolean) {
-    if (isOpen) return
+    setIsOpen(isOpen)
+
+    if (isOpen) {
+      return
+    }
 
     if (page.name.length === 0) {
       state.send('RENAMED_PAGE', {
@@ -57,8 +65,24 @@ export default function PageOptions({ page }: { page: Page }): JSX.Element {
     e.stopPropagation()
   }
 
+  function handleKeydown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.key === 'Enter') {
+      handleSave()
+      setIsOpen(false)
+    }
+  }
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        rInput.current?.focus()
+        rInput.current?.select()
+      }, 0)
+    }
+  }, [isOpen])
+
   return (
-    <Dialog.Root onOpenChange={handleOpenChange}>
+    <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
       <Dialog.Trigger
         as={IconButton}
         bp={breakpoints}
@@ -70,12 +94,16 @@ export default function PageOptions({ page }: { page: Page }): JSX.Element {
       <Dialog.Overlay as={DialogOverlay} />
       <Dialog.Content
         as={DialogContent}
-        onKeyPress={stopPropagation}
         onKeyDown={stopPropagation}
         onKeyUp={stopPropagation}
       >
         <DialogInputWrapper>
-          <MenuTextInput value={name} onChange={handleNameChange} />
+          <MenuTextInput
+            ref={rInput}
+            value={name}
+            onChange={handleNameChange}
+            onKeyDown={handleKeydown}
+          />
         </DialogInputWrapper>
         <Divider />
         <Dialog.Action

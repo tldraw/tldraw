@@ -1,13 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { MutableRefObject, useEffect } from 'react'
+import { useEffect } from 'react'
 import state from 'state'
 import inputs from 'state/inputs'
 import { ColorStyle, MoveType, SizeStyle } from 'types'
 import { metaKey } from 'utils'
 
-export default function useKeyboardEvents(
-  ref: MutableRefObject<HTMLDivElement>
-) {
+export default function useKeyboardEvents() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const info = inputs.keydown(e)
@@ -367,11 +365,11 @@ export default function useKeyboardEvents(
       }
     }
 
-    ref.current?.addEventListener('keydown', handleKeyDown)
-    ref.current?.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
     return () => {
-      ref.current?.removeEventListener('keydown', handleKeyDown)
-      ref.current?.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
     }
   }, [])
 }
