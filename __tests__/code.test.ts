@@ -1,36 +1,32 @@
-import state from 'state'
 import { generateFromCode } from 'state/code/generate'
 import * as json from './__mocks__/document.json'
-import tld from 'utils/tld'
+import TestState from './test-utils'
 
 jest.useRealTimers()
 
-state.reset()
-state
-  .send('MOUNTED')
-  .send('MOUNTED_SHAPES')
+const tt = new TestState()
+tt.resetDocumentState()
   .send('LOADED_FROM_FILE', { json: JSON.stringify(json) })
-state.send('CLEARED_PAGE')
+  .send('CLEARED_PAGE')
+  .save()
 
 describe('selection', () => {
   it('opens and closes the code panel', () => {
-    expect(state.data.settings.isCodeOpen).toBe(false)
-    state.send('TOGGLED_CODE_PANEL_OPEN')
-    expect(state.data.settings.isCodeOpen).toBe(true)
-    state.send('TOGGLED_CODE_PANEL_OPEN')
-    expect(state.data.settings.isCodeOpen).toBe(false)
+    expect(tt.data.settings.isCodeOpen).toBe(false)
+    tt.send('TOGGLED_CODE_PANEL_OPEN')
+    expect(tt.data.settings.isCodeOpen).toBe(true)
+    tt.send('TOGGLED_CODE_PANEL_OPEN')
+    expect(tt.data.settings.isCodeOpen).toBe(false)
   })
 
   it('saves changes to code', () => {
-    expect(tld.getShapes(state.data).length).toBe(0)
+    expect(tt.getSortedPageShapeIds().length).toBe(0)
 
     const code = `// hello world!`
 
-    state.send('SAVED_CODE', { code })
+    tt.send('SAVED_CODE', { code })
 
-    expect(state.data.document.code[state.data.currentCodeFileId].code).toBe(
-      code
-    )
+    expect(tt.data.document.code[tt.data.currentCodeFileId].code).toBe(code)
   })
 
   it('generates shapes', async () => {
@@ -48,13 +44,11 @@ describe('selection', () => {
     })
     `
 
-    const { controls, shapes } = await generateFromCode(state.data, code)
+    const { controls, shapes } = await generateFromCode(tt.data, code)
 
-    state.send('GENERATED_FROM_CODE', { controls, shapes })
+    tt.send('GENERATED_FROM_CODE', { controls, shapes })
 
-    expect(tld.getShapes(state.data)).toMatchSnapshot(
-      'generated rectangle from code'
-    )
+    expect(tt.getShapes()).toMatchSnapshot('generated rectangle from code')
   })
 
   it('creates a code control', async () => {
@@ -65,11 +59,11 @@ describe('selection', () => {
     })
     `
 
-    const { controls, shapes } = await generateFromCode(state.data, code)
+    const { controls, shapes } = await generateFromCode(tt.data, code)
 
-    state.send('GENERATED_FROM_CODE', { controls, shapes })
+    tt.send('GENERATED_FROM_CODE', { controls, shapes })
 
-    expect(state.data.codeControls).toMatchSnapshot(
+    expect(tt.data.codeControls).toMatchSnapshot(
       'generated code controls from code'
     )
   })
@@ -99,17 +93,17 @@ describe('selection', () => {
     })
     `
 
-    const { controls, shapes } = await generateFromCode(state.data, code)
+    const { controls, shapes } = await generateFromCode(tt.data, code)
 
-    state.send('GENERATED_FROM_CODE', { controls, shapes })
+    tt.send('GENERATED_FROM_CODE', { controls, shapes })
 
-    state.send('CHANGED_CODE_CONTROL', { 'test-number-control': 100 })
+    tt.send('CHANGED_CODE_CONTROL', { 'test-number-control': 100 })
 
-    expect(state.data.codeControls).toMatchSnapshot(
+    expect(tt.data.codeControls).toMatchSnapshot(
       'data in state after changing control'
     )
 
-    expect(tld.getShape(state.data, 'test-rectangle')).toMatchSnapshot(
+    expect(tt.getShape('test-rectangle')).toMatchSnapshot(
       'rectangle in state after changing code control'
     )
   })
@@ -117,24 +111,21 @@ describe('selection', () => {
   /* -------------------- Readonly -------------------- */
 
   it('does not saves changes to code when readonly', () => {
-    state.send('CLEARED_PAGE')
+    tt.send('CLEARED_PAGE')
 
-    expect(tld.getShapes(state.data).length).toBe(0)
+    expect(tt.getShapes().length).toBe(0)
 
     const code = `// hello world!`
 
-    state
-      .send('SAVED_CODE', { code })
+    tt.send('SAVED_CODE', { code })
       .send('TOGGLED_READ_ONLY')
       .send('SAVED_CODE', { code: '' })
 
-    expect(state.data.document.code[state.data.currentCodeFileId].code).toBe(
-      code
-    )
+    expect(tt.data.document.code[tt.data.currentCodeFileId].code).toBe(code)
 
-    state.send('TOGGLED_READ_ONLY').send('SAVED_CODE', { code: '' })
+    tt.send('TOGGLED_READ_ONLY').send('SAVED_CODE', { code: '' })
 
-    expect(state.data.document.code[state.data.currentCodeFileId].code).toBe('')
+    expect(tt.data.document.code[tt.data.currentCodeFileId].code).toBe('')
   })
 
   /* --------------------- Methods -------------------- */
@@ -174,7 +165,7 @@ describe('selection', () => {
   /* --------------------- Shapes --------------------- */
 
   it('generates a rectangle shape', async () => {
-    state.send('CLEARED_PAGE')
+    tt.send('CLEARED_PAGE')
     const code = `
     const rectangle = new Rectangle({
       id: "test-rectangle",
@@ -189,13 +180,11 @@ describe('selection', () => {
     })
     `
 
-    const { controls, shapes } = await generateFromCode(state.data, code)
+    const { controls, shapes } = await generateFromCode(tt.data, code)
 
-    state.send('GENERATED_FROM_CODE', { controls, shapes })
+    tt.send('GENERATED_FROM_CODE', { controls, shapes })
 
-    expect(tld.getShapes(state.data)).toMatchSnapshot(
-      'generated rectangle from code'
-    )
+    expect(tt.getShapes()).toMatchSnapshot('generated rectangle from code')
   })
 
   it('changes a rectangle size', async () => {
@@ -203,7 +192,7 @@ describe('selection', () => {
   })
 
   it('generates an ellipse shape', async () => {
-    state.send('CLEARED_PAGE')
+    tt.send('CLEARED_PAGE')
     const code = `
     const ellipse = new Ellipse({
       id: 'test-ellipse',
@@ -219,17 +208,15 @@ describe('selection', () => {
     })
     `
 
-    const { controls, shapes } = await generateFromCode(state.data, code)
+    const { controls, shapes } = await generateFromCode(tt.data, code)
 
-    state.send('GENERATED_FROM_CODE', { controls, shapes })
+    tt.send('GENERATED_FROM_CODE', { controls, shapes })
 
-    expect(tld.getShapes(state.data)).toMatchSnapshot(
-      'generated ellipse from code'
-    )
+    expect(tt.getShapes()).toMatchSnapshot('generated ellipse from code')
   })
 
   it('generates a draw shape', async () => {
-    state.send('CLEARED_PAGE')
+    tt.send('CLEARED_PAGE')
     const code = `
     const ellipse = new Draw({
       id: 'test-draw',
@@ -243,17 +230,15 @@ describe('selection', () => {
     })
     `
 
-    const { controls, shapes } = await generateFromCode(state.data, code)
+    const { controls, shapes } = await generateFromCode(tt.data, code)
 
-    state.send('GENERATED_FROM_CODE', { controls, shapes })
+    tt.send('GENERATED_FROM_CODE', { controls, shapes })
 
-    expect(tld.getShapes(state.data)).toMatchSnapshot(
-      'generated draw from code'
-    )
+    expect(tt.getShapes()).toMatchSnapshot('generated draw from code')
   })
 
   it('generates an arrow shape', async () => {
-    state.send('CLEARED_PAGE')
+    tt.send('CLEARED_PAGE')
     const code = `
     const draw = new Arrow({
       id: 'test-draw',
@@ -267,17 +252,15 @@ describe('selection', () => {
     })
     `
 
-    const { controls, shapes } = await generateFromCode(state.data, code)
+    const { controls, shapes } = await generateFromCode(tt.data, code)
 
-    state.send('GENERATED_FROM_CODE', { controls, shapes })
+    tt.send('GENERATED_FROM_CODE', { controls, shapes })
 
-    expect(tld.getShapes(state.data)).toMatchSnapshot(
-      'generated draw from code'
-    )
+    expect(tt.getShapes()).toMatchSnapshot('generated draw from code')
   })
 
   it('generates a text shape', async () => {
-    state.send('CLEARED_PAGE')
+    tt.send('CLEARED_PAGE')
     const code = `
     const text = new Text({
       id: 'test-text',
@@ -292,12 +275,10 @@ describe('selection', () => {
     })
     `
 
-    const { controls, shapes } = await generateFromCode(state.data, code)
+    const { controls, shapes } = await generateFromCode(tt.data, code)
 
-    state.send('GENERATED_FROM_CODE', { controls, shapes })
+    tt.send('GENERATED_FROM_CODE', { controls, shapes })
 
-    expect(tld.getShapes(state.data)).toMatchSnapshot(
-      'generated draw from code'
-    )
+    expect(tt.getShapes()).toMatchSnapshot('generated draw from code')
   })
 })

@@ -114,6 +114,21 @@ class TestState {
   }
 
   /**
+   * Get shapes for the current page.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.getShapes()
+   *```
+   */
+  getShapes(): Shape[] {
+    return Object.values(
+      this.data.document.pages[this.data.currentPageId].shapes
+    )
+  }
+
+  /**
    * Get whether the provided ids are the current selected ids. If the `strict` argument is `true`, then the result will be false if the state has selected ids in addition to those provided.
    *
    * ### Example
