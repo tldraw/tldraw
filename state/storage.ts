@@ -1,4 +1,4 @@
-import { Data, PageState, TLDocument } from 'types'
+import { Data, Page, PageState, TLDocument } from 'types'
 import { decompress, compress } from 'utils'
 import state from './state'
 import { uniqueId } from 'utils/utils'
@@ -254,6 +254,81 @@ class Storage {
     )
   }
 
+  getPageFromLocalStorage(
+    data: Data,
+    fileId = data.document.id,
+    pageId = data.currentPageId
+  ): Page {
+    if (typeof window === 'undefined') return
+    if (typeof localStorage === 'undefined') return
+
+    let page: Page
+
+    try {
+      const savedPage = localStorage.getItem(storageId(fileId, 'page', pageId))
+      if (savedPage === null) {
+        throw Error('That page is not in local storage.')
+      }
+
+      page = JSON.parse(decompress(savedPage))
+    } catch (e) {
+      throw Error('Could not load a page with the id ' + pageId)
+    }
+
+    return page
+  }
+
+  getPageStateFromLocalStorage(
+    data: Data,
+    fileId = data.document.id,
+    pageId = data.currentPageId
+  ): PageState {
+    if (typeof window === 'undefined') return
+    if (typeof localStorage === 'undefined') return
+
+    let pageState: PageState
+
+    try {
+      const savedPageState = localStorage.getItem(
+        storageId(fileId, 'pageState', pageId)
+      )
+      if (savedPageState === null) {
+        throw Error('That page state is not in local storage.')
+      }
+
+      pageState = JSON.parse(decompress(savedPageState))
+    } catch (e) {
+      throw Error('Could not load a page state with the id ' + pageId)
+    }
+
+    return pageState
+  }
+
+  /**
+   * Apply changes to a page in local storage.
+   *
+   * ### Example
+   *
+   *```ts
+   * storage.renamePageInLocalStorage(data, 'fileId', 'pageId', 'newPageName')
+   *```
+   */
+  renamePageInLocalStorage(
+    data: Data,
+    fileId = data.document.id,
+    pageId = data.currentPageId,
+    name: string
+  ) {
+    const page = this.getPageFromLocalStorage(data, fileId, pageId)
+
+    page.name = name
+
+    localStorage.setItem(
+      storageId(fileId, 'page', pageId),
+      compress(JSON.stringify(page))
+    )
+  }
+
   loadPage(data: Data, fileId = data.document.id, pageId = data.currentPageId) {
     if (typeof window === 'undefined') return
     if (typeof localStorage === 'undefined') return
@@ -263,9 +338,18 @@ class Storage {
     try {
       // If we have a page in local storage, move it into state
       const savedPage = localStorage.getItem(storageId(fileId, 'page', pageId))
-      data.document.pages[pageId] = JSON.parse(decompress(savedPage))
+
+      if (savedPage === null) {
+        // Why would the page be null?
+        // TODO: Find out why the page would be null.
+        throw new Error('Could not find that page')
+      } else {
+        data.document.pages[pageId] = JSON.parse(decompress(savedPage))
+      }
     } catch (e) {
-      console.warn('Could not load a page with the id', pageId)
+      if (fileId !== 'TESTING') {
+        throw new Error('Could not load a page with the id ' + pageId)
+      }
 
       // If we don't have a page, create a new page
       data.document.pages[pageId] = {
@@ -302,8 +386,6 @@ class Storage {
       storageId(fileId, 'lastPageState'),
       JSON.stringify(data.pageStates[pageId])
     )
-
-    // Prepare new state
 
     // Now clear out the other pages from state.
     Object.values(data.document.pages).forEach((page) => {

@@ -7,10 +7,10 @@ import {
   RowButton,
   MenuContent,
   FloatingContainer,
-  IconButton,
   IconWrapper,
 } from 'components/shared'
-import { MixerVerticalIcon, PlusIcon, CheckIcon } from '@radix-ui/react-icons'
+import PageOptions from './page-options'
+import { PlusIcon, CheckIcon } from '@radix-ui/react-icons'
 import state, { useSelector } from 'state'
 import { useEffect, useRef, useState } from 'react'
 
@@ -44,11 +44,11 @@ export default function PagePanel(): JSX.Element {
       }}
     >
       <FloatingContainer>
-        <RowButton as={DropdownMenu.Trigger} bp={breakpoints}>
+        <RowButton as={DropdownMenu.Trigger} bp={breakpoints} variant="noIcon">
           <span>{documentPages[currentPageId].name}</span>
         </RowButton>
       </FloatingContainer>
-      <MenuContent as={DropdownMenu.Content} sideOffset={8}>
+      <MenuContent as={DropdownMenu.Content} sideOffset={8} align="start">
         <DropdownMenu.RadioGroup
           value={currentPageId}
           onValueChange={(id) => {
@@ -56,24 +56,22 @@ export default function PagePanel(): JSX.Element {
             state.send('CHANGED_PAGE', { id })
           }}
         >
-          {sorted.map(({ id, name }) => (
-            <ButtonWithOptions key={id}>
+          {sorted.map((page) => (
+            <ButtonWithOptions key={page.id}>
               <DropdownMenu.RadioItem
                 as={RowButton}
                 bp={breakpoints}
-                value={id}
+                value={page.id}
                 variant="pageButton"
               >
-                <span>{name}</span>
+                <span>{page.name}</span>
                 <DropdownMenu.ItemIndicator>
-                  <IconWrapper>
+                  <IconWrapper size="small">
                     <CheckIcon />
                   </IconWrapper>
                 </DropdownMenu.ItemIndicator>
               </DropdownMenu.RadioItem>
-              <IconButton bp={breakpoints} size="small" data-shy="true">
-                <MixerVerticalIcon />
-              </IconButton>
+              <PageOptions page={page} />
             </ButtonWithOptions>
           ))}
         </DropdownMenu.RadioGroup>

@@ -32,7 +32,7 @@ function Menu() {
         <IconButton as={Trigger} bp={breakpoints}>
           <HamburgerMenuIcon />
         </IconButton>
-        <Content as={MenuContent} sideOffset={8}>
+        <Content as={MenuContent} sideOffset={8} align="start">
           <DropdownMenuButton onSelect={handleNew} disabled>
             <span>New Project</span>
             <Kbd>

@@ -10,14 +10,21 @@ import PagePanel from './page-panel/page-panel'
 import CodePanel from './code-panel/code-panel'
 import DebugPanel from './debug-panel/debug-panel'
 import ControlsPanel from './controls-panel/controls-panel'
+import { useEffect, useRef } from 'react'
 
 export default function Editor({ roomId }: { roomId?: string }): JSX.Element {
-  useKeyboardEvents()
+  const rLayout = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    rLayout.current?.focus()
+  }, [])
+
+  useKeyboardEvents(rLayout)
   useLoadOnMount(roomId)
   useStateTheme()
 
   return (
-    <Layout>
+    <Layout ref={rLayout} tabIndex={-1}>
       <MenuButtons>
         <Menu />
         <DebugPanel />
@@ -57,6 +64,7 @@ const Layout = styled('main', {
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
   boxSizing: 'border-box',
+  outline: 'none',
 
   pointerEvents: 'none',
   '& > *': {

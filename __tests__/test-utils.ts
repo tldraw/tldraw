@@ -91,7 +91,11 @@ class TestState {
    */
   createShape(props: Partial<Shape>, id = uniqueId()): TestState {
     const shape = createShape(props.type, props)
-    getShapeUtils(shape).setProperty(shape, 'id', id)
+
+    getShapeUtils(shape)
+      .setProperty(shape, 'id', id)
+      .setProperty(shape, 'parentId', this.data.currentPageId)
+
     this.data.document.pages[this.data.currentPageId].shapes[shape.id] = shape
     return this
   }

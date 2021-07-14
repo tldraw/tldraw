@@ -246,10 +246,6 @@ const state = createState({
           unless: ['isReadOnly', 'isInSession'],
           do: ['clearSelectedIds', 'createPage'],
         },
-        DELETED_PAGE: {
-          unlessAny: ['isReadOnly', 'isInSession', 'hasOnlyOnePage'],
-          do: 'deletePage',
-        },
         SELECTED_SELECT_TOOL: {
           unless: 'isInSession',
           to: 'selecting',
@@ -323,6 +319,18 @@ const state = createState({
         CHANGED_PAGE: {
           unless: 'isInSession',
           do: 'changePage',
+        },
+        RENAMED_PAGE: {
+          unlessAny: ['isReadOnly', 'isInSession'],
+          do: 'renamePage',
+        },
+        DUPLICATED_PAGE: {
+          unlessAny: ['isReadOnly', 'isInSession'],
+          do: 'duplicatePage',
+        },
+        DELETED_PAGE: {
+          unlessAny: ['isReadOnly', 'isInSession', 'hasOnlyOnePage'],
+          do: 'deletePage',
         },
         ZOOMED_TO_ACTUAL: {
           if: 'hasSelection',
@@ -1280,7 +1288,7 @@ const state = createState({
       return data.settings.isPenLocked
     },
     hasOnlyOnePage(data) {
-      return Object.keys(data.document.pages).length === 1
+      return Object.keys(data.document.pages).length <= 1
     },
     selectionIncludesGroups(data) {
       return tld
@@ -1361,9 +1369,9 @@ const state = createState({
       const newPageId = 'page1'
 
       data.document.id = newDocumentId
-      data.pointedId = null
-      data.hoveredId = null
-      data.editingId = null
+      data.pointedId = undefined
+      data.hoveredId = undefined
+      data.editingId = undefined
       data.currentPageId = newPageId
       data.currentParentId = newPageId
       data.currentCodeFileId = 'file0'
@@ -1411,9 +1419,16 @@ const state = createState({
     createPage(data) {
       commands.createPage(data, true)
     },
+    renamePage(data, payload: { id: string; name: string }) {
+      commands.renamePage(data, payload.id, payload.name)
+    },
     deletePage(data, payload: { id: string }) {
       commands.deletePage(data, payload.id)
     },
+    duplicatePage(data, payload: { id: string }) {
+      commands.duplicatePage(data, payload.id, true)
+    },
+
     /* --------------------- Shapes --------------------- */
     resetShapes(data) {
       const page = tld.getPage(data)
@@ -1815,7 +1830,7 @@ const state = createState({
       tld.getPageState(data).selectedIds = [selectedShape.id]
     },
     clearEditingId(data) {
-      data.editingId = null
+      data.editingId = undefined
     },
 
     /* ---------------------- Tool ---------------------- */
