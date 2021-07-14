@@ -10,6 +10,7 @@ import {
   DialogInputWrapper,
   Divider,
 } from 'components/shared'
+import { useState } from 'react'
 import state, { useSelector } from 'state'
 import { Page } from 'types'
 
@@ -18,11 +19,10 @@ export default function PageOptions({ page }: { page: Page }): JSX.Element {
     (s) => Object.keys(s.data.document.pages).length <= 1
   )
 
+  const [name, setName] = useState(page.name)
+
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
-    state.send('CHANGED_PAGE_NAME', {
-      id: page.id,
-      name: e.currentTarget.value,
-    })
+    setName(e.currentTarget.value)
   }
 
   function handleDuplicate() {
@@ -33,13 +33,24 @@ export default function PageOptions({ page }: { page: Page }): JSX.Element {
     state.send('DELETED_PAGE', { id: page.id })
   }
 
-  function handleOpenChange() {
+  function handleOpenChange(isOpen: boolean) {
+    if (isOpen) return
+
     if (page.name.length === 0) {
-      state.send('CHANGED_PAGE_NAME', {
+      state.send('RENAMED_PAGE', {
         id: page.id,
         name: 'Page',
       })
     }
+
+    state.send('SAVED_PAGE_RENAME', { id: page.id })
+  }
+
+  function handleSave() {
+    state.send('RENAMED_PAGE', {
+      id: page.id,
+      name,
+    })
   }
 
   function stopPropagation(e: React.KeyboardEvent<HTMLDivElement>) {
@@ -64,7 +75,7 @@ export default function PageOptions({ page }: { page: Page }): JSX.Element {
         onKeyUp={stopPropagation}
       >
         <DialogInputWrapper>
-          <MenuTextInput value={page.name} onChange={handleNameChange} />
+          <MenuTextInput value={name} onChange={handleNameChange} />
         </DialogInputWrapper>
         <Divider />
         <Dialog.Action
@@ -84,6 +95,9 @@ export default function PageOptions({ page }: { page: Page }): JSX.Element {
           Delete
         </Dialog.Action>
         <Divider />
+        <Dialog.Action as={RowButton} bp={breakpoints} onClick={handleSave}>
+          Save
+        </Dialog.Action>
         <Dialog.Cancel as={RowButton} bp={breakpoints}>
           Cancel
         </Dialog.Cancel>

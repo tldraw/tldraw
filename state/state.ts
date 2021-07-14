@@ -320,9 +320,9 @@ const state = createState({
           unless: 'isInSession',
           do: 'changePage',
         },
-        CHANGED_PAGE_NAME: {
+        RENAMED_PAGE: {
           unlessAny: ['isReadOnly', 'isInSession'],
-          do: 'changePageName',
+          do: 'renamePage',
         },
         DUPLICATED_PAGE: {
           unlessAny: ['isReadOnly', 'isInSession'],
@@ -1419,8 +1419,8 @@ const state = createState({
     createPage(data) {
       commands.createPage(data, true)
     },
-    changePageName(data, payload: { id: string; name: string }) {
-      data.document.pages[payload.id].name = payload.name
+    renamePage(data, payload: { id: string; name: string }) {
+      commands.renamePage(data, payload.id, payload.name)
     },
     deletePage(data, payload: { id: string }) {
       commands.deletePage(data, payload.id)

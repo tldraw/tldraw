@@ -5,7 +5,7 @@ describe('delete page command', () => {
   tt.resetDocumentState().save()
 
   it('does command', () => {
-    tt.restore().send('CREATED_PAGE')
+    tt.reset().restore().send('CREATED_PAGE')
     expect(Object.keys(tt.data.document.pages).length).toBe(2)
 
     const pageId = Object.keys(tt.data.document.pages)[1]
@@ -18,7 +18,7 @@ describe('delete page command', () => {
   })
 
   it('un-does command', () => {
-    tt.restore().send('CREATED_PAGE')
+    tt.reset().restore().send('CREATED_PAGE')
     expect(Object.keys(tt.data.document.pages).length).toBe(2)
 
     const pageId = Object.keys(tt.data.document.pages)[1]
@@ -30,7 +30,7 @@ describe('delete page command', () => {
   })
 
   it('re-does command', () => {
-    tt.restore().send('CREATED_PAGE')
+    tt.reset().restore().send('CREATED_PAGE')
     expect(Object.keys(tt.data.document.pages).length).toBe(2)
 
     const pageId = Object.keys(tt.data.document.pages)[1]

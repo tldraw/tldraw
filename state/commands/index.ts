@@ -26,6 +26,7 @@ import toggle from './toggle'
 import transform from './transform'
 import transformSingle from './transform-single'
 import translate from './translate'
+import renamePage from './rename-page'
 import ungroup from './ungroup'
 
 const commands = {
@@ -57,6 +58,7 @@ const commands = {
   transform,
   transformSingle,
   translate,
+  renamePage,
   ungroup,
 }
 

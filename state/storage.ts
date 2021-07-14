@@ -272,7 +272,7 @@ class Storage {
 
       page = JSON.parse(decompress(savedPage))
     } catch (e) {
-      console.warn('Could not load a page with the id', pageId)
+      throw Error('Could not load a page with the id ' + pageId)
     }
 
     return page
@@ -298,10 +298,35 @@ class Storage {
 
       pageState = JSON.parse(decompress(savedPageState))
     } catch (e) {
-      console.warn('Could not load a page state with the id', pageId)
+      throw Error('Could not load a page state with the id ' + pageId)
     }
 
     return pageState
+  }
+
+  /**
+   * Apply changes to a page in local storage.
+   *
+   * ### Example
+   *
+   *```ts
+   * storage.renamePageInLocalStorage(data, 'fileId', 'pageId', 'newPageName')
+   *```
+   */
+  renamePageInLocalStorage(
+    data: Data,
+    fileId = data.document.id,
+    pageId = data.currentPageId,
+    name: string
+  ) {
+    const page = this.getPageFromLocalStorage(data, fileId, pageId)
+
+    page.name = name
+
+    localStorage.setItem(
+      storageId(fileId, 'page', pageId),
+      compress(JSON.stringify(page))
+    )
   }
 
   loadPage(data: Data, fileId = data.document.id, pageId = data.currentPageId) {
@@ -317,19 +342,14 @@ class Storage {
       if (savedPage === null) {
         // Why would the page be null?
         // TODO: Find out why the page would be null.
-
-        data.document.pages[pageId] = {
-          id: pageId,
-          type: 'page',
-          childIndex: Object.keys(data.document.pages).length,
-          name: 'New Page',
-          shapes: {},
-        }
+        throw new Error('Could not find that page')
       } else {
         data.document.pages[pageId] = JSON.parse(decompress(savedPage))
       }
     } catch (e) {
-      console.warn('Could not load a page with the id', pageId)
+      if (fileId !== 'TESTING') {
+        throw new Error('Could not load a page with the id ' + pageId)
+      }
 
       // If we don't have a page, create a new page
       data.document.pages[pageId] = {

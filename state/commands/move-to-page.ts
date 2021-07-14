@@ -65,7 +65,7 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
         storage.savePage(data, data.document.id, fromPageId)
 
         // Load the "to" page
-        storage.loadPage(data, toPageId)
+        storage.loadPage(data, data.document.id, toPageId)
 
         // The page we're moving the shapes to
         const toPage = tld.getPage(data)
@@ -119,7 +119,7 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
 
         storage.savePage(data, data.document.id, fromPageId)
 
-        storage.loadPage(data, toPageId)
+        storage.loadPage(data, data.document.id, toPageId)
 
         const toPage = tld.getPage(data)
 

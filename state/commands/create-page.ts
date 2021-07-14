@@ -21,14 +21,18 @@ export default function createPage(data: Data, goToPage = true): void {
         data.document.pages[page.id] = page
         data.pageStates[page.id] = pageState
 
+        storage.savePage(data, data.document.id, page.id)
+
         if (goToPage) {
-          storage.savePage(data, data.document.id, currentPageId)
           storage.loadPage(data, data.document.id, page.id)
           data.currentPageId = page.id
           data.currentParentId = page.id
 
           tld.setZoomCSS(tld.getPageState(data).camera.zoom)
         }
+
+        storage.saveAppStateToLocalStorage(data)
+        storage.saveDocumentToLocalStorage(data)
       },
       undo(data) {
         const { page, currentPageId } = snapshot
@@ -42,6 +46,9 @@ export default function createPage(data: Data, goToPage = true): void {
 
           tld.setZoomCSS(tld.getPageState(data).camera.zoom)
         }
+
+        storage.saveAppStateToLocalStorage(data)
+        storage.saveDocumentToLocalStorage(data)
       },
     })
   )

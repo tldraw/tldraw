@@ -17,7 +17,7 @@ describe('duplicate page command', () => {
 
   describe('duplicates a page', () => {
     it('does, undoes, and redoes command', () => {
-      tt.restore()
+      tt.reset().restore()
 
       expect(Object.keys(tt.data.document.pages).length).toBe(1)
       const pageId = Object.keys(tt.data.document.pages)[0]

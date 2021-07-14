@@ -16,7 +16,7 @@ export default function duplicatePage(
   history.execute(
     data,
     new Command({
-      name: 'create_page',
+      name: 'duplicate_page',
       category: 'canvas',
       do(data) {
         const { from, to } = snapshot
@@ -34,6 +34,9 @@ export default function duplicatePage(
 
           tld.setZoomCSS(tld.getPageState(data).camera.zoom)
         }
+
+        storage.saveAppStateToLocalStorage(data)
+        storage.saveDocumentToLocalStorage(data)
       },
       undo(data) {
         const { from, to } = snapshot
@@ -47,6 +50,9 @@ export default function duplicatePage(
 
           tld.setZoomCSS(tld.getPageState(data).camera.zoom)
         }
+
+        storage.saveAppStateToLocalStorage(data)
+        storage.saveDocumentToLocalStorage(data)
       },
     })
   )

@@ -24,8 +24,11 @@ export default function deletePage(data: Data, pageId: string): void {
         delete data.pageStates[pageId]
 
         if (snapshot.isCurrent) {
-          storage.loadPage(data, snapshot.nextPageId)
+          storage.loadPage(data, data.document.id, snapshot.nextPageId)
         }
+
+        storage.saveAppStateToLocalStorage(data)
+        storage.saveDocumentToLocalStorage(data)
       },
       undo(data) {
         storage.saveAppStateToLocalStorage(data)
@@ -37,8 +40,11 @@ export default function deletePage(data: Data, pageId: string): void {
         data.pageStates[pageId] = snapshot.pageState
 
         if (snapshot.isCurrent) {
-          storage.loadPage(data, snapshot.currentPageId)
+          storage.loadPage(data, data.document.id, snapshot.currentPageId)
         }
+
+        storage.saveAppStateToLocalStorage(data)
+        storage.saveDocumentToLocalStorage(data)
       },
     })
   )

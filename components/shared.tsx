@@ -105,6 +105,7 @@ export const RowButton = styled('button', {
   justifyContent: 'space-between',
   padding: '4px 8px 4px 12px',
   borderRadius: 4,
+  userSelect: 'none',
 
   '& label': {
     fontWeight: '$1',
