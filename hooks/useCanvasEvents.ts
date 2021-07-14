@@ -115,19 +115,21 @@ export default function useCanvasEvents(
     rCanvas.current.addEventListener('touchstart', preventNavigation)
 
     return () => {
-      rCanvas.current.removeEventListener(
-        'gestureend',
-        preventGestureNavigation
-      )
-      rCanvas.current.removeEventListener(
-        'gesturechange',
-        preventGestureNavigation
-      )
-      rCanvas.current.removeEventListener(
-        'gesturestart',
-        preventGestureNavigation
-      )
-      rCanvas.current.removeEventListener('touchstart', preventNavigation)
+      if (rCanvas.current) {
+        rCanvas.current.removeEventListener(
+          'gestureend',
+          preventGestureNavigation
+        )
+        rCanvas.current.removeEventListener(
+          'gesturechange',
+          preventGestureNavigation
+        )
+        rCanvas.current.removeEventListener(
+          'gesturestart',
+          preventGestureNavigation
+        )
+        rCanvas.current.removeEventListener('touchstart', preventNavigation)
+      }
     }
   }, [])
 

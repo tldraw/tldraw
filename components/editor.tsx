@@ -1,5 +1,6 @@
 import useKeyboardEvents from 'hooks/useKeyboardEvents'
 import useLoadOnMount from 'hooks/useLoadOnMount'
+import useStateTheme from 'hooks/useStateTheme'
 import Menu from './menu/menu'
 import Canvas from './canvas/canvas'
 import ToolsPanel from './tools-panel/tools-panel'
@@ -13,6 +14,7 @@ import ControlsPanel from './controls-panel/controls-panel'
 export default function Editor({ roomId }: { roomId?: string }): JSX.Element {
   useKeyboardEvents()
   useLoadOnMount(roomId)
+  useStateTheme()
 
   return (
     <Layout>

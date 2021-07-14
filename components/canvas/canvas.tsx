@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/node'
-import React, { useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 
 import { ErrorBoundary } from 'react-error-boundary'
 import state, { useSelector } from 'state'
@@ -33,23 +33,28 @@ export default function Canvas(): JSX.Element {
 
   const events = useCanvasEvents(rCanvas)
 
+  const isSettingCamera = useSelector((s) => s.isIn('settingCamera'))
   const isReady = useSelector((s) => s.isIn('ready'))
+
+  useEffect(() => {
+    if (isSettingCamera) {
+      state.send('MOUNTED_SHAPES')
+    }
+  }, [isSettingCamera])
 
   return (
     <ContextMenu>
       <MainSVG ref={rCanvas} {...events}>
         <ErrorBoundary FallbackComponent={ErrorFallback} onReset={resetError}>
           <Defs />
-          {isReady && (
-            <g ref={rGroup} id="shapes">
-              <BoundsBg />
-              <Page />
-              <Coop />
-              <Bounds />
-              <Handles />
-              <Brush />
-            </g>
-          )}
+          <g ref={rGroup} id="shapes" opacity={isReady ? 1 : 0}>
+            <BoundsBg />
+            <Page />
+            <Coop />
+            <Bounds />
+            <Handles />
+            <Brush />
+          </g>
         </ErrorBoundary>
       </MainSVG>
     </ContextMenu>

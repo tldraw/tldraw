@@ -30,10 +30,13 @@ class Storage {
         data.document.id = roomId ? roomId : uniqueId()
       } else {
         // If we did find a state and document, load it into state.
-        const restoredDocument: Data = JSON.parse(decompress(savedState))
+        const restoredState: Data = JSON.parse(decompress(savedState))
+
+        // Lose the settings, these are meant to be stable
+        delete restoredState.settings
 
         // Merge restored data into state.
-        Object.assign(data, restoredDocument)
+        Object.assign(data, restoredState)
       }
     }
 

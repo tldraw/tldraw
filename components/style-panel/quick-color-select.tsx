@@ -4,7 +4,7 @@ import Tooltip from 'components/tooltip'
 import { strokes } from 'state/shape-styles'
 import state, { useSelector } from 'state'
 import { BoxIcon, Item, DropdownContent } from '../shared'
-import useTheme from 'hooks/useTheme'
+import { useTheme } from 'next-themes'
 import { ColorStyle } from 'types'
 
 function handleColorChange(color: ColorStyle): void {
