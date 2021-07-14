@@ -45,6 +45,7 @@ class TestState {
     this.state
       .send('UNMOUNTED')
       .send('MOUNTED', { roomId: 'TESTING' })
+      .send('MOUNTED_SHAPES')
       .send('LOADED_FROM_FILE', { json: JSON.stringify(mockDocument) })
 
     return this

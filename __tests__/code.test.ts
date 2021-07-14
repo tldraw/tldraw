@@ -6,7 +6,10 @@ import tld from 'utils/tld'
 jest.useRealTimers()
 
 state.reset()
-state.send('MOUNTED').send('LOADED_FROM_FILE', { json: JSON.stringify(json) })
+state
+  .send('MOUNTED')
+  .send('MOUNTED_SHAPES')
+  .send('LOADED_FROM_FILE', { json: JSON.stringify(json) })
 state.send('CLEARED_PAGE')
 
 describe('selection', () => {
