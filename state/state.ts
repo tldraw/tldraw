@@ -174,11 +174,11 @@ const state = createState({
     settingCamera: {
       on: {
         MOUNTED_SHAPES: [
-          {
-            if: 'hasSelection',
-            do: 'zoomCameraToSelectionActual',
-            else: 'zoomCameraToFit',
-          },
+          // {
+          //   if: 'hasSelection',
+          //   do: 'zoomCameraToSelectionActual',
+          //   else: 'zoomCameraToFit',
+          // },
           { to: 'ready' },
         ],
       },
@@ -1685,7 +1685,7 @@ const state = createState({
       const handleId = 'end'
 
       session.begin(
-        new Sessions.HandleSession(
+        new Sessions.ArrowSession(
           data,
           shapeId,
           handleId,

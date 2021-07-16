@@ -1,6 +1,20 @@
 /* -------------------------------------------------- */
+/*                      Utilities                     */
+/* -------------------------------------------------- */
+
+export type Difference<A, B, C = A> = A extends B ? never : C
+
+export type Intersection<A, B, C = A> = A extends B ? C : never
+
+export type FilteredKeys<T, U> = {
+  [P in keyof T]: T[P] extends U ? P : never
+}[keyof T]
+
+/* -------------------------------------------------- */
 /*                    Client State                    */
 /* -------------------------------------------------- */
+
+export type Theme = 'dark' | 'light'
 
 export interface Data {
   isReadOnly: boolean
@@ -32,6 +46,10 @@ export interface Data {
   currentPageId: string
   currentParentId: string
   currentCodeFileId: string
+  currentBinding?: {
+    id: string
+    point: number[]
+  }
   codeControls: Record<string, CodeControl>
   document: TLDocument
   pageStates: Record<string, PageState>
@@ -40,15 +58,6 @@ export interface Data {
 /* -------------------------------------------------- */
 /*                      Document                      */
 /* -------------------------------------------------- */
-
-export type CoopPresence = {
-  id: string
-  bufferedXs: number[]
-  bufferedYs: number[]
-  times: number[]
-  duration: number
-  pageId: string
-}
 
 export interface TLDocument {
   id: string
@@ -73,6 +82,51 @@ export interface PageState {
     zoom: number
   }
 }
+
+export interface CodeFile {
+  id: string
+  name: string
+  code: string
+}
+
+export interface CodeError {
+  message: string
+  line: number
+  column: number
+}
+
+export interface CodeResult {
+  shapes: Shape[]
+  controls: CodeControl[]
+  error: CodeError
+}
+
+export interface ShapeTreeNode {
+  shape: Shape
+  children: ShapeTreeNode[]
+  isEditing: boolean
+  isHovered: boolean
+  isSelected: boolean
+  isDarkMode: boolean
+  isCurrentParent: boolean
+}
+
+/* -------------------------------------------------- */
+/*                        Coop                        */
+/* -------------------------------------------------- */
+
+export type CoopPresence = {
+  id: string
+  bufferedXs: number[]
+  bufferedYs: number[]
+  times: number[]
+  duration: number
+  pageId: string
+}
+
+/* -------------------------------------------------- */
+/*                       Shapes                       */
+/* -------------------------------------------------- */
 
 /* ----------------- Start Copy Here ---------------- */
 
@@ -124,8 +178,6 @@ export enum FontSize {
   ExtraLarge = 'ExtraLarge',
 }
 
-export type Theme = 'dark' | 'light'
-
 export type ShapeStyles = {
   color: ColorStyle
   size: SizeStyle
@@ -143,8 +195,8 @@ export interface BaseShape {
   style: ShapeStyles
   rotation: number
   children?: string[]
-  bindings?: Record<string, ShapeBinding>
-  handles?: Record<string, ShapeHandle>
+  points?: number[][]
+  handles?: Record<string, ShapeHandle<ShapeBinding>>
   isLocked?: boolean
   isHidden?: boolean
   isEditing?: boolean
@@ -190,8 +242,12 @@ export interface DrawShape extends BaseShape {
 
 export interface ArrowShape extends BaseShape {
   type: ShapeType.Arrow
-  handles: Record<string, ShapeHandle>
   bend: number
+  handles: {
+    start: ShapeHandle<DirectionShapeBinding>
+    bend: ShapeHandle
+    end: ShapeHandle<DirectionShapeBinding>
+  }
   decorations?: {
     start: Decoration
     end: Decoration
@@ -211,89 +267,102 @@ export interface GroupShape extends BaseShape {
   size: number[]
 }
 
+export type Shape =
+  | DotShape
+  | EllipseShape
+  | LineShape
+  | RayShape
+  | PolylineShape
+  | RectangleShape
+  | DrawShape
+  | ArrowShape
+  | TextShape
+  | GroupShape
+
+export interface RectangleShape extends BaseShape {
+  type: ShapeType.Rectangle
+  size: number[]
+  radius: number
+}
+
+export interface DrawShape extends BaseShape {
+  type: ShapeType.Draw
+  points: number[][]
+}
+
+export type MappedByType<U extends string, T extends { type: U }> = {
+  [P in T['type']]: T extends any ? (P extends T['type'] ? T : never) : never
+}
+
+export type MutableShapes = MappedByType<ShapeType, Shape>
+
+export type ReadonlyMap<T> = { [P in keyof T]: Readonly<T[P]> }
+
+export type Shapes = ReadonlyMap<MutableShapes>
+
+export type ShapeByType<T extends keyof Shapes> = Shapes[T]
+
 export type ShapeProps<T extends Shape> = {
   [P in keyof T]?: P extends 'style' ? Partial<T[P]> : T[P]
 }
 
-export interface MutableShapes {
-  [ShapeType.Dot]: DotShape
-  [ShapeType.Ellipse]: EllipseShape
-  [ShapeType.Line]: LineShape
-  [ShapeType.Ray]: RayShape
-  [ShapeType.Polyline]: PolylineShape
-  [ShapeType.Draw]: DrawShape
-  [ShapeType.Rectangle]: RectangleShape
-  [ShapeType.Arrow]: ArrowShape
-  [ShapeType.Text]: TextShape
-  [ShapeType.Group]: GroupShape
-}
-
-export type MutableShape = MutableShapes[keyof MutableShapes]
-
-export type Shapes = { [K in keyof MutableShapes]: Readonly<MutableShapes[K]> }
-
-export type Shape = Readonly<MutableShape>
-
-export type ShapeByType<T extends ShapeType> = Shapes[T]
-
-export type IsParent<T> = 'children' extends RequiredKeys<T> ? T : never
-
-export type ParentShape = {
-  [K in keyof MutableShapes]: IsParent<MutableShapes[K]>
-}[keyof MutableShapes]
-
-export type ParentTypes = ParentShape['type'] & 'page'
+/* -------- Decorations, Handles and Bindings ------- */
 
 export enum Decoration {
   Arrow = 'Arrow',
 }
 
-export interface ShapeBinding {
+export enum BindingType {
+  Direction = 'Direction',
+  Pin = 'Pin',
+}
+
+export interface DirectionShapeBinding {
+  type: BindingType.Direction
+  shapeId?: string
+  opposite: string
+}
+
+export interface PointShapeBinding {
+  type: BindingType.Pin
+  shapeId?: string
+}
+
+export interface ShapeHandle<Binding extends ShapeBinding = any> {
   id: string
   index: number
   point: number[]
+  binding?: Binding
 }
 
-export interface ShapeHandle {
-  id: string
-  index: number
-  point: number[]
-}
+export type ShapeBinding = DirectionShapeBinding | PointShapeBinding
 
-export interface CodeFile {
-  id: string
-  name: string
-  code: string
-}
+/* ------------------ Types by Prop ----------------- */
 
-export interface CodeError {
-  message: string
-  line: number
-  column: number
-}
+export type RequiredKeys<T> = {
+  [K in keyof T]-?: Difference<Record<string, unknown>, Pick<T, K>, K>
+}[keyof T]
 
-export interface CodeResult {
-  shapes: Shape[]
-  controls: CodeControl[]
-  error: CodeError
-}
+export type MembersWithRequiredKey<T, U> = {
+  [P in keyof T]: Intersection<U, RequiredKeys<T[P]>, T[P]>
+}[keyof T]
 
-export interface ShapeTreeNode {
-  shape: Shape
-  children: ShapeTreeNode[]
-  isEditing: boolean
-  isHovered: boolean
-  isSelected: boolean
-  isDarkMode: boolean
-  isCurrentParent: boolean
-}
+export type ShapesWithProp<U> = MembersWithRequiredKey<MutableShapes, U>
+
+export type ShapesWithHandles = ShapesWithProp<'handles'>
+
+export type ShapesWithPoints = ShapesWithProp<'points'>
+
+export type ParentShape = ShapesWithProp<'children'>
+
+export type ParentTypes = ParentShape['type'] | 'page'
 
 /* -------------------------------------------------- */
 /*                      Editor UI                     */
 /* -------------------------------------------------- */
 
-export interface PointerInfo {
-  target: string
+export interface PointerInfo<T extends string = any> {
+  target: T
   pointerId: number
   origin: number[]
   point: number[]
@@ -363,18 +432,6 @@ export type ShapeSpecificProps<T extends Shape> = Pick<
 >
 
 export type ShapeIndicatorProps<T extends Shape> = ShapeSpecificProps<T>
-
-export type ShapeUtil<K extends Shape> = {
-  create(props: Partial<K>): K
-  getBounds(shape: K): Bounds
-  hitTest(shape: K, test: number[]): boolean
-  hitTestBounds(shape: K, bounds: Bounds): boolean
-  rotate(shape: K): K
-  translate(shape: K, delta: number[]): K
-  scale(shape: K, scale: number): K
-  stretch(shape: K, scaleX: number, scaleY: number): K
-  render(shape: K): JSX.Element
-}
 
 export enum MoveType {
   Backward,
@@ -490,6 +547,9 @@ export interface ShapeUtility<K extends Shape> {
   // Whether the shape's style can be filled.
   canStyleFill: boolean
 
+  // Whether the shape may be bound to.
+  canBind: boolean
+
   // Whether the shape may be edited in an editing mode
   canEdit: boolean
 
@@ -579,6 +639,14 @@ export interface ShapeUtility<K extends Shape> {
     children: Shape[]
   ): ShapeUtility<K>
 
+  // Given a point and a direction, return the shape's bound point.
+  getBindingPoint(
+    this: ShapeUtility<K>,
+    shape: Mutable<K>,
+    point: number[],
+    direction: number[]
+  ): number[] | undefined
+
   // Respond when a user moves one of the shape's bound elements.
   onBindingChange(
     this: ShapeUtility<K>,
@@ -652,13 +720,3 @@ export interface ShapeUtility<K extends Shape> {
   // Get whether the shape should render
   shouldRender(this: ShapeUtility<K>, shape: K, previous: K): boolean
 }
-
-/* -------------------------------------------------- */
-/*                      Utilities                     */
-/* -------------------------------------------------- */
-
-export type Difference<A, B> = A extends B ? never : A
-
-export type RequiredKeys<T> = {
-  [K in keyof T]-?: Record<string, unknown> extends Pick<T, K> ? never : K
-}[keyof T]

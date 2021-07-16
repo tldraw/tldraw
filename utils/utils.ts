@@ -2,7 +2,6 @@ import React from 'react'
 import { Bounds, Edge, Corner, BezierCurveSegment, DashStyle } from 'types'
 import vec from './vec'
 import _isMobile from 'ismobilejs'
-import { intersectPolygonBounds } from './intersections'
 
 /* -------------------------------------------------- */
 /*                    Math & Geometry                 */
@@ -1002,15 +1001,6 @@ export function boundsContainPolygon(a: Bounds, points: number[][]): boolean {
 }
 
 /**
- * Get whether a polygon collides a bounding box.
- * @param points
- * @param b
- */
-export function boundsCollidePolygon(a: Bounds, points: number[][]): boolean {
-  return intersectPolygonBounds(points, a).length > 0
-}
-
-/**
  * Get whether two bounds are identical.
  * @param a Bounds
  * @param b Bounds
@@ -1106,6 +1096,26 @@ export function rotateBounds(
     maxY,
     width: bounds.width,
     height: bounds.height,
+  }
+}
+
+/**
+ * Expand a bounding box by a delta.
+ *
+ * ### Example
+ *
+ *```ts
+ * expandBounds(myBounds, [100, 100])
+ *```
+ */
+export function expandBounds(bounds: Bounds, delta: number[]): Bounds {
+  return {
+    minX: bounds.minX - delta[0],
+    minY: bounds.minY - delta[1],
+    maxX: bounds.maxX + delta[0],
+    maxY: bounds.maxY + delta[1],
+    width: bounds.width + delta[0] * 2,
+    height: bounds.height + delta[1] * 2,
   }
 }
 

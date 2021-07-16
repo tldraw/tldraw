@@ -1,7 +1,7 @@
 import { getFromCache, uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { PolylineShape, ShapeType } from 'types'
-import { intersectPolylineBounds } from 'utils/intersections'
+import Intersect from 'utils/intersect'
 import {
   boundsContainPolygon,
   getBoundsFromPoints,
@@ -80,7 +80,7 @@ const polyline = registerShapeUtils<PolylineShape>({
 
     return (
       boundsContainPolygon(brushBounds, rotatedCorners) ||
-      intersectPolylineBounds(
+      Intersect.polyline.bounds(
         shape.points.map((point) => vec.add(point, shape.point)),
         brushBounds
       ).length > 0

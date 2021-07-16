@@ -25,7 +25,8 @@ async function inlineFileContents(path) {
       /\/\* ----------------- Start Copy Here ---------------- \*\/(.|\n)*$/g
     )[0]
     .replaceAll('/* ----------------- Start Copy Here ---------------- */', '')
-    .replaceAll('```', '\\`\\`\\`')
+    .replaceAll('`', '\\`')
+    .replaceAll('$', '\\$')
     .replaceAll('export default', '')
     .replaceAll('export ', '')
     .replaceAll('vec.', 'Vec.')
@@ -56,6 +57,8 @@ ${await inlineFileContents('/types.ts')}
 ${await inlineFileContents('/types.ts')}
 
 ${await inlineFileContents('/utils/vec.ts')}
+
+${await inlineFileContents('/utils/intersect.ts')}
 
 ${await inlineFileContents('/state/code/utils.ts')}
 

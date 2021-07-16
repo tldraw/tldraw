@@ -1,7 +1,7 @@
 import { getFromCache, uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { RayShape, ShapeType } from 'types'
-import { intersectCircleBounds } from 'utils/intersections'
+import Intersect from 'utils/intersect'
 import { ThinLine } from 'components/canvas/misc'
 import { translateBounds, boundsContained } from 'utils'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
@@ -72,7 +72,7 @@ const ray = registerShapeUtils<RayShape>({
     const shapeBounds = this.getBounds(shape)
     return (
       boundsContained(shapeBounds, brushBounds) ||
-      intersectCircleBounds(shape.point, 4, brushBounds).length > 0
+      Intersect.circle.bounds(shape.point, 4, brushBounds).length > 0
     )
   },
 

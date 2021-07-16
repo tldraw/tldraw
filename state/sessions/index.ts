@@ -8,8 +8,10 @@ import TransformSingleSession from './transform-single-session'
 import TranslateSession from './translate-session'
 import HandleSession from './handle-session'
 import EditSession from './edit-session'
+import ArrowSession from './arrow-session'
 
 export {
+  ArrowSession,
   BaseSession,
   BrushSession,
   DirectionSession,

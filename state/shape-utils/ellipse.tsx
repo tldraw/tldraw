@@ -1,7 +1,7 @@
 import vec from 'utils/vec'
 import { DashStyle, EllipseShape, ShapeType } from 'types'
 import { getShapeUtils } from './index'
-import { intersectEllipseBounds } from 'utils/intersections'
+import Intersect from 'utils/intersect'
 import {
   uniqueId,
   getSvgPathFromStroke,
@@ -157,12 +157,12 @@ const ellipse = registerShapeUtils<EllipseShape>({
 
     return (
       boundsContained(shapeBounds, brushBounds) ||
-      intersectEllipseBounds(
+      Intersect.ellipse.bounds(
         vec.add(shape.point, [shape.radiusX, shape.radiusY]),
         shape.radiusX,
         shape.radiusY,
-        brushBounds,
-        shape.rotation
+        shape.rotation,
+        brushBounds
       ).length > 0
     )
   },

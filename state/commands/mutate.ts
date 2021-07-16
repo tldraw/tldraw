@@ -3,6 +3,7 @@ import history from '../history'
 import { Data, Shape } from 'types'
 import { getShapeUtils } from 'state/shape-utils'
 import tld from 'utils/tld'
+import storage from 'state/storage'
 
 // Used when changing the properties of one or more shapes,
 // without changing selection or deleting any shapes.
@@ -30,6 +31,8 @@ export default function mutateShapesCommand(
           data,
           after.map((shape) => shape.id)
         )
+
+        storage.savePage(data)
       },
       undo(data) {
         const { shapes } = tld.getPage(data)
@@ -43,6 +46,8 @@ export default function mutateShapesCommand(
           data,
           before.map((shape) => shape.id)
         )
+
+        storage.savePage(data)
       },
     })
   )

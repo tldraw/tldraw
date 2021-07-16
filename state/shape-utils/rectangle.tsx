@@ -1,14 +1,23 @@
-import { uniqueId, getPerfectDashProps, getFromCache } from 'utils/utils'
+import {
+  uniqueId,
+  getPerfectDashProps,
+  getFromCache,
+  expandBounds,
+  pointInBounds,
+} from 'utils/utils'
 import vec from 'utils/vec'
 import { DashStyle, RectangleShape, ShapeType } from 'types'
 import { getSvgPathFromStroke, translateBounds, rng, shuffleArr } from 'utils'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import { registerShapeUtils } from './register'
+import Intersect from 'utils/intersect'
 
 const pathCache = new WeakMap<number[], string>([])
 
 const rectangle = registerShapeUtils<RectangleShape>({
+  canBind: true,
+
   boundsCache: new WeakMap([]),
 
   defaultProps: {
@@ -134,6 +143,32 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
   hitTest() {
     return true
+  },
+
+  getBindingPoint(shape, point, direction) {
+    const bounds = this.getBounds(shape)
+
+    const innerBounds = expandBounds(this.getBounds(shape), [-32, -32])
+    const expandedBounds = expandBounds(this.getBounds(shape), [32, 32])
+
+    if (pointInBounds(point, expandedBounds)) {
+      if (bounds.width < 64 || bounds.height < 64) {
+        return [0.5, 0.5]
+      }
+
+      const intersections = Intersect.ray.rectangle(
+        point,
+        direction,
+        vec.add(shape.point, [innerBounds.minX, innerBounds.minY]),
+        vec.add(shape.point, [innerBounds.maxX, innerBounds.maxY])
+      )
+
+      if (intersections.length === 0) return
+
+      return intersections.sort(
+        (a, b) => vec.dist(point, a.points[0]) - vec.dist(point, b.points[0])
+      )[0].points[0]
+    }
   },
 
   transform(shape, bounds, { initialShape, transformOrigin, scaleX, scaleY }) {

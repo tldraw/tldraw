@@ -22,10 +22,7 @@ import {
   ShapeHandle,
   ShapeType,
 } from 'types'
-import {
-  intersectArcBounds,
-  intersectLineSegmentBounds,
-} from 'utils/intersections'
+import Intersect from 'utils/intersect'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import React from 'react'
@@ -327,12 +324,12 @@ const arrow = registerShapeUtils<ArrowShape>({
     }
 
     if (vec.isEqual(vec.med(start.point, end.point), bend.point)) {
-      return intersectLineSegmentBounds(sp, ep, brushBounds).length > 0
+      return Intersect.lineSegment.bounds(sp, ep, brushBounds).length > 0
     } else {
       const [cx, cy, r] = getCtp(shape)
       const cp = vec.add(shape.point, [cx, cy])
 
-      return intersectArcBounds(sp, ep, cp, r, brushBounds).length > 0
+      return Intersect.arc.bounds(cp, r, sp, ep, brushBounds).length > 0
     }
   },
 

@@ -3,6 +3,7 @@ import history from '../history'
 import { Data, MoveType, Shape } from 'types'
 import tld from 'utils/tld'
 import { getShapeUtils } from 'state/shape-utils'
+import storage from 'state/storage'
 
 export default function moveCommand(data: Data, type: MoveType): void {
   const page = tld.getPage(data)
@@ -70,6 +71,8 @@ export default function moveCommand(data: Data, type: MoveType): void {
             break
           }
         }
+
+        storage.savePage(data)
       },
       undo(data) {
         const page = tld.getPage(data)
@@ -82,6 +85,8 @@ export default function moveCommand(data: Data, type: MoveType): void {
             initialIndices[id]
           )
         }
+
+        storage.savePage(data)
       },
     })
   )

@@ -8,6 +8,8 @@ import Arrow from './arrow'
 import Draw from './draw'
 import Text from './text'
 import Utils from './utils'
+import HitTest from 'utils/hit-test'
+import Intersect from 'utils/intersect'
 import Vec from 'utils/vec'
 import {
   NumberControl,
@@ -39,6 +41,8 @@ const baseScope = {
   Polyline,
   Rectangle,
   Vec,
+  Intersect,
+  HitTest,
   Utils,
   Arrow,
   Draw,

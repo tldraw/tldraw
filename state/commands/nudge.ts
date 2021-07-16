@@ -3,6 +3,7 @@ import history from '../history'
 import { Data } from 'types'
 import tld from 'utils/tld'
 import vec from 'utils/vec'
+import storage from 'state/storage'
 
 export default function nudgeCommand(data: Data, delta: number[]): void {
   const initialShapes = tld.getSelectedShapeSnapshot(data, () => null)
@@ -20,6 +21,8 @@ export default function nudgeCommand(data: Data, delta: number[]): void {
             utils.setProperty(shape, 'point', vec.add(shape.point, delta))
           }
         )
+
+        storage.savePage(data)
       },
       undo(data) {
         tld.mutateShapes(
@@ -29,6 +32,8 @@ export default function nudgeCommand(data: Data, delta: number[]): void {
             utils.setProperty(shape, 'point', vec.sub(shape.point, delta))
           }
         )
+
+        storage.savePage(data)
       },
     })
   )

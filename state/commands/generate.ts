@@ -3,6 +3,7 @@ import history from '../history'
 import { Data, Shape } from 'types'
 import { deepClone } from 'utils'
 import tld from 'utils/tld'
+import storage from 'state/storage'
 
 export default function generateCommand(
   data: Data,
@@ -23,12 +24,16 @@ export default function generateCommand(
         initialShapes.forEach((shape) => delete shapes[shape.id])
         generatedShapes.forEach((shape) => (shapes[shape.id] = shape))
         tld.setSelectedIds(data, [])
+
+        storage.savePage(data)
       },
       undo(data) {
         const { shapes } = tld.getPage(data)
         generatedShapes.forEach((shape) => delete shapes[shape.id])
         initialShapes.forEach((shape) => (shapes[shape.id] = shape))
         tld.setSelectedIds(data, [])
+
+        storage.savePage(data)
       },
     })
   )

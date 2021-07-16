@@ -4,6 +4,7 @@ import { Data, PointerInfo } from 'types'
 import { getShapeUtils } from 'state/shape-utils'
 import { deepClone } from 'utils'
 import tld from 'utils/tld'
+import storage from 'state/storage'
 
 export default function doublePointHandleCommand(
   data: Data,
@@ -21,13 +22,18 @@ export default function doublePointHandleCommand(
         const { shapes } = tld.getPage(data)
 
         const shape = shapes[id]
+
         getShapeUtils(shape).onDoublePointHandle(shape, payload.target, payload)
         tld.updateParents(data, [id])
+
+        storage.savePage(data)
       },
       undo(data) {
         const { shapes } = tld.getPage(data)
         shapes[id] = initialShape
         tld.updateParents(data, [id])
+
+        storage.savePage(data)
       },
     })
   )

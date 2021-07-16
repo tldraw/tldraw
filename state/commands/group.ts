@@ -5,6 +5,7 @@ import { deepClone, getCommonBounds, uniqueId } from 'utils'
 import tld from 'utils/tld'
 import { createShape, getShapeUtils } from 'state/shape-utils'
 import commands from '.'
+import storage from 'state/storage'
 
 export default function groupCommand(data: Data): void {
   const { currentPageId } = data
@@ -112,6 +113,8 @@ export default function groupCommand(data: Data): void {
         })
 
         tld.setSelectedIds(data, [newGroupShape.id])
+
+        storage.savePage(data)
       },
       undo(data) {
         const { shapes } = tld.getPage(data)
@@ -149,6 +152,8 @@ export default function groupCommand(data: Data): void {
 
         // Reselect the children of the group
         tld.setSelectedIds(data, initialShapeIds)
+
+        storage.savePage(data)
       },
     })
   )

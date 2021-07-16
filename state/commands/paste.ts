@@ -7,6 +7,7 @@ import { uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { getShapeUtils } from 'state/shape-utils'
 import state from 'state/state'
+import storage from 'state/storage'
 
 export default function pasteCommand(data: Data, initialShapes: Shape[]): void {
   const center = tld.screenToWorld(
@@ -56,6 +57,8 @@ export default function pasteCommand(data: Data, initialShapes: Shape[]): void {
         }
 
         tld.setSelectedIds(data, Object.values(newIdMap))
+
+        storage.savePage(data)
       },
       undo(data) {
         const { shapes } = tld.getPage(data)
@@ -63,6 +66,8 @@ export default function pasteCommand(data: Data, initialShapes: Shape[]): void {
         Object.values(newIdMap).forEach((id) => delete shapes[id])
 
         tld.setSelectedIds(data, oldSelectedIds)
+
+        storage.savePage(data)
       },
     })
   )

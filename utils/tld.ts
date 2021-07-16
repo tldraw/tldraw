@@ -13,6 +13,8 @@ import {
   ShapeUtility,
   ParentShape,
   ShapeTreeNode,
+  ShapeByType,
+  ShapesWithProp,
 } from 'types'
 import { AssertionError } from 'assert'
 import { lerp } from './utils'
@@ -355,6 +357,12 @@ export default class StateUtils {
     return (shape.childIndex + prevSibling.childIndex) / 2
   }
 
+  static getBindableShapes(data: Data, shape: Shape): Shape[] {
+    return this.getShapes(data).filter(
+      (otherShape) => otherShape !== shape && getShapeUtils(otherShape).canBind
+    )
+  }
+
   /**
    * Assert whether a shape can have child shapes.
    * @param shape
@@ -364,6 +372,40 @@ export default class StateUtils {
       throw new AssertionError({
         message: `That shape was not a parent (it was a ${shape.type}).`,
       })
+    }
+  }
+
+  /**
+   * Assert whether a shape can have child shapes.
+   * @param shape
+   */
+  static assertShapeType<T extends ShapeType>(
+    shape: Shape,
+    type: T
+  ): asserts shape is ShapeByType<T> {
+    if (shape.type !== type) {
+      throw new AssertionError({
+        message: `That shape was of that type (it was a ${shape.type}).`,
+      })
+    }
+  }
+
+  /**
+   * Assert that a shape has a certain property.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.assertShapeHasProperty(shape, 'handles')
+   *```
+   */
+
+  static assertShapeHasProperty<P extends keyof Shape>(
+    shape: Shape,
+    prop: P
+  ): asserts shape is ShapesWithProp<P> {
+    if (shape[prop] === undefined) {
+      throw new AssertionError()
     }
   }
 

@@ -35,7 +35,9 @@ export default class HandleSession extends BaseSession {
     altKey: boolean,
     metaKey: boolean
   ): void {
-    const shape = tld.getPage(data).shapes[this.initialShape.id]
+    const shape = tld.getShape(data, this.initialShape.id)
+
+    tld.assertShapeHasProperty(shape, 'handles')
 
     this.shiftKey = shiftKey
 

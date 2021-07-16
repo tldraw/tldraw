@@ -3,6 +3,7 @@ import history from '../history'
 import { Data, DrawShape } from 'types'
 import tld from 'utils/tld'
 import { deepClone } from 'utils'
+import storage from 'state/storage'
 
 export default function drawCommand(data: Data, id: string): void {
   const restoreShape = deepClone(tld.getShape(data, id)) as DrawShape
@@ -19,10 +20,14 @@ export default function drawCommand(data: Data, id: string): void {
         }
 
         tld.setSelectedIds(data, [])
+
+        storage.savePage(data)
       },
       undo(data) {
         tld.setSelectedIds(data, [])
         delete tld.getPage(data).shapes[id]
+
+        storage.savePage(data)
       },
     })
   )

@@ -5,6 +5,7 @@ import { deepClone } from 'utils'
 import tld from 'utils/tld'
 import { uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
+import storage from 'state/storage'
 
 export default function duplicateCommand(data: Data): void {
   const selectedShapes = tld.getSelectedShapes(data).map(deepClone)
@@ -35,6 +36,8 @@ export default function duplicateCommand(data: Data): void {
           data,
           duplicates.map((d) => d.id)
         )
+
+        storage.savePage(data)
       },
       undo(data) {
         const { shapes } = tld.getPage(data)
@@ -47,6 +50,8 @@ export default function duplicateCommand(data: Data): void {
           data,
           selectedShapes.map((d) => d.id)
         )
+
+        storage.savePage(data)
       },
     })
   )

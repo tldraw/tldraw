@@ -1,6 +1,6 @@
 import { getFromCache, uniqueId } from 'utils/utils'
 import { DotShape, ShapeType } from 'types'
-import { intersectCircleBounds } from 'utils/intersections'
+import Intersect from 'utils/intersect'
 import { boundsContained, translateBounds } from 'utils'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import { registerShapeUtils } from './register'
@@ -20,9 +20,9 @@ const dot = registerShapeUtils<DotShape>({
   },
 
   render(shape, { isDarkMode }) {
-    const styles = getShapeStyle(shape.style, isDarkMode)
+    const styles = getShapeStyle({ ...shape.style, isFilled: true }, isDarkMode)
 
-    return <use href="#dot" stroke={styles.stroke} fill={styles.stroke} />
+    return <use href="#dot" stroke={styles.stroke} fill={styles.fill} />
   },
 
   getBounds(shape) {
@@ -56,7 +56,7 @@ const dot = registerShapeUtils<DotShape>({
     const shapeBounds = this.getBounds(shape)
     return (
       boundsContained(shapeBounds, brushBounds) ||
-      intersectCircleBounds(shape.point, 4, brushBounds).length > 0
+      Intersect.circle.bounds(shape.point, 4, brushBounds).length > 0
     )
   },
 

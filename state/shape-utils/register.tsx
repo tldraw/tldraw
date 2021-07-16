@@ -5,9 +5,9 @@ import {
   getBoundsCenter,
   getBoundsFromPoints,
   getRotatedCorners,
-  boundsCollidePolygon,
   boundsContainPolygon,
 } from 'utils'
+import Intersect from 'utils/intersect'
 import { Shape, ShapeUtility } from 'types'
 
 function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
@@ -17,6 +17,7 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
     canChangeAspectRatio: true,
     canStyleFill: true,
     canEdit: false,
+    canBind: false,
     isShy: false,
     isParent: false,
     isForeignObject: false,
@@ -120,6 +121,10 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
       return getBoundsCenter(this.getBounds(shape))
     },
 
+    getBindingPoint() {
+      return undefined
+    },
+
     hitTest(shape, point) {
       return pointInBounds(point, this.getBounds(shape))
     },
@@ -132,7 +137,7 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
 
       return (
         boundsContainPolygon(brushBounds, rotatedCorners) ||
-        boundsCollidePolygon(brushBounds, rotatedCorners)
+        Intersect.bounds.polyline(brushBounds, rotatedCorners).length > 0
       )
     },
 

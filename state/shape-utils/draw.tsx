@@ -1,7 +1,7 @@
 import { getFromCache, uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { DashStyle, DrawShape, ShapeType } from 'types'
-import { intersectPolylineBounds } from 'utils/intersections'
+import Intersect from 'utils/intersect'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
 import {
   getBoundsCenter,
@@ -185,10 +185,12 @@ const draw = registerShapeUtils<DrawShape>({
     if (shape.rotation === 0) {
       return (
         boundsContain(brushBounds, this.getBounds(shape)) ||
-        intersectPolylineBounds(
-          shape.points,
-          translateBounds(brushBounds, vec.neg(shape.point))
-        ).length > 0
+        (Intersect.bounds.bounds(this.getBounds(shape), brushBounds).length >
+          0 &&
+          Intersect.polyline.bounds(
+            shape.points,
+            translateBounds(brushBounds, vec.neg(shape.point))
+          ).length > 0)
       )
     }
 
@@ -205,9 +207,9 @@ const draw = registerShapeUtils<DrawShape>({
 
     return (
       boundsContain(brushBounds, rBounds) ||
-      intersectPolylineBounds(
-        rotatedBounds,
-        translateBounds(brushBounds, vec.neg(shape.point))
+      Intersect.bounds.polyline(
+        translateBounds(brushBounds, vec.neg(shape.point)),
+        rotatedBounds
       ).length > 0
     )
   },
