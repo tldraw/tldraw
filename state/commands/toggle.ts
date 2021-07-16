@@ -13,7 +13,7 @@ import { PropsOfType } from 'types'
  */
 export default function toggleCommand(
   data: Data,
-  prop: PropsOfType<Shape>
+  prop: PropsOfType<Shape, boolean>
 ): void {
   const selectedShapes = tld.getSelectedShapes(data)
   const isAllToggled = selectedShapes.every((shape) => shape[prop])

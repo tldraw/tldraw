@@ -525,8 +525,8 @@ export type CodeControl =
   | VectorCodeControl
   | TextCodeControl
 
-export type PropsOfType<T extends Record<string, unknown>> = {
-  [K in keyof T]: T[K] extends boolean ? K : never
+export type PropsOfType<T extends Shape, U> = {
+  [K in keyof T]: T[K] extends any ? (T[K] extends U ? K : never) : never
 }[keyof T]
 
 export type Mutable<T extends Shape> = { -readonly [K in keyof T]: T[K] }
