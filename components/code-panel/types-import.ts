@@ -409,8 +409,8 @@ type CodeControl =
   | VectorCodeControl
   | TextCodeControl
 
-type PropsOfType<T extends Record<string, unknown>> = {
-  [K in keyof T]: T[K] extends boolean ? K : never
+type PropsOfType<T extends Shape, U> = {
+  [K in keyof T]: T[K] extends any ? (T[K] extends U ? K : never) : never
 }[keyof T]
 
 type Mutable<T extends Shape> = { -readonly [K in keyof T]: T[K] }
@@ -1003,8 +1003,8 @@ type CodeControl =
   | VectorCodeControl
   | TextCodeControl
 
-type PropsOfType<T extends Record<string, unknown>> = {
-  [K in keyof T]: T[K] extends boolean ? K : never
+type PropsOfType<T extends Shape, U> = {
+  [K in keyof T]: T[K] extends any ? (T[K] extends U ? K : never) : never
 }[keyof T]
 
 type Mutable<T extends Shape> = { -readonly [K in keyof T]: T[K] }
@@ -2029,23 +2029,24 @@ class Intersection {
       origin: number[],
       direction: number[]
     ): Intersection[] {
-      return getRectangleSides(point, size).reduce<Intersection[]>(
-        (acc, [message, [a1, a2]]) => {
-          const intersection = Intersect.ray.lineSegment(
-            origin,
-            direction,
-            a1,
-            a2
-          )
+      const sideIntersections = getRectangleSides(point, size).reduce<
+        Intersection[]
+      >((acc, [message, [a1, a2]]) => {
+        const intersection = Intersect.ray.lineSegment(
+          origin,
+          direction,
+          a1,
+          a2
+        )
 
-          if (intersection) {
-            acc.push({ ...intersection, message })
-          }
+        if (intersection) {
+          acc.push(new Intersection(message, ...intersection.points))
+        }
 
-          return acc
-        },
-        []
-      )
+        return acc
+      }, [])
+
+      return sideIntersections.filter((int) => int.didIntersect)
     },
 
     // Intersect a rectangle with a line segment.
@@ -2055,18 +2056,19 @@ class Intersection {
       a1: number[],
       a2: number[]
     ): Intersection[] {
-      return getRectangleSides(point, size).reduce<Intersection[]>(
-        (acc, [message, [b1, b2]]) => {
-          const intersection = Intersect.lineSegment.lineSegment(a1, a2, b1, b2)
+      const sideIntersections = getRectangleSides(point, size).reduce<
+        Intersection[]
+      >((acc, [message, [b1, b2]]) => {
+        const intersection = Intersect.lineSegment.lineSegment(a1, a2, b1, b2)
 
-          if (intersection) {
-            acc.push({ ...intersection, message })
-          }
+        if (intersection) {
+          acc.push(new Intersection(message, ...intersection.points))
+        }
 
-          return acc
-        },
-        []
-      )
+        return acc
+      }, [])
+
+      return sideIntersections.filter((int) => int.didIntersect)
     },
 
     // Intersect a rectangle with a rectangle.
@@ -2076,28 +2078,27 @@ class Intersection {
       point2: number[],
       size2: number[]
     ): Intersection[] {
-      return getRectangleSides(point1, size1).reduce<Intersection[]>(
-        (acc, [message, [a1, a2]]) => {
-          const intersections = Intersect.rectangle.lineSegment(
-            point2,
-            size2,
-            a1,
-            a2
+      const sideIntersections = getRectangleSides(point1, size1).reduce<
+        Intersection[]
+      >((acc, [message, [a1, a2]]) => {
+        const intersections = Intersect.rectangle.lineSegment(
+          point2,
+          size2,
+          a1,
+          a2
+        )
+
+        acc.push(
+          ...intersections.map(
+            (int) =>
+              new Intersection(\`\${message} \${int.message}\`, ...int.points)
           )
+        )
 
-          if (intersections) {
-            acc.push(
-              ...intersections.map((int) => ({
-                ...int,
-                message: \`\${message} \${int.message}\`,
-              }))
-            )
-          }
+        return acc
+      }, [])
 
-          return acc
-        },
-        []
-      )
+      return sideIntersections.filter((int) => int.didIntersect)
     },
 
     // Intersect a rectangle with an arc.
@@ -2109,25 +2110,26 @@ class Intersection {
       start: number[],
       end: number[]
     ): Intersection[] {
-      return getRectangleSides(point, size).reduce<Intersection[]>(
-        (acc, [message, [a1, a2]]) => {
-          const intersection = Intersect.arc.lineSegment(
-            center,
-            radius,
-            start,
-            end,
-            a1,
-            a2
-          )
+      const sideIntersections = getRectangleSides(point, size).reduce<
+        Intersection[]
+      >((acc, [message, [a1, a2]]) => {
+        const intersection = Intersect.arc.lineSegment(
+          center,
+          radius,
+          start,
+          end,
+          a1,
+          a2
+        )
 
-          if (intersection) {
-            acc.push({ ...intersection, message })
-          }
+        if (intersection) {
+          acc.push({ ...intersection, message })
+        }
 
-          return acc
-        },
-        []
-      )
+        return acc
+      }, [])
+
+      return sideIntersections.filter((int) => int.didIntersect)
     },
 
     // Intersect a rectangle with a circle.
@@ -2137,18 +2139,19 @@ class Intersection {
       c: number[],
       r: number
     ): Intersection[] {
-      return getRectangleSides(point, size).reduce<Intersection[]>(
-        (acc, [message, [a1, a2]]) => {
-          const intersection = Intersect.lineSegment.circle(a1, a2, c, r)
+      const sideIntersections = getRectangleSides(point, size).reduce<
+        Intersection[]
+      >((acc, [message, [a1, a2]]) => {
+        const intersection = Intersect.lineSegment.circle(a1, a2, c, r)
 
-          if (intersection) {
-            acc.push({ ...intersection, message })
-          }
+        if (intersection) {
+          acc.push({ ...intersection, message })
+        }
 
-          return acc
-        },
-        []
-      )
+        return acc
+      }, [])
+
+      return sideIntersections.filter((int) => int.didIntersect)
     },
 
     // Intersect a rectangle with an ellipse.
@@ -2160,25 +2163,26 @@ class Intersection {
       ry: number,
       rotation = 0
     ): Intersection[] {
-      return getRectangleSides(point, size).reduce<Intersection[]>(
-        (acc, [message, [a1, a2]]) => {
-          const intersection = Intersect.lineSegment.ellipse(
-            a1,
-            a2,
-            c,
-            rx,
-            ry,
-            rotation
-          )
+      const sideIntersections = getRectangleSides(point, size).reduce<
+        Intersection[]
+      >((acc, [message, [a1, a2]]) => {
+        const intersection = Intersect.lineSegment.ellipse(
+          a1,
+          a2,
+          c,
+          rx,
+          ry,
+          rotation
+        )
 
-          if (intersection) {
-            acc.push({ ...intersection, message })
-          }
+        if (intersection) {
+          acc.push({ ...intersection, message })
+        }
 
-          return acc
-        },
-        []
-      )
+        return acc
+      }, [])
+
+      return sideIntersections.filter((int) => int.didIntersect)
     },
 
     // Intersect a rectangle with a bounding box.
@@ -2198,23 +2202,21 @@ class Intersection {
       size: number[],
       points: number[][]
     ): Intersection[] {
-      return getRectangleSides(point, size).reduce<Intersection[]>(
-        (acc, [message, [a1, a2]]) => {
-          const intersections = Intersect.lineSegment.polyline(a1, a2, points)
+      const sideIntersections = getRectangleSides(point, size).reduce<
+        Intersection[]
+      >((acc, [message, [a1, a2]]) => {
+        const intersections = Intersect.lineSegment.polyline(a1, a2, points)
 
-          if (intersections.length > 0) {
-            acc.push(
-              new Intersection(
-                message,
-                ...intersections.flatMap((i) => i.points)
-              )
-            )
-          }
+        if (intersections.length > 0) {
+          acc.push(
+            new Intersection(message, ...intersections.flatMap((i) => i.points))
+          )
+        }
 
-          return acc
-        },
-        []
-      )
+        return acc
+      }, [])
+
+      return sideIntersections.filter((int) => int.didIntersect)
     },
   }
 
