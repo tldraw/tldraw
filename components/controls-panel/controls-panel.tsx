@@ -9,7 +9,7 @@ import Control from './control'
 import { deepCompareArrays } from 'utils'
 
 function handleClose() {
-  state.send('CLOSED_CONTROLS')
+  state.send('CLOSED_CODE_CONTROLS')
 }
 
 const stopKeyboardPropagation = (e: KeyboardEvent | React.KeyboardEvent) =>

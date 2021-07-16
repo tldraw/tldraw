@@ -401,6 +401,10 @@ class Storage {
     )
   }
 
+  clearLocalStorage = () => {
+    localStorage.clear()
+  }
+
   /* ------------------- File System ------------------ */
 
   reset = () => {

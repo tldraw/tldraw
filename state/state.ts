@@ -158,6 +158,13 @@ const state = createState({
       unless: 'isInSession',
       do: ['loadDocumentFromJson', 'resetHistory'],
     },
+    RESET_DOCUMENT_STATE: [
+      'clearLocalStorage',
+      'resetHistory',
+      'resetDocumentState',
+      'saveAppState',
+      'saveDocumentState',
+    ],
   },
   initial: 'loading',
   states: {
@@ -189,12 +196,9 @@ const state = createState({
           do: ['saveDocumentState', 'resetDocumentState'],
           to: 'loading',
         },
+        CLOSED_CODE_CONTROLS: 'clearCodeControls',
         RESIZED_WINDOW: 'resetPageState',
-        RESET_DOCUMENT_STATE: [
-          'resetHistory',
-          'resetDocumentState',
-          { to: 'selecting' },
-        ],
+        RESET_DOCUMENT_STATE: { to: 'selecting' },
         TOGGLED_READ_ONLY: 'toggleReadOnly',
         LOADED_FONTS: 'resetShapes',
         USED_PEN_DEVICE: 'enablePenLock',
@@ -1351,6 +1355,9 @@ const state = createState({
     resetStorage() {
       storage.reset()
     },
+    clearLocalStorage() {
+      storage.clearLocalStorage()
+    },
     resetDocumentState(data, payload: { roomId?: string }) {
       // Save the current document and app state.
       storage.savePage(data)
@@ -2102,8 +2109,11 @@ const state = createState({
     },
     setCodeControls(data, payload: { controls: CodeControl[] }) {
       data.codeControls = Object.fromEntries(
-        payload.controls.map((control) => [control.id, control])
+        payload.controls.map((control) => [control.id, deepClone(control)])
       )
+    },
+    clearCodeControls(data) {
+      data.codeControls = {}
     },
     increaseCodeFontSize(data) {
       data.settings.fontSize++

@@ -2351,75 +2351,63 @@ class Intersection {
       c1: number[],
       rx1: number,
       ry1: number,
-      rotation1: number,
       c2: number[],
       rx2: number,
-      ry2: number,
-      rotation2: number
+      ry2: number
     ): Intersection {
-      // If both ellipses are circles, intersect as circles
-      if (rx1 === ry1 && rx2 === ry2) {
-        return Intersect.circle.circle(c1, rx1, c2, rx2)
-      }
-
-      if (
-        // Congruent ellipses including rotation
-        ((rotation1 === rotation2 ||
-          Math.abs(rotation1 - rotation2) === Math.PI) &&
-          rx1 === rx2 &&
-          ry1 === ry2) ||
-        // Congruent ellipses including rotation but one is 90 degrees rotated and the radius sizes are swapped
-        ((Math.abs(rotation1 - rotation2) === Math.PI / 2 ||
-          Math.abs(rotation1 - rotation2) === (Math.PI * 3) / 2) &&
-          rx1 === ry2 &&
-          ry1 === rx2)
-      ) {
-        // Special case: There are at max two intersection points: We can construct a line that runs through these points
-        const line = getEELine(c1, rx1, ry1, rotation1, c2)
-        return Intersect.lineSegment.ellipse(
-          line[0],
-          line[1],
-          c1,
-          rx1,
-          ry1,
-          rotation1
-        )
-      } else {
-        // General solution.
-        const mPI1 = rotation1 % Math.PI
-        const mPI2 = rotation2 % Math.PI
-        let corr = 0
-
-        if (mPI1 === 0 || mPI2 === 0) {
-          corr = 0.05
-        }
-
-        let e1: number[]
-        let e2: number[]
-
-        if (corr !== 0) {
-          e1 = getEEQuadradic(c1, rx1, ry1, rotation1 + corr)
-          e2 = getEEQuadradic(
-            Vec.rotWith(c2, c2, corr),
-            rx1,
-            ry1,
-            rotation2 + corr
-          )
-        } else {
-          e1 = getEEQuadradic(c1, rx1, ry1, rotation1)
-          e2 = getEEQuadradic(c2, rx2, ry2, rotation2)
-        }
-
-        const q = getEEQuartics(e1, e2)
-        const y = getYFromQuartics(q)
-        const v = calculatePointsFromQuartics(y, e1, e2)
-
-        if (corr) {
-          for (let i = 0; i < v.length; i++) {
-            v[i] = Vec.rotWith(v[i], c1, -corr)
+      const a = [
+        ry1 * ry1,
+        0,
+        rx1 * rx1,
+        -2 * ry1 * ry1 * c1[0],
+        -2 * rx1 * rx1 * c1[1],
+        ry1 * ry1 * c1[0] * c1[0] +
+          rx1 * rx1 * c1[1] * c1[1] -
+          rx1 * rx1 * ry1 * ry1,
+      ]
+      const b = [
+        ry2 * ry2,
+        0,
+        rx2 * rx2,
+        -2 * ry2 * ry2 * c2[0],
+        -2 * rx2 * rx2 * c2[1],
+        ry2 * ry2 * c2[0] * c2[0] +
+          rx2 * rx2 * c2[1] * c2[1] -
+          rx2 * rx2 * ry2 * ry2,
+      ]
+      const yPoly = bezout(a, b)
+      const yRoots = getPolynomialRoots(yPoly)
+      const epsilon = 1e-3
+      const norm0 = (a[0] * a[0] + 2 * a[1] * a[1] + a[2] * a[2]) * epsilon
+      const norm1 = (b[0] * b[0] + 2 * b[1] * b[1] + b[2] * b[2]) * epsilon
+      const result: number[][] = []
+      for (let y = 0; y < yRoots.length; y++) {
+        const xRoots = getPolynomialRoots([
+          a[0],
+          a[3] + yRoots[y] * a[1],
+          a[5] + yRoots[y] * (a[4] + yRoots[y] * a[2]),
+        ])
+        for (let x = 0; x < xRoots.length; x++) {
+          let test =
+            (a[0] * xRoots[x] + a[1] * yRoots[y] + a[3]) * xRoots[x] +
+            (a[2] * yRoots[y] + a[4]) * yRoots[y] +
+            a[5]
+          if (Math.abs(test) < norm0) {
+            test =
+              (b[0] * xRoots[x] + b[1] * yRoots[y] + b[3]) * xRoots[x] +
+              (b[2] * yRoots[y] + b[4]) * yRoots[y] +
+              b[5]
+            if (Math.abs(test) < norm1) {
+              result.push([xRoots[x], yRoots[y]])
+            }
           }
         }
       }
+      if (result.length > 0) {
+        return new Intersection('no intersection')
+      }
+
+      return new Intersection('intersection', ...result)
     },
 
     circle(
@@ -2609,233 +2597,424 @@ function getRectangleSides(
   ]
 }
 
-/* -------------- Rotated Ellipses Math ------------- */
+// /* -------------- Rotated Ellipses Math ------------- */
 
-// Calculates the line that runs through the intersection points of two congruent ellipses with the same rotation.
-function getEELine(
-  o1: number[],
-  rx: number,
-  ry: number,
-  rotation: number,
-  o2: number[]
-): number[][] {
-  const A = Math.cos(rotation)
-  const B = Math.sin(rotation)
-  const b = rx * rx
-  const d = ry * ry
-  const a = o1[0]
-  const c = o1[1]
-  const o = o2[0]
-  const p = o2[1]
+// // Calculates the line that runs through the intersection points of two congruent ellipses with the same rotation.
+// function getEELine(
+//   o1: number[],
+//   rx: number,
+//   ry: number,
+//   rotation: number,
+//   o2: number[]
+// ): number[][] {
+//   const A = Math.cos(rotation)
+//   const B = Math.sin(rotation)
+//   const b = rx * rx
+//   const d = ry * ry
+//   const a = o1[0]
+//   const c = o1[1]
+//   const o = o2[0]
+//   const p = o2[1]
 
-  const AA = (A * A) / b + (B * B) / d
-  const BB = (-2 * A * B) / b + (2 * A * B) / d
-  const CC = (B * B) / b + (A * A) / d
+//   const AA = (A * A) / b + (B * B) / d
+//   const BB = (-2 * A * B) / b + (2 * A * B) / d
+//   const CC = (B * B) / b + (A * A) / d
 
-  const U = -2 * AA * a + BB * c
-  const V = AA * a * a + BB * a * c + CC * c * c
-  const W = BB * a + 2 * CC * c
+//   const U = -2 * AA * a + BB * c
+//   const V = AA * a * a + BB * a * c + CC * c * c
+//   const W = BB * a + 2 * CC * c
 
-  const X = -2 * AA * o + BB * p
-  const Y = BB * o + 2 * CC * p
-  const Z = AA * o * o + BB * o * p + CC * p * p
+//   const X = -2 * AA * o + BB * p
+//   const Y = BB * o + 2 * CC * p
+//   const Z = AA * o * o + BB * o * p + CC * p * p
 
-  const a1 = [U - X, Y - W]
-  const a2 = Vec.mul(a1, Z - V)
+//   const a1 = [U - X, Y - W]
+//   const a2 = Vec.mul(a1, Z - V)
 
-  return [a1, a2]
-}
+//   return [a1, a2]
+// }
 
-// Create a general quadratic function for the ellipse a x^2 + b x y + c y^2 + d x + e y + c = 0
-function getEEQuadradic(
-  center: number[],
-  rx: number,
-  ry: number,
-  rotation: number
-): number[] {
-  const a = center[0]
-  const b = rx * rx
-  const c = center[1]
-  const d = ry * ry
-  const A = Math.cos(-rotation)
-  const B = Math.sin(-rotation)
+// // Create a general quadratic function for the ellipse a x^2 + b x y + c y^2 + d x + e y + c = 0
+// function getEEQuadradic(
+//   center: number[],
+//   rx: number,
+//   ry: number,
+//   rotation: number
+// ): number[] {
+//   const a = center[0]
+//   const b = rx * rx
+//   const c = center[1]
+//   const d = ry * ry
+//   const A = Math.cos(-rotation)
+//   const B = Math.sin(-rotation)
+
+//   return [
+//     (A * A) / b + (B * B) / d, // x^2
+//     (2 * A * B) / d - (2 * A * B) / b, // x * y
+//     (A * A) / d + (B * B) / b, // y^2
+
+//     (2 * A * B * c - 2 * a * A * A) / b + (-2 * a * B * B - 2 * A * B * c) / d, // x
+
+//     (2 * a * A * B - 2 * B * B * c) / b + (-2 * a * A * B - 2 * A * A * c) / d, // y
+
+//     (a * a * A * A - 2 * a * A * B * c + B * B * c * c) / b +
+//       (a * a * B * B + 2 * a * A * B * c + A * A * c * c) / d -
+//       1, // Const
+//   ]
+// }
+
+// function getEEQuartics(q1: number[], q2: number[]) {
+//   const [a1, b1, c1, d1, e1, f1] = q1
+
+//   const [a2, b2, c2, d2, e2, f2] = q2
+
+//   return [
+//     f1 * a1 * d2 * d2 +
+//       a1 * a1 * f2 * f2 -
+//       d1 * a1 * d2 * f2 +
+//       a2 * a2 * f1 * f1 -
+//       2 * a1 * f2 * a2 * f1 -
+//       d1 * d2 * a2 * f1 +
+//       a2 * d1 * d1 * f2,
+//     e2 * d1 * d1 * a2 -
+//       f2 * d2 * a1 * b1 -
+//       2 * a1 * f2 * a2 * e1 -
+//       f1 * a2 * b2 * d1 +
+//       2 * d2 * b2 * a1 * f1 +
+//       2 * e2 * f2 * a1 * a1 +
+//       d2 * d2 * a1 * e1 -
+//       e2 * d2 * a1 * d1 -
+//       2 * a1 * e2 * a2 * f1 -
+//       f1 * a2 * d2 * b1 +
+//       2 * f1 * e1 * a2 * a2 -
+//       f2 * b2 * a1 * d1 -
+//       e1 * a2 * d2 * d1 +
+//       2 * f2 * b1 * a2 * d1,
+//     e2 * e2 * a1 * a1 +
+//       2 * c2 * f2 * a1 * a1 -
+//       e1 * a2 * d2 * b1 +
+//       f2 * a2 * b1 * b1 -
+//       e1 * a2 * b2 * d1 -
+//       f2 * b2 * a1 * b1 -
+//       2 * a1 * e2 * a2 * e1 +
+//       2 * d2 * b2 * a1 * e1 -
+//       c2 * d2 * a1 * d1 -
+//       2 * a1 * c2 * a2 * f1 +
+//       b2 * b2 * a1 * f1 +
+//       2 * e2 * b1 * a2 * d1 +
+//       e1 * e1 * a2 * a2 -
+//       c1 * a2 * d2 * d1 -
+//       e2 * b2 * a1 * d1 +
+//       2 * f1 * c1 * a2 * a2 -
+//       f1 * a2 * b2 * b1 +
+//       c2 * d1 * d1 * a2 +
+//       d2 * d2 * a1 * c1 -
+//       e2 * d2 * a1 * b1 -
+//       2 * a1 * f2 * a2 * c1,
+//     -2 * a1 * a2 * c1 * e2 +
+//       e2 * a2 * b1 * b1 +
+//       2 * c2 * b1 * a2 * d1 -
+//       c1 * a2 * b2 * d1 +
+//       b2 * b2 * a1 * e1 -
+//       e2 * b2 * a1 * b1 -
+//       2 * a1 * c2 * a2 * e1 -
+//       e1 * a2 * b2 * b1 -
+//       c2 * b2 * a1 * d1 +
+//       2 * e2 * c2 * a1 * a1 +
+//       2 * e1 * c1 * a2 * a2 -
+//       c1 * a2 * d2 * b1 +
+//       2 * d2 * b2 * a1 * c1 -
+//       c2 * d2 * a1 * b1,
+//     a1 * a1 * c2 * c2 -
+//       2 * a1 * c2 * a2 * c1 +
+//       a2 * a2 * c1 * c1 -
+//       b1 * a1 * b2 * c2 -
+//       b1 * b2 * a2 * c1 +
+//       b1 * b1 * a2 * c2 +
+//       c1 * a1 * b2 * b2,
+//   ]
+// }
+
+// function getYFromQuartics(quartics: number[]) {
+//   const [e, d, c, b, a] = quartics
+
+//   const d0 = c * c - 3 * b * d + 12 * a * e
+//   const d1 =
+//     2 * c * c * c -
+//     9 * b * c * d +
+//     27 * b * b * e +
+//     27 * a * d * d -
+//     72 * a * c * e
+
+//   const p = (8 * a * c - 3 * b * b) / (8 * a * a)
+//   const q = (b * b * b - 4 * a * b * c + 8 * a * a * d) / (8 * a * a * a)
+
+//   let Q: number, S: number
+
+//   const phi = Math.acos(d1 / (2 * Math.sqrt(d0 * d0 * d0)))
+
+//   if (Number.isNaN(phi) && d1 === 0) {
+//     Q = d1 + Math.sqrt(d1 * d1 - 4 * d0 * d0 * d0)
+//     Q = Q / 2
+//     Q = Math.pow(Q, 1 / 3)
+//     S = 0.5 * Math.sqrt((-2 / 3) * p + (1 / (3 * a)) * (Q + d0 / Q))
+//   } else {
+//     S =
+//       0.5 *
+//       Math.sqrt(
+//         (-2 / 3) * p + (2 / (3 * a)) * Math.sqrt(d0) * Math.cos(phi / 3)
+//       )
+//   }
+
+//   const y = []
+
+//   if (S !== 0) {
+//     let R = -4 * S * S - 2 * p + q / S
+//     if (R === 0) {
+//       R = 0
+//     }
+
+//     if (R > 0) {
+//       R = 0.5 * Math.sqrt(R)
+//       y.push(-b / (4 * a) - S + R)
+//       y.push(-b / (4 * a) - S - R)
+//     } else if (R === 0) {
+//       y.push(-b / (4 * a) - S)
+//     }
+
+//     R = -4 * S * S - 2 * p - q / S
+//     if (R === 0) {
+//       R = 0
+//     }
+//     if (R > 0) {
+//       R = 0.5 * Math.sqrt(R)
+//       y.push(-b / (4 * a) + S + R)
+//       y.push(-b / (4 * a) + S - R)
+//     } else if (R === 0) {
+//       y.push(-b / (4 * a) + S)
+//     }
+//   }
+
+//   return y
+// }
+
+// function calculatePointsFromQuartics(
+//   y: number[],
+//   eq1: number[],
+//   eq2: number[]
+// ): number[][] {
+//   const [a1, b1, c1, d1, e1, f1] = eq1
+//   const [a2, b2, c2, d2, e2, f2] = eq2
+
+//   const r: number[][] = []
+
+//   for (let i = 0; i < y.length; i++) {
+//     const x =
+//       -(
+//         a1 * f2 +
+//         a1 * c2 * y[i] * y[i] -
+//         a2 * c1 * y[i] * y[i] +
+//         a1 * e2 * y[i] -
+//         a2 * e1 * y[i] -
+//         a2 * f1
+//       ) /
+//       (a1 * b2 * y[i] + a1 * d2 - a2 * b1 * y[i] - a2 * d1)
+
+//     r.push([x, y[i]])
+//   }
+
+//   return r
+// }
+
+// ?
+function bezout(e1: number[], e2: number[]) {
+  const AB = e1[0] * e2[1] - e2[0] * e1[1]
+  const AC = e1[0] * e2[2] - e2[0] * e1[2]
+  const AD = e1[0] * e2[3] - e2[0] * e1[3]
+  const AE = e1[0] * e2[4] - e2[0] * e1[4]
+  const AF = e1[0] * e2[5] - e2[0] * e1[5]
+  const BC = e1[1] * e2[2] - e2[1] * e1[2]
+  const BE = e1[1] * e2[4] - e2[1] * e1[4]
+  const BF = e1[1] * e2[5] - e2[1] * e1[5]
+  const CD = e1[2] * e2[3] - e2[2] * e1[3]
+  const DE = e1[3] * e2[4] - e2[3] * e1[4]
+  const DF = e1[3] * e2[5] - e2[3] * e1[5]
+  const BFpDE = BF + DE
+  const BEmCD = BE - CD
 
   return [
-    (A * A) / b + (B * B) / d, // x^2
-    (2 * A * B) / d - (2 * A * B) / b, // x * y
-    (A * A) / d + (B * B) / b, // y^2
-
-    (2 * A * B * c - 2 * a * A * A) / b + (-2 * a * B * B - 2 * A * B * c) / d, // x
-
-    (2 * a * A * B - 2 * B * B * c) / b + (-2 * a * A * B - 2 * A * A * c) / d, // y
-
-    (a * a * A * A - 2 * a * A * B * c + B * B * c * c) / b +
-      (a * a * B * B + 2 * a * A * B * c + A * A * c * c) / d -
-      1, // Const
+    AB * BC - AC * AC,
+    AB * BEmCD + AD * BC - 2 * AC * AE,
+    AB * BFpDE + AD * BEmCD - AE * AE - 2 * AC * AF,
+    AB * DF + AD * BFpDE - 2 * AE * AF,
+    AD * DF - AF * AF,
   ]
 }
 
-function getEEQuartics(q1: number[], q2: number[]) {
-  const [a1, b1, c1, d1, e1, f1] = q1
-
-  const [a2, b2, c2, d2, e2, f2] = q2
-
-  return [
-    f1 * a1 * d2 * d2 +
-      a1 * a1 * f2 * f2 -
-      d1 * a1 * d2 * f2 +
-      a2 * a2 * f1 * f1 -
-      2 * a1 * f2 * a2 * f1 -
-      d1 * d2 * a2 * f1 +
-      a2 * d1 * d1 * f2,
-    e2 * d1 * d1 * a2 -
-      f2 * d2 * a1 * b1 -
-      2 * a1 * f2 * a2 * e1 -
-      f1 * a2 * b2 * d1 +
-      2 * d2 * b2 * a1 * f1 +
-      2 * e2 * f2 * a1 * a1 +
-      d2 * d2 * a1 * e1 -
-      e2 * d2 * a1 * d1 -
-      2 * a1 * e2 * a2 * f1 -
-      f1 * a2 * d2 * b1 +
-      2 * f1 * e1 * a2 * a2 -
-      f2 * b2 * a1 * d1 -
-      e1 * a2 * d2 * d1 +
-      2 * f2 * b1 * a2 * d1,
-    e2 * e2 * a1 * a1 +
-      2 * c2 * f2 * a1 * a1 -
-      e1 * a2 * d2 * b1 +
-      f2 * a2 * b1 * b1 -
-      e1 * a2 * b2 * d1 -
-      f2 * b2 * a1 * b1 -
-      2 * a1 * e2 * a2 * e1 +
-      2 * d2 * b2 * a1 * e1 -
-      c2 * d2 * a1 * d1 -
-      2 * a1 * c2 * a2 * f1 +
-      b2 * b2 * a1 * f1 +
-      2 * e2 * b1 * a2 * d1 +
-      e1 * e1 * a2 * a2 -
-      c1 * a2 * d2 * d1 -
-      e2 * b2 * a1 * d1 +
-      2 * f1 * c1 * a2 * a2 -
-      f1 * a2 * b2 * b1 +
-      c2 * d1 * d1 * a2 +
-      d2 * d2 * a1 * c1 -
-      e2 * d2 * a1 * b1 -
-      2 * a1 * f2 * a2 * c1,
-    -2 * a1 * a2 * c1 * e2 +
-      e2 * a2 * b1 * b1 +
-      2 * c2 * b1 * a2 * d1 -
-      c1 * a2 * b2 * d1 +
-      b2 * b2 * a1 * e1 -
-      e2 * b2 * a1 * b1 -
-      2 * a1 * c2 * a2 * e1 -
-      e1 * a2 * b2 * b1 -
-      c2 * b2 * a1 * d1 +
-      2 * e2 * c2 * a1 * a1 +
-      2 * e1 * c1 * a2 * a2 -
-      c1 * a2 * d2 * b1 +
-      2 * d2 * b2 * a1 * c1 -
-      c2 * d2 * a1 * b1,
-    a1 * a1 * c2 * c2 -
-      2 * a1 * c2 * a2 * c1 +
-      a2 * a2 * c1 * c1 -
-      b1 * a1 * b2 * c2 -
-      b1 * b2 * a2 * c1 +
-      b1 * b1 * a2 * c2 +
-      c1 * a1 * b2 * b2,
-  ]
+function getPolyDegree(poly: number[]) {
+  return poly.length - 1
 }
 
-function getYFromQuartics(quartics: number[]) {
-  const [e, d, c, b, a] = quartics
+function getPolynomialRoots(poly: number[]): number[] {
+  const coefs = [...poly]
 
-  const d0 = c * c - 3 * b * d + 12 * a * e
-  const d1 =
-    2 * c * c * c -
-    9 * b * c * d +
-    27 * b * b * e +
-    27 * a * d * d -
-    72 * a * c * e
-
-  const p = (8 * a * c - 3 * b * b) / (8 * a * a)
-  const q = (b * b * b - 4 * a * b * c + 8 * a * a * d) / (8 * a * a * a)
-
-  let Q: number, S: number
-
-  const phi = Math.acos(d1 / (2 * Math.sqrt(d0 * d0 * d0)))
-
-  if (Number.isNaN(phi) && d1 === 0) {
-    Q = d1 + Math.sqrt(d1 * d1 - 4 * d0 * d0 * d0)
-    Q = Q / 2
-    Q = Math.pow(Q, 1 / 3)
-    S = 0.5 * Math.sqrt((-2 / 3) * p + (1 / (3 * a)) * (Q + d0 / Q))
-  } else {
-    S =
-      0.5 *
-      Math.sqrt(
-        (-2 / 3) * p + (2 / (3 * a)) * Math.sqrt(d0) * Math.cos(phi / 3)
-      )
+  // Simplify coefs
+  for (let i = getPolyDegree(coefs); i >= 0; i--) {
+    if (Math.abs(coefs[i]) <= 1e-6) coefs.pop()
+    else break
   }
 
-  const y = []
-
-  if (S !== 0) {
-    let R = -4 * S * S - 2 * p + q / S
-    if (R === 0) {
-      R = 0
+  // Return roots based on degree
+  switch (getPolyDegree(coefs)) {
+    case 1: {
+      return getLinearPolymonialRoots(coefs)
     }
-
-    if (R > 0) {
-      R = 0.5 * Math.sqrt(R)
-      y.push(-b / (4 * a) - S + R)
-      y.push(-b / (4 * a) - S - R)
-    } else if (R === 0) {
-      y.push(-b / (4 * a) - S)
+    case 2: {
+      return getQuadradicPolynomialRoots(coefs)
     }
-
-    R = -4 * S * S - 2 * p - q / S
-    if (R === 0) {
-      R = 0
+    case 3: {
+      return getCubicPolymonialRoots(coefs)
     }
-    if (R > 0) {
-      R = 0.5 * Math.sqrt(R)
-      y.push(-b / (4 * a) + S + R)
-      y.push(-b / (4 * a) + S - R)
-    } else if (R === 0) {
-      y.push(-b / (4 * a) + S)
+    case 4: {
+      return getQuarticPolymomialRoots(coefs)
     }
   }
 
-  return y
+  return []
 }
 
-function calculatePointsFromQuartics(
-  y: number[],
-  eq1: number[],
-  eq2: number[]
-): number[][] {
-  const [a1, b1, c1, d1, e1, f1] = eq1
-  const [a2, b2, c2, d2, e2, f2] = eq2
+function getLinearPolymonialRoots(poly: number[]): number[] {
+  const results: number[] = []
+  const a = poly[1]
 
-  const r: number[][] = []
+  if (a !== 0) results.push(-poly[0] / a)
 
-  for (let i = 0; i < y.length; i++) {
-    const x =
-      -(
-        a1 * f2 +
-        a1 * c2 * y[i] * y[i] -
-        a2 * c1 * y[i] * y[i] +
-        a1 * e2 * y[i] -
-        a2 * e1 * y[i] -
-        a2 * f1
-      ) /
-      (a1 * b2 * y[i] + a1 * d2 - a2 * b1 * y[i] - a2 * d1)
+  return results
+}
 
-    r.push([x, y[i]])
+function getQuadradicPolynomialRoots(poly: number[]): number[] {
+  const results: number[] = []
+
+  if (getPolyDegree(poly) === 2) {
+    const a = poly[2]
+    const b = poly[1] / a
+    const c = poly[0] / a
+    const d = b * b - 4 * c
+
+    if (d > 0) {
+      const e = Math.sqrt(d)
+      results.push(0.5 * (-b + e))
+      results.push(0.5 * (-b - e))
+    } else if (d == 0) {
+      results.push(0.5 * -b)
+    }
+  }
+  return results
+}
+
+function getCubicPolymonialRoots(poly: number[]): number[] {
+  const results: number[] = []
+
+  if (getPolyDegree(poly) == 3) {
+    const c3 = poly[3]
+    const c2 = poly[2] / c3
+    const c1 = poly[1] / c3
+    const c0 = poly[0] / c3
+    const a = (3 * c1 - c2 * c2) / 3
+    const b = (2 * c2 * c2 * c2 - 9 * c1 * c2 + 27 * c0) / 27
+    const offset = c2 / 3
+    const halfB = b / 2
+    let discrim = (b * b) / 4 + (a * a * a) / 27
+
+    if (Math.abs(discrim) <= 1e-6) discrim = 0
+
+    if (discrim > 0) {
+      const e = Math.sqrt(discrim)
+      let tmp: number
+      let root: number
+      tmp = -halfB + e
+      if (tmp >= 0) root = Math.pow(tmp, 1 / 3)
+      else root = -Math.pow(-tmp, 1 / 3)
+      tmp = -halfB - e
+      if (tmp >= 0) root += Math.pow(tmp, 1 / 3)
+      else root -= Math.pow(-tmp, 1 / 3)
+      results.push(root - offset)
+    } else if (discrim < 0) {
+      const distance = Math.sqrt(-a / 3)
+      const angle = Math.atan2(Math.sqrt(-discrim), -halfB) / 3
+      const cos = Math.cos(angle)
+      const sin = Math.sin(angle)
+      const sqrt3 = Math.sqrt(3)
+      results.push(2 * distance * cos - offset)
+      results.push(-distance * (cos + sqrt3 * sin) - offset)
+      results.push(-distance * (cos - sqrt3 * sin) - offset)
+    } else {
+      let tmp: number
+      if (halfB >= 0) tmp = -Math.pow(halfB, 1 / 3)
+      else tmp = Math.pow(-halfB, 1 / 3)
+      results.push(2 * tmp - offset)
+      results.push(-tmp - offset)
+    }
   }
 
-  return r
+  return results
+}
+
+function getQuarticPolymomialRoots(poly: number[]): number[] {
+  const results: number[] = []
+  if (getPolyDegree(poly) == 4) {
+    const c4 = poly[4]
+    const c3 = poly[3] / c4
+    const c2 = poly[2] / c4
+    const c1 = poly[1] / c4
+    const c0 = poly[0] / c4
+    const resolveRoots = getCubicPolymonialRoots([
+      1,
+      -c2,
+      c3 * c1 - 4 * c0,
+      -c3 * c3 * c0 + 4 * c2 * c0 - c1 * c1,
+    ])
+    const y = resolveRoots[0]
+    let discrim = (c3 * c3) / 4 - c2 + y
+    if (Math.abs(discrim) <= 1e-6) discrim = 0
+    if (discrim > 0) {
+      const e = Math.sqrt(discrim)
+      const t1 = (3 * c3 * c3) / 4 - e * e - 2 * c2
+      const t2 = (4 * c3 * c2 - 8 * c1 - c3 * c3 * c3) / (4 * e)
+      let plus = t1 + t2
+      let minus = t1 - t2
+      if (Math.abs(plus) <= 1e-6) plus = 0
+      if (Math.abs(minus) <= 1e-6) minus = 0
+      if (plus >= 0) {
+        const f = Math.sqrt(plus)
+        results.push(-c3 / 4 + (e + f) / 2)
+        results.push(-c3 / 4 + (e - f) / 2)
+      }
+      if (minus >= 0) {
+        const f = Math.sqrt(minus)
+        results.push(-c3 / 4 + (f - e) / 2)
+        results.push(-c3 / 4 - (f + e) / 2)
+      }
+    } else if (discrim >= 0) {
+      let t2 = y * y - 4 * c0
+      if (t2 >= -1e-6) {
+        if (t2 < 0) t2 = 0
+        t2 = 2 * Math.sqrt(t2)
+        const t1 = (3 * c3 * c3) / 4 - 2 * c2
+        if (t1 + t2 >= 1e-6) {
+          const d = Math.sqrt(t1 + t2)
+          results.push(-c3 / 4 + d / 2)
+          results.push(-c3 / 4 - d / 2)
+        }
+        if (t1 - t2 >= 1e-6) {
+          const d = Math.sqrt(t1 - t2)
+          results.push(-c3 / 4 + d / 2)
+          results.push(-c3 / 4 - d / 2)
+        }
+      }
+    }
+  }
+  return results
 }
 
 
