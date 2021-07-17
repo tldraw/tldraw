@@ -15,6 +15,7 @@ export default function toggleCommand(
   data: Data,
   prop: PropsOfType<Shape, boolean>
 ): void {
+  const ids = tld.getSelectedIds(data)
   const selectedShapes = tld.getSelectedShapes(data)
   const isAllToggled = selectedShapes.every((shape) => shape[prop])
   const initialShapes = selectedShapes.map((shape) => ({
@@ -38,6 +39,10 @@ export default function toggleCommand(
             isAllToggled ? false : true
           )
         })
+
+        tld.updateBindings(data, ids)
+
+        tld.updateParents(data, ids)
       },
       undo(data) {
         const { shapes } = tld.getPage(data)
@@ -46,6 +51,10 @@ export default function toggleCommand(
           const shape = shapes[id]
           getShapeUtils(shape).setProperty(shape, prop, value)
         })
+
+        tld.updateBindings(data, ids)
+
+        tld.updateParents(data, ids)
       },
     })
   )

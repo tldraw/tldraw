@@ -1,4 +1,10 @@
-import { ArrowShape, Data, ShapeType } from 'types'
+import {
+  ArrowShape,
+  BindingChangeType,
+  BindingType,
+  Data,
+  ShapeType,
+} from 'types'
 import vec from 'utils/vec'
 import BaseSession from './base-session'
 import commands from 'state/commands'
@@ -51,28 +57,39 @@ export default class ArrowSession extends BaseSession {
 
     const nextPoint = vec.round(vec.add(handles[this.handleId].point, delta))
 
-    for (const id of bindableShapeIds) {
-      const shape = tld.getShape(data, id)
+    if (handle.canBind) {
+      // Clear binding and try to set a new one
+      data.currentBinding = undefined
 
-      const bindingPoint = getShapeUtils(shape).getBindingPoint(
-        shape,
-        point,
-        handle.id === 'start'
-          ? vec.uni(vec.sub(point, handles.end.point))
-          : this.handleId === 'end'
-          ? vec.uni(vec.sub(point, handles.start.point))
-          : null
-      )
+      for (const id of bindableShapeIds) {
+        const target = tld.getShape(data, id)
 
-      if (bindingPoint) {
-        data.currentBinding = {
-          id,
-          point: bindingPoint,
+        const origin =
+          handle.id === 'start'
+            ? vec.add(shape.point, handles.end.point)
+            : this.handleId === 'end'
+            ? vec.add(shape.point, handles.start.point)
+            : null
+
+        const bindingPoint = getShapeUtils(target).getBindingPoint(
+          target,
+          point,
+          origin,
+          vec.uni(vec.vec(origin, point))
+        )
+
+        if (bindingPoint) {
+          data.currentBinding = {
+            id,
+            point: bindingPoint,
+          }
+
+          break
         }
-        break
       }
     }
 
+    // Update shape from handle change
     getShapeUtils(shape).onHandleChange(
       shape,
       {
@@ -88,6 +105,8 @@ export default class ArrowSession extends BaseSession {
   cancel(data: Data): void {
     const { initialShape } = this.snapshot
 
+    delete data.currentBinding
+
     if (this.isCreating) {
       tld.deleteShapes(data, [initialShape])
     } else {
@@ -97,6 +116,41 @@ export default class ArrowSession extends BaseSession {
 
   complete(data: Data): void {
     const { initialShape } = this.snapshot
+
+    if (data.currentBinding) {
+      const target = tld.getShape(data, data.currentBinding.id)
+      const bounds = getShapeUtils(target).getBounds(target)
+      const targetPoint = vec.add(
+        [bounds.minX, bounds.minY],
+        vec.mulV(data.currentBinding.point, [bounds.width, bounds.height])
+      )
+
+      const shape = tld.getShape(data, initialShape.id)
+      const handlePoint = shape.handles[this.handleId].point
+      const distance = vec.dist(vec.add(handlePoint, shape.point), targetPoint)
+
+      getShapeUtils(shape).onBindingChange(shape, {
+        type: BindingChangeType.Create,
+        id: target.id,
+        handleId: this.handleId,
+        binding: {
+          id: target.id,
+          type: BindingType.Direction,
+          point: [...data.currentBinding.point],
+          distance,
+        },
+      })
+
+      getShapeUtils(target).setProperty(
+        target,
+        'bindings',
+        target.bindings
+          ? [...target.bindings, initialShape.id]
+          : [initialShape.id]
+      )
+    }
+
+    delete data.currentBinding
 
     const before = initialShape
     const after = deepClone(tld.getShape(data, before.id))

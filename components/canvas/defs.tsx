@@ -9,6 +9,10 @@ export default function Defs(): JSX.Element {
     <defs>
       <DotCircle id="dot" r={4} />
       <Handle id="handle" r={4} />
+      <StyledCross id="cross">
+        <line x1={-6} y1={-6} x2={6} y2={6} />
+        <line x1={6} y1={-6} x2={-6} y2={6} />
+      </StyledCross>
       <ExpandDef />
       <HoverDef />
     </defs>
@@ -40,4 +44,10 @@ function HoverDef() {
 
 const StyledShadow = styled('feDropShadow', {
   floodColor: '$selected',
+})
+
+const StyledCross = styled('g', {
+  zStrokeWidth: 3,
+  stroke: '$selected',
+  fill: 'none',
 })

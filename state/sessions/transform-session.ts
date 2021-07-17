@@ -68,9 +68,9 @@ export default class TransformSession extends BaseSession {
         scaleY: this.scaleY,
         transformOrigin,
       })
-
-      shapes[id] = deepClone(shape)
     }
+
+    tld.updateBindings(data, Object.keys(shapeBounds))
 
     tld.updateParents(data, Object.keys(shapeBounds))
   }

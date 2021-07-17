@@ -40,6 +40,7 @@ class History<T extends Data> {
     command.undo(data)
     if (this.disabled) return
     this.pointer--
+
     storage.savePage(data)
   }
 
@@ -49,6 +50,7 @@ class History<T extends Data> {
     command.redo(data, false)
     if (this.disabled) return
     this.pointer++
+
     storage.savePage(data)
   }
 

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { useCallback } from 'react'
-import { fastTransform } from 'state/hacks'
 import inputs from 'state/inputs'
 import { Edge, Corner } from 'types'
 
@@ -34,10 +33,9 @@ export default function useBoundsEvents(handle: Edge | Corner | 'rotate') {
 
       const info = inputs.pointerMove(e)
 
-      if (state.isIn('transformingSelection')) {
-        fastTransform(info)
-        return
-      }
+      // if (state.isIn('transformingSelection')) {
+      // fastTransform(info)
+      // }
 
       state.send('MOVED_POINTER', info)
     },

@@ -80,7 +80,8 @@ interface BaseShape {
   rotation: number
   children?: string[]
   points?: number[][]
-  handles?: Record<string, ShapeHandle<ShapeBinding>>
+  bindings?: string[]
+  handles?: Record<string, ShapeHandle>
   isLocked?: boolean
   isHidden?: boolean
   isEditing?: boolean
@@ -128,9 +129,9 @@ interface ArrowShape extends BaseShape {
   type: ShapeType.Arrow
   bend: number
   handles: {
-    start: ShapeHandle<DirectionShapeBinding>
+    start: ShapeHandle
     bend: ShapeHandle
-    end: ShapeHandle<DirectionShapeBinding>
+    end: ShapeHandle
   }
   decorations?: {
     start: Decoration
@@ -198,28 +199,54 @@ enum Decoration {
 
 enum BindingType {
   Direction = 'Direction',
-  Pin = 'Pin',
+  Point = 'Point',
 }
 
 interface DirectionShapeBinding {
   type: BindingType.Direction
-  shapeId?: string
-  opposite: string
+  id: string
+  point: number[]
+  distance: number
 }
 
 interface PointShapeBinding {
-  type: BindingType.Pin
-  shapeId?: string
-}
-
-interface ShapeHandle<Binding extends ShapeBinding = any> {
+  type: BindingType.Point
   id: string
-  index: number
   point: number[]
-  binding?: Binding
 }
 
 type ShapeBinding = DirectionShapeBinding | PointShapeBinding
+
+enum BindingChangeType {
+  Create = 'create',
+  Update = 'update',
+  Delete = 'delete',
+}
+
+type BindingChange =
+  | {
+      type: BindingChangeType.Create
+      id: string
+      handleId: string
+      binding: ShapeBinding
+    }
+  | {
+      type: BindingChangeType.Update
+      id: string
+      bounds: Bounds
+    }
+  | {
+      type: BindingChangeType.Delete
+      id: string
+    }
+
+interface ShapeHandle {
+  id: string
+  index: number
+  point: number[]
+  canBind?: boolean
+  binding?: ShapeBinding
+}
 
 /* ------------------ Types by Prop ----------------- */
 
@@ -528,6 +555,7 @@ interface ShapeUtility<K extends Shape> {
     this: ShapeUtility<K>,
     shape: Mutable<K>,
     point: number[],
+    origin: number[],
     direction: number[]
   ): number[] | undefined
 
@@ -535,7 +563,7 @@ interface ShapeUtility<K extends Shape> {
   onBindingChange(
     this: ShapeUtility<K>,
     shape: Mutable<K>,
-    bindings: Record<string, ShapeBinding>
+    change: BindingChange
   ): ShapeUtility<K>
 
   // Respond when a user moves one of the shape's handles.
@@ -674,7 +702,8 @@ interface BaseShape {
   rotation: number
   children?: string[]
   points?: number[][]
-  handles?: Record<string, ShapeHandle<ShapeBinding>>
+  bindings?: string[]
+  handles?: Record<string, ShapeHandle>
   isLocked?: boolean
   isHidden?: boolean
   isEditing?: boolean
@@ -722,9 +751,9 @@ interface ArrowShape extends BaseShape {
   type: ShapeType.Arrow
   bend: number
   handles: {
-    start: ShapeHandle<DirectionShapeBinding>
+    start: ShapeHandle
     bend: ShapeHandle
-    end: ShapeHandle<DirectionShapeBinding>
+    end: ShapeHandle
   }
   decorations?: {
     start: Decoration
@@ -792,28 +821,54 @@ enum Decoration {
 
 enum BindingType {
   Direction = 'Direction',
-  Pin = 'Pin',
+  Point = 'Point',
 }
 
 interface DirectionShapeBinding {
   type: BindingType.Direction
-  shapeId?: string
-  opposite: string
+  id: string
+  point: number[]
+  distance: number
 }
 
 interface PointShapeBinding {
-  type: BindingType.Pin
-  shapeId?: string
-}
-
-interface ShapeHandle<Binding extends ShapeBinding = any> {
+  type: BindingType.Point
   id: string
-  index: number
   point: number[]
-  binding?: Binding
 }
 
 type ShapeBinding = DirectionShapeBinding | PointShapeBinding
+
+enum BindingChangeType {
+  Create = 'create',
+  Update = 'update',
+  Delete = 'delete',
+}
+
+type BindingChange =
+  | {
+      type: BindingChangeType.Create
+      id: string
+      handleId: string
+      binding: ShapeBinding
+    }
+  | {
+      type: BindingChangeType.Update
+      id: string
+      bounds: Bounds
+    }
+  | {
+      type: BindingChangeType.Delete
+      id: string
+    }
+
+interface ShapeHandle {
+  id: string
+  index: number
+  point: number[]
+  canBind?: boolean
+  binding?: ShapeBinding
+}
 
 /* ------------------ Types by Prop ----------------- */
 
@@ -1122,6 +1177,7 @@ interface ShapeUtility<K extends Shape> {
     this: ShapeUtility<K>,
     shape: Mutable<K>,
     point: number[],
+    origin: number[],
     direction: number[]
   ): number[] | undefined
 
@@ -1129,7 +1185,7 @@ interface ShapeUtility<K extends Shape> {
   onBindingChange(
     this: ShapeUtility<K>,
     shape: Mutable<K>,
-    bindings: Record<string, ShapeBinding>
+    change: BindingChange
   ): ShapeUtility<K>
 
   // Respond when a user moves one of the shape's handles.
@@ -1792,6 +1848,57 @@ class Intersection {
       return Intersect.rectangle.ray(point, size, origin, direction)
     },
 
+    ellipse(
+      origin: number[],
+      direction: number[],
+      center: number[],
+      rx: number,
+      ry: number,
+      rotation: number
+    ): Intersection {
+      // If the ellipse or line segment are empty, return no tValues.
+      if (rx === 0 || ry === 0) {
+        return new Intersection('No intersection')
+      }
+
+      // Get the semimajor and semiminor axes.
+      rx = rx < 0 ? rx : -rx
+      ry = ry < 0 ? ry : -ry
+
+      // Rotate direction so the ellipse is centered at the origin.
+      const c = Vec.sub(origin, center)
+      const d = Vec.rot(direction, -rotation)
+
+      const A = (d[0] * d[0]) / rx / rx + (d[1] * d[1]) / ry / ry
+      const B = (2 * c[0] * d[0]) / rx / rx + (2 * c[1] * d[1]) / ry / ry
+      const C = (c[0] * c[0]) / rx / rx + (c[1] * c[1]) / ry / ry - 1
+
+      // Make a list of t values (normalized points on the line where intersections occur).
+      const tValues: number[] = []
+
+      // Calculate the discriminant.
+      const discriminant = B * B - 4 * A * C
+
+      if (discriminant === 0) {
+        // One real solution.
+        tValues.push(-B / 2 / A)
+      } else if (discriminant > 0) {
+        const root = Math.sqrt(discriminant)
+        // Two real solutions.
+        tValues.push((-B + root) / 2 / A)
+        tValues.push((-B - root) / 2 / A)
+      }
+
+      // Filter to only points that are on the segment.
+      // Solve for points, then counter-rotate points.
+      const points = tValues
+        .filter((t) => t >= 0 && t <= 1)
+        .map((t) => Vec.add(center, Vec.add(c, Vec.mul(c, t))))
+        .map((p) => Vec.rotWith(p, center, rotation))
+
+      return new Intersection('intersection', ...points)
+    },
+
     // Intersect a ray with a bounding box.
     bounds(
       origin: number[],
@@ -2355,6 +2462,10 @@ class Intersection {
       rx2: number,
       ry2: number
     ): Intersection {
+      if (rx1 === ry1 && rx2 === ry2) {
+        return Intersect.circle.circle(c1, rx1, c2, rx2)
+      }
+
       const a = [
         ry1 * ry1,
         0,
@@ -2375,12 +2486,14 @@ class Intersection {
           rx2 * rx2 * c2[1] * c2[1] -
           rx2 * rx2 * ry2 * ry2,
       ]
+
       const yPoly = bezout(a, b)
       const yRoots = getPolynomialRoots(yPoly)
       const epsilon = 1e-3
       const norm0 = (a[0] * a[0] + 2 * a[1] * a[1] + a[2] * a[2]) * epsilon
       const norm1 = (b[0] * b[0] + 2 * b[1] * b[1] + b[2] * b[2]) * epsilon
       const result: number[][] = []
+
       for (let y = 0; y < yRoots.length; y++) {
         const xRoots = getPolynomialRoots([
           a[0],
@@ -2397,6 +2510,7 @@ class Intersection {
               (b[0] * xRoots[x] + b[1] * yRoots[y] + b[3]) * xRoots[x] +
               (b[2] * yRoots[y] + b[4]) * yRoots[y] +
               b[5]
+            b[5]
             if (Math.abs(test) < norm1) {
               result.push([xRoots[x], yRoots[y]])
             }
@@ -2418,7 +2532,7 @@ class Intersection {
       c2: number[],
       r2: number
     ): Intersection {
-      return Intersect.ellipse.ellipse(c, rx, ry, rotation, c2, r2, r2, 0)
+      return Intersect.ellipse.ellipse(c, rx, ry, c2, r2, r2)
     },
 
     // Intersect an ellipse with a bounding box.
@@ -2851,18 +2965,288 @@ function bezout(e1: number[], e2: number[]) {
   ]
 }
 
+function evalPolynomial(poly: number[], x: number) {
+  if (isNaN(x)) {
+    throw new TypeError(\`Parameter must be a number. Found '\${x}'\`)
+  }
+
+  let result = 0
+
+  for (let i = poly.length - 1; i >= 0; i--) {
+    result = result * x + poly[i]
+  }
+
+  return result
+}
+
+function getZeroErrorEstimate(poly: number[], maxAbsX: number) {
+  const ERRF = 1e-15
+
+  if (typeof maxAbsX === 'undefined') {
+    const rb = getPolynomialBounds(poly)
+
+    maxAbsX = Math.max(Math.abs(rb.minX), Math.abs(rb.maxX))
+  }
+
+  if (maxAbsX < 0.001) {
+    return 2 * Math.abs(evalPolynomial(poly, ERRF))
+  }
+
+  const n = poly.length - 1
+  const an = poly[n]
+
+  return (
+    10 *
+    ERRF *
+    poly.reduce((m, v, i) => {
+      const nm = (v / an) * Math.pow(maxAbsX, i)
+      return nm > m ? nm : m
+    }, 0)
+  )
+}
+
+function getNewtonSecantBisection(
+  x0: number,
+  f: (x: number) => number,
+  df: (x: number) => number,
+  max_iterations: number,
+  min: number,
+  max: number
+) {
+  let x: number,
+    prev_dfx = 0,
+    dfx: number,
+    prev_x_ef_correction = 0,
+    x_correction: number,
+    x_new: number
+  let y: number, y_atmin: number, y_atmax: number
+
+  x = x0
+
+  const ACCURACY = 14
+  const min_correction_factor = Math.pow(10, -ACCURACY)
+  const isBounded = typeof min === 'number' && typeof max === 'number'
+
+  if (isBounded) {
+    if (min > max) {
+      throw new RangeError('Min must be greater than max')
+    }
+
+    y_atmin = f(min)
+    y_atmax = f(max)
+
+    if (getSign(y_atmin) === getSign(y_atmax)) {
+      throw new RangeError('Y values of bounds must be of opposite sign')
+    }
+  }
+
+  const isEnoughCorrection = function () {
+    // stop if correction is too small or if correction is in simple loop
+    return (
+      Math.abs(x_correction) <= min_correction_factor * Math.abs(x) ||
+      prev_x_ef_correction === x - x_correction - x
+    )
+  }
+
+  for (let i = 0; i < max_iterations; i++) {
+    dfx = df(x)
+
+    if (dfx === 0) {
+      if (prev_dfx === 0) {
+        // error
+        throw new RangeError('df(x) is zero')
+      } else {
+        // use previous derivation value
+        dfx = prev_dfx
+      }
+      // or move x a little?
+      // dfx = df(x != 0 ? x + x * 1e-15 : 1e-15);
+    }
+
+    prev_dfx = dfx
+    y = f(x)
+    x_correction = y / dfx
+    x_new = x - x_correction
+
+    if (isEnoughCorrection()) {
+      break
+    }
+
+    if (isBounded) {
+      if (getSign(y) === getSign(y_atmax)) {
+        max = x
+        y_atmax = y
+      } else if (getSign(y) === getSign(y_atmin)) {
+        min = x
+        y_atmin = y
+      } else {
+        x = x_new
+        break
+      }
+
+      if (x_new < min || x_new > max) {
+        if (getSign(y_atmin) === getSign(y_atmax)) {
+          break
+        }
+
+        const RATIO_LIMIT = 50
+        const AIMED_BISECT_OFFSET = 0.25 // [0, 0.5)
+        const dy = y_atmax - y_atmin
+        const dx = max - min
+
+        if (dy === 0) {
+          x_correction = x - (min + dx * 0.5)
+        } else if (Math.abs(dy / Math.min(y_atmin, y_atmax)) > RATIO_LIMIT) {
+          x_correction =
+            x -
+            (min +
+              dx *
+                (0.5 +
+                  (Math.abs(y_atmin) < Math.abs(y_atmax)
+                    ? -AIMED_BISECT_OFFSET
+                    : AIMED_BISECT_OFFSET)))
+        } else {
+          x_correction = x - (min - (y_atmin / dy) * dx)
+        }
+        x_new = x - x_correction
+
+        if (isEnoughCorrection()) {
+          break
+        }
+      }
+    }
+
+    prev_x_ef_correction = x - x_new
+    x = x_new
+  }
+
+  return x
+}
+
+function getBoundsUpperRealFujiwara(poly: number[]) {
+  let a = [...poly]
+  const n = a.length - 1
+  const an = a[n]
+
+  if (an !== 1) {
+    a = poly.map((v) => v / an)
+  }
+
+  const b = a.map((v, i) => {
+    return i < n ? Math.pow(Math.abs(i === 0 ? v / 2 : v), 1 / (n - i)) : v
+  })
+
+  const max_nearmax_pos = b.reduce(
+    (acc, bi, i) => {
+      if (i < n && a[i] < 0) {
+        if (acc.max < bi) {
+          acc.nearmax = acc.max
+          acc.max = bi
+        } else if (acc.nearmax < bi) {
+          acc.nearmax = bi
+        }
+      }
+      return acc
+    },
+    { max: 0, nearmax: 0 }
+  )
+
+  const max_nearmax_neg = b.reduce(
+    (acc, bi, i) => {
+      if (i < n && (n % 2 === i % 2 ? a[i] < 0 : a[i] > 0)) {
+        if (acc.max < bi) {
+          acc.nearmax = acc.max
+          acc.max = bi
+        } else if (acc.nearmax < bi) {
+          acc.nearmax = bi
+        }
+      }
+      return acc
+    },
+    { max: 0, nearmax: 0 }
+  )
+
+  return {
+    negX: -2 * max_nearmax_neg.max,
+    posX: 2 * max_nearmax_pos.max,
+  }
+}
+
+function getBoundsLowerRealFujiwara(poly: number[]) {
+  const coefs = [...poly].reverse()
+
+  const res = getBoundsUpperRealFujiwara(coefs)
+
+  res.negX = 1 / res.negX
+  res.posX = 1 / res.posX
+
+  return res
+}
+
+function getPolynomialBounds(poly: number[]) {
+  const urb = getBoundsUpperRealFujiwara(poly)
+  const rb = { minX: urb.negX, maxX: urb.posX }
+
+  if (urb.negX === 0 && urb.posX === 0) {
+    return rb
+  }
+
+  if (urb.negX === 0) {
+    rb.minX = getBoundsLowerRealFujiwara(poly).posX
+  } else if (urb.posX === 0) {
+    rb.maxX = getBoundsLowerRealFujiwara(poly).negX
+  }
+
+  if (rb.minX > rb.maxX) {
+    rb.minX = rb.maxX = 0
+  }
+
+  return rb
+}
+
+function getDerivative(poly: number[]) {
+  const coefs: number[] = []
+
+  for (let i = 1; i < poly.length; i++) {
+    coefs.push(i * poly[i])
+  }
+
+  return coefs
+}
+
+function getSign(x: number) {
+  // eslint-disable-next-line no-self-compare
+  return typeof x === 'number'
+    ? x
+      ? x < 0
+        ? -1
+        : 1
+      : x === x
+      ? x
+      : NaN
+    : NaN
+}
+
 function getPolyDegree(poly: number[]) {
   return poly.length - 1
 }
 
-function getPolynomialRoots(poly: number[]): number[] {
+function simplifyPolynomial(poly: number[]) {
   const coefs = [...poly]
 
-  // Simplify coefs
   for (let i = getPolyDegree(coefs); i >= 0; i--) {
-    if (Math.abs(coefs[i]) <= 1e-6) coefs.pop()
-    else break
+    if (Math.abs(coefs[i]) <= 1e-12) {
+      coefs.pop()
+    } else {
+      break
+    }
   }
+
+  return coefs
+}
+
+function getPolynomialRoots(poly: number[]): number[] {
+  const coefs = simplifyPolynomial(poly)
 
   // Return roots based on degree
   switch (getPolyDegree(coefs)) {
@@ -2962,57 +3346,87 @@ function getCubicPolymonialRoots(poly: number[]): number[] {
 
 function getQuarticPolymomialRoots(poly: number[]): number[] {
   const results: number[] = []
-  if (getPolyDegree(poly) == 4) {
-    const c4 = poly[4]
-    const c3 = poly[3] / c4
-    const c2 = poly[2] / c4
-    const c1 = poly[1] / c4
-    const c0 = poly[0] / c4
-    const resolveRoots = getCubicPolymonialRoots([
-      1,
-      -c2,
-      c3 * c1 - 4 * c0,
-      -c3 * c3 * c0 + 4 * c2 * c0 - c1 * c1,
-    ])
-    const y = resolveRoots[0]
-    let discrim = (c3 * c3) / 4 - c2 + y
-    if (Math.abs(discrim) <= 1e-6) discrim = 0
-    if (discrim > 0) {
-      const e = Math.sqrt(discrim)
-      const t1 = (3 * c3 * c3) / 4 - e * e - 2 * c2
-      const t2 = (4 * c3 * c2 - 8 * c1 - c3 * c3 * c3) / (4 * e)
-      let plus = t1 + t2
-      let minus = t1 - t2
-      if (Math.abs(plus) <= 1e-6) plus = 0
-      if (Math.abs(minus) <= 1e-6) minus = 0
-      if (plus >= 0) {
-        const f = Math.sqrt(plus)
-        results.push(-c3 / 4 + (e + f) / 2)
-        results.push(-c3 / 4 + (e - f) / 2)
-      }
-      if (minus >= 0) {
-        const f = Math.sqrt(minus)
-        results.push(-c3 / 4 + (f - e) / 2)
-        results.push(-c3 / 4 - (f + e) / 2)
-      }
-    } else if (discrim >= 0) {
-      let t2 = y * y - 4 * c0
-      if (t2 >= -1e-6) {
-        if (t2 < 0) t2 = 0
-        t2 = 2 * Math.sqrt(t2)
-        const t1 = (3 * c3 * c3) / 4 - 2 * c2
-        if (t1 + t2 >= 1e-6) {
-          const d = Math.sqrt(t1 + t2)
-          results.push(-c3 / 4 + d / 2)
-          results.push(-c3 / 4 - d / 2)
-        }
-        if (t1 - t2 >= 1e-6) {
-          const d = Math.sqrt(t1 - t2)
-          results.push(-c3 / 4 + d / 2)
-          results.push(-c3 / 4 - d / 2)
-        }
+  const n = getPolyDegree(poly)
+  if (n === 4) {
+    const coefs = [...poly].map((n) => n / poly[4])
+
+    const ERRF = 1e-15
+
+    if (Math.abs(coefs[0]) < 10 * ERRF * Math.abs(coefs[3])) {
+      coefs[0] = 0
+    }
+
+    const poly_d = getDerivative(coefs)
+    const derrt = getPolynomialRoots(poly_d).sort((a, b) => a - b)
+    const dery = []
+    const nr = derrt.length - 1
+    const rb = getPolynomialBounds(coefs)
+
+    const maxabsX = Math.max(Math.abs(rb.minX), Math.abs(rb.maxX))
+    const ZEROepsilon = getZeroErrorEstimate(coefs, maxabsX)
+
+    for (let i = 0; i <= nr; i++) {
+      dery.push(evalPolynomial(coefs, derrt[i]))
+    }
+
+    for (let i = 0; i <= nr; i++) {
+      if (Math.abs(dery[i]) < ZEROepsilon) {
+        dery[i] = 0
       }
     }
+
+    let i = 0
+    const dx = Math.max((0.1 * (rb.maxX - rb.minX)) / n, ERRF)
+    const guesses = []
+    const minmax = []
+
+    if (nr > -1) {
+      if (dery[0] !== 0) {
+        if (
+          getSign(dery[0]) !==
+          getSign(evalPolynomial(coefs, derrt[0] - dx) - dery[0])
+        ) {
+          guesses.push(derrt[0] - dx)
+          minmax.push([rb.minX, derrt[0]])
+        }
+      } else {
+        results.push(derrt[0], derrt[0])
+        i++
+      }
+
+      for (; i < nr; i++) {
+        if (dery[i + 1] === 0) {
+          results.push(derrt[i + 1], derrt[i + 1])
+          i++
+        } else if (getSign(dery[i]) !== getSign(dery[i + 1])) {
+          guesses.push((derrt[i] + derrt[i + 1]) / 2)
+          minmax.push([derrt[i], derrt[i + 1]])
+        }
+      }
+      if (
+        dery[nr] !== 0 &&
+        getSign(dery[nr]) !==
+          getSign(evalPolynomial(coefs, derrt[nr] + dx) - dery[nr])
+      ) {
+        guesses.push(derrt[nr] + dx)
+        minmax.push([derrt[nr], rb.maxX])
+      }
+    }
+
+    if (guesses.length > 0) {
+      for (i = 0; i < guesses.length; i++) {
+        guesses[i] = getNewtonSecantBisection(
+          guesses[i],
+          (x: number) => evalPolynomial(poly, x),
+          (x: number) => evalPolynomial(poly_d, x),
+          32,
+          minmax[i][0],
+          minmax[i][1]
+        )
+      }
+    }
+
+    return results.concat(guesses)
   }
   return results
 }
@@ -4385,26 +4799,27 @@ function getQuarticPolymomialRoots(poly: number[]): number[] {
   ) {
     const { start = [0, 0], end = [100, 100] } = props
 
-    const {
-      point = [0, 0],
-      handles = {
-        start: {
-          id: 'start',
-          index: 0,
-          point: start,
-        },
-        end: {
-          id: 'end',
-          index: 1,
-          point: end,
-        },
-        bend: {
-          id: 'bend',
-          index: 2,
-          point: Vec.med(start, end),
-        },
+    const { point = [0, 0] } = props
+
+    const handles = {
+      start: {
+        id: 'start',
+        index: 0,
+        canBind: true,
+        point: start,
       },
-    } = props
+      end: {
+        id: 'end',
+        index: 1,
+        point: end,
+        canBind: true,
+      },
+      bend: {
+        id: 'bend',
+        index: 2,
+        point: Vec.med(start, end),
+      },
+    }
 
     super({
       id: uniqueId(),

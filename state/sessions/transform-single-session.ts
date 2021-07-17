@@ -57,6 +57,8 @@ export default class TransformSingleSession extends BaseSession {
 
     data.document.pages[data.currentPageId].shapes[shape.id] = deepClone(shape)
 
+    tld.updateBindings(data, [id])
+
     tld.updateParents(data, [id])
   }
 

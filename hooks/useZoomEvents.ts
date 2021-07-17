@@ -9,8 +9,6 @@ import {
   fastDrawUpdate,
   fastPanUpdate,
   fastPinchCamera,
-  fastTransform,
-  fastTranslate,
   fastZoomUpdate,
 } from 'state/hacks'
 
@@ -41,9 +39,9 @@ export default function useZoomEvents() {
         } else if (state.isIn('brushSelecting')) {
           fastBrushSelect(info.point)
         } else if (state.isIn('translatingSelection')) {
-          fastTranslate(info)
+          // fastTranslate(info)
         } else if (state.isIn('transformingSelection')) {
-          fastTransform(info)
+          // fastTransform(info)
         }
 
         state.send('PANNED_CAMERA', {

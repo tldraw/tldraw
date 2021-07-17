@@ -4,8 +4,11 @@ import { StretchType, Data, Corner } from 'types'
 import { deepClone, getCommonBounds } from 'utils'
 import tld from 'utils/tld'
 import { getShapeUtils } from 'state/shape-utils'
+import storage from 'state/storage'
 
 export default function stretchCommand(data: Data, type: StretchType): void {
+  const ids = tld.getSelectedIds(data)
+
   const initialShapes = tld
     .getSelectedShapes(data)
     .map((shape) => deepClone(shape))
@@ -76,10 +79,22 @@ export default function stretchCommand(data: Data, type: StretchType): void {
             )
           }
         }
+
+        tld.updateBindings(data, ids)
+
+        tld.updateParents(data, ids)
+
+        storage.savePage(data)
       },
       undo(data) {
         const { shapes } = tld.getPage(data)
         initialShapes.forEach((shape) => (shapes[shape.id] = shape))
+
+        tld.updateBindings(data, ids)
+
+        tld.updateParents(data, ids)
+
+        storage.savePage(data)
       },
     })
   )

@@ -18,6 +18,7 @@ import {
   uniqueId,
   boundsContain,
   boundsCollide,
+  expandBounds,
 } from 'utils'
 import tld from '../utils/tld'
 import {
@@ -148,6 +149,7 @@ for (let i = 0; i < count; i++) {
 const state = createState({
   data: initialData,
   on: {
+    COPIED_SHAPE_DATA: 'copyShapeDataToClipboard',
     CHANGED_DARK_MODE: 'setDarkMode',
     TOGGLED_DEBUG_PANEL: 'toggleDebugPanel',
     TOGGLED_DEBUG_MODE: 'toggleDebugMode',
@@ -159,9 +161,9 @@ const state = createState({
       do: ['loadDocumentFromJson', 'resetHistory'],
     },
     RESET_DOCUMENT_STATE: [
-      'clearLocalStorage',
       'resetHistory',
       'resetDocumentState',
+      'clearLocalStorage',
       'saveAppState',
       'saveDocumentState',
     ],
@@ -620,11 +622,11 @@ const state = createState({
               onExit: 'completeSession',
               on: {
                 MOVED_POINTER: {
-                  ifAny: ['isSimulating', 'isTestMode'],
+                  // ifAny: ['isSimulating', 'isTestMode'],
                   do: 'updateTransformSession',
                 },
                 PANNED_CAMERA: {
-                  ifAny: ['isSimulating', 'isTestMode'],
+                  // ifAny: ['isSimulating', 'isTestMode'],
                   do: 'updateTransformSession',
                 },
                 PRESSED_SHIFT_KEY: 'keyUpdateTransformSession',
@@ -639,11 +641,11 @@ const state = createState({
               on: {
                 STARTED_PINCHING: { to: 'pinching' },
                 MOVED_POINTER: {
-                  ifAny: ['isSimulating', 'isTestMode'],
+                  // ifAny: ['isSimulating', 'isTestMode'],
                   do: 'updateTranslateSession',
                 },
                 PANNED_CAMERA: {
-                  ifAny: ['isSimulating', 'isTestMode'],
+                  // ifAny: ['isSimulating', 'isTestMode'],
                   do: 'updateTranslateSession',
                 },
                 PRESSED_SHIFT_KEY: 'keyUpdateTranslateSession',
@@ -880,11 +882,11 @@ const state = createState({
                       onEnter: 'startTranslateSession',
                       on: {
                         MOVED_POINTER: {
-                          ifAny: ['isSimulating', 'isTestMode'],
+                          // ifAny: ['isSimulating', 'isTestMode'],
                           do: 'updateTranslateSession',
                         },
                         PANNED_CAMERA: {
-                          ifAny: ['isSimulating', 'isTestMode'],
+                          // ifAny: ['isSimulating', 'isTestMode'],
                           do: 'updateTranslateSession',
                         },
                       },
@@ -1574,7 +1576,8 @@ const state = createState({
       const handleId = payload.target
 
       session.begin(
-        new Sessions.HandleSession(
+        // new Sessions.HandleSession(
+        new Sessions.ArrowSession(
           data,
           shapeId,
           handleId,
@@ -1587,7 +1590,8 @@ const state = createState({
       data,
       payload: { shiftKey: boolean; altKey: boolean; metaKey: boolean }
     ) {
-      session.update<Sessions.HandleSession>(
+      // session.update<Sessions.HandleSession>(
+      session.update<Sessions.ArrowSession>(
         data,
         tld.screenToWorld(inputs.pointer.point, data),
         payload.shiftKey,
@@ -1596,7 +1600,8 @@ const state = createState({
       )
     },
     updateHandleSession(data, payload: PointerInfo) {
-      session.update<Sessions.HandleSession>(
+      // session.update<Sessions.HandleSession>(
+      session.update<Sessions.ArrowSession>(
         data,
         tld.screenToWorld(payload.point, data),
         payload.shiftKey,
@@ -2141,6 +2146,11 @@ const state = createState({
 
     /* ------------------- Clipboard -------------------- */
 
+    copyShapeDataToClipboard(data) {
+      const shapes = tld.getSelectedShapes(data)
+      clipboard.copyStringToClipboard(JSON.stringify(shapes, null, 2))
+    },
+
     copyToSvg(data) {
       clipboard.copySelectionToSvg(data)
     },
@@ -2309,6 +2319,27 @@ const state = createState({
 
       return tree
     },
+    currentBinding(data) {
+      const { currentBinding } = data
+
+      if (!currentBinding) return
+
+      const shape = tld.getShape(data, currentBinding.id)
+
+      const bounds = getShapeUtils(shape).getBounds(shape)
+
+      const expandedBounds = expandBounds(bounds, [32, 32])
+
+      const point = vec.add(
+        [bounds.minX, bounds.minY],
+        vec.mulV(currentBinding.point, [bounds.width, bounds.height])
+      )
+
+      return {
+        expandedBounds,
+        point,
+      }
+    },
   },
   options: {
     onSend(eventName, payload, didCauseUpdate) {
@@ -2320,6 +2351,10 @@ const state = createState({
 export default state
 
 export const useSelector = createSelectorHook(state)
+
+/* -------------------------------------------------- */
+/*              Helpers (move to tld)                 */
+/* -------------------------------------------------- */
 
 function getParentId(data: Data, id: string) {
   const shape = tld.getPage(data).shapes[id]

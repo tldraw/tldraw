@@ -15,6 +15,7 @@ import {
   ShapeTreeNode,
   ShapeByType,
   ShapesWithProp,
+  BindingChangeType,
 } from 'types'
 import { AssertionError } from 'assert'
 import { lerp } from './utils'
@@ -168,7 +169,22 @@ export default class StateUtils {
 
     // Delete shapes
     ids.forEach((id) => {
+      const shape = page.shapes[id]
+
+      // Remove bindings
+      if (shape.bindings) {
+        shape.bindings.forEach((boundId) => {
+          const boundShape = page.shapes[boundId]
+
+          getShapeUtils(boundShape).onBindingChange(boundShape, {
+            type: BindingChangeType.Delete,
+            id: shape.id,
+          })
+        })
+      }
+
       shapesDeleted.push(deepClone(page.shapes[id]))
+
       delete page.shapes[id]
     })
 
@@ -701,6 +717,34 @@ export default class StateUtils {
         getShapeUtils(shape).getBounds(shape)
       )
     )
+  }
+
+  static updateBindings(data: Data, changedShapeIds: string[]): void {
+    if (changedShapeIds.length === 0) return
+
+    const { shapes } = this.getPage(data)
+
+    for (const shapeId of changedShapeIds) {
+      const shape = shapes[shapeId]
+
+      if (!shape.bindings) continue
+
+      for (const bindingId of shape.bindings) {
+        const boundShape = shapes[bindingId]
+
+        if (!boundShape) {
+          throw Error('could not find that bound shape')
+        }
+
+        const bounds = getShapeUtils(shape).getBounds(shape)
+
+        getShapeUtils(boundShape).onBindingChange(boundShape, {
+          type: BindingChangeType.Update,
+          id: shape.id,
+          bounds,
+        })
+      }
+    }
   }
 
   /**

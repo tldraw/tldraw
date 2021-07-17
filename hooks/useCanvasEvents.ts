@@ -1,13 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { MutableRefObject, useCallback, useEffect } from 'react'
 import state from 'state'
-import {
-  fastBrushSelect,
-  fastDrawUpdate,
-  fastPanUpdate,
-  fastTransform,
-  fastTranslate,
-} from 'state/hacks'
+import { fastBrushSelect, fastDrawUpdate, fastPanUpdate } from 'state/hacks'
 import inputs from 'state/inputs'
 import Vec from 'utils/vec'
 
@@ -56,9 +50,9 @@ export default function useCanvasEvents(
       } else if (state.isIn('brushSelecting')) {
         fastBrushSelect(info.point)
       } else if (state.isIn('translatingSelection')) {
-        fastTranslate(info)
+        // fastTranslate(info)
       } else if (state.isIn('transformingSelection')) {
-        fastTransform(info)
+        // fastTransform(info)
       }
 
       state.send('MOVED_POINTER', info)

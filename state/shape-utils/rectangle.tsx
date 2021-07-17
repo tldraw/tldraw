@@ -145,29 +145,40 @@ const rectangle = registerShapeUtils<RectangleShape>({
     return true
   },
 
-  getBindingPoint(shape, point, direction) {
+  getBindingPoint(shape, point, origin, direction) {
     const bounds = this.getBounds(shape)
 
-    const innerBounds = expandBounds(this.getBounds(shape), [-32, -32])
-    const expandedBounds = expandBounds(this.getBounds(shape), [32, 32])
+    const innerBounds = expandBounds(bounds, [-32, -32])
+
+    const expandedBounds = expandBounds(bounds, [32, 32])
 
     if (pointInBounds(point, expandedBounds)) {
-      if (bounds.width < 64 || bounds.height < 64) {
-        return [0.5, 0.5]
-      }
-
-      const intersections = Intersect.ray.rectangle(
-        point,
+      let intersections = Intersect.ray.rectangle(
+        origin,
         direction,
-        vec.add(shape.point, [innerBounds.minX, innerBounds.minY]),
-        vec.add(shape.point, [innerBounds.maxX, innerBounds.maxY])
+        [innerBounds.minX, innerBounds.minY],
+        [innerBounds.width, innerBounds.height]
       )
+
+      if (intersections.length === 0) {
+        intersections = Intersect.ray.rectangle(
+          origin,
+          direction,
+          [bounds.minX, bounds.minY],
+          [bounds.width, bounds.height]
+        )
+      }
 
       if (intersections.length === 0) return
 
-      return intersections.sort(
+      const closest = intersections.sort(
         (a, b) => vec.dist(point, a.points[0]) - vec.dist(point, b.points[0])
       )[0].points[0]
+
+      return vec.divV(vec.sub(closest, [bounds.minX, bounds.minY]), [
+        bounds.width,
+        bounds.height,
+      ])
     }
   },
 

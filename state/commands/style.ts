@@ -9,6 +9,8 @@ export default function styleCommand(
   data: Data,
   styles: Partial<ShapeStyles>
 ): void {
+  const ids = tld.getSelectedIds(data)
+
   const page = tld.getPage(data)
 
   const selectedIds = [...tld.getSelectedIds(data)]
@@ -30,6 +32,10 @@ export default function styleCommand(
           const shape = shapes[id]
           getShapeUtils(shape).applyStyles(shape, styles)
         }
+
+        tld.updateBindings(data, ids)
+
+        tld.updateParents(data, ids)
       },
       undo(data) {
         const { shapes } = tld.getPage(data)
@@ -38,6 +44,10 @@ export default function styleCommand(
           const shape = shapes[id]
           getShapeUtils(shape).applyStyles(shape, style)
         }
+
+        tld.updateBindings(data, ids)
+
+        tld.updateParents(data, ids)
       },
     })
   )

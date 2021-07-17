@@ -74,6 +74,20 @@ export default class Intersect {
       return Intersect.rectangle.ray(point, size, origin, direction)
     },
 
+    // Intersect a ray with an ellipse.
+    ellipse(
+      origin: number[],
+      direction: number[],
+      center: number[],
+      rx: number,
+      ry: number,
+      rotation: number
+    ): Intersection {
+      const a1 = origin
+      const a2 = vec.mul(direction, 999999999)
+      return Intersect.lineSegment.ellipse(a1, a2, center, rx, ry, rotation)
+    },
+
     // Intersect a ray with a bounding box.
     bounds(
       origin: number[],
@@ -595,7 +609,19 @@ export default class Intersect {
   }
 
   static ellipse = {
-    // Intersect an ellipse with a line segment
+    // Intersect an ellipse with a ray.
+    ray(
+      center: number[],
+      rx: number,
+      ry: number,
+      rotation: number,
+      point: number[],
+      direction: number[]
+    ): Intersection {
+      return Intersect.ray.ellipse(point, direction, center, rx, ry, rotation)
+    },
+
+    // Intersect an ellipse with a line segment.
     lineSegment(
       center: number[],
       rx: number,

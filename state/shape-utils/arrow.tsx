@@ -17,6 +17,8 @@ import {
 } from 'utils'
 import {
   ArrowShape,
+  BindingChangeType,
+  BindingType,
   DashStyle,
   Decoration,
   ShapeHandle,
@@ -53,11 +55,13 @@ const arrow = registerShapeUtils<ArrowShape>({
         id: 'start',
         index: 0,
         point: [0, 0],
+        canBind: true,
       },
       end: {
         id: 'end',
         index: 1,
         point: [1, 1],
+        canBind: true,
       },
       bend: {
         id: 'bend',
@@ -391,6 +395,103 @@ const arrow = registerShapeUtils<ArrowShape>({
       }
       case 'end': {
         shape.decorations.end = shape.decorations.end ? null : Decoration.Arrow
+        break
+      }
+    }
+
+    return this
+  },
+
+  onBindingChange(shape, change) {
+    const handle = Object.values(shape.handles).find(
+      (handle) => handle.binding?.id === change.id
+    )
+
+    switch (change.type) {
+      case BindingChangeType.Create: {
+        this.setProperty(
+          shape,
+          'bindings',
+          shape.bindings ? [...shape.bindings, change.id] : [change.id]
+        )
+
+        this.setProperty(shape, 'handles', {
+          ...shape.handles,
+          [change.handleId]: {
+            ...shape.handles[change.handleId],
+            binding: change.binding,
+          },
+        })
+        break
+      }
+      case BindingChangeType.Delete: {
+        if (!handle) {
+          throw Error(
+            'Could not find a handle with the binding id: ' + change.id
+          )
+        }
+
+        // Update bindings ids
+        const nextBindings = shape.bindings.filter((id) => id !== change.id)
+
+        this.setProperty(
+          shape,
+          'bindings',
+          nextBindings.length > 0 ? nextBindings : undefined
+        )
+
+        // Remove binding from handle
+        this.setProperty(shape, 'handles', {
+          ...shape.handles,
+          [handle.id]: { ...shape.handles[handle.id], binding: undefined },
+        })
+
+        // Update handles
+        this.onHandleChange(shape, shape.handles, { shiftKey: false })
+
+        break
+      }
+      case BindingChangeType.Update: {
+        if (!handle) {
+          throw Error(
+            'Could not find a handle with the binding id: ' + change.id
+          )
+        }
+
+        const binding = handle.binding
+
+        const { minX, minY, width, height } = change.bounds
+
+        let bindingPoint = vec.sub(
+          vec.add([minX, minY], vec.mulV(binding.point, [width, height])),
+          shape.point
+        )
+
+        if (binding.type === BindingType.Point) {
+          bindingPoint = vec.sub(
+            vec.add([minX, minY], vec.mulV(binding.point, [width, height])),
+            shape.point
+          )
+        } else {
+          const opposite =
+            handle.id === 'start' ? shape.handles.end : shape.handles.start
+
+          bindingPoint = vec.nudge(
+            bindingPoint,
+            opposite.point,
+            binding.distance
+          )
+        }
+
+        this.onHandleChange(
+          shape,
+          {
+            ...shape.handles,
+            [handle.id]: { ...handle, point: bindingPoint },
+          },
+          { shiftKey: false }
+        )
+
         break
       }
     }

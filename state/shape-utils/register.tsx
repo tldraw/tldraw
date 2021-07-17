@@ -8,7 +8,7 @@ import {
   boundsContainPolygon,
 } from 'utils'
 import Intersect from 'utils/intersect'
-import { Shape, ShapeUtility } from 'types'
+import { BindingChangeType, Shape, ShapeUtility } from 'types'
 
 function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
   return {
@@ -75,7 +75,24 @@ function getDefaultShapeUtil<T extends Shape>(): ShapeUtility<T> {
       return this
     },
 
-    onBindingChange() {
+    onBindingChange(shape, change) {
+      switch (change.type) {
+        case BindingChangeType.Create: {
+          this.setProperty(shape, 'bindings', [
+            ...(shape.bindings || []),
+            change.id,
+          ])
+          break
+        }
+        case BindingChangeType.Delete: {
+          this.setProperty(
+            shape,
+            'bindings',
+            shape.bindings.filter((id) => id !== change.id)
+          )
+          break
+        }
+      }
       return this
     },
 

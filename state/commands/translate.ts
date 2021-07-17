@@ -11,6 +11,8 @@ export default function translateCommand(
   after: TranslateSnapshot,
   isCloning: boolean
 ): void {
+  // TODO: Moving an arrow should break its bindings, or seek new bindings as it moves
+
   history.execute(
     data,
     new Command({
@@ -35,6 +37,7 @@ export default function translateCommand(
               ])
 
               // if (clone.type === ShapeType.Group) {
+              // ...
               // }
             }
           }
@@ -50,6 +53,12 @@ export default function translateCommand(
 
         // Set selected shapes
         tld.setSelectedIds(
+          data,
+          initialShapes.map((s) => s.id)
+        )
+
+        // Update bindings
+        tld.updateBindings(
           data,
           initialShapes.map((s) => s.id)
         )
@@ -86,6 +95,12 @@ export default function translateCommand(
           const parent = shapes[id]
           getShapeUtils(parent).setProperty(parent, 'children', children)
         })
+
+        // Update bindings
+        tld.updateBindings(
+          data,
+          initialShapes.map((s) => s.id)
+        )
 
         // Update parents
         tld.updateParents(

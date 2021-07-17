@@ -9,6 +9,8 @@ export default function transformCommand(
   before: TransformSnapshot,
   after: TransformSnapshot
 ): void {
+  const ids = Object.keys(before.shapeBounds)
+
   history.execute(
     data,
     new Command({
@@ -19,21 +21,25 @@ export default function transformCommand(
 
         const { shapes } = tld.getPage(data)
 
-        for (const id in shapeBounds) {
+        for (const id of ids) {
           shapes[id] = shapeBounds[id].initialShape
         }
 
-        tld.updateParents(data, Object.keys(shapeBounds))
+        tld.updateBindings(data, ids)
+
+        tld.updateParents(data, ids)
       },
       undo(data) {
         const { shapeBounds } = before
         const { shapes } = tld.getPage(data)
 
-        for (const id in shapeBounds) {
+        for (const id of ids) {
           shapes[id] = shapeBounds[id].initialShape
         }
 
-        tld.updateParents(data, Object.keys(shapeBounds))
+        tld.updateBindings(data, ids)
+
+        tld.updateParents(data, ids)
       },
     })
   )

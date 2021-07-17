@@ -850,6 +850,22 @@ export function getCurvePoints(
   return res
 }
 
+export function getPointsOnLine(
+  a1: number[],
+  a2: number[],
+  points: number
+): number[][] {
+  const delta = vec.sub(a2, a1)
+
+  const results: number[][] = []
+
+  for (let i = 0; i < points; i++) {
+    results.push(vec.add(a1, vec.mul(delta, i / points)))
+  }
+
+  return results
+}
+
 /**
  * Simplify a line (using Ramer-Douglas-Peucker algorithm).
  * @param points An array of points as [x, y, ...][]

@@ -13,26 +13,27 @@ export default class Arrow extends CodeShape<ArrowShape> {
   ) {
     const { start = [0, 0], end = [100, 100] } = props
 
-    const {
-      point = [0, 0],
-      handles = {
-        start: {
-          id: 'start',
-          index: 0,
-          point: start,
-        },
-        end: {
-          id: 'end',
-          index: 1,
-          point: end,
-        },
-        bend: {
-          id: 'bend',
-          index: 2,
-          point: Vec.med(start, end),
-        },
+    const { point = [0, 0] } = props
+
+    const handles = {
+      start: {
+        id: 'start',
+        index: 0,
+        canBind: true,
+        point: start,
       },
-    } = props
+      end: {
+        id: 'end',
+        index: 1,
+        point: end,
+        canBind: true,
+      },
+      bend: {
+        id: 'bend',
+        index: 2,
+        point: Vec.med(start, end),
+      },
+    }
 
     super({
       id: uniqueId(),

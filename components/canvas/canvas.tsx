@@ -15,6 +15,7 @@ import Coop from './coop/coop'
 import Brush from './brush'
 import Defs from './defs'
 import Page from './page'
+import Binding from './binding'
 import useSafariFocusOutFix from 'hooks/useSafariFocusOutFix'
 
 function resetError() {
@@ -54,6 +55,7 @@ export default function Canvas(): JSX.Element {
             <Bounds />
             <Handles />
             <Brush />
+            <Binding />
           </g>
         </ErrorBoundary>
       </MainSVG>

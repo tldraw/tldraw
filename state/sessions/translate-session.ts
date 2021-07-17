@@ -75,21 +75,17 @@ export default class TranslateSession extends BaseSession {
         }
       }
 
-      for (const { id } of clones) {
+      const cloneIds = clones.map((c) => c.id)
+
+      for (const id of cloneIds) {
         const shape = shapes[id]
         getShapeUtils(shape).translateBy(shape, trueDelta)
         shapes[id] = { ...shape }
       }
 
-      tld.setSelectedIds(
-        data,
-        clones.map((c) => c.id)
-      )
+      tld.updateParents(data, cloneIds)
 
-      tld.updateParents(
-        data,
-        clones.map((c) => c.id)
-      )
+      tld.setSelectedIds(data, cloneIds)
     } else {
       if (this.isCloning) {
         this.isCloning = false
@@ -107,7 +103,6 @@ export default class TranslateSession extends BaseSession {
           tld.getDocumentBranch(data, initialShape.id).forEach((id) => {
             const shape = shapes[id]
             getShapeUtils(shape).translateBy(shape, delta)
-            shapes[id] = { ...shape }
           })
         }
 
@@ -121,12 +116,15 @@ export default class TranslateSession extends BaseSession {
         tld.getDocumentBranch(data, initialShape.id).forEach((id) => {
           const shape = shapes[id]
           getShapeUtils(shape).translateBy(shape, trueDelta)
-
-          shapes[id] = { ...shape }
         })
       }
 
       tld.updateParents(
+        data,
+        initialShapes.map((s) => s.id)
+      )
+
+      tld.updateBindings(
         data,
         initialShapes.map((s) => s.id)
       )

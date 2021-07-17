@@ -196,7 +196,8 @@ export interface BaseShape {
   rotation: number
   children?: string[]
   points?: number[][]
-  handles?: Record<string, ShapeHandle<ShapeBinding>>
+  bindings?: string[]
+  handles?: Record<string, ShapeHandle>
   isLocked?: boolean
   isHidden?: boolean
   isEditing?: boolean
@@ -244,9 +245,9 @@ export interface ArrowShape extends BaseShape {
   type: ShapeType.Arrow
   bend: number
   handles: {
-    start: ShapeHandle<DirectionShapeBinding>
+    start: ShapeHandle
     bend: ShapeHandle
-    end: ShapeHandle<DirectionShapeBinding>
+    end: ShapeHandle
   }
   decorations?: {
     start: Decoration
@@ -314,28 +315,54 @@ export enum Decoration {
 
 export enum BindingType {
   Direction = 'Direction',
-  Pin = 'Pin',
+  Point = 'Point',
 }
 
 export interface DirectionShapeBinding {
   type: BindingType.Direction
-  shapeId?: string
-  opposite: string
+  id: string
+  point: number[]
+  distance: number
 }
 
 export interface PointShapeBinding {
-  type: BindingType.Pin
-  shapeId?: string
-}
-
-export interface ShapeHandle<Binding extends ShapeBinding = any> {
+  type: BindingType.Point
   id: string
-  index: number
   point: number[]
-  binding?: Binding
 }
 
 export type ShapeBinding = DirectionShapeBinding | PointShapeBinding
+
+export enum BindingChangeType {
+  Create = 'create',
+  Update = 'update',
+  Delete = 'delete',
+}
+
+export type BindingChange =
+  | {
+      type: BindingChangeType.Create
+      id: string
+      handleId: string
+      binding: ShapeBinding
+    }
+  | {
+      type: BindingChangeType.Update
+      id: string
+      bounds: Bounds
+    }
+  | {
+      type: BindingChangeType.Delete
+      id: string
+    }
+
+export interface ShapeHandle {
+  id: string
+  index: number
+  point: number[]
+  canBind?: boolean
+  binding?: ShapeBinding
+}
 
 /* ------------------ Types by Prop ----------------- */
 
@@ -644,6 +671,7 @@ export interface ShapeUtility<K extends Shape> {
     this: ShapeUtility<K>,
     shape: Mutable<K>,
     point: number[],
+    origin: number[],
     direction: number[]
   ): number[] | undefined
 
@@ -651,7 +679,7 @@ export interface ShapeUtility<K extends Shape> {
   onBindingChange(
     this: ShapeUtility<K>,
     shape: Mutable<K>,
-    bindings: Record<string, ShapeBinding>
+    change: BindingChange
   ): ShapeUtility<K>
 
   // Respond when a user moves one of the shape's handles.

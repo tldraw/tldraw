@@ -88,6 +88,8 @@ export default function ContextMenu({
     deepCompareArrays
   )
 
+  const isDebugMode = useSelector((s) => s.data.settings.isDebugMode)
+
   const rContent = useRef<HTMLDivElement>(null)
 
   const hasGroupSelected = useSelector((s) =>
@@ -216,6 +218,18 @@ export default function ContextMenu({
               />
             )}
             <MoveToPageMenu />
+            {isDebugMode && (
+              <ContextMenuButton
+                onSelect={() => state.send('COPIED_SHAPE_DATA')}
+              >
+                <span>Copy Data</span>
+                <Kbd>
+                  <span>{commandKey()}</span>
+                  <span>⇧</span>
+                  <span>C</span>
+                </Kbd>
+              </ContextMenuButton>
+            )}
             <ContextMenuButton onSelect={() => state.send('COPIED_TO_SVG')}>
               <span>Copy to SVG</span>
               <Kbd>

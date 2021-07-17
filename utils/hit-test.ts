@@ -3,7 +3,7 @@ import vec from './vec'
 
 class HitTest {
   // Get whether a point lies inside of a rectangle.
-  rectangle(A: number[], point: number[], size: number[]): boolean {
+  static rectangle(A: number[], point: number[], size: number[]): boolean {
     return !(
       A[0] < point[0] ||
       A[0] > point[0] + size[0] ||
@@ -13,17 +13,17 @@ class HitTest {
   }
 
   // Get whether a point lies inside of a rectangle.
-  bounds(A: number[], b: Bounds): boolean {
+  static bounds(A: number[], b: Bounds): boolean {
     return this.rectangle(A, [b.minX, b.minY], [b.width, b.height])
   }
 
   // Get whether a point lies inside of a circle.
-  circle(A: number[], C: number[], r: number): boolean {
+  static circle(A: number[], C: number[], r: number): boolean {
     return vec.dist(A, C) <= r
   }
 
   // Get whether a point lies inside of an ellipse.
-  ellipse(
+  static ellipse(
     A: number[],
     C: number[],
     rx: number,
@@ -40,7 +40,7 @@ class HitTest {
   }
 
   // Get whether a point lies within a polygon.
-  polygon(point: number[], polygon: number[][]): boolean {
+  static polygon(point: number[], polygon: number[][]): boolean {
     const length = polygon.length
     let counter = 0
     let x_inter: number

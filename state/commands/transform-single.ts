@@ -12,6 +12,7 @@ export default function transformSingleCommand(
   isCreating: boolean
 ): void {
   const shape = deepClone(tld.getPage(data).shapes[after.id])
+  const ids = [shape.id]
 
   history.execute(
     data,
@@ -24,11 +25,13 @@ export default function transformSingleCommand(
 
         const { shapes } = tld.getPage(data)
 
-        tld.setSelectedIds(data, [id])
-
         shapes[id] = shape
 
-        tld.updateParents(data, [id])
+        tld.setSelectedIds(data, [id])
+
+        tld.updateBindings(data, ids)
+
+        tld.updateParents(data, ids)
       },
       undo(data) {
         const { id, initialShape } = before
@@ -41,8 +44,12 @@ export default function transformSingleCommand(
         } else {
           const page = tld.getPage(data)
           page.shapes[id] = initialShape
-          tld.updateParents(data, [id])
+
           tld.setSelectedIds(data, [id])
+
+          tld.updateBindings(data, ids)
+
+          tld.updateParents(data, ids)
         }
       },
     })
