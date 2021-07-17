@@ -31,6 +31,7 @@ const ShapeNode = ({
     isHovered,
     isDarkMode,
     isSelected,
+    isBinding,
     isCurrentParent,
   },
   allowHovers,
@@ -43,6 +44,7 @@ const ShapeNode = ({
         isHovered={allowHovers && isHovered}
         isSelected={isSelected}
         isDarkMode={isDarkMode}
+        isBinding={isBinding}
         isCurrentParent={isCurrentParent}
       />
       {children.map((childNode) => (

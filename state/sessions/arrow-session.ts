@@ -3,6 +3,7 @@ import {
   BindingChangeType,
   BindingType,
   Data,
+  Shape,
   ShapeType,
 } from 'types'
 import vec from 'utils/vec'
@@ -31,7 +32,7 @@ export default class ArrowSession extends BaseSession {
     this.origin = point
     this.handleId = handleId
     this.isCreating = isCreating
-    this.snapshot = getArrowSnapshot(data, shapeId)
+    this.snapshot = getArrowSnapshot(data, shapeId, handleId)
   }
 
   update(
@@ -61,21 +62,18 @@ export default class ArrowSession extends BaseSession {
       // Clear binding and try to set a new one
       data.currentBinding = undefined
 
+      const opposite = handle.id === 'start' ? handles.end : handles.start
+      const origin = opposite.point
+      const direction = vec.uni(vec.vec(origin, point))
+
       for (const id of bindableShapeIds) {
         const target = tld.getShape(data, id)
-
-        const origin =
-          handle.id === 'start'
-            ? vec.add(shape.point, handles.end.point)
-            : this.handleId === 'end'
-            ? vec.add(shape.point, handles.start.point)
-            : null
 
         const bindingPoint = getShapeUtils(target).getBindingPoint(
           target,
           point,
           origin,
-          vec.uni(vec.vec(origin, point))
+          direction
         )
 
         if (bindingPoint) {
@@ -86,6 +84,18 @@ export default class ArrowSession extends BaseSession {
 
           break
         }
+      }
+
+      if (opposite.binding) {
+        const op_target = tld.getShape(data, opposite.binding.id)
+
+        const bounds = getShapeUtils(op_target).getBounds(op_target)
+
+        getShapeUtils(shape).onBindingChange(shape, {
+          type: BindingChangeType.Update,
+          id: op_target.id,
+          bounds,
+        })
       }
     }
 
@@ -115,17 +125,39 @@ export default class ArrowSession extends BaseSession {
   }
 
   complete(data: Data): void {
-    const { initialShape } = this.snapshot
+    const { oldBindingTarget, initialShape } = this.snapshot
 
+    const shape = tld.getShape(data, initialShape.id)
+
+    let target: Shape
+    let mutatedTarget: Shape
+    let mutatedOldTarget: Shape
+
+    // Clear out the old binding target.
+    if (oldBindingTarget) {
+      mutatedOldTarget = deepClone(oldBindingTarget)
+
+      getShapeUtils(mutatedOldTarget).setProperty(
+        mutatedOldTarget,
+        'bindings',
+        mutatedOldTarget.bindings.filter((id) => id !== initialShape.id)
+      )
+    }
+
+    // If we're creating a new binding.
     if (data.currentBinding) {
-      const target = tld.getShape(data, data.currentBinding.id)
+      // Find the arrow's new target shape
+      target = deepClone(tld.getShape(data, data.currentBinding.id))
+
+      // Get the target point
       const bounds = getShapeUtils(target).getBounds(target)
+
       const targetPoint = vec.add(
         [bounds.minX, bounds.minY],
         vec.mulV(data.currentBinding.point, [bounds.width, bounds.height])
       )
 
-      const shape = tld.getShape(data, initialShape.id)
+      // Update the shape with the new binding.
       const handlePoint = shape.handles[this.handleId].point
       const distance = vec.dist(vec.add(handlePoint, shape.point), targetPoint)
 
@@ -141,37 +173,64 @@ export default class ArrowSession extends BaseSession {
         },
       })
 
-      getShapeUtils(target).setProperty(
-        target,
+      // Create a mutated target with the new binding
+      mutatedTarget = deepClone(target)
+
+      // Add this shape's id to the target's bindings
+      getShapeUtils(mutatedTarget).setProperty(
+        mutatedTarget,
         'bindings',
-        target.bindings
+        mutatedTarget.bindings
           ? [...target.bindings, initialShape.id]
           : [initialShape.id]
       )
     }
 
+    // Clear the current binding in state
     delete data.currentBinding
 
-    const before = initialShape
-    const after = deepClone(tld.getShape(data, before.id))
+    const mutatedShape = deepClone(tld.getShape(data, initialShape.id))
+
     if (this.isCreating) {
-      commands.createShapes(data, [after])
+      commands.createShapes(
+        data,
+        [mutatedShape],
+        [oldBindingTarget, target],
+        [mutatedOldTarget, mutatedTarget].filter(Boolean)
+      )
     } else {
-      commands.mutate(data, [before], [after])
+      commands.mutate(
+        data,
+        [initialShape, target, oldBindingTarget],
+        [mutatedShape, mutatedOldTarget, mutatedTarget].filter(Boolean)
+      )
     }
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function getArrowSnapshot(data: Data, shapeId: string) {
+export function getArrowSnapshot(
+  data: Data,
+  shapeId: string,
+  handleId: string
+) {
   const shape = tld.getShape(data, shapeId)
   const bindableShapeIds = tld
     .getBindableShapes(data, shape)
     .sort((a, b) => b.childIndex - a.childIndex)
     .map((shape) => shape.id)
 
+  let oldBindingTarget: Shape
+
+  const oldBinding = shape.handles[handleId].binding
+
+  if (oldBinding) {
+    oldBindingTarget = deepClone(tld.getShape(data, oldBinding.id))
+  }
+
   return {
     initialShape: deepClone(shape),
+    oldBindingTarget,
     bindableShapeIds,
   }
 }

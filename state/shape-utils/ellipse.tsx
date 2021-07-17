@@ -1,7 +1,10 @@
 import vec from 'utils/vec'
 import { DashStyle, EllipseShape, ShapeType } from 'types'
 import { getShapeUtils } from './index'
+import HitTest from 'utils/hit-test'
 import Intersect from 'utils/intersect'
+
+import { BindingIndicator } from 'components/canvas/misc'
 import {
   uniqueId,
   getSvgPathFromStroke,
@@ -19,6 +22,8 @@ import { registerShapeUtils } from './register'
 const pathCache = new WeakMap<EllipseShape, string>([])
 
 const ellipse = registerShapeUtils<EllipseShape>({
+  canBind: true,
+
   boundsCache: new WeakMap([]),
 
   defaultProps: {
@@ -42,7 +47,7 @@ const ellipse = registerShapeUtils<EllipseShape>({
     )
   },
 
-  render(shape, { isDarkMode }) {
+  render(shape, { isDarkMode, isBinding }) {
     const { radiusX, radiusY, style } = shape
     const styles = getShapeStyle(style, isDarkMode)
     const strokeWidth = +styles.strokeWidth
@@ -59,6 +64,15 @@ const ellipse = registerShapeUtils<EllipseShape>({
 
       return (
         <>
+          {isBinding && (
+            <BindingIndicator
+              as="ellipse"
+              cx={radiusX}
+              cy={radiusY}
+              rx={rx + 32}
+              ry={ry + 32}
+            />
+          )}
           <ellipse
             cx={radiusX}
             cy={radiusY}
@@ -94,18 +108,29 @@ const ellipse = registerShapeUtils<EllipseShape>({
     const sw = strokeWidth * 1.618
 
     return (
-      <ellipse
-        cx={radiusX}
-        cy={radiusY}
-        rx={rx}
-        ry={ry}
-        fill={styles.fill}
-        stroke={styles.stroke}
-        strokeWidth={sw}
-        strokeDasharray={strokeDasharray}
-        strokeDashoffset={strokeDashoffset}
-        pointerEvents="all"
-      />
+      <>
+        {isBinding && (
+          <BindingIndicator
+            as="ellipse"
+            cx={radiusX}
+            cy={radiusY}
+            rx={rx + 32}
+            ry={ry + 32}
+          />
+        )}
+        <ellipse
+          cx={radiusX}
+          cy={radiusY}
+          rx={rx}
+          ry={ry}
+          fill={styles.fill}
+          stroke={styles.stroke}
+          strokeWidth={sw}
+          strokeDasharray={strokeDasharray}
+          strokeDashoffset={strokeDashoffset}
+          pointerEvents="all"
+        />
+      </>
     )
   },
 
@@ -189,32 +214,36 @@ const ellipse = registerShapeUtils<EllipseShape>({
   getBindingPoint(shape, point, origin, direction) {
     const bounds = this.getBounds(shape)
 
-    const innerBounds = expandBounds(bounds, [-32, -32])
+    const center = this.getCenter(shape)
 
-    const expandedBounds = expandBounds(bounds, [32, 32])
-
-    if (pointInBounds(point, expandedBounds)) {
-      let intersections = Intersect.ray.rectangle(
+    if (
+      HitTest.ellipse(point, center, shape.radiusX + 32, shape.radiusY + 32)
+    ) {
+      let intersections = Intersect.ray.ellipse(
         origin,
         direction,
-        [innerBounds.minX, innerBounds.minY],
-        [innerBounds.width, innerBounds.height]
+        center,
+        shape.radiusX - 32,
+        shape.radiusY - 32,
+        shape.rotation
       )
 
-      if (intersections.length === 0) {
-        intersections = Intersect.ray.rectangle(
+      if (intersections.points.length === 0) {
+        intersections = Intersect.ray.ellipse(
           origin,
           direction,
-          [bounds.minX, bounds.minY],
-          [bounds.width, bounds.height]
+          center,
+          shape.radiusX,
+          shape.radiusY,
+          shape.rotation
         )
       }
 
-      if (intersections.length === 0) return
+      if (intersections.points.length === 0) return
 
-      const closest = intersections.sort(
-        (a, b) => vec.dist(point, a.points[0]) - vec.dist(point, b.points[0])
-      )[0].points[0]
+      const closest = intersections.points.sort(
+        (a, b) => vec.dist(point, a) - vec.dist(point, b)
+      )[0]
 
       return vec.divV(vec.sub(closest, [bounds.minX, bounds.minY]), [
         bounds.width,

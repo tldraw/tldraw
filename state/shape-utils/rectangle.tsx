@@ -12,6 +12,7 @@ import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import { registerShapeUtils } from './register'
 import Intersect from 'utils/intersect'
+import { BindingIndicator } from 'components/canvas/misc'
 
 const pathCache = new WeakMap<number[], string>([])
 
@@ -37,10 +38,9 @@ const rectangle = registerShapeUtils<RectangleShape>({
     return shape.size !== prev.size || shape.style !== prev.style
   },
 
-  render(shape, { isHovered, isDarkMode }) {
-    const { id, size, radius, style } = shape
-    const styles = getShapeStyle(style, isDarkMode)
-    const strokeWidth = +styles.strokeWidth
+  render(shape, { isBinding, isDarkMode }) {
+    const { id, size, style } = shape
+    const { strokeWidth, fill, stroke } = getShapeStyle(style, isDarkMode)
 
     if (style.dash === DashStyle.Draw) {
       const pathData = getFromCache(pathCache, shape.size, (cache) => {
@@ -49,22 +49,28 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
       return (
         <>
+          {isBinding && (
+            <BindingIndicator
+              as="rect"
+              x={strokeWidth / 2 - 32}
+              y={strokeWidth / 2 - 32}
+              width={Math.max(0, size[0] - strokeWidth / 2) + 64}
+              height={Math.max(0, size[1] - strokeWidth / 2) + 64}
+            />
+          )}
           <rect
-            rx={radius}
-            ry={radius}
-            x={+styles.strokeWidth / 2}
-            y={+styles.strokeWidth / 2}
-            width={Math.max(0, size[0] - strokeWidth)}
-            height={Math.max(0, size[1] - strokeWidth)}
-            fill={style.isFilled ? styles.fill : 'transparent'}
+            x={strokeWidth / 2}
+            y={strokeWidth / 2}
+            width={Math.max(0, size[0] - strokeWidth / 2)}
+            height={Math.max(0, size[1] - strokeWidth / 2)}
+            fill={style.isFilled ? fill : 'transparent'}
             stroke="none"
           />
           <path
             d={pathData}
-            fill={styles.stroke}
-            stroke={styles.stroke}
-            strokeWidth={styles.strokeWidth}
-            filter={isHovered ? 'url(#expand)' : 'none'}
+            fill={stroke}
+            stroke={stroke}
+            strokeWidth={strokeWidth}
             pointerEvents="all"
           />
         </>
@@ -75,6 +81,34 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
     const w = Math.max(0, size[0] - sw / 2)
     const h = Math.max(0, size[1] - sw / 2)
+
+    if (style.dash === DashStyle.Solid) {
+      return (
+        <>
+          {isBinding && (
+            <BindingIndicator
+              as="rect"
+              x={sw / 2 - 32}
+              y={sw / 2 - 32}
+              width={w + 64}
+              height={h + 64}
+            />
+          )}
+          <rect
+            x={sw / 2}
+            y={sw / 2}
+            width={w}
+            height={h}
+            fill={style.isFilled ? fill : 'transparent'}
+            stroke={stroke}
+            strokeWidth={sw}
+            pointerEvents="all"
+          />
+        </>
+      )
+    }
+
+    // Draw dashed lines as separate lines
 
     const strokes: [number[], number[], number][] = [
       [[sw / 2, sw / 2], [w, sw / 2], w - sw / 2],
@@ -97,7 +131,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
           y1={start[1]}
           x2={end[0]}
           y2={end[1]}
-          stroke={styles.stroke}
+          stroke={stroke}
           strokeWidth={sw}
           strokeLinecap="round"
           strokeDasharray={strokeDasharray}
@@ -108,19 +142,26 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
     return (
       <>
+        {isBinding && (
+          <BindingIndicator
+            as="rect"
+            x={sw / 2 - 32}
+            y={sw / 2 - 32}
+            width={w + 64}
+            height={h + 64}
+          />
+        )}
         <rect
           x={sw / 2}
           y={sw / 2}
           width={w}
           height={h}
-          fill={styles.fill}
+          fill={fill}
           stroke="transparent"
           strokeWidth={sw}
           pointerEvents="all"
         />
-        <g filter={isHovered ? 'url(#expand)' : 'none'} pointerEvents="stroke">
-          {paths}
-        </g>
+        <g pointerEvents="stroke">{paths}</g>
       </>
     )
   },

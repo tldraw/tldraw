@@ -10,6 +10,7 @@ interface ShapeProps {
   isEditing: boolean
   isHovered: boolean
   isSelected: boolean
+  isBinding: boolean
   isDarkMode: boolean
   isCurrentParent: boolean
 }
@@ -20,6 +21,7 @@ const Shape = memo(
     isEditing,
     isHovered,
     isSelected,
+    isBinding,
     isDarkMode,
     isCurrentParent,
   }: ShapeProps) => {
@@ -49,6 +51,7 @@ const Shape = memo(
             isHovered={isHovered}
             isSelected={isSelected}
             isDarkMode={isDarkMode}
+            isBinding={isBinding}
             isCurrentParent={isCurrentParent}
           />
         )}
@@ -64,6 +67,7 @@ interface RenderedShapeProps {
   shape: _Shape
   isEditing: boolean
   isHovered: boolean
+  isBinding: boolean
   isSelected: boolean
   isDarkMode: boolean
   isCurrentParent: boolean
@@ -74,6 +78,7 @@ const RenderedShape = memo(
     shape,
     isEditing,
     isHovered,
+    isBinding,
     isSelected,
     isDarkMode,
     isCurrentParent,
@@ -82,6 +87,7 @@ const RenderedShape = memo(
       isEditing,
       isHovered,
       isSelected,
+      isBinding,
       isDarkMode,
       isCurrentParent,
     })
@@ -92,6 +98,7 @@ const RenderedShape = memo(
       prev.isHovered !== next.isHovered ||
       prev.isSelected !== next.isSelected ||
       prev.isDarkMode !== next.isDarkMode ||
+      prev.isBinding !== next.isBinding ||
       prev.isCurrentParent !== next.isCurrentParent
     ) {
       return false

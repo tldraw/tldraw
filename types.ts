@@ -107,6 +107,7 @@ export interface ShapeTreeNode {
   isEditing: boolean
   isHovered: boolean
   isSelected: boolean
+  isBinding: boolean
   isDarkMode: boolean
   isCurrentParent: boolean
 }
@@ -719,6 +720,7 @@ export interface ShapeUtility<K extends Shape> {
       isEditing?: boolean
       isHovered?: boolean
       isSelected?: boolean
+      isBinding?: boolean
       isCurrentParent?: boolean
       isDarkMode?: boolean
       ref?: React.MutableRefObject<HTMLTextAreaElement>

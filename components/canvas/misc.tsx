@@ -15,3 +15,10 @@ export const Handle = styled('circle', {
 export const ThinLine = styled('line', {
   zStrokeWidth: 1,
 })
+
+export const BindingIndicator = styled('path', {
+  fill: '$brushFill',
+  stroke: '$brushStroke',
+  zStrokeWidth: 1,
+  pointerEvents: 'none',
+})

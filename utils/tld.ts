@@ -796,6 +796,7 @@ export default class StateUtils {
       isHovered: data.hoveredId === shape.id,
       isCurrentParent: data.currentParentId === shape.id,
       isEditing: data.editingId === shape.id,
+      isBinding: data.currentBinding?.id === shape.id,
       isDarkMode: data.settings.isDarkMode,
       isSelected: selectedIds.includes(shape.id),
     }

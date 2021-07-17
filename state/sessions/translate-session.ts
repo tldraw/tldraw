@@ -206,6 +206,7 @@ export function getTranslateSnapshot(data: Data) {
           id: uniqueId(),
           parentId: shape.parentId,
           childIndex: tld.getChildIndexAbove(data, shape.id),
+          bindings: undefined,
         }
 
         return clone
