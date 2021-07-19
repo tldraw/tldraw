@@ -34,6 +34,7 @@
         "type": "page",
         "name": "Page 1",
         "childIndex": 0,
+        "bindings": {},
         "shapes": {
           "e43559cb-6f41-4ae4-9c49-158ed1ad2f72": {
             "id": "e43559cb-6f41-4ae4-9c49-158ed1ad2f72",
@@ -41,8 +42,14 @@
             "name": "Rectangle",
             "parentId": "page1",
             "childIndex": 3,
-            "point": [171.47, 288.63],
-            "size": [176.22, 192.26],
+            "point": [
+              171.47,
+              288.63
+            ],
+            "size": [
+              176.22,
+              192.26
+            ],
             "radius": 2,
             "rotation": 0,
             "style": {
@@ -58,8 +65,14 @@
             "name": "Rectangle",
             "parentId": "page1",
             "childIndex": 4,
-            "point": [511.7, 404.19],
-            "size": [181.08999999999992, 150.40999999999997],
+            "point": [
+              511.7,
+              404.19
+            ],
+            "size": [
+              181.08999999999992,
+              150.40999999999997
+            ],
             "radius": 2,
             "rotation": 0,
             "style": {
@@ -75,8 +88,14 @@
             "name": "Rectangle",
             "parentId": "page1",
             "childIndex": 5,
-            "point": [384.09, 378.45],
-            "size": [95.20999999999992, 91.1799999999999],
+            "point": [
+              384.09,
+              378.45
+            ],
+            "size": [
+              95.20999999999992,
+              91.1799999999999
+            ],
             "radius": 2,
             "rotation": 0,
             "style": {
@@ -92,7 +111,10 @@
             "name": "Ellipse",
             "parentId": "page1",
             "childIndex": 6,
-            "point": [162.45, 679.23],
+            "point": [
+              162.45,
+              679.23
+            ],
             "radiusX": 102.99999999999997,
             "radiusY": 102.99999999999994,
             "rotation": 0,
@@ -109,7 +131,10 @@
             "name": "Ellipse",
             "parentId": "page1",
             "childIndex": 7,
-            "point": [517.18, 783.54],
+            "point": [
+              517.18,
+              783.54
+            ],
             "radiusX": 102.99999999999997,
             "radiusY": 102.99999999999994,
             "rotation": 0,
@@ -126,7 +151,10 @@
             "name": "Ellipse",
             "parentId": "page1",
             "childIndex": 8,
-            "point": [398.99, 810.79],
+            "point": [
+              398.99,
+              810.79
+            ],
             "radiusX": 45.484999999999985,
             "radiusY": 45.48499999999996,
             "rotation": 0,
@@ -143,24 +171,36 @@
             "name": "Arrow",
             "parentId": "page1",
             "childIndex": 9,
-            "point": [252.85, 1057.5],
+            "point": [
+              252.85,
+              1057.5
+            ],
             "rotation": 0,
             "bend": 0,
             "handles": {
               "start": {
                 "id": "start",
                 "index": 0,
-                "point": [0, 0]
+                "point": [
+                  0,
+                  0
+                ]
               },
               "end": {
                 "id": "end",
                 "index": 1,
-                "point": [0.09000000000000341, 208]
+                "point": [
+                  0.09000000000000341,
+                  208
+                ]
               },
               "bend": {
                 "id": "bend",
                 "index": 2,
-                "point": [0.045000000000001705, 104]
+                "point": [
+                  0.045000000000001705,
+                  104
+                ]
               }
             },
             "decorations": {
@@ -181,24 +221,36 @@
             "name": "Arrow",
             "parentId": "page1",
             "childIndex": 10,
-            "point": [616.9, 1124.3],
+            "point": [
+              616.9,
+              1124.3
+            ],
             "rotation": 0,
             "bend": 0,
             "handles": {
               "start": {
                 "id": "start",
                 "index": 0,
-                "point": [0, 0]
+                "point": [
+                  0,
+                  0
+                ]
               },
               "end": {
                 "id": "end",
                 "index": 1,
-                "point": [2.4500000000000455, 185.20000000000005]
+                "point": [
+                  2.4500000000000455,
+                  185.20000000000005
+                ]
               },
               "bend": {
                 "id": "bend",
                 "index": 2,
-                "point": [1.2250000000000227, 92.60000000000002]
+                "point": [
+                  1.2250000000000227,
+                  92.60000000000002
+                ]
               }
             },
             "decorations": {
@@ -219,24 +271,36 @@
             "name": "Arrow",
             "parentId": "page1",
             "childIndex": 11,
-            "point": [425.18, 1143.2],
+            "point": [
+              425.18,
+              1143.2
+            ],
             "rotation": 0,
             "bend": 0,
             "handles": {
               "start": {
                 "id": "start",
                 "index": 0,
-                "point": [0, 0]
+                "point": [
+                  0,
+                  0
+                ]
               },
               "end": {
                 "id": "end",
                 "index": 1,
-                "point": [1.8500000000000227, 95.70000000000005]
+                "point": [
+                  1.8500000000000227,
+                  95.70000000000005
+                ]
               },
               "bend": {
                 "id": "bend",
                 "index": 2,
-                "point": [0.9250000000000114, 47.85000000000002]
+                "point": [
+                  0.9250000000000114,
+                  47.85000000000002
+                ]
               }
             },
             "decorations": {
@@ -257,7 +321,10 @@
             "name": "Text",
             "parentId": "page1",
             "childIndex": 12,
-            "point": [207.16, 1422.4],
+            "point": [
+              207.16,
+              1422.4
+            ],
             "rotation": 0,
             "style": {
               "color": "Black",
@@ -274,7 +341,10 @@
             "name": "Text",
             "parentId": "page1",
             "childIndex": 13,
-            "point": [389.57, 1496.5],
+            "point": [
+              389.57,
+              1496.5
+            ],
             "rotation": 0,
             "style": {
               "color": "Black",
@@ -291,7 +361,10 @@
             "name": "Text",
             "parentId": "page1",
             "childIndex": 14,
-            "point": [564.06, 1558.1],
+            "point": [
+              564.06,
+              1558.1
+            ],
             "rotation": 0,
             "style": {
               "color": "Black",
@@ -317,7 +390,10 @@
     "page1": {
       "id": "page1",
       "camera": {
-        "point": [0, -145],
+        "point": [
+          0,
+          -145
+        ],
         "zoom": 1
       },
       "selectedIds": {}

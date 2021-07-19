@@ -178,7 +178,7 @@ export default class StateUtils {
 
     // Delete shapes
     const shapesToDelete = ids.map((id) => page.shapes[id])
-    shapesDeleted.push(...shapesDeleted.map(deepClone))
+    shapesDeleted.push(...shapesToDelete.map(deepClone))
     shapesToDelete.forEach((shape) => delete page.shapes[shape.id])
 
     // Update parents

@@ -54,6 +54,7 @@ for (let i = 0; i < count; i++) {
   "name": "My Document",
   "pages": Object {
     "page1": Object {
+      "bindings": Object {},
       "childIndex": 0,
       "id": "page1",
       "name": "Page 1",
@@ -458,6 +459,7 @@ for (let i = 0; i < count; i++) {
   "name": "My Document",
   "pages": Object {
     "page1": Object {
+      "bindings": Object {},
       "childIndex": 0,
       "id": "page1",
       "name": "Page 1",

@@ -125,6 +125,7 @@ Array [
         ],
       },
       "end": Object {
+        "canBind": true,
         "id": "end",
         "index": 1,
         "point": Array [
@@ -133,6 +134,7 @@ Array [
         ],
       },
       "start": Object {
+        "canBind": true,
         "id": "start",
         "index": 0,
         "point": Array [

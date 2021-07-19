@@ -15,7 +15,7 @@ export default function toggleCommand(
   data: Data,
   prop: PropsOfType<Shape, boolean>
 ): void {
-  const ids = tld.getSelectedIds(data)
+  const ids = [...tld.getSelectedIds(data)]
   const selectedShapes = tld.getSelectedShapes(data)
   const isAllToggled = selectedShapes.every((shape) => shape[prop])
   const initialShapes = selectedShapes.map((shape) => ({
