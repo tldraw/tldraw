@@ -14,6 +14,7 @@ import {
   boundsContained,
   getRotatedEllipseBounds,
   getPerfectDashProps,
+  expandBounds,
 } from 'utils'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
@@ -218,22 +219,38 @@ const ellipse = registerShapeUtils<EllipseShape>({
   getBindingPoint(shape, point, origin, direction) {
     const bounds = this.getBounds(shape)
 
+    const expandedBounds = expandBounds(bounds, [32, 32])
+
     const center = this.getCenter(shape)
 
-    if (
-      HitTest.ellipse(point, center, shape.radiusX + 32, shape.radiusY + 32)
-    ) {
-      let intersections = Intersect.ray.ellipse(
-        origin,
-        direction,
-        center,
-        shape.radiusX - 32,
-        shape.radiusY - 32,
-        shape.rotation
+    let bindingPoint: number[]
+    let distance: number
+
+    if (!HitTest.ellipse(point, center, shape.radiusX + 32, shape.radiusY + 32))
+      return
+
+    if (HitTest.ellipse(point, center, shape.radiusX, shape.radiusY)) {
+      bindingPoint = vec.divV(
+        vec.sub(point, [expandedBounds.minX, expandedBounds.minY]),
+        [expandedBounds.width, expandedBounds.height]
       )
 
-      if (intersections.points.length === 0) {
-        intersections = Intersect.ray.ellipse(
+      distance = 0
+    } else {
+      // Find furthest intersection between ray from
+      // origin through point and expanded bounds.
+      const intersection = Intersect.ray
+        .bounds(origin, direction, expandedBounds)
+        .filter((int) => int.didIntersect)
+        .map((int) => int.points[0])
+        .sort((a, b) => vec.dist(b, origin) - vec.dist(a, origin))[0]
+
+      // The anchor is a point between the handle and the intersection
+      const anchor = vec.med(point, intersection)
+
+      // Find the distance between the point and the ellipse
+      const innerIntersection = Intersect.ray
+        .ellipse(
           origin,
           direction,
           center,
@@ -241,20 +258,29 @@ const ellipse = registerShapeUtils<EllipseShape>({
           shape.radiusY,
           shape.rotation
         )
+        .points.sort((a, b) => vec.dist(a, origin) - vec.dist(b, origin))[0]
+
+      const distanceFromShape = vec.dist(point, innerIntersection)
+
+      if (
+        vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12
+      ) {
+        // If we're close to the center, snap to the center
+        bindingPoint = [0.5, 0.5]
+      } else {
+        // Or else calculate a normalized point
+        bindingPoint = vec.divV(
+          vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]),
+          [expandedBounds.width, expandedBounds.height]
+        )
       }
 
-      if (intersections.points.length === 0) return
+      distance = distanceFromShape
+    }
 
-      const closest = intersections.points.sort(
-        (a, b) => vec.dist(point, a) - vec.dist(point, b)
-      )[0]
-
-      const pt = vec.sub(closest, [bounds.minX, bounds.minY])
-
-      return {
-        point: pt,
-        normalized: vec.divV(pt, [bounds.width, bounds.height]),
-      }
+    return {
+      point: bindingPoint,
+      distance,
     }
   },
 })

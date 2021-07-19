@@ -29,7 +29,6 @@ export default function deleteShapes(data: Data, shapes: Shape[]): void {
       manualSelection: true,
       do(data) {
         deleted = tld.deleteShapes(data, shapeIdsToDelete)
-
         tld.setSelectedIds(data, remainingIds)
       },
       undo(data) {

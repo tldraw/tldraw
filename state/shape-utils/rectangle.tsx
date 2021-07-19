@@ -221,7 +221,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
       const anchor = vec.med(point, intersection)
 
       // Find the distance between the point and the real bounds of the shape
-      const distanceFromBounds = getBoundsSides(bounds)
+      const distanceFromShape = getBoundsSides(bounds)
         .map((side) => vec.distanceToLineSegment(side[1][0], side[1][1], point))
         .sort((a, b) => a - b)[0]
 
@@ -238,8 +238,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
         )
       }
 
-      // distance = vec.dist(point, anchor)
-      distance = distanceFromBounds
+      distance = distanceFromShape
     }
 
     return {

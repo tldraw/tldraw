@@ -28,6 +28,7 @@ import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import React from 'react'
 import { registerShapeUtils } from './register'
+import { getShapeUtils } from '.'
 
 // A cache for semi-expensive circles calculated from three points
 function getCtp(shape: ArrowShape) {
@@ -430,24 +431,49 @@ const arrow = registerShapeUtils<ArrowShape>({
 
       const direction = vec.uni(vec.sub(vec.add(anchor, shape.point), origin))
 
-      const intersectBounds = expandBounds(bounds, [
-        binding.distance,
-        binding.distance,
-      ])
+      // TODO: Abstract this part onto individual shape utils
 
-      point = Intersect.ray
-        .bounds(origin, direction, intersectBounds)
-        .filter((int) => int.didIntersect)
-        .map((int) => int.points[0])
-        .sort((a, b) => vec.dist(a, origin) - vec.dist(b, origin))[0]
+      switch (target.type) {
+        case ShapeType.Rectangle: {
+          const intersectBounds = expandBounds(bounds, [
+            binding.distance,
+            binding.distance,
+          ])
 
-      if (!point) {
-        throw Error(
-          'Could not find an intersection between the arrow and the shape'
-        )
+          point = vec.sub(
+            Intersect.ray
+              .bounds(origin, direction, intersectBounds)
+              .filter((int) => int.didIntersect)
+              .map((int) => int.points[0])
+              .sort((a, b) => vec.dist(a, origin) - vec.dist(b, origin))[0],
+            shape.point
+          )
+          break
+        }
+        case ShapeType.Ellipse: {
+          const center = getShapeUtils(target).getCenter(target)
+
+          point = vec.nudge(
+            vec.sub(
+              Intersect.ray
+                .ellipse(
+                  origin,
+                  direction,
+                  center,
+                  target.radiusX,
+                  target.radiusY,
+                  target.rotation
+                )
+                .points.sort(
+                  (a, b) => vec.dist(a, origin) - vec.dist(b, origin)
+                )[0],
+              shape.point
+            ),
+            origin,
+            binding.distance
+          )
+        }
       }
-
-      point = vec.sub(point, shape.point)
     } else {
       point = anchor
     }
