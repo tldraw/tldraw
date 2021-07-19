@@ -81,7 +81,8 @@ export default class ArrowSession extends BaseSession {
           target,
           point,
           origin,
-          direction
+          direction,
+          32
         )
 
         if (bindingPoint) {
@@ -145,7 +146,8 @@ export default class ArrowSession extends BaseSession {
           shape,
           tld.getBinding(data, nextBinding.id),
           nextTarget,
-          getShapeUtils(nextTarget).getBounds(nextTarget)
+          getShapeUtils(nextTarget).getBounds(nextTarget),
+          32
         )
       } else {
         data.editingBindingId = undefined

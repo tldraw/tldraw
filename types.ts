@@ -668,7 +668,8 @@ export interface ShapeUtility<K extends Shape> {
     shape: Mutable<K>,
     point: number[],
     origin: number[],
-    direction: number[]
+    direction: number[],
+    expandDistance: number
   ): Pick<ArrowShapeBinding, 'point' | 'distance'> | undefined
 
   // Respond when a user moves one of the shape's bound elements.
@@ -677,7 +678,8 @@ export interface ShapeUtility<K extends Shape> {
     shape: Mutable<K>,
     binding: ShapeBinding,
     target: Shape,
-    targetBounds: Bounds
+    targetBounds: Bounds,
+    expandDistance: number
   ): ShapeUtility<K>
 
   // Respond when a user moves one of the shape's handles.

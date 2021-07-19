@@ -1,4 +1,9 @@
-import { uniqueId, getFromCache } from 'utils/utils'
+import {
+  uniqueId,
+  getFromCache,
+  expandBounds,
+  getBoundsSides,
+} from 'utils/utils'
 import vec from 'utils/vec'
 import TextAreaUtils from 'utils/text-area'
 import { TextShape, ShapeType } from 'types'
@@ -11,6 +16,9 @@ import {
 import styled from 'styles'
 import state from 'state'
 import { registerShapeUtils } from './register'
+import HitTest from 'utils/hit-test'
+import Intersect from 'utils/intersect'
+import { BindingIndicator } from 'components/canvas/misc'
 
 // A div used for measurement
 document.getElementById('__textMeasure')?.remove()
@@ -47,6 +55,7 @@ const text = registerShapeUtils<TextShape>({
   isForeignObject: true,
   canChangeAspectRatio: false,
   canEdit: true,
+  canBind: true,
   boundsCache: new WeakMap([]),
 
   defaultProps: {
@@ -70,7 +79,7 @@ const text = registerShapeUtils<TextShape>({
     )
   },
 
-  render(shape, { isEditing, isDarkMode, ref }) {
+  render(shape, { isEditing, isBinding, isDarkMode, ref }) {
     const { id, text, style } = shape
     const styles = getShapeStyle(style, isDarkMode)
     const font = getFontStyle(shape.scale, shape.style)
@@ -133,6 +142,15 @@ const text = registerShapeUtils<TextShape>({
     if (!isEditing) {
       return (
         <>
+          {isBinding && (
+            <BindingIndicator
+              as="rect"
+              x={-32}
+              y={-32}
+              width={bounds.width + 64}
+              height={bounds.height + 64}
+            />
+          )}
           {text.split('\n').map((str, i) => (
             <text
               key={i}
@@ -275,6 +293,64 @@ const text = registerShapeUtils<TextShape>({
 
   shouldDelete(shape) {
     return shape.text.length === 0
+  },
+
+  getBindingPoint(shape, point, origin, direction, expandDistance) {
+    const bounds = this.getBounds(shape)
+
+    const expandedBounds = expandBounds(bounds, expandDistance)
+
+    let bindingPoint: number[]
+    let distance: number
+
+    if (!HitTest.bounds(point, expandedBounds)) return
+
+    // The point is inside of the box, so we'll assume the user is
+    // indicating a specific point inside of the box.
+    if (HitTest.bounds(point, bounds)) {
+      bindingPoint = vec.divV(
+        vec.sub(point, [expandedBounds.minX, expandedBounds.minY]),
+        [expandedBounds.width, expandedBounds.height]
+      )
+
+      distance = 0
+    } else {
+      // Find furthest intersection between ray from
+      // origin through point and expanded bounds.
+      const intersection = Intersect.ray
+        .bounds(origin, direction, expandedBounds)
+        .filter((int) => int.didIntersect)
+        .map((int) => int.points[0])
+        .sort((a, b) => vec.dist(b, origin) - vec.dist(a, origin))[0]
+
+      // The anchor is a point between the handle and the intersection
+      const anchor = vec.med(point, intersection)
+
+      // Find the distance between the point and the real bounds of the shape
+      const distanceFromShape = getBoundsSides(bounds)
+        .map((side) => vec.distanceToLineSegment(side[1][0], side[1][1], point))
+        .sort((a, b) => a - b)[0]
+
+      if (
+        vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12
+      ) {
+        // If we're close to the center, snap to the center
+        bindingPoint = [0.5, 0.5]
+      } else {
+        // Or else calculate a normalized point
+        bindingPoint = vec.divV(
+          vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]),
+          [expandedBounds.width, expandedBounds.height]
+        )
+      }
+
+      distance = distanceFromShape
+    }
+
+    return {
+      point: bindingPoint,
+      distance,
+    }
   },
 })
 

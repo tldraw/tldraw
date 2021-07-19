@@ -1124,14 +1124,14 @@ export function rotateBounds(
  * expandBounds(myBounds, [100, 100])
  *```
  */
-export function expandBounds(bounds: Bounds, delta: number[]): Bounds {
+export function expandBounds(bounds: Bounds, delta: number): Bounds {
   return {
-    minX: bounds.minX - delta[0],
-    minY: bounds.minY - delta[1],
-    maxX: bounds.maxX + delta[0],
-    maxY: bounds.maxY + delta[1],
-    width: bounds.width + delta[0] * 2,
-    height: bounds.height + delta[1] * 2,
+    minX: bounds.minX - delta,
+    minY: bounds.minY - delta,
+    maxX: bounds.maxX + delta,
+    maxY: bounds.maxY + delta,
+    width: bounds.width + delta * 2,
+    height: bounds.height + delta * 2,
   }
 }
 

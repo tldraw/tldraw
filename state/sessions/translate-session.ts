@@ -119,12 +119,12 @@ export default class TranslateSession extends BaseSession {
         })
       }
 
-      tld.updateParents(
+      tld.updateBindings(
         data,
         initialShapes.map((s) => s.id)
       )
 
-      tld.updateBindings(
+      tld.updateParents(
         data,
         initialShapes.map((s) => s.id)
       )
@@ -150,6 +150,11 @@ export default class TranslateSession extends BaseSession {
       const shape = shapes[id]
       getShapeUtils(shape).setProperty(shape, 'children', children)
     })
+
+    tld.updateBindings(
+      data,
+      initialShapes.map((s) => s.id)
+    )
 
     tld.updateParents(
       data,
@@ -206,6 +211,12 @@ export function getTranslateSnapshot(data: Data) {
           id: uniqueId(),
           parentId: shape.parentId,
           childIndex: tld.getChildIndexAbove(data, shape.id),
+        }
+
+        if (clone.handles) {
+          for (const handle of Object.values(shape.handles)) {
+            handle.binding = undefined
+          }
         }
 
         return clone

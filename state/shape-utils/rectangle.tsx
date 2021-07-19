@@ -189,10 +189,10 @@ const rectangle = registerShapeUtils<RectangleShape>({
     return true
   },
 
-  getBindingPoint(shape, point, origin, direction) {
+  getBindingPoint(shape, point, origin, direction, expandDistance) {
     const bounds = this.getBounds(shape)
 
-    const expandedBounds = expandBounds(bounds, [32, 32])
+    const expandedBounds = expandBounds(bounds, expandDistance)
 
     let bindingPoint: number[]
     let distance: number
@@ -225,10 +225,10 @@ const rectangle = registerShapeUtils<RectangleShape>({
         .map((side) => vec.distanceToLineSegment(side[1][0], side[1][1], point))
         .sort((a, b) => a - b)[0]
 
+      // If we're close to the center, snap to the center
       if (
         vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12
       ) {
-        // If we're close to the center, snap to the center
         bindingPoint = [0.5, 0.5]
       } else {
         // Or else calculate a normalized point

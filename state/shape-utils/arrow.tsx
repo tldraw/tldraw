@@ -402,7 +402,7 @@ const arrow = registerShapeUtils<ArrowShape>({
     return this
   },
 
-  onBindingChange(shape, binding, target, bounds) {
+  onBindingChange(shape, binding, target, bounds, expandDistance) {
     const handle = shape.handles[binding.fromHandleId]
 
     if (!handle) {
@@ -411,7 +411,7 @@ const arrow = registerShapeUtils<ArrowShape>({
       )
     }
 
-    const expandedBounds = expandBounds(bounds, [32, 32])
+    const expandedBounds = expandBounds(bounds, expandDistance)
 
     const anchor = vec.sub(
       vec.add(
@@ -434,20 +434,31 @@ const arrow = registerShapeUtils<ArrowShape>({
       // TODO: Abstract this part onto individual shape utils
 
       switch (target.type) {
+        case ShapeType.Text:
         case ShapeType.Rectangle: {
-          const intersectBounds = expandBounds(bounds, [
-            binding.distance,
-            binding.distance,
-          ])
+          const intersectBounds = expandBounds(bounds, binding.distance)
 
-          point = vec.sub(
-            Intersect.ray
-              .bounds(origin, direction, intersectBounds)
+          let hits = Intersect.ray
+            .bounds(origin, direction, intersectBounds)
+            .filter((int) => int.didIntersect)
+            .map((int) => int.points[0])
+            .sort((a, b) => vec.dist(a, origin) - vec.dist(b, origin))
+
+          if (hits.length < 2) {
+            hits = Intersect.ray
+              .bounds(origin, vec.neg(direction), intersectBounds)
               .filter((int) => int.didIntersect)
               .map((int) => int.points[0])
-              .sort((a, b) => vec.dist(a, origin) - vec.dist(b, origin))[0],
-            shape.point
-          )
+              .sort((a, b) => vec.dist(a, origin) - vec.dist(b, origin))
+          }
+
+          if (!hits[0]) {
+            console.warn('No intersection.')
+            return
+          }
+
+          point = vec.sub(hits[0], shape.point)
+
           break
         }
         case ShapeType.Ellipse: {
@@ -483,7 +494,7 @@ const arrow = registerShapeUtils<ArrowShape>({
       {
         [handle.id]: {
           ...shape.handles[handle.id],
-          point,
+          point: vec.round(point),
         },
       },
       { shiftKey: false }

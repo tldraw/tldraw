@@ -70,8 +70,8 @@ const ellipse = registerShapeUtils<EllipseShape>({
               as="ellipse"
               cx={radiusX}
               cy={radiusY}
-              rx={rx + 32}
-              ry={ry + 32}
+              rx={rx + 2}
+              ry={ry + 2}
             />
           )}
           <ellipse
@@ -216,10 +216,10 @@ const ellipse = registerShapeUtils<EllipseShape>({
     return this.transform(shape, bounds, info)
   },
 
-  getBindingPoint(shape, point, origin, direction) {
+  getBindingPoint(shape, point, origin, direction, expandDistance) {
     const bounds = this.getBounds(shape)
 
-    const expandedBounds = expandBounds(bounds, [32, 32])
+    const expandedBounds = expandBounds(bounds, expandDistance)
 
     const center = this.getCenter(shape)
 

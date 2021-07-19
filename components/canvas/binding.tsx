@@ -14,7 +14,9 @@ export default function Binding(): JSX.Element {
   return (
     <g pointerEvents="none">
       {type === 'center' && <StyledCenter cx={x} cy={y} r={8} stroke="blue" />}
-      <StyledCross href="#cross" x={x} y={y} fill="blue" stroke="blue" />
+      {type !== 'pin' && (
+        <StyledCross href="#cross" x={x} y={y} fill="blue" stroke="blue" />
+      )}
     </g>
   )
 }

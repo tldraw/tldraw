@@ -872,7 +872,24 @@ export default class StateUtils {
   static updateBindings(data: Data, changedShapeIds: string[]): void {
     if (changedShapeIds.length === 0) return
 
-    const bindingsToUpdate = this.getBindingsWithShapeIds(data, changedShapeIds)
+    // First gather all bindings that are directly affected by the change
+    const firstPassBindings = this.getBindingsWithShapeIds(
+      data,
+      changedShapeIds
+    )
+
+    // Gather all shapes that will be effected by the binding changes
+    const effectedShapeIds = Array.from(
+      new Set(
+        firstPassBindings.flatMap((binding) => [binding.toId, binding.fromId])
+      ).values()
+    )
+
+    // Now get all bindings that are affected by those shapes
+    const bindingsToUpdate = this.getBindingsWithShapeIds(
+      data,
+      effectedShapeIds
+    )
 
     // Populate a map of { [shapeId]: BindingsThatWillEffectTheShape[] }
     // Note that this will include both to and from bindings, and so will
@@ -908,7 +925,8 @@ export default class StateUtils {
           shape,
           binding,
           otherShape,
-          otherBounds
+          otherBounds,
+          32
         )
       })
     })

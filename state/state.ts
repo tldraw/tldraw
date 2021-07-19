@@ -167,6 +167,7 @@ const state = createState({
       'clearLocalStorage',
       'saveAppState',
       'saveDocumentState',
+      'updateZoomCSS',
     ],
   },
   initial: 'loading',
@@ -177,6 +178,7 @@ const state = createState({
           'resetHistory',
           'resetStorage',
           'restoredPreviousDocument',
+          'updateZoomCSS',
           { to: 'ready' },
         ],
       },
@@ -2320,10 +2322,16 @@ const state = createState({
 
       const bounds = getShapeUtils(shape).getBounds(shape)
 
-      const expandedBounds = expandBounds(bounds, [32, 32])
+      const expandDistance = 32
+
+      const expandedBounds = expandBounds(bounds, expandDistance)
 
       return {
-        type: vec.isEqual(binding.point, [0.5, 0.5]) ? 'center' : 'anchor',
+        type: vec.isEqual(binding.point, [0.5, 0.5])
+          ? 'center'
+          : binding.distance === 0
+          ? 'pin'
+          : 'anchor',
         point: vec.add(
           [expandedBounds.minX, expandedBounds.minY],
           vec.mulV([expandedBounds.width, expandedBounds.height], binding.point)
