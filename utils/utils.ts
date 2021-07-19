@@ -1209,6 +1209,30 @@ export function getRotatedCorners(b: Bounds, rotation: number): number[][] {
   ].map((point) => vec.rotWith(point, center, rotation))
 }
 
+export function getRectangleSides(
+  point: number[],
+  size: number[]
+): [string, number[][]][] {
+  const tl = point
+  const tr = vec.add(point, [size[0], 0])
+  const br = vec.add(point, size)
+  const bl = vec.add(point, [0, size[1]])
+
+  return [
+    ['top', [tl, tr]],
+    ['right', [tr, br]],
+    ['bottom', [br, bl]],
+    ['left', [bl, tl]],
+  ]
+}
+
+export function getBoundsSides(bounds: Bounds): [string, number[][]][] {
+  return getRectangleSides(
+    [bounds.minX, bounds.minY],
+    [bounds.width, bounds.height]
+  )
+}
+
 export function getTransformedBoundingBox(
   bounds: Bounds,
   handle: Corner | Edge | 'center',

@@ -83,6 +83,7 @@ const initialData: Data = {
         name: 'Page 1',
         childIndex: 0,
         shapes: {},
+        bindings: {},
       },
     },
     code: {
@@ -176,18 +177,6 @@ const state = createState({
           'resetHistory',
           'resetStorage',
           'restoredPreviousDocument',
-          { to: 'settingCamera' },
-        ],
-      },
-    },
-    settingCamera: {
-      on: {
-        MOUNTED_SHAPES: [
-          // {
-          //   if: 'hasSelection',
-          //   do: 'zoomCameraToSelectionActual',
-          //   else: 'zoomCameraToFit',
-          // },
           { to: 'ready' },
         ],
       },
@@ -195,7 +184,7 @@ const state = createState({
     ready: {
       on: {
         UNMOUNTED: {
-          do: ['saveDocumentState', 'resetDocumentState'],
+          do: ['saveDocumentState'], //, 'resetDocumentState'],
           to: 'loading',
         },
         CLOSED_CODE_CONTROLS: 'clearCodeControls',
@@ -1392,6 +1381,7 @@ const state = createState({
           name: 'Page 1',
           type: 'page',
           shapes: {},
+          bindings: {},
           childIndex: 1,
         },
       }
@@ -2320,24 +2310,24 @@ const state = createState({
       return tree
     },
     currentBinding(data) {
-      const { currentBinding } = data
+      const { editingBindingId } = data
 
-      if (!currentBinding) return
+      if (!editingBindingId) return
 
-      const shape = tld.getShape(data, currentBinding.id)
+      const binding = tld.getBinding(data, editingBindingId)
+
+      const shape = tld.getShape(data, binding.toId)
 
       const bounds = getShapeUtils(shape).getBounds(shape)
 
       const expandedBounds = expandBounds(bounds, [32, 32])
 
-      const point = vec.add(
-        [bounds.minX, bounds.minY],
-        vec.mulV(currentBinding.point, [bounds.width, bounds.height])
-      )
-
       return {
-        expandedBounds,
-        point,
+        type: vec.isEqual(binding.point, [0.5, 0.5]) ? 'center' : 'anchor',
+        point: vec.add(
+          [expandedBounds.minX, expandedBounds.minY],
+          vec.mulV([expandedBounds.width, expandedBounds.height], binding.point)
+        ),
       }
     },
   },

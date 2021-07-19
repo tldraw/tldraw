@@ -49,7 +49,7 @@ export default class HandleSession extends BaseSession {
       shape,
       {
         [this.handleId]: {
-          ...handles[this.handleId],
+          ...shape.handles[this.handleId],
           point: vec.round(vec.add(handles[this.handleId].point, delta)), // vec.rot(delta, shape.rotation)),
         },
       },

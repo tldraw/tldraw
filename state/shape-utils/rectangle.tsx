@@ -3,7 +3,7 @@ import {
   getPerfectDashProps,
   getFromCache,
   expandBounds,
-  pointInBounds,
+  getBoundsSides,
 } from 'utils/utils'
 import vec from 'utils/vec'
 import { DashStyle, RectangleShape, ShapeType } from 'types'
@@ -11,8 +11,9 @@ import { getSvgPathFromStroke, translateBounds, rng, shuffleArr } from 'utils'
 import { defaultStyle, getShapeStyle } from 'state/shape-styles'
 import getStroke from 'perfect-freehand'
 import { registerShapeUtils } from './register'
-import Intersect from 'utils/intersect'
 import { BindingIndicator } from 'components/canvas/misc'
+import Intersect from 'utils/intersect'
+import HitTest from 'utils/hit-test'
 
 const pathCache = new WeakMap<number[], string>([])
 
@@ -48,7 +49,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
       })
 
       return (
-        <>
+        <g strokeLinecap="round" strokeLinejoin="round">
           {isBinding && (
             <BindingIndicator
               as="rect"
@@ -73,7 +74,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
             strokeWidth={strokeWidth}
             pointerEvents="all"
           />
-        </>
+        </g>
       )
     }
 
@@ -84,7 +85,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
     if (style.dash === DashStyle.Solid) {
       return (
-        <>
+        <g strokeLinecap="round" strokeLinejoin="round">
           {isBinding && (
             <BindingIndicator
               as="rect"
@@ -104,7 +105,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
             strokeWidth={sw}
             pointerEvents="all"
           />
-        </>
+        </g>
       )
     }
 
@@ -133,7 +134,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
           y2={end[1]}
           stroke={stroke}
           strokeWidth={sw}
-          strokeLinecap="round"
+          pointerEvents="stroke"
           strokeDasharray={strokeDasharray}
           strokeDashoffset={strokeDashoffset}
         />
@@ -141,7 +142,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
     })
 
     return (
-      <>
+      <g strokeLinecap="round" strokeLinejoin="round">
         {isBinding && (
           <BindingIndicator
             as="rect"
@@ -160,9 +161,11 @@ const rectangle = registerShapeUtils<RectangleShape>({
           stroke="transparent"
           strokeWidth={sw}
           pointerEvents="all"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
-        <g pointerEvents="stroke">{paths}</g>
-      </>
+        {paths}
+      </g>
     )
   },
 
@@ -189,37 +192,59 @@ const rectangle = registerShapeUtils<RectangleShape>({
   getBindingPoint(shape, point, origin, direction) {
     const bounds = this.getBounds(shape)
 
-    const innerBounds = expandBounds(bounds, [-32, -32])
-
     const expandedBounds = expandBounds(bounds, [32, 32])
 
-    if (pointInBounds(point, expandedBounds)) {
-      let intersections = Intersect.ray.rectangle(
-        origin,
-        direction,
-        [innerBounds.minX, innerBounds.minY],
-        [innerBounds.width, innerBounds.height]
+    let bindingPoint: number[]
+    let distance: number
+
+    if (!HitTest.bounds(point, expandedBounds)) return
+
+    // The point is inside of the box, so we'll assume the user is
+    // indicating a specific point inside of the box.
+    if (HitTest.bounds(point, bounds)) {
+      bindingPoint = vec.divV(
+        vec.sub(point, [expandedBounds.minX, expandedBounds.minY]),
+        [expandedBounds.width, expandedBounds.height]
       )
 
-      if (intersections.length === 0) {
-        intersections = Intersect.ray.rectangle(
-          origin,
-          direction,
-          [bounds.minX, bounds.minY],
-          [bounds.width, bounds.height]
+      distance = 0
+    } else {
+      // Find furthest intersection between ray from
+      // origin through point and expanded bounds.
+      const intersection = Intersect.ray
+        .bounds(origin, direction, expandedBounds)
+        .filter((int) => int.didIntersect)
+        .map((int) => int.points[0])
+        .sort((a, b) => vec.dist(b, origin) - vec.dist(a, origin))[0]
+
+      // The anchor is a point between the handle and the intersection
+      const anchor = vec.med(point, intersection)
+
+      // Find the distance between the point and the real bounds of the shape
+      const distanceFromBounds = getBoundsSides(bounds)
+        .map((side) => vec.distanceToLineSegment(side[1][0], side[1][1], point))
+        .sort((a, b) => a - b)[0]
+
+      if (
+        vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12
+      ) {
+        // If we're close to the center, snap to the center
+        bindingPoint = [0.5, 0.5]
+      } else {
+        // Or else calculate a normalized point
+        bindingPoint = vec.divV(
+          vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]),
+          [expandedBounds.width, expandedBounds.height]
         )
       }
 
-      if (intersections.length === 0) return
+      // distance = vec.dist(point, anchor)
+      distance = distanceFromBounds
+    }
 
-      const closest = intersections.sort(
-        (a, b) => vec.dist(point, a.points[0]) - vec.dist(point, b.points[0])
-      )[0].points[0]
-
-      return vec.divV(vec.sub(closest, [bounds.minX, bounds.minY]), [
-        bounds.width,
-        bounds.height,
-      ])
+    return {
+      point: bindingPoint,
+      distance,
     }
   },
 

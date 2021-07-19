@@ -14,11 +14,10 @@ import {
   lerpAngles,
   clamp,
   getFromCache,
+  expandBounds,
 } from 'utils'
 import {
   ArrowShape,
-  BindingChangeType,
-  BindingType,
   DashStyle,
   Decoration,
   ShapeHandle,
@@ -402,99 +401,67 @@ const arrow = registerShapeUtils<ArrowShape>({
     return this
   },
 
-  onBindingChange(shape, change) {
-    const handle = Object.values(shape.handles).find(
-      (handle) => handle.binding?.id === change.id
+  onBindingChange(shape, binding, target, bounds) {
+    const handle = shape.handles[binding.fromHandleId]
+
+    if (!handle) {
+      throw Error(
+        'Could not find a handle with the binding id: ' + binding.fromHandleId
+      )
+    }
+
+    const expandedBounds = expandBounds(bounds, [32, 32])
+
+    const anchor = vec.sub(
+      vec.add(
+        [expandedBounds.minX, expandedBounds.minY],
+        vec.mulV([expandedBounds.width, expandedBounds.height], binding.point)
+      ),
+      shape.point
     )
 
-    switch (change.type) {
-      case BindingChangeType.Create: {
-        this.setProperty(
-          shape,
-          'bindings',
-          shape.bindings ? [...shape.bindings, change.id] : [change.id]
-        )
+    let point: number[]
 
-        this.setProperty(shape, 'handles', {
-          ...shape.handles,
-          [change.handleId]: {
-            ...shape.handles[change.handleId],
-            binding: change.binding,
-          },
-        })
-        break
+    if (binding.distance) {
+      const origin = vec.add(
+        shape.point,
+        shape.handles[binding.fromHandleId === 'start' ? 'end' : 'start'].point
+      )
+
+      const direction = vec.uni(vec.sub(vec.add(anchor, shape.point), origin))
+
+      const intersectBounds = expandBounds(bounds, [
+        binding.distance,
+        binding.distance,
+      ])
+
+      point = Intersect.ray
+        .bounds(origin, direction, intersectBounds)
+        .filter((int) => int.didIntersect)
+        .map((int) => int.points[0])
+        .sort((a, b) => vec.dist(a, origin) - vec.dist(b, origin))[0]
+
+      if (!point) {
+        throw Error(
+          'Could not find an intersection between the arrow and the shape'
+        )
       }
-      case BindingChangeType.Delete: {
-        if (!handle) {
-          throw Error(
-            'Could not find a handle with the binding id: ' + change.id
-          )
-        }
 
-        // Update bindings ids
-        const nextBindings = shape.bindings.filter((id) => id !== change.id)
-
-        this.setProperty(
-          shape,
-          'bindings',
-          nextBindings.length > 0 ? nextBindings : undefined
-        )
-
-        // Remove binding from handle
-        this.setProperty(shape, 'handles', {
-          ...shape.handles,
-          [handle.id]: { ...shape.handles[handle.id], binding: undefined },
-        })
-
-        // Update handles
-        this.onHandleChange(shape, shape.handles, { shiftKey: false })
-
-        break
-      }
-      case BindingChangeType.Update: {
-        if (!handle) {
-          throw Error(
-            'Could not find a handle with the binding id: ' + change.id
-          )
-        }
-
-        const binding = handle.binding
-
-        const { minX, minY, width, height } = change.bounds
-
-        let bindingPoint = vec.sub(
-          vec.add([minX, minY], vec.mulV(binding.point, [width, height])),
-          shape.point
-        )
-
-        if (binding.type === BindingType.Point) {
-          bindingPoint = vec.sub(
-            vec.add([minX, minY], vec.mulV(binding.point, [width, height])),
-            shape.point
-          )
-        } else {
-          const opposite =
-            handle.id === 'start' ? shape.handles.end : shape.handles.start
-
-          bindingPoint = vec.nudge(
-            bindingPoint,
-            opposite.point,
-            binding.distance
-          )
-        }
-
-        this.onHandleChange(
-          shape,
-          {
-            ...shape.handles,
-            [handle.id]: { ...handle, point: bindingPoint },
-          },
-          { shiftKey: false }
-        )
-
-        break
-      }
+      point = vec.sub(point, shape.point)
+    } else {
+      point = anchor
     }
+
+    this.onHandleChange(
+      shape,
+      {
+        [handle.id]: {
+          ...shape.handles[handle.id],
+          point,
+        },
+      },
+      { shiftKey: false }
+    )
 
     return this
   },

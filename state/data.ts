@@ -9,6 +9,7 @@ export const defaultDocument: Data['document'] = {
       type: 'page',
       name: 'Page 1',
       childIndex: 0,
+      bindings: {},
       shapes: {
         // textShape0: shapeUtils[ShapeType.Text].create({
         //   id: 'textShape0',
@@ -183,6 +184,7 @@ export const defaultDocument: Data['document'] = {
       name: 'Page 2',
       childIndex: 1,
       shapes: {},
+      bindings: {},
     },
   },
   code: {

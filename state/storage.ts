@@ -19,7 +19,11 @@ class Storage {
 
     // 1. Load Document from Local Storage
     // Using the "last opened file id" in local storage.
-    if (lastOpenedFileId !== null) {
+    if (lastOpenedFileId === null) {
+      console.warn(
+        `Could not load that document (${lastOpenedFileId}) from local storage.`
+      )
+    } else {
       // Load state from local storage
       const savedState = localStorage.getItem(
         storageId(lastOpenedFileId, 'document-state', lastOpenedFileId)
@@ -358,6 +362,7 @@ class Storage {
         childIndex: Object.keys(data.document.pages).length,
         name: 'New Page',
         shapes: {},
+        bindings: {},
       }
     }
 

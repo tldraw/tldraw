@@ -88,6 +88,8 @@ const ellipse = registerShapeUtils<EllipseShape>({
             stroke={styles.stroke}
             strokeWidth={strokeWidth}
             pointerEvents="all"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </>
       )
@@ -129,6 +131,8 @@ const ellipse = registerShapeUtils<EllipseShape>({
           strokeDasharray={strokeDasharray}
           strokeDashoffset={strokeDashoffset}
           pointerEvents="all"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </>
     )
@@ -245,10 +249,12 @@ const ellipse = registerShapeUtils<EllipseShape>({
         (a, b) => vec.dist(point, a) - vec.dist(point, b)
       )[0]
 
-      return vec.divV(vec.sub(closest, [bounds.minX, bounds.minY]), [
-        bounds.width,
-        bounds.height,
-      ])
+      const pt = vec.sub(closest, [bounds.minX, bounds.minY])
+
+      return {
+        point: pt,
+        normalized: vec.divV(pt, [bounds.width, bounds.height]),
+      }
     }
   },
 })

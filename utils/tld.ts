@@ -15,7 +15,7 @@ import {
   ShapeTreeNode,
   ShapeByType,
   ShapesWithProp,
-  BindingChangeType,
+  ShapeBinding,
 } from 'types'
 import { AssertionError } from 'assert'
 import { lerp } from './utils'
@@ -154,8 +154,9 @@ export default class StateUtils {
   static deleteShapes(
     data: Data,
     shapeIds: string[] | Shape[],
-    shapesDeleted: Shape[] = []
-  ): Shape[] {
+    shapesDeleted: Shape[] = [],
+    bindingsDeleted: ShapeBinding[] = []
+  ): { shapes: Shape[]; bindings: ShapeBinding[] } {
     const ids =
       typeof shapeIds[0] === 'string'
         ? (shapeIds as string[])
@@ -167,26 +168,18 @@ export default class StateUtils {
 
     const parentIds = new Set(ids.map((id) => page.shapes[id].parentId))
 
+    // Delete bindings that effect the current ids
+    const bindingsToDelete = this.getBindingsWithShapeIds(data, ids)
+    bindingsDeleted.push(...bindingsToDelete.map(deepClone))
+    this.deleteBindings(
+      data,
+      bindingsToDelete.map((b) => b.id)
+    )
+
     // Delete shapes
-    ids.forEach((id) => {
-      const shape = page.shapes[id]
-
-      // Remove bindings
-      if (shape.bindings) {
-        shape.bindings.forEach((boundId) => {
-          const boundShape = page.shapes[boundId]
-
-          getShapeUtils(boundShape).onBindingChange(boundShape, {
-            type: BindingChangeType.Delete,
-            id: shape.id,
-          })
-        })
-      }
-
-      shapesDeleted.push(deepClone(page.shapes[id]))
-
-      delete page.shapes[id]
-    })
+    const shapesToDelete = ids.map((id) => page.shapes[id])
+    shapesDeleted.push(...shapesDeleted.map(deepClone))
+    shapesToDelete.forEach((shape) => delete page.shapes[shape.id])
 
     // Update parents
     parentIds.forEach((id) => {
@@ -255,10 +248,18 @@ export default class StateUtils {
     })
 
     if (parentsToDelete.length > 0) {
-      return this.deleteShapes(data, parentsToDelete, shapesDeleted)
+      return this.deleteShapes(
+        data,
+        parentsToDelete,
+        shapesDeleted,
+        bindingsDeleted
+      )
     }
 
-    return shapesDeleted
+    return {
+      shapes: shapesDeleted,
+      bindings: bindingsDeleted,
+    }
   }
 
   /**
@@ -719,34 +720,6 @@ export default class StateUtils {
     )
   }
 
-  static updateBindings(data: Data, changedShapeIds: string[]): void {
-    if (changedShapeIds.length === 0) return
-
-    const { shapes } = this.getPage(data)
-
-    for (const shapeId of changedShapeIds) {
-      const shape = shapes[shapeId]
-
-      if (!shape.bindings) continue
-
-      for (const bindingId of shape.bindings) {
-        const boundShape = shapes[bindingId]
-
-        if (!boundShape) {
-          throw Error('could not find that bound shape')
-        }
-
-        const bounds = getShapeUtils(shape).getBounds(shape)
-
-        getShapeUtils(boundShape).onBindingChange(boundShape, {
-          type: BindingChangeType.Update,
-          id: shape.id,
-          bounds,
-        })
-      }
-    }
-  }
-
   /**
    * Recursively update shape parents.
    * @param data
@@ -790,13 +763,15 @@ export default class StateUtils {
     branch: ShapeTreeNode[],
     shape: Shape
   ): void {
+    const currentBinding = this.getBinding(data, data.editingBindingId)
+
     const node = {
       shape,
       children: [],
       isHovered: data.hoveredId === shape.id,
       isCurrentParent: data.currentParentId === shape.id,
       isEditing: data.editingId === shape.id,
-      isBinding: data.currentBinding?.id === shape.id,
+      isBinding: currentBinding?.toId === shape.id,
       isDarkMode: data.settings.isDarkMode,
       isSelected: selectedIds.includes(shape.id),
     }
@@ -811,5 +786,131 @@ export default class StateUtils {
           this.addToShapeTree(data, selectedIds, node.children, childShape)
         })
     }
+  }
+
+  /* -------------------------------------------------- */
+  /*                      Bindings                      */
+  /* -------------------------------------------------- */
+
+  /**
+   * Get a binding by its id.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.getBinding(data, myBindingId)
+   *```
+   */
+  static getBinding(data: Data, id: string): ShapeBinding {
+    return this.getPage(data).bindings[id]
+  }
+
+  /**
+   * Get the current page's bindings.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.getBindings(data)
+   *```
+   */
+  static getBindings(data: Data): ShapeBinding[] {
+    const page = this.getPage(data)
+    return Object.values(page.bindings)
+  }
+
+  /**
+   * Create one or more bindings.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.createBindings(data, myBindings)
+   *```
+   */
+  static createBindings(data: Data, bindings: ShapeBinding[]): void {
+    const page = this.getPage(data)
+    bindings.forEach((binding) => (page.bindings[binding.id] = binding))
+  }
+
+  /**
+   * Delete one or more bindings.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.deleteBindings(data, myBindingIds)
+   *```
+   */
+  static deleteBindings(data: Data, ids: string[]): void {
+    if (ids.length === 0) return
+
+    const page = this.getPage(data)
+
+    ids.forEach((id) => delete page.bindings[id])
+  }
+
+  /**
+   * Get a unique array of bindings that relate to the given ids.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.getBindingsWithShapeIds(data, mySelectedIds)
+   *```
+   */
+  static getBindingsWithShapeIds(data: Data, ids: string[]): ShapeBinding[] {
+    return Array.from(
+      new Set(
+        this.getBindings(data).filter((binding) => {
+          return ids.includes(binding.toId) || ids.includes(binding.fromId)
+        })
+      ).values()
+    )
+  }
+
+  static updateBindings(data: Data, changedShapeIds: string[]): void {
+    if (changedShapeIds.length === 0) return
+
+    const bindingsToUpdate = this.getBindingsWithShapeIds(data, changedShapeIds)
+
+    // Populate a map of { [shapeId]: BindingsThatWillEffectTheShape[] }
+    // Note that this will include both to and from bindings, and so will
+    // likely include ids other than the changedShapeIds provided.
+
+    const shapeIdToBindingsMap = new Map<string, ShapeBinding[]>()
+
+    bindingsToUpdate.forEach((binding) => {
+      const { toId, fromId } = binding
+
+      for (const id of [toId, fromId]) {
+        if (!shapeIdToBindingsMap.has(id)) {
+          shapeIdToBindingsMap.set(id, [binding])
+        } else {
+          const bindings = shapeIdToBindingsMap.get(id)
+          bindings.push(binding)
+        }
+      }
+    })
+
+    // Update each effected shape with the binding that effects it.
+    Array.from(shapeIdToBindingsMap.entries()).forEach(([id, bindings]) => {
+      const shape = this.getShape(data, id)
+      bindings.forEach((binding) => {
+        const otherShape =
+          binding.toId === id
+            ? this.getShape(data, binding.fromId)
+            : this.getShape(data, binding.toId)
+
+        const otherBounds = getShapeUtils(otherShape).getBounds(otherShape)
+
+        getShapeUtils(shape).onBindingChange(
+          shape,
+          binding,
+          otherShape,
+          otherBounds
+        )
+      })
+    })
   }
 }

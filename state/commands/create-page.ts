@@ -67,6 +67,7 @@ function getSnapshot(data: Data) {
     name: `Page ${unchanged.length + 1}`,
     childIndex: pages.length,
     shapes: {},
+    bindings: {},
   }
 
   const pageState: PageState = {

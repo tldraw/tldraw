@@ -46,10 +46,7 @@ export interface Data {
   currentPageId: string
   currentParentId: string
   currentCodeFileId: string
-  currentBinding?: {
-    id: string
-    point: number[]
-  }
+  editingBindingId?: string
   codeControls: Record<string, CodeControl>
   document: TLDocument
   pageStates: Record<string, PageState>
@@ -72,6 +69,7 @@ export interface Page {
   childIndex: number
   name: string
   shapes: Record<string, Shape>
+  bindings: Record<string, ShapeBinding>
 }
 
 export interface PageState {
@@ -197,7 +195,6 @@ export interface BaseShape {
   rotation: number
   children?: string[]
   points?: number[][]
-  bindings?: string[]
   handles?: Record<string, ShapeHandle>
   isLocked?: boolean
   isHidden?: boolean
@@ -314,25 +311,23 @@ export enum Decoration {
   Arrow = 'Arrow',
 }
 
+/* -------------------- Bindings -------------------- */
+
 export enum BindingType {
-  Direction = 'Direction',
-  Point = 'Point',
+  Arrow = 'Arrow',
 }
 
-export interface DirectionShapeBinding {
-  type: BindingType.Direction
+export interface ArrowShapeBinding {
   id: string
+  type: BindingType.Arrow
+  toId: string
+  fromId: string
+  fromHandleId: string
   point: number[]
   distance: number
 }
 
-export interface PointShapeBinding {
-  type: BindingType.Point
-  id: string
-  point: number[]
-}
-
-export type ShapeBinding = DirectionShapeBinding | PointShapeBinding
+export type ShapeBinding = ArrowShapeBinding // | SomeOtherBinding
 
 export enum BindingChangeType {
   Create = 'create',
@@ -362,7 +357,7 @@ export interface ShapeHandle {
   index: number
   point: number[]
   canBind?: boolean
-  binding?: ShapeBinding
+  binding?: string
 }
 
 /* ------------------ Types by Prop ----------------- */
@@ -674,13 +669,15 @@ export interface ShapeUtility<K extends Shape> {
     point: number[],
     origin: number[],
     direction: number[]
-  ): number[] | undefined
+  ): Pick<ArrowShapeBinding, 'point' | 'distance'> | undefined
 
   // Respond when a user moves one of the shape's bound elements.
   onBindingChange(
     this: ShapeUtility<K>,
     shape: Mutable<K>,
-    change: BindingChange
+    binding: ShapeBinding,
+    target: Shape,
+    targetBounds: Bounds
   ): ShapeUtility<K>
 
   // Respond when a user moves one of the shape's handles.

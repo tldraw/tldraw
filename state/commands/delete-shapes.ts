@@ -1,6 +1,6 @@
 import Command from './command'
 import history from '../history'
-import { Data, Shape } from 'types'
+import { Data, Shape, ShapeBinding } from 'types'
 import tld from 'utils/tld'
 
 export default function deleteShapes(data: Data, shapes: Shape[]): void {
@@ -16,7 +16,10 @@ export default function deleteShapes(data: Data, shapes: Shape[]): void {
 
   // We're going to delete the shapes and their children, too; and possibly
   // their parents, if we delete all of a group shape's children.
-  let deletedShapes: Shape[] = []
+  let deleted: { shapes: Shape[]; bindings: ShapeBinding[] } = {
+    shapes: [],
+    bindings: [],
+  }
 
   history.execute(
     data,
@@ -25,11 +28,12 @@ export default function deleteShapes(data: Data, shapes: Shape[]): void {
       category: 'canvas',
       manualSelection: true,
       do(data) {
-        deletedShapes = tld.deleteShapes(data, shapeIdsToDelete)
+        deleted = tld.deleteShapes(data, shapeIdsToDelete)
         tld.setSelectedIds(data, remainingIds)
       },
       undo(data) {
-        tld.createShapes(data, deletedShapes)
+        tld.createShapes(data, deleted.shapes)
+        tld.createBindings(data, deleted.bindings)
         tld.setSelectedIds(data, initialSelectedIds)
       },
     })
