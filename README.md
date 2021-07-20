@@ -212,7 +212,7 @@ on: {
 }
 ```
 
-Asyncs are asyncronous functions. They work like results, but resolve data instead.
+Asyncs are asynchronous functions. They work like results, but resolve data instead.
 
 ```ts
 async getCurrentUser(data) {
@@ -259,7 +259,7 @@ function SomeComponent() {
 }
 ```
 
-Each time the state updates, the hook will check whether the data returned by the selector function matches its previous data. If the answer is false (ie if the data is new) then hook will update and the new data will become the hook's previous data.
+Each time the state updates, the hook will check whether the data returned by the selector function matches its previous data. If the answer is false (ie if the data is new) the hook will update and the new data will become its previous data.
 
 The hook may also accept a second parameter, a comparison function. If the selector function returns anything other than a primitive, we will often use a comparison function to correctly find changes.
 
@@ -301,7 +301,7 @@ Note that with very few exceptions, we send events to the state regardless of wh
 
 ### Commands and History
 
-The app uses a command pattern to keep track of what has happened in the app, and to support an undo and redo stack. Each command includes a `do` method and an `undo` method. When the command is created, it will run its `do` method. If is is "undone", it will run its `undo` method. If the command is "redone", it will run its `do` method again.
+The app uses a command pattern to keep track of what has happened in the app, and to support an undo and redo stack. Each command includes a `do` method and an `undo` method. When the command is created, it will run its `do` method. If it is "undone", it will run its `undo` method. If the command is "redone", it will run its `do` method again.
 
 ```ts
 export default function nudgeCommand(data: Data, delta: number[]): void {
@@ -337,7 +337,7 @@ export default function nudgeCommand(data: Data, delta: number[]): void {
 
 Undos are not done programatically. It's the responsibility of a command to ensure that any mutations made in its `do` method are correctly reversed in its `undo` method.
 
-> Note: All mutations to a shape must by done through a shape's utils (the structure returned by `getShapeUtils`). Currently, many commands do this directly: however we're currently working on a more robust API for this, with built-in support for side effects, such as shown with `mutateShapes` above.
+> Note: All mutations to a shape must be done through a shape's utils (the structure returned by `getShapeUtils`). Currently, many commands do this directly: however we're currently working on a more robust API for this, with built-in support for side effects, such as shown with `mutateShapes` above.
 
 ### Sessions
 
@@ -345,7 +345,7 @@ Not every change to the app's state needs to be put into the undo / redo stack. 
 
 Sessions are managed by the SessionManager (`state/session`). It guarantees that only one session is active at a time and allows other parts of the app's state to access information about the current session.
 
-A session's life cycle are accessed via four methods, `begin`, `update`, `cancel` and `complete`. Different sessions will implemen these methods in different ways.
+A session's life cycle is accessed via four methods, `begin`, `update`, `cancel` and `complete`. Different sessions will implement these methods in different ways.
 
 A session begins when constructed.
 
@@ -371,22 +371,20 @@ session.update<Sessions.TranslateSession>(
 
 > Note: To get proper typing in `session.update`, you must provide the generic type of the session you're updating.
 
-When a session completes, the session call a method. This way, a user is able to travel back through the undo stack, visited only discrete commands (like deleting a shape) and those commands that marked the end of a session.
+When a session completes, the session calls a method. This way, a user is able to travel back through the undo stack, visit only discrete commands (like deleting a shape) and those commands that marked the end of a session.
 
 ```ts
 session.complete(data)
-)
 ```
 
 A session may also be cancelled.
 
 ```ts
 session.cancel(data)
-)
 ```
 
 When cancelled, it is the responsibility of the session to restore the state to exactly how it was when the session began, reversing any changes that were made to the state during the session.
 
 For this reason, many sessions begin by taking a snapshot of the current draft.
 
-> Because the draft is a JavaScript Proxy, you must deep clone any parts of the draft that you want to include in a snapshot. (Direct references will fail as the underlying Proxy will have expired.) While the memory size of a snapshot is not usually a concern, this deep-cloning process is thread-blocking, so try to snapshot only the parts of the `dada` draft that you need.
+> Because the draft is a JavaScript Proxy, you must deep clone any parts of the draft that you want to include in a snapshot. (Direct references will fail as the underlying Proxy will have expired.) While the memory size of a snapshot is not usually a concern, this deep-cloning process is thread-blocking, so try to snapshot only the parts of the `data` draft that you need.
