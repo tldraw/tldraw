@@ -11,7 +11,7 @@ export default function Home(): JSX.Element {
       <Head>
         <title>tldraw</title>
       </Head>
-      <Editor />
+      <Editor roomId="home" />
     </>
   )
 }
@@ -19,7 +19,7 @@ export default function Home(): JSX.Element {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession(context)
 
-  if (!session?.user) {
+  if (!session?.user && process.env.NODE_ENV !== 'development') {
     context.res.setHeader('Location', `/sponsorware`)
     context.res.statusCode = 307
   }

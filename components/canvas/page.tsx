@@ -1,33 +1,57 @@
 import { useSelector } from 'state'
-import Shape from './shape'
-import HoveredShape from './hovered-shape'
-import usePageShapes from 'hooks/usePageShapes'
-
-/* 
-On each state change, compare node ids of all shapes
-on the current page. Kind of expensive but only happens
-here; and still cheaper than any other pattern I've found.
-*/
+import { ShapeTreeNode } from 'types'
+import ShapeComponent from './shape'
 
 export default function Page(): JSX.Element {
-  const showHovers = useSelector((s) =>
+  const shapesToRender = useSelector((s) => s.values.shapesToRender)
+
+  const allowHovers = useSelector((s) =>
     s.isInAny('selecting', 'text', 'editingShape')
   )
 
-  const visiblePageShapeIds = usePageShapes()
-
-  const hoveredShapeId = useSelector((s) => {
-    return visiblePageShapeIds.find((id) => id === s.data.hoveredId)
-  })
-
   return (
-    <g pointerEvents={showHovers ? 'all' : 'none'}>
-      {showHovers && hoveredShapeId && (
-        <HoveredShape key={hoveredShapeId} id={hoveredShapeId} />
-      )}
-      {visiblePageShapeIds.map((id) => (
-        <Shape key={id} id={id} />
+    <>
+      {shapesToRender.map((node) => (
+        <ShapeNode key={node.shape.id} node={node} allowHovers={allowHovers} />
       ))}
-    </g>
+    </>
+  )
+}
+
+interface ShapeNodeProps {
+  node: ShapeTreeNode
+  allowHovers: boolean
+}
+
+const ShapeNode = ({
+  node: {
+    shape,
+    children,
+    isEditing,
+    isHovered,
+    isDarkMode,
+    isSelected,
+    isCurrentParent,
+  },
+  allowHovers,
+}: ShapeNodeProps) => {
+  return (
+    <>
+      <ShapeComponent
+        shape={shape}
+        isEditing={isEditing}
+        isHovered={allowHovers && isHovered}
+        isSelected={isSelected}
+        isDarkMode={isDarkMode}
+        isCurrentParent={isCurrentParent}
+      />
+      {children.map((childNode) => (
+        <ShapeNode
+          key={childNode.shape.id}
+          node={childNode}
+          allowHovers={allowHovers}
+        />
+      ))}
+    </>
   )
 }

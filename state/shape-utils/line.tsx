@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils/utils'
+import { getFromCache, uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { LineShape, ShapeType } from 'types'
 import { intersectCircleBounds } from 'utils/intersections'
@@ -13,16 +13,12 @@ const line = registerShapeUtils<LineShape>({
   defaultProps: {
     id: uniqueId(),
     type: ShapeType.Line,
-    isGenerated: false,
     name: 'Line',
     parentId: 'page1',
     childIndex: 0,
     point: [0, 0],
     direction: [0, 0],
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
     style: defaultStyle,
   },
 
@@ -30,15 +26,15 @@ const line = registerShapeUtils<LineShape>({
     return shape.direction !== prev.direction || shape.style !== prev.style
   },
 
-  render(shape) {
+  render(shape, { isHovered, isDarkMode }) {
     const { id, direction } = shape
     const [x1, y1] = vec.add([0, 0], vec.mul(direction, 10000))
     const [x2, y2] = vec.sub([0, 0], vec.mul(direction, 10000))
 
-    const styles = getShapeStyle(shape.style)
+    const styles = getShapeStyle(shape.style, isDarkMode)
 
     return (
-      <g id={id}>
+      <g id={id} filter={isHovered ? 'url(#expand)' : 'none'}>
         <ThinLine x1={x1} y1={y1} x2={x2} y2={y2} stroke={styles.stroke} />
         <circle r={4} fill="transparent" />
         <use href="#dot" fill="black" />
@@ -47,20 +43,18 @@ const line = registerShapeUtils<LineShape>({
   },
 
   getBounds(shape) {
-    if (!this.boundsCache.has(shape)) {
-      const bounds = {
+    const bounds = getFromCache(this.boundsCache, shape, (cache) => {
+      cache.set(shape, {
         minX: 0,
         maxX: 1,
         minY: 0,
         maxY: 1,
         width: 1,
         height: 1,
-      }
+      })
+    })
 
-      this.boundsCache.set(shape, bounds)
-    }
-
-    return translateBounds(this.boundsCache.get(shape), shape.point)
+    return translateBounds(bounds, shape.point)
   },
 
   getRotatedBounds(shape) {

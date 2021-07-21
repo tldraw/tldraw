@@ -9,7 +9,6 @@ export default class Line extends CodeShape<LineShape> {
   constructor(props = {} as ShapeProps<LineShape>) {
     super({
       id: uniqueId(),
-
       parentId: (window as any).currentPageId,
       type: ShapeType.Line,
       isGenerated: true,
@@ -18,9 +17,6 @@ export default class Line extends CodeShape<LineShape> {
       point: [0, 0],
       direction: [-0.5, 0.5],
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       ...props,
       style: {
         ...defaultStyle,

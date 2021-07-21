@@ -52,6 +52,6 @@ const StyledCorner = styled('rect', {
 
 const StyledCornerInner = styled('rect', {
   stroke: '$bounds',
-  fill: '#fff',
+  fill: '$canvas',
   zStrokeWidth: 1.5,
 })

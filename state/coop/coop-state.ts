@@ -21,14 +21,15 @@ const coopState = createState({
   states: {
     offline: {
       on: {
-        JOINED_ROOM: { to: 'online' },
+        OPENED_ROOM: { to: 'online' },
       },
     },
     online: {
-      onEnter: ['createClient', 'setOthers'],
+      onEnter: ['createClient', 'connectToRoom'],
       on: {
         MOVED_CURSOR: 'updateCursor',
         JOINED_ROOM: 'setOthers',
+        OPENED_ROOM: 'connectToRoom',
         CHANGED_CONNECTION_STATUS: 'setStatus',
         OTHER_USER_ENTERED: 'addOtherUser',
         OTHER_USER_LEFT: 'removeOtherUser',
@@ -61,6 +62,7 @@ const coopState = createState({
     },
     setOthers(data, payload: { others: User<CoopPresence>[] }) {
       const { others } = payload
+      if (!others) return
       data.others = Object.fromEntries(
         others.map((user) => [user.connectionId, user])
       )

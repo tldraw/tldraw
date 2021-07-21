@@ -2,14 +2,14 @@ import _state from 'state'
 import tld from 'utils/tld'
 import inputs from 'state/inputs'
 import { createShape, getShapeUtils } from 'state/shape-utils'
-import { Data, Shape, ShapeType, ShapeUtility } from 'types'
-import { deepCompareArrays, uniqueId, vec } from 'utils'
-import * as json from './__mocks__/document.json'
+import { Corner, Data, Edge, Shape, ShapeType, ShapeUtility } from 'types'
+import { deepClone, deepCompareArrays, uniqueId, vec } from 'utils'
+import * as mockDocument from './__mocks__/document.json'
 
 type State = typeof _state
 
-export const rectangleId = '1f6c251c-e12e-40b4-8dd2-c1847d80b72f'
-export const arrowId = '5ca167d7-54de-47c9-aa8f-86affa25e44d'
+export const rectangleId = 'e43559cb-6f41-4ae4-9c49-158ed1ad2f72'
+export const arrowId = 'fee77127-e779-4576-882b-b1bf7c7e132f'
 
 interface PointerOptions {
   id?: number
@@ -22,9 +22,12 @@ interface PointerOptions {
 
 class TestState {
   state: State
+  snapshot: Data
 
   constructor() {
     this.state = _state
+    this.state.send('TOGGLED_TEST_MODE')
+    this.snapshot = deepClone(this.state.data)
     this.reset()
   }
 
@@ -40,8 +43,10 @@ class TestState {
   reset(): TestState {
     this.state.reset()
     this.state
-      .send('MOUNTED')
-      .send('LOADED_FROM_FILE', { json: JSON.stringify(json) })
+      .send('UNMOUNTED')
+      .send('MOUNTED', { roomId: 'TESTING' })
+      .send('MOUNTED_SHAPES')
+      .send('LOADED_FROM_FILE', { json: JSON.stringify(mockDocument) })
 
     return this
   }
@@ -56,7 +61,7 @@ class TestState {
    *```
    */
   resetDocumentState(): TestState {
-    this.state.send('RESET_DOCUMENT_STATE')
+    this.state.send('RESET_DOCUMENT_STATE').send('TOGGLED_TEST_MODE')
     return this
   }
 
@@ -86,7 +91,11 @@ class TestState {
    */
   createShape(props: Partial<Shape>, id = uniqueId()): TestState {
     const shape = createShape(props.type, props)
-    getShapeUtils(shape).setProperty(shape, 'id', id)
+
+    getShapeUtils(shape)
+      .setProperty(shape, 'id', id)
+      .setProperty(shape, 'parentId', this.data.currentPageId)
+
     this.data.document.pages[this.data.currentPageId].shapes[shape.id] = shape
     return this
   }
@@ -102,10 +111,25 @@ class TestState {
    */
   getSortedPageShapeIds(): string[] {
     return Object.values(
-      this.data.document.pages[this.data.currentParentId].shapes
+      this.data.document.pages[this.data.currentPageId].shapes
     )
       .sort((a, b) => a.childIndex - b.childIndex)
       .map((shape) => shape.id)
+  }
+
+  /**
+   * Get shapes for the current page.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.getShapes()
+   *```
+   */
+  getShapes(): Shape[] {
+    return Object.values(
+      this.data.document.pages[this.data.currentPageId].shapes
+    )
   }
 
   /**
@@ -121,9 +145,13 @@ class TestState {
   idsAreSelected(ids: string[], strict = true): boolean {
     const selectedIds = tld.getSelectedIds(this.data)
     return (
-      (strict ? selectedIds.size === ids.length : true) &&
-      ids.every((id) => selectedIds.has(id))
+      (strict ? selectedIds.length === ids.length : true) &&
+      ids.every((id) => selectedIds.includes(id))
     )
+  }
+
+  get selectedIds(): string[] {
+    return tld.getSelectedIds(this.data)
   }
 
   /**
@@ -220,9 +248,18 @@ class TestState {
    *```
    */
   clickShape(id: string, options: PointerOptions = {}): TestState {
+    const shape = tld.getShape(this.data, id)
+    const [x, y] = shape ? vec.add(shape.point, [1, 1]) : [0, 0]
+
     this.state
-      .send('POINTED_SHAPE', inputs.pointerDown(TestState.point(options), id))
-      .send('STOPPED_POINTING', inputs.pointerUp(TestState.point(options), id))
+      .send(
+        'POINTED_SHAPE',
+        inputs.pointerDown(TestState.point({ x, y, ...options }), id)
+      )
+      .send(
+        'STOPPED_POINTING',
+        inputs.pointerUp(TestState.point({ x, y, ...options }), id)
+      )
 
     return this
   }
@@ -237,9 +274,20 @@ class TestState {
    *```
    */
   startClick(id: string, options: PointerOptions = {}): TestState {
+    const shape = tld.getShape(this.data, id)
+    const [x, y] = shape ? vec.add(shape.point, [1, 1]) : [0, 0]
+
+    if (id === 'canvas') {
+      this.state.send(
+        'POINTED_CANVAS',
+        inputs.pointerDown(TestState.point({ x, y, ...options }), id)
+      )
+      return this
+    }
+
     this.state.send(
       'POINTED_SHAPE',
-      inputs.pointerDown(TestState.point(options), id)
+      inputs.pointerDown(TestState.point({ x, y, ...options }), id)
     )
 
     return this
@@ -255,9 +303,12 @@ class TestState {
    *```
    */
   stopClick(id: string, options: PointerOptions = {}): TestState {
+    const shape = tld.getShape(this.data, id)
+    const [x, y] = shape ? vec.add(shape.point, [1, 1]) : [0, 0]
+
     this.state.send(
       'STOPPED_POINTING',
-      inputs.pointerUp(TestState.point(options), id)
+      inputs.pointerUp(TestState.point({ x, y, ...options }), id)
     )
 
     return this
@@ -273,12 +324,18 @@ class TestState {
    *```
    */
   doubleClickShape(id: string, options: PointerOptions = {}): TestState {
+    const shape = tld.getShape(this.data, id)
+    const [x, y] = shape ? vec.add(shape.point, [1, 1]) : [0, 0]
+
     this.state
       .send(
         'DOUBLE_POINTED_SHAPE',
-        inputs.pointerDown(TestState.point(options), id)
+        inputs.pointerDown(TestState.point({ x, y, ...options }), id)
       )
-      .send('STOPPED_POINTING', inputs.pointerUp(TestState.point(options), id))
+      .send(
+        'STOPPED_POINTING',
+        inputs.pointerUp(TestState.point({ x, y, ...options }), id)
+      )
 
     return this
   }
@@ -325,6 +382,63 @@ class TestState {
         'STOPPED_POINTING',
         inputs.pointerUp(TestState.point(options), 'bounds')
       )
+
+    return this
+  }
+
+  /**
+   * Start clicking bounds.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.startClickingBounds()
+   *```
+   */
+  startClickingBounds(options: PointerOptions = {}): TestState {
+    this.state.send(
+      'POINTED_BOUNDS',
+      inputs.pointerDown(TestState.point(options), 'bounds')
+    )
+
+    return this
+  }
+
+  /**
+   * Stop clicking the bounding box.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.stopClickingBounds()
+   *```
+   */
+  stopClickingBounds(options: PointerOptions = {}): TestState {
+    this.state.send(
+      'STOPPED_POINTING',
+      inputs.pointerUp(TestState.point(options), 'bounds')
+    )
+
+    return this
+  }
+
+  /**
+   * Start clicking a bounds handle.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.startClickingBoundsHandle(Edge.Top)
+   *```
+   */
+  startClickingBoundsHandle(
+    handle: Corner | Edge | 'center',
+    options: PointerOptions = {}
+  ): TestState {
+    this.state.send(
+      'POINTED_BOUNDS_HANDLE',
+      inputs.pointerDown(TestState.point(options), handle)
+    )
 
     return this
   }
@@ -558,6 +672,35 @@ class TestState {
    */
   redo(): TestState {
     this.state.send('REDO')
+    return this
+  }
+
+  /**
+   * Save a snapshot of the state's current data.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.save()
+   *```
+   */
+  save(): TestState {
+    this.snapshot = deepClone(this.data)
+    return this
+  }
+
+  /**
+   * Restore the state's saved data.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.save()
+   * tt.restore()
+   *```
+   */
+  restore(): TestState {
+    this.state.forceData(this.snapshot)
     return this
   }
 

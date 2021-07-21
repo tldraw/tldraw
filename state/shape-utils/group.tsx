@@ -15,29 +15,25 @@ const group = registerShapeUtils<GroupShape>({
   defaultProps: {
     id: uniqueId(),
     type: ShapeType.Group,
-    isGenerated: false,
     name: 'Group',
     parentId: 'page1',
     childIndex: 0,
     point: [0, 0],
     size: [1, 1],
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
     style: defaultStyle,
     children: [],
   },
 
   render(shape) {
-    const { id, size } = shape
+    const { size } = shape
 
     return (
       <StyledGroupShape
-        id={id}
         width={size[0]}
         height={size[1]}
         data-shy={true}
+        fill="none"
       />
     )
   },
@@ -100,6 +96,10 @@ const group = registerShapeUtils<GroupShape>({
     shape.size = [bounds.width, bounds.height]
     shape.point = [bounds.minX, bounds.minY]
     return this
+  },
+
+  shouldDelete(shape) {
+    return shape.children.length === 0 // should be <= 1
   },
 
   onChildrenChange(shape, children) {
@@ -172,7 +172,8 @@ const group = registerShapeUtils<GroupShape>({
 
 const StyledGroupShape = styled('rect', {
   zDash: 5,
-  zStrokeWidth: 1,
+  zStrokeWidth: 1.5,
+  stroke: '$border',
 })
 
 export default group

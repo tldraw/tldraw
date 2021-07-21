@@ -1,46 +1,46 @@
 import { useStateDesigner } from '@state-designer/react'
 import state from 'state'
-import { useCoopSelector } from 'state/coop/coop-state'
 import styled from 'styles'
 
 const size: any = { '@sm': 'small' }
 
 export default function StatusBar(): JSX.Element {
   const local = useStateDesigner(state)
-  const status = useCoopSelector((s) => s.data.status)
-  const others = useCoopSelector((s) => s.data.others)
 
-  const active = local.active.slice(1).map((s) => {
-    const states = s.split('.')
-    return states[states.length - 1]
-  })
+  const shapesInView = state.values.shapesToRender.length
+
+  const active = local.active
+    .slice(1)
+    .map((s) => {
+      const states = s.split('.')
+      return states[states.length - 1]
+    })
+    .join(' | ')
 
   const log = local.log[0]
+
+  if (process.env.NODE_ENV !== 'development') return null
 
   return (
     <StatusBarContainer size={size}>
       <Section>
-        {active.join(' | ')} | {log} | {status} (
-        {Object.values(others).length || 0})
+        {active} - {log}
       </Section>
+      <Section>{shapesInView || '0'} Shapes</Section>
     </StatusBarContainer>
   )
 }
 
 const StatusBarContainer = styled('div', {
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  width: '100%',
-  zIndex: 300,
   height: 40,
   userSelect: 'none',
-  borderTop: '1px solid black',
+  borderTop: '1px solid $border',
   gridArea: 'status',
-  display: 'grid',
-  gridTemplateColumns: 'auto 1fr auto',
+  display: 'flex',
+  color: '$text',
+  justifyContent: 'space-between',
   alignItems: 'center',
-  backgroundColor: 'white',
+  backgroundColor: '$panel',
   gap: 8,
   fontSize: '$0',
   padding: '0 16px',

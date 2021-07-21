@@ -1,4 +1,4 @@
-import { uniqueId, isMobile } from 'utils/utils'
+import { uniqueId, getFromCache } from 'utils/utils'
 import vec from 'utils/vec'
 import TextAreaUtils from 'utils/text-area'
 import { TextShape, ShapeType } from 'types'
@@ -13,12 +13,8 @@ import state from 'state'
 import { registerShapeUtils } from './register'
 
 // A div used for measurement
+document.getElementById('__textMeasure')?.remove()
 
-if (document.getElementById('__textMeasure')) {
-  document.getElementById('__textMeasure').remove()
-}
-
-// A div used for measurement
 const mdiv = document.createElement('pre')
 mdiv.id = '__textMeasure'
 
@@ -56,15 +52,11 @@ const text = registerShapeUtils<TextShape>({
   defaultProps: {
     id: uniqueId(),
     type: ShapeType.Text,
-    isGenerated: false,
     name: 'Text',
     parentId: 'page1',
     childIndex: 0,
     point: [0, 0],
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
     style: defaultStyle,
     text: '',
     scale: 1,
@@ -78,9 +70,9 @@ const text = registerShapeUtils<TextShape>({
     )
   },
 
-  render(shape, { isEditing, ref }) {
+  render(shape, { isEditing, isDarkMode, ref }) {
     const { id, text, style } = shape
-    const styles = getShapeStyle(style)
+    const styles = getShapeStyle(style, isDarkMode)
     const font = getFontStyle(shape.scale, shape.style)
 
     const bounds = this.getBounds(shape)
@@ -114,7 +106,13 @@ const text = registerShapeUtils<TextShape>({
       }
     }
 
-    function handleBlur() {
+    function handleBlur(e: React.FocusEvent<HTMLTextAreaElement>) {
+      if (isEditing) {
+        e.currentTarget.focus()
+        e.currentTarget.select()
+        return
+      }
+
       setTimeout(() => state.send('BLURRED_EDITING_SHAPE', { id }), 0)
     }
 
@@ -123,9 +121,9 @@ const text = registerShapeUtils<TextShape>({
       state.send('FOCUSED_EDITING_SHAPE', { id })
     }
 
-    function handlePointerDown(e: React.PointerEvent<HTMLTextAreaElement>) {
-      if (e.currentTarget.selectionEnd !== 0) {
-        e.currentTarget.selectionEnd = 0
+    function handlePointerDown() {
+      if (ref.current.selectionEnd !== 0) {
+        ref.current.selectionEnd = 0
       }
     }
 
@@ -134,7 +132,7 @@ const text = registerShapeUtils<TextShape>({
 
     if (!isEditing) {
       return (
-        <g id={id} pointerEvents="none">
+        <>
           {text.split('\n').map((str, i) => (
             <text
               key={i}
@@ -142,13 +140,13 @@ const text = registerShapeUtils<TextShape>({
               y={4 + fontSize / 2 + i * lineHeight}
               fontFamily="Verveine Regular"
               fontStyle="normal"
-              fontWeight="regular"
+              fontWeight="500"
               fontSize={fontSize}
               width={bounds.width}
               height={bounds.height}
               fill={styles.stroke}
               color={styles.stroke}
-              stroke={styles.stroke}
+              stroke="none"
               xmlSpace="preserve"
               dominantBaseline="mathematical"
               alignmentBaseline="mathematical"
@@ -156,19 +154,23 @@ const text = registerShapeUtils<TextShape>({
               {str}
             </text>
           ))}
-        </g>
+        </>
       )
+    }
+
+    if (ref === undefined) {
+      throw Error('This component should receive a ref when editing.')
     }
 
     return (
       <foreignObject
-        id={id}
         width={bounds.width}
         height={bounds.height}
         pointerEvents="none"
+        onPointerDown={(e) => e.stopPropagation()}
       >
         <StyledTextArea
-          ref={ref}
+          ref={ref as React.RefObject<HTMLTextAreaElement>}
           style={{
             font,
             color: styles.stroke,
@@ -182,7 +184,7 @@ const text = registerShapeUtils<TextShape>({
           autoSave="false"
           placeholder=""
           color={styles.stroke}
-          autoFocus={isMobile() ? true : false}
+          autoFocus={true}
           onFocus={handleFocus}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
@@ -194,14 +196,14 @@ const text = registerShapeUtils<TextShape>({
   },
 
   getBounds(shape) {
-    if (!this.boundsCache.has(shape)) {
-      mdiv.innerHTML = shape.text + '&zwj;'
+    const bounds = getFromCache(this.boundsCache, shape, (cache) => {
+      mdiv.innerHTML = `${shape.text}&zwj;`
       mdiv.style.font = getFontStyle(shape.scale, shape.style)
 
       const [minX, minY] = shape.point
       const [width, height] = [mdiv.offsetWidth, mdiv.offsetHeight]
 
-      this.boundsCache.set(shape, {
+      cache.set(shape, {
         minX,
         maxX: minX + width,
         minY,
@@ -209,9 +211,9 @@ const text = registerShapeUtils<TextShape>({
         width,
         height,
       })
-    }
+    })
 
-    return this.boundsCache.get(shape)
+    return bounds
   },
 
   hitTest() {
@@ -292,6 +294,7 @@ const StyledTextArea = styled('textarea', {
   minWidth: 1,
   lineHeight: 1.4,
   outline: 0,
+  fontWeight: '500',
   backgroundColor: '$boundsBg',
   overflow: 'hidden',
   pointerEvents: 'all',

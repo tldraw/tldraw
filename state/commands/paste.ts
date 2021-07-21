@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data, Shape } from 'types'
-import { getCommonBounds, setToArray } from 'utils'
+import { getCommonBounds } from 'utils'
 import tld from 'utils/tld'
 import { uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
@@ -26,7 +26,7 @@ export default function pasteCommand(data: Data, initialShapes: Shape[]): void {
     initialShapes.map((shape) => [shape.id, uniqueId()])
   )
 
-  const oldSelectedIds = setToArray(tld.getSelectedIds(data))
+  const oldSelectedIds = [...tld.getSelectedIds(data)]
 
   history.execute(
     data,
@@ -52,7 +52,6 @@ export default function pasteCommand(data: Data, initialShapes: Shape[]): void {
             parentId: oldSelectedIds[shape.parentId] || data.currentPageId,
             childIndex: childIndex++,
             point: vec.add(topLeft, topLeftOffset),
-            isGenerated: false,
           }
         }
 

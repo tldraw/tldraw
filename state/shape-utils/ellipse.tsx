@@ -24,7 +24,6 @@ const ellipse = registerShapeUtils<EllipseShape>({
   defaultProps: {
     id: uniqueId(),
     type: ShapeType.Ellipse,
-    isGenerated: false,
     name: 'Ellipse',
     parentId: 'page1',
     childIndex: 0,
@@ -32,9 +31,6 @@ const ellipse = registerShapeUtils<EllipseShape>({
     radiusX: 1,
     radiusY: 1,
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
     style: defaultStyle,
   },
 
@@ -46,9 +42,9 @@ const ellipse = registerShapeUtils<EllipseShape>({
     )
   },
 
-  render(shape) {
-    const { id, radiusX, radiusY, style } = shape
-    const styles = getShapeStyle(style)
+  render(shape, { isDarkMode }) {
+    const { radiusX, radiusY, style } = shape
+    const styles = getShapeStyle(style, isDarkMode)
     const strokeWidth = +styles.strokeWidth
 
     const rx = Math.max(0, radiusX - strokeWidth / 2)
@@ -62,25 +58,24 @@ const ellipse = registerShapeUtils<EllipseShape>({
       const path = pathCache.get(shape)
 
       return (
-        <g id={id}>
-          {style.isFilled && (
-            <ellipse
-              id={id}
-              cx={radiusX}
-              cy={radiusY}
-              rx={rx}
-              ry={ry}
-              stroke="none"
-              fill={styles.fill}
-            />
-          )}
+        <>
+          <ellipse
+            cx={radiusX}
+            cy={radiusY}
+            rx={rx}
+            ry={ry}
+            stroke="none"
+            fill={style.isFilled ? styles.fill : 'transparent'}
+            pointerEvents="all"
+          />
           <path
             d={path}
             fill={styles.stroke}
             stroke={styles.stroke}
-            strokeWidth={styles.strokeWidth}
+            strokeWidth={strokeWidth}
+            pointerEvents="all"
           />
-        </g>
+        </>
       )
     }
 
@@ -96,21 +91,21 @@ const ellipse = registerShapeUtils<EllipseShape>({
       4
     )
 
+    const sw = strokeWidth * 1.618
+
     return (
-      <g id={id}>
-        <ellipse
-          id={id}
-          cx={radiusX}
-          cy={radiusY}
-          rx={rx}
-          ry={ry}
-          fill={styles.fill}
-          stroke={styles.stroke}
-          strokeWidth={strokeWidth * 1.618}
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
-        />
-      </g>
+      <ellipse
+        cx={radiusX}
+        cy={radiusY}
+        rx={rx}
+        ry={ry}
+        fill={styles.fill}
+        stroke={styles.stroke}
+        strokeWidth={sw}
+        strokeDasharray={strokeDasharray}
+        strokeDashoffset={strokeDashoffset}
+        pointerEvents="all"
+      />
     )
   },
 

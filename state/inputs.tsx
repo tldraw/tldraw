@@ -84,8 +84,8 @@ class Inputs {
 
     this.points[e.pointerId] = info
     this.activePointerId = e.pointerId
-
     this.pointer = info
+
     return info
   }
 
@@ -169,11 +169,16 @@ class Inputs {
     return { point: getPoint(e), shiftKey, ctrlKey, metaKey, altKey }
   }
 
-  canAccept = (pointerId: PointerEvent['pointerId']) => {
-    return (
-      this.activePointerId === undefined || this.activePointerId === pointerId
-    )
+  canAccept = (pointerId: PointerEvent['pointerId']): boolean => {
+    pointerId
+    return true
   }
+
+  // canAccept = (pointerId: PointerEvent['pointerId']) => {
+  //   return (
+  //     this.activePointerId === undefined || this.activePointerId === pointerId
+  //   )
+  // }
 
   isDoubleClick() {
     if (!this.pointer) return
@@ -224,6 +229,17 @@ class Inputs {
       metaKey: isDarwin() ? metaKey : ctrlKey,
       altKey,
     }
+  }
+
+  reset() {
+    this.activePointerId = undefined
+    this.pointerUpTime = 0
+
+    this.pointer = undefined
+    this.points = {}
+
+    this.keyboard = undefined
+    this.keys = {}
   }
 }
 

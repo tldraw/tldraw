@@ -1,4 +1,4 @@
-import { uniqueId, getPerfectDashProps } from 'utils/utils'
+import { uniqueId, getPerfectDashProps, getFromCache } from 'utils/utils'
 import vec from 'utils/vec'
 import { DashStyle, RectangleShape, ShapeType } from 'types'
 import { getSvgPathFromStroke, translateBounds, rng, shuffleArr } from 'utils'
@@ -13,9 +13,7 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
   defaultProps: {
     id: uniqueId(),
-
     type: ShapeType.Rectangle,
-    isGenerated: false,
     name: 'Rectangle',
     parentId: 'page1',
     childIndex: 0,
@@ -23,9 +21,6 @@ const rectangle = registerShapeUtils<RectangleShape>({
     size: [1, 1],
     radius: 2,
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
     style: defaultStyle,
   },
 
@@ -33,20 +28,18 @@ const rectangle = registerShapeUtils<RectangleShape>({
     return shape.size !== prev.size || shape.style !== prev.style
   },
 
-  render(shape) {
+  render(shape, { isHovered, isDarkMode }) {
     const { id, size, radius, style } = shape
-    const styles = getShapeStyle(style)
+    const styles = getShapeStyle(style, isDarkMode)
     const strokeWidth = +styles.strokeWidth
 
     if (style.dash === DashStyle.Draw) {
-      if (!pathCache.has(shape.size)) {
-        renderPath(shape)
-      }
-
-      const path = pathCache.get(shape.size)
+      const pathData = getFromCache(pathCache, shape.size, (cache) => {
+        cache.set(shape.size, renderPath(shape))
+      })
 
       return (
-        <g id={id}>
+        <>
           <rect
             rx={radius}
             ry={radius}
@@ -54,17 +47,18 @@ const rectangle = registerShapeUtils<RectangleShape>({
             y={+styles.strokeWidth / 2}
             width={Math.max(0, size[0] - strokeWidth)}
             height={Math.max(0, size[1] - strokeWidth)}
-            strokeWidth={0}
-            fill={styles.fill}
-            stroke={styles.stroke}
+            fill={style.isFilled ? styles.fill : 'transparent'}
+            stroke="none"
           />
           <path
-            d={path}
+            d={pathData}
             fill={styles.stroke}
             stroke={styles.stroke}
             strokeWidth={styles.strokeWidth}
+            filter={isHovered ? 'url(#expand)' : 'none'}
+            pointerEvents="all"
           />
-        </g>
+        </>
       )
     }
 
@@ -104,36 +98,38 @@ const rectangle = registerShapeUtils<RectangleShape>({
     })
 
     return (
-      <g id={id}>
+      <>
         <rect
           x={sw / 2}
           y={sw / 2}
           width={w}
           height={h}
           fill={styles.fill}
-          stroke="none"
+          stroke="transparent"
+          strokeWidth={sw}
+          pointerEvents="all"
         />
-        {paths}
-      </g>
+        <g filter={isHovered ? 'url(#expand)' : 'none'} pointerEvents="stroke">
+          {paths}
+        </g>
+      </>
     )
   },
 
   getBounds(shape) {
-    if (!this.boundsCache.has(shape)) {
+    const bounds = getFromCache(this.boundsCache, shape, (cache) => {
       const [width, height] = shape.size
-      const bounds = {
+      cache.set(shape, {
         minX: 0,
         maxX: width,
         minY: 0,
         maxY: height,
         width,
         height,
-      }
+      })
+    })
 
-      this.boundsCache.set(shape, bounds)
-    }
-
-    return translateBounds(this.boundsCache.get(shape), shape.point)
+    return translateBounds(bounds, shape.point)
   },
 
   hitTest() {
@@ -142,22 +138,21 @@ const rectangle = registerShapeUtils<RectangleShape>({
 
   transform(shape, bounds, { initialShape, transformOrigin, scaleX, scaleY }) {
     if (shape.rotation === 0 && !shape.isAspectRatioLocked) {
-      shape.size = [bounds.width, bounds.height]
-      shape.point = [bounds.minX, bounds.minY]
+      shape.size = vec.round([bounds.width, bounds.height])
+      shape.point = vec.round([bounds.minX, bounds.minY])
     } else {
-      shape.size = vec.mul(
-        initialShape.size,
-        Math.min(Math.abs(scaleX), Math.abs(scaleY))
+      shape.size = vec.round(
+        vec.mul(initialShape.size, Math.min(Math.abs(scaleX), Math.abs(scaleY)))
       )
 
-      shape.point = [
+      shape.point = vec.round([
         bounds.minX +
           (bounds.width - shape.size[0]) *
             (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
         bounds.minY +
           (bounds.height - shape.size[1]) *
             (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
-      ]
+      ])
 
       shape.rotation =
         (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0)
@@ -169,8 +164,8 @@ const rectangle = registerShapeUtils<RectangleShape>({
   },
 
   transformSingle(shape, bounds) {
-    shape.size = [bounds.width, bounds.height]
-    shape.point = [bounds.minX, bounds.minY]
+    shape.size = vec.round([bounds.width, bounds.height])
+    shape.point = vec.round([bounds.minX, bounds.minY])
     return this
   },
 })
@@ -223,5 +218,5 @@ function renderPath(shape: RectangleShape) {
     }
   )
 
-  pathCache.set(shape.size, getSvgPathFromStroke(stroke))
+  return getSvgPathFromStroke(stroke)
 }

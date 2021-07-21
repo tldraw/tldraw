@@ -2,14 +2,17 @@
 import { useEffect } from 'react'
 import state from 'state'
 import inputs from 'state/inputs'
-import { MoveType } from 'types'
+import { ColorStyle, MoveType, SizeStyle } from 'types'
 import { metaKey } from 'utils'
 
 export default function useKeyboardEvents() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      const info = inputs.keydown(e)
+      const meta = metaKey(e)
+
       if (
-        metaKey(e) &&
+        meta &&
         ![
           'a',
           'i',
@@ -25,9 +28,88 @@ export default function useKeyboardEvents() {
         e.preventDefault()
       }
 
-      const info = inputs.keydown(e)
-
       switch (e.key) {
+        case '1': {
+          if (meta) {
+            state.send('CHANGED_STYLE', { color: ColorStyle.Black })
+            break
+          }
+          if (e.altKey) {
+            state.send('CHANGED_STYLE', { size: SizeStyle.Small })
+            break
+          }
+          state.send('SELECTED_SELECT_TOOL', info)
+          break
+        }
+        case '2': {
+          if (meta) {
+            state.send('CHANGED_STYLE', { color: ColorStyle.White })
+            break
+          }
+          if (e.altKey) {
+            state.send('CHANGED_STYLE', { size: SizeStyle.Medium })
+            break
+          }
+          state.send('SELECTED_DRAW_TOOL', info)
+          break
+        }
+        case '3': {
+          if (meta) {
+            state.send('CHANGED_STYLE', { color: ColorStyle.Green })
+            break
+          }
+          if (e.altKey) {
+            state.send('CHANGED_STYLE', { size: SizeStyle.Large })
+            break
+          }
+          state.send('SELECTED_RECTANGLE_TOOL', info)
+          break
+        }
+        case '4': {
+          if (meta) {
+            state.send('CHANGED_STYLE', { color: ColorStyle.Blue })
+          }
+          state.send('SELECTED_ELLIPSE_TOOL', info)
+          break
+        }
+        case '5': {
+          if (meta) {
+            state.send('CHANGED_STYLE', { color: ColorStyle.Indigo })
+            break
+          }
+          state.send('SELECTED_ARROW_TOOL', info)
+          break
+        }
+        case '6': {
+          if (meta) {
+            state.send('CHANGED_STYLE', { color: ColorStyle.Violet })
+            break
+          }
+          state.send('SELECTED_TEXT_TOOL', info)
+          break
+        }
+        case '7': {
+          if (meta) {
+            state.send('CHANGED_STYLE', { color: ColorStyle.Red })
+            break
+          }
+          state.send('TOGGLED_TOOL_LOCK', info)
+          break
+        }
+        case '8': {
+          if (meta) {
+            state.send('CHANGED_STYLE', { color: ColorStyle.Orange })
+            break
+          }
+          break
+        }
+        case '9': {
+          if (meta) {
+            state.send('CHANGED_STYLE', { color: ColorStyle.Yellow })
+            break
+          }
+          break
+        }
         case 'ArrowUp': {
           state.send('NUDGED', { delta: [0, -1], ...info })
           break
@@ -82,7 +164,7 @@ export default function useKeyboardEvents() {
           break
         }
         case 'z': {
-          if (metaKey(e)) {
+          if (meta) {
             if (e.shiftKey) {
               state.send('REDO', info)
             } else {
@@ -92,7 +174,7 @@ export default function useKeyboardEvents() {
           break
         }
         case '‘': {
-          if (metaKey(e)) {
+          if (meta) {
             state.send('MOVED', {
               ...info,
               type: MoveType.ToFront,
@@ -101,7 +183,7 @@ export default function useKeyboardEvents() {
           break
         }
         case '“': {
-          if (metaKey(e)) {
+          if (meta) {
             state.send('MOVED', {
               ...info,
               type: MoveType.ToBack,
@@ -110,7 +192,7 @@ export default function useKeyboardEvents() {
           break
         }
         case ']': {
-          if (metaKey(e)) {
+          if (meta) {
             state.send('MOVED', {
               ...info,
               type: MoveType.Forward,
@@ -119,7 +201,7 @@ export default function useKeyboardEvents() {
           break
         }
         case '[': {
-          if (metaKey(e)) {
+          if (meta) {
             state.send('MOVED', {
               ...info,
               type: MoveType.Backward,
@@ -136,7 +218,7 @@ export default function useKeyboardEvents() {
           break
         }
         case 'Backspace': {
-          if (metaKey(e)) {
+          if (meta) {
             if (e.shiftKey) {
               if (window.confirm('Reset document and state?')) {
                 state.send('RESET_DOCUMENT_STATE', info)
@@ -150,7 +232,7 @@ export default function useKeyboardEvents() {
           break
         }
         case 'g': {
-          if (metaKey(e)) {
+          if (meta) {
             if (e.shiftKey) {
               state.send('UNGROUPED', info)
             } else {
@@ -160,7 +242,7 @@ export default function useKeyboardEvents() {
           break
         }
         case 's': {
-          if (metaKey(e)) {
+          if (meta) {
             if (e.shiftKey) {
               state.send('SAVED_AS_TO_FILESYSTEM', info)
             } else {
@@ -170,7 +252,7 @@ export default function useKeyboardEvents() {
           break
         }
         case 'o': {
-          if (metaKey(e)) {
+          if (meta) {
             break
           } else {
             state.send('SELECTED_DOT_TOOL', info)
@@ -178,7 +260,7 @@ export default function useKeyboardEvents() {
           break
         }
         case 'v': {
-          if (metaKey(e)) {
+          if (meta) {
             state.send('PASTED', info)
           } else {
             state.send('SELECTED_SELECT_TOOL', info)
@@ -186,7 +268,7 @@ export default function useKeyboardEvents() {
           break
         }
         case 'a': {
-          if (metaKey(e)) {
+          if (meta) {
             state.send('SELECTED_ALL', info)
           } else {
             state.send('SELECTED_ARROW_TOOL', info)
@@ -194,7 +276,7 @@ export default function useKeyboardEvents() {
           break
         }
         case 'd': {
-          if (metaKey(e)) {
+          if (meta) {
             state.send('DUPLICATED', info)
           } else {
             state.send('SELECTED_DRAW_TOOL', info)
@@ -206,7 +288,7 @@ export default function useKeyboardEvents() {
           break
         }
         case 'c': {
-          if (metaKey(e)) {
+          if (meta) {
             if (e.shiftKey) {
               state.send('COPIED_TO_SVG', info)
             } else {
@@ -218,7 +300,7 @@ export default function useKeyboardEvents() {
           break
         }
         case 'i': {
-          if (metaKey(e)) {
+          if (meta) {
             break
           } else {
             state.send('SELECTED_CIRCLE_TOOL', info)
@@ -226,8 +308,10 @@ export default function useKeyboardEvents() {
           break
         }
         case 'l': {
-          if (metaKey(e)) {
+          if (meta) {
             if (e.shiftKey) {
+              state.send('TOGGLED_LOGGER')
+            } else {
               state.send('LOADED_FROM_FILE_STSTEM', info)
             }
           } else {
@@ -236,7 +320,7 @@ export default function useKeyboardEvents() {
           break
         }
         case 'y': {
-          if (metaKey(e)) {
+          if (meta) {
             break
           } else {
             state.send('SELECTED_RAY_TOOL', info)
@@ -244,7 +328,7 @@ export default function useKeyboardEvents() {
           break
         }
         case 'p': {
-          if (metaKey(e)) {
+          if (meta) {
             break
           } else {
             state.send('SELECTED_POLYLINE_TOOL', info)
@@ -252,7 +336,7 @@ export default function useKeyboardEvents() {
           break
         }
         case 'r': {
-          if (metaKey(e)) {
+          if (meta) {
             break
           } else {
             state.send('SELECTED_RECTANGLE_TOOL', info)
@@ -281,11 +365,11 @@ export default function useKeyboardEvents() {
       }
     }
 
-    document.body.addEventListener('keydown', handleKeyDown)
-    document.body.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
     return () => {
-      document.body.removeEventListener('keydown', handleKeyDown)
-      document.body.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
     }
   }, [])
 }

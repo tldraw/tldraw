@@ -1,5 +1,5 @@
 import { DrawShape, PointerInfo } from 'types'
-import { deepClone, setToArray } from 'utils'
+import { deepClone } from 'utils'
 import tld from 'utils/tld'
 import { freeze } from 'immer'
 import session from './session'
@@ -15,10 +15,36 @@ import * as Session from './sessions'
  * directly to the state using `forceData`.
  * @param info
  */
+
+export function fastTranslate(info: PointerInfo): void {
+  const data = { ...state.data }
+
+  session.update<Session.TranslateSession>(
+    data,
+    tld.screenToWorld(info.point, data),
+    info.shiftKey,
+    info.altKey
+  )
+
+  state.forceData(freeze(data))
+}
+
+export function fastTransform(info: PointerInfo): void {
+  const data = { ...state.data }
+
+  session.update<Session.TransformSession | Session.TransformSingleSession>(
+    data,
+    tld.screenToWorld(info.point, data),
+    info.shiftKey
+  )
+
+  state.forceData(freeze(data))
+}
+
 export function fastDrawUpdate(info: PointerInfo): void {
   const data = { ...state.data }
 
-  coopState.send('MOVED_CURSOSR', {
+  coopState.send('MOVED_CURSOR', {
     pageId: data.currentPageId,
     point: info.point,
   })
@@ -30,7 +56,7 @@ export function fastDrawUpdate(info: PointerInfo): void {
     info.shiftKey
   )
 
-  const selectedId = setToArray(tld.getSelectedIds(data))[0]
+  const selectedId = [...tld.getSelectedIds(data)][0]
 
   const { shapes } = data.document.pages[data.currentPageId]
 
@@ -64,6 +90,8 @@ export function fastZoomUpdate(point: number[], delta: number): void {
 
   data.pageStates[data.currentPageId].camera = deepClone(camera)
 
+  tld.setZoomCSS(camera.zoom)
+
   state.forceData(freeze(data))
 }
 
@@ -90,6 +118,8 @@ export function fastPinchCamera(
 
   data.pageStates[data.currentPageId] = { ...pageState }
 
+  tld.setZoomCSS(camera.zoom)
+
   state.forceData(freeze(data))
 }
 
@@ -99,31 +129,6 @@ export function fastBrushSelect(point: number[]): void {
   session.update<Session.BrushSession>(data, tld.screenToWorld(point, data))
 
   data.brush = deepClone(data.brush)
-
-  state.forceData(freeze(data))
-}
-
-export function fastTranslate(info: PointerInfo): void {
-  const data = { ...state.data }
-
-  session.update<Session.TranslateSession>(
-    data,
-    tld.screenToWorld(info.point, data),
-    info.shiftKey,
-    info.altKey
-  )
-
-  state.forceData(freeze(data))
-}
-
-export function fastTransform(info: PointerInfo): void {
-  const data = { ...state.data }
-
-  session.update<Session.TransformSession | Session.TransformSingleSession>(
-    data,
-    tld.screenToWorld(info.point, data),
-    info.shiftKey
-  )
 
   state.forceData(freeze(data))
 }

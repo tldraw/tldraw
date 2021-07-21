@@ -13,10 +13,11 @@ import {
   getCommonBounds,
   rotateBounds,
   getBoundsCenter,
-  setToArray,
   deepClone,
   pointInBounds,
   uniqueId,
+  boundsContain,
+  boundsCollide,
 } from 'utils'
 import tld from '../utils/tld'
 import {
@@ -35,15 +36,20 @@ import {
   DashStyle,
   SizeStyle,
   ColorStyle,
+  ShapeTreeNode,
 } from 'types'
 import { getFontSize } from './shape-styles'
+import logger from './logger'
 
 const initialData: Data = {
   isReadOnly: false,
   settings: {
     fontSize: 13,
-    isDarkMode: false,
+    isTestMode: false,
     isCodeOpen: false,
+    isDarkMode: false,
+    isDebugMode: false,
+    isDebugOpen: false,
     isStyleOpen: false,
     isToolLocked: false,
     isPenLocked: false,
@@ -56,12 +62,12 @@ const initialData: Data = {
     dash: DashStyle.Draw,
     isFilled: false,
   },
-  activeTool: 'select',
   brush: undefined,
-  boundsRotation: 0,
+  activeTool: 'select',
   pointedId: null,
   hoveredId: null,
   editingId: null,
+  boundsRotation: 0,
   currentPageId: 'page1',
   currentParentId: 'page1',
   currentCodeFileId: 'file0',
@@ -86,8 +92,8 @@ const initialData: Data = {
 const draw = new Draw({
   points: [
     ...Utils.getPointsBetween([0, 0], [20, 50]),
-    ...Utils.getPointsBetween([20, 50], [100, 20], 3),
-    ...Utils.getPointsBetween([100, 20], [100, 100], 10),
+    ...Utils.getPointsBetween([20, 50], [100, 20], { steps: 3 }),
+    ...Utils.getPointsBetween([100, 20], [100, 100], { steps: 10 }),
     [100, 100],
   ],
 })
@@ -130,7 +136,7 @@ for (let i = 0; i < count; i++) {
   pageStates: {
     page1: {
       id: 'page1',
-      selectedIds: new Set([]),
+      selectedIds: [],
       camera: {
         point: [0, 0],
         zoom: 1,
@@ -141,49 +147,64 @@ for (let i = 0; i < count; i++) {
 
 const state = createState({
   data: initialData,
+  on: {
+    CHANGED_DARK_MODE: 'setDarkMode',
+    TOGGLED_DEBUG_PANEL: 'toggleDebugPanel',
+    TOGGLED_DEBUG_MODE: 'toggleDebugMode',
+    TOGGLED_TEST_MODE: 'toggleTestMode',
+    TOGGLED_LOGGER: 'toggleLogger',
+    COPIED_DEBUG_LOG: 'copyDebugLog',
+    LOADED_FROM_SNAPSHOT: {
+      unless: 'isInSession',
+      do: ['loadDocumentFromJson', 'resetHistory'],
+    },
+  },
   initial: 'loading',
   states: {
     loading: {
       on: {
-        MOUNTED: {
-          do: 'restoredPreviousDocument',
-          to: 'ready',
-        },
+        MOUNTED: [
+          'resetHistory',
+          'resetStorage',
+          'restoredPreviousDocument',
+          { to: 'settingCamera' },
+        ],
+      },
+    },
+    settingCamera: {
+      on: {
+        MOUNTED_SHAPES: [
+          {
+            if: 'hasSelection',
+            do: 'zoomCameraToSelectionActual',
+            else: 'zoomCameraToFit',
+          },
+          { to: 'ready' },
+        ],
       },
     },
     ready: {
-      onEnter: {
-        wait: 0.01,
-        if: 'hasSelection',
-        do: 'zoomCameraToSelectionActual',
-        else: ['zoomCameraToActual'],
-      },
       on: {
         UNMOUNTED: {
-          do: ['saveAppState', 'saveDocumentState', 'resetDocumentState'],
+          do: ['saveDocumentState', 'resetDocumentState'],
           to: 'loading',
         },
-        // Network-Related
-        RT_LOADED_ROOM: [
-          'clearRoom',
-          { if: 'hasRoom', do: 'resetDocumentState' },
-        ],
-        // RT_UNLOADED_ROOM: ['clearRoom', 'resetDocumentState'],
-        // RT_DISCONNECTED_ROOM: ['clearRoom', 'resetDocumentState'],
-        // RT_CREATED_SHAPE: 'addRtShape',
-        // RT_CHANGED_STATUS: 'setRtStatus',
-        // RT_DELETED_SHAPE: 'deleteRtShape',
-        // RT_EDITED_SHAPE: 'editRtShape',
-        // Client
         RESIZED_WINDOW: 'resetPageState',
-        RESET_DOCUMENT_STATE: 'resetDocumentState',
+        RESET_DOCUMENT_STATE: [
+          'resetHistory',
+          'resetDocumentState',
+          { to: 'selecting' },
+        ],
         TOGGLED_READ_ONLY: 'toggleReadOnly',
         LOADED_FONTS: 'resetShapes',
         USED_PEN_DEVICE: 'enablePenLock',
         DISABLED_PEN_LOCK: 'disablePenLock',
         TOGGLED_CODE_PANEL_OPEN: ['toggleCodePanel', 'saveAppState'],
         TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
-        PANNED_CAMERA: 'panCamera',
+        PANNED_CAMERA: {
+          ifAny: ['isSimulating', 'isTestMode'],
+          do: 'panCamera',
+        },
         POINTED_CANVAS: ['closeStylePanel', 'clearCurrentParentId'],
         COPIED_STATE_TO_CLIPBOARD: 'copyStateToClipboard',
         COPIED: { if: 'hasSelection', do: 'copyToClipboard' },
@@ -224,10 +245,6 @@ const state = createState({
         CREATED_PAGE: {
           unless: ['isReadOnly', 'isInSession'],
           do: ['clearSelectedIds', 'createPage'],
-        },
-        DELETED_PAGE: {
-          unlessAny: ['isReadOnly', 'isInSession', 'hasOnlyOnePage'],
-          do: 'deletePage',
         },
         SELECTED_SELECT_TOOL: {
           unless: 'isInSession',
@@ -283,7 +300,7 @@ const state = createState({
         },
         SAVED: {
           unlessAny: ['isInSession', 'isReadOnly'],
-          do: 'forceSave',
+          do: ['saveDocumentState', 'saveToFileSystem'],
         },
         LOADED_FROM_FILE: {
           unless: 'isInSession',
@@ -303,6 +320,18 @@ const state = createState({
           unless: 'isInSession',
           do: 'changePage',
         },
+        RENAMED_PAGE: {
+          unlessAny: ['isReadOnly', 'isInSession'],
+          do: 'renamePage',
+        },
+        DUPLICATED_PAGE: {
+          unlessAny: ['isReadOnly', 'isInSession'],
+          do: 'duplicatePage',
+        },
+        DELETED_PAGE: {
+          unlessAny: ['isReadOnly', 'isInSession', 'hasOnlyOnePage'],
+          do: 'deletePage',
+        },
         ZOOMED_TO_ACTUAL: {
           if: 'hasSelection',
           do: 'zoomCameraToSelectionActual',
@@ -316,29 +345,37 @@ const state = createState({
         ZOOMED_TO_SELECTION: {
           if: 'hasSelection',
           do: 'zoomCameraToSelection',
+          else: 'zoomCameraToFit',
         },
-        ZOOMED_TO_FIT: ['zoomCameraToFit', 'zoomCameraToActual'],
+        ZOOMED_TO_CONTENT: 'zoomCameraToContent',
+        ZOOMED_TO_FIT: 'zoomCameraToFit',
         ZOOMED_IN: 'zoomIn',
         ZOOMED_OUT: 'zoomOut',
         RESET_CAMERA: 'resetCamera',
         COPIED_TO_SVG: 'copyToSvg',
         LOADED_FROM_FILE_STSTEM: 'loadFromFileSystem',
-        SAVED_AS_TO_FILESYSTEM: 'saveAsToFileSystem',
-        SAVED_TO_FILESYSTEM: {
-          unless: 'isReadOnly',
-          then: {
-            if: 'isReadOnly',
-            do: 'saveAsToFileSystem',
-            else: 'saveToFileSystem',
+        SAVED_AS_TO_FILESYSTEM: ['saveDocumentState', 'saveAsToFileSystem'],
+        SAVED_TO_FILESYSTEM: [
+          'saveDocumentState',
+          {
+            unless: 'isReadOnly',
+            then: {
+              if: 'isReadOnly',
+              do: 'saveAsToFileSystem',
+              else: 'saveToFileSystem',
+            },
           },
-        },
+        ],
       },
       initial: 'selecting',
       states: {
         selecting: {
           onEnter: ['setActiveToolSelect', 'clearInputs'],
           on: {
-            KEYBOARD_PANNED_CAMERA: 'panCamera',
+            KEYBOARD_PANNED_CAMERA: {
+              ifAny: ['isSimulating', 'isTestMode'],
+              do: 'panCamera',
+            },
             STARTED_PINCHING: {
               unless: 'isInSession',
               to: 'pinching.selectPinching',
@@ -578,8 +615,14 @@ const state = createState({
               onEnter: 'startTransformSession',
               onExit: 'completeSession',
               on: {
-                // MOVED_POINTER: 'updateTransformSession', using hacks.fastTransform
-                PANNED_CAMERA: 'updateTransformSession',
+                MOVED_POINTER: {
+                  ifAny: ['isSimulating', 'isTestMode'],
+                  do: 'updateTransformSession',
+                },
+                PANNED_CAMERA: {
+                  ifAny: ['isSimulating', 'isTestMode'],
+                  do: 'updateTransformSession',
+                },
                 PRESSED_SHIFT_KEY: 'keyUpdateTransformSession',
                 RELEASED_SHIFT_KEY: 'keyUpdateTransformSession',
                 STOPPED_POINTING: { to: 'selecting' },
@@ -591,8 +634,14 @@ const state = createState({
               onExit: 'completeSession',
               on: {
                 STARTED_PINCHING: { to: 'pinching' },
-                MOVED_POINTER: 'updateTranslateSession',
-                PANNED_CAMERA: 'updateTranslateSession',
+                MOVED_POINTER: {
+                  ifAny: ['isSimulating', 'isTestMode'],
+                  do: 'updateTranslateSession',
+                },
+                PANNED_CAMERA: {
+                  ifAny: ['isSimulating', 'isTestMode'],
+                  do: 'updateTranslateSession',
+                },
                 PRESSED_SHIFT_KEY: 'keyUpdateTranslateSession',
                 RELEASED_SHIFT_KEY: 'keyUpdateTranslateSession',
                 PRESSED_ALT_KEY: 'keyUpdateTranslateSession',
@@ -628,8 +677,14 @@ const state = createState({
                 'startBrushSession',
               ],
               on: {
-                // MOVED_POINTER: 'updateBrushSession', using hacks.fastBrushSelect
-                PANNED_CAMERA: 'updateBrushSession',
+                MOVED_POINTER: {
+                  ifAny: ['isSimulating', 'isTestMode'],
+                  do: 'updateBrushSession',
+                },
+                PANNED_CAMERA: {
+                  ifAny: ['isSimulating', 'isTestMode'],
+                  do: 'updateBrushSession',
+                },
                 STOPPED_POINTING: { to: 'selecting' },
                 STARTED_PINCHING: { to: 'pinching' },
                 CANCELLED: { do: 'cancelSession', to: 'selecting' },
@@ -649,34 +704,45 @@ const state = createState({
           onExit: ['completeSession', 'clearEditingId'],
           on: {
             EDITED_SHAPE: { do: 'updateEditSession' },
-            BLURRED_EDITING_SHAPE: [
-              { unless: 'isEditingShape' },
+            POINTED_SHAPE: [
               {
+                unless: 'isPointingEditingShape',
+                if: 'isPointingTextShape',
+                do: [
+                  'completeSession',
+                  'clearEditingId',
+                  'setPointedId',
+                  'clearSelectedIds',
+                  'pushPointedIdToSelectedIds',
+                  'setEditingId',
+                  'startEditSession',
+                ],
+              },
+            ],
+            BLURRED_EDITING_SHAPE: [
+              {
+                unless: 'isEditingShape',
                 get: 'editingShape',
                 if: 'shouldDeleteShape',
                 do: ['cancelSession', 'deleteSelection'],
               },
               { to: 'selecting' },
             ],
-            POINTED_SHAPE: {
-              unless: 'isPointingEditingShape',
-              if: 'isPointingTextShape',
-              do: [
-                'completeSession',
-                'clearEditingId',
-                'setPointedId',
-                'clearSelectedIds',
-                'pushPointedIdToSelectedIds',
-                'setEditingId',
-                'startEditSession',
-              ],
-            },
-            CANCELLED: [
+            POINTED_CANVAS: [
               {
+                unless: 'isEditingShape',
                 get: 'editingShape',
                 if: 'shouldDeleteShape',
-                do: 'breakSession',
-                else: 'cancelSession',
+                do: ['cancelSession', 'deleteSelection'],
+              },
+              { to: 'selecting' },
+            ],
+            CANCELLED: [
+              {
+                unless: 'isEditingShape',
+                get: 'editingShape',
+                if: 'shouldDeleteShape',
+                do: ['cancelSession', 'deleteSelection'],
               },
               { to: 'selecting' },
             ],
@@ -684,7 +750,7 @@ const state = createState({
         },
         pinching: {
           on: {
-            // PINCHED: { do: 'pinchCamera' }, using hacks.fastPinchCamera
+            PINCHED: { if: 'isTestMode', do: 'pinchCamera' },
           },
           initial: 'selectPinching',
           onExit: { secretlyDo: 'updateZoomCSS' },
@@ -709,7 +775,6 @@ const state = createState({
               do: 'breakSession',
               to: 'pinching.toolPinching',
             },
-            TOGGLED_TOOL_LOCK: 'toggleToolLock',
           },
           states: {
             draw: {
@@ -729,6 +794,9 @@ const state = createState({
                       do: 'createShape',
                       to: 'draw.editing',
                     },
+                    STOPPED_POINTING: {
+                      to: 'draw.creating',
+                    },
                   },
                 },
                 editing: {
@@ -745,8 +813,14 @@ const state = createState({
                     },
                     PRESSED_SHIFT: 'keyUpdateDrawSession',
                     RELEASED_SHIFT: 'keyUpdateDrawSession',
-                    // MOVED_POINTER: 'updateDrawSession',
-                    PANNED_CAMERA: 'updateDrawSession',
+                    PANNED_CAMERA: {
+                      ifAny: ['isSimulating', 'isTestMode'],
+                      do: 'updateDrawSession',
+                    },
+                    MOVED_POINTER: {
+                      ifAny: ['isSimulating', 'isTestMode'],
+                      do: 'updateDrawSession',
+                    },
                   },
                 },
               },
@@ -801,8 +875,14 @@ const state = createState({
                       onExit: 'completeSession',
                       onEnter: 'startTranslateSession',
                       on: {
-                        MOVED_POINTER: 'updateTranslateSession',
-                        PANNED_CAMERA: 'updateTranslateSession',
+                        MOVED_POINTER: {
+                          ifAny: ['isSimulating', 'isTestMode'],
+                          do: 'updateTranslateSession',
+                        },
+                        PANNED_CAMERA: {
+                          ifAny: ['isSimulating', 'isTestMode'],
+                          do: 'updateTranslateSession',
+                        },
                       },
                     },
                   },
@@ -830,7 +910,7 @@ const state = createState({
                 },
                 editing: {
                   onExit: 'completeSession',
-                  onEnter: 'startArrowSession',
+                  onEnter: 'startArrowHandleSession',
                   on: {
                     STOPPED_POINTING: [
                       'completeSession',
@@ -846,10 +926,10 @@ const state = createState({
                       to: 'arrow.creating',
                       else: { to: 'selecting' },
                     },
-                    PRESSED_SHIFT: 'keyUpdateArrowSession',
-                    RELEASED_SHIFT: 'keyUpdateArrowSession',
-                    MOVED_POINTER: 'updateArrowSession',
-                    PANNED_CAMERA: 'updateArrowSession',
+                    PRESSED_SHIFT: 'keyUpdateHandleSession',
+                    RELEASED_SHIFT: 'keyUpdateHandleSession',
+                    MOVED_POINTER: 'updateHandleSession',
+                    PANNED_CAMERA: 'updateHandleSession',
                   },
                 },
               },
@@ -862,6 +942,9 @@ const state = createState({
                   on: {
                     CANCELLED: { to: 'selecting' },
                     POINTED_CANVAS: {
+                      to: 'ellipse.editing',
+                    },
+                    POINTED_SHAPE: {
                       to: 'ellipse.editing',
                     },
                   },
@@ -1041,21 +1124,29 @@ const state = createState({
               to: 'selecting',
             },
           },
-          initial: 'drawingShapeBounds',
+          initial: 'bounds',
           states: {
             bounds: {
               onEnter: 'startDrawTransformSession',
               on: {
-                MOVED_POINTER: 'updateTransformSession',
-                PANNED_CAMERA: 'updateTransformSession',
+                MOVED_POINTER: {
+                  do: 'updateTransformSession',
+                },
+                PANNED_CAMERA: {
+                  do: 'updateTransformSession',
+                },
               },
             },
             direction: {
               onEnter: 'startDirectionSession',
               onExit: 'completeSession',
               on: {
-                MOVED_POINTER: 'updateDirectionSession',
-                PANNED_CAMERA: 'updateDirectionSession',
+                MOVED_POINTER: {
+                  do: 'updateDirectionSession',
+                },
+                PANNED_CAMERA: {
+                  do: 'updateDirectionSession',
+                },
               },
             },
           },
@@ -1096,8 +1187,11 @@ const state = createState({
     },
   },
   conditions: {
-    hasRoom(_, payload: { id?: string }) {
-      return payload.id !== undefined
+    isSimulating() {
+      return logger.isSimulating
+    },
+    isTestMode(data) {
+      return data.settings.isTestMode
     },
     isEditingShape(data, payload: { id: string }) {
       return payload.id === data.editingId
@@ -1115,7 +1209,7 @@ const state = createState({
       return tld.getShape(data, payload.target)?.type === ShapeType.Text
     },
     isPointingBounds(data, payload: PointerInfo) {
-      return tld.getSelectedIds(data).size > 0 && payload.target === 'bounds'
+      return tld.getSelectedIds(data).length > 0 && payload.target === 'bounds'
     },
     isPointingShape(data, payload: PointerInfo) {
       return (
@@ -1140,7 +1234,7 @@ const state = createState({
       return payload.target !== undefined
     },
     isPointedShapeSelected(data) {
-      return tld.getSelectedIds(data).has(data.pointedId)
+      return tld.getSelectedIds(data).includes(data.pointedId)
     },
     isPressingShiftKey(data, payload: PointerInfo) {
       return payload.shiftKey
@@ -1170,19 +1264,19 @@ const state = createState({
       return tld.getShape(data, payload.target) !== undefined
     },
     isPointingRotationHandle(
-      data,
+      _data,
       payload: { target: Edge | Corner | 'rotate' }
     ) {
       return payload.target === 'rotate'
     },
     hasSelection(data) {
-      return tld.getSelectedIds(data).size > 0
+      return tld.getSelectedIds(data).length > 0
     },
     hasSingleSelection(data) {
-      return tld.getSelectedIds(data).size === 1
+      return tld.getSelectedIds(data).length === 1
     },
     hasMultipleSelection(data) {
-      return tld.getSelectedIds(data).size > 1
+      return tld.getSelectedIds(data).length > 1
     },
     hasCurrentParentShape(data) {
       return data.currentParentId !== data.currentPageId
@@ -1194,7 +1288,7 @@ const state = createState({
       return data.settings.isPenLocked
     },
     hasOnlyOnePage(data) {
-      return Object.keys(data.document.pages).length === 1
+      return Object.keys(data.document.pages).length <= 1
     },
     selectionIncludesGroups(data) {
       return tld
@@ -1203,6 +1297,38 @@ const state = createState({
     },
   },
   actions: {
+    setDarkMode(data, payload: { isDarkMode: boolean }) {
+      data.settings.isDarkMode = payload.isDarkMode
+    },
+
+    /* ---------------------- Debug --------------------- */
+
+    closeDebugPanel(data) {
+      data.settings.isDebugOpen = false
+    },
+    openDebugPanel(data) {
+      data.settings.isDebugOpen = true
+    },
+    toggleDebugMode(data) {
+      data.settings.isDebugMode = !data.settings.isDebugMode
+    },
+    toggleTestMode(data) {
+      data.settings.isTestMode = !data.settings.isTestMode
+    },
+    toggleDebugPanel(data) {
+      data.settings.isDebugOpen = !data.settings.isDebugOpen
+    },
+    toggleLogger(data) {
+      if (logger.isRunning) {
+        logger.stop(data)
+      } else {
+        logger.start(data)
+      }
+    },
+    copyDebugLog() {
+      logger.copyToJson()
+    },
+
     // Networked Room
     addRtShape(data, payload: { pageId: string; shape: Shape }) {
       const { pageId, shape } = payload
@@ -1222,26 +1348,38 @@ const state = createState({
     clearRoom(data) {
       data.room = undefined
     },
-    resetDocumentState(data) {
-      data.document.id = uniqueId()
+    resetStorage() {
+      storage.reset()
+    },
+    resetDocumentState(data, payload: { roomId?: string }) {
+      // Save the current document and app state.
+      storage.savePage(data)
+      storage.savePageState(data)
+      storage.saveAppStateToLocalStorage(data)
+      storage.saveDocumentToLocalStorage(data)
 
+      // Cancel all current sessions, reset history, etc..
       session.cancel(data)
+      inputs.reset()
+      history.reset()
+      storage.reset()
 
-      const newId = 'page1'
+      // Populate a new app state.
+      const newDocumentId = payload?.roomId ? payload.roomId : uniqueId()
+      const newPageId = 'page1'
 
-      data.currentPageId = newId
-
-      data.pointedId = null
-      data.hoveredId = null
-      data.editingId = null
-      data.currentPageId = 'page1'
-      data.currentParentId = 'page1'
+      data.document.id = newDocumentId
+      data.pointedId = undefined
+      data.hoveredId = undefined
+      data.editingId = undefined
+      data.currentPageId = newPageId
+      data.currentParentId = newPageId
       data.currentCodeFileId = 'file0'
       data.codeControls = {}
 
       data.document.pages = {
-        [newId]: {
-          id: newId,
+        [newPageId]: {
+          id: newPageId,
           name: 'Page 1',
           type: 'page',
           shapes: {},
@@ -1250,15 +1388,21 @@ const state = createState({
       }
 
       data.pageStates = {
-        [newId]: {
-          id: newId,
-          selectedIds: new Set(),
+        [newPageId]: {
+          id: newPageId,
+          selectedIds: [],
           camera: {
             point: [0, 0],
             zoom: 1,
           },
         },
       }
+
+      // Save the new app state.
+      storage.savePage(data)
+      storage.savePageState(data)
+      storage.saveAppStateToLocalStorage(data)
+      storage.saveDocumentToLocalStorage(data)
     },
     resetPageState(data) {
       const pageState = data.pageStates[data.currentPageId]
@@ -1275,12 +1419,20 @@ const state = createState({
     createPage(data) {
       commands.createPage(data, true)
     },
+    renamePage(data, payload: { id: string; name: string }) {
+      commands.renamePage(data, payload.id, payload.name)
+    },
     deletePage(data, payload: { id: string }) {
       commands.deletePage(data, payload.id)
     },
+    duplicatePage(data, payload: { id: string }) {
+      commands.duplicatePage(data, payload.id, true)
+    },
+
     /* --------------------- Shapes --------------------- */
     resetShapes(data) {
       const page = tld.getPage(data)
+
       Object.values(page.shapes).forEach((shape) => {
         page.shapes[shape.id] = { ...shape }
       })
@@ -1288,7 +1440,7 @@ const state = createState({
 
     createShape(data, payload, type: ShapeType) {
       const style = deepClone(data.currentStyle)
-      let point = vec.round(tld.screenToWorld(payload.point, data))
+      let point = tld.screenToWorld(payload.point, data)
 
       if (type === ShapeType.Text) {
         point = vec.sub(point, vec.mul([0, 1], getFontSize(style.size) * 0.8))
@@ -1297,7 +1449,7 @@ const state = createState({
       const shape = createShape(type, {
         id: uniqueId(),
         parentId: data.currentPageId,
-        point,
+        point: vec.round(point),
         style: deepClone(data.currentStyle),
       })
 
@@ -1315,13 +1467,14 @@ const state = createState({
 
       tld.setSelectedIds(data, [shape.id])
     },
+
     /* -------------------- Sessions -------------------- */
 
     // Shared
     breakSession(data) {
       session.cancel(data)
       history.disable()
-      commands.deleteSelected(data)
+      commands.deleteShapes(data, tld.getSelectedShapes(data))
       history.enable()
     },
     cancelSession(data) {
@@ -1404,7 +1557,7 @@ const state = createState({
 
     // Handles
     doublePointHandle(data, payload: PointerInfo) {
-      const id = setToArray(tld.getSelectedIds(data))[0]
+      const id = tld.getSelectedIds(data)[0]
       commands.doublePointHandle(data, id, payload)
     },
 
@@ -1418,25 +1571,30 @@ const state = createState({
           data,
           shapeId,
           handleId,
-          tld.screenToWorld(inputs.pointer.origin, data)
+          tld.screenToWorld(inputs.pointer.origin, data),
+          false
         )
       )
     },
     keyUpdateHandleSession(
       data,
-      payload: { shiftKey: boolean; altKey: boolean }
+      payload: { shiftKey: boolean; altKey: boolean; metaKey: boolean }
     ) {
       session.update<Sessions.HandleSession>(
         data,
         tld.screenToWorld(inputs.pointer.point, data),
-        payload.shiftKey
+        payload.shiftKey,
+        payload.altKey,
+        payload.metaKey
       )
     },
     updateHandleSession(data, payload: PointerInfo) {
       session.update<Sessions.HandleSession>(
         data,
         tld.screenToWorld(payload.point, data),
-        payload.shiftKey
+        payload.shiftKey,
+        payload.altKey,
+        payload.metaKey
       )
     },
 
@@ -1447,7 +1605,7 @@ const state = createState({
     ) {
       const point = tld.screenToWorld(inputs.pointer.origin, data)
       session.begin(
-        tld.getSelectedIds(data).size === 1
+        tld.getSelectedIds(data).length === 1
           ? new Sessions.TransformSingleSession(data, payload.target, point)
           : new Sessions.TransformSession(data, payload.target, point)
       )
@@ -1522,30 +1680,18 @@ const state = createState({
     },
 
     // Arrow
-    startArrowSession(data, payload: PointerInfo) {
-      const id = Array.from(tld.getSelectedIds(data).values())[0]
+    startArrowHandleSession(data) {
+      const shapeId = Array.from(tld.getSelectedIds(data).values())[0]
+      const handleId = 'end'
 
       session.begin(
-        new Sessions.ArrowSession(
+        new Sessions.HandleSession(
           data,
-          id,
+          shapeId,
+          handleId,
           tld.screenToWorld(inputs.pointer.origin, data),
-          payload.shiftKey
+          true
         )
-      )
-    },
-    keyUpdateArrowSession(data, payload: PointerInfo) {
-      session.update<Sessions.ArrowSession>(
-        data,
-        tld.screenToWorld(inputs.pointer.point, data),
-        payload.shiftKey
-      )
-    },
-    updateArrowSession(data, payload: PointerInfo) {
-      session.update<Sessions.ArrowSession>(
-        data,
-        tld.screenToWorld(payload.point, data),
-        payload.shiftKey
       )
     },
 
@@ -1567,7 +1713,7 @@ const state = createState({
       inputs.clear()
     },
     deselectAll(data) {
-      tld.getSelectedIds(data).clear()
+      tld.setSelectedIds(data, [])
     },
     selectAll(data) {
       tld.setSelectedIds(
@@ -1622,10 +1768,10 @@ const state = createState({
     pullPointedIdFromSelectedIds(data) {
       const { pointedId } = data
       const selectedIds = tld.getSelectedIds(data)
-      selectedIds.delete(pointedId)
+      selectedIds.splice(selectedIds.indexOf(pointedId), 1)
     },
     pushPointedIdToSelectedIds(data) {
-      tld.getSelectedIds(data).add(data.pointedId)
+      tld.getSelectedIds(data).push(data.pointedId)
     },
     moveSelection(data, payload: { type: MoveType }) {
       commands.move(data, payload.type)
@@ -1655,7 +1801,7 @@ const state = createState({
       commands.toggle(data, 'isAspectRatioLocked')
     },
     deleteSelection(data) {
-      commands.deleteSelected(data)
+      commands.deleteShapes(data, tld.getSelectedShapes(data))
     },
     rotateSelectionCcw(data) {
       commands.rotateCcw(data)
@@ -1681,10 +1827,10 @@ const state = createState({
         data.editingId = selectedShape.id
       }
 
-      tld.getPageState(data).selectedIds = new Set([selectedShape.id])
+      tld.getPageState(data).selectedIds = [selectedShape.id]
     },
     clearEditingId(data) {
-      data.editingId = null
+      data.editingId = undefined
     },
 
     /* ---------------------- Tool ---------------------- */
@@ -1819,6 +1965,28 @@ const state = createState({
       camera.point = vec.add([-bounds.minX, -bounds.minY], [mx, my])
 
       tld.setZoomCSS(camera.zoom)
+    },
+    zoomCameraToContent(data) {
+      const camera = tld.getCurrentCamera(data)
+      const page = tld.getPage(data)
+
+      const shapes = Object.values(page.shapes)
+
+      if (shapes.length === 0) {
+        return
+      }
+
+      const bounds = getCommonBounds(
+        ...Object.values(shapes).map((shape) =>
+          getShapeUtils(shape).getBounds(shape)
+        )
+      )
+
+      const { zoom } = camera
+      const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
+      const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+
+      camera.point = vec.add([-bounds.minX, -bounds.minY], [mx, my])
     },
     zoomCamera(data, payload: { delta: number; point: number[] }) {
       const camera = tld.getCurrentCamera(data)
@@ -1975,8 +2143,16 @@ const state = createState({
       clipboard.copyStringToClipboard(JSON.stringify(data))
     },
 
-    pasteFromClipboard() {
+    pasteFromClipboard(data) {
       clipboard.paste()
+
+      if (clipboard.fallback) {
+        try {
+          commands.paste(data, JSON.parse(clipboard.current).shapes)
+        } catch (e) {
+          console.warn('Could not paste that text.')
+        }
+      }
     },
 
     pasteShapesFromClipboard(data, payload: { shapes: Shape[] }) {
@@ -1985,8 +2161,8 @@ const state = createState({
 
     /* ---------------------- Data ---------------------- */
 
-    restoredPreviousDocument(data) {
-      storage.firstLoad(data)
+    restoredPreviousDocument(data, payload: { roomId?: string }) {
+      storage.firstLoad(data, payload?.roomId)
     },
 
     saveToFileSystem(data) {
@@ -2010,19 +2186,14 @@ const state = createState({
     },
 
     saveDocumentState(data) {
+      storage.savePage(data)
+      storage.savePageState(data)
+      storage.saveAppStateToLocalStorage(data)
       storage.saveDocumentToLocalStorage(data)
     },
 
     forceSave(data) {
       storage.saveToFileSystem(data)
-    },
-
-    savePage(data) {
-      storage.savePage(data)
-    },
-
-    loadPage(data) {
-      storage.loadPage(data)
     },
 
     saveCode(data, payload: { code: string }) {
@@ -2045,7 +2216,7 @@ const state = createState({
   },
   values: {
     selectedIds(data) {
-      return setToArray(tld.getSelectedIds(data))
+      return tld.getSelectedIds(data)
     },
     selectedBounds(data) {
       return getSelectionBounds(data)
@@ -2058,7 +2229,7 @@ const state = createState({
         .sort((a, b) => a.childIndex - b.childIndex)
     },
     selectedStyle(data) {
-      const selectedIds = setToArray(tld.getSelectedIds(data))
+      const selectedIds = tld.getSelectedIds(data)
       const { currentStyle } = data
 
       if (selectedIds.length === 0) {
@@ -2086,6 +2257,52 @@ const state = createState({
       }
 
       return commonStyle
+    },
+    selectedRotation(data) {
+      const selectedIds = tld.getSelectedIds(data)
+
+      if (selectedIds.length === 1) {
+        const selected = selectedIds[0]
+        const page = tld.getPage(data)
+
+        return page.shapes[selected]?.rotation
+      } else {
+        return 0
+      }
+    },
+    shapesToRender(data) {
+      const viewport = tld.getViewport(data)
+
+      const page = tld.getPage(data)
+
+      const shapesToShow = Object.values(page.shapes).filter((shape) => {
+        if (shape.parentId !== page.id) return false
+
+        const shapeBounds = getShapeUtils(shape).getBounds(shape)
+
+        return (
+          shape.type === ShapeType.Ray ||
+          shape.type === ShapeType.Line ||
+          boundsContain(viewport, shapeBounds) ||
+          boundsCollide(viewport, shapeBounds)
+        )
+      })
+
+      // Populate the shape tree
+      const tree: ShapeTreeNode[] = []
+
+      const selectedIds = tld.getSelectedIds(data)
+
+      shapesToShow
+        .sort((a, b) => a.childIndex - b.childIndex)
+        .forEach((shape) => tld.addToShapeTree(data, selectedIds, tree, shape))
+
+      return tree
+    },
+  },
+  options: {
+    onSend(eventName, payload, didCauseUpdate) {
+      logger.addToLog(eventName, payload, didCauseUpdate)
     },
   },
 })
@@ -2141,9 +2358,9 @@ function getSelectionBounds(data: Data) {
 
   const shapes = tld.getSelectedShapes(data)
 
-  if (selectedIds.size === 0) return null
+  if (selectedIds.length === 0) return null
 
-  if (selectedIds.size === 1) {
+  if (selectedIds.length === 1) {
     if (!shapes[0]) {
       console.warn('Could not find that shape! Clearing selected IDs.')
       tld.setSelectedIds(data, [])

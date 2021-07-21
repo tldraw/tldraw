@@ -8,6 +8,7 @@ const Editor = dynamic(() => import('components/editor'), { ssr: false })
 
 export default function Room({ id }: { id: string }): JSX.Element {
   useEffect(() => {
+    coopState.send('JOINED_ROOM', { id })
     return () => {
       coopState.send('LEFT_ROOM')
     }
@@ -18,8 +19,12 @@ export default function Room({ id }: { id: string }): JSX.Element {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession(context)
-
   const { id } = context.query
+
+  if (!session?.user && process.env.NODE_ENV !== 'development') {
+    context.res.setHeader('Location', `/sponsorware`)
+    context.res.statusCode = 307
+  }
 
   return {
     props: {

@@ -11,17 +11,15 @@ import RotateHandle from './rotate-handle'
 export default function Bounds(): JSX.Element {
   const isBrushing = useSelector((s) => s.isIn('brushSelecting'))
 
-  const isSelecting = useSelector((s) => s.isIn('selecting'))
+  const shouldDisplay = useSelector((s) =>
+    s.isInAny('selecting', 'selectPinching')
+  )
 
   const zoom = useSelector((s) => tld.getCurrentCamera(s.data).zoom)
 
   const bounds = useSelector((s) => s.values.selectedBounds)
 
-  const rotation = useSelector((s) =>
-    s.values.selectedIds.length === 1
-      ? tld.getSelectedShapes(s.data)[0].rotation
-      : 0
-  )
+  const rotation = useSelector((s) => s.values.selectedRotation)
 
   const isAllLocked = useSelector((s) => {
     const page = tld.getPage(s.data)
@@ -38,7 +36,7 @@ export default function Bounds(): JSX.Element {
 
   if (!bounds) return null
 
-  if (!isSelecting) return null
+  if (!shouldDisplay) return null
 
   if (isSingleHandles) return null
 

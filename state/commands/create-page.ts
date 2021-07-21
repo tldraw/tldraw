@@ -2,6 +2,7 @@ import Command from './command'
 import history from '../history'
 import { Data, Page, PageState } from 'types'
 import { uniqueId } from 'utils/utils'
+import tld from 'utils/tld'
 import storage from 'state/storage'
 
 export default function createPage(data: Data, goToPage = true): void {
@@ -14,24 +15,39 @@ export default function createPage(data: Data, goToPage = true): void {
       category: 'canvas',
       do(data) {
         const { page, pageState, currentPageId } = snapshot
+
+        storage.savePage(data, data.document.id, currentPageId)
+
         data.document.pages[page.id] = page
         data.pageStates[page.id] = pageState
 
-        data.currentPageId = page.id
         storage.savePage(data, data.document.id, page.id)
-        storage.saveDocumentToLocalStorage(data)
 
         if (goToPage) {
+          storage.loadPage(data, data.document.id, page.id)
           data.currentPageId = page.id
-        } else {
-          data.currentPageId = currentPageId
+          data.currentParentId = page.id
+
+          tld.setZoomCSS(tld.getPageState(data).camera.zoom)
         }
+
+        storage.saveAppStateToLocalStorage(data)
+        storage.saveDocumentToLocalStorage(data)
       },
       undo(data) {
         const { page, currentPageId } = snapshot
         delete data.document.pages[page.id]
         delete data.pageStates[page.id]
-        data.currentPageId = currentPageId
+
+        if (goToPage) {
+          storage.loadPage(data, data.document.id, currentPageId)
+          data.currentPageId = currentPageId
+          data.currentParentId = currentPageId
+
+          tld.setZoomCSS(tld.getPageState(data).camera.zoom)
+        }
+
+        storage.saveAppStateToLocalStorage(data)
         storage.saveDocumentToLocalStorage(data)
       },
     })
@@ -55,7 +71,7 @@ function getSnapshot(data: Data) {
 
   const pageState: PageState = {
     id,
-    selectedIds: new Set([]),
+    selectedIds: [],
     camera: {
       point: [0, 0],
       zoom: 1,

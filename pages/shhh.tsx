@@ -1,4 +1,3 @@
-// import Editor from "components/editor"
 import Head from 'next/head'
 import dynamic from 'next/dynamic'
 
@@ -10,7 +9,7 @@ export default function Home(): JSX.Element {
       <Head>
         <title>tldraw</title>
       </Head>
-      <Editor />
+      <Editor roomId="home" />
     </>
   )
 }

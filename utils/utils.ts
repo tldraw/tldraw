@@ -1,6 +1,5 @@
 import React from 'react'
 import { Bounds, Edge, Corner, BezierCurveSegment, DashStyle } from 'types'
-import { v4 as uuid } from 'uuid'
 import vec from './vec'
 import _isMobile from 'ismobilejs'
 import { intersectPolygonBounds } from './intersections'
@@ -18,6 +17,47 @@ import { intersectPolygonBounds } from './intersections'
 export function lerp(y1: number, y2: number, mu: number): number {
   mu = clamp(mu, 0, 1)
   return y1 * (1 - mu) + y2 * mu
+}
+
+/**
+ * Linear interpolation between two colors.
+ *
+ * ### Example
+ *
+ *```ts
+ * lerpColor("#000000", "#0099FF", .25)
+ *```
+ */
+function h2r(hex: string) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result
+    ? [
+        parseInt(result[1], 16),
+        parseInt(result[2], 16),
+        parseInt(result[3], 16),
+      ]
+    : null
+}
+
+function r2h(rgb: number[]) {
+  return (
+    '#' +
+    ((1 << 24) + (rgb[0] << 16) + (rgb[1] << 8) + rgb[2]).toString(16).slice(1)
+  )
+}
+
+export function lerpColor(
+  color1: string,
+  color2: string,
+  factor = 0.5
+): string {
+  const c1 = h2r(color1)
+  const c2 = h2r(color2)
+  const result = c1.slice()
+  for (let i = 0; i < 3; i++) {
+    result[i] = Math.round(result[i] + factor * (c2[i] - c1[i]))
+  }
+  return r2h(result)
 }
 
 /**
@@ -63,6 +103,43 @@ export function compress(s: string): string {
 // TODO: replace with a string decompression algorithm
 export function decompress(s: string): string {
   return s
+}
+
+/**
+ * Get whether two objects are shallowly equal.
+ *
+ * ### Example
+ *
+ *```ts
+ * shallowEqual(objA, objB) // true
+ *```
+ */
+export function shallowEqual(
+  objA: Record<string, unknown>,
+  objB: Record<string, unknown>
+): boolean {
+  if (objA === objB) return true
+
+  if (!objA || !objB) return false
+
+  const aKeys = Object.keys(objA)
+  const bKeys = Object.keys(objB)
+  const len = aKeys.length
+
+  if (bKeys.length !== len) return false
+
+  for (let i = 0; i < len; i++) {
+    const key = aKeys[i]
+
+    if (
+      objA[key] !== objB[key] ||
+      !Object.prototype.hasOwnProperty.call(objB, key)
+    ) {
+      return false
+    }
+  }
+
+  return true
 }
 
 /**
@@ -196,20 +273,6 @@ export function getClosestPointOnCircle(
   return vec.sub(C, vec.mul(vec.div(v, vec.len(v)), r))
 }
 
-function det(
-  a: number,
-  b: number,
-  c: number,
-  d: number,
-  e: number,
-  f: number,
-  g: number,
-  h: number,
-  i: number
-): number {
-  return a * e * i + b * f * g + c * d * h - a * f * h - b * d * i - c * e * g
-}
-
 /**
  * Get a circle from three points.
  * @param A
@@ -222,47 +285,27 @@ export function circleFromThreePoints(
   B: number[],
   C: number[]
 ): number[] {
-  const a = det(A[0], A[1], 1, B[0], B[1], 1, C[0], C[1], 1)
+  const [x1, y1] = A
+  const [x2, y2] = B
+  const [x3, y3] = C
 
-  const bx = -det(
-    A[0] * A[0] + A[1] * A[1],
-    A[1],
-    1,
-    B[0] * B[0] + B[1] * B[1],
-    B[1],
-    1,
-    C[0] * C[0] + C[1] * C[1],
-    C[1],
-    1
-  )
-  const by = det(
-    A[0] * A[0] + A[1] * A[1],
-    A[0],
-    1,
-    B[0] * B[0] + B[1] * B[1],
-    B[0],
-    1,
-    C[0] * C[0] + C[1] * C[1],
-    C[0],
-    1
-  )
-  const c = -det(
-    A[0] * A[0] + A[1] * A[1],
-    A[0],
-    A[1],
-    B[0] * B[0] + B[1] * B[1],
-    B[0],
-    B[1],
-    C[0] * C[0] + C[1] * C[1],
-    C[0],
-    C[1]
-  )
+  const a = x1 * (y2 - y3) - y1 * (x2 - x3) + x2 * y3 - x3 * y2
 
-  const x = -bx / (2 * a)
-  const y = -by / (2 * a)
-  const r = Math.sqrt(bx * bx + by * by - 4 * a * c) / (2 * Math.abs(a))
+  const b =
+    (x1 * x1 + y1 * y1) * (y3 - y2) +
+    (x2 * x2 + y2 * y2) * (y1 - y3) +
+    (x3 * x3 + y3 * y3) * (y2 - y1)
 
-  return [x, y, r]
+  const c =
+    (x1 * x1 + y1 * y1) * (x2 - x3) +
+    (x2 * x2 + y2 * y2) * (x3 - x1) +
+    (x3 * x3 + y3 * y3) * (x1 - x2)
+
+  const x = -b / (2 * a)
+
+  const y = -c / (2 * a)
+
+  return [x, y, Math.hypot(x - x1, y - y1)]
 }
 
 /**
@@ -281,7 +324,12 @@ export function perimeterOfEllipse(rx: number, ry: number): number {
  * @param a0
  * @param a1
  */
-export function shortAngleDist(a0: number, a1: number): number {
+export function shortAngleDist(a0: number, a1: number, clamp = true): number {
+  if (!clamp) {
+    const da = a1 - a0
+    return 2 * da - da
+  }
+
   const max = Math.PI * 2
   const da = (a1 - a0) % max
   return ((2 * da) % max) - da
@@ -303,7 +351,7 @@ export function longAngleDist(a0: number, a1: number): number {
  * @param t
  */
 export function lerpAngles(a0: number, a1: number, t: number): number {
-  return a0 + shortAngleDist(a0, a1) * t
+  return a0 + shortAngleDist(a0, a1, true) * t
 }
 
 /**
@@ -1510,10 +1558,43 @@ export function getBoundsCenter(bounds: Bounds): number[] {
 /* -------------------------------------------------- */
 
 /**
+ * Get a value from a cache (a WeakMap), filling the value if it is not present.
+ *
+ * ### Example
+ *
+ *```ts
+ * getFromCache(boundsCache, shape, (cache) => cache.set(shape, "value"))
+ *```
+ */
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function getFromCache<V, I extends object>(
+  cache: WeakMap<I, V>,
+  item: I,
+  replace: (cache: WeakMap<I, V>) => void
+): V {
+  let value = cache.get(item)
+
+  if (value === undefined) {
+    replace(cache)
+    value = cache.get(item)
+
+    if (value === undefined) {
+      throw Error('Cache did not include item!')
+    }
+  }
+
+  return value
+}
+
+/**
  * Get a unique string id.
  */
-export function uniqueId(): string {
-  return uuid()
+
+export function uniqueId(a = ''): string {
+  return a
+    ? /* eslint-disable no-bitwise */
+      ((Number(a) ^ (Math.random() * 16)) >> (Number(a) / 4)).toString(16)
+    : `${1e7}-${1e3}-${4e3}-${8e3}-${1e11}`.replace(/[018]/g, uniqueId)
 }
 
 /**
@@ -1570,14 +1651,6 @@ export function arrsIntersect<T>(
  */
 export function uniqueArray<T extends string | number>(...items: T[]): T[] {
   return Array.from(new Set(items).values())
-}
-
-/**
- * Convert a set to an array.
- * @param set
- */
-export function setToArray<T>(set: Set<T>): T[] {
-  return Array.from(set.values())
 }
 
 /* -------------------------------------------------- */
@@ -1724,14 +1797,17 @@ export function getSvgPathFromStroke(stroke: number[][]): string {
   const d = stroke.reduce(
     (acc, [x0, y0], i, arr) => {
       const [x1, y1] = arr[(i + 1) % arr.length]
-      acc.push(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2)
+      acc.push(` ${x0},${y0} ${(x0 + x1) / 2},${(y0 + y1) / 2}`)
       return acc
     },
-    ['M', ...stroke[0], 'Q']
+    ['M ', `${stroke[0][0]},${stroke[0][1]}`, ' Q']
   )
 
-  d.push('Z')
-  return d.join(' ').replaceAll(/(\s[0-9]*\.[0-9]{2})([0-9]*)\b/g, '$1')
+  d.push(' Z')
+
+  return d
+    .join('')
+    .replaceAll(/(\s?[A-Z]?,?-?[0-9]*\.[0-9]{0,2})(([0-9]|e|-)*)/g, '$1')
 }
 
 export function debounce<T extends (...args: unknown[]) => unknown>(

@@ -1,10 +1,10 @@
-import { Data, PageState, TLDocument } from 'types'
-import { decompress, compress, setToArray } from 'utils'
+import { Data, Page, PageState, TLDocument } from 'types'
+import { decompress, compress } from 'utils'
 import state from './state'
 import { uniqueId } from 'utils/utils'
 import * as idb from 'idb-keyval'
 
-const CURRENT_VERSION = 'code_slate_0.0.8'
+const CURRENT_VERSION = 'code_slate_0.0.9'
 
 function storageId(fileId: string, label: string, id?: string) {
   return [CURRENT_VERSION, fileId, label, id].filter(Boolean).join('_')
@@ -13,14 +13,9 @@ function storageId(fileId: string, label: string, id?: string) {
 class Storage {
   previousSaveHandle?: any // FileSystemHandle
 
-  constructor() {
-    // this.loadPreviousHandle() // Still needs debugging
-  }
-
-  firstLoad(data: Data) {
-    const lastOpenedFileId = localStorage.getItem(
-      `${CURRENT_VERSION}_lastOpened`
-    )
+  firstLoad(data: Data, roomId = 'TESTING') {
+    const lastOpenedFileId =
+      roomId || localStorage.getItem(`${CURRENT_VERSION}_lastOpened`)
 
     // 1. Load Document from Local Storage
     // Using the "last opened file id" in local storage.
@@ -30,23 +25,22 @@ class Storage {
         storageId(lastOpenedFileId, 'document-state', lastOpenedFileId)
       )
 
-      if (savedState === null) {
+      if (!savedState) {
         // If no state with that document was found, create a fresh random id.
-        data.document.id = uniqueId()
+        data.document.id = roomId ? roomId : uniqueId()
       } else {
         // If we did find a state and document, load it into state.
-        const restoredDocument: Data = JSON.parse(decompress(savedState))
+        const restoredState: Data = JSON.parse(decompress(savedState))
+
+        // Lose the settings, these are meant to be stable
+        delete restoredState.settings
 
         // Merge restored data into state.
-        Object.assign(data, restoredDocument)
+        Object.assign(data, restoredState)
       }
     }
 
-    try {
-      this.load(data)
-    } catch (error) {
-      console.error(error)
-    }
+    this.load(data)
   }
 
   saveAppStateToLocalStorage = (data: Data) => {
@@ -63,6 +57,8 @@ class Storage {
       storageId(data.document.id, 'document', data.document.id),
       compress(JSON.stringify(document))
     )
+
+    localStorage.setItem(`${CURRENT_VERSION}_lastOpened`, data.document.id)
   }
 
   getCompleteDocument = (data: Data, preventUpdate: boolean) => {
@@ -95,6 +91,7 @@ class Storage {
       JSON.parse(json)
 
     data.document = restoredDocument.document
+    data.pageStates[restoredDocument.pageState.id] = restoredDocument.pageState
 
     // Save pages to local storage, possibly overwriting unsaved local copies
     Object.values(data.document.pages).forEach((page) => {
@@ -138,12 +135,11 @@ class Storage {
       if (savedPageState !== null) {
         // If we've found a page state in local storage, set it into state.
         data.pageStates[pageId] = JSON.parse(decompress(savedPageState))
-        data.pageStates[pageId].selectedIds = new Set([])
       } else {
         // Or else create a new one.
         data.pageStates[pageId] = {
           id: pageId,
-          selectedIds: new Set([]),
+          selectedIds: [],
           camera: {
             point: [0, 0],
             zoom: 1,
@@ -154,15 +150,29 @@ class Storage {
 
     // 3. Restore the last page state
     // Using the "last page state" in local storage.
-    const savedPageState = localStorage.getItem(
-      storageId(data.document.id, 'lastPageState', data.document.id)
-    )
 
-    if (savedPageState !== null) {
+    try {
+      const savedPageState = localStorage.getItem(
+        storageId(data.document.id, 'lastPageState', data.document.id)
+      )
       const pageState = JSON.parse(decompress(savedPageState))
-      pageState.selectedIds = new Set([])
+
+      if (!data.document.pages[pageState.id]) {
+        throw new Error('Page state id not in document')
+      }
+
+      pageState.selectedIds = []
       data.pageStates[pageState.id] = pageState
       data.currentPageId = pageState.id
+    } catch (e) {
+      data.pageStates[data.currentPageId] = {
+        id: data.currentPageId,
+        selectedIds: [],
+        camera: {
+          point: [0, 0],
+          zoom: 1,
+        },
+      }
     }
 
     // 4. Save the current app state / document
@@ -202,6 +212,9 @@ class Storage {
         page.shapes = {}
       }
     })
+
+    // Load the current page
+    this.loadPage(data, data.document.id, data.currentPageId)
 
     // Update camera for the new page state
     document.documentElement.style.setProperty(
@@ -253,8 +266,83 @@ class Storage {
       storageId(fileId, 'pageState', pageId),
       JSON.stringify({
         ...currentPageState,
-        selectedIds: setToArray(currentPageState.selectedIds),
+        selectedIds: [...currentPageState.selectedIds],
       })
+    )
+  }
+
+  getPageFromLocalStorage(
+    data: Data,
+    fileId = data.document.id,
+    pageId = data.currentPageId
+  ): Page {
+    if (typeof window === 'undefined') return
+    if (typeof localStorage === 'undefined') return
+
+    let page: Page
+
+    try {
+      const savedPage = localStorage.getItem(storageId(fileId, 'page', pageId))
+      if (savedPage === null) {
+        throw Error('That page is not in local storage.')
+      }
+
+      page = JSON.parse(decompress(savedPage))
+    } catch (e) {
+      throw Error('Could not load a page with the id ' + pageId)
+    }
+
+    return page
+  }
+
+  getPageStateFromLocalStorage(
+    data: Data,
+    fileId = data.document.id,
+    pageId = data.currentPageId
+  ): PageState {
+    if (typeof window === 'undefined') return
+    if (typeof localStorage === 'undefined') return
+
+    let pageState: PageState
+
+    try {
+      const savedPageState = localStorage.getItem(
+        storageId(fileId, 'pageState', pageId)
+      )
+      if (savedPageState === null) {
+        throw Error('That page state is not in local storage.')
+      }
+
+      pageState = JSON.parse(decompress(savedPageState))
+    } catch (e) {
+      throw Error('Could not load a page state with the id ' + pageId)
+    }
+
+    return pageState
+  }
+
+  /**
+   * Apply changes to a page in local storage.
+   *
+   * ### Example
+   *
+   *```ts
+   * storage.renamePageInLocalStorage(data, 'fileId', 'pageId', 'newPageName')
+   *```
+   */
+  renamePageInLocalStorage(
+    data: Data,
+    fileId = data.document.id,
+    pageId = data.currentPageId,
+    name: string
+  ) {
+    const page = this.getPageFromLocalStorage(data, fileId, pageId)
+
+    page.name = name
+
+    localStorage.setItem(
+      storageId(fileId, 'page', pageId),
+      compress(JSON.stringify(page))
     )
   }
 
@@ -264,13 +352,22 @@ class Storage {
 
     data.currentPageId = pageId
 
-    // Get saved page from local storage
-    const savedPage = localStorage.getItem(storageId(fileId, 'page', pageId))
+    try {
+      // If we have a page in local storage, move it into state
+      const savedPage = localStorage.getItem(storageId(fileId, 'page', pageId))
 
-    if (savedPage !== null) {
-      // If we have a page, move it into state
-      data.document.pages[pageId] = JSON.parse(decompress(savedPage))
-    } else {
+      if (savedPage === null) {
+        // Why would the page be null?
+        // TODO: Find out why the page would be null.
+        throw new Error('Could not find that page')
+      } else {
+        data.document.pages[pageId] = JSON.parse(decompress(savedPage))
+      }
+    } catch (e) {
+      if (fileId !== 'TESTING') {
+        throw new Error('Could not load a page with the id ' + pageId)
+      }
+
       // If we don't have a page, create a new page
       data.document.pages[pageId] = {
         id: pageId,
@@ -290,7 +387,6 @@ class Storage {
       // If we have a page, move it into state
       const restored: PageState = JSON.parse(savedPageState)
       data.pageStates[pageId] = restored
-      data.pageStates[pageId].selectedIds = new Set(restored.selectedIds)
     } else {
       data.pageStates[pageId] = {
         id: pageId,
@@ -298,7 +394,7 @@ class Storage {
           point: [0, 0],
           zoom: 1,
         },
-        selectedIds: new Set([]),
+        selectedIds: [],
       }
     }
 
@@ -307,8 +403,6 @@ class Storage {
       storageId(fileId, 'lastPageState'),
       JSON.stringify(data.pageStates[pageId])
     )
-
-    // Prepare new state
 
     // Now clear out the other pages from state.
     Object.values(data.document.pages).forEach((page) => {
@@ -326,30 +420,27 @@ class Storage {
 
   /* ------------------- File System ------------------ */
 
+  reset = () => {
+    this.previousSaveHandle = undefined
+  }
+
   saveToFileSystem = (data: Data) => {
-    this.saveAppStateToLocalStorage(data)
-    this.saveDocumentToLocalStorage(data)
-    this.saveDataToFileSystem(data, data.document.id, false)
+    this.saveDataToFileSystem(data, false)
   }
 
   saveAsToFileSystem = (data: Data) => {
-    this.saveAppStateToLocalStorage(data)
-    this.saveDocumentToLocalStorage(data)
-    this.saveDataToFileSystem(data, uniqueId(), true)
+    this.saveDataToFileSystem(data, true)
   }
 
-  saveDataToFileSystem = async (
-    data: Data,
-    fileId: string,
-    saveAs: boolean
-  ) => {
+  saveDataToFileSystem = async (data: Data, saveAs: boolean) => {
     if (window.self !== window.top) {
       //console.log(`"save" (webview <- iframe)`)
       window.parent.postMessage({ type: 'save' }, '*')
       return
     }
 
-    const document = this.getCompleteDocument(data, false)
+    const isSavingAs = saveAs || !this.previousSaveHandle
+    const document = this.getCompleteDocument(data)
 
     // Then save to file system
     const blob = new Blob(
@@ -374,12 +465,14 @@ class Storage {
       blob,
       {
         fileName: `${
-          saveAs ? documentName : this.previousSaveHandle?.name || 'My Document'
+          isSavingAs
+            ? documentName
+            : this.previousSaveHandle?.name || 'My Document'
         }.tldr`,
         description: 'tldraw file',
         extensions: ['.tldr'],
       },
-      saveAs ? undefined : this.previousSaveHandle,
+      isSavingAs ? undefined : this.previousSaveHandle,
       true
     )
       .then((handle) => {

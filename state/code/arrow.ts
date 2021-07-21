@@ -11,7 +11,7 @@ export default class Arrow extends CodeShape<ArrowShape> {
   constructor(
     props = {} as ShapeProps<ArrowShape> & { start: number[]; end: number[] }
   ) {
-    const { start = [0, 0], end = [0, 0] } = props
+    const { start = [0, 0], end = [100, 100] } = props
 
     const {
       point = [0, 0],
@@ -36,17 +36,12 @@ export default class Arrow extends CodeShape<ArrowShape> {
 
     super({
       id: uniqueId(),
-
       type: ShapeType.Arrow,
-      isGenerated: false,
       name: 'Arrow',
       parentId: 'page1',
       childIndex: 0,
       point,
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       bend: 0,
       handles,
       decorations: {

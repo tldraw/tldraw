@@ -3,7 +3,10 @@ import coopState from 'state/coop/coop-state'
 import * as json from './__mocks__/document.json'
 
 state.reset()
-state.send('MOUNTED').send('LOADED_FROM_FILE', { json: JSON.stringify(json) })
+state
+  .send('MOUNTED')
+  .send('MOUNTED_SHAPES')
+  .send('LOADED_FROM_FILE', { json: JSON.stringify(json) })
 state.send('CLEARED_PAGE')
 
 coopState.reset()

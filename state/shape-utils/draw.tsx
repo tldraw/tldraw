@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils/utils'
+import { getFromCache, uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { DashStyle, DrawShape, ShapeType } from 'types'
 import { intersectPolylineBounds } from 'utils/intersections'
@@ -26,16 +26,13 @@ const draw = registerShapeUtils<DrawShape>({
   defaultProps: {
     id: uniqueId(),
     type: ShapeType.Draw,
-    isGenerated: false,
     name: 'Draw',
     parentId: 'page1',
     childIndex: 0,
     point: [0, 0],
     points: [],
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
+
     style: defaultStyle,
   },
 
@@ -43,75 +40,86 @@ const draw = registerShapeUtils<DrawShape>({
     return shape.points !== prev.points || shape.style !== prev.style
   },
 
-  render(shape) {
-    const { id, points, style } = shape
+  render(shape, { isHovered, isDarkMode }) {
+    const { points, style } = shape
 
-    const styles = getShapeStyle(style)
+    const styles = getShapeStyle(style, isDarkMode)
 
     const strokeWidth = +styles.strokeWidth
 
     const shouldFill =
+      style.isFilled &&
       points.length > 3 &&
       vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
 
     // For very short lines, draw a point instead of a line
 
     if (points.length > 0 && points.length < 3) {
+      const sw = strokeWidth * 0.618
+
       return (
-        <g id={id}>
-          <circle
-            r={strokeWidth * 0.618}
-            fill={styles.stroke}
-            stroke={styles.stroke}
-            strokeWidth={styles.strokeWidth}
-          />
-        </g>
+        <circle
+          r={strokeWidth * 0.618}
+          fill={styles.stroke}
+          stroke={styles.stroke}
+          strokeWidth={sw}
+          pointerEvents="all"
+          filter={isHovered ? 'url(#expand)' : 'none'}
+        />
       )
     }
 
     // For drawn lines, draw a line from the path cache
 
     if (shape.style.dash === DashStyle.Draw) {
-      if (!drawPathCache.has(points)) {
-        drawPathCache.set(shape.points, getDrawStrokePath(shape))
-      }
+      const polygonPathData = getFromCache(polygonCache, points, (cache) => {
+        cache.set(shape.points, getFillPath(shape))
+      })
 
-      if (shouldFill && !polygonCache.has(points)) {
-        polygonCache.set(shape.points, getFillPath(shape))
-      }
+      const drawPathData = getFromCache(drawPathCache, points, (cache) => {
+        cache.set(shape.points, getDrawStrokePath(shape))
+      })
 
       return (
-        <g id={id}>
+        <>
           {shouldFill && (
             <path
-              d={polygonCache.get(points)}
-              strokeWidth="0"
+              d={polygonPathData}
               stroke="none"
               fill={styles.fill}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              pointerEvents="fill"
             />
           )}
           <path
-            d={drawPathCache.get(points)}
+            d={drawPathData}
             fill={styles.stroke}
             stroke={styles.stroke}
-            strokeWidth={strokeWidth / 2}
+            strokeWidth={strokeWidth}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            pointerEvents="all"
+            filter={isHovered ? 'url(#expand)' : 'none'}
           />
-        </g>
+        </>
       )
     }
 
     // For solid, dash and dotted lines, draw a regular stroke path
 
     const strokeDasharray = {
+      [DashStyle.Draw]: 'none',
+      [DashStyle.Solid]: `none`,
       [DashStyle.Dotted]: `${strokeWidth / 10} ${strokeWidth * 3}`,
       [DashStyle.Dashed]: `${strokeWidth * 3} ${strokeWidth * 3}`,
-      [DashStyle.Solid]: `none`,
     }[style.dash]
 
     const strokeDashoffset = {
+      [DashStyle.Draw]: 'none',
+      [DashStyle.Solid]: `none`,
       [DashStyle.Dotted]: `-${strokeWidth / 20}`,
       [DashStyle.Dashed]: `-${strokeWidth}`,
-      [DashStyle.Solid]: `none`,
     }[style.dash]
 
     if (!simplePathCache.has(points)) {
@@ -120,35 +128,41 @@ const draw = registerShapeUtils<DrawShape>({
 
     const path = simplePathCache.get(points)
 
+    const sw = strokeWidth * 1.618
+
     return (
-      <g id={id}>
-        {style.dash !== DashStyle.Solid && (
-          <path
-            d={path}
-            fill="transparent"
-            stroke="transparent"
-            strokeWidth={strokeWidth * 2}
-          />
-        )}
+      <>
         <path
           d={path}
           fill={shouldFill ? styles.fill : 'none'}
+          stroke="transparent"
+          strokeWidth={Math.min(4, strokeWidth * 2)}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          pointerEvents={shouldFill ? 'all' : 'stroke'}
+        />
+        <path
+          d={path}
+          fill="transparent"
           stroke={styles.stroke}
-          strokeWidth={strokeWidth * 1.618}
+          strokeWidth={sw}
           strokeDasharray={strokeDasharray}
           strokeDashoffset={strokeDashoffset}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          pointerEvents="stroke"
+          filter={isHovered ? 'url(#expand)' : 'none'}
         />
-      </g>
+      </>
     )
   },
 
   getBounds(shape) {
-    if (!this.boundsCache.has(shape)) {
-      const bounds = getBoundsFromPoints(shape.points)
-      this.boundsCache.set(shape, bounds)
-    }
+    const bounds = getFromCache(this.boundsCache, shape, (cache) => {
+      cache.set(shape, getBoundsFromPoints(shape.points))
+    })
 
-    return translateBounds(this.boundsCache.get(shape), shape.point)
+    return translateBounds(bounds, shape.point)
   },
 
   getRotatedBounds(shape) {
@@ -162,13 +176,8 @@ const draw = registerShapeUtils<DrawShape>({
     return getBoundsCenter(this.getBounds(shape))
   },
 
-  hitTest(shape, point) {
-    const pt = vec.sub(point, shape.point)
-    const min = +getShapeStyle(shape.style).strokeWidth
-    return shape.points.some(
-      (curr, i) =>
-        i > 0 && vec.distanceToLineSegment(shape.points[i - 1], curr, pt) < min
-    )
+  hitTest() {
+    return true
   },
 
   hitTestBounds(this, shape, brushBounds) {
@@ -186,25 +195,32 @@ const draw = registerShapeUtils<DrawShape>({
     // Test rotated shape
     const rBounds = this.getRotatedBounds(shape)
 
-    if (!rotatedCache.has(shape)) {
+    const rotatedBounds = getFromCache(rotatedCache, shape, (cache) => {
       const c = getBoundsCenter(getBoundsFromPoints(shape.points))
-      rotatedCache.set(
+      cache.set(
         shape,
         shape.points.map((pt) => vec.rotWith(pt, c, shape.rotation))
       )
-    }
+    })
 
     return (
       boundsContain(brushBounds, rBounds) ||
       intersectPolylineBounds(
-        rotatedCache.get(shape),
+        rotatedBounds,
         translateBounds(brushBounds, vec.neg(shape.point))
       ).length > 0
     )
   },
 
   transform(shape, bounds, { initialShape, scaleX, scaleY }) {
-    const initialShapeBounds = this.boundsCache.get(initialShape)
+    const initialShapeBounds = getFromCache(
+      this.boundsCache,
+      initialShape,
+      (cache) => {
+        cache.set(shape, getBoundsFromPoints(initialShape.points))
+      }
+    )
+
     shape.points = initialShape.points.map(([x, y, r]) => {
       return [
         bounds.width *
@@ -309,23 +325,14 @@ function getDrawStrokePath(shape: DrawShape) {
   const stroke = getStroke(shape.points, {
     size: 1 + +styles.strokeWidth * 2,
     thinning: 0.85,
-    end: { taper: +styles.strokeWidth * 20 },
-    start: { taper: +styles.strokeWidth * 20 },
+    end: { taper: +styles.strokeWidth * 10 },
+    start: { taper: +styles.strokeWidth * 10 },
     ...options,
   })
 
   return getSvgPathFromStroke(stroke)
 }
 
-/**
- * Get the path data for a solid draw stroke.
- *
- * ### Example
- *
- *```ts
- * getSolidStrokePath(shape)
- *```
- */
 function getSolidStrokePath(shape: DrawShape) {
   let { points } = shape
 
@@ -334,13 +341,7 @@ function getSolidStrokePath(shape: DrawShape) {
   if (len === 0) return 'M 0 0 L 0 0'
   if (len < 3) return `M ${points[0][0]} ${points[0][1]}`
 
-  // Remove duplicates from points
-  points = points.reduce<number[][]>((acc, pt, i) => {
-    if (i === 0 || !vec.isEqual(pt, acc[i - 1])) {
-      acc.push(pt)
-    }
-    return acc
-  }, [])
+  points = getStrokePoints(points).map((pt) => pt.point)
 
   len = points.length
 
@@ -367,3 +368,33 @@ function getSolidStrokePath(shape: DrawShape) {
 
   return path
 }
+
+// /**
+//  * Get the path data for a solid draw stroke.
+//  *
+//  * ### Example
+//  *
+//  *```ts
+//  * getSolidStrokePath(shape)
+//  *```
+//  */
+// function getSolidDrawStrokePath(shape: DrawShape) {
+//   const styles = getShapeStyle(shape.style)
+
+//   if (shape.points.length < 2) {
+//     return ''
+//   }
+
+//   const options =
+//     shape.points[1][2] === 0.5 ? simulatePressureSettings : realPressureSettings
+
+//   const stroke = getStroke(shape.points, {
+//     size: 1 + +styles.strokeWidth * 2,
+//     thinning: 0,
+//     end: { taper: +styles.strokeWidth * 10 },
+//     start: { taper: +styles.strokeWidth * 10 },
+//     ...options,
+//   })
+
+//   return getSvgPathFromStroke(stroke)
+// }

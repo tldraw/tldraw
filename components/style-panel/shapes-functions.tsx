@@ -17,6 +17,7 @@ import {
   PinTopIcon,
   RotateCounterClockwiseIcon,
 } from '@radix-ui/react-icons'
+import { commandKey } from 'utils'
 
 function handleRotateCcw() {
   state.send('ROTATED_CCW')
@@ -86,11 +87,11 @@ function ShapesFunctions() {
   })
 
   const hasSelection = useSelector((s) => {
-    return tld.getSelectedIds(s.data).size > 0
+    return tld.getSelectedIds(s.data).length > 0
   })
 
   const hasMultipleSelection = useSelector((s) => {
-    return tld.getSelectedIds(s.data).size > 1
+    return tld.getSelectedIds(s.data).length > 1
   })
 
   return (
@@ -102,7 +103,7 @@ function ShapesFunctions() {
           size="small"
           onClick={handleDuplicate}
         >
-          <Tooltip label="Duplicate">
+          <Tooltip label="Duplicate" kbd={`${commandKey()}D`}>
             <CopyIcon />
           </Tooltip>
         </IconButton>
@@ -123,7 +124,7 @@ function ShapesFunctions() {
           size="small"
           onClick={handleLock}
         >
-          <Tooltip label="Toogle Locked">
+          <Tooltip label="Toogle Locked" kbd={`${commandKey()}L`}>
             {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon opacity={0.4} />}
           </Tooltip>
         </IconButton>
@@ -145,7 +146,7 @@ function ShapesFunctions() {
           size="small"
           onClick={isAllGrouped ? handleUngroup : handleGroup}
         >
-          <Tooltip label="Group">
+          <Tooltip label="Group" kbd={`${commandKey()}G`}>
             <GroupIcon opacity={isAllGrouped ? 1 : 0.4} />
           </Tooltip>
         </IconButton>
@@ -157,7 +158,7 @@ function ShapesFunctions() {
           size="small"
           onClick={handleMoveToBack}
         >
-          <Tooltip label="Move to Back">
+          <Tooltip label="Move to Back" kbd={`${commandKey()}⇧[`}>
             <PinBottomIcon />
           </Tooltip>
         </IconButton>
@@ -168,7 +169,7 @@ function ShapesFunctions() {
           size="small"
           onClick={handleMoveBackward}
         >
-          <Tooltip label="Move Backward">
+          <Tooltip label="Move Backward" kbd={`${commandKey()}[`}>
             <ArrowDownIcon />
           </Tooltip>
         </IconButton>
@@ -179,7 +180,7 @@ function ShapesFunctions() {
           size="small"
           onClick={handleMoveForward}
         >
-          <Tooltip label="Move Forward">
+          <Tooltip label="Move Forward" kbd={`${commandKey()}]`}>
             <ArrowUpIcon />
           </Tooltip>
         </IconButton>
@@ -190,7 +191,7 @@ function ShapesFunctions() {
           size="small"
           onClick={handleMoveToFront}
         >
-          <Tooltip label="More to Front">
+          <Tooltip label="More to Front" kbd={`${commandKey()}⇧]`}>
             <PinTopIcon />
           </Tooltip>
         </IconButton>
@@ -201,7 +202,7 @@ function ShapesFunctions() {
           size="small"
           onClick={handleDelete}
         >
-          <Tooltip label="Delete">
+          <Tooltip label="Delete" kbd="⌫">
             <Trash2 size="15" />
           </Tooltip>
         </IconButton>

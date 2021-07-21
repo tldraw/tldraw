@@ -1,19 +1,22 @@
 import useKeyboardEvents from 'hooks/useKeyboardEvents'
 import useLoadOnMount from 'hooks/useLoadOnMount'
+import useStateTheme from 'hooks/useStateTheme'
+import Menu from './menu/menu'
 import Canvas from './canvas/canvas'
-import StatusBar from './status-bar'
 import ToolsPanel from './tools-panel/tools-panel'
 import StylePanel from './style-panel/style-panel'
 import styled from 'styles'
 import PagePanel from './page-panel/page-panel'
 import CodePanel from './code-panel/code-panel'
+import DebugPanel from './debug-panel/debug-panel'
 import ControlsPanel from './controls-panel/controls-panel'
 import { useEffect } from 'react'
 import state from 'state'
 
 export default function Editor({ roomId }: { roomId?: string }): JSX.Element {
-  useKeyboardEvents()
   useLoadOnMount(roomId)
+  useStateTheme()
+  useKeyboardEvents()
 
   useEffect(() => {
     if (window.self !== window.top) {
@@ -28,20 +31,28 @@ export default function Editor({ roomId }: { roomId?: string }): JSX.Element {
 
   return (
     <Layout>
-      <CodePanel />
-      <PagePanel />
+      <MenuButtons>
+        <Menu />
+        <DebugPanel />
+        <CodePanel />
+        <PagePanel />
+      </MenuButtons>
       <ControlsPanel />
       <Spacer />
       <StylePanel />
       <Canvas />
       <ToolsPanel />
-      <StatusBar />
     </Layout>
   )
 }
 
 const Spacer = styled('div', {
   flexGrow: 2,
+})
+
+const MenuButtons = styled('div', {
+  display: 'flex',
+  gap: 8,
 })
 
 const Layout = styled('main', {
@@ -58,6 +69,9 @@ const Layout = styled('main', {
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
+  boxSizing: 'border-box',
+  outline: 'none',
+
   pointerEvents: 'none',
   '& > *': {
     PointerEvent: 'all',

@@ -9,31 +9,42 @@ class Clipboard {
   fallback = false
 
   copy = (shapes: Shape[], onComplete?: () => void) => {
+    if (shapes === undefined) return
+
     this.current = JSON.stringify({ id: 'tldr', shapes })
 
-    navigator.permissions.query({ name: 'clipboard-write' }).then((result) => {
-      if (result.state == 'granted' || result.state == 'prompt') {
-        navigator.clipboard.writeText(this.current).then(onComplete, () => {
-          console.warn('Error, could not copy to clipboard. Fallback?')
-          this.fallback = true
+    if ('permissions' in navigator && 'clipboard' in navigator) {
+      navigator.permissions
+        .query({ name: 'clipboard-write' })
+        .then((result) => {
+          if (result.state == 'granted' || result.state == 'prompt') {
+            navigator.clipboard.writeText(this.current).then(onComplete, () => {
+              console.warn('Error, could not copy to clipboard. Fallback?')
+              this.fallback = true
+            })
+          } else {
+            this.fallback = true
+          }
         })
-      } else {
-        this.fallback = true
-      }
-    })
+    }
   }
 
   paste = () => {
-    navigator.clipboard
-      .readText()
-      .then(this.sendPastedTextToState, this.sendPastedTextToState)
+    try {
+      navigator.clipboard.readText().then(this.sendPastedTextToState)
+    } catch (e) {
+      this.fallback = true
+    }
+
+    return this
   }
 
-  sendPastedTextToState(text = this.current) {
+  sendPastedTextToState = (text = this.current) => {
     if (text === undefined) return
 
     try {
       const clipboardData = JSON.parse(text)
+
       state.send('PASTED_SHAPES_FROM_CLIPBOARD', {
         shapes: clipboardData.shapes,
       })
@@ -41,31 +52,38 @@ class Clipboard {
       // The text wasn't valid JSON, or it wasn't ours, so paste it as a text object
       state.send('PASTED_TEXT_FROM_CLIPBOARD', { text })
     }
+
+    return this
   }
 
   clear = () => {
     this.current = undefined
+
+    return this
   }
 
   copySelectionToSvg(data: Data) {
     const shapes = tld.getSelectedShapes(data)
+    const shapesToCopy = shapes.length > 0 ? shapes : tld.getShapes(data)
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
 
-    shapes
+    if (shapesToCopy.length === 0) return
+
+    shapesToCopy
       .sort((a, b) => a.childIndex - b.childIndex)
       .forEach((shape) => {
-        const group = document.getElementById(shape.id + '-group')
-        const node = document.getElementById(shape.id)
+        const group = document.getElementById(shape.id)
 
-        const groupClone = group.cloneNode()
-        groupClone.appendChild(node.cloneNode(true))
+        const groupClone = group.cloneNode(true)
+
+        // TODO: Add children if the shape is a group
 
         svg.appendChild(groupClone)
       })
 
     const bounds = getCommonBounds(
-      ...shapes.map((shape) => getShapeUtils(shape).getBounds(shape))
+      ...shapesToCopy.map((shape) => getShapeUtils(shape).getBounds(shape))
     )
 
     // No content
@@ -100,41 +118,42 @@ class Clipboard {
     } catch (e) {
       this.copyStringToClipboard(svgString)
     }
+
+    return this
   }
 
   copyStringToClipboard = (string: string) => {
-    let result: boolean | null
-
-    const textarea = document.createElement('textarea')
-    textarea.setAttribute('position', 'fixed')
-    textarea.setAttribute('top', '0')
-    textarea.setAttribute('readonly', 'true')
-    textarea.setAttribute('contenteditable', 'true')
-    textarea.style.position = 'fixed'
-    textarea.value = string
-    document.body.appendChild(textarea)
-    textarea.focus()
-    textarea.select()
-
     try {
-      const range = document.createRange()
-      range.selectNodeContents(textarea)
+      navigator.clipboard.writeText(string)
+    } catch (e) {
+      const textarea = document.createElement('textarea')
+      textarea.setAttribute('position', 'fixed')
+      textarea.setAttribute('top', '0')
+      textarea.setAttribute('readonly', 'true')
+      textarea.setAttribute('contenteditable', 'true')
+      textarea.style.position = 'fixed'
+      textarea.value = string
+      document.body.appendChild(textarea)
+      textarea.focus()
+      textarea.select()
 
-      const sel = window.getSelection()
-      sel.removeAllRanges()
-      sel.addRange(range)
+      try {
+        const range = document.createRange()
+        range.selectNodeContents(textarea)
 
-      textarea.setSelectionRange(0, textarea.value.length)
-      result = document.execCommand('copy')
-    } catch (err) {
-      result = null
-    } finally {
-      document.body.removeChild(textarea)
+        const sel = window.getSelection()
+        sel.removeAllRanges()
+        sel.addRange(range)
+
+        textarea.setSelectionRange(0, textarea.value.length)
+      } catch (err) {
+        null // Could not copy to clipboard
+      } finally {
+        document.body.removeChild(textarea)
+      }
     }
 
-    if (!result) return false
-
-    return true
+    return this
   }
 }
 

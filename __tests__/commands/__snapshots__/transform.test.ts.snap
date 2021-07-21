@@ -1,0 +1,852 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`transform command snapshot tests shift-transforms corners 1`] = `
+Object {
+  "height": 593.73,
+  "maxX": 700,
+  "maxY": 600,
+  "minX": -12.476,
+  "minY": 6.27,
+  "width": 712.476,
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms corners 2`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      -12.476,
+      6.27,
+    ],
+    "size": Array [
+      118.75,
+      118.75,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      462.51,
+      362.51,
+    ],
+    "size": Array [
+      237.49,
+      237.49,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms corners 3`] = `
+Object {
+  "height": 531.6320000000001,
+  "maxX": 737.9599999999999,
+  "maxY": 600,
+  "minX": 100,
+  "minY": 68.368,
+  "width": 637.9599999999999,
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms corners 4`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      68.368,
+    ],
+    "size": Array [
+      106.33,
+      106.33,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      525.31,
+      387.35,
+    ],
+    "size": Array [
+      212.65,
+      212.65,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms corners 5`] = `
+Object {
+  "height": 533.62,
+  "maxX": 740.3499999999999,
+  "maxY": 633.62,
+  "minX": 100,
+  "minY": 100,
+  "width": 640.3499999999999,
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms corners 6`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      100,
+    ],
+    "size": Array [
+      106.72,
+      106.72,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      526.9,
+      420.17,
+    ],
+    "size": Array [
+      213.45,
+      213.45,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms corners 7`] = `
+Object {
+  "height": 490.52,
+  "maxX": 700,
+  "maxY": 590.52,
+  "minX": 111.38,
+  "minY": 100,
+  "width": 588.62,
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms corners 8`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      111.38,
+      100,
+    ],
+    "size": Array [
+      98.104,
+      98.104,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      503.79,
+      394.31,
+    ],
+    "size": Array [
+      196.21,
+      196.21,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms edges 1`] = `
+Object {
+  "height": 593.73,
+  "maxX": 756.24,
+  "maxY": 600,
+  "minX": 43.762,
+  "minY": 6.27,
+  "width": 712.4780000000001,
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms edges 2`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      43.762,
+      6.27,
+    ],
+    "size": Array [
+      118.75,
+      118.75,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      518.75,
+      362.51,
+    ],
+    "size": Array [
+      237.49,
+      237.49,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms edges 3`] = `
+Object {
+  "height": 531.6260000000001,
+  "maxX": 737.9599999999999,
+  "maxY": 615.8100000000001,
+  "minX": 100,
+  "minY": 84.184,
+  "width": 637.9599999999999,
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms edges 4`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      84.184,
+    ],
+    "size": Array [
+      106.33,
+      106.33,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      525.31,
+      403.16,
+    ],
+    "size": Array [
+      212.65,
+      212.65,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms edges 5`] = `
+Object {
+  "height": 411.35,
+  "maxX": 646.81,
+  "maxY": 511.35,
+  "minX": 153.19,
+  "minY": 100,
+  "width": 493.61999999999995,
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms edges 6`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      153.19,
+      100,
+    ],
+    "size": Array [
+      82.269,
+      82.269,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      482.27,
+      346.81,
+    ],
+    "size": Array [
+      164.54,
+      164.54,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms edges 7`] = `
+Object {
+  "height": 490.52,
+  "maxX": 700,
+  "maxY": 595.26,
+  "minX": 111.38,
+  "minY": 104.74,
+  "width": 588.62,
+}
+`;
+
+exports[`transform command snapshot tests shift-transforms edges 8`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      111.38,
+      104.74,
+    ],
+    "size": Array [
+      98.104,
+      98.104,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      503.79,
+      399.05,
+    ],
+    "size": Array [
+      196.21,
+      196.21,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests transforms corners 1`] = `
+Object {
+  "height": 593.73,
+  "maxX": 700,
+  "maxY": 600,
+  "minX": 27.892,
+  "minY": 6.27,
+  "width": 672.108,
+}
+`;
+
+exports[`transform command snapshot tests transforms corners 2`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      27.892,
+      6.27,
+    ],
+    "size": Array [
+      112.02,
+      118.75,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      475.96,
+      362.51,
+    ],
+    "size": Array [
+      224.04,
+      237.49,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests transforms corners 3`] = `
+Object {
+  "height": 490.17,
+  "maxX": 737.9599999999999,
+  "maxY": 600,
+  "minX": 100,
+  "minY": 109.83,
+  "width": 637.9599999999999,
+}
+`;
+
+exports[`transform command snapshot tests transforms corners 4`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      109.83,
+    ],
+    "size": Array [
+      106.33,
+      98.034,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      525.31,
+      403.93,
+    ],
+    "size": Array [
+      212.65,
+      196.07,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests transforms corners 5`] = `
+Object {
+  "height": 411.35,
+  "maxX": 740.3499999999999,
+  "maxY": 511.35,
+  "minX": 100,
+  "minY": 100,
+  "width": 640.3499999999999,
+}
+`;
+
+exports[`transform command snapshot tests transforms corners 6`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      100,
+    ],
+    "size": Array [
+      106.72,
+      82.269,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      526.9,
+      346.81,
+    ],
+    "size": Array [
+      213.45,
+      164.54,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests transforms corners 7`] = `
+Object {
+  "height": 437.4,
+  "maxX": 700,
+  "maxY": 537.4,
+  "minX": 111.38,
+  "minY": 100,
+  "width": 588.62,
+}
+`;
+
+exports[`transform command snapshot tests transforms corners 8`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      111.38,
+      100,
+    ],
+    "size": Array [
+      98.104,
+      87.479,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      503.79,
+      362.44,
+    ],
+    "size": Array [
+      196.21,
+      174.96,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests transforms edges 1`] = `
+Object {
+  "height": 593.73,
+  "maxX": 700,
+  "maxY": 600,
+  "minX": 100,
+  "minY": 6.27,
+  "width": 600,
+}
+`;
+
+exports[`transform command snapshot tests transforms edges 2`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      6.27,
+    ],
+    "size": Array [
+      100,
+      118.75,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      500,
+      362.51,
+    ],
+    "size": Array [
+      200,
+      237.49,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests transforms edges 3`] = `
+Object {
+  "height": 500,
+  "maxX": 737.9599999999999,
+  "maxY": 600,
+  "minX": 100,
+  "minY": 100,
+  "width": 637.9599999999999,
+}
+`;
+
+exports[`transform command snapshot tests transforms edges 4`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      100,
+    ],
+    "size": Array [
+      106.33,
+      100,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      525.31,
+      400,
+    ],
+    "size": Array [
+      212.65,
+      200,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests transforms edges 5`] = `
+Object {
+  "height": 411.35,
+  "maxX": 700,
+  "maxY": 511.35,
+  "minX": 100,
+  "minY": 100,
+  "width": 600,
+}
+`;
+
+exports[`transform command snapshot tests transforms edges 6`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      100,
+    ],
+    "size": Array [
+      100,
+      82.269,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      500,
+      346.81,
+    ],
+    "size": Array [
+      200,
+      164.54,
+    ],
+  },
+}
+`;
+
+exports[`transform command snapshot tests transforms edges 7`] = `
+Object {
+  "height": 500,
+  "maxX": 700,
+  "maxY": 600,
+  "minX": 111.38,
+  "minY": 100,
+  "width": 588.62,
+}
+`;
+
+exports[`transform command snapshot tests transforms edges 8`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      111.38,
+      100,
+    ],
+    "size": Array [
+      98.104,
+      100,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      503.79,
+      400,
+    ],
+    "size": Array [
+      196.21,
+      200,
+    ],
+  },
+}
+`;
+
+exports[`transform command transforms from the bottom edge 1`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      100,
+    ],
+    "size": Array [
+      100,
+      120,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      500,
+      460,
+    ],
+    "size": Array [
+      200,
+      240,
+    ],
+  },
+}
+`;
+
+exports[`transform command transforms from the bottom-left corner 1`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      200,
+      100,
+    ],
+    "size": Array [
+      83.333,
+      120,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      533.33,
+      460,
+    ],
+    "size": Array [
+      166.67,
+      240,
+    ],
+  },
+}
+`;
+
+exports[`transform command transforms from the bottom-right corner 1`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      100,
+    ],
+    "size": Array [
+      116.67,
+      120,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      566.67,
+      460,
+    ],
+    "size": Array [
+      233.33,
+      240,
+    ],
+  },
+}
+`;
+
+exports[`transform command transforms from the left edge 1`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      200,
+      100,
+    ],
+    "size": Array [
+      83.333,
+      100,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      533.33,
+      400,
+    ],
+    "size": Array [
+      166.67,
+      200,
+    ],
+  },
+}
+`;
+
+exports[`transform command transforms from the right edge 1`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      100,
+    ],
+    "size": Array [
+      116.67,
+      100,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      566.67,
+      400,
+    ],
+    "size": Array [
+      233.33,
+      200,
+    ],
+  },
+}
+`;
+
+exports[`transform command transforms from the top edge 1`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      200,
+    ],
+    "size": Array [
+      100,
+      80,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      500,
+      440,
+    ],
+    "size": Array [
+      200,
+      160,
+    ],
+  },
+}
+`;
+
+exports[`transform command transforms from the top-left corner 1`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      200,
+      200,
+    ],
+    "size": Array [
+      83.333,
+      80,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      533.33,
+      440,
+    ],
+    "size": Array [
+      166.67,
+      160,
+    ],
+  },
+}
+`;
+
+exports[`transform command transforms from the top-right corner 1`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      200,
+    ],
+    "size": Array [
+      116.67,
+      80,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      566.67,
+      440,
+    ],
+    "size": Array [
+      233.33,
+      160,
+    ],
+  },
+}
+`;
+
+exports[`transform command when transforming from the bottom-right corner does command 1`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      100,
+    ],
+    "size": Array [
+      116.67,
+      120,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      566.67,
+      460,
+    ],
+    "size": Array [
+      233.33,
+      240,
+    ],
+  },
+}
+`;
+
+exports[`transform command when transforming from the bottom-right corner re-does command 1`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      100,
+    ],
+    "size": Array [
+      116.67,
+      120,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      566.67,
+      460,
+    ],
+    "size": Array [
+      233.33,
+      240,
+    ],
+  },
+}
+`;
+
+exports[`transform command when transforming from the bottom-right corner un-does command 1`] = `
+Object {
+  "rect1": Object {
+    "point": Array [
+      100,
+      100,
+    ],
+    "size": Array [
+      100,
+      100,
+    ],
+  },
+  "rect2": Object {
+    "point": Array [
+      500,
+      400,
+    ],
+    "size": Array [
+      200,
+      200,
+    ],
+  },
+}
+`;

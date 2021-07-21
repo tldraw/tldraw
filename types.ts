@@ -6,9 +6,12 @@ export interface Data {
   isReadOnly: boolean
   settings: {
     fontSize: number
-    isDarkMode: boolean
     isCodeOpen: boolean
+    isTestMode: boolean
+    isDebugOpen: boolean
+    isDebugMode: boolean
     isStyleOpen: boolean
+    isDarkMode: boolean
     nudgeDistanceSmall: number
     nudgeDistanceLarge: number
     isToolLocked: boolean
@@ -64,7 +67,7 @@ export interface Page {
 
 export interface PageState {
   id: string
-  selectedIds: Set<string>
+  selectedIds: string[]
   camera: {
     point: number[]
     zoom: number
@@ -121,6 +124,8 @@ export enum FontSize {
   ExtraLarge = 'ExtraLarge',
 }
 
+export type Theme = 'dark' | 'light'
+
 export type ShapeStyles = {
   color: ColorStyle
   size: SizeStyle
@@ -133,7 +138,6 @@ export interface BaseShape {
   type: ShapeType
   parentId: string
   childIndex: number
-  isGenerated: boolean
   name: string
   point: number[]
   style: ShapeStyles
@@ -141,9 +145,11 @@ export interface BaseShape {
   children?: string[]
   bindings?: Record<string, ShapeBinding>
   handles?: Record<string, ShapeHandle>
-  isLocked: boolean
-  isHidden: boolean
-  isAspectRatioLocked: boolean
+  isLocked?: boolean
+  isHidden?: boolean
+  isEditing?: boolean
+  isGenerated?: boolean
+  isAspectRatioLocked?: boolean
 }
 
 export interface DotShape extends BaseShape {
@@ -270,6 +276,16 @@ export interface CodeResult {
   shapes: Shape[]
   controls: CodeControl[]
   error: CodeError
+}
+
+export interface ShapeTreeNode {
+  shape: Shape
+  children: ShapeTreeNode[]
+  isEditing: boolean
+  isHovered: boolean
+  isSelected: boolean
+  isDarkMode: boolean
+  isCurrentParent: boolean
 }
 
 /* -------------------------------------------------- */
@@ -574,7 +590,13 @@ export interface ShapeUtility<K extends Shape> {
   onHandleChange(
     this: ShapeUtility<K>,
     shape: Mutable<K>,
-    handle: Partial<K['handles']>
+    handle: Partial<K['handles']>,
+    info?: Partial<{
+      delta: number[]
+      shiftKey: boolean
+      altKey: boolean
+      metaKey: boolean
+    }>
   ): ShapeUtility<K>
 
   onDoublePointHandle(
@@ -597,8 +619,12 @@ export interface ShapeUtility<K extends Shape> {
   render(
     this: ShapeUtility<K>,
     shape: K,
-    info: {
-      isEditing: boolean
+    info?: {
+      isEditing?: boolean
+      isHovered?: boolean
+      isSelected?: boolean
+      isCurrentParent?: boolean
+      isDarkMode?: boolean
       ref?: React.MutableRefObject<HTMLTextAreaElement>
     }
   ): JSX.Element

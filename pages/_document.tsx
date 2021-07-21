@@ -5,7 +5,7 @@ import NextDocument, {
   NextScript,
   DocumentContext,
 } from 'next/document'
-import { dark, getCssString } from 'styles'
+import { getCssString } from 'styles'
 import { GA_TRACKING_ID } from 'utils/gtag'
 
 class MyDocument extends NextDocument {
@@ -90,7 +90,7 @@ class MyDocument extends NextDocument {
             }}
           />
         </Head>
-        <body className={dark}>
+        <body>
           <Main />
           <NextScript />
         </body>

@@ -9,7 +9,6 @@ export default class Dot extends CodeShape<DotShape> {
   constructor(props = {} as ShapeProps<DotShape>) {
     super({
       id: uniqueId(),
-
       parentId: (window as any).currentPageId,
       type: ShapeType.Dot,
       isGenerated: true,
@@ -17,9 +16,6 @@ export default class Dot extends CodeShape<DotShape> {
       childIndex: 0,
       point: [0, 0],
       rotation: 0,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       ...props,
       style: {
         ...defaultStyle,

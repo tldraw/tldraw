@@ -1,5 +1,4 @@
 import { Data } from 'types'
-import { setToArray } from 'utils'
 import tld from 'utils/tld'
 
 /* ------------------ Command Class ----------------- */
@@ -56,13 +55,10 @@ export class BaseCommand<T extends any> {
   redo = (data: T, initial = false): void => {
     if (this.manualSelection) {
       this.doFn(data, initial)
-
       return
     }
 
-    if (initial) {
-      this.restoreBeforeSelectionState = this.saveSelectionState(data)
-    } else {
+    if (!initial) {
       this.restoreBeforeSelectionState(data)
     }
 
@@ -85,7 +81,7 @@ export class BaseCommand<T extends any> {
 export default class Command extends BaseCommand<Data> {
   saveSelectionState = (data: Data): ((next: Data) => void) => {
     const { currentPageId } = data
-    const selectedIds = setToArray(tld.getSelectedIds(data))
+    const selectedIds = [...tld.getSelectedIds(data)]
     return (next: Data) => {
       next.currentPageId = currentPageId
       next.hoveredId = undefined

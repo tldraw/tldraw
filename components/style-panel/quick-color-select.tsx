@@ -1,22 +1,45 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { breakpoints, IconButton } from 'components/shared'
-import Tooltip from 'components/tooltip'
+import { DropdownMenuIconTriggerButton } from 'components/shared'
 import { strokes } from 'state/shape-styles'
-import { useSelector } from 'state'
-import ColorContent from './color-content'
-import { BoxIcon } from '../shared'
+import state, { useSelector } from 'state'
+import { BoxIcon, StyleDropdownItem, StyleDropdownContent } from './shared'
+import { useTheme } from 'next-themes'
+import { ColorStyle } from 'types'
+
+function handleColorChange(color: ColorStyle): void {
+  state.send('CHANGED_STYLE', { color })
+}
 
 export default function QuickColorSelect(): JSX.Element {
   const color = useSelector((s) => s.values.selectedStyle.color)
+  const { theme } = useTheme()
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DropdownMenu.Trigger as={IconButton} bp={breakpoints}>
-        <Tooltip label="Color">
-          <BoxIcon fill={strokes[color]} stroke={strokes[color]} />
-        </Tooltip>
-      </DropdownMenu.Trigger>
-      <ColorContent />
+      <DropdownMenuIconTriggerButton label="Color">
+        <BoxIcon fill={strokes[theme][color]} stroke={strokes[theme][color]} />
+      </DropdownMenuIconTriggerButton>
+      <DropdownMenu.Content sideOffset={8}>
+        <DropdownMenu.DropdownMenuRadioGroup
+          value={color}
+          onValueChange={handleColorChange}
+          as={StyleDropdownContent}
+        >
+          {Object.keys(strokes[theme]).map((colorStyle: ColorStyle) => (
+            <DropdownMenu.DropdownMenuRadioItem
+              as={StyleDropdownItem}
+              key={colorStyle}
+              title={colorStyle}
+              value={colorStyle}
+            >
+              <BoxIcon
+                fill={strokes[theme][colorStyle]}
+                stroke={strokes[theme][colorStyle]}
+              />
+            </DropdownMenu.DropdownMenuRadioItem>
+          ))}
+        </DropdownMenu.DropdownMenuRadioGroup>
+      </DropdownMenu.Content>
     </DropdownMenu.Root>
   )
 }

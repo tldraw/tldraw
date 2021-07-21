@@ -1,6 +1,6 @@
 import TestState from './test-utils'
 
-describe('locked shapes', () => {
+describe('lock command', () => {
   const tt = new TestState()
   tt.resetDocumentState()
 

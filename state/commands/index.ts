@@ -1,9 +1,10 @@
 import align from './align'
-import arrow from './arrow'
 import changePage from './change-page'
 import createPage from './create-page'
 import deletePage from './delete-page'
-import deleteSelected from './delete-selected'
+import duplicatePage from './duplicate-page'
+import deleteShapes from './delete-shapes'
+import createShapes from './create-shapes'
 import distribute from './distribute'
 import doublePointHandle from './double-point-handle'
 import draw from './draw'
@@ -11,7 +12,6 @@ import duplicate from './duplicate'
 import edit from './edit'
 import generate from './generate'
 import group from './group'
-import handle from './handle'
 import move from './move'
 import moveToPage from './move-to-page'
 import mutate from './mutate'
@@ -26,15 +26,17 @@ import toggle from './toggle'
 import transform from './transform'
 import transformSingle from './transform-single'
 import translate from './translate'
+import renamePage from './rename-page'
 import ungroup from './ungroup'
 
 const commands = {
   align,
-  arrow,
   changePage,
   createPage,
+  createShapes,
   deletePage,
-  deleteSelected,
+  deleteShapes,
+  duplicatePage,
   distribute,
   doublePointHandle,
   draw,
@@ -42,7 +44,6 @@ const commands = {
   edit,
   generate,
   group,
-  handle,
   move,
   moveToPage,
   mutate,
@@ -57,6 +58,7 @@ const commands = {
   transform,
   transformSingle,
   translate,
+  renamePage,
   ungroup,
 }
 

@@ -1,4 +1,4 @@
-import { clamp, deepClone, getCommonBounds, setToArray } from 'utils'
+import { clamp, deepClone, getCommonBounds } from 'utils'
 import { getShapeUtils } from 'state/shape-utils'
 import vec from './vec'
 import {
@@ -12,8 +12,10 @@ import {
   PageState,
   ShapeUtility,
   ParentShape,
+  ShapeTreeNode,
 } from 'types'
 import { AssertionError } from 'assert'
+import { lerp } from './utils'
 
 export default class StateUtils {
   static getCameraZoom(zoom: number): number {
@@ -93,12 +95,161 @@ export default class StateUtils {
   }
 
   /**
+   * Add the shapes to the current page.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.createShape(data, [shape1])
+   * tld.createShape(data, [shape1, shape2, shape3])
+   *```
+   */
+  static createShapes(data: Data, shapes: Shape[]): void {
+    const page = this.getPage(data)
+    const shapeIds = shapes.map((shape) => shape.id)
+
+    // Update selected ids
+    this.setSelectedIds(data, shapeIds)
+
+    // Restore deleted shapes
+    shapes.forEach((shape) => {
+      const newShape = { ...shape }
+      page.shapes[shape.id] = newShape
+    })
+
+    // Update parents
+    shapes.forEach((shape) => {
+      if (shape.parentId === data.currentPageId) return
+
+      const parent = page.shapes[shape.parentId]
+
+      getShapeUtils(parent)
+        .setProperty(
+          parent,
+          'children',
+          parent.children.includes(shape.id)
+            ? parent.children
+            : [...parent.children, shape.id]
+        )
+        .onChildrenChange(
+          parent,
+          parent.children.map((id) => page.shapes[id])
+        )
+    })
+  }
+
+  /**
+   * Delete the shapes from the current page.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.deleteShape(data, [shape1])
+   * tld.deleteShape(data, [shape1, shape1, shape1])
+   *```
+   */
+  static deleteShapes(
+    data: Data,
+    shapeIds: string[] | Shape[],
+    shapesDeleted: Shape[] = []
+  ): Shape[] {
+    const ids =
+      typeof shapeIds[0] === 'string'
+        ? (shapeIds as string[])
+        : (shapeIds as Shape[]).map((shape) => shape.id)
+
+    const parentsToDelete: string[] = []
+
+    const page = this.getPage(data)
+
+    const parentIds = new Set(ids.map((id) => page.shapes[id].parentId))
+
+    // Delete shapes
+    ids.forEach((id) => {
+      shapesDeleted.push(deepClone(page.shapes[id]))
+      delete page.shapes[id]
+    })
+
+    // Update parents
+    parentIds.forEach((id) => {
+      const parent = page.shapes[id]
+
+      // The parent was either deleted or a is a page.
+      if (!parent) return
+
+      const utils = getShapeUtils(parent)
+
+      // Remove deleted ids from the parent's children and update the parent
+      utils
+        .setProperty(
+          parent,
+          'children',
+          parent.children.filter((childId) => !ids.includes(childId))
+        )
+        .onChildrenChange(
+          parent,
+          parent.children.map((id) => page.shapes[id])
+        )
+
+      if (utils.shouldDelete(parent)) {
+        // If the parent decides it should delete, then we need to reparent
+        // the parent's remaining children to the parent's parent, and
+        // assign them correct child indices, and then delete the parent on
+        // the next recursive step.
+
+        const nextIndex = this.getChildIndexAbove(data, parent.id)
+
+        const len = parent.children.length
+
+        // Reparent the children and assign them new child indices
+        parent.children.forEach((childId, i) => {
+          const child = this.getShape(data, childId)
+
+          getShapeUtils(child)
+            .setProperty(child, 'parentId', parent.parentId)
+            .setProperty(
+              child,
+              'childIndex',
+              lerp(parent.childIndex, nextIndex, i / len)
+            )
+        })
+
+        if (parent.parentId !== page.id) {
+          // If the parent is not a page, then we add the parent's children
+          // to the parent's parent shape before emptying that array. If the
+          // parent is a page, then we don't need to do this step.
+          // TODO: Consider adding explicit children array to page shapes.
+          const grandParent = page.shapes[parent.parentId]
+
+          getShapeUtils(grandParent)
+            .setProperty(grandParent, 'children', [...parent.children])
+            .onChildrenChange(
+              grandParent,
+              grandParent.children.map((id) => page.shapes[id])
+            )
+        }
+
+        // Empty the parent's children array and delete the parent on the next
+        // iteration step.
+        getShapeUtils(parent).setProperty(parent, 'children', [])
+        parentsToDelete.push(parent.id)
+      }
+    })
+
+    if (parentsToDelete.length > 0) {
+      return this.deleteShapes(data, parentsToDelete, shapesDeleted)
+    }
+
+    return shapesDeleted
+  }
+
+  /**
    * Get the current selected shapes as an array.
    * @param data
    */
   static getSelectedShapes(data: Data): Shape[] {
     const page = this.getPage(data)
-    const ids = setToArray(this.getSelectedIds(data))
+    const ids = this.getSelectedIds(data)
     return ids.map((id) => page.shapes[id])
   }
 
@@ -306,12 +457,12 @@ export default class StateUtils {
     ]
   }
 
-  static getSelectedIds(data: Data): Set<string> {
+  static getSelectedIds(data: Data): string[] {
     return data.pageStates[data.currentPageId].selectedIds
   }
 
-  static setSelectedIds(data: Data, ids: string[]): Set<string> {
-    data.pageStates[data.currentPageId].selectedIds = new Set(ids)
+  static setSelectedIds(data: Data, ids: string[]): string[] {
+    data.pageStates[data.currentPageId].selectedIds = [...ids]
     return data.pageStates[data.currentPageId].selectedIds
   }
 
@@ -347,7 +498,7 @@ export default class StateUtils {
   >(data: Data, fn?: F): (Shape | K)[] {
     const page = this.getPage(data)
 
-    const copies = setToArray(this.getSelectedIds(data))
+    const copies = this.getSelectedIds(data)
       .flatMap((id) =>
         this.getDocumentBranch(data, id).map((id) => page.shapes[id])
       )
@@ -536,5 +687,42 @@ export default class StateUtils {
     }
 
     this.updateParents(data, parentToUpdateIds)
+  }
+
+  /**
+   * Populate the shape tree. This helper is recursive and only one call is needed.
+   *
+   * ### Example
+   *
+   *```ts
+   * addDataToTree(data, selectedIds, allowHovers, branch, shape)
+   *```
+   */
+  static addToShapeTree(
+    data: Data,
+    selectedIds: string[],
+    branch: ShapeTreeNode[],
+    shape: Shape
+  ): void {
+    const node = {
+      shape,
+      children: [],
+      isHovered: data.hoveredId === shape.id,
+      isCurrentParent: data.currentParentId === shape.id,
+      isEditing: data.editingId === shape.id,
+      isDarkMode: data.settings.isDarkMode,
+      isSelected: selectedIds.includes(shape.id),
+    }
+
+    branch.push(node)
+
+    if (shape.children) {
+      shape.children
+        .map((id) => this.getShape(data, id))
+        .sort((a, b) => a.childIndex - b.childIndex)
+        .forEach((childShape) => {
+          this.addToShapeTree(data, selectedIds, node.children, childShape)
+        })
+    }
   }
 }

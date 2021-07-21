@@ -1,17 +1,16 @@
+import React, { memo } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { breakpoints, IconButton } from 'components/shared'
-import Tooltip from 'components/tooltip'
-import { memo } from 'react'
+import { DropdownMenuIconTriggerButton } from 'components/shared'
 import state, { useSelector } from 'state'
 import { DashStyle } from 'types'
 import {
-  DropdownContent,
-  Item,
   DashDrawIcon,
   DashDottedIcon,
   DashSolidIcon,
   DashDashedIcon,
-} from '../shared'
+  StyleDropdownContent,
+  StyleDropdownItem,
+} from './shared'
 
 const dashes = {
   [DashStyle.Draw]: <DashDrawIcon />,
@@ -20,10 +19,8 @@ const dashes = {
   [DashStyle.Dotted]: <DashDottedIcon />,
 }
 
-function changeDashStyle(
-  e: Event & { currentTarget: { value: DashStyle } }
-): void {
-  state.send('CHANGED_STYLE', { dash: e.currentTarget.value })
+function changeDashStyle(dash: DashStyle): void {
+  state.send('CHANGED_STYLE', { dash })
 }
 
 function QuickdashSelect(): JSX.Element {
@@ -31,22 +28,28 @@ function QuickdashSelect(): JSX.Element {
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DropdownMenu.Trigger as={IconButton} bp={breakpoints}>
-        <Tooltip label="Dash">{dashes[dash]}</Tooltip>
-      </DropdownMenu.Trigger>
-      <DropdownContent sideOffset={8} direction="vertical">
-        {Object.keys(DashStyle).map((dashStyle: DashStyle) => (
-          <DropdownMenu.DropdownMenuItem
-            as={Item}
-            key={dashStyle}
-            isActive={dash === dashStyle}
-            onSelect={changeDashStyle}
-            value={dashStyle}
-          >
-            {dashes[dashStyle]}
-          </DropdownMenu.DropdownMenuItem>
-        ))}
-      </DropdownContent>
+      <DropdownMenuIconTriggerButton label="Dash">
+        {dashes[dash]}
+      </DropdownMenuIconTriggerButton>
+      <DropdownMenu.Content sideOffset={8}>
+        <DropdownMenu.DropdownMenuRadioGroup
+          as={StyleDropdownContent}
+          direction="vertical"
+          value={dash}
+          onValueChange={changeDashStyle}
+        >
+          {Object.keys(DashStyle).map((dashStyle: DashStyle) => (
+            <DropdownMenu.DropdownMenuRadioItem
+              as={StyleDropdownItem}
+              key={dashStyle}
+              isActive={dash === dashStyle}
+              value={dashStyle}
+            >
+              {dashes[dashStyle]}
+            </DropdownMenu.DropdownMenuRadioItem>
+          ))}
+        </DropdownMenu.DropdownMenuRadioGroup>
+      </DropdownMenu.Content>
     </DropdownMenu.Root>
   )
 }

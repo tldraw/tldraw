@@ -7,9 +7,14 @@ import { CodeError, CodeFile, CodeResult } from 'types'
 import CodeDocs from './code-docs'
 import { generateFromCode } from 'state/code/generate'
 import * as Panel from '../panel'
-import { IconButton } from '../shared'
-import { Code, PlayCircle, ChevronUp, ChevronDown } from 'react-feather'
-import { Cross2Icon } from '@radix-ui/react-icons'
+import { breakpoints, IconButton } from '../shared'
+import {
+  Cross2Icon,
+  CodeIcon,
+  PlayIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+} from '@radix-ui/react-icons'
 import dynamic from 'next/dynamic'
 import { ReaderIcon } from '@radix-ui/react-icons'
 const CodeEditor = dynamic(() => import('./code-editor'))
@@ -17,6 +22,7 @@ const CodeEditor = dynamic(() => import('./code-editor'))
 const increaseCodeSize = () => state.send('INCREASED_CODE_FONT_SIZE')
 const decreaseCodeSize = () => state.send('DECREASED_CODE_FONT_SIZE')
 const toggleCodePanel = () => state.send('TOGGLED_CODE_PANEL_OPEN')
+const handleWheel = (e: React.WheelEvent) => e.stopPropagation()
 
 export default function CodePanel(): JSX.Element {
   const rContainer = useRef<HTMLDivElement>(null)
@@ -132,56 +138,48 @@ export default function CodePanel(): JSX.Element {
   return (
     <Panel.Root
       dir="ltr"
-      bp={{ '@initial': 'mobile', '@sm': 'small' }}
+      bp={breakpoints}
       data-bp-desktop
       ref={rContainer}
       isOpen={isOpen}
       variant="code"
-      onWheel={(e) => e.stopPropagation()}
+      onWheel={handleWheel}
     >
       {isOpen ? (
         <Panel.Layout>
           <Panel.Header side="left">
-            <IconButton
-              bp={{ '@initial': 'mobile', '@sm': 'small' }}
-              size="small"
-              onClick={toggleCodePanel}
-            >
+            <IconButton bp={breakpoints} size="small" onClick={toggleCodePanel}>
               <Cross2Icon />
             </IconButton>
             <h3>Code</h3>
             <ButtonsGroup>
               <FontSizeButtons>
                 <IconButton
-                  bp={{ '@initial': 'mobile', '@sm': 'small' }}
+                  bp={breakpoints}
                   size="small"
                   disabled={!local.isIn('editingCode')}
                   onClick={increaseCodeSize}
                 >
-                  <ChevronUp />
+                  <ChevronUpIcon />
                 </IconButton>
                 <IconButton
                   size="small"
                   disabled={!local.isIn('editingCode')}
                   onClick={decreaseCodeSize}
                 >
-                  <ChevronDown />
+                  <ChevronDownIcon />
                 </IconButton>
               </FontSizeButtons>
-              <IconButton
-                bp={{ '@initial': 'mobile', '@sm': 'small' }}
-                size="small"
-                onClick={toggleDocs}
-              >
+              <IconButton bp={breakpoints} size="small" onClick={toggleDocs}>
                 <ReaderIcon />
               </IconButton>
               <IconButton
-                bp={{ '@initial': 'mobile', '@sm': 'small' }}
+                bp={breakpoints}
                 size="small"
                 disabled={!local.isIn('editingCode')}
                 onClick={handleSave}
               >
-                <PlayCircle />
+                <PlayIcon />
               </IconButton>
             </ButtonsGroup>
           </Panel.Header>
@@ -201,12 +199,8 @@ export default function CodePanel(): JSX.Element {
           {error && <Panel.Footer>{error.message}</Panel.Footer>}
         </Panel.Layout>
       ) : (
-        <IconButton
-          bp={{ '@initial': 'mobile', '@sm': 'small' }}
-          size="small"
-          onClick={toggleCodePanel}
-        >
-          <Code />
+        <IconButton bp={breakpoints} size="small" onClick={toggleCodePanel}>
+          <CodeIcon />
         </IconButton>
       )}
     </Panel.Root>

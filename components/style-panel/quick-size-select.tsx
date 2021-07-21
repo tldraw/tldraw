@@ -1,11 +1,10 @@
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { breakpoints, IconButton } from 'components/shared'
-import Tooltip from 'components/tooltip'
 import { memo } from 'react'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { DropdownMenuIconTriggerButton } from 'components/shared'
 import { Circle } from 'react-feather'
 import state, { useSelector } from 'state'
 import { SizeStyle } from 'types'
-import { DropdownContent, Item } from '../shared'
+import { StyleDropdownContent, StyleDropdownItem } from './shared'
 
 const sizes = {
   [SizeStyle.Small]: 6,
@@ -13,10 +12,8 @@ const sizes = {
   [SizeStyle.Large]: 22,
 }
 
-function handleSizeChange(
-  e: Event & { currentTarget: { value: SizeStyle } }
-): void {
-  state.send('CHANGED_STYLE', { size: e.currentTarget.value })
+function changeSizeStyle(size: SizeStyle): void {
+  state.send('CHANGED_STYLE', { size })
 }
 
 function QuickSizeSelect(): JSX.Element {
@@ -24,24 +21,28 @@ function QuickSizeSelect(): JSX.Element {
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DropdownMenu.Trigger as={IconButton} bp={breakpoints}>
-        <Tooltip label="Size">
-          <Circle size={sizes[size]} stroke="none" fill="currentColor" />
-        </Tooltip>
-      </DropdownMenu.Trigger>
-      <DropdownContent sideOffset={8} direction="vertical">
-        {Object.keys(SizeStyle).map((sizeStyle: SizeStyle) => (
-          <DropdownMenu.DropdownMenuItem
-            key={sizeStyle}
-            as={Item}
-            isActive={size === sizeStyle}
-            value={sizeStyle}
-            onSelect={handleSizeChange}
-          >
-            <Circle size={sizes[sizeStyle]} />
-          </DropdownMenu.DropdownMenuItem>
-        ))}
-      </DropdownContent>
+      <DropdownMenuIconTriggerButton label="Size">
+        <Circle size={sizes[size]} stroke="none" fill="currentColor" />
+      </DropdownMenuIconTriggerButton>
+      <DropdownMenu.Content sideOffset={8}>
+        <DropdownMenu.DropdownMenuRadioGroup
+          as={StyleDropdownContent}
+          direction="vertical"
+          value={size}
+          onValueChange={changeSizeStyle}
+        >
+          {Object.keys(SizeStyle).map((sizeStyle: SizeStyle) => (
+            <DropdownMenu.DropdownMenuRadioItem
+              key={sizeStyle}
+              as={StyleDropdownItem}
+              isActive={size === sizeStyle}
+              value={sizeStyle}
+            >
+              <Circle size={sizes[sizeStyle]} />
+            </DropdownMenu.DropdownMenuRadioItem>
+          ))}
+        </DropdownMenu.DropdownMenuRadioGroup>
+      </DropdownMenu.Content>
     </DropdownMenu.Root>
   )
 }

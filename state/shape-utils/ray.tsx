@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils/utils'
+import { getFromCache, uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { RayShape, ShapeType } from 'types'
 import { intersectCircleBounds } from 'utils/intersections'
@@ -13,35 +13,31 @@ const ray = registerShapeUtils<RayShape>({
   defaultProps: {
     id: uniqueId(),
     type: ShapeType.Ray,
-    isGenerated: false,
     name: 'Ray',
     parentId: 'page1',
     childIndex: 0,
     point: [0, 0],
     direction: [0, 1],
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
     style: defaultStyle,
   },
 
   shouldRender(shape, prev) {
     return shape.direction !== prev.direction || shape.style !== prev.style
   },
-  render(shape) {
-    const { id, direction } = shape
+  render(shape, { isDarkMode }) {
+    const { direction } = shape
 
-    const styles = getShapeStyle(shape.style)
+    const styles = getShapeStyle(shape.style, isDarkMode)
 
     const [x2, y2] = vec.add([0, 0], vec.mul(direction, 10000))
 
     return (
-      <g id={id}>
+      <>
         <ThinLine x1={0} y1={0} x2={x2} y2={y2} stroke={styles.stroke} />
         <circle r={4} fill="transparent" />
         <use href="#dot" />
-      </g>
+      </>
     )
   },
 
@@ -50,20 +46,18 @@ const ray = registerShapeUtils<RayShape>({
   },
 
   getBounds(shape) {
-    if (!this.boundsCache.has(shape)) {
-      const bounds = {
+    const bounds = getFromCache(this.boundsCache, shape, (cache) => {
+      cache.set(shape, {
         minX: 0,
         maxX: 1,
         minY: 0,
         maxY: 1,
         width: 1,
         height: 1,
-      }
+      })
+    })
 
-      this.boundsCache.set(shape, bounds)
-    }
-
-    return translateBounds(this.boundsCache.get(shape), shape.point)
+    return translateBounds(bounds, shape.point)
   },
 
   getCenter(shape) {

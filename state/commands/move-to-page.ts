@@ -1,7 +1,7 @@
 import Command from './command'
 import history from '../history'
 import { Data } from 'types'
-import { setToArray, uniqueArray } from 'utils'
+import { uniqueArray } from 'utils'
 import tld from 'utils/tld'
 import { getShapeUtils } from 'state/shape-utils'
 import storage from 'state/storage'
@@ -9,7 +9,7 @@ import storage from 'state/storage'
 export default function moveToPageCommand(data: Data, newPageId: string): void {
   const { currentPageId: oldPageId } = data
   const oldPage = tld.getPage(data)
-  const selectedIds = setToArray(tld.getSelectedIds(data))
+  const selectedIds = [...tld.getSelectedIds(data)]
 
   const idsToMove = uniqueArray(
     ...selectedIds.flatMap((id) => tld.getDocumentBranch(data, id))
@@ -59,13 +59,13 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
         })
 
         // Clear the current page state's selected ids
-        tld.getPageState(data).selectedIds.clear()
+        tld.setSelectedIds(data, [])
 
         // Save the "from" page
         storage.savePage(data, data.document.id, fromPageId)
 
         // Load the "to" page
-        storage.loadPage(data, toPageId)
+        storage.loadPage(data, data.document.id, toPageId)
 
         // The page we're moving the shapes to
         const toPage = tld.getPage(data)
@@ -83,10 +83,12 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
         })
 
         // Select the selected ids on the new page
-        tld.getPageState(data).selectedIds = new Set(selectedIds)
+        tld.setSelectedIds(data, [...selectedIds])
 
         // Move to the new page
         data.currentPageId = toPageId
+
+        tld.setZoomCSS(tld.getPageState(data).camera.zoom)
       },
       undo(data) {
         const fromPageId = newPageId
@@ -113,11 +115,11 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
           delete fromPage.shapes[shape.id]
         })
 
-        tld.getPageState(data).selectedIds.clear()
+        tld.setSelectedIds(data, [])
 
         storage.savePage(data, data.document.id, fromPageId)
 
-        storage.loadPage(data, toPageId)
+        storage.loadPage(data, data.document.id, toPageId)
 
         const toPage = tld.getPage(data)
 
@@ -138,9 +140,11 @@ export default function moveToPageCommand(data: Data, newPageId: string): void {
           }
         })
 
-        tld.getPageState(data).selectedIds = new Set(selectedIds)
+        tld.setSelectedIds(data, [...selectedIds])
 
         data.currentPageId = toPageId
+
+        tld.setZoomCSS(tld.getPageState(data).camera.zoom)
       },
     })
   )

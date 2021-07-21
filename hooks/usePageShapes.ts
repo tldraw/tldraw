@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import state, { useSelector } from 'state'
 import { getShapeUtils } from 'state/shape-utils'
-import { PageState, Bounds, ShapeType } from 'types'
+import { PageState, Bounds, ShapeType, Shape } from 'types'
 import {
   boundsCollide,
   boundsContain,
@@ -12,7 +12,7 @@ import tld from 'utils/tld'
 
 const viewportCache = new WeakMap<PageState, Bounds>()
 
-export default function usePageShapes(): string[] {
+export default function usePageShapes(): Shape[] {
   // Reset the viewport cache when the window resizes
   useEffect(() => {
     const handleResize = debounce(() => state.send('RESIZED_WINDOW'), 32)
@@ -35,19 +35,19 @@ export default function usePageShapes(): string[] {
 
     const viewport = viewportCache.get(pageState)
 
-    return s.values.currentShapes
-      .filter((shape) => {
-        if (shape.type === ShapeType.Ray || shape.type === ShapeType.Line) {
-          return true
-        }
+    const shapesToShow = s.values.currentShapes.filter((shape) => {
+      if (shape.type === ShapeType.Ray || shape.type === ShapeType.Line) {
+        return true
+      }
 
-        const shapeBounds = getShapeUtils(shape).getBounds(shape)
-        return (
-          boundsContain(viewport, shapeBounds) ||
-          boundsCollide(viewport, shapeBounds)
-        )
-      })
-      .map((shape) => shape.id)
+      const shapeBounds = getShapeUtils(shape).getBounds(shape)
+      return (
+        boundsContain(viewport, shapeBounds) ||
+        boundsCollide(viewport, shapeBounds)
+      )
+    })
+
+    return shapesToShow
   }, deepCompareArrays)
 
   return visiblePageShapeIds

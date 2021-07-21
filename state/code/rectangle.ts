@@ -10,7 +10,6 @@ export default class Rectangle extends CodeShape<RectangleShape> {
   constructor(props = {} as ShapeProps<RectangleShape>) {
     super({
       id: uniqueId(),
-
       parentId: (window as any).currentPageId,
       type: ShapeType.Rectangle,
       isGenerated: true,
@@ -20,9 +19,6 @@ export default class Rectangle extends CodeShape<RectangleShape> {
       size: [100, 100],
       rotation: 0,
       radius: 2,
-      isAspectRatioLocked: false,
-      isLocked: false,
-      isHidden: false,
       ...props,
       style: {
         ...defaultStyle,

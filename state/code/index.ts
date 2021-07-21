@@ -7,13 +7,13 @@ import {
   SizeStyle,
 } from 'types'
 import { createShape, getShapeUtils } from 'state/shape-utils'
-import { setToArray, uniqueId } from 'utils'
+import { uniqueId } from 'utils'
 import Vec from 'utils/vec'
 
 export const codeShapes = new Set<CodeShape<Shape>>([])
 
 function getOrderedShapes() {
-  return setToArray(codeShapes).sort(
+  return Array.from(codeShapes.values()).sort(
     (a, b) => a.shape.childIndex - b.shape.childIndex
   )
 }

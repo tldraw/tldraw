@@ -1,4 +1,4 @@
-import { uniqueId } from 'utils/utils'
+import { getFromCache, uniqueId } from 'utils/utils'
 import vec from 'utils/vec'
 import { PolylineShape, ShapeType } from 'types'
 import { intersectPolylineBounds } from 'utils/intersections'
@@ -16,44 +16,42 @@ const polyline = registerShapeUtils<PolylineShape>({
   defaultProps: {
     id: uniqueId(),
     type: ShapeType.Polyline,
-    isGenerated: false,
     name: 'Polyline',
     parentId: 'page1',
     childIndex: 0,
     point: [0, 0],
     points: [[0, 0]],
     rotation: 0,
-    isAspectRatioLocked: false,
-    isLocked: false,
-    isHidden: false,
     style: defaultStyle,
   },
 
   shouldRender(shape, prev) {
     return shape.points !== prev.points || shape.style !== prev.style
   },
-  render(shape) {
-    const { id, points } = shape
+  render(shape, { isDarkMode }) {
+    const { points, style } = shape
 
-    const styles = getShapeStyle(shape.style)
+    const styles = getShapeStyle(style, isDarkMode)
 
     return (
       <polyline
-        id={id}
         points={points.toString()}
         stroke={styles.stroke}
-        strokeWidth={styles.strokeWidth}
+        strokeWidth={styles.strokeWidth * 1.618}
         fill={shape.style.isFilled ? styles.fill : 'none'}
+        pointerEvents={style.isFilled ? 'all' : 'stroke'}
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     )
   },
 
   getBounds(shape) {
-    if (!this.boundsCache.has(shape)) {
-      this.boundsCache.set(shape, getBoundsFromPoints(shape.points))
-    }
+    const bounds = getFromCache(this.boundsCache, shape, (cache) => {
+      cache.set(shape, getBoundsFromPoints(shape.points))
+    })
 
-    return translateBounds(this.boundsCache.get(shape), shape.point)
+    return translateBounds(bounds, shape.point)
   },
 
   getRotatedBounds(shape) {
@@ -65,19 +63,8 @@ const polyline = registerShapeUtils<PolylineShape>({
     return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2]
   },
 
-  hitTest(shape, point) {
-    const pt = vec.sub(point, shape.point)
-    let prev = shape.points[0]
-
-    for (let i = 1; i < shape.points.length; i++) {
-      const curr = shape.points[i]
-      if (vec.distanceToLineSegment(prev, curr, pt) < 4) {
-        return true
-      }
-      prev = curr
-    }
-
-    return false
+  hitTest() {
+    return true
   },
 
   hitTestBounds(this, shape, brushBounds) {
@@ -129,7 +116,7 @@ const polyline = registerShapeUtils<PolylineShape>({
 
   canTransform: true,
   canChangeAspectRatio: true,
-  canStyleFill: false,
+  canStyleFill: true,
 })
 
 export default polyline
