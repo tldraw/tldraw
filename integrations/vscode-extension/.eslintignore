@@ -1,2 +1,2 @@
 src/vscode.proposed.d.ts
-media/*.js
+integrations/**/**.js
