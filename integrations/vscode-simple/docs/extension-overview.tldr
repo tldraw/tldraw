@@ -4534,8 +4534,8 @@
             "parentId": "page1",
             "childIndex": 66,
             "point": [
-              -2589.5,
-              607.86
+              -2715.8,
+              597.18
             ],
             "rotation": 0,
             "style": {
@@ -4604,12 +4604,12 @@
             "parentId": "page1",
             "childIndex": 68,
             "point": [
-              -2260.2,
-              299.24
+              -2256.4,
+              304.32
             ],
             "rotation": 0,
             "style": {
-              "color": "Black",
+              "color": "Red",
               "size": "Large",
               "isFilled": true,
               "dash": "Draw"
@@ -4652,10 +4652,10 @@
     "id": "page1",
     "camera": {
       "point": [
-        3437.0889012743764,
-        -14.12480951954933
+        3435.9106271189976,
+        -103.17520814364858
       ],
-      "zoom": 0.3139952436518889
+      "zoom": 0.6040802157426701
     },
     "selectedIds": []
   }

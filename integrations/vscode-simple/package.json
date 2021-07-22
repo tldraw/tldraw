@@ -1,0 +1,58 @@
+{
+  "name": "tldraw",
+  "displayName": "Tldraw Editor",
+  "description": "The tldraw editor for VS Code",
+  "version": "0.0.1",
+  "publisher": "tldr",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tldraw/tldraw"
+  },
+  "engines": {
+    "vscode": "^1.52.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCustomEditor:tldraw.tldr",
+    "onCommand:tldraw.tldr.new"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "tldraw.tldr",
+        "displayName": "Tldr Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.tldr"
+          }
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "tldraw.tldr.new",
+        "title": "Create new Tldr editor Document",
+        "category": "Tldraw document"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "lint": "eslint . --ext .ts,.tsx",
+    "watch": "tsc -w -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.0",
+    "@types/vscode": "^1.52.0",
+    "@typescript-eslint/eslint-plugin": "^4.16.0",
+    "@typescript-eslint/parser": "^4.16.0",
+    "eslint": "^7.21.0",
+    "typescript": "^4.3.2"
+  }
+}
