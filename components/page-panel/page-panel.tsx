@@ -14,6 +14,10 @@ import { PlusIcon, CheckIcon } from '@radix-ui/react-icons'
 import state, { useSelector } from 'state'
 import { useEffect, useRef, useState } from 'react'
 
+function handleCreatePage() {
+  state.send('CREATED_PAGE')
+}
+
 export default function PagePanel(): JSX.Element {
   const rIsOpen = useRef(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -76,7 +80,7 @@ export default function PagePanel(): JSX.Element {
           ))}
         </DropdownMenu.RadioGroup>
         <DropdownMenuDivider />
-        <DropdownMenuButton onSelect={() => state.send('CREATED_PAGE')}>
+        <DropdownMenuButton onSelect={handleCreatePage}>
           <span>Create Page</span>
           <IconWrapper size="small">
             <PlusIcon />

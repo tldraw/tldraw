@@ -21,14 +21,131 @@ interface PointerOptions {
 }
 
 class TestState {
-  state: State
+  _state: State
   snapshot: Data
 
   constructor() {
-    this.state = _state
+    this._state = _state
     this.state.send('TOGGLED_TEST_MODE')
     this.snapshot = deepClone(this.state.data)
     this.reset()
+  }
+
+  /**
+   * Get the underlying state-designer state.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.state
+   *```
+   */
+  get state(): State {
+    return this._state
+  }
+
+  /**
+   * Get the state's current data.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.data
+   *```
+   */
+  get data(): Readonly<Data> {
+    return this.state.data
+  }
+
+  /* -------- Reimplemenation of State Methods -------- */
+
+  /**
+   * Send a message to the state.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.send("MOVED_TO_FRONT")
+   *```
+   */
+  send(eventName: string, payload?: unknown): TestState {
+    this.state.send(eventName, payload)
+    return this
+  }
+
+  /**
+   * Check whether a state node is active. If multiple names are provided, then the method will return true only if ALL of the provided state nodes are active.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.isIn("ready") // true
+   * tt.isIn("ready", "selecting") // true
+   * tt.isInAny("ready", "notReady") // false
+   *```
+   */
+  isIn(...ids: string[]): boolean {
+    return this.state.isIn(...ids)
+  }
+
+  /**
+   * Check whether a state node is active. If multiple names are provided, then the method will return true if ANY of the provided state nodes are active.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.isIn("ready") // true
+   * tt.isIn("ready", "selecting") // true
+   * tt.isInAny("ready", "notReady") // true
+   *```
+   */
+  isInAny(...ids: string[]): boolean {
+    return this.state.isInAny(...ids)
+  }
+
+  /**
+   * Check whether the state can handle a certain event (and optionally payload). The method will return true if the event is handled by one or more currently active state nodes and if the event will pass its conditions (if present) in at least one of those handlers.
+   *
+   * ### Example
+   *
+   *```ts
+   * example
+   *```
+   */
+  can(eventName: string, payload?: unknown): boolean {
+    return this.state.can(eventName, payload)
+  }
+
+  /* -------------------- Specific -------------------- */
+
+  /**
+   * Save a snapshot of the state's current data.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.save()
+   * tt.restore()
+   *```
+   */
+  save(): TestState {
+    this.snapshot = deepClone(this.data)
+    return this
+  }
+
+  /**
+   * Restore the state's saved data.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.save()
+   * tt.restore()
+   *```
+   */
+  restore(): TestState {
+    this.state.forceData(this.snapshot)
+    return this
   }
 
   /**
@@ -66,20 +183,6 @@ class TestState {
   }
 
   /**
-   * Send a message to the state.
-   *
-   * ### Example
-   *
-   *```ts
-   * tt.send("MOVED_TO_FRONT")
-   *```
-   */
-  send(eventName: string, payload?: unknown): TestState {
-    this.state.send(eventName, payload)
-    return this
-  }
-
-  /**
    * Create a new shape on the current page. Optionally provide an id.
    *
    * ### Example
@@ -98,144 +201,6 @@ class TestState {
 
     this.data.document.pages[this.data.currentPageId].shapes[shape.id] = shape
     return this
-  }
-
-  /**
-   * Get the sorted ids of the page's children.
-   *
-   * ### Example
-   *
-   *```ts
-   * tt.getSortedPageShapes()
-   *```
-   */
-  getSortedPageShapeIds(): string[] {
-    return Object.values(
-      this.data.document.pages[this.data.currentPageId].shapes
-    )
-      .sort((a, b) => a.childIndex - b.childIndex)
-      .map((shape) => shape.id)
-  }
-
-  /**
-   * Get shapes for the current page.
-   *
-   * ### Example
-   *
-   *```ts
-   * tt.getShapes()
-   *```
-   */
-  getShapes(): Shape[] {
-    return Object.values(
-      this.data.document.pages[this.data.currentPageId].shapes
-    )
-  }
-
-  /**
-   * Get whether the provided ids are the current selected ids. If the `strict` argument is `true`, then the result will be false if the state has selected ids in addition to those provided.
-   *
-   * ### Example
-   *
-   *```ts
-   * tt.idsAreSelected(state.data, ['rectangleId', 'ellipseId'])
-   * tt.idsAreSelected(state.data, ['rectangleId', 'ellipseId'], true)
-   *```
-   */
-  idsAreSelected(ids: string[], strict = true): boolean {
-    const selectedIds = tld.getSelectedIds(this.data)
-    return (
-      (strict ? selectedIds.length === ids.length : true) &&
-      ids.every((id) => selectedIds.includes(id))
-    )
-  }
-
-  get selectedIds(): string[] {
-    return tld.getSelectedIds(this.data)
-  }
-
-  /**
-   * Get whether the shape with the provided id has the provided parent id.
-   *
-   * ### Example
-   *
-   *```ts
-   * tt.hasParent('childId', 'parentId')
-   *```
-   */
-  hasParent(childId: string, parentId: string): boolean {
-    return tld.getShape(this.data, childId).parentId === parentId
-  }
-
-  /**
-   * Get the only selected shape. If more than one shape is selected, the test will fail.
-   *
-   * ### Example
-   *
-   *```ts
-   * tt.getOnlySelectedShape()
-   *```
-   */
-  getOnlySelectedShape(): Shape {
-    const selectedShapes = tld.getSelectedShapes(this.data)
-    return selectedShapes.length === 1 ? selectedShapes[0] : undefined
-  }
-
-  /**
-   * Assert that a shape has the provided type.
-   *
-   * ### Example
-   *
-   *```ts
-   * tt.example
-   *```
-   */
-  assertShapeType(shapeId: string, type: ShapeType): boolean {
-    const shape = tld.getShape(this.data, shapeId)
-    if (shape.type !== type) {
-      throw new TypeError(
-        `expected shape ${shapeId} to be of type ${type}, found ${shape?.type} instead`
-      )
-    }
-    return true
-  }
-
-  /**
-   * Assert that the provided shape has the provided props.
-   *
-   * ### Example
-   *
-   *```
-   * tt.assertShapeProps(myShape, { point: [0,0], style: { color: ColorStyle.Blue } } )
-   *```
-   */
-  assertShapeProps<T extends Shape>(
-    shape: T,
-    props: { [K in keyof Partial<T>]: T[K] }
-  ): boolean {
-    for (const key in props) {
-      let result: boolean
-      const value = props[key]
-
-      if (Array.isArray(value)) {
-        result = deepCompareArrays(value, shape[key] as typeof value)
-      } else if (typeof value === 'object') {
-        const target = shape[key] as typeof value
-        result =
-          target &&
-          Object.entries(value).every(([k, v]) => target[k] === props[key][v])
-      } else {
-        result = shape[key] === value
-      }
-
-      if (!result) {
-        throw new TypeError(
-          `expected shape ${shape.id} to have property ${key}: ${props[key]}, found ${key}: ${shape[key]} instead`
-        )
-      }
-    }
-
-    return true
   }
 
   /**
@@ -590,6 +555,20 @@ class TestState {
   }
 
   /**
+   * Select all shapes.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.deselectAll()
+   *```
+   */
+  selectAll(): TestState {
+    this.state.send('SELECTED_ALL')
+    return this
+  }
+
+  /**
    * Deselect all shapes.
    *
    * ### Example
@@ -604,7 +583,7 @@ class TestState {
   }
 
   /**
-   * Delete the selected shapes
+   * Delete the selected shapes.
    *
    * ### Example
    *
@@ -615,36 +594,6 @@ class TestState {
   pressDelete(): TestState {
     this.state.send('DELETED')
     return this
-  }
-
-  /**
-   * Get a shape and test it.
-   *
-   * ### Example
-   *
-   *```ts
-   * tt.testShape("myShapeId", myShape => myShape )
-   *```
-   */
-  testShape<T extends Shape>(
-    id: string,
-    fn: (shape: T, shapeUtils: ShapeUtility<T>) => boolean
-  ): boolean {
-    const shape = this.getShape<T>(id)
-    return fn(shape, shape && getShapeUtils(shape))
-  }
-
-  /**
-   * Get a shape
-   *
-   * ### Example
-   *
-   *```ts
-   * tt.getShape("myShapeId")
-   *```
-   */
-  getShape<T extends Shape>(id: string): T {
-    return tld.getShape(this.data, id) as T
   }
 
   /**
@@ -675,46 +624,181 @@ class TestState {
     return this
   }
 
+  /* ---------------- Getting Data Out ---------------- */
+
   /**
-   * Save a snapshot of the state's current data.
+   * Get a shape by its id. Note: the shape must be in the current page.
    *
    * ### Example
    *
    *```ts
-   * tt.save()
+   * tt.getShape("myShapeId")
    *```
    */
-  save(): TestState {
-    this.snapshot = deepClone(this.data)
-    return this
+  getShape<T extends Shape>(id: string): T {
+    return tld.getShape(this.data, id) as T
   }
 
   /**
-   * Restore the state's saved data.
+   * Get the current selected ids.
    *
    * ### Example
    *
    *```ts
-   * tt.save()
-   * tt.restore()
+   * example
    *```
    */
-  restore(): TestState {
-    this.state.forceData(this.snapshot)
-    return this
+  get selectedIds(): string[] {
+    return tld.getSelectedIds(this.data)
   }
 
   /**
-   * Get the state's current data.
+   * Get shapes for the current page.
    *
    * ### Example
    *
    *```ts
-   * tt.data
+   * tt.getShapes()
    *```
    */
-  get data(): Readonly<Data> {
-    return this.state.data
+  getShapes(): Shape[] {
+    return Object.values(
+      this.data.document.pages[this.data.currentPageId].shapes
+    )
+  }
+
+  /**
+   * Get ids of the page's children sorted by their child index.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.getSortedPageShapes()
+   *```
+   */
+  getSortedPageShapeIds(): string[] {
+    return this.getShapes()
+      .sort((a, b) => a.childIndex - b.childIndex)
+      .map((shape) => shape.id)
+  }
+
+  /**
+   * Get the only selected shape. If more than one shape is selected, the test will fail.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.getOnlySelectedShape()
+   *```
+   */
+  getOnlySelectedShape(): Shape {
+    const selectedShapes = tld.getSelectedShapes(this.data)
+    return selectedShapes.length === 1 ? selectedShapes[0] : undefined
+  }
+
+  /**
+   * Get whether the provided ids are the current selected ids. If the `strict` argument is `true`, then the result will be false if the state has selected ids in addition to those provided.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.idsAreSelected(state.data, ['rectangleId', 'ellipseId'])
+   * tt.idsAreSelected(state.data, ['rectangleId', 'ellipseId'], true)
+   *```
+   */
+  idsAreSelected(ids: string[], strict = true): boolean {
+    const selectedIds = tld.getSelectedIds(this.data)
+    return (
+      (strict ? selectedIds.length === ids.length : true) &&
+      ids.every((id) => selectedIds.includes(id))
+    )
+  }
+
+  /**
+   * Get whether the shape with the provided id has the provided parent id.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.hasParent('childId', 'parentId')
+   *```
+   */
+  hasParent(childId: string, parentId: string): boolean {
+    return tld.getShape(this.data, childId).parentId === parentId
+  }
+
+  /**
+   * Assert that a shape has the provided type.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.example
+   *```
+   */
+  assertShapeType(shapeId: string, type: ShapeType): boolean {
+    const shape = tld.getShape(this.data, shapeId)
+    if (shape.type !== type) {
+      throw new TypeError(
+        `expected shape ${shapeId} to be of type ${type}, found ${shape?.type} instead`
+      )
+    }
+    return true
+  }
+
+  /**
+   * Assert that the provided shape has the provided props.
+   *
+   * ### Example
+   *
+   *```
+   * tt.assertShapeProps(myShape, { point: [0,0], style: { color: ColorStyle.Blue } } )
+   *```
+   */
+  assertShapeProps<T extends Shape>(
+    shape: T,
+    props: { [K in keyof Partial<T>]: T[K] }
+  ): boolean {
+    for (const key in props) {
+      let result: boolean
+      const value = props[key]
+
+      if (Array.isArray(value)) {
+        result = deepCompareArrays(value, shape[key] as typeof value)
+      } else if (typeof value === 'object') {
+        const target = shape[key] as typeof value
+        result =
+          target &&
+          Object.entries(value).every(([k, v]) => target[k] === props[key][v])
+      } else {
+        result = shape[key] === value
+      }
+
+      if (!result) {
+        throw new TypeError(
+          `expected shape ${shape.id} to have property ${key}: ${props[key]}, found ${key}: ${shape[key]} instead`
+        )
+      }
+    }
+
+    return true
+  }
+
+  /**
+   * Get a shape and test it.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.testShape("myShapeId", (myShape, utils) => expect(utils(myShape).getBounds()).toMatchSnapshot() )
+   *```
+   */
+  testShape<T extends Shape>(
+    id: string,
+    fn: (shape: T, shapeUtils: ShapeUtility<T>) => boolean
+  ): boolean {
+    const shape = this.getShape<T>(id)
+    return fn(shape, shape && getShapeUtils(shape))
   }
 
   /**
