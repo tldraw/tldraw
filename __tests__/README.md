@@ -1,11 +1,13 @@
 # Testing Guide
 
-Writing tests for tldraw? This guide will get you started.
+Writing tests for tldraw? Thank you! This guide will get you started.
 
 - [Getting Started](#getting-started)
 - [How to Test](#how-to-test)
 - [What to Test](#what-to-test)
+- [I Found a Bug!](#i-found-a-bug)
 - [TestUtils](#test-utils)
+- [Conclusion and Tips](#conclusion-and-tips)
 
 ## Getting Started
 
@@ -198,6 +200,10 @@ describe('when creating a new page...', () => {
 
 While snapshot tests don't assert specific things about a feature's implementation, they will at least help flag changes in other parts of the app that might break the feature. For example, if we accidentally made the app start in read only mode, then the snapshot outcome of `CREATED_PAGE` would be different—and the test would fail.
 
+## I Found a Bug!
+
+As you write your tests, chances are you'll find some part of the application that just doesn't work the way it should. If it's your own code, then go ahead and make your fix. If the bug is in code that someone else has written, and if the fix seems complicated, then consider reaching out to the author on [Discord](https://discord.gg/a3H98DGSXS) or on the Github issue for help.
+
 ## TestUtils
 
 While you can test every feature in tldraw by sending events to the state, the `TestUtils` class is designed to make certain things easier. By convention, I'll refer to an instance of the `TestUtils` class as `tt`.
@@ -214,3 +220,20 @@ The `TestUtils` instance wraps an instance of the app's state machine (`tt.state
 - `tt.clickShape` will click a the indicated shape
 
 Check the `test-utils.ts` file for the rest of the API. Feel free to add your own methods if you have a reason for doing so.
+
+## Conclusion and Tips
+
+To wrap up, thanks again for writing tests for tldraw. Quality in creative software is extremely important: nothing's worse than losing work to a bug, but even lesser terrors—getting kicked out of creative flow by unexpected behavior, or having to accomodate an accidental quirk—can make an app unusable.
+
+To sum up what we've covered:
+
+- Do a bit of digging into a feature's events and their outcome(s)
+- Test the app's state machine (view `TestUtils`), not the React view
+- Use the `TestUtils` class for complex events like clicking and dragging
+- Write "todo" tests for the things you can't get to
+- Ask original authors if you find a complex bug
+- Ask for help on [Discord](https://discord.gg/a3H98DGSXS)
+
+Thanks!
+
+-Steve (@steveruizok)
