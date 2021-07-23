@@ -31,5 +31,20 @@
   "background_color": "#fafafa",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait"
+  "orientation": "portrait",
+  "file_handlers": [
+    {
+      "action": "/",
+      "name": "Tldraw ",
+      "accept": {
+        "application/tldraw": [ ".tldr" ]
+      },
+      "icons": [
+        {
+          "src": "/desktop-chrome-maskable-144x144.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
 }

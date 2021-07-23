@@ -20,7 +20,6 @@ const isProduction = NODE_ENV === 'production'
 
 module.exports = withPWA({
   pwa: {
-    disable: !isProduction,
     dest: 'public',
   },
 })

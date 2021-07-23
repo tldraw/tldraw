@@ -391,3 +391,11 @@ For this reason, many sessions begin by taking a snapshot of the current draft.
 
 ### PWA Support
 Tldraw can be installed as PWA via browsers on mobile and desktop. 
+
+**How to install/uninstall PWAs**
+ - Chrome
+   - Desktop ([Install]](https://support.google.com/chrome/answer/9658361?hl=en&co=GENIE.Platform%3DDesktop) / [Uninstall](chrome://apps/) )
+   - TODO: Add link to mobile instructions
+ - Safari
+   - TODO: Adds link to mobile instructions
+ - TODO: Document major browsers like Firefox/Edge.
