@@ -1,0 +1,219 @@
+{
+  "version": 2,
+  "projects": {
+    "core": {
+      "root": "packages/core",
+      "sourceRoot": "packages/core/src",
+      "projectType": "library",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/web:package",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "outputPath": "dist/packages/core",
+            "tsConfig": "packages/core/tsconfig.lib.json",
+            "project": "packages/core/package.json",
+            "entryFile": "packages/core/src/index.ts",
+            "external": ["react/jsx-runtime"],
+            "rollupConfig": "@nrwl/react/plugins/bundle-rollup",
+            "assets": [
+              {
+                "glob": "packages/core/README.md",
+                "input": ".",
+                "output": "."
+              }
+            ]
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["packages/core/**/*.{ts,tsx,js,jsx}"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/packages/core"],
+          "options": {
+            "jestConfig": "packages/core/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "site": {
+      "root": "packages/site",
+      "sourceRoot": "packages/site",
+      "projectType": "application",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/next:build",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "root": "packages/site",
+            "outputPath": "dist/packages/site"
+          },
+          "configurations": {
+            "production": {}
+          }
+        },
+        "serve": {
+          "executor": "@nrwl/next:server",
+          "options": {
+            "buildTarget": "site:build",
+            "dev": true
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "site:build:production",
+              "dev": false
+            }
+          }
+        },
+        "export": {
+          "executor": "@nrwl/next:export",
+          "options": {
+            "buildTarget": "site:build:production"
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/packages/site"],
+          "options": {
+            "jestConfig": "packages/site/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["packages/site/**/*.{ts,tsx,js,jsx}"]
+          }
+        }
+      }
+    },
+    "site-e2e": {
+      "root": "packages/site-e2e",
+      "sourceRoot": "packages/site-e2e/src",
+      "projectType": "application",
+      "targets": {
+        "e2e": {
+          "executor": "@nrwl/cypress:cypress",
+          "options": {
+            "cypressConfig": "packages/site-e2e/cypress.json",
+            "tsConfig": "packages/site-e2e/tsconfig.e2e.json",
+            "devServerTarget": "site:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "site:serve:production"
+            }
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["packages/site-e2e/**/*.{js,ts}"]
+          }
+        }
+      }
+    },
+    "tldraw": {
+      "root": "packages/tldraw",
+      "sourceRoot": "packages/tldraw/src",
+      "projectType": "library",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/web:package",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "outputPath": "dist/packages/tldraw",
+            "tsConfig": "packages/tldraw/tsconfig.lib.json",
+            "project": "packages/tldraw/package.json",
+            "entryFile": "packages/tldraw/src/index.ts",
+            "external": ["react/jsx-runtime"],
+            "rollupConfig": "@nrwl/react/plugins/bundle-rollup",
+            "assets": [
+              {
+                "glob": "packages/tldraw/README.md",
+                "input": ".",
+                "output": "."
+              }
+            ]
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["packages/tldraw/**/*.{ts,tsx,js,jsx}"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/packages/tldraw"],
+          "options": {
+            "jestConfig": "packages/tldraw/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "types": {
+      "root": "packages/types",
+      "sourceRoot": "packages/types/src",
+      "projectType": "library",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/web:package",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "outputPath": "dist/packages/types",
+            "tsConfig": "packages/types/tsconfig.lib.json",
+            "project": "packages/types/package.json",
+            "entryFile": "packages/types/src/index.ts",
+            "external": ["react/jsx-runtime"],
+            "rollupConfig": "@nrwl/react/plugins/bundle-rollup",
+            "assets": [
+              {
+                "glob": "packages/types/README.md",
+                "input": ".",
+                "output": "."
+              }
+            ]
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["packages/types/**/*.{ts,tsx,js,jsx}"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/packages/types"],
+          "options": {
+            "jestConfig": "packages/types/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    }
+  },
+  "cli": {
+    "defaultCollection": "@nrwl/react"
+  },
+  "generators": {
+    "@nrwl/react": {
+      "application": {
+        "babel": true
+      }
+    },
+    "@nrwl/next": {
+      "application": {
+        "style": "css",
+        "linter": "eslint"
+      }
+    }
+  },
+  "defaultProject": "site"
+}
