@@ -388,3 +388,6 @@ When cancelled, it is the responsibility of the session to restore the state to 
 For this reason, many sessions begin by taking a snapshot of the current draft.
 
 > Because the draft is a JavaScript Proxy, you must deep clone any parts of the draft that you want to include in a snapshot. (Direct references will fail as the underlying Proxy will have expired.) While the memory size of a snapshot is not usually a concern, this deep-cloning process is thread-blocking, so try to snapshot only the parts of the `data` draft that you need.
+
+### PWA Support
+Tldraw can be installed as PWA via browsers on mobile and desktop. 
