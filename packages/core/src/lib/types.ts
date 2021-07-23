@@ -15,6 +15,12 @@ export interface Data<T extends TLShape> {
   brush?: Bounds
 }
 
+export interface TLDocument<T extends TLShape> {
+  currentPageId: string
+  pages: Record<string, TLPage<T>>
+  pageStates: Record<string, TLPageState>
+}
+
 export interface TLPage<T extends TLShape> {
   id: string
   shapes: Record<string, T>

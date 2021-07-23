@@ -30,7 +30,7 @@ export function Renderer<T extends TLShape>({
   isDarkMode = false,
   isDebugMode = false,
   isPenMode = false,
-}: RendererProps<T>) {
+}: RendererProps<T>): JSX.Element {
   const [state] = React.useState<TLState<T>>(
     () =>
       new TLState(shapes, page, pageState, {

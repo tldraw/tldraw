@@ -1,21 +1,19 @@
-import { createState } from '@state-designer/react'
-import { BaseShape } from './shape'
+import { createState, createSelectorHook } from '@state-designer/react'
 import {
   Bounds,
   Data,
-  ShapeTreeNode,
   TLBinding,
   TLPage,
   TLPageState,
-  TLSettings,
-  TLShape,
   TLShapes,
-} from './types'
-import { Utils, Vec } from './utils'
+  Utils,
+  Vec,
+  TLDocument,
+} from '@tldraw/core'
 
-export const shakeyState = {} as {
-  state: TLState<TLShape>
-}
+import { RectangleShape, EllipseShape } from './shapes'
+
+export type BaseShapes = RectangleShape | EllipseShape
 
 /*
 The State Manager class is a wrapper around a state-designer state. It provides utilities for accessing
@@ -23,11 +21,15 @@ parts of the state, both privately for internal use and publically for external 
 is shared in the renderer's `onMount` callback.
 */
 
-export class TLState<T extends TLShape> {
+export class TldrawState<T extends BaseShapes> {
   shapeUtils: TLShapes<T> = {}
+  currentPageId: string
+  pages: Record<string, TLPage<T>> = {}
+  pageStates: Record<string, TLPageState> = {}
 
   _state = createState({
     data: {
+      currentPageId: 'page',
       settings: {
         isPenMode: false,
         isDarkMode: false,
@@ -95,63 +97,30 @@ export class TLState<T extends TLShape> {
         const p1 = this.screenToWorld(data, payload.point)
 
         camera.point = Vec.add(camera.point, Vec.sub(p1, p0))
-
-        this.updateZoomCSS(data)
-      },
-    },
-    values: {
-      shapesToRender: (data) => {
-        const viewport = this.getViewport(data)
-
-        const page = this.getPage(data)
-
-        const shapesToShow = Object.values(page.shapes).filter((shape) => {
-          if (shape.parentId !== page.id) return false
-
-          const shapeBounds = this.getShapeUtils(shape).getBounds(shape)
-
-          return (
-            // shapeUtils.alwaysRender? (for lines, rays, etc)
-            Utils.boundsContain(viewport, shapeBounds) ||
-            Utils.boundsCollide(viewport, shapeBounds)
-          )
-        })
-
-        // Populate the shape tree
-        const tree: ShapeTreeNode[] = []
-
-        const selectedIds = this.getSelectedIds(data)
-
-        shapesToShow
-          .sort((a, b) => a.childIndex - b.childIndex)
-          .forEach((shape) =>
-            this.addToShapeTree(data, selectedIds, tree, shape)
-          )
-
-        return tree
       },
     },
   })
 
-  constructor(
-    shapes: Record<string, BaseShape<T>>,
-    page: TLPage<T>,
-    pageState: TLPageState,
-    settings: TLSettings
-  ) {
-    this.shapeUtils = shapes
-    this._state.forceData({
-      ...this.data,
-      page,
-      pageState,
-      settings: { ...this.data.settings, ...settings },
-    })
+  constructor() {
+    this.currentPageId = Object.keys(this.pages)[0]
+  }
 
-    shakeyState.state = this as TLState<any>
+  updateFromDocument(document: TLDocument<T>) {
+    const { currentPageId, pages, pageStates } = document
+    this.pages = pages
+    this.pageStates = pageStates
+    this.currentPageId = currentPageId
+    this.state.forceData({
+      ...this.data,
+      page: pages[currentPageId],
+      pageState: pageStates[currentPageId],
+    })
   }
 
   update(page: TLPage<T>, pageState: TLPageState) {
-    this._state.forceData({ ...this.data, page, pageState })
+    if (page.id === this.currentPageId) {
+      this._state.forceData({ ...this.data, page, pageState })
+    }
   }
 
   forceUpdate(data: Partial<Data<T>>) {
@@ -173,17 +142,6 @@ export class TLState<T extends TLShape> {
   }
 
   getViewport(data: Data<T>): Bounds {
-    if (typeof window === 'undefined') {
-      return {
-        minX: 0,
-        minY: 0,
-        maxX: 1,
-        maxY: 1,
-        height: 1,
-        width: 1,
-      }
-    }
-
     const [minX, minY] = this.screenToWorld(data, [0, 0])
     const [maxX, maxY] = this.screenToWorld(data, [
       window.innerWidth,
@@ -232,54 +190,15 @@ export class TLState<T extends TLShape> {
     return data.page.shapes[shapeId]
   }
 
-  updateZoomCSS(data: Data<T>) {
-    document.documentElement.style.setProperty(
-      '--camera-zoom',
-      data.pageState.camera.toString()
-    )
-  }
-
   getBinding(data: Data<T>, id: string): TLBinding<T> {
     return this.getPage(data).bindings[id]
-  }
-
-  addToShapeTree(
-    data: Data<T>,
-    selectedIds: string[],
-    branch: ShapeTreeNode[],
-    shape: TLShape
-  ) {
-    const node = {
-      shape,
-      children: [],
-      isHovered: data.hoveredId === shape.id,
-      isCurrentParent: data.currentParentId === shape.id,
-      isEditing: data.editingId === shape.id,
-      isBinding: data.editingBindingId
-        ? this.getBinding(data, data.editingBindingId)?.toId === shape.id
-        : false,
-      isDarkMode: data.settings.isDarkMode,
-      isSelected: selectedIds.includes(shape.id),
-    }
-
-    branch.push(node)
-
-    if (shape.children) {
-      shape.children
-        .map((id) => this.getShape(data, id))
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .forEach((childShape) => {
-          this.addToShapeTree(data, selectedIds, node.children, childShape)
-        })
-    }
   }
 
   /* -------------------------------------------------- */
   /*                       Public                       */
   /* -------------------------------------------------- */
 
-  /* -------------------- Accessors ------------------- */
-  // Note that the "data" here will be the stable data in state, not the current "draft".
+  /* -------- Reimplemenation of State Methods -------- */
 
   get state() {
     return this._state
@@ -288,28 +207,6 @@ export class TLState<T extends TLShape> {
   get data() {
     return this.state.data
   }
-
-  get page() {
-    return this.data.page
-  }
-
-  get pageState() {
-    return this.data.pageState
-  }
-
-  get selectedIds() {
-    return this.pageState.selectedIds
-  }
-
-  get shapes() {
-    return this.page.shapes
-  }
-
-  get camera() {
-    return this.pageState.camera
-  }
-
-  /* -------- Reimplemenation of State Methods -------- */
 
   send(eventName: string, payload?: unknown) {
     this.state.send(eventName, payload)
@@ -328,3 +225,9 @@ export class TLState<T extends TLShape> {
     return this.state.can(eventName, payload)
   }
 }
+
+const state = new TldrawState()
+
+export const useSelector = createSelectorHook(state.state)
+
+export default state

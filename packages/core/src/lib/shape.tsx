@@ -7,7 +7,7 @@ export class BaseShape<T extends TLShape> {
     return <rect width={100} height={100} fill="none" stroke="black" />
   }
 
-  shouldRender(prev: T, next: T) {
+  shouldRender(prev: T, next: T): boolean {
     return true
   }
 

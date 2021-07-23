@@ -86,7 +86,7 @@ export function useZoomEvents() {
       },
     },
     {
-      domTarget: document.body,
+      domTarget: typeof document === 'undefined' ? undefined : document.body,
       eventOptions: { passive: false },
     }
   )
