@@ -24,11 +24,10 @@
     "workspace-generator": "nx workspace-generator",
     "dep-graph": "nx dep-graph",
     "help": "nx help",
-    "precommit": "eslint src/**/*.ts|tsx"
+    "precommit": "lint-staged"
   },
-  "precommit": "lint-staged",
   "lint-staged": {
-    "src/**/*.{js,vue}": [
+    "src/**/*.{ts,tsx}": [
       "eslint --fix",
       "git add"
     ]
