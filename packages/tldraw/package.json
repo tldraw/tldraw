@@ -1,4 +1,11 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "0.0.1"
+  "version": "0.0.1",
+  "license": "MIT",
+  "author": {
+    "name": "Steve Ruiz",
+    "email": "steveruizok+tldraw@gmail.com",
+    "url": "https://twitter.com/steveruizok"
+  },
+  "private": false
 }
