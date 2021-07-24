@@ -23,13 +23,18 @@
     "update": "nx migrate latest",
     "workspace-generator": "nx workspace-generator",
     "dep-graph": "nx dep-graph",
-    "help": "nx help",
-    "precommit": "lint-staged"
+    "help": "nx help"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "yarn lint && yarn format"
+    }
   },
   "lint-staged": {
-    "src/**/*.{ts,tsx}": [
-      "eslint --fix",
-      "git add"
+    "*.@(ts|tsx)": [
+      "yarn format",
+      "yarn lint"
     ]
   },
   "private": true,
