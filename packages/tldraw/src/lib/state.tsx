@@ -5,15 +5,20 @@ import {
   TLBinding,
   TLPage,
   TLPageState,
-  TLShapes,
+  TLShapeUtils,
   Utils,
   Vec,
   TLDocument,
 } from '@tldraw/core'
 
-import { RectangleShape, EllipseShape } from './shapes'
+import { rectangle, RectangleShape, ellipse, EllipseShape } from './shapes'
 
-export type BaseShapes = RectangleShape | EllipseShape
+export type TLDrawShapes = RectangleShape | EllipseShape
+
+const tldrawShapeUtils: TLShapeUtils<TLDrawShapes> = {
+  rectangle,
+  ellipse,
+}
 
 /*
 The State Manager class is a wrapper around a state-designer state. It provides utilities for accessing
@@ -21,8 +26,8 @@ parts of the state, both privately for internal use and publically for external 
 is shared in the renderer's `onMount` callback.
 */
 
-export class TldrawState<T extends BaseShapes> {
-  shapeUtils: TLShapes<T> = {}
+export class TLDrawState<T extends TLDrawShapes> {
+  shapeUtils: TLShapeUtils<T>
   currentPageId: string
   pages: Record<string, TLPage<T>> = {}
   pageStates: Record<string, TLPageState> = {}
@@ -36,10 +41,6 @@ export class TldrawState<T extends BaseShapes> {
         isDebugMode: false,
         isReadonlyMode: false,
       },
-      pointedId: undefined,
-      hoveredId: undefined,
-      editingId: undefined,
-      editingBindingId: undefined,
       currentParentId: 'page',
       page: {
         id: 'page',
@@ -49,39 +50,34 @@ export class TldrawState<T extends BaseShapes> {
       pageState: {
         id: 'page',
         selectedIds: [],
+        currentParentId: 'page',
         camera: {
           point: [0, 0],
           zoom: 1,
         },
       },
     } as Data<T>,
+    initial: 'ready',
     states: {
       loading: {},
       ready: {
-        on: {
-          PANNED_CAMERA: 'panCamera',
-          PINCHED_CAMERA: 'pinchCamera',
-        },
+        on: {},
       },
     },
     actions: {
       panCamera: (data, payload: { delta: number[] }) => {
-        const camera = data.pageState.camera
+        const { camera } = this.getPageState(data)
+
         camera.point = Vec.sub(
           camera.point,
-          Vec.div(payload.delta, camera.zoom)
+          Vec.div(Vec.div(payload.delta, camera.zoom), camera.zoom)
         )
       },
       pinchCamera: (
         data,
-        payload: {
-          delta: number[]
-          distanceDelta: number
-          angleDelta: number
-          point: number[]
-        }
+        payload: { delta: number[]; origin: number[]; distanceDelta: number }
       ) => {
-        const camera = data.pageState.camera
+        const camera = this.getCurrentCamera(data)
 
         camera.point = Vec.sub(
           camera.point,
@@ -90,19 +86,18 @@ export class TldrawState<T extends BaseShapes> {
 
         const next = camera.zoom - (payload.distanceDelta / 300) * camera.zoom
 
-        const p0 = this.screenToWorld(data, payload.point)
-
+        const p0 = this.screenToWorld(data, payload.origin)
         camera.zoom = this.getCameraZoom(next)
-
-        const p1 = this.screenToWorld(data, payload.point)
-
+        console.log(camera.zoom)
+        const p1 = this.screenToWorld(data, payload.origin)
         camera.point = Vec.add(camera.point, Vec.sub(p1, p0))
       },
     },
   })
 
-  constructor() {
+  constructor(shapeUtils: TLShapeUtils<T>) {
     this.currentPageId = Object.keys(this.pages)[0]
+    this.shapeUtils = shapeUtils
   }
 
   updateFromDocument(document: TLDocument<T>) {
@@ -110,29 +105,76 @@ export class TldrawState<T extends BaseShapes> {
     this.pages = pages
     this.pageStates = pageStates
     this.currentPageId = currentPageId
-    this.state.forceData({
-      ...this.data,
+
+    this.forceUpdate({
       page: pages[currentPageId],
       pageState: pageStates[currentPageId],
     })
   }
 
-  update(page: TLPage<T>, pageState: TLPageState) {
+  updatePageState(pageState: TLPageState) {
+    this.forceUpdate({ pageState })
+  }
+
+  updatePage(page: TLPage<T>) {
     if (page.id === this.currentPageId) {
-      this._state.forceData({ ...this.data, page, pageState })
+      this.forceUpdate({ page })
     }
   }
 
   forceUpdate(data: Partial<Data<T>>) {
-    this.state.forceData({ ...this.data, ...data })
+    this._state.forceData({ ...this.data, ...data })
+  }
+
+  fastPan = (delta: number[]) => {
+    const { point, zoom } = this.getCurrentCamera(this.data)
+
+    const nextPoint = Vec.sub(point, Vec.div(delta, zoom))
+
+    this.updatePageState({
+      ...this.data.pageState,
+      camera: {
+        zoom,
+        point: nextPoint,
+      },
+    })
+
+    // Send along the event just to be sure
+    this.send('PANNED_CAMERA', { delta })
+  }
+
+  fastPinch = (origin: number[], delta: number[], distanceDelta: number) => {
+    const {
+      camera: { point, zoom },
+    } = this.data.pageState
+
+    let nextPoint = Vec.sub(point, Vec.div(delta, zoom))
+
+    const nextZoom = this.getCameraZoom(zoom - (distanceDelta / 300) * zoom)
+
+    const p0 = Vec.sub(Vec.div(origin, zoom), point)
+    const p1 = Vec.sub(Vec.div(origin, nextZoom), point)
+
+    nextPoint = Vec.add(point, Vec.sub(p1, p0))
+
+    this.updatePageState({
+      ...this.data.pageState,
+      camera: {
+        point: nextPoint,
+        zoom: nextZoom,
+      },
+    })
+
+    // Send along the event just to be sure
+    this.send('PINCHED_CAMERA', { origin, delta, distanceDelta })
   }
 
   /* -------------------------------------------------- */
   /*                       Private                      */
   /* -------------------------------------------------- */
 
-  getShapeUtils<S extends T>(shape: S) {
-    return this.shapeUtils[shape.type]
+  getShapeUtils(shape: T) {
+    return this.shapeUtils[shape.type as T['type']]
   }
 
   screenToWorld(data: Data<T>, point: number[]) {
@@ -226,7 +268,7 @@ export class TldrawState<T extends BaseShapes> {
   }
 }
 
-const state = new TldrawState()
+const state = new TLDrawState<TLDrawShapes>(tldrawShapeUtils)
 
 export const useSelector = createSelectorHook(state.state)
 

@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { useShapeEvents, useTLState } from '../../hooks'
-import Utils from '../../utils'
+import { useShapeEvents, useTLContext } from '../../hooks'
+import Utils from '../../../utils'
 import styled from '../../styles'
-import { TLShape } from '../../types'
+import { TLShape } from '../../../types'
 import { RenderedShape } from './rendered-shape'
 import { EditingTextShape } from './editing-text-shape'
 
@@ -26,10 +26,10 @@ export const Shape = React.memo(
     isDarkMode,
     isCurrentParent,
   }: ShapeProps) => {
-    const state = useTLState()
+    const { shapeUtils } = useTLContext()
     const rGroup = React.useRef<SVGGElement>(null)
     const events = useShapeEvents(shape.id, isCurrentParent, rGroup)
-    const utils = state.getShapeUtils(shape)
+    const utils = shapeUtils[shape.type]
 
     const center = utils.getCenter(shape)
     const rotation = shape.rotation * (180 / Math.PI)

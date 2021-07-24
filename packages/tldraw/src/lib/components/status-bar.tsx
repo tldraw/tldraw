@@ -1,12 +1,11 @@
 import { useStateDesigner } from '@state-designer/react'
 import styled from '../styles'
-import { useTLState } from '../hooks'
+import state from '../state'
 
 export function StatusBar(): JSX.Element | null {
-  const state = useTLState()
   const local = useStateDesigner(state.state)
 
-  const shapesInView = local.values.shapesToRender.length
+  // const shapesInView = local.values.shapesToRender.length
 
   const active = local.active
     .slice(1)
@@ -25,7 +24,7 @@ export function StatusBar(): JSX.Element | null {
       <Section>
         {active} - {log}
       </Section>
-      <Section>{shapesInView || '0'} Shapes</Section>
+      {/* <Section>{shapesInView || '0'} Shapes</Section> */}
     </StatusBarContainer>
   )
 }

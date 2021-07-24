@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { TLDocument } from '@tldraw/core'
-import { Tldraw, BaseShapes } from '@tldraw/tldraw'
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+import { Tldraw, TLDrawShapeUtils } from '@tldraw/tldraw'
 
 export function Index() {
-  const [document, setDocument] = React.useState<TLDocument<BaseShapes>>({
+  const [document, setDocument] = React.useState<TLDocument<TLDrawShapeUtils>>({
     currentPageId: 'page1',
     pages: {
       page1: {
@@ -37,6 +38,7 @@ export function Index() {
       page1: {
         id: 'page1',
         selectedIds: [],
+        currentParentId: 'page1',
         camera: {
           point: [0, 0],
           zoom: 1,
@@ -45,14 +47,7 @@ export function Index() {
     },
   })
 
-  return (
-    <Tldraw
-      document={document}
-      onMount={(tlstate) => {
-        console.log(tlstate)
-      }}
-    />
-  )
+  return <Tldraw document={document} />
 }
 
 export default Index

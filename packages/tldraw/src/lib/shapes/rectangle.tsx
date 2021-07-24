@@ -1,14 +1,29 @@
-import { BaseShape, Bounds, TLShape, Utils } from '@tldraw/core'
+import {
+  TLShapeUtil,
+  Bounds,
+  TLShape,
+  Utils,
+  TransformInfo,
+} from '@tldraw/core'
 
 export interface RectangleShape extends TLShape {
   type: 'rectangle'
   size: number[]
 }
 
-export class Rectangle extends BaseShape<RectangleShape> {
-  type = 'rectangle'
+export class Rectangle extends TLShapeUtil<RectangleShape> {
+  type = 'rectangle' as const
 
-  boundsCache = new WeakMap<RectangleShape, Bounds>([])
+  defaultProps = {
+    id: 'id',
+    type: 'rectangle' as const,
+    name: 'Rectangle',
+    parentId: 'page',
+    childIndex: 0,
+    point: [0, 0],
+    size: [100, 100],
+    rotation: 0,
+  }
 
   render(shape: RectangleShape) {
     const { size } = shape
@@ -16,19 +31,62 @@ export class Rectangle extends BaseShape<RectangleShape> {
   }
 
   getBounds(shape: RectangleShape) {
-    const bounds = Utils.getFromCache(this.boundsCache, shape, (cache) => {
+    const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       const [width, height] = shape.size
-      cache.set(shape, {
+      return {
         minX: 0,
         maxX: width,
         minY: 0,
         maxY: height,
         width,
         height,
-      })
+      }
     })
 
     return Utils.translateBounds(bounds, shape.point)
+  }
+
+  getRotatedBounds(shape: RectangleShape) {
+    return Utils.getBoundsFromPoints(
+      Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
+    )
+  }
+
+  getCenter(shape: RectangleShape): number[] {
+    return Utils.getBoundsCenter(this.getBounds(shape))
+  }
+
+  hitTest(shape: RectangleShape, point: number[]) {
+    return Utils.pointInBounds(point, this.getBounds(shape))
+  }
+
+  hitTestBounds(shape: RectangleShape, bounds: Bounds) {
+    const rotatedCorners = Utils.getRotatedCorners(
+      this.getBounds(shape),
+      shape.rotation
+    )
+
+    return (
+      Utils.boundsContainPolygon(bounds, rotatedCorners) ||
+      Utils.boundsCollidePolygon(bounds, rotatedCorners)
+    )
+  }
+
+  transform(
+    shape: TLShape,
+    bounds: Bounds,
+    info: TransformInfo<RectangleShape>
+  ) {
+    shape.point = [bounds.minX, bounds.minY]
+    return this
+  }
+
+  transformSingle(
+    shape: TLShape,
+    bounds: Bounds,
+    info: TransformInfo<RectangleShape>
+  ) {
+    return this.transform(shape, bounds, info)
   }
 }
 

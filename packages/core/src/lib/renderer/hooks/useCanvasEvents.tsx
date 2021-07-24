@@ -2,13 +2,13 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 import * as React from 'react'
-import { useTLState } from './useTLState'
-import inputs from '../inputs'
-import { Vec } from '../utils'
+import { useTLContext } from './useTLContext'
+import inputs from '../../inputs'
+import { Vec } from '../../utils'
 // import { fastBrushSelect, fastDrawUpdate, fastPanUpdate } from 'state/hacks'
 
 export function useCanvasEvents(rCanvas: React.RefObject<SVGGElement>) {
-  const state = useTLState()
+  const { callbacks } = useTLContext()
 
   const handlePointerDown = React.useCallback(
     (e: React.PointerEvent<SVGSVGElement>) => {
@@ -20,15 +20,15 @@ export function useCanvasEvents(rCanvas: React.RefObject<SVGGElement>) {
 
       if (e.button === 0) {
         if (inputs.isDoubleClick() && !(info.altKey || info.metaKey)) {
-          state.send('DOUBLE_POINTED_CANVAS', info)
+          callbacks.onDoublePointCanvas?.(info)
         }
 
-        state.send('POINTED_CANVAS', info)
+        callbacks.onPointCanvas?.(info)
       } else if (e.button === 2) {
-        state.send('RIGHT_POINTED', info)
+        callbacks.onRightPointCanvas?.(info)
       }
     },
-    [rCanvas, state]
+    [rCanvas, callbacks]
   )
 
   const handlePointerMove = React.useCallback(
@@ -36,30 +36,17 @@ export function useCanvasEvents(rCanvas: React.RefObject<SVGGElement>) {
       if (!inputs.canAccept(e.pointerId)) return
 
       const prev = inputs.pointer?.point
-      const info = inputs.pointerMove(e)
+      const info = inputs.pointerMove(e, 'canvas')
 
-      if (prev && state.isIn('selecting') && inputs.keys[' ']) {
+      if (prev && inputs.keys[' '] && e.buttons === 1) {
         const delta = Vec.sub(prev, info.point)
-        // fastPanUpdate(delta)
-        state.send('KEYBOARD_PANNED_CAMERA', {
-          delta: Vec.sub(prev, info.point),
-        })
+        callbacks.onPan?.(delta)
         return
       }
 
-      if (state.isIn('draw.editing')) {
-        // fastDrawUpdate(info)
-      } else if (state.isIn('brushSelecting')) {
-        // fastBrushSelect(info.point)
-      } else if (state.isIn('translatingSelection')) {
-        // fastTranslate(info)
-      } else if (state.isIn('transformingSelection')) {
-        // fastTransform(info)
-      }
-
-      state.send('MOVED_POINTER', info)
+      callbacks.onPointerMove?.(info)
     },
-    [state]
+    [callbacks]
   )
 
   const handlePointerUp = React.useCallback(
@@ -68,12 +55,11 @@ export function useCanvasEvents(rCanvas: React.RefObject<SVGGElement>) {
 
       rCanvas.current?.releasePointerCapture(e.pointerId)
 
-      state.send('STOPPED_POINTING', {
-        id: 'canvas',
-        ...inputs.pointerUp(e, 'canvas'),
-      })
+      const info = inputs.pointerUp(e, 'canvas')
+
+      callbacks.onStopPointing?.(info)
     },
-    [rCanvas, state]
+    [rCanvas, callbacks]
   )
 
   const handleTouchStart = React.useCallback(
@@ -134,7 +120,7 @@ export function useCanvasEvents(rCanvas: React.RefObject<SVGGElement>) {
         elm.removeEventListener('touchstart', preventNavigation)
       }
     }
-  }, [state, rCanvas])
+  }, [callbacks, rCanvas])
 
   return {
     onPointerDown: handlePointerDown,

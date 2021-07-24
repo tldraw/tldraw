@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { TLRenderInfo, TLShape } from '../../types'
-import { BaseShape } from '../../shape'
+import { TLRenderInfo, TLShape } from '../../../types'
+import { BaseShape } from '../../../shape'
 
 interface RenderedShapeProps<T extends TLShape> extends TLRenderInfo {
   shape: T

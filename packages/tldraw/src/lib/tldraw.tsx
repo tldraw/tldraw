@@ -1,49 +1,44 @@
-import {
-  TLDocument,
-  Renderer,
-  RendererProps,
-  TLShape,
-  TLState,
-} from '@tldraw/core'
+import { TLDocument, Renderer, TLCallbacks, TLShapeUtils } from '@tldraw/core'
 import * as React from 'react'
+import { StatusBar } from './components/status-bar'
 import { rectangle, ellipse, RectangleShape, EllipseShape } from './shapes'
-import state, { useSelector } from './state'
+import state, { TLDrawState, useSelector } from './state'
 
-export type BaseShapes = RectangleShape | EllipseShape
+export type TLDrawShapeUtils = RectangleShape | EllipseShape
 
-export const baseShapes: RendererProps<BaseShapes>['shapes'] = {
+export const baseShapeUtils: TLShapeUtils<TLDrawShapeUtils> = {
   rectangle,
   ellipse,
 }
 
-/* eslint-disable-next-line */
-export interface TldrawProps<T extends TLShape> {
-  document?: TLDocument<T>
-  onMount?: (tldraw: TLState<T>) => void
-  onShapeSelect?: (shape: T) => void
-  onShapeDelete?: (shape: T) => void
-  onSelectAll?: (shape: T) => void
-  onDeselectAll?: (shape: T) => void
-  onCameraChange?: (shape: T) => void
+export interface TldrawProps extends Partial<TLCallbacks> {
+  document?: TLDocument<TLDrawShapeUtils>
+  onMount?: (tldraw: TLDrawState<TLDrawShapeUtils>) => void
 }
 
-export function Tldraw({ document, onMount }: TldrawProps<BaseShapes>) {
+export function Tldraw({ document, onMount }: TldrawProps) {
+  const page = useSelector((s) => s.data.page)
+
+  const pageState = useSelector((s) => s.data.pageState)
+
   React.useEffect(() => {
     if (document !== undefined) {
       state.updateFromDocument(document)
+      onMount?.(state)
     }
-  }, [document])
-
-  const page = useSelector((s) => s.data.page)
-  const pageState = useSelector((s) => s.data.pageState)
+  }, [onMount, document])
 
   return (
-    <Renderer
-      shapes={baseShapes}
-      page={page}
-      pageState={pageState}
-      onMount={onMount}
-    />
+    <>
+      <Renderer
+        shapeUtils={baseShapeUtils}
+        page={page}
+        pageState={pageState}
+        onPan={state.fastPan}
+        onPinch={state.fastPinch}
+      />
+      <StatusBar />
+    </>
   )
 }
 

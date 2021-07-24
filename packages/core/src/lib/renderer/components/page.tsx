@@ -1,18 +1,32 @@
-import { useTlSelector } from '../hooks'
-import { ShapeTreeNode } from '../types'
+import * as React from 'react'
+import { useShapeTree } from '../hooks/useShapeTree'
+import { ShapeTreeNode, TLPage, TLPageState, TLShape } from '../../types'
 import { Shape as ShapeComponent } from './shape'
+import { useRenderOnResize, useTLContext } from '../hooks'
 
-export default function Page(): JSX.Element {
-  const shapesToRender = useTlSelector((s) => s.values.shapesToRender)
+interface PageProps<T extends TLShape> {
+  page: TLPage<T>
+  pageState: TLPageState
+}
 
-  const allowHovers = useTlSelector((s) =>
-    s.isInAny('selecting', 'text', 'editingShape')
-  )
+export function Page<T extends TLShape>({
+  page,
+  pageState,
+}: PageProps<T>): JSX.Element {
+  const { callbacks, shapeUtils } = useTLContext()
+
+  useRenderOnResize()
+
+  const shapesToRender = useShapeTree(page, pageState, shapeUtils)
+
+  React.useEffect(() => {
+    callbacks.onChange?.(shapesToRender.map((node) => node.shape.id))
+  }, [callbacks, shapesToRender])
 
   return (
     <>
       {shapesToRender.map((node) => (
-        <ShapeNode key={node.shape.id} node={node} allowHovers={allowHovers} />
+        <ShapeNode key={node.shape.id} node={node} allowHovers={true} />
       ))}
     </>
   )

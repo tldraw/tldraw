@@ -1,12 +1,29 @@
-import { BaseShape, TLShape } from '@tldraw/core'
+import {
+  TLShapeUtil,
+  TLShape,
+  Utils,
+  TransformInfo,
+  Bounds,
+} from '@tldraw/core'
 
 export interface EllipseShape extends TLShape {
-  type: 'rectangle'
+  type: 'ellipse'
   radius: number[]
 }
 
-export class Ellipse extends BaseShape<EllipseShape> {
-  type = 'rectangle'
+export class Ellipse extends TLShapeUtil<EllipseShape> {
+  type = 'ellipse' as const
+
+  defaultProps = {
+    id: 'id',
+    type: 'ellipse' as const,
+    name: 'Ellipse',
+    parentId: 'page',
+    childIndex: 0,
+    point: [0, 0],
+    radius: [100, 100],
+    rotation: 0,
+  }
 
   render(shape: EllipseShape) {
     const {
@@ -18,18 +35,59 @@ export class Ellipse extends BaseShape<EllipseShape> {
   }
 
   getBounds(shape: EllipseShape) {
-    const {
-      radius: [rx, ry],
-    } = shape
+    return Utils.getFromCache(this.boundsCache, shape, () => {
+      const {
+        radius: [rx, ry],
+      } = shape
 
-    return {
-      minX: 0,
-      minY: 0,
-      maxX: rx * 2,
-      maxY: ry * 2,
-      width: rx * 2,
-      height: ry * 2,
-    }
+      return {
+        minX: 0,
+        minY: 0,
+        maxX: rx * 2,
+        maxY: ry * 2,
+        width: rx * 2,
+        height: ry * 2,
+      }
+    })
+  }
+
+  getRotatedBounds(shape: EllipseShape) {
+    return Utils.getBoundsFromPoints(
+      Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
+    )
+  }
+
+  getCenter(shape: EllipseShape): number[] {
+    return Utils.getBoundsCenter(this.getBounds(shape))
+  }
+
+  hitTest(shape: EllipseShape, point: number[]) {
+    return Utils.pointInBounds(point, this.getBounds(shape))
+  }
+
+  hitTestBounds(shape: EllipseShape, bounds: Bounds) {
+    const rotatedCorners = Utils.getRotatedCorners(
+      this.getBounds(shape),
+      shape.rotation
+    )
+
+    return (
+      Utils.boundsContainPolygon(bounds, rotatedCorners) ||
+      Utils.boundsCollidePolygon(bounds, rotatedCorners)
+    )
+  }
+
+  transform(shape: TLShape, bounds: Bounds, info: TransformInfo<EllipseShape>) {
+    shape.point = [bounds.minX, bounds.minY]
+    return this
+  }
+
+  transformSingle(
+    shape: TLShape,
+    bounds: Bounds,
+    info: TransformInfo<EllipseShape>
+  ) {
+    return this.transform(shape, bounds, info)
   }
 }
 

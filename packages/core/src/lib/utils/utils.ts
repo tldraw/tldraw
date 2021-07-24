@@ -1,6 +1,7 @@
 /* eslint-disable no-redeclare */
 import * as React from 'react'
 import { BezierCurveSegment, Bounds, Corner, Edge } from '../types'
+import Intersect from './intersect'
 import vec from './vec'
 
 export class Utils {
@@ -991,6 +992,23 @@ export class Utils {
   }
 
   /**
+   * Get whether a set of points are all contained by a bounding box.
+   * @returns
+   */
+  static boundsContainPolygon(a: Bounds, points: number[][]): boolean {
+    return points.every((point) => Utils.pointInBounds(point, a))
+  }
+
+  /**
+   * Get whether a polygon collides a bounding box.
+   * @param points
+   * @param b
+   */
+  static boundsCollidePolygon(a: Bounds, points: number[][]): boolean {
+    return Intersect.polyline.bounds(points, a).length > 0
+  }
+
+  /**
    * Get whether two bounds are identical.
    * @param a Bounds
    * @param b Bounds
@@ -1580,12 +1598,12 @@ export class Utils {
   static getFromCache<V, I extends object>(
     cache: WeakMap<I, V>,
     item: I,
-    replace: (cache: WeakMap<I, V>) => void
+    getNext: () => V
   ): V {
     let value = cache.get(item)
 
     if (value === undefined) {
-      replace(cache)
+      cache.set(item, getNext())
       value = cache.get(item)
 
       if (value === undefined) {
@@ -1664,6 +1682,18 @@ export class Utils {
    */
   static setToArray<T>(set: Set<T>): T[] {
     return Array.from(set.values())
+  }
+
+  /**
+   * Debounce a function.
+   */
+  static debounce<T extends (...args: unknown[]) => void>(fn: T, ms = 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let timeoutId: number | any
+    return function (...args: Parameters<T>) {
+      clearTimeout(timeoutId)
+      timeoutId = setTimeout(() => fn.apply(args), ms)
+    }
   }
 
   /* -------------------------------------------------- */

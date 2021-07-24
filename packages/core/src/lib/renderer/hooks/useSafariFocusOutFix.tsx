@@ -1,20 +1,20 @@
-import Utils from '../utils'
+import Utils from '../../utils'
 import { useEffect } from 'react'
-import { useTLState } from './useTLState'
+import { useTLContext } from './useTLContext'
 
 // Send event on iOS when a user presses the "Done" key while editing a text element.
 
 export function useSafariFocusOutFix(): void {
-  const state = useTLState()
+  const { callbacks } = useTLContext()
 
   useEffect(() => {
     function handleFocusOut() {
-      state.send('BLURRED_EDITING_SHAPE')
+      callbacks.onBlurEditingShape?.()
     }
 
     if (!Utils.isMobile()) return
 
     document.addEventListener('focusout', handleFocusOut)
     return () => document.removeEventListener('focusout', handleFocusOut)
-  }, [state])
+  }, [callbacks])
 }
