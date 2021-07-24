@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { useShapeEvents, useTLContext } from '../../hooks'
 import Utils from '../../../utils'
-import styled from '../../styles'
 import { TLShape } from '../../../types'
 import { RenderedShape } from './rendered-shape'
 import { EditingTextShape } from './editing-text-shape'
@@ -36,15 +35,14 @@ export const Shape = React.memo(
     const transform = `rotate(${rotation}, ${center}) translate(${shape.point})`
 
     return (
-      <ShapeGroup
+      <g
         ref={rGroup}
         id={shape.id}
         transform={transform}
-        isCurrentParent={isCurrentParent}
         filter={isHovered ? 'url(#expand)' : 'none'}
         {...events}
       >
-        {isEditing && shape.type === 'text' ? ( // TODO: Refactor to "isEditableText" ?
+        {isEditing && utils.isEditableText ? (
           <EditingTextShape
             shape={shape}
             isBinding={false}
@@ -67,32 +65,8 @@ export const Shape = React.memo(
             isSelected={isSelected}
           />
         )}
-      </ShapeGroup>
+      </g>
     )
   },
   Utils.shallowEqual
 )
-
-const ShapeGroup = styled('g', {
-  outline: 'none',
-
-  '& > *[data-shy=true]': {
-    opacity: 0,
-  },
-
-  '&:hover': {
-    '& > *[data-shy=true]': {
-      opacity: 1,
-    },
-  },
-
-  variants: {
-    isCurrentParent: {
-      true: {
-        '& > *[data-shy=true]': {
-          opacity: 1,
-        },
-      },
-    },
-  },
-})

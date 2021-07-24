@@ -2,12 +2,6 @@
 
 import React from 'react'
 
-export interface Data<T extends TLShape> {
-  settings: TLSettings
-  page: TLPage<T>
-  pageState: TLPageState
-}
-
 export interface TLDocument<T extends TLShape> {
   currentPageId: string
   pages: Record<string, TLPage<T>>
@@ -17,7 +11,8 @@ export interface TLDocument<T extends TLShape> {
 export interface TLPage<T extends TLShape> {
   id: string
   shapes: Record<string, T>
-  bindings: Record<string, TLBinding<T>>
+  bindings: Record<string, TLBinding>
+  backgroundColor?: string
 }
 
 export interface TLPageState {
@@ -82,9 +77,9 @@ export interface TLTool {
   name: string
 }
 
-export interface TLBinding<T extends TLShape = TLShape> {
+export interface TLBinding {
   id: string
-  type: T['type']
+  type: string
   toId: string
   fromId: string
 }
@@ -97,12 +92,12 @@ export interface TLSettings {
 }
 
 export interface TLTheme {
-  brushFill: string
-  brushStroke: string
-  selectFill: string
-  selectStroke: string
-  background: string
-  foreground: string
+  brushFill?: string
+  brushStroke?: string
+  selectFill?: string
+  selectStroke?: string
+  background?: string
+  foreground?: string
 }
 
 export interface TLCallbacks {
@@ -152,7 +147,6 @@ export interface TLCallbacks {
   // keys
   onBlurEditingShape: () => void
   onError: (error: Error) => void
-  onResetDocument: () => void
 }
 
 /* -------------------- Secondary ------------------- */
@@ -248,6 +242,8 @@ export interface TransformInfo<T extends TLShape> {
 
 export abstract class TLShapeUtil<T extends TLShape> {
   boundsCache = new WeakMap<TLShape, Bounds>()
+
+  isEditableText = false
 
   abstract type: T['type']
 

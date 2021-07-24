@@ -24,7 +24,7 @@ export function Index() {
             id: 'rect2',
             parentId: 'page1',
             name: 'Rectangle',
-            childIndex: 0,
+            childIndex: 1,
             type: 'rectangle',
             point: [200, 200],
             size: [100, 100],

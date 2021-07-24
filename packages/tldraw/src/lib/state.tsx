@@ -1,7 +1,6 @@
 import { createState, createSelectorHook } from '@state-designer/react'
 import {
   Bounds,
-  Data,
   TLBinding,
   TLPage,
   TLPageState,
@@ -9,11 +8,21 @@ import {
   Utils,
   Vec,
   TLDocument,
+  TLSettings,
+  TLShape,
 } from '@tldraw/core'
 
 import { rectangle, RectangleShape, ellipse, EllipseShape } from './shapes'
 
 export type TLDrawShapes = RectangleShape | EllipseShape
+
+export interface TLDrawData<T extends TLShape> {
+  settings: TLSettings
+  currentPageId: string
+  currentParentId: string
+  page: TLPage<T>
+  pageState: TLPageState
+}
 
 const tldrawShapeUtils: TLShapeUtils<TLDrawShapes> = {
   rectangle,
@@ -34,13 +43,13 @@ export class TLDrawState<T extends TLDrawShapes> {
 
   _state = createState({
     data: {
-      currentPageId: 'page',
       settings: {
         isPenMode: false,
         isDarkMode: false,
         isDebugMode: false,
         isReadonlyMode: false,
       },
+      currentPageId: 'page',
       currentParentId: 'page',
       page: {
         id: 'page',
@@ -56,7 +65,7 @@ export class TLDrawState<T extends TLDrawShapes> {
           zoom: 1,
         },
       },
-    } as Data<T>,
+    } as TLDrawData<T>,
     initial: 'ready',
     states: {
       loading: {},
@@ -122,7 +131,7 @@ export class TLDrawState<T extends TLDrawShapes> {
     }
   }
 
-  forceUpdate(data: Partial<Data<T>>) {
+  forceUpdate(data: Partial<TLDrawData<T>>) {
     this._state.forceData({ ...this.data, ...data })
   }
 
@@ -177,13 +186,13 @@ export class TLDrawState<T extends TLDrawShapes> {
     return this.shapeUtils[shape.type as T['type']]
   }
 
-  screenToWorld(data: Data<T>, point: number[]) {
+  screenToWorld(data: TLDrawData<T>, point: number[]) {
     const { camera } = data.pageState
 
     return Vec.sub(Vec.div(point, camera.zoom), camera.point)
   }
 
-  getViewport(data: Data<T>): Bounds {
+  getViewport(data: TLDrawData<T>): Bounds {
     const [minX, minY] = this.screenToWorld(data, [0, 0])
     const [maxX, maxY] = this.screenToWorld(data, [
       window.innerWidth,
@@ -204,35 +213,35 @@ export class TLDrawState<T extends TLDrawShapes> {
     return Utils.clamp(zoom, 0.1, 5)
   }
 
-  getCurrentCamera(data: Data<T>) {
+  getCurrentCamera(data: TLDrawData<T>) {
     return data.pageState.camera
   }
 
-  getPage(data: Data<T>) {
+  getPage(data: TLDrawData<T>) {
     return data.page
   }
 
-  getPageState(data: Data<T>) {
+  getPageState(data: TLDrawData<T>) {
     return data.pageState
   }
 
-  getSelectedIds(data: Data<T>) {
+  getSelectedIds(data: TLDrawData<T>) {
     return data.pageState.selectedIds
   }
 
-  getShapes(data: Data<T>) {
+  getShapes(data: TLDrawData<T>) {
     return data.page.shapes
   }
 
-  getCamera(data: Data<T>) {
+  getCamera(data: TLDrawData<T>) {
     return data.pageState.camera
   }
 
-  getShape(data: Data<T>, shapeId: string) {
+  getShape(data: TLDrawData<T>, shapeId: string) {
     return data.page.shapes[shapeId]
   }
 
-  getBinding(data: Data<T>, id: string): TLBinding<T> {
+  getBinding(data: TLDrawData<T>, id: string): TLBinding {
     return this.getPage(data).bindings[id]
   }
 
