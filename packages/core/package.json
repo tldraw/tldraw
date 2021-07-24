@@ -1,4 +1,10 @@
 {
   "name": "@tldraw/core",
-  "version": "0.0.1"
+  "version": "0.0.1",
+  "author": {
+    "name": "Steve Ruiz",
+    "email": "hello@tldraw.com",
+    "url": "https://twitter.com/steveruizok"
+  },
+  "private": false
 }
