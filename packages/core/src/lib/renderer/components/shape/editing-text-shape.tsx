@@ -1,10 +1,9 @@
 import * as React from 'react'
-import { TLRenderInfo, TLShape } from '../../../types'
-import { BaseShape } from '../../../shape'
+import { TLShapeUtil, TLRenderInfo, TLShape } from '../../../types'
 
 interface EditingShapeProps<T extends TLShape> extends TLRenderInfo {
   shape: T
-  utils: BaseShape<T>
+  utils: TLShapeUtil<T>
 }
 
 export function EditingTextShape({

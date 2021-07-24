@@ -2,9 +2,9 @@
 
 This package contains the core of the `tldraw` library. It includes:
 
-- [`Renderer`](#renderer), a React component
-- [`TLShapeUtility`](#tlshapeutility), an abstract class for custom shape utilities
-- the library's [`types`](#types)
+- [`Renderer`](#renderer) - a React component
+- [`TLShapeUtility`](#tlshapeutility) - an abstract class for custom shape utilities
+- the library's TypeScript [`types`](#types)
 - several utility classes:
   - [`Utils`](#utils)
   - [`Vec`](#vec)

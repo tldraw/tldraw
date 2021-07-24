@@ -3,6 +3,7 @@ import {
   TLPage,
   TLPageState,
   TLShape,
+  TLShapeUtil,
   TLShapeUtils,
 } from '../../types'
 import Utils, { Vec } from '../../utils'
@@ -84,7 +85,7 @@ export function useShapeTree<T extends TLShape>(
   const shapesToShow = Object.values(page.shapes).filter((shape) => {
     if (shape.parentId !== page.id) return false
 
-    const shapeBounds = shapeUtils[shape.type].getBounds(shape)
+    const shapeBounds = shapeUtils[shape.type as T['type']].getBounds(shape)
 
     return (
       // shapeUtils.alwaysRender? (for lines, rays, etc)
