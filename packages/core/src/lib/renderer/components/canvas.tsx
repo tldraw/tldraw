@@ -46,7 +46,6 @@ export function Canvas<T extends TLShape>({
           <g ref={rGroup} id="tl-shapes">
             <Page page={page} pageState={pageState} />
             {pageState.brush && <Brush brush={pageState.brush} />}
-            <use href="#dot" />
           </g>
         </ErrorBoundary>
       </svg>

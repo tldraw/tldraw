@@ -1,4 +1,4 @@
-import { BaseSession } from './sessions'
+import { BaseSession } from './sessions/base-session'
 
 /**
  * # Session Manager

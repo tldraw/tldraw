@@ -1,6 +1,6 @@
 import { Utils, Vec } from '@tldraw/core'
-import BaseSession from './base-session'
-import { getShapeUtils } from '../shapes'
+import { BaseSession } from './base-session'
+import { getShapeUtils } from '../../shapes'
 import { TLDrawState } from '../state'
 import { Data } from '../../types'
 

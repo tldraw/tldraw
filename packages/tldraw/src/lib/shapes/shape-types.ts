@@ -1,3 +1,23 @@
+import { TLShape, TLShapeUtils } from '@tldraw/core'
+
+export interface EllipseShape extends TLShape {
+  type: 'ellipse'
+  radius: number[]
+}
+
+export interface RectangleShape extends TLShape {
+  type: 'rectangle'
+  size: number[]
+  style: ShapeStyles
+  radius?: number
+}
+
+export type TLDrawShape = RectangleShape | EllipseShape
+
+export type TLDrawShapeUtils = TLShapeUtils<TLDrawShape>
+
+export type ShapeType = TLDrawShape['type']
+
 export enum ColorStyle {
   White = 'White',
   LightGray = 'LightGray',
@@ -37,7 +57,7 @@ export type ShapeStyles = {
   color: ColorStyle
   size: SizeStyle
   dash: DashStyle
-  isFilled: boolean
+  isFilled?: boolean
 }
 
 export type Theme = 'dark' | 'light'

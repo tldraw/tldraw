@@ -31,7 +31,7 @@ export const Shape = React.memo(
     const utils = shapeUtils[shape.type]
 
     const center = utils.getCenter(shape)
-    const rotation = shape.rotation * (180 / Math.PI)
+    const rotation = (shape.rotation || 0) * (180 / Math.PI)
     const transform = `rotate(${rotation}, ${center}) translate(${shape.point})`
 
     return (

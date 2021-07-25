@@ -1,10 +1,15 @@
 import * as React from 'react'
-import { TLDocument } from '@tldraw/core'
-// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
-import { Tldraw, TLDrawShapeUtils } from '@tldraw/tldraw'
+import {
+  ColorStyle,
+  DashStyle,
+  SizeStyle,
+  TLDraw,
+  TLDrawDocument,
+  TLDrawShapeUtils,
+} from '@tldraw/tldraw'
 
 export function Index() {
-  const [document, setDocument] = React.useState<TLDocument<TLDrawShapeUtils>>({
+  const [document, setDocument] = React.useState<TLDrawDocument>({
     currentPageId: 'page1',
     pages: {
       page1: {
@@ -18,7 +23,11 @@ export function Index() {
             type: 'rectangle',
             point: [0, 0],
             size: [100, 100],
-            rotation: 0,
+            style: {
+              dash: DashStyle.Draw,
+              size: SizeStyle.Medium,
+              color: ColorStyle.Blue,
+            },
           },
           rect2: {
             id: 'rect2',
@@ -26,9 +35,13 @@ export function Index() {
             name: 'Rectangle',
             childIndex: 1,
             type: 'rectangle',
-            point: [200, 200],
+            point: [0, 200],
             size: [100, 100],
-            rotation: 0,
+            style: {
+              dash: DashStyle.Draw,
+              size: SizeStyle.Medium,
+              color: ColorStyle.Blue,
+            },
           },
         },
         bindings: {},
@@ -47,7 +60,7 @@ export function Index() {
     },
   })
 
-  return <Tldraw document={document} />
+  return <TLDraw document={document} />
 }
 
 export default Index

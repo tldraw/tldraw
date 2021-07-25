@@ -1183,7 +1183,7 @@ export class Utils {
     return bounds
   }
 
-  static getRotatedCorners(b: TLBounds, rotation: number): number[][] {
+  static getRotatedCorners(b: TLBounds, rotation = 0): number[][] {
     const center = [b.minX + b.width / 2, b.minY + b.height / 2]
 
     return [
@@ -1699,6 +1699,29 @@ export class Utils {
       clearTimeout(timeoutId)
       timeoutId = setTimeout(() => fn.apply(args), ms)
     }
+  }
+
+  /**
+   * Turn an array of points into a path of quadradic curves.
+   * @param stroke ;
+   */
+  static getSvgPathFromStroke(stroke: number[][]): string {
+    if (!stroke.length) return ''
+
+    const d = stroke.reduce(
+      (acc, [x0, y0], i, arr) => {
+        const [x1, y1] = arr[(i + 1) % arr.length]
+        acc.push(` ${x0},${y0} ${(x0 + x1) / 2},${(y0 + y1) / 2}`)
+        return acc
+      },
+      ['M ', `${stroke[0][0]},${stroke[0][1]}`, ' Q']
+    )
+
+    d.push(' Z')
+
+    return d
+      .join('')
+      .replaceAll(/(\s?[A-Z]?,?-?[0-9]*\.[0-9]{0,2})(([0-9]|e|-)*)/g, '$1')
   }
 
   /* -------------------------------------------------- */

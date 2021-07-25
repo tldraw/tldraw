@@ -1,9 +1,9 @@
 import {
   TLShapeUtil,
   TLShape,
-  Bounds,
+  TLBounds,
   TLRenderInfo,
-  TransformInfo,
+  TLTransformInfo,
 } from '../types'
 import Utils from '../utils'
 
@@ -32,7 +32,7 @@ export class ExampleShape extends TLShapeUtil<TLShape> {
     return true
   }
 
-  getBounds(shape: TLShape): Bounds {
+  getBounds(shape: TLShape): TLBounds {
     return Utils.getFromCache(this.boundsCache, shape, () => ({
       minX: 0,
       minY: 0,
@@ -57,7 +57,7 @@ export class ExampleShape extends TLShapeUtil<TLShape> {
     return Utils.pointInBounds(point, this.getBounds(shape))
   }
 
-  hitTestBounds(shape: TLShape, bounds: Bounds) {
+  hitTestBounds(shape: TLShape, bounds: TLBounds) {
     const rotatedCorners = Utils.getRotatedCorners(
       this.getBounds(shape),
       shape.rotation
@@ -71,8 +71,8 @@ export class ExampleShape extends TLShapeUtil<TLShape> {
 
   transform(
     shape: TLShape,
-    bounds: Bounds,
-    info: TransformInfo<TLShape>
+    bounds: TLBounds,
+    info: TLTransformInfo<TLShape>
   ): TLShapeUtil<TLShape> {
     shape.point = [bounds.minX, bounds.minY]
     return this
@@ -80,8 +80,8 @@ export class ExampleShape extends TLShapeUtil<TLShape> {
 
   transformSingle(
     shape: TLShape,
-    bounds: Bounds,
-    info: TransformInfo<TLShape>
+    bounds: TLBounds,
+    info: TLTransformInfo<TLShape>
   ): TLShapeUtil<TLShape> {
     return this.transform(shape, bounds, info)
   }

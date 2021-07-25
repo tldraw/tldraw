@@ -2,7 +2,7 @@
 import { Data } from '../../types'
 import { TLDrawState } from '../state'
 
-export default interface BaseSession {
+export interface BaseSession {
   update(state: TLDrawState, data: Data, ...args: unknown[]): void
 
   complete(state: TLDrawState, data: Data, ...args: unknown[]): void

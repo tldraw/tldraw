@@ -15,7 +15,7 @@ import {
   TLDrawShapeUtils,
   tldrawShapeUtils,
   getShapeUtils,
-} from './shapes'
+} from '../shapes'
 import { commands } from './commands'
 import { HistoryManager } from './history'
 import { SessionManager } from './session'

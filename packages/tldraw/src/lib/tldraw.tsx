@@ -7,7 +7,7 @@ import {
   TLPointerInfo,
 } from '@tldraw/core'
 import { StatusBar } from './components/status-bar'
-import { tldrawShapeUtils } from './state/shapes'
+import { tldrawShapeUtils } from './shapes'
 import { state, TLDrawState, useSelector } from './state'
 import { TLDrawDocument } from './types'
 
@@ -38,7 +38,7 @@ export interface TLDrawProps extends Partial<TLCallbacks> {
   onMount?: (tldraw: TLDrawState) => void
 }
 
-export function Tldraw({ document, onMount }: TLDrawProps) {
+export function TLDraw({ document, onMount }: TLDrawProps) {
   const page = useSelector((s) => s.data.page)
 
   const pageState = useSelector((s) => s.data.pageState)
@@ -62,5 +62,3 @@ export function Tldraw({ document, onMount }: TLDrawProps) {
     </>
   )
 }
-
-export default Tldraw

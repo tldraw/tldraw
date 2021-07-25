@@ -23,7 +23,7 @@ export function useSelection<T extends TLShape>(
 
     const shape = page.shapes[id]
 
-    rotation = shape.rotation
+    rotation = shape.rotation || 0
 
     isLocked = shape.isLocked || false
 

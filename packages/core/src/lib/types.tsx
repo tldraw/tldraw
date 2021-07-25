@@ -38,7 +38,7 @@ export interface TLShape {
   childIndex: number
   name: string
   point: number[]
-  rotation: number
+  rotation?: number
   children?: string[]
   handles?: Record<string, TLHandle>
   isLocked?: boolean
@@ -48,14 +48,16 @@ export interface TLShape {
   isAspectRatioLocked?: boolean
 }
 
-export type TLShapeUtils<T extends TLShape> = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [P in T['type']]: T extends any
-    ? P extends T['type']
-      ? TLShapeUtil<T>
-      : never
-    : never
-}
+export type TLShapeUtils<T extends TLShape> = Record<string, TLShapeUtil<T>>
+
+// {
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   [P in T['type']]: T extends any
+//     ? P extends T['type']
+//       ? TLShapeUtil<T>
+//       : never
+//     : never
+// }
 
 export interface TLRenderInfo {
   ref?: React.RefObject<HTMLElement>
@@ -269,7 +271,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
   }
 
   rotateBy(shape: T, rotation: number) {
-    shape.rotation += rotation
+    shape.rotation = shape.rotation ? shape.rotation + rotation : rotation
     return this
   }
 
