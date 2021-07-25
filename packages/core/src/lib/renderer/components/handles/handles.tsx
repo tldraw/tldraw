@@ -21,7 +21,7 @@ export const Handles = React.memo(
     }
 
     return (
-      <g transform={`rotate(${shape.rotation * toAngle},${center})`}>
+      <g transform={`rotate(${(shape.rotation || 0) * toAngle},${center})`}>
         {Object.values(shape.handles).map((handle) => (
           <Handle
             key={handle.id}

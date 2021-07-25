@@ -173,7 +173,7 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
       scaleY,
     }: TLTransformInfo<RectangleShape>
   ) {
-    if (shape.rotation === 0 && !shape.isAspectRatioLocked) {
+    if (!shape.rotation && !shape.isAspectRatioLocked) {
       shape.size = Vec.round([bounds.width, bounds.height])
       shape.point = Vec.round([bounds.minX, bounds.minY])
     } else {
