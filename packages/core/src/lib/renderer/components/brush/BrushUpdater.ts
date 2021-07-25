@@ -1,11 +1,14 @@
 import * as React from 'react'
-import { TLBounds } from '../../types'
+import { TLBounds } from '../../../types'
 
-class BrushUpdater {
+export class BrushUpdater {
   ref = React.createRef<SVGRectElement>()
 
+  isControlled = false
+
   set(bounds?: TLBounds) {
-    console.log('setting bounds')
+    if (!this.isControlled) this.isControlled = true
+
     if (!bounds) {
       this.clear()
       return
@@ -27,23 +30,4 @@ class BrushUpdater {
     elm.setAttribute('width', '0')
     elm.setAttribute('height', '0')
   }
-}
-
-export const brushUpdater = new BrushUpdater()
-
-interface BrushProps {
-  brush?: TLBounds
-}
-
-export function Brush({ brush }: BrushProps): JSX.Element | null {
-  return (
-    <rect
-      ref={brushUpdater.ref}
-      className="tl-brush"
-      x={brush?.minX || 0}
-      y={brush?.minY || 0}
-      width={brush?.width || 0}
-      height={brush?.height || 0}
-    />
-  )
 }

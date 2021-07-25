@@ -8,6 +8,7 @@ import {
   Utils,
   Vec,
   TLPointerInfo,
+  brushUpdater,
 } from '@tldraw/core'
 import { Data, TLDrawDocument } from '../types'
 import {
@@ -100,7 +101,10 @@ export class TLDrawState {
                         if: 'isSimulating',
                         do: 'updateBrushSession',
                       },
-                      STOPPED_POINTING: { to: 'notPointing' },
+                      STOPPED_POINTING: {
+                        do: 'endBrushSession',
+                        to: 'notPointing',
+                      },
                       STARTED_PINCHING: { to: 'pinching' },
                       CANCELLED: { do: 'cancelSession', to: 'notPointing' },
                     },
@@ -137,6 +141,9 @@ export class TLDrawState {
       },
       completeSession: (data) => {
         this.session.complete(this, data)
+      },
+      endBrushSession: () => {
+        brushUpdater.clear()
       },
       startBrushSession: (data, payload: TLPointerInfo) => {
         this.session.begin(
@@ -300,6 +307,8 @@ export class TLDrawState {
       data,
       this.screenToWorld(data, info.point)
     )
+
+    brushUpdater.set(this.data.pageState.brush)
 
     this.updatePageState({
       ...data.pageState,

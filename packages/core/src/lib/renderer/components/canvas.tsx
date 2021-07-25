@@ -45,7 +45,7 @@ export function Canvas<T extends TLShape>({
           <Defs zoom={pageState.camera.zoom} />
           <g ref={rGroup} id="tl-shapes">
             <Page page={page} pageState={pageState} />
-            {pageState.brush && <Brush brush={pageState.brush} />}
+            <Brush />
           </g>
         </ErrorBoundary>
       </svg>
