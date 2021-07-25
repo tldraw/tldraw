@@ -264,4 +264,4 @@ class Inputs {
   }
 }
 
-export default new Inputs()
+export const inputs = new Inputs()

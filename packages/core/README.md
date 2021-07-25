@@ -133,12 +133,16 @@ The `TLShapeUtil` is an abstract class that you can extend to create utilities f
 
 ### `brushUpdater`
 
-The `brushUpdater` is a special instance that allows you to quickly update the selection brush rectangle.
+The `brushUpdater` is a special class instance that allows you to quickly update the selection brush rectangle.
 
 - `set` - a method that accepts either a `TLBounds` object or `undefined`
 - `clear` - a method to hide the brush
 
 Normally, the renderer's brush will update in response to changes to `pageState.brush`; however, calling `brushUpdater.set` will produce a faster change in the brush rectangle. Calling `brushUpdater.set` will prevent the brush from any future updates from `pageState.brush`.
+
+## `inputs`
+
+A class instance that stores the current pointer position and pressed keys.
 
 ### `Utils`
 

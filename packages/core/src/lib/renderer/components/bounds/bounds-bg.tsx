@@ -1,5 +1,5 @@
 import * as React from 'react'
-import inputs from '../../../inputs'
+import { inputs } from '../../../inputs'
 import { TLBounds } from '../../../types'
 import { Utils } from '../../../utils'
 import { useTLContext } from '../../hooks'

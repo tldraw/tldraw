@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import inputs from '../../inputs'
+import { inputs } from '../../inputs'
 import { TLBoundsEdge, TLBoundsCorner } from '../../types'
 
 import { useTLContext } from './useTLContext'

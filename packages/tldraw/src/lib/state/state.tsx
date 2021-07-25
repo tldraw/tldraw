@@ -12,6 +12,7 @@ import {
   TLBoundsCorner,
   TLBoundsEdge,
   TLKeyboardInfo,
+  inputs,
 } from '@tldraw/core'
 import { Data, TLDrawDocument } from '../types'
 import {
@@ -24,7 +25,6 @@ import { commands } from './commands'
 import { HistoryManager } from './history'
 import { SessionManager } from './session'
 import * as Sessions from './sessions'
-import inputs from 'packages/core/src/lib/inputs'
 
 /*
 The State Manager class is a wrapper around a state-designer state. It provides utilities for accessing

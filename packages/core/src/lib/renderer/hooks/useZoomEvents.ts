@@ -3,7 +3,7 @@ import { useRef } from 'react'
 import { useTLContext } from './useTLContext'
 import { Vec } from '../../utils'
 import { useGesture } from 'react-use-gesture'
-import inputs from '../../inputs'
+import { inputs } from '../../inputs'
 
 // Capture zoom gestures (pinches, wheels and pans)
 export function useZoomEvents() {

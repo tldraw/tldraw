@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import * as React from 'react'
 import { useTLContext } from './useTLContext'
-import inputs from '../../inputs'
+import { inputs } from '../../inputs'
 import { Vec } from '../../utils'
 
 export function useCanvasEvents(rCanvas: React.RefObject<SVGGElement>) {

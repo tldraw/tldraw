@@ -1,5 +1,5 @@
 import React from 'react'
-import inputs from '../../inputs'
+import { inputs } from '../../inputs'
 import { Vec } from '../../utils'
 import { useTLContext } from './useTLContext'
 
