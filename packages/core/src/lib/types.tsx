@@ -225,6 +225,8 @@ export abstract class TLShapeUtil<T extends TLShape> {
 
   isEditableText = false
 
+  isAspectRatioLocked = false
+
   abstract type: T['type']
 
   abstract defaultProps: T

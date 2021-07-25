@@ -4,7 +4,7 @@ import { getShapeUtils } from '../../shapes'
 import { TLDrawState } from '../state'
 import { Data } from '../../types'
 
-export default class BrushSession implements BaseSession {
+export class BrushSession implements BaseSession {
   origin: number[]
   snapshot: BrushSnapshot
 

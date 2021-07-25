@@ -5,7 +5,6 @@ class BrushUpdater {
   ref = React.createRef<SVGRectElement>()
 
   set(bounds?: TLBounds) {
-    console.log('setting bounds')
     if (!bounds) {
       this.clear()
       return

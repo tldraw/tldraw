@@ -1,3 +1,2 @@
-import BrushSession from './brush-session'
-
-export { BrushSession }
+export * from './brush-session'
+export * from './transform-single-session'

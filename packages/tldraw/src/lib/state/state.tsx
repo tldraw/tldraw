@@ -9,6 +9,9 @@ import {
   Vec,
   TLPointerInfo,
   brushUpdater,
+  TLBoundsCorner,
+  TLBoundsEdge,
+  TLKeyboardInfo,
 } from '@tldraw/core'
 import { Data, TLDrawDocument } from '../types'
 import {
@@ -21,6 +24,7 @@ import { commands } from './commands'
 import { HistoryManager } from './history'
 import { SessionManager } from './session'
 import * as Sessions from './sessions'
+import inputs from 'packages/core/src/lib/inputs'
 
 /*
 The State Manager class is a wrapper around a state-designer state. It provides utilities for accessing
@@ -36,6 +40,18 @@ export class TLDrawState {
 
   session = new SessionManager()
   history = new HistoryManager(() => null)
+
+  constructor(shapeUtils: TLDrawShapeUtils) {
+    this.currentPageId = Object.keys(this.pages)[0]
+    this.shapeUtils = shapeUtils
+
+    this._state.onUpdate((s) => {
+      const pageId = s.data.page.id
+      this.pages[pageId] = s.data.page
+      this.pageStates[pageId] = s.data.pageState
+      // TODO: Save page state to local storage.
+    })
+  }
 
   _state = createState({
     data: {
@@ -80,6 +96,11 @@ export class TLDrawState {
                         to: 'brushSelecting',
                         do: 'setCurrentParentIdToPage',
                       },
+                      POINTED_BOUNDS_HANDLE: {
+                        if: 'isPointingRotationHandle',
+                        to: 'rotatingSelection',
+                        else: { to: 'transformingSelection' },
+                      },
                     },
                   },
                   brushSelecting: {
@@ -98,7 +119,6 @@ export class TLDrawState {
                         do: 'updateBrushSession',
                       },
                       PANNED_CAMERA: {
-                        if: 'isSimulating',
                         do: 'updateBrushSession',
                       },
                       STOPPED_POINTING: {
@@ -106,6 +126,30 @@ export class TLDrawState {
                         to: 'notPointing',
                       },
                       STARTED_PINCHING: { to: 'pinching' },
+                      CANCELLED: { do: 'cancelSession', to: 'notPointing' },
+                    },
+                  },
+                  transformingSelection: {
+                    onEnter: 'startTransformSession',
+                    onExit: 'completeSession',
+                    on: {
+                      MOVED_POINTER: {
+                        // if: 'isSimulating',
+                        do: 'updateTransformSession',
+                      },
+                      PANNED_CAMERA: {
+                        // if: 'isSimulating',
+                        do: 'updateTransformSession',
+                      },
+                      PRESSED_KEY: 'updateTransformSession',
+                      RELEASED_KEY: 'updateTransformSession',
+                      STOPPED_POINTING: { to: 'notPointing' },
+                      CANCELLED: { do: 'cancelSession', to: 'notPointing' },
+                    },
+                  },
+                  rotatingSelection: {
+                    on: {
+                      STOPPED_POINTING: { to: 'notPointing' },
                       CANCELLED: { do: 'cancelSession', to: 'notPointing' },
                     },
                   },
@@ -126,6 +170,13 @@ export class TLDrawState {
       isSimulating() {
         return false
       },
+
+      isPointingRotationHandle(
+        _data,
+        payload: { target: TLBoundsEdge | TLBoundsCorner | 'rotate' }
+      ) {
+        return payload.target === 'rotate'
+      },
     },
     actions: {
       /* -------------------- Sessions -------------------- */
@@ -142,9 +193,50 @@ export class TLDrawState {
       completeSession: (data) => {
         this.session.complete(this, data)
       },
-      endBrushSession: () => {
-        brushUpdater.clear()
+
+      // Transform Session
+
+      startTransformSession: (
+        data,
+        payload: TLPointerInfo & { target: TLBoundsCorner | TLBoundsEdge }
+      ) => {
+        if (!inputs.pointer) return
+        const point = this.screenToWorld(data, inputs.pointer.origin)
+        this.session.begin(
+          new Sessions.TransformSingleSession(
+            state,
+            data,
+            payload.target,
+            point
+          )
+        )
+        // this.session.begin(
+        //   data.pageState.selectedIds.length === 1
+        //     ? new Sessions.TransformSingleSession(data, payload.target, point)
+        //     : new Sessions.TransformSession(data, payload.target, point)
+        // )
       },
+      startDrawTransformSession: (data, payload: TLPointerInfo) => {
+        this.session.begin(
+          new Sessions.TransformSingleSession(
+            this,
+            data,
+            TLBoundsCorner.BottomRight,
+            this.screenToWorld(data, payload.point),
+            true
+          )
+        )
+      },
+      updateTransformSession: (data, payload: TLPointerInfo) => {
+        this.session.update<Sessions.TransformSingleSession>(
+          this,
+          data,
+          this.screenToWorld(data, payload.point || inputs.pointer?.point),
+          payload.shiftKey
+        )
+      },
+
+      // Brush Session
       startBrushSession: (data, payload: TLPointerInfo) => {
         this.session.begin(
           new Sessions.BrushSession(
@@ -158,8 +250,13 @@ export class TLDrawState {
         this.session.update<Sessions.BrushSession>(
           this,
           data,
-          this.screenToWorld(data, payload.point)
+          this.screenToWorld(data, payload.point || inputs.pointer?.point)
         )
+
+        brushUpdater.set(data.pageState.brush)
+      },
+      endBrushSession: () => {
+        brushUpdater.clear()
       },
 
       /* ------------------- Page State ------------------- */
@@ -211,24 +308,11 @@ export class TLDrawState {
 
         const p0 = this.screenToWorld(data, payload.origin)
         camera.zoom = this.getCameraZoom(next)
-        console.log(camera.zoom)
         const p1 = this.screenToWorld(data, payload.origin)
         camera.point = Vec.add(camera.point, Vec.sub(p1, p0))
       },
     },
   })
-
-  constructor(shapeUtils: TLDrawShapeUtils) {
-    this.currentPageId = Object.keys(this.pages)[0]
-    this.shapeUtils = shapeUtils
-
-    this._state.onUpdate((s) => {
-      const pageId = s.data.page.id
-      this.pages[pageId] = s.data.page
-      this.pageStates[pageId] = s.data.pageState
-      // TODO: Save page state to local storage.
-    })
-  }
 
   updateFromDocument(document: TLDrawDocument) {
     const { currentPageId, pages, pageStates } = document

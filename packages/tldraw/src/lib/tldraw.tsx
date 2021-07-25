@@ -5,31 +5,71 @@ import {
   TLPage,
   TLPageState,
   TLPointerInfo,
+  RendererProps,
 } from '@tldraw/core'
 import { StatusBar } from './components/status-bar'
-import { tldrawShapeUtils } from './shapes'
+import { TLDrawShape, tldrawShapeUtils } from './shapes'
 import { state, TLDrawState, useSelector } from './state'
 import { TLDrawDocument } from './types'
 
-const events = {
+const events: Partial<RendererProps<TLDrawShape>> = {
   onPan: state.fastPan,
   onPinch: state.fastPinch,
-  onPointCanvas(info: TLPointerInfo) {
-    state.send('POINTED_CANVAS', info)
-  },
-  onPointShape(info: TLPointerInfo) {
-    state.send('POINTED_SHAPE', info)
-  },
-  onStopPointing(info: TLPointerInfo) {
-    state.send('STOPPED_POINTING', info)
-  },
-  onPointerMove(info: TLPointerInfo) {
+  onPointerMove(info) {
     if (state.isIn('brushSelecting')) {
       state.fastBrush(info)
       return
     }
 
     state.send('MOVED_POINTER', info)
+  },
+  onStopPointing(info) {
+    state.send('STOPPED_POINTING', info)
+  },
+  onPointCanvas(info) {
+    state.send('POINTED_CANVAS', info)
+  },
+  onDoublePointCanvas(info) {
+    state.send('DOUBLE_POINTED_CANVAS', info)
+  },
+  onRightPointCanvas(info) {
+    state.send('RIGHT_POINTED_CANVAS', info)
+  },
+  onPointShape(info) {
+    state.send('POINTED_SHAPE', info)
+  },
+  onRightPointShape(info) {
+    state.send('RIGHT_POINTED_SHAPE', info)
+  },
+  onDoublePointShape(info) {
+    state.send('DOUBLE_POINTED_SHAPE', info)
+  },
+  onPointBounds(info) {
+    state.send('POINTED_BOUNDS', info)
+  },
+  onDoublePointBounds(info) {
+    state.send('DOUBLE_POINTED_BOUNDS', info)
+  },
+  onRightPointBounds(info) {
+    state.send('RIGHT_POINTED_BOUNDS', info)
+  },
+  onPointBoundsHandle(info) {
+    state.send('POINTED_BOUNDS_HANDLE', info)
+  },
+  onDoublePointBoundsHandle(info) {
+    state.send('DOUBLE_POINTED_BOUNDS_HANDLE', info)
+  },
+  onPointHandle(info) {
+    state.send('POINTED_HANDLE', info)
+  },
+  onRightPointHandle(info) {
+    state.send('RIGHT_POINTED_HANDLE', info)
+  },
+  onDoublePointHandle(info) {
+    state.send('DOUBLE_POINTED_HANDLE', info)
+  },
+  onBlurEditingShape() {
+    /*TODO*/
   },
 }
 
