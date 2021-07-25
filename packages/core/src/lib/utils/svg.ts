@@ -1,4 +1,3 @@
-// Some helpers for drawing SVGs.
 import Utils from './index'
 
 // General

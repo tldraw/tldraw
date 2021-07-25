@@ -1,5 +1,5 @@
-import { ErrorBoundary } from 'react-error-boundary'
 import * as React from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
 import {
   useTLContext,
   useZoomEvents,
@@ -10,11 +10,7 @@ import {
 import { ErrorFallback } from './error-fallback'
 import { TLPage, TLPageState, TLShape, TLShapeUtils } from '../../types'
 
-// import Bounds from './bounds/bounding-box'
-// import BoundsBg from './bounds/bounds-bg'
-// import Handles from './bounds/handles'
-// import Coop from './coop/coop'
-// import Brush from './brush'
+import { Brush } from './brush'
 import { Defs } from './defs'
 import { Page } from './page'
 // import Binding from './binding'
@@ -48,13 +44,8 @@ export function Canvas<T extends TLShape>({
         <ErrorBoundary FallbackComponent={ErrorFallback} onReset={resetError}>
           <Defs zoom={pageState.camera.zoom} />
           <g ref={rGroup} id="tl-shapes">
-            {/* <BoundsBg /> */}
             <Page page={page} pageState={pageState} />
-            {/*  <Coop />
-            <Bounds />
-            <Handles />
-            <Brush />
-            <Binding /> */}
+            {pageState.brush && <Brush brush={pageState.brush} />}
             <use href="#dot" />
           </g>
         </ErrorBoundary>

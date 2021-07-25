@@ -1,10 +1,12 @@
 import { useCallback } from 'react'
 import inputs from '../../inputs'
-import { Edge, Corner } from '../../types'
+import { TLBoundsEdge, TLBoundsCorner } from '../../types'
 
 import { useTLContext } from './useTLContext'
 
-export function useBoundsEvents(handle: Edge | Corner | 'rotate') {
+export function useBoundsEvents(
+  handle: TLBoundsEdge | TLBoundsCorner | 'rotate'
+) {
   const { callbacks } = useTLContext()
 
   const onPointerDown = useCallback(

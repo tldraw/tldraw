@@ -111,13 +111,13 @@ const tlcss = css`
   }
 
   .tl-corner-handle {
-    stroke: var(--tl-select-stroke);
+    stroke: var(--tl-selectStroke);
     fill: var(--tl-background);
     stroke-width: calc(1.5px * var(--tl-scale));
   }
 
   .tl-rotate-handle {
-    stroke: var(--tl-select-stroke);
+    stroke: var(--tl-selectStroke);
     fill: var(--tl-background);
     stroke-width: calc(1.5px * var(--tl-scale));
     cursor: grab;
@@ -141,7 +141,7 @@ const tlcss = css`
   .tl-bounds-center {
     fill: transparent;
     stroke: var(--tl-selectStroke);
-    strokewidth: calc(2px * var(--tl-scale));
+    stroke-width: calc(1.5px * var(--tl-scale));
     pointer-events: all;
   }
 
@@ -154,7 +154,7 @@ const tlcss = css`
   .tl-brush {
     fill: var(--tl-brushFill);
     stroke: var(--tl-brushStroke);
-    strokewidth: calc(2px * var(--tl-scale));
+    stroke-width: calc(1px * var(--tl-scale));
     pointer-events: none;
   }
 
@@ -189,13 +189,13 @@ const tlcss = css`
   .tl-dot {
     fill: var(--tl-background);
     stroke: var(--tl-foreground);
-    strokewidth: 2px;
+    stroke-width: 2px;
   }
 
   .tl-handle {
     fill: var(--tl-background);
     stroke: var(--tl-selectStroke);
-    strokewidth: 2px;
+    stroke-width: calc(1.5px * var(--tl-scale));
   }
 
   .tl-handle-bg {

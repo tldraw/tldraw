@@ -1,11 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 import * as React from 'react'
 import { useTLContext } from './useTLContext'
 import inputs from '../../inputs'
 import { Vec } from '../../utils'
-// import { fastBrushSelect, fastDrawUpdate, fastPanUpdate } from 'state/hacks'
 
 export function useCanvasEvents(rCanvas: React.RefObject<SVGGElement>) {
   const { callbacks } = useTLContext()

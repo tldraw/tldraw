@@ -1,7 +1,7 @@
-import { Bounds } from '../../types'
+import { TLBounds } from '../../types'
 
 interface BrushProps {
-  brush: Bounds
+  brush: TLBounds
 }
 
 export function Brush({ brush }: BrushProps): JSX.Element | null {

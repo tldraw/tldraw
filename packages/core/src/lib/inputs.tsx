@@ -1,5 +1,5 @@
 import React from 'react'
-import { KeyboardInfo, PointerInfo } from './types'
+import { TLKeyboardInfo, TLPointerInfo } from './types'
 import { Vec, Utils } from './utils'
 
 const DOUBLE_CLICK_DURATION = 250
@@ -8,10 +8,10 @@ class Inputs {
   activePointerId?: number
   pointerUpTime = 0
 
-  pointer?: PointerInfo
-  points: Record<string, PointerInfo> = {}
+  pointer?: TLPointerInfo
+  points: Record<string, TLPointerInfo> = {}
 
-  keyboard?: KeyboardInfo
+  keyboard?: TLKeyboardInfo
   keys: Record<string, boolean> = {}
 
   touchStart(e: TouchEvent | React.TouchEvent, target: string) {
@@ -20,7 +20,7 @@ class Inputs {
 
     const touch = e.changedTouches[0]
 
-    const info = {
+    const info: TLPointerInfo = {
       target,
       pointerId: touch.identifier,
       origin: Inputs.getPoint(touch),
@@ -39,7 +39,7 @@ class Inputs {
     return info
   }
 
-  touchMove(e: TouchEvent | React.TouchEvent) {
+  touchMove(e: TouchEvent | React.TouchEvent): TLPointerInfo {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
     e.preventDefault()
 
@@ -47,7 +47,7 @@ class Inputs {
 
     const prev = this.points[touch.identifier]
 
-    const info = {
+    const info: TLPointerInfo = {
       ...prev,
       pointerId: touch.identifier,
       point: Inputs.getPoint(touch),
@@ -66,10 +66,13 @@ class Inputs {
     return info
   }
 
-  pointerDown(e: PointerEvent | React.PointerEvent, target: string) {
+  pointerDown(
+    e: PointerEvent | React.PointerEvent,
+    target: string
+  ): TLPointerInfo {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    const info = {
+    const info: TLPointerInfo = {
       target,
       pointerId: e.pointerId,
       origin: Inputs.getPoint(e),
@@ -88,10 +91,13 @@ class Inputs {
     return info
   }
 
-  pointerEnter(e: PointerEvent | React.PointerEvent, target: string) {
+  pointerEnter(
+    e: PointerEvent | React.PointerEvent,
+    target: string
+  ): TLPointerInfo {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    const info = {
+    const info: TLPointerInfo = {
       target,
       pointerId: e.pointerId,
       origin: Inputs.getPoint(e),
@@ -107,12 +113,15 @@ class Inputs {
     return info
   }
 
-  pointerMove(e: PointerEvent | React.PointerEvent, target = '') {
+  pointerMove(
+    e: PointerEvent | React.PointerEvent,
+    target = ''
+  ): TLPointerInfo {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     const prev = this.points[e.pointerId]
 
-    const info = {
+    const info: TLPointerInfo = {
       ...prev,
       target,
       pointerId: e.pointerId,
@@ -133,12 +142,15 @@ class Inputs {
     return info
   }
 
-  pointerUp = (e: PointerEvent | React.PointerEvent, target = '') => {
+  pointerUp = (
+    e: PointerEvent | React.PointerEvent,
+    target = ''
+  ): TLPointerInfo => {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     const prev = this.points[e.pointerId]
 
-    const info = {
+    const info: TLPointerInfo = {
       ...prev,
       target,
       origin: prev?.origin || Inputs.getPoint(e),
@@ -170,13 +182,10 @@ class Inputs {
 
   canAccept = (_pointerId: PointerEvent['pointerId']): boolean => {
     return true
+    //   return (
+    //     this.activePointerId === undefined || this.activePointerId === pointerId
+    //   )
   }
-
-  // canAccept = (pointerId: PointerEvent['pointerId']) => {
-  //   return (
-  //     this.activePointerId === undefined || this.activePointerId === pointerId
-  //   )
-  // }
 
   isDoubleClick() {
     if (!this.pointer) return
@@ -199,7 +208,7 @@ class Inputs {
     this.pointerUpTime = 0
   }
 
-  keydown = (e: KeyboardEvent | React.KeyboardEvent): KeyboardInfo => {
+  keydown = (e: KeyboardEvent | React.KeyboardEvent): TLKeyboardInfo => {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     this.keys[e.key] = true
@@ -214,7 +223,7 @@ class Inputs {
     }
   }
 
-  keyup = (e: KeyboardEvent | React.KeyboardEvent): KeyboardInfo => {
+  keyup = (e: KeyboardEvent | React.KeyboardEvent): TLKeyboardInfo => {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     delete this.keys[e.key]

@@ -1,8 +1,12 @@
 import * as React from 'react'
 import { useShapeTree } from '../hooks/useShapeTree'
-import { ShapeTreeNode, TLPage, TLPageState, TLShape } from '../../types'
+import { IShapeTreeNode, TLPage, TLPageState, TLShape } from '../../types'
 import { Shape as ShapeComponent } from './shape'
-import { useRenderOnResize, useTLContext } from '../hooks'
+import { useHandles, useRenderOnResize, useTLContext } from '../hooks'
+import { Bounds } from './bounds'
+import { BoundsBg } from './bounds/bounds-bg'
+import { useSelection } from '../hooks'
+import { Handles } from './handles'
 
 interface PageProps<T extends TLShape> {
   page: TLPage<T>
@@ -17,23 +21,41 @@ export function Page<T extends TLShape>({
 
   useRenderOnResize()
 
-  const shapesToRender = useShapeTree(page, pageState, shapeUtils)
+  const shapeTree = useShapeTree(page, pageState, shapeUtils)
+
+  const { shapeWithHandles } = useHandles(page, pageState)
+
+  const { bounds, isLocked, rotation } = useSelection(
+    page,
+    pageState,
+    shapeUtils
+  )
 
   React.useEffect(() => {
-    callbacks.onChange?.(shapesToRender.map((node) => node.shape.id))
-  }, [callbacks, shapesToRender])
+    callbacks.onChange?.(shapeTree.map((node) => node.shape.id))
+  }, [callbacks, shapeTree])
 
   return (
     <>
-      {shapesToRender.map((node) => (
+      {bounds && <BoundsBg bounds={bounds} rotation={rotation} />}
+      {shapeTree.map((node) => (
         <ShapeNode key={node.shape.id} node={node} allowHovers={true} />
       ))}
+      {bounds && (
+        <Bounds
+          zoom={pageState.camera.zoom}
+          bounds={bounds}
+          isLocked={isLocked}
+          rotation={rotation}
+        />
+      )}
+      {shapeWithHandles && <Handles shape={shapeWithHandles} />}
     </>
   )
 }
 
 interface ShapeNodeProps {
-  node: ShapeTreeNode
+  node: IShapeTreeNode
   allowHovers: boolean
 }
 

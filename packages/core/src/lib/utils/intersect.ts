@@ -1,9 +1,12 @@
-import { Bounds, Intersection } from '../types'
+import { TLBounds, TLIntersection } from '../types'
 import { Vec, Utils } from './index'
 
 /* ----------------- Start Copy Here ---------------- */
 
-function getIntersection(message: string, ...points: number[][]): Intersection {
+function getIntersection(
+  message: string,
+  ...points: number[][]
+): TLIntersection {
   const didIntersect = points.length > 0
   return { didIntersect, message, points }
 }
@@ -11,7 +14,12 @@ function getIntersection(message: string, ...points: number[][]): Intersection {
 export class Intersect {
   static ray = {
     // Intersect a ray with a ray.
-    ray(p0: number[], n0: number[], p1: number[], n1: number[]): Intersection {
+    ray(
+      p0: number[],
+      n0: number[],
+      p1: number[],
+      n1: number[]
+    ): TLIntersection {
       const dx = p1[0] - p0[0]
       const dy = p1[1] - p0[1]
       const det = n1[0] * n0[1] - n1[1] * n0[0]
@@ -37,7 +45,7 @@ export class Intersect {
       direction: number[],
       a1: number[],
       a2: number[]
-    ): Intersection {
+    ): TLIntersection {
       const [x, y] = origin
       const [dx, dy] = direction
       const [x1, y1] = a1
@@ -62,7 +70,7 @@ export class Intersect {
       direction: number[],
       point: number[],
       size: number[]
-    ): Intersection[] {
+    ): TLIntersection[] {
       return Intersect.rectangle.ray(point, size, origin, direction)
     },
 
@@ -74,7 +82,7 @@ export class Intersect {
       rx: number,
       ry: number,
       rotation: number
-    ): Intersection {
+    ): TLIntersection {
       const a1 = origin
       const a2 = Vec.mul(direction, 999999999)
       return Intersect.lineSegment.ellipse(a1, a2, center, rx, ry, rotation)
@@ -84,8 +92,8 @@ export class Intersect {
     bounds(
       origin: number[],
       direction: number[],
-      bounds: Bounds
-    ): Intersection[] {
+      bounds: TLBounds
+    ): TLIntersection[] {
       const { minX, minY, width, height } = bounds
       return Intersect.ray.rectangle(
         origin,
@@ -103,7 +111,7 @@ export class Intersect {
       a2: number[],
       origin: number[],
       direction: number[]
-    ): Intersection {
+    ): TLIntersection {
       return Intersect.ray.lineSegment(origin, direction, a1, a2)
     },
 
@@ -113,7 +121,7 @@ export class Intersect {
       a2: number[],
       b1: number[],
       b2: number[]
-    ): Intersection {
+    ): TLIntersection {
       const AB = Vec.sub(a1, b1)
       const BV = Vec.sub(b2, b1)
       const AV = Vec.sub(a2, a1)
@@ -147,7 +155,7 @@ export class Intersect {
       a2: number[],
       point: number[],
       size: number[]
-    ): Intersection[] {
+    ): TLIntersection[] {
       return Intersect.rectangle.lineSegment(point, size, a1, a2)
     },
 
@@ -159,7 +167,7 @@ export class Intersect {
       radius: number,
       start: number[],
       end: number[]
-    ): Intersection {
+    ): TLIntersection {
       const sa = Vec.angle(center, start)
       const ea = Vec.angle(center, end)
       const ellipseTest = Intersect.ellipse.lineSegment(
@@ -185,7 +193,7 @@ export class Intersect {
     },
 
     // Intersect a line segment with a circle.
-    circle(a1: number[], a2: number[], c: number[], r: number): Intersection {
+    circle(a1: number[], a2: number[], c: number[], r: number): TLIntersection {
       const a =
         (a2[0] - a1[0]) * (a2[0] - a1[0]) + (a2[1] - a1[1]) * (a2[1] - a1[1])
       const b =
@@ -235,7 +243,7 @@ export class Intersect {
       rx: number,
       ry: number,
       rotation = 0
-    ): Intersection {
+    ): TLIntersection {
       // If the ellipse or line segment are empty, return no tValues.
       if (rx === 0 || ry === 0 || Vec.isEqual(a1, a2)) {
         return getIntersection('No intersection')
@@ -284,13 +292,13 @@ export class Intersect {
     },
 
     // Intersect a line segment with a bounding box.
-    bounds(a1: number[], a2: number[], bounds: Bounds): Intersection[] {
+    bounds(a1: number[], a2: number[], bounds: TLBounds): TLIntersection[] {
       return Intersect.bounds.lineSegment(bounds, a1, a2)
     },
 
     // Intersect a line segment with a polyline
-    polyline(a1: number[], a2: number[], points: number[][]): Intersection[] {
-      const intersections: Intersection[] = []
+    polyline(a1: number[], a2: number[], points: number[][]): TLIntersection[] {
+      const intersections: TLIntersection[] = []
 
       for (let i = 1; i < points.length; i++) {
         const int = Intersect.lineSegment.lineSegment(
@@ -316,9 +324,9 @@ export class Intersect {
       size: number[],
       origin: number[],
       direction: number[]
-    ): Intersection[] {
+    ): TLIntersection[] {
       const sideIntersections = Utils.getRectangleSides(point, size).reduce<
-        Intersection[]
+        TLIntersection[]
       >((acc, [message, [a1, a2]]) => {
         const intersection = Intersect.ray.lineSegment(
           origin,
@@ -343,9 +351,9 @@ export class Intersect {
       size: number[],
       a1: number[],
       a2: number[]
-    ): Intersection[] {
+    ): TLIntersection[] {
       const sideIntersections = Utils.getRectangleSides(point, size).reduce<
-        Intersection[]
+        TLIntersection[]
       >((acc, [message, [b1, b2]]) => {
         const intersection = Intersect.lineSegment.lineSegment(a1, a2, b1, b2)
 
@@ -365,9 +373,9 @@ export class Intersect {
       size1: number[],
       point2: number[],
       size2: number[]
-    ): Intersection[] {
+    ): TLIntersection[] {
       const sideIntersections = Utils.getRectangleSides(point1, size1).reduce<
-        Intersection[]
+        TLIntersection[]
       >((acc, [message, [a1, a2]]) => {
         const intersections = Intersect.rectangle.lineSegment(
           point2,
@@ -396,9 +404,9 @@ export class Intersect {
       radius: number,
       start: number[],
       end: number[]
-    ): Intersection[] {
+    ): TLIntersection[] {
       const sideIntersections = Utils.getRectangleSides(point, size).reduce<
-        Intersection[]
+        TLIntersection[]
       >((acc, [message, [a1, a2]]) => {
         const intersection = Intersect.arc.lineSegment(
           center,
@@ -425,9 +433,9 @@ export class Intersect {
       size: number[],
       c: number[],
       r: number
-    ): Intersection[] {
+    ): TLIntersection[] {
       const sideIntersections = Utils.getRectangleSides(point, size).reduce<
-        Intersection[]
+        TLIntersection[]
       >((acc, [message, [a1, a2]]) => {
         const intersection = Intersect.lineSegment.circle(a1, a2, c, r)
 
@@ -449,9 +457,9 @@ export class Intersect {
       rx: number,
       ry: number,
       rotation = 0
-    ): Intersection[] {
+    ): TLIntersection[] {
       const sideIntersections = Utils.getRectangleSides(point, size).reduce<
-        Intersection[]
+        TLIntersection[]
       >((acc, [message, [a1, a2]]) => {
         const intersection = Intersect.lineSegment.ellipse(
           a1,
@@ -473,7 +481,11 @@ export class Intersect {
     },
 
     // Intersect a rectangle with a bounding box.
-    bounds(point: number[], size: number[], bounds: Bounds): Intersection[] {
+    bounds(
+      point: number[],
+      size: number[],
+      bounds: TLBounds
+    ): TLIntersection[] {
       const { minX, minY, width, height } = bounds
       return Intersect.rectangle.rectangle(
         point,
@@ -488,9 +500,9 @@ export class Intersect {
       point: number[],
       size: number[],
       points: number[][]
-    ): Intersection[] {
+    ): TLIntersection[] {
       const sideIntersections = Utils.getRectangleSides(point, size).reduce<
-        Intersection[]
+        TLIntersection[]
       >((acc, [message, [a1, a2]]) => {
         const intersections = Intersect.lineSegment.polyline(a1, a2, points)
 
@@ -516,7 +528,7 @@ export class Intersect {
       end: number[],
       a1: number[],
       a2: number[]
-    ): Intersection {
+    ): TLIntersection {
       return Intersect.lineSegment.arc(a1, a2, center, radius, start, end)
     },
 
@@ -528,7 +540,7 @@ export class Intersect {
       end: number[],
       point: number[],
       size: number[]
-    ): Intersection[] {
+    ): TLIntersection[] {
       return Intersect.rectangle.arc(point, size, center, radius, start, end)
     },
 
@@ -538,8 +550,8 @@ export class Intersect {
       radius: number,
       start: number[],
       end: number[],
-      bounds: Bounds
-    ): Intersection[] {
+      bounds: TLBounds
+    ): TLIntersection[] {
       const { minX, minY, width, height } = bounds
       return Intersect.arc.rectangle(
         center,
@@ -559,12 +571,12 @@ export class Intersect {
       r: number,
       a1: number[],
       a2: number[]
-    ): Intersection {
+    ): TLIntersection {
       return Intersect.lineSegment.circle(a1, a2, c, r)
     },
 
     // Intersect a circle with a circle.
-    circle(c1: number[], r1: number, c2: number[], r2: number): Intersection {
+    circle(c1: number[], r1: number, c2: number[], r2: number): TLIntersection {
       let dx = c2[0] - c1[0],
         dy = c2[1] - c1[1]
 
@@ -588,12 +600,12 @@ export class Intersect {
       r: number,
       point: number[],
       size: number[]
-    ): Intersection[] {
+    ): TLIntersection[] {
       return Intersect.rectangle.circle(point, size, c, r)
     },
 
     // Intersect a circle with a bounding box.
-    bounds(c: number[], r: number, bounds: Bounds): Intersection[] {
+    bounds(c: number[], r: number, bounds: TLBounds): TLIntersection[] {
       const { minX, minY, width, height } = bounds
       return Intersect.circle.rectangle(c, r, [minX, minY], [width, height])
     },
@@ -608,7 +620,7 @@ export class Intersect {
       rotation: number,
       point: number[],
       direction: number[]
-    ): Intersection {
+    ): TLIntersection {
       return Intersect.ray.ellipse(point, direction, center, rx, ry, rotation)
     },
 
@@ -620,7 +632,7 @@ export class Intersect {
       rotation = 0,
       a1: number[],
       a2: number[]
-    ): Intersection {
+    ): TLIntersection {
       if (rx === ry) {
         return Intersect.lineSegment.circle(a1, a2, center, rx)
       }
@@ -636,7 +648,7 @@ export class Intersect {
       rotation = 0,
       point: number[],
       size: number[]
-    ): Intersection[] {
+    ): TLIntersection[] {
       if (rx === ry) {
         return Intersect.rectangle.circle(point, size, center, rx)
       }
@@ -653,7 +665,7 @@ export class Intersect {
       c2: number[],
       rx2: number,
       ry2: number
-    ): Intersection {
+    ): TLIntersection {
       // TODO
       return getIntersection('no intersection')
     },
@@ -665,7 +677,7 @@ export class Intersect {
       rotation: number,
       c2: number[],
       r2: number
-    ): Intersection {
+    ): TLIntersection {
       return Intersect.ellipse.ellipse(c, rx, ry, c2, r2, r2)
     },
 
@@ -675,8 +687,8 @@ export class Intersect {
       rx: number,
       ry: number,
       rotation: number,
-      bounds: Bounds
-    ): Intersection[] {
+      bounds: TLBounds
+    ): TLIntersection[] {
       const { minX, minY, width, height } = bounds
       return Intersect.ellipse.rectangle(
         c,
@@ -690,7 +702,11 @@ export class Intersect {
   }
 
   static bounds = {
-    ray(bounds: Bounds, origin: number[], direction: number[]): Intersection[] {
+    ray(
+      bounds: TLBounds,
+      origin: number[],
+      direction: number[]
+    ): TLIntersection[] {
       const { minX, minY, width, height } = bounds
       return Intersect.ray.rectangle(
         origin,
@@ -700,7 +716,11 @@ export class Intersect {
       )
     },
 
-    lineSegment(bounds: Bounds, a1: number[], a2: number[]): Intersection[] {
+    lineSegment(
+      bounds: TLBounds,
+      a1: number[],
+      a2: number[]
+    ): TLIntersection[] {
       const { minX, minY, width, height } = bounds
       return Intersect.lineSegment.rectangle(
         a1,
@@ -710,7 +730,11 @@ export class Intersect {
       )
     },
 
-    rectangle(bounds: Bounds, point: number[], size: number[]): Intersection[] {
+    rectangle(
+      bounds: TLBounds,
+      point: number[],
+      size: number[]
+    ): TLIntersection[] {
       const { minX, minY, width, height } = bounds
       return Intersect.rectangle.rectangle(
         point,
@@ -720,7 +744,7 @@ export class Intersect {
       )
     },
 
-    bounds(bounds1: Bounds, bounds2: Bounds): Intersection[] {
+    bounds(bounds1: TLBounds, bounds2: TLBounds): TLIntersection[] {
       return Intersect.rectangle.rectangle(
         [bounds1.minX, bounds1.minY],
         [bounds1.width, bounds1.height],
@@ -730,12 +754,12 @@ export class Intersect {
     },
 
     arc(
-      bounds: Bounds,
+      bounds: TLBounds,
       center: number[],
       radius: number,
       start: number[],
       end: number[]
-    ): Intersection[] {
+    ): TLIntersection[] {
       const { minX, minY, width, height } = bounds
       return Intersect.arc.rectangle(
         center,
@@ -747,18 +771,18 @@ export class Intersect {
       )
     },
 
-    circle(bounds: Bounds, c: number[], r: number): Intersection[] {
+    circle(bounds: TLBounds, c: number[], r: number): TLIntersection[] {
       const { minX, minY, width, height } = bounds
       return Intersect.circle.rectangle(c, r, [minX, minY], [width, height])
     },
 
     ellipse(
-      bounds: Bounds,
+      bounds: TLBounds,
       c: number[],
       rx: number,
       ry: number,
       rotation = 0
-    ): Intersection[] {
+    ): TLIntersection[] {
       const { minX, minY, width, height } = bounds
       return Intersect.ellipse.rectangle(
         c,
@@ -770,7 +794,7 @@ export class Intersect {
       )
     },
 
-    polyline(bounds: Bounds, points: number[][]): Intersection[] {
+    polyline(bounds: TLBounds, points: number[][]): TLIntersection[] {
       return Intersect.polyline.bounds(points, bounds)
     },
   }
@@ -781,7 +805,7 @@ export class Intersect {
       points: number[][],
       a1: number[],
       a2: number[]
-    ): Intersection[] {
+    ): TLIntersection[] {
       return Intersect.lineSegment.polyline(a1, a2, points)
     },
 
@@ -790,12 +814,12 @@ export class Intersect {
       points: number[][],
       point: number[],
       size: number[]
-    ): Intersection[] {
+    ): TLIntersection[] {
       return Intersect.rectangle.polyline(point, size, points)
     },
 
     // Intersect a polyline with a bounding box.
-    bounds(points: number[][], bounds: Bounds): Intersection[] {
+    bounds(points: number[][], bounds: TLBounds): TLIntersection[] {
       return Intersect.rectangle.polyline(
         [bounds.minX, bounds.minY],
         [bounds.width, bounds.height],

@@ -2,10 +2,7 @@ import { RefObject, useCallback } from 'react'
 import inputs from '../../inputs'
 import { useTLContext } from './useTLContext'
 
-export default function useHandleEvents(
-  id: string,
-  rGroup: RefObject<SVGElement>
-) {
+export function useHandleEvents(id: string, rGroup: RefObject<SVGElement>) {
   const { callbacks } = useTLContext()
 
   const handlePointerDown = useCallback(

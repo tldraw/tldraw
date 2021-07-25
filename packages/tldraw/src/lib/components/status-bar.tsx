@@ -1,6 +1,6 @@
 import { useStateDesigner } from '@state-designer/react'
 import styled from '../styles'
-import state from '../state'
+import { state } from '../state'
 
 export function StatusBar(): JSX.Element | null {
   const local = useStateDesigner(state.state)

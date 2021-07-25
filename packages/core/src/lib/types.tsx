@@ -2,12 +2,6 @@
 
 import React from 'react'
 
-export interface TLDocument<T extends TLShape> {
-  currentPageId: string
-  pages: Record<string, TLPage<T>>
-  pageStates: Record<string, TLPageState>
-}
-
 export interface TLPage<T extends TLShape> {
   id: string
   shapes: Record<string, T>
@@ -17,12 +11,13 @@ export interface TLPage<T extends TLShape> {
 
 export interface TLPageState {
   id: string
-  brush?: Bounds
+  brush?: TLBounds
   pointedId?: string
   hoveredId?: string
   editingId?: string
   editingBindingId?: string
-  currentParentId: string
+  boundsRotation?: number
+  currentParentId?: string
   selectedIds: string[]
   camera: {
     point: number[]
@@ -111,58 +106,45 @@ export interface TLCallbacks {
   onPan: (delta: number[]) => void
 
   // Pointer Events
-  onPointerMove: (info: PointerInfo) => void
-  onStopPointing: (info: PointerInfo) => void
+  onPointerMove: (info: TLPointerInfo) => void
+  onStopPointing: (info: TLPointerInfo) => void
 
   // Shape
-  onPointShape: (info: PointerInfo) => void
-  onDoublePointShape: (info: PointerInfo) => void
-  onRightPointShape: (info: PointerInfo) => void
-  onMoveOverShape: (info: PointerInfo) => void
-  onUnhoverShape: (info: PointerInfo) => void
-  onHoverShape: (info: PointerInfo) => void
+  onPointShape: (info: TLPointerInfo) => void
+  onDoublePointShape: (info: TLPointerInfo) => void
+  onRightPointShape: (info: TLPointerInfo) => void
+  onMoveOverShape: (info: TLPointerInfo) => void
+  onUnhoverShape: (info: TLPointerInfo) => void
+  onHoverShape: (info: TLPointerInfo) => void
 
   // Canvas (background)
-  onPointCanvas: (info: PointerInfo) => void
-  onDoublePointCanvas: (info: PointerInfo) => void
-  onRightPointCanvas: (info: PointerInfo) => void
+  onPointCanvas: (info: TLPointerInfo) => void
+  onDoublePointCanvas: (info: TLPointerInfo) => void
+  onRightPointCanvas: (info: TLPointerInfo) => void
 
   // Bounds (bounding box background)
-  onPointBounds: (info: PointerInfo) => void
-  onDoublePointBounds: (info: PointerInfo) => void
-  onRightPointBounds: (info: PointerInfo) => void
+  onPointBounds: (info: TLPointerInfo) => void
+  onDoublePointBounds: (info: TLPointerInfo) => void
+  onRightPointBounds: (info: TLPointerInfo) => void
 
   // Bounds handles (corners, edges)
-  onPointBoundsHandle: (info: PointerInfo) => void
-  onDoublePointBoundsHandle: (info: PointerInfo) => void
+  onPointBoundsHandle: (info: TLPointerInfo) => void
+  onDoublePointBoundsHandle: (info: TLPointerInfo) => void
 
   // Handles (ie the handles of a selected arrow)
-  onPointHandle: (info: PointerInfo) => void
-  onDoublePointHandle: (info: PointerInfo) => void
-  onRightPointHandle: (info: PointerInfo) => void
-  onMoveOverHandle: (info: PointerInfo) => void
-  onHoverHandle: (info: PointerInfo) => void
-  onUnhoverHandle: (info: PointerInfo) => void
+  onPointHandle: (info: TLPointerInfo) => void
+  onDoublePointHandle: (info: TLPointerInfo) => void
+  onRightPointHandle: (info: TLPointerInfo) => void
+  onMoveOverHandle: (info: TLPointerInfo) => void
+  onHoverHandle: (info: TLPointerInfo) => void
+  onUnhoverHandle: (info: TLPointerInfo) => void
 
   // keys
   onBlurEditingShape: () => void
   onError: (error: Error) => void
 }
 
-/* -------------------- Secondary ------------------- */
-
-export interface ShapeTreeNode {
-  shape: TLShape
-  children: ShapeTreeNode[]
-  isEditing: boolean
-  isHovered: boolean
-  isSelected: boolean
-  isBinding: boolean
-  isDarkMode: boolean
-  isCurrentParent: boolean
-}
-
-export interface Bounds {
+export interface TLBounds {
   minX: number
   minY: number
   maxX: number
@@ -172,42 +154,27 @@ export interface Bounds {
   rotation?: number
 }
 
-export interface BezierCurveSegment {
-  start: number[]
-  tangentStart: number[]
-  normalStart: number[]
-  pressureStart: number
-  end: number[]
-  tangentEnd: number[]
-  normalEnd: number[]
-  pressureEnd: number
+export type TLIntersection = {
+  didIntersect: boolean
+  message: string
+  points: number[][]
 }
 
-export enum Edge {
+export enum TLBoundsEdge {
   Top = 'top_edge',
   Right = 'right_edge',
   Bottom = 'bottom_edge',
   Left = 'left_edge',
 }
 
-export enum Corner {
+export enum TLBoundsCorner {
   TopLeft = 'top_left_corner',
   TopRight = 'top_right_corner',
   BottomRight = 'bottom_right_corner',
   BottomLeft = 'bottom_left_corner',
 }
 
-export type Intersection = {
-  didIntersect: boolean
-  message: string
-  points: number[][]
-}
-
-/* -------------------------------------------------- */
-/*                         Inputs                     */
-/* -------------------------------------------------- */
-
-export interface PointerInfo {
+export interface TLPointerInfo {
   target: string
   pointerId: number
   origin: number[]
@@ -219,7 +186,7 @@ export interface PointerInfo {
   altKey: boolean
 }
 
-export interface KeyboardInfo {
+export interface TLKeyboardInfo {
   key: string
   keys: string[]
   shiftKey: boolean
@@ -228,12 +195,23 @@ export interface KeyboardInfo {
   altKey: boolean
 }
 
-export interface TransformInfo<T extends TLShape> {
-  type: Edge | Corner
+export interface TLTransformInfo<T extends TLShape> {
+  type: TLBoundsEdge | TLBoundsCorner
   initialShape: T
   scaleX: number
   scaleY: number
   transformOrigin: number[]
+}
+
+export interface TLBezierCurveSegment {
+  start: number[]
+  tangentStart: number[]
+  normalStart: number[]
+  pressureStart: number
+  end: number[]
+  tangentEnd: number[]
+  normalEnd: number[]
+  pressureEnd: number
 }
 
 /* -------------------------------------------------- */
@@ -241,7 +219,7 @@ export interface TransformInfo<T extends TLShape> {
 /* -------------------------------------------------- */
 
 export abstract class TLShapeUtil<T extends TLShape> {
-  boundsCache = new WeakMap<TLShape, Bounds>()
+  boundsCache = new WeakMap<TLShape, TLBounds>()
 
   isEditableText = false
 
@@ -251,24 +229,24 @@ export abstract class TLShapeUtil<T extends TLShape> {
 
   abstract render(shape: T, info: TLRenderInfo): JSX.Element
 
-  abstract getBounds(shape: T): Bounds
+  abstract getBounds(shape: T): TLBounds
 
-  abstract getRotatedBounds(shape: T): Bounds
+  abstract getRotatedBounds(shape: T): TLBounds
 
   abstract hitTest(shape: T, point: number[]): boolean
 
-  abstract hitTestBounds(shape: T, bounds: Bounds): boolean
+  abstract hitTestBounds(shape: T, bounds: TLBounds): boolean
 
   abstract transform(
     shape: T,
-    bounds: Bounds,
-    info: TransformInfo<T>
+    bounds: TLBounds,
+    info: TLTransformInfo<T>
   ): TLShapeUtil<T>
 
   abstract transformSingle(
     shape: T,
-    bounds: Bounds,
-    info: TransformInfo<T>
+    bounds: TLBounds,
+    info: TLTransformInfo<T>
   ): TLShapeUtil<T>
 
   create(props: Partial<TLShape>) {
@@ -331,7 +309,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
   onHandleChange(
     shape: T,
     handle: Partial<T['handles']>,
-    info: PointerInfo
+    info: TLPointerInfo
   ): TLShapeUtil<T> {
     return this
   }
@@ -339,7 +317,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
   onRightPointHandle(
     shape: T,
     handle: Partial<T['handles']>,
-    info: PointerInfo
+    info: TLPointerInfo
   ): TLShapeUtil<T> {
     return this
   }
@@ -347,7 +325,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
   onDoublePointHandle(
     shape: T,
     handle: Partial<T['handles']>,
-    info: PointerInfo
+    info: TLPointerInfo
   ): TLShapeUtil<T> {
     return this
   }
@@ -359,6 +337,19 @@ export abstract class TLShapeUtil<T extends TLShape> {
   onBoundsReset(shape: T): TLShapeUtil<T> {
     return this
   }
+}
+
+/* -------------------- Internal -------------------- */
+
+export interface IShapeTreeNode {
+  shape: TLShape
+  children: IShapeTreeNode[]
+  isEditing: boolean
+  isHovered: boolean
+  isSelected: boolean
+  isBinding: boolean
+  isDarkMode: boolean
+  isCurrentParent: boolean
 }
 
 /* -------------------------------------------------- */

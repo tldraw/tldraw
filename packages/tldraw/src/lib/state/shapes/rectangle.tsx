@@ -1,9 +1,9 @@
 import {
   TLShapeUtil,
-  Bounds,
+  TLBounds,
   TLShape,
   Utils,
-  TransformInfo,
+  TLTransformInfo,
 } from '@tldraw/core'
 
 export interface RectangleShape extends TLShape {
@@ -60,7 +60,7 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
     return Utils.pointInBounds(point, this.getBounds(shape))
   }
 
-  hitTestBounds(shape: RectangleShape, bounds: Bounds) {
+  hitTestBounds(shape: RectangleShape, bounds: TLBounds) {
     const rotatedCorners = Utils.getRotatedCorners(
       this.getBounds(shape),
       shape.rotation
@@ -74,8 +74,8 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
 
   transform(
     shape: TLShape,
-    bounds: Bounds,
-    info: TransformInfo<RectangleShape>
+    bounds: TLBounds,
+    info: TLTransformInfo<RectangleShape>
   ) {
     shape.point = [bounds.minX, bounds.minY]
     return this
@@ -83,8 +83,8 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
 
   transformSingle(
     shape: TLShape,
-    bounds: Bounds,
-    info: TransformInfo<RectangleShape>
+    bounds: TLBounds,
+    info: TLTransformInfo<RectangleShape>
   ) {
     return this.transform(shape, bounds, info)
   }

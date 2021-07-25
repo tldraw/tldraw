@@ -1,8 +1,9 @@
 import {
-  ShapeTreeNode,
+  IShapeTreeNode,
   TLPage,
   TLPageState,
   TLShape,
+  TLBounds,
   TLShapeUtil,
   TLShapeUtils,
 } from '../../types'
@@ -10,7 +11,7 @@ import Utils, { Vec } from '../../utils'
 
 function addToShapeTree<T extends TLShape>(
   shape: TLShape,
-  branch: ShapeTreeNode[],
+  branch: IShapeTreeNode[],
   shapes: TLPage<T>['shapes'],
   selectedIds: string[],
   info: {
@@ -82,7 +83,7 @@ export function useShapeTree<T extends TLShape>(
 
   // Filter shapes that are in view
 
-  const shapesToShow = Object.values(page.shapes).filter((shape) => {
+  const shapesToRender = Object.values(page.shapes).filter((shape) => {
     if (shape.parentId !== page.id) return false
 
     const shapeBounds = shapeUtils[shape.type as T['type']].getBounds(shape)
@@ -95,9 +96,9 @@ export function useShapeTree<T extends TLShape>(
   })
 
   // Populate the shape tree
-  const tree: ShapeTreeNode[] = []
+  const tree: IShapeTreeNode[] = []
 
-  shapesToShow
+  shapesToRender
     .sort((a, b) => a.childIndex - b.childIndex)
     .forEach((shape) =>
       addToShapeTree(shape, tree, page.shapes, selectedIds, info)

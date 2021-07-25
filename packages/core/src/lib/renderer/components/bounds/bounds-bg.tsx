@@ -1,21 +1,18 @@
-import React, { useRef } from 'react'
+import * as React from 'react'
 import inputs from '../../../inputs'
-import { Bounds } from '../../../types'
-import Utils from '../../../utils'
+import { TLBounds } from '../../../types'
+import { Utils } from '../../../utils'
 import { useTLContext } from '../../hooks'
 
 interface BoundsBgProps {
-  bounds: Bounds
+  bounds: TLBounds
   rotation: number
 }
 
-export default function BoundsBg({
-  bounds,
-  rotation,
-}: BoundsBgProps): JSX.Element {
+export function BoundsBg({ bounds, rotation }: BoundsBgProps): JSX.Element {
   const { callbacks } = useTLContext()
 
-  const rBounds = useRef<SVGRectElement>(null)
+  const rBounds = React.useRef<SVGRectElement>(null)
 
   const handlePointerDown = React.useCallback(
     (e: React.PointerEvent<SVGRectElement>) => {

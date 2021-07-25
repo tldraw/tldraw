@@ -2,8 +2,8 @@ import {
   TLShapeUtil,
   TLShape,
   Utils,
-  TransformInfo,
-  Bounds,
+  TLTransformInfo,
+  TLBounds,
 } from '@tldraw/core'
 
 export interface EllipseShape extends TLShape {
@@ -65,7 +65,7 @@ export class Ellipse extends TLShapeUtil<EllipseShape> {
     return Utils.pointInBounds(point, this.getBounds(shape))
   }
 
-  hitTestBounds(shape: EllipseShape, bounds: Bounds) {
+  hitTestBounds(shape: EllipseShape, bounds: TLBounds) {
     const rotatedCorners = Utils.getRotatedCorners(
       this.getBounds(shape),
       shape.rotation
@@ -77,15 +77,19 @@ export class Ellipse extends TLShapeUtil<EllipseShape> {
     )
   }
 
-  transform(shape: TLShape, bounds: Bounds, info: TransformInfo<EllipseShape>) {
+  transform(
+    shape: TLShape,
+    bounds: TLBounds,
+    info: TLTransformInfo<EllipseShape>
+  ) {
     shape.point = [bounds.minX, bounds.minY]
     return this
   }
 
   transformSingle(
     shape: TLShape,
-    bounds: Bounds,
-    info: TransformInfo<EllipseShape>
+    bounds: TLBounds,
+    info: TLTransformInfo<EllipseShape>
   ) {
     return this.transform(shape, bounds, info)
   }

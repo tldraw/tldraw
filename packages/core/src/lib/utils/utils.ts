@@ -1,6 +1,11 @@
 /* eslint-disable no-redeclare */
 import * as React from 'react'
-import { BezierCurveSegment, Bounds, Corner, Edge } from '../types'
+import {
+  TLBezierCurveSegment,
+  TLBounds,
+  TLBoundsCorner,
+  TLBoundsEdge,
+} from '../types'
 import Intersect from './intersect'
 import vec from './vec'
 
@@ -187,7 +192,7 @@ export class Utils {
     ]
   }
 
-  static getBoundsSides(bounds: Bounds): [string, number[][]][] {
+  static getBoundsSides(bounds: TLBounds): [string, number[][]][] {
     return this.getRectangleSides(
       [bounds.minX, bounds.minY],
       [bounds.width, bounds.height]
@@ -525,10 +530,10 @@ export class Utils {
    * @param points
    * @param tension
    */
-  static getBezierCurveSegments(
+  static getTLBezierCurveSegments(
     points: number[][],
     tension = 0.4
-  ): BezierCurveSegment[] {
+  ): TLBezierCurveSegment[] {
     const len = points.length
     const cpoints: number[][] = [...points]
 
@@ -575,7 +580,7 @@ export class Utils {
     cpoints[len - 1][4] = (cpoints[len - 2][2] - points[len - 1][0]) / -d1
     cpoints[len - 1][5] = (cpoints[len - 2][3] - points[len - 1][1]) / -d1
 
-    const results: BezierCurveSegment[] = []
+    const results: TLBezierCurveSegment[] = []
 
     for (let i = 1; i < cpoints.length; i++) {
       results.push({
@@ -933,7 +938,7 @@ export class Utils {
    * expandBounds(myBounds, [100, 100])
    *```
    */
-  static expandBounds(bounds: Bounds, delta: number): Bounds {
+  static expandBounds(bounds: TLBounds, delta: number): TLBounds {
     return {
       minX: bounds.minX - delta,
       minY: bounds.minY - delta,
@@ -950,7 +955,7 @@ export class Utils {
    * @param b
    * @returns
    */
-  static pointInBounds(A: number[], b: Bounds): boolean {
+  static pointInBounds(A: number[], b: TLBounds): boolean {
     return !(A[0] < b.minX || A[0] > b.maxX || A[1] < b.minY || A[1] > b.maxY)
   }
 
@@ -960,7 +965,7 @@ export class Utils {
    * @param b Bounds
    * @returns
    */
-  static boundsCollide(a: Bounds, b: Bounds): boolean {
+  static boundsCollide(a: TLBounds, b: TLBounds): boolean {
     return !(
       a.maxX < b.minX ||
       a.minX > b.maxX ||
@@ -975,7 +980,7 @@ export class Utils {
    * @param b Bounds
    * @returns
    */
-  static boundsContain(a: Bounds, b: Bounds): boolean {
+  static boundsContain(a: TLBounds, b: TLBounds): boolean {
     return (
       a.minX < b.minX && a.minY < b.minY && a.maxY > b.maxY && a.maxX > b.maxX
     )
@@ -987,7 +992,7 @@ export class Utils {
    * @param b Bounds
    * @returns
    */
-  static boundsContained(a: Bounds, b: Bounds): boolean {
+  static boundsContained(a: TLBounds, b: TLBounds): boolean {
     return Utils.boundsContain(b, a)
   }
 
@@ -995,7 +1000,7 @@ export class Utils {
    * Get whether a set of points are all contained by a bounding box.
    * @returns
    */
-  static boundsContainPolygon(a: Bounds, points: number[][]): boolean {
+  static boundsContainPolygon(a: TLBounds, points: number[][]): boolean {
     return points.every((point) => Utils.pointInBounds(point, a))
   }
 
@@ -1004,7 +1009,7 @@ export class Utils {
    * @param points
    * @param b
    */
-  static boundsCollidePolygon(a: Bounds, points: number[][]): boolean {
+  static boundsCollidePolygon(a: TLBounds, points: number[][]): boolean {
     return Intersect.polyline.bounds(points, a).length > 0
   }
 
@@ -1014,7 +1019,7 @@ export class Utils {
    * @param b Bounds
    * @returns
    */
-  static boundsAreEqual(a: Bounds, b: Bounds): boolean {
+  static boundsAreEqual(a: TLBounds, b: TLBounds): boolean {
     return !(
       b.maxX !== a.maxX ||
       b.minX !== a.minX ||
@@ -1028,7 +1033,7 @@ export class Utils {
    * @param points
    * @param rotation (optional) The bounding box's rotation.
    */
-  static getBoundsFromPoints(points: number[][], rotation = 0): Bounds {
+  static getBoundsFromPoints(points: number[][], rotation = 0): TLBounds {
     let minX = Infinity
     let minY = Infinity
     let maxX = -Infinity
@@ -1072,7 +1077,7 @@ export class Utils {
    * @param delta
    * @returns
    */
-  static translateBounds(bounds: Bounds, delta: number[]): Bounds {
+  static translateBounds(bounds: TLBounds, delta: number[]): TLBounds {
     return {
       minX: bounds.minX + delta[0],
       minY: bounds.minY + delta[1],
@@ -1090,10 +1095,10 @@ export class Utils {
    * @param rotation
    */
   static rotateBounds(
-    bounds: Bounds,
+    bounds: TLBounds,
     center: number[],
     rotation: number
-  ): Bounds {
+  ): TLBounds {
     const [minX, minY] = vec.rotWith(
       [bounds.minX, bounds.minY],
       center,
@@ -1129,7 +1134,7 @@ export class Utils {
     rx: number,
     ry: number,
     rotation: number
-  ): Bounds {
+  ): TLBounds {
     const c = Math.cos(rotation)
     const s = Math.sin(rotation)
     const w = Math.hypot(rx * c, ry * s)
@@ -1151,7 +1156,7 @@ export class Utils {
    * @param b Bounding box
    * @returns
    */
-  static getExpandedBounds(a: Bounds, b: Bounds): Bounds {
+  static getExpandedBounds(a: TLBounds, b: TLBounds): TLBounds {
     const minX = Math.min(a.minX, b.minX)
     const minY = Math.min(a.minY, b.minY)
     const maxX = Math.max(a.maxX, b.maxX)
@@ -1166,7 +1171,7 @@ export class Utils {
    * Get the common bounds of a group of bounds.
    * @returns
    */
-  static getCommonBounds(...b: Bounds[]): Bounds {
+  static getCommonBounds(...b: TLBounds[]): TLBounds {
     if (b.length < 2) return b[0]
 
     let bounds = b[0]
@@ -1178,7 +1183,7 @@ export class Utils {
     return bounds
   }
 
-  static getRotatedCorners(b: Bounds, rotation: number): number[][] {
+  static getRotatedCorners(b: TLBounds, rotation: number): number[][] {
     const center = [b.minX + b.width / 2, b.minY + b.height / 2]
 
     return [
@@ -1190,12 +1195,12 @@ export class Utils {
   }
 
   static getTransformedBoundingBox(
-    bounds: Bounds,
-    handle: Corner | Edge | 'center',
+    bounds: TLBounds,
+    handle: TLBoundsCorner | TLBoundsEdge | 'center',
     delta: number[],
     rotation = 0,
     isAspectRatioLocked = false
-  ): Bounds & { scaleX: number; scaleY: number } {
+  ): TLBounds & { scaleX: number; scaleY: number } {
     // Create top left and bottom right corners.
     const [ax0, ay0] = [bounds.minX, bounds.minY]
     const [ax1, ay1] = [bounds.maxX, bounds.maxY]
@@ -1230,30 +1235,30 @@ export class Utils {
   corners should change.
   */
     switch (handle) {
-      case Edge.Top:
-      case Corner.TopLeft:
-      case Corner.TopRight: {
+      case TLBoundsEdge.Top:
+      case TLBoundsCorner.TopLeft:
+      case TLBoundsCorner.TopRight: {
         by0 += dy
         break
       }
-      case Edge.Bottom:
-      case Corner.BottomLeft:
-      case Corner.BottomRight: {
+      case TLBoundsEdge.Bottom:
+      case TLBoundsCorner.BottomLeft:
+      case TLBoundsCorner.BottomRight: {
         by1 += dy
         break
       }
     }
 
     switch (handle) {
-      case Edge.Left:
-      case Corner.TopLeft:
-      case Corner.BottomLeft: {
+      case TLBoundsEdge.Left:
+      case TLBoundsCorner.TopLeft:
+      case TLBoundsCorner.BottomLeft: {
         bx0 += dx
         break
       }
-      case Edge.Right:
-      case Corner.TopRight:
-      case Corner.BottomRight: {
+      case TLBoundsEdge.Right:
+      case TLBoundsCorner.TopRight:
+      case TLBoundsCorner.BottomRight: {
         bx1 += dx
         break
       }
@@ -1285,36 +1290,36 @@ export class Utils {
       const th = bh * (scaleX < 0 ? 1 : -1) * ar
 
       switch (handle) {
-        case Corner.TopLeft: {
+        case TLBoundsCorner.TopLeft: {
           if (isTall) by0 = by1 + tw
           else bx0 = bx1 + th
           break
         }
-        case Corner.TopRight: {
+        case TLBoundsCorner.TopRight: {
           if (isTall) by0 = by1 + tw
           else bx1 = bx0 - th
           break
         }
-        case Corner.BottomRight: {
+        case TLBoundsCorner.BottomRight: {
           if (isTall) by1 = by0 - tw
           else bx1 = bx0 - th
           break
         }
-        case Corner.BottomLeft: {
+        case TLBoundsCorner.BottomLeft: {
           if (isTall) by1 = by0 - tw
           else bx0 = bx1 + th
           break
         }
-        case Edge.Bottom:
-        case Edge.Top: {
+        case TLBoundsEdge.Bottom:
+        case TLBoundsEdge.Top: {
           const m = (bx0 + bx1) / 2
           const w = bh * ar
           bx0 = m - w / 2
           bx1 = m + w / 2
           break
         }
-        case Edge.Left:
-        case Edge.Right: {
+        case TLBoundsEdge.Left:
+        case TLBoundsEdge.Right: {
           const m = (by0 + by1) / 2
           const h = bw / ar
           by0 = m - h / 2
@@ -1340,56 +1345,56 @@ export class Utils {
       const c1 = vec.med([bx0, by0], [bx1, by1])
 
       switch (handle) {
-        case Corner.TopLeft: {
+        case TLBoundsCorner.TopLeft: {
           cv = vec.sub(
             vec.rotWith([bx1, by1], c1, rotation),
             vec.rotWith([ax1, ay1], c0, rotation)
           )
           break
         }
-        case Corner.TopRight: {
+        case TLBoundsCorner.TopRight: {
           cv = vec.sub(
             vec.rotWith([bx0, by1], c1, rotation),
             vec.rotWith([ax0, ay1], c0, rotation)
           )
           break
         }
-        case Corner.BottomRight: {
+        case TLBoundsCorner.BottomRight: {
           cv = vec.sub(
             vec.rotWith([bx0, by0], c1, rotation),
             vec.rotWith([ax0, ay0], c0, rotation)
           )
           break
         }
-        case Corner.BottomLeft: {
+        case TLBoundsCorner.BottomLeft: {
           cv = vec.sub(
             vec.rotWith([bx1, by0], c1, rotation),
             vec.rotWith([ax1, ay0], c0, rotation)
           )
           break
         }
-        case Edge.Top: {
+        case TLBoundsEdge.Top: {
           cv = vec.sub(
             vec.rotWith(vec.med([bx0, by1], [bx1, by1]), c1, rotation),
             vec.rotWith(vec.med([ax0, ay1], [ax1, ay1]), c0, rotation)
           )
           break
         }
-        case Edge.Left: {
+        case TLBoundsEdge.Left: {
           cv = vec.sub(
             vec.rotWith(vec.med([bx1, by0], [bx1, by1]), c1, rotation),
             vec.rotWith(vec.med([ax1, ay0], [ax1, ay1]), c0, rotation)
           )
           break
         }
-        case Edge.Bottom: {
+        case TLBoundsEdge.Bottom: {
           cv = vec.sub(
             vec.rotWith(vec.med([bx0, by0], [bx1, by0]), c1, rotation),
             vec.rotWith(vec.med([ax0, ay0], [ax1, ay0]), c0, rotation)
           )
           break
         }
-        case Edge.Right: {
+        case TLBoundsEdge.Right: {
           cv = vec.sub(
             vec.rotWith(vec.med([bx0, by0], [bx0, by1]), c1, rotation),
             vec.rotWith(vec.med([ax0, ay0], [ax0, ay1]), c0, rotation)
@@ -1430,59 +1435,59 @@ export class Utils {
   }
 
   static getTransformAnchor(
-    type: Edge | Corner,
+    type: TLBoundsEdge | TLBoundsCorner,
     isFlippedX: boolean,
     isFlippedY: boolean
-  ): Corner | Edge {
-    let anchor: Corner | Edge = type
+  ): TLBoundsCorner | TLBoundsEdge {
+    let anchor: TLBoundsCorner | TLBoundsEdge = type
 
     // Change corner anchors if flipped
     switch (type) {
-      case Corner.TopLeft: {
+      case TLBoundsCorner.TopLeft: {
         if (isFlippedX && isFlippedY) {
-          anchor = Corner.BottomRight
+          anchor = TLBoundsCorner.BottomRight
         } else if (isFlippedX) {
-          anchor = Corner.TopRight
+          anchor = TLBoundsCorner.TopRight
         } else if (isFlippedY) {
-          anchor = Corner.BottomLeft
+          anchor = TLBoundsCorner.BottomLeft
         } else {
-          anchor = Corner.BottomRight
+          anchor = TLBoundsCorner.BottomRight
         }
         break
       }
-      case Corner.TopRight: {
+      case TLBoundsCorner.TopRight: {
         if (isFlippedX && isFlippedY) {
-          anchor = Corner.BottomLeft
+          anchor = TLBoundsCorner.BottomLeft
         } else if (isFlippedX) {
-          anchor = Corner.TopLeft
+          anchor = TLBoundsCorner.TopLeft
         } else if (isFlippedY) {
-          anchor = Corner.BottomRight
+          anchor = TLBoundsCorner.BottomRight
         } else {
-          anchor = Corner.BottomLeft
+          anchor = TLBoundsCorner.BottomLeft
         }
         break
       }
-      case Corner.BottomRight: {
+      case TLBoundsCorner.BottomRight: {
         if (isFlippedX && isFlippedY) {
-          anchor = Corner.TopLeft
+          anchor = TLBoundsCorner.TopLeft
         } else if (isFlippedX) {
-          anchor = Corner.BottomLeft
+          anchor = TLBoundsCorner.BottomLeft
         } else if (isFlippedY) {
-          anchor = Corner.TopRight
+          anchor = TLBoundsCorner.TopRight
         } else {
-          anchor = Corner.TopLeft
+          anchor = TLBoundsCorner.TopLeft
         }
         break
       }
-      case Corner.BottomLeft: {
+      case TLBoundsCorner.BottomLeft: {
         if (isFlippedX && isFlippedY) {
-          anchor = Corner.TopRight
+          anchor = TLBoundsCorner.TopRight
         } else if (isFlippedX) {
-          anchor = Corner.BottomRight
+          anchor = TLBoundsCorner.BottomRight
         } else if (isFlippedY) {
-          anchor = Corner.TopLeft
+          anchor = TLBoundsCorner.TopLeft
         } else {
-          anchor = Corner.TopRight
+          anchor = TLBoundsCorner.TopRight
         }
         break
       }
@@ -1500,12 +1505,12 @@ export class Utils {
    * @param isFlippedY
    */
   static getRelativeTransformedBoundingBox(
-    bounds: Bounds,
-    initialBounds: Bounds,
-    initialShapeBounds: Bounds,
+    bounds: TLBounds,
+    initialBounds: TLBounds,
+    initialShapeBounds: TLBounds,
     isFlippedX: boolean,
     isFlippedY: boolean
-  ): Bounds {
+  ): TLBounds {
     const nx =
       (isFlippedX
         ? initialBounds.maxX - initialShapeBounds.maxX
@@ -1555,7 +1560,7 @@ export class Utils {
    * Get the center of a bounding box.
    * @param bounds
    */
-  static getBoundsCenter(bounds: Bounds): number[] {
+  static getBoundsCenter(bounds: TLBounds): number[] {
     return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2]
   }
 
