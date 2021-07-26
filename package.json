@@ -28,12 +28,13 @@
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged",
-      "pre-push": "yarn lint core && yarn lint tldraw && && yarn lint site"
+      "pre-push": "yarn lint"
     }
   },
   "lint-staged": {
     "*.@(ts|tsx)": [
-      "yarn format --uncommitted"
+      "yarn format --uncommitted",
+      "nx run-many --all --target=lint"
     ]
   },
   "private": true,
