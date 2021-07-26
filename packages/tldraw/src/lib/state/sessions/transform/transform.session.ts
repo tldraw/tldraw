@@ -3,6 +3,7 @@ import { Data } from '../../../types'
 import { BaseSession } from '.././session-types'
 import { getShapeUtils } from '../../../shapes'
 import { state } from '../../state'
+import { mutate } from '../../commands'
 
 export class TransformSession implements BaseSession {
   scaleX = 1
@@ -91,13 +92,12 @@ export class TransformSession implements BaseSession {
   }
 
   complete(data: Data): void {
-    // TODO
-    // const { initialShapes, hasUnlockedShapes } = this.snapshot
-    // if (!hasUnlockedShapes) return
-    // const finalShapes = initialShapes.map((shape) =>
-    //   Utils.deepClone(data.page.shapes[shape.id])
-    // )
-    // commands.mutate(data, initialShapes, finalShapes)
+    const { initialShapes, hasUnlockedShapes } = this.snapshot
+    if (!hasUnlockedShapes) return
+    const finalShapes = initialShapes.map((shape) =>
+      Utils.deepClone(data.page.shapes[shape.id])
+    )
+    mutate(data, initialShapes, finalShapes)
   }
 }
 

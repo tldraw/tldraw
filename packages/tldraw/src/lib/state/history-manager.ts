@@ -33,6 +33,7 @@ export class HistoryManager<T extends Data> {
 
   undo = (data: T) => {
     if (this.pointer === -1) return
+
     const command = this.stack[this.pointer]
     command.undo(data)
     this.onCommand(command.name, data)

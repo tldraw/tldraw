@@ -3,6 +3,7 @@ import { BaseSession } from '.././session-types'
 import { state } from '../../state'
 import { Data } from '../../../types'
 import { getShapeUtils, TLDrawShape } from '../../../shapes'
+import { mutate } from '../../commands'
 
 export class TranslateSession implements BaseSession {
   delta = [0, 0]
@@ -159,6 +160,19 @@ export class TranslateSession implements BaseSession {
 
   complete(data: Data): void {
     if (!this.snapshot.hasUnlockedShapes) return
+
+    const before = this.snapshot.initialShapes.map((shape) =>
+      Utils.deepClone({
+        ...data.page.shapes[shape.id],
+        ...shape,
+      })
+    )
+
+    const after = data.pageState.selectedIds.map((id) =>
+      Utils.deepClone(data.page.shapes[id])
+    )
+
+    mutate(data, before, after, 'translating shapes')
 
     // TODO
     // commands.translate(

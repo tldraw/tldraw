@@ -33,9 +33,7 @@ export function mutate(
       // TODO: Update bindings
     },
     undo(data) {
-      idsToDeleteOnUndo.forEach((id) => {
-        delete data.page.shapes[id]
-      })
+      state.deleteShapes(data, idsToDeleteOnUndo)
 
       before.forEach((shape) => {
         data.page.shapes[shape.id] = shape
