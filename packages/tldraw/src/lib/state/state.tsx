@@ -530,6 +530,16 @@ export class TLDrawState {
       },
     })
 
+    if (this.isIn('brushSelecting')) {
+      this.fastBrush(info)
+    }
+    if (this.isIn('translatingSelection')) {
+      this.fastTranslate(info)
+    }
+    if (this.isIn('transformingSelection')) {
+      this.fastTransform(info)
+    }
+
     // Send along the event just to be sure
     this.send('PANNED_CAMERA', info)
   }
