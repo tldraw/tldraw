@@ -37,7 +37,7 @@ export function useCanvasEvents(rCanvas: React.RefObject<SVGGElement>) {
 
       if (prev && inputs.keys[' '] && e.buttons === 1) {
         const delta = Vec.sub(prev, info.point)
-        callbacks.onPan?.(delta)
+        callbacks.onPan?.({ ...info, delta })
         return
       }
 

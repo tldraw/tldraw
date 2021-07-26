@@ -6,9 +6,9 @@ import {
   Utils,
   Vec,
 } from '@tldraw/core'
-import { Data, TLDrawShape } from '../src'
-import { createShape, tldrawShapeUtils } from '../src/lib/shapes'
-import { TLDrawState } from '../src/lib/state'
+import { Data, TLDrawShape } from '../../src'
+import { createShape, tldrawShapeUtils } from '../../src/lib/shapes'
+import { TLDrawState } from '../../src/lib/state'
 import { mockDocument } from './__mocks__/mock-document'
 
 interface PointerOptions {

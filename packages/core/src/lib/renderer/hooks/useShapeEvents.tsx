@@ -73,7 +73,7 @@ export function useShapeEvents(
 
         const delta = Vec.sub(prev, info.point)
 
-        callbacks.onPan?.(delta)
+        callbacks.onPan?.({ ...info, delta })
         return
       }
 

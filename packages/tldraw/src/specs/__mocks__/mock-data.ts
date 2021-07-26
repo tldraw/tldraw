@@ -1,4 +1,4 @@
-import { ColorStyle, DashStyle, Data, SizeStyle } from '../../src'
+import { ColorStyle, DashStyle, Data, SizeStyle } from '../../'
 
 export const mockData: Data = {
   settings: {

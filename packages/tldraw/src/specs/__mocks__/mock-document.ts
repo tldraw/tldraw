@@ -1,4 +1,4 @@
-import { ColorStyle, DashStyle, SizeStyle, TLDrawDocument } from '../../src'
+import { ColorStyle, DashStyle, SizeStyle, TLDrawDocument } from '../../'
 
 export const mockDocument: TLDrawDocument = {
   currentPageId: 'page1',

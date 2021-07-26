@@ -1,1 +1,1 @@
-export * from './mutate.command'
+export * from './translate.command'
