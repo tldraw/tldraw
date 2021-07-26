@@ -50,15 +50,6 @@ export interface TLShape {
 
 export type TLShapeUtils<T extends TLShape> = Record<string, TLShapeUtil<T>>
 
-// {
-//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//   [P in T['type']]: T extends any
-//     ? P extends T['type']
-//       ? TLShapeUtil<T>
-//       : never
-//     : never
-// }
-
 export interface TLRenderInfo {
   ref?: React.RefObject<HTMLElement>
   isEditing: boolean
@@ -103,9 +94,9 @@ export interface TLCallbacks {
   // Camera events
   onPinchStart: (point: number[]) => void
   onPinchEnd: (point: number[]) => void
-  onPinch: (point: number[], delta: number[], distanceDelta: number) => void
-  onZoom: (point: number[], zoom: number) => void
-  onPan: (delta: number[]) => void
+  onPinch: (info: TLPointerInfo & { distanceDelta: number }) => void
+  onPan: (info: TLPointerInfo & { delta: number[] }) => void
+  onZoom: (info: TLPointerInfo & { delta: number }) => void
 
   // Pointer Events
   onPointerMove: (info: TLPointerInfo) => void
@@ -189,6 +180,8 @@ export interface TLPointerInfo {
 }
 
 export interface TLKeyboardInfo {
+  origin: number[]
+  point: number[]
   key: string
   keys: string[]
   shiftKey: boolean
@@ -222,10 +215,9 @@ export interface TLBezierCurveSegment {
 
 export abstract class TLShapeUtil<T extends TLShape> {
   boundsCache = new WeakMap<TLShape, TLBounds>()
-
   isEditableText = false
-
   isAspectRatioLocked = false
+  canEdit = false
 
   abstract type: T['type']
 
@@ -253,7 +245,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
     info: TLTransformInfo<T>
   ): TLShapeUtil<T>
 
-  create(props: Partial<TLShape>) {
+  create(props: Partial<T>): T {
     return { ...this.defaultProps, ...props }
   }
 
@@ -364,3 +356,7 @@ export type MappedByType<T extends { type: string }> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [P in T['type']]: T extends any ? (P extends T['type'] ? T : never) : never
 }
+
+export type RequiredKeys<T> = {
+  [K in keyof T]-?: Record<string, unknown> extends Pick<T, K> ? never : K
+}[keyof T]

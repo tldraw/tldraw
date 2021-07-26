@@ -6,6 +6,7 @@ import {
   TLBoundsCorner,
   TLBoundsEdge,
 } from '../types'
+import { current, isDraft } from 'immer'
 import Intersect from './intersect'
 import vec from './vec'
 
@@ -123,25 +124,30 @@ export class Utils {
    * Recursively clone an object or array.
    * @param obj
    */
-  static deepClone<T>(obj: T): T {
+  static deepClone<T extends unknown>(obj: T): T {
+    if (isDraft(obj)) return current(obj)
+
     if (obj === null) return obj
 
-    const clone: T = { ...obj }
-
-    Object.keys(obj).forEach(
-      (key) =>
-        (clone[key as keyof T] =
-          typeof obj[key as keyof T] === 'object'
-            ? Utils.deepClone(obj[key as keyof T])
-            : obj[key as keyof T])
-    )
-
-    if (Array.isArray(clone) && Array.isArray(obj)) {
-      clone.length = obj.length
-      return Array.from(clone) as T & unknown[]
+    if (Array.isArray(obj)) {
+      return [...obj] as T
     }
 
-    return clone as T
+    if (typeof obj === 'object') {
+      const clone = { ...(obj as Record<string, unknown>) }
+
+      Object.keys(clone).forEach(
+        (key) =>
+          (clone[key] =
+            typeof obj[key as keyof T] === 'object'
+              ? Utils.deepClone(obj[key as keyof T])
+              : obj[key as keyof T])
+      )
+
+      return clone as T
+    }
+
+    return obj
   }
 
   /**

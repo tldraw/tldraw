@@ -11,17 +11,17 @@ import { StatusBar } from './components/status-bar'
 import { TLDrawShape, tldrawShapeUtils } from './shapes'
 import { state, TLDrawState, useSelector } from './state'
 import { TLDrawDocument } from './types'
+import { useKeyboardShortcuts } from './hooks'
 
 const events: Partial<RendererProps<TLDrawShape>> = {
+  onPointerMove: state.fastPointerMove,
   onPan: state.fastPan,
   onPinch: state.fastPinch,
-  onPointerMove(info) {
-    if (state.isIn('brushSelecting')) {
-      state.fastBrush(info)
-      return
-    }
-
-    state.send('MOVED_POINTER', info)
+  onPinchStart() {
+    state.send('STARTED_PINCHING')
+  },
+  onPinchEnd() {
+    state.send('STOPPED_PINCHING')
   },
   onStopPointing(info) {
     state.send('STOPPED_POINTING', info)
@@ -89,6 +89,8 @@ export function TLDraw({ document, onMount }: TLDrawProps) {
       onMount?.(state)
     }
   }, [onMount, document])
+
+  useKeyboardShortcuts()
 
   return (
     <>

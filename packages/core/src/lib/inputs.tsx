@@ -175,9 +175,19 @@ class Inputs {
     return info
   }
 
-  wheel = (e: WheelEvent) => {
+  wheel = (e: WheelEvent): TLPointerInfo => {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
-    return { point: Inputs.getPoint(e), shiftKey, ctrlKey, metaKey, altKey }
+    return {
+      target: 'wheel',
+      pointerId: this.pointer?.pointerId || 0,
+      origin: this.pointer?.origin || [0, 0],
+      pressure: 0.5,
+      point: Inputs.getPoint(e),
+      shiftKey,
+      ctrlKey,
+      metaKey,
+      altKey,
+    }
   }
 
   canAccept = (_pointerId: PointerEvent['pointerId']): boolean => {
@@ -214,6 +224,8 @@ class Inputs {
     this.keys[e.key] = true
 
     return {
+      point: this.pointer?.point || [0, 0],
+      origin: this.pointer?.origin || [0, 0],
       key: e.key,
       keys: Object.keys(this.keys),
       shiftKey,
@@ -229,6 +241,8 @@ class Inputs {
     delete this.keys[e.key]
 
     return {
+      point: this.pointer?.point || [0, 0],
+      origin: this.pointer?.origin || [0, 0],
       key: e.key,
       keys: Object.keys(this.keys),
       shiftKey,
@@ -236,6 +250,28 @@ class Inputs {
       metaKey: Utils.isDarwin() ? metaKey : ctrlKey,
       altKey,
     }
+  }
+
+  pinch(point: number[], origin: number[]) {
+    const { shiftKey, ctrlKey, metaKey, altKey } = this.keys
+
+    const info: TLPointerInfo = {
+      pointerId: 0,
+      target: 'pinch',
+      origin,
+      point: [...point, 0.5],
+      pressure: 0.5,
+      shiftKey,
+      ctrlKey,
+      metaKey: Utils.isDarwin() ? metaKey : ctrlKey,
+      altKey,
+    }
+
+    this.points[0] = info
+    this.activePointerId = 0
+
+    this.pointer = info
+    return info
   }
 
   reset() {

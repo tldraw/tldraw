@@ -79,7 +79,7 @@ export abstract class BaseCommand<T extends any> {
  * to mutate the state's data. Actions do not effect the "active states" in
  * the app.
  */
-export default class Command extends BaseCommand<Data> {
+export class Command extends BaseCommand<Data> {
   saveSelectionState = (data: Data): ((next: Data) => void) => {
     const selectedIds = [...data.pageState.selectedIds]
 

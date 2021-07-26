@@ -1,6 +1,6 @@
 import { createCss, defaultThemeMap } from '@stitches/react'
 
-const { styled, global, css, theme, getCssString } = createCss({
+const { styled, css, theme, getCssString } = createCss({
   themeMap: {
     ...defaultThemeMap,
   },

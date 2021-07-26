@@ -36,6 +36,11 @@ export const Shape = React.memo(
 
     return (
       <g
+        className={
+          isCurrentParent
+            ? 'tl-shape-group tl-current-parent'
+            : 'tl-shape-group'
+        }
         ref={rGroup}
         id={shape.id}
         transform={transform}

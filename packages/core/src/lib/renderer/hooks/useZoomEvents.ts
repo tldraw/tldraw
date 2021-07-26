@@ -16,12 +16,13 @@ export function useZoomEvents() {
     {
       onWheel: ({ event, delta }) => {
         if (event.ctrlKey) {
-          const { point } = inputs.wheel(event as WheelEvent)
-          callbacks.onZoom?.(point, delta[1])
+          const info = inputs.wheel(event as WheelEvent)
+          callbacks.onZoom?.({ ...info, delta: delta[1] })
           return
         }
 
-        callbacks.onPan?.(delta)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        callbacks.onPan?.({ ...inputs.pointer!, delta: Vec.round(delta) })
       },
       onPinch: ({ pinching, da, origin }) => {
         if (!pinching) {
@@ -40,9 +41,9 @@ export function useZoomEvents() {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const [distanceDelta] = Vec.sub(rPinchDa.current!, da)
 
-        const delta = Vec.sub(rPinchPoint.current, origin)
+        const info = inputs.pinch(rPinchPoint.current, origin)
 
-        callbacks.onPinch?.(origin, delta, distanceDelta)
+        callbacks.onPinch?.({ ...info, distanceDelta })
 
         rPinchDa.current = da
         rPinchPoint.current = origin

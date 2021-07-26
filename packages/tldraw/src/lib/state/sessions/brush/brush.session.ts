@@ -1,19 +1,19 @@
 import { Utils, Vec } from '@tldraw/core'
-import { BaseSession } from './base-session'
-import { getShapeUtils } from '../../shapes'
-import { TLDrawState } from '../state'
-import { Data } from '../../types'
+import { BaseSession } from '../session-types'
+import { getShapeUtils } from '../../../shapes'
+import { state } from '../../state'
+import { Data } from '../../../types'
 
 export class BrushSession implements BaseSession {
   origin: number[]
   snapshot: BrushSnapshot
 
-  constructor(state: TLDrawState, data: Data, point: number[]) {
+  constructor(data: Data, point: number[]) {
     this.origin = Vec.round(point)
-    this.snapshot = getBrushSnapshot(state, data)
+    this.snapshot = getBrushSnapshot(data)
   }
 
-  update = (state: TLDrawState, data: Data, point: number[]): void => {
+  update = (data: Data, point: number[]): void => {
     const { origin, snapshot } = this
 
     const brushBounds = Utils.getBoundsFromPoints([origin, point])
@@ -46,12 +46,12 @@ export class BrushSession implements BaseSession {
     data.pageState.brush = brushBounds
   }
 
-  cancel = (state: TLDrawState, data: Data): void => {
+  cancel = (data: Data): void => {
     data.pageState.brush = undefined
-    state.setSelectedIds(data, this.snapshot.selectedIds)
+    data.pageState.selectedIds = this.snapshot.selectedIds
   }
 
-  complete = (state: TLDrawState, data: Data): void => {
+  complete = (data: Data): void => {
     data.pageState.brush = undefined
   }
 }
@@ -61,8 +61,7 @@ export class BrushSession implements BaseSession {
  * not already selected, the shape's id and a test to see whether the
  * brush will intersect that shape. For tests, start broad -> fine.
  */
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function getBrushSnapshot(state: TLDrawState, data: Data) {
+export function getBrushSnapshot(data: Data) {
   const selectedIds = [...data.pageState.selectedIds]
 
   const shapesToTest = state

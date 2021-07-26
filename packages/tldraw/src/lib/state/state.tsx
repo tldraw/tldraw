@@ -12,7 +12,6 @@ import {
   TLBoundsCorner,
   TLBoundsEdge,
   TLKeyboardInfo,
-  inputs,
 } from '@tldraw/core'
 import { Data, TLDrawDocument } from '../types'
 import {
@@ -21,10 +20,10 @@ import {
   tldrawShapeUtils,
   getShapeUtils,
 } from '../shapes'
-import { commands } from './commands'
-import { HistoryManager } from './history'
-import { SessionManager } from './session'
+import { HistoryManager } from './history-manager'
+import { SessionManager } from './session-manager'
 import * as Sessions from './sessions'
+import { freeze } from 'immer'
 
 /*
 The State Manager class is a wrapper around a state-designer state. It provides utilities for accessing
@@ -37,6 +36,7 @@ export class TLDrawState {
   currentPageId: string
   pages: Record<string, TLPage<TLDrawShape>> = {}
   pageStates: Record<string, TLPageState> = {}
+  isTestMode = false
 
   session = new SessionManager()
   history = new HistoryManager(() => null)
@@ -81,9 +81,29 @@ export class TLDrawState {
     states: {
       loading: {},
       ready: {
-        on: {},
+        on: {
+          DESELECTED_ALL: {
+            unless: 'isInSession',
+            do: 'deselectAll',
+            to: 'select',
+          },
+          SELECTED_ALL: {
+            unless: 'isInSession',
+            do: 'selectAll',
+            to: 'select',
+          },
+          UNDO: {
+            unless: 'isInSession',
+            do: 'undo',
+          },
+          REDO: {
+            unless: 'isInSession',
+            do: 'redo',
+          },
+        },
+        initial: 'usingTool',
         states: {
-          tool: {
+          usingTool: {
             initial: 'select',
             states: {
               select: {
@@ -94,12 +114,98 @@ export class TLDrawState {
                     on: {
                       POINTED_CANVAS: {
                         to: 'brushSelecting',
-                        do: 'setCurrentParentIdToPage',
+                        do: 'clearCurrentParentId',
                       },
                       POINTED_BOUNDS_HANDLE: {
                         if: 'isPointingRotationHandle',
                         to: 'rotatingSelection',
                         else: { to: 'transformingSelection' },
+                      },
+                      POINTED_BOUNDS: [
+                        {
+                          if: 'isPressingMetaKey',
+                          to: 'brushSelecting',
+                        },
+                        { to: 'pointingBounds' },
+                      ],
+                      POINTED_SHAPE: [
+                        {
+                          if: 'isPressingMetaKey',
+                          to: 'brushSelecting',
+                        },
+                        'setPointedId',
+                        {
+                          if: 'isPointingBounds',
+                          to: 'pointingBounds',
+                        },
+                        {
+                          unless: 'isPointedShapeSelected',
+                          then: {
+                            if: 'isPressingShiftKey',
+                            do: [
+                              'pushPointedIdToSelectedIds',
+                              'clearPointedId',
+                            ],
+                            else: ['deselectAll', 'pushPointedIdToSelectedIds'],
+                          },
+                        },
+                        {
+                          to: 'pointingBounds',
+                        },
+                      ],
+                      DOUBLE_POINTED_SHAPE: [
+                        'setPointedId',
+                        {
+                          if: 'isPointedShapeSelected',
+                          then: {
+                            get: 'firstSelectedShape',
+                            if: 'canEditSelectedShape',
+                            do: 'setEditingId',
+                            to: 'editingShape',
+                          },
+                        },
+                        {
+                          unless: 'isPressingShiftKey',
+                          do: [
+                            'setCurrentParentId',
+                            'deselectAll',
+                            'pushPointedIdToSelectedIds',
+                          ],
+                          to: 'pointingBounds',
+                        },
+                      ],
+                    },
+                  },
+                  pointingBounds: {
+                    on: {
+                      CANCELLED: { to: 'notPointing' },
+                      STOPPED_POINTING_BOUNDS: [],
+                      STOPPED_POINTING: [
+                        {
+                          if: 'isPointingBounds',
+                          do: 'deselectAll',
+                        },
+                        {
+                          if: 'isPressingShiftKey',
+                          then: {
+                            if: 'isPointedShapeSelected',
+                            do: 'pullPointedIdFromSelectedIds',
+                          },
+                          else: {
+                            if: 'isPointingShape',
+                            do: [
+                              'deselectAll',
+                              'setPointedId',
+                              'pushPointedIdToSelectedIds',
+                            ],
+                          },
+                        },
+                        { to: 'notPointing' },
+                      ],
+                      MOVED_POINTER: {
+                        unless: 'isInSession',
+                        if: 'distanceImpliesDrag',
+                        to: 'translatingSelection',
                       },
                     },
                   },
@@ -108,14 +214,14 @@ export class TLDrawState {
                     onEnter: [
                       {
                         unless: ['isPressingMetaKey', 'isPressingShiftKey'],
-                        do: 'clearSelectedIds',
+                        do: 'deselectAll',
                       },
                       'clearBoundsRotation',
                       'startBrushSession',
                     ],
                     on: {
                       MOVED_POINTER: {
-                        if: 'isSimulating',
+                        if: 'isTestMode',
                         do: 'updateBrushSession',
                       },
                       PANNED_CAMERA: {
@@ -125,8 +231,28 @@ export class TLDrawState {
                         do: 'endBrushSession',
                         to: 'notPointing',
                       },
-                      STARTED_PINCHING: { to: 'pinching' },
                       CANCELLED: { do: 'cancelSession', to: 'notPointing' },
+                    },
+                  },
+                  translatingSelection: {
+                    onEnter: 'startTranslateSession',
+                    onExit: 'completeSession',
+                    on: {
+                      STARTED_PINCHING: { to: 'pinching' },
+                      MOVED_POINTER: {
+                        ifAny: 'isTestMode',
+                        do: 'updateTranslateSession',
+                      },
+                      PANNED_CAMERA: {
+                        ifAny: 'isTestMode',
+                        do: 'updateTranslateSession',
+                      },
+                      PRESSED_SHIFT_KEY: 'updateTranslateSession',
+                      RELEASED_SHIFT_KEY: 'updateTranslateSession',
+                      PRESSED_ALT_KEY: 'updateTranslateSession',
+                      RELEASED_ALT_KEY: 'updateTranslateSession',
+                      STOPPED_POINTING: { to: 'select' },
+                      CANCELLED: { do: 'cancelSession', to: 'select' },
                     },
                   },
                   transformingSelection: {
@@ -134,11 +260,11 @@ export class TLDrawState {
                     onExit: 'completeSession',
                     on: {
                       MOVED_POINTER: {
-                        // if: 'isSimulating',
+                        if: 'isTestMode',
                         do: 'updateTransformSession',
                       },
                       PANNED_CAMERA: {
-                        // if: 'isSimulating',
+                        if: 'isTestMode',
                         do: 'updateTransformSession',
                       },
                       PRESSED_KEY: 'updateTransformSession',
@@ -157,41 +283,106 @@ export class TLDrawState {
               },
             },
           },
+          pinching: {
+            on: {
+              PINCHED_CAMERA: { if: 'isTestMode', do: 'pinchCamera' },
+              STOPPED_PINCHING: { to: 'usingTool' },
+            },
+          },
         },
       },
     },
+    results: {
+      firstSelectedShape(data) {
+        return data.page.shapes[data.pageState.selectedIds[0]]
+      },
+    },
     conditions: {
+      isTestMode: () => {
+        return this.isTestMode
+      },
       isPressingMetaKey(data, payload: TLPointerInfo) {
         return payload.metaKey
       },
       isPressingShiftKey(data, payload: TLPointerInfo) {
         return payload.shiftKey
       },
-      isSimulating() {
-        return false
+      hasPointedTarget(data, payload: TLPointerInfo) {
+        return payload.target !== undefined
       },
-
+      isPointedShapeSelected(data) {
+        if (!data.pageState.pointedId) return false
+        return data.pageState.selectedIds.includes(data.pageState.pointedId)
+      },
+      isPointingBounds(data, payload: TLPointerInfo) {
+        return (
+          data.pageState.selectedIds.length > 0 && payload.target === 'bounds'
+        )
+      },
+      isPointingCanvas(data, payload: TLPointerInfo) {
+        return payload.target === 'canvas'
+      },
+      isPointingShape(data, payload: TLPointerInfo) {
+        if (!payload.target) return false
+        return payload.target !== 'canvas' && payload.target !== 'bounds'
+      },
       isPointingRotationHandle(
         _data,
         payload: { target: TLBoundsEdge | TLBoundsCorner | 'rotate' }
       ) {
         return payload.target === 'rotate'
       },
+      distanceImpliesDrag(data, payload: TLPointerInfo) {
+        return Vec.dist2(payload.origin, payload.point) > 8
+      },
+      isInSession: () => {
+        return this.session.isInSession
+      },
+      canEditSelectedShape(data, payload, result: TLDrawShape) {
+        if (!result) return false
+        return getShapeUtils(result).canEdit && !result.isLocked
+      },
     },
     actions: {
+      /* -------------------- Settings -------------------- */
+      toggleTestMode: (data) => {
+        this.toggleTestMode()
+      },
+
       /* -------------------- Sessions -------------------- */
 
       breakSession: (data) => {
-        this.session.cancel(this, data)
+        this.session.cancel(data)
         this.history.disable()
         // commands.deleteShapes(data, this.getSelectedShapes(data))
         this.history.enable()
       },
       cancelSession: (data) => {
-        this.session.cancel(this, data)
+        this.session.cancel(data)
       },
       completeSession: (data) => {
-        this.session.complete(this, data)
+        this.session.complete(data)
+      },
+
+      // Translate Session
+      startTranslateSession: (data, payload: TLPointerInfo) => {
+        this.session.begin(
+          new Sessions.TranslateSession(
+            data,
+            this.screenToWorld(data, payload.origin)
+          )
+        )
+      },
+      updateTranslateSession: (
+        data,
+        payload: TLPointerInfo | TLKeyboardInfo
+      ) => {
+        this.session.update<Sessions.TranslateSession>(
+          data,
+          this.screenToWorld(data, payload.point),
+          payload.shiftKey,
+          payload.altKey
+        )
       },
 
       // Transform Session
@@ -200,26 +391,15 @@ export class TLDrawState {
         data,
         payload: TLPointerInfo & { target: TLBoundsCorner | TLBoundsEdge }
       ) => {
-        if (!inputs.pointer) return
-        const point = this.screenToWorld(data, inputs.pointer.origin)
+        const point = this.screenToWorld(data, payload.origin)
+
         this.session.begin(
-          new Sessions.TransformSingleSession(
-            state,
-            data,
-            payload.target,
-            point
-          )
+          new Sessions.TransformSession(data, payload.target, point)
         )
-        // this.session.begin(
-        //   data.pageState.selectedIds.length === 1
-        //     ? new Sessions.TransformSingleSession(data, payload.target, point)
-        //     : new Sessions.TransformSession(data, payload.target, point)
-        // )
       },
       startDrawTransformSession: (data, payload: TLPointerInfo) => {
         this.session.begin(
           new Sessions.TransformSingleSession(
-            this,
             data,
             TLBoundsCorner.BottomRight,
             this.screenToWorld(data, payload.point),
@@ -229,9 +409,8 @@ export class TLDrawState {
       },
       updateTransformSession: (data, payload: TLPointerInfo) => {
         this.session.update<Sessions.TransformSingleSession>(
-          this,
           data,
-          this.screenToWorld(data, payload.point || inputs.pointer?.point),
+          this.screenToWorld(data, payload.point),
           payload.shiftKey
         )
       },
@@ -240,17 +419,15 @@ export class TLDrawState {
       startBrushSession: (data, payload: TLPointerInfo) => {
         this.session.begin(
           new Sessions.BrushSession(
-            this,
             data,
             this.screenToWorld(data, payload.point)
           )
         )
       },
-      updateBrushSession: (data, payload: TLPointerInfo) => {
+      updateBrushSession: (data, payload: TLPointerInfo | TLKeyboardInfo) => {
         this.session.update<Sessions.BrushSession>(
-          this,
           data,
-          this.screenToWorld(data, payload.point || inputs.pointer?.point)
+          this.screenToWorld(data, payload.point)
         )
 
         brushUpdater.set(data.pageState.brush)
@@ -272,18 +449,53 @@ export class TLDrawState {
       clearBoundsRotation(data) {
         delete data.pageState.boundsRotation
       },
-      clearSelectedIds: (data) => {
-        this.setSelectedIds(data, [])
-      },
 
+      // Pointed id
       setPointedId: (data, payload: TLPointerInfo) => {
         const { pageState } = data
         pageState.pointedId = this.getPointedId(data, payload.target)
         pageState.currentParentId = this.getParentId(data, pageState.pointedId)
       },
-      setCurrentParentIdToPage(data) {
+      clearPointedId(data) {
+        delete data.pageState.pointedId
+      },
+
+      // Editing id
+      setEditingId: (data, payload: TLPointerInfo, shape: TLDrawShape) => {
+        data.pageState.editingId = shape.id
+      },
+      clearEditingId(data) {
+        delete data.pageState.editingId
+      },
+
+      // Selection
+      pullPointedIdFromSelectedIds(data) {
+        const { pointedId, selectedIds } = data.pageState
+        if (!pointedId) return
+        selectedIds.splice(selectedIds.indexOf(pointedId), 1)
+      },
+      pushPointedIdToSelectedIds(data) {
+        const { pointedId, selectedIds } = data.pageState
+        if (!pointedId) return
+        selectedIds.push(pointedId)
+      },
+      deselectAll(data) {
+        data.pageState.selectedIds = []
+      },
+      selectAll(data) {
+        data.pageState.selectedIds = Object.values(data.page.shapes)
+          .filter((shape) => shape.parentId === data.page.id)
+          .map((shape) => shape.id)
+      },
+
+      // Current parent id
+      setCurrentParentId(data) {
         data.pageState.currentParentId = data.page.id
       },
+      clearCurrentParentId(data) {
+        delete data.pageState.currentParentId
+      },
+
       // Camera
       panCamera: (data, payload: { delta: number[] }) => {
         const { camera } = this.getPageState(data)
@@ -295,21 +507,28 @@ export class TLDrawState {
       },
       pinchCamera: (
         data,
-        payload: { delta: number[]; origin: number[]; distanceDelta: number }
+        payload: { info: TLPointerInfo; distanceDelta: number }
       ) => {
         const camera = this.getCurrentCamera(data)
 
-        camera.point = Vec.sub(
-          camera.point,
-          Vec.div(payload.delta, camera.zoom)
-        )
+        const delta = Vec.sub(payload.info.point, payload.info.origin)
+
+        camera.point = Vec.sub(camera.point, Vec.div(delta, camera.zoom))
 
         const next = camera.zoom - (payload.distanceDelta / 300) * camera.zoom
 
-        const p0 = this.screenToWorld(data, payload.origin)
+        const p0 = this.screenToWorld(data, payload.info.origin)
         camera.zoom = this.getCameraZoom(next)
-        const p1 = this.screenToWorld(data, payload.origin)
+        const p1 = this.screenToWorld(data, payload.info.origin)
         camera.point = Vec.add(camera.point, Vec.sub(p1, p0))
+      },
+
+      // Undo / Redo
+      undo: (data) => {
+        this.history.undo(data)
+      },
+      redo: (data) => {
+        this.history.redo(data)
       },
     },
   })
@@ -337,13 +556,27 @@ export class TLDrawState {
   }
 
   forceUpdate(data: Partial<Data>) {
-    this._state.forceData({ ...this.data, ...data })
+    this._state.forceData(freeze({ ...this.data, ...data }))
   }
 
-  fastPan = (delta: number[]) => {
+  fastPointerMove = (info: TLPointerInfo) => {
+    if (this.isIn('brushSelecting')) {
+      this.fastBrush(info)
+    }
+    if (this.isIn('translatingSelection')) {
+      this.fastTranslate(info)
+    }
+    if (this.isIn('transformingSelection')) {
+      this.fastTransform(info)
+    }
+
+    this.send('MOVED_POINTER', info)
+  }
+
+  fastPan = (info: TLPointerInfo & { delta: number[] }) => {
     const { point, zoom } = this.getCurrentCamera(this.data)
 
-    const nextPoint = Vec.sub(point, Vec.div(delta, zoom))
+    const nextPoint = Vec.sub(point, Vec.div(info.delta, zoom))
 
     this.updatePageState({
       ...this.data.pageState,
@@ -354,20 +587,23 @@ export class TLDrawState {
     })
 
     // Send along the event just to be sure
-    this.send('PANNED_CAMERA', { delta })
+    this.send('PANNED_CAMERA', info)
   }
 
-  fastPinch = (origin: number[], delta: number[], distanceDelta: number) => {
+  fastPinch = (info: TLPointerInfo & { distanceDelta: number }) => {
     const {
       camera: { point, zoom },
     } = this.data.pageState
 
+    const delta = Vec.sub(info.point, info.origin)
     let nextPoint = Vec.sub(point, Vec.div(delta, zoom))
 
-    const nextZoom = this.getCameraZoom(zoom - (distanceDelta / 300) * zoom)
+    const nextZoom = this.getCameraZoom(
+      zoom - (info.distanceDelta / 300) * zoom
+    )
 
-    const p0 = Vec.sub(Vec.div(origin, zoom), point)
-    const p1 = Vec.sub(Vec.div(origin, nextZoom), point)
+    const p0 = Vec.sub(Vec.div(info.origin, zoom), point)
+    const p1 = Vec.sub(Vec.div(info.origin, nextZoom), point)
 
     nextPoint = Vec.add(point, Vec.sub(p1, p0))
 
@@ -380,14 +616,13 @@ export class TLDrawState {
     })
 
     // Send along the event just to be sure
-    this.send('PINCHED_CAMERA', { origin, delta, distanceDelta })
+    this.send('PINCHED_CAMERA', info)
   }
 
   fastBrush(info: TLPointerInfo) {
     const data = { ...this.data }
 
     this.session.update<Sessions.BrushSession>(
-      this,
       data,
       this.screenToWorld(data, info.point)
     )
@@ -402,9 +637,28 @@ export class TLDrawState {
     this.send('MOVED_POINTER', info)
   }
 
-  /* -------------------------------------------------- */
-  /*                       Private                      */
-  /* -------------------------------------------------- */
+  fastTranslate(info: TLPointerInfo) {
+    const data = { ...this.data }
+
+    this.session.update<Sessions.TranslateSession>(
+      data,
+      this.screenToWorld(data, info.point),
+      info.shiftKey,
+      info.altKey
+    )
+
+    this.updatePage({ ...data.page })
+  }
+
+  fastTransform(info: TLPointerInfo) {
+    const data = { ...this.data }
+
+    this.session.update<
+      Sessions.TransformSession | Sessions.TransformSingleSession
+    >(data, this.screenToWorld(data, info.point), info.shiftKey)
+
+    this.updatePage({ ...data.page })
+  }
 
   getParentId(data: Data, id: string) {
     const shape = data.page.shapes[id]
@@ -436,14 +690,173 @@ export class TLDrawState {
     const shape = data.page.shapes[id]
 
     if (shape.parentId === shape.id) {
-      console.error(`Shape has the same id as its parent! ${shape.id}`)
-      return shape.parentId
+      throw Error(`Shape has the same id as its parent! ${shape.id}`)
     }
 
     return shape.parentId === data.page.id ||
       shape.parentId === data.pageState.currentParentId
       ? id
       : this.getTopParentId(data, shape.parentId)
+  }
+
+  // Get an array of a shape id and its descendant shapes' ids
+  getDocumentBranch(data: Data, id: string): string[] {
+    const shape = data.page.shapes[id]
+
+    if (shape.children === undefined) return [id]
+
+    return [
+      id,
+      ...shape.children.flatMap((childId) =>
+        this.getDocumentBranch(data, childId)
+      ),
+    ]
+  }
+
+  // Get a deep array of unproxied shapes and their descendants
+  getSelectedBranchSnapshot<K>(
+    data: Data,
+    fn: (shape: TLDrawShape) => K
+  ): ({ id: string } & K)[]
+  getSelectedBranchSnapshot(data: Data): TLDrawShape[]
+  getSelectedBranchSnapshot<K>(
+    data: Data,
+    fn?: (shape: TLDrawShape) => K
+  ): (TLDrawShape | K)[] {
+    const page = this.getPage(data)
+
+    const copies = this.getSelectedIds(data)
+      .flatMap((id) =>
+        this.getDocumentBranch(data, id).map((id) => page.shapes[id])
+      )
+      .filter((shape) => !shape.isLocked)
+      .map(Utils.deepClone)
+
+    if (fn !== undefined) {
+      return copies.map((shape) => ({ id: shape.id, ...fn(shape) }))
+    }
+
+    return copies
+  }
+
+  // Get a shallow array of unproxied shapes
+  getSelectedShapeSnapshot(data: Data): TLDrawShape[]
+  getSelectedShapeSnapshot<K>(
+    data: Data,
+    fn?: (shape: TLDrawShape) => K
+  ): ({ id: string } & K)[]
+  getSelectedShapeSnapshot<K>(
+    data: Data,
+    fn?: (shape: TLDrawShape) => K
+  ): (TLDrawShape | K)[] {
+    const copies = this.getSelectedShapes(data)
+      .filter((shape) => !shape.isLocked)
+      .map(Utils.deepClone)
+
+    if (fn !== undefined) {
+      return copies.map((shape) => ({ id: shape.id, ...fn(shape) }))
+    }
+
+    return copies
+  }
+
+  getChildIndexAbove(data: Data, id: string): number {
+    const page = this.getPage(data)
+
+    const shape = page.shapes[id]
+
+    const siblings = Object.values(page.shapes)
+      .filter(({ parentId }) => parentId === shape.parentId)
+      .sort((a, b) => a.childIndex - b.childIndex)
+
+    const index = siblings.indexOf(shape)
+
+    const nextSibling = siblings[index + 1]
+
+    if (!nextSibling) return shape.childIndex + 1
+
+    let nextIndex = (shape.childIndex + nextSibling.childIndex) / 2
+
+    if (nextIndex === nextSibling.childIndex) {
+      this.forceIntegerChildIndices(siblings)
+      nextIndex = (shape.childIndex + nextSibling.childIndex) / 2
+    }
+
+    return nextIndex
+  }
+
+  getTopChildIndex(
+    data: Data,
+    parent: TLDrawShape | TLPage<TLDrawShape>
+  ): number {
+    const page = this.getPage(data)
+
+    // If the parent is a shape, return either 1 (if no other shapes) or the
+    // highest sorted child index + 1.
+    if ('shapes' in parent) {
+      const children = Object.values(parent.shapes)
+
+      if (children.length === 0) return 1
+
+      return (
+        children.sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+      )
+    }
+
+    // If the shape is a regular shape that can accept children, return either
+    // 1 (if no other children) or the highest sorted child index + 1.
+    this.assertParentShape(parent)
+
+    if (parent.children.length === 0) return 1
+
+    return (
+      parent.children
+        .map((id) => page.shapes[id])
+        .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+    )
+  }
+
+  assertParentShape(
+    shape: TLDrawShape
+  ): asserts shape is TLDrawShape & { children: string[] } {
+    if (!('children' in shape)) {
+      throw new Error(`That shape was not a parent (it was a ${shape.type}).`)
+    }
+  }
+
+  // Force all shapes on the page to have integer child indices.
+  forceIntegerChildIndices(shapes: TLDrawShape[]): void {
+    for (let i = 0; i < shapes.length; i++) {
+      const shape = shapes[i]
+      getShapeUtils(shape).setProperty(shape, 'childIndex', i + 1)
+    }
+  }
+
+  updateParents(data: Data, changedShapeIds: string[]): void {
+    if (changedShapeIds.length === 0) return
+
+    const { shapes } = this.getPage(data)
+
+    const parentToUpdateIds = Array.from(
+      new Set(changedShapeIds.map((id) => shapes[id].parentId).values())
+    ).filter((id) => id !== data.page.id)
+
+    for (const parentId of parentToUpdateIds) {
+      const parent = shapes[parentId]
+
+      if (!parent.children) {
+        throw Error('A shape is parented to a shape without a children array.')
+      }
+
+      getShapeUtils(parent).onChildrenChange(
+        parent,
+        parent.children.map((id) => shapes[id])
+      )
+
+      shapes[parentId] = { ...parent }
+    }
+
+    this.updateParents(data, parentToUpdateIds)
   }
 
   getShapeUtils(shape: TLDrawShape) {
@@ -501,7 +914,7 @@ export class TLDrawState {
     data.pageState.selectedIds = ids
   }
 
-  clearSelectedIds(data: Data) {
+  deselectAll(data: Data) {
     this.setSelectedIds(data, [])
   }
 
@@ -513,8 +926,11 @@ export class TLDrawState {
     return data.pageState.camera
   }
 
-  getShape(data: Data, shapeId: string) {
-    return data.page.shapes[shapeId]
+  getShape<T extends TLDrawShape = TLDrawShape>(
+    data: Data,
+    shapeId: string
+  ): T {
+    return data.page.shapes[shapeId] as T
   }
 
   getBinding(data: Data, id: string): TLBinding {
@@ -524,6 +940,15 @@ export class TLDrawState {
   /* -------------------------------------------------- */
   /*                       Public                       */
   /* -------------------------------------------------- */
+
+  toJson(formatted = false) {
+    return JSON.stringify(this.state.data, null, formatted ? 2 : 0)
+  }
+
+  toggleTestMode() {
+    this.isTestMode = !this.isTestMode
+    return this.isTestMode
+  }
 
   /* -------- Reimplemenation of State Methods -------- */
 

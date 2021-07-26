@@ -142,7 +142,7 @@ const tlcss = css`
     fill: transparent;
     stroke: var(--tl-selectStroke);
     stroke-width: calc(1.5px * var(--tl-scale));
-    pointer-events: all;
+    pointer-events: none;
   }
 
   .tl-bounds-bg {
@@ -222,6 +222,22 @@ const tlcss = css`
     stroke-width: calc(3px * var(--tl-scale));
     fill: none;
     stroke: var(--tl-selected);
+  }
+
+  .tl-shape-group {
+    outline: none;
+  }
+
+  .tl-shape-group > *[data-shy='true'] {
+    opacity: 0;
+  }
+
+  .tl-shape-group:hover > *[data-shy='true'] {
+    opacity: 1;
+  }
+
+  .tl-current-parent > *[data-shy='true'] {
+    opacity: 1;
   }
 `
 

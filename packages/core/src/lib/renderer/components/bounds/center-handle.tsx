@@ -16,7 +16,6 @@ export const CenterHandle = React.memo(
         y={-1}
         width={bounds.width + 2}
         height={bounds.height + 2}
-        pointerEvents="none"
       />
     )
   }

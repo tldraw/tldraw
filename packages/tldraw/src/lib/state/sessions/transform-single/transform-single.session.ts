@@ -1,8 +1,9 @@
-import { Utils, Vec, TLBoundsEdge, TLBoundsCorner } from '@tldraw/core'
-import { Data } from '../../types'
-import { BaseSession } from './base-session'
-import { getShapeUtils } from '../../shapes'
-import { TLDrawState } from '../state'
+import { TLBoundsCorner, TLBoundsEdge, Utils, Vec } from '@tldraw/core'
+import { BaseSession } from '../session-types'
+import { getShapeUtils } from '../../../shapes'
+import { state } from '../../state'
+import { Data } from '../../../types'
+import { mutate } from '../../commands'
 
 export class TransformSingleSession implements BaseSession {
   transformType: TLBoundsEdge | TLBoundsCorner
@@ -13,7 +14,6 @@ export class TransformSingleSession implements BaseSession {
   isCreating: boolean
 
   constructor(
-    state: TLDrawState,
     data: Data,
     transformType: TLBoundsEdge | TLBoundsCorner,
     point: number[],
@@ -25,12 +25,7 @@ export class TransformSingleSession implements BaseSession {
     this.isCreating = isCreating
   }
 
-  update(
-    state: TLDrawState,
-    data: Data,
-    point: number[],
-    isAspectRatioLocked = false
-  ): void {
+  update(data: Data, point: number[], isAspectRatioLocked = false): void {
     const { transformType } = this
 
     const { initialShapeBounds, initialShape, id } = this.snapshot
@@ -60,36 +55,36 @@ export class TransformSingleSession implements BaseSession {
       transformOrigin: [0.5, 0.5],
     })
 
-    data.page.shapes[shape.id] = shape
+    data.page.shapes[shape.id] = { ...shape }
 
-    // tld.updateParents(data, [id])
+    state.updateParents(data, [id])
   }
 
-  cancel(state: TLDrawState, data: Data): void {
+  cancel(data: Data): void {
     const { id, initialShape } = this.snapshot
     data.page.shapes[id] = initialShape
 
-    // state.updateParents(data, [id])
+    state.updateParents(data, [id])
   }
 
-  complete(state: TLDrawState, data: Data): void {
+  complete(data: Data): void {
     if (!this.snapshot.hasUnlockedShape) return
 
-    // commands.transformSingle(
-    //   data,
-    //   this.snapshot,
-    //   getTransformSingleSnapshot(data, this.transformType),
-    //   this.isCreating
-    // )
+    mutate(data, this.isCreating ? [] : [this.snapshot.initialShape], [
+      Utils.deepClone(data.page.shapes[this.snapshot.id]),
+    ])
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getTransformSingleSnapshot(
   data: Data,
   transformType: TLBoundsEdge | TLBoundsCorner
 ) {
   const shape = data.page.shapes[data.pageState.selectedIds[0]]
+
+  if (!shape) {
+    throw Error('You must have one shape selected.')
+  }
 
   const bounds = getShapeUtils(shape).getBounds(shape)
 

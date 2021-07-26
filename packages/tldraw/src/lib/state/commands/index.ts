@@ -1,3 +1,3 @@
-import Command from './command'
+export { Command } from './command'
 
-export const commands: Record<string, Command> = {}
+export * from './mutate'

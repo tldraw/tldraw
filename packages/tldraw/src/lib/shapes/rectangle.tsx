@@ -13,7 +13,7 @@ import {
   defaultStyle,
   getShapeStyle,
 } from './shape-styles'
-import { RectangleShape, ShapeStyles, DashStyle } from './shape-types'
+import { RectangleShape, DashStyle } from './shape-types'
 
 export class Rectangle extends TLShapeUtil<RectangleShape> {
   type = 'rectangle' as const
@@ -54,6 +54,7 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
             height={Math.max(0, size[1] - strokeWidth)}
             fill={style.isFilled ? styles.fill : 'transparent'}
             stroke="none"
+            pointerEvents="all"
           />
           <path
             d={pathData}

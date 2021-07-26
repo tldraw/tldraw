@@ -23,7 +23,7 @@ export function Bounds({
 
   return (
     <g
-      pointerEvents={'all'}
+      pointerEvents="all"
       transform={`
         rotate(${rotation * (180 / Math.PI)},${center})
         translate(${bounds.minX},${bounds.minY})
