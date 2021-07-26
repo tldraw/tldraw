@@ -23,6 +23,11 @@ import { BaseSession } from './sessions/session-types'
 
 export class SessionManager {
   private current?: BaseSession
+  onSessionChange: () => void
+
+  constructor(onSessionChange: () => void) {
+    this.onSessionChange = onSessionChange
+  }
 
   /**
    * Begin a new session.
@@ -40,6 +45,7 @@ export class SessionManager {
     }
 
     this.current = session
+    this.onSessionChange()
     return this
   }
 
@@ -59,6 +65,7 @@ export class SessionManager {
     }
 
     session.update.call(this.current, ...args)
+    this.onSessionChange()
     return this
   }
 
@@ -87,6 +94,7 @@ export class SessionManager {
   cancel<T extends BaseSession>(...args: Parameters<T['cancel']>) {
     this.current?.cancel.call(this.current, ...args)
     this.current = undefined
+    this.onSessionChange()
     return this
   }
 

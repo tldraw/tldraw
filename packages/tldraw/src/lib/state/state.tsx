@@ -21,6 +21,11 @@ import { SessionManager } from './session-manager'
 import * as Sessions from './sessions'
 import { freeze } from 'immer'
 
+export interface TLDrawCallbacks {
+  onMount: (state: TLDrawState) => void
+  onChange: (state: TLDrawState, type: 'camera' | 'command' | 'session' | 'undo' | 'redo' | 'load') => void
+}
+
 /*
 The State Manager class is a wrapper around a state-designer state. It provides utilities for accessing
 parts of the state, both privately for internal use and publically for external use. The singleton intance
@@ -28,24 +33,36 @@ is shared in the renderer's `onMount` callback.
 */
 
 export class TLDrawState {
-  shapeUtils: TLShapeUtils<TLDrawShape>
-  currentPageId: string
-  pages: Record<string, TLPage<TLDrawShape>> = {}
-  pageStates: Record<string, TLPageState> = {}
   isTestMode = false
 
-  session = new SessionManager()
-  history = new HistoryManager(() => null)
+  currentPageId: string
+
+  pages: Record<string, TLPage<TLDrawShape>> = {}
+
+  pageStates: Record<string, TLPageState> = {}
+
+  shapeUtils: TLShapeUtils<TLDrawShape>
+
+  callbacks: Partial<TLDrawCallbacks> = {}
+
+  session = new SessionManager(() => {
+    this.callbacks.onChange?.(this, 'session')
+  })
+
+  history = new HistoryManager(() => {
+    this.callbacks.onChange?.(this, 'command')
+  })
 
   constructor(shapeUtils: TLDrawShapeUtils) {
     this.currentPageId = Object.keys(this.pages)[0]
     this.shapeUtils = shapeUtils
 
     this._state.onUpdate((s) => {
+      // When the state changes, store the change in this instance
+      // Later, consider saving the page state to local storage.
       const pageId = s.data.page.id
       this.pages[pageId] = s.data.page
       this.pageStates[pageId] = s.data.pageState
-      // TODO: Save page state to local storage.
     })
   }
 
@@ -470,12 +487,18 @@ export class TLDrawState {
       // Undo / Redo
       undo: (data) => {
         this.history.undo(data)
+        this.callbacks.onChange?.(this, 'undo')
       },
       redo: (data) => {
         this.history.redo(data)
+        this.callbacks.onChange?.(this, 'redo')
       },
     },
   })
+
+  updateCallbacks(callbacks: Partial<TLDrawCallbacks>) {
+    this.callbacks = callbacks
+  }
 
   updateFromDocument(document: TLDrawDocument) {
     const { currentPageId, pages, pageStates } = document
@@ -487,6 +510,8 @@ export class TLDrawState {
       page: pages[currentPageId],
       pageState: pageStates[currentPageId],
     })
+
+    this.callbacks.onChange?.(this, 'load')
   }
 
   updatePageState(pageState: TLPageState) {
@@ -542,6 +567,8 @@ export class TLDrawState {
 
     // Send along the event just to be sure
     this.send('PANNED_CAMERA', info)
+
+    this.callbacks.onChange?.(this, 'camera')
   }
 
   fastPinch = (info: TLPointerInfo & { distanceDelta: number }) => {
@@ -569,6 +596,8 @@ export class TLDrawState {
 
     // Send along the event just to be sure
     this.send('PINCHED_CAMERA', info)
+
+    this.callbacks.onChange?.(this, 'camera')
   }
 
   fastBrush(info: TLPointerInfo) {

@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Renderer, TLCallbacks, TLPage, TLPageState, TLPointerInfo, RendererProps } from '@tldraw/core'
 import { StatusBar } from './components/status-bar'
 import { TLDrawShape, tldrawShapeUtils } from './shapes'
-import { state, TLDrawState, useSelector } from './state'
+import { state, TLDrawCallbacks, TLDrawState, useSelector } from './state'
 import { TLDrawDocument } from './types'
 import { useKeyboardShortcuts } from './hooks'
 
@@ -66,22 +66,22 @@ const events: Partial<RendererProps<TLDrawShape>> = {
   },
 }
 
-export interface TLDrawProps extends Partial<TLCallbacks> {
+export interface TLDrawProps extends Partial<TLDrawCallbacks> {
   document?: TLDrawDocument
-  onMount?: (tldraw: TLDrawState) => void
 }
 
-export function TLDraw({ document, onMount }: TLDrawProps) {
+export function TLDraw({ document, ...callbacks }: TLDrawProps) {
   const page = useSelector((s) => s.data.page)
 
   const pageState = useSelector((s) => s.data.pageState)
 
   React.useEffect(() => {
     if (document !== undefined) {
+      state.updateCallbacks(callbacks)
       state.updateFromDocument(document)
-      onMount?.(state)
+      callbacks.onMount?.(state)
     }
-  }, [onMount, document])
+  }, [callbacks, document])
 
   useKeyboardShortcuts()
 
