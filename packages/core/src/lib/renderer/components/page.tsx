@@ -13,10 +13,7 @@ interface PageProps<T extends TLShape> {
   pageState: TLPageState
 }
 
-export function Page<T extends TLShape>({
-  page,
-  pageState,
-}: PageProps<T>): JSX.Element {
+export function Page<T extends TLShape>({ page, pageState }: PageProps<T>): JSX.Element {
   const { callbacks, shapeUtils } = useTLContext()
 
   useRenderOnResize()
@@ -25,11 +22,7 @@ export function Page<T extends TLShape>({
 
   const { shapeWithHandles } = useHandles(page, pageState)
 
-  const { bounds, isLocked, rotation } = useSelection(
-    page,
-    pageState,
-    shapeUtils
-  )
+  const { bounds, isLocked, rotation } = useSelection(page, pageState, shapeUtils)
 
   React.useEffect(() => {
     callbacks.onChange?.(shapeTree.map((node) => node.shape.id))
@@ -41,14 +34,7 @@ export function Page<T extends TLShape>({
       {shapeTree.map((node) => (
         <ShapeNode key={node.shape.id} node={node} allowHovers={true} />
       ))}
-      {bounds && (
-        <Bounds
-          zoom={pageState.camera.zoom}
-          bounds={bounds}
-          isLocked={isLocked}
-          rotation={rotation}
-        />
-      )}
+      {bounds && <Bounds zoom={pageState.camera.zoom} bounds={bounds} isLocked={isLocked} rotation={rotation} />}
       {shapeWithHandles && <Handles shape={shapeWithHandles} />}
     </>
   )
@@ -60,16 +46,7 @@ interface ShapeNodeProps {
 }
 
 const ShapeNode = ({
-  node: {
-    shape,
-    children,
-    isEditing,
-    isHovered,
-    isDarkMode,
-    isSelected,
-    isBinding,
-    isCurrentParent,
-  },
+  node: { shape, children, isEditing, isHovered, isDarkMode, isSelected, isBinding, isCurrentParent },
   allowHovers,
 }: ShapeNodeProps) => {
   return (
@@ -84,11 +61,7 @@ const ShapeNode = ({
         isCurrentParent={isCurrentParent}
       />
       {children.map((childNode) => (
-        <ShapeNode
-          key={childNode.shape.id}
-          node={childNode}
-          allowHovers={allowHovers}
-        />
+        <ShapeNode key={childNode.shape.id} node={childNode} allowHovers={allowHovers} />
       ))}
     </>
   )

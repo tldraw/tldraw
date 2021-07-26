@@ -1,17 +1,7 @@
-import {
-  TLPage,
-  TLPageState,
-  TLShape,
-  TLBounds,
-  TLShapeUtils,
-} from '../../types'
+import { TLPage, TLPageState, TLShape, TLBounds, TLShapeUtils } from '../../types'
 import Utils from '../../utils'
 
-export function useSelection<T extends TLShape>(
-  page: TLPage<T>,
-  pageState: TLPageState,
-  shapeUtils: TLShapeUtils<T>
-) {
+export function useSelection<T extends TLShape>(page: TLPage<T>, pageState: TLPageState, shapeUtils: TLShapeUtils<T>) {
   const { selectedIds } = pageState
 
   let bounds: TLBounds | undefined = undefined
@@ -39,10 +29,7 @@ export function useSelection<T extends TLShape>(
       if (i === 0) {
         return shapeUtils[shape.type as T['type']].getBounds(shape)
       }
-      return Utils.getExpandedBounds(
-        acc,
-        shapeUtils[shape.type as T['type']].getBounds(shape)
-      )
+      return Utils.getExpandedBounds(acc, shapeUtils[shape.type as T['type']].getBounds(shape))
     }, {} as TLBounds)
   }
 

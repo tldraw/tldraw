@@ -1,9 +1,6 @@
 import { TLPage, TLPageState, TLShape } from '../../types'
 
-export function useHandles<T extends TLShape>(
-  page: TLPage<T>,
-  pageState: TLPageState
-) {
+export function useHandles<T extends TLShape>(page: TLPage<T>, pageState: TLPageState) {
   const { selectedIds } = pageState
 
   let shapeWithHandles: TLShape | undefined = undefined

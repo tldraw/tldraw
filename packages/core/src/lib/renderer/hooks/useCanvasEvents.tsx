@@ -25,7 +25,7 @@ export function useCanvasEvents(rCanvas: React.RefObject<SVGGElement>) {
         callbacks.onRightPointCanvas?.(info)
       }
     },
-    [rCanvas, callbacks]
+    [rCanvas, callbacks],
   )
 
   const handlePointerMove = React.useCallback(
@@ -43,7 +43,7 @@ export function useCanvasEvents(rCanvas: React.RefObject<SVGGElement>) {
 
       callbacks.onPointerMove?.(info)
     },
-    [callbacks]
+    [callbacks],
   )
 
   const handlePointerUp = React.useCallback(
@@ -56,17 +56,14 @@ export function useCanvasEvents(rCanvas: React.RefObject<SVGGElement>) {
 
       callbacks.onStopPointing?.(info)
     },
-    [rCanvas, callbacks]
+    [rCanvas, callbacks],
   )
 
-  const handleTouchStart = React.useCallback(
-    (e: React.TouchEvent<SVGSVGElement>) => {
-      if ('safari' in window) {
-        e.preventDefault()
-      }
-    },
-    []
-  )
+  const handleTouchStart = React.useCallback((e: React.TouchEvent<SVGSVGElement>) => {
+    if ('safari' in window) {
+      e.preventDefault()
+    }
+  }, [])
 
   React.useEffect(() => {
     const preventGestureNavigation = (event: TouchEvent) => {
@@ -83,10 +80,7 @@ export function useCanvasEvents(rCanvas: React.RefObject<SVGGElement>) {
       // if the touch area overlaps with the screen edges
       // it's likely to trigger the navigation. We prevent the
       // touchstart event in that case.
-      if (
-        touchXPosition - touchXRadius < 10 ||
-        touchXPosition + touchXRadius > window.innerWidth - 10
-      ) {
+      if (touchXPosition - touchXRadius < 10 || touchXPosition + touchXRadius > window.innerWidth - 10) {
         event.preventDefault()
       }
     }

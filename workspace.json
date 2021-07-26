@@ -8,17 +8,13 @@
       "targets": {
         "build": {
           "executor": "@nrwl/web:package",
-          "outputs": [
-            "{options.outputPath}"
-          ],
+          "outputs": ["{options.outputPath}"],
           "options": {
             "outputPath": "dist/packages/core",
             "tsConfig": "packages/core/tsconfig.lib.json",
             "project": "packages/core/package.json",
             "entryFile": "packages/core/src/index.ts",
-            "external": [
-              "react/jsx-runtime"
-            ],
+            "external": ["react/jsx-runtime"],
             "rollupConfig": "@nrwl/react/plugins/bundle-rollup",
             "assets": [
               {
@@ -32,16 +28,12 @@
         "lint": {
           "executor": "@nrwl/linter:eslint",
           "options": {
-            "lintFilePatterns": [
-              "packages/core/**/*.{ts,tsx,js,jsx}"
-            ]
+            "lintFilePatterns": ["packages/core/**/*.{ts,tsx,js,jsx}"]
           }
         },
         "test": {
           "executor": "@nrwl/jest:jest",
-          "outputs": [
-            "coverage/packages/core"
-          ],
+          "outputs": ["coverage/packages/core"],
           "options": {
             "jestConfig": "packages/core/jest.config.js",
             "passWithNoTests": true
@@ -56,9 +48,7 @@
       "targets": {
         "build": {
           "executor": "@nrwl/next:build",
-          "outputs": [
-            "{options.outputPath}"
-          ],
+          "outputs": ["{options.outputPath}"],
           "options": {
             "root": "packages/site",
             "outputPath": "dist/packages/site"
@@ -88,9 +78,7 @@
         },
         "test": {
           "executor": "@nrwl/jest:jest",
-          "outputs": [
-            "coverage/packages/site"
-          ],
+          "outputs": ["coverage/packages/site"],
           "options": {
             "jestConfig": "packages/site/jest.config.js",
             "passWithNoTests": true
@@ -99,9 +87,7 @@
         "lint": {
           "executor": "@nrwl/linter:eslint",
           "options": {
-            "lintFilePatterns": [
-              "packages/site/**/*.{ts,tsx,js,jsx}"
-            ]
+            "lintFilePatterns": ["packages/site/**/*.{ts,tsx,js,jsx}"]
           }
         }
       }
@@ -127,9 +113,7 @@
         "lint": {
           "executor": "@nrwl/linter:eslint",
           "options": {
-            "lintFilePatterns": [
-              "packages/site-e2e/**/*.{js,ts}"
-            ]
+            "lintFilePatterns": ["packages/site-e2e/**/*.{js,ts}"]
           }
         }
       }
@@ -141,17 +125,13 @@
       "targets": {
         "build": {
           "executor": "@nrwl/web:package",
-          "outputs": [
-            "{options.outputPath}"
-          ],
+          "outputs": ["{options.outputPath}"],
           "options": {
             "outputPath": "dist/packages/tldraw",
             "tsConfig": "packages/tldraw/tsconfig.lib.json",
             "project": "packages/tldraw/package.json",
             "entryFile": "packages/tldraw/src/index.ts",
-            "external": [
-              "react/jsx-runtime"
-            ],
+            "external": ["react/jsx-runtime"],
             "rollupConfig": "@nrwl/react/plugins/bundle-rollup",
             "assets": [
               {
@@ -165,16 +145,12 @@
         "lint": {
           "executor": "@nrwl/linter:eslint",
           "options": {
-            "lintFilePatterns": [
-              "packages/tldraw/**/*.{ts,tsx,js,jsx}"
-            ]
+            "lintFilePatterns": ["packages/tldraw/**/*.{ts,tsx,js,jsx}"]
           }
         },
         "test": {
           "executor": "@nrwl/jest:jest",
-          "outputs": [
-            "coverage/packages/tldraw"
-          ],
+          "outputs": ["coverage/packages/tldraw"],
           "options": {
             "jestConfig": "packages/tldraw/jest.config.js",
             "passWithNoTests": true

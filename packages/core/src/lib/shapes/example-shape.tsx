@@ -1,10 +1,4 @@
-import {
-  TLShapeUtil,
-  TLShape,
-  TLBounds,
-  TLRenderInfo,
-  TLTransformInfo,
-} from '../types'
+import { TLShapeUtil, TLShape, TLBounds, TLRenderInfo, TLTransformInfo } from '../types'
 import Utils from '../utils'
 
 export class ExampleShape extends TLShapeUtil<TLShape> {
@@ -44,9 +38,7 @@ export class ExampleShape extends TLShapeUtil<TLShape> {
   }
 
   getRotatedBounds(shape: TLShape) {
-    return Utils.getBoundsFromPoints(
-      Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
-    )
+    return Utils.getBoundsFromPoints(Utils.getRotatedCorners(this.getBounds(shape), shape.rotation))
   }
 
   getCenter(shape: TLShape): number[] {
@@ -58,31 +50,17 @@ export class ExampleShape extends TLShapeUtil<TLShape> {
   }
 
   hitTestBounds(shape: TLShape, bounds: TLBounds) {
-    const rotatedCorners = Utils.getRotatedCorners(
-      this.getBounds(shape),
-      shape.rotation
-    )
+    const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
-    return (
-      Utils.boundsContainPolygon(bounds, rotatedCorners) ||
-      Utils.boundsCollidePolygon(bounds, rotatedCorners)
-    )
+    return Utils.boundsContainPolygon(bounds, rotatedCorners) || Utils.boundsCollidePolygon(bounds, rotatedCorners)
   }
 
-  transform(
-    shape: TLShape,
-    bounds: TLBounds,
-    info: TLTransformInfo<TLShape>
-  ): TLShapeUtil<TLShape> {
+  transform(shape: TLShape, bounds: TLBounds, info: TLTransformInfo<TLShape>): TLShapeUtil<TLShape> {
     shape.point = [bounds.minX, bounds.minY]
     return this
   }
 
-  transformSingle(
-    shape: TLShape,
-    bounds: TLBounds,
-    info: TLTransformInfo<TLShape>
-  ): TLShapeUtil<TLShape> {
+  transformSingle(shape: TLShape, bounds: TLBounds, info: TLTransformInfo<TLShape>): TLShapeUtil<TLShape> {
     return this.transform(shape, bounds, info)
   }
 }

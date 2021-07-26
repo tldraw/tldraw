@@ -1,11 +1,6 @@
 /* eslint-disable no-redeclare */
 import * as React from 'react'
-import {
-  TLBezierCurveSegment,
-  TLBounds,
-  TLBoundsCorner,
-  TLBoundsEdge,
-} from '../types'
+import { TLBezierCurveSegment, TLBounds, TLBoundsCorner, TLBoundsEdge } from '../types'
 import { current, isDraft } from 'immer'
 import Intersect from './intersect'
 import vec from './vec'
@@ -36,29 +31,14 @@ export class Utils {
    *```
    */
 
-  static lerpColor(
-    color1: string,
-    color2: string,
-    factor = 0.5
-  ): string | undefined {
+  static lerpColor(color1: string, color2: string, factor = 0.5): string | undefined {
     function h2r(hex: string) {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-      return result
-        ? [
-            parseInt(result[1], 16),
-            parseInt(result[2], 16),
-            parseInt(result[3], 16),
-          ]
-        : null
+      return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : null
     }
 
     function r2h(rgb: number[]) {
-      return (
-        '#' +
-        ((1 << 24) + (rgb[0] << 16) + (rgb[1] << 8) + rgb[2])
-          .toString(16)
-          .slice(1)
-      )
+      return '#' + ((1 << 24) + (rgb[0] << 16) + (rgb[1] << 8) + rgb[2]).toString(16).slice(1)
     }
 
     const c1 = h2r(color1)
@@ -82,21 +62,12 @@ export class Utils {
    * @param rangeB to [low, high]
    * @param clamp
    */
-  static modulate(
-    value: number,
-    rangeA: number[],
-    rangeB: number[],
-    clamp = false
-  ): number {
+  static modulate(value: number, rangeA: number[], rangeB: number[], clamp = false): number {
     const [fromLow, fromHigh] = rangeA
     const [v0, v1] = rangeB
     const result = v0 + ((value - fromLow) / (fromHigh - fromLow)) * (v1 - v0)
 
-    return clamp
-      ? v0 < v1
-        ? Math.max(Math.min(result, v1), v0)
-        : Math.max(Math.min(result, v0), v1)
-      : result
+    return clamp ? (v0 < v1 ? Math.max(Math.min(result, v1), v0) : Math.max(Math.min(result, v0), v1)) : result
   }
 
   /**
@@ -139,9 +110,7 @@ export class Utils {
       Object.keys(clone).forEach(
         (key) =>
           (clone[key] =
-            typeof obj[key as keyof T] === 'object'
-              ? Utils.deepClone(obj[key as keyof T])
-              : obj[key as keyof T])
+            typeof obj[key as keyof T] === 'object' ? Utils.deepClone(obj[key as keyof T]) : obj[key as keyof T]),
       )
 
       return clone as T
@@ -181,10 +150,7 @@ export class Utils {
 
   /* ---------------------- Boxes --------------------- */
 
-  static getRectangleSides(
-    point: number[],
-    size: number[]
-  ): [string, number[][]][] {
+  static getRectangleSides(point: number[], size: number[]): [string, number[][]][] {
     const tl = point
     const tr = vec.add(point, [size[0], 0])
     const br = vec.add(point, size)
@@ -199,16 +165,10 @@ export class Utils {
   }
 
   static getBoundsSides(bounds: TLBounds): [string, number[][]][] {
-    return this.getRectangleSides(
-      [bounds.minX, bounds.minY],
-      [bounds.width, bounds.height]
-    )
+    return this.getRectangleSides([bounds.minX, bounds.minY], [bounds.width, bounds.height])
   }
 
-  static shallowEqual(
-    objA: Record<string, unknown>,
-    objB: Record<string, unknown>
-  ): boolean {
+  static shallowEqual(objA: Record<string, unknown>, objB: Record<string, unknown>): boolean {
     if (objA === objB) return true
 
     if (!objA || !objB) return false
@@ -222,10 +182,7 @@ export class Utils {
     for (let i = 0; i < len; i++) {
       const key = aKeys[i]
 
-      if (
-        objA[key] !== objB[key] ||
-        !Object.prototype.hasOwnProperty.call(objB, key)
-      ) {
+      if (objA[key] !== objB[key] || !Object.prototype.hasOwnProperty.call(objB, key)) {
         return false
       }
     }
@@ -242,12 +199,7 @@ export class Utils {
    * @param P The point.
    * @param side
    */
-  static getCircleTangentToPoint(
-    C: number[],
-    r: number,
-    P: number[],
-    side: number
-  ): number[] | null {
+  static getCircleTangentToPoint(C: number[], r: number, P: number[], side: number): number[] | null {
     const B = vec.lrp(C, P, 0.5)
     const r1 = vec.dist(C, B)
     const delta = vec.sub(B, C)
@@ -276,12 +228,7 @@ export class Utils {
    * @param r1
    * @returns [lx0, ly0, lx1, ly1, rx0, ry0, rx1, ry1]
    */
-  static getOuterTangentsOfCircles(
-    C0: number[],
-    r0: number,
-    C1: number[],
-    r1: number
-  ): number[][] | null {
+  static getOuterTangentsOfCircles(C0: number[], r0: number, C1: number[], r1: number): number[][] | null {
     const a0 = vec.angle(C0, C1)
     const d = vec.dist(C0, C1)
 
@@ -308,11 +255,7 @@ export class Utils {
    * @param r The circle's radius.
    * @param P The point.
    */
-  static getClosestPointOnCircle(
-    C: number[],
-    r: number,
-    P: number[]
-  ): number[] {
+  static getClosestPointOnCircle(C: number[], r: number, P: number[]): number[] {
     const v = vec.sub(C, P)
     return vec.sub(C, vec.mul(vec.div(v, vec.len(v)), r))
   }
@@ -324,26 +267,16 @@ export class Utils {
    * @param C
    * @returns [x, y, r]
    */
-  static circleFromThreePoints(
-    A: number[],
-    B: number[],
-    C: number[]
-  ): number[] {
+  static circleFromThreePoints(A: number[], B: number[], C: number[]): number[] {
     const [x1, y1] = A
     const [x2, y2] = B
     const [x3, y3] = C
 
     const a = x1 * (y2 - y3) - y1 * (x2 - x3) + x2 * y3 - x3 * y2
 
-    const b =
-      (x1 * x1 + y1 * y1) * (y3 - y2) +
-      (x2 * x2 + y2 * y2) * (y1 - y3) +
-      (x3 * x3 + y3 * y3) * (y2 - y1)
+    const b = (x1 * x1 + y1 * y1) * (y3 - y2) + (x2 * x2 + y2 * y2) * (y1 - y3) + (x3 * x3 + y3 * y3) * (y2 - y1)
 
-    const c =
-      (x1 * x1 + y1 * y1) * (x2 - x3) +
-      (x2 * x2 + y2 * y2) * (x3 - x1) +
-      (x3 * x3 + y3 * y3) * (x1 - x2)
+    const c = (x1 * x1 + y1 * y1) * (x2 - x3) + (x2 * x2 + y2 * y2) * (x3 - x1) + (x3 * x3 + y3 * y3) * (x1 - x2)
 
     const x = -b / (2 * a)
 
@@ -488,12 +421,7 @@ export class Utils {
    * @param A
    * @param B
    */
-  static getArcLength(
-    C: number[],
-    r: number,
-    A: number[],
-    B: number[]
-  ): number {
+  static getArcLength(C: number[], r: number, A: number[], B: number[]): number {
     const sweep = Utils.getSweep(C, A, B)
     return r * (2 * Math.PI) * (sweep / (2 * Math.PI))
   }
@@ -506,13 +434,7 @@ export class Utils {
    * @param B
    * @param step
    */
-  static getArcDashOffset(
-    C: number[],
-    r: number,
-    A: number[],
-    B: number[],
-    step: number
-  ): number {
+  static getArcDashOffset(C: number[], r: number, A: number[], B: number[], step: number): number {
     const del0 = Utils.getSweep(C, A, B)
     const len0 = Utils.getArcLength(C, r, A, B)
     const off0 = del0 < 0 ? len0 : 2 * Math.PI * C[2] - len0
@@ -536,10 +458,7 @@ export class Utils {
    * @param points
    * @param tension
    */
-  static getTLBezierCurveSegments(
-    points: number[][],
-    tension = 0.4
-  ): TLBezierCurveSegment[] {
+  static getTLBezierCurveSegments(points: number[][], tension = 0.4): TLBezierCurveSegment[] {
     const len = points.length
     const cpoints: number[][] = [...points]
 
@@ -669,13 +588,7 @@ export class Utils {
    * @param x2
    * @param y2
    */
-  static cubicBezier(
-    tx: number,
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number
-  ): number {
+  static cubicBezier(tx: number, x1: number, y1: number, x2: number, y2: number): number {
     // Inspired by Don Lancaster's two articles
     // http://www.tinaja.com/glib/cubemath.pdf
     // http://www.tinaja.com/text/bezmath.html
@@ -727,7 +640,7 @@ export class Utils {
    */
   static getSpline(
     pts: number[][],
-    k = 0.5
+    k = 0.5,
   ): {
     cp1x: number
     cp1y: number
@@ -774,12 +687,7 @@ export class Utils {
    * @param isClosed
    * @param numOfSegments
    */
-  static getCurvePoints(
-    pts: number[][],
-    tension = 0.5,
-    isClosed = false,
-    numOfSegments = 3
-  ): number[][] {
+  static getCurvePoints(pts: number[][], tension = 0.5, isClosed = false, numOfSegments = 3): number[][] {
     const _pts = [...pts]
     const len = pts.length
     const res: number[][] = [] // results
@@ -864,8 +772,7 @@ export class Utils {
 
       for (let i = 1; i < len - 1; i++) {
         const [x0, y0] = points[i]
-        const d =
-          Math.abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1) / max
+        const d = Math.abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1) / max
 
         if (distance > d) continue
 
@@ -902,13 +809,7 @@ export class Utils {
    * @param rotation
    * @returns
    */
-  static pointInEllipse(
-    A: number[],
-    C: number[],
-    rx: number,
-    ry: number,
-    rotation = 0
-  ): boolean {
+  static pointInEllipse(A: number[], C: number[], rx: number, ry: number, rotation = 0): boolean {
     rotation = rotation || 0
     const cos = Math.cos(rotation)
     const sin = Math.sin(rotation)
@@ -925,12 +826,7 @@ export class Utils {
    * @param size
    */
   static pointInRect(point: number[], size: number[]): boolean {
-    return !(
-      point[0] < size[0] ||
-      point[0] > point[0] + size[0] ||
-      point[1] < size[1] ||
-      point[1] > point[1] + size[1]
-    )
+    return !(point[0] < size[0] || point[0] > point[0] + size[0] || point[1] < size[1] || point[1] > point[1] + size[1])
   }
 
   /* --------------------- Bounds --------------------- */
@@ -972,12 +868,7 @@ export class Utils {
    * @returns
    */
   static boundsCollide(a: TLBounds, b: TLBounds): boolean {
-    return !(
-      a.maxX < b.minX ||
-      a.minX > b.maxX ||
-      a.maxY < b.minY ||
-      a.minY > b.maxY
-    )
+    return !(a.maxX < b.minX || a.minX > b.maxX || a.maxY < b.minY || a.minY > b.maxY)
   }
 
   /**
@@ -987,9 +878,7 @@ export class Utils {
    * @returns
    */
   static boundsContain(a: TLBounds, b: TLBounds): boolean {
-    return (
-      a.minX < b.minX && a.minY < b.minY && a.maxY > b.maxY && a.maxX > b.maxX
-    )
+    return a.minX < b.minX && a.minY < b.minY && a.maxY > b.maxY && a.maxX > b.maxX
   }
 
   /**
@@ -1026,12 +915,7 @@ export class Utils {
    * @returns
    */
   static boundsAreEqual(a: TLBounds, b: TLBounds): boolean {
-    return !(
-      b.maxX !== a.maxX ||
-      b.minX !== a.minX ||
-      b.maxY !== a.maxY ||
-      b.minY !== a.minY
-    )
+    return !(b.maxX !== a.maxX || b.minX !== a.minX || b.maxY !== a.maxY || b.minY !== a.minY)
   }
 
   /**
@@ -1061,9 +945,7 @@ export class Utils {
 
     if (rotation !== 0) {
       return Utils.getBoundsFromPoints(
-        points.map((pt) =>
-          vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], rotation)
-        )
+        points.map((pt) => vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], rotation)),
       )
     }
 
@@ -1100,21 +982,9 @@ export class Utils {
    * @param center
    * @param rotation
    */
-  static rotateBounds(
-    bounds: TLBounds,
-    center: number[],
-    rotation: number
-  ): TLBounds {
-    const [minX, minY] = vec.rotWith(
-      [bounds.minX, bounds.minY],
-      center,
-      rotation
-    )
-    const [maxX, maxY] = vec.rotWith(
-      [bounds.maxX, bounds.maxY],
-      center,
-      rotation
-    )
+  static rotateBounds(bounds: TLBounds, center: number[], rotation: number): TLBounds {
+    const [minX, minY] = vec.rotWith([bounds.minX, bounds.minY], center, rotation)
+    const [maxX, maxY] = vec.rotWith([bounds.maxX, bounds.maxY], center, rotation)
 
     return {
       minX,
@@ -1134,13 +1004,7 @@ export class Utils {
    * @param ry
    * @param rotation
    */
-  static getRotatedEllipseBounds(
-    x: number,
-    y: number,
-    rx: number,
-    ry: number,
-    rotation: number
-  ): TLBounds {
+  static getRotatedEllipseBounds(x: number, y: number, rx: number, ry: number, rotation: number): TLBounds {
     const c = Math.cos(rotation)
     const s = Math.sin(rotation)
     const w = Math.hypot(rx * c, ry * s)
@@ -1205,7 +1069,7 @@ export class Utils {
     handle: TLBoundsCorner | TLBoundsEdge | 'center',
     delta: number[],
     rotation = 0,
-    isAspectRatioLocked = false
+    isAspectRatioLocked = false,
   ): TLBounds & { scaleX: number; scaleY: number } {
     // Create top left and bottom right corners.
     const [ax0, ay0] = [bounds.minX, bounds.minY]
@@ -1352,58 +1216,46 @@ export class Utils {
 
       switch (handle) {
         case TLBoundsCorner.TopLeft: {
-          cv = vec.sub(
-            vec.rotWith([bx1, by1], c1, rotation),
-            vec.rotWith([ax1, ay1], c0, rotation)
-          )
+          cv = vec.sub(vec.rotWith([bx1, by1], c1, rotation), vec.rotWith([ax1, ay1], c0, rotation))
           break
         }
         case TLBoundsCorner.TopRight: {
-          cv = vec.sub(
-            vec.rotWith([bx0, by1], c1, rotation),
-            vec.rotWith([ax0, ay1], c0, rotation)
-          )
+          cv = vec.sub(vec.rotWith([bx0, by1], c1, rotation), vec.rotWith([ax0, ay1], c0, rotation))
           break
         }
         case TLBoundsCorner.BottomRight: {
-          cv = vec.sub(
-            vec.rotWith([bx0, by0], c1, rotation),
-            vec.rotWith([ax0, ay0], c0, rotation)
-          )
+          cv = vec.sub(vec.rotWith([bx0, by0], c1, rotation), vec.rotWith([ax0, ay0], c0, rotation))
           break
         }
         case TLBoundsCorner.BottomLeft: {
-          cv = vec.sub(
-            vec.rotWith([bx1, by0], c1, rotation),
-            vec.rotWith([ax1, ay0], c0, rotation)
-          )
+          cv = vec.sub(vec.rotWith([bx1, by0], c1, rotation), vec.rotWith([ax1, ay0], c0, rotation))
           break
         }
         case TLBoundsEdge.Top: {
           cv = vec.sub(
             vec.rotWith(vec.med([bx0, by1], [bx1, by1]), c1, rotation),
-            vec.rotWith(vec.med([ax0, ay1], [ax1, ay1]), c0, rotation)
+            vec.rotWith(vec.med([ax0, ay1], [ax1, ay1]), c0, rotation),
           )
           break
         }
         case TLBoundsEdge.Left: {
           cv = vec.sub(
             vec.rotWith(vec.med([bx1, by0], [bx1, by1]), c1, rotation),
-            vec.rotWith(vec.med([ax1, ay0], [ax1, ay1]), c0, rotation)
+            vec.rotWith(vec.med([ax1, ay0], [ax1, ay1]), c0, rotation),
           )
           break
         }
         case TLBoundsEdge.Bottom: {
           cv = vec.sub(
             vec.rotWith(vec.med([bx0, by0], [bx1, by0]), c1, rotation),
-            vec.rotWith(vec.med([ax0, ay0], [ax1, ay0]), c0, rotation)
+            vec.rotWith(vec.med([ax0, ay0], [ax1, ay0]), c0, rotation),
           )
           break
         }
         case TLBoundsEdge.Right: {
           cv = vec.sub(
             vec.rotWith(vec.med([bx0, by0], [bx0, by1]), c1, rotation),
-            vec.rotWith(vec.med([ax0, ay0], [ax0, ay1]), c0, rotation)
+            vec.rotWith(vec.med([ax0, ay0], [ax0, ay1]), c0, rotation),
           )
           break
         }
@@ -1443,7 +1295,7 @@ export class Utils {
   static getTransformAnchor(
     type: TLBoundsEdge | TLBoundsCorner,
     isFlippedX: boolean,
-    isFlippedY: boolean
+    isFlippedY: boolean,
   ): TLBoundsCorner | TLBoundsEdge {
     let anchor: TLBoundsCorner | TLBoundsEdge = type
 
@@ -1515,17 +1367,15 @@ export class Utils {
     initialBounds: TLBounds,
     initialShapeBounds: TLBounds,
     isFlippedX: boolean,
-    isFlippedY: boolean
+    isFlippedY: boolean,
   ): TLBounds {
     const nx =
-      (isFlippedX
-        ? initialBounds.maxX - initialShapeBounds.maxX
-        : initialShapeBounds.minX - initialBounds.minX) / initialBounds.width
+      (isFlippedX ? initialBounds.maxX - initialShapeBounds.maxX : initialShapeBounds.minX - initialBounds.minX) /
+      initialBounds.width
 
     const ny =
-      (isFlippedY
-        ? initialBounds.maxY - initialShapeBounds.maxY
-        : initialShapeBounds.minY - initialBounds.minY) / initialBounds.height
+      (isFlippedY ? initialBounds.maxY - initialShapeBounds.maxY : initialShapeBounds.minY - initialBounds.minY) /
+      initialBounds.height
 
     const nw = initialShapeBounds.width / initialBounds.width
     const nh = initialShapeBounds.height / initialBounds.height
@@ -1553,9 +1403,7 @@ export class Utils {
   static getRotatedSize(size: number[], rotation: number): number[] {
     const center = vec.div(size, 2)
 
-    const points = [[0, 0], [size[0], 0], size, [0, size[1]]].map((point) =>
-      vec.rotWith(point, center, rotation)
-    )
+    const points = [[0, 0], [size[0], 0], size, [0, size[1]]].map((point) => vec.rotWith(point, center, rotation))
 
     const bounds = Utils.getBoundsFromPoints(points)
 
@@ -1606,11 +1454,7 @@ export class Utils {
  *```
  */
   // eslint-disable-next-line @typescript-eslint/ban-types
-  static getFromCache<V, I extends object>(
-    cache: WeakMap<I, V>,
-    item: I,
-    getNext: () => V
-  ): V {
+  static getFromCache<V, I extends object>(cache: WeakMap<I, V>, item: I, getNext: () => V): V {
     let value = cache.get(item)
 
     if (value === undefined) {
@@ -1671,11 +1515,7 @@ export class Utils {
    */
   static arrsIntersect<T, K>(a: T[], b: K[], fn?: (item: K) => T): boolean
   static arrsIntersect<T>(a: T[], b: T[]): boolean
-  static arrsIntersect<T>(
-    a: T[],
-    b: unknown[],
-    fn?: (item: unknown) => T
-  ): boolean {
+  static arrsIntersect<T>(a: T[], b: unknown[], fn?: (item: unknown) => T): boolean {
     return a.some((item) => b.includes(fn ? fn(item) : item))
   }
 
@@ -1720,14 +1560,12 @@ export class Utils {
         acc.push(` ${x0},${y0} ${(x0 + x1) / 2},${(y0 + y1) / 2}`)
         return acc
       },
-      ['M ', `${stroke[0][0]},${stroke[0][1]}`, ' Q']
+      ['M ', `${stroke[0][0]},${stroke[0][1]}`, ' Q'],
     )
 
     d.push(' Z')
 
-    return d
-      .join('')
-      .replaceAll(/(\s?[A-Z]?,?-?[0-9]*\.[0-9]{0,2})(([0-9]|e|-)*)/g, '$1')
+    return d.join('').replaceAll(/(\s?[A-Z]?,?-?[0-9]*\.[0-9]{0,2})(([0-9]|e|-)*)/g, '$1')
   }
 
   /* -------------------------------------------------- */
@@ -1738,11 +1576,7 @@ export class Utils {
    * Find whether the current display is a touch display.
    */
   static isTouchDisplay(): boolean {
-    return (
-      'ontouchstart' in window ||
-      navigator.maxTouchPoints > 0 ||
-      navigator.msMaxTouchPoints > 0
-    )
+    return 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0
   }
 
   /**
@@ -1775,7 +1609,7 @@ export class Utils {
    */
   static getClosestPointOnSVGPath(
     pathNode: SVGPathElement,
-    point: number[]
+    point: number[],
   ): {
     point: number[]
     distance: number
@@ -1798,17 +1632,8 @@ export class Utils {
     let al = 0
 
     // linear scan for coarse approximation
-    for (
-      let scan: DOMPoint, scanLen = 0, scanDist: number;
-      scanLen <= pathLen;
-      scanLen += p
-    ) {
-      if (
-        (scanDist = distance2(
-          (scan = pathNode.getPointAtLength(scanLen)),
-          point
-        )) < bestDist
-      ) {
+    for (let scan: DOMPoint, scanLen = 0, scanDist: number; scanLen <= pathLen; scanLen += p) {
+      if ((scanDist = distance2((scan = pathNode.getPointAtLength(scanLen)), point)) < bestDist) {
         best = scan
         bestLen = scanLen
         bestDist = scanDist
@@ -1820,18 +1645,13 @@ export class Utils {
 
     while (p > 0.5) {
       let before: DOMPoint, after: DOMPoint, bd: number, ad: number
-      if (
-        (bl = bestLen - p) >= 0 &&
-        (bd = distance2((before = pathNode.getPointAtLength(bl)), point)) <
-          bestDist
-      ) {
+      if ((bl = bestLen - p) >= 0 && (bd = distance2((before = pathNode.getPointAtLength(bl)), point)) < bestDist) {
         best = before
         bestLen = bl
         bestDist = bd
       } else if (
         (al = bestLen + p) <= pathLen &&
-        (ad = distance2((after = pathNode.getPointAtLength(al)), point)) <
-          bestDist
+        (ad = distance2((after = pathNode.getPointAtLength(al)), point)) < bestDist
       ) {
         best = after
         bestLen = al

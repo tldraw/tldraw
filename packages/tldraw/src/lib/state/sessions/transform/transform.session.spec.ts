@@ -11,9 +11,7 @@ function getSingleBounds(data: Data) {
 
 function getCommonBounds(data: Data) {
   return Utils.getCommonBounds(
-    ...['rect1', 'rect2']
-      .map((id) => data.page.shapes[id])
-      .map((shape) => getShapeUtils(shape).getBounds(shape))
+    ...['rect1', 'rect2'].map((id) => data.page.shapes[id]).map((shape) => getShapeUtils(shape).getBounds(shape)),
   )
 }
 
@@ -31,11 +29,7 @@ describe('Transform session', () => {
   describe('when transforming from the top-left corner', () => {
     it('transforms a single shape', () => {
       const tdata = Utils.deepClone(data)
-      const session = new TransformSession(
-        tdata,
-        TLBoundsCorner.TopLeft,
-        [0, 0]
-      )
+      const session = new TransformSession(tdata, TLBoundsCorner.TopLeft, [0, 0])
       session.update(tdata, [10, 10])
       session.complete(tdata)
 
@@ -51,11 +45,7 @@ describe('Transform session', () => {
 
     it('transforms a single shape while holding shift', () => {
       const tdata = Utils.deepClone(data)
-      const session = new TransformSession(
-        tdata,
-        TLBoundsCorner.TopLeft,
-        [0, 0]
-      )
+      const session = new TransformSession(tdata, TLBoundsCorner.TopLeft, [0, 0])
       session.update(tdata, [20, 10], true)
       session.complete(tdata)
 
@@ -72,11 +62,7 @@ describe('Transform session', () => {
     it('transforms multiple shapes', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['rect1', 'rect2']
-      const session = new TransformSession(
-        tdata,
-        TLBoundsCorner.TopLeft,
-        [0, 0]
-      )
+      const session = new TransformSession(tdata, TLBoundsCorner.TopLeft, [0, 0])
       session.update(tdata, [10, 10])
       session.complete(tdata)
 
@@ -102,11 +88,7 @@ describe('Transform session', () => {
     it('transforms multiple shapes while holding shift', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['rect1', 'rect2']
-      const session = new TransformSession(
-        tdata,
-        TLBoundsCorner.TopLeft,
-        [0, 0]
-      )
+      const session = new TransformSession(tdata, TLBoundsCorner.TopLeft, [0, 0])
       session.update(tdata, [20, 10], true)
       session.complete(tdata)
 

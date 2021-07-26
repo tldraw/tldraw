@@ -66,10 +66,7 @@ class Inputs {
     return info
   }
 
-  pointerDown(
-    e: PointerEvent | React.PointerEvent,
-    target: string
-  ): TLPointerInfo {
+  pointerDown(e: PointerEvent | React.PointerEvent, target: string): TLPointerInfo {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     const info: TLPointerInfo = {
@@ -91,10 +88,7 @@ class Inputs {
     return info
   }
 
-  pointerEnter(
-    e: PointerEvent | React.PointerEvent,
-    target: string
-  ): TLPointerInfo {
+  pointerEnter(e: PointerEvent | React.PointerEvent, target: string): TLPointerInfo {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     const info: TLPointerInfo = {
@@ -113,10 +107,7 @@ class Inputs {
     return info
   }
 
-  pointerMove(
-    e: PointerEvent | React.PointerEvent,
-    target = ''
-  ): TLPointerInfo {
+  pointerMove(e: PointerEvent | React.PointerEvent, target = ''): TLPointerInfo {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     const prev = this.points[e.pointerId]
@@ -142,10 +133,7 @@ class Inputs {
     return info
   }
 
-  pointerUp = (
-    e: PointerEvent | React.PointerEvent,
-    target = ''
-  ): TLPointerInfo => {
+  pointerUp = (e: PointerEvent | React.PointerEvent, target = ''): TLPointerInfo => {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     const prev = this.points[e.pointerId]
@@ -202,10 +190,7 @@ class Inputs {
 
     const { origin, point } = this.pointer
 
-    return (
-      Date.now() - this.pointerUpTime < DOUBLE_CLICK_DURATION &&
-      Vec.dist(origin, point) < 4
-    )
+    return Date.now() - this.pointerUpTime < DOUBLE_CLICK_DURATION && Vec.dist(origin, point) < 4
   }
 
   clear() {
@@ -285,9 +270,7 @@ class Inputs {
     this.keys = {}
   }
 
-  static getPoint(
-    e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent
-  ): number[] {
+  static getPoint(e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent): number[] {
     return [
       Number(e.clientX.toPrecision(5)),
       Number(e.clientY.toPrecision(5)),

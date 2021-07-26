@@ -33,8 +33,7 @@
   },
   "lint-staged": {
     "*.@(ts|tsx)": [
-      "yarn format",
-      "yarn lint"
+      "yarn format --uncommitted"
     ]
   },
   "private": true,

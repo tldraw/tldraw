@@ -12,12 +12,7 @@ interface BoundsProps {
   isLocked: boolean
 }
 
-export function Bounds({
-  zoom,
-  bounds,
-  rotation,
-  isLocked,
-}: BoundsProps): JSX.Element {
+export function Bounds({ zoom, bounds, rotation, isLocked }: BoundsProps): JSX.Element {
   const size = (Utils.isMobile() ? 10 : 8) / zoom // Touch target size
   const center = Utils.getBoundsCenter(bounds)
 
@@ -36,26 +31,10 @@ export function Bounds({
           <EdgeHandle size={size} bounds={bounds} edge={TLBoundsEdge.Right} />
           <EdgeHandle size={size} bounds={bounds} edge={TLBoundsEdge.Bottom} />
           <EdgeHandle size={size} bounds={bounds} edge={TLBoundsEdge.Left} />
-          <CornerHandle
-            size={size}
-            bounds={bounds}
-            corner={TLBoundsCorner.TopLeft}
-          />
-          <CornerHandle
-            size={size}
-            bounds={bounds}
-            corner={TLBoundsCorner.TopRight}
-          />
-          <CornerHandle
-            size={size}
-            bounds={bounds}
-            corner={TLBoundsCorner.BottomRight}
-          />
-          <CornerHandle
-            size={size}
-            bounds={bounds}
-            corner={TLBoundsCorner.BottomLeft}
-          />
+          <CornerHandle size={size} bounds={bounds} corner={TLBoundsCorner.TopLeft} />
+          <CornerHandle size={size} bounds={bounds} corner={TLBoundsCorner.TopRight} />
+          <CornerHandle size={size} bounds={bounds} corner={TLBoundsCorner.BottomRight} />
+          <CornerHandle size={size} bounds={bounds} corner={TLBoundsCorner.BottomLeft} />
           <RotateHandle size={size} bounds={bounds} />
         </>
       )}

@@ -10,21 +10,11 @@ const edgeClassnames = {
 }
 
 export const EdgeHandle = React.memo(
-  ({
-    size,
-    bounds,
-    edge,
-  }: {
-    size: number
-    bounds: TLBounds
-    edge: TLBoundsEdge
-  }): JSX.Element => {
+  ({ size, bounds, edge }: { size: number; bounds: TLBounds; edge: TLBoundsEdge }): JSX.Element => {
     const events = useBoundsEvents(edge)
 
-    const isHorizontal =
-      edge === TLBoundsEdge.Top || edge === TLBoundsEdge.Bottom
-    const isFarEdge =
-      edge === TLBoundsEdge.Right || edge === TLBoundsEdge.Bottom
+    const isHorizontal = edge === TLBoundsEdge.Top || edge === TLBoundsEdge.Bottom
+    const isFarEdge = edge === TLBoundsEdge.Right || edge === TLBoundsEdge.Bottom
 
     const { height, width } = bounds
 
@@ -38,5 +28,5 @@ export const EdgeHandle = React.memo(
         {...events}
       />
     )
-  }
+  },
 )

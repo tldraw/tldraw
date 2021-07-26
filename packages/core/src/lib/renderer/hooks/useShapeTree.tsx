@@ -1,12 +1,4 @@
-import {
-  IShapeTreeNode,
-  TLPage,
-  TLPageState,
-  TLShape,
-  TLBounds,
-  TLShapeUtil,
-  TLShapeUtils,
-} from '../../types'
+import { IShapeTreeNode, TLPage, TLPageState, TLShape, TLBounds, TLShapeUtil, TLShapeUtils } from '../../types'
 import Utils, { Vec } from '../../utils'
 
 function addToShapeTree<T extends TLShape>(
@@ -21,7 +13,7 @@ function addToShapeTree<T extends TLShape>(
     editingId?: string
     editingBindingId?: string
     isDarkMode?: boolean
-  }
+  },
 ) {
   const node = {
     shape,
@@ -40,9 +32,7 @@ function addToShapeTree<T extends TLShape>(
     shape.children
       .map((id) => shapes[id])
       .sort((a, b) => a.childIndex - b.childIndex)
-      .forEach((childShape) =>
-        addToShapeTree(childShape, node.children, shapes, selectedIds, info)
-      )
+      .forEach((childShape) => addToShapeTree(childShape, node.children, shapes, selectedIds, info))
   }
 }
 
@@ -57,7 +47,7 @@ export function useShapeTree<T extends TLShape>(
     editingId?: string
     editingBindingId?: string
     isDarkMode?: boolean
-  } = {}
+  } = {},
 ) {
   if (typeof window === 'undefined') return []
 
@@ -67,10 +57,7 @@ export function useShapeTree<T extends TLShape>(
 
   const [minX, minY] = Vec.sub(Vec.div([0, 0], camera.zoom), camera.point)
 
-  const [maxX, maxY] = Vec.sub(
-    Vec.div([window.innerWidth, window.innerHeight], camera.zoom),
-    camera.point
-  )
+  const [maxX, maxY] = Vec.sub(Vec.div([window.innerWidth, window.innerHeight], camera.zoom), camera.point)
 
   const viewport = {
     minX,
@@ -90,8 +77,7 @@ export function useShapeTree<T extends TLShape>(
 
     return (
       // shapeUtils.alwaysRender? (for lines, rays, etc)
-      Utils.boundsContain(viewport, shapeBounds) ||
-      Utils.boundsCollide(viewport, shapeBounds)
+      Utils.boundsContain(viewport, shapeBounds) || Utils.boundsCollide(viewport, shapeBounds)
     )
   })
 
@@ -100,9 +86,7 @@ export function useShapeTree<T extends TLShape>(
 
   shapesToRender
     .sort((a, b) => a.childIndex - b.childIndex)
-    .forEach((shape) =>
-      addToShapeTree(shape, tree, page.shapes, selectedIds, info)
-    )
+    .forEach((shape) => addToShapeTree(shape, tree, page.shapes, selectedIds, info))
 
   return tree
 }

@@ -35,7 +35,7 @@ export class SessionManager {
   begin(session: BaseSession) {
     if (this.current) {
       throw Error(
-        'Cannot begin a session until the current session is complete. This error indicates a problem with the state chart.'
+        'Cannot begin a session until the current session is complete. This error indicates a problem with the state chart.',
       )
     }
 

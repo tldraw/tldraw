@@ -4,12 +4,7 @@ import { TranslateSnapshot } from '../../sessions'
 import { state } from '../../state'
 import { Command } from '../command'
 
-export function translate(
-  data: Data,
-  before: TranslateSnapshot,
-  after: TranslateSnapshot,
-  isCloning = false
-): void {
+export function translate(data: Data, before: TranslateSnapshot, after: TranslateSnapshot, isCloning = false): void {
   const command = new Command({
     name: 'translate_shapes',
     category: 'canvas',
@@ -31,10 +26,7 @@ export function translate(
               throw Error('Parent has no children array!')
             }
 
-            getShapeUtils(parent).setProperty(parent, 'children', [
-              ...parent.children,
-              clone.id,
-            ])
+            getShapeUtils(parent).setProperty(parent, 'children', [...parent.children, clone.id])
 
             // TODO: Groups
           }
@@ -52,13 +44,13 @@ export function translate(
       // Set selected shapes
       state.setSelectedIds(
         data,
-        initialShapes.map((s) => s.id)
+        initialShapes.map((s) => s.id),
       )
 
       // Update parents
       state.updateParents(
         data,
-        initialShapes.map((s) => s.id)
+        initialShapes.map((s) => s.id),
       )
     },
     undo(data) {
@@ -79,7 +71,7 @@ export function translate(
       // Set selected shapes
       state.setSelectedIds(
         data,
-        initialShapes.map((s) => s.id)
+        initialShapes.map((s) => s.id),
       )
 
       // Restore children on parents
@@ -91,7 +83,7 @@ export function translate(
       // Update parents
       state.updateParents(
         data,
-        initialShapes.map((s) => s.id)
+        initialShapes.map((s) => s.id),
       )
     },
   })

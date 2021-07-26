@@ -13,12 +13,7 @@ export class TransformSingleSession implements BaseSession {
   snapshot: TransformSingleSnapshot
   isCreating: boolean
 
-  constructor(
-    data: Data,
-    transformType: TLBoundsEdge | TLBoundsCorner,
-    point: number[],
-    isCreating = false
-  ) {
+  constructor(data: Data, transformType: TLBoundsEdge | TLBoundsCorner, point: number[], isCreating = false) {
     this.origin = point
     this.transformType = transformType
     this.snapshot = getTransformSingleSnapshot(data, transformType)
@@ -39,9 +34,7 @@ export class TransformSingleSession implements BaseSession {
       transformType,
       Vec.sub(point, this.origin),
       shape.rotation,
-      isAspectRatioLocked ||
-        shape.isAspectRatioLocked ||
-        utils.isAspectRatioLocked
+      isAspectRatioLocked || shape.isAspectRatioLocked || utils.isAspectRatioLocked,
     )
 
     this.scaleX = newBoundingBox.scaleX
@@ -76,10 +69,7 @@ export class TransformSingleSession implements BaseSession {
   }
 }
 
-export function getTransformSingleSnapshot(
-  data: Data,
-  transformType: TLBoundsEdge | TLBoundsCorner
-) {
+export function getTransformSingleSnapshot(data: Data, transformType: TLBoundsEdge | TLBoundsCorner) {
   const shape = data.page.shapes[data.pageState.selectedIds[0]]
 
   if (!shape) {
@@ -97,6 +87,4 @@ export function getTransformSingleSnapshot(
   }
 }
 
-export type TransformSingleSnapshot = ReturnType<
-  typeof getTransformSingleSnapshot
->
+export type TransformSingleSnapshot = ReturnType<typeof getTransformSingleSnapshot>

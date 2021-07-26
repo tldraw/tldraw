@@ -233,17 +233,9 @@ export abstract class TLShapeUtil<T extends TLShape> {
 
   abstract hitTestBounds(shape: T, bounds: TLBounds): boolean
 
-  abstract transform(
-    shape: T,
-    bounds: TLBounds,
-    info: TLTransformInfo<T>
-  ): TLShapeUtil<T>
+  abstract transform(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): TLShapeUtil<T>
 
-  abstract transformSingle(
-    shape: T,
-    bounds: TLBounds,
-    info: TLTransformInfo<T>
-  ): TLShapeUtil<T>
+  abstract transformSingle(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): TLShapeUtil<T>
 
   create(props: Partial<T>): T {
     return { ...this.defaultProps, ...props }
@@ -282,11 +274,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return [bounds.width / 2, bounds.height / 2]
   }
 
-  setProperty<P extends keyof T>(
-    shape: T,
-    prop: P,
-    value: T[P]
-  ): TLShapeUtil<T> {
+  setProperty<P extends keyof T>(shape: T, prop: P, value: T[P]): TLShapeUtil<T> {
     shape[prop] = value
     return this
   }
@@ -295,34 +283,19 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return this
   }
 
-  onBindingChange(
-    shape: T,
-    bindings: Record<string, TLBinding>
-  ): TLShapeUtil<T> {
+  onBindingChange(shape: T, bindings: Record<string, TLBinding>): TLShapeUtil<T> {
     return this
   }
 
-  onHandleChange(
-    shape: T,
-    handle: Partial<T['handles']>,
-    info: TLPointerInfo
-  ): TLShapeUtil<T> {
+  onHandleChange(shape: T, handle: Partial<T['handles']>, info: TLPointerInfo): TLShapeUtil<T> {
     return this
   }
 
-  onRightPointHandle(
-    shape: T,
-    handle: Partial<T['handles']>,
-    info: TLPointerInfo
-  ): TLShapeUtil<T> {
+  onRightPointHandle(shape: T, handle: Partial<T['handles']>, info: TLPointerInfo): TLShapeUtil<T> {
     return this
   }
 
-  onDoublePointHandle(
-    shape: T,
-    handle: Partial<T['handles']>,
-    info: TLPointerInfo
-  ): TLShapeUtil<T> {
+  onDoublePointHandle(shape: T, handle: Partial<T['handles']>, info: TLPointerInfo): TLShapeUtil<T> {
     return this
   }
 

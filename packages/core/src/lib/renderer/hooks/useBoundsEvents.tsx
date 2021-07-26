@@ -4,9 +4,7 @@ import { TLBoundsEdge, TLBoundsCorner } from '../../types'
 
 import { useTLContext } from './useTLContext'
 
-export function useBoundsEvents(
-  handle: TLBoundsEdge | TLBoundsCorner | 'rotate'
-) {
+export function useBoundsEvents(handle: TLBoundsEdge | TLBoundsCorner | 'rotate') {
   const { callbacks } = useTLContext()
 
   const onPointerDown = useCallback(
@@ -25,7 +23,7 @@ export function useBoundsEvents(
         callbacks.onPointBoundsHandle?.(info)
       }
     },
-    [callbacks, handle]
+    [callbacks, handle],
   )
 
   const onPointerMove = useCallback(
@@ -38,7 +36,7 @@ export function useBoundsEvents(
 
       callbacks.onPointerMove?.(info)
     },
-    [callbacks, handle]
+    [callbacks, handle],
   )
 
   const onPointerUp = useCallback(
@@ -53,7 +51,7 @@ export function useBoundsEvents(
       const info = inputs.pointerUp(e, 'bounds')
       callbacks.onStopPointing?.(info)
     },
-    [callbacks]
+    [callbacks],
   )
 
   return { onPointerDown, onPointerMove, onPointerUp }

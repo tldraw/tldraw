@@ -15,12 +15,7 @@ import {
   TLKeyboardInfo,
 } from '@tldraw/core'
 import { Data, TLDrawDocument } from '../types'
-import {
-  TLDrawShape,
-  TLDrawShapeUtils,
-  tldrawShapeUtils,
-  getShapeUtils,
-} from '../shapes'
+import { TLDrawShape, TLDrawShapeUtils, tldrawShapeUtils, getShapeUtils } from '../shapes'
 import { HistoryManager } from './history-manager'
 import { SessionManager } from './session-manager'
 import * as Sessions from './sessions'
@@ -143,10 +138,7 @@ export class TLDrawState {
                           unless: 'isPointedShapeSelected',
                           then: {
                             if: 'isPressingShiftKey',
-                            do: [
-                              'pushPointedIdToSelectedIds',
-                              'clearPointedId',
-                            ],
+                            do: ['pushPointedIdToSelectedIds', 'clearPointedId'],
                             else: ['deselectAll', 'pushPointedIdToSelectedIds'],
                           },
                         },
@@ -167,11 +159,7 @@ export class TLDrawState {
                         },
                         {
                           unless: 'isPressingShiftKey',
-                          do: [
-                            'setCurrentParentId',
-                            'deselectAll',
-                            'pushPointedIdToSelectedIds',
-                          ],
+                          do: ['setCurrentParentId', 'deselectAll', 'pushPointedIdToSelectedIds'],
                           to: 'pointingBounds',
                         },
                       ],
@@ -194,11 +182,7 @@ export class TLDrawState {
                           },
                           else: {
                             if: 'isPointingShape',
-                            do: [
-                              'deselectAll',
-                              'setPointedId',
-                              'pushPointedIdToSelectedIds',
-                            ],
+                            do: ['deselectAll', 'setPointedId', 'pushPointedIdToSelectedIds'],
                           },
                         },
                         { to: 'notPointing' },
@@ -316,9 +300,7 @@ export class TLDrawState {
         return data.pageState.selectedIds.includes(data.pageState.pointedId)
       },
       isPointingBounds(data, payload: TLPointerInfo) {
-        return (
-          data.pageState.selectedIds.length > 0 && payload.target === 'bounds'
-        )
+        return data.pageState.selectedIds.length > 0 && payload.target === 'bounds'
       },
       isPointingCanvas(data, payload: TLPointerInfo) {
         return payload.target === 'canvas'
@@ -327,10 +309,7 @@ export class TLDrawState {
         if (!payload.target) return false
         return payload.target !== 'canvas' && payload.target !== 'bounds'
       },
-      isPointingRotationHandle(
-        _data,
-        payload: { target: TLBoundsEdge | TLBoundsCorner | 'rotate' }
-      ) {
+      isPointingRotationHandle(_data, payload: { target: TLBoundsEdge | TLBoundsCorner | 'rotate' }) {
         return payload.target === 'rotate'
       },
       distanceImpliesDrag(data, payload: TLPointerInfo) {
@@ -367,68 +346,39 @@ export class TLDrawState {
 
       // Translate Session
       startTranslateSession: (data, payload: TLPointerInfo) => {
-        this.session.begin(
-          new Sessions.TranslateSession(
-            data,
-            this.screenToWorld(data, payload.origin)
-          )
-        )
+        this.session.begin(new Sessions.TranslateSession(data, this.screenToWorld(data, payload.origin)))
       },
-      updateTranslateSession: (
-        data,
-        payload: TLPointerInfo | TLKeyboardInfo
-      ) => {
+      updateTranslateSession: (data, payload: TLPointerInfo | TLKeyboardInfo) => {
         this.session.update<Sessions.TranslateSession>(
           data,
           this.screenToWorld(data, payload.point),
           payload.shiftKey,
-          payload.altKey
+          payload.altKey,
         )
       },
 
       // Transform Session
 
-      startTransformSession: (
-        data,
-        payload: TLPointerInfo & { target: TLBoundsCorner | TLBoundsEdge }
-      ) => {
+      startTransformSession: (data, payload: TLPointerInfo & { target: TLBoundsCorner | TLBoundsEdge }) => {
         const point = this.screenToWorld(data, payload.origin)
 
-        this.session.begin(
-          new Sessions.TransformSession(data, payload.target, point)
-        )
+        this.session.begin(new Sessions.TransformSession(data, payload.target, point))
       },
       startDrawTransformSession: (data, payload: TLPointerInfo) => {
         this.session.begin(
-          new Sessions.TransformSession(
-            data,
-            TLBoundsCorner.BottomRight,
-            this.screenToWorld(data, payload.point)
-          )
+          new Sessions.TransformSession(data, TLBoundsCorner.BottomRight, this.screenToWorld(data, payload.point)),
         )
       },
       updateTransformSession: (data, payload: TLPointerInfo) => {
-        this.session.update<Sessions.TransformSession>(
-          data,
-          this.screenToWorld(data, payload.point),
-          payload.shiftKey
-        )
+        this.session.update<Sessions.TransformSession>(data, this.screenToWorld(data, payload.point), payload.shiftKey)
       },
 
       // Brush Session
       startBrushSession: (data, payload: TLPointerInfo) => {
-        this.session.begin(
-          new Sessions.BrushSession(
-            data,
-            this.screenToWorld(data, payload.point)
-          )
-        )
+        this.session.begin(new Sessions.BrushSession(data, this.screenToWorld(data, payload.point)))
       },
       updateBrushSession: (data, payload: TLPointerInfo | TLKeyboardInfo) => {
-        this.session.update<Sessions.BrushSession>(
-          data,
-          this.screenToWorld(data, payload.point)
-        )
+        this.session.update<Sessions.BrushSession>(data, this.screenToWorld(data, payload.point))
 
         brushUpdater.set(data.pageState.brush)
       },
@@ -500,15 +450,9 @@ export class TLDrawState {
       panCamera: (data, payload: { delta: number[] }) => {
         const { camera } = this.getPageState(data)
 
-        camera.point = Vec.sub(
-          camera.point,
-          Vec.div(Vec.div(payload.delta, camera.zoom), camera.zoom)
-        )
+        camera.point = Vec.sub(camera.point, Vec.div(Vec.div(payload.delta, camera.zoom), camera.zoom))
       },
-      pinchCamera: (
-        data,
-        payload: { info: TLPointerInfo; distanceDelta: number }
-      ) => {
+      pinchCamera: (data, payload: { info: TLPointerInfo; distanceDelta: number }) => {
         const camera = this.getCurrentCamera(data)
 
         const delta = Vec.sub(payload.info.point, payload.info.origin)
@@ -598,9 +542,7 @@ export class TLDrawState {
     const delta = Vec.sub(info.point, info.origin)
     let nextPoint = Vec.sub(point, Vec.div(delta, zoom))
 
-    const nextZoom = this.getCameraZoom(
-      zoom - (info.distanceDelta / 300) * zoom
-    )
+    const nextZoom = this.getCameraZoom(zoom - (info.distanceDelta / 300) * zoom)
 
     const p0 = Vec.sub(Vec.div(info.origin, zoom), point)
     const p1 = Vec.sub(Vec.div(info.origin, nextZoom), point)
@@ -622,10 +564,7 @@ export class TLDrawState {
   fastBrush(info: TLPointerInfo) {
     const data = { ...this.data }
 
-    this.session.update<Sessions.BrushSession>(
-      data,
-      this.screenToWorld(data, info.point)
-    )
+    this.session.update<Sessions.BrushSession>(data, this.screenToWorld(data, info.point))
 
     brushUpdater.set(this.data.pageState.brush)
 
@@ -644,7 +583,7 @@ export class TLDrawState {
       data,
       this.screenToWorld(data, info.point),
       info.shiftKey,
-      info.altKey
+      info.altKey,
     )
 
     this.updatePage({ ...data.page })
@@ -653,11 +592,7 @@ export class TLDrawState {
   fastTransform(info: TLPointerInfo) {
     const data = { ...this.data }
 
-    this.session.update<Sessions.TransformSession>(
-      data,
-      this.screenToWorld(data, info.point),
-      info.shiftKey
-    )
+    this.session.update<Sessions.TransformSession>(data, this.screenToWorld(data, info.point), info.shiftKey)
 
     this.updatePage({ ...data.page })
   }
@@ -671,8 +606,7 @@ export class TLDrawState {
     const shape = data.page.shapes[id]
     if (!shape) return id
 
-    return shape.parentId === data.pageState.currentParentId ||
-      shape.parentId === data.page.id
+    return shape.parentId === data.pageState.currentParentId || shape.parentId === data.page.id
       ? id
       : this.getPointedId(data, shape.parentId)
   }
@@ -681,9 +615,7 @@ export class TLDrawState {
     const shape = data.page.shapes[id]
     const { currentParentId, pointedId } = data.pageState
 
-    return shape.parentId === data.page.id ||
-      shape.parentId === pointedId ||
-      shape.parentId === currentParentId
+    return shape.parentId === data.page.id || shape.parentId === pointedId || shape.parentId === currentParentId
       ? id
       : this.getDrilledPointedId(data, shape.parentId)
   }
@@ -695,8 +627,7 @@ export class TLDrawState {
       throw Error(`Shape has the same id as its parent! ${shape.id}`)
     }
 
-    return shape.parentId === data.page.id ||
-      shape.parentId === data.pageState.currentParentId
+    return shape.parentId === data.page.id || shape.parentId === data.pageState.currentParentId
       ? id
       : this.getTopParentId(data, shape.parentId)
   }
@@ -707,30 +638,17 @@ export class TLDrawState {
 
     if (shape.children === undefined) return [id]
 
-    return [
-      id,
-      ...shape.children.flatMap((childId) =>
-        this.getDocumentBranch(data, childId)
-      ),
-    ]
+    return [id, ...shape.children.flatMap((childId) => this.getDocumentBranch(data, childId))]
   }
 
   // Get a deep array of unproxied shapes and their descendants
-  getSelectedBranchSnapshot<K>(
-    data: Data,
-    fn: (shape: TLDrawShape) => K
-  ): ({ id: string } & K)[]
+  getSelectedBranchSnapshot<K>(data: Data, fn: (shape: TLDrawShape) => K): ({ id: string } & K)[]
   getSelectedBranchSnapshot(data: Data): TLDrawShape[]
-  getSelectedBranchSnapshot<K>(
-    data: Data,
-    fn?: (shape: TLDrawShape) => K
-  ): (TLDrawShape | K)[] {
+  getSelectedBranchSnapshot<K>(data: Data, fn?: (shape: TLDrawShape) => K): (TLDrawShape | K)[] {
     const page = this.getPage(data)
 
     const copies = this.getSelectedIds(data)
-      .flatMap((id) =>
-        this.getDocumentBranch(data, id).map((id) => page.shapes[id])
-      )
+      .flatMap((id) => this.getDocumentBranch(data, id).map((id) => page.shapes[id]))
       .filter((shape) => !shape.isLocked)
       .map(Utils.deepClone)
 
@@ -743,14 +661,8 @@ export class TLDrawState {
 
   // Get a shallow array of unproxied shapes
   getSelectedShapeSnapshot(data: Data): TLDrawShape[]
-  getSelectedShapeSnapshot<K>(
-    data: Data,
-    fn?: (shape: TLDrawShape) => K
-  ): ({ id: string } & K)[]
-  getSelectedShapeSnapshot<K>(
-    data: Data,
-    fn?: (shape: TLDrawShape) => K
-  ): (TLDrawShape | K)[] {
+  getSelectedShapeSnapshot<K>(data: Data, fn?: (shape: TLDrawShape) => K): ({ id: string } & K)[]
+  getSelectedShapeSnapshot<K>(data: Data, fn?: (shape: TLDrawShape) => K): (TLDrawShape | K)[] {
     const copies = this.getSelectedShapes(data)
       .filter((shape) => !shape.isLocked)
       .map(Utils.deepClone)
@@ -787,10 +699,7 @@ export class TLDrawState {
     return nextIndex
   }
 
-  getTopChildIndex(
-    data: Data,
-    parent: TLDrawShape | TLPage<TLDrawShape>
-  ): number {
+  getTopChildIndex(data: Data, parent: TLDrawShape | TLPage<TLDrawShape>): number {
     const page = this.getPage(data)
 
     // If the parent is a shape, return either 1 (if no other shapes) or the
@@ -800,9 +709,7 @@ export class TLDrawState {
 
       if (children.length === 0) return 1
 
-      return (
-        children.sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
-      )
+      return children.sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
     }
 
     // If the shape is a regular shape that can accept children, return either
@@ -811,16 +718,10 @@ export class TLDrawState {
 
     if (parent.children.length === 0) return 1
 
-    return (
-      parent.children
-        .map((id) => page.shapes[id])
-        .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
-    )
+    return parent.children.map((id) => page.shapes[id]).sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
   }
 
-  assertParentShape(
-    shape: TLDrawShape
-  ): asserts shape is TLDrawShape & { children: string[] } {
+  assertParentShape(shape: TLDrawShape): asserts shape is TLDrawShape & { children: string[] } {
     if (!('children' in shape)) {
       throw new Error(`That shape was not a parent (it was a ${shape.type}).`)
     }
@@ -839,9 +740,9 @@ export class TLDrawState {
 
     const { shapes } = this.getPage(data)
 
-    const parentToUpdateIds = Array.from(
-      new Set(changedShapeIds.map((id) => shapes[id].parentId).values())
-    ).filter((id) => id !== data.page.id)
+    const parentToUpdateIds = Array.from(new Set(changedShapeIds.map((id) => shapes[id].parentId).values())).filter(
+      (id) => id !== data.page.id,
+    )
 
     for (const parentId of parentToUpdateIds) {
       const parent = shapes[parentId]
@@ -852,7 +753,7 @@ export class TLDrawState {
 
       getShapeUtils(parent).onChildrenChange(
         parent,
-        parent.children.map((id) => shapes[id])
+        parent.children.map((id) => shapes[id]),
       )
 
       shapes[parentId] = { ...parent }
@@ -861,15 +762,9 @@ export class TLDrawState {
     this.updateParents(data, parentToUpdateIds)
   }
 
-  deleteShapes(
-    data: Data,
-    shapeIds: string[] | TLDrawShape[],
-    shapesDeleted: TLDrawShape[] = []
-  ): TLDrawShape[] {
+  deleteShapes(data: Data, shapeIds: string[] | TLDrawShape[], shapesDeleted: TLDrawShape[] = []): TLDrawShape[] {
     const ids =
-      typeof shapeIds[0] === 'string'
-        ? (shapeIds as string[])
-        : (shapeIds as TLDrawShape[]).map((shape) => shape.id)
+      typeof shapeIds[0] === 'string' ? (shapeIds as string[]) : (shapeIds as TLDrawShape[]).map((shape) => shape.id)
 
     const parentsToDelete: string[] = []
 
@@ -897,11 +792,11 @@ export class TLDrawState {
         .setProperty(
           parent,
           'children',
-          parent.children!.filter((childId) => !ids.includes(childId))
+          parent.children!.filter((childId) => !ids.includes(childId)),
         )
         .onChildrenChange(
           parent,
-          parent.children!.map((id) => page.shapes[id])
+          parent.children!.map((id) => page.shapes[id]),
         )
 
       if (utils.shouldDelete(parent)) {
@@ -920,11 +815,7 @@ export class TLDrawState {
 
           getShapeUtils(child)
             .setProperty(child, 'parentId', parent.parentId)
-            .setProperty(
-              child,
-              'childIndex',
-              Utils.lerp(parent.childIndex, nextIndex, i / len)
-            )
+            .setProperty(child, 'childIndex', Utils.lerp(parent.childIndex, nextIndex, i / len))
         })
 
         if (parent.parentId !== page.id) {
@@ -938,7 +829,7 @@ export class TLDrawState {
             .setProperty(grandParent, 'children', [...parent.children!])
             .onChildrenChange(
               grandParent,
-              grandParent.children!.map((id) => page.shapes[id])
+              grandParent.children!.map((id) => page.shapes[id]),
             )
         }
 
@@ -973,10 +864,7 @@ export class TLDrawState {
 
   getViewport(data: Data): TLBounds {
     const [minX, minY] = this.screenToWorld(data, [0, 0])
-    const [maxX, maxY] = this.screenToWorld(data, [
-      window.innerWidth,
-      window.innerHeight,
-    ])
+    const [maxX, maxY] = this.screenToWorld(data, [window.innerWidth, window.innerHeight])
 
     return {
       minX,
@@ -1024,10 +912,7 @@ export class TLDrawState {
     return data.pageState.camera
   }
 
-  getShape<T extends TLDrawShape = TLDrawShape>(
-    data: Data,
-    shapeId: string
-  ): T {
+  getShape<T extends TLDrawShape = TLDrawShape>(data: Data, shapeId: string): T {
     return data.page.shapes[shapeId] as T
   }
 

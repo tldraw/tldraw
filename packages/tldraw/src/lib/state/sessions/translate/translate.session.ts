@@ -17,12 +17,7 @@ export class TranslateSession implements BaseSession {
     this.snapshot = getTranslateSnapshot(data)
   }
 
-  update(
-    data: Data,
-    point: number[],
-    isAligned = false,
-    isCloning = false
-  ): void {
+  update(data: Data, point: number[], isAligned = false, isCloning = false): void {
     const { clones, initialShapes, initialParents } = this.snapshot
     const { shapes } = data.page
 
@@ -66,10 +61,7 @@ export class TranslateSession implements BaseSession {
 
           if (!(parent && parent.children)) continue
 
-          getShapeUtils(parent).setProperty(parent, 'children', [
-            ...parent.children,
-            shape.id,
-          ])
+          getShapeUtils(parent).setProperty(parent, 'children', [...parent.children, shape.id])
 
           shapes[shape.parentId] = { ...parent }
         }
@@ -85,7 +77,7 @@ export class TranslateSession implements BaseSession {
 
       state.updateParents(
         data,
-        clones.map((c) => c.id)
+        clones.map((c) => c.id),
       )
       return
     }
@@ -128,7 +120,7 @@ export class TranslateSession implements BaseSession {
 
     state.updateParents(
       data,
-      initialShapes.map((s) => s.id)
+      initialShapes.map((s) => s.id),
     )
   }
 
@@ -154,7 +146,7 @@ export class TranslateSession implements BaseSession {
 
     state.updateParents(
       data,
-      initialShapes.map((s) => s.id)
+      initialShapes.map((s) => s.id),
     )
   }
 
@@ -165,12 +157,10 @@ export class TranslateSession implements BaseSession {
       Utils.deepClone({
         ...data.page.shapes[shape.id],
         ...shape,
-      })
+      }),
     )
 
-    const after = data.pageState.selectedIds.map((id) =>
-      Utils.deepClone(data.page.shapes[id])
-    )
+    const after = data.pageState.selectedIds.map((id) => Utils.deepClone(data.page.shapes[id]))
 
     mutate(data, before, after, 'translating shapes')
 
@@ -192,9 +182,7 @@ export function getTranslateSnapshot(data: Data) {
 
   const hasUnlockedShapes = selectedShapes.length > 0
 
-  const initialParents = Array.from(
-    new Set(selectedShapes.map((s) => s.parentId)).values()
-  )
+  const initialParents = Array.from(new Set(selectedShapes.map((s) => s.parentId)).values())
     .filter((id) => id !== data.page.id)
     .map((id) => {
       const shape = page.shapes[id]

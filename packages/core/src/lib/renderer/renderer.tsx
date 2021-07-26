@@ -1,19 +1,9 @@
-import {
-  TLShape,
-  TLPage,
-  TLPageState,
-  TLSettings,
-  TLCallbacks,
-  TLShapeUtils,
-  TLTheme,
-} from '../types'
+import { TLShape, TLPage, TLPageState, TLSettings, TLCallbacks, TLShapeUtils, TLTheme } from '../types'
 import { Canvas } from './components/canvas'
 import { useTLTheme } from './hooks/useStyle'
 import { TLContext } from './hooks/useTLContext'
 
-export interface RendererProps<T extends TLShape>
-  extends Partial<TLSettings>,
-    Partial<TLCallbacks> {
+export interface RendererProps<T extends TLShape> extends Partial<TLSettings>, Partial<TLCallbacks> {
   shapeUtils: TLShapeUtils<T>
   page: TLPage<T>
   pageState: TLPageState

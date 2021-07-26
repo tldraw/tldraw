@@ -34,17 +34,7 @@ export class Svg {
   }
 
   static arcTo = (C: number[], r: number, A: number[], B: number[]): string => {
-    return [
-      Svg.moveTo(A),
-      'A',
-      r,
-      r,
-      0,
-      Utils.getSweep(C, A, B) > 0 ? '1' : '0',
-      0,
-      B[0],
-      B[1],
-    ].join(' ')
+    return [Svg.moveTo(A), 'A', r, r, 0, Utils.getSweep(C, A, B) > 0 ? '1' : '0', 0, B[0], B[1]].join(' ')
   }
 
   static closePath = (): string => {
@@ -55,10 +45,7 @@ export class Svg {
     return ['R', A[0], A[1]].join(' ')
   }
 
-  static getPointAtLength = (
-    path: SVGPathElement,
-    length: number
-  ): number[] => {
+  static getPointAtLength = (path: SVGPathElement, length: number): number[] => {
     const point = path.getPointAtLength(length)
     return [point.x, point.y]
   }

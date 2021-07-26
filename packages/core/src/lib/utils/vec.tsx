@@ -241,10 +241,7 @@ export class Vec {
    * @param r rotation in radians
    */
   static rot = (A: number[], r: number): number[] => {
-    return [
-      A[0] * Math.cos(r) - A[1] * Math.sin(r),
-      A[0] * Math.sin(r) + A[1] * Math.cos(r),
-    ]
+    return [A[0] * Math.cos(r) - A[1] * Math.sin(r), A[0] * Math.sin(r) + A[1] * Math.cos(r)]
   }
 
   /**
@@ -295,13 +292,7 @@ export class Vec {
    * @param to Ending value
    * @param s Strength
    */
-  static int = (
-    A: number[],
-    B: number[],
-    from: number,
-    to: number,
-    s = 1
-  ): number[] => {
+  static int = (A: number[], B: number[], from: number, to: number, s = 1): number[] => {
     const t = (Vec.clamp(from, to) - from) / (to - from)
     return Vec.add(Vec.mul(A, 1 - t), Vec.mul(B, s))
   }
@@ -402,11 +393,7 @@ export class Vec {
    * @param P A point not on the line to test.
    * @returns
    */
-  static nearestPointOnLineThroughPoint = (
-    A: number[],
-    u: number[],
-    P: number[]
-  ): number[] => {
+  static nearestPointOnLineThroughPoint = (A: number[], u: number[], P: number[]): number[] => {
     return Vec.add(A, Vec.mul(u, Vec.pry(Vec.sub(P, A), u)))
   }
 
@@ -417,11 +404,7 @@ export class Vec {
    * @param P A point not on the line to test.
    * @returns
    */
-  static distanceToLineThroughPoint = (
-    A: number[],
-    u: number[],
-    P: number[]
-  ): number => {
+  static distanceToLineThroughPoint = (A: number[], u: number[], P: number[]): number => {
     return Vec.dist(P, Vec.nearestPointOnLineThroughPoint(A, u, P))
   }
 
@@ -433,12 +416,7 @@ export class Vec {
    * @param clamp Whether to clamp the point between A and B.
    * @returns
    */
-  static nearestPointOnLineSegment = (
-    A: number[],
-    B: number[],
-    P: number[],
-    clamp = true
-  ): number[] => {
+  static nearestPointOnLineSegment = (A: number[], B: number[], P: number[], clamp = true): number[] => {
     const delta = Vec.sub(B, A)
     const length = Vec.len(delta)
     const u = Vec.div(delta, length)
@@ -464,12 +442,7 @@ export class Vec {
    * @param clamp Whether to clamp the point between A and B.
    * @returns
    */
-  static distanceToLineSegment = (
-    A: number[],
-    B: number[],
-    P: number[],
-    clamp = true
-  ): number => {
+  static distanceToLineSegment = (A: number[], B: number[], P: number[], clamp = true): number => {
     return Vec.dist(P, Vec.nearestPointOnLineSegment(A, B, P, clamp))
   }
 

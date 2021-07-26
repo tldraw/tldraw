@@ -73,7 +73,7 @@ export function getBrushSnapshot(data: Data) {
           shape.children !== undefined ||
           selectedIds.includes(shape.id) ||
           selectedIds.includes(shape.parentId)
-        )
+        ),
     )
     .map((shape) => ({
       id: shape.id,

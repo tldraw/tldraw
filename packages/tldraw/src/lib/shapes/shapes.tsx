@@ -14,9 +14,6 @@ export function getShapeUtils<T extends TLDrawShape>(shape: T): TLShapeUtil<T> {
   return tldrawShapeUtils[shape.type as T['type']] as TLShapeUtil<T>
 }
 
-export function createShape<TLDrawShape>(
-  type: string,
-  props: Partial<TLDrawShape>
-) {
+export function createShape<TLDrawShape>(type: string, props: Partial<TLDrawShape>) {
   return tldrawShapeUtils[type].create(props)
 }

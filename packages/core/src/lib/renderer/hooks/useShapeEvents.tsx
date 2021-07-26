@@ -3,11 +3,7 @@ import { inputs } from '../../inputs'
 import { Vec } from '../../utils'
 import { useTLContext } from './useTLContext'
 
-export function useShapeEvents(
-  id: string,
-  isCurrentParent: boolean,
-  rGroup: React.RefObject<SVGElement>
-) {
+export function useShapeEvents(id: string, isCurrentParent: boolean, rGroup: React.RefObject<SVGElement>) {
   const { callbacks } = useTLContext()
 
   const handlePointerDown = React.useCallback(
@@ -30,7 +26,7 @@ export function useShapeEvents(
         callbacks.onRightPointShape?.(info)
       }
     },
-    [rGroup, callbacks, id, isCurrentParent]
+    [rGroup, callbacks, id, isCurrentParent],
   )
 
   const handlePointerUp = React.useCallback(
@@ -45,7 +41,7 @@ export function useShapeEvents(
 
       callbacks.onStopPointing?.(info)
     },
-    [rGroup, callbacks, id, isCurrentParent]
+    [rGroup, callbacks, id, isCurrentParent],
   )
 
   const handlePointerEnter = React.useCallback(
@@ -56,7 +52,7 @@ export function useShapeEvents(
 
       callbacks.onHoverShape?.(inputs.pointerEnter(e, id))
     },
-    [callbacks, id, isCurrentParent]
+    [callbacks, id, isCurrentParent],
   )
 
   const handlePointerMove = React.useCallback(
@@ -81,7 +77,7 @@ export function useShapeEvents(
 
       callbacks.onMoveOverShape?.(inputs.pointerEnter(e, id))
     },
-    [callbacks, id, isCurrentParent]
+    [callbacks, id, isCurrentParent],
   )
 
   const handlePointerLeave = React.useCallback(
@@ -94,7 +90,7 @@ export function useShapeEvents(
         callbacks.onUnhoverShape?.(inputs.pointerEnter(e, id))
       }, 0)
     },
-    [callbacks, id, isCurrentParent]
+    [callbacks, id, isCurrentParent],
   )
 
   const handleTouchStart = React.useCallback((e: React.TouchEvent) => {

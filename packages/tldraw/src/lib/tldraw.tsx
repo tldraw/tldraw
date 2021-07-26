@@ -1,12 +1,5 @@
 import * as React from 'react'
-import {
-  Renderer,
-  TLCallbacks,
-  TLPage,
-  TLPageState,
-  TLPointerInfo,
-  RendererProps,
-} from '@tldraw/core'
+import { Renderer, TLCallbacks, TLPage, TLPageState, TLPointerInfo, RendererProps } from '@tldraw/core'
 import { StatusBar } from './components/status-bar'
 import { TLDrawShape, tldrawShapeUtils } from './shapes'
 import { state, TLDrawState, useSelector } from './state'
@@ -94,12 +87,7 @@ export function TLDraw({ document, onMount }: TLDrawProps) {
 
   return (
     <>
-      <Renderer
-        page={page}
-        pageState={pageState}
-        shapeUtils={tldrawShapeUtils}
-        {...events}
-      />
+      <Renderer page={page} pageState={pageState} shapeUtils={tldrawShapeUtils} {...events} />
       <StatusBar />
     </>
   )

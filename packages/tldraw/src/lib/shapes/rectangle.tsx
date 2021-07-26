@@ -1,18 +1,6 @@
-import {
-  TLShapeUtil,
-  TLBounds,
-  TLShape,
-  Utils,
-  Vec,
-  TLTransformInfo,
-  TLRenderInfo,
-} from '@tldraw/core'
+import { TLShapeUtil, TLBounds, TLShape, Utils, Vec, TLTransformInfo, TLRenderInfo } from '@tldraw/core'
 import getStroke from 'perfect-freehand'
-import {
-  getPerfectDashProps,
-  defaultStyle,
-  getShapeStyle,
-} from './shape-styles'
+import { getPerfectDashProps, defaultStyle, getShapeStyle } from './shape-styles'
 import { RectangleShape, DashStyle } from './shape-types'
 
 export class Rectangle extends TLShapeUtil<RectangleShape> {
@@ -39,9 +27,7 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
     const strokeWidth = +styles.strokeWidth
 
     if (style.dash === DashStyle.Draw) {
-      const pathData = Utils.getFromCache(this.pathCache, shape.size, () =>
-        renderPath(shape)
-      )
+      const pathData = Utils.getFromCache(this.pathCache, shape.size, () => renderPath(shape))
 
       return (
         <>
@@ -81,11 +67,7 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
     ]
 
     const paths = strokes.map(([start, end, length], i) => {
-      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-        length,
-        sw,
-        shape.style.dash
-      )
+      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(length, sw, shape.style.dash)
 
       return (
         <line
@@ -139,9 +121,7 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
   }
 
   getRotatedBounds(shape: RectangleShape) {
-    return Utils.getBoundsFromPoints(
-      Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
-    )
+    return Utils.getBoundsFromPoints(Utils.getRotatedCorners(this.getBounds(shape), shape.rotation))
   }
 
   getCenter(shape: RectangleShape): number[] {
@@ -153,42 +133,25 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
   }
 
   hitTestBounds(shape: RectangleShape, bounds: TLBounds) {
-    const rotatedCorners = Utils.getRotatedCorners(
-      this.getBounds(shape),
-      shape.rotation
-    )
+    const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
-    return (
-      Utils.boundsContainPolygon(bounds, rotatedCorners) ||
-      Utils.boundsCollidePolygon(bounds, rotatedCorners)
-    )
+    return Utils.boundsContainPolygon(bounds, rotatedCorners) || Utils.boundsCollidePolygon(bounds, rotatedCorners)
   }
 
   transform(
     shape: RectangleShape,
     bounds: TLBounds,
-    {
-      initialShape,
-      transformOrigin,
-      scaleX,
-      scaleY,
-    }: TLTransformInfo<RectangleShape>
+    { initialShape, transformOrigin, scaleX, scaleY }: TLTransformInfo<RectangleShape>,
   ) {
     if (!shape.rotation && !shape.isAspectRatioLocked) {
       shape.size = Vec.round([bounds.width, bounds.height])
       shape.point = Vec.round([bounds.minX, bounds.minY])
     } else {
-      shape.size = Vec.round(
-        Vec.mul(initialShape.size, Math.min(Math.abs(scaleX), Math.abs(scaleY)))
-      )
+      shape.size = Vec.round(Vec.mul(initialShape.size, Math.min(Math.abs(scaleX), Math.abs(scaleY))))
 
       shape.point = Vec.round([
-        bounds.minX +
-          (bounds.width - shape.size[0]) *
-            (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
-        bounds.minY +
-          (bounds.height - shape.size[1]) *
-            (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
+        bounds.minX + (bounds.width - shape.size[0]) * (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
+        bounds.minY + (bounds.height - shape.size[1]) * (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
       ])
 
       shape.rotation =
@@ -202,11 +165,7 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
     return this
   }
 
-  transformSingle(
-    shape: RectangleShape,
-    bounds: TLBounds,
-    info: TLTransformInfo<RectangleShape>
-  ) {
+  transformSingle(shape: RectangleShape, bounds: TLBounds, info: TLTransformInfo<RectangleShape>) {
     shape.size = Vec.round([bounds.width, bounds.height])
     shape.point = Vec.round([bounds.minX, bounds.minY])
     return this
@@ -224,10 +183,7 @@ function renderPath(shape: RectangleShape) {
 
   const baseOffset = strokeWidth / 2
 
-  const offsets = Array.from(Array(4)).map(() => [
-    getRandom() * baseOffset,
-    getRandom() * baseOffset,
-  ])
+  const offsets = Array.from(Array(4)).map(() => [getRandom() * baseOffset, getRandom() * baseOffset])
 
   const sw = strokeWidth
 
@@ -240,26 +196,18 @@ function renderPath(shape: RectangleShape) {
   const bl = Vec.add([sw / 2, h], offsets[3])
 
   const lines = Utils.shuffleArr(
-    [
-      Vec.pointsBetween(tr, br),
-      Vec.pointsBetween(br, bl),
-      Vec.pointsBetween(bl, tl),
-      Vec.pointsBetween(tl, tr),
-    ],
-    Math.floor(5 + getRandom() * 4)
+    [Vec.pointsBetween(tr, br), Vec.pointsBetween(br, bl), Vec.pointsBetween(bl, tl), Vec.pointsBetween(tl, tr)],
+    Math.floor(5 + getRandom() * 4),
   )
 
-  const stroke = getStroke(
-    [...lines.flat().slice(2), ...lines[0], ...lines[0].slice(4)],
-    {
-      size: 1 + +styles.strokeWidth,
-      thinning: 0.6,
-      easing: (t) => t * t * t * t,
-      end: { taper: +styles.strokeWidth * 20 },
-      start: { taper: +styles.strokeWidth * 20 },
-      simulatePressure: false,
-    }
-  )
+  const stroke = getStroke([...lines.flat().slice(2), ...lines[0], ...lines[0].slice(4)], {
+    size: 1 + +styles.strokeWidth,
+    thinning: 0.6,
+    easing: (t) => t * t * t * t,
+    end: { taper: +styles.strokeWidth * 20 },
+    start: { taper: +styles.strokeWidth * 20 },
+    simulatePressure: false,
+  })
 
   return Utils.getSvgPathFromStroke(stroke)
 }

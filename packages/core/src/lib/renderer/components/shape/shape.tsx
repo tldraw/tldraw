@@ -16,15 +16,7 @@ interface ShapeProps {
 }
 
 export const Shape = React.memo(
-  ({
-    shape,
-    isEditing,
-    isHovered,
-    isSelected,
-    isBinding,
-    isDarkMode,
-    isCurrentParent,
-  }: ShapeProps) => {
+  ({ shape, isEditing, isHovered, isSelected, isBinding, isDarkMode, isCurrentParent }: ShapeProps) => {
     const { shapeUtils } = useTLContext()
     const rGroup = React.useRef<SVGGElement>(null)
     const events = useShapeEvents(shape.id, isCurrentParent, rGroup)
@@ -36,11 +28,7 @@ export const Shape = React.memo(
 
     return (
       <g
-        className={
-          isCurrentParent
-            ? 'tl-shape-group tl-current-parent'
-            : 'tl-shape-group'
-        }
+        className={isCurrentParent ? 'tl-shape-group tl-current-parent' : 'tl-shape-group'}
         ref={rGroup}
         id={shape.id}
         transform={transform}
@@ -73,5 +61,5 @@ export const Shape = React.memo(
       </g>
     )
   },
-  Utils.shallowEqual
+  Utils.shallowEqual,
 )

@@ -14,7 +14,7 @@ export function useHandleEvents(id: string, rGroup: RefObject<SVGElement>) {
 
       callbacks.onPointHandle?.(info)
     },
-    [rGroup, callbacks, id]
+    [rGroup, callbacks, id],
   )
 
   const handlePointerUp = useCallback(
@@ -31,7 +31,7 @@ export function useHandleEvents(id: string, rGroup: RefObject<SVGElement>) {
         callbacks.onStopPointing?.(info)
       }
     },
-    [rGroup, callbacks, id]
+    [rGroup, callbacks, id],
   )
 
   const handlePointerEnter = useCallback(
@@ -40,7 +40,7 @@ export function useHandleEvents(id: string, rGroup: RefObject<SVGElement>) {
 
       callbacks.onHoverHandle?.(inputs.pointerEnter(e, id))
     },
-    [callbacks, id]
+    [callbacks, id],
   )
 
   const handlePointerMove = useCallback(
@@ -48,7 +48,7 @@ export function useHandleEvents(id: string, rGroup: RefObject<SVGElement>) {
       if (!inputs.canAccept(e.pointerId)) return
       callbacks.onMoveOverHandle?.(inputs.pointerEnter(e, id))
     },
-    [callbacks, id]
+    [callbacks, id],
   )
 
   const handlePointerLeave = useCallback(
@@ -56,7 +56,7 @@ export function useHandleEvents(id: string, rGroup: RefObject<SVGElement>) {
       if (!inputs.canAccept(e.pointerId)) return
       callbacks.onUnhoverHandle?.(inputs.pointerEnter(e, id))
     },
-    [callbacks, id]
+    [callbacks, id],
   )
 
   return {

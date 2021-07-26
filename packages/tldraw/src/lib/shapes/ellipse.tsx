@@ -1,10 +1,4 @@
-import {
-  TLShapeUtil,
-  TLShape,
-  Utils,
-  TLTransformInfo,
-  TLBounds,
-} from '@tldraw/core'
+import { TLShapeUtil, TLShape, Utils, TLTransformInfo, TLBounds } from '@tldraw/core'
 import { EllipseShape } from './shape-types'
 
 export class Ellipse extends TLShapeUtil<EllipseShape> {
@@ -25,9 +19,7 @@ export class Ellipse extends TLShapeUtil<EllipseShape> {
     const {
       radius: [rx, ry],
     } = shape
-    return (
-      <ellipse cx={rx} cy={ry} rx={rx} ry={ry} fill="none" stroke="black" />
-    )
+    return <ellipse cx={rx} cy={ry} rx={rx} ry={ry} fill="none" stroke="black" />
   }
 
   getBounds(shape: EllipseShape) {
@@ -48,9 +40,7 @@ export class Ellipse extends TLShapeUtil<EllipseShape> {
   }
 
   getRotatedBounds(shape: EllipseShape) {
-    return Utils.getBoundsFromPoints(
-      Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
-    )
+    return Utils.getBoundsFromPoints(Utils.getRotatedCorners(this.getBounds(shape), shape.rotation))
   }
 
   getCenter(shape: EllipseShape): number[] {
@@ -62,31 +52,17 @@ export class Ellipse extends TLShapeUtil<EllipseShape> {
   }
 
   hitTestBounds(shape: EllipseShape, bounds: TLBounds) {
-    const rotatedCorners = Utils.getRotatedCorners(
-      this.getBounds(shape),
-      shape.rotation
-    )
+    const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
-    return (
-      Utils.boundsContainPolygon(bounds, rotatedCorners) ||
-      Utils.boundsCollidePolygon(bounds, rotatedCorners)
-    )
+    return Utils.boundsContainPolygon(bounds, rotatedCorners) || Utils.boundsCollidePolygon(bounds, rotatedCorners)
   }
 
-  transform(
-    shape: TLShape,
-    bounds: TLBounds,
-    info: TLTransformInfo<EllipseShape>
-  ) {
+  transform(shape: TLShape, bounds: TLBounds, info: TLTransformInfo<EllipseShape>) {
     shape.point = [bounds.minX, bounds.minY]
     return this
   }
 
-  transformSingle(
-    shape: TLShape,
-    bounds: TLBounds,
-    info: TLTransformInfo<EllipseShape>
-  ) {
+  transformSingle(shape: TLShape, bounds: TLBounds, info: TLTransformInfo<EllipseShape>) {
     return this.transform(shape, bounds, info)
   }
 }

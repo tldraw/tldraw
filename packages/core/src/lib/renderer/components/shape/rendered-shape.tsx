@@ -43,5 +43,5 @@ export const RenderedShape = React.memo(
     }
 
     return true
-  }
+  },
 )

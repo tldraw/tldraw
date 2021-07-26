@@ -22,19 +22,13 @@ describe('selection', () => {
   })
 
   it('shift-selects to deselect shapes', () => {
-    tt.deselectAll()
-      .clickShape('rect1')
-      .clickShape('rect2', { shiftKey: true })
-      .clickShape('rect1', { shiftKey: true })
+    tt.deselectAll().clickShape('rect1').clickShape('rect2', { shiftKey: true }).clickShape('rect1', { shiftKey: true })
 
     expect(tt.idsAreSelected(['rect2'])).toBe(true)
   })
 
   it('single-selects shape in selection on click', () => {
-    tt.deselectAll()
-      .clickShape('rect1')
-      .clickShape('rect2', { shiftKey: true })
-      .clickShape('rect2')
+    tt.deselectAll().clickShape('rect1').clickShape('rect2', { shiftKey: true }).clickShape('rect2')
 
     expect(tt.idsAreSelected(['rect2'])).toBe(true)
   })

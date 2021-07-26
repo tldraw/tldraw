@@ -10,21 +10,11 @@ const cornerBgClassnames = {
 }
 
 export const CornerHandle = React.memo(
-  ({
-    size,
-    corner,
-    bounds,
-  }: {
-    size: number
-    bounds: TLBounds
-    corner: TLBoundsCorner
-  }): JSX.Element => {
+  ({ size, corner, bounds }: { size: number; bounds: TLBounds; corner: TLBoundsCorner }): JSX.Element => {
     const events = useBoundsEvents(corner)
 
-    const isTop =
-      corner === TLBoundsCorner.TopLeft || corner === TLBoundsCorner.TopRight
-    const isLeft =
-      corner === TLBoundsCorner.TopLeft || corner === TLBoundsCorner.BottomLeft
+    const isTop = corner === TLBoundsCorner.TopLeft || corner === TLBoundsCorner.TopRight
+    const isLeft = corner === TLBoundsCorner.TopLeft || corner === TLBoundsCorner.BottomLeft
 
     return (
       <g>
@@ -47,5 +37,5 @@ export const CornerHandle = React.memo(
         />
       </g>
     )
-  }
+  },
 )

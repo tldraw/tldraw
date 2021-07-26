@@ -27,7 +27,7 @@ export function BoundsBg({ bounds, rotation }: BoundsBgProps): JSX.Element {
         callbacks.onRightPointBounds?.(info)
       }
     },
-    [callbacks]
+    [callbacks],
   )
 
   const handlePointerUp = React.useCallback(
@@ -38,7 +38,7 @@ export function BoundsBg({ bounds, rotation }: BoundsBgProps): JSX.Element {
       const info = inputs.pointerUp(e, 'bounds')
       callbacks.onStopPointing?.(info)
     },
-    [callbacks]
+    [callbacks],
   )
 
   const { width, height } = bounds

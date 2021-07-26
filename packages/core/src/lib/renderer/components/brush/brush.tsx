@@ -22,5 +22,5 @@ export const Brush = React.memo(
     )
   },
   // Once the brush is controlled, never update again from props
-  (prev, next) => prev === next || brushUpdater.isControlled
+  (prev, next) => prev === next || brushUpdater.isControlled,
 )

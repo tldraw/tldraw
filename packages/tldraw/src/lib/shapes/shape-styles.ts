@@ -1,11 +1,5 @@
 import { Utils } from '@tldraw/core'
-import {
-  Theme,
-  ColorStyle,
-  DashStyle,
-  ShapeStyles,
-  SizeStyle,
-} from './shape-types'
+import { Theme, ColorStyle, DashStyle, ShapeStyles, SizeStyle } from './shape-types'
 
 const canvasLight = '#fafafa'
 
@@ -29,12 +23,10 @@ const colors = {
 export const strokes: Record<Theme, Record<ColorStyle, string>> = {
   light: colors,
   dark: {
-    ...(Object.fromEntries(
-      Object.entries(colors).map(([k, v]) => [
-        k,
-        Utils.lerpColor(v, canvasDark, 0.1),
-      ])
-    ) as Record<ColorStyle, string>),
+    ...(Object.fromEntries(Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasDark, 0.1)])) as Record<
+      ColorStyle,
+      string
+    >),
     [ColorStyle.White]: '#ffffff',
     [ColorStyle.Black]: '#000',
   },
@@ -43,19 +35,13 @@ export const strokes: Record<Theme, Record<ColorStyle, string>> = {
 export const fills: Record<Theme, Record<ColorStyle, string>> = {
   light: {
     ...(Object.fromEntries(
-      Object.entries(colors).map(([k, v]) => [
-        k,
-        Utils.lerpColor(v, canvasLight, 0.82),
-      ])
+      Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasLight, 0.82)]),
     ) as Record<ColorStyle, string>),
     [ColorStyle.White]: '#ffffff',
     [ColorStyle.Black]: '#ffffff',
   },
   dark: Object.fromEntries(
-    Object.entries(colors).map(([k, v]) => [
-      k,
-      Utils.lerpColor(v, canvasDark, 0.618),
-    ])
+    Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasDark, 0.618)]),
   ) as Record<ColorStyle, string>,
 }
 
@@ -88,7 +74,7 @@ export function getFontStyle(scale: number, style: ShapeStyles): string {
 
 export function getShapeStyle(
   style: ShapeStyles,
-  isDarkMode = false
+  isDarkMode = false,
 ): {
   stroke: string
   fill: string
@@ -125,7 +111,7 @@ export function getPerfectDashProps(
   length: number,
   strokeWidth: number,
   style: DashStyle,
-  snap = 1
+  snap = 1,
 ): {
   strokeDasharray: string
   strokeDashoffset: string
