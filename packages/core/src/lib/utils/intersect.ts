@@ -1,5 +1,6 @@
 import { TLBounds, TLIntersection } from '../types'
-import { Vec, Utils } from './index'
+import { Vec } from './vec'
+import { Utils } from './utils'
 
 /* ----------------- Start Copy Here ---------------- */
 

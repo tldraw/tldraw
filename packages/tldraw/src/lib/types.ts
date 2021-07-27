@@ -2,12 +2,13 @@ import { TLPage, TLPageState, TLSettings } from '@tldraw/core'
 import { TLDrawShape } from './shapes'
 
 export interface TLDrawDocument {
-  currentPageId: string
+  id: string
   pages: Record<string, TLPage<TLDrawShape>>
   pageStates: Record<string, TLPageState>
 }
 
 export interface Data {
+  currentPageId: string
   settings: TLSettings
   page: TLPage<TLDrawShape>
   pageState: TLPageState

@@ -1,23 +1,28 @@
 import { BaseSession } from '../session-types'
-import { Data } from '../../../types'
+import { Data } from '../../../../types'
+import { Command } from '../../../commands'
 
 export class TemplateSession implements BaseSession {
   origin: number[]
 
   constructor(_ata: Data, point: number[]) {
-    // TODO
     this.origin = point
   }
 
   update = (_data: Data, _point: number[]): void => {
-    // TODO
+    void null
   }
 
   cancel = (_data: Data): void => {
-    // TODO
+    void null
   }
 
-  complete = (_data: Data): void => {
-    // TODO
+  complete = (_data: Data) => {
+    return new Command({
+      name: 'Command',
+      category: 'example',
+      do: () => null,
+      undo: () => null,
+    })
   }
 }

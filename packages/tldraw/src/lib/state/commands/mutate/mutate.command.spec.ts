@@ -1,7 +1,7 @@
-import { mutate } from './mutate.command'
-import { mockData } from '../../../../../specs/__mocks__/mock-data'
 import { Utils } from '@tldraw/core'
+import { mockData } from '../../../../specs/__mocks__/mock-data'
 import { state } from '../../state'
+import { mutate } from './mutate.command'
 
 describe('Mutate command', () => {
   const data = Utils.deepClone(mockData)
@@ -12,7 +12,8 @@ describe('Mutate command', () => {
     const before = Utils.deepClone(tdata.page.shapes['rect1'])
     tdata.page.shapes['rect1'].point = [100, 0]
     const after = Utils.deepClone(tdata.page.shapes['rect1'])
-    mutate(tdata, [before], [after])
+
+    state.history.execute(tdata, mutate(tdata, [before], [after]))
 
     expect(tdata.page.shapes['rect1'].point).toEqual([100, 0])
 

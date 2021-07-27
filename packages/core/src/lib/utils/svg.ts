@@ -1,4 +1,4 @@
-import Utils from './index'
+import { Utils } from './utils'
 
 // General
 

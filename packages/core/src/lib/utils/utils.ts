@@ -892,23 +892,6 @@ export class Utils {
   }
 
   /**
-   * Get whether a set of points are all contained by a bounding box.
-   * @returns
-   */
-  static boundsContainPolygon(a: TLBounds, points: number[][]): boolean {
-    return points.every((point) => Utils.pointInBounds(point, a))
-  }
-
-  /**
-   * Get whether a polygon collides a bounding box.
-   * @param points
-   * @param b
-   */
-  static boundsCollidePolygon(a: TLBounds, points: number[][]): boolean {
-    return Intersect.polyline.bounds(points, a).length > 0
-  }
-
-  /**
    * Get whether two bounds are identical.
    * @param a Bounds
    * @param b Bounds

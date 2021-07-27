@@ -21,7 +21,7 @@ import { BaseSession } from './sessions/session-types'
  * is cancelled or completes.
  */
 
-export class SessionManager {
+export class Session {
   private current?: BaseSession
   onSessionChange: () => void
 
@@ -78,9 +78,9 @@ export class SessionManager {
    * ```
    */
   complete<T extends BaseSession>(...args: Parameters<T['complete']>) {
-    this.current?.complete.call(this.current, ...args)
+    const finalCommand = this.current?.complete.call(this.current, ...args)
     this.current = undefined
-    return this
+    return finalCommand
   }
 
   /**

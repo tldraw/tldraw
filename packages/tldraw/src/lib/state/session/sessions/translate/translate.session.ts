@@ -1,9 +1,9 @@
 import { Vec, Utils } from '@tldraw/core'
 import { BaseSession } from '.././session-types'
-import { state } from '../../state'
-import { Data } from '../../../types'
-import { getShapeUtils, TLDrawShape } from '../../../shapes'
-import { mutate } from '../../commands'
+import { Data } from '../../../../types'
+import { getShapeUtils, TLDrawShape } from '../../../../shapes'
+import { mutate } from '../../../commands'
+import { TLD } from '../../../tld'
 
 export class TranslateSession implements BaseSession {
   delta = [0, 0]
@@ -75,7 +75,7 @@ export class TranslateSession implements BaseSession {
 
       data.pageState.selectedIds = clones.map((c) => c.id)
 
-      state.updateParents(
+      TLD.updateParents(
         data,
         clones.map((c) => c.id),
       )
@@ -93,7 +93,7 @@ export class TranslateSession implements BaseSession {
       }
 
       for (const initialShape of initialShapes) {
-        state.getDocumentBranch(data, initialShape.id).forEach((id) => {
+        TLD.getDocumentBranch(data, initialShape.id).forEach((id) => {
           const shape = shapes[id]
           getShapeUtils(shape).translateBy(shape, delta)
           shapes[id] = { ...shape }
@@ -109,7 +109,7 @@ export class TranslateSession implements BaseSession {
     }
 
     for (const initialShape of initialShapes) {
-      state.getDocumentBranch(data, initialShape.id).forEach((id) => {
+      TLD.getDocumentBranch(data, initialShape.id).forEach((id) => {
         const shape = shapes[id]
 
         getShapeUtils(shape).translateBy(shape, trueDelta)
@@ -118,7 +118,7 @@ export class TranslateSession implements BaseSession {
       })
     }
 
-    state.updateParents(
+    TLD.updateParents(
       data,
       initialShapes.map((s) => s.id),
     )
@@ -129,7 +129,7 @@ export class TranslateSession implements BaseSession {
     const { shapes } = data.page
 
     for (const { id } of initialShapes) {
-      state.getDocumentBranch(data, id).forEach((id) => {
+      TLD.getDocumentBranch(data, id).forEach((id) => {
         const shape = shapes[id]
         getShapeUtils(shape).translateBy(shape, Vec.neg(this.delta))
       })
@@ -144,13 +144,13 @@ export class TranslateSession implements BaseSession {
       getShapeUtils(shape).setProperty(shape, 'children', children)
     })
 
-    state.updateParents(
+    TLD.updateParents(
       data,
       initialShapes.map((s) => s.id),
     )
   }
 
-  complete(data: Data): void {
+  complete(data: Data) {
     if (!this.snapshot.hasUnlockedShapes) return
 
     const before = this.snapshot.initialShapes.map((shape) =>
@@ -162,7 +162,7 @@ export class TranslateSession implements BaseSession {
 
     const after = data.pageState.selectedIds.map((id) => Utils.deepClone(data.page.shapes[id]))
 
-    mutate(data, before, after, 'translating shapes')
+    return mutate(data, before, after, 'translating shapes')
 
     // TODO
     // commands.translate(
@@ -178,7 +178,7 @@ export class TranslateSession implements BaseSession {
 export function getTranslateSnapshot(data: Data) {
   const { page } = data
 
-  const selectedShapes = state.getSelectedShapeSnapshot(data)
+  const selectedShapes = TLD.getSelectedShapeSnapshot(data)
 
   const hasUnlockedShapes = selectedShapes.length > 0
 
@@ -208,7 +208,7 @@ export function getTranslateSnapshot(data: Data) {
           ...shape,
           id: Utils.uniqueId(),
           parentId: shape.parentId,
-          childIndex: state.getChildIndexAbove(data, shape.id),
+          childIndex: TLD.getChildIndexAbove(data, shape.id),
         }
 
         return clone

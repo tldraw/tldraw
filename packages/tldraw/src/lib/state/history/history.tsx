@@ -1,10 +1,10 @@
-import { Data } from '../types'
-import { BaseCommand } from './commands/command'
+import { Data } from '../../types'
+import { BaseCommand } from '../commands/command'
 // import storage from './storage'
 
 // A singleton to manage history changes.
 
-export class HistoryManager<T extends Data> {
+export class History<T extends Data> {
   private stack: BaseCommand<T>[] = []
   private pointer = -1
   private maxLength = 100

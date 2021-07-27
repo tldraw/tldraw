@@ -1,4 +1,4 @@
-import { TLShapeUtil, TLBounds, TLShape, Utils, Vec, TLTransformInfo, TLRenderInfo } from '@tldraw/core'
+import { TLShapeUtil, TLBounds, TLShape, Utils, Vec, TLTransformInfo, TLRenderInfo, Intersect } from '@tldraw/core'
 import getStroke from 'perfect-freehand'
 import { getPerfectDashProps, defaultStyle, getShapeStyle } from './shape-styles'
 import { RectangleShape, DashStyle } from './shape-types'
@@ -135,7 +135,10 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
   hitTestBounds(shape: RectangleShape, bounds: TLBounds) {
     const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
-    return Utils.boundsContainPolygon(bounds, rotatedCorners) || Utils.boundsCollidePolygon(bounds, rotatedCorners)
+    return (
+      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
+      Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
+    )
   }
 
   transform(

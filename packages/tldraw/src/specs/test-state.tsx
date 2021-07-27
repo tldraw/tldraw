@@ -3,6 +3,7 @@ import { Data, TLDrawShape } from '../../src'
 import { createShape, tldrawShapeUtils } from '../../src/lib/shapes'
 import { TLDrawState } from '../../src/lib/state'
 import { mockDocument } from './__mocks__/mock-document'
+import { TLD } from '../../src/lib/state/tld'
 
 interface PointerOptions {
   id?: number
@@ -103,7 +104,7 @@ export class TLDrawTestState extends TLDrawState {
   createShape(props: Partial<TLDrawShape>, id = Utils.uniqueId()): TLDrawTestState {
     const shape = createShape(props.type || 'rectangle', props)
 
-    this.getShapeUtils(shape).setProperty(shape, 'id', id).setProperty(shape, 'parentId', this.currentPageId)
+    TLD.getShapeUtils(shape).setProperty(shape, 'id', id).setProperty(shape, 'parentId', this.currentPageId)
 
     this.pages[this.currentPageId].shapes[shape.id] = shape
     return this
@@ -139,7 +140,7 @@ export class TLDrawTestState extends TLDrawState {
    *```
    */
   startClick(id: string, options: PointerOptions = {}): TLDrawTestState {
-    const shape = this.getShape(this.state.data, id)
+    const shape = TLD.getShape(this.state.data, id)
     const [x, y] = shape ? Vec.add(shape.point, [1, 1]) : [0, 0]
 
     if (id === 'canvas') {
@@ -162,7 +163,7 @@ export class TLDrawTestState extends TLDrawState {
    *```
    */
   stopClick(id: string, options: PointerOptions = {}): TLDrawTestState {
-    const shape = this.getShape(this.state.data, id)
+    const shape = TLD.getShape(this.state.data, id)
     const [x, y] = shape ? Vec.add(shape.point, [1, 1]) : [0, 0]
 
     this.state.send('STOPPED_POINTING', inputs.pointerUp(this.fakePoint({ x, y, ...options }), id))
@@ -180,7 +181,7 @@ export class TLDrawTestState extends TLDrawState {
    *```
    */
   doubleClickShape(id: string, options: PointerOptions = {}): TLDrawTestState {
-    const shape = this.getShape(this.state.data, id)
+    const shape = TLD.getShape(this.state.data, id)
     const [x, y] = shape ? Vec.add(shape.point, [1, 1]) : [0, 0]
 
     this.state
@@ -333,7 +334,7 @@ export class TLDrawTestState extends TLDrawState {
    * ```
    */
   movePointerOverShape(id: string, options: Omit<PointerOptions, 'x' | 'y'> = {}): TLDrawTestState {
-    const shape = this.getShape(this.state.data, id)
+    const shape = TLD.getShape(this.state.data, id)
     const [x, y] = Vec.add(shape.point, [1, 1])
 
     this.state.send('MOVED_OVER_SHAPE', inputs.pointerEnter(this.fakePoint({ x, y, ...options }), id))
@@ -352,7 +353,7 @@ export class TLDrawTestState extends TLDrawState {
    *```
    */
   movePointerOverGroup(id: string, options: Omit<PointerOptions, 'x' | 'y'> = {}): TLDrawTestState {
-    const shape = this.getShape(this.state.data, id)
+    const shape = TLD.getShape(this.state.data, id)
     const [x, y] = Vec.add(shape.point, [1, 1])
 
     this.state.send('MOVED_OVER_GROUP', inputs.pointerEnter(this.fakePoint({ x, y, ...options }), id))
@@ -371,7 +372,7 @@ export class TLDrawTestState extends TLDrawState {
    *```
    */
   movePointerOverHandle(id: string, options: Omit<PointerOptions, 'x' | 'y'> = {}): TLDrawTestState {
-    const shape = this.getShape(this.state.data, id)
+    const shape = TLD.getShape(this.state.data, id)
     const handle = shape.handles?.[id]
     if (!handle) throw Error('No handle!')
     const [x, y] = Vec.add(handle.point, [1, 1])
@@ -463,7 +464,7 @@ export class TLDrawTestState extends TLDrawState {
    *```
    */
   get selectedIds(): string[] {
-    return this.getSelectedIds(this.data)
+    return TLD.getSelectedIds(this.data)
   }
 
   /**
@@ -489,7 +490,7 @@ export class TLDrawTestState extends TLDrawState {
    *```
    */
   getSortedPageShapeIds(): string[] {
-    return this.getShapes()
+    return TLD.getShapes(this.data)
       .sort((a, b) => a.childIndex - b.childIndex)
       .map((shape) => shape.id)
   }
@@ -504,7 +505,7 @@ export class TLDrawTestState extends TLDrawState {
    *```
    */
   getOnlySelectedShape(): TLDrawShape | undefined {
-    const selectedShapes = this.getSelectedShapes(this.data)
+    const selectedShapes = TLD.getSelectedShapes(this.data)
     return selectedShapes.length === 1 ? selectedShapes[0] : undefined
   }
 
@@ -533,7 +534,7 @@ export class TLDrawTestState extends TLDrawState {
    *```
    */
   hasParent(childId: string, parentId: string): boolean {
-    return this.getShape(this.data, childId).parentId === parentId
+    return TLD.getShape(this.data, childId).parentId === parentId
   }
 
   /**
@@ -546,7 +547,7 @@ export class TLDrawTestState extends TLDrawState {
    *```
    */
   assertShapeType(shapeId: string, type: TLDrawShape['type']): boolean {
-    const shape = this.getShape(this.data, shapeId)
+    const shape = TLD.getShape(this.data, shapeId)
     if (shape.type !== type) {
       throw new TypeError(`expected shape ${shapeId} to be of type ${type}, found ${shape?.type} instead`)
     }
@@ -603,8 +604,8 @@ export class TLDrawTestState extends TLDrawState {
     id: string,
     fn: (shape: T, shapeUtils: TLShapeUtil<TLDrawShape>) => boolean,
   ): boolean {
-    const shape = this.getShape<T>(this.state.data, id)
-    return fn(shape, shape && this.getShapeUtils(shape))
+    const shape = TLD.getShape<T>(this.state.data, id)
+    return fn(shape, shape && TLD.getShapeUtils(shape))
   }
 
   /**

@@ -1,5 +1,5 @@
 import { TLShapeUtil, TLShape, TLBounds, TLRenderInfo, TLTransformInfo } from '../types'
-import Utils from '../utils'
+import Utils, { Intersect } from '../utils'
 
 export class ExampleShape extends TLShapeUtil<TLShape> {
   type = 'shape-type'
@@ -52,7 +52,10 @@ export class ExampleShape extends TLShapeUtil<TLShape> {
   hitTestBounds(shape: TLShape, bounds: TLBounds) {
     const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
-    return Utils.boundsContainPolygon(bounds, rotatedCorners) || Utils.boundsCollidePolygon(bounds, rotatedCorners)
+    return (
+      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
+      Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
+    )
   }
 
   transform(shape: TLShape, bounds: TLBounds, info: TLTransformInfo<TLShape>): TLShapeUtil<TLShape> {

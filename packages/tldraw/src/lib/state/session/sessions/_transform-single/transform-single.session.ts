@@ -1,9 +1,9 @@
 import { TLBoundsCorner, TLBoundsEdge, Utils, Vec } from '@tldraw/core'
 import { BaseSession } from '../session-types'
-import { getShapeUtils } from '../../../shapes'
-import { state } from '../../state'
-import { Data } from '../../../types'
-import { mutate } from '../../commands'
+import { getShapeUtils } from '../../../../shapes'
+import { Data } from '../../../../types'
+import { mutate } from '../../../commands'
+import { TLD } from '../../../tld'
 
 export class TransformSingleSession implements BaseSession {
   transformType: TLBoundsEdge | TLBoundsCorner
@@ -50,14 +50,14 @@ export class TransformSingleSession implements BaseSession {
 
     data.page.shapes[shape.id] = { ...shape }
 
-    state.updateParents(data, [id])
+    TLD.updateParents(data, [id])
   }
 
   cancel(data: Data): void {
     const { id, initialShape } = this.snapshot
     data.page.shapes[id] = initialShape
 
-    state.updateParents(data, [id])
+    TLD.updateParents(data, [id])
   }
 
   complete(data: Data): void {

@@ -77,8 +77,8 @@ export function TLDraw({ document, ...callbacks }: TLDrawProps) {
 
   React.useEffect(() => {
     if (document !== undefined) {
-      state.updateCallbacks(callbacks)
-      state.updateFromDocument(document)
+      state.loadCallbacks(callbacks)
+      state.loadDocument(document)
       callbacks.onMount?.(state)
     }
   }, [callbacks, document])

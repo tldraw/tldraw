@@ -1,8 +1,8 @@
 import { Utils, Vec } from '@tldraw/core'
 import { BaseSession } from '../session-types'
-import { getShapeUtils } from '../../../shapes'
-import { state } from '../../state'
-import { Data } from '../../../types'
+import { getShapeUtils } from '../../../../shapes'
+import { Data } from '../../../../types'
+import { TLD } from '../../../tld'
 
 export class BrushSession implements BaseSession {
   origin: number[]
@@ -51,7 +51,7 @@ export class BrushSession implements BaseSession {
     data.pageState.selectedIds = this.snapshot.selectedIds
   }
 
-  complete = (data: Data): void => {
+  complete = (data: Data) => {
     data.pageState.brush = undefined
   }
 }
@@ -64,8 +64,7 @@ export class BrushSession implements BaseSession {
 export function getBrushSnapshot(data: Data) {
   const selectedIds = [...data.pageState.selectedIds]
 
-  const shapesToTest = state
-    .getShapes(data)
+  const shapesToTest = TLD.getShapes(data)
     .filter(
       (shape) =>
         !(
@@ -79,7 +78,7 @@ export function getBrushSnapshot(data: Data) {
       id: shape.id,
       util: getShapeUtils(shape),
       bounds: getShapeUtils(shape).getBounds(shape),
-      selectId: state.getTopParentId(data, shape.id),
+      selectId: TLD.getTopParentId(data, shape.id),
     }))
 
   return {

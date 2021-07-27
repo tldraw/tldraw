@@ -1,7 +1,5 @@
-import { translate } from './translate.command'
-import { mockData } from '../../../../../specs/__mocks__/mock-data'
+import { mockData } from '../../../../specs/__mocks__/mock-data'
 import { Utils } from '@tldraw/core'
-import { state } from '../../state'
 
 describe('Mutate command', () => {
   const data = Utils.deepClone(mockData)

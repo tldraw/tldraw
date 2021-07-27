@@ -1,9 +1,8 @@
 import { Utils, Vec, TLBoundsEdge, TLBoundsCorner } from '@tldraw/core'
-import { Data } from '../../../types'
 import { BaseSession } from '.././session-types'
-import { getShapeUtils } from '../../../shapes'
-import { state } from '../../state'
-import { mutate } from '../../commands'
+import { Data } from '../../../../types'
+import { mutate } from '../../../commands'
+import { TLD } from '../../../tld'
 
 export class TransformSession implements BaseSession {
   scaleX = 1
@@ -12,13 +11,13 @@ export class TransformSession implements BaseSession {
   origin: number[]
   snapshot: TransformSnapshot
 
-  constructor(data: Data, transformType: TLBoundsEdge | TLBoundsCorner, point: number[]) {
+  constructor(data: Data, point: number[], transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight) {
     this.origin = point
     this.transformType = transformType
     this.snapshot = getTransformSnapshot(data, transformType)
   }
 
-  update(data: Data, point: number[], isAspectRatioLocked = false): void {
+  update(data: Data, point: number[], isAspectRatioLocked = false) {
     const { transformType } = this
 
     const { shapeBounds, initialBounds, isAllAspectRatioLocked } = this.snapshot
@@ -51,7 +50,7 @@ export class TransformSession implements BaseSession {
 
       const shape = shapes[id]
 
-      getShapeUtils(shape).transform(shape, newShapeBounds, {
+      TLD.getShapeUtils(shape).transform(shape, newShapeBounds, {
         type: this.transformType,
         initialShape,
         scaleX: this.scaleX,
@@ -62,10 +61,10 @@ export class TransformSession implements BaseSession {
       shapes[id] = { ...shape }
     }
 
-    state.updateParents(data, Object.keys(shapeBounds))
+    TLD.updateParents(data, Object.keys(shapeBounds))
   }
 
-  cancel(data: Data): void {
+  cancel(data: Data) {
     const { shapeBounds } = this.snapshot
 
     for (const id in shapeBounds) {
@@ -73,7 +72,7 @@ export class TransformSession implements BaseSession {
 
       const { initialShape, initialShapeBounds, transformOrigin } = shapeBounds[id]
 
-      getShapeUtils(shape).transform(shape, initialShapeBounds, {
+      TLD.getShapeUtils(shape).transform(shape, initialShapeBounds, {
         type: this.transformType,
         initialShape,
         scaleX: 1,
@@ -81,31 +80,31 @@ export class TransformSession implements BaseSession {
         transformOrigin,
       })
 
-      state.updateParents(data, Object.keys(shapeBounds))
+      TLD.updateParents(data, Object.keys(shapeBounds))
     }
   }
 
-  complete(data: Data): void {
+  complete(data: Data) {
     const { initialShapes, hasUnlockedShapes } = this.snapshot
     if (!hasUnlockedShapes) return
     const finalShapes = initialShapes.map((shape) => Utils.deepClone(data.page.shapes[shape.id]))
-    mutate(data, initialShapes, finalShapes)
+    return mutate(data, initialShapes, finalShapes)
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 
 export function getTransformSnapshot(data: Data, transformType: TLBoundsEdge | TLBoundsCorner) {
-  const initialShapes = state.getSelectedBranchSnapshot(data)
+  const initialShapes = TLD.getSelectedBranchSnapshot(data)
 
   const hasUnlockedShapes = initialShapes.length > 0
 
   const isAllAspectRatioLocked = initialShapes.every(
-    (shape) => shape.isAspectRatioLocked || getShapeUtils(shape).isAspectRatioLocked,
+    (shape) => shape.isAspectRatioLocked || TLD.getShapeUtils(shape).isAspectRatioLocked,
   )
 
   const shapesBounds = Object.fromEntries(
-    initialShapes.map((shape) => [shape.id, getShapeUtils(shape).getBounds(shape)]),
+    initialShapes.map((shape) => [shape.id, TLD.getShapeUtils(shape).getBounds(shape)]),
   )
 
   const boundsArr = Object.values(shapesBounds)

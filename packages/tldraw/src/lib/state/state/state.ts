@@ -1,12 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { createState, createSelectorHook } from '@state-designer/react'
 import {
-  TLBounds,
-  TLBinding,
   TLPage,
   TLPageState,
   TLShapeUtils,
-  Utils,
   Vec,
   TLPointerInfo,
   brushUpdater,
@@ -14,17 +11,12 @@ import {
   TLBoundsEdge,
   TLKeyboardInfo,
 } from '@tldraw/core'
-import { Data, TLDrawDocument } from '../types'
-import { TLDrawShape, TLDrawShapeUtils, tldrawShapeUtils, getShapeUtils } from '../shapes'
-import { HistoryManager } from './history-manager'
-import { SessionManager } from './session-manager'
-import * as Sessions from './sessions'
+import { Data, TLDrawDocument } from '../../types'
+import { TLDrawShape, TLDrawShapeUtils, tldrawShapeUtils, getShapeUtils } from '../../shapes'
+import { History } from '../history'
+import { BrushSession, Session, TransformSession, TranslateSession } from '../session'
 import { freeze } from 'immer'
-
-export interface TLDrawCallbacks {
-  onMount: (state: TLDrawState) => void
-  onChange: (state: TLDrawState, type: 'camera' | 'command' | 'session' | 'undo' | 'redo' | 'load') => void
-}
+import { TLD } from '../tld'
 
 /*
 The State Manager class is a wrapper around a state-designer state. It provides utilities for accessing
@@ -32,8 +24,39 @@ parts of the state, both privately for internal use and publically for external 
 is shared in the renderer's `onMount` callback.
 */
 
+export interface TLDrawCallbacks {
+  onMount: (state: TLDrawState) => void
+  onChange: (state: TLDrawState, type: 'camera' | 'command' | 'session' | 'undo' | 'redo' | 'load') => void
+}
+
+const initialData: Data = {
+  settings: {
+    isPenMode: false,
+    isDarkMode: false,
+    isDebugMode: false,
+    isReadonlyMode: false,
+  },
+  currentPageId: 'page',
+  page: {
+    id: 'page',
+    shapes: {},
+    bindings: {},
+  },
+  pageState: {
+    id: 'page',
+    selectedIds: [],
+    currentParentId: 'page',
+    camera: {
+      point: [0, 0],
+      zoom: 1,
+    },
+  },
+}
+
 export class TLDrawState {
   isTestMode = false
+
+  documentId = 'placeholder'
 
   currentPageId: string
 
@@ -45,51 +68,16 @@ export class TLDrawState {
 
   callbacks: Partial<TLDrawCallbacks> = {}
 
-  session = new SessionManager(() => {
+  session = new Session(() => {
     this.callbacks.onChange?.(this, 'session')
   })
 
-  history = new HistoryManager(() => {
+  history = new History(() => {
     this.callbacks.onChange?.(this, 'command')
   })
 
-  constructor(shapeUtils: TLDrawShapeUtils) {
-    this.currentPageId = Object.keys(this.pages)[0]
-    this.shapeUtils = shapeUtils
-
-    this._state.onUpdate((s) => {
-      // When the state changes, store the change in this instance
-      // Later, consider saving the page state to local storage.
-      const pageId = s.data.page.id
-      this.pages[pageId] = s.data.page
-      this.pageStates[pageId] = s.data.pageState
-    })
-  }
-
   _state = createState({
-    data: {
-      settings: {
-        isPenMode: false,
-        isDarkMode: false,
-        isDebugMode: false,
-        isReadonlyMode: false,
-      },
-      currentPageId: 'page',
-      page: {
-        id: 'page',
-        shapes: {},
-        bindings: {},
-      },
-      pageState: {
-        id: 'page',
-        selectedIds: [],
-        currentParentId: 'page',
-        camera: {
-          point: [0, 0],
-          zoom: 1,
-        },
-      },
-    } as Data,
+    data: initialData,
     initial: 'ready',
     states: {
       loading: {},
@@ -358,53 +346,65 @@ export class TLDrawState {
         this.session.cancel(data)
       },
       completeSession: (data) => {
-        this.session.complete(data)
+        const finalCommand = this.session.complete(data)
+        if (finalCommand) this.history.execute(data, finalCommand)
       },
 
       // Translate Session
       startTranslateSession: (data, payload: TLPointerInfo) => {
-        this.session.begin(new Sessions.TranslateSession(data, this.screenToWorld(data, payload.origin)))
+        this.session.begin(new TranslateSession(data, TLD.screenToWorld(data, payload.origin)))
       },
       updateTranslateSession: (data, payload: TLPointerInfo | TLKeyboardInfo) => {
-        this.session.update<Sessions.TranslateSession>(
+        this.session.update<TranslateSession>(
           data,
-          this.screenToWorld(data, payload.point),
+          TLD.screenToWorld(data, payload.point),
           payload.shiftKey,
           payload.altKey,
         )
       },
 
       // Transform Session
-
       startTransformSession: (data, payload: TLPointerInfo & { target: TLBoundsCorner | TLBoundsEdge }) => {
-        const point = this.screenToWorld(data, payload.origin)
-
-        this.session.begin(new Sessions.TransformSession(data, payload.target, point))
-      },
-      startDrawTransformSession: (data, payload: TLPointerInfo) => {
-        this.session.begin(
-          new Sessions.TransformSession(data, TLBoundsCorner.BottomRight, this.screenToWorld(data, payload.point)),
-        )
+        const point = TLD.screenToWorld(data, payload.origin)
+        this.session.begin(new TransformSession(data, point, payload.target))
       },
       updateTransformSession: (data, payload: TLPointerInfo) => {
-        this.session.update<Sessions.TransformSession>(data, this.screenToWorld(data, payload.point), payload.shiftKey)
+        this.session.update<TransformSession>(data, TLD.screenToWorld(data, payload.point), payload.shiftKey)
       },
 
       // Brush Session
       startBrushSession: (data, payload: TLPointerInfo) => {
-        this.session.begin(new Sessions.BrushSession(data, this.screenToWorld(data, payload.point)))
+        this.session.begin(new BrushSession(data, TLD.screenToWorld(data, payload.point)))
       },
       updateBrushSession: (data, payload: TLPointerInfo | TLKeyboardInfo) => {
-        this.session.update<Sessions.BrushSession>(data, this.screenToWorld(data, payload.point))
-
+        this.session.update<BrushSession>(data, TLD.screenToWorld(data, payload.point))
         brushUpdater.set(data.pageState.brush)
       },
       endBrushSession: () => {
         brushUpdater.clear()
       },
 
+      // Create Session
+      startCreateSession: (data, payload: TLPointerInfo) => {
+        const point = TLD.screenToWorld(data, payload.origin)
+        this.session.begin(new TransformSession(data, point))
+      },
+
+      /* -------------------- Commands -------------------- */
+
+      // Undo / Redo
+      undo: (data) => {
+        this.history.undo(data)
+        this.callbacks.onChange?.(this, 'undo')
+      },
+      redo: (data) => {
+        this.history.redo(data)
+        this.callbacks.onChange?.(this, 'redo')
+      },
+
       /* ------------------- Page State ------------------- */
 
+      // Hovered Id
       setHoveredId(data, payload: TLPointerInfo) {
         const { pageState } = data
         pageState.hoveredId = payload.target
@@ -413,15 +413,12 @@ export class TLDrawState {
         const { pageState } = data
         pageState.hoveredId = undefined
       },
-      clearBoundsRotation(data) {
-        delete data.pageState.boundsRotation
-      },
 
-      // Pointed id
+      // Pointed Id
       setPointedId: (data, payload: TLPointerInfo) => {
         const { pageState } = data
-        pageState.pointedId = this.getPointedId(data, payload.target)
-        pageState.currentParentId = this.getParentId(data, pageState.pointedId)
+        pageState.pointedId = TLD.getPointedId(data, payload.target)
+        pageState.currentParentId = TLD.getParentId(data, pageState.pointedId)
       },
       clearPointedId(data) {
         delete data.pageState.pointedId
@@ -463,14 +460,19 @@ export class TLDrawState {
         delete data.pageState.currentParentId
       },
 
+      // Bounds Rotation
+      clearBoundsRotation(data) {
+        delete data.pageState.boundsRotation
+      },
+
       // Camera
       panCamera: (data, payload: { delta: number[] }) => {
-        const { camera } = this.getPageState(data)
+        const { camera } = data.pageState
 
         camera.point = Vec.sub(camera.point, Vec.div(Vec.div(payload.delta, camera.zoom), camera.zoom))
       },
       pinchCamera: (data, payload: { info: TLPointerInfo; distanceDelta: number }) => {
-        const camera = this.getCurrentCamera(data)
+        const { camera } = data.pageState
 
         const delta = Vec.sub(payload.info.point, payload.info.origin)
 
@@ -478,54 +480,84 @@ export class TLDrawState {
 
         const next = camera.zoom - (payload.distanceDelta / 300) * camera.zoom
 
-        const p0 = this.screenToWorld(data, payload.info.origin)
-        camera.zoom = this.getCameraZoom(next)
-        const p1 = this.screenToWorld(data, payload.info.origin)
+        const p0 = TLD.screenToWorld(data, payload.info.origin)
+        camera.zoom = TLD.getCameraZoom(next)
+        const p1 = TLD.screenToWorld(data, payload.info.origin)
         camera.point = Vec.add(camera.point, Vec.sub(p1, p0))
-      },
-
-      // Undo / Redo
-      undo: (data) => {
-        this.history.undo(data)
-        this.callbacks.onChange?.(this, 'undo')
-      },
-      redo: (data) => {
-        this.history.redo(data)
-        this.callbacks.onChange?.(this, 'redo')
       },
     },
   })
 
-  updateCallbacks(callbacks: Partial<TLDrawCallbacks>) {
-    this.callbacks = callbacks
+  /* ------------------- Private API ------------------ */
+
+  constructor(shapeUtils: TLDrawShapeUtils) {
+    this.currentPageId = Object.keys(this.pages)[0]
+    this.shapeUtils = shapeUtils
+
+    this._state.onUpdate((s) => {
+      // When the state changes, store the change in this instance
+      // Later, consider saving the page state to local storage.
+      const pageId = s.data.page.id
+      this.pages[pageId] = s.data.page
+      this.pageStates[pageId] = s.data.pageState
+    })
   }
 
-  updateFromDocument(document: TLDrawDocument) {
-    const { currentPageId, pages, pageStates } = document
+  // Force an update to the state's data without cancelling the current session
+  private fastUpdate(data: Data) {
+    this._state.forceData(data)
+  }
+
+  // Force a change to the state's data object
+  private forceUpdate(data: Partial<Data>) {
+    if (this.session.isInSession) this.send('CANCELLED')
+    this._state.forceData(freeze({ ...this.data, ...data }))
+  }
+
+  // Function that runs when a tldraw document is updated from props
+  private updateFromDocument(document: TLDrawDocument, currentPageId?: string) {
+    const { pages, pageStates } = document
+    const previousDocumentId = this.documentId
+
     this.pages = pages
     this.pageStates = pageStates
-    this.currentPageId = currentPageId
+    this.documentId = document.id
 
-    this.forceUpdate({
-      page: pages[currentPageId],
-      pageState: pageStates[currentPageId],
-    })
+    if (this.documentId === previousDocumentId) {
+      // If we're using the same document id, then we've probably updated
+      // from props. We can just update the state with the new data.
 
-    this.callbacks.onChange?.(this, 'load')
-  }
+      this.fastUpdate({ ...this.data, page: pages[this.currentPageId], pageState: pageStates[this.currentPageId] })
+    } else {
+      // If the document id has changed, then we've loaded a new document.
+      // Run the cleanup methods in forceUpdate and fire the onChange callback.
+      this.currentPageId = currentPageId || Object.keys(pages)[0]
 
-  updatePageState(pageState: TLPageState) {
-    this.forceUpdate({ pageState })
-  }
+      this.forceUpdate({
+        currentPageId: this.currentPageId,
+        page: pages[this.currentPageId],
+        pageState: pageStates[this.currentPageId],
+      })
 
-  updatePage(page: TLPage<TLDrawShape>) {
-    if (page.id === this.currentPageId) {
-      this.forceUpdate({ page })
+      this.callbacks.onChange?.(this, 'load')
     }
   }
 
-  forceUpdate(data: Partial<Data>) {
-    this._state.forceData(freeze({ ...this.data, ...data }))
+  private toggleTestMode() {
+    this.isTestMode = !this.isTestMode
+    return this.isTestMode
+  }
+
+  /* --------------- Implementation API --------------- */
+
+  // Load callbacks from props (should be done once on mount)
+  loadCallbacks(callbacks: Partial<TLDrawCallbacks>) {
+    this.callbacks = callbacks
+  }
+
+  // Load a document from props (should be done once on mount)
+  loadDocument(document: TLDrawDocument) {
+    this.updateFromDocument(document)
   }
 
   fastPointerMove = (info: TLPointerInfo) => {
@@ -543,15 +575,18 @@ export class TLDrawState {
   }
 
   fastPan = (info: TLPointerInfo & { delta: number[] }) => {
-    const { point, zoom } = this.getCurrentCamera(this.data)
+    const { point, zoom } = TLD.getCurrentCamera(this.data)
 
     const nextPoint = Vec.sub(point, Vec.div(info.delta, zoom))
 
-    this.updatePageState({
-      ...this.data.pageState,
-      camera: {
-        zoom,
-        point: nextPoint,
+    this.fastUpdate({
+      ...this.data,
+      pageState: {
+        ...this.data.pageState,
+        camera: {
+          zoom,
+          point: nextPoint,
+        },
       },
     })
 
@@ -579,18 +614,21 @@ export class TLDrawState {
     const delta = Vec.sub(info.point, info.origin)
     let nextPoint = Vec.sub(point, Vec.div(delta, zoom))
 
-    const nextZoom = this.getCameraZoom(zoom - (info.distanceDelta / 300) * zoom)
+    const nextZoom = TLD.getCameraZoom(zoom - (info.distanceDelta / 300) * zoom)
 
     const p0 = Vec.sub(Vec.div(info.origin, zoom), point)
     const p1 = Vec.sub(Vec.div(info.origin, nextZoom), point)
 
     nextPoint = Vec.add(point, Vec.sub(p1, p0))
 
-    this.updatePageState({
-      ...this.data.pageState,
-      camera: {
-        point: nextPoint,
-        zoom: nextZoom,
+    this.fastUpdate({
+      ...this.data,
+      pageState: {
+        ...this.data.pageState,
+        camera: {
+          point: nextPoint,
+          zoom: nextZoom,
+        },
       },
     })
 
@@ -603,12 +641,13 @@ export class TLDrawState {
   fastBrush(info: TLPointerInfo) {
     const data = { ...this.data }
 
-    this.session.update<Sessions.BrushSession>(data, this.screenToWorld(data, info.point))
+    this.session.update<BrushSession>(data, TLD.screenToWorld(data, info.point))
 
-    brushUpdater.set(this.data.pageState.brush)
+    brushUpdater.set(data.pageState.brush)
 
-    this.updatePageState({
-      ...data.pageState,
+    this.fastUpdate({
+      ...this.data,
+      pageState: { ...data.pageState },
     })
 
     // Send along the event just to be sure
@@ -618,368 +657,19 @@ export class TLDrawState {
   fastTranslate(info: TLPointerInfo) {
     const data = { ...this.data }
 
-    this.session.update<Sessions.TranslateSession>(
-      data,
-      this.screenToWorld(data, info.point),
-      info.shiftKey,
-      info.altKey,
-    )
+    console.log('fast translating')
 
-    this.updatePage({ ...data.page })
+    this.session.update<TranslateSession>(data, TLD.screenToWorld(data, info.point), info.shiftKey, info.altKey)
+
+    this.fastUpdate({ ...this.data, page: { ...data.page } })
   }
 
   fastTransform(info: TLPointerInfo) {
     const data = { ...this.data }
 
-    this.session.update<Sessions.TransformSession>(data, this.screenToWorld(data, info.point), info.shiftKey)
+    this.session.update<TransformSession>(data, TLD.screenToWorld(data, info.point), info.shiftKey)
 
-    this.updatePage({ ...data.page })
-  }
-
-  getParentId(data: Data, id: string) {
-    const shape = data.page.shapes[id]
-    return shape.parentId
-  }
-
-  getPointedId(data: Data, id: string): string {
-    const shape = data.page.shapes[id]
-    if (!shape) return id
-
-    return shape.parentId === data.pageState.currentParentId || shape.parentId === data.page.id
-      ? id
-      : this.getPointedId(data, shape.parentId)
-  }
-
-  getDrilledPointedId(data: Data, id: string): string {
-    const shape = data.page.shapes[id]
-    const { currentParentId, pointedId } = data.pageState
-
-    return shape.parentId === data.page.id || shape.parentId === pointedId || shape.parentId === currentParentId
-      ? id
-      : this.getDrilledPointedId(data, shape.parentId)
-  }
-
-  getTopParentId(data: Data, id: string): string {
-    const shape = data.page.shapes[id]
-
-    if (shape.parentId === shape.id) {
-      throw Error(`Shape has the same id as its parent! ${shape.id}`)
-    }
-
-    return shape.parentId === data.page.id || shape.parentId === data.pageState.currentParentId
-      ? id
-      : this.getTopParentId(data, shape.parentId)
-  }
-
-  // Get an array of a shape id and its descendant shapes' ids
-  getDocumentBranch(data: Data, id: string): string[] {
-    const shape = data.page.shapes[id]
-
-    if (shape.children === undefined) return [id]
-
-    return [id, ...shape.children.flatMap((childId) => this.getDocumentBranch(data, childId))]
-  }
-
-  // Get a deep array of unproxied shapes and their descendants
-  getSelectedBranchSnapshot<K>(data: Data, fn: (shape: TLDrawShape) => K): ({ id: string } & K)[]
-  getSelectedBranchSnapshot(data: Data): TLDrawShape[]
-  getSelectedBranchSnapshot<K>(data: Data, fn?: (shape: TLDrawShape) => K): (TLDrawShape | K)[] {
-    const page = this.getPage(data)
-
-    const copies = this.getSelectedIds(data)
-      .flatMap((id) => this.getDocumentBranch(data, id).map((id) => page.shapes[id]))
-      .filter((shape) => !shape.isLocked)
-      .map(Utils.deepClone)
-
-    if (fn !== undefined) {
-      return copies.map((shape) => ({ id: shape.id, ...fn(shape) }))
-    }
-
-    return copies
-  }
-
-  // Get a shallow array of unproxied shapes
-  getSelectedShapeSnapshot(data: Data): TLDrawShape[]
-  getSelectedShapeSnapshot<K>(data: Data, fn?: (shape: TLDrawShape) => K): ({ id: string } & K)[]
-  getSelectedShapeSnapshot<K>(data: Data, fn?: (shape: TLDrawShape) => K): (TLDrawShape | K)[] {
-    const copies = this.getSelectedShapes(data)
-      .filter((shape) => !shape.isLocked)
-      .map(Utils.deepClone)
-
-    if (fn !== undefined) {
-      return copies.map((shape) => ({ id: shape.id, ...fn(shape) }))
-    }
-
-    return copies
-  }
-
-  getChildIndexAbove(data: Data, id: string): number {
-    const page = this.getPage(data)
-
-    const shape = page.shapes[id]
-
-    const siblings = Object.values(page.shapes)
-      .filter(({ parentId }) => parentId === shape.parentId)
-      .sort((a, b) => a.childIndex - b.childIndex)
-
-    const index = siblings.indexOf(shape)
-
-    const nextSibling = siblings[index + 1]
-
-    if (!nextSibling) return shape.childIndex + 1
-
-    let nextIndex = (shape.childIndex + nextSibling.childIndex) / 2
-
-    if (nextIndex === nextSibling.childIndex) {
-      this.forceIntegerChildIndices(siblings)
-      nextIndex = (shape.childIndex + nextSibling.childIndex) / 2
-    }
-
-    return nextIndex
-  }
-
-  getTopChildIndex(data: Data, parent: TLDrawShape | TLPage<TLDrawShape>): number {
-    const page = this.getPage(data)
-
-    // If the parent is a shape, return either 1 (if no other shapes) or the
-    // highest sorted child index + 1.
-    if ('shapes' in parent) {
-      const children = Object.values(parent.shapes)
-
-      if (children.length === 0) return 1
-
-      return children.sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
-    }
-
-    // If the shape is a regular shape that can accept children, return either
-    // 1 (if no other children) or the highest sorted child index + 1.
-    this.assertParentShape(parent)
-
-    if (parent.children.length === 0) return 1
-
-    return parent.children.map((id) => page.shapes[id]).sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
-  }
-
-  assertParentShape(shape: TLDrawShape): asserts shape is TLDrawShape & { children: string[] } {
-    if (!('children' in shape)) {
-      throw new Error(`That shape was not a parent (it was a ${shape.type}).`)
-    }
-  }
-
-  // Force all shapes on the page to have integer child indices.
-  forceIntegerChildIndices(shapes: TLDrawShape[]): void {
-    for (let i = 0; i < shapes.length; i++) {
-      const shape = shapes[i]
-      getShapeUtils(shape).setProperty(shape, 'childIndex', i + 1)
-    }
-  }
-
-  updateParents(data: Data, changedShapeIds: string[]): void {
-    if (changedShapeIds.length === 0) return
-
-    const { shapes } = this.getPage(data)
-
-    const parentToUpdateIds = Array.from(new Set(changedShapeIds.map((id) => shapes[id].parentId).values())).filter(
-      (id) => id !== data.page.id,
-    )
-
-    for (const parentId of parentToUpdateIds) {
-      const parent = shapes[parentId]
-
-      if (!parent.children) {
-        throw Error('A shape is parented to a shape without a children array.')
-      }
-
-      getShapeUtils(parent).onChildrenChange(
-        parent,
-        parent.children.map((id) => shapes[id]),
-      )
-
-      shapes[parentId] = { ...parent }
-    }
-
-    this.updateParents(data, parentToUpdateIds)
-  }
-
-  deleteShapes(data: Data, shapeIds: string[] | TLDrawShape[], shapesDeleted: TLDrawShape[] = []): TLDrawShape[] {
-    const ids =
-      typeof shapeIds[0] === 'string' ? (shapeIds as string[]) : (shapeIds as TLDrawShape[]).map((shape) => shape.id)
-
-    const parentsToDelete: string[] = []
-
-    const page = this.getPage(data)
-
-    const parentIds = new Set(ids.map((id) => page.shapes[id].parentId))
-
-    // Delete shapes
-    ids.forEach((id) => {
-      shapesDeleted.push(Utils.deepClone(page.shapes[id]))
-      delete page.shapes[id]
-    })
-
-    // Update parents
-    parentIds.forEach((id) => {
-      const parent = page.shapes[id]
-
-      // The parent was either deleted or a is a page.
-      if (!parent) return
-
-      const utils = getShapeUtils(parent)
-
-      // Remove deleted ids from the parent's children and update the parent
-      utils
-        .setProperty(
-          parent,
-          'children',
-          parent.children!.filter((childId) => !ids.includes(childId)),
-        )
-        .onChildrenChange(
-          parent,
-          parent.children!.map((id) => page.shapes[id]),
-        )
-
-      if (utils.shouldDelete(parent)) {
-        // If the parent decides it should delete, then we need to reparent
-        // the parent's remaining children to the parent's parent, and
-        // assign them correct child indices, and then delete the parent on
-        // the next recursive step.
-
-        const nextIndex = this.getChildIndexAbove(data, parent.id)
-
-        const len = parent.children!.length
-
-        // Reparent the children and assign them new child indices
-        parent.children!.forEach((childId, i) => {
-          const child = this.getShape(data, childId)
-
-          getShapeUtils(child)
-            .setProperty(child, 'parentId', parent.parentId)
-            .setProperty(child, 'childIndex', Utils.lerp(parent.childIndex, nextIndex, i / len))
-        })
-
-        if (parent.parentId !== page.id) {
-          // If the parent is not a page, then we add the parent's children
-          // to the parent's parent shape before emptying that array. If the
-          // parent is a page, then we don't need to do this step.
-          // TODO: Consider adding explicit children array to page shapes.
-          const grandParent = page.shapes[parent.parentId]
-
-          getShapeUtils(grandParent)
-            .setProperty(grandParent, 'children', [...parent.children!])
-            .onChildrenChange(
-              grandParent,
-              grandParent.children!.map((id) => page.shapes[id]),
-            )
-        }
-
-        // Empty the parent's children array and delete the parent on the next
-        // iteration step.
-        getShapeUtils(parent).setProperty(parent, 'children', [])
-
-        parentsToDelete.push(parent.id)
-      }
-    })
-
-    if (parentsToDelete.length > 0) {
-      return this.deleteShapes(data, parentsToDelete, shapesDeleted)
-    }
-
-    return shapesDeleted
-  }
-
-  getShapeUtils(shape: TLDrawShape) {
-    return getShapeUtils(shape)
-  }
-
-  getSelectedShapes(data: Data) {
-    return data.pageState.selectedIds.map((id) => data.page.shapes[id])
-  }
-
-  screenToWorld(data: Data, point: number[]) {
-    const { camera } = data.pageState
-
-    return Vec.sub(Vec.div(point, camera.zoom), camera.point)
-  }
-
-  getViewport(data: Data): TLBounds {
-    const [minX, minY] = this.screenToWorld(data, [0, 0])
-    const [maxX, maxY] = this.screenToWorld(data, [window.innerWidth, window.innerHeight])
-
-    return {
-      minX,
-      minY,
-      maxX,
-      maxY,
-      height: maxX - minX,
-      width: maxY - minY,
-    }
-  }
-
-  getCameraZoom(zoom: number) {
-    return Utils.clamp(zoom, 0.1, 5)
-  }
-
-  getCurrentCamera(data: Data) {
-    return data.pageState.camera
-  }
-
-  getPage(data: Data) {
-    return data.page
-  }
-
-  getPageState(data: Data) {
-    return data.pageState
-  }
-
-  getSelectedIds(data: Data) {
-    return data.pageState.selectedIds
-  }
-
-  setSelectedIds(data: Data, ids: string[]) {
-    data.pageState.selectedIds = ids
-  }
-
-  deselectAll(data: Data) {
-    this.setSelectedIds(data, [])
-  }
-
-  getShapes(data: Data) {
-    return Object.values(data.page.shapes)
-  }
-
-  getCamera(data: Data) {
-    return data.pageState.camera
-  }
-
-  getShape<T extends TLDrawShape = TLDrawShape>(data: Data, shapeId: string): T {
-    return data.page.shapes[shapeId] as T
-  }
-
-  getBinding(data: Data, id: string): TLBinding {
-    return this.getPage(data).bindings[id]
-  }
-
-  /* -------------------------------------------------- */
-  /*                       Public                       */
-  /* -------------------------------------------------- */
-
-  toJson(formatted = false) {
-    return JSON.stringify(this.state.data, null, formatted ? 2 : 0)
-  }
-
-  toggleTestMode() {
-    this.isTestMode = !this.isTestMode
-    return this.isTestMode
-  }
-
-  /* -------- Reimplemenation of State Methods -------- */
-
-  get state() {
-    return this._state
-  }
-
-  get data() {
-    return this.state.data
+    this.fastUpdate({ ...this.data, page: { ...data.page } })
   }
 
   send(eventName: string, payload?: unknown) {
@@ -997,6 +687,83 @@ export class TLDrawState {
 
   can(eventName: string, payload?: unknown) {
     return this.state.can(eventName, payload)
+  }
+
+  get state() {
+    return this._state
+  }
+
+  get data() {
+    return this.state.data
+  }
+
+  /* -------------------------------------------------- */
+  /*                     Public API                     */
+  /* -------------------------------------------------- */
+
+  /**
+   * Update the current page state. Calling this method will cancel any current session.
+   *
+   * ### Example
+   *
+   *```ts
+   * tldrState.updatePageState(myTLPageState)
+   *```
+   */
+  updatePageState = (pageState: TLPageState) => {
+    this.forceUpdate({ pageState })
+  }
+
+  /**
+   * Update the current page. Calling this method will cancel any current session.
+   *
+   * ### Example
+   *
+   *```ts
+   * tldrState.updatePage(myTLPage)
+   *```
+   */
+  updatePage = (page: TLPage<TLDrawShape>) => {
+    if (page.id === this.currentPageId) {
+      this.forceUpdate({ page })
+    }
+  }
+
+  /**
+   * Update a shape on the current page.
+   *
+   * ### Example
+   *
+   *```ts
+   * tldrState.updateShape(myNewShape)
+   *```
+   */
+  updateShape = (shape: TLDrawShape) => {
+    if (this.data.page.shapes[shape.id]) {
+      this.forceUpdate({ page: { ...this.data.page, shapes: { ...this.data.page.shapes, [shape.id]: shape } } })
+    }
+  }
+
+  /**
+   * Get the current document as a JSON object.
+   *
+   * ### Example
+   *
+   *```ts
+   * tldrawState.toJson()
+   *```
+   */
+  toJson(formatted = false) {
+    const document: TLDrawDocument = {
+      id: this.documentId,
+      pages: this.pages,
+      pageStates: this.pageStates,
+    }
+
+    document.pages[this.currentPageId] = this.data.page
+    document.pageStates[this.currentPageId] = this.data.pageState
+
+    return JSON.stringify(document, null, formatted ? 2 : 0)
   }
 }
 

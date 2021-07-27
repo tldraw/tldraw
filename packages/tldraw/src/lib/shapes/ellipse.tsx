@@ -1,4 +1,4 @@
-import { TLShapeUtil, TLShape, Utils, TLTransformInfo, TLBounds } from '@tldraw/core'
+import { TLShapeUtil, TLShape, Utils, TLTransformInfo, TLBounds, Intersect } from '@tldraw/core'
 import { EllipseShape } from './shape-types'
 
 export class Ellipse extends TLShapeUtil<EllipseShape> {
@@ -54,7 +54,10 @@ export class Ellipse extends TLShapeUtil<EllipseShape> {
   hitTestBounds(shape: EllipseShape, bounds: TLBounds) {
     const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
-    return Utils.boundsContainPolygon(bounds, rotatedCorners) || Utils.boundsCollidePolygon(bounds, rotatedCorners)
+    return (
+      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
+      Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
+    )
   }
 
   transform(shape: TLShape, bounds: TLBounds, info: TLTransformInfo<EllipseShape>) {
