@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { createState, createSelectorHook } from '@state-designer/react'
 import {
@@ -12,7 +13,7 @@ import {
   TLKeyboardInfo,
 } from '@tldraw/core'
 import { Data, TLDrawDocument } from '../../types'
-import { TLDrawShape, TLDrawShapeUtils, tldrawShapeUtils, getShapeUtils } from '../../shape'
+import { TLDrawShape, TLDrawShapeUtils, tldrawShapeUtils, getShapeUtils, ShapeStyles, defaultStyle } from '../../shape'
 import { History } from '../history'
 import { BrushSession, Session, TransformSession, TranslateSession } from '../session'
 import { freeze } from 'immer'
@@ -36,6 +37,10 @@ const initialData: Data = {
     isDebugMode: false,
     isReadonlyMode: false,
   },
+  ui: {
+    isStyleOpen: false,
+  },
+  currentStyle: defaultStyle,
   currentPageId: 'page',
   page: {
     id: 'page',
@@ -484,6 +489,37 @@ export class TLDrawState {
         camera.zoom = TLD.getCameraZoom(next)
         const p1 = TLD.screenToWorld(data, payload.info.origin)
         camera.point = Vec.add(camera.point, Vec.sub(p1, p0))
+      },
+    },
+    values: {
+      selectedStyle(data) {
+        const { page, pageState, currentStyle } = data
+
+        if (pageState.selectedIds.length === 0) {
+          return currentStyle
+        }
+
+        const overrides = new Set<string>([])
+
+        return Object.entries(currentStyle).reduce((acc, [key, value]) => {
+          for (const id of pageState.selectedIds) {
+            const shapeStyle = page.shapes[id].style
+
+            if (overrides.has(key)) continue
+            if (value === undefined) {
+              // @ts-ignore
+              acc[key] = shapeStyle[key as keyof ShapeStyles]
+            } else {
+              if (acc[key as keyof ShapeStyles] === shapeStyle[key as keyof ShapeStyles]) continue
+              overrides.add(key)
+
+              // @ts-ignore
+              acc[key] = currentStyle[key as keyof ShapeStyles]
+            }
+          }
+
+          return acc
+        }, {} as ShapeStyles)
       },
     },
   })

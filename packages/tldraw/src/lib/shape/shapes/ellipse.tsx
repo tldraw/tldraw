@@ -1,4 +1,5 @@
 import { TLShapeUtil, TLShape, Utils, TLTransformInfo, TLBounds, Intersect } from '@tldraw/core'
+import { defaultStyle } from '../shape-styles'
 import { EllipseShape } from '../shape-types'
 
 export class Ellipse extends TLShapeUtil<EllipseShape> {
@@ -13,6 +14,7 @@ export class Ellipse extends TLShapeUtil<EllipseShape> {
     point: [0, 0],
     radius: [100, 100],
     rotation: 0,
+    style: defaultStyle,
   }
 
   render(shape: EllipseShape) {

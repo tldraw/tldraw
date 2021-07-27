@@ -126,4 +126,4 @@ export class Clipboard {
   //   }
 }
 
-// export default new Clipboard()
+// export new Clipboard()

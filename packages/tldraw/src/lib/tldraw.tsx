@@ -5,6 +5,7 @@ import { TLDrawShape, tldrawShapeUtils } from './shape'
 import { state, TLDrawCallbacks, TLDrawState, useSelector } from './state'
 import { TLDrawDocument } from './types'
 import { useKeyboardShortcuts } from './hooks'
+import styled from './styles'
 
 const events: Partial<RendererProps<TLDrawShape>> = {
   onPointerMove: state.fastPointerMove,
@@ -86,9 +87,41 @@ export function TLDraw({ document, ...callbacks }: TLDrawProps) {
   useKeyboardShortcuts()
 
   return (
-    <>
+    <Layout>
       <Renderer page={page} pageState={pageState} shapeUtils={tldrawShapeUtils} {...events} />
       <StatusBar />
-    </>
+    </Layout>
   )
 }
+
+const Spacer = styled('div', {
+  flexGrow: 2,
+})
+
+const MenuButtons = styled('div', {
+  display: 'flex',
+  gap: 8,
+})
+
+const Layout = styled('main', {
+  position: 'fixed',
+  overflow: 'hidden',
+  top: 0,
+  left: 0,
+  bottom: 0,
+  right: 0,
+  height: '100%',
+  width: '100%',
+  padding: '8px 8px 0 8px',
+  zIndex: 200,
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start',
+  boxSizing: 'border-box',
+  outline: 'none',
+
+  pointerEvents: 'none',
+  '& > *': {
+    PointerEvent: 'all',
+  },
+})

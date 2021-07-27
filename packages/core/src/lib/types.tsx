@@ -321,6 +321,32 @@ export interface IShapeTreeNode {
   isCurrentParent: boolean
 }
 
+export enum MoveType {
+  Backward,
+  Forward,
+  ToFront,
+  ToBack,
+}
+
+export enum AlignType {
+  Top,
+  CenterVertical,
+  Bottom,
+  Left,
+  CenterHorizontal,
+  Right,
+}
+
+export enum StretchType {
+  Horizontal,
+  Vertical,
+}
+
+export enum DistributeType {
+  Horizontal,
+  Vertical,
+}
+
 /* -------------------------------------------------- */
 /*                    Utility Types                   */
 /* -------------------------------------------------- */

@@ -1,5 +1,5 @@
 import { TLPage, TLPageState, TLSettings } from '@tldraw/core'
-import { TLDrawShape } from './shape'
+import { TLDrawShape, ShapeStyles } from './shape'
 
 export interface TLDrawDocument {
   id: string
@@ -9,9 +9,13 @@ export interface TLDrawDocument {
 
 export interface Data {
   currentPageId: string
+  currentStyle: ShapeStyles
   settings: TLSettings
   page: TLPage<TLDrawShape>
   pageState: TLPageState
+  ui: {
+    isStyleOpen: boolean
+  }
 }
 
 export enum MoveType {

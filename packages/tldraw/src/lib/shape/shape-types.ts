@@ -1,14 +1,17 @@
 import { TLShape, TLShapeUtils } from '@tldraw/core'
 
-export interface EllipseShape extends TLShape {
+export interface TLDrawBaseShape extends TLShape {
+  style: ShapeStyles
+}
+
+export interface EllipseShape extends TLDrawBaseShape {
   type: 'ellipse'
   radius: number[]
 }
 
-export interface RectangleShape extends TLShape {
+export interface RectangleShape extends TLDrawBaseShape {
   type: 'rectangle'
   size: number[]
-  style: ShapeStyles
   radius?: number
 }
 
