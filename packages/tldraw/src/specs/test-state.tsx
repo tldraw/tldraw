@@ -1,6 +1,6 @@
 import { inputs, TLBoundsCorner, TLBoundsEdge, TLShapeUtil, Utils, Vec } from '@tldraw/core'
 import { Data, TLDrawShape } from '../../src'
-import { createShape, tldrawShapeUtils } from '../../src/lib/shapes'
+import { createShape, tldrawShapeUtils } from '../../src/lib/shape'
 import { TLDrawState } from '../../src/lib/state'
 import { mockDocument } from './__mocks__/mock-document'
 import { TLD } from '../../src/lib/state/tld'
@@ -21,7 +21,7 @@ export class TLDrawTestState extends TLDrawState {
     super(tldrawShapeUtils)
     this.toggleTestMode()
     this.snapshot = Utils.deepClone(this.state.data)
-    this.updateFromDocument(mockDocument)
+    this.loadDocument(mockDocument)
     this.save()
   }
 

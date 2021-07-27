@@ -1,5 +1,5 @@
 import { TLPage, TLPageState, TLSettings } from '@tldraw/core'
-import { TLDrawShape } from './shapes'
+import { TLDrawShape } from './shape'
 
 export interface TLDrawDocument {
   id: string

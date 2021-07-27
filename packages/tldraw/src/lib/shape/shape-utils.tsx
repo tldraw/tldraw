@@ -1,5 +1,5 @@
-import { rectangle } from './rectangle'
-import { ellipse } from './ellipse'
+import { rectangle } from './shapes/rectangle'
+import { ellipse } from './shapes/ellipse'
 import { TLShapeUtil } from '@tldraw/core'
 import { TLDrawShape, TLDrawShapeUtils } from './shape-types'
 

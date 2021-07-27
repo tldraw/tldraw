@@ -1,5 +1,5 @@
 import { TLShapeUtil, TLShape, Utils, TLTransformInfo, TLBounds, Intersect } from '@tldraw/core'
-import { EllipseShape } from './shape-types'
+import { EllipseShape } from '../shape-types'
 
 export class Ellipse extends TLShapeUtil<EllipseShape> {
   type = 'ellipse' as const

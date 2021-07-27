@@ -1,7 +1,7 @@
 import { TLShapeUtil, TLBounds, TLShape, Utils, Vec, TLTransformInfo, TLRenderInfo, Intersect } from '@tldraw/core'
 import getStroke from 'perfect-freehand'
-import { getPerfectDashProps, defaultStyle, getShapeStyle } from './shape-styles'
-import { RectangleShape, DashStyle } from './shape-types'
+import { getPerfectDashProps, defaultStyle, getShapeStyle } from '../shape-styles'
+import { RectangleShape, DashStyle } from '../shape-types'
 
 export class Rectangle extends TLShapeUtil<RectangleShape> {
   type = 'rectangle' as const

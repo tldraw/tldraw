@@ -1,7 +1,7 @@
 import { TransformSession } from './transform.session'
 import { mockData } from '../../../../../specs/__mocks__/mock-data'
 import { TLBoundsCorner, Utils } from '@tldraw/core'
-import { getShapeUtils } from '../../../../shapes'
+import { getShapeUtils } from '../../../../shape'
 import { Data } from '../../../../types'
 
 function getSingleBounds(data: Data) {

@@ -2,8 +2,8 @@
 import * as React from 'react'
 import { TLBezierCurveSegment, TLBounds, TLBoundsCorner, TLBoundsEdge } from '../types'
 import { current, isDraft } from 'immer'
-import Intersect from './intersect'
 import vec from './vec'
+import './polyfills'
 
 export class Utils {
   /* -------------------------------------------------- */

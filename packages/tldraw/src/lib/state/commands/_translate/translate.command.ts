@@ -1,4 +1,4 @@
-import { getShapeUtils } from '../../../shapes'
+import { getShapeUtils } from '../../../shape'
 import { Data } from '../../../types'
 import { TranslateSnapshot } from '../../sessions'
 import { state } from '../../state'

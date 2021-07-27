@@ -1,7 +1,7 @@
 import { Vec, Utils } from '@tldraw/core'
 import { BaseSession } from '.././session-types'
 import { Data } from '../../../../types'
-import { getShapeUtils, TLDrawShape } from '../../../../shapes'
+import { getShapeUtils, TLDrawShape } from '../../../../shape'
 import { mutate } from '../../../commands'
 import { TLD } from '../../../tld'
 

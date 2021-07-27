@@ -12,7 +12,7 @@ import {
   TLKeyboardInfo,
 } from '@tldraw/core'
 import { Data, TLDrawDocument } from '../../types'
-import { TLDrawShape, TLDrawShapeUtils, tldrawShapeUtils, getShapeUtils } from '../../shapes'
+import { TLDrawShape, TLDrawShapeUtils, tldrawShapeUtils, getShapeUtils } from '../../shape'
 import { History } from '../history'
 import { BrushSession, Session, TransformSession, TranslateSession } from '../session'
 import { freeze } from 'immer'
@@ -543,12 +543,13 @@ export class TLDrawState {
     }
   }
 
-  private toggleTestMode() {
+  /* --------------- Implementation API --------------- */
+
+  // Toggle the test mode
+  toggleTestMode() {
     this.isTestMode = !this.isTestMode
     return this.isTestMode
   }
-
-  /* --------------- Implementation API --------------- */
 
   // Load callbacks from props (should be done once on mount)
   loadCallbacks(callbacks: Partial<TLDrawCallbacks>) {

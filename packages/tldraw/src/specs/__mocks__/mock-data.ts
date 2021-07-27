@@ -1,4 +1,4 @@
-import { ColorStyle, DashStyle, Data, SizeStyle } from '../../'
+import { ColorStyle, DashStyle, Data, SizeStyle } from '../../index'
 
 export const mockData: Data = {
   settings: {
@@ -7,6 +7,7 @@ export const mockData: Data = {
     isDebugMode: false,
     isReadonlyMode: false,
   },
+  currentPageId: 'page1',
   page: {
     id: 'page1',
     shapes: {

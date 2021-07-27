@@ -1,7 +1,7 @@
 // Used when changing the properties of one or more shapes,
 // without changing selection or deleting any shapes.
 
-import { getShapeUtils, TLDrawShape } from '../../../shapes'
+import { getShapeUtils, TLDrawShape } from '../../../shape'
 import { Data } from '../../../types'
 import { TLD } from '../../tld'
 import { Command } from '../command'
