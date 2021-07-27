@@ -1,7 +1,7 @@
 import { Utils, Vec, TLBoundsEdge, TLBoundsCorner } from '@tldraw/core'
 import { BaseSession } from '.././session-types'
 import { Data } from '../../../../types'
-import { mutate } from '../../../commands'
+import { mutate } from '../../../command'
 import { TLD } from '../../../tld'
 
 export class TransformSession implements BaseSession {

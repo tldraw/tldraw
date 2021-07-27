@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Data } from '../../../types'
-import { Command } from '../../commands'
+import { Command } from '../../command'
 
 export interface BaseSession {
   update(data: Data, ...args: unknown[]): void

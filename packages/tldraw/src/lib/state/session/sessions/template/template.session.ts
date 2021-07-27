@@ -1,6 +1,6 @@
 import { BaseSession } from '../session-types'
 import { Data } from '../../../../types'
-import { Command } from '../../../commands'
+import { Command } from '../../../command'
 
 export class TemplateSession implements BaseSession {
   origin: number[]
