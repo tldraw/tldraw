@@ -19,3 +19,5 @@ if (!String.prototype.replaceAll) {
     return this.replace(new RegExp(str, 'g'), newStr)
   }
 }
+
+export {}
