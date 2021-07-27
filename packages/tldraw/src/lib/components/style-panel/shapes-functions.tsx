@@ -2,7 +2,7 @@ import * as React from 'react'
 import { state, useSelector, TLD } from '../../state'
 import { IconButton, ButtonsRow, breakpoints } from '../shared'
 import { MoveType } from '../../types'
-import { Trash2 } from 'react-feather'
+import { Trash } from '../icons'
 import { Tooltip } from '../tooltip'
 import {
   ArrowDownIcon,
@@ -79,7 +79,7 @@ export const ShapesFunctions = React.memo(() => {
     return selectedShapes.every(
       (shape) =>
         shape.children !== undefined ||
-        (shape.parentId === selectedShapes[0].parentId && selectedShapes[0].parentId !== s.data.currentPageId),
+        (shape.parentId === selectedShapes[0].parentId && selectedShapes[0].parentId !== s.data.appState.currentPageId),
     )
   })
 
@@ -156,7 +156,7 @@ export const ShapesFunctions = React.memo(() => {
 
         <IconButton bp={breakpoints} disabled={!hasSelection} size="small" onClick={handleDelete}>
           <Tooltip label="Delete" kbd="⌫">
-            <Trash2 size="15" />
+            <Trash />
           </Tooltip>
         </IconButton>
       </ButtonsRow>

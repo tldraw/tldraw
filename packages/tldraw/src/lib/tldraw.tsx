@@ -6,6 +6,8 @@ import { state, TLDrawCallbacks, TLDrawState, useSelector } from './state'
 import { TLDrawDocument } from './types'
 import { useKeyboardShortcuts } from './hooks'
 import styled from './styles'
+import { StylePanel } from './components/style-panel'
+import { ToolsPanel } from './components/tools-panel'
 
 const events: Partial<RendererProps<TLDrawShape>> = {
   onPointerMove: state.fastPointerMove,
@@ -65,6 +67,9 @@ const events: Partial<RendererProps<TLDrawShape>> = {
   onBlurEditingShape() {
     /*TODO*/
   },
+  onChange(ids) {
+    state.send('CHANGED_RENDERING_COUNT', { count: ids.length })
+  },
 }
 
 export interface TLDrawProps extends Partial<TLDrawCallbacks> {
@@ -89,7 +94,15 @@ export function TLDraw({ document, ...callbacks }: TLDrawProps) {
   return (
     <Layout>
       <Renderer page={page} pageState={pageState} shapeUtils={tldrawShapeUtils} {...events} />
-      <StatusBar />
+      <MenuButtons>
+        {/* <Menu />
+        <DebugPanel />
+        <CodePanel />
+        <PagePanel /> */}
+      </MenuButtons>
+      <Spacer />
+      <StylePanel />
+      <ToolsPanel />
     </Layout>
   )
 }
@@ -119,6 +132,10 @@ const Layout = styled('main', {
   justifyContent: 'flex-start',
   boxSizing: 'border-box',
   outline: 'none',
+
+  '& .tl-container': {
+    position: 'absolute',
+  },
 
   pointerEvents: 'none',
   '& > *': {

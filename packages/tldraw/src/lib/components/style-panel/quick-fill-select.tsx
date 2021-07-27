@@ -9,7 +9,7 @@ function handleIsFilledChange(isFilled: boolean) {
   state.send('CHANGED_STYLE', { isFilled })
 }
 
-export const IsFilledPicker = React.memo((): JSX.Element => {
+export const QuickFillSelect = React.memo((): JSX.Element => {
   const isFilled = useSelector((s) => s.values.selectedStyle.isFilled)
 
   return (

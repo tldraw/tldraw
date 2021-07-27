@@ -23,7 +23,7 @@ function changeDashStyle(dash: DashStyle): void {
   state.send('CHANGED_STYLE', { dash })
 }
 
-export const QuickdashSelect = React.memo((): JSX.Element => {
+export const QuickDashSelect = React.memo((): JSX.Element => {
   const dash = useSelector((s) => s.values.selectedStyle.dash)
 
   return (

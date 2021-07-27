@@ -1,9 +1,9 @@
 import React from 'react'
-import Tooltip from './tooltip'
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as RadioGroup from '@radix-ui/react-radio-group'
 import styled from '../styles'
+import { Tooltip } from './tooltip'
 import { CheckIcon, ChevronRightIcon } from '@radix-ui/react-icons'
 import { Utils } from '@tldraw/core'
 
@@ -301,20 +301,55 @@ export const FloatingContainer = styled('div', {
 })
 
 export const StyledKbd = styled('kbd', {
-  marginLeft: '32px',
-  fontSize: '$1',
+  marginLeft: '$3',
+  textShadow: '$2',
+  textAlign: 'center',
+  fontSize: '$0',
   fontFamily: '$ui',
   fontWeight: 400,
+  gap: '$1',
+  display: 'flex',
+  alignItems: 'center',
 
   '& > span': {
-    display: 'inline-block',
-    width: '12px',
+    padding: '$0',
+    borderRadius: '$0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  variants: {
+    variant: {
+      tooltip: {
+        '& > span': {
+          background: '$overlayContrast',
+          boxShadow: '$key',
+          width: '20px',
+          height: '20px',
+        },
+      },
+      menu: {},
+    },
   },
 })
 
-export function Kbd({ children }: { children: React.ReactNode }): JSX.Element | null {
+export function commandKey(): string {
+  return Utils.isDarwin() ? '⌘' : 'Ctrl'
+}
+
+export function Kbd({ variant, children }: { variant: 'tooltip' | 'menu'; children: string }): JSX.Element | null {
   if (Utils.isMobile()) return null
-  return <StyledKbd>{children}</StyledKbd>
+  return (
+    <StyledKbd variant={variant}>
+      {children
+        .replaceAll('#', commandKey())
+        .split('')
+        .map((k, i) => (
+          <span key={i}>{k}</span>
+        ))}
+    </StyledKbd>
+  )
 }
 
 /* -------------------------------------------------- */
@@ -670,10 +705,11 @@ export function ContextMenuCheckboxItem({
   )
 }
 
-export function CircleIcon(props: React.HTMLProps<SVGElement> & React.SVGProps<SVGElement>) {
+export function CircleIcon(props: Pick<React.SVGProps<SVGSVGElement>, 'stroke' | 'fill'> & { size: number }) {
+  const { size = 16, ...rest } = props
   return (
-    <svg width={16} height={16} {...props}>
-      <circle cx={8} cy={8} r={6} />
+    <svg width={24} height={24} {...rest}>
+      <circle cx={12} cy={12} r={size / 2} />
     </svg>
   )
 }

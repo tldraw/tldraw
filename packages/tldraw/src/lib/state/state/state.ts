@@ -34,14 +34,17 @@ const initialData: Data = {
   settings: {
     isPenMode: false,
     isDarkMode: false,
-    isDebugMode: false,
+    isDebugMode: process.env.NODE_ENV === 'development',
     isReadonlyMode: false,
   },
-  ui: {
+  appState: {
+    currentPageId: 'page',
+    currentStyle: defaultStyle,
+    activeTool: 'select',
+    isToolLocked: false,
     isStyleOpen: false,
+    isEmptyCanvas: false,
   },
-  currentStyle: defaultStyle,
-  currentPageId: 'page',
   page: {
     id: 'page',
     shapes: {},
@@ -106,6 +109,15 @@ export class TLDrawState {
             unless: 'isInSession',
             do: 'redo',
           },
+          CHANGED_RENDERING_COUNT: {
+            if: ['isEmptyCanvas', 'isRenderingShapes'],
+            do: 'clearIsEmptyCanvas',
+            else: {
+              unless: ['isEmptyCanvas', 'isRenderingShapes'],
+              do: 'setIsEmptyCanvas',
+            },
+          },
+          TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
         },
         initial: 'usingTool',
         states: {
@@ -293,6 +305,12 @@ export class TLDrawState {
       },
     },
     conditions: {
+      isEmptyCanvas: (data) => {
+        return data.appState.isEmptyCanvas
+      },
+      isRenderingShapes: (data, payload: { count: number }) => {
+        return payload.count > 0
+      },
       isTestMode: () => {
         return this.isTestMode
       },
@@ -337,6 +355,30 @@ export class TLDrawState {
       /* -------------------- Settings -------------------- */
       toggleTestMode: (data) => {
         this.toggleTestMode()
+      },
+      toggleDebugMode: (data) => {
+        data.settings.isDebugMode = !data.settings.isDebugMode
+      },
+      toggleDarkMode: (data) => {
+        data.settings.isDarkMode = !data.settings.isDarkMode
+      },
+      toggleReadonlyMode: (data) => {
+        data.settings.isReadonlyMode = !data.settings.isReadonlyMode
+      },
+
+      /* ----------------------- UI ----------------------- */
+
+      toggleStylePanel: (data) => {
+        data.appState.isStyleOpen = !data.appState.isStyleOpen
+      },
+      toggleToolLock: (data) => {
+        data.appState.isToolLocked = !data.appState.isToolLocked
+      },
+      setIsEmptyCanvas: (data) => {
+        data.appState.isEmptyCanvas = true
+      },
+      clearIsEmptyCanvas: (data) => {
+        data.appState.isEmptyCanvas = false
       },
 
       /* -------------------- Sessions -------------------- */
@@ -493,7 +535,11 @@ export class TLDrawState {
     },
     values: {
       selectedStyle(data) {
-        const { page, pageState, currentStyle } = data
+        const {
+          page,
+          pageState,
+          appState: { currentStyle },
+        } = data
 
         if (pageState.selectedIds.length === 0) {
           return currentStyle
@@ -570,7 +616,10 @@ export class TLDrawState {
       this.currentPageId = currentPageId || Object.keys(pages)[0]
 
       this.forceUpdate({
-        currentPageId: this.currentPageId,
+        appState: {
+          ...this.data.appState,
+          currentPageId: this.currentPageId,
+        },
         page: pages[this.currentPageId],
         pageState: pageStates[this.currentPageId],
       })
@@ -693,8 +742,6 @@ export class TLDrawState {
 
   fastTranslate(info: TLPointerInfo) {
     const data = { ...this.data }
-
-    console.log('fast translating')
 
     this.session.update<TranslateSession>(data, TLD.screenToWorld(data, info.point), info.shiftKey, info.altKey)
 

@@ -1,5 +1,7 @@
+import * as React from 'react'
 import { IShapeTreeNode, TLPage, TLPageState, TLShape, TLBounds, TLShapeUtil, TLShapeUtils } from '../../types'
 import Utils, { Vec } from '../../utils'
+import { TLContext, useTLContext } from './useTLContext'
 
 function addToShapeTree<T extends TLShape>(
   shape: TLShape,
@@ -48,7 +50,10 @@ export function useShapeTree<T extends TLShape>(
     editingBindingId?: string
     isDarkMode?: boolean
   } = {},
+  onChange?: (ids: string[]) => void,
 ) {
+  const rPreviousCount = React.useRef(0)
+
   if (typeof window === 'undefined') return []
 
   const { selectedIds, camera } = pageState
@@ -76,12 +81,20 @@ export function useShapeTree<T extends TLShape>(
     const shapeBounds = shapeUtils[shape.type as T['type']].getBounds(shape)
 
     return (
-      // shapeUtils.alwaysRender? (for lines, rays, etc)
+      // TODO: Some shapes should always render (lines, rays)
       Utils.boundsContain(viewport, shapeBounds) || Utils.boundsCollide(viewport, shapeBounds)
     )
   })
 
+  // Call onChange callback when number of rendering shapes changes
+
+  if (shapesToRender.length !== rPreviousCount.current) {
+    onChange?.(shapesToRender.map((shape) => shape.id))
+    rPreviousCount.current = shapesToRender.length
+  }
+
   // Populate the shape tree
+
   const tree: IShapeTreeNode[] = []
 
   shapesToRender

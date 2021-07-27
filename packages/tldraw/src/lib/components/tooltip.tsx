@@ -1,6 +1,8 @@
 import * as RadixTooltip from '@radix-ui/react-tooltip'
+import { Utils } from '@tldraw/core'
 import React from 'react'
 import styled from '../styles'
+import { Kbd } from './shared'
 
 interface TooltipProps {
   children: React.ReactNode
@@ -15,13 +17,7 @@ export function Tooltip({ children, label, kbd, side = 'top' }: TooltipProps): J
       <RadixTooltip.Trigger as="span">{children}</RadixTooltip.Trigger>
       <StyledContent side={side} sideOffset={8}>
         {label}
-        {kbd ? (
-          <kbd>
-            {kbd.split('').map((k, i) => (
-              <span key={i}>{k}</span>
-            ))}
-          </kbd>
-        ) : null}
+        {kbd ? <Kbd variant="tooltip">{kbd}</Kbd> : null}
         <StyledArrow />
       </StyledContent>
     </RadixTooltip.Root>
@@ -37,30 +33,7 @@ const StyledContent = styled(RadixTooltip.Content, {
   boxShadow: '$3',
   display: 'flex',
   alignItems: 'center',
-
-  '& kbd': {
-    marginLeft: '$3',
-    textShadow: '$2',
-    textAlign: 'center',
-    fontSize: '$1',
-    fontFamily: '$ui',
-    fontWeight: 400,
-    gap: '$1',
-    display: 'flex',
-    alignItems: 'center',
-
-    '& > span': {
-      padding: '$0',
-      borderRadius: '$0',
-      background: '$overlayContrast',
-      boxShadow: '$key',
-      width: '20px',
-      height: '20px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-  },
+  fontFamily: '$ui',
 })
 
 const StyledArrow = styled(RadixTooltip.Arrow, {

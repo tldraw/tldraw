@@ -18,7 +18,7 @@ export function Page<T extends TLShape>({ page, pageState }: PageProps<T>): JSX.
 
   useRenderOnResize()
 
-  const shapeTree = useShapeTree(page, pageState, shapeUtils)
+  const shapeTree = useShapeTree(page, pageState, shapeUtils, callbacks.onChange)
 
   const { shapeWithHandles } = useHandles(page, pageState)
 

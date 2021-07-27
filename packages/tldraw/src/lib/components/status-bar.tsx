@@ -17,8 +17,6 @@ export function StatusBar(): JSX.Element | null {
 
   const log = local.log[0]
 
-  if (process.env.NODE_ENV !== 'development') return null
-
   return (
     <StatusBarContainer size={{ '@sm': 'small' }}>
       <Section>
@@ -30,11 +28,6 @@ export function StatusBar(): JSX.Element | null {
 }
 
 const StatusBarContainer = styled('div', {
-  position: 'fixed',
-  bottom: 0,
-  left: 0,
-  right: 0,
-  zIndex: 200,
   height: 40,
   userSelect: 'none',
   borderTop: '1px solid $border',
@@ -45,6 +38,7 @@ const StatusBarContainer = styled('div', {
   alignItems: 'center',
   backgroundColor: '$panel',
   gap: 8,
+  fontFamily: '$ui',
   fontSize: '$0',
   padding: '0 16px',
 

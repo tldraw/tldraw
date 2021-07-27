@@ -1,5 +1,10 @@
 import { TLShape, TLShapeUtils } from '@tldraw/core'
 
+export enum ShapeType {
+  Ellipse = 'ellipse',
+  Rectangle = 'rectangle',
+}
+
 export interface TLDrawBaseShape extends TLShape {
   style: ShapeStyles
 }
@@ -18,8 +23,6 @@ export interface RectangleShape extends TLDrawBaseShape {
 export type TLDrawShape = RectangleShape | EllipseShape
 
 export type TLDrawShapeUtils = TLShapeUtils<TLDrawShape>
-
-export type ShapeType = TLDrawShape['type']
 
 export enum ColorStyle {
   White = 'White',

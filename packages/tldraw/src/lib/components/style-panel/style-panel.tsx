@@ -16,7 +16,7 @@ const handlePaste = () => state.send('PASTED')
 const handleCopyToSvg = () => state.send('COPIED_TO_SVG')
 
 export function StylePanel(): JSX.Element {
-  const isOpen = useSelector((s) => s.data.ui.isStyleOpen)
+  const isOpen = useSelector((s) => s.data.appState.isStyleOpen)
 
   return (
     <FloatingContainer direction="column">
@@ -48,15 +48,15 @@ function SelectedShapeContent(): JSX.Element {
       <Divider />
       <RowButton bp={breakpoints} disabled={selectedShapesCount === 0} onClick={handleCopy}>
         <span>Copy</span>
-        {showKbds && <Kbd>#C</Kbd>}
+        {showKbds && <Kbd variant="menu">#C</Kbd>}
       </RowButton>
       <RowButton bp={breakpoints} onClick={handlePaste}>
         <span>Paste</span>
-        {showKbds && <Kbd>#V</Kbd>}
+        {showKbds && <Kbd variant="menu">#V</Kbd>}
       </RowButton>
       <RowButton bp={breakpoints} onClick={handleCopyToSvg}>
         <span>Copy to SVG</span>
-        {showKbds && <Kbd>⇧ #C</Kbd>}
+        {showKbds && <Kbd variant="menu">⇧#C</Kbd>}
       </RowButton>
     </>
   )
