@@ -606,27 +606,26 @@ export class TLDrawState {
           return currentStyle
         }
 
+        const shapeStyles = data.pageState.selectedIds.map((id) => page.shapes[id].style)
+
+        const commonStyle: ShapeStyles = {} as ShapeStyles
+
         const overrides = new Set<string>([])
 
-        return Object.entries(currentStyle).reduce((acc, [key, value]) => {
-          for (const id of pageState.selectedIds) {
-            const shapeStyle = page.shapes[id].style
-
+        for (const shapeStyle of shapeStyles) {
+          for (const key in currentStyle) {
             if (overrides.has(key)) continue
-            if (value === undefined) {
-              // @ts-ignore
-              acc[key] = shapeStyle[key as keyof ShapeStyles]
+            if (commonStyle[key] === undefined) {
+              commonStyle[key] = shapeStyle[key]
             } else {
-              if (acc[key as keyof ShapeStyles] === shapeStyle[key as keyof ShapeStyles]) continue
+              if (commonStyle[key] === shapeStyle[key]) continue
+              commonStyle[key] = currentStyle[key]
               overrides.add(key)
-
-              // @ts-ignore
-              acc[key] = currentStyle[key as keyof ShapeStyles]
             }
           }
+        }
 
-          return acc
-        }, {} as ShapeStyles)
+        return commonStyle
       },
     },
   })
