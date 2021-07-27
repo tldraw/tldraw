@@ -261,6 +261,11 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return this
   }
 
+  mutate(shape: T, props: Partial<T>) {
+    Object.assign(shape, props)
+    return this
+  }
+
   shouldRender(prev: T, next: T): boolean {
     return true
   }

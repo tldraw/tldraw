@@ -64,6 +64,7 @@ export type ShapeStyles = {
   size: SizeStyle
   dash: DashStyle
   isFilled?: boolean
+  scale?: number
 }
 
 export type Theme = 'dark' | 'light'

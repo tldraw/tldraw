@@ -1,5 +1,6 @@
 import { state, useSelector } from '../../state'
-import { IconButton, ButtonsRow, breakpoints, RowButton, FloatingContainer, Divider, Kbd } from '../shared'
+import { Kbd } from '../kbd'
+import { IconButton, ButtonsRow, breakpoints, RowButton, FloatingContainer, Divider } from '../shared'
 import { ShapesFunctions } from './shapes-functions'
 import { AlignDistribute } from './align-distribute'
 import { QuickColorSelect } from './quick-color-select'

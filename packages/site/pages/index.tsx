@@ -3,7 +3,7 @@ import { ColorStyle, DashStyle, SizeStyle, TLDraw, TLDrawDocument, TLDrawShapeUt
 
 export function Index() {
   const [document, setDocument] = React.useState<TLDrawDocument>({
-    currentPageId: 'page1',
+    id: 'doc',
     pages: {
       page1: {
         id: 'page1',

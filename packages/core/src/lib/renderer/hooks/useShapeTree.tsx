@@ -1,5 +1,14 @@
 import * as React from 'react'
-import { IShapeTreeNode, TLPage, TLPageState, TLShape, TLBounds, TLShapeUtil, TLShapeUtils } from '../../types'
+import {
+  IShapeTreeNode,
+  TLPage,
+  TLPageState,
+  TLShape,
+  TLBounds,
+  TLShapeUtil,
+  TLShapeUtils,
+  TLCallbacks,
+} from '../../types'
 import Utils, { Vec } from '../../utils'
 import { TLContext, useTLContext } from './useTLContext'
 
@@ -50,7 +59,7 @@ export function useShapeTree<T extends TLShape>(
     editingBindingId?: string
     isDarkMode?: boolean
   } = {},
-  onChange?: (ids: string[]) => void,
+  onChange?: TLCallbacks['onChange'],
 ) {
   const rPreviousCount = React.useRef(0)
 

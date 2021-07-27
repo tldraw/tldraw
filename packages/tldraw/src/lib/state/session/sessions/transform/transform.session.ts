@@ -1,7 +1,7 @@
 import { Utils, Vec, TLBoundsEdge, TLBoundsCorner } from '@tldraw/core'
 import { BaseSession } from '.././session-types'
 import { Data } from '../../../../types'
-import { mutate } from '../../../command'
+import { commands } from '../../../command'
 import { TLD } from '../../../tld'
 
 export class TransformSession implements BaseSession {
@@ -86,9 +86,12 @@ export class TransformSession implements BaseSession {
 
   complete(data: Data) {
     const { initialShapes, hasUnlockedShapes } = this.snapshot
-    if (!hasUnlockedShapes) return
+    if (!hasUnlockedShapes) {
+      return undefined
+    }
+
     const finalShapes = initialShapes.map((shape) => Utils.deepClone(data.page.shapes[shape.id]))
-    return mutate(data, initialShapes, finalShapes)
+    return commands.mutate(data, initialShapes, finalShapes)
   }
 }
 

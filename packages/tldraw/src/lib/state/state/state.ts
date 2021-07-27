@@ -11,6 +11,9 @@ import {
   TLBoundsCorner,
   TLBoundsEdge,
   TLKeyboardInfo,
+  AlignType,
+  StretchType,
+  DistributeType,
 } from '@tldraw/core'
 import { Data, TLDrawDocument } from '../../types'
 import { TLDrawShape, TLDrawShapeUtils, tldrawShapeUtils, getShapeUtils, ShapeStyles, defaultStyle } from '../../shape'
@@ -18,6 +21,7 @@ import { History } from '../history'
 import { BrushSession, Session, TransformSession, TranslateSession } from '../session'
 import { freeze } from 'immer'
 import { TLD } from '../tld'
+import { commands } from '../command'
 
 /*
 The State Manager class is a wrapper around a state-designer state. It provides utilities for accessing
@@ -27,7 +31,7 @@ is shared in the renderer's `onMount` callback.
 
 export interface TLDrawCallbacks {
   onMount: (state: TLDrawState) => void
-  onChange: (state: TLDrawState, type: 'camera' | 'command' | 'session' | 'undo' | 'redo' | 'load') => void
+  onChange: (state: TLDrawState, type: 'camera' | 'command' | 'session' | 'undo' | 'redo' | 'load' | 'page') => void
 }
 
 const initialData: Data = {
@@ -53,7 +57,6 @@ const initialData: Data = {
   pageState: {
     id: 'page',
     selectedIds: [],
-    currentParentId: 'page',
     camera: {
       point: [0, 0],
       zoom: 1,
@@ -118,6 +121,25 @@ export class TLDrawState {
             },
           },
           TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
+          // TOGGLED_SHAPE_LOCK: {
+          //   unlessAny: 'isInSession',
+          //   if: 'hasSelection',
+          //   do: 'lockSelection',
+          // },
+          // TOGGLED_SHAPE_HIDE: {
+          //   unlessAny: 'isInSession',
+          //   if: 'hasSelection',
+          //   do: 'hideSelection',
+          // },
+          // TOGGLED_SHAPE_ASPECT_LOCK: {
+          //   unlessAny: 'isInSession',
+          //   if: 'hasSelection',
+          //   do: 'aspectLockSelection',
+          // },
+          CHANGED_STYLE: {
+            unlessAny: 'isInSession',
+            do: ['updateStyles', 'applyStylesToSelection'],
+          },
         },
         initial: 'usingTool',
         states: {
@@ -305,6 +327,9 @@ export class TLDrawState {
       },
     },
     conditions: {
+      hasSelection(data) {
+        return data.pageState.selectedIds.length > 0
+      },
       isEmptyCanvas: (data) => {
         return data.appState.isEmptyCanvas
       },
@@ -532,6 +557,42 @@ export class TLDrawState {
         const p1 = TLD.screenToWorld(data, payload.info.origin)
         camera.point = Vec.add(camera.point, Vec.sub(p1, p0))
       },
+
+      /* ------------------ Shape Changes ----------------- */
+
+      updateStyles(data, payload: Partial<ShapeStyles>) {
+        Object.assign(data.appState.currentStyle, payload)
+      },
+      applyStylesToSelection: (data, payload: Partial<ShapeStyles>) => {
+        this.history.execute(data, commands.style(data, payload))
+      },
+      // alignSelection(data, payload: { type: AlignType }) {
+      //   commands.align(data, payload.type)
+      // },
+      // stretchSelection(data, payload: { type: StretchType }) {
+      //   commands.stretch(data, payload.type)
+      // },
+      // distributeSelection(data, payload: { type: DistributeType }) {
+      //   commands.distribute(data, payload.type)
+      // },
+      // duplicateSelection(data) {
+      //   commands.duplicate(data)
+      // },
+      // lockSelection(data) {
+      //   commands.toggle(data, 'isLocked')
+      // },
+      // hideSelection(data) {
+      //   commands.toggle(data, 'isHidden')
+      // },
+      // aspectLockSelection(data) {
+      //   commands.toggle(data, 'isAspectRatioLocked')
+      // },
+      // deleteSelection(data) {
+      //   commands.deleteShapes(data, tld.getSelectedShapes(data))
+      // },
+      // rotateSelectionCcw(data) {
+      //   commands.rotateCcw(data)
+      // },
     },
     values: {
       selectedStyle(data) {
@@ -644,6 +705,26 @@ export class TLDrawState {
   // Load a document from props (should be done once on mount)
   loadDocument(document: TLDrawDocument) {
     this.updateFromDocument(document)
+  }
+
+  loadCurrentPageId(pageId: string) {
+    if (pageId !== this.data.page.id) {
+      this.changePage(pageId)
+    }
+  }
+
+  changePage(pageId: string) {
+    this.currentPageId = pageId
+
+    this.pages[this.data.page.id] = { ...this.data.page }
+    this.pageStates[this.data.page.id] = { ...this.data.pageState }
+
+    this.forceUpdate({
+      page: this.pages[this.currentPageId],
+      pageState: this.pageStates[this.currentPageId],
+    })
+
+    this.callbacks.onChange?.(this, 'page')
   }
 
   fastPointerMove = (info: TLPointerInfo) => {

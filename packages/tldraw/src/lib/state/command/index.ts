@@ -1,3 +1,5 @@
-export { Command } from './command'
+import { mutate } from './mutate'
+import { style } from './style'
 
-export * from './mutate'
+export { Command } from './command'
+export const commands = { mutate, style }

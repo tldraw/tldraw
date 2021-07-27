@@ -2,7 +2,7 @@ import { Vec, Utils } from '@tldraw/core'
 import { BaseSession } from '.././session-types'
 import { Data } from '../../../../types'
 import { getShapeUtils, TLDrawShape } from '../../../../shape'
-import { mutate } from '../../../command'
+import { commands } from '../../../command'
 import { TLD } from '../../../tld'
 
 export class TranslateSession implements BaseSession {
@@ -151,7 +151,7 @@ export class TranslateSession implements BaseSession {
   }
 
   complete(data: Data) {
-    if (!this.snapshot.hasUnlockedShapes) return
+    if (!this.snapshot.hasUnlockedShapes) return undefined
 
     const before = this.snapshot.initialShapes.map((shape) =>
       Utils.deepClone({
@@ -162,7 +162,7 @@ export class TranslateSession implements BaseSession {
 
     const after = data.pageState.selectedIds.map((id) => Utils.deepClone(data.page.shapes[id]))
 
-    return mutate(data, before, after, 'translating shapes')
+    return commands.mutate(data, before, after, 'translating shapes')
 
     // TODO
     // commands.translate(

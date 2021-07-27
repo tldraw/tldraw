@@ -1,6 +1,6 @@
-# core
+# @tldraw/core
 
-This package contains the core of the `tldraw` library. It includes:
+This package contains the core of the [tldraw](https://tldraw.com) library. It includes:
 
 - [`Renderer`](#renderer) - a React component
 - [`TLShapeUtility`](#tlshapeutility) - an abstract class for custom shape utilities
@@ -15,12 +15,12 @@ This package contains the core of the `tldraw` library. It includes:
 ## Installation
 
 ```bash
-yarn add @tldraw/core
+yarn add @tldraw/core --peer
 ```
 
 ## Usage
 
-Import the `Renderer` component and pass it the required props.
+Import the `Renderer` React component and pass it the required props.
 
 - [Example](#example)
 - [Guide: Create a Custom Shape](#create-a-custom-shape)
@@ -29,103 +29,132 @@ Import the `Renderer` component and pass it the required props.
 
 ### `Renderer`
 
-- `page` - A [`TLPage`](#tlpage) object.
-- `pageState` - A [`TLPageState`](#tlpagestate) object.
-- `shapeUtils` - A table of [`TLShapeUtils`](#tlshapeutils) classes.
-- `theme` - (optional) an object with overrides for the Renderer's default colors.
-  - `foreground` - The primary (usually "text") color
-  - `background` - The default page's background color
-  - `brushFill` - The fill color of the brush selection box
-  - `brushStroke` - The stroke color of the brush selection box
-  - `selectFill` - The fill color of the selection bounds
-  - `selectStroke` - The stroke color of the selection bounds and handles
+| Prop         | Type                              | Description                                                            |
+| ------------ | --------------------------------- | ---------------------------------------------------------------------- |
+| `page`       | [`TLPage`](#tlpage)               | The current page object.                                               |
+| `pageState`  | [`TLPageState`](#tlpagestate)     | The current page's state.                                              |
+| `shapeUtils` | [`TLShapeUtils`](#tlshapeutils){} | The shape utilities used to render the shapes.                         |
+| `theme`      | `object`                          | (optional) an object with overrides for the Renderer's default colors. |
 
-> Tip: If providing an object for the `theme` prop, memoize it first with `React.useMemo`.
+The theme object accepts valid CSS colors for the following properties:
+
+| Property       | Description                                                     |
+| -------------- | --------------------------------------------------------------- |
+| `foreground`   | (optional) The primary (usually "text") color                   |
+| `background`   | (optional) The default page's background color                  |
+| `brushFill`    | (optional) The fill color of the brush selection box            |
+| `brushStroke`  | (optional) The stroke color of the brush selection box          |
+| `selectFill`   | (optional) The fill color of the selection bounds               |
+| `selectStroke` | (optional) The stroke color of the selection bounds and handles |
+
+> Tip: If providing an object for the `theme` prop, either define the object outside of the parent component or memoize it with `React.useMemo`.
 
 The renderer also accepts many (optional) event callbacks.
 
-- `onPan` - The user panned with the mouse wheel
-- `onZoom` - The user zoomed with the mouse wheel
-- `onPinch` - The user moved their pointers during a pinch
-- `onPinchEnd` - The user stopped a two-pointer pinch
-- `onPinchStart` - The user began a two-pointer pinch
-- `onPointerMove` - The user moved their pointer
-- `onStopPointing` - The user ended a point
-- `onPointShape` - The user pointed a shape
-- `onDoublePointShape` - The user double-pointed a shape
-- `onRightPointShape` - The user right-pointed a shape
-- `onMoveOverShape` - The user moved their pointer a shape
-- `onHoverShape` - The user moved their pointer onto a shape
-- `onUnhoverShape` - The user moved their pointer off of a shape
-- `onPointHandle` - The user pointed a shape handle
-- `onDoublePointHandle` - The user double-pointed a shape handle
-- `onRightPointHandle`- The user right-pointed a shape handle
-- `onMoveOverHandle` - The user moved their pointer over a shape handle
-- `onHoverHandle` - The user moved their pointer onto a shape handle
-- `onUnhoverHandle` - The user moved their pointer off of a shape handle
-- `onPointCanvas` - The user pointed the canvas
-- `onDoublePointCanvas` - The user double-pointed the canvas
-- `onRightPointCanvas` - The user right-pointed the canvas
-- `onPointBounds` - The user pointed the selection bounds
-- `onDoublePointBounds` - The user double-pointed the selection bounds
-- `onRightPointBounds` - The user right-pointed the selection bounds
-- `onPointBoundsHandle` - The user pointed a selection bounds edge or corner
-- `onDoublePointBoundsHandle` - The user double-pointed a selection bounds edge or corner
-- `onBlurEditingShape` - The user blurred an editing (text) shape
-- `onError` - The renderer encountered an error
+| Prop                        | Description                                               |
+| --------------------------- | --------------------------------------------------------- |
+| `onPan`                     | The user panned with the mouse wheel                      |
+| `onZoom`                    | The user zoomed with the mouse wheel                      |
+| `onPinch`                   | The user moved their pointers during a pinch              |
+| `onPinchEnd`                | The user stopped a two-pointer pinch                      |
+| `onPinchStart`              | The user began a two-pointer pinch                        |
+| `onPointerMove`             | The user moved their pointer                              |
+| `onStopPointing`            | The user ended a point                                    |
+| `onPointShape`              | The user pointed a shape                                  |
+| `onDoublePointShape`        | The user double-pointed a shape                           |
+| `onRightPointShape`         | The user right-pointed a shape                            |
+| `onMoveOverShape`           | The user moved their pointer a shape                      |
+| `onHoverShape`              | The user moved their pointer onto a shape                 |
+| `onUnhoverShape`            | The user moved their pointer off of a shape               |
+| `onPointHandle`             | The user pointed a shape handle                           |
+| `onDoublePointHandle`       | The user double-pointed a shape handle                    |
+| `onRightPointHandle`-       | he user right-pointed a shape handle                      |
+| `onMoveOverHandle`          | The user moved their pointer over a shape handle          |
+| `onHoverHandle`             | The user moved their pointer onto a shape handle          |
+| `onUnhoverHandle`           | The user moved their pointer off of a shape handle        |
+| `onPointCanvas`             | The user pointed the canvas                               |
+| `onDoublePointCanvas`       | The user double-pointed the canvas                        |
+| `onRightPointCanvas`        | The user right-pointed the canvas                         |
+| `onPointBounds`             | The user pointed the selection bounds                     |
+| `onDoublePointBounds`       | The user double-pointed the selection bounds              |
+| `onRightPointBounds`        | The user right-pointed the selection bounds               |
+| `onPointBoundsHandle`       | The user pointed a selection bounds edge or corner        |
+| `onDoublePointBoundsHandle` | The user double-pointed a selection bounds edge or corner |
+| `onBlurEditingShape`        | The user blurred an editing (text) shape                  |
+| `onError`                   | The renderer encountered an error                         |
+
+> Tip: If providing callbacks, either define the functions outside of the parent component or memoize them first with `React.useMemo`.
 
 ### `TLPage`
 
 An object describing the current page. It contains:
 
-- `id` - a unique id for the page
-- `shapes` - a table of [`TLShape`](#tlshape) objects
-- `bindings` - a table of [`TLBinding`](#tlbinding) objects
-- `backgroundColor` - (optional) the page's background fill color
+| Property          | Type                        | Description                                                                 |
+| ----------------- | --------------------------- | --------------------------------------------------------------------------- |
+| `id`              | `string`                    | A unique id for the page.                                                   |
+| `shapes`          | [`TLShape{}`](#tlshape)     | A table of shapes.                                                          |
+| `bindings`        | [`TLBinding{}`](#tlbinding) | A table of bindings.                                                        |
+| `backgroundColor` | `string`                    | (optional) The page's background fill color. Will also overwrite the theme. |
 
 ### `TLPageState`
 
 An object describing the current page. It contains:
 
-- `id` - the corresponding page's id
-- `currentParentId`: the current parent id for selection
-- `selectedIds`: an array of selected shape ids
-- `camera` : an object describing the camera state
-  - `point` - the camera's `[x, y]` coordinates
-  - `zoom` - the camera's zoom level
-- `brush`: (optional) a `Bounds` for the current selection box
-- `pointedId`: (optional) the currently pointed shape id
-- `hoveredId`: (optional) the currently hovered shape id
-- `editingId`: (optional) the currently editing shape id
-- `editingBindingId`: (optional) the currently editing binding id
+| Property           | Type       | Description                                         |
+| ------------------ | ---------- | --------------------------------------------------- |
+| `id`               | `string`   | The corresponding page's id                         |
+| `selectedIds`      | `string[]` | An array of selected shape ids                      |
+| `camera`           | `object`   | An object describing the camera state               |
+| `camera.point`     | `number[]` | The camera's `[x, y]` coordinates                   |
+| `camera.zoom`      | `number`   | The camera's zoom level                             |
+| `currentParentId`  | `string`   | (optional) The current parent id for selection      |
+| `brush`            | `TLBounds` | (optional) A `Bounds` for the current selection box |
+| `pointedId`        | `string`   | (optional) The currently pointed shape id           |
+| `hoveredId`        | `string`   | (optional) The currently hovered shape id           |
+| `editingId`        | `string`   | (optional) The currently editing shape id           |
+| `editingBindingId` | `string`   | (optional) The currently editing binding id         |
 
 ### `TLShape`
 
 An object that describes a shape on the page. The shapes in your document should extend this interface with other properties. See [Guide: Create a Custom Shape](#create-a-custom-shape).
 
-- `id`: string
-- `type` - the type of the shape, corresponding to the `type` of a [`TLShapeUtil`](#tlshapeutil).
-- `parentId` - the id of the shape's parent (either the current page or another shape).
-- `childIndex` - the order of the shape among its parent's children
-- `name` - the name of the shape
-- `point` - the shape's current `[x, y]` coordinates on the page
-- `rotation` - the shape's current rotation in radians
-- `children` - (optional) An array containing the ids of this shape's children
-- `handles` - (optional) A table of `TLHandle` objects
-- `isLocked` - (optional) True if the shape is locked
-- `isHidden` - (optional) True if the shape is hidden
-- `isEditing` - (optional) True if the shape is currently editing
-- `isGenerated`- (optional) True if the shape is generated programatically
-- `isAspectRatioLocked` - (optional) True if the shape's aspect ratio is locked
+| Property              | Type                      | Description                                                                            |
+| --------------------- | ------------------------- | -------------------------------------------------------------------------------------- |
+| `id`                  | `string`                  | The shape's id.                                                                        |
+| `type`                | `string`                  | The type of the shape, corresponding to the `type` of a [`TLShapeUtil`](#tlshapeutil). |
+| `parentId`            | `string`                  | The id of the shape's parent (either the current page or another shape).               |
+| `childIndex`          | `number`                  | the order of the shape among its parent's children                                     |
+| `name`                | `string`                  | the name of the shape                                                                  |
+| `point`               | `number[]`                | the shape's current `[x, y]` coordinates on the page                                   |
+| `rotation`            | `number`                  | (optiona) The shape's current rotation in radians                                      |
+| `children`            | `string[]`                | (optional) An array containing the ids of this shape's children                        |
+| `handles`             | [`TLHandle{}`](#tlhandle) | (optional) A table of `TLHandle` objects                                               |
+| `isLocked`            | `boolean`                 | (optional) True if the shape is locked                                                 |
+| `isHidden`            | `boolean`                 | (optional) True if the shape is hidden                                                 |
+| `isEditing`           | `boolean`                 | (optional) True if the shape is currently editing                                      |
+| `isGenerated`         | `boolean`                 | optional) True if the shape is generated programatically                               |
+| `isAspectRatioLocked` | `boolean`                 | (optional) True if the shape's aspect ratio is locked                                  |
+
+### `TLHandle`
+
+An object that describes a relationship between two shapes on the page.
+
+| Property | Type       | Description                                    |
+| -------- | ---------- | ---------------------------------------------- |
+| `id`     | `string`   | An id for the handle.                          |
+| `index`  | `number`   | The handle's order within the shape's handles. |
+| `point`  | `number[]` | The handle's `[x, y]` coordinates.             |
 
 ### `TLBinding`
 
 An object that describes a relationship between two shapes on the page.
 
-- `id` - a unique id for the binding
-- `type` - the binding's type
-- `fromId` - the id of the shape where the binding begins
-- `toId` - the id of the shape where the binding begins
+| Property | Type     | Description                                   |
+| -------- | -------- | --------------------------------------------- |
+| `id`     | `string` | A unique id for the binding.                  |
+| `type`   | `string` | The binding's type.                           |
+| `fromId` | `string` | The id of the shape where the binding begins. |
+| `toId`   | `string` | The id of the shape where the binding begins. |
 
 ### `TLShapeUtil`
 
@@ -135,8 +164,10 @@ The `TLShapeUtil` is an abstract class that you can extend to create utilities f
 
 The `brushUpdater` is a special class instance that allows you to quickly update the selection brush rectangle.
 
-- `set` - a method that accepts either a `TLBounds` object or `undefined`
-- `clear` - a method to hide the brush
+| Method  | Description                                                     |
+| ------- | --------------------------------------------------------------- |
+| `set`   | a method that accepts either a `TLBounds` object or `undefined` |
+| `clear` | a method to hide the brush                                      |
 
 Normally, the renderer's brush will update in response to changes to `pageState.brush`; however, calling `brushUpdater.set` will produce a faster change in the brush rectangle. Calling `brushUpdater.set` will prevent the brush from any future updates from `pageState.brush`.
 
