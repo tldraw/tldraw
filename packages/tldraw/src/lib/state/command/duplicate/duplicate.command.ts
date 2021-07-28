@@ -1,8 +1,4 @@
-// Used when changing the properties of one or more shapes,
-// without changing selection or deleting any shapes.
-
 import { Utils, Vec } from '@tldraw/core'
-import { PropsOfType, TLDrawShape } from '../../../shape'
 import { Data } from '../../../types'
 import { TLD } from '../../tld'
 import { Command } from '../command'

@@ -22,25 +22,38 @@ export function useKeyboardShortcuts() {
     e.preventDefault()
   })
 
-  useHotkeys(
-    'ctrl#=,command#=',
-    (e) => {
-      state.send('ZOOMED_IN')
-      e.preventDefault()
-    },
-    {
-      splitKey: '#',
-    },
-  )
+  useHotkeys('ctrl+=,command+=', (e) => {
+    state.send('ZOOMED_IN')
+    e.preventDefault()
+  })
 
-  useHotkeys(
-    'ctrl#-,command#-',
-    (e) => {
-      state.send('ZOOMED_OUT')
-      e.preventDefault()
-    },
-    {
-      splitKey: '#',
-    },
-  )
+  useHotkeys('ctrl+-,command+-', (e) => {
+    state.send('ZOOMED_OUT')
+    e.preventDefault()
+  })
+
+  useHotkeys('shift+1', (e) => {
+    state.send('ZOOMED_TO_FIT')
+    e.preventDefault()
+  })
+
+  useHotkeys('shift+2', (e) => {
+    state.send('ZOOMED_TO_SELECTION')
+    e.preventDefault()
+  })
+
+  useHotkeys('shift+0', (e) => {
+    state.send('ZOOMED_TO_ACTUAL')
+    e.preventDefault()
+  })
+
+  useHotkeys('escape', (e) => {
+    state.send('CANCELLED')
+    e.preventDefault()
+  })
+
+  useHotkeys('backspace', (e) => {
+    state.send('DELETED')
+    e.preventDefault()
+  })
 }

@@ -1,8 +1,5 @@
-// Used when changing the properties of one or more shapes,
-// without changing selection or deleting any shapes.
-
 import { DistributeType, Utils } from '@tldraw/core'
-import { getShapeUtils, TLDrawShape } from '../../../shape'
+import { TLDrawShape } from '../../../shape'
 import { Data } from '../../../types'
 import { TLD } from '../../tld'
 import { Command } from '../command'
@@ -23,7 +20,7 @@ export function distribute(data: Data, type: DistributeType) {
       for (const { id, next } of shapesToTranslate) {
         const shape = shapes[id]
 
-        getShapeUtils(shape).mutate(shape, { point: next })
+        TLD.getShapeUtils(shape).mutate(shape, { point: next })
       }
 
       TLD.updateBindings(data, ids)
@@ -35,7 +32,7 @@ export function distribute(data: Data, type: DistributeType) {
       for (const { id, prev } of shapesToTranslate) {
         const shape = shapes[id]
 
-        getShapeUtils(shape).mutate(shape, { point: prev })
+        TLD.getShapeUtils(shape).mutate(shape, { point: prev })
       }
 
       TLD.updateBindings(data, ids)

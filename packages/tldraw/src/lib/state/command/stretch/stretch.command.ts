@@ -1,8 +1,4 @@
-// Used when changing the properties of one or more shapes,
-// without changing selection or deleting any shapes.
-
 import { StretchType, TLBoundsCorner, Utils } from '@tldraw/core'
-import { getShapeUtils } from '../../../shape'
 import { Data } from '../../../types'
 import { TLD } from '../../tld'
 import { Command } from '../command'
@@ -86,7 +82,7 @@ export function stretch(data: Data, type: StretchType) {
       for (const { id, next } of shapesToTranslate) {
         const shape = shapes[id]
 
-        getShapeUtils(shape).transform(shape, next.bounds, next.transform)
+        TLD.getShapeUtils(shape).transform(shape, next.bounds, next.transform)
       }
 
       TLD.updateBindings(data, ids)
@@ -98,7 +94,7 @@ export function stretch(data: Data, type: StretchType) {
       for (const { id, prev } of shapesToTranslate) {
         const shape = shapes[id]
 
-        getShapeUtils(shape).mutate(shape, { ...prev })
+        TLD.getShapeUtils(shape).mutate(shape, { ...prev })
       }
 
       TLD.updateBindings(data, ids)

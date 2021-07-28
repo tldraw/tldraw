@@ -5,7 +5,7 @@ import { state } from '../../state'
 
 const undo = () => state.send('UNDO')
 const redo = () => state.send('REDO')
-const clear = () => state.send('CLEARED_PAGE')
+const clear = () => state.send('DELETED_ALL')
 
 export const UndoRedo = React.memo((): JSX.Element => {
   return (

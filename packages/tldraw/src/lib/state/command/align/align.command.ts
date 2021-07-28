@@ -1,8 +1,4 @@
-// Used when changing the properties of one or more shapes,
-// without changing selection or deleting any shapes.
-
 import { AlignType, Utils } from '@tldraw/core'
-import { getShapeUtils } from '../../../shape'
 import { Data } from '../../../types'
 import { TLD } from '../../tld'
 import { Command } from '../command'
@@ -57,7 +53,7 @@ export function align(data: Data, type: AlignType) {
       for (const { id, next } of shapesToTranslate) {
         const shape = shapes[id]
 
-        getShapeUtils(shape).mutate(shape, { point: next })
+        TLD.getShapeUtils(shape).mutate(shape, { point: next })
       }
 
       TLD.updateBindings(data, ids)
@@ -69,7 +65,7 @@ export function align(data: Data, type: AlignType) {
       for (const { id, prev } of shapesToTranslate) {
         const shape = shapes[id]
 
-        getShapeUtils(shape).mutate(shape, { point: prev })
+        TLD.getShapeUtils(shape).mutate(shape, { point: prev })
       }
 
       TLD.updateBindings(data, ids)

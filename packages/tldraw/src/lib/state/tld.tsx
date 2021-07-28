@@ -197,6 +197,48 @@ export class TLD {
   }
 
   /**
+   * Add the shapes to the current page.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.createShape(data, [shape1])
+   * tld.createShape(data, [shape1, shape2, shape3])
+   *```
+   */
+  static createShapes(data: Data, shapes: TLDrawShape[]): void {
+    const page = this.getPage(data)
+    const shapeIds = shapes.map((shape) => shape.id)
+
+    // Update selected ids
+    this.setSelectedIds(data, shapeIds)
+
+    // Restore deleted shapes
+    shapes.forEach((shape) => {
+      const newShape = { ...shape }
+      page.shapes[shape.id] = newShape
+    })
+
+    // Update parents
+    shapes.forEach((shape) => {
+      if (shape.parentId === data.page.id) return
+
+      const parent = page.shapes[shape.parentId]
+
+      getShapeUtils(parent)
+        .setProperty(
+          parent,
+          'children',
+          parent.children.includes(shape.id) ? parent.children : [...parent.children, shape.id],
+        )
+        .onChildrenChange(
+          parent,
+          parent.children.map((id) => page.shapes[id]),
+        )
+    })
+  }
+
+  /**
    * Delete the shapes from the current page.
    *
    * ### Example

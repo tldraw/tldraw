@@ -31,9 +31,12 @@ export function useSelection<T extends TLShape>(
 
     bounds = selectedShapes.reduce((acc, shape, i) => {
       if (i === 0) {
-        return shapeUtils[shape.type as T['type']].getBounds(shape)
+        return shapeUtils[shape.type as T['type']].getRotatedBounds(shape)
       }
-      return Utils.getExpandedBounds(acc, shapeUtils[shape.type as T['type']].getBounds(shape))
+      return Utils.getExpandedBounds(
+        acc,
+        shapeUtils[shape.type as T['type']].getRotatedBounds(shape),
+      )
     }, {} as TLBounds)
   }
 

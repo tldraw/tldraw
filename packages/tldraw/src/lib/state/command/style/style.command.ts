@@ -1,7 +1,4 @@
-// Used when changing the properties of one or more shapes,
-// without changing selection or deleting any shapes.
-
-import { getShapeUtils, ShapeStyles } from '../../../shape'
+import { ShapeStyles } from '../../../shape'
 import { Data } from '../../../types'
 import { TLD } from '../../tld'
 import { Command } from '../command'
@@ -30,7 +27,7 @@ export function style(data: Data, changes: Partial<ShapeStyles>) {
       for (const { id, next } of shapesToStyle) {
         const shape = shapes[id]
 
-        getShapeUtils(shape).mutate(shape, { style: next })
+        TLD.getShapeUtils(shape).mutate(shape, { style: next })
       }
 
       TLD.updateBindings(data, ids)
@@ -41,7 +38,7 @@ export function style(data: Data, changes: Partial<ShapeStyles>) {
 
       for (const { id, prev } of shapesToStyle) {
         const shape = shapes[id]
-        getShapeUtils(shape).mutate(shape, { style: prev })
+        TLD.getShapeUtils(shape).mutate(shape, { style: prev })
       }
 
       TLD.updateBindings(data, ids)

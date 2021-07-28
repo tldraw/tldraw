@@ -182,13 +182,24 @@ export class TLDrawState {
             do: 'stretchSelection',
           },
           DUPLICATED: {
+            unless: 'isInSession',
             if: 'hasSelection',
             do: 'duplicateSelection',
           },
-          // ROTATED_CCW: {
-          //   if: 'hasSelection',
-          //   do: 'rotateSelectionCcw',
-          // },
+          DELETED: {
+            unless: 'isInSession',
+            do: 'deleteSelection',
+          },
+          DELETED_ALL: {
+            unlessAny: 'isInSession',
+            if: 'hasSelection',
+            do: 'deleteSelection',
+            else: ['selectAll', 'deleteSelection'],
+          },
+          ROTATED_CCW: {
+            if: 'hasSelection',
+            do: 'rotateSelectionCcw',
+          },
         },
         initial: 'usingTool',
         states: {
@@ -201,6 +212,11 @@ export class TLDrawState {
                 states: {
                   notPointing: {
                     on: {
+                      CANCELLED: {
+                        if: 'hasCurrentParentShape',
+                        do: ['selectCurrentParentId', 'raiseCurrentParentId'],
+                        else: 'deselectAll',
+                      },
                       POINTED_CANVAS: {
                         to: 'brushSelecting',
                         do: 'clearCurrentParentId',
@@ -376,6 +392,9 @@ export class TLDrawState {
       },
     },
     conditions: {
+      hasCurrentParentShape(data) {
+        return data.pageState.currentParentId && data.pageState.currentParentId !== data.page.id
+      },
       hasSelection(data) {
         return data.pageState.selectedIds.length > 0
       },
@@ -597,6 +616,16 @@ export class TLDrawState {
       clearCurrentParentId(data) {
         delete data.pageState.currentParentId
       },
+      raiseCurrentParentId(data) {
+        const { currentParentId } = data.pageState
+        const currentParent = TLD.getShape(data, currentParentId)
+
+        data.pageState.currentParentId =
+          currentParent.parentId === currentParentId ? currentParentId : currentParent.parentId
+      },
+      selectCurrentParentId(data) {
+        TLD.setSelectedIds(data, [data.pageState.currentParentId])
+      },
 
       // Bounds Rotation
       clearBoundsRotation(data) {
@@ -761,12 +790,12 @@ export class TLDrawState {
       aspectLockSelection: (data) => {
         this.history.execute(data, commands.toggle(data, 'isAspectRatioLocked'))
       },
-      // deleteSelection(data) {
-      //   commands.deleteShapes(data, tld.getSelectedShapes(data))
-      // },
-      // rotateSelectionCcw(data) {
-      //   commands.rotateCcw(data)
-      // },
+      deleteSelection: (data) => {
+        this.history.execute(data, commands.deleteShapes(data))
+      },
+      rotateSelectionCcw: (data) => {
+        this.history.execute(data, commands.rotate(data))
+      },
     },
     values: {
       selectedStyle(data) {
