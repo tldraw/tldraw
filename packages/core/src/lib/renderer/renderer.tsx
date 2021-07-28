@@ -1,3 +1,4 @@
+import React from 'react'
 import {
   TLShape,
   TLPage,
@@ -32,8 +33,10 @@ export function Renderer<T extends TLShape>({
 }: RendererProps<T>): JSX.Element {
   useTLTheme(theme)
 
+  const [context] = React.useState(() => ({ callbacks: rest, shapeUtils }))
+
   return (
-    <TLContext.Provider value={{ callbacks: rest, shapeUtils }}>
+    <TLContext.Provider value={context}>
       <Canvas page={page} pageState={pageState} />
     </TLContext.Provider>
   )

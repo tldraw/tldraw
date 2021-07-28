@@ -9,5 +9,6 @@ export * from './delete-shapes'
 export * from './rotate'
 export * from './translate'
 export * from './move'
+export * from './create'
 
 export { Command } from './command'

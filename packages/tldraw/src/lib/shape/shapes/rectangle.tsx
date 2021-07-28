@@ -10,27 +10,34 @@ import {
 } from '@tldraw/core'
 import getStroke from 'perfect-freehand'
 import { getPerfectDashProps, defaultStyle, getShapeStyle } from '../shape-styles'
-import { RectangleShape, DashStyle } from '../shape-types'
+import {
+  RectangleShape,
+  DashStyle,
+  TLDrawShapeUtil,
+  TLDrawShapeType,
+  TLDrawToolType,
+} from '../shape-types'
 
-export class Rectangle extends TLShapeUtil<RectangleShape> {
-  type = 'rectangle' as const
+export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
+  type = TLDrawShapeType.Rectangle as const
+  toolType = TLDrawToolType.Bounds
 
   pathCache = new WeakMap<number[], string>([])
 
   defaultProps = {
     id: 'id',
-    type: 'rectangle' as const,
+    type: TLDrawShapeType.Rectangle as const,
     name: 'Rectangle',
     parentId: 'page',
-    childIndex: 0,
+    childIndex: 1,
     point: [0, 0],
-    size: [100, 100],
+    size: [1, 1],
     rotation: 0,
     radius: 0,
     style: defaultStyle,
   }
 
-  render(shape: RectangleShape, { isHovered, isDarkMode }: TLRenderInfo) {
+  render(shape: RectangleShape, { isBinding, isHovered, isDarkMode }: TLRenderInfo) {
     const { id, size, radius, style } = shape
     const styles = getShapeStyle(style, isDarkMode)
     const strokeWidth = +styles.strokeWidth
@@ -40,6 +47,15 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
 
       return (
         <>
+          {isBinding && (
+            <rect
+              className="tl-binding-indicator"
+              x={strokeWidth / 2 - 32}
+              y={strokeWidth / 2 - 32}
+              width={Math.max(0, size[0] - strokeWidth / 2) + 64}
+              height={Math.max(0, size[1] - strokeWidth / 2) + 64}
+            />
+          )}
           <rect
             rx={radius}
             ry={radius}
@@ -100,6 +116,15 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
 
     return (
       <>
+        {isBinding && (
+          <rect
+            className="tl-binding-indicator"
+            x={sw / 2 - 32}
+            y={sw / 2 - 32}
+            width={w + 64}
+            height={h + 64}
+          />
+        )}
         <rect
           x={sw / 2}
           y={sw / 2}

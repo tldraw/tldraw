@@ -1,6 +1,7 @@
 import { MoveType } from '@tldraw/core'
 import React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { TLDrawShapeType } from '../shape'
 import { state } from '../state'
 
 export function useKeyboardShortcuts() {
@@ -121,6 +122,21 @@ export function useKeyboardShortcuts() {
 
   useHotkeys('shift+]', (e) => {
     state.send('MOVED', { type: MoveType.ToFront })
+    e.preventDefault()
+  })
+
+  useHotkeys('v,1', (e) => {
+    state.send('SELECTED_TOOL', { type: 'select' })
+    e.preventDefault()
+  })
+
+  useHotkeys('r,3', (e) => {
+    state.send('SELECTED_TOOL', { type: TLDrawShapeType.Rectangle })
+    e.preventDefault()
+  })
+
+  useHotkeys('e,4', (e) => {
+    state.send('SELECTED_TOOL', { type: TLDrawShapeType.Ellipse })
     e.preventDefault()
   })
 

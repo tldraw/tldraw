@@ -1,28 +1,40 @@
-import { TLShape, TLShapeUtils } from '@tldraw/core'
+import { TLShape, TLShapeUtil } from '@tldraw/core'
 
-export enum ShapeType {
+export enum TLDrawToolType {
+  Draw = 'draw',
+  Bounds = 'bounds',
+  Point = 'point',
+  Points = 'points',
+}
+
+export enum TLDrawShapeType {
   Ellipse = 'ellipse',
   Rectangle = 'rectangle',
 }
 
 export interface TLDrawBaseShape extends TLShape {
   style: ShapeStyles
+  type: TLDrawShapeType
 }
 
 export interface EllipseShape extends TLDrawBaseShape {
-  type: 'ellipse'
+  type: TLDrawShapeType.Ellipse
   radius: number[]
 }
 
 export interface RectangleShape extends TLDrawBaseShape {
-  type: 'rectangle'
+  type: TLDrawShapeType.Rectangle
   size: number[]
   radius?: number
 }
 
 export type TLDrawShape = RectangleShape | EllipseShape
 
-export type TLDrawShapeUtils = TLShapeUtils<TLDrawShape>
+export abstract class TLDrawShapeUtil<T extends TLDrawShape> extends TLShapeUtil<T> {
+  abstract toolType: TLDrawToolType
+}
+
+export type TLDrawShapeUtils = Record<string, TLDrawShapeUtil<TLDrawShape>>
 
 export enum ColorStyle {
   White = 'White',

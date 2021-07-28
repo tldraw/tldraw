@@ -1,7 +1,6 @@
 import { rectangle } from './shapes/rectangle'
 import { ellipse } from './shapes/ellipse'
-import { TLShapeUtil } from '@tldraw/core'
-import { TLDrawShape, TLDrawShapeUtils } from './shape-types'
+import { TLDrawShape, TLDrawShapeUtil, TLDrawShapeUtils } from './shape-types'
 
 export const tldrawShapeUtils: TLDrawShapeUtils = {
   rectangle,
@@ -10,8 +9,8 @@ export const tldrawShapeUtils: TLDrawShapeUtils = {
 
 export type ShapeByType<T extends keyof TLDrawShapeUtils> = TLDrawShapeUtils[T]
 
-export function getShapeUtils<T extends TLDrawShape>(shape: T): TLShapeUtil<T> {
-  return tldrawShapeUtils[shape.type as T['type']] as TLShapeUtil<T>
+export function getShapeUtils<T extends TLDrawShape>(shape: T): TLDrawShapeUtil<T> {
+  return tldrawShapeUtils[shape.type as T['type']] as TLDrawShapeUtil<T>
 }
 
 export function createShape<TLDrawShape>(type: string, props: Partial<TLDrawShape>) {

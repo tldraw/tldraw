@@ -1,5 +1,5 @@
 import { TLPage, TLPageState, TLSettings } from '@tldraw/core'
-import { TLDrawShape, ShapeStyles, ShapeType } from './shape'
+import { TLDrawShape, ShapeStyles, TLDrawShapeType, TLDrawToolType } from './shape'
 
 export interface TLDrawDocument {
   id: string
@@ -20,7 +20,8 @@ export interface Data {
   appState: {
     currentStyle: ShapeStyles
     currentPageId: string
-    activeTool: ShapeType | 'select'
+    activeTool: TLDrawShapeType | 'select'
+    activeToolType?: TLDrawToolType | 'select'
     isToolLocked: boolean
     isStyleOpen: boolean
     isEmptyCanvas: boolean

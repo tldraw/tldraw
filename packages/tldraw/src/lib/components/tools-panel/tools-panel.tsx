@@ -17,14 +17,14 @@ import styled from '../../styles'
 import { UndoRedo } from './undo-redo'
 import { Zoom } from './zoom'
 import { BackToContent } from './back-to-content'
-import { ShapeType } from '../../shape'
+import { TLDrawShapeType } from '../../shape'
 
-const selectArrowTool = () => state.send('SELECTED_ARROW_TOOL')
-const selectDrawTool = () => state.send('SELECTED_DRAW_TOOL')
-const selectEllipseTool = () => state.send('SELECTED_ELLIPSE_TOOL')
-const selectTextTool = () => state.send('SELECTED_TEXT_TOOL')
-const selectRectangleTool = () => state.send('SELECTED_RECTANGLE_TOOL')
-const selectSelectTool = () => state.send('SELECTED_SELECT_TOOL')
+const selectSelectTool = () => state.send('SELECTED_TOOL', { type: 'select' })
+const selectDrawTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Ellipse })
+const selectRectangleTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Rectangle })
+const selectEllipseTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Ellipse })
+const selectArrowTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Ellipse })
+const selectTextTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Ellipse })
 const toggleToolLock = () => state.send('TOGGLED_TOOL_LOCK')
 
 export const ToolsPanel = React.memo((): JSX.Element => {
@@ -52,41 +52,41 @@ export const ToolsPanel = React.memo((): JSX.Element => {
         <FloatingContainer>
           {/* <PrimaryButton
             kbd={'2'}
-            label={ShapeType.Draw}
+            label={TLDrawShapeType.Draw}
             onClick={selectDrawTool}
-            isActive={activeTool === ShapeType.Draw}
+            isActive={activeTool === TLDrawTLDrawShapeType.Draw}
           >
             <Pencil1Icon />
           </PrimaryButton> */}
           <PrimaryButton
             kbd={'3'}
-            label={ShapeType.Rectangle}
+            label={TLDrawShapeType.Rectangle}
             onClick={selectRectangleTool}
-            isActive={activeTool === ShapeType.Rectangle}
+            isActive={activeTool === TLDrawShapeType.Rectangle}
           >
             <SquareIcon />
           </PrimaryButton>
           <PrimaryButton
             kbd={'4'}
-            label={ShapeType.Ellipse}
+            label={TLDrawShapeType.Ellipse}
             onClick={selectEllipseTool}
-            isActive={activeTool === ShapeType.Ellipse}
+            isActive={activeTool === TLDrawShapeType.Ellipse}
           >
             <CircleIcon />
           </PrimaryButton>
           {/* <PrimaryButton
             kbd={'5'}
-            label={ShapeType.Arrow}
+            label={TLDrawShapeType.Arrow}
             onClick={selectArrowTool}
-            isActive={activeTool === ShapeType.Arrow}
+            isActive={activeTool === TLDrawTLDrawShapeType.Arrow}
           >
             <ArrowTopRightIcon />
           </PrimaryButton>
           <PrimaryButton
             kbd={'6'}
-            label={ShapeType.Text}
+            label={TLDrawShapeType.Text}
             onClick={selectTextTool}
-            isActive={activeTool === ShapeType.Text}
+            isActive={activeTool === TLDrawTLDrawShapeType.Text}
           >
             <TextIcon />
           </PrimaryButton> */}

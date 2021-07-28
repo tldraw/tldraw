@@ -5,7 +5,9 @@ import {
   SizeStyle,
   TLDraw,
   TLDrawDocument,
+  TLDrawShape,
   TLDrawShapeUtils,
+  TLDrawShapeType,
 } from '@tldraw/tldraw'
 
 export function Index() {
@@ -20,7 +22,7 @@ export function Index() {
             parentId: 'page1',
             name: 'Rectangle',
             childIndex: 0,
-            type: 'rectangle',
+            type: TLDrawShapeType.Rectangle,
             point: [0, 0],
             size: [100, 100],
             style: {
@@ -34,7 +36,7 @@ export function Index() {
             parentId: 'page1',
             name: 'Rectangle',
             childIndex: 1,
-            type: 'rectangle',
+            type: TLDrawShapeType.Rectangle,
             point: [0, 200],
             size: [100, 100],
             style: {

@@ -25,6 +25,8 @@ import {
   getShapeUtils,
   ShapeStyles,
   defaultStyle,
+  TLDrawShapeType,
+  TLDrawToolType,
 } from '../../shape'
 import { History } from '../history'
 import {
@@ -113,114 +115,129 @@ export class TLDrawState {
     states: {
       loading: {},
       ready: {
-        on: {
-          ZOOMED_IN: 'zoomIn',
-          ZOOMED_OUT: 'zoomOut',
-          ZOOMED_TO_SELECTION: {
-            if: 'hasSelection',
-            do: 'zoomCameraToSelection',
-            else: 'zoomCameraToFit',
-          },
-          ZOOMED_TO_CONTENT: 'zoomCameraToContent',
-          ZOOMED_TO_FIT: 'zoomCameraToFit',
-          RESET_CAMERA: 'resetCamera',
-          DESELECTED_ALL: {
-            unless: 'isInSession',
-            do: 'deselectAll',
-            to: 'select',
-          },
-          SELECTED_ALL: {
-            unless: 'isInSession',
-            do: 'selectAll',
-            to: 'select',
-          },
-          UNDO: {
-            unless: 'isInSession',
-            do: 'undo',
-          },
-          REDO: {
-            unless: 'isInSession',
-            do: 'redo',
-          },
-          CHANGED_RENDERING_COUNT: {
-            if: ['isEmptyCanvas', 'isRenderingShapes'],
-            do: 'clearIsEmptyCanvas',
-            else: {
-              unless: ['isEmptyCanvas', 'isRenderingShapes'],
-              do: 'setIsEmptyCanvas',
-            },
-          },
-          TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
-          TOGGLED_SHAPE_LOCK: {
-            unlessAny: 'isInSession',
-            if: 'hasSelection',
-            do: 'lockSelection',
-          },
-          TOGGLED_SHAPE_HIDE: {
-            unlessAny: 'isInSession',
-            if: 'hasSelection',
-            do: 'hideSelection',
-          },
-          TOGGLED_SHAPE_ASPECT_LOCK: {
-            unlessAny: 'isInSession',
-            if: 'hasSelection',
-            do: 'aspectLockSelection',
-          },
-          CHANGED_STYLE: {
-            unlessAny: 'isInSession',
-            do: ['updateStyles', 'applyStylesToSelection'],
-          },
-          ALIGNED: {
-            unless: 'isInSession',
-            if: 'hasMultipleSelection',
-            do: 'alignSelection',
-          },
-          DISTRIBUTED: {
-            unless: 'isInSession',
-            if: 'hasMultipleSelection',
-            do: 'distributeSelection',
-          },
-          STRETCHED: {
-            if: 'hasMultipleSelection',
-            do: 'stretchSelection',
-          },
-          DUPLICATED: {
-            unless: 'isInSession',
-            if: 'hasSelection',
-            do: 'duplicateSelection',
-          },
-          DELETED: {
-            unless: 'isInSession',
-            do: 'deleteSelection',
-          },
-          DELETED_ALL: {
-            unless: 'isInSession',
-            if: 'hasSelection',
-            do: 'deleteSelection',
-            else: ['selectAll', 'deleteSelection'],
-          },
-          ROTATED_CCW: {
-            unless: 'isInSession',
-            if: 'hasSelection',
-            do: 'rotateSelectionCcw',
-          },
-          NUDGED: {
-            unless: 'isInSession',
-            if: 'hasSelection',
-            do: 'nudgeSelection',
-          },
-          MOVED: {
-            unless: 'isInSession',
-            if: 'hasSelection',
-            do: 'moveSelection',
-          },
-        },
         initial: 'usingTool',
         states: {
           usingTool: {
+            on: {
+              ZOOMED_IN: 'zoomIn',
+              ZOOMED_OUT: 'zoomOut',
+              ZOOMED_TO_SELECTION: {
+                if: 'hasSelection',
+                do: 'zoomCameraToSelection',
+                else: 'zoomCameraToFit',
+              },
+              ZOOMED_TO_CONTENT: 'zoomCameraToContent',
+              ZOOMED_TO_FIT: 'zoomCameraToFit',
+              RESET_CAMERA: 'resetCamera',
+              DESELECTED_ALL: {
+                unless: 'isInSession',
+                do: 'deselectAll',
+                to: 'select',
+              },
+              SELECTED_ALL: {
+                unless: 'isInSession',
+                do: 'selectAll',
+                to: 'select',
+              },
+              UNDO: {
+                unless: 'isInSession',
+                do: 'undo',
+              },
+              REDO: {
+                unless: 'isInSession',
+                do: 'redo',
+              },
+              CHANGED_RENDERING_COUNT: {
+                if: ['isEmptyCanvas', 'isRenderingShapes'],
+                do: 'clearIsEmptyCanvas',
+                else: {
+                  unless: ['isEmptyCanvas', 'isRenderingShapes'],
+                  do: 'setIsEmptyCanvas',
+                },
+              },
+              TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
+              TOGGLED_TOOL_LOCK: 'toggleToolLock',
+              TOGGLED_SHAPE_LOCK: {
+                unlessAny: 'isInSession',
+                if: 'hasSelection',
+                do: 'lockSelection',
+              },
+              TOGGLED_SHAPE_HIDE: {
+                unlessAny: 'isInSession',
+                if: 'hasSelection',
+                do: 'hideSelection',
+              },
+              TOGGLED_SHAPE_ASPECT_LOCK: {
+                unlessAny: 'isInSession',
+                if: 'hasSelection',
+                do: 'aspectLockSelection',
+              },
+              CHANGED_STYLE: {
+                unlessAny: 'isInSession',
+                do: ['updateStyles', 'applyStylesToSelection'],
+              },
+              ALIGNED: {
+                unless: 'isInSession',
+                if: 'hasMultipleSelection',
+                do: 'alignSelection',
+              },
+              DISTRIBUTED: {
+                unless: 'isInSession',
+                if: 'hasMultipleSelection',
+                do: 'distributeSelection',
+              },
+              STRETCHED: {
+                if: 'hasMultipleSelection',
+                do: 'stretchSelection',
+              },
+              DUPLICATED: {
+                unless: 'isInSession',
+                if: 'hasSelection',
+                do: 'duplicateSelection',
+              },
+              DELETED: {
+                unless: 'isInSession',
+                do: 'deleteSelection',
+              },
+              DELETED_ALL: {
+                unless: 'isInSession',
+                if: 'hasSelection',
+                do: 'deleteSelection',
+                else: ['selectAll', 'deleteSelection'],
+              },
+              ROTATED_CCW: {
+                unless: 'isInSession',
+                if: 'hasSelection',
+                do: 'rotateSelectionCcw',
+              },
+              NUDGED: {
+                unless: 'isInSession',
+                if: 'hasSelection',
+                do: 'nudgeSelection',
+              },
+              MOVED: {
+                unless: 'isInSession',
+                if: 'hasSelection',
+                do: 'moveSelection',
+              },
+              SELECTED_SELECT_TOOL: {
+                unless: 'isInSession',
+                to: 'selecting',
+              },
+              SELECTED_TOOL: {
+                unless: 'isInSession',
+                do: 'setActiveTool',
+                to: (data) => data.appState.activeToolType,
+              },
+              SELECTED_RECTANGLE_TOOL: {
+                unless: 'isInSession',
+                to: 'rectangle',
+              },
+            },
             initial: 'select',
             states: {
               select: {
+                onEnter: 'setActiveTool',
                 on: {},
                 initial: 'notPointing',
                 states: {
@@ -389,12 +406,101 @@ export class TLDrawState {
                   },
                 },
               },
+              [TLDrawToolType.Bounds]: {
+                on: {},
+                initial: 'idle',
+                states: {
+                  idle: {
+                    on: {
+                      POINTED_SHAPE: { to: `${TLDrawToolType.Bounds}.active` },
+                      POINTED_CANVAS: { to: `${TLDrawToolType.Bounds}.active` },
+                      CANCELLED: { to: 'select' },
+                    },
+                  },
+                  active: {
+                    onEnter: ['createActiveToolShape', 'startCreateTransformSession'],
+                    on: {
+                      MOVED_POINTER: {
+                        if: 'isTestMode',
+                        do: 'updateTransformSession',
+                      },
+                      PANNED_CAMERA: {
+                        if: 'isTestMode',
+                        do: 'updateTransformSession',
+                      },
+                      PRESSED_KEY: 'updateTransformSession',
+                      RELEASED_KEY: 'updateTransformSession',
+                      STOPPED_POINTING: [
+                        'quietlyCompleteSession',
+                        'completeActiveToolShape',
+                        {
+                          if: 'isToolLocked',
+                          to: `${TLDrawToolType.Bounds}.idle`,
+                          else: {
+                            to: 'select',
+                          },
+                        },
+                      ],
+                      CANCELLED: [
+                        'quietlyCompleteSession',
+                        'deleteActiveToolShape',
+                        {
+                          if: 'isToolLocked',
+                          to: `${TLDrawToolType.Bounds}.idle`,
+                          else: {
+                            to: 'select',
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+              [TLDrawToolType.Draw]: {
+                on: {},
+                initial: 'idle',
+                states: {
+                  idle: {},
+                  active: {
+                    onEnter: 'createActiveToolShape',
+                    on: {
+                      CANCELLED: 'deleteActiveToolShape',
+                    },
+                  },
+                },
+              },
+              [TLDrawToolType.Point]: {
+                on: {},
+                initial: 'idle',
+                states: {
+                  idle: {},
+                  active: {
+                    onEnter: 'createActiveToolShape',
+                    on: {
+                      CANCELLED: 'deleteActiveToolShape',
+                    },
+                  },
+                },
+              },
+              [TLDrawToolType.Points]: {
+                on: {},
+                initial: 'idle',
+                states: {
+                  idle: {},
+                  active: {
+                    onEnter: 'createActiveToolShape',
+                    on: {
+                      CANCELLED: 'deleteActiveToolShape',
+                    },
+                  },
+                },
+              },
             },
           },
           pinching: {
             on: {
               PINCHED_CAMERA: { if: 'isTestMode', do: 'pinchCamera' },
-              STOPPED_PINCHING: { to: 'usingTool' },
+              STOPPED_PINCHING: { to: 'usingTool.previous' },
             },
           },
         },
@@ -423,6 +529,9 @@ export class TLDrawState {
       },
       isTestMode: () => {
         return this.isTestMode
+      },
+      isToolLocked: (data) => {
+        return data.appState.isToolLocked
       },
       isPressingMetaKey(data, payload: TLPointerInfo) {
         return payload.metaKey
@@ -494,6 +603,46 @@ export class TLDrawState {
         data.appState.isEmptyCanvas = false
       },
 
+      /* ---------------------- Tools --------------------- */
+
+      setActiveTool(data, payload: { type: TLDrawShapeType | 'select' }) {
+        const type = payload?.type || 'select'
+
+        data.appState.activeTool = type
+        data.appState.activeToolType =
+          type === 'select' ? 'select' : TLD.getShapeUtils({ type } as TLDrawShape).toolType
+      },
+      createActiveToolShape(data, payload: TLPointerInfo) {
+        const { activeTool, activeToolType } = data.appState
+
+        if (activeTool === 'select') return
+        if (!activeToolType) throw Error
+
+        const utils = TLD.getShapeUtils({ type: activeTool } as TLDrawShape)
+
+        const shape = utils.create({
+          id: Utils.uniqueId(),
+          parentId: data.page.id,
+          childIndex: TLD.getTopChildIndex(data, data.page) + 1,
+          point: [...payload.point],
+          style: { ...data.appState.currentStyle },
+        })
+
+        // Don't add the shape to the undo stack yet
+        TLD.setSelectedIds(data, [shape.id])
+        TLD.createShapes(data, [shape])
+      },
+      deleteActiveToolShape(data) {
+        // Don't add this to the undo stack; it never happened
+        TLD.deleteShapes(data, data.pageState.selectedIds)
+        TLD.setSelectedIds(data, [])
+      },
+      completeActiveToolShape: (data) => {
+        // Now we add the mutation to the undo stack
+        const selectedShape = Utils.deepClone(data.page.shapes[data.pageState.selectedIds[0]])
+        this.history.execute(data, commands.create(data, [selectedShape], true))
+      },
+
       /* -------------------- Sessions -------------------- */
 
       breakSession: (data) => {
@@ -502,12 +651,23 @@ export class TLDrawState {
         // commands.deleteShapes(data, this.getSelectedShapes(data))
         this.history.enable()
       },
+      quietlyCompleteSession: () => {
+        this.session.quietlyComplete()
+      },
       cancelSession: (data) => {
         this.session.cancel(data)
       },
       completeSession: (data) => {
         const finalCommand = this.session.complete(data)
         if (finalCommand) this.history.execute(data, finalCommand)
+      },
+
+      // Create Bith Bounds Session
+      startCreateTransformSession: (data, payload: TLPointerInfo) => {
+        const point = TLD.screenToWorld(data, payload.origin)
+        this.session.begin(
+          new TransformSingleSession(data, point, TLBoundsCorner.BottomRight, true),
+        )
       },
 
       // Translate Session
@@ -553,12 +713,6 @@ export class TLDrawState {
       },
       endBrushSession: () => {
         brushUpdater.clear()
-      },
-
-      // Create Session
-      startCreateSession: (data, payload: TLPointerInfo) => {
-        const point = TLD.screenToWorld(data, payload.origin)
-        this.session.begin(new TransformSingleSession(data, point))
       },
 
       /* -------------------- Commands -------------------- */
@@ -969,7 +1123,7 @@ export class TLDrawState {
     if (this.isIn('translatingSelection')) {
       this.fastTranslate(info)
     }
-    if (this.isIn('transformingSelection')) {
+    if (this.isInAny('transformingSelection', `${TLDrawToolType.Bounds}.active`)) {
       this.fastTransform(info)
     }
 
@@ -995,10 +1149,12 @@ export class TLDrawState {
     if (this.isIn('brushSelecting')) {
       this.fastBrush(info)
     }
+
     if (this.isIn('translatingSelection')) {
       this.fastTranslate(info)
     }
-    if (this.isIn('transformingSelection')) {
+
+    if (this.isInAny('transformingSelection', `${TLDrawToolType.Bounds}.active`)) {
       this.fastTransform(info)
     }
 

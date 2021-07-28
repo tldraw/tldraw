@@ -97,8 +97,8 @@ export class TLDrawTestState extends TLDrawState {
    * ### Example
    *
    *```ts
-   * tt.createShape({ type: ShapeType.Rectangle, point: [100, 100]})
-   * tt.createShape({ type: ShapeType.Rectangle, point: [100, 100]}, "myId")
+   * tt.createShape({ type: TLDrawShapeType.Rectangle, point: [100, 100]})
+   * tt.createShape({ type: TLDrawShapeType.Rectangle, point: [100, 100]}, "myId")
    *```
    */
   createShape(props: Partial<TLDrawShape>, id = Utils.uniqueId()): TLDrawTestState {

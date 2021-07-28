@@ -25,7 +25,7 @@ class Inputs {
       pointerId: touch.identifier,
       origin: Inputs.getPoint(touch),
       point: Inputs.getPoint(touch),
-      pressure: 0.5,
+      pressure: Inputs.getPressure(touch),
       shiftKey,
       ctrlKey,
       metaKey: Utils.isDarwin() ? metaKey : ctrlKey,
@@ -51,7 +51,7 @@ class Inputs {
       ...prev,
       pointerId: touch.identifier,
       point: Inputs.getPoint(touch),
-      pressure: 0.5,
+      pressure: Inputs.getPressure(touch),
       shiftKey,
       ctrlKey,
       metaKey: Utils.isDarwin() ? metaKey : ctrlKey,
@@ -74,7 +74,7 @@ class Inputs {
       pointerId: e.pointerId,
       origin: Inputs.getPoint(e),
       point: Inputs.getPoint(e),
-      pressure: e.pressure || 0.5,
+      pressure: Inputs.getPressure(e),
       shiftKey,
       ctrlKey,
       metaKey: Utils.isDarwin() ? metaKey : ctrlKey,
@@ -96,7 +96,7 @@ class Inputs {
       pointerId: e.pointerId,
       origin: Inputs.getPoint(e),
       point: Inputs.getPoint(e),
-      pressure: e.pressure || 0.5,
+      pressure: Inputs.getPressure(e),
       shiftKey,
       ctrlKey,
       metaKey: Utils.isDarwin() ? metaKey : ctrlKey,
@@ -117,7 +117,7 @@ class Inputs {
       target,
       pointerId: e.pointerId,
       point: Inputs.getPoint(e),
-      pressure: e.pressure || 0.5,
+      pressure: Inputs.getPressure(e),
       shiftKey,
       ctrlKey,
       metaKey: Utils.isDarwin() ? metaKey : ctrlKey,
@@ -143,7 +143,7 @@ class Inputs {
       target,
       origin: prev?.origin || Inputs.getPoint(e),
       point: Inputs.getPoint(e),
-      pressure: e.pressure || 0.5,
+      pressure: Inputs.getPressure(e),
       shiftKey,
       ctrlKey,
       metaKey: Utils.isDarwin() ? metaKey : ctrlKey,
@@ -273,11 +273,11 @@ class Inputs {
   static getPoint(
     e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent,
   ): number[] {
-    return [
-      Number(e.clientX.toPrecision(5)),
-      Number(e.clientY.toPrecision(5)),
-      'pressure' in e ? Number(e.pressure.toPrecision(5)) || 0.5 : 0.5,
-    ]
+    return [Number(e.clientX.toPrecision(5)), Number(e.clientY.toPrecision(5))]
+  }
+
+  static getPressure(e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent) {
+    return 'pressure' in e ? Number(e.pressure.toPrecision(5)) || 0.5 : 0.5
   }
 
   static commandKey(): string {

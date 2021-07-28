@@ -149,6 +149,14 @@ export class TranslateSession implements BaseSession {
   complete(data: Data) {
     if (!this.snapshot.hasUnlockedShapes) return undefined
 
+    if (this.isCloning) {
+      return commands.create(
+        data,
+        data.pageState.selectedIds.map((id) => Utils.deepClone(data.page.shapes[id])),
+        true,
+      )
+    }
+
     const before = this.snapshot.initialShapes.map((shape) =>
       Utils.deepClone({
         ...data.page.shapes[shape.id],
@@ -156,9 +164,12 @@ export class TranslateSession implements BaseSession {
       }),
     )
 
-    const after = data.pageState.selectedIds.map((id) => Utils.deepClone(data.page.shapes[id]))
-
-    return commands.mutate(data, before, after, 'translating shapes')
+    return commands.mutate(
+      data,
+      before,
+      data.pageState.selectedIds.map((id) => Utils.deepClone(data.page.shapes[id])),
+      'translating_shapes',
+    )
 
     // TODO
     // commands.translate(
@@ -215,7 +226,7 @@ export function getTranslateSnapshot(data: Data) {
 export type TranslateSnapshot = ReturnType<typeof getTranslateSnapshot>
 
 // function cloneGroup(data: Data, clone: Shape): Shape[] {
-//   if (clone.type !== ShapeType.Group) {
+//   if (clone.type !== TLDrawShapeType.Group) {
 //     return [clone]
 //   }
 
@@ -225,7 +236,7 @@ export type TranslateSnapshot = ReturnType<typeof getTranslateSnapshot>
 //     const source = page.shapes[id]
 //     const next = { ...source, id: newId, parentId: clone.id }
 
-//     if (next.type === ShapeType.Group) {
+//     if (next.type === TLDrawShapeType.Group) {
 //       return [next, ...cloneGroup(data, next)]
 //     }
 

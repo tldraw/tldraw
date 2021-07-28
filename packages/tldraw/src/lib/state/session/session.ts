@@ -98,6 +98,20 @@ export class Session {
     return this
   }
 
+  /**
+   * Ends the current session without calling cancel. This is used during "create" actions.
+   *
+   * ### Example
+   *
+   *```ts
+   * session.quietlyComplete()
+   *```
+   */
+  quietlyComplete() {
+    this.current = undefined
+    return this
+  }
+
   get isInSession() {
     return this.current !== undefined
   }

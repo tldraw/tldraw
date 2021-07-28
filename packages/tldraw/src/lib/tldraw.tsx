@@ -1,6 +1,6 @@
 import * as React from 'react'
+import { IdProvider } from '@radix-ui/react-id'
 import { Renderer, RendererProps, Utils } from '@tldraw/core'
-import { StatusBar } from './components/status-bar'
 import { TLDrawShape, tldrawShapeUtils } from './shape'
 import { state, TLDrawCallbacks, TLDrawState, useSelector } from './state'
 import { TLDrawDocument } from './types'
@@ -109,18 +109,20 @@ export function TLDraw({ document, currentPageId, ...callbacks }: TLDrawProps) {
   useKeyboardShortcuts()
 
   return (
-    <Layout>
-      <Renderer page={page} pageState={pageState} shapeUtils={tldrawShapeUtils} {...events} />
-      <MenuButtons>
-        {/* <Menu />
+    <IdProvider>
+      <Layout>
+        <Renderer page={page} pageState={pageState} shapeUtils={tldrawShapeUtils} {...events} />
+        <MenuButtons>
+          {/* <Menu />
         <DebugPanel />
         <CodePanel />
         <PagePanel /> */}
-      </MenuButtons>
-      <Spacer />
-      <StylePanel />
-      <ToolsPanel />
-    </Layout>
+        </MenuButtons>
+        <Spacer />
+        <StylePanel />
+        <ToolsPanel />
+      </Layout>
+    </IdProvider>
   )
 }
 

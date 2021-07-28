@@ -1,5 +1,5 @@
 import { ColorStyle, DashStyle, Data, SizeStyle } from '../../index'
-import { defaultStyle } from '../../lib/shape'
+import { defaultStyle, TLDrawShapeType } from '../../lib/shape'
 
 export const mockData: Data = {
   settings: {
@@ -26,7 +26,7 @@ export const mockData: Data = {
         parentId: 'page1',
         name: 'Rectangle',
         childIndex: 1,
-        type: 'rectangle',
+        type: TLDrawShapeType.Rectangle,
         point: [0, 0],
         size: [100, 100],
         style: {
@@ -40,7 +40,7 @@ export const mockData: Data = {
         parentId: 'page1',
         name: 'Rectangle',
         childIndex: 2,
-        type: 'rectangle',
+        type: TLDrawShapeType.Rectangle,
         point: [100, 100],
         size: [100, 100],
         style: {

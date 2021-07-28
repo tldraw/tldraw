@@ -29,8 +29,8 @@ export function duplicate(data: Data) {
       TLD.updateParents(data, newIds)
     },
     undo(data) {
-      TLD.deleteShapes(data, newIds)
       TLD.setSelectedIds(data, ids)
+      TLD.deleteShapes(data, newIds)
     },
   })
 }
