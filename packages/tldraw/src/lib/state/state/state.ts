@@ -25,10 +25,16 @@ import {
   defaultStyle,
 } from '../../shape'
 import { History } from '../history'
-import { BrushSession, Session, TransformSession, TranslateSession } from '../session'
+import {
+  BrushSession,
+  Session,
+  TransformSession,
+  TransformSingleSession,
+  TranslateSession,
+} from '../session'
 import { freeze } from 'immer'
 import { TLD } from '../tld'
-import { commands } from '../command'
+import * as commands from '../command'
 
 /*
 The State Manager class is a wrapper around a state-designer state. It provides utilities for accessing
@@ -131,25 +137,47 @@ export class TLDrawState {
             },
           },
           TOGGLED_STYLE_PANEL_OPEN: 'toggleStylePanel',
-          // TOGGLED_SHAPE_LOCK: {
-          //   unlessAny: 'isInSession',
-          //   if: 'hasSelection',
-          //   do: 'lockSelection',
-          // },
-          // TOGGLED_SHAPE_HIDE: {
-          //   unlessAny: 'isInSession',
-          //   if: 'hasSelection',
-          //   do: 'hideSelection',
-          // },
-          // TOGGLED_SHAPE_ASPECT_LOCK: {
-          //   unlessAny: 'isInSession',
-          //   if: 'hasSelection',
-          //   do: 'aspectLockSelection',
-          // },
+          TOGGLED_SHAPE_LOCK: {
+            unlessAny: 'isInSession',
+            if: 'hasSelection',
+            do: 'lockSelection',
+          },
+          TOGGLED_SHAPE_HIDE: {
+            unlessAny: 'isInSession',
+            if: 'hasSelection',
+            do: 'hideSelection',
+          },
+          TOGGLED_SHAPE_ASPECT_LOCK: {
+            unlessAny: 'isInSession',
+            if: 'hasSelection',
+            do: 'aspectLockSelection',
+          },
           CHANGED_STYLE: {
             unlessAny: 'isInSession',
             do: ['updateStyles', 'applyStylesToSelection'],
           },
+          ALIGNED: {
+            unless: 'isInSession',
+            if: 'hasMultipleSelection',
+            do: 'alignSelection',
+          },
+          DISTRIBUTED: {
+            unless: 'isInSession',
+            if: 'hasMultipleSelection',
+            do: 'distributeSelection',
+          },
+          STRETCHED: {
+            if: 'hasMultipleSelection',
+            do: 'stretchSelection',
+          },
+          DUPLICATED: {
+            if: 'hasSelection',
+            do: 'duplicateSelection',
+          },
+          // ROTATED_CCW: {
+          //   if: 'hasSelection',
+          //   do: 'rotateSelectionCcw',
+          // },
         },
         initial: 'usingTool',
         states: {
@@ -340,6 +368,9 @@ export class TLDrawState {
       hasSelection(data) {
         return data.pageState.selectedIds.length > 0
       },
+      hasMultipleSelection(data) {
+        return data.pageState.selectedIds.length > 1
+      },
       isEmptyCanvas: (data) => {
         return data.appState.isEmptyCanvas
       },
@@ -454,7 +485,11 @@ export class TLDrawState {
         payload: TLPointerInfo & { target: TLBoundsCorner | TLBoundsEdge },
       ) => {
         const point = TLD.screenToWorld(data, payload.origin)
-        this.session.begin(new TransformSession(data, point, payload.target))
+        this.session.begin(
+          data.pageState.selectedIds.length === 1
+            ? new TransformSingleSession(data, point, payload.target)
+            : new TransformSession(data, point, payload.target),
+        )
       },
       updateTransformSession: (data, payload: TLPointerInfo) => {
         this.session.update<TransformSession>(
@@ -479,7 +514,7 @@ export class TLDrawState {
       // Create Session
       startCreateSession: (data, payload: TLPointerInfo) => {
         const point = TLD.screenToWorld(data, payload.origin)
-        this.session.begin(new TransformSession(data, point))
+        this.session.begin(new TransformSingleSession(data, point))
       },
 
       /* -------------------- Commands -------------------- */
@@ -589,27 +624,27 @@ export class TLDrawState {
       applyStylesToSelection: (data, payload: Partial<ShapeStyles>) => {
         this.history.execute(data, commands.style(data, payload))
       },
-      // alignSelection(data, payload: { type: AlignType }) {
-      //   commands.align(data, payload.type)
-      // },
-      // stretchSelection(data, payload: { type: StretchType }) {
-      //   commands.stretch(data, payload.type)
-      // },
-      // distributeSelection(data, payload: { type: DistributeType }) {
-      //   commands.distribute(data, payload.type)
-      // },
-      // duplicateSelection(data) {
-      //   commands.duplicate(data)
-      // },
-      // lockSelection(data) {
-      //   commands.toggle(data, 'isLocked')
-      // },
-      // hideSelection(data) {
-      //   commands.toggle(data, 'isHidden')
-      // },
-      // aspectLockSelection(data) {
-      //   commands.toggle(data, 'isAspectRatioLocked')
-      // },
+      alignSelection: (data, payload: { type: AlignType }) => {
+        this.history.execute(data, commands.align(data, payload.type))
+      },
+      distributeSelection: (data, payload: { type: DistributeType }) => {
+        this.history.execute(data, commands.distribute(data, payload.type))
+      },
+      stretchSelection: (data, payload: { type: StretchType }) => {
+        this.history.execute(data, commands.stretch(data, payload.type))
+      },
+      duplicateSelection: (data) => {
+        this.history.execute(data, commands.duplicate(data))
+      },
+      lockSelection: (data) => {
+        this.history.execute(data, commands.toggle(data, 'isLocked'))
+      },
+      hideSelection: (data) => {
+        this.history.execute(data, commands.toggle(data, 'isHidden'))
+      },
+      aspectLockSelection: (data) => {
+        this.history.execute(data, commands.toggle(data, 'isAspectRatioLocked'))
+      },
       // deleteSelection(data) {
       //   commands.deleteShapes(data, tld.getSelectedShapes(data))
       // },

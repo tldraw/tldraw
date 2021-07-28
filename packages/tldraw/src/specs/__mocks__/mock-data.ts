@@ -1,4 +1,5 @@
 import { ColorStyle, DashStyle, Data, SizeStyle } from '../../index'
+import { defaultStyle } from '../../lib/shape'
 
 export const mockData: Data = {
   settings: {
@@ -7,7 +8,14 @@ export const mockData: Data = {
     isDebugMode: false,
     isReadonlyMode: false,
   },
-  currentPageId: 'page1',
+  appState: {
+    currentPageId: 'page1',
+    currentStyle: defaultStyle,
+    activeTool: 'select',
+    isToolLocked: false,
+    isStyleOpen: false,
+    isEmptyCanvas: false,
+  },
   page: {
     id: 'page1',
     shapes: {

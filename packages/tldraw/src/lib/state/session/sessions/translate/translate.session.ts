@@ -2,7 +2,7 @@ import { Vec, Utils } from '@tldraw/core'
 import { BaseSession } from '.././session-types'
 import { Data } from '../../../../types'
 import { getShapeUtils, TLDrawShape } from '../../../../shape'
-import { commands } from '../../../command'
+import * as commands from '../../../command'
 import { TLD } from '../../../tld'
 
 export class TranslateSession implements BaseSession {
@@ -75,10 +75,10 @@ export class TranslateSession implements BaseSession {
 
       data.pageState.selectedIds = clones.map((c) => c.id)
 
-      TLD.updateParents(
-        data,
-        clones.map((c) => c.id),
-      )
+      const ids = clones.map((s) => s.id)
+      TLD.updateBindings(data, ids)
+      TLD.updateParents(data, ids)
+
       return
     }
 
@@ -104,24 +104,21 @@ export class TranslateSession implements BaseSession {
         const shape = shapes[parent.id]
         shapes[parent.id] = { ...shape, children: parent.children }
       })
+    } else {
+      for (const initialShape of initialShapes) {
+        TLD.getDocumentBranch(data, initialShape.id).forEach((id) => {
+          const shape = shapes[id]
 
-      return
+          getShapeUtils(shape).translateBy(shape, trueDelta)
+
+          shapes[id] = { ...shape }
+        })
+      }
     }
 
-    for (const initialShape of initialShapes) {
-      TLD.getDocumentBranch(data, initialShape.id).forEach((id) => {
-        const shape = shapes[id]
-
-        getShapeUtils(shape).translateBy(shape, trueDelta)
-
-        shapes[id] = { ...shape }
-      })
-    }
-
-    TLD.updateParents(
-      data,
-      initialShapes.map((s) => s.id),
-    )
+    const ids = initialShapes.map((s) => s.id)
+    TLD.updateBindings(data, ids)
+    TLD.updateParents(data, ids)
   }
 
   cancel(data: Data): void {
@@ -144,10 +141,9 @@ export class TranslateSession implements BaseSession {
       getShapeUtils(shape).setProperty(shape, 'children', children)
     })
 
-    TLD.updateParents(
-      data,
-      initialShapes.map((s) => s.id),
-    )
+    const ids = initialShapes.map((s) => s.id)
+    TLD.updateBindings(data, ids)
+    TLD.updateParents(data, ids)
   }
 
   complete(data: Data) {

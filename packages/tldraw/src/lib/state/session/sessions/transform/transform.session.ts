@@ -1,7 +1,7 @@
 import { Utils, Vec, TLBoundsEdge, TLBoundsCorner } from '@tldraw/core'
 import { BaseSession } from '.././session-types'
 import { Data } from '../../../../types'
-import { commands } from '../../../command'
+import * as commands from '../../../command'
 import { TLD } from '../../../tld'
 
 export class TransformSession implements BaseSession {
@@ -65,7 +65,9 @@ export class TransformSession implements BaseSession {
       shapes[id] = { ...shape }
     }
 
-    TLD.updateParents(data, Object.keys(shapeBounds))
+    const ids = Object.keys(shapeBounds)
+    TLD.updateBindings(data, ids)
+    TLD.updateParents(data, ids)
   }
 
   cancel(data: Data) {
@@ -84,7 +86,9 @@ export class TransformSession implements BaseSession {
         transformOrigin,
       })
 
-      TLD.updateParents(data, Object.keys(shapeBounds))
+      const ids = Object.keys(shapeBounds)
+      TLD.updateBindings(data, ids)
+      TLD.updateParents(data, ids)
     }
   }
 

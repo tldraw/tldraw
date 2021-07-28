@@ -1,5 +1,9 @@
-import { mutate } from './mutate'
-import { style } from './style'
+export { mutate } from './mutate'
+export { style } from './style'
+export { toggle } from './toggle'
+export { align } from './align'
+export { distribute } from './distribute'
+export { stretch } from './stretch'
+export { duplicate } from './duplicate'
 
 export { Command } from './command'
-export const commands = { mutate, style }

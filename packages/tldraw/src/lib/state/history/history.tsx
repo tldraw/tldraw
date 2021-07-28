@@ -1,22 +1,21 @@
 import { Data } from '../../types'
-import { BaseCommand } from '../command/command'
-// import storage from './storage'
+import { Command } from '../command/command'
 
 // A singleton to manage history changes.
 
-export class History<T extends Data> {
-  private stack: BaseCommand<T>[] = []
+export class History {
+  private stack: Command[] = []
   private pointer = -1
   private maxLength = 100
   private _enabled = true
 
-  onCommand: (name: string, data: T) => void
+  onCommand: (name: string, data: Data) => void
 
-  constructor(onCommand: (name: string, data: T) => void) {
+  constructor(onCommand: (name: string, data: Data) => void) {
     this.onCommand = onCommand
   }
 
-  execute = (data: T, command: BaseCommand<T>) => {
+  execute = (data: Data, command: Command) => {
     command.redo(data, true)
     this.onCommand(command.name, data)
 
@@ -31,7 +30,7 @@ export class History<T extends Data> {
     }
   }
 
-  undo = (data: T) => {
+  undo = (data: Data) => {
     if (this.pointer === -1) return
 
     const command = this.stack[this.pointer]
@@ -41,7 +40,7 @@ export class History<T extends Data> {
     this.pointer--
   }
 
-  redo = (data: T) => {
+  redo = (data: Data) => {
     if (this.pointer === this.stack.length - 1) return
     const command = this.stack[this.pointer + 1]
     command.redo(data, false)

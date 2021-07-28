@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Renderer, RendererProps } from '@tldraw/core'
+import { Renderer, RendererProps, Utils } from '@tldraw/core'
 import { StatusBar } from './components/status-bar'
 import { TLDrawShape, tldrawShapeUtils } from './shape'
 import { state, TLDrawCallbacks, TLDrawState, useSelector } from './state'
@@ -78,9 +78,13 @@ export interface TLDrawProps extends Partial<TLDrawCallbacks> {
 }
 
 export function TLDraw({ document, currentPageId, ...callbacks }: TLDrawProps) {
-  const page = useSelector((s) => s.data.page)
-
-  const pageState = useSelector((s) => s.data.pageState)
+  const { page, pageState } = useSelector(
+    (s) => ({
+      page: s.data.page,
+      pageState: s.data.pageState,
+    }),
+    Utils.shallowEqual,
+  )
 
   React.useEffect(() => {
     if (!callbacks) return

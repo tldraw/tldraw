@@ -176,7 +176,7 @@ export class Utils {
     return this.getRectangleSides([bounds.minX, bounds.minY], [bounds.width, bounds.height])
   }
 
-  static shallowEqual(objA: Record<string, unknown>, objB: Record<string, unknown>): boolean {
+  static shallowEqual<T extends Record<string, unknown>>(objA: T, objB: T): boolean {
     if (objA === objB) return true
 
     if (!objA || !objB) return false

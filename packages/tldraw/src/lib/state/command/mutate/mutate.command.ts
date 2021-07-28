@@ -30,13 +30,13 @@ export function mutate(
       TLD.updateParents(data, ids)
     },
     undo(data) {
-      TLD.deleteShapes(data, idsToDeleteOnUndo)
-
+      if (idsToDeleteOnUndo.length > 0) {
+        TLD.deleteShapes(data, idsToDeleteOnUndo)
+      }
       before.forEach((shape) => {
         data.page.shapes[shape.id] = shape
         getShapeUtils(shape).onSessionComplete(shape)
       })
-
       const ids = before.map((shape) => shape.id)
       TLD.updateBindings(data, ids)
       TLD.updateParents(data, ids)

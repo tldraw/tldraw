@@ -190,11 +190,22 @@ export class TLD {
     this.updateParents(data, parentToUpdateIds)
   }
 
+  /**
+   * Delete the shapes from the current page.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.deleteShape(data, [shape1])
+   * tld.deleteShape(data, [shape1, shape1, shape1])
+   *```
+   */
   static deleteShapes(
     data: Data,
     shapeIds: string[] | TLDrawShape[],
     shapesDeleted: TLDrawShape[] = [],
-  ): TLDrawShape[] {
+    bindingsDeleted: TLBinding[] = [],
+  ): { shapes: TLDrawShape[]; bindings: TLBinding[] } {
     const ids =
       typeof shapeIds[0] === 'string'
         ? (shapeIds as string[])
@@ -206,11 +217,18 @@ export class TLD {
 
     const parentIds = new Set(ids.map((id) => page.shapes[id].parentId))
 
+    // Delete bindings that effect the current ids
+    const bindingsToDelete = this.getBindingsWithShapeIds(data, ids)
+    bindingsDeleted.push(...bindingsToDelete.map(Utils.deepClone))
+    this.deleteBindings(
+      data,
+      bindingsToDelete.map((b) => b.id),
+    )
+
     // Delete shapes
-    ids.forEach((id) => {
-      shapesDeleted.push(Utils.deepClone(page.shapes[id]))
-      delete page.shapes[id]
-    })
+    const shapesToDelete = ids.map((id) => page.shapes[id])
+    shapesDeleted.push(...shapesToDelete.map(Utils.deepClone))
+    shapesToDelete.forEach((shape) => delete page.shapes[shape.id])
 
     // Update parents
     parentIds.forEach((id) => {
@@ -219,18 +237,18 @@ export class TLD {
       // The parent was either deleted or a is a page.
       if (!parent) return
 
-      const utils = this.getShapeUtils(parent)
+      const utils = getShapeUtils(parent)
 
       // Remove deleted ids from the parent's children and update the parent
       utils
         .setProperty(
           parent,
           'children',
-          parent.children!.filter((childId) => !ids.includes(childId)),
+          parent.children.filter((childId) => !ids.includes(childId)),
         )
         .onChildrenChange(
           parent,
-          parent.children!.map((id) => page.shapes[id]),
+          parent.children.map((id) => page.shapes[id]),
         )
 
       if (utils.shouldDelete(parent)) {
@@ -241,13 +259,13 @@ export class TLD {
 
         const nextIndex = this.getChildIndexAbove(data, parent.id)
 
-        const len = parent.children!.length
+        const len = parent.children.length
 
         // Reparent the children and assign them new child indices
-        parent.children!.forEach((childId, i) => {
+        parent.children.forEach((childId, i) => {
           const child = this.getShape(data, childId)
 
-          this.getShapeUtils(child)
+          getShapeUtils(child)
             .setProperty(child, 'parentId', parent.parentId)
             .setProperty(child, 'childIndex', Utils.lerp(parent.childIndex, nextIndex, i / len))
         })
@@ -259,27 +277,29 @@ export class TLD {
           // TODO: Consider adding explicit children array to page shapes.
           const grandParent = page.shapes[parent.parentId]
 
-          this.getShapeUtils(grandParent)
-            .setProperty(grandParent, 'children', [...parent.children!])
+          getShapeUtils(grandParent)
+            .setProperty(grandParent, 'children', [...parent.children])
             .onChildrenChange(
               grandParent,
-              grandParent.children!.map((id) => page.shapes[id]),
+              grandParent.children.map((id) => page.shapes[id]),
             )
         }
 
         // Empty the parent's children array and delete the parent on the next
         // iteration step.
-        this.getShapeUtils(parent).setProperty(parent, 'children', [])
-
+        getShapeUtils(parent).setProperty(parent, 'children', [])
         parentsToDelete.push(parent.id)
       }
     })
 
     if (parentsToDelete.length > 0) {
-      return this.deleteShapes(data, parentsToDelete, shapesDeleted)
+      return this.deleteShapes(data, parentsToDelete, shapesDeleted, bindingsDeleted)
     }
 
-    return shapesDeleted
+    return {
+      shapes: shapesDeleted,
+      bindings: bindingsDeleted,
+    }
   }
 
   static getShapeUtils(shape: TLDrawShape) {

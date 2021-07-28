@@ -67,4 +67,9 @@ export type ShapeStyles = {
   scale?: number
 }
 
+export type PropsOfType<T extends TLDrawShape, U> = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [K in keyof T]: T[K] extends any ? (T[K] extends U ? K : never) : never
+}[keyof T]
+
 export type Theme = 'dark' | 'light'
