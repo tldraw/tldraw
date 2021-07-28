@@ -21,4 +21,26 @@ export function useKeyboardShortcuts() {
     state.send('SAVED')
     e.preventDefault()
   })
+
+  useHotkeys(
+    'ctrl#=,command#=',
+    (e) => {
+      state.send('ZOOMED_IN')
+      e.preventDefault()
+    },
+    {
+      splitKey: '#',
+    },
+  )
+
+  useHotkeys(
+    'ctrl#-,command#-',
+    (e) => {
+      state.send('ZOOMED_OUT')
+      e.preventDefault()
+    },
+    {
+      splitKey: '#',
+    },
+  )
 }

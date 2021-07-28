@@ -6,6 +6,12 @@ import { getShapeUtils, TLDrawShape } from '../shape'
 import { Data } from '../types'
 
 export class TLD {
+  static getSelectedBounds(data: Data): TLBounds {
+    return Utils.getCommonBounds(
+      ...this.getSelectedShapes(data).map((shape) => getShapeUtils(shape).getBounds(shape)),
+    )
+  }
+
   static getParentId(data: Data, id: string) {
     const shape = data.page.shapes[id]
     return shape.parentId

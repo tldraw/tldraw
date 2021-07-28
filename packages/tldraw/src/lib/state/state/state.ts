@@ -14,6 +14,7 @@ import {
   AlignType,
   StretchType,
   DistributeType,
+  Utils,
 } from '@tldraw/core'
 import { Data, TLDrawDocument } from '../../types'
 import {
@@ -110,6 +111,16 @@ export class TLDrawState {
       loading: {},
       ready: {
         on: {
+          ZOOMED_IN: 'zoomIn',
+          ZOOMED_OUT: 'zoomOut',
+          ZOOMED_TO_SELECTION: {
+            if: 'hasSelection',
+            do: 'zoomCameraToSelection',
+            else: 'zoomCameraToFit',
+          },
+          ZOOMED_TO_CONTENT: 'zoomCameraToContent',
+          ZOOMED_TO_FIT: 'zoomCameraToFit',
+          RESET_CAMERA: 'resetCamera',
           DESELECTED_ALL: {
             unless: 'isInSession',
             do: 'deselectAll',
@@ -594,7 +605,7 @@ export class TLDrawState {
 
       // Camera
       panCamera: (data, payload: { delta: number[] }) => {
-        const { camera } = data.pageState
+        const camera = TLD.getCurrentCamera(data)
 
         camera.point = Vec.sub(
           camera.point,
@@ -602,7 +613,7 @@ export class TLDrawState {
         )
       },
       pinchCamera: (data, payload: { info: TLPointerInfo; distanceDelta: number }) => {
-        const { camera } = data.pageState
+        const camera = TLD.getCurrentCamera(data)
 
         const delta = Vec.sub(payload.info.point, payload.info.origin)
 
@@ -614,6 +625,111 @@ export class TLDrawState {
         camera.zoom = TLD.getCameraZoom(next)
         const p1 = TLD.screenToWorld(data, payload.info.origin)
         camera.point = Vec.add(camera.point, Vec.sub(p1, p0))
+      },
+      zoomIn(data) {
+        const camera = TLD.getCurrentCamera(data)
+        const i = Math.round((camera.zoom * 100) / 25)
+        const center = [window.innerWidth / 2, window.innerHeight / 2]
+
+        const p0 = TLD.screenToWorld(data, center)
+        camera.zoom = TLD.getCameraZoom((i + 1) * 0.25)
+        const p1 = TLD.screenToWorld(data, center)
+        camera.point = Vec.add(camera.point, Vec.sub(p1, p0))
+      },
+      zoomOut(data) {
+        const camera = TLD.getCurrentCamera(data)
+        const i = Math.round((camera.zoom * 100) / 25)
+        const center = [window.innerWidth / 2, window.innerHeight / 2]
+
+        const p0 = TLD.screenToWorld(data, center)
+        camera.zoom = TLD.getCameraZoom((i - 1) * 0.25)
+        const p1 = TLD.screenToWorld(data, center)
+        camera.point = Vec.add(camera.point, Vec.sub(p1, p0))
+      },
+      zoomCameraToActual(data) {
+        const camera = TLD.getCurrentCamera(data)
+        const center = [window.innerWidth / 2, window.innerHeight / 2]
+
+        const p0 = TLD.screenToWorld(data, center)
+        camera.zoom = 1
+        const p1 = TLD.screenToWorld(data, center)
+        camera.point = Vec.add(camera.point, Vec.sub(p1, p0))
+      },
+      zoomCameraToSelectionActual(data) {
+        const camera = TLD.getCurrentCamera(data)
+        const bounds = TLD.getSelectedBounds(data)
+
+        const mx = (window.innerWidth - bounds.width) / 2
+        const my = (window.innerHeight - bounds.height) / 2
+
+        camera.zoom = 1
+        camera.point = Vec.add([-bounds.minX, -bounds.minY], [mx, my])
+      },
+      zoomCameraToSelection(data) {
+        const camera = TLD.getCurrentCamera(data)
+        const bounds = TLD.getSelectedBounds(data)
+
+        const zoom = TLD.getCameraZoom(
+          bounds.width > bounds.height
+            ? (window.innerWidth - 128) / bounds.width
+            : (window.innerHeight - 128) / bounds.height,
+        )
+
+        const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
+        const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+
+        camera.zoom = zoom
+        camera.point = Vec.add([-bounds.minX, -bounds.minY], [mx, my])
+      },
+      zoomCameraToFit(data) {
+        const camera = TLD.getCurrentCamera(data)
+
+        const shapes = Object.values(data.page.shapes)
+
+        if (shapes.length === 0) {
+          return
+        }
+
+        const bounds = Utils.getCommonBounds(
+          ...Object.values(shapes).map((shape) => getShapeUtils(shape).getBounds(shape)),
+        )
+
+        const zoom = TLD.getCameraZoom(
+          bounds.width > bounds.height
+            ? (window.innerWidth - 128) / bounds.width
+            : (window.innerHeight - 128) / bounds.height,
+        )
+
+        const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
+        const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+
+        camera.zoom = zoom
+        camera.point = Vec.add([-bounds.minX, -bounds.minY], [mx, my])
+      },
+      zoomCameraToContent(data) {
+        const camera = TLD.getCurrentCamera(data)
+
+        const shapes = Object.values(data.page.shapes)
+
+        if (shapes.length === 0) {
+          return
+        }
+
+        const bounds = Utils.getCommonBounds(
+          ...Object.values(shapes).map((shape) => getShapeUtils(shape).getBounds(shape)),
+        )
+
+        const { zoom } = camera
+        const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
+        const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+
+        camera.point = Vec.add([-bounds.minX, -bounds.minY], [mx, my])
+      },
+      resetCamera(data) {
+        const camera = TLD.getCurrentCamera(data)
+        camera.zoom = 1
+        camera.point = [window.innerWidth / 2, window.innerHeight / 2]
+        document.documentElement.style.setProperty('--camera-zoom', '1')
       },
 
       /* ------------------ Shape Changes ----------------- */
