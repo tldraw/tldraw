@@ -31,6 +31,7 @@ import {
 import { History } from '../history'
 import {
   BrushSession,
+  DrawSession,
   Session,
   TransformSession,
   TransformSingleSession,
@@ -460,11 +461,41 @@ export class TLDrawState {
                 on: {},
                 initial: 'idle',
                 states: {
-                  idle: {},
-                  active: {
-                    onEnter: 'createActiveToolShape',
+                  idle: {
                     on: {
-                      CANCELLED: 'deleteActiveToolShape',
+                      POINTED_SHAPE: { to: `${TLDrawToolType.Draw}.active` },
+                      POINTED_CANVAS: { to: `${TLDrawToolType.Draw}.active` },
+                      CANCELLED: { to: 'select' },
+                    },
+                  },
+                  active: {
+                    onEnter: ['createActiveToolShape', 'startCreateDrawSession'],
+                    on: {
+                      MOVED_POINTER: {
+                        if: 'isTestMode',
+                        do: 'updateDrawSession',
+                      },
+                      PANNED_CAMERA: {
+                        if: 'isTestMode',
+                        do: 'updateDrawSession',
+                      },
+                      PRESSED_KEY: 'updateDrawSession',
+                      RELEASED_KEY: 'updateDrawSession',
+                      STOPPED_POINTING: [
+                        'quietlyCompleteSession',
+                        'completeActiveToolShape',
+                        'deselectAll',
+                        {
+                          to: `${TLDrawToolType.Draw}.idle`,
+                        },
+                      ],
+                      CANCELLED: [
+                        'quietlyCompleteSession',
+                        'deleteActiveToolShape',
+                        {
+                          to: `${TLDrawToolType.Draw}.idle`,
+                        },
+                      ],
                     },
                   },
                 },
@@ -651,8 +682,11 @@ export class TLDrawState {
         // commands.deleteShapes(data, this.getSelectedShapes(data))
         this.history.enable()
       },
-      quietlyCompleteSession: () => {
-        this.session.quietlyComplete()
+      quietlyCompleteSession: (data) => {
+        this.history.disable()
+        const finalCommand = this.session.complete(data)
+        if (finalCommand) this.history.execute(data, finalCommand)
+        this.history.enable()
       },
       cancelSession: (data) => {
         this.session.cancel(data)
@@ -662,11 +696,39 @@ export class TLDrawState {
         if (finalCommand) this.history.execute(data, finalCommand)
       },
 
-      // Create Bith Bounds Session
+      // Create
       startCreateTransformSession: (data, payload: TLPointerInfo) => {
         const point = TLD.screenToWorld(data, payload.origin)
         this.session.begin(
           new TransformSingleSession(data, point, TLBoundsCorner.BottomRight, true),
+        )
+      },
+      startCreateDrawSession: (data, payload: TLPointerInfo) => {
+        this.session.begin(
+          new DrawSession(
+            data,
+            data.pageState.selectedIds[0],
+            TLD.screenToWorld(data, payload.origin),
+          ),
+        )
+      },
+
+      // Draw Session
+      startDrawSession: (data, payload: TLPointerInfo) => {
+        this.session.begin(
+          new DrawSession(
+            data,
+            data.pageState.selectedIds[0],
+            TLD.screenToWorld(data, payload.origin),
+          ),
+        )
+      },
+      updateDrawSession: (data, payload: TLPointerInfo | TLKeyboardInfo) => {
+        this.session.update<DrawSession>(
+          data,
+          TLD.screenToWorld(data, payload.point),
+          'pressure' in payload ? payload.pressure : 0.5,
+          payload.altKey,
         )
       },
 
@@ -1119,12 +1181,12 @@ export class TLDrawState {
   fastPointerMove = (info: TLPointerInfo) => {
     if (this.isIn('brushSelecting')) {
       this.fastBrush(info)
-    }
-    if (this.isIn('translatingSelection')) {
+    } else if (this.isIn('translatingSelection')) {
       this.fastTranslate(info)
-    }
-    if (this.isInAny('transformingSelection', `${TLDrawToolType.Bounds}.active`)) {
+    } else if (this.isInAny('transformingSelection', `${TLDrawToolType.Bounds}.active`)) {
       this.fastTransform(info)
+    } else if (this.isIn(`${TLDrawToolType.Draw}.active`)) {
+      this.fastDraw(info)
     }
 
     this.send('MOVED_POINTER', info)
@@ -1148,14 +1210,12 @@ export class TLDrawState {
 
     if (this.isIn('brushSelecting')) {
       this.fastBrush(info)
-    }
-
-    if (this.isIn('translatingSelection')) {
+    } else if (this.isIn('translatingSelection')) {
       this.fastTranslate(info)
-    }
-
-    if (this.isInAny('transformingSelection', `${TLDrawToolType.Bounds}.active`)) {
+    } else if (this.isInAny('transformingSelection', `${TLDrawToolType.Bounds}.active`)) {
       this.fastTransform(info)
+    } else if (this.isIn(`${TLDrawToolType.Draw}.active`)) {
+      this.fastDraw(info)
     }
 
     // Send along the event just to be sure
@@ -1229,6 +1289,25 @@ export class TLDrawState {
     const data = { ...this.data }
 
     this.session.update<TransformSession>(data, TLD.screenToWorld(data, info.point), info.shiftKey)
+
+    this.fastUpdate({ ...this.data, page: { ...data.page } })
+  }
+
+  fastDraw(info: TLPointerInfo) {
+    const data = { ...this.data }
+
+    this.session.update<DrawSession>(
+      data,
+      TLD.screenToWorld(data, info.point),
+      'pressure' in info ? info.pressure : 0.5,
+      info.shiftKey,
+    )
+
+    const selectedId = data.pageState.selectedIds[0]
+
+    const shape = data.page.shapes[selectedId]
+
+    data.page.shapes[selectedId] = { ...shape }
 
     this.fastUpdate({ ...this.data, page: { ...data.page } })
   }

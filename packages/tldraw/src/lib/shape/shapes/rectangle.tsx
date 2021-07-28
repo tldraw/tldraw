@@ -38,7 +38,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
   }
 
   render(shape: RectangleShape, { isBinding, isHovered, isDarkMode }: TLRenderInfo) {
-    const { id, size, radius, style } = shape
+    const { id, size, style } = shape
     const styles = getShapeStyle(style, isDarkMode)
     const strokeWidth = +styles.strokeWidth
 
@@ -57,8 +57,6 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
             />
           )}
           <rect
-            rx={radius}
-            ry={radius}
             x={+styles.strokeWidth / 2}
             y={+styles.strokeWidth / 2}
             width={Math.max(0, size[0] - strokeWidth)}

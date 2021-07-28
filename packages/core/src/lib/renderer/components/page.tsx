@@ -11,9 +11,14 @@ import { Handles } from './handles'
 interface PageProps<T extends TLShape> {
   page: TLPage<T>
   pageState: TLPageState
+  hideBounds: boolean
 }
 
-export function Page<T extends TLShape>({ page, pageState }: PageProps<T>): JSX.Element {
+export function Page<T extends TLShape>({
+  page,
+  pageState,
+  hideBounds,
+}: PageProps<T>): JSX.Element {
   const { callbacks, shapeUtils } = useTLContext()
 
   useRenderOnResize()
@@ -26,11 +31,11 @@ export function Page<T extends TLShape>({ page, pageState }: PageProps<T>): JSX.
 
   return (
     <>
-      {bounds && <BoundsBg bounds={bounds} rotation={rotation} />}
+      {bounds && !hideBounds && <BoundsBg bounds={bounds} rotation={rotation} />}
       {shapeTree.map((node) => (
         <ShapeNode key={node.shape.id} node={node} allowHovers={true} />
       ))}
-      {bounds && (
+      {bounds && !hideBounds && (
         <Bounds
           zoom={pageState.camera.zoom}
           bounds={bounds}

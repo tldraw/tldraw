@@ -19,6 +19,7 @@ export interface RendererProps<T extends TLShape>
   page: TLPage<T>
   pageState: TLPageState
   theme?: Partial<TLTheme>
+  hideBounds?: boolean
 }
 
 export function Renderer<T extends TLShape>({
@@ -26,6 +27,7 @@ export function Renderer<T extends TLShape>({
   page,
   pageState,
   theme,
+  hideBounds = false,
   isDarkMode = false,
   isDebugMode = false,
   isPenMode = false,
@@ -37,7 +39,7 @@ export function Renderer<T extends TLShape>({
 
   return (
     <TLContext.Provider value={context}>
-      <Canvas page={page} pageState={pageState} />
+      <Canvas page={page} pageState={pageState} hideBounds={hideBounds} />
     </TLContext.Provider>
   )
 }

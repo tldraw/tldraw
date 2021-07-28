@@ -20,7 +20,7 @@ import { BackToContent } from './back-to-content'
 import { TLDrawShapeType } from '../../shape'
 
 const selectSelectTool = () => state.send('SELECTED_TOOL', { type: 'select' })
-const selectDrawTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Ellipse })
+const selectDrawTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Draw })
 const selectRectangleTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Rectangle })
 const selectEllipseTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Ellipse })
 const selectArrowTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Ellipse })
@@ -50,14 +50,14 @@ export const ToolsPanel = React.memo((): JSX.Element => {
       <CenterWrap>
         <BackToContent />
         <FloatingContainer>
-          {/* <PrimaryButton
+          <PrimaryButton
             kbd={'2'}
             label={TLDrawShapeType.Draw}
             onClick={selectDrawTool}
-            isActive={activeTool === TLDrawTLDrawShapeType.Draw}
+            isActive={activeTool === TLDrawShapeType.Draw}
           >
             <Pencil1Icon />
-          </PrimaryButton> */}
+          </PrimaryButton>
           <PrimaryButton
             kbd={'3'}
             label={TLDrawShapeType.Rectangle}
@@ -68,7 +68,7 @@ export const ToolsPanel = React.memo((): JSX.Element => {
           </PrimaryButton>
           <PrimaryButton
             kbd={'4'}
-            label={TLDrawShapeType.Ellipse}
+            label={TLDrawShapeType.Draw}
             onClick={selectEllipseTool}
             isActive={activeTool === TLDrawShapeType.Ellipse}
           >
@@ -78,7 +78,7 @@ export const ToolsPanel = React.memo((): JSX.Element => {
             kbd={'5'}
             label={TLDrawShapeType.Arrow}
             onClick={selectArrowTool}
-            isActive={activeTool === TLDrawTLDrawShapeType.Arrow}
+            isActive={activeTool === TLDrawShapeType.Arrow}
           >
             <ArrowTopRightIcon />
           </PrimaryButton>
@@ -86,7 +86,7 @@ export const ToolsPanel = React.memo((): JSX.Element => {
             kbd={'6'}
             label={TLDrawShapeType.Text}
             onClick={selectTextTool}
-            isActive={activeTool === TLDrawTLDrawShapeType.Text}
+            isActive={activeTool === TLDrawShapeType.Text}
           >
             <TextIcon />
           </PrimaryButton> */}

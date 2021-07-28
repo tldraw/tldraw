@@ -22,9 +22,14 @@ function resetError() {
 interface CanvasProps<T extends TLShape> {
   page: TLPage<T>
   pageState: TLPageState
+  hideBounds?: boolean
 }
 
-export function Canvas<T extends TLShape>({ page, pageState }: CanvasProps<T>): JSX.Element {
+export function Canvas<T extends TLShape>({
+  page,
+  pageState,
+  hideBounds = false,
+}: CanvasProps<T>): JSX.Element {
   const rCanvas = React.useRef<SVGSVGElement>(null)
 
   const rGroup = useCameraCss(pageState)
@@ -41,7 +46,7 @@ export function Canvas<T extends TLShape>({ page, pageState }: CanvasProps<T>): 
         <ErrorBoundary FallbackComponent={ErrorFallback} onReset={resetError}>
           <Defs zoom={pageState.camera.zoom} />
           <g ref={rGroup} id="tl-shapes">
-            <Page page={page} pageState={pageState} />
+            <Page page={page} pageState={pageState} hideBounds={hideBounds} />
             <Brush />
           </g>
         </ErrorBoundary>

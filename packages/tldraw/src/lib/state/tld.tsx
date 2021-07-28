@@ -2,7 +2,7 @@
 // Static utilities that operate on the state machine's data object
 
 import { TLBinding, TLBounds, TLPage, Utils, Vec } from '@tldraw/core'
-import { getShapeUtils, TLDrawShape } from '../shape'
+import { getShapeUtils, TLDrawShape, TLDrawShapeUtil } from '../shape'
 import { Data } from '../types'
 
 export class TLD {
@@ -364,7 +364,7 @@ export class TLD {
     }
   }
 
-  static getShapeUtils(shape: TLDrawShape) {
+  static getShapeUtils<T extends TLDrawShape>(shape: T): TLDrawShapeUtil<T> {
     return getShapeUtils(shape)
   }
 

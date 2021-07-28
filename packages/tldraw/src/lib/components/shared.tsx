@@ -1,12 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react'
+import { Tooltip } from './tooltip'
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as RadioGroup from '@radix-ui/react-radio-group'
-import styled from '../styles'
-import { Tooltip } from './tooltip'
 import { CheckIcon, ChevronRightIcon } from '@radix-ui/react-icons'
+import styled from '../styles'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const breakpoints: any = { '@initial': 'mobile', '@sm': 'small' }
 
 export const IconButton = styled('button', {

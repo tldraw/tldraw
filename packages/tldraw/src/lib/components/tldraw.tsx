@@ -1,13 +1,13 @@
 import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer, RendererProps, Utils } from '@tldraw/core'
-import { TLDrawShape, tldrawShapeUtils } from './shape'
-import { state, TLDrawCallbacks, TLDrawState, useSelector } from './state'
-import { TLDrawDocument } from './types'
-import { useKeyboardShortcuts } from './hooks'
-import styled from './styles'
-import { StylePanel } from './components/style-panel'
-import { ToolsPanel } from './components/tools-panel'
+import { TLDrawShape, tldrawShapeUtils } from '../shape'
+import { state, TLDrawCallbacks, useSelector } from '../state'
+import { TLDrawDocument } from '../types'
+import { useKeyboardShortcuts } from '../hooks'
+import styled from '../styles'
+import { StylePanel } from './style-panel'
+import { ToolsPanel } from './/tools-panel'
 
 const events: Partial<RendererProps<TLDrawShape>> = {
   onPointerMove: state.fastPointerMove,
@@ -78,6 +78,8 @@ export interface TLDrawProps extends Partial<TLDrawCallbacks> {
 }
 
 export function TLDraw({ document, currentPageId, ...callbacks }: TLDrawProps) {
+  const hideBounds = useSelector((s) => !s.isIn('select'))
+
   const { page, pageState } = useSelector(
     (s) => ({
       page: s.data.page,
@@ -111,7 +113,13 @@ export function TLDraw({ document, currentPageId, ...callbacks }: TLDrawProps) {
   return (
     <IdProvider>
       <Layout>
-        <Renderer page={page} pageState={pageState} shapeUtils={tldrawShapeUtils} {...events} />
+        <Renderer
+          page={page}
+          pageState={pageState}
+          shapeUtils={tldrawShapeUtils}
+          hideBounds={hideBounds}
+          {...events}
+        />
         <MenuButtons>
           {/* <Menu />
         <DebugPanel />

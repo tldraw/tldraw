@@ -10,11 +10,17 @@ export enum TLDrawToolType {
 export enum TLDrawShapeType {
   Ellipse = 'ellipse',
   Rectangle = 'rectangle',
+  Draw = 'draw',
 }
 
 export interface TLDrawBaseShape extends TLShape {
   style: ShapeStyles
   type: TLDrawShapeType
+}
+
+export interface DrawShape extends TLDrawBaseShape {
+  type: TLDrawShapeType.Draw
+  points: number[][]
 }
 
 export interface EllipseShape extends TLDrawBaseShape {
@@ -25,10 +31,9 @@ export interface EllipseShape extends TLDrawBaseShape {
 export interface RectangleShape extends TLDrawBaseShape {
   type: TLDrawShapeType.Rectangle
   size: number[]
-  radius?: number
 }
 
-export type TLDrawShape = RectangleShape | EllipseShape
+export type TLDrawShape = RectangleShape | EllipseShape | DrawShape
 
 export abstract class TLDrawShapeUtil<T extends TLDrawShape> extends TLShapeUtil<T> {
   abstract toolType: TLDrawToolType

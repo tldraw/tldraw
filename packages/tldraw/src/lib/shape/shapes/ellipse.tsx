@@ -39,6 +39,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
       radius: [radiusX, radiusY],
       style,
     } = shape
+
     const styles = getShapeStyle(style, isDarkMode)
     const strokeWidth = +styles.strokeWidth
 
@@ -132,7 +133,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
         shape.point[1],
         shape.radius[0],
         shape.radius[1],
-        shape.rotation,
+        shape.rotation || 0,
       )
     })
   }
@@ -165,16 +166,15 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
   ) {
     shape.point = [bounds.minX, bounds.minY]
     shape.radius = [bounds.width / 2, bounds.height / 2]
+    const { rotation = 0 } = initialShape
 
     shape.rotation =
-      (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0)
-        ? -initialShape.rotation
-        : initialShape.rotation
+      (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0) ? -(rotation || 0) : rotation || 0
 
     return this
   }
 
-  transformSingle(shape: EllipseShape, bounds: TLBounds, info: TLTransformInfo<EllipseShape>) {
+  transformSingle(shape: EllipseShape, bounds: TLBounds) {
     shape.point = Vec.round([bounds.minX, bounds.minY])
     shape.radius = Vec.div([bounds.width, bounds.height], 2)
     return this

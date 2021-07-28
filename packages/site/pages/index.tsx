@@ -23,7 +23,7 @@ export function Index() {
             name: 'Rectangle',
             childIndex: 0,
             type: TLDrawShapeType.Rectangle,
-            point: [0, 0],
+            point: [32, 32],
             size: [100, 100],
             style: {
               dash: DashStyle.Draw,
@@ -31,14 +31,14 @@ export function Index() {
               color: ColorStyle.Blue,
             },
           },
-          rect2: {
-            id: 'rect2',
+          ellipse1: {
+            id: 'ellipse1',
             parentId: 'page1',
-            name: 'Rectangle',
+            name: 'Ellipse',
             childIndex: 1,
-            type: TLDrawShapeType.Rectangle,
-            point: [0, 200],
-            size: [100, 100],
+            type: TLDrawShapeType.Ellipse,
+            point: [132, 132],
+            radius: [50, 50],
             style: {
               dash: DashStyle.Draw,
               size: SizeStyle.Medium,

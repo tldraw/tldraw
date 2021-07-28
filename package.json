@@ -23,8 +23,7 @@
     "update": "nx migrate latest",
     "workspace-generator": "nx workspace-generator",
     "dep-graph": "nx dep-graph",
-    "help": "nx help",
-    "version": "cd packages/core && npm version patch"
+    "help": "nx help"
   },
   "husky": {
     "hooks": {
@@ -52,9 +51,11 @@
     "@stitches/react": "^0.2.3",
     "core-js": "^3.6.5",
     "document-register-element": "1.13.1",
+    "gtag": "^1.0.1",
     "immer": "^9.0.5",
     "install": "^0.13.0",
     "next": "^10.2.0",
+    "next-themes": "^0.0.15",
     "npm": "^7.20.2",
     "perfect-freehand": "^0.4.10",
     "react": "^17.0.2",

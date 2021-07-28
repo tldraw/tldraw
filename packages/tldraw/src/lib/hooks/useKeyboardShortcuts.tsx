@@ -130,6 +130,11 @@ export function useKeyboardShortcuts() {
     e.preventDefault()
   })
 
+  useHotkeys('d,2', (e) => {
+    state.send('SELECTED_TOOL', { type: TLDrawShapeType.Draw })
+    e.preventDefault()
+  })
+
   useHotkeys('r,3', (e) => {
     state.send('SELECTED_TOOL', { type: TLDrawShapeType.Rectangle })
     e.preventDefault()
