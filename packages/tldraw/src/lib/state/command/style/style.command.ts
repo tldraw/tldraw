@@ -20,7 +20,6 @@ export function style(data: Data, changes: Partial<ShapeStyles>) {
   return new Command({
     name: 'style_shapes',
     category: 'canvas',
-    manualSelection: true,
     do(data) {
       const { shapes } = data.page
 

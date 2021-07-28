@@ -75,7 +75,6 @@ export function stretch(data: Data, type: StretchType) {
   return new Command({
     name: 'stretch_shapes',
     category: 'canvas',
-    manualSelection: true,
     do(data) {
       const { shapes } = data.page
 

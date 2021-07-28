@@ -15,7 +15,6 @@ export class Command {
   category: string
   private undoFn: CommandFn<Data>
   private doFn: CommandFn<Data>
-  protected manualSelection: boolean
 
   selectedIds: string[]
 
@@ -24,13 +23,11 @@ export class Command {
     undo: CommandFn<Data>
     name: string
     category: string
-    manualSelection?: boolean
   }) {
     this.name = options.name
     this.category = options.category
     this.doFn = options.do
     this.undoFn = options.undo
-    this.manualSelection = options.manualSelection || false
   }
 
   undo = (data: Data): void => {

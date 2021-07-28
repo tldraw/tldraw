@@ -19,7 +19,6 @@ export function duplicate(data: Data) {
   return new Command({
     name: 'duplicate_shapes',
     category: 'canvas',
-    manualSelection: true,
     do(data) {
       const { shapes } = data.page
 

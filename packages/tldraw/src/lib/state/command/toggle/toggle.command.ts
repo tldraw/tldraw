@@ -21,7 +21,6 @@ export function toggle(data: Data, prop: PropsOfType<TLDrawShape, boolean>) {
   return new Command({
     name: 'toggle_shapes',
     category: 'canvas',
-    manualSelection: true,
     do(data) {
       const { shapes } = data.page
 

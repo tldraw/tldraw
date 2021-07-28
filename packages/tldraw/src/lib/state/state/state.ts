@@ -813,7 +813,7 @@ export class TLDrawState {
       nudgeSelection: (data, payload: { delta: number[]; major: boolean }) => {
         this.history.execute(
           data,
-          commands.nudge(
+          commands.translate(
             data,
             Vec.mul(
               payload.delta,

@@ -42,7 +42,6 @@ export function rotate(data: Data, delta = -PI2 / 4) {
   return new Command({
     name: 'rotated_shapes',
     category: 'canvas',
-    manualSelection: true,
     do(data) {
       const { shapes } = data.page
 

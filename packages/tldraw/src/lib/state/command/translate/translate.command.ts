@@ -3,7 +3,7 @@ import { Data } from '../../../types'
 import { TLD } from '../../tld'
 import { Command } from '../command'
 
-export function nudge(data: Data, delta: number[]) {
+export function translate(data: Data, delta: number[]) {
   const ids = [...TLD.getSelectedIds(data)]
 
   const shapesToNudge = ids
@@ -18,9 +18,8 @@ export function nudge(data: Data, delta: number[]) {
     })
 
   return new Command({
-    name: 'nudge_shapes',
+    name: 'translate_shapes',
     category: 'canvas',
-    manualSelection: true,
     do(data) {
       const { shapes } = data.page
 

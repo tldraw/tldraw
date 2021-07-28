@@ -22,7 +22,6 @@ export function move(data: Data, type: MoveType) {
   return new Command({
     name: 'move_shapes',
     category: 'canvas',
-    manualSelection: true,
     do(data) {
       switch (type) {
         case MoveType.ToBack: {
@@ -77,6 +76,8 @@ export function move(data: Data, type: MoveType) {
     },
   })
 }
+
+// TODO: Refactor these so that they return the new childIndex array, rather than mutating the shapes
 
 function moveToFront(shapes: TLDrawShape[], siblings: TLDrawShape[]) {
   shapes.sort((a, b) => a.childIndex - b.childIndex)

@@ -13,7 +13,6 @@ export function distribute(data: Data, type: DistributeType) {
   return new Command({
     name: 'distribute_shapes',
     category: 'canvas',
-    manualSelection: true,
     do(data) {
       const { shapes } = data.page
 

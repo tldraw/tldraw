@@ -22,7 +22,6 @@ export function deleteShapes(data: Data) {
   return new Command({
     name: 'delete_shapes',
     category: 'canvas',
-    manualSelection: true,
     do(data) {
       deleted = TLD.deleteShapes(data, shapeIdsToDelete)
       TLD.setSelectedIds(data, remainingIds)

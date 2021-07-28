@@ -46,7 +46,6 @@ export function align(data: Data, type: AlignType) {
   return new Command({
     name: 'align_shapes',
     category: 'canvas',
-    manualSelection: true,
     do(data) {
       const { shapes } = data.page
 
