@@ -1,6 +1,6 @@
 {
   "name": "tldraw",
-  "version": "0.0.0",
+  "version": "0.0.8",
   "license": "MIT",
   "scripts": {
     "nx": "nx",
@@ -23,7 +23,8 @@
     "update": "nx migrate latest",
     "workspace-generator": "nx workspace-generator",
     "dep-graph": "nx dep-graph",
-    "help": "nx help"
+    "help": "nx help",
+    "version": "cd packages/core && npm version patch"
   },
   "husky": {
     "hooks": {
