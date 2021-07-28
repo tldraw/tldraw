@@ -1,3 +1,5 @@
+import { MoveType } from '@tldraw/core'
+import React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { state } from '../state'
 
@@ -61,4 +63,82 @@ export function useKeyboardShortcuts() {
     state.send('SELECTED_ALL')
     e.preventDefault()
   })
+
+  useHotkeys('up', (e) => {
+    state.send('NUDGED', { delta: [0, -1], major: false })
+    e.preventDefault()
+  })
+
+  useHotkeys('right', (e) => {
+    state.send('NUDGED', { delta: [1, 0], major: false })
+    e.preventDefault()
+  })
+
+  useHotkeys('down', (e) => {
+    state.send('NUDGED', { delta: [0, 1], major: false })
+    e.preventDefault()
+  })
+
+  useHotkeys('left', (e) => {
+    state.send('NUDGED', { delta: [-1, 0], major: false })
+    e.preventDefault()
+  })
+
+  useHotkeys('shift+up', (e) => {
+    state.send('NUDGED', { delta: [0, -1], major: true })
+    e.preventDefault()
+  })
+
+  useHotkeys('shift+right', (e) => {
+    state.send('NUDGED', { delta: [1, 0], major: true })
+    e.preventDefault()
+  })
+
+  useHotkeys('shift+down', (e) => {
+    state.send('NUDGED', { delta: [0, 1], major: true })
+    e.preventDefault()
+  })
+
+  useHotkeys('shift+left', (e) => {
+    state.send('NUDGED', { delta: [-1, 0], major: true })
+    e.preventDefault()
+  })
+
+  useHotkeys('[', (e) => {
+    state.send('MOVED', { type: MoveType.Backward })
+    e.preventDefault()
+  })
+
+  useHotkeys(']', (e) => {
+    state.send('MOVED', { type: MoveType.Forward })
+    e.preventDefault()
+  })
+
+  useHotkeys('shift+[', (e) => {
+    state.send('MOVED', { type: MoveType.ToBack })
+    e.preventDefault()
+  })
+
+  useHotkeys('shift+]', (e) => {
+    state.send('MOVED', { type: MoveType.ToFront })
+    e.preventDefault()
+  })
+
+  // function handleKeyDown(e: KeyboardEvent) {
+  //   switch (e.key) {
+  //     case '‘': {
+  //       e.preventDefault()
+  //       break
+  //     }
+  //     case '“': {
+  //       e.preventDefault()
+  //       break
+  //     }
+  //   }
+  // }
+
+  // React.useEffect(() => {
+  //   window.addEventListener('keydown', handleKeyDown)
+  //   return () => window.removeEventListener('keydown', handleKeyDown)
+  // }, [])
 }

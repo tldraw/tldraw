@@ -73,7 +73,6 @@ export interface TLBinding {
 }
 
 export interface TLSettings {
-  isReadonlyMode: boolean
   isDebugMode: boolean
   isDarkMode: boolean
   isPenMode: boolean

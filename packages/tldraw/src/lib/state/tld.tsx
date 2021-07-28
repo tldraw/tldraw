@@ -103,6 +103,20 @@ export class TLD {
     return copies
   }
 
+  /* -------------------- Children -------------------- */
+
+  /**
+   * Get a shape's children.
+   * @param data
+   * @param id
+   */
+  static getChildren(data: Data, id: string): TLDrawShape[] {
+    const page = this.getPage(data)
+    return Object.values(page.shapes)
+      .filter(({ parentId }) => parentId === id)
+      .sort((a, b) => a.childIndex - b.childIndex)
+  }
+
   static getChildIndexAbove(data: Data, id: string): number {
     const page = this.getPage(data)
 

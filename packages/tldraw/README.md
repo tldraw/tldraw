@@ -77,21 +77,24 @@ In the example above, the page above with the id `page1`is at `tldocument.pages[
 
 Your `TLPage` objects may include shapes: objects that fit one of the `TLDrawShape` interfaces listed below. All `TLDrawShapes` extends a common interface:
 
-| Property              | Type         | Description                                         |
-| --------------------- | ------------ | --------------------------------------------------- |
-| `id`                  | `string`     | A unique ID for the shape.                          |
-| `name`                | `string`     | The shape's name.                                   |
-| `type`                | `string`     | The shape's type.                                   |
-| `parentId`            | `string`     | The ID of the shape's parent (a shape or its page). |
-| `point`               | `number[]`   | The `[x, y]` position of the shape.                 |
-| `rotation`            | `number[]`   | (optional) The shape's rotation in radians.         |
-| `children`            | `string[]`   | (optional) The shape's child shape ids.             |
-| `handles`             | `TLHandle{}` | (optional) A table of `TLHandle` objects.           |
-| `isLocked`            | boolean      |                                                     |
-| `isHidden`            | boolean      |                                                     |
-| `isEditing`           | boolean      |                                                     |
-| `isGenerated`         | boolean      |                                                     |
-| `isAspectRatioLocked` | boolean      |                                                     |
+| Property              | Type         | Description                                                     |
+| --------------------- | ------------ | --------------------------------------------------------------- |
+| `id`                  | `string`     | A unique ID for the shape.                                      |
+| `name`                | `string`     | The shape's name.                                               |
+| `type`                | `string`     | The shape's type.                                               |
+| `parentId`            | `string`     | The ID of the shape's parent (a shape or its page).             |
+| `childIndex`          | `number`     | The shape's order within its parent's children, indexed from 1. |
+| `point`               | `number[]`   | The `[x, y]` position of the shape.                             |
+| `rotation`            | `number[]`   | (optional) The shape's rotation in radians.                     |
+| `children`            | `string[]`   | (optional) The shape's child shape ids.                         |
+| `handles`             | `TLHandle{}` | (optional) A table of `TLHandle` objects.                       |
+| `isLocked`            | `boolean`    | True if the shape is locked.                                    |
+| `isHidden`            | `boolean`    | True if the shape is hidden.                                    |
+| `isEditing`           | `boolean`    | True if the shape is currently editing.                         |
+| `isGenerated`         | `boolean`    | True if the shape is generated.                                 |
+| `isAspectRatioLocked` | `boolean`    | True if the shape's aspect ratio is locked.                     |
+
+> **Important:** In order for re-ordering to work correctly, a shape's `childIndex` values _must_ start from 1, not 0. The page or parent shape's "bottom-most" child should have a `childIndex` of 1.
 
 The `ShapeStyle` object is a common style API for all shapes.
 

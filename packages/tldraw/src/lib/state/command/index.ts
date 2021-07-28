@@ -7,5 +7,7 @@ export * from './stretch'
 export * from './duplicate'
 export * from './delete-shapes'
 export * from './rotate'
+export * from './nudge'
+export * from './move'
 
 export { Command } from './command'

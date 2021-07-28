@@ -15,6 +15,7 @@ import {
   StretchType,
   DistributeType,
   Utils,
+  MoveType,
 } from '@tldraw/core'
 import { Data, TLDrawDocument } from '../../types'
 import {
@@ -57,6 +58,8 @@ const initialData: Data = {
     isDarkMode: false,
     isDebugMode: process.env.NODE_ENV === 'development',
     isReadonlyMode: false,
+    nudgeDistanceLarge: 10,
+    nudgeDistanceSmall: 1,
   },
   appState: {
     currentPageId: 'page',
@@ -191,14 +194,25 @@ export class TLDrawState {
             do: 'deleteSelection',
           },
           DELETED_ALL: {
-            unlessAny: 'isInSession',
+            unless: 'isInSession',
             if: 'hasSelection',
             do: 'deleteSelection',
             else: ['selectAll', 'deleteSelection'],
           },
           ROTATED_CCW: {
+            unless: 'isInSession',
             if: 'hasSelection',
             do: 'rotateSelectionCcw',
+          },
+          NUDGED: {
+            unless: 'isInSession',
+            if: 'hasSelection',
+            do: 'nudgeSelection',
+          },
+          MOVED: {
+            unless: 'isInSession',
+            if: 'hasSelection',
+            do: 'moveSelection',
           },
         },
         initial: 'usingTool',
@@ -795,6 +809,21 @@ export class TLDrawState {
       },
       rotateSelectionCcw: (data) => {
         this.history.execute(data, commands.rotate(data))
+      },
+      nudgeSelection: (data, payload: { delta: number[]; major: boolean }) => {
+        this.history.execute(
+          data,
+          commands.nudge(
+            data,
+            Vec.mul(
+              payload.delta,
+              payload.major ? data.settings.nudgeDistanceLarge : data.settings.nudgeDistanceSmall,
+            ),
+          ),
+        )
+      },
+      moveSelection: (data, payload: { type: MoveType }) => {
+        this.history.execute(data, commands.move(data, payload.type))
       },
     },
     values: {

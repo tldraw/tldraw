@@ -7,10 +7,16 @@ export interface TLDrawDocument {
   pageStates: Record<string, TLPageState>
 }
 
+export interface TLDrawSettings extends TLSettings {
+  isReadonlyMode: boolean
+  nudgeDistanceSmall: number
+  nudgeDistanceLarge: number
+}
+
 export interface Data {
   page: TLPage<TLDrawShape>
   pageState: TLPageState
-  settings: TLSettings
+  settings: TLDrawSettings
   appState: {
     currentStyle: ShapeStyles
     currentPageId: string
