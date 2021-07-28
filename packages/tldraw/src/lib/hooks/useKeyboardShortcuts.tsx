@@ -56,4 +56,9 @@ export function useKeyboardShortcuts() {
     state.send('DELETED')
     e.preventDefault()
   })
+
+  useHotkeys('command+a,ctrl+a', (e) => {
+    state.send('SELECTED_ALL')
+    e.preventDefault()
+  })
 }
