@@ -25,7 +25,6 @@ export function Renderer<T extends TLShape>({
   page,
   pageState,
   theme,
-  isReadonlyMode = false,
   isDarkMode = false,
   isDebugMode = false,
   isPenMode = false,
