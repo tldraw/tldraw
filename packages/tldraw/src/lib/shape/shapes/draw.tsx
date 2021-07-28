@@ -34,7 +34,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
     parentId: 'page',
     childIndex: 1,
     point: [0, 0],
-    points: [],
+    points: [[0, 0, 0.5]],
     rotation: 0,
     radius: 0,
     style: defaultStyle,

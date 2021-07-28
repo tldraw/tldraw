@@ -1,7 +1,6 @@
 import { MoveType, Utils } from '@tldraw/core'
 import { mockData } from '../../../../specs/__mocks__/mock-data'
 import { Data } from '../../../types'
-import { state } from '../../state'
 import { move } from './move.command'
 
 function getSortedShapeIds(data: Data) {
@@ -26,17 +25,12 @@ describe('Nudge command', () => {
   it('does, undoes and redoes command', () => {
     const tdata = Utils.deepClone(data)
     tdata.pageState.selectedIds = ['b']
-
-    state.history.execute(tdata, move(tdata, MoveType.ToBack))
-
+    const command = move(tdata, MoveType.ToBack)
+    command.redo(tdata)
     expect(getSortedShapeIds(tdata)).toBe('bacd')
-
-    state.history.undo(tdata)
-
+    command.undo(tdata)
     expect(getSortedShapeIds(tdata)).toBe('abcd')
-
-    state.history.redo(tdata)
-
+    command.redo(tdata)
     expect(getSortedShapeIds(tdata)).toBe('bacd')
   })
 
@@ -44,27 +38,21 @@ describe('Nudge command', () => {
     it('moves a shape to back', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['b']
-
-      state.history.execute(tdata, move(tdata, MoveType.ToBack))
-
+      move(tdata, MoveType.ToBack).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('bacd')
     })
 
     it('moves two adjacent siblings to back', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['b', 'c']
-
-      state.history.execute(tdata, move(tdata, MoveType.ToBack))
-
+      move(tdata, MoveType.ToBack).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('bcad')
     })
 
     it('moves two non-adjacent siblings to back', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['b', 'd']
-
-      state.history.execute(tdata, move(tdata, MoveType.ToBack))
-
+      move(tdata, MoveType.ToBack).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('bdac')
     })
   })
@@ -73,45 +61,35 @@ describe('Nudge command', () => {
     it('moves a shape backward', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['c']
-
-      state.history.execute(tdata, move(tdata, MoveType.Backward))
-
+      move(tdata, MoveType.Backward).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('acbd')
     })
 
     it('moves a shape at first index backward', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['a']
-
-      state.history.execute(tdata, move(tdata, MoveType.Backward))
-
+      move(tdata, MoveType.Backward).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('abcd')
     })
 
     it('moves two adjacent siblings backward', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['c', 'd']
-
-      state.history.execute(tdata, move(tdata, MoveType.Backward))
-
+      move(tdata, MoveType.Backward).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('acdb')
     })
 
     it('moves two non-adjacent siblings backward', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['b', 'd']
-
-      state.history.execute(tdata, move(tdata, MoveType.Backward))
-
+      move(tdata, MoveType.Backward).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('badc')
     })
 
     it('moves two adjacent siblings backward at zero index', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['a', 'b']
-
-      state.history.execute(tdata, move(tdata, MoveType.Backward))
-
+      move(tdata, MoveType.Backward).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('abcd')
     })
   })
@@ -120,45 +98,35 @@ describe('Nudge command', () => {
     it('moves a shape forward', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['c']
-
-      state.history.execute(tdata, move(tdata, MoveType.Forward))
-
+      move(tdata, MoveType.Forward).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('abdc')
     })
 
     it('moves a shape forward at the top index', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['d']
-
-      state.history.execute(tdata, move(tdata, MoveType.Forward))
-
+      move(tdata, MoveType.Forward).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('abcd')
     })
 
     it('moves two adjacent siblings forward', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['a', 'b']
-
-      state.history.execute(tdata, move(tdata, MoveType.Forward))
-
+      move(tdata, MoveType.Forward).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('cabd')
     })
 
     it('moves two non-adjacent siblings forward', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['a', 'c']
-
-      state.history.execute(tdata, move(tdata, MoveType.Forward))
-
+      move(tdata, MoveType.Forward).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('badc')
     })
 
     it('moves two adjacent siblings forward at top index', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['c', 'd']
-
-      state.history.execute(tdata, move(tdata, MoveType.Forward))
-
+      move(tdata, MoveType.Forward).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('abcd')
     })
   })
@@ -167,36 +135,28 @@ describe('Nudge command', () => {
     it('moves a shape to front', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['b']
-
-      state.history.execute(tdata, move(tdata, MoveType.ToFront))
-
+      move(tdata, MoveType.ToFront).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('acdb')
     })
 
     it('moves two adjacent siblings to front', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['a', 'b']
-
-      state.history.execute(tdata, move(tdata, MoveType.ToFront))
-
+      move(tdata, MoveType.ToFront).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('cdab')
     })
 
     it('moves two non-adjacent siblings to front', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['a', 'c']
-
-      state.history.execute(tdata, move(tdata, MoveType.ToFront))
-
+      move(tdata, MoveType.ToFront).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('bdac')
     })
 
     it('moves siblings already at front to front', () => {
       const tdata = Utils.deepClone(data)
       tdata.pageState.selectedIds = ['c', 'd']
-
-      state.history.execute(tdata, move(tdata, MoveType.ToFront))
-
+      move(tdata, MoveType.ToFront).redo(tdata)
       expect(getSortedShapeIds(tdata)).toBe('abcd')
     })
   })

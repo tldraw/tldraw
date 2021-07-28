@@ -174,7 +174,7 @@ export class TLDrawState {
                 do: 'aspectLockSelection',
               },
               CHANGED_STYLE: {
-                unlessAny: 'isInSession',
+                unless: 'isInSession',
                 do: ['updateStyles', 'applyStylesToSelection'],
               },
               ALIGNED: {
@@ -655,9 +655,11 @@ export class TLDrawState {
           id: Utils.uniqueId(),
           parentId: data.page.id,
           childIndex: TLD.getTopChildIndex(data, data.page) + 1,
-          point: [...payload.point],
+          point: Vec.round(payload.point),
           style: { ...data.appState.currentStyle },
         })
+
+        // Set editing Id?
 
         // Don't add the shape to the undo stack yet
         TLD.setSelectedIds(data, [shape.id])
@@ -688,6 +690,7 @@ export class TLDrawState {
         if (finalCommand) this.history.execute(data, finalCommand)
         this.history.enable()
       },
+
       cancelSession: (data) => {
         this.session.cancel(data)
       },

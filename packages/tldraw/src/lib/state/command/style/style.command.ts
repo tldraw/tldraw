@@ -25,7 +25,6 @@ export function style(data: Data, changes: Partial<ShapeStyles>) {
 
       for (const { id, next } of shapesToStyle) {
         const shape = shapes[id]
-
         TLD.getShapeUtils(shape).mutate(shape, { style: next })
       }
 

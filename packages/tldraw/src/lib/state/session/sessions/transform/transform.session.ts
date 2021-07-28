@@ -36,10 +36,10 @@ export class TransformSession implements BaseSession {
       isAspectRatioLocked || isAllAspectRatioLocked,
     )
 
+    // Now work backward to calculate a new bounding box for each of the shapes.
+
     this.scaleX = newBoundingBox.scaleX
     this.scaleY = newBoundingBox.scaleY
-
-    // Now work backward to calculate a new bounding box for each of the shapes.
 
     for (const id in shapeBounds) {
       const { initialShape, initialShapeBounds, transformOrigin } = shapeBounds[id]
