@@ -3,7 +3,11 @@ import { inputs } from '../../inputs'
 import { Vec } from '../../utils'
 import { useTLContext } from './useTLContext'
 
-export function useShapeEvents(id: string, isCurrentParent: boolean, rGroup: React.RefObject<SVGElement>) {
+export function useShapeEvents(
+  id: string,
+  isCurrentParent: boolean,
+  rGroup: React.RefObject<SVGElement>,
+) {
   const { callbacks } = useTLContext()
 
   const handlePointerDown = React.useCallback(

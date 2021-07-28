@@ -16,7 +16,15 @@ interface ShapeProps {
 }
 
 export const Shape = React.memo(
-  ({ shape, isEditing, isHovered, isSelected, isBinding, isDarkMode, isCurrentParent }: ShapeProps) => {
+  ({
+    shape,
+    isEditing,
+    isHovered,
+    isSelected,
+    isBinding,
+    isDarkMode,
+    isCurrentParent,
+  }: ShapeProps) => {
     const { shapeUtils } = useTLContext()
     const rGroup = React.useRef<SVGGElement>(null)
     const events = useShapeEvents(shape.id, isCurrentParent, rGroup)

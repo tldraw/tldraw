@@ -79,7 +79,8 @@ export const ShapesFunctions = React.memo(() => {
     return selectedShapes.every(
       (shape) =>
         shape.children !== undefined ||
-        (shape.parentId === selectedShapes[0].parentId && selectedShapes[0].parentId !== s.data.appState.currentPageId),
+        (shape.parentId === selectedShapes[0].parentId &&
+          selectedShapes[0].parentId !== s.data.appState.currentPageId),
     )
   })
 
@@ -94,7 +95,12 @@ export const ShapesFunctions = React.memo(() => {
   return (
     <>
       <ButtonsRow>
-        <IconButton bp={breakpoints} disabled={!hasSelection} size="small" onClick={handleDuplicate}>
+        <IconButton
+          bp={breakpoints}
+          disabled={!hasSelection}
+          size="small"
+          onClick={handleDuplicate}
+        >
           <Tooltip label="Duplicate" kbd={`#D`}>
             <CopyIcon />
           </Tooltip>
@@ -112,7 +118,12 @@ export const ShapesFunctions = React.memo(() => {
           </Tooltip>
         </IconButton>
 
-        <IconButton bp={breakpoints} disabled={!hasSelection} size="small" onClick={handleAspectLock}>
+        <IconButton
+          bp={breakpoints}
+          disabled={!hasSelection}
+          size="small"
+          onClick={handleAspectLock}
+        >
           <Tooltip label="Toogle Aspect Ratio Lock">
             <AspectRatioIcon opacity={isAllAspectLocked ? 1 : 0.4} />
           </Tooltip>
@@ -130,25 +141,45 @@ export const ShapesFunctions = React.memo(() => {
         </IconButton>
       </ButtonsRow>
       <ButtonsRow>
-        <IconButton bp={breakpoints} disabled={!hasSelection} size="small" onClick={handleMoveToBack}>
+        <IconButton
+          bp={breakpoints}
+          disabled={!hasSelection}
+          size="small"
+          onClick={handleMoveToBack}
+        >
           <Tooltip label="Move to Back" kbd={`#⇧[`}>
             <PinBottomIcon />
           </Tooltip>
         </IconButton>
 
-        <IconButton bp={breakpoints} disabled={!hasSelection} size="small" onClick={handleMoveBackward}>
+        <IconButton
+          bp={breakpoints}
+          disabled={!hasSelection}
+          size="small"
+          onClick={handleMoveBackward}
+        >
           <Tooltip label="Move Backward" kbd={`#[`}>
             <ArrowDownIcon />
           </Tooltip>
         </IconButton>
 
-        <IconButton bp={breakpoints} disabled={!hasSelection} size="small" onClick={handleMoveForward}>
+        <IconButton
+          bp={breakpoints}
+          disabled={!hasSelection}
+          size="small"
+          onClick={handleMoveForward}
+        >
           <Tooltip label="Move Forward" kbd={`#]`}>
             <ArrowUpIcon />
           </Tooltip>
         </IconButton>
 
-        <IconButton bp={breakpoints} disabled={!hasSelection} size="small" onClick={handleMoveToFront}>
+        <IconButton
+          bp={breakpoints}
+          disabled={!hasSelection}
+          size="small"
+          onClick={handleMoveToFront}
+        >
           <Tooltip label="More to Front" kbd={`#⇧]`}>
             <PinTopIcon />
           </Tooltip>

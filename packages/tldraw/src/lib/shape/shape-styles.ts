@@ -23,10 +23,9 @@ const colors = {
 export const strokes: Record<Theme, Record<ColorStyle, string>> = {
   light: colors,
   dark: {
-    ...(Object.fromEntries(Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasDark, 0.1)])) as Record<
-      ColorStyle,
-      string
-    >),
+    ...(Object.fromEntries(
+      Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasDark, 0.1)]),
+    ) as Record<ColorStyle, string>),
     [ColorStyle.White]: '#ffffff',
     [ColorStyle.Black]: '#000',
   },

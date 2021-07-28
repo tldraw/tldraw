@@ -71,7 +71,10 @@ export function useShapeTree<T extends TLShape>(
 
   const [minX, minY] = Vec.sub(Vec.div([0, 0], camera.zoom), camera.point)
 
-  const [maxX, maxY] = Vec.sub(Vec.div([window.innerWidth, window.innerHeight], camera.zoom), camera.point)
+  const [maxX, maxY] = Vec.sub(
+    Vec.div([window.innerWidth, window.innerHeight], camera.zoom),
+    camera.point,
+  )
 
   const viewport = {
     minX,

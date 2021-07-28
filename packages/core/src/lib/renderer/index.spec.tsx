@@ -2,7 +2,14 @@ import * as React from 'react'
 import { render } from '@testing-library/react'
 import { Renderer } from './renderer'
 import { Utils, Vec } from '@tldraw/core'
-import { TLTransformInfo, TLPointerInfo, TLShapeUtils, TLShape, TLShapeUtil, TLBounds } from '../types'
+import {
+  TLTransformInfo,
+  TLPointerInfo,
+  TLShapeUtils,
+  TLShape,
+  TLShapeUtil,
+  TLBounds,
+} from '../types'
 
 // Define a custom shape
 export interface RectangleShape extends TLShape {
@@ -61,7 +68,10 @@ class Rectangle extends TLShapeUtil<RectangleShape> {
   hitTestBounds(shape: RectangleShape, bounds: TLBounds) {
     const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
-    return Utils.boundsContainPolygon(bounds, rotatedCorners) || Utils.boundsCollidePolygon(bounds, rotatedCorners)
+    return (
+      Utils.boundsContainPolygon(bounds, rotatedCorners) ||
+      Utils.boundsCollidePolygon(bounds, rotatedCorners)
+    )
   }
 
   transform(shape: TLShape, bounds: TLBounds, info: TLTransformInfo<RectangleShape>) {
@@ -153,32 +163,35 @@ function useAppState() {
   }, [])
 
   // Handle camera pinch
-  const handlePinch = React.useCallback((origin: number[], delta: number[], distanceDelta: number) => {
-    setState((state) => {
-      const {
-        camera: { point, zoom },
-      } = state.pageState
+  const handlePinch = React.useCallback(
+    (origin: number[], delta: number[], distanceDelta: number) => {
+      setState((state) => {
+        const {
+          camera: { point, zoom },
+        } = state.pageState
 
-      let nextPoint = Vec.sub(point, Vec.div(delta, zoom))
+        let nextPoint = Vec.sub(point, Vec.div(delta, zoom))
 
-      const nextZoom = Math.max(0.15, Math.min(5, zoom - (distanceDelta / 300) * zoom))
+        const nextZoom = Math.max(0.15, Math.min(5, zoom - (distanceDelta / 300) * zoom))
 
-      const p0 = Vec.sub(Vec.div(origin, zoom), point)
-      const p1 = Vec.sub(Vec.div(origin, nextZoom), point)
+        const p0 = Vec.sub(Vec.div(origin, zoom), point)
+        const p1 = Vec.sub(Vec.div(origin, nextZoom), point)
 
-      nextPoint = Vec.add(point, Vec.sub(p1, p0))
-      return {
-        ...state,
-        pageState: {
-          ...state.pageState,
-          camera: {
-            point: nextPoint,
-            zoom: nextZoom,
+        nextPoint = Vec.add(point, Vec.sub(p1, p0))
+        return {
+          ...state,
+          pageState: {
+            ...state.pageState,
+            camera: {
+              point: nextPoint,
+              zoom: nextZoom,
+            },
           },
-        },
-      }
-    })
-  }, [])
+        }
+      })
+    },
+    [],
+  )
 
   return {
     state,

@@ -16,7 +16,14 @@ import {
   DistributeType,
 } from '@tldraw/core'
 import { Data, TLDrawDocument } from '../../types'
-import { TLDrawShape, TLDrawShapeUtils, tldrawShapeUtils, getShapeUtils, ShapeStyles, defaultStyle } from '../../shape'
+import {
+  TLDrawShape,
+  TLDrawShapeUtils,
+  tldrawShapeUtils,
+  getShapeUtils,
+  ShapeStyles,
+  defaultStyle,
+} from '../../shape'
 import { History } from '../history'
 import { BrushSession, Session, TransformSession, TranslateSession } from '../session'
 import { freeze } from 'immer'
@@ -31,7 +38,10 @@ is shared in the renderer's `onMount` callback.
 
 export interface TLDrawCallbacks {
   onMount: (state: TLDrawState) => void
-  onChange: (state: TLDrawState, type: 'camera' | 'command' | 'session' | 'undo' | 'redo' | 'load' | 'page') => void
+  onChange: (
+    state: TLDrawState,
+    type: 'camera' | 'command' | 'session' | 'undo' | 'redo' | 'load' | 'page',
+  ) => void
 }
 
 const initialData: Data = {
@@ -362,7 +372,10 @@ export class TLDrawState {
         if (!payload.target) return false
         return payload.target !== 'canvas' && payload.target !== 'bounds'
       },
-      isPointingRotationHandle(_data, payload: { target: TLBoundsEdge | TLBoundsCorner | 'rotate' }) {
+      isPointingRotationHandle(
+        _data,
+        payload: { target: TLBoundsEdge | TLBoundsCorner | 'rotate' },
+      ) {
         return payload.target === 'rotate'
       },
       distanceImpliesDrag(data, payload: TLPointerInfo) {
@@ -436,12 +449,19 @@ export class TLDrawState {
       },
 
       // Transform Session
-      startTransformSession: (data, payload: TLPointerInfo & { target: TLBoundsCorner | TLBoundsEdge }) => {
+      startTransformSession: (
+        data,
+        payload: TLPointerInfo & { target: TLBoundsCorner | TLBoundsEdge },
+      ) => {
         const point = TLD.screenToWorld(data, payload.origin)
         this.session.begin(new TransformSession(data, point, payload.target))
       },
       updateTransformSession: (data, payload: TLPointerInfo) => {
-        this.session.update<TransformSession>(data, TLD.screenToWorld(data, payload.point), payload.shiftKey)
+        this.session.update<TransformSession>(
+          data,
+          TLD.screenToWorld(data, payload.point),
+          payload.shiftKey,
+        )
       },
 
       // Brush Session
@@ -541,7 +561,10 @@ export class TLDrawState {
       panCamera: (data, payload: { delta: number[] }) => {
         const { camera } = data.pageState
 
-        camera.point = Vec.sub(camera.point, Vec.div(Vec.div(payload.delta, camera.zoom), camera.zoom))
+        camera.point = Vec.sub(
+          camera.point,
+          Vec.div(Vec.div(payload.delta, camera.zoom), camera.zoom),
+        )
       },
       pinchCamera: (data, payload: { info: TLPointerInfo; distanceDelta: number }) => {
         const { camera } = data.pageState
@@ -669,7 +692,11 @@ export class TLDrawState {
       // If we're using the same document id, then we've probably updated
       // from props. We can just update the state with the new data.
 
-      this.fastUpdate({ ...this.data, page: pages[this.currentPageId], pageState: pageStates[this.currentPageId] })
+      this.fastUpdate({
+        ...this.data,
+        page: pages[this.currentPageId],
+        pageState: pageStates[this.currentPageId],
+      })
     } else {
       // If the document id has changed, then we've loaded a new document.
       // Run the cleanup methods in forceUpdate and fire the onChange callback.
@@ -823,7 +850,12 @@ export class TLDrawState {
   fastTranslate(info: TLPointerInfo) {
     const data = { ...this.data }
 
-    this.session.update<TranslateSession>(data, TLD.screenToWorld(data, info.point), info.shiftKey, info.altKey)
+    this.session.update<TranslateSession>(
+      data,
+      TLD.screenToWorld(data, info.point),
+      info.shiftKey,
+      info.altKey,
+    )
 
     this.fastUpdate({ ...this.data, page: { ...data.page } })
   }
@@ -904,7 +936,12 @@ export class TLDrawState {
    */
   updateShape = (shape: TLDrawShape) => {
     if (this.data.page.shapes[shape.id]) {
-      this.forceUpdate({ page: { ...this.data.page, shapes: { ...this.data.page.shapes, [shape.id]: shape } } })
+      this.forceUpdate({
+        page: {
+          ...this.data.page,
+          shapes: { ...this.data.page.shapes, [shape.id]: shape },
+        },
+      })
     }
   }
 

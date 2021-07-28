@@ -13,7 +13,13 @@ export const QuickFillSelect = React.memo((): JSX.Element => {
   const isFilled = useSelector((s) => s.values.selectedStyle.isFilled)
 
   return (
-    <Checkbox.Root dir="ltr" as={IconButton} bp={breakpoints} checked={isFilled} onCheckedChange={handleIsFilledChange}>
+    <Checkbox.Root
+      dir="ltr"
+      as={IconButton}
+      bp={breakpoints}
+      checked={isFilled}
+      onCheckedChange={handleIsFilledChange}
+    >
       <Tooltip label="Fill">
         <IconWrapper>
           <BoxIcon />

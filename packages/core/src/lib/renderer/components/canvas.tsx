@@ -1,6 +1,12 @@
 import * as React from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
-import { useTLContext, useZoomEvents, useSafariFocusOutFix, useCanvasEvents, useCameraCss } from '../hooks'
+import {
+  useTLContext,
+  useZoomEvents,
+  useSafariFocusOutFix,
+  useCanvasEvents,
+  useCameraCss,
+} from '../hooks'
 import { ErrorFallback } from './error-fallback'
 import { TLPage, TLPageState, TLShape, TLShapeUtils } from '../../types'
 

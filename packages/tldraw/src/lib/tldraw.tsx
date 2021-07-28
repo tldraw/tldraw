@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Renderer, RendererProps } from '@tldraw/core'
 import { StatusBar } from './components/status-bar'
 import { TLDrawShape, tldrawShapeUtils } from './shape'
-import { state, TLDrawCallbacks, useSelector } from './state'
+import { state, TLDrawCallbacks, TLDrawState, useSelector } from './state'
 import { TLDrawDocument } from './types'
 import { useKeyboardShortcuts } from './hooks'
 import styled from './styles'
@@ -96,6 +96,11 @@ export function TLDraw({ document, currentPageId, ...callbacks }: TLDrawProps) {
     if (!currentPageId) return
     state.loadCurrentPageId(currentPageId)
   }, [currentPageId])
+
+  React.useEffect(() => {
+    callbacks.onMount?.(state)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useKeyboardShortcuts()
 

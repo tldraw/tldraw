@@ -5,7 +5,13 @@ export function commandKey(): string {
   return Utils.isDarwin() ? '⌘' : 'Ctrl'
 }
 
-export function Kbd({ variant, children }: { variant: 'tooltip' | 'menu'; children: string }): JSX.Element | null {
+export function Kbd({
+  variant,
+  children,
+}: {
+  variant: 'tooltip' | 'menu'
+  children: string
+}): JSX.Element | null {
   if (Utils.isMobile()) return null
   return (
     <StyledKbd variant={variant}>

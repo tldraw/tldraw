@@ -1,4 +1,13 @@
-import { TLShapeUtil, TLBounds, TLShape, Utils, Vec, TLTransformInfo, TLRenderInfo, Intersect } from '@tldraw/core'
+import {
+  TLShapeUtil,
+  TLBounds,
+  TLShape,
+  Utils,
+  Vec,
+  TLTransformInfo,
+  TLRenderInfo,
+  Intersect,
+} from '@tldraw/core'
 import getStroke from 'perfect-freehand'
 import { getPerfectDashProps, defaultStyle, getShapeStyle } from '../shape-styles'
 import { RectangleShape, DashStyle } from '../shape-types'
@@ -67,7 +76,11 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
     ]
 
     const paths = strokes.map(([start, end, length], i) => {
-      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(length, sw, shape.style.dash)
+      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+        length,
+        sw,
+        shape.style.dash,
+      )
 
       return (
         <line
@@ -150,11 +163,17 @@ export class Rectangle extends TLShapeUtil<RectangleShape> {
       shape.size = Vec.round([bounds.width, bounds.height])
       shape.point = Vec.round([bounds.minX, bounds.minY])
     } else {
-      shape.size = Vec.round(Vec.mul(initialShape.size, Math.min(Math.abs(scaleX), Math.abs(scaleY))))
+      shape.size = Vec.round(
+        Vec.mul(initialShape.size, Math.min(Math.abs(scaleX), Math.abs(scaleY))),
+      )
 
       shape.point = Vec.round([
-        bounds.minX + (bounds.width - shape.size[0]) * (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
-        bounds.minY + (bounds.height - shape.size[1]) * (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
+        bounds.minX +
+          (bounds.width - shape.size[0]) *
+            (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
+        bounds.minY +
+          (bounds.height - shape.size[1]) *
+            (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
       ])
 
       shape.rotation =
@@ -186,7 +205,10 @@ function renderPath(shape: RectangleShape) {
 
   const baseOffset = strokeWidth / 2
 
-  const offsets = Array.from(Array(4)).map(() => [getRandom() * baseOffset, getRandom() * baseOffset])
+  const offsets = Array.from(Array(4)).map(() => [
+    getRandom() * baseOffset,
+    getRandom() * baseOffset,
+  ])
 
   const sw = strokeWidth
 
@@ -199,7 +221,12 @@ function renderPath(shape: RectangleShape) {
   const bl = Vec.add([sw / 2, h], offsets[3])
 
   const lines = Utils.shuffleArr(
-    [Vec.pointsBetween(tr, br), Vec.pointsBetween(br, bl), Vec.pointsBetween(bl, tl), Vec.pointsBetween(tl, tr)],
+    [
+      Vec.pointsBetween(tr, br),
+      Vec.pointsBetween(br, bl),
+      Vec.pointsBetween(bl, tl),
+      Vec.pointsBetween(tl, tr),
+    ],
     Math.floor(5 + getRandom() * 4),
   )
 

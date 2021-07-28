@@ -569,7 +569,13 @@ export function ContextMenuRoot({
   )
 }
 
-export function ContextMenuSubMenu({ children, label }: { label: string; children: React.ReactNode }): JSX.Element {
+export function ContextMenuSubMenu({
+  children,
+  label,
+}: {
+  label: string
+  children: React.ReactNode
+}): JSX.Element {
   return (
     <ContextMenu.Root dir="ltr">
       <ContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
@@ -652,7 +658,11 @@ export function ContextMenuCheckboxItem({
   )
 }
 
-export function CircleIcon(props: Pick<React.SVGProps<SVGSVGElement>, 'stroke' | 'fill'> & { size: number }) {
+export function CircleIcon(
+  props: Pick<React.SVGProps<SVGSVGElement>, 'stroke' | 'fill'> & {
+    size: number
+  },
+) {
   const { size = 16, ...rest } = props
   return (
     <svg width={24} height={24} {...rest}>

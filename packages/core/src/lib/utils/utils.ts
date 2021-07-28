@@ -34,7 +34,9 @@ export class Utils {
   static lerpColor(color1: string, color2: string, factor = 0.5): string | undefined {
     function h2r(hex: string) {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-      return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : null
+      return result
+        ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+        : null
     }
 
     function r2h(rgb: number[]) {
@@ -67,7 +69,11 @@ export class Utils {
     const [v0, v1] = rangeB
     const result = v0 + ((value - fromLow) / (fromHigh - fromLow)) * (v1 - v0)
 
-    return clamp ? (v0 < v1 ? Math.max(Math.min(result, v1), v0) : Math.max(Math.min(result, v0), v1)) : result
+    return clamp
+      ? v0 < v1
+        ? Math.max(Math.min(result, v1), v0)
+        : Math.max(Math.min(result, v0), v1)
+      : result
   }
 
   /**
@@ -110,7 +116,9 @@ export class Utils {
       Object.keys(clone).forEach(
         (key) =>
           (clone[key] =
-            typeof obj[key as keyof T] === 'object' ? Utils.deepClone(obj[key as keyof T]) : obj[key as keyof T]),
+            typeof obj[key as keyof T] === 'object'
+              ? Utils.deepClone(obj[key as keyof T])
+              : obj[key as keyof T]),
       )
 
       return clone as T
@@ -199,7 +207,12 @@ export class Utils {
    * @param P The point.
    * @param side
    */
-  static getCircleTangentToPoint(C: number[], r: number, P: number[], side: number): number[] | null {
+  static getCircleTangentToPoint(
+    C: number[],
+    r: number,
+    P: number[],
+    side: number,
+  ): number[] | null {
     const B = vec.lrp(C, P, 0.5)
     const r1 = vec.dist(C, B)
     const delta = vec.sub(B, C)
@@ -228,7 +241,12 @@ export class Utils {
    * @param r1
    * @returns [lx0, ly0, lx1, ly1, rx0, ry0, rx1, ry1]
    */
-  static getOuterTangentsOfCircles(C0: number[], r0: number, C1: number[], r1: number): number[][] | null {
+  static getOuterTangentsOfCircles(
+    C0: number[],
+    r0: number,
+    C1: number[],
+    r1: number,
+  ): number[][] | null {
     const a0 = vec.angle(C0, C1)
     const d = vec.dist(C0, C1)
 
@@ -274,9 +292,15 @@ export class Utils {
 
     const a = x1 * (y2 - y3) - y1 * (x2 - x3) + x2 * y3 - x3 * y2
 
-    const b = (x1 * x1 + y1 * y1) * (y3 - y2) + (x2 * x2 + y2 * y2) * (y1 - y3) + (x3 * x3 + y3 * y3) * (y2 - y1)
+    const b =
+      (x1 * x1 + y1 * y1) * (y3 - y2) +
+      (x2 * x2 + y2 * y2) * (y1 - y3) +
+      (x3 * x3 + y3 * y3) * (y2 - y1)
 
-    const c = (x1 * x1 + y1 * y1) * (x2 - x3) + (x2 * x2 + y2 * y2) * (x3 - x1) + (x3 * x3 + y3 * y3) * (x1 - x2)
+    const c =
+      (x1 * x1 + y1 * y1) * (x2 - x3) +
+      (x2 * x2 + y2 * y2) * (x3 - x1) +
+      (x3 * x3 + y3 * y3) * (x1 - x2)
 
     const x = -b / (2 * a)
 
@@ -687,7 +711,12 @@ export class Utils {
    * @param isClosed
    * @param numOfSegments
    */
-  static getCurvePoints(pts: number[][], tension = 0.5, isClosed = false, numOfSegments = 3): number[][] {
+  static getCurvePoints(
+    pts: number[][],
+    tension = 0.5,
+    isClosed = false,
+    numOfSegments = 3,
+  ): number[][] {
     const _pts = [...pts]
     const len = pts.length
     const res: number[][] = [] // results
@@ -826,7 +855,12 @@ export class Utils {
    * @param size
    */
   static pointInRect(point: number[], size: number[]): boolean {
-    return !(point[0] < size[0] || point[0] > point[0] + size[0] || point[1] < size[1] || point[1] > point[1] + size[1])
+    return !(
+      point[0] < size[0] ||
+      point[0] > point[0] + size[0] ||
+      point[1] < size[1] ||
+      point[1] > point[1] + size[1]
+    )
   }
 
   /* --------------------- Bounds --------------------- */
@@ -987,7 +1021,13 @@ export class Utils {
    * @param ry
    * @param rotation
    */
-  static getRotatedEllipseBounds(x: number, y: number, rx: number, ry: number, rotation: number): TLBounds {
+  static getRotatedEllipseBounds(
+    x: number,
+    y: number,
+    rx: number,
+    ry: number,
+    rotation: number,
+  ): TLBounds {
     const c = Math.cos(rotation)
     const s = Math.sin(rotation)
     const w = Math.hypot(rx * c, ry * s)
@@ -1353,12 +1393,14 @@ export class Utils {
     isFlippedY: boolean,
   ): TLBounds {
     const nx =
-      (isFlippedX ? initialBounds.maxX - initialShapeBounds.maxX : initialShapeBounds.minX - initialBounds.minX) /
-      initialBounds.width
+      (isFlippedX
+        ? initialBounds.maxX - initialShapeBounds.maxX
+        : initialShapeBounds.minX - initialBounds.minX) / initialBounds.width
 
     const ny =
-      (isFlippedY ? initialBounds.maxY - initialShapeBounds.maxY : initialShapeBounds.minY - initialBounds.minY) /
-      initialBounds.height
+      (isFlippedY
+        ? initialBounds.maxY - initialShapeBounds.maxY
+        : initialShapeBounds.minY - initialBounds.minY) / initialBounds.height
 
     const nw = initialShapeBounds.width / initialBounds.width
     const nh = initialShapeBounds.height / initialBounds.height
@@ -1386,7 +1428,9 @@ export class Utils {
   static getRotatedSize(size: number[], rotation: number): number[] {
     const center = vec.div(size, 2)
 
-    const points = [[0, 0], [size[0], 0], size, [0, size[1]]].map((point) => vec.rotWith(point, center, rotation))
+    const points = [[0, 0], [size[0], 0], size, [0, size[1]]].map((point) =>
+      vec.rotWith(point, center, rotation),
+    )
 
     const bounds = Utils.getBoundsFromPoints(points)
 
@@ -1559,7 +1603,9 @@ export class Utils {
    * Find whether the current display is a touch display.
    */
   static isTouchDisplay(): boolean {
-    return 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0
+    return (
+      'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0
+    )
   }
 
   /**
@@ -1628,7 +1674,10 @@ export class Utils {
 
     while (p > 0.5) {
       let before: DOMPoint, after: DOMPoint, bd: number, ad: number
-      if ((bl = bestLen - p) >= 0 && (bd = distance2((before = pathNode.getPointAtLength(bl)), point)) < bestDist) {
+      if (
+        (bl = bestLen - p) >= 0 &&
+        (bd = distance2((before = pathNode.getPointAtLength(bl)), point)) < bestDist
+      ) {
         best = before
         bestLen = bl
         bestDist = bd

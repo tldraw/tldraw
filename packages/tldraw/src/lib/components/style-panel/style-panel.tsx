@@ -1,6 +1,13 @@
 import { state, useSelector } from '../../state'
 import { Kbd } from '../kbd'
-import { IconButton, ButtonsRow, breakpoints, RowButton, FloatingContainer, Divider } from '../shared'
+import {
+  IconButton,
+  ButtonsRow,
+  breakpoints,
+  RowButton,
+  FloatingContainer,
+  Divider,
+} from '../shared'
 import { ShapesFunctions } from './shapes-functions'
 import { AlignDistribute } from './align-distribute'
 import { QuickColorSelect } from './quick-color-select'
@@ -26,8 +33,15 @@ export function StylePanel(): JSX.Element {
         <QuickSizeSelect />
         <QuickDashSelect />
         <QuickFillSelect />
-        <IconButton bp={breakpoints} title="Style" size="small" onPointerDown={handleStylePanelOpen}>
-          <Tooltip label={isOpen ? 'Close' : 'More'}>{isOpen ? <Cross2Icon /> : <DotsHorizontalIcon />}</Tooltip>
+        <IconButton
+          bp={breakpoints}
+          title="Style"
+          size="small"
+          onPointerDown={handleStylePanelOpen}
+        >
+          <Tooltip label={isOpen ? 'Close' : 'More'}>
+            {isOpen ? <Cross2Icon /> : <DotsHorizontalIcon />}
+          </Tooltip>
         </IconButton>
       </ButtonsRow>
       {isOpen && <SelectedShapeContent />}
@@ -45,7 +59,10 @@ function SelectedShapeContent(): JSX.Element {
       <Divider />
       <ShapesFunctions />
       <Divider />
-      <AlignDistribute hasTwoOrMore={selectedShapesCount > 1} hasThreeOrMore={selectedShapesCount > 2} />
+      <AlignDistribute
+        hasTwoOrMore={selectedShapesCount > 1}
+        hasThreeOrMore={selectedShapesCount > 2}
+      />
       <Divider />
       <RowButton bp={breakpoints} disabled={selectedShapesCount === 0} onClick={handleCopy}>
         <span>Copy</span>

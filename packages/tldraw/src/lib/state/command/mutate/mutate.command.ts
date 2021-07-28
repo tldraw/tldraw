@@ -6,7 +6,12 @@ import { Data } from '../../../types'
 import { TLD } from '../../tld'
 import { Command } from '../command'
 
-export function mutate(data: Data, before: TLDrawShape[], after: TLDrawShape[], name = 'mutate_shapes'): Command {
+export function mutate(
+  data: Data,
+  before: TLDrawShape[],
+  after: TLDrawShape[],
+  name = 'mutate_shapes',
+): Command {
   const beforeIds = before.map((s) => s.id)
   const afterIds = new Set(after.map((s) => s.id))
   const idsToDeleteOnUndo = beforeIds.filter((id) => !afterIds.has(id))
@@ -20,12 +25,9 @@ export function mutate(data: Data, before: TLDrawShape[], after: TLDrawShape[], 
         getShapeUtils(shape).onSessionComplete(shape)
       })
 
-      TLD.updateParents(
-        data,
-        after.map((shape) => shape.id),
-      )
-
-      // TODO: Update bindings
+      const ids = after.map((shape) => shape.id)
+      TLD.updateBindings(data, ids)
+      TLD.updateParents(data, ids)
     },
     undo(data) {
       TLD.deleteShapes(data, idsToDeleteOnUndo)
@@ -35,12 +37,9 @@ export function mutate(data: Data, before: TLDrawShape[], after: TLDrawShape[], 
         getShapeUtils(shape).onSessionComplete(shape)
       })
 
-      TLD.updateParents(
-        data,
-        before.map((shape) => shape.id),
-      )
-
-      // TODO: Update bindings
+      const ids = before.map((shape) => shape.id)
+      TLD.updateBindings(data, ids)
+      TLD.updateParents(data, ids)
     },
   })
 }

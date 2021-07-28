@@ -201,7 +201,13 @@ interface TertiaryToolProps {
   children: React.ReactNode
 }
 
-export function TertiaryButton({ label, kbd, onClick, onDoubleClick, children }: TertiaryToolProps): JSX.Element {
+export function TertiaryButton({
+  label,
+  kbd,
+  onClick,
+  onDoubleClick,
+  children,
+}: TertiaryToolProps): JSX.Element {
   return (
     <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
       <TertiaryToolButton

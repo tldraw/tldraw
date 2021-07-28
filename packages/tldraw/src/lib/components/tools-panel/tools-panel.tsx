@@ -37,7 +37,12 @@ export const ToolsPanel = React.memo((): JSX.Element => {
       <LeftWrap size={{ '@initial': 'mobile', '@sm': 'small' }}>
         <Zoom />
         <FloatingContainer>
-          <SecondaryButton label={'Select'} kbd={'1'} onClick={selectSelectTool} isActive={activeTool === 'select'}>
+          <SecondaryButton
+            label={'Select'}
+            kbd={'1'}
+            onClick={selectSelectTool}
+            isActive={activeTool === 'select'}
+          >
             <CursorArrowIcon />
           </SecondaryButton>
         </FloatingContainer>
@@ -89,7 +94,12 @@ export const ToolsPanel = React.memo((): JSX.Element => {
       </CenterWrap>
       <RightWrap size={{ '@initial': 'mobile', '@sm': 'small' }}>
         <FloatingContainer>
-          <SecondaryButton kbd={'7'} label={'Lock Tool'} onClick={toggleToolLock} isActive={isToolLocked}>
+          <SecondaryButton
+            kbd={'7'}
+            label={'Lock Tool'}
+            onClick={toggleToolLock}
+            isActive={isToolLocked}
+          >
             {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
           </SecondaryButton>
         </FloatingContainer>

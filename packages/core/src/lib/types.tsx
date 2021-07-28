@@ -288,7 +288,12 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return this
   }
 
-  onBindingChange(shape: T, bindings: Record<string, TLBinding>): TLShapeUtil<T> {
+  onBindingChange(
+    shape: T,
+    bindings: TLBinding,
+    target: TLShape,
+    targetBounds: TLBounds,
+  ): TLShapeUtil<T> {
     return this
   }
 
@@ -300,7 +305,11 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return this
   }
 
-  onDoublePointHandle(shape: T, handle: Partial<T['handles']>, info: TLPointerInfo): TLShapeUtil<T> {
+  onDoublePointHandle(
+    shape: T,
+    handle: Partial<T['handles']>,
+    info: TLPointerInfo,
+  ): TLShapeUtil<T> {
     return this
   }
 

@@ -60,43 +60,75 @@ export interface AlignDistributeProps {
   hasThreeOrMore: boolean
 }
 
-export const AlignDistribute = React.memo(({ hasTwoOrMore, hasThreeOrMore }: AlignDistributeProps): JSX.Element => {
-  return (
-    <>
-      <ButtonsRow>
-        <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignLeft}>
-          <AlignLeftIcon />
-        </IconButton>
-        <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignCenterHorizontal}>
-          <AlignCenterHorizontallyIcon />
-        </IconButton>
-        <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignRight}>
-          <AlignRightIcon />
-        </IconButton>
-        <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={stretchHorizontally}>
-          <StretchHorizontallyIcon />
-        </IconButton>
-        <IconButton bp={breakpoints} size="small" disabled={!hasThreeOrMore} onClick={distributeHorizontally}>
-          <SpaceEvenlyHorizontallyIcon />
-        </IconButton>
-      </ButtonsRow>
-      <ButtonsRow>
-        <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignTop}>
-          <AlignTopIcon />
-        </IconButton>
-        <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignCenterVertical}>
-          <AlignCenterVerticallyIcon />
-        </IconButton>
-        <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignBottom}>
-          <AlignBottomIcon />
-        </IconButton>
-        <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={stretchVertically}>
-          <StretchVerticallyIcon />
-        </IconButton>
-        <IconButton bp={breakpoints} size="small" disabled={!hasThreeOrMore} onClick={distributeVertically}>
-          <SpaceEvenlyVerticallyIcon />
-        </IconButton>
-      </ButtonsRow>
-    </>
-  )
-})
+export const AlignDistribute = React.memo(
+  ({ hasTwoOrMore, hasThreeOrMore }: AlignDistributeProps): JSX.Element => {
+    return (
+      <>
+        <ButtonsRow>
+          <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignLeft}>
+            <AlignLeftIcon />
+          </IconButton>
+          <IconButton
+            bp={breakpoints}
+            size="small"
+            disabled={!hasTwoOrMore}
+            onClick={alignCenterHorizontal}
+          >
+            <AlignCenterHorizontallyIcon />
+          </IconButton>
+          <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignRight}>
+            <AlignRightIcon />
+          </IconButton>
+          <IconButton
+            bp={breakpoints}
+            size="small"
+            disabled={!hasTwoOrMore}
+            onClick={stretchHorizontally}
+          >
+            <StretchHorizontallyIcon />
+          </IconButton>
+          <IconButton
+            bp={breakpoints}
+            size="small"
+            disabled={!hasThreeOrMore}
+            onClick={distributeHorizontally}
+          >
+            <SpaceEvenlyHorizontallyIcon />
+          </IconButton>
+        </ButtonsRow>
+        <ButtonsRow>
+          <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignTop}>
+            <AlignTopIcon />
+          </IconButton>
+          <IconButton
+            bp={breakpoints}
+            size="small"
+            disabled={!hasTwoOrMore}
+            onClick={alignCenterVertical}
+          >
+            <AlignCenterVerticallyIcon />
+          </IconButton>
+          <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignBottom}>
+            <AlignBottomIcon />
+          </IconButton>
+          <IconButton
+            bp={breakpoints}
+            size="small"
+            disabled={!hasTwoOrMore}
+            onClick={stretchVertically}
+          >
+            <StretchVerticallyIcon />
+          </IconButton>
+          <IconButton
+            bp={breakpoints}
+            size="small"
+            disabled={!hasThreeOrMore}
+            onClick={distributeVertically}
+          >
+            <SpaceEvenlyVerticallyIcon />
+          </IconButton>
+        </ButtonsRow>
+      </>
+    )
+  },
+)

@@ -1,5 +1,12 @@
 import * as React from 'react'
-import { ColorStyle, DashStyle, SizeStyle, TLDraw, TLDrawDocument, TLDrawShapeUtils } from '@tldraw/tldraw'
+import {
+  ColorStyle,
+  DashStyle,
+  SizeStyle,
+  TLDraw,
+  TLDrawDocument,
+  TLDrawShapeUtils,
+} from '@tldraw/tldraw'
 
 export function Index() {
   const [document, setDocument] = React.useState<TLDrawDocument>({

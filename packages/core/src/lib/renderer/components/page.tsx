@@ -24,17 +24,20 @@ export function Page<T extends TLShape>({ page, pageState }: PageProps<T>): JSX.
 
   const { bounds, isLocked, rotation } = useSelection(page, pageState, shapeUtils)
 
-  React.useEffect(() => {
-    callbacks.onChange?.(shapeTree.map((node) => node.shape.id))
-  }, [callbacks, shapeTree])
-
   return (
     <>
       {bounds && <BoundsBg bounds={bounds} rotation={rotation} />}
       {shapeTree.map((node) => (
         <ShapeNode key={node.shape.id} node={node} allowHovers={true} />
       ))}
-      {bounds && <Bounds zoom={pageState.camera.zoom} bounds={bounds} isLocked={isLocked} rotation={rotation} />}
+      {bounds && (
+        <Bounds
+          zoom={pageState.camera.zoom}
+          bounds={bounds}
+          isLocked={isLocked}
+          rotation={rotation}
+        />
+      )}
       {shapeWithHandles && <Handles shape={shapeWithHandles} />}
     </>
   )
@@ -46,7 +49,16 @@ interface ShapeNodeProps {
 }
 
 const ShapeNode = ({
-  node: { shape, children, isEditing, isHovered, isDarkMode, isSelected, isBinding, isCurrentParent },
+  node: {
+    shape,
+    children,
+    isEditing,
+    isHovered,
+    isDarkMode,
+    isSelected,
+    isBinding,
+    isCurrentParent,
+  },
   allowHovers,
 }: ShapeNodeProps) => {
   return (

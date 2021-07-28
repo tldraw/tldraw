@@ -60,7 +60,10 @@ function useStyle(uid: string, rules: string) {
 }
 
 const css = (strings: TemplateStringsArray, ...args: unknown[]) =>
-  strings.reduce((acc, string, index) => acc + string + (index < args.length ? args[index] : ''), '')
+  strings.reduce(
+    (acc, string, index) => acc + string + (index < args.length ? args[index] : ''),
+    '',
+  )
 
 const defaultTheme: TLTheme = {
   brushFill: 'rgba(0,0,0,.05)',

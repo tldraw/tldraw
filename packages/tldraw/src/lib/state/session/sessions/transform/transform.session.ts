@@ -11,7 +11,11 @@ export class TransformSession implements BaseSession {
   origin: number[]
   snapshot: TransformSnapshot
 
-  constructor(data: Data, point: number[], transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight) {
+  constructor(
+    data: Data,
+    point: number[],
+    transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight,
+  ) {
     this.origin = point
     this.transformType = transformType
     this.snapshot = getTransformSnapshot(data, transformType)

@@ -2,7 +2,7 @@ import { TLBoundsCorner, TLBoundsEdge, Utils, Vec } from '@tldraw/core'
 import { BaseSession } from '../session-types'
 import { getShapeUtils } from '../../../../shape'
 import { Data } from '../../../../types'
-import { mutate } from '../../../command'
+import { commands } from '../../../command'
 import { TLD } from '../../../tld'
 
 export class TransformSingleSession implements BaseSession {
@@ -13,7 +13,12 @@ export class TransformSingleSession implements BaseSession {
   snapshot: TransformSingleSnapshot
   isCreating: boolean
 
-  constructor(data: Data, transformType: TLBoundsEdge | TLBoundsCorner, point: number[], isCreating = false) {
+  constructor(
+    data: Data,
+    transformType: TLBoundsEdge | TLBoundsCorner,
+    point: number[],
+    isCreating = false,
+  ) {
     this.origin = point
     this.transformType = transformType
     this.snapshot = getTransformSingleSnapshot(data, transformType)
@@ -60,16 +65,19 @@ export class TransformSingleSession implements BaseSession {
     TLD.updateParents(data, [id])
   }
 
-  complete(data: Data): void {
-    if (!this.snapshot.hasUnlockedShape) return
+  complete(data: Data) {
+    if (!this.snapshot.hasUnlockedShape) return undefined
 
-    mutate(data, this.isCreating ? [] : [this.snapshot.initialShape], [
+    return commands.mutate(data, this.isCreating ? [] : [this.snapshot.initialShape], [
       Utils.deepClone(data.page.shapes[this.snapshot.id]),
     ])
   }
 }
 
-export function getTransformSingleSnapshot(data: Data, transformType: TLBoundsEdge | TLBoundsCorner) {
+export function getTransformSingleSnapshot(
+  data: Data,
+  transformType: TLBoundsEdge | TLBoundsCorner,
+) {
   const shape = data.page.shapes[data.pageState.selectedIds[0]]
 
   if (!shape) {

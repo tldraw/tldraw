@@ -80,7 +80,10 @@ export function useCanvasEvents(rCanvas: React.RefObject<SVGGElement>) {
       // if the touch area overlaps with the screen edges
       // it's likely to trigger the navigation. We prevent the
       // touchstart event in that case.
-      if (touchXPosition - touchXRadius < 10 || touchXPosition + touchXRadius > window.innerWidth - 10) {
+      if (
+        touchXPosition - touchXRadius < 10 ||
+        touchXPosition + touchXRadius > window.innerWidth - 10
+      ) {
         event.preventDefault()
       }
     }

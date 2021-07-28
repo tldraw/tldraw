@@ -11,7 +11,9 @@ function getSingleBounds(data: Data) {
 
 function getCommonBounds(data: Data) {
   return Utils.getCommonBounds(
-    ...['rect1', 'rect2'].map((id) => data.page.shapes[id]).map((shape) => getShapeUtils(shape).getBounds(shape)),
+    ...['rect1', 'rect2']
+      .map((id) => data.page.shapes[id])
+      .map((shape) => getShapeUtils(shape).getBounds(shape)),
   )
 }
 

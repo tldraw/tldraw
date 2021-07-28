@@ -270,7 +270,9 @@ class Inputs {
     this.keys = {}
   }
 
-  static getPoint(e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent): number[] {
+  static getPoint(
+    e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent,
+  ): number[] {
     return [
       Number(e.clientX.toPrecision(5)),
       Number(e.clientY.toPrecision(5)),

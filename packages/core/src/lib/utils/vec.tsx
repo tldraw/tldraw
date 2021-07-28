@@ -416,7 +416,12 @@ export class Vec {
    * @param clamp Whether to clamp the point between A and B.
    * @returns
    */
-  static nearestPointOnLineSegment = (A: number[], B: number[], P: number[], clamp = true): number[] => {
+  static nearestPointOnLineSegment = (
+    A: number[],
+    B: number[],
+    P: number[],
+    clamp = true,
+  ): number[] => {
     const delta = Vec.sub(B, A)
     const length = Vec.len(delta)
     const u = Vec.div(delta, length)

@@ -33,12 +33,6 @@ export abstract class BaseCommand<T extends any> {
     this.doFn = options.do
     this.undoFn = options.undo
     this.manualSelection = options.manualSelection || false
-    this.restoreBeforeSelectionState = () => () => {
-      // null
-    }
-    this.restoreAfterSelectionState = () => () => {
-      // null
-    }
   }
 
   undo = (data: T): void => {
@@ -48,9 +42,9 @@ export abstract class BaseCommand<T extends any> {
     }
 
     // We need to set the selection state to what it was before we after we did the command
-    this.restoreAfterSelectionState(data)
+    this.restoreAfterSelectionState?.(data)
     this.undoFn(data)
-    this.restoreBeforeSelectionState(data)
+    this.restoreBeforeSelectionState?.(data)
   }
 
   redo = (data: T, initial = false): void => {
@@ -60,14 +54,14 @@ export abstract class BaseCommand<T extends any> {
     }
 
     if (!initial) {
-      this.restoreBeforeSelectionState(data)
+      this.restoreBeforeSelectionState?.(data)
     }
 
     // We need to set the selection state to what it was before we did the command
     this.doFn(data, initial)
 
     if (initial) {
-      this.restoreAfterSelectionState = this.saveSelectionState(data)
+      this.restoreAfterSelectionState = this.saveSelectionState?.(data)
     }
   }
 }

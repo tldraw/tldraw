@@ -1,11 +1,16 @@
 import { getShapeUtils } from '../../../shape'
 import { Data } from '../../../types'
-import { TranslateSnapshot } from '../../sessions'
-import { state } from '../../state'
+import { TranslateSnapshot } from '../../session'
+import { TLD } from '../../tld'
 import { Command } from '../command'
 
-export function translate(data: Data, before: TranslateSnapshot, after: TranslateSnapshot, isCloning = false): void {
-  const command = new Command({
+export function translate(
+  data: Data,
+  before: TranslateSnapshot,
+  after: TranslateSnapshot,
+  isCloning = false,
+) {
+  return new Command({
     name: 'translate_shapes',
     category: 'canvas',
     manualSelection: true,
@@ -35,23 +40,17 @@ export function translate(data: Data, before: TranslateSnapshot, after: Translat
 
       // Move shapes (these initialShapes will include clones if any)
       for (const { id, point } of initialShapes) {
-        state.getDocumentBranch(data, id).forEach((id) => {
+        TLD.getDocumentBranch(data, id).forEach((id) => {
           const shape = shapes[id]
           getShapeUtils(shape).translateTo(shape, point)
         })
       }
 
-      // Set selected shapes
-      state.setSelectedIds(
-        data,
-        initialShapes.map((s) => s.id),
-      )
+      const ids = initialShapes.map((shape) => shape.id)
 
-      // Update parents
-      state.updateParents(
-        data,
-        initialShapes.map((s) => s.id),
-      )
+      TLD.setSelectedIds(data, ids)
+      TLD.updateBindings(data, ids)
+      TLD.updateParents(data, ids)
     },
     undo(data) {
       const { initialShapes, clones, initialParents } = before
@@ -59,7 +58,7 @@ export function translate(data: Data, before: TranslateSnapshot, after: Translat
 
       // Move shapes back to where they started
       for (const { id, point } of initialShapes) {
-        state.getDocumentBranch(data, id).forEach((id) => {
+        TLD.getDocumentBranch(data, id).forEach((id) => {
           const shape = shapes[id]
           getShapeUtils(shape).translateTo(shape, point)
         })
@@ -68,11 +67,7 @@ export function translate(data: Data, before: TranslateSnapshot, after: Translat
       // Delete clones
       if (isCloning) for (const { id } of clones) delete shapes[id]
 
-      // Set selected shapes
-      state.setSelectedIds(
-        data,
-        initialShapes.map((s) => s.id),
-      )
+      const ids = initialShapes.map((shape) => shape.id)
 
       // Restore children on parents
       initialParents.forEach(({ id, children }) => {
@@ -80,13 +75,9 @@ export function translate(data: Data, before: TranslateSnapshot, after: Translat
         getShapeUtils(parent).setProperty(parent, 'children', children)
       })
 
-      // Update parents
-      state.updateParents(
-        data,
-        initialShapes.map((s) => s.id),
-      )
+      TLD.setSelectedIds(data, ids)
+      TLD.updateBindings(data, ids)
+      TLD.updateParents(data, ids)
     },
   })
-
-  state.history.execute(data, command)
 }

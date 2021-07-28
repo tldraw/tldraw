@@ -13,14 +13,14 @@ describe('Style command', () => {
 
     state.history.execute(tdata, style(tdata, { size: SizeStyle.Large }))
 
-    expect(tdata.page.shapes['rect1'].point).toEqual([100, 0])
+    expect(tdata.page.shapes['rect1'].style.size).toEqual(SizeStyle.Large)
 
     state.history.undo(tdata)
 
-    expect(tdata.page.shapes['rect1'].point).toEqual([0, 0])
+    expect(tdata.page.shapes['rect1'].style.size).toEqual(SizeStyle.Medium)
 
     state.history.redo(tdata)
 
-    expect(tdata.page.shapes['rect1'].point).toEqual([100, 0])
+    expect(tdata.page.shapes['rect1'].style.size).toEqual(SizeStyle.Large)
   })
 })

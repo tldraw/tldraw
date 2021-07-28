@@ -24,7 +24,9 @@ export class TLD {
     const shape = data.page.shapes[id]
     const { currentParentId, pointedId } = data.pageState
 
-    return shape.parentId === data.page.id || shape.parentId === pointedId || shape.parentId === currentParentId
+    return shape.parentId === data.page.id ||
+      shape.parentId === pointedId ||
+      shape.parentId === currentParentId
       ? id
       : this.getDrilledPointedId(data, shape.parentId)
   }
@@ -51,9 +53,15 @@ export class TLD {
   }
 
   // Get a deep array of unproxied shapes and their descendants
-  static getSelectedBranchSnapshot<K>(data: Data, fn: (shape: TLDrawShape) => K): ({ id: string } & K)[]
+  static getSelectedBranchSnapshot<K>(
+    data: Data,
+    fn: (shape: TLDrawShape) => K,
+  ): ({ id: string } & K)[]
   static getSelectedBranchSnapshot(data: Data): TLDrawShape[]
-  static getSelectedBranchSnapshot<K>(data: Data, fn?: (shape: TLDrawShape) => K): (TLDrawShape | K)[] {
+  static getSelectedBranchSnapshot<K>(
+    data: Data,
+    fn?: (shape: TLDrawShape) => K,
+  ): (TLDrawShape | K)[] {
     const page = this.getPage(data)
 
     const copies = this.getSelectedIds(data)
@@ -70,8 +78,14 @@ export class TLD {
 
   // Get a shallow array of unproxied shapes
   static getSelectedShapeSnapshot(data: Data): TLDrawShape[]
-  static getSelectedShapeSnapshot<K>(data: Data, fn?: (shape: TLDrawShape) => K): ({ id: string } & K)[]
-  static getSelectedShapeSnapshot<K>(data: Data, fn?: (shape: TLDrawShape) => K): (TLDrawShape | K)[] {
+  static getSelectedShapeSnapshot<K>(
+    data: Data,
+    fn?: (shape: TLDrawShape) => K,
+  ): ({ id: string } & K)[]
+  static getSelectedShapeSnapshot<K>(
+    data: Data,
+    fn?: (shape: TLDrawShape) => K,
+  ): (TLDrawShape | K)[] {
     const copies = this.getSelectedShapes(data)
       .filter((shape) => !shape.isLocked)
       .map(Utils.deepClone)
@@ -127,10 +141,15 @@ export class TLD {
 
     if (parent.children.length === 0) return 1
 
-    return parent.children.map((id) => page.shapes[id]).sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+    return (
+      parent.children.map((id) => page.shapes[id]).sort((a, b) => b.childIndex - a.childIndex)[0]
+        .childIndex + 1
+    )
   }
 
-  static assertParentShape(shape: TLDrawShape): asserts shape is TLDrawShape & { children: string[] } {
+  static assertParentShape(
+    shape: TLDrawShape,
+  ): asserts shape is TLDrawShape & { children: string[] } {
     if (!('children' in shape)) {
       throw new Error(`That shape was not a parent (it was a ${shape.type}).`)
     }
@@ -149,9 +168,9 @@ export class TLD {
 
     const { shapes } = this.getPage(data)
 
-    const parentToUpdateIds = Array.from(new Set(changedShapeIds.map((id) => shapes[id].parentId).values())).filter(
-      (id) => id !== data.page.id,
-    )
+    const parentToUpdateIds = Array.from(
+      new Set(changedShapeIds.map((id) => shapes[id].parentId).values()),
+    ).filter((id) => id !== data.page.id)
 
     for (const parentId of parentToUpdateIds) {
       const parent = shapes[parentId]
@@ -177,7 +196,9 @@ export class TLD {
     shapesDeleted: TLDrawShape[] = [],
   ): TLDrawShape[] {
     const ids =
-      typeof shapeIds[0] === 'string' ? (shapeIds as string[]) : (shapeIds as TLDrawShape[]).map((shape) => shape.id)
+      typeof shapeIds[0] === 'string'
+        ? (shapeIds as string[])
+        : (shapeIds as TLDrawShape[]).map((shape) => shape.id)
 
     const parentsToDelete: string[] = []
 
@@ -329,7 +350,133 @@ export class TLD {
     return data.page.shapes[shapeId] as T
   }
 
+  /* -------------------------------------------------- */
+  /*                      Bindings                      */
+  /* -------------------------------------------------- */
+
+  /**
+   * Get a binding by its id.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.getBinding(data, myBindingId)
+   *```
+   */
   static getBinding(data: Data, id: string): TLBinding {
     return this.getPage(data).bindings[id]
+  }
+
+  /**
+   * Get the current page's bindings.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.getBindings(data)
+   *```
+   */
+  static getBindings(data: Data): TLBinding[] {
+    const page = this.getPage(data)
+    return Object.values(page.bindings)
+  }
+
+  /**
+   * Create one or more bindings.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.createBindings(data, myBindings)
+   *```
+   */
+  static createBindings(data: Data, bindings: TLBinding[]): void {
+    const page = this.getPage(data)
+    bindings.forEach((binding) => (page.bindings[binding.id] = binding))
+  }
+
+  /**
+   * Delete one or more bindings.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.deleteBindings(data, myBindingIds)
+   *```
+   */
+  static deleteBindings(data: Data, ids: string[]): void {
+    if (ids.length === 0) return
+
+    const page = this.getPage(data)
+
+    ids.forEach((id) => delete page.bindings[id])
+  }
+
+  /**
+   * Get a unique array of bindings that relate to the given ids.
+   *
+   * ### Example
+   *
+   *```ts
+   * tld.getBindingsWithShapeIds(data, mySelectedIds)
+   *```
+   */
+  static getBindingsWithShapeIds(data: Data, ids: string[]): TLBinding[] {
+    return Array.from(
+      new Set(
+        this.getBindings(data).filter((binding) => {
+          return ids.includes(binding.toId) || ids.includes(binding.fromId)
+        }),
+      ).values(),
+    )
+  }
+
+  static updateBindings(data: Data, changedShapeIds: string[]): void {
+    if (changedShapeIds.length === 0) return
+
+    // First gather all bindings that are directly affected by the change
+    const firstPassBindings = this.getBindingsWithShapeIds(data, changedShapeIds)
+
+    // Gather all shapes that will be effected by the binding changes
+    const effectedShapeIds = Array.from(
+      new Set(firstPassBindings.flatMap((binding) => [binding.toId, binding.fromId])).values(),
+    )
+
+    // Now get all bindings that are affected by those shapes
+    const bindingsToUpdate = this.getBindingsWithShapeIds(data, effectedShapeIds)
+
+    // Populate a map of { [shapeId]: BindingsThatWillEffectTheShape[] }
+    // Note that this will include both to and from bindings, and so will
+    // likely include ids other than the changedShapeIds provided.
+
+    const shapeIdToBindingsMap = new Map<string, TLBinding[]>()
+
+    bindingsToUpdate.forEach((binding) => {
+      const { toId, fromId } = binding
+
+      for (const id of [toId, fromId]) {
+        if (!shapeIdToBindingsMap.has(id)) {
+          shapeIdToBindingsMap.set(id, [binding])
+        } else {
+          const bindings = shapeIdToBindingsMap.get(id)
+          bindings.push(binding)
+        }
+      }
+    })
+
+    // Update each effected shape with the binding that effects it.
+    Array.from(shapeIdToBindingsMap.entries()).forEach(([id, bindings]) => {
+      const shape = this.getShape(data, id)
+      bindings.forEach((binding) => {
+        const otherShape =
+          binding.toId === id
+            ? this.getShape(data, binding.fromId)
+            : this.getShape(data, binding.toId)
+
+        const otherBounds = getShapeUtils(otherShape).getBounds(otherShape)
+
+        getShapeUtils(shape).onBindingChange(shape, binding, otherShape, otherBounds)
+      })
+    })
   }
 }
