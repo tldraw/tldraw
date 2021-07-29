@@ -254,8 +254,6 @@ class Inputs {
 
     const delta = Vec.sub(origin, point)
 
-    console.log(point, origin)
-
     const info: TLPointerInfo<'pinch'> = {
       pointerId: 0,
       target: 'pinch',
