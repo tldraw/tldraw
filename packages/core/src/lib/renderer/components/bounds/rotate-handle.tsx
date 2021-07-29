@@ -7,7 +7,7 @@ export const RotateHandle = React.memo(
     const events = useBoundsHandleEvents('rotate')
 
     return (
-      <g cursor="grab" {...events}>
+      <g cursor="grab">
         <circle
           cx={bounds.width / 2}
           cy={size * -2}
@@ -15,6 +15,7 @@ export const RotateHandle = React.memo(
           fill="transparent"
           stroke="none"
           pointerEvents="all"
+          {...events}
         />
         <circle
           className="tl-rotate-handle"

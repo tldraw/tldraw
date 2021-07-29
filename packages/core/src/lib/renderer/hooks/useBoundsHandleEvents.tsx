@@ -43,7 +43,7 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         callbacks.onDragBoundsHandle?.(inputs.pointerMove(e, id))
       } else {
-        const info = inputs.pointerMove(e, 'bounds')
+        const info = inputs.pointerMove(e, id)
         callbacks.onPointerMove?.(info)
       }
     },

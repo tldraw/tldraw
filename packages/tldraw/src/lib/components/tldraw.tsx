@@ -176,7 +176,7 @@ export function TLDraw({ document, currentPageId, onMount, onChange }: TLDrawPro
   }, [currentPageId])
 
   React.useEffect(() => {
-    onMount?.(state)
+    state.loadOnMount(onMount)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -231,13 +231,13 @@ const Layout = styled('main', {
   justifyContent: 'flex-start',
   boxSizing: 'border-box',
   outline: 'none',
+  pointerEvents: 'none',
+
+  '& > *': {
+    pointerEvents: 'all',
+  },
 
   '& .tl-container': {
     position: 'absolute',
-  },
-
-  pointerEvents: 'none',
-  '& > *': {
-    PointerEvent: 'all',
   },
 })

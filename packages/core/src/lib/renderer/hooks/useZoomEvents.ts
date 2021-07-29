@@ -24,9 +24,9 @@ export function useZoomEvents() {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         callbacks.onPan?.({ ...inputs.pointer!, delta: Vec.round(delta) })
       },
-      onPinch: ({ pinching, da, origin, event }) => {
+      onPinch: ({ pinching, da, origin }) => {
         if (!pinching) {
-          const info = inputs.wheel(event as WheelEvent)
+          const info = inputs.pinch(origin, origin)
           callbacks.onPinchEnd?.(info)
           rPinchDa.current = undefined
           rPinchPoint.current = undefined
@@ -34,7 +34,7 @@ export function useZoomEvents() {
         }
 
         if (rPinchPoint.current === undefined) {
-          const info = inputs.wheel(event as WheelEvent)
+          const info = inputs.pinch(origin, origin)
           callbacks.onPinchStart?.(info)
           rPinchDa.current = da
           rPinchPoint.current = origin
@@ -45,7 +45,13 @@ export function useZoomEvents() {
 
         const info = inputs.pinch(rPinchPoint.current, origin)
 
-        callbacks.onPinch?.({ ...info, delta: [0, distanceDelta] })
+        // Naming things is hard
+        callbacks.onPinch?.({
+          ...info,
+          point: origin,
+          origin: rPinchPoint.current,
+          delta: [0, distanceDelta],
+        })
 
         rPinchDa.current = da
         rPinchPoint.current = origin

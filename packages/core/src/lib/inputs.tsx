@@ -5,10 +5,7 @@ import { Vec, Utils } from './utils'
 const DOUBLE_CLICK_DURATION = 250
 
 class Inputs {
-  activePointerId?: number
-
   pointer?: TLPointerInfo<string>
-  points: Record<string, TLPointerInfo<string>> = {}
 
   keyboard?: TLKeyboardInfo
   keys: Record<string, boolean> = {}
@@ -34,10 +31,8 @@ class Inputs {
       altKey,
     }
 
-    this.points[touch.identifier] = info
-    this.activePointerId = touch.identifier
-
     this.pointer = info
+
     return info
   }
 
@@ -47,13 +42,14 @@ class Inputs {
 
     const touch = e.changedTouches[0]
 
-    const prev = this.points[touch.identifier]
+    const prev = this.pointer
 
     const point = Inputs.getPoint(touch)
 
-    const delta = Vec.sub(point, prev.point)
+    const delta = prev?.point ? Vec.sub(point, prev.point) : [0, 0]
 
     const info: TLPointerInfo<T> = {
+      origin: point,
       ...prev,
       target,
       pointerId: touch.identifier,
@@ -66,11 +62,8 @@ class Inputs {
       altKey,
     }
 
-    if (this.points[touch.identifier]) {
-      this.points[touch.identifier] = info
-    }
-
     this.pointer = info
+
     return info
   }
 
@@ -92,8 +85,6 @@ class Inputs {
       altKey,
     }
 
-    this.points[e.pointerId] = info
-    this.activePointerId = e.pointerId
     this.pointer = info
 
     return info
@@ -128,13 +119,14 @@ class Inputs {
   pointerMove<T extends string>(e: PointerEvent | React.PointerEvent, target: T): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    const prev = this.points[e.pointerId]
+    const prev = this.pointer
 
     const point = Inputs.getPoint(e)
 
-    const delta = Vec.sub(point, prev.point)
+    const delta = prev?.point ? Vec.sub(point, prev.point) : [0, 0]
 
     const info: TLPointerInfo<T> = {
+      origin: point,
       ...prev,
       target,
       pointerId: e.pointerId,
@@ -147,10 +139,6 @@ class Inputs {
       altKey,
     }
 
-    if (this.points[e.pointerId]) {
-      this.points[e.pointerId] = info
-    }
-
     this.pointer = info
 
     return info
@@ -159,28 +147,25 @@ class Inputs {
   pointerUp<T extends string>(e: PointerEvent | React.PointerEvent, target: T): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    const prev = this.points[e.pointerId]
+    const prev = this.pointer
 
     const point = Inputs.getPoint(e)
 
-    const delta = Vec.sub(point, prev.point)
+    const delta = prev?.point ? Vec.sub(point, prev.point) : [0, 0]
 
     const info: TLPointerInfo<T> = {
+      origin: point,
       ...prev,
       target,
-      origin: prev?.origin || point,
-      point: point,
-      pressure: Inputs.getPressure(e),
+      pointerId: e.pointerId,
+      point,
       delta,
+      pressure: Inputs.getPressure(e),
       shiftKey,
       ctrlKey,
       metaKey: Utils.isDarwin() ? metaKey : ctrlKey,
       altKey,
     }
-
-    delete this.points[e.pointerId]
-
-    delete this.activePointerId
 
     this.pointer = info
 
@@ -221,9 +206,7 @@ class Inputs {
   }
 
   clear() {
-    this.activePointerId = undefined
     this.pointer = undefined
-    this.points = {}
   }
 
   resetDoubleClick() {
@@ -267,11 +250,17 @@ class Inputs {
   pinch(point: number[], origin: number[]) {
     const { shiftKey, ctrlKey, metaKey, altKey } = this.keys
 
+    const prev = this.pointer
+
+    const delta = Vec.sub(origin, point)
+
+    console.log(point, origin)
+
     const info: TLPointerInfo<'pinch'> = {
       pointerId: 0,
       target: 'pinch',
-      origin,
-      delta: [0, 0],
+      origin: prev?.origin || Vec.round(point),
+      delta: delta,
       point: Vec.round(point),
       pressure: 0.5,
       shiftKey,
@@ -280,20 +269,14 @@ class Inputs {
       altKey,
     }
 
-    this.points[0] = info
-    this.activePointerId = 0
-
     this.pointer = info
+
     return info
   }
 
   reset() {
-    this.activePointerId = undefined
     this.pointerUpTime = 0
-
     this.pointer = undefined
-    this.points = {}
-
     this.keyboard = undefined
     this.keys = {}
   }

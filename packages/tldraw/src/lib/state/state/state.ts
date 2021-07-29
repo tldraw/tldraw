@@ -320,6 +320,10 @@ export class TLDrawState {
                         if: 'distanceImpliesDrag',
                         to: 'translatingSelection',
                       },
+                      STARTED_PINCHING: {
+                        do: 'cancelSession',
+                        to: 'pinching',
+                      },
                     },
                   },
                   brushSelecting: {
@@ -333,6 +337,10 @@ export class TLDrawState {
                       'startBrushSession',
                     ],
                     on: {
+                      STARTED_PINCHING: {
+                        do: 'cancelSession',
+                        to: 'pinching',
+                      },
                       DRAGGED_CANVAS: {
                         if: 'isTestMode',
                         do: 'updateBrushSession',
@@ -349,7 +357,10 @@ export class TLDrawState {
                     onEnter: 'startTranslateSession',
                     onExit: 'completeSession',
                     on: {
-                      STARTED_PINCHING: { to: 'pinching' },
+                      STARTED_PINCHING: {
+                        do: 'cancelSession',
+                        to: 'pinching',
+                      },
                       DRAGGED_SHAPE: {
                         ifAny: 'isTestMode',
                         do: 'updateTranslateSession',
@@ -1242,12 +1253,13 @@ export class TLDrawState {
     } = this.data.pageState
 
     const delta = Vec.sub(info.point, info.origin)
+
     let nextPoint = Vec.sub(point, Vec.div(delta, zoom))
 
-    const nextZoom = TLD.getCameraZoom(zoom - (info.delta[1] / 300) * zoom)
+    const nextZoom = TLD.getCameraZoom(zoom - (info.delta[1] / 350) * zoom)
 
-    const p0 = Vec.sub(Vec.div(info.origin, zoom), point)
-    const p1 = Vec.sub(Vec.div(info.origin, nextZoom), point)
+    const p0 = Vec.sub(Vec.div(info.point, zoom), point)
+    const p1 = Vec.sub(Vec.div(info.point, nextZoom), nextPoint)
 
     nextPoint = Vec.add(point, Vec.sub(p1, p0))
 
