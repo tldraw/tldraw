@@ -41,7 +41,6 @@ export function useShapeEvents(id: string, disable = false) {
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
       if (disable) return
-
       e.preventDefault()
       const info = inputs.pointerMove(e, id)
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {

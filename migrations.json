@@ -1,0 +1,12 @@
+{
+  "migrations": [
+    {
+      "version": "12.6.0-beta.0",
+      "cli": "nx",
+      "description": "Uses `getJestProjects()` to populate projects array in root level `jest.config.js` file.",
+      "factory": "./src/migrations/update-12-6-0/update-base-jest-config",
+      "package": "@nrwl/jest",
+      "name": "update-jest-config-to-use-util"
+    }
+  ]
+}

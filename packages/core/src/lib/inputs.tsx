@@ -84,7 +84,7 @@ class Inputs {
       pointerId: e.pointerId,
       origin: point,
       point: point,
-      delta: [e.movementX, e.movementY],
+      delta: [0, 0],
       pressure: Inputs.getPressure(e),
       shiftKey,
       ctrlKey,
@@ -111,7 +111,7 @@ class Inputs {
       target,
       pointerId: e.pointerId,
       origin: point,
-      delta: [e.movementX, e.movementY],
+      delta: [0, 0],
       point: point,
       pressure: Inputs.getPressure(e),
       shiftKey,
@@ -132,12 +132,14 @@ class Inputs {
 
     const point = Inputs.getPoint(e)
 
+    const delta = Vec.sub(point, prev.point)
+
     const info: TLPointerInfo<T> = {
       ...prev,
       target,
       pointerId: e.pointerId,
       point,
-      delta: [e.movementX, e.movementY],
+      delta,
       pressure: Inputs.getPressure(e),
       shiftKey,
       ctrlKey,
@@ -161,13 +163,15 @@ class Inputs {
 
     const point = Inputs.getPoint(e)
 
+    const delta = Vec.sub(point, prev.point)
+
     const info: TLPointerInfo<T> = {
       ...prev,
       target,
       origin: prev?.origin || point,
       point: point,
       pressure: Inputs.getPressure(e),
-      delta: [e.movementX, e.movementY],
+      delta,
       shiftKey,
       ctrlKey,
       metaKey: Utils.isDarwin() ? metaKey : ctrlKey,
