@@ -1158,6 +1158,11 @@ export class TLDrawState {
     return this.isTestMode
   }
 
+  // Run onMount when the component mounts
+  loadOnMount = (onMount?: (state: TLDrawState) => void) => {
+    onMount?.(this)
+  }
+
   // Load callbacks from props (should be done once on mount)
   loadOnChange(onChange: OnChangeCallback) {
     this.onChange = onChange

@@ -26,8 +26,7 @@ export const Shape = React.memo(
     isCurrentParent,
   }: ShapeProps) => {
     const { shapeUtils } = useTLContext()
-    const rGroup = React.useRef<SVGGElement>(null)
-    const events = useShapeEvents(shape.id, isCurrentParent, rGroup)
+    const events = useShapeEvents(shape.id, isCurrentParent)
     const utils = shapeUtils[shape.type]
 
     const center = utils.getCenter(shape)
@@ -37,7 +36,6 @@ export const Shape = React.memo(
     return (
       <g
         className={isCurrentParent ? 'tl-shape-group tl-current-parent' : 'tl-shape-group'}
-        ref={rGroup}
         id={shape.id}
         transform={transform}
         filter={isHovered ? 'url(#expand)' : 'none'}

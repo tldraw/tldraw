@@ -145,8 +145,8 @@ const callbacks: TLCallbacks = {
 export interface TLDrawProps {
   document?: TLDrawDocument
   currentPageId?: string
-  onMount: (state: TLDrawState) => void
-  onChange: OnChangeCallback
+  onMount?: (state: TLDrawState) => void
+  onChange?: OnChangeCallback
 }
 
 export function TLDraw({ document, currentPageId, onMount, onChange }: TLDrawProps) {

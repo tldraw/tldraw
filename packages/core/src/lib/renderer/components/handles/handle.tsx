@@ -8,14 +8,12 @@ interface HandleProps {
 }
 
 export const Handle = React.memo(({ id, point }: HandleProps) => {
-  const rGroup = useRef<SVGGElement>(null)
-  const events = useHandleEvents(id, rGroup)
+  const events = useHandleEvents(id)
 
   return (
     <g
       key={id}
       className="handles"
-      ref={rGroup}
       pointerEvents="all"
       transform={`translate(${point})`}
       {...events}
