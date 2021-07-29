@@ -25,18 +25,6 @@
     "dep-graph": "nx dep-graph",
     "help": "nx help"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "yarn lint"
-    }
-  },
-  "lint-staged": {
-    "*.@(ts|tsx)": [
-      "yarn format --uncommitted",
-      "nx run-many --all --target=lint"
-    ]
-  },
   "private": true,
   "dependencies": {
     "@nrwl/next": "^12.5.9",
