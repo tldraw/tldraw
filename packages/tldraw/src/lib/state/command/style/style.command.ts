@@ -21,10 +21,8 @@ export function style(data: Data, changes: Partial<ShapeStyles>) {
     name: 'style_shapes',
     category: 'canvas',
     do(data) {
-      const { shapes } = data.page
-
       for (const { id, next } of shapesToStyle) {
-        const shape = shapes[id]
+        const shape = data.page.shapes[id]
         TLD.getShapeUtils(shape).mutate(shape, { style: next })
       }
 

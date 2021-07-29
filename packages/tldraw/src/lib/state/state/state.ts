@@ -16,6 +16,8 @@ import {
   DistributeType,
   Utils,
   MoveType,
+  TLPinchInfo,
+  TLPanInfo,
 } from '@tldraw/core'
 import { Data, TLDrawDocument } from '../../types'
 import {
@@ -309,7 +311,6 @@ export class TLDrawState {
                   pointingBounds: {
                     on: {
                       CANCELLED: { to: 'notPointing' },
-                      STOPPED_POINTING_BOUNDS: [],
                       STOPPED_POINTING: [
                         {
                           if: 'isPointingBounds',
@@ -1195,7 +1196,7 @@ export class TLDrawState {
     this.send('MOVED_POINTER', info)
   }
 
-  fastPan = (info: TLPointerInfo & { delta: number[] }) => {
+  fastPan = (info: TLPanInfo) => {
     const { point, zoom } = TLD.getCurrentCamera(this.data)
 
     const nextPoint = Vec.sub(point, Vec.div(info.delta, zoom))
@@ -1227,7 +1228,7 @@ export class TLDrawState {
     this.callbacks.onChange?.(this, 'camera')
   }
 
-  fastPinch = (info: TLPointerInfo & { distanceDelta: number }) => {
+  fastPinch = (info: TLPinchInfo) => {
     const {
       camera: { point, zoom },
     } = this.data.pageState
@@ -1259,7 +1260,7 @@ export class TLDrawState {
     this.callbacks.onChange?.(this, 'camera')
   }
 
-  fastBrush(info: TLPointerInfo) {
+  fastBrush = (info: TLPointerInfo) => {
     const data = { ...this.data }
 
     this.session.update<BrushSession>(data, TLD.screenToWorld(data, info.point))
@@ -1275,7 +1276,7 @@ export class TLDrawState {
     this.send('MOVED_POINTER', info)
   }
 
-  fastTranslate(info: TLPointerInfo) {
+  fastTranslate = (info: TLPointerInfo) => {
     const data = { ...this.data }
 
     this.session.update<TranslateSession>(
@@ -1288,15 +1289,19 @@ export class TLDrawState {
     this.fastUpdate({ ...this.data, page: { ...data.page } })
   }
 
-  fastTransform(info: TLPointerInfo) {
+  fastTransform = (info: TLPointerInfo) => {
     const data = { ...this.data }
 
-    this.session.update<TransformSession>(data, TLD.screenToWorld(data, info.point), info.shiftKey)
+    this.session.update<TransformSession | TranslateSession>(
+      data,
+      TLD.screenToWorld(data, info.point),
+      info.shiftKey,
+    )
 
     this.fastUpdate({ ...this.data, page: { ...data.page } })
   }
 
-  fastDraw(info: TLPointerInfo) {
+  fastDraw = (info: TLPointerInfo) => {
     const data = { ...this.data }
 
     this.session.update<DrawSession>(
@@ -1315,20 +1320,20 @@ export class TLDrawState {
     this.fastUpdate({ ...this.data, page: { ...data.page } })
   }
 
-  send(eventName: string, payload?: unknown) {
+  send = (eventName: string, payload?: unknown) => {
     this.state.send(eventName, payload)
     return this
   }
 
-  isIn(...ids: string[]) {
+  isIn = (...ids: string[]) => {
     return this.state.isIn(...ids)
   }
 
-  isInAny(...ids: string[]): boolean {
+  isInAny = (...ids: string[]): boolean => {
     return this.state.isInAny(...ids)
   }
 
-  can(eventName: string, payload?: unknown) {
+  can = (eventName: string, payload?: unknown) => {
     return this.state.can(eventName, payload)
   }
 

@@ -40,6 +40,7 @@ const events: Partial<RendererProps<TLDrawShape>> = {
   onDoublePointShape(info) {
     state.send('DOUBLE_POINTED_SHAPE', info)
   },
+  // Bounds
   onPointBounds(info) {
     state.send('POINTED_BOUNDS', info)
   },
@@ -49,9 +50,12 @@ const events: Partial<RendererProps<TLDrawShape>> = {
   onRightPointBounds(info) {
     state.send('RIGHT_POINTED_BOUNDS', info)
   },
+  onDragBounds: state.fastTranslate,
+  // Bounds Handle
   onPointBoundsHandle(info) {
     state.send('POINTED_BOUNDS_HANDLE', info)
   },
+  onDragBoundsHandle: state.fastTransform,
   onDoublePointBoundsHandle(info) {
     state.send('DOUBLE_POINTED_BOUNDS_HANDLE', info)
   },

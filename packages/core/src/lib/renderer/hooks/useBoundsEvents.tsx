@@ -28,13 +28,13 @@ export function useBoundsEvents(handle: TLBoundsEdge | TLBoundsCorner | 'rotate'
 
   const onPointerMove = useCallback(
     (e) => {
-      if (e.buttons !== 1) return
-      if (!inputs.canAccept(e.pointerId)) return
-      e.stopPropagation()
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.stopPropagation()
 
-      const info = inputs.pointerMove(e, handle)
+        const info = inputs.pointerMove(e, handle)
 
-      callbacks.onPointerMove?.(info)
+        callbacks.onDragBoundsHandle?.(info)
+      }
     },
     [callbacks, handle],
   )

@@ -1121,12 +1121,12 @@ export class Utils {
     const [dx, dy] = vec.rot(delta, -rotation)
 
     /*
-  1. Delta
+1. Delta
 
-  Use the delta to adjust the new box by changing its corners.
-  The dragging handle (corner or edge) will determine which 
-  corners should change.
-  */
+Use the delta to adjust the new box by changing its corners.
+The dragging handle (corner or edge) will determine which 
+corners should change.
+*/
     switch (handle) {
       case TLBoundsEdge.Top:
       case TLBoundsCorner.TopLeft:
@@ -1170,11 +1170,11 @@ export class Utils {
     const bh = Math.abs(by1 - by0)
 
     /*
-  2. Aspect ratio
+2. Aspect ratio
 
-  If the aspect ratio is locked, adjust the corners so that the
-  new box's aspect ratio matches the original aspect ratio.
-  */
+If the aspect ratio is locked, adjust the corners so that the
+new box's aspect ratio matches the original aspect ratio.
+*/
 
     if (isAspectRatioLocked) {
       const ar = aw / ah
@@ -1223,13 +1223,13 @@ export class Utils {
     }
 
     /*
-  3. Rotation
+3. Rotation
 
-  If the bounds are rotated, get a vector from the rotated anchor
-  corner in the inital bounds to the rotated anchor corner in the
-  result's bounds. Subtract this vector from the result's corners,
-  so that the two anchor points (initial and result) will be equal.
-  */
+If the bounds are rotated, get a vector from the rotated anchor
+corner in the inital bounds to the rotated anchor corner in the
+result's bounds. Subtract this vector from the result's corners,
+so that the two anchor points (initial and result) will be equal.
+*/
 
     if (rotation % (Math.PI * 2) !== 0) {
       let cv = [0, 0]
@@ -1289,11 +1289,11 @@ export class Utils {
     }
 
     /*
-  4. Flips
+4. Flips
 
-  If the axes are flipped (e.g. if the right edge has been dragged
-  left past the initial left edge) then swap points on that axis.
-  */
+If the axes are flipped (e.g. if the right edge has been dragged
+left past the initial left edge) then swap points on that axis.
+*/
 
     if (bx1 < bx0) {
       ;[bx1, bx0] = [bx0, bx1]

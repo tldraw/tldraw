@@ -87,15 +87,27 @@ export interface TLTheme {
   foreground?: string
 }
 
+export interface TLPinchInfo extends TLPointerInfo {
+  distanceDelta: number
+}
+
+export interface TLZoomInfo extends TLPointerInfo {
+  delta: number
+}
+
+export interface TLPanInfo extends TLPointerInfo {
+  delta: number[]
+}
+
 export interface TLCallbacks {
   onChange: (ids: string[]) => void
 
   // Camera events
   onPinchStart: (point: number[]) => void
   onPinchEnd: (point: number[]) => void
-  onPinch: (info: TLPointerInfo & { distanceDelta: number }) => void
-  onPan: (info: TLPointerInfo & { delta: number[] }) => void
-  onZoom: (info: TLPointerInfo & { delta: number }) => void
+  onPinch: (info: TLPinchInfo) => void
+  onPan: (info: TLPanInfo) => void
+  onZoom: (info: TLZoomInfo) => void
 
   // Pointer Events
   onPointerMove: (info: TLPointerInfo) => void
@@ -118,10 +130,12 @@ export interface TLCallbacks {
   onPointBounds: (info: TLPointerInfo) => void
   onDoublePointBounds: (info: TLPointerInfo) => void
   onRightPointBounds: (info: TLPointerInfo) => void
+  onDragBounds: (info: TLPointerInfo) => void
 
   // Bounds handles (corners, edges)
   onPointBoundsHandle: (info: TLPointerInfo) => void
   onDoublePointBoundsHandle: (info: TLPointerInfo) => void
+  onDragBoundsHandle: (info: TLPointerInfo) => void
 
   // Handles (ie the handles of a selected arrow)
   onPointHandle: (info: TLPointerInfo) => void
