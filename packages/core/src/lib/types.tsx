@@ -87,65 +87,71 @@ export interface TLTheme {
   foreground?: string
 }
 
-export interface TLPinchInfo extends TLPointerInfo {
-  distanceDelta: number
-}
-
-export interface TLZoomInfo extends TLPointerInfo {
-  delta: number
-}
-
-export interface TLPanInfo extends TLPointerInfo {
-  delta: number[]
-}
+export type TLPointerEventHandler = (info: TLPointerInfo<string>) => void
+export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>) => void
+export type TLBoundsEventHandler = (info: TLPointerInfo<'bounds'>) => void
+export type TLBoundsHandleEventHandler = (
+  info: TLPointerInfo<TLBoundsCorner | TLBoundsEdge | 'rotate'>,
+) => void
 
 export interface TLCallbacks {
   onChange: (ids: string[]) => void
 
   // Camera events
-  onPinchStart: (point: number[]) => void
-  onPinchEnd: (point: number[]) => void
-  onPinch: (info: TLPinchInfo) => void
-  onPan: (info: TLPanInfo) => void
-  onZoom: (info: TLZoomInfo) => void
+  onPinchStart: TLPointerEventHandler
+  onPinchEnd: TLPointerEventHandler
+  onPinch: TLPointerEventHandler
+  onPan: TLPointerEventHandler
+  onZoom: TLPointerEventHandler
 
   // Pointer Events
-  onPointerMove: (info: TLPointerInfo) => void
-  onStopPointing: (info: TLPointerInfo) => void
-
-  // Shape
-  onPointShape: (info: TLPointerInfo) => void
-  onDoublePointShape: (info: TLPointerInfo) => void
-  onRightPointShape: (info: TLPointerInfo) => void
-  onMoveOverShape: (info: TLPointerInfo) => void
-  onUnhoverShape: (info: TLPointerInfo) => void
-  onHoverShape: (info: TLPointerInfo) => void
+  onPointerMove: TLPointerEventHandler
+  onStopPointing: TLPointerEventHandler
 
   // Canvas (background)
-  onPointCanvas: (info: TLPointerInfo) => void
-  onDoublePointCanvas: (info: TLPointerInfo) => void
-  onRightPointCanvas: (info: TLPointerInfo) => void
+  onPointCanvas: TLCanvasEventHandler
+  onDoublePointCanvas: TLCanvasEventHandler
+  onRightPointCanvas: TLCanvasEventHandler
+  onDragCanvas: TLCanvasEventHandler
+  onReleaseCanvas: TLCanvasEventHandler
+
+  // Shape
+  onPointShape: TLPointerEventHandler
+  onDoublePointShape: TLPointerEventHandler
+  onRightPointShape: TLPointerEventHandler
+  onDragShape: TLPointerEventHandler
+  onHoverShape: TLPointerEventHandler
+  onUnhoverShape: TLPointerEventHandler
+  onReleaseShape: TLPointerEventHandler
 
   // Bounds (bounding box background)
-  onPointBounds: (info: TLPointerInfo) => void
-  onDoublePointBounds: (info: TLPointerInfo) => void
-  onRightPointBounds: (info: TLPointerInfo) => void
-  onDragBounds: (info: TLPointerInfo) => void
+  onPointBounds: TLBoundsEventHandler
+  onDoublePointBounds: TLBoundsEventHandler
+  onRightPointBounds: TLBoundsEventHandler
+  onDragBounds: TLBoundsEventHandler
+  onHoverBounds: TLBoundsEventHandler
+  onUnhoverBounds: TLBoundsEventHandler
+  onReleaseBounds: TLBoundsEventHandler
 
   // Bounds handles (corners, edges)
-  onPointBoundsHandle: (info: TLPointerInfo) => void
-  onDoublePointBoundsHandle: (info: TLPointerInfo) => void
-  onDragBoundsHandle: (info: TLPointerInfo) => void
+  onPointBoundsHandle: TLBoundsHandleEventHandler
+  onDoublePointBoundsHandle: TLBoundsHandleEventHandler
+  onRightPointBoundsHandle: TLBoundsHandleEventHandler
+  onDragBoundsHandle: TLBoundsHandleEventHandler
+  onHoverBoundsHandle: TLBoundsHandleEventHandler
+  onUnhoverBoundsHandle: TLBoundsHandleEventHandler
+  onReleaseBoundsHandle: TLBoundsHandleEventHandler
 
   // Handles (ie the handles of a selected arrow)
-  onPointHandle: (info: TLPointerInfo) => void
-  onDoublePointHandle: (info: TLPointerInfo) => void
-  onRightPointHandle: (info: TLPointerInfo) => void
-  onMoveOverHandle: (info: TLPointerInfo) => void
-  onHoverHandle: (info: TLPointerInfo) => void
-  onUnhoverHandle: (info: TLPointerInfo) => void
+  onPointHandle: TLPointerEventHandler
+  onDoublePointHandle: TLPointerEventHandler
+  onRightPointHandle: TLPointerEventHandler
+  onDragHandle: TLPointerEventHandler
+  onHoverHandle: TLPointerEventHandler
+  onUnhoverHandle: TLPointerEventHandler
+  onReleaseHandle: TLPointerEventHandler
 
-  // keys
+  // Misc
   onBlurEditingShape: () => void
   onError: (error: Error) => void
 }
@@ -180,11 +186,12 @@ export enum TLBoundsCorner {
   BottomLeft = 'bottom_left_corner',
 }
 
-export interface TLPointerInfo {
-  target: string
+export interface TLPointerInfo<T extends string = string> {
+  target: T
   pointerId: number
   origin: number[]
   point: number[]
+  delta: number[]
   pressure: number
   shiftKey: boolean
   ctrlKey: boolean

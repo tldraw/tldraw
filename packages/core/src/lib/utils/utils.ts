@@ -1064,16 +1064,16 @@ export class Utils {
    * Get the common bounds of a group of bounds.
    * @returns
    */
-  static getCommonBounds(...b: TLBounds[]): TLBounds {
-    if (b.length < 2) return b[0]
+  static getCommonBounds(bounds: TLBounds[]): TLBounds {
+    if (bounds.length < 2) return bounds[0]
 
-    let bounds = b[0]
+    let result = bounds[0]
 
-    for (let i = 1; i < b.length; i++) {
-      bounds = Utils.getExpandedBounds(bounds, b[i])
+    for (let i = 1; i < bounds.length; i++) {
+      result = Utils.getExpandedBounds(result, bounds[i])
     }
 
-    return bounds
+    return result
   }
 
   static getRotatedCorners(b: TLBounds, rotation = 0): number[][] {

@@ -1,22 +1,16 @@
 import * as React from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
-import {
-  useTLContext,
-  useZoomEvents,
-  useSafariFocusOutFix,
-  useCanvasEvents,
-  useCameraCss,
-} from '../hooks'
+import { useZoomEvents, useSafariFocusOutFix, useCanvasEvents, useCameraCss } from '../hooks'
 import { ErrorFallback } from './error-fallback'
-import { TLPage, TLPageState, TLShape, TLShapeUtils } from '../../types'
+import { TLPage, TLPageState, TLShape } from '../../types'
 
 import { Brush } from './brush'
 import { Defs } from './defs'
 import { Page } from './page'
-// import Binding from './binding'
+import { usePreventNavigation } from '../hooks/usePreventNavigation'
 
 function resetError() {
-  // todo
+  void null
 }
 
 interface CanvasProps<T extends TLShape> {
@@ -38,7 +32,9 @@ export function Canvas<T extends TLShape>({
 
   useSafariFocusOutFix()
 
-  const events = useCanvasEvents(rCanvas)
+  usePreventNavigation(rCanvas)
+
+  const events = useCanvasEvents()
 
   return (
     <div className="tl-container">

@@ -141,7 +141,6 @@ const tlcss = css`
     fill: transparent;
     stroke: var(--tl-selectStroke);
     stroke-width: calc(1.5px * var(--tl-scale));
-    pointer-events: none;
   }
 
   .tl-bounds-bg {

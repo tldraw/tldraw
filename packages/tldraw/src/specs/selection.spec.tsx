@@ -13,10 +13,20 @@ describe('selection', () => {
     tt.deselectAll().clickShape('rect1').clickCanvas()
 
     expect(tt.idsAreSelected([])).toBe(true)
+
+    expect(tt.isIn('notPointing')).toBe(true)
   })
 
   it('selects multiple shapes', () => {
-    tt.deselectAll().clickShape('rect1').clickShape('rect2', { shiftKey: true })
+    tt.deselectAll()
+
+    expect(tt.idsAreSelected([])).toBe(true)
+
+    tt.clickShape('rect1')
+
+    expect(tt.idsAreSelected(['rect1'])).toBe(true)
+
+    tt.clickShape('rect2', { shiftKey: true })
 
     expect(tt.idsAreSelected(['rect1', 'rect2'])).toBe(true)
   })
@@ -37,15 +47,17 @@ describe('selection', () => {
   })
 
   it('single-selects shape in selection on pointerup only', () => {
-    tt.deselectAll().clickShape('rect1').clickShape('rect2', { shiftKey: true })
+    tt.deselectAll()
+
+    tt.clickShape('rect1').clickShape('rect2', { shiftKey: true })
 
     expect(tt.idsAreSelected(['rect1', 'rect2'])).toBe(true)
 
-    tt.startClick('rect2')
+    tt.startClickingShape('rect2')
 
     expect(tt.idsAreSelected(['rect1', 'rect2'])).toBe(true)
 
-    tt.stopClick('rect2')
+    tt.stopClickingShape('rect2')
 
     expect(tt.idsAreSelected(['rect2'])).toBe(true)
   })
@@ -54,8 +66,8 @@ describe('selection', () => {
     tt.deselectAll()
       .clickShape('rect1')
       .clickShape('rect2', { shiftKey: true })
-      .startClick('rect1', { shiftKey: true })
-      .stopClick('rect1')
+      .startClickingShape('rect1', { shiftKey: true })
+      .stopClickingShape('rect1')
 
     expect(tt.idsAreSelected(['rect1'])).toBe(true)
   })

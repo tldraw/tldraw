@@ -16,8 +16,7 @@ import {
   DistributeType,
   Utils,
   MoveType,
-  TLPinchInfo,
-  TLPanInfo,
+  TLPointerEventHandler,
 } from '@tldraw/core'
 import { Data, TLDrawDocument } from '../../types'
 import {
@@ -49,13 +48,10 @@ parts of the state, both privately for internal use and publically for external 
 is shared in the renderer's `onMount` callback.
 */
 
-export interface TLDrawCallbacks {
-  onMount: (state: TLDrawState) => void
-  onChange: (
-    state: TLDrawState,
-    type: 'camera' | 'command' | 'session' | 'undo' | 'redo' | 'load' | 'page',
-  ) => void
-}
+export type OnChangeCallback = (
+  state: TLDrawState,
+  type: 'camera' | 'command' | 'session' | 'undo' | 'redo' | 'load' | 'page',
+) => void
 
 const initialData: Data = {
   settings: {
@@ -102,14 +98,14 @@ export class TLDrawState {
 
   shapeUtils: TLShapeUtils<TLDrawShape>
 
-  callbacks: Partial<TLDrawCallbacks> = {}
+  onChange: OnChangeCallback
 
   session = new Session(() => {
-    this.callbacks.onChange?.(this, 'session')
+    this.onChange?.(this, 'session')
   })
 
   history = new History(() => {
-    this.callbacks.onChange?.(this, 'command')
+    this.onChange?.(this, 'command')
   })
 
   _state = createState({
@@ -122,6 +118,7 @@ export class TLDrawState {
         states: {
           usingTool: {
             on: {
+              ZOOMED: 'zoomCamera',
               ZOOMED_IN: 'zoomIn',
               ZOOMED_OUT: 'zoomOut',
               ZOOMED_TO_SELECTION: {
@@ -241,11 +238,12 @@ export class TLDrawState {
             states: {
               select: {
                 onEnter: 'setActiveTool',
-                on: {},
                 initial: 'notPointing',
                 states: {
                   notPointing: {
                     on: {
+                      HOVERED_SHAPE: 'setHoveredId',
+                      UNHOVERED_SHAPE: 'clearHoveredId',
                       CANCELLED: {
                         if: 'hasCurrentParentShape',
                         do: ['selectCurrentParentId', 'raiseCurrentParentId'],
@@ -260,23 +258,17 @@ export class TLDrawState {
                         to: 'rotatingSelection',
                         else: { to: 'transformingSelection' },
                       },
-                      POINTED_BOUNDS: [
-                        {
-                          if: 'isPressingMetaKey',
-                          to: 'brushSelecting',
-                        },
-                        { to: 'pointingBounds' },
-                      ],
+                      POINTED_BOUNDS: {
+                        if: 'isPressingMetaKey',
+                        to: 'brushSelecting',
+                        else: { to: 'pointingBounds' },
+                      },
                       POINTED_SHAPE: [
                         {
                           if: 'isPressingMetaKey',
                           to: 'brushSelecting',
                         },
                         'setPointedId',
-                        {
-                          if: 'isPointingBounds',
-                          to: 'pointingBounds',
-                        },
                         {
                           unless: 'isPointedShapeSelected',
                           then: {
@@ -311,33 +303,27 @@ export class TLDrawState {
                   pointingBounds: {
                     on: {
                       CANCELLED: { to: 'notPointing' },
-                      STOPPED_POINTING: [
-                        {
-                          if: 'isPointingBounds',
-                          do: 'deselectAll',
-                        },
+                      RELEASED_BOUNDS: { do: 'deselectAll', to: 'notPointing' },
+                      RELEASED_SHAPE: [
                         {
                           if: 'isPressingShiftKey',
-                          then: {
-                            if: 'isPointedShapeSelected',
-                            do: 'pullPointedIdFromSelectedIds',
-                          },
-                          else: {
-                            if: 'isPointingShape',
-                            do: ['deselectAll', 'setPointedId', 'pushPointedIdToSelectedIds'],
-                          },
+                          then: 'pullPointedIdFromSelectedIds',
+                          else: ['deselectAll', 'setPointedId', 'pushPointedIdToSelectedIds'],
                         },
                         { to: 'notPointing' },
                       ],
-                      MOVED_POINTER: {
-                        unless: 'isInSession',
+                      DRAGGED_BOUNDS: {
+                        if: 'distanceImpliesDrag',
+                        to: 'translatingSelection',
+                      },
+                      DRAGGED_SHAPE: {
                         if: 'distanceImpliesDrag',
                         to: 'translatingSelection',
                       },
                     },
                   },
                   brushSelecting: {
-                    onExit: 'completeSession',
+                    onExit: ['completeSession', 'endBrushSession'],
                     onEnter: [
                       {
                         unless: ['isPressingMetaKey', 'isPressingShiftKey'],
@@ -347,17 +333,15 @@ export class TLDrawState {
                       'startBrushSession',
                     ],
                     on: {
-                      MOVED_POINTER: {
+                      DRAGGED_CANVAS: {
                         if: 'isTestMode',
                         do: 'updateBrushSession',
                       },
                       PANNED_CAMERA: {
+                        if: 'isTestMode',
                         do: 'updateBrushSession',
                       },
-                      STOPPED_POINTING: {
-                        do: 'endBrushSession',
-                        to: 'notPointing',
-                      },
+                      STOPPED_POINTING: { to: 'notPointing' },
                       CANCELLED: { do: 'cancelSession', to: 'notPointing' },
                     },
                   },
@@ -366,7 +350,11 @@ export class TLDrawState {
                     onExit: 'completeSession',
                     on: {
                       STARTED_PINCHING: { to: 'pinching' },
-                      MOVED_POINTER: {
+                      DRAGGED_SHAPE: {
+                        ifAny: 'isTestMode',
+                        do: 'updateTranslateSession',
+                      },
+                      DRAGGED_BOUNDS: {
                         ifAny: 'isTestMode',
                         do: 'updateTranslateSession',
                       },
@@ -378,7 +366,8 @@ export class TLDrawState {
                       RELEASED_SHIFT_KEY: 'updateTranslateSession',
                       PRESSED_ALT_KEY: 'updateTranslateSession',
                       RELEASED_ALT_KEY: 'updateTranslateSession',
-                      STOPPED_POINTING: { to: 'select' },
+                      RELEASED_SHAPE: { to: 'select' },
+                      RELEASED_BOUNDS: { to: 'select' },
                       CANCELLED: { do: 'cancelSession', to: 'select' },
                     },
                   },
@@ -386,7 +375,7 @@ export class TLDrawState {
                     onEnter: 'startTransformSession',
                     onExit: 'completeSession',
                     on: {
-                      MOVED_POINTER: {
+                      DRAGGED_BOUNDS_HANDLE: {
                         if: 'isTestMode',
                         do: 'updateTransformSession',
                       },
@@ -786,11 +775,11 @@ export class TLDrawState {
       // Undo / Redo
       undo: (data) => {
         this.history.undo(data)
-        this.callbacks.onChange?.(this, 'undo')
+        this.onChange?.(this, 'undo')
       },
       redo: (data) => {
         this.history.redo(data)
-        this.callbacks.onChange?.(this, 'redo')
+        this.onChange?.(this, 'redo')
       },
 
       /* ------------------- Page State ------------------- */
@@ -889,6 +878,16 @@ export class TLDrawState {
         const p1 = TLD.screenToWorld(data, payload.info.origin)
         camera.point = Vec.add(camera.point, Vec.sub(p1, p0))
       },
+      zoomCamera: (data, payload: { info: TLPointerInfo }) => {
+        const camera = TLD.getCurrentCamera(data)
+        const next = camera.zoom - (payload.info.delta[1] / 100) * camera.zoom
+        const center = [window.innerWidth / 2, window.innerHeight / 2]
+
+        const p0 = TLD.screenToWorld(data, center)
+        camera.zoom = TLD.getCameraZoom(next)
+        const p1 = TLD.screenToWorld(data, center)
+        camera.point = Vec.add(camera.point, Vec.sub(p1, p0))
+      },
       zoomIn(data) {
         const camera = TLD.getCurrentCamera(data)
         const i = Math.round((camera.zoom * 100) / 25)
@@ -954,7 +953,7 @@ export class TLDrawState {
         }
 
         const bounds = Utils.getCommonBounds(
-          ...Object.values(shapes).map((shape) => getShapeUtils(shape).getBounds(shape)),
+          Object.values(shapes).map((shape) => getShapeUtils(shape).getBounds(shape)),
         )
 
         const zoom = TLD.getCameraZoom(
@@ -979,7 +978,7 @@ export class TLDrawState {
         }
 
         const bounds = Utils.getCommonBounds(
-          ...Object.values(shapes).map((shape) => getShapeUtils(shape).getBounds(shape)),
+          Object.values(shapes).map((shape) => getShapeUtils(shape).getBounds(shape)),
         )
 
         const { zoom } = camera
@@ -1080,6 +1079,13 @@ export class TLDrawState {
         return commonStyle
       },
     },
+    options: {
+      onSend(eventName, payload, didCauseUpdate) {
+        if (didCauseUpdate) {
+          // console.log(eventName)
+        }
+      },
+    },
   })
 
   /* ------------------- Private API ------------------ */
@@ -1140,7 +1146,7 @@ export class TLDrawState {
         pageState: pageStates[this.currentPageId],
       })
 
-      this.callbacks.onChange?.(this, 'load')
+      this.onChange?.(this, 'load')
     }
   }
 
@@ -1153,8 +1159,8 @@ export class TLDrawState {
   }
 
   // Load callbacks from props (should be done once on mount)
-  loadCallbacks(callbacks: Partial<TLDrawCallbacks>) {
-    this.callbacks = callbacks
+  loadOnChange(onChange: OnChangeCallback) {
+    this.onChange = onChange
   }
 
   // Load a document from props (should be done once on mount)
@@ -1179,10 +1185,10 @@ export class TLDrawState {
       pageState: this.pageStates[this.currentPageId],
     })
 
-    this.callbacks.onChange?.(this, 'page')
+    this.onChange?.(this, 'page')
   }
 
-  fastPointerMove = (info: TLPointerInfo) => {
+  fastPointerMove: TLPointerEventHandler = (info) => {
     if (this.isIn('brushSelecting')) {
       this.fastBrush(info)
     } else if (this.isIn('translatingSelection')) {
@@ -1196,7 +1202,7 @@ export class TLDrawState {
     this.send('MOVED_POINTER', info)
   }
 
-  fastPan = (info: TLPanInfo) => {
+  fastPan: TLPointerEventHandler = (info) => {
     const { point, zoom } = TLD.getCurrentCamera(this.data)
 
     const nextPoint = Vec.sub(point, Vec.div(info.delta, zoom))
@@ -1222,13 +1228,10 @@ export class TLDrawState {
       this.fastDraw(info)
     }
 
-    // Send along the event just to be sure
-    this.send('PANNED_CAMERA', info)
-
-    this.callbacks.onChange?.(this, 'camera')
+    this.onChange?.(this, 'camera')
   }
 
-  fastPinch = (info: TLPinchInfo) => {
+  fastPinch: TLPointerEventHandler = (info) => {
     const {
       camera: { point, zoom },
     } = this.data.pageState
@@ -1236,7 +1239,7 @@ export class TLDrawState {
     const delta = Vec.sub(info.point, info.origin)
     let nextPoint = Vec.sub(point, Vec.div(delta, zoom))
 
-    const nextZoom = TLD.getCameraZoom(zoom - (info.distanceDelta / 300) * zoom)
+    const nextZoom = TLD.getCameraZoom(zoom - (info.delta[1] / 300) * zoom)
 
     const p0 = Vec.sub(Vec.div(info.origin, zoom), point)
     const p1 = Vec.sub(Vec.div(info.origin, nextZoom), point)
@@ -1254,13 +1257,15 @@ export class TLDrawState {
       },
     })
 
-    // Send along the event just to be sure
-    this.send('PINCHED_CAMERA', info)
-
-    this.callbacks.onChange?.(this, 'camera')
+    this.onChange?.(this, 'camera')
   }
 
-  fastBrush = (info: TLPointerInfo) => {
+  fastBrush: TLPointerEventHandler = (info) => {
+    if (!this.state.isIn('brushSelecting')) {
+      this.send('MOVED_POINTER', info)
+      return
+    }
+
     const data = { ...this.data }
 
     this.session.update<BrushSession>(data, TLD.screenToWorld(data, info.point))
@@ -1271,12 +1276,14 @@ export class TLDrawState {
       ...this.data,
       pageState: { ...data.pageState },
     })
-
-    // Send along the event just to be sure
-    this.send('MOVED_POINTER', info)
   }
 
-  fastTranslate = (info: TLPointerInfo) => {
+  fastTranslate: TLPointerEventHandler = (info) => {
+    if (!this.state.isIn('translatingSelection')) {
+      this.send('DRAGGED_BOUNDS', info)
+      return
+    }
+
     const data = { ...this.data }
 
     this.session.update<TranslateSession>(
@@ -1289,7 +1296,12 @@ export class TLDrawState {
     this.fastUpdate({ ...this.data, page: { ...data.page } })
   }
 
-  fastTransform = (info: TLPointerInfo) => {
+  fastTransform: TLPointerEventHandler = (info) => {
+    if (!this.state.isIn('transformingSelection')) {
+      this.send('DRAGGED_BOUNDS', info)
+      return
+    }
+
     const data = { ...this.data }
 
     this.session.update<TransformSession | TranslateSession>(
@@ -1301,7 +1313,7 @@ export class TLDrawState {
     this.fastUpdate({ ...this.data, page: { ...data.page } })
   }
 
-  fastDraw = (info: TLPointerInfo) => {
+  fastDraw: TLPointerEventHandler = (info) => {
     const data = { ...this.data }
 
     this.session.update<DrawSession>(

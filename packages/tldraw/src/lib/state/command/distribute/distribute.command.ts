@@ -52,7 +52,7 @@ function getDistributions(initialShapes: TLDrawShape[], type: DistributeType) {
   })
 
   const len = entries.length
-  const commonBounds = Utils.getCommonBounds(...entries.map(({ bounds }) => bounds))
+  const commonBounds = Utils.getCommonBounds(entries.map(({ bounds }) => bounds))
 
   const results: { id: string; prev: number[]; next: number[] }[] = []
 

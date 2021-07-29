@@ -253,8 +253,13 @@ export class Intersect {
     polyline(a1: number[], a2: number[], points: number[][]): TLIntersection[] {
       const intersections: TLIntersection[] = []
 
-      for (let i = 1; i < points.length; i++) {
-        const int = Intersect.lineSegment.lineSegment(a1, a2, points[i - 1], points[i])
+      for (let i = 1; i < points.length + 1; i++) {
+        const int = Intersect.lineSegment.lineSegment(
+          a1,
+          a2,
+          points[i - 1],
+          points[i % points.length],
+        )
 
         if (int) {
           intersections.push(int)

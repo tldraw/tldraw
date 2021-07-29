@@ -1,58 +1,84 @@
-import { useCallback } from 'react'
+import * as React from 'react'
 import { inputs } from '../../inputs'
-import { TLBoundsEdge, TLBoundsCorner } from '../../types'
-
 import { useTLContext } from './useTLContext'
 
-export function useBoundsEvents(handle: TLBoundsEdge | TLBoundsCorner | 'rotate') {
+export function useBoundsEvents() {
   const { callbacks } = useTLContext()
 
-  const onPointerDown = useCallback(
-    (e) => {
-      if (!inputs.canAccept(e.pointerId)) return
+  const onPointerDown = React.useCallback(
+    (e: React.PointerEvent) => {
       e.stopPropagation()
-      e.currentTarget.setPointerCapture(e.pointerId)
+      e.currentTarget?.setPointerCapture(e.pointerId)
+      const info = inputs.pointerDown(e, 'bounds')
 
-      if (e.button === 0) {
-        const info = inputs.pointerDown(e, handle)
+      callbacks.onPointBounds?.(info)
+    },
+    [callbacks],
+  )
 
-        if (inputs.isDoubleClick() && !(info.altKey || info.metaKey)) {
-          callbacks.onDoublePointBoundsHandle?.(info)
+  const onPointerUp = React.useCallback(
+    (e: React.PointerEvent) => {
+      e.stopPropagation()
+      const isDoubleClick = inputs.isDoubleClick()
+      const info = inputs.pointerUp(e, 'bounds')
+
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget?.releasePointerCapture(e.pointerId)
+
+        if (isDoubleClick && !(info.altKey || info.metaKey)) {
+          callbacks.onDoublePointBounds?.(info)
         }
 
-        callbacks.onPointBoundsHandle?.(info)
+        callbacks.onReleaseBounds?.(info)
       }
-    },
-    [callbacks, handle],
-  )
 
-  const onPointerMove = useCallback(
-    (e) => {
-      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        e.stopPropagation()
-
-        const info = inputs.pointerMove(e, handle)
-
-        callbacks.onDragBoundsHandle?.(info)
-      }
-    },
-    [callbacks, handle],
-  )
-
-  const onPointerUp = useCallback(
-    (e) => {
-      if (e.buttons !== 1) return
-      if (!inputs.canAccept(e.pointerId)) return
-      e.stopPropagation()
-      // Replace element to reset cursor
-      e.currentTarget.releasePointerCapture(e.pointerId)
-      e.currentTarget.replaceWith(e.currentTarget)
-
-      const info = inputs.pointerUp(e, 'bounds')
       callbacks.onStopPointing?.(info)
     },
     [callbacks],
   )
 
-  return { onPointerDown, onPointerMove, onPointerUp }
+  const onPointerMove = React.useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault()
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        callbacks.onDragBounds?.(inputs.pointerMove(e, 'bounds'))
+      } else {
+        const info = inputs.pointerMove(e, 'bounds')
+        callbacks.onPointerMove?.(info)
+      }
+    },
+    [callbacks],
+  )
+
+  const onPointerEnter = React.useCallback(
+    (e: React.PointerEvent) => {
+      callbacks.onHoverBounds?.(inputs.pointerEnter(e, 'bounds'))
+    },
+    [callbacks],
+  )
+
+  const onPointerLeave = React.useCallback(
+    (e: React.PointerEvent) => {
+      callbacks.onUnhoverBounds?.(inputs.pointerEnter(e, 'bounds'))
+    },
+    [callbacks],
+  )
+
+  const onTouchStart = React.useCallback((e: React.TouchEvent) => {
+    e.preventDefault()
+  }, [])
+
+  const onTouchEnd = React.useCallback((e: React.TouchEvent) => {
+    e.preventDefault()
+  }, [])
+
+  return {
+    onPointerDown,
+    onPointerUp,
+    onPointerEnter,
+    onPointerMove,
+    onPointerLeave,
+    onTouchStart,
+    onTouchEnd,
+  }
 }

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useBoundsEvents } from '../../hooks'
+import { useBoundsHandleEvents } from '../../hooks'
 import { TLBoundsEdge, TLBounds } from '../../../types'
 
 const edgeClassnames = {
@@ -11,7 +11,7 @@ const edgeClassnames = {
 
 export const EdgeHandle = React.memo(
   ({ size, bounds, edge }: { size: number; bounds: TLBounds; edge: TLBoundsEdge }): JSX.Element => {
-    const events = useBoundsEvents(edge)
+    const events = useBoundsHandleEvents(edge)
 
     const isHorizontal = edge === TLBoundsEdge.Top || edge === TLBoundsEdge.Bottom
     const isFarEdge = edge === TLBoundsEdge.Right || edge === TLBoundsEdge.Bottom

@@ -15,7 +15,7 @@ export function align(data: Data, type: AlignType) {
     }
   })
 
-  const commonBounds = Utils.getCommonBounds(...boundsForShapes.map(({ bounds }) => bounds))
+  const commonBounds = Utils.getCommonBounds(boundsForShapes.map(({ bounds }) => bounds))
 
   const midX = commonBounds.minX + commonBounds.width / 2
   const midY = commonBounds.minY + commonBounds.height / 2

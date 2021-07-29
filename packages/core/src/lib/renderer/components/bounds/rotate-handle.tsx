@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { useBoundsEvents } from '../../hooks'
+import { useBoundsHandleEvents } from '../../hooks'
 import { TLBounds } from '../../../types'
 
 export const RotateHandle = React.memo(
   ({ bounds, size }: { bounds: TLBounds; size: number }): JSX.Element => {
-    const events = useBoundsEvents('rotate')
+    const events = useBoundsHandleEvents('rotate')
 
     return (
       <g cursor="grab" {...events}>

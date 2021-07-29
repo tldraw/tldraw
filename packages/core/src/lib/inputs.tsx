@@ -6,24 +6,26 @@ const DOUBLE_CLICK_DURATION = 250
 
 class Inputs {
   activePointerId?: number
-  pointerUpTime = 0
 
-  pointer?: TLPointerInfo
-  points: Record<string, TLPointerInfo> = {}
+  pointer?: TLPointerInfo<string>
+  points: Record<string, TLPointerInfo<string>> = {}
 
   keyboard?: TLKeyboardInfo
   keys: Record<string, boolean> = {}
 
-  touchStart(e: TouchEvent | React.TouchEvent, target: string) {
+  pointerUpTime = 0
+
+  touchStart<T extends string>(e: TouchEvent | React.TouchEvent, target: T): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
     e.preventDefault()
 
     const touch = e.changedTouches[0]
 
-    const info: TLPointerInfo = {
+    const info: TLPointerInfo<T> = {
       target,
       pointerId: touch.identifier,
       origin: Inputs.getPoint(touch),
+      delta: [0, 0],
       point: Inputs.getPoint(touch),
       pressure: Inputs.getPressure(touch),
       shiftKey,
@@ -39,7 +41,7 @@ class Inputs {
     return info
   }
 
-  touchMove(e: TouchEvent | React.TouchEvent): TLPointerInfo {
+  touchMove<T extends string>(e: TouchEvent | React.TouchEvent, target: T): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
     e.preventDefault()
 
@@ -47,10 +49,16 @@ class Inputs {
 
     const prev = this.points[touch.identifier]
 
-    const info: TLPointerInfo = {
+    const point = Inputs.getPoint(touch)
+
+    const delta = Vec.sub(point, prev.point)
+
+    const info: TLPointerInfo<T> = {
       ...prev,
+      target,
       pointerId: touch.identifier,
-      point: Inputs.getPoint(touch),
+      point,
+      delta,
       pressure: Inputs.getPressure(touch),
       shiftKey,
       ctrlKey,
@@ -66,14 +74,17 @@ class Inputs {
     return info
   }
 
-  pointerDown(e: PointerEvent | React.PointerEvent, target: string): TLPointerInfo {
+  pointerDown<T extends string>(e: PointerEvent | React.PointerEvent, target: T): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    const info: TLPointerInfo = {
+    const point = Inputs.getPoint(e)
+
+    const info: TLPointerInfo<T> = {
       target,
       pointerId: e.pointerId,
-      origin: Inputs.getPoint(e),
-      point: Inputs.getPoint(e),
+      origin: point,
+      point: point,
+      delta: [e.movementX, e.movementY],
       pressure: Inputs.getPressure(e),
       shiftKey,
       ctrlKey,
@@ -88,14 +99,20 @@ class Inputs {
     return info
   }
 
-  pointerEnter(e: PointerEvent | React.PointerEvent, target: string): TLPointerInfo {
+  pointerEnter<T extends string>(
+    e: PointerEvent | React.PointerEvent,
+    target: T,
+  ): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    const info: TLPointerInfo = {
+    const point = Inputs.getPoint(e)
+
+    const info: TLPointerInfo<T> = {
       target,
       pointerId: e.pointerId,
-      origin: Inputs.getPoint(e),
-      point: Inputs.getPoint(e),
+      origin: point,
+      delta: [e.movementX, e.movementY],
+      point: point,
       pressure: Inputs.getPressure(e),
       shiftKey,
       ctrlKey,
@@ -104,19 +121,23 @@ class Inputs {
     }
 
     this.pointer = info
+
     return info
   }
 
-  pointerMove(e: PointerEvent | React.PointerEvent, target = ''): TLPointerInfo {
+  pointerMove<T extends string>(e: PointerEvent | React.PointerEvent, target: T): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     const prev = this.points[e.pointerId]
 
-    const info: TLPointerInfo = {
+    const point = Inputs.getPoint(e)
+
+    const info: TLPointerInfo<T> = {
       ...prev,
       target,
       pointerId: e.pointerId,
-      point: Inputs.getPoint(e),
+      point,
+      delta: [e.movementX, e.movementY],
       pressure: Inputs.getPressure(e),
       shiftKey,
       ctrlKey,
@@ -133,17 +154,20 @@ class Inputs {
     return info
   }
 
-  pointerUp = (e: PointerEvent | React.PointerEvent, target = ''): TLPointerInfo => {
+  pointerUp<T extends string>(e: PointerEvent | React.PointerEvent, target: T): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     const prev = this.points[e.pointerId]
 
-    const info: TLPointerInfo = {
+    const point = Inputs.getPoint(e)
+
+    const info: TLPointerInfo<T> = {
       ...prev,
       target,
-      origin: prev?.origin || Inputs.getPoint(e),
-      point: Inputs.getPoint(e),
+      origin: prev?.origin || point,
+      point: point,
       pressure: Inputs.getPressure(e),
+      delta: [e.movementX, e.movementY],
       shiftKey,
       ctrlKey,
       metaKey: Utils.isDarwin() ? metaKey : ctrlKey,
@@ -154,21 +178,20 @@ class Inputs {
 
     delete this.activePointerId
 
-    if (Vec.dist(info.origin, info.point) < 8) {
-      this.pointerUpTime = Date.now()
-    }
-
     this.pointer = info
+
+    this.pointerUpTime = Date.now()
 
     return info
   }
 
-  wheel = (e: WheelEvent): TLPointerInfo => {
+  wheel = (e: WheelEvent): TLPointerInfo<'wheel'> => {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
     return {
       target: 'wheel',
       pointerId: this.pointer?.pointerId || 0,
       origin: this.pointer?.origin || [0, 0],
+      delta: [0, 0],
       pressure: 0.5,
       point: Inputs.getPoint(e),
       shiftKey,
@@ -240,11 +263,12 @@ class Inputs {
   pinch(point: number[], origin: number[]) {
     const { shiftKey, ctrlKey, metaKey, altKey } = this.keys
 
-    const info: TLPointerInfo = {
+    const info: TLPointerInfo<'pinch'> = {
       pointerId: 0,
       target: 'pinch',
       origin,
-      point: [...point, 0.5],
+      delta: [0, 0],
+      point: Vec.round(point),
       pressure: 0.5,
       shiftKey,
       ctrlKey,

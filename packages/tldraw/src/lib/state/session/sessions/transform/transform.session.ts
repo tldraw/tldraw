@@ -120,7 +120,7 @@ export function getTransformSnapshot(data: Data, transformType: TLBoundsEdge | T
 
   const boundsArr = Object.values(shapesBounds)
 
-  const commonBounds = Utils.getCommonBounds(...boundsArr)
+  const commonBounds = Utils.getCommonBounds(boundsArr)
 
   const initialInnerBounds = Utils.getBoundsFromPoints(boundsArr.map(Utils.getBoundsCenter))
 

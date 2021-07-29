@@ -113,6 +113,53 @@ export class TLDrawTestState extends TLDrawState {
   }
 
   /**
+   * Click the canvas.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.clickCanvas("myShapeId")
+   *```
+   */
+  clickCanvas(options: PointerOptions = {}): TLDrawTestState {
+    this.state
+      .send('POINTED_CANVAS', inputs.pointerDown(this.fakePoint(options), 'canvas'))
+      .send('STOPPED_POINTING', inputs.pointerUp(this.fakePoint(options), 'canvas'))
+
+    return this
+  }
+
+  /**
+   * Start clicking a shape.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.startClickingCanvas()
+   *```
+   */
+  startClickingCanvas(options: PointerOptions = {}): TLDrawTestState {
+    this.state.send('POINTED_SHAPE', inputs.pointerDown(this.fakePoint(options), 'canvas'))
+
+    return this
+  }
+
+  /**
+   * Stop clicking a shape.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.stopClickingCanvas()
+   *```
+   */
+  stopClickingCanvas(options: PointerOptions = {}): TLDrawTestState {
+    this.state.send('RELEASED_SHAPE', inputs.pointerUp(this.fakePoint(options), 'canvas'))
+
+    return this
+  }
+
+  /**
    * Click a shape.
    *
    * ### Example
@@ -127,51 +174,37 @@ export class TLDrawTestState extends TLDrawState {
 
     this.state
       .send('POINTED_SHAPE', inputs.pointerDown(this.fakePoint({ x, y, ...options }), id))
-      .send('STOPPED_POINTING', inputs.pointerUp(this.fakePoint({ x, y, ...options }), id))
+      .send('RELEASED_SHAPE', inputs.pointerUp(this.fakePoint({ x, y, ...options }), id))
 
     return this
   }
 
   /**
-   * Start a click (but do not stop it).
+   * Start clicking a shape.
    *
    * ### Example
    *
    *```ts
-   * tt.startClick("myShapeId")
+   * tt.startClickingShape(id)
    *```
    */
-  startClick(id: string, options: PointerOptions = {}): TLDrawTestState {
-    const shape = TLD.getShape(this.state.data, id)
-    const [x, y] = shape ? Vec.add(shape.point, [1, 1]) : [0, 0]
-
-    if (id === 'canvas') {
-      this.state.send(
-        'POINTED_CANVAS',
-        inputs.pointerDown(this.fakePoint({ x, y, ...options }), id),
-      )
-      return this
-    }
-
-    this.state.send('POINTED_SHAPE', inputs.pointerDown(this.fakePoint({ x, y, ...options }), id))
+  startClickingShape(id: string, options: PointerOptions = {}): TLDrawTestState {
+    this.state.send('POINTED_SHAPE', inputs.pointerDown(this.fakePoint(options), id))
 
     return this
   }
 
   /**
-   * Stop a click (after starting it).
+   * Stop clicking a shape.
    *
    * ### Example
    *
    *```ts
-   * tt.stopClick("myShapeId")
+   * tt.stopClickingBounds(id)
    *```
    */
-  stopClick(id: string, options: PointerOptions = {}): TLDrawTestState {
-    const shape = TLD.getShape(this.state.data, id)
-    const [x, y] = shape ? Vec.add(shape.point, [1, 1]) : [0, 0]
-
-    this.state.send('STOPPED_POINTING', inputs.pointerUp(this.fakePoint({ x, y, ...options }), id))
+  stopClickingShape(id: string, options: PointerOptions = {}): TLDrawTestState {
+    this.state.send('RELEASED_SHAPE', inputs.pointerUp(this.fakePoint(options), id))
 
     return this
   }
@@ -192,23 +225,6 @@ export class TLDrawTestState extends TLDrawState {
     this.state
       .send('DOUBLE_POINTED_SHAPE', inputs.pointerDown(this.fakePoint({ x, y, ...options }), id))
       .send('STOPPED_POINTING', inputs.pointerUp(this.fakePoint({ x, y, ...options }), id))
-
-    return this
-  }
-
-  /**
-   * Click the canvas.
-   *
-   * ### Example
-   *
-   *```ts
-   * tt.clickCanvas("myShapeId")
-   *```
-   */
-  clickCanvas(options: PointerOptions = {}): TLDrawTestState {
-    this.state
-      .send('POINTED_CANVAS', inputs.pointerDown(this.fakePoint(options), 'canvas'))
-      .send('STOPPED_POINTING', inputs.pointerUp(this.fakePoint(options), 'canvas'))
 
     return this
   }
@@ -295,11 +311,17 @@ export class TLDrawTestState extends TLDrawState {
   ): TLDrawTestState {
     if (Array.isArray(to[0])) {
       ;(to as number[][]).forEach(([x, y]) => {
-        this.state.send('MOVED_POINTER', inputs.pointerMove(this.fakePoint({ x, y, ...options })))
+        this.state.send(
+          'MOVED_POINTER',
+          inputs.pointerMove(this.fakePoint({ x, y, ...options }), 'canvas'),
+        )
       })
     } else {
       const [x, y] = to as number[]
-      this.state.send('MOVED_POINTER', inputs.pointerMove(this.fakePoint({ x, y, ...options })))
+      this.state.send(
+        'MOVED_POINTER',
+        inputs.pointerMove(this.fakePoint({ x, y, ...options }), 'canvas'),
+      )
     }
 
     return this
@@ -327,7 +349,7 @@ export class TLDrawTestState extends TLDrawState {
 
         this.state.send(
           'MOVED_POINTER',
-          inputs.pointerMove(this.fakePoint({ x: pt[0], y: pt[1], ...options })),
+          inputs.pointerMove(this.fakePoint({ x: pt[0], y: pt[1], ...options }), 'canvas'),
         )
       })
     } else {
@@ -335,7 +357,7 @@ export class TLDrawTestState extends TLDrawState {
 
       this.state.send(
         'MOVED_POINTER',
-        inputs.pointerMove(this.fakePoint({ x: pt[0], y: pt[1], ...options })),
+        inputs.pointerMove(this.fakePoint({ x: pt[0], y: pt[1], ...options }), 'canvas'),
       )
     }
 

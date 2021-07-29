@@ -1,117 +1,91 @@
-import React from 'react'
+import * as React from 'react'
 import { inputs } from '../../inputs'
-import { Vec } from '../../utils'
 import { useTLContext } from './useTLContext'
 
-export function useShapeEvents(
-  id: string,
-  isCurrentParent: boolean,
-  rGroup: React.RefObject<SVGElement>,
-) {
+export function useShapeEvents(id: string, disable = false) {
   const { callbacks } = useTLContext()
 
-  const handlePointerDown = React.useCallback(
+  const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
-      if (isCurrentParent) return
-      if (!inputs.canAccept(e.pointerId)) return
+      if (disable) return
       e.stopPropagation()
-
-      rGroup.current?.setPointerCapture(e.pointerId)
+      e.currentTarget?.setPointerCapture(e.pointerId)
 
       const info = inputs.pointerDown(e, id)
+      callbacks.onPointShape?.(info)
+    },
+    [callbacks, id, disable],
+  )
 
-      if (e.button === 0) {
-        if (inputs.isDoubleClick() && !(info.altKey || info.metaKey)) {
+  const onPointerUp = React.useCallback(
+    (e: React.PointerEvent) => {
+      if (disable) return
+      e.stopPropagation()
+      const isDoubleClick = inputs.isDoubleClick()
+      const info = inputs.pointerUp(e, id)
+
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget?.releasePointerCapture(e.pointerId)
+
+        if (isDoubleClick && !(info.altKey || info.metaKey)) {
           callbacks.onDoublePointShape?.(info)
         }
 
-        callbacks.onPointShape?.(info)
-      } else {
-        callbacks.onRightPointShape?.(info)
+        callbacks.onReleaseShape?.(info)
       }
-    },
-    [rGroup, callbacks, id, isCurrentParent],
-  )
-
-  const handlePointerUp = React.useCallback(
-    (e: React.PointerEvent) => {
-      if (isCurrentParent) return
-      if (!inputs.canAccept(e.pointerId)) return
-      e.stopPropagation()
-
-      rGroup.current?.releasePointerCapture(e.pointerId)
-
-      const info = inputs.pointerDown(e, id)
-
       callbacks.onStopPointing?.(info)
     },
-    [rGroup, callbacks, id, isCurrentParent],
+    [callbacks, id, disable],
   )
 
-  const handlePointerEnter = React.useCallback(
+  const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
-      if (isCurrentParent) return
-      if (!inputs.canAccept(e.pointerId)) return
-      e.stopPropagation()
+      if (disable) return
 
-      callbacks.onHoverShape?.(inputs.pointerEnter(e, id))
-    },
-    [callbacks, id, isCurrentParent],
-  )
-
-  const handlePointerMove = React.useCallback(
-    (e: React.PointerEvent) => {
-      if (!inputs.canAccept(e.pointerId)) return
-
-      const prev = inputs.pointer?.point
-      const info = inputs.pointerMove(e)
-
-      if (prev && inputs.keys[' '] && e.buttons === 1) {
-        if (!e.currentTarget.hasPointerCapture(e.pointerId)) {
-          e.currentTarget.setPointerCapture(e.pointerId)
-        }
-
-        const delta = Vec.sub(prev, info.point)
-
-        callbacks.onPan?.({ ...info, delta })
-        return
+      e.preventDefault()
+      const info = inputs.pointerMove(e, id)
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        callbacks.onDragShape?.(info)
+      } else {
+        callbacks.onPointerMove?.(info)
       }
-
-      if (isCurrentParent) return
-
-      callbacks.onMoveOverShape?.(inputs.pointerEnter(e, id))
     },
-    [callbacks, id, isCurrentParent],
+    [callbacks, id, disable],
   )
 
-  const handlePointerLeave = React.useCallback(
+  const onPointerEnter = React.useCallback(
     (e: React.PointerEvent) => {
-      if (isCurrentParent) return
-      if (!inputs.canAccept(e.pointerId)) return
-      e.stopPropagation()
-
-      setTimeout(() => {
-        callbacks.onUnhoverShape?.(inputs.pointerEnter(e, id))
-      }, 0)
+      if (disable) return
+      const info = inputs.pointerEnter(e, id)
+      callbacks.onHoverShape?.(info)
     },
-    [callbacks, id, isCurrentParent],
+    [callbacks, id, disable],
   )
 
-  const handleTouchStart = React.useCallback((e: React.TouchEvent) => {
+  const onPointerLeave = React.useCallback(
+    (e: React.PointerEvent) => {
+      if (disable) return
+      const info = inputs.pointerEnter(e, id)
+      callbacks.onUnhoverShape?.(info)
+    },
+    [callbacks, id, disable],
+  )
+
+  const onTouchStart = React.useCallback((e: React.TouchEvent) => {
     e.preventDefault()
   }, [])
 
-  const handleTouchEnd = React.useCallback((e: React.TouchEvent) => {
+  const onTouchEnd = React.useCallback((e: React.TouchEvent) => {
     e.preventDefault()
   }, [])
 
   return {
-    onPointerDown: handlePointerDown,
-    onPointerUp: handlePointerUp,
-    onPointerEnter: handlePointerEnter,
-    onPointerMove: handlePointerMove,
-    onPointerLeave: handlePointerLeave,
-    onTouchStart: handleTouchStart,
-    onTouchEnd: handleTouchEnd,
+    onPointerDown,
+    onPointerUp,
+    onPointerEnter,
+    onPointerMove,
+    onPointerLeave,
+    onTouchStart,
+    onTouchEnd,
   }
 }

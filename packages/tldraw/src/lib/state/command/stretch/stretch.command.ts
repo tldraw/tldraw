@@ -15,7 +15,7 @@ export function stretch(data: Data, type: StretchType) {
     }
   })
 
-  const commonBounds = Utils.getCommonBounds(...boundsForShapes.map(({ bounds }) => bounds))
+  const commonBounds = Utils.getCommonBounds(boundsForShapes.map(({ bounds }) => bounds))
 
   const shapesToTranslate = boundsForShapes.map(({ id, shape, bounds }) => {
     switch (type) {

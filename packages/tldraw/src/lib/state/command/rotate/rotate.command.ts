@@ -21,7 +21,7 @@ export function rotate(data: Data, delta = -PI2 / 4) {
     }
   })
 
-  const commonBounds = Utils.getCommonBounds(...boundsForShapes.map(({ bounds }) => bounds))
+  const commonBounds = Utils.getCommonBounds(boundsForShapes.map(({ bounds }) => bounds))
   const commonBoundsCenter = Utils.getBoundsCenter(commonBounds)
 
   const shapesToRotate = boundsForShapes.map(({ id, point, center, rotation = 0 }) => {

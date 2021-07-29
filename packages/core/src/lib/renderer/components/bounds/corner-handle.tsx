@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useBoundsEvents } from '../../hooks'
+import { useBoundsHandleEvents } from '../../hooks'
 import { TLBoundsCorner, TLBounds } from '../../../types'
 
 const cornerBgClassnames = {
@@ -19,7 +19,7 @@ export const CornerHandle = React.memo(
     bounds: TLBounds
     corner: TLBoundsCorner
   }): JSX.Element => {
-    const events = useBoundsEvents(corner)
+    const events = useBoundsHandleEvents(corner)
 
     const isTop = corner === TLBoundsCorner.TopLeft || corner === TLBoundsCorner.TopRight
     const isLeft = corner === TLBoundsCorner.TopLeft || corner === TLBoundsCorner.BottomLeft

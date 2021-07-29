@@ -43,6 +43,7 @@ export function Brush({ brush }: BrushProps): JSX.Element | null {
       y={brush?.minY || 0}
       width={brush?.width || 0}
       height={brush?.height || 0}
+      pointerEvents="none"
     />
   )
 }
