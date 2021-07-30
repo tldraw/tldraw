@@ -1320,7 +1320,7 @@ export class TLDrawState {
   }
 
   fastTransform: TLPointerEventHandler = (info) => {
-    if (!this.state.isIn('transformingSelection')) {
+    if (!this.isInAny('transformingSelection', `${TLDrawToolType.Bounds}.active`)) {
       this.send('DRAGGED_BOUNDS', info)
       return
     }

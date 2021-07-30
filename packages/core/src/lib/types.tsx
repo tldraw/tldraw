@@ -270,8 +270,6 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return [bounds.width / 2, bounds.height / 2]
   }
 
-  // Mutations
-
   create(props: Partial<T>): T {
     return { ...this.defaultProps, ...props }
   }
