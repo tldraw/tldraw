@@ -655,7 +655,7 @@ export class TLDrawState {
           id: Utils.uniqueId(),
           parentId: data.page.id,
           childIndex: TLD.getTopChildIndex(data, data.page) + 1,
-          point: Vec.round(payload.point),
+          point: Vec.round(TLD.screenToWorld(data, payload.point)),
           style: { ...data.appState.currentStyle },
         })
 
