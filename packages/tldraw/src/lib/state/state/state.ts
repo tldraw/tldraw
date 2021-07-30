@@ -33,6 +33,7 @@ import { History } from '../history'
 import {
   BrushSession,
   DrawSession,
+  RotateSession,
   Session,
   TransformSession,
   TransformSingleSession,
@@ -254,9 +255,7 @@ export class TLDrawState {
                         do: 'clearCurrentParentId',
                       },
                       POINTED_BOUNDS_HANDLE: {
-                        if: 'isPointingRotationHandle',
-                        to: 'rotatingSelection',
-                        else: { to: 'transformingSelection' },
+                        to: 'transformingSelection',
                       },
                       POINTED_BOUNDS: {
                         if: 'isPressingMetaKey',
@@ -749,20 +748,22 @@ export class TLDrawState {
         )
       },
 
-      // Transform Session
+      // Transform / Rotate Session
       startTransformSession: (
         data,
-        payload: TLPointerInfo & { target: TLBoundsCorner | TLBoundsEdge },
+        payload: TLPointerInfo & { target: TLBoundsCorner | TLBoundsEdge | 'rotate' },
       ) => {
         const point = TLD.screenToWorld(data, payload.origin)
         this.session.begin(
-          data.pageState.selectedIds.length === 1
+          payload.target === 'rotate'
+            ? new RotateSession(data, point)
+            : data.pageState.selectedIds.length === 1
             ? new TransformSingleSession(data, point, payload.target)
             : new TransformSession(data, point, payload.target),
         )
       },
       updateTransformSession: (data, payload: TLPointerInfo) => {
-        this.session.update<TransformSession>(
+        this.session.update<TransformSession | RotateSession>(
           data,
           TLD.screenToWorld(data, payload.point),
           payload.shiftKey,
@@ -1319,6 +1320,11 @@ export class TLDrawState {
       return
     }
 
+    if (info.target === 'rotate') {
+      this.fastRotate(info)
+      return
+    }
+
     const data = { ...this.data }
 
     this.session.update<TransformSession | TranslateSession>(
@@ -1348,6 +1354,18 @@ export class TLDrawState {
 
     this.fastUpdate({ ...this.data, page: { ...data.page } })
   }
+
+  fastRotate: TLPointerEventHandler = (info) => {
+    const data = { ...this.data }
+
+    this.session.update<RotateSession>(data, TLD.screenToWorld(data, info.point), info.shiftKey)
+
+    data.pageState.selectedIds.forEach((id) => (data.page.shapes[id] = { ...data.page.shapes[id] }))
+
+    this.fastUpdate({ ...this.data, page: { ...data.page } })
+  }
+
+  // State machine commands
 
   send = (eventName: string, payload?: unknown) => {
     this.state.send(eventName, payload)

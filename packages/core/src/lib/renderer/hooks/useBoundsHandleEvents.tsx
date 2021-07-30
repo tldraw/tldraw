@@ -39,7 +39,7 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
-      e.preventDefault()
+      e.stopPropagation()
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         callbacks.onDragBoundsHandle?.(inputs.pointerMove(e, id))
       } else {

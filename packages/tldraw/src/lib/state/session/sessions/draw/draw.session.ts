@@ -1,9 +1,8 @@
 import { BaseSession } from '../session-types'
 import { Data } from '../../../../types'
-import * as commands from '../../../command'
 import { TLD } from '../../../tld'
 import { Utils, Vec } from '@tldraw/core'
-import { DrawShape } from 'packages/tldraw/src/lib/shape'
+import { DrawShape } from '../../../../shape'
 
 export class DrawSession implements BaseSession {
   origin: number[]
