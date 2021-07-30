@@ -18,8 +18,7 @@ export class TranslateSession implements BaseSession {
   }
 
   update(data: Data, point: number[], isAligned = false, isCloning = false): void {
-    const { clones, initialShapes, initialParents } = this.snapshot
-    const { shapes } = data.page
+    const { clones, initialShapes } = this.snapshot
 
     const delta = Vec.sub(point, this.origin)
 
@@ -36,86 +35,70 @@ export class TranslateSession implements BaseSession {
     this.delta = delta
     this.prev = delta
 
-    // Not Cloning -> Not Cloning
+    // If cloning...
     if (isCloning) {
+      // Not Cloning -> Cloning
       if (!this.isCloning) {
         this.isCloning = true
 
         // Move original shapes back to start
         for (const { id, point } of initialShapes) {
-          const shape = shapes[id]
-          TLD.mutate(data, shape, { point })
+          TLD.mutate(data, data.page.shapes[id], { point })
         }
 
-        for (const clone of clones) {
-          shapes[clone.id] = { ...clone, point: [...clone.point] }
+        TLD.createShapes(
+          data,
+          clones.map((clone) => ({ ...clone, point: Vec.add([...clone.point], delta) })),
+        )
 
-          const shape = shapes[clone.id]
-
-          TLD.mutate(data, shape, { point: Vec.add(shape.point, delta) })
-
-          shapes[clone.id] = { ...shape }
-
-          const parent = shapes[shape.parentId]
-
-          if (!(parent && parent.children)) continue
-
-          TLD.mutate(data, parent, {
-            children: [...parent.children, shape.id],
-          })
-        }
+        TLD.setSelectedIds(
+          data,
+          clones.map((c) => c.id),
+        )
       }
 
+      // Either way, move the clones
       for (const { id } of clones) {
-        const shape = shapes[id]
-
+        const shape = data.page.shapes[id]
         TLD.mutate(data, shape, { point: Vec.add(shape.point, trueDelta) })
-
-        shapes[id] = { ...shape }
       }
-
-      data.pageState.selectedIds = clones.map((c) => c.id)
-
-      const ids = clones.map((s) => s.id)
-      TLD.updateBindings(data, ids)
-      TLD.updateParents(data, ids)
-
       return
     }
+
+    // If not cloning...
 
     // Cloning -> Not Cloning
     if (this.isCloning) {
       this.isCloning = false
 
-      data.pageState.selectedIds = initialShapes.map((c) => c.id)
+      // Delete the clones
+      TLD.deleteShapes(
+        data,
+        clones.map((clone) => data.page.shapes[clone.id]),
+      )
 
-      for (const clone of clones) {
-        delete shapes[clone.id]
-      }
-
+      // Move the original shapes back to the cursor position
       for (const initialShape of initialShapes) {
         TLD.getDocumentBranch(data, initialShape.id).forEach((id) => {
-          const shape = shapes[id]
+          const shape = data.page.shapes[id]
           TLD.mutate(data, shape, { point: Vec.add(shape.point, delta) })
         })
       }
 
-      initialParents.forEach((parent) => {
-        const shape = shapes[parent.id]
-        shapes[parent.id] = { ...shape, children: parent.children }
-      })
-    } else {
-      for (const initialShape of initialShapes) {
-        TLD.getDocumentBranch(data, initialShape.id).forEach((id) => {
-          const shape = shapes[id]
-          TLD.mutate(data, shape, { point: Vec.add(shape.point, trueDelta) })
-        })
-      }
+      // Set selected ids
+      TLD.setSelectedIds(
+        data,
+        initialShapes.map((c) => c.id),
+      )
     }
 
-    const ids = initialShapes.map((s) => s.id)
-    TLD.updateBindings(data, ids)
-    TLD.updateParents(data, ids)
+    // Move the shapes by the delta
+    TLD.getSelectedIds(data).forEach((id) => {
+      TLD.getDocumentBranch(data, id).forEach((id) => {
+        const shape = data.page.shapes[id]
+        TLD.mutate(data, shape, { point: Vec.add(shape.point, trueDelta) })
+      })
+    })
   }
 
   cancel(data: Data): void {

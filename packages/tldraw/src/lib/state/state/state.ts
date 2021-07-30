@@ -17,6 +17,7 @@ import {
   Utils,
   MoveType,
   TLPointerEventHandler,
+  inputs,
 } from '@tldraw/core'
 import { Data, TLDrawDocument } from '../../types'
 import {
@@ -742,7 +743,7 @@ export class TLDrawState {
       updateTranslateSession: (data, payload: TLPointerInfo | TLKeyboardInfo) => {
         this.session.update<TranslateSession>(
           data,
-          TLD.screenToWorld(data, payload.point),
+          TLD.screenToWorld(data, payload?.point || inputs.pointer?.point),
           payload.shiftKey,
           payload.altKey,
         )

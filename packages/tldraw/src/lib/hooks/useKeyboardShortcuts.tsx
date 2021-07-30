@@ -1,8 +1,44 @@
-import { MoveType } from '@tldraw/core'
+import { inputs, MoveType } from '@tldraw/core'
 import React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { TLDrawShapeType } from '../shape'
 import { state } from '../state'
+
+function handleKeyDown(e: KeyboardEvent) {
+  const info = inputs.keydown(e)
+  switch (e.key) {
+    case 'Alt': {
+      state.send('PRESSED_ALT_KEY', info)
+      break
+    }
+    case 'Option': {
+      state.send('PRESSED_ALT_KEY', info)
+      break
+    }
+    case 'Shift': {
+      state.send('PRESSED_SHIFT_KEY', info)
+      break
+    }
+  }
+}
+
+function handleKeyUp(e: KeyboardEvent) {
+  const info = inputs.keyup(e)
+  switch (e.key) {
+    case 'Alt': {
+      state.send('RELEASED_ALT_KEY', info)
+      break
+    }
+    case 'Option': {
+      state.send('RELEASED_ALT_KEY', info)
+      break
+    }
+    case 'Shift': {
+      state.send('RELEASED_SHIFT_KEY', info)
+      break
+    }
+  }
+}
 
 export function useKeyboardShortcuts() {
   useHotkeys('command+z', (e) => {
@@ -145,21 +181,12 @@ export function useKeyboardShortcuts() {
     e.preventDefault()
   })
 
-  // function handleKeyDown(e: KeyboardEvent) {
-  //   switch (e.key) {
-  //     case '‘': {
-  //       e.preventDefault()
-  //       break
-  //     }
-  //     case '“': {
-  //       e.preventDefault()
-  //       break
-  //     }
-  //   }
-  // }
-
-  // React.useEffect(() => {
-  //   window.addEventListener('keydown', handleKeyDown)
-  //   return () => window.removeEventListener('keydown', handleKeyDown)
-  // }, [])
+  React.useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
 }
