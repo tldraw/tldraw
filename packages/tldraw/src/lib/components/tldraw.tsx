@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
-import { Renderer, TLCallbacks, Utils } from '@tldraw/core'
+import { Renderer, TLCallbacks, TLTheme, Utils } from '@tldraw/core'
 import { tldrawShapeUtils } from '../shape'
 import { OnChangeCallback, state, TLDrawState, useSelector } from '../state'
 import { TLDrawDocument } from '../types'
@@ -239,5 +239,7 @@ const Layout = styled('main', {
 
   '& .tl-container': {
     position: 'absolute',
+    top: 0,
+    left: 0,
   },
 })
