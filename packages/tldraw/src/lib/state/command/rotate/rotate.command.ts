@@ -1,5 +1,4 @@
 import { Utils, Vec } from '@tldraw/core'
-import { getShapeUtils } from '../../../shape'
 import { Data } from '../../../types'
 import { TLD } from '../../tld'
 import { Command } from '../command'
@@ -47,8 +46,7 @@ export function rotate(data: Data, delta = -PI2 / 4) {
 
       for (const { id, next } of shapesToRotate) {
         const shape = shapes[id]
-
-        getShapeUtils(shape).mutate(shape, { ...next })
+        TLD.mutate(data, shape, next)
       }
 
       data.pageState.boundsRotation = nextboundsRotation
@@ -61,8 +59,7 @@ export function rotate(data: Data, delta = -PI2 / 4) {
 
       for (const { id, prev } of shapesToRotate) {
         const shape = shapes[id]
-
-        getShapeUtils(shape).mutate(shape, { ...prev })
+        TLD.mutate(data, shape, prev)
       }
 
       data.pageState.boundsRotation = prevBoundsRotation

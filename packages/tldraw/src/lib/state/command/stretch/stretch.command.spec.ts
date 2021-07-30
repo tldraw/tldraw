@@ -1,7 +1,7 @@
 import { StretchType, Utils } from '@tldraw/core'
 import { mockData } from '../../../../specs/__mocks__/mock-data'
 import { RectangleShape } from '../../../shape'
-import { state } from '../../state'
+import { TLD } from '../../tld'
 import { stretch } from './stretch.command'
 
 describe('Stretch command', () => {
@@ -11,56 +11,44 @@ describe('Stretch command', () => {
   it('does, undoes and redoes command', () => {
     const tdata = Utils.deepClone(data)
 
-    const rect1 = tdata.page.shapes['rect1'] as RectangleShape
-    const rect2 = tdata.page.shapes['rect2'] as RectangleShape
+    const command = stretch(tdata, StretchType.Horizontal)
 
-    state.history.execute(tdata, stretch(tdata, StretchType.Horizontal))
+    command.redo(tdata)
 
-    expect(rect1.point).toEqual([0, 0])
-    expect(rect1.size).toEqual([200, 100])
-    expect(rect2.point).toEqual([0, 100])
-    expect(rect2.size).toEqual([200, 100])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').point).toStrictEqual([0, 0])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').size).toStrictEqual([200, 100])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').point).toStrictEqual([0, 100])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').size).toStrictEqual([200, 100])
 
-    state.history.undo(tdata)
+    command.undo(tdata)
 
-    expect(rect1.point).toEqual([0, 0])
-    expect(rect1.size).toEqual([100, 100])
-    expect(rect2.point).toEqual([100, 100])
-    expect(rect2.size).toEqual([100, 100])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').point).toStrictEqual([0, 0])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').size).toStrictEqual([100, 100])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').point).toStrictEqual([100, 100])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').size).toStrictEqual([100, 100])
 
-    state.history.redo(tdata)
-
-    expect(rect1.point).toEqual([0, 0])
-    expect(rect1.size).toEqual([200, 100])
-    expect(rect2.point).toEqual([0, 100])
-    expect(rect2.size).toEqual([200, 100])
+    command.redo(tdata)
   })
 
   it('stretches horizontal', () => {
     const tdata = Utils.deepClone(data)
 
-    const rect1 = tdata.page.shapes['rect1'] as RectangleShape
-    const rect2 = tdata.page.shapes['rect2'] as RectangleShape
+    stretch(tdata, StretchType.Horizontal).redo(tdata)
 
-    state.history.execute(tdata, stretch(tdata, StretchType.Horizontal))
-
-    expect(rect1.point).toEqual([0, 0])
-    expect(rect1.size).toEqual([200, 100])
-    expect(rect2.point).toEqual([0, 100])
-    expect(rect2.size).toEqual([200, 100])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').point).toStrictEqual([0, 0])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').size).toStrictEqual([200, 100])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').point).toStrictEqual([0, 100])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').size).toStrictEqual([200, 100])
   })
 
   it('stretches vertical', () => {
     const tdata = Utils.deepClone(data)
 
-    const rect1 = tdata.page.shapes['rect1'] as RectangleShape
-    const rect2 = tdata.page.shapes['rect2'] as RectangleShape
+    stretch(tdata, StretchType.Vertical).redo(tdata)
 
-    state.history.execute(tdata, stretch(tdata, StretchType.Vertical))
-
-    expect(rect1.point).toEqual([0, 0])
-    expect(rect1.size).toEqual([100, 200])
-    expect(rect2.point).toEqual([100, 0])
-    expect(rect2.size).toEqual([100, 200])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').point).toStrictEqual([0, 0])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').size).toStrictEqual([100, 200])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').point).toStrictEqual([100, 0])
+    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').size).toStrictEqual([100, 200])
   })
 })

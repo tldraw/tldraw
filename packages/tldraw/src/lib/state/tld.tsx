@@ -1,11 +1,84 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 // Static utilities that operate on the state machine's data object
 
-import { TLBinding, TLBounds, TLPage, Utils, Vec } from '@tldraw/core'
+import { TLBinding, TLBounds, TLPage, TLTransformInfo, Utils, Vec } from '@tldraw/core'
 import { getShapeUtils, TLDrawShape, TLDrawShapeUtil } from '../shape'
 import { Data } from '../types'
 
 export class TLD {
+  static mutate<T extends TLDrawShape>(data: Data, shape: T, props: Partial<T>) {
+    let next = getShapeUtils(shape).mutate(shape, props)
+
+    if ('children' in props) {
+      next = TLD.onChildrenChange(data, next)
+    }
+
+    this.updateBindings(data, [next.id])
+
+    this.updateParents(data, [next.id])
+
+    data.page.shapes[next.id] = next
+
+    return next
+  }
+
+  static onSessionComplete<T extends TLDrawShape>(data: Data, shape: T) {
+    const delta = getShapeUtils(shape).onSessionComplete(shape)
+    if (!delta) return shape
+    return this.mutate(data, shape, delta)
+  }
+
+  static onChildrenChange<T extends TLDrawShape>(data: Data, shape: T) {
+    const delta = getShapeUtils(shape).onChildrenChange(
+      shape,
+      shape.children.map((id) => data.page.shapes[id]),
+    )
+    if (!delta) return shape
+    return this.mutate(data, shape, delta)
+  }
+
+  static onBindingChange<T extends TLDrawShape>(
+    data: Data,
+    shape: T,
+    binding: TLBinding,
+    otherShape: TLDrawShape,
+  ) {
+    const delta = getShapeUtils(shape).onBindingChange(
+      shape,
+      binding,
+      otherShape,
+      getShapeUtils(otherShape).getBounds(otherShape),
+    )
+    if (!delta) return shape
+    return this.mutate(data, shape, delta)
+  }
+
+  static transform<T extends TLDrawShape>(
+    data: Data,
+    shape: T,
+    bounds: TLBounds,
+    info: TLTransformInfo<T>,
+  ) {
+    return this.mutate(data, shape, getShapeUtils(shape).transform(shape, bounds, info))
+  }
+
+  static transformSingle<T extends TLDrawShape>(
+    data: Data,
+    shape: T,
+    bounds: TLBounds,
+    info: TLTransformInfo<T>,
+  ) {
+    return this.mutate(data, shape, getShapeUtils(shape).transformSingle(shape, bounds, info))
+  }
+
+  static getBounds<T extends TLDrawShape>(shape: T) {
+    return getShapeUtils(shape).getBounds(shape)
+  }
+
+  static getRotatedBounds<T extends TLDrawShape>(shape: T) {
+    return getShapeUtils(shape).getRotatedBounds(shape)
+  }
+
   static getSelectedBounds(data: Data): TLBounds {
     return Utils.getCommonBounds(
       this.getSelectedShapes(data).map((shape) => getShapeUtils(shape).getBounds(shape)),
@@ -135,7 +208,7 @@ export class TLD {
     let nextIndex = (shape.childIndex + nextSibling.childIndex) / 2
 
     if (nextIndex === nextSibling.childIndex) {
-      this.forceIntegerChildIndices(siblings)
+      this.forceIntegerChildIndices(data, siblings)
       nextIndex = (shape.childIndex + nextSibling.childIndex) / 2
     }
 
@@ -176,10 +249,9 @@ export class TLD {
   }
 
   // Force all shapes on the page to have integer child indices.
-  static forceIntegerChildIndices(shapes: TLDrawShape[]): void {
+  static forceIntegerChildIndices(data: Data, shapes: TLDrawShape[]): void {
     for (let i = 0; i < shapes.length; i++) {
-      const shape = shapes[i]
-      this.getShapeUtils(shape).setProperty(shape, 'childIndex', i + 1)
+      this.mutate(data, shapes[i], { childIndex: i + 1 })
     }
   }
 
@@ -199,12 +271,7 @@ export class TLD {
         throw Error('A shape is parented to a shape without a children array.')
       }
 
-      this.getShapeUtils(parent).onChildrenChange(
-        parent,
-        parent.children.map((id) => shapes[id]),
-      )
-
-      shapes[parentId] = { ...parent }
+      TLD.onChildrenChange(data, parent)
     }
 
     this.updateParents(data, parentToUpdateIds)
@@ -239,16 +306,11 @@ export class TLD {
 
       const parent = page.shapes[shape.parentId]
 
-      getShapeUtils(parent)
-        .setProperty(
-          parent,
-          'children',
-          parent.children.includes(shape.id) ? parent.children : [...parent.children, shape.id],
-        )
-        .onChildrenChange(
-          parent,
-          parent.children.map((id) => page.shapes[id]),
-        )
+      this.mutate(data, parent, {
+        children: parent.children.includes(shape.id)
+          ? parent.children
+          : [...parent.children, shape.id],
+      })
     })
   }
 
@@ -302,16 +364,10 @@ export class TLD {
       const utils = getShapeUtils(parent)
 
       // Remove deleted ids from the parent's children and update the parent
-      utils
-        .setProperty(
-          parent,
-          'children',
-          parent.children.filter((childId) => !ids.includes(childId)),
-        )
-        .onChildrenChange(
-          parent,
-          parent.children.map((id) => page.shapes[id]),
-        )
+
+      this.mutate(data, parent, {
+        children: parent.children.filter((childId) => !ids.includes(childId)),
+      })
 
       if (utils.shouldDelete(parent)) {
         // If the parent decides it should delete, then we need to reparent
@@ -327,9 +383,10 @@ export class TLD {
         parent.children.forEach((childId, i) => {
           const child = this.getShape(data, childId)
 
-          getShapeUtils(child)
-            .setProperty(child, 'parentId', parent.parentId)
-            .setProperty(child, 'childIndex', Utils.lerp(parent.childIndex, nextIndex, i / len))
+          this.mutate(data, child, {
+            parentId: parent.parentId,
+            childIndex: Utils.lerp(parent.childIndex, nextIndex, i / len),
+          })
         })
 
         if (parent.parentId !== page.id) {
@@ -339,17 +396,18 @@ export class TLD {
           // TODO: Consider adding explicit children array to page shapes.
           const grandParent = page.shapes[parent.parentId]
 
-          getShapeUtils(grandParent)
-            .setProperty(grandParent, 'children', [...parent.children])
-            .onChildrenChange(
-              grandParent,
-              grandParent.children.map((id) => page.shapes[id]),
-            )
+          this.mutate(data, grandParent, {
+            children: [...parent.children],
+          })
         }
 
         // Empty the parent's children array and delete the parent on the next
         // iteration step.
-        getShapeUtils(parent).setProperty(parent, 'children', [])
+
+        this.mutate(data, parent, {
+          children: [],
+        })
+
         parentsToDelete.push(parent.id)
       }
     })
@@ -555,9 +613,7 @@ export class TLD {
             ? this.getShape(data, binding.fromId)
             : this.getShape(data, binding.toId)
 
-        const otherBounds = getShapeUtils(otherShape).getBounds(otherShape)
-
-        getShapeUtils(shape).onBindingChange(shape, binding, otherShape, otherBounds)
+        TLD.onBindingChange(data, shape, binding, otherShape)
       })
     })
   }

@@ -164,20 +164,25 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
     bounds: TLBounds,
     { scaleX, scaleY, initialShape }: TLTransformInfo<EllipseShape>,
   ) {
-    shape.point = [bounds.minX, bounds.minY]
-    shape.radius = [bounds.width / 2, bounds.height / 2]
     const { rotation = 0 } = initialShape
 
-    shape.rotation =
-      (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0) ? -(rotation || 0) : rotation || 0
-
-    return this
+    return {
+      ...shape,
+      point: [bounds.minX, bounds.minY],
+      radius: [bounds.width / 2, bounds.height / 2],
+      rotation:
+        (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0)
+          ? -(rotation || 0)
+          : rotation || 0,
+    }
   }
 
   transformSingle(shape: EllipseShape, bounds: TLBounds) {
-    shape.point = Vec.round([bounds.minX, bounds.minY])
-    shape.radius = Vec.div([bounds.width, bounds.height], 2)
-    return this
+    return {
+      ...shape,
+      point: Vec.round([bounds.minX, bounds.minY]),
+      radius: Vec.div([bounds.width, bounds.height], 2),
+    }
   }
 }
 

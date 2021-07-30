@@ -1,4 +1,4 @@
-import { getShapeUtils, PropsOfType, TLDrawShape } from '../../../shape'
+import { PropsOfType, TLDrawShape } from '../../../shape'
 import { Data } from '../../../types'
 import { TLD } from '../../tld'
 import { Command } from '../command'
@@ -26,24 +26,16 @@ export function toggle(data: Data, prop: PropsOfType<TLDrawShape, boolean>) {
 
       for (const { id, next } of shapesToToggle) {
         const shape = shapes[id]
-
-        getShapeUtils(shape).mutate(shape, { ...next })
+        TLD.mutate(data, shape, { ...next })
       }
-
-      TLD.updateBindings(data, ids)
-      TLD.updateParents(data, ids)
     },
     undo(data) {
       const { shapes } = data.page
 
       for (const { id, prev } of shapesToToggle) {
         const shape = shapes[id]
-
-        getShapeUtils(shape).mutate(shape, { ...prev })
+        TLD.mutate(data, shape, { ...prev })
       }
-
-      TLD.updateBindings(data, ids)
-      TLD.updateParents(data, ids)
     },
   })
 }

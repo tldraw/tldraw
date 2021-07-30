@@ -39,7 +39,7 @@ const callbacks: TLCallbacks = {
   onRightPointCanvas(info) {
     state.send('RIGHT_POINTED_CANVAS', info)
   },
-  onDragCanvas: state.fastBrush,
+  onDragCanvas: state.fastPointerMove,
   onReleaseCanvas: (info) => {
     state.send('RELEASED_CANVAS', info)
   },

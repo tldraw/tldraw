@@ -1,7 +1,7 @@
 import { Vec, Utils } from '@tldraw/core'
 import { BaseSession } from '.././session-types'
 import { Data } from '../../../../types'
-import { getShapeUtils, TLDrawShape } from '../../../../shape'
+import { TLDrawShape } from '../../../../shape'
 import * as commands from '../../../command'
 import { TLD } from '../../../tld'
 
@@ -44,8 +44,7 @@ export class TranslateSession implements BaseSession {
         // Move original shapes back to start
         for (const { id, point } of initialShapes) {
           const shape = shapes[id]
-          getShapeUtils(shape).translateTo(shape, point)
-          shapes[shape.id] = { ...shape }
+          TLD.mutate(data, shape, { point })
         }
 
         for (const clone of clones) {
@@ -53,7 +52,7 @@ export class TranslateSession implements BaseSession {
 
           const shape = shapes[clone.id]
 
-          getShapeUtils(shape).translateBy(shape, delta)
+          TLD.mutate(data, shape, { point: Vec.add(shape.point, delta) })
 
           shapes[clone.id] = { ...shape }
 
@@ -61,15 +60,17 @@ export class TranslateSession implements BaseSession {
 
           if (!(parent && parent.children)) continue
 
-          getShapeUtils(parent).setProperty(parent, 'children', [...parent.children, shape.id])
-
-          shapes[shape.parentId] = { ...parent }
+          TLD.mutate(data, parent, {
+            children: [...parent.children, shape.id],
+          })
         }
       }
 
       for (const { id } of clones) {
         const shape = shapes[id]
-        getShapeUtils(shape).translateBy(shape, trueDelta)
+
+        TLD.mutate(data, shape, { point: Vec.add(shape.point, trueDelta) })
+
         shapes[id] = { ...shape }
       }
 
@@ -95,8 +96,7 @@ export class TranslateSession implements BaseSession {
       for (const initialShape of initialShapes) {
         TLD.getDocumentBranch(data, initialShape.id).forEach((id) => {
           const shape = shapes[id]
-          getShapeUtils(shape).translateBy(shape, delta)
-          shapes[id] = { ...shape }
+          TLD.mutate(data, shape, { point: Vec.add(shape.point, delta) })
         })
       }
 
@@ -108,10 +108,7 @@ export class TranslateSession implements BaseSession {
       for (const initialShape of initialShapes) {
         TLD.getDocumentBranch(data, initialShape.id).forEach((id) => {
           const shape = shapes[id]
-
-          getShapeUtils(shape).translateBy(shape, trueDelta)
-
-          shapes[id] = { ...shape }
+          TLD.mutate(data, shape, { point: Vec.add(shape.point, trueDelta) })
         })
       }
     }
@@ -128,7 +125,7 @@ export class TranslateSession implements BaseSession {
     for (const { id } of initialShapes) {
       TLD.getDocumentBranch(data, id).forEach((id) => {
         const shape = shapes[id]
-        getShapeUtils(shape).translateBy(shape, Vec.neg(this.delta))
+        TLD.mutate(data, shape, { point: Vec.add(shape.point, Vec.neg(this.delta)) })
       })
     }
 
@@ -138,7 +135,7 @@ export class TranslateSession implements BaseSession {
 
     initialParents.forEach(({ id, children }) => {
       const shape = shapes[id]
-      getShapeUtils(shape).setProperty(shape, 'children', children)
+      TLD.mutate(data, shape, { children })
     })
 
     const ids = initialShapes.map((s) => s.id)

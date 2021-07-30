@@ -1,6 +1,5 @@
 import { DistributeType, Utils } from '@tldraw/core'
 import { mockData } from '../../../../specs/__mocks__/mock-data'
-import { state } from '../../state'
 import { distribute } from './distribute.command'
 
 describe('Distribute command', () => {
@@ -11,15 +10,17 @@ describe('Distribute command', () => {
   it('does, undoes and redoes command', () => {
     const tdata = Utils.deepClone(data)
 
-    state.history.execute(tdata, distribute(tdata, DistributeType.Horizontal))
+    const command = distribute(tdata, DistributeType.Horizontal)
+
+    command.redo(tdata)
 
     expect(tdata.page.shapes['rect3'].point).toEqual([50, 20])
 
-    state.history.undo(tdata)
+    command.undo(tdata)
 
     expect(tdata.page.shapes['rect3'].point).toEqual([20, 20])
 
-    state.history.redo(tdata)
+    command.redo(tdata)
 
     expect(tdata.page.shapes['rect3'].point).toEqual([50, 20])
   })
@@ -27,7 +28,7 @@ describe('Distribute command', () => {
   it('distributes vertically', () => {
     const tdata = Utils.deepClone(data)
 
-    state.history.execute(tdata, distribute(tdata, DistributeType.Vertical))
+    distribute(tdata, DistributeType.Vertical).redo(tdata)
 
     expect(tdata.page.shapes['rect3'].point).toEqual([20, 50])
   })

@@ -26,60 +26,57 @@ export function move(data: Data, type: MoveType) {
       switch (type) {
         case MoveType.ToBack: {
           for (const id in shapesByParentId) {
-            moveToBack(shapesByParentId[id], TLD.getChildren(data, id))
+            moveToBack(data, shapesByParentId[id], TLD.getChildren(data, id))
           }
           break
         }
         case MoveType.Backward: {
           for (const id in shapesByParentId) {
             const visited = new Set<string>()
-            const siblings = TLD.getChildren(data, id)
             shapesByParentId[id]
               .sort((a, b) => a.childIndex - b.childIndex)
-              .forEach((shape) => moveBackward(shape, siblings, visited))
+              .forEach((shape) => {
+                moveBackward(data, shape, TLD.getChildren(data, id), visited)
+              })
           }
           break
         }
         case MoveType.Forward: {
           for (const id in shapesByParentId) {
             const visited = new Set<string>()
-            const siblings = TLD.getChildren(data, id)
+
             shapesByParentId[id]
               .sort((a, b) => b.childIndex - a.childIndex)
-              .forEach((shape) => moveForward(shape, siblings, visited))
+              .forEach((shape) => {
+                moveForward(data, shape, TLD.getChildren(data, id), visited)
+              })
           }
 
           break
         }
         case MoveType.ToFront: {
           for (const id in shapesByParentId) {
-            moveToFront(shapesByParentId[id], TLD.getChildren(data, id))
+            moveToFront(data, shapesByParentId[id], TLD.getChildren(data, id))
           }
 
           break
         }
       }
-
-      TLD.updateBindings(data, ids)
-      TLD.updateParents(data, ids)
     },
     undo(data) {
       const { shapes } = data.page
 
       for (const id of ids) {
         const shape = shapes[id]
-        TLD.getShapeUtils(shape).setProperty(shape, 'childIndex', initialIndices[id])
+        TLD.mutate(data, shape, { childIndex: initialIndices[id] })
       }
-
-      TLD.updateBindings(data, ids)
-      TLD.updateParents(data, ids)
     },
   })
 }
 
 // TODO: Refactor these so that they return the new childIndex array, rather than mutating the shapes
 
-function moveToFront(shapes: TLDrawShape[], siblings: TLDrawShape[]) {
+function moveToFront(data: Data, shapes: TLDrawShape[], siblings: TLDrawShape[]) {
   shapes.sort((a, b) => a.childIndex - b.childIndex)
 
   const diff = siblings
@@ -90,12 +87,10 @@ function moveToFront(shapes: TLDrawShape[], siblings: TLDrawShape[]) {
 
   const startIndex = Math.ceil(diff[0].childIndex) + 1
 
-  shapes.forEach((shape, i) =>
-    TLD.getShapeUtils(shape).setProperty(shape, 'childIndex', startIndex + i),
-  )
+  shapes.forEach((shape, i) => TLD.mutate(data, shape, { childIndex: startIndex + i }))
 }
 
-function moveToBack(shapes: TLDrawShape[], siblings: TLDrawShape[]) {
+function moveToBack(data: Data, shapes: TLDrawShape[], siblings: TLDrawShape[]) {
   shapes.sort((a, b) => b.childIndex - a.childIndex)
 
   const diff = siblings
@@ -108,58 +103,70 @@ function moveToBack(shapes: TLDrawShape[], siblings: TLDrawShape[]) {
 
   const step = startIndex / (shapes.length + 1)
 
-  shapes.forEach((shape, i) =>
-    TLD.getShapeUtils(shape).setProperty(shape, 'childIndex', startIndex - (i + 1) * step),
-  )
+  shapes.forEach((shape, i) => TLD.mutate(data, shape, { childIndex: startIndex - (i + 1) * step }))
 }
 
-function moveForward(shape: TLDrawShape, siblings: TLDrawShape[], visited: Set<string>) {
+function moveForward(
+  data: Data,
+  shape: TLDrawShape,
+  siblings: TLDrawShape[],
+  visited: Set<string>,
+) {
   visited.add(shape.id)
   const index = siblings.indexOf(shape)
-  const nextSibling = siblings[index + 1]
+  let nextSibling = siblings[index + 1]
 
   if (nextSibling && !visited.has(nextSibling.id)) {
-    const nextNextSibling = siblings[index + 2]
+    let nextNextSibling = siblings[index + 2]
 
     let nextIndex = nextNextSibling
       ? (nextSibling.childIndex + nextNextSibling.childIndex) / 2
       : Math.ceil(nextSibling.childIndex + 1)
 
     if (nextIndex === nextSibling.childIndex) {
-      TLD.forceIntegerChildIndices(siblings)
+      TLD.forceIntegerChildIndices(data, siblings)
+
+      nextSibling = data.page.shapes[nextSibling.id]
+      nextNextSibling = data.page.shapes[nextNextSibling.id]
 
       nextIndex = nextNextSibling
         ? (nextSibling.childIndex + nextNextSibling.childIndex) / 2
         : Math.ceil(nextSibling.childIndex + 1)
     }
 
-    TLD.getShapeUtils(shape).setProperty(shape, 'childIndex', nextIndex)
-
-    siblings.sort((a, b) => a.childIndex - b.childIndex)
+    TLD.mutate(data, shape, { childIndex: nextIndex })
   }
 }
 
-function moveBackward(shape: TLDrawShape, siblings: TLDrawShape[], visited: Set<string>) {
+function moveBackward(
+  data: Data,
+  shape: TLDrawShape,
+  siblings: TLDrawShape[],
+  visited: Set<string>,
+) {
   visited.add(shape.id)
   const index = siblings.indexOf(shape)
-  const nextSibling = siblings[index - 1]
+  let nextSibling = siblings[index - 1]
 
   if (nextSibling && !visited.has(nextSibling.id)) {
-    const nextNextSibling = siblings[index - 2]
+    let nextNextSibling = siblings[index - 2]
 
     let nextIndex = nextNextSibling
       ? (nextSibling.childIndex + nextNextSibling.childIndex) / 2
       : nextSibling.childIndex / 2
 
     if (shape.childIndex === nextSibling.childIndex) {
-      TLD.forceIntegerChildIndices(siblings)
+      TLD.forceIntegerChildIndices(data, siblings)
+
+      nextSibling = data.page.shapes[nextSibling.id]
+      nextNextSibling = data.page.shapes[nextNextSibling.id]
 
       nextIndex = nextNextSibling
         ? (nextSibling.childIndex + nextNextSibling.childIndex) / 2
         : nextSibling.childIndex / 2
     }
 
-    TLD.getShapeUtils(shape).setProperty(shape, 'childIndex', nextIndex)
+    TLD.mutate(data, shape, { childIndex: nextIndex })
 
     siblings.sort((a, b) => a.childIndex - b.childIndex)
   }

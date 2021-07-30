@@ -23,22 +23,16 @@ export function style(data: Data, changes: Partial<ShapeStyles>) {
     do(data) {
       for (const { id, next } of shapesToStyle) {
         const shape = data.page.shapes[id]
-        TLD.getShapeUtils(shape).mutate(shape, { style: next })
+        TLD.mutate(data, shape, { style: next })
       }
-
-      TLD.updateBindings(data, ids)
-      TLD.updateParents(data, ids)
     },
     undo(data) {
       const { shapes } = data.page
 
       for (const { id, prev } of shapesToStyle) {
         const shape = shapes[id]
-        TLD.getShapeUtils(shape).mutate(shape, { style: prev })
+        TLD.mutate(data, shape, { style: prev })
       }
-
-      TLD.updateBindings(data, ids)
-      TLD.updateParents(data, ids)
     },
   })
 }

@@ -45,18 +45,13 @@ export class TransformSingleSession implements BaseSession {
     this.scaleX = newBoundingBox.scaleX
     this.scaleY = newBoundingBox.scaleY
 
-    utils.transformSingle(shape, newBoundingBox, {
+    TLD.transformSingle(data, shape, newBoundingBox, {
       initialShape,
       type: this.transformType,
       scaleX: this.scaleX,
       scaleY: this.scaleY,
       transformOrigin: [0.5, 0.5],
     })
-
-    data.page.shapes[shape.id] = { ...shape }
-
-    TLD.updateBindings(data, [id])
-    TLD.updateParents(data, [id])
   }
 
   cancel(data: Data): void {

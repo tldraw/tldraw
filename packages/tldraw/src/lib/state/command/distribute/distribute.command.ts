@@ -19,7 +19,7 @@ export function distribute(data: Data, type: DistributeType) {
       for (const { id, next } of shapesToTranslate) {
         const shape = shapes[id]
 
-        TLD.getShapeUtils(shape).mutate(shape, { point: next })
+        TLD.mutate(data, shape, { point: next })
       }
 
       TLD.updateBindings(data, ids)
@@ -31,7 +31,7 @@ export function distribute(data: Data, type: DistributeType) {
       for (const { id, prev } of shapesToTranslate) {
         const shape = shapes[id]
 
-        TLD.getShapeUtils(shape).mutate(shape, { point: prev })
+        TLD.mutate(data, shape, { point: prev })
       }
 
       TLD.updateBindings(data, ids)

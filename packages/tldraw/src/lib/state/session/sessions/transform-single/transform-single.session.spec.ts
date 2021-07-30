@@ -7,7 +7,7 @@ describe('Transform single session', () => {
   data.pageState.selectedIds = ['rect1']
 
   it('begins, updates and completes session', () => {
-    const session = new TransformSingleSession(data, TLBoundsCorner.TopLeft, [-10, -10])
+    const session = new TransformSingleSession(data, [-10, -10], TLBoundsCorner.TopLeft)
     session.update(data, [10, 10])
     session.complete(data)
   })

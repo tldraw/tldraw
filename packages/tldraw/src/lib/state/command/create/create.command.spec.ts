@@ -1,6 +1,5 @@
 import { Utils } from '@tldraw/core'
 import { mockData } from '../../../../specs/__mocks__/mock-data'
-import { state } from '../../state'
 import { create } from './create.command'
 
 describe('Mutate command', () => {
@@ -11,15 +10,17 @@ describe('Mutate command', () => {
   it('does, undoes and redoes command', () => {
     const tdata = Utils.deepClone(data)
 
-    state.history.execute(tdata, create(tdata, [rect3], false))
+    const command = create(tdata, [rect3], false)
+
+    command.redo(tdata)
 
     expect(tdata.page.shapes['rect3']).toBeTruthy()
 
-    state.history.undo(tdata)
+    command.undo(tdata)
 
     expect(tdata.page.shapes['rect3']).toBe(undefined)
 
-    state.history.redo(tdata)
+    command.redo(tdata)
 
     expect(tdata.page.shapes['rect3']).toBeTruthy()
   })

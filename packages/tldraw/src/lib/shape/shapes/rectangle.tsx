@@ -183,14 +183,17 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
     { initialShape, transformOrigin, scaleX, scaleY }: TLTransformInfo<RectangleShape>,
   ) {
     if (!shape.rotation && !shape.isAspectRatioLocked) {
-      shape.size = Vec.round([bounds.width, bounds.height])
-      shape.point = Vec.round([bounds.minX, bounds.minY])
+      return {
+        ...shape,
+        point: Vec.round([bounds.minX, bounds.minY]),
+        size: Vec.round([bounds.width, bounds.height]),
+      }
     } else {
-      shape.size = Vec.round(
+      const size = Vec.round(
         Vec.mul(initialShape.size, Math.min(Math.abs(scaleX), Math.abs(scaleY))),
       )
 
-      shape.point = Vec.round([
+      const point = Vec.round([
         bounds.minX +
           (bounds.width - shape.size[0]) *
             (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
@@ -199,21 +202,28 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
             (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
       ])
 
-      shape.rotation =
+      const rotation =
         (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0)
           ? initialShape.rotation
             ? -initialShape.rotation
             : 0
           : initialShape.rotation
-    }
 
-    return this
+      return {
+        ...shape,
+        size,
+        point,
+        rotation,
+      }
+    }
   }
 
   transformSingle(shape: RectangleShape, bounds: TLBounds, info: TLTransformInfo<RectangleShape>) {
-    shape.size = Vec.round([bounds.width, bounds.height])
-    shape.point = Vec.round([bounds.minX, bounds.minY])
-    return this
+    return {
+      ...shape,
+      size: Vec.round([bounds.width, bounds.height]),
+      point: Vec.round([bounds.minX, bounds.minY]),
+    }
   }
 }
 

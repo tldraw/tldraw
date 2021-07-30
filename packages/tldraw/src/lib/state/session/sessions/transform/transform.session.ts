@@ -54,20 +54,14 @@ export class TransformSession implements BaseSession {
 
       const shape = shapes[id]
 
-      TLD.getShapeUtils(shape).transform(shape, newShapeBounds, {
+      TLD.transform(data, shape, newShapeBounds, {
         type: this.transformType,
         initialShape,
         scaleX: this.scaleX,
         scaleY: this.scaleY,
         transformOrigin,
       })
-
-      shapes[id] = { ...shape }
     }
-
-    const ids = Object.keys(shapeBounds)
-    TLD.updateBindings(data, ids)
-    TLD.updateParents(data, ids)
   }
 
   cancel(data: Data) {
@@ -78,22 +72,19 @@ export class TransformSession implements BaseSession {
 
       const { initialShape, initialShapeBounds, transformOrigin } = shapeBounds[id]
 
-      TLD.getShapeUtils(shape).transform(shape, initialShapeBounds, {
+      TLD.transform(data, shape, initialShapeBounds, {
         type: this.transformType,
         initialShape,
         scaleX: 1,
         scaleY: 1,
         transformOrigin,
       })
-
-      const ids = Object.keys(shapeBounds)
-      TLD.updateBindings(data, ids)
-      TLD.updateParents(data, ids)
     }
   }
 
   complete(data: Data) {
     const { initialShapes, hasUnlockedShapes } = this.snapshot
+
     if (!hasUnlockedShapes) {
       return undefined
     }
@@ -115,7 +106,7 @@ export function getTransformSnapshot(data: Data, transformType: TLBoundsEdge | T
   )
 
   const shapesBounds = Object.fromEntries(
-    initialShapes.map((shape) => [shape.id, TLD.getShapeUtils(shape).getBounds(shape)]),
+    initialShapes.map((shape) => [shape.id, TLD.getBounds(shape)]),
   )
 
   const boundsArr = Object.values(shapesBounds)

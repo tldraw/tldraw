@@ -214,12 +214,12 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
     shape: DrawShape,
     bounds: TLBounds,
     { initialShape, transformOrigin, scaleX, scaleY }: TLTransformInfo<DrawShape>,
-  ) {
+  ): DrawShape {
     const initialShapeBounds = Utils.getFromCache(this.boundsCache, initialShape, () =>
       Utils.getBoundsFromPoints(initialShape.points),
     )
 
-    shape.points = initialShape.points.map(([x, y, r]) => {
+    const points = initialShape.points.map(([x, y, r]) => {
       return [
         bounds.width *
           (scaleX < 0 // * sin?
@@ -235,15 +235,16 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
 
     const newBounds = Utils.getBoundsFromPoints(shape.points)
 
-    shape.point = Vec.sub([bounds.minX, bounds.minY], [newBounds.minX, newBounds.minY])
-    return this
+    const point = Vec.sub([bounds.minX, bounds.minY], [newBounds.minX, newBounds.minY])
+
+    return {
+      ...shape,
+      points,
+      point,
+    }
   }
 
-  transformSingle(
-    shape: DrawShape,
-    bounds: TLBounds,
-    info: TLTransformInfo<DrawShape>,
-  ): TLShapeUtil<DrawShape> {
+  transformSingle(shape: DrawShape, bounds: TLBounds, info: TLTransformInfo<DrawShape>): DrawShape {
     return this.transform(shape, bounds, info)
   }
 
@@ -252,11 +253,10 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
 
     const [x1, y1] = Vec.sub([bounds.minX, bounds.minY], shape.point)
 
-    shape.points = shape.points.map(([x0, y0, p]) => [x0 - x1, y0 - y1, p])
-
-    this.translateTo(shape, Vec.add(shape.point, [x1, y1]))
-
-    return this
+    return {
+      points: shape.points.map(([x0, y0, p]) => [x0 - x1, y0 - y1, p]),
+      point: Vec.add(shape.point, [x1, y1]),
+    }
   }
 }
 

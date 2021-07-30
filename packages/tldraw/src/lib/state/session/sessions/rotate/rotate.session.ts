@@ -49,9 +49,10 @@ export class RotateSession implements BaseSession {
 
       const nextPoint = Vec.sub(Vec.rotWith(center, commonBoundsCenter, rot), offset)
 
-      TLD.getShapeUtils(shape).rotateTo(shape, nextRotation).translateTo(shape, nextPoint)
-
-      page.shapes[shape.id] = { ...shape }
+      page.shapes[shape.id] = TLD.mutate(data, shape, {
+        point: nextPoint,
+        rotation: nextRotation,
+      })
     }
 
     const ids = initialShapes.map((s) => s.id)
@@ -93,11 +94,11 @@ export function getRotateSnapshot(data: Data) {
   const hasUnlockedShapes = initialShapes.length > 0
 
   const shapesBounds = Object.fromEntries(
-    initialShapes.map((shape) => [shape.id, TLD.getShapeUtils(shape).getBounds(shape)]),
+    initialShapes.map((shape) => [shape.id, TLD.getBounds(shape)]),
   )
 
   const rotatedBounds = Object.fromEntries(
-    initialShapes.map((shape) => [shape.id, TLD.getShapeUtils(shape).getRotatedBounds(shape)]),
+    initialShapes.map((shape) => [shape.id, TLD.getRotatedBounds(shape)]),
   )
 
   const bounds = Utils.getCommonBounds(Object.values(shapesBounds))
@@ -111,7 +112,7 @@ export function getRotateSnapshot(data: Data) {
     initialShapes: initialShapes
       .filter((shape) => shape.children === undefined)
       .map((shape) => {
-        const bounds = TLD.getShapeUtils(shape).getBounds(shape)
+        const bounds = TLD.getBounds(shape)
         const center = Utils.getBoundsCenter(bounds)
         const offset = Vec.sub(center, shape.point)
 

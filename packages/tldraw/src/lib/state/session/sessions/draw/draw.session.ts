@@ -26,7 +26,7 @@ export class DrawSession implements BaseSession {
 
     const shape = data.page.shapes[id]
 
-    TLD.getShapeUtils(shape).translateTo(shape, point)
+    TLD.mutate(data, shape, { point })
 
     TLD.updateParents(data, [shape.id])
   }
@@ -96,8 +96,7 @@ export class DrawSession implements BaseSession {
 
     // Note: Normally we would want to spread the points to create a new
     // array, however we create the new array in hacks/fastDrawUpdate.
-    TLD.getShapeUtils(shape).mutate(shape, { points: [...this.points] })
-    TLD.updateParents(data, [shape.id])
+    TLD.mutate(data, shape, { points: [...this.points] })
   }
 
   cancel = (_data: Data): void => {

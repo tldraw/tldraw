@@ -6,7 +6,7 @@ import { Command } from '../command'
 export function translate(data: Data, delta: number[]) {
   const ids = [...TLD.getSelectedIds(data)]
 
-  const shapesToNudge = ids
+  const shapesToTranslate = ids
     .flatMap((id) => TLD.getDocumentBranch(data, id))
     .map((id) => {
       const shape = data.page.shapes[id]
@@ -23,25 +23,18 @@ export function translate(data: Data, delta: number[]) {
     do(data) {
       const { shapes } = data.page
 
-      for (const { id, next } of shapesToNudge) {
+      for (const { id, next } of shapesToTranslate) {
         const shape = shapes[id]
-
-        TLD.getShapeUtils(shape).mutate(shape, { ...next })
+        TLD.mutate(data, shape, { ...next })
       }
-
-      TLD.updateBindings(data, ids)
-      TLD.updateParents(data, ids)
     },
     undo(data) {
       const { shapes } = data.page
 
-      for (const { id, prev } of shapesToNudge) {
+      for (const { id, prev } of shapesToTranslate) {
         const shape = shapes[id]
-        TLD.getShapeUtils(shape).mutate(shape, { ...prev })
+        TLD.mutate(data, shape, { ...prev })
       }
-
-      TLD.updateBindings(data, ids)
-      TLD.updateParents(data, ids)
     },
   })
 }

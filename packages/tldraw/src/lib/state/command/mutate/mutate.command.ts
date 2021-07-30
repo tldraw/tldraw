@@ -1,12 +1,12 @@
-import { getShapeUtils, TLDrawShape } from '../../../shape'
+import { TLDrawShape } from '../../../shape'
 import { Data } from '../../../types'
 import { TLD } from '../../tld'
 import { Command } from '../command'
 
 export function mutate(
   data: Data,
-  before: TLDrawShape[],
-  after: TLDrawShape[],
+  before: Partial<TLDrawShape>[],
+  after: Partial<TLDrawShape>[],
   name = 'mutate_shapes',
 ): Command {
   const beforeIds = new Set(before.map((s) => s.id))
@@ -24,30 +24,43 @@ export function mutate(
         }
       }
 
-      after.forEach((shape) => {
-        data.page.shapes[shape.id] = shape
-        getShapeUtils(shape).onSessionComplete(shape)
+      after.forEach((props) => {
+        const shape = data.page.shapes[props.id]
+        if (!shape) {
+          data.page.shapes[props.id] = { ...props } as TLDrawShape
+          TLD.updateBindings(data, [props.id])
+          TLD.updateParents(data, [props.id])
+        } else {
+          TLD.onSessionComplete(data, TLD.mutate(data, shape, props))
+        }
       })
 
-      const ids = after.map((shape) => shape.id)
-      TLD.setSelectedIds(data, ids)
-      TLD.updateBindings(data, ids)
-      TLD.updateParents(data, ids)
+      TLD.setSelectedIds(
+        data,
+        after.map((shape) => shape.id),
+      )
     },
     undo(data) {
       if (idsToDeleteOnUndo.length > 0) {
         TLD.deleteShapes(data, idsToDeleteOnUndo)
       }
 
-      before.forEach((shape) => {
-        data.page.shapes[shape.id] = shape
-        getShapeUtils(shape).onSessionComplete(shape)
+      before.forEach((props) => {
+        const shape = data.page.shapes[props.id]
+
+        if (!shape) {
+          data.page.shapes[props.id] = { ...props } as TLDrawShape
+          TLD.updateBindings(data, [props.id])
+          TLD.updateParents(data, [props.id])
+        } else {
+          TLD.onSessionComplete(data, TLD.mutate(data, shape, props))
+        }
       })
 
-      const ids = before.map((shape) => shape.id)
-      TLD.setSelectedIds(data, ids)
-      TLD.updateBindings(data, ids)
-      TLD.updateParents(data, ids)
+      TLD.setSelectedIds(
+        data,
+        before.map((shape) => shape.id),
+      )
     },
   })
 }

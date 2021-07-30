@@ -1,6 +1,5 @@
 import { Utils } from '@tldraw/core'
 import { mockData } from '../../../../specs/__mocks__/mock-data'
-import { state } from '../../state'
 import { translate } from './translate.command'
 
 describe('Translate command', () => {
@@ -10,15 +9,17 @@ describe('Translate command', () => {
   it('does, undoes and redoes command', () => {
     const tdata = Utils.deepClone(data)
 
-    state.history.execute(tdata, translate(tdata, [10, 10]))
+    const command = translate(tdata, [10, 10])
+
+    command.redo(tdata)
 
     expect(tdata.page.shapes['rect2'].point).toEqual([110, 110])
 
-    state.history.undo(tdata)
+    command.undo(tdata)
 
     expect(tdata.page.shapes['rect2'].point).toEqual([100, 100])
 
-    state.history.redo(tdata)
+    command.redo(tdata)
 
     expect(tdata.page.shapes['rect2'].point).toEqual([110, 110])
   })

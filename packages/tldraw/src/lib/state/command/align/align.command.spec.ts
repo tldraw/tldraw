@@ -10,15 +10,17 @@ describe('Align command', () => {
   it('does, undoes and redoes command', () => {
     const tdata = Utils.deepClone(data)
 
-    state.history.execute(tdata, align(tdata, AlignType.Top))
+    const command = align(tdata, AlignType.Top)
+
+    command.redo(tdata)
 
     expect(tdata.page.shapes['rect2'].point).toEqual([100, 0])
 
-    state.history.undo(tdata)
+    command.undo(tdata)
 
     expect(tdata.page.shapes['rect2'].point).toEqual([100, 100])
 
-    state.history.redo(tdata)
+    command.redo(tdata)
 
     expect(tdata.page.shapes['rect2'].point).toEqual([100, 0])
   })
@@ -26,7 +28,7 @@ describe('Align command', () => {
   it('aligns left', () => {
     const tdata = Utils.deepClone(data)
 
-    state.history.execute(tdata, align(tdata, AlignType.Top))
+    align(tdata, AlignType.Top).redo(tdata)
 
     expect(tdata.page.shapes['rect2'].point).toEqual([100, 0])
   })
@@ -34,7 +36,7 @@ describe('Align command', () => {
   it('aligns right', () => {
     const tdata = Utils.deepClone(data)
 
-    state.history.execute(tdata, align(tdata, AlignType.Right))
+    align(tdata, AlignType.Right).redo(tdata)
 
     expect(tdata.page.shapes['rect1'].point).toEqual([100, 0])
   })
@@ -42,7 +44,7 @@ describe('Align command', () => {
   it('aligns bottom', () => {
     const tdata = Utils.deepClone(data)
 
-    state.history.execute(tdata, align(tdata, AlignType.Bottom))
+    align(tdata, AlignType.Bottom).redo(tdata)
 
     expect(tdata.page.shapes['rect1'].point).toEqual([0, 100])
   })
@@ -50,7 +52,7 @@ describe('Align command', () => {
   it('aligns left', () => {
     const tdata = Utils.deepClone(data)
 
-    state.history.execute(tdata, align(tdata, AlignType.Left))
+    align(tdata, AlignType.Left).redo(tdata)
 
     expect(tdata.page.shapes['rect2'].point).toEqual([0, 100])
   })
@@ -58,7 +60,7 @@ describe('Align command', () => {
   it('aligns center horizontal', () => {
     const tdata = Utils.deepClone(data)
 
-    state.history.execute(tdata, align(tdata, AlignType.CenterHorizontal))
+    align(tdata, AlignType.CenterHorizontal).redo(tdata)
 
     expect(tdata.page.shapes['rect1'].point).toEqual([50, 0])
     expect(tdata.page.shapes['rect2'].point).toEqual([50, 100])
@@ -67,7 +69,7 @@ describe('Align command', () => {
   it('aligns center vertical', () => {
     const tdata = Utils.deepClone(data)
 
-    state.history.execute(tdata, align(tdata, AlignType.CenterVertical))
+    align(tdata, AlignType.CenterVertical).redo(tdata)
 
     expect(tdata.page.shapes['rect1'].point).toEqual([0, 50])
     expect(tdata.page.shapes['rect2'].point).toEqual([100, 50])

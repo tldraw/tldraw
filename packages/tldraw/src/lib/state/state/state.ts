@@ -1092,11 +1092,9 @@ export class TLDrawState {
       },
     },
     options: {
-      onSend(eventName, payload, didCauseUpdate) {
-        if (didCauseUpdate) {
-          // console.log(eventName)
-        }
-      },
+      // onSend(eventName, payload, didCauseUpdate) {
+      //   console.log(eventName, didCauseUpdate)
+      // },
     },
   })
 
@@ -1297,8 +1295,13 @@ export class TLDrawState {
   }
 
   fastTranslate: TLPointerEventHandler = (info) => {
+    if (this.state.isIn('brushSelecting')) {
+      this.fastBrush(info)
+      return
+    }
+
     if (!this.state.isIn('translatingSelection')) {
-      this.send('DRAGGED_BOUNDS', info)
+      this.state.send('DRAGGED_BOUNDS', info)
       return
     }
 
@@ -1310,6 +1313,8 @@ export class TLDrawState {
       info.shiftKey,
       info.altKey,
     )
+
+    data.pageState.selectedIds.forEach((id) => (data.page.shapes[id] = { ...data.page.shapes[id] }))
 
     this.fastUpdate({ ...this.data, page: { ...data.page } })
   }
@@ -1333,7 +1338,7 @@ export class TLDrawState {
       info.shiftKey,
     )
 
-    this.fastUpdate({ ...this.data, page: { ...data.page } })
+    this.fastUpdate({ ...data, page: { ...data.page } })
   }
 
   fastDraw: TLPointerEventHandler = (info) => {

@@ -253,38 +253,9 @@ export abstract class TLShapeUtil<T extends TLShape> {
 
   abstract hitTestBounds(shape: T, bounds: TLBounds): boolean
 
-  abstract transform(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): TLShapeUtil<T>
+  abstract transform(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): T
 
-  abstract transformSingle(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): TLShapeUtil<T>
-
-  create(props: Partial<T>): T {
-    return { ...this.defaultProps, ...props }
-  }
-
-  translateTo(shape: T, point: number[]) {
-    shape.point = point
-    return this
-  }
-
-  translateBy(shape: T, delta: number[]) {
-    shape.point = [shape.point[0] + delta[0], shape.point[1] + delta[1]]
-    return this
-  }
-
-  rotateTo(shape: T, rotation: number) {
-    shape.rotation = rotation
-    return this
-  }
-
-  rotateBy(shape: T, rotation: number) {
-    shape.rotation = shape.rotation ? shape.rotation + rotation : rotation
-    return this
-  }
-
-  mutate(shape: T, props: Partial<T>) {
-    Object.assign(shape, props)
-    return this
-  }
+  abstract transformSingle(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): T
 
   shouldRender(prev: T, next: T): boolean {
     return true
@@ -299,13 +270,18 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return [bounds.width / 2, bounds.height / 2]
   }
 
-  setProperty<P extends keyof T>(shape: T, prop: P, value: T[P]): TLShapeUtil<T> {
-    shape[prop] = value
-    return this
+  // Mutations
+
+  create(props: Partial<T>): T {
+    return { ...this.defaultProps, ...props }
   }
 
-  onChildrenChange(shape: T, children: TLShape[]): TLShapeUtil<T> {
-    return this
+  mutate(shape: T, props: Partial<T>): T {
+    return { ...shape, ...props }
+  }
+
+  onChildrenChange(shape: T, children: TLShape[]): Partial<T> | void {
+    return shape
   }
 
   onBindingChange(
@@ -313,32 +289,36 @@ export abstract class TLShapeUtil<T extends TLShape> {
     bindings: TLBinding,
     target: TLShape,
     targetBounds: TLBounds,
-  ): TLShapeUtil<T> {
-    return this
+  ): Partial<T> | void {
+    return shape
   }
 
-  onHandleChange(shape: T, handle: Partial<T['handles']>, info: TLPointerInfo): TLShapeUtil<T> {
-    return this
+  onHandleChange(shape: T, handle: Partial<T['handles']>, info: TLPointerInfo): Partial<T> | void {
+    return shape
   }
 
-  onRightPointHandle(shape: T, handle: Partial<T['handles']>, info: TLPointerInfo): TLShapeUtil<T> {
-    return this
+  onRightPointHandle(
+    shape: T,
+    handle: Partial<T['handles']>,
+    info: TLPointerInfo,
+  ): Partial<T> | void {
+    return shape
   }
 
   onDoublePointHandle(
     shape: T,
     handle: Partial<T['handles']>,
     info: TLPointerInfo,
-  ): TLShapeUtil<T> {
-    return this
+  ): Partial<T> | void {
+    return shape
   }
 
-  onSessionComplete(shape: T): TLShapeUtil<T> {
-    return this
+  onSessionComplete(shape: T): Partial<T> | void {
+    return shape
   }
 
-  onBoundsReset(shape: T): TLShapeUtil<T> {
-    return this
+  onBoundsReset(shape: T): Partial<T> | void {
+    return shape
   }
 }
 
