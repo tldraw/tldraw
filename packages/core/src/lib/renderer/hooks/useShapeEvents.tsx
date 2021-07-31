@@ -33,7 +33,7 @@ export function useShapeEvents(id: string, disable = false) {
 
         callbacks.onReleaseShape?.(info)
       }
-      callbacks.onStopPointing?.(info)
+      callbacks.onPointerUp?.(info)
     },
     [callbacks, id, disable],
   )
@@ -45,9 +45,8 @@ export function useShapeEvents(id: string, disable = false) {
       const info = inputs.pointerMove(e, id)
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         callbacks.onDragShape?.(info)
-      } else {
-        callbacks.onPointerMove?.(info)
       }
+      callbacks.onPointerMove?.(info)
     },
     [callbacks, id, disable],
   )

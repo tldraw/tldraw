@@ -32,7 +32,7 @@ export function useBoundsEvents() {
         callbacks.onReleaseBounds?.(info)
       }
 
-      callbacks.onStopPointing?.(info)
+      callbacks.onPointerUp?.(info)
     },
     [callbacks],
   )
@@ -42,10 +42,9 @@ export function useBoundsEvents() {
       e.stopPropagation()
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         callbacks.onDragBounds?.(inputs.pointerMove(e, 'bounds'))
-      } else {
-        const info = inputs.pointerMove(e, 'bounds')
-        callbacks.onPointerMove?.(info)
       }
+      const info = inputs.pointerMove(e, 'bounds')
+      callbacks.onPointerMove?.(info)
     },
     [callbacks],
   )

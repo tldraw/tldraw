@@ -6,7 +6,6 @@ const DOUBLE_CLICK_DURATION = 250
 
 class Inputs {
   pointer?: TLPointerInfo<string>
-
   keyboard?: TLKeyboardInfo
   keys: Record<string, boolean> = {}
 

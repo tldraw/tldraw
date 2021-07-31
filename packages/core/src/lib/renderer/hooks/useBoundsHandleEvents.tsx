@@ -32,7 +32,7 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
 
         callbacks.onReleaseBoundsHandle?.(info)
       }
-      callbacks.onStopPointing?.(info)
+      callbacks.onPointerUp?.(info)
     },
     [callbacks, id],
   )
@@ -42,10 +42,9 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
       e.stopPropagation()
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         callbacks.onDragBoundsHandle?.(inputs.pointerMove(e, id))
-      } else {
-        const info = inputs.pointerMove(e, id)
-        callbacks.onPointerMove?.(info)
       }
+      const info = inputs.pointerMove(e, id)
+      callbacks.onPointerMove?.(info)
     },
     [callbacks, id],
   )

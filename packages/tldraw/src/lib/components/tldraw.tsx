@@ -2,182 +2,89 @@ import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer, TLCallbacks, TLTheme, Utils } from '@tldraw/core'
 import { tldrawShapeUtils } from '../shape'
-import { OnChangeCallback, state, TLDrawState, useSelector } from '../state'
 import { TLDrawDocument } from '../types'
 import { useKeyboardShortcuts } from '../hooks'
 import styled from '../styles'
 import { StylePanel } from './style-panel'
-import { ToolsPanel } from './/tools-panel'
+import { ToolsPanel } from './tools-panel'
+import { TLDrawState, useAppState, tlstate } from '../state/state2'
 
 const callbacks: TLCallbacks = {
-  // Camera events
-  onPinchStart() {
-    state.send('STARTED_PINCHING')
-  },
-  onPinchEnd() {
-    state.send('STOPPED_PINCHING')
-  },
-  onPinch: state.fastPinch,
-  onPan: state.fastPan,
-  onZoom(info) {
-    state.send('ZOOMED', info)
-  },
-
-  // Pointer Events
-  onPointerMove: state.fastPointerMove,
-  onStopPointing(info) {
-    state.send('STOPPED_POINTING', info)
-  },
-
-  // Canvas (background)
-  onPointCanvas(info) {
-    state.send('POINTED_CANVAS', info)
-  },
-  onDoublePointCanvas(info) {
-    state.send('DOUBLE_POINTED_CANVAS', info)
-  },
-  onRightPointCanvas(info) {
-    state.send('RIGHT_POINTED_CANVAS', info)
-  },
-  onDragCanvas: state.fastPointerMove,
-  onReleaseCanvas: (info) => {
-    state.send('RELEASED_CANVAS', info)
-  },
-
-  // Shape
-  onPointShape(info) {
-    state.send('POINTED_SHAPE', info)
-  },
-  onDoublePointShape(info) {
-    state.send('DOUBLE_POINTED_SHAPE', info)
-  },
-  onRightPointShape(info) {
-    state.send('RIGHT_POINTED_SHAPE', info)
-  },
-  onDragShape: state.fastTranslate,
-  onHoverShape(info) {
-    state.send('HOVERED_SHAPE', info)
-  },
-  onUnhoverShape(info) {
-    state.send('UNHOVERED_SHAPE', info)
-  },
-  onReleaseShape: (info) => {
-    state.send('RELEASED_SHAPE', info)
-  },
-
-  // Bounds (bounding box background)
-  onPointBounds(info) {
-    state.send('POINTED_BOUNDS', info)
-  },
-  onDoublePointBounds(info) {
-    state.send('DOUBLE_POINTED_BOUNDS', info)
-  },
-  onRightPointBounds(info) {
-    state.send('RIGHT_POINTED_BOUNDS', info)
-  },
-  onDragBounds: state.fastTranslate,
-  onHoverBounds: (info) => {
-    state.send('HOVERED_BOUNDS', info)
-  },
-  onUnhoverBounds: (info) => {
-    state.send('UNHOVERED_BOUNDS', info)
-  },
-  onReleaseBounds: (info) => {
-    state.send('RELEASED_BOUNDS', info)
-  },
-
-  // Bounds handles (corners, edges)
-  onPointBoundsHandle(info) {
-    state.send('POINTED_BOUNDS_HANDLE', info)
-  },
-  onDoublePointBoundsHandle(info) {
-    state.send('DOUBLE_POINTED_BOUNDS_HANDLE', info)
-  },
-  onRightPointBoundsHandle: (info) => {
-    state.send('RIGHT_POINTED_BOUNDS_HANDLE', info)
-  },
-  onDragBoundsHandle: state.fastTransform,
-  onHoverBoundsHandle: (info) => {
-    state.send('HOVERED_BOUNDS_HANDLE', info)
-  },
-  onUnhoverBoundsHandle: (info) => {
-    state.send('UNHOVERED_BOUNDS_HANDLE', info)
-  },
-  onReleaseBoundsHandle: (info) => {
-    state.send('RELEASED_BOUNDS_HANDLE', info)
-  },
-
-  // Handles (ie the handles of a selected arrow)
-  onPointHandle(info) {
-    state.send('POINTED_HANDLE', info)
-  },
-  onRightPointHandle(info) {
-    state.send('RIGHT_POINTED_HANDLE', info)
-  },
-  onDoublePointHandle(info) {
-    state.send('DOUBLE_POINTED_HANDLE', info)
-  },
-  onDragHandle: (info) => {
-    state.send('DRAGGED_HANDLE', info)
-  },
-  onHoverHandle: (info) => {
-    state.send('HOVERED_HANDLE', info)
-  },
-  onUnhoverHandle: (info) => {
-    state.send('UNHOVERED_HANDLE', info)
-  },
-  onReleaseHandle: (info) => {
-    state.send('RELEASED_HANDLE', info)
-  },
-
-  // keys
-  onError: (error: Error) => {
-    // TODO
-  },
-  onBlurEditingShape() {
-    /*TODO*/
-  },
-  onChange(ids) {
-    state.send('CHANGED_RENDERING_COUNT', { count: ids.length })
-  },
+  onPinchStart: (...args) => tlstate.onPinchStart(...args),
+  onPinchEnd: (...args) => tlstate.onPinchEnd(...args),
+  onPinch: (...args) => tlstate.onPinch(...args),
+  onPan: (...args) => tlstate.onPan(...args),
+  onZoom: (...args) => tlstate.onZoom(...args),
+  onPointerMove: (...args) => tlstate.onPointerMove(...args),
+  onPointerUp: (...args) => tlstate.onPointerUp(...args),
+  onPointCanvas: (...args) => tlstate.onPointCanvas(...args),
+  onDoublePointCanvas: (...args) => tlstate.onDoublePointCanvas(...args),
+  onRightPointCanvas: (...args) => tlstate.onRightPointCanvas(...args),
+  onDragCanvas: (...args) => tlstate.onDragCanvas(...args),
+  onReleaseCanvas: (...args) => tlstate.onReleaseCanvas(...args),
+  onPointShape: (...args) => tlstate.onPointShape(...args),
+  onDoublePointShape: (...args) => tlstate.onDoublePointShape(...args),
+  onRightPointShape: (...args) => tlstate.onRightPointShape(...args),
+  onDragShape: (...args) => tlstate.onDragShape(...args),
+  onHoverShape: (...args) => tlstate.onHoverShape(...args),
+  onUnhoverShape: (...args) => tlstate.onUnhoverShape(...args),
+  onReleaseShape: (...args) => tlstate.onReleaseShape(...args),
+  onPointBounds: (...args) => tlstate.onPointBounds(...args),
+  onDoublePointBounds: (...args) => tlstate.onDoublePointBounds(...args),
+  onRightPointBounds: (...args) => tlstate.onRightPointBounds(...args),
+  onDragBounds: (...args) => tlstate.onDragBounds(...args),
+  onHoverBounds: (...args) => tlstate.onHoverBounds(...args),
+  onUnhoverBounds: (...args) => tlstate.onUnhoverBounds(...args),
+  onReleaseBounds: (...args) => tlstate.onReleaseBounds(...args),
+  onPointBoundsHandle: (...args) => tlstate.onPointBoundsHandle(...args),
+  onDoublePointBoundsHandle: (...args) => tlstate.onDoublePointBoundsHandle(...args),
+  onRightPointBoundsHandle: (...args) => tlstate.onRightPointBoundsHandle(...args),
+  onDragBoundsHandle: (...args) => tlstate.onDragBoundsHandle(...args),
+  onHoverBoundsHandle: (...args) => tlstate.onHoverBoundsHandle(...args),
+  onUnhoverBoundsHandle: (...args) => tlstate.onUnhoverBoundsHandle(...args),
+  onReleaseBoundsHandle: (...args) => tlstate.onReleaseBoundsHandle(...args),
+  onPointHandle: (...args) => tlstate.onPointHandle(...args),
+  onDoublePointHandle: (...args) => tlstate.onDoublePointHandle(...args),
+  onRightPointHandle: (...args) => tlstate.onRightPointHandle(...args),
+  onDragHandle: (...args) => tlstate.onDragHandle(...args),
+  onHoverHandle: (...args) => tlstate.onHoverHandle(...args),
+  onUnhoverHandle: (...args) => tlstate.onUnhoverHandle(...args),
+  onReleaseHandle: (...args) => tlstate.onReleaseHandle(...args),
+  onChange: (...args) => tlstate.onChange(...args),
+  onError: (...args) => tlstate.onError(...args),
+  onBlurEditingShape: (...args) => tlstate.onBlurEditingShape(...args),
 }
 
 export interface TLDrawProps {
   document?: TLDrawDocument
   currentPageId?: string
   onMount?: (state: TLDrawState) => void
-  onChange?: OnChangeCallback
+  onChange?: (state: TLDrawState) => void
 }
 
-export function TLDraw({ document, currentPageId, onMount, onChange }: TLDrawProps) {
-  const hideBounds = useSelector((s) => !s.isIn('select'))
+export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }: TLDrawProps) {
+  // const hideBounds = useSelector((s) => !s.isIn('select'))
 
-  const { page, pageState } = useSelector(
-    (s) => ({
-      page: s.data.page,
-      pageState: s.data.pageState,
-    }),
-    Utils.shallowEqual,
-  )
+  const hideBounds = useAppState((s) => s.appState.activeTool !== 'select')
+  const page = useAppState((s) => s.page)
+  const pageState = useAppState((s) => s.pageState)
 
   React.useEffect(() => {
-    if (!callbacks) return
-    state.loadOnChange(onChange)
-  }, [onChange])
+    _onChange?.(tlstate)
+  })
 
   React.useEffect(() => {
     if (!document) return
-    state.loadDocument(document)
+    tlstate.loadDocument(document)
   }, [document])
 
   React.useEffect(() => {
     if (!currentPageId) return
-    state.loadCurrentPageId(currentPageId)
+    tlstate.setCurrentPageId(currentPageId)
   }, [currentPageId])
 
   React.useEffect(() => {
-    state.loadOnMount(onMount)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    onMount?.(tlstate)
   }, [])
 
   useKeyboardShortcuts()
@@ -192,12 +99,6 @@ export function TLDraw({ document, currentPageId, onMount, onChange }: TLDrawPro
           hideBounds={hideBounds}
           {...callbacks}
         />
-        <MenuButtons>
-          {/* <Menu />
-        <DebugPanel />
-        <CodePanel />
-        <PagePanel /> */}
-        </MenuButtons>
         <Spacer />
         <StylePanel />
         <ToolsPanel />
@@ -232,11 +133,9 @@ const Layout = styled('main', {
   boxSizing: 'border-box',
   outline: 'none',
   pointerEvents: 'none',
-
   '& > *': {
     pointerEvents: 'all',
   },
-
   '& .tl-container': {
     position: 'absolute',
     top: 0,

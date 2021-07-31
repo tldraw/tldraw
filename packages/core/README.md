@@ -59,7 +59,7 @@ The renderer also accepts many (optional) event callbacks.
 | `onPinchEnd`                | The user stopped a two-pointer pinch                      |
 | `onPinchStart`              | The user began a two-pointer pinch                        |
 | `onPointerMove`             | The user moved their pointer                              |
-| `onStopPointing`            | The user ended a point                                    |
+| `onPointerUp`               | The user ended a point                                    |
 | `onPointShape`              | The user pointed a shape                                  |
 | `onDoublePointShape`        | The user double-pointed a shape                           |
 | `onRightPointShape`         | The user right-pointed a shape                            |

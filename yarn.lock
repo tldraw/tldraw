@@ -8365,6 +8365,11 @@ jest@27.0.3:
     import-local "^3.0.2"
     jest-cli "^27.0.3"
 
+jotai@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/jotai/-/jotai-1.2.2.tgz#631fd7ad44e9ac26cdf9874d52282c1cfe032807"
+  integrity sha512-iqkkUdWsH2Mk4HY1biba/8kA77+8liVBy8E0d8Nce29qow4h9mzdDhpTasAruuFYPycw6JvfZgL5RB0JJuIZjw==
+
 "js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
@@ -13998,3 +14003,8 @@ yocto-queue@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
+
+zustand@^3.5.7:
+  version "3.5.7"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.5.7.tgz#add5e8d0ba031ce6e0ddf9cb76ef15306efb665f"
+  integrity sha512-DlVFXJavIHyXTOGz6dB+8QHZsPyJcGJSEBtlp2Ivmd5SwtlCnhPo3L8LB6YRfAOJC2PbqzgoD8NMjk+y+vIF0g==

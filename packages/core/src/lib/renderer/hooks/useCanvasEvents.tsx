@@ -24,10 +24,9 @@ export function useCanvasEvents() {
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         const info = inputs.pointerMove(e, 'canvas')
         callbacks.onDragCanvas?.(info)
-      } else {
-        const info = inputs.pointerMove(e, 'canvas')
-        callbacks.onPointerMove?.(info)
       }
+      const info = inputs.pointerMove(e, 'canvas')
+      callbacks.onPointerMove?.(info)
     },
     [callbacks],
   )
@@ -47,7 +46,7 @@ export function useCanvasEvents() {
 
         callbacks.onReleaseCanvas?.(info)
       }
-      callbacks.onStopPointing?.(info)
+      callbacks.onPointerUp?.(info)
     },
     [callbacks],
   )

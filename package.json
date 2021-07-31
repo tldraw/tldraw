@@ -42,6 +42,7 @@
     "gtag": "^1.0.1",
     "immer": "^9.0.5",
     "install": "^0.13.0",
+    "jotai": "^1.2.2",
     "next": "^10.2.0",
     "next-themes": "^0.0.15",
     "npm": "^7.20.2",
@@ -53,7 +54,8 @@
     "react-hotkeys-hook": "^3.4.0",
     "react-use-gesture": "^9.1.3",
     "regenerator-runtime": "0.13.7",
-    "tslib": "^2.0.0"
+    "tslib": "^2.0.0",
+    "zustand": "^3.5.7"
   },
   "devDependencies": {
     "@babel/core": "7.12.13",

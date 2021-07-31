@@ -31,7 +31,7 @@ export function useHandleEvents(id: string) {
 
         callbacks.onReleaseHandle?.(info)
       }
-      callbacks.onStopPointing?.(info)
+      callbacks.onPointerUp?.(info)
     },
     [callbacks],
   )
@@ -42,10 +42,9 @@ export function useHandleEvents(id: string) {
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         const info = inputs.pointerMove(e, id)
         callbacks.onDragHandle?.(info)
-      } else {
-        const info = inputs.pointerMove(e, id)
-        callbacks.onPointerMove?.(info)
       }
+      const info = inputs.pointerMove(e, id)
+      callbacks.onPointerMove?.(info)
     },
     [callbacks, id],
   )

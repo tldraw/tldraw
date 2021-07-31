@@ -63,8 +63,9 @@ describe('Translate session', () => {
     session.update(tdata, [30, 30], false, false)
     session.complete(tdata)
 
-    expect(tdata.page.shapes['rect1'].point).toEqual([20, 20])
-    expect(tdata.page.shapes['rect2'].point).toEqual([120, 120])
+    // Original position + delta
+    expect(tdata.page.shapes['rect1'].point).toEqual([30, 30])
+    expect(tdata.page.shapes['rect2'].point).toEqual([130, 130])
 
     expect(Object.keys(tdata.page.shapes).length).toBe(2)
   })
