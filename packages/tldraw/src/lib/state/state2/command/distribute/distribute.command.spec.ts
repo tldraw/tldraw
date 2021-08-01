@@ -8,27 +8,27 @@ describe('Distribute command', () => {
   data.pageState.selectedIds = ['rect1', 'rect2', 'rect3']
 
   it('does, undoes and redoes command', () => {
-    const tdata = Utils.deepClone(data)
+    let tdata = Utils.deepClone(data)
 
     const command = distribute(tdata, DistributeType.Horizontal)
 
-    command.do(tdata)
+    tdata = command.do(tdata)
 
     expect(tdata.page.shapes['rect3'].point).toEqual([50, 20])
 
-    command.undo(tdata)
+    tdata = command.undo(tdata)
 
     expect(tdata.page.shapes['rect3'].point).toEqual([20, 20])
 
-    command.do(tdata)
+    tdata = command.do(tdata)
 
     expect(tdata.page.shapes['rect3'].point).toEqual([50, 20])
   })
 
   it('distributes vertically', () => {
-    const tdata = Utils.deepClone(data)
+    let tdata = Utils.deepClone(data)
 
-    distribute(tdata, DistributeType.Vertical).do(tdata)
+    tdata = distribute(tdata, DistributeType.Vertical).do(tdata)
 
     expect(tdata.page.shapes['rect3'].point).toEqual([20, 50])
   })

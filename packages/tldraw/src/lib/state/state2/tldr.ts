@@ -167,6 +167,143 @@ export class TLDR {
     return copies
   }
 
+  // For a given array of shape ids, an array of all other shapes that may be affected by a mutation to it.
+  // Use this to decide which shapes to clone as before / after for a command.
+  static getAllEffectedShapeIds(data: Data, ids: string[]): string[] {
+    const visited = new Set(ids)
+
+    ids.forEach((id) => {
+      const shape = data.page.shapes[id]
+
+      // Add descendant shapes
+      function collectDescendants(shape: TLDrawShape): void {
+        if (shape.children === undefined) return
+        shape.children
+          .filter((childId) => !visited.has(childId))
+          .forEach((childId) => {
+            visited.add(childId)
+            collectDescendants(data.page.shapes[childId])
+          })
+      }
+
+      collectDescendants(shape)
+
+      // Add asecendant shapes
+      function collectAscendants(shape: TLDrawShape): void {
+        const parentId = shape.parentId
+        if (parentId === data.page.id) return
+        if (visited.has(parentId)) return
+        visited.add(parentId)
+        collectAscendants(data.page.shapes[parentId])
+      }
+
+      collectAscendants(shape)
+
+      // Add bindings that are to or from any of the visited shapes (this does not have to be recursive)
+      visited.forEach((id) => {
+        Object.values(data.page.bindings)
+          .filter((binding) => binding.fromId === id || binding.toId === id)
+          .forEach((binding) => visited.add(binding.fromId === id ? binding.toId : binding.fromId))
+      })
+    })
+
+    // Return the unique array of visited shapes
+    return Array.from(visited.values())
+  }
+
+  static recursivelyUpdateParents<T extends TLDrawShape>(
+    data: Data,
+    id: string,
+    beforeShapes: Record<string, TLDrawShape> = {},
+    afterShapes: Record<string, TLDrawShape> = {},
+  ): Data {
+    const shape = data.page.shapes[id] as T
+
+    if (shape.parentId !== data.page.id) {
+      const parent = data.page.shapes[shape.parentId] as T
+
+      const delta = this.getShapeUtils(shape).onChildrenChange(
+        parent,
+        parent.children.map((childId) => data.page.shapes[childId]),
+      )
+
+      if (delta) {
+        beforeShapes[parent.id] = Utils.deepClone(parent)
+        data.page.shapes[parent.id] = this.getShapeUtils(parent).mutate(parent, delta)
+        afterShapes[parent.id] = Utils.deepClone(parent)
+      }
+
+      if (parent.parentId !== data.page.id) {
+        return this.recursivelyUpdateParents(data, parent.parentId, beforeShapes, afterShapes)
+      }
+    }
+
+    return data
+  }
+
+  static recursivelyUpdateChildren<T extends TLDrawShape>(
+    data: Data,
+    id: string,
+    beforeShapes: Record<string, TLDrawShape> = {},
+    afterShapes: Record<string, TLDrawShape> = {},
+  ): Data {
+    const shape = data.page.shapes[id] as T
+
+    if (shape.children !== undefined) {
+      const deltas = this.getShapeUtils(shape).updateChildren(
+        shape,
+        shape.children.map((childId) => data.page.shapes[childId]),
+      )
+
+      if (deltas) {
+        return deltas.reduce<Data>((cData, delta) => {
+          const deltaShape = cData.page.shapes[delta.id]
+
+          beforeShapes[deltaShape.id] = Utils.deepClone(deltaShape)
+          cData.page.shapes[deltaShape.id] = this.getShapeUtils(deltaShape).mutate(
+            deltaShape,
+            delta,
+          )
+          afterShapes[deltaShape.id] = Utils.deepClone(deltaShape)
+
+          if (deltaShape.children !== undefined) {
+            this.recursivelyUpdateChildren(cData, deltaShape.id, beforeShapes, afterShapes)
+          }
+
+          return cData
+        }, data)
+      }
+    }
+
+    return data
+  }
+
+  static updateBindings(
+    data: Data,
+    id: string,
+    beforeShapes: Record<string, TLDrawShape> = {},
+    afterShapes: Record<string, TLDrawShape> = {},
+  ): Data {
+    return Object.values(data.page.bindings)
+      .filter((binding) => binding.fromId === id || binding.toId === id)
+      .reduce((cData, binding) => {
+        beforeShapes[binding.fromId] = Utils.deepClone(cData.page.shapes[binding.fromId])
+        beforeShapes[binding.toId] = Utils.deepClone(cData.page.shapes[binding.toId])
+
+        this.onBindingChange(
+          cData,
+          cData.page.shapes[binding.fromId],
+          binding,
+          cData.page.shapes[binding.toId],
+        )
+
+        afterShapes[binding.fromId] = Utils.deepClone(cData.page.shapes[binding.fromId])
+        afterShapes[binding.toId] = Utils.deepClone(cData.page.shapes[binding.toId])
+
+        return cData
+      }, data)
+  }
+
   /* -------------------------------------------------- */
   /*                      Mutations                     */
   /* -------------------------------------------------- */
@@ -184,62 +321,30 @@ export class TLDR {
     ids: string[],
     fn: (shape: T) => Partial<T>,
   ): Record<string, TLDrawShape> {
-    let shapes = {
-      ...data.page.shapes,
-      ...Object.fromEntries(
-        ids.map((id) => {
-          const shape = data.page.shapes[id] as T
-          return [id, this.getShapeUtils(shape).mutate(shape, fn(shape))]
-        }),
-      ),
-    }
+    const beforeShapes: Record<string, TLDrawShape> = {}
+    const afterShapes: Record<string, TLDrawShape> = {}
 
-    const changedParentIds = new Set<string>()
+    ids.forEach((id) => {
+      const shape = data.page.shapes[id]
+      beforeShapes[id] = Utils.deepClone(shape)
+      data.page.shapes[id] = this.getShapeUtils(shape).mutate(shape, fn(shape as T))
+    })
 
-    // Next, update the parents
-    const updateParents = (
-      shapes: Record<string, TLDrawShape>,
-      changedShapeIds: string[],
-    ): Record<string, TLDrawShape> => {
-      if (changedShapeIds.length === 0) return shapes
+    const dataWithChildrenChanges = ids.reduce<Data>((cData, id) => {
+      return this.recursivelyUpdateChildren(cData, id, beforeShapes, afterShapes)
+    }, data)
 
-      const parentToUpdateIds = Array.from(
-        new Set(changedShapeIds.map((id) => shapes[id].parentId).values()),
-      ).filter((id) => id !== data.page.id)
+    const dataWithParentChanges = ids.reduce<Data>((cData, id) => {
+      return this.recursivelyUpdateParents(cData, id, beforeShapes, afterShapes)
+    }, dataWithChildrenChanges)
 
-      parentToUpdateIds
-        .map((id) => data.page.shapes[id])
-        .forEach((parent) => {
-          if (!parent.children) {
-            throw Error('A shape is parented to a shape without a children array.')
-          }
+    const dataWithBindingChanges = ids.reduce<Data>((cData, id) => {
+      return this.updateBindings(cData, id, beforeShapes, afterShapes)
+    }, dataWithParentChanges)
 
-          const delta = this.getShapeUtils(parent).onChildrenChange(
-            parent,
-            parent.children.map((id) => data.page.shapes[id]),
-          )
-
-          if (delta) {
-            changedParentIds.add(parent.id)
-            shapes[parent.id] = this.getShapeUtils(parent).mutate(parent, delta)
-          }
-        })
-
-      return updateParents(shapes, parentToUpdateIds)
-    }
-
-    shapes = updateParents(shapes, ids)
-
-    const finalChangedShapeIds = [...ids, ...Array.from(changedParentIds.values())]
-
-    // Update the bindings
-    function updateBindings(shapes: Record<string, TLDrawShape>, changedShapeIds: string[]) {
-      return shapes
-    }
-
-    shapes = updateBindings(shapes, finalChangedShapeIds)
-
-    return shapes
+    return Object.fromEntries(
+      Object.keys(beforeShapes).map((id) => [id, dataWithBindingChanges.page.shapes[id]]),
+    )
   }
 
   static createShapes(data: Data, shapes: TLDrawShape[]): void {
@@ -325,10 +430,6 @@ export class TLDR {
       next = this.onChildrenChange(data, next)
     }
 
-    this.updateBindings(data, [next.id])
-
-    this.updateParents(data, [next.id])
-
     data.page.shapes[next.id] = next
 
     return next
@@ -396,50 +497,50 @@ export class TLDR {
     ids.forEach((id) => delete page.bindings[id])
   }
 
-  static updateBindings(data: Data, changedShapeIds: string[]): void {
-    if (changedShapeIds.length === 0) return
+  // static updateBindings(data: Data, changedShapeIds: string[]): void {
+  //   if (changedShapeIds.length === 0) return
 
-    // First gather all bindings that are directly affected by the change
-    const firstPassBindings = this.getBindingsWithShapeIds(data, changedShapeIds)
+  //   // First gather all bindings that are directly affected by the change
+  //   const firstPassBindings = this.getBindingsWithShapeIds(data, changedShapeIds)
 
-    // Gather all shapes that will be effected by the binding changes
-    const effectedShapeIds = Array.from(
-      new Set(firstPassBindings.flatMap((binding) => [binding.toId, binding.fromId])).values(),
-    )
+  //   // Gather all shapes that will be effected by the binding changes
+  //   const effectedShapeIds = Array.from(
+  //     new Set(firstPassBindings.flatMap((binding) => [binding.toId, binding.fromId])).values(),
+  //   )
 
-    // Now get all bindings that are affected by those shapes
-    const bindingsToUpdate = this.getBindingsWithShapeIds(data, effectedShapeIds)
+  //   // Now get all bindings that are affected by those shapes
+  //   const bindingsToUpdate = this.getBindingsWithShapeIds(data, effectedShapeIds)
 
-    // Populate a map of { [shapeId]: BindingsThatWillEffectTheShape[] }
-    // Note that this will include both to and from bindings, and so will
-    // likely include ids other than the changedShapeIds provided.
+  //   // Populate a map of { [shapeId]: BindingsThatWillEffectTheShape[] }
+  //   // Note that this will include both to and from bindings, and so will
+  //   // likely include ids other than the changedShapeIds provided.
 
-    const shapeIdToBindingsMap = new Map<string, TLBinding[]>()
+  //   const shapeIdToBindingsMap = new Map<string, TLBinding[]>()
 
-    bindingsToUpdate.forEach((binding) => {
-      const { toId, fromId } = binding
+  //   bindingsToUpdate.forEach((binding) => {
+  //     const { toId, fromId } = binding
 
-      for (const id of [toId, fromId]) {
-        if (!shapeIdToBindingsMap.has(id)) {
-          shapeIdToBindingsMap.set(id, [binding])
-        } else {
-          const bindings = shapeIdToBindingsMap.get(id)
-          bindings.push(binding)
-        }
-      }
-    })
+  //     for (const id of [toId, fromId]) {
+  //       if (!shapeIdToBindingsMap.has(id)) {
+  //         shapeIdToBindingsMap.set(id, [binding])
+  //       } else {
+  //         const bindings = shapeIdToBindingsMap.get(id)
+  //         bindings.push(binding)
+  //       }
+  //     }
+  //   })
 
-    // Update each effected shape with the binding that effects it.
-    Array.from(shapeIdToBindingsMap.entries()).forEach(([id, bindings]) => {
-      const shape = this.getShape(data, id)
-      bindings.forEach((binding) => {
-        const otherShape =
-          binding.toId === id
-            ? this.getShape(data, binding.fromId)
-            : this.getShape(data, binding.toId)
+  //   // Update each effected shape with the binding that effects it.
+  //   Array.from(shapeIdToBindingsMap.entries()).forEach(([id, bindings]) => {
+  //     const shape = this.getShape(data, id)
+  //     bindings.forEach((binding) => {
+  //       const otherShape =
+  //         binding.toId === id
+  //           ? this.getShape(data, binding.fromId)
+  //           : this.getShape(data, binding.toId)
 
-        this.onBindingChange(data, shape, binding, otherShape)
-      })
-    })
-  }
+  //       this.onBindingChange(data, shape, binding, otherShape)
+  //     })
+  //   })
+  // }
 }

@@ -279,21 +279,25 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return { ...shape, ...props }
   }
 
+  updateChildren<K extends TLShape>(shape: T, children: K[]): Partial<K>[] | void {
+    return
+  }
+
   onChildrenChange(shape: T, children: TLShape[]): Partial<T> | void {
-    return shape
+    return
   }
 
   onBindingChange(
     shape: T,
-    bindings: TLBinding,
+    binding: TLBinding,
     target: TLShape,
     targetBounds: TLBounds,
   ): Partial<T> | void {
-    return shape
+    return
   }
 
   onHandleChange(shape: T, handle: Partial<T['handles']>, info: TLPointerInfo): Partial<T> | void {
-    return shape
+    return
   }
 
   onRightPointHandle(
@@ -301,7 +305,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
     handle: Partial<T['handles']>,
     info: TLPointerInfo,
   ): Partial<T> | void {
-    return shape
+    return
   }
 
   onDoublePointHandle(
@@ -309,15 +313,15 @@ export abstract class TLShapeUtil<T extends TLShape> {
     handle: Partial<T['handles']>,
     info: TLPointerInfo,
   ): Partial<T> | void {
-    return shape
+    return
   }
 
   onSessionComplete(shape: T): Partial<T> | void {
-    return shape
+    return
   }
 
   onBoundsReset(shape: T): Partial<T> | void {
-    return shape
+    return
   }
 }
 

@@ -6,10 +6,11 @@ describe('Brush session', () => {
   const data = Utils.deepClone(mockData)
 
   it('begins, updates and completes session', () => {
-    const session = new BrushSession(data, [-10, -10])
-    session.update(data, [10, 10])
-    session.complete(data)
-    expect(data.pageState.selectedIds.length).toBe(1)
+    let tdata = Utils.deepClone(data)
+    const session = new BrushSession(tdata, [-10, -10])
+    tdata = session.update(data, [10, 10])
+    tdata = session.complete(data)
+    expect(tdata.pageState.selectedIds.length).toBe(1)
   })
 
   it('selects multiple shapes', () => {

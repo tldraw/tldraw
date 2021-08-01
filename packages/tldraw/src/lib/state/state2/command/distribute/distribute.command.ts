@@ -1,12 +1,14 @@
 import { DistributeType, Utils } from '@tldraw/core'
 import { getShapeUtils, TLDrawShape } from 'packages/tldraw/src/lib/shape'
 import { Data, Command } from '../../state-types'
+import { TLDR } from '../../tldr'
 
 export function distribute(data: Data, type: DistributeType): Command {
   const ids = [...data.pageState.selectedIds]
   const initialShapes = ids.map((id) => data.page.shapes[id])
+  const deltaMap = Object.fromEntries(getDistributions(initialShapes, type).map((d) => [d.id, d]))
 
-  const shapesToTranslate = getDistributions(initialShapes, type)
+  console.log(deltaMap)
 
   return {
     id: 'distribute_shapes',
@@ -19,15 +21,10 @@ export function distribute(data: Data, type: DistributeType): Command {
           ...data.page,
           shapes: {
             ...shapes,
-            ...Object.fromEntries(
-              shapesToTranslate.map(({ id, next }) => [
-                id,
-                {
-                  ...shapes[id],
-                  point: next,
-                },
-              ]),
-            ),
+            ...TLDR.mutateShapes(data, ids, (shape) => {
+              if (!deltaMap[shape.id]) return shape
+              return { point: deltaMap[shape.id].next }
+            }),
           },
         },
       }
@@ -41,15 +38,10 @@ export function distribute(data: Data, type: DistributeType): Command {
           ...data.page,
           shapes: {
             ...shapes,
-            ...Object.fromEntries(
-              shapesToTranslate.map(({ id, next }) => [
-                id,
-                {
-                  ...shapes[id],
-                  point: next,
-                },
-              ]),
-            ),
+            ...TLDR.mutateShapes(data, ids, (shape) => {
+              if (!deltaMap[shape.id]) return shape
+              return { point: deltaMap[shape.id].prev }
+            }),
           },
         },
       }
@@ -59,7 +51,7 @@ export function distribute(data: Data, type: DistributeType): Command {
 
 function getDistributions(initialShapes: TLDrawShape[], type: DistributeType) {
   const entries = initialShapes.map((shape) => {
-    const utils = getShapeUtils(shape)
+    const utils = TLDR.getShapeUtils(shape)
     return {
       id: shape.id,
       point: [...shape.point],
