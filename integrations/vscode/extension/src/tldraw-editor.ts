@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { getNonce } from './nonce'
+import { getNonce } from './util'
 
 /**
  * Provider for .tldr editor.
@@ -31,7 +31,9 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
       const uri = vscode.Uri.joinPath(
         workspaceFolders[0].uri,
         `new-${TldrawEditorProvider.newTldrawFileId++}.tldr`
-      ).with({ scheme: 'untitled' })
+      ).with({
+        scheme: 'untitled',
+      })
 
       vscode.commands.executeCommand(
         'vscode.openWith',
@@ -76,7 +78,6 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
     // Setup initial content for the webview
     webviewPanel.webview.options = {
       enableScripts: true,
-      retainContextWhenHidden: true,
     }
     webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview)
 
@@ -119,14 +120,15 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
     webviewPanel.webview.onDidReceiveMessage((e) => {
       switch (e.type) {
         case 'update':
-          console.log(`"update" extension <-`)
+          console.log(`"update" extension  zzz <-`)
           //console.log(`Is it different? ${}`)
           //vscode.window.showInformationMessage('Upated .tdlr file')
           this.updateTextDocument(document, JSON.parse(e.text))
           break
         case 'save':
-          console.log(`"save" extension <-`)
+          console.log(`"save" extension zzz <-`)
           if (this.document !== undefined) {
+            console.log("document.saved");
             this.document.save()
             // const writeData = Buffer.from(e.text, 'utf8')
 
@@ -148,22 +150,28 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
   private getHtmlForWebview(webview: vscode.Webview): string {
     // Local path to script and css for the webview
     const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.context.extensionUri, 'webview', 'editor.js')
+      vscode.Uri.joinPath(
+        this.context.extensionUri,
+        'media',
+        'tldraw-editor.js'
+      )
     )
 
-    // const styleResetUri = webview.asWebviewUri(
-    //   vscode.Uri.joinPath(this.context.extensionUri, 'media', 'reset.css')
-    // )
+    const styleResetUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this.context.extensionUri, 'media', 'reset.css')
+    )
 
-    // const styleVSCodeUri = webview.asWebviewUri(
-    //   vscode.Uri.joinPath(this.context.extensionUri, 'media', 'vscode.css')
-    // )
+    const styleVSCodeUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this.context.extensionUri, 'media', 'vscode.css')
+    )
 
     const styleMainUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.context.extensionUri, 'webview', 'main.css')
+      vscode.Uri.joinPath(
+        this.context.extensionUri,
+        'media',
+        'tldraw-editor.css'
+      )
     )
-
-    console.log('getHtmlForWebview')
 
     // Use a nonce to whitelist which scripts can be run
     const nonce = getNonce()
@@ -182,12 +190,14 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
 
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+				<link href="${styleResetUri}" rel="stylesheet" />
+				<link href="${styleVSCodeUri}" rel="stylesheet" />
 				<link href="${styleMainUri}" rel="stylesheet" />
 
 				<title>Tldraw Editor</title>
 			</head>
 			<body>
-        <div id="container"></div>
+        <iframe width="100%" height="100%" src="http://localhost:3000/"></iframe>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`

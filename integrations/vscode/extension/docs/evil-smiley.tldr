@@ -17,8 +17,8 @@
             "parentId": "page1",
             "childIndex": 1,
             "point": [
-              216.28,
-              109.45
+              92.76,
+              49.046
             ],
             "radiusX": 238.60000000000002,
             "radiusY": 236.98649999999998,
@@ -41,8 +41,8 @@
             "parentId": "page1",
             "childIndex": 2,
             "point": [
-              351.81,
-              257.2
+              228.29,
+              196.79
             ],
             "points": [
               [
@@ -720,8 +720,8 @@
             "parentId": "page1",
             "childIndex": 3,
             "point": [
-              483.07,
-              240.38
+              359.55,
+              179.97
             ],
             "points": [
               [
@@ -1329,8 +1329,8 @@
             "parentId": "page1",
             "childIndex": 4,
             "point": [
-              356.73,
-              404.52
+              233.21,
+              344.11
             ],
             "points": [
               [
@@ -2198,8 +2198,8 @@
             "parentId": "page1",
             "childIndex": 5,
             "point": [
-              388.89,
-              422.04
+              265.37,
+              361.63
             ],
             "points": [
               [
@@ -2557,8 +2557,8 @@
             "parentId": "page1",
             "childIndex": 6,
             "point": [
-              447.48,
-              435.35
+              323.96,
+              374.94
             ],
             "points": [
               [
@@ -3056,8 +3056,8 @@
             "parentId": "page1",
             "childIndex": 7,
             "point": [
-              482.86,
-              431.86
+              359.34,
+              371.45
             ],
             "points": [
               [
@@ -3330,8 +3330,8 @@
             "parentId": "page1",
             "childIndex": 8,
             "point": [
-              446.64,
-              419.32
+              323.12,
+              358.91
             ],
             "points": [
               [
@@ -3649,8 +3649,8 @@
             "parentId": "page1",
             "childIndex": 9,
             "point": [
-              425.05,
-              449.86
+              301.53,
+              389.45
             ],
             "points": [
               [
@@ -3803,8 +3803,8 @@
             "parentId": "page1",
             "childIndex": 10,
             "point": [
-              388.54,
-              421.32
+              265.02,
+              360.91
             ],
             "points": [
               [
@@ -4132,8 +4132,8 @@
             "parentId": "page1",
             "childIndex": 11,
             "point": [
-              311.32,
-              261.97
+              187.8,
+              201.56
             ],
             "points": [
               [
@@ -4571,8 +4571,8 @@
             "parentId": "page1",
             "childIndex": 12,
             "point": [
-              488.4,
-              240.68
+              364.88,
+              180.27
             ],
             "points": [
               [
@@ -4875,8 +4875,8 @@
             "parentId": "page1",
             "childIndex": 13,
             "point": [
-              486.52,
-              289.52
+              363,
+              229.11
             ],
             "points": [
               [
@@ -5779,8 +5779,8 @@
             "parentId": "page1",
             "childIndex": 14,
             "point": [
-              364.29,
-              290.33
+              240.77,
+              229.92
             ],
             "points": [
               [
@@ -6193,8 +6193,8 @@
             "parentId": "page1",
             "childIndex": 15,
             "point": [
-              323.12,
-              414.26
+              199.6,
+              353.85
             ],
             "points": [
               [
@@ -6747,8 +6747,8 @@
             "parentId": "page1",
             "childIndex": 16,
             "point": [
-              480.51,
-              406.76
+              356.99,
+              346.35
             ],
             "points": [
               [
@@ -7496,8 +7496,8 @@
             "parentId": "page1",
             "childIndex": 17,
             "point": [
-              430.68,
-              412.1
+              307.16,
+              351.69
             ],
             "points": [
               [
@@ -8465,8 +8465,8 @@
             "parentId": "page1",
             "childIndex": 18,
             "point": [
-              363.85,
-              409.11
+              240.33,
+              348.7
             ],
             "points": [
               [
@@ -9909,8 +9909,8 @@
             "parentId": "page1",
             "childIndex": 19,
             "point": [
-              338.36,
-              305.48
+              214.84,
+              245.07
             ],
             "points": [
               [
@@ -10113,13 +10113,13 @@
   },
   "pageState": {
     "id": "page1",
+    "selectedIds": {},
     "camera": {
       "point": [
-        0,
-        0
+        177.70644466341784,
+        33.67618682951017
       ],
       "zoom": 1
-    },
-    "selectedIds": []
+    }
   }
 }
