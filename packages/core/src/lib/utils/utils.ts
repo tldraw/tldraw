@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-redeclare */
 import * as React from 'react'
+import deepmerge from 'deepmerge'
 import { TLBezierCurveSegment, TLBounds, TLBoundsCorner, TLBoundsEdge } from '../types'
 import { current, isDraft } from 'immer'
 import vec from './vec'
@@ -9,6 +12,10 @@ export class Utils {
   /* -------------------------------------------------- */
   /*                    Math & Geometry                 */
   /* -------------------------------------------------- */
+
+  static deepMerge<T>(a: T, b: DeepPartial<T>): T {
+    return deepmerge<T, DeepPartial<T>>(a, b, { arrayMerge: (a, b) => b }) as T
+  }
 
   /**
    * Linear interpolation betwen two numbers.
@@ -1703,3 +1710,13 @@ left past the initial left edge) then swap points on that axis.
 }
 
 export default Utils
+
+// Helper types
+
+export type DeepPartial<T> = T extends Function
+  ? T
+  : T extends object
+  ? T extends unknown[]
+    ? DeepPartial<T[number]>[]
+    : { [P in keyof T]?: DeepPartial<T[P]> }
+  : T

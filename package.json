@@ -38,6 +38,7 @@
     "@state-designer/react": "^2.0.3",
     "@stitches/react": "^0.2.3",
     "core-js": "^3.6.5",
+    "deepmerge": "^4.2.2",
     "document-register-element": "1.13.1",
     "gtag": "^1.0.1",
     "immer": "^9.0.5",
@@ -54,6 +55,7 @@
     "react-hotkeys-hook": "^3.4.0",
     "react-use-gesture": "^9.1.3",
     "regenerator-runtime": "0.13.7",
+    "ts-deepmerge": "^1.0.8",
     "tslib": "^2.0.0",
     "zustand": "^3.5.7"
   },

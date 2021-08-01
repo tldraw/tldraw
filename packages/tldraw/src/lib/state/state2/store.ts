@@ -1,4 +1,4 @@
-import { AlignType, DistributeType, StretchType, Vec } from '@tldraw/core'
+import { AlignType, DistributeType, StretchType, Utils, Vec } from '@tldraw/core'
 import { brushUpdater } from '@tldraw/core'
 import { defaultStyle, TLDrawShapeType } from '../../shape'
 import createVanilla from 'zustand/vanilla'
@@ -9,7 +9,7 @@ import { BrushSession } from './session'
 import { TLDR } from './tldr'
 import { TLDrawDocument } from '../../types'
 
-const store = createVanilla<Data>((set, get, str) => ({
+const initialData: Data = {
   settings: {
     isPenMode: false,
     isDarkMode: false,
@@ -19,7 +19,6 @@ const store = createVanilla<Data>((set, get, str) => ({
     nudgeDistanceSmall: 1,
   },
   appState: {
-    activeSession: undefined,
     activeToolType: undefined,
     activeTool: 'select',
     currentPageId: 'page',
@@ -54,7 +53,9 @@ const store = createVanilla<Data>((set, get, str) => ({
       zoom: 1,
     },
   },
-}))
+}
+
+const store = createVanilla<Data>((set, get, str) => initialData)
 
 const { setState } = store
 
@@ -76,6 +77,24 @@ export const tlstate: TLDrawState = {
   pages: { page: initialState.page },
   pageStates: { page: initialState.pageState },
 
+  /* ----------------------- UI ----------------------- */
+  toggleStylePanel() {
+    setState((data) => ({
+      appState: {
+        ...data.appState,
+        isStyleOpen: !data.appState.isStyleOpen,
+      },
+    }))
+  },
+  copy() {
+    // TODO
+  },
+  paste() {
+    // TODO
+  },
+  copyToSvg() {
+    // TODO
+  },
   /* --------------------- Status --------------------- */
   setStatus(status: TLDrawStatus) {
     this.status.previous = this.status.current
@@ -197,6 +216,7 @@ export const tlstate: TLDrawState = {
     }))
   },
   /* ----------------- Shape Functions ---------------- */
+
   align(type: AlignType) {
     this.do(commands.align(this.store.getState(), type))
   },
@@ -224,12 +244,16 @@ export const tlstate: TLDrawState = {
     this.session = undefined
   },
   completeSession(...args) {
-    setState((data) => {
-      this.setStatus('idle')
-      const result = this.session.complete(data, ...args)
-      if ('undo' in result) return result.do(result.do(data))
-      return result
-    })
+    const result = this.session.complete(this.store.getState(), ...args)
+
+    this.setStatus('idle')
+
+    if ('after' in result) {
+      this.do(result)
+      return
+    }
+
+    setState(() => result)
   },
   /* -------------------- Commands -------------------- */
   do(command: Command) {
@@ -239,19 +263,19 @@ export const tlstate: TLDrawState = {
     }
     history.stack.push(command)
     history.pointer++
-    setState((data) => history.stack[history.pointer].do(data, false))
+    setState((data) => Utils.deepMerge<Data>(data, history.stack[history.pointer].after))
   },
   undo() {
     const { history } = this
     if (history.pointer <= -1) return
+    setState((data) => Utils.deepMerge<Data>(data, history.stack[history.pointer].before))
     history.pointer--
-    setState((data) => history.stack[history.pointer].undo(data))
   },
   redo() {
     const { history } = this
     if (history.pointer >= history.stack.length - 1) return
     history.pointer++
-    setState((data) => history.stack[history.pointer].do(data, true))
+    setState((data) => Utils.deepMerge<Data>(data, history.stack[history.pointer].after))
   },
   /* -------------------- Sessions -------------------- */
   startBrushSession(point: number[]) {

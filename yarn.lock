@@ -13040,6 +13040,11 @@ treeverse@^1.0.4:
   resolved "https://registry.yarnpkg.com/treeverse/-/treeverse-1.0.4.tgz#a6b0ebf98a1bca6846ddc7ecbc900df08cb9cd5f"
   integrity sha512-whw60l7r+8ZU8Tu/Uc2yxtc4ZTZbR/PF3u1IPNKGQ6p8EICLb3Z2lAgoqw9bqYd8IkgnsaOcLzYHFckjqNsf0g==
 
+ts-deepmerge@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/ts-deepmerge/-/ts-deepmerge-1.0.8.tgz#927ebb0db106bdc4a15011c288a2024496638900"
+  integrity sha512-d3ZRKksHOOUQpLpB8qncIrcbRKGO/TWIC8hncD0QkEMAxTPq39hqRig0LM4fHnuZW3tWID/aNxjbAFW50IV3Lw==
+
 ts-jest@27.0.3:
   version "27.0.3"
   resolved "https://registry.yarnpkg.com/ts-jest/-/ts-jest-27.0.3.tgz#808492f022296cde19390bb6ad627c8126bf93f8"

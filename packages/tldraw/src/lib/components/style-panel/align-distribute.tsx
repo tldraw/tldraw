@@ -11,48 +11,48 @@ import {
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
 } from '@radix-ui/react-icons'
+import { tlstate } from '../../state/state2'
 import { breakpoints, ButtonsRow, IconButton } from '../shared'
 import { AlignType, DistributeType, StretchType } from '../../types'
-import { state } from '../../state'
 
 function alignTop() {
-  state.send('ALIGNED', { type: AlignType.Top })
+  tlstate.align(AlignType.Top)
 }
 
 function alignCenterVertical() {
-  state.send('ALIGNED', { type: AlignType.CenterVertical })
+  tlstate.align(AlignType.CenterVertical)
 }
 
 function alignBottom() {
-  state.send('ALIGNED', { type: AlignType.Bottom })
+  tlstate.align(AlignType.Bottom)
 }
 
 function stretchVertically() {
-  state.send('STRETCHED', { type: StretchType.Vertical })
+  tlstate.stretch(StretchType.Vertical)
 }
 
 function distributeVertically() {
-  state.send('DISTRIBUTED', { type: DistributeType.Vertical })
+  tlstate.distribute(DistributeType.Vertical)
 }
 
 function alignLeft() {
-  state.send('ALIGNED', { type: AlignType.Left })
+  tlstate.align(AlignType.Left)
 }
 
 function alignCenterHorizontal() {
-  state.send('ALIGNED', { type: AlignType.CenterHorizontal })
+  tlstate.align(AlignType.CenterHorizontal)
 }
 
 function alignRight() {
-  state.send('ALIGNED', { type: AlignType.Right })
+  tlstate.align(AlignType.Right)
 }
 
 function stretchHorizontally() {
-  state.send('STRETCHED', { type: StretchType.Horizontal })
+  tlstate.stretch(StretchType.Horizontal)
 }
 
 function distributeHorizontally() {
-  state.send('DISTRIBUTED', { type: DistributeType.Horizontal })
+  tlstate.distribute(DistributeType.Horizontal)
 }
 
 export interface AlignDistributeProps {

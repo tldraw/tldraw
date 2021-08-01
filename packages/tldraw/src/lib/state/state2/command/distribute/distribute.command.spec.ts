@@ -1,4 +1,5 @@
 import { DistributeType, Utils } from '@tldraw/core'
+import { Data } from 'packages/tldraw/src/lib/types'
 import { mockData } from '../../../../../specs/__mocks__/mock-data'
 import { distribute } from './distribute.command'
 
@@ -12,15 +13,19 @@ describe('Distribute command', () => {
 
     const command = distribute(tdata, DistributeType.Horizontal)
 
-    tdata = command.do(tdata)
+    console.log(command.after)
+    tdata = Utils.deepMerge<Data>(tdata, command.after)
+    console.log(tdata.page.shapes)
 
     expect(tdata.page.shapes['rect3'].point).toEqual([50, 20])
 
-    tdata = command.undo(tdata)
+    console.log(command.before)
+    tdata = Utils.deepMerge<Data>(tdata, command.before)
+    console.log(tdata.page.shapes)
 
     expect(tdata.page.shapes['rect3'].point).toEqual([20, 20])
 
-    tdata = command.do(tdata)
+    tdata = Utils.deepMerge<Data>(tdata, command.after)
 
     expect(tdata.page.shapes['rect3'].point).toEqual([50, 20])
   })
@@ -28,7 +33,7 @@ describe('Distribute command', () => {
   it('distributes vertically', () => {
     let tdata = Utils.deepClone(data)
 
-    tdata = distribute(tdata, DistributeType.Vertical).do(tdata)
+    tdata = Utils.deepMerge<Data>(tdata, distribute(tdata, DistributeType.Vertical).after)
 
     expect(tdata.page.shapes['rect3'].point).toEqual([20, 50])
   })

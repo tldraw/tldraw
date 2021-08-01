@@ -20,7 +20,7 @@ export function align(data: Data, type: AlignType): Command {
   const midX = commonBounds.minX + commonBounds.width / 2
   const midY = commonBounds.minY + commonBounds.height / 2
 
-  const deltas = Object.fromEntries(
+  const deltaMap = Object.fromEntries(
     boundsForShapes.map(({ id, point, bounds }) => {
       return [
         id,
@@ -39,29 +39,26 @@ export function align(data: Data, type: AlignType): Command {
     }),
   )
 
+  const { before, after } = TLDR.mutateShapes(data, ids, (shape) => {
+    if (!deltaMap[shape.id]) return shape
+    return { point: deltaMap[shape.id].next }
+  })
+
   return {
     id: 'align_shapes',
-    do(data) {
-      return {
-        ...data,
-        page: {
-          ...data.page,
-          shapes: TLDR.mutateShapes(data, ids, (shape) => {
-            return { point: deltas[shape.id].next }
-          }),
+    after: {
+      page: {
+        shapes: {
+          ...after,
         },
-      }
+      },
     },
-    undo(data) {
-      return {
-        ...data,
-        page: {
-          ...data.page,
-          shapes: TLDR.mutateShapes(data, ids, (shape) => {
-            return { point: deltas[shape.id].prev }
-          }),
+    before: {
+      page: {
+        shapes: {
+          ...before,
         },
-      }
+      },
     },
   }
 }

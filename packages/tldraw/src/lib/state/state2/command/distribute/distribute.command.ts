@@ -1,5 +1,5 @@
 import { DistributeType, Utils } from '@tldraw/core'
-import { getShapeUtils, TLDrawShape } from 'packages/tldraw/src/lib/shape'
+import { TLDrawShape } from 'packages/tldraw/src/lib/shape'
 import { Data, Command } from '../../state-types'
 import { TLDR } from '../../tldr'
 
@@ -8,43 +8,26 @@ export function distribute(data: Data, type: DistributeType): Command {
   const initialShapes = ids.map((id) => data.page.shapes[id])
   const deltaMap = Object.fromEntries(getDistributions(initialShapes, type).map((d) => [d.id, d]))
 
-  console.log(deltaMap)
+  const { before, after } = TLDR.mutateShapes(data, ids, (shape) => {
+    if (!deltaMap[shape.id]) return shape
+    return { point: deltaMap[shape.id].next }
+  })
 
   return {
     id: 'distribute_shapes',
-    do(data) {
-      const { shapes } = data.page
-
-      return {
-        ...data,
-        page: {
-          ...data.page,
-          shapes: {
-            ...shapes,
-            ...TLDR.mutateShapes(data, ids, (shape) => {
-              if (!deltaMap[shape.id]) return shape
-              return { point: deltaMap[shape.id].next }
-            }),
-          },
+    after: {
+      page: {
+        shapes: {
+          ...after,
         },
-      }
+      },
     },
-    undo(data) {
-      const { shapes } = data.page
-
-      return {
-        ...data,
-        page: {
-          ...data.page,
-          shapes: {
-            ...shapes,
-            ...TLDR.mutateShapes(data, ids, (shape) => {
-              if (!deltaMap[shape.id]) return shape
-              return { point: deltaMap[shape.id].prev }
-            }),
-          },
+    before: {
+      page: {
+        shapes: {
+          ...before,
         },
-      }
+      },
     },
   }
 }

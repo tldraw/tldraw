@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import type {
   AlignType,
   DistributeType,
@@ -30,10 +31,18 @@ export interface Data {
   }
 }
 
+export type DeepPartial<T> = T extends Function
+  ? T
+  : T extends object
+  ? T extends unknown[]
+    ? DeepPartial<T[number]>[]
+    : { [P in keyof T]?: DeepPartial<T[P]> }
+  : T
+
 export interface Command {
   id: string
-  do: (data: Readonly<Data>, isRedo?: boolean) => TLChange
-  undo: (data: Readonly<Data>) => TLChange
+  before: DeepPartial<Data>
+  after: DeepPartial<Data>
 }
 
 export interface History {
@@ -78,6 +87,10 @@ export interface TLDrawState extends TLCallbacks<TLDrawState> {
   selectAll: (this: TLDrawState) => void
   deselectAll: (this: TLDrawState) => void
   /* ----------------- Shape Functions ---------------- */
+  toggleStylePanel: (this: TLDrawState) => void
+  copy: (this: TLDrawState) => void
+  paste: (this: TLDrawState) => void
+  copyToSvg: (this: TLDrawState) => void
   align: (this: TLDrawState, type: AlignType) => void
   distribute: (this: TLDrawState, type: DistributeType) => void
   stretch: (this: TLDrawState, type: StretchType) => void

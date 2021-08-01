@@ -211,36 +211,6 @@ export class TLDR {
     return Array.from(visited.values())
   }
 
-  static recursivelyUpdateParents<T extends TLDrawShape>(
-    data: Data,
-    id: string,
-    beforeShapes: Record<string, TLDrawShape> = {},
-    afterShapes: Record<string, TLDrawShape> = {},
-  ): Data {
-    const shape = data.page.shapes[id] as T
-
-    if (shape.parentId !== data.page.id) {
-      const parent = data.page.shapes[shape.parentId] as T
-
-      const delta = this.getShapeUtils(shape).onChildrenChange(
-        parent,
-        parent.children.map((childId) => data.page.shapes[childId]),
-      )
-
-      if (delta) {
-        beforeShapes[parent.id] = Utils.deepClone(parent)
-        data.page.shapes[parent.id] = this.getShapeUtils(parent).mutate(parent, delta)
-        afterShapes[parent.id] = Utils.deepClone(parent)
-      }
-
-      if (parent.parentId !== data.page.id) {
-        return this.recursivelyUpdateParents(data, parent.parentId, beforeShapes, afterShapes)
-      }
-    }
-
-    return data
-  }
-
   static recursivelyUpdateChildren<T extends TLDrawShape>(
     data: Data,
     id: string,
@@ -259,12 +229,14 @@ export class TLDR {
         return deltas.reduce<Data>((cData, delta) => {
           const deltaShape = cData.page.shapes[delta.id]
 
-          beforeShapes[deltaShape.id] = Utils.deepClone(deltaShape)
+          if (!beforeShapes[deltaShape.id]) {
+            beforeShapes[deltaShape.id] = deltaShape
+          }
           cData.page.shapes[deltaShape.id] = this.getShapeUtils(deltaShape).mutate(
             deltaShape,
             delta,
           )
-          afterShapes[deltaShape.id] = Utils.deepClone(deltaShape)
+          afterShapes[deltaShape.id] = cData.page.shapes[deltaShape.id]
 
           if (deltaShape.children !== undefined) {
             this.recursivelyUpdateChildren(cData, deltaShape.id, beforeShapes, afterShapes)
@@ -272,6 +244,38 @@ export class TLDR {
 
           return cData
         }, data)
+      }
+    }
+
+    return data
+  }
+
+  static recursivelyUpdateParents<T extends TLDrawShape>(
+    data: Data,
+    id: string,
+    beforeShapes: Record<string, TLDrawShape> = {},
+    afterShapes: Record<string, TLDrawShape> = {},
+  ): Data {
+    const shape = data.page.shapes[id] as T
+
+    if (shape.parentId !== data.page.id) {
+      const parent = data.page.shapes[shape.parentId] as T
+
+      const delta = this.getShapeUtils(shape).onChildrenChange(
+        parent,
+        parent.children.map((childId) => data.page.shapes[childId]),
+      )
+
+      if (delta) {
+        if (!beforeShapes[parent.id]) {
+          beforeShapes[parent.id] = parent
+        }
+        data.page.shapes[parent.id] = this.getShapeUtils(parent).mutate(parent, delta)
+        afterShapes[parent.id] = data.page.shapes[parent.id]
+      }
+
+      if (parent.parentId !== data.page.id) {
+        return this.recursivelyUpdateParents(data, parent.parentId, beforeShapes, afterShapes)
       }
     }
 
@@ -287,8 +291,13 @@ export class TLDR {
     return Object.values(data.page.bindings)
       .filter((binding) => binding.fromId === id || binding.toId === id)
       .reduce((cData, binding) => {
-        beforeShapes[binding.fromId] = Utils.deepClone(cData.page.shapes[binding.fromId])
-        beforeShapes[binding.toId] = Utils.deepClone(cData.page.shapes[binding.toId])
+        if (!beforeShapes[binding.id]) {
+          beforeShapes[binding.fromId] = Utils.deepClone(cData.page.shapes[binding.fromId])
+        }
+
+        if (!beforeShapes[binding.toId]) {
+          beforeShapes[binding.toId] = Utils.deepClone(cData.page.shapes[binding.toId])
+        }
 
         this.onBindingChange(
           cData,
@@ -320,14 +329,15 @@ export class TLDR {
     data: Data,
     ids: string[],
     fn: (shape: T) => Partial<T>,
-  ): Record<string, TLDrawShape> {
+  ): { before: Record<string, TLDrawShape>; after: Record<string, TLDrawShape>; data: Data } {
     const beforeShapes: Record<string, TLDrawShape> = {}
     const afterShapes: Record<string, TLDrawShape> = {}
 
     ids.forEach((id) => {
       const shape = data.page.shapes[id]
-      beforeShapes[id] = Utils.deepClone(shape)
+      beforeShapes[id] = shape
       data.page.shapes[id] = this.getShapeUtils(shape).mutate(shape, fn(shape as T))
+      afterShapes[id] = data.page.shapes[id]
     })
 
     const dataWithChildrenChanges = ids.reduce<Data>((cData, id) => {
@@ -342,9 +352,7 @@ export class TLDR {
       return this.updateBindings(cData, id, beforeShapes, afterShapes)
     }, dataWithParentChanges)
 
-    return Object.fromEntries(
-      Object.keys(beforeShapes).map((id) => [id, dataWithBindingChanges.page.shapes[id]]),
-    )
+    return { before: beforeShapes, after: afterShapes, data: dataWithBindingChanges }
   }
 
   static createShapes(data: Data, shapes: TLDrawShape[]): void {
