@@ -1,5 +1,5 @@
 import { TLBinding, TLBounds, TLTransformInfo, Vec, Utils } from '@tldraw/core'
-import { getShapeUtils, TLDrawShape, TLDrawShapeUtil } from '../../shape'
+import { getShapeUtils, TLDrawShape, TLDrawShapeUtil } from '../shape'
 import { Data } from './state-types'
 
 export class TLDR {

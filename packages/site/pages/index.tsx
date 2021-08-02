@@ -5,8 +5,6 @@ import {
   SizeStyle,
   TLDraw,
   TLDrawDocument,
-  TLDrawShape,
-  TLDrawShapeUtils,
   TLDrawShapeType,
 } from '@tldraw/tldraw'
 

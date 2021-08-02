@@ -46,17 +46,17 @@ export function align(data: Data, type: AlignType): Command {
 
   return {
     id: 'align_shapes',
-    after: {
-      page: {
-        shapes: {
-          ...after,
-        },
-      },
-    },
     before: {
       page: {
         shapes: {
           ...before,
+        },
+      },
+    },
+    after: {
+      page: {
+        shapes: {
+          ...after,
         },
       },
     },

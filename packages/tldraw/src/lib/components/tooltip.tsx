@@ -1,5 +1,4 @@
 import * as RadixTooltip from '@radix-ui/react-tooltip'
-import { Utils } from '@tldraw/core'
 import React from 'react'
 import styled from '../styles'
 import { Kbd } from './kbd'

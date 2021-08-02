@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { DropdownMenuIconTriggerButton } from '../shared'
-import { state, useSelector } from '../../state'
 import {
   DashDrawIcon,
   DashDottedIcon,
@@ -11,6 +10,8 @@ import {
   StyleDropdownItem,
 } from './shared'
 import { DashStyle } from '../../shape'
+import { useTLDrawContext } from '../../hooks'
+import { Data } from '../../state2'
 
 const dashes = {
   [DashStyle.Draw]: <DashDrawIcon />,
@@ -19,12 +20,18 @@ const dashes = {
   [DashStyle.Dotted]: <DashDottedIcon />,
 }
 
-function changeDashStyle(dash: DashStyle): void {
-  state.send('CHANGED_STYLE', { dash })
-}
+const selectDash = (data: Data) => data.appState.selectedStyle.dash
 
 export const QuickDashSelect = React.memo((): JSX.Element => {
-  const dash = useSelector((s) => s.values.selectedStyle.dash)
+  const { tlstate, useAppState } = useTLDrawContext()
+  const dash = useAppState(selectDash)
+
+  const changeDashStyle = React.useCallback(
+    (dash: DashStyle) => {
+      tlstate.style({ dash })
+    },
+    [tlstate],
+  )
 
   return (
     <DropdownMenu.Root dir="ltr">

@@ -15,17 +15,17 @@ export function distribute(data: Data, type: DistributeType): Command {
 
   return {
     id: 'distribute_shapes',
-    after: {
-      page: {
-        shapes: {
-          ...after,
-        },
-      },
-    },
     before: {
       page: {
         shapes: {
           ...before,
+        },
+      },
+    },
+    after: {
+      page: {
+        shapes: {
+          ...after,
         },
       },
     },

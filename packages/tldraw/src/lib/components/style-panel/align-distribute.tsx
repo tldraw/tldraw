@@ -11,49 +11,9 @@ import {
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
 } from '@radix-ui/react-icons'
-import { tlstate } from '../../state/state2'
 import { breakpoints, ButtonsRow, IconButton } from '../shared'
 import { AlignType, DistributeType, StretchType } from '../../types'
-
-function alignTop() {
-  tlstate.align(AlignType.Top)
-}
-
-function alignCenterVertical() {
-  tlstate.align(AlignType.CenterVertical)
-}
-
-function alignBottom() {
-  tlstate.align(AlignType.Bottom)
-}
-
-function stretchVertically() {
-  tlstate.stretch(StretchType.Vertical)
-}
-
-function distributeVertically() {
-  tlstate.distribute(DistributeType.Vertical)
-}
-
-function alignLeft() {
-  tlstate.align(AlignType.Left)
-}
-
-function alignCenterHorizontal() {
-  tlstate.align(AlignType.CenterHorizontal)
-}
-
-function alignRight() {
-  tlstate.align(AlignType.Right)
-}
-
-function stretchHorizontally() {
-  tlstate.stretch(StretchType.Horizontal)
-}
-
-function distributeHorizontally() {
-  tlstate.distribute(DistributeType.Horizontal)
-}
+import { useTLDrawContext } from '../../hooks'
 
 export interface AlignDistributeProps {
   hasTwoOrMore: boolean
@@ -62,6 +22,48 @@ export interface AlignDistributeProps {
 
 export const AlignDistribute = React.memo(
   ({ hasTwoOrMore, hasThreeOrMore }: AlignDistributeProps): JSX.Element => {
+    const { tlstate } = useTLDrawContext()
+
+    const alignTop = React.useCallback(() => {
+      tlstate.align(AlignType.Top)
+    }, [tlstate])
+
+    const alignCenterVertical = React.useCallback(() => {
+      tlstate.align(AlignType.CenterVertical)
+    }, [tlstate])
+
+    const alignBottom = React.useCallback(() => {
+      tlstate.align(AlignType.Bottom)
+    }, [tlstate])
+
+    const stretchVertically = React.useCallback(() => {
+      tlstate.stretch(StretchType.Vertical)
+    }, [tlstate])
+
+    const distributeVertically = React.useCallback(() => {
+      tlstate.distribute(DistributeType.Vertical)
+    }, [tlstate])
+
+    const alignLeft = React.useCallback(() => {
+      tlstate.align(AlignType.Left)
+    }, [tlstate])
+
+    const alignCenterHorizontal = React.useCallback(() => {
+      tlstate.align(AlignType.CenterHorizontal)
+    }, [tlstate])
+
+    const alignRight = React.useCallback(() => {
+      tlstate.align(AlignType.Right)
+    }, [tlstate])
+
+    const stretchHorizontally = React.useCallback(() => {
+      tlstate.stretch(StretchType.Horizontal)
+    }, [tlstate])
+
+    const distributeHorizontally = React.useCallback(() => {
+      tlstate.distribute(DistributeType.Horizontal)
+    }, [tlstate])
+
     return (
       <>
         <ButtonsRow>

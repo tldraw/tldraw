@@ -8,7 +8,7 @@ import {
   Divider,
 } from '../shared'
 
-import { tlstate, useAppState } from '../../state/state2'
+import { Data } from '../../state2'
 import { ShapesFunctions } from './shapes-functions'
 import { AlignDistribute } from './align-distribute'
 import { QuickColorSelect } from './quick-color-select'
@@ -18,13 +18,12 @@ import { QuickFillSelect } from './quick-fill-select'
 import { Tooltip } from '../tooltip'
 import { DotsHorizontalIcon, Cross2Icon } from '@radix-ui/react-icons'
 import { Utils } from '@tldraw/core'
+import { useTLDrawContext } from '../../hooks'
 
-const handleStylePanelOpen = () => tlstate.toggleStylePanel()
-const handleCopy = () => tlstate.copy()
-const handlePaste = () => tlstate.paste()
-const handleCopyToSvg = () => tlstate.copyToSvg()
+const isStyleOpenSelector = (s: Data) => s.appState.isStyleOpen
 
 export function StylePanel(): JSX.Element {
+  const { tlstate, useAppState } = useTLDrawContext()
   const isOpen = useAppState((s) => s.appState.isStyleOpen)
 
   return (
@@ -38,7 +37,7 @@ export function StylePanel(): JSX.Element {
           bp={breakpoints}
           title="Style"
           size="small"
-          onPointerDown={handleStylePanelOpen}
+          onPointerDown={tlstate.toggleStylePanel}
         >
           <Tooltip label={isOpen ? 'Close' : 'More'}>
             {isOpen ? <Cross2Icon /> : <DotsHorizontalIcon />}
@@ -50,8 +49,11 @@ export function StylePanel(): JSX.Element {
   )
 }
 
+const selectedShapesCountSelector = (s: Data) => s.pageState.selectedIds.length
+
 function SelectedShapeContent(): JSX.Element {
-  const selectedShapesCount = useAppState((s) => s.pageState.selectedIds.length)
+  const { tlstate, useAppState } = useTLDrawContext()
+  const selectedShapesCount = useAppState(selectedShapesCountSelector)
 
   const showKbds = !Utils.isMobile()
 
@@ -65,15 +67,15 @@ function SelectedShapeContent(): JSX.Element {
         hasThreeOrMore={selectedShapesCount > 2}
       />
       <Divider />
-      <RowButton bp={breakpoints} disabled={selectedShapesCount === 0} onClick={handleCopy}>
+      <RowButton bp={breakpoints} disabled={selectedShapesCount === 0} onClick={tlstate.copy}>
         <span>Copy</span>
         {showKbds && <Kbd variant="menu">#C</Kbd>}
       </RowButton>
-      <RowButton bp={breakpoints} onClick={handlePaste}>
+      <RowButton bp={breakpoints} onClick={tlstate.paste}>
         <span>Paste</span>
         {showKbds && <Kbd variant="menu">#V</Kbd>}
       </RowButton>
-      <RowButton bp={breakpoints} onClick={handleCopyToSvg}>
+      <RowButton bp={breakpoints} onClick={tlstate.copyToSvg}>
         <span>Copy to SVG</span>
         {showKbds && <Kbd variant="menu">⇧#C</Kbd>}
       </RowButton>

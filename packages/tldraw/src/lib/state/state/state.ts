@@ -1004,7 +1004,6 @@ export class TLDrawState {
         const camera = TLD.getCurrentCamera(data)
         camera.zoom = 1
         camera.point = [window.innerWidth / 2, window.innerHeight / 2]
-        document.documentElement.style.setProperty('--camera-zoom', '1')
       },
 
       /* ------------------ Shape Changes ----------------- */

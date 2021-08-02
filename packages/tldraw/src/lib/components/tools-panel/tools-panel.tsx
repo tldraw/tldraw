@@ -9,7 +9,6 @@ import {
   TextIcon,
 } from '@radix-ui/react-icons'
 import * as React from 'react'
-import { state, useSelector } from '../../state'
 import { StatusBar } from '../status-bar'
 import { FloatingContainer } from '../shared'
 import { PrimaryButton, SecondaryButton } from './shared'
@@ -18,19 +17,45 @@ import { UndoRedo } from './undo-redo'
 import { Zoom } from './zoom'
 import { BackToContent } from './back-to-content'
 import { TLDrawShapeType } from '../../shape'
+import { useTLDrawContext } from '../../hooks'
+import { Data } from '../../state2'
 
-const selectSelectTool = () => state.send('SELECTED_TOOL', { type: 'select' })
-const selectDrawTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Draw })
-const selectRectangleTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Rectangle })
-const selectEllipseTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Ellipse })
-const selectArrowTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Ellipse })
-const selectTextTool = () => state.send('SELECTED_TOOL', { type: TLDrawShapeType.Ellipse })
-const toggleToolLock = () => state.send('TOGGLED_TOOL_LOCK')
+const activeToolSelector = (s: Data) => s.appState.activeTool
+const isToolLockedSelector = (s: Data) => s.appState.isToolLocked
+const isDebugModeSelector = (s: Data) => s.settings.isDebugMode
 
 export const ToolsPanel = React.memo((): JSX.Element => {
-  const activeTool = useSelector((s) => s.data.appState.activeTool)
-  const isToolLocked = useSelector((s) => s.data.appState.isToolLocked)
-  const isDebugMode = useSelector((s) => s.data.settings.isDebugMode)
+  const { tlstate, useAppState } = useTLDrawContext()
+
+  const activeTool = useAppState(activeToolSelector)
+
+  const isToolLocked = useAppState(isToolLockedSelector)
+
+  const isDebugMode = useAppState(isDebugModeSelector)
+
+  const selectSelectTool = React.useCallback(() => {
+    tlstate.selectTool('select')
+  }, [tlstate])
+
+  const selectDrawTool = React.useCallback(() => {
+    tlstate.selectTool(TLDrawShapeType.Draw)
+  }, [tlstate])
+
+  const selectRectangleTool = React.useCallback(() => {
+    tlstate.selectTool(TLDrawShapeType.Rectangle)
+  }, [tlstate])
+
+  const selectEllipseTool = React.useCallback(() => {
+    tlstate.selectTool(TLDrawShapeType.Ellipse)
+  }, [tlstate])
+
+  const selectArrowTool = React.useCallback(() => {
+    tlstate.selectTool(TLDrawShapeType.Ellipse)
+  }, [tlstate])
+
+  const selectTextTool = React.useCallback(() => {
+    tlstate.selectTool(TLDrawShapeType.Ellipse)
+  }, [tlstate])
 
   return (
     <ToolsPanelContainer>
@@ -97,7 +122,7 @@ export const ToolsPanel = React.memo((): JSX.Element => {
           <SecondaryButton
             kbd={'7'}
             label={'Lock Tool'}
-            onClick={toggleToolLock}
+            onClick={tlstate.toggleToolLock}
             isActive={isToolLocked}
           >
             {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}

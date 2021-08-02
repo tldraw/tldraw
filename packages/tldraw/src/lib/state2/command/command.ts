@@ -1,6 +1,6 @@
 /* ------------------ Command Class ----------------- */
 import { Utils } from '@tldraw/core'
-import { Data } from '../../../types'
+import { Data } from '../../types'
 
 export type CommandFn<T> = (data: T, initial?: boolean) => void
 
@@ -32,16 +32,16 @@ export class Command {
 
   undo = (data: Data): Data => {
     data.pageState.selectedIds = this.selectedIds
-    return Utils.deepMerge(data, this.before)
+    return Utils.deepMerge<Data>(data, this.before)
   }
 
   redo = (data: Data): Data => {
     this.selectedIds = [...data.pageState.selectedIds]
-    return Utils.deepMerge(data, this.after)
+    return Utils.deepMerge<Data>(data, this.after)
   }
 
   do = (data: Data): Data => {
     this.selectedIds = [...data.pageState.selectedIds]
-    return Utils.deepMerge(data, this.after)
+    return Utils.deepMerge<Data>(data, this.after)
   }
 }

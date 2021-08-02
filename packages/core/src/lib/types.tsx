@@ -87,70 +87,69 @@ export interface TLTheme {
   foreground?: string
 }
 
-export type TLPointerEventHandler<T = unknown> = (this: T, info: TLPointerInfo<string>) => void
-export type TLCanvasEventHandler<T = unknown> = (this: T, info: TLPointerInfo<'canvas'>) => void
-export type TLBoundsEventHandler<T = unknown> = (this: T, info: TLPointerInfo<'bounds'>) => void
-export type TLBoundsHandleEventHandler<T = unknown> = (
-  this: T,
+export type TLPointerEventHandler = (info: TLPointerInfo<string>) => void
+export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>) => void
+export type TLBoundsEventHandler = (info: TLPointerInfo<'bounds'>) => void
+export type TLBoundsHandleEventHandler = (
   info: TLPointerInfo<TLBoundsCorner | TLBoundsEdge | 'rotate'>,
 ) => void
 
-export interface TLCallbacks<T = unknown> {
+export interface TLCallbacks {
   onChange: (ids: string[]) => void
 
   // Camera events
-  onPinchStart: TLPointerEventHandler<T>
-  onPinchEnd: TLPointerEventHandler<T>
-  onPinch: TLPointerEventHandler<T>
-  onPan: TLPointerEventHandler<T>
-  onZoom: TLPointerEventHandler<T>
+  onPinchStart: TLPointerEventHandler
+  onPinchEnd: TLPointerEventHandler
+  onPinch: TLPointerEventHandler
+  onPan: TLPointerEventHandler
+  onZoom: TLPointerEventHandler
 
   // Pointer Events
-  onPointerMove: TLPointerEventHandler<T>
-  onPointerUp: TLPointerEventHandler<T>
+  onPointerMove: TLPointerEventHandler
+  onPointerUp: TLPointerEventHandler
 
   // Canvas (background)
-  onPointCanvas: TLCanvasEventHandler<T>
-  onDoublePointCanvas: TLCanvasEventHandler<T>
-  onRightPointCanvas: TLCanvasEventHandler<T>
-  onDragCanvas: TLCanvasEventHandler<T>
-  onReleaseCanvas: TLCanvasEventHandler<T>
+  onPointCanvas: TLCanvasEventHandler
+  onDoublePointCanvas: TLCanvasEventHandler
+  onRightPointCanvas: TLCanvasEventHandler
+  onDragCanvas: TLCanvasEventHandler
+  onReleaseCanvas: TLCanvasEventHandler
 
   // Shape
-  onPointShape: TLPointerEventHandler<T>
-  onDoublePointShape: TLPointerEventHandler<T>
-  onRightPointShape: TLPointerEventHandler<T>
-  onDragShape: TLPointerEventHandler<T>
-  onHoverShape: TLPointerEventHandler<T>
-  onUnhoverShape: TLPointerEventHandler<T>
-  onReleaseShape: TLPointerEventHandler<T>
+  onPointShape: TLPointerEventHandler
+  onDoublePointShape: TLPointerEventHandler
+  onRightPointShape: TLPointerEventHandler
+  onDragShape: TLPointerEventHandler
+  onHoverShape: TLPointerEventHandler
+  onUnhoverShape: TLPointerEventHandler
+  onReleaseShape: TLPointerEventHandler
 
   // Bounds (bounding box background)
-  onPointBounds: TLBoundsEventHandler<T>
-  onDoublePointBounds: TLBoundsEventHandler<T>
-  onRightPointBounds: TLBoundsEventHandler<T>
-  onDragBounds: TLBoundsEventHandler<T>
-  onHoverBounds: TLBoundsEventHandler<T>
-  onUnhoverBounds: TLBoundsEventHandler<T>
-  onReleaseBounds: TLBoundsEventHandler<T>
+  onPointBounds: TLBoundsEventHandler
+  onDoublePointBounds: TLBoundsEventHandler
+  onRightPointBounds: TLBoundsEventHandler
+  onDragBounds: TLBoundsEventHandler
+  onHoverBounds: TLBoundsEventHandler
+  onUnhoverBounds: TLBoundsEventHandler
+  onReleaseBounds: TLBoundsEventHandler
 
   // Bounds handles (corners, edges)
-  onPointBoundsHandle: TLBoundsHandleEventHandler<T>
-  onDoublePointBoundsHandle: TLBoundsHandleEventHandler<T>
-  onRightPointBoundsHandle: TLBoundsHandleEventHandler<T>
-  onDragBoundsHandle: TLBoundsHandleEventHandler<T>
-  onHoverBoundsHandle: TLBoundsHandleEventHandler<T>
-  onUnhoverBoundsHandle: TLBoundsHandleEventHandler<T>
-  onReleaseBoundsHandle: TLBoundsHandleEventHandler<T>
+  onPointBoundsHandle: TLBoundsHandleEventHandler
+  onDoublePointBoundsHandle: TLBoundsHandleEventHandler
+  onRightPointBoundsHandle: TLBoundsHandleEventHandler
+  onDragBoundsHandle: TLBoundsHandleEventHandler
+  onHoverBoundsHandle: TLBoundsHandleEventHandler
+  onUnhoverBoundsHandle: TLBoundsHandleEventHandler
+  onReleaseBoundsHandle: TLBoundsHandleEventHandler
 
   // Handles (ie the handles of a selected arrow)
-  onPointHandle: TLPointerEventHandler<T>
-  onDoublePointHandle: TLPointerEventHandler<T>
-  onRightPointHandle: TLPointerEventHandler<T>
-  onDragHandle: TLPointerEventHandler<T>
-  onHoverHandle: TLPointerEventHandler<T>
-  onUnhoverHandle: TLPointerEventHandler<T>
-  onReleaseHandle: TLPointerEventHandler<T>
+  onPointHandle: TLPointerEventHandler
+  onDoublePointHandle: TLPointerEventHandler
+  onRightPointHandle: TLPointerEventHandler
+  onDragHandle: TLPointerEventHandler
+  onHoverHandle: TLPointerEventHandler
+  onUnhoverHandle: TLPointerEventHandler
+  onReleaseHandle: TLPointerEventHandler
 
   // Misc
   onBlurEditingShape: () => void

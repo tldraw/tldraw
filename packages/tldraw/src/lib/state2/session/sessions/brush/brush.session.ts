@@ -1,6 +1,6 @@
 import { Utils, Vec } from '@tldraw/core'
 import { Session } from '../../../state-types'
-import { getShapeUtils } from '../../../../../shape'
+import { getShapeUtils } from '../../../../shape'
 import { Data } from '../../../state-types'
 import { TLDR } from '../../../tldr'
 
@@ -30,13 +30,20 @@ export class BrushSession implements Session {
 
     snapshot.shapesToTest.forEach(({ id, util, selectId }) => {
       if (selectedIds.has(id)) return
-      if (hits.has(selectId)) return
 
-      if (util.hitTestBounds(data.page.shapes[id], brush)) {
-        hits.add(selectId)
-        selectedIds.add(selectId)
-      } else {
-        selectedIds.delete(selectId)
+      const shape = data.page.shapes[id]
+
+      if (!hits.has(selectId)) {
+        if (util.hitTestBounds(shape, brush)) {
+          hits.add(selectId)
+
+          // When brushing a shape, select its top group parent.
+          if (!selectedIds.has(selectId)) {
+            selectedIds.add(selectId)
+          }
+        } else if (selectedIds.has(selectId)) {
+          selectedIds.delete(selectId)
+        }
       }
     })
 
