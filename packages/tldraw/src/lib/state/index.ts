@@ -1,2 +1,2 @@
-export * from './store'
+export * from './tlstate'
 export * from './state-types'

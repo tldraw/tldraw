@@ -1,5 +1,5 @@
 import { SizeStyle } from '../../../shape'
-import { TLDrawState } from '../../store'
+import { TLDrawState } from '../../tlstate'
 import { mockDocument } from '../../test-helpers'
 
 describe('Style command', () => {

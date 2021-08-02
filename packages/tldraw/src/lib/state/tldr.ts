@@ -328,15 +328,15 @@ export class TLDR {
   static mutateShapes<T extends TLDrawShape = TLDrawShape>(
     data: Data,
     ids: string[],
-    fn: (shape: T) => Partial<T>,
+    fn: (shape: T, i?: number) => Partial<T>,
   ): { before: Record<string, TLDrawShape>; after: Record<string, TLDrawShape>; data: Data } {
     const beforeShapes: Record<string, TLDrawShape> = {}
     const afterShapes: Record<string, TLDrawShape> = {}
 
-    ids.forEach((id) => {
+    ids.forEach((id, i) => {
       const shape = data.page.shapes[id]
       beforeShapes[id] = shape
-      data.page.shapes[id] = this.getShapeUtils(shape).mutate(shape, fn(shape as T))
+      data.page.shapes[id] = this.getShapeUtils(shape).mutate(shape, fn(shape as T, i))
       afterShapes[id] = data.page.shapes[id]
     })
 

@@ -2,6 +2,7 @@ import createVanilla, { PartialState } from 'zustand/vanilla'
 import {
   AlignType,
   DistributeType,
+  MoveType,
   StretchType,
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
@@ -416,7 +417,7 @@ export class TLDrawState implements TLCallbacks {
   }
   /* -------------------- Selection ------------------- */
 
-  setSelectedIds(ids, push = false) {
+  setSelectedIds(ids: string[], push = false) {
     this.setState((data) => {
       return {
         pageState: {
@@ -462,19 +463,19 @@ export class TLDrawState implements TLCallbacks {
     // TODO
   }
   moveToBack = () => {
-    // TODO
+    this.do(commands.move(this.getState(), MoveType.ToBack))
   }
   moveBackward = () => {
-    // TODO
+    this.do(commands.move(this.getState(), MoveType.Backward))
   }
   moveForward = () => {
-    // TODO
+    this.do(commands.move(this.getState(), MoveType.Forward))
   }
   moveToFront = () => {
-    // TODO
+    this.do(commands.move(this.getState(), MoveType.ToFront))
   }
-  nudge = (delta: number[], isMajor: boolean) => {
-    // TODO
+  nudge = (delta: number[], isMajor = false) => {
+    this.do(commands.translate(this.getState(), Vec.mul(delta, isMajor ? 10 : 1)))
   }
   cancel = () => {
     // TODO

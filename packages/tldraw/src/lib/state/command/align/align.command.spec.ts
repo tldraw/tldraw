@@ -1,5 +1,5 @@
 import { AlignType } from '@tldraw/core'
-import { TLDrawState } from '../../store'
+import { TLDrawState } from '../../tlstate'
 import { mockDocument } from '../../test-helpers'
 
 describe('Align command', () => {
