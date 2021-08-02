@@ -11,8 +11,8 @@
           "name": "Rectangle",
           "childIndex": 1,
           "point": [
-            500.12000000000006,
-            326.22799999999995
+            140.22999999999985,
+            65.3875
           ],
           "size": [
             100.25,
@@ -21,67 +21,176 @@
           "style": {
             "dash": "Draw",
             "size": "Medium",
-            "color": "Blue"
+            "color": "Red",
+            "isFilled": true
           }
         },
-        "rect2": {
-          "id": "rect2",
+        "50dc5006-ebdd-4ca2-01c8-d0aeed838c39": {
+          "id": "50dc5006-ebdd-4ca2-01c8-d0aeed838c39",
+          "type": "rectangle",
           "parentId": "page1",
           "name": "Rectangle",
-          "childIndex": 2,
-          "type": "rectangle",
+          "childIndex": 1.25,
           "point": [
-            159.25,
-            305.54999999999995
+            136.60999999999976,
+            184.22750000000002
           ],
           "size": [
-            100,
+            100.25,
             100
           ],
           "style": {
             "dash": "Draw",
             "size": "Medium",
-            "color": "Blue"
+            "color": "Indigo",
+            "isFilled": true
           }
         },
-        "891ad28a-7522-4d88-00e8-4b3b1547fa02": {
-          "id": "891ad28a-7522-4d88-00e8-4b3b1547fa02",
+        "c82abca2-c6aa-4249-201c-48c568bcce4c": {
+          "id": "c82abca2-c6aa-4249-201c-48c568bcce4c",
           "type": "rectangle",
           "parentId": "page1",
           "name": "Rectangle",
-          "childIndex": 1.5,
+          "childIndex": 1.375,
           "point": [
-            264.479,
-            48.353999999999985
+            135.9899999999998,
+            307.5175
           ],
           "size": [
-            100,
+            100.25,
             100
           ],
           "style": {
             "dash": "Draw",
             "size": "Medium",
-            "color": "Blue"
+            "color": "Yellow",
+            "isFilled": true
           }
         },
-        "5e7824bc-11ed-46b2-244b-296620253845": {
-          "id": "5e7824bc-11ed-46b2-244b-296620253845",
+        "d5b43e6e-5afb-4ce6-0b0f-d57627e51d73": {
+          "id": "d5b43e6e-5afb-4ce6-0b0f-d57627e51d73",
           "type": "rectangle",
           "parentId": "page1",
           "name": "Rectangle",
-          "childIndex": 1.75,
+          "childIndex": 1.125,
           "point": [
-            467.7989999999999,
-            93.79800000000003
+            289.58999999999986,
+            64.00750000000001
           ],
           "size": [
-            100,
+            100.25,
             100
           ],
           "style": {
             "dash": "Draw",
             "size": "Medium",
-            "color": "Blue"
+            "color": "Red",
+            "isFilled": false
+          }
+        },
+        "516e0179-588b-4fc2-1881-04738dcfb029": {
+          "id": "516e0179-588b-4fc2-1881-04738dcfb029",
+          "type": "rectangle",
+          "parentId": "page1",
+          "name": "Rectangle",
+          "childIndex": 1.3125,
+          "point": [
+            285.96999999999974,
+            182.84750000000003
+          ],
+          "size": [
+            100.25,
+            100
+          ],
+          "style": {
+            "dash": "Draw",
+            "size": "Medium",
+            "color": "Indigo",
+            "isFilled": false
+          }
+        },
+        "af082e3a-21fa-45d3-23b8-aa00cb0df96f": {
+          "id": "af082e3a-21fa-45d3-23b8-aa00cb0df96f",
+          "type": "rectangle",
+          "parentId": "page1",
+          "name": "Rectangle",
+          "childIndex": 2.375,
+          "point": [
+            285.35999999999984,
+            312.5675
+          ],
+          "size": [
+            100.25,
+            100
+          ],
+          "style": {
+            "dash": "Draw",
+            "size": "Medium",
+            "color": "Yellow",
+            "isFilled": false
+          }
+        },
+        "c924f682-c124-449b-0bfd-50427ddc2414": {
+          "id": "c924f682-c124-449b-0bfd-50427ddc2414",
+          "type": "rectangle",
+          "parentId": "page1",
+          "name": "Rectangle",
+          "childIndex": 1.1875,
+          "point": [
+            436.3799999999998,
+            74.3675
+          ],
+          "size": [
+            100.25,
+            100
+          ],
+          "style": {
+            "dash": "Draw",
+            "size": "Medium",
+            "color": "White",
+            "isFilled": true
+          }
+        },
+        "4fdc7aa8-c3df-4f8c-1281-77afd7d1d586": {
+          "id": "4fdc7aa8-c3df-4f8c-1281-77afd7d1d586",
+          "type": "rectangle",
+          "parentId": "page1",
+          "name": "Rectangle",
+          "childIndex": 1.34375,
+          "point": [
+            432.7599999999997,
+            193.20749999999987
+          ],
+          "size": [
+            100.25,
+            100
+          ],
+          "style": {
+            "dash": "Draw",
+            "size": "Medium",
+            "color": "LightGray",
+            "isFilled": true
+          }
+        },
+        "8511d9ea-ae60-43c0-1373-f7a6ec28385d": {
+          "id": "8511d9ea-ae60-43c0-1373-f7a6ec28385d",
+          "type": "rectangle",
+          "parentId": "page1",
+          "name": "Rectangle",
+          "childIndex": 3.375,
+          "point": [
+            432.1399999999998,
+            316.49749999999983
+          ],
+          "size": [
+            100.25,
+            100
+          ],
+          "style": {
+            "dash": "Draw",
+            "size": "Medium",
+            "color": "Gray",
+            "isFilled": true
           }
         }
       },
@@ -92,7 +201,7 @@
     "page1": {
       "id": "page1",
       "selectedIds": [
-        "891ad28a-7522-4d88-00e8-4b3b1547fa02"
+        "af082e3a-21fa-45d3-23b8-aa00cb0df96f"
       ],
       "camera": {
         "point": [
@@ -101,7 +210,7 @@
         ],
         "zoom": 1
       },
-      "pointedId": "891ad28a-7522-4d88-00e8-4b3b1547fa02",
+      "pointedId": "af082e3a-21fa-45d3-23b8-aa00cb0df96f",
       "currentParentId": "page1"
     }
   }

@@ -110,11 +110,14 @@ export default function App() {
 
   const handleChange = useCallback((tldr: TLDrawState, type: string) => {
     // TODO: Think more about if syncing on only "command" is the way to go
+    console.log(type);
     if(type === "command"){
       console.log("changed");
 
-      postMessage( 'update', tldr.toJson() );
+     postMessage( 'update', tldr.toJson() );
     }
+    console.log(`update: ${type}`);
+    console.log(JSON.stringify(tldr.toJson(),null, "    "));
     
   }, []);
 
@@ -126,12 +129,6 @@ export default function App() {
 
   return (
     <div className="App">
-      <button
-        style={{ position: "absolute", zIndex: 999 }}
-        onClick={handleClick}
-      >
-        Select All
-      </button>
       <div>
         {initialDocument===undefined ? undefined : <TLDraw document={initialDocument} onMount={handleMount} onChange={handleChange} />}
       </div>

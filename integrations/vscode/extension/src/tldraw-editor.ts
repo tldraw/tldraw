@@ -120,15 +120,17 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
     webviewPanel.webview.onDidReceiveMessage((e) => {
       switch (e.type) {
         case 'update':
-          console.log(`"update" extension  zzz <-`)
-          //console.log(`Is it different? ${}`)
+          console.log(`"update" extension <-`)
+          //console.log(JSON.stringify(JSON.parse(e.text),null, "    "));////console.log(`Is it different? ${}`)
           //vscode.window.showInformationMessage('Upated .tdlr file')
           this.updateTextDocument(document, JSON.parse(e.text))
+          
           break
         case 'save':
-          console.log(`"save" extension zzz <-`)
+          console.log(`"save" extension <-`)
           if (this.document !== undefined) {
             console.log("document.saved");
+            //console.log(document.getText());
             this.document.save()
             // const writeData = Buffer.from(e.text, 'utf8')
 
