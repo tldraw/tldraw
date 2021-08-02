@@ -122,9 +122,11 @@ describe('Move command', () => {
 
     it('moves a shape forward at the top index', () => {
       tlstate.loadDocument(doc)
-      tlstate.setSelectedIds(['d'])
+      tlstate.setSelectedIds(['b'])
       tlstate.moveForward()
-      expect(getSortedShapeIds(tlstate.getState())).toBe('abcd')
+      tlstate.moveForward()
+      tlstate.moveForward()
+      expect(getSortedShapeIds(tlstate.getState())).toBe('acdb')
     })
 
     it('moves two adjacent siblings forward', () => {

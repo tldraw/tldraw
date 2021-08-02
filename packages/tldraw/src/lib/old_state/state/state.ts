@@ -780,7 +780,7 @@ export class TLDrawState {
         brushUpdater.set(data.pageState.brush)
       },
       endBrushSession: () => {
-        brushUpdater.clear()
+        // brushUpdater.clear()
       },
 
       /* -------------------- Commands -------------------- */

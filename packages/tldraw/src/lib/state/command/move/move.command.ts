@@ -130,14 +130,16 @@ export function move(data: Data, type: MoveType): Command {
           }
         }
 
-        // Get the results of moving the selected shapes below the first open index's shape
-        result = TLDR.mutateShapes(
-          data,
-          sortedIndicesToMove.map((i) => sortedChildren[i].id),
-          (shape) => ({
-            childIndex: indexMap[shape.id],
-          }),
-        )
+        if (Object.values(indexMap).length > 0) {
+          // Get the results of moving the selected shapes below the first open index's shape
+          result = TLDR.mutateShapes(
+            data,
+            sortedIndicesToMove.map((i) => sortedChildren[i].id),
+            (shape) => ({
+              childIndex: indexMap[shape.id],
+            }),
+          )
+        }
 
         break
       }
@@ -153,11 +155,12 @@ export function move(data: Data, type: MoveType): Command {
         for (let i = 0; i < sortedChildIds.length; i++) {
           // If we found a moving index...
           if (sortedIndicesToMove.includes(i)) {
+            // Search for the first open spot above this one
             for (let j = i; j < sortedChildIds.length; j++) {
-              // iterate upward until we find an open spot
               if (!sortedIndicesToMove.includes(j)) {
                 // i = the low index of the first closed spot
                 // j = the high index of the first open spot
+
                 startChildIndex = sortedChildren[j].childIndex
 
                 const step =
@@ -175,14 +178,16 @@ export function move(data: Data, type: MoveType): Command {
           }
         }
 
-        // Get the results of moving the selected shapes below the first open index's shape
-        result = TLDR.mutateShapes(
-          data,
-          sortedIndicesToMove.map((i) => sortedChildren[i].id),
-          (shape) => ({
-            childIndex: indexMap[shape.id],
-          }),
-        )
+        if (Object.values(indexMap).length > 0) {
+          // Get the results of moving the selected shapes below the first open index's shape
+          result = TLDR.mutateShapes(
+            data,
+            sortedIndicesToMove.map((i) => sortedChildren[i].id),
+            (shape) => ({
+              childIndex: indexMap[shape.id],
+            }),
+          )
+        }
 
         break
       }

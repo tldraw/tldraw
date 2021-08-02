@@ -1,4 +1,4 @@
-import { Utils, Vec } from '@tldraw/core'
+import { brushUpdater, Utils, Vec } from '@tldraw/core'
 import { Session } from '../../../state-types'
 import { getShapeUtils } from '../../../../shape'
 import { Data } from '../../../state-types'
@@ -24,6 +24,8 @@ export class BrushSession implements Session {
     // Create a bounding box between the origin and the new point
     const brush = Utils.getBoundsFromPoints([origin, point])
 
+    brushUpdater.set(brush)
+
     // Find ids of brushed shapes
     const hits = new Set<string>()
     const selectedIds = new Set(snapshot.selectedIds)
@@ -47,11 +49,17 @@ export class BrushSession implements Session {
       }
     })
 
+    if (
+      selectedIds.size === data.pageState.selectedIds.length &&
+      data.pageState.selectedIds.every((id) => selectedIds.has(id))
+    ) {
+      return data
+    }
+
     return {
       ...data,
       pageState: {
         ...data.pageState,
-        brush,
         selectedIds: Array.from(selectedIds.values()),
       },
     }
@@ -62,7 +70,6 @@ export class BrushSession implements Session {
       ...data,
       pageState: {
         ...data.pageState,
-        brush: undefined,
         selectedIds: this.snapshot.selectedIds,
       },
     }
@@ -73,7 +80,6 @@ export class BrushSession implements Session {
       ...data,
       pageState: {
         ...data.pageState,
-        brush: undefined,
       },
     }
   }

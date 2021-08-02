@@ -1,7 +1,5 @@
 import { TLDrawState } from '../../tlstate'
 import { mockDocument } from '../../test-helpers'
-import { Utils } from '@tldraw/core'
-import { Data } from '../../state-types'
 
 describe('Translate command', () => {
   const tlstate = new TLDrawState()

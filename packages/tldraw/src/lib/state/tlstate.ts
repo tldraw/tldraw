@@ -49,7 +49,7 @@ const initialData: Data = {
         id: 'rect1',
         parentId: 'page',
         name: 'Rectangle',
-        childIndex: 0,
+        childIndex: 1,
         type: TLDrawShapeType.Rectangle,
         point: [32, 32],
         size: [100, 100],
@@ -112,7 +112,7 @@ export class TLDrawState implements TLCallbacks {
       }
     }
 
-    // Apply other changes...
+    // Apply other changes...?
 
     // Update the state
     this.store.setState(next as PartialState<Data, T, T, T>)
@@ -624,7 +624,6 @@ export class TLDrawState implements TLCallbacks {
   updateBrushSession = (point: number[]) => {
     this.session.complete(this.store.getState())
     this.updateSession<BrushSession>(point)
-    brushUpdater.set(this.store.getState().pageState.brush)
   }
   /* --------------------- Events --------------------- */
   onKeyDown = (key: string, info: TLKeyboardInfo) => {
