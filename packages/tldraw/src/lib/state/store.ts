@@ -1,5 +1,8 @@
 import createVanilla, { PartialState } from 'zustand/vanilla'
 import {
+  AlignType,
+  DistributeType,
+  StretchType,
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
   TLCallbacks,
@@ -12,7 +15,7 @@ import {
   Vec,
 } from '@tldraw/core'
 import { brushUpdater } from '@tldraw/core'
-import { defaultStyle, TLDrawShape, TLDrawShapeType } from '../shape'
+import { defaultStyle, ShapeStyles, TLDrawShape, TLDrawShapeType } from '../shape'
 import { Data, Session, Command, History, TLDrawStatus, ParametersExceptFirst } from './state-types'
 import * as commands from './command'
 import { BrushSession } from './session'
@@ -86,14 +89,36 @@ export class TLDrawState implements TLCallbacks {
   pageStates: Record<string, TLPageState> = { page: initialData.pageState }
 
   // Low API
-  setState = <T extends keyof Data>(
-    data: PartialState<Data, T, T, T> | ((data: Data) => PartialState<Data, T, T, T>),
-  ) => {
-    this.store.setState(typeof data === 'function' ? data(this.store.getState()) : data)
+  getState = this.store.getState
+
+  setState = <T extends keyof Data>(data: Partial<Data> | ((data: Data) => Partial<Data>)) => {
+    const current = this.getState()
+
+    // Apply incoming change
+    let next = typeof data === 'function' ? data(this.store.getState()) : data
+
+    // Apply selected style change, if any
+    const newSelectedStyle = TLDR.getSelectedStyle({ ...current, ...next } as Data)
+
+    if (newSelectedStyle) {
+      next = {
+        ...next,
+        appState: {
+          ...current.appState,
+          ...next.appState,
+          selectedStyle: newSelectedStyle,
+        },
+      }
+    }
+
+    // Apply other changes...
+
+    // Update the state
+    this.store.setState(next as PartialState<Data, T, T, T>)
+
+    // Save changes to the instance
     this.updateDocument()
   }
-
-  getState = this.store.getState
 
   getShape = <T extends TLDrawShape = TLDrawShape>(id: string): T => {
     return this.getState().page.shapes[id] as T
@@ -418,16 +443,16 @@ export class TLDrawState implements TLCallbacks {
     }))
   }
   /* ----------------- Shape Functions ---------------- */
-  style(style) {
-    this.do(commands.style(this.store.getState(), style))
+  style = (style: Partial<ShapeStyles>) => {
+    this.do(commands.style(this.getState(), style))
   }
-  align(type) {
-    this.do(commands.align(this.store.getState(), type))
+  align = (type: AlignType) => {
+    this.do(commands.align(this.getState(), type))
   }
-  distribute(type) {
-    this.do(commands.distribute(this.store.getState(), type))
+  distribute = (type: DistributeType) => {
+    this.do(commands.distribute(this.getState(), type))
   }
-  stretch(type) {
+  stretch = (type: StretchType) => {
     // TODO
   }
   clear = () => {
@@ -591,11 +616,11 @@ export class TLDrawState implements TLCallbacks {
     this.updateDocument()
   }
   /* -------------------- Sessions -------------------- */
-  startBrushSession(point: number[]) {
+  startBrushSession = (point: number[]) => {
     this.setStatus('brushing')
     this.startSession(new BrushSession(this.store.getState(), point))
   }
-  updateBrushSession(point: number[]) {
+  updateBrushSession = (point: number[]) => {
     this.session.complete(this.store.getState())
     this.updateSession<BrushSession>(point)
     brushUpdater.set(this.store.getState().pageState.brush)

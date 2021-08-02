@@ -1,10 +1,11 @@
 import { Utils, Vec } from '@tldraw/core'
-import { BaseSession } from '../session-types'
+import { Session } from '../../../state-types'
 import { getShapeUtils } from '../../../../shape'
-import { Data } from '../../../../types'
-import { TLD } from '../../../tld'
+import { Data } from '../../../state-types'
+import { TLDR } from '../../../tldr'
 
-export class BrushSession implements BaseSession {
+export class BrushSession implements Session {
+  id = 'brush'
   origin: number[]
   snapshot: BrushSnapshot
 
@@ -13,46 +14,68 @@ export class BrushSession implements BaseSession {
     this.snapshot = getBrushSnapshot(data)
   }
 
-  update = (data: Data, point: number[]): void => {
-    const { origin, snapshot } = this
+  start(data: Data) {
+    return data
+  }
 
-    const brushBounds = Utils.getBoundsFromPoints([origin, point])
+  update(data: Data, point: number[]) {
+    const { snapshot, origin } = this
 
-    const hits = new Set<string>([])
+    // Create a bounding box between the origin and the new point
+    const brush = Utils.getBoundsFromPoints([origin, point])
 
-    const selectedIds = [...snapshot.selectedIds]
+    // Find ids of brushed shapes
+    const hits = new Set<string>()
+    const selectedIds = new Set(snapshot.selectedIds)
 
-    for (const { id, util, selectId } of snapshot.shapesToTest) {
-      if (selectedIds.includes(id)) continue
+    snapshot.shapesToTest.forEach(({ id, util, selectId }) => {
+      if (selectedIds.has(id)) return
 
       const shape = data.page.shapes[id]
 
       if (!hits.has(selectId)) {
-        if (util.hitTestBounds(shape, brushBounds)) {
+        if (util.hitTestBounds(shape, brush)) {
           hits.add(selectId)
 
           // When brushing a shape, select its top group parent.
-          if (!selectedIds.includes(selectId)) {
-            selectedIds.push(selectId)
+          if (!selectedIds.has(selectId)) {
+            selectedIds.add(selectId)
           }
-        } else if (selectedIds.includes(selectId)) {
-          selectedIds.splice(selectedIds.indexOf(selectId), 1)
+        } else if (selectedIds.has(selectId)) {
+          selectedIds.delete(selectId)
         }
       }
+    })
+
+    return {
+      ...data,
+      pageState: {
+        ...data.pageState,
+        brush,
+        selectedIds: Array.from(selectedIds.values()),
+      },
     }
-
-    data.pageState.selectedIds = selectedIds
-
-    data.pageState.brush = brushBounds
   }
 
-  cancel = (data: Data): void => {
-    data.pageState.brush = undefined
-    data.pageState.selectedIds = this.snapshot.selectedIds
+  cancel(data: Data) {
+    return {
+      ...data,
+      pageState: {
+        ...data.pageState,
+        brush: undefined,
+        selectedIds: this.snapshot.selectedIds,
+      },
+    }
   }
 
-  complete = (data: Data) => {
-    data.pageState.brush = undefined
+  complete(data: Data) {
+    return {
+      ...data,
+      pageState: {
+        ...data.pageState,
+        brush: undefined,
+      },
+    }
   }
 }
 
@@ -64,7 +87,7 @@ export class BrushSession implements BaseSession {
 export function getBrushSnapshot(data: Data) {
   const selectedIds = [...data.pageState.selectedIds]
 
-  const shapesToTest = TLD.getShapes(data)
+  const shapesToTest = TLDR.getShapes(data)
     .filter(
       (shape) =>
         !(
@@ -78,7 +101,7 @@ export function getBrushSnapshot(data: Data) {
       id: shape.id,
       util: getShapeUtils(shape),
       bounds: getShapeUtils(shape).getBounds(shape),
-      selectId: TLD.getTopParentId(data, shape.id),
+      selectId: TLDR.getTopParentId(data, shape.id),
     }))
 
   return {

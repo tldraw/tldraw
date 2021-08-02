@@ -11,7 +11,7 @@ import {
 } from './shared'
 import { DashStyle } from '../../shape'
 import { useTLDrawContext } from '../../hooks'
-import { Data } from '../../state2'
+import { Data } from '../../state'
 
 const dashes = {
   [DashStyle.Draw]: <DashDrawIcon />,

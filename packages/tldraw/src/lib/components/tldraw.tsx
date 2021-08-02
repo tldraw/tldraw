@@ -7,7 +7,7 @@ import { useKeyboardShortcuts } from '../hooks'
 import styled from '../styles'
 import { StylePanel } from './style-panel'
 import { ToolsPanel } from './tools-panel'
-import { Data, TLDrawState } from '../state2'
+import { Data, TLDrawState } from '../state'
 import { TLDrawContext } from '../hooks'
 import createReact from 'zustand'
 

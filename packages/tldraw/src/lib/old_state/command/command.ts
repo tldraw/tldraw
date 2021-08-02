@@ -1,5 +1,5 @@
 /* ------------------ Command Class ----------------- */
-import { Utils } from '@tldraw/core'
+
 import { Data } from '../../types'
 
 export type CommandFn<T> = (data: T, initial?: boolean) => void
@@ -13,35 +13,32 @@ export class Command {
   timestamp = Date.now()
   name: string
   category: string
-  private before: Partial<Data>
-  private after: Partial<Data>
+  private undoFn: CommandFn<Data>
+  private doFn: CommandFn<Data>
 
   selectedIds: string[]
 
   constructor(options: {
-    before: Partial<Data>
-    after: Partial<Data>
+    do: CommandFn<Data>
+    undo: CommandFn<Data>
     name: string
     category: string
   }) {
     this.name = options.name
     this.category = options.category
-    this.before = options.before
-    this.after = options.after
+    this.doFn = options.do
+    this.undoFn = options.undo
   }
 
-  undo = (data: Data): Data => {
+  undo = (data: Data): void => {
     data.pageState.selectedIds = this.selectedIds
-    return Utils.deepMerge<Data>(data, this.before)
+
+    this.undoFn(data)
   }
 
-  redo = (data: Data): Data => {
+  redo = (data: Data, initial = false): void => {
     this.selectedIds = [...data.pageState.selectedIds]
-    return Utils.deepMerge<Data>(data, this.after)
-  }
 
-  do = (data: Data): Data => {
-    this.selectedIds = [...data.pageState.selectedIds]
-    return Utils.deepMerge<Data>(data, this.after)
+    this.doFn(data, initial)
   }
 }

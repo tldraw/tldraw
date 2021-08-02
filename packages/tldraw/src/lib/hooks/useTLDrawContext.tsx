@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { Data } from '../state2/state-types'
+import { Data } from '../state/state-types'
 import { UseStore } from 'zustand'
-import { TLDrawState } from '../state2'
+import { TLDrawState } from '../state'
 
 export interface TLDrawContextType {
   tlstate: TLDrawState

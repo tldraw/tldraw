@@ -14,5 +14,5 @@ export const ErrorFallback = React.memo(({ error, resetErrorBoundary }: ErrorFal
     console.error(error)
   }, [error, resetErrorBoundary, callbacks])
 
-  return <g />
+  return null
 })

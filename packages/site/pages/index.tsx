@@ -1,12 +1,8 @@
 import * as React from 'react'
-import {
-  ColorStyle,
-  DashStyle,
-  SizeStyle,
-  TLDraw,
-  TLDrawDocument,
-  TLDrawShapeType,
-} from '@tldraw/tldraw'
+import dynamic from 'next/dynamic'
+import { ColorStyle, DashStyle, SizeStyle, TLDrawShapeType } from '@tldraw/tldraw'
+import type { TLDrawDocument } from '@tldraw/tldraw'
+const TLDraw = dynamic(() => import('@tldraw/tldraw'), { ssr: false })
 
 export function Index() {
   const [document, setDocument] = React.useState<TLDrawDocument>({

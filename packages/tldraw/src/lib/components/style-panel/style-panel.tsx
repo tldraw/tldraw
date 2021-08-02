@@ -8,7 +8,7 @@ import {
   Divider,
 } from '../shared'
 
-import { Data } from '../../state2'
+import { Data } from '../../state'
 import { ShapesFunctions } from './shapes-functions'
 import { AlignDistribute } from './align-distribute'
 import { QuickColorSelect } from './quick-color-select'

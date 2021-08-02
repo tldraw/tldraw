@@ -1,5 +1,5 @@
 import { TLBinding, TLBounds, TLTransformInfo, Vec, Utils } from '@tldraw/core'
-import { getShapeUtils, TLDrawShape, TLDrawShapeUtil } from '../shape'
+import { getShapeUtils, ShapeStyles, TLDrawShape, TLDrawShapeUtil } from '../shape'
 import { Data } from './state-types'
 
 export class TLDR {
@@ -467,6 +467,39 @@ export class TLDR {
     }
 
     this.updateParents(data, parentToUpdateIds)
+  }
+
+  static getSelectedStyle(data: Data): ShapeStyles | false {
+    const {
+      page,
+      pageState,
+      appState: { currentStyle },
+    } = data
+
+    if (pageState.selectedIds.length === 0) {
+      return false
+    }
+
+    const shapeStyles = data.pageState.selectedIds.map((id) => page.shapes[id].style)
+
+    const commonStyle: ShapeStyles = {} as ShapeStyles
+
+    const overrides = new Set<string>([])
+
+    for (const shapeStyle of shapeStyles) {
+      for (const key in currentStyle) {
+        if (overrides.has(key)) continue
+        if (commonStyle[key] === undefined) {
+          commonStyle[key] = shapeStyle[key]
+        } else {
+          if (commonStyle[key] === shapeStyle[key]) continue
+          commonStyle[key] = currentStyle[key]
+          overrides.add(key)
+        }
+      }
+    }
+
+    return commonStyle
   }
 
   /* -------------------------------------------------- */

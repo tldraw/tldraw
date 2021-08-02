@@ -3,7 +3,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { DropdownMenuIconTriggerButton, CircleIcon } from '../shared'
 import { StyleDropdownContent, StyleDropdownItem } from './shared'
 import { SizeStyle } from '../../shape'
-import { Data } from '../../state2/state-types'
+import { Data } from '../../state'
 import { useTLDrawContext } from '../../hooks'
 
 const sizes = {

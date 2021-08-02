@@ -2,7 +2,7 @@ import React from 'react'
 import { inputs } from '@tldraw/core'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { TLDrawShapeType } from '../shape'
-import { TLDrawState } from '../state2'
+import { TLDrawState } from '../state'
 
 export function useKeyboardShortcuts(tlstate: TLDrawState) {
   React.useEffect(() => {

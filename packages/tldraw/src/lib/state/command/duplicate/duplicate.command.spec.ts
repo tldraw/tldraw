@@ -1,25 +1,25 @@
-import { Utils } from '@tldraw/core'
-import { mockData } from '../../../../specs/__mocks__/mock-data'
-import { state } from '../../state'
-import { duplicate } from './duplicate.command'
+import { TLDrawState } from '../../store'
+import { mockDocument } from '../../test-helpers'
 
 describe('Style command', () => {
-  const data = Utils.deepClone(mockData)
-  data.pageState.selectedIds = ['rect1']
+  const tlstate = new TLDrawState()
+  tlstate.loadDocument(mockDocument)
+  tlstate.reset()
+  tlstate.setSelectedIds(['rect1'])
 
   it('does, undoes and redoes command', () => {
-    const tdata = Utils.deepClone(data)
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
 
-    state.history.execute(tdata, duplicate(tdata))
+    tlstate.duplicate()
 
-    expect(Object.keys(tdata.page.shapes).length).toBe(3)
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(4)
 
-    state.history.undo(tdata)
+    tlstate.undo()
 
-    expect(Object.keys(tdata.page.shapes).length).toBe(2)
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
 
-    state.history.redo(tdata)
+    tlstate.redo()
 
-    expect(Object.keys(tdata.page.shapes).length).toBe(3)
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(4)
   })
 })

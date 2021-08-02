@@ -15,7 +15,7 @@ import {
   RotateCounterClockwiseIcon,
 } from '@radix-ui/react-icons'
 import { useTLDrawContext } from '../../hooks'
-import { Data } from '../../state2'
+import { Data } from '../../state'
 
 const isAllLockedSelector = (s: Data) => {
   const { selectedIds } = s.pageState

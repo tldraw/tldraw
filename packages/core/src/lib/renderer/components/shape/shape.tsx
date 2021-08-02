@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useShapeEvents, useTLContext } from '../../hooks'
-import { Utils } from '../../../utils'
 import { IShapeTreeNode } from '../../../types'
 import { RenderedShape } from './rendered-shape'
 import { EditingTextShape } from './editing-text-shape'
@@ -57,5 +56,4 @@ export const Shape = React.memo(
       </g>
     )
   },
-  Utils.shallowEqual,
 )

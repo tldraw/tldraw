@@ -328,7 +328,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
 
 export interface IShapeTreeNode {
   shape: TLShape
-  children: IShapeTreeNode[]
+  children?: IShapeTreeNode[]
   isEditing: boolean
   isHovered: boolean
   isSelected: boolean

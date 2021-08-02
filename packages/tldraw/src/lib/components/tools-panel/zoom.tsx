@@ -2,7 +2,7 @@ import * as React from 'react'
 import { ZoomInIcon, ZoomOutIcon } from '@radix-ui/react-icons'
 import { TertiaryButton, TertiaryButtonsContainer } from './shared'
 import { useTLDrawContext } from '../../hooks'
-import { Data } from '../../state2'
+import { Data } from '../../state'
 
 export const Zoom = React.memo((): JSX.Element => {
   const { tlstate } = useTLDrawContext()

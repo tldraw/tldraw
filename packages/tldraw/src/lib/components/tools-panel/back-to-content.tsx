@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { FloatingContainer, RowButton } from '../shared'
 import styled from '../../styles'
-import { Data } from '../../state2'
+import { Data } from '../../state'
 import { useTLDrawContext } from '../../hooks'
 
 const isEmptyCanvasSelector = (s: Data) => s.appState.isEmptyCanvas

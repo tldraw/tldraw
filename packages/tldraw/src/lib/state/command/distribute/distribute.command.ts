@@ -1,48 +1,40 @@
 import { DistributeType, Utils } from '@tldraw/core'
 import { TLDrawShape } from '../../../shape'
-import { Data } from '../../../types'
-import { TLD } from '../../tld'
-import { Command } from '../command'
+import { Data, Command } from '../../state-types'
+import { TLDR } from '../../tldr'
 
-export function distribute(data: Data, type: DistributeType) {
-  const ids = [...TLD.getSelectedIds(data)]
+export function distribute(data: Data, type: DistributeType): Command {
+  const ids = [...data.pageState.selectedIds]
   const initialShapes = ids.map((id) => data.page.shapes[id])
+  const deltaMap = Object.fromEntries(getDistributions(initialShapes, type).map((d) => [d.id, d]))
 
-  const shapesToTranslate = getDistributions(initialShapes, type)
-
-  return new Command({
-    name: 'distribute_shapes',
-    category: 'canvas',
-    do(data) {
-      const { shapes } = data.page
-
-      for (const { id, next } of shapesToTranslate) {
-        const shape = shapes[id]
-
-        TLD.mutate(data, shape, { point: next })
-      }
-
-      TLD.updateBindings(data, ids)
-      TLD.updateParents(data, ids)
-    },
-    undo(data) {
-      const { shapes } = data.page
-
-      for (const { id, prev } of shapesToTranslate) {
-        const shape = shapes[id]
-
-        TLD.mutate(data, shape, { point: prev })
-      }
-
-      TLD.updateBindings(data, ids)
-      TLD.updateParents(data, ids)
-    },
+  const { before, after } = TLDR.mutateShapes(data, ids, (shape) => {
+    if (!deltaMap[shape.id]) return shape
+    return { point: deltaMap[shape.id].next }
   })
+
+  return {
+    id: 'distribute_shapes',
+    before: {
+      page: {
+        shapes: {
+          ...before,
+        },
+      },
+    },
+    after: {
+      page: {
+        shapes: {
+          ...after,
+        },
+      },
+    },
+  }
 }
 
 function getDistributions(initialShapes: TLDrawShape[], type: DistributeType) {
   const entries = initialShapes.map((shape) => {
-    const utils = TLD.getShapeUtils(shape)
+    const utils = TLDR.getShapeUtils(shape)
     return {
       id: shape.id,
       point: [...shape.point],

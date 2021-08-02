@@ -1,5 +1,5 @@
 import { useTLDrawContext } from '../hooks'
-import { Data } from '../state2'
+import { Data } from '../state'
 import styled from '../styles'
 
 const activeToolSelector = (s: Data) => s.appState.activeTool

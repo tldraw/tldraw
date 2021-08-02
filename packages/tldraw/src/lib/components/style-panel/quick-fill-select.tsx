@@ -4,7 +4,7 @@ import { breakpoints, IconButton, IconWrapper } from '../shared'
 import { BoxIcon, IsFilledFillIcon } from './shared'
 import { Tooltip } from '../tooltip'
 import { useTLDrawContext } from '../../hooks'
-import { Data } from '../../state2'
+import { Data } from '../../state'
 
 const isFilledSelector = (data: Data) => data.appState.selectedStyle.isFilled
 

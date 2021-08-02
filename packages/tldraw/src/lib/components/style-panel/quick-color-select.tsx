@@ -5,6 +5,7 @@ import { DropdownMenuIconTriggerButton } from '../shared'
 import { ColorStyle, strokes } from '../../shape'
 import { useTheme } from '../../hooks/useTheme'
 import { useTLDrawContext } from '../../hooks'
+import { Data } from '../../state'
 
 const selectColor = (data: Data) => data.appState.selectedStyle.color
 

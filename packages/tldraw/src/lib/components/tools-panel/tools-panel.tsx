@@ -18,7 +18,7 @@ import { Zoom } from './zoom'
 import { BackToContent } from './back-to-content'
 import { TLDrawShapeType } from '../../shape'
 import { useTLDrawContext } from '../../hooks'
-import { Data } from '../../state2'
+import { Data } from '../../state'
 
 const activeToolSelector = (s: Data) => s.appState.activeTool
 const isToolLockedSelector = (s: Data) => s.appState.isToolLocked
