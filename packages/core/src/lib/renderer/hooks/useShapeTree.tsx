@@ -26,9 +26,8 @@ function addToShapeTree<T extends TLShape>(
     isDarkMode?: boolean
   },
 ) {
-  const node = {
+  const node: IShapeTreeNode = {
     shape,
-    children: [],
     isHovered: info.hoveredId === shape.id,
     isCurrentParent: info.currentParentId === shape.id,
     isEditing: info.editingId === shape.id,
@@ -40,10 +39,14 @@ function addToShapeTree<T extends TLShape>(
   branch.push(node)
 
   if (shape.children) {
+    node.children = []
     shape.children
       .map((id) => shapes[id])
       .sort((a, b) => a.childIndex - b.childIndex)
-      .forEach((childShape) => addToShapeTree(childShape, node.children, shapes, selectedIds, info))
+      .forEach((childShape) =>
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        addToShapeTree(childShape, node.children!, shapes, selectedIds, info),
+      )
   }
 }
 
