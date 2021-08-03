@@ -1,5 +1,7 @@
 import createVanilla, { PartialState } from 'zustand/vanilla'
 import {
+  TLBoundsCorner,
+  TLBoundsEdge,
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
   TLCallbacks,
@@ -17,7 +19,7 @@ import { brushUpdater } from '@tldraw/core'
 import { defaultStyle, ShapeStyles, TLDrawShape, TLDrawShapeType } from '../shape'
 import { Data, Session, Command, History, TLDrawStatus, ParametersExceptFirst } from './state-types'
 import * as commands from './command'
-import { BrushSession, TranslateSession } from './session'
+import { BrushSession, TransformSingleSession, TranslateSession, TransformSession } from './session'
 import { TLDR } from './tldr'
 import { TLDrawDocument, MoveType, AlignType, StretchType, DistributeType } from '../types'
 
@@ -82,7 +84,7 @@ export class TLDrawState implements TLCallbacks {
   }
   pointedId?: string
   pointedHandle?: string
-  pointedBoundshandle?: string
+  pointedBoundsHandle?: TLBoundsCorner | TLBoundsEdge | 'rotate'
   currentDocumentId = 'doc'
   currentPageId = 'page'
   pages: Record<string, TLPage<TLDrawShape>> = { page: initialData.page }
@@ -133,6 +135,7 @@ export class TLDrawState implements TLCallbacks {
 
     // Save changes to the instance
     this.updateDocument()
+    return this
   }
 
   getShape = <T extends TLDrawShape = TLDrawShape>(id: string): T => {
@@ -164,16 +167,20 @@ export class TLDrawState implements TLCallbacks {
         isStyleOpen: !data.appState.isStyleOpen,
       },
     }))
+    return this
   }
 
   copy = () => {
     // TODO
+    return this
   }
   paste = () => {
     // TODO
+    return this
   }
   copyToSvg = () => {
     // TODO
+    return this
   }
   /* -------------------- Settings -------------------- */
   togglePenMode = () => {
@@ -183,6 +190,7 @@ export class TLDrawState implements TLCallbacks {
         isPenMode: !data.settings.isPenMode,
       },
     }))
+    return this
   }
   toggleDarkMode = () => {
     this.setState((data) => ({
@@ -191,11 +199,13 @@ export class TLDrawState implements TLCallbacks {
         isDarkMode: !data.settings.isDarkMode,
       },
     }))
+    return this
   }
   /* --------------------- Status --------------------- */
   setStatus(status: TLDrawStatus) {
     this.status.previous = this.status.current
     this.status.current = status
+    return this
     // console.log(this.status.previous, ' -> ', this.status.current)
   }
   /* -------------------- App State ------------------- */
@@ -210,6 +220,7 @@ export class TLDrawState implements TLCallbacks {
         ...initialData.settings,
       },
     }))
+    return this
   }
 
   selectTool = (tool: TLDrawShapeType | 'select') => {
@@ -219,6 +230,7 @@ export class TLDrawState implements TLCallbacks {
         activeTool: tool,
       },
     }))
+    return this
   }
 
   toggleToolLock = () => {
@@ -228,6 +240,7 @@ export class TLDrawState implements TLCallbacks {
         isToolLocked: true,
       },
     }))
+    return this
   }
 
   /* --------------------- Camera --------------------- */
@@ -235,12 +248,14 @@ export class TLDrawState implements TLCallbacks {
     const i = Math.round((this.store.getState().pageState.camera.zoom * 100) / 25)
     const nextZoom = TLDR.getCameraZoom((i + 1) * 0.25)
     this.zoomTo(nextZoom)
+    return this
   }
 
   zoomOut = () => {
     const i = Math.round((this.store.getState().pageState.camera.zoom * 100) / 25)
     const nextZoom = TLDR.getCameraZoom((i - 1) * 0.25)
     this.zoomTo(nextZoom)
+    return this
   }
 
   zoomToFit = () => {
@@ -271,6 +286,7 @@ export class TLDrawState implements TLCallbacks {
         },
       }
     })
+    return this
   }
 
   zoomToSelection = () => {
@@ -299,6 +315,7 @@ export class TLDrawState implements TLCallbacks {
         },
       }
     })
+    return this
   }
 
   resetCamera = () => {
@@ -311,6 +328,7 @@ export class TLDrawState implements TLCallbacks {
         },
       },
     }))
+    return this
   }
 
   zoomToContent = () => {
@@ -335,6 +353,7 @@ export class TLDrawState implements TLCallbacks {
         },
       }
     })
+    return this
   }
 
   pinchZoom(point: number[], delta: number[], zoomDelta: number) {
@@ -356,10 +375,12 @@ export class TLDrawState implements TLCallbacks {
         },
       }
     })
+    return this
   }
 
   zoomToActual = () => {
     this.zoomTo(1)
+    return this
   }
 
   zoomTo(next: number) {
@@ -380,12 +401,14 @@ export class TLDrawState implements TLCallbacks {
         },
       }
     })
+    return this
   }
 
   zoom(delta: number) {
     const { zoom } = this.store.getState().pageState.camera
     const nextZoom = TLDR.getCameraZoom(zoom - delta * zoom)
     this.zoomTo(nextZoom)
+    return this
   }
 
   pan(delta: number[]) {
@@ -402,6 +425,7 @@ export class TLDrawState implements TLCallbacks {
         },
       }
     })
+    return this
   }
 
   /* ---------------------- Document --------------------- */
@@ -414,33 +438,40 @@ export class TLDrawState implements TLCallbacks {
       page: this.pages[this.currentPageId],
       pageState: this.pageStates[this.currentPageId],
     })
+    return this
   }
   updateDocument = () => {
     const { page, pageState } = this.getState()
     this.pages[page.id] = page
     this.pageStates[page.id] = pageState
+    return this
   }
   setCurrentPageId(pageId: string) {
-    if (pageId === this.currentPageId) return
+    if (pageId === this.currentPageId) return this
+
     this.currentPageId = pageId
 
     this.setState({
       page: this.pages[pageId],
       pageState: this.pageStates[pageId],
     })
+    return this
   }
   /* -------------------- Sessions -------------------- */
   startSession<T extends Session>(session: T, ...args: ParametersExceptFirst<T['start']>) {
     this.session = session
     this.setState((data) => this.session.start(data, ...args))
+    return this
   }
   updateSession<T extends Session>(...args: ParametersExceptFirst<T['update']>) {
     this.setState((data) => this.session.update(data, ...args))
+    return this
   }
   cancelSession<T extends Session>(...args: ParametersExceptFirst<T['cancel']>) {
     this.setState((data) => this.session.cancel(data, ...args))
     this.setStatus('idle')
     this.session = undefined
+    return this
   }
   completeSession<T extends Session>(...args: ParametersExceptFirst<T['complete']>) {
     this.setStatus('idle')
@@ -454,6 +485,7 @@ export class TLDrawState implements TLCallbacks {
 
     this.setStatus('idle')
     this.session = undefined
+    return this
   }
   /* -------------------- Commands -------------------- */
   do(command: Command) {
@@ -484,10 +516,11 @@ export class TLDrawState implements TLCallbacks {
     })
 
     this.updateDocument()
+    return this
   }
   undo = () => {
     const { history } = this
-    if (history.pointer <= -1) return
+    if (history.pointer <= -1) return this
 
     this.setState((data) => {
       let tdata = Utils.deepMerge<Data>(data, history.stack[history.pointer].before)
@@ -511,10 +544,11 @@ export class TLDrawState implements TLCallbacks {
     history.pointer--
 
     this.updateDocument()
+    return this
   }
   redo = () => {
     const { history } = this
-    if (history.pointer >= history.stack.length - 1) return
+    if (history.pointer >= history.stack.length - 1) return this
     history.pointer++
 
     this.setState((data) => {
@@ -538,6 +572,7 @@ export class TLDrawState implements TLCallbacks {
     })
 
     this.updateDocument()
+    return this
   }
   /* -------------------- Selection ------------------- */
   setSelectedIds(ids: string[], push = false) {
@@ -549,86 +584,104 @@ export class TLDrawState implements TLCallbacks {
         },
       }
     })
+    return this
   }
   select = (...ids: string[]) => {
     this.setSelectedIds(ids)
+    return this
   }
   selectAll = () => {
     this.setSelectedIds(Object.keys(this.getState().page.shapes))
+    return this
   }
   deselectAll = () => {
     this.setSelectedIds([])
+    return this
   }
   /* ----------------- Shape Functions ---------------- */
   style = (style: Partial<ShapeStyles>, ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.style(data, idsToMutate, style))
+    return this
   }
   align = (type: AlignType, ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.align(data, idsToMutate, type))
+    return this
   }
   distribute = (type: DistributeType, ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.distribute(data, idsToMutate, type))
+    return this
   }
   stretch = (type: StretchType, ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.stretch(data, idsToMutate, type))
+    return this
   }
   moveToBack = (ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.move(data, idsToMutate, MoveType.ToBack))
+    return this
   }
   moveBackward = (ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.move(data, idsToMutate, MoveType.Backward))
+    return this
   }
   moveForward = (ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.move(data, idsToMutate, MoveType.Forward))
+    return this
   }
   moveToFront = (ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.move(data, idsToMutate, MoveType.ToFront))
+    return this
   }
   nudge = (delta: number[], isMajor = false, ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.translate(data, idsToMutate, Vec.mul(delta, isMajor ? 10 : 1)))
+    return this
   }
   duplicate = (ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.duplicate(data, idsToMutate))
+    return this
   }
   toggleHidden = (ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.toggle(data, idsToMutate, 'isHidden'))
+    return this
   }
   toggleLocked = (ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.toggle(data, idsToMutate, 'isLocked'))
+    return this
   }
   toggleAspectRatioLocked = (ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.toggle(data, idsToMutate, 'isAspectRatioLocked'))
+    return this
   }
   rotate = (delta = Math.PI * -0.5, ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
-    this.do(commands.rotate(data, idsToMutate))
+    this.do(commands.rotate(data, idsToMutate, delta))
+    return this
   }
   group = (ids?: string[]) => {
     // TODO
@@ -645,31 +698,66 @@ export class TLDrawState implements TLCallbacks {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.deleteShapes(data, idsToMutate))
+    return this
   }
   clear = () => {
     this.selectAll()
     this.delete()
+    return this
   }
   cancel = () => {
     // TODO
+    return this
   }
   save = () => {
     // TODO
+    return this
   }
   /* -------------------- Sessions -------------------- */
   startBrushSession = (point: number[]) => {
     this.setStatus('brushing')
     this.startSession(new BrushSession(this.store.getState(), point))
+    return this
   }
   updateBrushSession = (point: number[]) => {
     this.updateSession<BrushSession>(point)
+    return this
   }
   startTranslateSession = (point: number[]) => {
     this.setStatus('translating')
     this.startSession(new TranslateSession(this.store.getState(), point))
+    return this
   }
   updateTranslateSession = (point: number[], shiftKey = false, altKey = false) => {
     this.updateSession<TranslateSession>(point, shiftKey, altKey)
+    return this
+  }
+  startTransformSession = (point: number[], handle: TLBoundsCorner | TLBoundsEdge | 'rotate') => {
+    const { selectedIds } = this
+
+    if (selectedIds.length === 0) return this
+
+    this.setStatus('transforming')
+
+    this.pointedBoundsHandle = handle
+
+    if (this.pointedBoundsHandle === 'rotate') {
+      // TODO - Implement rotate
+      this.setStatus('idle')
+    } else if (this.selectedIds.length === 1) {
+      this.startSession(
+        new TransformSingleSession(this.store.getState(), point, this.pointedBoundsHandle),
+      )
+    } else {
+      this.startSession(
+        new TransformSession(this.store.getState(), point, this.pointedBoundsHandle),
+      )
+    }
+    return this
+  }
+  updateTransformSession = (point: number[], shiftKey = false, altKey = false) => {
+    this.updateSession<TransformSingleSession | TransformSession>(point, shiftKey)
+    return this
   }
   /* --------------------- Events --------------------- */
   onKeyDown = (key: string, info: TLKeyboardInfo) => {
@@ -698,20 +786,31 @@ export class TLDrawState implements TLCallbacks {
   // Pointer Events
   onPointerMove: TLPointerEventHandler = (info) => {
     switch (this.status.current) {
+      case 'pointingBoundsHandle': {
+        if (Vec.dist(info.origin, info.point) > 4) {
+          this.setStatus('transforming')
+          this.startTransformSession(this.getPagePoint(info.origin), this.pointedBoundsHandle)
+        }
+        break
+      }
       case 'pointingBounds': {
         if (Vec.dist(info.origin, info.point) > 4) {
           this.setStatus('translating')
-          this.startTranslateSession(this.getPagePoint(info.point))
+          this.startTranslateSession(this.getPagePoint(info.origin))
         }
+        break
+      }
+      case 'brushing': {
+        // If the user is brushing, update the brush session
+        this.updateBrushSession(this.getPagePoint(info.point))
         break
       }
       case 'translating': {
         this.updateTranslateSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
         break
       }
-      case 'brushing': {
-        // If the user is brushing, update the brush session
-        this.updateBrushSession(this.getPagePoint(info.point))
+      case 'transforming': {
+        this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
         break
       }
     }
@@ -720,6 +819,11 @@ export class TLDrawState implements TLCallbacks {
     const data = this.getState()
 
     switch (this.status.current) {
+      case 'pointingBoundsHandle': {
+        this.setStatus('idle')
+        this.pointedBoundsHandle = undefined
+        break
+      }
       case 'pointingBounds': {
         if (data.pageState.selectedIds.includes(info.target)) {
           // If we did not just shift-select the shape, and if the shape is selected;
@@ -744,6 +848,12 @@ export class TLDrawState implements TLCallbacks {
       }
       case 'translating': {
         this.completeSession(this.getPagePoint(info.point))
+        this.pointedId = undefined
+        break
+      }
+      case 'transforming': {
+        this.completeSession(this.getPagePoint(info.point))
+        this.pointedBoundsHandle = undefined
         break
       }
     }
@@ -873,8 +983,9 @@ export class TLDrawState implements TLCallbacks {
   }
 
   // Bounds handles (corners, edges)
-  onPointBoundsHandle: TLBoundsHandleEventHandler = () => {
-    // TODO
+  onPointBoundsHandle: TLBoundsHandleEventHandler = (info) => {
+    this.pointedBoundsHandle = info.target
+    this.setStatus('pointingBoundsHandle')
   }
 
   onDoublePointBoundsHandle: TLBoundsHandleEventHandler = () => {
@@ -886,7 +997,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   onDragBoundsHandle: TLBoundsHandleEventHandler = () => {
-    // TODO
+    // Unused
   }
 
   onHoverBoundsHandle: TLBoundsHandleEventHandler = () => {
@@ -955,5 +1066,13 @@ export class TLDrawState implements TLCallbacks {
 
   onBlurEditingShape = () => {
     // TODO
+  }
+
+  get data() {
+    return this.getState()
+  }
+
+  get selectedIds() {
+    return this.getState().pageState.selectedIds
   }
 }

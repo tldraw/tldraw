@@ -53,7 +53,10 @@ export interface Session {
 
 export type TLDrawStatus =
   | 'idle'
+  | 'pointingHandle'
   | 'pointingBounds'
+  | 'pointingBoundsHandle'
+  | 'translatingHandle'
   | 'translating'
   | 'transforming'
   | 'rotating'

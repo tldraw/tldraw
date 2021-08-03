@@ -5,10 +5,12 @@ describe('Brush session', () => {
   const tlstate = new TLDrawState()
 
   it('begins, updates and completes session', () => {
-    tlstate.loadDocument(mockDocument)
-    tlstate.select('rect1')
-    tlstate.startTranslateSession([5, 5])
-    tlstate.updateTranslateSession([10, 10])
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .startTranslateSession([5, 5])
+      .updateTranslateSession([10, 10])
+
     expect(tlstate.getShape('rect1').point).toStrictEqual([5, 5])
 
     tlstate.completeSession()
@@ -25,42 +27,46 @@ describe('Brush session', () => {
   })
 
   it('moves a single shape', () => {
-    tlstate.loadDocument(mockDocument)
-    tlstate.select('rect1')
-    tlstate.startTranslateSession([10, 10])
-    tlstate.updateTranslateSession([20, 20])
-    tlstate.completeSession()
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .startTranslateSession([10, 10])
+      .updateTranslateSession([20, 20])
+      .completeSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
   })
 
   it('moves a single shape along a locked axis', () => {
-    tlstate.loadDocument(mockDocument)
-    tlstate.select('rect1')
-    tlstate.startTranslateSession([10, 10])
-    tlstate.updateTranslateSession([20, 20], true)
-    tlstate.completeSession()
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .startTranslateSession([10, 10])
+      .updateTranslateSession([20, 20], true)
+      .completeSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([10, 0])
   })
 
   it('moves two shapes', () => {
-    tlstate.loadDocument(mockDocument)
-    tlstate.select('rect1', 'rect2')
-    tlstate.startTranslateSession([10, 10])
-    tlstate.updateTranslateSession([20, 20])
-    tlstate.completeSession()
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1', 'rect2')
+      .startTranslateSession([10, 10])
+      .updateTranslateSession([20, 20])
+      .completeSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
     expect(tlstate.getShape('rect2').point).toStrictEqual([110, 110])
   })
 
   it('clones shapes', () => {
-    tlstate.loadDocument(mockDocument)
-    tlstate.select('rect1', 'rect2')
-    tlstate.startTranslateSession([10, 10])
-    tlstate.updateTranslateSession([20, 20], false, true)
-    tlstate.completeSession()
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1', 'rect2')
+      .startTranslateSession([10, 10])
+      .updateTranslateSession([20, 20], false, true)
+      .completeSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
     expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
@@ -69,12 +75,13 @@ describe('Brush session', () => {
   })
 
   it('destroys clones when last update is not cloning', () => {
-    tlstate.loadDocument(mockDocument)
-    tlstate.select('rect1', 'rect2')
-    tlstate.startTranslateSession([10, 10])
-    tlstate.updateTranslateSession([20, 20], false, true)
-    tlstate.updateTranslateSession([30, 30])
-    tlstate.completeSession()
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1', 'rect2')
+      .startTranslateSession([10, 10])
+      .updateTranslateSession([20, 20], false, true)
+      .updateTranslateSession([30, 30])
+      .completeSession()
 
     // Original position + delta
     expect(tlstate.getShape('rect1').point).toStrictEqual([30, 30])
