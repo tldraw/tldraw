@@ -3,8 +3,7 @@ import { TLDrawShape } from '../../../shape'
 import { Data, Command } from '../../state-types'
 import { TLDR } from '../../tldr'
 
-export function distribute(data: Data, type: DistributeType): Command {
-  const ids = [...data.pageState.selectedIds]
+export function distribute(data: Data, ids: string[], type: DistributeType): Command {
   const initialShapes = ids.map((id) => data.page.shapes[id])
   const deltaMap = Object.fromEntries(getDistributions(initialShapes, type).map((d) => [d.id, d]))
 

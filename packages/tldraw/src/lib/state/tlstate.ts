@@ -96,7 +96,7 @@ export class TLDrawState implements TLCallbacks {
     const current = this.getState()
 
     // Apply incoming change
-    let next = typeof data === 'function' ? data(this.store.getState()) : data
+    let next = typeof data === 'function' ? data(current) : data
 
     // Apply selected style change, if any
     const newSelectedStyle = TLDR.getSelectedStyle({ ...current, ...next } as Data)
@@ -113,6 +113,16 @@ export class TLDrawState implements TLCallbacks {
     }
 
     // Apply other changes...?
+    next = { ...current, ...next }
+
+    if (Object.keys(current.page.shapes).length < Object.keys(next.page.shapes).length) {
+      // We've deleted one or more shapes, so we may need to remove their children
+      next.page.shapes = Object.fromEntries(
+        Object.entries(next.page.shapes).filter(
+          ([_, shape]) => shape.parentId === next.page.id || next.page.shapes[shape.parentId],
+        ),
+      )
+    }
 
     // Update the state
     this.store.setState(next as PartialState<Data, T, T, T>)
@@ -444,62 +454,98 @@ export class TLDrawState implements TLCallbacks {
     }))
   }
   /* ----------------- Shape Functions ---------------- */
-  style = (style: Partial<ShapeStyles>) => {
-    this.do(commands.style(this.getState(), style))
+  style = (style: Partial<ShapeStyles>, ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.style(data, idsToMutate, style))
   }
-  align = (type: AlignType) => {
-    this.do(commands.align(this.getState(), type))
+  align = (type: AlignType, ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.align(data, idsToMutate, type))
   }
-  distribute = (type: DistributeType) => {
-    this.do(commands.distribute(this.getState(), type))
+  distribute = (type: DistributeType, ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.distribute(data, idsToMutate, type))
   }
-  stretch = (type: StretchType) => {
+  stretch = (type: StretchType, ids?: string[]) => {
     // TODO
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    // this.do(commands.distribute(data, idsToMutate, type))
+  }
+  moveToBack = (ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.move(data, idsToMutate, MoveType.ToBack))
+  }
+  moveBackward = (ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.move(data, idsToMutate, MoveType.Backward))
+  }
+  moveForward = (ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.move(data, idsToMutate, MoveType.Forward))
+  }
+  moveToFront = (ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.move(data, idsToMutate, MoveType.ToFront))
+  }
+  nudge = (delta: number[], isMajor = false, ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.translate(data, idsToMutate, Vec.mul(delta, isMajor ? 10 : 1, ids)))
+  }
+  duplicate = (ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.duplicate(data, idsToMutate))
+  }
+  toggleHidden = (ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.toggle(data, idsToMutate, 'isHidden'))
+  }
+  toggleLocked = (ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.toggle(data, idsToMutate, 'isLocked'))
+  }
+  toggleAspectRatioLocked = (ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.toggle(data, idsToMutate, 'isAspectRatioLocked'))
+  }
+  rotate = (delta = Math.PI * -0.5, ids?: string[]) => {
+    // TODO
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.toggle(data, idsToMutate, 'isAspectRatioLocked'))
+  }
+  group = (ids?: string[]) => {
+    // TODO
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.toggle(data, idsToMutate, 'isAspectRatioLocked'))
+  }
+  delete = (ids?: string[]) => {
+    // TODO
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.toggle(data, idsToMutate, 'isAspectRatioLocked'))
   }
   clear = () => {
-    // TODO
-  }
-  delete = () => {
-    // TODO
-  }
-  moveToBack = () => {
-    this.do(commands.move(this.getState(), MoveType.ToBack))
-  }
-  moveBackward = () => {
-    this.do(commands.move(this.getState(), MoveType.Backward))
-  }
-  moveForward = () => {
-    this.do(commands.move(this.getState(), MoveType.Forward))
-  }
-  moveToFront = () => {
-    this.do(commands.move(this.getState(), MoveType.ToFront))
-  }
-  nudge = (delta: number[], isMajor = false) => {
-    this.do(commands.translate(this.getState(), Vec.mul(delta, isMajor ? 10 : 1)))
+    this.selectAll()
+    this.delete()
   }
   cancel = () => {
     // TODO
   }
   save = () => {
-    // TODO
-  }
-  duplicate = () => {
-    this.do(commands.duplicate(this.store.getState()))
-  }
-  toggleHidden = () => {
-    // TODO
-  }
-  toggleLocked = () => {
-    // TODO
-  }
-  toggleAspectRatioLocked = () => {
-    // TODO
-  }
-  rotate = (delta = Math.PI * -0.5) => {
-    // TODO
-  }
-  group = () => {
-    // Or ungroup, if all are grouped.
     // TODO
   }
   /* -------------------- Sessions -------------------- */

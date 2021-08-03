@@ -2,8 +2,7 @@ import { Utils, Vec } from '@tldraw/core'
 import { TLDR } from '../../tldr'
 import { Data, Command } from '../../state-types'
 
-export function duplicate(data: Data): Command {
-  const ids = [...TLDR.getSelectedIds(data)]
+export function duplicate(data: Data, ids: string[]): Command {
   const delta = Vec.div([16, 16], data.pageState.camera.zoom)
 
   const after = Object.fromEntries(

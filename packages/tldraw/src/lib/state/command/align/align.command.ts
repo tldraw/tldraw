@@ -2,8 +2,7 @@ import { AlignType, Utils } from '@tldraw/core'
 import { Data, Command } from '../../state-types'
 import { TLDR } from '../../tldr'
 
-export function align(data: Data, type: AlignType): Command {
-  const ids = [...TLDR.getSelectedIds(data)]
+export function align(data: Data, ids: string[], type: AlignType): Command {
   const initialShapes = ids.map((id) => TLDR.getShape(data, id))
 
   const boundsForShapes = initialShapes.map((shape) => {

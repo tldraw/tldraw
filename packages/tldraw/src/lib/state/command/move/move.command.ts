@@ -3,10 +3,7 @@ import { TLDrawShape } from '../../../shape'
 import { Data, Command } from '../../state-types'
 import { TLDR } from '../../tldr'
 
-export function move(data: Data, type: MoveType): Command {
-  // Get a unique set of selected shape ids (should be unique anyway)
-  const ids = TLDR.getSelectedIds(data)
-
+export function move(data: Data, ids: string[], type: MoveType): Command {
   // Get the unique parent ids for the selected elements
   const parentIds = new Set(ids.map((id) => data.page.shapes[id].parentId))
 

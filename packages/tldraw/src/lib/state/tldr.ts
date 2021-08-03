@@ -214,8 +214,8 @@ export class TLDR {
   static recursivelyUpdateChildren<T extends TLDrawShape>(
     data: Data,
     id: string,
-    beforeShapes: Record<string, TLDrawShape> = {},
-    afterShapes: Record<string, TLDrawShape> = {},
+    beforeShapes: Record<string, Partial<TLDrawShape>> = {},
+    afterShapes: Record<string, Partial<TLDrawShape>> = {},
   ): Data {
     const shape = data.page.shapes[id] as T
 
@@ -253,8 +253,8 @@ export class TLDR {
   static recursivelyUpdateParents<T extends TLDrawShape>(
     data: Data,
     id: string,
-    beforeShapes: Record<string, TLDrawShape> = {},
-    afterShapes: Record<string, TLDrawShape> = {},
+    beforeShapes: Record<string, Partial<TLDrawShape>> = {},
+    afterShapes: Record<string, Partial<TLDrawShape>> = {},
   ): Data {
     const shape = data.page.shapes[id] as T
 
@@ -285,8 +285,8 @@ export class TLDR {
   static updateBindings(
     data: Data,
     id: string,
-    beforeShapes: Record<string, TLDrawShape> = {},
-    afterShapes: Record<string, TLDrawShape> = {},
+    beforeShapes: Record<string, Partial<TLDrawShape>> = {},
+    afterShapes: Record<string, Partial<TLDrawShape>> = {},
   ): Data {
     return Object.values(data.page.bindings)
       .filter((binding) => binding.fromId === id || binding.toId === id)
@@ -329,15 +329,20 @@ export class TLDR {
     data: Data,
     ids: string[],
     fn: (shape: T, i?: number) => Partial<T>,
-  ): { before: Record<string, TLDrawShape>; after: Record<string, TLDrawShape>; data: Data } {
-    const beforeShapes: Record<string, TLDrawShape> = {}
-    const afterShapes: Record<string, TLDrawShape> = {}
+  ): {
+    before: Record<string, Partial<TLDrawShape>>
+    after: Record<string, Partial<TLDrawShape>>
+    data: Data
+  } {
+    const beforeShapes: Record<string, Partial<TLDrawShape>> = {}
+    const afterShapes: Record<string, Partial<TLDrawShape>> = {}
 
     ids.forEach((id, i) => {
       const shape = data.page.shapes[id]
-      beforeShapes[id] = shape
-      data.page.shapes[id] = this.getShapeUtils(shape).mutate(shape, fn(shape as T, i))
-      afterShapes[id] = data.page.shapes[id]
+      const change = fn(shape as T, i)
+      beforeShapes[id] = Object.fromEntries(Object.keys(change).map((key) => [key, shape[key]]))
+      afterShapes[id] = change
+      data.page.shapes[id] = this.getShapeUtils(shape).mutate(shape, change)
     })
 
     const dataWithChildrenChanges = ids.reduce<Data>((cData, id) => {

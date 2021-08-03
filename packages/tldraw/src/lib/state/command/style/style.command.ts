@@ -2,9 +2,7 @@ import { ShapeStyles } from '../../../shape'
 import { Command, Data } from '../../state-types'
 import { TLDR } from '../../tldr'
 
-export function style(data: Data, changes: Partial<ShapeStyles>): Command {
-  const ids = [...TLDR.getSelectedIds(data)]
-
+export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>): Command {
   const { before, after } = TLDR.mutateShapes(data, ids, (shape) => {
     return { style: { ...shape.style, ...changes } }
   })

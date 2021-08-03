@@ -4,5 +4,5 @@ export * from './style'
 export * from './duplicate'
 export * from './move'
 export * from './translate'
-
-export { Command } from './command'
+export * from './toggle'
+export * from './delete'
