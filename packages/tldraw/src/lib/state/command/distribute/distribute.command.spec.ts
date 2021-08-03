@@ -1,8 +1,8 @@
-import { DistributeType } from '@tldraw/core'
 import { TLDrawState } from '../../tlstate'
 import { mockDocument } from '../../test-helpers'
+import { DistributeType } from '../../../types'
 
-describe('Style command', () => {
+describe('Distribute command', () => {
   const tlstate = new TLDrawState()
   tlstate.loadDocument(mockDocument)
   tlstate.selectAll()

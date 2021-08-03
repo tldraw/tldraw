@@ -45,13 +45,53 @@ export const ShapesFunctions = React.memo(() => {
   const { tlstate, useAppState } = useTLDrawContext()
 
   const isAllLocked = useAppState(isAllLockedSelector)
+
   const isAllAspectLocked = useAppState(isAllAspectLockedSelector)
+
   const isAllGrouped = useAppState(isAllGroupedSelector)
+
   const hasSelection = useAppState(hasSelectionSelector)
+
   const hasMultipleSelection = useAppState(hasMultipleSelectionSelector)
 
   const handleRotate = React.useCallback(() => {
     tlstate.rotate()
+  }, [tlstate])
+
+  const handleDuplicate = React.useCallback(() => {
+    tlstate.duplicate()
+  }, [tlstate])
+
+  const handleToggleLocked = React.useCallback(() => {
+    tlstate.toggleLocked()
+  }, [tlstate])
+
+  const handleToggleAspectRatio = React.useCallback(() => {
+    tlstate.toggleAspectRatioLocked()
+  }, [tlstate])
+
+  const handleGroup = React.useCallback(() => {
+    tlstate.group()
+  }, [tlstate])
+
+  const handleMoveToBack = React.useCallback(() => {
+    tlstate.moveToBack()
+  }, [tlstate])
+
+  const handleMoveBackward = React.useCallback(() => {
+    tlstate.moveBackward()
+  }, [tlstate])
+
+  const handleMoveForward = React.useCallback(() => {
+    tlstate.moveForward()
+  }, [tlstate])
+
+  const handleMoveToFront = React.useCallback(() => {
+    tlstate.moveToFront()
+  }, [tlstate])
+
+  const handleDelete = React.useCallback(() => {
+    tlstate.delete()
   }, [tlstate])
 
   return (
@@ -61,7 +101,7 @@ export const ShapesFunctions = React.memo(() => {
           bp={breakpoints}
           disabled={!hasSelection}
           size="small"
-          onClick={tlstate.duplicate}
+          onClick={handleDuplicate}
         >
           <Tooltip label="Duplicate" kbd={`#D`}>
             <CopyIcon />
@@ -78,7 +118,7 @@ export const ShapesFunctions = React.memo(() => {
           bp={breakpoints}
           disabled={!hasSelection}
           size="small"
-          onClick={tlstate.toggleLocked}
+          onClick={handleToggleLocked}
         >
           <Tooltip label="Toogle Locked" kbd={`#L`}>
             {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon opacity={0.4} />}
@@ -89,7 +129,7 @@ export const ShapesFunctions = React.memo(() => {
           bp={breakpoints}
           disabled={!hasSelection}
           size="small"
-          onClick={tlstate.toggleAspectRatioLocked}
+          onClick={handleToggleAspectRatio}
         >
           <Tooltip label="Toogle Aspect Ratio Lock">
             <AspectRatioIcon opacity={isAllAspectLocked ? 1 : 0.4} />
@@ -100,7 +140,7 @@ export const ShapesFunctions = React.memo(() => {
           bp={breakpoints}
           disabled={!isAllGrouped && !hasMultipleSelection}
           size="small"
-          onClick={tlstate.group}
+          onClick={handleGroup}
         >
           <Tooltip label="Group" kbd={`#G`}>
             <GroupIcon opacity={isAllGrouped ? 1 : 0.4} />
@@ -112,7 +152,7 @@ export const ShapesFunctions = React.memo(() => {
           bp={breakpoints}
           disabled={!hasSelection}
           size="small"
-          onClick={tlstate.moveToBack}
+          onClick={handleMoveToBack}
         >
           <Tooltip label="Move to Back" kbd={`#⇧[`}>
             <PinBottomIcon />
@@ -123,7 +163,7 @@ export const ShapesFunctions = React.memo(() => {
           bp={breakpoints}
           disabled={!hasSelection}
           size="small"
-          onClick={tlstate.moveBackward}
+          onClick={handleMoveBackward}
         >
           <Tooltip label="Move Backward" kbd={`#[`}>
             <ArrowDownIcon />
@@ -134,7 +174,7 @@ export const ShapesFunctions = React.memo(() => {
           bp={breakpoints}
           disabled={!hasSelection}
           size="small"
-          onClick={tlstate.moveForward}
+          onClick={handleMoveForward}
         >
           <Tooltip label="Move Forward" kbd={`#]`}>
             <ArrowUpIcon />
@@ -145,14 +185,14 @@ export const ShapesFunctions = React.memo(() => {
           bp={breakpoints}
           disabled={!hasSelection}
           size="small"
-          onClick={tlstate.moveToFront}
+          onClick={handleMoveToFront}
         >
           <Tooltip label="More to Front" kbd={`#⇧]`}>
             <PinTopIcon />
           </Tooltip>
         </IconButton>
 
-        <IconButton bp={breakpoints} disabled={!hasSelection} size="small" onClick={tlstate.delete}>
+        <IconButton bp={breakpoints} disabled={!hasSelection} size="small" onClick={handleDelete}>
           <Tooltip label="Delete" kbd="⌫">
             <Trash />
           </Tooltip>

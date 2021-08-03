@@ -1,4 +1,5 @@
-import { AlignType, Utils } from '@tldraw/core'
+import { Utils } from '@tldraw/core'
+import { AlignType } from '../../../types'
 import { Data, Command } from '../../state-types'
 import { TLDR } from '../../tldr'
 

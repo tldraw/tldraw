@@ -1,42 +1,44 @@
 import { TLDrawState } from '../../tlstate'
 import { mockDocument } from '../../test-helpers'
 
-describe('Translate command', () => {
+describe('Delete command', () => {
   const tlstate = new TLDrawState()
 
   it('does, undoes and redoes command', () => {
     tlstate.loadDocument(mockDocument)
-    tlstate.selectAll()
+    tlstate.select('rect2')
+    tlstate.delete()
 
-    expect(tlstate.getShape('rect2').isAspectRatioLocked).toBe(undefined)
-
-    tlstate.toggleAspectRatioLocked()
-
-    expect(tlstate.getShape('rect2').isAspectRatioLocked).toBe(true)
+    expect(tlstate.getShape('rect2')).toBe(undefined)
+    expect(tlstate.getPageState().selectedIds.length).toBe(0)
 
     tlstate.undo()
 
-    expect(tlstate.getShape('rect2').isAspectRatioLocked).toBe(undefined)
+    expect(tlstate.getShape('rect2')).toBeTruthy()
+    expect(tlstate.getPageState().selectedIds.length).toBe(1)
 
-    // tlstate.redo()
+    tlstate.redo()
 
-    // expect(tlstate.getShape('rect2').isAspectRatioLocked).toBe(true)
+    expect(tlstate.getShape('rect2')).toBe(undefined)
+    expect(tlstate.getPageState().selectedIds.length).toBe(0)
   })
 
-  it('toggles on before off when mixed values', () => {
-    // tlstate.loadDocument(mockDocument)
-    // tlstate.setSelectedIds(['rect2'])
-    // expect(tlstate.getShape('rect1').isAspectRatioLocked).toBe(undefined)
-    // expect(tlstate.getShape('rect2').isAspectRatioLocked).toBe(undefined)
-    // tlstate.toggleAspectRatioLocked()
-    // expect(tlstate.getShape('rect1').isAspectRatioLocked).toBe(undefined)
-    // expect(tlstate.getShape('rect2').isAspectRatioLocked).toBe(true)
-    // tlstate.selectAll()
-    // tlstate.toggleAspectRatioLocked()
-    // expect(tlstate.getShape('rect1').isAspectRatioLocked).toBe(true)
-    // expect(tlstate.getShape('rect1').isAspectRatioLocked).toBe(true)
-    // tlstate.toggleAspectRatioLocked()
-    // expect(tlstate.getShape('rect1').isAspectRatioLocked).toBe(false)
-    // expect(tlstate.getShape('rect1').isAspectRatioLocked).toBe(false)
+  it('deletes two shapes', () => {
+    tlstate.loadDocument(mockDocument)
+    tlstate.selectAll()
+    tlstate.delete()
+
+    expect(tlstate.getShape('rect1')).toBe(undefined)
+    expect(tlstate.getShape('rect2')).toBe(undefined)
+
+    tlstate.undo()
+
+    expect(tlstate.getShape('rect1')).toBeTruthy()
+    expect(tlstate.getShape('rect2')).toBeTruthy()
+
+    tlstate.redo()
+
+    expect(tlstate.getShape('rect1')).toBe(undefined)
+    expect(tlstate.getShape('rect2')).toBe(undefined)
   })
 })

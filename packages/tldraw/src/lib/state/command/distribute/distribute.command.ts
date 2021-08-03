@@ -1,5 +1,6 @@
-import { DistributeType, Utils } from '@tldraw/core'
+import { Utils } from '@tldraw/core'
 import { TLDrawShape } from '../../../shape'
+import { DistributeType } from '../../../types'
 import { Data, Command } from '../../state-types'
 import { TLDR } from '../../tldr'
 
@@ -58,7 +59,7 @@ function getDistributions(initialShapes: TLDrawShape[], type: DistributeType) {
 
         const entriesToMove = entries
           .filter((a) => a !== left && a !== right)
-          .sort((a, b) => a.center[0] - b.center[0][0])
+          .sort((a, b) => a.center[0] - b.center[0])
 
         const step = (right.center[0] - left.center[0]) / (len - 1)
 
@@ -72,7 +73,7 @@ function getDistributions(initialShapes: TLDrawShape[], type: DistributeType) {
           })
         })
       } else {
-        const entriesToMove = entries.sort((a, b) => a.center[0][0] - b.center[0][0])
+        const entriesToMove = entries.sort((a, b) => a.center[0] - b.center[0])
 
         let x = commonBounds.minX
         const step = (commonBounds.width - span) / (len - 1)

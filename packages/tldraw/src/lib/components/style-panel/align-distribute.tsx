@@ -11,8 +11,8 @@ import {
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
 } from '@radix-ui/react-icons'
-import { breakpoints, ButtonsRow, IconButton } from '../shared'
 import { AlignType, DistributeType, StretchType } from '../../types'
+import { breakpoints, ButtonsRow, IconButton } from '../shared'
 import { useTLDrawContext } from '../../hooks'
 
 export interface AlignDistributeProps {

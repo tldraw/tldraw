@@ -1,6 +1,6 @@
-import { DistributeType, Utils } from '@tldraw/core'
+import { Utils } from '@tldraw/core'
 import { TLDrawShape } from '../../../shape'
-import { Data } from '../../../types'
+import { Data, DistributeType } from '../../../types'
 import { TLD } from '../../tld'
 import { Command } from '../command'
 

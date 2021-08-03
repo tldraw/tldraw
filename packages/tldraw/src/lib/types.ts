@@ -29,27 +29,27 @@ export interface Data {
 }
 
 export enum MoveType {
-  Backward,
-  Forward,
-  ToFront,
-  ToBack,
+  Backward = 'backward',
+  Forward = 'forward',
+  ToFront = 'toFront',
+  ToBack = 'toBack',
 }
 
 export enum AlignType {
-  Top,
-  CenterVertical,
-  Bottom,
-  Left,
-  CenterHorizontal,
-  Right,
+  Top = 'top',
+  CenterVertical = 'centerVertical',
+  Bottom = 'bottom',
+  Left = 'left',
+  CenterHorizontal = 'centerHorizontal',
+  Right = 'right',
 }
 
 export enum StretchType {
-  Horizontal,
-  Vertical,
+  Horizontal = 'horizontal',
+  Vertical = 'vertical',
 }
 
 export enum DistributeType {
-  Horizontal,
-  Vertical,
+  Horizontal = 'horizontal',
+  Vertical = 'vertical',
 }

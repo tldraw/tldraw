@@ -24,7 +24,7 @@ const isStyleOpenSelector = (s: Data) => s.appState.isStyleOpen
 
 export function StylePanel(): JSX.Element {
   const { tlstate, useAppState } = useTLDrawContext()
-  const isOpen = useAppState((s) => s.appState.isStyleOpen)
+  const isOpen = useAppState(isStyleOpenSelector)
 
   return (
     <FloatingContainer direction="column">
@@ -49,13 +49,12 @@ export function StylePanel(): JSX.Element {
   )
 }
 
+const showKbds = !Utils.isMobile()
 const selectedShapesCountSelector = (s: Data) => s.pageState.selectedIds.length
 
 function SelectedShapeContent(): JSX.Element {
   const { tlstate, useAppState } = useTLDrawContext()
   const selectedShapesCount = useAppState(selectedShapesCountSelector)
-
-  const showKbds = !Utils.isMobile()
 
   return (
     <>

@@ -11,15 +11,11 @@ import {
   TLBoundsCorner,
   TLBoundsEdge,
   TLKeyboardInfo,
-  AlignType,
-  StretchType,
-  DistributeType,
   Utils,
-  MoveType,
   TLPointerEventHandler,
   inputs,
 } from '@tldraw/core'
-import { Data, TLDrawDocument } from '../../types'
+import { Data, TLDrawDocument, MoveType, AlignType, StretchType, DistributeType } from '../../types'
 import {
   TLDrawShape,
   TLDrawShapeUtils,

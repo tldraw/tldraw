@@ -14,8 +14,6 @@ export function toggle(
     [prop]: !isAllToggled,
   }))
 
-  console.log(before, after)
-
   return {
     id: 'toggle_shapes',
     before: {

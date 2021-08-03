@@ -1,7 +1,7 @@
 import { TLDrawState } from '../../tlstate'
 import { mockDocument } from '../../test-helpers'
 
-describe('Style command', () => {
+describe('Duplicate command', () => {
   const tlstate = new TLDrawState()
   tlstate.loadDocument(mockDocument)
   tlstate.reset()

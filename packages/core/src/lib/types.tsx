@@ -253,9 +253,9 @@ export abstract class TLShapeUtil<T extends TLShape> {
 
   abstract hitTestBounds(shape: T, bounds: TLBounds): boolean
 
-  abstract transform(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): T
+  abstract transform(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T>
 
-  abstract transformSingle(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): T
+  abstract transformSingle(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T>
 
   shouldRender(prev: T, next: T): boolean {
     return true
@@ -335,32 +335,6 @@ export interface IShapeTreeNode {
   isBinding: boolean
   isDarkMode: boolean
   isCurrentParent: boolean
-}
-
-export enum MoveType {
-  Backward = 'backward',
-  Forward = 'forward',
-  ToFront = 'toFront',
-  ToBack = 'toBack',
-}
-
-export enum AlignType {
-  Top = 'top',
-  CenterVertical = 'centerVertical',
-  Bottom = 'bottom',
-  Left = 'left',
-  CenterHorizontal = 'centerHorizontal',
-  Right = 'right',
-}
-
-export enum StretchType {
-  Horizontal = 'horizontal',
-  Vertical = 'vertical',
-}
-
-export enum DistributeType {
-  Horizontal = 'horizontal',
-  Vertical = 'vertical',
 }
 
 /* -------------------------------------------------- */

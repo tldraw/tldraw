@@ -214,7 +214,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
     shape: DrawShape,
     bounds: TLBounds,
     { initialShape, transformOrigin, scaleX, scaleY }: TLTransformInfo<DrawShape>,
-  ): DrawShape {
+  ) {
     const initialShapeBounds = Utils.getFromCache(this.boundsCache, initialShape, () =>
       Utils.getBoundsFromPoints(initialShape.points),
     )
@@ -238,13 +238,12 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
     const point = Vec.sub([bounds.minX, bounds.minY], [newBounds.minX, newBounds.minY])
 
     return {
-      ...shape,
       points,
       point,
     }
   }
 
-  transformSingle(shape: DrawShape, bounds: TLBounds, info: TLTransformInfo<DrawShape>): DrawShape {
+  transformSingle(shape: DrawShape, bounds: TLBounds, info: TLTransformInfo<DrawShape>) {
     return this.transform(shape, bounds, info)
   }
 

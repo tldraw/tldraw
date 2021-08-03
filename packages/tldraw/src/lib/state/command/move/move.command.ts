@@ -1,5 +1,5 @@
-import { MoveType } from '@tldraw/core'
 import { TLDrawShape } from '../../../shape'
+import { MoveType } from '../../../types'
 import { Data, Command } from '../../state-types'
 import { TLDR } from '../../tldr'
 

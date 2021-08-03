@@ -5,12 +5,18 @@ export function deleteShapes(data: Data, ids: string[]): Command {
     id: 'toggle_shapes',
     before: {
       page: {
-        shapes: Object.fromEntries(ids.map((id) => [id, undefined])),
+        shapes: Object.fromEntries(ids.map((id) => [id, data.page.shapes[id]])),
+      },
+      pageState: {
+        selectedIds: [...data.pageState.selectedIds],
       },
     },
     after: {
       page: {
-        shapes: Object.fromEntries(ids.map((id) => [id, data.page.shapes[id]])),
+        shapes: Object.fromEntries(ids.map((id) => [id, undefined])),
+      },
+      pageState: {
+        selectedIds: [],
       },
     },
   }

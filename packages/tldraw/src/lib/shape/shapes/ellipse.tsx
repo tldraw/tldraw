@@ -167,7 +167,6 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
     const { rotation = 0 } = initialShape
 
     return {
-      ...shape,
       point: [bounds.minX, bounds.minY],
       radius: [bounds.width / 2, bounds.height / 2],
       rotation:
@@ -179,7 +178,6 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
 
   transformSingle(shape: EllipseShape, bounds: TLBounds) {
     return {
-      ...shape,
       point: Vec.round([bounds.minX, bounds.minY]),
       radius: Vec.div([bounds.width, bounds.height], 2),
     }

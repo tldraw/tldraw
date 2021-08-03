@@ -1,9 +1,5 @@
 import createVanilla, { PartialState } from 'zustand/vanilla'
 import {
-  AlignType,
-  DistributeType,
-  MoveType,
-  StretchType,
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
   TLCallbacks,
@@ -21,7 +17,7 @@ import { Data, Session, Command, History, TLDrawStatus, ParametersExceptFirst } 
 import * as commands from './command'
 import { BrushSession } from './session'
 import { TLDR } from './tldr'
-import { TLDrawDocument } from '../types'
+import { TLDrawDocument, MoveType, AlignType, StretchType, DistributeType } from '../types'
 
 const initialData: Data = {
   settings: {
@@ -98,8 +94,25 @@ export class TLDrawState implements TLCallbacks {
     // Apply incoming change
     let next = typeof data === 'function' ? data(current) : data
 
+    next = { ...current, ...next }
+
+    if (Object.keys(current.page.shapes).length < Object.keys(next.page.shapes).length) {
+      // We've deleted one or more shapes, so we may need to remove their children
+      next = {
+        ...next,
+        page: {
+          ...next.page,
+          shapes: Object.fromEntries(
+            Object.entries(next.page.shapes).filter(
+              ([_, shape]) => shape.parentId === next.page.id || next.page.shapes[shape.parentId],
+            ),
+          ),
+        },
+      }
+    }
+
     // Apply selected style change, if any
-    const newSelectedStyle = TLDR.getSelectedStyle({ ...current, ...next } as Data)
+    const newSelectedStyle = TLDR.getSelectedStyle(next as Data)
 
     if (newSelectedStyle) {
       next = {
@@ -110,18 +123,6 @@ export class TLDrawState implements TLCallbacks {
           selectedStyle: newSelectedStyle,
         },
       }
-    }
-
-    // Apply other changes...?
-    next = { ...current, ...next }
-
-    if (Object.keys(current.page.shapes).length < Object.keys(next.page.shapes).length) {
-      // We've deleted one or more shapes, so we may need to remove their children
-      next.page.shapes = Object.fromEntries(
-        Object.entries(next.page.shapes).filter(
-          ([_, shape]) => shape.parentId === next.page.id || next.page.shapes[shape.parentId],
-        ),
-      )
     }
 
     // Update the state
@@ -426,7 +427,6 @@ export class TLDrawState implements TLCallbacks {
     })
   }
   /* -------------------- Selection ------------------- */
-
   setSelectedIds(ids: string[], push = false) {
     this.setState((data) => {
       return {
@@ -437,21 +437,14 @@ export class TLDrawState implements TLCallbacks {
       }
     })
   }
+  select = (...ids: string[]) => {
+    this.setSelectedIds(ids)
+  }
   selectAll = () => {
-    this.setState((state) => ({
-      pageState: {
-        ...state.pageState,
-        selectedIds: [...Object.keys(state.page.shapes)],
-      },
-    }))
+    this.setSelectedIds(Object.keys(this.getState().page.shapes))
   }
   deselectAll = () => {
-    this.setState((state) => ({
-      pageState: {
-        ...state.pageState,
-        selectedIds: [],
-      },
-    }))
+    this.setSelectedIds([])
   }
   /* ----------------- Shape Functions ---------------- */
   style = (style: Partial<ShapeStyles>, ids?: string[]) => {
@@ -470,10 +463,9 @@ export class TLDrawState implements TLCallbacks {
     this.do(commands.distribute(data, idsToMutate, type))
   }
   stretch = (type: StretchType, ids?: string[]) => {
-    // TODO
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
-    // this.do(commands.distribute(data, idsToMutate, type))
+    this.do(commands.stretch(data, idsToMutate, type))
   }
   moveToBack = (ids?: string[]) => {
     const data = this.store.getState()
@@ -498,7 +490,7 @@ export class TLDrawState implements TLCallbacks {
   nudge = (delta: number[], isMajor = false, ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
-    this.do(commands.translate(data, idsToMutate, Vec.mul(delta, isMajor ? 10 : 1, ids)))
+    this.do(commands.translate(data, idsToMutate, Vec.mul(delta, isMajor ? 10 : 1)))
   }
   duplicate = (ids?: string[]) => {
     const data = this.store.getState()
@@ -521,10 +513,9 @@ export class TLDrawState implements TLCallbacks {
     this.do(commands.toggle(data, idsToMutate, 'isAspectRatioLocked'))
   }
   rotate = (delta = Math.PI * -0.5, ids?: string[]) => {
-    // TODO
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
-    this.do(commands.toggle(data, idsToMutate, 'isAspectRatioLocked'))
+    this.do(commands.rotate(data, idsToMutate))
   }
   group = (ids?: string[]) => {
     // TODO
@@ -536,7 +527,7 @@ export class TLDrawState implements TLCallbacks {
     // TODO
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
-    this.do(commands.toggle(data, idsToMutate, 'isAspectRatioLocked'))
+    this.do(commands.deleteShapes(data, idsToMutate))
   }
   clear = () => {
     this.selectAll()

@@ -1,5 +1,6 @@
-import { DistributeType, Utils } from '@tldraw/core'
+import { Utils } from '@tldraw/core'
 import { mockData } from '../../../../specs/__mocks__/mock-data'
+import { DistributeType } from '../../../types'
 import { distribute } from './distribute.command'
 
 describe('Distribute command', () => {

@@ -1,5 +1,5 @@
-import { AlignType, Utils } from '@tldraw/core'
-import { Data } from '../../../types'
+import { Utils } from '@tldraw/core'
+import { AlignType, Data } from '../../../types'
 import { TLD } from '../../tld'
 import { Command } from '../command'
 

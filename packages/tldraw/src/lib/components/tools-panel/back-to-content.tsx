@@ -4,7 +4,8 @@ import styled from '../../styles'
 import { Data } from '../../state'
 import { useTLDrawContext } from '../../hooks'
 
-const isEmptyCanvasSelector = (s: Data) => s.appState.isEmptyCanvas
+const isEmptyCanvasSelector = (s: Data) =>
+  Object.keys(s.page.shapes).length > 0 && s.appState.isEmptyCanvas
 
 export const BackToContent = React.memo(() => {
   const { tlstate, useAppState } = useTLDrawContext()

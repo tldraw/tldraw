@@ -1,6 +1,6 @@
-import { AlignType } from '@tldraw/core'
 import { TLDrawState } from '../../tlstate'
 import { mockDocument } from '../../test-helpers'
+import { AlignType } from '../../../types'
 
 describe('Align command', () => {
   const tlstate = new TLDrawState()
