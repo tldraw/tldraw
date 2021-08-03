@@ -87,6 +87,14 @@ export interface TLTheme {
   foreground?: string
 }
 
+export type TLWheelEventHandler = (
+  info: TLPointerInfo<string>,
+  e: React.WheelEvent<Element> | WheelEvent,
+) => void
+export type TLPinchEventHandler = (
+  info: TLPointerInfo<string>,
+  e: React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent,
+) => void
 export type TLPointerEventHandler = (info: TLPointerInfo<string>, e: React.PointerEvent) => void
 export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>, e: React.PointerEvent) => void
 export type TLBoundsEventHandler = (info: TLPointerInfo<'bounds'>, e: React.PointerEvent) => void
@@ -99,11 +107,11 @@ export interface TLCallbacks {
   onChange: (ids: string[]) => void
 
   // Camera events
-  onPinchStart: TLPointerEventHandler
-  onPinchEnd: TLPointerEventHandler
-  onPinch: TLPointerEventHandler
-  onPan: TLPointerEventHandler
-  onZoom: TLPointerEventHandler
+  onPinchStart: TLPinchEventHandler
+  onPinchEnd: TLPinchEventHandler
+  onPinch: TLPinchEventHandler
+  onPan: TLWheelEventHandler
+  onZoom: TLWheelEventHandler
 
   // Pointer Events
   onPointerMove: TLPointerEventHandler

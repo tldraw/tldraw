@@ -7,7 +7,9 @@ import {
   TLKeyboardInfo,
   TLPage,
   TLPageState,
+  TLPinchEventHandler,
   TLPointerEventHandler,
+  TLWheelEventHandler,
   Utils,
   Vec,
 } from '@tldraw/core'
@@ -677,19 +679,19 @@ export class TLDrawState implements TLCallbacks {
     // TODO
   }
   /* ------------- Renderer Event Handlers ------------ */
-  onPinchStart: TLPointerEventHandler = (info) => {
+  onPinchStart: TLPinchEventHandler = (info) => {
     // TODO
   }
-  onPinchEnd: TLPointerEventHandler = () => {
+  onPinchEnd: TLPinchEventHandler = () => {
     // TODO
   }
-  onPinch: TLPointerEventHandler = (info) => {
+  onPinch: TLPinchEventHandler = (info) => {
     this.pinchZoom(info.origin, Vec.sub(info.point, info.origin), info.delta[1] / 350)
   }
-  onPan: TLPointerEventHandler = (info) => {
+  onPan: TLWheelEventHandler = (info) => {
     this.pan(info.delta)
   }
-  onZoom: TLPointerEventHandler = (info) => {
+  onZoom: TLWheelEventHandler = (info) => {
     this.zoom(info.delta[1] / 100)
   }
 
