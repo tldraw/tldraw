@@ -313,6 +313,24 @@ export class TLDR {
       }, data)
   }
 
+  static getChildIndexAbove(data: Data, id: string): number {
+    const page = this.getPage(data)
+
+    const shape = page.shapes[id]
+
+    const siblings = Object.values(page.shapes)
+      .filter(({ parentId }) => parentId === shape.parentId)
+      .sort((a, b) => a.childIndex - b.childIndex)
+
+    const index = siblings.indexOf(shape)
+
+    const nextSibling = siblings[index + 1]
+
+    if (!nextSibling) return shape.childIndex + 1
+
+    return (shape.childIndex + nextSibling.childIndex) / 2
+  }
+
   /* -------------------------------------------------- */
   /*                      Mutations                     */
   /* -------------------------------------------------- */

@@ -13,6 +13,13 @@ export class Utils {
   /*                    Math & Geometry                 */
   /* -------------------------------------------------- */
 
+  static filterObject<T extends object>(
+    obj: T,
+    fn: (entry: Entry<T>, i?: number, arr?: Entry<T>[]) => boolean,
+  ) {
+    return Object.fromEntries((Object.entries(obj) as Entry<T>[]).filter(fn)) as Partial<T>
+  }
+
   static deepMerge<T>(a: T, b: DeepPartial<T>): T {
     return deepmerge<T, DeepPartial<T>>(a, b, { arrayMerge: (a, b) => b }) as T
   }
@@ -1720,3 +1727,7 @@ export type DeepPartial<T> = T extends Function
     ? DeepPartial<T[number]>[]
     : { [P in keyof T]?: DeepPartial<T[P]> }
   : T
+
+type Entry<T> = {
+  [K in keyof T]: [K, T[K]]
+}[keyof T]

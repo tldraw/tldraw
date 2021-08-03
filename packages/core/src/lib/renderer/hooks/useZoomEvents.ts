@@ -27,7 +27,7 @@ export function useZoomEvents() {
       onPinch: ({ pinching, da, origin }) => {
         if (!pinching) {
           const info = inputs.pinch(origin, origin)
-          callbacks.onPinchEnd?.(info)
+          callbacks.onPinchEnd?.(info, e)
           rPinchDa.current = undefined
           rPinchPoint.current = undefined
           return
@@ -35,7 +35,7 @@ export function useZoomEvents() {
 
         if (rPinchPoint.current === undefined) {
           const info = inputs.pinch(origin, origin)
-          callbacks.onPinchStart?.(info)
+          callbacks.onPinchStart?.(info, e)
           rPinchDa.current = da
           rPinchPoint.current = origin
         }

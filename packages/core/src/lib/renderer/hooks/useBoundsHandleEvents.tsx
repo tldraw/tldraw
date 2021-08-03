@@ -8,18 +8,18 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
-      e.stopPropagation()
+      // e.stopPropagation()
       e.currentTarget?.setPointerCapture(e.pointerId)
       const info = inputs.pointerDown(e, id)
 
-      callbacks.onPointBoundsHandle?.(info)
+      callbacks.onPointBoundsHandle?.(info, e)
     },
     [callbacks, id],
   )
 
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
-      e.stopPropagation()
+      // e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, id)
 
@@ -27,38 +27,39 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
         e.currentTarget?.releasePointerCapture(e.pointerId)
 
         if (isDoubleClick && !(info.altKey || info.metaKey)) {
-          callbacks.onDoublePointBoundsHandle?.(info)
+          callbacks.onDoublePointBoundsHandle?.(info, e)
         }
 
-        callbacks.onReleaseBoundsHandle?.(info)
+        callbacks.onReleaseBoundsHandle?.(info, e)
       }
-      callbacks.onPointerUp?.(info)
+      callbacks.onPointerUp?.(info, e)
     },
     [callbacks, id],
   )
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
-      e.stopPropagation()
+      // e.stopPropagation()
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        callbacks.onDragBoundsHandle?.(inputs.pointerMove(e, id))
+        callbacks.onDragBoundsHandle?.(inputs.pointerMove(e, id), e)
       }
       const info = inputs.pointerMove(e, id)
-      callbacks.onPointerMove?.(info)
+      callbacks.onPointerMove?.(info, e)
+      e.stopPropagation()
     },
     [callbacks, id],
   )
 
   const onPointerEnter = React.useCallback(
     (e: React.PointerEvent) => {
-      callbacks.onHoverBoundsHandle?.(inputs.pointerEnter(e, id))
+      callbacks.onHoverBoundsHandle?.(inputs.pointerEnter(e, id), e)
     },
     [callbacks, id],
   )
 
   const onPointerLeave = React.useCallback(
     (e: React.PointerEvent) => {
-      callbacks.onUnhoverBoundsHandle?.(inputs.pointerEnter(e, id))
+      callbacks.onUnhoverBoundsHandle?.(inputs.pointerEnter(e, id), e)
     },
     [callbacks, id],
   )

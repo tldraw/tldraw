@@ -80,6 +80,7 @@ export class BrushSession implements Session {
       ...data,
       pageState: {
         ...data.pageState,
+        selectedIds: [...data.pageState.selectedIds],
       },
     }
   }

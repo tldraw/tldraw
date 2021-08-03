@@ -15,7 +15,7 @@ import { brushUpdater } from '@tldraw/core'
 import { defaultStyle, ShapeStyles, TLDrawShape, TLDrawShapeType } from '../shape'
 import { Data, Session, Command, History, TLDrawStatus, ParametersExceptFirst } from './state-types'
 import * as commands from './command'
-import { BrushSession } from './session'
+import { BrushSession, TranslateSession } from './session'
 import { TLDR } from './tldr'
 import { TLDrawDocument, MoveType, AlignType, StretchType, DistributeType } from '../types'
 
@@ -31,6 +31,7 @@ const initialData: Data = {
   appState: {
     activeToolType: undefined,
     activeTool: 'select',
+    hoveredId: undefined,
     currentPageId: 'page',
     currentStyle: defaultStyle,
     selectedStyle: defaultStyle,
@@ -193,6 +194,7 @@ export class TLDrawState implements TLCallbacks {
   setStatus(status: TLDrawStatus) {
     this.status.previous = this.status.current
     this.status.current = status
+    // console.log(this.status.previous, ' -> ', this.status.current)
   }
   /* -------------------- App State ------------------- */
   reset = () => {
@@ -411,7 +413,6 @@ export class TLDrawState implements TLCallbacks {
       pageState: this.pageStates[this.currentPageId],
     })
   }
-
   updateDocument = () => {
     const { page, pageState } = this.getState()
     this.pages[page.id] = page
@@ -425,6 +426,116 @@ export class TLDrawState implements TLCallbacks {
       page: this.pages[pageId],
       pageState: this.pageStates[pageId],
     })
+  }
+  /* -------------------- Sessions -------------------- */
+  startSession<T extends Session>(session: T, ...args: ParametersExceptFirst<T['start']>) {
+    this.session = session
+    this.setState((data) => this.session.start(data, ...args))
+  }
+  updateSession<T extends Session>(...args: ParametersExceptFirst<T['update']>) {
+    this.setState((data) => this.session.update(data, ...args))
+  }
+  cancelSession<T extends Session>(...args: ParametersExceptFirst<T['cancel']>) {
+    this.setState((data) => this.session.cancel(data, ...args))
+    this.setStatus('idle')
+    this.session = undefined
+  }
+  completeSession<T extends Session>(...args: ParametersExceptFirst<T['complete']>) {
+    this.setStatus('idle')
+    const result = this.session.complete(this.store.getState(), ...args)
+
+    if ('after' in result) {
+      this.do(result)
+    } else {
+      this.setState((data) => Utils.deepMerge<Data>(data, result))
+    }
+
+    this.setStatus('idle')
+    this.session = undefined
+  }
+  /* -------------------- Commands -------------------- */
+  do(command: Command) {
+    const { history } = this
+    if (history.pointer !== history.stack.length - 1) {
+      history.stack = history.stack.slice(0, history.pointer + 1)
+    }
+    history.stack.push(command)
+    history.pointer = history.stack.length - 1
+
+    this.setState((data) => {
+      let tdata = Utils.deepMerge<Data>(data, history.stack[history.pointer].after)
+      if (Object.values(tdata.page.shapes).includes(undefined)) {
+        tdata = {
+          ...tdata,
+          page: {
+            ...tdata.page,
+            shapes: Object.fromEntries(
+              Object.values(tdata.page.shapes)
+                .filter(Boolean)
+                .map((shape) => [shape.id, shape]),
+            ),
+          },
+        }
+      }
+
+      return tdata
+    })
+
+    this.updateDocument()
+  }
+  undo = () => {
+    const { history } = this
+    if (history.pointer <= -1) return
+
+    this.setState((data) => {
+      let tdata = Utils.deepMerge<Data>(data, history.stack[history.pointer].before)
+
+      if (Object.values(tdata.page.shapes).includes(undefined)) {
+        tdata = {
+          ...tdata,
+          page: {
+            ...tdata.page,
+            shapes: Object.fromEntries(
+              Object.values(tdata.page.shapes)
+                .filter(Boolean)
+                .map((shape) => [shape.id, shape]),
+            ),
+          },
+        }
+      }
+
+      return tdata
+    })
+    history.pointer--
+
+    this.updateDocument()
+  }
+  redo = () => {
+    const { history } = this
+    if (history.pointer >= history.stack.length - 1) return
+    history.pointer++
+
+    this.setState((data) => {
+      const command = history.stack[history.pointer]
+      let tdata = Utils.deepMerge<Data>(data, command.after)
+      if (Object.values(tdata.page.shapes).includes(undefined)) {
+        tdata = {
+          ...tdata,
+          page: {
+            ...tdata.page,
+            shapes: Object.fromEntries(
+              Object.values(tdata.page.shapes)
+                .filter(Boolean)
+                .map((shape) => [shape.id, shape]),
+            ),
+          },
+        }
+      }
+
+      return tdata
+    })
+
+    this.updateDocument()
   }
   /* -------------------- Selection ------------------- */
   setSelectedIds(ids: string[], push = false) {
@@ -519,9 +630,9 @@ export class TLDrawState implements TLCallbacks {
   }
   group = (ids?: string[]) => {
     // TODO
-    const data = this.store.getState()
-    const idsToMutate = ids ? ids : data.pageState.selectedIds
-    this.do(commands.toggle(data, idsToMutate, 'isAspectRatioLocked'))
+    // const data = this.store.getState()
+    // const idsToMutate = ids ? ids : data.pageState.selectedIds
+    // this.do(commands.toggle(data, idsToMutate, 'isAspectRatioLocked'))
   }
   create = (...shapes: TLDrawShape[]) => {
     const data = this.store.getState()
@@ -544,127 +655,19 @@ export class TLDrawState implements TLCallbacks {
     // TODO
   }
   /* -------------------- Sessions -------------------- */
-  startSession<T extends Session>(session: T, ...args: ParametersExceptFirst<T['start']>) {
-    this.session = session
-    this.setState((data) => this.session.start(data, ...args))
-  }
-  updateSession<T extends Session>(...args: ParametersExceptFirst<T['update']>) {
-    this.setState((data) => this.session.update(data, ...args))
-  }
-  cancelSession<T extends Session>(...args: ParametersExceptFirst<T['cancel']>) {
-    this.setState((data) => this.session.cancel(data, ...args))
-    this.session = undefined
-  }
-  breakSession<T extends Session>(...args: ParametersExceptFirst<T['cancel']>) {
-    this.setState((data) => this.session.cancel(data, ...args))
-    // this.delete()
-    this.session = undefined
-  }
-  completeSession<T extends Session>(...args: ParametersExceptFirst<T['complete']>) {
-    const result = this.session.complete(this.store.getState(), ...args)
-
-    this.setStatus('idle')
-
-    if ('after' in result) {
-      this.do(result)
-      return
-    }
-
-    this.setState(() => result)
-    this.updateDocument()
-  }
-  /* -------------------- Commands -------------------- */
-  do(command: Command) {
-    const { history } = this
-    if (history.pointer !== history.stack.length - 1) {
-      history.stack = history.stack.slice(0, history.pointer + 1)
-    }
-    history.stack.push(command)
-    history.pointer = history.stack.length - 1
-
-    this.setState((data) => {
-      let tdata = Utils.deepMerge<Data>(data, history.stack[history.pointer].after)
-      if (Object.values(tdata.page.shapes).includes(undefined)) {
-        tdata = {
-          ...tdata,
-          page: {
-            ...tdata.page,
-            shapes: Object.fromEntries(
-              Object.values(tdata.page.shapes)
-                .filter(Boolean)
-                .map((shape) => [shape.id, shape]),
-            ),
-          },
-        }
-      }
-
-      return tdata
-    })
-
-    this.updateDocument()
-  }
-  undo = () => {
-    const { history } = this
-    if (history.pointer <= -1) return
-
-    this.setState((data) => {
-      let tdata = Utils.deepMerge<Data>(data, history.stack[history.pointer].before)
-
-      if (Object.values(tdata.page.shapes).includes(undefined)) {
-        tdata = {
-          ...tdata,
-          page: {
-            ...tdata.page,
-            shapes: Object.fromEntries(
-              Object.values(tdata.page.shapes)
-                .filter(Boolean)
-                .map((shape) => [shape.id, shape]),
-            ),
-          },
-        }
-      }
-
-      return tdata
-    })
-    history.pointer--
-
-    this.updateDocument()
-  }
-  redo = () => {
-    const { history } = this
-    if (history.pointer >= history.stack.length - 1) return
-    history.pointer++
-
-    this.setState((data) => {
-      const command = history.stack[history.pointer]
-      let tdata = Utils.deepMerge<Data>(data, command.after)
-      if (Object.values(tdata.page.shapes).includes(undefined)) {
-        tdata = {
-          ...tdata,
-          page: {
-            ...tdata.page,
-            shapes: Object.fromEntries(
-              Object.values(tdata.page.shapes)
-                .filter(Boolean)
-                .map((shape) => [shape.id, shape]),
-            ),
-          },
-        }
-      }
-
-      return tdata
-    })
-
-    this.updateDocument()
-  }
-  /* -------------------- Sessions -------------------- */
   startBrushSession = (point: number[]) => {
     this.setStatus('brushing')
     this.startSession(new BrushSession(this.store.getState(), point))
   }
   updateBrushSession = (point: number[]) => {
-    this.session.complete(this.store.getState())
     this.updateSession<BrushSession>(point)
+  }
+  startTranslateSession = (point: number[]) => {
+    this.setStatus('translating')
+    this.startSession(new TranslateSession(this.store.getState(), point))
+  }
+  updateTranslateSession = (point: number[], shiftKey = false, altKey = false) => {
+    this.updateSession<TranslateSession>(point, shiftKey, altKey)
   }
   /* --------------------- Events --------------------- */
   onKeyDown = (key: string, info: TLKeyboardInfo) => {
@@ -692,28 +695,70 @@ export class TLDrawState implements TLCallbacks {
 
   // Pointer Events
   onPointerMove: TLPointerEventHandler = (info) => {
-    if (this.status.current === 'brushing') {
-      // If the user is brushing, update the brush session
-      this.updateBrushSession(this.getPagePoint(info.point))
+    switch (this.status.current) {
+      case 'pointingBounds': {
+        if (Vec.dist(info.origin, info.point) > 4) {
+          this.setStatus('translating')
+          this.startTranslateSession(this.getPagePoint(info.point))
+        }
+        break
+      }
+      case 'translating': {
+        this.updateTranslateSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
+        break
+      }
+      case 'brushing': {
+        // If the user is brushing, update the brush session
+        this.updateBrushSession(this.getPagePoint(info.point))
+        break
+      }
     }
   }
-  onPointerUp: TLPointerEventHandler = () => {
-    if (this.status.current === 'brushing') {
-      // If the user is brushing, complete the brush session
-      this.completeSession<BrushSession>()
-      brushUpdater.clear()
+  onPointerUp: TLPointerEventHandler = (info) => {
+    const data = this.getState()
+
+    switch (this.status.current) {
+      case 'pointingBounds': {
+        if (data.pageState.selectedIds.includes(info.target)) {
+          // If we did not just shift-select the shape, and if the shape is selected;
+          // then if user is pressing shift, remove the shape from the current
+          // selection; otherwise, set the shape as the only selected shape.
+          if (this.pointedId !== info.target) {
+            if (info.shiftKey) {
+              this.setSelectedIds(data.pageState.selectedIds.filter((id) => id !== info.target))
+            } else {
+              this.setSelectedIds([info.target])
+            }
+          }
+        }
+        this.setStatus('idle')
+        this.pointedId = undefined
+        break
+      }
+      case 'brushing': {
+        this.completeSession<BrushSession>()
+        brushUpdater.clear()
+        break
+      }
+      case 'translating': {
+        this.completeSession(this.getPagePoint(info.point))
+        break
+      }
     }
   }
   // Canvas (background)
   onPointCanvas: TLCanvasEventHandler = (info) => {
-    if (this.status.current === 'idle') {
-      // Unless the user is holding shift or meta, clear the current selection
-      if (!(info.shiftKey || info.metaKey)) {
-        this.deselectAll()
-      }
+    switch (this.status.current) {
+      case 'idle': {
+        // Unless the user is holding shift or meta, clear the current selection
+        if (!(info.shiftKey || info.metaKey)) {
+          this.deselectAll()
+        }
 
-      // Start a brush session
-      this.startBrushSession(this.getPagePoint(info.point))
+        // Start a brush session
+        this.startBrushSession(this.getPagePoint(info.point))
+        break
+      }
     }
   }
   onDoublePointCanvas: TLCanvasEventHandler = () => {
@@ -732,42 +777,31 @@ export class TLDrawState implements TLCallbacks {
   // Shape
   onPointShape: TLPointerEventHandler = (info) => {
     const data = this.getState()
-    if (this.status.current === 'idle') {
-      if (info.metaKey) {
-        // While holding command key, start brush session without deselecting shapes
-        this.startBrushSession(this.getPagePoint(info.point))
-        return
-      }
+    switch (this.status.current) {
+      case 'idle': {
+        if (info.metaKey) {
+          // While holding command key, allow event to pass through to canvas
+          return
+        }
 
-      if (!data.pageState.selectedIds.includes(info.target)) {
-        // Set the pointed ID to the shape that was clicked.
-        this.pointedId = info.target
+        if (!data.pageState.selectedIds.includes(info.target)) {
+          // Set the pointed ID to the shape that was clicked.
+          this.pointedId = info.target
 
-        // If the shape is not selected; then if the user is pressing shift,
-        // add the shape to the current selection; otherwise, set the shape as
-        // the only selected shape.
-        this.setSelectedIds([info.target], info.shiftKey)
+          // If the shape is not selected; then if the user is pressing shift,
+          // add the shape to the current selection; otherwise, set the shape as
+          // the only selected shape.
+          this.setSelectedIds([info.target], info.shiftKey)
+        }
+
+        this.setStatus('pointingBounds')
+        break
       }
     }
   }
 
   onReleaseShape: TLPointerEventHandler = (info) => {
-    const data = this.getState()
-    if (data.pageState.selectedIds.includes(info.target)) {
-      // If we did not just shift-select the shape, and if the shape is selected;
-      // then if user is pressing shift, remove the shape from the current
-      // selection; otherwise, set the shape as the only selected shape.
-      if (this.pointedId !== info.target) {
-        if (info.shiftKey) {
-          this.setSelectedIds(data.pageState.selectedIds.filter((id) => id !== info.target))
-        } else {
-          this.setSelectedIds([info.target])
-        }
-      }
-    }
-
-    // Clear the pointed ID
-    this.pointedId = undefined
+    // Unused
   }
 
   onDoublePointShape: TLPointerEventHandler = () => {
@@ -778,21 +812,25 @@ export class TLDrawState implements TLCallbacks {
     // TODO
   }
 
-  onDragShape: TLPointerEventHandler = () => {
-    // TODO
+  onDragShape: TLPointerEventHandler = (info) => {
+    // Unused
   }
 
-  onHoverShape: TLPointerEventHandler = () => {
-    // TODO
+  onHoverShape: TLPointerEventHandler = (info) => {
+    this.setState((data) => ({ appState: { ...data.appState, hoveredId: info.target } }))
   }
 
-  onUnhoverShape: TLPointerEventHandler = () => {
-    // TODO
+  onUnhoverShape: TLPointerEventHandler = (info) => {
+    setTimeout(() => {
+      if (this.getState().appState.hoveredId === info.target) {
+        this.setState((data) => ({ appState: { ...data.appState, hoveredId: undefined } }))
+      }
+    }, 10)
   }
 
   // Bounds (bounding box background)
-  onPointBounds: TLBoundsEventHandler = () => {
-    // TODO
+  onPointBounds: TLBoundsEventHandler = (info) => {
+    this.setStatus('pointingBounds')
   }
 
   onDoublePointBounds: TLBoundsEventHandler = () => {
@@ -803,8 +841,8 @@ export class TLDrawState implements TLCallbacks {
     // TODO
   }
 
-  onDragBounds: TLBoundsEventHandler = () => {
-    // TODO
+  onDragBounds: TLBoundsEventHandler = (info) => {
+    // Unused
   }
 
   onHoverBounds: TLBoundsEventHandler = () => {
@@ -815,8 +853,21 @@ export class TLDrawState implements TLCallbacks {
     // TODO
   }
 
-  onReleaseBounds: TLBoundsEventHandler = () => {
-    // TODO
+  onReleaseBounds: TLBoundsEventHandler = (info) => {
+    switch (this.status.current) {
+      case 'idle': {
+        break
+      }
+      case 'translating': {
+        this.completeSession(this.getPagePoint(info.point))
+        break
+      }
+      case 'brushing': {
+        this.completeSession<BrushSession>()
+        brushUpdater.clear()
+        break
+      }
+    }
   }
 
   // Bounds handles (corners, edges)

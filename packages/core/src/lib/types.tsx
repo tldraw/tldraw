@@ -87,11 +87,12 @@ export interface TLTheme {
   foreground?: string
 }
 
-export type TLPointerEventHandler = (info: TLPointerInfo<string>) => void
-export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>) => void
-export type TLBoundsEventHandler = (info: TLPointerInfo<'bounds'>) => void
+export type TLPointerEventHandler = (info: TLPointerInfo<string>, e: React.PointerEvent) => void
+export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>, e: React.PointerEvent) => void
+export type TLBoundsEventHandler = (info: TLPointerInfo<'bounds'>, e: React.PointerEvent) => void
 export type TLBoundsHandleEventHandler = (
   info: TLPointerInfo<TLBoundsCorner | TLBoundsEdge | 'rotate'>,
+  e: React.PointerEvent,
 ) => void
 
 export interface TLCallbacks {
