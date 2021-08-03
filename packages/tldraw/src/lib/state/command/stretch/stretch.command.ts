@@ -49,8 +49,6 @@ export function stretch(data: Data, ids: string[], type: StretchType): Command {
     }
   })
 
-  console.log('after', after)
-
   return {
     id: 'stretch_shapes',
     before: {

@@ -523,8 +523,12 @@ export class TLDrawState implements TLCallbacks {
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.toggle(data, idsToMutate, 'isAspectRatioLocked'))
   }
+  create = (...shapes: TLDrawShape[]) => {
+    const data = this.store.getState()
+    this.do(commands.create(data, shapes))
+  }
   delete = (ids?: string[]) => {
-    // TODO
+    // TODO: Handle changes to parents for grouped shapes?
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.deleteShapes(data, idsToMutate))
