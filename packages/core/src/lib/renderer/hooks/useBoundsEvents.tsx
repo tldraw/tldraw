@@ -24,13 +24,13 @@ export function useBoundsEvents() {
 
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         e.currentTarget?.releasePointerCapture(e.pointerId)
-
-        if (isDoubleClick && !(info.altKey || info.metaKey)) {
-          callbacks.onDoublePointBounds?.(info, e)
-        }
-
-        callbacks.onReleaseBounds?.(info, e)
       }
+
+      if (isDoubleClick && !(info.altKey || info.metaKey)) {
+        callbacks.onDoublePointBounds?.(info, e)
+      }
+
+      callbacks.onReleaseBounds?.(info, e)
 
       callbacks.onPointerUp?.(info, e)
     },

@@ -25,13 +25,13 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
 
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         e.currentTarget?.releasePointerCapture(e.pointerId)
-
-        if (isDoubleClick && !(info.altKey || info.metaKey)) {
-          callbacks.onDoublePointBoundsHandle?.(info, e)
-        }
-
-        callbacks.onReleaseBoundsHandle?.(info, e)
       }
+
+      if (isDoubleClick && !(info.altKey || info.metaKey)) {
+        callbacks.onDoublePointBoundsHandle?.(info, e)
+      }
+
+      callbacks.onReleaseBoundsHandle?.(info, e)
       callbacks.onPointerUp?.(info, e)
     },
     [callbacks, id],

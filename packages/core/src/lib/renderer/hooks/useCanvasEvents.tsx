@@ -40,13 +40,12 @@ export function useCanvasEvents() {
 
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         e.currentTarget?.releasePointerCapture(e.pointerId)
-
-        if (isDoubleClick && !(info.altKey || info.metaKey)) {
-          callbacks.onDoublePointCanvas?.(info, e)
-        }
-
-        callbacks.onReleaseCanvas?.(info, e)
       }
+      if (isDoubleClick && !(info.altKey || info.metaKey)) {
+        callbacks.onDoublePointCanvas?.(info, e)
+      }
+
+      callbacks.onReleaseCanvas?.(info, e)
       callbacks.onPointerUp?.(info, e)
     },
     [callbacks],

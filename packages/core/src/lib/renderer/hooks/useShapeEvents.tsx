@@ -26,13 +26,13 @@ export function useShapeEvents(id: string, disable = false) {
 
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         e.currentTarget?.releasePointerCapture(e.pointerId)
-
-        if (isDoubleClick && !(info.altKey || info.metaKey)) {
-          callbacks.onDoublePointShape?.(info, e)
-        }
-
-        callbacks.onReleaseShape?.(info, e)
       }
+
+      if (isDoubleClick && !(info.altKey || info.metaKey)) {
+        callbacks.onDoublePointShape?.(info, e)
+      }
+
+      callbacks.onReleaseShape?.(info, e)
 
       callbacks.onPointerUp?.(info, e)
       e.stopPropagation()

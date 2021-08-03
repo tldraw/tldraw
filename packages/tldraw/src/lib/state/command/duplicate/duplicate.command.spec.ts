@@ -5,7 +5,7 @@ describe('Duplicate command', () => {
   const tlstate = new TLDrawState()
   tlstate.loadDocument(mockDocument)
   tlstate.reset()
-  tlstate.setSelectedIds(['rect1'])
+  tlstate.select('rect1')
 
   it('does, undoes and redoes command', () => {
     expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
