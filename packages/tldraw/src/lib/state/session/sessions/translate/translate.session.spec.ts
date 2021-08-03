@@ -71,15 +71,15 @@ describe('Brush session', () => {
     expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
     expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
 
-    expect(Object.keys(tlstate.getPage().shapes).length).toBe(4)
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(5)
 
     tlstate.undo()
 
-    expect(Object.keys(tlstate.getPage().shapes).length).toBe(2)
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
 
     tlstate.redo()
 
-    expect(Object.keys(tlstate.getPage().shapes).length).toBe(4)
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(5)
   })
 
   it('clones shapes', () => {
@@ -93,7 +93,7 @@ describe('Brush session', () => {
     expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
     expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
 
-    expect(Object.keys(tlstate.getPage().shapes).length).toBe(4)
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(5)
   })
 
   it('destroys clones when last update is not cloning', () => {
@@ -109,7 +109,7 @@ describe('Brush session', () => {
     expect(tlstate.getShape('rect1').point).toStrictEqual([30, 30])
     expect(tlstate.getShape('rect2').point).toStrictEqual([130, 130])
 
-    expect(Object.keys(tlstate.getPage().shapes).length).toBe(2)
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
   })
 
   // it('clones a shape with a parent shape', () => {

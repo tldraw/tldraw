@@ -24,11 +24,19 @@ export class TransformSession implements Session {
   start = (data: Data) => data
 
   update = (data: Data, point: number[], isAspectRatioLocked = false): Data => {
-    const { transformType } = this
+    const {
+      transformType,
+      snapshot: { shapeBounds, initialBounds, isAllAspectRatioLocked },
+    } = this
 
-    const { shapeBounds, initialBounds, isAllAspectRatioLocked } = this.snapshot
+    const next = {
+      ...data,
+      page: {
+        ...data.page,
+      },
+    }
 
-    const { shapes } = data.page
+    const { shapes } = next.page
 
     const newBoundingBox = Utils.getTransformedBoundingBox(
       initialBounds,
@@ -43,44 +51,40 @@ export class TransformSession implements Session {
     this.scaleX = newBoundingBox.scaleX
     this.scaleY = newBoundingBox.scaleY
 
-    return {
-      ...data,
-      page: {
-        ...data.page,
-        shapes: {
-          ...data.page.shapes,
-          ...Object.fromEntries(
-            Object.entries(shapeBounds).map(
-              ([id, { initialShape, initialShapeBounds, transformOrigin }]) => {
-                const newShapeBounds = Utils.getRelativeTransformedBoundingBox(
-                  newBoundingBox,
-                  initialBounds,
-                  initialShapeBounds,
-                  this.scaleX < 0,
-                  this.scaleY < 0,
-                )
+    next.page.shapes = {
+      ...next.page.shapes,
+      ...Object.fromEntries(
+        Object.entries(shapeBounds).map(
+          ([id, { initialShape, initialShapeBounds, transformOrigin }]) => {
+            const newShapeBounds = Utils.getRelativeTransformedBoundingBox(
+              newBoundingBox,
+              initialBounds,
+              initialShapeBounds,
+              this.scaleX < 0,
+              this.scaleY < 0,
+            )
 
-                const shape = shapes[id]
+            const shape = shapes[id]
 
-                return [
-                  id,
-                  {
-                    ...initialShape,
-                    ...TLDR.transform(data, shape, newShapeBounds, {
-                      type: this.transformType,
-                      initialShape,
-                      scaleX: this.scaleX,
-                      scaleY: this.scaleY,
-                      transformOrigin,
-                    }),
-                  },
-                ]
+            return [
+              id,
+              {
+                ...initialShape,
+                ...TLDR.transform(next, shape, newShapeBounds, {
+                  type: this.transformType,
+                  initialShape,
+                  scaleX: this.scaleX,
+                  scaleY: this.scaleY,
+                  transformOrigin,
+                }),
               },
-            ),
-          ),
-        },
-      },
+            ]
+          },
+        ),
+      ),
     }
+
+    return next
   }
 
   cancel = (data: Data) => {

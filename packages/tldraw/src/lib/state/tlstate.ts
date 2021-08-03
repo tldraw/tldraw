@@ -22,6 +22,7 @@ import * as commands from './command'
 import { BrushSession, TransformSingleSession, TranslateSession, TransformSession } from './session'
 import { TLDR } from './tldr'
 import { TLDrawDocument, MoveType, AlignType, StretchType, DistributeType } from '../types'
+import { RotateSession } from './session/sessions/rotate'
 
 const initialData: Data = {
   settings: {
@@ -742,8 +743,7 @@ export class TLDrawState implements TLCallbacks {
     this.pointedBoundsHandle = handle
 
     if (this.pointedBoundsHandle === 'rotate') {
-      // TODO - Implement rotate
-      this.setStatus('idle')
+      this.startSession(new RotateSession(this.store.getState(), point))
     } else if (this.selectedIds.length === 1) {
       this.startSession(
         new TransformSingleSession(this.store.getState(), point, this.pointedBoundsHandle),
