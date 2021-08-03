@@ -28,6 +28,7 @@ export class TranslateSession implements Session {
       ...data,
       page: { ...data.page },
       shapes: { ...data.page.shapes },
+      pageState: { ...data.pageState },
     }
 
     const delta = Vec.sub(point, this.origin)
@@ -54,6 +55,7 @@ export class TranslateSession implements Session {
         // Move original shapes back to start
 
         next.page.shapes = {
+          ...next.page.shapes,
           ...Object.fromEntries(
             initialShapes.map((shape) => [
               shape.id,
@@ -166,6 +168,10 @@ export class TranslateSession implements Session {
             ),
           },
         },
+        pageState: {
+          ...data.pageState,
+          selectedIds: this.snapshot.selectedIds,
+        },
       },
       after: {
         ...data,
@@ -183,6 +189,10 @@ export class TranslateSession implements Session {
               ]),
             ),
           },
+        },
+        pageState: {
+          ...data.pageState,
+          selectedIds: [...data.pageState.selectedIds],
         },
       },
     }

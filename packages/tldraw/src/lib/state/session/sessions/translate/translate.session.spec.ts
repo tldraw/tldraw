@@ -60,6 +60,28 @@ describe('Brush session', () => {
     expect(tlstate.getShape('rect2').point).toStrictEqual([110, 110])
   })
 
+  it('undos and redos clones', () => {
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1', 'rect2')
+      .startTranslateSession([10, 10])
+      .updateTranslateSession([20, 20], false, true)
+      .completeSession()
+
+    expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+    expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(4)
+
+    tlstate.undo()
+
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(2)
+
+    tlstate.redo()
+
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(4)
+  })
+
   it('clones shapes', () => {
     tlstate
       .loadDocument(mockDocument)
