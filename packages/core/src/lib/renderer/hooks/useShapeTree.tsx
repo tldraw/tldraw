@@ -107,7 +107,7 @@ export function useShapeTree<T extends TLShape>(
   // Call onChange callback when number of rendering shapes changes
 
   if (shapesToRender.length !== rPreviousCount.current) {
-    onChange?.(shapesToRender.map((shape) => shape.id))
+    setTimeout(() => onChange?.(shapesToRender.map((shape) => shape.id)), 0)
     rPreviousCount.current = shapesToRender.length
   }
 

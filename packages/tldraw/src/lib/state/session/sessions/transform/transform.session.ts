@@ -23,7 +23,7 @@ export class TransformSession implements Session {
 
   start = (data: Data) => data
 
-  update = (data: Data, point: number[], isAspectRatioLocked = false): Data => {
+  update = (data: Data, point: number[], isAspectRatioLocked = false, _altKey = false): Data => {
     const {
       transformType,
       snapshot: { shapeBounds, initialBounds, isAllAspectRatioLocked },

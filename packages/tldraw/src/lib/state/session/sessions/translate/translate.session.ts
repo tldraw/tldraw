@@ -142,7 +142,10 @@ export class TranslateSession implements Session {
           ...data.page.shapes,
           ...Object.fromEntries(this.snapshot.clones.map((clone) => [clone.id, undefined])),
           ...Object.fromEntries(
-            this.snapshot.initialShapes.map((shape) => [shape.id, { point: shape.point }]),
+            this.snapshot.initialShapes.map((shape) => [
+              shape.id,
+              { ...data.page.shapes[shape.id], point: shape.point },
+            ]),
           ),
         },
       },

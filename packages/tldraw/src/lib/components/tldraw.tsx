@@ -10,7 +10,6 @@ import { StylePanel } from './style-panel'
 import { ToolsPanel } from './tools-panel'
 import { Data, TLDrawState } from '../state'
 import { TLDrawContext } from '../hooks'
-import createReact from 'zustand'
 
 export interface TLDrawProps {
   document?: TLDrawDocument
@@ -26,7 +25,7 @@ const pageStateSelector = (s: Data) => s.pageState
 export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }: TLDrawProps) {
   const [tlstate] = React.useState(() => new TLDrawState())
   const [context] = React.useState(() => {
-    return { tlstate, useAppState: createReact(tlstate.store) }
+    return { tlstate, useAppState: tlstate.store }
   })
 
   useKeyboardShortcuts(tlstate)
@@ -69,6 +68,7 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
               onPinch={tlstate.onPinch}
               onPan={tlstate.onPan}
               onZoom={tlstate.onZoom}
+              onPointerDown={tlstate.onPointerDown}
               onPointerMove={tlstate.onPointerMove}
               onPointerUp={tlstate.onPointerUp}
               onPointCanvas={tlstate.onPointCanvas}

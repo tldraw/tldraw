@@ -26,6 +26,17 @@ describe('Brush session', () => {
     expect(tlstate.getShape('rect1').point).toStrictEqual([5, 5])
   })
 
+  it('cancels session', () => {
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1', 'rect2')
+      .startTranslateSession([5, 5])
+      .updateTranslateSession([10, 10])
+      .cancelSession()
+
+    expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+  })
+
   it('moves a single shape', () => {
     tlstate
       .loadDocument(mockDocument)

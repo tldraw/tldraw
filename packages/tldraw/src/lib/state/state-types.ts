@@ -15,6 +15,7 @@ export interface Data {
     selectedStyle: ShapeStyles
     currentStyle: ShapeStyles
     currentPageId: string
+    pages: Pick<TLPage<TLDrawShape>, 'id' | 'name' | 'childIndex'>[]
     hoveredId: string
     activeTool: TLDrawShapeType | 'select'
     activeToolType?: TLDrawToolType | 'select'
@@ -62,6 +63,7 @@ export type TLDrawStatus =
   | 'rotating'
   | 'pinching'
   | 'brushing'
+  | 'creating'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never

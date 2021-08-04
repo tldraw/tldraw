@@ -53,6 +53,17 @@ describe('Transform session', () => {
     tlstate.redo()
   })
 
+  it('cancels session', () => {
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1', 'rect2')
+      .startTransformSession([5, 5], TLBoundsCorner.TopLeft)
+      .updateTransformSession([10, 10])
+      .cancelSession()
+
+    expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+  })
+
   describe('when transforming from the top-left corner', () => {
     it('transforms a single shape', () => {
       tlstate

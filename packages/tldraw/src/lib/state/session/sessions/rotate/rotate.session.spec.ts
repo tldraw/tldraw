@@ -41,4 +41,15 @@ describe('Brush session', () => {
 
     expect(tlstate.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
   })
+
+  it('cancels session', () => {
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .startTransformSession([50, 0], 'rotate')
+      .updateTransformSession([100, 50])
+      .cancel()
+
+    expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+  })
 })

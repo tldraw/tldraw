@@ -15,4 +15,15 @@ describe('Transform single session', () => {
       .undo()
       .redo()
   })
+
+  it('cancels session', () => {
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .startTransformSession([5, 5], TLBoundsCorner.TopLeft)
+      .updateTransformSession([10, 10])
+      .cancelSession()
+
+    expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+  })
 })
