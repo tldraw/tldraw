@@ -1,20 +1,18 @@
 import * as React from 'react'
 import { ZoomInIcon, ZoomOutIcon } from '@radix-ui/react-icons'
 import { TertiaryButton, TertiaryButtonsContainer } from './shared'
-import { state, useSelector } from '../../state'
-
-const zoomIn = () => state.send('ZOOMED_IN')
-const zoomOut = () => state.send('ZOOMED_OUT')
-const zoomToFit = () => state.send('ZOOMED_TO_FIT')
-const zoomToActual = () => state.send('ZOOMED_TO_ACTUAL')
+import { useTLDrawContext } from '../../hooks'
+import { Data } from '../../state'
 
 export const Zoom = React.memo((): JSX.Element => {
+  const { tlstate } = useTLDrawContext()
+
   return (
     <TertiaryButtonsContainer bp={{ '@initial': 'mobile', '@sm': 'small' }}>
-      <TertiaryButton label="Zoom Out" kbd={`#−`} onClick={zoomOut}>
+      <TertiaryButton label="Zoom Out" kbd={`#−`} onClick={tlstate.zoomOut}>
         <ZoomOutIcon />
       </TertiaryButton>
-      <TertiaryButton label="Zoom In" kbd={`#+`} onClick={zoomIn}>
+      <TertiaryButton label="Zoom In" kbd={`#+`} onClick={tlstate.zoomIn}>
         <ZoomInIcon />
       </TertiaryButton>
       <ZoomCounter />
@@ -22,11 +20,19 @@ export const Zoom = React.memo((): JSX.Element => {
   )
 })
 
+const zoomSelector = (s: Data) => s.pageState.camera.zoom
+
 function ZoomCounter() {
-  const zoom = useSelector((s) => s.data.pageState.camera.zoom)
+  const { tlstate, useAppState } = useTLDrawContext()
+  const zoom = useAppState(zoomSelector)
 
   return (
-    <TertiaryButton label="Reset Zoom" kbd="⇧0" onClick={zoomToActual} onDoubleClick={zoomToFit}>
+    <TertiaryButton
+      label="Reset Zoom"
+      kbd="⇧0"
+      onClick={tlstate.zoomToActual}
+      onDoubleClick={tlstate.zoomToFit}
+    >
       {Math.round(zoom * 100)}%
     </TertiaryButton>
   )

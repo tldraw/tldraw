@@ -1,10 +1,10 @@
-import { BaseSession } from '../session-types'
-import { Data } from '../../../../types'
-import { TLD } from '../../../tld'
+import { DrawShape } from './../../../../shape/shape-types'
 import { Utils, Vec } from '@tldraw/core'
-import { DrawShape } from '../../../../shape'
+import { Session } from '../../../state-types'
+import { Data } from '../../../state-types'
 
-export class DrawSession implements BaseSession {
+export class DrawSession implements Session {
+  id: 'draw'
   origin: number[]
   previous: number[]
   last: number[]
@@ -12,26 +12,24 @@ export class DrawSession implements BaseSession {
   snapshot: DrawSnapshot
   isLocked: boolean
   lockedDirection: 'horizontal' | 'vertical'
+  shape: DrawShape
 
   constructor(data: Data, id: string, point: number[]) {
     this.origin = point
     this.previous = point
     this.last = point
+
     this.snapshot = getDrawSnapshot(data, id)
 
     // Add a first point but don't update the shape yet. We'll update
     // when the draw session ends; if the user hasn't added additional
     // points, this single point will be interpreted as a "dot" shape.
     this.points = [[0, 0, 0.5]]
-
-    const shape = data.page.shapes[id]
-
-    TLD.mutate(data, shape, { point })
-
-    TLD.updateParents(data, [shape.id])
   }
 
-  update = (data: Data, point: number[], pressure: number, isLocked = false): void => {
+  start = (data: Data) => data
+
+  update = (data: Data, point: number[], pressure: number, isLocked = false) => {
     const { snapshot } = this
 
     // Drawing while holding shift will "lock" the pen to either the
@@ -81,7 +79,7 @@ export class DrawSession implements BaseSession {
 
     const newPoint = Vec.round([...Vec.sub(this.previous, this.origin), pressure])
 
-    if (Vec.isEqual(this.last, newPoint)) return
+    if (Vec.isEqual(this.last, newPoint)) return data
 
     this.last = newPoint
 
@@ -89,24 +87,67 @@ export class DrawSession implements BaseSession {
 
     // We draw a dot when the number of points is 1 or 2, so this guard
     // prevents a "flash" of a dot when a user begins drawing a line.
-    if (this.points.length <= 2) return
+    if (this.points.length <= 2) return data
 
-    // Update the points and update the shape's parents.
-    const shape = TLD.getShape<DrawShape>(data, snapshot.id)
-
-    // Note: Normally we would want to spread the points to create a new
-    // array, however we create the new array in hacks/fastDrawUpdate.
-    TLD.mutate(data, shape, { points: [...this.points] })
+    return {
+      ...data,
+      page: {
+        ...data.page,
+        shapes: {
+          ...data.page.shapes,
+          [snapshot.id]: { ...data.page.shapes[snapshot.id], points: [...this.points] },
+        },
+      },
+      pageState: {
+        ...data.pageState,
+        selectedIds: [snapshot.id],
+      },
+    }
   }
 
-  cancel = (_data: Data): void => {
-    void null
+  cancel = (data: Data) => {
+    const { snapshot } = this
+    return {
+      ...data,
+      page: {
+        ...data.page,
+        shapes: {
+          ...data.page.shapes,
+          [snapshot.id]: undefined,
+        },
+      },
+      pageState: {
+        ...data.pageState,
+        selectedIds: [],
+      },
+    }
   }
 
   complete = (data: Data) => {
-    const shape = TLD.getShape<DrawShape>(data, this.snapshot.id)
-    TLD.getShapeUtils(shape).onSessionComplete(shape)
-    return undefined
+    const { snapshot } = this
+    return {
+      id: 'created_draw_shape',
+      before: {
+        page: {
+          shapes: {
+            [snapshot.id]: undefined,
+          },
+        },
+        pageState: {
+          selectedIds: [],
+        },
+      },
+      after: {
+        page: {
+          shapes: {
+            [snapshot.id]: data.page.shapes[snapshot.id],
+          },
+        },
+        pageState: {
+          selectedIds: [],
+        },
+      },
+    }
   }
 }
 

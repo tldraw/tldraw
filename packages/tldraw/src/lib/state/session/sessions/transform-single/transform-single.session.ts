@@ -1,40 +1,39 @@
 import { TLBoundsCorner, TLBoundsEdge, Utils, Vec } from '@tldraw/core'
-import { BaseSession } from '../session-types'
-import { getShapeUtils } from '../../../../shape'
-import { Data } from '../../../../types'
-import * as commands from '../../../command'
-import { TLD } from '../../../tld'
+import { TLDrawShape } from '../../../../shape'
+import { Session } from '../../../state-types'
+import { Data } from '../../../state-types'
+import { TLDR } from '../../../tldr'
 
-export class TransformSingleSession implements BaseSession {
+export class TransformSingleSession implements Session {
+  id: 'transform_single'
   transformType: TLBoundsEdge | TLBoundsCorner
   origin: number[]
   scaleX = 1
   scaleY = 1
   snapshot: TransformSingleSnapshot
-  isCreating: boolean
 
   constructor(
     data: Data,
     point: number[],
     transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight,
-    isCreating = false,
   ) {
     this.origin = point
     this.transformType = transformType
     this.snapshot = getTransformSingleSnapshot(data, transformType)
-    this.isCreating = isCreating
   }
 
-  update(data: Data, point: number[], isAspectRatioLocked = false): void {
+  start = (data: Data) => data
+
+  update = (data: Data, point: number[], isAspectRatioLocked = false): Data => {
     const { transformType } = this
 
     const { initialShapeBounds, initialShape, id } = this.snapshot
 
     const shape = data.page.shapes[id]
 
-    const utils = getShapeUtils(shape)
+    const utils = TLDR.getShapeUtils(shape)
 
-    const newBoundingBox = Utils.getTransformedBoundingBox(
+    const newBounds = Utils.getTransformedBoundingBox(
       initialShapeBounds,
       transformType,
       Vec.sub(point, this.origin),
@@ -42,32 +41,63 @@ export class TransformSingleSession implements BaseSession {
       isAspectRatioLocked || shape.isAspectRatioLocked || utils.isAspectRatioLocked,
     )
 
-    this.scaleX = newBoundingBox.scaleX
-    this.scaleY = newBoundingBox.scaleY
-
-    TLD.transformSingle(data, shape, newBoundingBox, {
-      initialShape,
-      type: this.transformType,
-      scaleX: this.scaleX,
-      scaleY: this.scaleY,
-      transformOrigin: [0.5, 0.5],
-    })
+    return {
+      ...data,
+      page: {
+        ...data.page,
+        shapes: {
+          ...data.page.shapes,
+          [shape.id]: {
+            ...initialShape,
+            ...TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
+              initialShape,
+              type: this.transformType,
+              scaleX: newBounds.scaleX,
+              scaleY: newBounds.scaleY,
+              transformOrigin: [0.5, 0.5],
+            }),
+          } as TLDrawShape,
+        },
+      },
+    }
   }
 
-  cancel(data: Data): void {
+  cancel = (data: Data) => {
     const { id, initialShape } = this.snapshot
     data.page.shapes[id] = initialShape
 
-    TLD.updateBindings(data, [id])
-    TLD.updateParents(data, [id])
+    return {
+      ...data,
+      page: {
+        ...data.page,
+        shapes: {
+          ...data.page.shapes,
+          [id]: initialShape,
+        },
+      },
+    }
   }
 
   complete(data: Data) {
-    if (!this.snapshot.hasUnlockedShape) return undefined
+    if (!this.snapshot.hasUnlockedShape) return data
 
-    return commands.mutate(data, this.isCreating ? [] : [this.snapshot.initialShape], [
-      Utils.deepClone(data.page.shapes[this.snapshot.id]),
-    ])
+    return {
+      id: 'transform_single',
+      before: {
+        page: {
+          shapes: {
+            [this.snapshot.id]: this.snapshot.initialShape,
+          },
+        },
+      },
+      after: {
+        page: {
+          shapes: {
+            [this.snapshot.id]: data.page.shapes[this.snapshot.id],
+          },
+        },
+      },
+    }
   }
 }
 
@@ -81,7 +111,7 @@ export function getTransformSingleSnapshot(
     throw Error('You must have one shape selected.')
   }
 
-  const bounds = getShapeUtils(shape).getBounds(shape)
+  const bounds = TLDR.getBounds(shape)
 
   return {
     id: shape.id,

@@ -1,14 +1,8 @@
 import * as React from 'react'
-import {
-  ColorStyle,
-  DashStyle,
-  SizeStyle,
-  TLDraw,
-  TLDrawDocument,
-  TLDrawShape,
-  TLDrawShapeUtils,
-  TLDrawShapeType,
-} from '@tldraw/tldraw'
+import dynamic from 'next/dynamic'
+import { ColorStyle, DashStyle, SizeStyle, TLDrawShapeType } from '@tldraw/tldraw'
+import type { TLDrawDocument } from '@tldraw/tldraw'
+const TLDraw = dynamic(() => import('@tldraw/tldraw'), { ssr: false })
 
 export function Index() {
   const [document, setDocument] = React.useState<TLDrawDocument>({
@@ -21,7 +15,7 @@ export function Index() {
             id: 'rect1',
             parentId: 'page1',
             name: 'Rectangle',
-            childIndex: 0,
+            childIndex: 1,
             type: TLDrawShapeType.Rectangle,
             point: [32, 32],
             size: [100, 100],
@@ -35,7 +29,7 @@ export function Index() {
             id: 'ellipse1',
             parentId: 'page1',
             name: 'Ellipse',
-            childIndex: 1,
+            childIndex: 2,
             type: TLDrawShapeType.Ellipse,
             point: [132, 132],
             radius: [50, 50],
@@ -49,7 +43,7 @@ export function Index() {
             id: 'draw1',
             parentId: 'page1',
             name: 'Draw',
-            childIndex: 1,
+            childIndex: 3,
             type: TLDrawShapeType.Draw,
             point: [232, 232],
             points: [

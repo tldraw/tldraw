@@ -1,54 +1,55 @@
-import { StretchType, Utils } from '@tldraw/core'
-import { mockData } from '../../../../specs/__mocks__/mock-data'
+import { StretchType } from '../../../types'
+import { TLDrawState } from '../../tlstate'
+import { mockDocument } from '../../test-helpers'
 import { RectangleShape } from '../../../shape'
-import { TLD } from '../../tld'
-import { stretch } from './stretch.command'
 
 describe('Stretch command', () => {
-  const data = Utils.deepClone(mockData)
-  data.pageState.selectedIds = ['rect1', 'rect2']
+  const tlstate = new TLDrawState()
 
   it('does, undoes and redoes command', () => {
-    const tdata = Utils.deepClone(data)
+    tlstate.loadDocument(mockDocument)
+    tlstate.select('rect1', 'rect2')
+    tlstate.stretch(StretchType.Horizontal)
 
-    const command = stretch(tdata, StretchType.Horizontal)
+    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 0])
+    expect(tlstate.getShape<RectangleShape>('rect1').size).toStrictEqual([200, 100])
+    expect(tlstate.getShape<RectangleShape>('rect2').point).toStrictEqual([0, 100])
+    expect(tlstate.getShape<RectangleShape>('rect2').size).toStrictEqual([200, 100])
 
-    command.redo(tdata)
+    tlstate.undo()
 
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').point).toStrictEqual([0, 0])
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').size).toStrictEqual([200, 100])
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').point).toStrictEqual([0, 100])
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').size).toStrictEqual([200, 100])
+    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 0])
+    expect(tlstate.getShape<RectangleShape>('rect1').size).toStrictEqual([100, 100])
+    expect(tlstate.getShape<RectangleShape>('rect2').point).toStrictEqual([100, 100])
+    expect(tlstate.getShape<RectangleShape>('rect2').size).toStrictEqual([100, 100])
 
-    command.undo(tdata)
+    tlstate.redo()
 
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').point).toStrictEqual([0, 0])
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').size).toStrictEqual([100, 100])
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').point).toStrictEqual([100, 100])
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').size).toStrictEqual([100, 100])
-
-    command.redo(tdata)
+    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 0])
+    expect(tlstate.getShape<RectangleShape>('rect1').size).toStrictEqual([200, 100])
+    expect(tlstate.getShape<RectangleShape>('rect2').point).toStrictEqual([0, 100])
+    expect(tlstate.getShape<RectangleShape>('rect2').size).toStrictEqual([200, 100])
   })
 
-  it('stretches horizontal', () => {
-    const tdata = Utils.deepClone(data)
+  it('distributes horizontally', () => {
+    tlstate.loadDocument(mockDocument)
+    tlstate.select('rect1', 'rect2')
+    tlstate.stretch(StretchType.Horizontal)
 
-    stretch(tdata, StretchType.Horizontal).redo(tdata)
-
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').point).toStrictEqual([0, 0])
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').size).toStrictEqual([200, 100])
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').point).toStrictEqual([0, 100])
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').size).toStrictEqual([200, 100])
+    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 0])
+    expect(tlstate.getShape<RectangleShape>('rect1').size).toStrictEqual([200, 100])
+    expect(tlstate.getShape<RectangleShape>('rect2').point).toStrictEqual([0, 100])
+    expect(tlstate.getShape<RectangleShape>('rect2').size).toStrictEqual([200, 100])
   })
 
-  it('stretches vertical', () => {
-    const tdata = Utils.deepClone(data)
+  it('distributes vertically', () => {
+    tlstate.loadDocument(mockDocument)
+    tlstate.select('rect1', 'rect2')
+    tlstate.stretch(StretchType.Vertical)
 
-    stretch(tdata, StretchType.Vertical).redo(tdata)
-
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').point).toStrictEqual([0, 0])
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect1').size).toStrictEqual([100, 200])
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').point).toStrictEqual([100, 0])
-    expect(TLD.getShape<RectangleShape>(tdata, 'rect2').size).toStrictEqual([100, 200])
+    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 0])
+    expect(tlstate.getShape<RectangleShape>('rect1').size).toStrictEqual([100, 200])
+    expect(tlstate.getShape<RectangleShape>('rect2').point).toStrictEqual([100, 0])
+    expect(tlstate.getShape<RectangleShape>('rect2').size).toStrictEqual([100, 200])
   })
 })

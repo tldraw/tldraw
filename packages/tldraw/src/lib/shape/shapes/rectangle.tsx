@@ -184,7 +184,6 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
   ) {
     if (!shape.rotation && !shape.isAspectRatioLocked) {
       return {
-        ...shape,
         point: Vec.round([bounds.minX, bounds.minY]),
         size: Vec.round([bounds.width, bounds.height]),
       }
@@ -210,7 +209,6 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
           : initialShape.rotation
 
       return {
-        ...shape,
         size,
         point,
         rotation,
@@ -220,7 +218,6 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
 
   transformSingle(shape: RectangleShape, bounds: TLBounds, info: TLTransformInfo<RectangleShape>) {
     return {
-      ...shape,
       size: Vec.round([bounds.width, bounds.height]),
       point: Vec.round([bounds.minX, bounds.minY]),
     }

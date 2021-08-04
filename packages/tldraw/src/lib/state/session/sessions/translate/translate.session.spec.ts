@@ -1,79 +1,135 @@
-import { TranslateSession } from './translate.session'
-import { mockData } from '../../../../../specs/__mocks__/mock-data'
-import { Utils } from '@tldraw/core'
+import { TLDrawState } from '../../../tlstate'
+import { mockDocument } from '../../../test-helpers'
 
-describe('Translate session', () => {
-  const data = Utils.deepClone(mockData)
+describe('Brush session', () => {
+  const tlstate = new TLDrawState()
 
   it('begins, updates and completes session', () => {
-    const session = new TranslateSession(data, [-10, -10])
-    session.update(data, [10, 10])
-    session.complete(data)
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .startTranslateSession([5, 5])
+      .updateTranslateSession([10, 10])
+
+    expect(tlstate.getShape('rect1').point).toStrictEqual([5, 5])
+
+    tlstate.completeSession()
+
+    expect(tlstate.getShape('rect1').point).toStrictEqual([5, 5])
+
+    tlstate.undo()
+
+    expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+
+    tlstate.redo()
+
+    expect(tlstate.getShape('rect1').point).toStrictEqual([5, 5])
+  })
+
+  it('cancels session', () => {
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1', 'rect2')
+      .startTranslateSession([5, 5])
+      .updateTranslateSession([10, 10])
+      .cancelSession()
+
+    expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
   })
 
   it('moves a single shape', () => {
-    const tdata = Utils.deepClone(data)
-    tdata.pageState.selectedIds = ['rect1']
-    const session = new TranslateSession(tdata, [10, 10])
-    session.update(tdata, [20, 20])
-    session.complete(tdata)
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .startTranslateSession([10, 10])
+      .updateTranslateSession([20, 20])
+      .completeSession()
 
-    expect(tdata.page.shapes['rect1'].point).toEqual([10, 10])
+    expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
   })
 
   it('moves a single shape along a locked axis', () => {
-    const tdata = Utils.deepClone(data)
-    tdata.pageState.selectedIds = ['rect1']
-    const session = new TranslateSession(tdata, [10, 10])
-    session.update(tdata, [20, 20], true)
-    session.complete(tdata)
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .startTranslateSession([10, 10])
+      .updateTranslateSession([20, 20], true)
+      .completeSession()
 
-    expect(tdata.page.shapes['rect1'].point).toEqual([10, 0])
+    expect(tlstate.getShape('rect1').point).toStrictEqual([10, 0])
   })
 
   it('moves two shapes', () => {
-    const tdata = Utils.deepClone(data)
-    tdata.pageState.selectedIds = ['rect1', 'rect2']
-    const session = new TranslateSession(tdata, [10, 10])
-    session.update(tdata, [20, 20])
-    session.complete(tdata)
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1', 'rect2')
+      .startTranslateSession([10, 10])
+      .updateTranslateSession([20, 20])
+      .completeSession()
 
-    expect(tdata.page.shapes['rect1'].point).toEqual([10, 10])
-    expect(tdata.page.shapes['rect2'].point).toEqual([110, 110])
+    expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
+    expect(tlstate.getShape('rect2').point).toStrictEqual([110, 110])
+  })
+
+  it('undos and redos clones', () => {
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1', 'rect2')
+      .startTranslateSession([10, 10])
+      .updateTranslateSession([20, 20], false, true)
+      .completeSession()
+
+    expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+    expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(5)
+
+    tlstate.undo()
+
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
+
+    tlstate.redo()
+
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(5)
   })
 
   it('clones shapes', () => {
-    const tdata = Utils.deepClone(data)
-    tdata.pageState.selectedIds = ['rect1', 'rect2']
-    const session = new TranslateSession(tdata, [10, 10])
-    session.update(tdata, [20, 20], false, true)
-    session.complete(tdata)
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1', 'rect2')
+      .startTranslateSession([10, 10])
+      .updateTranslateSession([20, 20], false, true)
+      .completeSession()
 
-    expect(tdata.page.shapes['rect1'].point).toEqual([0, 0])
-    expect(tdata.page.shapes['rect2'].point).toEqual([100, 100])
+    expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+    expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
 
-    expect(Object.keys(tdata.page.shapes).length).toBe(4)
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(5)
   })
 
   it('destroys clones when last update is not cloning', () => {
-    const tdata = Utils.deepClone(data)
-    tdata.pageState.selectedIds = ['rect1', 'rect2']
-    const session = new TranslateSession(tdata, [10, 10])
-    session.update(tdata, [20, 20], false, true)
-    session.update(tdata, [30, 30], false, false)
-    session.complete(tdata)
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1', 'rect2')
+      .startTranslateSession([10, 10])
+      .updateTranslateSession([20, 20], false, true)
+      .updateTranslateSession([30, 30])
+      .completeSession()
 
-    expect(tdata.page.shapes['rect1'].point).toEqual([20, 20])
-    expect(tdata.page.shapes['rect2'].point).toEqual([120, 120])
+    // Original position + delta
+    expect(tlstate.getShape('rect1').point).toStrictEqual([30, 30])
+    expect(tlstate.getShape('rect2').point).toStrictEqual([130, 130])
 
-    expect(Object.keys(tdata.page.shapes).length).toBe(2)
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
   })
 
-  it('clones a shape with a parent shape', () => {
-    // TODO
-  })
+  // it('clones a shape with a parent shape', () => {
+  //   tlstate.loadDocument(mockDocument)
+  //   // TODO
+  // })
 
-  it('clones a shape with children', () => {
-    // TODO
-  })
+  // it('clones a shape with children', () => {
+  //   tlstate.loadDocument(mockDocument)
+  //   // TODO
+  // })
 })

@@ -2,207 +2,119 @@ import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer, TLCallbacks, TLTheme, Utils } from '@tldraw/core'
 import { tldrawShapeUtils } from '../shape'
-import { OnChangeCallback, state, TLDrawState, useSelector } from '../state'
 import { TLDrawDocument } from '../types'
 import { useKeyboardShortcuts } from '../hooks'
 import styled from '../styles'
+import { ContextMenu } from './context-menu'
 import { StylePanel } from './style-panel'
-import { ToolsPanel } from './/tools-panel'
-
-const callbacks: TLCallbacks = {
-  // Camera events
-  onPinchStart() {
-    state.send('STARTED_PINCHING')
-  },
-  onPinchEnd() {
-    state.send('STOPPED_PINCHING')
-  },
-  onPinch: state.fastPinch,
-  onPan: state.fastPan,
-  onZoom(info) {
-    state.send('ZOOMED', info)
-  },
-
-  // Pointer Events
-  onPointerMove: state.fastPointerMove,
-  onStopPointing(info) {
-    state.send('STOPPED_POINTING', info)
-  },
-
-  // Canvas (background)
-  onPointCanvas(info) {
-    state.send('POINTED_CANVAS', info)
-  },
-  onDoublePointCanvas(info) {
-    state.send('DOUBLE_POINTED_CANVAS', info)
-  },
-  onRightPointCanvas(info) {
-    state.send('RIGHT_POINTED_CANVAS', info)
-  },
-  onDragCanvas: state.fastPointerMove,
-  onReleaseCanvas: (info) => {
-    state.send('RELEASED_CANVAS', info)
-  },
-
-  // Shape
-  onPointShape(info) {
-    state.send('POINTED_SHAPE', info)
-  },
-  onDoublePointShape(info) {
-    state.send('DOUBLE_POINTED_SHAPE', info)
-  },
-  onRightPointShape(info) {
-    state.send('RIGHT_POINTED_SHAPE', info)
-  },
-  onDragShape: state.fastTranslate,
-  onHoverShape(info) {
-    state.send('HOVERED_SHAPE', info)
-  },
-  onUnhoverShape(info) {
-    state.send('UNHOVERED_SHAPE', info)
-  },
-  onReleaseShape: (info) => {
-    state.send('RELEASED_SHAPE', info)
-  },
-
-  // Bounds (bounding box background)
-  onPointBounds(info) {
-    state.send('POINTED_BOUNDS', info)
-  },
-  onDoublePointBounds(info) {
-    state.send('DOUBLE_POINTED_BOUNDS', info)
-  },
-  onRightPointBounds(info) {
-    state.send('RIGHT_POINTED_BOUNDS', info)
-  },
-  onDragBounds: state.fastTranslate,
-  onHoverBounds: (info) => {
-    state.send('HOVERED_BOUNDS', info)
-  },
-  onUnhoverBounds: (info) => {
-    state.send('UNHOVERED_BOUNDS', info)
-  },
-  onReleaseBounds: (info) => {
-    state.send('RELEASED_BOUNDS', info)
-  },
-
-  // Bounds handles (corners, edges)
-  onPointBoundsHandle(info) {
-    state.send('POINTED_BOUNDS_HANDLE', info)
-  },
-  onDoublePointBoundsHandle(info) {
-    state.send('DOUBLE_POINTED_BOUNDS_HANDLE', info)
-  },
-  onRightPointBoundsHandle: (info) => {
-    state.send('RIGHT_POINTED_BOUNDS_HANDLE', info)
-  },
-  onDragBoundsHandle: state.fastTransform,
-  onHoverBoundsHandle: (info) => {
-    state.send('HOVERED_BOUNDS_HANDLE', info)
-  },
-  onUnhoverBoundsHandle: (info) => {
-    state.send('UNHOVERED_BOUNDS_HANDLE', info)
-  },
-  onReleaseBoundsHandle: (info) => {
-    state.send('RELEASED_BOUNDS_HANDLE', info)
-  },
-
-  // Handles (ie the handles of a selected arrow)
-  onPointHandle(info) {
-    state.send('POINTED_HANDLE', info)
-  },
-  onRightPointHandle(info) {
-    state.send('RIGHT_POINTED_HANDLE', info)
-  },
-  onDoublePointHandle(info) {
-    state.send('DOUBLE_POINTED_HANDLE', info)
-  },
-  onDragHandle: (info) => {
-    state.send('DRAGGED_HANDLE', info)
-  },
-  onHoverHandle: (info) => {
-    state.send('HOVERED_HANDLE', info)
-  },
-  onUnhoverHandle: (info) => {
-    state.send('UNHOVERED_HANDLE', info)
-  },
-  onReleaseHandle: (info) => {
-    state.send('RELEASED_HANDLE', info)
-  },
-
-  // keys
-  onError: (error: Error) => {
-    // TODO
-  },
-  onBlurEditingShape() {
-    /*TODO*/
-  },
-  onChange(ids) {
-    state.send('CHANGED_RENDERING_COUNT', { count: ids.length })
-  },
-}
+import { ToolsPanel } from './tools-panel'
+import { Data, TLDrawState } from '../state'
+import { TLDrawContext } from '../hooks'
 
 export interface TLDrawProps {
   document?: TLDrawDocument
   currentPageId?: string
   onMount?: (state: TLDrawState) => void
-  onChange?: OnChangeCallback
+  onChange?: (state: TLDrawState) => void
 }
 
-export function TLDraw({ document, currentPageId, onMount, onChange }: TLDrawProps) {
-  const hideBounds = useSelector((s) => !s.isIn('select'))
+const hideBoundsSelector = (s: Data) => s.appState.activeTool !== 'select'
+const pageSelector = (s: Data) => s.page
+const pageStateSelector = (s: Data) => s.pageState
 
-  const { page, pageState } = useSelector(
-    (s) => ({
-      page: s.data.page,
-      pageState: s.data.pageState,
-    }),
-    Utils.shallowEqual,
-  )
+export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }: TLDrawProps) {
+  const [tlstate] = React.useState(() => new TLDrawState())
+  const [context] = React.useState(() => {
+    return { tlstate, useAppState: tlstate.store }
+  })
+
+  useKeyboardShortcuts(tlstate)
+
+  const hideBounds = context.useAppState(hideBoundsSelector)
+  const page = context.useAppState(pageSelector)
+  const pageState = context.useAppState(pageStateSelector)
 
   React.useEffect(() => {
-    if (!callbacks) return
-    state.loadOnChange(onChange)
-  }, [onChange])
+    _onChange?.(tlstate)
+  })
 
   React.useEffect(() => {
     if (!document) return
-    state.loadDocument(document)
-  }, [document])
+    tlstate.loadDocument(document)
+  }, [document, tlstate])
 
   React.useEffect(() => {
     if (!currentPageId) return
-    state.loadCurrentPageId(currentPageId)
-  }, [currentPageId])
+    tlstate.setCurrentPageId(currentPageId)
+  }, [currentPageId, tlstate])
 
   React.useEffect(() => {
-    state.loadOnMount(onMount)
+    onMount?.(tlstate)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useKeyboardShortcuts()
-
   return (
-    <IdProvider>
-      <Layout>
-        <Renderer
-          page={page}
-          pageState={pageState}
-          shapeUtils={tldrawShapeUtils}
-          hideBounds={hideBounds}
-          {...callbacks}
-        />
-        <MenuButtons>
-          {/* <Menu />
-        <DebugPanel />
-        <CodePanel />
-        <PagePanel /> */}
-        </MenuButtons>
-        <Spacer />
-        <StylePanel />
-        <ToolsPanel />
-      </Layout>
-    </IdProvider>
+    <TLDrawContext.Provider value={context}>
+      <IdProvider>
+        <Layout>
+          <ContextMenu>
+            <Renderer
+              page={page}
+              pageState={pageState}
+              shapeUtils={tldrawShapeUtils}
+              hideBounds={hideBounds}
+              onPinchStart={tlstate.onPinchStart}
+              onPinchEnd={tlstate.onPinchEnd}
+              onPinch={tlstate.onPinch}
+              onPan={tlstate.onPan}
+              onZoom={tlstate.onZoom}
+              onPointerDown={tlstate.onPointerDown}
+              onPointerMove={tlstate.onPointerMove}
+              onPointerUp={tlstate.onPointerUp}
+              onPointCanvas={tlstate.onPointCanvas}
+              onDoubleClickCanvas={tlstate.onDoubleClickCanvas}
+              onRightPointCanvas={tlstate.onRightPointCanvas}
+              onDragCanvas={tlstate.onDragCanvas}
+              onReleaseCanvas={tlstate.onReleaseCanvas}
+              onPointShape={tlstate.onPointShape}
+              onDoubleClickShape={tlstate.onDoubleClickShape}
+              onRightPointShape={tlstate.onRightPointShape}
+              onDragShape={tlstate.onDragShape}
+              onHoverShape={tlstate.onHoverShape}
+              onUnhoverShape={tlstate.onUnhoverShape}
+              onReleaseShape={tlstate.onReleaseShape}
+              onPointBounds={tlstate.onPointBounds}
+              onDoubleClickBounds={tlstate.onDoubleClickBounds}
+              onRightPointBounds={tlstate.onRightPointBounds}
+              onDragBounds={tlstate.onDragBounds}
+              onHoverBounds={tlstate.onHoverBounds}
+              onUnhoverBounds={tlstate.onUnhoverBounds}
+              onReleaseBounds={tlstate.onReleaseBounds}
+              onPointBoundsHandle={tlstate.onPointBoundsHandle}
+              onDoubleClickBoundsHandle={tlstate.onDoubleClickBoundsHandle}
+              onRightPointBoundsHandle={tlstate.onRightPointBoundsHandle}
+              onDragBoundsHandle={tlstate.onDragBoundsHandle}
+              onHoverBoundsHandle={tlstate.onHoverBoundsHandle}
+              onUnhoverBoundsHandle={tlstate.onUnhoverBoundsHandle}
+              onReleaseBoundsHandle={tlstate.onReleaseBoundsHandle}
+              onPointHandle={tlstate.onPointHandle}
+              onDoubleClickHandle={tlstate.onDoubleClickHandle}
+              onRightPointHandle={tlstate.onRightPointHandle}
+              onDragHandle={tlstate.onDragHandle}
+              onHoverHandle={tlstate.onHoverHandle}
+              onUnhoverHandle={tlstate.onUnhoverHandle}
+              onReleaseHandle={tlstate.onReleaseHandle}
+              onChange={tlstate.onChange}
+              onError={tlstate.onError}
+              onBlurEditingShape={tlstate.onBlurEditingShape}
+            />
+          </ContextMenu>
+          <Spacer />
+          <StylePanel />
+          <ToolsPanel />
+        </Layout>
+      </IdProvider>
+    </TLDrawContext.Provider>
   )
 }
 
@@ -232,11 +144,9 @@ const Layout = styled('main', {
   boxSizing: 'border-box',
   outline: 'none',
   pointerEvents: 'none',
-
   '& > *': {
     pointerEvents: 'all',
   },
-
   '& .tl-container': {
     position: 'absolute',
     top: 0,

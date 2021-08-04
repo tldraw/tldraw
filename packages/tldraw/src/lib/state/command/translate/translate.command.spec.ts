@@ -1,26 +1,29 @@
-import { Utils } from '@tldraw/core'
-import { mockData } from '../../../../specs/__mocks__/mock-data'
-import { translate } from './translate.command'
+import { TLDrawState } from '../../tlstate'
+import { mockDocument } from '../../test-helpers'
 
 describe('Translate command', () => {
-  const data = Utils.deepClone(mockData)
-  data.pageState.selectedIds = ['rect2']
+  const tlstate = new TLDrawState()
 
   it('does, undoes and redoes command', () => {
-    const tdata = Utils.deepClone(data)
+    tlstate.loadDocument(mockDocument)
+    tlstate.selectAll()
+    tlstate.nudge([1, 2])
 
-    const command = translate(tdata, [10, 10])
+    expect(tlstate.getShape('rect2').point).toEqual([101, 102])
 
-    command.redo(tdata)
+    tlstate.undo()
 
-    expect(tdata.page.shapes['rect2'].point).toEqual([110, 110])
+    expect(tlstate.getShape('rect2').point).toEqual([100, 100])
 
-    command.undo(tdata)
+    tlstate.redo()
 
-    expect(tdata.page.shapes['rect2'].point).toEqual([100, 100])
+    expect(tlstate.getShape('rect2').point).toEqual([101, 102])
+  })
 
-    command.redo(tdata)
-
-    expect(tdata.page.shapes['rect2'].point).toEqual([110, 110])
+  it('major nudges', () => {
+    tlstate.loadDocument(mockDocument)
+    tlstate.selectAll()
+    tlstate.nudge([1, 2], true)
+    expect(tlstate.getShape('rect2').point).toEqual([110, 120])
   })
 })

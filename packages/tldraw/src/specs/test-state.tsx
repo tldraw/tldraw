@@ -1,9 +1,9 @@
 import { inputs, TLBoundsCorner, TLBoundsEdge, TLShapeUtil, Utils, Vec } from '@tldraw/core'
 import { Data, TLDrawShape } from '../../src'
 import { createShape, tldrawShapeUtils } from '../../src/lib/shape'
-import { TLDrawState } from '../../src/lib/state'
+import { TLDrawState } from '../../src/lib/old_state'
 import { mockDocument } from './__mocks__/mock-document'
-import { TLD } from '../../src/lib/state/tld'
+import { TLD } from '../../src/lib/old_state/tld'
 
 interface PointerOptions {
   id?: number

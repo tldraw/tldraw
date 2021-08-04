@@ -11,15 +11,11 @@ import {
   TLBoundsCorner,
   TLBoundsEdge,
   TLKeyboardInfo,
-  AlignType,
-  StretchType,
-  DistributeType,
   Utils,
-  MoveType,
   TLPointerEventHandler,
   inputs,
 } from '@tldraw/core'
-import { Data, TLDrawDocument } from '../../types'
+import { Data, TLDrawDocument, MoveType, AlignType, StretchType, DistributeType } from '../../types'
 import {
   TLDrawShape,
   TLDrawShapeUtils,
@@ -780,7 +776,7 @@ export class TLDrawState {
         brushUpdater.set(data.pageState.brush)
       },
       endBrushSession: () => {
-        brushUpdater.clear()
+        // brushUpdater.clear()
       },
 
       /* -------------------- Commands -------------------- */
@@ -1004,7 +1000,6 @@ export class TLDrawState {
         const camera = TLD.getCurrentCamera(data)
         camera.zoom = 1
         camera.point = [window.innerWidth / 2, window.innerHeight / 2]
-        document.documentElement.style.setProperty('--camera-zoom', '1')
       },
 
       /* ------------------ Shape Changes ----------------- */

@@ -6,28 +6,27 @@ export function useCanvasEvents() {
   const { callbacks } = useTLContext()
 
   const onPointerDown = React.useCallback(
-    (e) => {
-      e.stopPropagation()
+    (e: React.PointerEvent) => {
       e.currentTarget.setPointerCapture(e.pointerId)
 
       if (e.button === 0) {
         const info = inputs.pointerDown(e, 'canvas')
-        callbacks.onPointCanvas?.(info)
+        callbacks.onPointCanvas?.(info, e)
+        callbacks.onPointerDown?.(info, e)
       }
     },
     [callbacks],
   )
 
   const onPointerMove = React.useCallback(
-    (e) => {
+    (e: React.PointerEvent) => {
       e.stopPropagation()
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         const info = inputs.pointerMove(e, 'canvas')
-        callbacks.onDragCanvas?.(info)
-      } else {
-        const info = inputs.pointerMove(e, 'canvas')
-        callbacks.onPointerMove?.(info)
+        callbacks.onDragCanvas?.(info, e)
       }
+      const info = inputs.pointerMove(e, 'canvas')
+      callbacks.onPointerMove?.(info, e)
     },
     [callbacks],
   )
@@ -40,14 +39,13 @@ export function useCanvasEvents() {
 
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         e.currentTarget?.releasePointerCapture(e.pointerId)
-
-        if (isDoubleClick && !(info.altKey || info.metaKey)) {
-          callbacks.onDoublePointCanvas?.(info)
-        }
-
-        callbacks.onReleaseCanvas?.(info)
       }
-      callbacks.onStopPointing?.(info)
+      if (isDoubleClick && !(info.altKey || info.metaKey)) {
+        callbacks.onDoubleClickCanvas?.(info, e)
+      }
+
+      callbacks.onReleaseCanvas?.(info, e)
+      callbacks.onPointerUp?.(info, e)
     },
     [callbacks],
   )

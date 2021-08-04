@@ -1,41 +1,79 @@
-import { TransformSession } from './transform.session'
-import { mockData } from '../../../../../specs/__mocks__/mock-data'
+import { TLDrawState } from '../../../tlstate'
+import { mockDocument } from '../../../test-helpers'
 import { TLBoundsCorner, Utils } from '@tldraw/core'
-import { getShapeUtils } from '../../../../shape'
-import { Data } from '../../../../types'
+import { TLDR } from '../../../tldr'
 
-function getSingleBounds(data: Data) {
-  const shape = data.page.shapes['rect1']
-  return getShapeUtils(shape).getBounds(shape)
-}
-
-function getCommonBounds(data: Data) {
+function getShapeBounds(tlstate: TLDrawState, ...ids: string[]) {
   return Utils.getCommonBounds(
-    ['rect1', 'rect2']
-      .map((id) => data.page.shapes[id])
-      .map((shape) => getShapeUtils(shape).getBounds(shape)),
+    (ids.length ? ids : tlstate.selectedIds).map((id) => TLDR.getBounds(tlstate.getShape(id))),
   )
 }
 
 describe('Transform session', () => {
-  const data = Utils.deepClone(mockData)
-  data.pageState.selectedIds = ['rect1']
+  const tlstate = new TLDrawState()
 
   it('begins, updates and completes session', () => {
-    const tdata = Utils.deepClone(data)
-    const session = new TransformSession(tdata, [0, 0], TLBoundsCorner.TopLeft)
-    session.update(tdata, [10, 10])
-    session.complete(tdata)
+    tlstate.loadDocument(mockDocument)
+
+    expect(getShapeBounds(tlstate, 'rect1')).toMatchObject({
+      minX: 0,
+      minY: 0,
+      maxX: 100,
+      maxY: 100,
+      width: 100,
+      height: 100,
+    })
+
+    tlstate
+      .select('rect1', 'rect2')
+      .startTransformSession([0, 0], TLBoundsCorner.TopLeft)
+      .updateTransformSession([10, 10])
+      .completeSession()
+
+    expect(getShapeBounds(tlstate, 'rect1')).toMatchObject({
+      minX: 10,
+      minY: 10,
+      maxX: 105,
+      maxY: 105,
+      width: 95,
+      height: 95,
+    })
+
+    tlstate.undo()
+
+    expect(getShapeBounds(tlstate, 'rect1')).toMatchObject({
+      minX: 0,
+      minY: 0,
+      maxX: 100,
+      maxY: 100,
+      width: 100,
+      height: 100,
+    })
+
+    tlstate.redo()
+  })
+
+  it('cancels session', () => {
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1', 'rect2')
+      .startTransformSession([5, 5], TLBoundsCorner.TopLeft)
+      .updateTransformSession([10, 10])
+      .cancelSession()
+
+    expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
   })
 
   describe('when transforming from the top-left corner', () => {
     it('transforms a single shape', () => {
-      const tdata = Utils.deepClone(data)
-      const session = new TransformSession(tdata, [0, 0], TLBoundsCorner.TopLeft)
-      session.update(tdata, [10, 10])
-      session.complete(tdata)
+      tlstate
+        .loadDocument(mockDocument)
+        .select('rect1')
+        .startTransformSession([0, 0], TLBoundsCorner.TopLeft)
+        .updateTransformSession([10, 10])
+        .completeSession()
 
-      expect(getSingleBounds(tdata)).toMatchObject({
+      expect(getShapeBounds(tlstate)).toMatchObject({
         minX: 10,
         minY: 10,
         maxX: 100,
@@ -46,12 +84,14 @@ describe('Transform session', () => {
     })
 
     it('transforms a single shape while holding shift', () => {
-      const tdata = Utils.deepClone(data)
-      const session = new TransformSession(tdata, [0, 0], TLBoundsCorner.TopLeft)
-      session.update(tdata, [20, 10], true)
-      session.complete(tdata)
+      tlstate
+        .loadDocument(mockDocument)
+        .select('rect1')
+        .startTransformSession([0, 0], TLBoundsCorner.TopLeft)
+        .updateTransformSession([20, 10], true)
+        .completeSession()
 
-      expect(getSingleBounds(tdata)).toMatchObject({
+      expect(getShapeBounds(tlstate, 'rect1')).toMatchObject({
         minX: 10,
         minY: 10,
         maxX: 100,
@@ -62,13 +102,14 @@ describe('Transform session', () => {
     })
 
     it('transforms multiple shapes', () => {
-      const tdata = Utils.deepClone(data)
-      tdata.pageState.selectedIds = ['rect1', 'rect2']
-      const session = new TransformSession(tdata, [0, 0], TLBoundsCorner.TopLeft)
-      session.update(tdata, [10, 10])
-      session.complete(tdata)
+      tlstate
+        .loadDocument(mockDocument)
+        .select('rect1', 'rect2')
+        .startTransformSession([0, 0], TLBoundsCorner.TopLeft)
+        .updateTransformSession([10, 10])
+        .completeSession()
 
-      expect(getSingleBounds(tdata)).toMatchObject({
+      expect(getShapeBounds(tlstate, 'rect1')).toMatchObject({
         minX: 10,
         minY: 10,
         maxX: 105,
@@ -77,24 +118,25 @@ describe('Transform session', () => {
         height: 95,
       })
 
-      expect(getCommonBounds(tdata)).toMatchObject({
-        minX: 10,
-        minY: 10,
+      expect(getShapeBounds(tlstate, 'rect2')).toMatchObject({
+        minX: 105,
+        minY: 105,
         maxX: 200,
         maxY: 200,
-        width: 190,
-        height: 190,
+        width: 95,
+        height: 95,
       })
     })
 
     it('transforms multiple shapes while holding shift', () => {
-      const tdata = Utils.deepClone(data)
-      tdata.pageState.selectedIds = ['rect1', 'rect2']
-      const session = new TransformSession(tdata, [0, 0], TLBoundsCorner.TopLeft)
-      session.update(tdata, [20, 10], true)
-      session.complete(tdata)
+      tlstate
+        .loadDocument(mockDocument)
+        .select('rect1', 'rect2')
+        .startTransformSession([0, 0], TLBoundsCorner.TopLeft)
+        .updateTransformSession([20, 10], true)
+        .completeSession()
 
-      expect(getSingleBounds(tdata)).toMatchObject({
+      expect(getShapeBounds(tlstate, 'rect1')).toMatchObject({
         minX: 10,
         minY: 10,
         maxX: 105,
@@ -103,13 +145,13 @@ describe('Transform session', () => {
         height: 95,
       })
 
-      expect(getCommonBounds(tdata)).toMatchObject({
-        minX: 10,
-        minY: 10,
+      expect(getShapeBounds(tlstate, 'rect2')).toMatchObject({
+        minX: 105,
+        minY: 105,
         maxX: 200,
         maxY: 200,
-        width: 190,
-        height: 190,
+        width: 95,
+        height: 95,
       })
     })
   })

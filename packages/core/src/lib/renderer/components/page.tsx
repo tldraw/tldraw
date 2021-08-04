@@ -33,7 +33,7 @@ export function Page<T extends TLShape>({
     <>
       {bounds && !hideBounds && <BoundsBg bounds={bounds} rotation={rotation} />}
       {shapeTree.map((node) => (
-        <ShapeNode key={node.shape.id} node={node} allowHovers={true} />
+        <ShapeNode key={node.shape.id} allowHovers={true} {...node} />
       ))}
       {bounds && !hideBounds && (
         <Bounds
@@ -48,13 +48,12 @@ export function Page<T extends TLShape>({
   )
 }
 
-interface ShapeNodeProps {
-  node: IShapeTreeNode
+interface ShapeNodeProps extends IShapeTreeNode {
   allowHovers: boolean
 }
 
-const ShapeNode = ({
-  node: {
+const ShapeNode = React.memo(
+  ({
     shape,
     children,
     isEditing,
@@ -63,23 +62,24 @@ const ShapeNode = ({
     isSelected,
     isBinding,
     isCurrentParent,
+    allowHovers,
+  }: ShapeNodeProps) => {
+    return (
+      <>
+        <ShapeComponent
+          shape={shape}
+          isEditing={isEditing}
+          isHovered={allowHovers && isHovered}
+          isSelected={isSelected}
+          isDarkMode={isDarkMode}
+          isBinding={isBinding}
+          isCurrentParent={isCurrentParent}
+        />
+        {children &&
+          children.map((childNode) => (
+            <ShapeNode key={childNode.shape.id} allowHovers={allowHovers} {...childNode} />
+          ))}
+      </>
+    )
   },
-  allowHovers,
-}: ShapeNodeProps) => {
-  return (
-    <>
-      <ShapeComponent
-        shape={shape}
-        isEditing={isEditing}
-        isHovered={allowHovers && isHovered}
-        isSelected={isSelected}
-        isDarkMode={isDarkMode}
-        isBinding={isBinding}
-        isCurrentParent={isCurrentParent}
-      />
-      {children.map((childNode) => (
-        <ShapeNode key={childNode.shape.id} node={childNode} allowHovers={allowHovers} />
-      ))}
-    </>
-  )
-}
+)

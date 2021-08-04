@@ -4,6 +4,8 @@ import React from 'react'
 
 export interface TLPage<T extends TLShape> {
   id: string
+  name?: string
+  childIndex?: number
   shapes: Record<string, T>
   bindings: Record<string, TLBinding>
   backgroundColor?: string
@@ -87,37 +89,47 @@ export interface TLTheme {
   foreground?: string
 }
 
-export type TLPointerEventHandler = (info: TLPointerInfo<string>) => void
-export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>) => void
-export type TLBoundsEventHandler = (info: TLPointerInfo<'bounds'>) => void
+export type TLWheelEventHandler = (
+  info: TLPointerInfo<string>,
+  e: React.WheelEvent<Element> | WheelEvent,
+) => void
+export type TLPinchEventHandler = (
+  info: TLPointerInfo<string>,
+  e: React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent,
+) => void
+export type TLPointerEventHandler = (info: TLPointerInfo<string>, e: React.PointerEvent) => void
+export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>, e: React.PointerEvent) => void
+export type TLBoundsEventHandler = (info: TLPointerInfo<'bounds'>, e: React.PointerEvent) => void
 export type TLBoundsHandleEventHandler = (
   info: TLPointerInfo<TLBoundsCorner | TLBoundsEdge | 'rotate'>,
+  e: React.PointerEvent,
 ) => void
 
 export interface TLCallbacks {
   onChange: (ids: string[]) => void
 
   // Camera events
-  onPinchStart: TLPointerEventHandler
-  onPinchEnd: TLPointerEventHandler
-  onPinch: TLPointerEventHandler
-  onPan: TLPointerEventHandler
-  onZoom: TLPointerEventHandler
+  onPinchStart: TLPinchEventHandler
+  onPinchEnd: TLPinchEventHandler
+  onPinch: TLPinchEventHandler
+  onPan: TLWheelEventHandler
+  onZoom: TLWheelEventHandler
 
   // Pointer Events
   onPointerMove: TLPointerEventHandler
-  onStopPointing: TLPointerEventHandler
+  onPointerUp: TLPointerEventHandler
+  onPointerDown: TLPointerEventHandler
 
   // Canvas (background)
   onPointCanvas: TLCanvasEventHandler
-  onDoublePointCanvas: TLCanvasEventHandler
+  onDoubleClickCanvas: TLCanvasEventHandler
   onRightPointCanvas: TLCanvasEventHandler
   onDragCanvas: TLCanvasEventHandler
   onReleaseCanvas: TLCanvasEventHandler
 
   // Shape
   onPointShape: TLPointerEventHandler
-  onDoublePointShape: TLPointerEventHandler
+  onDoubleClickShape: TLPointerEventHandler
   onRightPointShape: TLPointerEventHandler
   onDragShape: TLPointerEventHandler
   onHoverShape: TLPointerEventHandler
@@ -126,7 +138,7 @@ export interface TLCallbacks {
 
   // Bounds (bounding box background)
   onPointBounds: TLBoundsEventHandler
-  onDoublePointBounds: TLBoundsEventHandler
+  onDoubleClickBounds: TLBoundsEventHandler
   onRightPointBounds: TLBoundsEventHandler
   onDragBounds: TLBoundsEventHandler
   onHoverBounds: TLBoundsEventHandler
@@ -135,7 +147,7 @@ export interface TLCallbacks {
 
   // Bounds handles (corners, edges)
   onPointBoundsHandle: TLBoundsHandleEventHandler
-  onDoublePointBoundsHandle: TLBoundsHandleEventHandler
+  onDoubleClickBoundsHandle: TLBoundsHandleEventHandler
   onRightPointBoundsHandle: TLBoundsHandleEventHandler
   onDragBoundsHandle: TLBoundsHandleEventHandler
   onHoverBoundsHandle: TLBoundsHandleEventHandler
@@ -144,7 +156,7 @@ export interface TLCallbacks {
 
   // Handles (ie the handles of a selected arrow)
   onPointHandle: TLPointerEventHandler
-  onDoublePointHandle: TLPointerEventHandler
+  onDoubleClickHandle: TLPointerEventHandler
   onRightPointHandle: TLPointerEventHandler
   onDragHandle: TLPointerEventHandler
   onHoverHandle: TLPointerEventHandler
@@ -253,9 +265,9 @@ export abstract class TLShapeUtil<T extends TLShape> {
 
   abstract hitTestBounds(shape: T, bounds: TLBounds): boolean
 
-  abstract transform(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): T
+  abstract transform(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T>
 
-  abstract transformSingle(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): T
+  abstract transformSingle(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T>
 
   shouldRender(prev: T, next: T): boolean {
     return true
@@ -278,21 +290,25 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return { ...shape, ...props }
   }
 
+  updateChildren<K extends TLShape>(shape: T, children: K[]): Partial<K>[] | void {
+    return
+  }
+
   onChildrenChange(shape: T, children: TLShape[]): Partial<T> | void {
-    return shape
+    return
   }
 
   onBindingChange(
     shape: T,
-    bindings: TLBinding,
+    binding: TLBinding,
     target: TLShape,
     targetBounds: TLBounds,
   ): Partial<T> | void {
-    return shape
+    return
   }
 
   onHandleChange(shape: T, handle: Partial<T['handles']>, info: TLPointerInfo): Partial<T> | void {
-    return shape
+    return
   }
 
   onRightPointHandle(
@@ -300,23 +316,23 @@ export abstract class TLShapeUtil<T extends TLShape> {
     handle: Partial<T['handles']>,
     info: TLPointerInfo,
   ): Partial<T> | void {
-    return shape
+    return
   }
 
-  onDoublePointHandle(
+  onDoubleClickHandle(
     shape: T,
     handle: Partial<T['handles']>,
     info: TLPointerInfo,
   ): Partial<T> | void {
-    return shape
+    return
   }
 
   onSessionComplete(shape: T): Partial<T> | void {
-    return shape
+    return
   }
 
   onBoundsReset(shape: T): Partial<T> | void {
-    return shape
+    return
   }
 }
 
@@ -324,39 +340,13 @@ export abstract class TLShapeUtil<T extends TLShape> {
 
 export interface IShapeTreeNode {
   shape: TLShape
-  children: IShapeTreeNode[]
+  children?: IShapeTreeNode[]
   isEditing: boolean
   isHovered: boolean
   isSelected: boolean
   isBinding: boolean
   isDarkMode: boolean
   isCurrentParent: boolean
-}
-
-export enum MoveType {
-  Backward,
-  Forward,
-  ToFront,
-  ToBack,
-}
-
-export enum AlignType {
-  Top,
-  CenterVertical,
-  Bottom,
-  Left,
-  CenterHorizontal,
-  Right,
-}
-
-export enum StretchType {
-  Horizontal,
-  Vertical,
-}
-
-export enum DistributeType {
-  Horizontal,
-  Vertical,
 }
 
 /* -------------------------------------------------- */

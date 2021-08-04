@@ -6,4 +6,5 @@ module.exports = {
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   coverageDirectory: '../../coverage/packages/tldraw',
+  testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/src/lib/old_state/'],
 }

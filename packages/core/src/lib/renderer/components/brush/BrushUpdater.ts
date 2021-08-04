@@ -16,6 +16,7 @@ export class BrushUpdater {
 
     const elm = this.ref?.current
     if (!elm) return
+
     elm.setAttribute('opacity', '1')
     elm.setAttribute('x', bounds.minX.toString())
     elm.setAttribute('y', bounds.minY.toString())

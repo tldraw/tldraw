@@ -1,26 +1,24 @@
-import { Utils } from '@tldraw/core'
-import { mockData } from '../../../../specs/__mocks__/mock-data'
-import { rotate } from './rotate.command'
+import { TLDrawState } from '../../tlstate'
+import { mockDocument } from '../../test-helpers'
 
-describe('Style command', () => {
-  const data = Utils.deepClone(mockData)
-  data.pageState.selectedIds = ['rect1']
+describe('Rotate command', () => {
+  const tlstate = new TLDrawState()
+  tlstate.loadDocument(mockDocument)
+  tlstate.select('rect1')
 
   it('does, undoes and redoes command', () => {
-    const tdata = Utils.deepClone(data)
+    expect(tlstate.getShape('rect1').rotation).toBe(undefined)
 
-    const command = rotate(tdata)
+    tlstate.rotate()
 
-    command.redo(tdata)
+    expect(tlstate.getShape('rect1').rotation).toBe(Math.PI * (6 / 4))
 
-    expect(tdata.page.shapes['rect1'].rotation).toBe(Math.PI * (6 / 4))
+    tlstate.undo()
 
-    command.undo(tdata)
+    expect(tlstate.getShape('rect1').rotation).toBe(undefined)
 
-    expect(tdata.page.shapes['rect1'].rotation).toBe(0)
+    tlstate.redo()
 
-    command.redo(tdata)
-
-    expect(tdata.page.shapes['rect1'].rotation).toBe(Math.PI * (6 / 4))
+    expect(tlstate.getShape('rect1').rotation).toBe(Math.PI * (6 / 4))
   })
 })

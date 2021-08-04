@@ -14,20 +14,21 @@ export function useZoomEvents() {
 
   useGesture(
     {
-      onWheel: ({ event, delta }) => {
-        if (event.ctrlKey) {
-          const info = inputs.wheel(event as WheelEvent)
-          callbacks.onZoom?.({ ...info, delta })
+      onWheel: ({ event: e, delta }) => {
+        const info = inputs.pan(delta, e as WheelEvent)
+
+        if (e.ctrlKey) {
+          callbacks.onZoom?.(info, e)
           return
         }
 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        callbacks.onPan?.({ ...inputs.pointer!, delta: Vec.round(delta) })
+        callbacks.onPan?.(info, e)
       },
-      onPinch: ({ pinching, da, origin }) => {
+      onPinch: ({ pinching, da, origin, event: e }) => {
         if (!pinching) {
           const info = inputs.pinch(origin, origin)
-          callbacks.onPinchEnd?.(info)
+          callbacks.onPinchEnd?.(info, e as Parameters<typeof callbacks.onPinchEnd>[1])
           rPinchDa.current = undefined
           rPinchPoint.current = undefined
           return
@@ -35,7 +36,7 @@ export function useZoomEvents() {
 
         if (rPinchPoint.current === undefined) {
           const info = inputs.pinch(origin, origin)
-          callbacks.onPinchStart?.(info)
+          callbacks.onPinchStart?.(info, e as Parameters<typeof callbacks.onPinchStart>[1])
           rPinchDa.current = da
           rPinchPoint.current = origin
         }
@@ -46,12 +47,15 @@ export function useZoomEvents() {
         const info = inputs.pinch(rPinchPoint.current, origin)
 
         // Naming things is hard
-        callbacks.onPinch?.({
-          ...info,
-          point: origin,
-          origin: rPinchPoint.current,
-          delta: [0, distanceDelta],
-        })
+        callbacks.onPinch?.(
+          {
+            ...info,
+            point: origin,
+            origin: rPinchPoint.current,
+            delta: [...info.delta, distanceDelta],
+          },
+          e as Parameters<typeof callbacks.onPinch>[1],
+        )
 
         rPinchDa.current = da
         rPinchPoint.current = origin

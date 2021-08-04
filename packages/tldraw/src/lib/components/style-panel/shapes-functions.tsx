@@ -1,7 +1,5 @@
 import * as React from 'react'
-import { state, useSelector, TLD } from '../../state'
 import { IconButton, ButtonsRow, breakpoints } from '../shared'
-import { MoveType } from '../../types'
 import { Trash } from '../icons'
 import { Tooltip } from '../tooltip'
 import {
@@ -16,81 +14,85 @@ import {
   PinTopIcon,
   RotateCounterClockwiseIcon,
 } from '@radix-ui/react-icons'
+import { useTLDrawContext } from '../../hooks'
+import { Data } from '../../state'
 
-function handleRotateCcw() {
-  state.send('ROTATED_CCW')
+const isAllLockedSelector = (s: Data) => {
+  const { selectedIds } = s.pageState
+  return selectedIds.every((id) => s.page.shapes[id].isLocked)
 }
 
-function handleDuplicate() {
-  state.send('DUPLICATED')
+const isAllAspectLockedSelector = (s: Data) => {
+  const { selectedIds } = s.pageState
+  return selectedIds.every((id) => s.page.shapes[id].isAspectRatioLocked)
 }
 
-function handleGroup() {
-  state.send('GROUPED')
+const isAllGroupedSelector = (s: Data) => {
+  const selectedShapes = s.pageState.selectedIds.map((id) => s.page.shapes[id])
+  return selectedShapes.every(
+    (shape) =>
+      shape.children !== undefined ||
+      (shape.parentId === selectedShapes[0].parentId &&
+        selectedShapes[0].parentId !== s.appState.currentPageId),
+  )
 }
 
-function handleUngroup() {
-  state.send('UNGROUPED')
-}
+const hasSelectionSelector = (s: Data) => s.pageState.selectedIds.length > 0
 
-function handleLock() {
-  state.send('TOGGLED_SHAPE_LOCK')
-}
-
-function handleAspectLock() {
-  state.send('TOGGLED_SHAPE_ASPECT_LOCK')
-}
-
-function handleMoveToBack() {
-  state.send('MOVED', { type: MoveType.ToBack })
-}
-
-function handleMoveBackward() {
-  state.send('MOVED', { type: MoveType.Backward })
-}
-
-function handleMoveForward() {
-  state.send('MOVED', { type: MoveType.Forward })
-}
-
-function handleMoveToFront() {
-  state.send('MOVED', { type: MoveType.ToFront })
-}
-
-function handleDelete() {
-  state.send('DELETED')
-}
+const hasMultipleSelectionSelector = (s: Data) => s.pageState.selectedIds.length > 1
 
 export const ShapesFunctions = React.memo(() => {
-  const isAllLocked = useSelector((s) => {
-    const { page } = s.data
-    const { selectedIds } = s.data.pageState
-    return selectedIds.every((id) => page.shapes[id].isLocked)
-  })
+  const { tlstate, useAppState } = useTLDrawContext()
 
-  const isAllAspectLocked = useSelector((s) => {
-    const { page } = s.data
-    const { selectedIds } = s.data.pageState
-    return selectedIds.every((id) => page.shapes[id].isAspectRatioLocked)
-  })
+  const isAllLocked = useAppState(isAllLockedSelector)
 
-  const isAllGrouped = useSelector((s) => {
-    const selectedShapes = TLD.getSelectedShapes(s.data)
-    return selectedShapes.every(
-      (shape) =>
-        shape.children !== undefined ||
-        (shape.parentId === selectedShapes[0].parentId &&
-          selectedShapes[0].parentId !== s.data.appState.currentPageId),
-    )
-  })
+  const isAllAspectLocked = useAppState(isAllAspectLockedSelector)
 
-  const hasSelection = useSelector((s) => {
-    return s.data.pageState.selectedIds.length > 0
-  })
+  const isAllGrouped = useAppState(isAllGroupedSelector)
 
-  const hasMultipleSelection = useSelector((s) => {
-    return s.data.pageState.selectedIds.length > 1
-  })
+  const hasSelection = useAppState(hasSelectionSelector)
+
+  const hasMultipleSelection = useAppState(hasMultipleSelectionSelector)
+
+  const handleRotate = React.useCallback(() => {
+    tlstate.rotate()
+  }, [tlstate])
+
+  const handleDuplicate = React.useCallback(() => {
+    tlstate.duplicate()
+  }, [tlstate])
+
+  const handleToggleLocked = React.useCallback(() => {
+    tlstate.toggleLocked()
+  }, [tlstate])
+
+  const handleToggleAspectRatio = React.useCallback(() => {
+    tlstate.toggleAspectRatioLocked()
+  }, [tlstate])
+
+  const handleGroup = React.useCallback(() => {
+    tlstate.group()
+  }, [tlstate])
+
+  const handleMoveToBack = React.useCallback(() => {
+    tlstate.moveToBack()
+  }, [tlstate])
+
+  const handleMoveBackward = React.useCallback(() => {
+    tlstate.moveBackward()
+  }, [tlstate])
+
+  const handleMoveForward = React.useCallback(() => {
+    tlstate.moveForward()
+  }, [tlstate])
+
+  const handleMoveToFront = React.useCallback(() => {
+    tlstate.moveToFront()
+  }, [tlstate])
+
+  const handleDelete = React.useCallback(() => {
+    tlstate.delete()
+  }, [tlstate])
 
   return (
     <>
@@ -106,13 +108,18 @@ export const ShapesFunctions = React.memo(() => {
           </Tooltip>
         </IconButton>
 
-        <IconButton disabled={!hasSelection} size="small" onClick={handleRotateCcw}>
+        <IconButton disabled={!hasSelection} size="small" onClick={handleRotate}>
           <Tooltip label="Rotate">
             <RotateCounterClockwiseIcon />
           </Tooltip>
         </IconButton>
 
-        <IconButton bp={breakpoints} disabled={!hasSelection} size="small" onClick={handleLock}>
+        <IconButton
+          bp={breakpoints}
+          disabled={!hasSelection}
+          size="small"
+          onClick={handleToggleLocked}
+        >
           <Tooltip label="Toogle Locked" kbd={`#L`}>
             {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon opacity={0.4} />}
           </Tooltip>
@@ -122,7 +129,7 @@ export const ShapesFunctions = React.memo(() => {
           bp={breakpoints}
           disabled={!hasSelection}
           size="small"
-          onClick={handleAspectLock}
+          onClick={handleToggleAspectRatio}
         >
           <Tooltip label="Toogle Aspect Ratio Lock">
             <AspectRatioIcon opacity={isAllAspectLocked ? 1 : 0.4} />
@@ -133,7 +140,7 @@ export const ShapesFunctions = React.memo(() => {
           bp={breakpoints}
           disabled={!isAllGrouped && !hasMultipleSelection}
           size="small"
-          onClick={isAllGrouped ? handleUngroup : handleGroup}
+          onClick={handleGroup}
         >
           <Tooltip label="Group" kbd={`#G`}>
             <GroupIcon opacity={isAllGrouped ? 1 : 0.4} />

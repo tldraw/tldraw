@@ -1,12 +1,12 @@
-import { BaseSession } from '../session-types'
-import { Data } from '../../../../types'
-import * as commands from '../../../command'
-import { TLD } from '../../../tld'
 import { Utils, Vec } from '@tldraw/core'
+import { Session } from '../../../state-types'
+import { Data } from '../../../state-types'
+import { TLDR } from '../../../tldr'
 
 const PI2 = Math.PI * 2
 
-export class RotateSession implements BaseSession {
+export class RotateSession implements Session {
+  id: 'rotate'
   delta = [0, 0]
   origin: number[]
   snapshot: RotateSnapshot
@@ -17,10 +17,22 @@ export class RotateSession implements BaseSession {
     this.snapshot = getRotateSnapshot(data)
   }
 
-  update(data: Data, point: number[], isLocked = false): void {
+  start = (data: Data) => data
+
+  update = (data: Data, point: number[], isLocked = false): Data => {
     const { commonBoundsCenter, initialShapes } = this.snapshot
 
-    const { page, pageState } = data
+    const next = {
+      ...data,
+      page: {
+        ...data.page,
+      },
+      pageState: {
+        ...data.pageState,
+      },
+    }
+
+    const { page, pageState } = next
 
     const a1 = Vec.angle(commonBoundsCenter, this.origin)
     const a2 = Vec.angle(commonBoundsCenter, point)
@@ -35,57 +47,87 @@ export class RotateSession implements BaseSession {
 
     pageState.boundsRotation = (PI2 + (this.snapshot.boundsRotation + rot)) % PI2
 
-    for (const {
-      id,
-      center,
-      offset,
-      shape: { rotation = 0 },
-    } of initialShapes) {
-      const shape = page.shapes[id]
+    next.page.shapes = {
+      ...next.page.shapes,
+      ...Object.fromEntries(
+        initialShapes.map(({ id, center, offset, shape: { rotation = 0 } }) => {
+          const shape = page.shapes[id]
 
-      const nextRotation =
-        PI2 +
-        ((isLocked ? Utils.clampToRotationToSegments(rotation + rot, 24) : rotation + rot) % PI2)
+          const nextRotation = isLocked
+            ? Utils.clampToRotationToSegments(rotation + rot, 24)
+            : rotation + rot
 
-      const nextPoint = Vec.sub(Vec.rotWith(center, commonBoundsCenter, rot), offset)
+          const nextPoint = Vec.sub(Vec.rotWith(center, commonBoundsCenter, rot), offset)
 
-      page.shapes[shape.id] = TLD.mutate(data, shape, {
-        point: nextPoint,
-        rotation: nextRotation,
-      })
+          return [
+            id,
+            {
+              ...next.page.shapes[id],
+              ...TLDR.mutate(data, shape, {
+                point: nextPoint,
+                rotation: (PI2 + nextRotation) % PI2,
+              }),
+            },
+          ]
+        }),
+      ),
     }
 
-    const ids = initialShapes.map((s) => s.id)
-    TLD.updateBindings(data, ids)
-    TLD.updateParents(data, ids)
+    return next
   }
 
-  cancel = (data: Data): void => {
+  cancel = (data: Data) => {
     const { initialShapes } = this.snapshot
 
     for (const { id, shape } of initialShapes) {
       data.page[id] = { ...shape }
     }
 
-    const ids = initialShapes.map((s) => s.id)
-    TLD.updateBindings(data, ids)
-    TLD.updateParents(data, ids)
+    return {
+      ...data,
+      page: {
+        ...data.page,
+        shapes: {
+          ...data.page.shapes,
+          ...Object.fromEntries(initialShapes.map(({ id, shape }) => [id, shape])),
+        },
+      },
+    }
   }
 
-  complete = (data: Data) => {
-    if (!this.snapshot.hasUnlockedShapes) return undefined
+  complete(data: Data) {
+    const { hasUnlockedShapes, initialShapes } = this.snapshot
 
-    return commands.mutate(
-      data,
-      this.snapshot.initialShapes.map(({ shape }) => shape),
-      this.snapshot.initialShapes.map(({ id }) => Utils.deepClone(data.page.shapes[id])),
-    )
+    if (!hasUnlockedShapes) return data
+
+    return {
+      id: 'rotate',
+      before: {
+        page: {
+          shapes: Object.fromEntries(
+            initialShapes.map(({ shape: { id, point, rotation = undefined } }) => {
+              return [id, { point, rotation }]
+            }),
+          ),
+        },
+      },
+      after: {
+        page: {
+          shapes: Object.fromEntries(
+            this.snapshot.initialShapes.map(({ shape }) => {
+              const { point, rotation } = data.page.shapes[shape.id]
+              return [shape.id, { point, rotation }]
+            }),
+          ),
+        },
+      },
+    }
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getRotateSnapshot(data: Data) {
-  const initialShapes = TLD.getSelectedBranchSnapshot(data)
+  const initialShapes = TLDR.getSelectedBranchSnapshot(data)
 
   if (initialShapes.length === 0) {
     throw Error('No selected shapes!')
@@ -94,11 +136,11 @@ export function getRotateSnapshot(data: Data) {
   const hasUnlockedShapes = initialShapes.length > 0
 
   const shapesBounds = Object.fromEntries(
-    initialShapes.map((shape) => [shape.id, TLD.getBounds(shape)]),
+    initialShapes.map((shape) => [shape.id, TLDR.getBounds(shape)]),
   )
 
   const rotatedBounds = Object.fromEntries(
-    initialShapes.map((shape) => [shape.id, TLD.getRotatedBounds(shape)]),
+    initialShapes.map((shape) => [shape.id, TLDR.getRotatedBounds(shape)]),
   )
 
   const bounds = Utils.getCommonBounds(Object.values(shapesBounds))
@@ -112,7 +154,7 @@ export function getRotateSnapshot(data: Data) {
     initialShapes: initialShapes
       .filter((shape) => shape.children === undefined)
       .map((shape) => {
-        const bounds = TLD.getBounds(shape)
+        const bounds = TLDR.getBounds(shape)
         const center = Utils.getBoundsCenter(bounds)
         const offset = Vec.sub(center, shape.point)
 

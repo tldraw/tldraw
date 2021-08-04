@@ -11,7 +11,8 @@ export function useHandleEvents(id: string) {
       e.currentTarget?.setPointerCapture(e.pointerId)
 
       const info = inputs.pointerDown(e, id)
-      callbacks.onPointHandle?.(info)
+      callbacks.onPointHandle?.(info, e)
+      callbacks.onPointerDown?.(info, e)
     },
     [callbacks, id],
   )
@@ -26,26 +27,26 @@ export function useHandleEvents(id: string) {
         e.currentTarget?.releasePointerCapture(e.pointerId)
 
         if (isDoubleClick && !(info.altKey || info.metaKey)) {
-          callbacks.onDoublePointHandle?.(info)
+          callbacks.onDoubleClickHandle?.(info, e)
         }
 
-        callbacks.onReleaseHandle?.(info)
+        callbacks.onReleaseHandle?.(info, e)
       }
-      callbacks.onStopPointing?.(info)
+      callbacks.onPointerUp?.(info, e)
     },
     [callbacks],
   )
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
-      e.stopPropagation()
+      // e.stopPropagation()
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         const info = inputs.pointerMove(e, id)
-        callbacks.onDragHandle?.(info)
-      } else {
-        const info = inputs.pointerMove(e, id)
-        callbacks.onPointerMove?.(info)
+        callbacks.onDragHandle?.(info, e)
       }
+      const info = inputs.pointerMove(e, id)
+      callbacks.onPointerMove?.(info, e)
+      e.stopPropagation()
     },
     [callbacks, id],
   )
@@ -53,7 +54,7 @@ export function useHandleEvents(id: string) {
   const onPointerEnter = React.useCallback(
     (e: React.PointerEvent) => {
       const info = inputs.pointerEnter(e, id)
-      callbacks.onHoverHandle?.(info)
+      callbacks.onHoverHandle?.(info, e)
     },
     [callbacks, id],
   )
@@ -61,7 +62,7 @@ export function useHandleEvents(id: string) {
   const onPointerLeave = React.useCallback(
     (e: React.PointerEvent) => {
       const info = inputs.pointerEnter(e, id)
-      callbacks.onUnhoverHandle?.(info)
+      callbacks.onUnhoverHandle?.(info, e)
     },
     [callbacks, id],
   )

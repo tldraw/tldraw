@@ -1,14 +1,29 @@
-import { TransformSingleSession } from './transform-single.session'
-import { mockData } from '../../../../../specs/__mocks__/mock-data'
-import { TLBoundsCorner, Utils } from '@tldraw/core'
+import { TLDrawState } from '../../../tlstate'
+import { mockDocument } from '../../../test-helpers'
+import { TLBoundsCorner } from '@tldraw/core'
 
 describe('Transform single session', () => {
-  const data = Utils.deepClone(mockData)
-  data.pageState.selectedIds = ['rect1']
+  const tlstate = new TLDrawState()
 
   it('begins, updates and completes session', () => {
-    const session = new TransformSingleSession(data, [-10, -10], TLBoundsCorner.TopLeft)
-    session.update(data, [10, 10])
-    session.complete(data)
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .startTransformSession([-10, -10], TLBoundsCorner.TopLeft)
+      .updateTransformSession([10, 10])
+      .completeSession()
+      .undo()
+      .redo()
+  })
+
+  it('cancels session', () => {
+    tlstate
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .startTransformSession([5, 5], TLBoundsCorner.TopLeft)
+      .updateTransformSession([10, 10])
+      .cancelSession()
+
+    expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
   })
 })

@@ -1,19 +1,8 @@
 import * as React from 'react'
 import { useShapeEvents, useTLContext } from '../../hooks'
-import { Utils } from '../../../utils'
-import { TLShape } from '../../../types'
+import { IShapeTreeNode } from '../../../types'
 import { RenderedShape } from './rendered-shape'
 import { EditingTextShape } from './editing-text-shape'
-
-interface ShapeProps {
-  shape: TLShape
-  isEditing: boolean
-  isHovered: boolean
-  isSelected: boolean
-  isBinding: boolean
-  isDarkMode: boolean
-  isCurrentParent: boolean
-}
 
 export const Shape = React.memo(
   ({
@@ -24,7 +13,7 @@ export const Shape = React.memo(
     isBinding,
     isDarkMode,
     isCurrentParent,
-  }: ShapeProps) => {
+  }: IShapeTreeNode) => {
     const { shapeUtils } = useTLContext()
     const events = useShapeEvents(shape.id, isCurrentParent)
     const utils = shapeUtils[shape.type]
@@ -67,5 +56,4 @@ export const Shape = React.memo(
       </g>
     )
   },
-  Utils.shallowEqual,
 )

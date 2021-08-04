@@ -1,40 +1,29 @@
 import { Vec } from '@tldraw/core'
-import { Data } from '../../../types'
-import { TLD } from '../../tld'
-import { Command } from '../command'
+import { Data, Command } from '../../state-types'
+import { TLDR } from '../../tldr'
 
-export function translate(data: Data, delta: number[]) {
-  const ids = [...TLD.getSelectedIds(data)]
+export function translate(data: Data, ids: string[], delta: number[]): Command {
+  const { before, after } = TLDR.mutateShapes(data, ids, (shape) => ({
+    point: Vec.add(shape.point, delta),
+  }))
 
-  const shapesToTranslate = ids
-    .flatMap((id) => TLD.getDocumentBranch(data, id))
-    .map((id) => {
-      const shape = data.page.shapes[id]
-      return {
-        id,
-        prev: { point: [...shape.point] },
-        next: { point: Vec.add(shape.point, delta) },
-      }
-    })
-
-  return new Command({
-    name: 'translate_shapes',
-    category: 'canvas',
-    do(data) {
-      const { shapes } = data.page
-
-      for (const { id, next } of shapesToTranslate) {
-        const shape = shapes[id]
-        TLD.mutate(data, shape, { ...next })
-      }
+  return {
+    id: 'translate_shapes',
+    before: {
+      page: {
+        ...data.page,
+        shapes: {
+          ...before,
+        },
+      },
     },
-    undo(data) {
-      const { shapes } = data.page
-
-      for (const { id, prev } of shapesToTranslate) {
-        const shape = shapes[id]
-        TLD.mutate(data, shape, { ...prev })
-      }
+    after: {
+      page: {
+        ...data.page,
+        shapes: {
+          ...after,
+        },
+      },
     },
-  })
+  }
 }

@@ -1,4 +1,3 @@
-import { state, useSelector } from '../../state'
 import { Kbd } from '../kbd'
 import {
   IconButton,
@@ -8,6 +7,8 @@ import {
   FloatingContainer,
   Divider,
 } from '../shared'
+
+import { Data } from '../../state'
 import { ShapesFunctions } from './shapes-functions'
 import { AlignDistribute } from './align-distribute'
 import { QuickColorSelect } from './quick-color-select'
@@ -17,14 +18,13 @@ import { QuickFillSelect } from './quick-fill-select'
 import { Tooltip } from '../tooltip'
 import { DotsHorizontalIcon, Cross2Icon } from '@radix-ui/react-icons'
 import { Utils } from '@tldraw/core'
+import { useTLDrawContext } from '../../hooks'
 
-const handleStylePanelOpen = () => state.send('TOGGLED_STYLE_PANEL_OPEN')
-const handleCopy = () => state.send('COPIED')
-const handlePaste = () => state.send('PASTED')
-const handleCopyToSvg = () => state.send('COPIED_TO_SVG')
+const isStyleOpenSelector = (s: Data) => s.appState.isStyleOpen
 
 export function StylePanel(): JSX.Element {
-  const isOpen = useSelector((s) => s.data.appState.isStyleOpen)
+  const { tlstate, useAppState } = useTLDrawContext()
+  const isOpen = useAppState(isStyleOpenSelector)
 
   return (
     <FloatingContainer direction="column">
@@ -37,7 +37,7 @@ export function StylePanel(): JSX.Element {
           bp={breakpoints}
           title="Style"
           size="small"
-          onPointerDown={handleStylePanelOpen}
+          onPointerDown={tlstate.toggleStylePanel}
         >
           <Tooltip label={isOpen ? 'Close' : 'More'}>
             {isOpen ? <Cross2Icon /> : <DotsHorizontalIcon />}
@@ -49,10 +49,12 @@ export function StylePanel(): JSX.Element {
   )
 }
 
-function SelectedShapeContent(): JSX.Element {
-  const selectedShapesCount = useSelector((s) => s.data.pageState.selectedIds.length)
+const showKbds = !Utils.isMobile()
+const selectedShapesCountSelector = (s: Data) => s.pageState.selectedIds.length
 
-  const showKbds = !Utils.isMobile()
+function SelectedShapeContent(): JSX.Element {
+  const { tlstate, useAppState } = useTLDrawContext()
+  const selectedShapesCount = useAppState(selectedShapesCountSelector)
 
   return (
     <>
@@ -64,15 +66,15 @@ function SelectedShapeContent(): JSX.Element {
         hasThreeOrMore={selectedShapesCount > 2}
       />
       <Divider />
-      <RowButton bp={breakpoints} disabled={selectedShapesCount === 0} onClick={handleCopy}>
+      <RowButton bp={breakpoints} disabled={selectedShapesCount === 0} onClick={tlstate.copy}>
         <span>Copy</span>
         {showKbds && <Kbd variant="menu">#C</Kbd>}
       </RowButton>
-      <RowButton bp={breakpoints} onClick={handlePaste}>
+      <RowButton bp={breakpoints} onClick={tlstate.paste}>
         <span>Paste</span>
         {showKbds && <Kbd variant="menu">#V</Kbd>}
       </RowButton>
-      <RowButton bp={breakpoints} onClick={handleCopyToSvg}>
+      <RowButton bp={breakpoints} onClick={tlstate.copyToSvg}>
         <span>Copy to SVG</span>
         {showKbds && <Kbd variant="menu">⇧#C</Kbd>}
       </RowButton>

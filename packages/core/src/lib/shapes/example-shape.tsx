@@ -58,20 +58,11 @@ export class ExampleShape extends TLShapeUtil<TLShape> {
     )
   }
 
-  transform(
-    shape: TLShape,
-    bounds: TLBounds,
-    info: TLTransformInfo<TLShape>,
-  ): TLShapeUtil<TLShape> {
-    shape.point = [bounds.minX, bounds.minY]
-    return this
+  transform(shape: TLShape, bounds: TLBounds, info: TLTransformInfo<TLShape>): TLShape {
+    return { ...shape, point: [bounds.minX, bounds.minY] }
   }
 
-  transformSingle(
-    shape: TLShape,
-    bounds: TLBounds,
-    info: TLTransformInfo<TLShape>,
-  ): TLShapeUtil<TLShape> {
+  transformSingle(shape: TLShape, bounds: TLBounds, info: TLTransformInfo<TLShape>): TLShape {
     return this.transform(shape, bounds, info)
   }
 }

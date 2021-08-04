@@ -1,36 +1,51 @@
 import { Utils, Vec } from '@tldraw/core'
-import { Data } from '../../../types'
-import { TLD } from '../../tld'
-import { Command } from '../command'
+import { TLDR } from '../../tldr'
+import { Data, Command } from '../../state-types'
 
-export function duplicate(data: Data) {
-  const ids = [...TLD.getSelectedIds(data)]
+export function duplicate(data: Data, ids: string[]): Command {
+  const delta = Vec.div([16, 16], data.pageState.camera.zoom)
 
-  const initialShapes = ids.map((id) => data.page.shapes[id])
+  const after = Object.fromEntries(
+    TLDR.getSelectedIds(data)
+      .map((id) => data.page.shapes[id])
+      .map((shape) => {
+        const id = Utils.uniqueId()
+        return [
+          id,
+          {
+            ...Utils.deepClone(shape),
+            id,
+            point: Vec.add(shape.point, delta),
+          },
+        ]
+      }),
+  )
 
-  const duplicates = initialShapes.map((shape) => ({
-    ...Utils.deepClone(shape),
-    id: Utils.uniqueId(),
-    point: Vec.add(shape.point, Vec.div([16, 16], data.pageState.camera.zoom)),
-  }))
+  const before = Object.fromEntries(Object.keys(after).map((id) => [id, undefined]))
 
-  const newIds = duplicates.map((shape) => shape.id)
-
-  return new Command({
-    name: 'duplicate_shapes',
-    category: 'canvas',
-    do(data) {
-      const { shapes } = data.page
-
-      duplicates.forEach((duplicate) => (shapes[duplicate.id] = duplicate))
-
-      TLD.setSelectedIds(data, newIds)
-      TLD.updateBindings(data, newIds)
-      TLD.updateParents(data, newIds)
+  return {
+    id: 'duplicate',
+    before: {
+      page: {
+        shapes: {
+          ...before,
+        },
+      },
+      pageState: {
+        ...data.pageState,
+        selectedIds: ids,
+      },
     },
-    undo(data) {
-      TLD.setSelectedIds(data, ids)
-      TLD.deleteShapes(data, newIds)
+    after: {
+      page: {
+        shapes: {
+          ...after,
+        },
+      },
+      pageState: {
+        ...data.pageState,
+        selectedIds: Object.keys(after),
+      },
     },
-  })
+  }
 }

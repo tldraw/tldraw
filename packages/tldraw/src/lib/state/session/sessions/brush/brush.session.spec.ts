@@ -1,40 +1,50 @@
-import { BrushSession } from './brush.session'
-import { mockData } from '../../../../../specs/__mocks__/mock-data'
-import { Utils } from '@tldraw/core'
+import { TLDrawState } from '../../../tlstate'
+import { mockDocument } from '../../../test-helpers'
 
 describe('Brush session', () => {
-  const data = Utils.deepClone(mockData)
+  const tlstate = new TLDrawState()
+  tlstate.loadDocument(mockDocument)
 
   it('begins, updates and completes session', () => {
-    const session = new BrushSession(data, [-10, -10])
-    session.update(data, [10, 10])
-    session.complete(data)
-    expect(data.pageState.selectedIds.length).toBe(1)
+    tlstate.deselectAll()
+    tlstate.startBrushSession([-10, -10])
+    tlstate.updateBrushSession([10, 10])
+    tlstate.completeSession()
+    expect(tlstate.selectedIds.length).toBe(1)
   })
 
   it('selects multiple shapes', () => {
-    const session = new BrushSession(data, [-10, -10])
-    session.update(data, [110, 110])
-    session.complete(data)
-    expect(data.pageState.selectedIds.length).toBe(2)
+    tlstate.deselectAll()
+    tlstate.startBrushSession([-10, -10])
+    tlstate.updateBrushSession([110, 110])
+    tlstate.completeSession()
+    expect(tlstate.selectedIds.length).toBe(3)
   })
 
   it('does not de-select original shapes', () => {
-    const tdata = Utils.deepClone(data)
-    tdata.pageState.selectedIds = ['rect1']
-    const session = new BrushSession(tdata, [300, 300])
-    session.update(tdata, [301, 301])
-    session.complete(tdata)
-    expect(tdata.pageState.selectedIds.length).toBe(1)
+    tlstate.deselectAll()
+    tlstate
+      .select('rect1')
+      .startBrushSession([300, 300])
+      .updateBrushSession([301, 301])
+      .completeSession()
+    expect(tlstate.selectedIds.length).toBe(1)
   })
 
   it('does not select hidden shapes', () => {
-    const tdata = Utils.deepClone(data)
-    tdata.pageState.selectedIds = []
-    tdata.page.shapes['rect1'].isHidden = true
-    const session = new BrushSession(tdata, [-10, -10])
-    session.update(tdata, [10, 10])
-    session.complete(tdata)
-    expect(tdata.pageState.selectedIds.length).toBe(0)
+    tlstate.toggleHidden(['rect1'])
+    tlstate.deselectAll()
+    tlstate.startBrushSession([-10, -10])
+    tlstate.updateBrushSession([10, 10])
+    tlstate.completeSession()
+    expect(tlstate.selectedIds.length).toBe(0)
+  })
+
+  it('when command is held, require the entire shape to be selected', () => {
+    tlstate.loadDocument(mockDocument)
+    tlstate.deselectAll()
+    tlstate.startBrushSession([-10, -10])
+    tlstate.updateBrushSession([10, 10])
+    tlstate.completeSession()
   })
 })

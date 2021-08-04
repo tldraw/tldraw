@@ -59,27 +59,27 @@ The renderer also accepts many (optional) event callbacks.
 | `onPinchEnd`                | The user stopped a two-pointer pinch                      |
 | `onPinchStart`              | The user began a two-pointer pinch                        |
 | `onPointerMove`             | The user moved their pointer                              |
-| `onStopPointing`            | The user ended a point                                    |
+| `onPointerUp`               | The user ended a point                                    |
 | `onPointShape`              | The user pointed a shape                                  |
-| `onDoublePointShape`        | The user double-pointed a shape                           |
+| `onDoubleClickShape`        | The user double-pointed a shape                           |
 | `onRightPointShape`         | The user right-pointed a shape                            |
 | `onMoveOverShape`           | The user moved their pointer a shape                      |
 | `onHoverShape`              | The user moved their pointer onto a shape                 |
 | `onUnhoverShape`            | The user moved their pointer off of a shape               |
 | `onPointHandle`             | The user pointed a shape handle                           |
-| `onDoublePointHandle`       | The user double-pointed a shape handle                    |
+| `onDoubleClickHandle`       | The user double-pointed a shape handle                    |
 | `onRightPointHandle`-       | he user right-pointed a shape handle                      |
 | `onMoveOverHandle`          | The user moved their pointer over a shape handle          |
 | `onHoverHandle`             | The user moved their pointer onto a shape handle          |
 | `onUnhoverHandle`           | The user moved their pointer off of a shape handle        |
 | `onPointCanvas`             | The user pointed the canvas                               |
-| `onDoublePointCanvas`       | The user double-pointed the canvas                        |
+| `onDoubleClickCanvas`       | The user double-pointed the canvas                        |
 | `onRightPointCanvas`        | The user right-pointed the canvas                         |
 | `onPointBounds`             | The user pointed the selection bounds                     |
-| `onDoublePointBounds`       | The user double-pointed the selection bounds              |
+| `onDoubleClickBounds`       | The user double-pointed the selection bounds              |
 | `onRightPointBounds`        | The user right-pointed the selection bounds               |
 | `onPointBoundsHandle`       | The user pointed a selection bounds edge or corner        |
-| `onDoublePointBoundsHandle` | The user double-pointed a selection bounds edge or corner |
+| `onDoubleClickBoundsHandle` | The user double-pointed a selection bounds edge or corner |
 | `onBlurEditingShape`        | The user blurred an editing (text) shape                  |
 | `onError`                   | The renderer encountered an error                         |
 

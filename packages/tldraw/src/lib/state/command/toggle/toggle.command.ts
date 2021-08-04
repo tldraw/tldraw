@@ -1,41 +1,34 @@
 import { PropsOfType, TLDrawShape } from '../../../shape'
-import { Data } from '../../../types'
-import { TLD } from '../../tld'
-import { Command } from '../command'
+import { Data, Command } from '../../state-types'
+import { TLDR } from '../../tldr'
 
-export function toggle(data: Data, prop: PropsOfType<TLDrawShape, boolean>) {
-  const ids = [...TLD.getSelectedIds(data)]
+export function toggle(
+  data: Data,
+  ids: string[],
+  prop: PropsOfType<TLDrawShape, boolean>,
+): Command {
   const initialShapes = ids.map((id) => data.page.shapes[id])
   const isAllToggled = initialShapes.every((shape) => shape[prop])
 
-  const shapesToToggle = ids.map((id) => {
-    const shape = data.page.shapes[id]
+  const { before, after } = TLDR.mutateShapes(data, TLDR.getSelectedIds(data), () => ({
+    [prop]: !isAllToggled,
+  }))
 
-    return {
-      id,
-      prev: { [prop]: shape[prop] },
-      next: { [prop]: !isAllToggled },
-    }
-  })
-
-  return new Command({
-    name: 'toggle_shapes',
-    category: 'canvas',
-    do(data) {
-      const { shapes } = data.page
-
-      for (const { id, next } of shapesToToggle) {
-        const shape = shapes[id]
-        TLD.mutate(data, shape, { ...next })
-      }
+  return {
+    id: 'toggle_shapes',
+    before: {
+      page: {
+        shapes: {
+          ...before,
+        },
+      },
     },
-    undo(data) {
-      const { shapes } = data.page
-
-      for (const { id, prev } of shapesToToggle) {
-        const shape = shapes[id]
-        TLD.mutate(data, shape, { ...prev })
-      }
+    after: {
+      page: {
+        shapes: {
+          ...after,
+        },
+      },
     },
-  })
+  }
 }

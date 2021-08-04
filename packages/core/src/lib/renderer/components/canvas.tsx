@@ -19,7 +19,7 @@ interface CanvasProps<T extends TLShape> {
   hideBounds?: boolean
 }
 
-export function Canvas<T extends TLShape>({
+export const Canvas = React.memo(function Canvas<T extends TLShape>({
   page,
   pageState,
   hideBounds = false,
@@ -49,4 +49,4 @@ export function Canvas<T extends TLShape>({
       </svg>
     </div>
   )
-}
+})

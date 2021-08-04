@@ -1,18 +1,25 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { state, useSelector } from '../../state'
 import { BoxIcon, StyleDropdownItem, StyleDropdownContent } from './shared'
 import { DropdownMenuIconTriggerButton } from '../shared'
 import { ColorStyle, strokes } from '../../shape'
 import { useTheme } from '../../hooks/useTheme'
+import { useTLDrawContext } from '../../hooks'
+import { Data } from '../../state'
 
-function handleColorChange(color: string): void {
-  state.send('CHANGED_STYLE', { color })
-}
+const selectColor = (data: Data) => data.appState.selectedStyle.color
 
 export const QuickColorSelect = React.memo((): JSX.Element => {
-  const color = useSelector((s) => s.values.selectedStyle.color)
   const { theme } = useTheme()
+  const { tlstate, useAppState } = useTLDrawContext()
+  const color = useAppState(selectColor)
+
+  const handleColorChange = React.useCallback(
+    (color: ColorStyle) => {
+      tlstate.style({ color })
+    },
+    [tlstate],
+  )
 
   return (
     <DropdownMenu.Root dir="ltr">

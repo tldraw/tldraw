@@ -12,7 +12,8 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
       e.currentTarget?.setPointerCapture(e.pointerId)
       const info = inputs.pointerDown(e, id)
 
-      callbacks.onPointBoundsHandle?.(info)
+      callbacks.onPointBoundsHandle?.(info, e)
+      callbacks.onPointerDown?.(info, e)
     },
     [callbacks, id],
   )
@@ -25,41 +26,41 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
 
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         e.currentTarget?.releasePointerCapture(e.pointerId)
-
-        if (isDoubleClick && !(info.altKey || info.metaKey)) {
-          callbacks.onDoublePointBoundsHandle?.(info)
-        }
-
-        callbacks.onReleaseBoundsHandle?.(info)
       }
-      callbacks.onStopPointing?.(info)
+
+      if (isDoubleClick && !(info.altKey || info.metaKey)) {
+        callbacks.onDoubleClickBoundsHandle?.(info, e)
+      }
+
+      callbacks.onReleaseBoundsHandle?.(info, e)
+      callbacks.onPointerUp?.(info, e)
     },
     [callbacks, id],
   )
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
-      e.stopPropagation()
+      // e.stopPropagation()
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        callbacks.onDragBoundsHandle?.(inputs.pointerMove(e, id))
-      } else {
-        const info = inputs.pointerMove(e, id)
-        callbacks.onPointerMove?.(info)
+        callbacks.onDragBoundsHandle?.(inputs.pointerMove(e, id), e)
       }
+      const info = inputs.pointerMove(e, id)
+      callbacks.onPointerMove?.(info, e)
+      e.stopPropagation()
     },
     [callbacks, id],
   )
 
   const onPointerEnter = React.useCallback(
     (e: React.PointerEvent) => {
-      callbacks.onHoverBoundsHandle?.(inputs.pointerEnter(e, id))
+      callbacks.onHoverBoundsHandle?.(inputs.pointerEnter(e, id), e)
     },
     [callbacks, id],
   )
 
   const onPointerLeave = React.useCallback(
     (e: React.PointerEvent) => {
-      callbacks.onUnhoverBoundsHandle?.(inputs.pointerEnter(e, id))
+      callbacks.onUnhoverBoundsHandle?.(inputs.pointerEnter(e, id), e)
     },
     [callbacks, id],
   )

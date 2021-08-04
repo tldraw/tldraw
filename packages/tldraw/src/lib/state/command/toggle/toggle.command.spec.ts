@@ -1,25 +1,42 @@
-import { Utils } from '@tldraw/core'
-import { mockData } from '../../../../specs/__mocks__/mock-data'
-import { state } from '../../state'
-import { toggle } from './toggle.command'
+import { TLDrawState } from '../../tlstate'
+import { mockDocument } from '../../test-helpers'
 
-describe('Style command', () => {
-  const data = Utils.deepClone(mockData)
-  data.pageState.selectedIds = ['rect1']
+describe('Toggle command', () => {
+  const tlstate = new TLDrawState()
 
   it('does, undoes and redoes command', () => {
-    const tdata = Utils.deepClone(data)
+    tlstate.loadDocument(mockDocument)
+    tlstate.selectAll()
 
-    state.history.execute(tdata, toggle(tdata, 'isLocked'))
+    expect(tlstate.getShape('rect2').isAspectRatioLocked).toBe(undefined)
 
-    expect(tdata.page.shapes['rect1'].isLocked).toBe(true)
+    tlstate.toggleAspectRatioLocked()
 
-    state.history.undo(tdata)
+    expect(tlstate.getShape('rect2').isAspectRatioLocked).toBe(true)
 
-    expect(tdata.page.shapes['rect1'].isLocked).toBe(undefined)
+    tlstate.undo()
 
-    state.history.redo(tdata)
+    expect(tlstate.getShape('rect2').isAspectRatioLocked).toBe(undefined)
 
-    expect(tdata.page.shapes['rect1'].isLocked).toBe(true)
+    tlstate.redo()
+
+    expect(tlstate.getShape('rect2').isAspectRatioLocked).toBe(true)
+  })
+
+  it('toggles on before off when mixed values', () => {
+    tlstate.loadDocument(mockDocument)
+    tlstate.setSelectedIds(['rect2'])
+    expect(tlstate.getShape('rect1').isAspectRatioLocked).toBe(undefined)
+    expect(tlstate.getShape('rect2').isAspectRatioLocked).toBe(undefined)
+    tlstate.toggleAspectRatioLocked()
+    expect(tlstate.getShape('rect1').isAspectRatioLocked).toBe(undefined)
+    expect(tlstate.getShape('rect2').isAspectRatioLocked).toBe(true)
+    tlstate.selectAll()
+    tlstate.toggleAspectRatioLocked()
+    expect(tlstate.getShape('rect1').isAspectRatioLocked).toBe(true)
+    expect(tlstate.getShape('rect1').isAspectRatioLocked).toBe(true)
+    tlstate.toggleAspectRatioLocked()
+    expect(tlstate.getShape('rect1').isAspectRatioLocked).toBe(false)
+    expect(tlstate.getShape('rect1').isAspectRatioLocked).toBe(false)
   })
 })

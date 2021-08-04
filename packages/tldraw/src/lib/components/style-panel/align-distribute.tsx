@@ -11,49 +11,9 @@ import {
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
 } from '@radix-ui/react-icons'
-import { breakpoints, ButtonsRow, IconButton } from '../shared'
 import { AlignType, DistributeType, StretchType } from '../../types'
-import { state } from '../../state'
-
-function alignTop() {
-  state.send('ALIGNED', { type: AlignType.Top })
-}
-
-function alignCenterVertical() {
-  state.send('ALIGNED', { type: AlignType.CenterVertical })
-}
-
-function alignBottom() {
-  state.send('ALIGNED', { type: AlignType.Bottom })
-}
-
-function stretchVertically() {
-  state.send('STRETCHED', { type: StretchType.Vertical })
-}
-
-function distributeVertically() {
-  state.send('DISTRIBUTED', { type: DistributeType.Vertical })
-}
-
-function alignLeft() {
-  state.send('ALIGNED', { type: AlignType.Left })
-}
-
-function alignCenterHorizontal() {
-  state.send('ALIGNED', { type: AlignType.CenterHorizontal })
-}
-
-function alignRight() {
-  state.send('ALIGNED', { type: AlignType.Right })
-}
-
-function stretchHorizontally() {
-  state.send('STRETCHED', { type: StretchType.Horizontal })
-}
-
-function distributeHorizontally() {
-  state.send('DISTRIBUTED', { type: DistributeType.Horizontal })
-}
+import { breakpoints, ButtonsRow, IconButton } from '../shared'
+import { useTLDrawContext } from '../../hooks'
 
 export interface AlignDistributeProps {
   hasTwoOrMore: boolean
@@ -62,6 +22,48 @@ export interface AlignDistributeProps {
 
 export const AlignDistribute = React.memo(
   ({ hasTwoOrMore, hasThreeOrMore }: AlignDistributeProps): JSX.Element => {
+    const { tlstate } = useTLDrawContext()
+
+    const alignTop = React.useCallback(() => {
+      tlstate.align(AlignType.Top)
+    }, [tlstate])
+
+    const alignCenterVertical = React.useCallback(() => {
+      tlstate.align(AlignType.CenterVertical)
+    }, [tlstate])
+
+    const alignBottom = React.useCallback(() => {
+      tlstate.align(AlignType.Bottom)
+    }, [tlstate])
+
+    const stretchVertically = React.useCallback(() => {
+      tlstate.stretch(StretchType.Vertical)
+    }, [tlstate])
+
+    const distributeVertically = React.useCallback(() => {
+      tlstate.distribute(DistributeType.Vertical)
+    }, [tlstate])
+
+    const alignLeft = React.useCallback(() => {
+      tlstate.align(AlignType.Left)
+    }, [tlstate])
+
+    const alignCenterHorizontal = React.useCallback(() => {
+      tlstate.align(AlignType.CenterHorizontal)
+    }, [tlstate])
+
+    const alignRight = React.useCallback(() => {
+      tlstate.align(AlignType.Right)
+    }, [tlstate])
+
+    const stretchHorizontally = React.useCallback(() => {
+      tlstate.stretch(StretchType.Horizontal)
+    }, [tlstate])
+
+    const distributeHorizontally = React.useCallback(() => {
+      tlstate.distribute(DistributeType.Horizontal)
+    }, [tlstate])
+
     return (
       <>
         <ButtonsRow>

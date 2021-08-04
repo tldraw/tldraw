@@ -1,173 +1,209 @@
-import { MoveType } from '@tldraw/core'
 import { TLDrawShape } from '../../../shape'
-import { Data } from '../../../types'
-import { TLD } from '../../tld'
-import { Command } from '../command'
+import { MoveType } from '../../../types'
+import { Data, Command } from '../../state-types'
+import { TLDR } from '../../tldr'
 
-export function move(data: Data, type: MoveType) {
-  const ids = [...TLD.getSelectedIds(data)]
+export function move(data: Data, ids: string[], type: MoveType): Command {
+  // Get the unique parent ids for the selected elements
+  const parentIds = new Set(ids.map((id) => data.page.shapes[id].parentId))
 
-  const initialIndices = Object.fromEntries(ids.map((id) => [id, data.page.shapes[id].childIndex]))
+  let result: {
+    before: Record<string, Partial<TLDrawShape>>
+    after: Record<string, Partial<TLDrawShape>>
+  } = { before: {}, after: {} }
+  let startIndex: number
+  let startChildIndex: number
+  let step: number
 
-  const shapesByParentId = ids
-    .map((id) => data.page.shapes[id])
-    .reduce<Record<string, TLDrawShape[]>>((acc, shape) => {
-      if (acc[shape.parentId] === undefined) {
-        acc[shape.parentId] = []
+  // Collect shapes with common parents into a table under their parent id
+  Array.from(parentIds.values()).forEach((parentId) => {
+    const sortedChildren =
+      parentId === data.page.id
+        ? Object.values(data.page.shapes).sort((a, b) => a.childIndex - b.childIndex)
+        : data.page.shapes[parentId].children
+            .map((childId) => data.page.shapes[childId])
+            .sort((a, b) => a.childIndex - b.childIndex)
+
+    const sortedChildIds = sortedChildren.map((shape) => shape.id)
+
+    const sortedIndicesToMove = ids
+      .filter((id) => sortedChildIds.includes(id))
+      .map((id) => sortedChildIds.indexOf(id))
+      .sort((a, b) => a - b)
+
+    if (sortedIndicesToMove.length === sortedChildIds.length) return
+
+    switch (type) {
+      case MoveType.ToBack: {
+        //               a       b  c
+        // Initial   1   2    3  4  5  6  7
+        // Final   .25  .5  .75  1  3  6  7
+        //           a   b    c
+
+        // Find the lowest "open" index
+        for (let i = 0; i < sortedChildIds.length; i++) {
+          if (sortedIndicesToMove.includes[i]) continue
+          startIndex = i
+          break
+        }
+
+        // Find the lowest child index that isn't in sortedIndicesToMove
+        startChildIndex = sortedChildren[startIndex].childIndex
+
+        // Find the step for each additional child
+        step = startChildIndex / (sortedIndicesToMove.length + 1)
+
+        // Get the results of moving the selected shapes below the first open index's shape
+        result = TLDR.mutateShapes(
+          data,
+          sortedIndicesToMove.map((i) => sortedChildren[i].id).reverse(),
+          (_shape, i) => ({
+            childIndex: startChildIndex - (i + 1) * step,
+          }),
+        )
+
+        break
       }
-      acc[shape.parentId].push(shape)
-      return acc
-    }, {})
+      case MoveType.ToFront: {
+        //              a     b  c
+        // Initial   1  2  3  4  5  6   7
+        // Final     1  3  6  7  8  9  10
+        //                       a  b   c
 
-  return new Command({
-    name: 'move_shapes',
-    category: 'canvas',
-    do(data) {
-      switch (type) {
-        case MoveType.ToBack: {
-          for (const id in shapesByParentId) {
-            moveToBack(data, shapesByParentId[id], TLD.getChildren(data, id))
-          }
+        // Find the highest "open" index
+        for (let i = sortedChildIds.length - 1; i >= 0; i--) {
+          if (sortedIndicesToMove.includes[i]) continue
+          startIndex = i
           break
         }
-        case MoveType.Backward: {
-          for (const id in shapesByParentId) {
-            const visited = new Set<string>()
-            shapesByParentId[id]
-              .sort((a, b) => a.childIndex - b.childIndex)
-              .forEach((shape) => {
-                moveBackward(data, shape, TLD.getChildren(data, id), visited)
-              })
-          }
-          break
-        }
-        case MoveType.Forward: {
-          for (const id in shapesByParentId) {
-            const visited = new Set<string>()
 
-            shapesByParentId[id]
-              .sort((a, b) => b.childIndex - a.childIndex)
-              .forEach((shape) => {
-                moveForward(data, shape, TLD.getChildren(data, id), visited)
-              })
-          }
+        // Find the lowest child index that isn't in sortedIndicesToMove
+        startChildIndex = sortedChildren[startIndex].childIndex
 
-          break
-        }
-        case MoveType.ToFront: {
-          for (const id in shapesByParentId) {
-            moveToFront(data, shapesByParentId[id], TLD.getChildren(data, id))
-          }
+        // Find the step for each additional child
+        step = 1
 
-          break
-        }
+        // Get the results of moving the selected shapes below the first open index's shape
+        result = TLDR.mutateShapes(
+          data,
+          sortedIndicesToMove.map((i) => sortedChildren[i].id),
+          (_shape, i) => ({
+            childIndex: startChildIndex + (i + 1),
+          }),
+        )
+
+        break
       }
-    },
-    undo(data) {
-      const { shapes } = data.page
+      case MoveType.Backward: {
+        //               a           b  c
+        // Initial    1  2     3     4  5  6  7
+        // Final     .5  1  1.66  2.33  3  6  7
+        //           a         b     c
 
-      for (const id of ids) {
-        const shape = shapes[id]
-        TLD.mutate(data, shape, { childIndex: initialIndices[id] })
+        const indexMap: Record<string, number> = {}
+
+        // Starting from the top...
+        for (let i = sortedChildIds.length - 1; i >= 0; i--) {
+          // If we found a moving index...
+          if (sortedIndicesToMove.includes(i)) {
+            for (let j = i; j >= 0; j--) {
+              // iterate downward until we find an open spot
+              if (!sortedIndicesToMove.includes(j)) {
+                // i = the index of the first closed spot
+                // j = the index of the first open spot
+
+                startChildIndex =
+                  j === 0 ? sortedChildren[j].childIndex / 2 : sortedChildren[j - 1].childIndex
+
+                const step = (sortedChildren[j].childIndex - startChildIndex) / (i - j + 1)
+
+                for (let k = 0; k < i - j; k++) {
+                  indexMap[sortedChildren[j + k + 1].id] = startChildIndex + step * (k + 1)
+                }
+
+                break
+              }
+            }
+          }
+        }
+
+        if (Object.values(indexMap).length > 0) {
+          // Get the results of moving the selected shapes below the first open index's shape
+          result = TLDR.mutateShapes(
+            data,
+            sortedIndicesToMove.map((i) => sortedChildren[i].id),
+            (shape) => ({
+              childIndex: indexMap[shape.id],
+            }),
+          )
+        }
+
+        break
       }
-    },
+      case MoveType.Forward: {
+        //             a     b c
+        // Initial   1 2   3 4 5 6 7
+        // Final     1 3 3.5 6 7 8 9
+        //                 a     b c
+
+        const indexMap: Record<string, number> = {}
+
+        // Starting from the top...
+        for (let i = 0; i < sortedChildIds.length; i++) {
+          // If we found a moving index...
+          if (sortedIndicesToMove.includes(i)) {
+            // Search for the first open spot above this one
+            for (let j = i; j < sortedChildIds.length; j++) {
+              if (!sortedIndicesToMove.includes(j)) {
+                // i = the low index of the first closed spot
+                // j = the high index of the first open spot
+
+                startChildIndex = sortedChildren[j].childIndex
+
+                const step =
+                  j === sortedChildIds.length - 1
+                    ? 1
+                    : (sortedChildren[j + 1].childIndex - startChildIndex) / (j - i + 1)
+
+                for (let k = 0; k < j - i; k++) {
+                  indexMap[sortedChildren[i + k].id] = startChildIndex + step * (k + 1)
+                }
+
+                break
+              }
+            }
+          }
+        }
+
+        if (Object.values(indexMap).length > 0) {
+          // Get the results of moving the selected shapes below the first open index's shape
+          result = TLDR.mutateShapes(
+            data,
+            sortedIndicesToMove.map((i) => sortedChildren[i].id),
+            (shape) => ({
+              childIndex: indexMap[shape.id],
+            }),
+          )
+        }
+
+        break
+      }
+    }
   })
-}
 
-// TODO: Refactor these so that they return the new childIndex array, rather than mutating the shapes
-
-function moveToFront(data: Data, shapes: TLDrawShape[], siblings: TLDrawShape[]) {
-  shapes.sort((a, b) => a.childIndex - b.childIndex)
-
-  const diff = siblings
-    .filter((sib) => !shapes.includes(sib))
-    .sort((a, b) => b.childIndex - a.childIndex)
-
-  if (diff.length === 0) return
-
-  const startIndex = Math.ceil(diff[0].childIndex) + 1
-
-  shapes.forEach((shape, i) => TLD.mutate(data, shape, { childIndex: startIndex + i }))
-}
-
-function moveToBack(data: Data, shapes: TLDrawShape[], siblings: TLDrawShape[]) {
-  shapes.sort((a, b) => b.childIndex - a.childIndex)
-
-  const diff = siblings
-    .filter((sib) => !shapes.includes(sib))
-    .sort((a, b) => a.childIndex - b.childIndex)
-
-  if (diff.length === 0) return
-
-  const startIndex = diff[0]?.childIndex
-
-  const step = startIndex / (shapes.length + 1)
-
-  shapes.forEach((shape, i) => TLD.mutate(data, shape, { childIndex: startIndex - (i + 1) * step }))
-}
-
-function moveForward(
-  data: Data,
-  shape: TLDrawShape,
-  siblings: TLDrawShape[],
-  visited: Set<string>,
-) {
-  visited.add(shape.id)
-  const index = siblings.indexOf(shape)
-  let nextSibling = siblings[index + 1]
-
-  if (nextSibling && !visited.has(nextSibling.id)) {
-    let nextNextSibling = siblings[index + 2]
-
-    let nextIndex = nextNextSibling
-      ? (nextSibling.childIndex + nextNextSibling.childIndex) / 2
-      : Math.ceil(nextSibling.childIndex + 1)
-
-    if (nextIndex === nextSibling.childIndex) {
-      TLD.forceIntegerChildIndices(data, siblings)
-
-      nextSibling = data.page.shapes[nextSibling.id]
-      nextNextSibling = data.page.shapes[nextNextSibling.id]
-
-      nextIndex = nextNextSibling
-        ? (nextSibling.childIndex + nextNextSibling.childIndex) / 2
-        : Math.ceil(nextSibling.childIndex + 1)
-    }
-
-    TLD.mutate(data, shape, { childIndex: nextIndex })
-  }
-}
-
-function moveBackward(
-  data: Data,
-  shape: TLDrawShape,
-  siblings: TLDrawShape[],
-  visited: Set<string>,
-) {
-  visited.add(shape.id)
-  const index = siblings.indexOf(shape)
-  let nextSibling = siblings[index - 1]
-
-  if (nextSibling && !visited.has(nextSibling.id)) {
-    let nextNextSibling = siblings[index - 2]
-
-    let nextIndex = nextNextSibling
-      ? (nextSibling.childIndex + nextNextSibling.childIndex) / 2
-      : nextSibling.childIndex / 2
-
-    if (shape.childIndex === nextSibling.childIndex) {
-      TLD.forceIntegerChildIndices(data, siblings)
-
-      nextSibling = data.page.shapes[nextSibling.id]
-      nextNextSibling = data.page.shapes[nextNextSibling.id]
-
-      nextIndex = nextNextSibling
-        ? (nextSibling.childIndex + nextNextSibling.childIndex) / 2
-        : nextSibling.childIndex / 2
-    }
-
-    TLD.mutate(data, shape, { childIndex: nextIndex })
-
-    siblings.sort((a, b) => a.childIndex - b.childIndex)
+  return {
+    id: 'move_shapes',
+    before: {
+      page: {
+        ...data.page,
+        shapes: result?.before || {},
+      },
+    },
+    after: {
+      page: {
+        ...data.page,
+        shapes: result?.after || {},
+      },
+    },
   }
 }

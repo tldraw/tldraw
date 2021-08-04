@@ -1,86 +1,69 @@
-import { StretchType, TLBoundsCorner, Utils } from '@tldraw/core'
-import { Data } from '../../../types'
-import { TLD } from '../../tld'
-import { Command } from '../command'
+import { TLBoundsCorner, Utils } from '@tldraw/core'
+import { StretchType } from '../../../types'
+import { Data, Command } from '../../state-types'
+import { TLDR } from '../../tldr'
 
-export function stretch(data: Data, type: StretchType) {
-  const ids = [...TLD.getSelectedIds(data)]
+export function stretch(data: Data, ids: string[], type: StretchType): Command {
   const initialShapes = ids.map((id) => data.page.shapes[id])
 
-  const boundsForShapes = initialShapes.map((shape) => TLD.getBounds(shape))
+  const boundsForShapes = initialShapes.map((shape) => TLDR.getBounds(shape))
 
   const commonBounds = Utils.getCommonBounds(boundsForShapes)
 
-  const shapesToTranslate = initialShapes.map((shape) => {
-    const bounds = TLD.getBounds(shape)
+  const { before, after } = TLDR.mutateShapes(data, ids, (shape) => {
+    const bounds = TLDR.getBounds(shape)
 
-    if (type === StretchType.Horizontal) {
-      const newBounds = {
-        ...bounds,
-        minX: commonBounds.minX,
-        maxX: commonBounds.maxX,
-        width: commonBounds.width,
+    switch (type) {
+      case StretchType.Horizontal: {
+        const newBounds = {
+          ...bounds,
+          minX: commonBounds.minX,
+          maxX: commonBounds.maxX,
+          width: commonBounds.width,
+        }
+
+        return TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
+          type: TLBoundsCorner.TopLeft,
+          scaleX: newBounds.width / bounds.width,
+          scaleY: 1,
+          initialShape: shape,
+          transformOrigin: [0.5, 0.5],
+        })
       }
+      case StretchType.Vertical: {
+        const newBounds = {
+          ...bounds,
+          minY: commonBounds.minY,
+          maxY: commonBounds.maxY,
+          height: commonBounds.height,
+        }
 
-      const next = {
-        bounds: newBounds,
-        transform: {
+        return TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
           type: TLBoundsCorner.TopLeft,
           scaleX: 1,
           scaleY: newBounds.height / bounds.height,
           initialShape: shape,
           transformOrigin: [0.5, 0.5],
-        },
-      }
-
-      return {
-        id: shape.id,
-        prev: shape,
-        next,
-      }
-    } else {
-      const newBounds = {
-        ...bounds,
-        minY: commonBounds.minY,
-        maxY: commonBounds.maxY,
-        height: commonBounds.height,
-      }
-
-      const next = {
-        bounds: newBounds,
-        transform: {
-          type: TLBoundsCorner.TopLeft,
-          scaleX: 1,
-          scaleY: newBounds.height / bounds.height,
-          initialShape: shape,
-          transformOrigin: [0.5, 0.5],
-        },
-      }
-
-      return {
-        id: shape.id,
-        prev: Utils.deepClone(shape),
-        next,
+        })
       }
     }
   })
 
-  return new Command({
-    name: 'stretch_shapes',
-    category: 'canvas',
-    do(data) {
-      for (const { id, next } of shapesToTranslate) {
-        const shape = data.page.shapes[id]
-        TLD.transform(data, shape, next.bounds, next.transform)
-      }
+  return {
+    id: 'stretch_shapes',
+    before: {
+      page: {
+        shapes: {
+          ...before,
+        },
+      },
     },
-    undo(data) {
-      const { shapes } = data.page
-
-      for (const { id, prev } of shapesToTranslate) {
-        const shape = shapes[id]
-        TLD.mutate(data, shape, { ...prev })
-      }
+    after: {
+      page: {
+        shapes: {
+          ...after,
+        },
+      },
     },
-  })
+  }
 }

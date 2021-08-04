@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-redeclare */
 import * as React from 'react'
+import deepmerge from 'deepmerge'
 import { TLBezierCurveSegment, TLBounds, TLBoundsCorner, TLBoundsEdge } from '../types'
-import { current, isDraft } from 'immer'
 import vec from './vec'
 import './polyfills'
 
@@ -9,6 +11,17 @@ export class Utils {
   /* -------------------------------------------------- */
   /*                    Math & Geometry                 */
   /* -------------------------------------------------- */
+
+  static filterObject<T extends object>(
+    obj: T,
+    fn: (entry: Entry<T>, i?: number, arr?: Entry<T>[]) => boolean,
+  ) {
+    return Object.fromEntries((Object.entries(obj) as Entry<T>[]).filter(fn)) as Partial<T>
+  }
+
+  static deepMerge<T>(a: T, b: DeepPartial<T>): T {
+    return deepmerge<T, DeepPartial<T>>(a, b, { arrayMerge: (a, b) => b }) as T
+  }
 
   /**
    * Linear interpolation betwen two numbers.
@@ -102,8 +115,6 @@ export class Utils {
    * @param obj
    */
   static deepClone<T extends unknown>(obj: T): T {
-    if (isDraft(obj)) return current(obj)
-
     if (obj === null) return obj
 
     if (Array.isArray(obj)) {
@@ -1703,3 +1714,17 @@ left past the initial left edge) then swap points on that axis.
 }
 
 export default Utils
+
+// Helper types
+
+export type DeepPartial<T> = T extends Function
+  ? T
+  : T extends object
+  ? T extends unknown[]
+    ? DeepPartial<T[number]>[]
+    : { [P in keyof T]?: DeepPartial<T[P]> }
+  : T
+
+type Entry<T> = {
+  [K in keyof T]: [K, T[K]]
+}[keyof T]

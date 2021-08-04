@@ -1,27 +1,22 @@
-import { Utils } from '@tldraw/core'
-import { mockData } from '../../../../specs/__mocks__/mock-data'
-import { create } from './create.command'
+import { TLDrawState } from '../../tlstate'
+import { mockDocument } from '../../test-helpers'
 
-describe('Mutate command', () => {
-  const data = Utils.deepClone(mockData)
-  data.pageState.selectedIds = ['rect1']
-  const rect3 = { ...data.page.shapes.rect1, id: 'rect3', childIndex: 3 }
+describe('Create command', () => {
+  const tlstate = new TLDrawState()
 
   it('does, undoes and redoes command', () => {
-    const tdata = Utils.deepClone(data)
+    tlstate.loadDocument(mockDocument)
+    const shape = { ...tlstate.getShape('rect1'), id: 'rect4' }
+    tlstate.create(shape)
 
-    const command = create(tdata, [rect3], false)
+    expect(tlstate.getShape('rect4')).toBeTruthy()
 
-    command.redo(tdata)
+    tlstate.undo()
 
-    expect(tdata.page.shapes['rect3']).toBeTruthy()
+    expect(tlstate.getShape('rect4')).toBe(undefined)
 
-    command.undo(tdata)
+    tlstate.redo()
 
-    expect(tdata.page.shapes['rect3']).toBe(undefined)
-
-    command.redo(tdata)
-
-    expect(tdata.page.shapes['rect3']).toBeTruthy()
+    expect(tlstate.getShape('rect4')).toBeTruthy()
   })
 })

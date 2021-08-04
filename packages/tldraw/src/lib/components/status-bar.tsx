@@ -1,27 +1,16 @@
-import { useStateDesigner } from '@state-designer/react'
+import { useTLDrawContext } from '../hooks'
+import { Data } from '../state'
 import styled from '../styles'
-import { state } from '../state'
+
+const activeToolSelector = (s: Data) => s.appState.activeTool
 
 export function StatusBar(): JSX.Element | null {
-  const local = useStateDesigner(state.state)
-
-  // const shapesInView = local.values.shapesToRender.length
-
-  const active = local.active
-    .slice(1)
-    .map((s) => {
-      const states = s.split('.')
-      return states[states.length - 1]
-    })
-    .join(' | ')
-
-  const log = local.log[0]
+  const { useAppState } = useTLDrawContext()
+  const activeTool = useAppState(activeToolSelector)
 
   return (
     <StatusBarContainer size={{ '@sm': 'small' }}>
-      <Section>
-        {active} - {log}
-      </Section>
+      <Section>{activeTool}</Section>
       {/* <Section>{shapesInView || '0'} Shapes</Section> */}
     </StatusBarContainer>
   )

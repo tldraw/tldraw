@@ -1,9 +1,10 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { DropdownMenuIconTriggerButton, CircleIcon } from '../shared'
-import { state, useSelector } from '../../state'
 import { StyleDropdownContent, StyleDropdownItem } from './shared'
 import { SizeStyle } from '../../shape'
+import { Data } from '../../state'
+import { useTLDrawContext } from '../../hooks'
 
 const sizes = {
   [SizeStyle.Small]: 6,
@@ -11,12 +12,19 @@ const sizes = {
   [SizeStyle.Large]: 22,
 }
 
-function changeSizeStyle(size: SizeStyle): void {
-  state.send('CHANGED_STYLE', { size })
-}
+const selectSize = (data: Data) => data.appState.selectedStyle.size
 
 export const QuickSizeSelect = React.memo((): JSX.Element => {
-  const size = useSelector((s) => s.values.selectedStyle.size)
+  const { tlstate, useAppState } = useTLDrawContext()
+
+  const size = useAppState(selectSize)
+
+  const changeSizeStyle = React.useCallback(
+    (size: SizeStyle) => {
+      tlstate.style({ size })
+    },
+    [tlstate],
+  )
 
   return (
     <DropdownMenu.Root dir="ltr">
