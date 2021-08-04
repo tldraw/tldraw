@@ -131,11 +131,10 @@ export class TLDrawState implements TLCallbacks {
       }
     }
 
-    // Update the state
     this.store.setState(next as PartialState<Data, T, T, T>)
+    this.pages[next.page.id] = next.page
+    this.pageStates[next.page.id] = next.pageState
 
-    // Save changes to the instance
-    this.updateDocument()
     return this
   }
 
@@ -441,12 +440,6 @@ export class TLDrawState implements TLCallbacks {
     })
     return this
   }
-  updateDocument = () => {
-    const { page, pageState } = this.getState()
-    this.pages[page.id] = page
-    this.pageStates[page.id] = pageState
-    return this
-  }
   setCurrentPageId(pageId: string) {
     if (pageId === this.currentPageId) return this
 
@@ -516,7 +509,6 @@ export class TLDrawState implements TLCallbacks {
       return tdata
     })
 
-    this.updateDocument()
     return this
   }
   undo = () => {
@@ -544,7 +536,6 @@ export class TLDrawState implements TLCallbacks {
     })
     history.pointer--
 
-    this.updateDocument()
     return this
   }
   redo = () => {
@@ -572,7 +563,6 @@ export class TLDrawState implements TLCallbacks {
       return tdata
     })
 
-    this.updateDocument()
     return this
   }
   /* -------------------- Selection ------------------- */
@@ -857,6 +847,11 @@ export class TLDrawState implements TLCallbacks {
 
   onPan: TLWheelEventHandler = (info, e) => {
     const delta = Vec.div(info.delta, this.getPageState().camera.zoom)
+    const prev = this.getPageState().camera.point
+    const next = Vec.sub(prev, delta)
+
+    if (Vec.isEqual(next, prev)) return
+
     this.pan(delta)
     this.updateSessionsOnPointerMove(info, e as any)
   }
@@ -1162,6 +1157,14 @@ export class TLDrawState implements TLCallbacks {
   }
 
   get selectedIds() {
-    return this.getState().pageState.selectedIds
+    return this.pageState.selectedIds
+  }
+
+  get page() {
+    return this.pages[this.currentPageId]
+  }
+
+  get pageState() {
+    return this.pageStates[this.currentPageId]
   }
 }

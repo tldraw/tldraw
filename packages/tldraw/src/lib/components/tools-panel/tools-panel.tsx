@@ -150,6 +150,10 @@ const ToolsPanelContainer = styled('div', {
   zIndex: 200,
   gridGap: '$4',
   gridRowGap: '$4',
+  pointerEvents: 'none',
+  '& > div > *': {
+    pointerEvents: 'all',
+  },
 })
 
 const CenterWrap = styled('div', {
