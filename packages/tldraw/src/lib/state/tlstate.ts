@@ -937,8 +937,6 @@ export class TLDrawState implements TLCallbacks {
       }
     })
 
-    console.log(this.appState.activeToolType)
-
     switch (this.appState.activeToolType) {
       case 'draw': {
         this.startDrawSession(id, pagePoint)
