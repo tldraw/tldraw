@@ -5,6 +5,7 @@ import { tldrawShapeUtils } from '../shape'
 import { TLDrawDocument } from '../types'
 import { useKeyboardShortcuts } from '../hooks'
 import styled from '../styles'
+import { ContextMenu } from './context-menu'
 import { StylePanel } from './style-panel'
 import { ToolsPanel } from './tools-panel'
 import { Data, TLDrawState } from '../state'
@@ -57,55 +58,57 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
     <TLDrawContext.Provider value={context}>
       <IdProvider>
         <Layout>
-          <Renderer
-            page={page}
-            pageState={pageState}
-            shapeUtils={tldrawShapeUtils}
-            hideBounds={hideBounds}
-            onPinchStart={tlstate.onPinchStart}
-            onPinchEnd={tlstate.onPinchEnd}
-            onPinch={tlstate.onPinch}
-            onPan={tlstate.onPan}
-            onZoom={tlstate.onZoom}
-            onPointerMove={tlstate.onPointerMove}
-            onPointerUp={tlstate.onPointerUp}
-            onPointCanvas={tlstate.onPointCanvas}
-            onDoubleClickCanvas={tlstate.onDoubleClickCanvas}
-            onRightPointCanvas={tlstate.onRightPointCanvas}
-            onDragCanvas={tlstate.onDragCanvas}
-            onReleaseCanvas={tlstate.onReleaseCanvas}
-            onPointShape={tlstate.onPointShape}
-            onDoubleClickShape={tlstate.onDoubleClickShape}
-            onRightPointShape={tlstate.onRightPointShape}
-            onDragShape={tlstate.onDragShape}
-            onHoverShape={tlstate.onHoverShape}
-            onUnhoverShape={tlstate.onUnhoverShape}
-            onReleaseShape={tlstate.onReleaseShape}
-            onPointBounds={tlstate.onPointBounds}
-            onDoubleClickBounds={tlstate.onDoubleClickBounds}
-            onRightPointBounds={tlstate.onRightPointBounds}
-            onDragBounds={tlstate.onDragBounds}
-            onHoverBounds={tlstate.onHoverBounds}
-            onUnhoverBounds={tlstate.onUnhoverBounds}
-            onReleaseBounds={tlstate.onReleaseBounds}
-            onPointBoundsHandle={tlstate.onPointBoundsHandle}
-            onDoubleClickBoundsHandle={tlstate.onDoubleClickBoundsHandle}
-            onRightPointBoundsHandle={tlstate.onRightPointBoundsHandle}
-            onDragBoundsHandle={tlstate.onDragBoundsHandle}
-            onHoverBoundsHandle={tlstate.onHoverBoundsHandle}
-            onUnhoverBoundsHandle={tlstate.onUnhoverBoundsHandle}
-            onReleaseBoundsHandle={tlstate.onReleaseBoundsHandle}
-            onPointHandle={tlstate.onPointHandle}
-            onDoubleClickHandle={tlstate.onDoubleClickHandle}
-            onRightPointHandle={tlstate.onRightPointHandle}
-            onDragHandle={tlstate.onDragHandle}
-            onHoverHandle={tlstate.onHoverHandle}
-            onUnhoverHandle={tlstate.onUnhoverHandle}
-            onReleaseHandle={tlstate.onReleaseHandle}
-            onChange={tlstate.onChange}
-            onError={tlstate.onError}
-            onBlurEditingShape={tlstate.onBlurEditingShape}
-          />
+          <ContextMenu>
+            <Renderer
+              page={page}
+              pageState={pageState}
+              shapeUtils={tldrawShapeUtils}
+              hideBounds={hideBounds}
+              onPinchStart={tlstate.onPinchStart}
+              onPinchEnd={tlstate.onPinchEnd}
+              onPinch={tlstate.onPinch}
+              onPan={tlstate.onPan}
+              onZoom={tlstate.onZoom}
+              onPointerMove={tlstate.onPointerMove}
+              onPointerUp={tlstate.onPointerUp}
+              onPointCanvas={tlstate.onPointCanvas}
+              onDoubleClickCanvas={tlstate.onDoubleClickCanvas}
+              onRightPointCanvas={tlstate.onRightPointCanvas}
+              onDragCanvas={tlstate.onDragCanvas}
+              onReleaseCanvas={tlstate.onReleaseCanvas}
+              onPointShape={tlstate.onPointShape}
+              onDoubleClickShape={tlstate.onDoubleClickShape}
+              onRightPointShape={tlstate.onRightPointShape}
+              onDragShape={tlstate.onDragShape}
+              onHoverShape={tlstate.onHoverShape}
+              onUnhoverShape={tlstate.onUnhoverShape}
+              onReleaseShape={tlstate.onReleaseShape}
+              onPointBounds={tlstate.onPointBounds}
+              onDoubleClickBounds={tlstate.onDoubleClickBounds}
+              onRightPointBounds={tlstate.onRightPointBounds}
+              onDragBounds={tlstate.onDragBounds}
+              onHoverBounds={tlstate.onHoverBounds}
+              onUnhoverBounds={tlstate.onUnhoverBounds}
+              onReleaseBounds={tlstate.onReleaseBounds}
+              onPointBoundsHandle={tlstate.onPointBoundsHandle}
+              onDoubleClickBoundsHandle={tlstate.onDoubleClickBoundsHandle}
+              onRightPointBoundsHandle={tlstate.onRightPointBoundsHandle}
+              onDragBoundsHandle={tlstate.onDragBoundsHandle}
+              onHoverBoundsHandle={tlstate.onHoverBoundsHandle}
+              onUnhoverBoundsHandle={tlstate.onUnhoverBoundsHandle}
+              onReleaseBoundsHandle={tlstate.onReleaseBoundsHandle}
+              onPointHandle={tlstate.onPointHandle}
+              onDoubleClickHandle={tlstate.onDoubleClickHandle}
+              onRightPointHandle={tlstate.onRightPointHandle}
+              onDragHandle={tlstate.onDragHandle}
+              onHoverHandle={tlstate.onHoverHandle}
+              onUnhoverHandle={tlstate.onUnhoverHandle}
+              onReleaseHandle={tlstate.onReleaseHandle}
+              onChange={tlstate.onChange}
+              onError={tlstate.onError}
+              onBlurEditingShape={tlstate.onBlurEditingShape}
+            />
+          </ContextMenu>
           <Spacer />
           <StylePanel />
           <ToolsPanel />

@@ -7,7 +7,6 @@ export function useCanvasEvents() {
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
-      e.stopPropagation()
       e.currentTarget.setPointerCapture(e.pointerId)
 
       if (e.button === 0) {
