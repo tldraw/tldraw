@@ -7,18 +7,19 @@ export function useHandleEvents(id: string) {
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
-      // e.stopPropagation()
+      e.stopPropagation()
       e.currentTarget?.setPointerCapture(e.pointerId)
 
       const info = inputs.pointerDown(e, id)
       callbacks.onPointHandle?.(info, e)
+      callbacks.onPointerDown?.(info, e)
     },
     [callbacks, id],
   )
 
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
-      // e.stopPropagation()
+      e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, 'bounds')
 
@@ -26,7 +27,7 @@ export function useHandleEvents(id: string) {
         e.currentTarget?.releasePointerCapture(e.pointerId)
 
         if (isDoubleClick && !(info.altKey || info.metaKey)) {
-          callbacks.onDoublePointHandle?.(info, e)
+          callbacks.onDoubleClickHandle?.(info, e)
         }
 
         callbacks.onReleaseHandle?.(info, e)

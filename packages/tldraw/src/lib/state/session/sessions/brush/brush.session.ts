@@ -18,7 +18,7 @@ export class BrushSession implements Session {
     return data
   }
 
-  update(data: Data, point: number[]) {
+  update(data: Data, point: number[], containMode = false) {
     const { snapshot, origin } = this
 
     // Create a bounding box between the origin and the new point
@@ -36,7 +36,11 @@ export class BrushSession implements Session {
       const shape = data.page.shapes[id]
 
       if (!hits.has(selectId)) {
-        if (util.hitTestBounds(shape, brush)) {
+        if (
+          containMode
+            ? Utils.boundsContain(brush, util.getBounds(shape))
+            : util.hitTestBounds(shape, brush)
+        ) {
           hits.add(selectId)
 
           // When brushing a shape, select its top group parent.

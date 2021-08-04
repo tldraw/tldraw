@@ -7,18 +7,19 @@ export function useBoundsEvents() {
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
-      // e.stopPropagation()
+      e.stopPropagation()
       e.currentTarget?.setPointerCapture(e.pointerId)
       const info = inputs.pointerDown(e, 'bounds')
 
       callbacks.onPointBounds?.(info, e)
+      callbacks.onPointerDown?.(info, e)
     },
     [callbacks],
   )
 
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
-      // e.stopPropagation()
+      e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, 'bounds')
 
@@ -27,11 +28,10 @@ export function useBoundsEvents() {
       }
 
       if (isDoubleClick && !(info.altKey || info.metaKey)) {
-        callbacks.onDoublePointBounds?.(info, e)
+        callbacks.onDoubleClickBounds?.(info, e)
       }
 
       callbacks.onReleaseBounds?.(info, e)
-
       callbacks.onPointerUp?.(info, e)
     },
     [callbacks],
@@ -39,13 +39,12 @@ export function useBoundsEvents() {
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
-      // e.stopPropagation()
+      e.stopPropagation()
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         callbacks.onDragBounds?.(inputs.pointerMove(e, 'bounds'), e)
       }
       const info = inputs.pointerMove(e, 'bounds')
       callbacks.onPointerMove?.(info, e)
-      e.stopPropagation()
     },
     [callbacks],
   )

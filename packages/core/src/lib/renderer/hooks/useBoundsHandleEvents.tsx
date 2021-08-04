@@ -8,18 +8,19 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
-      // e.stopPropagation()
+      e.stopPropagation()
       e.currentTarget?.setPointerCapture(e.pointerId)
       const info = inputs.pointerDown(e, id)
 
       callbacks.onPointBoundsHandle?.(info, e)
+      callbacks.onPointerDown?.(info, e)
     },
     [callbacks, id],
   )
 
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
-      // e.stopPropagation()
+      e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, id)
 
@@ -28,7 +29,7 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
       }
 
       if (isDoubleClick && !(info.altKey || info.metaKey)) {
-        callbacks.onDoublePointBoundsHandle?.(info, e)
+        callbacks.onDoubleClickBoundsHandle?.(info, e)
       }
 
       callbacks.onReleaseBoundsHandle?.(info, e)

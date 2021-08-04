@@ -720,8 +720,9 @@ export class TLDrawState implements TLCallbacks {
     this.startSession(new BrushSession(this.store.getState(), point))
     return this
   }
-  updateBrushSession = (point: number[]) => {
-    this.updateSession<BrushSession>(point)
+
+  updateBrushSession = (point: number[], metaKey = false) => {
+    this.updateSession<BrushSession>(point, metaKey)
     return this
   }
   startTranslateSession = (point: number[]) => {
@@ -755,36 +756,13 @@ export class TLDrawState implements TLCallbacks {
     }
     return this
   }
+
   updateTransformSession = (point: number[], shiftKey = false, altKey = false) => {
     this.updateSession<TransformSingleSession | TransformSession>(point, shiftKey)
     return this
   }
-  /* --------------------- Events --------------------- */
-  onKeyDown = (key: string, info: TLKeyboardInfo) => {
-    // TODO
-  }
-  onKeyUp = (key: string, info: TLKeyboardInfo) => {
-    // TODO
-  }
-  /* ------------- Renderer Event Handlers ------------ */
-  onPinchStart: TLPinchEventHandler = (info) => {
-    // TODO
-  }
-  onPinchEnd: TLPinchEventHandler = () => {
-    // TODO
-  }
-  onPinch: TLPinchEventHandler = (info) => {
-    this.pinchZoom(info.origin, Vec.sub(info.point, info.origin), info.delta[1] / 350)
-  }
-  onPan: TLWheelEventHandler = (info) => {
-    this.pan(info.delta)
-  }
-  onZoom: TLWheelEventHandler = (info) => {
-    this.zoom(info.delta[1] / 100)
-  }
 
-  // Pointer Events
-  onPointerMove: TLPointerEventHandler = (info) => {
+  updateSessionsOnPointerMove: TLPointerEventHandler = (info) => {
     switch (this.status.current) {
       case 'pointingBoundsHandle': {
         if (Vec.dist(info.origin, info.point) > 4) {
@@ -801,8 +779,7 @@ export class TLDrawState implements TLCallbacks {
         break
       }
       case 'brushing': {
-        // If the user is brushing, update the brush session
-        this.updateBrushSession(this.getPagePoint(info.point))
+        this.updateBrushSession(this.getPagePoint(info.point), info.metaKey)
         break
       }
       case 'translating': {
@@ -815,6 +792,79 @@ export class TLDrawState implements TLCallbacks {
       }
     }
   }
+
+  /* --------------------- Events --------------------- */
+  onKeyDown = (key: string, info: TLKeyboardInfo) => {
+    switch (this.status.current) {
+      case 'brushing': {
+        if (key === 'Meta' || key === 'Control') {
+          this.updateBrushSession(this.getPagePoint(info.point), info.metaKey)
+        }
+        break
+      }
+      case 'translating': {
+        if (key === 'Shift' || key === 'Alt') {
+          this.updateTranslateSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
+        }
+        break
+      }
+      case 'transforming': {
+        if (key === 'Shift' || key === 'Alt') {
+          this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
+        }
+        break
+      }
+    }
+  }
+  onKeyUp = (key: string, info: TLKeyboardInfo) => {
+    switch (this.status.current) {
+      case 'brushing': {
+        if (key === 'Meta' || key === 'Control') {
+          this.updateBrushSession(this.getPagePoint(info.point), info.metaKey)
+        }
+        break
+      }
+      case 'transforming': {
+        if (key === 'Shift' || key === 'Alt') {
+          this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
+        }
+        break
+      }
+      case 'translating': {
+        if (key === 'Shift' || key === 'Alt') {
+          this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
+        }
+        break
+      }
+    }
+  }
+  /* ------------- Renderer Event Handlers ------------ */
+  onPinchStart: TLPinchEventHandler = (info) => {
+    // TODO
+  }
+  onPinchEnd: TLPinchEventHandler = () => {
+    // TODO
+  }
+  onPinch: TLPinchEventHandler = (info) => {
+    this.pinchZoom(info.origin, Vec.sub(info.point, info.origin), info.delta[1] / 350)
+  }
+  onPan: TLWheelEventHandler = (info, e) => {
+    this.pan(info.delta)
+    this.updateSessionsOnPointerMove(info, e)
+  }
+  onZoom: TLWheelEventHandler = (info) => {
+    this.zoom(info.delta[1] / 100)
+  }
+
+  // Pointer Events
+  onPointerDown = () => {
+    // Unused
+  }
+
+  onPointerMove: TLPointerEventHandler = (info, e) => {
+    this.updateSessionsOnPointerMove(info, e)
+  }
+
   onPointerUp: TLPointerEventHandler = (info) => {
     const data = this.getState()
 
@@ -825,18 +875,19 @@ export class TLDrawState implements TLCallbacks {
         break
       }
       case 'pointingBounds': {
-        if (data.pageState.selectedIds.includes(info.target)) {
-          // If we did not just shift-select the shape, and if the shape is selected;
-          // then if user is pressing shift, remove the shape from the current
-          // selection; otherwise, set the shape as the only selected shape.
-          if (this.pointedId !== info.target) {
-            if (info.shiftKey) {
+        if (info.target === 'bounds') {
+          // If we just clicked the selecting bounds's background, clear the selection
+          this.deselectAll()
+        } else if (data.pageState.selectedIds.includes(info.target)) {
+          // If we're holding shift...
+          if (info.shiftKey) {
+            // Unless we just shift-selected the shape, remove it from the selected shapes
+            if (this.pointedId !== info.target) {
               this.setSelectedIds(data.pageState.selectedIds.filter((id) => id !== info.target))
-            } else {
-              this.setSelectedIds([info.target])
             }
           }
         }
+
         this.setStatus('idle')
         this.pointedId = undefined
         break
@@ -858,6 +909,7 @@ export class TLDrawState implements TLCallbacks {
       }
     }
   }
+
   // Canvas (background)
   onPointCanvas: TLCanvasEventHandler = (info) => {
     switch (this.status.current) {
@@ -873,15 +925,19 @@ export class TLDrawState implements TLCallbacks {
       }
     }
   }
-  onDoublePointCanvas: TLCanvasEventHandler = () => {
+
+  onDoubleClickCanvas: TLCanvasEventHandler = () => {
     // Unused
   }
+
   onRightPointCanvas: TLCanvasEventHandler = () => {
     // Unused
   }
+
   onDragCanvas: TLCanvasEventHandler = () => {
     // Unused
   }
+
   onReleaseCanvas: TLCanvasEventHandler = () => {
     // Unused
   }
@@ -913,11 +969,34 @@ export class TLDrawState implements TLCallbacks {
   }
 
   onReleaseShape: TLPointerEventHandler = (info) => {
-    // Unused
+    // const data = this.getState()
+    // switch (this.status.current) {
+    //   case 'pointingBounds': {
+    //     if (info.metaKey) {
+    //       // While holding command key, allow event to pass through to canvas
+    //       return
+    //     }
+    //     // If the shape is selected...
+    //     if (
+    //       data.pageState.selectedIds.includes(info.target) &&
+    //       this.pointedId !== info.target &&
+    //       info.shiftKey
+    //     ) {
+    //       // If the shape is not selected; then if the user is pressing shift,
+    //       // add the shape to the current selection; otherwise, set the shape as
+    //       // the only selected shape.
+    //       this.setSelectedIds(data.pageState.selectedIds.filter((id) => id !== info.target))
+    //     }
+    //     this.setStatus('pointingBounds')
+    //     break
+    //   }
+    // }
   }
 
-  onDoublePointShape: TLPointerEventHandler = () => {
-    // TODO
+  onDoubleClickShape: TLPointerEventHandler = (info) => {
+    if (this.selectedIds.includes(info.target)) {
+      this.setSelectedIds([info.target])
+    }
   }
 
   onRightPointShape: TLPointerEventHandler = () => {
@@ -945,7 +1024,7 @@ export class TLDrawState implements TLCallbacks {
     this.setStatus('pointingBounds')
   }
 
-  onDoublePointBounds: TLBoundsEventHandler = () => {
+  onDoubleClickBounds: TLBoundsEventHandler = () => {
     // TODO
   }
 
@@ -988,7 +1067,7 @@ export class TLDrawState implements TLCallbacks {
     this.setStatus('pointingBoundsHandle')
   }
 
-  onDoublePointBoundsHandle: TLBoundsHandleEventHandler = () => {
+  onDoubleClickBoundsHandle: TLBoundsHandleEventHandler = () => {
     // TODO
   }
 
@@ -1017,7 +1096,7 @@ export class TLDrawState implements TLCallbacks {
     // TODO
   }
 
-  onDoublePointHandle: TLPointerEventHandler = () => {
+  onDoubleClickHandle: TLPointerEventHandler = () => {
     // TODO
   }
 

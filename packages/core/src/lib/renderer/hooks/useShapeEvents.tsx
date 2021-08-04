@@ -8,11 +8,12 @@ export function useShapeEvents(id: string, disable = false) {
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
       if (disable) return
-      // e.stopPropagation()
+      e.stopPropagation()
       e.currentTarget?.setPointerCapture(e.pointerId)
-
       const info = inputs.pointerDown(e, id)
+
       callbacks.onPointShape?.(info, e)
+      callbacks.onPointerDown?.(info, e)
     },
     [callbacks, id, disable],
   )
@@ -20,7 +21,7 @@ export function useShapeEvents(id: string, disable = false) {
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
       if (disable) return
-      // e.stopPropagation()
+      e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, id)
 
@@ -29,13 +30,11 @@ export function useShapeEvents(id: string, disable = false) {
       }
 
       if (isDoubleClick && !(info.altKey || info.metaKey)) {
-        callbacks.onDoublePointShape?.(info, e)
+        callbacks.onDoubleClickShape?.(info, e)
       }
 
       callbacks.onReleaseShape?.(info, e)
-
       callbacks.onPointerUp?.(info, e)
-      e.stopPropagation()
     },
     [callbacks, id, disable],
   )
@@ -43,13 +42,14 @@ export function useShapeEvents(id: string, disable = false) {
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
       if (disable) return
-      // e.stopPropagation()
+      e.stopPropagation()
       const info = inputs.pointerMove(e, id)
+
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         callbacks.onDragShape?.(info, e)
       }
+
       callbacks.onPointerMove?.(info, e)
-      e.stopPropagation()
     },
     [callbacks, id, disable],
   )

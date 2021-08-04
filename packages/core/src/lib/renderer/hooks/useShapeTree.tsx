@@ -93,6 +93,9 @@ export function useShapeTree<T extends TLShape>(
   const shapesToRender = Object.values(page.shapes).filter((shape) => {
     if (shape.parentId !== page.id) return false
 
+    // Don't hide selected shapes (this breaks certain drag interactions)
+    if (pageState.selectedIds.includes(shape.id)) return true
+
     const shapeBounds = shapeUtils[shape.type as T['type']].getBounds(shape)
 
     return (

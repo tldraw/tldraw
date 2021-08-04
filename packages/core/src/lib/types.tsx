@@ -116,17 +116,18 @@ export interface TLCallbacks {
   // Pointer Events
   onPointerMove: TLPointerEventHandler
   onPointerUp: TLPointerEventHandler
+  onPointerDown: TLPointerEventHandler
 
   // Canvas (background)
   onPointCanvas: TLCanvasEventHandler
-  onDoublePointCanvas: TLCanvasEventHandler
+  onDoubleClickCanvas: TLCanvasEventHandler
   onRightPointCanvas: TLCanvasEventHandler
   onDragCanvas: TLCanvasEventHandler
   onReleaseCanvas: TLCanvasEventHandler
 
   // Shape
   onPointShape: TLPointerEventHandler
-  onDoublePointShape: TLPointerEventHandler
+  onDoubleClickShape: TLPointerEventHandler
   onRightPointShape: TLPointerEventHandler
   onDragShape: TLPointerEventHandler
   onHoverShape: TLPointerEventHandler
@@ -135,7 +136,7 @@ export interface TLCallbacks {
 
   // Bounds (bounding box background)
   onPointBounds: TLBoundsEventHandler
-  onDoublePointBounds: TLBoundsEventHandler
+  onDoubleClickBounds: TLBoundsEventHandler
   onRightPointBounds: TLBoundsEventHandler
   onDragBounds: TLBoundsEventHandler
   onHoverBounds: TLBoundsEventHandler
@@ -144,7 +145,7 @@ export interface TLCallbacks {
 
   // Bounds handles (corners, edges)
   onPointBoundsHandle: TLBoundsHandleEventHandler
-  onDoublePointBoundsHandle: TLBoundsHandleEventHandler
+  onDoubleClickBoundsHandle: TLBoundsHandleEventHandler
   onRightPointBoundsHandle: TLBoundsHandleEventHandler
   onDragBoundsHandle: TLBoundsHandleEventHandler
   onHoverBoundsHandle: TLBoundsHandleEventHandler
@@ -153,7 +154,7 @@ export interface TLCallbacks {
 
   // Handles (ie the handles of a selected arrow)
   onPointHandle: TLPointerEventHandler
-  onDoublePointHandle: TLPointerEventHandler
+  onDoubleClickHandle: TLPointerEventHandler
   onRightPointHandle: TLPointerEventHandler
   onDragHandle: TLPointerEventHandler
   onHoverHandle: TLPointerEventHandler
@@ -316,7 +317,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return
   }
 
-  onDoublePointHandle(
+  onDoubleClickHandle(
     shape: T,
     handle: Partial<T['handles']>,
     info: TLPointerInfo,
