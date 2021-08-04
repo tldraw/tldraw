@@ -500,7 +500,7 @@ export class TLDR {
     } = data
 
     if (pageState.selectedIds.length === 0) {
-      return false
+      return currentStyle
     }
 
     const shapeStyles = data.pageState.selectedIds.map((id) => page.shapes[id].style)

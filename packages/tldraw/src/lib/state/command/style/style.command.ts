@@ -15,12 +15,18 @@ export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>):
           ...before,
         },
       },
+      appState: {
+        currentStyle: { ...data.appState.currentStyle },
+      },
     },
     after: {
       page: {
         shapes: {
           ...after,
         },
+      },
+      appState: {
+        currentStyle: { ...data.appState.currentStyle, ...changes },
       },
     },
   }
