@@ -733,9 +733,11 @@ export class TLDrawState implements TLCallbacks {
   }
 
   delete = (ids?: string[]) => {
-    // TODO: Handle changes to parents for grouped shapes?
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
+
+    if (idsToMutate.length === 0) return this
+
     this.do(commands.deleteShapes(data, idsToMutate))
     return this
   }
