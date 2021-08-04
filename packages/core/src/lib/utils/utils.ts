@@ -4,7 +4,6 @@
 import * as React from 'react'
 import deepmerge from 'deepmerge'
 import { TLBezierCurveSegment, TLBounds, TLBoundsCorner, TLBoundsEdge } from '../types'
-import { current, isDraft } from 'immer'
 import vec from './vec'
 import './polyfills'
 
@@ -116,8 +115,6 @@ export class Utils {
    * @param obj
    */
   static deepClone<T extends unknown>(obj: T): T {
-    if (isDraft(obj)) return current(obj)
-
     if (obj === null) return obj
 
     if (Array.isArray(obj)) {
