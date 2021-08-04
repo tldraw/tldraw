@@ -360,7 +360,7 @@ export class TLDrawState implements TLCallbacks {
   pinchZoom(point: number[], delta: number[], zoomDelta: number) {
     this.setState((data) => {
       const { camera } = data.pageState
-      const nextPoint = Vec.sub(camera.point, Vec.div(delta, camera.zoom))
+      const nextPoint = Vec.add(camera.point, Vec.div(delta, camera.zoom))
       const nextZoom = TLDR.getCameraZoom(camera.zoom - zoomDelta * camera.zoom)
       const p0 = Vec.sub(Vec.div(point, camera.zoom), nextPoint)
       const p1 = Vec.sub(Vec.div(point, nextZoom), nextPoint)
@@ -414,14 +414,14 @@ export class TLDrawState implements TLCallbacks {
 
   pan(delta: number[]) {
     this.setState((data) => {
-      const { point, zoom } = TLDR.getCurrentCamera(data)
+      const { point } = TLDR.getCurrentCamera(data)
 
       return {
         pageState: {
           ...data.pageState,
           camera: {
             ...data.pageState.camera,
-            point: Vec.sub(point, Vec.div(delta, zoom)),
+            point: Vec.sub(point, delta),
           },
         },
       }
@@ -838,22 +838,32 @@ export class TLDrawState implements TLCallbacks {
       }
     }
   }
+
   /* ------------- Renderer Event Handlers ------------ */
   onPinchStart: TLPinchEventHandler = (info) => {
-    // TODO
+    this.setStatus('pinching')
   }
+
   onPinchEnd: TLPinchEventHandler = () => {
-    // TODO
+    this.setStatus(this.status.previous)
   }
-  onPinch: TLPinchEventHandler = (info) => {
-    this.pinchZoom(info.origin, Vec.sub(info.point, info.origin), info.delta[1] / 350)
+
+  onPinch: TLPinchEventHandler = (info, e) => {
+    if (this.status.current !== 'pinching') return
+
+    this.pinchZoom(info.origin, info.delta, info.delta[2] / 350)
+    this.updateSessionsOnPointerMove(info, e as any)
   }
+
   onPan: TLWheelEventHandler = (info, e) => {
-    this.pan(info.delta)
-    this.updateSessionsOnPointerMove(info, e)
+    const delta = Vec.div(info.delta, this.getPageState().camera.zoom)
+    this.pan(delta)
+    this.updateSessionsOnPointerMove(info, e as any)
   }
-  onZoom: TLWheelEventHandler = (info) => {
-    this.zoom(info.delta[1] / 100)
+
+  onZoom: TLWheelEventHandler = (info, e) => {
+    this.zoom(info.delta[2] / 100)
+    this.updateSessionsOnPointerMove(info, e as any)
   }
 
   // Pointer Events

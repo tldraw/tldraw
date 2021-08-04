@@ -15,14 +15,15 @@ export function useZoomEvents() {
   useGesture(
     {
       onWheel: ({ event: e, delta }) => {
+        const info = inputs.pan(delta, e as WheelEvent)
+
         if (e.ctrlKey) {
-          const info = inputs.wheel(e as WheelEvent)
-          callbacks.onZoom?.({ ...info, delta }, e)
+          callbacks.onZoom?.(info, e)
           return
         }
 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        callbacks.onPan?.({ ...inputs.pointer!, delta: Vec.round(delta) }, e)
+        callbacks.onPan?.(info, e)
       },
       onPinch: ({ pinching, da, origin, event: e }) => {
         if (!pinching) {
@@ -51,7 +52,7 @@ export function useZoomEvents() {
             ...info,
             point: origin,
             origin: rPinchPoint.current,
-            delta: [0, distanceDelta],
+            delta: [...info.delta, distanceDelta],
           },
           e as Parameters<typeof callbacks.onPinch>[1],
         )

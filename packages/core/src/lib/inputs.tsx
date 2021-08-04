@@ -173,9 +173,10 @@ class Inputs {
     return info
   }
 
-  wheel = (e: WheelEvent): TLPointerInfo<'wheel'> => {
+  panStart = (e: WheelEvent): TLPointerInfo<'wheel'> => {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
-    return {
+
+    const info: TLPointerInfo<'wheel'> = {
       target: 'wheel',
       pointerId: this.pointer?.pointerId || 0,
       origin: this.pointer?.origin || [0, 0],
@@ -187,6 +188,37 @@ class Inputs {
       metaKey,
       altKey,
     }
+
+    this.pointer = info
+
+    return info
+  }
+
+  pan = (delta: number[], e: WheelEvent): TLPointerInfo<'wheel'> => {
+    if (!this.pointer || this.pointer.target !== 'wheel') {
+      return this.panStart(e)
+    }
+
+    const { shiftKey, ctrlKey, metaKey, altKey } = e
+
+    const prev = this.pointer
+
+    const point = Inputs.getPoint(e)
+
+    const info: TLPointerInfo<'wheel'> = {
+      ...prev,
+      target: 'wheel',
+      delta,
+      point: Vec.sub(point, delta),
+      shiftKey,
+      ctrlKey,
+      metaKey,
+      altKey,
+    }
+
+    this.pointer = info
+
+    return info
   }
 
   canAccept = (_pointerId: PointerEvent['pointerId']): boolean => {

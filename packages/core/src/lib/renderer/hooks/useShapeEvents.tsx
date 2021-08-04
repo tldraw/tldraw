@@ -43,6 +43,9 @@ export function useShapeEvents(id: string, disable = false) {
     (e: React.PointerEvent) => {
       if (disable) return
       e.stopPropagation()
+
+      if (inputs.pointer && e.pointerId !== inputs.pointer.pointerId) return
+
       const info = inputs.pointerMove(e, id)
 
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
