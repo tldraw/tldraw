@@ -494,7 +494,12 @@ export class TLDrawState implements TLCallbacks {
       this.setState((data) => Utils.deepMerge<Data>(data, result))
     }
 
-    this.setStatus('idle')
+    const { isToolLocked, activeTool } = this.appState
+
+    if (!isToolLocked && activeTool !== 'draw') {
+      this.selectTool('select')
+    }
+
     this.session = undefined
     return this
   }
@@ -745,6 +750,7 @@ export class TLDrawState implements TLCallbacks {
     switch (this.status.current) {
       case 'idle': {
         this.deselectAll()
+        this.selectTool('select')
         break
       }
       case 'brushing': {

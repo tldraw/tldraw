@@ -144,7 +144,7 @@ export class DrawSession implements Session {
           },
         },
         pageState: {
-          selectedIds: [snapshot.id],
+          selectedIds: [],
         },
       },
     }
