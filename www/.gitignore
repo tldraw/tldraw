@@ -1,33 +1,21 @@
-*.log
-.DS_Store
-node_modules
-dist
-
-node_modules
-package-lock.json
-yarn.lock
-!/yarn.lock
-
-.yalc
-yalc.lock
-
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-.next
-./www/node_modules
-.pnp
+/node_modules
+/.pnp
 .pnp.js
 
 # testing
-./www/coverage
+/coverage
 
 # next.js
-.next/
-out/
+/.next/
+/out/
 
 # production
-build
+/build
+./www/.next/cache
+
 
 # misc
 .DS_Store
@@ -46,3 +34,5 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+cypress/integration/examples
