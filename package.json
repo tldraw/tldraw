@@ -8,13 +8,13 @@
     "@changesets/cli": "^2.10.3",
     "@types/react": "^17.0.15",
     "@types/react-dom": "^17.0.9",
+    "caniuse-lite": "^1.0.30001249",
     "cypress": "^5.2.0",
     "lerna": "^3.15.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "tsdx": "^0.14.1",
-    "typescript": "^4.3.5",
-    "caniuse-lite": "^1.0.30001249"
+    "typescript": "^4.3.5"
   },
   "workspaces": [
     "packages/*"
@@ -33,5 +33,6 @@
     "release": "changeset publish",
     "version:canary": "changeset version --snapshot canary",
     "release:canary": "changeset publish --tag canary"
-  }
+  },
+  "version": "0.0.23"
 }
