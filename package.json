@@ -34,5 +34,5 @@
     "version:canary": "changeset version --snapshot canary",
     "release:canary": "changeset publish --tag canary"
   },
-  "version": "0.0.23"
+  "version": "0.0.24"
 }
