@@ -26,7 +26,7 @@
     "lint": "lerna run lint -- --fix",
     "build": "lerna run build",
     "prepublish": "lerna run prepublish",
-    "start:app": "yarn run build && yarn --cwd example && yarn --cwd example start",
+    "start:app": "yarn run build && yarn --cwd www && yarn --cwd www start",
     "cypress": "cypress run",
     "cypress:open": "cypress open",
     "changeset": "changeset",
