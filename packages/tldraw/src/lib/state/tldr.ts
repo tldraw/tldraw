@@ -358,9 +358,14 @@ export class TLDR {
     ids.forEach((id, i) => {
       const shape = data.page.shapes[id]
       const change = fn(shape, i)
-      beforeShapes[id] = Object.fromEntries((Object.keys(change)).map(key => [key, (shape)[key as keyof TLDrawShape]])) as Partial<TLDrawShape>
+      beforeShapes[id] = Object.fromEntries(
+        Object.keys(change).map(key => [key, shape[key as keyof TLDrawShape]])
+      ) as Partial<TLDrawShape>
       afterShapes[id] = change
-      data.page.shapes[id] = this.getShapeUtils(shape).mutate(shape as TLDrawShape, change as Partial<TLDrawShape>)
+      data.page.shapes[id] = this.getShapeUtils(shape).mutate(
+        shape as TLDrawShape,
+        change as Partial<TLDrawShape>
+      )
     })
 
     const dataWithChildrenChanges = ids.reduce<Data>((cData, id) => {
@@ -514,7 +519,7 @@ export class TLDR {
     const overrides = new Set<string>([])
 
     for (const shapeStyle of shapeStyles) {
-      (Object.keys(currentStyle) as (keyof ShapeStyles)[]).forEach((key) => {
+      ;(Object.keys(currentStyle) as (keyof ShapeStyles)[]).forEach(key => {
         if (overrides.has(key)) return
         if (commonStyle[key] === undefined) {
           // @ts-ignore

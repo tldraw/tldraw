@@ -342,7 +342,7 @@ export class Vec {
   }
 
   static round = (a: number[], d = 5): number[] => {
-    return a.map((v) => +v.toPrecision(d))
+    return a.map(v => +v.toPrecision(d))
   }
 
   /**
@@ -420,7 +420,7 @@ export class Vec {
     A: number[],
     B: number[],
     P: number[],
-    clamp = true,
+    clamp = true
   ): number[] => {
     const delta = Vec.sub(B, A)
     const length = Vec.len(delta)
@@ -493,7 +493,7 @@ export class Vec {
         const t = i / steps
         return t * t * t
       })
-      .map((t) => Vec.round([...Vec.lrp(a, b, t), (1 - t) / 2]))
+      .map(t => Vec.round([...Vec.lrp(a, b, t), (1 - t) / 2]))
   }
 }
 

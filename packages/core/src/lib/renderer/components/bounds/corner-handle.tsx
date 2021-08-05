@@ -45,5 +45,5 @@ export const CornerHandle = React.memo(
         />
       </g>
     )
-  },
+  }
 )

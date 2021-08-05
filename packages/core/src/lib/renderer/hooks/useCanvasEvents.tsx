@@ -15,7 +15,7 @@ export function useCanvasEvents() {
         callbacks.onPointerDown?.(info, e)
       }
     },
-    [callbacks],
+    [callbacks]
   )
 
   const onPointerMove = React.useCallback(
@@ -28,7 +28,7 @@ export function useCanvasEvents() {
       const info = inputs.pointerMove(e, 'canvas')
       callbacks.onPointerMove?.(info, e)
     },
-    [callbacks],
+    [callbacks]
   )
 
   const onPointerUp = React.useCallback(
@@ -47,7 +47,7 @@ export function useCanvasEvents() {
       callbacks.onReleaseCanvas?.(info, e)
       callbacks.onPointerUp?.(info, e)
     },
-    [callbacks],
+    [callbacks]
   )
 
   return {

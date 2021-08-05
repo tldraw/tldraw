@@ -20,8 +20,8 @@ export function move(data: Data, ids: string[], type: MoveType): Command {
     const sortedChildren =
       parentId === data.page.id
         ? Object.values(data.page.shapes).sort((a, b) => a.childIndex - b.childIndex)
-        : data.page.shapes[parentId].children!
-            .map(childId => data.page.shapes[childId])
+        : data.page.shapes[parentId]
+            .children!.map(childId => data.page.shapes[childId])
             .sort((a, b) => a.childIndex - b.childIndex)
 
     const sortedChildIds = sortedChildren.map(shape => shape.id)

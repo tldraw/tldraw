@@ -28,5 +28,5 @@ export const EdgeHandle = React.memo(
         {...events}
       />
     )
-  },
+  }
 )

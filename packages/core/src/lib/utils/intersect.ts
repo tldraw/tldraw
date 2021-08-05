@@ -57,7 +57,7 @@ export class Intersect {
       origin: number[],
       direction: number[],
       point: number[],
-      size: number[],
+      size: number[]
     ): TLIntersection[] {
       return Intersect.rectangle.ray(point, size, origin, direction)
     },
@@ -69,7 +69,7 @@ export class Intersect {
       center: number[],
       rx: number,
       ry: number,
-      rotation: number,
+      rotation: number
     ): TLIntersection {
       const a1 = origin
       const a2 = Vec.mul(direction, 999999999)
@@ -130,7 +130,7 @@ export class Intersect {
       center: number[],
       radius: number,
       start: number[],
-      end: number[],
+      end: number[]
     ): TLIntersection {
       const sa = Vec.angle(center, start)
       const ea = Vec.angle(center, end)
@@ -138,8 +138,8 @@ export class Intersect {
 
       if (!ellipseTest.didIntersect) return getIntersection('No intersection')
 
-      const points = ellipseTest.points.filter((point) =>
-        Utils.isAngleBetween(sa, ea, Vec.angle(center, point)),
+      const points = ellipseTest.points.filter(point =>
+        Utils.isAngleBetween(sa, ea, Vec.angle(center, point))
       )
 
       if (points.length === 0) {
@@ -196,7 +196,7 @@ export class Intersect {
       center: number[],
       rx: number,
       ry: number,
-      rotation = 0,
+      rotation = 0
     ): TLIntersection {
       // If the ellipse or line segment are empty, return no tValues.
       if (rx === 0 || ry === 0 || Vec.isEqual(a1, a2)) {
@@ -237,9 +237,9 @@ export class Intersect {
       // Filter to only points that are on the segment.
       // Solve for points, then counter-rotate points.
       const points = tValues
-        .filter((t) => t >= 0 && t <= 1)
-        .map((t) => Vec.add(center, Vec.add(a1, Vec.mul(Vec.sub(a2, a1), t))))
-        .map((p) => Vec.rotWith(p, center, rotation))
+        .filter(t => t >= 0 && t <= 1)
+        .map(t => Vec.add(center, Vec.add(a1, Vec.mul(Vec.sub(a2, a1), t))))
+        .map(p => Vec.rotWith(p, center, rotation))
 
       return getIntersection('intersection', ...points)
     },
@@ -258,7 +258,7 @@ export class Intersect {
           a1,
           a2,
           points[i - 1],
-          points[i % points.length],
+          points[i % points.length]
         )
 
         if (int) {
@@ -283,10 +283,10 @@ export class Intersect {
 
           return acc
         },
-        [],
+        []
       )
 
-      return sideIntersections.filter((int) => int.didIntersect)
+      return sideIntersections.filter(int => int.didIntersect)
     },
 
     // Intersect a rectangle with a line segment.
@@ -301,10 +301,10 @@ export class Intersect {
 
           return acc
         },
-        [],
+        []
       )
 
-      return sideIntersections.filter((int) => int.didIntersect)
+      return sideIntersections.filter(int => int.didIntersect)
     },
 
     // Intersect a rectangle with a rectangle.
@@ -312,24 +312,22 @@ export class Intersect {
       point1: number[],
       size1: number[],
       point2: number[],
-      size2: number[],
+      size2: number[]
     ): TLIntersection[] {
       const sideIntersections = Utils.getRectangleSides(point1, size1).reduce<TLIntersection[]>(
         (acc, [message, [a1, a2]]) => {
           const intersections = Intersect.rectangle.lineSegment(point2, size2, a1, a2)
 
           acc.push(
-            ...intersections.map((int) =>
-              getIntersection(`${message} ${int.message}`, ...int.points),
-            ),
+            ...intersections.map(int => getIntersection(`${message} ${int.message}`, ...int.points))
           )
 
           return acc
         },
-        [],
+        []
       )
 
-      return sideIntersections.filter((int) => int.didIntersect)
+      return sideIntersections.filter(int => int.didIntersect)
     },
 
     // Intersect a rectangle with an arc.
@@ -339,7 +337,7 @@ export class Intersect {
       center: number[],
       radius: number,
       start: number[],
-      end: number[],
+      end: number[]
     ): TLIntersection[] {
       const sideIntersections = Utils.getRectangleSides(point, size).reduce<TLIntersection[]>(
         (acc, [message, [a1, a2]]) => {
@@ -351,10 +349,10 @@ export class Intersect {
 
           return acc
         },
-        [],
+        []
       )
 
-      return sideIntersections.filter((int) => int.didIntersect)
+      return sideIntersections.filter(int => int.didIntersect)
     },
 
     // Intersect a rectangle with a circle.
@@ -369,10 +367,10 @@ export class Intersect {
 
           return acc
         },
-        [],
+        []
       )
 
-      return sideIntersections.filter((int) => int.didIntersect)
+      return sideIntersections.filter(int => int.didIntersect)
     },
 
     // Intersect a rectangle with an ellipse.
@@ -382,7 +380,7 @@ export class Intersect {
       c: number[],
       rx: number,
       ry: number,
-      rotation = 0,
+      rotation = 0
     ): TLIntersection[] {
       const sideIntersections = Utils.getRectangleSides(point, size).reduce<TLIntersection[]>(
         (acc, [message, [a1, a2]]) => {
@@ -394,10 +392,10 @@ export class Intersect {
 
           return acc
         },
-        [],
+        []
       )
 
-      return sideIntersections.filter((int) => int.didIntersect)
+      return sideIntersections.filter(int => int.didIntersect)
     },
 
     // Intersect a rectangle with a bounding box.
@@ -413,15 +411,15 @@ export class Intersect {
           const intersections = Intersect.lineSegment.polyline(a1, a2, points)
 
           if (intersections.length > 0) {
-            acc.push(getIntersection(message, ...intersections.flatMap((i) => i.points)))
+            acc.push(getIntersection(message, ...intersections.flatMap(i => i.points)))
           }
 
           return acc
         },
-        [],
+        []
       )
 
-      return sideIntersections.filter((int) => int.didIntersect)
+      return sideIntersections.filter(int => int.didIntersect)
     },
   }
 
@@ -433,7 +431,7 @@ export class Intersect {
       start: number[],
       end: number[],
       a1: number[],
-      a2: number[],
+      a2: number[]
     ): TLIntersection {
       return Intersect.lineSegment.arc(a1, a2, center, radius, start, end)
     },
@@ -445,7 +443,7 @@ export class Intersect {
       start: number[],
       end: number[],
       point: number[],
-      size: number[],
+      size: number[]
     ): TLIntersection[] {
       return Intersect.rectangle.arc(point, size, center, radius, start, end)
     },
@@ -456,7 +454,7 @@ export class Intersect {
       radius: number,
       start: number[],
       end: number[],
-      bounds: TLBounds,
+      bounds: TLBounds
     ): TLIntersection[] {
       const { minX, minY, width, height } = bounds
       return Intersect.arc.rectangle(center, radius, start, end, [minX, minY], [width, height])
@@ -484,7 +482,7 @@ export class Intersect {
       return getIntersection(
         'intersection',
         [c1[0] + dx * x - dy * y, c1[1] + dy * x + dx * y],
-        [c1[0] + dx * x + dy * y, c1[1] + dy * x - dx * y],
+        [c1[0] + dx * x + dy * y, c1[1] + dy * x - dx * y]
       )
     },
 
@@ -508,7 +506,7 @@ export class Intersect {
       ry: number,
       rotation: number,
       point: number[],
-      direction: number[],
+      direction: number[]
     ): TLIntersection {
       return Intersect.ray.ellipse(point, direction, center, rx, ry, rotation)
     },
@@ -520,7 +518,7 @@ export class Intersect {
       ry: number,
       rotation = 0,
       a1: number[],
-      a2: number[],
+      a2: number[]
     ): TLIntersection {
       if (rx === ry) {
         return Intersect.lineSegment.circle(a1, a2, center, rx)
@@ -536,7 +534,7 @@ export class Intersect {
       ry: number,
       rotation = 0,
       point: number[],
-      size: number[],
+      size: number[]
     ): TLIntersection[] {
       if (rx === ry) {
         return Intersect.rectangle.circle(point, size, center, rx)
@@ -555,7 +553,7 @@ export class Intersect {
       _c2: number[],
       _rx2: number,
       _ry2: number,
-      _r2: number,
+      _r2: number
     ): TLIntersection {
       // TODO
       return getIntersection('no intersection')
@@ -567,7 +565,7 @@ export class Intersect {
       ry: number,
       rotation: number,
       c2: number[],
-      r2: number,
+      r2: number
     ): TLIntersection {
       return Intersect.ellipse.ellipse(c, rx, ry, rotation, c2, r2, r2, 0)
     },
@@ -578,7 +576,7 @@ export class Intersect {
       rx: number,
       ry: number,
       rotation: number,
-      bounds: TLBounds,
+      bounds: TLBounds
     ): TLIntersection[] {
       const { minX, minY, width, height } = bounds
       return Intersect.ellipse.rectangle(c, rx, ry, rotation, [minX, minY], [width, height])
@@ -606,7 +604,7 @@ export class Intersect {
         [bounds1.minX, bounds1.minY],
         [bounds1.width, bounds1.height],
         [bounds2.minX, bounds2.minY],
-        [bounds2.width, bounds2.height],
+        [bounds2.width, bounds2.height]
       )
     },
 
@@ -615,7 +613,7 @@ export class Intersect {
       center: number[],
       radius: number,
       start: number[],
-      end: number[],
+      end: number[]
     ): TLIntersection[] {
       const { minX, minY, width, height } = bounds
       return Intersect.arc.rectangle(center, radius, start, end, [minX, minY], [width, height])
@@ -652,7 +650,7 @@ export class Intersect {
       return Intersect.rectangle.polyline(
         [bounds.minX, bounds.minY],
         [bounds.width, bounds.height],
-        points,
+        points
       )
     },
   }

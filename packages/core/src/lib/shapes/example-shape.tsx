@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { TLShapeUtil, TLShape, TLBounds, TLRenderInfo, TLTransformInfo } from '../types'
 import Utils, { Intersect } from '../utils'
 
@@ -53,12 +54,12 @@ export class ExampleShape extends TLShapeUtil<TLShape> {
     const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
     return (
-      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
+      rotatedCorners.every(point => Utils.pointInBounds(point, bounds)) ||
       Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
     )
   }
 
-  transform(shape: TLShape, bounds: TLBounds, info: TLTransformInfo<TLShape>): TLShape {
+  transform(shape: TLShape, bounds: TLBounds, _info: TLTransformInfo<TLShape>): TLShape {
     return { ...shape, point: [bounds.minX, bounds.minY] }
   }
 

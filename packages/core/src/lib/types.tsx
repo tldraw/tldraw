@@ -91,18 +91,18 @@ export interface TLTheme {
 
 export type TLWheelEventHandler = (
   info: TLPointerInfo<string>,
-  e: React.WheelEvent<Element> | WheelEvent,
+  e: React.WheelEvent<Element> | WheelEvent
 ) => void
 export type TLPinchEventHandler = (
   info: TLPointerInfo<string>,
-  e: React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent,
+  e: React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent
 ) => void
 export type TLPointerEventHandler = (info: TLPointerInfo<string>, e: React.PointerEvent) => void
 export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>, e: React.PointerEvent) => void
 export type TLBoundsEventHandler = (info: TLPointerInfo<'bounds'>, e: React.PointerEvent) => void
 export type TLBoundsHandleEventHandler = (
   info: TLPointerInfo<TLBoundsCorner | TLBoundsEdge | 'rotate'>,
-  e: React.PointerEvent,
+  e: React.PointerEvent
 ) => void
 
 export interface TLCallbacks {
@@ -302,19 +302,23 @@ export abstract class TLShapeUtil<T extends TLShape> {
     _shape: T,
     _binding: TLBinding,
     _target: TLShape,
-    _targetBounds: TLBounds,
+    _targetBounds: TLBounds
   ): Partial<T> | void {
     return
   }
 
-  onHandleChange(_shape: T, _handle: Partial<T['handles']>, _info: TLPointerInfo): Partial<T> | void {
+  onHandleChange(
+    _shape: T,
+    _handle: Partial<T['handles']>,
+    _info: TLPointerInfo
+  ): Partial<T> | void {
     return
   }
 
   onRightPointHandle(
     _shape: T,
     _handle: Partial<T['handles']>,
-    _info: TLPointerInfo,
+    _info: TLPointerInfo
   ): Partial<T> | void {
     return
   }
@@ -322,7 +326,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
   onDoubleClickHandle(
     _shape: T,
     _handle: Partial<T['handles']>,
-    _info: TLPointerInfo,
+    _info: TLPointerInfo
   ): Partial<T> | void {
     return
   }

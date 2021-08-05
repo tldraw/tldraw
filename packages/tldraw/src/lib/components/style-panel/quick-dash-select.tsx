@@ -28,7 +28,7 @@ export const QuickDashSelect = React.memo(
     const dash = useAppState(selectDash)
 
     const changeDashStyle = React.useCallback(
-      (dash) => {
+      dash => {
         tlstate.style({ dash: dash as DashStyle })
       },
       [tlstate]

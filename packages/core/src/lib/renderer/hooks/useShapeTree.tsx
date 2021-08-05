@@ -4,13 +4,10 @@ import {
   TLPage,
   TLPageState,
   TLShape,
-  TLBounds,
-  TLShapeUtil,
   TLShapeUtils,
   TLCallbacks,
 } from '../../types'
 import Utils, { Vec } from '../../utils'
-import { TLContext, useTLContext } from './useTLContext'
 
 function addToShapeTree<T extends TLShape>(
   shape: TLShape,
@@ -24,7 +21,7 @@ function addToShapeTree<T extends TLShape>(
     editingId?: string
     editingBindingId?: string
     isDarkMode?: boolean
-  },
+  }
 ) {
   const node: IShapeTreeNode = {
     shape,
@@ -41,11 +38,11 @@ function addToShapeTree<T extends TLShape>(
   if (shape.children) {
     node.children = []
     shape.children
-      .map((id) => shapes[id])
+      .map(id => shapes[id])
       .sort((a, b) => a.childIndex - b.childIndex)
-      .forEach((childShape) =>
+      .forEach(childShape =>
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        addToShapeTree(childShape, node.children!, shapes, selectedIds, info),
+        addToShapeTree(childShape, node.children!, shapes, selectedIds, info)
       )
   }
 }
@@ -62,7 +59,7 @@ export function useShapeTree<T extends TLShape>(
     editingBindingId?: string
     isDarkMode?: boolean
   } = {},
-  onChange?: TLCallbacks['onChange'],
+  onChange?: TLCallbacks['onChange']
 ) {
   const rPreviousCount = React.useRef(0)
 
@@ -76,7 +73,7 @@ export function useShapeTree<T extends TLShape>(
 
   const [maxX, maxY] = Vec.sub(
     Vec.div([window.innerWidth, window.innerHeight], camera.zoom),
-    camera.point,
+    camera.point
   )
 
   const viewport = {
@@ -90,7 +87,7 @@ export function useShapeTree<T extends TLShape>(
 
   // Filter shapes that are in view
 
-  const shapesToRender = Object.values(page.shapes).filter((shape) => {
+  const shapesToRender = Object.values(page.shapes).filter(shape => {
     if (shape.parentId !== page.id) return false
 
     // Don't hide selected shapes (this breaks certain drag interactions)
@@ -107,7 +104,7 @@ export function useShapeTree<T extends TLShape>(
   // Call onChange callback when number of rendering shapes changes
 
   if (shapesToRender.length !== rPreviousCount.current) {
-    setTimeout(() => onChange?.(shapesToRender.map((shape) => shape.id)), 0)
+    setTimeout(() => onChange?.(shapesToRender.map(shape => shape.id)), 0)
     rPreviousCount.current = shapesToRender.length
   }
 
@@ -117,7 +114,7 @@ export function useShapeTree<T extends TLShape>(
 
   shapesToRender
     .sort((a, b) => a.childIndex - b.childIndex)
-    .forEach((shape) => addToShapeTree(shape, tree, page.shapes, selectedIds, info))
+    .forEach(shape => addToShapeTree(shape, tree, page.shapes, selectedIds, info))
 
   return tree
 }

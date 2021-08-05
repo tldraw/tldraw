@@ -55,5 +55,5 @@ export const Shape = React.memo(
         )}
       </g>
     )
-  },
+  }
 )

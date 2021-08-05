@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as _ContextMenu from '@radix-ui/react-context-menu'
+import * as RadixContextMenu from '@radix-ui/react-context-menu'
 import styled from '../../styles'
 import { useTLDrawContext } from '../../hooks'
 import { Data } from '../../state/state-types'
@@ -110,8 +110,8 @@ export const ContextMenu = React.memo(
 
     return (
       <ContextMenuRoot>
-        <_ContextMenu.Trigger>{children}</_ContextMenu.Trigger>
-        <MenuContent as={_ContextMenu.Content} ref={rContent}>
+        <RadixContextMenu.Trigger>{children}</RadixContextMenu.Trigger>
+        <MenuContent as={RadixContextMenu.Content} ref={rContent}>
           {hasSelection ? (
             <>
               <ContextMenuButton onSelect={handleDuplicate}>
@@ -245,14 +245,14 @@ function AlignDistributeSubMenu({
 
   return (
     <ContextMenuRoot>
-      <_ContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
+      <RadixContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
         <span>Align / Distribute</span>
         <IconWrapper size="small">
           <ChevronRightIcon />
         </IconWrapper>
-      </_ContextMenu.TriggerItem>
+      </RadixContextMenu.TriggerItem>
       <StyledGrid
-        as={_ContextMenu.Content}
+        as={RadixContextMenu.Content}
         sideOffset={2}
         alignOffset={-2}
         selectedStyle={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}
@@ -332,7 +332,7 @@ const StyledGrid = styled(MenuContent, {
 //           <ChevronRightIcon />
 //         </IconWrapper>
 //       </ContextMenuButton>
-//       <MenuContent as={_ContextMenu.Content} sideOffset={2} alignOffset={-2}>
+//       <MenuContent as={RadixContextMenu.Content} sideOffset={2} alignOffset={-2}>
 //         {sorted.map(({ id, name }) => (
 //           <ContextMenuButton
 //             key={id}

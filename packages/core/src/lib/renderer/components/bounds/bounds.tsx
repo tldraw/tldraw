@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from 'react'
 import { TLBoundsEdge, TLBoundsCorner, TLBounds } from '../../../types'
 import { Utils } from '../../../utils'
 import { CenterHandle } from './center-handle'

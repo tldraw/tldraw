@@ -28,7 +28,10 @@ export function useZoomEvents() {
       onPinch: ({ pinching, da, origin, event: e }) => {
         if (!pinching) {
           const info = inputs.pinch(origin, origin)
-          callbacks.onPinchEnd?.(info, e as React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent)
+          callbacks.onPinchEnd?.(
+            info,
+            e as React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent
+          )
           rPinchDa.current = undefined
           rPinchPoint.current = undefined
           return
@@ -36,7 +39,10 @@ export function useZoomEvents() {
 
         if (rPinchPoint.current === undefined) {
           const info = inputs.pinch(origin, origin)
-          callbacks.onPinchStart?.(info, e as React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent)
+          callbacks.onPinchStart?.(
+            info,
+            e as React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent
+          )
           rPinchDa.current = da
           rPinchPoint.current = origin
         }
@@ -54,7 +60,7 @@ export function useZoomEvents() {
             origin: rPinchPoint.current,
             delta: [...info.delta, distanceDelta],
           },
-          e as React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent,
+          e as React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent
         )
 
         rPinchDa.current = da
@@ -64,6 +70,6 @@ export function useZoomEvents() {
     {
       domTarget: typeof document === 'undefined' ? undefined : document.body,
       eventOptions: { passive: false },
-    },
+    }
   )
 }

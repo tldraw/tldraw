@@ -26,5 +26,5 @@ export const RotateHandle = React.memo(
         />
       </g>
     )
-  },
+  }
 )

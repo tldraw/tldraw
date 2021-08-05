@@ -32,7 +32,7 @@ export function Page<T extends TLShape>({
   return (
     <>
       {bounds && !hideBounds && <BoundsBg bounds={bounds} rotation={rotation} />}
-      {shapeTree.map((node) => (
+      {shapeTree.map(node => (
         <ShapeNode key={node.shape.id} allowHovers={true} {...node} />
       ))}
       {bounds && !hideBounds && (
@@ -76,10 +76,10 @@ const ShapeNode = React.memo(
           isCurrentParent={isCurrentParent}
         />
         {children &&
-          children.map((childNode) => (
+          children.map(childNode => (
             <ShapeNode key={childNode.shape.id} allowHovers={allowHovers} {...childNode} />
           ))}
       </>
     )
-  },
+  }
 )

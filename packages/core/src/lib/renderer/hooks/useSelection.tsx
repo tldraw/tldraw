@@ -4,7 +4,7 @@ import Utils from '../../utils'
 export function useSelection<T extends TLShape>(
   page: TLPage<T>,
   pageState: TLPageState,
-  shapeUtils: TLShapeUtils<T>,
+  shapeUtils: TLShapeUtils<T>
 ) {
   const { selectedIds } = pageState
 
@@ -23,11 +23,11 @@ export function useSelection<T extends TLShape>(
 
     bounds = shapeUtils[shape.type as T['type']].getBounds(shape)
   } else if (selectedIds.length > 1) {
-    const selectedShapes = selectedIds.map((id) => page.shapes[id])
+    const selectedShapes = selectedIds.map(id => page.shapes[id])
 
     rotation = 0
 
-    isLocked = selectedShapes.every((shape) => shape.isLocked)
+    isLocked = selectedShapes.every(shape => shape.isLocked)
 
     bounds = selectedShapes.reduce((acc, shape, i) => {
       if (i === 0) {
@@ -35,7 +35,7 @@ export function useSelection<T extends TLShape>(
       }
       return Utils.getExpandedBounds(
         acc,
-        shapeUtils[shape.type as T['type']].getRotatedBounds(shape),
+        shapeUtils[shape.type as T['type']].getRotatedBounds(shape)
       )
     }, {} as TLBounds)
   }

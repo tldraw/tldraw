@@ -14,7 +14,7 @@ export class Utils {
 
   static filterObject<T extends object>(
     obj: T,
-    fn: (entry: Entry<T>, i?: number, arr?: Entry<T>[]) => boolean,
+    fn: (entry: Entry<T>, i?: number, arr?: Entry<T>[]) => boolean
   ) {
     return Object.fromEntries((Object.entries(obj) as Entry<T>[]).filter(fn)) as Partial<T>
   }
@@ -125,11 +125,11 @@ export class Utils {
       const clone = { ...(obj as Record<string, unknown>) }
 
       Object.keys(clone).forEach(
-        (key) =>
+        key =>
           (clone[key] =
             typeof obj[key as keyof T] === 'object'
               ? Utils.deepClone(obj[key as keyof T])
-              : obj[key as keyof T]),
+              : obj[key as keyof T])
       )
 
       return clone as T
@@ -222,7 +222,7 @@ export class Utils {
     C: number[],
     r: number,
     P: number[],
-    side: number,
+    side: number
   ): number[] | null {
     const B = vec.lrp(C, P, 0.5)
     const r1 = vec.dist(C, B)
@@ -256,7 +256,7 @@ export class Utils {
     C0: number[],
     r0: number,
     C1: number[],
-    r1: number,
+    r1: number
   ): number[][] | null {
     const a0 = vec.angle(C0, C1)
     const d = vec.dist(C0, C1)
@@ -675,7 +675,7 @@ export class Utils {
    */
   static getSpline(
     pts: number[][],
-    k = 0.5,
+    k = 0.5
   ): {
     cp1x: number
     cp1y: number
@@ -726,7 +726,7 @@ export class Utils {
     pts: number[][],
     tension = 0.5,
     isClosed = false,
-    numOfSegments = 3,
+    numOfSegments = 3
   ): number[][] {
     const _pts = [...pts]
     const len = pts.length
@@ -973,7 +973,7 @@ export class Utils {
 
     if (rotation !== 0) {
       return Utils.getBoundsFromPoints(
-        points.map((pt) => vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], rotation)),
+        points.map(pt => vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], rotation))
       )
     }
 
@@ -1037,7 +1037,7 @@ export class Utils {
     y: number,
     rx: number,
     ry: number,
-    rotation: number,
+    rotation: number
   ): TLBounds {
     const c = Math.cos(rotation)
     const s = Math.sin(rotation)
@@ -1095,7 +1095,7 @@ export class Utils {
       [b.maxX, b.minY],
       [b.maxX, b.maxY],
       [b.minX, b.maxY],
-    ].map((point) => vec.rotWith(point, center, rotation))
+    ].map(point => vec.rotWith(point, center, rotation))
   }
 
   static getTransformedBoundingBox(
@@ -1103,7 +1103,7 @@ export class Utils {
     handle: TLBoundsCorner | TLBoundsEdge | 'center',
     delta: number[],
     rotation = 0,
-    isAspectRatioLocked = false,
+    isAspectRatioLocked = false
   ): TLBounds & { scaleX: number; scaleY: number } {
     // Create top left and bottom right corners.
     const [ax0, ay0] = [bounds.minX, bounds.minY]
@@ -1268,28 +1268,28 @@ so that the two anchor points (initial and result) will be equal.
         case TLBoundsEdge.Top: {
           cv = vec.sub(
             vec.rotWith(vec.med([bx0, by1], [bx1, by1]), c1, rotation),
-            vec.rotWith(vec.med([ax0, ay1], [ax1, ay1]), c0, rotation),
+            vec.rotWith(vec.med([ax0, ay1], [ax1, ay1]), c0, rotation)
           )
           break
         }
         case TLBoundsEdge.Left: {
           cv = vec.sub(
             vec.rotWith(vec.med([bx1, by0], [bx1, by1]), c1, rotation),
-            vec.rotWith(vec.med([ax1, ay0], [ax1, ay1]), c0, rotation),
+            vec.rotWith(vec.med([ax1, ay0], [ax1, ay1]), c0, rotation)
           )
           break
         }
         case TLBoundsEdge.Bottom: {
           cv = vec.sub(
             vec.rotWith(vec.med([bx0, by0], [bx1, by0]), c1, rotation),
-            vec.rotWith(vec.med([ax0, ay0], [ax1, ay0]), c0, rotation),
+            vec.rotWith(vec.med([ax0, ay0], [ax1, ay0]), c0, rotation)
           )
           break
         }
         case TLBoundsEdge.Right: {
           cv = vec.sub(
             vec.rotWith(vec.med([bx0, by0], [bx0, by1]), c1, rotation),
-            vec.rotWith(vec.med([ax0, ay0], [ax0, ay1]), c0, rotation),
+            vec.rotWith(vec.med([ax0, ay0], [ax0, ay1]), c0, rotation)
           )
           break
         }
@@ -1329,7 +1329,7 @@ left past the initial left edge) then swap points on that axis.
   static getTransformAnchor(
     type: TLBoundsEdge | TLBoundsCorner,
     isFlippedX: boolean,
-    isFlippedY: boolean,
+    isFlippedY: boolean
   ): TLBoundsCorner | TLBoundsEdge {
     let anchor: TLBoundsCorner | TLBoundsEdge = type
 
@@ -1401,7 +1401,7 @@ left past the initial left edge) then swap points on that axis.
     initialBounds: TLBounds,
     initialShapeBounds: TLBounds,
     isFlippedX: boolean,
-    isFlippedY: boolean,
+    isFlippedY: boolean
   ): TLBounds {
     const nx =
       (isFlippedX
@@ -1439,8 +1439,8 @@ left past the initial left edge) then swap points on that axis.
   static getRotatedSize(size: number[], rotation: number): number[] {
     const center = vec.div(size, 2)
 
-    const points = [[0, 0], [size[0], 0], size, [0, size[1]]].map((point) =>
-      vec.rotWith(point, center, rotation),
+    const points = [[0, 0], [size[0], 0], size, [0, size[1]]].map(point =>
+      vec.rotWith(point, center, rotation)
     )
 
     const bounds = Utils.getBoundsFromPoints(points)
@@ -1554,7 +1554,7 @@ left past the initial left edge) then swap points on that axis.
   static arrsIntersect<T, K>(a: T[], b: K[], fn?: (item: K) => T): boolean
   static arrsIntersect<T>(a: T[], b: T[]): boolean
   static arrsIntersect<T>(a: T[], b: unknown[], fn?: (item: unknown) => T): boolean {
-    return a.some((item) => b.includes(fn ? fn(item) : item))
+    return a.some(item => b.includes(fn ? fn(item) : item))
   }
 
   /**
@@ -1579,7 +1579,7 @@ left past the initial left edge) then swap points on that axis.
   static debounce<T extends (...args: unknown[]) => void>(fn: T, ms = 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let timeoutId: number | any
-    return function (...args: Parameters<T>) {
+    return function(...args: Parameters<T>) {
       clearTimeout(timeoutId)
       timeoutId = setTimeout(() => fn.apply(args), ms)
     }
@@ -1598,7 +1598,7 @@ left past the initial left edge) then swap points on that axis.
         acc.push(` ${x0},${y0} ${(x0 + x1) / 2},${(y0 + y1) / 2}`)
         return acc
       },
-      ['M ', `${stroke[0][0]},${stroke[0][1]}`, ' Q'],
+      ['M ', `${stroke[0][0]},${stroke[0][1]}`, ' Q']
     )
 
     d.push(' Z')
@@ -1649,7 +1649,7 @@ left past the initial left edge) then swap points on that axis.
    */
   static getClosestPointOnSVGPath(
     pathNode: SVGPathElement,
-    point: number[],
+    point: number[]
   ): {
     point: number[]
     distance: number

@@ -13,5 +13,5 @@ export const Brush = React.memo(
     return <rect ref={brushUpdater.ref} className="tl-brush" x={0} y={0} width={0} height={0} />
   },
   // Once the brush is controlled, never update again from props
-  (prev, next) => true,
+  (prev, next) => true
 )

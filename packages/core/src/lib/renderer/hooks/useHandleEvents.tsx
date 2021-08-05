@@ -14,7 +14,7 @@ export function useHandleEvents(id: string) {
       callbacks.onPointHandle?.(info, e)
       callbacks.onPointerDown?.(info, e)
     },
-    [callbacks, id],
+    [callbacks, id]
   )
 
   const onPointerUp = React.useCallback(
@@ -34,7 +34,7 @@ export function useHandleEvents(id: string) {
       }
       callbacks.onPointerUp?.(info, e)
     },
-    [callbacks],
+    [callbacks]
   )
 
   const onPointerMove = React.useCallback(
@@ -48,7 +48,7 @@ export function useHandleEvents(id: string) {
       callbacks.onPointerMove?.(info, e)
       e.stopPropagation()
     },
-    [callbacks, id],
+    [callbacks, id]
   )
 
   const onPointerEnter = React.useCallback(
@@ -56,7 +56,7 @@ export function useHandleEvents(id: string) {
       const info = inputs.pointerEnter(e, id)
       callbacks.onHoverHandle?.(info, e)
     },
-    [callbacks, id],
+    [callbacks, id]
   )
 
   const onPointerLeave = React.useCallback(
@@ -64,7 +64,7 @@ export function useHandleEvents(id: string) {
       const info = inputs.pointerEnter(e, id)
       callbacks.onUnhoverHandle?.(info, e)
     },
-    [callbacks, id],
+    [callbacks, id]
   )
 
   const onTouchStart = React.useCallback((e: React.TouchEvent) => {

@@ -14,7 +14,7 @@ export function useBoundsEvents() {
       callbacks.onPointBounds?.(info, e)
       callbacks.onPointerDown?.(info, e)
     },
-    [callbacks],
+    [callbacks]
   )
 
   const onPointerUp = React.useCallback(
@@ -34,7 +34,7 @@ export function useBoundsEvents() {
       callbacks.onReleaseBounds?.(info, e)
       callbacks.onPointerUp?.(info, e)
     },
-    [callbacks],
+    [callbacks]
   )
 
   const onPointerMove = React.useCallback(
@@ -49,21 +49,21 @@ export function useBoundsEvents() {
       const info = inputs.pointerMove(e, 'bounds')
       callbacks.onPointerMove?.(info, e)
     },
-    [callbacks],
+    [callbacks]
   )
 
   const onPointerEnter = React.useCallback(
     (e: React.PointerEvent) => {
       callbacks.onHoverBounds?.(inputs.pointerEnter(e, 'bounds'), e)
     },
-    [callbacks],
+    [callbacks]
   )
 
   const onPointerLeave = React.useCallback(
     (e: React.PointerEvent) => {
       callbacks.onUnhoverBounds?.(inputs.pointerEnter(e, 'bounds'), e)
     },
-    [callbacks],
+    [callbacks]
   )
 
   const onTouchStart = React.useCallback((e: React.TouchEvent) => {

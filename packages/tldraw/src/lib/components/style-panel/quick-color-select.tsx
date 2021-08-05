@@ -16,7 +16,7 @@ export const QuickColorSelect = React.memo(
     const color = useAppState(selectColor)
 
     const handleColorChange = React.useCallback(
-      (color) => {
+      color => {
         tlstate.style({ color: color as ColorStyle })
       },
       [tlstate]
@@ -40,7 +40,10 @@ export const QuickColorSelect = React.memo(
                 title={colorStyle}
                 value={colorStyle}
               >
-                <BoxIcon fill={strokes[theme][colorStyle as ColorStyle]} stroke={strokes[theme][colorStyle as ColorStyle]} />
+                <BoxIcon
+                  fill={strokes[theme][colorStyle as ColorStyle]}
+                  stroke={strokes[theme][colorStyle as ColorStyle]}
+                />
               </DropdownMenu.DropdownMenuRadioItem>
             ))}
           </DropdownMenu.DropdownMenuRadioGroup>

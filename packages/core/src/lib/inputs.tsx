@@ -91,7 +91,7 @@ class Inputs {
 
   pointerEnter<T extends string>(
     e: PointerEvent | React.PointerEvent,
-    target: T,
+    target: T
   ): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
@@ -311,7 +311,7 @@ class Inputs {
   }
 
   static getPoint(
-    e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent,
+    e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent
   ): number[] {
     return [Number(e.clientX.toPrecision(5)), Number(e.clientY.toPrecision(5))]
   }

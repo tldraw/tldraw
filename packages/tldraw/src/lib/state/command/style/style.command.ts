@@ -3,7 +3,7 @@ import { Command, Data } from '../../state-types'
 import { TLDR } from '../../tldr'
 
 export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>): Command {
-  const { before, after } = TLDR.mutateShapes(data, ids, (shape) => {
+  const { before, after } = TLDR.mutateShapes(data, ids, shape => {
     return { style: { ...shape.style, ...changes } }
   })
 
