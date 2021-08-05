@@ -1,0 +1,23 @@
+{
+  "name": "@tldraw/www",
+  "version": "0.0.21",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next dev",
+    "serve": "next serve",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@tldraw/tldraw": "0.0.21",
+    "next": "11.0.1",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "@stitches/react": "^0.2.3"
+  },
+  "devDependencies": {
+    "eslint": "7.32.0",
+    "eslint-config-next": "11.0.1"
+  }
+}
