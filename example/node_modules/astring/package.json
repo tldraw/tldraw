@@ -1,0 +1,152 @@
+{
+  "name": "astring",
+  "version": "1.7.5",
+  "description": "JavaScript code generator from an ESTree-compliant AST.",
+  "main": "./dist/astring.js",
+  "module": "./dist/astring.mjs",
+  "types": "./astring.d.ts",
+  "exports": {
+    "import": "./dist/astring.mjs",
+    "require": "./dist/astring.js",
+    "browser": "./dist/astring.min.js"
+  },
+  "bin": {
+    "astring": "bin/astring"
+  },
+  "scripts": {
+    "build": "babel src/astring.js --out-file dist/astring.js --source-maps --no-comments && cp src/astring.js dist/astring.mjs",
+    "build:watch": "babel src/astring.js --out-file dist/astring.js --source-maps --no-comments --watch",
+    "build:minified": "cross-env BABEL_MODE=minified babel src/astring.js --out-file dist/astring.min.js --source-maps --no-comments",
+    "build:demo": "npm run build:minified && cp dist/astring.min.* docs/demo/",
+    "prepare": "npm run build && npm run build:minified",
+    "test": "npm run eslint && npm run prettier:check && npm run build:minified && npm run test:coverage",
+    "dev": "ava --watch src/tests/astring.js",
+    "test:coverage": "c8 --reporter=html --reporter=text --reporter=lcov --include='src/*.js' --exclude='src/tests/**/*.js' ava src/tests/astring.js",
+    "test:scripts": "npm run test:scripts:build && ava src/tests/_scripts.js",
+    "test:performance": "ava src/tests/performance.js",
+    "benchmark": "node --require esm ./src/tests/benchmark.js",
+    "eslint": "eslint src",
+    "prettier": "prettier --write \"{src,scripts}/**/*.js\" \"bin/astring\"",
+    "prettier:check": "prettier --list-different \"{src,scripts}/**/*.js\" \"bin/astring\"",
+    "prepush": "npm test",
+    "release": "standard-version",
+    "deploy": "git push --follow-tags origin master && npm publish"
+  },
+  "keywords": [
+    "ast",
+    "codegen",
+    "code generator",
+    "estree",
+    "astravel"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davidbonnet/astring.git"
+  },
+  "author": "David Bonnet <david@bonnet.cc>",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.13.16",
+    "@babel/core": "^7.14.0",
+    "@babel/generator": "^7.14.0",
+    "@babel/parser": "^7.14.0",
+    "@babel/preset-env": "^7.14.0",
+    "acorn": "^8.2.2",
+    "astravel": "^0.5.0",
+    "ava": "^3.15.0",
+    "babel-preset-minify": "^0.5.1",
+    "benchmark": "^2.1.4",
+    "buble": "^0.20.0",
+    "c8": "^7.7.2",
+    "cross-env": "^7.0.3",
+    "escodegen": "^2.0.0",
+    "eslint": "^7.25.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-import": "^2.22.1",
+    "esm": "^3.2.25",
+    "glob": "^7.1.6",
+    "husky": "^6.0.0",
+    "lodash": "^4.17.21",
+    "meriyah": "^4.1.5",
+    "normalize-newline": "^3.0.0",
+    "prettier": "^2.2.1",
+    "standard-version": "^9.1.1",
+    "sucrase": "^3.18.1",
+    "uglify-js": "^3.13.5"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "tabWidth": 2,
+    "useTabs": false,
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "bracketSpacing": true
+  },
+  "eslintConfig": {
+    "plugins": [
+      "import"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:import/errors",
+      "prettier"
+    ],
+    "env": {
+      "es6": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 12,
+      "sourceType": "module"
+    },
+    "globals": {
+      "console": true,
+      "global": true,
+      "module": true,
+      "process": true,
+      "require": true,
+      "window": true,
+      "__dirname": true
+    },
+    "overrides": [
+      {
+        "files": [
+          "src/tests/fixtures/**/*.js"
+        ],
+        "rules": {
+          "no-unused-vars": 0,
+          "no-undef": 0,
+          "no-var": 0,
+          "no-empty": 0,
+          "no-unused-labels": 0,
+          "no-cond-assign": 0,
+          "no-constant-condition": 0,
+          "constructor-super": 0,
+          "no-unreachable": 0,
+          "no-unsafe-negation": 0,
+          "getter-return": 0,
+          "no-irregular-whitespace": 0,
+          "no-redeclare": 0,
+          "no-dupe-keys": 0,
+          "no-duplicate-case": 0,
+          "no-useless-escape": 0,
+          "no-control-regex": 0,
+          "no-sparse-arrays": 0,
+          "no-debugger": 0,
+          "no-dupe-class-members": 0,
+          "no-inner-declarations": 0
+        }
+      }
+    ]
+  },
+  "ava": {
+    "files": [
+      "src/**/tests/astring.js",
+      "src/**/tests/performance.js"
+    ],
+    "require": [
+      "esm"
+    ]
+  },
+  "esm": "auto"
+}

@@ -1,0 +1,30 @@
+{
+  "name": "ncp",
+  "version": "2.0.0",
+  "author": "AvianFlu <charlie@charlieistheman.com>",
+  "description": "Asynchronous recursive file copy utility.",
+  "bin": {
+    "ncp": "./bin/ncp"
+  },
+  "devDependencies": {
+    "mocha": "1.15.x",
+    "rimraf": "1.0.x",
+    "read-dir-files": "0.0.x"
+  },
+  "main": "./lib/ncp.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AvianFlu/ncp.git"
+  },
+  "keywords": [
+    "cli",
+    "copy"
+  ],
+  "license": "MIT",
+  "engine": {
+    "node": ">=0.10"
+  },
+  "scripts": {
+    "test": "mocha -R spec"
+  }
+}

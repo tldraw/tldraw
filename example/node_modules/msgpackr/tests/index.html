@@ -1,0 +1,28 @@
+<html>
+<head>
+	<style>
+		body {
+			font-family: sans-serif;
+		}
+		h1 {
+			font-size: 18px;
+		}
+		h2 {
+			font-size: 16px;
+		}
+	</style>
+</head>
+<body>
+	<script src="../node_modules/mocha/mocha.js"></script>
+	<script src="../node_modules/chai/chai.js"></script>
+	<script>
+		mocha.setup('tdd')
+	</script>
+	<script src="../dist/index.js"></script>
+	<script src="../dist/test.js"></script>
+	<div id="mocha"></div>
+	<script>
+		mocha.run()
+	</script>
+</body>
+</html>

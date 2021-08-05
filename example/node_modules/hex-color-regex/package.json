@@ -1,0 +1,32 @@
+{
+  "name": "hex-color-regex",
+  "version": "1.1.0",
+  "description": "The best regular expression (regex) for matching hex color values from string.",
+  "repository": "regexps/hex-color-regex",
+  "author": "Charlike Mike Reagent <@tunnckoCore> (http://www.tunnckocore.tk)",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "standard && node test.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "mukla": "^0.4.9"
+  },
+  "keywords": [
+    "color",
+    "colors",
+    "css",
+    "expr",
+    "expression",
+    "expressions",
+    "hex",
+    "match",
+    "matching",
+    "regex",
+    "regexp",
+    "regexps",
+    "regular",
+    "web"
+  ]
+}

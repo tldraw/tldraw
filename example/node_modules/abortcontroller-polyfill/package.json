@@ -1,0 +1,45 @@
+{
+  "name": "abortcontroller-polyfill",
+  "version": "1.7.3",
+  "description": "Polyfill/ponyfill for the AbortController DOM API + optional patching of fetch (stub that calls catch, doesn't actually abort request).",
+  "main": "dist/umd-polyfill.js",
+  "files": [
+    "src",
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "prepare": "npm run build",
+    "test": "npm run build && npm-run-all test-headless eslint",
+    "test-headless": "SELENIUM_BROWSER=chrome E2E_HEADLESS=1 ./scripts/wdio-suppress-exitcode",
+    "test-chrome": "SELENIUM_BROWSER=chrome ./scripts/wdio-suppress-exitcode",
+    "test-firefox": "SELENIUM_BROWSER=firefox ./scripts/wdio-suppress-exitcode",
+    "test-inspect-brk": "E2E_WDIO_EXEC_ARGV=--inspect-brk npm run test-chrome",
+    "test-verbose": "SELENIUM_BROWSER=chrome E2E_LOG_LEVEL=verbose wdio wdio.conf.js",
+    "updtr": "npx updtr",
+    "eslint": "eslint src/ tests/"
+  },
+  "keywords": [],
+  "repository": "mo/abortcontroller-polyfill",
+  "author": "Martin Olsson <martin@minimum.se> (https://mo.github.io)",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.13.16",
+    "@babel/core": "^7.14.0",
+    "@babel/plugin-transform-member-expression-literals": "^7.12.13",
+    "@babel/preset-env": "^7.14.1",
+    "@wdio/cli": "^7.5.7",
+    "@wdio/jasmine-framework": "^7.5.3",
+    "@wdio/local-runner": "^7.5.7",
+    "@wdio/selenium-standalone-service": "^7.5.7",
+    "@wdio/spec-reporter": "^7.5.7",
+    "@wdio/sync": "^7.5.7",
+    "detect-browser": "^5.2.0",
+    "eslint": "^7.26.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "2.2.1",
+    "rollup": "^2.47.0",
+    "rollup-plugin-babel": "^4.4.0",
+    "webdriverio": "^7.5.7"
+  }
+}

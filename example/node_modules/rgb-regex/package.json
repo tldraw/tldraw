@@ -1,0 +1,36 @@
+{
+  "name": "rgb-regex",
+  "description": "Regex for RGB color strings.",
+  "author": "John Otander",
+  "version": "1.0.1",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/regexps/rgb-regex.git"
+  },
+  "keywords": [
+    "css",
+    "regex",
+    "regexp",
+    "regexps",
+    "rgb",
+    "color",
+    "regular",
+    "expression"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/regexps/rgb-regex/issues"
+  },
+  "homepage": "https://github.com/regexps/rgb-regex",
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "*"
+  }
+}

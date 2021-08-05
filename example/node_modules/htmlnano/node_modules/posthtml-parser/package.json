@@ -1,0 +1,65 @@
+{
+  "name": "posthtml-parser",
+  "version": "0.7.2",
+  "description": "Parse HTML/XML to PostHTMLTree",
+  "license": "MIT",
+  "repository": "posthtml/posthtml-parser",
+  "homepage": "https://github.com/posthtml/posthtml-parser#readme",
+  "bugs": {
+    "url": "https://github.com/posthtml/posthtml-parser/issues"
+  },
+  "author": "Ivan Voischev <voischev@posthtml.org>",
+  "contributors": [
+    {
+      "name": "Ivan Voischev",
+      "email": "voischev@posthtml.org"
+    },
+    {
+      "name": "Ivan Demidov",
+      "email": "scrum@posthtml.org"
+    }
+  ],
+  "main": "dist",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "version": "conventional-changelog -i changelog.md -s -r 0 && git add changelog.md",
+    "build": "rm -rf dist && tsup src/*.ts --minify",
+    "dev": "npm run build -- --watch",
+    "test": "xo && c8 ava",
+    "pretest": "clinton"
+  },
+  "keywords": [
+    "html",
+    "xml",
+    "parser",
+    "posthtml",
+    "posthtmltree"
+  ],
+  "dependencies": {
+    "htmlparser2": "^6.0.0"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config-ts": "^0.4.3",
+    "@commitlint/cli": "^11.0.0",
+    "@commitlint/config-angular": "^11.0.0",
+    "@types/node": "^14.14.25",
+    "ava": "^3.13.0",
+    "c8": "^7.5.0",
+    "clinton": "^0.14.0",
+    "conventional-changelog-cli": "^2.0.34",
+    "esbuild-register": "^2.0.0",
+    "eslint": "^7.19.0",
+    "esm": "^3.2.25",
+    "husky": "^4.3.8",
+    "lint-staged": "^10.5.3",
+    "rewire": "^5.0.0",
+    "rimraf": "^3.0.0",
+    "ts-node": "^9.0.0",
+    "tsup": "^3.7.1",
+    "typescript": "^4.0.5",
+    "xo": "^0.37.1"
+  },
+  "types": "types/index.d.ts"
+}

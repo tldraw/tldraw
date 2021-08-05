@@ -1,0 +1,6 @@
+{
+  "extends": "@parcel/eslint-config",
+  "rules": {
+    "no-console": "off"
+  }
+}

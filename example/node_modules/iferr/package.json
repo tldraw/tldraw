@@ -1,0 +1,33 @@
+{
+  "name": "iferr",
+  "version": "1.0.2",
+  "description": "Higher-order functions for easier error handling",
+  "main": "iferr.js",
+  "files": [
+    "iferr.js"
+  ],
+  "scripts": {
+    "test": "mocha"
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shesek/iferr"
+  },
+  "keywords": [
+    "error",
+    "errors"
+  ],
+  "author": "Nadav Ivgi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shesek/iferr/issues"
+  },
+  "homepage": "https://github.com/shesek/iferr",
+  "devDependencies": {
+    "coffeescript": "^2.3.1",
+    "mocha": "^4.0.1"
+  }
+}

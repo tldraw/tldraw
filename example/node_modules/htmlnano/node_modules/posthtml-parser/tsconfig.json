@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+  "target": "es2018",
+  "lib": ["ESNext"],
+  "esModuleInterop": true,
+  "moduleResolution": "node",
+  "strict": true,
+  "strictNullChecks": true
+  }
+}

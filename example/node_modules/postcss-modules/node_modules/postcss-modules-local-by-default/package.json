@@ -1,0 +1,52 @@
+{
+  "name": "postcss-modules-local-by-default",
+  "version": "3.0.3",
+  "description": "A CSS Modules transform to make local scope the default",
+  "main": "index.js",
+  "engines": {
+    "node": ">= 6"
+  },
+  "keywords": [
+    "css-modules",
+    "postcss",
+    "css",
+    "postcss-plugin"
+  ],
+  "author": "Mark Dalgleish",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/css-modules/postcss-modules-local-by-default.git"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "dependencies": {
+    "icss-utils": "^4.1.1",
+    "postcss": "^7.0.32",
+    "postcss-selector-parser": "^6.0.2",
+    "postcss-value-parser": "^4.1.0"
+  },
+  "devDependencies": {
+    "chokidar-cli": "^1.2.3",
+    "codecov.io": "^0.1.6",
+    "coveralls": "^3.1.0",
+    "eslint": "^5.16.0",
+    "istanbul": "^0.4.5",
+    "tape": "^5.0.1"
+  },
+  "scripts": {
+    "lint": "eslint index.js test.js",
+    "pretest": "yarn lint",
+    "test": "tape test.js",
+    "autotest": "chokidar index.js test.js -c 'yarn test'",
+    "precover": "yarn lint",
+    "cover": "istanbul cover test.js",
+    "travis": "yarn lint && yarn cover -- --report lcovonly",
+    "prepublish": "yarn test"
+  },
+  "files": [
+    "index.js"
+  ]
+}

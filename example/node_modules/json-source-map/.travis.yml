@@ -1,0 +1,5 @@
+language: node_js
+node_js:
+  - "12"
+after_script:
+  - coveralls < coverage/lcov.info

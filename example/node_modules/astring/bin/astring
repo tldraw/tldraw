@@ -1,0 +1,103 @@
+#!/usr/bin/env node
+
+const generate = require('../dist/astring').generate
+const version = require('../package').version
+const fs = require('fs')
+const path = require('path')
+
+const argv = process.argv.slice(2)
+const options = {
+  indent: '  ',
+  lindeEnd: '\n',
+  startingIndentLevel: 0,
+}
+const files = []
+
+function printHelp(status) {
+  // eslint-disable-next-line no-console
+  const print = status === 0 ? console.log : console.error
+  const binName = path.basename(process.argv[1])
+  print('Usage: ' + binName + ' [-h, --help] [-v, --version]')
+  print(
+    '       ' +
+      binName +
+      ' [-i, --indent INDENT] [-l, --line-end LINE_END] [-s, --starting-indent-level LEVEL] files...',
+  )
+  process.exit(status)
+}
+
+function printVersion() {
+  // eslint-disable-next-line no-console
+  console.log(version)
+  process.exit(0)
+}
+
+for (let i = 0, length = argv.length; i < length; i++) {
+  let arg = argv[i]
+  if (arg[0] === '-') {
+    switch (arg) {
+      case '-i':
+      case '--indent':
+        options.indent = argv[++i]
+        break
+      case '-l':
+      case '--line-end':
+        options.lineEnd = argv[++i]
+        break
+      case '-s':
+      case '--starting-indent-level':
+        options.startingIndentLevel = parseInt(argv[++i])
+        break
+      case '-h':
+      case '--help':
+        printHelp(0)
+        break
+      case '-v':
+      case '--version':
+        printVersion()
+        break
+      default:
+        console.error('Option "' + arg + '" not supported.')
+        printHelp(1)
+        break
+    }
+  } else {
+    files.push(arg)
+  }
+}
+
+options.output = process.stdout
+
+if (files.length === 0) {
+  let data = ''
+  process.stdin.setEncoding('utf8')
+  process.stdin.resume()
+  process.stdin
+    .on('data', function (chunk) {
+      data += chunk
+    })
+    .on('end', function () {
+      try {
+        generate(JSON.parse(data), options)
+      } catch (error) {
+        console.error('Error: ' + error.message)
+        process.exit(1)
+      }
+    })
+} else {
+  let hasError = false
+  for (let i = 0, length = files.length; i < length; i++) {
+    try {
+      let file = files[i]
+      generate(JSON.parse(fs.readFileSync(file, 'utf8')), options)
+    } catch (error) {
+      console.error('Error: ' + error.message)
+      if (hasError !== true) {
+        hasError = true
+      }
+    }
+  }
+  if (hasError) {
+    process.exit(1)
+  }
+}

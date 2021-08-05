@@ -1,0 +1,55 @@
+{
+    "author": "Felix Böhm <me@feedic.com> (http://feedic.com)",
+    "name": "css-what",
+    "description": "a CSS selector parser",
+    "version": "5.0.1",
+    "funding": {
+        "url": "https://github.com/sponsors/fb55"
+    },
+    "repository": {
+        "url": "https://github.com/fb55/css-what"
+    },
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "files": [
+        "lib/**/*"
+    ],
+    "scripts": {
+        "test": "jest --coverage -u && npm run lint",
+        "coverage": "cat coverage/lcov.info | coveralls",
+        "lint": "npm run lint:es && npm run lint:prettier",
+        "lint:es": "eslint src",
+        "lint:prettier": "npm run prettier -- --check",
+        "format": "npm run format:es && npm run format:prettier",
+        "format:es": "npm run lint:es -- --fix",
+        "format:prettier": "npm run prettier -- --write",
+        "prettier": "prettier '**/*.{ts,md,json,yml}'",
+        "build": "tsc",
+        "prepare": "npm run build"
+    },
+    "devDependencies": {
+        "@types/jest": "^26.0.3",
+        "@types/node": "^15.0.1",
+        "@typescript-eslint/eslint-plugin": "^4.1.0",
+        "@typescript-eslint/parser": "^4.1.0",
+        "coveralls": "^3.0.5",
+        "eslint": "^7.0.0",
+        "eslint-config-prettier": "^8.1.0",
+        "eslint-plugin-node": "^11.1.0",
+        "jest": "^27.0.1",
+        "prettier": "^2.0.5",
+        "ts-jest": "^27.0.1",
+        "typescript": "^4.0.2"
+    },
+    "optionalDependencies": {},
+    "engines": {
+        "node": ">= 6"
+    },
+    "license": "BSD-2-Clause",
+    "jest": {
+        "preset": "ts-jest"
+    },
+    "prettier": {
+        "tabWidth": 4
+    }
+}
