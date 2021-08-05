@@ -24,7 +24,7 @@
     "start": "lerna run start --stream --parallel",
     "test": "lerna run test --",
     "lint": "lerna run lint -- --fix",
-    "build": "lerna run prepublish && lerna run build",
+    "build": "lerna run build",
     "prepublish": "lerna run prepublish",
     "start:app": "yarn run build && yarn --cwd example && yarn --cwd example start",
     "cypress": "cypress run",
