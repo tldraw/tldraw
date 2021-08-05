@@ -1,0 +1,13 @@
+{ 
+  "plugins": [
+    [
+      "module-resolver",
+      {
+        "root": "./",
+        "alias": {
+          "*": ["src/lib/*", "node_modules/*"]
+        }
+      }
+    ]
+  ]
+}

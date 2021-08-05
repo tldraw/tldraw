@@ -1,0 +1,38 @@
+{
+  "name": "@tldraw/core",
+  "version": "0.0.22",
+  "description": "Core library and renderer for tldraw.",
+  "author": "@steveruizok",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tldraw/tldraw.git",
+    "directory": "packages/core"
+  },
+  "scripts": {
+    "start": "tsdx watch --tsconfig tsconfig.build.json --verbose --noClean",
+    "build": "tsdx build --tsconfig tsconfig.build.json",
+    "test": "tsdx test",
+    "lint": "tsdx lint",
+    "prepublish": "npm run build"
+  },
+  "main": "dist/index.js",
+  "module": "dist/core.esm.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "README.md",
+    "dist"
+  ],
+  "peerDependencies": {
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
+  },
+  "dependencies": {
+    "deepmerge": "^4.2.2",
+    "react-error-boundary": "^3.1.3",
+    "react-use-gesture": "^9.1.3",
+    "tslib": "^2.3.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

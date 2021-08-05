@@ -1,0 +1,26 @@
+{
+  "name": "@tldraw/example",
+  "version": "0.0.21",
+  "private": true,
+  "main": "index.html",
+  "license": "MIT",
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "react-app-polyfill": "^1.0.0"
+  },
+  "alias": {
+    "@tldraw/tldraw": "../packages/tldraw",
+    "react": "../node_modules/react",
+    "react-dom": "../node_modules/react-dom/profiling",
+    "scheduler/tracing": "../node_modules/scheduler/tracing-profiling"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.15",
+    "@types/react-dom": "^17.0.9",
+    "parcel": "^2.0.0-rc.0",
+    "typescript": "^4.3.5"
+  }
+}

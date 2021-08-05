@@ -1,0 +1,51 @@
+{
+  "name": "@tldraw/tldraw",
+  "version": "0.0.22",
+  "description": "The tldraw editor as a React component.",
+  "author": "@steveruizok",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tldraw/tldraw.git",
+    "directory": "packages/tldraw"
+  },
+  "scripts": {
+    "start": "tsdx watch --tsconfig tsconfig.build.json --verbose --noClean",
+    "build": "tsdx build --tsconfig tsconfig.build.json",
+    "test": "tsdx test",
+    "lint": "tsdx lint",
+    "prepublish": "npm run build"
+  },
+  "main": "dist/index.js",
+  "module": "dist/tldraw.esm.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "README.md",
+    "dist"
+  ],
+  "peerDependencies": {
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
+  },
+  "dependencies": {
+    "@radix-ui/react-checkbox": "^0.0.16",
+    "@radix-ui/react-context-menu": "^0.0.23",
+    "@radix-ui/react-dropdown-menu": "^0.0.22",
+    "@radix-ui/react-icons": "^1.0.3",
+    "@radix-ui/react-id": "^0.0.6",
+    "@radix-ui/react-radio-group": "^0.0.18",
+    "@radix-ui/react-tooltip": "^0.0.20",
+    "@stitches/react": "^0.2.3",
+    "@tldraw/core": "0.0.22",
+    "perfect-freehand": "^0.4.10",
+    "react-hotkeys-hook": "^3.4.0",
+    "tslib": "^2.3.0",
+    "zustand": "^3.5.7"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "babel-plugin-module-resolver": "^4.1.0"
+  }
+}

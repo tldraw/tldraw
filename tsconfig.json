@@ -1,21 +1,15 @@
 {
+  "extends": "./tsconfig.build.json",
+  "include": ["packages", "types", "scripts", "example"],
+  "exclude": ["dist"],
   "compilerOptions": {
-    "target": "es2015",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": false,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "rootDir": ".",
-    "baseUrl": "."
-  },
-  "exclude": ["node_modules", ".next", "out"],
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.js"]
+    "allowJs": false,
+    "baseUrl": ".",
+    "typeRoots": ["./node_modules/@types", "./types"],
+    "paths": {
+      "@tldraw/tldraw": ["packages/tldraw/src"],
+      "@tldraw/core": ["packages/core/src"],
+      "$test/*": ["test/*"]
+    }
+  }
 }
