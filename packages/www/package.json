@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/www",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,7 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@tldraw/tldraw": "0.0.21",
+    "@tldraw/tldraw": "0.0.22",
     "next": "11.0.1",
     "react": "17.0.2",
     "react-dom": "17.0.2",
