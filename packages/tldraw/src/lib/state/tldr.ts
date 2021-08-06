@@ -1,5 +1,5 @@
 import { TLBinding, TLBounds, TLTransformInfo, Vec, Utils } from '@tldraw/core'
-import { getShapeUtils, ShapeStyles, TLDrawShape, TLDrawShapeUtil } from '../shape'
+import { getShapeUtils, ShapeStyles, ShapesWithProp, TLDrawShape, TLDrawShapeUtil } from '../shape'
 import { Data } from './state-types'
 
 export class TLDR {
@@ -570,6 +570,19 @@ export class TLDR {
     const page = this.getPage(data)
 
     ids.forEach(id => delete page.bindings[id])
+  }
+
+  /* -------------------------------------------------- */
+  /*                     Assertions                     */
+  /* -------------------------------------------------- */
+
+  static assertShapeHasProperty<P extends keyof TLDrawShape>(
+    shape: TLDrawShape,
+    prop: P
+  ): asserts shape is ShapesWithProp<P> {
+    if (shape[prop] === undefined) {
+      throw new Error()
+    }
   }
 
   // static updateBindings(data: Data, changedShapeIds: string[]): void {

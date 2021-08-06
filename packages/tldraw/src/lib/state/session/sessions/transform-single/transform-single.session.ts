@@ -96,7 +96,7 @@ export class TransformSingleSession implements Session {
       after: {
         page: {
           shapes: {
-            [this.snapshot.id]: data.page.shapes[this.snapshot.id],
+            [this.snapshot.id]: TLDR.onSessionComplete(data, data.page.shapes[this.snapshot.id]),
           },
         },
       },

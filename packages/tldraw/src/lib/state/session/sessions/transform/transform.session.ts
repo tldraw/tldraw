@@ -121,7 +121,10 @@ export class TransformSession implements Session {
       after: {
         page: {
           shapes: Object.fromEntries(
-            this.snapshot.initialShapes.map(shape => [shape.id, data.page.shapes[shape.id]])
+            this.snapshot.initialShapes.map(shape => [
+              shape.id,
+              TLDR.onSessionComplete(data, data.page.shapes[shape.id]),
+            ])
           ),
         },
       },

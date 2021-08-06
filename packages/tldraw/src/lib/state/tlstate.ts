@@ -26,6 +26,7 @@ import {
   DrawSession,
   TranslateSession,
   TransformSession,
+  HandleSession,
 } from './session'
 import { TLDR } from './tldr'
 import { TLDrawDocument, MoveType, AlignType, StretchType, DistributeType } from '../types'
@@ -54,21 +55,8 @@ const initialData: Data = {
   page: {
     id: 'page',
     childIndex: 1,
-    shapes: {
-      // rect1: {
-      //   id: 'rect1',
-      //   parentId: 'page',
-      //   name: 'Rectangle',
-      //   childIndex: 1,
-      //   type: TLDrawShapeType.Rectangle,
-      //   point: [32, 32],
-      //   size: [100, 100],
-      //   style: defaultStyle,
-      // },
-    },
-    bindings: {
-      // TODO
-    },
+    shapes: {},
+    bindings: {},
   },
   pageState: {
     id: 'page',
@@ -486,7 +474,7 @@ export class TLDrawState implements TLCallbacks {
 
   updateSession<T extends Session>(...args: ParametersExceptFirst<T['update']>) {
     const { session } = this
-    if (!session) return
+    if (!session) return this
     this.setState(data => session.update(data, ...args))
     this._onChange?.(this, `session:update:${session.id}`)
     return this
@@ -494,7 +482,7 @@ export class TLDrawState implements TLCallbacks {
 
   cancelSession<T extends Session>(...args: ParametersExceptFirst<T['cancel']>) {
     const { session } = this
-    if (!session) return
+    if (!session) return this
 
     this.setState(data => session.cancel(data, ...args))
     this.setStatus('idle')
@@ -505,7 +493,7 @@ export class TLDrawState implements TLCallbacks {
 
   completeSession<T extends Session>(...args: ParametersExceptFirst<T['complete']>) {
     const { session } = this
-    if (!session) return
+    if (!session) return this
 
     this.setStatus('idle')
 
@@ -854,12 +842,31 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
+  startHandleSession = (point: number[], handleId: string, commandId?: string) => {
+    this.startSession<HandleSession>(
+      new HandleSession(this.store.getState(), handleId, point, commandId)
+    )
+    return this
+  }
+
+  updateHandleSession = (point: number[], shiftKey = false, altKey = false, metaKey = false) => {
+    this.updateSession<HandleSession>(point, shiftKey, altKey, metaKey)
+    return this
+  }
+
   updateSessionsOnPointerMove: TLPointerEventHandler = info => {
     switch (this.status.current) {
       case 'pointingBoundsHandle': {
         if (Vec.dist(info.origin, info.point) > 4) {
           this.setStatus('transforming')
           this.startTransformSession(this.getPagePoint(info.origin), this.pointedBoundsHandle!)
+        }
+        break
+      }
+      case 'pointingHandle': {
+        if (Vec.dist(info.origin, info.point) > 4) {
+          this.setStatus('translatingHandle')
+          this.startHandleSession(this.getPagePoint(info.origin), this.pointedHandle!)
         }
         break
       }
@@ -882,6 +889,10 @@ export class TLDrawState implements TLCallbacks {
         this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
         break
       }
+      case 'translatingHandle': {
+        this.updateHandleSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
+        break
+      }
       case 'creating': {
         switch (this.appState.activeToolType) {
           case 'draw': {
@@ -890,6 +901,10 @@ export class TLDrawState implements TLCallbacks {
           }
           case 'bounds': {
             this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey)
+            break
+          }
+          case 'handle': {
+            this.updateHandleSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
             break
           }
           case 'point': {
@@ -954,6 +969,10 @@ export class TLDrawState implements TLCallbacks {
       }
       case 'bounds': {
         this.startTransformSession(pagePoint, TLBoundsCorner.BottomRight, `create_${activeTool}`)
+        break
+      }
+      case 'handle': {
+        this.startHandleSession(pagePoint, 'end', `create_${activeTool}`)
         break
       }
       case 'point': {
@@ -1082,6 +1101,11 @@ export class TLDrawState implements TLCallbacks {
             this.createActiveToolShape(info.point)
             break
           }
+          case 'arrow': {
+            this.setStatus('creating')
+            this.createActiveToolShape(info.point)
+            break
+          }
         }
       }
     }
@@ -1095,11 +1119,6 @@ export class TLDrawState implements TLCallbacks {
     const data = this.getState()
 
     switch (this.status.current) {
-      case 'pointingBoundsHandle': {
-        this.setStatus('idle')
-        this.pointedBoundsHandle = undefined
-        break
-      }
       case 'pointingBounds': {
         if (info.target === 'bounds') {
           // If we just clicked the selecting bounds's background, clear the selection
@@ -1116,6 +1135,21 @@ export class TLDrawState implements TLCallbacks {
 
         this.setStatus('idle')
         this.pointedId = undefined
+        break
+      }
+      case 'pointingBoundsHandle': {
+        this.setStatus('idle')
+        this.pointedBoundsHandle = undefined
+        break
+      }
+      case 'pointingHandle': {
+        this.setStatus('idle')
+        this.pointedHandle = undefined
+        break
+      }
+      case 'translatingHandle': {
+        this.completeSession<HandleSession>()
+        this.pointedHandle = undefined
         break
       }
       case 'brushing': {
@@ -1135,6 +1169,7 @@ export class TLDrawState implements TLCallbacks {
       }
       case 'creating': {
         this.completeSession(this.getPagePoint(info.point))
+        this.pointedHandle = undefined
       }
     }
   }
@@ -1330,8 +1365,9 @@ export class TLDrawState implements TLCallbacks {
   }
 
   // Handles (ie the handles of a selected arrow)
-  onPointHandle: TLPointerEventHandler = () => {
-    // TODO
+  onPointHandle: TLPointerEventHandler = info => {
+    this.pointedHandle = info.target
+    this.setStatus('pointingHandle')
   }
 
   onDoubleClickHandle: TLPointerEventHandler = () => {
@@ -1355,7 +1391,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   onReleaseHandle: TLPointerEventHandler = () => {
-    // TODO
+    // Unused
   }
 
   onChange = (ids: string[]) => {

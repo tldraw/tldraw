@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { inputs, TLBoundsEdge, TLBoundsCorner } from '@tldraw/core'
 import { TLDrawState } from './tlstate'
 import { mockDocument } from './test-helpers'

@@ -22,7 +22,11 @@ export const Handles = React.memo(({ shape }: HandlesProps): JSX.Element | null 
   return (
     <g transform={`rotate(${(shape.rotation || 0) * toAngle},${center})`}>
       {Object.values(shape.handles).map(handle => (
-        <Handle key={handle.id} id={handle.id} point={Vec.add(handle.point, shape.point)} />
+        <Handle
+          key={shape.id + '_' + handle.id}
+          id={handle.id}
+          point={Vec.add(handle.point, shape.point)}
+        />
       ))}
     </g>
   )

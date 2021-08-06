@@ -1,4 +1,5 @@
 import {
+  ArrowTopRightIcon,
   CircleIcon,
   CursorArrowIcon,
   LockClosedIcon,
@@ -48,9 +49,9 @@ export const ToolsPanel = React.memo(
       tlstate.selectTool(TLDrawShapeType.Ellipse)
     }, [tlstate])
 
-    // const selectArrowTool = React.useCallback(() => {
-    //   tlstate.selectTool(TLDrawShapeType.Ellipse)
-    // }, [tlstate])
+    const selectArrowTool = React.useCallback(() => {
+      tlstate.selectTool(TLDrawShapeType.Arrow)
+    }, [tlstate])
 
     // const selectTextTool = React.useCallback(() => {
     //   tlstate.selectTool(TLDrawShapeType.Ellipse)
@@ -98,15 +99,15 @@ export const ToolsPanel = React.memo(
             >
               <CircleIcon />
             </PrimaryButton>
+            <PrimaryButton
+              kbd={'5'}
+              label={TLDrawShapeType.Arrow}
+              onClick={selectArrowTool}
+              isActive={activeTool === TLDrawShapeType.Arrow}
+            >
+              <ArrowTopRightIcon />
+            </PrimaryButton>
             {/* <PrimaryButton
-            kbd={'5'}
-            label={TLDrawShapeType.Arrow}
-            onClick={selectArrowTool}
-            isActive={activeTool === TLDrawShapeType.Arrow}
-          >
-            <ArrowTopRightIcon />
-          </PrimaryButton>
-          <PrimaryButton
             kbd={'6'}
             label={TLDrawShapeType.Text}
             onClick={selectTextTool}

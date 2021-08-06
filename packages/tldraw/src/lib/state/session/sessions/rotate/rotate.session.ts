@@ -89,7 +89,9 @@ export class RotateSession implements Session {
         ...data.page,
         shapes: {
           ...data.page.shapes,
-          ...Object.fromEntries(initialShapes.map(({ id, shape }) => [id, shape])),
+          ...Object.fromEntries(
+            initialShapes.map(({ id, shape }) => [id, TLDR.onSessionComplete(data, shape)])
+          ),
         },
       },
     }

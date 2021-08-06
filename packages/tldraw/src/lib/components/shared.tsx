@@ -1,9 +1,28 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react'
 import { Tooltip } from './tooltip'
-import * as ContextMenu from '@radix-ui/react-context-menu'
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import * as RadioGroup from '@radix-ui/react-radio-group'
+import {
+  Root as CMRoot,
+  TriggerItem as CMTriggerItem,
+  Separator as CMSeparator,
+  Item as CMItem,
+  Arrow as CMArrow,
+  Content as CMContent,
+  ItemIndicator as CMItemIndicator,
+  CheckboxItem as CMCheckboxItem,
+} from '@radix-ui/react-context-menu'
+import {
+  Root as DMRoot,
+  TriggerItem as DMTriggerItem,
+  Separator as DMSeparator,
+  Item as DMItem,
+  Arrow as DMArrow,
+  Content as DMContent,
+  Trigger as DMTrigger,
+  ItemIndicator as DMItemIndicator,
+  CheckboxItem as DMCheckboxItem,
+} from '@radix-ui/react-dropdown-menu'
+import { Root as RGRoot } from '@radix-ui/react-radio-group'
 import { CheckIcon, ChevronRightIcon } from '@radix-ui/react-icons'
 import styled from '../styles'
 
@@ -184,7 +203,7 @@ export const RowButton = styled('button', {
   },
 })
 
-export const Group = styled(RadioGroup.Root, {
+export const Group = styled(RGRoot, {
   display: 'flex',
 })
 
@@ -421,9 +440,9 @@ export function DropdownMenuRoot({
   children: React.ReactNode
 }): JSX.Element {
   return (
-    <DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange}>
+    <DMRoot dir="ltr" open={isOpen} onOpenChange={onOpenChange}>
       {children}
-    </DropdownMenu.Root>
+    </DMRoot>
   )
 }
 
@@ -437,22 +456,22 @@ export function DropdownMenuSubMenu({
   children: React.ReactNode
 }): JSX.Element {
   return (
-    <DropdownMenu.Root dir="ltr">
-      <DropdownMenu.TriggerItem as={RowButton} bp={breakpoints} disabled={disabled}>
+    <DMRoot dir="ltr">
+      <DMTriggerItem as={RowButton} bp={breakpoints} disabled={disabled}>
         <span>{label}</span>
         <IconWrapper size="small">
           <ChevronRightIcon />
         </IconWrapper>
-      </DropdownMenu.TriggerItem>
-      <DropdownMenu.Content as={MenuContent} sideOffset={2} alignOffset={-2}>
+      </DMTriggerItem>
+      <DMContent as={MenuContent} sideOffset={2} alignOffset={-2}>
         {children}
         <DropdownMenuArrow offset={13} />
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
+      </DMContent>
+    </DMRoot>
   )
 }
 
-export const DropdownMenuDivider = styled(DropdownMenu.Separator, {
+export const DropdownMenuDivider = styled(DMSeparator, {
   backgroundColor: '$hover',
   height: 1,
   marginTop: '$2',
@@ -461,7 +480,7 @@ export const DropdownMenuDivider = styled(DropdownMenu.Separator, {
   marginLeft: '-$2',
 })
 
-export const DropdownMenuArrow = styled(DropdownMenu.Arrow, {
+export const DropdownMenuArrow = styled(DMArrow, {
   fill: '$panel',
 })
 
@@ -475,9 +494,9 @@ export function DropdownMenuButton({
   children: React.ReactNode
 }): JSX.Element {
   return (
-    <DropdownMenu.Item as={RowButton} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
+    <DMItem as={RowButton} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
       {children}
-    </DropdownMenu.Item>
+    </DMItem>
   )
 }
 
@@ -493,9 +512,9 @@ export function DropdownMenuIconButton({
   disabled = false,
 }: DropdownMenuIconButtonProps): JSX.Element {
   return (
-    <DropdownMenu.Item as={IconButton} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
+    <DMItem as={IconButton} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
       {children}
-    </DropdownMenu.Item>
+    </DMItem>
   )
 }
 
@@ -512,11 +531,11 @@ export function DropdownMenuIconTriggerButton({
   disabled = false,
 }: DropdownMenuIconTriggerButtonProps): JSX.Element {
   return (
-    <DropdownMenu.Trigger as={IconButton} bp={breakpoints} disabled={disabled}>
+    <DMTrigger as={IconButton} bp={breakpoints} disabled={disabled}>
       <Tooltip label={label} kbd={kbd}>
         {children}
       </Tooltip>
-    </DropdownMenu.Trigger>
+    </DMTrigger>
   )
 }
 
@@ -534,7 +553,7 @@ export function DropdownMenuCheckboxItem({
   children,
 }: MenuCheckboxItemProps): JSX.Element {
   return (
-    <DropdownMenu.CheckboxItem
+    <DMCheckboxItem
       as={RowButton}
       bp={breakpoints}
       onCheckedChange={onCheckedChange}
@@ -542,12 +561,12 @@ export function DropdownMenuCheckboxItem({
       disabled={disabled}
     >
       {children}
-      <DropdownMenu.ItemIndicator>
+      <DMItemIndicator>
         <IconWrapper size="small">
           <CheckIcon />
         </IconWrapper>
-      </DropdownMenu.ItemIndicator>
-    </DropdownMenu.CheckboxItem>
+      </DMItemIndicator>
+    </DMCheckboxItem>
   )
 }
 
@@ -563,9 +582,9 @@ export function ContextMenuRoot({
   children: React.ReactNode
 }): JSX.Element {
   return (
-    <ContextMenu.Root dir="ltr" onOpenChange={onOpenChange}>
+    <CMRoot dir="ltr" onOpenChange={onOpenChange}>
       {children}
-    </ContextMenu.Root>
+    </CMRoot>
   )
 }
 
@@ -577,28 +596,28 @@ export function ContextMenuSubMenu({
   children: React.ReactNode
 }): JSX.Element {
   return (
-    <ContextMenu.Root dir="ltr">
-      <ContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
+    <CMRoot dir="ltr">
+      <CMTriggerItem as={RowButton} bp={breakpoints}>
         <span>{label}</span>
         <IconWrapper size="small">
           <ChevronRightIcon />
         </IconWrapper>
-      </ContextMenu.TriggerItem>
-      <ContextMenu.Content as={MenuContent} sideOffset={2} alignOffset={-2}>
+      </CMTriggerItem>
+      <CMContent as={MenuContent} sideOffset={2} alignOffset={-2}>
         {children}
         <ContextMenuArrow offset={13} />
-      </ContextMenu.Content>
-    </ContextMenu.Root>
+      </CMContent>
+    </CMRoot>
   )
 }
 
-export const ContextMenuDivider = styled(ContextMenu.Separator, {
+export const ContextMenuDivider = styled(CMSeparator, {
   backgroundColor: '$hover',
   height: 1,
   margin: '$2 -$2',
 })
 
-export const ContextMenuArrow = styled(ContextMenu.Arrow, {
+export const ContextMenuArrow = styled(CMArrow, {
   fill: '$panel',
 })
 
@@ -612,7 +631,7 @@ export function ContextMenuButton({
   children: React.ReactNode
 }): JSX.Element {
   return (
-    <RowButton as={ContextMenu.Item} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
+    <RowButton as={CMItem} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
       {children}
     </RowButton>
   )
@@ -628,9 +647,9 @@ export function ContextMenuIconButton({
   children: React.ReactNode
 }): JSX.Element {
   return (
-    <ContextMenu.Item as={IconButton} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
+    <CMItem as={IconButton} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
       {children}
-    </ContextMenu.Item>
+    </CMItem>
   )
 }
 
@@ -641,7 +660,7 @@ export function ContextMenuCheckboxItem({
   children,
 }: MenuCheckboxItemProps): JSX.Element {
   return (
-    <ContextMenu.CheckboxItem
+    <CMCheckboxItem
       as={RowButton}
       bp={breakpoints}
       onCheckedChange={onCheckedChange}
@@ -649,12 +668,12 @@ export function ContextMenuCheckboxItem({
       disabled={disabled}
     >
       {children}
-      <ContextMenu.ItemIndicator>
+      <CMItemIndicator>
         <IconWrapper size="small">
           <CheckIcon />
         </IconWrapper>
-      </ContextMenu.ItemIndicator>
-    </ContextMenu.CheckboxItem>
+      </CMItemIndicator>
+    </CMCheckboxItem>
   )
 }
 

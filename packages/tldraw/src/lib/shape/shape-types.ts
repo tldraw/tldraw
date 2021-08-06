@@ -1,9 +1,10 @@
-import { TLShape, TLShapeUtil } from '@tldraw/core'
+import { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
 
 export enum TLDrawToolType {
   Draw = 'draw',
   Bounds = 'bounds',
   Point = 'point',
+  Handle = 'handle',
   Points = 'points',
 }
 
@@ -11,6 +12,11 @@ export enum TLDrawShapeType {
   Ellipse = 'ellipse',
   Rectangle = 'rectangle',
   Draw = 'draw',
+  Arrow = 'arrow',
+}
+
+export enum Decoration {
+  Arrow = 'Arrow',
 }
 
 export interface TLDrawBaseShape extends TLShape {
@@ -23,6 +29,20 @@ export interface DrawShape extends TLDrawBaseShape {
   points: number[][]
 }
 
+export interface ArrowShape extends TLDrawBaseShape {
+  type: TLDrawShapeType.Arrow
+  bend: number
+  handles: {
+    start: TLHandle
+    bend: TLHandle
+    end: TLHandle
+  }
+  decorations?: {
+    start?: Decoration
+    end?: Decoration
+    middle?: Decoration
+  }
+}
 export interface EllipseShape extends TLDrawBaseShape {
   type: TLDrawShapeType.Ellipse
   radius: number[]
@@ -33,7 +53,7 @@ export interface RectangleShape extends TLDrawBaseShape {
   size: number[]
 }
 
-export type TLDrawShape = RectangleShape | EllipseShape | DrawShape
+export type TLDrawShape = RectangleShape | EllipseShape | DrawShape | ArrowShape
 
 export abstract class TLDrawShapeUtil<T extends TLDrawShape> extends TLShapeUtil<T> {
   abstract toolType: TLDrawToolType
@@ -94,3 +114,28 @@ export type PropsOfType<U> = {
 }[keyof TLDrawShape]
 
 export type Theme = 'dark' | 'light'
+
+export type Difference<A, B, C = A> = A extends B ? never : C
+
+export type Intersection<A, B, C = A> = A extends B ? C : never
+
+export type FilteredKeys<T, U> = {
+  [P in keyof T]: T[P] extends U ? P : never
+}[keyof T]
+
+export type RequiredKeys<T> = {
+  [K in keyof T]-?: Difference<Record<string, unknown>, Pick<T, K>, K>
+}[keyof T]
+
+export type MembersWithRequiredKey<T, U> = {
+  [P in keyof T]: Intersection<U, RequiredKeys<T[P]>, T[P]>
+}[keyof T]
+
+export type MappedByType<U extends string, T extends { type: U }> = {
+  [P in T['type']]: T extends any ? (P extends T['type'] ? T : never) : never
+}
+
+export type ShapesWithProp<U> = MembersWithRequiredKey<
+  MappedByType<TLDrawShapeType, TLDrawShape>,
+  U
+>

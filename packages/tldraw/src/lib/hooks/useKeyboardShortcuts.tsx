@@ -163,4 +163,9 @@ export function useKeyboardShortcuts(tlstate: TLDrawState) {
     tlstate.selectTool(TLDrawShapeType.Ellipse)
     e.preventDefault()
   })
+
+  useHotkeys('a,5', e => {
+    tlstate.selectTool(TLDrawShapeType.Arrow)
+    e.preventDefault()
+  })
 }

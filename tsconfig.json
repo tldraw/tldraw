@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.build.json",
   "include": ["packages", "types", "scripts", "example", "www"],
-  "exclude": ["dist"],
+  "exclude": ["**/dist"],
   "compilerOptions": {
     "allowJs": false,
     "baseUrl": ".",

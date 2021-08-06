@@ -267,7 +267,9 @@ export abstract class TLShapeUtil<T extends TLShape> {
 
   abstract transform(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T>
 
-  abstract transformSingle(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T>
+  transformSingle(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T> {
+    return this.transform(shape, bounds, info)
+  }
 
   shouldRender(_prev: T, _next: T): boolean {
     return true
@@ -310,7 +312,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
   onHandleChange(
     _shape: T,
     _handle: Partial<T['handles']>,
-    _info: TLPointerInfo
+    _info: Partial<TLPointerInfo>
   ): Partial<T> | void {
     return
   }
@@ -318,7 +320,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
   onRightPointHandle(
     _shape: T,
     _handle: Partial<T['handles']>,
-    _info: TLPointerInfo
+    _info: Partial<TLPointerInfo>
   ): Partial<T> | void {
     return
   }
@@ -326,7 +328,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
   onDoubleClickHandle(
     _shape: T,
     _handle: Partial<T['handles']>,
-    _info: TLPointerInfo
+    _info: Partial<TLPointerInfo>
   ): Partial<T> | void {
     return
   }

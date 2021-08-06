@@ -2,6 +2,7 @@ import { Utils, Vec } from '@tldraw/core'
 import { DrawShape } from '../../../../shape/shape-types'
 import { Session } from '../../../state-types'
 import { Data } from '../../../state-types'
+import { TLDR } from '../../../tldr'
 
 export class DrawSession implements Session {
   id = 'draw'
@@ -143,7 +144,7 @@ export class DrawSession implements Session {
       after: {
         page: {
           shapes: {
-            [snapshot.id]: data.page.shapes[snapshot.id],
+            [snapshot.id]: TLDR.onSessionComplete(data, data.page.shapes[snapshot.id]),
           },
         },
         pageState: {
