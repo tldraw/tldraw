@@ -129,7 +129,7 @@ export class DrawSession implements Session {
   complete = (data: Data) => {
     const { snapshot } = this
     return {
-      id: 'created_draw_shape',
+      id: 'create_draw',
       before: {
         page: {
           shapes: {

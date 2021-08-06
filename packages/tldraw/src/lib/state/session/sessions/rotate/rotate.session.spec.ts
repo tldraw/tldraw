@@ -5,10 +5,11 @@ describe('Brush session', () => {
   const tlstate = new TLDrawState()
 
   it('begins, updates and completes session', () => {
+    tlstate.loadDocument(mockDocument)
+
     expect(tlstate.getShape('rect1').rotation).toBe(undefined)
 
     tlstate
-      .loadDocument(mockDocument)
       .select('rect1')
       .startTransformSession([50, 0], 'rotate')
       .updateTransformSession([100, 50])

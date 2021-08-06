@@ -55,16 +55,16 @@ const initialData: Data = {
     id: 'page',
     childIndex: 1,
     shapes: {
-      rect1: {
-        id: 'rect1',
-        parentId: 'page',
-        name: 'Rectangle',
-        childIndex: 1,
-        type: TLDrawShapeType.Rectangle,
-        point: [32, 32],
-        size: [100, 100],
-        style: defaultStyle,
-      },
+      // rect1: {
+      //   id: 'rect1',
+      //   parentId: 'page',
+      //   name: 'Rectangle',
+      //   childIndex: 1,
+      //   type: TLDrawShapeType.Rectangle,
+      //   point: [32, 32],
+      //   size: [100, 100],
+      //   style: defaultStyle,
+      // },
     },
     bindings: {
       // TODO
@@ -98,6 +98,7 @@ export class TLDrawState implements TLCallbacks {
   currentPageId = 'page'
   pages: Record<string, TLPage<TLDrawShape>> = { page: initialData.page }
   pageStates: Record<string, TLPageState> = { page: initialData.pageState }
+  _onChange?: (state: TLDrawState, reason: string) => void
 
   // Low API
   getState = this.store.getState
@@ -232,6 +233,7 @@ export class TLDrawState implements TLCallbacks {
         ...initialData.settings,
       },
     }))
+    this._onChange?.(this, `reset`)
     return this
   }
 
@@ -443,7 +445,8 @@ export class TLDrawState implements TLCallbacks {
   }
 
   /* ---------------------- Document --------------------- */
-  loadDocument = (document: TLDrawDocument) => {
+  loadDocument = (document: TLDrawDocument, onChange?: TLDrawState['_onChange']) => {
+    this._onChange = onChange
     this.currentDocumentId = document.id
     this.pages = Utils.deepClone(document.pages)
     this.pageStates = Utils.deepClone(document.pageStates)
@@ -476,42 +479,43 @@ export class TLDrawState implements TLCallbacks {
   /* -------------------- Sessions -------------------- */
   startSession<T extends Session>(session: T, ...args: ParametersExceptFirst<T['start']>) {
     this.session = session
-    this.setState(data => {
-      if (!this.session) return data
-      return this.session.start(data, ...args)
-    })
+    this.setState(data => session.start(data, ...args))
+    this._onChange?.(this, `session:start_${session.id}`)
     return this
   }
 
   updateSession<T extends Session>(...args: ParametersExceptFirst<T['update']>) {
-    this.setState(data => {
-      if (!this.session) return data
-      return this.session.update(data, ...args)
-    })
+    const { session } = this
+    if (!session) return
+    this.setState(data => session.update(data, ...args))
+    this._onChange?.(this, `session:update:${session.id}`)
     return this
   }
 
   cancelSession<T extends Session>(...args: ParametersExceptFirst<T['cancel']>) {
-    this.setState(data => {
-      if (!this.session) return data
-      return this.session.cancel(data, ...args)
-    })
+    const { session } = this
+    if (!session) return
+
+    this.setState(data => session.cancel(data, ...args))
     this.setStatus('idle')
     this.session = undefined
+    this._onChange?.(this, `session:cancel:${session.id}`)
     return this
   }
 
   completeSession<T extends Session>(...args: ParametersExceptFirst<T['complete']>) {
-    if (!this.session) return this
+    const { session } = this
+    if (!session) return
 
     this.setStatus('idle')
 
-    const result = this.session.complete(this.store.getState(), ...args)
+    const result = session.complete(this.store.getState(), ...args)
 
     if ('after' in result) {
       this.do(result)
     } else {
       this.setState(data => Utils.deepMerge<Data>(data, result))
+      this._onChange?.(this, `session:complete:${session.id}`)
     }
 
     const { isToolLocked, activeTool } = this.appState
@@ -536,6 +540,9 @@ export class TLDrawState implements TLCallbacks {
     history.pointer = history.stack.length - 1
 
     this.setState(data => Utils.deepMerge<Data>(data, history.stack[history.pointer].after))
+
+    this._onChange?.(this, `command:${command.id}`)
+
     return this
   }
 
@@ -544,9 +551,13 @@ export class TLDrawState implements TLCallbacks {
 
     if (history.pointer <= -1) return this
 
-    this.setState(data => Utils.deepMerge<Data>(data, history.stack[history.pointer].before))
+    const command = history.stack[history.pointer]
+
+    this.setState(data => Utils.deepMerge<Data>(data, command.before))
 
     history.pointer--
+
+    this._onChange?.(this, `undo:${command.id}`)
 
     return this
   }
@@ -558,7 +569,11 @@ export class TLDrawState implements TLCallbacks {
 
     history.pointer++
 
-    this.setState(data => Utils.deepMerge<Data>(data, history.stack[history.pointer].after))
+    const command = history.stack[history.pointer]
+
+    this.setState(data => Utils.deepMerge<Data>(data, command.after))
+
+    this._onChange?.(this, `redo:${command.id}`)
 
     return this
   }
@@ -582,7 +597,17 @@ export class TLDrawState implements TLCallbacks {
   }
 
   selectAll = () => {
-    this.setSelectedIds(Object.keys(this.getState().page.shapes))
+    this.setState(data => ({
+      appState: {
+        ...data.appState,
+        activeTool: 'select',
+        activeToolType: 'select',
+      },
+      pageState: {
+        ...data.pageState,
+        selectedIds: Object.keys(data.page.shapes),
+      },
+    }))
     return this
   }
 
@@ -781,7 +806,11 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
-  startTransformSession = (point: number[], handle: TLBoundsCorner | TLBoundsEdge | 'rotate') => {
+  startTransformSession = (
+    point: number[],
+    handle: TLBoundsCorner | TLBoundsEdge | 'rotate',
+    commandId?: string
+  ) => {
     const { selectedIds } = this
 
     if (selectedIds.length === 0) return this
@@ -794,7 +823,12 @@ export class TLDrawState implements TLCallbacks {
       this.startSession(new RotateSession(this.store.getState(), point))
     } else if (this.selectedIds.length === 1) {
       this.startSession(
-        new TransformSingleSession(this.store.getState(), point, this.pointedBoundsHandle)
+        new TransformSingleSession(
+          this.store.getState(),
+          point,
+          this.pointedBoundsHandle,
+          commandId
+        )
       )
     } else {
       this.startSession(
@@ -911,13 +945,15 @@ export class TLDrawState implements TLCallbacks {
       }
     })
 
-    switch (this.appState.activeToolType) {
+    const { activeTool, activeToolType } = this.getAppState()
+
+    switch (activeToolType) {
       case 'draw': {
         this.startDrawSession(id, pagePoint)
         break
       }
       case 'bounds': {
-        this.startTransformSession(pagePoint, TLBoundsCorner.BottomRight)
+        this.startTransformSession(pagePoint, TLBoundsCorner.BottomRight, `create_${activeTool}`)
         break
       }
       case 'point': {
@@ -1347,6 +1383,14 @@ export class TLDrawState implements TLCallbacks {
 
   onBlurEditingShape = () => {
     // TODO
+  }
+
+  get document(): TLDrawDocument {
+    return {
+      id: this.currentDocumentId,
+      pages: this.pages,
+      pageStates: this.pageStates,
+    }
   }
 
   get data() {

@@ -6,6 +6,7 @@ import { TLDR } from '../../../tldr'
 
 export class TransformSingleSession implements Session {
   id = 'transform_single'
+  commandId: string
   transformType: TLBoundsEdge | TLBoundsCorner
   origin: number[]
   scaleX = 1
@@ -15,11 +16,13 @@ export class TransformSingleSession implements Session {
   constructor(
     data: Data,
     point: number[],
-    transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight
+    transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight,
+    commandId = 'transform_single'
   ) {
     this.origin = point
     this.transformType = transformType
     this.snapshot = getTransformSingleSnapshot(data, transformType)
+    this.commandId = commandId
   }
 
   start = (data: Data) => data
@@ -82,7 +85,7 @@ export class TransformSingleSession implements Session {
     if (!this.snapshot.hasUnlockedShape) return data
 
     return {
-      id: 'transform_single',
+      id: this.commandId,
       before: {
         page: {
           shapes: {

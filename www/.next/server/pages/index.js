@@ -23,14 +23,113 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 
 /***/ }),
 
-/***/ "@tldraw/tldraw":
-/*!*********************************!*\
-  !*** external "@tldraw/tldraw" ***!
-  \*********************************/
+/***/ "@radix-ui/react-checkbox":
+/*!*******************************************!*\
+  !*** external "@radix-ui/react-checkbox" ***!
+  \*******************************************/
 /***/ (function(module) {
 
 "use strict";
-module.exports = require("@tldraw/tldraw");;
+module.exports = require("@radix-ui/react-checkbox");;
+
+/***/ }),
+
+/***/ "@radix-ui/react-context-menu":
+/*!***********************************************!*\
+  !*** external "@radix-ui/react-context-menu" ***!
+  \***********************************************/
+/***/ (function(module) {
+
+"use strict";
+module.exports = require("@radix-ui/react-context-menu");;
+
+/***/ }),
+
+/***/ "@radix-ui/react-dropdown-menu":
+/*!************************************************!*\
+  !*** external "@radix-ui/react-dropdown-menu" ***!
+  \************************************************/
+/***/ (function(module) {
+
+"use strict";
+module.exports = require("@radix-ui/react-dropdown-menu");;
+
+/***/ }),
+
+/***/ "@radix-ui/react-icons":
+/*!****************************************!*\
+  !*** external "@radix-ui/react-icons" ***!
+  \****************************************/
+/***/ (function(module) {
+
+"use strict";
+module.exports = require("@radix-ui/react-icons");;
+
+/***/ }),
+
+/***/ "@radix-ui/react-id":
+/*!*************************************!*\
+  !*** external "@radix-ui/react-id" ***!
+  \*************************************/
+/***/ (function(module) {
+
+"use strict";
+module.exports = require("@radix-ui/react-id");;
+
+/***/ }),
+
+/***/ "@radix-ui/react-radio-group":
+/*!**********************************************!*\
+  !*** external "@radix-ui/react-radio-group" ***!
+  \**********************************************/
+/***/ (function(module) {
+
+"use strict";
+module.exports = require("@radix-ui/react-radio-group");;
+
+/***/ }),
+
+/***/ "@radix-ui/react-tooltip":
+/*!******************************************!*\
+  !*** external "@radix-ui/react-tooltip" ***!
+  \******************************************/
+/***/ (function(module) {
+
+"use strict";
+module.exports = require("@radix-ui/react-tooltip");;
+
+/***/ }),
+
+/***/ "@stitches/react":
+/*!**********************************!*\
+  !*** external "@stitches/react" ***!
+  \**********************************/
+/***/ (function(module) {
+
+"use strict";
+module.exports = require("@stitches/react");;
+
+/***/ }),
+
+/***/ "deepmerge":
+/*!****************************!*\
+  !*** external "deepmerge" ***!
+  \****************************/
+/***/ (function(module) {
+
+"use strict";
+module.exports = require("deepmerge");;
+
+/***/ }),
+
+/***/ "idb":
+/*!**********************!*\
+  !*** external "idb" ***!
+  \**********************/
+/***/ (function(module) {
+
+"use strict";
+module.exports = require("idb");;
 
 /***/ }),
 
@@ -45,6 +144,17 @@ module.exports = require("next/dynamic");;
 
 /***/ }),
 
+/***/ "perfect-freehand":
+/*!***********************************!*\
+  !*** external "perfect-freehand" ***!
+  \***********************************/
+/***/ (function(module) {
+
+"use strict";
+module.exports = require("perfect-freehand");;
+
+/***/ }),
+
 /***/ "react":
 /*!************************!*\
   !*** external "react" ***!
@@ -56,6 +166,39 @@ module.exports = require("react");;
 
 /***/ }),
 
+/***/ "react-error-boundary":
+/*!***************************************!*\
+  !*** external "react-error-boundary" ***!
+  \***************************************/
+/***/ (function(module) {
+
+"use strict";
+module.exports = require("react-error-boundary");;
+
+/***/ }),
+
+/***/ "react-hotkeys-hook":
+/*!*************************************!*\
+  !*** external "react-hotkeys-hook" ***!
+  \*************************************/
+/***/ (function(module) {
+
+"use strict";
+module.exports = require("react-hotkeys-hook");;
+
+/***/ }),
+
+/***/ "react-use-gesture":
+/*!************************************!*\
+  !*** external "react-use-gesture" ***!
+  \************************************/
+/***/ (function(module) {
+
+"use strict";
+module.exports = require("react-use-gesture");;
+
+/***/ }),
+
 /***/ "react/jsx-dev-runtime":
 /*!****************************************!*\
   !*** external "react/jsx-dev-runtime" ***!
@@ -64,6 +207,17 @@ module.exports = require("react");;
 
 "use strict";
 module.exports = require("react/jsx-dev-runtime");;
+
+/***/ }),
+
+/***/ "zustand":
+/*!**************************!*\
+  !*** external "zustand" ***!
+  \**************************/
+/***/ (function(module) {
+
+"use strict";
+module.exports = require("zustand");;
 
 /***/ })
 

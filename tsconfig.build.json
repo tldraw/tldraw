@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
     "module": "esnext",
-    "target": "ES5",
+    "target": "es5",
     "lib": ["dom", "esnext"],
     "importHelpers": true,
     "declaration": true,
-    "sourceMap": true,   
+    "sourceMap": true,
     "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,

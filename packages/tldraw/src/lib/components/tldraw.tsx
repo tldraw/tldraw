@@ -15,7 +15,7 @@ export interface TLDrawProps {
   document?: TLDrawDocument
   currentPageId?: string
   onMount?: (state: TLDrawState) => void
-  onChange?: (state: TLDrawState) => void
+  onChange?: TLDrawState['_onChange']
 }
 
 const hideBoundsSelector = (s: Data) => s.appState.activeTool !== 'select'
@@ -35,12 +35,8 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
   const pageState = context.useAppState(pageStateSelector)
 
   React.useEffect(() => {
-    _onChange?.(tlstate)
-  })
-
-  React.useEffect(() => {
     if (!document) return
-    tlstate.loadDocument(document)
+    tlstate.loadDocument(document, _onChange)
   }, [document, tlstate])
 
   React.useEffect(() => {
