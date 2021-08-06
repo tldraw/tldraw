@@ -11,7 +11,7 @@
   },
   "scripts": {
     "start": "tsdx watch --tsconfig tsconfig.build.json --verbose --noClean",
-    "build": "tsdx build --tsconfig tsconfig.build.json",
+    "build": "tsdx build --tsconfig tsconfig.build.json --verbose",
     "test": "tsdx test",
     "lint": "tsdx lint",
     "prepublish": "npm run build"
@@ -39,13 +39,12 @@
     "@tldraw/core": "^0.0.24",
     "perfect-freehand": "^0.4.10",
     "react-hotkeys-hook": "^3.4.0",
-    "tslib": "^2.3.0",
     "zustand": "^3.5.7"
   },
   "publishConfig": {
     "access": "public"
   },
   "devDependencies": {
-    "babel-plugin-module-resolver": "^4.1.0"
+    "tslib": "^2.3.0"
   }
 }

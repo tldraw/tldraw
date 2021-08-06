@@ -8,7 +8,6 @@
     "@changesets/cli": "^2.10.3",
     "@types/react": "^17.0.15",
     "@types/react-dom": "^17.0.9",
-    "@weiran.zsd/tsdx": "^0.15.2",
     "caniuse-lite": "^1.0.30001249",
     "cypress": "^5.2.0",
     "lerna": "^3.15.0",
@@ -38,5 +37,7 @@
     "release:canary": "changeset publish --tag canary"
   },
   "version": "0.0.24",
-  "dependencies": {}
+  "dependencies": {
+    "tsdx": "^0.14.1"
+  }
 }
