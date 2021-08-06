@@ -46,3 +46,4 @@ yarn-error.log*
 
 # vercel
 .vercel
+www/dist
