@@ -1,9 +1,0 @@
-{
-  "ignores": [],
-  "rules": {
-    "pkg-main": "off",
-    "ava": "off",
-    "xo": "off",
-    "use-travis": "off"
-  }
-}

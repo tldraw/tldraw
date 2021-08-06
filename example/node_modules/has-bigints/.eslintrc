@@ -1,9 +1,0 @@
-{
-	"root": true,
-
-	"extends": "@ljharb",
-
-	"rules": {
-		"operator-linebreak": [2, "before"],
-	},
-}

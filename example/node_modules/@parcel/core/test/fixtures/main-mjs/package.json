@@ -1,8 +1,0 @@
-{
-  "main": "dist/index.js",
-  "targets": {
-    "main": {
-      "outputFormat": "esmodule"
-    }
-  }
-}

@@ -1,7 +1,0 @@
-{
-  "type": "module",
-  "test": "dist/index.js",
-  "targets": {
-    "test": {}
-  }
-}

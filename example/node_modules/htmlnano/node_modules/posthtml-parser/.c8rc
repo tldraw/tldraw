@@ -1,4 +1,0 @@
-{
-  "reporter": ["lcov", "text"],
-  "extension": [".js"]
-}

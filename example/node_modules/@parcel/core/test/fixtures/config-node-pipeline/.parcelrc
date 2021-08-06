@@ -1,6 +1,0 @@
-{
-  "extends": "@parcel/config-default",
-  "transformers": {
-    "node:*.js": ["@parcel/transformer-js"]
-  }
-}

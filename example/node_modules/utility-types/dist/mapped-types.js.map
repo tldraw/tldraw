@@ -1,1 +1,0 @@
-{"version":3,"file":"mapped-types.js","sourceRoot":"","sources":["../src/mapped-types.ts"],"names":[],"mappings":""}

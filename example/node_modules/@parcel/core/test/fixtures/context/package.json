@@ -1,8 +1,0 @@
-{
-  "main": "dist/main/index.js",
-  "targets": {
-    "main": {
-      "context": "node"
-    }
-  }
-}

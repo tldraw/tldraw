@@ -1,3 +1,0 @@
-[submodule "deps/catest"]
-	path = deps/catest
-	url = https://github.com/joyent/catest

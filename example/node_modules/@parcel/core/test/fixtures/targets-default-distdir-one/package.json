@@ -1,8 +1,0 @@
-{
-  "targets": {
-    "browserModern": {}
-  },
-  "browserslist": [
-    "Chrome 80"
-  ]
-}
