@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/core",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "description": "Core library and renderer for tldraw.",
   "author": "@steveruizok",
   "repository": {
