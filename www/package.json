@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/www",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@stitches/react": "^0.2.3",
-    "@tldraw/tldraw": "^0.0.25",
+    "@tldraw/tldraw": "^0.0.26",
     "idb": "^6.1.2",
     "next": "11.0.1",
     "react": "17.0.2",

@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "description": "The tldraw editor as a React component.",
   "author": "@steveruizok",
   "license": "MIT",
@@ -36,7 +36,7 @@
     "@radix-ui/react-radio-group": "^0.0.18",
     "@radix-ui/react-tooltip": "^0.0.20",
     "@stitches/react": "^0.2.3",
-    "@tldraw/core": "^0.0.25",
+    "@tldraw/core": "^0.0.26",
     "perfect-freehand": "^0.4.10",
     "react-hotkeys-hook": "^3.4.0",
     "zustand": "^3.5.7"
