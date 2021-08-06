@@ -36,7 +36,7 @@
     "version:canary": "changeset version --snapshot canary",
     "release:canary": "changeset publish --tag canary"
   },
-  "version": "0.0.24",
+  "version": "0.0.25",
   "dependencies": {
     "tsdx": "^0.14.1"
   }
