@@ -17,11 +17,6 @@
     "react": "17.0.2",
     "react-dom": "17.0.2"
   },
-  "alias": {
-    "@tldraw/tldraw": "../packages/tldraw/dist",
-    "react": "../node_modules/react",
-    "react-dom": "../node_modules/react-dom/profiling"
-  },
   "devDependencies": {
     "@babel/core": "^7.14.6",
     "@types/jest": "^26.0.23",
