@@ -7,7 +7,6 @@
   "npmClient": "yarn",
   "useWorkspaces": true,
   "packages": [
-    "packages/*",
-    "www"
+    "packages/*"
   ]
 }
