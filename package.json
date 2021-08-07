@@ -21,7 +21,8 @@
     "changeset": "changeset",
     "release": "changeset publish",
     "version:canary": "changeset version --snapshot canary",
-    "release:canary": "changeset publish --tag canary"
+    "release:canary": "changeset publish --tag canary",
+    "prepare": "husky install"
   },
   "husky": {
     "hooks": {
@@ -42,6 +43,7 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "tslib": "^2.3.0",
-    "typescript": "^4.3.5"
+    "typescript": "^4.3.5",
+    "husky": "^7.0.0"
   }
 }
