@@ -29,7 +29,7 @@ import {
   SpaceEvenlyVerticallyIcon,
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
-} from '../icons'
+} from '@radix-ui/react-icons'
 
 const has1SelectedIdsSelector = (s: Data) => {
   return s.pageState.selectedIds.length > 0
