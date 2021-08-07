@@ -18,8 +18,7 @@
   },
   "workspaces": [
     "packages/core",
-    "packages/tldraw",
-    "packages/www"
+    "packages/tldraw"
   ],
   "scripts": {
     "lerna": "lerna",
