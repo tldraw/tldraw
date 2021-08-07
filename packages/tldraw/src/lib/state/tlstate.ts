@@ -1050,7 +1050,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   /* ------------- Renderer Event Handlers ------------ */
-  onPinchStart: TLPinchEventHandler = info => {
+  onPinchStart: TLPinchEventHandler = () => {
     this.setStatus('pinching')
   }
 
