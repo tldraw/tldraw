@@ -1,16 +1,13 @@
 {
   "extends": "./tsconfig.build.json",
-  "include": ["packages", "types", "scripts", "example", "packages/www"],
-  "exclude": ["**/dist"],
+  "include": ["packages", "types", "scripts", "example"],
   "compilerOptions": {
     "allowJs": false,
     "baseUrl": ".",
-    "target": "es5",
     "typeRoots": ["./node_modules/@types", "./types"],
     "paths": {
-      "@tldraw/tldraw": ["packages/tldraw/src"],
       "@tldraw/core": ["packages/core/src"],
-      "@tldraw/www": ["packages/www/src"],
+      "@tldraw/tldraw": ["packages/tldraw/src"],
       "$test/*": ["test/*"]
     }
   }
