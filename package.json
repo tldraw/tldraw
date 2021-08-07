@@ -23,8 +23,7 @@
     "release": "changeset publish",
     "version:canary": "changeset version --snapshot canary",
     "release:canary": "changeset publish --tag canary",
-    "prepare": "husky install",
-    "deploy": "yarn build && cd apps/www && yarn build"
+    "prepare": "husky install"
   },
   "husky": {
     "hooks": {

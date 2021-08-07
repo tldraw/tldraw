@@ -69,7 +69,7 @@ const defaultTheme: TLTheme = {
   brushFill: 'rgba(0,0,0,.05)',
   brushStroke: 'rgba(0,0,0,.25)',
   selectStroke: 'rgb(66, 133, 244)',
-  selectFill: 'rgba(65, 132, 244, 0.05)',
+  selectFill: 'rgba(65, 132, 244, 0.15)',
   background: 'rgb(248, 249, 250)',
   foreground: 'rgb(51, 51, 51)',
 }
@@ -127,7 +127,7 @@ const tlcss = css`
     fill: var(--tl-background);
     stroke: var(--tl-stroke);
     stroke-width: calc(2px * var(--tl-scale));
-    pointer-events: all;
+    pointer-events: none;
   }
 
   .tl-binding {
@@ -190,6 +190,10 @@ const tlcss = css`
     stroke-width: 2px;
   }
 
+  .tl-handles {
+    pointer-events: all;
+  }
+
   .tl-handle {
     fill: var(--tl-background);
     stroke: var(--tl-selectStroke);
@@ -199,21 +203,20 @@ const tlcss = css`
   .tl-handle-bg {
     fill: transparent;
     stroke: none;
-    opacity: 0.2;
     pointer-events: all;
   }
 
   .tl-handle-bg:hover {
-    fill: var(--tl-selected-fill);
+    fill: var(--tl-selectFill);
   }
 
   .tl-handle-bg:hover > * {
-    stroke: var(--tl-selected-fill);
+    stroke: var(--tl-selectFill);
   }
 
   .tl-handle-bg:active {
-    fill: var(--tl-selected-fill);
-    stroke: var(--tl-selected-fill);
+    fill: var(--tl-selectFill);
+    stroke: var(--tl-selectFill);
   }
 
   .tl-binding-indicator {
