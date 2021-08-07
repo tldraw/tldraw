@@ -16,7 +16,6 @@
     "lint": "lerna run lint -- --fix",
     "build": "lerna run build",
     "prepublish": "lerna run prepublish",
-    "build:www": "cd packages/www && yarn build",
     "start:example": "yarn run build && yarn --cwd example && yarn --cwd example start",
     "cypress": "cypress run",
     "cypress:open": "cypress open",
@@ -24,7 +23,8 @@
     "release": "changeset publish",
     "version:canary": "changeset version --snapshot canary",
     "release:canary": "changeset publish --tag canary",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "deploy": "yarn build && cd apps/www && yarn build"
   },
   "husky": {
     "hooks": {
