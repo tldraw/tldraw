@@ -14,6 +14,7 @@
     "@tldraw/tldraw": "^0.0.26",
     "idb": "^6.1.2",
     "next": "11.0.1",
+    "next-transpile-modules": "^8.0.0",
     "react": "17.0.2",
     "react-dom": "17.0.2"
   },
