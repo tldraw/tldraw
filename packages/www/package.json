@@ -9,9 +9,6 @@
     "serve": "next serve",
     "lint": "next lint"
   },
-  "alias": {
-    "@tldraw/tldraw": "../tldraw"
-  },
   "dependencies": {
     "@stitches/react": "^0.2.3",
     "@tldraw/tldraw": "^0.0.26",

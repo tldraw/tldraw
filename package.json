@@ -5,7 +5,8 @@
   "license": "MIT",
   "version": "0.0.25",
   "workspaces": [
-    "packages/*"
+    "packages/core",
+    "packages/tldraw"
   ],
   "scripts": {
     "lerna": "lerna",
@@ -30,6 +31,7 @@
     }
   },
   "dependencies": {
+    "husky": "^7.0.1",
     "tsdx": "^0.14.1"
   },
   "devDependencies": {

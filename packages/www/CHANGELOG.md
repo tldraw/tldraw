@@ -1,7 +1,7 @@
 # @tldraw/www
 
-## 0.0.26
+## 0.0.21
 
 ### Patch Changes
 
-- It works!
+- Move to TSDX monorepo.
