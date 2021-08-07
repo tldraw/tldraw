@@ -7,7 +7,7 @@ import {
   Pencil1Icon,
   SquareIcon,
   TextIcon,
-} from '../icons'
+} from '@radix-ui/react-icons'
 import * as React from 'react'
 import { StatusBar } from '../status-bar'
 import { FloatingContainer } from '../shared'

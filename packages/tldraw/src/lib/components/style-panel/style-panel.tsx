@@ -17,7 +17,7 @@ import { QuickSizeSelect } from './quick-size-select'
 import { QuickDashSelect } from './quick-dash-select'
 import { QuickFillSelect } from './quick-fill-select'
 import { Tooltip } from '../tooltip'
-import { DotsHorizontalIcon, Cross2Icon } from '../icons'
+import { DotsHorizontalIcon, Cross2Icon } from '@radix-ui/react-icons'
 import { Utils } from '@tldraw/core'
 import { useTLDrawContext } from '../../hooks'
 

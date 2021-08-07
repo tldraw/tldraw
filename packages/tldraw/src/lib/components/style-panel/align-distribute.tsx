@@ -10,7 +10,7 @@ import {
   SpaceEvenlyVerticallyIcon,
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
-} from '../icons'
+} from '@radix-ui/react-icons'
 import { AlignType, DistributeType, StretchType } from '../../types'
 import { breakpoints, ButtonsRow, IconButton } from '../shared'
 import { useTLDrawContext } from '../../hooks'
