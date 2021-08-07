@@ -5,7 +5,8 @@
   "license": "MIT",
   "version": "0.0.25",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "lerna": "lerna",

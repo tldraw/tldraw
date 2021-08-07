@@ -24,8 +24,8 @@
     "dist"
   ],
   "peerDependencies": {
-    "react": ">=17",
-    "react-dom": ">=17"
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^0.0.16",
@@ -45,6 +45,8 @@
     "access": "public"
   },
   "devDependencies": {
+    "@types/react": "^17.0.16",
+    "@types/react-dom": "^17.0.9",
     "tslib": "^2.3.0"
   }
 }
