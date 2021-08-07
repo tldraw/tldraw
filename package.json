@@ -6,7 +6,8 @@
   "version": "0.0.25",
   "workspaces": [
     "packages/core",
-    "packages/tldraw"
+    "packages/tldraw",
+    "packages/www"
   ],
   "scripts": {
     "lerna": "lerna",
@@ -30,7 +31,6 @@
     }
   },
   "dependencies": {
-    "husky": "^7.0.1",
     "tsdx": "^0.14.1"
   },
   "devDependencies": {
