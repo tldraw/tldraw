@@ -23,7 +23,7 @@ import {
   CheckboxItem as DMCheckboxItem,
 } from '@radix-ui/react-dropdown-menu'
 import { Root as RGRoot } from '@radix-ui/react-radio-group'
-import { CheckIcon, ChevronRightIcon } from '@radix-ui/react-icons'
+import { CheckIcon, ChevronRightIcon } from '../components/icons'
 import styled from '../styles'
 
 export const breakpoints: any = { '@initial': 'mobile', '@sm': 'small' }

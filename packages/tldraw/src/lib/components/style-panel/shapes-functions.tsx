@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { IconButton, ButtonsRow, breakpoints } from '../shared'
-import { Trash } from '../icons'
 import { Tooltip } from '../tooltip'
 import {
   ArrowDownIcon,
@@ -13,7 +12,8 @@ import {
   PinBottomIcon,
   PinTopIcon,
   RotateCounterClockwiseIcon,
-} from '@radix-ui/react-icons'
+  Trash,
+} from '../icons'
 import { useTLDrawContext } from '../../hooks'
 import { Data } from '../../state'
 

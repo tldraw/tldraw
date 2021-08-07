@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ZoomInIcon, ZoomOutIcon } from '@radix-ui/react-icons'
+import { ZoomInIcon, ZoomOutIcon } from '../icons'
 import { TertiaryButton, TertiaryButtonsContainer } from './shared'
 import { useTLDrawContext } from '../../hooks'
 import { Data } from '../../state'
