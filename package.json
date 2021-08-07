@@ -5,9 +5,7 @@
   "license": "MIT",
   "version": "0.0.25",
   "workspaces": [
-    "packages/core",
-    "packages/tldraw",
-    "packages/www"
+    "packages/*"
   ],
   "scripts": {
     "lerna": "lerna",
