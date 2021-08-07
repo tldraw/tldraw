@@ -1,10 +1,6 @@
 import * as React from 'react'
-import { openDB, deleteDB, wrap, unwrap, IDBPDatabase, DBSchema } from 'idb'
+import { openDB, DBSchema } from 'idb'
 import { TLDrawDocument } from '@tldraw/tldraw'
-
-function getId(id: string) {
-  return '0.0.0-' + id
-}
 
 interface TLDatabase extends DBSchema {
   documents: {
