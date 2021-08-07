@@ -8,6 +8,7 @@
     "paths": {
       "@tldraw/core": ["packages/core/src"],
       "@tldraw/tldraw": ["packages/tldraw/src"],
+      "@tldraw/www": ["packages/www"],
       "$test/*": ["test/*"]
     }
   }
