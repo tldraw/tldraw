@@ -51,14 +51,6 @@ export function useShapeTree<T extends TLShape>(
   page: TLPage<T>,
   pageState: TLPageState,
   shapeUtils: TLShapeUtils<T>,
-  info: {
-    bindingId?: string
-    hoveredId?: string
-    currentParentId?: string
-    editingId?: string
-    editingBindingId?: string
-    isDarkMode?: boolean
-  } = {},
   onChange?: TLCallbacks['onChange']
 ) {
   const rPreviousCount = React.useRef(0)
@@ -114,7 +106,7 @@ export function useShapeTree<T extends TLShape>(
 
   shapesToRender
     .sort((a, b) => a.childIndex - b.childIndex)
-    .forEach(shape => addToShapeTree(shape, tree, page.shapes, selectedIds, info))
+    .forEach(shape => addToShapeTree(shape, tree, page.shapes, selectedIds, pageState))
 
   return tree
 }

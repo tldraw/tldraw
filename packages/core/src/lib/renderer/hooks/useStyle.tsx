@@ -69,7 +69,7 @@ const defaultTheme: TLTheme = {
   brushFill: 'rgba(0,0,0,.05)',
   brushStroke: 'rgba(0,0,0,.25)',
   selectStroke: 'rgb(66, 133, 244)',
-  selectFill: 'rgba(65, 132, 244, 0.15)',
+  selectFill: 'rgba(65, 132, 244, 0.2)',
   background: 'rgb(248, 249, 250)',
   foreground: 'rgb(51, 51, 51)',
 }
@@ -120,14 +120,6 @@ const tlcss = css`
     fill: var(--tl-background);
     stroke-width: calc(1.5px * var(--tl-scale));
     cursor: grab;
-  }
-
-  .tl-handle {
-    transform: scale(var(--tl-scale));
-    fill: var(--tl-background);
-    stroke: var(--tl-stroke);
-    stroke-width: calc(2px * var(--tl-scale));
-    pointer-events: none;
   }
 
   .tl-binding {
@@ -194,29 +186,32 @@ const tlcss = css`
     pointer-events: all;
   }
 
+  .tl-handles:hover > .tl-handle-bg {
+    fill: var(--tl-selectFill);
+  }
+
+  .tl-handles:hover > .tl-handle-bg > * {
+    stroke: var(--tl-selectFill);
+  }
+
+  .tl-handles:active > .tl-handle-bg {
+    fill: var(--tl-selectFill);
+  }
+
+  .tl-handles:active > .tl-handle-bg > * {
+    stroke: var(--tl-selectFill);
+  }
+
   .tl-handle {
     fill: var(--tl-background);
     stroke: var(--tl-selectStroke);
-    stroke-width: calc(1.5px * var(--tl-scale));
+    stroke-width: 1.5px;
   }
 
   .tl-handle-bg {
     fill: transparent;
     stroke: none;
     pointer-events: all;
-  }
-
-  .tl-handle-bg:hover {
-    fill: var(--tl-selectFill);
-  }
-
-  .tl-handle-bg:hover > * {
-    stroke: var(--tl-selectFill);
-  }
-
-  .tl-handle-bg:active {
-    fill: var(--tl-selectFill);
-    stroke: var(--tl-selectFill);
   }
 
   .tl-binding-indicator {

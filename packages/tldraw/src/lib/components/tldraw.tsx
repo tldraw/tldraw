@@ -28,14 +28,14 @@ const pageStateSelector = (s: Data) => s.pageState
 export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }: TLDrawProps) {
   const [tlstate] = React.useState(() => new TLDrawState())
   const [context] = React.useState(() => {
-    return { tlstate, useAppState: tlstate.store }
+    return { tlstate, useSelector: tlstate.store }
   })
 
   useKeyboardShortcuts(tlstate)
 
-  const hideBounds = context.useAppState(hideBoundsSelector)
-  const page = context.useAppState(pageSelector)
-  const pageState = context.useAppState(pageStateSelector)
+  const hideBounds = context.useSelector(hideBoundsSelector)
+  const page = context.useSelector(pageSelector)
+  const pageState = context.useSelector(pageStateSelector)
 
   React.useEffect(() => {
     if (!document) return
@@ -106,6 +106,11 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
               onChange={tlstate.onChange}
               onError={tlstate.onError}
               onBlurEditingShape={tlstate.onBlurEditingShape}
+              onTextBlur={tlstate.onTextBlur}
+              onTextChange={tlstate.onTextChange}
+              onTextKeyDown={tlstate.onTextKeyDown}
+              onTextFocus={tlstate.onTextFocus}
+              onTextKeyUp={tlstate.onTextKeyUp}
             />
           </ContextMenu>
           <Spacer />

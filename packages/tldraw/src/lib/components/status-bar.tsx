@@ -6,8 +6,8 @@ import styled from '../styles'
 const activeToolSelector = (s: Data) => s.appState.activeTool
 
 export function StatusBar(): JSX.Element | null {
-  const { useAppState } = useTLDrawContext()
-  const activeTool = useAppState(activeToolSelector)
+  const { useSelector } = useTLDrawContext()
+  const activeTool = useSelector(activeToolSelector)
 
   return (
     <StatusBarContainer size={{ '@sm': 'small' }}>

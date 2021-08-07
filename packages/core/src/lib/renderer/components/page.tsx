@@ -23,7 +23,7 @@ export function Page<T extends TLShape>({
 
   useRenderOnResize()
 
-  const shapeTree = useShapeTree(page, pageState, shapeUtils, pageState, callbacks.onChange)
+  const shapeTree = useShapeTree(page, pageState, shapeUtils, callbacks.onChange)
 
   const { shapeWithHandles } = useHandles(page, pageState)
 
@@ -43,7 +43,7 @@ export function Page<T extends TLShape>({
           rotation={rotation}
         />
       )}
-      {shapeWithHandles && <Handles shape={shapeWithHandles} />}
+      {shapeWithHandles && <Handles shape={shapeWithHandles} zoom={pageState.camera.zoom} />}
     </>
   )
 }

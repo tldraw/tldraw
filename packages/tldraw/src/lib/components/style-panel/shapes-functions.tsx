@@ -42,17 +42,17 @@ const hasSelectionSelector = (s: Data) => s.pageState.selectedIds.length > 0
 const hasMultipleSelectionSelector = (s: Data) => s.pageState.selectedIds.length > 1
 
 export const ShapesFunctions = React.memo(() => {
-  const { tlstate, useAppState } = useTLDrawContext()
+  const { tlstate, useSelector } = useTLDrawContext()
 
-  const isAllLocked = useAppState(isAllLockedSelector)
+  const isAllLocked = useSelector(isAllLockedSelector)
 
-  const isAllAspectLocked = useAppState(isAllAspectLockedSelector)
+  const isAllAspectLocked = useSelector(isAllAspectLockedSelector)
 
-  const isAllGrouped = useAppState(isAllGroupedSelector)
+  const isAllGrouped = useSelector(isAllGroupedSelector)
 
-  const hasSelection = useAppState(hasSelectionSelector)
+  const hasSelection = useSelector(hasSelectionSelector)
 
-  const hasMultipleSelection = useAppState(hasMultipleSelectionSelector)
+  const hasMultipleSelection = useSelector(hasMultipleSelectionSelector)
 
   const handleRotate = React.useCallback(() => {
     tlstate.rotate()

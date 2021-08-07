@@ -1,4 +1,4 @@
-import { Rectangle, Ellipse, Arrow, Draw } from './shapes'
+import { Rectangle, Ellipse, Arrow, Draw, Text } from './shapes'
 import { TLDrawShape, TLDrawShapeUtil, TLDrawShapeUtils } from './shape-types'
 
 export const tldrawShapeUtils: TLDrawShapeUtils = {
@@ -6,6 +6,7 @@ export const tldrawShapeUtils: TLDrawShapeUtils = {
   ellipse: new Ellipse(),
   draw: new Draw(),
   arrow: new Arrow(),
+  text: new Text(),
 }
 
 export type ShapeByType<T extends keyof TLDrawShapeUtils> = TLDrawShapeUtils[T]

@@ -12,8 +12,8 @@ const selectColor = (data: Data) => data.appState.selectedStyle.color
 export const QuickColorSelect = React.memo(
   (): JSX.Element => {
     const { theme } = useTheme()
-    const { tlstate, useAppState } = useTLDrawContext()
-    const color = useAppState(selectColor)
+    const { tlstate, useSelector } = useTLDrawContext()
+    const color = useSelector(selectColor)
 
     const handleColorChange = React.useCallback(
       color => {

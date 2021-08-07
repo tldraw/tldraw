@@ -55,12 +55,12 @@ interface ContextMenuProps {
 
 export const ContextMenu = React.memo(
   ({ children }: ContextMenuProps): JSX.Element => {
-    const { tlstate, useAppState } = useTLDrawContext()
-    const hasSelection = useAppState(has1SelectedIdsSelector)
-    const hasTwoOrMore = useAppState(has2SelectedIdsSelector)
-    const hasThreeOrMore = useAppState(has3SelectedIdsSelector)
-    const isDebugMode = useAppState(isDebugModeSelector)
-    const hasGroupSelected = useAppState(hasGroupSelectedSelector)
+    const { tlstate, useSelector } = useTLDrawContext()
+    const hasSelection = useSelector(has1SelectedIdsSelector)
+    const hasTwoOrMore = useSelector(has2SelectedIdsSelector)
+    const hasThreeOrMore = useSelector(has3SelectedIdsSelector)
+    const isDebugMode = useSelector(isDebugModeSelector)
+    const hasGroupSelected = useSelector(hasGroupSelectedSelector)
 
     const rContent = React.useRef<HTMLDivElement>(null)
 

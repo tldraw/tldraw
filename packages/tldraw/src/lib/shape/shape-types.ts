@@ -6,6 +6,7 @@ export enum TLDrawToolType {
   Point = 'point',
   Handle = 'handle',
   Points = 'points',
+  Text = 'text',
 }
 
 export enum TLDrawShapeType {
@@ -13,6 +14,7 @@ export enum TLDrawShapeType {
   Rectangle = 'rectangle',
   Draw = 'draw',
   Arrow = 'arrow',
+  Text = 'text',
 }
 
 export enum Decoration {
@@ -53,7 +55,12 @@ export interface RectangleShape extends TLDrawBaseShape {
   size: number[]
 }
 
-export type TLDrawShape = RectangleShape | EllipseShape | DrawShape | ArrowShape
+export interface TextShape extends TLDrawBaseShape {
+  type: TLDrawShapeType.Text
+  text: string
+}
+
+export type TLDrawShape = RectangleShape | EllipseShape | DrawShape | ArrowShape | TextShape
 
 export abstract class TLDrawShapeUtil<T extends TLDrawShape> extends TLShapeUtil<T> {
   abstract toolType: TLDrawToolType

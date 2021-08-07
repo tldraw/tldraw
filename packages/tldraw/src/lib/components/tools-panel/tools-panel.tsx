@@ -6,6 +6,7 @@ import {
   LockOpen1Icon,
   Pencil1Icon,
   SquareIcon,
+  TextIcon,
 } from '@radix-ui/react-icons'
 import * as React from 'react'
 import { StatusBar } from '../status-bar'
@@ -25,13 +26,13 @@ const isDebugModeSelector = (s: Data) => s.settings.isDebugMode
 
 export const ToolsPanel = React.memo(
   (): JSX.Element => {
-    const { tlstate, useAppState } = useTLDrawContext()
+    const { tlstate, useSelector } = useTLDrawContext()
 
-    const activeTool = useAppState(activeToolSelector)
+    const activeTool = useSelector(activeToolSelector)
 
-    const isToolLocked = useAppState(isToolLockedSelector)
+    const isToolLocked = useSelector(isToolLockedSelector)
 
-    const isDebugMode = useAppState(isDebugModeSelector)
+    const isDebugMode = useSelector(isDebugModeSelector)
 
     const selectSelectTool = React.useCallback(() => {
       tlstate.selectTool('select')
@@ -53,9 +54,9 @@ export const ToolsPanel = React.memo(
       tlstate.selectTool(TLDrawShapeType.Arrow)
     }, [tlstate])
 
-    // const selectTextTool = React.useCallback(() => {
-    //   tlstate.selectTool(TLDrawShapeType.Ellipse)
-    // }, [tlstate])
+    const selectTextTool = React.useCallback(() => {
+      tlstate.selectTool(TLDrawShapeType.Text)
+    }, [tlstate])
 
     return (
       <ToolsPanelContainer>
@@ -107,14 +108,14 @@ export const ToolsPanel = React.memo(
             >
               <ArrowTopRightIcon />
             </PrimaryButton>
-            {/* <PrimaryButton
-            kbd={'6'}
-            label={TLDrawShapeType.Text}
-            onClick={selectTextTool}
-            isActive={activeTool === TLDrawShapeType.Text}
-          >
-            <TextIcon />
-          </PrimaryButton> */}
+            <PrimaryButton
+              kbd={'6'}
+              label={TLDrawShapeType.Text}
+              onClick={selectTextTool}
+              isActive={activeTool === TLDrawShapeType.Text}
+            >
+              <TextIcon />
+            </PrimaryButton>
           </FloatingContainer>
         </CenterWrap>
         <RightWrap size={{ '@initial': 'mobile', '@sm': 'small' }}>

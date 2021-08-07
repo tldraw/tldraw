@@ -16,7 +16,7 @@ import {
   Vec,
 } from '@tldraw/core'
 import { brushUpdater } from '@tldraw/core'
-import { defaultStyle, ShapeStyles, TLDrawShape, TLDrawShapeType } from '../shape'
+import { defaultStyle, ShapeStyles, TLDrawShape, TLDrawShapeType, TLDrawToolType } from '../shape'
 import { Data, Session, Command, History, TLDrawStatus, ParametersExceptFirst } from './state-types'
 import * as commands from './command'
 import {
@@ -27,6 +27,7 @@ import {
   TranslateSession,
   TransformSession,
   HandleSession,
+  TextSession,
 } from './session'
 import { TLDR } from './tldr'
 import { TLDrawDocument, MoveType, AlignType, StretchType, DistributeType } from '../types'
@@ -81,6 +82,7 @@ export class TLDrawState implements TLCallbacks {
   }
   pointedId?: string
   pointedHandle?: string
+  editingId?: string
   pointedBoundsHandle?: TLBoundsCorner | TLBoundsEdge | 'rotate'
   currentDocumentId = 'doc'
   currentPageId = 'page'
@@ -831,6 +833,18 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
+  startTextSession = (id?: string) => {
+    this.editingId = id
+    this.setStatus('editing-text')
+    this.startSession(new TextSession(this.store.getState(), id))
+    return this
+  }
+
+  updateTextSession = (text: string) => {
+    this.updateSession<TextSession>(text)
+    return this
+  }
+
   startDrawSession = (id: string, point: number[]) => {
     this.setStatus('creating')
     this.startSession(new DrawSession(this.store.getState(), id, point))
@@ -963,22 +977,26 @@ export class TLDrawState implements TLCallbacks {
     const { activeTool, activeToolType } = this.getAppState()
 
     switch (activeToolType) {
-      case 'draw': {
+      case TLDrawToolType.Draw: {
         this.startDrawSession(id, pagePoint)
         break
       }
-      case 'bounds': {
+      case TLDrawToolType.Bounds: {
         this.startTransformSession(pagePoint, TLBoundsCorner.BottomRight, `create_${activeTool}`)
         break
       }
-      case 'handle': {
+      case TLDrawToolType.Handle: {
         this.startHandleSession(pagePoint, 'end', `create_${activeTool}`)
         break
       }
-      case 'point': {
+      case TLDrawToolType.Text: {
+        this.startTextSession()
         break
       }
-      case 'points': {
+      case TLDrawToolType.Point: {
+        break
+      }
+      case TLDrawToolType.Points: {
         break
       }
     }
@@ -1190,12 +1208,30 @@ export class TLDrawState implements TLCallbacks {
             break
           }
         }
+        break
+      }
+      case 'editing-text': {
+        this.completeSession()
+        break
       }
     }
   }
 
-  onDoubleClickCanvas: TLCanvasEventHandler = () => {
+  onDoubleClickCanvas: TLCanvasEventHandler = info => {
     // Unused
+    switch (this.status.current) {
+      case 'idle': {
+        switch (this.appState.activeTool) {
+          case 'text': {
+            // Create a text shape
+            this.setStatus('creating')
+            this.createActiveToolShape(info.point)
+            break
+          }
+        }
+        break
+      }
+    }
   }
 
   onRightPointCanvas: TLCanvasEventHandler = () => {
@@ -1394,6 +1430,26 @@ export class TLDrawState implements TLCallbacks {
     // Unused
   }
 
+  onTextChange = (_id: string, text: string) => {
+    this.updateTextSession(text)
+  }
+
+  onTextBlur = (_id: string) => {
+    this.completeSession()
+  }
+
+  onTextFocus = (_id: string) => {
+    // Unused
+  }
+
+  onTextKeyDown = (_id: string, key: string) => {
+    // Unused
+  }
+
+  onTextKeyUp = (_id: string, key: string) => {
+    // Unused
+  }
+
   onChange = (ids: string[]) => {
     const appState = this.getAppState()
     if (appState.isEmptyCanvas && ids.length > 0) {
@@ -1418,7 +1474,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   onBlurEditingShape = () => {
-    // TODO
+    this.completeSession()
   }
 
   get document(): TLDrawDocument {

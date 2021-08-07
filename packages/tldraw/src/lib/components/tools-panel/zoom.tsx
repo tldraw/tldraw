@@ -25,8 +25,8 @@ export const Zoom = React.memo(
 const zoomSelector = (s: Data) => s.pageState.camera.zoom
 
 function ZoomCounter() {
-  const { tlstate, useAppState } = useTLDrawContext()
-  const zoom = useAppState(zoomSelector)
+  const { tlstate, useSelector } = useTLDrawContext()
+  const zoom = useSelector(zoomSelector)
 
   return (
     <TertiaryButton

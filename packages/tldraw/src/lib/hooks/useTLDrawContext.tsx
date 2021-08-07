@@ -5,7 +5,7 @@ import { TLDrawState } from '../state'
 
 export interface TLDrawContextType {
   tlstate: TLDrawState
-  useAppState: UseStore<Data>
+  useSelector: UseStore<Data>
 }
 
 export const TLDrawContext = React.createContext<TLDrawContextType>({} as TLDrawContextType)

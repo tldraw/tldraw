@@ -16,9 +16,9 @@ const selectSize = (data: Data) => data.appState.selectedStyle.size
 
 export const QuickSizeSelect = React.memo(
   (): JSX.Element => {
-    const { tlstate, useAppState } = useTLDrawContext()
+    const { tlstate, useSelector } = useTLDrawContext()
 
-    const size = useAppState(selectSize)
+    const size = useSelector(selectSize)
 
     const changeSizeStyle = React.useCallback(
       (size: string) => {

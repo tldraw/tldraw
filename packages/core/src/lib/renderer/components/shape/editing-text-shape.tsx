@@ -1,3 +1,4 @@
+import { useTLContext } from '../../hooks'
 import * as React from 'react'
 import { TLShapeUtil, TLRenderInfo, TLShape } from '../../../types'
 
@@ -16,6 +17,10 @@ export function EditingTextShape({
   isDarkMode,
   isCurrentParent,
 }: EditingShapeProps<TLShape>) {
+  const {
+    callbacks: { onTextChange, onTextBlur, onTextFocus, onTextKeyDown, onTextKeyUp },
+  } = useTLContext()
+
   const ref = React.useRef<HTMLElement>(null)
 
   return utils.render(shape, {
@@ -26,5 +31,10 @@ export function EditingTextShape({
     isCurrentParent,
     isBinding,
     isDarkMode,
+    onTextChange,
+    onTextBlur,
+    onTextFocus,
+    onTextKeyDown,
+    onTextKeyUp,
   })
 }

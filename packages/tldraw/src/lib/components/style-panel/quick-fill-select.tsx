@@ -10,9 +10,9 @@ const isFilledSelector = (data: Data) => data.appState.selectedStyle.isFilled
 
 export const QuickFillSelect = React.memo(
   (): JSX.Element => {
-    const { tlstate, useAppState } = useTLDrawContext()
+    const { tlstate, useSelector } = useTLDrawContext()
 
-    const isFilled = useAppState(isFilledSelector)
+    const isFilled = useSelector(isFilledSelector)
 
     const handleIsFilledChange = React.useCallback(
       (isFilled: boolean) => {

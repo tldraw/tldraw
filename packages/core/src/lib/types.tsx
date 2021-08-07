@@ -52,14 +52,19 @@ export interface TLShape {
 
 export type TLShapeUtils<T extends TLShape> = Record<string, TLShapeUtil<T>>
 
-export interface TLRenderInfo {
-  ref?: React.RefObject<HTMLElement>
+export interface TLRenderInfo<T extends SVGElement | HTMLElement = any> {
   isEditing: boolean
   isHovered: boolean
   isSelected: boolean
   isBinding: boolean
   isDarkMode: boolean
   isCurrentParent: boolean
+  ref?: React.RefObject<T>
+  onTextChange?: TLCallbacks['onTextChange']
+  onTextBlur?: TLCallbacks['onTextBlur']
+  onTextFocus?: TLCallbacks['onTextFocus']
+  onTextKeyDown?: TLCallbacks['onTextKeyDown']
+  onTextKeyUp?: TLCallbacks['onTextKeyUp']
 }
 
 export interface TLTool {
@@ -162,6 +167,13 @@ export interface TLCallbacks {
   onHoverHandle: TLPointerEventHandler
   onUnhoverHandle: TLPointerEventHandler
   onReleaseHandle: TLPointerEventHandler
+
+  // Text
+  onTextChange: (id: string, text: string) => void
+  onTextBlur: (id: string) => void
+  onTextFocus: (id: string) => void
+  onTextKeyDown: (id: string, key: string) => void
+  onTextKeyUp: (id: string, key: string) => void
 
   // Misc
   onBlurEditingShape: () => void
@@ -338,6 +350,10 @@ export abstract class TLShapeUtil<T extends TLShape> {
   }
 
   onBoundsReset(_shape: T): Partial<T> | void {
+    return
+  }
+
+  onStyleChange(_shape: T): Partial<T> | void {
     return
   }
 }

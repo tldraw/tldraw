@@ -6,11 +6,12 @@ import { Handle } from './handle'
 
 interface HandlesProps {
   shape: TLShape
+  zoom: number
 }
 
 const toAngle = 180 / Math.PI
 
-export const Handles = React.memo(({ shape }: HandlesProps): JSX.Element | null => {
+export const Handles = React.memo(({ shape, zoom }: HandlesProps): JSX.Element | null => {
   const { shapeUtils } = useTLContext()
 
   const center = shapeUtils[shape.type].getCenter(shape)
@@ -26,6 +27,7 @@ export const Handles = React.memo(({ shape }: HandlesProps): JSX.Element | null 
           key={shape.id + '_' + handle.id}
           id={handle.id}
           point={Vec.add(handle.point, shape.point)}
+          zoom={zoom}
         />
       ))}
     </g>

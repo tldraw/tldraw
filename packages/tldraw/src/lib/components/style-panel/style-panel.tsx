@@ -24,8 +24,8 @@ import { useTLDrawContext } from '../../hooks'
 const isStyleOpenSelector = (s: Data) => s.appState.isStyleOpen
 
 export function StylePanel(): JSX.Element {
-  const { tlstate, useAppState } = useTLDrawContext()
-  const isOpen = useAppState(isStyleOpenSelector)
+  const { tlstate, useSelector } = useTLDrawContext()
+  const isOpen = useSelector(isStyleOpenSelector)
 
   return (
     <FloatingContainer direction="column">
@@ -54,8 +54,8 @@ const showKbds = !Utils.isMobile()
 const selectedShapesCountSelector = (s: Data) => s.pageState.selectedIds.length
 
 function SelectedShapeContent(): JSX.Element {
-  const { tlstate, useAppState } = useTLDrawContext()
-  const selectedShapesCount = useAppState(selectedShapesCountSelector)
+  const { tlstate, useSelector } = useTLDrawContext()
+  const selectedShapesCount = useSelector(selectedShapesCountSelector)
 
   return (
     <>
