@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.build.json",
-  "include": ["packages", "types", "scripts", "example", "www"],
+  "include": ["packages", "types", "scripts", "example", "packages/www"],
   "exclude": ["**/dist"],
   "compilerOptions": {
     "allowJs": false,
@@ -10,6 +10,7 @@
     "paths": {
       "@tldraw/tldraw": ["packages/tldraw/src"],
       "@tldraw/core": ["packages/core/src"],
+      "@tldraw/www": ["packages/www/src"],
       "$test/*": ["test/*"]
     }
   }
