@@ -24,148 +24,160 @@ export function useKeyboardShortcuts(tlstate: TLDrawState) {
     }
   }, [tlstate])
 
-  useHotkeys('command+z', e => {
+  useHotkeys('command+z', (e) => {
     tlstate.undo()
     e.preventDefault()
   })
 
-  useHotkeys('ctrl+shift-z,command+shift+z', e => {
+  useHotkeys('ctrl+shift-z,command+shift+z', (e) => {
     tlstate.redo()
     e.preventDefault()
   })
 
-  useHotkeys('ctrl+d,command+d', e => {
+  useHotkeys('ctrl+d,command+d', (e) => {
     tlstate.duplicate()
     e.preventDefault()
   })
 
-  useHotkeys('ctrl+s,command+s', e => {
+  useHotkeys('ctrl+s,command+s', (e) => {
     tlstate.save()
     e.preventDefault()
   })
 
-  useHotkeys('ctrl+=,command+=', e => {
+  useHotkeys('ctrl+=,command+=', (e) => {
     tlstate.zoomIn()
     e.preventDefault()
   })
 
-  useHotkeys('ctrl+-,command+-', e => {
+  useHotkeys('ctrl+-,command+-', (e) => {
     tlstate.zoomOut()
     e.preventDefault()
   })
 
-  useHotkeys('shift+1', e => {
+  useHotkeys('shift+1', (e) => {
     tlstate.zoomToFit()
     e.preventDefault()
   })
 
-  useHotkeys('shift+2', e => {
+  useHotkeys('shift+2', (e) => {
     tlstate.zoomToSelection()
     e.preventDefault()
   })
 
-  useHotkeys('shift+0', e => {
+  useHotkeys('shift+0', (e) => {
     tlstate.zoomToActual()
     e.preventDefault()
   })
 
-  useHotkeys('escape', e => {
+  useHotkeys('escape', (e) => {
     tlstate.cancel()
     e.preventDefault()
   })
 
-  useHotkeys('backspace', e => {
+  useHotkeys('backspace', (e) => {
     tlstate.delete()
     e.preventDefault()
   })
 
-  useHotkeys('command+a,ctrl+a', e => {
+  useHotkeys('command+a,ctrl+a', (e) => {
     tlstate.selectAll()
     e.preventDefault()
   })
 
-  useHotkeys('up', e => {
+  useHotkeys('up', (e) => {
     tlstate.nudge([0, -1], false)
     e.preventDefault()
   })
 
-  useHotkeys('right', e => {
+  useHotkeys('right', (e) => {
     tlstate.nudge([1, 0], false)
     e.preventDefault()
   })
 
-  useHotkeys('down', e => {
+  useHotkeys('down', (e) => {
     tlstate.nudge([0, 1], false)
     e.preventDefault()
   })
 
-  useHotkeys('left', e => {
+  useHotkeys('left', (e) => {
     tlstate.nudge([-1, 0], false)
     e.preventDefault()
   })
 
-  useHotkeys('shift+up', e => {
+  useHotkeys('shift+up', (e) => {
     tlstate.nudge([0, -1], true)
     e.preventDefault()
   })
 
-  useHotkeys('shift+right', e => {
+  useHotkeys('shift+right', (e) => {
     tlstate.nudge([1, 0], true)
     e.preventDefault()
   })
 
-  useHotkeys('shift+down', e => {
+  useHotkeys('shift+down', (e) => {
     tlstate.nudge([0, 1], true)
     e.preventDefault()
   })
 
-  useHotkeys('shift+left', e => {
+  useHotkeys('shift+left', (e) => {
     tlstate.nudge([-1, 0], true)
     e.preventDefault()
   })
 
-  useHotkeys('[', e => {
+  useHotkeys('[', (e) => {
     tlstate.moveBackward()
     e.preventDefault()
   })
 
-  useHotkeys(']', e => {
+  useHotkeys(']', (e) => {
     tlstate.moveForward()
     e.preventDefault()
   })
 
-  useHotkeys('shift+[', e => {
+  useHotkeys('shift+[', (e) => {
     tlstate.moveToBack()
     e.preventDefault()
   })
 
-  useHotkeys('shift+]', e => {
+  useHotkeys('shift+]', (e) => {
     tlstate.moveToFront()
     e.preventDefault()
   })
 
-  useHotkeys('v,1', e => {
+  useHotkeys('v,1', (e) => {
     tlstate.selectTool('select')
     e.preventDefault()
   })
 
-  useHotkeys('d,2', e => {
+  useHotkeys('d,2', (e) => {
     tlstate.selectTool(TLDrawShapeType.Draw)
     e.preventDefault()
   })
 
-  useHotkeys('r,3', e => {
+  useHotkeys('r,3', (e) => {
     tlstate.selectTool(TLDrawShapeType.Rectangle)
     e.preventDefault()
   })
 
-  useHotkeys('e,4', e => {
+  useHotkeys('e,4', (e) => {
     tlstate.selectTool(TLDrawShapeType.Ellipse)
     e.preventDefault()
   })
 
-  useHotkeys('a,5', e => {
+  useHotkeys('a,5', (e) => {
     tlstate.selectTool(TLDrawShapeType.Arrow)
+    e.preventDefault()
+  })
+
+  /* -------------------- Commands -------------------- */
+
+  useHotkeys('shift+h', (e) => {
+    tlstate.flipHorizontal()
+    e.preventDefault()
+  })
+
+  useHotkeys('shift+v', (e) => {
+    tlstate.flipVertical()
     e.preventDefault()
   })
 }

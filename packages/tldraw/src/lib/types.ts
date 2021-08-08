@@ -53,3 +53,8 @@ export enum DistributeType {
   Horizontal = 'horizontal',
   Vertical = 'vertical',
 }
+
+export enum FlipType {
+  Horizontal = 'horizontal',
+  Vertical = 'vertical',
+}

@@ -7,6 +7,7 @@ export function useBoundsEvents() {
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
+      if (e.button !== 0) return
       e.stopPropagation()
       e.currentTarget?.setPointerCapture(e.pointerId)
       const info = inputs.pointerDown(e, 'bounds')
@@ -19,6 +20,7 @@ export function useBoundsEvents() {
 
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
+      if (e.button !== 0) return
       e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, 'bounds')

@@ -1,3 +1,4 @@
+import { FlipType } from './../types'
 import createReact, { PartialState } from 'zustand'
 import {
   TLBoundsCorner,
@@ -156,7 +157,7 @@ export class TLDrawState implements TLCallbacks {
 
   /* ----------------------- UI ----------------------- */
   toggleStylePanel = () => {
-    this.setState(data => ({
+    this.setState((data) => ({
       appState: {
         ...data.appState,
         isStyleOpen: !data.appState.isStyleOpen,
@@ -187,7 +188,7 @@ export class TLDrawState implements TLCallbacks {
 
   /* -------------------- Settings -------------------- */
   togglePenMode = () => {
-    this.setState(data => ({
+    this.setState((data) => ({
       settings: {
         ...data.settings,
         isPenMode: !data.settings.isPenMode,
@@ -196,7 +197,7 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
   toggleDarkMode = () => {
-    this.setState(data => ({
+    this.setState((data) => ({
       settings: {
         ...data.settings,
         isDarkMode: !data.settings.isDarkMode,
@@ -213,7 +214,7 @@ export class TLDrawState implements TLCallbacks {
   }
   /* -------------------- App State ------------------- */
   reset = () => {
-    this.setState(data => ({
+    this.setState((data) => ({
       appState: {
         ...data.appState,
         ...initialData.appState,
@@ -228,7 +229,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   selectTool = (tool: TLDrawShapeType | 'select') => {
-    this.setState(data => ({
+    this.setState((data) => ({
       appState: {
         ...data.appState,
         activeTool: tool,
@@ -240,7 +241,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   toggleToolLock = () => {
-    this.setState(data => ({
+    this.setState((data) => ({
       appState: {
         ...data.appState,
         isToolLocked: true,
@@ -265,7 +266,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   zoomToFit = () => {
-    this.setState(data => {
+    this.setState((data) => {
       const shapes = Object.values(data.page.shapes)
 
       if (shapes.length === 0) return { pageState: data.pageState }
@@ -296,7 +297,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   zoomToSelection = () => {
-    this.setState(data => {
+    this.setState((data) => {
       if (TLDR.getSelectedIds(data).length === 0) return { pageState: data.pageState }
 
       const bounds = TLDR.getSelectedBounds(data)
@@ -325,7 +326,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   resetCamera = () => {
-    this.setState(data => ({
+    this.setState((data) => ({
       pageState: {
         ...data.pageState,
         camera: {
@@ -338,7 +339,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   zoomToContent = () => {
-    this.setState(data => {
+    this.setState((data) => {
       const shapes = Object.values(data.page.shapes)
 
       if (shapes.length === 0) return { pageState: data.pageState }
@@ -363,7 +364,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   pinchZoom(point: number[], delta: number[], zoomDelta: number) {
-    this.setState(data => {
+    this.setState((data) => {
       const { camera } = data.pageState
       const nextPoint = Vec.add(camera.point, Vec.div(delta, camera.zoom))
       const nextZoom = TLDR.getCameraZoom(camera.zoom - zoomDelta * camera.zoom)
@@ -390,7 +391,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   zoomTo(next: number) {
-    this.setState(data => {
+    this.setState((data) => {
       const { zoom, point } = TLDR.getCurrentCamera(data)
       const center = [window.innerWidth / 2, window.innerHeight / 2]
       const p0 = Vec.sub(Vec.div(center, zoom), point)
@@ -418,7 +419,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   pan(delta: number[]) {
-    this.setState(data => {
+    this.setState((data) => {
       const { point } = TLDR.getCurrentCamera(data)
 
       return {
@@ -441,14 +442,14 @@ export class TLDrawState implements TLCallbacks {
     this.pages = Utils.deepClone(document.pages)
     this.pageStates = Utils.deepClone(document.pageStates)
     this.currentPageId = Object.values(this.pages)[0].id
-    this.setState(data => ({
+    this.setState((data) => ({
       page: this.pages[this.currentPageId],
       pageState: this.pageStates[this.currentPageId],
       appState: {
         ...data.appState,
         pageIds: Object.values(this.pages)
           .sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
-          .map(page => page.id),
+          .map((page) => page.id),
       },
     }))
     return this
@@ -469,7 +470,7 @@ export class TLDrawState implements TLCallbacks {
   /* -------------------- Sessions -------------------- */
   startSession<T extends Session>(session: T, ...args: ParametersExceptFirst<T['start']>) {
     this.session = session
-    this.setState(data => session.start(data, ...args))
+    this.setState((data) => session.start(data, ...args))
     this._onChange?.(this, `session:start_${session.id}`)
     return this
   }
@@ -477,7 +478,7 @@ export class TLDrawState implements TLCallbacks {
   updateSession<T extends Session>(...args: ParametersExceptFirst<T['update']>) {
     const { session } = this
     if (!session) return this
-    this.setState(data => session.update(data, ...args))
+    this.setState((data) => session.update(data, ...args))
     this._onChange?.(this, `session:update:${session.id}`)
     return this
   }
@@ -486,7 +487,7 @@ export class TLDrawState implements TLCallbacks {
     const { session } = this
     if (!session) return this
 
-    this.setState(data => session.cancel(data, ...args))
+    this.setState((data) => session.cancel(data, ...args))
     this.setStatus('idle')
     this.session = undefined
     this._onChange?.(this, `session:cancel:${session.id}`)
@@ -504,7 +505,7 @@ export class TLDrawState implements TLCallbacks {
     if ('after' in result) {
       this.do(result)
     } else {
-      this.setState(data => Utils.deepMerge<Data>(data, result))
+      this.setState((data) => Utils.deepMerge<Data>(data, result))
       this._onChange?.(this, `session:complete:${session.id}`)
     }
 
@@ -529,7 +530,7 @@ export class TLDrawState implements TLCallbacks {
 
     history.pointer = history.stack.length - 1
 
-    this.setState(data => Utils.deepMerge<Data>(data, history.stack[history.pointer].after))
+    this.setState((data) => Utils.deepMerge<Data>(data, history.stack[history.pointer].after))
 
     this._onChange?.(this, `command:${command.id}`)
 
@@ -543,7 +544,7 @@ export class TLDrawState implements TLCallbacks {
 
     const command = history.stack[history.pointer]
 
-    this.setState(data => Utils.deepMerge<Data>(data, command.before))
+    this.setState((data) => Utils.deepMerge<Data>(data, command.before))
 
     history.pointer--
 
@@ -561,7 +562,7 @@ export class TLDrawState implements TLCallbacks {
 
     const command = history.stack[history.pointer]
 
-    this.setState(data => Utils.deepMerge<Data>(data, command.after))
+    this.setState((data) => Utils.deepMerge<Data>(data, command.after))
 
     this._onChange?.(this, `redo:${command.id}`)
 
@@ -570,7 +571,7 @@ export class TLDrawState implements TLCallbacks {
 
   /* -------------------- Selection ------------------- */
   setSelectedIds(ids: string[], push = false) {
-    this.setState(data => {
+    this.setState((data) => {
       return {
         pageState: {
           ...data.pageState,
@@ -587,7 +588,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   selectAll = () => {
-    this.setState(data => ({
+    this.setState((data) => ({
       appState: {
         ...data.appState,
         activeTool: 'select',
@@ -632,6 +633,20 @@ export class TLDrawState implements TLCallbacks {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
     this.do(commands.stretch(data, idsToMutate, type))
+    return this
+  }
+
+  flipHorizontal = (ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.flip(data, idsToMutate, FlipType.Horizontal))
+    return this
+  }
+
+  flipVertical = (ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToMutate = ids ? ids : data.pageState.selectedIds
+    this.do(commands.flip(data, idsToMutate, FlipType.Vertical))
     return this
   }
 
@@ -868,7 +883,7 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
-  updateSessionsOnPointerMove: TLPointerEventHandler = info => {
+  updateSessionsOnPointerMove: TLPointerEventHandler = (info) => {
     switch (this.status.current) {
       case 'pointingBoundsHandle': {
         if (Vec.dist(info.origin, info.point) > 4) {
@@ -937,7 +952,7 @@ export class TLDrawState implements TLCallbacks {
     const id = Utils.uniqueId()
     const pagePoint = Vec.round(this.getPagePoint(point))
 
-    this.setState(data => {
+    this.setState((data) => {
       const { activeTool, activeToolType } = data.appState
 
       if (activeTool === 'select') return data
@@ -1100,7 +1115,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   // Pointer Events
-  onPointerDown: TLPointerEventHandler = info => {
+  onPointerDown: TLPointerEventHandler = (info) => {
     switch (this.status.current) {
       case 'idle': {
         switch (this.appState.activeTool) {
@@ -1133,7 +1148,7 @@ export class TLDrawState implements TLCallbacks {
     this.updateSessionsOnPointerMove(info, e)
   }
 
-  onPointerUp: TLPointerEventHandler = info => {
+  onPointerUp: TLPointerEventHandler = (info) => {
     const data = this.getState()
 
     switch (this.status.current) {
@@ -1146,7 +1161,7 @@ export class TLDrawState implements TLCallbacks {
           if (info.shiftKey) {
             // Unless we just shift-selected the shape, remove it from the selected shapes
             if (this.pointedId !== info.target) {
-              this.setSelectedIds(data.pageState.selectedIds.filter(id => id !== info.target))
+              this.setSelectedIds(data.pageState.selectedIds.filter((id) => id !== info.target))
             }
           }
         }
@@ -1193,7 +1208,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   // Canvas (background)
-  onPointCanvas: TLCanvasEventHandler = info => {
+  onPointCanvas: TLCanvasEventHandler = (info) => {
     switch (this.status.current) {
       case 'idle': {
         switch (this.appState.activeTool) {
@@ -1217,7 +1232,7 @@ export class TLDrawState implements TLCallbacks {
     }
   }
 
-  onDoubleClickCanvas: TLCanvasEventHandler = info => {
+  onDoubleClickCanvas: TLCanvasEventHandler = (info) => {
     // Unused
     switch (this.status.current) {
       case 'idle': {
@@ -1247,7 +1262,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   // Shape
-  onPointShape: TLPointerEventHandler = info => {
+  onPointShape: TLPointerEventHandler = (info) => {
     const data = this.getState()
     switch (this.status.current) {
       case 'idle': {
@@ -1276,7 +1291,7 @@ export class TLDrawState implements TLCallbacks {
     }
   }
 
-  onReleaseShape: TLPointerEventHandler = info => {
+  onReleaseShape: TLPointerEventHandler = (info) => {
     // const data = this.getState()
     // switch (this.status.current) {
     //   case 'pointingBounds': {
@@ -1301,7 +1316,7 @@ export class TLDrawState implements TLCallbacks {
     // }
   }
 
-  onDoubleClickShape: TLPointerEventHandler = info => {
+  onDoubleClickShape: TLPointerEventHandler = (info) => {
     if (this.selectedIds.includes(info.target)) {
       this.setSelectedIds([info.target])
     }
@@ -1311,20 +1326,20 @@ export class TLDrawState implements TLCallbacks {
     // TODO
   }
 
-  onDragShape: TLPointerEventHandler = info => {
+  onDragShape: TLPointerEventHandler = (info) => {
     // Unused
   }
 
-  onHoverShape: TLPointerEventHandler = info => {
-    this.setState(data => ({
+  onHoverShape: TLPointerEventHandler = (info) => {
+    this.setState((data) => ({
       appState: { ...data.appState, hoveredId: info.target },
     }))
   }
 
-  onUnhoverShape: TLPointerEventHandler = info => {
+  onUnhoverShape: TLPointerEventHandler = (info) => {
     setTimeout(() => {
       if (this.getState().appState.hoveredId === info.target) {
-        this.setState(data => ({
+        this.setState((data) => ({
           appState: { ...data.appState, hoveredId: undefined },
         }))
       }
@@ -1332,7 +1347,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   // Bounds (bounding box background)
-  onPointBounds: TLBoundsEventHandler = info => {
+  onPointBounds: TLBoundsEventHandler = (info) => {
     this.setStatus('pointingBounds')
   }
 
@@ -1344,7 +1359,7 @@ export class TLDrawState implements TLCallbacks {
     // TODO
   }
 
-  onDragBounds: TLBoundsEventHandler = info => {
+  onDragBounds: TLBoundsEventHandler = (info) => {
     // Unused
   }
 
@@ -1356,7 +1371,7 @@ export class TLDrawState implements TLCallbacks {
     // TODO
   }
 
-  onReleaseBounds: TLBoundsEventHandler = info => {
+  onReleaseBounds: TLBoundsEventHandler = (info) => {
     switch (this.status.current) {
       case 'translating': {
         this.completeSession(this.getPagePoint(info.point))
@@ -1371,7 +1386,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   // Bounds handles (corners, edges)
-  onPointBoundsHandle: TLBoundsHandleEventHandler = info => {
+  onPointBoundsHandle: TLBoundsHandleEventHandler = (info) => {
     this.pointedBoundsHandle = info.target
     this.setStatus('pointingBoundsHandle')
   }
@@ -1401,7 +1416,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   // Handles (ie the handles of a selected arrow)
-  onPointHandle: TLPointerEventHandler = info => {
+  onPointHandle: TLPointerEventHandler = (info) => {
     this.pointedHandle = info.target
     this.setStatus('pointingHandle')
   }
@@ -1453,14 +1468,14 @@ export class TLDrawState implements TLCallbacks {
   onChange = (ids: string[]) => {
     const appState = this.getAppState()
     if (appState.isEmptyCanvas && ids.length > 0) {
-      this.setState(data => ({
+      this.setState((data) => ({
         appState: {
           ...data.appState,
           isEmptyCanvas: false,
         },
       }))
     } else if (!appState.isEmptyCanvas && ids.length <= 0) {
-      this.setState(data => ({
+      this.setState((data) => ({
         appState: {
           ...data.appState,
           isEmptyCanvas: true,

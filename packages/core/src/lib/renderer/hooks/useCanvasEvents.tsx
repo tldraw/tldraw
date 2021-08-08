@@ -7,6 +7,7 @@ export function useCanvasEvents() {
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
+      if (e.button !== 0) return
       e.currentTarget.setPointerCapture(e.pointerId)
 
       if (e.button === 0) {
@@ -33,6 +34,7 @@ export function useCanvasEvents() {
 
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
+      if (e.button !== 0) return
       e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, 'canvas')

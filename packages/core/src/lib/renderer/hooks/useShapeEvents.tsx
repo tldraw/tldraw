@@ -7,6 +7,7 @@ export function useShapeEvents(id: string, disable = false) {
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
+      if (e.button !== 0) return
       if (disable) return
       e.stopPropagation()
       e.currentTarget?.setPointerCapture(e.pointerId)
@@ -20,6 +21,7 @@ export function useShapeEvents(id: string, disable = false) {
 
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
+      if (e.button !== 0) return
       if (disable) return
       e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()

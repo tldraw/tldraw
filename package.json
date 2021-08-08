@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "husky": "^7.0.1",
+    "rollup-plugin-analyzer": "^4.0.0",
     "tsdx": "^0.14.1"
   },
   "devDependencies": {

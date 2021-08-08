@@ -46,154 +46,165 @@ const isDebugModeSelector = (s: Data) => {
 }
 
 const hasGroupSelectedSelector = (s: Data) => {
-  return s.pageState.selectedIds.some(id => s.page.shapes[id].children !== undefined)
+  return s.pageState.selectedIds.some((id) => s.page.shapes[id].children !== undefined)
 }
 
 interface ContextMenuProps {
   children: React.ReactNode
 }
 
-export const ContextMenu = React.memo(
-  ({ children }: ContextMenuProps): JSX.Element => {
-    const { tlstate, useSelector } = useTLDrawContext()
-    const hasSelection = useSelector(has1SelectedIdsSelector)
-    const hasTwoOrMore = useSelector(has2SelectedIdsSelector)
-    const hasThreeOrMore = useSelector(has3SelectedIdsSelector)
-    const isDebugMode = useSelector(isDebugModeSelector)
-    const hasGroupSelected = useSelector(hasGroupSelectedSelector)
+export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Element => {
+  const { tlstate, useSelector } = useTLDrawContext()
+  const hasSelection = useSelector(has1SelectedIdsSelector)
+  const hasTwoOrMore = useSelector(has2SelectedIdsSelector)
+  const hasThreeOrMore = useSelector(has3SelectedIdsSelector)
+  const isDebugMode = useSelector(isDebugModeSelector)
+  const hasGroupSelected = useSelector(hasGroupSelectedSelector)
 
-    const rContent = React.useRef<HTMLDivElement>(null)
+  const rContent = React.useRef<HTMLDivElement>(null)
 
-    const handleDuplicate = React.useCallback(() => {
-      tlstate.duplicate()
-    }, [tlstate])
+  const handleFlipHorizontal = React.useCallback(() => {
+    tlstate.flipHorizontal()
+  }, [tlstate])
 
-    const handleGroup = React.useCallback(() => {
-      tlstate.group()
-    }, [tlstate])
+  const handleFlipVertical = React.useCallback(() => {
+    tlstate.flipVertical()
+  }, [tlstate])
 
-    const handleMoveToBack = React.useCallback(() => {
-      tlstate.moveToBack()
-    }, [tlstate])
+  const handleDuplicate = React.useCallback(() => {
+    tlstate.duplicate()
+  }, [tlstate])
 
-    const handleMoveBackward = React.useCallback(() => {
-      tlstate.moveBackward()
-    }, [tlstate])
+  const handleGroup = React.useCallback(() => {
+    tlstate.group()
+  }, [tlstate])
 
-    const handleMoveForward = React.useCallback(() => {
-      tlstate.moveForward()
-    }, [tlstate])
+  const handleMoveToBack = React.useCallback(() => {
+    tlstate.moveToBack()
+  }, [tlstate])
 
-    const handleMoveToFront = React.useCallback(() => {
-      tlstate.moveToFront()
-    }, [tlstate])
+  const handleMoveBackward = React.useCallback(() => {
+    tlstate.moveBackward()
+  }, [tlstate])
 
-    const handleDelete = React.useCallback(() => {
-      tlstate.delete()
-    }, [tlstate])
+  const handleMoveForward = React.useCallback(() => {
+    tlstate.moveForward()
+  }, [tlstate])
 
-    const handleCopyAsJson = React.useCallback(() => {
-      tlstate.copyAsJson()
-    }, [tlstate])
+  const handleMoveToFront = React.useCallback(() => {
+    tlstate.moveToFront()
+  }, [tlstate])
 
-    const handleCopyAsSvg = React.useCallback(() => {
-      tlstate.copyAsSvg()
-    }, [tlstate])
+  const handleDelete = React.useCallback(() => {
+    tlstate.delete()
+  }, [tlstate])
 
-    const handleUndo = React.useCallback(() => {
-      tlstate.undo()
-    }, [tlstate])
+  const handleCopyAsJson = React.useCallback(() => {
+    tlstate.copyAsJson()
+  }, [tlstate])
 
-    const handleRedo = React.useCallback(() => {
-      tlstate.redo()
-    }, [tlstate])
+  const handleCopyAsSvg = React.useCallback(() => {
+    tlstate.copyAsSvg()
+  }, [tlstate])
 
-    return (
-      <ContextMenuRoot>
-        <RadixContextMenu.Trigger>{children}</RadixContextMenu.Trigger>
-        <MenuContent as={RadixContextMenu.Content} ref={rContent}>
-          {hasSelection ? (
-            <>
-              <ContextMenuButton onSelect={handleDuplicate}>
-                <span>Duplicate</span>
-                <Kbd variant="menu">#D</Kbd>
+  const handleUndo = React.useCallback(() => {
+    tlstate.undo()
+  }, [tlstate])
+
+  const handleRedo = React.useCallback(() => {
+    tlstate.redo()
+  }, [tlstate])
+
+  return (
+    <ContextMenuRoot>
+      <RadixContextMenu.Trigger>{children}</RadixContextMenu.Trigger>
+      <MenuContent as={RadixContextMenu.Content} ref={rContent}>
+        {hasSelection ? (
+          <>
+            <ContextMenuButton onSelect={handleFlipHorizontal}>
+              <span>Flip Horizontal</span>
+              <Kbd variant="menu">⇧H</Kbd>
+            </ContextMenuButton>
+            <ContextMenuButton onSelect={handleFlipVertical}>
+              <span>Flip Vertical</span>
+              <Kbd variant="menu">⇧V</Kbd>
+            </ContextMenuButton>
+            <ContextMenuButton onSelect={handleDuplicate}>
+              <span>Duplicate</span>
+              <Kbd variant="menu">#D</Kbd>
+            </ContextMenuButton>
+            <ContextMenuDivider />
+            {hasGroupSelected ||
+              (hasTwoOrMore && (
+                <>
+                  {hasGroupSelected && (
+                    <ContextMenuButton onSelect={handleGroup}>
+                      <span>Ungroup</span>
+                      <Kbd variant="menu">#⇧G</Kbd>
+                    </ContextMenuButton>
+                  )}
+                  {hasTwoOrMore && (
+                    <ContextMenuButton onSelect={handleGroup}>
+                      <span>Group</span>
+                      <Kbd variant="menu">#G</Kbd>
+                    </ContextMenuButton>
+                  )}
+                </>
+              ))}
+            <ContextMenuSubMenu label="Move">
+              <ContextMenuButton onSelect={handleMoveToFront}>
+                <span>To Front</span>
+                <Kbd variant="menu"># ⇧ ]</Kbd>
               </ContextMenuButton>
-              <ContextMenuDivider />
-              {hasGroupSelected ||
-                (hasTwoOrMore && (
-                  <>
-                    {hasGroupSelected && (
-                      <ContextMenuButton onSelect={handleGroup}>
-                        <span>Ungroup</span>
-                        <Kbd variant="menu">#⇧G</Kbd>
-                      </ContextMenuButton>
-                    )}
-                    {hasTwoOrMore && (
-                      <ContextMenuButton onSelect={handleGroup}>
-                        <span>Group</span>
-                        <Kbd variant="menu">#G</Kbd>
-                      </ContextMenuButton>
-                    )}
-                  </>
-                ))}
-              <ContextMenuSubMenu label="Move">
-                <ContextMenuButton onSelect={handleMoveToFront}>
-                  <span>To Front</span>
-                  <Kbd variant="menu"># ⇧ ]</Kbd>
-                </ContextMenuButton>
-                <ContextMenuButton onSelect={handleMoveForward}>
-                  <span>Forward</span>
-                  <Kbd variant="menu"># ]</Kbd>
-                </ContextMenuButton>
-                <ContextMenuButton onSelect={handleMoveBackward}>
-                  <span>Backward</span>
-                  <Kbd variant="menu"># [</Kbd>
-                </ContextMenuButton>
-                <ContextMenuButton onSelect={handleMoveToBack}>
-                  <span>To Back</span>
-                  <Kbd variant="menu"># ⇧ [</Kbd>
-                </ContextMenuButton>
-              </ContextMenuSubMenu>
-              {hasTwoOrMore && (
-                <AlignDistributeSubMenu
-                  hasTwoOrMore={hasTwoOrMore}
-                  hasThreeOrMore={hasThreeOrMore}
-                />
-              )}
-              {/* <MoveToPageMenu /> */}
-              {isDebugMode && (
-                <ContextMenuButton onSelect={handleCopyAsJson}>
-                  <span>Copy Data</span>
-                  <Kbd variant="menu"># ⇧ C</Kbd>
-                </ContextMenuButton>
-              )}
-              <ContextMenuButton onSelect={handleCopyAsSvg}>
-                <span>Copy to SVG</span>
+              <ContextMenuButton onSelect={handleMoveForward}>
+                <span>Forward</span>
+                <Kbd variant="menu"># ]</Kbd>
+              </ContextMenuButton>
+              <ContextMenuButton onSelect={handleMoveBackward}>
+                <span>Backward</span>
+                <Kbd variant="menu"># [</Kbd>
+              </ContextMenuButton>
+              <ContextMenuButton onSelect={handleMoveToBack}>
+                <span>To Back</span>
+                <Kbd variant="menu"># ⇧ [</Kbd>
+              </ContextMenuButton>
+            </ContextMenuSubMenu>
+            {hasTwoOrMore && (
+              <AlignDistributeSubMenu hasTwoOrMore={hasTwoOrMore} hasThreeOrMore={hasThreeOrMore} />
+            )}
+            {/* <MoveToPageMenu /> */}
+            {isDebugMode && (
+              <ContextMenuButton onSelect={handleCopyAsJson}>
+                <span>Copy Data</span>
                 <Kbd variant="menu"># ⇧ C</Kbd>
               </ContextMenuButton>
-              <ContextMenuDivider />
-              <ContextMenuButton onSelect={handleDelete}>
-                <span>Delete</span>
-                <Kbd variant="menu">⌫</Kbd>
-              </ContextMenuButton>
-            </>
-          ) : (
-            <>
-              <ContextMenuButton onSelect={handleUndo}>
-                <span>Undo</span>
-                <Kbd variant="menu"># Z</Kbd>
-              </ContextMenuButton>
-              <ContextMenuButton onSelect={handleRedo}>
-                <span>Redo</span>
-                <Kbd variant="menu"># ⇧ Z</Kbd>
-              </ContextMenuButton>
-            </>
-          )}
-        </MenuContent>
-      </ContextMenuRoot>
-    )
-  }
-)
+            )}
+            <ContextMenuButton onSelect={handleCopyAsSvg}>
+              <span>Copy to SVG</span>
+              <Kbd variant="menu"># ⇧ C</Kbd>
+            </ContextMenuButton>
+            <ContextMenuDivider />
+            <ContextMenuButton onSelect={handleDelete}>
+              <span>Delete</span>
+              <Kbd variant="menu">⌫</Kbd>
+            </ContextMenuButton>
+          </>
+        ) : (
+          <>
+            <ContextMenuButton onSelect={handleUndo}>
+              <span>Undo</span>
+              <Kbd variant="menu"># Z</Kbd>
+            </ContextMenuButton>
+            <ContextMenuButton onSelect={handleRedo}>
+              <span>Redo</span>
+              <Kbd variant="menu"># ⇧ Z</Kbd>
+            </ContextMenuButton>
+          </>
+        )}
+      </MenuContent>
+    </ContextMenuRoot>
+  )
+})
 
 function AlignDistributeSubMenu({
   hasThreeOrMore,
