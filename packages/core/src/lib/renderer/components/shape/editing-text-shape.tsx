@@ -11,9 +11,7 @@ export function EditingTextShape({
   shape,
   utils,
   isEditing,
-  isHovered,
   isBinding,
-  isSelected,
   isDarkMode,
   isCurrentParent,
 }: EditingShapeProps<TLShape>) {
@@ -26,8 +24,6 @@ export function EditingTextShape({
   return utils.render(shape, {
     ref,
     isEditing,
-    isHovered,
-    isSelected,
     isCurrentParent,
     isBinding,
     isDarkMode,
