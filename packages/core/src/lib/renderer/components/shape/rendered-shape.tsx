@@ -11,16 +11,12 @@ export const RenderedShape = React.memo(
     shape,
     utils,
     isEditing,
-    isHovered,
     isBinding,
-    isSelected,
     isDarkMode,
     isCurrentParent,
   }: RenderedShapeProps<TLShape>) {
     return utils.render(shape, {
       isEditing,
-      isHovered,
-      isSelected,
       isBinding,
       isDarkMode,
       isCurrentParent,
@@ -29,8 +25,6 @@ export const RenderedShape = React.memo(
   (prev, next) => {
     if (
       prev.isEditing !== next.isEditing ||
-      prev.isHovered !== next.isHovered ||
-      prev.isSelected !== next.isSelected ||
       prev.isDarkMode !== next.isDarkMode ||
       prev.isBinding !== next.isBinding ||
       prev.isCurrentParent !== next.isCurrentParent

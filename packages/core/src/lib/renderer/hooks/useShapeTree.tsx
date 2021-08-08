@@ -25,12 +25,10 @@ function addToShapeTree<T extends TLShape>(
 ) {
   const node: IShapeTreeNode = {
     shape,
-    isHovered: info.hoveredId === shape.id,
     isCurrentParent: info.currentParentId === shape.id,
     isEditing: info.editingId === shape.id,
     isBinding: info.bindingId === shape.id,
     isDarkMode: info.isDarkMode || false,
-    isSelected: selectedIds.includes(shape.id),
   }
 
   branch.push(node)

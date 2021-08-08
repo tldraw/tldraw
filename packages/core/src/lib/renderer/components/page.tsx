@@ -12,12 +12,14 @@ interface PageProps<T extends TLShape> {
   page: TLPage<T>
   pageState: TLPageState
   hideBounds: boolean
+  hideIndicators: boolean
 }
 
 export function Page<T extends TLShape>({
   page,
   pageState,
   hideBounds,
+  hideIndicators,
 }: PageProps<T>): JSX.Element {
   const { callbacks, shapeUtils } = useTLContext()
 
@@ -29,56 +31,70 @@ export function Page<T extends TLShape>({
 
   const { bounds, isLocked, rotation } = useSelection(page, pageState, shapeUtils)
 
+  const {
+    selectedIds,
+    hoveredId,
+    camera: { zoom },
+  } = pageState
+
   return (
     <>
       {bounds && !hideBounds && <BoundsBg bounds={bounds} rotation={rotation} />}
       {shapeTree.map(node => (
-        <ShapeNode key={node.shape.id} allowHovers={true} {...node} />
+        <ShapeNode key={node.shape.id} {...node} />
       ))}
       {bounds && !hideBounds && (
-        <Bounds
-          zoom={pageState.camera.zoom}
-          bounds={bounds}
-          isLocked={isLocked}
-          rotation={rotation}
+        <Bounds zoom={zoom} bounds={bounds} isLocked={isLocked} rotation={rotation} />
+      )}
+      {!hideIndicators &&
+        selectedIds.length > 1 &&
+        selectedIds.map(id => (
+          <ShapeIndicator key={'selected_' + id} shape={page.shapes[id]} variant="selected" />
+        ))}
+      {!hideIndicators && hoveredId && (
+        <ShapeIndicator
+          key={'hovered_' + hoveredId}
+          shape={page.shapes[hoveredId]}
+          variant="hovered"
         />
       )}
-      {shapeWithHandles && <Handles shape={shapeWithHandles} zoom={pageState.camera.zoom} />}
+      {shapeWithHandles && <Handles shape={shapeWithHandles} zoom={zoom} />}
     </>
   )
 }
 
-interface ShapeNodeProps extends IShapeTreeNode {
-  allowHovers: boolean
-}
+const ShapeIndicator = React.memo(
+  ({ shape, variant }: { shape: TLShape; variant: 'selected' | 'hovered' }) => {
+    const { shapeUtils } = useTLContext()
+    const utils = shapeUtils[shape.type]
+
+    const center = utils.getCenter(shape)
+    const rotation = (shape.rotation || 0) * (180 / Math.PI)
+    const transform = `rotate(${rotation}, ${center}) translate(${shape.point})`
+
+    return (
+      <g className={variant === 'selected' ? 'tl-selected' : 'tl-hovered'} transform={transform}>
+        {shapeUtils[shape.type].renderIndicator(shape)}
+      </g>
+    )
+  }
+)
+
+interface ShapeNodeProps extends IShapeTreeNode {}
 
 const ShapeNode = React.memo(
-  ({
-    shape,
-    children,
-    isEditing,
-    isHovered,
-    isDarkMode,
-    isSelected,
-    isBinding,
-    isCurrentParent,
-    allowHovers,
-  }: ShapeNodeProps) => {
+  ({ shape, children, isEditing, isDarkMode, isBinding, isCurrentParent }: ShapeNodeProps) => {
     return (
       <>
         <ShapeComponent
           shape={shape}
           isEditing={isEditing}
-          isHovered={allowHovers && isHovered}
-          isSelected={isSelected}
           isDarkMode={isDarkMode}
           isBinding={isBinding}
           isCurrentParent={isCurrentParent}
         />
         {children &&
-          children.map(childNode => (
-            <ShapeNode key={childNode.shape.id} allowHovers={allowHovers} {...childNode} />
-          ))}
+          children.map(childNode => <ShapeNode key={childNode.shape.id} {...childNode} />)}
       </>
     )
   }

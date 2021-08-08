@@ -1,17 +1,33 @@
 import * as React from 'react'
 import { inputs } from '../../inputs'
 import { useTLContext } from './useTLContext'
+import { Utils } from '../../utils'
 
 export function useShapeEvents(id: string, disable = false) {
-  const { callbacks } = useTLContext()
+  const { rPageState, rScreenBounds, callbacks } = useTLContext()
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
       if (disable) return
+
+      const info = inputs.pointerDown(e, id)
+
       e.stopPropagation()
       e.currentTarget?.setPointerCapture(e.pointerId)
-      const info = inputs.pointerDown(e, id)
+
+      // If we click "through" the selection bounding box to hit a shape that isn't selected,
+      // treat the event as a bounding box click. Unfortunately there's no way I know to pipe
+      // the event to the actual bounds background element.
+      if (
+        rScreenBounds.current &&
+        Utils.pointInBounds(info.point, rScreenBounds.current) &&
+        !rPageState.current.selectedIds.includes(id)
+      ) {
+        callbacks.onPointBounds?.(inputs.pointerDown(e, 'bounds'), e)
+        callbacks.onPointShape?.(info, e)
+        return
+      }
 
       callbacks.onPointShape?.(info, e)
       callbacks.onPointerDown?.(info, e)

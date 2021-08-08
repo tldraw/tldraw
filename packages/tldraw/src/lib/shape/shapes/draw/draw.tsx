@@ -36,7 +36,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
     return next.points !== prev.points || next.style !== prev.style
   }
 
-  render(shape: DrawShape, { isBinding, isHovered, isDarkMode }: TLRenderInfo) {
+  render(shape: DrawShape, { isBinding, isDarkMode }: TLRenderInfo) {
     const { points, style } = shape
 
     const styles = getShapeStyle(style, isDarkMode)
@@ -60,7 +60,6 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
           stroke={styles.stroke}
           strokeWidth={sw}
           pointerEvents="all"
-          filter={isHovered ? 'url(#expand)' : 'none'}
         />
       )
     }
@@ -96,7 +95,6 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
             strokeLinejoin="round"
             strokeLinecap="round"
             pointerEvents="all"
-            filter={isHovered ? 'url(#expand)' : 'none'}
           />
         </>
       )
@@ -143,10 +141,17 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
           strokeLinejoin="round"
           strokeLinecap="round"
           pointerEvents="stroke"
-          filter={isHovered ? 'url(#expand)' : 'none'}
         />
       </>
     )
+  }
+
+  renderIndicator(shape: DrawShape) {
+    const { points } = shape
+
+    const path = Utils.getFromCache(this.simplePathCache, points, () => getSolidStrokePath(shape))
+
+    return <path d={path} />
   }
 
   getBounds(shape: DrawShape) {
@@ -194,7 +199,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
 
     const rotatedBounds = Utils.getFromCache(this.rotatedCache, shape, () => {
       const c = Utils.getBoundsCenter(Utils.getBoundsFromPoints(shape.points))
-      return shape.points.map((pt) => Vec.rotWith(pt, c, shape.rotation || 0))
+      return shape.points.map(pt => Vec.rotWith(pt, c, shape.rotation || 0))
     })
 
     return (
@@ -279,7 +284,7 @@ function getFillPath(shape: DrawShape) {
       thinning: 0.85,
       end: { taper: +styles.strokeWidth * 20 },
       start: { taper: +styles.strokeWidth * 20 },
-    }).map((pt) => pt.point)
+    }).map(pt => pt.point)
   )
 }
 
@@ -311,7 +316,7 @@ function getSolidStrokePath(shape: DrawShape) {
   if (len === 0) return 'M 0 0 L 0 0'
   if (len < 3) return `M ${points[0][0]} ${points[0][1]}`
 
-  points = getStrokePoints(points).map((pt) => pt.point)
+  points = getStrokePoints(points).map(pt => pt.point)
 
   len = points.length
 

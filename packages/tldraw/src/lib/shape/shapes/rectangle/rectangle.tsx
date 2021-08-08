@@ -32,7 +32,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
     return next.size !== prev.size || next.style !== prev.style
   }
 
-  render(shape: RectangleShape, { isBinding, isHovered, isDarkMode }: TLRenderInfo) {
+  render(shape: RectangleShape, { isBinding, isDarkMode }: TLRenderInfo) {
     const { id, size, style } = shape
     const styles = getShapeStyle(style, isDarkMode)
     const strokeWidth = +styles.strokeWidth
@@ -65,7 +65,6 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
             fill={styles.stroke}
             stroke={styles.stroke}
             strokeWidth={styles.strokeWidth}
-            filter={isHovered ? 'url(#expand)' : 'none'}
             pointerEvents="all"
           />
         </>
@@ -128,10 +127,31 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
           strokeWidth={sw}
           pointerEvents="all"
         />
-        <g filter={isHovered ? 'url(#expand)' : 'none'} pointerEvents="stroke">
-          {paths}
-        </g>
+        <g pointerEvents="stroke">{paths}</g>
       </>
+    )
+  }
+
+  renderIndicator(shape: RectangleShape) {
+    const {
+      style,
+      size: [width, height],
+    } = shape
+
+    const styles = getShapeStyle(style, false)
+    const strokeWidth = +styles.strokeWidth
+
+    const sw = strokeWidth
+
+    return (
+      <rect
+        x={sw / 2}
+        y={sw / 2}
+        rx={1}
+        ry={1}
+        width={Math.max(1, width - sw)}
+        height={Math.max(1, height - sw)}
+      />
     )
   }
 
@@ -167,7 +187,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
     const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
     return (
-      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
+      rotatedCorners.every(point => Utils.pointInBounds(point, bounds)) ||
       Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
     )
   }
@@ -256,7 +276,7 @@ function renderPath(shape: RectangleShape) {
   const stroke = getStroke([...lines.flat().slice(2), ...lines[0], ...lines[0].slice(4)], {
     size: 1 + +styles.strokeWidth,
     thinning: 0.6,
-    easing: (t) => t * t * t * t,
+    easing: t => t * t * t * t,
     end: { taper: +styles.strokeWidth * 20 },
     start: { taper: +styles.strokeWidth * 20 },
     simulatePressure: false,

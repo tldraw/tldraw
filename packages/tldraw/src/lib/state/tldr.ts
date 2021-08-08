@@ -1,4 +1,3 @@
-import { TLDrawShapeType } from '@tldraw/tldraw'
 import { TLBinding, TLBounds, TLTransformInfo, Vec, Utils } from '@tldraw/core'
 import { getShapeUtils, ShapeStyles, ShapesWithProp, TLDrawShape, TLDrawShapeUtil } from '../shape'
 import { Data } from './state-types'
@@ -9,7 +8,7 @@ export class TLDR {
   }
 
   static getSelectedShapes(data: Data) {
-    return data.pageState.selectedIds.map((id) => data.page.shapes[id])
+    return data.pageState.selectedIds.map(id => data.page.shapes[id])
   }
 
   static screenToWorld(data: Data, point: number[]) {
@@ -73,7 +72,7 @@ export class TLDR {
 
   static getSelectedBounds(data: Data): TLBounds {
     return Utils.getCommonBounds(
-      this.getSelectedShapes(data).map((shape) => getShapeUtils(shape).getBounds(shape))
+      this.getSelectedShapes(data).map(shape => getShapeUtils(shape).getBounds(shape))
     )
   }
 
@@ -120,7 +119,7 @@ export class TLDR {
 
     if (shape.children === undefined) return [id]
 
-    return [id, ...shape.children.flatMap((childId) => this.getDocumentBranch(data, childId))]
+    return [id, ...shape.children.flatMap(childId => this.getDocumentBranch(data, childId))]
   }
 
   // Get a deep array of unproxied shapes and their descendants
@@ -136,12 +135,12 @@ export class TLDR {
     const page = this.getPage(data)
 
     const copies = this.getSelectedIds(data)
-      .flatMap((id) => this.getDocumentBranch(data, id).map((id) => page.shapes[id]))
-      .filter((shape) => !shape.isLocked)
+      .flatMap(id => this.getDocumentBranch(data, id).map(id => page.shapes[id]))
+      .filter(shape => !shape.isLocked)
       .map(Utils.deepClone)
 
     if (fn !== undefined) {
-      return copies.map((shape) => ({ id: shape.id, ...fn(shape) }))
+      return copies.map(shape => ({ id: shape.id, ...fn(shape) }))
     }
 
     return copies
@@ -158,11 +157,11 @@ export class TLDR {
     fn?: (shape: TLDrawShape) => K
   ): (TLDrawShape | K)[] {
     const copies = this.getSelectedShapes(data)
-      .filter((shape) => !shape.isLocked)
+      .filter(shape => !shape.isLocked)
       .map(Utils.deepClone)
 
     if (fn !== undefined) {
-      return copies.map((shape) => ({ id: shape.id, ...fn(shape) }))
+      return copies.map(shape => ({ id: shape.id, ...fn(shape) }))
     }
 
     return copies
@@ -173,15 +172,15 @@ export class TLDR {
   static getAllEffectedShapeIds(data: Data, ids: string[]): string[] {
     const visited = new Set(ids)
 
-    ids.forEach((id) => {
+    ids.forEach(id => {
       const shape = data.page.shapes[id]
 
       // Add descendant shapes
       function collectDescendants(shape: TLDrawShape): void {
         if (shape.children === undefined) return
         shape.children
-          .filter((childId) => !visited.has(childId))
-          .forEach((childId) => {
+          .filter(childId => !visited.has(childId))
+          .forEach(childId => {
             visited.add(childId)
             collectDescendants(data.page.shapes[childId])
           })
@@ -201,10 +200,10 @@ export class TLDR {
       collectAscendants(shape)
 
       // Add bindings that are to or from any of the visited shapes (this does not have to be recursive)
-      visited.forEach((id) => {
+      visited.forEach(id => {
         Object.values(data.page.bindings)
-          .filter((binding) => binding.fromId === id || binding.toId === id)
-          .forEach((binding) => visited.add(binding.fromId === id ? binding.toId : binding.fromId))
+          .filter(binding => binding.fromId === id || binding.toId === id)
+          .forEach(binding => visited.add(binding.fromId === id ? binding.toId : binding.fromId))
       })
     })
 
@@ -223,7 +222,7 @@ export class TLDR {
     if (shape.children !== undefined) {
       const deltas = this.getShapeUtils(shape).updateChildren(
         shape,
-        shape.children.map((childId) => data.page.shapes[childId])
+        shape.children.map(childId => data.page.shapes[childId])
       )
 
       if (deltas) {
@@ -264,7 +263,7 @@ export class TLDR {
 
       const delta = this.getShapeUtils(shape).onChildrenChange(
         parent,
-        parent.children!.map((childId) => data.page.shapes[childId])
+        parent.children!.map(childId => data.page.shapes[childId])
       )
 
       if (delta) {
@@ -290,7 +289,7 @@ export class TLDR {
     afterShapes: Record<string, Partial<TLDrawShape>> = {}
   ): Data {
     return Object.values(data.page.bindings)
-      .filter((binding) => binding.fromId === id || binding.toId === id)
+      .filter(binding => binding.fromId === id || binding.toId === id)
       .reduce((cData, binding) => {
         if (!beforeShapes[binding.id]) {
           beforeShapes[binding.fromId] = Utils.deepClone(cData.page.shapes[binding.fromId])
@@ -319,10 +318,9 @@ export class TLDR {
 
     const shape = page.shapes[id]
 
-    const siblings = (
-      shape.parentId === page.id
-        ? Object.values(page.shapes)
-        : page.shapes[shape.parentId].children!.map((childId) => page.shapes[childId])
+    const siblings = (shape.parentId === page.id
+      ? Object.values(page.shapes)
+      : page.shapes[shape.parentId].children!.map(childId => page.shapes[childId])
     ).sort((a, b) => a.childIndex - b.childIndex)
 
     const index = siblings.indexOf(shape)
@@ -362,7 +360,7 @@ export class TLDR {
       const shape = data.page.shapes[id]
       const change = fn(shape, i)
       beforeShapes[id] = Object.fromEntries(
-        Object.keys(change).map((key) => [key, shape[key as keyof TLDrawShape]])
+        Object.keys(change).map(key => [key, shape[key as keyof TLDrawShape]])
       ) as Partial<TLDrawShape>
       afterShapes[id] = change
       data.page.shapes[id] = this.getShapeUtils(shape).mutate(
@@ -392,19 +390,19 @@ export class TLDR {
 
   static createShapes(data: Data, shapes: TLDrawShape[]): void {
     const page = this.getPage(data)
-    const shapeIds = shapes.map((shape) => shape.id)
+    const shapeIds = shapes.map(shape => shape.id)
 
     // Update selected ids
     this.setSelectedIds(data, shapeIds)
 
     // Restore deleted shapes
-    shapes.forEach((shape) => {
+    shapes.forEach(shape => {
       const newShape = { ...shape }
       page.shapes[shape.id] = newShape
     })
 
     // Update parents
-    shapes.forEach((shape) => {
+    shapes.forEach(shape => {
       if (shape.parentId === data.page.id) return
 
       const parent = page.shapes[shape.parentId]
@@ -426,7 +424,7 @@ export class TLDR {
   static onChildrenChange<T extends TLDrawShape>(data: Data, shape: T) {
     const delta = getShapeUtils(shape).onChildrenChange(
       shape,
-      shape.children!.map((id) => data.page.shapes[id])
+      shape.children!.map(id => data.page.shapes[id])
     )
     if (!delta) return shape
     return this.mutate(data, shape, delta)
@@ -488,8 +486,8 @@ export class TLDR {
     const { shapes } = this.getPage(data)
 
     const parentToUpdateIds = Array.from(
-      new Set(changedShapeIds.map((id) => shapes[id].parentId).values())
-    ).filter((id) => id !== data.page.id)
+      new Set(changedShapeIds.map(id => shapes[id].parentId).values())
+    ).filter(id => id !== data.page.id)
 
     for (const parentId of parentToUpdateIds) {
       const parent = shapes[parentId]
@@ -515,14 +513,14 @@ export class TLDR {
       return currentStyle
     }
 
-    const shapeStyles = data.pageState.selectedIds.map((id) => page.shapes[id].style)
+    const shapeStyles = data.pageState.selectedIds.map(id => page.shapes[id].style)
 
     const commonStyle: ShapeStyles = {} as ShapeStyles
 
     const overrides = new Set<string>([])
 
     for (const shapeStyle of shapeStyles) {
-      ;(Object.keys(currentStyle) as (keyof ShapeStyles)[]).forEach((key) => {
+      ;(Object.keys(currentStyle) as (keyof ShapeStyles)[]).forEach(key => {
         if (overrides.has(key)) return
         if (commonStyle[key] === undefined) {
           // @ts-ignore
@@ -555,7 +553,7 @@ export class TLDR {
   static getBindingsWithShapeIds(data: Data, ids: string[]): TLBinding[] {
     return Array.from(
       new Set(
-        this.getBindings(data).filter((binding) => {
+        this.getBindings(data).filter(binding => {
           return ids.includes(binding.toId) || ids.includes(binding.fromId)
         })
       ).values()
@@ -564,7 +562,7 @@ export class TLDR {
 
   static createBindings(data: Data, bindings: TLBinding[]): void {
     const page = this.getPage(data)
-    bindings.forEach((binding) => (page.bindings[binding.id] = binding))
+    bindings.forEach(binding => (page.bindings[binding.id] = binding))
   }
 
   static deleteBindings(data: Data, ids: string[]): void {
@@ -572,7 +570,7 @@ export class TLDR {
 
     const page = this.getPage(data)
 
-    ids.forEach((id) => delete page.bindings[id])
+    ids.forEach(id => delete page.bindings[id])
   }
 
   /* -------------------------------------------------- */

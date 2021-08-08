@@ -8,6 +8,7 @@ import { inputs } from '../../inputs'
 // Capture zoom gestures (pinches, wheels and pans)
 export function useZoomEvents() {
   const rPinchDa = useRef<number[] | undefined>(undefined)
+  const rOriginPoint = useRef<number[] | undefined>(undefined)
   const rPinchPoint = useRef<number[] | undefined>(undefined)
 
   const { callbacks } = useTLContext()
@@ -36,6 +37,7 @@ export function useZoomEvents() {
         )
         rPinchDa.current = undefined
         rPinchPoint.current = undefined
+        rOriginPoint.current = undefined
         return
       }
 
@@ -47,6 +49,7 @@ export function useZoomEvents() {
         )
         rPinchDa.current = da
         rPinchPoint.current = origin
+        rOriginPoint.current = origin
       }
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -58,7 +61,7 @@ export function useZoomEvents() {
         {
           ...info,
           point: origin,
-          origin: rPinchPoint.current,
+          origin: rOriginPoint.current!,
           delta: [...info.delta, distanceDelta],
         },
         e as React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent

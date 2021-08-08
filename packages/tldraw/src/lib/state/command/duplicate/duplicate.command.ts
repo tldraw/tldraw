@@ -15,7 +15,7 @@ export function duplicate(data: Data, ids: string[]): Command {
           {
             ...Utils.deepClone(shape),
             id,
-            point: Vec.add(shape.point, delta),
+            point: Vec.round(Vec.add(shape.point, delta)),
           },
         ]
       })

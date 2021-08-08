@@ -1,9 +1,11 @@
 import * as React from 'react'
-import { TLCallbacks, TLShape, TLShapeUtils } from '../../types'
+import { TLCallbacks, TLShape, TLBounds, TLPageState, TLShapeUtils } from '../../types'
 
 export interface TLContextType {
   callbacks: Partial<TLCallbacks>
   shapeUtils: TLShapeUtils<TLShape>
+  rPageState: React.MutableRefObject<TLPageState>
+  rScreenBounds: React.MutableRefObject<TLBounds | null>
 }
 
 export const TLContext = React.createContext<TLContextType>({} as TLContextType)

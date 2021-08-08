@@ -24,6 +24,8 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
   type = TLDrawShapeType.Arrow as const
   toolType = TLDrawToolType.Handle
   canStyleFill = false
+  simplePathCache = new WeakMap<ArrowShape, string>()
+  pathCache = new WeakMap<ArrowShape, string>()
 
   defaultProps = {
     id: 'id',
@@ -89,9 +91,11 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     if (isStraightLine) {
       const sw = strokeWidth * (isDraw ? 0.618 : 1.618)
 
-      const path = isDraw
-        ? renderFreehandArrowShaft(shape)
-        : 'M' + Vec.round(start.point) + 'L' + Vec.round(end.point)
+      const path = Utils.getFromCache(this.pathCache, shape, () =>
+        isDraw
+          ? renderFreehandArrowShaft(shape)
+          : 'M' + Vec.round(start.point) + 'L' + Vec.round(end.point)
+      )
 
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
         arrowDist,
@@ -132,9 +136,11 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
 
       const sw = strokeWidth * (isDraw ? 0.618 : 1.618)
 
-      const path = isDraw
-        ? renderCurvedFreehandArrowShaft(shape, circle)
-        : getArrowArcPath(start, end, circle, bend)
+      const path = Utils.getFromCache(this.pathCache, shape, () =>
+        isDraw
+          ? renderCurvedFreehandArrowShaft(shape, circle)
+          : getArrowArcPath(start, end, circle, bend)
+      )
 
       const arcLength = Utils.getArcLength(
         [circle[0], circle[1]],
@@ -216,6 +222,50 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
             strokeLinejoin="round"
             pointerEvents="stroke"
           />
+        )}
+      </g>
+    )
+  }
+
+  renderIndicator(shape: ArrowShape) {
+    const {
+      handles: { start, end },
+      bend,
+      style,
+    } = shape
+
+    const circle = getCtp(shape)
+
+    const path = Utils.getFromCache(this.simplePathCache, shape, () =>
+      getArrowArcPath(start, end, getCtp(shape), bend)
+    )
+    const styles = getShapeStyle(style, false)
+
+    const { strokeWidth } = styles
+
+    const arrowDist = Vec.dist(start.point, end.point)
+
+    const arrowHeadlength = Math.min(arrowDist / 3, strokeWidth * 8)
+
+    const arcLength = Utils.getArcLength([circle[0], circle[1]], circle[2], start.point, end.point)
+
+    const center = [circle[0], circle[1]]
+    const radius = circle[2]
+    const sa = Vec.angle(center, start.point)
+    const ea = Vec.angle(center, end.point)
+    const t = arrowHeadlength / Math.abs(arcLength)
+
+    const insetStart = Vec.nudgeAtAngle(center, Utils.lerpAngles(sa, ea, t), radius)
+    const insetEnd = Vec.nudgeAtAngle(center, Utils.lerpAngles(ea, sa, t), radius)
+
+    return (
+      <g>
+        <path d={path} />
+        {shape.decorations?.start === Decoration.Arrow && (
+          <path d={getArrowHeadPath(shape, start.point, insetStart)} />
+        )}
+        {shape.decorations?.end === Decoration.Arrow && (
+          <path d={getArrowHeadPath(shape, end.point, insetEnd)} />
         )}
       </g>
     )
@@ -561,7 +611,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     const { start, end, bend } = shape.handles
 
     return {
-      point: Vec.add(shape.point, offset),
+      point: Vec.round(Vec.add(shape.point, offset)),
       handles: {
         start: {
           ...start,

@@ -67,7 +67,10 @@ export class TranslateSession implements Session {
         next.page.shapes = {
           ...next.page.shapes,
           ...Object.fromEntries(
-            clones.map(clone => [clone.id, { ...clone, point: Vec.add(clone.point, delta) }])
+            clones.map(clone => [
+              clone.id,
+              { ...clone, point: Vec.round(Vec.add(clone.point, delta)) },
+            ])
           ),
         }
 
@@ -83,7 +86,7 @@ export class TranslateSession implements Session {
             clone.id,
             {
               ...clone,
-              point: Vec.add(next.page.shapes[clone.id].point, trueDelta),
+              point: Vec.round(Vec.add(next.page.shapes[clone.id].point, trueDelta)),
             },
           ])
         ),
@@ -109,7 +112,7 @@ export class TranslateSession implements Session {
             shape.id,
             {
               ...next.page.shapes[shape.id],
-              point: Vec.add(shape.point, delta),
+              point: Vec.round(Vec.add(shape.point, delta)),
             },
           ])
         ),
@@ -127,7 +130,7 @@ export class TranslateSession implements Session {
           shape.id,
           {
             ...next.page.shapes[shape.id],
-            point: Vec.add(next.page.shapes[shape.id].point, trueDelta),
+            point: Vec.round(Vec.add(next.page.shapes[shape.id].point, trueDelta)),
           },
         ])
       ),

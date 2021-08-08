@@ -118,6 +118,18 @@ const tlcss = css`
     stroke-width: calc(1px * var(--tl-scale));
     pointer-events: none;
   }
+  .tl-selected {
+    fill: transparent;
+    stroke: var(--tl-selectStroke);
+    stroke-width: calc(1.5px * var(--tl-scale));
+    pointer-events: none;
+  }
+  .tl-hovered {
+    fill: transparent;
+    stroke: var(--tl-selectStroke);
+    stroke-width: calc(1.5px * var(--tl-scale));
+    pointer-events: none;
+  }
   .tl-bounds-center {
     fill: transparent;
     stroke: var(--tl-selectStroke);

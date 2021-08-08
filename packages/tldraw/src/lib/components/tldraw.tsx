@@ -21,7 +21,7 @@ export interface TLDrawProps {
 const hideBoundsSelector = (s: Data) =>
   s.appState.activeTool !== 'select' ||
   (s.pageState.selectedIds.length === 1 &&
-    s.pageState.selectedIds.every((id) => s.page.shapes[id].handles !== undefined))
+    s.pageState.selectedIds.every(id => s.page.shapes[id].handles !== undefined))
 const pageSelector = (s: Data) => s.page
 const pageStateSelector = (s: Data) => s.pageState
 
@@ -62,6 +62,7 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
               pageState={pageState}
               shapeUtils={tldrawShapeUtils}
               hideBounds={hideBounds}
+              hideIndicators={!!tlstate.session || hideBounds}
               onPinchStart={tlstate.onPinchStart}
               onPinchEnd={tlstate.onPinchEnd}
               onPinch={tlstate.onPinch}

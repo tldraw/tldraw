@@ -54,8 +54,6 @@ export type TLShapeUtils<T extends TLShape> = Record<string, TLShapeUtil<T>>
 
 export interface TLRenderInfo<T extends SVGElement | HTMLElement = any> {
   isEditing: boolean
-  isHovered: boolean
-  isSelected: boolean
   isBinding: boolean
   isDarkMode: boolean
   isCurrentParent: boolean
@@ -269,6 +267,8 @@ export abstract class TLShapeUtil<T extends TLShape> {
 
   abstract render(shape: T, info: TLRenderInfo): JSX.Element
 
+  abstract renderIndicator(shape: T): JSX.Element | null
+
   abstract getBounds(shape: T): TLBounds
 
   abstract getRotatedBounds(shape: T): TLBounds
@@ -364,8 +364,6 @@ export interface IShapeTreeNode {
   shape: TLShape
   children?: IShapeTreeNode[]
   isEditing: boolean
-  isHovered: boolean
-  isSelected: boolean
   isBinding: boolean
   isDarkMode: boolean
   isCurrentParent: boolean

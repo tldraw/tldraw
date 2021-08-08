@@ -17,12 +17,14 @@ interface CanvasProps<T extends TLShape> {
   page: TLPage<T>
   pageState: TLPageState
   hideBounds?: boolean
+  hideIndicators?: boolean
 }
 
 export const Canvas = React.memo(function Canvas<T extends TLShape>({
   page,
   pageState,
   hideBounds = false,
+  hideIndicators = false,
 }: CanvasProps<T>): JSX.Element {
   const rCanvas = React.useRef<SVGSVGElement>(null)
 
@@ -42,7 +44,12 @@ export const Canvas = React.memo(function Canvas<T extends TLShape>({
         <ErrorBoundary FallbackComponent={ErrorFallback} onReset={resetError}>
           <Defs zoom={pageState.camera.zoom} />
           <g ref={rGroup} id="tl-shapes">
-            <Page page={page} pageState={pageState} hideBounds={hideBounds} />
+            <Page
+              page={page}
+              pageState={pageState}
+              hideBounds={hideBounds}
+              hideIndicators={hideIndicators}
+            />
             <Brush />
           </g>
         </ErrorBoundary>

@@ -3,6 +3,7 @@
 /* eslint-disable no-redeclare */
 import * as React from 'react'
 import deepmerge from 'deepmerge'
+import isMobilePkg from 'ismobilejs'
 import { TLBezierCurveSegment, TLBounds, TLBoundsCorner, TLBoundsEdge } from '../types'
 import vec from './vec'
 import './polyfills'
@@ -125,7 +126,7 @@ export class Utils {
       const clone = { ...(obj as Record<string, unknown>) }
 
       Object.keys(clone).forEach(
-        (key) =>
+        key =>
           (clone[key] =
             typeof obj[key as keyof T] === 'object'
               ? Utils.deepClone(obj[key as keyof T])
@@ -973,7 +974,7 @@ export class Utils {
 
     if (rotation !== 0) {
       return Utils.getBoundsFromPoints(
-        points.map((pt) => vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], rotation))
+        points.map(pt => vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], rotation))
       )
     }
 
@@ -1107,7 +1108,7 @@ export class Utils {
       [b.maxX, b.minY],
       [b.maxX, b.maxY],
       [b.minX, b.maxY],
-    ].map((point) => vec.rotWith(point, center, rotation))
+    ].map(point => vec.rotWith(point, center, rotation))
   }
 
   static getTransformedBoundingBox(
@@ -1451,7 +1452,7 @@ left past the initial left edge) then swap points on that axis.
   static getRotatedSize(size: number[], rotation: number): number[] {
     const center = vec.div(size, 2)
 
-    const points = [[0, 0], [size[0], 0], size, [0, size[1]]].map((point) =>
+    const points = [[0, 0], [size[0], 0], size, [0, size[1]]].map(point =>
       vec.rotWith(point, center, rotation)
     )
 
@@ -1566,7 +1567,7 @@ left past the initial left edge) then swap points on that axis.
   static arrsIntersect<T, K>(a: T[], b: K[], fn?: (item: K) => T): boolean
   static arrsIntersect<T>(a: T[], b: T[]): boolean
   static arrsIntersect<T>(a: T[], b: unknown[], fn?: (item: unknown) => T): boolean {
-    return a.some((item) => b.includes(fn ? fn(item) : item))
+    return a.some(item => b.includes(fn ? fn(item) : item))
   }
 
   /**
@@ -1591,7 +1592,7 @@ left past the initial left edge) then swap points on that axis.
   static debounce<T extends (...args: unknown[]) => void>(fn: T, ms = 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let timeoutId: number | any
-    return function (...args: Parameters<T>) {
+    return function(...args: Parameters<T>) {
       clearTimeout(timeoutId)
       timeoutId = setTimeout(() => fn.apply(args), ms)
     }
@@ -1622,6 +1623,34 @@ left past the initial left edge) then swap points on that axis.
   /*                   Browser and DOM                  */
   /* -------------------------------------------------- */
 
+  static isMobile() {
+    return isMobilePkg().any
+  }
+
+  // via https://github.com/bameyrick/throttle-typescript
+  static throttle<T extends (...args: any) => any>(
+    func: T,
+    limit: number
+  ): (...args: Parameters<T>) => ReturnType<T> {
+    let inThrottle: boolean
+    let lastResult: ReturnType<T>
+
+    return function(this: any): ReturnType<T> {
+      const args = arguments
+      const context = this
+
+      if (!inThrottle) {
+        inThrottle = true
+
+        setTimeout(() => (inThrottle = false), limit)
+
+        lastResult = func.apply(context, args as any)
+      }
+
+      return lastResult
+    }
+  }
+
   /**
    * Find whether the current display is a touch display.
    */
@@ -1636,13 +1665,6 @@ left past the initial left edge) then swap points on that axis.
    */
   static isDarwin(): boolean {
     return /Mac|iPod|iPhone|iPad/.test(window.navigator.platform)
-  }
-
-  /**
-   * Get whether the current device is a mobile device.
-   */
-  static isMobile(): boolean {
-    return false // _isMobile().any
   }
 
   /**

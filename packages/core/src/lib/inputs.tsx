@@ -209,7 +209,7 @@ class Inputs {
       ...prev,
       target: 'wheel',
       delta,
-      point: Vec.sub(point, delta),
+      point,
       shiftKey,
       ctrlKey,
       metaKey,

@@ -198,7 +198,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
         width={bounds.width}
         height={bounds.height}
         pointerEvents="none"
-        onPointerDown={(e) => e.stopPropagation()}
+        onPointerDown={e => e.stopPropagation()}
       >
         <StyledTextArea
           ref={ref as React.RefObject<HTMLTextAreaElement>}
@@ -225,6 +225,15 @@ export class Text extends TLDrawShapeUtil<TextShape> {
         />
       </foreignObject>
     )
+  }
+
+  renderIndicator(shape: TextShape) {
+    return null
+    // if (isEditing) return null
+
+    // const { width, height } = this.getBounds(shape)
+
+    // return <rect className="tl-selected" width={width} height={height} />
   }
 
   getBounds(shape: TextShape) {
@@ -263,7 +272,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
     const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
     return (
-      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
+      rotatedCorners.every(point => Utils.pointInBounds(point, bounds)) ||
       Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
     )
   }
@@ -330,7 +339,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
         ...shape.style,
         scale: 1,
       },
-      point: Vec.add(shape.point, Vec.sub(center, newCenter)),
+      point: Vec.round(Vec.add(shape.point, Vec.sub(center, newCenter))),
     }
   }
 
@@ -342,7 +351,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
     const newCenter = this.getCenter(shape)
 
     return {
-      point: Vec.add(shape.point, Vec.sub(center, newCenter)),
+      point: Vec.round(Vec.add(shape.point, Vec.sub(center, newCenter))),
     }
   }
 

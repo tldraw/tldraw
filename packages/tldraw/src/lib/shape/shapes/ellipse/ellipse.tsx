@@ -123,6 +123,20 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
     )
   }
 
+  renderIndicator(shape: EllipseShape) {
+    const {
+      style,
+      radius: [rx, ry],
+    } = shape
+
+    const styles = getShapeStyle(style, false)
+    const strokeWidth = +styles.strokeWidth
+
+    const sw = strokeWidth
+
+    return <ellipse cx={rx} cy={ry} rx={rx - sw / 2} ry={ry - sw / 2} />
+  }
+
   getBounds(shape: EllipseShape) {
     return Utils.getFromCache(this.boundsCache, shape, () => {
       return Utils.getRotatedEllipseBounds(
@@ -151,7 +165,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
     const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
     return (
-      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
+      rotatedCorners.every(point => Utils.pointInBounds(point, bounds)) ||
       Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
     )
   }
@@ -228,7 +242,7 @@ function renderPath(shape: EllipseShape, boundsCenter: number[]) {
   const stroke = getStroke(points, {
     size: 1 + strokeWidth,
     thinning: 0.6,
-    easing: (t) => t * t * t * t,
+    easing: t => t * t * t * t,
     end: { taper: strokeWidth * 20 },
     start: { taper: strokeWidth * 20 },
     simulatePressure: false,
