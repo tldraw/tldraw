@@ -16,7 +16,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
 
   pathCache = new WeakMap<number[], string>([])
 
-  defaultProps = {
+  defaultProps: RectangleShape = {
     id: 'id',
     type: TLDrawShapeType.Rectangle as const,
     name: 'Rectangle',
@@ -25,8 +25,11 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
     point: [0, 0],
     size: [1, 1],
     rotation: 0,
-    radius: 0,
     style: defaultStyle,
+  }
+
+  shouldRender(prev: RectangleShape, next: RectangleShape) {
+    return next.size !== prev.size || next.style !== prev.style
   }
 
   render(shape: RectangleShape, { isBinding, isHovered, isDarkMode }: TLRenderInfo) {
@@ -164,7 +167,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
     const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
     return (
-      rotatedCorners.every(point => Utils.pointInBounds(point, bounds)) ||
+      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
       Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
     )
   }
@@ -253,7 +256,7 @@ function renderPath(shape: RectangleShape) {
   const stroke = getStroke([...lines.flat().slice(2), ...lines[0], ...lines[0].slice(4)], {
     size: 1 + +styles.strokeWidth,
     thinning: 0.6,
-    easing: t => t * t * t * t,
+    easing: (t) => t * t * t * t,
     end: { taper: +styles.strokeWidth * 20 },
     start: { taper: +styles.strokeWidth * 20 },
     simulatePressure: false,

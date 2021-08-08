@@ -24,6 +24,49 @@ export function useKeyboardShortcuts(tlstate: TLDrawState) {
     }
   }, [tlstate])
 
+  /* ---------------------- Tools --------------------- */
+
+  useHotkeys('v,1', (e) => {
+    tlstate.selectTool('select')
+    e.preventDefault()
+  })
+
+  useHotkeys('d,2', (e) => {
+    tlstate.selectTool(TLDrawShapeType.Draw)
+    e.preventDefault()
+  })
+
+  useHotkeys('r,3', (e) => {
+    tlstate.selectTool(TLDrawShapeType.Rectangle)
+    e.preventDefault()
+  })
+
+  useHotkeys('e,4', (e) => {
+    tlstate.selectTool(TLDrawShapeType.Ellipse)
+    e.preventDefault()
+  })
+
+  useHotkeys('a,5', (e) => {
+    tlstate.selectTool(TLDrawShapeType.Arrow)
+    e.preventDefault()
+  })
+
+  useHotkeys('t,6', (e) => {
+    tlstate.selectTool(TLDrawShapeType.Text)
+    e.preventDefault()
+  })
+
+  /* ---------------------- Misc ---------------------- */
+
+  // Save
+
+  useHotkeys('ctrl+s,command+s', (e) => {
+    tlstate.save()
+    e.preventDefault()
+  })
+
+  // Undo Redo
+
   useHotkeys('command+z', (e) => {
     tlstate.undo()
     e.preventDefault()
@@ -34,15 +77,9 @@ export function useKeyboardShortcuts(tlstate: TLDrawState) {
     e.preventDefault()
   })
 
-  useHotkeys('ctrl+d,command+d', (e) => {
-    tlstate.duplicate()
-    e.preventDefault()
-  })
+  /* -------------------- Commands -------------------- */
 
-  useHotkeys('ctrl+s,command+s', (e) => {
-    tlstate.save()
-    e.preventDefault()
-  })
+  // Camera
 
   useHotkeys('ctrl+=,command+=', (e) => {
     tlstate.zoomIn()
@@ -69,20 +106,47 @@ export function useKeyboardShortcuts(tlstate: TLDrawState) {
     e.preventDefault()
   })
 
+  // Duplicate
+
+  useHotkeys('ctrl+d,command+d', (e) => {
+    tlstate.duplicate()
+    e.preventDefault()
+  })
+
+  // Flip
+
+  useHotkeys('shift+h', (e) => {
+    tlstate.flipHorizontal()
+    e.preventDefault()
+  })
+
+  useHotkeys('shift+v', (e) => {
+    tlstate.flipVertical()
+    e.preventDefault()
+  })
+
+  // Cancel
+
   useHotkeys('escape', (e) => {
     tlstate.cancel()
     e.preventDefault()
   })
+
+  // Delete
 
   useHotkeys('backspace', (e) => {
     tlstate.delete()
     e.preventDefault()
   })
 
+  // Select All
+
   useHotkeys('command+a,ctrl+a', (e) => {
     tlstate.selectAll()
     e.preventDefault()
   })
+
+  // Nudge
 
   useHotkeys('up', (e) => {
     tlstate.nudge([0, -1], false)
@@ -124,6 +188,20 @@ export function useKeyboardShortcuts(tlstate: TLDrawState) {
     e.preventDefault()
   })
 
+  // Copy & Paste
+
+  useHotkeys('command+c,ctrl+c', (e) => {
+    tlstate.copy()
+    e.preventDefault()
+  })
+
+  useHotkeys('command+v,ctrl+v', (e) => {
+    tlstate.paste()
+    e.preventDefault()
+  })
+
+  // Move
+
   useHotkeys('[', (e) => {
     tlstate.moveBackward()
     e.preventDefault()
@@ -144,40 +222,8 @@ export function useKeyboardShortcuts(tlstate: TLDrawState) {
     e.preventDefault()
   })
 
-  useHotkeys('v,1', (e) => {
-    tlstate.selectTool('select')
-    e.preventDefault()
-  })
-
-  useHotkeys('d,2', (e) => {
-    tlstate.selectTool(TLDrawShapeType.Draw)
-    e.preventDefault()
-  })
-
-  useHotkeys('r,3', (e) => {
-    tlstate.selectTool(TLDrawShapeType.Rectangle)
-    e.preventDefault()
-  })
-
-  useHotkeys('e,4', (e) => {
-    tlstate.selectTool(TLDrawShapeType.Ellipse)
-    e.preventDefault()
-  })
-
-  useHotkeys('a,5', (e) => {
-    tlstate.selectTool(TLDrawShapeType.Arrow)
-    e.preventDefault()
-  })
-
-  /* -------------------- Commands -------------------- */
-
-  useHotkeys('shift+h', (e) => {
-    tlstate.flipHorizontal()
-    e.preventDefault()
-  })
-
-  useHotkeys('shift+v', (e) => {
-    tlstate.flipVertical()
+  useHotkeys('command+shift+backspace', (e) => {
+    tlstate.reset()
     e.preventDefault()
   })
 }

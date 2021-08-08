@@ -66,7 +66,7 @@ export abstract class TLDrawShapeUtil<T extends TLDrawShape> extends TLShapeUtil
   abstract toolType: TLDrawToolType
 }
 
-export type TLDrawShapeUtils = Record<string, TLDrawShapeUtil<TLDrawShape>>
+export type TLDrawShapeUtils = Record<TLDrawShapeType, TLDrawShapeUtil<TLDrawShape>>
 
 export enum ColorStyle {
   White = 'White',

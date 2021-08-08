@@ -198,7 +198,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
         width={bounds.width}
         height={bounds.height}
         pointerEvents="none"
-        onPointerDown={e => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
       >
         <StyledTextArea
           ref={ref as React.RefObject<HTMLTextAreaElement>}
@@ -263,7 +263,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
     const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
     return (
-      rotatedCorners.every(point => Utils.pointInBounds(point, bounds)) ||
+      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
       Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
     )
   }

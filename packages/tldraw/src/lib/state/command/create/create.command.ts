@@ -6,12 +6,18 @@ export function create(data: Data, shapes: TLDrawShape[]): Command {
     id: 'toggle_shapes',
     before: {
       page: {
-        shapes: Object.fromEntries(shapes.map(shape => [shape.id, undefined])),
+        shapes: Object.fromEntries(shapes.map((shape) => [shape.id, undefined])),
+      },
+      pageState: {
+        selectedIds: [...data.pageState.selectedIds],
       },
     },
     after: {
       page: {
-        shapes: Object.fromEntries(shapes.map(shape => [shape.id, shape])),
+        shapes: Object.fromEntries(shapes.map((shape) => [shape.id, shape])),
+      },
+      pageState: {
+        selectedIds: shapes.map((shape) => shape.id),
       },
     },
   }

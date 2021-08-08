@@ -21,7 +21,7 @@ export interface TLDrawProps {
 const hideBoundsSelector = (s: Data) =>
   s.appState.activeTool !== 'select' ||
   (s.pageState.selectedIds.length === 1 &&
-    s.pageState.selectedIds.every(id => s.page.shapes[id].handles !== undefined))
+    s.pageState.selectedIds.every((id) => s.page.shapes[id].handles !== undefined))
 const pageSelector = (s: Data) => s.page
 const pageStateSelector = (s: Data) => s.pageState
 

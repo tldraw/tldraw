@@ -125,7 +125,7 @@ export class Utils {
       const clone = { ...(obj as Record<string, unknown>) }
 
       Object.keys(clone).forEach(
-        key =>
+        (key) =>
           (clone[key] =
             typeof obj[key as keyof T] === 'object'
               ? Utils.deepClone(obj[key as keyof T])
@@ -973,7 +973,7 @@ export class Utils {
 
     if (rotation !== 0) {
       return Utils.getBoundsFromPoints(
-        points.map(pt => vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], rotation))
+        points.map((pt) => vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], rotation))
       )
     }
 
@@ -985,6 +985,18 @@ export class Utils {
       width: Math.max(1, maxX - minX),
       height: Math.max(1, maxY - minY),
     }
+  }
+
+  /**
+   * Center a bounding box around a given point.
+   * @param bounds
+   * @param center
+   */
+  static centerBounds(bounds: TLBounds, point: number[]): TLBounds {
+    const boundsCenter = this.getBoundsCenter(bounds)
+    const dx = point[0] - boundsCenter[0]
+    const dy = point[1] - boundsCenter[1]
+    return this.translateBounds(bounds, [dx, dy])
   }
 
   /**
@@ -1095,7 +1107,7 @@ export class Utils {
       [b.maxX, b.minY],
       [b.maxX, b.maxY],
       [b.minX, b.maxY],
-    ].map(point => vec.rotWith(point, center, rotation))
+    ].map((point) => vec.rotWith(point, center, rotation))
   }
 
   static getTransformedBoundingBox(
@@ -1439,7 +1451,7 @@ left past the initial left edge) then swap points on that axis.
   static getRotatedSize(size: number[], rotation: number): number[] {
     const center = vec.div(size, 2)
 
-    const points = [[0, 0], [size[0], 0], size, [0, size[1]]].map(point =>
+    const points = [[0, 0], [size[0], 0], size, [0, size[1]]].map((point) =>
       vec.rotWith(point, center, rotation)
     )
 
@@ -1554,7 +1566,7 @@ left past the initial left edge) then swap points on that axis.
   static arrsIntersect<T, K>(a: T[], b: K[], fn?: (item: K) => T): boolean
   static arrsIntersect<T>(a: T[], b: T[]): boolean
   static arrsIntersect<T>(a: T[], b: unknown[], fn?: (item: unknown) => T): boolean {
-    return a.some(item => b.includes(fn ? fn(item) : item))
+    return a.some((item) => b.includes(fn ? fn(item) : item))
   }
 
   /**
@@ -1579,7 +1591,7 @@ left past the initial left edge) then swap points on that axis.
   static debounce<T extends (...args: unknown[]) => void>(fn: T, ms = 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let timeoutId: number | any
-    return function(...args: Parameters<T>) {
+    return function (...args: Parameters<T>) {
       clearTimeout(timeoutId)
       timeoutId = setTimeout(() => fn.apply(args), ms)
     }

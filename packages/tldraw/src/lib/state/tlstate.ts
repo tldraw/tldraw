@@ -1,3 +1,4 @@
+import { TextShape } from './../shape/shape-types'
 import { FlipType } from './../types'
 import createReact, { PartialState } from 'zustand'
 import {
@@ -76,6 +77,7 @@ export class TLDrawState implements TLCallbacks {
     stack: [],
     pointer: -1,
   }
+  clipboard?: TLDrawShape[]
   session?: Session
   status: { current: TLDrawStatus; previous: TLDrawStatus } = {
     current: 'idle',
@@ -164,26 +166,6 @@ export class TLDrawState implements TLCallbacks {
       },
     }))
     return this
-  }
-
-  copy = () => {
-    // TODO
-    return this
-  }
-
-  paste = () => {
-    // TODO
-    return this
-  }
-
-  copyAsSvg = () => {
-    // TODO
-    return '<svg/>'
-  }
-
-  copyAsJson = () => {
-    // TODO
-    return {}
   }
 
   /* -------------------- Settings -------------------- */
@@ -442,6 +424,7 @@ export class TLDrawState implements TLCallbacks {
     this.pages = Utils.deepClone(document.pages)
     this.pageStates = Utils.deepClone(document.pageStates)
     this.currentPageId = Object.values(this.pages)[0].id
+
     this.setState((data) => ({
       page: this.pages[this.currentPageId],
       pageState: this.pageStates[this.currentPageId],
@@ -452,6 +435,7 @@ export class TLDrawState implements TLCallbacks {
           .map((page) => page.id),
       },
     }))
+
     return this
   }
 
@@ -782,6 +766,101 @@ export class TLDrawState implements TLCallbacks {
     }
 
     return this
+  }
+
+  copy = (ids?: string[]) => {
+    const data = this.store.getState()
+    const idsToCopy = ids ? ids : data.pageState.selectedIds
+
+    this.clipboard = idsToCopy.map((id) => {
+      const shape = data.page.shapes[id]
+
+      return {
+        ...shape,
+        id: Utils.uniqueId(),
+        childIndex: TLDR.getChildIndexAbove(data, id),
+      }
+    })
+
+    return this
+  }
+
+  paste = (string?: string) => {
+    const { data } = this
+    if (string) {
+      try {
+        const jsonShapes = JSON.parse(string)
+        this.create(...jsonShapes)
+      } catch (e) {
+        // Create a text shape from the given string
+        const childIndex =
+          Object.values(data.page.shapes).sort((a, b) => b.childIndex - a.childIndex)[0]
+            .childIndex + 1
+
+        const shape = TLDR.getShapeUtils<TextShape>(TLDrawShapeType.Text).create({
+          id: Utils.uniqueId(),
+          parentId: data.page.id,
+          childIndex,
+          point: this.getPagePoint([window.innerWidth / 2, window.innerHeight / 2]),
+          style: { ...data.appState.currentStyle },
+        })
+
+        const boundsCenter = Utils.centerBounds(
+          TLDR.getShapeUtils(shape).getBounds(shape),
+          this.getPagePoint([window.innerWidth / 2, window.innerHeight / 2])
+        )
+
+        this.create(
+          TLDR.getShapeUtils(TLDrawShapeType.Text).create({
+            id: Utils.uniqueId(),
+            parentId: data.page.id,
+            childIndex,
+            point: [boundsCenter.minX, boundsCenter.minY],
+          })
+        )
+      }
+    }
+
+    if (!this.clipboard) return
+
+    const shapesToPaste = this.clipboard.map((shape) => {
+      return {
+        ...shape,
+        id: Utils.uniqueId(),
+      }
+    })
+
+    const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
+
+    const centeredBounds = Utils.centerBounds(
+      commonBounds,
+      this.getPagePoint([window.innerWidth / 2, window.innerHeight / 2])
+    )
+
+    let delta = Vec.sub(Utils.getBoundsCenter(centeredBounds), Utils.getBoundsCenter(commonBounds))
+
+    if (Vec.isEqual(delta, [0, 0])) {
+      delta = [16, 16]
+    }
+
+    this.create(
+      ...shapesToPaste.map((shape) => ({
+        ...shape,
+        point: Vec.add(shape.point, delta),
+      }))
+    )
+
+    return this
+  }
+
+  copyAsSvg = () => {
+    // TODO
+    return '<svg/>'
+  }
+
+  copyAsJson = () => {
+    // TODO
+    return {}
   }
 
   save = () => {

@@ -1,10 +1,11 @@
+import { TLDrawShapeType } from '@tldraw/tldraw'
 import { TLBinding, TLBounds, TLTransformInfo, Vec, Utils } from '@tldraw/core'
 import { getShapeUtils, ShapeStyles, ShapesWithProp, TLDrawShape, TLDrawShapeUtil } from '../shape'
 import { Data } from './state-types'
 
 export class TLDR {
-  static getShapeUtils<T extends TLDrawShape>(shape: T): TLDrawShapeUtil<T> {
-    return getShapeUtils(shape)
+  static getShapeUtils<T extends TLDrawShape>(shape: T | T['type']): TLDrawShapeUtil<T> {
+    return getShapeUtils(typeof shape === 'string' ? ({ type: shape } as T) : shape)
   }
 
   static getSelectedShapes(data: Data) {
@@ -318,9 +319,11 @@ export class TLDR {
 
     const shape = page.shapes[id]
 
-    const siblings = Object.values(page.shapes)
-      .filter(({ parentId }) => parentId === shape.parentId)
-      .sort((a, b) => a.childIndex - b.childIndex)
+    const siblings = (
+      shape.parentId === page.id
+        ? Object.values(page.shapes)
+        : page.shapes[shape.parentId].children!.map((childId) => page.shapes[childId])
+    ).sort((a, b) => a.childIndex - b.childIndex)
 
     const index = siblings.indexOf(shape)
 

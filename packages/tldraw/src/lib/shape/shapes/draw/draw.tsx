@@ -20,7 +20,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
   simplePathCache = new WeakMap<DrawShape['points'], string>([])
   polygonCache = new WeakMap<DrawShape['points'], string>([])
 
-  defaultProps = {
+  defaultProps: DrawShape = {
     id: 'id',
     type: TLDrawShapeType.Draw as const,
     name: 'Draw',
@@ -29,8 +29,11 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
     point: [0, 0],
     points: [[0, 0, 0.5]],
     rotation: 0,
-    radius: 0,
     style: defaultStyle,
+  }
+
+  shouldRender(prev: DrawShape, next: DrawShape) {
+    return next.points !== prev.points || next.style !== prev.style
   }
 
   render(shape: DrawShape, { isBinding, isHovered, isDarkMode }: TLRenderInfo) {
@@ -191,7 +194,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
 
     const rotatedBounds = Utils.getFromCache(this.rotatedCache, shape, () => {
       const c = Utils.getBoundsCenter(Utils.getBoundsFromPoints(shape.points))
-      return shape.points.map(pt => Vec.rotWith(pt, c, shape.rotation || 0))
+      return shape.points.map((pt) => Vec.rotWith(pt, c, shape.rotation || 0))
     })
 
     return (
@@ -276,7 +279,7 @@ function getFillPath(shape: DrawShape) {
       thinning: 0.85,
       end: { taper: +styles.strokeWidth * 20 },
       start: { taper: +styles.strokeWidth * 20 },
-    }).map(pt => pt.point)
+    }).map((pt) => pt.point)
   )
 }
 
@@ -308,7 +311,7 @@ function getSolidStrokePath(shape: DrawShape) {
   if (len === 0) return 'M 0 0 L 0 0'
   if (len < 3) return `M ${points[0][0]} ${points[0][1]}`
 
-  points = getStrokePoints(points).map(pt => pt.point)
+  points = getStrokePoints(points).map((pt) => pt.point)
 
   len = points.length
 

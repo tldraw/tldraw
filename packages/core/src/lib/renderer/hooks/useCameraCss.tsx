@@ -11,8 +11,11 @@ export function useCameraCss(pageState: TLPageState) {
 
   // Update the group's position when the camera moves or zooms
   React.useEffect(() => {
-    const { zoom, point } = pageState.camera
-    rGroup.current?.setAttribute('transform', `scale(${zoom}) translate(${point[0]} ${point[1]})`)
+    const {
+      zoom,
+      point: [x = 0, y = 0],
+    } = pageState.camera
+    rGroup.current?.setAttribute('transform', `scale(${zoom}) translate(${x} ${y})`)
   }, [pageState.camera])
 
   return rGroup
