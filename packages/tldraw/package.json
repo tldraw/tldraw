@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "0.0.32",
+  "version": "0.0.34",
   "main": "build/index.js",
   "types": "build/types/index.d.ts",
   "author": "@steveruizok",
