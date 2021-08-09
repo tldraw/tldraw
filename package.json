@@ -1,51 +1,31 @@
 {
-  "name": "tldraw",
-  "private": true,
+  "name": "@tldraw/snowpack-monorepo",
+  "version": "1.0.0",
+  "main": "index.js",
   "author": "@steveruizok",
   "license": "MIT",
-  "version": "0.0.25",
+  "private": true,
+  "scripts": {
+    "refresh:www": "yarn workspace @tldraw/core build && yarn workspace @tldraw/tldraw build",
+    "start:www": "yarn refresh:www && yarn workspace @tldraw/www start",
+    "build:www": "yarn workspace @tldraw/core build:www && yarn workspace @tldraw/tldraw build:www && yarn workspace @tldraw/www build",
+    "start": "yarn workspace @tldraw/app start",
+    "build": "yarn workspace @tldraw/app build",
+    "test": "jest"
+  },
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "www"
   ],
-  "scripts": {
-    "lerna": "lerna",
-    "start": "lerna run start --stream --parallel",
-    "test": "lerna run test --",
-    "test:start": "lerna run test -- --watchAll",
-    "lint": "lerna run lint -- --fix",
-    "build": "lerna run build",
-    "prepublish": "lerna run prepublish",
-    "start:example": "yarn run build && yarn --cwd example && yarn --cwd example start",
-    "cypress": "cypress run",
-    "cypress:open": "cypress open",
-    "changeset": "changeset",
-    "release": "changeset publish",
-    "version:canary": "changeset version --snapshot canary",
-    "release:canary": "changeset publish --tag canary",
-    "prepare": "husky install"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn lint"
-    }
+  "devDependencies": {
+    "@babel/plugin-syntax-import-meta": "^7.10.4",
+    "@types/jest": "^26.0.24",
+    "babel-jest": "^27.0.6",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.4"
   },
   "dependencies": {
-    "husky": "^7.0.1",
-    "rollup-plugin-analyzer": "^4.0.0",
-    "tsdx": "^0.14.1"
-  },
-  "devDependencies": {
-    "@changesets/changelog-github": "^0.4.0",
-    "@changesets/cli": "^2.10.3",
-    "@types/react": "^17.0.15",
-    "@types/react-dom": "^17.0.9",
-    "caniuse-lite": "^1.0.30001249",
-    "cypress": "^5.2.0",
-    "lerna": "^3.15.0",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "tslib": "^2.3.0",
-    "typescript": "^4.3.5"
+    "@babel/preset-react": "^7.14.5",
+    "@babel/preset-typescript": "^7.15.0"
   }
 }

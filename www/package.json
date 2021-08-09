@@ -1,0 +1,31 @@
+{
+  "name": "@tldraw/www",
+  "version": "0.0.30",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next dev",
+    "serve": "next serve",
+    "lint": "next lint"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.14.6",
+    "@types/jest": "^26.0.23",
+    "@types/node": "^14.14.25",
+    "@types/react": "^17.0.16",
+    "@types/react-dom": "^17.0.9",
+    "eslint": "7.32.0",
+    "eslint-config-next": "11.0.1",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "@stitches/react": "^0.2.3",
+    "@tldraw/tldraw": "*",
+    "idb": "^6.1.2",
+    "next": "11.0.1",
+    "next-transpile-modules": "^8.0.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  }
+}

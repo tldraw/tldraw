@@ -1,28 +1,28 @@
 {
   "name": "@tldraw/core",
-  "version": "0.0.30",
-  "description": "Core library and renderer for tldraw.",
-  "author": "@steveruizok",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tldraw/tldraw.git",
-    "directory": "packages/core"
-  },
+  "version": "1.0.0",
+  "main": "build/index.js",
+  "license": "MIT",
+  "private": true,
   "scripts": {
-    "start": "tsdx watch --tsconfig tsconfig.build.json --verbose --noClean",
-    "build": "tsdx build --tsconfig tsconfig.build.json",
-    "test": "tsdx test",
-    "lint": "tsdx lint",
-    "prepublish": "npm run build"
+    "test": "jest",
+    "start": "snowpack dev",
+    "build": "snowpack build",
+    "build:www": "snowpack build --config snowpack.build.config.js"
   },
-  "main": "dist/index.js",
-  "module": "dist/core.esm.js",
-  "typings": "dist/index.d.ts",
-  "files": [
-    "README.md",
-    "dist"
-  ],
   "peerDependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.13",
+    "@snowpack/plugin-react-refresh": "^2.5.0",
+    "@snowpack/plugin-typescript": "^1.2.1",
+    "@types/react": "^17.0.0",
+    "babel-loader": "^8.2.2",
+    "prettier": "2.2.1",
+    "snowpack": "^3.0.1",
+    "typescript": "^4.3.5",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   },
@@ -31,13 +31,5 @@
     "ismobilejs": "^1.1.1",
     "react-error-boundary": "^3.1.3",
     "react-use-gesture": "^9.1.3"
-  },
-  "devDependencies": {
-    "@types/react": "^17.0.16",
-    "@types/react-dom": "^17.0.9",
-    "tslib": "^2.3.0"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }

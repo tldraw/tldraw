@@ -1,42 +1,10 @@
-*.log
-.DS_Store
-node_modules
-dist
-
-node_modules
-package-lock.json
-yarn.lock
-!/yarn.lock
-
-.yalc
-yalc.lock
-
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-.next
-node_modules
-..pnp
-.pnp.js
-
-# production
+.snowpack
 build
+dist
+node_modules
+.yarn
+.pnp.*
+.yarnrc
+.yarnrc.yml
 
-# misc
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# local env files
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# vercel
 .vercel
-
-example/dist

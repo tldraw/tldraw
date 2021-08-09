@@ -1,31 +1,32 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "0.0.30",
-  "description": "The tldraw editor as a React component.",
-  "author": "@steveruizok",
+  "version": "1.0.0",
+  "main": "build/index.js",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tldraw/tldraw.git",
-    "directory": "packages/tldraw"
-  },
+  "private": true,
   "scripts": {
-    "start": "tsdx watch --tsconfig tsconfig.build.json --verbose --noClean",
-    "build": "tsdx build --tsconfig tsconfig.build.json --verbose",
-    "test": "tsdx test",
-    "lint": "tsdx lint",
-    "prepublish": "npm run build"
+    "test": "jest",
+    "start": "snowpack dev",
+    "build": "snowpack build",
+    "build:www": "snowpack build --config snowpack.build.config.js"
   },
-  "main": "dist/index.js",
-  "module": "dist/tldraw.esm.js",
-  "typings": "dist/index.d.ts",
-  "files": [
-    "README.md",
-    "dist"
-  ],
   "peerDependencies": {
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.13",
+    "@snowpack/plugin-react-refresh": "^2.5.0",
+    "@snowpack/plugin-typescript": "^1.2.1",
+    "@types/jest": "^26.0.24",
+    "@types/react": "^17.0.0",
+    "babel-loader": "^8.2.2",
+    "jest": "^27.0.6",
+    "prettier": "2.2.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "snowpack": "^3.0.1",
+    "typescript": "^4.3.5"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^0.0.16",
@@ -35,19 +36,12 @@
     "@radix-ui/react-id": "^0.0.6",
     "@radix-ui/react-radio-group": "^0.0.18",
     "@radix-ui/react-tooltip": "^0.0.20",
+    "@snowpack/app-scripts-react": "^2.0.1",
     "@stitches/react": "^0.2.3",
-    "@tldraw/core": "^0.0.30",
+    "@tldraw/core": "*",
     "ismobilejs": "^1.1.1",
     "perfect-freehand": "^0.4.10",
     "react-hotkeys-hook": "^3.4.0",
     "zustand": "^3.5.7"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "devDependencies": {
-    "@types/react": "^17.0.16",
-    "@types/react-dom": "^17.0.9",
-    "tslib": "^2.3.0"
   }
 }

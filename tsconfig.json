@@ -1,14 +1,29 @@
 {
-  "extends": "./tsconfig.build.json",
-  "include": ["packages", "types", "scripts", "example", "www"],
   "compilerOptions": {
-    "allowJs": false,
+    "target": "es5",
+    "module": "esnext",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "importsNotUsedAsValues": "error",
+    "incremental": true,
+    "outDir": "dist",
+    "lib": ["dom", "esnext"],
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "node",
+    "jsx": "react",
+    "typeRoots": ["node_modules/@types"],
+    "esModuleInterop": true,
     "baseUrl": ".",
-    "typeRoots": ["./node_modules/@types", "./types"],
     "paths": {
-      "@tldraw/core": ["packages/core/src"],
-      "@tldraw/tldraw": ["packages/tldraw/src"],
-      "$test/*": ["test/*"]
+      "@tldraw/core": ["packages/core"],
+      "@tldraw/tldraw": ["packages/tldraw"]
     }
   }
 }
