@@ -23,6 +23,10 @@ export class ExampleShape extends TLShapeUtil<TLShape> {
     return <rect width={100} height={100} fill="none" stroke="black" />
   }
 
+  renderIndicator(shape: TLShape) {
+    return <rect width={100} height={100} />
+  }
+
   shouldRender(prev: TLShape, next: TLShape): boolean {
     return true
   }

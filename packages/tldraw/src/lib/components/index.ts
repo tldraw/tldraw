@@ -1,6 +1,5 @@
 export * from './tooltip'
 export * from './kbd'
 export * from './shared'
-export * from './ui-utils'
 export * from './icons'
 export * from './tldraw'

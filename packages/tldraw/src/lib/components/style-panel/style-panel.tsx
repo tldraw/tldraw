@@ -57,6 +57,18 @@ function SelectedShapeContent(): JSX.Element {
   const { tlstate, useSelector } = useTLDrawContext()
   const selectedShapesCount = useSelector(selectedShapesCountSelector)
 
+  const handleCopy = React.useCallback(() => {
+    tlstate.copy()
+  }, [tlstate])
+
+  const handlePaste = React.useCallback(() => {
+    tlstate.paste()
+  }, [tlstate])
+
+  const handleCopyAsSvg = React.useCallback(() => {
+    tlstate.copyAsSvg()
+  }, [tlstate])
+
   return (
     <>
       <Divider />
@@ -67,15 +79,15 @@ function SelectedShapeContent(): JSX.Element {
         hasThreeOrMore={selectedShapesCount > 2}
       />
       <Divider />
-      <RowButton bp={breakpoints} disabled={selectedShapesCount === 0} onClick={tlstate.copy}>
+      <RowButton bp={breakpoints} disabled={selectedShapesCount === 0} onClick={handleCopy}>
         <span>Copy</span>
         {showKbds && <Kbd variant="menu">#C</Kbd>}
       </RowButton>
-      <RowButton bp={breakpoints} onClick={tlstate.paste}>
+      <RowButton bp={breakpoints} onClick={handlePaste}>
         <span>Paste</span>
         {showKbds && <Kbd variant="menu">#V</Kbd>}
       </RowButton>
-      <RowButton bp={breakpoints} onClick={tlstate.copyAsSvg}>
+      <RowButton bp={breakpoints} onClick={handleCopyAsSvg}>
         <span>Copy to SVG</span>
         {showKbds && <Kbd variant="menu">⇧#C</Kbd>}
       </RowButton>
