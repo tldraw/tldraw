@@ -18,16 +18,16 @@
     "www"
   ],
   "devDependencies": {
+    "@babel/preset-react": "^7.14.5",
+    "@babel/preset-typescript": "^7.15.0",
     "@babel/plugin-syntax-import-meta": "^7.10.4",
     "@types/jest": "^26.0.24",
     "babel-jest": "^27.0.6",
     "jest": "^27.0.6",
+    "lerna": "^4.0.0",
     "ts-jest": "^27.0.4"
   },
-  "dependencies": {
-    "@babel/preset-react": "^7.14.5",
-    "@babel/preset-typescript": "^7.15.0"
-  },
+  "dependencies": {},
   "jest": {
     "preset": "ts-jest",
     "transform": {
