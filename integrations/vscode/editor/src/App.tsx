@@ -108,24 +108,22 @@ export default function App() {
     rTLDrawState.current = tldr;
   }, []);
 
+  if(initialDocument!==undefined){
+    const i = 1000;
+  }
+
   const handleChange = useCallback((tldr: TLDrawState, type: string) => {
     // TODO: Think more about if syncing on only "command" is the way to go
     console.log(type);
-    if(type === "command"){
+    if(type.search("command") !== -1){
       console.log("changed");
 
-     postMessage( 'update', tldr.toJson() );
+     postMessage( 'update', tldr.document );
     }
     console.log(`update: ${type}`);
-    console.log(JSON.stringify(tldr.toJson(),null, "    "));
+    console.log(JSON.stringify(tldr.document,null, "    "));
     
   }, []);
-
-  function handleClick() {
-    const tldr = rTLDrawState.current;
-    if (!tldr) return;
-    tldr.state.send("SELECTED_ALL");
-  }
 
   return (
     <div className="App">
