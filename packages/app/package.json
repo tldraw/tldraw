@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/app",
-  "version": "1.0.0",
+  "version": "0.0.30",
   "main": "index.js",
   "module": "index.js",
   "author": "@steveruizok",

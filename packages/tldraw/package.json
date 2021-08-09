@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "1.0.0",
+  "version": "0.0.30",
   "main": "build/index.js",
   "license": "MIT",
   "private": true,
