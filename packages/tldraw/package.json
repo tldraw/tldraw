@@ -3,7 +3,7 @@
   "version": "0.0.30",
   "main": "build/index.js",
   "license": "MIT",
-  "private": true,
+  "private": false,
   "scripts": {
     "test": "jest",
     "start": "snowpack dev",
