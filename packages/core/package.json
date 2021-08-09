@@ -2,6 +2,7 @@
   "name": "@tldraw/core",
   "version": "0.0.33",
   "main": "build/index.js",
+  "types": "build/types/index.js",
   "author": "@steveruizok",
   "license": "MIT",
   "private": false,
@@ -9,7 +10,7 @@
     "test": "jest",
     "start": "snowpack dev",
     "build": "snowpack build",
-    "build:www": "snowpack build --config snowpack.build.config.js"
+    "build:www": "snowpack build --config snowpack.build.config.js && tsc --declaration --noEmit false --emitDeclarationOnly --declarationDir build/types"
   },
   "peerDependencies": {
     "react": "^17.0.2",

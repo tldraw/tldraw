@@ -1,14 +1,16 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "0.0.33",
+  "version": "0.0.32",
   "main": "build/index.js",
+  "types": "build/types/index.d.ts",
+  "author": "@steveruizok",
   "license": "MIT",
   "private": false,
   "scripts": {
     "test": "jest",
     "start": "snowpack dev",
     "build": "snowpack build",
-    "build:www": "snowpack build --config snowpack.build.config.js"
+    "build:www": "snowpack build --config snowpack.build.config.js && tsc --declaration --noEmit false --emitDeclarationOnly --declarationDir build/types"
   },
   "peerDependencies": {
     "react": "^17.0.2",
@@ -38,7 +40,7 @@
     "@radix-ui/react-tooltip": "^0.0.20",
     "@snowpack/app-scripts-react": "^2.0.1",
     "@stitches/react": "^0.2.3",
-    "@tldraw/core": "^0.0.33",
+    "@tldraw/core": "^0.0.32",
     "ismobilejs": "^1.1.1",
     "perfect-freehand": "^0.4.10",
     "react-hotkeys-hook": "^3.4.0",
