@@ -1,6 +1,6 @@
 # @tldraw/core
 
-> **Hey!** This library is in active development. Some of the docs below may to out of sync with the library. When in doubt, check the TypeScript typings in your editor, the source code, or the **[CodeSandbox example](https://codesandbox.io/s/tldraw-core-example-88c74)**.
+> 🚧 This library is in active development. Some of the docs below may to out of sync with the library. When in doubt, check the TypeScript typings in your editor, the source code, or the **[CodeSandbox example](https://codesandbox.io/s/tldraw-core-example-88c74)**.
 
 This package contains the core of the [tldraw](https://tldraw.com) library. It includes:
 
