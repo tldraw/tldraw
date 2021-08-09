@@ -1794,8 +1794,6 @@ left past the initial left edge) then swap points on that axis.
   static metaKey(e: KeyboardEvent | React.KeyboardEvent): boolean {
     return Utils.isDarwin() ? e.metaKey : e.ctrlKey
   }
-  
-  
 }
 
 export default Utils
