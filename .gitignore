@@ -8,3 +8,5 @@ node_modules
 .yarnrc.yml
 
 .vercel
+
+.DS_Store
