@@ -1,17 +1,29 @@
-# Demo app
+# TLDraw Development App
 
-> ✨ Demo app working in a snowpack monorepo. See monorepo README.md for more details.
+This app is a Snowpack app, designed to aid development of the tldraw packages ([@tldraw/core]() and [@tldraw/tldraw]()). This app is not published. If you are looking for the main app, see the folder `/www`.
 
-## Scripts
+## Local Development
 
-### yarn start
+To work on the development app:
 
-Runs the app in development mode.
-Open http://localhost:8080 to view it in the browser.
+1. Download or clone the repository.
 
-The page will reload with React fast refresh if you make edits in any of the monorepo packages.
+   ```bash
+   git clone https://github.com/tldraw/tldraw.git
+   ```
 
-### yarn build
+2. Install dependencies.
 
-Builds a static copy of `app` to the `build/` folder.
-Your app is ready to be deployed!
+   ```bash
+   yarn
+   ```
+
+3. Start the development server.
+
+   ```bash
+   yarn start
+   ```
+
+4. Open the local site at `https://localhost:8080`.
+
+While running, the app will update in response to your changes in either this folder, as well as the other two packages' folders.

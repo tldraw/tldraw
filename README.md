@@ -1,31 +1,57 @@
-# Snowpack monorepo
+# tldraw
 
-> ✨ POC repo demonstrating Snowpack powering a monorepo with React, TypeScript and React Fast Refresh.
+A tiny little drawing app.
 
-## TLDR; demo packages
-- `components` - a UI component library
-- `launch-kit` - a "framework" which uses `components` 
-- `app` - an application which uses the `launch-kit` framework
-- `typescript-config` - shared Typescript config
-- `prettier-config` - shared Prettier config
+Visit [tldraw.com](https://tldraw.com/).
 
-This monorepo uses React Fast Refresh, which allows hot module reloading while preserving state. The running `app` will be fast refreshed even if your code change comes from `components` (which isn't a direct dependency of `app`).
+## About
 
-![image](https://user-images.githubusercontent.com/5167260/106462300-cb5d7c80-648d-11eb-9dd0-2aa95f8073d2.png)
-This screenshot shows HMR updates coming from the different packages while the countdown timer state is preserved.
+The tldraw project has three parts:
 
-## Scripts
+- The [tldraw.com](https://www.tldraw.com/) app
+- [@tldraw/tldraw](), the tldraw editor as a standalone component
+- [@tldraw/core](), the tldraw renderer as a standalone component
 
-### yarn install
+You can find the source for each project in this repository.
 
-Installs all dependencies and links the monorepo packages together (yarn workspaces).
-### yarn start
+## Signposting
 
-Runs the `app` package in development mode.
-Open http://localhost:8080 to view it in the browser.
+This project is a monorepo that contains:
 
-The page will reload with React fast refresh if you make edits in any of the monorepo packages.
+- **www**: the main [tldraw.com](https://tldraw.com) app
+- **packages/core**: the @tldraw/core renderer component and utilities
+- **packages/tldraw**: the @tldraw/tldraw editor component
+- **packages/app**: an app to help with package development
 
-### yarn build
+## Support
 
-Builds all packages. 
+To support this project (and gain access to the project while it is in development) you can [sponsor the author](https://github.com/sponsors/steveruizok) on GitHub. Thanks!
+
+## Author
+
+- [steveruizok](https://twitter.com/steveruizok)
+- ...and more!
+
+## Local Development
+
+To work on the development app (at `packages/app`):
+
+1. Download or clone the repository.
+
+   ```bash
+   git clone https://github.com/tldraw/tldraw.git
+   ```
+
+2. Install dependencies.
+
+   ```bash
+   yarn
+   ```
+
+3. Start the development server.
+
+   ```bash
+   yarn start
+   ```
+
+4. Open the local site at `https://localhost:8080`.

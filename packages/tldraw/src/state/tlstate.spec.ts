@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 import type { TLBoundsEdge, TLBoundsCorner } from '@tldraw/core'
 import { inputs } from '@tldraw/core'
 import { TLDrawState } from './tlstate'

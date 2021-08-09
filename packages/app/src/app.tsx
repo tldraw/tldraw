@@ -3,7 +3,7 @@ import Editor from './components/editor'
 
 type AppProps = {}
 
-export const App: React.FC<AppProps> = (props) => {
+export const App: React.FC<AppProps> = props => {
   return (
     <div>
       <Editor />
