@@ -2,6 +2,7 @@
   "name": "@tldraw/core",
   "version": "0.0.32",
   "main": "build/index.js",
+  "author": "@steveruizok",
   "license": "MIT",
   "private": false,
   "scripts": {
