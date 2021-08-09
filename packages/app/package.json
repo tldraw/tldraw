@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/app",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "main": "index.js",
   "module": "index.js",
   "author": "@steveruizok",
@@ -20,7 +20,7 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "@tldraw/tldraw": "^0.0.31",
+    "@tldraw/tldraw": "^0.0.32",
     "idb": "^6.1.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
