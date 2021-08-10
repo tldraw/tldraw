@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": ["src"],
+  "exclude": ["node_modules", "**/*.test.ts", "dist"],
+  "compilerOptions": {
+    "jsx": "preserve",
+    "module": "esnext",
+    "outDir": "./dist/types"
+  }
+}

@@ -1,20 +1,7 @@
 module.exports = {
-  testEnvironment: 'jsdom',
-  testPathIgnorePatterns: ['node_modules', '.next'],
-  transformIgnorePatterns: [
-    'node_modules/(?!(sucrase|@state-designer/core|@state-designer/react|browser-fs-access)/)',
-  ],
+  roots: ['<rootDir>/packages/core/src', '<rootDir>/packages/tldraw/src'],
+  testMatch: ['**/__tests__/**/*.+(ts|tsx|js)', '**/?(*.)+(spec|test).+(ts|tsx|js)'],
   transform: {
-    '^.+\\.(ts|tsx|mjs)$': 'babel-jest',
-  },
-  modulePaths: ['<rootDir>', 'node_modules'],
-  testMatch: ['**/__tests__/**/*test.[t]s?(x)'],
-  watchPlugins: [
-    'jest-watch-typeahead/filename',
-    'jest-watch-typeahead/testname',
-  ],
-  moduleNameMapper: {
-    '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
-    '\\.(gif|ttf|eot|svg|png)$': '<rootDir>/test/__mocks__/fileMock.js',
+    '^.+\\.(ts|tsx)$': 'ts-jest',
   },
 }
