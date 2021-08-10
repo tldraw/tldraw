@@ -1,4 +1,5 @@
 /* eslint-disable */
+const fs = require('fs')
 
 const esbuild = require('esbuild')
 
@@ -19,9 +20,12 @@ async function main() {
       external: ['react', 'react-dom'],
     })
 
+    fs.copyFile('README.md', 'dist/README.md')
+
     console.log(`✔ ${name}: Built package.`)
   } catch (e) {
     console.log(`× ${name}: Build failed due to an error.`)
+    console.log(e)
   }
 }
 
