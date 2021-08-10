@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/www",
-  "version": "0.0.30",
+  "version": "0.0.31",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@stitches/react": "^0.2.3",
-    "@tldraw/tldraw": "*",
+    "@tldraw/tldraw": "^0.0.31",
     "idb": "^6.1.2",
     "next": "11.0.1",
     "next-transpile-modules": "^8.0.0",
@@ -26,8 +26,8 @@
     "@types/react-dom": "^17.0.9",
     "eslint": "7.32.0",
     "eslint-config-next": "11.0.1",
-    "typescript": "^4.3.5",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react-dom": "17.0.2",
+    "typescript": "^4.3.5"
   }
 }
