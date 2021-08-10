@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 const esbuild = require('esbuild')
 
 const name = process.env.npm_package_name || ''
@@ -7,13 +9,14 @@ async function main() {
     esbuild.buildSync({
       entryPoints: ['./src/index.ts'],
       outdir: 'dist/cjs',
-      minify: true,
+      minify: false,
       bundle: true,
-      target: 'esnext',
       format: 'cjs',
+      target: 'esnext',
       jsxFactory: 'React.createElement',
       jsxFragment: 'React.Fragment',
       tsconfig: './tsconfig.json',
+      external: ['react', 'react-dom'],
     })
 
     console.log(`✔ ${name}: Built package.`)
