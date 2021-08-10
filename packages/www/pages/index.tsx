@@ -5,7 +5,6 @@ const Editor = dynamic(() => import('../components/editor'), { ssr: false })
 export function Index(): JSX.Element {
   return (
     <div>
-      hi
       <Editor />
     </div>
   )
