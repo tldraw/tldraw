@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "description": "A tiny little drawing app.",
   "author": "Steve Ruiz <steveruizok+tldraw@gmail.com>",
   "repository": {
