@@ -19,6 +19,9 @@ async function main() {
       external: ['react', 'react-dom'],
     })
 
+    fs.copyFile('package.json', 'dist/package.json', (err) => {
+      if (err) throw err
+    })
     fs.copyFile('README.md', 'dist/README.md', (err) => {
       if (err) throw err
     })
