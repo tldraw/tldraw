@@ -9,7 +9,7 @@ import {
   TextIcon,
 } from '@radix-ui/react-icons'
 import * as React from 'react'
-import { StatusBar } from '../status-bar'
+import { StatusBar } from './status-bar'
 import { FloatingContainer } from '../shared'
 import { PrimaryButton, SecondaryButton } from './shared'
 import styled from '../../styles'
@@ -24,118 +24,118 @@ const activeToolSelector = (s: Data) => s.appState.activeTool
 const isToolLockedSelector = (s: Data) => s.appState.isToolLocked
 const isDebugModeSelector = (s: Data) => s.settings.isDebugMode
 
-export const ToolsPanel = React.memo(
-  (): JSX.Element => {
-    const { tlstate, useSelector } = useTLDrawContext()
+export const ToolsPanel = React.memo((): JSX.Element => {
+  const { tlstate, useSelector } = useTLDrawContext()
 
-    const activeTool = useSelector(activeToolSelector)
+  const activeTool = useSelector(activeToolSelector)
 
-    const isToolLocked = useSelector(isToolLockedSelector)
+  const isToolLocked = useSelector(isToolLockedSelector)
 
-    const isDebugMode = useSelector(isDebugModeSelector)
+  const isDebugMode = useSelector(isDebugModeSelector)
 
-    const selectSelectTool = React.useCallback(() => {
-      tlstate.selectTool('select')
-    }, [tlstate])
+  const selectSelectTool = React.useCallback(() => {
+    tlstate.selectTool('select')
+  }, [tlstate])
 
-    const selectDrawTool = React.useCallback(() => {
-      tlstate.selectTool(TLDrawShapeType.Draw)
-    }, [tlstate])
+  const selectDrawTool = React.useCallback(() => {
+    tlstate.selectTool(TLDrawShapeType.Draw)
+  }, [tlstate])
 
-    const selectRectangleTool = React.useCallback(() => {
-      tlstate.selectTool(TLDrawShapeType.Rectangle)
-    }, [tlstate])
+  const selectRectangleTool = React.useCallback(() => {
+    tlstate.selectTool(TLDrawShapeType.Rectangle)
+  }, [tlstate])
 
-    const selectEllipseTool = React.useCallback(() => {
-      tlstate.selectTool(TLDrawShapeType.Ellipse)
-    }, [tlstate])
+  const selectEllipseTool = React.useCallback(() => {
+    tlstate.selectTool(TLDrawShapeType.Ellipse)
+  }, [tlstate])
 
-    const selectArrowTool = React.useCallback(() => {
-      tlstate.selectTool(TLDrawShapeType.Arrow)
-    }, [tlstate])
+  const selectArrowTool = React.useCallback(() => {
+    tlstate.selectTool(TLDrawShapeType.Arrow)
+  }, [tlstate])
 
-    const selectTextTool = React.useCallback(() => {
-      tlstate.selectTool(TLDrawShapeType.Text)
-    }, [tlstate])
+  const selectTextTool = React.useCallback(() => {
+    tlstate.selectTool(TLDrawShapeType.Text)
+  }, [tlstate])
 
-    return (
-      <ToolsPanelContainer>
-        <LeftWrap size={{ '@initial': 'mobile', '@sm': 'small' }}>
-          <Zoom />
-          <FloatingContainer>
-            <SecondaryButton
-              label={'Select'}
-              kbd={'1'}
-              onClick={selectSelectTool}
-              isActive={activeTool === 'select'}
-            >
-              <CursorArrowIcon />
-            </SecondaryButton>
-          </FloatingContainer>
-        </LeftWrap>
-        <CenterWrap>
-          <BackToContent />
-          <FloatingContainer>
-            <PrimaryButton
-              kbd={'2'}
-              label={TLDrawShapeType.Draw}
-              onClick={selectDrawTool}
-              isActive={activeTool === TLDrawShapeType.Draw}
-            >
-              <Pencil1Icon />
-            </PrimaryButton>
-            <PrimaryButton
-              kbd={'3'}
-              label={TLDrawShapeType.Rectangle}
-              onClick={selectRectangleTool}
-              isActive={activeTool === TLDrawShapeType.Rectangle}
-            >
-              <SquareIcon />
-            </PrimaryButton>
-            <PrimaryButton
-              kbd={'4'}
-              label={TLDrawShapeType.Draw}
-              onClick={selectEllipseTool}
-              isActive={activeTool === TLDrawShapeType.Ellipse}
-            >
-              <CircleIcon />
-            </PrimaryButton>
-            <PrimaryButton
-              kbd={'5'}
-              label={TLDrawShapeType.Arrow}
-              onClick={selectArrowTool}
-              isActive={activeTool === TLDrawShapeType.Arrow}
-            >
-              <ArrowTopRightIcon />
-            </PrimaryButton>
-            <PrimaryButton
-              kbd={'6'}
-              label={TLDrawShapeType.Text}
-              onClick={selectTextTool}
-              isActive={activeTool === TLDrawShapeType.Text}
-            >
-              <TextIcon />
-            </PrimaryButton>
-          </FloatingContainer>
-        </CenterWrap>
-        <RightWrap size={{ '@initial': 'mobile', '@sm': 'small' }}>
-          <FloatingContainer>
-            <SecondaryButton
-              kbd={'7'}
-              label={'Lock Tool'}
-              onClick={tlstate.toggleToolLock}
-              isActive={isToolLocked}
-            >
-              {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
-            </SecondaryButton>
-          </FloatingContainer>
-          <UndoRedo />
-        </RightWrap>
-        <StatusWrap>{isDebugMode && <StatusBar />}</StatusWrap>
-      </ToolsPanelContainer>
-    )
-  }
-)
+  return (
+    <ToolsPanelContainer>
+      <LeftWrap size={{ '@initial': 'mobile', '@sm': 'small' }}>
+        <Zoom />
+        <FloatingContainer>
+          <SecondaryButton
+            label={'Select'}
+            kbd={'1'}
+            onClick={selectSelectTool}
+            isActive={activeTool === 'select'}
+          >
+            <CursorArrowIcon />
+          </SecondaryButton>
+        </FloatingContainer>
+      </LeftWrap>
+      <CenterWrap>
+        <BackToContent />
+        <FloatingContainer>
+          <PrimaryButton
+            kbd={'2'}
+            label={TLDrawShapeType.Draw}
+            onClick={selectDrawTool}
+            isActive={activeTool === TLDrawShapeType.Draw}
+          >
+            <Pencil1Icon />
+          </PrimaryButton>
+          <PrimaryButton
+            kbd={'3'}
+            label={TLDrawShapeType.Rectangle}
+            onClick={selectRectangleTool}
+            isActive={activeTool === TLDrawShapeType.Rectangle}
+          >
+            <SquareIcon />
+          </PrimaryButton>
+          <PrimaryButton
+            kbd={'4'}
+            label={TLDrawShapeType.Draw}
+            onClick={selectEllipseTool}
+            isActive={activeTool === TLDrawShapeType.Ellipse}
+          >
+            <CircleIcon />
+          </PrimaryButton>
+          <PrimaryButton
+            kbd={'5'}
+            label={TLDrawShapeType.Arrow}
+            onClick={selectArrowTool}
+            isActive={activeTool === TLDrawShapeType.Arrow}
+          >
+            <ArrowTopRightIcon />
+          </PrimaryButton>
+          <PrimaryButton
+            kbd={'6'}
+            label={TLDrawShapeType.Text}
+            onClick={selectTextTool}
+            isActive={activeTool === TLDrawShapeType.Text}
+          >
+            <TextIcon />
+          </PrimaryButton>
+        </FloatingContainer>
+      </CenterWrap>
+      <RightWrap size={{ '@initial': 'mobile', '@sm': 'small' }}>
+        <FloatingContainer>
+          <SecondaryButton
+            kbd={'7'}
+            label={'Lock Tool'}
+            onClick={tlstate.toggleToolLock}
+            isActive={isToolLocked}
+          >
+            {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
+          </SecondaryButton>
+        </FloatingContainer>
+        <UndoRedo />
+      </RightWrap>
+      <StatusWrap>
+        <StatusBar />
+      </StatusWrap>
+    </ToolsPanelContainer>
+  )
+})
 
 const ToolsPanelContainer = styled('div', {
   position: 'fixed',

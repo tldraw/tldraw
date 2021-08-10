@@ -18,13 +18,7 @@ import {
   Vec,
 } from '@tldraw/core'
 import { brushUpdater } from '@tldraw/core'
-import {
-  defaultStyle,
-  ShapeStyles,
-  TLDrawShape,
-  TLDrawShapeType,
-  TLDrawToolType,
-} from '../shape'
+import { defaultStyle, ShapeStyles, TLDrawShape, TLDrawShapeType, TLDrawToolType } from '../shape'
 import type {
   Data,
   Session,
@@ -45,19 +39,13 @@ import {
   TextSession,
 } from './session'
 import { TLDR } from './tldr'
-import {
-  TLDrawDocument,
-  MoveType,
-  AlignType,
-  StretchType,
-  DistributeType,
-} from '../types'
+import { TLDrawDocument, MoveType, AlignType, StretchType, DistributeType } from '../types'
 
 const initialData: Data = {
   settings: {
     isPenMode: false,
     isDarkMode: false,
-    isDebugMode: false,
+    isDebugMode: process.env.NODE_ENV === 'development',
     isReadonlyMode: false,
     nudgeDistanceLarge: 10,
     nudgeDistanceSmall: 1,
@@ -115,9 +103,7 @@ export class TLDrawState implements TLCallbacks {
   // Low API
   getState = this.store.getState
 
-  setState = <T extends keyof Data>(
-    data: Partial<Data> | ((data: Data) => Partial<Data>)
-  ) => {
+  setState = <T extends keyof Data>(data: Partial<Data> | ((data: Data) => Partial<Data>)) => {
     const current = this.getState()
 
     // Apply incoming change
@@ -130,11 +116,7 @@ export class TLDrawState implements TLCallbacks {
         ...next.page,
         shapes: Object.fromEntries(
           Object.entries(next.page.shapes).filter(([_, shape]) => {
-            return (
-              shape &&
-              (shape.parentId === next.page.id ||
-                next.page.shapes[shape.parentId])
-            )
+            return shape && (shape.parentId === next.page.id || next.page.shapes[shape.parentId])
           })
         ),
       }
@@ -241,9 +223,7 @@ export class TLDrawState implements TLCallbacks {
         ...data.appState,
         activeTool: tool,
         activeToolType:
-          tool === 'select'
-            ? 'select'
-            : TLDR.getShapeUtils({ type: tool } as TLDrawShape).toolType,
+          tool === 'select' ? 'select' : TLDR.getShapeUtils({ type: tool } as TLDrawShape).toolType,
       },
     }))
     return this
@@ -261,18 +241,14 @@ export class TLDrawState implements TLCallbacks {
 
   /* --------------------- Camera --------------------- */
   zoomIn = () => {
-    const i = Math.round(
-      (this.store.getState().pageState.camera.zoom * 100) / 25
-    )
+    const i = Math.round((this.store.getState().pageState.camera.zoom * 100) / 25)
     const nextZoom = TLDR.getCameraZoom((i + 1) * 0.25)
     this.zoomTo(nextZoom)
     return this
   }
 
   zoomOut = () => {
-    const i = Math.round(
-      (this.store.getState().pageState.camera.zoom * 100) / 25
-    )
+    const i = Math.round((this.store.getState().pageState.camera.zoom * 100) / 25)
     const nextZoom = TLDR.getCameraZoom((i - 1) * 0.25)
     this.zoomTo(nextZoom)
     return this
@@ -284,9 +260,7 @@ export class TLDrawState implements TLCallbacks {
 
       if (shapes.length === 0) return { pageState: data.pageState }
 
-      const bounds = Utils.getCommonBounds(
-        Object.values(shapes).map(TLDR.getBounds)
-      )
+      const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
 
       const zoom = TLDR.getCameraZoom(
         bounds.width > bounds.height
@@ -313,8 +287,7 @@ export class TLDrawState implements TLCallbacks {
 
   zoomToSelection = () => {
     this.setState((data) => {
-      if (TLDR.getSelectedIds(data).length === 0)
-        return { pageState: data.pageState }
+      if (TLDR.getSelectedIds(data).length === 0) return { pageState: data.pageState }
 
       const bounds = TLDR.getSelectedBounds(data)
 
@@ -360,9 +333,7 @@ export class TLDrawState implements TLCallbacks {
 
       if (shapes.length === 0) return { pageState: data.pageState }
 
-      const bounds = Utils.getCommonBounds(
-        Object.values(shapes).map(TLDR.getBounds)
-      )
+      const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
 
       const { zoom } = data.pageState.camera
       const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
@@ -452,10 +423,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   /* ---------------------- Document --------------------- */
-  loadDocument = (
-    document: TLDrawDocument,
-    onChange?: TLDrawState['_onChange']
-  ) => {
+  loadDocument = (document: TLDrawDocument, onChange?: TLDrawState['_onChange']) => {
     this._onChange = onChange
     this.currentDocumentId = document.id
     this.pages = Utils.deepClone(document.pages)
@@ -489,19 +457,14 @@ export class TLDrawState implements TLCallbacks {
   }
 
   /* -------------------- Sessions -------------------- */
-  startSession<T extends Session>(
-    session: T,
-    ...args: ParametersExceptFirst<T['start']>
-  ) {
+  startSession<T extends Session>(session: T, ...args: ParametersExceptFirst<T['start']>) {
     this.session = session
     this.setState((data) => session.start(data, ...args))
     this._onChange?.(this, `session:start_${session.id}`)
     return this
   }
 
-  updateSession<T extends Session>(
-    ...args: ParametersExceptFirst<T['update']>
-  ) {
+  updateSession<T extends Session>(...args: ParametersExceptFirst<T['update']>) {
     const { session } = this
     if (!session) return this
     this.setState((data) => session.update(data, ...args))
@@ -509,9 +472,7 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
-  cancelSession<T extends Session>(
-    ...args: ParametersExceptFirst<T['cancel']>
-  ) {
+  cancelSession<T extends Session>(...args: ParametersExceptFirst<T['cancel']>) {
     const { session } = this
     if (!session) return this
 
@@ -522,9 +483,7 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
-  completeSession<T extends Session>(
-    ...args: ParametersExceptFirst<T['complete']>
-  ) {
+  completeSession<T extends Session>(...args: ParametersExceptFirst<T['complete']>) {
     const { session } = this
     if (!session) return this
 
@@ -560,9 +519,7 @@ export class TLDrawState implements TLCallbacks {
 
     history.pointer = history.stack.length - 1
 
-    this.setState((data) =>
-      Utils.deepMerge<Data>(data, history.stack[history.pointer].after)
-    )
+    this.setState((data) => Utils.deepMerge<Data>(data, history.stack[history.pointer].after))
 
     this._onChange?.(this, `command:${command.id}`)
 
@@ -607,9 +564,7 @@ export class TLDrawState implements TLCallbacks {
       return {
         pageState: {
           ...data.pageState,
-          selectedIds: push
-            ? [...data.pageState.selectedIds, ...ids]
-            : [...ids],
+          selectedIds: push ? [...data.pageState.selectedIds, ...ids] : [...ids],
         },
       }
     })
@@ -715,9 +670,7 @@ export class TLDrawState implements TLCallbacks {
   nudge = (delta: number[], isMajor = false, ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
-    this.do(
-      commands.translate(data, idsToMutate, Vec.mul(delta, isMajor ? 10 : 1))
-    )
+    this.do(commands.translate(data, idsToMutate, Vec.mul(delta, isMajor ? 10 : 1)))
     return this
   }
 
@@ -846,20 +799,14 @@ export class TLDrawState implements TLCallbacks {
       } catch (e) {
         // Create a text shape from the given string
         const childIndex =
-          Object.values(data.page.shapes).sort(
-            (a, b) => b.childIndex - a.childIndex
-          )[0].childIndex + 1
+          Object.values(data.page.shapes).sort((a, b) => b.childIndex - a.childIndex)[0]
+            .childIndex + 1
 
-        const shape = TLDR.getShapeUtils<TextShape>(
-          TLDrawShapeType.Text
-        ).create({
+        const shape = TLDR.getShapeUtils<TextShape>(TLDrawShapeType.Text).create({
           id: Utils.uniqueId(),
           parentId: data.page.id,
           childIndex,
-          point: this.getPagePoint([
-            window.innerWidth / 2,
-            window.innerHeight / 2,
-          ]),
+          point: this.getPagePoint([window.innerWidth / 2, window.innerHeight / 2]),
           style: { ...data.appState.currentStyle },
         })
 
@@ -888,19 +835,14 @@ export class TLDrawState implements TLCallbacks {
       }
     })
 
-    const commonBounds = Utils.getCommonBounds(
-      shapesToPaste.map(TLDR.getBounds)
-    )
+    const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
 
     const centeredBounds = Utils.centerBounds(
       commonBounds,
       this.getPagePoint([window.innerWidth / 2, window.innerHeight / 2])
     )
 
-    let delta = Vec.sub(
-      Utils.getBoundsCenter(centeredBounds),
-      Utils.getBoundsCenter(commonBounds)
-    )
+    let delta = Vec.sub(Utils.getBoundsCenter(centeredBounds), Utils.getBoundsCenter(commonBounds))
 
     if (Vec.isEqual(delta, [0, 0])) {
       delta = [16, 16]
@@ -948,11 +890,7 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
-  updateTranslateSession = (
-    point: number[],
-    shiftKey = false,
-    altKey = false
-  ) => {
+  updateTranslateSession = (point: number[], shiftKey = false, altKey = false) => {
     this.updateSession<TranslateSession>(point, shiftKey, altKey)
     return this
   }
@@ -983,26 +921,14 @@ export class TLDrawState implements TLCallbacks {
       )
     } else {
       this.startSession(
-        new TransformSession(
-          this.store.getState(),
-          point,
-          this.pointedBoundsHandle
-        )
+        new TransformSession(this.store.getState(), point, this.pointedBoundsHandle)
       )
     }
     return this
   }
 
-  updateTransformSession = (
-    point: number[],
-    shiftKey = false,
-    altKey = false
-  ) => {
-    this.updateSession<TransformSingleSession | TransformSession>(
-      point,
-      shiftKey,
-      altKey
-    )
+  updateTransformSession = (point: number[], shiftKey = false, altKey = false) => {
+    this.updateSession<TransformSingleSession | TransformSession>(point, shiftKey, altKey)
     return this
   }
 
@@ -1029,23 +955,14 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
-  startHandleSession = (
-    point: number[],
-    handleId: string,
-    commandId?: string
-  ) => {
+  startHandleSession = (point: number[], handleId: string, commandId?: string) => {
     this.startSession<HandleSession>(
       new HandleSession(this.store.getState(), handleId, point, commandId)
     )
     return this
   }
 
-  updateHandleSession = (
-    point: number[],
-    shiftKey = false,
-    altKey = false,
-    metaKey = false
-  ) => {
+  updateHandleSession = (point: number[], shiftKey = false, altKey = false, metaKey = false) => {
     this.updateSession<HandleSession>(point, shiftKey, altKey, metaKey)
     return this
   }
@@ -1055,20 +972,14 @@ export class TLDrawState implements TLCallbacks {
       case 'pointingBoundsHandle': {
         if (Vec.dist(info.origin, info.point) > 4) {
           this.setStatus('transforming')
-          this.startTransformSession(
-            this.getPagePoint(info.origin),
-            this.pointedBoundsHandle!
-          )
+          this.startTransformSession(this.getPagePoint(info.origin), this.pointedBoundsHandle!)
         }
         break
       }
       case 'pointingHandle': {
         if (Vec.dist(info.origin, info.point) > 4) {
           this.setStatus('translatingHandle')
-          this.startHandleSession(
-            this.getPagePoint(info.origin),
-            this.pointedHandle!
-          )
+          this.startHandleSession(this.getPagePoint(info.origin), this.pointedHandle!)
         }
         break
       }
@@ -1084,52 +995,29 @@ export class TLDrawState implements TLCallbacks {
         break
       }
       case 'translating': {
-        this.updateTranslateSession(
-          this.getPagePoint(info.point),
-          info.shiftKey,
-          info.altKey
-        )
+        this.updateTranslateSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
         break
       }
       case 'transforming': {
-        this.updateTransformSession(
-          this.getPagePoint(info.point),
-          info.shiftKey,
-          info.altKey
-        )
+        this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
         break
       }
       case 'translatingHandle': {
-        this.updateHandleSession(
-          this.getPagePoint(info.point),
-          info.shiftKey,
-          info.altKey
-        )
+        this.updateHandleSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
         break
       }
       case 'creating': {
         switch (this.appState.activeToolType) {
           case 'draw': {
-            this.updateDrawSession(
-              this.getPagePoint(info.point),
-              info.pressure,
-              info.shiftKey
-            )
+            this.updateDrawSession(this.getPagePoint(info.point), info.pressure, info.shiftKey)
             break
           }
           case 'bounds': {
-            this.updateTransformSession(
-              this.getPagePoint(info.point),
-              info.shiftKey
-            )
+            this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey)
             break
           }
           case 'handle': {
-            this.updateHandleSession(
-              this.getPagePoint(info.point),
-              info.shiftKey,
-              info.altKey
-            )
+            this.updateHandleSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
             break
           }
           case 'point': {
@@ -1193,11 +1081,7 @@ export class TLDrawState implements TLCallbacks {
         break
       }
       case TLDrawToolType.Bounds: {
-        this.startTransformSession(
-          pagePoint,
-          TLBoundsCorner.BottomRight,
-          `create_${activeTool}`
-        )
+        this.startTransformSession(pagePoint, TLBoundsCorner.BottomRight, `create_${activeTool}`)
         break
       }
       case TLDrawToolType.Handle: {
@@ -1242,11 +1126,7 @@ export class TLDrawState implements TLCallbacks {
         }
 
         if (key === 'Shift' || key === 'Alt') {
-          this.updateTranslateSession(
-            this.getPagePoint(info.point),
-            info.shiftKey,
-            info.altKey
-          )
+          this.updateTranslateSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
         }
         break
       }
@@ -1256,11 +1136,7 @@ export class TLDrawState implements TLCallbacks {
         }
 
         if (key === 'Shift' || key === 'Alt') {
-          this.updateTransformSession(
-            this.getPagePoint(info.point),
-            info.shiftKey,
-            info.altKey
-          )
+          this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
         }
         break
       }
@@ -1277,21 +1153,13 @@ export class TLDrawState implements TLCallbacks {
       }
       case 'transforming': {
         if (key === 'Shift' || key === 'Alt') {
-          this.updateTransformSession(
-            this.getPagePoint(info.point),
-            info.shiftKey,
-            info.altKey
-          )
+          this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
         }
         break
       }
       case 'translating': {
         if (key === 'Shift' || key === 'Alt') {
-          this.updateTransformSession(
-            this.getPagePoint(info.point),
-            info.shiftKey,
-            info.altKey
-          )
+          this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
         }
         break
       }
@@ -1380,9 +1248,7 @@ export class TLDrawState implements TLCallbacks {
           if (info.shiftKey) {
             // Unless we just shift-selected the shape, remove it from the selected shapes
             if (this.pointedId !== info.target) {
-              this.setSelectedIds(
-                data.pageState.selectedIds.filter((id) => id !== info.target)
-              )
+              this.setSelectedIds(data.pageState.selectedIds.filter((id) => id !== info.target))
             }
           }
         } else if (this.pointedId === info.target) {

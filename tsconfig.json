@@ -26,7 +26,7 @@
     "strictFunctionTypes": true /* Enable strict checking of function types. */,
     "strictNullChecks": true /* Enable strict null checks. */,
     "target": "es5",
-    "typeRoots": ["node_modules/@types"],
+    "typeRoots": ["node_modules/@types", "node_modules/jest"],
     "types": ["node", "jest"],
     "paths": {
       "@tldraw/*": ["./packages/*"]

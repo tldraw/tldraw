@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { useTLDrawContext } from '../hooks'
-import type { Data } from '../state'
-import styled from '../styles'
+import { useTLDrawContext } from '../../hooks'
+import type { Data } from '../../state'
+import styled from '../../styles'
 
 const activeToolSelector = (s: Data) => s.appState.activeTool
 

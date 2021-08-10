@@ -41,7 +41,7 @@ function useTheme<T = AnyTheme>(prefix: string, theme: T, selector = ':root') {
 function useStyle(uid: string, rules: string) {
   React.useLayoutEffect(() => {
     if (styles.get(uid)) {
-      return () => {}
+      return () => void null
     }
 
     const style = document.createElement('style')

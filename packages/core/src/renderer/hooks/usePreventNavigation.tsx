@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import * as React from 'react'
 
-export function usePreventNavigation(rCanvas: React.RefObject<SVGGElement>) {
+export function usePreventNavigation(rCanvas: React.RefObject<SVGGElement>): void {
   React.useEffect(() => {
     const preventGestureNavigation = (event: TouchEvent) => {
       event.preventDefault()
@@ -27,7 +27,7 @@ export function usePreventNavigation(rCanvas: React.RefObject<SVGGElement>) {
 
     const elm = rCanvas.current
 
-    if (!elm) return () => {}
+    if (!elm) return () => void null
 
     elm.addEventListener('touchstart', preventGestureNavigation)
 

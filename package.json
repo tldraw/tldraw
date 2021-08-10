@@ -10,8 +10,18 @@
   "license": "MIT",
   "version": "0.0.36",
   "workspaces": [
-    "packages/*"
+    "packages/core",
+    "packages/tldraw",
+    "packages/dev"
   ],
+  "scripts": {
+    "test": "jest",
+    "lerna": "lerna",
+    "start": "lerna run dev --stream --parallel",
+    "start:www": "lerna run dev --stream --parallel &  cd packages/www && yarn build",
+    "build": "yarn build:packages && cd packages/www && yarn build",
+    "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build"
+  },
   "devDependencies": {
     "@babel/plugin-syntax-import-meta": "^7.10.4",
     "@babel/preset-react": "^7.14.5",
@@ -32,20 +42,13 @@
     "tslib": "^2.3.0",
     "typescript": "^4.3.5"
   },
-  "scripts": {
-    "test": "jest",
-    "lerna": "lerna",
-    "start": "lerna run dev --stream --parallel",
-    "build": "yarn build:packages && cd packages/www && yarn build",
-    "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build"
-  },
+  "dependencies": {},
   "prettier": {
     "trailingComma": "es5",
     "singleQuote": true,
     "semi": false,
     "printWidth": 100
   },
-  "dependencies": {},
   "jest": {
     "preset": "ts-jest",
     "transform": {

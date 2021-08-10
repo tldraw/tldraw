@@ -15,6 +15,8 @@ export function useZoomEvents() {
 
   useWheel(
     ({ event: e, delta }) => {
+      e.preventDefault()
+
       if (Vec.isEqual(delta, [0, 0])) return
 
       const info = inputs.pan(delta, e as WheelEvent)

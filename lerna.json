@@ -9,6 +9,6 @@
   "packages": [
     "packages/core",
     "packages/tldraw",
-    "packages/www"
+    "packages/dev"
   ]
 }
