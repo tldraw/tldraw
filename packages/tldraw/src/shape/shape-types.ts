@@ -1,3 +1,4 @@
+import type { TLBinding } from './../../../core/src/types'
 import { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
 
 export enum TLDrawToolType {
@@ -60,23 +61,20 @@ export interface TextShape extends TLDrawBaseShape {
   text: string
 }
 
-export type TLDrawShape =
-  | RectangleShape
-  | EllipseShape
-  | DrawShape
-  | ArrowShape
-  | TextShape
+export type TLDrawShape = RectangleShape | EllipseShape | DrawShape | ArrowShape | TextShape
 
-export abstract class TLDrawShapeUtil<
-  T extends TLDrawShape
-> extends TLShapeUtil<T> {
+export abstract class TLDrawShapeUtil<T extends TLDrawShape> extends TLShapeUtil<T> {
   abstract toolType: TLDrawToolType
 }
 
-export type TLDrawShapeUtils = Record<
-  TLDrawShapeType,
-  TLDrawShapeUtil<TLDrawShape>
->
+export type TLDrawShapeUtils = Record<TLDrawShapeType, TLDrawShapeUtil<TLDrawShape>>
+
+export interface ArrowBinding extends TLBinding {
+  type: 'arrow'
+  handleId: keyof ArrowShape['handles']
+  distance: number
+  point: number[]
+}
 
 export enum ColorStyle {
   White = 'White',

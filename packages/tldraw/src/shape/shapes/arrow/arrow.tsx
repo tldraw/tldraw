@@ -8,6 +8,8 @@ import {
   Intersect,
   TLHandle,
   TLPointerInfo,
+  TLBinding,
+  TLShapeUtil,
 } from '@tldraw/core'
 import getStroke from 'perfect-freehand'
 import { defaultStyle, getPerfectDashProps, getShapeStyle } from '../../shape-styles'
@@ -18,6 +20,8 @@ import {
   TLDrawShapeType,
   TLDrawToolType,
   DashStyle,
+  TLDrawShape,
+  ArrowBinding,
 } from '../../shape-types'
 
 export class Arrow extends TLDrawShapeUtil<ArrowShape> {
@@ -271,36 +275,6 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     )
   }
 
-  // rotateBy(shape, delta) {
-  //   const { start, end, bend } = shape.handles
-  //   const mp = Vec.med(start.point, end.point)
-  //   start.point = Vec.rotWith(start.point, mp, delta)
-  //   end.point = Vec.rotWith(end.point, mp, delta)
-  //   bend.point = Vec.rotWith(bend.point, mp, delta)
-
-  //   this.onHandleChange(shape, shape.handles, {
-  //     delta: [0, 0],
-  //     shiftKey: false,
-  //   })
-
-  //   return this
-  // }
-
-  // rotateTo(shape, rotation, delta) {
-  //   const { start, end, bend } = shape.handles
-  //   const mp = Vec.med(start.point, end.point)
-  //   start.point = Vec.rotWith(start.point, mp, delta)
-  //   end.point = Vec.rotWith(end.point, mp, delta)
-  //   bend.point = Vec.rotWith(bend.point, mp, delta)
-
-  //   this.onHandleChange(shape, shape.handles, {
-  //     delta: [0, 0],
-  //     shiftKey: false,
-  //   })
-
-  //   return this
-  // }
-
   getBounds = (shape: ArrowShape) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       const { start, bend, end } = shape.handles
@@ -359,7 +333,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
 
     const nextHandles = { ...initialShape.handles }
 
-    handles.forEach(handle => {
+    handles.forEach((handle) => {
       const [x, y] = nextHandles[handle].point
       const nw = x / initialShapeBounds.width
       const nh = y / initialShapeBounds.height
@@ -431,95 +405,95 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     return this
   }
 
-  // onBindingChange(shape, binding, target, bounds, expandDistance) {
-  //   const handle = shape.handles[binding.fromHandleId]
+  onBindingChange = (
+    shape: ArrowShape,
+    binding: ArrowBinding,
+    target: TLDrawShape,
+    targetBounds: TLBounds,
+    center: number[]
+  ): void | Partial<ArrowShape> => {
+    const handle = shape.handles[binding.handleId]
+    const bounds = this.getBounds(shape)
+    const expandedBounds = Utils.expandBounds(bounds, binding.distance)
 
-  //   if (!handle) {
-  //     throw Error('Could not find a handle with the binding id: ' + binding.fromHandleId)
-  //   }
+    const anchor = Vec.sub(
+      Vec.add(
+        [expandedBounds.minX, expandedBounds.minY],
+        Vec.mulV([expandedBounds.width, expandedBounds.height], binding.point)
+      ),
+      shape.point
+    )
 
-  //   const expandedBounds = expandBounds(bounds, expandDistance)
+    let handlePoint: number[]
 
-  //   const anchor = Vec.sub(
-  //     Vec.add(
-  //       [expandedBounds.minX, expandedBounds.minY],
-  //       Vec.mulV([expandedBounds.width, expandedBounds.height], binding.point)
-  //     ),
-  //     shape.point
-  //   )
+    const origin = Vec.add(
+      shape.point,
+      shape.handles[binding.handleId === 'start' ? 'end' : 'start'].point
+    )
 
-  //   let point: number[]
+    const direction = Vec.uni(Vec.sub(Vec.add(anchor, shape.point), origin))
 
-  //   if (binding.distance) {
-  //     const origin = Vec.add(
-  //       shape.point,
-  //       shape.handles[binding.fromHandleId === 'start' ? 'end' : 'start'].point
-  //     )
+    // TODO: Abstract this part onto individual shape utils?
 
-  //     const direction = Vec.uni(Vec.sub(Vec.add(anchor, shape.point), origin))
+    if ([TLDrawShapeType.Rectangle, TLDrawShapeType.Text].includes(target.type)) {
+      const intersectBounds = Utils.expandBounds(targetBounds, binding.distance)
 
-  //     // TODO: Abstract this part onto individual shape utils
+      let hits = Intersect.ray
+        .bounds(origin, direction, intersectBounds)
+        .filter((int) => int.didIntersect)
+        .map((int) => int.points[0])
+        .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
 
-  //     switch (target.type) {
-  //       case ShapeType.Text:
-  //       case ShapeType.Rectangle: {
-  //         const intersectBounds = expandBounds(bounds, binding.distance)
+      if (hits.length < 2) {
+        hits = Intersect.ray
+          .bounds(origin, Vec.neg(direction), intersectBounds)
+          .filter((int) => int.didIntersect)
+          .map((int) => int.points[0])
+          .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
+      }
 
-  //         let hits = Intersect.ray
-  //           .bounds(origin, direction, intersectBounds)
-  //           .filter(int => int.didIntersect)
-  //           .map(int => int.points[0])
-  //           .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
+      if (!hits[0]) {
+        console.warn('No intersection.')
+        return
+      }
 
-  //         if (hits.length < 2) {
-  //           hits = Intersect.ray
-  //             .bounds(origin, Vec.neg(direction), intersectBounds)
-  //             .filter(int => int.didIntersect)
-  //             .map(int => int.points[0])
-  //             .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-  //         }
+      handlePoint = Vec.sub(hits[0], shape.point)
+    } else if (target.type === TLDrawShapeType.Ellipse) {
+      // const center = getShapeUtils(target).getCenter(target)
 
-  //         if (!hits[0]) {
-  //           console.warn('No intersection.')
-  //           return
-  //         }
+      handlePoint = Vec.nudge(
+        Vec.sub(
+          Intersect.ray
+            .ellipse(
+              origin,
+              direction,
+              center,
+              target.radius[0],
+              target.radius[1],
+              target.rotation || 0
+            )
+            .points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))[0],
+          shape.point
+        ),
+        origin,
+        binding.distance
+      )
+    } else {
+      handlePoint = anchor
+    }
 
-  //         point = Vec.sub(hits[0], shape.point)
-
-  //         break
-  //       }
-  //       case ShapeType.Ellipse: {
-  //         const center = getShapeUtils(target).getCenter(target)
-
-  //         point = Vec.nudge(
-  //           Vec.sub(
-  //             Intersect.ray
-  //               .ellipse(origin, direction, center, target.radiusX, target.radiusY, target.rotation)
-  //               .points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))[0],
-  //             shape.point
-  //           ),
-  //           origin,
-  //           binding.distance
-  //         )
-  //       }
-  //     }
-  //   } else {
-  //     point = anchor
-  //   }
-
-  //   this.onHandleChange(
-  //     shape,
-  //     {
-  //       [handle.id]: {
-  //         ...shape.handles[handle.id],
-  //         point: Vec.round(point),
-  //       },
-  //     },
-  //     { shiftKey: false }
-  //   )
-
-  //   return this
-  // }
+    return this.onHandleChange(
+      shape,
+      {
+        ...shape.handles,
+        [handle.id]: {
+          ...handle,
+          point: Vec.round(handlePoint),
+        },
+      },
+      { shiftKey: false }
+    )
+  }
 
   onHandleChange = (
     shape: ArrowShape,
@@ -676,7 +650,7 @@ function renderFreehandArrowShaft(shape: ArrowShape) {
     {
       size: strokeWidth / 2,
       thinning: 0.5 + getRandom() * 0.3,
-      easing: t => t * t,
+      easing: (t) => t * t,
       end: { taper: 1 },
       start: { taper: 1 + 32 * (st * st * st) },
       simulatePressure: true,
@@ -717,7 +691,7 @@ function renderCurvedFreehandArrowShaft(shape: ArrowShape, circle: number[]) {
   const stroke = getStroke([...points, end.point, end.point], {
     size: strokeWidth / 2,
     thinning: 0.5 + getRandom() * 0.3,
-    easing: t => t * t,
+    easing: (t) => t * t,
     end: {
       taper: shape.decorations?.end ? 1 : 1 + strokeWidth * 5 * (st * st * st),
     },

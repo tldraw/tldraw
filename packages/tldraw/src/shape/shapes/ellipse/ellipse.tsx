@@ -165,13 +165,13 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
     const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
     return (
-      rotatedCorners.every(point => Utils.pointInBounds(point, bounds)) ||
+      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
       Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
     )
   }
 
   transform(
-    shape: EllipseShape,
+    _shape: EllipseShape,
     bounds: TLBounds,
     { scaleX, scaleY, initialShape }: TLTransformInfo<EllipseShape>
   ) {
@@ -242,7 +242,7 @@ function renderPath(shape: EllipseShape, boundsCenter: number[]) {
   const stroke = getStroke(points, {
     size: 1 + strokeWidth,
     thinning: 0.6,
-    easing: t => t * t * t * t,
+    easing: (t) => t * t * t * t,
     end: { taper: strokeWidth * 20 },
     start: { taper: strokeWidth * 20 },
     simulatePressure: false,

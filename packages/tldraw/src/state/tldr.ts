@@ -1,20 +1,10 @@
 import { TLBinding, TLBounds, TLTransformInfo, Vec, Utils } from '@tldraw/core'
-import {
-  getShapeUtils,
-  ShapeStyles,
-  ShapesWithProp,
-  TLDrawShape,
-  TLDrawShapeUtil,
-} from '../shape'
+import { getShapeUtils, ShapeStyles, ShapesWithProp, TLDrawShape, TLDrawShapeUtil } from '../shape'
 import type { Data } from './state-types'
 
 export class TLDR {
-  static getShapeUtils<T extends TLDrawShape>(
-    shape: T | T['type']
-  ): TLDrawShapeUtil<T> {
-    return getShapeUtils(
-      typeof shape === 'string' ? ({ type: shape } as T) : shape
-    )
+  static getShapeUtils<T extends TLDrawShape>(shape: T | T['type']): TLDrawShapeUtil<T> {
+    return getShapeUtils(typeof shape === 'string' ? ({ type: shape } as T) : shape)
   }
 
   static getSelectedShapes(data: Data) {
@@ -28,10 +18,7 @@ export class TLDR {
 
   static getViewport(data: Data): TLBounds {
     const [minX, minY] = this.screenToWorld(data, [0, 0])
-    const [maxX, maxY] = this.screenToWorld(data, [
-      window.innerWidth,
-      window.innerHeight,
-    ])
+    const [maxX, maxY] = this.screenToWorld(data, [window.innerWidth, window.innerHeight])
 
     return {
       minX,
@@ -71,10 +58,7 @@ export class TLDR {
     return data.pageState.camera
   }
 
-  static getShape<T extends TLDrawShape = TLDrawShape>(
-    data: Data,
-    shapeId: string
-  ): T {
+  static getShape<T extends TLDrawShape = TLDrawShape>(data: Data, shapeId: string): T {
     return data.page.shapes[shapeId] as T
   }
 
@@ -88,9 +72,7 @@ export class TLDR {
 
   static getSelectedBounds(data: Data): TLBounds {
     return Utils.getCommonBounds(
-      this.getSelectedShapes(data).map((shape) =>
-        getShapeUtils(shape).getBounds(shape)
-      )
+      this.getSelectedShapes(data).map((shape) => getShapeUtils(shape).getBounds(shape))
     )
   }
 
@@ -103,8 +85,7 @@ export class TLDR {
     const shape = data.page.shapes[id]
     if (!shape) return id
 
-    return shape.parentId === data.pageState.currentParentId ||
-      shape.parentId === data.page.id
+    return shape.parentId === data.pageState.currentParentId || shape.parentId === data.page.id
       ? id
       : this.getPointedId(data, shape.parentId)
   }
@@ -127,8 +108,7 @@ export class TLDR {
       throw Error(`Shape has the same id as its parent! ${shape.id}`)
     }
 
-    return shape.parentId === data.page.id ||
-      shape.parentId === data.pageState.currentParentId
+    return shape.parentId === data.page.id || shape.parentId === data.pageState.currentParentId
       ? id
       : this.getTopParentId(data, shape.parentId)
   }
@@ -139,12 +119,7 @@ export class TLDR {
 
     if (shape.children === undefined) return [id]
 
-    return [
-      id,
-      ...shape.children.flatMap((childId) =>
-        this.getDocumentBranch(data, childId)
-      ),
-    ]
+    return [id, ...shape.children.flatMap((childId) => this.getDocumentBranch(data, childId))]
   }
 
   // Get a deep array of unproxied shapes and their descendants
@@ -160,9 +135,7 @@ export class TLDR {
     const page = this.getPage(data)
 
     const copies = this.getSelectedIds(data)
-      .flatMap((id) =>
-        this.getDocumentBranch(data, id).map((id) => page.shapes[id])
-      )
+      .flatMap((id) => this.getDocumentBranch(data, id).map((id) => page.shapes[id]))
       .filter((shape) => !shape.isLocked)
       .map(Utils.deepClone)
 
@@ -230,9 +203,7 @@ export class TLDR {
       visited.forEach((id) => {
         Object.values(data.page.bindings)
           .filter((binding) => binding.fromId === id || binding.toId === id)
-          .forEach((binding) =>
-            visited.add(binding.fromId === id ? binding.toId : binding.fromId)
-          )
+          .forEach((binding) => visited.add(binding.fromId === id ? binding.toId : binding.fromId))
       })
     })
 
@@ -261,18 +232,14 @@ export class TLDR {
           if (!beforeShapes[deltaShape.id]) {
             beforeShapes[deltaShape.id] = deltaShape
           }
-          cData.page.shapes[deltaShape.id] = this.getShapeUtils(
-            deltaShape
-          ).mutate(deltaShape, delta)
+          cData.page.shapes[deltaShape.id] = this.getShapeUtils(deltaShape).mutate(
+            deltaShape,
+            delta
+          )
           afterShapes[deltaShape.id] = cData.page.shapes[deltaShape.id]
 
           if (deltaShape.children !== undefined) {
-            this.recursivelyUpdateChildren(
-              cData,
-              deltaShape.id,
-              beforeShapes,
-              afterShapes
-            )
+            this.recursivelyUpdateChildren(cData, deltaShape.id, beforeShapes, afterShapes)
           }
 
           return cData
@@ -303,20 +270,12 @@ export class TLDR {
         if (!beforeShapes[parent.id]) {
           beforeShapes[parent.id] = parent
         }
-        data.page.shapes[parent.id] = this.getShapeUtils(parent).mutate(
-          parent,
-          delta
-        )
+        data.page.shapes[parent.id] = this.getShapeUtils(parent).mutate(parent, delta)
         afterShapes[parent.id] = data.page.shapes[parent.id]
       }
 
       if (parent.parentId !== data.page.id) {
-        return this.recursivelyUpdateParents(
-          data,
-          parent.parentId,
-          beforeShapes,
-          afterShapes
-        )
+        return this.recursivelyUpdateParents(data, parent.parentId, beforeShapes, afterShapes)
       }
     }
 
@@ -333,15 +292,11 @@ export class TLDR {
       .filter((binding) => binding.fromId === id || binding.toId === id)
       .reduce((cData, binding) => {
         if (!beforeShapes[binding.id]) {
-          beforeShapes[binding.fromId] = Utils.deepClone(
-            cData.page.shapes[binding.fromId]
-          )
+          beforeShapes[binding.fromId] = Utils.deepClone(cData.page.shapes[binding.fromId])
         }
 
         if (!beforeShapes[binding.toId]) {
-          beforeShapes[binding.toId] = Utils.deepClone(
-            cData.page.shapes[binding.toId]
-          )
+          beforeShapes[binding.toId] = Utils.deepClone(cData.page.shapes[binding.toId])
         }
 
         this.onBindingChange(
@@ -351,12 +306,8 @@ export class TLDR {
           cData.page.shapes[binding.toId]
         )
 
-        afterShapes[binding.fromId] = Utils.deepClone(
-          cData.page.shapes[binding.fromId]
-        )
-        afterShapes[binding.toId] = Utils.deepClone(
-          cData.page.shapes[binding.toId]
-        )
+        afterShapes[binding.fromId] = Utils.deepClone(cData.page.shapes[binding.fromId])
+        afterShapes[binding.toId] = Utils.deepClone(cData.page.shapes[binding.toId])
 
         return cData
       }, data)
@@ -367,11 +318,10 @@ export class TLDR {
 
     const shape = page.shapes[id]
 
-    const siblings = (shape.parentId === page.id
-      ? Object.values(page.shapes)
-      : page.shapes[shape.parentId].children!.map(
-          (childId) => page.shapes[childId]
-        )
+    const siblings = (
+      shape.parentId === page.id
+        ? Object.values(page.shapes)
+        : page.shapes[shape.parentId].children!.map((childId) => page.shapes[childId])
     ).sort((a, b) => a.childIndex - b.childIndex)
 
     const index = siblings.indexOf(shape)
@@ -421,12 +371,7 @@ export class TLDR {
     })
 
     const dataWithChildrenChanges = ids.reduce<Data>((cData, id) => {
-      return this.recursivelyUpdateChildren(
-        cData,
-        id,
-        beforeShapes,
-        afterShapes
-      )
+      return this.recursivelyUpdateChildren(cData, id, beforeShapes, afterShapes)
     }, data)
 
     const dataWithParentChanges = ids.reduce<Data>((cData, id) => {
@@ -496,7 +441,8 @@ export class TLDR {
       shape,
       binding,
       otherShape,
-      getShapeUtils(otherShape).getBounds(otherShape)
+      getShapeUtils(otherShape).getBounds(otherShape),
+      getShapeUtils(otherShape).getCenter(otherShape)
     )
     if (!delta) return shape
     return this.mutate(data, shape, delta)
@@ -508,11 +454,7 @@ export class TLDR {
     bounds: TLBounds,
     info: TLTransformInfo<T>
   ) {
-    return this.mutate(
-      data,
-      shape,
-      getShapeUtils(shape).transform(shape, bounds, info)
-    )
+    return this.mutate(data, shape, getShapeUtils(shape).transform(shape, bounds, info))
   }
 
   static transformSingle<T extends TLDrawShape>(
@@ -521,18 +463,10 @@ export class TLDR {
     bounds: TLBounds,
     info: TLTransformInfo<T>
   ) {
-    return this.mutate(
-      data,
-      shape,
-      getShapeUtils(shape).transformSingle(shape, bounds, info)
-    )
+    return this.mutate(data, shape, getShapeUtils(shape).transformSingle(shape, bounds, info))
   }
 
-  static mutate<T extends TLDrawShape>(
-    data: Data,
-    shape: T,
-    props: Partial<T>
-  ) {
+  static mutate<T extends TLDrawShape>(data: Data, shape: T, props: Partial<T>) {
     let next = getShapeUtils(shape).mutate(shape, props)
 
     if ('children' in props) {
@@ -581,9 +515,7 @@ export class TLDR {
       return currentStyle
     }
 
-    const shapeStyles = data.pageState.selectedIds.map(
-      (id) => page.shapes[id].style
-    )
+    const shapeStyles = data.pageState.selectedIds.map((id) => page.shapes[id].style)
 
     const commonStyle: ShapeStyles = {} as ShapeStyles
 
