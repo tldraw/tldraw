@@ -1,8 +1,9 @@
 {
   "name": "@tldraw/tldraw",
   "version": "0.0.38",
-  "description": "A tiny little drawing app.",
-  "author": "Steve Ruiz <steveruizok+tldraw@gmail.com>",
+  "private": false,
+  "description": "A tiny little drawing app (editor).",
+  "author": "@steveruizok",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tldraw/tldraw.git",
@@ -10,6 +11,10 @@
   },
   "license": "MIT",
   "keywords": [],
+  "files": [
+    "README.md",
+    "dist"
+  ],
   "main": "./dist/cjs/index.js",
   "types": "./dist/types/index.d.ts",
   "scripts": {
@@ -53,7 +58,7 @@
     "@radix-ui/react-radio-group": "^0.0.18",
     "@radix-ui/react-tooltip": "^0.0.20",
     "@stitches/react": "^0.2.3",
-    "@tldraw/core": "^0.0.31",
+    "@tldraw/core": "*",
     "ismobilejs": "^1.1.1",
     "perfect-freehand": "^0.4.10",
     "react-hotkeys-hook": "^3.4.0",

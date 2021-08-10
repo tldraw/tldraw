@@ -1,15 +1,20 @@
 {
   "name": "@tldraw/core",
   "version": "0.0.38",
-  "description": "A tiny little drawing app.",
-  "author": "Steve Ruiz <steveruizok+tldraw@gmail.com>",
+  "private": false,
+  "description": "A tiny little drawing app (core).",
+  "author": "@steveruizok",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tldraw/tldraw.git",
-    "directory": "packages/tldraw"
+    "directory": "packages/core"
   },
   "license": "MIT",
   "keywords": [],
+  "files": [
+    "README.md",
+    "dist"
+  ],
   "main": "./dist/cjs/index.js",
   "types": "./dist/types/index.d.ts",
   "scripts": {

@@ -2,6 +2,14 @@
   "name": "@tldraw/www",
   "version": "0.0.38",
   "private": true,
+  "description": "A tiny little drawing app (editor).",
+  "author": "@steveruizok",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tldraw/tldraw.git",
+    "directory": "packages/www"
+  },
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,12 +19,12 @@
   },
   "dependencies": {
     "@stitches/react": "^0.2.3",
-    "@tldraw/tldraw": "^0.0.31",
+    "@tldraw/tldraw": "latest",
     "idb": "^6.1.2",
-    "next": "11.0.1",
+    "next": "^11.0.1",
     "next-transpile-modules": "^8.0.0",
-    "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.14.6",
@@ -26,8 +34,6 @@
     "@types/react-dom": "^17.0.9",
     "eslint": "7.32.0",
     "eslint-config-next": "11.0.1",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
     "typescript": "^4.3.5"
   }
 }

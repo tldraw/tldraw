@@ -22,6 +22,7 @@
     "sourceMap": true,
     "outDir": "./dist/tsc/",
     "types": ["node", "jest"],
+    "baseUrl": ".",
     "paths": {
       "@tldraw/*": ["./packages/*"]
     }

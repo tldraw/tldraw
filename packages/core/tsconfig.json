@@ -4,6 +4,7 @@
   "exclude": ["node_modules", "**/*.test.ts", "dist"],
   "compilerOptions": {
     "jsx": "preserve",
+    "lib": ["dom", "esnext"],
     "module": "esnext",
     "outDir": "./dist/types"
   }

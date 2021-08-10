@@ -2,12 +2,15 @@
   "name": "tldraw",
   "private": true,
   "author": "@steveruizok",
+  "description": "A tiny little drawing app.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tldraw/tldraw.git"
+  },
   "license": "MIT",
   "version": "0.0.36",
   "workspaces": [
-    "packages/core",
-    "packages/tldraw",
-    "packages/www"
+    "packages/*"
   ],
   "devDependencies": {
     "@types/jest": "^26.0.24",
