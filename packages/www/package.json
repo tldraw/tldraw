@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/www",
-  "version": "0.0.39",
+  "version": "0.0.40",
   "private": true,
   "description": "A tiny little drawing app (editor).",
   "author": "@steveruizok",
