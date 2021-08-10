@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/www",
-  "version": "0.0.31",
+  "version": "0.0.36",
   "private": true,
   "scripts": {
     "dev": "next dev",
