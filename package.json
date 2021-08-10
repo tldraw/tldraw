@@ -3,7 +3,7 @@
   "private": true,
   "author": "@steveruizok",
   "license": "MIT",
-  "version": "0.0.25",
+  "version": "0.0.35",
   "workspaces": [
     "packages/core",
     "packages/tldraw",
@@ -16,18 +16,17 @@
     "@types/react-dom": "^17.0.9",
     "@typescript-eslint/eslint-plugin": "^4.19.0",
     "@typescript-eslint/parser": "^4.19.0",
+    "esbuild": "^0.11.11",
     "lerna": "^3.15.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "tslib": "^2.3.0",
-    "typescript": "^4.3.5",
-    "esbuild": "^0.11.11"
+    "typescript": "^4.3.5"
   },
   "scripts": {
     "lerna": "lerna",
-    "start": "lerna run build && lerna run dev --stream --parallel",
-    "build": "cd packages/core && yarn build && cd ../tldraw && yarn build",
-    "dev": "yarn build && cd packages/core && yarn dev & cd packages/tldraw && yarn dev"
+    "start": "lerna run dev --stream --parallel",
+    "build": "lerna run build"
   },
   "prettier": {
     "trailingComma": "es5",
