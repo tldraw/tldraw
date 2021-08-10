@@ -3,7 +3,7 @@
   "private": true,
   "author": "@steveruizok",
   "license": "MIT",
-  "version": "0.0.35",
+  "version": "0.0.36",
   "workspaces": [
     "packages/core",
     "packages/tldraw",
