@@ -12,7 +12,7 @@ async function main() {
       minify: false,
       bundle: true,
       format: 'cjs',
-      target: 'esnext',
+      target: 'es6',
       jsxFactory: 'React.createElement',
       jsxFragment: 'React.Fragment',
       tsconfig: './tsconfig.json',

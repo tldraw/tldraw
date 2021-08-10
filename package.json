@@ -26,7 +26,8 @@
   "scripts": {
     "lerna": "lerna",
     "start": "lerna run dev --stream --parallel",
-    "build": "lerna run build"
+    "build": "yarn build:packages && cd packages/www && yarn build",
+    "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build"
   },
   "prettier": {
     "trailingComma": "es5",
