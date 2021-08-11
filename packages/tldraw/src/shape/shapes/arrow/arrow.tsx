@@ -433,7 +433,10 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     const anchor = Vec.sub(
       Vec.add(
         [expandedBounds.minX, expandedBounds.minY],
-        Vec.mulV([expandedBounds.width, expandedBounds.height], binding.point)
+        Vec.mulV(
+          [expandedBounds.width, expandedBounds.height],
+          Vec.rotWith(binding.point, [0.5, 0.5], target.rotation || 0)
+        )
       ),
       shape.point
     )
@@ -455,7 +458,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
 
       if ([TLDrawShapeType.Rectangle, TLDrawShapeType.Text].includes(target.type)) {
         let hits = Intersect.ray
-          .bounds(origin, direction, intersectBounds)
+          .bounds(origin, direction, intersectBounds, target.rotation)
           .filter((int) => int.didIntersect)
           .map((int) => int.points[0])
           .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
@@ -475,25 +478,22 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
 
         handlePoint = Vec.sub(hits[0], shape.point)
       } else if (target.type === TLDrawShapeType.Ellipse) {
-        // const center = getShapeUtils(target).getCenter(target)
+        const hits = Intersect.ray
+          .ellipse(
+            origin,
+            direction,
+            center,
+            target.radius[0] + binding.distance,
+            target.radius[1] + binding.distance,
+            target.rotation || 0
+          )
+          .points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
 
-        handlePoint = Vec.nudge(
-          Vec.sub(
-            Intersect.ray
-              .ellipse(
-                origin,
-                direction,
-                center,
-                target.radius[0],
-                target.radius[1],
-                target.rotation || 0
-              )
-              .points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))[0],
-            shape.point
-          ),
-          origin,
-          binding.distance
-        )
+        if (!hits[0]) {
+          console.warn('No intersections')
+        }
+
+        handlePoint = Vec.sub(hits[0], shape.point)
       }
     }
 

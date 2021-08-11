@@ -1261,6 +1261,21 @@ export class TLDrawState implements TLCallbacks {
         }
         break
       }
+      case 'translatingHandle': {
+        if (key === 'Escape') {
+          this.cancelSession(this.getPagePoint(info.point))
+        }
+
+        if (key === 'Meta' || key === 'Control') {
+          this.updateHandleSession(
+            this.getPagePoint(info.point),
+            info.shiftKey,
+            info.altKey,
+            info.metaKey
+          )
+        }
+        break
+      }
     }
   }
 
@@ -1281,6 +1296,21 @@ export class TLDrawState implements TLCallbacks {
       case 'translating': {
         if (key === 'Shift' || key === 'Alt') {
           this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
+        }
+        break
+      }
+      case 'translatingHandle': {
+        if (key === 'Escape') {
+          this.cancelSession(this.getPagePoint(info.point))
+        }
+
+        if (key === 'Meta' || key === 'Control') {
+          this.updateHandleSession(
+            this.getPagePoint(info.point),
+            info.shiftKey,
+            info.altKey,
+            info.metaKey
+          )
         }
         break
       }

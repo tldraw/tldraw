@@ -155,7 +155,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
   }
 
   getCenter(shape: EllipseShape): number[] {
-    return Utils.getBoundsCenter(this.getBounds(shape))
+    return [shape.point[0] + shape.radius[0], shape.point[1] + shape.radius[1]]
   }
 
   hitTest(shape: EllipseShape, point: number[]) {
@@ -169,6 +169,98 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
       rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
       Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
     )
+  }
+
+  getBindingPoint(
+    shape: EllipseShape,
+    point: number[],
+    origin: number[],
+    direction: number[],
+    padding: number,
+    anywhere: boolean
+  ) {
+    {
+      const bounds = this.getBounds(shape)
+
+      const expandedBounds = Utils.expandBounds(bounds, padding)
+
+      const center = this.getCenter(shape)
+
+      let bindingPoint: number[]
+      let distance: number
+
+      if (!Utils.pointInEllipse(point, center, shape.radius[0] + 32, shape.radius[1] + 32)) return
+
+      if (anywhere) {
+        if (Vec.dist(point, this.getCenter(shape)) < 12) {
+          bindingPoint = [0.5, 0.5]
+        } else {
+          bindingPoint = Vec.divV(Vec.sub(point, [expandedBounds.minX, expandedBounds.minY]), [
+            expandedBounds.width,
+            expandedBounds.height,
+          ])
+        }
+
+        distance = 0
+      } else {
+        // Find furthest intersection between ray from
+        // origin through point and expanded bounds.
+        // const intersection = Intersect.ray
+        //   .bounds(origin, direction, expandedBounds)
+        //   .filter((int) => int.didIntersect)
+        //   .map((int) => int.points[0])
+        //   .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
+
+        const intersection = Intersect.ray
+          .ellipse(origin, direction, center, shape.radius[0], shape.radius[1], shape.rotation || 0)
+          .points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))[0]
+
+        if (!intersection) {
+          console.log('could not find an intersection')
+          return undefined
+        }
+
+        // The anchor is a point between the handle and the intersection
+        const anchor = Vec.med(point, intersection)
+
+        if (Vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12) {
+          // If we're close to the center, snap to the center
+          bindingPoint = [0.5, 0.5]
+        } else {
+          // Or else calculate a normalized point
+          bindingPoint = Vec.divV(Vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]), [
+            expandedBounds.width,
+            expandedBounds.height,
+          ])
+        }
+
+        if (Utils.pointInBounds(point, bounds)) {
+          distance = 16
+        } else {
+          // Find the distance between the point and the ellipse
+          const innerIntersection = Intersect.lineSegment.ellipse(
+            point,
+            center,
+            center,
+            shape.radius[0],
+            shape.radius[1],
+            shape.rotation || 0
+          ).points[0]
+
+          if (!innerIntersection) {
+            console.log('could not find an intersection')
+            return undefined
+          }
+
+          distance = Math.max(16, Vec.dist(point, innerIntersection))
+        }
+      }
+
+      return {
+        point: bindingPoint,
+        distance,
+      }
+    }
   }
 
   transform(
