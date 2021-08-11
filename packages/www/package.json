@@ -21,7 +21,7 @@
     "@stitches/react": "^0.2.3",
     "@tldraw/tldraw": "*",
     "idb": "^6.1.2",
-    "next": "^11.0.1",
+    "next": "^11.1.0",
     "next-transpile-modules": "^8.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
