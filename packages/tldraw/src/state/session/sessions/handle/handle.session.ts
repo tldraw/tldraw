@@ -1,3 +1,4 @@
+import { ArrowBinding } from './../../../../shape/shape-types'
 import { Vec } from '@tldraw/core'
 import type { TLDrawShape } from '../../../../shape'
 import type { Session } from '../../../state-types'
@@ -13,12 +14,7 @@ export class HandleSession implements Session {
   initialShape: TLDrawShape
   handleId: string
 
-  constructor(
-    data: Data,
-    handleId: string,
-    point: number[],
-    commandId = 'move_handle'
-  ) {
+  constructor(data: Data, handleId: string, point: number[], commandId = 'move_handle') {
     const shapeId = data.pageState.selectedIds[0]
     this.origin = point
     this.handleId = handleId
@@ -49,12 +45,17 @@ export class HandleSession implements Session {
 
     const handleId = this.handleId as keyof typeof handles
 
+    const handle = handles[handleId]
+
+    let nextPoint = Vec.round(Vec.add(handle.point, delta))
+
+    // Now update the handle's next point
     const change = TLDR.getShapeUtils(shape).onHandleChange(
       shape,
       {
         [handleId]: {
           ...shape.handles[handleId],
-          point: Vec.round(Vec.add(handles[handleId].point, delta)), // Vec.rot(delta, shape.rotation)),
+          point: nextPoint, // Vec.rot(delta, shape.rotation)),
         },
       },
       { delta, shiftKey, altKey, metaKey }

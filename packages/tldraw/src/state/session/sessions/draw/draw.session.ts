@@ -29,12 +29,7 @@ export class DrawSession implements Session {
 
   start = (data: Data) => data
 
-  update = (
-    data: Data,
-    point: number[],
-    pressure: number,
-    isLocked = false
-  ) => {
+  update = (data: Data, point: number[], pressure: number, isLocked = false) => {
     const { snapshot } = this
 
     // Drawing while holding shift will "lock" the pen to either the
@@ -82,10 +77,7 @@ export class DrawSession implements Session {
     // Don't add duplicate points. It's important to test against the
     // adjusted (low-passed) point rather than the input point.
 
-    const newPoint = Vec.round([
-      ...Vec.sub(this.previous, this.origin),
-      pressure,
-    ])
+    const newPoint = Vec.round([...Vec.sub(this.previous, this.origin), pressure])
 
     if (Vec.isEqual(this.last, newPoint)) return data
 
@@ -98,7 +90,6 @@ export class DrawSession implements Session {
     if (this.points.length <= 2) return data
 
     return {
-      ...data,
       page: {
         ...data.page,
         shapes: {
@@ -119,7 +110,6 @@ export class DrawSession implements Session {
   cancel = (data: Data): Data => {
     const { snapshot } = this
     return {
-      ...data,
       page: {
         ...data.page,
         // @ts-ignore
@@ -152,10 +142,7 @@ export class DrawSession implements Session {
       after: {
         page: {
           shapes: {
-            [snapshot.id]: TLDR.onSessionComplete(
-              data,
-              data.page.shapes[snapshot.id]
-            ),
+            [snapshot.id]: TLDR.onSessionComplete(data, data.page.shapes[snapshot.id]),
           },
         },
         pageState: {

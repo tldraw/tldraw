@@ -218,6 +218,12 @@ const tlcss = css`
   .tl-current-parent > *[data-shy='true'] {
     opacity: 1;
   }
+
+  .tl-binding {
+    fill: none;
+    stroke: var(--tl-selectStroke);
+    stroke-width: calc(2px * var(--tl-scale));
+  }
 `
 
 export function useTLTheme(theme?: Partial<TLTheme>) {

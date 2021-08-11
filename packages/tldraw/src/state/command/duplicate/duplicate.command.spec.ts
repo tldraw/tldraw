@@ -4,7 +4,6 @@ import { mockDocument } from '../../test-helpers'
 describe('Duplicate command', () => {
   const tlstate = new TLDrawState()
   tlstate.loadDocument(mockDocument)
-  tlstate.reset()
   tlstate.select('rect1')
 
   it('does, undoes and redoes command', () => {

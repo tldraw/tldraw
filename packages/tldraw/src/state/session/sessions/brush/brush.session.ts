@@ -57,11 +57,10 @@ export class BrushSession implements Session {
       selectedIds.size === data.pageState.selectedIds.length &&
       data.pageState.selectedIds.every((id) => selectedIds.has(id))
     ) {
-      return data
+      return {}
     }
 
     return {
-      ...data,
       pageState: {
         ...data.pageState,
         selectedIds: Array.from(selectedIds.values()),

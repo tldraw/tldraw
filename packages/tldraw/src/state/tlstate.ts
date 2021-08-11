@@ -1,3 +1,4 @@
+import { ArrowSession } from './session/sessions/arrow/arrow.session'
 import type { TextShape } from './../shape/shape-types'
 import { FlipType } from './../types'
 import createReact, { PartialState } from 'zustand'
@@ -111,14 +112,81 @@ export class TLDrawState implements TLCallbacks {
 
     let next = { ...current, ...result }
 
-    if ('page' in result) {
+    if (result.page) {
+      const shapes = { ...next.page.shapes }
+
+      for (let id in shapes) {
+        if (!shapes[id]) delete shapes[id]
+      }
+
+      const bindings = { ...next.page.bindings }
+
+      for (let id in bindings) {
+        if (!bindings[id]) delete bindings[id]
+      }
+
+      const changedShapeIds = new Set(
+        Object.values(shapes)
+          .filter((shape) => current.page.shapes[shape.id] !== shape)
+          .map((shape) => shape.id)
+      )
+
+      // Find all shapes that we need to update due to bindings
+      const bindingsArr = Object.values(bindings)
+
+      const bindingsToUpdate = new Set(
+        bindingsArr.filter(
+          (binding) => changedShapeIds.has(binding.toId) || changedShapeIds.has(binding.fromId)
+        )
+      )
+
+      let prevSize = bindingsToUpdate.size
+
+      while (true) {
+        bindingsToUpdate.forEach((binding) => {
+          const fromId = binding.fromId
+
+          for (const otherBinding of bindingsArr) {
+            if (otherBinding.fromId === fromId) {
+              bindingsToUpdate.add(otherBinding)
+            }
+
+            if (otherBinding.toId === fromId) {
+              bindingsToUpdate.add(otherBinding)
+            }
+          }
+        })
+
+        if (bindingsToUpdate.size === prevSize) break
+        prevSize = bindingsToUpdate.size
+      }
+
+      bindingsToUpdate.forEach((binding) => {
+        // Update the binding
+        const toShape = shapes[binding.toId]
+        const fromShape = shapes[binding.fromId]
+        const toUtils = TLDR.getShapeUtils(toShape)
+
+        const fromDelta = TLDR.getShapeUtils(fromShape).onBindingChange(
+          fromShape,
+          binding,
+          toShape,
+          toUtils.getBounds(toShape),
+          toUtils.getCenter(toShape)
+        )
+
+        if (fromDelta) {
+          shapes[fromShape.id] = {
+            ...fromShape,
+            ...fromDelta,
+          } as TLDrawShape
+        }
+      })
+
       next.page = {
         ...next.page,
-        shapes: Object.fromEntries(
-          Object.entries(next.page.shapes).filter(([_, shape]) => {
-            return shape && (shape.parentId === next.page.id || next.page.shapes[shape.parentId])
-          })
-        ),
+        shapes,
+        bindings,
       }
     }
 
@@ -126,13 +194,10 @@ export class TLDrawState implements TLCallbacks {
     const newSelectedStyle = TLDR.getSelectedStyle(next as Data)
 
     if (newSelectedStyle) {
-      next = {
-        ...next,
-        appState: {
-          ...current.appState,
-          ...next.appState,
-          selectedStyle: newSelectedStyle,
-        },
+      next.appState = {
+        ...current.appState,
+        ...next.appState,
+        selectedStyle: newSelectedStyle,
       }
     }
 
@@ -211,6 +276,18 @@ export class TLDrawState implements TLCallbacks {
       settings: {
         ...data.appState,
         ...initialData.settings,
+      },
+      page: {
+        ...data.page,
+        shapes: {},
+        bindings: {},
+      },
+      pageState: {
+        ...data.pageState,
+        editingId: undefined,
+        bindingId: undefined,
+        hoveredId: undefined,
+        selectedIds: [],
       },
     }))
     this._onChange?.(this, `reset`)
@@ -519,7 +596,13 @@ export class TLDrawState implements TLCallbacks {
 
     history.pointer = history.stack.length - 1
 
-    this.setState((data) => Utils.deepMerge<Data>(data, history.stack[history.pointer].after))
+    this.setState((data) =>
+      Object.fromEntries(
+        Object.entries(command.after).map(([key, partial]) => {
+          return [key, Utils.deepMerge(data[key as keyof Data], partial)]
+        })
+      )
+    )
 
     this._onChange?.(this, `command:${command.id}`)
 
@@ -533,7 +616,13 @@ export class TLDrawState implements TLCallbacks {
 
     const command = history.stack[history.pointer]
 
-    this.setState((data) => Utils.deepMerge<Data>(data, command.before))
+    this.setState((data) =>
+      Object.fromEntries(
+        Object.entries(command.before).map(([key, partial]) => {
+          return [key, Utils.deepMerge(data[key as keyof Data], partial)]
+        })
+      )
+    )
 
     history.pointer--
 
@@ -551,8 +640,13 @@ export class TLDrawState implements TLCallbacks {
 
     const command = history.stack[history.pointer]
 
-    this.setState((data) => Utils.deepMerge<Data>(data, command.after))
-
+    this.setState((data) =>
+      Object.fromEntries(
+        Object.entries(command.after).map(([key, partial]) => {
+          return [key, Utils.deepMerge(data[key as keyof Data], partial)]
+        })
+      )
+    )
     this._onChange?.(this, `redo:${command.id}`)
 
     return this
@@ -956,14 +1050,21 @@ export class TLDrawState implements TLCallbacks {
   }
 
   startHandleSession = (point: number[], handleId: string, commandId?: string) => {
-    this.startSession<HandleSession>(
-      new HandleSession(this.store.getState(), handleId, point, commandId)
-    )
+    const selectedShape = this.page.shapes[this.selectedIds[0]]
+    if (selectedShape.type === TLDrawShapeType.Arrow) {
+      this.startSession<ArrowSession>(
+        new ArrowSession(this.store.getState(), handleId as 'start' | 'end', point)
+      )
+    } else {
+      this.startSession<HandleSession>(
+        new HandleSession(this.store.getState(), handleId, point, commandId)
+      )
+    }
     return this
   }
 
   updateHandleSession = (point: number[], shiftKey = false, altKey = false, metaKey = false) => {
-    this.updateSession<HandleSession>(point, shiftKey, altKey, metaKey)
+    this.updateSession<HandleSession | ArrowSession>(point, shiftKey, altKey, metaKey)
     return this
   }
 
@@ -1003,7 +1104,12 @@ export class TLDrawState implements TLCallbacks {
         break
       }
       case 'translatingHandle': {
-        this.updateHandleSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
+        this.updateHandleSession(
+          this.getPagePoint(info.point),
+          info.shiftKey,
+          info.altKey,
+          info.metaKey
+        )
         break
       }
       case 'creating': {
@@ -1017,7 +1123,12 @@ export class TLDrawState implements TLCallbacks {
             break
           }
           case 'handle': {
-            this.updateHandleSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
+            this.updateHandleSession(
+              this.getPagePoint(info.point),
+              info.shiftKey,
+              info.altKey,
+              info.metaKey
+            )
             break
           }
           case 'point': {

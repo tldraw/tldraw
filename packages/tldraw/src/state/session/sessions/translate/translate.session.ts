@@ -21,12 +21,7 @@ export class TranslateSession implements Session {
     return data
   }
 
-  update = (
-    data: Data,
-    point: number[],
-    isAligned = false,
-    isCloning = false
-  ) => {
+  update = (data: Data, point: number[], isAligned = false, isCloning = false) => {
     const { clones, initialShapes } = this.snapshot
 
     const next = {
@@ -91,15 +86,13 @@ export class TranslateSession implements Session {
             clone.id,
             {
               ...clone,
-              point: Vec.round(
-                Vec.add(next.page.shapes[clone.id].point, trueDelta)
-              ),
+              point: Vec.round(Vec.add(next.page.shapes[clone.id].point, trueDelta)),
             },
           ])
         ),
       }
 
-      return next
+      return { page: { ...next.page }, pageState: { ...next.pageState } }
     }
 
     // If not cloning...
@@ -137,28 +130,22 @@ export class TranslateSession implements Session {
           shape.id,
           {
             ...next.page.shapes[shape.id],
-            point: Vec.round(
-              Vec.add(next.page.shapes[shape.id].point, trueDelta)
-            ),
+            point: Vec.round(Vec.add(next.page.shapes[shape.id].point, trueDelta)),
           },
         ])
       ),
     }
 
-    return next
+    return { page: { ...next.page }, pageState: { ...next.pageState } }
   }
 
   cancel = (data: Data): Data => {
     return {
-      ...data,
       page: {
-        ...data.page,
         // @ts-ignore - We need to set deleted shapes to undefined in order to correctly deep merge them away.
         shapes: {
           ...data.page.shapes,
-          ...Object.fromEntries(
-            this.snapshot.clones.map((clone) => [clone.id, undefined])
-          ),
+          ...Object.fromEntries(this.snapshot.clones.map((clone) => [clone.id, undefined])),
           ...Object.fromEntries(
             this.snapshot.initialShapes.map((shape) => [
               shape.id,
@@ -178,38 +165,23 @@ export class TranslateSession implements Session {
     return {
       id: 'translate',
       before: {
-        ...data,
         page: {
-          ...data.page,
           shapes: {
-            ...data.page.shapes,
+            ...Object.fromEntries(this.snapshot.clones.map((clone) => [clone.id, undefined])),
             ...Object.fromEntries(
-              this.snapshot.clones.map((clone) => [clone.id, undefined])
-            ),
-            ...Object.fromEntries(
-              this.snapshot.initialShapes.map((shape) => [
-                shape.id,
-                { point: shape.point },
-              ])
+              this.snapshot.initialShapes.map((shape) => [shape.id, { point: shape.point }])
             ),
           },
         },
         pageState: {
-          ...data.pageState,
           selectedIds: this.snapshot.selectedIds,
         },
       },
       after: {
-        ...data,
         page: {
-          ...data.page,
           shapes: {
-            ...data.page.shapes,
             ...Object.fromEntries(
-              this.snapshot.clones.map((clone) => [
-                clone.id,
-                data.page.shapes[clone.id],
-              ])
+              this.snapshot.clones.map((clone) => [clone.id, data.page.shapes[clone.id]])
             ),
             ...Object.fromEntries(
               this.snapshot.initialShapes.map((shape) => [
@@ -220,7 +192,6 @@ export class TranslateSession implements Session {
           },
         },
         pageState: {
-          ...data.pageState,
           selectedIds: [...data.pageState.selectedIds],
         },
       },
@@ -234,9 +205,7 @@ export function getTranslateSnapshot(data: Data) {
 
   const hasUnlockedShapes = selectedShapes.length > 0
 
-  const initialParents = Array.from(
-    new Set(selectedShapes.map((s) => s.parentId)).values()
-  )
+  const initialParents = Array.from(new Set(selectedShapes.map((s) => s.parentId)).values())
     .filter((id) => id !== data.page.id)
     .map((id) => {
       const shape = TLDR.getShape(data, id)

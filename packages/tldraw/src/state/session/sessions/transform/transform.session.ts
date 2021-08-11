@@ -28,13 +28,13 @@ export class TransformSession implements Session {
     point: number[],
     isAspectRatioLocked = false,
     _altKey = false
-  ): Data => {
+  ): Partial<Data> => {
     const {
       transformType,
       snapshot: { shapeBounds, initialBounds, isAllAspectRatioLocked },
     } = this
 
-    const next = {
+    const next: Data = {
       ...data,
       page: {
         ...data.page,
@@ -89,23 +89,21 @@ export class TransformSession implements Session {
       ),
     }
 
-    return next
+    return {
+      page: next.page,
+    }
   }
 
   cancel = (data: Data) => {
     const { shapeBounds } = this.snapshot
 
     return {
-      ...data,
       page: {
         ...data.page,
         shapes: {
           ...data.page.shapes,
           ...Object.fromEntries(
-            Object.entries(shapeBounds).map(([id, { initialShape }]) => [
-              id,
-              initialShape,
-            ])
+            Object.entries(shapeBounds).map(([id, { initialShape }]) => [id, initialShape])
           ),
         },
       },
@@ -122,10 +120,7 @@ export class TransformSession implements Session {
       before: {
         page: {
           shapes: Object.fromEntries(
-            Object.entries(shapeBounds).map(([id, { initialShape }]) => [
-              id,
-              initialShape,
-            ])
+            Object.entries(shapeBounds).map(([id, { initialShape }]) => [id, initialShape])
           ),
         },
       },
@@ -143,17 +138,13 @@ export class TransformSession implements Session {
   }
 }
 
-export function getTransformSnapshot(
-  data: Data,
-  transformType: TLBoundsEdge | TLBoundsCorner
-) {
+export function getTransformSnapshot(data: Data, transformType: TLBoundsEdge | TLBoundsCorner) {
   const initialShapes = TLDR.getSelectedBranchSnapshot(data)
 
   const hasUnlockedShapes = initialShapes.length > 0
 
   const isAllAspectRatioLocked = initialShapes.every(
-    (shape) =>
-      shape.isAspectRatioLocked || TLDR.getShapeUtils(shape).isAspectRatioLocked
+    (shape) => shape.isAspectRatioLocked || TLDR.getShapeUtils(shape).isAspectRatioLocked
   )
 
   const shapesBounds = Object.fromEntries(
@@ -164,9 +155,7 @@ export function getTransformSnapshot(
 
   const commonBounds = Utils.getCommonBounds(boundsArr)
 
-  const initialInnerBounds = Utils.getBoundsFromPoints(
-    boundsArr.map(Utils.getBoundsCenter)
-  )
+  const initialInnerBounds = Utils.getBoundsFromPoints(boundsArr.map(Utils.getBoundsCenter))
 
   // Return a mapping of shapes to bounds together with the relative
   // positions of the shape's bounds within the common bounds shape.

@@ -1,6 +1,6 @@
 import { TLBinding, TLBounds, TLTransformInfo, Vec, Utils } from '@tldraw/core'
 import { getShapeUtils, ShapeStyles, ShapesWithProp, TLDrawShape, TLDrawShapeUtil } from '../shape'
-import type { Data } from './state-types'
+import type { Data, DeepPartial } from './state-types'
 
 export class TLDR {
   static getShapeUtils<T extends TLDrawShape>(shape: T | T['type']): TLDrawShapeUtil<T> {
@@ -389,31 +389,132 @@ export class TLDR {
     }
   }
 
-  static createShapes(data: Data, shapes: TLDrawShape[]): void {
+  static createShapes(
+    data: Data,
+    shapes: TLDrawShape[]
+  ): { before: DeepPartial<Data>; after: DeepPartial<Data> } {
     const page = this.getPage(data)
-    const shapeIds = shapes.map((shape) => shape.id)
 
-    // Update selected ids
-    this.setSelectedIds(data, shapeIds)
+    const before: DeepPartial<Data> = {
+      page: {
+        shapes: {
+          ...Object.fromEntries(
+            shapes.flatMap((shape) => {
+              const results: [string, Partial<TLDrawShape> | undefined][] = [[shape.id, undefined]]
 
-    // Restore deleted shapes
-    shapes.forEach((shape) => {
-      const newShape = { ...shape }
-      page.shapes[shape.id] = newShape
-    })
+              // If the shape is a child of another shape, also add that shape
+              if (shape.parentId !== data.page.id) {
+                const parent = page.shapes[shape.parentId]
+                results.push([parent.id, { children: parent.children! }])
+              }
 
-    // Update parents
-    shapes.forEach((shape) => {
-      if (shape.parentId === data.page.id) return
+              return results
+            })
+          ),
+        },
+      },
+    }
 
-      const parent = page.shapes[shape.parentId]
+    const after: DeepPartial<Data> = {
+      page: {
+        shapes: {
+          ...Object.fromEntries(
+            shapes.flatMap((shape) => {
+              const results: [string, Partial<TLDrawShape> | undefined][] = [[shape.id, shape]]
 
-      this.mutate(data, parent, {
-        children: parent.children!.includes(shape.id)
-          ? parent.children
-          : [...parent.children!, shape.id],
-      })
-    })
+              // If the shape is a child of a different shape, update its parent
+              if (shape.parentId !== data.page.id) {
+                const parent = page.shapes[shape.parentId]
+                results.push([parent.id, { children: [...parent.children!, shape.id] }])
+              }
+
+              return results
+            })
+          ),
+        },
+      },
+    }
+
+    return {
+      before,
+      after,
+    }
+  }
+
+  static deleteShapes(
+    data: Data,
+    shapes: TLDrawShape[] | string[]
+  ): { before: DeepPartial<Data>; after: DeepPartial<Data> } {
+    const page = this.getPage(data)
+
+    const shapeIds =
+      typeof shapes[0] === 'string'
+        ? (shapes as string[])
+        : (shapes as TLDrawShape[]).map((shape) => shape.id)
+
+    const before: DeepPartial<Data> = {
+      page: {
+        shapes: {
+          // These are the shapes that we're going to delete
+          ...Object.fromEntries(
+            shapeIds.flatMap((id) => {
+              const shape = page.shapes[id]
+              const results: [string, Partial<TLDrawShape> | undefined][] = [[shape.id, shape]]
+
+              // If the shape is a child of another shape, also add that shape
+              if (shape.parentId !== data.page.id) {
+                const parent = page.shapes[shape.parentId]
+                results.push([parent.id, { children: parent.children! }])
+              }
+
+              return results
+            })
+          ),
+        },
+        bindings: {
+          // These are the bindings that we're going to delete
+          ...Object.fromEntries(
+            Object.values(page.bindings)
+              .filter((binding) => {
+                return shapeIds.includes(binding.fromId) || shapeIds.includes(binding.toId)
+              })
+              .map((binding) => {
+                return [binding.id, binding]
+              })
+          ),
+        },
+      },
+    }
+
+    const after: DeepPartial<Data> = {
+      page: {
+        shapes: {
+          ...Object.fromEntries(
+            shapeIds.flatMap((id) => {
+              const shape = page.shapes[id]
+              const results: [string, Partial<TLDrawShape> | undefined][] = [[shape.id, undefined]]
+
+              // If the shape is a child of a different shape, update its parent
+              if (shape.parentId !== data.page.id) {
+                const parent = page.shapes[shape.parentId]
+
+                results.push([
+                  parent.id,
+                  { children: parent.children!.filter((id) => id !== shape.id) },
+                ])
+              }
+
+              return results
+            })
+          ),
+        },
+      },
+    }
+
+    return {
+      before,
+      after,
+    }
   }
 
   static onSessionComplete<T extends TLDrawShape>(data: Data, shape: T) {
@@ -515,7 +616,9 @@ export class TLDR {
       return currentStyle
     }
 
-    const shapeStyles = data.pageState.selectedIds.map((id) => page.shapes[id].style)
+    const shapeStyles = data.pageState.selectedIds.map((id) => {
+      return page.shapes[id].style
+    })
 
     const commonStyle: ShapeStyles = {} as ShapeStyles
 
@@ -552,6 +655,13 @@ export class TLDR {
     return Object.values(page.bindings)
   }
 
+  static getBindableShapeIds(data: Data) {
+    return Object.values(data.page.shapes)
+      .filter((shape) => TLDR.getShapeUtils(shape).canBind)
+      .sort((a, b) => b.childIndex - a.childIndex)
+      .map((shape) => shape.id)
+  }
+
   static getBindingsWithShapeIds(data: Data, ids: string[]): TLBinding[] {
     return Array.from(
       new Set(
@@ -567,13 +677,11 @@ export class TLDR {
     bindings.forEach((binding) => (page.bindings[binding.id] = binding))
   }
 
-  static deleteBindings(data: Data, ids: string[]): void {
-    if (ids.length === 0) return
-
-    const page = this.getPage(data)
-
-    ids.forEach((id) => delete page.bindings[id])
-  }
+  // static deleteBindings(data: Data, ids: string[]): void {
+  //   if (ids.length === 0) return
+  //   const page = this.getPage(data)
+  //   ids.forEach((id) => delete page.bindings[id])
+  // }
 
   /* -------------------------------------------------- */
   /*                     Assertions                     */

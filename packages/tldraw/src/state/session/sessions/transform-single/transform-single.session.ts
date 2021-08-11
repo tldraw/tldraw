@@ -27,7 +27,7 @@ export class TransformSingleSession implements Session {
 
   start = (data: Data) => data
 
-  update = (data: Data, point: number[], isAspectRatioLocked = false): Data => {
+  update = (data: Data, point: number[], isAspectRatioLocked = false): Partial<Data> => {
     const { transformType } = this
 
     const { initialShapeBounds, initialShape, id } = this.snapshot
@@ -41,13 +41,10 @@ export class TransformSingleSession implements Session {
       transformType,
       Vec.sub(point, this.origin),
       shape.rotation,
-      isAspectRatioLocked ||
-        shape.isAspectRatioLocked ||
-        utils.isAspectRatioLocked
+      isAspectRatioLocked || shape.isAspectRatioLocked || utils.isAspectRatioLocked
     )
 
     return {
-      ...data,
       page: {
         ...data.page,
         shapes: {
@@ -72,7 +69,6 @@ export class TransformSingleSession implements Session {
     data.page.shapes[id] = initialShape
 
     return {
-      ...data,
       page: {
         ...data.page,
         shapes: {
@@ -98,10 +94,7 @@ export class TransformSingleSession implements Session {
       after: {
         page: {
           shapes: {
-            [this.snapshot.id]: TLDR.onSessionComplete(
-              data,
-              data.page.shapes[this.snapshot.id]
-            ),
+            [this.snapshot.id]: TLDR.onSessionComplete(data, data.page.shapes[this.snapshot.id]),
           },
         },
       },
@@ -130,6 +123,4 @@ export function getTransformSingleSnapshot(
   }
 }
 
-export type TransformSingleSnapshot = ReturnType<
-  typeof getTransformSingleSnapshot
->
+export type TransformSingleSnapshot = ReturnType<typeof getTransformSingleSnapshot>

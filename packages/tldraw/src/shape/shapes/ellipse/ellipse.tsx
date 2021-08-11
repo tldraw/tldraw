@@ -14,6 +14,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
   type = TLDrawShapeType.Ellipse as const
   toolType = TLDrawToolType.Bounds
   pathCache = new WeakMap<EllipseShape, string>([])
+  canBind = true
 
   defaultProps = {
     id: 'id',

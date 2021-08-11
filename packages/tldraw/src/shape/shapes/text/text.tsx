@@ -50,8 +50,8 @@ export class Text extends TLDrawShapeUtil<TextShape> {
   type = TLDrawShapeType.Text as const
   toolType = TLDrawToolType.Text
   canChangeAspectRatio = false
-  canBind = true
   isEditableText = true
+  canBind = true
 
   pathCache = new WeakMap<number[], string>([])
 

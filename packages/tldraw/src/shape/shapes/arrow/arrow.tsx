@@ -238,8 +238,6 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
       style,
     } = shape
 
-    const circle = getCtp(shape)
-
     const path = Utils.getFromCache(this.simplePathCache, shape, () =>
       getArrowArcPath(start, end, getCtp(shape), bend)
     )
@@ -251,16 +249,31 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
 
     const arrowHeadlength = Math.min(arrowDist / 3, strokeWidth * 8)
 
-    const arcLength = Utils.getArcLength([circle[0], circle[1]], circle[2], start.point, end.point)
+    let insetStart: number[]
+    let insetEnd: number[]
 
-    const center = [circle[0], circle[1]]
-    const radius = circle[2]
-    const sa = Vec.angle(center, start.point)
-    const ea = Vec.angle(center, end.point)
-    const t = arrowHeadlength / Math.abs(arcLength)
+    if (bend === 0) {
+      insetStart = Vec.nudge(start.point, end.point, arrowHeadlength)
+      insetEnd = Vec.nudge(end.point, start.point, arrowHeadlength)
+    } else {
+      const circle = getCtp(shape)
 
-    const insetStart = Vec.nudgeAtAngle(center, Utils.lerpAngles(sa, ea, t), radius)
-    const insetEnd = Vec.nudgeAtAngle(center, Utils.lerpAngles(ea, sa, t), radius)
+      const arcLength = Utils.getArcLength(
+        [circle[0], circle[1]],
+        circle[2],
+        start.point,
+        end.point
+      )
+
+      const center = [circle[0], circle[1]]
+      const radius = circle[2]
+      const sa = Vec.angle(center, start.point)
+      const ea = Vec.angle(center, end.point)
+      const t = arrowHeadlength / Math.abs(arcLength)
+
+      insetStart = Vec.nudgeAtAngle(center, Utils.lerpAngles(sa, ea, t), radius)
+      insetEnd = Vec.nudgeAtAngle(center, Utils.lerpAngles(ea, sa, t), radius)
+    }
 
     return (
       <g>
@@ -413,9 +426,10 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     center: number[]
   ): void | Partial<ArrowShape> => {
     const handle = shape.handles[binding.handleId]
-    const bounds = this.getBounds(shape)
-    const expandedBounds = Utils.expandBounds(bounds, binding.distance)
+    const expandedBounds = Utils.expandBounds(targetBounds, 32)
 
+    // The anchor is the "actual" point in the target shape
+    // (Remember that the binding.point is normalized)
     const anchor = Vec.sub(
       Vec.add(
         [expandedBounds.minX, expandedBounds.minY],
@@ -424,68 +438,68 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
       shape.point
     )
 
-    let handlePoint: number[]
+    // We're looking for the point to put the dragging handle
+    let handlePoint = anchor
 
-    const origin = Vec.add(
-      shape.point,
-      shape.handles[binding.handleId === 'start' ? 'end' : 'start'].point
-    )
-
-    const direction = Vec.uni(Vec.sub(Vec.add(anchor, shape.point), origin))
-
-    // TODO: Abstract this part onto individual shape utils?
-
-    if ([TLDrawShapeType.Rectangle, TLDrawShapeType.Text].includes(target.type)) {
+    if (binding.distance) {
       const intersectBounds = Utils.expandBounds(targetBounds, binding.distance)
 
-      let hits = Intersect.ray
-        .bounds(origin, direction, intersectBounds)
-        .filter((int) => int.didIntersect)
-        .map((int) => int.points[0])
-        .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
+      // The direction vector starts from the arrow's opposite handle
+      const origin = Vec.add(
+        shape.point,
+        shape.handles[handle.id === 'start' ? 'end' : 'start'].point
+      )
 
-      if (hits.length < 2) {
-        hits = Intersect.ray
-          .bounds(origin, Vec.neg(direction), intersectBounds)
+      // And passes through the dragging handle
+      const direction = Vec.uni(Vec.sub(Vec.add(anchor, shape.point), origin))
+
+      if ([TLDrawShapeType.Rectangle, TLDrawShapeType.Text].includes(target.type)) {
+        let hits = Intersect.ray
+          .bounds(origin, direction, intersectBounds)
           .filter((int) => int.didIntersect)
           .map((int) => int.points[0])
           .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
+
+        if (hits.length < 2) {
+          hits = Intersect.ray
+            .bounds(origin, Vec.neg(direction), intersectBounds)
+            .filter((int) => int.didIntersect)
+            .map((int) => int.points[0])
+            .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
+        }
+
+        if (!hits[0]) {
+          console.warn('No intersection.')
+          return
+        }
+
+        handlePoint = Vec.sub(hits[0], shape.point)
+      } else if (target.type === TLDrawShapeType.Ellipse) {
+        // const center = getShapeUtils(target).getCenter(target)
+
+        handlePoint = Vec.nudge(
+          Vec.sub(
+            Intersect.ray
+              .ellipse(
+                origin,
+                direction,
+                center,
+                target.radius[0],
+                target.radius[1],
+                target.rotation || 0
+              )
+              .points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))[0],
+            shape.point
+          ),
+          origin,
+          binding.distance
+        )
       }
-
-      if (!hits[0]) {
-        console.warn('No intersection.')
-        return
-      }
-
-      handlePoint = Vec.sub(hits[0], shape.point)
-    } else if (target.type === TLDrawShapeType.Ellipse) {
-      // const center = getShapeUtils(target).getCenter(target)
-
-      handlePoint = Vec.nudge(
-        Vec.sub(
-          Intersect.ray
-            .ellipse(
-              origin,
-              direction,
-              center,
-              target.radius[0],
-              target.radius[1],
-              target.rotation || 0
-            )
-            .points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))[0],
-          shape.point
-        ),
-        origin,
-        binding.distance
-      )
-    } else {
-      handlePoint = anchor
     }
 
     return this.onHandleChange(
       shape,
       {
-        ...shape.handles,
         [handle.id]: {
           ...handle,
           point: Vec.round(handlePoint),
@@ -497,30 +511,23 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
 
   onHandleChange = (
     shape: ArrowShape,
-    handles: ArrowShape['handles'],
+    handles: Partial<ArrowShape['handles']>,
     { shiftKey }: Partial<TLPointerInfo>
   ) => {
-    let nextHandles = Utils.deepMerge(shape.handles, handles)
+    let nextHandles = Utils.deepMerge<ArrowShape['handles']>(shape.handles, handles)
     let nextBend = shape.bend
 
     // If the user is holding shift, we want to snap the handles to angles
-    for (const id in handles) {
-      if ((id === 'start' || id === 'end') && shiftKey) {
-        const point = handles[id].point
-        const other = id === 'start' ? shape.handles.end : shape.handles.start
+    Object.values(handles).forEach((handle) => {
+      if ((handle.id === 'start' || handle.id === 'end') && shiftKey) {
+        const point = handle.point
+        const other = handle.id === 'start' ? shape.handles.end : shape.handles.start
         const angle = Vec.angle(other.point, point)
         const distance = Vec.dist(other.point, point)
         const newAngle = Utils.clampToRotationToSegments(angle, 24)
-
-        nextHandles = {
-          ...nextHandles,
-          [id]: {
-            ...nextHandles[id],
-            point: Vec.nudgeAtAngle(other.point, newAngle, distance),
-          },
-        }
+        handle.point = Vec.nudgeAtAngle(other.point, newAngle, distance)
       }
-    }
+    })
 
     // If the user is moving the bend handle, we want to move the bend point
     if ('bend' in handles) {

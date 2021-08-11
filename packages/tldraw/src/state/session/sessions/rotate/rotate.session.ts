@@ -19,11 +19,10 @@ export class RotateSession implements Session {
 
   start = (data: Data) => data
 
-  update = (data: Data, point: number[], isLocked = false): Data => {
+  update = (data: Data, point: number[], isLocked = false) => {
     const { commonBoundsCenter, initialShapes } = this.snapshot
 
     const next = {
-      ...data,
       page: {
         ...data.page,
       },
@@ -45,8 +44,7 @@ export class RotateSession implements Session {
       rot = Utils.clampToRotationToSegments(rot, 24)
     }
 
-    pageState.boundsRotation =
-      (PI2 + (this.snapshot.boundsRotation + rot)) % PI2
+    pageState.boundsRotation = (PI2 + (this.snapshot.boundsRotation + rot)) % PI2
 
     next.page.shapes = {
       ...next.page.shapes,
@@ -58,10 +56,7 @@ export class RotateSession implements Session {
             ? Utils.clampToRotationToSegments(rotation + rot, 24)
             : rotation + rot
 
-          const nextPoint = Vec.sub(
-            Vec.rotWith(center, commonBoundsCenter, rot),
-            offset
-          )
+          const nextPoint = Vec.sub(Vec.rotWith(center, commonBoundsCenter, rot), offset)
 
           return [
             id,
@@ -77,7 +72,9 @@ export class RotateSession implements Session {
       ),
     }
 
-    return next
+    return {
+      page: next.page,
+    }
   }
 
   cancel = (data: Data) => {
@@ -88,16 +85,12 @@ export class RotateSession implements Session {
     }
 
     return {
-      ...data,
       page: {
         ...data.page,
         shapes: {
           ...data.page.shapes,
           ...Object.fromEntries(
-            initialShapes.map(({ id, shape }) => [
-              id,
-              TLDR.onSessionComplete(data, shape),
-            ])
+            initialShapes.map(({ id, shape }) => [id, TLDR.onSessionComplete(data, shape)])
           ),
         },
       },
@@ -114,11 +107,9 @@ export class RotateSession implements Session {
       before: {
         page: {
           shapes: Object.fromEntries(
-            initialShapes.map(
-              ({ shape: { id, point, rotation = undefined } }) => {
-                return [id, { point, rotation }]
-              }
-            )
+            initialShapes.map(({ shape: { id, point, rotation = undefined } }) => {
+              return [id, { point, rotation }]
+            })
           ),
         },
       },
@@ -169,10 +160,7 @@ export function getRotateSnapshot(data: Data) {
         const center = Utils.getBoundsCenter(bounds)
         const offset = Vec.sub(center, shape.point)
 
-        const rotationOffset = Vec.sub(
-          center,
-          Utils.getBoundsCenter(rotatedBounds[shape.id])
-        )
+        const rotationOffset = Vec.sub(center, Utils.getBoundsCenter(rotatedBounds[shape.id]))
 
         return {
           id: shape.id,

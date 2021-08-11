@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import type { TLPage, TLPageState } from '@tldraw/core'
-import type {
-  ShapeStyles,
-  TLDrawShape,
-  TLDrawShapeType,
-  TLDrawToolType,
-} from '../shape'
+import type { ShapeStyles, TLDrawShape, TLDrawShapeType, TLDrawToolType } from '../shape'
 import type { TLDrawSettings } from '../types'
 import type { StoreApi } from 'zustand'
 
@@ -51,10 +46,10 @@ export interface History {
 
 export interface Session {
   id: string
-  start: (data: Readonly<Data>, ...args: any[]) => Data
-  update: (data: Readonly<Data>, ...args: any[]) => Data
-  complete: (data: Readonly<Data>, ...args: any[]) => Data | Command
-  cancel: (data: Readonly<Data>, ...args: any[]) => Data
+  start: (data: Readonly<Data>, ...args: any[]) => Partial<Data>
+  update: (data: Readonly<Data>, ...args: any[]) => Partial<Data>
+  complete: (data: Readonly<Data>, ...args: any[]) => Partial<Data> | Command
+  cancel: (data: Readonly<Data>, ...args: any[]) => Partial<Data>
 }
 
 export type TLDrawStatus =
@@ -72,11 +67,6 @@ export type TLDrawStatus =
   | 'editing-text'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ParametersExceptFirst<F> = F extends (
-  arg0: any,
-  ...rest: infer R
-) => any
-  ? R
-  : never
+export type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never
 
 export {}

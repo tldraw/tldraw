@@ -13,6 +13,7 @@ import {
 export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
   type = TLDrawShapeType.Rectangle as const
   toolType = TLDrawToolType.Bounds
+  canBind = true
 
   pathCache = new WeakMap<number[], string>([])
 
@@ -177,6 +178,82 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
 
   getCenter(shape: RectangleShape): number[] {
     return Utils.getBoundsCenter(this.getBounds(shape))
+  }
+
+  getBindingPoint(
+    shape: RectangleShape,
+    point: number[],
+    origin: number[],
+    direction: number[],
+    padding: number,
+    anywhere: boolean
+  ) {
+    const bounds = this.getBounds(shape)
+
+    const expandedBounds = Utils.expandBounds(bounds, padding)
+
+    let bindingPoint: number[]
+    let distance: number
+
+    // The point must be inside of the expanded bounding box
+    if (!Utils.pointInBounds(point, expandedBounds)) return
+
+    // The point is inside of the shape, so we'll assume the user is
+    // indicating a specific point inside of the shape.
+    if (anywhere) {
+      if (Vec.dist(point, this.getCenter(shape)) < 12) {
+        bindingPoint = [0.5, 0.5]
+      } else {
+        bindingPoint = Vec.divV(Vec.sub(point, [expandedBounds.minX, expandedBounds.minY]), [
+          expandedBounds.width,
+          expandedBounds.height,
+        ])
+      }
+
+      distance = 0
+    } else {
+      // Find furthest intersection between ray from
+      // origin through point and expanded bounds.
+
+      // TODO: Make this a ray vs rounded rect intersection
+      const intersection = Intersect.ray
+        .bounds(origin, direction, expandedBounds)
+        .filter((int) => int.didIntersect)
+        .map((int) => int.points[0])
+        .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
+
+      // The anchor is a point between the handle and the intersection
+      const anchor = Vec.med(point, intersection)
+
+      // If we're close to the center, snap to the center
+      if (Vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12) {
+        bindingPoint = [0.5, 0.5]
+      } else {
+        // Or else calculate a normalized point
+        bindingPoint = Vec.divV(Vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]), [
+          expandedBounds.width,
+          expandedBounds.height,
+        ])
+      }
+
+      if (Utils.pointInBounds(point, bounds)) {
+        distance = 16
+      } else {
+        // If the binding point was close to the shape's center, snap to the center
+        // Find the distance between the point and the real bounds of the shape
+        distance = Math.max(
+          16,
+          Utils.getBoundsSides(bounds)
+            .map((side) => Vec.distanceToLineSegment(side[1][0], side[1][1], point))
+            .sort((a, b) => a - b)[0]
+        )
+      }
+    }
+
+    return {
+      point: bindingPoint,
+      distance,
+    }
   }
 
   hitTest(shape: RectangleShape, point: number[]) {

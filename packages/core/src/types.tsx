@@ -15,7 +15,7 @@ export interface TLPageState {
   pointedId?: string
   hoveredId?: string
   editingId?: string
-  editingBindingId?: string
+  bindingId?: string
   boundsRotation?: number
   currentParentId?: string
   selectedIds: string[]
@@ -29,6 +29,8 @@ export interface TLHandle {
   id: string
   index: number
   point: number[]
+  canBind?: boolean
+  bindingId?: string
 }
 
 export interface TLShape {
@@ -258,6 +260,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
   isEditableText = false
   isAspectRatioLocked = false
   canEdit = false
+  canBind = false
 
   abstract type: T['type']
 
@@ -294,6 +297,17 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return [bounds.width / 2, bounds.height / 2]
   }
 
+  getBindingPoint(
+    shape: T,
+    point: number[],
+    origin: number[],
+    direction: number[],
+    padding: number,
+    anywhere: boolean
+  ): { point: number[]; distance: number } | undefined {
+    return undefined
+  }
+
   create(props: Partial<T>): T {
     return { ...this.defaultProps, ...props }
   }
@@ -317,7 +331,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
     _targetBounds: TLBounds,
     _center: number[]
   ): Partial<T> | void {
-    return
+    return undefined
   }
 
   onHandleChange(
