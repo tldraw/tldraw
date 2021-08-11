@@ -211,13 +211,14 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
         //   .map((int) => int.points[0])
         //   .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
 
-        const intersection = Intersect.ray
+        let intersection = Intersect.ray
           .ellipse(origin, direction, center, shape.radius[0], shape.radius[1], shape.rotation || 0)
           .points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))[0]
 
         if (!intersection) {
-          console.log('could not find an intersection')
-          return undefined
+          intersection = Intersect.lineSegment
+            .ellipse(point, center, center, shape.radius[0], shape.radius[1], shape.rotation || 0)
+            .points.sort((a, b) => Vec.dist(a, point) - Vec.dist(b, point))[0]
         }
 
         // The anchor is a point between the handle and the intersection
