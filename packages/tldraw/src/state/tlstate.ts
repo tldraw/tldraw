@@ -1484,7 +1484,8 @@ export class TLDrawState implements TLCallbacks {
         switch (this.appState.activeTool) {
           case 'select': {
             if (info.metaKey) {
-              // While holding command key, allow event to pass through to canvas
+              // While holding command key, start a brush session
+              this.startBrushSession(this.getPagePoint(info.point))
               return
             }
 
