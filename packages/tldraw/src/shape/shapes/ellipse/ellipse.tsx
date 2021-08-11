@@ -235,7 +235,10 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
           ])
         }
 
-        if (Utils.pointInBounds(point, bounds)) {
+        if (
+          Utils.pointInEllipse(point, center, shape.radius[0], shape.radius[1], shape.rotation || 0)
+        ) {
+          // Pad the arrow out by 16 points
           distance = 16
         } else {
           // Find the distance between the point and the ellipse

@@ -1,4 +1,5 @@
 import { Utils, Vec } from '@tldraw/core'
+import type { TLBinding } from 'packages/core/src/types'
 import type { TLDrawShape } from '../../../../shape'
 import type { Session } from '../../../state-types'
 import type { Data } from '../../../state-types'
@@ -75,6 +76,12 @@ export class TranslateSession implements Session {
         }
 
         next.pageState.selectedIds = clones.map((c) => c.id)
+
+        for (const binding of this.snapshot.clonedBindings) {
+          next.page.bindings[binding.id] = binding
+        }
+
+        next.page.bindings = { ...next.page.bindings }
       }
 
       // Either way, move the clones
@@ -101,21 +108,24 @@ export class TranslateSession implements Session {
     if (this.isCloning) {
       this.isCloning = false
 
+      next.page.shapes = { ...next.page.shapes }
+
       // Delete the clones
       clones.forEach((clone) => delete next.page.shapes[clone.id])
 
       // Move the original shapes back to the cursor position
-      next.page.shapes = {
-        ...next.page.shapes,
-        ...Object.fromEntries(
-          initialShapes.map((shape) => [
-            shape.id,
-            {
-              ...next.page.shapes[shape.id],
-              point: Vec.round(Vec.add(shape.point, delta)),
-            },
-          ])
-        ),
+      initialShapes.forEach((shape) => {
+        next.page.shapes[shape.id] = {
+          ...next.page.shapes[shape.id],
+          point: Vec.round(Vec.add(shape.point, delta)),
+        }
+      })
+
+      // Delete the cloned bindings
+      next.page.bindings = { ...next.page.bindings }
+
+      for (const binding of this.snapshot.clonedBindings) {
+        delete next.page.bindings[binding.id]
       }
 
       // Set selected ids
@@ -172,9 +182,15 @@ export class TranslateSession implements Session {
               this.snapshot.initialShapes.map((shape) => [shape.id, { point: shape.point }])
             ),
           },
+          bindings: {
+            ...Object.fromEntries(
+              this.snapshot.clonedBindings.map((binding) => [binding.id, undefined])
+            ),
+          },
         },
         pageState: {
           selectedIds: this.snapshot.selectedIds,
+          hoveredId: undefined,
         },
       },
       after: {
@@ -190,9 +206,18 @@ export class TranslateSession implements Session {
               ])
             ),
           },
+          bindings: {
+            ...Object.fromEntries(
+              this.snapshot.clonedBindings.map((binding) => [
+                binding.id,
+                data.page.bindings[binding.id],
+              ])
+            ),
+          },
         },
         pageState: {
           selectedIds: [...data.pageState.selectedIds],
+          hoveredId: undefined,
         },
       },
     }
@@ -205,6 +230,8 @@ export function getTranslateSnapshot(data: Data) {
 
   const hasUnlockedShapes = selectedShapes.length > 0
 
+  const cloneMap: Record<string, string> = {}
+
   const initialParents = Array.from(new Set(selectedShapes.map((s) => s.parentId)).values())
     .filter((id) => id !== data.page.id)
     .map((id) => {
@@ -215,6 +242,41 @@ export function getTranslateSnapshot(data: Data) {
       }
     })
 
+  const clones = selectedShapes
+    .filter((shape) => shape.children === undefined)
+    .flatMap((shape) => {
+      const clone: TLDrawShape = {
+        ...shape,
+        id: Utils.uniqueId(),
+        parentId: shape.parentId,
+        childIndex: TLDR.getChildIndexAbove(data, shape.id),
+      }
+
+      cloneMap[shape.id] = clone.id
+
+      return clone
+    })
+
+  const clonedBindings: TLBinding[] = []
+
+  selectedShapes.forEach((shape) => {
+    if (!shape.handles) return
+
+    for (const handle of Object.values(shape.handles)) {
+      if (handle.bindingId) {
+        const binding = data.page.bindings[handle.bindingId]
+        const cloneBinding = {
+          ...binding,
+          id: Utils.uniqueId(),
+          fromId: cloneMap[binding.fromId] || binding.fromId,
+          toId: cloneMap[binding.toId] || binding.toId,
+        }
+
+        clonedBindings.push(cloneBinding)
+      }
+    }
+  })
+
   return {
     selectedIds: TLDR.getSelectedIds(data),
     hasUnlockedShapes,
@@ -224,18 +286,8 @@ export function getTranslateSnapshot(data: Data) {
       point,
       parentId,
     })),
-    clones: selectedShapes
-      .filter((shape) => shape.children === undefined)
-      .flatMap((shape) => {
-        const clone: TLDrawShape = {
-          ...shape,
-          id: Utils.uniqueId(),
-          parentId: shape.parentId,
-          childIndex: TLDR.getChildIndexAbove(data, shape.id),
-        }
-
-        return clone
-      }),
+    clones,
+    clonedBindings,
   }
 }
 
