@@ -51,7 +51,6 @@ export function deleteShapes(data: Data, ids: string[]): Command {
     after: {
       page: {
         shapes: {
-          ...Object.fromEntries(ids.map((id) => [id, undefined])),
           ...Object.fromEntries(
             shapesWithBindingsToUpdate.map((shape) => {
               for (const id in shape.handles) {
@@ -64,6 +63,7 @@ export function deleteShapes(data: Data, ids: string[]): Command {
               return [shape.id, shape]
             })
           ),
+          ...Object.fromEntries(ids.map((id) => [id, undefined])),
         },
         bindings: Object.fromEntries(bindingIdsToDelete.map((id) => [id, undefined])),
       },

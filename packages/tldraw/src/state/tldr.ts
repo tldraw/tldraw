@@ -345,29 +345,26 @@ export class TLDR {
     this.setSelectedIds(data, [])
   }
 
-  static mutateShapes(
+  static mutateShapes<T extends TLDrawShape>(
     data: Data,
     ids: string[],
-    fn: (shape: TLDrawShape, i: number) => Partial<TLDrawShape>
+    fn: (shape: T, i: number) => Partial<T>
   ): {
-    before: Record<string, Partial<TLDrawShape>>
-    after: Record<string, Partial<TLDrawShape>>
+    before: Record<string, Partial<T>>
+    after: Record<string, Partial<T>>
     data: Data
   } {
-    const beforeShapes: Record<string, Partial<TLDrawShape>> = {}
-    const afterShapes: Record<string, Partial<TLDrawShape>> = {}
+    const beforeShapes: Record<string, Partial<T>> = {}
+    const afterShapes: Record<string, Partial<T>> = {}
 
     ids.forEach((id, i) => {
-      const shape = data.page.shapes[id]
+      const shape = this.getShape<T>(data, id)
       const change = fn(shape, i)
       beforeShapes[id] = Object.fromEntries(
-        Object.keys(change).map((key) => [key, shape[key as keyof TLDrawShape]])
-      ) as Partial<TLDrawShape>
+        Object.keys(change).map((key) => [key, shape[key as keyof T]])
+      ) as Partial<T>
       afterShapes[id] = change
-      data.page.shapes[id] = this.getShapeUtils(shape).mutate(
-        shape as TLDrawShape,
-        change as Partial<TLDrawShape>
-      )
+      data.page.shapes[id] = this.getShapeUtils(shape).mutate(shape as T, change as Partial<T>)
     })
 
     const dataWithChildrenChanges = ids.reduce<Data>((cData, id) => {

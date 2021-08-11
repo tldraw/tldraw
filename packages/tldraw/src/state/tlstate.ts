@@ -796,6 +796,16 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
+  toggleDecoration = (handleId: string, ids?: string[]) => {
+    if (handleId === 'start' || handleId === 'end') {
+      const data = this.store.getState()
+      const idsToMutate = ids ? ids : data.pageState.selectedIds
+      this.do(commands.toggleDecoration(data, idsToMutate, handleId))
+    }
+
+    return this
+  }
+
   rotate = (delta = Math.PI * -0.5, ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
@@ -1612,8 +1622,8 @@ export class TLDrawState implements TLCallbacks {
     this.setStatus('pointingHandle')
   }
 
-  onDoubleClickHandle: TLPointerEventHandler = () => {
-    // TODO
+  onDoubleClickHandle: TLPointerEventHandler = (info) => {
+    this.toggleDecoration(info.target)
   }
 
   onRightPointHandle: TLPointerEventHandler = () => {

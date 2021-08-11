@@ -85,9 +85,14 @@ export class ArrowSession implements Session {
       const rayPoint = Vec.add(nextPoint, shape.point)
       const rayDirection = Vec.uni(Vec.sub(rayPoint, rayOrigin))
 
+      const oppositeBinding = oppositeHandle.bindingId
+        ? data.page.bindings[oppositeHandle.bindingId]
+        : undefined
+
       // From all bindable shapes on the page...
       for (const id of this.bindableShapeIds) {
         if (id === initialShape.id) continue
+        if (id === oppositeBinding?.toId) continue
 
         const target = TLDR.getShape(data, id)
 

@@ -23,7 +23,7 @@ export function useHandleEvents(id: string) {
       if (e.button !== 0) return
       e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
-      const info = inputs.pointerUp(e, 'bounds')
+      const info = inputs.pointerUp(e, id)
 
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         e.currentTarget?.releasePointerCapture(e.pointerId)
