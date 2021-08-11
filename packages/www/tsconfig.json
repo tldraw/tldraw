@@ -15,7 +15,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "paths": {
-      "@tldraw/tldraw": ["../tldraw"]
+      "@tldraw/tldraw": ["packages/tldraw/dist"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],

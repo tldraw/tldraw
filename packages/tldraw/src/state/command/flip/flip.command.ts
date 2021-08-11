@@ -1,4 +1,4 @@
-import { FlipType } from './../../../types'
+import { FlipType } from '../../../types'
 import { TLBoundsCorner, Utils } from '@tldraw/core'
 import type { Data, Command } from '../../state-types'
 import { TLDR } from '../../tldr'

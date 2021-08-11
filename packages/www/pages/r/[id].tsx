@@ -1,4 +1,4 @@
-import { GetServerSideProps } from 'next'
+import type { GetServerSideProps } from 'next'
 import * as React from 'react'
 
 export default function Room(): JSX.Element {

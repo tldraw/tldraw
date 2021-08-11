@@ -1,4 +1,3 @@
-import { ArrowBinding } from './../../../../shape/shape-types'
 import { Vec } from '@tldraw/core'
 import type { TLDrawShape } from '../../../../shape'
 import type { Session } from '../../../state-types'

@@ -3,12 +3,10 @@
   "include": ["src"],
   "exclude": ["node_modules", "**/*.test.ts", "dist"],
   "compilerOptions": {
+    "rootDir": "src",
     "jsx": "preserve",
     "lib": ["dom", "esnext"],
     "module": "esnext",
-    "outDir": "./dist/types",
-    "paths": {
-      "@tldraw/core": ["packages/core/dist"]
-    }
+    "outDir": "./dist/types"
   }
 }

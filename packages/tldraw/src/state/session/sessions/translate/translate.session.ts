@@ -1,5 +1,5 @@
 import { Utils, Vec } from '@tldraw/core'
-import type { TLBinding } from 'packages/core/src/types'
+import type { TLBinding } from '@tldraw/core'
 import type { TLDrawShape } from '../../../../shape'
 import type { Session } from '../../../state-types'
 import type { Data } from '../../../state-types'

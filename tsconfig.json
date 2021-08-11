@@ -29,7 +29,8 @@
     "typeRoots": ["node_modules/@types", "node_modules/jest"],
     "types": ["node", "jest"],
     "paths": {
-      "@tldraw/*": ["./packages/*"]
+      "@tldraw/tldraw": ["./packages/tldraw/dist"],
+      "@tldraw/core": ["./packages/core/dist"]
     }
   }
 }

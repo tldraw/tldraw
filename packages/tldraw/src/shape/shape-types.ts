@@ -1,4 +1,4 @@
-import type { TLBinding } from './../../../core/src/types'
+import type { TLBinding } from '@tldraw/core'
 import { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
 
 export enum TLDrawToolType {

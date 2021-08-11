@@ -1,4 +1,4 @@
-import { AppProps } from 'next/app'
+import type { AppProps } from 'next/app'
 import useGtag from '../hooks/useGtag'
 import Head from 'next/head'
 import './styles.css'
