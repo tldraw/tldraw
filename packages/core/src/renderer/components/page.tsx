@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useShapeTree } from '../hooks/useShapeTree'
-import type { IShapeTreeNode, TLPage, TLPageState, TLShape } from '../../types'
+import type { IShapeTreeNode, TLBinding, TLPage, TLPageState, TLShape } from '../../types'
 import { Shape as ShapeComponent } from './shape'
 import { useHandles, useRenderOnResize, useTLContext } from '../hooks'
 import { Bounds } from './bounds'
@@ -9,7 +9,7 @@ import { useSelection } from '../hooks'
 import { Handles } from './handles'
 
 interface PageProps<T extends TLShape> {
-  page: TLPage<T>
+  page: TLPage<T, TLBinding>
   pageState: TLPageState
   hideBounds: boolean
   hideHandles: boolean

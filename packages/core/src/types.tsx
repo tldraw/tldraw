@@ -1,11 +1,11 @@
 /* --------------------- Primary -------------------- */
 
-export interface TLPage<T extends TLShape> {
+export interface TLPage<T extends TLShape, B extends TLBinding> {
   id: string
   name?: string
   childIndex?: number
   shapes: Record<string, T>
-  bindings: Record<string, TLBinding>
+  bindings: Record<string, B>
   backgroundColor?: string
 }
 

@@ -6,13 +6,14 @@ import type {
   TLShape,
   TLShapeUtils,
   TLCallbacks,
+  TLBinding,
 } from '../../types'
 import Utils, { Vec } from '../../utils'
 
 function addToShapeTree<T extends TLShape>(
   shape: TLShape,
   branch: IShapeTreeNode[],
-  shapes: TLPage<T>['shapes'],
+  shapes: TLPage<T, TLBinding>['shapes'],
   selectedIds: string[],
   info: {
     bindingId?: string
@@ -46,7 +47,7 @@ function addToShapeTree<T extends TLShape>(
 }
 
 export function useShapeTree<T extends TLShape>(
-  page: TLPage<T>,
+  page: TLPage<T, TLBinding>,
   pageState: TLPageState,
   shapeUtils: TLShapeUtils<T>,
   onChange?: TLCallbacks['onChange']
@@ -87,8 +88,7 @@ export function useShapeTree<T extends TLShape>(
 
     return (
       // TODO: Some shapes should always render (lines, rays)
-      Utils.boundsContain(viewport, shapeBounds) ||
-      Utils.boundsCollide(viewport, shapeBounds)
+      Utils.boundsContain(viewport, shapeBounds) || Utils.boundsCollide(viewport, shapeBounds)
     )
   })
 
@@ -105,9 +105,7 @@ export function useShapeTree<T extends TLShape>(
 
   shapesToRender
     .sort((a, b) => a.childIndex - b.childIndex)
-    .forEach((shape) =>
-      addToShapeTree(shape, tree, page.shapes, selectedIds, pageState)
-    )
+    .forEach((shape) => addToShapeTree(shape, tree, page.shapes, selectedIds, pageState))
 
   return tree
 }

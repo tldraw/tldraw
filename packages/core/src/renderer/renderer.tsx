@@ -8,6 +8,7 @@ import type {
   TLShapeUtils,
   TLTheme,
   TLBounds,
+  TLBinding,
 } from '../types'
 import { Canvas } from './components/canvas'
 import { useTLTheme } from './hooks/useStyle'
@@ -17,7 +18,7 @@ export interface RendererProps<T extends TLShape>
   extends Partial<TLSettings>,
     Partial<TLCallbacks> {
   shapeUtils: TLShapeUtils<T>
-  page: TLPage<T>
+  page: TLPage<T, TLBinding>
   pageState: TLPageState
   theme?: Partial<TLTheme>
   hideBounds?: boolean

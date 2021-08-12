@@ -7,6 +7,9 @@
     "jsx": "preserve",
     "lib": ["dom", "esnext"],
     "module": "esnext",
-    "outDir": "./dist/types"
+    "outDir": "./dist/types",
+    "paths": {
+      "@tldraw/core": ["packages/core/dist"]
+    }
   }
 }

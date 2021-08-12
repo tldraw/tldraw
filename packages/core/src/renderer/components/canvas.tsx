@@ -2,7 +2,7 @@ import * as React from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useZoomEvents, useSafariFocusOutFix, useCanvasEvents, useCameraCss } from '../hooks'
 import { ErrorFallback } from './error-fallback'
-import type { TLPage, TLPageState, TLShape } from '../../types'
+import type { TLBinding, TLPage, TLPageState, TLShape } from '../../types'
 
 import { Brush } from './brush'
 import { Defs } from './defs'
@@ -14,7 +14,7 @@ function resetError() {
 }
 
 interface CanvasProps<T extends TLShape> {
-  page: TLPage<T>
+  page: TLPage<T, TLBinding>
   pageState: TLPageState
   hideBounds?: boolean
   hideHandles?: boolean

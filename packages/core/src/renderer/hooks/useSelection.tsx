@@ -1,25 +1,13 @@
-import type {
-  TLPage,
-  TLPageState,
-  TLShape,
-  TLBounds,
-  TLShapeUtils,
-} from '../../types'
+import type { TLPage, TLPageState, TLShape, TLBounds, TLShapeUtils, TLBinding } from '../../types'
 import Utils from '../../utils'
 import { useTLContext } from '../hooks/useTLContext'
 
-function canvasToScreen(
-  point: number[],
-  camera: TLPageState['camera']
-): number[] {
-  return [
-    (point[0] + camera.point[0]) * camera.zoom,
-    (point[1] + camera.point[1]) * camera.zoom,
-  ]
+function canvasToScreen(point: number[], camera: TLPageState['camera']): number[] {
+  return [(point[0] + camera.point[0]) * camera.zoom, (point[1] + camera.point[1]) * camera.zoom]
 }
 
 export function useSelection<T extends TLShape>(
-  page: TLPage<T>,
+  page: TLPage<T, TLBinding>,
   pageState: TLPageState,
   shapeUtils: TLShapeUtils<T>
 ) {
@@ -59,14 +47,8 @@ export function useSelection<T extends TLShape>(
   }
 
   if (bounds) {
-    const [minX, minY] = canvasToScreen(
-      [bounds.minX, bounds.minY],
-      pageState.camera
-    )
-    const [maxX, maxY] = canvasToScreen(
-      [bounds.maxX, bounds.maxY],
-      pageState.camera
-    )
+    const [minX, minY] = canvasToScreen([bounds.minX, bounds.minY], pageState.camera)
+    const [maxX, maxY] = canvasToScreen([bounds.maxX, bounds.maxY], pageState.camera)
 
     rScreenBounds.current = {
       minX,
