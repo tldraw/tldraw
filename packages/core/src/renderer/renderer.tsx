@@ -21,6 +21,7 @@ export interface RendererProps<T extends TLShape>
   pageState: TLPageState
   theme?: Partial<TLTheme>
   hideBounds?: boolean
+  hideHandles?: boolean
   hideIndicators?: boolean
 }
 
@@ -29,11 +30,9 @@ export function Renderer<T extends TLShape>({
   page,
   pageState,
   theme,
+  hideHandles = false,
   hideIndicators = false,
   hideBounds = false,
-  isDarkMode = false,
-  isDebugMode = false,
-  isPenMode = false,
   ...rest
 }: RendererProps<T>): JSX.Element {
   useTLTheme(theme)
@@ -58,6 +57,7 @@ export function Renderer<T extends TLShape>({
         pageState={pageState}
         hideBounds={hideBounds}
         hideIndicators={hideIndicators}
+        hideHandles={hideHandles}
       />
     </TLContext.Provider>
   )

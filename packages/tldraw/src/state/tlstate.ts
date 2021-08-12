@@ -19,7 +19,14 @@ import {
   Vec,
 } from '@tldraw/core'
 import { brushUpdater } from '@tldraw/core'
-import { defaultStyle, ShapeStyles, TLDrawShape, TLDrawShapeType, TLDrawToolType } from '../shape'
+import {
+  defaultStyle,
+  ShapeStyles,
+  TLDrawShape,
+  TLDrawShapeType,
+  TLDrawToolType,
+  TLDrawBinding,
+} from '../shape'
 import type {
   Data,
   Session,
@@ -56,7 +63,7 @@ const initialData: Data = {
     activeTool: 'select',
     hoveredId: undefined,
     currentPageId: 'page',
-    pages: [{ id: 'page' }],
+    pages: [{ id: 'page', name: 'page', childIndex: 1 }],
     currentStyle: defaultStyle,
     selectedStyle: defaultStyle,
     isToolLocked: false,
@@ -97,7 +104,7 @@ export class TLDrawState implements TLCallbacks {
   pointedBoundsHandle?: TLBoundsCorner | TLBoundsEdge | 'rotate'
   currentDocumentId = 'doc'
   currentPageId = 'page'
-  pages: Record<string, TLPage<TLDrawShape>> = { page: initialData.page }
+  pages: Record<string, TLPage<TLDrawShape, TLDrawBinding>> = { page: initialData.page }
   pageStates: Record<string, TLPageState> = { page: initialData.pageState }
   _onChange?: (state: TLDrawState, reason: string) => void
 
@@ -112,62 +119,39 @@ export class TLDrawState implements TLCallbacks {
 
     let next = { ...current, ...result }
 
+    // Remove deleted shapes and bindings (in commands, these will be set to undefined)
     if (result.page) {
-      const shapes = { ...next.page.shapes }
-
-      for (let id in shapes) {
-        if (!shapes[id]) delete shapes[id]
+      next.page = {
+        ...next.page,
+        shapes: { ...next.page.shapes },
+        bindings: { ...next.page.bindings },
       }
 
-      const bindings = { ...next.page.bindings }
-
-      for (let id in bindings) {
-        if (!bindings[id]) delete bindings[id]
+      for (const id in next.page.shapes) {
+        if (!next.page.shapes[id]) delete next.page.shapes[id]
       }
 
-      const changedShapeIds = new Set(
-        Object.values(shapes)
-          .filter((shape) => current.page.shapes[shape.id] !== shape)
-          .map((shape) => shape.id)
-      )
-
-      // Find all shapes that we need to update due to bindings
-      const bindingsArr = Object.values(bindings)
-
-      const bindingsToUpdate = new Set(
-        bindingsArr.filter(
-          (binding) => changedShapeIds.has(binding.toId) || changedShapeIds.has(binding.fromId)
-        )
-      )
-
-      let prevSize = bindingsToUpdate.size
-
-      while (true) {
-        bindingsToUpdate.forEach((binding) => {
-          const fromId = binding.fromId
-
-          for (const otherBinding of bindingsArr) {
-            if (otherBinding.fromId === fromId) {
-              bindingsToUpdate.add(otherBinding)
-            }
-
-            if (otherBinding.toId === fromId) {
-              bindingsToUpdate.add(otherBinding)
-            }
-          }
-        })
-
-        if (bindingsToUpdate.size === prevSize) break
-        prevSize = bindingsToUpdate.size
+      for (const id in next.page.bindings) {
+        if (!next.page.bindings[id]) delete next.page.bindings[id]
       }
 
+      const changedShapeIds = Object.values(next.page.shapes)
+        .filter((shape) => current.page.shapes[shape.id] !== shape)
+        .map((shape) => shape.id)
+
+      // Get bindings related to the changed shapes
+      const bindingsToUpdate = TLDR.getRelatedBindings(next, changedShapeIds)
+
+      // Update all of the bindings we've just collected
       bindingsToUpdate.forEach((binding) => {
-        // Update the binding
-        const toShape = shapes[binding.toId]
-        const fromShape = shapes[binding.fromId]
+        const toShape = next.page.shapes[binding.toId]
+        const fromShape = next.page.shapes[binding.fromId]
         const toUtils = TLDR.getShapeUtils(toShape)
 
-        const fromDelta = TLDR.getShapeUtils(fromShape).onBindingChange(
+        // We only need to update the binding's "from" shape
+        const util = TLDR.getShapeUtils(fromShape)
+
+        const fromDelta = util.onBindingChange(
           fromShape,
           binding,
           toShape,
@@ -176,18 +160,30 @@ export class TLDrawState implements TLCallbacks {
         )
 
         if (fromDelta) {
-          shapes[fromShape.id] = {
+          const nextShape = {
             ...fromShape,
             ...fromDelta,
           } as TLDrawShape
+
+          next.page.shapes[fromShape.id] = nextShape
         }
       })
+    }
 
-      next.page = {
-        ...next.page,
-        shapes,
-        bindings,
-      }
+    // Clean up page state, preventing hovers on deleted shapes
+
+    if (next.pageState.hoveredId && !next.page.shapes[next.pageState.hoveredId]) {
+      delete next.pageState.hoveredId
+    }
+
+    if (next.pageState.bindingId && !next.page.bindings[next.pageState.bindingId]) {
+      console.warn('Could not find the binding shape!')
+      delete next.pageState.bindingId
+    }
+
+    if (next.pageState.editingId && !next.page.bindings[next.pageState.editingId]) {
+      console.warn('Could not find the editing shape!')
+      delete next.pageState.editingId
     }
 
     // Apply selected style change, if any
@@ -588,6 +584,7 @@ export class TLDrawState implements TLCallbacks {
   /* -------------------- Commands -------------------- */
   do(command: Command) {
     const { history } = this
+
     if (history.pointer !== history.stack.length - 1) {
       history.stack = history.stack.slice(0, history.pointer + 1)
     }
@@ -1742,6 +1739,16 @@ export class TLDrawState implements TLCallbacks {
 
   get page() {
     return this.pages[this.currentPageId]
+  }
+
+  get shapes() {
+    return Object.values(this.pages[this.currentPageId].shapes).sort(
+      (a, b) => a.childIndex - b.childIndex
+    )
+  }
+
+  get bindings() {
+    return Object.values(this.pages[this.currentPageId].bindings)
   }
 
   get pageState() {

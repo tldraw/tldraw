@@ -4,11 +4,12 @@ import type {
   ShapeStyles,
   TLDrawShapeType,
   TLDrawToolType,
+  TLDrawBinding,
 } from './shape'
 
 export interface TLDrawDocument {
   id: string
-  pages: Record<string, TLPage<TLDrawShape>>
+  pages: Record<string, TLPage<TLDrawShape, TLDrawBinding>>
   pageStates: Record<string, TLPageState>
 }
 
@@ -19,7 +20,7 @@ export interface TLDrawSettings extends TLSettings {
 }
 
 export interface Data {
-  page: TLPage<TLDrawShape>
+  page: TLPage<TLDrawShape, TLDrawBinding>
   pageState: TLPageState
   settings: TLDrawSettings
   appState: {

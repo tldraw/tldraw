@@ -252,7 +252,6 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
           ).points[0]
 
           if (!innerIntersection) {
-            console.log('could not find an intersection')
             return undefined
           }
 

@@ -15,6 +15,17 @@ export class Vec {
   }
 
   /**
+   * Clamp a value into a range.
+   * @param n
+   * @param min
+   */
+  static clampV(A: number[], min: number): number[]
+  static clampV(A: number[], min: number, max: number): number[]
+  static clampV(A: number[], min: number, max?: number): number[] {
+    return A.map((n) => (max ? Vec.clamp(n, min, max) : Vec.clamp(n, min)))
+  }
+
+  /**
    * Negate a vector.
    * @param A
    */
@@ -342,7 +353,7 @@ export class Vec {
   }
 
   static round = (a: number[], d = 5): number[] => {
-    return a.map(v => +v.toPrecision(d))
+    return a.map((v) => +v.toPrecision(d))
   }
 
   /**
@@ -493,7 +504,7 @@ export class Vec {
         const t = i / steps
         return t * t * t
       })
-      .map(t => Vec.round([...Vec.lrp(a, b, t), (1 - t) / 2]))
+      .map((t) => Vec.round([...Vec.lrp(a, b, t), (1 - t) / 2]))
   }
 }
 

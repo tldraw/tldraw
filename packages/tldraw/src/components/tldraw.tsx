@@ -18,21 +18,14 @@ export interface TLDrawProps {
   onChange?: TLDrawState['_onChange']
 }
 
-const hideBoundsSelector = (s: Data) =>
-  s.appState.activeTool !== 'select' ||
-  (s.pageState.selectedIds.length === 1 &&
-    s.pageState.selectedIds.every(
-      (id) => s.page.shapes[id].handles !== undefined
-    ))
+const isInSelectSelector = (s: Data) => s.appState.activeTool === 'select'
+const isSelectedShapeWithHandlesSelector = (s: Data) =>
+  s.pageState.selectedIds.length === 1 &&
+  s.pageState.selectedIds.every((id) => s.page.shapes[id].handles !== undefined)
 const pageSelector = (s: Data) => s.page
 const pageStateSelector = (s: Data) => s.pageState
 
-export function TLDraw({
-  document,
-  currentPageId,
-  onMount,
-  onChange: _onChange,
-}: TLDrawProps) {
+export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }: TLDrawProps) {
   const [tlstate] = React.useState(() => new TLDrawState())
   const [context] = React.useState(() => {
     return { tlstate, useSelector: tlstate.store }
@@ -40,9 +33,20 @@ export function TLDraw({
 
   useKeyboardShortcuts(tlstate)
 
-  const hideBounds = context.useSelector(hideBoundsSelector)
   const page = context.useSelector(pageSelector)
   const pageState = context.useSelector(pageStateSelector)
+  const isSelecting = context.useSelector(isInSelectSelector)
+  const isSelectedHandlesShape = context.useSelector(isSelectedShapeWithHandlesSelector)
+  const isInSession = !!tlstate.session
+
+  // Hide bounds when not using the select tool, or when the only selected shape has handles
+  const hideBounds = !isSelecting || isSelectedHandlesShape
+
+  // Hide bounds when not using the select tool, or when in session
+  const hideHandles = !isSelecting || isInSession
+
+  // Hide indicators when not using the select tool, or when in session
+  const hideIndicators = !isSelecting || isInSession
 
   React.useEffect(() => {
     if (!document) return
@@ -56,7 +60,6 @@ export function TLDraw({
 
   React.useEffect(() => {
     onMount?.(tlstate)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -69,7 +72,8 @@ export function TLDraw({
               pageState={pageState}
               shapeUtils={tldrawShapeUtils}
               hideBounds={hideBounds}
-              hideIndicators={!!tlstate.session || hideBounds}
+              hideHandles={hideHandles}
+              hideIndicators={hideIndicators}
               onPinchStart={tlstate.onPinchStart}
               onPinchEnd={tlstate.onPinchEnd}
               onPinch={tlstate.onPinch}

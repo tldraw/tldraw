@@ -1,11 +1,6 @@
 import * as React from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
-import {
-  useZoomEvents,
-  useSafariFocusOutFix,
-  useCanvasEvents,
-  useCameraCss,
-} from '../hooks'
+import { useZoomEvents, useSafariFocusOutFix, useCanvasEvents, useCameraCss } from '../hooks'
 import { ErrorFallback } from './error-fallback'
 import type { TLPage, TLPageState, TLShape } from '../../types'
 
@@ -22,12 +17,14 @@ interface CanvasProps<T extends TLShape> {
   page: TLPage<T>
   pageState: TLPageState
   hideBounds?: boolean
+  hideHandles?: boolean
   hideIndicators?: boolean
 }
 
 export const Canvas = React.memo(function Canvas<T extends TLShape>({
   page,
   pageState,
+  hideHandles = false,
   hideBounds = false,
   hideIndicators = false,
 }: CanvasProps<T>): JSX.Element {
@@ -54,6 +51,7 @@ export const Canvas = React.memo(function Canvas<T extends TLShape>({
               pageState={pageState}
               hideBounds={hideBounds}
               hideIndicators={hideIndicators}
+              hideHandles={hideHandles}
             />
             <Brush />
           </g>

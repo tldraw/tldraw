@@ -1,75 +1,69 @@
-import type { Data, Command } from '../../state-types'
+import type { Data, Command, PagePartial } from '../../state-types'
 
 // - [x] Delete shapes
-// - [ ] Delete bindings too
+// - [x] Delete bindings too
 // - [ ] Update parents and possibly delete parents
 
 export function deleteShapes(data: Data, ids: string[]): Command {
-  // We also need to delete any bindings that reference the deleted shapes
-  const bindingIdsToDelete = Object.values(data.page.bindings)
-    .filter((binding) => ids.includes(binding.fromId) || ids.includes(binding.toId))
-    .map((binding) => binding.id)
+  const before: PagePartial = {
+    shapes: {},
+    bindings: {},
+  }
 
-  // We also need to update any shapes that reference the deleted bindings
-  const shapesWithBindingsToUpdate = Object.values(data.page.shapes).filter(
-    (shape) =>
-      shape.handles &&
-      Object.values(shape.handles).some(
-        (handle) => handle.bindingId && bindingIdsToDelete.includes(handle.bindingId)
-      )
-  )
+  const after: PagePartial = {
+    shapes: {},
+    bindings: {},
+  }
+
+  // These are the shapes we're definitely going to delete
+  ids.forEach((id) => {
+    before.shapes[id] = data.page.shapes[id]
+    after.shapes[id] = undefined
+  })
+
+  // We also need to delete bindings that reference the deleted shapes
+  Object.values(data.page.bindings).forEach((binding) => {
+    for (const id of [binding.toId, binding.fromId]) {
+      // If the binding references a deleted shape...
+      if (after.shapes[id] === undefined) {
+        // Delete this binding
+        before.bindings[binding.id] = binding
+        after.bindings[binding.id] = undefined
+
+        // Let's also look at the bound shape...
+        const shape = data.page.shapes[id]
+
+        // If the bound shape has a handle that references the deleted binding, delete that reference
+        if (shape.handles) {
+          Object.values(shape.handles)
+            .filter((handle) => handle.bindingId === binding.id)
+            .forEach((handle) => {
+              before.shapes[id] = {
+                ...before.shapes[id],
+                handles: { ...before.shapes[id]?.handles, [handle.id]: { bindingId: binding.id } },
+              }
+              after.shapes[id] = {
+                ...after.shapes[id],
+                handles: { ...after.shapes[id]?.handles, [handle.id]: { bindingId: undefined } },
+              }
+            })
+        }
+      }
+    }
+  })
 
   return {
     id: 'delete_shapes',
     before: {
-      page: {
-        shapes: {
-          ...Object.fromEntries(ids.map((id) => [id, data.page.shapes[id]])),
-          ...Object.fromEntries(
-            shapesWithBindingsToUpdate.map((shape) => {
-              let handle = Object.values(shape.handles!).find((handle) => {
-                const bindingId = handle.bindingId
-
-                if (bindingId && bindingIdsToDelete.includes(bindingId)) {
-                  return handle
-                }
-
-                return false
-              })!
-
-              return [shape.id, { handles: { [handle.id]: { bindingId: handle } } }]
-            })
-          ),
-        },
-        bindings: Object.fromEntries(bindingIdsToDelete.map((id) => [id, data.page.bindings[id]])),
-      },
+      page: before,
       pageState: {
         selectedIds: [...data.pageState.selectedIds],
-        hoveredId: undefined,
       },
     },
     after: {
-      page: {
-        shapes: {
-          ...Object.fromEntries(
-            shapesWithBindingsToUpdate.map((shape) => {
-              for (const id in shape.handles) {
-                const handle = shape.handles[id as keyof typeof shape.handles]
-                const bindingId = handle.bindingId
-                if (bindingId && bindingIdsToDelete.includes(bindingId)) {
-                  handle.bindingId = undefined
-                }
-              }
-              return [shape.id, shape]
-            })
-          ),
-          ...Object.fromEntries(ids.map((id) => [id, undefined])),
-        },
-        bindings: Object.fromEntries(bindingIdsToDelete.map((id) => [id, undefined])),
-      },
+      page: after,
       pageState: {
         selectedIds: [],
-        hoveredId: undefined,
       },
     },
   }

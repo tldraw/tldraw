@@ -574,7 +574,8 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
       },
     }
 
-    return {
+    const nextShape = {
+      point: shape.point,
       bend: nextBend,
       handles: {
         ...nextHandles,
@@ -584,30 +585,22 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
         },
       },
     }
-  }
 
-  onSessionComplete = (shape: ArrowShape) => {
-    const bounds = this.getBounds(shape)
-    const offset = Vec.sub([bounds.minX, bounds.minY], shape.point)
-    const { start, end, bend } = shape.handles
+    const bounds = Utils.getBoundsFromPoints(
+      Object.values(nextShape.handles).map((handle) => handle.point)
+    )
 
-    return {
-      point: Vec.round(Vec.add(shape.point, offset)),
-      handles: {
-        start: {
-          ...start,
-          point: Vec.round(Vec.sub(start.point, offset)),
-        },
-        end: {
-          ...end,
-          point: Vec.round(Vec.sub(end.point, offset)),
-        },
-        bend: {
-          ...bend,
-          point: Vec.round(Vec.sub(bend.point, offset)),
-        },
-      },
-    }
+    const offset = [bounds.minX, bounds.minY]
+
+    nextShape.handles = Object.fromEntries(
+      Object.entries(nextShape.handles).map(([key, handle]) => {
+        return [key, { ...handle, point: Vec.add(handle.point, Vec.neg(offset)) }]
+      })
+    ) as ArrowShape['handles']
+
+    nextShape.point = Vec.add(nextShape.point, offset)
+
+    return nextShape
   }
 }
 

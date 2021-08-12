@@ -12,6 +12,7 @@ interface PageProps<T extends TLShape> {
   page: TLPage<T>
   pageState: TLPageState
   hideBounds: boolean
+  hideHandles: boolean
   hideIndicators: boolean
 }
 
@@ -19,26 +20,18 @@ export function Page<T extends TLShape>({
   page,
   pageState,
   hideBounds,
+  hideHandles,
   hideIndicators,
 }: PageProps<T>): JSX.Element {
   const { callbacks, shapeUtils } = useTLContext()
 
   useRenderOnResize()
 
-  const shapeTree = useShapeTree(
-    page,
-    pageState,
-    shapeUtils,
-    callbacks.onChange
-  )
+  const shapeTree = useShapeTree(page, pageState, shapeUtils, callbacks.onChange)
 
   const { shapeWithHandles } = useHandles(page, pageState)
 
-  const { bounds, isLocked, rotation } = useSelection(
-    page,
-    pageState,
-    shapeUtils
-  )
+  const { bounds, isLocked, rotation } = useSelection(page, pageState, shapeUtils)
 
   const {
     selectedIds,
@@ -48,30 +41,19 @@ export function Page<T extends TLShape>({
 
   return (
     <>
-      {bounds && !hideBounds && (
-        <BoundsBg bounds={bounds} rotation={rotation} />
-      )}
+      {bounds && !hideBounds && <BoundsBg bounds={bounds} rotation={rotation} />}
       {shapeTree.map((node) => (
         <ShapeNode key={node.shape.id} {...node} />
       ))}
       {bounds && !hideBounds && (
-        <Bounds
-          zoom={zoom}
-          bounds={bounds}
-          isLocked={isLocked}
-          rotation={rotation}
-        />
+        <Bounds zoom={zoom} bounds={bounds} isLocked={isLocked} rotation={rotation} />
       )}
       {!hideIndicators &&
         selectedIds.length > 1 &&
         selectedIds
           .filter(Boolean)
           .map((id) => (
-            <ShapeIndicator
-              key={'selected_' + id}
-              shape={page.shapes[id]}
-              variant="selected"
-            />
+            <ShapeIndicator key={'selected_' + id} shape={page.shapes[id]} variant="selected" />
           ))}
       {!hideIndicators && hoveredId && (
         <ShapeIndicator
@@ -80,7 +62,7 @@ export function Page<T extends TLShape>({
           variant="hovered"
         />
       )}
-      {shapeWithHandles && <Handles shape={shapeWithHandles} zoom={zoom} />}
+      {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} zoom={zoom} />}
     </>
   )
 }
@@ -95,27 +77,15 @@ const ShapeIndicator = React.memo(
     const transform = `rotate(${rotation}, ${center}) translate(${shape.point})`
 
     return (
-      <g
-        className={variant === 'selected' ? 'tl-selected' : 'tl-hovered'}
-        transform={transform}
-      >
+      <g className={variant === 'selected' ? 'tl-selected' : 'tl-hovered'} transform={transform}>
         {shapeUtils[shape.type].renderIndicator(shape)}
       </g>
     )
   }
 )
 
-interface ShapeNodeProps extends IShapeTreeNode {}
-
 const ShapeNode = React.memo(
-  ({
-    shape,
-    children,
-    isEditing,
-    isDarkMode,
-    isBinding,
-    isCurrentParent,
-  }: ShapeNodeProps) => {
+  ({ shape, children, isEditing, isDarkMode, isBinding, isCurrentParent }: IShapeTreeNode) => {
     return (
       <>
         <ShapeComponent
@@ -126,9 +96,7 @@ const ShapeNode = React.memo(
           isCurrentParent={isCurrentParent}
         />
         {children &&
-          children.map((childNode) => (
-            <ShapeNode key={childNode.shape.id} {...childNode} />
-          ))}
+          children.map((childNode) => <ShapeNode key={childNode.shape.id} {...childNode} />)}
       </>
     )
   }

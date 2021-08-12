@@ -1,5 +1,7 @@
+import { TLDR } from '../../../tldr'
 import { TLDrawState } from '../../../tlstate'
 import { mockDocument } from '../../../test-helpers'
+import type { ArrowShape, TLDrawShape } from '../../../../shape'
 
 describe('Brush session', () => {
   const tlstate = new TLDrawState()
@@ -121,6 +123,53 @@ describe('Brush session', () => {
     expect(tlstate.getShape('rect2').point).toStrictEqual([130, 130])
 
     expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
+  })
+
+  it('destroys bindings from the translating shape', () => {
+    tlstate
+      .loadDocument(mockDocument)
+      .selectAll()
+      .delete()
+      .create(
+        TLDR.getShapeUtils({ type: 'rectangle' } as TLDrawShape).create({
+          id: 'target1',
+          parentId: 'page1',
+          point: [0, 0],
+          size: [100, 100],
+        })
+      )
+      .create(
+        TLDR.getShapeUtils({ type: 'arrow' } as TLDrawShape).create({
+          id: 'arrow1',
+          parentId: 'page1',
+          point: [200, 200],
+        })
+      )
+      .select('arrow1')
+      .startHandleSession([200, 200], 'start')
+      .updateHandleSession([50, 50])
+      .completeSession()
+
+    expect(tlstate.bindings.length).toBe(1)
+
+    tlstate
+      .select('arrow1')
+      .startTranslateSession([10, 10])
+      .updateTranslateSession([30, 30])
+      .completeSession()
+
+    expect(tlstate.bindings.length).toBe(0)
+    expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(undefined)
+
+    tlstate.undo()
+
+    expect(tlstate.bindings.length).toBe(1)
+    expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeTruthy()
+
+    tlstate.redo()
+
+    expect(tlstate.bindings.length).toBe(0)
+    expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(undefined)
   })
 
   // it('clones a shape with a parent shape', () => {

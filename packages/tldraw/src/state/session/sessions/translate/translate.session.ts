@@ -1,8 +1,6 @@
 import { Utils, Vec } from '@tldraw/core'
-import type { TLBinding } from '@tldraw/core'
-import type { TLDrawShape } from '../../../../shape'
-import type { Session } from '../../../state-types'
-import type { Data } from '../../../state-types'
+import type { TLDrawShape, TLDrawBinding } from '../../../../shape'
+import type { PagePartial, Session, Data, Command } from '../../../state-types'
 import { TLDR } from '../../../tldr'
 
 export class TranslateSession implements Session {
@@ -18,8 +16,24 @@ export class TranslateSession implements Session {
     this.snapshot = getTranslateSnapshot(data)
   }
 
-  start = (data: Data) => {
-    return data
+  start = (data: Data): Partial<Data> => {
+    const { bindingsToDelete } = this.snapshot
+
+    if (bindingsToDelete.length === 0) return data
+
+    const nextBindings = { ...data.page.bindings }
+
+    bindingsToDelete.forEach((binding) => delete nextBindings[binding.id])
+
+    const nextShapes = { ...data.page.shapes }
+
+    return {
+      page: {
+        ...data.page,
+        shapes: nextShapes,
+        bindings: nextBindings,
+      },
+    }
   }
 
   update = (data: Data, point: number[], isAligned = false, isCloning = false) => {
@@ -149,20 +163,29 @@ export class TranslateSession implements Session {
     return { page: { ...next.page }, pageState: { ...next.pageState } }
   }
 
-  cancel = (data: Data): Data => {
+  cancel = (data: Data) => {
+    const { initialShapes, clones, clonedBindings, bindingsToDelete } = this.snapshot
+
+    const nextShapes: Record<string, TLDrawShape> = { ...data.page.shapes }
+    const nextBindings = { ...data.page.bindings }
+
+    // Put back any deleted bindings
+    bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = binding))
+
+    // Put initial shapes back to where they started
+    initialShapes.forEach(({ id, point }) => (nextShapes[id] = { ...nextShapes[id], point }))
+
+    // Delete clones
+    clones.forEach((clone) => delete nextShapes[clone.id])
+
+    // Delete cloned bindings
+    clonedBindings.forEach((binding) => delete nextBindings[binding.id])
+
     return {
       page: {
-        // @ts-ignore - We need to set deleted shapes to undefined in order to correctly deep merge them away.
-        shapes: {
-          ...data.page.shapes,
-          ...Object.fromEntries(this.snapshot.clones.map((clone) => [clone.id, undefined])),
-          ...Object.fromEntries(
-            this.snapshot.initialShapes.map((shape) => [
-              shape.id,
-              { ...data.page.shapes[shape.id], point: shape.point },
-            ])
-          ),
-        },
+        ...data.page,
+        shapes: nextShapes,
+        bindings: nextBindings,
       },
       pageState: {
         ...data.pageState,
@@ -171,53 +194,73 @@ export class TranslateSession implements Session {
     }
   }
 
-  complete(data: Data) {
+  complete(data: Data): Command {
+    const { selectedIds, initialShapes, bindingsToDelete, clones, clonedBindings } = this.snapshot
+
+    const before: PagePartial = {
+      shapes: {
+        ...Object.fromEntries(clones.map((clone) => [clone.id, undefined])),
+        ...Object.fromEntries(initialShapes.map((shape) => [shape.id, { point: shape.point }])),
+      },
+      bindings: {
+        ...Object.fromEntries(clonedBindings.map((binding) => [binding.id, undefined])),
+        ...Object.fromEntries(bindingsToDelete.map((binding) => [binding.id, binding])),
+      },
+    }
+
+    const after: PagePartial = {
+      shapes: {
+        ...Object.fromEntries(clones.map((clone) => [clone.id, data.page.shapes[clone.id]])),
+        ...Object.fromEntries(
+          initialShapes.map((shape) => [shape.id, { point: data.page.shapes[shape.id].point }])
+        ),
+      },
+      bindings: {
+        ...Object.fromEntries(
+          clonedBindings.map((binding) => [binding.id, data.page.bindings[binding.id]])
+        ),
+        ...Object.fromEntries(bindingsToDelete.map((binding) => [binding.id, undefined])),
+      },
+    }
+
+    bindingsToDelete.forEach((binding) => {
+      for (const id of [binding.toId, binding.fromId]) {
+        // Let's also look at the bound shape...
+        const shape = data.page.shapes[id]
+
+        // If the bound shape has a handle that references the deleted binding, delete that reference
+        if (!shape.handles) continue
+
+        Object.values(shape.handles)
+          .filter((handle) => handle.bindingId === binding.id)
+          .forEach((handle) => {
+            before.shapes[id] = {
+              ...before.shapes[id],
+              handles: {
+                ...before.shapes[id]?.handles,
+                [handle.id]: { bindingId: binding.id },
+              },
+            }
+            after.shapes[id] = {
+              ...after.shapes[id],
+              handles: { ...after.shapes[id]?.handles, [handle.id]: { bindingId: undefined } },
+            }
+          })
+      }
+    })
+
     return {
       id: 'translate',
       before: {
-        page: {
-          shapes: {
-            ...Object.fromEntries(this.snapshot.clones.map((clone) => [clone.id, undefined])),
-            ...Object.fromEntries(
-              this.snapshot.initialShapes.map((shape) => [shape.id, { point: shape.point }])
-            ),
-          },
-          bindings: {
-            ...Object.fromEntries(
-              this.snapshot.clonedBindings.map((binding) => [binding.id, undefined])
-            ),
-          },
-        },
+        page: before,
         pageState: {
-          selectedIds: this.snapshot.selectedIds,
-          hoveredId: undefined,
+          selectedIds,
         },
       },
       after: {
-        page: {
-          shapes: {
-            ...Object.fromEntries(
-              this.snapshot.clones.map((clone) => [clone.id, data.page.shapes[clone.id]])
-            ),
-            ...Object.fromEntries(
-              this.snapshot.initialShapes.map((shape) => [
-                shape.id,
-                { point: data.page.shapes[shape.id].point },
-              ])
-            ),
-          },
-          bindings: {
-            ...Object.fromEntries(
-              this.snapshot.clonedBindings.map((binding) => [
-                binding.id,
-                data.page.bindings[binding.id],
-              ])
-            ),
-          },
-        },
+        page: after,
         pageState: {
           selectedIds: [...data.pageState.selectedIds],
-          hoveredId: undefined,
         },
       },
     }
@@ -257,7 +300,7 @@ export function getTranslateSnapshot(data: Data) {
       return clone
     })
 
-  const clonedBindings: TLBinding[] = []
+  const clonedBindings: TLDrawBinding[] = []
 
   selectedShapes.forEach((shape) => {
     if (!shape.handles) return
@@ -277,8 +320,16 @@ export function getTranslateSnapshot(data: Data) {
     }
   })
 
+  const selectedIds = TLDR.getSelectedIds(data)
+
+  const bindingsToDelete = TLDR.getRelatedBindings(
+    data,
+    selectedShapes.filter((shape) => shape.handles !== undefined).map((shape) => shape.id)
+  )
+
   return {
-    selectedIds: TLDR.getSelectedIds(data),
+    selectedIds,
+    bindingsToDelete,
     hasUnlockedShapes,
     initialParents,
     initialShapes: selectedShapes.map(({ id, point, parentId }) => ({

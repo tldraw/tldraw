@@ -1,20 +1,20 @@
 import type { ArrowBinding, ArrowShape } from '../../../../shape'
-import type { TLDrawShape } from '../../../../shape'
+import type { TLDrawShape, TLDrawBinding } from '../../../../shape'
 import type { Session } from '../../../state-types'
 import type { Data } from '../../../state-types'
-import { Vec, Utils, TLBinding } from '@tldraw/core'
+import { Vec, Utils, TLHandle } from '@tldraw/core'
 import { TLDR } from '../../../tldr'
 
 export class ArrowSession implements Session {
   id = 'transform_single'
   newBindingId = Utils.uniqueId()
   delta = [0, 0]
+  offset = [0, 0]
   origin: number[]
-  shiftKey = false
   initialShape: ArrowShape
   handleId: 'start' | 'end'
   bindableShapeIds: string[]
-  initialBinding: TLBinding | undefined
+  initialBinding: TLDrawBinding | undefined
   didBind = false
 
   constructor(data: Data, handleId: 'start' | 'end', point: number[]) {
@@ -28,6 +28,9 @@ export class ArrowSession implements Session {
 
     if (initialBindingId) {
       this.initialBinding = data.page.bindings[initialBindingId]
+    } else {
+      // Explicitly set this handle to undefined, so that it gets deleted on undo
+      this.initialShape.handles[this.handleId].bindingId = undefined
     }
   }
 
@@ -46,85 +49,87 @@ export class ArrowSession implements Session {
 
     TLDR.assertShapeHasProperty(shape, 'handles')
 
-    this.shiftKey = shiftKey
-
-    const delta = Vec.sub(point, origin)
-
     const handles = shape.handles
 
     const handleId = this.handleId as keyof typeof handles
 
-    const handle = handles[handleId]
+    const delta = Vec.sub(point, handles[handleId].point)
 
-    let nextPoint = Vec.round(Vec.add(this.initialShape.handles[handleId].point, delta))
+    const handle = {
+      ...handles[handleId],
+      point: Vec.sub(Vec.add(handles[handleId].point, delta), shape.point),
+    }
 
     // First update the handle's next point
     const change = TLDR.getShapeUtils(shape).onHandleChange(
       shape,
       {
-        [handleId]: {
-          ...shape.handles[handleId],
-          point: nextPoint, // Vec.rot(delta, shape.rotation)),
-        },
+        [handleId]: handle,
       },
       { delta, shiftKey, altKey, metaKey }
     )
 
     if (!change) return data
 
-    let nextBindings: Record<string, TLBinding> = { ...data.page.bindings }
-    let nextShape: ArrowShape = { ...shape, ...change }
-    let nextBinding: ArrowBinding | undefined = undefined
-    let nextTarget: TLDrawShape | undefined = undefined
+    let nextBindings: Record<string, TLDrawBinding> = { ...data.page.bindings }
+
+    let nextShape = { ...shape, ...change }
 
     if (handle.canBind) {
-      const oppositeHandle = handles[handle.id === 'start' ? 'end' : 'start']
+      let nextBinding: ArrowBinding | undefined = undefined
+      let nextTarget: TLDrawShape | undefined = undefined
 
-      // Find the origin and direction of the handle
-      const rayOrigin = Vec.add(oppositeHandle.point, shape.point)
-      const rayPoint = Vec.add(nextPoint, shape.point)
-      const rayDirection = Vec.uni(Vec.sub(rayPoint, rayOrigin))
+      // Alt key skips binding
+      if (!altKey) {
+        const oppositeHandle = handles[handle.id === 'start' ? 'end' : 'start']
 
-      const oppositeBinding = oppositeHandle.bindingId
-        ? data.page.bindings[oppositeHandle.bindingId]
-        : undefined
+        // Find the origin and direction of the handle
+        const rayOrigin = Vec.add(oppositeHandle.point, shape.point)
+        const rayPoint = Vec.add(handle.point, shape.point)
+        const rayDirection = Vec.uni(Vec.sub(rayPoint, rayOrigin))
 
-      // From all bindable shapes on the page...
-      for (const id of this.bindableShapeIds) {
-        if (id === initialShape.id) continue
-        if (id === oppositeBinding?.toId) continue
+        const oppositeBinding = oppositeHandle.bindingId
+          ? data.page.bindings[oppositeHandle.bindingId]
+          : undefined
 
-        const target = TLDR.getShape(data, id)
+        // From all bindable shapes on the page...
+        for (const id of this.bindableShapeIds) {
+          if (id === initialShape.id) continue
+          if (id === oppositeBinding?.toId) continue
 
-        const util = TLDR.getShapeUtils(target)
+          const target = TLDR.getShape(data, id)
 
-        const bindingPoint = util.getBindingPoint(
-          target,
-          rayPoint,
-          rayOrigin,
-          rayDirection,
-          32,
-          metaKey
-        )
+          const util = TLDR.getShapeUtils(target)
 
-        // Not all shapes will produce a binding point
-        if (!bindingPoint) continue
+          const bindingPoint = util.getBindingPoint(
+            target,
+            rayPoint,
+            rayOrigin,
+            rayDirection,
+            32,
+            metaKey
+          )
 
-        // Stop at the first shape that will produce a binding point
-        nextTarget = target
+          // Not all shapes will produce a binding point
+          if (!bindingPoint) continue
 
-        nextBinding = {
-          id: this.newBindingId,
-          type: 'arrow',
-          fromId: initialShape.id,
-          handleId: this.handleId,
-          toId: target.id,
-          point: Vec.round(bindingPoint.point),
-          distance: bindingPoint.distance,
+          // Stop at the first shape that will produce a binding point
+          nextTarget = target
+
+          nextBinding = {
+            id: this.newBindingId,
+            type: 'arrow',
+            fromId: initialShape.id,
+            handleId: this.handleId,
+            toId: target.id,
+            point: Vec.round(bindingPoint.point),
+            distance: bindingPoint.distance,
+          }
+
+          break
         }
-
-        break
       }
+
       // If we didn't find a target...
       if (nextBinding === undefined) {
         this.didBind = false
@@ -210,12 +215,16 @@ export class ArrowSession implements Session {
         },
         bindings: nextBindings,
       },
+      pageState: {
+        ...data.pageState,
+        bindingId: undefined,
+      },
     }
   }
 
   complete(data: Data) {
-    let beforeBindings: Partial<Record<string, TLBinding>> = {}
-    let afterBindings: Partial<Record<string, TLBinding>> = {}
+    let beforeBindings: Partial<Record<string, TLDrawBinding>> = {}
+    let afterBindings: Partial<Record<string, TLDrawBinding>> = {}
 
     const currentShape = TLDR.getShape<ArrowShape>(data, this.initialShape.id)
     const currentBindingId = currentShape.handles[this.handleId].bindingId
@@ -239,16 +248,19 @@ export class ArrowSession implements Session {
           },
           bindings: beforeBindings,
         },
+        pageState: {
+          bindingId: undefined,
+        },
       },
       after: {
         page: {
           shapes: {
-            [this.initialShape.id]: TLDR.onSessionComplete(
-              data,
-              data.page.shapes[this.initialShape.id]
-            ),
+            [this.initialShape.id]: data.page.shapes[this.initialShape.id],
           },
           bindings: afterBindings,
+        },
+        pageState: {
+          bindingId: undefined,
         },
       },
     }

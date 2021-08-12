@@ -251,7 +251,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
     }
 
     return {
-      point: bindingPoint,
+      point: Vec.clampV(bindingPoint, 0, 1),
       distance,
     }
   }

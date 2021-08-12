@@ -76,6 +76,8 @@ export interface ArrowBinding extends TLBinding {
   point: number[]
 }
 
+export type TLDrawBinding = ArrowBinding
+
 export enum ColorStyle {
   White = 'White',
   LightGray = 'LightGray',
