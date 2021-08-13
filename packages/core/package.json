@@ -11,10 +11,6 @@
   },
   "license": "MIT",
   "keywords": [],
-  "files": [
-    "README.md",
-    "dist"
-  ],
   "main": "./dist/cjs/index.js",
   "types": "./dist/types/index.d.ts",
   "scripts": {
