@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { FloatingContainer } from '../shared'
-import { Tooltip } from '../tooltip'
+import { Tooltip } from '../shared/tooltip'
 import styled from '~styles'
 
 export const ToolButton = styled('button', {

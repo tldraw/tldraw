@@ -3,6 +3,10 @@ import * as React from 'react'
 import styled from '~styles'
 import { Kbd } from './kbd'
 
+/* -------------------------------------------------- */
+/*                       Tooltip                      */
+/* -------------------------------------------------- */
+
 interface TooltipProps {
   children: React.ReactNode
   label: string

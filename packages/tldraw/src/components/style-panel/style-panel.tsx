@@ -9,8 +9,8 @@ import { QuickColorSelect } from './quick-color-select'
 import { QuickSizeSelect } from './quick-size-select'
 import { QuickDashSelect } from './quick-dash-select'
 import { QuickFillSelect } from './quick-fill-select'
-import { Tooltip } from '../tooltip'
-import { Kbd } from '../kbd'
+import { Tooltip } from '../shared/tooltip'
+import { Kbd } from '../shared/kbd'
 import {
   IconButton,
   ButtonsRow,

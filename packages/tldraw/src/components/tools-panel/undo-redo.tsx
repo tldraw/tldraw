@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useTLDrawContext } from '~hooks'
-import { TertiaryButton, TertiaryButtonsContainer } from './shared'
+import { TertiaryButton, TertiaryButtonsContainer } from './styled'
 import { Undo, Redo, Trash } from '../icons'
 
 export const UndoRedo = React.memo((): JSX.Element => {

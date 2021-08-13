@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Checkbox from '@radix-ui/react-checkbox'
-import { breakpoints, IconButton, IconWrapper } from '../shared'
-import { BoxIcon, IsFilledFillIcon } from './shared'
-import { Tooltip } from '../tooltip'
+import { BoxIcon, IsFilledFillIcon } from './styled'
+import { breakpoints, Tooltip, IconButton, IconWrapper } from '../shared'
 import { useTLDrawContext } from '~hooks'
 import type { Data } from '~types'
 

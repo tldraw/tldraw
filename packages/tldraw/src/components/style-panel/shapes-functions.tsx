@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { IconButton, ButtonsRow, breakpoints } from '../shared'
 import { Trash } from '../icons'
-import { Tooltip } from '../tooltip'
+import { Tooltip } from '../shared/tooltip'
 import {
   ArrowDownIcon,
   ArrowUpIcon,

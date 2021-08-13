@@ -1,7 +1,8 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { DropdownMenuIconTriggerButton, CircleIcon } from '../shared'
-import { StyleDropdownContent, StyleDropdownItem } from './shared'
+import { DropdownMenuIconTriggerButton } from '../shared/dropdown-menu'
+import { CircleIcon } from '../icons'
+import { StyleDropdownContent, StyleDropdownItem } from './styled'
 import { Data, SizeStyle } from '~types'
 import { useTLDrawContext } from '~hooks'
 

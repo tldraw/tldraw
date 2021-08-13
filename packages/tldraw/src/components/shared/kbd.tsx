@@ -2,6 +2,10 @@ import * as React from 'react'
 import styled from '~styles'
 import { Utils } from '@tldraw/core'
 
+/* -------------------------------------------------- */
+/*                  Keyboard Shortcut                 */
+/* -------------------------------------------------- */
+
 export function commandKey(): string {
   return Utils.isDarwin() ? '⌘' : 'Ctrl'
 }

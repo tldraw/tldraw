@@ -1,11 +1,11 @@
 import * as React from 'react'
+import styled from '~styles'
 import { Utils } from '@tldraw/core'
 import * as RadixContextMenu from '@radix-ui/react-context-menu'
-import styled from '~styles'
 import { useTLDrawContext } from '~hooks'
-import type { Data } from '~types'
-import { Kbd } from '../kbd'
+import { Data, AlignType, DistributeType, StretchType } from '~types'
 import {
+  Kbd,
   IconWrapper,
   breakpoints,
   RowButton,
@@ -17,7 +17,6 @@ import {
   ContextMenuRoot,
   MenuContent,
 } from '../shared'
-import { AlignType, DistributeType, StretchType } from '~types'
 import {
   ChevronRightIcon,
   AlignBottomIcon,

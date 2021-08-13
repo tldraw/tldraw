@@ -8,7 +8,7 @@ import {
   DashDashedIcon,
   StyleDropdownContent,
   StyleDropdownItem,
-} from './shared'
+} from './styled'
 import { useTLDrawContext } from '~hooks'
 import { DashStyle, Data } from '~types'
 
