@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/www",
-  "version": "0.0.46",
+  "version": "0.0.47",
   "private": true,
   "description": "A tiny little drawing app (editor).",
   "author": "@steveruizok",
@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@stitches/react": "^0.2.3",
-    "@tldraw/tldraw": "*",
+    "@tldraw/tldraw": "^0.0.47",
     "idb": "^6.1.2",
     "next": "^11.1.0",
     "next-transpile-modules": "^8.0.0",
