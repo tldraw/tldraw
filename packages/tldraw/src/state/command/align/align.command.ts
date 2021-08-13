@@ -1,7 +1,7 @@
 import { Utils } from '@tldraw/core'
-import { AlignType } from '../../../types'
-import type { Data, Command } from '../../state-types'
-import { TLDR } from '../../tldr'
+import { AlignType } from '~types'
+import type { Data, Command } from '~types'
+import { TLDR } from '~state/tldr'
 
 export function align(data: Data, ids: string[], type: AlignType): Command {
   const initialShapes = ids.map((id) => TLDR.getShape(data, id))
@@ -14,9 +14,7 @@ export function align(data: Data, ids: string[], type: AlignType): Command {
     }
   })
 
-  const commonBounds = Utils.getCommonBounds(
-    boundsForShapes.map(({ bounds }) => bounds)
-  )
+  const commonBounds = Utils.getCommonBounds(boundsForShapes.map(({ bounds }) => bounds))
 
   const midX = commonBounds.minX + commonBounds.width / 2
   const midY = commonBounds.minY + commonBounds.height / 2

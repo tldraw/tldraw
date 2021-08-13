@@ -1,12 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react'
-import {
-  TLShapeUtil,
-  TLShape,
-  TLBounds,
-  TLRenderInfo,
-  TLTransformInfo,
-} from '../types'
-import Utils, { Intersect } from '../utils'
+import { TLShapeUtil, TLShape, TLBounds, TLRenderInfo, TLTransformInfo } from '~types'
+import Utils, { Intersect } from '~utils'
 
 export class ExampleShape extends TLShapeUtil<TLShape> {
   type = 'shape-type'
@@ -49,9 +44,7 @@ export class ExampleShape extends TLShapeUtil<TLShape> {
   }
 
   getRotatedBounds(shape: TLShape) {
-    return Utils.getBoundsFromPoints(
-      Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
-    )
+    return Utils.getBoundsFromPoints(Utils.getRotatedCorners(this.getBounds(shape), shape.rotation))
   }
 
   getCenter(shape: TLShape): number[] {
@@ -63,10 +56,7 @@ export class ExampleShape extends TLShapeUtil<TLShape> {
   }
 
   hitTestBounds(shape: TLShape, bounds: TLBounds) {
-    const rotatedCorners = Utils.getRotatedCorners(
-      this.getBounds(shape),
-      shape.rotation
-    )
+    const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
 
     return (
       rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
@@ -74,19 +64,11 @@ export class ExampleShape extends TLShapeUtil<TLShape> {
     )
   }
 
-  transform(
-    shape: TLShape,
-    bounds: TLBounds,
-    _info: TLTransformInfo<TLShape>
-  ): TLShape {
+  transform(shape: TLShape, bounds: TLBounds, _info: TLTransformInfo<TLShape>): TLShape {
     return { ...shape, point: [bounds.minX, bounds.minY] }
   }
 
-  transformSingle(
-    shape: TLShape,
-    bounds: TLBounds,
-    info: TLTransformInfo<TLShape>
-  ): TLShape {
+  transformSingle(shape: TLShape, bounds: TLBounds, info: TLTransformInfo<TLShape>): TLShape {
     return this.transform(shape, bounds, info)
   }
 }

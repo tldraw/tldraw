@@ -1,11 +1,11 @@
-import { TLDrawState } from '../../../tlstate'
-import { mockDocument } from '../../../test-helpers'
+import { TLDrawState } from '~state'
+import { mockDocument } from '~state/test-helpers'
 import { TLBoundsCorner, Utils } from '@tldraw/core'
-import { TLDR } from '../../../tldr'
+import { TLDR } from '~state/tldr'
 
 function getShapeBounds(tlstate: TLDrawState, ...ids: string[]) {
   return Utils.getCommonBounds(
-    (ids.length ? ids : tlstate.selectedIds).map(id => TLDR.getBounds(tlstate.getShape(id)))
+    (ids.length ? ids : tlstate.selectedIds).map((id) => TLDR.getBounds(tlstate.getShape(id)))
   )
 }
 

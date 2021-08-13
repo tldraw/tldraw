@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-extra-semi */
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-redeclare */
@@ -1634,16 +1635,13 @@ left past the initial left edge) then swap points on that axis.
     let inThrottle: boolean
     let lastResult: ReturnType<T>
 
-    return function (this: any): ReturnType<T> {
-      const args = arguments
-      const context = this
-
+    return function (this: any, ...args: any[]): ReturnType<T> {
       if (!inThrottle) {
         inThrottle = true
 
         setTimeout(() => (inThrottle = false), limit)
 
-        lastResult = func.apply(context, args as any)
+        lastResult = func.apply(this, ...args)
       }
 
       return lastResult

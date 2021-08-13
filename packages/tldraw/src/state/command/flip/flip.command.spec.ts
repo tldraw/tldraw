@@ -1,6 +1,6 @@
-import { TLDrawState } from '../../tlstate'
-import { mockDocument } from '../../test-helpers'
-import type { RectangleShape } from '../../../shape'
+import { TLDrawState } from '~state'
+import { mockDocument } from '~state/test-helpers'
+import type { RectangleShape } from '~types'
 
 describe('Stretch command', () => {
   const tlstate = new TLDrawState()
@@ -10,24 +10,15 @@ describe('Stretch command', () => {
     tlstate.select('rect1', 'rect2')
     tlstate.flipHorizontal()
 
-    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([
-      100,
-      0,
-    ])
+    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 0])
 
     tlstate.undo()
 
-    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([
-      0,
-      0,
-    ])
+    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 0])
 
     tlstate.redo()
 
-    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([
-      100,
-      0,
-    ])
+    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 0])
   })
 
   it('flips horizontally', () => {
@@ -35,10 +26,7 @@ describe('Stretch command', () => {
     tlstate.select('rect1', 'rect2')
     tlstate.flipHorizontal()
 
-    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([
-      100,
-      0,
-    ])
+    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 0])
   })
 
   it('distributes vertically', () => {
@@ -46,9 +34,6 @@ describe('Stretch command', () => {
     tlstate.select('rect1', 'rect2')
     tlstate.flipVertical()
 
-    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([
-      0,
-      100,
-    ])
+    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 100])
   })
 })

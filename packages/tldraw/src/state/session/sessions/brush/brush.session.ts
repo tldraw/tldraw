@@ -1,8 +1,7 @@
 import { brushUpdater, Utils, Vec } from '@tldraw/core'
-import type { Session } from '../../../state-types'
-import { getShapeUtils } from '../../../../shape'
-import type { Data } from '../../../state-types'
-import { TLDR } from '../../../tldr'
+import type { Data, Session } from '~types'
+import { getShapeUtils } from '~shape'
+import { TLDR } from '~state/tldr'
 
 export class BrushSession implements Session {
   id = 'brush'

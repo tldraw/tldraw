@@ -1,7 +1,5 @@
-import type { TLDrawShape } from '../../../shape'
-import { MoveType } from '../../../types'
-import type { Data, Command } from '../../state-types'
-import { TLDR } from '../../tldr'
+import { MoveType, Data, TLDrawShape, Command } from '~types'
+import { TLDR } from '~state/tldr'
 
 export function move(data: Data, ids: string[], type: MoveType): Command {
   // Get the unique parent ids for the selected elements
@@ -17,13 +15,13 @@ export function move(data: Data, ids: string[], type: MoveType): Command {
 
   // Collect shapes with common parents into a table under their parent id
   Array.from(parentIds.values()).forEach((parentId) => {
+    const parent = data.page.shapes[parentId]
+    if (!parent.children) throw Error('No children in parent!')
     const sortedChildren =
       parentId === data.page.id
-        ? Object.values(data.page.shapes).sort(
-            (a, b) => a.childIndex - b.childIndex
-          )
-        : data.page.shapes[parentId]
-            .children!.map((childId) => data.page.shapes[childId])
+        ? Object.values(data.page.shapes).sort((a, b) => a.childIndex - b.childIndex)
+        : parent.children
+            .map((childId) => data.page.shapes[childId])
             .sort((a, b) => a.childIndex - b.childIndex)
 
     const sortedChildIds = sortedChildren.map((shape) => shape.id)
@@ -115,16 +113,12 @@ export function move(data: Data, ids: string[], type: MoveType): Command {
                 // j = the index of the first open spot
 
                 startChildIndex =
-                  j === 0
-                    ? sortedChildren[j].childIndex / 2
-                    : sortedChildren[j - 1].childIndex
+                  j === 0 ? sortedChildren[j].childIndex / 2 : sortedChildren[j - 1].childIndex
 
-                const step =
-                  (sortedChildren[j].childIndex - startChildIndex) / (i - j + 1)
+                const step = (sortedChildren[j].childIndex - startChildIndex) / (i - j + 1)
 
                 for (let k = 0; k < i - j; k++) {
-                  indexMap[sortedChildren[j + k + 1].id] =
-                    startChildIndex + step * (k + 1)
+                  indexMap[sortedChildren[j + k + 1].id] = startChildIndex + step * (k + 1)
                 }
 
                 break
@@ -169,12 +163,10 @@ export function move(data: Data, ids: string[], type: MoveType): Command {
                 const step =
                   j === sortedChildIds.length - 1
                     ? 1
-                    : (sortedChildren[j + 1].childIndex - startChildIndex) /
-                      (j - i + 1)
+                    : (sortedChildren[j + 1].childIndex - startChildIndex) / (j - i + 1)
 
                 for (let k = 0; k < j - i; k++) {
-                  indexMap[sortedChildren[i + k].id] =
-                    startChildIndex + step * (k + 1)
+                  indexMap[sortedChildren[i + k].id] = startChildIndex + step * (k + 1)
                 }
 
                 break

@@ -1,15 +1,14 @@
 import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
+import styled from '~styles'
+import type { Data, TLDrawDocument } from '~types'
+import { TLDrawState } from '~state'
+import { useKeyboardShortcuts, TLDrawContext } from '~hooks'
 import { tldrawShapeUtils } from '../shape'
-import type { TLDrawDocument } from '../types'
-import { useKeyboardShortcuts } from '../hooks'
-import styled from '../styles'
 import { ContextMenu } from './context-menu'
 import { StylePanel } from './style-panel'
 import { ToolsPanel } from './tools-panel'
-import { Data, TLDrawState } from '../state'
-import { TLDrawContext } from '../hooks'
 
 export interface TLDrawProps {
   document?: TLDrawDocument

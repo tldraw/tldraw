@@ -1,6 +1,6 @@
-import { TLDrawState } from '../../tlstate'
-import { mockDocument } from '../../test-helpers'
-import { AlignType } from '../../../types'
+import { TLDrawState } from '~state'
+import { mockDocument } from '~state/test-helpers'
+import { AlignType } from '~types'
 
 describe('Align command', () => {
   const tlstate = new TLDrawState()

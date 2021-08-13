@@ -1,4 +1,4 @@
-import type { Theme } from '../shape'
+import type { Theme } from '~types'
 
 export function useTheme() {
   return {

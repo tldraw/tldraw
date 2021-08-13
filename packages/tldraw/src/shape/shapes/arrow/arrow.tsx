@@ -8,11 +8,9 @@ import {
   Intersect,
   TLHandle,
   TLPointerInfo,
-  TLBinding,
-  TLShapeUtil,
 } from '@tldraw/core'
 import getStroke from 'perfect-freehand'
-import { defaultStyle, getPerfectDashProps, getShapeStyle } from '../../shape-styles'
+import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape'
 import {
   ArrowShape,
   Decoration,
@@ -22,7 +20,7 @@ import {
   DashStyle,
   TLDrawShape,
   ArrowBinding,
-} from '../../shape-types'
+} from '~types'
 
 export class Arrow extends TLDrawShapeUtil<ArrowShape> {
   type = TLDrawShapeType.Arrow as const
@@ -122,6 +120,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
             strokeDashoffset="none"
             strokeLinecap="round"
             strokeLinejoin="round"
+            pointerEvents="stroke"
           />
           <path
             d={path}
@@ -132,6 +131,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
             strokeLinejoin="round"
+            pointerEvents="stroke"
           />
         </>
       )
@@ -181,6 +181,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
             strokeDashoffset="none"
             strokeLinecap="round"
             strokeLinejoin="round"
+            pointerEvents="stroke"
           />
           <path
             d={path}
@@ -191,6 +192,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
             strokeLinejoin="round"
+            pointerEvents="stroke"
           />
         </>
       )
@@ -199,7 +201,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     const sw = strokeWidth * 1.618
 
     return (
-      <g pointerEvents="all">
+      <g pointerEvents="none">
         {shaftPath}
         {shape.decorations?.start === Decoration.Arrow && (
           <path
@@ -585,6 +587,9 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
         },
       },
     }
+
+    // Zero out the handles to prevent handles with negative points. If a handle's x or y
+    // is below zero, we need to move the shape left or up to make it zero.
 
     const bounds = Utils.getBoundsFromPoints(
       Object.values(nextShape.handles).map((handle) => handle.point)

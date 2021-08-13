@@ -1,6 +1,6 @@
-import type { RectangleShape } from '../../../shape/shape-types'
-import { TLDrawState } from '../../tlstate'
-import { mockDocument } from '../../test-helpers'
+import type { RectangleShape } from '~types'
+import { TLDrawState } from '~state'
+import { mockDocument } from '~state/test-helpers'
 
 describe('Toggle command', () => {
   const tlstate = new TLDrawState()

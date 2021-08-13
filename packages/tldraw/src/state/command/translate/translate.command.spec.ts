@@ -1,5 +1,5 @@
-import { TLDrawState } from '../../tlstate'
-import { mockDocument } from '../../test-helpers'
+import { TLDrawState } from '~state'
+import { mockDocument } from '~state/test-helpers'
 
 describe('Translate command', () => {
   const tlstate = new TLDrawState()

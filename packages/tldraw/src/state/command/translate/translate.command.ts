@@ -1,6 +1,6 @@
 import { Vec } from '@tldraw/core'
-import type { Data, Command, PagePartial } from '../../state-types'
-import { TLDR } from '../../tldr'
+import type { Data, Command, PagePartial } from '~types'
+import { TLDR } from '~state/tldr'
 
 export function translate(data: Data, ids: string[], delta: number[]): Command {
   const before: PagePartial = {

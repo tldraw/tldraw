@@ -1,7 +1,7 @@
-import { TLDrawState } from '../../tlstate'
-import { mockDocument } from '../../test-helpers'
+import { TLDrawState } from '~state'
+import { mockDocument } from '~state/test-helpers'
 import { Utils } from '@tldraw/core'
-import type { Data } from '../../state-types'
+import type { Data } from '~types'
 
 const doc = Utils.deepClone(mockDocument)
 

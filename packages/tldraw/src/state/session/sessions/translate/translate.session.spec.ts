@@ -1,7 +1,7 @@
-import { TLDR } from '../../../tldr'
-import { TLDrawState } from '../../../tlstate'
-import { mockDocument } from '../../../test-helpers'
-import type { ArrowShape, TLDrawShape } from '../../../../shape'
+import { TLDR } from '~state/tldr'
+import { TLDrawState } from '~state'
+import { mockDocument } from '~state/test-helpers'
+import type { ArrowShape, TLDrawShape } from '~types'
 
 describe('Brush session', () => {
   const tlstate = new TLDrawState()

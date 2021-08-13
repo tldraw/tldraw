@@ -1,6 +1,6 @@
 import { Utils, Vec } from '@tldraw/core'
-import { TLDR } from '../../tldr'
-import type { Data, Command } from '../../state-types'
+import { TLDR } from '~state/tldr'
+import type { Data, Command } from '~types'
 
 export function duplicate(data: Data, ids: string[]): Command {
   const delta = Vec.div([16, 16], data.pageState.camera.zoom)
@@ -21,9 +21,7 @@ export function duplicate(data: Data, ids: string[]): Command {
       })
   )
 
-  const before = Object.fromEntries(
-    Object.keys(after).map((id) => [id, undefined])
-  )
+  const before = Object.fromEntries(Object.keys(after).map((id) => [id, undefined]))
 
   return {
     id: 'duplicate',

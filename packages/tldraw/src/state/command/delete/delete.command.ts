@@ -1,4 +1,4 @@
-import type { Data, Command, PagePartial } from '../../state-types'
+import type { Data, Command, PagePartial } from '~types'
 
 // - [x] Delete shapes
 // - [x] Delete bindings too

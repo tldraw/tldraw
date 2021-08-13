@@ -1,18 +1,10 @@
 import { Utils } from '@tldraw/core'
-import type { TLDrawShape } from '../../../shape'
-import { DistributeType } from '../../../types'
-import type { Data, Command } from '../../state-types'
-import { TLDR } from '../../tldr'
+import { DistributeType, TLDrawShape, Data, Command } from '~types'
+import { TLDR } from '~state/tldr'
 
-export function distribute(
-  data: Data,
-  ids: string[],
-  type: DistributeType
-): Command {
+export function distribute(data: Data, ids: string[], type: DistributeType): Command {
   const initialShapes = ids.map((id) => data.page.shapes[id])
-  const deltaMap = Object.fromEntries(
-    getDistributions(initialShapes, type).map((d) => [d.id, d])
-  )
+  const deltaMap = Object.fromEntries(getDistributions(initialShapes, type).map((d) => [d.id, d]))
 
   const { before, after } = TLDR.mutateShapes(data, ids, (shape) => {
     if (!deltaMap[shape.id]) return shape
@@ -50,9 +42,7 @@ function getDistributions(initialShapes: TLDrawShape[], type: DistributeType) {
   })
 
   const len = entries.length
-  const commonBounds = Utils.getCommonBounds(
-    entries.map(({ bounds }) => bounds)
-  )
+  const commonBounds = Utils.getCommonBounds(entries.map(({ bounds }) => bounds))
 
   const results: { id: string; prev: number[]; next: number[] }[] = []
 
@@ -86,7 +76,7 @@ function getDistributions(initialShapes: TLDrawShape[], type: DistributeType) {
         let x = commonBounds.minX
         const step = (commonBounds.width - span) / (len - 1)
 
-        entriesToMove.forEach(({ id, point, bounds }, i) => {
+        entriesToMove.forEach(({ id, point, bounds }) => {
           results.push({ id, prev: point, next: [x, bounds.minY] })
           x += bounds.width + step
         })
@@ -122,7 +112,7 @@ function getDistributions(initialShapes: TLDrawShape[], type: DistributeType) {
         let y = commonBounds.minY
         const step = (commonBounds.height - span) / (len - 1)
 
-        entriesToMove.forEach(({ id, point, bounds }, i) => {
+        entriesToMove.forEach(({ id, point, bounds }) => {
           results.push({ id, prev: point, next: [bounds.minX, y] })
           y += bounds.height + step
         })

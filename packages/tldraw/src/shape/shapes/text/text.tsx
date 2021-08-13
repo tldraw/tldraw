@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { TLBounds, Utils, Vec, TLTransformInfo, TLRenderInfo, Intersect } from '@tldraw/core'
-import { defaultStyle, getShapeStyle, getFontSize, getFontStyle } from '../../shape-styles'
-import { TextShape, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType } from '../../shape-types'
-import styled from '../../../styles'
+import { defaultStyle, getShapeStyle, getFontSize, getFontStyle } from '~shape'
+import { TextShape, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType } from '~types'
+import styled from '~styles'
 import TextAreaUtils from './text-utils'
 
 function normalizeText(text: string) {

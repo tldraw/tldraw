@@ -1,5 +1,4 @@
 import { Utils } from './utils'
-
 export { Intersect } from './intersect'
 export { Utils } from './utils'
 export { Svg } from './svg'

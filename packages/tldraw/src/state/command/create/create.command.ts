@@ -1,5 +1,4 @@
-import type { TLDrawShape } from '../../../shape'
-import type { Data, Command } from '../../state-types'
+import type { TLDrawShape, Data, Command } from '~types'
 
 export function create(data: Data, shapes: TLDrawShape[]): Command {
   return {

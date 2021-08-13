@@ -1,5 +1,5 @@
 import { Rectangle, Ellipse, Arrow, Draw, Text } from './shapes'
-import { TLDrawShapeType, TLDrawShape, TLDrawShapeUtil, TLDrawShapeUtils } from './shape-types'
+import { TLDrawShapeType, TLDrawShape, TLDrawShapeUtil, TLDrawShapeUtils } from '~types'
 
 export const tldrawShapeUtils: TLDrawShapeUtils = {
   [TLDrawShapeType.Rectangle]: new Rectangle(),

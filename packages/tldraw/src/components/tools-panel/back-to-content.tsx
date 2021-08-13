@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { FloatingContainer, RowButton } from '../shared'
-import styled from '../../styles'
-import type { Data } from '../../state'
-import { useTLDrawContext } from '../../hooks'
+import styled from '~styles'
+import type { Data } from '~types'
+import { useTLDrawContext } from '~hooks'
 
 const isEmptyCanvasSelector = (s: Data) =>
   Object.keys(s.page.shapes).length > 0 && s.appState.isEmptyCanvas

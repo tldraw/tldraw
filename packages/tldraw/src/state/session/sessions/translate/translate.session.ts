@@ -1,7 +1,6 @@
 import { Utils, Vec } from '@tldraw/core'
-import type { TLDrawShape, TLDrawBinding } from '../../../../shape'
-import type { PagePartial, Session, Data, Command } from '../../../state-types'
-import { TLDR } from '../../../tldr'
+import type { TLDrawShape, TLDrawBinding, PagePartial, Session, Data, Command } from '~types'
+import { TLDR } from '~state/tldr'
 
 export class TranslateSession implements Session {
   id = 'translate'

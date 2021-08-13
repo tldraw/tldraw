@@ -1,7 +1,7 @@
-import { FlipType } from '../../../types'
+import { FlipType } from '~types'
 import { TLBoundsCorner, Utils } from '@tldraw/core'
-import type { Data, Command } from '../../state-types'
-import { TLDR } from '../../tldr'
+import type { Data, Command } from '~types'
+import { TLDR } from '~state/tldr'
 
 export function flip(data: Data, ids: string[], type: FlipType): Command {
   const initialShapes = ids.map((id) => data.page.shapes[id])

@@ -1,13 +1,7 @@
 import * as React from 'react'
 import { Utils, TLTransformInfo, TLBounds, Intersect, Vec, TLRenderInfo } from '@tldraw/core'
-import {
-  DashStyle,
-  EllipseShape,
-  TLDrawShapeType,
-  TLDrawShapeUtil,
-  TLDrawToolType,
-} from '../../shape-types'
-import { defaultStyle, getPerfectDashProps, getShapeStyle } from '../../shape-styles'
+import { DashStyle, EllipseShape, TLDrawShapeType, TLDrawShapeUtil, TLDrawToolType } from '~types'
+import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape'
 import getStroke from 'perfect-freehand'
 
 export class Ellipse extends TLDrawShapeUtil<EllipseShape> {

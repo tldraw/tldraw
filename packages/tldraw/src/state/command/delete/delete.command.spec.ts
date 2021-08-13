@@ -1,7 +1,7 @@
-import { TLDR } from './../../tldr'
-import { TLDrawState } from '../../tlstate'
-import { mockDocument } from '../../test-helpers'
-import type { TLDrawShape } from '../../../shape'
+import { TLDR } from '~state/tldr'
+import { TLDrawState } from '~state'
+import { mockDocument } from '~state/test-helpers'
+import type { TLDrawShape } from '~types'
 
 describe('Delete command', () => {
   const tlstate = new TLDrawState()

@@ -1,14 +1,8 @@
 import * as React from 'react'
 import { TLBounds, Utils, Vec, TLTransformInfo, TLRenderInfo, Intersect } from '@tldraw/core'
 import getStroke from 'perfect-freehand'
-import { getPerfectDashProps, defaultStyle, getShapeStyle } from '../../shape-styles'
-import {
-  RectangleShape,
-  DashStyle,
-  TLDrawShapeUtil,
-  TLDrawShapeType,
-  TLDrawToolType,
-} from '../../shape-types'
+import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape'
+import { RectangleShape, DashStyle, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType } from '~types'
 
 export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
   type = TLDrawShapeType.Rectangle as const
@@ -308,7 +302,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
     }
   }
 
-  transformSingle(shape: RectangleShape, bounds: TLBounds, info: TLTransformInfo<RectangleShape>) {
+  transformSingle(shape: RectangleShape, bounds: TLBounds) {
     return {
       size: Vec.round([bounds.width, bounds.height]),
       point: Vec.round([bounds.minX, bounds.minY]),

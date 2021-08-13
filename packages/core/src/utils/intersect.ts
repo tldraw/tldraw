@@ -559,13 +559,21 @@ export class Intersect {
     // Get an intersection between an ellipse and a second ellipse.
     // Adapted from https://gist.github.com/drawable/92792f59b6ff8869d8b1
     ellipse(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _c1: number[],
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _rx1: number,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _ry1: number,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _r1: number,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _c2: number[],
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _rx2: number,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _ry2: number,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _r2: number
     ): TLIntersection {
       // TODO

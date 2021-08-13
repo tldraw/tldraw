@@ -1,6 +1,13 @@
 import * as React from 'react'
-import { ColorStyle, DashStyle, SizeStyle, TLDrawShapeType, TLDrawState } from '@tldraw/tldraw'
-import { TLDraw, TLDrawDocument } from '@tldraw/tldraw'
+import {
+  TLDraw,
+  TLDrawDocument,
+  ColorStyle,
+  DashStyle,
+  SizeStyle,
+  TLDrawShapeType,
+  TLDrawState,
+} from '@tldraw/tldraw'
 import { usePersistence } from '../hooks/usePersistence'
 
 const initialDoc: TLDrawDocument = {

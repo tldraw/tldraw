@@ -1,9 +1,6 @@
-import type { ArrowBinding, ArrowShape } from '../../../../shape'
-import type { TLDrawShape, TLDrawBinding } from '../../../../shape'
-import type { Session } from '../../../state-types'
-import type { Data } from '../../../state-types'
-import { Vec, Utils, TLHandle } from '@tldraw/core'
-import { TLDR } from '../../../tldr'
+import type { ArrowBinding, ArrowShape, TLDrawShape, TLDrawBinding, Data, Session } from '~types'
+import { Vec, Utils } from '@tldraw/core'
+import { TLDR } from '~state/tldr'
 
 export class ArrowSession implements Session {
   id = 'transform_single'
@@ -43,11 +40,9 @@ export class ArrowSession implements Session {
     altKey: boolean,
     metaKey: boolean
   ): Partial<Data> => {
-    const { initialShape, origin } = this
+    const { initialShape } = this
 
     const shape = TLDR.getShape<ArrowShape>(data, initialShape.id)
-
-    TLDR.assertShapeHasProperty(shape, 'handles')
 
     const handles = shape.handles
 
@@ -223,8 +218,8 @@ export class ArrowSession implements Session {
   }
 
   complete(data: Data) {
-    let beforeBindings: Partial<Record<string, TLDrawBinding>> = {}
-    let afterBindings: Partial<Record<string, TLDrawBinding>> = {}
+    const beforeBindings: Partial<Record<string, TLDrawBinding>> = {}
+    const afterBindings: Partial<Record<string, TLDrawBinding>> = {}
 
     const currentShape = TLDR.getShape<ArrowShape>(data, this.initialShape.id)
     const currentBindingId = currentShape.handles[this.handleId].bindingId

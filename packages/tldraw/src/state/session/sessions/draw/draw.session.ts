@@ -1,8 +1,6 @@
 import { Utils, Vec } from '@tldraw/core'
-import type { DrawShape } from '../../../../shape/shape-types'
-import type { Session } from '../../../state-types'
-import type { Data } from '../../../state-types'
-import { TLDR } from '../../../tldr'
+import type { Data, DrawShape, Session } from '~types'
+import { TLDR } from '~state/tldr'
 
 export class DrawSession implements Session {
   id = 'draw'
@@ -112,6 +110,7 @@ export class DrawSession implements Session {
     return {
       page: {
         ...data.page,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         shapes: {
           ...data.page.shapes,

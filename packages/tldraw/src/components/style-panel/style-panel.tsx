@@ -1,4 +1,15 @@
 import * as React from 'react'
+import { Utils } from '@tldraw/core'
+import { DotsHorizontalIcon, Cross2Icon } from '@radix-ui/react-icons'
+import { useTLDrawContext } from '~hooks'
+import type { Data } from '~types'
+import { ShapesFunctions } from './shapes-functions'
+import { AlignDistribute } from './align-distribute'
+import { QuickColorSelect } from './quick-color-select'
+import { QuickSizeSelect } from './quick-size-select'
+import { QuickDashSelect } from './quick-dash-select'
+import { QuickFillSelect } from './quick-fill-select'
+import { Tooltip } from '../tooltip'
 import { Kbd } from '../kbd'
 import {
   IconButton,
@@ -8,18 +19,6 @@ import {
   FloatingContainer,
   Divider,
 } from '../shared'
-
-import type { Data } from '../../state'
-import { ShapesFunctions } from './shapes-functions'
-import { AlignDistribute } from './align-distribute'
-import { QuickColorSelect } from './quick-color-select'
-import { QuickSizeSelect } from './quick-size-select'
-import { QuickDashSelect } from './quick-dash-select'
-import { QuickFillSelect } from './quick-fill-select'
-import { Tooltip } from '../tooltip'
-import { DotsHorizontalIcon, Cross2Icon } from '@radix-ui/react-icons'
-import { Utils } from '@tldraw/core'
-import { useTLDrawContext } from '../../hooks'
 
 const isStyleOpenSelector = (s: Data) => s.appState.isStyleOpen
 
@@ -79,11 +78,7 @@ function SelectedShapeContent(): JSX.Element {
         hasThreeOrMore={selectedShapesCount > 2}
       />
       <Divider />
-      <RowButton
-        bp={breakpoints}
-        disabled={selectedShapesCount === 0}
-        onClick={handleCopy}
-      >
+      <RowButton bp={breakpoints} disabled={selectedShapesCount === 0} onClick={handleCopy}>
         <span>Copy</span>
         {showKbds && <Kbd variant="menu">#C</Kbd>}
       </RowButton>

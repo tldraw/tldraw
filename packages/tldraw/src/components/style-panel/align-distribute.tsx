@@ -11,9 +11,9 @@ import {
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
 } from '@radix-ui/react-icons'
-import { AlignType, DistributeType, StretchType } from '../../types'
+import { AlignType, DistributeType, StretchType } from '~types'
+import { useTLDrawContext } from '~hooks'
 import { breakpoints, ButtonsRow, IconButton } from '../shared'
-import { useTLDrawContext } from '../../hooks'
 
 export interface AlignDistributeProps {
   hasTwoOrMore: boolean

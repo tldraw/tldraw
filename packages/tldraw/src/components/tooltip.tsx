@@ -1,6 +1,6 @@
 import * as RadixTooltip from '@radix-ui/react-tooltip'
 import * as React from 'react'
-import styled from '../styles'
+import styled from '~styles'
 import { Kbd } from './kbd'
 
 interface TooltipProps {
@@ -10,12 +10,7 @@ interface TooltipProps {
   side?: 'bottom' | 'left' | 'right' | 'top'
 }
 
-export function Tooltip({
-  children,
-  label,
-  kbd,
-  side = 'top',
-}: TooltipProps): JSX.Element {
+export function Tooltip({ children, label, kbd, side = 'top' }: TooltipProps): JSX.Element {
   return (
     <RadixTooltip.Root>
       <RadixTooltip.Trigger as="span">{children}</RadixTooltip.Trigger>

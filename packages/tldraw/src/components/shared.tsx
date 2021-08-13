@@ -24,7 +24,7 @@ import {
 } from '@radix-ui/react-dropdown-menu'
 import { Root as RGRoot } from '@radix-ui/react-radio-group'
 import { CheckIcon, ChevronRightIcon } from '@radix-ui/react-icons'
-import styled from '../styles'
+import styled from '~styles'
 
 export const breakpoints: any = { '@initial': 'mobile', '@sm': 'small' }
 
@@ -408,12 +408,7 @@ export function MenuButton({
   children: React.ReactNode
 }): JSX.Element {
   return (
-    <RowButton
-      bp={breakpoints}
-      disabled={disabled}
-      warn={warn}
-      onSelect={onSelect}
-    >
+    <RowButton bp={breakpoints} disabled={disabled} warn={warn} onSelect={onSelect}>
       {children}
     </RowButton>
   )
@@ -499,12 +494,7 @@ export function DropdownMenuButton({
   children: React.ReactNode
 }): JSX.Element {
   return (
-    <DMItem
-      as={RowButton}
-      bp={breakpoints}
-      disabled={disabled}
-      onSelect={onSelect}
-    >
+    <DMItem as={RowButton} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
       {children}
     </DMItem>
   )
@@ -522,12 +512,7 @@ export function DropdownMenuIconButton({
   disabled = false,
 }: DropdownMenuIconButtonProps): JSX.Element {
   return (
-    <DMItem
-      as={IconButton}
-      bp={breakpoints}
-      disabled={disabled}
-      onSelect={onSelect}
-    >
+    <DMItem as={IconButton} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
       {children}
     </DMItem>
   )
@@ -646,12 +631,7 @@ export function ContextMenuButton({
   children: React.ReactNode
 }): JSX.Element {
   return (
-    <RowButton
-      as={CMItem}
-      bp={breakpoints}
-      disabled={disabled}
-      onSelect={onSelect}
-    >
+    <RowButton as={CMItem} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
       {children}
     </RowButton>
   )
@@ -667,12 +647,7 @@ export function ContextMenuIconButton({
   children: React.ReactNode
 }): JSX.Element {
   return (
-    <CMItem
-      as={IconButton}
-      bp={breakpoints}
-      disabled={disabled}
-      onSelect={onSelect}
-    >
+    <CMItem as={IconButton} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
       {children}
     </CMItem>
   )

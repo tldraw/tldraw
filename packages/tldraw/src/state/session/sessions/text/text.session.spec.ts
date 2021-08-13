@@ -1,7 +1,7 @@
-import { TLDrawState } from '../../../tlstate'
-import { mockDocument } from '../../../test-helpers'
-import { TLDR } from '../../../tldr'
-import { TextShape, TLDrawShape, TLDrawShapeType } from '../../../../shape'
+import { TLDrawState } from '~state'
+import { mockDocument } from '~state/test-helpers'
+import { TLDR } from '~state/tldr'
+import { TextShape, TLDrawShape, TLDrawShapeType } from '~types'
 
 describe('Text session', () => {
   const tlstate = new TLDrawState()

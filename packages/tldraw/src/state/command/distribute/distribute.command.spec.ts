@@ -1,6 +1,6 @@
-import { TLDrawState } from '../../tlstate'
-import { mockDocument } from '../../test-helpers'
-import { DistributeType } from '../../../types'
+import { TLDrawState } from '~state'
+import { mockDocument } from '~state/test-helpers'
+import { DistributeType } from '~types'
 
 describe('Distribute command', () => {
   const tlstate = new TLDrawState()

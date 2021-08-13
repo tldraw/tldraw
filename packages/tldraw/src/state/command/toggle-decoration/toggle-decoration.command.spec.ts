@@ -1,7 +1,7 @@
-import { TLDR } from '../../tldr'
-import { TLDrawState } from '../../tlstate'
-import { mockDocument } from '../../test-helpers'
-import { ArrowShape, Decoration, TLDrawShape } from '../../../shape'
+import { TLDR } from '~state/tldr'
+import { TLDrawState } from '~state'
+import { mockDocument } from '~state/test-helpers'
+import { ArrowShape, Decoration, TLDrawShape } from '~types'
 
 describe('Handle command', () => {
   const tlstate = new TLDrawState()

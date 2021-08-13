@@ -1,11 +1,11 @@
 # Notes
 
-- [ ] Remap style panel
-- [ ] Remap zoom panel
-- [ ] Remap undo / redo panel
-- [ ] Remap tool panel
-- [ ] Migrate commands
-- [ ] Migrate sessions
+- [x] Remap style panel
+- [x] Remap zoom panel
+- [x] Remap undo / redo panel
+- [x] Remap tool panel
+- [x] Migrate commands
+- [x] Migrate sessions
 
 ## History
 

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { FloatingContainer } from '../shared'
 import { Tooltip } from '../tooltip'
-import styled from '../../styles'
+import styled from '~styles'
 
 export const ToolButton = styled('button', {
   position: 'relative',

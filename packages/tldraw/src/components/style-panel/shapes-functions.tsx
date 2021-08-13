@@ -14,8 +14,8 @@ import {
   PinTopIcon,
   RotateCounterClockwiseIcon,
 } from '@radix-ui/react-icons'
-import { useTLDrawContext } from '../../hooks'
-import type { Data } from '../../state'
+import { useTLDrawContext } from '~hooks'
+import type { Data } from '~types'
 
 const isAllLockedSelector = (s: Data) => {
   const { selectedIds } = s.pageState
@@ -39,8 +39,7 @@ const isAllGroupedSelector = (s: Data) => {
 
 const hasSelectionSelector = (s: Data) => s.pageState.selectedIds.length > 0
 
-const hasMultipleSelectionSelector = (s: Data) =>
-  s.pageState.selectedIds.length > 1
+const hasMultipleSelectionSelector = (s: Data) => s.pageState.selectedIds.length > 1
 
 export const ShapesFunctions = React.memo(() => {
   const { tlstate, useSelector } = useTLDrawContext()
@@ -109,11 +108,7 @@ export const ShapesFunctions = React.memo(() => {
           </Tooltip>
         </IconButton>
 
-        <IconButton
-          disabled={!hasSelection}
-          size="small"
-          onClick={handleRotate}
-        >
+        <IconButton disabled={!hasSelection} size="small" onClick={handleRotate}>
           <Tooltip label="Rotate">
             <RotateCounterClockwiseIcon />
           </Tooltip>
@@ -197,12 +192,7 @@ export const ShapesFunctions = React.memo(() => {
           </Tooltip>
         </IconButton>
 
-        <IconButton
-          bp={breakpoints}
-          disabled={!hasSelection}
-          size="small"
-          onClick={handleDelete}
-        >
+        <IconButton bp={breakpoints} disabled={!hasSelection} size="small" onClick={handleDelete}>
           <Tooltip label="Delete" kbd="⌫">
             <Trash />
           </Tooltip>

@@ -1,13 +1,14 @@
 import { TLBounds, TLTransformInfo, Vec, Utils } from '@tldraw/core'
-import {
-  getShapeUtils,
+import { getShapeUtils } from '~shape'
+import type {
+  Data,
+  DeepPartial,
   ShapeStyles,
   ShapesWithProp,
   TLDrawShape,
   TLDrawShapeUtil,
   TLDrawBinding,
-} from '../shape'
-import type { Data, DeepPartial } from './state-types'
+} from '~types'
 
 export class TLDR {
   static getShapeUtils<T extends TLDrawShape>(shape: T | T['type']): TLDrawShapeUtil<T> {

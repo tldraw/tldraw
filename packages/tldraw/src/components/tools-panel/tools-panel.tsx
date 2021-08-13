@@ -1,3 +1,4 @@
+import * as React from 'react'
 import {
   ArrowTopRightIcon,
   CircleIcon,
@@ -8,17 +9,15 @@ import {
   SquareIcon,
   TextIcon,
 } from '@radix-ui/react-icons'
-import * as React from 'react'
+import styled from '~styles'
+import { Data, TLDrawShapeType } from '~types'
+import { useTLDrawContext } from '~hooks'
 import { StatusBar } from './status-bar'
 import { FloatingContainer } from '../shared'
 import { PrimaryButton, SecondaryButton } from './shared'
-import styled from '../../styles'
 import { UndoRedo } from './undo-redo'
 import { Zoom } from './zoom'
 import { BackToContent } from './back-to-content'
-import { TLDrawShapeType } from '../../shape'
-import { useTLDrawContext } from '../../hooks'
-import type { Data } from '../../state'
 
 const activeToolSelector = (s: Data) => s.appState.activeTool
 const isToolLockedSelector = (s: Data) => s.appState.isToolLocked
@@ -130,9 +129,11 @@ export const ToolsPanel = React.memo((): JSX.Element => {
         </FloatingContainer>
         <UndoRedo />
       </RightWrap>
-      <StatusWrap>
-        <StatusBar />
-      </StatusWrap>
+      {isDebugMode && (
+        <StatusWrap>
+          <StatusBar />
+        </StatusWrap>
+      )}
     </ToolsPanelContainer>
   )
 })

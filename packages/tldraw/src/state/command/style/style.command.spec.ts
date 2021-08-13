@@ -1,6 +1,6 @@
-import { SizeStyle } from '../../../shape'
-import { TLDrawState } from '../../tlstate'
-import { mockDocument } from '../../test-helpers'
+import { TLDrawState } from '~state'
+import { mockDocument } from '~state/test-helpers'
+import { SizeStyle } from '~types'
 
 describe('Style command', () => {
   const tlstate = new TLDrawState()

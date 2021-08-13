@@ -1,14 +1,8 @@
 import * as React from 'react'
 import { TLBounds, Utils, Vec, TLTransformInfo, TLRenderInfo, Intersect } from '@tldraw/core'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
-import { defaultStyle, getShapeStyle } from '../../shape-styles'
-import {
-  DrawShape,
-  DashStyle,
-  TLDrawShapeUtil,
-  TLDrawShapeType,
-  TLDrawToolType,
-} from '../../shape-types'
+import { defaultStyle, getShapeStyle } from '~shape'
+import { DrawShape, DashStyle, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType } from '~types'
 
 export class Draw extends TLDrawShapeUtil<DrawShape> {
   type = TLDrawShapeType.Draw as const

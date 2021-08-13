@@ -1,6 +1,6 @@
-import { TLDrawState } from '../../../tlstate'
-import { mockDocument } from '../../../test-helpers'
-import { ColorStyle, DashStyle, SizeStyle, TLDrawShapeType } from '../../../../shape'
+import { TLDrawState } from '~state'
+import { mockDocument } from '~state/test-helpers'
+import { ColorStyle, DashStyle, SizeStyle, TLDrawShapeType } from '~types'
 
 describe('Transform session', () => {
   const tlstate = new TLDrawState()

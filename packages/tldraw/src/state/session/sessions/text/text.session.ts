@@ -1,7 +1,7 @@
-import type { TextShape } from '../../../../shape'
-import type { Session } from '../../../state-types'
-import type { Data } from '../../../state-types'
-import { TLDR } from '../../../tldr'
+import type { TextShape } from '~types'
+import type { Session } from '~types'
+import type { Data } from '~types'
+import { TLDR } from '~state/tldr'
 
 export class TextSession implements Session {
   id = 'text'
@@ -91,10 +91,7 @@ export class TextSession implements Session {
       after: {
         page: {
           shapes: {
-            [initialShape.id]: TLDR.onSessionComplete(
-              data,
-              data.page.shapes[initialShape.id]
-            ),
+            [initialShape.id]: TLDR.onSessionComplete(data, data.page.shapes[initialShape.id]),
           },
         },
         pageState: {

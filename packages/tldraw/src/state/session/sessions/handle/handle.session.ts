@@ -1,8 +1,8 @@
 import { Vec } from '@tldraw/core'
-import type { TLDrawShape } from '../../../../shape'
-import type { Session } from '../../../state-types'
-import type { Data } from '../../../state-types'
-import { TLDR } from '../../../tldr'
+import type { ShapesWithProp } from '~types'
+import type { Session } from '~types'
+import type { Data } from '~types'
+import { TLDR } from '~state/tldr'
 
 export class HandleSession implements Session {
   id = 'transform_single'
@@ -10,7 +10,7 @@ export class HandleSession implements Session {
   delta = [0, 0]
   origin: number[]
   shiftKey = false
-  initialShape: TLDrawShape
+  initialShape: ShapesWithProp<'handles'>
   handleId: string
 
   constructor(data: Data, handleId: string, point: number[], commandId = 'move_handle') {
@@ -30,32 +30,26 @@ export class HandleSession implements Session {
     altKey: boolean,
     metaKey: boolean
   ): Data => {
-    const { initialShape, origin } = this
+    const { initialShape } = this
 
-    const shape = TLDR.getShape(data, initialShape.id)
+    const shape = TLDR.getShape<ShapesWithProp<'handles'>>(data, initialShape.id)
 
-    TLDR.assertShapeHasProperty(shape, 'handles')
-
-    this.shiftKey = shiftKey
-
-    const delta = Vec.vec(origin, point)
-
-    const handles = initialShape.handles!
+    const handles = shape.handles
 
     const handleId = this.handleId as keyof typeof handles
 
-    const handle = handles[handleId]
+    const delta = Vec.sub(point, handles[handleId].point)
 
-    let nextPoint = Vec.round(Vec.add(handle.point, delta))
+    const handle = {
+      ...handles[handleId],
+      point: Vec.sub(Vec.add(handles[handleId].point, delta), shape.point),
+    }
 
-    // Now update the handle's next point
+    // First update the handle's next point
     const change = TLDR.getShapeUtils(shape).onHandleChange(
       shape,
       {
-        [handleId]: {
-          ...shape.handles[handleId],
-          point: nextPoint, // Vec.rot(delta, shape.rotation)),
-        },
+        [handleId]: handle,
       },
       { delta, shiftKey, altKey, metaKey }
     )

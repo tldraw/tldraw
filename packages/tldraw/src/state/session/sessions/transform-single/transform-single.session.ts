@@ -1,8 +1,8 @@
 import { TLBoundsCorner, TLBoundsEdge, Utils, Vec } from '@tldraw/core'
-import type { TLDrawShape } from '../../../../shape'
-import type { Session } from '../../../state-types'
-import type { Data } from '../../../state-types'
-import { TLDR } from '../../../tldr'
+import type { TLDrawShape } from '~types'
+import type { Session } from '~types'
+import type { Data } from '~types'
+import { TLDR } from '~state/tldr'
 
 export class TransformSingleSession implements Session {
   id = 'transform_single'
