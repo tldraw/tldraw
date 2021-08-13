@@ -15,7 +15,10 @@ To support this project (and gain access to the project while it is in developme
 
 ## Documentation
 
-...
+In progress! Check the README files in packages/core and packages/tldraw.
+
+- [@tldraw/core example](https://codesandbox.io/s/tldraw-core-example-88c74)
+- [@tldraw/tldraw example](https://codesandbox.io/s/tldraw-example-n539u)
 
 ## Local Development
 
