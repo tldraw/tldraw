@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { TLBounds, Utils, Vec, TLTransformInfo, TLRenderInfo, Intersect } from '@tldraw/core'
-import { defaultStyle, getShapeStyle, getFontSize, getFontStyle } from '~shape'
+import { getShapeStyle, getFontSize, getFontStyle, defaultStyle } from '~shape/shape-styles'
 import { TextShape, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType } from '~types'
 import styled from '~styles'
 import TextAreaUtils from './text-utils'

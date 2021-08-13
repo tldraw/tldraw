@@ -1,7 +1,7 @@
 import * as React from 'react'
-import type { TLBounds } from '~types'
-import { Utils } from '~utils'
-import { useBoundsEvents } from '~hooks'
+import type { TLBounds } from '+types'
+import { Utils } from '+utils'
+import { useBoundsEvents } from '+hooks'
 
 interface BoundsBgProps {
   bounds: TLBounds

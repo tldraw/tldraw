@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { TLBounds } from '~types'
+import type { TLBounds } from '+types'
 
 export interface CenterHandleProps {
   bounds: TLBounds

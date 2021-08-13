@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { useRef } from 'react'
 import { useTLContext } from './useTLContext'
-import { Vec } from '~utils'
+import { Vec } from '+utils'
 import { useWheel, usePinch } from 'react-use-gesture'
-import { inputs } from '~inputs'
+import { inputs } from '+inputs'
 
 // Capture zoom gestures (pinches, wheels and pans)
 export function useZoomEvents() {

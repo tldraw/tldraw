@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { useBoundsHandleEvents } from '~hooks'
-import type { TLBounds } from '~types'
+import { useBoundsHandleEvents } from '+hooks'
+import type { TLBounds } from '+types'
 
 export const RotateHandle = React.memo(
   ({ bounds, size }: { bounds: TLBounds; size: number }): JSX.Element => {

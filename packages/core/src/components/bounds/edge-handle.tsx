@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { useBoundsHandleEvents } from '~hooks'
-import { TLBoundsEdge, TLBounds } from '~types'
+import { useBoundsHandleEvents } from '+hooks'
+import { TLBoundsEdge, TLBounds } from '+types'
 
 const edgeClassnames = {
   [TLBoundsEdge.Top]: 'tl-transparent tl-cursor-ns',

@@ -19,6 +19,7 @@
   "types": "./dist/types/index.d.ts",
   "typings": "./dist/types/index.d.ts",
   "scripts": {
+    "test": "jest",
     "dev": "node scripts/dev & tsc --watch --incremental --emitDeclarationOnly --declarationMap --outDir dist/types",
     "build": "yarn clean && node scripts/build && tsc --emitDeclarationOnly --outDir dist/types",
     "lint": "eslint src/ --ext .ts,.tsx",

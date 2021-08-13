@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Utils, TLTransformInfo, TLBounds, Intersect, Vec, TLRenderInfo } from '@tldraw/core'
 import { DashStyle, EllipseShape, TLDrawShapeType, TLDrawShapeUtil, TLDrawToolType } from '~types'
-import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape'
+import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
 import getStroke from 'perfect-freehand'
 
 export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
@@ -207,6 +207,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
 
         let intersection = Intersect.ray
           .ellipse(origin, direction, center, shape.radius[0], shape.radius[1], shape.rotation || 0)
+
           .points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))[0]
 
         if (!intersection) {

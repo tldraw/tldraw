@@ -30,7 +30,9 @@
     "types": ["node", "jest"],
     "paths": {
       "@tldraw/tldraw": ["./packages/tldraw/dist"],
-      "@tldraw/core": ["./packages/core/dist"]
+      "@tldraw/core": ["./packages/core/dist"],
+      "+*": ["./packages/core/src/*"],
+      "~*": ["./packages/tldraw/src/*"]
     }
   }
 }

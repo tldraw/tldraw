@@ -194,7 +194,7 @@ export class TranslateSession implements Session {
   }
 
   complete(data: Data): Command {
-    const { selectedIds, initialShapes, bindingsToDelete, clones, clonedBindings } = this.snapshot
+    const { initialShapes, bindingsToDelete, clones, clonedBindings } = this.snapshot
 
     const before: PagePartial = {
       shapes: {
@@ -253,7 +253,7 @@ export class TranslateSession implements Session {
       before: {
         page: before,
         pageState: {
-          selectedIds,
+          selectedIds: [...this.snapshot.selectedIds],
         },
       },
       after: {

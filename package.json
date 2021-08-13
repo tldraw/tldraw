@@ -87,7 +87,9 @@
     ],
     "moduleNameMapper": {
       "@tldraw/core": "<rootDir>/packages/core/src",
-      "@tldraw/tldraw": "<rootDir>/packages/tldraw/src"
+      "@tldraw/tldraw": "<rootDir>/packages/tldraw/src",
+      "\\~(.*)": "<rootDir>/packages/tldraw/src/$1",
+      "\\+(.*)": "<rootDir>/packages/core/src/$1"
     }
   }
 }

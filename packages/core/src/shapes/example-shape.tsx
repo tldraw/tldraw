@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react'
-import { TLShapeUtil, TLShape, TLBounds, TLRenderInfo, TLTransformInfo } from '~types'
-import Utils, { Intersect } from '~utils'
+import { TLShapeUtil, TLShape, TLBounds, TLRenderInfo, TLTransformInfo } from '+types'
+import Utils, { Intersect } from '+utils'
 
 export class ExampleShape extends TLShapeUtil<TLShape> {
   type = 'shape-type'

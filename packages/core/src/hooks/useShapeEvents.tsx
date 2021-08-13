@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { inputs } from '~inputs'
+import { inputs } from '+inputs'
 import { useTLContext } from './useTLContext'
-import { Utils } from '~utils'
+import { Utils } from '+utils'
 
 export function useShapeEvents(id: string, disable = false) {
   const { rPageState, rScreenBounds, callbacks } = useTLContext()

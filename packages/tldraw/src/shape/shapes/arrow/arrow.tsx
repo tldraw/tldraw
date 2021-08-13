@@ -10,7 +10,7 @@ import {
   TLPointerInfo,
 } from '@tldraw/core'
 import getStroke from 'perfect-freehand'
-import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape'
+import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
 import {
   ArrowShape,
   Decoration,

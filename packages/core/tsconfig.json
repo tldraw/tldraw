@@ -33,10 +33,7 @@
     "outDir": "./dist/types",
     "baseUrl": "src",
     "paths": {
-      "~utils": ["./utils/index.ts"],
-      "~types": ["./types.ts"],
-      "~inputs": ["./inputs.ts"],
-      "~hooks": ["./hooks/index.ts"]
+      "+*": ["./*"]
     }
   }
 }

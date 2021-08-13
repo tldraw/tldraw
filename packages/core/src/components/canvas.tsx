@@ -6,8 +6,8 @@ import {
   useSafariFocusOutFix,
   useCanvasEvents,
   useCameraCss,
-} from '~hooks'
-import type { TLBinding, TLPage, TLPageState, TLShape } from '~types'
+} from '+hooks'
+import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
 import { ErrorFallback } from './error-fallback'
 import { Brush } from './brush'
 import { Defs } from './defs'

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { TLPageState } from '~types'
+import type { TLPageState } from '+types'
 
 export function useCameraCss(pageState: TLPageState) {
   const rGroup = React.useRef<SVGGElement>(null)

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { TLBounds, Utils, Vec, TLTransformInfo, TLRenderInfo, Intersect } from '@tldraw/core'
 import getStroke from 'perfect-freehand'
-import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape'
+import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { RectangleShape, DashStyle, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType } from '~types'
 
 export class Rectangle extends TLDrawShapeUtil<RectangleShape> {

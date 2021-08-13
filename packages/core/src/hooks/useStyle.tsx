@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { TLTheme } from '~types'
+import type { TLTheme } from '+types'
 
 const styles = new Map<string, HTMLStyleElement>()
 

@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { useShapeEvents, useTLContext } from '~hooks'
-import type { IShapeTreeNode } from '~types'
+import { useShapeEvents, useTLContext } from '+hooks'
+import type { IShapeTreeNode } from '+types'
 import { RenderedShape } from './rendered-shape'
 import { EditingTextShape } from './editing-text-shape'
 

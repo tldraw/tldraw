@@ -15,14 +15,17 @@ export function move(data: Data, ids: string[], type: MoveType): Command {
 
   // Collect shapes with common parents into a table under their parent id
   Array.from(parentIds.values()).forEach((parentId) => {
-    const parent = data.page.shapes[parentId]
-    if (!parent.children) throw Error('No children in parent!')
-    const sortedChildren =
-      parentId === data.page.id
-        ? Object.values(data.page.shapes).sort((a, b) => a.childIndex - b.childIndex)
-        : parent.children
-            .map((childId) => data.page.shapes[childId])
-            .sort((a, b) => a.childIndex - b.childIndex)
+    let sortedChildren: TLDrawShape[] = []
+    if (parentId === data.page.id) {
+      sortedChildren = Object.values(data.page.shapes).sort((a, b) => a.childIndex - b.childIndex)
+    } else {
+      const parent = data.page.shapes[parentId]
+      if (!parent.children) throw Error('No children in parent!')
+
+      sortedChildren = parent.children
+        .map((childId) => data.page.shapes[childId])
+        .sort((a, b) => a.childIndex - b.childIndex)
+    }
 
     const sortedChildIds = sortedChildren.map((shape) => shape.id)
 

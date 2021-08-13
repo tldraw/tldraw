@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useTLContext } from './useTLContext'
-import { inputs } from '~inputs'
+import { inputs } from '+inputs'
 
 export function useCanvasEvents() {
   const { callbacks } = useTLContext()

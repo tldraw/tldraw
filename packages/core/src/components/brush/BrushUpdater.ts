@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { TLBounds } from '~types'
+import type { TLBounds } from '+types'
 
 export class BrushUpdater {
   ref = React.createRef<SVGRectElement>()

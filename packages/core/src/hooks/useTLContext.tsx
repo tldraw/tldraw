@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { TLCallbacks, TLShape, TLBounds, TLPageState, TLShapeUtils } from '~types'
+import type { TLCallbacks, TLShape, TLBounds, TLPageState, TLShapeUtils } from '+types'
 
 export interface TLContextType {
   callbacks: Partial<TLCallbacks>

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { IShapeTreeNode, TLBinding, TLPage, TLPageState, TLShape } from '~types'
+import type { IShapeTreeNode, TLBinding, TLPage, TLPageState, TLShape } from '+types'
 import { Shape as ShapeComponent } from './shape'
 import { useShapeTree, useHandles, useRenderOnResize, useTLContext } from '../hooks'
 import { Bounds } from './bounds'

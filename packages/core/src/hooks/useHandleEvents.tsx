@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { inputs } from '~inputs'
+import { inputs } from '+inputs'
 import { useTLContext } from './useTLContext'
 
 export function useHandleEvents(id: string) {

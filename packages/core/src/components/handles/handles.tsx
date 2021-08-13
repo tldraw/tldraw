@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { Vec } from '~utils'
-import type { TLShape } from '~types'
-import { useTLContext } from '~hooks'
+import { Vec } from '+utils'
+import type { TLShape } from '+types'
+import { useTLContext } from '+hooks'
 import { Handle } from './handle'
 
 interface HandlesProps {

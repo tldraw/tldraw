@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useHandleEvents } from '~hooks'
+import { useHandleEvents } from '+hooks'
 
 interface HandleProps {
   id: string

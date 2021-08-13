@@ -33,13 +33,7 @@
     "outDir": "./dist/types",
     "baseUrl": "src",
     "paths": {
-      "~types": ["./types.ts"],
-      "~state": ["./state"],
-      "~state/*": ["./state/*"],
-      "~shape": ["./shape"],
-      "~shape/*": ["./shape/*"],
-      "~styles": ["./styles"],
-      "~hooks": ["./hooks/index.ts"]
+      "~*": ["./*"]
     }
   }
 }

@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { inputs } from '~inputs'
-import type { TLBoundsEdge, TLBoundsCorner } from '~types'
+import { inputs } from '+inputs'
+import type { TLBoundsEdge, TLBoundsCorner } from '+types'
 import { useTLContext } from './useTLContext'
 
 export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotate') {

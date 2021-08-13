@@ -7,8 +7,8 @@ import type {
   TLShapeUtils,
   TLCallbacks,
   TLBinding,
-} from '~types'
-import { Utils, Vec } from '~utils'
+} from '+types'
+import { Utils, Vec } from '+utils'
 
 function addToShapeTree<T extends TLShape>(
   shape: TLShape,
