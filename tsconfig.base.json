@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "importsNotUsedAsValues": "error",
+    "incremental": true,
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "noEmit": false,
+    "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */,
+    "noImplicitAny": true /* Raise error on expressions and declarations with an implied 'any' type. */,
+    "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
+    "noUnusedLocals": false /* Report errors on unused locals. */,
+    "noUnusedParameters": false /* Report errors on unused parameters. */,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": false,
+    "strictFunctionTypes": true /* Enable strict checking of function types. */,
+    "strictNullChecks": true /* Enable strict null checks. */,
+    "target": "es5",
+    "typeRoots": ["node_modules/@types", "node_modules/jest"],
+    "types": ["node", "jest"],
+    "jsx": "preserve",
+    "lib": ["dom", "esnext"],
+    "module": "esnext"
+  }
+}

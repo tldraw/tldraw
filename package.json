@@ -21,7 +21,8 @@
     "start": "lerna run start --stream --parallel",
     "start:www": "lerna run start --stream --parallel & cd packages/www && yarn build",
     "build": "yarn build:packages && cd packages/www && yarn build",
-    "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build"
+    "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build",
+    "publish:patch": "yarn build:packages && lerna publish patch"
   },
   "devDependencies": {
     "@babel/plugin-syntax-import-meta": "^7.10.4",
