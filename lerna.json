@@ -5,7 +5,6 @@
     "access": "public"
   },
   "npmClient": "yarn",
-  "useWorkspaces": true,
   "packages": [
     "packages/core",
     "packages/tldraw"
