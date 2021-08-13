@@ -8,7 +8,6 @@
   "useWorkspaces": true,
   "packages": [
     "packages/core",
-    "packages/tldraw",
-    "packages/dev"
+    "packages/tldraw"
   ]
 }
