@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "0.0.41",
+  "version": "0.0.42",
   "private": false,
   "description": "A tiny little drawing app (editor).",
   "author": "@steveruizok",
@@ -56,7 +56,7 @@
     "@radix-ui/react-radio-group": "^0.0.18",
     "@radix-ui/react-tooltip": "^0.0.20",
     "@stitches/react": "^0.2.3",
-    "@tldraw/core": "^0.0.41",
+    "@tldraw/core": "^0.0.42",
     "ismobilejs": "^1.1.1",
     "perfect-freehand": "^0.4.10",
     "react-hotkeys-hook": "^3.4.0",
