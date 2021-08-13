@@ -11,9 +11,12 @@
     "esbuild"
   ],
   "scripts": {
-    "dev": "node ./esbuild.config.mjs --dev tsc --watch",
-    "test": "echo 'TODO'"
+    "start": "node ./esbuild.config.mjs --dev tsc --watch"
   },
+  "files": [
+    "README.md",
+    "src"
+  ],
   "dependencies": {
     "react": "^17.0.2",
     "react-dom": "^17.0.2",

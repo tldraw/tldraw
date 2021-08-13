@@ -1,8 +1,13 @@
 /* eslint-disable no-undef */
+import fs from 'fs'
 import esbuild from 'esbuild'
 import serve, { error, log } from 'create-serve'
 
 const isDevServer = process.argv.includes('--dev')
+
+fs.copyFile('./src/index.html', './dist/index.html', (err) => {
+  if (err) throw err
+})
 
 esbuild
   .build({
@@ -27,7 +32,7 @@ esbuild
 
 if (isDevServer) {
   serve.start({
-    port: 5000,
+    port: 3000,
     root: './dist',
     live: true,
   })

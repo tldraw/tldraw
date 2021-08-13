@@ -18,8 +18,8 @@
   "scripts": {
     "test": "jest",
     "lerna": "lerna",
-    "start": "lerna run dev --stream --parallel",
-    "start:www": "lerna run dev --stream --parallel & cd packages/www && yarn build",
+    "start": "lerna run start --stream --parallel",
+    "start:www": "lerna run start --stream --parallel & cd packages/www && yarn build",
     "build": "yarn build:packages && cd packages/www && yarn build",
     "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build"
   },

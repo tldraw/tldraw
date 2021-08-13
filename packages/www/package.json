@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next dev",
+    "start": "",
     "serve": "next serve",
     "lint": "next lint"
   },
