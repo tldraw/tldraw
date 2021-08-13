@@ -597,13 +597,13 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
 
     const offset = [bounds.minX, bounds.minY]
 
-    nextShape.handles = Object.fromEntries(
-      Object.entries(nextShape.handles).map(([key, handle]) => {
-        return [key, { ...handle, point: Vec.add(handle.point, Vec.neg(offset)) }]
+    if (!Vec.isEqual(offset, [0, 0])) {
+      Object.values(nextShape.handles).forEach((handle) => {
+        handle.point = Vec.round(Vec.sub(handle.point, offset))
       })
-    ) as ArrowShape['handles']
 
-    nextShape.point = Vec.add(nextShape.point, offset)
+      nextShape.point = Vec.round(Vec.add(nextShape.point, offset))
+    }
 
     return nextShape
   }
