@@ -5,6 +5,10 @@ import serve, { error, log } from 'create-serve'
 
 const isDevServer = process.argv.includes('--dev')
 
+if (!fs.existsSync('./dist')) {
+  fs.mkdirSync('./dist')
+}
+
 fs.copyFile('./src/index.html', './dist/index.html', (err) => {
   if (err) throw err
 })
