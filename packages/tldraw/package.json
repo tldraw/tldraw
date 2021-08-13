@@ -1,7 +1,7 @@
 {
   "name": "@tldraw/tldraw",
   "version": "0.0.45",
-  "private": true,
+  "private": false,
   "description": "A tiny little drawing app (editor).",
   "author": "@steveruizok",
   "repository": {
