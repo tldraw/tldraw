@@ -1,11 +1,11 @@
 import * as React from 'react'
-import type { IShapeTreeNode, TLBinding, TLPage, TLPageState, TLShape } from '+types'
-import { Shape as ShapeComponent } from './shape'
-import { useShapeTree, useHandles, useRenderOnResize, useTLContext } from '../hooks'
+import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
+import { useSelection, useShapeTree, useHandles, useRenderOnResize, useTLContext } from '+hooks'
 import { Bounds } from './bounds'
 import { BoundsBg } from './bounds/bounds-bg'
-import { useSelection } from '../hooks'
 import { Handles } from './handles'
+import { ShapeIndicator } from './shape-indicator'
+import { ShapeNode } from './shape'
 
 interface PageProps<T extends TLShape> {
   page: TLPage<T, TLBinding>
@@ -65,38 +65,3 @@ export function Page<T extends TLShape>({
     </>
   )
 }
-
-const ShapeIndicator = React.memo(
-  ({ shape, variant }: { shape: TLShape; variant: 'selected' | 'hovered' }) => {
-    const { shapeUtils } = useTLContext()
-    const utils = shapeUtils[shape.type]
-
-    const center = utils.getCenter(shape)
-    const rotation = (shape.rotation || 0) * (180 / Math.PI)
-    const transform = `rotate(${rotation}, ${center}) translate(${shape.point})`
-
-    return (
-      <g className={variant === 'selected' ? 'tl-selected' : 'tl-hovered'} transform={transform}>
-        {shapeUtils[shape.type].renderIndicator(shape)}
-      </g>
-    )
-  }
-)
-
-const ShapeNode = React.memo(
-  ({ shape, children, isEditing, isDarkMode, isBinding, isCurrentParent }: IShapeTreeNode) => {
-    return (
-      <>
-        <ShapeComponent
-          shape={shape}
-          isEditing={isEditing}
-          isDarkMode={isDarkMode}
-          isBinding={isBinding}
-          isCurrentParent={isCurrentParent}
-        />
-        {children &&
-          children.map((childNode) => <ShapeNode key={childNode.shape.id} {...childNode} />)}
-      </>
-    )
-  }
-)
