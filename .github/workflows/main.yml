@@ -7,6 +7,9 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install modules
         run: yarn
+      # buikd
+      - name: Build
+        run: yarn build
       # unit tests
       - name: Jest Annotations & Coverage
         uses: mattallty/jest-github-action@v1.0.3
