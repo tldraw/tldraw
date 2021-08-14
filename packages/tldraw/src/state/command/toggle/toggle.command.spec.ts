@@ -1,6 +1,6 @@
 import type { RectangleShape } from '~types'
 import { TLDrawState } from '~state'
-import { mockDocument } from '~test-utils'
+import { mockDocument } from '~test'
 
 describe('Toggle command', () => {
   const tlstate = new TLDrawState()

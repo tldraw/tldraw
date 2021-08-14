@@ -1,5 +1,5 @@
 import { TLDrawState } from '~state'
-import { mockDocument } from '~test-utils'
+import { mockDocument } from '~test'
 import { ColorStyle, DashStyle, SizeStyle, TLDrawShapeType } from '~types'
 
 describe('Transform session', () => {

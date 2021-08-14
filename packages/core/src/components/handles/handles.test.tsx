@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { mockUtils, renderWithContext } from '+test-utils'
+import { mockUtils, renderWithContext } from '+test'
 import { Handles } from './handles'
 
 describe('handles', () => {

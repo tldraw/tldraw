@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { mockDocument, renderWithContext } from '+test-utils'
+import { mockDocument, renderWithContext } from '+test'
 import { Canvas } from './canvas'
 
 describe('page', () => {

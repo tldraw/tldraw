@@ -1,5 +1,5 @@
 import { TLDrawState } from '~state'
-import { mockDocument } from '~test-utils'
+import { mockDocument } from '~test'
 import { TLDR } from '~state/tldr'
 import type { TLDrawShape } from '~types'
 

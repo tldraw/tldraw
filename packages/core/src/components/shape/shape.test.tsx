@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { mockUtils, renderWithSvg } from '+test-utils'
+import { mockUtils, renderWithSvg } from '+test'
 import { Shape } from './shape'
 
 describe('handles', () => {

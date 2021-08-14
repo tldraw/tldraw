@@ -1,6 +1,5 @@
 import * as React from 'react'
-import { mockDocument } from '+test-utils/mockDocument'
-import { mockUtils } from '+test-utils/mockUtils'
+import { mockDocument, mockUtils } from '+test'
 import { render } from '@testing-library/react'
 import { Renderer } from './renderer'
 

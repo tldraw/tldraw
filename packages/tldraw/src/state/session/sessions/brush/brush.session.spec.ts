@@ -1,5 +1,5 @@
 import { TLDrawState } from '~state'
-import { mockDocument } from '~test-utils'
+import { mockDocument } from '~test'
 
 describe('Brush session', () => {
   const tlstate = new TLDrawState()

@@ -1,5 +1,5 @@
 import { TLDrawState } from './tlstate'
-import { mockDocument, TLStateUtils } from '~test-utils'
+import { mockDocument, TLStateUtils } from '~test'
 
 describe('TLDrawState', () => {
   const tlstate = new TLDrawState()

@@ -1,5 +1,5 @@
 import { TLDrawState } from '~state'
-import { mockDocument } from '~test-utils'
+import { mockDocument } from '~test'
 import { TLBoundsCorner } from '@tldraw/core'
 
 describe('Transform single session', () => {

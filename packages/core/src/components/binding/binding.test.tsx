@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { renderWithSvg } from '+test-utils'
+import { renderWithSvg } from '+test'
 import { Binding } from './binding'
 
 jest.spyOn(console, 'error').mockImplementation(() => void null)

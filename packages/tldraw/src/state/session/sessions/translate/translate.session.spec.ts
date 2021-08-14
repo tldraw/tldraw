@@ -1,6 +1,6 @@
 import { TLDR } from '~state/tldr'
 import { TLDrawState } from '~state'
-import { mockDocument } from '~test-utils'
+import { mockDocument } from '~test'
 import type { TLDrawShape } from '~types'
 
 describe('Brush session', () => {
