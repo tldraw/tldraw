@@ -1,6 +1,6 @@
 import { StretchType, RectangleShape } from '~types'
 import { TLDrawState } from '~state'
-import { mockDocument } from '~state/test-helpers'
+import { mockDocument } from '~test-utils'
 
 describe('Stretch command', () => {
   const tlstate = new TLDrawState()

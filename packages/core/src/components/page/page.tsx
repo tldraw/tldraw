@@ -1,11 +1,11 @@
 import * as React from 'react'
 import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
 import { useSelection, useShapeTree, useHandles, useRenderOnResize, useTLContext } from '+hooks'
-import { Bounds } from './bounds'
-import { BoundsBg } from './bounds/bounds-bg'
-import { Handles } from './handles'
-import { ShapeIndicator } from './shape-indicator'
-import { ShapeNode } from './shape'
+import { Bounds } from '+components/bounds'
+import { BoundsBg } from '+components/bounds/bounds-bg'
+import { Handles } from '+components/handles'
+import { ShapeNode } from '+components/shape'
+import { ShapeIndicator } from '+components/shape-indicator'
 
 interface PageProps<T extends TLShape> {
   page: TLPage<T, TLBinding>

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useTLContext } from '../hooks'
+import { useTLContext } from '+hooks'
 
 interface ErrorFallbackProps {
   error: Error
@@ -11,7 +11,6 @@ export const ErrorFallback = React.memo(({ error, resetErrorBoundary }: ErrorFal
 
   React.useEffect(() => {
     callbacks.onError?.(error)
-    console.error(error)
   }, [error, resetErrorBoundary, callbacks])
 
   return null

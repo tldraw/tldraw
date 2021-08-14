@@ -5,10 +5,10 @@ import styled from '~styles'
 import type { Data, TLDrawDocument } from '~types'
 import { TLDrawState } from '~state'
 import { useKeyboardShortcuts, TLDrawContext } from '~hooks'
-import { tldrawShapeUtils } from '../shape'
-import { ContextMenu } from './context-menu'
-import { StylePanel } from './style-panel'
-import { ToolsPanel } from './tools-panel'
+import { tldrawShapeUtils } from '~shape'
+import { ContextMenu } from '~components/context-menu'
+import { StylePanel } from '~components/style-panel'
+import { ToolsPanel } from '~components/tools-panel'
 
 export interface TLDrawProps {
   document?: TLDrawDocument

@@ -20,9 +20,7 @@ export const QuickSizeSelect = React.memo((): JSX.Element => {
   const size = useSelector(selectSize)
 
   const changeSizeStyle = React.useCallback(
-    (size: string) => {
-      tlstate.style({ size: size as SizeStyle })
-    },
+    (size: string) => tlstate.style({ size: size as SizeStyle }),
     [tlstate]
   )
 

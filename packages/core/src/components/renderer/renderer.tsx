@@ -9,9 +9,9 @@ import type {
   TLTheme,
   TLBounds,
   TLBinding,
-} from '../types'
-import { Canvas } from '../components/canvas'
-import { useTLTheme, TLContext } from '../hooks'
+} from '../../types'
+import { Canvas } from '../canvas'
+import { useTLTheme, TLContext } from '../../hooks'
 
 export interface RendererProps<T extends TLShape>
   extends Partial<TLSettings>,

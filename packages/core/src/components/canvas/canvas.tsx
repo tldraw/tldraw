@@ -8,10 +8,10 @@ import {
   useCameraCss,
 } from '+hooks'
 import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
-import { ErrorFallback } from './error-fallback'
-import { Brush } from './brush'
-import { Defs } from './defs'
-import { Page } from './page'
+import { ErrorFallback } from '+components/error-fallback'
+import { Brush } from '+components/brush'
+import { Defs } from '+components/defs'
+import { Page } from '+components/page'
 
 function resetError() {
   void null

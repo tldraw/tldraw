@@ -1,5 +1,5 @@
 import { TLDrawState } from '~state'
-import { mockDocument } from '~state/test-helpers'
+import { mockDocument } from '~test-utils'
 
 describe('Rotate command', () => {
   const tlstate = new TLDrawState()

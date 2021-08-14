@@ -1,5 +1,5 @@
 import { TLDrawState } from '~state'
-import { mockDocument } from '~state/test-helpers'
+import { mockDocument } from '~test-utils'
 import { DistributeType } from '~types'
 
 describe('Distribute command', () => {

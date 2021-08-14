@@ -16,7 +16,7 @@
   "typings": "./dist/types/index.d.ts",
   "scripts": {
     "start": "node scripts/dev & tsc --watch --incremental --emitDeclarationOnly --declarationMap --outDir dist/types",
-    "build": "yarn clean && node scripts/build && tsc --emitDeclarationOnly --outDir dist/types",
+    "build": "yarn clean && node scripts/build && tsc --project tsconfig.build.json --emitDeclarationOnly --outDir dist/types",
     "lint": "eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf dist",
     "ts-node": "ts-node",

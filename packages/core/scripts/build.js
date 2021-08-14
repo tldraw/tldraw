@@ -15,7 +15,7 @@ async function main() {
       target: 'es6',
       jsxFactory: 'React.createElement',
       jsxFragment: 'React.Fragment',
-      tsconfig: './tsconfig.json',
+      tsconfig: './tsconfig.build.json',
       external: ['react', 'react-dom'],
     })
 

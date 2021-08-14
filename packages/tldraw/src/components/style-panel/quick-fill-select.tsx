@@ -13,9 +13,7 @@ export const QuickFillSelect = React.memo((): JSX.Element => {
   const isFilled = useSelector(isFilledSelector)
 
   const handleIsFilledChange = React.useCallback(
-    (isFilled: boolean) => {
-      tlstate.style({ isFilled })
-    },
+    (isFilled: boolean) => tlstate.style({ isFilled }),
     [tlstate]
   )
 

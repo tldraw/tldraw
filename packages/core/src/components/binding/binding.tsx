@@ -1,3 +1,4 @@
+import * as React from 'react'
 import type { TLBinding } from '+types'
 
 interface BindingProps {

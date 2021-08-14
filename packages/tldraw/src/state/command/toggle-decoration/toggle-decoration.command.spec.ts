@@ -1,6 +1,6 @@
 import { TLDR } from '~state/tldr'
 import { TLDrawState } from '~state'
-import { mockDocument } from '~state/test-helpers'
+import { mockDocument } from '~test-utils'
 import { ArrowShape, Decoration, TLDrawShape } from '~types'
 
 describe('Handle command', () => {

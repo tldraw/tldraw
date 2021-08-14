@@ -23,12 +23,11 @@ const selectDash = (data: Data) => data.appState.selectedStyle.dash
 
 export const QuickDashSelect = React.memo((): JSX.Element => {
   const { tlstate, useSelector } = useTLDrawContext()
+
   const dash = useSelector(selectDash)
 
   const changeDashStyle = React.useCallback(
-    (dash) => {
-      tlstate.style({ dash: dash as DashStyle })
-    },
+    (dash) => tlstate.style({ dash: dash as DashStyle }),
     [tlstate]
   )
 
