@@ -8,6 +8,7 @@ import {
   Intersect,
   TLHandle,
   TLPointerInfo,
+  Svg,
 } from '@tldraw/core'
 import getStroke from 'perfect-freehand'
 import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
@@ -235,57 +236,88 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
 
   renderIndicator(shape: ArrowShape) {
     const {
-      handles: { start, end },
-      bend,
+      decorations,
+      handles: { start, end, bend: _bend },
       style,
     } = shape
 
-    const path = Utils.getFromCache(this.simplePathCache, shape, () =>
-      getArrowArcPath(start, end, getCtp(shape), bend)
-    )
-    const styles = getShapeStyle(style, false)
-
-    const { strokeWidth } = styles
+    const { strokeWidth } = getShapeStyle(style, false)
 
     const arrowDist = Vec.dist(start.point, end.point)
 
     const arrowHeadlength = Math.min(arrowDist / 3, strokeWidth * 8)
 
-    let insetStart: number[]
-    let insetEnd: number[]
+    const aw = arrowHeadlength / 2
 
-    if (bend === 0) {
-      insetStart = Vec.nudge(start.point, end.point, arrowHeadlength)
-      insetEnd = Vec.nudge(end.point, start.point, arrowHeadlength)
+    const path: (string | number)[] = []
+
+    const isStraightLine = Vec.dist(_bend.point, Vec.round(Vec.med(start.point, end.point))) < 1
+
+    if (isStraightLine) {
+      path.push(Svg.moveTo(start.point), Svg.lineTo(end.point))
+
+      if (decorations?.start) {
+        const point = start.point
+        const ints = Intersect.circle.lineSegment(start.point, aw, start.point, end.point).points
+        const int = ints[0]
+
+        path.push(
+          Svg.moveTo(Vec.nudge(Vec.rotWith(int, point, Math.PI / 6), point, -aw)),
+          Svg.lineTo(start.point),
+          Svg.lineTo(Vec.nudge(Vec.rotWith(int, point, -Math.PI / 6), point, -aw))
+        )
+      }
+
+      if (decorations?.end) {
+        const point = end.point
+        const ints = Intersect.circle.lineSegment(end.point, aw, start.point, end.point).points
+        const int = ints[0]
+
+        path.push(
+          Svg.moveTo(Vec.nudge(Vec.rotWith(int, point, Math.PI / 6), point, -aw)),
+          Svg.lineTo(end.point),
+          Svg.lineTo(Vec.nudge(Vec.rotWith(int, point, -Math.PI / 6), point, -aw))
+        )
+      }
     } else {
       const circle = getCtp(shape)
-
-      const arcLength = Utils.getArcLength(
-        [circle[0], circle[1]],
-        circle[2],
-        start.point,
-        end.point
-      )
-
       const center = [circle[0], circle[1]]
       const radius = circle[2]
-      const sa = Vec.angle(center, start.point)
-      const ea = Vec.angle(center, end.point)
-      const t = arrowHeadlength / Math.abs(arcLength)
+      const sweep = Utils.getArcLength(center, radius, start.point, end.point) > 0
 
-      insetStart = Vec.nudgeAtAngle(center, Utils.lerpAngles(sa, ea, t), radius)
-      insetEnd = Vec.nudgeAtAngle(center, Utils.lerpAngles(ea, sa, t), radius)
+      path.push(
+        Svg.moveTo(start.point),
+        `A ${radius} ${radius} 0 0 ${sweep ? '1' : '0'} ${end.point}`
+      )
+
+      if (decorations?.start) {
+        const point = start.point
+        const ints = Intersect.circle.circle(center, radius, point, aw).points
+        const int = sweep ? ints[0] : ints[1]
+
+        path.push(
+          Svg.moveTo(Vec.nudge(Vec.rotWith(int, point, Math.PI / 6), point, -aw)),
+          Svg.lineTo(start.point),
+          Svg.lineTo(Vec.nudge(Vec.rotWith(int, point, -Math.PI / 6), point, -aw))
+        )
+      }
+
+      if (decorations?.end) {
+        const point = end.point
+        const ints = Intersect.circle.circle(center, radius, point, aw).points
+        const int = sweep ? ints[1] : ints[0]
+
+        path.push(
+          Svg.moveTo(Vec.nudge(Vec.rotWith(int, point, Math.PI / 6), point, -aw)),
+          Svg.lineTo(end.point),
+          Svg.lineTo(Vec.nudge(Vec.rotWith(int, point, -Math.PI / 6), point, -aw))
+        )
+      }
     }
 
     return (
       <g>
-        <path d={path} />
-        {shape.decorations?.start === Decoration.Arrow && (
-          <path d={getArrowHeadPath(shape, start.point, insetStart)} />
-        )}
-        {shape.decorations?.end === Decoration.Arrow && (
-          <path d={getArrowHeadPath(shape, end.point, insetEnd)} />
-        )}
+        <path d={path.join()} />
       </g>
     )
   }

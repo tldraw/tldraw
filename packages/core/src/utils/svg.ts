@@ -40,8 +40,8 @@ export class Svg {
       r,
       r,
       0,
-      Utils.getSweep(C, A, B) > 0 ? '1' : '0',
       0,
+      Utils.getArcLength(C, r, A, B) > 0 ? '1' : '0',
       B[0],
       B[1],
     ].join(' ')
