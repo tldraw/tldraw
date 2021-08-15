@@ -42,8 +42,6 @@ const hasSelectionSelector = (s: Data) => s.pageState.selectedIds.length > 0
 const hasMultipleSelectionSelector = (s: Data) => s.pageState.selectedIds.length > 1
 
 export const ShapesFunctions = React.memo(() => {
-  const ok = useTLDrawContext()
-  console.log(ok)
   const { tlstate, useSelector } = useTLDrawContext()
 
   const isAllLocked = useSelector(isAllLockedSelector)
