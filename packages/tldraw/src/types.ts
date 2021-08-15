@@ -62,6 +62,11 @@ export interface History {
   stack: Command[]
 }
 
+export interface SelectHistory {
+  pointer: number
+  stack: string[][]
+}
+
 export interface Session {
   id: string
   status: TLDrawStatus

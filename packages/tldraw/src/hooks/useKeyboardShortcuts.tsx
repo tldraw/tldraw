@@ -67,13 +67,25 @@ export function useKeyboardShortcuts(tlstate: TLDrawState) {
 
   // Undo Redo
 
-  useHotkeys('command+z', (e) => {
+  useHotkeys('command+z,ctrl+z', (e) => {
     tlstate.undo()
     e.preventDefault()
   })
 
   useHotkeys('ctrl+shift-z,command+shift+z', (e) => {
     tlstate.redo()
+    e.preventDefault()
+  })
+
+  // Undo Redo
+
+  useHotkeys('command+u,ctrl+u', (e) => {
+    tlstate.undoSelect()
+    e.preventDefault()
+  })
+
+  useHotkeys('ctrl+shift-u,command+shift+u', (e) => {
+    tlstate.redoSelect()
     e.preventDefault()
   })
 

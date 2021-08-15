@@ -36,6 +36,7 @@ import {
   History,
   TLDrawStatus,
   ParametersExceptFirst,
+  SelectHistory,
 } from '~types'
 import { TLDR } from './tldr'
 import { defaultStyle } from '~shape'
@@ -88,6 +89,10 @@ export class TLDrawState implements TLCallbacks {
   history: History = {
     stack: [],
     pointer: -1,
+  }
+  selectHistory: SelectHistory = {
+    stack: [[]],
+    pointer: 0,
   }
   clipboard?: TLDrawShape[]
   session?: Session
@@ -521,6 +526,8 @@ export class TLDrawState implements TLCallbacks {
     this.pages = Utils.deepClone(document.pages)
     this.pageStates = Utils.deepClone(document.pageStates)
     this.currentPageId = Object.values(this.pages)[0].id
+    this.selectHistory.pointer = 0
+    this.selectHistory.stack = [[]]
 
     this.setState((data) => ({
       page: this.pages[this.currentPageId],
@@ -673,6 +680,8 @@ export class TLDrawState implements TLCallbacks {
       TLDrawStatus.Idle
     )
 
+    this.clearSelectHistory()
+
     this._onChange?.(this, `command:${command.id}`)
 
     return this
@@ -696,6 +705,8 @@ export class TLDrawState implements TLCallbacks {
     )
 
     history.pointer--
+
+    this.clearSelectHistory()
 
     this._onChange?.(this, `undo:${command.id}`)
 
@@ -721,6 +732,8 @@ export class TLDrawState implements TLCallbacks {
       TLDrawStatus.Idle
     )
 
+    this.addToSelectHistory(this.selectedIds)
+
     this._onChange?.(this, `redo:${command.id}`)
 
     return this
@@ -739,8 +752,36 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
+  private clearSelectHistory() {
+    this.selectHistory.pointer = 0
+    this.selectHistory.stack = [this.selectedIds]
+  }
+
+  private addToSelectHistory(ids: string[]) {
+    if (this.selectHistory.pointer < this.selectHistory.stack.length) {
+      this.selectHistory.stack = this.selectHistory.stack.slice(0, this.selectHistory.pointer + 1)
+    }
+    this.selectHistory.pointer++
+    this.selectHistory.stack.push(ids)
+  }
+
+  undoSelect() {
+    if (this.selectHistory.pointer > 0) {
+      this.selectHistory.pointer--
+      this.setSelectedIds(this.selectHistory.stack[this.selectHistory.pointer])
+    }
+  }
+
+  redoSelect() {
+    if (this.selectHistory.pointer < this.selectHistory.stack.length - 1) {
+      this.selectHistory.pointer++
+      this.setSelectedIds(this.selectHistory.stack[this.selectHistory.pointer])
+    }
+  }
+
   select = (...ids: string[]) => {
     this.setSelectedIds(ids)
+    this.addToSelectHistory(ids)
     return this
   }
 
@@ -756,11 +797,26 @@ export class TLDrawState implements TLCallbacks {
         selectedIds: Object.keys(data.page.shapes),
       },
     }))
+    this.addToSelectHistory(this.selectedIds)
     return this
   }
 
   deselectAll = () => {
-    this.setSelectedIds([])
+    if (this.selectedIds.length) {
+      this.setState((data) => ({
+        appState: {
+          ...data.appState,
+          activeTool: 'select',
+          activeToolType: 'select',
+        },
+        pageState: {
+          ...data.pageState,
+          selectedIds: [],
+        },
+      }))
+
+      this.addToSelectHistory(this.selectedIds)
+    }
     return this
   }
 
@@ -1472,18 +1528,19 @@ export class TLDrawState implements TLCallbacks {
           if (info.shiftKey) {
             // Unless we just shift-selected the shape, remove it from the selected shapes
             if (this.pointedId !== info.target) {
-              this.setSelectedIds(data.pageState.selectedIds.filter((id) => id !== info.target))
+              this.select(...data.pageState.selectedIds.filter((id) => id !== info.target))
             }
           } else {
-            this.setSelectedIds([info.target])
+            if (this.pointedId !== info.target && this.selectedIds.length > 1) {
+              this.select(info.target)
+            }
           }
         } else if (this.pointedId === info.target) {
           if (info.shiftKey) {
-            this.setSelectedIds([...data.pageState.selectedIds, info.target])
+            this.select(...data.pageState.selectedIds, info.target)
           } else {
-            this.setSelectedIds([info.target])
+            this.select(info.target)
           }
-          this.pointedId = undefined
         }
 
         this.setStatus(TLDrawStatus.Idle)
@@ -1594,13 +1651,15 @@ export class TLDrawState implements TLCallbacks {
             }
 
             if (!data.pageState.selectedIds.includes(info.target)) {
-              // Set the pointed ID to the shape that was clicked.
               this.pointedId = info.target
+              // Set the pointed ID to the shape that was clicked.
 
               // If the shape is not selected; then if the user is pressing shift,
               // add the shape to the current selection; otherwise, set the shape as
               // the only selected shape.
-              this.setSelectedIds([info.target], info.shiftKey)
+              this.select(
+                ...(info.shiftKey ? [...data.pageState.selectedIds, info.target] : [info.target])
+              )
             }
 
             this.setStatus(TLDrawStatus.PointingBounds)
@@ -1616,31 +1675,12 @@ export class TLDrawState implements TLCallbacks {
     }
   }
 
-  onReleaseShape: TLPointerEventHandler = (info) => {
-    // const data = this.getState()
-    // switch (this.status.current) {
-    //   case TLDrawStatus.PointingBounds: {
-    //     switch (this.appState.activeTool) {
-    //       case 'select': {
-    //         if (data.pageState.selectedIds.includes(info.target)) {
-    //           // If the shape is not selected; then if the user is pressing shift,
-    //           // add the shape to the current selection; otherwise, set the shape as
-    //           // the only selected shape.
-    //           this.setSelectedIds([info.target], info.shiftKey)
-    //         }
-    //         this.setStatus(TLDrawStatus.Idle)
-    //         break
-    //       }
-    //     }
-    //     break
-    //   }
-    // }
+  onReleaseShape: TLPointerEventHandler = () => {
+    // Unused
   }
 
   onDoubleClickShape: TLPointerEventHandler = () => {
-    // if (this.selectedIds.includes(info.target)) {
-    //   this.setSelectedIds([info.target])
-    // }
+    // TODO (drill into group)
   }
 
   onRightPointShape: TLPointerEventHandler = () => {

@@ -136,14 +136,78 @@ describe('TLDrawState', () => {
       expect(tlstate.status.current).toBe('idle')
     })
 
-    it('selects shapes if shift key is lifted before pointerup', () => {
-      tlstate.deselectAll()
-      tlu.clickShape('rect1')
-      tlu.pointShape('rect2', { shiftKey: true })
-      expect(tlstate.status.current).toBe('pointingBounds')
-      tlu.stopPointing('rect2')
+    // it('selects shapes if shift key is lifted before pointerup', () => {
+    //   tlstate.deselectAll()
+    //   tlu.clickShape('rect1')
+    //   tlu.pointShape('rect2', { shiftKey: true })
+    //   expect(tlstate.status.current).toBe('pointingBounds')
+    //   tlu.stopPointing('rect2')
+    //   expect(tlstate.selectedIds).toStrictEqual(['rect2'])
+    //   expect(tlstate.status.current).toBe('idle')
+    // })
+  })
+
+  describe('Select history', () => {
+    it('selects, undoes and redoes', () => {
+      tlstate.reset().loadDocument(mockDocument)
+
+      expect(tlstate.selectHistory.pointer).toBe(0)
+      expect(tlstate.selectHistory.stack).toStrictEqual([[]])
+      expect(tlstate.selectedIds).toStrictEqual([])
+
+      tlu.pointShape('rect1')
+
+      expect(tlstate.selectHistory.pointer).toBe(1)
+      expect(tlstate.selectHistory.stack).toStrictEqual([[], ['rect1']])
+      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+
+      tlu.stopPointing('rect1')
+
+      expect(tlstate.selectHistory.pointer).toBe(1)
+      expect(tlstate.selectHistory.stack).toStrictEqual([[], ['rect1']])
+      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+
+      tlu.clickShape('rect2', { shiftKey: true })
+
+      expect(tlstate.selectHistory.pointer).toBe(2)
+      expect(tlstate.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
+      expect(tlstate.selectedIds).toStrictEqual(['rect1', 'rect2'])
+
+      tlstate.undoSelect()
+
+      expect(tlstate.selectHistory.pointer).toBe(1)
+      expect(tlstate.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
+      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+
+      tlstate.undoSelect()
+
+      expect(tlstate.selectHistory.pointer).toBe(0)
+      expect(tlstate.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
+      expect(tlstate.selectedIds).toStrictEqual([])
+
+      tlstate.redoSelect()
+
+      expect(tlstate.selectHistory.pointer).toBe(1)
+      expect(tlstate.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
+      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+
+      tlstate.select('rect2')
+
+      expect(tlstate.selectHistory.pointer).toBe(2)
+      expect(tlstate.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect2']])
       expect(tlstate.selectedIds).toStrictEqual(['rect2'])
-      expect(tlstate.status.current).toBe('idle')
+
+      tlstate.delete()
+
+      expect(tlstate.selectHistory.pointer).toBe(0)
+      expect(tlstate.selectHistory.stack).toStrictEqual([[]])
+      expect(tlstate.selectedIds).toStrictEqual([])
+
+      tlstate.undoSelect()
+
+      expect(tlstate.selectHistory.pointer).toBe(0)
+      expect(tlstate.selectHistory.stack).toStrictEqual([[]])
+      expect(tlstate.selectedIds).toStrictEqual([])
     })
   })
 })
