@@ -567,13 +567,39 @@ export class TLDrawState implements TLCallbacks {
   cancelSession<T extends Session>(...args: ParametersExceptFirst<T['cancel']>) {
     const { session } = this
     if (!session) return this
-
-    this.setState((data) => session.cancel(data, ...args), TLDrawStatus.Idle)
-
     this.session = undefined
-    this.isCreating = false
 
-    this._onChange?.(this, `session:cancel:${session.id}`)
+    if (this.isCreating) {
+      this.setState((data) => ({
+        page: {
+          ...data.page,
+          shapes: {
+            ...data.page.shapes,
+            ...Object.fromEntries(data.pageState.selectedIds.map((id) => [id, undefined] as any)),
+          },
+        },
+        pageState: {
+          ...data.pageState,
+          selectedIds: [],
+          editingId: undefined,
+          bindingId: undefined,
+          hoveredId: undefined,
+        },
+        appState: {
+          ...data.appState,
+          status: {
+            current: TLDrawStatus.Idle,
+            previous: data.appState.status.previous,
+          },
+        },
+      }))
+
+      this.isCreating = false
+      this._onChange?.(this, `session:cancel_create:${session.id}`)
+    } else {
+      this.setState((data) => session.cancel(data, ...args), TLDrawStatus.Idle)
+      this._onChange?.(this, `session:cancel:${session.id}`)
+    }
 
     return this
   }
@@ -892,33 +918,30 @@ export class TLDrawState implements TLCallbacks {
   }
 
   cancel = () => {
-    if (this.isCreating) {
-      this.cancelSession()
-      this.delete()
-      this.isCreating = false
-      return
-    }
-
-    switch (this.appState.status.current) {
-      case 'idle': {
+    switch (this.status.current) {
+      case TLDrawStatus.Idle: {
         this.deselectAll()
         this.selectTool('select')
         break
       }
-      case 'brushing': {
+      case TLDrawStatus.Brushing: {
         this.cancelSession()
         brushUpdater.clear()
         break
       }
-      case 'translating': {
+      case TLDrawStatus.Translating: {
         this.cancelSession()
         break
       }
-      case 'transforming': {
+      case TLDrawStatus.Transforming: {
         this.cancelSession()
         break
       }
-      case 'rotating': {
+      case TLDrawStatus.Rotating: {
+        this.cancelSession()
+        break
+      }
+      case TLDrawStatus.Creating: {
         this.cancelSession()
         break
       }

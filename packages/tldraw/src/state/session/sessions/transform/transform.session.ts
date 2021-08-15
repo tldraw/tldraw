@@ -28,7 +28,7 @@ export class TransformSession implements Session {
     data: Data,
     point: number[],
     isAspectRatioLocked = false,
-    _altKey = false
+    altKey = false
   ): Partial<Data> => {
     const {
       transformType,
