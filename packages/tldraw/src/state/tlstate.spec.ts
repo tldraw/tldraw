@@ -72,17 +72,17 @@ describe('TLDrawState', () => {
       expect(tlstate.selectedIds.length).toBe(3)
     })
 
-    it('does not select selected shape when single-clicked', () => {
+    it('selects selected shape when single-clicked', () => {
       tlstate.loadDocument(mockDocument).selectAll()
       tlu.clickShape('rect2')
-      expect(tlstate.selectedIds).toStrictEqual(['rect1', 'rect2', 'rect3'])
-    })
-
-    it('selects shape when double-clicked', () => {
-      tlstate.loadDocument(mockDocument).selectAll()
-      tlu.doubleClickShape('rect2')
       expect(tlstate.selectedIds).toStrictEqual(['rect2'])
     })
+
+    // it('selects shape when double-clicked', () => {
+    //   tlstate.loadDocument(mockDocument).selectAll()
+    //   tlu.doubleClickShape('rect2')
+    //   expect(tlstate.selectedIds).toStrictEqual(['rect2'])
+    // })
 
     it('does not select on meta-click', () => {
       tlstate.loadDocument(mockDocument).deselectAll()
@@ -98,36 +98,52 @@ describe('TLDrawState', () => {
       expect(tlstate.status.current).toBe('idle')
     })
 
+    it('deletes shapes if cancelled during creating', () => {
+      // TODO
+    })
+
+    it('deletes shapes on undo after creating', () => {
+      // TODO
+    })
+
+    it('re-creates shapes on undo after creating', () => {
+      // TODO
+    })
+
+    it('selects all', () => {
+      // TODO
+    })
+
     // Single click on a selected shape to select just that shape
 
-    // it('single-selects shape in selection on click', () => {
-    //   tlstate.deselectAll()
-    //   clickShape('rect1')
-    //   clickShape('rect2', { shiftKey: true })
-    //   clickShape('rect2')
-    //   expect(tlstate.selectedIds).toStrictEqual(['rect2'])
-    //   expect(tlstate.status.current).toBe('idle')
-    // })
+    it('single-selects shape in selection on click', () => {
+      tlstate.deselectAll()
+      tlu.clickShape('rect1')
+      tlu.clickShape('rect2', { shiftKey: true })
+      tlu.clickShape('rect2')
+      expect(tlstate.selectedIds).toStrictEqual(['rect2'])
+      expect(tlstate.status.current).toBe('idle')
+    })
 
-    // it('single-selects shape in selection on pointerup only', () => {
-    //   tlstate.deselectAll()
-    //   clickShape('rect1')
-    //   clickShape('rect2', { shiftKey: true })
-    //   pointShape('rect2')
-    //   expect(tlstate.selectedIds).toStrictEqual(['rect1', 'rect2'])
-    //   stopPointing('rect2')
-    //   expect(tlstate.selectedIds).toStrictEqual(['rect2'])
-    //   expect(tlstate.status.current).toBe('idle')
-    // })
+    it('single-selects shape in selection on pointerup only', () => {
+      tlstate.deselectAll()
+      tlu.clickShape('rect1')
+      tlu.clickShape('rect2', { shiftKey: true })
+      tlu.pointShape('rect2')
+      expect(tlstate.selectedIds).toStrictEqual(['rect1', 'rect2'])
+      tlu.stopPointing('rect2')
+      expect(tlstate.selectedIds).toStrictEqual(['rect2'])
+      expect(tlstate.status.current).toBe('idle')
+    })
 
-    // it('selects shapes if shift key is lifted before pointerup', () => {
-    //   tlstate.deselectAll()
-    //   clickShape('rect1')
-    //   pointShape('rect2', { shiftKey: true })
-    //   expect(tlstate.status.current).toBe('pointingBounds')
-    //   stopPointing('rect2')
-    //   expect(tlstate.selectedIds).toStrictEqual(['rect2'])
-    //   expect(tlstate.status.current).toBe('idle')
-    // })
+    it('selects shapes if shift key is lifted before pointerup', () => {
+      tlstate.deselectAll()
+      tlu.clickShape('rect1')
+      tlu.pointShape('rect2', { shiftKey: true })
+      expect(tlstate.status.current).toBe('pointingBounds')
+      tlu.stopPointing('rect2')
+      expect(tlstate.selectedIds).toStrictEqual(['rect2'])
+      expect(tlstate.status.current).toBe('idle')
+    })
   })
 })

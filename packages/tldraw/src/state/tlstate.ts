@@ -1474,6 +1474,8 @@ export class TLDrawState implements TLCallbacks {
             if (this.pointedId !== info.target) {
               this.setSelectedIds(data.pageState.selectedIds.filter((id) => id !== info.target))
             }
+          } else {
+            this.setSelectedIds([info.target])
           }
         } else if (this.pointedId === info.target) {
           if (info.shiftKey) {
@@ -1582,7 +1584,7 @@ export class TLDrawState implements TLCallbacks {
   onPointShape: TLPointerEventHandler = (info) => {
     const data = this.getState()
     switch (this.status.current) {
-      case 'idle': {
+      case TLDrawStatus.Idle: {
         switch (this.appState.activeTool) {
           case 'select': {
             if (info.metaKey) {
@@ -1607,21 +1609,38 @@ export class TLDrawState implements TLCallbacks {
         }
         break
       }
-      case 'pointingBounds': {
+      case TLDrawStatus.PointingBounds: {
         this.pointedId = info.target
         break
       }
     }
   }
 
-  onReleaseShape: TLPointerEventHandler = () => {
-    // Unused
+  onReleaseShape: TLPointerEventHandler = (info) => {
+    // const data = this.getState()
+    // switch (this.status.current) {
+    //   case TLDrawStatus.PointingBounds: {
+    //     switch (this.appState.activeTool) {
+    //       case 'select': {
+    //         if (data.pageState.selectedIds.includes(info.target)) {
+    //           // If the shape is not selected; then if the user is pressing shift,
+    //           // add the shape to the current selection; otherwise, set the shape as
+    //           // the only selected shape.
+    //           this.setSelectedIds([info.target], info.shiftKey)
+    //         }
+    //         this.setStatus(TLDrawStatus.Idle)
+    //         break
+    //       }
+    //     }
+    //     break
+    //   }
+    // }
   }
 
-  onDoubleClickShape: TLPointerEventHandler = (info) => {
-    if (this.selectedIds.includes(info.target)) {
-      this.setSelectedIds([info.target])
-    }
+  onDoubleClickShape: TLPointerEventHandler = () => {
+    // if (this.selectedIds.includes(info.target)) {
+    //   this.setSelectedIds([info.target])
+    // }
   }
 
   onRightPointShape: TLPointerEventHandler = () => {

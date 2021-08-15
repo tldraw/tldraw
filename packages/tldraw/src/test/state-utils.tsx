@@ -22,6 +22,7 @@ export class TLStateUtils {
       inputs.pointerDown(this.getPoint(options), 'canvas'),
       {} as React.PointerEvent
     )
+    return this
   }
 
   pointShape = (id: string, options: PointerOptions = {}) => {
@@ -29,6 +30,7 @@ export class TLStateUtils {
       inputs.pointerDown(this.getPoint(options), id),
       {} as React.PointerEvent
     )
+    return this
   }
 
   doubleClickShape = (id: string, options: PointerOptions = {}) => {
@@ -36,6 +38,7 @@ export class TLStateUtils {
       inputs.pointerDown(this.getPoint(options), id),
       {} as React.PointerEvent
     )
+    return this
   }
 
   pointBounds = (options: PointerOptions = {}) => {
@@ -43,6 +46,7 @@ export class TLStateUtils {
       inputs.pointerDown(this.getPoint(options), 'bounds'),
       {} as React.PointerEvent
     )
+    return this
   }
 
   pointBoundsHandle = (
@@ -53,6 +57,7 @@ export class TLStateUtils {
       inputs.pointerDown(this.getPoint(options), 'bounds'),
       {} as React.PointerEvent
     )
+    return this
   }
 
   stopPointing = (target = 'canvas', options: PointerOptions = {}) => {
@@ -60,21 +65,25 @@ export class TLStateUtils {
       inputs.pointerDown(this.getPoint(options), target),
       {} as React.PointerEvent
     )
+    return this
   }
 
   clickCanvas = (options: PointerOptions = {}) => {
     this.pointCanvas(options)
     this.stopPointing()
+    return this
   }
 
   clickShape = (id: string, options: PointerOptions = {}) => {
     this.pointShape(id, options)
     this.stopPointing(id, options)
+    return this
   }
 
   clickBounds = (options: PointerOptions = {}) => {
     this.pointBounds(options)
     this.stopPointing()
+    return this
   }
 
   clickBoundsHandle = (
@@ -83,6 +92,7 @@ export class TLStateUtils {
   ) => {
     this.pointBoundsHandle(id, options)
     this.stopPointing(id)
+    return this
   }
 
   getPoint(options: PointerOptions = {} as PointerOptions): PointerEvent {
