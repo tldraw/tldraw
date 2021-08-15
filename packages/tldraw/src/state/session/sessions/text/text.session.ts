@@ -1,10 +1,11 @@
-import type { TextShape } from '~types'
+import { TextShape, TLDrawStatus } from '~types'
 import type { Session } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 
 export class TextSession implements Session {
   id = 'text'
+  status = TLDrawStatus.EditingText
   initialShape: TextShape
 
   constructor(data: Data, id?: string) {

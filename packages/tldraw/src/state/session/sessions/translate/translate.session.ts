@@ -1,9 +1,18 @@
 import { Utils, Vec } from '@tldraw/core'
-import type { TLDrawShape, TLDrawBinding, PagePartial, Session, Data, Command } from '~types'
+import {
+  TLDrawShape,
+  TLDrawBinding,
+  PagePartial,
+  Session,
+  Data,
+  Command,
+  TLDrawStatus,
+} from '~types'
 import { TLDR } from '~state/tldr'
 
 export class TranslateSession implements Session {
   id = 'translate'
+  status = TLDrawStatus.Translating
   delta = [0, 0]
   prev = [0, 0]
   origin: number[]

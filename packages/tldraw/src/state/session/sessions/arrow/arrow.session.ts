@@ -1,9 +1,18 @@
-import type { ArrowBinding, ArrowShape, TLDrawShape, TLDrawBinding, Data, Session } from '~types'
+import {
+  ArrowBinding,
+  ArrowShape,
+  TLDrawShape,
+  TLDrawBinding,
+  Data,
+  Session,
+  TLDrawStatus,
+} from '~types'
 import { Vec, Utils } from '@tldraw/core'
 import { TLDR } from '~state/tldr'
 
 export class ArrowSession implements Session {
   id = 'transform_single'
+  status = TLDrawStatus.TranslatingHandle
   newBindingId = Utils.uniqueId()
   delta = [0, 0]
   offset = [0, 0]

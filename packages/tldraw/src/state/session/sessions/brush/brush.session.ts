@@ -1,10 +1,11 @@
 import { brushUpdater, Utils, Vec } from '@tldraw/core'
-import type { Data, Session } from '~types'
+import { Data, Session, TLDrawStatus } from '~types'
 import { getShapeUtils } from '~shape'
 import { TLDR } from '~state/tldr'
 
 export class BrushSession implements Session {
   id = 'brush'
+  status = TLDrawStatus.Brushing
   origin: number[]
   snapshot: BrushSnapshot
 

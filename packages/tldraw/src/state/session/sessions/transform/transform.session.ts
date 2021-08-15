@@ -1,10 +1,11 @@
 import { TLBoundsCorner, TLBoundsEdge, Utils, Vec } from '@tldraw/core'
-import type { Session } from '~types'
+import { Session, TLDrawStatus } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 
 export class TransformSession implements Session {
   id = 'transform'
+  status = TLDrawStatus.Transforming
   scaleX = 1
   scaleY = 1
   transformType: TLBoundsEdge | TLBoundsCorner

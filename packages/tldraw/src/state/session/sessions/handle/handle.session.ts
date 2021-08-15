@@ -1,11 +1,12 @@
 import { Vec } from '@tldraw/core'
-import type { ShapesWithProp } from '~types'
+import { ShapesWithProp, TLDrawStatus } from '~types'
 import type { Session } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 
 export class HandleSession implements Session {
   id = 'transform_single'
+  status = TLDrawStatus.TranslatingHandle
   commandId: string
   delta = [0, 0]
   origin: number[]

@@ -1,9 +1,10 @@
 import { Utils, Vec } from '@tldraw/core'
-import type { Data, DrawShape, Session } from '~types'
+import { Data, DrawShape, Session, TLDrawStatus } from '~types'
 import { TLDR } from '~state/tldr'
 
 export class DrawSession implements Session {
   id = 'draw'
+  status = TLDrawStatus.Creating
   origin: number[]
   previous: number[]
   last: number[]

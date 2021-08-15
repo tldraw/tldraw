@@ -1,5 +1,5 @@
 import { Utils, Vec } from '@tldraw/core'
-import type { Session } from '~types'
+import { Session, TLDrawStatus } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 
@@ -7,6 +7,7 @@ const PI2 = Math.PI * 2
 
 export class RotateSession implements Session {
   id = 'rotate'
+  status = TLDrawStatus.Transforming
   delta = [0, 0]
   origin: number[]
   snapshot: RotateSnapshot

@@ -33,3 +33,13 @@ When we mutate shapes inside of a command, we:
 - When the history "does" the command, merge the "redo" data into the current `Data`.
 - When the history "undoes" the command, merge the "undo" data into the current `Data`.
 - When the history "redoes" the command, merge the "redo" data into the current `Data`.
+
+## onChange Events
+
+When something changes in the state, we need to produce an onChange event that is compatible with multiplayer implementations. This still requires some research, however at minimum we want to include:
+
+- The current user's id
+- The current document id
+- The event patch (what's changed)
+
+The first step would be to implement onChange events for commands. These are already set up as patches and always produce a history entry.

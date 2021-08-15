@@ -3,16 +3,19 @@ import { useTLDrawContext } from '~hooks'
 import type { Data } from '~types'
 import styled from '~styles'
 
+const statusSelector = (s: Data) => s.appState.status.current
 const activeToolSelector = (s: Data) => s.appState.activeTool
 
 export function StatusBar(): JSX.Element | null {
   const { useSelector } = useTLDrawContext()
+  const status = useSelector(statusSelector)
   const activeTool = useSelector(activeToolSelector)
 
   return (
     <StatusBarContainer size={{ '@sm': 'small' }}>
-      <Section>{activeTool}</Section>
-      {/* <Section>{shapesInView || '0'} Shapes</Section> */}
+      <Section>
+        {activeTool} | {status}
+      </Section>
     </StatusBarContainer>
   )
 }

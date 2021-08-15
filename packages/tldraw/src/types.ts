@@ -35,6 +35,7 @@ export interface Data {
     isToolLocked: boolean
     isStyleOpen: boolean
     isEmptyCanvas: boolean
+    status: { current: TLDrawStatus; previous: TLDrawStatus }
   }
 }
 export interface PagePartial {
@@ -63,25 +64,27 @@ export interface History {
 
 export interface Session {
   id: string
+  status: TLDrawStatus
   start: (data: Readonly<Data>, ...args: any[]) => Partial<Data>
   update: (data: Readonly<Data>, ...args: any[]) => Partial<Data>
   complete: (data: Readonly<Data>, ...args: any[]) => Partial<Data> | Command
   cancel: (data: Readonly<Data>, ...args: any[]) => Partial<Data>
 }
 
-export type TLDrawStatus =
-  | 'idle'
-  | 'pointingHandle'
-  | 'pointingBounds'
-  | 'pointingBoundsHandle'
-  | 'translatingHandle'
-  | 'translating'
-  | 'transforming'
-  | 'rotating'
-  | 'pinching'
-  | 'brushing'
-  | 'creating'
-  | 'editing-text'
+export enum TLDrawStatus {
+  Idle = 'idle',
+  PointingHandle = 'pointingHandle',
+  PointingBounds = 'pointingBounds',
+  PointingBoundsHandle = 'pointingBoundsHandle',
+  TranslatingHandle = 'translatingHandle',
+  Translating = 'translating',
+  Transforming = 'transforming',
+  Rotating = 'rotating',
+  Pinching = 'pinching',
+  Brushing = 'brushing',
+  Creating = 'creating',
+  EditingText = 'editing-text',
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never
