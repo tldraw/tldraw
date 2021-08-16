@@ -13,6 +13,11 @@ export interface TLPage<T extends TLShape, B extends TLBinding> {
 
 export interface TLPageState {
   id: string
+  selectedIds: string[]
+  camera: {
+    point: number[]
+    zoom: number
+  }
   brush?: TLBounds
   pointedId?: string
   hoveredId?: string
@@ -20,11 +25,6 @@ export interface TLPageState {
   bindingId?: string
   boundsRotation?: number
   currentParentId?: string
-  selectedIds: string[]
-  camera: {
-    point: number[]
-    zoom: number
-  }
 }
 
 export interface TLHandle {

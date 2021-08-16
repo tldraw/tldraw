@@ -4,6 +4,6 @@ import { mockDocument, renderWithContext } from '~test'
 
 describe('page options dialog', () => {
   test('mounts component without crashing', () => {
-    renderWithContext(<PageOptionsDialog page={mockDocument.pages.page} />)
+    renderWithContext(<PageOptionsDialog page={mockDocument.pages.page1} />)
   })
 })

@@ -6,6 +6,7 @@ import type { TLPage, TLPageState, TLSettings } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
 
 export type TLStore = StoreApi<Data>
+
 export type TLChange = Data
 
 export type TLDrawPage = TLPage<TLDrawShape, TLDrawBinding>
@@ -23,8 +24,7 @@ export interface TLDrawSettings extends TLSettings {
 }
 
 export interface Data {
-  page: TLPage<TLDrawShape, TLDrawBinding>
-  pageState: TLPageState
+  document: TLDrawDocument
   settings: TLDrawSettings
   appState: {
     selectedStyle: ShapeStyles
@@ -40,10 +40,7 @@ export interface Data {
     status: { current: TLDrawStatus; previous: TLDrawStatus }
   }
 }
-export interface PagePartial {
-  shapes: DeepPartial<Data['page']['shapes']>
-  bindings: DeepPartial<Data['page']['bindings']>
-}
+export type PagePartial = DeepPartial<TLDrawPage>
 
 export type DeepPartial<T> = T extends Function
   ? T

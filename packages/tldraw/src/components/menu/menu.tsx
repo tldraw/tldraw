@@ -10,12 +10,11 @@ import {
   DropdownMenuButton,
   DropdownMenuSubMenu,
   DropdownMenuDivider,
-  DropdownMenuCheckboxItem,
   IconWrapper,
   Kbd,
 } from '~components/shared'
-import { useTLDrawContext, useTheme } from '~hooks'
-import type { Data } from '~types'
+import { useTLDrawContext } from '~hooks'
+import { Preferences } from './preferences'
 
 export const Menu = React.memo(() => {
   const { tlstate } = useTLDrawContext()
@@ -93,34 +92,6 @@ function RecentFiles() {
       <DropdownMenuButton>
         <span>Project C</span>
       </DropdownMenuButton>
-    </DropdownMenuSubMenu>
-  )
-}
-
-const isDebugModeSelector = (s: Data) => s.settings.isDebugMode
-
-function Preferences() {
-  const { tlstate, useSelector } = useTLDrawContext()
-  const { theme, setTheme } = useTheme()
-
-  const isDebugMode = useSelector(isDebugModeSelector)
-  const isDarkMode = theme === 'dark'
-
-  const toggleDebugMode = React.useCallback(() => {
-    tlstate.toggleDebugMode()
-  }, [tlstate])
-
-  return (
-    <DropdownMenuSubMenu label="Preferences">
-      <DropdownMenuCheckboxItem
-        checked={isDarkMode}
-        onCheckedChange={() => setTheme(isDarkMode ? 'light' : 'dark')}
-      >
-        <span>Dark Mode</span>
-      </DropdownMenuCheckboxItem>
-      <DropdownMenuCheckboxItem checked={isDebugMode} onCheckedChange={toggleDebugMode}>
-        <span>Debug Mode</span>
-      </DropdownMenuCheckboxItem>
     </DropdownMenuSubMenu>
   )
 }

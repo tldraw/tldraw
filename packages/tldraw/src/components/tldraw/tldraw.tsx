@@ -54,7 +54,7 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
 
   React.useEffect(() => {
     if (!currentPageId) return
-    tlstate.setCurrentPageId(currentPageId)
+    tlstate.changePage(currentPageId)
   }, [currentPageId, tlstate])
 
   React.useEffect(() => {
