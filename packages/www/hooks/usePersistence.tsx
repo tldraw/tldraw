@@ -1,6 +1,6 @@
-import * as React from "react"
-import { openDB, DBSchema } from "idb"
-import type { TLDrawDocument } from "@tldraw/tldraw"
+import * as React from 'react'
+import { openDB, DBSchema } from 'idb'
+import type { TLDrawDocument } from '@tldraw/tldraw'
 
 interface TLDatabase extends DBSchema {
   documents: {
@@ -8,6 +8,8 @@ interface TLDatabase extends DBSchema {
     value: TLDrawDocument
   }
 }
+
+const VERSION = 2
 
 /**
  * Persist a value in indexdb. This hook is designed to be used primarily through
@@ -24,20 +26,20 @@ interface TLDatabase extends DBSchema {
  */
 export function usePersistence(id: string, doc: TLDrawDocument) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const [status, setStatus] = React.useState<"loading" | "ready">("loading")
+  const [status, setStatus] = React.useState<'loading' | 'ready'>('loading')
   const [value, _setValue] = React.useState<TLDrawDocument | null>(null)
 
   // A function that other parts of the program can use to manually update
   // the state to the latest value in the database.
   const forceUpdate = React.useCallback(() => {
     _setValue(null)
-    setStatus("loading")
+    setStatus('loading')
 
-    openDB<TLDatabase>("db", 1).then((db) =>
-      db.get("documents", id).then((v) => {
+    openDB<TLDatabase>('db', VERSION).then((db) =>
+      db.get('documents', id).then((v) => {
         if (!v) throw Error(`Could not find document with id: ${id}`)
         _setValue(v)
-        setStatus("ready")
+        setStatus('ready')
       })
     )
   }, [id])
@@ -46,7 +48,7 @@ export function usePersistence(id: string, doc: TLDrawDocument) {
   // value in the database.
   const setValue = React.useCallback(
     (doc: TLDrawDocument) => {
-      openDB<TLDatabase>("db", 1).then((db) => db.put("documents", doc, id))
+      openDB<TLDatabase>('db', VERSION).then((db) => db.put('documents', doc, id))
     },
     [id]
   )
@@ -55,17 +57,17 @@ export function usePersistence(id: string, doc: TLDrawDocument) {
   // the state.
   React.useEffect(() => {
     async function handleLoad() {
-      const db = await openDB<TLDatabase>("db", 1, {
+      const db = await openDB<TLDatabase>('db', VERSION, {
         upgrade(db) {
-          db.createObjectStore("documents")
+          db.createObjectStore('documents')
         },
       })
 
       let savedDoc: TLDrawDocument
 
       try {
-        const restoredDoc = await db.get("documents", id)
-        if (!restoredDoc) throw Error("No document")
+        const restoredDoc = await db.get('documents', id)
+        if (!restoredDoc) throw Error('No document')
         savedDoc = restoredDoc
         restoredDoc.pageStates = Object.fromEntries(
           Object.entries(restoredDoc.pageStates).map(([pageId, pageState]) => [
@@ -78,12 +80,12 @@ export function usePersistence(id: string, doc: TLDrawDocument) {
           ])
         )
       } catch (e) {
-        await db.put("documents", doc, id)
+        await db.put('documents', doc, id)
         savedDoc = doc
       }
 
       _setValue(savedDoc)
-      setStatus("ready")
+      setStatus('ready')
     }
 
     handleLoad()

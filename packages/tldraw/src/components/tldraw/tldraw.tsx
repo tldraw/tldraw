@@ -18,11 +18,13 @@ export interface TLDrawProps {
 }
 
 const isInSelectSelector = (s: Data) => s.appState.activeTool === 'select'
-const isSelectedShapeWithHandlesSelector = (s: Data) =>
-  s.pageState.selectedIds.length === 1 &&
-  s.pageState.selectedIds.every((id) => s.page.shapes[id].handles !== undefined)
-const pageSelector = (s: Data) => s.page
-const pageStateSelector = (s: Data) => s.pageState
+const isSelectedShapeWithHandlesSelector = (s: Data) => {
+  const { shapes } = s.document.pages[s.appState.currentPageId]
+  const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
+  return selectedIds.length === 1 && selectedIds.every((id) => shapes[id].handles !== undefined)
+}
+const pageSelector = (s: Data) => s.document.pages[s.appState.currentPageId]
+const pageStateSelector = (s: Data) => s.document.pageStates[s.appState.currentPageId]
 
 export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }: TLDrawProps) {
   const [tlstate] = React.useState(() => new TLDrawState())

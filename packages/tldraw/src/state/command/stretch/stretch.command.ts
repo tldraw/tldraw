@@ -4,7 +4,7 @@ import type { Data, Command } from '~types'
 import { TLDR } from '~state/tldr'
 
 export function stretch(data: Data, ids: string[], type: StretchType): Command {
-  const initialShapes = ids.map((id) => data.page.shapes[id])
+  const initialShapes = ids.map((id) => TLDR.getShape(data, id))
 
   const boundsForShapes = initialShapes.map((shape) => TLDR.getBounds(shape))
 
@@ -52,16 +52,16 @@ export function stretch(data: Data, ids: string[], type: StretchType): Command {
   return {
     id: 'stretch_shapes',
     before: {
-      page: {
-        shapes: {
-          ...before,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: { shapes: before },
         },
       },
     },
     after: {
-      page: {
-        shapes: {
-          ...after,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: { shapes: after },
         },
       },
     },

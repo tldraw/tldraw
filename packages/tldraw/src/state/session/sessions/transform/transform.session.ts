@@ -1,5 +1,5 @@
 import { TLBoundsCorner, TLBoundsEdge, Utils, Vec } from '@tldraw/core'
-import { Session, TLDrawStatus } from '~types'
+import { Session, TLDrawShape, TLDrawStatus } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 
@@ -22,33 +22,23 @@ export class TransformSession implements Session {
     this.snapshot = getTransformSnapshot(data, transformType)
   }
 
-  start = (data: Data) => data
+  start = () => void null
 
-  update = (
-    data: Data,
-    point: number[],
-    isAspectRatioLocked = false,
-    altKey = false
-  ): Partial<Data> => {
+  update = (data: Data, point: number[], isAspectRatioLocked = false, _altKey = false) => {
     const {
       transformType,
       snapshot: { shapeBounds, initialBounds, isAllAspectRatioLocked },
     } = this
 
-    const next: Data = {
-      ...data,
-      page: {
-        ...data.page,
-      },
-    }
+    const shapes = {} as Record<string, TLDrawShape>
 
-    const { shapes } = next.page
+    const pageState = TLDR.getPageState(data)
 
     const newBoundingBox = Utils.getTransformedBoundingBox(
       initialBounds,
       transformType,
       Vec.vec(this.origin, point),
-      data.pageState.boundsRotation,
+      pageState.boundsRotation,
       isAspectRatioLocked || isAllAspectRatioLocked
     )
 
@@ -57,55 +47,48 @@ export class TransformSession implements Session {
     this.scaleX = newBoundingBox.scaleX
     this.scaleY = newBoundingBox.scaleY
 
-    next.page.shapes = {
-      ...next.page.shapes,
-      ...Object.fromEntries(
-        Object.entries(shapeBounds).map(
-          ([id, { initialShape, initialShapeBounds, transformOrigin }]) => {
-            const newShapeBounds = Utils.getRelativeTransformedBoundingBox(
-              newBoundingBox,
-              initialBounds,
-              initialShapeBounds,
-              this.scaleX < 0,
-              this.scaleY < 0
-            )
+    shapeBounds.forEach(({ id, initialShape, initialShapeBounds, transformOrigin }) => {
+      const newShapeBounds = Utils.getRelativeTransformedBoundingBox(
+        newBoundingBox,
+        initialBounds,
+        initialShapeBounds,
+        this.scaleX < 0,
+        this.scaleY < 0
+      )
 
-            const shape = shapes[id]
-
-            return [
-              id,
-              {
-                ...initialShape,
-                ...TLDR.transform(next, shape, newShapeBounds, {
-                  type: this.transformType,
-                  initialShape,
-                  scaleX: this.scaleX,
-                  scaleY: this.scaleY,
-                  transformOrigin,
-                }),
-              },
-            ]
-          }
-        )
-      ),
-    }
+      shapes[id] = TLDR.transform(data, TLDR.getShape(data, id), newShapeBounds, {
+        type: this.transformType,
+        initialShape,
+        scaleX: this.scaleX,
+        scaleY: this.scaleY,
+        transformOrigin,
+      })
+    })
 
     return {
-      page: next.page,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: {
+            shapes,
+          },
+        },
+      },
     }
   }
 
   cancel = (data: Data) => {
     const { shapeBounds } = this.snapshot
 
+    const shapes = {} as Record<string, TLDrawShape>
+
+    shapeBounds.forEach((shape) => (shapes[shape.id] = shape.initialShape))
+
     return {
-      page: {
-        ...data.page,
-        shapes: {
-          ...data.page.shapes,
-          ...Object.fromEntries(
-            Object.entries(shapeBounds).map(([id, { initialShape }]) => [id, initialShape])
-          ),
+      document: {
+        pages: {
+          [data.appState.currentPageId]: {
+            shapes,
+          },
         },
       },
     }
@@ -116,23 +99,32 @@ export class TransformSession implements Session {
 
     if (!hasUnlockedShapes) return data
 
+    const beforeShapes = {} as Record<string, TLDrawShape>
+    const afterShapes = {} as Record<string, TLDrawShape>
+
+    shapeBounds.forEach((shape) => {
+      beforeShapes[shape.id] = shape.initialShape
+      afterShapes[shape.id] = TLDR.getShape(data, shape.id)
+    })
+
     return {
       id: 'transform',
       before: {
-        page: {
-          shapes: Object.fromEntries(
-            Object.entries(shapeBounds).map(([id, { initialShape }]) => [id, initialShape])
-          ),
+        document: {
+          pages: {
+            [data.appState.currentPageId]: {
+              shapes: beforeShapes,
+            },
+          },
         },
       },
       after: {
-        page: {
-          shapes: Object.fromEntries(
-            this.snapshot.initialShapes.map((shape) => [
-              shape.id,
-              TLDR.onSessionComplete(data, data.page.shapes[shape.id]),
-            ])
-          ),
+        document: {
+          pages: {
+            [data.appState.currentPageId]: {
+              shapes: afterShapes,
+            },
+          },
         },
       },
     }
@@ -166,24 +158,20 @@ export function getTransformSnapshot(data: Data, transformType: TLBoundsEdge | T
     isAllAspectRatioLocked,
     initialShapes,
     initialBounds: commonBounds,
-    shapeBounds: Object.fromEntries(
-      initialShapes.map((shape) => {
-        const initialShapeBounds = shapesBounds[shape.id]
-        const ic = Utils.getBoundsCenter(initialShapeBounds)
+    shapeBounds: initialShapes.map((shape) => {
+      const initialShapeBounds = shapesBounds[shape.id]
+      const ic = Utils.getBoundsCenter(initialShapeBounds)
 
-        const ix = (ic[0] - initialInnerBounds.minX) / initialInnerBounds.width
-        const iy = (ic[1] - initialInnerBounds.minY) / initialInnerBounds.height
+      const ix = (ic[0] - initialInnerBounds.minX) / initialInnerBounds.width
+      const iy = (ic[1] - initialInnerBounds.minY) / initialInnerBounds.height
 
-        return [
-          shape.id,
-          {
-            initialShape: shape,
-            initialShapeBounds,
-            transformOrigin: [ix, iy],
-          },
-        ]
-      })
-    ),
+      return {
+        id: shape.id,
+        initialShape: shape,
+        initialShapeBounds,
+        transformOrigin: [ix, iy],
+      }
+    }),
   }
 }
 

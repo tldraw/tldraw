@@ -9,15 +9,10 @@ describe('Distribute command', () => {
 
   it('does, undoes and redoes command', () => {
     tlstate.distribute(DistributeType.Horizontal)
-
     expect(tlstate.getShape('rect3').point).toEqual([50, 20])
-
     tlstate.undo()
-
     expect(tlstate.getShape('rect3').point).toEqual([20, 20])
-
     tlstate.redo()
-
     expect(tlstate.getShape('rect3').point).toEqual([50, 20])
   })
 

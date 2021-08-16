@@ -2,6 +2,7 @@ import { brushUpdater, Utils, Vec } from '@tldraw/core'
 import { Data, Session, TLDrawStatus } from '~types'
 import { getShapeUtils } from '~shape'
 import { TLDR } from '~state/tldr'
+import type { DeepPartial } from '~../../core/dist/types/utils/utils'
 
 export class BrushSession implements Session {
   id = 'brush'
@@ -14,11 +15,9 @@ export class BrushSession implements Session {
     this.snapshot = getBrushSnapshot(data)
   }
 
-  start = (data: Data) => {
-    return data
-  }
+  start = () => void null
 
-  update = (data: Data, point: number[], containMode = false) => {
+  update = (data: Data, point: number[], containMode = false): DeepPartial<Data> => {
     const { snapshot, origin } = this
 
     // Create a bounding box between the origin and the new point
@@ -30,10 +29,13 @@ export class BrushSession implements Session {
     const hits = new Set<string>()
     const selectedIds = new Set(snapshot.selectedIds)
 
+    const page = TLDR.getPage(data)
+    const pageState = TLDR.getPageState(data)
+
     snapshot.shapesToTest.forEach(({ id, util, selectId }) => {
       if (selectedIds.has(id)) return
 
-      const shape = data.page.shapes[id]
+      const shape = page.shapes[id]
 
       if (!hits.has(selectId)) {
         if (
@@ -54,36 +56,44 @@ export class BrushSession implements Session {
     })
 
     if (
-      selectedIds.size === data.pageState.selectedIds.length &&
-      data.pageState.selectedIds.every((id) => selectedIds.has(id))
+      selectedIds.size === pageState.selectedIds.length &&
+      pageState.selectedIds.every((id) => selectedIds.has(id))
     ) {
       return {}
     }
 
     return {
-      pageState: {
-        ...data.pageState,
-        selectedIds: Array.from(selectedIds.values()),
+      document: {
+        pageStates: {
+          [data.appState.currentPageId]: {
+            selectedIds: Array.from(selectedIds.values()),
+          },
+        },
       },
     }
   }
 
   cancel(data: Data) {
     return {
-      ...data,
-      pageState: {
-        ...data.pageState,
-        selectedIds: this.snapshot.selectedIds,
+      document: {
+        pageStates: {
+          [data.appState.currentPageId]: {
+            selectedIds: this.snapshot.selectedIds,
+          },
+        },
       },
     }
   }
 
   complete(data: Data) {
+    const pageState = TLDR.getPageState(data)
     return {
-      ...data,
-      pageState: {
-        ...data.pageState,
-        selectedIds: [...data.pageState.selectedIds],
+      document: {
+        pageStates: {
+          [data.appState.currentPageId]: {
+            selectedIds: [...pageState.selectedIds],
+          },
+        },
       },
     }
   }
@@ -95,7 +105,7 @@ export class BrushSession implements Session {
  * brush will intersect that shape. For tests, start broad -> fine.
  */
 export function getBrushSnapshot(data: Data) {
-  const selectedIds = [...data.pageState.selectedIds]
+  const selectedIds = [...TLDR.getSelectedIds(data)]
 
   const shapesToTest = TLDR.getShapes(data)
     .filter(

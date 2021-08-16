@@ -3,6 +3,8 @@ import * as React from 'react'
 import { openDB, DBSchema } from 'idb'
 import type { TLDrawDocument } from '@tldraw/tldraw'
 
+const VERSION = 1
+
 interface TLDatabase extends DBSchema {
   documents: {
     key: string
@@ -33,7 +35,7 @@ export function usePersistence(id: string, doc: TLDrawDocument) {
     _setValue(null)
     setStatus('loading')
 
-    openDB<TLDatabase>('db', 1).then((db) =>
+    openDB<TLDatabase>('db', VERSION).then((db) =>
       db.get('documents', id).then((v) => {
         if (!v) throw Error(`Could not find document with id: ${id}`)
         _setValue(v)
@@ -46,7 +48,7 @@ export function usePersistence(id: string, doc: TLDrawDocument) {
   // value in the database.
   const setValue = React.useCallback(
     (doc: TLDrawDocument) => {
-      openDB<TLDatabase>('db', 1).then((db) => db.put('documents', doc, id))
+      openDB<TLDatabase>('db', VERSION).then((db) => db.put('documents', doc, id))
     },
     [id]
   )
@@ -55,7 +57,7 @@ export function usePersistence(id: string, doc: TLDrawDocument) {
   // the state.
   React.useEffect(() => {
     async function handleLoad() {
-      const db = await openDB<TLDatabase>('db', 1, {
+      const db = await openDB<TLDatabase>('db', VERSION, {
         upgrade(db) {
           db.createObjectStore('documents')
         },

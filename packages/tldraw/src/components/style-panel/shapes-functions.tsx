@@ -18,17 +18,23 @@ import { useTLDrawContext } from '~hooks'
 import type { Data } from '~types'
 
 const isAllLockedSelector = (s: Data) => {
-  const { selectedIds } = s.pageState
-  return selectedIds.every((id) => s.page.shapes[id].isLocked)
+  const page = s.document.pages[s.appState.currentPageId]
+  const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
+  return selectedIds.every((id) => page.shapes[id].isLocked)
 }
 
 const isAllAspectLockedSelector = (s: Data) => {
-  const { selectedIds } = s.pageState
-  return selectedIds.every((id) => s.page.shapes[id].isAspectRatioLocked)
+  const page = s.document.pages[s.appState.currentPageId]
+  const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
+  return selectedIds.every((id) => page.shapes[id].isAspectRatioLocked)
 }
 
 const isAllGroupedSelector = (s: Data) => {
-  const selectedShapes = s.pageState.selectedIds.map((id) => s.page.shapes[id])
+  const page = s.document.pages[s.appState.currentPageId]
+  const selectedShapes = s.document.pageStates[s.appState.currentPageId].selectedIds.map(
+    (id) => page.shapes[id]
+  )
+
   return selectedShapes.every(
     (shape) =>
       shape.children !== undefined ||
@@ -37,9 +43,15 @@ const isAllGroupedSelector = (s: Data) => {
   )
 }
 
-const hasSelectionSelector = (s: Data) => s.pageState.selectedIds.length > 0
+const hasSelectionSelector = (s: Data) => {
+  const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
+  return selectedIds.length > 0
+}
 
-const hasMultipleSelectionSelector = (s: Data) => s.pageState.selectedIds.length > 1
+const hasMultipleSelectionSelector = (s: Data) => {
+  const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
+  return selectedIds.length > 1
+}
 
 export const ShapesFunctions = React.memo(() => {
   const { tlstate, useSelector } = useTLDrawContext()

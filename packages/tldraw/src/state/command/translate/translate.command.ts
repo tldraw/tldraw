@@ -28,7 +28,7 @@ export function translate(data: Data, ids: string[], delta: number[]): Command {
 
     for (const id of [binding.toId, binding.fromId]) {
       // Let's also look at the bound shape...
-      const shape = data.page.shapes[id]
+      const shape = TLDR.getShape(data, id)
 
       // If the bound shape has a handle that references the deleted binding, delete that reference
       if (!shape.handles) continue
@@ -54,15 +54,17 @@ export function translate(data: Data, ids: string[], delta: number[]): Command {
   return {
     id: 'translate_shapes',
     before: {
-      page: {
-        ...data.page,
-        ...before,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: before,
+        },
       },
     },
     after: {
-      page: {
-        ...data.page,
-        ...after,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: after,
+        },
       },
     },
   }

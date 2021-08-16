@@ -31,10 +31,6 @@ export const Menu = React.memo(() => {
     tlstate.loadProject()
   }, [tlstate])
 
-  const toggleDebugMode = React.useCallback(() => {
-    tlstate.toggleDebugMode()
-  }, [tlstate])
-
   const handleSignOut = React.useCallback(() => {
     tlstate.signOut()
   }, [tlstate])

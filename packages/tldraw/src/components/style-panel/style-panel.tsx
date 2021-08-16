@@ -50,7 +50,9 @@ export function StylePanel(): JSX.Element {
 }
 
 const showKbds = !Utils.isMobile()
-const selectedShapesCountSelector = (s: Data) => s.pageState.selectedIds.length
+
+const selectedShapesCountSelector = (s: Data) =>
+  s.document.pageStates[s.appState.currentPageId].selectedIds.length
 
 function SelectedShapeContent(): JSX.Element {
   const { tlstate, useSelector } = useTLDrawContext()

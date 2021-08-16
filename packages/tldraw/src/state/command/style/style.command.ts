@@ -9,9 +9,9 @@ export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>):
   return {
     id: 'style_shapes',
     before: {
-      page: {
-        shapes: {
-          ...before,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: { shapes: before },
         },
       },
       appState: {
@@ -19,9 +19,9 @@ export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>):
       },
     },
     after: {
-      page: {
-        shapes: {
-          ...after,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: { shapes: after },
         },
       },
       appState: {

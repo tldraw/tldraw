@@ -19,7 +19,7 @@ const dashes = {
   [DashStyle.Dotted]: <DashDottedIcon />,
 }
 
-const selectDash = (data: Data) => data.appState.selectedStyle.dash
+const selectDash = (s: Data) => s.appState.selectedStyle.dash
 
 export const QuickDashSelect = React.memo((): JSX.Element => {
   const { tlstate, useSelector } = useTLDrawContext()

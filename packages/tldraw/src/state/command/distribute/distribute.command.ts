@@ -3,7 +3,7 @@ import { DistributeType, TLDrawShape, Data, Command } from '~types'
 import { TLDR } from '~state/tldr'
 
 export function distribute(data: Data, ids: string[], type: DistributeType): Command {
-  const initialShapes = ids.map((id) => data.page.shapes[id])
+  const initialShapes = ids.map((id) => TLDR.getShape(data, id))
   const deltaMap = Object.fromEntries(getDistributions(initialShapes, type).map((d) => [d.id, d]))
 
   const { before, after } = TLDR.mutateShapes(data, ids, (shape) => {
@@ -14,16 +14,16 @@ export function distribute(data: Data, ids: string[], type: DistributeType): Com
   return {
     id: 'distribute_shapes',
     before: {
-      page: {
-        shapes: {
-          ...before,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: { shapes: before },
         },
       },
     },
     after: {
-      page: {
-        shapes: {
-          ...after,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: { shapes: after },
         },
       },
     },

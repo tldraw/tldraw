@@ -3,11 +3,11 @@ import { TLDR } from '~state/tldr'
 import type { Data, Command } from '~types'
 
 export function duplicate(data: Data, ids: string[]): Command {
-  const delta = Vec.div([16, 16], data.pageState.camera.zoom)
+  const delta = Vec.div([16, 16], TLDR.getCamera(data).zoom)
 
   const after = Object.fromEntries(
     TLDR.getSelectedIds(data)
-      .map((id) => data.page.shapes[id])
+      .map((id) => TLDR.getShape(data, id))
       .map((shape) => {
         const id = Utils.uniqueId()
         return [
@@ -26,25 +26,23 @@ export function duplicate(data: Data, ids: string[]): Command {
   return {
     id: 'duplicate',
     before: {
-      page: {
-        shapes: {
-          ...before,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: { shapes: before },
         },
-      },
-      pageState: {
-        ...data.pageState,
-        selectedIds: ids,
+        pageStates: {
+          [data.appState.currentPageId]: { selectedIds: ids },
+        },
       },
     },
     after: {
-      page: {
-        shapes: {
-          ...after,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: { shapes: after },
         },
-      },
-      pageState: {
-        ...data.pageState,
-        selectedIds: Object.keys(after),
+        pageStates: {
+          [data.appState.currentPageId]: { selectedIds: Object.keys(after) },
+        },
       },
     },
   }

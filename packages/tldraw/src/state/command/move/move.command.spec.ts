@@ -2,6 +2,7 @@ import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 import { Utils } from '@tldraw/core'
 import type { Data } from '~types'
+import { TLDR } from '~state/tldr'
 
 const doc = Utils.deepClone(mockDocument)
 
@@ -32,7 +33,7 @@ delete doc.pages.page1.shapes['rect2']
 delete doc.pages.page1.shapes['rect3']
 
 function getSortedShapeIds(data: Data) {
-  return Object.values(data.page.shapes)
+  return TLDR.getShapes(data)
     .sort((a, b) => a.childIndex - b.childIndex)
     .map((shape) => shape.id)
     .join('')

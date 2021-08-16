@@ -12,7 +12,7 @@ const sizes = {
   [SizeStyle.Large]: 22,
 }
 
-const selectSize = (data: Data) => data.appState.selectedStyle.size
+const selectSize = (s: Data) => s.appState.selectedStyle.size
 
 export const QuickSizeSelect = React.memo((): JSX.Element => {
   const { tlstate, useSelector } = useTLDrawContext()

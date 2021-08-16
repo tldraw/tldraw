@@ -108,7 +108,6 @@ export class TLDrawState implements TLCallbacks {
   pointedHandle?: string
   editingId?: string
   pointedBoundsHandle?: TLBoundsCorner | TLBoundsEdge | 'rotate'
-  currentDocumentId = 'doc'
   currentPageId = 'page'
   document: TLDrawDocument
   isCreating = false
@@ -142,25 +141,28 @@ export class TLDrawState implements TLCallbacks {
 
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
     if (result.document) {
-      for (const pageId in result.document.pages) {
-        const currentPage = next.document.pages[pageId]
+      Object.values(current.document.pages).forEach((currentPage) => {
+        const pageId = currentPage.id
         const nextPage = {
-          ...next.document,
-          shapes: { ...currentPage.shapes },
-          bindings: { ...currentPage.bindings },
+          ...currentPage,
+          ...result.document?.pages[pageId],
+          shapes: { ...result.document?.pages[pageId]?.shapes },
+          bindings: { ...result.document?.pages[pageId]?.bindings },
         }
 
-        for (const id in nextPage.shapes) {
+        Object.keys(nextPage.shapes).forEach((id) => {
           if (!nextPage.shapes[id]) delete nextPage.shapes[id]
-        }
+        })
 
-        for (const id in nextPage.bindings) {
+        Object.keys(nextPage.bindings).forEach((id) => {
           if (!nextPage.bindings[id]) delete nextPage.bindings[id]
-        }
+        })
 
         const changedShapeIds = Object.values(nextPage.shapes)
           .filter((shape) => currentPage.shapes[shape.id] !== shape)
           .map((shape) => shape.id)
+
+        next.document.pages[pageId] = nextPage
 
         // Get bindings related to the changed shapes
         const bindingsToUpdate = TLDR.getRelatedBindings(next, changedShapeIds)
@@ -203,7 +205,7 @@ export class TLDrawState implements TLCallbacks {
         }
 
         if (nextPageState.bindingId && !nextPage.bindings[nextPageState.bindingId]) {
-          console.warn('Could not find the binding shape!')
+          console.warn('Could not find the binding shape!', pageId)
           delete nextPageState.bindingId
         }
 
@@ -214,7 +216,7 @@ export class TLDrawState implements TLCallbacks {
 
         next.document.pages[pageId] = nextPage
         next.document.pageStates[pageId] = nextPageState
-      }
+      })
     }
 
     // Apply selected style change, if any
@@ -245,19 +247,23 @@ export class TLDrawState implements TLCallbacks {
   }
 
   getShape = <T extends TLDrawShape = TLDrawShape>(id: string, pageId = this.currentPageId): T => {
-    return this.document.pages[pageId].shapes[id] as T
+    return TLDR.getShape<T>(this.data, id, pageId)
   }
 
-  getPage = (id = this.currentPageId) => {
-    return this.document.pages[id]
+  getPage = (pageId = this.currentPageId) => {
+    return TLDR.getPage(this.data, pageId)
   }
 
-  getShapes = (id = this.currentPageId) => {
-    return Object.values(this.getPage(id).shapes).sort((a, b) => a.childIndex - b.childIndex)
+  getShapes = (pageId = this.currentPageId) => {
+    return TLDR.getShapes(this.data, pageId)
   }
 
-  getPageState = (id = this.currentPageId) => {
-    return this.document.pageStates[id]
+  getBindings = (pageId = this.currentPageId) => {
+    return TLDR.getBindings(this.data, pageId)
+  }
+
+  getPageState = (pageId = this.currentPageId) => {
+    return TLDR.getPageState(this.data, pageId)
   }
 
   getAppState = () => {
@@ -265,7 +271,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   getPagePoint = (point: number[]) => {
-    const { camera } = this.getPageState()
+    const { camera } = this.pageState
     return Vec.sub(Vec.div(point, camera.zoom), camera.point)
   }
 
@@ -598,7 +604,6 @@ export class TLDrawState implements TLCallbacks {
 
   loadDocument = (document: TLDrawDocument, onChange?: TLDrawState['_onChange']) => {
     this._onChange = onChange
-    this.currentDocumentId = document.id
     this.document = Utils.deepClone(document)
     this.currentPageId = Object.keys(document.pages)[0]
     this.selectHistory.pointer = 0
@@ -637,7 +642,12 @@ export class TLDrawState implements TLCallbacks {
 
   startSession<T extends Session>(session: T, ...args: ParametersExceptFirst<T['start']>) {
     this.session = session
-    this.setState((data) => session.start(data, ...args), session.status)
+    const result = session.start(this.getState(), ...args)
+    if (result) {
+      this.setState((data) => Utils.deepMerge<Data>(data, result), session.status)
+    } else {
+      this.setStatus(session.status)
+    }
     this._onChange?.(this, `session:start_${session.id}`)
     return this
   }
@@ -645,7 +655,7 @@ export class TLDrawState implements TLCallbacks {
   updateSession<T extends Session>(...args: ParametersExceptFirst<T['update']>) {
     const { session } = this
     if (!session) return this
-    this.setState((data) => session.update(data, ...args))
+    this.setState((data) => Utils.deepMerge<Data>(data, session.update(data, ...args)))
     this._onChange?.(this, `session:update:${session.id}`)
     return this
   }
@@ -696,7 +706,10 @@ export class TLDrawState implements TLCallbacks {
       this.isCreating = false
       this._onChange?.(this, `session:cancel_create:${session.id}`)
     } else {
-      this.setState((data) => session.cancel(data, ...args), TLDrawStatus.Idle)
+      this.setState(
+        (data) => Utils.deepMerge<Data>(data, session.cancel(data, ...args)),
+        TLDrawStatus.Idle
+      )
       this._onChange?.(this, `session:cancel:${session.id}`)
     }
 
@@ -719,7 +732,10 @@ export class TLDrawState implements TLCallbacks {
 
     this.session = undefined
 
-    if ('after' in result) {
+    if (result === undefined) {
+      this.isCreating = false
+      this._onChange?.(this, `session:complete:${session.id}`)
+    } else if ('after' in result) {
       // Session ended with a command
 
       if (this.isCreating) {
@@ -2108,7 +2124,7 @@ export class TLDrawState implements TLCallbacks {
   }
 
   get bindings() {
-    return this.getPage().bindings
+    return this.getBindings()
   }
 
   get pageState() {

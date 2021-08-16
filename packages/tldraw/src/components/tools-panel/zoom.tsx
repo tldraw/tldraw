@@ -20,7 +20,7 @@ export const Zoom = React.memo((): JSX.Element => {
   )
 })
 
-const zoomSelector = (s: Data) => s.pageState.camera.zoom
+const zoomSelector = (s: Data) => s.document.pageStates[s.appState.currentPageId].camera.zoom
 
 function ZoomCounter() {
   const { tlstate, useSelector } = useTLDrawContext()

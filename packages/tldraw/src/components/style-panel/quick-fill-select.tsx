@@ -5,7 +5,7 @@ import { breakpoints, Tooltip, IconButton, IconWrapper } from '../shared'
 import { useTLDrawContext } from '~hooks'
 import type { Data } from '~types'
 
-const isFilledSelector = (data: Data) => data.appState.selectedStyle.isFilled
+const isFilledSelector = (s: Data) => s.appState.selectedStyle.isFilled
 
 export const QuickFillSelect = React.memo((): JSX.Element => {
   const { tlstate, useSelector } = useTLDrawContext()

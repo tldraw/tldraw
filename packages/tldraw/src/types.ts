@@ -40,7 +40,10 @@ export interface Data {
     status: { current: TLDrawStatus; previous: TLDrawStatus }
   }
 }
-export type PagePartial = DeepPartial<TLDrawPage>
+export type PagePartial = {
+  shapes: DeepPartial<TLDrawPage['shapes']>
+  bindings: DeepPartial<TLDrawPage['bindings']>
+}
 
 export type DeepPartial<T> = T extends Function
   ? T
@@ -69,10 +72,10 @@ export interface SelectHistory {
 export interface Session {
   id: string
   status: TLDrawStatus
-  start: (data: Readonly<Data>, ...args: any[]) => Partial<Data>
-  update: (data: Readonly<Data>, ...args: any[]) => Partial<Data>
-  complete: (data: Readonly<Data>, ...args: any[]) => Partial<Data> | Command
-  cancel: (data: Readonly<Data>, ...args: any[]) => Partial<Data>
+  start: (data: Readonly<Data>, ...args: any[]) => DeepPartial<Data> | void
+  update: (data: Readonly<Data>, ...args: any[]) => DeepPartial<Data>
+  complete: (data: Readonly<Data>, ...args: any[]) => DeepPartial<Data> | Command | undefined
+  cancel: (data: Readonly<Data>, ...args: any[]) => DeepPartial<Data>
 }
 
 export enum TLDrawStatus {

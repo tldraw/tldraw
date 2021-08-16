@@ -1,3 +1,4 @@
+import { TLDR } from '~state/tldr'
 import type { Data, Command, PagePartial } from '~types'
 
 // - [x] Delete shapes
@@ -17,12 +18,14 @@ export function deleteShapes(data: Data, ids: string[]): Command {
 
   // These are the shapes we're definitely going to delete
   ids.forEach((id) => {
-    before.shapes[id] = data.page.shapes[id]
+    before.shapes[id] = TLDR.getShape(data, id)
     after.shapes[id] = undefined
   })
 
+  const page = TLDR.getPage(data)
+
   // We also need to delete bindings that reference the deleted shapes
-  Object.values(data.page.bindings).forEach((binding) => {
+  Object.values(page.bindings).forEach((binding) => {
     for (const id of [binding.toId, binding.fromId]) {
       // If the binding references a deleted shape...
       if (after.shapes[id] === undefined) {
@@ -31,7 +34,7 @@ export function deleteShapes(data: Data, ids: string[]): Command {
         after.bindings[binding.id] = undefined
 
         // Let's also look at the bound shape...
-        const shape = data.page.shapes[id]
+        const shape = TLDR.getShape(data, id)
 
         // If the bound shape has a handle that references the deleted binding, delete that reference
         if (shape.handles) {
@@ -55,15 +58,23 @@ export function deleteShapes(data: Data, ids: string[]): Command {
   return {
     id: 'delete_shapes',
     before: {
-      page: before,
-      pageState: {
-        selectedIds: [...data.pageState.selectedIds],
+      document: {
+        pages: {
+          [data.appState.currentPageId]: before,
+        },
+        pageStates: {
+          [data.appState.currentPageId]: { selectedIds: TLDR.getSelectedIds(data) },
+        },
       },
     },
     after: {
-      page: after,
-      pageState: {
-        selectedIds: [],
+      document: {
+        pages: {
+          [data.appState.currentPageId]: after,
+        },
+        pageStates: {
+          [data.appState.currentPageId]: { selectedIds: [] },
+        },
       },
     },
   }

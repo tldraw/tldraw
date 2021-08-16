@@ -21,16 +21,16 @@ export function toggleDecoration(data: Data, ids: string[], handleId: 'start' | 
   return {
     id: 'toggle_decorations',
     before: {
-      page: {
-        shapes: {
-          ...before,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: { shapes: before },
         },
       },
     },
     after: {
-      page: {
-        shapes: {
-          ...after,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: { shapes: after },
         },
       },
     },

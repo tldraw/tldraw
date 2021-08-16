@@ -46,16 +46,20 @@ export function align(data: Data, ids: string[], type: AlignType): Command {
   return {
     id: 'align_shapes',
     before: {
-      page: {
-        shapes: {
-          ...before,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: {
+            shapes: before,
+          },
         },
       },
     },
     after: {
-      page: {
-        shapes: {
-          ...after,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: {
+            shapes: after,
+          },
         },
       },
     },

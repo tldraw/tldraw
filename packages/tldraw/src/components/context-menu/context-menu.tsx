@@ -32,13 +32,13 @@ import {
 } from '@radix-ui/react-icons'
 
 const has1SelectedIdsSelector = (s: Data) => {
-  return s.pageState.selectedIds.length > 0
+  return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 0
 }
 const has2SelectedIdsSelector = (s: Data) => {
-  return s.pageState.selectedIds.length > 1
+  return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 1
 }
 const has3SelectedIdsSelector = (s: Data) => {
-  return s.pageState.selectedIds.length > 2
+  return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 2
 }
 
 const isDebugModeSelector = (s: Data) => {
@@ -46,7 +46,9 @@ const isDebugModeSelector = (s: Data) => {
 }
 
 const hasGroupSelectedSelector = (s: Data) => {
-  return s.pageState.selectedIds.some((id) => s.page.shapes[id].children !== undefined)
+  return s.document.pageStates[s.appState.currentPageId].selectedIds.some(
+    (id) => s.document.pages[s.appState.currentPageId].shapes[id].children !== undefined
+  )
 }
 
 interface ContextMenuProps {

@@ -26,14 +26,16 @@ export class TransformSingleSession implements Session {
     this.commandId = commandId
   }
 
-  start = (data: Data) => data
+  start = () => void null
 
-  update = (data: Data, point: number[], isAspectRatioLocked = false): Partial<Data> => {
+  update = (data: Data, point: number[], isAspectRatioLocked = false) => {
     const { transformType } = this
 
     const { initialShapeBounds, initialShape, id } = this.snapshot
 
-    const shape = data.page.shapes[id]
+    const shapes = {} as Record<string, Partial<TLDrawShape>>
+
+    const shape = TLDR.getShape(data, id)
 
     const utils = TLDR.getShapeUtils(shape)
 
@@ -45,36 +47,38 @@ export class TransformSingleSession implements Session {
       isAspectRatioLocked || shape.isAspectRatioLocked || utils.isAspectRatioLocked
     )
 
+    shapes[shape.id] = TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
+      initialShape,
+      type: this.transformType,
+      scaleX: newBounds.scaleX,
+      scaleY: newBounds.scaleY,
+      transformOrigin: [0.5, 0.5],
+    })
+
     return {
-      page: {
-        ...data.page,
-        shapes: {
-          ...data.page.shapes,
-          [shape.id]: {
-            ...initialShape,
-            ...TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
-              initialShape,
-              type: this.transformType,
-              scaleX: newBounds.scaleX,
-              scaleY: newBounds.scaleY,
-              transformOrigin: [0.5, 0.5],
-            }),
-          } as TLDrawShape,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: {
+            shapes,
+          },
         },
       },
     }
   }
 
   cancel = (data: Data) => {
-    const { id, initialShape } = this.snapshot
-    data.page.shapes[id] = initialShape
+    const { initialShape } = this.snapshot
+
+    const shapes = {} as Record<string, Partial<TLDrawShape>>
+
+    shapes[initialShape.id] = initialShape
 
     return {
-      page: {
-        ...data.page,
-        shapes: {
-          ...data.page.shapes,
-          [id]: initialShape,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: {
+            shapes,
+          },
         },
       },
     }
@@ -83,19 +87,34 @@ export class TransformSingleSession implements Session {
   complete(data: Data) {
     if (!this.snapshot.hasUnlockedShape) return data
 
+    const { initialShape } = this.snapshot
+
+    const beforeShapes = {} as Record<string, Partial<TLDrawShape>>
+    const afterShapes = {} as Record<string, Partial<TLDrawShape>>
+
+    beforeShapes[initialShape.id] = initialShape
+    afterShapes[initialShape.id] = TLDR.onSessionComplete(
+      data,
+      TLDR.getShape(data, initialShape.id)
+    )
+
     return {
       id: this.commandId,
       before: {
-        page: {
-          shapes: {
-            [this.snapshot.id]: this.snapshot.initialShape,
+        document: {
+          pages: {
+            [data.appState.currentPageId]: {
+              shapes: beforeShapes,
+            },
           },
         },
       },
       after: {
-        page: {
-          shapes: {
-            [this.snapshot.id]: TLDR.onSessionComplete(data, data.page.shapes[this.snapshot.id]),
+        document: {
+          pages: {
+            [data.appState.currentPageId]: {
+              shapes: afterShapes,
+            },
           },
         },
       },
@@ -107,7 +126,7 @@ export function getTransformSingleSnapshot(
   data: Data,
   transformType: TLBoundsEdge | TLBoundsCorner
 ) {
-  const shape = data.page.shapes[data.pageState.selectedIds[0]]
+  const shape = TLDR.getShape(data, TLDR.getSelectedIds(data)[0])
 
   if (!shape) {
     throw Error('You must have one shape selected.')

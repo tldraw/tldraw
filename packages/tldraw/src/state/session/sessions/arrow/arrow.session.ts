@@ -24,7 +24,11 @@ export class ArrowSession implements Session {
   didBind = false
 
   constructor(data: Data, handleId: 'start' | 'end', point: number[]) {
-    const shapeId = data.pageState.selectedIds[0]
+    const { currentPageId } = data.appState
+    const page = data.document.pages[currentPageId]
+    const pageState = data.document.pageStates[currentPageId]
+
+    const shapeId = pageState.selectedIds[0]
     this.origin = point
     this.handleId = handleId
     this.initialShape = TLDR.getShape<ArrowShape>(data, shapeId)
@@ -33,7 +37,7 @@ export class ArrowSession implements Session {
     const initialBindingId = this.initialShape.handles[this.handleId].bindingId
 
     if (initialBindingId) {
-      this.initialBinding = data.page.bindings[initialBindingId]
+      this.initialBinding = page.bindings[initialBindingId]
     } else {
       // Explicitly set this handle to undefined, so that it gets deleted on undo
       this.initialShape.handles[this.handleId].bindingId = undefined
@@ -42,13 +46,10 @@ export class ArrowSession implements Session {
 
   start = (data: Data) => data
 
-  update = (
-    data: Data,
-    point: number[],
-    shiftKey: boolean,
-    altKey: boolean,
-    metaKey: boolean
-  ): Partial<Data> => {
+  update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean, metaKey: boolean) => {
+    const page = TLDR.getPage(data)
+    const pageState = TLDR.getPageState(data)
+
     const { initialShape } = this
 
     const shape = TLDR.getShape<ArrowShape>(data, initialShape.id)
@@ -75,7 +76,7 @@ export class ArrowSession implements Session {
 
     if (!change) return data
 
-    let nextBindings: Record<string, TLDrawBinding> = { ...data.page.bindings }
+    let nextBindings: Record<string, TLDrawBinding> = { ...page.bindings }
 
     let nextShape = { ...shape, ...change }
 
@@ -93,7 +94,7 @@ export class ArrowSession implements Session {
         const rayDirection = Vec.uni(Vec.sub(rayPoint, rayOrigin))
 
         const oppositeBinding = oppositeHandle.bindingId
-          ? data.page.bindings[oppositeHandle.bindingId]
+          ? page.bindings[oppositeHandle.bindingId]
           : undefined
 
         // From all bindable shapes on the page...
@@ -186,17 +187,20 @@ export class ArrowSession implements Session {
     }
 
     return {
-      page: {
-        ...data.page,
-        shapes: {
-          ...data.page.shapes,
-          [shape.id]: nextShape,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: {
+            shapes: {
+              [shape.id]: nextShape,
+            },
+            bindings: nextBindings,
+          },
         },
-        bindings: nextBindings,
-      },
-      pageState: {
-        ...data.pageState,
-        bindingId: nextShape.handles[handleId].bindingId,
+        pageStates: {
+          [data.appState.currentPageId]: {
+            bindingId: nextShape.handles[handleId].bindingId,
+          },
+        },
       },
     }
   }
@@ -204,67 +208,84 @@ export class ArrowSession implements Session {
   cancel = (data: Data) => {
     const { initialShape, newBindingId } = this
 
-    const nextBindings = { ...data.page.bindings }
-
-    if (this.didBind) {
-      delete nextBindings[newBindingId]
-    }
-
     return {
-      page: {
-        ...data.page,
-        shapes: {
-          ...data.page.shapes,
-          [initialShape.id]: initialShape,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: {
+            shapes: {
+              [initialShape.id]: initialShape,
+            },
+            bindings: {
+              [newBindingId]: undefined,
+            },
+          },
         },
-        bindings: nextBindings,
-      },
-      pageState: {
-        ...data.pageState,
-        bindingId: undefined,
+        pageStates: {
+          [data.appState.currentPageId]: {
+            bindingId: undefined,
+          },
+        },
       },
     }
   }
 
   complete(data: Data) {
+    const { initialShape, initialBinding, handleId } = this
+    const page = TLDR.getPage(data)
+
     const beforeBindings: Partial<Record<string, TLDrawBinding>> = {}
     const afterBindings: Partial<Record<string, TLDrawBinding>> = {}
 
-    const currentShape = TLDR.getShape<ArrowShape>(data, this.initialShape.id)
-    const currentBindingId = currentShape.handles[this.handleId].bindingId
+    const currentShape = TLDR.getShape<ArrowShape>(data, initialShape.id)
+    const currentBindingId = currentShape.handles[handleId].bindingId
 
-    if (this.initialBinding) {
-      beforeBindings[this.initialBinding.id] = this.initialBinding
-      afterBindings[this.initialBinding.id] = undefined
+    if (initialBinding) {
+      beforeBindings[initialBinding.id] = initialBinding
+      afterBindings[initialBinding.id] = undefined
     }
 
     if (currentBindingId) {
       beforeBindings[currentBindingId] = undefined
-      afterBindings[currentBindingId] = data.page.bindings[currentBindingId]
+      afterBindings[currentBindingId] = page.bindings[currentBindingId]
     }
 
     return {
       id: 'arrow',
       before: {
-        page: {
-          shapes: {
-            [this.initialShape.id]: this.initialShape,
+        document: {
+          pages: {
+            [data.appState.currentPageId]: {
+              shapes: {
+                [initialShape.id]: initialShape,
+              },
+              bindings: beforeBindings,
+            },
           },
-          bindings: beforeBindings,
-        },
-        pageState: {
-          bindingId: undefined,
+          pageStates: {
+            [data.appState.currentPageId]: {
+              bindingId: undefined,
+            },
+          },
         },
       },
       after: {
-        page: {
-          shapes: {
-            [this.initialShape.id]: data.page.shapes[this.initialShape.id],
+        document: {
+          pages: {
+            [data.appState.currentPageId]: {
+              shapes: {
+                [initialShape.id]: TLDR.onSessionComplete(
+                  data,
+                  TLDR.getShape(data, initialShape.id)
+                ),
+              },
+              bindings: afterBindings,
+            },
           },
-          bindings: afterBindings,
-        },
-        pageState: {
-          bindingId: undefined,
+          pageStates: {
+            [data.appState.currentPageId]: {
+              bindingId: undefined,
+            },
+          },
         },
       },
     }

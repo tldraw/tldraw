@@ -15,22 +15,16 @@ export class HandleSession implements Session {
   handleId: string
 
   constructor(data: Data, handleId: string, point: number[], commandId = 'move_handle') {
-    const shapeId = data.pageState.selectedIds[0]
+    const shapeId = TLDR.getSelectedIds(data)[0]
     this.origin = point
     this.handleId = handleId
     this.initialShape = TLDR.getShape(data, shapeId)
     this.commandId = commandId
   }
 
-  start = (data: Data) => data
+  start = () => void null
 
-  update = (
-    data: Data,
-    point: number[],
-    shiftKey: boolean,
-    altKey: boolean,
-    metaKey: boolean
-  ): Data => {
+  update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean, metaKey: boolean) => {
     const { initialShape } = this
 
     const shape = TLDR.getShape<ShapesWithProp<'handles'>>(data, initialShape.id)
@@ -58,14 +52,12 @@ export class HandleSession implements Session {
     if (!change) return data
 
     return {
-      ...data,
-      page: {
-        ...data.page,
-        shapes: {
-          ...data.page.shapes,
-          [shape.id]: {
-            ...shape,
-            ...change,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: {
+            shapes: {
+              [shape.id]: change,
+            },
           },
         },
       },
@@ -76,34 +68,44 @@ export class HandleSession implements Session {
     const { initialShape } = this
 
     return {
-      ...data,
-      page: {
-        ...data.page,
-        shapes: {
-          ...data.page.shapes,
-          [initialShape.id]: initialShape,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: {
+            shapes: {
+              [initialShape.id]: initialShape,
+            },
+          },
         },
       },
     }
   }
 
   complete(data: Data) {
+    const { initialShape } = this
     return {
       id: this.commandId,
       before: {
-        page: {
-          shapes: {
-            [this.initialShape.id]: this.initialShape,
+        document: {
+          pages: {
+            [data.appState.currentPageId]: {
+              shapes: {
+                [initialShape.id]: initialShape,
+              },
+            },
           },
         },
       },
       after: {
-        page: {
-          shapes: {
-            [this.initialShape.id]: TLDR.onSessionComplete(
-              data,
-              data.page.shapes[this.initialShape.id]
-            ),
+        document: {
+          pages: {
+            [data.appState.currentPageId]: {
+              shapes: {
+                [initialShape.id]: TLDR.onSessionComplete(
+                  data,
+                  TLDR.getShape(data, this.initialShape.id)
+                ),
+              },
+            },
           },
         },
       },

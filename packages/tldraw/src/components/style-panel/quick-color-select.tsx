@@ -6,7 +6,7 @@ import { strokes } from '~shape'
 import { useTheme, useTLDrawContext } from '~hooks'
 import type { Data, ColorStyle } from '~types'
 
-const selectColor = (data: Data) => data.appState.selectedStyle.color
+const selectColor = (s: Data) => s.appState.selectedStyle.color
 
 export const QuickColorSelect = React.memo((): JSX.Element => {
   const { theme } = useTheme()

@@ -4,7 +4,7 @@ import type { Data, Command } from '~types'
 import { TLDR } from '~state/tldr'
 
 export function flip(data: Data, ids: string[], type: FlipType): Command {
-  const initialShapes = ids.map((id) => data.page.shapes[id])
+  const initialShapes = ids.map((id) => TLDR.getShape(data, id))
 
   const boundsForShapes = initialShapes.map((shape) => TLDR.getBounds(shape))
 
@@ -54,16 +54,16 @@ export function flip(data: Data, ids: string[], type: FlipType): Command {
   return {
     id: 'flip_shapes',
     before: {
-      page: {
-        shapes: {
-          ...before,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: { shapes: before },
         },
       },
     },
     after: {
-      page: {
-        shapes: {
-          ...after,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: { shapes: after },
         },
       },
     },

@@ -15,7 +15,10 @@ import styled from '~styles'
 import { useTLDrawContext } from '~hooks'
 import type { Data } from '~types'
 
-const currentPageSelector = (s: Data) => s.page
+const sortedSelector = (s: Data) =>
+  Object.values(s.document.pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
+
+const currentPageSelector = (s: Data) => s.document.pages[s.appState.currentPageId]
 
 export function PagePanel(): JSX.Element {
   const rIsOpen = React.useRef(false)
@@ -43,9 +46,7 @@ export function PagePanel(): JSX.Element {
 
   const currentPage = useSelector(currentPageSelector)
 
-  const sorted = Object.values([currentPage]).sort(
-    (a, b) => (a.childIndex || 0) - (b.childIndex || 0)
-  )
+  const sortedPages = useSelector(sortedSelector)
 
   return (
     <DropdownMenu.Root
@@ -64,7 +65,7 @@ export function PagePanel(): JSX.Element {
       </FloatingContainer>
       <MenuContent as={DropdownMenu.Content} sideOffset={8} align="start">
         <DropdownMenu.RadioGroup value={currentPage.id} onValueChange={handleChangePage}>
-          {sorted.map((page) => (
+          {sortedPages.map((page) => (
             <ButtonWithOptions key={page.id}>
               <DropdownMenu.RadioItem
                 as={RowButton}

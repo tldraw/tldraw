@@ -26,7 +26,7 @@ export class DrawSession implements Session {
     this.points = [[0, 0, 0.5]]
   }
 
-  start = (data: Data) => data
+  start = () => void null
 
   update = (data: Data, point: number[], pressure: number, isLocked = false) => {
     const { snapshot } = this
@@ -89,38 +89,42 @@ export class DrawSession implements Session {
     if (this.points.length <= 2) return data
 
     return {
-      page: {
-        ...data.page,
-        shapes: {
-          ...data.page.shapes,
-          [snapshot.id]: {
-            ...data.page.shapes[snapshot.id],
-            points: [...this.points],
+      document: {
+        pages: {
+          [data.appState.currentPageId]: {
+            shapes: {
+              [snapshot.id]: {
+                points: [...this.points],
+              },
+            },
           },
         },
-      },
-      pageState: {
-        ...data.pageState,
-        selectedIds: [snapshot.id],
+        pageStates: {
+          [data.appState.currentPageId]: {
+            selectedIds: [snapshot.id],
+          },
+        },
       },
     }
   }
 
-  cancel = (data: Data): Data => {
+  cancel = (data: Data) => {
     const { snapshot } = this
+
     return {
-      page: {
-        ...data.page,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        shapes: {
-          ...data.page.shapes,
-          [snapshot.id]: undefined,
+      document: {
+        pages: {
+          [data.appState.currentPageId]: {
+            shapes: {
+              [snapshot.id]: undefined,
+            },
+          },
         },
-      },
-      pageState: {
-        ...data.pageState,
-        selectedIds: [],
+        pageStates: {
+          [data.appState.currentPageId]: {
+            selectedIds: [],
+          },
+        },
       },
     }
   }
@@ -130,23 +134,35 @@ export class DrawSession implements Session {
     return {
       id: 'create_draw',
       before: {
-        page: {
-          shapes: {
-            [snapshot.id]: undefined,
+        document: {
+          pages: {
+            [data.appState.currentPageId]: {
+              shapes: {
+                [snapshot.id]: undefined,
+              },
+            },
           },
-        },
-        pageState: {
-          selectedIds: [],
+          pageStates: {
+            [data.appState.currentPageId]: {
+              selectedIds: [],
+            },
+          },
         },
       },
       after: {
-        page: {
-          shapes: {
-            [snapshot.id]: TLDR.onSessionComplete(data, data.page.shapes[snapshot.id]),
+        document: {
+          pages: {
+            [data.appState.currentPageId]: {
+              shapes: {
+                [snapshot.id]: TLDR.onSessionComplete(data, TLDR.getShape(data, snapshot.id)),
+              },
+            },
           },
-        },
-        pageState: {
-          selectedIds: [],
+          pageStates: {
+            [data.appState.currentPageId]: {
+              selectedIds: [],
+            },
+          },
         },
       },
     }
@@ -155,7 +171,8 @@ export class DrawSession implements Session {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getDrawSnapshot(data: Data, shapeId: string) {
-  const { page } = data
+  const page = { ...TLDR.getPage(data) }
+
   const { points, point } = Utils.deepClone(page.shapes[shapeId]) as DrawShape
 
   return {

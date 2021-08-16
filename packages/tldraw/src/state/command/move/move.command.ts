@@ -3,27 +3,30 @@ import { TLDR } from '~state/tldr'
 
 export function move(data: Data, ids: string[], type: MoveType): Command {
   // Get the unique parent ids for the selected elements
-  const parentIds = new Set(ids.map((id) => data.page.shapes[id].parentId))
+  const parentIds = new Set(ids.map((id) => TLDR.getShape(data, id).parentId))
 
   let result: {
     before: Record<string, Partial<TLDrawShape>>
     after: Record<string, Partial<TLDrawShape>>
   } = { before: {}, after: {} }
+
   let startIndex: number
   let startChildIndex: number
   let step: number
 
+  const page = TLDR.getPage(data)
+
   // Collect shapes with common parents into a table under their parent id
   Array.from(parentIds.values()).forEach((parentId) => {
     let sortedChildren: TLDrawShape[] = []
-    if (parentId === data.page.id) {
-      sortedChildren = Object.values(data.page.shapes).sort((a, b) => a.childIndex - b.childIndex)
+    if (parentId === page.id) {
+      sortedChildren = Object.values(page.shapes).sort((a, b) => a.childIndex - b.childIndex)
     } else {
-      const parent = data.page.shapes[parentId]
+      const parent = TLDR.getShape(data, parentId)
       if (!parent.children) throw Error('No children in parent!')
 
       sortedChildren = parent.children
-        .map((childId) => data.page.shapes[childId])
+        .map((childId) => TLDR.getShape(data, childId))
         .sort((a, b) => a.childIndex - b.childIndex)
     }
 
@@ -197,15 +200,17 @@ export function move(data: Data, ids: string[], type: MoveType): Command {
   return {
     id: 'move_shapes',
     before: {
-      page: {
-        ...data.page,
-        shapes: result?.before || {},
+      document: {
+        pages: {
+          [data.appState.currentPageId]: { shapes: result.before },
+        },
       },
     },
     after: {
-      page: {
-        ...data.page,
-        shapes: result?.after || {},
+      document: {
+        pages: {
+          [data.appState.currentPageId]: { shapes: result.after },
+        },
       },
     },
   }
