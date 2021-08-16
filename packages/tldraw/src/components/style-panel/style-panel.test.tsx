@@ -3,7 +3,7 @@ import { renderWithContext } from '~test'
 import { StylePanel } from './style-panel'
 
 describe('style panel', () => {
-  test('mounts component', () => {
+  test('mounts component without crashing', () => {
     renderWithContext(<StylePanel />)
   })
 })

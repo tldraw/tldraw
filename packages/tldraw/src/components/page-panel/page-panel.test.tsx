@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { ToolsPanel } from './tools-panel'
+import { PagePanel } from './page-panel'
 import { renderWithContext } from '~test'
 
-describe('tools panel', () => {
+describe('page panel', () => {
   test('mounts component without crashing', () => {
-    renderWithContext(<ToolsPanel />)
+    renderWithContext(<PagePanel />)
   })
 })

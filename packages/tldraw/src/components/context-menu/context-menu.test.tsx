@@ -3,7 +3,7 @@ import { ContextMenu } from './context-menu'
 import { renderWithContext } from '~test'
 
 describe('context menu', () => {
-  test('mounts component', () => {
+  test('mounts component without crashing', () => {
     renderWithContext(
       <ContextMenu>
         <div>Hello</div>

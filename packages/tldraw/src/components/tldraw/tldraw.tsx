@@ -124,6 +124,7 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
               onTextKeyUp={tlstate.onTextKeyUp}
             />
           </ContextMenu>
+          <MenuButtons />
           <Spacer />
           <StylePanel />
           <ToolsPanel />
@@ -137,10 +138,10 @@ const Spacer = styled('div', {
   flexGrow: 2,
 })
 
-// const MenuButtons = styled('div', {
-//   display: 'flex',
-//   gap: 8,
-// })
+const MenuButtons = styled('div', {
+  display: 'flex',
+  gap: 8,
+})
 
 const Layout = styled('main', {
   position: 'fixed',

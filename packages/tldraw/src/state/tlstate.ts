@@ -519,7 +519,22 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
-  /* ---------------------- Document --------------------- */
+  /* -------------------------------------------------- */
+  /*                      Document                      */
+  /* -------------------------------------------------- */
+
+  private setCurrentPageId(pageId: string) {
+    if (pageId === this.currentPageId) return this
+
+    this.currentPageId = pageId
+
+    this.setState({
+      page: this.pages[pageId],
+      pageState: this.pageStates[pageId],
+    })
+    return this
+  }
+
   loadDocument = (document: TLDrawDocument, onChange?: TLDrawState['_onChange']) => {
     this._onChange = onChange
     this.currentDocumentId = document.id
@@ -543,19 +558,26 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
-  setCurrentPageId(pageId: string) {
-    if (pageId === this.currentPageId) return this
-
-    this.currentPageId = pageId
-
-    this.setState({
-      page: this.pages[pageId],
-      pageState: this.pageStates[pageId],
-    })
-    return this
+  newProject = () => {
+    // TODO
   }
 
-  /* -------------------- Sessions -------------------- */
+  saveProject = () => {
+    // TODO
+  }
+
+  loadProject = () => {
+    // TODO
+  }
+
+  signOut = () => {
+    // TODO
+  }
+
+  /* -------------------------------------------------- */
+  /*                      Sessions                      */
+  /* -------------------------------------------------- */
+
   startSession<T extends Session>(session: T, ...args: ParametersExceptFirst<T['start']>) {
     this.session = session
     this.setState((data) => session.start(data, ...args), session.status)
@@ -658,7 +680,10 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
-  /* -------------------- Commands -------------------- */
+  /* -------------------------------------------------- */
+  /*                       History                      */
+  /* -------------------------------------------------- */
+
   do(command: Command) {
     const { history } = this
 
@@ -739,7 +764,10 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
-  /* -------------------- Selection ------------------- */
+  /* -------------------------------------------------- */
+  /*                      Selection                     */
+  /* -------------------------------------------------- */
+
   setSelectedIds(ids: string[], push = false) {
     this.setState((data) => {
       return {
@@ -936,6 +964,10 @@ export class TLDrawState implements TLCallbacks {
     return this
   }
 
+  toggleDebugMode = () => {
+    // TODO
+  }
+
   rotate = (delta = Math.PI * -0.5, ids?: string[]) => {
     const data = this.store.getState()
     const idsToMutate = ids ? ids : data.pageState.selectedIds
@@ -1000,6 +1032,52 @@ export class TLDrawState implements TLCallbacks {
       case TLDrawStatus.Creating: {
         this.cancelSession()
         break
+      }
+    }
+
+    return this
+  }
+
+  createPage() {
+    const newId = Utils.uniqueId()
+    this.pages[newId] = { id: newId, shapes: {}, bindings: {} }
+    this.changePage(newId)
+    return this
+  }
+
+  changePage(id: string) {
+    this.setCurrentPageId(id)
+    return this
+  }
+
+  renamePage(id: string, name: string) {
+    this.pages[id] = { ...this.pages[id], name }
+    return this
+  }
+
+  duplicatePage(id: string = this.currentPageId) {
+    const newId = Utils.uniqueId()
+    this.pages[newId] = { ...this.pages[id], id: newId }
+    this.changePage(newId)
+    return this
+  }
+
+  deletePage(id: string = this.currentPageId) {
+    const pages = Object.values(this.pages).sort(
+      (a, b) => (a.childIndex || 0) - (b.childIndex || 0)
+    )
+
+    const currentIndex = pages.findIndex((page) => page.id === this.currentPageId)
+
+    if (Object.values(this.pages).length <= 1) return
+
+    delete this.pages[id]
+
+    if (id === this.currentPageId) {
+      if (currentIndex === pages.length - 1) {
+        this.changePage(pages[pages.length - 2].id)
+      } else {
+        this.changePage(pages[currentIndex + 1].id)
       }
     }
 

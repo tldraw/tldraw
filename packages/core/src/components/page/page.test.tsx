@@ -3,7 +3,7 @@ import { mockDocument, renderWithContext } from '+test'
 import { Page } from './page'
 
 describe('page', () => {
-  test('mounts component', () => {
+  test('mounts component without crashing', () => {
     renderWithContext(
       <Page
         page={mockDocument.page}

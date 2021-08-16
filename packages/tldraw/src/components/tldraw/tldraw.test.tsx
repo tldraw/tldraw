@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import { TLDraw } from './tldraw'
 
 describe('tldraw', () => {
-  test('mounts component', () => {
+  test('mounts component without crashing', () => {
     render(<TLDraw />)
   })
 })

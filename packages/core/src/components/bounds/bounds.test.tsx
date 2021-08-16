@@ -3,7 +3,7 @@ import { renderWithSvg } from '+test'
 import { Bounds } from './bounds'
 
 describe('bounds', () => {
-  test('mounts component', () => {
+  test('mounts component without crashing', () => {
     renderWithSvg(
       <Bounds
         zoom={1}

@@ -4,7 +4,7 @@ import { render } from '@testing-library/react'
 import { Renderer } from './renderer'
 
 describe('context menu', () => {
-  test('mounts component', () => {
+  test('mounts component without crashing', () => {
     render(
       <Renderer
         shapeUtils={mockUtils}

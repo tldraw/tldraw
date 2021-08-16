@@ -8,9 +8,11 @@ import type { StoreApi } from 'zustand'
 export type TLStore = StoreApi<Data>
 export type TLChange = Data
 
+export type TLDrawPage = TLPage<TLDrawShape, TLDrawBinding>
+
 export interface TLDrawDocument {
   id: string
-  pages: Record<string, TLPage<TLDrawShape, TLDrawBinding>>
+  pages: Record<string, TLDrawPage>
   pageStates: Record<string, TLPageState>
 }
 

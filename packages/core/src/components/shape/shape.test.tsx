@@ -3,7 +3,7 @@ import { mockUtils, renderWithSvg } from '+test'
 import { Shape } from './shape'
 
 describe('handles', () => {
-  test('mounts component', () => {
+  test('mounts component without crashing', () => {
     renderWithSvg(
       <Shape
         shape={mockUtils.box.create({})}

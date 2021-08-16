@@ -3,7 +3,7 @@ import { renderWithSvg } from '+test'
 import { Brush } from './brush'
 
 describe('brush', () => {
-  test('mounts component', () => {
+  test('mounts component without crashing', () => {
     renderWithSvg(<Brush />)
   })
 })
