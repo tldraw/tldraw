@@ -95,5 +95,5 @@ export default function Editor(): JSX.Element {
     return <div />
   }
 
-  return <TLDraw document={initialDoc} onChange={handleChange} />
+  return <TLDraw document={value} onChange={handleChange} />
 }

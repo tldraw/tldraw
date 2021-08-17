@@ -1,5 +1,6 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
+import { TLDrawStatus } from '~types'
 
 describe('Brush session', () => {
   const tlstate = new TLDrawState()
@@ -10,6 +11,7 @@ describe('Brush session', () => {
     tlstate.startBrushSession([-10, -10])
     tlstate.updateBrushSession([10, 10])
     tlstate.completeSession()
+    expect(tlstate.status.current).toBe(TLDrawStatus.Idle)
     expect(tlstate.selectedIds.length).toBe(1)
   })
 

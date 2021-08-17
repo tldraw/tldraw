@@ -4,7 +4,8 @@ import type { Data, Command } from '~types'
 import { TLDR } from '~state/tldr'
 
 export function align(data: Data, ids: string[], type: AlignType): Command {
-  const initialShapes = ids.map((id) => TLDR.getShape(data, id))
+  const { currentPageId } = data.appState
+  const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
 
   const boundsForShapes = initialShapes.map((shape) => {
     return {
@@ -38,17 +39,22 @@ export function align(data: Data, ids: string[], type: AlignType): Command {
     })
   )
 
-  const { before, after } = TLDR.mutateShapes(data, ids, (shape) => {
-    if (!deltaMap[shape.id]) return shape
-    return { point: deltaMap[shape.id].next }
-  })
+  const { before, after } = TLDR.mutateShapes(
+    data,
+    ids,
+    (shape) => {
+      if (!deltaMap[shape.id]) return shape
+      return { point: deltaMap[shape.id].next }
+    },
+    currentPageId
+  )
 
   return {
     id: 'align_shapes',
     before: {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             shapes: before,
           },
         },
@@ -57,7 +63,7 @@ export function align(data: Data, ids: string[], type: AlignType): Command {
     after: {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             shapes: after,
           },
         },

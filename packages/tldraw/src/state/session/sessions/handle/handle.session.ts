@@ -15,10 +15,11 @@ export class HandleSession implements Session {
   handleId: string
 
   constructor(data: Data, handleId: string, point: number[], commandId = 'move_handle') {
-    const shapeId = TLDR.getSelectedIds(data)[0]
+    const { currentPageId } = data.appState
+    const shapeId = TLDR.getSelectedIds(data, currentPageId)[0]
     this.origin = point
     this.handleId = handleId
-    this.initialShape = TLDR.getShape(data, shapeId)
+    this.initialShape = TLDR.getShape(data, shapeId, currentPageId)
     this.commandId = commandId
   }
 
@@ -26,8 +27,9 @@ export class HandleSession implements Session {
 
   update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean, metaKey: boolean) => {
     const { initialShape } = this
+    const { currentPageId } = data.appState
 
-    const shape = TLDR.getShape<ShapesWithProp<'handles'>>(data, initialShape.id)
+    const shape = TLDR.getShape<ShapesWithProp<'handles'>>(data, initialShape.id, currentPageId)
 
     const handles = shape.handles
 
@@ -54,7 +56,7 @@ export class HandleSession implements Session {
     return {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             shapes: {
               [shape.id]: change,
             },
@@ -66,11 +68,12 @@ export class HandleSession implements Session {
 
   cancel = (data: Data) => {
     const { initialShape } = this
+    const { currentPageId } = data.appState
 
     return {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             shapes: {
               [initialShape.id]: initialShape,
             },
@@ -82,12 +85,14 @@ export class HandleSession implements Session {
 
   complete(data: Data) {
     const { initialShape } = this
+    const pageId = data.appState.currentPageId
+
     return {
       id: this.commandId,
       before: {
         document: {
           pages: {
-            [data.appState.currentPageId]: {
+            [pageId]: {
               shapes: {
                 [initialShape.id]: initialShape,
               },
@@ -98,11 +103,12 @@ export class HandleSession implements Session {
       after: {
         document: {
           pages: {
-            [data.appState.currentPageId]: {
+            [pageId]: {
               shapes: {
                 [initialShape.id]: TLDR.onSessionComplete(
                   data,
-                  TLDR.getShape(data, this.initialShape.id)
+                  TLDR.getShape(data, this.initialShape.id, pageId),
+                  pageId
                 ),
               },
             },

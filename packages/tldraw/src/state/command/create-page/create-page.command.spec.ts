@@ -8,19 +8,27 @@ describe('Create page command', () => {
     tlstate.loadDocument(mockDocument)
 
     const initialId = tlstate.page.id
+    const initialPageState = tlstate.pageState
 
     tlstate.createPage()
 
     const nextId = tlstate.page.id
+    const nextPageState = tlstate.pageState
 
+    expect(Object.keys(tlstate.document.pages).length).toBe(2)
     expect(tlstate.page.id).toBe(nextId)
+    expect(tlstate.pageState).toEqual(nextPageState)
 
     tlstate.undo()
 
+    expect(Object.keys(tlstate.document.pages).length).toBe(1)
     expect(tlstate.page.id).toBe(initialId)
+    expect(tlstate.pageState).toEqual(initialPageState)
 
     tlstate.redo()
 
+    expect(Object.keys(tlstate.document.pages).length).toBe(2)
     expect(tlstate.page.id).toBe(nextId)
+    expect(tlstate.pageState).toEqual(nextPageState)
   })
 })

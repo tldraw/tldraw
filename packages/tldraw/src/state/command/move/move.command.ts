@@ -2,8 +2,10 @@ import { MoveType, Data, TLDrawShape, Command } from '~types'
 import { TLDR } from '~state/tldr'
 
 export function move(data: Data, ids: string[], type: MoveType): Command {
+  const { currentPageId } = data.appState
+
   // Get the unique parent ids for the selected elements
-  const parentIds = new Set(ids.map((id) => TLDR.getShape(data, id).parentId))
+  const parentIds = new Set(ids.map((id) => TLDR.getShape(data, id, currentPageId).parentId))
 
   let result: {
     before: Record<string, Partial<TLDrawShape>>
@@ -14,7 +16,7 @@ export function move(data: Data, ids: string[], type: MoveType): Command {
   let startChildIndex: number
   let step: number
 
-  const page = TLDR.getPage(data)
+  const page = TLDR.getPage(data, currentPageId)
 
   // Collect shapes with common parents into a table under their parent id
   Array.from(parentIds.values()).forEach((parentId) => {
@@ -22,11 +24,11 @@ export function move(data: Data, ids: string[], type: MoveType): Command {
     if (parentId === page.id) {
       sortedChildren = Object.values(page.shapes).sort((a, b) => a.childIndex - b.childIndex)
     } else {
-      const parent = TLDR.getShape(data, parentId)
+      const parent = TLDR.getShape(data, parentId, currentPageId)
       if (!parent.children) throw Error('No children in parent!')
 
       sortedChildren = parent.children
-        .map((childId) => TLDR.getShape(data, childId))
+        .map((childId) => TLDR.getShape(data, childId, currentPageId))
         .sort((a, b) => a.childIndex - b.childIndex)
     }
 
@@ -65,7 +67,8 @@ export function move(data: Data, ids: string[], type: MoveType): Command {
           sortedIndicesToMove.map((i) => sortedChildren[i].id).reverse(),
           (_shape, i) => ({
             childIndex: startChildIndex - (i + 1) * step,
-          })
+          }),
+          currentPageId
         )
 
         break
@@ -95,7 +98,8 @@ export function move(data: Data, ids: string[], type: MoveType): Command {
           sortedIndicesToMove.map((i) => sortedChildren[i].id),
           (_shape, i) => ({
             childIndex: startChildIndex + (i + 1),
-          })
+          }),
+          currentPageId
         )
 
         break
@@ -140,7 +144,8 @@ export function move(data: Data, ids: string[], type: MoveType): Command {
             sortedIndicesToMove.map((i) => sortedChildren[i].id),
             (shape) => ({
               childIndex: indexMap[shape.id],
-            })
+            }),
+            currentPageId
           )
         }
 
@@ -188,7 +193,8 @@ export function move(data: Data, ids: string[], type: MoveType): Command {
             sortedIndicesToMove.map((i) => sortedChildren[i].id),
             (shape) => ({
               childIndex: indexMap[shape.id],
-            })
+            }),
+            currentPageId
           )
         }
 

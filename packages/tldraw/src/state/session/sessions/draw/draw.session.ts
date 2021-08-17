@@ -110,18 +110,19 @@ export class DrawSession implements Session {
 
   cancel = (data: Data) => {
     const { snapshot } = this
+    const pageId = data.appState.currentPageId
 
     return {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [pageId]: {
             shapes: {
               [snapshot.id]: undefined,
             },
           },
         },
         pageStates: {
-          [data.appState.currentPageId]: {
+          [pageId]: {
             selectedIds: [],
           },
         },
@@ -131,19 +132,20 @@ export class DrawSession implements Session {
 
   complete = (data: Data) => {
     const { snapshot } = this
+    const pageId = data.appState.currentPageId
     return {
       id: 'create_draw',
       before: {
         document: {
           pages: {
-            [data.appState.currentPageId]: {
+            [pageId]: {
               shapes: {
                 [snapshot.id]: undefined,
               },
             },
           },
           pageStates: {
-            [data.appState.currentPageId]: {
+            [pageId]: {
               selectedIds: [],
             },
           },
@@ -152,9 +154,13 @@ export class DrawSession implements Session {
       after: {
         document: {
           pages: {
-            [data.appState.currentPageId]: {
+            [pageId]: {
               shapes: {
-                [snapshot.id]: TLDR.onSessionComplete(data, TLDR.getShape(data, snapshot.id)),
+                [snapshot.id]: TLDR.onSessionComplete(
+                  data,
+                  TLDR.getShape(data, snapshot.id, pageId),
+                  pageId
+                ),
               },
             },
           },
@@ -171,7 +177,7 @@ export class DrawSession implements Session {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getDrawSnapshot(data: Data, shapeId: string) {
-  const page = { ...TLDR.getPage(data) }
+  const page = { ...TLDR.getPage(data, data.appState.currentPageId) }
 
   const { points, point } = Utils.deepClone(page.shapes[shapeId]) as DrawShape
 

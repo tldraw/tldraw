@@ -1,14 +1,5 @@
 import { TLPageState, Utils, Vec } from '@tldraw/core'
-import {
-  TLDrawShape,
-  TLDrawBinding,
-  PagePartial,
-  Session,
-  Data,
-  Command,
-  TLDrawStatus,
-  ShapesWithProp,
-} from '~types'
+import { TLDrawShape, TLDrawBinding, Session, Data, Command, TLDrawStatus } from '~types'
 import { TLDR } from '~state/tldr'
 
 export class TranslateSession implements Session {
@@ -92,7 +83,8 @@ export class TranslateSession implements Session {
       // Either way, move the clones
 
       clones.forEach((shape) => {
-        const current = nextShapes[shape.id] || TLDR.getShape(data, shape.id)
+        const current =
+          nextShapes[shape.id] || TLDR.getShape(data, shape.id, data.appState.currentPageId)
 
         if (!current.point) throw Error('No point on that clone!')
 
@@ -129,7 +121,8 @@ export class TranslateSession implements Session {
 
       // Move the shapes by the delta
       initialShapes.forEach((shape) => {
-        const current = nextShapes[shape.id] || TLDR.getShape(data, shape.id)
+        const current =
+          nextShapes[shape.id] || TLDR.getShape(data, shape.id, data.appState.currentPageId)
 
         if (!current.point) throw Error('No point on that clone!')
 
@@ -147,9 +140,9 @@ export class TranslateSession implements Session {
             shapes: nextShapes,
             bindings: nextBindings,
           },
-          pageStates: {
-            [data.appState.currentPageId]: nextPageState,
-          },
+        },
+        pageStates: {
+          [data.appState.currentPageId]: nextPageState,
         },
       },
     }
@@ -183,15 +176,17 @@ export class TranslateSession implements Session {
             shapes: nextShapes,
             bindings: nextBindings,
           },
-          pageStates: {
-            [data.appState.currentPageId]: nextPageState,
-          },
+        },
+        pageStates: {
+          [data.appState.currentPageId]: nextPageState,
         },
       },
     }
   }
 
   complete(data: Data): Command {
+    const pageId = data.appState.currentPageId
+
     const { initialShapes, bindingsToDelete, clones, clonedBindings } = this.snapshot
 
     const beforeBindings: Record<string, Partial<TLDrawBinding> | undefined> = {}
@@ -202,17 +197,17 @@ export class TranslateSession implements Session {
 
     clones.forEach((shape) => {
       beforeShapes[shape.id] = undefined
-      afterShapes[shape.id] = this.isCloning ? TLDR.getShape(data, shape.id) : undefined
+      afterShapes[shape.id] = this.isCloning ? TLDR.getShape(data, shape.id, pageId) : undefined
     })
 
     initialShapes.forEach((shape) => {
       beforeShapes[shape.id] = { point: shape.point }
-      afterShapes[shape.id] = { point: TLDR.getShape(data, shape.id).point }
+      afterShapes[shape.id] = { point: TLDR.getShape(data, shape.id, pageId).point }
     })
 
     clonedBindings.forEach((binding) => {
       beforeBindings[binding.id] = undefined
-      afterBindings[binding.id] = TLDR.getBinding(data, binding.id)
+      afterBindings[binding.id] = TLDR.getBinding(data, binding.id, pageId)
     })
 
     bindingsToDelete.forEach((binding) => {
@@ -220,7 +215,7 @@ export class TranslateSession implements Session {
 
       for (const id of [binding.toId, binding.fromId]) {
         // Let's also look at the bound shape...
-        const shape = TLDR.getShape(data, id)
+        const shape = TLDR.getShape(data, id, pageId)
 
         // If the bound shape has a handle that references the deleted binding, delete that reference
         if (!shape.handles) continue
@@ -279,7 +274,7 @@ export class TranslateSession implements Session {
           },
           pageStates: {
             [data.appState.currentPageId]: {
-              selectedIds: [...TLDR.getSelectedIds(data)],
+              selectedIds: [...TLDR.getSelectedIds(data, data.appState.currentPageId)],
             },
           },
         },
@@ -290,18 +285,18 @@ export class TranslateSession implements Session {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getTranslateSnapshot(data: Data) {
-  const selectedShapes = TLDR.getSelectedShapeSnapshot(data)
+  const selectedShapes = TLDR.getSelectedShapeSnapshot(data, data.appState.currentPageId)
 
   const hasUnlockedShapes = selectedShapes.length > 0
 
   const cloneMap: Record<string, string> = {}
 
-  const page = TLDR.getPage(data)
+  const page = TLDR.getPage(data, data.appState.currentPageId)
 
   const initialParents = Array.from(new Set(selectedShapes.map((s) => s.parentId)).values())
     .filter((id) => id !== page.id)
     .map((id) => {
-      const shape = TLDR.getShape(data, id)
+      const shape = TLDR.getShape(data, id, data.appState.currentPageId)
       return {
         id,
         children: shape.children,
@@ -315,7 +310,7 @@ export function getTranslateSnapshot(data: Data) {
         ...shape,
         id: Utils.uniqueId(),
         parentId: shape.parentId,
-        childIndex: TLDR.getChildIndexAbove(data, shape.id),
+        childIndex: TLDR.getChildIndexAbove(data, shape.id, data.appState.currentPageId),
       }
 
       cloneMap[shape.id] = clone.id
@@ -343,11 +338,12 @@ export function getTranslateSnapshot(data: Data) {
     }
   })
 
-  const selectedIds = TLDR.getSelectedIds(data)
+  const selectedIds = TLDR.getSelectedIds(data, data.appState.currentPageId)
 
   const bindingsToDelete = TLDR.getRelatedBindings(
     data,
-    selectedShapes.filter((shape) => shape.handles !== undefined).map((shape) => shape.id)
+    selectedShapes.filter((shape) => shape.handles !== undefined).map((shape) => shape.id),
+    data.appState.currentPageId
   )
 
   return {

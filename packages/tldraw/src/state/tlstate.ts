@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import createReact, { PartialState } from 'zustand'
+import createReact from 'zustand'
 import {
   TLBoundsCorner,
   TLBoundsEdge,
@@ -8,7 +8,6 @@ import {
   TLCallbacks,
   TLCanvasEventHandler,
   TLKeyboardInfo,
-  TLPage,
   TLPageState,
   TLPinchEventHandler,
   TLPointerEventHandler,
@@ -18,7 +17,6 @@ import {
   brushUpdater,
 } from '@tldraw/core'
 import {
-  TLDrawPage,
   FlipType,
   TextShape,
   TLDrawDocument,
@@ -30,7 +28,6 @@ import {
   TLDrawShape,
   TLDrawShapeType,
   TLDrawToolType,
-  TLDrawBinding,
   Data,
   Session,
   Command,
@@ -38,6 +35,7 @@ import {
   TLDrawStatus,
   ParametersExceptFirst,
   SelectHistory,
+  DeepPartial,
 } from '~types'
 import { TLDR } from './tldr'
 import { defaultStyle } from '~shape'
@@ -94,110 +92,134 @@ const initialData: Data = {
 
 export class TLDrawState implements TLCallbacks {
   store = createReact<Data>(() => initialData)
+
+  data: Data = initialData
+
   history: History = {
     stack: [],
     pointer: -1,
   }
+
   selectHistory: SelectHistory = {
     stack: [[]],
     pointer: 0,
   }
+
   clipboard?: TLDrawShape[]
   session?: Session
+
   pointedId?: string
+
   pointedHandle?: string
-  editingId?: string
+
   pointedBoundsHandle?: TLBoundsCorner | TLBoundsEdge | 'rotate'
-  currentPageId = 'page'
-  document: TLDrawDocument
+
   isCreating = false
-  _onChange?: (state: TLDrawState, reason: string) => void
+
+  _onChange?: (patch: DeepPartial<Data>, reason: string) => void
 
   // Low API
   private getState = this.store.getState
 
-  private setStatus(status: TLDrawStatus) {
-    this.store.setState((state) => ({
-      appState: {
-        ...state.appState,
-        status: {
-          current: status,
-          previous: state.appState.status.current,
-        },
-      },
-    }))
+  private produce(patch: DeepPartial<Data>, reason: string) {
+    const next = Utils.deepMerge<Data>(this.data, patch)
+    this.setState(next)
+    this._onChange?.(patch, reason)
+    return this
   }
 
-  private setState = <T extends keyof Data>(
-    data: Partial<Data> | ((data: Data) => Partial<Data>),
-    status?: TLDrawStatus
-  ) => {
-    const current = this.getState()
+  private setStatus(status: TLDrawStatus) {
+    this.data = {
+      ...this.data,
+      appState: {
+        ...this.appState,
+        status: {
+          current: status,
+          previous: this.appState.status.current,
+        },
+      },
+    }
 
-    // Apply incoming change
-    const result = typeof data === 'function' ? data(current) : data
+    this.store.setState(this.data)
+  }
 
-    const next = { ...current, ...result }
+  private setState = (data: Data | ((data: Data) => Data), status?: TLDrawStatus) => {
+    const prev = this.data
+
+    this.data = typeof data === 'function' ? data(prev) : data
 
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
-    if (result.document) {
-      Object.values(current.document.pages).forEach((currentPage) => {
-        const pageId = currentPage.id
-        const nextPage = {
-          ...currentPage,
-          ...result.document?.pages[pageId],
-          shapes: { ...result.document?.pages[pageId]?.shapes },
-          bindings: { ...result.document?.pages[pageId]?.bindings },
+    if (this.data.document !== prev.document) {
+      Object.entries(this.data.document.pages).forEach(([pageId, page]) => {
+        if (page === undefined) {
+          // If set to undefined, delete the page and pagestate
+          delete this.data.document.pages[pageId]
+          delete this.data.document.pageStates[pageId]
+          return
         }
 
-        Object.keys(nextPage.shapes).forEach((id) => {
-          if (!nextPage.shapes[id]) delete nextPage.shapes[id]
-        })
+        const prevPage = prev.document.pages[pageId]
 
-        Object.keys(nextPage.bindings).forEach((id) => {
-          if (!nextPage.bindings[id]) delete nextPage.bindings[id]
-        })
+        const nextPage = {
+          ...page,
+          shapes: { ...page.shapes },
+          bindings: { ...page.bindings },
+        }
 
-        const changedShapeIds = Object.values(nextPage.shapes)
-          .filter((shape) => currentPage.shapes[shape.id] !== shape)
-          .map((shape) => shape.id)
+        if (
+          !prevPage ||
+          nextPage.shapes !== prevPage.shapes ||
+          nextPage.bindings !== prevPage.bindings
+        ) {
+          Object.keys(nextPage.shapes).forEach((id) => {
+            if (!nextPage.shapes[id]) delete nextPage.shapes[id]
+          })
 
-        next.document.pages[pageId] = nextPage
+          Object.keys(nextPage.bindings).forEach((id) => {
+            if (!nextPage.bindings[id]) delete nextPage.bindings[id]
+          })
 
-        // Get bindings related to the changed shapes
-        const bindingsToUpdate = TLDR.getRelatedBindings(next, changedShapeIds)
+          const changedShapeIds = Object.values(nextPage.shapes)
+            .filter((shape) => this.data.document.pages[pageId].shapes[shape.id] !== shape)
+            .map((shape) => shape.id)
 
-        // Update all of the bindings we've just collected
-        bindingsToUpdate.forEach((binding) => {
-          const toShape = nextPage.shapes[binding.toId]
-          const fromShape = nextPage.shapes[binding.fromId]
-          const toUtils = TLDR.getShapeUtils(toShape)
+          this.data.document.pages[pageId] = nextPage
 
-          // We only need to update the binding's "from" shape
-          const util = TLDR.getShapeUtils(fromShape)
+          // Get bindings related to the changed shapes
+          const bindingsToUpdate = TLDR.getRelatedBindings(this.data, changedShapeIds, pageId)
 
-          const fromDelta = util.onBindingChange(
-            fromShape,
-            binding,
-            toShape,
-            toUtils.getBounds(toShape),
-            toUtils.getCenter(toShape)
-          )
+          // Update all of the bindings we've just collected
+          bindingsToUpdate.forEach((binding) => {
+            const toShape = nextPage.shapes[binding.toId]
+            const fromShape = nextPage.shapes[binding.fromId]
+            const toUtils = TLDR.getShapeUtils(toShape)
 
-          if (fromDelta) {
-            const nextShape = {
-              ...fromShape,
-              ...fromDelta,
-            } as TLDrawShape
+            // We only need to update the binding's "from" shape
+            const util = TLDR.getShapeUtils(fromShape)
 
-            nextPage.shapes[fromShape.id] = nextShape
-          }
-        })
+            const fromDelta = util.onBindingChange(
+              fromShape,
+              binding,
+              toShape,
+              toUtils.getBounds(toShape),
+              toUtils.getCenter(toShape)
+            )
+
+            if (fromDelta) {
+              const nextShape = {
+                ...fromShape,
+                ...fromDelta,
+              } as TLDrawShape
+
+              nextPage.shapes[fromShape.id] = nextShape
+            }
+          })
+        }
 
         // Clean up page state, preventing hovers on deleted shapes
 
         const nextPageState: TLPageState = {
-          ...next.document.pageStates[next.appState.currentPageId],
+          ...this.data.document.pageStates[pageId],
         }
 
         if (nextPageState.hoveredId && !nextPage.shapes[nextPageState.hoveredId]) {
@@ -214,34 +236,37 @@ export class TLDrawState implements TLCallbacks {
           delete nextPageState.editingId
         }
 
-        next.document.pages[pageId] = nextPage
-        next.document.pageStates[pageId] = nextPageState
+        this.data.document.pages[pageId] = nextPage
+        this.data.document.pageStates[pageId] = nextPageState
       })
     }
 
     // Apply selected style change, if any
-    const newSelectedStyle = TLDR.getSelectedStyle(next as Data)
+
+    const newSelectedStyle = TLDR.getSelectedStyle(this.data, this.currentPageId)
 
     if (newSelectedStyle) {
-      next.appState = {
-        ...current.appState,
-        ...next.appState,
+      this.data.appState = {
+        ...this.data.appState,
         selectedStyle: newSelectedStyle,
       }
     }
 
     if (status) {
-      next.appState = {
-        ...next.appState,
+      this.data.appState = {
+        ...this.data.appState,
         status: {
           current: status,
-          previous: next.appState.status.current,
+          previous: this.data.appState.status.current,
         },
       }
     }
 
-    this.store.setState(next as PartialState<Data, T, T, T>)
-    this.document = next.document
+    if (this.pageState.id !== this.currentPageId) {
+      throw Error('Mismatch!')
+    }
+
+    this.store.setState(this.data)
 
     return this
   }
@@ -251,59 +276,63 @@ export class TLDrawState implements TLCallbacks {
   }
 
   getPage = (pageId = this.currentPageId) => {
-    return TLDR.getPage(this.data, pageId)
+    return TLDR.getPage(this.data, pageId || this.currentPageId)
   }
 
   getShapes = (pageId = this.currentPageId) => {
-    return TLDR.getShapes(this.data, pageId)
+    return TLDR.getShapes(this.data, pageId || this.currentPageId)
   }
 
   getBindings = (pageId = this.currentPageId) => {
-    return TLDR.getBindings(this.data, pageId)
+    return TLDR.getBindings(this.data, pageId || this.currentPageId)
   }
 
   getPageState = (pageId = this.currentPageId) => {
-    return TLDR.getPageState(this.data, pageId)
+    return TLDR.getPageState(this.data, pageId || this.currentPageId)
   }
 
   getAppState = () => {
     return this.getState().appState
   }
 
-  getPagePoint = (point: number[]) => {
-    const { camera } = this.pageState
+  getPagePoint = (point: number[], pageId = this.currentPageId) => {
+    const { camera } = this.getPageState(pageId)
     return Vec.sub(Vec.div(point, camera.zoom), camera.point)
   }
 
   /* ----------------------- UI ----------------------- */
   toggleStylePanel = () => {
-    this.setState((data) => ({
-      appState: {
-        ...data.appState,
-        isStyleOpen: !data.appState.isStyleOpen,
+    return this.produce(
+      {
+        appState: {
+          isStyleOpen: !this.appState.isStyleOpen,
+        },
       },
-    }))
-    return this
+      'ui:toggled_style_panel'
+    )
   }
 
   /* -------------------- Settings -------------------- */
   togglePenMode = () => {
-    this.setState((data) => ({
-      settings: {
-        ...data.settings,
-        isPenMode: !data.settings.isPenMode,
+    return this.produce(
+      {
+        settings: {
+          isPenMode: !this.data.settings.isPenMode,
+        },
       },
-    }))
-    return this
+      `settings:toggled_pen_mode`
+    )
   }
+
   toggleDarkMode = () => {
-    this.setState((data) => ({
-      settings: {
-        ...data.settings,
-        isDarkMode: !data.settings.isDarkMode,
+    return this.produce(
+      {
+        settings: {
+          isDarkMode: !this.data.settings.isDarkMode,
+        },
       },
-    }))
-    return this
+      `settings:toggled_dark_mode`
+    )
   }
   /* --------------------- Status --------------------- */
   // setStatus(status: TLDrawStatus) {
@@ -327,38 +356,53 @@ export class TLDrawState implements TLCallbacks {
         pages: {
           page: {
             ...initialData.document.pages.page,
+            id: 'page',
             shapes: {},
             bindings: {},
+          },
+        },
+        pageStates: {
+          page: {
+            id: 'page',
+            selectedIds: [],
+            camera: {
+              point: [0, 0],
+              zoom: 1,
+            },
           },
         },
       },
     }
 
     this.setState(emptyData)
-    this._onChange?.(this, `reset`)
+    this._onChange?.(this.data, `reset`)
     return this
   }
 
   selectTool = (tool: TLDrawShapeType | 'select') => {
-    this.setState((data) => ({
-      appState: {
-        ...data.appState,
-        activeTool: tool,
-        activeToolType:
-          tool === 'select' ? 'select' : TLDR.getShapeUtils({ type: tool } as TLDrawShape).toolType,
+    return this.produce(
+      {
+        appState: {
+          activeTool: tool,
+          activeToolType:
+            tool === 'select'
+              ? 'select'
+              : TLDR.getShapeUtils({ type: tool } as TLDrawShape).toolType,
+        },
       },
-    }))
-    return this
+      `selected_tool:${tool}`
+    )
   }
 
   toggleToolLock = () => {
-    this.setState((data) => ({
-      appState: {
-        ...data.appState,
-        isToolLocked: true,
+    return this.produce(
+      {
+        appState: {
+          isToolLocked: true,
+        },
       },
-    }))
-    return this
+      `toggled_tool_lock`
+    )
   }
 
   /* --------------------- Camera --------------------- */
@@ -391,13 +435,11 @@ export class TLDrawState implements TLCallbacks {
     const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
     const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
 
-    this.setState((data) => {
-      return {
+    return this.produce(
+      {
         document: {
-          ...data.document,
           pageStates: {
             [this.currentPageId]: {
-              ...data.document.pageStates[this.currentPageId],
               camera: {
                 point: Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
                 zoom,
@@ -405,33 +447,32 @@ export class TLDrawState implements TLCallbacks {
             },
           },
         },
-      }
-    })
+      },
+      `zoomed_to_fit`
+    )
 
     return this
   }
 
   zoomToSelection = () => {
-    if (this.getPageState().selectedIds.length === 0) return
+    if (this.pageState.selectedIds.length === 0) return
 
-    this.setState((data) => {
-      const bounds = TLDR.getSelectedBounds(data)
+    const bounds = TLDR.getSelectedBounds(this.data)
 
-      const zoom = TLDR.getCameraZoom(
-        bounds.width > bounds.height
-          ? (window.innerWidth - 128) / bounds.width
-          : (window.innerHeight - 128) / bounds.height
-      )
+    const zoom = TLDR.getCameraZoom(
+      bounds.width > bounds.height
+        ? (window.innerWidth - 128) / bounds.width
+        : (window.innerHeight - 128) / bounds.height
+    )
 
-      const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-      const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
+    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
 
-      return {
+    return this.produce(
+      {
         document: {
-          ...data.document,
           pageStates: {
             [this.currentPageId]: {
-              ...data.document.pageStates[this.currentPageId],
               camera: {
                 point: Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
                 zoom,
@@ -439,20 +480,17 @@ export class TLDrawState implements TLCallbacks {
             },
           },
         },
-      }
-    })
-
-    return this
+      },
+      `zoomed_to_selection`
+    )
   }
 
   resetCamera = () => {
-    this.setState((data) => {
-      return {
+    return this.produce(
+      {
         document: {
-          ...data.document,
           pageStates: {
             [this.currentPageId]: {
-              ...data.document.pageStates[this.currentPageId],
               camera: {
                 point: Vec.round([window.innerWidth / 2, window.innerHeight / 2]),
                 zoom: 1,
@@ -460,41 +498,36 @@ export class TLDrawState implements TLCallbacks {
             },
           },
         },
-      }
-    })
-
-    return this
+      },
+      `reset_camera`
+    )
   }
 
   zoomToContent = () => {
     const shapes = this.getShapes()
-    const pageState = this.getPageState()
+    const pageState = this.pageState
     if (shapes.length === 0) return
 
-    this.setState((data) => {
-      const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
+    const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
 
-      const { zoom } = pageState.camera
-      const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-      const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+    const { zoom } = pageState.camera
+    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
+    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
 
-      return {
+    return this.produce(
+      {
         document: {
-          ...data.document,
           pageStates: {
             [this.currentPageId]: {
-              ...data.document.pageStates[this.currentPageId],
               camera: {
-                ...data.document.pageStates[this.currentPageId].camera,
                 point: Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
               },
             },
           },
         },
-      }
-    })
-
-    return this
+      },
+      `zoomed_to_content`
+    )
   }
 
   zoomToActual = () => {
@@ -508,13 +541,11 @@ export class TLDrawState implements TLCallbacks {
     const p0 = Vec.sub(Vec.div(center, zoom), point)
     const p1 = Vec.sub(Vec.div(center, next), point)
 
-    this.setState((data) => {
-      return {
+    return this.produce(
+      {
         document: {
-          ...data.document,
           pageStates: {
             [this.currentPageId]: {
-              ...data.document.pageStates[this.currentPageId],
               camera: {
                 point: Vec.round(Vec.add(point, Vec.sub(p1, p0))),
                 zoom: next,
@@ -522,10 +553,9 @@ export class TLDrawState implements TLCallbacks {
             },
           },
         },
-      }
-    })
-
-    return this
+      },
+      `zoomed_camera`
+    )
   }
 
   zoom = Utils.throttle((delta: number) => {
@@ -538,23 +568,20 @@ export class TLDrawState implements TLCallbacks {
   pan = (delta: number[]) => {
     const { camera } = this.pageState
 
-    this.setState((data) => {
-      return {
+    return this.produce(
+      {
         document: {
-          ...data.document,
           pageStates: {
             [this.currentPageId]: {
-              ...data.document.pageStates[this.currentPageId],
               camera: {
-                ...camera,
                 point: Vec.round(Vec.sub(camera.point, delta)),
               },
             },
           },
         },
-      }
-    })
-    return this
+      },
+      `panned`
+    )
   }
 
   pinchZoom = (point: number[], delta: number[], zoomDelta: number) => {
@@ -564,13 +591,11 @@ export class TLDrawState implements TLCallbacks {
     const p0 = Vec.sub(Vec.div(point, camera.zoom), nextPoint)
     const p1 = Vec.sub(Vec.div(point, nextZoom), nextPoint)
 
-    this.setState((data) => {
-      return {
+    return this.produce(
+      {
         document: {
-          ...data.document,
           pageStates: {
             [this.currentPageId]: {
-              ...data.document.pageStates[this.currentPageId],
               camera: {
                 point: Vec.round(Vec.add(nextPoint, Vec.sub(p1, p0))),
                 zoom: nextZoom,
@@ -578,44 +603,63 @@ export class TLDrawState implements TLCallbacks {
             },
           },
         },
-      }
-    })
-    return this
+      },
+      `pinch_zoomed`
+    )
   }
 
   /* -------------------------------------------------- */
   /*                      Document                      */
   /* -------------------------------------------------- */
 
-  private setCurrentPageId(pageId: string) {
-    if (pageId === this.currentPageId) return this
-
-    this.currentPageId = pageId
-
-    this.setState((data) => ({
-      appState: {
-        ...data.appState,
-        currentPageId: pageId,
-      },
-    }))
-
-    return this
-  }
-
   loadDocument = (document: TLDrawDocument, onChange?: TLDrawState['_onChange']) => {
     this._onChange = onChange
-    this.document = Utils.deepClone(document)
-    this.currentPageId = Object.keys(document.pages)[0]
+
+    this.history.pointer = -1
+    this.history.stack = []
+
     this.selectHistory.pointer = 0
     this.selectHistory.stack = [[]]
 
-    this.setState((data) => ({
-      document: this.document,
+    let i = 1
+
+    this.data = {
+      ...this.data,
       appState: {
-        ...data.appState,
-        currentPageId: this.currentPageId,
+        ...this.appState,
+        currentPageId: Object.keys(document.pages)[0],
       },
-    }))
+      document: {
+        ...document,
+        pages: Object.fromEntries(
+          Object.entries(document.pages).map(([id, page]) => {
+            return [
+              id,
+              {
+                ...page,
+                name: page.name ? page.name : `Page ${i++}`,
+              },
+            ]
+          })
+        ),
+        pageStates: Object.fromEntries(
+          Object.entries(document.pageStates).map(([id, pageState]) => {
+            return [
+              id,
+              {
+                ...pageState,
+                bindingId: undefined,
+                editingId: undefined,
+                hoveredId: undefined,
+                pointedId: undefined,
+              },
+            ]
+          })
+        ),
+      },
+    }
+
+    this.store.setState(this.data)
 
     return this
   }
@@ -644,19 +688,29 @@ export class TLDrawState implements TLCallbacks {
     this.session = session
     const result = session.start(this.getState(), ...args)
     if (result) {
-      this.setState((data) => Utils.deepMerge<Data>(data, result), session.status)
+      this.produce(
+        {
+          ...result,
+          appState: {
+            ...result.appState,
+            status: {
+              current: session.status,
+              previous: this.appState.status.previous,
+            },
+          },
+        },
+        `session:start_${session.id}`
+      )
     } else {
       this.setStatus(session.status)
     }
-    this._onChange?.(this, `session:start_${session.id}`)
     return this
   }
 
   updateSession<T extends Session>(...args: ParametersExceptFirst<T['update']>) {
     const { session } = this
     if (!session) return this
-    this.setState((data) => Utils.deepMerge<Data>(data, session.update(data, ...args)))
-    this._onChange?.(this, `session:update:${session.id}`)
+    this.produce(session.update(this.data, ...args), `session:update:${session.id}`)
     return this
   }
 
@@ -666,51 +720,49 @@ export class TLDrawState implements TLCallbacks {
     this.session = undefined
 
     if (this.isCreating) {
-      const nextPage = { ...this.page }
-
-      const nextPageState = { ...this.pageState }
-
-      const nextAppState = { ...this.appState }
-
-      nextPage.shapes = {
-        ...nextPage.shapes,
-        ...Object.fromEntries(nextPageState.selectedIds.map((id) => [id, undefined] as any)),
-      }
-
-      nextPageState.selectedIds = []
-      nextPageState.editingId = undefined
-      nextPageState.bindingId = undefined
-      nextPageState.hoveredId = undefined
-
-      nextAppState.status = {
-        current: TLDrawStatus.Idle,
-        previous: this.appState.status.previous,
-      }
-
-      this.setState((data) => ({
-        ...data,
-        document: {
-          ...data.document,
-          pages: {
-            ...data.document.pages,
-            [this.currentPageId]: nextPage,
+      this.produce(
+        {
+          appState: {
+            status: {
+              current: TLDrawStatus.Idle,
+              previous: this.appState.status.previous,
+            },
           },
-          pageStates: {
-            ...data.document.pageStates,
-            [this.currentPageId]: nextPageState,
+          document: {
+            pages: {
+              [this.currentPageId]: {
+                shapes: {
+                  ...Object.fromEntries(this.selectedIds.map((id) => [id, undefined] as any)),
+                },
+              },
+            },
+            pageStates: {
+              [this.currentPageId]: {
+                selectedIds: [],
+                editingId: undefined,
+                bindingId: undefined,
+                hoveredId: undefined,
+              },
+            },
           },
-          appState: nextAppState,
         },
-      }))
+        `session:cancel_create:${session.id}`
+      )
 
       this.isCreating = false
-      this._onChange?.(this, `session:cancel_create:${session.id}`)
     } else {
-      this.setState(
-        (data) => Utils.deepMerge<Data>(data, session.cancel(data, ...args)),
-        TLDrawStatus.Idle
+      this.produce(
+        {
+          ...session.cancel(this.data, ...args),
+          appState: {
+            status: {
+              current: TLDrawStatus.Idle,
+              previous: this.appState.status.current,
+            },
+          },
+        },
+        `session:cancel:${session.id}`
       )
-      this._onChange?.(this, `session:cancel:${session.id}`)
     }
 
     return this
@@ -720,21 +772,23 @@ export class TLDrawState implements TLCallbacks {
     const { session } = this
     if (!session) return this
 
-    const current = this.getState()
-
-    const result = session.complete(current, ...args)
-
-    const { isToolLocked, activeTool } = this.appState
-
-    if (!isToolLocked && activeTool !== 'draw') {
-      this.selectTool('select')
-    }
+    const result = session.complete(this.data, ...args)
 
     this.session = undefined
 
     if (result === undefined) {
+      this.produce(
+        {
+          appState: {
+            status: {
+              current: TLDrawStatus.Idle,
+              previous: this.appState.status.previous,
+            },
+          },
+        },
+        `session:complete:${session.id}`
+      )
       this.isCreating = false
-      this._onChange?.(this, `session:complete:${session.id}`)
     } else if ('after' in result) {
       // Session ended with a command
 
@@ -761,12 +815,40 @@ export class TLDrawState implements TLCallbacks {
         }
       }
 
+      result.after = {
+        ...result.after,
+        appState: {
+          ...result.after.appState,
+          status: {
+            current: TLDrawStatus.Idle,
+            previous: this.appState.status.previous,
+          },
+        },
+      }
+
       this.isCreating = false
 
       this.do(result)
     } else {
-      this.setState((data) => Utils.deepMerge<Data>(data, result), TLDrawStatus.Idle)
-      this._onChange?.(this, `session:complete:${session.id}`)
+      this.produce(
+        {
+          ...result,
+          appState: {
+            ...result.appState,
+            status: {
+              current: TLDrawStatus.Idle,
+              previous: this.appState.status.previous,
+            },
+          },
+        },
+        `session:complete:${session.id}`
+      )
+    }
+
+    const { isToolLocked, activeTool } = this.appState
+
+    if (!isToolLocked && activeTool !== 'draw') {
+      this.selectTool('select')
     }
 
     return this
@@ -787,19 +869,9 @@ export class TLDrawState implements TLCallbacks {
 
     history.pointer = history.stack.length - 1
 
-    this.setState(
-      (data) =>
-        Object.fromEntries(
-          Object.entries(command.after).map(([key, partial]) => {
-            return [key, Utils.deepMerge(data[key as keyof Data], partial)]
-          })
-        ),
-      TLDrawStatus.Idle
-    )
+    this.produce(command.after, `command:${command.id}`)
 
     this.clearSelectHistory()
-
-    this._onChange?.(this, `command:${command.id}`)
 
     return this
   }
@@ -811,21 +883,11 @@ export class TLDrawState implements TLCallbacks {
 
     const command = history.stack[history.pointer]
 
-    this.setState(
-      (data) =>
-        Object.fromEntries(
-          Object.entries(command.before).map(([key, partial]) => {
-            return [key, Utils.deepMerge(data[key as keyof Data], partial)]
-          })
-        ),
-      TLDrawStatus.Idle
-    )
+    this.produce(command.before, `undo:${command.id}`)
 
     history.pointer--
 
     this.clearSelectHistory()
-
-    this._onChange?.(this, `undo:${command.id}`)
 
     return this
   }
@@ -839,19 +901,9 @@ export class TLDrawState implements TLCallbacks {
 
     const command = history.stack[history.pointer]
 
-    this.setState(
-      (data) =>
-        Object.fromEntries(
-          Object.entries(command.after).map(([key, partial]) => {
-            return [key, Utils.deepMerge(data[key as keyof Data], partial)]
-          })
-        ),
-      TLDrawStatus.Idle
-    )
+    this.produce(command.after, `redo:${command.id}`)
 
     this.addToSelectHistory(this.selectedIds)
-
-    this._onChange?.(this, `redo:${command.id}`)
 
     return this
   }
@@ -861,20 +913,22 @@ export class TLDrawState implements TLCallbacks {
   /* -------------------------------------------------- */
 
   setSelectedIds(ids: string[], push = false) {
-    this.setState((data) => {
-      return {
+    return this.produce(
+      {
+        appState: {
+          activeTool: 'select',
+          activeToolType: 'select',
+        },
         document: {
-          ...data.document,
           pageStates: {
             [this.currentPageId]: {
-              ...this.pageState,
               selectedIds: push ? [...this.pageState.selectedIds, ...ids] : [...ids],
             },
           },
         },
-      }
-    })
-    return this
+      },
+      `selected`
+    )
   }
 
   private clearSelectHistory() {
@@ -911,44 +965,13 @@ export class TLDrawState implements TLCallbacks {
   }
 
   selectAll = () => {
-    this.setState((data) => ({
-      appState: {
-        ...this.appState,
-        activeTool: 'select',
-        activeToolType: 'select',
-      },
-      document: {
-        ...data.document,
-        pageStates: {
-          [this.currentPageId]: {
-            ...this.pageState,
-            selectedIds: Object.keys(this.page.shapes),
-          },
-        },
-      },
-    }))
+    this.setSelectedIds(Object.keys(this.page.shapes))
     this.addToSelectHistory(this.selectedIds)
     return this
   }
 
   deselectAll = () => {
-    this.setState((data) => ({
-      appState: {
-        ...this.appState,
-        activeTool: 'select',
-        activeToolType: 'select',
-      },
-      document: {
-        ...data.document,
-        pageStates: {
-          [this.currentPageId]: {
-            ...this.pageState,
-            selectedIds: [],
-          },
-        },
-      },
-    }))
-
+    this.setSelectedIds([])
     this.addToSelectHistory(this.selectedIds)
 
     return this
@@ -1145,94 +1168,28 @@ export class TLDrawState implements TLCallbacks {
   }
 
   createPage() {
-    const newId = Utils.uniqueId()
-    this.setState((data) => ({
-      document: {
-        ...data.document,
-        pages: {
-          ...data.document.pages,
-          [newId]: { id: newId, shapes: {}, bindings: {} },
-        },
-        pageStates: {
-          ...data.document.pageStates,
-          [newId]: {
-            id: newId,
-            selectedIds: [],
-            camera: { point: [-window.innerWidth / 2, -window.innerHeight / 2], zoom: 1 },
-          },
-        },
-      },
-    }))
-
-    this.changePage(newId)
+    this.do(Commands.createPage(this.data))
     return this
   }
 
-  changePage(id: string) {
-    this.setCurrentPageId(id)
+  changePage(pageId: string) {
+    this.do(Commands.changePage(this.data, pageId))
     return this
   }
 
-  renamePage(id: string, name: string) {
-    this.document.pages[id] = { ...this.document.pages[id], name }
+  renamePage(pageId: string, name: string) {
+    this.do(Commands.renamePage(this.data, pageId, name))
     return this
   }
 
-  duplicatePage(id: string = this.currentPageId) {
-    const newId = Utils.uniqueId()
-
-    this.setState((data) => ({
-      document: {
-        ...data.document,
-        pages: {
-          ...data.document.pages,
-          [newId]: { ...this.document.pages[id], id: newId },
-        },
-        pageStates: {
-          ...data.document.pageStates,
-          [newId]: {
-            id: newId,
-            selectedIds: [],
-            camera: this.document.pageStates[id].camera,
-          },
-        },
-      },
-    }))
-
-    this.changePage(newId)
+  duplicatePage(pageId: string) {
+    this.do(Commands.duplicatePage(this.data, pageId))
     return this
   }
 
-  deletePage(id: string = this.currentPageId) {
-    const pages = Object.values(this.document.pages).sort(
-      (a, b) => (a.childIndex || 0) - (b.childIndex || 0)
-    )
-
-    const currentIndex = pages.findIndex((page) => page.id === this.currentPageId)
-
+  deletePage(pageId?: string) {
     if (Object.values(this.document.pages).length <= 1) return
-
-    const nextPages = { ...this.document.pages }
-    const nextPageStates = { ...this.document.pageStates }
-    delete nextPages[id]
-    delete nextPageStates[id]
-
-    this.setState((data) => ({
-      document: {
-        ...data.document,
-        pages: nextPages,
-        pageStates: nextPageStates,
-      },
-    }))
-
-    if (id === this.currentPageId) {
-      if (currentIndex === pages.length - 1) {
-        this.changePage(pages[pages.length - 2].id)
-      } else {
-        this.changePage(pages[currentIndex + 1].id)
-      }
-    }
-
+    this.do(Commands.deletePage(this.data, pageId ? pageId : this.currentPageId))
     return this
   }
 
@@ -1241,12 +1198,12 @@ export class TLDrawState implements TLCallbacks {
     const idsToCopy = ids ? ids : this.selectedIds
 
     this.clipboard = idsToCopy.map((id) => {
-      const shape = this.getShape(id)
+      const shape = this.getShape(id, this.currentPageId)
 
       return {
         ...shape,
         id: Utils.uniqueId(),
-        childIndex: TLDR.getChildIndexAbove(data, id),
+        childIndex: TLDR.getChildIndexAbove(data, id, this.currentPageId),
       }
     })
 
@@ -1255,12 +1212,21 @@ export class TLDrawState implements TLCallbacks {
 
   paste = (string?: string) => {
     const { data } = this
+
     if (string) {
+      // Parse shapes from string
       try {
-        const jsonShapes = JSON.parse(string)
+        const jsonShapes: TLDrawShape[] = JSON.parse(string)
+
+        jsonShapes.forEach((shape) => {
+          if (shape.parentId !== this.currentPageId) {
+            shape.parentId = this.currentPageId
+          }
+        })
+
         this.create(...jsonShapes)
       } catch (e) {
-        // Create a text shape from the given string
+        // Create text shape
         const childIndex =
           this.getShapes().sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
 
@@ -1286,16 +1252,17 @@ export class TLDrawState implements TLCallbacks {
           })
         )
       }
+
+      return
     }
 
     if (!this.clipboard) return this
 
-    const shapesToPaste = this.clipboard.map((shape) => {
-      return {
-        ...shape,
-        id: Utils.uniqueId(),
-      }
-    })
+    const shapesToPaste = this.clipboard.map((shape) => ({
+      ...shape,
+      id: Utils.uniqueId(),
+      parentId: this.currentPageId,
+    }))
 
     const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
 
@@ -1395,7 +1362,6 @@ export class TLDrawState implements TLCallbacks {
   }
 
   startTextSession = (id?: string) => {
-    this.editingId = id
     this.startSession(new Sessions.TextSession(this.store.getState(), id))
     return this
   }
@@ -1517,55 +1483,52 @@ export class TLDrawState implements TLCallbacks {
     const id = Utils.uniqueId()
     const pagePoint = Vec.round(this.getPagePoint(point))
 
-    this.setState((data) => {
-      const { activeTool, activeToolType } = data.appState
+    if (this.appState.activeTool === 'select') return
 
-      if (activeTool === 'select') return data
+    if (!this.appState.activeToolType) throw Error
 
-      if (!activeToolType) throw Error
+    const utils = TLDR.getShapeUtils({ type: this.appState.activeTool } as TLDrawShape)
 
-      const utils = TLDR.getShapeUtils({ type: activeTool } as TLDrawShape)
+    const shapes = this.getShapes()
 
-      const shapes = this.getShapes()
+    const childIndex =
+      shapes.length === 0 ? 1 : shapes.sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
 
-      const childIndex =
-        shapes.length === 0
-          ? 1
-          : shapes.sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
-
-      return {
+    this.produce(
+      {
+        appState: {
+          status: {
+            current: TLDrawStatus.Creating,
+            previous: this.appState.status.current,
+          },
+        },
         document: {
-          ...data.document,
           pages: {
-            ...data.document.pages,
             [this.currentPageId]: {
-              ...this.page,
               shapes: {
-                ...this.page.shapes,
                 [id]: utils.create({
                   id,
                   parentId: this.currentPageId,
                   childIndex,
                   point: pagePoint,
-                  style: { ...data.appState.currentStyle },
+                  style: { ...this.appState.currentStyle },
                 }),
               },
             },
           },
           pageStates: {
-            ...data.document.pageStates,
             [this.currentPageId]: {
-              ...this.pageState,
               selectedIds: [id],
             },
           },
         },
-      }
-    }, TLDrawStatus.Creating)
+      },
+      `started_creating:${this.appState.activeTool}`
+    )
 
     this.isCreating = true
 
-    const { activeTool, activeToolType } = this.getAppState()
+    const { activeTool, activeToolType } = this.appState
 
     switch (activeToolType) {
       case TLDrawToolType.Draw: {
@@ -1708,8 +1671,8 @@ export class TLDrawState implements TLCallbacks {
     if (this.status.current === TLDrawStatus.Pinching) return
     // TODO: Pan and pinchzoom are firing at the same time. Considering turning one of them off!
 
-    const delta = Vec.div(info.delta, this.getPageState().camera.zoom)
-    const prev = this.getPageState().camera.point
+    const delta = Vec.div(info.delta, this.pageState.camera.zoom)
+    const prev = this.pageState.camera.point
     const next = Vec.sub(prev, delta)
 
     if (Vec.isEqual(next, prev)) return
@@ -1754,8 +1717,6 @@ export class TLDrawState implements TLCallbacks {
   }
 
   onPointerUp: TLPointerEventHandler = (info) => {
-    const data = this.getState()
-
     switch (this.status.current) {
       case TLDrawStatus.PointingBounds: {
         if (info.target === 'bounds') {
@@ -1927,33 +1888,36 @@ export class TLDrawState implements TLCallbacks {
   }
 
   onHoverShape: TLPointerEventHandler = (info) => {
-    this.setState((data) => ({
-      document: {
-        ...data.document,
-        pageStates: {
-          [this.currentPageId]: {
-            ...this.pageState,
-            hoveredId: info.target,
+    this.produce(
+      {
+        document: {
+          pageStates: {
+            [this.currentPageId]: {
+              hoveredId: info.target,
+            },
           },
         },
       },
-    }))
+      `hovered_shape:${info.target}`
+    )
   }
 
   onUnhoverShape: TLPointerEventHandler = (info) => {
+    const { currentPageId } = this
     setTimeout(() => {
-      if (this.pageState.hoveredId === info.target) {
-        this.setState((data) => ({
-          document: {
-            ...data.document,
-            pageStates: {
-              [this.currentPageId]: {
-                ...this.pageState,
-                hoveredId: undefined,
+      if (currentPageId === this.currentPageId && this.pageState.hoveredId === info.target) {
+        this.produce(
+          {
+            document: {
+              pageStates: {
+                [this.currentPageId]: {
+                  hoveredId: undefined,
+                },
               },
             },
           },
-        }))
+          `unhovered_shape:${info.target}`
+        )
       }
     }, 10)
   }
@@ -2084,19 +2048,23 @@ export class TLDrawState implements TLCallbacks {
   onChange = (ids: string[]) => {
     const appState = this.getAppState()
     if (appState.isEmptyCanvas && ids.length > 0) {
-      this.setState((data) => ({
-        appState: {
-          ...data.appState,
-          isEmptyCanvas: false,
+      this.produce(
+        {
+          appState: {
+            isEmptyCanvas: false,
+          },
         },
-      }))
+        'empty_canvas:false'
+      )
     } else if (!appState.isEmptyCanvas && ids.length <= 0) {
-      this.setState((data) => ({
-        appState: {
-          ...data.appState,
-          isEmptyCanvas: true,
+      this.produce(
+        {
+          appState: {
+            isEmptyCanvas: false,
+          },
         },
-      }))
+        'empty_canvas:true'
+      )
     }
   }
 
@@ -2108,34 +2076,38 @@ export class TLDrawState implements TLCallbacks {
     this.completeSession()
   }
 
-  get data() {
-    return this.getState()
-  }
-
   get selectedIds() {
     return this.pageState.selectedIds
   }
   get page() {
-    return this.getPage()
+    return this.data.document.pages[this.currentPageId]
   }
 
   get shapes() {
-    return this.getShapes()
+    return Object.values(this.page.shapes)
   }
 
   get bindings() {
-    return this.getBindings()
+    return Object.values(this.page.bindings)
   }
 
   get pageState() {
-    return this.getPageState()
+    return this.data.document.pageStates[this.currentPageId]
   }
 
   get appState() {
-    return this.getAppState()
+    return this.data.appState
   }
 
   get status() {
     return this.appState.status
+  }
+
+  get currentPageId() {
+    return this.data.appState.currentPageId
+  }
+
+  get document() {
+    return this.data.document
   }
 }

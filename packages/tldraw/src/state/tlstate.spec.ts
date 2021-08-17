@@ -28,6 +28,22 @@ describe('TLDrawState', () => {
 
       expect(Object.keys(tlstate.page.shapes).length).toBe(prevCount + 1)
     })
+
+    it('pastes a shape to a new page', () => {
+      tlstate.loadDocument(mockDocument)
+
+      tlstate.deselectAll().copy(['rect1']).createPage().paste()
+
+      expect(Object.keys(tlstate.page.shapes).length).toBe(1)
+
+      tlstate.undo()
+
+      expect(Object.keys(tlstate.page.shapes).length).toBe(0)
+
+      tlstate.redo()
+
+      expect(Object.keys(tlstate.page.shapes).length).toBe(1)
+    })
   })
 
   describe('Selection', () => {

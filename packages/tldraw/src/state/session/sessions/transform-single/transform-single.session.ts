@@ -35,7 +35,7 @@ export class TransformSingleSession implements Session {
 
     const shapes = {} as Record<string, Partial<TLDrawShape>>
 
-    const shape = TLDR.getShape(data, id)
+    const shape = TLDR.getShape(data, id, data.appState.currentPageId)
 
     const utils = TLDR.getShapeUtils(shape)
 
@@ -95,7 +95,8 @@ export class TransformSingleSession implements Session {
     beforeShapes[initialShape.id] = initialShape
     afterShapes[initialShape.id] = TLDR.onSessionComplete(
       data,
-      TLDR.getShape(data, initialShape.id)
+      TLDR.getShape(data, initialShape.id, data.appState.currentPageId),
+      data.appState.currentPageId
     )
 
     return {
@@ -126,7 +127,11 @@ export function getTransformSingleSnapshot(
   data: Data,
   transformType: TLBoundsEdge | TLBoundsCorner
 ) {
-  const shape = TLDR.getShape(data, TLDR.getSelectedIds(data)[0])
+  const shape = TLDR.getShape(
+    data,
+    TLDR.getSelectedIds(data, data.appState.currentPageId)[0],
+    data.appState.currentPageId
+  )
 
   if (!shape) {
     throw Error('You must have one shape selected.')

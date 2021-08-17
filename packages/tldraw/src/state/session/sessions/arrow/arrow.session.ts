@@ -31,7 +31,7 @@ export class ArrowSession implements Session {
     const shapeId = pageState.selectedIds[0]
     this.origin = point
     this.handleId = handleId
-    this.initialShape = TLDR.getShape<ArrowShape>(data, shapeId)
+    this.initialShape = TLDR.getShape<ArrowShape>(data, shapeId, data.appState.currentPageId)
     this.bindableShapeIds = TLDR.getBindableShapeIds(data)
 
     const initialBindingId = this.initialShape.handles[this.handleId].bindingId
@@ -47,12 +47,11 @@ export class ArrowSession implements Session {
   start = (data: Data) => data
 
   update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean, metaKey: boolean) => {
-    const page = TLDR.getPage(data)
-    const pageState = TLDR.getPageState(data)
+    const page = TLDR.getPage(data, data.appState.currentPageId)
 
     const { initialShape } = this
 
-    const shape = TLDR.getShape<ArrowShape>(data, initialShape.id)
+    const shape = TLDR.getShape<ArrowShape>(data, initialShape.id, data.appState.currentPageId)
 
     const handles = shape.handles
 
@@ -102,7 +101,7 @@ export class ArrowSession implements Session {
           if (id === initialShape.id) continue
           if (id === oppositeBinding?.toId) continue
 
-          const target = TLDR.getShape(data, id)
+          const target = TLDR.getShape(data, id, data.appState.currentPageId)
 
           const util = TLDR.getShapeUtils(target)
 
@@ -231,12 +230,16 @@ export class ArrowSession implements Session {
 
   complete(data: Data) {
     const { initialShape, initialBinding, handleId } = this
-    const page = TLDR.getPage(data)
+    const page = TLDR.getPage(data, data.appState.currentPageId)
 
     const beforeBindings: Partial<Record<string, TLDrawBinding>> = {}
     const afterBindings: Partial<Record<string, TLDrawBinding>> = {}
 
-    const currentShape = TLDR.getShape<ArrowShape>(data, initialShape.id)
+    const currentShape = TLDR.getShape<ArrowShape>(
+      data,
+      initialShape.id,
+      data.appState.currentPageId
+    )
     const currentBindingId = currentShape.handles[handleId].bindingId
 
     if (initialBinding) {
@@ -275,7 +278,8 @@ export class ArrowSession implements Session {
               shapes: {
                 [initialShape.id]: TLDR.onSessionComplete(
                   data,
-                  TLDR.getShape(data, initialShape.id)
+                  TLDR.getShape(data, initialShape.id, data.appState.currentPageId),
+                  data.appState.currentPageId
                 ),
               },
               bindings: afterBindings,

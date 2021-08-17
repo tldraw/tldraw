@@ -2,6 +2,7 @@ import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 import { TLBoundsCorner, Utils } from '@tldraw/core'
 import { TLDR } from '~state/tldr'
+import { TLDrawStatus } from '~types'
 
 function getShapeBounds(tlstate: TLDrawState, ...ids: string[]) {
   return Utils.getCommonBounds(
@@ -29,6 +30,8 @@ describe('Transform session', () => {
       .startTransformSession([0, 0], TLBoundsCorner.TopLeft)
       .updateTransformSession([10, 10])
       .completeSession()
+
+    expect(tlstate.status.current).toBe(TLDrawStatus.Idle)
 
     expect(getShapeBounds(tlstate, 'rect1')).toMatchObject({
       minX: 10,

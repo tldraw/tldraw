@@ -2,16 +2,23 @@ import type { ShapeStyles, Command, Data } from '~types'
 import { TLDR } from '~state/tldr'
 
 export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>): Command {
-  const { before, after } = TLDR.mutateShapes(data, ids, (shape) => {
-    return { style: { ...shape.style, ...changes } }
-  })
+  const { currentPageId } = data.appState
+
+  const { before, after } = TLDR.mutateShapes(
+    data,
+    ids,
+    (shape) => {
+      return { style: { ...shape.style, ...changes } }
+    },
+    currentPageId
+  )
 
   return {
     id: 'style_shapes',
     before: {
       document: {
         pages: {
-          [data.appState.currentPageId]: { shapes: before },
+          [currentPageId]: { shapes: before },
         },
       },
       appState: {
@@ -21,7 +28,7 @@ export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>):
     after: {
       document: {
         pages: {
-          [data.appState.currentPageId]: { shapes: after },
+          [currentPageId]: { shapes: after },
         },
       },
       appState: {

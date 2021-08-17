@@ -33,7 +33,7 @@ delete doc.pages.page1.shapes['rect2']
 delete doc.pages.page1.shapes['rect3']
 
 function getSortedShapeIds(data: Data) {
-  return TLDR.getShapes(data)
+  return TLDR.getShapes(data, data.appState.currentPageId)
     .sort((a, b) => a.childIndex - b.childIndex)
     .map((shape) => shape.id)
     .join('')

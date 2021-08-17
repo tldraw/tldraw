@@ -6,6 +6,8 @@ import type { Data, Command, PagePartial } from '~types'
 // - [ ] Update parents and possibly delete parents
 
 export function deleteShapes(data: Data, ids: string[]): Command {
+  const { currentPageId } = data.appState
+
   const before: PagePartial = {
     shapes: {},
     bindings: {},
@@ -18,11 +20,11 @@ export function deleteShapes(data: Data, ids: string[]): Command {
 
   // These are the shapes we're definitely going to delete
   ids.forEach((id) => {
-    before.shapes[id] = TLDR.getShape(data, id)
+    before.shapes[id] = TLDR.getShape(data, id, currentPageId)
     after.shapes[id] = undefined
   })
 
-  const page = TLDR.getPage(data)
+  const page = TLDR.getPage(data, currentPageId)
 
   // We also need to delete bindings that reference the deleted shapes
   Object.values(page.bindings).forEach((binding) => {
@@ -34,7 +36,7 @@ export function deleteShapes(data: Data, ids: string[]): Command {
         after.bindings[binding.id] = undefined
 
         // Let's also look at the bound shape...
-        const shape = TLDR.getShape(data, id)
+        const shape = TLDR.getShape(data, id, currentPageId)
 
         // If the bound shape has a handle that references the deleted binding, delete that reference
         if (shape.handles) {
@@ -60,20 +62,20 @@ export function deleteShapes(data: Data, ids: string[]): Command {
     before: {
       document: {
         pages: {
-          [data.appState.currentPageId]: before,
+          [currentPageId]: before,
         },
         pageStates: {
-          [data.appState.currentPageId]: { selectedIds: TLDR.getSelectedIds(data) },
+          [currentPageId]: { selectedIds: TLDR.getSelectedIds(data, currentPageId) },
         },
       },
     },
     after: {
       document: {
         pages: {
-          [data.appState.currentPageId]: after,
+          [currentPageId]: after,
         },
         pageStates: {
-          [data.appState.currentPageId]: { selectedIds: [] },
+          [currentPageId]: { selectedIds: [] },
         },
       },
     },

@@ -17,12 +17,16 @@ describe('Change page command', () => {
 
     expect(tlstate.page.id).toBe(initialId)
 
-    tlstate.undo()
+    tlstate.changePage(nextId)
 
     expect(tlstate.page.id).toBe(nextId)
 
-    tlstate.redo()
+    tlstate.undo()
 
     expect(tlstate.page.id).toBe(initialId)
+
+    tlstate.redo()
+
+    expect(tlstate.page.id).toBe(nextId)
   })
 })

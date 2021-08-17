@@ -13,14 +13,19 @@ export function translate(data: Data, ids: string[], delta: number[]): Command {
     bindings: {},
   }
 
-  const change = TLDR.mutateShapes(data, ids, (shape) => ({
-    point: Vec.round(Vec.add(shape.point, delta)),
-  }))
+  const change = TLDR.mutateShapes(
+    data,
+    ids,
+    (shape) => ({
+      point: Vec.round(Vec.add(shape.point, delta)),
+    }),
+    data.appState.currentPageId
+  )
 
   before.shapes = change.before
   after.shapes = change.after
 
-  const bindingsToDelete = TLDR.getRelatedBindings(data, ids)
+  const bindingsToDelete = TLDR.getRelatedBindings(data, ids, data.appState.currentPageId)
 
   bindingsToDelete.forEach((binding) => {
     before.bindings[binding.id] = binding
@@ -28,7 +33,7 @@ export function translate(data: Data, ids: string[], delta: number[]): Command {
 
     for (const id of [binding.toId, binding.fromId]) {
       // Let's also look at the bound shape...
-      const shape = TLDR.getShape(data, id)
+      const shape = TLDR.getShape(data, id, data.appState.currentPageId)
 
       // If the bound shape has a handle that references the deleted binding, delete that reference
       if (!shape.handles) continue

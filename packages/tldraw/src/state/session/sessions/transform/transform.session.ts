@@ -32,7 +32,7 @@ export class TransformSession implements Session {
 
     const shapes = {} as Record<string, TLDrawShape>
 
-    const pageState = TLDR.getPageState(data)
+    const pageState = TLDR.getPageState(data, data.appState.currentPageId)
 
     const newBoundingBox = Utils.getTransformedBoundingBox(
       initialBounds,
@@ -56,13 +56,19 @@ export class TransformSession implements Session {
         this.scaleY < 0
       )
 
-      shapes[id] = TLDR.transform(data, TLDR.getShape(data, id), newShapeBounds, {
-        type: this.transformType,
-        initialShape,
-        scaleX: this.scaleX,
-        scaleY: this.scaleY,
-        transformOrigin,
-      })
+      shapes[id] = TLDR.transform(
+        data,
+        TLDR.getShape(data, id, data.appState.currentPageId),
+        newShapeBounds,
+        {
+          type: this.transformType,
+          initialShape,
+          scaleX: this.scaleX,
+          scaleY: this.scaleY,
+          transformOrigin,
+        },
+        data.appState.currentPageId
+      )
     })
 
     return {
@@ -104,7 +110,7 @@ export class TransformSession implements Session {
 
     shapeBounds.forEach((shape) => {
       beforeShapes[shape.id] = shape.initialShape
-      afterShapes[shape.id] = TLDR.getShape(data, shape.id)
+      afterShapes[shape.id] = TLDR.getShape(data, shape.id, data.appState.currentPageId)
     })
 
     return {
@@ -132,7 +138,7 @@ export class TransformSession implements Session {
 }
 
 export function getTransformSnapshot(data: Data, transformType: TLBoundsEdge | TLBoundsCorner) {
-  const initialShapes = TLDR.getSelectedBranchSnapshot(data)
+  const initialShapes = TLDR.getSelectedBranchSnapshot(data, data.appState.currentPageId)
 
   const hasUnlockedShapes = initialShapes.length > 0
 

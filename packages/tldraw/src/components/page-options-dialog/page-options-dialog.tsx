@@ -15,7 +15,7 @@ import type { Data, TLDrawPage } from '~types'
 import { useTLDrawContext } from '~hooks'
 
 const canDeleteSelector = (s: Data) => {
-  return Object.keys(s.document.pages).length <= 1
+  return Object.keys(s.document.pages).length > 1
 }
 
 export function PageOptionsDialog({ page }: { page: TLDrawPage }): JSX.Element {

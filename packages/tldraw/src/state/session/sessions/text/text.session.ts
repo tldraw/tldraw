@@ -9,14 +9,16 @@ export class TextSession implements Session {
   initialShape: TextShape
 
   constructor(data: Data, id?: string) {
-    this.initialShape = TLDR.getShape(data, id || TLDR.getSelectedIds(data)[0])
+    const pageId = data.appState.currentPageId
+    this.initialShape = TLDR.getShape(data, id || TLDR.getSelectedIds(data, pageId)[0], pageId)
   }
 
   start = (data: Data) => {
+    const pageId = data.appState.currentPageId
     return {
       document: {
         pageStates: {
-          [data.appState.currentPageId]: {
+          [pageId]: {
             editingId: this.initialShape.id,
           },
         },
@@ -25,12 +27,11 @@ export class TextSession implements Session {
   }
 
   update = (data: Data, text: string) => {
-    const {
-      initialShape: { id },
-    } = this
+    const { initialShape } = this
+    const pageId = data.appState.currentPageId
 
     let nextShape: TextShape = {
-      ...TLDR.getShape<TextShape>(data, id),
+      ...TLDR.getShape<TextShape>(data, initialShape.id, pageId),
       text,
     }
 
@@ -42,9 +43,9 @@ export class TextSession implements Session {
     return {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [pageId]: {
             shapes: {
-              [id]: nextShape,
+              [initialShape.id]: nextShape,
             },
           },
         },
@@ -53,21 +54,24 @@ export class TextSession implements Session {
   }
 
   cancel = (data: Data) => {
-    const {
-      initialShape: { id },
-    } = this
+    const { initialShape } = this
+    const pageId = data.appState.currentPageId
 
     return {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [pageId]: {
             shapes: {
-              [id]: TLDR.onSessionComplete(data, TLDR.getShape(data, id)),
+              [initialShape.id]: TLDR.onSessionComplete(
+                data,
+                TLDR.getShape(data, initialShape.id, pageId),
+                pageId
+              ),
             },
           },
         },
         pageState: {
-          [data.appState.currentPageId]: {
+          [pageId]: {
             editingId: undefined,
           },
         },
@@ -77,8 +81,9 @@ export class TextSession implements Session {
 
   complete(data: Data) {
     const { initialShape } = this
+    const pageId = data.appState.currentPageId
 
-    const shape = TLDR.getShape<TextShape>(data, initialShape.id)
+    const shape = TLDR.getShape<TextShape>(data, initialShape.id, pageId)
 
     if (shape.text === initialShape.text) return undefined
 
@@ -87,14 +92,14 @@ export class TextSession implements Session {
       before: {
         document: {
           pages: {
-            [data.appState.currentPageId]: {
+            [pageId]: {
               shapes: {
                 [initialShape.id]: initialShape,
               },
             },
           },
           pageState: {
-            [data.appState.currentPageId]: {
+            [pageId]: {
               editingId: undefined,
             },
           },
@@ -103,17 +108,18 @@ export class TextSession implements Session {
       after: {
         document: {
           pages: {
-            [data.appState.currentPageId]: {
+            [pageId]: {
               shapes: {
                 [initialShape.id]: TLDR.onSessionComplete(
                   data,
-                  TLDR.getShape(data, initialShape.id)
+                  TLDR.getShape(data, initialShape.id, pageId),
+                  pageId
                 ),
               },
             },
           },
           pageState: {
-            [data.appState.currentPageId]: {
+            [pageId]: {
               editingId: undefined,
             },
           },

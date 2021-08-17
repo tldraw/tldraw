@@ -1,5 +1,6 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
+import { TLDrawStatus } from '~types'
 
 describe('Brush session', () => {
   const tlstate = new TLDrawState()
@@ -33,6 +34,8 @@ describe('Brush session', () => {
     expect(tlstate.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
 
     tlstate.completeSession()
+
+    expect(tlstate.status.current).toBe(TLDrawStatus.Idle)
 
     tlstate.undo()
 

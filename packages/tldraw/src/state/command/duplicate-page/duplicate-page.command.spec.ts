@@ -9,7 +9,7 @@ describe('Duplicate page', () => {
 
     const initialId = tlstate.page.id
 
-    tlstate.duplicatePage()
+    tlstate.duplicatePage(tlstate.currentPageId)
 
     const nextId = tlstate.page.id
 

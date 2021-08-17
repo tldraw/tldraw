@@ -1,6 +1,7 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 import { TLBoundsCorner } from '@tldraw/core'
+import { TLDrawStatus } from '~types'
 
 describe('Transform single session', () => {
   const tlstate = new TLDrawState()
@@ -12,8 +13,10 @@ describe('Transform single session', () => {
       .startTransformSession([-10, -10], TLBoundsCorner.TopLeft)
       .updateTransformSession([10, 10])
       .completeSession()
-      .undo()
-      .redo()
+
+    expect(tlstate.status.current).toBe(TLDrawStatus.Idle)
+
+    tlstate.undo().redo()
   })
 
   it('cancels session', () => {

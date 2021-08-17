@@ -1,10 +1,22 @@
-import type { TLDrawShape, Data, Command } from '~types'
-import { TLDR } from '~state/tldr'
+import type { Data, Command } from '~types'
 
-export function editPage(data: Data, id: string): Command {
+export function renamePage(data: Data, pageId: string, name: string): Command {
+  const page = data.document.pages[pageId]
   return {
-    id: 'edit_page',
-    before: {},
-    after: {},
+    id: 'rename_page',
+    before: {
+      document: {
+        pages: {
+          [pageId]: { name: page.name },
+        },
+      },
+    },
+    after: {
+      document: {
+        pages: {
+          [pageId]: { name: name },
+        },
+      },
+    },
   }
 }

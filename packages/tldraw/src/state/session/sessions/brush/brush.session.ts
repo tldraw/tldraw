@@ -19,6 +19,7 @@ export class BrushSession implements Session {
 
   update = (data: Data, point: number[], containMode = false): DeepPartial<Data> => {
     const { snapshot, origin } = this
+    const { currentPageId } = data.appState
 
     // Create a bounding box between the origin and the new point
     const brush = Utils.getBoundsFromPoints([origin, point])
@@ -29,8 +30,8 @@ export class BrushSession implements Session {
     const hits = new Set<string>()
     const selectedIds = new Set(snapshot.selectedIds)
 
-    const page = TLDR.getPage(data)
-    const pageState = TLDR.getPageState(data)
+    const page = TLDR.getPage(data, currentPageId)
+    const pageState = TLDR.getPageState(data, currentPageId)
 
     snapshot.shapesToTest.forEach(({ id, util, selectId }) => {
       if (selectedIds.has(id)) return
@@ -65,7 +66,7 @@ export class BrushSession implements Session {
     return {
       document: {
         pageStates: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             selectedIds: Array.from(selectedIds.values()),
           },
         },
@@ -74,10 +75,11 @@ export class BrushSession implements Session {
   }
 
   cancel(data: Data) {
+    const { currentPageId } = data.appState
     return {
       document: {
         pageStates: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             selectedIds: this.snapshot.selectedIds,
           },
         },
@@ -86,11 +88,12 @@ export class BrushSession implements Session {
   }
 
   complete(data: Data) {
-    const pageState = TLDR.getPageState(data)
+    const { currentPageId } = data.appState
+    const pageState = TLDR.getPageState(data, currentPageId)
     return {
       document: {
         pageStates: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             selectedIds: [...pageState.selectedIds],
           },
         },
@@ -105,9 +108,10 @@ export class BrushSession implements Session {
  * brush will intersect that shape. For tests, start broad -> fine.
  */
 export function getBrushSnapshot(data: Data) {
-  const selectedIds = [...TLDR.getSelectedIds(data)]
+  const { currentPageId } = data.appState
+  const selectedIds = [...TLDR.getSelectedIds(data, currentPageId)]
 
-  const shapesToTest = TLDR.getShapes(data)
+  const shapesToTest = TLDR.getShapes(data, currentPageId)
     .filter(
       (shape) =>
         !(
@@ -121,7 +125,7 @@ export function getBrushSnapshot(data: Data) {
       id: shape.id,
       util: getShapeUtils(shape),
       bounds: getShapeUtils(shape).getBounds(shape),
-      selectId: TLDR.getTopParentId(data, shape.id),
+      selectId: TLDR.getTopParentId(data, shape.id, currentPageId),
     }))
 
   return {

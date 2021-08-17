@@ -7,22 +7,22 @@ describe('Delete page', () => {
   it('does, undoes and redoes command', () => {
     tlstate.loadDocument(mockDocument)
 
-    const initialId = tlstate.page.id
+    const initialId = tlstate.currentPageId
 
     tlstate.createPage()
 
-    const nextId = tlstate.page.id
+    const nextId = tlstate.currentPageId
 
     tlstate.deletePage()
 
-    expect(tlstate.page.id).toBe(nextId)
+    expect(tlstate.currentPageId).toBe(initialId)
 
     tlstate.undo()
 
-    expect(tlstate.page.id).toBe(initialId)
+    expect(tlstate.currentPageId).toBe(nextId)
 
     tlstate.redo()
 
-    expect(tlstate.page.id).toBe(nextId)
+    expect(tlstate.currentPageId).toBe(initialId)
   })
 })

@@ -73,7 +73,7 @@ export function PagePanel(): JSX.Element {
                 value={page.id}
                 variant="pageButton"
               >
-                <span>{page.name}</span>
+                <span>{page.name || 'Page'}</span>
                 <DropdownMenu.ItemIndicator>
                   <IconWrapper size="small">
                     <CheckIcon />

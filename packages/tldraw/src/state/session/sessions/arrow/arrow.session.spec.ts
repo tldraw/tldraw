@@ -1,7 +1,7 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 import { TLDR } from '~state/tldr'
-import type { ArrowShape, TLDrawShape } from '~types'
+import { ArrowShape, TLDrawShape, TLDrawStatus } from '~types'
 
 describe('Arrow session', () => {
   const tlstate = new TLDrawState()
@@ -41,6 +41,7 @@ describe('Arrow session', () => {
     expect(binding.fromId).toBe('arrow1')
     expect(binding.toId).toBe('target1')
     expect(binding.handleId).toBe('start')
+    expect(tlstate.status.current).toBe(TLDrawStatus.Idle)
     expect(tlstate.getShape('arrow1').handles?.start.bindingId).toBe(binding.id)
 
     tlstate.undo()

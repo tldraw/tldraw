@@ -9,6 +9,8 @@ import { tldrawShapeUtils } from '~shape'
 import { ContextMenu } from '~components/context-menu'
 import { StylePanel } from '~components/style-panel'
 import { ToolsPanel } from '~components/tools-panel'
+import { PagePanel } from '~components/page-panel'
+import { Menu } from '~components/menu'
 
 export interface TLDrawProps {
   document?: TLDrawDocument
@@ -126,7 +128,10 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
               onTextKeyUp={tlstate.onTextKeyUp}
             />
           </ContextMenu>
-          <MenuButtons />
+          <MenuButtons>
+            <Menu />
+            <PagePanel />
+          </MenuButtons>
           <Spacer />
           <StylePanel />
           <ToolsPanel />

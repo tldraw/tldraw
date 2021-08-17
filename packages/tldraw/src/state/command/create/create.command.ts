@@ -3,6 +3,7 @@ import { TLDR } from '~state/tldr'
 import type { TLDrawShape, Data, Command } from '~types'
 
 export function create(data: Data, shapes: TLDrawShape[]): Command {
+  const { currentPageId } = data.appState
   const beforeShapes: Record<string, DeepPartial<TLDrawShape> | undefined> = {}
   const afterShapes: Record<string, DeepPartial<TLDrawShape> | undefined> = {}
 
@@ -16,13 +17,13 @@ export function create(data: Data, shapes: TLDrawShape[]): Command {
     before: {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             shapes: beforeShapes,
           },
         },
         pageStates: {
-          [data.appState.currentPageId]: {
-            selectedIds: [...TLDR.getSelectedIds(data)],
+          [currentPageId]: {
+            selectedIds: [...TLDR.getSelectedIds(data, currentPageId)],
           },
         },
       },
@@ -30,12 +31,12 @@ export function create(data: Data, shapes: TLDrawShape[]): Command {
     after: {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             shapes: afterShapes,
           },
         },
         pageStates: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             selectedIds: shapes.map((shape) => shape.id),
           },
         },

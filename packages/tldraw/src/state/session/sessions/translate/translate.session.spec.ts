@@ -1,7 +1,7 @@
 import { TLDR } from '~state/tldr'
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import type { TLDrawShape } from '~types'
+import { TLDrawShape, TLDrawStatus } from '~types'
 
 describe('Brush session', () => {
   const tlstate = new TLDrawState()
@@ -16,6 +16,8 @@ describe('Brush session', () => {
     expect(tlstate.getShape('rect1').point).toStrictEqual([5, 5])
 
     tlstate.completeSession()
+
+    expect(tlstate.status.current).toBe(TLDrawStatus.Idle)
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([5, 5])
 

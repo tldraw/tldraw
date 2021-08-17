@@ -1,7 +1,7 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 import { TLDR } from '~state/tldr'
-import type { TLDrawShape } from '~types'
+import { TLDrawShape, TLDrawStatus } from '~types'
 
 describe('Handle session', () => {
   const tlstate = new TLDrawState()
@@ -19,8 +19,10 @@ describe('Handle session', () => {
       .startHandleSession([-10, -10], 'end')
       .updateHandleSession([10, 10])
       .completeSession()
-      .undo()
-      .redo()
+
+    expect(tlstate.status.current).toBe(TLDrawStatus.Idle)
+
+    tlstate.undo().redo()
   })
 
   it('cancels session', () => {

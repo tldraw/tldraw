@@ -1,10 +1,18 @@
 import type { TLDrawShape, Data, Command } from '~types'
 import { TLDR } from '~state/tldr'
 
-export function changePage(data: Data): Command {
+export function changePage(data: Data, pageId: string): Command {
   return {
-    id: 'create_page',
-    before: {},
-    after: {},
+    id: 'change_page',
+    before: {
+      appState: {
+        currentPageId: data.appState.currentPageId,
+      },
+    },
+    after: {
+      appState: {
+        currentPageId: pageId,
+      },
+    },
   }
 }

@@ -5,7 +5,8 @@ import { TLDR } from '~state/tldr'
 const PI2 = Math.PI * 2
 
 export function rotate(data: Data, ids: string[], delta = -PI2 / 4): Command {
-  const initialShapes = ids.map((id) => TLDR.getShape(data, id))
+  const { currentPageId } = data.appState
+  const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
 
   const boundsForShapes = initialShapes.map((shape) => {
     const utils = TLDR.getShapeUtils(shape)
@@ -31,35 +32,36 @@ export function rotate(data: Data, ids: string[], delta = -PI2 / 4): Command {
     })
   )
 
-  const pageState = TLDR.getPageState(data)
+  const pageState = TLDR.getPageState(data, currentPageId)
   const prevBoundsRotation = pageState.boundsRotation
   const nextBoundsRotation = (PI2 + ((pageState.boundsRotation || 0) + delta)) % PI2
 
-  const { before, after } = TLDR.mutateShapes(data, ids, (shape) => rotations[shape.id])
+  const { before, after } = TLDR.mutateShapes(
+    data,
+    ids,
+    (shape) => rotations[shape.id],
+    currentPageId
+  )
 
   return {
     id: 'toggle_shapes',
     before: {
       document: {
         pages: {
-          [data.appState.currentPageId]: { shapes: before },
+          [currentPageId]: { shapes: before },
         },
         pageStates: {
-          [data.appState.currentPageId]: {
-            boundsRotation: prevBoundsRotation,
-          },
+          [currentPageId]: { boundsRotation: prevBoundsRotation },
         },
       },
     },
     after: {
       document: {
         pages: {
-          [data.appState.currentPageId]: { shapes: after },
+          [currentPageId]: { shapes: after },
         },
         pageStates: {
-          [data.appState.currentPageId]: {
-            boundsRotation: nextBoundsRotation,
-          },
+          [currentPageId]: { boundsRotation: nextBoundsRotation },
         },
       },
     },

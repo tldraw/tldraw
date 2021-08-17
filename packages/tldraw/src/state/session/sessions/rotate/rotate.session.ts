@@ -2,7 +2,6 @@ import { Utils, Vec } from '@tldraw/core'
 import { Session, TLDrawShape, TLDrawStatus } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
-import type { DeepPartial } from '~../../core/dist/types/utils/utils'
 
 const PI2 = Math.PI * 2
 
@@ -23,8 +22,9 @@ export class RotateSession implements Session {
 
   update = (data: Data, point: number[], isLocked = false) => {
     const { commonBoundsCenter, initialShapes } = this.snapshot
-    const page = TLDR.getPage(data)
-    const pageState = TLDR.getPageState(data)
+    const pageId = data.appState.currentPageId
+    const page = TLDR.getPage(data, pageId)
+    const pageState = TLDR.getPageState(data, pageId)
 
     const shapes: Record<string, TLDrawShape> = {}
 
@@ -54,16 +54,21 @@ export class RotateSession implements Session {
 
       const nextPoint = Vec.sub(Vec.rotWith(center, commonBoundsCenter, rot), offset)
 
-      shapes[id] = TLDR.mutate(data, shape, {
-        point: nextPoint,
-        rotation: (PI2 + nextRotation) % PI2,
-      })
+      shapes[id] = TLDR.mutate(
+        data,
+        shape,
+        {
+          point: nextPoint,
+          rotation: (PI2 + nextRotation) % PI2,
+        },
+        pageId
+      )
     })
 
     return {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [pageId]: {
             shapes,
           },
         },
@@ -73,6 +78,7 @@ export class RotateSession implements Session {
 
   cancel = (data: Data) => {
     const { initialShapes } = this.snapshot
+    const pageId = data.appState.currentPageId
 
     const shapes: Record<string, TLDrawShape> = {}
 
@@ -83,7 +89,7 @@ export class RotateSession implements Session {
     return {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [pageId]: {
             shapes,
           },
         },
@@ -93,6 +99,7 @@ export class RotateSession implements Session {
 
   complete(data: Data) {
     const { hasUnlockedShapes, initialShapes } = this.snapshot
+    const pageId = data.appState.currentPageId
 
     if (!hasUnlockedShapes) return data
 
@@ -101,7 +108,7 @@ export class RotateSession implements Session {
 
     initialShapes.forEach(({ id, shape: { point, rotation } }) => {
       beforeShapes[id] = { point, rotation }
-      const afterShape = TLDR.getShape(data, id)
+      const afterShape = TLDR.getShape(data, id, pageId)
       afterShapes[id] = { point: afterShape.point, rotation: afterShape.rotation }
     })
 
@@ -110,7 +117,7 @@ export class RotateSession implements Session {
       before: {
         document: {
           pages: {
-            [data.appState.currentPageId]: {
+            [pageId]: {
               shapes: beforeShapes,
             },
           },
@@ -119,7 +126,7 @@ export class RotateSession implements Session {
       after: {
         document: {
           pages: {
-            [data.appState.currentPageId]: {
+            [pageId]: {
               shapes: afterShapes,
             },
           },
@@ -131,8 +138,9 @@ export class RotateSession implements Session {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getRotateSnapshot(data: Data) {
-  const pageState = TLDR.getPageState(data)
-  const initialShapes = TLDR.getSelectedBranchSnapshot(data)
+  const currentPageId = data.appState.currentPageId
+  const pageState = TLDR.getPageState(data, currentPageId)
+  const initialShapes = TLDR.getSelectedBranchSnapshot(data, currentPageId)
 
   if (initialShapes.length === 0) {
     throw Error('No selected shapes!')
