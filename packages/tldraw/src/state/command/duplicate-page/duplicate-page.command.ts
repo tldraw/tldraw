@@ -1,10 +1,67 @@
-import type { TLDrawShape, Data, Command } from '~types'
-import { TLDR } from '~state/tldr'
+import type { Data, Command } from '~types'
+import { Utils } from '@tldraw/core'
 
-export function duplicatePage(data: Data, id: string): Command {
+export function duplicatePage(data: Data, pageId: string): Command {
+  const newId = Utils.uniqueId()
+  const { currentPageId } = data.appState
+
+  console.log('duplicating')
+
+  const page = data.document.pages[pageId]
+
+  const nextPage = {
+    ...page,
+    id: newId,
+    ...Object.fromEntries(
+      Object.entries(page.shapes).map(([id, shape]) => {
+        return [
+          id,
+          {
+            ...shape,
+            parentId: shape.parentId === pageId ? newId : shape.parentId,
+          },
+        ]
+      })
+    ),
+  }
+
   return {
     id: 'duplicate_page',
-    before: {},
-    after: {},
+    before: {
+      appState: {
+        currentPageId,
+      },
+      document: {
+        pages: {
+          [newId]: undefined,
+        },
+        pageStates: {
+          [newId]: undefined,
+        },
+      },
+    },
+    after: {
+      appState: {
+        currentPageId: newId,
+      },
+      document: {
+        pages: {
+          [newId]: nextPage,
+        },
+        pageStates: {
+          [newId]: {
+            ...page,
+            id: newId,
+            selectedIds: [],
+            camera: { point: [-window.innerWidth / 2, -window.innerHeight / 2], zoom: 1 },
+            currentParentId: newId,
+            editingId: undefined,
+            bindingId: undefined,
+            hoveredId: undefined,
+            pointedId: undefined,
+          },
+        },
+      },
+    },
   }
 }

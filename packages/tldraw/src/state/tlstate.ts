@@ -173,7 +173,7 @@ export class TLDrawState implements TLCallbacks {
           })
 
           const changedShapeIds = Object.values(page.shapes)
-            .filter((shape) => prevPage.shapes[shape.id] !== shape)
+            .filter((shape) => prevPage?.shapes[shape.id] !== shape)
             .map((shape) => shape.id)
 
           this.data.document.pages[pageId] = page

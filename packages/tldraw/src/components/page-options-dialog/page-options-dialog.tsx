@@ -18,7 +18,12 @@ const canDeleteSelector = (s: Data) => {
   return Object.keys(s.document.pages).length > 1
 }
 
-export function PageOptionsDialog({ page }: { page: TLDrawPage }): JSX.Element {
+interface PageOptionsDialogProps {
+  page: TLDrawPage
+  onOpen?: () => void
+}
+
+export function PageOptionsDialog({ page, onOpen }: PageOptionsDialogProps): JSX.Element {
   const { tlstate, useSelector } = useTLDrawContext()
 
   const [isOpen, setIsOpen] = React.useState(false)
@@ -46,6 +51,7 @@ export function PageOptionsDialog({ page }: { page: TLDrawPage }): JSX.Element {
       setIsOpen(isOpen)
 
       if (isOpen) {
+        onOpen?.()
         return
       }
 

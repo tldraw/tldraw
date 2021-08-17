@@ -56,6 +56,7 @@ export const MenuTextInput = styled('input', {
   outline: 'none',
   background: '$input',
   borderRadius: '4px',
-  font: '$ui',
+  fontFamily: '$ui',
   fontSize: '$1',
+  userSelect: 'all',
 })
