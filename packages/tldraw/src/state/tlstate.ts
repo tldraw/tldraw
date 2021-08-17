@@ -116,7 +116,7 @@ export class TLDrawState implements TLCallbacks {
 
   isCreating = false
 
-  _onChange?: (patch: DeepPartial<Data>, reason: string) => void
+  _onChange?: (tlstate: TLDrawState, patch: DeepPartial<Data>, reason: string) => void
 
   // Low API
   private getState = this.store.getState
@@ -124,7 +124,7 @@ export class TLDrawState implements TLCallbacks {
   private produce(patch: DeepPartial<Data>, reason: string) {
     const next = Utils.deepMerge<Data>(this.data, patch)
     this.setState(next)
-    this._onChange?.(patch, reason)
+    this._onChange?.(this, patch, reason)
     return this
   }
 
@@ -160,38 +160,31 @@ export class TLDrawState implements TLCallbacks {
 
         const prevPage = prev.document.pages[pageId]
 
-        const nextPage = {
-          ...page,
-          shapes: { ...page.shapes },
-          bindings: { ...page.bindings },
-        }
+        if (!prevPage || page.shapes !== prevPage.shapes || page.bindings !== prevPage.bindings) {
+          page.shapes = { ...page.shapes }
+          page.bindings = { ...page.bindings }
 
-        if (
-          !prevPage ||
-          nextPage.shapes !== prevPage.shapes ||
-          nextPage.bindings !== prevPage.bindings
-        ) {
-          Object.keys(nextPage.shapes).forEach((id) => {
-            if (!nextPage.shapes[id]) delete nextPage.shapes[id]
+          Object.keys(page.shapes).forEach((id) => {
+            if (!page.shapes[id]) delete page.shapes[id]
           })
 
-          Object.keys(nextPage.bindings).forEach((id) => {
-            if (!nextPage.bindings[id]) delete nextPage.bindings[id]
+          Object.keys(page.bindings).forEach((id) => {
+            if (!page.bindings[id]) delete page.bindings[id]
           })
 
-          const changedShapeIds = Object.values(nextPage.shapes)
-            .filter((shape) => this.data.document.pages[pageId].shapes[shape.id] !== shape)
+          const changedShapeIds = Object.values(page.shapes)
+            .filter((shape) => prevPage.shapes[shape.id] !== shape)
             .map((shape) => shape.id)
 
-          this.data.document.pages[pageId] = nextPage
+          this.data.document.pages[pageId] = page
 
           // Get bindings related to the changed shapes
           const bindingsToUpdate = TLDR.getRelatedBindings(this.data, changedShapeIds, pageId)
 
           // Update all of the bindings we've just collected
           bindingsToUpdate.forEach((binding) => {
-            const toShape = nextPage.shapes[binding.toId]
-            const fromShape = nextPage.shapes[binding.fromId]
+            const toShape = page.shapes[binding.toId]
+            const fromShape = page.shapes[binding.fromId]
             const toUtils = TLDR.getShapeUtils(toShape)
 
             // We only need to update the binding's "from" shape
@@ -211,7 +204,7 @@ export class TLDrawState implements TLCallbacks {
                 ...fromDelta,
               } as TLDrawShape
 
-              nextPage.shapes[fromShape.id] = nextShape
+              page.shapes[fromShape.id] = nextShape
             }
           })
         }
@@ -222,21 +215,20 @@ export class TLDrawState implements TLCallbacks {
           ...this.data.document.pageStates[pageId],
         }
 
-        if (nextPageState.hoveredId && !nextPage.shapes[nextPageState.hoveredId]) {
+        if (nextPageState.hoveredId && !page.shapes[nextPageState.hoveredId]) {
           delete nextPageState.hoveredId
         }
 
-        if (nextPageState.bindingId && !nextPage.bindings[nextPageState.bindingId]) {
+        if (nextPageState.bindingId && !page.bindings[nextPageState.bindingId]) {
           console.warn('Could not find the binding shape!', pageId)
           delete nextPageState.bindingId
         }
 
-        if (nextPageState.editingId && !nextPage.bindings[nextPageState.editingId]) {
+        if (nextPageState.editingId && !page.bindings[nextPageState.editingId]) {
           console.warn('Could not find the editing shape!')
           delete nextPageState.editingId
         }
 
-        this.data.document.pages[pageId] = nextPage
         this.data.document.pageStates[pageId] = nextPageState
       })
     }
@@ -375,7 +367,7 @@ export class TLDrawState implements TLCallbacks {
     }
 
     this.setState(emptyData)
-    this._onChange?.(this.data, `reset`)
+    this._onChange?.(this, this.data, `reset`)
     return this
   }
 

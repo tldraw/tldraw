@@ -760,6 +760,11 @@ function getCurvedArrowHeadPoints(
   sweep: boolean
 ) {
   const ints = Intersect.circle.circle(A, r1 * 0.618, C, r2).points
+  if (!ints) {
+    console.warn('Could not find an intersection for the arrow head.')
+    return { left: A, right: A }
+  }
+
   const int = sweep ? ints[0] : ints[1]
   const left = Vec.nudge(Vec.rotWith(int, A, Math.PI / 6), A, r1 * -0.382)
   const right = Vec.nudge(Vec.rotWith(int, A, -Math.PI / 6), A, r1 * -0.382)
@@ -768,6 +773,11 @@ function getCurvedArrowHeadPoints(
 
 function getStraightArrowHeadPoints(A: number[], B: number[], r: number) {
   const ints = Intersect.circle.lineSegment(A, r, A, B).points
+  if (!ints) {
+    console.warn('Could not find an intersection for the arrow head.')
+    return { left: A, right: A }
+  }
+
   const int = ints[0]
   const left = Vec.rotWith(int, A, Math.PI / 6)
   const right = Vec.rotWith(int, A, -Math.PI / 6)

@@ -9,7 +9,7 @@ interface TLDatabase extends DBSchema {
   }
 }
 
-const VERSION = 2
+const VERSION = 4
 
 /**
  * Persist a value in indexdb. This hook is designed to be used primarily through
@@ -35,7 +35,7 @@ export function usePersistence(id: string, doc: TLDrawDocument) {
     _setValue(null)
     setStatus('loading')
 
-    openDB<TLDatabase>('db', VERSION).then((db) =>
+    openDB<TLDatabase>('db1', VERSION).then((db) =>
       db.get('documents', id).then((v) => {
         if (!v) throw Error(`Could not find document with id: ${id}`)
         _setValue(v)
@@ -48,7 +48,7 @@ export function usePersistence(id: string, doc: TLDrawDocument) {
   // value in the database.
   const setValue = React.useCallback(
     (doc: TLDrawDocument) => {
-      openDB<TLDatabase>('db', VERSION).then((db) => db.put('documents', doc, id))
+      openDB<TLDatabase>('db1', VERSION).then((db) => db.put('documents', doc, id))
     },
     [id]
   )
@@ -57,16 +57,19 @@ export function usePersistence(id: string, doc: TLDrawDocument) {
   // the state.
   React.useEffect(() => {
     async function handleLoad() {
-      const db = await openDB<TLDatabase>('db', VERSION, {
-        upgrade(db) {
-          db.createObjectStore('documents')
+      const db1 = await openDB<TLDatabase>('db1', VERSION, {
+        upgrade(db, oldVersion, newVersion) {
+          if (newVersion) {
+            db.deleteObjectStore('documents')
+            db.createObjectStore('documents')
+          }
         },
       })
 
       let savedDoc: TLDrawDocument
 
       try {
-        const restoredDoc = await db.get('documents', id)
+        const restoredDoc = await db1.get('documents', id)
         if (!restoredDoc) throw Error('No document')
         savedDoc = restoredDoc
         restoredDoc.pageStates = Object.fromEntries(
@@ -80,7 +83,7 @@ export function usePersistence(id: string, doc: TLDrawDocument) {
           ])
         )
       } catch (e) {
-        await db.put('documents', doc, id)
+        await db1.put('documents', doc, id)
         savedDoc = doc
       }
 

@@ -19,7 +19,7 @@
     "test": "jest",
     "lerna": "lerna",
     "start": "lerna run start --stream --parallel",
-    "start:www": "lerna run start --stream --parallel & cd packages/www && yarn build",
+    "start:www": "lerna run start --stream --parallel & cd packages/www && yarn dev",
     "build": "yarn build:packages && cd packages/www && yarn build",
     "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build",
     "publish:patch": "yarn build:packages && lerna publish patch"

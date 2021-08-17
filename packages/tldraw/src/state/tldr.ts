@@ -414,7 +414,6 @@ export class TLDR {
     after: Record<string, Partial<T>>
     data: Data
   } {
-    const page = { ...this.getPage(data, pageId) }
     const beforeShapes: Record<string, Partial<T>> = {}
     const afterShapes: Record<string, Partial<T>> = {}
 
@@ -425,7 +424,6 @@ export class TLDR {
         Object.keys(change).map((key) => [key, shape[key as keyof T]])
       ) as Partial<T>
       afterShapes[id] = change
-      page.shapes[id] = this.getShapeUtils(shape).mutate(shape as T, change as Partial<T>)
     })
 
     const dataWithChildrenChanges = ids.reduce<Data>((cData, id) => {

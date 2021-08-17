@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as React from 'react'
-import { openDB, DBSchema, deleteDB } from 'idb'
+import { openDB, DBSchema } from 'idb'
 import type { TLDrawDocument } from '@tldraw/tldraw'
 
-const VERSION = 1
+const VERSION = 4
 
 interface TLDatabase extends DBSchema {
   documents: {
@@ -57,11 +57,12 @@ export function usePersistence(id: string, doc: TLDrawDocument) {
   // the state.
   React.useEffect(() => {
     async function handleLoad() {
-      await deleteDB('db')
-
       const db = await openDB<TLDatabase>('db', VERSION, {
-        upgrade(db) {
-          db.createObjectStore('documents')
+        upgrade(db, oldVersion, newVersion) {
+          if (newVersion) {
+            db.deleteObjectStore('documents')
+            db.createObjectStore('documents')
+          }
         },
       })
 

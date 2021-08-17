@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ColorStyle, DashStyle, SizeStyle, TLDrawShapeType, TLDrawState } from '@tldraw/tldraw'
-import { TLDraw, TLDrawDocument } from '@tldraw/tldraw'
+import { TLDraw, TLDrawDocument, TLDrawPatch } from '@tldraw/tldraw'
 import { usePersistence } from '../hooks/usePersistence'
 
 const initialDoc: TLDrawDocument = {
@@ -81,7 +81,7 @@ export default function Editor(): JSX.Element {
   const { value, setValue, status } = usePersistence('doc', initialDoc)
 
   const handleChange = React.useCallback(
-    (tlstate: TLDrawState, reason: string) => {
+    (tlstate: TLDrawState, patch: TLDrawPatch, reason: string) => {
       if (reason.startsWith('session')) {
         return
       }

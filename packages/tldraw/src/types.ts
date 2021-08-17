@@ -40,6 +40,9 @@ export interface Data {
     status: { current: TLDrawStatus; previous: TLDrawStatus }
   }
 }
+
+export type TLDrawPatch = DeepPartial<Data>
+
 export type PagePartial = {
   shapes: DeepPartial<TLDrawPage['shapes']>
   bindings: DeepPartial<TLDrawPage['bindings']>
@@ -55,8 +58,8 @@ export type DeepPartial<T> = T extends Function
 
 export interface Command {
   id: string
-  before: DeepPartial<Data>
-  after: DeepPartial<Data>
+  before: TLDrawPatch
+  after: TLDrawPatch
 }
 
 export interface History {
@@ -72,10 +75,10 @@ export interface SelectHistory {
 export interface Session {
   id: string
   status: TLDrawStatus
-  start: (data: Readonly<Data>, ...args: any[]) => DeepPartial<Data> | void
-  update: (data: Readonly<Data>, ...args: any[]) => DeepPartial<Data>
-  complete: (data: Readonly<Data>, ...args: any[]) => DeepPartial<Data> | Command | undefined
-  cancel: (data: Readonly<Data>, ...args: any[]) => DeepPartial<Data>
+  start: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | void
+  update: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch
+  complete: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | Command | undefined
+  cancel: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch
 }
 
 export enum TLDrawStatus {

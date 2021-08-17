@@ -21,8 +21,32 @@ export class Utils {
     return Object.fromEntries((Object.entries(obj) as Entry<T>[]).filter(fn)) as Partial<T>
   }
 
-  static deepMerge<T>(a: T, b: DeepPartial<T>): T {
-    return deepmerge<T, DeepPartial<T>>(a, b, { arrayMerge: (_a, b) => b }) as T
+  static deepMerge<T>(target: T, source: any): T {
+    return deepmerge(target, source, { arrayMerge: (a, b) => b, clone: false })
+
+    // const result = {} as T
+
+    // for (const key of Object.keys(result)) {
+    //   const tprop = target[key as keyof T]
+    //   const sprop = source[key]
+    //   if (tprop === sprop) {
+    //     continue
+    //   } else if (!(key in target) || target[key as keyof T] === undefined) {
+    //     result[key as keyof T] = sprop
+    //   } else if (!(key in source)) {
+    //     continue
+    //   } else if (source[key as keyof T] === undefined) {
+    //     delete result[key as keyof T]
+    //   } else {
+    //     if (typeof tprop === 'object' && typeof sprop === 'object') {
+    //       result[key as keyof T] = this.deepMerge(tprop, sprop)
+    //     } else {
+    //       result[key as keyof T] = sprop
+    //     }
+    //   }
+    // }
+
+    // return result
   }
 
   /**

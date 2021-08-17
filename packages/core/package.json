@@ -43,8 +43,10 @@
     "react-dom": "^17.0.2"
   },
   "dependencies": {
+    "@types/merge-deep": "^3.0.0",
     "deepmerge": "^4.2.2",
     "ismobilejs": "^1.1.1",
+    "merge-deep": "^3.0.3",
     "react-error-boundary": "^3.1.3",
     "react-use-gesture": "^9.1.3"
   },
