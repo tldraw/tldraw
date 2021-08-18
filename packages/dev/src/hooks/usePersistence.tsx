@@ -60,7 +60,9 @@ export function usePersistence(id: string, doc: TLDrawDocument) {
       const db = await openDB<TLDatabase>('db', VERSION, {
         upgrade(db, oldVersion, newVersion) {
           if (newVersion) {
-            db.deleteObjectStore('documents')
+            if (newVersion > oldVersion) {
+              db.deleteObjectStore('documents')
+            }
             db.createObjectStore('documents')
           }
         },

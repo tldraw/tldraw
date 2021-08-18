@@ -5,8 +5,6 @@ export function duplicatePage(data: Data, pageId: string): Command {
   const newId = Utils.uniqueId()
   const { currentPageId } = data.appState
 
-  console.log('duplicating')
-
   const page = data.document.pages[pageId]
 
   const nextPage = {
