@@ -23,13 +23,18 @@ export class DrawSession implements Session {
     // Add a first point but don't update the shape yet. We'll update
     // when the draw session ends; if the user hasn't added additional
     // points, this single point will be interpreted as a "dot" shape.
-    this.points = [[0, 0, 0.5]]
+    this.points = []
   }
 
   start = () => void null
 
   update = (data: Data, point: number[], pressure: number, isLocked = false) => {
     const { snapshot } = this
+
+    // Roundabout way of preventing the "dot" from showing while drawing
+    if (this.points.length === 0) {
+      this.points.push([0, 0, pressure])
+    }
 
     // Drawing while holding shift will "lock" the pen to either the
     // x or y axis, depending on which direction has the greater
@@ -78,15 +83,11 @@ export class DrawSession implements Session {
 
     const newPoint = Vec.round([...Vec.sub(this.previous, this.origin), pressure])
 
-    if (Vec.isEqual(this.last, newPoint)) return data
+    if (Vec.isEqual(this.last, newPoint)) return
 
     this.last = newPoint
 
     this.points.push(newPoint)
-
-    // We draw a dot when the number of points is 1 or 2, so this guard
-    // prevents a "flash" of a dot when a user begins drawing a line.
-    if (this.points.length <= 2) return data
 
     return {
       document: {
@@ -133,6 +134,9 @@ export class DrawSession implements Session {
   complete = (data: Data) => {
     const { snapshot } = this
     const pageId = data.appState.currentPageId
+
+    this.points.push(this.last)
+
     return {
       id: 'create_draw',
       before: {
@@ -158,7 +162,7 @@ export class DrawSession implements Session {
               shapes: {
                 [snapshot.id]: TLDR.onSessionComplete(
                   data,
-                  TLDR.getShape(data, snapshot.id, pageId),
+                  { ...TLDR.getShape(data, snapshot.id, pageId), points: [...this.points] },
                   pageId
                 ),
               },

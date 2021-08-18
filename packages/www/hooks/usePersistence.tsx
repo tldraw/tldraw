@@ -58,9 +58,9 @@ export function usePersistence(id: string, doc: TLDrawDocument) {
   React.useEffect(() => {
     async function handleLoad() {
       const db1 = await openDB<TLDatabase>('db1', VERSION, {
-        upgrade(db, oldVersion, newVersion) {
+        upgrade(db, _oldVersion, newVersion) {
           if (newVersion) {
-            if (newVersion > oldVersion) {
+            if (db.objectStoreNames.contains('documents')) {
               db.deleteObjectStore('documents')
             }
             db.createObjectStore('documents')

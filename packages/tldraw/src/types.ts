@@ -75,10 +75,10 @@ export interface SelectHistory {
 export interface Session {
   id: string
   status: TLDrawStatus
-  start: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | void
-  update: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch
+  start: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | undefined
+  update: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | undefined
   complete: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | Command | undefined
-  cancel: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch
+  cancel: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | undefined
 }
 
 export enum TLDrawStatus {

@@ -3,7 +3,7 @@ import * as React from 'react'
 import { openDB, DBSchema } from 'idb'
 import type { TLDrawDocument } from '@tldraw/tldraw'
 
-const VERSION = 4
+const VERSION = 5
 
 interface TLDatabase extends DBSchema {
   documents: {
@@ -58,9 +58,9 @@ export function usePersistence(id: string, doc: TLDrawDocument) {
   React.useEffect(() => {
     async function handleLoad() {
       const db = await openDB<TLDatabase>('db', VERSION, {
-        upgrade(db, oldVersion, newVersion) {
+        upgrade(db, _oldVersion, newVersion) {
           if (newVersion) {
-            if (newVersion > oldVersion) {
+            if (db.objectStoreNames.contains('documents')) {
               db.deleteObjectStore('documents')
             }
             db.createObjectStore('documents')

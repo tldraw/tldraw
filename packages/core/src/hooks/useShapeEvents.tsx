@@ -8,8 +8,14 @@ export function useShapeEvents(id: string, disable = false) {
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
-      if (e.button !== 0) return
       if (disable) return
+
+      if (e.button === 2) {
+        callbacks.onRightPointShape?.(inputs.pointerDown(e, id), e)
+        return
+      }
+
+      if (e.button !== 0) return
 
       const info = inputs.pointerDown(e, id)
 

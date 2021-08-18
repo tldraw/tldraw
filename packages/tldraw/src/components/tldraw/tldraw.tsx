@@ -167,9 +167,11 @@ const Layout = styled('main', {
   boxSizing: 'border-box',
   outline: 'none',
   pointerEvents: 'none',
+
   '& > *': {
     pointerEvents: 'all',
   },
+
   '& .tl-container': {
     position: 'absolute',
     top: 0,

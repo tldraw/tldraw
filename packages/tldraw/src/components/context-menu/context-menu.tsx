@@ -160,19 +160,19 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
             <ContextMenuSubMenu label="Move">
               <ContextMenuButton onSelect={handleMoveToFront}>
                 <span>To Front</span>
-                <Kbd variant="menu"># ⇧ ]</Kbd>
+                <Kbd variant="menu">#⇧]</Kbd>
               </ContextMenuButton>
               <ContextMenuButton onSelect={handleMoveForward}>
                 <span>Forward</span>
-                <Kbd variant="menu"># ]</Kbd>
+                <Kbd variant="menu">#]</Kbd>
               </ContextMenuButton>
               <ContextMenuButton onSelect={handleMoveBackward}>
                 <span>Backward</span>
-                <Kbd variant="menu"># [</Kbd>
+                <Kbd variant="menu">#[</Kbd>
               </ContextMenuButton>
               <ContextMenuButton onSelect={handleMoveToBack}>
                 <span>To Back</span>
-                <Kbd variant="menu"># ⇧ [</Kbd>
+                <Kbd variant="menu">#⇧[</Kbd>
               </ContextMenuButton>
             </ContextMenuSubMenu>
             {hasTwoOrMore && (
@@ -182,12 +182,12 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
             {isDebugMode && (
               <ContextMenuButton onSelect={handleCopyAsJson}>
                 <span>Copy Data</span>
-                <Kbd variant="menu"># ⇧ C</Kbd>
+                <Kbd variant="menu">#⇧C</Kbd>
               </ContextMenuButton>
             )}
             <ContextMenuButton onSelect={handleCopyAsSvg}>
               <span>Copy to SVG</span>
-              <Kbd variant="menu"># ⇧ C</Kbd>
+              <Kbd variant="menu">#⇧C</Kbd>
             </ContextMenuButton>
             <ContextMenuDivider />
             <ContextMenuButton onSelect={handleDelete}>
@@ -199,11 +199,11 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
           <>
             <ContextMenuButton onSelect={handleUndo}>
               <span>Undo</span>
-              <Kbd variant="menu"># Z</Kbd>
+              <Kbd variant="menu">#Z</Kbd>
             </ContextMenuButton>
             <ContextMenuButton onSelect={handleRedo}>
               <span>Redo</span>
-              <Kbd variant="menu"># ⇧ Z</Kbd>
+              <Kbd variant="menu">#⇧Z</Kbd>
             </ContextMenuButton>
           </>
         )}

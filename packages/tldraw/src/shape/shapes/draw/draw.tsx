@@ -21,7 +21,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
     parentId: 'page',
     childIndex: 1,
     point: [0, 0],
-    points: [[0, 0, 0.5]],
+    points: [],
     rotation: 0,
     style: defaultStyle,
   }
@@ -30,12 +30,12 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
     return next.points !== prev.points || next.style !== prev.style
   }
 
-  render(shape: DrawShape, { isDarkMode }: TLRenderInfo): JSX.Element {
+  render(shape: DrawShape, { isDarkMode, isEditing }: TLRenderInfo): JSX.Element {
     const { points, style } = shape
 
     const styles = getShapeStyle(style, isDarkMode)
 
-    const strokeWidth = +styles.strokeWidth
+    const strokeWidth = styles.strokeWidth
 
     const shouldFill =
       style.isFilled &&
@@ -43,8 +43,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
       Vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
 
     // For very short lines, draw a point instead of a line
-
-    if (points.length > 0 && points.length < 3) {
+    if (points.length === 1) {
       const sw = strokeWidth * 0.618
 
       return (
@@ -65,9 +64,9 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
         getFillPath(shape)
       )
 
-      const drawPathData = Utils.getFromCache(this.drawPathCache, points, () =>
-        getDrawStrokePath(shape)
-      )
+      const drawPathData = isEditing
+        ? getDrawStrokePath(shape, true)
+        : Utils.getFromCache(this.drawPathCache, points, () => getDrawStrokePath(shape, false))
 
       return (
         <>
@@ -278,15 +277,15 @@ function getFillPath(shape: DrawShape) {
 
   return Utils.getSvgPathFromStroke(
     getStrokePoints(shape.points, {
-      size: 1 + +styles.strokeWidth * 2,
+      size: 1 + styles.strokeWidth * 2,
       thinning: 0.85,
-      end: { taper: +styles.strokeWidth * 20 },
-      start: { taper: +styles.strokeWidth * 20 },
+      end: { taper: +styles.strokeWidth * 10 },
+      start: { taper: +styles.strokeWidth * 10 },
     }).map((pt) => pt.point)
   )
 }
 
-function getDrawStrokePath(shape: DrawShape) {
+function getDrawStrokePath(shape: DrawShape, isEditing: boolean) {
   const styles = getShapeStyle(shape.style)
 
   if (shape.points.length < 2) {
@@ -295,15 +294,20 @@ function getDrawStrokePath(shape: DrawShape) {
 
   const options = shape.points[1][2] === 0.5 ? simulatePressureSettings : realPressureSettings
 
-  const stroke = getStroke(shape.points, {
-    size: 1 + +styles.strokeWidth * 2,
+  const stroke = getStroke(shape.points.slice(2), {
+    size: 1 + styles.strokeWidth * 2,
     thinning: 0.85,
-    end: { taper: +styles.strokeWidth * 10 },
-    start: { taper: +styles.strokeWidth * 10 },
+    end: { taper: +styles.strokeWidth * 50 },
+    start: { taper: +styles.strokeWidth * 50 },
     ...options,
+    last: !isEditing,
   })
 
-  return Utils.getSvgPathFromStroke(stroke)
+  const path = Utils.getSvgPathFromStroke(stroke)
+
+  // console.log(path)
+
+  return path
 }
 
 function getSolidStrokePath(shape: DrawShape) {
