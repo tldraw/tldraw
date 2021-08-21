@@ -899,6 +899,23 @@ export class Utils {
     )
   }
 
+  static pointInPolygon(p: number[], points: number[][]): boolean {
+    let wn = 0 // winding number
+
+    points.forEach((a, i) => {
+      const b = points[(i + 1) % points.length]
+      if (a[1] <= p[1]) {
+        if (b[1] > p[1] && vec.cross(a, b, p) > 0) {
+          wn += 1
+        }
+      } else if (b[1] <= p[1] && vec.cross(a, b, p) < 0) {
+        wn -= 1
+      }
+    })
+
+    return wn !== 0
+  }
+
   /* --------------------- Bounds --------------------- */
 
   /**

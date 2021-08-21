@@ -137,6 +137,14 @@ export class Vec {
   }
 
   /**
+   * Cross (for point in polygon)
+   *
+   */
+  static cross(x: number[], y: number[], z: number[]): number {
+    return (y[0] - x[0]) * (z[1] - x[1]) - (z[0] - x[0]) * (y[1] - x[1])
+  }
+
+  /**
    * Length of the vector squared
    * @param A
    */
