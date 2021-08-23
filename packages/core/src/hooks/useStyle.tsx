@@ -69,7 +69,7 @@ const defaultTheme: TLTheme = {
   brushFill: 'rgba(0,0,0,.05)',
   brushStroke: 'rgba(0,0,0,.25)',
   selectStroke: 'rgb(66, 133, 244)',
-  selectFill: 'rgba(65, 132, 244, 0.12)',
+  selectFill: 'rgba(65, 132, 244, 0.05)',
   background: 'rgb(248, 249, 250)',
   foreground: 'rgb(51, 51, 51)',
 }

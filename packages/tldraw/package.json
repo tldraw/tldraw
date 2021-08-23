@@ -55,7 +55,7 @@
     "@stitches/react": "^0.2.3",
     "@tldraw/core": "^0.0.49",
     "ismobilejs": "^1.1.1",
-    "perfect-freehand": "^0.4.10",
+    "perfect-freehand": "^0.5.1",
     "react-hotkeys-hook": "^3.4.0",
     "zustand": "^3.5.7"
   },

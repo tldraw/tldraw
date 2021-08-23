@@ -37,13 +37,10 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
 
     const strokeWidth = styles.strokeWidth
 
-    const shouldFill =
-      style.isFilled &&
-      points.length > 3 &&
-      Vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
-
     // For very short lines, draw a point instead of a line
-    if (points.length === 1) {
+    const bounds = this.getBounds(shape)
+
+    if (!isEditing && bounds.width < strokeWidth / 2 && bounds.height < strokeWidth / 2) {
       const sw = strokeWidth * 0.618
 
       return (
@@ -56,6 +53,11 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
         />
       )
     }
+
+    const shouldFill =
+      style.isFilled &&
+      points.length > 3 &&
+      Vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
 
     // For drawn lines, draw a line from the path cache
 

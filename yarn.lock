@@ -8003,10 +8003,10 @@ pbkdf2@^3.0.3:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-perfect-freehand@^0.4.10:
-  version "0.4.10"
-  resolved "https://registry.yarnpkg.com/perfect-freehand/-/perfect-freehand-0.4.10.tgz#f866bc4700c854f26a3eaf75254661f08dd1c9af"
-  integrity sha512-AizjryguXVA7BRflfTkteUPCFaPAhz7PCeNBANMZ78Dy5mq/YCePHV0uT1Vn3W6Mnk9SyYwvJMFrpTnph+Sk8g==
+perfect-freehand@^0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/perfect-freehand/-/perfect-freehand-0.5.1.tgz#871b1d2d02e731f90dd609d20f153ee9fa48db71"
+  integrity sha512-5lbnulrJwarVYhdhuCl1PbIRAGg3MrYmaBU08Fs2GetL9nS23KPFPP+ilV1vHPeI6Jv+264mMwkO3yZlzEQ6dA==
 
 performance-now@^2.1.0:
   version "2.1.0"
