@@ -148,6 +148,7 @@ const ToolsPanelContainer = styled('div', {
   maxWidth: '100%',
   display: 'grid',
   gridTemplateColumns: '1fr auto 1fr',
+  gridTemplateRows: 'auto auto',
   padding: '0',
   alignItems: 'flex-end',
   zIndex: 200,

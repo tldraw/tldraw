@@ -27,6 +27,7 @@ const isSelectedShapeWithHandlesSelector = (s: Data) => {
 }
 const pageSelector = (s: Data) => s.document.pages[s.appState.currentPageId]
 const pageStateSelector = (s: Data) => s.document.pageStates[s.appState.currentPageId]
+const isDarkModeSelector = (s: Data) => s.settings.isDarkMode
 
 export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }: TLDrawProps) {
   const [tlstate] = React.useState(() => new TLDrawState())
@@ -38,6 +39,7 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
 
   const page = context.useSelector(pageSelector)
   const pageState = context.useSelector(pageStateSelector)
+  const isDarkMode = context.useSelector(isDarkModeSelector)
   const isSelecting = context.useSelector(isInSelectSelector)
   const isSelectedHandlesShape = context.useSelector(isSelectedShapeWithHandlesSelector)
   const isInSession = !!tlstate.session
@@ -65,6 +67,21 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
     onMount?.(tlstate)
   }, [])
 
+  const theme = React.useMemo(() => {
+    if (isDarkMode) {
+      return {
+        brushFill: 'rgba(180, 180, 180, .05)',
+        brushStroke: 'rgba(180, 180, 180, .25)',
+        selected: 'rgba(38, 150, 255, 1.000)',
+        selectFill: 'rgba(38, 150, 255, 0.05)',
+        background: '#343d45',
+        foreground: '#49555f',
+      }
+    }
+
+    return {}
+  }, [isDarkMode])
+
   return (
     <TLDrawContext.Provider value={context}>
       <IdProvider>
@@ -74,6 +91,8 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
               page={page}
               pageState={pageState}
               shapeUtils={tldrawShapeUtils}
+              theme={theme}
+              isDarkMode={isDarkMode}
               hideBounds={hideBounds}
               hideHandles={hideHandles}
               hideIndicators={hideIndicators}

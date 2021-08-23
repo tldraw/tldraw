@@ -265,10 +265,13 @@ const tlcss = css`
 `
 
 export function useTLTheme(theme?: Partial<TLTheme>) {
-  const [tltheme] = React.useState<TLTheme>(() => ({
-    ...defaultTheme,
-    ...theme,
-  }))
+  const tltheme = React.useMemo<TLTheme>(
+    () => ({
+      ...defaultTheme,
+      ...theme,
+    }),
+    [theme]
+  )
 
   useTheme('tl', tltheme)
 

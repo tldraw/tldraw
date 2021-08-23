@@ -307,8 +307,6 @@ function getDrawStrokePath(shape: DrawShape, isEditing: boolean) {
 
   const path = Utils.getSvgPathFromStroke(stroke)
 
-  // console.log(path)
-
   return path
 }
 

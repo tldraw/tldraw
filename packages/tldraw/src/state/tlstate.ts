@@ -326,13 +326,7 @@ export class TLDrawState implements TLCallbacks {
       `settings:toggled_dark_mode`
     )
   }
-  /* --------------------- Status --------------------- */
-  // setStatus(status: TLDrawStatus) {
-  //   this.status.previous = this.status.current
-  //   this.status.current = status
-  //   // console.log(this.status.previous, ' -> ', this.status.current)
-  //   return this
-  // }
+
   /* -------------------- App State ------------------- */
 
   reset = () => {
@@ -1113,7 +1107,14 @@ export class TLDrawState implements TLCallbacks {
   }
 
   toggleDebugMode = () => {
-    // TODO
+    return this.produce(
+      {
+        settings: {
+          isDebugMode: !this.data.settings.isDebugMode,
+        },
+      },
+      `settings:toggled_debug`
+    )
   }
 
   rotate = (delta = Math.PI * -0.5, ids?: string[]) => {

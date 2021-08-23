@@ -23,11 +23,13 @@ interface CanvasProps<T extends TLShape> {
   hideBounds?: boolean
   hideHandles?: boolean
   hideIndicators?: boolean
+  isDarkMode?: boolean
 }
 
 export const Canvas = React.memo(function Canvas<T extends TLShape>({
   page,
   pageState,
+  isDarkMode = false,
   hideHandles = false,
   hideBounds = false,
   hideIndicators = false,
@@ -56,6 +58,7 @@ export const Canvas = React.memo(function Canvas<T extends TLShape>({
               hideBounds={hideBounds}
               hideIndicators={hideIndicators}
               hideHandles={hideHandles}
+              isDarkMode={isDarkMode}
             />
             <Brush />
           </g>

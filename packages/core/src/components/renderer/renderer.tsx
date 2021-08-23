@@ -23,6 +23,7 @@ export interface RendererProps<T extends TLShape>
   hideBounds?: boolean
   hideHandles?: boolean
   hideIndicators?: boolean
+  isDarkMode?: boolean
 }
 
 export function Renderer<T extends TLShape>({
@@ -33,6 +34,7 @@ export function Renderer<T extends TLShape>({
   hideHandles = false,
   hideIndicators = false,
   hideBounds = false,
+  isDarkMode = false,
   ...rest
 }: RendererProps<T>): JSX.Element {
   useTLTheme(theme)
@@ -58,6 +60,7 @@ export function Renderer<T extends TLShape>({
         hideBounds={hideBounds}
         hideIndicators={hideIndicators}
         hideHandles={hideHandles}
+        isDarkMode={isDarkMode}
       />
     </TLContext.Provider>
   )
