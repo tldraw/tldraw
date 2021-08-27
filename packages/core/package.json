@@ -12,7 +12,9 @@
   "license": "MIT",
   "keywords": [],
   "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
+  "typings": "./dist/types/index.d.ts",
   "scripts": {
     "start": "node scripts/dev & tsc --watch --incremental --emitDeclarationOnly --declarationMap --outDir dist/types",
     "build": "yarn clean && node scripts/build && tsc --project tsconfig.build.json  --emitDeclarationOnly --outDir dist/types",

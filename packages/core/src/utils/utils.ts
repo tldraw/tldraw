@@ -1692,11 +1692,11 @@ left past the initial left edge) then swap points on that axis.
   /**
    * Find whether the current display is a touch display.
    */
-  static isTouchDisplay(): boolean {
-    return (
-      'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0
-    )
-  }
+  // static isTouchDisplay(): boolean {
+  //   return (
+  //     'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0
+  //   )
+  // }
 
   /**
    * Find whether the current device is a Mac / iOS / iPadOS.

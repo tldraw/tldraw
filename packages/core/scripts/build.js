@@ -19,6 +19,19 @@ async function main() {
       external: ['react', 'react-dom'],
     })
 
+    esbuild.buildSync({
+      entryPoints: ['./src/index.ts'],
+      outdir: 'dist/esm',
+      minify: true,
+      bundle: true,
+      format: 'esm',
+      target: 'es6',
+      tsconfig: './tsconfig.build.json',
+      jsxFactory: 'React.createElement',
+      jsxFragment: 'React.Fragment',
+      external: ['react', 'react-dom'],
+    })
+
     fs.copyFile('./README.md', './dist/README.md', (err) => {
       if (err) throw err
     })
