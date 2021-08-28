@@ -2,7 +2,15 @@ import _state from 'state'
 import tld from 'utils/tld'
 import inputs from 'state/inputs'
 import { createShape, getShapeUtils } from 'state/shape-utils'
-import { Corner, Data, Edge, Shape, ShapeType, ShapeUtility } from 'types'
+import {
+  Bounds,
+  Corner,
+  Data,
+  Edge,
+  Shape,
+  ShapeType,
+  ShapeUtility,
+} from 'types'
 import { deepClone, deepCompareArrays, uniqueId, vec } from 'utils'
 import * as mockDocument from './__mocks__/document.json'
 
@@ -640,6 +648,22 @@ class TestState {
   }
 
   /**
+   * Get the current size and position of a shape.
+   *
+   * ### Example
+   *
+   *```ts
+   * tt.getShapeBounds("myShapeId")
+   *```
+   */
+  getShapeBounds<T extends Shape>(id: string): Bounds {
+    const shape = this.getShape<T>(id)
+    const utils = getShapeUtils(shape)
+
+    return utils.getBounds(shape)
+  }
+
+  /**
    * Get the current selected ids.
    *
    * ### Example
@@ -790,7 +814,7 @@ class TestState {
    * ### Example
    *
    *```ts
-   * tt.testShape("myShapeId", (myShape, utils) => expect(utils(myShape).getBounds()).toMatchSnapshot() )
+   * tt.testShape("myShapeId", (myShape, utils) => expect(utils.getBounds(myShape)).toMatchSnapshot() )
    *```
    */
   testShape<T extends Shape>(
