@@ -171,17 +171,11 @@ To _fully_ test a feature, we'll need to write tests that cover all of these.
 
 ```ts
 describe('when creating a new page...', () => {
-  it('sets the correct child index for the new page', () => {
-    // TODO
-  })
+  it.todo('sets the correct child index for the new page')
 
-  it('sets the correct name for the new page', () => {
-    // TODO
-  })
+  it.todo('sets the correct name for the new page')
 
-  it('saves the document to local storage', () => {
-    // TODO
-  })
+  it.todo('saves the document to local storage')
 })
 ```
 
@@ -204,20 +198,20 @@ While snapshot tests don't assert specific things about a feature's implementati
 
 As you write your tests, chances are you'll find some part of the application that just doesn't work the way it should. If it's your own code, then go ahead and make your fix. If the bug is in code that someone else has written, and if the fix seems complicated, then consider reaching out to the author on [Discord](https://discord.gg/a3H98DGSXS) or on the Github issue for help.
 
-## TestUtils
+## TestState
 
-While you can test every feature in tldraw by sending events to the state, the `TestUtils` class is designed to make certain things easier. By convention, I'll refer to an instance of the `TestUtils` class as `tt`.
+While you can test every feature in tldraw by sending events to the state, the `TestState` class is designed to make certain things easier. By convention, I'll refer to an instance of the `TestState` class as `tt`.
 
 ```ts
 import TestState from '../test-utils'
 const tt = new TestState()
 ```
 
-The `TestUtils` instance wraps an instance of the app's state machine (`tt.state`). It also exposes the state's data as `tt.data`, as well as the state's helper methods (`tt.send`, `tt.isIn`, etc.)
+The `TestState` wraps an instance of the app's state machine (`tt.state`). It also exposes the state's data as `tt.data`, as well as the state's helper methods (`tt.send`, `tt.isIn`, etc.)
 
 - `tt.resetDocumentState` will clear the document and reset the app state.
 - `tt.createShape` will create a new shape on the page.
-- `tt.clickShape` will click a the indicated shape
+- `tt.clickShape` will click on the indicated shape
 
 Check the `test-utils.ts` file for the rest of the API. Feel free to add your own methods if you have a reason for doing so.
 
@@ -228,8 +222,8 @@ To wrap up, thanks again for writing tests for tldraw. Quality in creative softw
 To sum up what we've covered:
 
 - Do a bit of digging into a feature's events and their outcome(s)
-- Test the app's state machine (view `TestUtils`), not the React view
-- Use the `TestUtils` class for complex events like clicking and dragging
+- Test the app's state machine (see `TestState`), not the React view
+- Use the `TestState` class for complex events like clicking and dragging
 - Write "todo" tests for the things you can't get to
 - Ask original authors if you find a complex bug
 - Ask for help on [Discord](https://discord.gg/a3H98DGSXS)
