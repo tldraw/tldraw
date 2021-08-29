@@ -5,6 +5,10 @@ const esbuild = require('esbuild')
 const name = process.env.npm_package_name || ''
 
 async function main() {
+  if (!fs.existsSync('./dist')) {
+    fs.mkdirSync('./dist')
+  }
+
   try {
     esbuild.buildSync({
       entryPoints: ['./src/index.ts'],

@@ -103,12 +103,10 @@ export class TLDrawState extends StateManager<Data> {
   /* -------------------- Internal -------------------- */
 
   protected onStateWillChange = (state: Data, id: string): void => {
-  
-    if (id === "reset" || id.startsWith("command")) {
+    if (!id.startsWith('patch')) {
       this.selectHistory.stack = [[]]
       this.selectHistory.pointer = 0
     }
-
   }
 
   protected onStateDidChange = (state: Data, id: string): void => {
