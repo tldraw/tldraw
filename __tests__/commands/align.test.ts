@@ -148,13 +148,89 @@ describe('align command', () => {
     })
 
     describe('left', () => {
-      it.todo('does, undoes and redoes command')
+      it('does, undoes and redoes command', () => {
+        tt.restore()
+
+        const initialRectangleBounds = tt.getShapeBounds('rectangle')
+        const initialEllipseBounds = tt.getShapeBounds('ellipse')
+
+        expect(initialRectangleBounds.minX).toEqual(RECTANGLE_SHAPE.pointX)
+        expect(initialEllipseBounds.minX).toEqual(ELLIPSE_SHAPE.pointX)
+
+        tt.clickShape('rectangle')
+          .clickShape('ellipse', { shiftKey: true })
+          .send('ALIGNED', { type: AlignType.Left })
+
+        const rectangleBounds = tt.getShapeBounds('rectangle')
+        const ellipseBounds = tt.getShapeBounds('ellipse')
+
+        expect(rectangleBounds.minX).toEqual(ellipseBounds.minX)
+
+        tt.undo()
+
+        const rectangleBoundsAfterUndo = tt.getShapeBounds('rectangle')
+        const ellipseBoundsAfterUndo = tt.getShapeBounds('ellipse')
+
+        expect(rectangleBoundsAfterUndo.minX).toEqual(
+          initialRectangleBounds.minX
+        )
+        expect(ellipseBoundsAfterUndo.minX).toEqual(initialEllipseBounds.minX)
+
+        tt.redo()
+
+        const rectangleBoundsAfterRedo = tt.getShapeBounds('rectangle')
+        const ellipseBoundsAfterRedo = tt.getShapeBounds('ellipse')
+
+        expect(rectangleBoundsAfterRedo.minX).toEqual(rectangleBounds.minX)
+        expect(ellipseBoundsAfterRedo.minX).toEqual(ellipseBounds.minX)
+      })
     })
+
     describe('center horizontal', () => {
       it.todo('does, undoes and redoes command')
     })
+
     describe('right', () => {
-      it.todo('does, undoes and redoes command')
+      it('does, undoes and redoes command', () => {
+        tt.restore()
+
+        const initialRectangleBounds = tt.getShapeBounds('rectangle')
+        const initialEllipseBounds = tt.getShapeBounds('ellipse')
+
+        expect(initialRectangleBounds.maxX).toEqual(
+          RECTANGLE_SHAPE.pointX + RECTANGLE_SHAPE.width
+        )
+        expect(initialEllipseBounds.maxX).toEqual(
+          ELLIPSE_SHAPE.pointX + ELLIPSE_SHAPE.width
+        )
+
+        tt.clickShape('rectangle')
+          .clickShape('ellipse', { shiftKey: true })
+          .send('ALIGNED', { type: AlignType.Right })
+
+        const rectangleBounds = tt.getShapeBounds('rectangle')
+        const ellipseBounds = tt.getShapeBounds('ellipse')
+
+        expect(rectangleBounds.maxX).toEqual(ellipseBounds.maxX)
+
+        tt.undo()
+
+        const rectangleBoundsAfterUndo = tt.getShapeBounds('rectangle')
+        const ellipseBoundsAfterUndo = tt.getShapeBounds('ellipse')
+
+        expect(rectangleBoundsAfterUndo.maxX).toEqual(
+          initialRectangleBounds.maxX
+        )
+        expect(ellipseBoundsAfterUndo.maxX).toEqual(initialEllipseBounds.maxX)
+
+        tt.redo()
+
+        const rectangleBoundsAfterRedo = tt.getShapeBounds('rectangle')
+        const ellipseBoundsAfterRedo = tt.getShapeBounds('ellipse')
+
+        expect(rectangleBoundsAfterRedo.maxX).toEqual(rectangleBounds.maxX)
+        expect(ellipseBoundsAfterRedo.maxX).toEqual(ellipseBounds.maxX)
+      })
     })
   })
 })
