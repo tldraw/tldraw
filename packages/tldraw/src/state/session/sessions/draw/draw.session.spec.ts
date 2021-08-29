@@ -30,7 +30,7 @@ describe('Transform session', () => {
       .updateDrawSession([10, 10], 0.5)
       .completeSession()
 
-    expect(tlstate.status.current).toBe(TLDrawStatus.Idle)
+    expect(tlstate.appState.status.current).toBe(TLDrawStatus.Idle)
   })
 
   it('does, undoes and redoes', () => {

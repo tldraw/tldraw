@@ -35,7 +35,7 @@ describe('Brush session', () => {
 
     tlstate.completeSession()
 
-    expect(tlstate.status.current).toBe(TLDrawStatus.Idle)
+    expect(tlstate.appState.status.current).toBe(TLDrawStatus.Idle)
 
     tlstate.undo()
 

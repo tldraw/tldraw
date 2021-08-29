@@ -46,11 +46,11 @@ describe('Move command', () => {
     tlstate.loadDocument(doc)
     tlstate.setSelectedIds(['b'])
     tlstate.moveToBack()
-    expect(getSortedShapeIds(tlstate.data)).toBe('bacd')
+    expect(getSortedShapeIds(tlstate.state)).toBe('bacd')
     tlstate.undo()
-    expect(getSortedShapeIds(tlstate.data)).toBe('abcd')
+    expect(getSortedShapeIds(tlstate.state)).toBe('abcd')
     tlstate.redo()
-    expect(getSortedShapeIds(tlstate.data)).toBe('bacd')
+    expect(getSortedShapeIds(tlstate.state)).toBe('bacd')
   })
 
   describe('to back', () => {
@@ -58,21 +58,21 @@ describe('Move command', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['b'])
       tlstate.moveToBack()
-      expect(getSortedShapeIds(tlstate.data)).toBe('bacd')
+      expect(getSortedShapeIds(tlstate.state)).toBe('bacd')
     })
 
     it('moves two adjacent siblings to back', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['b', 'c'])
       tlstate.moveToBack()
-      expect(getSortedShapeIds(tlstate.data)).toBe('bcad')
+      expect(getSortedShapeIds(tlstate.state)).toBe('bcad')
     })
 
     it('moves two non-adjacent siblings to back', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['b', 'd'])
       tlstate.moveToBack()
-      expect(getSortedShapeIds(tlstate.data)).toBe('bdac')
+      expect(getSortedShapeIds(tlstate.state)).toBe('bdac')
     })
   })
 
@@ -81,35 +81,35 @@ describe('Move command', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['c'])
       tlstate.moveBackward()
-      expect(getSortedShapeIds(tlstate.data)).toBe('acbd')
+      expect(getSortedShapeIds(tlstate.state)).toBe('acbd')
     })
 
     it('moves a shape at first index backward', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['a'])
       tlstate.moveBackward()
-      expect(getSortedShapeIds(tlstate.data)).toBe('abcd')
+      expect(getSortedShapeIds(tlstate.state)).toBe('abcd')
     })
 
     it('moves two adjacent siblings backward', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['c', 'd'])
       tlstate.moveBackward()
-      expect(getSortedShapeIds(tlstate.data)).toBe('acdb')
+      expect(getSortedShapeIds(tlstate.state)).toBe('acdb')
     })
 
     it('moves two non-adjacent siblings backward', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['b', 'd'])
       tlstate.moveBackward()
-      expect(getSortedShapeIds(tlstate.data)).toBe('badc')
+      expect(getSortedShapeIds(tlstate.state)).toBe('badc')
     })
 
     it('moves two adjacent siblings backward at zero index', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['a', 'b'])
       tlstate.moveBackward()
-      expect(getSortedShapeIds(tlstate.data)).toBe('abcd')
+      expect(getSortedShapeIds(tlstate.state)).toBe('abcd')
     })
   })
 
@@ -118,7 +118,7 @@ describe('Move command', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['c'])
       tlstate.moveForward()
-      expect(getSortedShapeIds(tlstate.data)).toBe('abdc')
+      expect(getSortedShapeIds(tlstate.state)).toBe('abdc')
     })
 
     it('moves a shape forward at the top index', () => {
@@ -127,28 +127,28 @@ describe('Move command', () => {
       tlstate.moveForward()
       tlstate.moveForward()
       tlstate.moveForward()
-      expect(getSortedShapeIds(tlstate.data)).toBe('acdb')
+      expect(getSortedShapeIds(tlstate.state)).toBe('acdb')
     })
 
     it('moves two adjacent siblings forward', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['a', 'b'])
       tlstate.moveForward()
-      expect(getSortedShapeIds(tlstate.data)).toBe('cabd')
+      expect(getSortedShapeIds(tlstate.state)).toBe('cabd')
     })
 
     it('moves two non-adjacent siblings forward', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['a', 'c'])
       tlstate.moveForward()
-      expect(getSortedShapeIds(tlstate.data)).toBe('badc')
+      expect(getSortedShapeIds(tlstate.state)).toBe('badc')
     })
 
     it('moves two adjacent siblings forward at top index', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['c', 'd'])
       tlstate.moveForward()
-      expect(getSortedShapeIds(tlstate.data)).toBe('abcd')
+      expect(getSortedShapeIds(tlstate.state)).toBe('abcd')
     })
   })
 
@@ -157,28 +157,28 @@ describe('Move command', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['b'])
       tlstate.moveToFront()
-      expect(getSortedShapeIds(tlstate.data)).toBe('acdb')
+      expect(getSortedShapeIds(tlstate.state)).toBe('acdb')
     })
 
     it('moves two adjacent siblings to front', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['a', 'b'])
       tlstate.moveToFront()
-      expect(getSortedShapeIds(tlstate.data)).toBe('cdab')
+      expect(getSortedShapeIds(tlstate.state)).toBe('cdab')
     })
 
     it('moves two non-adjacent siblings to front', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['a', 'c'])
       tlstate.moveToFront()
-      expect(getSortedShapeIds(tlstate.data)).toBe('bdac')
+      expect(getSortedShapeIds(tlstate.state)).toBe('bdac')
     })
 
     it('moves siblings already at front to front', () => {
       tlstate.loadDocument(doc)
       tlstate.setSelectedIds(['c', 'd'])
       tlstate.moveToFront()
-      expect(getSortedShapeIds(tlstate.data)).toBe('abcd')
+      expect(getSortedShapeIds(tlstate.state)).toBe('abcd')
     })
   })
 })

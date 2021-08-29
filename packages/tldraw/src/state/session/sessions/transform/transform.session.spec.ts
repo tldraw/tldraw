@@ -31,7 +31,7 @@ describe('Transform session', () => {
       .updateTransformSession([10, 10])
       .completeSession()
 
-    expect(tlstate.status.current).toBe(TLDrawStatus.Idle)
+    expect(tlstate.appState.status.current).toBe(TLDrawStatus.Idle)
 
     expect(getShapeBounds(tlstate, 'rect1')).toMatchObject({
       minX: 10,

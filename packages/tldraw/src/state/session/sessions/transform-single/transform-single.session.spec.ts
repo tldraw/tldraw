@@ -14,7 +14,7 @@ describe('Transform single session', () => {
       .updateTransformSession([10, 10])
       .completeSession()
 
-    expect(tlstate.status.current).toBe(TLDrawStatus.Idle)
+    expect(tlstate.appState.status.current).toBe(TLDrawStatus.Idle)
 
     tlstate.undo().redo()
   })

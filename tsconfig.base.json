@@ -20,7 +20,7 @@
     "strict": false,
     "strictFunctionTypes": true /* Enable strict checking of function types. */,
     "strictNullChecks": true /* Enable strict null checks. */,
-    "target": "es5",
+    "target": "es6",
     "typeRoots": ["node_modules/@types", "node_modules/jest"],
     "types": ["node", "jest"],
     "jsx": "preserve",

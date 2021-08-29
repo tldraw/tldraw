@@ -32,7 +32,7 @@ const isDarkModeSelector = (s: Data) => s.settings.isDarkMode
 export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }: TLDrawProps) {
   const [tlstate] = React.useState(() => new TLDrawState())
   const [context] = React.useState(() => {
-    return { tlstate, useSelector: tlstate.store }
+    return { tlstate, useSelector: tlstate.useStore }
   })
 
   useKeyboardShortcuts(tlstate)
