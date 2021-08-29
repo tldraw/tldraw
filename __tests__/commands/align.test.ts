@@ -1,23 +1,37 @@
 import { AlignType, ShapeType } from 'types'
 import TestState from '../test-utils'
 
+const RECTANGLE_SHAPE = {
+  pointX: 0,
+  pointY: 0,
+  width: 250,
+  height: 150,
+}
+
+const ELLIPSE_SHAPE = {
+  pointX: 200,
+  pointY: 200,
+  width: 100,
+  height: 100,
+}
+
 describe('align command', () => {
   const tt = new TestState()
   tt.resetDocumentState()
     .createShape(
       {
         type: ShapeType.Rectangle,
-        point: [0, 0],
-        size: [150, 100],
+        point: [RECTANGLE_SHAPE.pointX, RECTANGLE_SHAPE.pointY],
+        size: [RECTANGLE_SHAPE.width, RECTANGLE_SHAPE.height],
       },
       'rectangle'
     )
     .createShape(
       {
         type: ShapeType.Ellipse,
-        point: [150, 150],
-        radiusX: 50,
-        radiusY: 50,
+        point: [ELLIPSE_SHAPE.pointX, ELLIPSE_SHAPE.pointY],
+        radiusX: ELLIPSE_SHAPE.width / 2,
+        radiusY: ELLIPSE_SHAPE.height / 2,
       },
       'ellipse'
     )
@@ -54,8 +68,8 @@ describe('align command', () => {
         const initialRectangleBounds = tt.getShapeBounds('rectangle')
         const initialEllipseBounds = tt.getShapeBounds('ellipse')
 
-        expect(initialRectangleBounds.minY).toEqual(0)
-        expect(initialEllipseBounds.minY).toEqual(150)
+        expect(initialRectangleBounds.minY).toEqual(RECTANGLE_SHAPE.pointY)
+        expect(initialEllipseBounds.minY).toEqual(ELLIPSE_SHAPE.pointY)
 
         tt.clickShape('rectangle')
           .clickShape('ellipse', { shiftKey: true })
@@ -89,9 +103,50 @@ describe('align command', () => {
     describe('center vertical', () => {
       it.todo('does, undoes and redoes command')
     })
+
     describe('bottom', () => {
-      it.todo('does, undoes and redoes command')
+      it('does, undoes and redoes command', () => {
+        tt.restore()
+
+        const initialRectangleBounds = tt.getShapeBounds('rectangle')
+        const initialEllipseBounds = tt.getShapeBounds('ellipse')
+
+        expect(initialRectangleBounds.maxY).toEqual(
+          RECTANGLE_SHAPE.pointY + RECTANGLE_SHAPE.height
+        )
+        expect(initialEllipseBounds.maxY).toEqual(
+          ELLIPSE_SHAPE.pointY + ELLIPSE_SHAPE.height
+        )
+
+        tt.clickShape('rectangle')
+          .clickShape('ellipse', { shiftKey: true })
+          .send('ALIGNED', { type: AlignType.Bottom })
+
+        const rectangleBounds = tt.getShapeBounds('rectangle')
+        const ellipseBounds = tt.getShapeBounds('ellipse')
+
+        expect(rectangleBounds.maxY).toEqual(ellipseBounds.maxY)
+
+        tt.undo()
+
+        const rectangleBoundsAfterUndo = tt.getShapeBounds('rectangle')
+        const ellipseBoundsAfterUndo = tt.getShapeBounds('ellipse')
+
+        expect(rectangleBoundsAfterUndo.maxY).toEqual(
+          initialRectangleBounds.maxY
+        )
+        expect(ellipseBoundsAfterUndo.maxY).toEqual(initialEllipseBounds.maxY)
+
+        tt.redo()
+
+        const rectangleBoundsAfterRedo = tt.getShapeBounds('rectangle')
+        const ellipseBoundsAfterRedo = tt.getShapeBounds('ellipse')
+
+        expect(rectangleBoundsAfterRedo.maxY).toEqual(rectangleBounds.maxY)
+        expect(ellipseBoundsAfterRedo.maxY).toEqual(ellipseBounds.maxY)
+      })
     })
+
     describe('left', () => {
       it.todo('does, undoes and redoes command')
     })
