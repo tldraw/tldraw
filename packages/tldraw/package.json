@@ -17,7 +17,7 @@
   "typings": "./dist/types/index.d.ts",
   "scripts": {
     "start": "node scripts/dev & tsc --watch --incremental --emitDeclarationOnly --declarationMap --outDir dist/types",
-    "build": "yarn clean && node scripts/build && tsc --project tsconfig.build.json --emitDeclarationOnly --outDir dist/types",
+    "build": "yarn clean && node scripts/build && tsc --project tsconfig.build.json --emitDeclarationOnly --declarationMap --outDir dist/types",
     "lint": "eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf dist",
     "ts-node": "ts-node",
@@ -26,19 +26,19 @@
   "devDependencies": {
     "@tldraw/core": "*",
     "@types/jest": "^27.0.1",
-    "@types/node": "^15.0.1",
+    "@types/node": "^16.7.6",
     "@types/react": "^17.0.16",
     "@types/react-dom": "^17.0.9",
-    "@typescript-eslint/eslint-plugin": "^4.19.0",
-    "@typescript-eslint/parser": "^4.19.0",
-    "esbuild": "^0.11.11",
-    "eslint": "^7.22.0",
+    "@typescript-eslint/eslint-plugin": "^4.29.3",
+    "@typescript-eslint/parser": "^4.29.3",
+    "esbuild": "^0.12.24",
+    "eslint": "^7.32.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "ts-node": "^9.1.1",
-    "tslib": "^2.3.0",
-    "typedoc": "^0.20.35",
-    "typescript": "^4.3.5"
+    "ts-node": "^10.2.1",
+    "tslib": "^2.3.1",
+    "typedoc": "^0.21.9",
+    "typescript": "^4.4.2"
   },
   "peerDependencies": {
     "react": "^17.0.2",

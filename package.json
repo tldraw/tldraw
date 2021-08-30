@@ -17,10 +17,10 @@
   ],
   "scripts": {
     "test": "jest",
-    "test:watch": "jest --watchAll",
+    "test:watch": "test --watchAll",
     "lerna": "lerna",
-    "start": "lerna run start --stream --parallel",
-    "start:www": "lerna run start --stream --parallel & cd packages/www && yarn dev",
+    "start": "yarn build:packages && lerna run start --parallel",
+    "start:www": "yarn build:packages && lerna run start --parallel & cd packages/www && yarn dev",
     "build": "yarn build:packages && cd packages/www && yarn build",
     "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build",
     "publish:patch": "yarn build:packages && lerna publish patch"
@@ -39,7 +39,6 @@
     "@typescript-eslint/eslint-plugin": "^4.19.0",
     "@typescript-eslint/parser": "^4.19.0",
     "babel-jest": "^27.1.0",
-    "esbuild": "^0.11.11",
     "fake-indexeddb": "^3.1.3",
     "jest": "^27.1.0",
     "lerna": "^3.15.0",
