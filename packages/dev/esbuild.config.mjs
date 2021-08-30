@@ -21,10 +21,6 @@ esbuild
     minify: false,
     sourcemap: true,
     incremental: isDevServer,
-    assetNames: 'assets/[name]-[hash]',
-    loader: {
-      '.woff': 'file',
-    },
     target: ['chrome58', 'firefox57', 'safari11', 'edge18'],
     define: {
       'process.env.NODE_ENV': isDevServer ? '"development"' : '"production"',
