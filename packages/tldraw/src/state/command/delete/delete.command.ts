@@ -3,7 +3,7 @@ import type { Data, TLDrawCommand, PagePartial } from '~types'
 
 // - [x] Delete shapes
 // - [x] Delete bindings too
-// - [ ] Delete bound shapes (arrows)
+// - [x] Delete bound shapes (arrows)
 // - [ ] Update parents and possibly delete parents
 
 export function deleteShapes(data: Data, ids: string[]): TLDrawCommand {

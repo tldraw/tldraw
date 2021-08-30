@@ -44,7 +44,7 @@ export class ArrowSession implements Session {
     }
   }
 
-  start = (data: Data) => data
+  start = () => void null
 
   update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean, metaKey: boolean) => {
     const page = TLDR.getPage(data, data.appState.currentPageId)
@@ -73,13 +73,15 @@ export class ArrowSession implements Session {
       { delta, shiftKey, altKey, metaKey }
     )
 
-    if (!change) return data
+    // If the handle changed produced no change, bail here
+    if (!change) return
 
-    let nextBindings: Record<string, TLDrawBinding> = { ...page.bindings }
+    let nextBindings: Record<string, TLDrawBinding> = page.bindings
 
     let nextShape = { ...shape, ...change }
 
     if (handle.canBind) {
+      nextBindings = { ...nextBindings }
       let nextBinding: ArrowBinding | undefined = undefined
       let nextTarget: TLDrawShape | undefined = undefined
 
@@ -137,15 +139,16 @@ export class ArrowSession implements Session {
       // If we didn't find a target...
       if (nextBinding === undefined) {
         this.didBind = false
+
         if (handle.bindingId) {
-          delete nextBindings[handle.bindingId]
+          nextBindings[handle.bindingId] = undefined as any
         }
         nextShape.handles[handleId].bindingId = undefined
       } else if (nextTarget) {
         this.didBind = true
 
         if (handle.bindingId && handle.bindingId !== this.newBindingId) {
-          delete nextBindings[handle.bindingId]
+          nextBindings[handle.bindingId] = undefined as any
           nextShape.handles[handleId].bindingId = undefined
         }
 

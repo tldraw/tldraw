@@ -698,7 +698,9 @@ export class TLDrawState extends StateManager<Data> {
 
   startSession<T extends Session>(session: T, ...args: ParametersExceptFirst<T['start']>): this {
     this.session = session
+
     const result = session.start(this.state, ...args)
+
     if (result) {
       return this.patchState(
         {
