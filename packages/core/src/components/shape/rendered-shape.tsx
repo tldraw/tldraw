@@ -1,22 +1,20 @@
 import * as React from 'react'
 import type { TLShapeUtil, TLRenderInfo, TLShape } from '+types'
 
-interface RenderedShapeProps<T extends TLShape, M extends Record<string, unknown>>
-  extends TLRenderInfo {
+interface RenderedShapeProps<T extends TLShape> extends TLRenderInfo {
   shape: T
   utils: TLShapeUtil<T>
-  meta?: M
 }
 
 export const RenderedShape = React.memo(
-  function RenderedShape<M extends Record<string, unknown>>({
+  function RenderedShape({
     shape,
     utils,
     isEditing,
     isBinding,
     isCurrentParent,
     meta,
-  }: RenderedShapeProps<TLShape, M>) {
+  }: RenderedShapeProps<TLShape>) {
     return utils.render(shape, {
       isEditing,
       isBinding,

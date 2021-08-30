@@ -53,6 +53,7 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
   // Hide indicators when not using the select tool, or when in session
   const hideIndicators = !isSelecting || isInSession
 
+  // Custom rendering meta, with dark mode for shapes
   const meta = React.useMemo(() => ({ isDarkMode }), [isDarkMode])
 
   React.useEffect(() => {
