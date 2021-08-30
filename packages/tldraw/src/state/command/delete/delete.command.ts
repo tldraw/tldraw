@@ -3,6 +3,7 @@ import type { Data, TLDrawCommand, PagePartial } from '~types'
 
 // - [x] Delete shapes
 // - [x] Delete bindings too
+// - [ ] Delete bound shapes (arrows)
 // - [ ] Update parents and possibly delete parents
 
 export function deleteShapes(data: Data, ids: string[]): TLDrawCommand {
@@ -38,15 +39,17 @@ export function deleteShapes(data: Data, ids: string[]): TLDrawCommand {
         // Let's also look at the bound shape...
         const shape = TLDR.getShape(data, id, currentPageId)
 
-        // If the bound shape has a handle that references the deleted binding, delete that reference
+        // If the bound shape has a handle that references the deleted binding...
         if (shape.handles) {
           Object.values(shape.handles)
-            .filter((handle) => handle.bindingId === binding.id)
+            .filter((handle) => handle.bindingId === binding.id && after.shapes[id] !== undefined)
             .forEach((handle) => {
+              // Otherwise, delete the reference to the deleted binding
               before.shapes[id] = {
                 ...before.shapes[id],
                 handles: { ...before.shapes[id]?.handles, [handle.id]: { bindingId: binding.id } },
               }
+
               after.shapes[id] = {
                 ...after.shapes[id],
                 handles: { ...after.shapes[id]?.handles, [handle.id]: { bindingId: undefined } },

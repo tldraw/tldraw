@@ -298,7 +298,7 @@ export class TLDrawState extends StateManager<Data> {
     return this.patchState(
       {
         appState: {
-          isToolLocked: true,
+          isToolLocked: !this.appState.isToolLocked,
         },
       },
       `toggled_tool_lock`
@@ -843,6 +843,11 @@ export class TLDrawState extends StateManager<Data> {
               },
             },
           },
+        }
+
+        if (this.appState.isToolLocked) {
+          const pageState = result.after?.document?.pageStates?.[this.currentPageId] || {}
+          pageState.selectedIds = []
         }
 
         this.isCreating = false
