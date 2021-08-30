@@ -9469,10 +9469,10 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
-rko@^0.5.18:
-  version "0.5.18"
-  resolved "https://registry.yarnpkg.com/rko/-/rko-0.5.18.tgz#cbbc45f073b1db1884112479b18ed04a799065ec"
-  integrity sha512-zh6/NRIZi0gApYMyyJjTLpni/98dmkj/oZhD/KRS2TYZD0V63iIopBWUmD5wSNVVqyOv5o/HHsM1Q4EzdTGeZA==
+rko@^0.5.19:
+  version "0.5.19"
+  resolved "https://registry.yarnpkg.com/rko/-/rko-0.5.19.tgz#33577596167178abc30063b6dd0a8bbde0362c27"
+  integrity sha512-0KSdDnbhD11GCDvZFARvCJedJuwWIh5F1cCqTGljFF/wQi9PUVu019qH4ME4LdPF3HotMLcdQsxEXmIDeeD0zQ==
   dependencies:
     idb-keyval "^5.1.3"
     zustand "^3.5.9"

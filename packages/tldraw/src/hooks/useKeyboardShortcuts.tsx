@@ -200,7 +200,8 @@ export function useKeyboardShortcuts(tlstate: TLDrawState) {
     tlstate.moveToFront()
   })
 
-  useHotkeys('command+shift+backspace', () => {
+  useHotkeys('command+shift+backspace', (e) => {
     tlstate.reset()
+    e.preventDefault()
   })
 }

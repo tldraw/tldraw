@@ -91,8 +91,8 @@ const initialData: Data = {
 export class TLDrawState extends StateManager<Data> {
   _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
 
-  constructor() {
-    super(initialData, 'tlstate', 1)
+  constructor(id = Utils.uniqueId()) {
+    super(initialData, id, 1)
   }
 
   selectHistory: SelectHistory = {
@@ -258,25 +258,31 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   toggleDarkMode = (): this => {
-    return this.patchState(
+    this.patchState(
       { settings: { isDarkMode: !this.state.settings.isDarkMode } },
       `settings:toggled_dark_mode`
     )
+    this.persist()
+    return this
   }
 
   toggleDebugMode = () => {
-    return this.patchState(
+    this.patchState(
       { settings: { isDebugMode: !this.state.settings.isDebugMode } },
       `settings:toggled_debug`
     )
+    this.persist()
+    return this
   }
 
   /* ----------------------- UI ----------------------- */
   toggleStylePanel = (): this => {
-    return this.patchState(
+    this.patchState(
       { appState: { isStyleOpen: !this.appState.isStyleOpen } },
       'ui:toggled_style_panel'
     )
+    this.persist()
+    return this
   }
 
   selectTool = (tool: TLDrawShapeType | 'select'): this => {

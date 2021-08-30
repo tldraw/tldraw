@@ -100,7 +100,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
                 </IconWrapper>
               </DropdownMenu.ItemIndicator>
             </DropdownMenu.RadioItem>
-            <PageOptionsDialog page={page} />
+            <PageOptionsDialog page={page} onClose={onClose} />
           </ButtonWithOptions>
         ))}
       </DropdownMenu.RadioGroup>

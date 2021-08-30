@@ -86,22 +86,25 @@ const initialDoc: TLDrawDocument = {
 }
 
 export default function Editor(): JSX.Element {
-  const { value, setValue, status } = usePersistence('doc', initialDoc)
+  // const { value, setValue, status } = usePersistence('doc', initialDoc)
 
-  const handleChange = React.useCallback(
-    (tlstate: TLDrawState, patch: TLDrawPatch, reason: string) => {
-      if (reason.startsWith('session')) {
-        return
-      }
+  // const handleChange = React.useCallback(
+  //   (tlstate: TLDrawState, patch: TLDrawPatch, reason: string) => {
+  //     if (reason.startsWith('session')) {
+  //       return
+  //     }
 
-      setValue(tlstate.document)
-    },
-    [setValue]
-  )
+  //     setValue(tlstate.document)
+  //   },
+  //   [setValue]
+  // )
 
-  if (status === 'loading' || value === null) {
-    return <div />
-  }
+  // if (status === 'loading' || value === null) {
+  //   return <div />
+  // }
 
-  return <TLDraw document={value} onChange={handleChange} />
+  // return <TLDraw document={value} onChange={handleChange} />
+
+  // Will automatically persist data under the provided id, too
+  return <TLDraw id="tldraw" />
 }

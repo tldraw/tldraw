@@ -47,7 +47,9 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
     // For very short lines, draw a point instead of a line
     const bounds = this.getBounds(shape)
 
-    if (!isEditing && bounds.width < strokeWidth / 2 && bounds.height < strokeWidth / 2) {
+    const verySmall = bounds.width < strokeWidth / 2 && bounds.height < strokeWidth / 2
+
+    if (!isEditing && verySmall) {
       const sw = strokeWidth * 0.618
 
       return (
@@ -150,6 +152,14 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
 
   renderIndicator(shape: DrawShape): JSX.Element {
     const { points } = shape
+
+    const bounds = this.getBounds(shape)
+
+    const verySmall = bounds.width < 4 && bounds.height < 4
+
+    if (verySmall) {
+      return <circle x={bounds.width / 2} y={bounds.height / 2} r={1} />
+    }
 
     const path = Utils.getFromCache(this.simplePathCache, points, () => getSolidStrokePath(shape))
 

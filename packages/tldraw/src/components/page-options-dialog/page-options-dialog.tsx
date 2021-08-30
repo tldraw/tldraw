@@ -7,8 +7,6 @@ import {
   DialogOverlay,
   DialogContent,
   RowButton,
-  MenuTextInput,
-  DialogInputWrapper,
   Divider,
 } from '~components/shared'
 import type { Data, TLDrawPage } from '~types'
@@ -21,9 +19,10 @@ const canDeleteSelector = (s: Data) => {
 interface PageOptionsDialogProps {
   page: TLDrawPage
   onOpen?: () => void
+  onClose?: () => void
 }
 
-export function PageOptionsDialog({ page, onOpen }: PageOptionsDialogProps): JSX.Element {
+export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogProps): JSX.Element {
   const { tlstate, useSelector } = useTLDrawContext()
 
   const [isOpen, setIsOpen] = React.useState(false)
@@ -32,18 +31,16 @@ export function PageOptionsDialog({ page, onOpen }: PageOptionsDialogProps): JSX
 
   const rInput = React.useRef<HTMLInputElement>(null)
 
-  const [name, setName] = React.useState(page.name || 'Page')
-
-  const handleNameChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setName(e.currentTarget.value)
-  }, [])
-
   const handleDuplicate = React.useCallback(() => {
     tlstate.duplicatePage(page.id)
+    onClose?.()
   }, [tlstate])
 
   const handleDelete = React.useCallback(() => {
-    tlstate.deletePage(page.id)
+    if (window.confirm(`Are you sure you want to delete this page?`)) {
+      tlstate.deletePage(page.id)
+      onClose?.()
+    }
   }, [tlstate])
 
   const handleOpenChange = React.useCallback(
@@ -54,27 +51,18 @@ export function PageOptionsDialog({ page, onOpen }: PageOptionsDialogProps): JSX
         onOpen?.()
         return
       }
-
-      if (name.length === 0) {
-        tlstate.renamePage(page.id, 'Page')
-      }
     },
     [tlstate, name]
   )
-
-  const handleSave = React.useCallback(() => {
-    tlstate.renamePage(page.id, name)
-  }, [tlstate, name])
 
   function stopPropagation(e: React.KeyboardEvent<HTMLDivElement>) {
     e.stopPropagation()
   }
 
-  function handleKeydown(e: React.KeyboardEvent<HTMLDivElement>) {
-    if (e.key === 'Enter') {
-      handleSave()
-      setIsOpen(false)
-    }
+  // TODO: Replace with text input
+  function handleRename() {
+    const nextName = window.prompt('New name:', page.name)
+    tlstate.renamePage(page.id, nextName || page.name || 'Page')
   }
 
   React.useEffect(() => {
@@ -93,15 +81,9 @@ export function PageOptionsDialog({ page, onOpen }: PageOptionsDialogProps): JSX
       </Dialog.Trigger>
       <Dialog.Overlay as={DialogOverlay} />
       <Dialog.Content as={DialogContent} onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
-        <DialogInputWrapper>
-          <MenuTextInput
-            ref={rInput}
-            value={name}
-            onChange={handleNameChange}
-            onKeyDown={handleKeydown}
-          />
-        </DialogInputWrapper>
-        <Divider />
+        <Dialog.Action as={RowButton} bp={breakpoints} onClick={handleRename}>
+          Rename
+        </Dialog.Action>
         <Dialog.Action as={RowButton} bp={breakpoints} onClick={handleDuplicate}>
           Duplicate
         </Dialog.Action>
@@ -115,9 +97,6 @@ export function PageOptionsDialog({ page, onOpen }: PageOptionsDialogProps): JSX
           Delete
         </Dialog.Action>
         <Divider />
-        <Dialog.Action as={RowButton} bp={breakpoints} onClick={handleSave}>
-          Save
-        </Dialog.Action>
         <Dialog.Cancel as={RowButton} bp={breakpoints}>
           Cancel
         </Dialog.Cancel>

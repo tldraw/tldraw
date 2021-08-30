@@ -99,8 +99,6 @@ const { styled, css, theme, getCssString } = createCss({
   },
 })
 
-const light = theme({})
-
 const dark = theme({
   colors: {
     brushFill: 'rgba(180, 180, 180, .05)',
@@ -138,4 +136,4 @@ const dark = theme({
 
 export default styled
 
-export { css, getCssString, light, dark }
+export { css, getCssString, dark }

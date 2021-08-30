@@ -157,16 +157,13 @@ describe('Arrow session', () => {
       expect(tlstate.getShape<ArrowShape>('arrow1').point).toStrictEqual([116, 116])
       expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.point).toStrictEqual([0, 0])
       expect(tlstate.getShape<ArrowShape>('arrow1').handles.end.point).toStrictEqual([85, 85])
-      // tlstate
-      //   .select('target1')
-      //   .startTranslateSession([50, 50])
-      //   .updateTranslateSession([300, 0])
-      //   .completeSession()
-      // expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.point).toStrictEqual([66.493, 0])
-      // expect(tlstate.getShape<ArrowShape>('arrow1').handles.end.point).toStrictEqual([0, 135])
     })
 
     it('updates the arrow when bound on both sides', () => {
+      // TODO
+    })
+
+    it('snaps the bend to zero when dragging the bend handle toward the center', () => {
       // TODO
     })
   })

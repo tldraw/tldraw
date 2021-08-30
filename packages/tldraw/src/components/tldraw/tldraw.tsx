@@ -12,25 +12,51 @@ import { ToolsPanel } from '~components/tools-panel'
 import { PagePanel } from '~components/page-panel'
 import { Menu } from '~components/menu'
 
-export interface TLDrawProps {
-  document?: TLDrawDocument
-  currentPageId?: string
-  onMount?: (state: TLDrawState) => void
-  onChange?: TLDrawState['_onChange']
-}
-
+// Selectors
 const isInSelectSelector = (s: Data) => s.appState.activeTool === 'select'
+
 const isSelectedShapeWithHandlesSelector = (s: Data) => {
   const { shapes } = s.document.pages[s.appState.currentPageId]
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.length === 1 && selectedIds.every((id) => shapes[id].handles !== undefined)
 }
+
 const pageSelector = (s: Data) => s.document.pages[s.appState.currentPageId]
+
 const pageStateSelector = (s: Data) => s.document.pageStates[s.appState.currentPageId]
+
 const isDarkModeSelector = (s: Data) => s.settings.isDarkMode
 
-export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }: TLDrawProps) {
-  const [tlstate] = React.useState(() => new TLDrawState())
+export interface TLDrawProps {
+  /**
+   * (optional) If provided, the component will load / persist state under this key.
+   */
+  id?: string
+  /**
+   * (optional) The document to load or update from.
+   */
+  document?: TLDrawDocument
+  /**
+   * (optional) The current page id.
+   */
+  currentPageId?: string
+  /**
+   * (optional) A callback to run when the component mounts.
+   */
+  onMount?: (state: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the component's state changes.
+   */
+  onChange?: TLDrawState['_onChange']
+}
+
+export function TLDraw({ id, document, currentPageId, onMount, onChange: _onChange }: TLDrawProps) {
+  const [tlstate, setTlstate] = React.useState(() => new TLDrawState(id))
+
+  React.useEffect(() => {
+    setTlstate(new TLDrawState(id))
+  }, [id])
+
   const [context] = React.useState(() => {
     return { tlstate, useSelector: tlstate.useStore }
   })
@@ -38,10 +64,15 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
   useKeyboardShortcuts(tlstate)
 
   const page = context.useSelector(pageSelector)
+
   const pageState = context.useSelector(pageStateSelector)
+
   const isDarkMode = context.useSelector(isDarkModeSelector)
+
   const isSelecting = context.useSelector(isInSelectSelector)
+
   const isSelectedHandlesShape = context.useSelector(isSelectedShapeWithHandlesSelector)
+
   const isInSession = !!tlstate.session
 
   // Hide bounds when not using the select tool, or when the only selected shape has handles
