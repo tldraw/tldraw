@@ -1156,7 +1156,7 @@ export class TLDrawState extends StateManager<Data> {
     )
   }
 
-  startTextSession = (id?: string): this => {
+  startTextSession = (id: string): this => {
     return this.startSession(new Sessions.TextSession(this.state, id))
   }
 
@@ -1350,7 +1350,7 @@ export class TLDrawState extends StateManager<Data> {
         return this.startHandleSession(pagePoint, 'end', `create_${activeTool}`)
       }
       case TLDrawToolType.Text: {
-        return this.startTextSession()
+        return this.startTextSession(id)
       }
       case TLDrawToolType.Point: {
         break
@@ -1499,34 +1499,40 @@ export class TLDrawState extends StateManager<Data> {
     this.updateOnPointerMove(info)
   }
 
-  // Pointer Events
+  /* ----------------- Pointer Events ----------------- */
+
+  onPointerMove: TLPointerEventHandler = (info) => {
+    // Several events (e.g. pan) can trigger the same "pointer move" behavior
+    this.updateOnPointerMove(info)
+  }
+
   onPointerDown: TLPointerEventHandler = (info) => {
     switch (this.appState.status.current) {
       case TLDrawStatus.Idle: {
         switch (this.appState.activeTool) {
-          case 'draw': {
+          case TLDrawShapeType.Draw: {
             this.createActiveToolShape(info.point)
             break
           }
-          case 'rectangle': {
+          case TLDrawShapeType.Rectangle: {
             this.createActiveToolShape(info.point)
             break
           }
-          case 'ellipse': {
+          case TLDrawShapeType.Ellipse: {
             this.createActiveToolShape(info.point)
             break
           }
-          case 'arrow': {
+          case TLDrawShapeType.Arrow: {
+            this.createActiveToolShape(info.point)
+            break
+          }
+          case TLDrawShapeType.Text: {
             this.createActiveToolShape(info.point)
             break
           }
         }
       }
     }
-  }
-
-  onPointerMove: TLPointerEventHandler = (info) => {
-    this.updateOnPointerMove(info)
   }
 
   onPointerUp: TLPointerEventHandler = (info) => {
