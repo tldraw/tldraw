@@ -1,9 +1,6 @@
 import { TLDR } from '~state/tldr'
 import type { Data, TLDrawCommand, PagePartial } from '~types'
 
-// - [x] Delete shapes
-// - [x] Delete bindings too
-// - [x] Delete bound shapes (arrows)
 // - [ ] Update parents and possibly delete parents
 
 export function deleteShapes(data: Data, ids: string[]): TLDrawCommand {
@@ -36,23 +33,30 @@ export function deleteShapes(data: Data, ids: string[]): TLDrawCommand {
         before.bindings[binding.id] = binding
         after.bindings[binding.id] = undefined
 
-        // Let's also look at the bound shape...
+        // Let's also look each the bound shape...
         const shape = TLDR.getShape(data, id, currentPageId)
 
         // If the bound shape has a handle that references the deleted binding...
         if (shape.handles) {
           Object.values(shape.handles)
-            .filter((handle) => handle.bindingId === binding.id && after.shapes[id] !== undefined)
+            .filter((handle) => handle.bindingId === binding.id)
             .forEach((handle) => {
-              // Otherwise, delete the reference to the deleted binding
+              // Save the binding reference in the before patch
               before.shapes[id] = {
                 ...before.shapes[id],
-                handles: { ...before.shapes[id]?.handles, [handle.id]: { bindingId: binding.id } },
+                handles: {
+                  ...before.shapes[id]?.handles,
+                  [handle.id]: { bindingId: binding.id },
+                },
               }
 
-              after.shapes[id] = {
-                ...after.shapes[id],
-                handles: { ...after.shapes[id]?.handles, [handle.id]: { bindingId: undefined } },
+              // Unless we're currently deleting the shape, remove the
+              // binding reference from the after patch
+              if (!ids.includes(id)) {
+                after.shapes[id] = {
+                  ...after.shapes[id],
+                  handles: { ...after.shapes[id]?.handles, [handle.id]: { bindingId: undefined } },
+                }
               }
             })
         }

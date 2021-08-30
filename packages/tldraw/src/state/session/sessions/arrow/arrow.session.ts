@@ -7,7 +7,7 @@ import {
   Session,
   TLDrawStatus,
 } from '~types'
-import { Vec, Utils } from '@tldraw/core'
+import { Vec, Utils, TLHandle } from '@tldraw/core'
 import { TLDR } from '~state/tldr'
 
 export class ArrowSession implements Session {
@@ -76,14 +76,31 @@ export class ArrowSession implements Session {
     // If the handle changed produced no change, bail here
     if (!change) return
 
-    let nextBindings: Record<string, TLDrawBinding> = page.bindings
-
+    // If we've made it this far, the shape should be a new objet reference
+    // that incorporates the changes we've made due to the handle movement.
     let nextShape = { ...shape, ...change }
 
+    // If nothing changes, we want this to be the same object reference as
+    // before. If it does change, we'll redefine this later on.
+    let nextBindings: Record<string, TLDrawBinding | undefined> = page.bindings
+
+    // If the handle can bind, then we need to search bindable shapes for
+    // a binding. If the handle already has a binding, then we will either
+    // update that binding or delete it (if no binding is found).
     if (handle.canBind) {
-      nextBindings = { ...nextBindings }
-      let nextBinding: ArrowBinding | undefined = undefined
-      let nextTarget: TLDrawShape | undefined = undefined
+      // const { binding, target } = findBinding(
+      //   data,
+      //   initialShape,
+      //   handle,
+      //   this.newBindingId,
+      //   this.bindableShapeIds,
+      //   page.bindings,
+      //   altKey,
+      //   metaKey
+      // )
+
+      let binding: ArrowBinding | undefined = undefined
+      let target: TLDrawShape | undefined = undefined
 
       // Alt key skips binding
       if (!altKey) {
@@ -103,7 +120,7 @@ export class ArrowSession implements Session {
           if (id === initialShape.id) continue
           if (id === oppositeBinding?.toId) continue
 
-          const target = TLDR.getShape(data, id, data.appState.currentPageId)
+          target = TLDR.getShape(data, id, data.appState.currentPageId)
 
           const util = TLDR.getShapeUtils(target)
 
@@ -119,10 +136,7 @@ export class ArrowSession implements Session {
           // Not all shapes will produce a binding point
           if (!bindingPoint) continue
 
-          // Stop at the first shape that will produce a binding point
-          nextTarget = target
-
-          nextBinding = {
+          binding = {
             id: this.newBindingId,
             type: 'arrow',
             fromId: initialShape.id,
@@ -137,29 +151,31 @@ export class ArrowSession implements Session {
       }
 
       // If we didn't find a target...
-      if (nextBinding === undefined) {
+      if (binding === undefined) {
         this.didBind = false
 
         if (handle.bindingId) {
-          nextBindings[handle.bindingId] = undefined as any
+          nextBindings = { ...nextBindings }
+          nextBindings[handle.bindingId] = undefined
         }
         nextShape.handles[handleId].bindingId = undefined
-      } else if (nextTarget) {
+      } else if (target) {
         this.didBind = true
+        nextBindings = { ...nextBindings }
 
         if (handle.bindingId && handle.bindingId !== this.newBindingId) {
-          nextBindings[handle.bindingId] = undefined as any
+          nextBindings[handle.bindingId] = undefined
           nextShape.handles[handleId].bindingId = undefined
         }
 
-        // If we found a new binding, add its id to the handle...
+        // If we found a new binding, add its id to the shape's handle...
         nextShape = {
           ...nextShape,
           handles: {
             ...nextShape.handles,
             [handleId]: {
               ...nextShape.handles[handleId],
-              bindingId: nextBinding.id,
+              bindingId: binding.id,
             },
           },
         }
@@ -167,16 +183,17 @@ export class ArrowSession implements Session {
         // and add it to the page's bindings
         nextBindings = {
           ...nextBindings,
-          [nextBinding.id]: nextBinding,
+          [binding.id]: binding,
         }
 
         // Now update the arrow in response to the new binding
+        const targetUtils = TLDR.getShapeUtils(target)
         const arrowChange = TLDR.getShapeUtils(nextShape).onBindingChange(
           nextShape,
-          nextBinding,
-          nextTarget,
-          TLDR.getShapeUtils(nextTarget).getBounds(nextTarget),
-          TLDR.getShapeUtils(nextTarget).getCenter(nextTarget)
+          binding,
+          target,
+          targetUtils.getBounds(target),
+          targetUtils.getCenter(target)
         )
 
         if (arrowChange) {
@@ -297,4 +314,70 @@ export class ArrowSession implements Session {
       },
     }
   }
+}
+
+function findBinding(
+  data: Data,
+  shape: ArrowShape,
+  handle: TLHandle,
+  newBindingId: string,
+  bindableShapeIds: string[],
+  bindings: Record<string, TLDrawBinding | undefined>,
+  altKey: boolean,
+  metaKey: boolean
+) {
+  let nextBinding: ArrowBinding | undefined = undefined
+  let nextTarget: TLDrawShape | undefined = undefined
+
+  if (!altKey) {
+    const oppositeHandle = shape.handles[handle.id === 'start' ? 'end' : 'start']
+
+    // Find the origin and direction of the handle
+    const rayOrigin = Vec.add(oppositeHandle.point, shape.point)
+    const rayPoint = Vec.add(handle.point, shape.point)
+    const rayDirection = Vec.uni(Vec.sub(rayPoint, rayOrigin))
+
+    const oppositeBinding = oppositeHandle.bindingId
+      ? bindings[oppositeHandle.bindingId]
+      : undefined
+
+    // From all bindable shapes on the page...
+    for (const id of bindableShapeIds) {
+      if (id === shape.id) continue
+      if (id === oppositeBinding?.toId) continue
+
+      const target = TLDR.getShape(data, id, data.appState.currentPageId)
+
+      const util = TLDR.getShapeUtils(target)
+
+      const bindingPoint = util.getBindingPoint(
+        target,
+        rayPoint,
+        rayOrigin,
+        rayDirection,
+        32,
+        metaKey
+      )
+
+      // Not all shapes will produce a binding point
+      if (!bindingPoint) continue
+
+      // Stop at the first shape that will produce a binding point
+      nextTarget = target
+
+      nextBinding = {
+        id: newBindingId,
+        type: 'arrow',
+        fromId: shape.id,
+        handleId: handle.id as keyof ArrowShape['handles'],
+        toId: target.id,
+        point: Vec.round(bindingPoint.point),
+        distance: bindingPoint.distance,
+      }
+
+      break
+    }
+  }
+
+  return { target: nextTarget, binding: nextBinding }
 }
