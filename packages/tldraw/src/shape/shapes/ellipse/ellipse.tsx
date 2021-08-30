@@ -11,6 +11,9 @@ import {
 import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
 import getStroke from 'perfect-freehand'
 
+// TODO
+// [ ] Improve indicator shape for drawn shapes
+
 export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
   type = TLDrawShapeType.Ellipse as const
   toolType = TLDrawToolType.Bounds
