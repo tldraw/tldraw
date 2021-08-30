@@ -16,16 +16,16 @@ function normalizeText(text: string) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let mdiv: any
+let melm: any
 
 function getMeasurementDiv() {
   // A div used for measurement
   document.getElementById('__textMeasure')?.remove()
 
-  const mdiv = document.createElement('pre')
-  mdiv.id = '__textMeasure'
+  const pre = document.createElement('pre')
+  pre.id = '__textMeasure'
 
-  Object.assign(mdiv.style, {
+  Object.assign(pre.style, {
     whiteSpace: 'pre',
     width: 'auto',
     border: '1px solid red',
@@ -42,14 +42,14 @@ function getMeasurementDiv() {
     dominantBaseline: 'mathematical',
   })
 
-  mdiv.tabIndex = -1
+  pre.tabIndex = -1
 
-  document.body.appendChild(mdiv)
-  return mdiv
+  document.body.appendChild(pre)
+  return pre
 }
 
 if (typeof window !== 'undefined') {
-  getMeasurementDiv()
+  melm = getMeasurementDiv()
 }
 
 export class Text extends TLDrawShapeUtil<TextShape> {
@@ -69,8 +69,15 @@ export class Text extends TLDrawShapeUtil<TextShape> {
     childIndex: 1,
     point: [0, 0],
     rotation: 0,
-    text: 'hi',
+    text: ' ',
     style: defaultStyle,
+  }
+
+  create(props: Partial<TextShape>): TextShape {
+    const shape = { ...this.defaultProps, ...props }
+    const bounds = this.getBounds(shape)
+    shape.point = Vec.sub(shape.point, [bounds.width / 2, bounds.height / 2])
+    return shape
   }
 
   shouldRender(prev: TextShape, next: TextShape): boolean {
@@ -149,7 +156,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
     }
 
     const fontSize = getFontSize(shape.style.size) * (shape.style.scale || 1)
-    const lineHeight = fontSize * 1.4
+    const lineHeight = fontSize * 1.3
 
     if (!isEditing) {
       return (
@@ -168,7 +175,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
               key={i}
               x={4}
               y={4 + fontSize / 2 + i * lineHeight}
-              fontFamily="Verveine Regular"
+              fontFamily="Caveat Brush"
               fontStyle="normal"
               fontWeight="500"
               fontSize={fontSize}
@@ -237,15 +244,16 @@ export class Text extends TLDrawShapeUtil<TextShape> {
 
   getBounds(shape: TextShape): TLBounds {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
-      if (!mdiv) {
+      if (!melm) {
+        console.log('no melm!')
         // We're in SSR
         return { minX: 0, minY: 0, maxX: 0, maxY: 0, width: 0, height: 0 }
       }
 
-      mdiv.innerHTML = `${shape.text}&zwj;`
-      mdiv.style.font = getFontStyle(shape.style)
+      melm.innerHTML = `${shape.text}&zwj;`
+      melm.style.font = getFontStyle(shape.style)
 
-      const [width, height] = [mdiv.offsetWidth, mdiv.offsetHeight]
+      const [width, height] = [melm.offsetWidth, melm.offsetHeight]
 
       return {
         minX: 0,

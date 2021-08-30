@@ -4,7 +4,7 @@ import { Renderer } from '@tldraw/core'
 import styled from '~styles'
 import type { Data, TLDrawDocument } from '~types'
 import { TLDrawState } from '~state'
-import { useKeyboardShortcuts, TLDrawContext } from '~hooks'
+import { useKeyboardShortcuts, TLDrawContext, useCustomFonts } from '~hooks'
 import { tldrawShapeUtils } from '~shape'
 import { ContextMenu } from '~components/context-menu'
 import { StylePanel } from '~components/style-panel'
@@ -62,6 +62,8 @@ export function TLDraw({ id, document, currentPageId, onMount, onChange: _onChan
   })
 
   useKeyboardShortcuts(tlstate)
+
+  useCustomFonts()
 
   const page = context.useSelector(pageSelector)
 

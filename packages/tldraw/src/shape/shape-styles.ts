@@ -69,7 +69,7 @@ export function getFontStyle(style: ShapeStyles): string {
   const fontSize = getFontSize(style.size)
   const { scale = 1 } = style
 
-  return `${fontSize * scale}px/1.4 Verveine Regular`
+  return `${fontSize * scale}px/1.3 "Caveat Brush"`
 }
 
 export function getShapeStyle(

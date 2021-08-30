@@ -1,5 +1,6 @@
 /* eslint-disable */
 const fs = require('fs')
+const path = require('path')
 const esbuild = require('esbuild')
 
 async function main() {
@@ -21,6 +22,12 @@ async function main() {
     tsconfig: './tsconfig.build.json',
     external: ['react', 'react-dom'],
   })
+
+  var files = fs.readdirSync('src/assets')
+
+  for (var i = 0; i < files.length; i++) {
+    fs.copyFileSync(path.join('src/assets', files[i]), path.join('dist', files[i]))
+  }
 }
 
 main()

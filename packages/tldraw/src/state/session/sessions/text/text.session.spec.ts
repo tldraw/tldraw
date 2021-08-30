@@ -16,7 +16,7 @@ describe('Text session', () => {
         })
       )
       .select('text1')
-      .startTextSession()
+      .startTextSession('text1')
       .updateTextSession('Hello world')
       .completeSession()
       .undo()
@@ -35,7 +35,7 @@ describe('Text session', () => {
         })
       )
       .select('text1')
-      .startTextSession()
+      .startTextSession('text1')
       .updateTextSession('Hello world')
       .cancelSession()
 

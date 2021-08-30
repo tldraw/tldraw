@@ -85,6 +85,51 @@ export class TextSession implements Session {
 
     const shape = TLDR.getShape<TextShape>(data, initialShape.id, pageId)
 
+    // TODO: Delete text shape if its content is empty
+    // TODO: ...and prevent `isCreating` from selecting the deleted shape
+
+    // if (initialShape.text.trim() === '' && shape.text.trim() === '') {
+    //   // delete shape
+    //   console.log('deleting shape')
+    //   return {
+    //     id: 'text',
+    //     before: {
+    //       document: {
+    //         pages: {
+    //           [pageId]: {
+    //             shapes: {
+    //               [initialShape.id]: undefined,
+    //             },
+    //           },
+    //         },
+    //         pageState: {
+    //           [pageId]: {
+    //             editingId: undefined,
+    //             selectedIds: [initialShape.id],
+    //           },
+    //         },
+    //       },
+    //     },
+    //     after: {
+    //       document: {
+    //         pages: {
+    //           [pageId]: {
+    //             shapes: {
+    //               [initialShape.id]: undefined,
+    //             },
+    //           },
+    //         },
+    //         pageState: {
+    //           [pageId]: {
+    //             editingId: undefined,
+    //             selectedIds: [],
+    //           },
+    //         },
+    //       },
+    //     },
+    //   }
+    // }
+
     if (shape.text === initialShape.text) return undefined
 
     return {
@@ -121,6 +166,7 @@ export class TextSession implements Session {
           pageState: {
             [pageId]: {
               editingId: undefined,
+              selectedIds: [initialShape.id],
             },
           },
         },

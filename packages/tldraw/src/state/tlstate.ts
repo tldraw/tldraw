@@ -91,15 +91,48 @@ const initialData: Data = {
 export class TLDrawState extends StateManager<Data> {
   _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
 
-  constructor(id = Utils.uniqueId()) {
-    super(initialData, id, 1)
-  }
-
   selectHistory: SelectHistory = {
     stack: [[]],
     pointer: 0,
   }
 
+  clipboard?: TLDrawShape[]
+
+  session?: Session
+
+  pointedId?: string
+
+  pointedHandle?: string
+
+  pointedBoundsHandle?: TLBoundsCorner | TLBoundsEdge | 'rotate'
+
+  isCreating = false
+
+  constructor(id = Utils.uniqueId()) {
+    super(initialData, id, 1)
+
+    this.session = undefined
+    this.pointedId = undefined
+
+    this.patchState({
+      appState: {
+        status: {
+          current: TLDrawStatus.Idle,
+          previous: TLDrawStatus.Idle,
+        },
+      },
+      document: {
+        pageStates: {
+          [this.currentPageId]: {
+            bindingId: undefined,
+            editingId: undefined,
+            hoveredId: undefined,
+            pointedId: undefined,
+          },
+        },
+      },
+    })
+  }
   /* -------------------- Internal -------------------- */
 
   protected onStateWillChange = (_state: Data, id: string): void => {
@@ -231,18 +264,6 @@ export class TLDrawState extends StateManager<Data> {
       appState: { status: { current: status, previous: this.appState.status.current } },
     })
   }
-
-  clipboard?: TLDrawShape[]
-
-  session?: Session
-
-  pointedId?: string
-
-  pointedHandle?: string
-
-  pointedBoundsHandle?: TLBoundsCorner | TLBoundsEdge | 'rotate'
-
-  isCreating = false
 
   /* -------------------- Settings -------------------- */
 
@@ -787,6 +808,7 @@ export class TLDrawState extends StateManager<Data> {
 
   completeSession<T extends Session>(...args: ParametersExceptFirst<T['complete']>) {
     const { session } = this
+
     if (!session) return this
 
     const result = session.complete(this.state, ...args)
@@ -1531,6 +1553,11 @@ export class TLDrawState extends StateManager<Data> {
             break
           }
         }
+        break
+      }
+      case TLDrawStatus.EditingText: {
+        this.completeSession()
+        break
       }
     }
   }
@@ -1624,10 +1651,6 @@ export class TLDrawState extends StateManager<Data> {
         }
         break
       }
-      case TLDrawStatus.EditingText: {
-        this.completeSession()
-        break
-      }
     }
   }
 
@@ -1698,8 +1721,18 @@ export class TLDrawState extends StateManager<Data> {
     // Unused
   }
 
-  onDoubleClickShape: TLPointerEventHandler = () => {
-    // TODO (drill into group)
+  onDoubleClickShape: TLPointerEventHandler = (info) => {
+    switch (this.appState.status.current) {
+      case TLDrawStatus.PointingBounds: {
+        switch (this.appState.activeTool) {
+          case 'select': {
+            this.startTextSession(info.target)
+            break
+          }
+        }
+        break
+      }
+    }
   }
 
   onRightPointShape: TLPointerEventHandler = (info) => {
@@ -1753,11 +1786,11 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   onDoubleClickBounds: TLBoundsEventHandler = () => {
-    // TODO
+    // Unused
   }
 
   onRightPointBounds: TLBoundsEventHandler = () => {
-    // TODO
+    // Unused
   }
 
   onDragBounds: TLBoundsEventHandler = () => {
@@ -1765,11 +1798,11 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   onHoverBounds: TLBoundsEventHandler = () => {
-    // TODO
+    // Unused
   }
 
   onUnhoverBounds: TLBoundsEventHandler = () => {
-    // TODO
+    // Unused
   }
 
   onReleaseBounds: TLBoundsEventHandler = (info) => {
