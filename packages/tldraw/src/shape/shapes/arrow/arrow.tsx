@@ -91,7 +91,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
 
     const arrowHeadLength = Math.min(arrowDist / 3, strokeWidth * 8)
 
-    let shaftPath: JSX.Element
+    let shaftPath: JSX.Element | null
     let startArrowHead: { left: number[]; right: number[] } | undefined
     let endArrowHead: { left: number[]; right: number[] } | undefined
 
@@ -120,31 +120,32 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
       }
 
       // Straight arrow path
-      shaftPath = (
-        <>
-          <path
-            d={path}
-            fill="none"
-            strokeWidth={Math.max(8, strokeWidth * 2)}
-            strokeDasharray="none"
-            strokeDashoffset="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pointerEvents="stroke"
-          />
-          <path
-            d={path}
-            fill={styles.stroke}
-            stroke={styles.stroke}
-            strokeWidth={sw}
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pointerEvents="stroke"
-          />
-        </>
-      )
+      shaftPath =
+        arrowDist > 2 ? (
+          <>
+            <path
+              d={path}
+              fill="none"
+              strokeWidth={Math.max(8, strokeWidth * 2)}
+              strokeDasharray="none"
+              strokeDashoffset="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              pointerEvents="stroke"
+            />
+            <path
+              d={path}
+              fill={styles.stroke}
+              stroke={styles.stroke}
+              strokeWidth={sw}
+              strokeDasharray={strokeDasharray}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              pointerEvents="stroke"
+            />
+          </>
+        ) : null
     } else {
       const circle = getCtp(shape)
 
@@ -496,6 +497,18 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
       }
     })
 
+    nextHandles = {
+      ...nextHandles,
+      start: {
+        ...nextHandles.start,
+        point: Vec.round(nextHandles.start.point),
+      },
+      end: {
+        ...nextHandles.end,
+        point: Vec.round(nextHandles.end.point),
+      },
+    }
+
     // If the user is moving the bend handle, we want to move the bend point
     if ('bend' in handles) {
       const { start, end, bend } = nextHandles
@@ -524,21 +537,14 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
       // negative, otherwise it's positive.
       const angleToBend = Vec.angle(start.point, bendPoint)
 
-      if (Utils.isAngleBetween(angle, angle + Math.PI, angleToBend)) {
+      // If resulting bend is low enough that the handle will snap to center,
+      // then also snap the bend to center
+      if (Vec.isEqual(midPoint, getBendPoint(nextHandles, nextBend))) {
+        nextBend = 0
+      } else if (Utils.isAngleBetween(angle, angle + Math.PI, angleToBend)) {
+        // Otherwise, fix the bend direction
         nextBend *= -1
       }
-    }
-
-    nextHandles = {
-      ...nextHandles,
-      start: {
-        ...nextHandles.start,
-        point: Vec.round(nextHandles.start.point),
-      },
-      end: {
-        ...nextHandles.end,
-        point: Vec.round(nextHandles.end.point),
-      },
     }
 
     const nextShape = {
@@ -613,16 +619,14 @@ function renderFreehandArrowShaft(shape: ArrowShape) {
 
   const strokeWidth = +getShapeStyle(style).strokeWidth * 2
 
-  const st = Math.abs(getRandom())
-
   const stroke = getStroke(
-    [...Vec.pointsBetween(start.point, end.point), end.point, end.point, end.point, end.point],
+    [...Vec.pointsBetween(start.point, end.point), end.point, end.point, end.point],
     {
       size: strokeWidth / 2,
       thinning: 0.5 + getRandom() * 0.3,
       easing: (t) => t * t,
-      end: { taper: 1 },
-      start: { taper: 1 + 32 * (st * st * st) },
+      end: { cap: true },
+      start: { cap: true },
       simulatePressure: true,
       last: true,
     }
@@ -641,8 +645,6 @@ function renderCurvedFreehandArrowShaft(shape: ArrowShape, circle: number[]) {
 
   const strokeWidth = +getShapeStyle(style).strokeWidth * 2
 
-  const st = Math.abs(getRandom())
-
   const center = [circle[0], circle[1]]
   const radius = circle[2]
 
@@ -658,16 +660,12 @@ function renderCurvedFreehandArrowShaft(shape: ArrowShape, circle: number[]) {
     points.push(Vec.round(Vec.nudgeAtAngle(center, angle, radius)))
   }
 
-  const stroke = getStroke([...points, end.point, end.point], {
+  const stroke = getStroke([...points, end.point, end.point, end.point], {
     size: strokeWidth / 2,
     thinning: 0.5 + getRandom() * 0.3,
     easing: (t) => t * t,
-    end: {
-      taper: shape.decorations?.end ? 1 : 1 + strokeWidth * 5 * (st * st * st),
-    },
-    start: {
-      taper: shape.decorations?.start ? 1 : 1 + strokeWidth * 5 * (st * st * st),
-    },
+    end: { cap: true },
+    start: { cap: true },
     simulatePressure: true,
     streamline: 0.01,
     last: true,
@@ -782,68 +780,3 @@ function getArrowPath(shape: ArrowShape) {
 
   return path.join(' ')
 }
-
-// function getArrowHeadPath(shape: ArrowShape, point: number[], inset: number[]) {
-//   const { left, right } = getArrowHeadPoints(shape, point, inset)
-//   return ['M', left, 'L', point, right].join(' ')
-// }
-
-// function getArrowHeadPoints(shape: ArrowShape, point: number[], inset: number[]) {
-//   // Use the shape's random seed to create minor offsets for the angles
-//   const getRandom = Utils.rng(shape.id)
-
-//   return {
-//     left: Vec.rotWith(inset, point, Math.PI / 6 + (Math.PI / 12) * getRandom()),
-//     right: Vec.rotWith(inset, point, -Math.PI / 6 + (Math.PI / 12) * getRandom()),
-//   }
-// }
-
-// function getDrawArrowPath(shape: ArrowShape) {
-//   const {
-//     decorations,
-//     handles: { start, end, bend: _bend },
-//     style,
-//   } = shape
-
-//   const { strokeWidth } = getShapeStyle(style, false)
-
-//   const arrowDist = Vec.dist(start.point, end.point)
-
-//   const arrowHeadLength = Math.min(arrowDist / 3, strokeWidth * 8)
-
-//   const path: (string | number)[] = []
-
-//   const isStraightLine = Vec.dist(_bend.point, Vec.round(Vec.med(start.point, end.point))) < 1
-
-//   if (isStraightLine) {
-//     // Path (line segment)
-//     path.push(`M ${start.point} L ${end.point}`)
-
-//     // Start arrow head
-//     if (decorations?.start) {
-//       path.push(getStraightArrowHeadPath(start.point, end.point, arrowHeadLength))
-//     }
-
-//     // End arrow head
-//     if (decorations?.end) {
-//       path.push(getStraightArrowHeadPath(end.point, start.point, arrowHeadLength))
-//     }
-//   } else {
-//     const { center, radius, length } = getArrowArc(shape)
-
-//     // Path (arc)
-//     path.push(`M ${start.point} A ${radius} ${radius} 0 0 ${length > 0 ? '1' : '0'} ${end.point}`)
-
-//     // Start Arrow head
-//     if (decorations?.start) {
-//       path.push(getCurvedArrowHeadPath(start.point, arrowHeadLength, center, radius, length < 0))
-//     }
-
-//     // End arrow head
-//     if (decorations?.end) {
-//       path.push(getCurvedArrowHeadPath(end.point, arrowHeadLength, center, radius, length >= 0))
-//     }
-//   }
-
-//   return path.join(' ')
-// }

@@ -11,6 +11,9 @@ import {
   TLDrawRenderInfo,
 } from '~types'
 
+// TODO
+// [ ] - Make sure that fill does not extend drawn shape at corners
+
 export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
   type = TLDrawShapeType.Rectangle as const
   toolType = TLDrawToolType.Bounds
@@ -351,13 +354,14 @@ function renderPath(shape: RectangleShape) {
     Math.floor(5 + getRandom() * 4)
   )
 
-  const stroke = getStroke([...lines.flat().slice(2), ...lines[0], ...lines[0].slice(4)], {
-    size: 1 + +styles.strokeWidth,
-    thinning: 0.6,
+  const stroke = getStroke([...lines.flat().slice(4), ...lines[0], ...lines[0].slice(4)], {
+    size: 1 + styles.strokeWidth,
+    thinning: 0.618,
     easing: (t) => t * t * t * t,
-    end: { taper: +styles.strokeWidth * 20 },
-    start: { taper: +styles.strokeWidth * 20 },
+    end: { cap: true },
+    start: { cap: true },
     simulatePressure: false,
+    last: true,
   })
 
   return Utils.getSvgPathFromStroke(stroke)

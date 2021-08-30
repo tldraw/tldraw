@@ -96,6 +96,8 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
   // Call onChange callback when number of rendering shapes changes
 
   if (shapesToRender.length !== rPreviousCount.current) {
+    // Use a timeout to clear call stack, in case the onChange handleer
+    // produces a new state change (React won't like that)
     setTimeout(() => onChange?.(shapesToRender.map((shape) => shape.id)), 0)
     rPreviousCount.current = shapesToRender.length
   }

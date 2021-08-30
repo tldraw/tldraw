@@ -58,7 +58,6 @@ export function Page<T extends TLShape>({
         <Bounds zoom={zoom} bounds={bounds} isLocked={isLocked} rotation={rotation} />
       )}
       {!hideIndicators &&
-        selectedIds.length > 1 &&
         selectedIds
           .filter(Boolean)
           .map((id) => (

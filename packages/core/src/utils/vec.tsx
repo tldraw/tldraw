@@ -510,7 +510,7 @@ export class Vec {
     return Array.from(Array(steps))
       .map((_, i) => {
         const t = i / steps
-        return t * t * t
+        return t * t * t * t
       })
       .map((t) => Vec.round([...Vec.lrp(a, b, t), (1 - t) / 2]))
   }
