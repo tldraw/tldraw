@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import type { TLBinding } from '@tldraw/core'
+import type { TLBinding, TLRenderInfo } from '@tldraw/core'
 import { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
-import type { TLPage, TLPageState, TLSettings } from '@tldraw/core'
+import type { TLPage, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
+import type { Command, Patch } from 'rko'
 
 export type TLStore = StoreApi<Data>
 
@@ -17,11 +18,20 @@ export interface TLDrawDocument {
   pageStates: Record<string, TLPageState>
 }
 
-export interface TLDrawSettings extends TLSettings {
+export interface TLDrawSettings {
+  isDarkMode: boolean
+  isDebugMode: boolean
+  isPenMode: boolean
   isReadonlyMode: boolean
   nudgeDistanceSmall: number
   nudgeDistanceLarge: number
 }
+
+export interface TLDrawMeta {
+  isDarkMode: boolean
+}
+
+export type TLDrawRenderInfo = TLRenderInfo<TLDrawMeta>
 
 export interface Data {
   document: TLDrawDocument
@@ -41,30 +51,13 @@ export interface Data {
   }
 }
 
-export type TLDrawPatch = DeepPartial<Data>
+export type TLDrawPatch = Patch<Data>
+
+export type TLDrawCommand = Command<Data>
 
 export type PagePartial = {
-  shapes: DeepPartial<TLDrawPage['shapes']>
-  bindings: DeepPartial<TLDrawPage['bindings']>
-}
-
-export type DeepPartial<T> = T extends Function
-  ? T
-  : T extends object
-  ? T extends unknown[]
-    ? DeepPartial<T[number]>[]
-    : { [P in keyof T]?: DeepPartial<T[P]> }
-  : T
-
-export interface Command {
-  id: string
-  before: TLDrawPatch
-  after: TLDrawPatch
-}
-
-export interface History {
-  pointer: number
-  stack: Command[]
+  shapes: Patch<TLDrawPage['shapes']>
+  bindings: Patch<TLDrawPage['bindings']>
 }
 
 export interface SelectHistory {
@@ -77,7 +70,7 @@ export interface Session {
   status: TLDrawStatus
   start: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | undefined
   update: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | undefined
-  complete: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | Command | undefined
+  complete: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | TLDrawCommand | undefined
   cancel: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | undefined
 }
 

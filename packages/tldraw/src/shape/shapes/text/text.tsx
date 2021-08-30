@@ -1,7 +1,13 @@
 import * as React from 'react'
-import { TLBounds, Utils, Vec, TLTransformInfo, TLRenderInfo, Intersect } from '@tldraw/core'
+import { TLBounds, Utils, Vec, TLTransformInfo, Intersect } from '@tldraw/core'
 import { getShapeStyle, getFontSize, getFontStyle, defaultStyle } from '~shape/shape-styles'
-import { TextShape, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType } from '~types'
+import {
+  TextShape,
+  TLDrawShapeUtil,
+  TLDrawShapeType,
+  TLDrawRenderInfo,
+  TLDrawToolType,
+} from '~types'
 import styled from '~styles'
 import TextAreaUtils from './text-utils'
 
@@ -77,17 +83,17 @@ export class Text extends TLDrawShapeUtil<TextShape> {
     shape: TextShape,
     {
       ref,
+      meta,
       isEditing,
-      isDarkMode,
       onTextBlur,
       onTextChange,
       onTextFocus,
       onTextKeyDown,
       onTextKeyUp,
-    }: TLRenderInfo
+    }: TLDrawRenderInfo
   ): JSX.Element {
     const { id, text, style } = shape
-    const styles = getShapeStyle(style, isDarkMode)
+    const styles = getShapeStyle(style, meta.isDarkMode)
     const font = getFontStyle(shape.style)
 
     const bounds = this.getBounds(shape)

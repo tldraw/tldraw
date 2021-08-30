@@ -1,7 +1,7 @@
-import type { Data, Command } from '~types'
+import type { Data, TLDrawCommand } from '~types'
 import { Utils } from '@tldraw/core'
 
-export function createPage(data: Data): Command {
+export function createPage(data: Data): TLDrawCommand {
   const newId = Utils.uniqueId()
   const { currentPageId } = data.appState
 

@@ -1,8 +1,8 @@
 import { Utils } from '@tldraw/core'
-import { DistributeType, TLDrawShape, Data, Command } from '~types'
+import { DistributeType, TLDrawShape, Data, TLDrawCommand } from '~types'
 import { TLDR } from '~state/tldr'
 
-export function distribute(data: Data, ids: string[], type: DistributeType): Command {
+export function distribute(data: Data, ids: string[], type: DistributeType): TLDrawCommand {
   const { currentPageId } = data.appState
   const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
   const deltaMap = Object.fromEntries(getDistributions(initialShapes, type).map((d) => [d.id, d]))

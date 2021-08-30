@@ -1,11 +1,11 @@
-import type { DeepPartial } from '~../../core/dist/types/utils/utils'
+import type { Patch } from 'rko'
 import { TLDR } from '~state/tldr'
-import type { TLDrawShape, Data, Command } from '~types'
+import type { TLDrawShape, Data, TLDrawCommand } from '~types'
 
-export function create(data: Data, shapes: TLDrawShape[]): Command {
+export function create(data: Data, shapes: TLDrawShape[]): TLDrawCommand {
   const { currentPageId } = data.appState
-  const beforeShapes: Record<string, DeepPartial<TLDrawShape> | undefined> = {}
-  const afterShapes: Record<string, DeepPartial<TLDrawShape> | undefined> = {}
+  const beforeShapes: Record<string, Patch<TLDrawShape> | undefined> = {}
+  const afterShapes: Record<string, Patch<TLDrawShape> | undefined> = {}
 
   shapes.forEach((shape) => {
     beforeShapes[shape.id] = undefined

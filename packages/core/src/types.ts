@@ -54,17 +54,17 @@ export interface TLShape {
 
 export type TLShapeUtils<T extends TLShape> = Record<string, TLShapeUtil<T>>
 
-export interface TLRenderInfo<T extends SVGElement | HTMLElement = any> {
+export interface TLRenderInfo<M = any, T extends SVGElement | HTMLElement = any> {
+  ref?: React.RefObject<T>
   isEditing: boolean
   isBinding: boolean
-  isDarkMode: boolean
   isCurrentParent: boolean
-  ref?: React.RefObject<T>
   onTextChange?: TLCallbacks['onTextChange']
   onTextBlur?: TLCallbacks['onTextBlur']
   onTextFocus?: TLCallbacks['onTextFocus']
   onTextKeyDown?: TLCallbacks['onTextKeyDown']
   onTextKeyUp?: TLCallbacks['onTextKeyUp']
+  meta: M extends any ? M : never
 }
 
 export interface TLTool {
@@ -77,12 +77,6 @@ export interface TLBinding {
   type: string
   toId: string
   fromId: string
-}
-
-export interface TLSettings {
-  isDebugMode: boolean
-  isDarkMode: boolean
-  isPenMode: boolean
 }
 
 export interface TLTheme {
@@ -375,24 +369,26 @@ export abstract class TLShapeUtil<T extends TLShape> {
 
 /* -------------------- Internal -------------------- */
 
-export interface IShapeTreeNode {
+export interface IShapeTreeNode<M extends Record<string, unknown>> {
   shape: TLShape
-  children?: IShapeTreeNode[]
+  children?: IShapeTreeNode<M>[]
   isEditing: boolean
   isBinding: boolean
-  isDarkMode: boolean
   isCurrentParent: boolean
+  meta?: M
 }
 
 /* -------------------------------------------------- */
 /*                    Utility Types                   */
 /* -------------------------------------------------- */
 
+/** @internal */
 export type MappedByType<T extends { type: string }> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [P in T['type']]: T extends any ? (P extends T['type'] ? T : never) : never
 }
 
+/** @internal */
 export type RequiredKeys<T> = {
   [K in keyof T]-?: Record<string, unknown> extends Pick<T, K> ? never : K
 }[keyof T]

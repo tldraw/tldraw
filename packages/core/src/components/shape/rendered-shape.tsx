@@ -1,32 +1,34 @@
 import * as React from 'react'
 import type { TLShapeUtil, TLRenderInfo, TLShape } from '+types'
 
-interface RenderedShapeProps<T extends TLShape> extends TLRenderInfo {
+interface RenderedShapeProps<T extends TLShape, M extends Record<string, unknown>>
+  extends TLRenderInfo {
   shape: T
   utils: TLShapeUtil<T>
+  meta?: M
 }
 
 export const RenderedShape = React.memo(
-  function RenderedShape({
+  function RenderedShape<M extends Record<string, unknown>>({
     shape,
     utils,
     isEditing,
     isBinding,
-    isDarkMode,
     isCurrentParent,
-  }: RenderedShapeProps<TLShape>) {
+    meta,
+  }: RenderedShapeProps<TLShape, M>) {
     return utils.render(shape, {
       isEditing,
       isBinding,
-      isDarkMode,
       isCurrentParent,
+      meta,
     })
   },
   (prev, next) => {
     if (
       prev.isEditing !== next.isEditing ||
-      prev.isDarkMode !== next.isDarkMode ||
       prev.isBinding !== next.isBinding ||
+      prev.meta !== next.meta ||
       prev.isCurrentParent !== next.isCurrentParent
     ) {
       return false

@@ -1,8 +1,8 @@
 import { Vec } from '@tldraw/core'
-import type { Data, Command, PagePartial } from '~types'
+import type { Data, TLDrawCommand, PagePartial } from '~types'
 import { TLDR } from '~state/tldr'
 
-export function translate(data: Data, ids: string[], delta: number[]): Command {
+export function translate(data: Data, ids: string[], delta: number[]): TLDrawCommand {
   const before: PagePartial = {
     shapes: {},
     bindings: {},

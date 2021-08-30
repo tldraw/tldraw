@@ -1,8 +1,8 @@
 import { Utils, Vec } from '@tldraw/core'
 import { TLDR } from '~state/tldr'
-import type { Data, Command } from '~types'
+import type { Data, TLDrawCommand } from '~types'
 
-export function duplicate(data: Data, ids: string[]): Command {
+export function duplicate(data: Data, ids: string[]): TLDrawCommand {
   const { currentPageId } = data.appState
   const delta = Vec.div([16, 16], TLDR.getCamera(data, currentPageId).zoom)
 

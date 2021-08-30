@@ -10,26 +10,26 @@ import type {
 } from '+types'
 import { Utils, Vec } from '+utils'
 
-function addToShapeTree<T extends TLShape>(
+function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   shape: TLShape,
-  branch: IShapeTreeNode[],
+  branch: IShapeTreeNode<M>[],
   shapes: TLPage<T, TLBinding>['shapes'],
   selectedIds: string[],
-  info: {
+  pageState: {
     bindingId?: string
     hoveredId?: string
     currentParentId?: string
     editingId?: string
     editingBindingId?: string
-    isDarkMode?: boolean
-  }
+  },
+  meta?: M
 ) {
-  const node: IShapeTreeNode = {
+  const node: IShapeTreeNode<M> = {
     shape,
-    isCurrentParent: info.currentParentId === shape.id,
-    isEditing: info.editingId === shape.id,
-    isBinding: info.bindingId === shape.id,
-    isDarkMode: info.isDarkMode || false,
+    isCurrentParent: pageState.currentParentId === shape.id,
+    isEditing: pageState.editingId === shape.id,
+    isBinding: pageState.bindingId === shape.id,
+    meta,
   }
 
   branch.push(node)
@@ -41,16 +41,16 @@ function addToShapeTree<T extends TLShape>(
       .sort((a, b) => a.childIndex - b.childIndex)
       .forEach((childShape) =>
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        addToShapeTree(childShape, node.children!, shapes, selectedIds, info)
+        addToShapeTree(childShape, node.children!, shapes, selectedIds, pageState, meta)
       )
   }
 }
 
-export function useShapeTree<T extends TLShape>(
+export function useShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   page: TLPage<T, TLBinding>,
   pageState: TLPageState,
   shapeUtils: TLShapeUtils<T>,
-  isDarkMode: boolean,
+  meta?: M,
   onChange?: TLCallbacks['onChange']
 ) {
   const rPreviousCount = React.useRef(0)
@@ -102,13 +102,11 @@ export function useShapeTree<T extends TLShape>(
 
   // Populate the shape tree
 
-  const tree: IShapeTreeNode[] = []
+  const tree: IShapeTreeNode<M>[] = []
 
   shapesToRender
     .sort((a, b) => a.childIndex - b.childIndex)
-    .forEach((shape) =>
-      addToShapeTree(shape, tree, page.shapes, selectedIds, { ...pageState, isDarkMode })
-    )
+    .forEach((shape) => addToShapeTree(shape, tree, page.shapes, selectedIds, pageState, meta))
 
   return tree
 }

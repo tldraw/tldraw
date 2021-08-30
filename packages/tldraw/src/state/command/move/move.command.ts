@@ -1,7 +1,7 @@
-import { MoveType, Data, TLDrawShape, Command } from '~types'
+import { MoveType, Data, TLDrawShape, TLDrawCommand } from '~types'
 import { TLDR } from '~state/tldr'
 
-export function move(data: Data, ids: string[], type: MoveType): Command {
+export function move(data: Data, ids: string[], type: MoveType): TLDrawCommand {
   const { currentPageId } = data.appState
 
   // Get the unique parent ids for the selected elements

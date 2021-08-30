@@ -2,19 +2,21 @@ import { useTLContext } from '+hooks'
 import * as React from 'react'
 import type { TLShapeUtil, TLRenderInfo, TLShape } from '+types'
 
-interface EditingShapeProps<T extends TLShape> extends TLRenderInfo {
+interface EditingShapeProps<T extends TLShape, M extends Record<string, unknown>>
+  extends TLRenderInfo {
   shape: T
   utils: TLShapeUtil<T>
+  meta?: M
 }
 
-export function EditingTextShape({
+export function EditingTextShape<M extends Record<string, unknown>>({
   shape,
   utils,
   isEditing,
   isBinding,
-  isDarkMode,
   isCurrentParent,
-}: EditingShapeProps<TLShape>) {
+  meta,
+}: EditingShapeProps<TLShape, M>) {
   const {
     callbacks: { onTextChange, onTextBlur, onTextFocus, onTextKeyDown, onTextKeyUp },
   } = useTLContext()
@@ -26,11 +28,11 @@ export function EditingTextShape({
     isEditing,
     isCurrentParent,
     isBinding,
-    isDarkMode,
     onTextChange,
     onTextBlur,
     onTextFocus,
     onTextKeyDown,
     onTextKeyUp,
+    meta,
   })
 }

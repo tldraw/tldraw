@@ -1,7 +1,7 @@
-import type { ShapeStyles, Command, Data } from '~types'
+import type { ShapeStyles, TLDrawCommand, Data } from '~types'
 import { TLDR } from '~state/tldr'
 
-export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>): Command {
+export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>): TLDrawCommand {
   const { currentPageId } = data.appState
 
   const { before, after } = TLDR.mutateShapes(

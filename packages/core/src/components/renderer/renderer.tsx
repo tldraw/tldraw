@@ -3,7 +3,6 @@ import type {
   TLShape,
   TLPage,
   TLPageState,
-  TLSettings,
   TLCallbacks,
   TLShapeUtils,
   TLTheme,
@@ -13,30 +12,79 @@ import type {
 import { Canvas } from '../canvas'
 import { useTLTheme, TLContext } from '../../hooks'
 
-export interface RendererProps<T extends TLShape>
-  extends Partial<TLSettings>,
-    Partial<TLCallbacks> {
+export interface RendererProps<T extends TLShape, M extends Record<string, unknown>>
+  extends Partial<TLCallbacks> {
+  /**
+   * An object containing instances of your shape classes.
+   */
   shapeUtils: TLShapeUtils<T>
+  /**
+   * The current page, containing shapes and bindings.
+   */
   page: TLPage<T, TLBinding>
+  /**
+   * The current page state.
+   */
   pageState: TLPageState
+  /**
+   * An object of custom theme colors.
+   */
   theme?: Partial<TLTheme>
+  /**
+   * When true, the renderer will not show the bounds for selected objects.
+   */
   hideBounds?: boolean
+  /**
+   * When true, the renderer will not show the handles of shapes with handles.
+   */
   hideHandles?: boolean
+  /**
+   * When true, the renderer will not show indicators for selected or hovered objects,
+   */
   hideIndicators?: boolean
-  isDarkMode?: boolean
+  /**
+   * When true, the renderer will ignore all inputs that were not made by a stylus or pen-type device.
+   */
+  isPenMode?: boolean
+  /**
+   * An object of custom options that should be passed to rendered shapes.
+   */
+  meta?: M
 }
 
-export function Renderer<T extends TLShape>({
+/**
+ The Renderer component is the main component of the library. It accepts the current `page`, the `shapeUtils` needed to interpret and render the shapes and bindings on the `page`, and the current `pageState`.
+ 
+* It also (optionally) accepts several settings and visibility flags,
+ * a `theme` to use, and callbacks to respond to various user interactions.
+ *
+ * ### Example
+ *
+ *```tsx
+ * <Renderer 
+ *  shapeUtils={shapeUtils} 
+ *  page={page} 
+ *  pageState={pageState}
+ * />
+ *```
+ */
+
+/**
+ * The Renderer component is the main component of the library. It accepts the current `page`, the `shapeUtils` needed to interpret and render the shapes and bindings on the `page`, and the current `pageState`.
+ * @param props
+ * @returns
+ */
+export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
   shapeUtils,
   page,
   pageState,
   theme,
+  meta,
   hideHandles = false,
   hideIndicators = false,
   hideBounds = false,
-  isDarkMode = false,
   ...rest
-}: RendererProps<T>): JSX.Element {
+}: RendererProps<T, M>): JSX.Element {
   useTLTheme(theme)
   const rScreenBounds = React.useRef<TLBounds>(null)
   const rPageState = React.useRef<TLPageState>(pageState)
@@ -60,7 +108,7 @@ export function Renderer<T extends TLShape>({
         hideBounds={hideBounds}
         hideIndicators={hideIndicators}
         hideHandles={hideHandles}
-        isDarkMode={isDarkMode}
+        meta={meta}
       />
     </TLContext.Provider>
   )

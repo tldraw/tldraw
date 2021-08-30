@@ -2,13 +2,14 @@ import { TLBounds, TLTransformInfo, Vec, Utils, TLPageState } from '@tldraw/core
 import { getShapeUtils } from '~shape'
 import type {
   Data,
-  DeepPartial,
   ShapeStyles,
   ShapesWithProp,
   TLDrawShape,
   TLDrawShapeUtil,
   TLDrawBinding,
   TLDrawPage,
+  TLDrawCommand,
+  TLDrawPatch,
 } from '~types'
 
 export class TLDR {
@@ -445,12 +446,8 @@ export class TLDR {
     }
   }
 
-  static createShapes(
-    data: Data,
-    shapes: TLDrawShape[],
-    pageId: string
-  ): { before: DeepPartial<Data>; after: DeepPartial<Data> } {
-    const before: DeepPartial<Data> = {
+  static createShapes(data: Data, shapes: TLDrawShape[], pageId: string): TLDrawCommand {
+    const before: TLDrawPatch = {
       document: {
         pages: {
           [pageId]: {
@@ -477,7 +474,7 @@ export class TLDR {
       },
     }
 
-    const after: DeepPartial<Data> = {
+    const after: TLDrawPatch = {
       document: {
         pages: {
           [pageId]: {
@@ -516,7 +513,7 @@ export class TLDR {
     data: Data,
     shapes: TLDrawShape[] | string[],
     pageId?: string
-  ): { before: DeepPartial<Data>; after: DeepPartial<Data> } {
+  ): TLDrawCommand {
     pageId = pageId ? pageId : data.appState.currentPageId
 
     const page = this.getPage(data, pageId)
@@ -526,7 +523,7 @@ export class TLDR {
         ? (shapes as string[])
         : (shapes as TLDrawShape[]).map((shape) => shape.id)
 
-    const before: DeepPartial<Data> = {
+    const before: TLDrawPatch = {
       document: {
         pages: {
           [pageId]: {
@@ -565,7 +562,7 @@ export class TLDR {
       },
     }
 
-    const after: DeepPartial<Data> = {
+    const after: TLDrawPatch = {
       document: {
         pages: {
           [pageId]: {

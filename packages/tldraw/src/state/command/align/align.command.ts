@@ -1,9 +1,9 @@
 import { Utils } from '@tldraw/core'
-import { AlignType } from '~types'
-import type { Data, Command } from '~types'
+import { AlignType, TLDrawCommand } from '~types'
+import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 
-export function align(data: Data, ids: string[], type: AlignType): Command {
+export function align(data: Data, ids: string[], type: AlignType): TLDrawCommand {
   const { currentPageId } = data.appState
   const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
 

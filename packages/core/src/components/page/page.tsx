@@ -13,22 +13,30 @@ interface PageProps<T extends TLShape> {
   hideBounds: boolean
   hideHandles: boolean
   hideIndicators: boolean
-  isDarkMode: boolean
+  meta?: Record<string, unknown>
 }
 
+/**
+ * The Page component renders the current page.
+ *
+ * ### Example
+ *
+ *```ts
+ * example
+ *``` */
 export function Page<T extends TLShape>({
   page,
   pageState,
   hideBounds,
   hideHandles,
   hideIndicators,
-  isDarkMode,
+  meta,
 }: PageProps<T>): JSX.Element {
   const { callbacks, shapeUtils } = useTLContext()
 
   useRenderOnResize()
 
-  const shapeTree = useShapeTree(page, pageState, shapeUtils, isDarkMode, callbacks.onChange)
+  const shapeTree = useShapeTree(page, pageState, shapeUtils, meta, callbacks.onChange)
 
   const { shapeWithHandles } = useHandles(page, pageState)
 

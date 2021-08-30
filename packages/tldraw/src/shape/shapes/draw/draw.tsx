@@ -1,8 +1,15 @@
 import * as React from 'react'
-import { TLBounds, Utils, Vec, TLTransformInfo, TLRenderInfo, Intersect } from '@tldraw/core'
+import { TLBounds, Utils, Vec, TLTransformInfo, Intersect } from '@tldraw/core'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import { DrawShape, DashStyle, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType } from '~types'
+import {
+  DrawShape,
+  DashStyle,
+  TLDrawShapeUtil,
+  TLDrawShapeType,
+  TLDrawToolType,
+  TLDrawRenderInfo,
+} from '~types'
 
 export class Draw extends TLDrawShapeUtil<DrawShape> {
   type = TLDrawShapeType.Draw as const
@@ -30,10 +37,10 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
     return next.points !== prev.points || next.style !== prev.style
   }
 
-  render(shape: DrawShape, { isDarkMode, isEditing }: TLRenderInfo): JSX.Element {
+  render(shape: DrawShape, { meta, isEditing }: TLDrawRenderInfo): JSX.Element {
     const { points, style } = shape
 
-    const styles = getShapeStyle(style, isDarkMode)
+    const styles = getShapeStyle(style, meta.isDarkMode)
 
     const strokeWidth = styles.strokeWidth
 

@@ -3,15 +3,22 @@ import type { IShapeTreeNode } from '+types'
 import { Shape } from './shape'
 
 export const ShapeNode = React.memo(
-  ({ shape, children, isEditing, isDarkMode, isBinding, isCurrentParent }: IShapeTreeNode) => {
+  <M extends Record<string, unknown>>({
+    shape,
+    children,
+    isEditing,
+    isBinding,
+    isCurrentParent,
+    meta,
+  }: IShapeTreeNode<M>) => {
     return (
       <>
         <Shape
           shape={shape}
           isEditing={isEditing}
-          isDarkMode={isDarkMode}
           isBinding={isBinding}
           isCurrentParent={isCurrentParent}
+          meta={meta}
         />
         {children &&
           children.map((childNode) => <ShapeNode key={childNode.shape.id} {...childNode} />)}

@@ -19,11 +19,12 @@
     "test": "jest",
     "test:watch": "test --watchAll",
     "lerna": "lerna",
-    "start": "yarn build:packages && lerna run start --parallel",
+    "start": "lerna run start --stream --parallel",
     "start:www": "yarn build:packages && lerna run start --parallel & cd packages/www && yarn dev",
     "build": "yarn build:packages && cd packages/www && yarn build",
     "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build",
-    "publish:patch": "yarn build:packages && lerna publish patch"
+    "publish:patch": "yarn build:packages && lerna publish patch",
+    "docs": "lerna run docs --stream"
   },
   "devDependencies": {
     "@babel/plugin-syntax-import-meta": "^7.10.4",
@@ -46,6 +47,7 @@
     "react-dom": "^17.0.2",
     "ts-jest": "^27.0.5",
     "tslib": "^2.3.0",
+    "typedoc": "^0.21.9",
     "typescript": "^4.4.2"
   },
   "dependencies": {},

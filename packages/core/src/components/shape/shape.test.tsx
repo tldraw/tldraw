@@ -9,7 +9,6 @@ describe('handles', () => {
         shape={mockUtils.box.create({})}
         isEditing={false}
         isBinding={false}
-        isDarkMode={false}
         isCurrentParent={false}
       />
     )

@@ -53,6 +53,8 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
   // Hide indicators when not using the select tool, or when in session
   const hideIndicators = !isSelecting || isInSession
 
+  const meta = React.useMemo(() => ({ isDarkMode }), [isDarkMode])
+
   React.useEffect(() => {
     if (!document) return
     tlstate.loadDocument(document, _onChange)
@@ -92,7 +94,7 @@ export function TLDraw({ document, currentPageId, onMount, onChange: _onChange }
               pageState={pageState}
               shapeUtils={tldrawShapeUtils}
               theme={theme}
-              isDarkMode={isDarkMode}
+              meta={meta}
               hideBounds={hideBounds}
               hideHandles={hideHandles}
               hideIndicators={hideIndicators}

@@ -1,11 +1,11 @@
 import { TLDR } from '~state/tldr'
-import type { Data, Command, PagePartial } from '~types'
+import type { Data, TLDrawCommand, PagePartial } from '~types'
 
 // - [x] Delete shapes
 // - [x] Delete bindings too
 // - [ ] Update parents and possibly delete parents
 
-export function deleteShapes(data: Data, ids: string[]): Command {
+export function deleteShapes(data: Data, ids: string[]): TLDrawCommand {
   const { currentPageId } = data.appState
 
   const before: PagePartial = {

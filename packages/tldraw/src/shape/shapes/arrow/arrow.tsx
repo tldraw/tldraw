@@ -4,7 +4,6 @@ import {
   Utils,
   Vec,
   TLTransformInfo,
-  TLRenderInfo,
   Intersect,
   TLHandle,
   TLPointerInfo,
@@ -20,6 +19,7 @@ import {
   DashStyle,
   TLDrawShape,
   ArrowBinding,
+  TLDrawRenderInfo,
 } from '~types'
 
 export class Arrow extends TLDrawShapeUtil<ArrowShape> {
@@ -70,7 +70,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     return next.handles !== prev.handles || next.style !== prev.style
   }
 
-  render = (shape: ArrowShape, { isDarkMode }: TLRenderInfo) => {
+  render = (shape: ArrowShape, { meta }: TLDrawRenderInfo) => {
     const {
       handles: { start, bend, end },
       decorations = {},
@@ -79,57 +79,11 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
 
     const isDraw = style.dash === DashStyle.Draw
 
-    // if (!isDraw) {
-    //   const styles = getShapeStyle(style, isDarkMode)
-
-    //   const { strokeWidth } = styles
-
-    //   const arrowDist = Vec.dist(start.point, end.point)
-
-    //   const sw = strokeWidth * 1.618
-
-    //   const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-    //     arrowDist,
-    //     sw,
-    //     shape.style.dash,
-    //     2
-    //   )
-
-    //   const path = getArrowPath(shape)
-
-    //   return (
-    //     <g pointerEvents="none">
-    //       <path
-    //         d={path}
-    //         fill="none"
-    //         stroke="transparent"
-    //         strokeWidth={Math.max(8, strokeWidth * 2)}
-    //         strokeDasharray="none"
-    //         strokeDashoffset="none"
-    //         strokeLinecap="round"
-    //         strokeLinejoin="round"
-    //         pointerEvents="stroke"
-    //       />
-    //       <path
-    //         d={path}
-    //         fill={isDraw ? styles.stroke : 'none'}
-    //         stroke={styles.stroke}
-    //         strokeWidth={sw}
-    //         strokeDasharray={strokeDasharray}
-    //         strokeDashoffset={strokeDashoffset}
-    //         strokeLinecap="round"
-    //         strokeLinejoin="round"
-    //         pointerEvents="stroke"
-    //       />
-    //     </g>
-    //   )
-    // }
-
     // TODO: Improve drawn arrows
 
     const isStraightLine = Vec.dist(bend.point, Vec.round(Vec.med(start.point, end.point))) < 1
 
-    const styles = getShapeStyle(style, isDarkMode)
+    const styles = getShapeStyle(style, meta.isDarkMode)
 
     const { strokeWidth } = styles
 
@@ -724,21 +678,6 @@ function renderCurvedFreehandArrowShaft(shape: ArrowShape, circle: number[]) {
   return path
 }
 
-function getArrowHeadPath(shape: ArrowShape, point: number[], inset: number[]) {
-  const { left, right } = getArrowHeadPoints(shape, point, inset)
-  return ['M', left, 'L', point, right].join(' ')
-}
-
-function getArrowHeadPoints(shape: ArrowShape, point: number[], inset: number[]) {
-  // Use the shape's random seed to create minor offsets for the angles
-  const getRandom = Utils.rng(shape.id)
-
-  return {
-    left: Vec.rotWith(inset, point, Math.PI / 6 + (Math.PI / 12) * getRandom()),
-    right: Vec.rotWith(inset, point, -Math.PI / 6 + (Math.PI / 12) * getRandom()),
-  }
-}
-
 function getCtp(shape: ArrowShape) {
   const { start, end, bend } = shape.handles
   return Utils.circleFromThreePoints(start.point, end.point, bend.point)
@@ -844,52 +783,67 @@ function getArrowPath(shape: ArrowShape) {
   return path.join(' ')
 }
 
-function getDrawArrowPath(shape: ArrowShape) {
-  const {
-    decorations,
-    handles: { start, end, bend: _bend },
-    style,
-  } = shape
+// function getArrowHeadPath(shape: ArrowShape, point: number[], inset: number[]) {
+//   const { left, right } = getArrowHeadPoints(shape, point, inset)
+//   return ['M', left, 'L', point, right].join(' ')
+// }
 
-  const { strokeWidth } = getShapeStyle(style, false)
+// function getArrowHeadPoints(shape: ArrowShape, point: number[], inset: number[]) {
+//   // Use the shape's random seed to create minor offsets for the angles
+//   const getRandom = Utils.rng(shape.id)
 
-  const arrowDist = Vec.dist(start.point, end.point)
+//   return {
+//     left: Vec.rotWith(inset, point, Math.PI / 6 + (Math.PI / 12) * getRandom()),
+//     right: Vec.rotWith(inset, point, -Math.PI / 6 + (Math.PI / 12) * getRandom()),
+//   }
+// }
 
-  const arrowHeadLength = Math.min(arrowDist / 3, strokeWidth * 8)
+// function getDrawArrowPath(shape: ArrowShape) {
+//   const {
+//     decorations,
+//     handles: { start, end, bend: _bend },
+//     style,
+//   } = shape
 
-  const path: (string | number)[] = []
+//   const { strokeWidth } = getShapeStyle(style, false)
 
-  const isStraightLine = Vec.dist(_bend.point, Vec.round(Vec.med(start.point, end.point))) < 1
+//   const arrowDist = Vec.dist(start.point, end.point)
 
-  if (isStraightLine) {
-    // Path (line segment)
-    path.push(`M ${start.point} L ${end.point}`)
+//   const arrowHeadLength = Math.min(arrowDist / 3, strokeWidth * 8)
 
-    // Start arrow head
-    if (decorations?.start) {
-      path.push(getStraightArrowHeadPath(start.point, end.point, arrowHeadLength))
-    }
+//   const path: (string | number)[] = []
 
-    // End arrow head
-    if (decorations?.end) {
-      path.push(getStraightArrowHeadPath(end.point, start.point, arrowHeadLength))
-    }
-  } else {
-    const { center, radius, length } = getArrowArc(shape)
+//   const isStraightLine = Vec.dist(_bend.point, Vec.round(Vec.med(start.point, end.point))) < 1
 
-    // Path (arc)
-    path.push(`M ${start.point} A ${radius} ${radius} 0 0 ${length > 0 ? '1' : '0'} ${end.point}`)
+//   if (isStraightLine) {
+//     // Path (line segment)
+//     path.push(`M ${start.point} L ${end.point}`)
 
-    // Start Arrow head
-    if (decorations?.start) {
-      path.push(getCurvedArrowHeadPath(start.point, arrowHeadLength, center, radius, length < 0))
-    }
+//     // Start arrow head
+//     if (decorations?.start) {
+//       path.push(getStraightArrowHeadPath(start.point, end.point, arrowHeadLength))
+//     }
 
-    // End arrow head
-    if (decorations?.end) {
-      path.push(getCurvedArrowHeadPath(end.point, arrowHeadLength, center, radius, length >= 0))
-    }
-  }
+//     // End arrow head
+//     if (decorations?.end) {
+//       path.push(getStraightArrowHeadPath(end.point, start.point, arrowHeadLength))
+//     }
+//   } else {
+//     const { center, radius, length } = getArrowArc(shape)
 
-  return path.join(' ')
-}
+//     // Path (arc)
+//     path.push(`M ${start.point} A ${radius} ${radius} 0 0 ${length > 0 ? '1' : '0'} ${end.point}`)
+
+//     // Start Arrow head
+//     if (decorations?.start) {
+//       path.push(getCurvedArrowHeadPath(start.point, arrowHeadLength, center, radius, length < 0))
+//     }
+
+//     // End arrow head
+//     if (decorations?.end) {
+//       path.push(getCurvedArrowHeadPath(end.point, arrowHeadLength, center, radius, length >= 0))
+//     }
+//   }
+
+//   return path.join(' ')
+// }

@@ -1,9 +1,9 @@
 import { TLBoundsCorner, Utils } from '@tldraw/core'
 import { StretchType } from '~types'
-import type { Data, Command } from '~types'
+import type { Data, TLDrawCommand } from '~types'
 import { TLDR } from '~state/tldr'
 
-export function stretch(data: Data, ids: string[], type: StretchType): Command {
+export function stretch(data: Data, ids: string[], type: StretchType): TLDrawCommand {
   const { currentPageId } = data.appState
 
   const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))

@@ -18,13 +18,16 @@ import type { Data } from '~types'
 const sortedSelector = (s: Data) =>
   Object.values(s.document.pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
 
-const currentPageSelector = (s: Data) => s.document.pages[s.appState.currentPageId]
+const currentPageNameSelector = (s: Data) => s.document.pages[s.appState.currentPageId].name
+
+const currentPageIdSelector = (s: Data) => s.document.pages[s.appState.currentPageId].id
 
 export function PagePanel(): JSX.Element {
-  const rIsOpen = React.useRef(false)
-  const [isOpen, setIsOpen] = React.useState(false)
+  const { useSelector } = useTLDrawContext()
 
-  const { tlstate, useSelector } = useTLDrawContext()
+  const rIsOpen = React.useRef(false)
+
+  const [isOpen, setIsOpen] = React.useState(false)
 
   React.useEffect(() => {
     if (rIsOpen.current !== isOpen) {
@@ -32,67 +35,83 @@ export function PagePanel(): JSX.Element {
     }
   }, [isOpen])
 
+  const handleClose = React.useCallback(() => {
+    setIsOpen(false)
+  }, [setIsOpen])
+
+  const handleOpenChange = React.useCallback(
+    (isOpen: boolean) => {
+      if (rIsOpen.current !== isOpen) {
+        setIsOpen(isOpen)
+      }
+    },
+    [setIsOpen]
+  )
+  const currentPageName = useSelector(currentPageNameSelector)
+
+  return (
+    <DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={handleOpenChange}>
+      <FloatingContainer>
+        <RowButton as={DropdownMenu.Trigger} bp={breakpoints} variant="noIcon">
+          <span>{currentPageName || 'Page'}</span>
+        </RowButton>
+      </FloatingContainer>
+      <MenuContent as={DropdownMenu.Content} sideOffset={8} align="start">
+        {isOpen && <PageMenuContent onClose={handleClose} />}
+      </MenuContent>
+    </DropdownMenu.Root>
+  )
+}
+
+function PageMenuContent({ onClose }: { onClose: () => void }) {
+  const { tlstate, useSelector } = useTLDrawContext()
+
+  const sortedPages = useSelector(sortedSelector)
+
+  const currentPageId = useSelector(currentPageIdSelector)
+
   const handleCreatePage = React.useCallback(() => {
     tlstate.createPage()
   }, [tlstate])
 
   const handleChangePage = React.useCallback(
     (id: string) => {
-      setIsOpen(false)
+      onClose()
       tlstate.changePage(id)
     },
     [tlstate]
   )
 
-  const currentPage = useSelector(currentPageSelector)
-
-  const sortedPages = useSelector(sortedSelector)
-
   return (
-    <DropdownMenu.Root
-      dir="ltr"
-      open={isOpen}
-      onOpenChange={(isOpen) => {
-        if (rIsOpen.current !== isOpen) {
-          setIsOpen(isOpen)
-        }
-      }}
-    >
-      <FloatingContainer>
-        <RowButton as={DropdownMenu.Trigger} bp={breakpoints} variant="noIcon">
-          <span>{currentPage.name || 'Page'}</span>
-        </RowButton>
-      </FloatingContainer>
-      <MenuContent as={DropdownMenu.Content} sideOffset={8} align="start">
-        <DropdownMenu.RadioGroup value={currentPage.id} onValueChange={handleChangePage}>
-          {sortedPages.map((page) => (
-            <ButtonWithOptions key={page.id}>
-              <DropdownMenu.RadioItem
-                as={RowButton}
-                bp={breakpoints}
-                value={page.id}
-                variant="pageButton"
-              >
-                <span>{page.name || 'Page'}</span>
-                <DropdownMenu.ItemIndicator>
-                  <IconWrapper size="small">
-                    <CheckIcon />
-                  </IconWrapper>
-                </DropdownMenu.ItemIndicator>
-              </DropdownMenu.RadioItem>
-              <PageOptionsDialog page={page} />
-            </ButtonWithOptions>
-          ))}
-        </DropdownMenu.RadioGroup>
-        <DropdownMenuDivider />
-        <DropdownMenuButton onSelect={handleCreatePage}>
-          <span>Create Page</span>
-          <IconWrapper size="small">
-            <PlusIcon />
-          </IconWrapper>
-        </DropdownMenuButton>
-      </MenuContent>
-    </DropdownMenu.Root>
+    <>
+      <DropdownMenu.RadioGroup value={currentPageId} onValueChange={handleChangePage}>
+        {sortedPages.map((page) => (
+          <ButtonWithOptions key={page.id}>
+            <DropdownMenu.RadioItem
+              as={RowButton}
+              bp={breakpoints}
+              value={page.id}
+              variant="pageButton"
+            >
+              <span>{page.name || 'Page'}</span>
+              <DropdownMenu.ItemIndicator>
+                <IconWrapper size="small">
+                  <CheckIcon />
+                </IconWrapper>
+              </DropdownMenu.ItemIndicator>
+            </DropdownMenu.RadioItem>
+            <PageOptionsDialog page={page} />
+          </ButtonWithOptions>
+        ))}
+      </DropdownMenu.RadioGroup>
+      <DropdownMenuDivider />
+      <DropdownMenuButton onSelect={handleCreatePage}>
+        <span>Create Page</span>
+        <IconWrapper size="small">
+          <PlusIcon />
+        </IconWrapper>
+      </DropdownMenuButton>
+    </>
   )
 }
 

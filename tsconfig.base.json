@@ -6,6 +6,7 @@
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "importsNotUsedAsValues": "error",
+    "stripInternal": true,
     "incremental": true,
     "importHelpers": true,
     "moduleResolution": "node",

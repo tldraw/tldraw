@@ -1,8 +1,7 @@
 import { brushUpdater, Utils, Vec } from '@tldraw/core'
-import { Data, Session, TLDrawStatus } from '~types'
+import { Data, Session, TLDrawPatch, TLDrawStatus } from '~types'
 import { getShapeUtils } from '~shape'
 import { TLDR } from '~state/tldr'
-import type { DeepPartial } from '~../../core/dist/types/utils/utils'
 
 export class BrushSession implements Session {
   id = 'brush'
@@ -17,7 +16,7 @@ export class BrushSession implements Session {
 
   start = () => void null
 
-  update = (data: Data, point: number[], containMode = false): DeepPartial<Data> => {
+  update = (data: Data, point: number[], containMode = false): TLDrawPatch => {
     const { snapshot, origin } = this
     const { currentPageId } = data.appState
 

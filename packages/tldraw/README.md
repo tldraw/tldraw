@@ -5,7 +5,13 @@ This package contains the [tldraw](https://tldraw.com) editor as a standalone Re
 ## Installation
 
 ```bash
-yarn add @tldraw/tldraw --peer
+npm i @tldraw/tldraw
+```
+
+or
+
+```bash
+yarn add @tldraw/tldraw
 ```
 
 ## Usage

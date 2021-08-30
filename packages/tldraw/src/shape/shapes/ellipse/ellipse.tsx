@@ -1,6 +1,13 @@
 import * as React from 'react'
-import { Utils, TLTransformInfo, TLBounds, Intersect, Vec, TLRenderInfo } from '@tldraw/core'
-import { DashStyle, EllipseShape, TLDrawShapeType, TLDrawShapeUtil, TLDrawToolType } from '~types'
+import { Utils, TLTransformInfo, TLBounds, Intersect, Vec } from '@tldraw/core'
+import {
+  DashStyle,
+  EllipseShape,
+  TLDrawRenderInfo,
+  TLDrawShapeType,
+  TLDrawShapeUtil,
+  TLDrawToolType,
+} from '~types'
 import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
 import getStroke from 'perfect-freehand'
 
@@ -26,13 +33,13 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
     return next.radius !== prev.radius || next.style !== prev.style
   }
 
-  render(shape: EllipseShape, { isDarkMode, isBinding }: TLRenderInfo) {
+  render(shape: EllipseShape, { meta, isBinding }: TLDrawRenderInfo) {
     const {
       radius: [radiusX, radiusY],
       style,
     } = shape
 
-    const styles = getShapeStyle(style, isDarkMode)
+    const styles = getShapeStyle(style, meta.isDarkMode)
     const strokeWidth = +styles.strokeWidth
 
     const rx = Math.max(0, radiusX - strokeWidth / 2)

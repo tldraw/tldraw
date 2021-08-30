@@ -1,10 +1,10 @@
 import { Utils, Vec } from '@tldraw/core'
-import type { Command, Data } from '~types'
+import type { TLDrawCommand, Data } from '~types'
 import { TLDR } from '~state/tldr'
 
 const PI2 = Math.PI * 2
 
-export function rotate(data: Data, ids: string[], delta = -PI2 / 4): Command {
+export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawCommand {
   const { currentPageId } = data.appState
   const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
 

@@ -1,7 +1,6 @@
-import type { TLDrawShape, Data, Command } from '~types'
-import { TLDR } from '~state/tldr'
+import type { Data, TLDrawCommand } from '~types'
 
-export function changePage(data: Data, pageId: string): Command {
+export function changePage(data: Data, pageId: string): TLDrawCommand {
   return {
     id: 'change_page',
     before: {

@@ -1,5 +1,5 @@
 import { TLPageState, Utils, Vec } from '@tldraw/core'
-import { TLDrawShape, TLDrawBinding, Session, Data, Command, TLDrawStatus } from '~types'
+import { TLDrawShape, TLDrawBinding, Session, Data, TLDrawCommand, TLDrawStatus } from '~types'
 import { TLDR } from '~state/tldr'
 
 export class TranslateSession implements Session {
@@ -184,7 +184,7 @@ export class TranslateSession implements Session {
     }
   }
 
-  complete(data: Data): Command {
+  complete(data: Data): TLDrawCommand {
     const pageId = data.appState.currentPageId
 
     const { initialShapes, bindingsToDelete, clones, clonedBindings } = this.snapshot

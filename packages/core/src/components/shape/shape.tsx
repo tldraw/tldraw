@@ -5,7 +5,13 @@ import { RenderedShape } from './rendered-shape'
 import { EditingTextShape } from './editing-text-shape'
 
 export const Shape = React.memo(
-  ({ shape, isEditing, isBinding, isDarkMode, isCurrentParent }: IShapeTreeNode) => {
+  <M extends Record<string, unknown>>({
+    shape,
+    isEditing,
+    isBinding,
+    isCurrentParent,
+    meta,
+  }: IShapeTreeNode<M>) => {
     const { shapeUtils } = useTLContext()
     const events = useShapeEvents(shape.id, isCurrentParent)
     const utils = shapeUtils[shape.type]
@@ -26,9 +32,9 @@ export const Shape = React.memo(
             shape={shape}
             isBinding={false}
             isCurrentParent={false}
-            isDarkMode={isDarkMode}
             isEditing={true}
             utils={utils}
+            meta={meta}
           />
         ) : (
           <RenderedShape
@@ -36,8 +42,8 @@ export const Shape = React.memo(
             utils={utils}
             isBinding={isBinding}
             isCurrentParent={isCurrentParent}
-            isDarkMode={isDarkMode}
             isEditing={isEditing}
+            meta={meta}
           />
         )}
       </g>

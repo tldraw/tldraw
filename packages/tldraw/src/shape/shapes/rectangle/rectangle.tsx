@@ -1,8 +1,15 @@
 import * as React from 'react'
-import { TLBounds, Utils, Vec, TLTransformInfo, TLRenderInfo, Intersect } from '@tldraw/core'
+import { TLBounds, Utils, Vec, TLTransformInfo, Intersect } from '@tldraw/core'
 import getStroke from 'perfect-freehand'
 import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import { RectangleShape, DashStyle, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType } from '~types'
+import {
+  RectangleShape,
+  DashStyle,
+  TLDrawShapeUtil,
+  TLDrawShapeType,
+  TLDrawToolType,
+  TLDrawRenderInfo,
+} from '~types'
 
 export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
   type = TLDrawShapeType.Rectangle as const
@@ -27,9 +34,9 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
     return next.size !== prev.size || next.style !== prev.style
   }
 
-  render(shape: RectangleShape, { isBinding, isDarkMode }: TLRenderInfo) {
+  render(shape: RectangleShape, { isBinding, meta }: TLDrawRenderInfo) {
     const { id, size, style } = shape
-    const styles = getShapeStyle(style, isDarkMode)
+    const styles = getShapeStyle(style, meta.isDarkMode)
     const strokeWidth = +styles.strokeWidth
 
     if (style.dash === DashStyle.Draw) {

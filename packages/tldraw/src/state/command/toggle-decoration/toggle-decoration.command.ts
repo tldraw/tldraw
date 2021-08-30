@@ -1,8 +1,12 @@
 import { Decoration } from '~types'
-import type { ArrowShape, Command, Data } from '~types'
+import type { ArrowShape, TLDrawCommand, Data } from '~types'
 import { TLDR } from '~state/tldr'
 
-export function toggleDecoration(data: Data, ids: string[], handleId: 'start' | 'end'): Command {
+export function toggleDecoration(
+  data: Data,
+  ids: string[],
+  handleId: 'start' | 'end'
+): TLDrawCommand {
   const { currentPageId } = data.appState
   const { before, after } = TLDR.mutateShapes<ArrowShape>(
     data,
