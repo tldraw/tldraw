@@ -10,7 +10,7 @@
     "incremental": true,
     "importHelpers": true,
     "moduleResolution": "node",
-    "noEmit": false,
+    "declarationMap": true,
     "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */,
     "noImplicitAny": true /* Raise error on expressions and declarations with an implied 'any' type. */,
     "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,

@@ -102,7 +102,7 @@ export class TLDrawState extends StateManager<Data> {
 
   /* -------------------- Internal -------------------- */
 
-  protected onStateWillChange = (state: Data, id: string): void => {
+  protected onStateWillChange = (_state: Data, id: string): void => {
     if (!id.startsWith('patch')) {
       this.selectHistory.stack = [[]]
       this.selectHistory.pointer = 0
@@ -113,7 +113,7 @@ export class TLDrawState extends StateManager<Data> {
     this._onChange?.(this, state, id)
   }
 
-  protected cleanup = (state: Data, prev: Data) => {
+  protected cleanup = (state: Data, prev: Data): Data => {
     const data = { ...state }
 
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
@@ -1251,17 +1251,17 @@ export class TLDrawState extends StateManager<Data> {
       }
       case TLDrawStatus.Creating: {
         switch (this.appState.activeToolType) {
-          case 'draw': {
+          case TLDrawToolType.Draw: {
             return this.updateDrawSession(
               this.getPagePoint(info.point),
               info.pressure,
               info.shiftKey
             )
           }
-          case 'bounds': {
+          case TLDrawToolType.Bounds: {
             return this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey)
           }
-          case 'handle': {
+          case TLDrawToolType.Handle: {
             return this.updateHandleSession(
               this.getPagePoint(info.point),
               info.shiftKey,
@@ -1269,10 +1269,10 @@ export class TLDrawState extends StateManager<Data> {
               info.metaKey
             )
           }
-          case 'point': {
+          case TLDrawToolType.Point: {
             break
           }
-          case 'points': {
+          case TLDrawToolType.Points: {
             break
           }
         }
@@ -1603,7 +1603,7 @@ export class TLDrawState extends StateManager<Data> {
     }
 
     switch (this.appState.status.current) {
-      case 'idle': {
+      case TLDrawStatus.Idle: {
         switch (this.appState.activeTool) {
           case 'select': {
             // Unless the user is holding shift or meta, clear the current selection
@@ -1618,7 +1618,7 @@ export class TLDrawState extends StateManager<Data> {
         }
         break
       }
-      case 'editing-text': {
+      case TLDrawStatus.EditingText: {
         this.completeSession()
         break
       }
@@ -1628,9 +1628,9 @@ export class TLDrawState extends StateManager<Data> {
   onDoubleClickCanvas: TLCanvasEventHandler = (info) => {
     // Unused
     switch (this.appState.status.current) {
-      case 'idle': {
+      case TLDrawStatus.Idle: {
         switch (this.appState.activeTool) {
-          case 'text': {
+          case TLDrawShapeType.Text: {
             // Create a text shape
             this.createActiveToolShape(info.point)
             break

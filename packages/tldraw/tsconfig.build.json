@@ -8,5 +8,8 @@
     "**/*.spec.ts",
     "src/test",
     "dist"
-  ]
+  ],
+  "compilerOptions": {
+    "outDir": "./dist/types"
+  }
 }

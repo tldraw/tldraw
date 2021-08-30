@@ -3,6 +3,7 @@
   "include": ["src"],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
+    "emitDeclarationOnly": true,
     "rootDir": "src",
     "outDir": "./dist/types",
     "baseUrl": "src",
