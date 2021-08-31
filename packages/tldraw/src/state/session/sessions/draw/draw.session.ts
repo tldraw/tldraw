@@ -12,6 +12,7 @@ export class DrawSession implements Session {
   snapshot: DrawSnapshot
   isLocked?: boolean
   lockedDirection?: 'horizontal' | 'vertical'
+  startTime: number
 
   constructor(data: Data, id: string, point: number[]) {
     this.origin = point
@@ -24,6 +25,7 @@ export class DrawSession implements Session {
     // when the draw session ends; if the user hasn't added additional
     // points, this single point will be interpreted as a "dot" shape.
     this.points = []
+    this.startTime = 0
   }
 
   start = () => void null
@@ -33,7 +35,8 @@ export class DrawSession implements Session {
 
     // Roundabout way of preventing the "dot" from showing while drawing
     if (this.points.length === 0) {
-      this.points.push([0, 0, pressure])
+      this.startTime = Date.now()
+      this.points.push([0, 0, pressure, 0])
     }
 
     // Drawing while holding shift will "lock" the pen to either the
@@ -81,7 +84,10 @@ export class DrawSession implements Session {
     // Don't add duplicate points. It's important to test against the
     // adjusted (low-passed) point rather than the input point.
 
-    const newPoint = Vec.round([...Vec.sub(this.previous, this.origin), pressure])
+    const newPoint = Vec.round(Vec.sub(this.previous, this.origin)).concat(
+      pressure,
+      Date.now() - this.startTime
+    )
 
     if (Vec.isEqual(this.last, newPoint)) return
 

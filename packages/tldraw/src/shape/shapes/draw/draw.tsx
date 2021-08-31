@@ -267,10 +267,14 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
   onSessionComplete(shape: DrawShape): Partial<DrawShape> {
     const bounds = this.getBounds(shape)
 
-    const [x1, y1] = Vec.sub([bounds.minX, bounds.minY], shape.point)
+    const [x1, y1] = Vec.round(Vec.sub([bounds.minX, bounds.minY], shape.point))
+
+    const points = shape.points.map(([x0, y0, p, t]) => Vec.round([x0 - x1, y0 - y1]).concat(p, t))
+
+    console.log(points)
 
     return {
-      points: shape.points.map(([x0, y0, p]) => [x0 - x1, y0 - y1, p]),
+      points,
       point: Vec.add(shape.point, [x1, y1]),
     }
   }

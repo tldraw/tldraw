@@ -245,7 +245,6 @@ export class Text extends TLDrawShapeUtil<TextShape> {
   getBounds(shape: TextShape): TLBounds {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       if (!melm) {
-        console.log('no melm!')
         // We're in SSR
         return { minX: 0, minY: 0, maxX: 0, maxY: 0, width: 0, height: 0 }
       }

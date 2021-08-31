@@ -982,8 +982,12 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   selectAll = () => {
+    if (this.session) return
     this.setSelectedIds(Object.keys(this.page.shapes))
     this.addToSelectHistory(this.selectedIds)
+    if (this.appState.activeTool !== 'select') {
+      this.selectTool('select')
+    }
     return this
   }
 
