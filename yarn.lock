@@ -8661,10 +8661,13 @@ pbkdf2@^3.0.3:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-perfect-freehand@^0.5.2:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/perfect-freehand/-/perfect-freehand-0.5.2.tgz#493f28591f8fdaa852cab185af8902403cf474a3"
-  integrity sha512-A3E/t5KswAoff/AAZHYn6twSCuNNwQr33PKk5h7U3CBnKM8hUOD167ff5wya4z7re9VieV+pQXiTsrER0iwPCQ==
+perfect-freehand@^0.5.3:
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/perfect-freehand/-/perfect-freehand-0.5.3.tgz#41641d17aceb795db445ae84573396e3cce8878f"
+  integrity sha512-WbMEf78Chx1APwGNoKQf64fbUa12fCAXziKUf2BWoeZ2upsKu5OirCzLnIgjeZYkIB6jOoOtQawCb7CZZ+t/Aw==
+  dependencies:
+    "@tldraw/core" "^0.0.53"
+    rko "^0.5.19"
 
 performance-now@^2.1.0:
   version "2.1.0"

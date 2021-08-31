@@ -942,7 +942,7 @@ export class TLDrawState extends StateManager<Data> {
     this.selectHistory.stack.push(ids)
   }
 
-  setSelectedIds(ids: string[], push = false) {
+  setSelectedIds(ids: string[], push = false): this {
     return this.patchState(
       {
         appState: {
@@ -961,28 +961,30 @@ export class TLDrawState extends StateManager<Data> {
     )
   }
 
-  undoSelect() {
+  undoSelect(): this {
     if (this.selectHistory.pointer > 0) {
       this.selectHistory.pointer--
       this.setSelectedIds(this.selectHistory.stack[this.selectHistory.pointer])
     }
+    return this
   }
 
-  redoSelect() {
+  redoSelect(): this {
     if (this.selectHistory.pointer < this.selectHistory.stack.length - 1) {
       this.selectHistory.pointer++
       this.setSelectedIds(this.selectHistory.stack[this.selectHistory.pointer])
     }
+    return this
   }
 
-  select = (...ids: string[]) => {
+  select = (...ids: string[]): this => {
     this.setSelectedIds(ids)
     this.addToSelectHistory(ids)
     return this
   }
 
-  selectAll = () => {
-    if (this.session) return
+  selectAll = (): this => {
+    if (this.session) return this
     this.setSelectedIds(Object.keys(this.page.shapes))
     this.addToSelectHistory(this.selectedIds)
     if (this.appState.activeTool !== 'select') {
@@ -991,10 +993,9 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
-  deselectAll = () => {
+  deselectAll = (): this => {
     this.setSelectedIds([])
     this.addToSelectHistory(this.selectedIds)
-
     return this
   }
 

@@ -31,6 +31,7 @@ function getMeasurementDiv() {
     border: '1px solid red',
     padding: '4px',
     margin: '0px',
+    letterSpacing: '-2.5px',
     opacity: '0',
     position: 'absolute',
     top: '-500px',
@@ -178,6 +179,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
               fontFamily="Caveat Brush"
               fontStyle="normal"
               fontWeight="500"
+              letterSpacing="-2.5"
               fontSize={fontSize}
               width={bounds.width}
               height={bounds.height}
@@ -440,6 +442,7 @@ const StyledTextArea = styled('textarea', {
   minHeight: 1,
   minWidth: 1,
   lineHeight: 1.4,
+  letterSpacing: -2.5,
   outline: 0,
   fontWeight: '500',
   backgroundColor: '$boundsBg',

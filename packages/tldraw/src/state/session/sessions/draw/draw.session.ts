@@ -2,6 +2,9 @@ import { Utils, Vec } from '@tldraw/core'
 import { Data, DrawShape, Session, TLDrawStatus } from '~types'
 import { TLDR } from '~state/tldr'
 
+// TODO
+// [ ] - Solve flat lines at corners on perfectly straight lines
+
 export class DrawSession implements Session {
   id = 'draw'
   status = TLDrawStatus.Creating
@@ -76,23 +79,23 @@ export class DrawSession implements Session {
       }
     }
 
-    // Low pass the current input point against the previous one
-    const nextPrev = Vec.med(this.previous, point)
+    // The previous input (not adjusted) point
+    this.previous = point
 
-    this.previous = nextPrev
-
-    // Don't add duplicate points. It's important to test against the
-    // adjusted (low-passed) point rather than the input point.
-
+    // The new adjusted point
     const newPoint = Vec.round(Vec.sub(this.previous, this.origin)).concat(
       pressure,
       Date.now() - this.startTime
     )
 
+    // Don't add duplicate points. Be sure to
+    // test against the previous *adjusted* point.
     if (Vec.isEqual(this.last, newPoint)) return
 
+    // The new adjusted point is now the previous adjusted point.
     this.last = newPoint
 
+    // Add the new adjusted point to the points array
     this.points.push(newPoint)
 
     return {
@@ -101,7 +104,7 @@ export class DrawSession implements Session {
           [data.appState.currentPageId]: {
             shapes: {
               [snapshot.id]: {
-                points: [...this.points],
+                points: [...this.points], // Set to a new array here
               },
             },
           },
