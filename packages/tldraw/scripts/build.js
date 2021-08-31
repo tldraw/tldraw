@@ -37,7 +37,7 @@ async function main() {
     })
 
     for (const file of ['package.json', 'README.md']) {
-      fs.copyFile(file, `dist/${file}'`, fs.constants.COPYFILE_EXCL, (err) => {
+      fs.copyFile(file, `dist/${file}`, fs.constants.COPYFILE_EXCL, (err) => {
         if (err) throw err
       })
     }
