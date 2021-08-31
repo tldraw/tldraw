@@ -13,7 +13,7 @@ async function main() {
     esbuild.buildSync({
       entryPoints: ['./src/index.ts'],
       outdir: 'dist/cjs',
-      minify: false,
+      minify: true,
       bundle: true,
       format: 'cjs',
       target: 'es6',
