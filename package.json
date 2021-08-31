@@ -102,8 +102,8 @@
     },
     "testEnvironment": "jsdom",
     "modulePathIgnorePatterns": [
-      "<rootDir>/packages/core/build/",
-      "<rootDir>/packages/tldraw/build/",
+      "<rootDir>/packages/core/dist/",
+      "<rootDir>/packages/tldraw/dist/",
       "<rootDir>/packages/tldraw/test-utils/"
     ],
     "moduleNameMapper": {

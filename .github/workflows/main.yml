@@ -8,6 +8,9 @@ jobs:
       # install modules
       - name: Install modules
         run: yarn
+      # build
+      - name: Build
+        run: yarn build:packages
       # run unit tests
       - name: Jest Annotations & Coverage
         uses: mattallty/jest-github-action@v1.0.3
