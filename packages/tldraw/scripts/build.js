@@ -9,14 +9,6 @@ async function main() {
     fs.mkdirSync('./dist')
   }
 
-  fs.copyFileSync('package.json', 'dist/package.json', (err) => {
-    if (err) throw err
-  })
-
-  fs.copyFileSync('README.md', 'dist/README.md', (err) => {
-    if (err) throw err
-  })
-
   try {
     esbuild.buildSync({
       entryPoints: ['./src/index.ts'],
@@ -43,6 +35,12 @@ async function main() {
       jsxFragment: 'React.Fragment',
       external: ['react', 'react-dom'],
     })
+
+    for (const file of ['package.json', 'README.md']) {
+      fs.copyFile(file, `dist/${file}'`, fs.constants.COPYFILE_EXCL, (err) => {
+        if (err) throw err
+      })
+    }
 
     console.log(`✔ ${name}: Built package.`)
   } catch (e) {

@@ -1,6 +1,5 @@
 /* eslint-disable */
 const fs = require('fs')
-const path = require('path')
 const esbuild = require('esbuild')
 
 async function main() {
