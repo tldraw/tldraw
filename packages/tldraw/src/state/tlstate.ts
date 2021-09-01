@@ -636,7 +636,7 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
-  paste = (string?: string): this => {
+  paste = (point?: number[], string?: string): this => {
     if (string) {
       // Parse shapes from string
       try {
@@ -692,7 +692,7 @@ export class TLDrawState extends StateManager<Data> {
 
     const centeredBounds = Utils.centerBounds(
       commonBounds,
-      this.getPagePoint([window.innerWidth / 2, window.innerHeight / 2])
+      this.getPagePoint(point || [window.innerWidth / 2, window.innerHeight / 2])
     )
 
     let delta = Vec.sub(Utils.getBoundsCenter(centeredBounds), Utils.getBoundsCenter(commonBounds))

@@ -66,7 +66,7 @@ function SelectedShapeContent(): JSX.Element {
     tlstate.paste()
   }, [tlstate])
 
-  const handlecopySvg = React.useCallback(() => {
+  const handleCopySvg = React.useCallback(() => {
     tlstate.copySvg()
   }, [tlstate])
 
@@ -88,7 +88,7 @@ function SelectedShapeContent(): JSX.Element {
         <span>Paste</span>
         {showKbds && <Kbd variant="menu">#V</Kbd>}
       </RowButton>
-      <RowButton bp={breakpoints} onClick={handlecopySvg}>
+      <RowButton bp={breakpoints} onClick={handleCopySvg}>
         <span>Copy to SVG</span>
         {showKbds && <Kbd variant="menu">⇧#C</Kbd>}
       </RowButton>

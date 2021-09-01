@@ -101,11 +101,19 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
     tlstate.delete()
   }, [tlstate])
 
-  const handlecopyJson = React.useCallback(() => {
+  const handleCopyJson = React.useCallback(() => {
     tlstate.copyJson()
   }, [tlstate])
 
-  const handlecopySvg = React.useCallback(() => {
+  const handleCopy = React.useCallback(() => {
+    tlstate.copy()
+  }, [tlstate])
+
+  const handlePaste = React.useCallback(() => {
+    tlstate.paste()
+  }, [tlstate])
+
+  const handleCopySvg = React.useCallback(() => {
     tlstate.copySvg()
   }, [tlstate])
 
@@ -178,16 +186,24 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
             {hasTwoOrMore && (
               <AlignDistributeSubMenu hasTwoOrMore={hasTwoOrMore} hasThreeOrMore={hasThreeOrMore} />
             )}
+            <ContextMenuDivider />
             {/* <MoveToPageMenu /> */}
+            <ContextMenuButton onSelect={handleCopy}>
+              <span>Copy</span>
+              <Kbd variant="menu">#C</Kbd>
+            </ContextMenuButton>
+            <ContextMenuButton onSelect={handleCopySvg}>
+              <span>Copy to SVG</span>
+              <Kbd variant="menu">⇧#C</Kbd>
+            </ContextMenuButton>
             {isDebugMode && (
-              <ContextMenuButton onSelect={handlecopyJson}>
-                <span>Copy Data</span>
-                <Kbd variant="menu">#⇧C</Kbd>
+              <ContextMenuButton onSelect={handleCopyJson}>
+                <span>Copy to JSON</span>
               </ContextMenuButton>
             )}
-            <ContextMenuButton onSelect={handlecopySvg}>
-              <span>Copy to SVG</span>
-              <Kbd variant="menu">#⇧C</Kbd>
+            <ContextMenuButton onSelect={handlePaste}>
+              <span>Paste</span>
+              <Kbd variant="menu">#V</Kbd>
             </ContextMenuButton>
             <ContextMenuDivider />
             <ContextMenuButton onSelect={handleDelete}>
@@ -197,6 +213,10 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
           </>
         ) : (
           <>
+            <ContextMenuButton onSelect={handlePaste}>
+              <span>Paste</span>
+              <Kbd variant="menu">#V</Kbd>
+            </ContextMenuButton>
             <ContextMenuButton onSelect={handleUndo}>
               <span>Undo</span>
               <Kbd variant="menu">#Z</Kbd>
