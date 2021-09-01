@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { Menu } from './menu'
-import { mockDocument, renderWithContext } from '~test'
+import { renderWithContext } from '~test'
 
-describe('menu menu', () => {
+describe('menu', () => {
   test('mounts component without crashing', () => {
     renderWithContext(<Menu />)
   })

@@ -119,7 +119,7 @@ describe('TLDrawState', () => {
 
     it.todo('deletes shapes on undo after creating')
 
-    it.todo('re-creates shapes on undo after creating')
+    it.todo('re-creates shapes on redo after creating')
 
     it.todo('selects all')
 

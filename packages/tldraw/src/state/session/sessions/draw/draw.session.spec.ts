@@ -2,7 +2,7 @@ import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 import { ColorStyle, DashStyle, SizeStyle, TLDrawShapeType, TLDrawStatus } from '~types'
 
-describe('Transform session', () => {
+describe('Draw session', () => {
   const tlstate = new TLDrawState()
 
   it('begins, updates and completes session', () => {

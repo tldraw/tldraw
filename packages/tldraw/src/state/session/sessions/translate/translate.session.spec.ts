@@ -2,7 +2,7 @@ import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 import { ArrowShape, TLDrawShapeType, TLDrawStatus } from '~types'
 
-describe('Brush session', () => {
+describe('Translate session', () => {
   const tlstate = new TLDrawState()
 
   it('begins, updates and completes session', () => {
