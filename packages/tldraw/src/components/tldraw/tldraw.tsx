@@ -75,7 +75,7 @@ export function TLDraw({ id, document, currentPageId, onMount, onChange: _onChan
 
   const isSelectedHandlesShape = context.useSelector(isSelectedShapeWithHandlesSelector)
 
-  const isInSession = !!tlstate.session
+  const isInSession = tlstate.session !== undefined
 
   // Hide bounds when not using the select tool, or when the only selected shape has handles
   const hideBounds = !isSelecting || isSelectedHandlesShape

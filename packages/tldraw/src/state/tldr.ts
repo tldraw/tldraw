@@ -449,8 +449,6 @@ export class TLDR {
       return this.updateBindings(cData, id, beforeShapes, afterShapes, pageId)
     }, dataWithParentChanges)
 
-    console.log(beforeShapes)
-
     return {
       before: beforeShapes,
       after: afterShapes,

@@ -1,7 +1,6 @@
-import { TLDR } from '~state/tldr'
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { TLDrawShape, TLDrawStatus } from '~types'
+import { ArrowShape, TLDrawShapeType, TLDrawStatus } from '~types'
 
 describe('Brush session', () => {
   const tlstate = new TLDrawState()
@@ -132,33 +131,33 @@ describe('Brush session', () => {
       .loadDocument(mockDocument)
       .selectAll()
       .delete()
-      .create(
-        TLDR.getShapeUtils({ type: 'rectangle' } as TLDrawShape).create({
+      .createShapes(
+        {
           id: 'target1',
+          type: TLDrawShapeType.Rectangle,
           parentId: 'page1',
           point: [0, 0],
           size: [100, 100],
-        })
+        },
+        {
+          id: 'arrow1',
+          type: TLDrawShapeType.Arrow,
+          parentId: 'page1',
+          point: [200, 200],
+        }
       )
-    // .create(
-    //   TLDR.getShapeUtils({ type: 'arrow' } as TLDrawShape).create({
-    //     id: 'arrow1',
-    //     parentId: 'page1',
-    //     point: [200, 200],
-    //   })
-    // )
-    // .select('arrow1')
-    // .startHandleSession([200, 200], 'start')
-    // .updateHandleSession([50, 50])
-    // .completeSession()
+      .select('arrow1')
+      .startHandleSession([200, 200], 'start')
+      .updateHandleSession([50, 50])
+      .completeSession()
 
-    // expect(tlstate.bindings.length).toBe(1)
+    expect(tlstate.bindings.length).toBe(1)
 
-    // tlstate
-    //   .select('arrow1')
-    //   .startTranslateSession([10, 10])
-    //   .updateTranslateSession([30, 30])
-    //   .completeSession()
+    tlstate
+      .select('arrow1')
+      .startTranslateSession([10, 10])
+      .updateTranslateSession([30, 30])
+      .completeSession()
 
     // expect(tlstate.bindings.length).toBe(0)
     // expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(undefined)

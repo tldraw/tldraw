@@ -1,6 +1,15 @@
 import { TLPageState, Utils, Vec } from '@tldraw/core'
-import { TLDrawShape, TLDrawBinding, Session, Data, TLDrawCommand, TLDrawStatus } from '~types'
+import {
+  TLDrawShape,
+  TLDrawBinding,
+  Session,
+  Data,
+  TLDrawCommand,
+  TLDrawStatus,
+  ArrowShape,
+} from '~types'
 import { TLDR } from '~state/tldr'
+import type { Patch } from 'rko'
 
 export class TranslateSession implements Session {
   id = 'translate'
@@ -21,7 +30,7 @@ export class TranslateSession implements Session {
 
     if (bindingsToDelete.length === 0) return data
 
-    const nextBindings: Record<string, Partial<TLDrawBinding> | undefined> = {}
+    const nextBindings: Patch<Record<string, TLDrawBinding>> = {}
 
     bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = undefined))
 
@@ -37,11 +46,11 @@ export class TranslateSession implements Session {
   }
 
   update = (data: Data, point: number[], isAligned = false, isCloning = false) => {
-    const { clones, initialShapes } = this.snapshot
+    const { clones, initialShapes, bindingsToDelete } = this.snapshot
 
-    const nextBindings: Record<string, Partial<TLDrawBinding> | undefined> = {}
-    const nextShapes: Record<string, Partial<TLDrawShape> | undefined> = {}
-    const nextPageState: Partial<TLPageState> = {}
+    const nextBindings: Patch<Record<string, TLDrawBinding>> = {}
+    const nextShapes: Patch<Record<string, TLDrawShape>> = {}
+    const nextPageState: Patch<TLPageState> = {}
 
     const delta = Vec.sub(point, this.origin)
 
@@ -64,14 +73,17 @@ export class TranslateSession implements Session {
       if (!this.isCloning) {
         this.isCloning = true
 
+        // Put back any bindings we deleted
+
+        bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = binding))
+
         // Move original shapes back to start
 
         initialShapes.forEach((shape) => (nextShapes[shape.id] = { point: shape.point }))
 
-        clones.forEach(
-          (shape) =>
-            (nextShapes[shape.id] = { ...shape, point: Vec.round(Vec.add(shape.point, delta)) })
-        )
+        clones.forEach((clone) => {
+          nextShapes[clone.id] = { ...clone, point: Vec.round(Vec.add(clone.point, delta)) }
+        })
 
         nextPageState.selectedIds = clones.map((shape) => shape.id)
 
@@ -83,8 +95,8 @@ export class TranslateSession implements Session {
       // Either way, move the clones
 
       clones.forEach((shape) => {
-        const current =
-          nextShapes[shape.id] || TLDR.getShape(data, shape.id, data.appState.currentPageId)
+        const current = (nextShapes[shape.id] ||
+          TLDR.getShape(data, shape.id, data.appState.currentPageId)) as TLDrawShape
 
         if (!current.point) throw Error('No point on that clone!')
 
@@ -99,6 +111,10 @@ export class TranslateSession implements Session {
       // Cloning -> Not Cloning
       if (this.isCloning) {
         this.isCloning = false
+
+        // Delete the bindings
+
+        bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = undefined))
 
         // Delete the clones
         clones.forEach((clone) => (nextShapes[clone.id] = undefined))
@@ -121,8 +137,8 @@ export class TranslateSession implements Session {
 
       // Move the shapes by the delta
       initialShapes.forEach((shape) => {
-        const current =
-          nextShapes[shape.id] || TLDR.getShape(data, shape.id, data.appState.currentPageId)
+        const current = (nextShapes[shape.id] ||
+          TLDR.getShape(data, shape.id, data.appState.currentPageId)) as TLDrawShape
 
         if (!current.point) throw Error('No point on that clone!')
 
@@ -189,11 +205,11 @@ export class TranslateSession implements Session {
 
     const { initialShapes, bindingsToDelete, clones, clonedBindings } = this.snapshot
 
-    const beforeBindings: Record<string, Partial<TLDrawBinding> | undefined> = {}
-    const beforeShapes: Record<string, Partial<TLDrawShape> | undefined> = {}
+    const beforeBindings: Patch<Record<string, TLDrawBinding>> = {}
+    const beforeShapes: Patch<Record<string, TLDrawShape>> = {}
 
-    const afterBindings: Record<string, Partial<TLDrawBinding> | undefined> = {}
-    const afterShapes: Record<string, Partial<TLDrawShape> | undefined> = {}
+    const afterBindings: Patch<Record<string, TLDrawBinding>> = {}
+    const afterShapes: Patch<Record<string, TLDrawShape>> = {}
 
     clones.forEach((shape) => {
       beforeShapes[shape.id] = undefined
@@ -223,26 +239,19 @@ export class TranslateSession implements Session {
         Object.values(shape.handles)
           .filter((handle) => handle.bindingId === binding.id)
           .forEach((handle) => {
-            let shape: Partial<TLDrawShape> | undefined = beforeShapes[id]
-            if (!shape) shape = {}
+            beforeShapes[id] = { ...beforeShapes[id], handles: {} }
 
-            TLDR.assertShapeHasProperty(shape as TLDrawShape, 'handles')
+            afterShapes[id] = { ...afterShapes[id], handles: {} }
 
-            if (!beforeShapes[id]) {
-              beforeShapes[id] = { handles: {} }
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            beforeShapes[id]!.handles![handle.id as keyof ArrowShape['handles']] = {
+              bindingId: binding.id,
             }
 
-            if (!afterShapes[id]) {
-              afterShapes[id] = { handles: {} }
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            afterShapes[id]!.handles![handle.id as keyof ArrowShape['handles']] = {
+              bindingId: undefined,
             }
-
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            beforeShapes[id].handles[handle.id] = { bindingId: binding.id }
-
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            beforeShapes[id].handles[handle.id] = { bindingId: undefined }
           })
       }
     })
@@ -285,11 +294,11 @@ export class TranslateSession implements Session {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getTranslateSnapshot(data: Data) {
+  const selectedIds = TLDR.getSelectedIds(data, data.appState.currentPageId)
+
   const selectedShapes = TLDR.getSelectedShapeSnapshot(data, data.appState.currentPageId)
 
   const hasUnlockedShapes = selectedShapes.length > 0
-
-  const cloneMap: Record<string, string> = {}
 
   const page = TLDR.getPage(data, data.appState.currentPageId)
 
@@ -303,11 +312,16 @@ export function getTranslateSnapshot(data: Data) {
       }
     })
 
+  const cloneMap: Record<string, string> = {}
+  const clonedBindingsMap: Record<string, string> = {}
+  const clonedBindings: TLDrawBinding[] = []
+
+  // Create clones of selected shapes
   const clones = selectedShapes
     .filter((shape) => shape.children === undefined)
     .flatMap((shape) => {
       const clone: TLDrawShape = {
-        ...shape,
+        ...Utils.deepClone(shape),
         id: Utils.uniqueId(),
         parentId: shape.parentId,
         childIndex: TLDR.getChildIndexAbove(data, shape.id, data.appState.currentPageId),
@@ -318,32 +332,42 @@ export function getTranslateSnapshot(data: Data) {
       return clone
     })
 
-  const clonedBindings: TLDrawBinding[] = []
-
-  selectedShapes.forEach((shape) => {
-    if (!shape.handles) return
-
-    for (const handle of Object.values(shape.handles)) {
-      if (handle.bindingId) {
-        const binding = page.bindings[handle.bindingId]
-        const cloneBinding = {
-          ...binding,
-          id: Utils.uniqueId(),
-          fromId: cloneMap[binding.fromId] || binding.fromId,
-          toId: cloneMap[binding.toId] || binding.toId,
-        }
-
-        clonedBindings.push(cloneBinding)
+  // Create cloned bindings for shapes where both to and from shapes are selected
+  // (if the user clones, then we will create a new binding for the clones)
+  Object.values(page.bindings).forEach((binding) => {
+    if (selectedIds.includes(binding.toId) && selectedIds.includes(binding.fromId)) {
+      const cloneId = Utils.uniqueId()
+      const cloneBinding = {
+        ...Utils.deepClone(binding),
+        id: cloneId,
+        fromId: cloneMap[binding.fromId] || binding.fromId,
+        toId: cloneMap[binding.toId] || binding.toId,
       }
+
+      clonedBindingsMap[binding.id] = cloneId
+      clonedBindings.push(cloneBinding)
     }
   })
 
-  const selectedIds = TLDR.getSelectedIds(data, data.appState.currentPageId)
+  // Assign new binding ids to clones (or delete them!)
+  clones.forEach((clone) => {
+    if (clone.handles) {
+      if (clone.handles) {
+        for (const id in clone.handles) {
+          const handle = clone.handles[id as keyof ArrowShape['handles']]
+          handle.bindingId = handle.bindingId ? clonedBindingsMap[handle.bindingId] : undefined
+        }
+      }
+    }
+  })
 
   const bindingsToDelete = TLDR.getRelatedBindings(
     data,
     selectedShapes.filter((shape) => shape.handles !== undefined).map((shape) => shape.id),
     data.appState.currentPageId
+  ).filter(
+    // Don't delete bindings that are between both selected shapes
+    (binding) => !(selectedIds.includes(binding.toId) && selectedIds.includes(binding.fromId))
   )
 
   return {

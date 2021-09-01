@@ -2212,5 +2212,3 @@ export class TLDrawState extends StateManager<Data> {
     this.completeSession()
   }
 }
-
-export const tlstate = new TLDrawState()
