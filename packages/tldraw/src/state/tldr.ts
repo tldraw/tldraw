@@ -348,7 +348,7 @@ export class TLDR {
     return Object.values(page.bindings)
       .filter((binding) => binding.fromId === id || binding.toId === id)
       .reduce((cData, binding) => {
-        if (!beforeShapes[binding.id]) {
+        if (!beforeShapes[binding.fromId]) {
           beforeShapes[binding.fromId] = Utils.deepClone(
             this.getShape(cData, binding.fromId, pageId)
           )
@@ -422,7 +422,7 @@ export class TLDR {
       const shape = this.getShape<T>(data, id, pageId)
       const change = fn(shape, i)
       beforeShapes[id] = Object.fromEntries(
-        Object.keys(change).map((key) => [key, shape[key as keyof T]])
+        Object.keys(change).map((key) => [key, { ...shape[key as keyof T] }])
       ) as Partial<T>
       afterShapes[id] = change
     })

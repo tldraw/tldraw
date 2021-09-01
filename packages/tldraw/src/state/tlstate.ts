@@ -1129,7 +1129,10 @@ export class TLDrawState extends StateManager<Data> {
     if (shapes.length === 0) return this
     return this.create(
       ...shapes.map((shape) => {
-        return TLDR.getShapeUtils(shape as TLDrawShape).create(shape)
+        return TLDR.getShapeUtils(shape as TLDrawShape).create({
+          ...shape,
+          parentId: shape.parentId || this.currentPageId,
+        })
       })
     )
   }

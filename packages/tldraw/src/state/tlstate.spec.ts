@@ -1,5 +1,6 @@
 import { TLDrawState } from './tlstate'
 import { mockDocument, TLStateUtils } from '~test'
+import { ColorStyle, TLDrawShapeType } from '~types'
 
 describe('TLDrawState', () => {
   const tlstate = new TLDrawState()
@@ -229,11 +230,51 @@ describe('TLDrawState', () => {
 
   describe('Copies to JSON', () => {
     tlstate.selectAll()
-    tlstate.copyJson()
+    expect(tlstate.copyJson()).toMatchSnapshot('copied json')
   })
 
   describe('Copies to SVG', () => {
     tlstate.selectAll()
-    tlstate.copySvg()
+    expect(tlstate.copySvg()).toMatchSnapshot('copied svg')
+  })
+
+  describe('Mutates bound shapes', () => {
+    const tlstate = new TLDrawState()
+
+    tlstate
+      .createShapes(
+        {
+          id: 'rect',
+          point: [0, 0],
+          size: [100, 100],
+          childIndex: 1,
+          type: TLDrawShapeType.Rectangle,
+        },
+        {
+          id: 'arrow',
+          point: [200, 200],
+          childIndex: 2,
+          type: TLDrawShapeType.Arrow,
+        }
+      )
+      .select('arrow')
+      .startHandleSession([200, 200], 'start', 'arrow')
+      .updateHandleSession([10, 10])
+      .completeSession()
+      .selectAll()
+      .style({ color: ColorStyle.Red })
+
+    expect(tlstate.getShape('arrow').style.color).toBe(ColorStyle.Red)
+    expect(tlstate.getShape('rect').style.color).toBe(ColorStyle.Red)
+
+    tlstate.undo()
+
+    expect(tlstate.getShape('arrow').style.color).toBe(ColorStyle.Black)
+    expect(tlstate.getShape('rect').style.color).toBe(ColorStyle.Black)
+
+    tlstate.redo()
+
+    expect(tlstate.getShape('arrow').style.color).toBe(ColorStyle.Red)
+    expect(tlstate.getShape('rect').style.color).toBe(ColorStyle.Red)
   })
 })
