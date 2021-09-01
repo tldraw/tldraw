@@ -711,20 +711,79 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
-  copyAsSvg = () => {
-    // TODO
-    return '<svg/>'
+  /**
+   * Copy one or more shapes as SVG.
+   * @param ids The ids of the shapes to copy.
+   * @param pageId The page from which to copy the shapes.
+   * @returns A string containing the JSON.
+   */
+  copyAsSvg = (ids = this.selectedIds, pageId = this.currentPageId) => {
+    if (ids.length === 0) return
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+
+    ids.forEach((id) => {
+      const elm = document.getElementById(id)
+      if (elm) {
+        const clone = elm?.cloneNode(true)
+        svg.appendChild(clone)
+      }
+    })
+
+    const shapes = ids.map((id) => this.getShape(id, pageId))
+    const bounds = Utils.getCommonBounds(shapes.map(TLDR.getBounds))
+    const padding = 16
+
+    // Resize the element to the bounding box
+    svg.setAttribute(
+      'viewBox',
+      [
+        bounds.minX - padding,
+        bounds.minY - padding,
+        bounds.width + padding * 2,
+        bounds.height + padding * 2,
+      ].join(' ')
+    )
+
+    svg.setAttribute('width', String(bounds.width))
+
+    svg.setAttribute('height', String(bounds.height))
+
+    const s = new XMLSerializer()
+
+    const svgString = s
+      .serializeToString(svg)
+      .replaceAll('&#10;      ', '')
+      .replaceAll(/((\s|")[0-9]*\.[0-9]{2})([0-9]*)(\b|"|\))/g, '$1')
+
+    TLDR.copyStringToClipboard(svgString)
+
+    return svgString
   }
 
-  copyAsJson = () => {
-    // TODO
-    return {}
+  /**
+   * Copy one or more shapes as JSON
+   * @param ids The ids of the shapes to copy.
+   * @param pageId The page from which to copy the shapes.
+   * @returns A string containing the JSON.
+   */
+  copyAsJson = (ids = this.selectedIds, pageId = this.currentPageId) => {
+    const shapes = ids.map((id) => this.getShape(id, pageId))
+    const json = JSON.stringify(shapes, null, 2)
+    TLDR.copyStringToClipboard(json)
+    return json
   }
 
   /* -------------------------------------------------- */
   /*                      Sessions                      */
   /* -------------------------------------------------- */
 
+  /**
+   * Start a new session.
+   * @param session The new session
+   * @param args arguments of the session's start method.
+   * @returns this
+   */
   startSession<T extends Session>(session: T, ...args: ParametersExceptFirst<T['start']>): this {
     this.session = session
 
@@ -749,6 +808,11 @@ export class TLDrawState extends StateManager<Data> {
     return this.setStatus(session.status)
   }
 
+  /**
+   * Update the current session.
+   * @param args The arguments of the current session's update method.
+   * @returns this
+   */
   updateSession<T extends Session>(...args: ParametersExceptFirst<T['update']>): this {
     const { session } = this
     if (!session) return this
@@ -757,6 +821,11 @@ export class TLDrawState extends StateManager<Data> {
     return this.patchState(patch, `session:update:${session.id}`)
   }
 
+  /**
+   * Cancel the current session.
+   * @param args The arguments of the current session's cancel method.
+   * @returns this
+   */
   cancelSession<T extends Session>(...args: ParametersExceptFirst<T['cancel']>): this {
     const { session } = this
     if (!session) return this
@@ -808,6 +877,11 @@ export class TLDrawState extends StateManager<Data> {
     )
   }
 
+  /**
+   * Complete the current session.
+   * @param args The arguments of the current session's complete method.
+   * @returns this
+   */
   completeSession<T extends Session>(...args: ParametersExceptFirst<T['complete']>) {
     const { session } = this
 
@@ -931,11 +1005,17 @@ export class TLDrawState extends StateManager<Data> {
   /*                      Selection                     */
   /* -------------------------------------------------- */
 
+  /**
+   * Clear the selection history (undo/redo stack for selection).
+   */
   private clearSelectHistory() {
     this.selectHistory.pointer = 0
     this.selectHistory.stack = [this.selectedIds]
   }
 
+  /**
+   * Adds a selection to the selection history (undo/redo stack for selection).
+   */
   private addToSelectHistory(ids: string[]) {
     if (this.selectHistory.pointer < this.selectHistory.stack.length) {
       this.selectHistory.stack = this.selectHistory.stack.slice(0, this.selectHistory.pointer + 1)

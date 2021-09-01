@@ -809,6 +809,38 @@ export class TLDR {
     return Array.from(bindingsToUpdate.values())
   }
 
+  static copyStringToClipboard = (string: string) => {
+    try {
+      navigator.clipboard.writeText(string)
+    } catch (e) {
+      const textarea = document.createElement('textarea')
+      textarea.setAttribute('position', 'fixed')
+      textarea.setAttribute('top', '0')
+      textarea.setAttribute('readonly', 'true')
+      textarea.setAttribute('contenteditable', 'true')
+      textarea.style.position = 'fixed'
+      textarea.value = string
+      document.body.appendChild(textarea)
+      textarea.focus()
+      textarea.select()
+
+      try {
+        const range = document.createRange()
+        range.selectNodeContents(textarea)
+        const sel = window.getSelection()
+        if (sel) {
+          sel.removeAllRanges()
+          sel.addRange(range)
+          textarea.setSelectionRange(0, textarea.value.length)
+        }
+      } catch (err) {
+        null // Could not copy to clipboard
+      } finally {
+        document.body.removeChild(textarea)
+      }
+    }
+  }
+
   /* -------------------------------------------------- */
   /*                     Assertions                     */
   /* -------------------------------------------------- */

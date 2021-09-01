@@ -70,7 +70,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
             rx={rx}
             ry={ry}
             stroke="none"
-            fill={style.isFilled ? styles.fill : 'transparent'}
+            fill={style.isFilled ? styles.fill : 'none'}
             pointerEvents="all"
           />
           <path

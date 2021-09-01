@@ -61,7 +61,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
             y={+styles.strokeWidth / 2}
             width={Math.max(0, size[0] - strokeWidth)}
             height={Math.max(0, size[1] - strokeWidth)}
-            fill={style.isFilled ? styles.fill : 'transparent'}
+            fill={style.isFilled ? styles.fill : 'none'}
             stroke="none"
             pointerEvents="all"
           />
