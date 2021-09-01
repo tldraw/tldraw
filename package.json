@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "test": "jest",
-    "test:watch": "test --watchAll",
+    "test:watch": "jest --watchAll",
     "lerna": "lerna",
     "start": "lerna run start:pre && lerna run start --stream --parallel",
     "start:www": "yarn build:packages && lerna run start --parallel & cd packages/www && yarn dev",

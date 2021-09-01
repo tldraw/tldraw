@@ -422,7 +422,7 @@ export class TLDR {
       const shape = this.getShape<T>(data, id, pageId)
       const change = fn(shape, i)
       beforeShapes[id] = Object.fromEntries(
-        Object.keys(change).map((key) => [key, { ...shape[key as keyof T] }])
+        Object.keys(change).map((key) => [key, shape[key as keyof T]])
       ) as Partial<T>
       afterShapes[id] = change
     })
@@ -448,6 +448,8 @@ export class TLDR {
     const dataWithBindingChanges = ids.reduce<Data>((cData, id) => {
       return this.updateBindings(cData, id, beforeShapes, afterShapes, pageId)
     }, dataWithParentChanges)
+
+    console.log(beforeShapes)
 
     return {
       before: beforeShapes,
