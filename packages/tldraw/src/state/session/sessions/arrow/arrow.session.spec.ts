@@ -159,12 +159,8 @@ describe('Arrow session', () => {
       expect(tlstate.getShape<ArrowShape>('arrow1').handles.end.point).toStrictEqual([85, 85])
     })
 
-    it('updates the arrow when bound on both sides', () => {
-      // TODO
-    })
+    it.todo('updates the arrow when bound on both sides')
 
-    it('snaps the bend to zero when dragging the bend handle toward the center', () => {
-      // TODO
-    })
+    it.todo('snaps the bend to zero when dragging the bend handle toward the center')
   })
 })
