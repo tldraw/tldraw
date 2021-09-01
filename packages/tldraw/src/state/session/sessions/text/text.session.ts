@@ -1,4 +1,4 @@
-import { TextShape, TLDrawShape, TLDrawStatus } from '~types'
+import { TextShape, TLDrawStatus } from '~types'
 import type { Session } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'

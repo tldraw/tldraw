@@ -24,6 +24,7 @@ export class TransformSession implements Session {
 
   start = () => void null
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update = (data: Data, point: number[], isAspectRatioLocked = false, _altKey = false) => {
     const {
       transformType,
@@ -37,7 +38,7 @@ export class TransformSession implements Session {
     const newBoundingBox = Utils.getTransformedBoundingBox(
       initialBounds,
       transformType,
-      Vec.vec(this.origin, point),
+      Vec.sub(point, this.origin),
       pageState.boundsRotation,
       isAspectRatioLocked || isAllAspectRatioLocked
     )

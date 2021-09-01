@@ -312,7 +312,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
     }
   }
 
-  transformSingle(shape: RectangleShape, bounds: TLBounds) {
+  transformSingle(_shape: RectangleShape, bounds: TLBounds) {
     return {
       size: Vec.round([bounds.width, bounds.height]),
       point: Vec.round([bounds.minX, bounds.minY]),

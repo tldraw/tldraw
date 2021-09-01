@@ -135,14 +135,14 @@ export class TLDrawState extends StateManager<Data> {
   }
   /* -------------------- Internal -------------------- */
 
-  protected onStateWillChange = (_state: Data, id: string): void => {
-    if (!id.startsWith('patch')) {
-      this.selectHistory.stack = [[]]
-      this.selectHistory.pointer = 0
-    }
-  }
+  // protected onStateWillChange = (_state: Data, id: string): void => {
+  // }
 
   protected onStateDidChange = (state: Data, id: string): void => {
+    if (!id.startsWith('patch')) {
+      this.clearSelectHistory()
+    }
+
     this._onChange?.(this, state, id)
   }
 
@@ -531,7 +531,9 @@ export class TLDrawState extends StateManager<Data> {
 
   loadDocument = (document: TLDrawDocument, onChange?: TLDrawState['_onChange']): this => {
     this._onChange = onChange
+    this.deselectAll()
     this.resetHistory()
+    this.clearSelectHistory()
 
     // this.selectHistory.pointer = 0
     // this.selectHistory.stack = [[]]
@@ -942,7 +944,13 @@ export class TLDrawState extends StateManager<Data> {
     this.selectHistory.stack.push(ids)
   }
 
-  setSelectedIds(ids: string[], push = false): this {
+  /**
+   * Set the current selection.
+   * @param ids The ids to select
+   * @param push Whether to add the ids to the current selection instead.
+   * @returns this
+   */
+  private setSelectedIds(ids: string[], push = false): this {
     return this.patchState(
       {
         appState: {
@@ -961,6 +969,10 @@ export class TLDrawState extends StateManager<Data> {
     )
   }
 
+  /**
+   * Undo the most recent selection.
+   * @returns this
+   */
   undoSelect(): this {
     if (this.selectHistory.pointer > 0) {
       this.selectHistory.pointer--
@@ -969,6 +981,10 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
+  /**
+   * Redo the previous selection.
+   * @returns this
+   */
   redoSelect(): this {
     if (this.selectHistory.pointer < this.selectHistory.stack.length - 1) {
       this.selectHistory.pointer++
@@ -977,12 +993,21 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
+  /**
+   * Select one or more shapes.
+   * @param ids The shape ids to select.
+   * @returns this
+   */
   select = (...ids: string[]): this => {
     this.setSelectedIds(ids)
     this.addToSelectHistory(ids)
     return this
   }
 
+  /**
+   * Select all shapes on the page.
+   * @returns this
+   */
   selectAll = (): this => {
     if (this.session) return this
     this.setSelectedIds(Object.keys(this.page.shapes))
@@ -993,6 +1018,10 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
+  /**
+   * Deselect any selected shapes.
+   * @returns this
+   */
   deselectAll = (): this => {
     this.setSelectedIds([])
     this.addToSelectHistory(this.selectedIds)
@@ -1003,66 +1032,213 @@ export class TLDrawState extends StateManager<Data> {
   /*                   Shape Functions                  */
   /* -------------------------------------------------- */
 
+  /**
+   * Manually create shapes on the page.
+   * @param shapes An array of shape partials, containing the initial props for the shapes.
+   * @command
+   * @returns this
+   */
+  createShapes = (
+    ...shapes: ({ id: string; type: TLDrawShapeType } & Partial<TLDrawShape>)[]
+  ): this => {
+    if (shapes.length === 0) return this
+    return this.create(
+      ...shapes.map((shape) => {
+        return TLDR.getShapeUtils(shape as TLDrawShape).create(shape)
+      })
+    )
+  }
+
+  /**
+   * Manually update a set of shapes.
+   * @param shapes An array of shape partials, containing the changes to be made to each shape.
+   * @command
+   * @returns this
+   */
+  updateShapes = (...shapes: ({ id: string } & Partial<TLDrawShape>)[]): this => {
+    if (shapes.length === 0) return this
+    return this.setState(Commands.update(this.state, shapes), 'updated_shape')
+  }
+
+  /**
+   * Create one or more shapes.
+   * @param shapes An array of shapes.
+   * @command
+   * @returns this
+   */
+  create = (...shapes: TLDrawShape[]): this => {
+    if (shapes.length === 0) return this
+    return this.setState(Commands.create(this.state, shapes))
+  }
+
+  /**
+   * Delete one or more shapes.
+   * @param ids The ids of the shapes to delete.
+   * @command
+   * @returns this
+   */
+  delete = (ids = this.selectedIds): this => {
+    if (ids.length === 0) return this
+    return this.setState(Commands.deleteShapes(this.state, ids))
+  }
+
+  /**
+   * Delete all shapes on the page.
+   * @returns this
+   */
+  clear = (): this => {
+    this.selectAll()
+    this.delete()
+    return this
+  }
+
+  /**
+   * Change the style for one or more shapes.
+   * @param style A style partial to apply to the shapes.
+   * @param ids The ids of the shapes to change (defaults to selection).
+   * @returns this
+   */
   style = (style: Partial<ShapeStyles>, ids = this.selectedIds) => {
     return this.setState(Commands.style(this.state, ids, style))
   }
 
+  /**
+   * Align one or more shapes.
+   * @param direction Whether to align horizontally or vertically.
+   * @param ids The ids of the shapes to change (defaults to selection).
+   * @returns this
+   */
   align = (type: AlignType, ids = this.selectedIds) => {
     return this.setState(Commands.align(this.state, ids, type))
   }
 
-  distribute = (type: DistributeType, ids = this.selectedIds) => {
-    return this.setState(Commands.distribute(this.state, ids, type))
+  /**
+   * Distribute one or more shapes.
+   * @param direction Whether to distribute horizontally or vertically..
+   * @param ids The ids of the shapes to change (defaults to selection).
+   * @returns this
+   */
+  distribute = (direction: DistributeType, ids = this.selectedIds) => {
+    return this.setState(Commands.distribute(this.state, ids, direction))
   }
 
-  stretch = (type: StretchType, ids = this.selectedIds) => {
-    return this.setState(Commands.stretch(this.state, ids, type))
+  /**
+   * Stretch one or more shapes to their common bounds.
+   * @param direction Whether to stretch horizontally or vertically.
+   * @param ids The ids of the shapes to change (defaults to selection).
+   * @returns this
+   */
+  stretch = (direction: StretchType, ids = this.selectedIds) => {
+    return this.setState(Commands.stretch(this.state, ids, direction))
   }
 
+  /**
+   * Flip one or more shapes horizontally.
+   * @param ids The ids of the shapes to change (defaults to selection).
+   * @returns this
+   */
   flipHorizontal = (ids = this.selectedIds) => {
     return this.setState(Commands.flip(this.state, ids, FlipType.Horizontal))
   }
 
+  /**
+   * Flip one or more shapes vertically.
+   * @param ids The ids of the shapes to change (defaults to selection).
+   * @returns this
+   */
   flipVertical = (ids = this.selectedIds) => {
     return this.setState(Commands.flip(this.state, ids, FlipType.Vertical))
   }
 
+  /**
+   * Move one or more shapes to the back of the page.
+   * @param ids The ids of the shapes to change (defaults to selection).
+   * @returns this
+   */
   moveToBack = (ids = this.selectedIds) => {
     return this.setState(Commands.move(this.state, ids, MoveType.ToBack))
   }
 
+  /**
+   * Move one or more shapes backward on of the page.
+   * @param ids The ids of the shapes to change (defaults to selection).
+   * @returns this
+   */
   moveBackward = (ids = this.selectedIds) => {
     return this.setState(Commands.move(this.state, ids, MoveType.Backward))
   }
 
+  /**
+   * Move one or more shapes forward on the page.
+   * @param ids The ids of the shapes to change (defaults to selection).
+   * @returns this
+   */
   moveForward = (ids = this.selectedIds) => {
     return this.setState(Commands.move(this.state, ids, MoveType.Forward))
   }
 
+  /**
+   * Move one or more shapes to the front of the page.
+   * @param ids The ids of the shapes to change (defaults to selection).
+   * @returns this
+   */
   moveToFront = (ids = this.selectedIds) => {
     return this.setState(Commands.move(this.state, ids, MoveType.ToFront))
   }
 
+  /**
+   * Nudge one or more shapes in a direction.
+   * @param delta The direction to nudge the shapes.
+   * @param isMajor Whether this is a major (i.e. shift) nudge.
+   * @param ids The ids to change (defaults to selection).
+   * @returns this
+   */
   nudge = (delta: number[], isMajor = false, ids = this.selectedIds): this => {
     return this.setState(Commands.translate(this.state, ids, Vec.mul(delta, isMajor ? 10 : 1)))
   }
 
+  /**
+   * Duplicate one or more shapes.
+   * @param ids The ids to duplicate (defaults to selection).
+   * @returns this
+   */
   duplicate = (ids = this.selectedIds): this => {
     return this.setState(Commands.duplicate(this.state, ids))
   }
 
+  /**
+   * Toggle the hidden property of one or more shapes.
+   * @param ids The ids to change (defaults to selection).
+   * @returns this
+   */
   toggleHidden = (ids = this.selectedIds): this => {
     return this.setState(Commands.toggle(this.state, ids, 'isHidden'))
   }
 
+  /**
+   * Toggle the locked property of one or more shapes.
+   * @param ids The ids to change (defaults to selection).
+   * @returns this
+   */
   toggleLocked = (ids = this.selectedIds): this => {
     return this.setState(Commands.toggle(this.state, ids, 'isLocked'))
   }
 
+  /**
+   * Toggle the fixed-aspect-ratio property of one or more shapes.
+   * @param ids The ids to change (defaults to selection).
+   * @returns this
+   */
   toggleAspectRatioLocked = (ids = this.selectedIds): this => {
     return this.setState(Commands.toggle(this.state, ids, 'isAspectRatioLocked'))
   }
 
+  /**
+   * Toggle the decoration at a handle of one or more shapes.
+   * @param handleId The handle to toggle.
+   * @param ids The ids of the shapes to toggle the decoration on.
+   * @returns this
+   */
   toggleDecoration = (handleId: string, ids = this.selectedIds): this => {
     if (handleId === 'start' || handleId === 'end') {
       return this.setState(Commands.toggleDecoration(this.state, ids, handleId))
@@ -1071,34 +1247,29 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
+  /**
+   * Rotate one or more shapes by a delta.
+   * @param delta The delta in radians.
+   * @param ids The ids to rotate (defaults to selection).
+   * @returns this
+   */
   rotate = (delta = Math.PI * -0.5, ids = this.selectedIds): this => {
     return this.setState(Commands.rotate(this.state, ids, delta))
   }
 
+  /**
+   * Group one or more shapes.
+   * @returns this
+   * @todo
+   */
   group = (): this => {
-    // TODO
-    //
-    //
-    // this.setState(Commands.toggle(this.state, ids, 'isAspectRatioLocked'))
     return this
   }
 
-  create = (...shapes: TLDrawShape[]): this => {
-    return this.setState(Commands.create(this.state, shapes))
-  }
-
-  delete = (ids = this.selectedIds): this => {
-    if (ids.length === 0) return this
-
-    return this.setState(Commands.deleteShapes(this.state, ids))
-  }
-
-  clear = (): this => {
-    this.selectAll()
-    this.delete()
-    return this
-  }
-
+  /**
+   * Cancel the current session.
+   * @returns this
+   */
   cancel = (): this => {
     switch (this.state.appState.status.current) {
       case TLDrawStatus.Idle: {

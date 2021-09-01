@@ -668,8 +668,6 @@ export class TLDR {
       next = this.onChildrenChange(data, next, pageId) || next
     }
 
-    // data.page.shapes[next.id] = next
-
     return next
   }
 

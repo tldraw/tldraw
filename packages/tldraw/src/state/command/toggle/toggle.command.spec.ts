@@ -26,7 +26,7 @@ describe('Toggle command', () => {
 
   it('toggles on before off when mixed values', () => {
     tlstate.loadDocument(mockDocument)
-    tlstate.setSelectedIds(['rect2'])
+    tlstate.select('rect2')
     expect(tlstate.getShape<RectangleShape>('rect1').isAspectRatioLocked).toBe(undefined)
     expect(tlstate.getShape<RectangleShape>('rect2').isAspectRatioLocked).toBe(undefined)
     tlstate.toggleAspectRatioLocked()

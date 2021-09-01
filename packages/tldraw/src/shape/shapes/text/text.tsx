@@ -56,7 +56,7 @@ if (typeof window !== 'undefined') {
 export class Text extends TLDrawShapeUtil<TextShape> {
   type = TLDrawShapeType.Text as const
   toolType = TLDrawToolType.Text
-  canChangeAspectRatio = false
+  isAspectRatioLocked = true
   isEditableText = true
   canBind = true
 
@@ -325,7 +325,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
   transformSingle(
     _shape: TextShape,
     bounds: TLBounds,
-    { initialShape, scaleX }: TLTransformInfo<TextShape>
+    { initialShape, scaleX, scaleY }: TLTransformInfo<TextShape>
   ): Partial<TextShape> {
     const {
       style: { scale = 1 },
@@ -335,7 +335,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
       point: Vec.round([bounds.minX, bounds.minY]),
       style: {
         ...initialShape.style,
-        scale: scale * Math.abs(scaleX),
+        scale: scale * Math.max(Math.abs(scaleY), Math.abs(scaleX)),
       },
     }
   }
@@ -369,7 +369,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
   }
 
   shouldDelete(shape: TextShape): boolean {
-    return shape.text.length === 0
+    return shape.text.trim().length === 0
   }
 
   // getBindingPoint(shape, point, origin, direction, expandDistance) {
