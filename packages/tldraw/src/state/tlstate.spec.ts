@@ -226,4 +226,12 @@ describe('TLDrawState', () => {
       expect(tlstate.selectedIds).toStrictEqual([])
     })
   })
+
+  describe('Copies to JSON', () => {
+    // TODO
+  })
+
+  describe('Copies to SVG', () => {
+    // TODO
+  })
 })
