@@ -2,7 +2,7 @@ import * as React from 'react'
 import { mockUtils, renderWithSvg } from '+test'
 import { Shape } from './shape'
 
-describe('handles', () => {
+describe('shape', () => {
   test('mounts component without crashing', () => {
     renderWithSvg(
       <Shape
