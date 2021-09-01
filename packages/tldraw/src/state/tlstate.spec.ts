@@ -228,10 +228,12 @@ describe('TLDrawState', () => {
   })
 
   describe('Copies to JSON', () => {
-    // TODO
+    tlstate.selectAll()
+    tlstate.copyJson()
   })
 
   describe('Copies to SVG', () => {
-    // TODO
+    tlstate.selectAll()
+    tlstate.copySvg()
   })
 })

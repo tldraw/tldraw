@@ -427,9 +427,19 @@ export class TLDR {
       afterShapes[id] = change
     })
 
+    const dataWithMutations = Utils.deepMerge(data, {
+      document: {
+        pages: {
+          [data.appState.currentPageId]: {
+            shapes: afterShapes,
+          },
+        },
+      },
+    })
+
     const dataWithChildrenChanges = ids.reduce<Data>((cData, id) => {
       return this.recursivelyUpdateChildren(cData, id, beforeShapes, afterShapes, pageId)
-    }, data)
+    }, dataWithMutations)
 
     const dataWithParentChanges = ids.reduce<Data>((cData, id) => {
       return this.recursivelyUpdateParents(cData, id, beforeShapes, afterShapes, pageId)

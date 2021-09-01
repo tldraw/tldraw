@@ -101,12 +101,12 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
     tlstate.delete()
   }, [tlstate])
 
-  const handleCopyAsJson = React.useCallback(() => {
-    tlstate.copyAsJson()
+  const handlecopyJson = React.useCallback(() => {
+    tlstate.copyJson()
   }, [tlstate])
 
-  const handleCopyAsSvg = React.useCallback(() => {
-    tlstate.copyAsSvg()
+  const handlecopySvg = React.useCallback(() => {
+    tlstate.copySvg()
   }, [tlstate])
 
   const handleUndo = React.useCallback(() => {
@@ -180,12 +180,12 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
             )}
             {/* <MoveToPageMenu /> */}
             {isDebugMode && (
-              <ContextMenuButton onSelect={handleCopyAsJson}>
+              <ContextMenuButton onSelect={handlecopyJson}>
                 <span>Copy Data</span>
                 <Kbd variant="menu">#⇧C</Kbd>
               </ContextMenuButton>
             )}
-            <ContextMenuButton onSelect={handleCopyAsSvg}>
+            <ContextMenuButton onSelect={handlecopySvg}>
               <span>Copy to SVG</span>
               <Kbd variant="menu">#⇧C</Kbd>
             </ContextMenuButton>

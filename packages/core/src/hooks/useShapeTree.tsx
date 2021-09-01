@@ -16,6 +16,7 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   shapes: TLPage<T, TLBinding>['shapes'],
   selectedIds: string[],
   pageState: {
+    bindingTargetId?: string
     bindingId?: string
     hoveredId?: string
     currentParentId?: string
@@ -28,7 +29,7 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
     shape,
     isCurrentParent: pageState.currentParentId === shape.id,
     isEditing: pageState.editingId === shape.id,
-    isBinding: pageState.bindingId === shape.id,
+    isBinding: pageState.bindingTargetId === shape.id,
     meta,
   }
 
@@ -102,13 +103,17 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
     rPreviousCount.current = shapesToRender.length
   }
 
+  const bindingTargetId = pageState.bindingId ? page.bindings[pageState.bindingId].toId : undefined
+
   // Populate the shape tree
 
   const tree: IShapeTreeNode<M>[] = []
 
   shapesToRender
     .sort((a, b) => a.childIndex - b.childIndex)
-    .forEach((shape) => addToShapeTree(shape, tree, page.shapes, selectedIds, pageState, meta))
+    .forEach((shape) =>
+      addToShapeTree(shape, tree, page.shapes, selectedIds, { ...pageState, bindingTargetId }, meta)
+    )
 
   return tree
 }

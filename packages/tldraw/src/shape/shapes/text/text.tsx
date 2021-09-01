@@ -11,6 +11,8 @@ import {
 import styled from '~styles'
 import TextAreaUtils from './text-utils'
 
+const LETTER_SPACING = -1.5
+
 function normalizeText(text: string) {
   return text.replace(/\r?\n|\r/g, '\n')
 }
@@ -31,7 +33,7 @@ function getMeasurementDiv() {
     border: '1px solid red',
     padding: '4px',
     margin: '0px',
-    letterSpacing: '-2.5px',
+    letterSpacing: `${LETTER_SPACING}px`,
     opacity: '0',
     position: 'absolute',
     top: '-500px',
@@ -93,6 +95,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
       ref,
       meta,
       isEditing,
+      isBinding,
       onTextBlur,
       onTextChange,
       onTextFocus,
@@ -162,15 +165,15 @@ export class Text extends TLDrawShapeUtil<TextShape> {
     if (!isEditing) {
       return (
         <>
-          {/* {isBinding && (
-            <BindingIndicator
-              as="rect"
-              x={-32}
-              y={-32}
-              width={bounds.width + 64}
-              height={bounds.height + 64}
+          {isBinding && (
+            <rect
+              className="tl-binding-indicator"
+              x={-16}
+              y={-16}
+              width={bounds.width + 32}
+              height={bounds.height + 32}
             />
-          )} */}
+          )}
           {text.split('\n').map((str, i) => (
             <text
               key={i}
@@ -179,7 +182,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
               fontFamily="Caveat Brush"
               fontStyle="normal"
               fontWeight="500"
-              letterSpacing="-2.5"
+              letterSpacing={LETTER_SPACING}
               fontSize={fontSize}
               width={bounds.width}
               height={bounds.height}
@@ -372,6 +375,81 @@ export class Text extends TLDrawShapeUtil<TextShape> {
     return shape.text.trim().length === 0
   }
 
+  getBindingPoint(
+    shape: TextShape,
+    point: number[],
+    origin: number[],
+    direction: number[],
+    padding: number,
+    anywhere: boolean
+  ) {
+    const bounds = this.getBounds(shape)
+
+    const expandedBounds = Utils.expandBounds(bounds, padding)
+
+    let bindingPoint: number[]
+    let distance: number
+
+    // The point must be inside of the expanded bounding box
+    if (!Utils.pointInBounds(point, expandedBounds)) return
+
+    // The point is inside of the shape, so we'll assume the user is
+    // indicating a specific point inside of the shape.
+    if (anywhere) {
+      if (Vec.dist(point, this.getCenter(shape)) < 12) {
+        bindingPoint = [0.5, 0.5]
+      } else {
+        bindingPoint = Vec.divV(Vec.sub(point, [expandedBounds.minX, expandedBounds.minY]), [
+          expandedBounds.width,
+          expandedBounds.height,
+        ])
+      }
+
+      distance = 0
+    } else {
+      // Find furthest intersection between ray from
+      // origin through point and expanded bounds.
+
+      // TODO: Make this a ray vs rounded rect intersection
+      const intersection = Intersect.ray
+        .bounds(origin, direction, expandedBounds)
+        .filter((int) => int.didIntersect)
+        .map((int) => int.points[0])
+        .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
+
+      // The anchor is a point between the handle and the intersection
+      const anchor = Vec.med(point, intersection)
+
+      // If we're close to the center, snap to the center
+      if (Vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12) {
+        bindingPoint = [0.5, 0.5]
+      } else {
+        // Or else calculate a normalized point
+        bindingPoint = Vec.divV(Vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]), [
+          expandedBounds.width,
+          expandedBounds.height,
+        ])
+      }
+
+      if (Utils.pointInBounds(point, bounds)) {
+        distance = 16
+      } else {
+        // If the binding point was close to the shape's center, snap to the center
+        // Find the distance between the point and the real bounds of the shape
+        distance = Math.max(
+          16,
+          Utils.getBoundsSides(bounds)
+            .map((side) => Vec.distanceToLineSegment(side[1][0], side[1][1], point))
+            .sort((a, b) => a - b)[0]
+        )
+      }
+    }
+
+    return {
+      point: Vec.clampV(bindingPoint, 0, 1),
+      distance,
+    }
+  }
   // getBindingPoint(shape, point, origin, direction, expandDistance) {
   //   const bounds = this.getBounds(shape)
 
@@ -442,7 +520,7 @@ const StyledTextArea = styled('textarea', {
   minHeight: 1,
   minWidth: 1,
   lineHeight: 1.4,
-  letterSpacing: -2.5,
+  letterSpacing: LETTER_SPACING,
   outline: 0,
   fontWeight: '500',
   backgroundColor: '$boundsBg',

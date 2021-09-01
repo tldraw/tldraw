@@ -7,9 +7,7 @@ export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>):
   const { before, after } = TLDR.mutateShapes(
     data,
     ids,
-    (shape) => {
-      return { style: { ...shape.style, ...changes } }
-    },
+    (shape) => ({ style: { ...shape.style, ...changes } }),
     currentPageId
   )
 
@@ -18,7 +16,9 @@ export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>):
     before: {
       document: {
         pages: {
-          [currentPageId]: { shapes: before },
+          [currentPageId]: {
+            shapes: before,
+          },
         },
       },
       appState: {
@@ -28,7 +28,9 @@ export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>):
     after: {
       document: {
         pages: {
-          [currentPageId]: { shapes: after },
+          [currentPageId]: {
+            shapes: after,
+          },
         },
       },
       appState: {

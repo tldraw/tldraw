@@ -10,7 +10,7 @@ export function Defs({ zoom }: DefProps): JSX.Element {
       <circle id="dot" className="tl-counter-scaled tl-dot" r={4} />
       <circle id="handle-bg" className="tl-handle-bg" pointerEvents="all" r={12} />
       <circle id="handle" className="tl-counter-scaled tl-handle" pointerEvents="none" r={4} />
-      <g id="cross" className="tl-binding-indicator">
+      <g id="cross" className="tl-anchor-indicator">
         <line x1={-6} y1={-6} x2={6} y2={6} />
         <line x1={6} y1={-6} x2={-6} y2={6} />
       </g>

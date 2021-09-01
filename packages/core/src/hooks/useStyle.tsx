@@ -241,7 +241,7 @@ const tlcss = css`
   }
   .tl-binding-indicator {
     stroke-width: calc(3px * var(--tl-scale));
-    fill: none;
+    fill: var(--tl-selectFill);
     stroke: var(--tl-selected);
   }
   .tl-shape-group {
