@@ -94,9 +94,11 @@ export class TranslateSession implements Session {
             const children =
               nextShapes[clone.parentId]?.children || initialParentChildren[clone.parentId]
 
-            nextShapes[clone.parentId] = {
-              ...nextShapes[clone.parentId],
-              children: [...children, clone.id],
+            if (!children.includes(clone.id)) {
+              nextShapes[clone.parentId] = {
+                ...nextShapes[clone.parentId],
+                children: [...children, clone.id],
+              }
             }
           }
         })

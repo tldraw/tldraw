@@ -204,5 +204,16 @@ describe('Translate session', () => {
         .updateTranslateSession([20, 20], false, true)
         .completeSession()
     })
+
+    it('clones the shapes and children when selecting a group and a different shape', () => {
+      tlstate
+        .loadDocument(mockDocument)
+        .select('rect1', 'rect2')
+        .group(['rect1', 'rect2'], 'groupA')
+        .select('groupA', 'rect3')
+        .startTranslateSession([10, 10])
+        .updateTranslateSession([20, 20], false, true)
+        .completeSession()
+    })
   })
 })

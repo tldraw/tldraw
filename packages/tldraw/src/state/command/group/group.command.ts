@@ -183,9 +183,14 @@ export function group(
     before: {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             shapes: beforeShapes,
             bindings: beforeBindings,
+          },
+        },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: TLDR.getSelectedIds(data, currentPageId),
           },
         },
       },
@@ -193,9 +198,14 @@ export function group(
     after: {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             shapes: afterShapes,
             bindings: beforeBindings,
+          },
+        },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: [groupId],
           },
         },
       },
