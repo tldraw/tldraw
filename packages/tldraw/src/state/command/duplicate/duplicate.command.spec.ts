@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { ArrowShape, TLDrawShapeType } from '~types'
+import { ArrowShape, GroupShape, TLDrawShapeType } from '~types'
 
 describe('Duplicate command', () => {
   const tlstate = new TLDrawState()
@@ -116,8 +116,23 @@ describe('Duplicate command', () => {
       )
     })
 
-    it.todo('updates the arrow when bound on both sides')
+    it('duplicates grouped shapes', () => {
+      tlstate.loadDocument(mockDocument)
+      tlstate.group(['rect1', 'rect2'], 'newGroup').select('newGroup')
 
-    it.todo('snaps the bend to zero when dragging the bend handle toward the center')
+      const beforeShapeIds = Object.keys(tlstate.page.shapes)
+
+      tlstate.duplicate()
+
+      expect(Object.keys(tlstate.page.shapes).length).toBe(beforeShapeIds.length + 3)
+
+      tlstate.undo()
+
+      expect(Object.keys(tlstate.page.shapes).length).toBe(beforeShapeIds.length)
+
+      tlstate.redo()
+
+      expect(Object.keys(tlstate.page.shapes).length).toBe(beforeShapeIds.length + 3)
+    })
   })
 })

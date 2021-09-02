@@ -178,10 +178,13 @@ export class TLDrawState extends StateManager<Data> {
               parentId = shape.parentId
             }
 
-            // If the shape is the child of a group, update the group
+            // If the shape is the child of a group, then update the group
+            // (unless the group is being deleted too)
             if (parentId && parentId !== pageId) {
-              console.log('updating group', pageId, parentId, page.shapes[parentId])
-              groupsToUpdate.add(page.shapes[parentId] as GroupShape)
+              const group = page.shapes[parentId]
+              if (group) {
+                groupsToUpdate.add(page.shapes[parentId] as GroupShape)
+              }
             }
           })
 

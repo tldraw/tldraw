@@ -6,6 +6,8 @@ import type { Data, PagePartial, TLDrawCommand } from '~types'
 export function duplicate(data: Data, ids: string[]): TLDrawCommand {
   const { currentPageId } = data.appState
 
+  const page = TLDR.getPage(data, currentPageId)
+
   const delta = Vec.div([16, 16], TLDR.getCamera(data, currentPageId).zoom)
 
   const before: PagePartial = {
@@ -22,24 +24,51 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
     TLDR.getShape(data, id, currentPageId)
   )
 
-  const cloneMap: Record<string, string> = {}
+  const duplicateMap: Record<string, string> = {}
 
+  // Create duplicates
+  shapes
+    .filter((shape) => !ids.includes(shape.parentId))
+    .forEach((shape) => {
+      const id = Utils.uniqueId()
+      before.shapes[id] = undefined
+      after.shapes[id] = {
+        ...Utils.deepClone(shape),
+        id,
+        point: Vec.round(Vec.add(shape.point, delta)),
+      }
+      if (shape.children) {
+        after.shapes[id]!.children = []
+      }
+      duplicateMap[shape.id] = id
+    })
+
+  // If the shapes have children, then duplicate those too
   shapes.forEach((shape) => {
-    const id = Utils.uniqueId()
-    before.shapes[id] = undefined
-    after.shapes[id] = {
-      ...Utils.deepClone(shape),
-      id,
-      point: Vec.round(Vec.add(shape.point, delta)),
+    if (shape.children) {
+      shape.children.forEach((childId) => {
+        const child = TLDR.getShape(data, childId, currentPageId)
+        const duplicatedId = Utils.uniqueId()
+        const duplicatedParentId = duplicateMap[shape.id]
+        before.shapes[duplicatedId] = undefined
+        after.shapes[duplicatedId] = {
+          ...Utils.deepClone(child),
+          id: duplicatedId,
+          parentId: duplicatedParentId,
+        }
+        duplicateMap[childId] = duplicatedId
+        after.shapes[duplicateMap[shape.id]]?.children?.push(duplicatedId)
+      })
     }
-    cloneMap[shape.id] = id
   })
 
-  const page = TLDR.getPage(data, currentPageId)
+  // Which ids did we end up duplicating?
+  const duplicatedShapeIds = Object.keys(duplicateMap)
 
+  // Handle bindings that effect duplicated shapes
   Object.values(page.bindings).forEach((binding) => {
-    if (ids.includes(binding.fromId)) {
-      if (ids.includes(binding.toId)) {
+    if (duplicatedShapeIds.includes(binding.fromId)) {
+      if (duplicatedShapeIds.includes(binding.toId)) {
         // If the binding is between two duplicating shapes then
         // duplicate the binding, too
         const duplicatedBindingId = Utils.uniqueId()
@@ -47,8 +76,8 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
         const duplicatedBinding = {
           ...Utils.deepClone(binding),
           id: duplicatedBindingId,
-          fromId: cloneMap[binding.fromId],
-          toId: cloneMap[binding.toId],
+          fromId: duplicateMap[binding.fromId],
+          toId: duplicateMap[binding.toId],
         }
 
         before.bindings[duplicatedBindingId] = undefined
@@ -65,7 +94,7 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
       } else {
         // If only the fromId is selected, delete the binding on
         // the duplicated shape's handles
-        const boundShape = after.shapes[cloneMap[binding.fromId]]
+        const boundShape = after.shapes[duplicateMap[binding.fromId]]
         Object.values(boundShape!.handles!).forEach((handle) => {
           if (handle!.bindingId === binding.id) {
             handle!.bindingId = undefined
