@@ -96,7 +96,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     let endArrowHead: { left: number[]; right: number[] } | undefined
 
     if (isStraightLine) {
-      const sw = strokeWidth * (isDraw ? 0.618 : 1.618)
+      const sw = strokeWidth * (isDraw ? 1.25 : 1.618)
 
       const path = Utils.getFromCache(this.pathCache, shape, () =>
         isDraw
@@ -149,7 +149,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     } else {
       const circle = getCtp(shape)
 
-      const sw = strokeWidth * (isDraw ? 0.618 : 1.618)
+      const sw = strokeWidth * (isDraw ? 1.25 : 1.618)
 
       const path = Utils.getFromCache(this.pathCache, shape, () =>
         isDraw
@@ -625,8 +625,8 @@ function renderFreehandArrowShaft(shape: ArrowShape) {
       size: strokeWidth / 2,
       thinning: 0.5 + getRandom() * 0.3,
       easing: (t) => t * t,
-      end: { cap: true },
-      start: { cap: true },
+      end: shape.decorations?.end ? { cap: true } : { taper: strokeWidth * 20 },
+      start: shape.decorations?.start ? { cap: true } : { taper: strokeWidth * 20 },
       simulatePressure: true,
       last: true,
     }
@@ -664,8 +664,8 @@ function renderCurvedFreehandArrowShaft(shape: ArrowShape, circle: number[]) {
     size: strokeWidth / 2,
     thinning: 0.5 + getRandom() * 0.3,
     easing: (t) => t * t,
-    end: { cap: true },
-    start: { cap: true },
+    end: shape.decorations?.end ? { cap: true } : { taper: strokeWidth * 20 },
+    start: shape.decorations?.start ? { cap: true } : { taper: strokeWidth * 20 },
     simulatePressure: true,
     streamline: 0.01,
     last: true,
@@ -703,8 +703,8 @@ function getCurvedArrowHeadPoints(
   }
 
   const int = sweep ? ints[0] : ints[1]
-  const left = Vec.nudge(Vec.rotWith(int, A, Math.PI / 6), A, r1 * -0.382)
-  const right = Vec.nudge(Vec.rotWith(int, A, -Math.PI / 6), A, r1 * -0.382)
+  const left = int ? Vec.nudge(Vec.rotWith(int, A, Math.PI / 6), A, r1 * -0.382) : A
+  const right = int ? Vec.nudge(Vec.rotWith(int, A, -Math.PI / 6), A, r1 * -0.382) : A
   return { left, right }
 }
 
@@ -716,8 +716,8 @@ function getStraightArrowHeadPoints(A: number[], B: number[], r: number) {
   }
 
   const int = ints[0]
-  const left = Vec.rotWith(int, A, Math.PI / 6)
-  const right = Vec.rotWith(int, A, -Math.PI / 6)
+  const left = int ? Vec.rotWith(int, A, Math.PI / 6) : A
+  const right = int ? Vec.rotWith(int, A, -Math.PI / 6) : A
   return { left, right }
 }
 

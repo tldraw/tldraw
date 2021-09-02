@@ -317,20 +317,38 @@ export function getTranslateSnapshot(data: Data) {
   const clonedBindings: TLDrawBinding[] = []
 
   // Create clones of selected shapes
-  const clones = selectedShapes
-    .filter((shape) => shape.children === undefined)
-    .flatMap((shape) => {
-      const clone: TLDrawShape = {
-        ...Utils.deepClone(shape),
-        id: Utils.uniqueId(),
-        parentId: shape.parentId,
-        childIndex: TLDR.getChildIndexAbove(data, shape.id, data.appState.currentPageId),
-      }
+  const clones = selectedShapes.flatMap((shape) => {
+    const newId = Utils.uniqueId()
 
-      cloneMap[shape.id] = clone.id
+    cloneMap[shape.id] = newId
 
-      return clone
-    })
+    const clone: TLDrawShape = {
+      ...Utils.deepClone(shape),
+      id: newId,
+      parentId: shape.parentId,
+      childIndex: TLDR.getChildIndexAbove(data, shape.id, data.appState.currentPageId),
+    }
+
+    if (!shape.children) return clone
+
+    return [
+      clone,
+      ...shape.children.map((childId) => {
+        const child = TLDR.getShape(data, childId, data.appState.currentPageId)
+
+        const newChildId = Utils.uniqueId()
+
+        cloneMap[shape.id] = newChildId
+
+        return {
+          ...Utils.deepClone(child),
+          id: newChildId,
+          parentId: shape.parentId,
+          childIndex: TLDR.getChildIndexAbove(data, child.id, data.appState.currentPageId),
+        }
+      }),
+    ]
+  })
 
   // Create cloned bindings for shapes where both to and from shapes are selected
   // (if the user clones, then we will create a new binding for the clones)
@@ -367,7 +385,7 @@ export function getTranslateSnapshot(data: Data) {
     data.appState.currentPageId
   ).filter(
     // Don't delete bindings that are between both selected shapes
-    (binding) => !(selectedIds.includes(binding.toId) && selectedIds.includes(binding.fromId))
+    (binding) => selectedIds.includes(binding.fromId) && !selectedIds.includes(binding.toId)
   )
 
   return {

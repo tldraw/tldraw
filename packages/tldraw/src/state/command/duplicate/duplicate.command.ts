@@ -32,11 +32,12 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
     .forEach((shape) => {
       const duplicatedId = Utils.uniqueId()
       before.shapes[duplicatedId] = undefined
+
       after.shapes[duplicatedId] = {
         ...Utils.deepClone(shape),
         id: duplicatedId,
         point: Vec.round(Vec.add(shape.point, delta)),
-        childIndex: shape.childIndex + 0.1, // TODO
+        childIndex: TLDR.getChildIndexAbove(data, shape.id, currentPageId),
       }
 
       if (shape.children) {
@@ -73,6 +74,7 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
           id: duplicatedId,
           parentId: duplicatedParentId,
           point: Vec.round(Vec.add(child.point, delta)),
+          childIndex: TLDR.getChildIndexAbove(data, child.id, currentPageId),
         }
         duplicateMap[childId] = duplicatedId
         after.shapes[duplicateMap[shape.id]]?.children?.push(duplicatedId)

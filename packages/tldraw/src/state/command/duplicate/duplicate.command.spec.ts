@@ -24,6 +24,10 @@ describe('Duplicate command', () => {
     expect(Object.keys(tlstate.getPage().shapes).length).toBe(4)
   })
 
+  describe('when duplicating a shape', () => {
+    it.todo('sets the correct props (parent and childIndex)')
+  })
+
   describe('when duplicating a bound shape', () => {
     it('removed the binding when the target is not selected', () => {
       tlstate.resetDocument().createShapes(

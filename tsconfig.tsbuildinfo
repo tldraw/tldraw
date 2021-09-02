@@ -492,13 +492,13 @@
         "affectsGlobalScope": false
       },
       "./packages/core/dist/types/components/shape/editing-text-shape.d.ts": {
-        "version": "efd12e5e82c348a2b077a95a07354ead814c468f506344c31eaccaddfae3204f",
-        "signature": "efd12e5e82c348a2b077a95a07354ead814c468f506344c31eaccaddfae3204f",
+        "version": "45effce9c88c954fd3da91b59f7ef75fb621845f3b47a34c53ac4e151d7454c7",
+        "signature": "45effce9c88c954fd3da91b59f7ef75fb621845f3b47a34c53ac4e151d7454c7",
         "affectsGlobalScope": false
       },
       "./packages/core/dist/types/components/shape/shape-node.d.ts": {
-        "version": "b0235c1d7c8598f9ce5d4e1d1e106f1c58dcdd0bde21f8b3512c6b2927d2ada9",
-        "signature": "b0235c1d7c8598f9ce5d4e1d1e106f1c58dcdd0bde21f8b3512c6b2927d2ada9",
+        "version": "e91f816948e0656051737e878719925c542e1f604b21dd2549858b1a79cab240",
+        "signature": "e91f816948e0656051737e878719925c542e1f604b21dd2549858b1a79cab240",
         "affectsGlobalScope": false
       },
       "./packages/core/dist/types/components/shape/index.d.ts": {
@@ -512,8 +512,8 @@
         "affectsGlobalScope": false
       },
       "./packages/core/dist/types/components/shape/shape.d.ts": {
-        "version": "5e1809dce7f5ede164ca9fa8af1c2d8028419ea757600aef98ccfac0e9294f22",
-        "signature": "5e1809dce7f5ede164ca9fa8af1c2d8028419ea757600aef98ccfac0e9294f22",
+        "version": "0e2a66dadbe666d784cbaf83bef5752104ae219052100110b6acdd9b3baaf0f0",
+        "signature": "0e2a66dadbe666d784cbaf83bef5752104ae219052100110b6acdd9b3baaf0f0",
         "affectsGlobalScope": false
       },
       "./packages/core/dist/types/components/shape/shape.test.d.ts": {
@@ -1057,13 +1057,13 @@
         "affectsGlobalScope": false
       },
       "./packages/core/src/components/shape/shape.tsx": {
-        "version": "1a557b55d45d2d6b5c787b74e51864d814058ff8cbe39f949a6aa51095904e92",
-        "signature": "5e1809dce7f5ede164ca9fa8af1c2d8028419ea757600aef98ccfac0e9294f22",
+        "version": "44f6fb3727b85be3f6b9e5e49bbf865f58705d5ecbe64c0295852376759db236",
+        "signature": "0e2a66dadbe666d784cbaf83bef5752104ae219052100110b6acdd9b3baaf0f0",
         "affectsGlobalScope": false
       },
       "./packages/core/src/components/shape/shape-node.tsx": {
-        "version": "662545286d3d431b8a9a4abb0ac48b0c2d9bf2dca4fc2513f5bcf36f907e39ef",
-        "signature": "b0235c1d7c8598f9ce5d4e1d1e106f1c58dcdd0bde21f8b3512c6b2927d2ada9",
+        "version": "4d3cb3d42d2d0b8c560553d5d469ad86efc6c80ebbf65ed066d22ec836e0c6f6",
+        "signature": "e91f816948e0656051737e878719925c542e1f604b21dd2549858b1a79cab240",
         "affectsGlobalScope": false
       },
       "./packages/core/src/components/shape/index.ts": {
@@ -1212,7 +1212,7 @@
         "affectsGlobalScope": false
       },
       "./packages/core/src/components/shape/shape.test.tsx": {
-        "version": "f04120ba5cb82c5b5859b921b667f76c88ee0259bf5a8a862f2e9015880b7712",
+        "version": "7598de7929ff539d7984dfb69270760ff23936f97c93cd3347f13d33d9f1ca93",
         "signature": "4d3f786bc5a86767f64e5dc28758a0cf9da0e77f5bb77bf7aaf9861463e2655f",
         "affectsGlobalScope": false
       },
@@ -1287,7 +1287,7 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/shape/shapes/arrow/arrow.tsx": {
-        "version": "54d96c9a6324d40c26c07782d61fe4d049ece0ccaa2a36645e4b371b8ab182d4",
+        "version": "10c3165f19347269620f2266797c9392177332f14d6cd6c95152c892219fb807",
         "signature": "6eafcf469ba4bbaa578ecedfc25b29ed76d773b1bac8db1082ac26c102978184",
         "affectsGlobalScope": false
       },
@@ -1362,7 +1362,7 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/shape/shapes/group/group.tsx": {
-        "version": "631935afa74b7a12550ade92a0f0022750fbb340915979741bc7cf989ab78062",
+        "version": "12f906eba871d22d749d2be30f7f6b13b74871ca3c9e58548577cd6dec4be304",
         "signature": "d17a4ed500d30df65a707b77de7bd5f0862e19d78b0fc796ef41e2e3ed5b831e",
         "affectsGlobalScope": false
       },
@@ -1402,8 +1402,8 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/state/session/sessions/translate/translate.session.ts": {
-        "version": "35eadd514133f23d2da175d47b7b6f724b45a331020d48bfa6ae92a169d76269",
-        "signature": "9fa12471942d3df59e03be82cfd09436c2e898d695e8775074697a09e1aca3b3",
+        "version": "887914f04d3d917e440552b429210df41c50bbbc78187836a9f16738aa2aa124",
+        "signature": "06cf5a88fce22486000d36914ee4e8c5f39887a2201d3ecd6f1a4ca9c3fe2fd4",
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/state/session/sessions/translate/index.ts": {
@@ -1562,7 +1562,7 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/state/command/duplicate-page/duplicate-page.command.ts": {
-        "version": "113f95b1179b20ce751b7038d07f7d56aaa24e16a5bc5b802d186b96b3fee440",
+        "version": "632641dc75ee51b2858edf5fe59a7a1ab8bb4438f40d27f92c9976843024b078",
         "signature": "8cffe387ba1434afec19e0cdf6e83150bca274cccbc56f6b747ebca811d31b96",
         "affectsGlobalScope": false
       },
@@ -1572,7 +1572,7 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/state/command/duplicate/duplicate.command.ts": {
-        "version": "a4fcb715590f7e02f225d6c95c3d6924db6614ef56be9d6078f8d37e012fbb7a",
+        "version": "7fa041b0303c0ad328af5a517bd321636b64970985daa9bf6cd58cdb41ce576b",
         "signature": "72347e3edaf5af2045e042892dc8890eafc74be635287b8c9289ba006828499d",
         "affectsGlobalScope": false
       },
@@ -1662,7 +1662,7 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/state/command/translate/translate.command.ts": {
-        "version": "9b50df3d819b19f2efe6260dced5fbd9d641fe7d4b4bb8ae5bf37fabeac05d7d",
+        "version": "576ade4c65a597d3ff8694007c0408e3d324484730a7f5216613e09581f43d01",
         "signature": "9d3395b7cb6d6063e9c725312d150d062a3fca2f5134b53afb3fcac1b766be00",
         "affectsGlobalScope": false
       },
@@ -1682,7 +1682,7 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/state/command/group/group.command.ts": {
-        "version": "e11991fc3b0794ad2d3a277dd897da866cfe7d5461b7ed1e81999091075dfec0",
+        "version": "3dd74227cd2e7291344491e47118b048150b3e9bc0f7561c76a21332955a0fd1",
         "signature": "bf03038b03fbd808006d5831af4b7ed00f4dce8517f762682b5d51bb1cf4601c",
         "affectsGlobalScope": false
       },
@@ -1697,8 +1697,8 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/state/tlstate.ts": {
-        "version": "62fe3aed791cf5b886e0ba47b983dc7071c10db0c4a57f1ea92826245d426a68",
-        "signature": "a0df7ceaf1fa0b553447bb53ba59e2c3cf345e04f2c46a6c795b844de7e2aec6",
+        "version": "ca4d74d28172d8bc8bd423527a91a23d2ddf3eb90880ce7deda1088580bc64d3",
+        "signature": "91b87212c0c9ec1d3968cdd554eb64f8474169c5764f5f4234c79bbb9ad2bae7",
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/state/index.ts": {
@@ -1737,8 +1737,8 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/dist/types/state/tlstate.d.ts": {
-        "version": "a0df7ceaf1fa0b553447bb53ba59e2c3cf345e04f2c46a6c795b844de7e2aec6",
-        "signature": "a0df7ceaf1fa0b553447bb53ba59e2c3cf345e04f2c46a6c795b844de7e2aec6",
+        "version": "91b87212c0c9ec1d3968cdd554eb64f8474169c5764f5f4234c79bbb9ad2bae7",
+        "signature": "91b87212c0c9ec1d3968cdd554eb64f8474169c5764f5f4234c79bbb9ad2bae7",
         "affectsGlobalScope": false
       },
       "./packages/tldraw/dist/types/state/index.d.ts": {
@@ -2557,8 +2557,8 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/dist/types/state/session/sessions/translate/translate.session.d.ts": {
-        "version": "7613941aaa58b8dab27c52830c468a6b4f78e150eaf121d9e59213c1038e45c8",
-        "signature": "7613941aaa58b8dab27c52830c468a6b4f78e150eaf121d9e59213c1038e45c8",
+        "version": "aa2f9c15f02837e8fb70154f103eff2db998d5e744da5cc88ec4b2e5a6dc0ee7",
+        "signature": "aa2f9c15f02837e8fb70154f103eff2db998d5e744da5cc88ec4b2e5a6dc0ee7",
         "affectsGlobalScope": false
       },
       "./packages/tldraw/dist/types/state/session/sessions/translate/index.d.ts": {
@@ -2747,7 +2747,7 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/hooks/usekeyboardshortcuts.tsx": {
-        "version": "c006cc19d812d4a9be48385591ef53362c55104484c832895342c3f58dfa1428",
+        "version": "b130ca636843122b71c302a202dcd3f74deff4785c1f979c802655fa9038f77a",
         "signature": "aeb559c7d64a2dd2a60d14206c0fe5801bee0e81d8a20afe9124a4db23ee1221",
         "affectsGlobalScope": false
       },
@@ -16501,53 +16501,9 @@
       "./packages/core/src/components/shape/editing-text-shape.tsx",
       "./packages/core/src/components/shape/index.ts",
       "./packages/core/src/components/shape/rendered-shape.tsx",
-      [
-        "./packages/core/src/components/shape/shape-node.tsx",
-        [
-          {
-            "file": "./packages/core/src/components/shape/shape-node.tsx",
-            "start": 332,
-            "length": 5,
-            "code": 2739,
-            "category": 1,
-            "messageText": "Type '{ shape: TLShape; isEditing: boolean; isBinding: boolean; isCurrentParent: boolean; meta: M | undefined; }' is missing the following properties from type 'IShapeTreeNode<Record<string, unknown>>': isHovered, isSelected"
-          }
-        ]
-      ],
-      [
-        "./packages/core/src/components/shape/shape.test.tsx",
-        [
-          {
-            "file": "./packages/core/src/components/shape/shape.test.tsx",
-            "start": 217,
-            "length": 5,
-            "code": 2739,
-            "category": 1,
-            "messageText": "Type '{ shape: BoxShape; isEditing: false; isBinding: false; isCurrentParent: false; }' is missing the following properties from type 'IShapeTreeNode<Record<string, unknown>>': isHovered, isSelected"
-          }
-        ]
-      ],
-      [
-        "./packages/core/src/components/shape/shape.tsx",
-        [
-          {
-            "file": "./packages/core/src/components/shape/shape.tsx",
-            "start": 992,
-            "length": 16,
-            "code": 2739,
-            "category": 1,
-            "messageText": "Type '{ shape: TLShape; isBinding: false; isCurrentParent: false; isEditing: true; utils: TLShapeUtil<TLShape>; meta: M | undefined; }' is missing the following properties from type 'EditingShapeProps<TLShape>': isHovered, isSelected"
-          },
-          {
-            "file": "./packages/core/src/components/shape/shape.tsx",
-            "start": 1218,
-            "length": 13,
-            "code": 2739,
-            "category": 1,
-            "messageText": "Type '{ shape: TLShape; utils: TLShapeUtil<TLShape>; isBinding: boolean; isCurrentParent: boolean; isEditing: boolean; meta: M | undefined; }' is missing the following properties from type 'RenderedShapeProps<TLShape>': isHovered, isSelected"
-          }
-        ]
-      ],
+      "./packages/core/src/components/shape/shape-node.tsx",
+      "./packages/core/src/components/shape/shape.test.tsx",
+      "./packages/core/src/components/shape/shape.tsx",
       "./packages/core/src/hooks/index.ts",
       "./packages/core/src/hooks/useboundsevents.tsx",
       "./packages/core/src/hooks/useboundshandleevents.tsx",
@@ -16927,43 +16883,36 @@
         [
           {
             "file": "./packages/tldraw/src/shape/shapes/arrow/arrow.tsx",
-            "start": 13195,
-            "length": 6,
-            "messageText": "Object is possibly 'undefined'.",
+            "start": 13170,
+            "length": 23,
+            "code": 2345,
             "category": 1,
-            "code": 2532
-          },
-          {
-            "file": "./packages/tldraw/src/shape/shapes/arrow/arrow.tsx",
-            "start": 13220,
-            "length": 6,
-            "messageText": "Object is possibly 'undefined'.",
-            "category": 1,
-            "code": 2532
-          },
-          {
-            "file": "./packages/tldraw/src/shape/shapes/arrow/arrow.tsx",
-            "start": 13278,
-            "length": 6,
-            "messageText": "Object is possibly 'undefined'.",
-            "category": 1,
-            "code": 2532
-          },
-          {
-            "file": "./packages/tldraw/src/shape/shapes/arrow/arrow.tsx",
-            "start": 13313,
-            "length": 6,
-            "messageText": "Object is possibly 'undefined'.",
-            "category": 1,
-            "code": 2532
-          },
-          {
-            "file": "./packages/tldraw/src/shape/shapes/arrow/arrow.tsx",
-            "start": 13559,
-            "length": 6,
-            "messageText": "Object is possibly 'undefined'.",
-            "category": 1,
-            "code": 2532
+            "messageText": {
+              "messageText": "Argument of type '(handle: TLHandle) => void' is not assignable to parameter of type '(value: TLHandle | undefined, index: number, array: (TLHandle | undefined)[]) => void'.",
+              "category": 1,
+              "code": 2345,
+              "next": [
+                {
+                  "messageText": "Types of parameters 'handle' and 'value' are incompatible.",
+                  "category": 1,
+                  "code": 2328,
+                  "next": [
+                    {
+                      "messageText": "Type 'TLHandle | undefined' is not assignable to type 'TLHandle'.",
+                      "category": 1,
+                      "code": 2322,
+                      "next": [
+                        {
+                          "messageText": "Type 'undefined' is not assignable to type 'TLHandle'.",
+                          "category": 1,
+                          "code": 2322
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
           }
         ]
       ],
