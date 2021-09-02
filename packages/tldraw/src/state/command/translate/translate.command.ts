@@ -27,8 +27,9 @@ export function translate(data: Data, ids: string[], delta: number[]): TLDrawCom
   before.shapes = change.before
   after.shapes = change.after
 
-  const bindingsToDelete = TLDR.getBindings(data, currentPageId).filter((binding) =>
-    ids.includes(binding.fromId)
+  // Delete bindings from nudged shapes, unless both bound and bound-to shapes are selected
+  const bindingsToDelete = TLDR.getBindings(data, currentPageId).filter(
+    (binding) => ids.includes(binding.fromId) && !ids.includes(binding.toId)
   )
 
   bindingsToDelete.forEach((binding) => {
@@ -39,8 +40,9 @@ export function translate(data: Data, ids: string[], delta: number[]): TLDrawCom
       // Let's also look at the bound shape...
       const shape = TLDR.getShape(data, id, data.appState.currentPageId)
 
-      // If the bound shape has a handle that references the deleted binding, delete that reference
       if (!shape.handles) continue
+
+      // If the bound shape has a handle that references the deleted binding, delete that reference
 
       Object.values(shape.handles)
         .filter((handle) => handle.bindingId === binding.id)
