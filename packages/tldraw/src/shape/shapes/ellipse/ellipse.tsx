@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Utils, TLTransformInfo, TLBounds, Intersect, Vec } from '@tldraw/core'
 import {
+  ArrowShape,
   DashStyle,
   EllipseShape,
   TLDrawRenderInfo,
@@ -177,6 +178,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
 
   getBindingPoint(
     shape: EllipseShape,
+    fromShape: ArrowShape,
     point: number[],
     origin: number[],
     direction: number[],

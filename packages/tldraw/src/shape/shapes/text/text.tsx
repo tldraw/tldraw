@@ -7,6 +7,7 @@ import {
   TLDrawShapeType,
   TLDrawRenderInfo,
   TLDrawToolType,
+  ArrowShape,
 } from '~types'
 import styled from '~styles'
 import TextAreaUtils from './text-utils'
@@ -377,6 +378,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
 
   getBindingPoint(
     shape: TextShape,
+    fromShape: ArrowShape,
     point: number[],
     origin: number[],
     direction: number[],

@@ -294,18 +294,19 @@ export class TranslateSession implements Session {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getTranslateSnapshot(data: Data) {
-  const selectedIds = TLDR.getSelectedIds(data, data.appState.currentPageId)
+  const { currentPageId } = data.appState
+  const selectedIds = TLDR.getSelectedIds(data, currentPageId)
 
-  const selectedShapes = TLDR.getSelectedShapeSnapshot(data, data.appState.currentPageId)
+  const selectedShapes = TLDR.getSelectedShapeSnapshot(data, currentPageId)
 
   const hasUnlockedShapes = selectedShapes.length > 0
 
-  const page = TLDR.getPage(data, data.appState.currentPageId)
+  const page = TLDR.getPage(data, currentPageId)
 
   const initialParents = Array.from(new Set(selectedShapes.map((s) => s.parentId)).values())
     .filter((id) => id !== page.id)
     .map((id) => {
-      const shape = TLDR.getShape(data, id, data.appState.currentPageId)
+      const shape = TLDR.getShape(data, id, currentPageId)
       return {
         id,
         children: shape.children,
@@ -319,51 +320,59 @@ export function getTranslateSnapshot(data: Data) {
   // Create clones of selected shapes
   const clones = selectedShapes.flatMap((shape) => {
     const newId = Utils.uniqueId()
-
     cloneMap[shape.id] = newId
 
     const clone: TLDrawShape = {
       ...Utils.deepClone(shape),
       id: newId,
       parentId: shape.parentId,
-      childIndex: TLDR.getChildIndexAbove(data, shape.id, data.appState.currentPageId),
+      childIndex: TLDR.getChildIndexAbove(data, shape.id, currentPageId),
     }
 
     if (!shape.children) return clone
 
+    // If the shape has children, also create clones for the children
     return [
       clone,
       ...shape.children.map((childId) => {
-        const child = TLDR.getShape(data, childId, data.appState.currentPageId)
-
+        const child = TLDR.getShape(data, childId, currentPageId)
         const newChildId = Utils.uniqueId()
-
         cloneMap[shape.id] = newChildId
 
         return {
           ...Utils.deepClone(child),
           id: newChildId,
           parentId: shape.parentId,
-          childIndex: TLDR.getChildIndexAbove(data, child.id, data.appState.currentPageId),
+          childIndex: TLDR.getChildIndexAbove(data, child.id, currentPageId),
         }
       }),
     ]
   })
 
+  // Potentially confusing name here: these are the ids of the
+  // original shapes that were cloned, not their clones' ids.
+  const clonedShapeIds = Object.keys(cloneMap)
+
+  const bindingsToDelete: TLDrawBinding[] = []
+
   // Create cloned bindings for shapes where both to and from shapes are selected
   // (if the user clones, then we will create a new binding for the clones)
   Object.values(page.bindings).forEach((binding) => {
-    if (selectedIds.includes(binding.toId) && selectedIds.includes(binding.fromId)) {
-      const cloneId = Utils.uniqueId()
-      const cloneBinding = {
-        ...Utils.deepClone(binding),
-        id: cloneId,
-        fromId: cloneMap[binding.fromId] || binding.fromId,
-        toId: cloneMap[binding.toId] || binding.toId,
-      }
+    if (clonedShapeIds.includes(binding.fromId)) {
+      if (clonedShapeIds.includes(binding.toId)) {
+        const cloneId = Utils.uniqueId()
+        const cloneBinding = {
+          ...Utils.deepClone(binding),
+          id: cloneId,
+          fromId: cloneMap[binding.fromId] || binding.fromId,
+          toId: cloneMap[binding.toId] || binding.toId,
+        }
 
-      clonedBindingsMap[binding.id] = cloneId
-      clonedBindings.push(cloneBinding)
+        clonedBindingsMap[binding.id] = cloneId
+        clonedBindings.push(cloneBinding)
+      } else {
+        bindingsToDelete.push(binding)
+      }
     }
   })
 
@@ -378,15 +387,6 @@ export function getTranslateSnapshot(data: Data) {
       }
     }
   })
-
-  const bindingsToDelete = TLDR.getRelatedBindings(
-    data,
-    selectedShapes.filter((shape) => shape.handles !== undefined).map((shape) => shape.id),
-    data.appState.currentPageId
-  ).filter(
-    // Don't delete bindings that are between both selected shapes
-    (binding) => selectedIds.includes(binding.fromId) && !selectedIds.includes(binding.toId)
-  )
 
   return {
     selectedIds,

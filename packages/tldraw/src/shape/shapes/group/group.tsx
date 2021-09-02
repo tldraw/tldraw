@@ -7,9 +7,9 @@ import {
   TLDrawShapeType,
   TLDrawToolType,
   TLDrawRenderInfo,
-  TLDrawShape,
   ColorStyle,
   DashStyle,
+  ArrowShape,
 } from '~types'
 
 // TODO
@@ -136,6 +136,7 @@ export class Group extends TLDrawShapeUtil<GroupShape> {
 
   getBindingPoint(
     shape: GroupShape,
+    fromShape: ArrowShape,
     point: number[],
     origin: number[],
     direction: number[],

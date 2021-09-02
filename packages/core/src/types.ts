@@ -297,6 +297,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
 
   getBindingPoint(
     shape: T,
+    fromShape: TLShape,
     point: number[],
     origin: number[],
     direction: number[],

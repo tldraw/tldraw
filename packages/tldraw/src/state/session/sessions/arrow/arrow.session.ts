@@ -126,6 +126,7 @@ export class ArrowSession implements Session {
 
           const bindingPoint = util.getBindingPoint(
             target,
+            nextShape,
             rayPoint,
             rayOrigin,
             rayDirection,
@@ -352,6 +353,7 @@ function findBinding(
 
       const bindingPoint = util.getBindingPoint(
         target,
+        shape,
         rayPoint,
         rayOrigin,
         rayDirection,

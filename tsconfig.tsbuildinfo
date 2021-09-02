@@ -252,8 +252,8 @@
         "affectsGlobalScope": true
       },
       "./packages/core/dist/types/types.d.ts": {
-        "version": "6c0f43b83c0b83632afccb727f842690fc1031848d4acec03d457f011b71dfde",
-        "signature": "6c0f43b83c0b83632afccb727f842690fc1031848d4acec03d457f011b71dfde",
+        "version": "6add0a2bfcd96b37cfda76ce53230d4137cca00ffdd19dfb185f35b89e144685",
+        "signature": "6add0a2bfcd96b37cfda76ce53230d4137cca00ffdd19dfb185f35b89e144685",
         "affectsGlobalScope": false
       },
       "./packages/core/dist/types/components/renderer/renderer.d.ts": {
@@ -272,8 +272,8 @@
         "affectsGlobalScope": false
       },
       "./packages/core/src/types.ts": {
-        "version": "bb230e0acb296bf3aa9117b0db7a633f089052c867ee0d0f72a998bc05318b2f",
-        "signature": "6c0f43b83c0b83632afccb727f842690fc1031848d4acec03d457f011b71dfde",
+        "version": "73b7e5bf57bbf12da5286033c1e92e542269d98767246763ab48b7faf9599bec",
+        "signature": "6add0a2bfcd96b37cfda76ce53230d4137cca00ffdd19dfb185f35b89e144685",
         "affectsGlobalScope": false
       },
       "./packages/core/dist/types/components/brush/brushupdater.d.ts": {
@@ -742,13 +742,13 @@
         "affectsGlobalScope": false
       },
       "./packages/core/dist/types/test/renderwithcontext.d.ts": {
-        "version": "282a5f567d078327975a731726c61375c6700d68fcf5b6fae3f25174413959b9",
-        "signature": "282a5f567d078327975a731726c61375c6700d68fcf5b6fae3f25174413959b9",
+        "version": "f9af19c36432cdc91078e796d6427e2c8c18e87f027c03d6b4fc310f4162267b",
+        "signature": "f9af19c36432cdc91078e796d6427e2c8c18e87f027c03d6b4fc310f4162267b",
         "affectsGlobalScope": false
       },
       "./packages/core/dist/types/test/renderwithsvg.d.ts": {
-        "version": "c8d0e5fb63dd50fcab3c82fa1fe29d774e6197eb526498bdd5968bfa830dc49a",
-        "signature": "c8d0e5fb63dd50fcab3c82fa1fe29d774e6197eb526498bdd5968bfa830dc49a",
+        "version": "9ccafd40d793138494992894dc29b3e030009eed6a840569700c4ed780ae04ab",
+        "signature": "9ccafd40d793138494992894dc29b3e030009eed6a840569700c4ed780ae04ab",
         "affectsGlobalScope": false
       },
       "./packages/core/dist/types/test/index.d.ts": {
@@ -1287,7 +1287,7 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/shape/shapes/arrow/arrow.tsx": {
-        "version": "10c3165f19347269620f2266797c9392177332f14d6cd6c95152c892219fb807",
+        "version": "d0a02fec7303ebb16ffe6670f7eac45fe8094597b7b706b1a102c727d36ce1e9",
         "signature": "6eafcf469ba4bbaa578ecedfc25b29ed76d773b1bac8db1082ac26c102978184",
         "affectsGlobalScope": false
       },
@@ -1297,8 +1297,8 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/shape/shapes/rectangle/rectangle.tsx": {
-        "version": "3255a58e70613657c4ce2247682ab5d70ba356510baa3654a21179c1f1c45001",
-        "signature": "4a12e89bc7646e153cc1ca9fbadcf89d3cfd532e6b02591850fe8c1dc13c3a18",
+        "version": "67a865ea1d23810c8c4a8b52566773a3401601ca9921b83dc257e9c16b8c7837",
+        "signature": "a6f6057f2a809475d07388f14467131c7203aea7cb44e43a9c736ae0a29800cb",
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/shape/shapes/rectangle/index.ts": {
@@ -1307,8 +1307,8 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/shape/shapes/ellipse/ellipse.tsx": {
-        "version": "aa57997f305b15064d1af1950d4c02683b7ad71671e08916aa3f2914070d19df",
-        "signature": "56198da966c17c7d2490f9e68c80260b8de1a71e281ed99b6dc77eb4887d2e54",
+        "version": "b18136e3d68d80bf7cb4a685962a2dac629c70c8d06cbe0095f2ddb491b33538",
+        "signature": "fcc18a05fb7821575382b287af3700c3b7b4b1ae3a2981157a355f205a8e7b20",
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/shape/shapes/ellipse/index.ts": {
@@ -1352,8 +1352,8 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/shape/shapes/text/text.tsx": {
-        "version": "eb213b479aa06c8dedecf6762bda39a5d0faaccb7120dcb28d81ac08570f0002",
-        "signature": "8fef9d2fb36faaba890433d8ad96ff9ae6d860a295a8db44404cb613111a9801",
+        "version": "705de0363e7b138688e875e5918a279f4443efc43b3e1a88f24687ba396f2282",
+        "signature": "d18e4bf3bd547087c5671b8f99c16aaf78870bbe51ce7d3371e7592009a2cf47",
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/shape/shapes/text/index.ts": {
@@ -1362,8 +1362,8 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/shape/shapes/group/group.tsx": {
-        "version": "12f906eba871d22d749d2be30f7f6b13b74871ca3c9e58548577cd6dec4be304",
-        "signature": "d17a4ed500d30df65a707b77de7bd5f0862e19d78b0fc796ef41e2e3ed5b831e",
+        "version": "df1faba8ba397745fbd4a090ee246b89e7109446039947d588d9ed28e94b9c18",
+        "signature": "80af821a959720ded552e2610bf79b5b9d1e14f145d999515465ee5f93078b64",
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/shape/shapes/group/index.ts": {
@@ -1402,8 +1402,8 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/state/session/sessions/translate/translate.session.ts": {
-        "version": "887914f04d3d917e440552b429210df41c50bbbc78187836a9f16738aa2aa124",
-        "signature": "06cf5a88fce22486000d36914ee4e8c5f39887a2201d3ecd6f1a4ca9c3fe2fd4",
+        "version": "b0b9758dc5d9024592017eaa12e596cc44a28f3bb9d29268e7e52f46bb6fbb76",
+        "signature": "9fa12471942d3df59e03be82cfd09436c2e898d695e8775074697a09e1aca3b3",
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/state/session/sessions/translate/index.ts": {
@@ -1472,7 +1472,7 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/src/state/session/sessions/arrow/arrow.session.ts": {
-        "version": "d8bced6a987bb58f29b3e145fdccb9ef0d40152a62468da3923ee6b0b1455f12",
+        "version": "086cd0026f4da476e1f930b7c80474e003b10098b84aff65bfb7dfb0d95af5c6",
         "signature": "a0bb399cfaf19ceb11eb7214942f5d51e0308c2cf42e2233c41c2e1a1e52f9d5",
         "affectsGlobalScope": false
       },
@@ -2147,8 +2147,8 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/dist/types/shape/shapes/rectangle/rectangle.d.ts": {
-        "version": "4a12e89bc7646e153cc1ca9fbadcf89d3cfd532e6b02591850fe8c1dc13c3a18",
-        "signature": "4a12e89bc7646e153cc1ca9fbadcf89d3cfd532e6b02591850fe8c1dc13c3a18",
+        "version": "a6f6057f2a809475d07388f14467131c7203aea7cb44e43a9c736ae0a29800cb",
+        "signature": "a6f6057f2a809475d07388f14467131c7203aea7cb44e43a9c736ae0a29800cb",
         "affectsGlobalScope": false
       },
       "./packages/tldraw/dist/types/shape/shapes/rectangle/index.d.ts": {
@@ -2157,8 +2157,8 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/dist/types/shape/shapes/ellipse/ellipse.d.ts": {
-        "version": "56198da966c17c7d2490f9e68c80260b8de1a71e281ed99b6dc77eb4887d2e54",
-        "signature": "56198da966c17c7d2490f9e68c80260b8de1a71e281ed99b6dc77eb4887d2e54",
+        "version": "fcc18a05fb7821575382b287af3700c3b7b4b1ae3a2981157a355f205a8e7b20",
+        "signature": "fcc18a05fb7821575382b287af3700c3b7b4b1ae3a2981157a355f205a8e7b20",
         "affectsGlobalScope": false
       },
       "./packages/tldraw/dist/types/shape/shapes/ellipse/index.d.ts": {
@@ -2167,8 +2167,8 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/dist/types/shape/shapes/text/text.d.ts": {
-        "version": "8fef9d2fb36faaba890433d8ad96ff9ae6d860a295a8db44404cb613111a9801",
-        "signature": "8fef9d2fb36faaba890433d8ad96ff9ae6d860a295a8db44404cb613111a9801",
+        "version": "d18e4bf3bd547087c5671b8f99c16aaf78870bbe51ce7d3371e7592009a2cf47",
+        "signature": "d18e4bf3bd547087c5671b8f99c16aaf78870bbe51ce7d3371e7592009a2cf47",
         "affectsGlobalScope": false
       },
       "./packages/tldraw/dist/types/shape/shapes/text/index.d.ts": {
@@ -2177,8 +2177,8 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/dist/types/shape/shapes/group/group.d.ts": {
-        "version": "d17a4ed500d30df65a707b77de7bd5f0862e19d78b0fc796ef41e2e3ed5b831e",
-        "signature": "d17a4ed500d30df65a707b77de7bd5f0862e19d78b0fc796ef41e2e3ed5b831e",
+        "version": "80af821a959720ded552e2610bf79b5b9d1e14f145d999515465ee5f93078b64",
+        "signature": "80af821a959720ded552e2610bf79b5b9d1e14f145d999515465ee5f93078b64",
         "affectsGlobalScope": false
       },
       "./packages/tldraw/dist/types/shape/shapes/group/index.d.ts": {
@@ -2557,8 +2557,8 @@
         "affectsGlobalScope": false
       },
       "./packages/tldraw/dist/types/state/session/sessions/translate/translate.session.d.ts": {
-        "version": "aa2f9c15f02837e8fb70154f103eff2db998d5e744da5cc88ec4b2e5a6dc0ee7",
-        "signature": "aa2f9c15f02837e8fb70154f103eff2db998d5e744da5cc88ec4b2e5a6dc0ee7",
+        "version": "7613941aaa58b8dab27c52830c468a6b4f78e150eaf121d9e59213c1038e45c8",
+        "signature": "7613941aaa58b8dab27c52830c468a6b4f78e150eaf121d9e59213c1038e45c8",
         "affectsGlobalScope": false
       },
       "./packages/tldraw/dist/types/state/session/sessions/translate/index.d.ts": {
@@ -8370,14 +8370,12 @@
       "./packages/core/dist/types/test/renderwithcontext.d.ts": [
         "./node_modules/@testing-library/dom/types/queries.d.ts",
         "./node_modules/@testing-library/react/types/index.d.ts",
-        "./node_modules/@types/node/util.d.ts",
-        "./node_modules/@types/react/index.d.ts"
+        "./node_modules/@types/node/util.d.ts"
       ],
       "./packages/core/dist/types/test/renderwithsvg.d.ts": [
         "./node_modules/@testing-library/dom/types/queries.d.ts",
         "./node_modules/@testing-library/react/types/index.d.ts",
-        "./node_modules/@types/node/util.d.ts",
-        "./node_modules/@types/react/index.d.ts"
+        "./node_modules/@types/node/util.d.ts"
       ],
       "./packages/core/dist/types/types.d.ts": [
         "./node_modules/@types/node/util.d.ts",
@@ -14161,14 +14159,12 @@
       "./packages/core/dist/types/test/renderwithcontext.d.ts": [
         "./node_modules/@testing-library/dom/types/queries.d.ts",
         "./node_modules/@testing-library/react/types/index.d.ts",
-        "./node_modules/@types/node/util.d.ts",
-        "./node_modules/@types/react/index.d.ts"
+        "./node_modules/@types/node/util.d.ts"
       ],
       "./packages/core/dist/types/test/renderwithsvg.d.ts": [
         "./node_modules/@testing-library/dom/types/queries.d.ts",
         "./node_modules/@testing-library/react/types/index.d.ts",
-        "./node_modules/@types/node/util.d.ts",
-        "./node_modules/@types/react/index.d.ts"
+        "./node_modules/@types/node/util.d.ts"
       ],
       "./packages/core/dist/types/types.d.ts": [
         "./node_modules/@types/node/util.d.ts",
@@ -16883,36 +16879,43 @@
         [
           {
             "file": "./packages/tldraw/src/shape/shapes/arrow/arrow.tsx",
-            "start": 13170,
-            "length": 23,
-            "code": 2345,
+            "start": 13193,
+            "length": 6,
+            "messageText": "Object is possibly 'undefined'.",
             "category": 1,
-            "messageText": {
-              "messageText": "Argument of type '(handle: TLHandle) => void' is not assignable to parameter of type '(value: TLHandle | undefined, index: number, array: (TLHandle | undefined)[]) => void'.",
-              "category": 1,
-              "code": 2345,
-              "next": [
-                {
-                  "messageText": "Types of parameters 'handle' and 'value' are incompatible.",
-                  "category": 1,
-                  "code": 2328,
-                  "next": [
-                    {
-                      "messageText": "Type 'TLHandle | undefined' is not assignable to type 'TLHandle'.",
-                      "category": 1,
-                      "code": 2322,
-                      "next": [
-                        {
-                          "messageText": "Type 'undefined' is not assignable to type 'TLHandle'.",
-                          "category": 1,
-                          "code": 2322
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
+            "code": 2532
+          },
+          {
+            "file": "./packages/tldraw/src/shape/shapes/arrow/arrow.tsx",
+            "start": 13218,
+            "length": 6,
+            "messageText": "Object is possibly 'undefined'.",
+            "category": 1,
+            "code": 2532
+          },
+          {
+            "file": "./packages/tldraw/src/shape/shapes/arrow/arrow.tsx",
+            "start": 13276,
+            "length": 6,
+            "messageText": "Object is possibly 'undefined'.",
+            "category": 1,
+            "code": 2532
+          },
+          {
+            "file": "./packages/tldraw/src/shape/shapes/arrow/arrow.tsx",
+            "start": 13311,
+            "length": 6,
+            "messageText": "Object is possibly 'undefined'.",
+            "category": 1,
+            "code": 2532
+          },
+          {
+            "file": "./packages/tldraw/src/shape/shapes/arrow/arrow.tsx",
+            "start": 13557,
+            "length": 6,
+            "messageText": "Object is possibly 'undefined'.",
+            "category": 1,
+            "code": 2532
           }
         ]
       ],
@@ -16977,7 +16980,29 @@
       "./packages/tldraw/src/state/command/update/update.command.ts",
       "./packages/tldraw/src/state/index.ts",
       "./packages/tldraw/src/state/session/index.ts",
-      "./packages/tldraw/src/state/session/sessions/arrow/arrow.session.ts",
+      [
+        "./packages/tldraw/src/state/session/sessions/arrow/arrow.session.ts",
+        [
+          {
+            "file": "./packages/tldraw/src/state/session/sessions/arrow/arrow.session.ts",
+            "start": 10199,
+            "length": 127,
+            "messageText": "Expected 7 arguments, but got 6.",
+            "category": 1,
+            "code": 2554,
+            "relatedInformation": [
+              {
+                "file": "./packages/core/dist/types/types.d.ts",
+                "start": 7522,
+                "length": 17,
+                "messageText": "An argument for 'anywhere' was not provided.",
+                "category": 3,
+                "code": 6210
+              }
+            ]
+          }
+        ]
+      ],
       "./packages/tldraw/src/state/session/sessions/arrow/index.ts",
       "./packages/tldraw/src/state/session/sessions/brush/brush.session.ts",
       "./packages/tldraw/src/state/session/sessions/brush/index.ts",

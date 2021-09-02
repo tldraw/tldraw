@@ -9,6 +9,7 @@ import {
   TLDrawShapeType,
   TLDrawToolType,
   TLDrawRenderInfo,
+  ArrowShape,
 } from '~types'
 
 // TODO
@@ -186,6 +187,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
 
   getBindingPoint(
     shape: RectangleShape,
+    fromShape: ArrowShape,
     point: number[],
     origin: number[],
     direction: number[],
@@ -216,6 +218,9 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
 
       distance = 0
     } else {
+      // TODO: What if the shape has a curve? In that case, should we
+      // intersect the circle-from-three-points instead?
+
       // Find furthest intersection between ray from
       // origin through point and expanded bounds.
 
@@ -225,7 +230,6 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
         .filter((int) => int.didIntersect)
         .map((int) => int.points[0])
         .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
-
       // The anchor is a point between the handle and the intersection
       const anchor = Vec.med(point, intersection)
 
