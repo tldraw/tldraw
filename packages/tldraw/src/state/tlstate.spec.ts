@@ -115,21 +115,13 @@ describe('TLDrawState', () => {
       expect(tlstate.appState.status.current).toBe('idle')
     })
 
-    it('deletes shapes if cancelled during creating', () => {
-      // TODO
-    })
+    it.todo('deletes shapes if cancelled during creating')
 
-    it('deletes shapes on undo after creating', () => {
-      // TODO
-    })
+    it.todo('deletes shapes on undo after creating')
 
-    it('re-creates shapes on undo after creating', () => {
-      // TODO
-    })
+    it.todo('re-creates shapes on redo after creating')
 
-    it('selects all', () => {
-      // TODO
-    })
+    it.todo('selects all')
 
     // Single click on a selected shape to select just that shape
 

@@ -21,7 +21,7 @@ describe('Align command', () => {
     expect(tlstate.getShape('rect2').point).toEqual([100, 0])
   })
 
-  it('aligns left', () => {
+  it('aligns top', () => {
     tlstate.loadDocument(mockDocument)
     tlstate.selectAll()
     tlstate.align(AlignType.Top)

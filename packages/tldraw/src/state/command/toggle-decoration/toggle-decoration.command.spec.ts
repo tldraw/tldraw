@@ -3,7 +3,7 @@ import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 import { ArrowShape, Decoration, TLDrawShape } from '~types'
 
-describe('Handle command', () => {
+describe('Toggle decoration command', () => {
   const tlstate = new TLDrawState()
 
   it('does, undoes and redoes command', () => {

@@ -30,7 +30,7 @@ describe('Stretch command', () => {
     expect(tlstate.getShape<RectangleShape>('rect2').size).toStrictEqual([200, 100])
   })
 
-  it('distributes horizontally', () => {
+  it('stretches horizontally', () => {
     tlstate.loadDocument(mockDocument)
     tlstate.select('rect1', 'rect2')
     tlstate.stretch(StretchType.Horizontal)
@@ -41,7 +41,7 @@ describe('Stretch command', () => {
     expect(tlstate.getShape<RectangleShape>('rect2').size).toStrictEqual([200, 100])
   })
 
-  it('distributes vertically', () => {
+  it('stretches vertically', () => {
     tlstate.loadDocument(mockDocument)
     tlstate.select('rect1', 'rect2')
     tlstate.stretch(StretchType.Vertical)

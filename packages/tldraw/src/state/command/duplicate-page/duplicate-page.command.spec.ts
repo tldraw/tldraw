@@ -1,7 +1,7 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 
-describe('Duplicate page', () => {
+describe('Duplicate page command', () => {
   const tlstate = new TLDrawState()
 
   it('does, undoes and redoes command', () => {

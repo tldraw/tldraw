@@ -4,7 +4,7 @@ import { Utils } from '@tldraw/core'
 
 const doc = Utils.deepClone(mockDocument)
 
-describe('Move command', () => {
+describe('Update command', () => {
   const tlstate = new TLDrawState()
 
   it('does, undoes and redoes command', () => {

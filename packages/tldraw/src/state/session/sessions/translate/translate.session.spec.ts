@@ -2,7 +2,7 @@ import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 import { ArrowShape, TLDrawShapeType, TLDrawStatus } from '~types'
 
-describe('Brush session', () => {
+describe('Translate session', () => {
   const tlstate = new TLDrawState()
 
   it('begins, updates and completes session', () => {
@@ -173,13 +173,7 @@ describe('Brush session', () => {
     // expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(undefined)
   })
 
-  // it('clones a shape with a parent shape', () => {
-  //   tlstate.loadDocument(mockDocument)
-  //   // TODO
-  // })
+  // it.todo('clones a shape with a parent shape')
 
-  // it('clones a shape with children', () => {
-  //   tlstate.loadDocument(mockDocument)
-  //   // TODO
-  // })
+  // it.todo('clones a shape with children')
 })
