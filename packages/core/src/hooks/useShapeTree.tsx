@@ -14,11 +14,11 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   shape: TLShape,
   branch: IShapeTreeNode<M>[],
   shapes: TLPage<T, TLBinding>['shapes'],
-  selectedIds: string[],
   pageState: {
     bindingTargetId?: string
     bindingId?: string
     hoveredId?: string
+    selectedIds: string[]
     currentParentId?: string
     editingId?: string
     editingBindingId?: string
@@ -29,6 +29,11 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
     shape,
     isCurrentParent: pageState.currentParentId === shape.id,
     isEditing: pageState.editingId === shape.id,
+    isSelected: pageState.selectedIds.includes(shape.id),
+    isHovered: pageState.hoveredId
+      ? pageState.hoveredId === shape.id ||
+        (shape.children ? shape.children.includes(pageState.hoveredId) : false)
+      : false,
     isBinding: pageState.bindingTargetId === shape.id,
     meta,
   }
@@ -42,7 +47,7 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
       .sort((a, b) => a.childIndex - b.childIndex)
       .forEach((childShape) =>
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        addToShapeTree(childShape, node.children!, shapes, selectedIds, pageState, meta)
+        addToShapeTree(childShape, node.children!, shapes, pageState, meta)
       )
   }
 }
@@ -84,14 +89,11 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
     if (shape.parentId !== page.id) return false
 
     // Don't hide selected shapes (this breaks certain drag interactions)
-    if (pageState.selectedIds.includes(shape.id)) return true
+    if (selectedIds.includes(shape.id)) return true
 
     const shapeBounds = shapeUtils[shape.type as T['type']].getBounds(shape)
 
-    return (
-      // TODO: Some shapes should always render (lines, rays)
-      Utils.boundsContain(viewport, shapeBounds) || Utils.boundsCollide(viewport, shapeBounds)
-    )
+    return Utils.boundsContain(viewport, shapeBounds) || Utils.boundsCollide(viewport, shapeBounds)
   })
 
   // Call onChange callback when number of rendering shapes changes
@@ -112,7 +114,7 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
   shapesToRender
     .sort((a, b) => a.childIndex - b.childIndex)
     .forEach((shape) =>
-      addToShapeTree(shape, tree, page.shapes, selectedIds, { ...pageState, bindingTargetId }, meta)
+      addToShapeTree(shape, tree, page.shapes, { ...pageState, bindingTargetId }, meta)
     )
 
   return tree

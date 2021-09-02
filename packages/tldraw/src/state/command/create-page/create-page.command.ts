@@ -1,8 +1,7 @@
 import type { Data, TLDrawCommand } from '~types'
 import { Utils } from '@tldraw/core'
 
-export function createPage(data: Data): TLDrawCommand {
-  const newId = Utils.uniqueId()
+export function createPage(data: Data, pageId = Utils.uniqueId()): TLDrawCommand {
   const { currentPageId } = data.appState
 
   return {
@@ -13,27 +12,27 @@ export function createPage(data: Data): TLDrawCommand {
       },
       document: {
         pages: {
-          [newId]: undefined,
+          [pageId]: undefined,
         },
         pageStates: {
-          [newId]: undefined,
+          [pageId]: undefined,
         },
       },
     },
     after: {
       appState: {
-        currentPageId: newId,
+        currentPageId: pageId,
       },
       document: {
         pages: {
-          [newId]: { id: newId, shapes: {}, bindings: {} },
+          [pageId]: { id: pageId, shapes: {}, bindings: {} },
         },
         pageStates: {
-          [newId]: {
-            id: newId,
+          [pageId]: {
+            id: pageId,
             selectedIds: [],
             camera: { point: [-window.innerWidth / 2, -window.innerHeight / 2], zoom: 1 },
-            currentParentId: newId,
+            currentParentId: pageId,
             editingId: undefined,
             bindingId: undefined,
             hoveredId: undefined,

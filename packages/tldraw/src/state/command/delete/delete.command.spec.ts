@@ -85,4 +85,14 @@ describe('Delete command', () => {
     expect(Object.values(tlstate.page.bindings)[0]).toBe(undefined)
     expect(tlstate.getShape('arrow1').handles?.start.bindingId).toBe(undefined)
   })
+
+  describe('when deleting grouped shapes', () => {
+    it('updates the group', () => {
+      tlstate
+        .loadDocument(mockDocument)
+        .group(['rect1', 'rect2'], 'newGroup')
+        .select('rect1')
+        .delete()
+    })
+  })
 })

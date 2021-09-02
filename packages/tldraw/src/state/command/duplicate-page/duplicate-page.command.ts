@@ -10,7 +10,7 @@ export function duplicatePage(data: Data, pageId: string): TLDrawCommand {
   const nextPage = {
     ...page,
     id: newId,
-    ...Object.fromEntries(
+    shapes: Object.fromEntries(
       Object.entries(page.shapes).map(([id, shape]) => {
         return [
           id,

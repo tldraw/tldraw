@@ -852,6 +852,26 @@ export class TLDR {
   }
 
   /* -------------------------------------------------- */
+  /*                       Groups                       */
+  /* -------------------------------------------------- */
+
+  static flattenShape = (data: Data, shape: TLDrawShape): TLDrawShape[] => {
+    return [
+      shape,
+      ...(shape.children ?? [])
+        .map((childId) => TLDR.getShape(data, childId, data.appState.currentPageId))
+        .sort((a, b) => a.childIndex - b.childIndex)
+        .flatMap((shape) => TLDR.flattenShape(data, shape)),
+    ]
+  }
+
+  static flattenPage = (data: Data, pageId: string): TLDrawShape[] => {
+    return Object.values(data.document.pages[pageId].shapes)
+      .sort((a, b) => a.childIndex - b.childIndex)
+      .reduce<TLDrawShape[]>((acc, shape) => [...acc, ...TLDR.flattenShape(data, shape)], [])
+  }
+
+  /* -------------------------------------------------- */
   /*                     Assertions                     */
   /* -------------------------------------------------- */
 

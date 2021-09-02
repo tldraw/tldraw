@@ -58,6 +58,8 @@ export interface TLRenderInfo<M = any, T extends SVGElement | HTMLElement = any>
   ref?: React.RefObject<T>
   isEditing: boolean
   isBinding: boolean
+  isHovered: boolean
+  isSelected: boolean
   isCurrentParent: boolean
   onTextChange?: TLCallbacks['onTextChange']
   onTextBlur?: TLCallbacks['onTextBlur']
@@ -262,7 +264,7 @@ export abstract class TLShapeUtil<T extends TLShape> {
 
   abstract defaultProps: T
 
-  abstract render(shape: T, info: TLRenderInfo): JSX.Element
+  abstract render(shape: T, info: TLRenderInfo): JSX.Element | null
 
   abstract renderIndicator(shape: T): JSX.Element | null
 
@@ -374,6 +376,8 @@ export interface IShapeTreeNode<M extends Record<string, unknown>> {
   children?: IShapeTreeNode<M>[]
   isEditing: boolean
   isBinding: boolean
+  isHovered: boolean
+  isSelected: boolean
   isCurrentParent: boolean
   meta?: M
 }

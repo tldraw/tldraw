@@ -138,6 +138,7 @@ export enum TLDrawShapeType {
   Draw = 'draw',
   Arrow = 'arrow',
   Text = 'text',
+  Group = 'group',
 }
 
 export enum Decoration {
@@ -183,7 +184,19 @@ export interface TextShape extends TLDrawBaseShape {
   text: string
 }
 
-export type TLDrawShape = RectangleShape | EllipseShape | DrawShape | ArrowShape | TextShape
+export interface GroupShape extends TLDrawBaseShape {
+  type: TLDrawShapeType.Group
+  size: number[]
+  children: string[]
+}
+
+export type TLDrawShape =
+  | RectangleShape
+  | EllipseShape
+  | DrawShape
+  | ArrowShape
+  | TextShape
+  | GroupShape
 
 export abstract class TLDrawShapeUtil<T extends TLDrawShape> extends TLShapeUtil<T> {
   abstract toolType: TLDrawToolType

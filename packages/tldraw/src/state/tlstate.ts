@@ -34,11 +34,34 @@ import {
   SelectHistory,
   TLDrawPage,
   TLDrawBinding,
+  GroupShape,
 } from '~types'
 import { TLDR } from './tldr'
 import { defaultStyle } from '~shape'
 import * as Sessions from './session'
 import * as Commands from './command'
+
+const defaultDocument: TLDrawDocument = {
+  id: 'doc',
+  pages: {
+    page: {
+      id: 'page',
+      childIndex: 1,
+      shapes: {},
+      bindings: {},
+    },
+  },
+  pageStates: {
+    page: {
+      id: 'page',
+      selectedIds: [],
+      camera: {
+        point: [0, 0],
+        zoom: 1,
+      },
+    },
+  },
+}
 
 const initialData: Data = {
   settings: {
@@ -65,27 +88,7 @@ const initialData: Data = {
       previous: TLDrawStatus.Idle,
     },
   },
-  document: {
-    id: 'doc',
-    pages: {
-      page: {
-        id: 'page',
-        childIndex: 1,
-        shapes: {},
-        bindings: {},
-      },
-    },
-    pageStates: {
-      page: {
-        id: 'page',
-        selectedIds: [],
-        camera: {
-          point: [0, 0],
-          zoom: 1,
-        },
-      },
-    },
-  },
+  document: defaultDocument,
 }
 
 export class TLDrawState extends StateManager<Data> {
@@ -135,17 +138,13 @@ export class TLDrawState extends StateManager<Data> {
   }
   /* -------------------- Internal -------------------- */
 
-  // protected onStateWillChange = (_state: Data, id: string): void => {
-  // }
-
-  protected onStateDidChange = (state: Data, id: string): void => {
-    if (!id.startsWith('patch')) {
-      this.clearSelectHistory()
-    }
-
-    this._onChange?.(this, state, id)
-  }
-
+  /**
+   * Cleanup the state after each state change.
+   * @param state The new state
+   * @param prev The previous state
+   * @protected
+   * @returns The final state
+   */
   protected cleanup = (state: Data, prev: Data): Data => {
     const data = { ...state }
 
@@ -165,9 +164,25 @@ export class TLDrawState extends StateManager<Data> {
           page.shapes = { ...page.shapes }
           page.bindings = { ...page.bindings }
 
+          const groupsToUpdate = new Set<GroupShape>()
+
           // If shape is undefined, delete the shape
           Object.keys(page.shapes).forEach((id) => {
-            if (!page.shapes[id]) delete page.shapes[id]
+            const shape = page.shapes[id]
+            let parentId: string
+
+            if (!shape) {
+              parentId = prevPage.shapes[id]?.parentId
+              delete page.shapes[id]
+            } else {
+              parentId = shape.parentId
+            }
+
+            // If the shape is the child of a group, update the group
+            if (parentId && parentId !== pageId) {
+              console.log('updating group', pageId, parentId, page.shapes[parentId])
+              groupsToUpdate.add(page.shapes[parentId] as GroupShape)
+            }
           })
 
           // If binding is undefined, delete the binding
@@ -209,6 +224,24 @@ export class TLDrawState extends StateManager<Data> {
               } as TLDrawShape
 
               page.shapes[fromShape.id] = nextShape
+            }
+          })
+
+          groupsToUpdate.forEach((group) => {
+            const children = group.children.filter((id) => page.shapes[id] !== undefined)
+
+            const commonBounds = Utils.getCommonBounds(
+              children
+                .map((id) => page.shapes[id])
+                .filter(Boolean)
+                .map((shape) => TLDR.getBounds(shape))
+            )
+
+            page.shapes[group.id] = {
+              ...group,
+              point: [commonBounds.minX, commonBounds.minY],
+              size: [commonBounds.width, commonBounds.height],
+              children,
             }
           })
         }
@@ -259,14 +292,39 @@ export class TLDrawState extends StateManager<Data> {
     return data
   }
 
+  /**
+   * Clear the selection history after each new command, undo or redo.
+   * @param state
+   * @param id
+   */
+  protected onStateDidChange = (state: Data, id: string): void => {
+    if (!id.startsWith('patch')) {
+      this.clearSelectHistory()
+    }
+
+    this._onChange?.(this, state, id)
+  }
+
+  /**
+   * Set the current status.
+   * @param status The new status to set.
+   * @private
+   * @returns
+   */
   private setStatus(status: TLDrawStatus) {
     return this.patchState({
       appState: { status: { current: status, previous: this.appState.status.current } },
     })
   }
 
-  /* -------------------- Settings -------------------- */
+  /* -------------------------------------------------- */
+  /*                    Settings & UI                   */
+  /* -------------------------------------------------- */
 
+  /**
+   * Toggle pen mode.
+   * @returns this
+   */
   togglePenMode = (): this => {
     return this.patchState(
       {
@@ -278,6 +336,10 @@ export class TLDrawState extends StateManager<Data> {
     )
   }
 
+  /**
+   * Toggle dark mode.
+   * @returns this
+   */
   toggleDarkMode = (): this => {
     this.patchState(
       { settings: { isDarkMode: !this.state.settings.isDarkMode } },
@@ -287,6 +349,10 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
+  /**
+   * Toggle debug mode.
+   * @returns this
+   */
   toggleDebugMode = () => {
     this.patchState(
       { settings: { isDebugMode: !this.state.settings.isDebugMode } },
@@ -296,7 +362,10 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
-  /* ----------------------- UI ----------------------- */
+  /**
+   * Toggle the style panel.
+   * @returns this
+   */
   toggleStylePanel = (): this => {
     this.patchState(
       { appState: { isStyleOpen: !this.appState.isStyleOpen } },
@@ -306,6 +375,11 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
+  /**
+   * Select a tool.
+   * @param tool The tool to select.
+   * @returns this
+   */
   selectTool = (tool: TLDrawShapeType | 'select'): this => {
     return this.patchState(
       {
@@ -321,6 +395,10 @@ export class TLDrawState extends StateManager<Data> {
     )
   }
 
+  /**
+   * Toggle the tool lock option.
+   * @returns this
+   */
   toggleToolLock = (): this => {
     return this.patchState(
       {
@@ -332,211 +410,26 @@ export class TLDrawState extends StateManager<Data> {
     )
   }
 
-  /* --------------------- Camera --------------------- */
-
-  setCamera = (point: number[], zoom: number, reason: string): this => {
-    return this.patchState(
-      {
-        document: {
-          pageStates: {
-            [this.currentPageId]: { camera: { point, zoom } },
-          },
-        },
-      },
-      reason
-    )
-  }
-
-  resetCamera = (): this => {
-    return this.setCamera(
-      Vec.round([window.innerWidth / 2, window.innerHeight / 2]),
-      1,
-      `reset_camera`
-    )
-  }
-
-  pan = (delta: number[]): this => {
-    const { camera } = this.pageState
-    return this.setCamera(Vec.round(Vec.sub(camera.point, delta)), camera.zoom, `panned`)
-  }
-
-  pinchZoom = (point: number[], delta: number[], zoomDelta: number): this => {
-    const { camera } = this.pageState
-    const nextPoint = Vec.add(camera.point, Vec.div(delta, camera.zoom))
-    const nextZoom = TLDR.getCameraZoom(camera.zoom - zoomDelta * camera.zoom)
-    const p0 = Vec.sub(Vec.div(point, camera.zoom), nextPoint)
-    const p1 = Vec.sub(Vec.div(point, nextZoom), nextPoint)
-    return this.setCamera(Vec.round(Vec.add(nextPoint, Vec.sub(p1, p0))), nextZoom, `pinch_zoomed`)
-  }
-
-  zoomTo = (next: number): this => {
-    const { zoom, point } = this.pageState.camera
-    const center = [window.innerWidth / 2, window.innerHeight / 2]
-    const p0 = Vec.sub(Vec.div(center, zoom), point)
-    const p1 = Vec.sub(Vec.div(center, next), point)
-    return this.setCamera(Vec.round(Vec.add(point, Vec.sub(p1, p0))), next, `zoomed_camera`)
-  }
-
-  zoomIn = (): this => {
-    const i = Math.round((this.pageState.camera.zoom * 100) / 25)
-    const nextZoom = TLDR.getCameraZoom((i + 1) * 0.25)
-    return this.zoomTo(nextZoom)
-  }
-
-  zoomOut = (): this => {
-    const i = Math.round((this.pageState.camera.zoom * 100) / 25)
-    const nextZoom = TLDR.getCameraZoom((i - 1) * 0.25)
-    return this.zoomTo(nextZoom)
-  }
-
-  zoomToFit = (): this => {
-    const shapes = this.getShapes()
-
-    if (shapes.length === 0) return this
-
-    const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
-
-    const zoom = TLDR.getCameraZoom(
-      bounds.width > bounds.height
-        ? (window.innerWidth - 128) / bounds.width
-        : (window.innerHeight - 128) / bounds.height
-    )
-
-    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
-
-    return this.setCamera(
-      Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
-      this.pageState.camera.zoom,
-      `zoomed_to_fit`
-    )
-  }
-
-  zoomToSelection = (): this => {
-    if (this.pageState.selectedIds.length === 0) return this
-
-    const bounds = TLDR.getSelectedBounds(this.state)
-
-    const zoom = TLDR.getCameraZoom(
-      bounds.width > bounds.height
-        ? (window.innerWidth - 128) / bounds.width
-        : (window.innerHeight - 128) / bounds.height
-    )
-
-    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
-
-    return this.setCamera(
-      Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
-      this.pageState.camera.zoom,
-      `zoomed_to_selection`
-    )
-  }
-
-  zoomToContent = (): this => {
-    const shapes = this.getShapes()
-    const pageState = this.pageState
-
-    if (shapes.length === 0) return this
-
-    const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
-
-    const { zoom } = pageState.camera
-    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
-
-    return this.setCamera(
-      Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
-      this.pageState.camera.zoom,
-      `zoomed_to_content`
-    )
-  }
-
-  zoomToActual = (): this => {
-    return this.zoomTo(1)
-  }
-
-  zoom = Utils.throttle((delta: number): this => {
-    const { zoom } = this.pageState.camera
-    const nextZoom = TLDR.getCameraZoom(zoom - delta * zoom)
-    return this.zoomTo(nextZoom)
-  }, 16)
-
-  /* -------------------- Getters --------------------- */
-
-  getShape = <T extends TLDrawShape = TLDrawShape>(id: string, pageId = this.currentPageId): T => {
-    return TLDR.getShape<T>(this.state, id, pageId)
-  }
-
-  getPage = (pageId = this.currentPageId): TLDrawPage => {
-    return TLDR.getPage(this.state, pageId || this.currentPageId)
-  }
-
-  getShapes = (pageId = this.currentPageId): TLDrawShape[] => {
-    return TLDR.getShapes(this.state, pageId || this.currentPageId)
-  }
-
-  getBindings = (pageId = this.currentPageId): TLDrawBinding[] => {
-    return TLDR.getBindings(this.state, pageId || this.currentPageId)
-  }
-
-  getPageState = (pageId = this.currentPageId): TLPageState => {
-    return TLDR.getPageState(this.state, pageId || this.currentPageId)
-  }
-
-  getAppState = (): Data['appState'] => {
-    return this.state.appState
-  }
-
-  getPagePoint = (point: number[], pageId = this.currentPageId): number[] => {
-    const { camera } = this.getPageState(pageId)
-    return Vec.sub(Vec.div(point, camera.zoom), camera.point)
-  }
-
-  get selectedIds(): string[] {
-    return this.pageState.selectedIds
-  }
-
-  get page(): TLDrawPage {
-    return this.state.document.pages[this.currentPageId]
-  }
-
-  get shapes(): TLDrawShape[] {
-    return Object.values(this.page.shapes)
-  }
-
-  get bindings(): TLDrawBinding[] {
-    return Object.values(this.page.bindings)
-  }
-
-  get pageState(): TLPageState {
-    return this.state.document.pageStates[this.currentPageId]
-  }
-
-  get appState(): Data['appState'] {
-    return this.state.appState
-  }
-
-  get currentPageId(): string {
-    return this.state.appState.currentPageId
-  }
-
-  get document(): TLDrawDocument {
-    return this.state.document
-  }
-
   /* -------------------------------------------------- */
   /*                      Document                      */
   /* -------------------------------------------------- */
 
+  resetDocument = (): this => {
+    this.loadDocument(defaultDocument)
+    return this
+  }
+
+  /**
+   * Load a new document.
+   * @param document The document to load
+   * @param onChange (optional) A callback to call when the document changes
+   * @returns this
+   */
   loadDocument = (document: TLDrawDocument, onChange?: TLDrawState['_onChange']): this => {
     this._onChange = onChange
     this.deselectAll()
     this.resetHistory()
     this.clearSelectHistory()
-
-    // this.selectHistory.pointer = 0
-    // this.selectHistory.stack = [[]]
 
     return this.replaceState({
       ...this.state,
@@ -592,27 +485,185 @@ export class TLDrawState extends StateManager<Data> {
   signOut = () => {
     // TODO
   }
+  /* -------------------- Getters --------------------- */
+
+  /**
+   * Get the current app state.
+   * @returns this
+   */
+  getAppState = (): Data['appState'] => {
+    return this.appState
+  }
+
+  /**
+   * Get a page.
+   * @param pageId (optional) The page's id.
+   * @returns this
+   */
+  getPage = (pageId = this.currentPageId): TLDrawPage => {
+    return TLDR.getPage(this.state, pageId || this.currentPageId)
+  }
+
+  /**
+   * Get the shapes (as an array) from a given page.
+   * @param pageId (optional) The page's id.
+   * @returns this
+   */
+  getShapes = (pageId = this.currentPageId): TLDrawShape[] => {
+    return TLDR.getShapes(this.state, pageId || this.currentPageId)
+  }
+
+  /**
+   * Get the bindings from a given page.
+   * @param pageId (optional) The page's id.
+   * @returns this
+   */
+  getBindings = (pageId = this.currentPageId): TLDrawBinding[] => {
+    return TLDR.getBindings(this.state, pageId || this.currentPageId)
+  }
+
+  /**
+   * Get a shape from a given page.
+   * @param id The shape's id.
+   * @param pageId (optional) The page's id.
+   * @returns this
+   */
+  getShape = <T extends TLDrawShape = TLDrawShape>(id: string, pageId = this.currentPageId): T => {
+    return TLDR.getShape<T>(this.state, id, pageId)
+  }
+
+  /**
+   * Get a binding from a given page.
+   * @param id The binding's id.
+   * @param pageId (optional) The page's id.
+   * @returns this
+   */
+  getBinding = (id: string, pageId = this.currentPageId): TLDrawBinding => {
+    return TLDR.getBinding(this.state, id, pageId)
+  }
+
+  /**
+   * Get the page state for a given page.
+   * @param pageId (optional) The page's id.
+   * @returns this
+   */
+  getPageState = (pageId = this.currentPageId): TLPageState => {
+    return TLDR.getPageState(this.state, pageId || this.currentPageId)
+  }
+
+  /**
+   * Turn a screen point into a point on the page.
+   * @param point The screen point
+   * @param pageId (optional) The page to use
+   * @returns this
+   */
+  getPagePoint = (point: number[], pageId = this.currentPageId): number[] => {
+    const { camera } = this.getPageState(pageId)
+    return Vec.sub(Vec.div(point, camera.zoom), camera.point)
+  }
+
+  /**
+   * The current document.
+   */
+  get document(): TLDrawDocument {
+    return this.state.document
+  }
+
+  /**
+   * The current app state.
+   */
+  get appState(): Data['appState'] {
+    return this.state.appState
+  }
+
+  /**
+   * The current page id.
+   */
+  get currentPageId(): string {
+    return this.state.appState.currentPageId
+  }
+
+  /**
+   * The current page.
+   */
+  get page(): TLDrawPage {
+    return this.state.document.pages[this.currentPageId]
+  }
+
+  /**
+   * The current page's shapes (as an array).
+   */
+  get shapes(): TLDrawShape[] {
+    return Object.values(this.page.shapes)
+  }
+
+  /**
+   * The current page's bindings.
+   */
+  get bindings(): TLDrawBinding[] {
+    return Object.values(this.page.bindings)
+  }
+
+  /**
+   * The current page's state.
+   */
+  get pageState(): TLPageState {
+    return this.state.document.pageStates[this.currentPageId]
+  }
+
+  /**
+   * The page's current selected ids.
+   */
+  get selectedIds(): string[] {
+    return this.pageState.selectedIds
+  }
 
   /* -------------------------------------------------- */
   /*                        Pages                       */
   /* -------------------------------------------------- */
 
-  createPage = (): this => {
-    return this.setState(Commands.createPage(this.state))
+  /**
+   * Create a new page page.
+   * @param pageId (optional) The new page's id.
+   * @returns this
+   */
+  createPage = (id?: string): this => {
+    return this.setState(Commands.createPage(this.state, id))
   }
 
+  /**
+   * Change the current page.
+   * @param pageId The new current page's id.
+   * @returns this
+   */
   changePage = (pageId: string): this => {
     return this.setState(Commands.changePage(this.state, pageId))
   }
 
+  /**
+   * Rename a page.
+   * @param pageId The id of the page to rename.
+   * @param name The page's new name
+   * @returns this
+   */
   renamePage = (pageId: string, name: string): this => {
     return this.setState(Commands.renamePage(this.state, pageId, name))
   }
 
+  /**
+   * Duplicate a page.
+   * @param pageId The id of the page to duplicate.
+   * @returns this
+   */
   duplicatePage = (pageId: string): this => {
     return this.setState(Commands.duplicatePage(this.state, pageId))
   }
 
+  /**
+   * Delete a page.
+   * @param pageId The id of the page to delete.
+   * @returns this
+   */
   deletePage = (pageId?: string): this => {
     if (Object.values(this.document.pages).length <= 1) return this
     return this.setState(Commands.deletePage(this.state, pageId ? pageId : this.currentPageId))
@@ -622,6 +673,11 @@ export class TLDrawState extends StateManager<Data> {
   /*                      Clipboard                     */
   /* -------------------------------------------------- */
 
+  /**
+   * Copy one or more shapes to the clipboard.
+   * @param ids The ids of the shapes to copy.
+   * @returns this
+   */
   copy = (ids = this.selectedIds): this => {
     this.clipboard = ids.map((id) => {
       const shape = this.getShape(id, this.currentPageId)
@@ -636,6 +692,12 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
+  /**
+   * Paste shapes (or text) from clipboard to a certain point.
+   * @param point
+   * @param string
+   * @returns this
+   */
   paste = (point?: number[], string?: string): this => {
     if (string) {
       // Parse shapes from string
@@ -772,6 +834,303 @@ export class TLDrawState extends StateManager<Data> {
     const json = JSON.stringify(shapes, null, 2)
     TLDR.copyStringToClipboard(json)
     return json
+  }
+
+  /* -------------------------------------------------- */
+  /*                       Camera                       */
+  /* -------------------------------------------------- */
+
+  /**
+   * Set the camera to a specific point and zoom.
+   * @param point The camera point (top left of the viewport).
+   * @param zoom The zoom level.
+   * @param reason Why did the camera change?
+   * @returns this
+   */
+  setCamera = (point: number[], zoom: number, reason: string): this => {
+    return this.patchState(
+      {
+        document: {
+          pageStates: {
+            [this.currentPageId]: { camera: { point, zoom } },
+          },
+        },
+      },
+      reason
+    )
+  }
+
+  /**
+   * Reset the camera to the default position
+   * @returns this
+   */
+  resetCamera = (): this => {
+    return this.setCamera(
+      Vec.round([window.innerWidth / 2, window.innerHeight / 2]),
+      1,
+      `reset_camera`
+    )
+  }
+
+  /**
+   * Pan the camera
+   * @param delta
+   * @returns this
+   */
+  pan = (delta: number[]): this => {
+    const { camera } = this.pageState
+    return this.setCamera(Vec.round(Vec.sub(camera.point, delta)), camera.zoom, `panned`)
+  }
+
+  /**
+   * Pinch to a new zoom level, possibly together with a pan.
+   * @param point The current point under the cursor.
+   * @param delta The movement delta.
+   * @param zoomDelta The zoom detal
+   * @returns this
+   */
+  pinchZoom = (point: number[], delta: number[], zoomDelta: number): this => {
+    const { camera } = this.pageState
+    const nextPoint = Vec.add(camera.point, Vec.div(delta, camera.zoom))
+    const nextZoom = TLDR.getCameraZoom(camera.zoom - zoomDelta * camera.zoom)
+    const p0 = Vec.sub(Vec.div(point, camera.zoom), nextPoint)
+    const p1 = Vec.sub(Vec.div(point, nextZoom), nextPoint)
+    return this.setCamera(Vec.round(Vec.add(nextPoint, Vec.sub(p1, p0))), nextZoom, `pinch_zoomed`)
+  }
+
+  /**
+   * Zoom to a new zoom level, keeping the point under the cursor in the same position
+   * @param next The new zoom level.
+   * @returns this
+   */
+  zoomTo = (next: number): this => {
+    const { zoom, point } = this.pageState.camera
+    const center = [window.innerWidth / 2, window.innerHeight / 2]
+    const p0 = Vec.sub(Vec.div(center, zoom), point)
+    const p1 = Vec.sub(Vec.div(center, next), point)
+    return this.setCamera(Vec.round(Vec.add(point, Vec.sub(p1, p0))), next, `zoomed_camera`)
+  }
+
+  /**
+   * Zoom out by 25%
+   * @returns this
+   */
+  zoomIn = (): this => {
+    const i = Math.round((this.pageState.camera.zoom * 100) / 25)
+    const nextZoom = TLDR.getCameraZoom((i + 1) * 0.25)
+    return this.zoomTo(nextZoom)
+  }
+
+  /**
+   * Zoom in by 25%.
+   * @returns this
+   */
+  zoomOut = (): this => {
+    const i = Math.round((this.pageState.camera.zoom * 100) / 25)
+    const nextZoom = TLDR.getCameraZoom((i - 1) * 0.25)
+    return this.zoomTo(nextZoom)
+  }
+
+  /**
+   * Zoom to fit the page's shapes.
+   * @returns this
+   */
+  zoomToFit = (): this => {
+    const shapes = this.getShapes()
+
+    if (shapes.length === 0) return this
+
+    const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
+
+    const zoom = TLDR.getCameraZoom(
+      bounds.width > bounds.height
+        ? (window.innerWidth - 128) / bounds.width
+        : (window.innerHeight - 128) / bounds.height
+    )
+
+    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
+    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+
+    return this.setCamera(
+      Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
+      this.pageState.camera.zoom,
+      `zoomed_to_fit`
+    )
+  }
+
+  /**
+   * Zoom to the selected shapes.
+   * @returns this
+   */
+  zoomToSelection = (): this => {
+    if (this.pageState.selectedIds.length === 0) return this
+
+    const bounds = TLDR.getSelectedBounds(this.state)
+
+    const zoom = TLDR.getCameraZoom(
+      bounds.width > bounds.height
+        ? (window.innerWidth - 128) / bounds.width
+        : (window.innerHeight - 128) / bounds.height
+    )
+
+    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
+    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+
+    return this.setCamera(
+      Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
+      this.pageState.camera.zoom,
+      `zoomed_to_selection`
+    )
+  }
+
+  /**
+   * Zoom back to content when the canvas is empty.
+   * @returns this
+   */
+  zoomToContent = (): this => {
+    const shapes = this.getShapes()
+    const pageState = this.pageState
+
+    if (shapes.length === 0) return this
+
+    const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
+
+    const { zoom } = pageState.camera
+    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
+    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+
+    return this.setCamera(
+      Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
+      this.pageState.camera.zoom,
+      `zoomed_to_content`
+    )
+  }
+
+  /**
+   * Zoom the camera to 100%.
+   * @returns this
+   */
+  zoomToActual = (): this => {
+    return this.zoomTo(1)
+  }
+
+  /**
+   * Zoom the camera by a certain delta.
+   * @returns this
+   */
+  zoom = Utils.throttle((delta: number): this => {
+    const { zoom } = this.pageState.camera
+    const nextZoom = TLDR.getCameraZoom(zoom - delta * zoom)
+    return this.zoomTo(nextZoom)
+  }, 16)
+
+  /* -------------------------------------------------- */
+  /*                      Selection                     */
+  /* -------------------------------------------------- */
+
+  /**
+   * Clear the selection history (undo/redo stack for selection).
+   */
+  private clearSelectHistory = (): this => {
+    this.selectHistory.pointer = 0
+    this.selectHistory.stack = [this.selectedIds]
+    return this
+  }
+
+  /**
+   * Adds a selection to the selection history (undo/redo stack for selection).
+   */
+  private addToSelectHistory = (ids: string[]): this => {
+    if (this.selectHistory.pointer < this.selectHistory.stack.length) {
+      this.selectHistory.stack = this.selectHistory.stack.slice(0, this.selectHistory.pointer + 1)
+    }
+    this.selectHistory.pointer++
+    this.selectHistory.stack.push(ids)
+    return this
+  }
+
+  /**
+   * Set the current selection.
+   * @param ids The ids to select
+   * @param push Whether to add the ids to the current selection instead.
+   * @returns this
+   */
+  private setSelectedIds = (ids: string[], push = false): this => {
+    return this.patchState(
+      {
+        appState: {
+          activeTool: 'select',
+          activeToolType: 'select',
+        },
+        document: {
+          pageStates: {
+            [this.currentPageId]: {
+              selectedIds: push ? [...this.pageState.selectedIds, ...ids] : [...ids],
+            },
+          },
+        },
+      },
+      `selected`
+    )
+  }
+
+  /**
+   * Undo the most recent selection.
+   * @returns this
+   */
+  undoSelect = (): this => {
+    if (this.selectHistory.pointer > 0) {
+      this.selectHistory.pointer--
+      this.setSelectedIds(this.selectHistory.stack[this.selectHistory.pointer])
+    }
+    return this
+  }
+
+  /**
+   * Redo the previous selection.
+   * @returns this
+   */
+  redoSelect = (): this => {
+    if (this.selectHistory.pointer < this.selectHistory.stack.length - 1) {
+      this.selectHistory.pointer++
+      this.setSelectedIds(this.selectHistory.stack[this.selectHistory.pointer])
+    }
+    return this
+  }
+
+  /**
+   * Select one or more shapes.
+   * @param ids The shape ids to select.
+   * @returns this
+   */
+  select = (...ids: string[]): this => {
+    this.setSelectedIds(ids)
+    this.addToSelectHistory(ids)
+    return this
+  }
+
+  /**
+   * Select all shapes on the page.
+   * @returns this
+   */
+  selectAll = (): this => {
+    if (this.session) return this
+    this.setSelectedIds(Object.keys(this.page.shapes))
+    this.addToSelectHistory(this.selectedIds)
+    if (this.appState.activeTool !== 'select') {
+      this.selectTool('select')
+    }
+    return this
+  }
+
+  /**
+   * Deselect any selected shapes.
+   * @returns this
+   */
+  deselectAll = (): this => {
+    this.setSelectedIds([])
+    this.addToSelectHistory(this.selectedIds)
+    return this
   }
 
   /* -------------------------------------------------- */
@@ -1004,113 +1363,98 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
-  /* -------------------------------------------------- */
-  /*                      Selection                     */
-  /* -------------------------------------------------- */
-
-  /**
-   * Clear the selection history (undo/redo stack for selection).
-   */
-  private clearSelectHistory = (): this => {
-    this.selectHistory.pointer = 0
-    this.selectHistory.stack = [this.selectedIds]
-    return this
+  /* -------------------- Sessions -------------------- */
+  startBrushSession = (point: number[]): this => {
+    return this.startSession(new Sessions.BrushSession(this.state, point))
   }
 
-  /**
-   * Adds a selection to the selection history (undo/redo stack for selection).
-   */
-  private addToSelectHistory = (ids: string[]): this => {
-    if (this.selectHistory.pointer < this.selectHistory.stack.length) {
-      this.selectHistory.stack = this.selectHistory.stack.slice(0, this.selectHistory.pointer + 1)
+  updateBrushSession = (point: number[], metaKey = false): this => {
+    return this.updateSession<Sessions.BrushSession>(point, metaKey)
+  }
+
+  startTranslateSession = (point: number[]): this => {
+    return this.startSession(new Sessions.TranslateSession(this.state, point))
+  }
+
+  updateTranslateSession = (point: number[], shiftKey = false, altKey = false): this => {
+    return this.updateSession<Sessions.TranslateSession>(point, shiftKey, altKey)
+  }
+
+  startTransformSession = (
+    point: number[],
+    handle: TLBoundsCorner | TLBoundsEdge | 'rotate',
+    commandId?: string
+  ): this => {
+    const { selectedIds } = this
+
+    if (selectedIds.length === 0) return this
+
+    this.pointedBoundsHandle = handle
+
+    if (this.pointedBoundsHandle === 'rotate') {
+      return this.startSession(new Sessions.RotateSession(this.state, point))
     }
-    this.selectHistory.pointer++
-    this.selectHistory.stack.push(ids)
-    return this
-  }
 
-  /**
-   * Set the current selection.
-   * @param ids The ids to select
-   * @param push Whether to add the ids to the current selection instead.
-   * @returns this
-   */
-  private setSelectedIds = (ids: string[], push = false): this => {
-    return this.patchState(
-      {
-        appState: {
-          activeTool: 'select',
-          activeToolType: 'select',
-        },
-        document: {
-          pageStates: {
-            [this.currentPageId]: {
-              selectedIds: push ? [...this.pageState.selectedIds, ...ids] : [...ids],
-            },
-          },
-        },
-      },
-      `selected`
+    if (this.selectedIds.length === 1) {
+      return this.startSession(
+        new Sessions.TransformSingleSession(this.state, point, this.pointedBoundsHandle, commandId)
+      )
+    }
+
+    return this.startSession(
+      new Sessions.TransformSession(this.state, point, this.pointedBoundsHandle)
     )
   }
 
-  /**
-   * Undo the most recent selection.
-   * @returns this
-   */
-  undoSelect = (): this => {
-    if (this.selectHistory.pointer > 0) {
-      this.selectHistory.pointer--
-      this.setSelectedIds(this.selectHistory.stack[this.selectHistory.pointer])
+  updateTransformSession = (point: number[], shiftKey = false, altKey = false): this => {
+    return this.updateSession<Sessions.TransformSingleSession | Sessions.TransformSession>(
+      point,
+      shiftKey,
+      altKey
+    )
+  }
+
+  startTextSession = (id: string): this => {
+    return this.startSession(new Sessions.TextSession(this.state, id))
+  }
+
+  updateTextSession = (text: string): this => {
+    return this.updateSession<Sessions.TextSession>(text)
+  }
+
+  startDrawSession = (id: string, point: number[]): this => {
+    return this.startSession(new Sessions.DrawSession(this.state, id, point))
+  }
+
+  updateDrawSession = (point: number[], pressure: number, shiftKey = false): this => {
+    return this.updateSession<Sessions.DrawSession>(point, pressure, shiftKey)
+  }
+
+  startHandleSession = (point: number[], handleId: string, commandId?: string): this => {
+    const selectedShape = this.page.shapes[this.selectedIds[0]]
+    if (selectedShape.type === TLDrawShapeType.Arrow) {
+      return this.startSession<Sessions.ArrowSession>(
+        new Sessions.ArrowSession(this.state, handleId as 'start' | 'end', point)
+      )
     }
-    return this
+
+    return this.startSession<Sessions.HandleSession>(
+      new Sessions.HandleSession(this.state, handleId, point, commandId)
+    )
   }
 
-  /**
-   * Redo the previous selection.
-   * @returns this
-   */
-  redoSelect = (): this => {
-    if (this.selectHistory.pointer < this.selectHistory.stack.length - 1) {
-      this.selectHistory.pointer++
-      this.setSelectedIds(this.selectHistory.stack[this.selectHistory.pointer])
-    }
-    return this
-  }
-
-  /**
-   * Select one or more shapes.
-   * @param ids The shape ids to select.
-   * @returns this
-   */
-  select = (...ids: string[]): this => {
-    this.setSelectedIds(ids)
-    this.addToSelectHistory(ids)
-    return this
-  }
-
-  /**
-   * Select all shapes on the page.
-   * @returns this
-   */
-  selectAll = (): this => {
-    if (this.session) return this
-    this.setSelectedIds(Object.keys(this.page.shapes))
-    this.addToSelectHistory(this.selectedIds)
-    if (this.appState.activeTool !== 'select') {
-      this.selectTool('select')
-    }
-    return this
-  }
-
-  /**
-   * Deselect any selected shapes.
-   * @returns this
-   */
-  deselectAll = (): this => {
-    this.setSelectedIds([])
-    this.addToSelectHistory(this.selectedIds)
-    return this
+  updateHandleSession = (
+    point: number[],
+    shiftKey = false,
+    altKey = false,
+    metaKey = false
+  ): this => {
+    return this.updateSession<Sessions.HandleSession | Sessions.ArrowSession>(
+      point,
+      shiftKey,
+      altKey,
+      metaKey
+    )
   }
 
   /* -------------------------------------------------- */
@@ -1359,11 +1703,23 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /**
-   * Group one or more shapes.
+   * Group the selected shapes.
    * @returns this
    * @todo
    */
-  group = (): this => {
+  group = (ids = this.selectedIds, groupId = Utils.uniqueId()): this => {
+    if (ids.length < 2) return this
+    const command = Commands.group(this.state, ids, groupId)
+    if (!command) return this
+    return this.setState(command)
+  }
+
+  /**
+   * Ungroup the selected groups.
+   * @returns this
+   * @todo
+   */
+  ungroup = (): this => {
     // TODO
     return this
   }
@@ -1403,100 +1759,6 @@ export class TLDrawState extends StateManager<Data> {
     }
 
     return this
-  }
-
-  /* -------------------- Sessions -------------------- */
-  startBrushSession = (point: number[]): this => {
-    return this.startSession(new Sessions.BrushSession(this.state, point))
-  }
-
-  updateBrushSession = (point: number[], metaKey = false): this => {
-    return this.updateSession<Sessions.BrushSession>(point, metaKey)
-  }
-
-  startTranslateSession = (point: number[]): this => {
-    return this.startSession(new Sessions.TranslateSession(this.state, point))
-  }
-
-  updateTranslateSession = (point: number[], shiftKey = false, altKey = false): this => {
-    return this.updateSession<Sessions.TranslateSession>(point, shiftKey, altKey)
-  }
-
-  startTransformSession = (
-    point: number[],
-    handle: TLBoundsCorner | TLBoundsEdge | 'rotate',
-    commandId?: string
-  ): this => {
-    const { selectedIds } = this
-
-    if (selectedIds.length === 0) return this
-
-    this.pointedBoundsHandle = handle
-
-    if (this.pointedBoundsHandle === 'rotate') {
-      return this.startSession(new Sessions.RotateSession(this.state, point))
-    }
-
-    if (this.selectedIds.length === 1) {
-      return this.startSession(
-        new Sessions.TransformSingleSession(this.state, point, this.pointedBoundsHandle, commandId)
-      )
-    }
-
-    return this.startSession(
-      new Sessions.TransformSession(this.state, point, this.pointedBoundsHandle)
-    )
-  }
-
-  updateTransformSession = (point: number[], shiftKey = false, altKey = false): this => {
-    return this.updateSession<Sessions.TransformSingleSession | Sessions.TransformSession>(
-      point,
-      shiftKey,
-      altKey
-    )
-  }
-
-  startTextSession = (id: string): this => {
-    return this.startSession(new Sessions.TextSession(this.state, id))
-  }
-
-  updateTextSession = (text: string): this => {
-    return this.updateSession<Sessions.TextSession>(text)
-  }
-
-  startDrawSession = (id: string, point: number[]): this => {
-    return this.startSession(new Sessions.DrawSession(this.state, id, point))
-  }
-
-  updateDrawSession = (point: number[], pressure: number, shiftKey = false): this => {
-    return this.updateSession<Sessions.DrawSession>(point, pressure, shiftKey)
-  }
-
-  startHandleSession = (point: number[], handleId: string, commandId?: string): this => {
-    const selectedShape = this.page.shapes[this.selectedIds[0]]
-    if (selectedShape.type === TLDrawShapeType.Arrow) {
-      return this.startSession<Sessions.ArrowSession>(
-        new Sessions.ArrowSession(this.state, handleId as 'start' | 'end', point)
-      )
-    }
-
-    return this.startSession<Sessions.HandleSession>(
-      new Sessions.HandleSession(this.state, handleId, point, commandId)
-    )
-  }
-
-  updateHandleSession = (
-    point: number[],
-    shiftKey = false,
-    altKey = false,
-    metaKey = false
-  ): this => {
-    return this.updateSession<Sessions.HandleSession | Sessions.ArrowSession>(
-      point,
-      shiftKey,
-      altKey,
-      metaKey
-    )
   }
 
   updateOnPointerMove = (info: TLPointerInfo<string>): this => {
@@ -2196,7 +2458,7 @@ export class TLDrawState extends StateManager<Data> {
       this.patchState(
         {
           appState: {
-            isEmptyCanvas: false,
+            isEmptyCanvas: true,
           },
         },
         'empty_canvas:true'

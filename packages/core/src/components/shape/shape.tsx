@@ -9,6 +9,8 @@ export const Shape = React.memo(
     shape,
     isEditing,
     isBinding,
+    isHovered,
+    isSelected,
     isCurrentParent,
     meta,
   }: IShapeTreeNode<M>) => {
@@ -33,6 +35,8 @@ export const Shape = React.memo(
             isBinding={false}
             isCurrentParent={false}
             isEditing={true}
+            isHovered={isHovered}
+            isSelected={isSelected}
             utils={utils}
             meta={meta}
           />
@@ -43,6 +47,8 @@ export const Shape = React.memo(
             isBinding={isBinding}
             isCurrentParent={isCurrentParent}
             isEditing={isEditing}
+            isHovered={isHovered}
+            isSelected={isSelected}
             meta={meta}
           />
         )}

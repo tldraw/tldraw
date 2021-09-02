@@ -9,6 +9,8 @@ describe('shape', () => {
         shape={mockUtils.box.create({})}
         isEditing={false}
         isBinding={false}
+        isHovered={false}
+        isSelected={false}
         isCurrentParent={false}
       />
     )

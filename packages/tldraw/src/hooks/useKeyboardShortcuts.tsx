@@ -106,8 +106,9 @@ export function useKeyboardShortcuts(tlstate: TLDrawState) {
 
   // Duplicate
 
-  useHotkeys('ctrl+d,command+d', () => {
+  useHotkeys('ctrl+d,command+d', (e) => {
     tlstate.duplicate()
+    e.preventDefault()
   })
 
   // Flip
@@ -182,6 +183,18 @@ export function useKeyboardShortcuts(tlstate: TLDrawState) {
     tlstate.paste()
   })
 
+  // Group & Ungroup
+
+  useHotkeys('command+g,ctrl+g', (e) => {
+    tlstate.group()
+    e.preventDefault()
+  })
+
+  useHotkeys('command+shift+g,ctrl+shift+g', (e) => {
+    tlstate.ungroup()
+    e.preventDefault()
+  })
+
   // Move
 
   useHotkeys('[', () => {
@@ -201,7 +214,7 @@ export function useKeyboardShortcuts(tlstate: TLDrawState) {
   })
 
   useHotkeys('command+shift+backspace', (e) => {
-    tlstate.reset()
+    tlstate.resetDocument()
     e.preventDefault()
   })
 }

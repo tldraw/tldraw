@@ -3,6 +3,8 @@ import type { Data, TLDrawCommand, PagePartial } from '~types'
 import { TLDR } from '~state/tldr'
 
 export function translate(data: Data, ids: string[], delta: number[]): TLDrawCommand {
+  const { currentPageId } = data.appState
+
   const before: PagePartial = {
     shapes: {},
     bindings: {},
@@ -19,13 +21,15 @@ export function translate(data: Data, ids: string[], delta: number[]): TLDrawCom
     (shape) => ({
       point: Vec.round(Vec.add(shape.point, delta)),
     }),
-    data.appState.currentPageId
+    currentPageId
   )
 
   before.shapes = change.before
   after.shapes = change.after
 
-  const bindingsToDelete = TLDR.getRelatedBindings(data, ids, data.appState.currentPageId)
+  const bindingsToDelete = TLDR.getBindings(data, currentPageId).filter((binding) =>
+    ids.includes(binding.fromId)
+  )
 
   bindingsToDelete.forEach((binding) => {
     before.bindings[binding.id] = binding

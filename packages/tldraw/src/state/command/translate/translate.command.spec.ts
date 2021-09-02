@@ -26,4 +26,7 @@ describe('Translate command', () => {
     tlstate.nudge([1, 2], true)
     expect(tlstate.getShape('rect2').point).toEqual([110, 120])
   })
+
+  it.todo('deleted bindings if nudging shape is bound to other shapes')
+  // When nudging an arrow shape, delete its bindings
 })

@@ -4,10 +4,18 @@ const esbuild = require('esbuild')
 
 async function main() {
   if (fs.existsSync('./dist')) {
-    fs.rmdirSync('./dist', { recursive: true })
+    fs.rmSync('./dist', { recursive: true }, (e) => {
+      if (e) {
+        throw e
+      }
+    })
   }
 
-  fs.mkdirSync('./dist')
+  fs.mkdir('./dist', (e) => {
+    if (e) {
+      throw e
+    }
+  })
 
   esbuild.build({
     entryPoints: ['./src/index.ts'],

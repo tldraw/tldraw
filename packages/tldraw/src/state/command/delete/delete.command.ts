@@ -1,11 +1,13 @@
 import { TLDR } from '~state/tldr'
-import type { Data, TLDrawCommand, PagePartial } from '~types'
+import type { Data, TLDrawCommand, PagePartial, TLDrawShape, GroupShape } from '~types'
 
 // - [ ] Update parents and possibly delete parents
 
-export function deleteShapes(data: Data, ids: string[]): TLDrawCommand {
-  const { currentPageId } = data.appState
-
+export function deleteShapes(
+  data: Data,
+  ids: string[],
+  pageId = data.appState.currentPageId
+): TLDrawCommand {
   const before: PagePartial = {
     shapes: {},
     bindings: {},
@@ -16,13 +18,32 @@ export function deleteShapes(data: Data, ids: string[]): TLDrawCommand {
     bindings: {},
   }
 
+  const parentsToUpdate: GroupShape[] = []
+
+  const deletedIds = [...ids]
+
   // These are the shapes we're definitely going to delete
+
   ids.forEach((id) => {
-    before.shapes[id] = TLDR.getShape(data, id, currentPageId)
+    const shape = TLDR.getShape(data, id, pageId)
+    before.shapes[id] = shape
     after.shapes[id] = undefined
+
+    if (shape.parentId !== pageId) {
+      parentsToUpdate.push(TLDR.getShape(data, shape.parentId, pageId))
+    }
   })
 
-  const page = TLDR.getPage(data, currentPageId)
+  parentsToUpdate.forEach((parent) => {
+    if (ids.includes(parent.id)) return
+    deletedIds.push(parent.id)
+    before.shapes[parent.id] = { children: parent.children }
+    after.shapes[parent.id] = { children: parent.children.filter((id) => !ids.includes(id)) }
+  })
+
+  // Recursively check for empty parents?
+
+  const page = TLDR.getPage(data, pageId)
 
   // We also need to delete bindings that reference the deleted shapes
   Object.values(page.bindings).forEach((binding) => {
@@ -34,7 +55,7 @@ export function deleteShapes(data: Data, ids: string[]): TLDrawCommand {
         after.bindings[binding.id] = undefined
 
         // Let's also look each the bound shape...
-        const shape = TLDR.getShape(data, id, currentPageId)
+        const shape = TLDR.getShape(data, id, pageId)
 
         // If the bound shape has a handle that references the deleted binding...
         if (shape.handles) {
@@ -52,7 +73,7 @@ export function deleteShapes(data: Data, ids: string[]): TLDrawCommand {
 
               // Unless we're currently deleting the shape, remove the
               // binding reference from the after patch
-              if (!ids.includes(id)) {
+              if (!deletedIds.includes(id)) {
                 after.shapes[id] = {
                   ...after.shapes[id],
                   handles: { ...after.shapes[id]?.handles, [handle.id]: { bindingId: undefined } },
@@ -69,20 +90,20 @@ export function deleteShapes(data: Data, ids: string[]): TLDrawCommand {
     before: {
       document: {
         pages: {
-          [currentPageId]: before,
+          [pageId]: before,
         },
         pageStates: {
-          [currentPageId]: { selectedIds: TLDR.getSelectedIds(data, currentPageId) },
+          [pageId]: { selectedIds: TLDR.getSelectedIds(data, pageId) },
         },
       },
     },
     after: {
       document: {
         pages: {
-          [currentPageId]: after,
+          [pageId]: after,
         },
         pageStates: {
-          [currentPageId]: { selectedIds: [] },
+          [pageId]: { selectedIds: [] },
         },
       },
     },
