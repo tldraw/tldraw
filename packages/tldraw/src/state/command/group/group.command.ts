@@ -46,11 +46,15 @@ export function group(
   // An array of shapes in order by their index in flattendShapes
   const sortedShapes = initialShapes.sort((a, b) => shapeIndexMap[a.id] - shapeIndexMap[b.id])
 
-  // The parentId comes from the first shape in flattendShapes
-  const groupParentId = sortedShapes[0].parentId
+  // The parentId is always the current page
+  const groupParentId = currentPageId // sortedShapes[0].parentId
 
-  // Likewise for the child index
-  const groupChildIndex = sortedShapes[0].childIndex
+  // The childIndex should be the lowest index of the selected shapes
+  // with a parent that is the current page; or else the child index
+  // of the lowest selected shape.
+  const groupChildIndex = (
+    sortedShapes.filter((shape) => shape.parentId === currentPageId)[0] || sortedShapes[0]
+  ).childIndex
 
   // The shape's point is the min point of its childrens' common bounds
   const groupBounds = Utils.getCommonBounds(initialShapes.map((shape) => TLDR.getBounds(shape)))

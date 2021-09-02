@@ -30,17 +30,34 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
   shapes
     .filter((shape) => !ids.includes(shape.parentId))
     .forEach((shape) => {
-      const id = Utils.uniqueId()
-      before.shapes[id] = undefined
-      after.shapes[id] = {
+      const duplicatedId = Utils.uniqueId()
+      before.shapes[duplicatedId] = undefined
+      after.shapes[duplicatedId] = {
         ...Utils.deepClone(shape),
-        id,
+        id: duplicatedId,
         point: Vec.round(Vec.add(shape.point, delta)),
+        childIndex: shape.childIndex + 0.1, // TODO
       }
+
       if (shape.children) {
-        after.shapes[id]!.children = []
+        after.shapes[duplicatedId]!.children = []
       }
-      duplicateMap[shape.id] = id
+
+      if (shape.parentId !== currentPageId) {
+        const parent = TLDR.getShape(data, shape.parentId, currentPageId)
+
+        before.shapes[parent.id] = {
+          ...before.shapes[parent.id],
+          children: parent.children,
+        }
+
+        after.shapes[parent.id] = {
+          ...after.shapes[parent.id],
+          children: [...(after.shapes[parent.id] || parent).children!, duplicatedId],
+        }
+      }
+
+      duplicateMap[shape.id] = duplicatedId
     })
 
   // If the shapes have children, then duplicate those too
@@ -55,6 +72,7 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
           ...Utils.deepClone(child),
           id: duplicatedId,
           parentId: duplicatedParentId,
+          point: Vec.round(Vec.add(child.point, delta)),
         }
         duplicateMap[childId] = duplicatedId
         after.shapes[duplicateMap[shape.id]]?.children?.push(duplicatedId)
@@ -122,7 +140,7 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
           [currentPageId]: after,
         },
         pageStates: {
-          [currentPageId]: { selectedIds: Object.keys(after.shapes) },
+          [currentPageId]: { selectedIds: duplicatedShapeIds.map((id) => duplicateMap[id]) },
         },
       },
     },

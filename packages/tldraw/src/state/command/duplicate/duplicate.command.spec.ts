@@ -116,7 +116,7 @@ describe('Duplicate command', () => {
       )
     })
 
-    it('duplicates grouped shapes', () => {
+    it('duplicates groups', () => {
       tlstate.loadDocument(mockDocument)
       tlstate.group(['rect1', 'rect2'], 'newGroup').select('newGroup')
 
@@ -133,6 +133,25 @@ describe('Duplicate command', () => {
       tlstate.redo()
 
       expect(Object.keys(tlstate.page.shapes).length).toBe(beforeShapeIds.length + 3)
+    })
+
+    it('duplicates grouped shapes', () => {
+      tlstate.loadDocument(mockDocument)
+      tlstate.group(['rect1', 'rect2'], 'newGroup').select('rect1')
+
+      const beforeShapeIds = Object.keys(tlstate.page.shapes)
+
+      tlstate.duplicate()
+
+      expect(Object.keys(tlstate.page.shapes).length).toBe(beforeShapeIds.length + 1)
+
+      tlstate.undo()
+
+      expect(Object.keys(tlstate.page.shapes).length).toBe(beforeShapeIds.length)
+
+      tlstate.redo()
+
+      expect(Object.keys(tlstate.page.shapes).length).toBe(beforeShapeIds.length + 1)
     })
   })
 })

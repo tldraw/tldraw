@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import type { GroupShape, TLDrawShape } from '~types'
+import { GroupShape, TLDrawShape, TLDrawShapeType } from '~types'
 
 describe('Group command', () => {
   const tlstate = new TLDrawState()
@@ -115,6 +115,91 @@ describe('Group command', () => {
   })
 
   describe('when grouping shapes that are the child of another group', () => {
+    /*
+    Do not allow groups to nest. All groups should be the parent of
+    the page: a group should never be the child of a different group.
+    This is a UX decision as much as a technical one.
+    */
+
+    it('creates a new group on the page', () => {
+      tlstate.resetDocument().createShapes(
+        {
+          id: 'rect1',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 1,
+        },
+        {
+          id: 'rect2',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 2,
+        },
+        {
+          id: 'rect3',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 3,
+        },
+        {
+          id: 'rect4',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 4,
+        }
+      )
+
+      tlstate.group(['rect1', 'rect2', 'rect3', 'rect4'], 'newGroupA')
+
+      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeTruthy()
+      expect(tlstate.getShape('rect1').childIndex).toBe(1)
+      expect(tlstate.getShape('rect2').childIndex).toBe(2)
+      expect(tlstate.getShape('rect3').childIndex).toBe(3)
+      expect(tlstate.getShape('rect4').childIndex).toBe(4)
+      expect(tlstate.getShape<GroupShape>('newGroupA').children).toStrictEqual([
+        'rect1',
+        'rect2',
+        'rect3',
+        'rect4',
+      ])
+
+      tlstate.group(['rect1', 'rect3'], 'newGroupB')
+
+      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeTruthy()
+      expect(tlstate.getShape('rect2').childIndex).toBe(2)
+      expect(tlstate.getShape('rect4').childIndex).toBe(4)
+      expect(tlstate.getShape<GroupShape>('newGroupA').children).toStrictEqual(['rect2', 'rect4'])
+
+      expect(tlstate.getShape<GroupShape>('newGroupB')).toBeTruthy()
+      expect(tlstate.getShape('rect1').childIndex).toBe(1)
+      expect(tlstate.getShape('rect3').childIndex).toBe(2)
+      expect(tlstate.getShape<GroupShape>('newGroupB').children).toStrictEqual(['rect1', 'rect3'])
+
+      tlstate.undo()
+
+      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeTruthy()
+      expect(tlstate.getShape('rect1').childIndex).toBe(1)
+      expect(tlstate.getShape('rect2').childIndex).toBe(2)
+      expect(tlstate.getShape('rect3').childIndex).toBe(3)
+      expect(tlstate.getShape('rect4').childIndex).toBe(4)
+      expect(tlstate.getShape<GroupShape>('newGroupA').children).toStrictEqual([
+        'rect1',
+        'rect2',
+        'rect3',
+        'rect4',
+      ])
+
+      expect(tlstate.getShape<GroupShape>('newGroupB')).toBeUndefined()
+
+      tlstate.redo()
+
+      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeTruthy()
+      expect(tlstate.getShape('rect2').childIndex).toBe(2)
+      expect(tlstate.getShape('rect4').childIndex).toBe(4)
+      expect(tlstate.getShape<GroupShape>('newGroupA').children).toStrictEqual(['rect2', 'rect4'])
+
+      expect(tlstate.getShape<GroupShape>('newGroupB')).toBeTruthy()
+      expect(tlstate.getShape('rect1').childIndex).toBe(1)
+      expect(tlstate.getShape('rect3').childIndex).toBe(2)
+      expect(tlstate.getShape<GroupShape>('newGroupB').children).toStrictEqual(['rect1', 'rect3'])
+    })
+
     /*
     When the selected shapes are the children of another group, and so
     long as the children do not represent ALL of the group's children,
