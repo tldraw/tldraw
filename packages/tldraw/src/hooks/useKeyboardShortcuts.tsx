@@ -2,9 +2,11 @@ import * as React from 'react'
 import { inputs } from '@tldraw/core'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { TLDrawShapeType } from '~types'
-import type { TLDrawState } from '~state'
+import { useTLDrawContext } from '~hooks'
 
-export function useKeyboardShortcuts(tlstate: TLDrawState) {
+export function useKeyboardShortcuts() {
+  const { tlstate } = useTLDrawContext()
+
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const info = inputs.keydown(e)
@@ -18,6 +20,7 @@ export function useKeyboardShortcuts(tlstate: TLDrawState) {
 
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)

@@ -1,6 +1,6 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { ArrowShape, TLDrawShapeType, TLDrawStatus } from '~types'
+import { TLDrawShapeType, TLDrawStatus } from '~types'
 
 describe('Translate session', () => {
   const tlstate = new TLDrawState()
@@ -111,19 +111,28 @@ describe('Translate session', () => {
   })
 
   it('destroys clones when last update is not cloning', () => {
+    tlstate.resetDocument().loadDocument(mockDocument)
+
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
+
     tlstate
-      .loadDocument(mockDocument)
       .select('rect1', 'rect2')
       .startTranslateSession([10, 10])
       .updateTranslateSession([20, 20], false, true)
-      .updateTranslateSession([30, 30])
-      .completeSession()
+
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(5)
+
+    tlstate.updateTranslateSession([30, 30], false, false)
+
+    expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
+
+    tlstate.completeSession()
 
     // Original position + delta
     expect(tlstate.getShape('rect1').point).toStrictEqual([30, 30])
     expect(tlstate.getShape('rect2').point).toStrictEqual([130, 130])
 
-    expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
+    expect(Object.keys(tlstate.page.shapes)).toStrictEqual(['rect1', 'rect2', 'rect3'])
   })
 
   it('destroys bindings from the translating shape', () => {
@@ -175,5 +184,25 @@ describe('Translate session', () => {
 
   // it.todo('clones a shape with a parent shape')
 
-  // it.todo('clones a shape with children')
+  describe('when translating a shape with children', () => {
+    it('translates the shapes children', () => {
+      tlstate
+        .loadDocument(mockDocument)
+        .select('rect1', 'rect2')
+        .group()
+        .startTranslateSession([10, 10])
+        .updateTranslateSession([20, 20], false, false)
+        .completeSession()
+    })
+
+    it('clones the shapes and children', () => {
+      tlstate
+        .loadDocument(mockDocument)
+        .select('rect1', 'rect2')
+        .group()
+        .startTranslateSession([10, 10])
+        .updateTranslateSession([20, 20], false, true)
+        .completeSession()
+    })
+  })
 })

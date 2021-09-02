@@ -39,11 +39,13 @@ export interface RendererProps<T extends TLShape, M extends Record<string, unkno
    */
   hideHandles?: boolean
   /**
-   * When true, the renderer will not show indicators for selected or hovered objects,
+   * When true, the renderer will not show indicators for selected or
+   * hovered objects,
    */
   hideIndicators?: boolean
   /**
-   * When true, the renderer will ignore all inputs that were not made by a stylus or pen-type device.
+   * When true, the renderer will ignore all inputs that were not made
+   * by a stylus or pen-type device.
    */
   isPenMode?: boolean
   /**
@@ -53,24 +55,10 @@ export interface RendererProps<T extends TLShape, M extends Record<string, unkno
 }
 
 /**
- The Renderer component is the main component of the library. It accepts the current `page`, the `shapeUtils` needed to interpret and render the shapes and bindings on the `page`, and the current `pageState`.
- 
-* It also (optionally) accepts several settings and visibility flags,
- * a `theme` to use, and callbacks to respond to various user interactions.
- *
- * ### Example
- *
- *```tsx
- * <Renderer 
- *  shapeUtils={shapeUtils} 
- *  page={page} 
- *  pageState={pageState}
- * />
- *```
- */
-
-/**
- * The Renderer component is the main component of the library. It accepts the current `page`, the `shapeUtils` needed to interpret and render the shapes and bindings on the `page`, and the current `pageState`.
+ * The Renderer component is the main component of the library. It
+ * accepts the current `page`, the `shapeUtils` needed to interpret
+ * and render the shapes and bindings on the `page`, and the current
+ * `pageState`.
  * @param props
  * @returns
  */
@@ -86,6 +74,7 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
   ...rest
 }: RendererProps<T, M>): JSX.Element {
   useTLTheme(theme)
+
   const rScreenBounds = React.useRef<TLBounds>(null)
   const rPageState = React.useRef<TLPageState>(pageState)
 

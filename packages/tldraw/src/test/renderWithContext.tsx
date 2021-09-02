@@ -11,7 +11,7 @@ export const Wrapper: React.FC = ({ children }) => {
     return { tlstate, useSelector: tlstate.useStore }
   })
 
-  useKeyboardShortcuts(tlstate)
+  useKeyboardShortcuts()
 
   React.useEffect(() => {
     if (!document) return

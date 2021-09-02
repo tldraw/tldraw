@@ -118,6 +118,7 @@ export class ArrowSession implements Session {
         // From all bindable shapes on the page...
         for (const id of this.bindableShapeIds) {
           if (id === initialShape.id) continue
+          if (id === shape.parentId) continue
           if (id === oppositeBinding?.toId) continue
 
           target = TLDR.getShape(data, id, data.appState.currentPageId)
@@ -345,6 +346,7 @@ function findBinding(
     // From all bindable shapes on the page...
     for (const id of bindableShapeIds) {
       if (id === shape.id) continue
+      if (id === shape.parentId) continue
       if (id === oppositeBinding?.toId) continue
 
       const target = TLDR.getShape(data, id, data.appState.currentPageId)

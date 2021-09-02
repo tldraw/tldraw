@@ -23,6 +23,7 @@ export interface TLDrawSettings {
   isDebugMode: boolean
   isPenMode: boolean
   isReadonlyMode: boolean
+  isZoomSnap: boolean
   nudgeDistanceSmall: number
   nudgeDistanceLarge: number
 }

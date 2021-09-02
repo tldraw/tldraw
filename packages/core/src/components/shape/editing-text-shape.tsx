@@ -23,6 +23,15 @@ export function EditingTextShape({
 
   const ref = React.useRef<HTMLElement>(null)
 
+  React.useEffect(() => {
+    // Firefox fix?
+    setTimeout(() => {
+      if (document.activeElement !== ref.current) {
+        ref.current?.focus()
+      }
+    }, 0)
+  }, [shape.id])
+
   return utils.render(shape, {
     ref,
     isEditing,

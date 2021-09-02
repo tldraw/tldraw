@@ -107,7 +107,6 @@ export class Text extends TLDrawShapeUtil<TextShape> {
     const { id, text, style } = shape
     const styles = getShapeStyle(style, meta.isDarkMode)
     const font = getFontStyle(shape.style)
-
     const bounds = this.getBounds(shape)
 
     function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -150,8 +149,10 @@ export class Text extends TLDrawShapeUtil<TextShape> {
     }
 
     function handleFocus(e: React.FocusEvent<HTMLTextAreaElement>) {
-      e.currentTarget.select()
-      onTextFocus?.(id)
+      if (document.activeElement === e.currentTarget) {
+        e.currentTarget.select()
+        onTextFocus?.(id)
+      }
     }
 
     function handlePointerDown() {
@@ -161,6 +162,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
     }
 
     const fontSize = getFontSize(shape.style.size) * (shape.style.scale || 1)
+
     const lineHeight = fontSize * 1.3
 
     if (!isEditing) {

@@ -4,7 +4,7 @@ import { Renderer } from '@tldraw/core'
 import styled from '~styles'
 import type { Data, TLDrawDocument } from '~types'
 import { TLDrawState } from '~state'
-import { useKeyboardShortcuts, TLDrawContext, useCustomFonts } from '~hooks'
+import { TLDrawContext, useCustomFonts, useKeyboardShortcuts, useTLDrawContext } from '~hooks'
 import { tldrawShapeUtils } from '~shape'
 import { ContextMenu } from '~components/context-menu'
 import { StylePanel } from '~components/style-panel'
@@ -61,19 +61,45 @@ export function TLDraw({ id, document, currentPageId, onMount, onChange: _onChan
     return { tlstate, useSelector: tlstate.useStore }
   })
 
-  useKeyboardShortcuts(tlstate)
+  React.useEffect(() => {
+    if (!document) return
+    tlstate.loadDocument(document, _onChange)
+  }, [document, tlstate])
 
+  React.useEffect(() => {
+    if (!currentPageId) return
+    tlstate.changePage(currentPageId)
+  }, [currentPageId, tlstate])
+
+  React.useEffect(() => {
+    onMount?.(tlstate)
+  }, [])
+
+  return (
+    <TLDrawContext.Provider value={context}>
+      <IdProvider>
+        <InnerTldraw />
+      </IdProvider>
+    </TLDrawContext.Provider>
+  )
+}
+
+function InnerTldraw() {
   useCustomFonts()
 
-  const page = context.useSelector(pageSelector)
+  const { tlstate, useSelector } = useTLDrawContext()
 
-  const pageState = context.useSelector(pageStateSelector)
+  useKeyboardShortcuts()
 
-  const isDarkMode = context.useSelector(isDarkModeSelector)
+  const page = useSelector(pageSelector)
 
-  const isSelecting = context.useSelector(isInSelectSelector)
+  const pageState = useSelector(pageStateSelector)
 
-  const isSelectedHandlesShape = context.useSelector(isSelectedShapeWithHandlesSelector)
+  const isDarkMode = useSelector(isDarkModeSelector)
+
+  const isSelecting = useSelector(isInSelectSelector)
+
+  const isSelectedHandlesShape = useSelector(isSelectedShapeWithHandlesSelector)
 
   const isInSession = tlstate.session !== undefined
 
@@ -89,20 +115,7 @@ export function TLDraw({ id, document, currentPageId, onMount, onChange: _onChan
   // Custom rendering meta, with dark mode for shapes
   const meta = React.useMemo(() => ({ isDarkMode }), [isDarkMode])
 
-  React.useEffect(() => {
-    if (!document) return
-    tlstate.loadDocument(document, _onChange)
-  }, [document, tlstate])
-
-  React.useEffect(() => {
-    if (!currentPageId) return
-    tlstate.changePage(currentPageId)
-  }, [currentPageId, tlstate])
-
-  React.useEffect(() => {
-    onMount?.(tlstate)
-  }, [])
-
+  // Custom theme, based on darkmode
   const theme = React.useMemo(() => {
     if (isDarkMode) {
       return {
@@ -119,80 +132,76 @@ export function TLDraw({ id, document, currentPageId, onMount, onChange: _onChan
   }, [isDarkMode])
 
   return (
-    <TLDrawContext.Provider value={context}>
-      <IdProvider>
-        <Layout>
-          <ContextMenu>
-            <Renderer
-              page={page}
-              pageState={pageState}
-              shapeUtils={tldrawShapeUtils}
-              theme={theme}
-              meta={meta}
-              hideBounds={hideBounds}
-              hideHandles={hideHandles}
-              hideIndicators={hideIndicators}
-              onPinchStart={tlstate.onPinchStart}
-              onPinchEnd={tlstate.onPinchEnd}
-              onPinch={tlstate.onPinch}
-              onPan={tlstate.onPan}
-              onZoom={tlstate.onZoom}
-              onPointerDown={tlstate.onPointerDown}
-              onPointerMove={tlstate.onPointerMove}
-              onPointerUp={tlstate.onPointerUp}
-              onPointCanvas={tlstate.onPointCanvas}
-              onDoubleClickCanvas={tlstate.onDoubleClickCanvas}
-              onRightPointCanvas={tlstate.onRightPointCanvas}
-              onDragCanvas={tlstate.onDragCanvas}
-              onReleaseCanvas={tlstate.onReleaseCanvas}
-              onPointShape={tlstate.onPointShape}
-              onDoubleClickShape={tlstate.onDoubleClickShape}
-              onRightPointShape={tlstate.onRightPointShape}
-              onDragShape={tlstate.onDragShape}
-              onHoverShape={tlstate.onHoverShape}
-              onUnhoverShape={tlstate.onUnhoverShape}
-              onReleaseShape={tlstate.onReleaseShape}
-              onPointBounds={tlstate.onPointBounds}
-              onDoubleClickBounds={tlstate.onDoubleClickBounds}
-              onRightPointBounds={tlstate.onRightPointBounds}
-              onDragBounds={tlstate.onDragBounds}
-              onHoverBounds={tlstate.onHoverBounds}
-              onUnhoverBounds={tlstate.onUnhoverBounds}
-              onReleaseBounds={tlstate.onReleaseBounds}
-              onPointBoundsHandle={tlstate.onPointBoundsHandle}
-              onDoubleClickBoundsHandle={tlstate.onDoubleClickBoundsHandle}
-              onRightPointBoundsHandle={tlstate.onRightPointBoundsHandle}
-              onDragBoundsHandle={tlstate.onDragBoundsHandle}
-              onHoverBoundsHandle={tlstate.onHoverBoundsHandle}
-              onUnhoverBoundsHandle={tlstate.onUnhoverBoundsHandle}
-              onReleaseBoundsHandle={tlstate.onReleaseBoundsHandle}
-              onPointHandle={tlstate.onPointHandle}
-              onDoubleClickHandle={tlstate.onDoubleClickHandle}
-              onRightPointHandle={tlstate.onRightPointHandle}
-              onDragHandle={tlstate.onDragHandle}
-              onHoverHandle={tlstate.onHoverHandle}
-              onUnhoverHandle={tlstate.onUnhoverHandle}
-              onReleaseHandle={tlstate.onReleaseHandle}
-              onChange={tlstate.onChange}
-              onError={tlstate.onError}
-              onBlurEditingShape={tlstate.onBlurEditingShape}
-              onTextBlur={tlstate.onTextBlur}
-              onTextChange={tlstate.onTextChange}
-              onTextKeyDown={tlstate.onTextKeyDown}
-              onTextFocus={tlstate.onTextFocus}
-              onTextKeyUp={tlstate.onTextKeyUp}
-            />
-          </ContextMenu>
-          <MenuButtons>
-            <Menu />
-            <PagePanel />
-          </MenuButtons>
-          <Spacer />
-          <StylePanel />
-          <ToolsPanel />
-        </Layout>
-      </IdProvider>
-    </TLDrawContext.Provider>
+    <Layout>
+      <ContextMenu>
+        <Renderer
+          page={page}
+          pageState={pageState}
+          shapeUtils={tldrawShapeUtils}
+          theme={theme}
+          meta={meta}
+          hideBounds={hideBounds}
+          hideHandles={hideHandles}
+          hideIndicators={hideIndicators}
+          onPinchStart={tlstate.onPinchStart}
+          onPinchEnd={tlstate.onPinchEnd}
+          onPinch={tlstate.onPinch}
+          onPan={tlstate.onPan}
+          onZoom={tlstate.onZoom}
+          onPointerDown={tlstate.onPointerDown}
+          onPointerMove={tlstate.onPointerMove}
+          onPointerUp={tlstate.onPointerUp}
+          onPointCanvas={tlstate.onPointCanvas}
+          onDoubleClickCanvas={tlstate.onDoubleClickCanvas}
+          onRightPointCanvas={tlstate.onRightPointCanvas}
+          onDragCanvas={tlstate.onDragCanvas}
+          onReleaseCanvas={tlstate.onReleaseCanvas}
+          onPointShape={tlstate.onPointShape}
+          onDoubleClickShape={tlstate.onDoubleClickShape}
+          onRightPointShape={tlstate.onRightPointShape}
+          onDragShape={tlstate.onDragShape}
+          onHoverShape={tlstate.onHoverShape}
+          onUnhoverShape={tlstate.onUnhoverShape}
+          onReleaseShape={tlstate.onReleaseShape}
+          onPointBounds={tlstate.onPointBounds}
+          onDoubleClickBounds={tlstate.onDoubleClickBounds}
+          onRightPointBounds={tlstate.onRightPointBounds}
+          onDragBounds={tlstate.onDragBounds}
+          onHoverBounds={tlstate.onHoverBounds}
+          onUnhoverBounds={tlstate.onUnhoverBounds}
+          onReleaseBounds={tlstate.onReleaseBounds}
+          onPointBoundsHandle={tlstate.onPointBoundsHandle}
+          onDoubleClickBoundsHandle={tlstate.onDoubleClickBoundsHandle}
+          onRightPointBoundsHandle={tlstate.onRightPointBoundsHandle}
+          onDragBoundsHandle={tlstate.onDragBoundsHandle}
+          onHoverBoundsHandle={tlstate.onHoverBoundsHandle}
+          onUnhoverBoundsHandle={tlstate.onUnhoverBoundsHandle}
+          onReleaseBoundsHandle={tlstate.onReleaseBoundsHandle}
+          onPointHandle={tlstate.onPointHandle}
+          onDoubleClickHandle={tlstate.onDoubleClickHandle}
+          onRightPointHandle={tlstate.onRightPointHandle}
+          onDragHandle={tlstate.onDragHandle}
+          onHoverHandle={tlstate.onHoverHandle}
+          onUnhoverHandle={tlstate.onUnhoverHandle}
+          onReleaseHandle={tlstate.onReleaseHandle}
+          onChange={tlstate.onChange}
+          onError={tlstate.onError}
+          onBlurEditingShape={tlstate.onBlurEditingShape}
+          onTextBlur={tlstate.onTextBlur}
+          onTextChange={tlstate.onTextChange}
+          onTextKeyDown={tlstate.onTextKeyDown}
+          onTextFocus={tlstate.onTextFocus}
+          onTextKeyUp={tlstate.onTextKeyUp}
+        />
+      </ContextMenu>
+      <MenuButtons>
+        <Menu />
+        <PagePanel />
+      </MenuButtons>
+      <Spacer />
+      <StylePanel />
+      <ToolsPanel />
+    </Layout>
   )
 }
 

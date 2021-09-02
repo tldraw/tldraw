@@ -14,6 +14,7 @@ import {
   Vec,
   brushUpdater,
   TLPointerInfo,
+  inputs,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -67,6 +68,7 @@ const initialData: Data = {
   settings: {
     isPenMode: false,
     isDarkMode: false,
+    isZoomSnap: true,
     isDebugMode: process.env.NODE_ENV === 'development',
     isReadonlyMode: false,
     nudgeDistanceLarge: 10,
@@ -92,7 +94,7 @@ const initialData: Data = {
 }
 
 export class TLDrawState extends StateManager<Data> {
-  _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
+  private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
 
   selectHistory: SelectHistory = {
     stack: [[]],
@@ -112,7 +114,15 @@ export class TLDrawState extends StateManager<Data> {
   isCreating = false
 
   constructor(id = Utils.uniqueId()) {
-    super(initialData, id, 1)
+    super(initialData, id, 2, (prev, next, prevVersion) => {
+      const state = { ...prev }
+      if (prevVersion === 1)
+        state.settings = {
+          ...state.settings,
+          isZoomSnap: next.settings.isZoomSnap,
+        }
+      return state
+    })
 
     this.session = undefined
     this.pointedId = undefined
@@ -182,7 +192,7 @@ export class TLDrawState extends StateManager<Data> {
             // (unless the group is being deleted too)
             if (parentId && parentId !== pageId) {
               const group = page.shapes[parentId]
-              if (group) {
+              if (group !== undefined) {
                 groupsToUpdate.add(page.shapes[parentId] as GroupShape)
               }
             }
@@ -353,6 +363,19 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /**
+   * Toggle zoom snap.
+   * @returns this
+   */
+  toggleZoomSnap = () => {
+    this.patchState(
+      { settings: { isZoomSnap: !this.state.settings.isZoomSnap } },
+      `settings:toggled_zoom_snap`
+    )
+    this.persist()
+    return this
+  }
+
+  /**
    * Toggle debug mode.
    * @returns this
    */
@@ -419,6 +442,7 @@ export class TLDrawState extends StateManager<Data> {
 
   resetDocument = (): this => {
     this.loadDocument(defaultDocument)
+    this.persist()
     return this
   }
 
@@ -906,9 +930,8 @@ export class TLDrawState extends StateManager<Data> {
    * @param next The new zoom level.
    * @returns this
    */
-  zoomTo = (next: number): this => {
+  zoomTo = (next: number, center = [window.innerWidth / 2, window.innerHeight / 2]): this => {
     const { zoom, point } = this.pageState.camera
-    const center = [window.innerWidth / 2, window.innerHeight / 2]
     const p0 = Vec.sub(Vec.div(center, zoom), point)
     const p1 = Vec.sub(Vec.div(center, next), point)
     return this.setCamera(Vec.round(Vec.add(point, Vec.sub(p1, p0))), next, `zoomed_camera`)
@@ -1534,7 +1557,6 @@ export class TLDrawState extends StateManager<Data> {
    * @returns this
    */
   style = (style: Partial<ShapeStyles>, ids = this.selectedIds): this => {
-    if (ids.length === 0) return this
     return this.setState(Commands.style(this.state, ids, style))
   }
 
@@ -2006,7 +2028,7 @@ export class TLDrawState extends StateManager<Data> {
       }
       case TLDrawStatus.Translating: {
         if (key === 'Shift' || key === 'Alt') {
-          this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
+          this.updateTranslateSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
         }
         break
       }
@@ -2035,6 +2057,11 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   onPinchEnd: TLPinchEventHandler = () => {
+    if (this.state.settings.isZoomSnap) {
+      const i = Math.round((this.pageState.camera.zoom * 100) / 25)
+      const nextZoom = TLDR.getCameraZoom(i * 0.25)
+      this.zoomTo(nextZoom, inputs.pointer?.point)
+    }
     this.setStatus(this.appState.status.previous)
   }
 
