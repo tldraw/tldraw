@@ -22,4 +22,28 @@ describe('Style command', () => {
 
     expect(tlstate.getShape('rect1').style.size).toEqual(SizeStyle.Small)
   })
+
+  describe('When styling groups', () => {
+    it('applies style to all group children', () => {
+      const tlstate = new TLDrawState()
+      tlstate
+        .loadDocument(mockDocument)
+        .group(['rect1', 'rect2'], 'groupA')
+        .select('groupA')
+        .style({ size: SizeStyle.Small })
+
+      expect(tlstate.getShape('rect1').style.size).toEqual(SizeStyle.Small)
+      expect(tlstate.getShape('rect2').style.size).toEqual(SizeStyle.Small)
+
+      tlstate.undo()
+
+      expect(tlstate.getShape('rect1').style.size).toEqual(SizeStyle.Medium)
+      expect(tlstate.getShape('rect2').style.size).toEqual(SizeStyle.Medium)
+
+      tlstate.redo()
+
+      expect(tlstate.getShape('rect1').style.size).toEqual(SizeStyle.Small)
+      expect(tlstate.getShape('rect2').style.size).toEqual(SizeStyle.Small)
+    })
+  })
 })

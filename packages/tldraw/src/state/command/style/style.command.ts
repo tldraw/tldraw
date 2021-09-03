@@ -4,9 +4,11 @@ import { TLDR } from '~state/tldr'
 export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>): TLDrawCommand {
   const { currentPageId } = data.appState
 
+  const shapeIdsToMutate = ids.flatMap((id) => TLDR.getDocumentBranch(data, id, currentPageId))
+
   const { before, after } = TLDR.mutateShapes(
     data,
-    ids,
+    shapeIdsToMutate,
     (shape) => ({ style: { ...shape.style, ...changes } }),
     currentPageId
   )
