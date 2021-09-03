@@ -2132,12 +2132,14 @@ export class TLDrawState extends StateManager<Data> {
     switch (this.appState.status.current) {
       case TLDrawStatus.PointingBounds: {
         if (info.target === 'bounds') {
-          // If we just clicked the selecting bounds's background, clear the selection
+          // If we just clicked the selecting bounds's background,
+          // clear the selection
           this.deselectAll()
         } else if (this.selectedIds.includes(info.target)) {
           // If we're holding shift...
           if (info.shiftKey) {
-            // unless we just shift-selected the shape, remove it from the selected shapes
+            // unless we just shift-selected the shape, remove it from
+            // the selected shapes
             if (this.pointedId !== info.target) {
               this.select(...this.selectedIds.filter((id) => id !== info.target))
             }
@@ -2250,27 +2252,39 @@ export class TLDrawState extends StateManager<Data> {
 
   // Shape
   onPointShape: TLPointerEventHandler = (info) => {
-    switch (this.appState.status.current) {
+    const { activeTool, status } = this.appState
+
+    // While holding command and shift, select or deselect
+    // the shape, ignoring any group that may contain it. Yikes!
+    if (
+      activeTool === 'select' &&
+      (status.current === TLDrawStatus.Idle || status.current === TLDrawStatus.PointingBounds) &&
+      info.metaKey &&
+      info.shiftKey &&
+      this.pageState.hoveredId
+    ) {
+      const targetId = this.pageState.hoveredId
+      this.pointedId = targetId
+
+      if (this.selectedIds.includes(targetId)) {
+        // Deselect if selected
+        this.select(...this.selectedIds.filter((id) => id !== targetId))
+      } else {
+        const shape = this.getShape(this.pageState.hoveredId)
+        // Push select the shape, deselecting the shape's parent if selected
+        this.select(...this.selectedIds.filter((id) => id !== shape.parentId), targetId)
+      }
+
+      return
+    }
+
+    switch (status.current) {
       case TLDrawStatus.Idle: {
-        switch (this.appState.activeTool) {
+        switch (activeTool) {
           case 'select': {
             if (info.metaKey) {
-              if (info.shiftKey) {
-                // While holding command and shift, select or deselect
-                // the shape, ignoring any group that may contain it
-                this.pointedId = info.target
-
-                if (this.selectedIds.includes(info.target)) {
-                  // Deselect if selected
-                  this.select(...this.selectedIds.filter((id) => id !== info.target))
-                } else {
-                  // Otherwise, push select the shape
-                  this.select(...this.selectedIds, info.target)
-                }
-              } else {
-                // While holding just command key, start a brush session
-                this.startBrushSession(this.getPagePoint(info.point))
-              }
+              // While holding just command key, start a brush session
+              this.startBrushSession(this.getPagePoint(info.point))
               return
             }
 
@@ -2320,23 +2334,23 @@ export class TLDrawState extends StateManager<Data> {
         // If we've clicked on a shape that is inside of a group,
         // then select the group rather than the shape.
 
-        if (info.metaKey && info.shiftKey) {
-          const targetId = this.pageState.hoveredId
-          if (targetId) {
-            this.pointedId = targetId
-            const shape = this.getShape(targetId)
-            if (this.selectedIds.includes(targetId)) {
-              this.select(...this.selectedIds.filter((id) => id !== targetId))
-            } else {
-              if (this.selectedIds.includes(shape.parentId)) {
-                this.select(targetId)
-              } else {
-                this.select(...this.selectedIds, targetId)
-              }
-            }
-            return
-          }
-        }
+        // if (info.metaKey && info.shiftKey) {
+        //   const targetId = this.pageState.hoveredId
+        //   if (targetId) {
+        //     this.pointedId = targetId
+        //     const shape = this.getShape(targetId)
+        //     if (this.selectedIds.includes(targetId)) {
+        //       this.select(...this.selectedIds.filter((id) => id !== targetId))
+        //     } else {
+        //       if (this.selectedIds.includes(shape.parentId)) {
+        //         this.select(targetId)
+        //       } else {
+        //         this.select(...this.selectedIds, targetId)
+        //       }
+        //     }
+        //     return
+        //   }
+        // }
 
         const { parentId } = this.getShape(info.target)
         this.pointedId = parentId === this.currentPageId ? info.target : parentId

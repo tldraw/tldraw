@@ -80,9 +80,7 @@ export class TLStateUtils {
   }
 
   clickShape = (id: string, options: PointerOptions = {}) => {
-    if (this.tlstate.selectedIds.includes(id)) {
-      this.pointBounds(options)
-    }
+    this.hoverShape(id)
     this.pointShape(id, options)
     this.stopPointing(id, options)
     return this

@@ -316,7 +316,6 @@ describe('TLDrawState', () => {
         .group(['rect1', 'rect2'], 'groupA')
 
       const tlu = new TLStateUtils(tlstate)
-      tlu.hoverShape('rect1')
 
       tlu.clickShape('rect1', { ctrlKey: true, shiftKey: true })
       expect(tlstate.selectedIds).toStrictEqual(['rect1'])
