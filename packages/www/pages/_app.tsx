@@ -16,9 +16,7 @@ function MyApp({ Component, pageProps }: AppProps): JSX.Element {
         />
       </Head>
       <div>
-        <main>
-          <Component {...pageProps} />
-        </main>
+        <Component {...pageProps} />
       </div>
     </>
   )
