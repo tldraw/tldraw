@@ -1,9 +1,8 @@
 import Head from 'next/head'
 import dynamic from 'next/dynamic'
+const Editor = dynamic(() => import('../components/editor'), { ssr: false })
 // import type { GetServerSideProps } from 'next'
 // import { getSession } from 'next-auth/client'
-
-const Editor = dynamic(() => import('components/editor'), { ssr: false })
 
 export default function Home(): JSX.Element {
   return (

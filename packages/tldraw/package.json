@@ -59,7 +59,6 @@
     "@radix-ui/react-tooltip": "^0.0.21",
     "@stitches/react": "^1.0.0",
     "@tldraw/core": "^0.0.57",
-    "ismobilejs": "^1.1.1",
     "perfect-freehand": "^0.5.3",
     "react-hotkeys-hook": "^3.4.0",
     "rko": "^0.5.19"
