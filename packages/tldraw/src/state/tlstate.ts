@@ -128,25 +128,6 @@ export class TLDrawState extends StateManager<Data> {
 
     this.session = undefined
     this.pointedId = undefined
-
-    this.patchState({
-      appState: {
-        status: {
-          current: TLDrawStatus.Idle,
-          previous: TLDrawStatus.Idle,
-        },
-      },
-      document: {
-        pageStates: {
-          [this.currentPageId]: {
-            bindingId: undefined,
-            editingId: undefined,
-            hoveredId: undefined,
-            pointedId: undefined,
-          },
-        },
-      },
-    })
   }
   /* -------------------- Internal -------------------- */
 
@@ -243,6 +224,7 @@ export class TLDrawState extends StateManager<Data> {
           })
 
           groupsToUpdate.forEach((group) => {
+            if (!group) throw Error('no group!')
             const children = group.children.filter((id) => page.shapes[id] !== undefined)
 
             const commonBounds = Utils.getCommonBounds(
@@ -341,6 +323,7 @@ export class TLDrawState extends StateManager<Data> {
    * @returns this
    */
   togglePenMode = (): this => {
+    if (this.session) return this
     return this.patchState(
       {
         settings: {
@@ -356,6 +339,7 @@ export class TLDrawState extends StateManager<Data> {
    * @returns this
    */
   toggleDarkMode = (): this => {
+    if (this.session) return this
     this.patchState(
       { settings: { isDarkMode: !this.state.settings.isDarkMode } },
       `settings:toggled_dark_mode`
@@ -369,6 +353,7 @@ export class TLDrawState extends StateManager<Data> {
    * @returns this
    */
   toggleZoomSnap = () => {
+    if (this.session) return this
     this.patchState(
       { settings: { isZoomSnap: !this.state.settings.isZoomSnap } },
       `settings:toggled_zoom_snap`
@@ -382,6 +367,7 @@ export class TLDrawState extends StateManager<Data> {
    * @returns this
    */
   toggleDebugMode = () => {
+    if (this.session) return this
     this.patchState(
       { settings: { isDebugMode: !this.state.settings.isDebugMode } },
       `settings:toggled_debug`
@@ -395,6 +381,7 @@ export class TLDrawState extends StateManager<Data> {
    * @returns this
    */
   toggleStylePanel = (): this => {
+    if (this.session) return this
     this.patchState(
       { appState: { isStyleOpen: !this.appState.isStyleOpen } },
       'ui:toggled_style_panel'
@@ -409,6 +396,7 @@ export class TLDrawState extends StateManager<Data> {
    * @returns this
    */
   selectTool = (tool: TLDrawShapeType | 'select'): this => {
+    if (this.session) return this
     return this.patchState(
       {
         appState: {
@@ -428,6 +416,7 @@ export class TLDrawState extends StateManager<Data> {
    * @returns this
    */
   toggleToolLock = (): this => {
+    if (this.session) return this
     return this.patchState(
       {
         appState: {
@@ -443,8 +432,31 @@ export class TLDrawState extends StateManager<Data> {
   /* -------------------------------------------------- */
 
   resetDocument = (): this => {
-    this.loadDocument(defaultDocument)
-    this.persist()
+    if (this.session) return this
+    this.session = undefined
+    this.selectedGroupId = undefined
+    this.resetHistory()
+      .clearSelectHistory()
+      .loadDocument(defaultDocument)
+      .patchState({
+        appState: {
+          status: {
+            current: TLDrawStatus.Idle,
+            previous: TLDrawStatus.Idle,
+          },
+        },
+        document: {
+          pageStates: {
+            [this.currentPageId]: {
+              bindingId: undefined,
+              editingId: undefined,
+              hoveredId: undefined,
+              pointedId: undefined,
+            },
+          },
+        },
+      })
+      .persist()
     return this
   }
 
@@ -459,6 +471,8 @@ export class TLDrawState extends StateManager<Data> {
     this.deselectAll()
     this.resetHistory()
     this.clearSelectHistory()
+    this.session = undefined
+    this.selectedGroupId = undefined
 
     return this.replaceState({
       ...this.state,
