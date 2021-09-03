@@ -66,7 +66,6 @@ export function useShapeEvents(id: string, disable = false) {
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
       if (disable) return
-      e.stopPropagation()
 
       if (inputs.pointer && e.pointerId !== inputs.pointer.pointerId) return
 
