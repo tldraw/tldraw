@@ -1,5 +1,5 @@
 import NextDocument, { Html, Head, Main, NextScript, DocumentContext } from 'next/document'
-import { getCssString } from 'styles'
+import { getCssText } from '-styles'
 import { GA_TRACKING_ID } from '-utils/gtag'
 
 class MyDocument extends NextDocument {
@@ -11,7 +11,7 @@ class MyDocument extends NextDocument {
       styles: (
         <>
           {initialProps.styles}
-          <style id="stitches" dangerouslySetInnerHTML={{ __html: getCssString() }} />
+          <style id="stitches" dangerouslySetInnerHTML={{ __html: getCssText() }} />
         </>
       ),
     }

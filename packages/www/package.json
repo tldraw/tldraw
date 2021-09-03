@@ -23,7 +23,7 @@
     "@sentry/react": "^6.12.0",
     "@sentry/tracing": "^6.12.0",
     "@sentry/webpack-plugin": "^1.17.1",
-    "@stitches/react": "^0.2.3",
+    "@stitches/react": "^1.0.0",
     "@tldraw/tldraw": "^0.0.57",
     "browser-fs-access": "^0.20.4",
     "gtag": "^1.0.1",
