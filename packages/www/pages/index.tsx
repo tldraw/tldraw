@@ -11,10 +11,9 @@ export default function Home(): JSX.Element {
       <Head>
         <title>tldraw</title>
       </Head>
-      <div style={{ display: 'absolute', zIndex: 1 }}>
+      <div>
         <Editor />
       </div>
-      <button style={{ display: 'absolute', zIndex: 9999999 }}>Sign Out</button>
     </>
   )
 }
