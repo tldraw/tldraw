@@ -249,7 +249,7 @@ export class TLDrawState extends StateManager<Data> {
               children
                 .map((id) => page.shapes[id])
                 .filter(Boolean)
-                .map((shape) => TLDR.getBounds(shape))
+                .map((shape) => TLDR.getRotatedBounds(shape))
             )
 
             page.shapes[group.id] = {
@@ -1423,7 +1423,11 @@ export class TLDrawState extends StateManager<Data> {
       return this.startSession(new Sessions.RotateSession(this.state, point))
     }
 
-    if (this.selectedIds.length === 1) {
+    const idsToTransform = selectedIds.flatMap((id) =>
+      TLDR.getDocumentBranch(this.state, id, this.currentPageId)
+    )
+
+    if (idsToTransform.length === 1) {
       return this.startSession(
         new Sessions.TransformSingleSession(this.state, point, this.pointedBoundsHandle, commandId)
       )

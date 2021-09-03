@@ -186,4 +186,35 @@ describe('Transform session', () => {
   describe('when transforming from the left edge', () => {
     // Todo
   })
+
+  describe('when transforming a group', () => {
+    it('transforms the groups children', () => {
+      const tlstate = new TLDrawState()
+      tlstate
+        .loadDocument(mockDocument)
+        .group(['rect1', 'rect2'], 'groupA')
+        .select('groupA')
+        .startTransformSession([0, 0], TLBoundsCorner.TopLeft)
+        .updateTransformSession([10, 10])
+        .completeSession()
+
+      expect(getShapeBounds(tlstate, 'rect1')).toMatchObject({
+        minX: 10,
+        minY: 10,
+        maxX: 105,
+        maxY: 105,
+        width: 95,
+        height: 95,
+      })
+
+      expect(getShapeBounds(tlstate, 'rect2')).toMatchObject({
+        minX: 105,
+        minY: 105,
+        maxX: 200,
+        maxY: 200,
+        width: 95,
+        height: 95,
+      })
+    })
+  })
 })
