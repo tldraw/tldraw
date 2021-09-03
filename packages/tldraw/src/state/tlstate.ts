@@ -431,6 +431,10 @@ export class TLDrawState extends StateManager<Data> {
   /*                      Document                      */
   /* -------------------------------------------------- */
 
+  /**
+   * Reset the document to a blank state.
+   * @returns this
+   */
   resetDocument = (): this => {
     if (this.session) return this
     this.session = undefined
@@ -438,24 +442,27 @@ export class TLDrawState extends StateManager<Data> {
     this.resetHistory()
       .clearSelectHistory()
       .loadDocument(defaultDocument)
-      .patchState({
-        appState: {
-          status: {
-            current: TLDrawStatus.Idle,
-            previous: TLDrawStatus.Idle,
+      .patchState(
+        {
+          appState: {
+            status: {
+              current: TLDrawStatus.Idle,
+              previous: TLDrawStatus.Idle,
+            },
           },
-        },
-        document: {
-          pageStates: {
-            [this.currentPageId]: {
-              bindingId: undefined,
-              editingId: undefined,
-              hoveredId: undefined,
-              pointedId: undefined,
+          document: {
+            pageStates: {
+              [this.currentPageId]: {
+                bindingId: undefined,
+                editingId: undefined,
+                hoveredId: undefined,
+                pointedId: undefined,
+              },
             },
           },
         },
-      })
+        'reset_document'
+      )
       .persist()
     return this
   }
@@ -2391,6 +2398,11 @@ export class TLDrawState extends StateManager<Data> {
             const shape = this.getShape(info.target)
             if (shape.parentId !== this.currentPageId) {
               this.selectedGroupId = shape.parentId
+            }
+            if (this.selectedIds.includes(shape.id)) {
+              if (shape.type === TLDrawShapeType.Text) {
+                this.startTextSession(info.target)
+              }
             }
             this.select(info.target)
             break

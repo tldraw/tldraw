@@ -39,7 +39,7 @@ export class Group extends TLDrawShapeUtil<GroupShape> {
     return next.size !== prev.size || next.style !== prev.style
   }
 
-  render(shape: GroupShape, { isBinding, isHovered }: TLDrawRenderInfo) {
+  render(shape: GroupShape, { isBinding, isHovered, isSelected }: TLDrawRenderInfo) {
     const { id, size } = shape
 
     const sw = 2
@@ -68,7 +68,7 @@ export class Group extends TLDrawShapeUtil<GroupShape> {
           x2={end[0]}
           y2={end[1]}
           stroke={ColorStyle.Black}
-          strokeWidth={isHovered ? sw : 0}
+          strokeWidth={isHovered || isSelected ? sw : 0}
           strokeLinecap="round"
           strokeDasharray={strokeDasharray}
           strokeDashoffset={strokeDashoffset}
@@ -224,18 +224,11 @@ export class Group extends TLDrawShapeUtil<GroupShape> {
     )
   }
 
-  transform(
-    shape: GroupShape,
-    bounds: TLBounds,
-    { initialShape, transformOrigin, scaleX, scaleY }: TLTransformInfo<GroupShape>
-  ) {
+  transform() {
     return {}
   }
 
-  transformSingle(_shape: GroupShape, bounds: TLBounds) {
-    return {
-      size: Vec.round([bounds.width, bounds.height]),
-      point: Vec.round([bounds.minX, bounds.minY]),
-    }
+  transformSingle() {
+    return {}
   }
 }

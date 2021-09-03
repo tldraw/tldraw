@@ -299,23 +299,14 @@ export class Text extends TLDrawShapeUtil<TextShape> {
   transform(
     _shape: TextShape,
     bounds: TLBounds,
-    { initialShape, scaleX, scaleY }: TLTransformInfo<TextShape>
+    { initialShape, scaleX, scaleY, transformOrigin }: TLTransformInfo<TextShape>
   ): Partial<TextShape> {
     const {
-      isAspectRatioLocked,
       rotation = 0,
       style: { scale = 1 },
     } = initialShape
 
-    if (!rotation && !isAspectRatioLocked) {
-      return {
-        point: [bounds.minX, bounds.minY],
-        style: {
-          ...initialShape.style,
-          scale: scale * Math.abs(scaleX),
-        },
-      }
-    }
+    const nextScale = scale * Math.abs(Math.min(scaleX, scaleY))
 
     return {
       point: [bounds.minX, bounds.minY],
@@ -323,7 +314,7 @@ export class Text extends TLDrawShapeUtil<TextShape> {
         (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0) ? -(rotation || 0) : rotation,
       style: {
         ...initialShape.style,
-        scale: scale * Math.abs(Math.min(scaleX, scaleY)),
+        scale: nextScale,
       },
     }
   }

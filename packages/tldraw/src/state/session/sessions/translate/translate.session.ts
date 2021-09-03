@@ -356,6 +356,8 @@ export function getTranslateSnapshot(data: Data) {
   shapesToMove.forEach((shape) => {
     const newId = Utils.uniqueId()
 
+    initialParentChildren[newId] = initialParentChildren[shape.id]
+
     cloneMap[shape.id] = newId
 
     clones.push({

@@ -104,13 +104,13 @@ function InnerTldraw() {
   const isInSession = tlstate.session !== undefined
 
   // Hide bounds when not using the select tool, or when the only selected shape has handles
-  const hideBounds = !isSelecting || isSelectedHandlesShape
+  const hideBounds = isInSession || !isSelecting || isSelectedHandlesShape
 
   // Hide bounds when not using the select tool, or when in session
-  const hideHandles = !isSelecting || isInSession
+  const hideHandles = isInSession || !isSelecting
 
   // Hide indicators when not using the select tool, or when in session
-  const hideIndicators = !isSelecting || isInSession
+  const hideIndicators = isInSession || !isSelecting
 
   // Custom rendering meta, with dark mode for shapes
   const meta = React.useMemo(() => ({ isDarkMode }), [isDarkMode])
