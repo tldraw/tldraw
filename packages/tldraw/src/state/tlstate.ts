@@ -729,15 +729,17 @@ export class TLDrawState extends StateManager<Data> {
    * @returns this
    */
   copy = (ids = this.selectedIds): this => {
-    this.clipboard = ids.map((id) => {
-      const shape = this.getShape(id, this.currentPageId)
+    this.clipboard = ids
+      .flatMap((id) => TLDR.getDocumentBranch(this.state, id, this.currentPageId))
+      .map((id) => {
+        const shape = this.getShape(id, this.currentPageId)
 
-      return {
-        ...shape,
-        id: Utils.uniqueId(),
-        childIndex: TLDR.getChildIndexAbove(this.state, id, this.currentPageId),
-      }
-    })
+        return {
+          ...shape,
+          id: Utils.uniqueId(),
+          childIndex: TLDR.getChildIndexAbove(this.state, id, this.currentPageId),
+        }
+      })
 
     return this
   }
@@ -794,10 +796,12 @@ export class TLDrawState extends StateManager<Data> {
 
     if (!this.clipboard) return this
 
+    const idsMap = Object.fromEntries(this.clipboard.map((shape) => [shape.id, Utils.uniqueId()]))
+
     const shapesToPaste = this.clipboard.map((shape) => ({
       ...shape,
-      id: Utils.uniqueId(),
-      parentId: this.currentPageId,
+      id: idsMap[shape.id],
+      parentId: idsMap[shape.parentId] || this.currentPageId,
     }))
 
     const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
@@ -2308,6 +2312,9 @@ export class TLDrawState extends StateManager<Data> {
         switch (activeTool) {
           case 'select': {
             if (info.metaKey) {
+              if (!info.shiftKey) {
+                this.deselectAll()
+              }
               // While holding just command key, start a brush session
               this.startBrushSession(this.getPagePoint(info.point))
               return
@@ -2356,27 +2363,6 @@ export class TLDrawState extends StateManager<Data> {
         break
       }
       case TLDrawStatus.PointingBounds: {
-        // If we've clicked on a shape that is inside of a group,
-        // then select the group rather than the shape.
-
-        // if (info.metaKey && info.shiftKey) {
-        //   const targetId = this.pageState.hoveredId
-        //   if (targetId) {
-        //     this.pointedId = targetId
-        //     const shape = this.getShape(targetId)
-        //     if (this.selectedIds.includes(targetId)) {
-        //       this.select(...this.selectedIds.filter((id) => id !== targetId))
-        //     } else {
-        //       if (this.selectedIds.includes(shape.parentId)) {
-        //         this.select(targetId)
-        //       } else {
-        //         this.select(...this.selectedIds, targetId)
-        //       }
-        //     }
-        //     return
-        //   }
-        // }
-
         const { parentId } = this.getShape(info.target)
         this.pointedId = parentId === this.currentPageId ? info.target : parentId
 
@@ -2459,7 +2445,16 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   // Bounds (bounding box background)
-  onPointBounds: TLBoundsEventHandler = () => {
+  onPointBounds: TLBoundsEventHandler = (info) => {
+    if (info.metaKey) {
+      if (!info.shiftKey) {
+        this.deselectAll()
+      }
+      // While holding just command key, start a brush session
+      this.startBrushSession(this.getPagePoint(info.point))
+      return
+    }
+
     this.setStatus(TLDrawStatus.PointingBounds)
   }
 
