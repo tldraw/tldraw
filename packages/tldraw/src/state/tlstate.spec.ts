@@ -75,7 +75,6 @@ describe('TLDrawState', () => {
       tlstate.loadDocument(mockDocument).deselectAll()
       tlu.clickShape('rect1')
       tlu.clickShape('rect2', { shiftKey: true })
-      expect(tlstate.selectedIds).toStrictEqual(['rect1', 'rect2'])
       tlu.clickShape('rect2', { shiftKey: true })
       expect(tlstate.selectedIds).toStrictEqual(['rect1'])
       expect(tlstate.appState.status.current).toBe('idle')
@@ -104,13 +103,6 @@ describe('TLDrawState', () => {
     it('does not select on meta-click', () => {
       tlstate.loadDocument(mockDocument).deselectAll()
       tlu.clickShape('rect1', { ctrlKey: true })
-      expect(tlstate.selectedIds).toStrictEqual([])
-      expect(tlstate.appState.status.current).toBe('idle')
-    })
-
-    it('does not select on meta-shift-click', () => {
-      tlstate.loadDocument(mockDocument).deselectAll()
-      tlu.clickShape('rect1', { ctrlKey: true, shiftKey: true })
       expect(tlstate.selectedIds).toStrictEqual([])
       expect(tlstate.appState.status.current).toBe('idle')
     })
@@ -232,8 +224,6 @@ describe('TLDrawState', () => {
 
   describe('Mutates bound shapes', () => {
     const tlstate = new TLDrawState()
-
-    tlstate
       .createShapes(
         {
           id: 'rect',
@@ -268,5 +258,106 @@ describe('TLDrawState', () => {
 
     expect(tlstate.getShape('arrow').style.color).toBe(ColorStyle.Red)
     expect(tlstate.getShape('rect').style.color).toBe(ColorStyle.Red)
+  })
+
+  describe('when selecting shapes in a group', () => {
+    it('selects the group when a grouped shape is clicked', () => {
+      const tlstate = new TLDrawState()
+        .loadDocument(mockDocument)
+        .group(['rect1', 'rect2'], 'groupA')
+
+      const tlu = new TLStateUtils(tlstate)
+      tlu.clickShape('rect1')
+      expect(tlstate.selectedGroupId).toBeUndefined()
+      expect(tlstate.selectedIds).toStrictEqual(['groupA'])
+    })
+
+    it('selects the grouped shape when double clicked', () => {
+      const tlstate = new TLDrawState()
+        .loadDocument(mockDocument)
+        .group(['rect1', 'rect2'], 'groupA')
+
+      const tlu = new TLStateUtils(tlstate)
+      tlu.doubleClickShape('rect1')
+      expect(tlstate.selectedGroupId).toStrictEqual('groupA')
+      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+    })
+
+    it('clears the selectedGroupId when selecting a different shape', () => {
+      const tlstate = new TLDrawState()
+        .loadDocument(mockDocument)
+        .group(['rect1', 'rect2'], 'groupA')
+
+      const tlu = new TLStateUtils(tlstate)
+      tlu.doubleClickShape('rect1')
+      tlu.clickShape('rect3')
+      expect(tlstate.selectedGroupId).toBeUndefined()
+      expect(tlstate.selectedIds).toStrictEqual(['rect3'])
+    })
+
+    it('selects a grouped shape when meta-shift-clicked', () => {
+      const tlstate = new TLDrawState()
+        .loadDocument(mockDocument)
+        .group(['rect1', 'rect2'], 'groupA')
+        .deselectAll()
+
+      const tlu = new TLStateUtils(tlstate)
+
+      tlu.clickShape('rect1', { ctrlKey: true, shiftKey: true })
+      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+
+      tlu.clickShape('rect1', { ctrlKey: true, shiftKey: true })
+      expect(tlstate.selectedIds).toStrictEqual([])
+    })
+
+    it('selects a hovered shape from the selected group when meta-shift-clicked', () => {
+      const tlstate = new TLDrawState()
+        .loadDocument(mockDocument)
+        .group(['rect1', 'rect2'], 'groupA')
+
+      const tlu = new TLStateUtils(tlstate)
+      tlu.hoverShape('rect1')
+
+      tlu.clickShape('rect1', { ctrlKey: true, shiftKey: true })
+      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+
+      tlu.clickShape('rect1', { ctrlKey: true, shiftKey: true })
+      expect(tlstate.selectedIds).toStrictEqual([])
+    })
+  })
+
+  describe('when creating shapes', () => {
+    it('Creates shapes with the correct child index', () => {
+      const tlstate = new TLDrawState()
+        .createShapes(
+          {
+            id: 'rect1',
+            type: TLDrawShapeType.Rectangle,
+            childIndex: 1,
+          },
+          {
+            id: 'rect2',
+            type: TLDrawShapeType.Rectangle,
+            childIndex: 2,
+          },
+          {
+            id: 'rect3',
+            type: TLDrawShapeType.Rectangle,
+            childIndex: 3,
+          }
+        )
+        .selectTool(TLDrawShapeType.Rectangle)
+        .createActiveToolShape([0, 0], 'rect4')
+
+      expect(tlstate.getShape('rect4').childIndex).toBe(4)
+
+      tlstate
+        .group(['rect2', 'rect3', 'rect4'], 'groupA')
+        .selectTool(TLDrawShapeType.Rectangle)
+        .createActiveToolShape([0, 0], 'rect5')
+
+      expect(tlstate.getShape('groupA').childIndex).toBe(2)
+      expect(tlstate.getShape('rect5').childIndex).toBe(3)
+    })
   })
 })

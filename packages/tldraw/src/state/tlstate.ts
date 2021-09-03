@@ -113,6 +113,8 @@ export class TLDrawState extends StateManager<Data> {
 
   isCreating = false
 
+  selectedGroupId?: string
+
   constructor(id = Utils.uniqueId()) {
     super(initialData, id, 2, (prev, next, prevVersion) => {
       const state = { ...prev }
@@ -1765,18 +1767,9 @@ export class TLDrawState extends StateManager<Data> {
         brushUpdater.clear()
         break
       }
-      case TLDrawStatus.Translating: {
-        this.cancelSession()
-        break
-      }
-      case TLDrawStatus.Transforming: {
-        this.cancelSession()
-        break
-      }
-      case TLDrawStatus.Rotating: {
-        this.cancelSession()
-        break
-      }
+      case TLDrawStatus.Translating:
+      case TLDrawStatus.Transforming:
+      case TLDrawStatus.Rotating:
       case TLDrawStatus.Creating: {
         this.cancelSession()
         break
@@ -1870,8 +1863,7 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
-  createActiveToolShape = (point: number[]): this => {
-    const id = Utils.uniqueId()
+  createActiveToolShape = (point: number[], id = Utils.uniqueId()): this => {
     const pagePoint = Vec.round(this.getPagePoint(point))
 
     if (this.appState.activeTool === 'select') return this
@@ -1883,7 +1875,11 @@ export class TLDrawState extends StateManager<Data> {
     const shapes = this.getShapes()
 
     const childIndex =
-      shapes.length === 0 ? 1 : shapes.sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+      shapes.length === 0
+        ? 1
+        : shapes
+            .filter((shape) => shape.parentId === this.currentPageId)
+            .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
 
     this.patchState(
       {
@@ -2141,7 +2137,7 @@ export class TLDrawState extends StateManager<Data> {
         } else if (this.selectedIds.includes(info.target)) {
           // If we're holding shift...
           if (info.shiftKey) {
-            // Unless we just shift-selected the shape, remove it from the selected shapes
+            // unless we just shift-selected the shape, remove it from the selected shapes
             if (this.pointedId !== info.target) {
               this.select(...this.selectedIds.filter((id) => id !== info.target))
             }
@@ -2259,19 +2255,59 @@ export class TLDrawState extends StateManager<Data> {
         switch (this.appState.activeTool) {
           case 'select': {
             if (info.metaKey) {
-              // While holding command key, start a brush session
-              this.startBrushSession(this.getPagePoint(info.point))
+              if (info.shiftKey) {
+                // While holding command and shift, select or deselect
+                // the shape, ignoring any group that may contain it
+                this.pointedId = info.target
+
+                if (this.selectedIds.includes(info.target)) {
+                  // Deselect if selected
+                  this.select(...this.selectedIds.filter((id) => id !== info.target))
+                } else {
+                  // Otherwise, push select the shape
+                  this.select(...this.selectedIds, info.target)
+                }
+              } else {
+                // While holding just command key, start a brush session
+                this.startBrushSession(this.getPagePoint(info.point))
+              }
               return
             }
 
-            if (!this.selectedIds.includes(info.target)) {
-              this.pointedId = info.target
-              // Set the pointed ID to the shape that was clicked.
+            // If we've clicked on a shape that is inside of a group,
+            // then select the group rather than the shape.
+            let shapeIdToSelect: string
+            const { parentId } = this.getShape(info.target)
 
-              // If the shape is not selected; then if the user is pressing shift,
+            // If the pointed shape is a child of the page, select the
+            // target shape and clear the selected group id.
+            if (parentId === this.currentPageId) {
+              shapeIdToSelect = info.target
+              this.selectedGroupId = undefined
+            } else {
+              // If the parent is some other group...
+              if (parentId === this.selectedGroupId) {
+                // If that group is the selected group, then select
+                // the target shape.
+                shapeIdToSelect = info.target
+              } else {
+                // Otherwise, select the group and clear the selected
+                // group id.
+                shapeIdToSelect = parentId
+                this.selectedGroupId = undefined
+              }
+            }
+
+            if (!this.selectedIds.includes(shapeIdToSelect)) {
+              // Set the pointed ID to the shape that was clicked.
+              this.pointedId = shapeIdToSelect
+
+              // If the shape is not selected: then if the user is pressing shift,
               // add the shape to the current selection; otherwise, set the shape as
               // the only selected shape.
-              this.select(...(info.shiftKey ? [...this.selectedIds, info.target] : [info.target]))
+              this.select(
+                ...(info.shiftKey ? [...this.selectedIds, shapeIdToSelect] : [shapeIdToSelect])
+              )
             }
 
             this.setStatus(TLDrawStatus.PointingBounds)
@@ -2281,7 +2317,30 @@ export class TLDrawState extends StateManager<Data> {
         break
       }
       case TLDrawStatus.PointingBounds: {
-        this.pointedId = info.target
+        // If we've clicked on a shape that is inside of a group,
+        // then select the group rather than the shape.
+
+        if (info.metaKey && info.shiftKey) {
+          const targetId = this.pageState.hoveredId
+          if (targetId) {
+            this.pointedId = targetId
+            const shape = this.getShape(targetId)
+            if (this.selectedIds.includes(targetId)) {
+              this.select(...this.selectedIds.filter((id) => id !== targetId))
+            } else {
+              if (this.selectedIds.includes(shape.parentId)) {
+                this.select(targetId)
+              } else {
+                this.select(...this.selectedIds, targetId)
+              }
+            }
+            return
+          }
+        }
+
+        const { parentId } = this.getShape(info.target)
+        this.pointedId = parentId === this.currentPageId ? info.target : parentId
+
         break
       }
     }
@@ -2293,10 +2352,15 @@ export class TLDrawState extends StateManager<Data> {
 
   onDoubleClickShape: TLPointerEventHandler = (info) => {
     switch (this.appState.status.current) {
+      case TLDrawStatus.Idle:
       case TLDrawStatus.PointingBounds: {
         switch (this.appState.activeTool) {
           case 'select': {
-            this.startTextSession(info.target)
+            const shape = this.getShape(info.target)
+            if (shape.parentId !== this.currentPageId) {
+              this.selectedGroupId = shape.parentId
+            }
+            this.select(info.target)
             break
           }
         }

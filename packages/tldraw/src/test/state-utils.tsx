@@ -17,6 +17,11 @@ export class TLStateUtils {
     this.tlstate = tlstate
   }
 
+  hoverShape = (id: string, options: PointerOptions = {}) => {
+    const { tlstate } = this
+    tlstate.onHoverShape(inputs.pointerDown(this.getPoint(options), id), {} as React.PointerEvent)
+  }
+
   pointCanvas = (options: PointerOptions = {}) => {
     this.tlstate.onPointCanvas(
       inputs.pointerDown(this.getPoint(options), 'canvas'),
@@ -62,7 +67,7 @@ export class TLStateUtils {
 
   stopPointing = (target = 'canvas', options: PointerOptions = {}) => {
     this.tlstate.onPointerUp(
-      inputs.pointerDown(this.getPoint(options), target),
+      inputs.pointerUp(this.getPoint(options), target),
       {} as React.PointerEvent
     )
     return this
@@ -75,6 +80,9 @@ export class TLStateUtils {
   }
 
   clickShape = (id: string, options: PointerOptions = {}) => {
+    if (this.tlstate.selectedIds.includes(id)) {
+      this.pointBounds(options)
+    }
     this.pointShape(id, options)
     this.stopPointing(id, options)
     return this
@@ -82,7 +90,7 @@ export class TLStateUtils {
 
   clickBounds = (options: PointerOptions = {}) => {
     this.pointBounds(options)
-    this.stopPointing()
+    this.stopPointing('bounds', options)
     return this
   }
 

@@ -122,6 +122,12 @@ describe('Group command', () => {
     */
 
     it('creates a new group on the page', () => {
+      /*
+      When the selected shapes are the children of another group, and so
+      long as the children do not represent ALL of the group's children,
+      then a new group should be created that is a child of the parent group.
+      */
+
       tlstate.resetDocument().createShapes(
         {
           id: 'rect1',
@@ -200,49 +206,144 @@ describe('Group command', () => {
       expect(tlstate.getShape<GroupShape>('newGroupB').children).toStrictEqual(['rect1', 'rect3'])
     })
 
-    /*
-    When the selected shapes are the children of another group, and so
-    long as the children do not represent ALL of the group's children,
-    then a new group should be created that is a child of the parent group.
-    */
-
-    it.todo('does not group shapes if shapes are all the groups children')
-    /*
+    it('does not group shapes if shapes are all the groups children', () => {
+      /*
       If the selected shapes represent ALL of the children of the a
       group, then no effect should occur.
       */
+      tlstate.resetDocument().createShapes(
+        {
+          id: 'rect1',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 1,
+        },
+        {
+          id: 'rect2',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 2,
+        },
+        {
+          id: 'rect3',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 3,
+        }
+      )
 
-    it.todo('creates the new group as a child of the parent group')
-    /*
-      The new group should be a child of the parent group.
-      */
-
-    it('moves the selected layers to the new group', () => {
-      /*
-      The new group should have the selected children. The old parents
-      should no longer have the selected shapes among their children.
-      All of the selected shapes should be assigned the new parent.
-      */
+      tlstate.group(['rect1', 'rect2', 'rect3'], 'newGroupA')
+      tlstate.group(['rect1', 'rect2', 'rect3'], 'newGroupB')
+      expect(tlstate.getShape<GroupShape>('newGroupB')).toBeUndefined()
     })
 
-    it.todo('deletes any groups that no longer have children')
-    /*
-      If the selected groups included the children of another group, then
-      that group should be destroyed. Other rules around deleted
-      shapes should here apply: bindings connected to the group
-      should be deleted, etc.
+    it('deletes any groups that no longer have children', () => {
+      /*
+      If the selected groups included the children of another group
+      in addition to other shapes then that group should be destroyed.
+      Other rules around deleted shapes should here apply: bindings
+      connected to the group should be deleted, etc.
       */
+      tlstate.resetDocument().createShapes(
+        {
+          id: 'rect1',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 1,
+        },
+        {
+          id: 'rect2',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 2,
+        },
+        {
+          id: 'rect3',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 3,
+        }
+      )
 
-    it.todo('preserves the child index order')
+      tlstate.group(['rect1', 'rect2'], 'newGroupA')
+      tlstate.group(['rect1', 'rect2', 'rect3'], 'newGroupB')
+      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeUndefined()
+      expect(tlstate.getShape<GroupShape>('newGroupB').children).toStrictEqual([
+        'rect1',
+        'rect2',
+        'rect3',
+      ])
+    })
+
+    it('marges selected groups that no longer have children', () => {
+      /*
+      If the user is creating a group while having selected other
+      groups, then the selected groups should be destroyed and a new
+      group created with the selected shapes and the group(s)' children.
+      */
+      tlstate.resetDocument().createShapes(
+        {
+          id: 'rect1',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 1,
+        },
+        {
+          id: 'rect2',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 2,
+        },
+        {
+          id: 'rect3',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 3,
+        }
+      )
+
+      tlstate.group(['rect1', 'rect2'], 'newGroupA')
+      tlstate.group(['newGroupA', 'rect3'], 'newGroupB')
+      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeUndefined()
+      expect(tlstate.getShape<GroupShape>('newGroupB').children).toStrictEqual([
+        'rect1',
+        'rect2',
+        'rect3',
+      ])
+
+      tlstate.undo()
+
+      expect(tlstate.getShape<GroupShape>('newGroupB')).toBeUndefined()
+      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeDefined()
+      expect(tlstate.getShape<GroupShape>('newGroupA').children).toStrictEqual(['rect1', 'rect2'])
+
+      tlstate.redo()
+
+      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeUndefined()
+      expect(tlstate.getShape<GroupShape>('newGroupB')).toBeDefined()
+      expect(tlstate.getShape<GroupShape>('newGroupB').children).toStrictEqual([
+        'rect1',
+        'rect2',
+        'rect3',
+      ])
+    })
+
     /*
       The layers should be in the same order as the original layers as
       they would have appeared on a layers tree (lowest child index
       first, parent inclusive).
       */
+
+    it.todo('preserves the child index order')
+
+    /* --------------------- Nesting -------------------- */
+
+    // it.todo('creates the new group as a child of the parent group')
+    /*
+      The new group should be a child of the parent group.
+      */
+
+    // it.todo('moves the selected layers to the new group')
+    /*
+      The new group should have the selected children. The old parents
+      should no longer have the selected shapes among their children.
+      All of the selected shapes should be assigned the new parent.
+      */
   })
 
-  describe('when grouping shapes with different parents', () => {
-    /* 
+  // describe('when grouping shapes with different parents', () => {
+  /* 
     When two shapes with different parents are grouped, the new parent
     group should have the same parent as the shape nearest to the top
     of the layer tree. The new group's child index should be that
@@ -291,10 +392,20 @@ describe('Group command', () => {
     the top.
     */
 
-    it.todo('creates a group in the correct place')
-    /*
+  // it.todo('creates a group in the correct place')
+  /*
       The new group should be a child of the nearest shape to the top
       of the tree.
       */
-  })
+
+  /*
+      If the selected groups included the children of another group, then
+      that group should be destroyed. Other rules around deleted
+      shapes should here apply: bindings connected to the group
+      should be deleted, etc.
+      */
+
+  // it.todo('deletes any groups that no longer have children')
+
+  // })
 })

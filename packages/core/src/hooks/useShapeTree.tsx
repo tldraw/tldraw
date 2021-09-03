@@ -83,7 +83,9 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
     width: maxY - minY,
   }
 
-  // Filter shapes that are in view
+  // Filter shapes that are in view, and that are the direct child of
+  // the page. Other shapes are not visible, or will be rendered as
+  // the children of groups.
 
   const shapesToRender = Object.values(page.shapes).filter((shape) => {
     if (shape.parentId !== page.id) return false

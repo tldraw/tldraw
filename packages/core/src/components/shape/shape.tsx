@@ -29,6 +29,7 @@ export const Shape = React.memo(
         transform={transform}
         {...events}
       >
+        <text>{shape.childIndex}</text>
         {isEditing && utils.isEditableText ? (
           <EditingTextShape
             shape={shape}
