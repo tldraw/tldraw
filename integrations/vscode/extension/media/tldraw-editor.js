@@ -35,10 +35,10 @@
    */
   function updateContent(/** @type {string} */ text) {
     //console.log(`${window.innerWidth},${window.innerHeight}`)
-    setTimeout(() => {
+    //setTimeout(() => {
       console.log(`"load" (webview -> iframe)`)
       iframe.contentWindow.postMessage({ type: 'load', text }, '*')
-    }, 1000)
+    //}, 1)
     let json
     try {
       json = JSON.parse(text)
@@ -108,7 +108,7 @@
 
       case 'update':
         console.log(`"update" (extension <- webview)`)
-        console.log(message.text);
+        //console.log(message.text);
         vscode.postMessage({
           type: 'update',
           text: message.text,

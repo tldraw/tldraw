@@ -114,14 +114,14 @@ export default function App() {
 
   const handleChange = useCallback((tldr: TLDrawState, type: string) => {
     // TODO: Think more about if syncing on only "command" is the way to go
-    console.log(type);
+    //console.log(type);
     if(type.search("command") !== -1){
-      console.log("changed");
+      //console.log("changed");
 
      postMessage( 'update', tldr.document );
     }
-    console.log(`update: ${type}`);
-    console.log(JSON.stringify(tldr.document,null, "    "));
+    //console.log(`update: ${type}`);
+    //console.log(JSON.stringify(tldr.document,null, "    "));
     
   }, []);
 
