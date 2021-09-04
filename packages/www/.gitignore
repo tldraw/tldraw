@@ -14,8 +14,6 @@
 
 # production
 /build
-./www/.next/cache
-
 
 # misc
 .DS_Store
@@ -34,5 +32,3 @@ yarn-error.log*
 
 # vercel
 .vercel
-
-cypress/integration/examples

@@ -1,47 +1,31 @@
 {
-  "name": "@tldraw/www",
+  "name": "www",
   "version": "0.0.57",
-  "private": true,
-  "description": "A tiny little drawing app (editor).",
-  "author": "@steveruizok",
+  "private": false,
+  "description": "A tiny little drawing app (site).",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tldraw/tldraw.git",
-    "directory": "packages/www"
+    "url": "git+https://github.com/tldraw/tldraw.git"
   },
   "license": "MIT",
+  "author": "@steveruizok",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "",
     "serve": "next serve",
     "lint": "next lint"
   },
   "dependencies": {
-    "@stitches/react": "^0.2.3",
     "@tldraw/tldraw": "^0.0.57",
-    "next": "^11.1.0",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "next": "11.1.2",
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
   },
   "devDependencies": {
-    "@types/jest": "^27.0.1",
-    "@types/node": "^16.7.10",
-    "@types/react": "^17.0.16",
+    "@types/react": "^17.0.19",
     "@types/react-dom": "^17.0.9",
-    "@typescript-eslint/eslint-plugin": "^4.30.0",
-    "@typescript-eslint/parser": "^4.30.0",
-    "esbuild": "^0.12.24",
-    "eslint": "^7.32.0",
-    "eslint-config-next": "^11.1.2",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "ts-node": "^10.2.1",
-    "tslib": "^2.3.1",
-    "typedoc": "^0.21.9",
-    "typescript": "^4.4.2",
-    "@babel/core": "^7.15.5",
-    "@babel/preset-env": "^7.15.4",
-    "lerna": "^4.0.0"
+    "eslint": "7.32.0",
+    "eslint-config-next": "11.1.2",
+    "typescript": "^4.4.2"
   }
 }
