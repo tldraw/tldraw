@@ -20,7 +20,11 @@
     "next": "11.1.2",
     "react": "17.0.2",
     "react-dom": "17.0.2",
-    "next-transpile-modules": "^8.0.0"
+    "next-auth": "3.29.0",
+    "next-transpile-modules": "^8.0.0",
+    "next-pwa": "^5.2.23",
+    "next-themes": "^0.0.15",
+    "@stitches/react": "^1.0.0"
   },
   "devDependencies": {
     "@types/react": "^17.0.19",
