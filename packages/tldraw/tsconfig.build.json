@@ -10,6 +10,8 @@
     "dist"
   ],
   "compilerOptions": {
+    "noEmit": false,
+    "emitDeclarationOnly": true,
     "outDir": "./dist/types"
   }
 }
