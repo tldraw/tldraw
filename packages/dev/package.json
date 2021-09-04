@@ -1,0 +1,37 @@
+{
+  "name": "@tldraw/dev",
+  "version": "0.0.59",
+  "private": true,
+  "description": "A tiny little drawing app (core).",
+  "author": "@steveruizok",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "typescript",
+    "esbuild"
+  ],
+  "scripts": {
+    "start": "node ./esbuild.config.mjs --dev tsc --watch"
+  },
+  "files": [
+    "README.md",
+    "src"
+  ],
+  "dependencies": {
+    "@tldraw/tldraw": "^0.0.59",
+    "idb": "^6.1.2",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.35",
+    "@types/react": "^17.0.3",
+    "@types/react-dom": "^17.0.2",
+    "concurrently": "6.0.1",
+    "create-serve": "1.0.1",
+    "esbuild": "0.11.5",
+    "rimraf": "3.0.2",
+    "typescript": "4.2.3"
+  },
+  "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6"
+}

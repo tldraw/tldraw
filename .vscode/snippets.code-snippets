@@ -1,7 +1,7 @@
 {
   "createComment": {
     "scope": "typescript,typescriptreact",
-    "prefix": "/**",
+    "prefix": "ccc",
     "body": [
       "/**",
       " * ${1:description}",
@@ -10,8 +10,7 @@
       " *",
       " *```ts",
       " * ${2:example}",
-      " *```",
-      " */"
+      " *```"
     ],
     "description": "comment"
   }
