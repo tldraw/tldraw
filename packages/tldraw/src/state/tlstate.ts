@@ -996,7 +996,7 @@ export class TLDrawState extends StateManager<Data> {
     const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
 
     const zoom = TLDR.getCameraZoom(
-      bounds.width > bounds.height
+      window.innerWidth < window.innerHeight
         ? (window.innerWidth - 128) / bounds.width
         : (window.innerHeight - 128) / bounds.height
     )
@@ -1016,12 +1016,12 @@ export class TLDrawState extends StateManager<Data> {
    * @returns this
    */
   zoomToSelection = (): this => {
-    if (this.pageState.selectedIds.length === 0) return this
+    if (this.selectedIds.length === 0) return this
 
     const bounds = TLDR.getSelectedBounds(this.state)
 
     const zoom = TLDR.getCameraZoom(
-      bounds.width > bounds.height
+      window.innerWidth < window.innerHeight
         ? (window.innerWidth - 128) / bounds.width
         : (window.innerHeight - 128) / bounds.height
     )
@@ -1031,7 +1031,7 @@ export class TLDrawState extends StateManager<Data> {
 
     return this.setCamera(
       Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
-      this.pageState.camera.zoom,
+      zoom,
       `zoomed_to_selection`
     )
   }
@@ -1157,6 +1157,11 @@ export class TLDrawState extends StateManager<Data> {
    * @returns this
    */
   select = (...ids: string[]): this => {
+    ids.forEach((id) => {
+      if (!this.page.shapes[id]) {
+        throw Error(`That shape does not exist on page ${this.currentPageId}`)
+      }
+    })
     this.setSelectedIds(ids)
     this.addToSelectHistory(ids)
     return this
@@ -1642,6 +1647,24 @@ export class TLDrawState extends StateManager<Data> {
   flipVertical = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
     return this.setState(Commands.flip(this.state, ids, FlipType.Vertical))
+  }
+
+  /**
+   * Move one or more shapes to a new page. Will also break or move bindings.
+   * @param toPage The id of the page to move the shapes to.
+   * @param fromPage The id of the page to move the shapes from
+   *(defaults to current page).
+   * @param ids The ids of the shapes to move (defaults to selection).
+   * @returns this
+   */
+  moveToPage = (
+    toPageId: string,
+    fromPageId = this.currentPageId,
+    ids = this.selectedIds
+  ): this => {
+    if (ids.length === 0) return this
+    this.setState(Commands.moveToPage(this.state, ids, fromPageId, toPageId))
+    return this
   }
 
   /**

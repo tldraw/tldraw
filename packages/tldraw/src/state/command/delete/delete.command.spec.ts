@@ -90,9 +90,26 @@ describe('Delete command', () => {
     it('updates the group', () => {
       tlstate
         .loadDocument(mockDocument)
-        .group(['rect1', 'rect2'], 'newGroup')
+        .group(['rect1', 'rect2', 'rect3'], 'newGroup')
         .select('rect1')
         .delete()
+
+      expect(tlstate.getShape('rect1')).toBeUndefined()
+      expect(tlstate.getShape('newGroup').children).toStrictEqual(['rect2', 'rect3'])
+    })
+  })
+
+  describe('when deleting shapes with children', () => {
+    it('also deletes the children', () => {
+      tlstate
+        .loadDocument(mockDocument)
+        .group(['rect1', 'rect2'], 'newGroup')
+        .select('newGroup')
+        .delete()
+
+      expect(tlstate.getShape('rect1')).toBeUndefined()
+      expect(tlstate.getShape('rect2')).toBeUndefined()
+      expect(tlstate.getShape('newGroup')).toBeUndefined()
     })
   })
 })

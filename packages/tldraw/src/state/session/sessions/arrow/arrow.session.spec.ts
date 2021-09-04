@@ -1,7 +1,6 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { TLDR } from '~state/tldr'
-import { ArrowShape, TLDrawShape, TLDrawStatus } from '~types'
+import { ArrowShape, TLDrawShapeType, TLDrawStatus } from '~types'
 
 describe('Arrow session', () => {
   const tlstate = new TLDrawState()
@@ -9,20 +8,9 @@ describe('Arrow session', () => {
     .loadDocument(mockDocument)
     .selectAll()
     .delete()
-    .create(
-      TLDR.getShapeUtils({ type: 'rectangle' } as TLDrawShape).create({
-        id: 'target1',
-        parentId: 'page1',
-        point: [0, 0],
-        size: [100, 100],
-      })
-    )
-    .create(
-      TLDR.getShapeUtils({ type: 'arrow' } as TLDrawShape).create({
-        id: 'arrow1',
-        parentId: 'page1',
-        point: [200, 200],
-      })
+    .createShapes(
+      { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+      { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
     )
 
   const restoreDoc = tlstate.document

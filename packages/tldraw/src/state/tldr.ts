@@ -871,6 +871,15 @@ export class TLDR {
       .reduce<TLDrawShape[]>((acc, shape) => [...acc, ...TLDR.flattenShape(data, shape)], [])
   }
 
+  static getTopChildIndex = (data: Data, pageId: string): number => {
+    const shapes = TLDR.getShapes(data, pageId)
+    return shapes.length === 0
+      ? 1
+      : shapes
+          .filter((shape) => shape.parentId === pageId)
+          .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+  }
+
   /* -------------------------------------------------- */
   /*                     Assertions                     */
   /* -------------------------------------------------- */

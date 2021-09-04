@@ -179,11 +179,11 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
                 <Kbd variant="menu">#⇧[</Kbd>
               </ContextMenuButton>
             </ContextMenuSubMenu>
+            <MoveToPageMenu />
             {hasTwoOrMore && (
               <AlignDistributeSubMenu hasTwoOrMore={hasTwoOrMore} hasThreeOrMore={hasThreeOrMore} />
             )}
             <ContextMenuDivider />
-            {/* <MoveToPageMenu /> */}
             <ContextMenuButton onSelect={handleCopy}>
               <span>Copy</span>
               <Kbd variant="menu">#C</Kbd>
@@ -345,38 +345,42 @@ const StyledGrid = styled(MenuContent, {
   },
 })
 
-// function MoveToPageMenu() {
-//   const documentPages = useSelector((s) => s.data.document.pages)
-//   const currentPageId = useSelector((s) => s.data.currentPageId)
+const currentPageIdSelector = (s: Data) => s.appState.currentPageId
+const documentPagesSelector = (s: Data) => s.document.pages
 
-//   if (!documentPages[currentPageId]) return null
+function MoveToPageMenu(): JSX.Element | null {
+  const { tlstate, useSelector } = useTLDrawContext()
+  const currentPageId = useSelector(currentPageIdSelector)
+  const documentPages = useSelector(documentPagesSelector)
 
-//   const sorted = Object.values(documentPages)
-//     .sort((a, b) => a.childIndex - b.childIndex)
-//     .filter((a) => a.id !== currentPageId)
+  const sorted = Object.values(documentPages)
+    .sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
+    .filter((a) => a.id !== currentPageId)
 
-//   if (sorted.length === 0) return null
+  if (sorted.length === 0) return null
 
-//   return (
-//     <ContextMenuRoot>
-//       <ContextMenuButton>
-//         <span>Move To Page</span>
-//         <IconWrapper size="small">
-//           <ChevronRightIcon />
-//         </IconWrapper>
-//       </ContextMenuButton>
-//       <MenuContent as={RadixContextMenu.Content} sideOffset={2} alignOffset={-2}>
-//         {sorted.map(({ id, name }) => (
-//           <ContextMenuButton
-//             key={id}
-//             disabled={id === currentPageId}
-//             onSelect={() => state.send('MOVED_TO_PAGE', { id })}
-//           >
-//             <span>{name}</span>
-//           </ContextMenuButton>
-//         ))}
-//         <ContextMenuArrow offset={13} />
-//       </MenuContent>
-//     </ContextMenuRoot>
-//   )
-// }
+  console.log(sorted)
+
+  return (
+    <ContextMenuRoot>
+      <RadixContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
+        <span>Move To Page</span>
+        <IconWrapper size="small">
+          <ChevronRightIcon />
+        </IconWrapper>
+      </RadixContextMenu.TriggerItem>
+      <MenuContent as={RadixContextMenu.Content} sideOffset={2} alignOffset={-2}>
+        {sorted.map(({ id, name }, i) => (
+          <ContextMenuButton
+            key={id}
+            disabled={id === currentPageId}
+            onSelect={() => tlstate.moveToPage(id)}
+          >
+            <span>{name || `Page ${i}`}</span>
+          </ContextMenuButton>
+        ))}
+        <ContextMenuArrow offset={13} />
+      </MenuContent>
+    </ContextMenuRoot>
+  )
+}
