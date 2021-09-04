@@ -2689,6 +2689,11 @@
   resolved "https://registry.yarnpkg.com/@stitches/react/-/react-0.2.5.tgz#ad15b4e59ac2a0679542ba002d41253244be7dab"
   integrity sha512-RDVn89kW0R/M4q4TdYvsJ7nckFndzRWGGFJnEHbIH9flOpahtNdPsrxVSsZSjFpxeVqCoOxKujlQjiyRrec1VA==
 
+"@stitches/react@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@stitches/react/-/react-1.0.0.tgz#311413630d96a627ca28f44ebcc9179455cdb73a"
+  integrity sha512-D0/YUbjuZ52Xd/ojT+TjyjZ7p/hBuPlOQ8VBahpMT6ElXriImhsb+RJwr31FP5HeN+y3wuGrRty6/VQjcHjlyA==
+
 "@testing-library/dom@^8.0.0":
   version "8.2.0"
   resolved "https://registry.yarnpkg.com/@testing-library/dom/-/dom-8.2.0.tgz#ac46a1b9d7c81f0d341ae38fb5424b64c27d151e"
