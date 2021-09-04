@@ -47,6 +47,7 @@ const defaultDocument: TLDrawDocument = {
   pages: {
     page: {
       id: 'page',
+      name: 'Page 1',
       childIndex: 1,
       shapes: {},
       bindings: {},
