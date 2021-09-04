@@ -125,10 +125,6 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
     tlstate.redo()
   }, [tlstate])
 
-  if (Utils.isMobile()) {
-    return <>{children}</>
-  }
-
   return (
     <ContextMenuRoot>
       <RadixContextMenu.Trigger>{children}</RadixContextMenu.Trigger>

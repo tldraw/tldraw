@@ -17,7 +17,6 @@ export function Kbd({
   variant: 'tooltip' | 'menu'
   children: string
 }): JSX.Element | null {
-  if (Utils.isMobile()) return null
   return (
     <StyledKbd variant={variant}>
       {children

@@ -1,7 +1,5 @@
-const withTM = require('next-transpile-modules')(['@tldraw/tldraw'])
-
-module.exports = withTM({
+module.exports = {
   reactStrictMode: true,
   webpack5: true,
   symlinks: false,
-})
+}

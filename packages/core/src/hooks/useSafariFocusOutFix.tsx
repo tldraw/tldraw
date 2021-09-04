@@ -12,7 +12,7 @@ export function useSafariFocusOutFix(): void {
       callbacks.onBlurEditingShape?.()
     }
 
-    if (Utils.isMobile()) {
+    if (Utils.isMobileSafari()) {
       document.addEventListener('focusout', handleFocusOut)
       return () => document.removeEventListener('focusout', handleFocusOut)
     }

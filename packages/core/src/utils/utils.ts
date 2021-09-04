@@ -4,7 +4,6 @@
 /* eslint-disable no-redeclare */
 import type React from 'react'
 import deepmerge from 'deepmerge'
-import isMobilePkg from 'ismobilejs'
 import { TLBezierCurveSegment, TLBounds, TLBoundsCorner, TLBoundsEdge } from '../types'
 import vec from './vec'
 import './polyfills'
@@ -1664,8 +1663,17 @@ left past the initial left edge) then swap points on that axis.
   /*                   Browser and DOM                  */
   /* -------------------------------------------------- */
 
-  static isMobile() {
-    return isMobilePkg().any
+  static isMobileSize() {
+    if (typeof window === 'undefined') return false
+    return window.innerWidth < 768
+  }
+
+  static isMobileSafari() {
+    if (typeof window === 'undefined') return false
+    const ua = window.navigator.userAgent
+    const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i)
+    const webkit = !!ua.match(/WebKit/i)
+    return iOS && webkit && !ua.match(/CriOS/i)
   }
 
   // via https://github.com/bameyrick/throttle-typescript

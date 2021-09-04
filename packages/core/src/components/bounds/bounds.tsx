@@ -14,7 +14,7 @@ interface BoundsProps {
 }
 
 export function Bounds({ zoom, bounds, rotation, isLocked }: BoundsProps): JSX.Element {
-  const size = (Utils.isMobile() ? 10 : 8) / zoom // Touch target size
+  const size = (Utils.isMobileSize() ? 10 : 8) / zoom // Touch target size
   const center = Utils.getBoundsCenter(bounds)
 
   return (
