@@ -247,4 +247,6 @@ describe('Move to page command', () => {
       ])
     })
   })
+
+  it.todo('Does not delete uneffected bindings.')
 })

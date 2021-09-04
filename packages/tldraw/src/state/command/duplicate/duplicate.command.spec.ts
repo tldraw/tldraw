@@ -158,4 +158,6 @@ describe('Duplicate command', () => {
       expect(Object.keys(tlstate.page.shapes).length).toBe(beforeShapeIds.length + 1)
     })
   })
+
+  it.todo('Does not delete uneffected bindings.')
 })
