@@ -3196,6 +3196,11 @@
   resolved "https://registry.yarnpkg.com/@sqltools/formatter/-/formatter-1.2.3.tgz#1185726610acc37317ddab11c3c7f9066966bd20"
   integrity sha512-O3uyB/JbkAEMZaP3YqyHH7TMnex7tWyCbCI4EfJdOCoN6HIhqdJBWTM6aCCiWQ/5f5wxjgU735QAIpJbjDvmzg==
 
+"@stitches/react@^0.2.3":
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/@stitches/react/-/react-0.2.5.tgz#ad15b4e59ac2a0679542ba002d41253244be7dab"
+  integrity sha512-RDVn89kW0R/M4q4TdYvsJ7nckFndzRWGGFJnEHbIH9flOpahtNdPsrxVSsZSjFpxeVqCoOxKujlQjiyRrec1VA==
+
 "@stitches/react@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@stitches/react/-/react-1.0.0.tgz#311413630d96a627ca28f44ebcc9179455cdb73a"

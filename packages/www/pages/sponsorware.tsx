@@ -1,7 +1,6 @@
 import styled from '-styles'
 import { getSession, signin, signout, useSession } from 'next-auth/client'
 import type { GetServerSideProps } from 'next'
-import Link from 'next/link'
 import React from 'react'
 
 export default function Sponsorware(): JSX.Element {
@@ -16,8 +15,8 @@ export default function Sponsorware(): JSX.Element {
       >
         <h1>tldraw (is sponsorware)</h1>
         <p>
-          Hey, thanks for visiting <Link href="https://tldraw.com/">tldraw</Link>, a tiny little
-          drawing app by <a href="https://twitter.com/steveruizok">steveruizok</a>.
+          Hey, thanks for visiting <a href="https://tldraw.com/">tldraw</a>, a tiny little drawing
+          app by <a href="https://twitter.com/steveruizok">steveruizok</a>.
         </p>
         <video autoPlay muted playsInline onClick={(e) => e.currentTarget.play()}>
           <source src="images/hello.mp4" type="video/mp4" />
@@ -48,7 +47,7 @@ export default function Sponsorware(): JSX.Element {
                 Signed in as {session?.user?.name} ({session?.user?.email}), but it looks like
                 you&apos;re not yet a sponsor.
                 <br />
-                Something wrong? Try <Link href="/">reloading the page</Link> or DM me on{' '}
+                Something wrong? Try <a href="/">reloading the page</a> or DM me on{' '}
                 <a href="https://twitter.com/steveruizok">Twitter</a>.
               </Detail>
             </>

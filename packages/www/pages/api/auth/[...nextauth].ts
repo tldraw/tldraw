@@ -18,18 +18,14 @@ export default function Auth(
       async redirect(url, baseUrl) {
         return baseUrl
       },
-      async signIn(user, account, profile) {
-        const login = profile?.login as string
+      async signIn(user, account, profile: any) {
+        const canLogin = await isSponsoringMe(profile?.login)
 
-        if (login) {
-          const canLogin = await isSponsoringMe(login)
-
-          if (canLogin) {
-            return canLogin
-          }
+        if (canLogin) {
+          return canLogin
+        } else {
+          return '/sponsorware'
         }
-
-        return '/sponsorware'
       },
     },
   })
