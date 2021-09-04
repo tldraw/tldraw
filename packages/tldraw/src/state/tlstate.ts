@@ -685,7 +685,7 @@ export class TLDrawState extends StateManager<Data> {
   /* -------------------------------------------------- */
 
   /**
-   * Create a new page page.
+   * Create a new page.
    * @param pageId (optional) The new page's id.
    * @returns this
    */
@@ -890,7 +890,7 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /**
-   * Copy one or more shapes as JSON
+   * Copy one or more shapes as JSON.
    * @param ids The ids of the shapes to copy.
    * @param pageId The page from which to copy the shapes.
    * @returns A string containing the JSON.
@@ -1927,6 +1927,12 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
+  /**
+   * Create a new shape based on the active tool.
+   * @param point The point at which to create the shape
+   * @param id (optional) The new shape's id.
+   * @returns
+   */
   createActiveToolShape = (point: number[], id = Utils.uniqueId()): this => {
     const pagePoint = Vec.round(this.getPagePoint(point))
 
