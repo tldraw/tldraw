@@ -12,7 +12,8 @@
   "workspaces": [
     "packages/core",
     "packages/tldraw",
-    "packages/dev"
+    "packages/dev",
+    "packages/www"
   ],
   "scripts": {
     "test": "jest",
