@@ -18,19 +18,10 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@sentry/integrations": "^6.12.0",
-    "@sentry/node": "^6.12.0",
-    "@sentry/react": "^6.12.0",
-    "@sentry/tracing": "^6.12.0",
-    "@sentry/webpack-plugin": "^1.17.1",
     "@stitches/react": "^0.2.3",
     "@tldraw/tldraw": "^0.0.57",
-    "browser-fs-access": "^0.20.4",
-    "gtag": "^1.0.1",
     "idb": "^6.1.2",
     "next": "^11.1.0",
-    "next-auth": "^3.29.0",
-    "next-pwa": "^5.3.1",
     "next-transpile-modules": "^8.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
