@@ -18,19 +18,22 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@babel/core": "^7.15.5",
+    "@babel/preset-env": "^7.15.4",
     "@stitches/react": "^1.0.0",
     "@tldraw/tldraw": "^0.0.57",
+    "@types/node": "^16.7.10",
+    "@typescript-eslint/eslint-plugin": "^4.30.0",
+    "@typescript-eslint/parser": "^4.30.0",
     "next": "^11.1.0",
+    "next-transpile-modules": "^8.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.30.0",
-    "@typescript-eslint/parser": "^4.30.0",
-    "@types/node": "^16.7.10",
-    "@babel/core": "^7.15.5",
-    "@babel/preset-env": "^7.15.4",
+    "@babel/core": "^7.14.6",
     "@types/jest": "^26.0.23",
+    "@types/node": "^14.14.25",
     "@types/react": "^17.0.16",
     "@types/react-dom": "^17.0.9",
     "eslint": "7.32.0",
