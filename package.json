@@ -21,7 +21,7 @@
     "lerna": "lerna",
     "start": "lerna run start:pre && lerna run start --stream --parallel",
     "start:www": "yarn build:packages && lerna run start --parallel & cd packages/www && yarn dev",
-    "build": "cd packages/www && yarn build",
+    "build": "yarn build:packages && cd packages/www && yarn build",
     "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build",
     "publish:patch": "yarn build:packages && lerna publish patch",
     "docs": "lerna run docs --stream"

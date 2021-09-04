@@ -1,10 +1,12 @@
 {
+  "extends": "../../tsconfig.base.json",
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "**/*.test.ts", "**/*.spec.ts", "dist"],
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
     "rootDir": ".",
     "baseUrl": ".",
+    "outDir": "./dist/types",
     "allowJs": true,
     "resolveJsonModule": true,
     "isolatedModules": true,

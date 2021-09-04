@@ -4,6 +4,7 @@
 /* eslint-disable no-redeclare */
 import type React from 'react'
 import deepmerge from 'deepmerge'
+import isMobilePkg from 'ismobilejs'
 import { TLBezierCurveSegment, TLBounds, TLBoundsCorner, TLBoundsEdge } from '../types'
 import vec from './vec'
 import './polyfills'
@@ -1664,8 +1665,7 @@ left past the initial left edge) then swap points on that axis.
   /* -------------------------------------------------- */
 
   static isMobile() {
-    if (typeof window === 'undefined') return false
-    return 'ontouchstart' in window || navigator?.maxTouchPoints > 0
+    return isMobilePkg().any
   }
 
   // via https://github.com/bameyrick/throttle-typescript
@@ -1702,7 +1702,6 @@ left past the initial left edge) then swap points on that axis.
    * Find whether the current device is a Mac / iOS / iPadOS.
    */
   static isDarwin(): boolean {
-    if (typeof window === 'undefined') return false
     return /Mac|iPod|iPhone|iPad/.test(window.navigator.platform)
   }
 

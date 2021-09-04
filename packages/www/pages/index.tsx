@@ -1,8 +1,9 @@
 import Head from 'next/head'
 import dynamic from 'next/dynamic'
-const Editor = dynamic(() => import('../components/editor'), { ssr: false })
-// import type { GetServerSideProps } from 'next'
-// import { getSession } from 'next-auth/client'
+import type { GetServerSideProps } from 'next'
+import { getSession } from 'next-auth/client'
+
+const Editor = dynamic(() => import('components/editor'), { ssr: false })
 
 export default function Home(): JSX.Element {
   return (
@@ -10,24 +11,25 @@ export default function Home(): JSX.Element {
       <Head>
         <title>tldraw</title>
       </Head>
-      <div>
+      <div style={{ display: 'absolute', zIndex: 1 }}>
         <Editor />
       </div>
+      <button style={{ display: 'absolute', zIndex: 9999999 }}>Sign Out</button>
     </>
   )
 }
 
-// export const getServerSideProps: GetServerSideProps = async (context) => {
-//   const session = await getSession(context)
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const session = await getSession(context)
 
-//   if (!session?.user && process.env.NODE_ENV !== 'development') {
-//     context.res.setHeader('Location', `/sponsorware`)
-//     context.res.statusCode = 307
-//   }
+  if (!session?.user && process.env.NODE_ENV !== 'development') {
+    context.res.setHeader('Location', `/sponsorware`)
+    context.res.statusCode = 307
+  }
 
-//   return {
-//     props: {
-//       session,
-//     },
-//   }
-// }
+  return {
+    props: {
+      session,
+    },
+  }
+}

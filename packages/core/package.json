@@ -28,9 +28,6 @@
     "docs": "typedoc --entryPoints src/index.ts"
   },
   "devDependencies": {
-    "@babel/core": "^7.15.0",
-    "@babel/preset-env": "^7.15.0",
-    "@radix-ui/react-primitive": "^0.0.15",
     "@types/jest": "^27.0.1",
     "@types/node": "^16.7.6",
     "@types/react": "^17.0.16",
@@ -51,7 +48,13 @@
     "react-dom": "^17.0.2"
   },
   "dependencies": {
+    "@babel/core": "^7.15.0",
+    "@babel/preset-env": "^7.15.0",
+    "@radix-ui/react-primitive": "^0.0.15",
+    "@typescript-eslint/eslint-plugin": "^4.19.0",
+    "@typescript-eslint/parser": "^4.19.0",
     "deepmerge": "^4.2.2",
+    "ismobilejs": "^1.1.1",
     "react-use-gesture": "^9.1.3"
   }
 }
