@@ -50,11 +50,11 @@ export interface TLDrawProps {
   onChange?: TLDrawState['_onChange']
 }
 
-export function TLDraw({ id, document, currentPageId, onMount, onChange: _onChange }: TLDrawProps) {
+export function TLDraw({ id, document, currentPageId, onMount, onChange }: TLDrawProps) {
   const [tlstate, setTlstate] = React.useState(() => new TLDrawState(id))
 
   React.useEffect(() => {
-    setTlstate(new TLDrawState(id))
+    setTlstate(new TLDrawState(id, onChange, onMount))
   }, [id])
 
   const [context] = React.useState(() => {
@@ -63,17 +63,13 @@ export function TLDraw({ id, document, currentPageId, onMount, onChange: _onChan
 
   React.useEffect(() => {
     if (!document) return
-    tlstate.loadDocument(document, _onChange)
+    tlstate.loadDocument(document)
   }, [document, tlstate])
 
   React.useEffect(() => {
     if (!currentPageId) return
     tlstate.changePage(currentPageId)
   }, [currentPageId, tlstate])
-
-  React.useEffect(() => {
-    onMount?.(tlstate)
-  }, [])
 
   return (
     <TLDrawContext.Provider value={context}>

@@ -96,6 +96,7 @@ const initialData: Data = {
 
 export class TLDrawState extends StateManager<Data> {
   private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
+  private _onMount?: (tlstate: TLDrawState) => void
 
   selectHistory: SelectHistory = {
     stack: [[]],
@@ -116,7 +117,11 @@ export class TLDrawState extends StateManager<Data> {
 
   selectedGroupId?: string
 
-  constructor(id = Utils.uniqueId()) {
+  constructor(
+    id = Utils.uniqueId(),
+    onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
+    onMount?: (tlstate: TLDrawState) => void
+  ) {
     super(initialData, id, 2, (prev, next, prevVersion) => {
       const state = { ...prev }
       if (prevVersion === 1)
@@ -127,10 +132,17 @@ export class TLDrawState extends StateManager<Data> {
       return state
     })
 
+    this._onChange = onChange
+    this._onMount = onMount
+
     this.session = undefined
     this.pointedId = undefined
   }
   /* -------------------- Internal -------------------- */
+
+  onReady = () => {
+    this._onMount?.(this)
+  }
 
   /**
    * Cleanup the state after each state change.
@@ -474,8 +486,7 @@ export class TLDrawState extends StateManager<Data> {
    * @param onChange (optional) A callback to call when the document changes
    * @returns this
    */
-  loadDocument = (document: TLDrawDocument, onChange?: TLDrawState['_onChange']): this => {
-    this._onChange = onChange
+  loadDocument = (document: TLDrawDocument): this => {
     this.deselectAll()
     this.resetHistory()
     this.clearSelectHistory()
