@@ -41,6 +41,7 @@ export function useHandleEvents(id: string) {
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
+      e.stopPropagation()
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         const info = inputs.pointerMove(e, id)
         callbacks.onDragHandle?.(info, e)

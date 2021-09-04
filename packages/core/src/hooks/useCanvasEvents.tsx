@@ -21,6 +21,7 @@ export function useCanvasEvents() {
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
+      e.stopPropagation()
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         const info = inputs.pointerMove(e, 'canvas')
         callbacks.onDragCanvas?.(info, e)
