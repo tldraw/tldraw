@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/core",
-  "version": "0.0.57",
+  "version": "0.0.58",
   "private": false,
   "description": "A tiny little drawing app (core).",
   "author": "@steveruizok",
@@ -28,6 +28,8 @@
     "docs": "typedoc --entryPoints src/index.ts"
   },
   "devDependencies": {
+    "@babel/core": "^7.15.5",
+    "@babel/preset-env": "^7.15.4",
     "@types/jest": "^27.0.1",
     "@types/node": "^16.7.10",
     "@types/react": "^17.0.16",
@@ -36,15 +38,13 @@
     "@typescript-eslint/parser": "^4.30.0",
     "esbuild": "^0.12.24",
     "eslint": "^7.32.0",
+    "lerna": "^4.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "ts-node": "^10.2.1",
     "tslib": "^2.3.1",
     "typedoc": "^0.21.9",
-    "typescript": "^4.4.2",
-    "@babel/core": "^7.15.5",
-    "@babel/preset-env": "^7.15.4",
-    "lerna": "^4.0.0"
+    "typescript": "^4.4.2"
   },
   "peerDependencies": {
     "react": "^17.0.2",
