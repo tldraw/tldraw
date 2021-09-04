@@ -53,5 +53,6 @@
   "dependencies": {
     "deepmerge": "^4.2.2",
     "react-use-gesture": "^9.1.3"
-  }
+  },
+  "gitHead": "838fabdbff1a66d4d7ee8aa5c5d117bc55acbff2"
 }

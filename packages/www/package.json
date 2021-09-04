@@ -1,7 +1,7 @@
 {
   "name": "www",
   "version": "0.0.58",
-  "private": false,
+  "private": true,
   "description": "A tiny little drawing app (site).",
   "repository": {
     "type": "git",
@@ -32,5 +32,6 @@
     "eslint": "7.32.0",
     "eslint-config-next": "11.1.2",
     "typescript": "^4.4.2"
-  }
+  },
+  "gitHead": "838fabdbff1a66d4d7ee8aa5c5d117bc55acbff2"
 }

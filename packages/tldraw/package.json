@@ -64,5 +64,6 @@
     "perfect-freehand": "^0.5.3",
     "react-hotkeys-hook": "^3.4.0",
     "rko": "^0.5.19"
-  }
+  },
+  "gitHead": "838fabdbff1a66d4d7ee8aa5c5d117bc55acbff2"
 }
