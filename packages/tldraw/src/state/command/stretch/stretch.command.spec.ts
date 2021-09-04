@@ -5,8 +5,22 @@ import { mockDocument } from '~test'
 describe('Stretch command', () => {
   const tlstate = new TLDrawState()
 
-  it('does, undoes and redoes command', () => {
+  beforeEach(() => {
     tlstate.loadDocument(mockDocument)
+  })
+
+  describe('when less than two shapes are selected', () => {
+    it('does nothing', () => {
+      tlstate.select('rect2')
+      const initialState = tlstate.state
+      tlstate.stretch(StretchType.Horizontal)
+      const currentState = tlstate.state
+
+      expect(currentState).toEqual(initialState)
+    })
+  })
+
+  it('does, undoes and redoes command', () => {
     tlstate.select('rect1', 'rect2')
     tlstate.stretch(StretchType.Horizontal)
 
@@ -31,7 +45,6 @@ describe('Stretch command', () => {
   })
 
   it('stretches horizontally', () => {
-    tlstate.loadDocument(mockDocument)
     tlstate.select('rect1', 'rect2')
     tlstate.stretch(StretchType.Horizontal)
 
@@ -42,7 +55,6 @@ describe('Stretch command', () => {
   })
 
   it('stretches vertically', () => {
-    tlstate.loadDocument(mockDocument)
     tlstate.select('rect1', 'rect2')
     tlstate.stretch(StretchType.Vertical)
 
