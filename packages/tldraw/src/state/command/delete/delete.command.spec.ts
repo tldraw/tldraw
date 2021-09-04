@@ -112,4 +112,6 @@ describe('Delete command', () => {
       expect(tlstate.getShape('newGroup')).toBeUndefined()
     })
   })
+
+  it.todo('Does not delete uneffected bindings.')
 })
