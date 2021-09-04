@@ -1,0 +1,37 @@
+{
+  "name": "www",
+  "version": "0.0.59",
+  "private": true,
+  "description": "A tiny little drawing app (site).",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tldraw/tldraw.git"
+  },
+  "license": "MIT",
+  "author": "@steveruizok",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "serve": "next serve",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@stitches/react": "^1.0.0",
+    "@tldraw/tldraw": "^0.0.59",
+    "next": "11.1.2",
+    "next-auth": "3.29.0",
+    "next-pwa": "^5.2.23",
+    "next-themes": "^0.0.15",
+    "next-transpile-modules": "^8.0.0",
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.19",
+    "@types/react-dom": "^17.0.9",
+    "eslint": "7.32.0",
+    "eslint-config-next": "11.1.2",
+    "typescript": "^4.4.2"
+  },
+  "gitHead": "838fabdbff1a66d4d7ee8aa5c5d117bc55acbff2"
+}

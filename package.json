@@ -1,99 +1,116 @@
 {
-  "name": "with-typescript-eslint-jest",
-  "author": "@erikdstock",
+  "name": "tldraw",
+  "private": true,
+  "author": "@steveruizok",
+  "description": "A tiny little drawing app.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tldraw/tldraw.git"
+  },
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "0.0.36",
+  "workspaces": [
+    "packages/core",
+    "packages/tldraw",
+    "packages/dev",
+    "packages/www"
+  ],
   "scripts": {
-    "build": "next build",
-    "dev": "next dev",
-    "format": "prettier --write .",
-    "lint": "eslint . --ext ts --ext tsx --ext js",
-    "scripts": "prettier --write './state/code/docs.md' && node scripts/type-gen && node scripts/docs-gen && prettier --write './components/code-panel/*'",
-    "start": "next start",
-    "test-all": "yarn lint && yarn type-check && yarn test",
-    "test:update": "jest --updateSnapshot",
+    "test": "jest",
     "test:watch": "jest --watchAll",
-    "test": "jest --watchAll=false",
-    "type-check": "tsc --pretty --noEmit"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "yarn lint && yarn format && yarn type-check"
-    }
-  },
-  "lint-staged": {
-    "*.@(ts|tsx)": [
-      "yarn format",
-      "yarn lint"
-    ]
-  },
-  "dependencies": {
-    "@liveblocks/client": "^0.8.1",
-    "@liveblocks/node": "^0.3.0",
-    "@liveblocks/react": "^0.8.0",
-    "@monaco-editor/react": "^4.2.1",
-    "@radix-ui/react-alert-dialog": "^0.0.19",
-    "@radix-ui/react-checkbox": "^0.0.16",
-    "@radix-ui/react-context-menu": "^0.0.23",
-    "@radix-ui/react-dialog": "^0.0.19",
-    "@radix-ui/react-dropdown-menu": "^0.0.21",
-    "@radix-ui/react-hover-card": "^0.0.3",
-    "@radix-ui/react-icons": "^1.0.3",
-    "@radix-ui/react-radio-group": "^0.0.17",
-    "@radix-ui/react-tooltip": "^0.0.19",
-    "@sentry/integrations": "^6.8.0",
-    "@sentry/node": "^6.8.0",
-    "@sentry/react": "^6.8.0",
-    "@sentry/tracing": "^6.8.0",
-    "@sentry/webpack-plugin": "^1.15.1",
-    "@state-designer/react": "^2.0.3",
-    "@stitches/react": "^0.2.2",
-    "browser-fs-access": "^0.17.3",
-    "framer-motion": "^4.1.17",
-    "gtag": "^1.0.1",
-    "idb-keyval": "^5.0.6",
-    "immer": "^9.0.5",
-    "ismobilejs": "^1.1.1",
-    "next": "^11.0.1",
-    "next-auth": "^3.27.3",
-    "next-pwa": "^5.2.23",
-    "next-themes": "^0.0.15",
-    "perfect-freehand": "^0.4.10",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-error-boundary": "^3.1.3",
-    "react-feather": "^2.0.9",
-    "react-markdown": "^6.0.2",
-    "react-use-gesture": "^9.1.3",
-    "sucrase": "^3.19.0"
+    "lerna": "lerna",
+    "start": "lerna run start:pre && lerna run start --stream --parallel",
+    "start:www": "yarn build:packages && lerna run start --parallel & cd packages/www && yarn dev",
+    "build": "yarn build:packages && cd packages/www && yarn build",
+    "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build",
+    "publish:patch": "yarn build:packages && lerna publish patch",
+    "docs": "lerna run docs --stream"
   },
   "devDependencies": {
-    "@babel/core": "^7.14.6",
-    "@types/jest": "^26.0.23",
-    "@types/node": "^14.14.25",
-    "@types/react": "^17.0.1",
-    "@typescript-eslint/eslint-plugin": "^4.14.2",
-    "@typescript-eslint/parser": "^4.14.2",
-    "babel-jest": "^27.0.5",
-    "eslint": "^7.19.0",
-    "eslint-config-next": "^11.0.0",
-    "eslint-config-prettier": "^7.2.0",
-    "eslint-plugin-react": "^7.19.0",
-    "husky": "^4.2.3",
-    "identity-obj-proxy": "^3.0.0",
-    "jest": "^27.0.5",
-    "jest-esm-transformer": "^1.0.0",
-    "jest-watch-typeahead": "^0.6.1",
-    "lint-staged": "^10.0.10",
-    "monaco-editor": "^0.25.2",
-    "prettier": "^2.3.1",
-    "typescript": "^4.1.3"
+    "@babel/core": "^7.15.0",
+    "@babel/plugin-syntax-import-meta": "^7.10.4",
+    "@babel/preset-env": "^7.15.0",
+    "@babel/preset-react": "^7.14.5",
+    "@babel/preset-typescript": "^7.15.0",
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^12.0.0",
+    "@types/jest": "^27.0.1",
+    "@types/node": "^15.0.1",
+    "@types/react": "^17.0.19",
+    "@types/react-dom": "^17.0.9",
+    "@typescript-eslint/eslint-plugin": "^4.19.0",
+    "@typescript-eslint/parser": "^4.19.0",
+    "babel-jest": "^27.1.0",
+    "eslint": "^7.32.0",
+    "fake-indexeddb": "^3.1.3",
+    "jest": "^27.1.0",
+    "lerna": "^3.15.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "ts-jest": "^27.0.5",
+    "tslib": "^2.3.0",
+    "typedoc": "^0.21.9",
+    "typescript": "^4.4.2"
   },
+  "dependencies": {},
   "prettier": {
-    "semi": false,
+    "trailingComma": "es5",
     "singleQuote": true,
-    "tabWidth": 2,
-    "useTabs": false
+    "semi": false,
+    "printWidth": 100
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "setupFilesAfterEnv": [
+      "<rootDir>/setupTests.ts"
+    ],
+    "transform": {
+      "^.+\\.(tsx|jsx|ts|js|mjs)?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.json",
+        "babelConfig": {
+          "presets": [
+            [
+              "@babel/preset-env",
+              {
+                "targets": {
+                  "esmodules": true
+                }
+              }
+            ],
+            [
+              "@babel/preset-react"
+            ],
+            "@babel/preset-typescript"
+          ],
+          "plugins": [
+            "@babel/plugin-syntax-import-meta"
+          ]
+        }
+      }
+    },
+    "testEnvironment": "jsdom",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/packages/core/dist/",
+      "<rootDir>/packages/tldraw/dist/",
+      "<rootDir>/packages/tldraw/test-utils/"
+    ],
+    "moduleNameMapper": {
+      "@tldraw/core": "<rootDir>/packages/core/src",
+      "@tldraw/tldraw": "<rootDir>/packages/tldraw/src",
+      "\\~(.*)": "<rootDir>/packages/tldraw/src/$1",
+      "\\+(.*)": "<rootDir>/packages/core/src/$1"
+    }
   }
 }
