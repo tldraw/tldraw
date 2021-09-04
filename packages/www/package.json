@@ -18,7 +18,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@stitches/react": "^1.0.0",
+    "@stitches/react": "^0.2.3",
     "@tldraw/tldraw": "^0.0.57",
     "idb": "^6.1.2",
     "next": "^11.1.0",
