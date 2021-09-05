@@ -7,7 +7,8 @@
     "**/*.spec.tsx",
     "**/*.spec.ts",
     "src/test",
-    "dist"
+    "dist",
+    "docs"
   ],
   "compilerOptions": {
     "noEmit": false,
