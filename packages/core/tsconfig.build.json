@@ -11,7 +11,6 @@
     "docs"
   ],
   "compilerOptions": {
-    "noEmit": false,
     "emitDeclarationOnly": true,
     "outDir": "./dist/types"
   }
