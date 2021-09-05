@@ -24,7 +24,8 @@
     "build": "yarn build:packages && cd packages/www && yarn build",
     "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build",
     "publish:patch": "yarn build:packages && lerna publish patch",
-    "docs": "lerna run docs --stream"
+    "docs": "lerna run docs --stream",
+    "docs:watch": "lerna run docs:watch --stream"
   },
   "devDependencies": {
     "@babel/core": "^7.15.0",

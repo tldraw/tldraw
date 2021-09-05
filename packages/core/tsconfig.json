@@ -9,5 +9,12 @@
     "paths": {
       "+*": ["./*"]
     }
+  },
+  "typedocOptions": {
+    "name": "@tldraw/core",
+    "theme": "default",
+    "highlightTheme": "github-light",
+    "entryPoints": ["src/index.ts"],
+    "out": "docs"
   }
 }
