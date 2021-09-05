@@ -1,0 +1,13 @@
+html,
+* {
+  box-sizing: border-box;
+}
+
+body {
+  overflow: hidden;
+  position: fixed;
+  overscroll-behavior: none;
+  padding: 0px;
+  margin: 0px;
+  font-family: sans-serif;
+}

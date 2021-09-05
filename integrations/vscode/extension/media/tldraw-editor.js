@@ -13,6 +13,11 @@
   )
 
   const iframe = document.querySelector('iframe')
+  setTimeout(()=>{
+    iframe.contentWindow.focus();
+    console.log("AUTO-FOCUS")
+  },500)
+  
   //console.log(iframe);
   // setTimeout(()=>{
   //   iframe.contentWindow.postMessage({type: 'load', json:[]}, '*');
