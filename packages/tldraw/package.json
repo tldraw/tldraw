@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "0.0.73",
+  "version": "0.0.76",
   "private": false,
   "description": "A tiny little drawing app (editor)",
   "author": "@steveruizok",
@@ -11,6 +11,9 @@
   },
   "license": "MIT",
   "keywords": [],
+  "files": [
+    "dist/**/*"
+  ],
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",

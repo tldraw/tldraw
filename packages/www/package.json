@@ -1,6 +1,6 @@
 {
   "name": "www",
-  "version": "0.0.73",
+  "version": "0.0.74",
   "private": true,
   "description": "A tiny little drawing app (site).",
   "repository": {
