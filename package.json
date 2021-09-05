@@ -23,7 +23,7 @@
     "start:www": "yarn build:packages && lerna run start --parallel & cd packages/www && yarn dev",
     "build": "yarn build:packages && cd packages/www && yarn build",
     "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build",
-    "publish:patch": "yarn build:packages && lerna publish patch --contents dist",
+    "publish:patch": "yarn build:packages && lerna publish patch",
     "docs": "lerna run docs --stream",
     "docs:watch": "lerna run docs:watch --stream"
   },
