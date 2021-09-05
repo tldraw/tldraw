@@ -2,7 +2,7 @@
   "name": "@tldraw/core",
   "version": "0.0.72",
   "private": false,
-  "description": "A tiny little drawing app (core).",
+  "description": "A tiny little drawing app (core)",
   "author": "@steveruizok",
   "repository": {
     "type": "git",
@@ -54,6 +54,5 @@
   "dependencies": {
     "deepmerge": "^4.2.2",
     "react-use-gesture": "^9.1.3"
-  },
-  "gitHead": "39b8751b65706ba1bfd3a03a01e4e676f56a54ea"
+  }
 }

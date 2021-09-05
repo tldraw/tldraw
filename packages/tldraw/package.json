@@ -2,7 +2,7 @@
   "name": "@tldraw/tldraw",
   "version": "0.0.72",
   "private": false,
-  "description": "A tiny little drawing app (editor).",
+  "description": "A tiny little drawing app (editor)",
   "author": "@steveruizok",
   "repository": {
     "type": "git",
@@ -65,6 +65,5 @@
     "perfect-freehand": "^0.5.3",
     "react-hotkeys-hook": "^3.4.0",
     "rko": "^0.5.20"
-  },
-  "gitHead": "39b8751b65706ba1bfd3a03a01e4e676f56a54ea"
+  }
 }

@@ -2,7 +2,7 @@
   "name": "@tldraw/dev",
   "version": "0.0.72",
   "private": true,
-  "description": "A tiny little drawing app (core).",
+  "description": "A tiny little drawing app (dev)",
   "author": "@steveruizok",
   "license": "MIT",
   "keywords": [
