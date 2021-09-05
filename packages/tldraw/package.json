@@ -25,7 +25,8 @@
     "lint": "eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf dist",
     "ts-node": "ts-node",
-    "docs": "typedoc --entryPoints src/index.ts"
+    "docs": "typedoc",
+    "docs:watch": "typedoc --watch"
   },
   "devDependencies": {
     "@babel/core": "^7.15.5",
