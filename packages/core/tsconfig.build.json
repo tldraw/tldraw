@@ -13,6 +13,8 @@
   "compilerOptions": {
     "incremental": false,
     "emitDeclarationOnly": true,
+    "declarationMap": false,
+    "sourceMap": false,
     "outDir": "./dist/types"
   }
 }
