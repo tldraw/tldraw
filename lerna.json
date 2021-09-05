@@ -2,7 +2,8 @@
   "version": "0.0.71",
   "registry": "https://registry.npmjs.org/",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "directory": "dist"
   },
   "npmClient": "yarn",
   "useWorkspaces": true
