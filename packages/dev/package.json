@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/dev",
-  "version": "0.0.68",
+  "version": "0.0.69",
   "private": true,
   "description": "A tiny little drawing app (core).",
   "author": "@steveruizok",
