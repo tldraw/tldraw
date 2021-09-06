@@ -4,9 +4,22 @@ import { mockDocument } from '~test'
 describe('Delete page', () => {
   const tlstate = new TLDrawState()
 
-  it('does, undoes and redoes command', () => {
+  beforeEach(() => {
     tlstate.loadDocument(mockDocument)
+  })
 
+  describe('when there are no pages in the current document', () => {
+    it('does nothing', () => {
+      tlstate.resetDocument()
+      const initialState = tlstate.state
+      tlstate.deletePage('page1')
+      const currentState = tlstate.state
+
+      expect(currentState).toEqual(initialState)
+    })
+  })
+
+  it('does, undoes and redoes command', () => {
     const initialId = tlstate.currentPageId
 
     tlstate.createPage()
