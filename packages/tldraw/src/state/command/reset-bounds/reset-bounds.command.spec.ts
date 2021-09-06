@@ -41,18 +41,23 @@ describe('Reset bounds command', () => {
 
     tlstate.resetBounds(['text1'])
 
-    const newScale = tlstate.getShape('text1').style.scale
-    const newBounds = TLDR.getBounds(tlstate.getShape('text1'))
-    const newCenter = Utils.getBoundsCenter(newBounds)
-
-    console.log(newScale)
-
-    expect(newScale).toBe(1)
-
-    expect(newCenter).toStrictEqual(center) // The centers should be the same
+    // The scale should be back to 1
+    expect(tlstate.getShape('text1').style.scale).toBe(1)
+    // The centers should be the same
+    expect(Utils.getBoundsCenter(TLDR.getBounds(tlstate.getShape('text1')))).toStrictEqual(center)
 
     tlstate.undo()
 
+    // The scale should be what it was before
+    expect(tlstate.getShape('text1').style.scale).not.toBe(1)
+    // The centers should be the same
+    expect(Utils.getBoundsCenter(TLDR.getBounds(tlstate.getShape('text1')))).toStrictEqual(center)
+
     tlstate.redo()
+
+    // The scale should be back to 1
+    expect(tlstate.getShape('text1').style.scale).toBe(1)
+    // The centers should be the same
+    expect(Utils.getBoundsCenter(TLDR.getBounds(tlstate.getShape('text1')))).toStrictEqual(center)
   })
 })

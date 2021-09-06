@@ -21,7 +21,7 @@
   "scripts": {
     "start:pre": "node scripts/pre-dev && yarn types:pre",
     "start": "node scripts/dev & yarn types:dev",
-    "build": "yarn clean && node scripts/build && yarn types:build",
+    "build": "node scripts/build && yarn types:build",
     "types:pre": "tsc",
     "types:dev": "tsc --watch",
     "types:build": "tsc --project tsconfig.build.json",
