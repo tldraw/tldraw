@@ -64,5 +64,65 @@ Array [
     },
     "id": "create",
   },
+  Object {
+    "after": Object {
+      "document": Object {
+        "pageStates": Object {
+          "page1": Object {
+            "selectedIds": Array [
+              "rect2",
+            ],
+          },
+        },
+        "pages": Object {
+          "page1": Object {
+            "shapes": Object {
+              "rect2": Object {
+                "childIndex": 1,
+                "id": "rect2",
+                "name": "Rectangle",
+                "parentId": "page1",
+                "point": Array [
+                  0,
+                  0,
+                ],
+                "rotation": 0,
+                "size": Array [
+                  100,
+                  200,
+                ],
+                "style": Object {
+                  "color": "Black",
+                  "dash": "Draw",
+                  "isFilled": false,
+                  "size": "Medium",
+                },
+                "type": "rectangle",
+              },
+            },
+          },
+        },
+      },
+    },
+    "before": Object {
+      "document": Object {
+        "pageStates": Object {
+          "page1": Object {
+            "selectedIds": Array [
+              "rect1",
+            ],
+          },
+        },
+        "pages": Object {
+          "page1": Object {
+            "shapes": Object {
+              "rect2": undefined,
+            },
+          },
+        },
+      },
+    },
+    "id": "create",
+  },
 ]
 `;

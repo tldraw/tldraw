@@ -651,7 +651,7 @@ export class TLDrawState extends StateManager<Data> {
    * Get the current undo/redo stack.
    */
   get history() {
-    return this.stack
+    return this.stack.slice(0, this.pointer + 1)
   }
 
   /**
