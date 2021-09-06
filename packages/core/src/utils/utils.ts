@@ -3,10 +3,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-redeclare */
 import type React from 'react'
-import deepmerge from 'deepmerge'
 import { TLBezierCurveSegment, TLBounds, TLBoundsCorner, TLBoundsEdge } from '../types'
 import vec from './vec'
 import './polyfills'
+import type { Patch } from '+index'
 
 export class Utils {
   /* -------------------------------------------------- */
@@ -20,8 +20,18 @@ export class Utils {
     return Object.fromEntries((Object.entries(obj) as Entry<T>[]).filter(fn)) as Partial<T>
   }
 
-  static deepMerge<T>(target: T, source: any): T {
-    return deepmerge(target, source, { arrayMerge: (a, b) => b, clone: false })
+  static deepMerge = <T>(target: T, patch: Patch<T>): T => {
+    const result: T = { ...target }
+
+    const entries = Object.entries(patch) as [keyof T, T[keyof T]][]
+
+    for (const [key, value] of entries)
+      result[key] =
+        value === Object(value) && !Array.isArray(value)
+          ? this.deepMerge(result[key], value)
+          : value
+
+    return result
 
     // const result = {} as T
 

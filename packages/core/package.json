@@ -55,7 +55,7 @@
     "react-dom": "^17.0.2"
   },
   "dependencies": {
-    "deepmerge": "^4.2.2",
     "react-use-gesture": "^9.1.3"
-  }
+  },
+  "gitHead": "55da8880eb3d8ab5fb62b5eb7853065922c95dcf"
 }

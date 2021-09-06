@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* --------------------- Primary -------------------- */
 
+export type Patch<T> = Partial<{ [P in keyof T]: T | Partial<T> | Patch<T[P]> }>
+
 export interface TLPage<T extends TLShape, B extends TLBinding> {
   id: string
   name?: string
