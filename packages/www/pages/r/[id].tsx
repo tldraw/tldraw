@@ -1,5 +1,6 @@
 import * as React from 'react'
 import type { GetServerSideProps } from 'next'
+import Head from 'next/head'
 import { getSession } from 'next-auth/client'
 import dynamic from 'next/dynamic'
 const Editor = dynamic(() => import('components/editor'), { ssr: false })
@@ -9,7 +10,14 @@ interface RoomProps {
 }
 
 export default function Room({ id }: RoomProps): JSX.Element {
-  return <Editor id={id} />
+  return (
+    <>
+      <Head>
+        <title>tldraw</title>
+      </Head>
+      <Editor id={id} />
+    </>
+  )
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
