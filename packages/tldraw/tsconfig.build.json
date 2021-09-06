@@ -7,9 +7,14 @@
     "**/*.spec.tsx",
     "**/*.spec.ts",
     "src/test",
-    "dist"
+    "dist",
+    "docs"
   ],
   "compilerOptions": {
+    "incremental": false,
+    "sourceMap": false,
+    "emitDeclarationOnly": true,
+    "declarationMap": false,
     "outDir": "./dist/types"
   }
 }

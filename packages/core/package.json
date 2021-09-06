@@ -1,8 +1,8 @@
 {
   "name": "@tldraw/core",
-  "version": "0.0.59",
+  "version": "0.0.79",
   "private": false,
-  "description": "A tiny little drawing app (core).",
+  "description": "A tiny little drawing app (core)",
   "author": "@steveruizok",
   "repository": {
     "type": "git",
@@ -11,6 +11,9 @@
   },
   "license": "MIT",
   "keywords": [],
+  "files": [
+    "dist/**/*"
+  ],
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
@@ -19,13 +22,14 @@
     "start:pre": "node scripts/pre-dev && yarn types:pre",
     "start": "node scripts/dev & yarn types:dev",
     "build": "yarn clean && node scripts/build && yarn types:build",
-    "types:pre": "tsc ",
+    "types:pre": "tsc",
     "types:dev": "tsc --watch ",
     "types:build": "tsc --project tsconfig.build.json",
     "lint": "eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf dist",
     "ts-node": "ts-node",
-    "docs": "typedoc --entryPoints src/index.ts"
+    "docs": "typedoc",
+    "docs:watch": "typedoc --watch"
   },
   "devDependencies": {
     "@babel/core": "^7.15.5",
@@ -53,6 +57,5 @@
   "dependencies": {
     "deepmerge": "^4.2.2",
     "react-use-gesture": "^9.1.3"
-  },
-  "gitHead": "838fabdbff1a66d4d7ee8aa5c5d117bc55acbff2"
+  }
 }

@@ -1,8 +1,8 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "0.0.59",
+  "version": "0.0.79",
   "private": false,
-  "description": "A tiny little drawing app (editor).",
+  "description": "A tiny little drawing app (editor)",
   "author": "@steveruizok",
   "repository": {
     "type": "git",
@@ -11,6 +11,9 @@
   },
   "license": "MIT",
   "keywords": [],
+  "files": [
+    "dist/**/*"
+  ],
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
@@ -25,7 +28,8 @@
     "lint": "eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf dist",
     "ts-node": "ts-node",
-    "docs": "typedoc --entryPoints src/index.ts"
+    "docs": "typedoc",
+    "docs:watch": "typedoc --watch"
   },
   "devDependencies": {
     "@babel/core": "^7.15.5",
@@ -60,10 +64,9 @@
     "@radix-ui/react-radio-group": "^0.0.18",
     "@radix-ui/react-tooltip": "^0.0.20",
     "@stitches/react": "^1.0.0",
-    "@tldraw/core": "^0.0.59",
+    "@tldraw/core": "^0.0.79",
     "perfect-freehand": "^0.5.3",
     "react-hotkeys-hook": "^3.4.0",
     "rko": "^0.5.20"
-  },
-  "gitHead": "838fabdbff1a66d4d7ee8aa5c5d117bc55acbff2"
+  }
 }

@@ -374,8 +374,7 @@ export class TLDR {
   }
 
   static getChildIndexAbove(data: Data, id: string, pageId: string): number {
-    const page = this.getPage(data, pageId)
-
+    const page = data.document.pages[pageId]
     const shape = page.shapes[id]
 
     let siblings: TLDrawShape[]
@@ -398,7 +397,7 @@ export class TLDR {
 
     if (!nextSibling) return shape.childIndex + 1
 
-    return (shape.childIndex + nextSibling.childIndex) / 2
+    return nextSibling.childIndex
   }
 
   /* -------------------------------------------------- */

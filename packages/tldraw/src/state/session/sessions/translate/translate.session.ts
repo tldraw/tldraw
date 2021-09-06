@@ -382,30 +382,32 @@ export function getTranslateSnapshot(data: Data) {
 
   // Potentially confusing name here: these are the ids of the
   // original shapes that were cloned, not their clones' ids.
-  const clonedShapeIds = Object.keys(cloneMap)
+  const clonedShapeIds = new Set(Object.keys(cloneMap))
 
   const bindingsToDelete: TLDrawBinding[] = []
 
   // Create cloned bindings for shapes where both to and from shapes are selected
   // (if the user clones, then we will create a new binding for the clones)
-  Object.values(page.bindings).forEach((binding) => {
-    if (clonedShapeIds.includes(binding.fromId)) {
-      if (clonedShapeIds.includes(binding.toId)) {
-        const cloneId = Utils.uniqueId()
-        const cloneBinding = {
-          ...Utils.deepClone(binding),
-          id: cloneId,
-          fromId: cloneMap[binding.fromId] || binding.fromId,
-          toId: cloneMap[binding.toId] || binding.toId,
-        }
+  Object.values(page.bindings)
+    .filter((binding) => clonedShapeIds.has(binding.fromId) || clonedShapeIds.has(binding.toId))
+    .forEach((binding) => {
+      if (clonedShapeIds.has(binding.fromId)) {
+        if (clonedShapeIds.has(binding.toId)) {
+          const cloneId = Utils.uniqueId()
+          const cloneBinding = {
+            ...Utils.deepClone(binding),
+            id: cloneId,
+            fromId: cloneMap[binding.fromId] || binding.fromId,
+            toId: cloneMap[binding.toId] || binding.toId,
+          }
 
-        clonedBindingsMap[binding.id] = cloneId
-        clonedBindings.push(cloneBinding)
-      } else {
-        bindingsToDelete.push(binding)
+          clonedBindingsMap[binding.id] = cloneId
+          clonedBindings.push(cloneBinding)
+        } else {
+          bindingsToDelete.push(binding)
+        }
       }
-    }
-  })
+    })
 
   // Assign new binding ids to clones (or delete them!)
   clones.forEach((clone) => {
