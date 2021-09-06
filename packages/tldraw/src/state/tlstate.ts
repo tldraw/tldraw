@@ -15,6 +15,7 @@ import {
   brushUpdater,
   TLPointerInfo,
   inputs,
+  TLBounds,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -322,9 +323,12 @@ export class TLDrawState extends StateManager<Data> {
    * @returns
    */
   private setStatus(status: TLDrawStatus) {
-    return this.patchState({
-      appState: { status: { current: status, previous: this.appState.status.current } },
-    })
+    return this.patchState(
+      {
+        appState: { status: { current: status, previous: this.appState.status.current } },
+      },
+      `set_status:${status}`
+    )
   }
 
   /* -------------------------------------------------- */
@@ -483,43 +487,46 @@ export class TLDrawState extends StateManager<Data> {
     this.session = undefined
     this.selectedGroupId = undefined
 
-    return this.replaceState({
-      ...this.state,
-      appState: {
-        ...this.appState,
-        currentPageId: Object.keys(document.pages)[0],
-      },
-      document: {
-        ...document,
-        pages: Object.fromEntries(
-          Object.entries(document.pages)
-            .sort((a, b) => (a[1].childIndex || 0) - (b[1].childIndex || 0))
-            .map(([id, page], i) => {
+    return this.replaceState(
+      {
+        ...this.state,
+        appState: {
+          ...this.appState,
+          currentPageId: Object.keys(document.pages)[0],
+        },
+        document: {
+          ...document,
+          pages: Object.fromEntries(
+            Object.entries(document.pages)
+              .sort((a, b) => (a[1].childIndex || 0) - (b[1].childIndex || 0))
+              .map(([id, page], i) => {
+                return [
+                  id,
+                  {
+                    ...page,
+                    name: page.name ? page.name : `Page ${i++}`,
+                  },
+                ]
+              })
+          ),
+          pageStates: Object.fromEntries(
+            Object.entries(document.pageStates).map(([id, pageState]) => {
               return [
                 id,
                 {
-                  ...page,
-                  name: page.name ? page.name : `Page ${i++}`,
+                  ...pageState,
+                  bindingId: undefined,
+                  editingId: undefined,
+                  hoveredId: undefined,
+                  pointedId: undefined,
                 },
               ]
             })
-        ),
-        pageStates: Object.fromEntries(
-          Object.entries(document.pageStates).map(([id, pageState]) => {
-            return [
-              id,
-              {
-                ...pageState,
-                bindingId: undefined,
-                editingId: undefined,
-                hoveredId: undefined,
-                pointedId: undefined,
-              },
-            ]
-          })
-        ),
+          ),
+        },
       },
-    })
+      `loaded_document:${document.id}`
+    )
   }
 
   /**
@@ -597,6 +604,19 @@ export class TLDrawState extends StateManager<Data> {
    */
   getShape = <T extends TLDrawShape = TLDrawShape>(id: string, pageId = this.currentPageId): T => {
     return TLDR.getShape<T>(this.state, id, pageId)
+  }
+
+  /**
+   * Get the bounds of a shape on a given page.
+   * @param id The shape's id.
+   * @param pageId (optional) The page's id.
+   */
+  getShapeBounds = (id: string, pageId = this.currentPageId): TLBounds => {
+    return TLDR.getBounds(this.getShape(id, pageId))
+  }
+
+  greet() {
+    return 'hello'
   }
 
   /**
@@ -1762,6 +1782,17 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /**
+   * Reset the bounds for one or more shapes. Usually when the
+   * bounding box of a shape is double-clicked. Different shapes may
+   * handle this differently.
+   * @param ids The ids to change (defaults to selection).
+   */
+  resetBounds = (ids = this.selectedIds): this => {
+    const command = Commands.resetBounds(this.state, ids, this.currentPageId)
+    return this.setState(Commands.resetBounds(this.state, ids, this.currentPageId), command.id)
+  }
+
+  /**
    * Toggle the hidden property of one or more shapes.
    * @param ids The ids to change (defaults to selection).
    */
@@ -2560,7 +2591,9 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   onDoubleClickBoundsHandle: TLBoundsHandleEventHandler = () => {
-    // TODO
+    if (this.selectedIds.length === 1) {
+      this.resetBounds(this.selectedIds)
+    }
   }
 
   onRightPointBoundsHandle: TLBoundsHandleEventHandler = () => {

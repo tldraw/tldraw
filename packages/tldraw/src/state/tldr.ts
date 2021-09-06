@@ -407,7 +407,7 @@ export class TLDR {
   static mutateShapes<T extends TLDrawShape>(
     data: Data,
     ids: string[],
-    fn: (shape: T, i: number) => Partial<T>,
+    fn: (shape: T, i: number) => Partial<T> | void,
     pageId: string
   ): {
     before: Record<string, Partial<T>>
@@ -420,10 +420,12 @@ export class TLDR {
     ids.forEach((id, i) => {
       const shape = this.getShape<T>(data, id, pageId)
       const change = fn(shape, i)
-      beforeShapes[id] = Object.fromEntries(
-        Object.keys(change).map((key) => [key, shape[key as keyof T]])
-      ) as Partial<T>
-      afterShapes[id] = change
+      if (change) {
+        beforeShapes[id] = Object.fromEntries(
+          Object.keys(change).map((key) => [key, shape[key as keyof T]])
+        ) as Partial<T>
+        afterShapes[id] = change
+      }
     })
 
     const dataWithMutations = Utils.deepMerge(data, {
@@ -610,6 +612,16 @@ export class TLDR {
     }
   }
 
+  static mutate<T extends TLDrawShape>(data: Data, shape: T, props: Partial<T>, pageId: string) {
+    let next = getShapeUtils(shape).mutate(shape, props)
+
+    if (props.children) {
+      next = this.onChildrenChange(data, next, pageId) || next
+    }
+
+    return next
+  }
+
   static onSessionComplete<T extends TLDrawShape>(data: Data, shape: T, pageId: string) {
     const delta = getShapeUtils(shape).onSessionComplete(shape)
     if (!delta) return shape
@@ -668,16 +680,6 @@ export class TLDR {
       getShapeUtils(shape).transformSingle(shape, bounds, info),
       pageId
     )
-  }
-
-  static mutate<T extends TLDrawShape>(data: Data, shape: T, props: Partial<T>, pageId: string) {
-    let next = getShapeUtils(shape).mutate(shape, props)
-
-    if (props.children) {
-      next = this.onChildrenChange(data, next, pageId) || next
-    }
-
-    return next
   }
 
   /* -------------------------------------------------- */

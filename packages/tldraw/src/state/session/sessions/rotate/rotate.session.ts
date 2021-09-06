@@ -23,14 +23,9 @@ export class RotateSession implements Session {
   update = (data: Data, point: number[], isLocked = false) => {
     const { commonBoundsCenter, initialShapes } = this.snapshot
     const pageId = data.appState.currentPageId
-    const page = TLDR.getPage(data, pageId)
     const pageState = TLDR.getPageState(data, pageId)
 
-    const shapes: Record<string, TLDrawShape> = {}
-
-    for (const { id, shape } of initialShapes) {
-      shapes[id] = shape
-    }
+    const shapes: Record<string, Partial<TLDrawShape>> = {}
 
     const a1 = Vec.angle(commonBoundsCenter, this.origin)
     const a2 = Vec.angle(commonBoundsCenter, point)
@@ -46,23 +41,16 @@ export class RotateSession implements Session {
     pageState.boundsRotation = (PI2 + (this.snapshot.boundsRotation + rot)) % PI2
 
     initialShapes.forEach(({ id, center, offset, shape: { rotation = 0 } }) => {
-      const shape = page.shapes[id]
-
       const nextRotation = isLocked
         ? Utils.clampToRotationToSegments(rotation + rot, 24)
         : rotation + rot
 
       const nextPoint = Vec.sub(Vec.rotWith(center, commonBoundsCenter, rot), offset)
 
-      shapes[id] = TLDR.mutate(
-        data,
-        shape,
-        {
-          point: nextPoint,
-          rotation: (PI2 + nextRotation) % PI2,
-        },
-        pageId
-      )
+      shapes[id] = {
+        point: nextPoint,
+        rotation: (PI2 + nextRotation) % PI2,
+      }
     })
 
     return {
