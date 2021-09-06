@@ -1,14 +1,28 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { ArrowShape, GroupShape, TLDrawShapeType } from '~types'
+import { ArrowShape, TLDrawShapeType } from '~types'
 
 describe('Duplicate command', () => {
   const tlstate = new TLDrawState()
-  tlstate.loadDocument(mockDocument)
-  tlstate.select('rect1')
+
+  beforeEach(() => {
+    tlstate.loadDocument(mockDocument)
+  })
+
+  describe('when no shape is selected', () => {
+    it('does nothing', () => {
+      const initialState = tlstate.state
+      tlstate.duplicate()
+      const currentState = tlstate.state
+
+      expect(currentState).toEqual(initialState)
+    })
+  })
 
   it('does, undoes and redoes command', () => {
+    tlstate.select('rect1')
+
     expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
 
     tlstate.duplicate()
@@ -121,7 +135,6 @@ describe('Duplicate command', () => {
     })
 
     it('duplicates groups', () => {
-      tlstate.loadDocument(mockDocument)
       tlstate.group(['rect1', 'rect2'], 'newGroup').select('newGroup')
 
       const beforeShapeIds = Object.keys(tlstate.page.shapes)
@@ -140,7 +153,6 @@ describe('Duplicate command', () => {
     })
 
     it('duplicates grouped shapes', () => {
-      tlstate.loadDocument(mockDocument)
       tlstate.group(['rect1', 'rect2'], 'newGroup').select('rect1')
 
       const beforeShapeIds = Object.keys(tlstate.page.shapes)

@@ -6,8 +6,21 @@ import { ArrowShape, TLDrawShapeType } from '~types'
 describe('Translate command', () => {
   const tlstate = new TLDrawState()
 
-  it('does, undoes and redoes command', () => {
+  beforeEach(() => {
     tlstate.loadDocument(mockDocument)
+  })
+
+  describe('when no shape is selected', () => {
+    it('does nothing', () => {
+      const initialState = tlstate.state
+      tlstate.nudge([1, 2])
+      const currentState = tlstate.state
+
+      expect(currentState).toEqual(initialState)
+    })
+  })
+
+  it('does, undoes and redoes command', () => {
     tlstate.selectAll()
     tlstate.nudge([1, 2])
 
@@ -23,7 +36,6 @@ describe('Translate command', () => {
   })
 
   it('major nudges', () => {
-    tlstate.loadDocument(mockDocument)
     tlstate.selectAll()
     tlstate.nudge([1, 2], true)
     expect(tlstate.getShape('rect2').point).toEqual([110, 120])

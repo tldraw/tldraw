@@ -6,8 +6,11 @@ import { GroupShape, TLDrawShape, TLDrawShapeType } from '~types'
 describe('Group command', () => {
   const tlstate = new TLDrawState()
 
-  it('does, undoes and redoes command', () => {
+  beforeEach(() => {
     tlstate.loadDocument(mockDocument)
+  })
+
+  it('does, undoes and redoes command', () => {
     tlstate.group(['rect1', 'rect2'], 'newGroup')
 
     expect(tlstate.getShape<GroupShape>('newGroup')).toBeTruthy()
@@ -23,7 +26,6 @@ describe('Group command', () => {
 
   describe('when less than two shapes are selected', () => {
     it('does nothing', () => {
-      tlstate.loadDocument(mockDocument)
       tlstate.deselectAll()
 
       // @ts-ignore
@@ -49,8 +51,6 @@ describe('Group command', () => {
     */
 
     it('creates a group with the correct props', () => {
-      tlstate.loadDocument(mockDocument)
-
       tlstate.updateShapes(
         {
           id: 'rect1',
@@ -74,8 +74,6 @@ describe('Group command', () => {
     })
 
     it('reparents the grouped shapes', () => {
-      tlstate.loadDocument(mockDocument)
-
       tlstate.updateShapes(
         {
           id: 'rect1',
@@ -114,9 +112,9 @@ describe('Group command', () => {
     })
   })
 
-  describe('when grouping shapes that are the child of another group', () => {
+  describe('when grouping shapes that already belong to a group', () => {
     /*
-    Do not allow groups to nest. All groups should be the parent of
+    Do not allow groups to nest. All groups should be children of
     the page: a group should never be the child of a different group.
     This is a UX decision as much as a technical one.
     */
@@ -125,7 +123,8 @@ describe('Group command', () => {
       /*
       When the selected shapes are the children of another group, and so
       long as the children do not represent ALL of the group's children,
-      then a new group should be created that is a child of the parent group.
+      then a new group should be created from the selected shapes and the
+      original group be updated to only contain the remaining ones.
       */
 
       tlstate.resetDocument().createShapes(
@@ -206,7 +205,7 @@ describe('Group command', () => {
       expect(tlstate.getShape<GroupShape>('newGroupB').children).toStrictEqual(['rect1', 'rect3'])
     })
 
-    it('does not group shapes if shapes are all the groups children', () => {
+    it('does nothing if all shapes in the group are selected', () => {
       /*
       If the selected shapes represent ALL of the children of the a
       group, then no effect should occur.
@@ -269,7 +268,7 @@ describe('Group command', () => {
       ])
     })
 
-    it('marges selected groups that no longer have children', () => {
+    it('merges selected groups that no longer have children', () => {
       /*
       If the user is creating a group while having selected other
       groups, then the selected groups should be destroyed and a new

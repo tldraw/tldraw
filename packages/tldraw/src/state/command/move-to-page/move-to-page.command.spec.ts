@@ -5,9 +5,23 @@ import { ArrowShape, TLDrawShapeType } from '~types'
 describe('Move to page command', () => {
   const tlstate = new TLDrawState()
 
+  beforeEach(() => {
+    tlstate.loadDocument(mockDocument).createPage('page2').changePage('page1')
+  })
+
+  describe('when no shape is selected', () => {
+    it('does nothing', () => {
+      const initialState = tlstate.state
+      tlstate.moveToPage('page2')
+      const currentState = tlstate.state
+
+      expect(currentState).toEqual(initialState)
+    })
+  })
+
   /*
   Moving shapes to a new page should remove those shapes from the
-  current page and add them to the specifed page. If bindings exist
+  current page and add them to the specified page. If bindings exist
   that effect the moved shapes, then the bindings should be destroyed
   on the old page and created on the new page only if both the "to"
   and "from" shapes were moved. The app should then change pages to
@@ -15,12 +29,7 @@ describe('Move to page command', () => {
   */
 
   it('does, undoes and redoes command', () => {
-    tlstate
-      .loadDocument(mockDocument)
-      .createPage('page2')
-      .changePage('page1')
-      .select('rect1', 'rect2')
-      .moveToPage('page2')
+    tlstate.select('rect1', 'rect2').moveToPage('page2')
 
     expect(tlstate.currentPageId).toBe('page2')
     expect(tlstate.getShape('rect1', 'page1')).toBeUndefined()
@@ -51,7 +60,6 @@ describe('Move to page command', () => {
   describe('when moving shapes with bindings', () => {
     it('deletes bindings when only the bound-to shape is moved', () => {
       tlstate
-        .loadDocument(mockDocument)
         .selectAll()
         .delete()
         .createShapes(
@@ -66,7 +74,7 @@ describe('Move to page command', () => {
       const bindingId = tlstate.bindings[0].id
       expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
 
-      tlstate.createPage('page2').changePage('page1').select('target1').moveToPage('page2')
+      tlstate.select('target1').moveToPage('page2')
 
       expect(
         tlstate.getShape<ArrowShape>('arrow1', 'page1').handles.start.bindingId
@@ -93,7 +101,6 @@ describe('Move to page command', () => {
 
     it('deletes bindings when only the bound-from shape is moved', () => {
       tlstate
-        .loadDocument(mockDocument)
         .selectAll()
         .delete()
         .createShapes(
@@ -108,7 +115,7 @@ describe('Move to page command', () => {
       const bindingId = tlstate.bindings[0].id
       expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
 
-      tlstate.createPage('page2').changePage('page1').select('arrow1').moveToPage('page2')
+      tlstate.select('arrow1').moveToPage('page2')
 
       expect(
         tlstate.getShape<ArrowShape>('arrow1', 'page2').handles.start.bindingId
@@ -135,7 +142,6 @@ describe('Move to page command', () => {
 
     it('moves bindings when both shapes are moved', () => {
       tlstate
-        .loadDocument(mockDocument)
         .selectAll()
         .delete()
         .createShapes(
@@ -150,11 +156,7 @@ describe('Move to page command', () => {
       const bindingId = tlstate.bindings[0].id
       expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
 
-      tlstate
-        .createPage('page2')
-        .changePage('page1')
-        .select('arrow1', 'target1')
-        .moveToPage('page2')
+      tlstate.select('arrow1', 'target1').moveToPage('page2')
 
       expect(tlstate.getShape<ArrowShape>('arrow1', 'page2').handles.start.bindingId).toBe(
         bindingId
@@ -182,12 +184,7 @@ describe('Move to page command', () => {
 
   describe('when moving grouped shapes', () => {
     it('moves groups and their children', () => {
-      tlstate
-        .loadDocument(mockDocument)
-        .createPage('page2')
-        .changePage('page1')
-        .group(['rect1', 'rect2'], 'groupA')
-        .moveToPage('page2')
+      tlstate.group(['rect1', 'rect2'], 'groupA').moveToPage('page2')
 
       expect(tlstate.getShape('rect1', 'page1')).toBeUndefined()
       expect(tlstate.getShape('rect2', 'page1')).toBeUndefined()
@@ -218,18 +215,10 @@ describe('Move to page command', () => {
       expect(tlstate.getShape('groupA', 'page2')).toBeDefined()
     })
 
-    it('deletes groups shapes if the groups children were all moved', () => {
-      // ...
-    })
+    it.todo('deletes groups shapes if the groups children were all moved')
 
     it('reparents grouped shapes if the group is not moved', () => {
-      tlstate
-        .loadDocument(mockDocument)
-        .createPage('page2')
-        .changePage('page1')
-        .group(['rect1', 'rect2', 'rect3'], 'groupA')
-        .select('rect1')
-        .moveToPage('page2')
+      tlstate.group(['rect1', 'rect2', 'rect3'], 'groupA').select('rect1').moveToPage('page2')
 
       expect(tlstate.getShape('rect1', 'page1')).toBeUndefined()
       expect(tlstate.getShape('rect1', 'page2')).toBeDefined()

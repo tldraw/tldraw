@@ -9,6 +9,16 @@ describe('Flip command', () => {
     tlstate.loadDocument(mockDocument)
   })
 
+  describe('when no shape is selected', () => {
+    it('does nothing', () => {
+      const initialState = tlstate.state
+      tlstate.flipHorizontal()
+      const currentState = tlstate.state
+
+      expect(currentState).toEqual(initialState)
+    })
+  })
+
   it('does, undoes and redoes command', () => {
     tlstate.select('rect1', 'rect2')
     tlstate.flipHorizontal()

@@ -3,11 +3,14 @@
   "include": ["src"],
   "exclude": ["node_modules", "dist", "docs"],
   "compilerOptions": {
+    "composite": true,
+    "emitDeclarationOnly": true,
     "rootDir": "src",
     "outDir": "./dist/types",
     "baseUrl": "src",
     "paths": {
       "~*": ["./*"]
     }
-  }
+  },
+  "references": [{ "path": "../../packages/core" }]
 }

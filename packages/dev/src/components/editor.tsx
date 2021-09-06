@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { TLDraw, TLDrawState } from '@tldraw/tldraw'
+import { TLDraw, TLDrawShapeType, TLDrawState } from '@tldraw/tldraw'
 
 export default function Editor(): JSX.Element {
   const rTLDrawState = React.useRef<TLDrawState>()
