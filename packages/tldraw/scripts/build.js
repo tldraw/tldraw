@@ -5,8 +5,12 @@ const esbuild = require('esbuild')
 const name = process.env.npm_package_name || ''
 
 async function main() {
-  if (!fs.existsSync('./dist')) {
-    fs.mkdirSync('./dist')
+  if (fs.existsSync('./dist')) {
+    fs.rmSync('./dist', { recursive: true }, (e) => {
+      if (e) {
+        throw e
+      }
+    })
   }
 
   try {

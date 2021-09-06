@@ -11,12 +11,6 @@ async function main() {
     })
   }
 
-  fs.mkdir('./dist', (e) => {
-    if (e) {
-      throw e
-    }
-  })
-
   esbuild.build({
     entryPoints: ['./src/index.ts'],
     outdir: 'dist/cjs',

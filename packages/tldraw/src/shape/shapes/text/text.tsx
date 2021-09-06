@@ -254,13 +254,14 @@ export class Text extends TLDrawShapeUtil<TextShape> {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       if (!melm) {
         // We're in SSR
-        return { minX: 0, minY: 0, maxX: 0, maxY: 0, width: 0, height: 0 }
+        return { minX: 0, minY: 0, maxX: 10, maxY: 10, width: 10, height: 10 }
       }
 
       melm.innerHTML = `${shape.text}&zwj;`
       melm.style.font = getFontStyle(shape.style)
 
-      const [width, height] = [melm.offsetWidth, melm.offsetHeight]
+      // In tests, offsetWidth and offsetHeight will be 0
+      const [width, height] = [melm.offsetWidth || 1, melm.offsetHeight || 1]
 
       return {
         minX: 0,
@@ -340,9 +341,13 @@ export class Text extends TLDrawShapeUtil<TextShape> {
   onBoundsReset(shape: TextShape): Partial<TextShape> {
     const center = this.getCenter(shape)
 
-    this.boundsCache.delete(shape)
-
-    const newCenter = this.getCenter(shape)
+    const newCenter = this.getCenter({
+      ...shape,
+      style: {
+        ...shape.style,
+        scale: 1,
+      },
+    })
 
     return {
       style: {
