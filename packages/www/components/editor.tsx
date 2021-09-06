@@ -1,9 +1,16 @@
 import { TLDraw } from '@tldraw/tldraw'
+import React from 'react'
 
 interface EditorProps {
   id?: string
 }
 
 export default function Editor({ id = 'home' }: EditorProps) {
-  return <TLDraw id={id} />
+  const handleMount = React.useCallback((tlstate) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    window.tlstate = tlstate
+  }, [])
+
+  return <TLDraw id={id} onMount={handleMount} />
 }
