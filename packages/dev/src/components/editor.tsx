@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { TLDraw, TLDrawState } from '@tldraw/tldraw'
+import { TLDraw, TLDrawShapeType, TLDrawState } from '@tldraw/tldraw'
 
 export default function Editor(): JSX.Element {
   const rTLDrawState = React.useRef<TLDrawState>()
@@ -13,7 +13,7 @@ export default function Editor(): JSX.Element {
     state.selectAll()
     state.createShapes({
       id: 'rect1',
-      type: 'rectangle',
+      type: TLDrawShapeType.Rectangle,
       point: [100, 100],
       size: [200, 200],
     })

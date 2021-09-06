@@ -3,6 +3,7 @@
   "include": ["src"],
   "exclude": ["node_modules", "dist", "docs"],
   "compilerOptions": {
+    "composite": true,
     "emitDeclarationOnly": true,
     "rootDir": "src",
     "outDir": "./dist/types",
@@ -10,5 +11,6 @@
     "paths": {
       "~*": ["./*"]
     }
-  }
+  },
+  "references": [{ "path": "../../packages/core" }]
 }
