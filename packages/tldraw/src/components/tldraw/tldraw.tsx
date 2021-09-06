@@ -43,18 +43,26 @@ export interface TLDrawProps {
   /**
    * (optional) A callback to run when the component mounts.
    */
-  onMount?: (state: TLDrawState) => void
+  onMount?: TLDrawState['_onMount']
   /**
    * (optional) A callback to run when the component's state changes.
    */
   onChange?: TLDrawState['_onChange']
+  /**
+   * (optional) A callback to run when the component receives a patch.
+   */
+  onPatch?: TLDrawState['_onPatch']
 }
 
-export function TLDraw({ id, document, currentPageId, onMount, onChange }: TLDrawProps) {
-  const [tlstate, setTlstate] = React.useState(() => new TLDrawState(id))
+export function TLDraw({ id, document, currentPageId, onMount, onPatch, onChange }: TLDrawProps) {
+  const [tlstate, setTlstate] = React.useState(
+    () => new TLDrawState(id, { onChange, onMount, onPatch })
+  )
 
   React.useEffect(() => {
-    setTlstate(new TLDrawState(id, onChange, onMount))
+    if (id !== tlstate.id) {
+      setTlstate(new TLDrawState(id, { onChange, onMount, onPatch }))
+    }
   }, [id])
 
   const [context] = React.useState(() => {

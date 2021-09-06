@@ -17,6 +17,7 @@ import {
   inputs,
   TLBounds,
 } from '@tldraw/core'
+import type { Patch } from 'rko'
 import {
   FlipType,
   TextShape,
@@ -44,7 +45,7 @@ import { defaultStyle } from '~shape'
 import * as Sessions from './session'
 import * as Commands from './command'
 
-const defaultDocument: TLDrawDocument = {
+export const defaultDocument: TLDrawDocument = {
   id: 'doc',
   pages: {
     page: {
@@ -97,8 +98,9 @@ const initialData: Data = {
 }
 
 export class TLDrawState extends StateManager<Data> {
-  private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
+  private _onChange?: (tlstate: TLDrawState, reason: string) => void
   private _onMount?: (tlstate: TLDrawState) => void
+  private _onPatch?: (tlstate: TLDrawState, reason: string, patch: Patch<Data>) => void
 
   selectHistory: SelectHistory = {
     stack: [[]],
@@ -121,8 +123,11 @@ export class TLDrawState extends StateManager<Data> {
 
   constructor(
     id = Utils.uniqueId(),
-    onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
-    onMount?: (tlstate: TLDrawState) => void
+    options: {
+      onMount?: (tlstate: TLDrawState) => void
+      onChange?: (tlstate: TLDrawState, reason: string) => void
+      onPatch?: (tlstate: TLDrawState, reason: string, patch: Patch<Data>) => void
+    } = {}
   ) {
     super(initialData, id, 2, (prev, next, prevVersion) => {
       const state = { ...prev }
@@ -134,8 +139,9 @@ export class TLDrawState extends StateManager<Data> {
       return state
     })
 
-    this._onChange = onChange
-    this._onMount = onMount
+    this._onChange = options.onChange
+    this._onMount = options.onMount
+    this._onPatch = options.onPatch
 
     this.session = undefined
     this.pointedId = undefined
@@ -153,8 +159,10 @@ export class TLDrawState extends StateManager<Data> {
    * @protected
    * @returns The final state
    */
-  protected cleanup = (state: Data, prev: Data): Data => {
+  protected cleanup = (state: Data, prev: Data, patch: Patch<Data>, reason?: string): Data => {
     const data = { ...state }
+
+    this._onPatch?.(this, reason || 'patch', patch)
 
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
     if (data.document !== prev.document) {
@@ -309,12 +317,12 @@ export class TLDrawState extends StateManager<Data> {
    * @param state
    * @param id
    */
-  protected onStateDidChange = (state: Data, id: string): void => {
+  protected onStateDidChange = (_state: Data, id: string): void => {
     if (!id.startsWith('patch')) {
       this.clearSelectHistory()
     }
 
-    this._onChange?.(this, state, id)
+    this._onChange?.(this, id)
   }
 
   /**
@@ -475,6 +483,16 @@ export class TLDrawState extends StateManager<Data> {
       )
       .persist()
     return this
+  }
+
+  /**
+   * Merge a new document patch into the current document.
+   * @param document
+   */
+  mergeDocument = (document: TLDrawDocument): this => {
+    const next = { ...this.state }
+    next.document.pages[next.appState.currentPageId] = document.pages[next.appState.currentPageId]
+    return this.replaceState(next, 'merge')
   }
 
   /**
@@ -645,6 +663,13 @@ export class TLDrawState extends StateManager<Data> {
   getPagePoint = (point: number[], pageId = this.currentPageId): number[] => {
     const { camera } = this.getPageState(pageId)
     return Vec.sub(Vec.div(point, camera.zoom), camera.point)
+  }
+
+  /**
+   * Get the current id.
+   */
+  get id() {
+    return this._idbId
   }
 
   /**
