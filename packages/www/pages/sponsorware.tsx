@@ -3,80 +3,86 @@ import { getSession, signin, signout, useSession } from 'next-auth/client'
 import { GetServerSideProps } from 'next'
 import Link from 'next/link'
 import React from 'react'
+import Head from 'next/head'
 
 export default function Sponsorware(): JSX.Element {
   const [session, loading] = useSession()
 
   return (
-    <OuterContent>
-      <Content
-        size={{
-          '@sm': 'small',
-        }}
-      >
-        <h1>tldraw (is sponsorware)</h1>
-        <p>
-          Hey, thanks for visiting <Link href="/">tldraw</Link>, a tiny little drawing app by{' '}
-          <a
-            target="_blank"
-            rel="noreferrer nofollow noopener"
-            href="https://twitter.com/steveruizok"
-          >
-            steveruizok
-          </a>{' '}
-          and friends .
-        </p>
-        <video autoPlay muted playsInline onClick={(e) => e.currentTarget.play()}>
-          <source src="images/hello.mp4" type="video/mp4" />
-        </video>
-        <p>This project is currently: </p>
-        <ul>
-          <li>in development</li>
-          <li>only available for my sponsors</li>
-        </ul>
-        <p>
-          If you&apos;d like to try it out,{' '}
-          <a
-            href="https://github.com/sponsors/steveruizok"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            sponsor me on Github
-          </a>{' '}
-          (at any level) and sign in below.
-        </p>
-        <ButtonGroup>
-          {session ? (
-            <>
-              <Button onClick={() => signout()} variant={'secondary'}>
-                Sign Out
-              </Button>
-              <Detail>
-                Signed in as {session?.user?.name} ({session?.user?.email}), but it looks like
-                you&apos;re not yet a sponsor.
-                <br />
-                Something wrong? Try <Link href="/">reloading the page</Link> or DM me on{' '}
-                <a
-                  target="_blank"
-                  rel="noreferrer nofollow noopener"
-                  href="https://twitter.com/steveruizok"
-                >
-                  Twitter
-                </a>
-                .
-              </Detail>
-            </>
-          ) : (
-            <>
-              <Button onClick={() => signin('github')} variant={'primary'}>
-                {loading ? 'Loading...' : 'Sign in With Github'}
-              </Button>
-              <Detail>Already a sponsor? Just sign in to visit the app.</Detail>
-            </>
-          )}
-        </ButtonGroup>
-      </Content>
-    </OuterContent>
+    <>
+      <Head>
+        <title>tldraw</title>
+      </Head>
+      <OuterContent>
+        <Content
+          size={{
+            '@sm': 'small',
+          }}
+        >
+          <h1>tldraw (is sponsorware)</h1>
+          <p>
+            Hey, thanks for visiting <Link href="/">tldraw</Link>, a tiny little drawing app by{' '}
+            <a
+              target="_blank"
+              rel="noreferrer nofollow noopener"
+              href="https://twitter.com/steveruizok"
+            >
+              steveruizok
+            </a>{' '}
+            and friends .
+          </p>
+          <video autoPlay muted playsInline onClick={(e) => e.currentTarget.play()}>
+            <source src="images/hello.mp4" type="video/mp4" />
+          </video>
+          <p>This project is currently: </p>
+          <ul>
+            <li>in development</li>
+            <li>only available for my sponsors</li>
+          </ul>
+          <p>
+            If you&apos;d like to try it out,{' '}
+            <a
+              href="https://github.com/sponsors/steveruizok"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              sponsor me on Github
+            </a>{' '}
+            (at any level) and sign in below.
+          </p>
+          <ButtonGroup>
+            {session ? (
+              <>
+                <Button onClick={() => signout()} variant={'secondary'}>
+                  Sign Out
+                </Button>
+                <Detail>
+                  Signed in as {session?.user?.name} ({session?.user?.email}), but it looks like
+                  you&apos;re not yet a sponsor.
+                  <br />
+                  Something wrong? Try <Link href="/">reloading the page</Link> or DM me on{' '}
+                  <a
+                    target="_blank"
+                    rel="noreferrer nofollow noopener"
+                    href="https://twitter.com/steveruizok"
+                  >
+                    Twitter
+                  </a>
+                  .
+                </Detail>
+              </>
+            ) : (
+              <>
+                <Button onClick={() => signin('github')} variant={'primary'}>
+                  {loading ? 'Loading...' : 'Sign in With Github'}
+                </Button>
+                <Detail>Already a sponsor? Just sign in to visit the app.</Detail>
+              </>
+            )}
+          </ButtonGroup>
+        </Content>
+      </OuterContent>
+    </>
   )
 }
 

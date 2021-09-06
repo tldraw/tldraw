@@ -3,6 +3,7 @@ import type { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/client'
 import type { Session } from 'next-auth'
 import { signOut } from 'next-auth/client'
+import Head from 'next/head'
 
 interface UserPageProps {
   session: Session
@@ -10,12 +11,17 @@ interface UserPageProps {
 
 export default function UserPage({ session }: UserPageProps): JSX.Element {
   return (
-    <div>
-      <pre>
-        <code>{JSON.stringify(session.user, null, 2)}</code>
-      </pre>
-      <button onClick={() => signOut}>Sign Out</button>
-    </div>
+    <>
+      <Head>
+        <title>tldraw</title>
+      </Head>
+      <div>
+        <pre>
+          <code>{JSON.stringify(session.user, null, 2)}</code>
+        </pre>
+        <button onClick={() => signOut}>Sign Out</button>
+      </div>
+    </>
   )
 }
 
