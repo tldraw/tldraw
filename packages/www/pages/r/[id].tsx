@@ -2,8 +2,8 @@ import * as React from 'react'
 import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import dynamic from 'next/dynamic'
-import { supabase } from '-supabase/client'
-import { fetchProject } from '-supabase/server-functions'
+// import { supabase } from '-supabase/client'
+// import { fetchProject } from '-supabase/server-functions'
 import type { TLDrawProject } from '-types'
 import type { TLDrawState, TLDrawDocument } from '@tldraw/tldraw'
 import { Utils } from '@tldraw/core'
@@ -15,10 +15,10 @@ interface RoomProps {
 }
 
 const updateDoc = async (doc: TLDrawDocument, userId: string, id: string) => {
-  await supabase
-    .from<TLDrawProject>('projects')
-    .update({ document: doc, nonce: userId })
-    .eq('id', id)
+  // await supabase
+  //   .from<TLDrawProject>('projects')
+  //   .update({ document: doc, nonce: userId })
+  //   .eq('id', id)
 }
 
 export default function Room({ id, project }: RoomProps): JSX.Element {
@@ -27,18 +27,17 @@ export default function Room({ id, project }: RoomProps): JSX.Element {
   const userId = React.useRef(Utils.uniqueId())
 
   React.useEffect(() => {
-    const sub = supabase
-      .from('projects')
-      .on('*', (payload) => {
-        if (payload.new.nonce !== userId.current) {
-          rState.current.mergeDocument(payload.new.document)
-        }
-      })
-      .subscribe()
-
-    return () => {
-      sub.unsubscribe()
-    }
+    // const sub = supabase
+    //   .from('projects')
+    //   .on('*', (payload) => {
+    //     if (payload.new.nonce !== userId.current) {
+    //       rState.current.mergeDocument(payload.new.document)
+    //     }
+    //   })
+    //   .subscribe()
+    // return () => {
+    //   sub.unsubscribe()
+    // }
   }, [id])
 
   const handleMount = React.useCallback(
@@ -67,7 +66,7 @@ export default function Room({ id, project }: RoomProps): JSX.Element {
       <Head>
         <title>tldraw</title>
       </Head>
-      <Editor id={id} document={project.document} onChange={handleChange} onMount={handleMount} />
+      <Editor id={id} onChange={handleChange} onMount={handleMount} />
     </>
   )
 }
@@ -79,13 +78,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   // If document does not exist, create an empty document
   // Return the document
 
-  const project = await fetchProject(id)
+  // const project = await fetchProject(id)
 
   return {
     props: {
       id,
       // session,
-      project,
+      // project,
     },
   }
 }
