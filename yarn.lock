@@ -11557,7 +11557,7 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
-rko@^0.5.19, rko@^0.5.20:
+rko@^0.5.19, rko@^0.5.20, rko@^0.5.22:
   version "0.5.22"
   resolved "https://registry.yarnpkg.com/rko/-/rko-0.5.22.tgz#d5a563beefd97a9cfdda3c29c1fbe119d782b576"
   integrity sha512-aNXCHTLshLgq6XuWZzb3XKgy5RyS5YY6/YzCnrBa+tn7NTPC2HysbNhJwyt6bow3u8whiD36GajhUYR6oIbJWw==
