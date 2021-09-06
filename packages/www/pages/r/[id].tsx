@@ -2,10 +2,9 @@ import * as React from 'react'
 import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import dynamic from 'next/dynamic'
-// import { supabase } from '-supabase/client'
-// import { fetchProject } from '-supabase/server-functions'
+import { supabase } from '-supabase/client'
 import type { TLDrawProject } from '-types'
-import type { TLDrawState, TLDrawDocument } from '@tldraw/tldraw'
+import type { TLDrawState } from '@tldraw/tldraw'
 import { Utils } from '@tldraw/core'
 const Editor = dynamic(() => import('components/editor'), { ssr: false })
 
@@ -14,39 +13,28 @@ interface RoomProps {
   project: TLDrawProject
 }
 
-const updateDoc = async (doc: TLDrawDocument, userId: string, id: string) => {
-  // await supabase
-  //   .from<TLDrawProject>('projects')
-  //   .update({ document: doc, nonce: userId })
-  //   .eq('id', id)
-}
-
-export default function Room({ id, project }: RoomProps): JSX.Element {
+export default function Room({ id }: RoomProps): JSX.Element {
   const rState = React.useRef<TLDrawState>(null)
 
   const userId = React.useRef(Utils.uniqueId())
 
   React.useEffect(() => {
-    // const sub = supabase
-    //   .from('projects')
-    //   .on('*', (payload) => {
-    //     if (payload.new.nonce !== userId.current) {
-    //       rState.current.mergeDocument(payload.new.document)
-    //     }
-    //   })
-    //   .subscribe()
-    // return () => {
-    //   sub.unsubscribe()
-    // }
+    const sub = supabase
+      .from('projects')
+      .on('*', (payload) => {
+        if (payload.new.nonce !== userId.current) {
+          rState.current.mergeDocument(payload.new.document)
+        }
+      })
+      .subscribe()
+    return () => {
+      sub.unsubscribe()
+    }
   }, [id])
 
-  const handleMount = React.useCallback(
-    (tlstate: TLDrawState) => {
-      rState.current = tlstate
-      rState.current.loadDocument(project.document)
-    },
-    [project]
-  )
+  const handleMount = React.useCallback((tlstate: TLDrawState) => {
+    rState.current = tlstate
+  }, [])
 
   const handleChange = React.useCallback(
     (tlstate: TLDrawState, reason: string) => {
@@ -56,7 +44,11 @@ export default function Room({ id, project }: RoomProps): JSX.Element {
         return
       }
 
-      updateDoc(tlstate.document, userId.current, id)
+      supabase
+        .from<TLDrawProject>('projects')
+        .update({ document: tlstate.document, nonce: userId.current })
+        .eq('id', id)
+        .then(() => void null)
     },
     [id]
   )
@@ -74,17 +66,9 @@ export default function Room({ id, project }: RoomProps): JSX.Element {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const id = context.query.id?.toString()
 
-  // Get document from database
-  // If document does not exist, create an empty document
-  // Return the document
-
-  // const project = await fetchProject(id)
-
   return {
     props: {
       id,
-      // session,
-      // project,
     },
   }
 }

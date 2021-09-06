@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@stitches/react": "^1.0.0",
+    "@tldraw/core": "*",
     "@tldraw/tldraw": "*",
     "next": "11.1.2",
     "next-auth": "3.29.0",

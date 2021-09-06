@@ -33,7 +33,6 @@ export async function fetchProject(id: string) {
     return project
   }
 
-  console.log('returning data found on server')
   return project
 }
 
