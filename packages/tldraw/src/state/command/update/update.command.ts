@@ -28,7 +28,7 @@ export function update(
   after.shapes = change.after
 
   return {
-    id: 'translate_shapes',
+    id: 'update',
     before: {
       document: {
         pages: {

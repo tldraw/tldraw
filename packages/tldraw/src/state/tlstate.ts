@@ -647,6 +647,13 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /**
+   * Get the current undo/redo stack.
+   */
+  get history() {
+    return this.stack
+  }
+
+  /**
    * The current document.
    */
   get document(): TLDrawDocument {

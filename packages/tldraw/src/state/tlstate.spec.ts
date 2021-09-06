@@ -359,4 +359,16 @@ describe('TLDrawState', () => {
       expect(tlstate.getShape('rect5').childIndex).toBe(3)
     })
   })
+
+  it('Exposes undo/redo stack', () => {
+    const tlstate = new TLDrawState().loadDocument(mockDocument).createShapes({
+      id: 'rect1',
+      type: TLDrawShapeType.Rectangle,
+      point: [0, 0],
+      size: [100, 200],
+    })
+
+    expect(tlstate.history).toBeDefined()
+    expect(tlstate.history).toMatchSnapshot('history')
+  })
 })

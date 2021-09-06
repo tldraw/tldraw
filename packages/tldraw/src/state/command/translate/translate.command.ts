@@ -63,7 +63,7 @@ export function translate(data: Data, ids: string[], delta: number[]): TLDrawCom
   })
 
   return {
-    id: 'translate_shapes',
+    id: 'translate',
     before: {
       document: {
         pages: {

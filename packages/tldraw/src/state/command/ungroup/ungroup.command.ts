@@ -99,7 +99,7 @@ export function ungroup(data: Data, groupId: string, pageId: string): TLDrawComm
     })
 
   return {
-    id: 'ungroup_shapes',
+    id: 'ungroup',
     before: {
       document: {
         pages: {

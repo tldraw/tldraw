@@ -44,7 +44,7 @@ export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawComma
   )
 
   return {
-    id: 'toggle_shapes',
+    id: 'rotate',
     before: {
       document: {
         pages: {

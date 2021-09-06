@@ -14,7 +14,7 @@ export function create(data: Data, shapes: TLDrawShape[]): TLDrawCommand {
   })
 
   return {
-    id: 'toggle_shapes',
+    id: 'create',
     before: {
       document: {
         pages: {
