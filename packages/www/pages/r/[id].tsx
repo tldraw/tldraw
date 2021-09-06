@@ -1,13 +1,12 @@
 import * as React from 'react'
 import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
-import { getSession } from 'next-auth/client'
 import dynamic from 'next/dynamic'
 import { supabase } from '-supabase/client'
 import { fetchProject } from '-supabase/server-functions'
 import type { TLDrawProject } from '-types'
 import type { TLDrawState, TLDrawDocument } from '@tldraw/tldraw'
-import { Patch, Utils } from '@tldraw/core'
+import { Utils } from '@tldraw/core'
 const Editor = dynamic(() => import('components/editor'), { ssr: false })
 
 interface RoomProps {
@@ -74,13 +73,6 @@ export default function Room({ id, project }: RoomProps): JSX.Element {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getSession(context)
-
-  if (!session?.user && process.env.NODE_ENV !== 'development') {
-    context.res.setHeader('Location', `/sponsorware`)
-    context.res.statusCode = 307
-  }
-
   const id = context.query.id?.toString()
 
   // Get document from database
@@ -92,7 +84,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
       id,
-      session,
+      // session,
       project,
     },
   }
