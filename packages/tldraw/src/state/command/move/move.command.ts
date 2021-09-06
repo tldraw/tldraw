@@ -217,7 +217,7 @@ export function move(data: Data, ids: string[], type: MoveType): TLDrawCommand {
   })
 
   return {
-    id: 'move_shapes',
+    id: 'move',
     before: {
       document: {
         pages: {

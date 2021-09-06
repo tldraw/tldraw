@@ -37,6 +37,7 @@ import {
   TLDrawPage,
   TLDrawBinding,
   GroupShape,
+  TLDrawCommand,
 } from '~types'
 import { TLDR } from './tldr'
 import { defaultStyle } from '~shape'
@@ -644,6 +645,20 @@ export class TLDrawState extends StateManager<Data> {
   getPagePoint = (point: number[], pageId = this.currentPageId): number[] => {
     const { camera } = this.getPageState(pageId)
     return Vec.sub(Vec.div(point, camera.zoom), camera.point)
+  }
+
+  /**
+   * Get the current undo/redo stack.
+   */
+  get history() {
+    return this.stack.slice(0, this.pointer + 1)
+  }
+
+  /**
+   * Replace the current history stack.
+   */
+  set history(commands: TLDrawCommand[]) {
+    this.replaceHistory(commands)
   }
 
   /**

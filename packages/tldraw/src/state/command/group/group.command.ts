@@ -188,7 +188,7 @@ export function group(
   })
 
   return {
-    id: 'group_shapes',
+    id: 'group',
     before: {
       document: {
         pages: {

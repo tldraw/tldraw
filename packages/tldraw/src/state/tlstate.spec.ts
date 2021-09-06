@@ -359,4 +359,90 @@ describe('TLDrawState', () => {
       expect(tlstate.getShape('rect5').childIndex).toBe(3)
     })
   })
+
+  it('Exposes undo/redo stack', () => {
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .createShapes({
+        id: 'rect1',
+        type: TLDrawShapeType.Rectangle,
+        point: [0, 0],
+        size: [100, 200],
+      })
+      .createShapes({
+        id: 'rect2',
+        type: TLDrawShapeType.Rectangle,
+        point: [0, 0],
+        size: [100, 200],
+      })
+
+    expect(tlstate.history.length).toBe(2)
+
+    expect(tlstate.history).toBeDefined()
+    expect(tlstate.history).toMatchSnapshot('history')
+
+    tlstate.history = []
+    expect(tlstate.history).toEqual([])
+
+    const before = tlstate.state
+    tlstate.undo()
+    const after = tlstate.state
+
+    expect(before).toBe(after)
+  })
+
+  it('Exposes undo/redo stack up to the current pointer', () => {
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .createShapes({
+        id: 'rect1',
+        type: TLDrawShapeType.Rectangle,
+        point: [0, 0],
+        size: [100, 200],
+      })
+      .createShapes({
+        id: 'rect2',
+        type: TLDrawShapeType.Rectangle,
+        point: [0, 0],
+        size: [100, 200],
+      })
+      .undo()
+
+    expect(tlstate.history.length).toBe(1)
+  })
+
+  it('Sets the undo/redo history', () => {
+    const tlstate = new TLDrawState('some_state_a')
+      .createShapes({
+        id: 'rect1',
+        type: TLDrawShapeType.Rectangle,
+        point: [0, 0],
+        size: [100, 200],
+      })
+      .createShapes({
+        id: 'rect2',
+        type: TLDrawShapeType.Rectangle,
+        point: [0, 0],
+        size: [100, 200],
+      })
+
+    // Save the history and document from the first state
+    const doc = tlstate.document
+    const history = tlstate.history
+
+    // Create a new state
+    const tlstate2 = new TLDrawState('some_state_b')
+
+    // Load the document and set the history
+    tlstate2.loadDocument(doc)
+    tlstate2.history = history
+
+    expect(tlstate2.shapes.length).toBe(2)
+
+    // We should be able to undo the change that was made on the first
+    // state, now that we've brought in its undo / redo stack
+    tlstate2.undo()
+
+    expect(tlstate2.shapes.length).toBe(1)
+  })
 })

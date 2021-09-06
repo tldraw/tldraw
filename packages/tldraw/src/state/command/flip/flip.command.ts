@@ -58,7 +58,7 @@ export function flip(data: Data, ids: string[], type: FlipType): TLDrawCommand {
   )
 
   return {
-    id: 'flip_shapes',
+    id: 'flip',
     before: {
       document: {
         pages: {

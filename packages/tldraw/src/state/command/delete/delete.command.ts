@@ -12,7 +12,7 @@ export function deleteShapes(
   const { before, after } = removeShapesFromPage(data, ids, pageId)
 
   return {
-    id: 'delete_shapes',
+    id: 'delete',
     before: {
       document: {
         pages: {

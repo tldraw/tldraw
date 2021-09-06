@@ -57,7 +57,7 @@ export function stretch(data: Data, ids: string[], type: StretchType): TLDrawCom
   )
 
   return {
-    id: 'stretch_shapes',
+    id: 'stretch',
     before: {
       document: {
         pages: {
