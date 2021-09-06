@@ -23,7 +23,7 @@
     "start": "node scripts/dev & yarn types:dev",
     "build": "node scripts/build && yarn types:build",
     "types:pre": "tsc",
-    "types:dev": "tsc --watch ",
+    "types:dev": "tsc --watch",
     "types:build": "tsc --project tsconfig.build.json",
     "lint": "eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf dist",

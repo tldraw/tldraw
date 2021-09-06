@@ -370,5 +370,14 @@ describe('TLDrawState', () => {
 
     expect(tlstate.history).toBeDefined()
     expect(tlstate.history).toMatchSnapshot('history')
+
+    tlstate.history = []
+    expect(tlstate.history).toEqual([])
+
+    const before = tlstate.state
+    tlstate.undo()
+    const after = tlstate.state
+
+    expect(before).toBe(after)
   })
 })

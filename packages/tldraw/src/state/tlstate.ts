@@ -37,6 +37,7 @@ import {
   TLDrawPage,
   TLDrawBinding,
   GroupShape,
+  TLDrawCommand,
 } from '~types'
 import { TLDR } from './tldr'
 import { defaultStyle } from '~shape'
@@ -651,6 +652,13 @@ export class TLDrawState extends StateManager<Data> {
    */
   get history() {
     return this.stack
+  }
+
+  /**
+   * Replace the current history stack.
+   */
+  set history(commands: TLDrawCommand[]) {
+    this.replaceHistory(commands)
   }
 
   /**
