@@ -1,14 +1,13 @@
 import type { GroupShape, TLDrawBinding, TLDrawShape } from '~types'
-import type { Data, TLDrawCommand } from '~types'
+import type { Data, TLDrawCommand, Patch } from '~types'
 import { TLDR } from '~state/tldr'
-import type { Patch } from 'rko'
 
 export function ungroup(data: Data, groupId: string, pageId: string): TLDrawCommand | undefined {
-  const beforeShapes: Record<string, Patch<TLDrawShape | undefined>> = {}
-  const afterShapes: Record<string, Patch<TLDrawShape | undefined>> = {}
+  const beforeShapes: Record<string, Patch<TLDrawShape> | null> = {}
+  const afterShapes: Record<string, Patch<TLDrawShape> | null> = {}
 
-  const beforeBindings: Record<string, Patch<TLDrawBinding | undefined>> = {}
-  const afterBindings: Record<string, Patch<TLDrawBinding | undefined>> = {}
+  const beforeBindings: Record<string, Patch<TLDrawBinding> | null> = {}
+  const afterBindings: Record<string, Patch<TLDrawBinding> | null> = {}
 
   // The group shape
   const groupShape = TLDR.getShape<GroupShape>(data, groupId, pageId)
@@ -36,7 +35,7 @@ export function ungroup(data: Data, groupId: string, pageId: string): TLDrawComm
 
   // Remove the group shape
   beforeShapes[groupId] = groupShape
-  afterShapes[groupId] = undefined
+  afterShapes[groupId] = null
 
   // Reparent shapes to the page
   sortedShapes.forEach((shape, index) => {
@@ -59,10 +58,10 @@ export function ungroup(data: Data, groupId: string, pageId: string): TLDrawComm
     .forEach((binding) => {
       for (const id of [binding.toId, binding.fromId]) {
         // If the binding references the deleted group...
-        if (afterShapes[id] === undefined) {
+        if (!afterShapes[id]) {
           // Delete the binding
           beforeBindings[binding.id] = binding
-          afterBindings[binding.id] = undefined
+          afterBindings[binding.id] = null
 
           // Let's also look each the bound shape...
           const shape = TLDR.getShape(data, id, pageId)
@@ -88,7 +87,7 @@ export function ungroup(data: Data, groupId: string, pageId: string): TLDrawComm
                     ...afterShapes[id],
                     handles: {
                       ...afterShapes[id]?.handles,
-                      [handle.id]: { bindingId: undefined },
+                      [handle.id]: { bindingId: null },
                     },
                   }
                 }

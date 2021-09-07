@@ -7,7 +7,7 @@ import {
   Session,
   TLDrawStatus,
 } from '~types'
-import { Vec, Utils, TLHandle } from '@tldraw/core'
+import { Vec, Utils } from '@tldraw/core'
 import { TLDR } from '~state/tldr'
 
 export class ArrowSession implements Session {
@@ -40,7 +40,7 @@ export class ArrowSession implements Session {
       this.initialBinding = page.bindings[initialBindingId]
     } else {
       // Explicitly set this handle to undefined, so that it gets deleted on undo
-      this.initialShape.handles[this.handleId].bindingId = undefined
+      this.initialShape.handles[this.handleId].bindingId = null
     }
   }
 
@@ -82,7 +82,7 @@ export class ArrowSession implements Session {
 
     // If nothing changes, we want this to be the same object reference as
     // before. If it does change, we'll redefine this later on.
-    let nextBindings: Record<string, TLDrawBinding | undefined> = page.bindings
+    let nextBindings: Record<string, TLDrawBinding | null> = page.bindings
 
     // If the handle can bind, then we need to search bindable shapes for
     // a binding. If the handle already has a binding, then we will either
@@ -99,8 +99,8 @@ export class ArrowSession implements Session {
       //   metaKey
       // )
 
-      let binding: ArrowBinding | undefined = undefined
-      let target: TLDrawShape | undefined = undefined
+      let binding: ArrowBinding | null = null
+      let target: TLDrawShape | null = null
 
       // Alt key skips binding
       if (!altKey) {
@@ -153,21 +153,21 @@ export class ArrowSession implements Session {
       }
 
       // If we didn't find a target...
-      if (binding === undefined) {
+      if (!binding) {
         this.didBind = false
 
         if (handle.bindingId) {
           nextBindings = { ...nextBindings }
-          nextBindings[handle.bindingId] = undefined
+          nextBindings[handle.bindingId] = null
         }
-        nextShape.handles[handleId].bindingId = undefined
+        nextShape.handles[handleId].bindingId = null
       } else if (target) {
         this.didBind = true
         nextBindings = { ...nextBindings }
 
         if (handle.bindingId && handle.bindingId !== this.newBindingId) {
-          nextBindings[handle.bindingId] = undefined
-          nextShape.handles[handleId].bindingId = undefined
+          nextBindings[handle.bindingId] = null
+          nextShape.handles[handleId].bindingId = null
         }
 
         // If we found a new binding, add its id to the shape's handle...
@@ -254,8 +254,8 @@ export class ArrowSession implements Session {
     const { initialShape, initialBinding, handleId } = this
     const page = TLDR.getPage(data, data.appState.currentPageId)
 
-    const beforeBindings: Partial<Record<string, TLDrawBinding>> = {}
-    const afterBindings: Partial<Record<string, TLDrawBinding>> = {}
+    const beforeBindings: Partial<Record<string, TLDrawBinding | null>> = {}
+    const afterBindings: Partial<Record<string, TLDrawBinding | null>> = {}
 
     const currentShape = TLDR.getShape<ArrowShape>(
       data,
@@ -266,11 +266,11 @@ export class ArrowSession implements Session {
 
     if (initialBinding) {
       beforeBindings[initialBinding.id] = initialBinding
-      afterBindings[initialBinding.id] = undefined
+      afterBindings[initialBinding.id] = null
     }
 
     if (currentBindingId) {
-      beforeBindings[currentBindingId] = undefined
+      beforeBindings[currentBindingId] = null
       afterBindings[currentBindingId] = page.bindings[currentBindingId]
     }
 

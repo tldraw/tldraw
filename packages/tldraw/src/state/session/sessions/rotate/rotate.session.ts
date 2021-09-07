@@ -153,7 +153,7 @@ export function getRotateSnapshot(data: Data) {
     boundsRotation: pageState.boundsRotation || 0,
     commonBoundsCenter,
     initialShapes: initialShapes
-      .filter((shape) => shape.children === undefined)
+      .filter((shape) => !shape.children)
       .map((shape) => {
         const bounds = TLDR.getBounds(shape)
         const center = Utils.getBoundsCenter(bounds)

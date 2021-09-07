@@ -8,6 +8,7 @@ export const mockDocument: TLDrawDocument = {
       shapes: {
         rect1: {
           id: 'rect1',
+          nonce: 0,
           parentId: 'page1',
           name: 'Rectangle',
           childIndex: 1,
@@ -22,6 +23,7 @@ export const mockDocument: TLDrawDocument = {
         },
         rect2: {
           id: 'rect2',
+          nonce: 0,
           parentId: 'page1',
           name: 'Rectangle',
           childIndex: 2,
@@ -36,6 +38,7 @@ export const mockDocument: TLDrawDocument = {
         },
         rect3: {
           id: 'rect3',
+          nonce: 0,
           parentId: 'page1',
           name: 'Rectangle',
           childIndex: 3,

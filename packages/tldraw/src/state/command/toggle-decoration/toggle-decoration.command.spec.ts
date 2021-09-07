@@ -36,6 +36,7 @@ describe('Toggle decoration command', () => {
         TLDR.getShapeUtils({ type: 'arrow' } as TLDrawShape).create({
           id: 'arrow1',
           parentId: 'page1',
+          nonce: Date.now(),
         })
       )
       .select('arrow1')

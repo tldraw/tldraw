@@ -22,7 +22,8 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
   polygonCache = new WeakMap<DrawShape['points'], string>([])
 
   defaultProps: DrawShape = {
-    id: 'id',
+    id: 'draw_id',
+    nonce: 1,
     type: TLDrawShapeType.Draw as const,
     name: 'Draw',
     parentId: 'page',

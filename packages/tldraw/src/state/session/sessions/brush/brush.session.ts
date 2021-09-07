@@ -115,7 +115,7 @@ export function getBrushSnapshot(data: Data) {
       (shape) =>
         !(
           shape.isHidden ||
-          shape.children !== undefined ||
+          shape.children ||
           selectedIds.includes(shape.id) ||
           selectedIds.includes(shape.parentId)
         )

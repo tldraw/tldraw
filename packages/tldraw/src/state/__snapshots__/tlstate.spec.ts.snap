@@ -23,6 +23,7 @@ Array [
                 "childIndex": 1,
                 "id": "rect1",
                 "name": "Rectangle",
+                "nonce": 1487076708000,
                 "parentId": "page1",
                 "point": Array [
                   0,
@@ -81,6 +82,7 @@ Array [
                 "childIndex": 1,
                 "id": "rect2",
                 "name": "Rectangle",
+                "nonce": 1487076708000,
                 "parentId": "page1",
                 "point": Array [
                   0,

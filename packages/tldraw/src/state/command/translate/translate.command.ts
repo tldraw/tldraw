@@ -34,7 +34,7 @@ export function translate(data: Data, ids: string[], delta: number[]): TLDrawCom
 
   bindingsToDelete.forEach((binding) => {
     before.bindings[binding.id] = binding
-    after.bindings[binding.id] = undefined
+    after.bindings[binding.id] = null
 
     for (const id of [binding.toId, binding.fromId]) {
       // Let's also look at the bound shape...

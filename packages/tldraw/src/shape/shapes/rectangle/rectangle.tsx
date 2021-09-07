@@ -23,7 +23,8 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
   pathCache = new WeakMap<number[], string>([])
 
   defaultProps: RectangleShape = {
-    id: 'id',
+    id: 'rectangle_id',
+    nonce: 1,
     type: TLDrawShapeType.Rectangle as const,
     name: 'Rectangle',
     parentId: 'page',

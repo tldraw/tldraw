@@ -34,7 +34,7 @@ export class TranslateSession implements Session {
 
     const nextBindings: Patch<Record<string, TLDrawBinding>> = {}
 
-    bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = undefined))
+    bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = null))
 
     return {
       document: {
@@ -134,11 +134,11 @@ export class TranslateSession implements Session {
 
         // Delete the bindings
 
-        bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = undefined))
+        bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = null))
 
         // Delete the clones
         clones.forEach((clone) => {
-          nextShapes[clone.id] = undefined
+          nextShapes[clone.id] = null
           if (clone.parentId !== currentPageId) {
             nextShapes[clone.parentId] = {
               ...nextShapes[clone.parentId],
@@ -156,7 +156,7 @@ export class TranslateSession implements Session {
 
         // Delete the cloned bindings
         for (const binding of this.snapshot.clonedBindings) {
-          nextBindings[binding.id] = undefined
+          nextBindings[binding.id] = null
         }
 
         // Set selected ids
@@ -195,8 +195,8 @@ export class TranslateSession implements Session {
   cancel = (data: Data) => {
     const { initialShapes, clones, clonedBindings, bindingsToDelete } = this.snapshot
 
-    const nextBindings: Record<string, Partial<TLDrawBinding> | undefined> = {}
-    const nextShapes: Record<string, Partial<TLDrawShape> | undefined> = {}
+    const nextBindings: Record<string, Partial<TLDrawBinding> | null> = {}
+    const nextShapes: Record<string, Partial<TLDrawShape> | null> = {}
     const nextPageState: Partial<TLPageState> = {}
 
     // Put back any deleted bindings
@@ -206,10 +206,10 @@ export class TranslateSession implements Session {
     initialShapes.forEach(({ id, point }) => (nextShapes[id] = { ...nextShapes[id], point }))
 
     // Delete clones
-    clones.forEach((clone) => (nextShapes[clone.id] = undefined))
+    clones.forEach((clone) => (nextShapes[clone.id] = null))
 
     // Delete cloned bindings
-    clonedBindings.forEach((binding) => (nextBindings[binding.id] = undefined))
+    clonedBindings.forEach((binding) => (nextBindings[binding.id] = null))
 
     nextPageState.selectedIds = this.snapshot.selectedIds
 
@@ -243,7 +243,7 @@ export class TranslateSession implements Session {
     if (this.isCloning) {
       // Update the clones
       clones.forEach((clone) => {
-        beforeShapes[clone.id] = undefined
+        beforeShapes[clone.id] = null
 
         afterShapes[clone.id] = TLDR.getShape(data, clone.id, pageId)
 
@@ -262,7 +262,7 @@ export class TranslateSession implements Session {
 
       // Update the cloned bindings
       clonedBindings.forEach((binding) => {
-        beforeBindings[binding.id] = undefined
+        beforeBindings[binding.id] = null
         afterBindings[binding.id] = TLDR.getBinding(data, binding.id, pageId)
       })
     } else {
@@ -399,7 +399,7 @@ export function getTranslateSnapshot(data: Data) {
   })
 
   clones.forEach((clone) => {
-    if (clone.children !== undefined) {
+    if (clone.children) {
       clone.children = clone.children.map((childId) => cloneMap[childId])
     }
   })
@@ -445,7 +445,7 @@ export function getTranslateSnapshot(data: Data) {
       if (clone.handles) {
         for (const id in clone.handles) {
           const handle = clone.handles[id as keyof ArrowShape['handles']]
-          handle.bindingId = handle.bindingId ? clonedBindingsMap[handle.bindingId] : undefined
+          handle.bindingId = handle.bindingId ? clonedBindingsMap[handle.bindingId] : null
         }
       }
     }

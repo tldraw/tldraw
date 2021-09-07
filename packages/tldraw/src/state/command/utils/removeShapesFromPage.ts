@@ -22,16 +22,16 @@ export function removeShapesFromPage(data: Data, ids: string[], pageId: string) 
     deletedIds.add(id)
     const shape = TLDR.getShape(data, id, pageId)
     before.shapes[id] = shape
-    after.shapes[id] = undefined
+    after.shapes[id] = null
 
     // Also delete the shape's children
 
-    if (shape.children !== undefined) {
+    if (shape.children) {
       shape.children.forEach((childId) => {
         deletedIds.add(childId)
         const child = TLDR.getShape(data, childId, pageId)
         before.shapes[childId] = child
-        after.shapes[childId] = undefined
+        after.shapes[childId] = null
       })
     }
 
@@ -57,10 +57,10 @@ export function removeShapesFromPage(data: Data, ids: string[], pageId: string) 
     .forEach((binding) => {
       for (const id of [binding.toId, binding.fromId]) {
         // If the binding references a deleted shape...
-        if (after.shapes[id] === undefined) {
+        if (!after.shapes[id]) {
           // Delete this binding
           before.bindings[binding.id] = binding
-          after.bindings[binding.id] = undefined
+          after.bindings[binding.id] = null
 
           // Let's also look each the bound shape...
           const shape = TLDR.getShape(data, id, pageId)

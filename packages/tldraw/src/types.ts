@@ -4,7 +4,6 @@ import type { TLBinding, TLRenderInfo } from '@tldraw/core'
 import { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
 import type { TLPage, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
-import type { Command, Patch } from 'rko'
 
 export type TLStore = StoreApi<Data>
 
@@ -50,6 +49,18 @@ export interface Data {
     isEmptyCanvas: boolean
     status: { current: TLDrawStatus; previous: TLDrawStatus }
   }
+}
+
+export type Patch<T> = Partial<
+  {
+    [P in keyof T]: Patch<T[P]> | null
+  }
+>
+
+export interface Command<T extends object> {
+  id?: string
+  before: Patch<T>
+  after: Patch<T>
 }
 
 export type TLDrawPatch = Patch<Data>
@@ -147,6 +158,7 @@ export enum Decoration {
 }
 
 export interface TLDrawBaseShape extends TLShape {
+  nonce?: number
   style: ShapeStyles
   type: TLDrawShapeType
 }
@@ -205,7 +217,11 @@ export abstract class TLDrawShapeUtil<T extends TLDrawShape> extends TLShapeUtil
 
 export type TLDrawShapeUtils = Record<TLDrawShapeType, TLDrawShapeUtil<TLDrawShape>>
 
-export interface ArrowBinding extends TLBinding {
+export interface TLDrawBaseBinding extends TLBinding {
+  nonce?: number
+}
+
+export interface ArrowBinding extends TLDrawBaseBinding {
   type: 'arrow'
   handleId: keyof ArrowShape['handles']
   distance: number

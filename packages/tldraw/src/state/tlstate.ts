@@ -39,6 +39,8 @@ import {
   TLDrawBinding,
   GroupShape,
   TLDrawCommand,
+  TLDrawPatch,
+  PagePartial,
 } from '~types'
 import { TLDR } from './tldr'
 import { defaultStyle } from '~shape'
@@ -72,7 +74,7 @@ const initialData: Data = {
   settings: {
     isPenMode: false,
     isDarkMode: false,
-    isZoomSnap: true,
+    isZoomSnap: false,
     isDebugMode: process.env.NODE_ENV === 'development',
     isReadonlyMode: false,
     nudgeDistanceLarge: 10,
@@ -162,12 +164,16 @@ export class TLDrawState extends StateManager<Data> {
   protected cleanup = (state: Data, prev: Data, patch: Patch<Data>, reason?: string): Data => {
     const data = { ...state }
 
-    this._onPatch?.(this, reason || 'patch', patch)
+    const isMergingExternalPatch = reason !== 'patch:merge'
+
+    if (reason !== 'patch:merge') {
+      this._onPatch?.(this, reason || 'patch', patch)
+    }
 
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
     if (data.document !== prev.document) {
       Object.entries(data.document.pages).forEach(([pageId, page]) => {
-        if (page === undefined) {
+        if (!page) {
           // If page is undefined, delete the page and pagestate
           delete data.document.pages[pageId]
           delete data.document.pageStates[pageId]
@@ -177,50 +183,55 @@ export class TLDrawState extends StateManager<Data> {
         const prevPage = prev.document.pages[pageId]
 
         if (!prevPage || page.shapes !== prevPage.shapes || page.bindings !== prevPage.bindings) {
+          // Work through the shapes and bindings
           page.shapes = { ...page.shapes }
           page.bindings = { ...page.bindings }
 
+          // And collect groups that need to be updated or removed
           const groupsToUpdate = new Set<GroupShape>()
 
-          // If shape is undefined, delete the shape
-          Object.keys(page.shapes).forEach((id) => {
+          // Find which shapes have changed
+          const changedShapeIds = Object.keys(page.shapes).filter(
+            (id) => prevPage?.shapes[id] !== page.shapes[id]
+          )
+
+          changedShapeIds.forEach((id) => {
             const shape = page.shapes[id]
-            let parentId: string
+            const parentId = shape?.parentId || prevPage.shapes[id]?.parentId
 
             if (!shape) {
-              parentId = prevPage.shapes[id]?.parentId
+              // If shape is undefined, delete the shape
               delete page.shapes[id]
             } else {
-              parentId = shape.parentId
+              if (!isMergingExternalPatch) {
+                // Update the shape's nonce
+                shape.nonce = Date.now()
+              }
             }
 
             // If the shape is the child of a group, then update the group
             // (unless the group is being deleted too)
-            if (parentId && parentId !== pageId) {
-              const group = page.shapes[parentId]
-              if (group !== undefined) {
-                groupsToUpdate.add(page.shapes[parentId] as GroupShape)
-              }
+            if (parentId !== pageId) {
+              const group = page.shapes[parentId] as GroupShape | null
+              if (group) groupsToUpdate.add(group)
             }
           })
 
-          // If binding is undefined, delete the binding
+          // Scan the page's bindings, looking for bindings to delete
           Object.keys(page.bindings).forEach((id) => {
             if (!page.bindings[id]) delete page.bindings[id]
           })
-
-          // Find which shapes have changed
-          const changedShapeIds = Object.values(page.shapes)
-            .filter((shape) => prevPage?.shapes[shape.id] !== shape)
-            .map((shape) => shape.id)
-
-          data.document.pages[pageId] = page
 
           // Get bindings related to the changed shapes
           const bindingsToUpdate = TLDR.getRelatedBindings(data, changedShapeIds, pageId)
 
           // Update all of the bindings we've just collected
           bindingsToUpdate.forEach((binding) => {
+            // Update the nonce
+            if (!isMergingExternalPatch) {
+              binding.nonce = Date.now()
+            }
+
             const toShape = page.shapes[binding.toId]
             const fromShape = page.shapes[binding.fromId]
             const toUtils = TLDR.getShapeUtils(toShape)
@@ -248,7 +259,7 @@ export class TLDrawState extends StateManager<Data> {
 
           groupsToUpdate.forEach((group) => {
             if (!group) throw Error('no group!')
-            const children = group.children.filter((id) => page.shapes[id] !== undefined)
+            const children = group.children.filter((id) => !!page.shapes[id])
 
             const commonBounds = Utils.getCommonBounds(
               children
@@ -264,6 +275,8 @@ export class TLDrawState extends StateManager<Data> {
               children,
             }
           })
+
+          data.document.pages[pageId] = page
         }
 
         // Clean up page state, preventing hovers on deleted shapes
@@ -285,6 +298,10 @@ export class TLDrawState extends StateManager<Data> {
           console.warn('Could not find the editing shape!')
           delete nextPageState.editingId
         }
+
+        // Delete any new selected ids
+
+        nextPageState.selectedIds = nextPageState.selectedIds.filter((id) => page.shapes[id])
 
         data.document.pageStates[pageId] = nextPageState
       })
@@ -322,7 +339,9 @@ export class TLDrawState extends StateManager<Data> {
       this.clearSelectHistory()
     }
 
-    this._onChange?.(this, id)
+    if (id !== 'patch:merge') {
+      this._onChange?.(this, id)
+    }
   }
 
   /**
@@ -490,9 +509,103 @@ export class TLDrawState extends StateManager<Data> {
    * @param document
    */
   mergeDocument = (document: TLDrawDocument): this => {
-    const next = { ...this.state }
-    next.document.pages[next.appState.currentPageId] = document.pages[next.appState.currentPageId]
-    return this.replaceState(next, 'merge')
+    const currentPageId = this.state.appState.currentPageId
+
+    const mergingPage = document.pages[currentPageId]
+
+    const currentPage = this.state.document.pages[currentPageId]
+
+    const nextPage: TLDrawPage = {
+      id: currentPageId,
+      shapes: {},
+      bindings: {},
+    }
+
+    let didChange = false
+
+    Object.entries(mergingPage.shapes).forEach(([id, shape]) => {
+      if (currentPage.shapes[id] !== shape) {
+        didChange = true
+        nextPage.shapes[id] = shape
+      }
+    })
+
+    Object.entries(mergingPage.bindings).forEach(([id, binding]) => {
+      if (currentPage.bindings[id] !== binding) {
+        didChange = true
+        nextPage.bindings[id] = binding
+      }
+    })
+
+    if (!didChange) return this
+
+    return this.replaceState(
+      {
+        ...this.state,
+        document: {
+          ...this.document,
+          pages: {
+            ...this.document.pages,
+            [currentPageId]: nextPage,
+          },
+        },
+      },
+      'merge'
+    )
+  }
+
+  mergePatch = (patch: TLDrawPatch): this => {
+    const currentPageId = this.state.appState.currentPageId
+
+    const mergingPage = patch.document?.pages?.[currentPageId]
+
+    const currentPage = this.state.document.pages[currentPageId]
+
+    const patchPage: PagePartial = {
+      shapes: {},
+      bindings: {},
+    }
+
+    let didChange = false
+
+    if (mergingPage) {
+      Object.entries(mergingPage?.shapes || {}).forEach(([id, shape]) => {
+        if (currentPage.shapes[id] !== shape) {
+          didChange = true
+          patchPage.shapes[id] = shape
+        }
+      })
+
+      Object.entries(mergingPage?.bindings || {}).forEach(([id, binding]) => {
+        if (currentPage.bindings[id] !== binding) {
+          didChange = true
+          patchPage.bindings[id] = binding
+        }
+      })
+    }
+
+    if (!didChange) return this
+
+    return this.patchState(
+      {
+        document: {
+          pages: {
+            [currentPageId]: patchPage,
+          },
+        },
+      },
+      'merge'
+    )
+  }
+
+  // merge a set of patches
+  mergePatches = (patches: { time: number; patch: TLDrawPatch }[]): this => {
+    for (const patch of patches) {
+      setTimeout(() => {
+        this.mergePatch(patch.patch)
+      }, patch.time)
+    }
+    return this
   }
 
   /**
@@ -848,14 +961,7 @@ export class TLDrawState extends StateManager<Data> {
           this.getPagePoint([window.innerWidth / 2, window.innerHeight / 2])
         )
 
-        this.create(
-          TLDR.getShapeUtils(TLDrawShapeType.Text).create({
-            id: Utils.uniqueId(),
-            parentId: this.appState.currentPageId,
-            childIndex,
-            point: [boundsCenter.minX, boundsCenter.minY],
-          })
-        )
+        this.create({ ...shape, point: [boundsCenter.minX, boundsCenter.minY] })
       }
 
       return this
@@ -1647,6 +1753,7 @@ export class TLDrawState extends StateManager<Data> {
       ...shapes.map((shape) => {
         return TLDR.getShapeUtils(shape as TLDrawShape).create({
           ...shape,
+          nonce: shape.nonce || Date.now(),
           parentId: shape.parentId || this.currentPageId,
         })
       })
@@ -2056,6 +2163,7 @@ export class TLDrawState extends StateManager<Data> {
               shapes: {
                 [id]: utils.create({
                   id,
+                  nonce: Date.now(),
                   parentId: this.currentPageId,
                   childIndex,
                   point: pagePoint,

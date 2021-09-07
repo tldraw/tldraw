@@ -23,7 +23,8 @@ export class Group extends TLDrawShapeUtil<GroupShape> {
   pathCache = new WeakMap<number[], string>([])
 
   defaultProps: GroupShape = {
-    id: 'id',
+    id: 'group_id',
+    nonce: 1,
     type: TLDrawShapeType.Group as const,
     name: 'Group',
     parentId: 'page',

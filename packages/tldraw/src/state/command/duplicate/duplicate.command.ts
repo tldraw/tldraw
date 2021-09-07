@@ -31,7 +31,7 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
     .filter((shape) => !ids.includes(shape.parentId))
     .forEach((shape) => {
       const duplicatedId = Utils.uniqueId()
-      before.shapes[duplicatedId] = undefined
+      before.shapes[duplicatedId] = null
 
       after.shapes[duplicatedId] = {
         ...Utils.deepClone(shape),
@@ -68,7 +68,7 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
         const child = TLDR.getShape(data, childId, currentPageId)
         const duplicatedId = Utils.uniqueId()
         const duplicatedParentId = duplicateMap[shape.id]
-        before.shapes[duplicatedId] = undefined
+        before.shapes[duplicatedId] = null
         after.shapes[duplicatedId] = {
           ...Utils.deepClone(child),
           id: duplicatedId,
@@ -102,7 +102,7 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
             toId: duplicateMap[binding.toId],
           }
 
-          before.bindings[duplicatedBindingId] = undefined
+          before.bindings[duplicatedBindingId] = null
           after.bindings[duplicatedBindingId] = duplicatedBinding
 
           // Change the duplicated shape's handle so that it reference
@@ -119,7 +119,7 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
           const boundShape = after.shapes[duplicateMap[binding.fromId]]
           Object.values(boundShape!.handles!).forEach((handle) => {
             if (handle!.bindingId === binding.id) {
-              handle!.bindingId = undefined
+              handle!.bindingId = null
             }
           })
         }

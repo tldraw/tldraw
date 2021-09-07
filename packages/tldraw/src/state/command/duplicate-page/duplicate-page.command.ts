@@ -31,10 +31,10 @@ export function duplicatePage(data: Data, pageId: string): TLDrawCommand {
       },
       document: {
         pages: {
-          [newId]: undefined,
+          [newId]: null,
         },
         pageStates: {
-          [newId]: undefined,
+          [newId]: null,
         },
       },
     },
@@ -53,10 +53,10 @@ export function duplicatePage(data: Data, pageId: string): TLDrawCommand {
             selectedIds: [],
             camera: { point: [-window.innerWidth / 2, -window.innerHeight / 2], zoom: 1 },
             currentParentId: newId,
-            editingId: undefined,
-            bindingId: undefined,
-            hoveredId: undefined,
-            pointedId: undefined,
+            editingId: null,
+            bindingId: null,
+            hoveredId: null,
+            pointedId: null,
           },
         },
       },

@@ -34,7 +34,7 @@ export interface TLHandle {
   index: number
   point: number[]
   canBind?: boolean
-  bindingId?: string
+  bindingId: string | null
 }
 
 export interface TLShape {

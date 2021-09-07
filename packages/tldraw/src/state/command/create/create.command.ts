@@ -5,11 +5,11 @@ import type { TLDrawShape, Data, TLDrawCommand } from '~types'
 export function create(data: Data, shapes: TLDrawShape[]): TLDrawCommand {
   const { currentPageId } = data.appState
 
-  const beforeShapes: Record<string, Patch<TLDrawShape> | undefined> = {}
-  const afterShapes: Record<string, Patch<TLDrawShape> | undefined> = {}
+  const beforeShapes: Record<string, Patch<TLDrawShape> | null> = {}
+  const afterShapes: Record<string, Patch<TLDrawShape> | null> = {}
 
   shapes.forEach((shape) => {
-    beforeShapes[shape.id] = undefined
+    beforeShapes[shape.id] = null
     afterShapes[shape.id] = shape
   })
 

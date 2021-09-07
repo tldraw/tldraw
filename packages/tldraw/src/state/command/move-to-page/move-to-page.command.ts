@@ -44,7 +44,7 @@ export function moveToPage(
     .forEach((shape) => {
       movingShapeIds.add(shape.id)
       shapesToMove.add(shape)
-      if (shape.children !== undefined) {
+      if (shape.children) {
         shape.children.forEach((childId) => {
           movingShapeIds.add(childId)
           shapesToMove.add(TLDR.getShape(data, childId, fromPageId))
@@ -61,10 +61,10 @@ export function moveToPage(
   movingShapes.forEach((shape, i) => {
     // Remove the shape from the fromPage
     fromPage.before.shapes[shape.id] = shape
-    fromPage.after.shapes[shape.id] = undefined
+    fromPage.after.shapes[shape.id] = null
 
     // But the moved shape on the "to" page
-    toPage.before.shapes[shape.id] = undefined
+    toPage.before.shapes[shape.id] = null
     toPage.after.shapes[shape.id] = shape
 
     // If the shape's parent isn't moving too, reparent the shape to
@@ -98,7 +98,7 @@ export function moveToPage(
       // Always delete the binding from the from page
 
       fromPage.before.bindings[binding.id] = binding
-      fromPage.after.bindings[binding.id] = undefined
+      fromPage.after.bindings[binding.id] = null
 
       // Delete the reference from the binding's fromShape
 
@@ -110,7 +110,7 @@ export function moveToPage(
 
       if (shouldCopy) {
         // Just move the binding to the new page
-        toPage.before.bindings[binding.id] = undefined
+        toPage.before.bindings[binding.id] = null
         toPage.after.bindings[binding.id] = binding
       } else {
         if (movingShapeIds.has(binding.fromId)) {

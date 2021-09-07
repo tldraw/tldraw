@@ -22,7 +22,8 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
   canBind = true
 
   defaultProps = {
-    id: 'id',
+    id: 'ellipse_id',
+    nonce: 1,
     type: TLDrawShapeType.Ellipse as const,
     name: 'Ellipse',
     parentId: 'page',

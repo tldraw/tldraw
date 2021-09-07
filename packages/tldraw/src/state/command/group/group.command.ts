@@ -10,11 +10,11 @@ export function group(
   groupId: string,
   pageId: string
 ): TLDrawCommand | undefined {
-  const beforeShapes: Record<string, Patch<TLDrawShape | undefined>> = {}
-  const afterShapes: Record<string, Patch<TLDrawShape | undefined>> = {}
+  const beforeShapes: Record<string, Patch<TLDrawShape | null>> = {}
+  const afterShapes: Record<string, Patch<TLDrawShape | null>> = {}
 
-  const beforeBindings: Record<string, Patch<TLDrawBinding | undefined>> = {}
-  const afterBindings: Record<string, Patch<TLDrawBinding | undefined>> = {}
+  const beforeBindings: Record<string, Patch<TLDrawBinding | null>> = {}
+  const afterBindings: Record<string, Patch<TLDrawBinding | null>> = {}
 
   const idsToGroup = [...ids]
   const shapesToGroup: TLDrawShape[] = []
@@ -24,7 +24,7 @@ export function group(
   // Collect all of the shapes to group (and their ids)
   for (const id of ids) {
     const shape = TLDR.getShape(data, id, pageId)
-    if (shape.children === undefined) {
+    if (!shape.children) {
       shapesToGroup.push(shape)
     } else {
       otherEffectedGroups.push(shape)
@@ -74,7 +74,7 @@ export function group(
   const groupBounds = Utils.getCommonBounds(shapesToGroup.map((shape) => TLDR.getBounds(shape)))
 
   // Create the group
-  beforeShapes[groupId] = undefined
+  beforeShapes[groupId] = null
 
   afterShapes[groupId] = TLDR.getShapeUtils({ type: TLDrawShapeType.Group } as TLDrawShape).create({
     id: groupId,
@@ -119,7 +119,7 @@ export function group(
     // If the parent has no children, remove it
     if (nextChildren.length === 0) {
       beforeShapes[shape.id] = shape
-      afterShapes[shape.id] = undefined
+      afterShapes[shape.id] = null
 
       // And if that parent is part of a different group, mark it for cleanup
       // (This is necessary only when we implement nested groups.)
@@ -148,10 +148,10 @@ export function group(
   Object.values(page.bindings).forEach((binding) => {
     for (const id of [binding.toId, binding.fromId]) {
       // If the binding references a deleted shape...
-      if (afterShapes[id] === undefined) {
+      if (!afterShapes[id]) {
         // Delete this binding
         beforeBindings[binding.id] = binding
-        afterBindings[binding.id] = undefined
+        afterBindings[binding.id] = null
 
         // Let's also look each the bound shape...
         const shape = TLDR.getShape(data, id, pageId)
@@ -177,7 +177,7 @@ export function group(
                   ...afterShapes[id],
                   handles: {
                     ...afterShapes[id]?.handles,
-                    [handle.id]: { bindingId: undefined },
+                    [handle.id]: { bindingId: null },
                   },
                 }
               }

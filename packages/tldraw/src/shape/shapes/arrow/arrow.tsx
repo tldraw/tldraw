@@ -30,7 +30,8 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
   pathCache = new WeakMap<ArrowShape, string>()
 
   defaultProps = {
-    id: 'id',
+    id: 'arrow_id',
+    nonce: 1,
     type: TLDrawShapeType.Arrow as const,
     name: 'Arrow',
     parentId: 'page',

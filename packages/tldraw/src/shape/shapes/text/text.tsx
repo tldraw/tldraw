@@ -66,7 +66,8 @@ export class Text extends TLDrawShapeUtil<TextShape> {
   pathCache = new WeakMap<number[], string>([])
 
   defaultProps = {
-    id: 'id',
+    id: 'text_id',
+    nonce: 1,
     type: TLDrawShapeType.Text as const,
     name: 'Text',
     parentId: 'page',
