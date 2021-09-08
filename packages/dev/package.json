@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/dev",
-  "version": "0.0.82",
+  "version": "0.0.83",
   "private": true,
   "description": "A tiny little drawing app (dev)",
   "author": "@steveruizok",
@@ -18,7 +18,7 @@
     "src"
   ],
   "dependencies": {
-    "@tldraw/tldraw": "^0.0.82",
+    "@tldraw/tldraw": "^0.0.83",
     "idb": "^6.1.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
