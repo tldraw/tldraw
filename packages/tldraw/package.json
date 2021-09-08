@@ -67,7 +67,7 @@
     "@tldraw/core": "^0.0.83",
     "perfect-freehand": "^0.5.3",
     "react-hotkeys-hook": "^3.4.0",
-    "rko": "^0.5.23"
+    "rko": "^0.5.25"
   },
   "gitHead": "55da8880eb3d8ab5fb62b5eb7853065922c95dcf"
 }
