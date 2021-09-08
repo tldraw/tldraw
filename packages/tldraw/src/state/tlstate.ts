@@ -16,6 +16,7 @@ import {
   TLPointerInfo,
   inputs,
   TLBounds,
+  Patch,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -1655,8 +1656,28 @@ export class TLDrawState extends StateManager<Data> {
    * @command
    */
   updateShapes = (...shapes: ({ id: string } & Partial<TLDrawShape>)[]): this => {
-    if (shapes.length === 0) return this
-    return this.setState(Commands.update(this.state, shapes), 'updated_shape')
+    const pageShapes = this.document.pages[this.currentPageId].shapes
+    const shapesToUpdate = shapes.filter((shape) => pageShapes[shape.id])
+    if (shapesToUpdate.length === 0) return this
+    return this.setState(
+      Commands.update(this.state, shapesToUpdate, this.currentPageId),
+      'updated_shapes'
+    )
+  }
+
+  /**
+   * Manually patch a set of shapes.
+   * @param shapes An array of shape partials, containing the changes to be made to each shape.
+   * @command
+   */
+  patchShapes = (...shapes: ({ id: string } & Partial<TLDrawShape>)[]): this => {
+    const pageShapes = this.document.pages[this.currentPageId].shapes
+    const shapesToUpdate = shapes.filter((shape) => pageShapes[shape.id])
+    if (shapesToUpdate.length === 0) return this
+    return this.patchState(
+      Commands.update(this.state, shapesToUpdate, this.currentPageId).after,
+      'updated_shapes'
+    )
   }
 
   /**

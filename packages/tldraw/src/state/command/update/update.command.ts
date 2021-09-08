@@ -3,7 +3,8 @@ import { TLDR } from '~state/tldr'
 
 export function update(
   data: Data,
-  updates: ({ id: string } & Partial<TLDrawShape>)[]
+  updates: ({ id: string } & Partial<TLDrawShape>)[],
+  pageId: string
 ): TLDrawCommand {
   const ids = updates.map((update) => update.id)
 
@@ -17,12 +18,7 @@ export function update(
     bindings: {},
   }
 
-  const change = TLDR.mutateShapes(
-    data,
-    ids,
-    (_shape, i) => updates[i],
-    data.appState.currentPageId
-  )
+  const change = TLDR.mutateShapes(data, ids, (_shape, i) => updates[i], pageId)
 
   before.shapes = change.before
   after.shapes = change.after
@@ -32,14 +28,14 @@ export function update(
     before: {
       document: {
         pages: {
-          [data.appState.currentPageId]: before,
+          [pageId]: before,
         },
       },
     },
     after: {
       document: {
         pages: {
-          [data.appState.currentPageId]: after,
+          [pageId]: after,
         },
       },
     },

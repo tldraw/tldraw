@@ -9,7 +9,7 @@ import {
 } from '@tldraw/tldraw'
 
 export default function Controlled() {
-  const [doc, setDoc] = React.useState<TLDrawDocument>({
+  const rDocument = React.useRef<TLDrawDocument>({
     id: 'doc',
     pages: {
       page1: {
@@ -31,12 +31,12 @@ export default function Controlled() {
           },
           rect2: {
             id: 'rect2',
+            type: TLDrawShapeType.Rectangle,
             parentId: 'page1',
             name: 'Rectangle',
-            childIndex: 2,
-            type: TLDrawShapeType.Rectangle,
-            point: [150, 250],
-            size: [150, 150],
+            childIndex: 1,
+            point: [200, 200],
+            size: [100, 100],
             style: {
               dash: DashStyle.Draw,
               size: SizeStyle.Medium,
@@ -59,35 +59,48 @@ export default function Controlled() {
     },
   })
 
+  const [doc, setDoc] = React.useState<TLDrawDocument>(rDocument.current)
+
   React.useEffect(() => {
-    const timeout = setTimeout(
-      () =>
-        setDoc({
-          ...doc,
+    let i = 0
+    const interval = setInterval(() => {
+      const currentDoc = rDocument.current
+      const rect1 = currentDoc.pages.page1.shapes.rect1
+      if (rect1) {
+        i++
+        const next = {
+          ...currentDoc,
           pages: {
-            ...doc.pages,
+            ...currentDoc.pages,
             page1: {
-              ...doc.pages.page1,
+              ...currentDoc.pages.page1,
               shapes: {
-                ...doc.pages.page1.shapes,
-                rect2: {
-                  ...doc.pages.page1.shapes.rect2,
+                ...currentDoc.pages.page1.shapes,
+                rect1: {
+                  ...rect1,
                   style: {
-                    ...doc.pages.page1.shapes.rect2.style,
-                    color: ColorStyle.Orange,
+                    ...rect1.style,
+                    color: i % 2 ? ColorStyle.Red : ColorStyle.Blue,
                   },
                 },
               },
             },
           },
-        }),
-      1000
-    )
+        }
+
+        rDocument.current = next
+        setDoc(next)
+      }
+    }, 1000)
 
     return () => {
-      clearTimeout(timeout)
+      clearInterval(interval)
     }
   }, [])
 
-  return <TLDraw document={doc} />
+  const handleChange = React.useCallback((tlstate) => {
+    rDocument.current = tlstate.document
+  }, [])
+
+  return <TLDraw document={doc} onChange={handleChange} />
 }
