@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { TLDraw, TLDrawState } from '@tldraw/tldraw'
+import { TLDraw, TLDrawProps, TLDrawState } from '@tldraw/tldraw'
 
-export default function Editor(): JSX.Element {
+export default function Editor(props: TLDrawProps): JSX.Element {
   const rTLDrawState = React.useRef<TLDrawState>()
 
   const handleMount = React.useCallback((state: TLDrawState) => {
@@ -9,7 +9,8 @@ export default function Editor(): JSX.Element {
     // @ts-ignore
     window.tlstate = state
     rTLDrawState.current = state
+    props.onMount?.(state)
   }, [])
 
-  return <TLDraw id="tldraw" onMount={handleMount} />
+  return <TLDraw id="tldraw" {...props} onMount={handleMount} />
 }
