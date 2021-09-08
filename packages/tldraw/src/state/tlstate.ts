@@ -538,7 +538,17 @@ export class TLDrawState extends StateManager<Data> {
     this.clearSelectHistory()
     this.session = undefined
     this.selectedGroupId = undefined
-    return this.updateDocument(document, 'loaded_document')
+    return this.replaceState(
+      {
+        ...defaultState,
+        document,
+        appState: {
+          ...defaultState.appState,
+          currentPageId: Object.keys(document.pages)[0],
+        },
+      },
+      'loaded_document'
+    )
   }
 
   /**
