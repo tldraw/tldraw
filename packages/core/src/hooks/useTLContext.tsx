@@ -2,6 +2,7 @@ import * as React from 'react'
 import type { TLCallbacks, TLShape, TLBounds, TLPageState, TLShapeUtils } from '+types'
 
 export interface TLContextType {
+  id?: string
   callbacks: Partial<TLCallbacks>
   shapeUtils: TLShapeUtils<TLShape>
   rPageState: React.MutableRefObject<TLPageState>

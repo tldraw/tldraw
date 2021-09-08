@@ -445,4 +445,27 @@ describe('TLDrawState', () => {
 
     expect(tlstate2.shapes.length).toBe(1)
   })
+
+  describe('when the document prop changes', () => {
+    it.todo('replaces the document if the ids are different')
+
+    it.todo('updates the document if the new id is the same as the old one')
+  })
+  /*
+    We want to be able to use the `document` property to update the
+    document without blowing out the current state. For example, we
+    may want to patch in changes that occurred from another user.
+
+    When the `document` prop changes in the TLDraw component, we want
+    to update the document in a way that preserves the identity of as
+    much as possible, while still protecting against invalid states.
+
+    If this isn't possible, then we should guide the developer to
+    instead use a helper like `patchDocument` to update the document.
+
+    If the `id` property of the new document is the same as the
+    previous document, then we call `updateDocument`. Otherwise, we
+    call `replaceDocument`, which does a harder reset of the state's
+    internal state.
+  */
 })

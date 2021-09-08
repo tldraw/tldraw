@@ -10,7 +10,7 @@ import type {
   TLBinding,
 } from '../../types'
 import { Canvas } from '../canvas'
-import { useTLTheme, TLContext } from '../../hooks'
+import { useTLTheme, TLContext, TLContextType } from '../../hooks'
 
 export interface RendererProps<T extends TLShape, M extends Record<string, unknown>>
   extends Partial<TLCallbacks> {
@@ -82,7 +82,7 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
     rPageState.current = pageState
   }, [pageState])
 
-  const [context] = React.useState(() => ({
+  const [context] = React.useState<TLContextType>(() => ({
     callbacks: rest,
     shapeUtils,
     rScreenBounds,

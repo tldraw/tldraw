@@ -67,7 +67,7 @@ const defaultDocument: TLDrawDocument = {
   },
 }
 
-const initialData: Data = {
+const defaultState: Data = {
   settings: {
     isPenMode: false,
     isDarkMode: false,
@@ -120,11 +120,11 @@ export class TLDrawState extends StateManager<Data> {
   selectedGroupId?: string
 
   constructor(
-    id = Utils.uniqueId(),
+    id?: string,
     onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
     onMount?: (tlstate: TLDrawState) => void
   ) {
-    super(initialData, id, 2, (prev, next, prevVersion) => {
+    super(defaultState, id, 2, (prev, next, prevVersion) => {
       const state = { ...prev }
       if (prevVersion === 1)
         state.settings = {
@@ -478,6 +478,57 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /**
+   * Update the current document.
+   * @param document
+   */
+  updateDocument = (document: TLDrawDocument, reason = 'updated_document'): this => {
+    const prevState = this.state
+
+    const nextState = { ...prevState, document: { ...prevState.document } }
+
+    if (!document.pages[this.currentPageId]) {
+      nextState.appState = {
+        ...prevState.appState,
+        currentPageId: Object.keys(document.pages)[0],
+      }
+    }
+
+    let i = 1
+
+    for (const nextPage of Object.values(document.pages)) {
+      if (nextPage !== prevState.document.pages[nextPage.id]) {
+        nextState.document.pages[nextPage.id] = nextPage
+
+        if (!nextPage.name) {
+          nextState.document.pages[nextPage.id].name = `Page ${i + 1}`
+          i++
+        }
+      }
+    }
+
+    for (const nextPageState of Object.values(document.pageStates)) {
+      if (nextPageState !== prevState.document.pageStates[nextPageState.id]) {
+        nextState.document.pageStates[nextPageState.id] = nextPageState
+
+        const nextPage = document.pages[nextPageState.id]
+        const keysToCheck = ['bindingId', 'editingId', 'hoveredId', 'pointedId'] as const
+
+        for (const key of keysToCheck) {
+          if (!nextPage.shapes[key]) {
+            nextPageState[key] = undefined
+          }
+        }
+
+        nextPageState.selectedIds = nextPageState.selectedIds.filter(
+          (id) => !!document.pages[nextPage.id].shapes[id]
+        )
+      }
+    }
+
+    return this.replaceState(nextState, `${reason}:${document.id}`)
+  }
+
+  /**
    * Load a new document.
    * @param document The document to load
    */
@@ -487,46 +538,16 @@ export class TLDrawState extends StateManager<Data> {
     this.clearSelectHistory()
     this.session = undefined
     this.selectedGroupId = undefined
-
     return this.replaceState(
       {
-        ...this.state,
+        ...defaultState,
+        document,
         appState: {
-          ...this.appState,
+          ...defaultState.appState,
           currentPageId: Object.keys(document.pages)[0],
         },
-        document: {
-          ...document,
-          pages: Object.fromEntries(
-            Object.entries(document.pages)
-              .sort((a, b) => (a[1].childIndex || 0) - (b[1].childIndex || 0))
-              .map(([id, page], i) => {
-                return [
-                  id,
-                  {
-                    ...page,
-                    name: page.name ? page.name : `Page ${i++}`,
-                  },
-                ]
-              })
-          ),
-          pageStates: Object.fromEntries(
-            Object.entries(document.pageStates).map(([id, pageState]) => {
-              return [
-                id,
-                {
-                  ...pageState,
-                  bindingId: undefined,
-                  editingId: undefined,
-                  hoveredId: undefined,
-                  pointedId: undefined,
-                },
-              ]
-            })
-          ),
-        },
       },
-      `loaded_document:${document.id}`
+      'loaded_document'
     )
   }
 

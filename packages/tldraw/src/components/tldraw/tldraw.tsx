@@ -51,39 +51,40 @@ export interface TLDrawProps {
 }
 
 export function TLDraw({ id, document, currentPageId, onMount, onChange }: TLDrawProps) {
+  const [sId, setSId] = React.useState(id)
   const [tlstate, setTlstate] = React.useState(() => new TLDrawState(id))
+  const [context, setContext] = React.useState(() => ({ tlstate, useSelector: tlstate.useStore }))
 
   React.useEffect(() => {
-    setTlstate(new TLDrawState(id, onChange, onMount))
-  }, [id])
+    if (id === sId) return
+    // If a new id is loaded, replace the entire state
+    const newState = new TLDrawState(id, onChange, onMount)
+    setTlstate(newState)
+    setContext({ tlstate: newState, useSelector: newState.useStore })
+    setSId(id)
+  }, [sId, id])
 
-  const [context] = React.useState(() => {
-    return { tlstate, useSelector: tlstate.useStore }
-  })
-
-  React.useEffect(() => {
-    if (!document) return
-    tlstate.loadDocument(document)
-  }, [document, tlstate])
-
-  React.useEffect(() => {
-    if (!currentPageId) return
-    tlstate.changePage(currentPageId)
-  }, [currentPageId, tlstate])
+  // Use the `key` to ensure that new selector hooks are made when the id changes
 
   return (
     <TLDrawContext.Provider value={context}>
       <IdProvider>
-        <InnerTldraw />
+        <InnerTldraw key={sId || 'tldraw'} currentPageId={currentPageId} document={document} />
       </IdProvider>
     </TLDrawContext.Provider>
   )
 }
 
-function InnerTldraw() {
-  useCustomFonts()
-
+function InnerTldraw({
+  currentPageId,
+  document,
+}: {
+  currentPageId?: string
+  document?: TLDrawDocument
+}) {
   const { tlstate, useSelector } = useTLDrawContext()
+
+  useCustomFonts()
 
   useKeyboardShortcuts()
 
@@ -127,6 +128,20 @@ function InnerTldraw() {
 
     return {}
   }, [isDarkMode])
+
+  React.useEffect(() => {
+    if (!document) return
+    if (document.id === tlstate.document.id) {
+      tlstate.updateDocument(document)
+    } else {
+      tlstate.loadDocument(document)
+    }
+  }, [document, tlstate])
+
+  React.useEffect(() => {
+    if (!currentPageId) return
+    tlstate.changePage(currentPageId)
+  }, [currentPageId, tlstate])
 
   return (
     <Layout>

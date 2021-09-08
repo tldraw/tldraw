@@ -26,7 +26,7 @@ interface CanvasProps<T extends TLShape> {
   meta?: Record<string, unknown>
 }
 
-export const Canvas = React.memo(function Canvas<T extends TLShape>({
+export function Canvas<T extends TLShape>({
   page,
   pageState,
   meta,
@@ -66,4 +66,4 @@ export const Canvas = React.memo(function Canvas<T extends TLShape>({
       </svg>
     </div>
   )
-})
+}
