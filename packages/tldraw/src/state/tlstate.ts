@@ -67,7 +67,7 @@ const defaultDocument: TLDrawDocument = {
   },
 }
 
-const initialData: Data = {
+const defaultState: Data = {
   settings: {
     isPenMode: false,
     isDarkMode: false,
@@ -120,11 +120,11 @@ export class TLDrawState extends StateManager<Data> {
   selectedGroupId?: string
 
   constructor(
-    id = Utils.uniqueId(),
+    id?: string,
     onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
     onMount?: (tlstate: TLDrawState) => void
   ) {
-    super(initialData, id, 2, (prev, next, prevVersion) => {
+    super(defaultState, id, 2, (prev, next, prevVersion) => {
       const state = { ...prev }
       if (prevVersion === 1)
         state.settings = {
@@ -478,6 +478,69 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /**
+   * Update the current document.
+   * @param document
+   */
+  updateDocument = (document: TLDrawDocument, reason = 'updated_document'): this => {
+    console.log(reason)
+
+    const state = this.state
+
+    const currentPageId = document.pages[this.currentPageId]
+      ? this.currentPageId
+      : Object.keys(document.pages)[0]
+
+    this.replaceState(
+      {
+        ...this.state,
+        appState: {
+          ...this.appState,
+          currentPageId,
+        },
+        document: {
+          ...document,
+          pages: Object.fromEntries(
+            Object.entries(document.pages)
+              .sort((a, b) => (a[1].childIndex || 0) - (b[1].childIndex || 0))
+              .map(([pageId, page], i) => {
+                const nextPage = { ...page }
+                if (!nextPage.name) nextPage.name = `Page ${i + 1}`
+                return [pageId, nextPage]
+              })
+          ),
+          pageStates: Object.fromEntries(
+            Object.entries(document.pageStates).map(([pageId, pageState]) => {
+              const page = document.pages[pageId]
+              const nextPageState = { ...pageState }
+              const keysToCheck = ['bindingId', 'editingId', 'hoveredId', 'pointedId'] as const
+
+              for (const key of keysToCheck) {
+                if (!page.shapes[key]) {
+                  nextPageState[key] = undefined
+                }
+              }
+
+              nextPageState.selectedIds = pageState.selectedIds.filter(
+                (id) => !!document.pages[pageId].shapes[id]
+              )
+
+              return [pageId, nextPageState]
+            })
+          ),
+        },
+      },
+      `${reason}:${document.id}`
+    )
+
+    console.log(
+      'did page change?',
+      this.state.document.pages['page1'] !== state.document.pages['page1']
+    )
+
+    return this
+  }
+
+  /**
    * Load a new document.
    * @param document The document to load
    */
@@ -487,47 +550,7 @@ export class TLDrawState extends StateManager<Data> {
     this.clearSelectHistory()
     this.session = undefined
     this.selectedGroupId = undefined
-
-    return this.replaceState(
-      {
-        ...this.state,
-        appState: {
-          ...this.appState,
-          currentPageId: Object.keys(document.pages)[0],
-        },
-        document: {
-          ...document,
-          pages: Object.fromEntries(
-            Object.entries(document.pages)
-              .sort((a, b) => (a[1].childIndex || 0) - (b[1].childIndex || 0))
-              .map(([id, page], i) => {
-                return [
-                  id,
-                  {
-                    ...page,
-                    name: page.name ? page.name : `Page ${i++}`,
-                  },
-                ]
-              })
-          ),
-          pageStates: Object.fromEntries(
-            Object.entries(document.pageStates).map(([id, pageState]) => {
-              return [
-                id,
-                {
-                  ...pageState,
-                  bindingId: undefined,
-                  editingId: undefined,
-                  hoveredId: undefined,
-                  pointedId: undefined,
-                },
-              ]
-            })
-          ),
-        },
-      },
-      `loaded_document:${document.id}`
-    )
+    return this.updateDocument(document, 'loaded_document')
   }
 
   /**

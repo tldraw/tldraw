@@ -61,29 +61,25 @@ export function TLDraw({ id, document, currentPageId, onMount, onChange }: TLDra
     return { tlstate, useSelector: tlstate.useStore }
   })
 
-  React.useEffect(() => {
-    if (!document) return
-    tlstate.loadDocument(document)
-  }, [document, tlstate])
-
-  React.useEffect(() => {
-    if (!currentPageId) return
-    tlstate.changePage(currentPageId)
-  }, [currentPageId, tlstate])
-
   return (
     <TLDrawContext.Provider value={context}>
       <IdProvider>
-        <InnerTldraw />
+        <InnerTldraw currentPageId={currentPageId} document={document} />
       </IdProvider>
     </TLDrawContext.Provider>
   )
 }
 
-function InnerTldraw() {
-  useCustomFonts()
-
+function InnerTldraw({
+  currentPageId,
+  document,
+}: {
+  currentPageId?: string
+  document?: TLDrawDocument
+}) {
   const { tlstate, useSelector } = useTLDrawContext()
+
+  useCustomFonts()
 
   useKeyboardShortcuts()
 
@@ -127,6 +123,20 @@ function InnerTldraw() {
 
     return {}
   }, [isDarkMode])
+
+  React.useEffect(() => {
+    if (!document) return
+    if (document.id === tlstate.document.id) {
+      tlstate.updateDocument(document)
+    } else {
+      tlstate.loadDocument(document)
+    }
+  }, [document, tlstate])
+
+  React.useEffect(() => {
+    if (!currentPageId) return
+    tlstate.changePage(currentPageId)
+  }, [currentPageId, tlstate])
 
   return (
     <Layout>
