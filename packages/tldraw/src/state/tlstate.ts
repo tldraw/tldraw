@@ -97,12 +97,14 @@ const defaultState: Data = {
 }
 
 export class TLDrawState extends StateManager<Data> {
-  get id() {
-    return this._idbId
-  }
-
   private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
   private _onMount?: (tlstate: TLDrawState) => void
+
+  _id?: string
+
+  get id() {
+    return this._id
+  }
 
   selectHistory: SelectHistory = {
     stack: [[]],
@@ -137,6 +139,8 @@ export class TLDrawState extends StateManager<Data> {
         }
       return state
     })
+
+    this._id = id
 
     this._onChange = onChange
     this._onMount = onMount
