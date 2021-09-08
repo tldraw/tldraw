@@ -1,6 +1,6 @@
 import * as React from 'react'
-import NewId from './newId'
+import Basic from './basic'
 
 export default function App(): JSX.Element {
-  return <NewId />
+  return <Basic />
 }
