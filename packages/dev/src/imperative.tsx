@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { TLDraw, TLDrawShapeType, TLDrawState } from '@tldraw/tldraw'
+import { ColorStyle, TLDraw, TLDrawShapeType, TLDrawState } from '@tldraw/tldraw'
 
 export default function Imperative(): JSX.Element {
   const rTLDrawState = React.useRef<TLDrawState>()
@@ -23,6 +24,32 @@ export default function Imperative(): JSX.Element {
         size: [100, 100],
       }
     )
+  }, [])
+
+  React.useEffect(() => {
+    let i = 0
+    const interval = setInterval(() => {
+      const tlstate = rTLDrawState.current!
+      const rect1 = tlstate.getShape('rect1')
+
+      if (!rect1) {
+        // clearInterval(interval)
+        return
+      }
+
+      const color = i % 2 ? ColorStyle.Red : ColorStyle.Blue
+
+      tlstate.patchShapes({
+        id: 'rect1',
+        style: {
+          ...rect1.style,
+          color,
+        },
+      })
+
+      i++
+    }, 1000)
+    return () => clearInterval(interval)
   }, [])
 
   return <TLDraw onMount={handleMount} />
