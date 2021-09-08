@@ -13,8 +13,8 @@
           "parentId": "page",
           "childIndex": 1,
           "point": [
-            645.05,
-            137.92
+            668.65,
+            162.14
           ],
           "size": [
             146.33,
@@ -79,8 +79,8 @@
           "parentId": "page",
           "childIndex": 3,
           "point": [
-            660.16,
-            367.35
+            663.96,
+            391.57
           ],
           "rotation": 0,
           "bend": 0,
@@ -90,7 +90,7 @@
               "index": 0,
               "point": [
                 0,
-                80.75
+                72.035
               ],
               "canBind": true,
               "bindingId": "37f1f650-7368-41df-2489-b980efab5b7d"
@@ -99,7 +99,7 @@
               "id": "end",
               "index": 1,
               "point": [
-                40.204,
+                45.511,
                 0
               ],
               "canBind": true,
@@ -109,8 +109,8 @@
               "id": "bend",
               "index": 2,
               "point": [
-                20.102,
-                40.375
+                22.756,
+                36.017
               ]
             }
           },
@@ -131,8 +131,8 @@
           "parentId": "page",
           "childIndex": 4,
           "point": [
-            479.92,
-            234.36
+            479.98,
+            235.71
           ],
           "rotation": 0,
           "bend": 0,
@@ -141,8 +141,8 @@
               "id": "start",
               "index": 0,
               "point": [
-                149.13,
-                6.4303
+                172.67,
+                21.86
               ],
               "canBind": true,
               "bindingId": "500844a2-1dc9-4f58-0837-1a0caf446604"
@@ -161,8 +161,8 @@
               "id": "bend",
               "index": 2,
               "point": [
-                74.565,
-                3.2151
+                86.334,
+                10.93
               ]
             }
           },
@@ -534,9 +534,7 @@
     "page": {
       "id": "page",
       "selectedIds": [
-        "8f7c6768-8124-427f-0795-5b11b8e55cb3",
-        "0ef85012-7e75-4fdf-119f-18e615609335",
-        "10e6dade-7fab-42f8-0fc3-2091f8b5cb1f"
+        "58343232-2843-48ff-214c-f801ba274f24"
       ],
       "camera": {
         "point": [
@@ -544,7 +542,8 @@
           0
         ],
         "zoom": 1
-      }
+      },
+      "hoveredId": "58343232-2843-48ff-214c-f801ba274f24"
     },
     "page1": {
       "id": "page1",

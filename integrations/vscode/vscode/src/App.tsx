@@ -52,18 +52,25 @@ import { TLDraw, TLDrawState, Data } from "@tldraw/tldraw";
 //   }
 // };
 
+// HACK: Look more deeply into how to do this properly.
+// vscode/types doesn't include this globally available function.
+// Used this approach to resolve that. 
+// https://stackoverflow.com/a/54729526
+declare const acquireVsCodeApi: any;
+const vscode = acquireVsCodeApi();
+
+
 function postMessage(type:any,text:any = undefined){
   // Notify extension that something has changed. This ends up being called by
   // the history execute/redo/undo commands, so we put this here.
   //console.log(`"update" (webview <- iframe)`)
+  //console.log('post-message');
+  
   if (window.self !== window.top) {
-    window.parent.postMessage(
-      {
-        type,
-        text
-      },
-      '*'
-    )
+    vscode.postMessage({
+      type,
+      text
+    })
   }
 }
 
