@@ -69,23 +69,16 @@ export function TLDraw({ id, document, currentPageId, onMount, onChange }: TLDra
   return (
     <TLDrawContext.Provider value={context}>
       <IdProvider>
-        <InnerTldraw
-          key={sId || 'tldraw'}
-          id={sId}
-          currentPageId={currentPageId}
-          document={document}
-        />
+        <InnerTldraw key={sId || 'tldraw'} currentPageId={currentPageId} document={document} />
       </IdProvider>
     </TLDrawContext.Provider>
   )
 }
 
 function InnerTldraw({
-  id,
   currentPageId,
   document,
 }: {
-  id?: string
   currentPageId?: string
   document?: TLDrawDocument
 }) {
@@ -150,16 +143,10 @@ function InnerTldraw({
     tlstate.changePage(currentPageId)
   }, [currentPageId, tlstate])
 
-  React.useEffect(() => {
-    'Id Changed!'
-    console.log(id, tlstate.id)
-  }, [id])
-
   return (
     <Layout>
       <ContextMenu>
         <Renderer
-          id={id}
           page={page}
           pageState={pageState}
           shapeUtils={tldrawShapeUtils}

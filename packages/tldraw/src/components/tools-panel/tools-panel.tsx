@@ -32,15 +32,11 @@ export const ToolsPanel = React.memo((): JSX.Element => {
 
   const isDebugMode = useSelector(isDebugModeSelector)
 
-  console.log(activeTool)
-
   const selectSelectTool = React.useCallback(() => {
-    console.log(tlstate.id)
     tlstate.selectTool('select')
   }, [tlstate])
 
   const selectDrawTool = React.useCallback(() => {
-    console.log(tlstate.id)
     tlstate.selectTool(TLDrawShapeType.Draw)
   }, [tlstate])
 

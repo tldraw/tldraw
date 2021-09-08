@@ -447,9 +447,9 @@ describe('TLDrawState', () => {
   })
 
   describe('when the document prop changes', () => {
-    it.todo('updates the document if the new id is the same as the old one')
-
     it.todo('replaces the document if the ids are different')
+
+    it.todo('updates the document if the new id is the same as the old one')
   })
   /*
     We want to be able to use the `document` property to update the

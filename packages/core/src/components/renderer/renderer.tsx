@@ -15,11 +15,6 @@ import { useTLTheme, TLContext, TLContextType } from '../../hooks'
 export interface RendererProps<T extends TLShape, M extends Record<string, unknown>>
   extends Partial<TLCallbacks> {
   /**
-   * An id representing the current document. Changing the id will
-   * update the context and trigger a re-render.
-   */
-  id?: string
-  /**
    * An object containing instances of your shape classes.
    */
   shapeUtils: TLShapeUtils<T>
@@ -57,8 +52,6 @@ export interface RendererProps<T extends TLShape, M extends Record<string, unkno
    * An object of custom options that should be passed to rendered shapes.
    */
   meta?: M
-  // Temp
-  onTest?: () => void
 }
 
 /**
@@ -70,7 +63,6 @@ export interface RendererProps<T extends TLShape, M extends Record<string, unkno
  * @returns
  */
 export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
-  id,
   shapeUtils,
   page,
   pageState,
@@ -90,30 +82,12 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
     rPageState.current = pageState
   }, [pageState])
 
-  const rId = React.useRef(id)
-
-  const [context, setContext] = React.useState<TLContextType>(() => ({
-    id,
+  const [context] = React.useState<TLContextType>(() => ({
     callbacks: rest,
     shapeUtils,
     rScreenBounds,
     rPageState,
   }))
-
-  React.useEffect(() => {
-    if (id !== rId.current) {
-      rest.onTest?.()
-      setContext({
-        id,
-        callbacks: rest,
-        shapeUtils,
-        rScreenBounds,
-        rPageState,
-      })
-
-      rId.current = id
-    }
-  }, [id])
 
   return (
     <TLContext.Provider value={context}>
