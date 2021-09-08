@@ -22,7 +22,7 @@
     "noUnusedLocals": false /* Report errors on unused locals. */,
     "noUnusedParameters": false /* Report errors on unused parameters. */,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "strictFunctionTypes": true /* Enable strict checking of function types. */,
     "strictNullChecks": true /* Enable strict null checks. */,
     "stripInternal": true,
