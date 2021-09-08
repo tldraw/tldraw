@@ -1,6 +1,6 @@
 import * as React from 'react'
-import Basic from './basic'
+import Imperative from './imperative'
 
 export default function App(): JSX.Element {
-  return <Basic />
+  return <Imperative />
 }

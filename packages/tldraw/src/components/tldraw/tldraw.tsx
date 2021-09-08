@@ -52,7 +52,8 @@ export interface TLDrawProps {
 
 export function TLDraw({ id, document, currentPageId, onMount, onChange }: TLDrawProps) {
   const [sId, setSId] = React.useState(id)
-  const [tlstate, setTlstate] = React.useState(() => new TLDrawState(id))
+
+  const [tlstate, setTlstate] = React.useState(() => new TLDrawState(id, onChange, onMount))
   const [context, setContext] = React.useState(() => ({ tlstate, useSelector: tlstate.useStore }))
 
   React.useEffect(() => {

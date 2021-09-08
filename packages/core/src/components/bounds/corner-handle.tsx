@@ -37,10 +37,10 @@ export const CornerHandle = React.memo(
         />
         <rect
           className="tl-corner-handle"
-          x={(isLeft ? -1 : bounds.width + 1) - size / 2}
-          y={(isTop ? -1 : bounds.height + 1) - size / 2}
-          width={size}
-          height={size}
+          x={(isLeft ? -1 : bounds.width + 1) - 4}
+          y={(isTop ? -1 : bounds.height + 1) - 4}
+          width={8}
+          height={8}
           pointerEvents="none"
         />
       </g>

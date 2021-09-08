@@ -21,7 +21,7 @@ export const RotateHandle = React.memo(
           className="tl-rotate-handle"
           cx={bounds.width / 2}
           cy={size * -2}
-          r={size / 2}
+          r={4}
           pointerEvents="none"
         />
       </g>
