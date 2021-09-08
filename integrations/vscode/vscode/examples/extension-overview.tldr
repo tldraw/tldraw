@@ -4639,27 +4639,43 @@
           "text": "Inter-process Communication ",
           "scale": 1
         },
-        "d14c0755-8444-481f-01b8-76ab54479ddb": {
-          "id": "d14c0755-8444-481f-01b8-76ab54479ddb",
-          "type": "text",
-          "name": "Text",
+        "d638ac5b-069c-4a1c-1168-0c824db83328": {
+          "id": "d638ac5b-069c-4a1c-1168-0c824db83328",
+          "type": "draw",
+          "name": "Draw",
           "parentId": "page1",
-          "childIndex": 68.5,
+          "childIndex": 71,
           "point": [
-            -1620.2376001731363,
-            86.67421892675969
+            567.18,
+            1478.850809
+          ],
+          "points": [
+            [
+              0,
+              0.049191,
+              0.5
+            ],
+            [
+              2.705,
+              0,
+              0.5
+            ],
+            [
+              2.705,
+              0,
+              0.5
+            ]
           ],
           "rotation": 0,
           "style": {
             "color": "Black",
-            "size": "Large",
-            "isFilled": true,
+            "size": "Medium",
+            "isFilled": false,
             "dash": "Draw"
-          },
-          "text": "Data Model",
-          "scale": 1
+          }
         }
-      }
+      },
+      "bindings": {}
     }
   },
   "pageStates": {
@@ -4672,9 +4688,7 @@
         ],
         "zoom": 0.29560218264973837
       },
-      "selectedIds": [
-        "d14c0755-8444-481f-01b8-76ab54479ddb"
-      ]
+      "selectedIds": []
     }
   }
 }

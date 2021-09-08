@@ -104,8 +104,14 @@ export default function App() {
   }
 
   const handleChange = useCallback((tldr: TLDrawState, data:Date, type: string) => {
-    console.log(tldr);
-    console.log(type);
+    if(type.search("command:")=== 0){
+      console.log("Action");
+      console.log(type);
+      postMessage( 'update', JSON.stringify(tldr.document) );
+    } else {
+      console.log("Change")
+      console.log(type);
+    }
     // TODO: Think more about if syncing on only "command" is the way to go
     //console.log(type);
     // if(type.search("command") !== -1){
@@ -122,6 +128,7 @@ export default function App() {
   return <div ref={containerRef} className="App">
       <div>
         {initialDocument===undefined ? undefined : <TLDraw document={initialDocument} onMount={handleMount} onChange={handleChange} />}
+        {/* <TLDraw onMount={handleMount} onChange={handleChange} /> */}
       </div>
     </div>
 }

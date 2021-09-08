@@ -2156,18 +2156,17 @@
     ismobilejs "^1.1.1"
     react-use-gesture "^9.1.3"
 
-"@tldraw/core@^0.0.60":
-  version "0.0.60"
-  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.0.60.tgz#bcb19689a3e1b3c1cf78ec370b91838334d04dd4"
-  integrity sha512-2Q/VGzg0KBLttaBuNJG/qtF5y7zpIwJ/Y41DIavaop7DbC939KwbQxKmHorjw/fSSHmHg1kJFsQ45GvZZqqSdA==
+"@tldraw/core@^0.0.85":
+  version "0.0.85"
+  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.0.85.tgz#3e90ae087ba46d3df3b82c40b428ced9121c8d5d"
+  integrity sha512-KLJW7w3bl+nsARvbZni3l3LfyU66xtHVMPKFgwifvArrubrfGOqva86047rlg6zx3ZQQHvaXCf6akwy2EKKrww==
   dependencies:
-    deepmerge "^4.2.2"
     react-use-gesture "^9.1.3"
 
-"@tldraw/tldraw@latest":
-  version "0.0.60"
-  resolved "https://registry.yarnpkg.com/@tldraw/tldraw/-/tldraw-0.0.60.tgz#d3bc1ea9fe97b2cba0cc61ff57e30dfd07c1ab6c"
-  integrity sha512-6EqcF7cmryed3kqqwir4DyHqB5wXs+3vsyCETzQsm4JWgdgmDeOQ49Cv0243MV++szcByk0CuW84nN4SzlrCRg==
+"@tldraw/tldraw@^0.0.85":
+  version "0.0.85"
+  resolved "https://registry.yarnpkg.com/@tldraw/tldraw/-/tldraw-0.0.85.tgz#d2918132d3f17203696c33eb3aa9cdc16f52d9ee"
+  integrity sha512-jUKlyRLztV0qJRemmcinn48cIQuKd1ZZBsR3N1mHKaIwX2+wD8RZ43Dmjat85iVxVW2vr33lVagVg72hsfcS2A==
   dependencies:
     "@radix-ui/react-alert-dialog" "^0.0.20"
     "@radix-ui/react-checkbox" "^0.0.16"
@@ -2178,10 +2177,10 @@
     "@radix-ui/react-radio-group" "^0.0.18"
     "@radix-ui/react-tooltip" "^0.0.20"
     "@stitches/react" "^1.0.0"
-    "@tldraw/core" "^0.0.60"
+    "@tldraw/core" "^0.0.85"
     perfect-freehand "^0.5.3"
     react-hotkeys-hook "^3.4.0"
-    rko "^0.5.20"
+    rko "^0.5.25"
 
 "@tootallnate/once@1":
   version "1.1.2"
@@ -6124,11 +6123,11 @@ icss-utils@^4.0.0, icss-utils@^4.1.1:
     postcss "^7.0.14"
 
 idb-keyval@^5.1.3:
-  version "5.1.3"
-  resolved "https://registry.yarnpkg.com/idb-keyval/-/idb-keyval-5.1.3.tgz#6ef5dff371897c23f144322dc6374eadd6a345d9"
-  integrity sha512-N9HbCK/FaXSRVI+k6Xq4QgWxbcZRUv+SfG1y7HJ28JdV8yEJu6k+C/YLea7npGckX2DQJeEVuMc4bKOBeU/2LQ==
+  version "5.1.5"
+  resolved "https://registry.yarnpkg.com/idb-keyval/-/idb-keyval-5.1.5.tgz#be11174bac0cb756dba4cc86fb36b6cd63f5ce6d"
+  integrity sha512-J1utxYWQokYjy01LvDQ7WmiAtZCGUSkVi9EIBfUSyLOr/BesnMIxNGASTh9A1LzeISSjSqEPsfFdTss7EE7ofQ==
   dependencies:
-    safari-14-idb-fix "^1.0.4"
+    safari-14-idb-fix "^1.0.6"
 
 identity-obj-proxy@3.0.0:
   version "3.0.0"
@@ -9985,10 +9984,10 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
-rko@^0.5.19, rko@^0.5.20:
-  version "0.5.20"
-  resolved "https://registry.yarnpkg.com/rko/-/rko-0.5.20.tgz#a0a374e9b8d6880f05a1d13f2efc277299644e19"
-  integrity sha512-u9V6n0rx9nHI+hO0e20LYdvKEHCDDwVRsD0vMxMe2A2sHWVb6qtmwMw3hifJTo0Tn3UJQDOiBy+uE7zxEyrS/g==
+rko@^0.5.19, rko@^0.5.25:
+  version "0.5.25"
+  resolved "https://registry.yarnpkg.com/rko/-/rko-0.5.25.tgz#1095803900e3f912f6adf8a1c113b8227d3d88bf"
+  integrity sha512-HU6M3PxK3VEqrr6QZKAsqO98juQX24kEgJkKSdFJhw8U/DBUGAnU/fgyxNIaTw7TCI7vjIy/RzBEXf5I4sijKg==
   dependencies:
     idb-keyval "^5.1.3"
     zustand "^3.5.9"
@@ -10047,10 +10046,10 @@ run-queue@^1.0.0, run-queue@^1.0.3:
   dependencies:
     aproba "^1.1.1"
 
-safari-14-idb-fix@^1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/safari-14-idb-fix/-/safari-14-idb-fix-1.0.4.tgz#5c68ba63e2a8ae0d89a0aa1e13fe89e3aef7da19"
-  integrity sha512-4+Y2baQdgJpzu84d0QjySl70Kyygzf0pepVg8NVg4NnQEPpfC91fAn0baNvtStlCjUUxxiu0BOMiafa98fRRuA==
+safari-14-idb-fix@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/safari-14-idb-fix/-/safari-14-idb-fix-1.0.6.tgz#cbaabc33a4500c44b5c432d6c525b0ed9b68bb65"
+  integrity sha512-oTEQOdMwRX+uCtWCKT1nx2gAeSdpr8elg/2gcaKUH00SJU2xWESfkx11nmXwTRHy7xfQoj1o4TTQvdmuBosTnA==
 
 safe-buffer@5.1.2, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.2"

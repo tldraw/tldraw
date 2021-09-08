@@ -4,8 +4,9 @@
   "description": "",
   "keywords": [],
   "main": "src/index.tsx",
+  "homepage": "./",
   "dependencies": {
-    "@tldraw/tldraw": "latest",
+    "@tldraw/tldraw": "^0.0.85",
     "@types/react": "17.0.19",
     "@types/react-dom": "17.0.9",
     "react": "17.0.2",
@@ -23,5 +24,10 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
-  "browserslist": [">0.2%", "not dead", "not ie <= 11", "not op_mini all"]
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
 }
