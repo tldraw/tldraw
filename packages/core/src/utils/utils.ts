@@ -1700,6 +1700,8 @@ left past the initial left edge) then swap points on that axis.
 
         setTimeout(() => (inThrottle = false), limit)
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         lastResult = func.apply(this, ...args)
       }
 
