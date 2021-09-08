@@ -227,17 +227,16 @@ const MenuButtons = styled('div', {
   gap: 8,
 })
 
-const Layout = styled('main', {
-  position: 'fixed',
+const Layout = styled('div', {
   overflow: 'hidden',
-  top: 0,
-  left: 0,
-  bottom: 0,
-  right: 0,
+  position: 'absolute',
   height: '100%',
   width: '100%',
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
   padding: '8px 8px 0 8px',
-  zIndex: 200,
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
@@ -253,5 +252,7 @@ const Layout = styled('main', {
     position: 'absolute',
     top: 0,
     left: 0,
+    width: '100%',
+    height: '100%',
   },
 })

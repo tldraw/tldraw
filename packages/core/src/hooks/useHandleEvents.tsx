@@ -1,9 +1,8 @@
 import * as React from 'react'
-import { inputs } from '+inputs'
 import { useTLContext } from './useTLContext'
 
 export function useHandleEvents(id: string) {
-  const { callbacks } = useTLContext()
+  const { inputs, callbacks } = useTLContext()
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
@@ -15,7 +14,7 @@ export function useHandleEvents(id: string) {
       callbacks.onPointHandle?.(info, e)
       callbacks.onPointerDown?.(info, e)
     },
-    [callbacks, id]
+    [inputs, callbacks, id]
   )
 
   const onPointerUp = React.useCallback(
@@ -36,7 +35,7 @@ export function useHandleEvents(id: string) {
       }
       callbacks.onPointerUp?.(info, e)
     },
-    [callbacks]
+    [inputs, callbacks]
   )
 
   const onPointerMove = React.useCallback(
@@ -48,7 +47,7 @@ export function useHandleEvents(id: string) {
       const info = inputs.pointerMove(e, id)
       callbacks.onPointerMove?.(info, e)
     },
-    [callbacks, id]
+    [inputs, callbacks, id]
   )
 
   const onPointerEnter = React.useCallback(
@@ -56,7 +55,7 @@ export function useHandleEvents(id: string) {
       const info = inputs.pointerEnter(e, id)
       callbacks.onHoverHandle?.(info, e)
     },
-    [callbacks, id]
+    [inputs, callbacks, id]
   )
 
   const onPointerLeave = React.useCallback(
@@ -64,7 +63,7 @@ export function useHandleEvents(id: string) {
       const info = inputs.pointerEnter(e, id)
       callbacks.onUnhoverHandle?.(info, e)
     },
-    [callbacks, id]
+    [inputs, callbacks, id]
   )
 
   const onTouchStart = React.useCallback((e: React.TouchEvent) => {

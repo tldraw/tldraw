@@ -4,10 +4,13 @@ import { Vec, Utils } from './utils'
 
 const DOUBLE_CLICK_DURATION = 250
 
-class Inputs {
+export class Inputs {
   pointer?: TLPointerInfo<string>
   keyboard?: TLKeyboardInfo
   keys: Record<string, boolean> = {}
+  isPinching = false
+
+  offset = [0, 0]
 
   pointerUpTime = 0
 
@@ -69,7 +72,7 @@ class Inputs {
   pointerDown<T extends string>(e: PointerEvent | React.PointerEvent, target: T): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    const point = Inputs.getPoint(e)
+    const point = Inputs.getPoint(e, this.offset)
 
     const info: TLPointerInfo<T> = {
       target,
@@ -95,7 +98,7 @@ class Inputs {
   ): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    const point = Inputs.getPoint(e)
+    const point = Inputs.getPoint(e, this.offset)
 
     const info: TLPointerInfo<T> = {
       target,
@@ -120,7 +123,7 @@ class Inputs {
 
     const prev = this.pointer
 
-    const point = Inputs.getPoint(e)
+    const point = Inputs.getPoint(e, this.offset)
 
     const delta = prev?.point ? Vec.sub(point, prev.point) : [0, 0]
 
@@ -148,7 +151,7 @@ class Inputs {
 
     const prev = this.pointer
 
-    const point = Inputs.getPoint(e)
+    const point = Inputs.getPoint(e, this.offset)
 
     const delta = prev?.point ? Vec.sub(point, prev.point) : [0, 0]
 
@@ -182,7 +185,7 @@ class Inputs {
       origin: this.pointer?.origin || [0, 0],
       delta: [0, 0],
       pressure: 0.5,
-      point: Inputs.getPoint(e),
+      point: Inputs.getPoint(e, this.offset),
       shiftKey,
       ctrlKey,
       metaKey,
@@ -203,7 +206,7 @@ class Inputs {
 
     const prev = this.pointer
 
-    const point = Inputs.getPoint(e)
+    const point = Inputs.getPoint(e, this.offset)
 
     const info: TLPointerInfo<'wheel'> = {
       ...prev,
@@ -281,9 +284,9 @@ class Inputs {
     const info: TLPointerInfo<'pinch'> = {
       pointerId: 0,
       target: 'pinch',
-      origin: prev?.origin || Vec.round(point),
+      origin: prev?.origin || Vec.sub(Vec.round(point), this.offset),
       delta: delta,
-      point: Vec.round(point),
+      point: Vec.sub(Vec.round(point), this.offset),
       pressure: 0.5,
       shiftKey,
       ctrlKey,
@@ -304,9 +307,13 @@ class Inputs {
   }
 
   static getPoint(
-    e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent
+    e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent,
+    offset = [0, 0]
   ): number[] {
-    return [Number(e.clientX.toPrecision(5)), Number(e.clientY.toPrecision(5))]
+    return [
+      Number(e.clientX.toPrecision(5)) - offset[0],
+      Number(e.clientY.toPrecision(5)) - offset[1],
+    ]
   }
 
   static getPressure(e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent) {

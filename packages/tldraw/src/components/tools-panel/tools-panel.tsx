@@ -139,7 +139,7 @@ export const ToolsPanel = React.memo((): JSX.Element => {
 })
 
 const ToolsPanelContainer = styled('div', {
-  position: 'fixed',
+  position: 'absolute',
   bottom: 0,
   left: 0,
   right: 0,

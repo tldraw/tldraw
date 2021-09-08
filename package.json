@@ -48,6 +48,7 @@
     "lerna": "^3.15.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "resize-observer-polyfill": "^1.5.1",
     "ts-jest": "^27.0.5",
     "tslib": "^2.3.0",
     "typedoc": "^0.21.9",

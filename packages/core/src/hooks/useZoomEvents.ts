@@ -1,20 +1,22 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { useRef } from 'react'
+import * as React from 'react'
 import { useTLContext } from './useTLContext'
 import { Vec } from '+utils'
 import { useWheel, usePinch } from 'react-use-gesture'
-import { inputs } from '+inputs'
 
 // Capture zoom gestures (pinches, wheels and pans)
-export function useZoomEvents() {
-  const rPinchDa = useRef<number[] | undefined>(undefined)
-  const rOriginPoint = useRef<number[] | undefined>(undefined)
-  const rPinchPoint = useRef<number[] | undefined>(undefined)
+export function useZoomEvents<T extends HTMLElement | SVGElement>(ref: React.RefObject<T>) {
+  const rPinchDa = React.useRef<number[] | undefined>(undefined)
+  const rOriginPoint = React.useRef<number[] | undefined>(undefined)
+  const rPinchPoint = React.useRef<number[] | undefined>(undefined)
 
-  const { callbacks } = useTLContext()
+  const { inputs, callbacks } = useTLContext()
 
   useWheel(
     ({ event: e, delta }) => {
+      const elm = ref.current
+      if (!(e.target === elm || elm?.contains(e.target as Node))) return
+
       e.preventDefault()
 
       if (Vec.isEqual(delta, [0, 0])) return
@@ -24,15 +26,20 @@ export function useZoomEvents() {
       callbacks.onPan?.(info, e)
     },
     {
-      domTarget: typeof document === 'undefined' ? undefined : document.body,
+      domTarget: window,
       eventOptions: { passive: false },
     }
   )
 
   usePinch(
     ({ pinching, da, origin, event: e }) => {
+      const elm = ref.current
+      if (!(e.target === elm || elm?.contains(e.target as Node))) return
+
+      const info = inputs.pinch(origin, origin)
+
       if (!pinching) {
-        const info = inputs.pinch(origin, origin)
+        inputs.isPinching = false
         callbacks.onPinchEnd?.(
           info,
           e as React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent
@@ -44,22 +51,20 @@ export function useZoomEvents() {
       }
 
       if (rPinchPoint.current === undefined) {
-        const info = inputs.pinch(origin, origin)
+        inputs.isPinching = true
         callbacks.onPinchStart?.(
           info,
           e as React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent
         )
         rPinchDa.current = da
-        rPinchPoint.current = origin
-        rOriginPoint.current = origin
+        rPinchPoint.current = info.point
+        rOriginPoint.current = info.point
       }
 
       if (!rPinchDa.current) throw Error('No pinch direction!')
       if (!rOriginPoint.current) throw Error('No origin point!')
 
       const [distanceDelta] = Vec.sub(rPinchDa.current, da)
-
-      const info = inputs.pinch(rPinchPoint.current, origin)
 
       callbacks.onPinch?.(
         {
@@ -75,7 +80,7 @@ export function useZoomEvents() {
       rPinchPoint.current = origin
     },
     {
-      domTarget: typeof document === 'undefined' ? undefined : document.body,
+      domTarget: window,
       eventOptions: { passive: false },
     }
   )

@@ -1,9 +1,8 @@
 import * as React from 'react'
 import { useTLContext } from './useTLContext'
-import { inputs } from '+inputs'
 
 export function useCanvasEvents() {
-  const { callbacks } = useTLContext()
+  const { callbacks, inputs } = useTLContext()
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
@@ -16,7 +15,7 @@ export function useCanvasEvents() {
         callbacks.onPointerDown?.(info, e)
       }
     },
-    [callbacks]
+    [callbacks, inputs]
   )
 
   const onPointerMove = React.useCallback(
@@ -28,7 +27,7 @@ export function useCanvasEvents() {
       const info = inputs.pointerMove(e, 'canvas')
       callbacks.onPointerMove?.(info, e)
     },
-    [callbacks]
+    [callbacks, inputs]
   )
 
   const onPointerUp = React.useCallback(
@@ -47,7 +46,7 @@ export function useCanvasEvents() {
       callbacks.onReleaseCanvas?.(info, e)
       callbacks.onPointerUp?.(info, e)
     },
-    [callbacks]
+    [callbacks, inputs]
   )
 
   return {

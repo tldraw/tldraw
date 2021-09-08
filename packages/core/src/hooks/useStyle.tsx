@@ -185,14 +185,13 @@ const tlcss = css`
     pointer-events: none;
   }
   .tl-canvas {
-    position: fixed;
+    position: absolute;
     overflow: hidden;
     top: 0px;
     left: 0px;
     width: 100%;
     height: 100%;
     touch-action: none;
-    z-index: 100;
     pointer-events: all;
   }
   .tl-container {

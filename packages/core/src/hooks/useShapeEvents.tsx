@@ -1,10 +1,9 @@
 import * as React from 'react'
-import { inputs } from '+inputs'
 import { Utils } from '+utils'
 import { TLContext } from '+hooks'
 
 export function useShapeEvents(id: string, disable = false) {
-  const { rPageState, rScreenBounds, callbacks } = React.useContext(TLContext)
+  const { rPageState, rScreenBounds, callbacks, inputs } = React.useContext(TLContext)
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
@@ -38,7 +37,7 @@ export function useShapeEvents(id: string, disable = false) {
       callbacks.onPointShape?.(info, e)
       callbacks.onPointerDown?.(info, e)
     },
-    [callbacks, id, disable]
+    [inputs, callbacks, id, disable]
   )
 
   const onPointerUp = React.useCallback(
@@ -60,7 +59,7 @@ export function useShapeEvents(id: string, disable = false) {
       callbacks.onReleaseShape?.(info, e)
       callbacks.onPointerUp?.(info, e)
     },
-    [callbacks, id, disable]
+    [inputs, callbacks, id, disable]
   )
 
   const onPointerMove = React.useCallback(
@@ -77,7 +76,7 @@ export function useShapeEvents(id: string, disable = false) {
 
       callbacks.onPointerMove?.(info, e)
     },
-    [callbacks, id, disable]
+    [inputs, callbacks, id, disable]
   )
 
   const onPointerEnter = React.useCallback(
@@ -86,7 +85,7 @@ export function useShapeEvents(id: string, disable = false) {
       const info = inputs.pointerEnter(e, id)
       callbacks.onHoverShape?.(info, e)
     },
-    [callbacks, id, disable]
+    [inputs, callbacks, id, disable]
   )
 
   const onPointerLeave = React.useCallback(
@@ -95,7 +94,7 @@ export function useShapeEvents(id: string, disable = false) {
       const info = inputs.pointerEnter(e, id)
       callbacks.onUnhoverShape?.(info, e)
     },
-    [callbacks, id, disable]
+    [inputs, callbacks, id, disable]
   )
 
   const onTouchStart = React.useCallback((e: React.TouchEvent) => {

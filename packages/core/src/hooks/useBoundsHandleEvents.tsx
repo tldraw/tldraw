@@ -1,10 +1,9 @@
 import * as React from 'react'
-import { inputs } from '+inputs'
 import type { TLBoundsEdge, TLBoundsCorner } from '+types'
 import { useTLContext } from './useTLContext'
 
 export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotate') {
-  const { callbacks } = useTLContext()
+  const { callbacks, inputs } = useTLContext()
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
@@ -16,7 +15,7 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
       callbacks.onPointBoundsHandle?.(info, e)
       callbacks.onPointerDown?.(info, e)
     },
-    [callbacks, id]
+    [inputs, callbacks, id]
   )
 
   const onPointerUp = React.useCallback(
@@ -37,7 +36,7 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
       callbacks.onReleaseBoundsHandle?.(info, e)
       callbacks.onPointerUp?.(info, e)
     },
-    [callbacks, id]
+    [inputs, callbacks, id]
   )
 
   const onPointerMove = React.useCallback(
@@ -48,21 +47,21 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
       const info = inputs.pointerMove(e, id)
       callbacks.onPointerMove?.(info, e)
     },
-    [callbacks, id]
+    [inputs, callbacks, id]
   )
 
   const onPointerEnter = React.useCallback(
     (e: React.PointerEvent) => {
       callbacks.onHoverBoundsHandle?.(inputs.pointerEnter(e, id), e)
     },
-    [callbacks, id]
+    [inputs, callbacks, id]
   )
 
   const onPointerLeave = React.useCallback(
     (e: React.PointerEvent) => {
       callbacks.onUnhoverBoundsHandle?.(inputs.pointerEnter(e, id), e)
     },
-    [callbacks, id]
+    [inputs, callbacks, id]
   )
 
   const onTouchStart = React.useCallback((e: React.TouchEvent) => {

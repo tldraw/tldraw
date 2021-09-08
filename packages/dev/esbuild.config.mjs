@@ -9,6 +9,10 @@ if (!fs.existsSync('./dist')) {
   fs.mkdirSync('./dist')
 }
 
+fs.copyFile('./src/styles.css', './dist/styles.css', (err) => {
+  if (err) throw err
+})
+
 fs.copyFile('./src/index.html', './dist/index.html', (err) => {
   if (err) throw err
 })
