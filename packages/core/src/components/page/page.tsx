@@ -18,12 +18,7 @@ interface PageProps<T extends TLShape> {
 
 /**
  * The Page component renders the current page.
- *
- * ### Example
- *
- *```ts
- * example
- *``` */
+ */
 export function Page<T extends TLShape>({
   page,
   pageState,

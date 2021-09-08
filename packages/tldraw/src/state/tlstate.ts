@@ -97,6 +97,10 @@ const defaultState: Data = {
 }
 
 export class TLDrawState extends StateManager<Data> {
+  get id() {
+    return this._idbId
+  }
+
   private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
   private _onMount?: (tlstate: TLDrawState) => void
 
@@ -482,62 +486,50 @@ export class TLDrawState extends StateManager<Data> {
    * @param document
    */
   updateDocument = (document: TLDrawDocument, reason = 'updated_document'): this => {
-    console.log(reason)
+    const prevState = this.state
 
-    const state = this.state
+    const nextState = { ...prevState, document: { ...prevState.document } }
 
-    const currentPageId = document.pages[this.currentPageId]
-      ? this.currentPageId
-      : Object.keys(document.pages)[0]
+    if (!document.pages[this.currentPageId]) {
+      nextState.appState = {
+        ...prevState.appState,
+        currentPageId: Object.keys(document.pages)[0],
+      }
+    }
 
-    this.replaceState(
-      {
-        ...this.state,
-        appState: {
-          ...this.appState,
-          currentPageId,
-        },
-        document: {
-          ...document,
-          pages: Object.fromEntries(
-            Object.entries(document.pages)
-              .sort((a, b) => (a[1].childIndex || 0) - (b[1].childIndex || 0))
-              .map(([pageId, page], i) => {
-                const nextPage = { ...page }
-                if (!nextPage.name) nextPage.name = `Page ${i + 1}`
-                return [pageId, nextPage]
-              })
-          ),
-          pageStates: Object.fromEntries(
-            Object.entries(document.pageStates).map(([pageId, pageState]) => {
-              const page = document.pages[pageId]
-              const nextPageState = { ...pageState }
-              const keysToCheck = ['bindingId', 'editingId', 'hoveredId', 'pointedId'] as const
+    let i = 1
 
-              for (const key of keysToCheck) {
-                if (!page.shapes[key]) {
-                  nextPageState[key] = undefined
-                }
-              }
+    for (const nextPage of Object.values(document.pages)) {
+      if (nextPage !== prevState.document.pages[nextPage.id]) {
+        nextState.document.pages[nextPage.id] = nextPage
 
-              nextPageState.selectedIds = pageState.selectedIds.filter(
-                (id) => !!document.pages[pageId].shapes[id]
-              )
+        if (!nextPage.name) {
+          nextState.document.pages[nextPage.id].name = `Page ${i + 1}`
+          i++
+        }
+      }
+    }
 
-              return [pageId, nextPageState]
-            })
-          ),
-        },
-      },
-      `${reason}:${document.id}`
-    )
+    for (const nextPageState of Object.values(document.pageStates)) {
+      if (nextPageState !== prevState.document.pageStates[nextPageState.id]) {
+        nextState.document.pageStates[nextPageState.id] = nextPageState
 
-    console.log(
-      'did page change?',
-      this.state.document.pages['page1'] !== state.document.pages['page1']
-    )
+        const nextPage = document.pages[nextPageState.id]
+        const keysToCheck = ['bindingId', 'editingId', 'hoveredId', 'pointedId'] as const
 
-    return this
+        for (const key of keysToCheck) {
+          if (!nextPage.shapes[key]) {
+            nextPageState[key] = undefined
+          }
+        }
+
+        nextPageState.selectedIds = nextPageState.selectedIds.filter(
+          (id) => !!document.pages[nextPage.id].shapes[id]
+        )
+      }
+    }
+
+    return this.replaceState(nextState, `${reason}:${document.id}`)
   }
 
   /**

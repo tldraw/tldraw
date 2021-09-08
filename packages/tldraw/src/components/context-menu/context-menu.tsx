@@ -359,8 +359,6 @@ function MoveToPageMenu(): JSX.Element | null {
 
   if (sorted.length === 0) return null
 
-  console.log(sorted)
-
   return (
     <ContextMenuRoot>
       <RadixContextMenu.TriggerItem as={RowButton} bp={breakpoints}>

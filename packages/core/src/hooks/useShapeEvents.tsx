@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { inputs } from '+inputs'
-import { useTLContext } from './useTLContext'
 import { Utils } from '+utils'
+import { TLContext } from '+hooks'
 
 export function useShapeEvents(id: string, disable = false) {
-  const { rPageState, rScreenBounds, callbacks } = useTLContext()
+  const { rPageState, rScreenBounds, callbacks } = React.useContext(TLContext)
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {

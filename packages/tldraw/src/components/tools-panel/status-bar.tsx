@@ -7,14 +7,14 @@ const statusSelector = (s: Data) => s.appState.status.current
 const activeToolSelector = (s: Data) => s.appState.activeTool
 
 export function StatusBar(): JSX.Element | null {
-  const { useSelector } = useTLDrawContext()
+  const { tlstate, useSelector } = useTLDrawContext()
   const status = useSelector(statusSelector)
   const activeTool = useSelector(activeToolSelector)
 
   return (
     <StatusBarContainer size={{ '@sm': 'small' }}>
       <Section>
-        {activeTool} | {status}
+        {tlstate.id} | {activeTool} | {status}
       </Section>
     </StatusBarContainer>
   )
