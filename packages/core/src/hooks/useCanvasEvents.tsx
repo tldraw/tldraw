@@ -7,6 +7,7 @@ export function useCanvasEvents() {
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       e.currentTarget.setPointerCapture(e.pointerId)
 
       if (e.button === 0) {
@@ -20,6 +21,7 @@ export function useCanvasEvents() {
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         const info = inputs.pointerMove(e, 'canvas')
         callbacks.onDragCanvas?.(info, e)
@@ -33,6 +35,7 @@ export function useCanvasEvents() {
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, 'canvas')
 

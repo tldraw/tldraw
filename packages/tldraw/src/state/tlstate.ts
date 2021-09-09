@@ -1005,7 +1005,7 @@ export class TLDrawState extends StateManager<Data> {
    */
   pinchZoom = (point: number[], delta: number[], zoomDelta: number): this => {
     const { camera } = this.pageState
-    const nextPoint = Vec.add(camera.point, Vec.div(delta, camera.zoom))
+    const nextPoint = Vec.sub(camera.point, Vec.div(delta, camera.zoom))
     const nextZoom = TLDR.getCameraZoom(camera.zoom - zoomDelta * camera.zoom)
     const p0 = Vec.sub(Vec.div(point, camera.zoom), nextPoint)
     const p1 = Vec.sub(Vec.div(point, nextZoom), nextPoint)
@@ -2227,6 +2227,9 @@ export class TLDrawState extends StateManager<Data> {
   /* ------------- Renderer Event Handlers ------------ */
 
   onPinchStart: TLPinchEventHandler = () => {
+    if (this.session) {
+      this.cancelSession()
+    }
     this.setStatus(TLDrawStatus.Pinching)
   }
 
@@ -2236,13 +2239,13 @@ export class TLDrawState extends StateManager<Data> {
     //   const nextZoom = TLDR.getCameraZoom(i * 0.25)
     //   this.zoomTo(nextZoom, inputs.pointer?.point)
     // }
-    this.setStatus(this.appState.status.previous)
+    this.setStatus(TLDrawStatus.Idle)
   }
 
   onPinch: TLPinchEventHandler = (info) => {
     if (this.appState.status.current !== TLDrawStatus.Pinching) return
 
-    this.pinchZoom(info.origin, info.delta, info.delta[2] / 350)
+    this.pinchZoom(info.point, info.delta, info.delta[2])
     this.updateOnPointerMove(info)
   }
 

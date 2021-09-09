@@ -7,6 +7,7 @@ export function useHandleEvents(id: string) {
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       e.stopPropagation()
       e.currentTarget?.setPointerCapture(e.pointerId)
 
@@ -20,6 +21,7 @@ export function useHandleEvents(id: string) {
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, id)
@@ -40,6 +42,7 @@ export function useHandleEvents(id: string) {
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         const info = inputs.pointerMove(e, id)
         callbacks.onDragHandle?.(info, e)
@@ -52,6 +55,7 @@ export function useHandleEvents(id: string) {
 
   const onPointerEnter = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       const info = inputs.pointerEnter(e, id)
       callbacks.onHoverHandle?.(info, e)
     },
@@ -60,19 +64,12 @@ export function useHandleEvents(id: string) {
 
   const onPointerLeave = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       const info = inputs.pointerEnter(e, id)
       callbacks.onUnhoverHandle?.(info, e)
     },
     [inputs, callbacks, id]
   )
-
-  const onTouchStart = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-  }, [])
-
-  const onTouchEnd = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-  }, [])
 
   return {
     onPointerDown,
@@ -80,7 +77,5 @@ export function useHandleEvents(id: string) {
     onPointerEnter,
     onPointerMove,
     onPointerLeave,
-    onTouchStart,
-    onTouchEnd,
   }
 }

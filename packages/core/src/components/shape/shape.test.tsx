@@ -7,6 +7,7 @@ describe('shape', () => {
     renderWithSvg(
       <Shape
         shape={mockUtils.box.create({})}
+        utils={mockUtils[mockUtils.box.type]}
         isEditing={false}
         isBinding={false}
         isHovered={false}

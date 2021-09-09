@@ -90,7 +90,6 @@ export class TextSession implements Session {
 
     // if (initialShape.text.trim() === '' && shape.text.trim() === '') {
     //   // delete shape
-    //   console.log('deleting shape')
     //   return {
     //     id: 'text',
     //     before: {

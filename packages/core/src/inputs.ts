@@ -11,14 +11,31 @@ export class Inputs {
   isPinching = false
 
   offset = [0, 0]
+  size = [10, 10]
 
   pointerUpTime = 0
 
+  activePointer?: number
+
+  pointerIsValid(e: TouchEvent | React.TouchEvent | PointerEvent | React.PointerEvent) {
+    if ('pointerId' in e) {
+      if (this.activePointer && this.activePointer !== e.pointerId) return false
+    }
+
+    if ('touches' in e) {
+      const touch = e.changedTouches[0]
+      if (this.activePointer && this.activePointer !== touch.identifier) return false
+    }
+
+    return true
+  }
+
   touchStart<T extends string>(e: TouchEvent | React.TouchEvent, target: T): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
-    e.preventDefault()
 
     const touch = e.changedTouches[0]
+
+    this.activePointer = touch.identifier
 
     const info: TLPointerInfo<T> = {
       target,
@@ -38,9 +55,33 @@ export class Inputs {
     return info
   }
 
+  touchEnd<T extends string>(e: TouchEvent | React.TouchEvent, target: T): TLPointerInfo<T> {
+    const { shiftKey, ctrlKey, metaKey, altKey } = e
+
+    const touch = e.changedTouches[0]
+
+    const info: TLPointerInfo<T> = {
+      target,
+      pointerId: touch.identifier,
+      origin: Inputs.getPoint(touch),
+      delta: [0, 0],
+      point: Inputs.getPoint(touch),
+      pressure: Inputs.getPressure(touch),
+      shiftKey,
+      ctrlKey,
+      metaKey: Utils.isDarwin() ? metaKey : ctrlKey,
+      altKey,
+    }
+
+    this.pointer = info
+
+    this.activePointer = undefined
+
+    return info
+  }
+
   touchMove<T extends string>(e: TouchEvent | React.TouchEvent, target: T): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
-    e.preventDefault()
 
     const touch = e.changedTouches[0]
 
@@ -73,6 +114,8 @@ export class Inputs {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
     const point = Inputs.getPoint(e, this.offset)
+
+    this.activePointer = e.pointerId
 
     const info: TLPointerInfo<T> = {
       target,
@@ -154,6 +197,8 @@ export class Inputs {
     const point = Inputs.getPoint(e, this.offset)
 
     const delta = prev?.point ? Vec.sub(point, prev.point) : [0, 0]
+
+    this.activePointer = undefined
 
     const info: TLPointerInfo<T> = {
       origin: point,
@@ -277,14 +322,12 @@ export class Inputs {
   pinch(point: number[], origin: number[]) {
     const { shiftKey, ctrlKey, metaKey, altKey } = this.keys
 
-    const prev = this.pointer
-
     const delta = Vec.sub(origin, point)
 
     const info: TLPointerInfo<'pinch'> = {
       pointerId: 0,
       target: 'pinch',
-      origin: prev?.origin || Vec.sub(Vec.round(point), this.offset),
+      origin,
       delta: delta,
       point: Vec.sub(Vec.round(point), this.offset),
       pressure: 0.5,
@@ -303,6 +346,7 @@ export class Inputs {
     this.pointerUpTime = 0
     this.pointer = undefined
     this.keyboard = undefined
+    this.activePointer = undefined
     this.keys = {}
   }
 

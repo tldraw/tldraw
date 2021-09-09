@@ -1639,7 +1639,7 @@ left past the initial left edge) then swap points on that axis.
   /**
    * Debounce a function.
    */
-  static debounce<T extends (...args: unknown[]) => void>(fn: T, ms = 0) {
+  static debounce<T extends (...args: any[]) => void>(fn: T, ms = 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let timeoutId: number | any
     return function (...args: Parameters<T>) {
@@ -1655,18 +1655,22 @@ left past the initial left edge) then swap points on that axis.
   static getSvgPathFromStroke(stroke: number[][]): string {
     if (!stroke.length) return ''
 
+    const max = stroke.length - 1
+
     const d = stroke.reduce(
       (acc, [x0, y0], i, arr) => {
-        const [x1, y1] = arr[(i + 1) % arr.length]
+        if (i === max) return acc
+        const [x1, y1] = arr[i + 1]
         acc.push(` ${x0},${y0} ${(x0 + x1) / 2},${(y0 + y1) / 2}`)
         return acc
       },
       ['M ', `${stroke[0][0]},${stroke[0][1]}`, ' Q']
     )
 
-    d.push(' Z')
-
-    return d.join('').replaceAll(/(\s?[A-Z]?,?-?[0-9]*\.[0-9]{0,2})(([0-9]|e|-)*)/g, '$1')
+    return d
+      .concat('Z')
+      .join('')
+      .replaceAll(/(\s?[A-Z]?,?-?[0-9]*\.[0-9]{0,2})(([0-9]|e|-)*)/g, '$1')
   }
 
   /* -------------------------------------------------- */
@@ -1702,7 +1706,7 @@ left past the initial left edge) then swap points on that axis.
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        lastResult = func.apply(this, ...args)
+        lastResult = func(...args)
       }
 
       return lastResult

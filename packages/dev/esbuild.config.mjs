@@ -9,13 +9,11 @@ if (!fs.existsSync('./dist')) {
   fs.mkdirSync('./dist')
 }
 
-fs.copyFile('./src/styles.css', './dist/styles.css', (err) => {
-  if (err) throw err
-})
-
-fs.copyFile('./src/index.html', './dist/index.html', (err) => {
-  if (err) throw err
-})
+for (const file of ['styles.css', 'index.html']) {
+  fs.copyFile(`./src/${file}`, './dist/${file}', (err) => {
+    if (err) throw err
+  })
+}
 
 esbuild
   .build({
@@ -25,6 +23,7 @@ esbuild
     minify: false,
     sourcemap: true,
     incremental: isDevServer,
+    platform: 'browser',
     target: ['chrome58', 'firefox57', 'safari11', 'edge18'],
     define: {
       'process.env.NODE_ENV': isDevServer ? '"development"' : '"production"',

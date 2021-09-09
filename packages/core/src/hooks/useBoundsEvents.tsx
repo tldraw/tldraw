@@ -7,6 +7,7 @@ export function useBoundsEvents() {
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       e.stopPropagation()
       e.currentTarget?.setPointerCapture(e.pointerId)
       const info = inputs.pointerDown(e, 'bounds')
@@ -20,6 +21,7 @@ export function useBoundsEvents() {
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, 'bounds')
@@ -40,8 +42,7 @@ export function useBoundsEvents() {
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
-      if (inputs.pointer && e.pointerId !== inputs.pointer.pointerId) return
-
+      if (!inputs.pointerIsValid(e)) return
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         callbacks.onDragBounds?.(inputs.pointerMove(e, 'bounds'), e)
       }
@@ -53,6 +54,7 @@ export function useBoundsEvents() {
 
   const onPointerEnter = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       callbacks.onHoverBounds?.(inputs.pointerEnter(e, 'bounds'), e)
     },
     [callbacks, inputs]
@@ -60,18 +62,11 @@ export function useBoundsEvents() {
 
   const onPointerLeave = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       callbacks.onUnhoverBounds?.(inputs.pointerEnter(e, 'bounds'), e)
     },
     [callbacks, inputs]
   )
-
-  const onTouchStart = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-  }, [])
-
-  const onTouchEnd = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-  }, [])
 
   return {
     onPointerDown,
@@ -79,7 +74,5 @@ export function useBoundsEvents() {
     onPointerEnter,
     onPointerMove,
     onPointerLeave,
-    onTouchStart,
-    onTouchEnd,
   }
 }

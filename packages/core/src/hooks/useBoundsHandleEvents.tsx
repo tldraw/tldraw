@@ -8,6 +8,7 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       e.stopPropagation()
       e.currentTarget?.setPointerCapture(e.pointerId)
       const info = inputs.pointerDown(e, id)
@@ -21,6 +22,7 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, id)
@@ -41,6 +43,7 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         callbacks.onDragBoundsHandle?.(inputs.pointerMove(e, id), e)
       }
@@ -52,6 +55,7 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
 
   const onPointerEnter = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       callbacks.onHoverBoundsHandle?.(inputs.pointerEnter(e, id), e)
     },
     [inputs, callbacks, id]
@@ -59,18 +63,11 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
 
   const onPointerLeave = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       callbacks.onUnhoverBoundsHandle?.(inputs.pointerEnter(e, id), e)
     },
     [inputs, callbacks, id]
   )
-
-  const onTouchStart = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-  }, [])
-
-  const onTouchEnd = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-  }, [])
 
   return {
     onPointerDown,
@@ -78,7 +75,5 @@ export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotat
     onPointerEnter,
     onPointerMove,
     onPointerLeave,
-    onTouchStart,
-    onTouchEnd,
   }
 }

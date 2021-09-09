@@ -8,6 +8,7 @@ export function useShapeEvents(id: string, disable = false) {
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
       if (disable) return
+      if (!inputs.pointerIsValid(e)) return
 
       if (e.button === 2) {
         callbacks.onRightPointShape?.(inputs.pointerDown(e, id), e)
@@ -43,6 +44,7 @@ export function useShapeEvents(id: string, disable = false) {
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       if (disable) return
       e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
@@ -64,6 +66,7 @@ export function useShapeEvents(id: string, disable = false) {
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       if (disable) return
 
       if (inputs.pointer && e.pointerId !== inputs.pointer.pointerId) return
@@ -81,6 +84,7 @@ export function useShapeEvents(id: string, disable = false) {
 
   const onPointerEnter = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       if (disable) return
       const info = inputs.pointerEnter(e, id)
       callbacks.onHoverShape?.(info, e)
@@ -91,19 +95,12 @@ export function useShapeEvents(id: string, disable = false) {
   const onPointerLeave = React.useCallback(
     (e: React.PointerEvent) => {
       if (disable) return
+      if (!inputs.pointerIsValid(e)) return
       const info = inputs.pointerEnter(e, id)
       callbacks.onUnhoverShape?.(info, e)
     },
     [inputs, callbacks, id, disable]
   )
-
-  const onTouchStart = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-  }, [])
-
-  const onTouchEnd = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-  }, [])
 
   return {
     onPointerDown,
@@ -111,7 +108,5 @@ export function useShapeEvents(id: string, disable = false) {
     onPointerEnter,
     onPointerMove,
     onPointerLeave,
-    onTouchStart,
-    onTouchEnd,
   }
 }

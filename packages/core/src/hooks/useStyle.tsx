@@ -201,6 +201,7 @@ const tlcss = css`
     height: 100%;
     padding: 0px;
     margin: 0px;
+    touch-action: none;
     overscroll-behavior: none;
     overscroll-behavior-x: none;
     background-color: var(--tl-background);
