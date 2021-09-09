@@ -1,5 +1,5 @@
+import { TLDraw } from '@tldraw/tldraw'
 import * as React from 'react'
-import Editor from './components/editor'
 
 export default function Embedded(): JSX.Element {
   return (
@@ -12,7 +12,7 @@ export default function Embedded(): JSX.Element {
           height: '500px',
         }}
       >
-        <Editor id="small1" />
+        <TLDraw id="small1" />
       </div>
 
       <div
@@ -23,7 +23,7 @@ export default function Embedded(): JSX.Element {
           height: '500px',
         }}
       >
-        <Editor id="small2" />
+        <TLDraw id="small2" />
       </div>
     </div>
   )
