@@ -12,5 +12,9 @@ export default function Editor({ id = 'home' }: EditorProps) {
     window.tlstate = tlstate
   }, [])
 
-  return <TLDraw id={id} onMount={handleMount} />
+  return (
+    <div className="tldraw">
+      <TLDraw id={id} onMount={handleMount} />
+    </div>
+  )
 }
