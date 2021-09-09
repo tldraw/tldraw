@@ -9,16 +9,15 @@ const cornerBgClassnames = {
   [TLBoundsCorner.BottomLeft]: 'tl-transparent tl-cursor-nesw',
 }
 
+interface CornerHandleProps {
+  size: number
+  targetSize: number
+  bounds: TLBounds
+  corner: TLBoundsCorner
+}
+
 export const CornerHandle = React.memo(
-  ({
-    size,
-    corner,
-    bounds,
-  }: {
-    size: number
-    bounds: TLBounds
-    corner: TLBoundsCorner
-  }): JSX.Element => {
+  ({ size, targetSize, corner, bounds }: CornerHandleProps): JSX.Element => {
     const events = useBoundsHandleEvents(corner)
 
     const isTop = corner === TLBoundsCorner.TopLeft || corner === TLBoundsCorner.TopRight
@@ -28,19 +27,20 @@ export const CornerHandle = React.memo(
       <g>
         <rect
           className={cornerBgClassnames[corner]}
-          x={(isLeft ? -1 : bounds.width + 1) - size}
-          y={(isTop ? -1 : bounds.height + 1) - size}
-          width={size * 2}
-          height={size * 2}
+          x={(isLeft ? -1 : bounds.width + 1) - targetSize}
+          y={(isTop ? -1 : bounds.height + 1) - targetSize}
+          width={targetSize * 2}
+          height={targetSize * 2}
           pointerEvents="all"
+          fill="red"
           {...events}
         />
         <rect
           className="tl-corner-handle"
-          x={(isLeft ? -1 : bounds.width + 1) - 4}
-          y={(isTop ? -1 : bounds.height + 1) - 4}
-          width={8}
-          height={8}
+          x={(isLeft ? -1 : bounds.width + 1) - size / 2}
+          y={(isTop ? -1 : bounds.height + 1) - size / 2}
+          width={size}
+          height={size}
           pointerEvents="none"
         />
       </g>

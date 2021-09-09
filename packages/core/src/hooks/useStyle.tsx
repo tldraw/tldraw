@@ -108,151 +108,174 @@ const tlcss = css`
       U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
   }
 
-  html,
-  * {
-    box-sizing: border-box;
-  }
-
-  :root {
+  .tl-container {
     --tl-zoom: 1;
     --tl-scale: calc(1 / var(--tl-zoom));
-  }
-  .tl-counter-scaled {
-    transform: scale(var(--tl-scale));
-  }
-  .tl-dashed {
-    stroke-dasharray: calc(2px * var(--tl-scale)), calc(2px * var(--tl-scale));
-  }
-  .tl-transparent {
-    fill: transparent;
-    stroke: transparent;
-  }
-  .tl-cursor-ns {
-    cursor: ns-resize;
-  }
-  .tl-cursor-ew {
-    cursor: ew-resize;
-  }
-  .tl-cursor-nesw {
-    cursor: nesw-resize;
-  }
-  .tl-cursor-nwse {
-    cursor: nwse-resize;
-  }
-  .tl-corner-handle {
-    stroke: var(--tl-selectStroke);
-    fill: var(--tl-background);
-    stroke-width: calc(1.5px * var(--tl-scale));
-  }
-  .tl-rotate-handle {
-    stroke: var(--tl-selectStroke);
-    fill: var(--tl-background);
-    stroke-width: calc(1.5px * var(--tl-scale));
-    cursor: grab;
-  }
-  .tl-binding {
-    fill: var(--tl-selectFill);
-    stroke: var(--tl-selectStroke);
-    stroke-width: calc(1px * var(--tl-scale));
-    pointer-events: none;
-  }
-  .tl-selected {
-    fill: transparent;
-    stroke: var(--tl-selectStroke);
-    stroke-width: calc(1.5px * var(--tl-scale));
-    pointer-events: none;
-  }
-  .tl-hovered {
-    fill: transparent;
-    stroke: var(--tl-selectStroke);
-    stroke-width: calc(1.5px * var(--tl-scale));
-    pointer-events: none;
-  }
-  .tl-bounds-center {
-    fill: transparent;
-    stroke: var(--tl-selectStroke);
-    stroke-width: calc(1.5px * var(--tl-scale));
-  }
-  .tl-bounds-bg {
-    stroke: none;
-    fill: var(--tl-selectFill);
-    pointer-events: all;
-  }
-  .tl-brush {
-    fill: var(--tl-brushFill);
-    stroke: var(--tl-brushStroke);
-    stroke-width: calc(1px * var(--tl-scale));
-    pointer-events: none;
-  }
-  .tl-canvas {
-    position: fixed;
-    overflow: hidden;
-    top: 0px;
-    left: 0px;
-    width: 100%;
-    height: 100%;
-    touch-action: none;
-    z-index: 100;
-    pointer-events: all;
-  }
-  .tl-container {
     position: relative;
     box-sizing: border-box;
     width: 100%;
     height: 100%;
     padding: 0px;
     margin: 0px;
+    touch-action: none;
     overscroll-behavior: none;
-    overscroll-behavior-x: none;
     background-color: var(--tl-background);
   }
+
   .tl-container * {
     user-select: none;
+    box-sizing: border-box;
   }
+
+  .tl-counter-scaled {
+    transform: scale(var(--tl-scale));
+  }
+
+  .tl-dashed {
+    stroke-dasharray: calc(2px * var(--tl-scale)), calc(2px * var(--tl-scale));
+  }
+
+  .tl-transparent {
+    fill: transparent;
+    stroke: transparent;
+  }
+
+  .tl-cursor-ns {
+    cursor: ns-resize;
+  }
+
+  .tl-cursor-ew {
+    cursor: ew-resize;
+  }
+
+  .tl-cursor-nesw {
+    cursor: nesw-resize;
+  }
+
+  .tl-cursor-nwse {
+    cursor: nwse-resize;
+  }
+
+  .tl-corner-handle {
+    stroke: var(--tl-selectStroke);
+    fill: var(--tl-background);
+    stroke-width: calc(1.5px * var(--tl-scale));
+  }
+
+  .tl-rotate-handle {
+    stroke: var(--tl-selectStroke);
+    fill: var(--tl-background);
+    stroke-width: calc(1.5px * var(--tl-scale));
+    cursor: grab;
+  }
+
+  .tl-binding {
+    fill: var(--tl-selectFill);
+    stroke: var(--tl-selectStroke);
+    stroke-width: calc(1px * var(--tl-scale));
+    pointer-events: none;
+  }
+
+  .tl-selected {
+    fill: transparent;
+    stroke: var(--tl-selectStroke);
+    stroke-width: calc(1.5px * var(--tl-scale));
+    pointer-events: none;
+  }
+
+  .tl-hovered {
+    fill: transparent;
+    stroke: var(--tl-selectStroke);
+    stroke-width: calc(1.5px * var(--tl-scale));
+    pointer-events: none;
+  }
+
+  .tl-bounds-center {
+    fill: transparent;
+    stroke: var(--tl-selectStroke);
+    stroke-width: calc(1.5px * var(--tl-scale));
+  }
+
+  .tl-bounds-bg {
+    stroke: none;
+    fill: var(--tl-selectFill);
+    pointer-events: all;
+  }
+
+  .tl-brush {
+    fill: var(--tl-brushFill);
+    stroke: var(--tl-brushStroke);
+    stroke-width: calc(1px * var(--tl-scale));
+    pointer-events: none;
+  }
+
+  .tl-canvas {
+    position: absolute;
+    overflow: hidden;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    pointer-events: all;
+  }
+
   .tl-dot {
     fill: var(--tl-background);
     stroke: var(--tl-foreground);
     stroke-width: 2px;
   }
+
   .tl-handles {
     pointer-events: all;
   }
+
   .tl-handles:hover > .tl-handle-bg {
     fill: var(--tl-selectFill);
   }
+
   .tl-handles:hover > .tl-handle-bg > * {
     stroke: var(--tl-selectFill);
   }
+
   .tl-handles:active > .tl-handle-bg {
     fill: var(--tl-selectFill);
   }
+
   .tl-handles:active > .tl-handle-bg > * {
     stroke: var(--tl-selectFill);
   }
+
   .tl-handle {
     fill: var(--tl-background);
     stroke: var(--tl-selectStroke);
     stroke-width: 1.5px;
   }
+
   .tl-handle-bg {
     fill: transparent;
     stroke: none;
     pointer-events: all;
   }
+
   .tl-binding-indicator {
     stroke-width: calc(3px * var(--tl-scale));
     fill: var(--tl-selectFill);
     stroke: var(--tl-selected);
   }
+
   .tl-shape-group {
     outline: none;
   }
+
   .tl-shape-group > *[data-shy='true'] {
     opacity: 0;
   }
+
   .tl-shape-group:hover > *[data-shy='true'] {
     opacity: 1;
   }
+
   .tl-current-parent > *[data-shy='true'] {
     opacity: 1;
   }

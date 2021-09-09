@@ -1,13 +1,13 @@
 import * as React from 'react'
 import { useTLContext } from './useTLContext'
-import { inputs } from '+inputs'
 
 export function useCanvasEvents() {
-  const { callbacks } = useTLContext()
+  const { callbacks, inputs } = useTLContext()
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       e.currentTarget.setPointerCapture(e.pointerId)
 
       if (e.button === 0) {
@@ -16,11 +16,12 @@ export function useCanvasEvents() {
         callbacks.onPointerDown?.(info, e)
       }
     },
-    [callbacks]
+    [callbacks, inputs]
   )
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         const info = inputs.pointerMove(e, 'canvas')
         callbacks.onDragCanvas?.(info, e)
@@ -28,12 +29,13 @@ export function useCanvasEvents() {
       const info = inputs.pointerMove(e, 'canvas')
       callbacks.onPointerMove?.(info, e)
     },
-    [callbacks]
+    [callbacks, inputs]
   )
 
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, 'canvas')
 
@@ -47,7 +49,7 @@ export function useCanvasEvents() {
       callbacks.onReleaseCanvas?.(info, e)
       callbacks.onPointerUp?.(info, e)
     },
-    [callbacks]
+    [callbacks, inputs]
   )
 
   return {

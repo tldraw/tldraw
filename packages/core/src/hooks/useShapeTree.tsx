@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import type {
   IShapeTreeNode,
@@ -7,6 +8,7 @@ import type {
   TLShapeUtils,
   TLCallbacks,
   TLBinding,
+  TLBounds,
 } from '+types'
 import { Utils, Vec } from '+utils'
 
@@ -52,28 +54,32 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   }
 }
 
+function shapeIsInViewport(shape: TLShape, bounds: TLBounds, viewport: TLBounds) {
+  return Utils.boundsContain(viewport, bounds) || Utils.boundsCollide(viewport, bounds)
+}
+
 export function useShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   page: TLPage<T, TLBinding>,
   pageState: TLPageState,
   shapeUtils: TLShapeUtils<T>,
+  size: number[],
   meta?: M,
   onChange?: TLCallbacks['onChange']
 ) {
+  const rTimeout = React.useRef<unknown>()
   const rPreviousCount = React.useRef(0)
-
-  if (typeof window === 'undefined') return []
+  const rShapesIdsToRender = React.useRef(new Set<string>())
+  const rShapesToRender = React.useRef(new Set<TLShape>())
 
   const { selectedIds, camera } = pageState
 
-  // Find viewport
+  // Filter the page's shapes down to only those that:
+  // - are the direct child of the page
+  // - collide with or are contained by the viewport
+  // - OR are selected
 
   const [minX, minY] = Vec.sub(Vec.div([0, 0], camera.zoom), camera.point)
-
-  const [maxX, maxY] = Vec.sub(
-    Vec.div([window.innerWidth, window.innerHeight], camera.zoom),
-    camera.point
-  )
-
+  const [maxX, maxY] = Vec.sub(Vec.div(size, camera.zoom), camera.point)
   const viewport = {
     minX,
     minY,
@@ -83,28 +89,43 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
     width: maxY - minY,
   }
 
-  // Filter shapes that are in view, and that are the direct child of
-  // the page. Other shapes are not visible, or will be rendered as
-  // the children of groups.
+  const shapesToRender = rShapesToRender.current
+  const shapesIdsToRender = rShapesIdsToRender.current
 
-  const shapesToRender = Object.values(page.shapes).filter((shape) => {
-    if (shape.parentId !== page.id) return false
+  shapesToRender.clear()
+  shapesIdsToRender.clear()
 
-    // Don't hide selected shapes (this breaks certain drag interactions)
-    if (selectedIds.includes(shape.id)) return true
-
-    const shapeBounds = shapeUtils[shape.type as T['type']].getBounds(shape)
-
-    return Utils.boundsContain(viewport, shapeBounds) || Utils.boundsCollide(viewport, shapeBounds)
-  })
+  Object.values(page.shapes)
+    .filter((shape) => {
+      // Don't hide selected shapes (this breaks certain drag interactions)
+      if (
+        selectedIds.includes(shape.id) ||
+        shapeIsInViewport(shape, shapeUtils[shape.type as T['type']].getBounds(shape), viewport)
+      ) {
+        if (shape.parentId === page.id) {
+          shapesIdsToRender.add(shape.id)
+          shapesToRender.add(shape)
+        } else {
+          shapesIdsToRender.add(shape.parentId)
+          shapesToRender.add(page.shapes[shape.parentId])
+        }
+      }
+    })
+    .sort((a, b) => a.childIndex - b.childIndex)
 
   // Call onChange callback when number of rendering shapes changes
 
-  if (shapesToRender.length !== rPreviousCount.current) {
-    // Use a timeout to clear call stack, in case the onChange handleer
-    // produces a new state change (React won't like that)
-    setTimeout(() => onChange?.(shapesToRender.map((shape) => shape.id)), 0)
-    rPreviousCount.current = shapesToRender.length
+  if (shapesToRender.size !== rPreviousCount.current) {
+    // Use a timeout to clear call stack, in case the onChange handler
+    // produces a new state change, which could cause nested state
+    // changes, which is bad in React.
+    if (rTimeout.current) {
+      clearTimeout(rTimeout.current as number)
+    }
+    rTimeout.current = setTimeout(() => {
+      onChange?.(Array.from(shapesIdsToRender.values()))
+    }, 100)
+    rPreviousCount.current = shapesToRender.size
   }
 
   const bindingTargetId = pageState.bindingId ? page.bindings[pageState.bindingId].toId : undefined
@@ -113,11 +134,9 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
 
   const tree: IShapeTreeNode<M>[] = []
 
-  shapesToRender
-    .sort((a, b) => a.childIndex - b.childIndex)
-    .forEach((shape) =>
-      addToShapeTree(shape, tree, page.shapes, { ...pageState, bindingTargetId }, meta)
-    )
+  const info = { ...pageState, bindingTargetId }
+
+  shapesToRender.forEach((shape) => addToShapeTree(shape, tree, page.shapes, info, meta))
 
   return tree
 }

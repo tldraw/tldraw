@@ -1,13 +1,13 @@
 import * as React from 'react'
-import { inputs } from '+inputs'
 import { useTLContext } from './useTLContext'
 
 export function useHandleEvents(id: string) {
-  const { callbacks } = useTLContext()
+  const { inputs, callbacks } = useTLContext()
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       e.stopPropagation()
       e.currentTarget?.setPointerCapture(e.pointerId)
 
@@ -15,12 +15,13 @@ export function useHandleEvents(id: string) {
       callbacks.onPointHandle?.(info, e)
       callbacks.onPointerDown?.(info, e)
     },
-    [callbacks, id]
+    [inputs, callbacks, id]
   )
 
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, id)
@@ -36,11 +37,12 @@ export function useHandleEvents(id: string) {
       }
       callbacks.onPointerUp?.(info, e)
     },
-    [callbacks]
+    [inputs, callbacks]
   )
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         const info = inputs.pointerMove(e, id)
         callbacks.onDragHandle?.(info, e)
@@ -48,32 +50,26 @@ export function useHandleEvents(id: string) {
       const info = inputs.pointerMove(e, id)
       callbacks.onPointerMove?.(info, e)
     },
-    [callbacks, id]
+    [inputs, callbacks, id]
   )
 
   const onPointerEnter = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       const info = inputs.pointerEnter(e, id)
       callbacks.onHoverHandle?.(info, e)
     },
-    [callbacks, id]
+    [inputs, callbacks, id]
   )
 
   const onPointerLeave = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       const info = inputs.pointerEnter(e, id)
       callbacks.onUnhoverHandle?.(info, e)
     },
-    [callbacks, id]
+    [inputs, callbacks, id]
   )
-
-  const onTouchStart = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-  }, [])
-
-  const onTouchEnd = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-  }, [])
 
   return {
     onPointerDown,
@@ -81,7 +77,5 @@ export function useHandleEvents(id: string) {
     onPointerEnter,
     onPointerMove,
     onPointerLeave,
-    onTouchStart,
-    onTouchEnd,
   }
 }

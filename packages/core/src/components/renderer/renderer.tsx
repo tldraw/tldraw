@@ -10,6 +10,7 @@ import type {
   TLBinding,
 } from '../../types'
 import { Canvas } from '../canvas'
+import { Inputs } from '../../inputs'
 import { useTLTheme, TLContext, TLContextType } from '../../hooks'
 
 export interface RendererProps<T extends TLShape, M extends Record<string, unknown>>
@@ -87,6 +88,7 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
     shapeUtils,
     rScreenBounds,
     rPageState,
+    inputs: new Inputs(),
   }))
 
   return (

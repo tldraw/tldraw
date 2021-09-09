@@ -1,22 +1,20 @@
 import * as React from 'react'
-import { useShapeEvents, useTLContext } from '+hooks'
-import type { IShapeTreeNode } from '+types'
+import { useShapeEvents } from '+hooks'
+import type { IShapeTreeNode, TLShape, TLShapeUtil } from '+types'
 import { RenderedShape } from './rendered-shape'
 import { EditingTextShape } from './editing-text-shape'
 
 export const Shape = <M extends Record<string, unknown>>({
   shape,
+  utils,
   isEditing,
   isBinding,
   isHovered,
   isSelected,
   isCurrentParent,
   meta,
-}: IShapeTreeNode<M>) => {
-  const { shapeUtils } = useTLContext()
+}: { utils: TLShapeUtil<TLShape> } & IShapeTreeNode<M>) => {
   const events = useShapeEvents(shape.id, isCurrentParent)
-  const utils = shapeUtils[shape.type]
-
   const center = utils.getCenter(shape)
   const rotation = (shape.rotation || 0) * (180 / Math.PI)
   const transform = `rotate(${rotation}, ${center}) translate(${shape.point})`

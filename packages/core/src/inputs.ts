@@ -4,18 +4,38 @@ import { Vec, Utils } from './utils'
 
 const DOUBLE_CLICK_DURATION = 250
 
-class Inputs {
+export class Inputs {
   pointer?: TLPointerInfo<string>
   keyboard?: TLKeyboardInfo
   keys: Record<string, boolean> = {}
+  isPinching = false
+
+  offset = [0, 0]
+  size = [10, 10]
 
   pointerUpTime = 0
 
+  activePointer?: number
+
+  pointerIsValid(e: TouchEvent | React.TouchEvent | PointerEvent | React.PointerEvent) {
+    if ('pointerId' in e) {
+      if (this.activePointer && this.activePointer !== e.pointerId) return false
+    }
+
+    if ('touches' in e) {
+      const touch = e.changedTouches[0]
+      if (this.activePointer && this.activePointer !== touch.identifier) return false
+    }
+
+    return true
+  }
+
   touchStart<T extends string>(e: TouchEvent | React.TouchEvent, target: T): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
-    e.preventDefault()
 
     const touch = e.changedTouches[0]
+
+    this.activePointer = touch.identifier
 
     const info: TLPointerInfo<T> = {
       target,
@@ -35,9 +55,33 @@ class Inputs {
     return info
   }
 
+  touchEnd<T extends string>(e: TouchEvent | React.TouchEvent, target: T): TLPointerInfo<T> {
+    const { shiftKey, ctrlKey, metaKey, altKey } = e
+
+    const touch = e.changedTouches[0]
+
+    const info: TLPointerInfo<T> = {
+      target,
+      pointerId: touch.identifier,
+      origin: Inputs.getPoint(touch),
+      delta: [0, 0],
+      point: Inputs.getPoint(touch),
+      pressure: Inputs.getPressure(touch),
+      shiftKey,
+      ctrlKey,
+      metaKey: Utils.isDarwin() ? metaKey : ctrlKey,
+      altKey,
+    }
+
+    this.pointer = info
+
+    this.activePointer = undefined
+
+    return info
+  }
+
   touchMove<T extends string>(e: TouchEvent | React.TouchEvent, target: T): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
-    e.preventDefault()
 
     const touch = e.changedTouches[0]
 
@@ -69,7 +113,9 @@ class Inputs {
   pointerDown<T extends string>(e: PointerEvent | React.PointerEvent, target: T): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    const point = Inputs.getPoint(e)
+    const point = Inputs.getPoint(e, this.offset)
+
+    this.activePointer = e.pointerId
 
     const info: TLPointerInfo<T> = {
       target,
@@ -95,7 +141,7 @@ class Inputs {
   ): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    const point = Inputs.getPoint(e)
+    const point = Inputs.getPoint(e, this.offset)
 
     const info: TLPointerInfo<T> = {
       target,
@@ -120,7 +166,7 @@ class Inputs {
 
     const prev = this.pointer
 
-    const point = Inputs.getPoint(e)
+    const point = Inputs.getPoint(e, this.offset)
 
     const delta = prev?.point ? Vec.sub(point, prev.point) : [0, 0]
 
@@ -148,9 +194,11 @@ class Inputs {
 
     const prev = this.pointer
 
-    const point = Inputs.getPoint(e)
+    const point = Inputs.getPoint(e, this.offset)
 
     const delta = prev?.point ? Vec.sub(point, prev.point) : [0, 0]
+
+    this.activePointer = undefined
 
     const info: TLPointerInfo<T> = {
       origin: point,
@@ -182,7 +230,7 @@ class Inputs {
       origin: this.pointer?.origin || [0, 0],
       delta: [0, 0],
       pressure: 0.5,
-      point: Inputs.getPoint(e),
+      point: Inputs.getPoint(e, this.offset),
       shiftKey,
       ctrlKey,
       metaKey,
@@ -203,7 +251,7 @@ class Inputs {
 
     const prev = this.pointer
 
-    const point = Inputs.getPoint(e)
+    const point = Inputs.getPoint(e, this.offset)
 
     const info: TLPointerInfo<'wheel'> = {
       ...prev,
@@ -274,16 +322,14 @@ class Inputs {
   pinch(point: number[], origin: number[]) {
     const { shiftKey, ctrlKey, metaKey, altKey } = this.keys
 
-    const prev = this.pointer
-
     const delta = Vec.sub(origin, point)
 
     const info: TLPointerInfo<'pinch'> = {
       pointerId: 0,
       target: 'pinch',
-      origin: prev?.origin || Vec.round(point),
+      origin,
       delta: delta,
-      point: Vec.round(point),
+      point: Vec.sub(Vec.round(point), this.offset),
       pressure: 0.5,
       shiftKey,
       ctrlKey,
@@ -300,13 +346,18 @@ class Inputs {
     this.pointerUpTime = 0
     this.pointer = undefined
     this.keyboard = undefined
+    this.activePointer = undefined
     this.keys = {}
   }
 
   static getPoint(
-    e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent
+    e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent,
+    offset = [0, 0]
   ): number[] {
-    return [Number(e.clientX.toPrecision(5)), Number(e.clientY.toPrecision(5))]
+    return [
+      Number(e.clientX.toPrecision(5)) - offset[0],
+      Number(e.clientY.toPrecision(5)) - offset[1],
+    ]
   }
 
   static getPressure(e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent) {

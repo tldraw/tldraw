@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import type { TLPageState } from '+types'
 
-export function useCameraCss(pageState: TLPageState) {
+export function useCameraCss(ref: React.RefObject<HTMLDivElement>, pageState: TLPageState) {
   const rGroup = React.useRef<SVGGElement>(null)
 
   // Update the tl-zoom CSS variable when the zoom changes
   React.useEffect(() => {
-    document.documentElement.style.setProperty('--tl-zoom', pageState.camera.zoom.toString())
+    ref.current!.style.setProperty('--tl-zoom', pageState.camera.zoom.toString())
   }, [pageState.camera.zoom])
 
   // Update the group's position when the camera moves or zooms

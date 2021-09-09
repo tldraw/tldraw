@@ -98,7 +98,13 @@ export type TLWheelEventHandler = (
 ) => void
 export type TLPinchEventHandler = (
   info: TLPointerInfo<string>,
-  e: React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent
+  e:
+    | React.WheelEvent<Element>
+    | WheelEvent
+    | React.TouchEvent<Element>
+    | TouchEvent
+    | React.PointerEvent<Element>
+    | PointerEventInit
 ) => void
 export type TLPointerEventHandler = (info: TLPointerInfo<string>, e: React.PointerEvent) => void
 export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>, e: React.PointerEvent) => void

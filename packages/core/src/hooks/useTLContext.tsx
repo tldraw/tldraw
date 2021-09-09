@@ -1,4 +1,5 @@
 import * as React from 'react'
+import type { Inputs } from '+inputs'
 import type { TLCallbacks, TLShape, TLBounds, TLPageState, TLShapeUtils } from '+types'
 
 export interface TLContextType {
@@ -7,6 +8,7 @@ export interface TLContextType {
   shapeUtils: TLShapeUtils<TLShape>
   rPageState: React.MutableRefObject<TLPageState>
   rScreenBounds: React.MutableRefObject<TLBounds | null>
+  inputs: Inputs
 }
 
 export const TLContext = React.createContext<TLContextType>({} as TLContextType)

@@ -3,6 +3,7 @@ import type { TLPageState, TLBounds } from '../types'
 import { mockDocument } from './mockDocument'
 import { mockUtils } from './mockUtils'
 import { useTLTheme, TLContext } from '../hooks'
+import { Inputs } from '+inputs'
 
 export const ContextWrapper: React.FC = ({ children }) => {
   useTLTheme()
@@ -14,6 +15,7 @@ export const ContextWrapper: React.FC = ({ children }) => {
     shapeUtils: mockUtils,
     rScreenBounds,
     rPageState,
+    inputs: new Inputs(),
   }))
 
   return <TLContext.Provider value={context}>{children}</TLContext.Provider>

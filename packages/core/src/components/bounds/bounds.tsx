@@ -11,10 +11,18 @@ interface BoundsProps {
   bounds: TLBounds
   rotation: number
   isLocked: boolean
+  viewportWidth: number
 }
 
-export function Bounds({ zoom, bounds, rotation, isLocked }: BoundsProps): JSX.Element {
-  const size = (Utils.isMobileSize() ? 10 : 8) / zoom // Touch target size
+export function Bounds({
+  zoom,
+  bounds,
+  viewportWidth,
+  rotation,
+  isLocked,
+}: BoundsProps): JSX.Element {
+  const targetSize = (viewportWidth < 768 ? 16 : 8) / zoom // Touch target size
+  const size = 8 / zoom // Touch target size
   const center = Utils.getBoundsCenter(bounds)
 
   return (
@@ -28,15 +36,50 @@ export function Bounds({ zoom, bounds, rotation, isLocked }: BoundsProps): JSX.E
       <CenterHandle bounds={bounds} isLocked={isLocked} />
       {!isLocked && (
         <>
-          <EdgeHandle size={size} bounds={bounds} edge={TLBoundsEdge.Top} />
-          <EdgeHandle size={size} bounds={bounds} edge={TLBoundsEdge.Right} />
-          <EdgeHandle size={size} bounds={bounds} edge={TLBoundsEdge.Bottom} />
-          <EdgeHandle size={size} bounds={bounds} edge={TLBoundsEdge.Left} />
-          <CornerHandle size={size} bounds={bounds} corner={TLBoundsCorner.TopLeft} />
-          <CornerHandle size={size} bounds={bounds} corner={TLBoundsCorner.TopRight} />
-          <CornerHandle size={size} bounds={bounds} corner={TLBoundsCorner.BottomRight} />
-          <CornerHandle size={size} bounds={bounds} corner={TLBoundsCorner.BottomLeft} />
-          <RotateHandle size={size} bounds={bounds} />
+          <EdgeHandle targetSize={targetSize} size={size} bounds={bounds} edge={TLBoundsEdge.Top} />
+          <EdgeHandle
+            targetSize={targetSize}
+            size={size}
+            bounds={bounds}
+            edge={TLBoundsEdge.Right}
+          />
+          <EdgeHandle
+            targetSize={targetSize}
+            size={size}
+            bounds={bounds}
+            edge={TLBoundsEdge.Bottom}
+          />
+          <EdgeHandle
+            targetSize={targetSize}
+            size={size}
+            bounds={bounds}
+            edge={TLBoundsEdge.Left}
+          />
+          <CornerHandle
+            targetSize={targetSize}
+            size={size}
+            bounds={bounds}
+            corner={TLBoundsCorner.TopLeft}
+          />
+          <CornerHandle
+            targetSize={targetSize}
+            size={size}
+            bounds={bounds}
+            corner={TLBoundsCorner.TopRight}
+          />
+          <CornerHandle
+            targetSize={targetSize}
+            size={size}
+            bounds={bounds}
+            corner={TLBoundsCorner.BottomRight}
+          />
+          <CornerHandle
+            targetSize={targetSize}
+            size={size}
+            bounds={bounds}
+            corner={TLBoundsCorner.BottomLeft}
+          />
+          <RotateHandle targetSize={targetSize} size={size} bounds={bounds} />
         </>
       )}
     </g>
