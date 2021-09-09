@@ -3,13 +3,13 @@ import * as React from 'react'
 
 export default function Embedded(): JSX.Element {
   return (
-    <div>
+    <div style={{ padding: '2% 10%', width: 'calc(100% - 100px)' }}>
       <div
         style={{
           position: 'relative',
-          margin: '5%',
-          width: 'calc(100% - 100px)',
+          width: 'auto',
           height: '500px',
+          overflow: 'hidden',
         }}
       >
         <TLDraw id="small1" />
@@ -18,9 +18,9 @@ export default function Embedded(): JSX.Element {
       <div
         style={{
           position: 'relative',
-          margin: '5%',
-          width: 'calc(100% - 100px)',
+          width: 'auto',
           height: '500px',
+          overflow: 'hidden',
         }}
       >
         <TLDraw id="small2" />

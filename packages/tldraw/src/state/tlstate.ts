@@ -2234,11 +2234,11 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   onPinchEnd: TLPinchEventHandler = () => {
-    // if (this.state.settings.isZoomSnap) {
-    //   const i = Math.round((this.pageState.camera.zoom * 100) / 25)
-    //   const nextZoom = TLDR.getCameraZoom(i * 0.25)
-    //   this.zoomTo(nextZoom, inputs.pointer?.point)
-    // }
+    if (this.state.settings.isZoomSnap) {
+      const i = Math.round((this.pageState.camera.zoom * 100) / 25)
+      const nextZoom = TLDR.getCameraZoom(i * 0.25)
+      this.zoomTo(nextZoom, inputs.pointer?.point)
+    }
     this.setStatus(TLDrawStatus.Idle)
   }
 

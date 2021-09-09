@@ -331,16 +331,6 @@
         "signature": "e0cf19f141c3b2632d9fc02d65a753864304fd6cc4391fcb532844356399519f",
         "affectsGlobalScope": false
       },
-      "../core/dist/types/inputs.d.ts": {
-        "version": "c46f6b1bf9297efa4b25ec60544c562e1fcb08da02a23569b2fa860e77088d0c",
-        "signature": "c46f6b1bf9297efa4b25ec60544c562e1fcb08da02a23569b2fa860e77088d0c",
-        "affectsGlobalScope": false
-      },
-      "../core/dist/types/index.d.ts": {
-        "version": "062065318d8acc40912798a5fde2c4ba54092da26be305c245cfa47b088ca39e",
-        "signature": "062065318d8acc40912798a5fde2c4ba54092da26be305c245cfa47b088ca39e",
-        "affectsGlobalScope": false
-      },
       "../core/dist/types/utils/utils.d.ts": {
         "version": "0bea66a0c4bc572f6cdd0ed72fa9cd5981823d90e1bd032751c616d068e83dbe",
         "signature": "0bea66a0c4bc572f6cdd0ed72fa9cd5981823d90e1bd032751c616d068e83dbe",
@@ -364,6 +354,16 @@
       "../core/dist/types/utils/index.d.ts": {
         "version": "8d9f4e84eff6f5fee54ba4da3470f17ef3e6754f55e4c1431b030061d02aea31",
         "signature": "8d9f4e84eff6f5fee54ba4da3470f17ef3e6754f55e4c1431b030061d02aea31",
+        "affectsGlobalScope": false
+      },
+      "../core/dist/types/inputs.d.ts": {
+        "version": "c46f6b1bf9297efa4b25ec60544c562e1fcb08da02a23569b2fa860e77088d0c",
+        "signature": "c46f6b1bf9297efa4b25ec60544c562e1fcb08da02a23569b2fa860e77088d0c",
+        "affectsGlobalScope": false
+      },
+      "../core/dist/types/index.d.ts": {
+        "version": "062065318d8acc40912798a5fde2c4ba54092da26be305c245cfa47b088ca39e",
+        "signature": "062065318d8acc40912798a5fde2c4ba54092da26be305c245cfa47b088ca39e",
         "affectsGlobalScope": false
       },
       "../../node_modules/zustand/vanilla.d.ts": {
@@ -457,7 +457,7 @@
         "affectsGlobalScope": false
       },
       "./src/embedded.tsx": {
-        "version": "9622b6e09595314efe0d378088a4030374a6755acc580cbe2e6d4aa36959e2d3",
+        "version": "4448effea95fc7b87ffffe866859c671717280e1ec2adc2bbf9c34da78d536a4",
         "signature": "e48661ad8d58cfca4b7a2764942cf4553064099cc12080b998732b9686c1c43b",
         "affectsGlobalScope": false
       },

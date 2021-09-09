@@ -4,22 +4,25 @@ import { Utils } from '+utils'
 
 export function useResizeObserver<T extends HTMLElement | SVGElement>(ref: React.RefObject<T>) {
   const { inputs } = useTLContext()
+  const rIsMounted = React.useRef(false)
   const forceUpdate = React.useReducer((x) => x + 1, 0)[1]
 
   const updateOffsets = React.useCallback(() => {
-    const rect = ref.current?.getBoundingClientRect()
-    if (rect) {
-      inputs.offset = [rect.left, rect.top]
-      inputs.size = [rect.width, rect.height]
-      forceUpdate()
+    if (rIsMounted.current) {
+      const rect = ref.current?.getBoundingClientRect()
+      if (rect) {
+        inputs.offset = [rect.left, rect.top]
+        inputs.size = [rect.width, rect.height]
+        forceUpdate()
+      }
     }
+    rIsMounted.current = true
   }, [ref, forceUpdate])
 
   React.useEffect(() => {
     const debouncedUpdateOffsets = Utils.debounce(updateOffsets, 100)
     window.addEventListener('scroll', debouncedUpdateOffsets)
     window.addEventListener('resize', debouncedUpdateOffsets)
-    updateOffsets()
     return () => {
       window.removeEventListener('scroll', debouncedUpdateOffsets)
       window.removeEventListener('resize', debouncedUpdateOffsets)
@@ -47,8 +50,6 @@ export function useResizeObserver<T extends HTMLElement | SVGElement>(ref: React
   }, [ref, inputs])
 
   React.useEffect(() => {
-    setTimeout(() => {
-      updateOffsets()
-    })
+    updateOffsets()
   }, [ref])
 }
