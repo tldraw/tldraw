@@ -3,17 +3,24 @@ import fs from 'fs'
 import esbuild from 'esbuild'
 import serve, { error, log } from 'create-serve'
 
-const isDevServer = process.argv.includes('--dev')
+const isDevServer = true
+
+if (!fs.existsSync('./dist')) {
+  fs.mkdirSync('./dist')
+}
+
+fs.copyFile('./src/index.html', './dist/index.html', (err) => {
+  if (err) throw err
+})
 
 esbuild
   .build({
     entryPoints: ['src/index.tsx'],
     bundle: true,
-    outdir: 'dist',
+    outfile: 'dist/bundle.js',
     minify: false,
     sourcemap: true,
     incremental: isDevServer,
-    platform: 'browser',
     target: ['chrome58', 'firefox57', 'safari11', 'edge18'],
     define: {
       'process.env.NODE_ENV': isDevServer ? '"development"' : '"production"',
@@ -27,11 +34,6 @@ esbuild
   })
   .catch(() => process.exit(1))
 
-for (const file of ['index.html']) {
-  fs.copyFile(`./src/${file}`, `./dist/${file}`, (err) => {
-    if (err) throw err
-  })
-}
 if (isDevServer) {
   serve.start({
     port: 5000,

@@ -6244,15 +6244,15 @@ es6-promisify@^5.0.0:
   dependencies:
     es6-promise "^4.0.3"
 
-esbuild@0.11.5:
-  version "0.11.5"
-  resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.11.5.tgz#25b18a2ff2fb9580683edce26a48f64c08c2f2df"
-  integrity sha512-aRs6jAE+bVRp1tyfzUugAw1T/Y0Fwzp4Z2ROikF3h+UifoD5QlEbEYQGc6orNnnSIRhWR5VWBH7LozlAumaLHg==
-
 esbuild@^0.12.24:
   version "0.12.25"
   resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.12.25.tgz#c2131cef022cf9fe94aaa5e00110b27fc976221a"
   integrity sha512-woie0PosbRSoN8gQytrdCzUbS2ByKgO8nD1xCZkEup3D9q92miCze4PqEI9TZDYAuwn6CruEnQpJxgTRWdooAg==
+
+esbuild@^0.12.26:
+  version "0.12.26"
+  resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.12.26.tgz#35f2d58ac3fa4629df24aa4d6fd72feb5522e94b"
+  integrity sha512-YmTkhPKjvTJ+G5e96NyhGf69bP+hzO0DscqaVJTi5GM34uaD4Ecj7omu5lJO+NrxCUBRhy2chONLK1h/2LwoXA==
 
 escalade@^3.1.1:
   version "3.1.1"
