@@ -230,7 +230,7 @@ const Layout = styled('div', {
   boxSizing: 'border-box',
   outline: 'none',
   pointerEvents: 'none',
-  zIndex: 100,
+  zIndex: 1,
 
   '& > *': {
     pointerEvents: 'all',

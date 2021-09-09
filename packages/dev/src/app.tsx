@@ -5,6 +5,7 @@ import Controlled from './controlled'
 import Imperative from './imperative'
 import Embedded from './embedded'
 import ChangingId from './changing-id'
+import './styles.css'
 
 export default function App(): JSX.Element {
   return (

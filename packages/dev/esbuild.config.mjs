@@ -5,21 +5,11 @@ import serve, { error, log } from 'create-serve'
 
 const isDevServer = process.argv.includes('--dev')
 
-if (!fs.existsSync('./dist')) {
-  fs.mkdirSync('./dist')
-}
-
-for (const file of ['styles.css', 'index.html']) {
-  fs.copyFile(`./src/${file}`, './dist/${file}', (err) => {
-    if (err) throw err
-  })
-}
-
 esbuild
   .build({
     entryPoints: ['src/index.tsx'],
     bundle: true,
-    outfile: 'dist/bundle.js',
+    outdir: 'dist',
     minify: false,
     sourcemap: true,
     incremental: isDevServer,
@@ -37,6 +27,11 @@ esbuild
   })
   .catch(() => process.exit(1))
 
+for (const file of ['index.html']) {
+  fs.copyFile(`./src/${file}`, `./dist/${file}`, (err) => {
+    if (err) throw err
+  })
+}
 if (isDevServer) {
   serve.start({
     port: 5000,

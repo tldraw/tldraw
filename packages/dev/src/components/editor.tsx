@@ -12,5 +12,9 @@ export default function Editor(props: TLDrawProps): JSX.Element {
     props.onMount?.(state)
   }, [])
 
-  return <TLDraw id="tldraw" {...props} onMount={handleMount} />
+  return (
+    <div className="tldraw">
+      <TLDraw id="tldraw" {...props} onMount={handleMount} />
+    </div>
+  )
 }

@@ -11,7 +11,7 @@
     "esbuild"
   ],
   "scripts": {
-    "start": "node ./esbuild.config.mjs --dev tsc --watch"
+    "start": "node ./esbuild.config.mjs --dev & tsc --watch"
   },
   "files": [
     "README.md",
