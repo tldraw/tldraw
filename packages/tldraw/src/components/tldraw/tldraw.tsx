@@ -218,24 +218,11 @@ function InnerTldraw({
   )
 }
 
-const Spacer = styled('div', {
-  flexGrow: 2,
-})
-
-const MenuButtons = styled('div', {
-  display: 'flex',
-  gap: 8,
-})
-
 const Layout = styled('div', {
   overflow: 'hidden',
   position: 'absolute',
   height: '100%',
   width: '100%',
-  top: 0,
-  right: 0,
-  bottom: 0,
-  left: 0,
   padding: '8px 8px 0 8px',
   display: 'flex',
   alignItems: 'flex-start',
@@ -243,6 +230,7 @@ const Layout = styled('div', {
   boxSizing: 'border-box',
   outline: 'none',
   pointerEvents: 'none',
+  zIndex: 100,
 
   '& > *': {
     pointerEvents: 'all',
@@ -254,5 +242,15 @@ const Layout = styled('div', {
     left: 0,
     width: '100%',
     height: '100%',
+    zIndex: 100,
   },
+})
+
+const Spacer = styled('div', {
+  flexGrow: 2,
+})
+
+const MenuButtons = styled('div', {
+  display: 'flex',
+  gap: 8,
 })

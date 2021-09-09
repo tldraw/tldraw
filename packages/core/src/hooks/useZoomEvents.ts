@@ -93,7 +93,7 @@ export function useZoomEvents<T extends HTMLElement | SVGElement>(ref: React.Ref
       },
     },
     {
-      target: ref.current,
+      target: window,
       eventOptions: { passive: false },
     }
   )

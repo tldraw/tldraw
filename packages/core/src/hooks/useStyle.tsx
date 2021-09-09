@@ -108,15 +108,25 @@ const tlcss = css`
       U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
   }
 
-  html,
-  * {
+  .tl-container {
+    --tl-zoom: 1;
+    --tl-scale: calc(1 / var(--tl-zoom));
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    padding: 0px;
+    margin: 0px;
+    touch-action: none;
+    overscroll-behavior: none;
+    overscroll-behavior-x: none;
+    background-color: var(--tl-background);
+  }
+  .tl-container * {
+    user-select: none;
     box-sizing: border-box;
   }
 
-  :root {
-    --tl-zoom: 1;
-    --tl-scale: calc(1 / var(--tl-zoom));
-  }
   .tl-counter-scaled {
     transform: scale(var(--tl-scale));
   }
@@ -193,21 +203,6 @@ const tlcss = css`
     height: 100%;
     touch-action: none;
     pointer-events: all;
-  }
-  .tl-container {
-    position: relative;
-    box-sizing: border-box;
-    width: 100%;
-    height: 100%;
-    padding: 0px;
-    margin: 0px;
-    touch-action: none;
-    overscroll-behavior: none;
-    overscroll-behavior-x: none;
-    background-color: var(--tl-background);
-  }
-  .tl-container * {
-    user-select: none;
   }
   .tl-dot {
     fill: var(--tl-background);

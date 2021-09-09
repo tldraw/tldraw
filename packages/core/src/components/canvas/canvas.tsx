@@ -37,7 +37,8 @@ export function Canvas<T extends TLShape>({
 }: CanvasProps<T>): JSX.Element {
   const rCanvas = React.useRef<SVGSVGElement>(null)
   const rContainer = React.useRef<HTMLDivElement>(null)
-  const rGroup = useCameraCss(pageState)
+
+  useResizeObserver(rCanvas)
 
   useZoomEvents(rCanvas)
 
@@ -47,7 +48,7 @@ export function Canvas<T extends TLShape>({
 
   const events = useCanvasEvents()
 
-  useResizeObserver(rCanvas)
+  const rGroup = useCameraCss(rContainer, pageState)
 
   return (
     <div className="tl-container" ref={rContainer}>

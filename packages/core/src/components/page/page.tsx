@@ -29,8 +29,6 @@ export function Page<T extends TLShape>({
 }: PageProps<T>): JSX.Element {
   const { callbacks, shapeUtils, inputs } = useTLContext()
 
-  useRenderOnResize()
-
   const shapeTree = useShapeTree(page, pageState, shapeUtils, inputs.size, meta, callbacks.onChange)
 
   const { shapeWithHandles } = useHandles(page, pageState)
@@ -50,7 +48,13 @@ export function Page<T extends TLShape>({
         <ShapeNode key={node.shape.id} utils={shapeUtils} {...node} />
       ))}
       {bounds && !hideBounds && (
-        <Bounds zoom={zoom} bounds={bounds} isLocked={isLocked} rotation={rotation} />
+        <Bounds
+          zoom={zoom}
+          bounds={bounds}
+          viewportWidth={inputs.size[0]}
+          isLocked={isLocked}
+          rotation={rotation}
+        />
       )}
       {!hideIndicators &&
         selectedIds

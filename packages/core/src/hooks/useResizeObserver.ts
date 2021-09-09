@@ -4,14 +4,16 @@ import { Utils } from '+utils'
 
 export function useResizeObserver<T extends HTMLElement | SVGElement>(ref: React.RefObject<T>) {
   const { inputs } = useTLContext()
+  const forceUpdate = React.useReducer((x) => x + 1, 0)[1]
 
   const updateOffsets = React.useCallback(() => {
     const rect = ref.current?.getBoundingClientRect()
     if (rect) {
       inputs.offset = [rect.left, rect.top]
       inputs.size = [rect.width, rect.height]
+      forceUpdate()
     }
-  }, [ref])
+  }, [ref, forceUpdate])
 
   React.useEffect(() => {
     const debouncedUpdateOffsets = Utils.debounce(updateOffsets, 100)
