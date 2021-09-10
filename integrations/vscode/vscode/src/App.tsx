@@ -53,12 +53,18 @@ import { TLDraw, TLDrawState, Data } from "@tldraw/tldraw";
 // };
 
 // HACK: Look more deeply into how to do this properly.
-// vscode/types doesn't include this globally available function.
+// vscode/types doesn't include the globally available 'acquireVsCodeApi' function.
 // Used this approach to resolve that. 
-// https://stackoverflow.com/a/54729526
-declare const acquireVsCodeApi: any;
-const vscode = acquireVsCodeApi();
-
+// https://stackoverflow.com/a/54727230
+const vsCodeFunction = Function(`
+  // forgive me for my sins
+  if (typeof acquireVsCodeApi == 'function') {
+    return acquireVsCodeApi();
+  } else {
+    return undefined;
+  }
+  `);
+const vscode = vsCodeFunction();
 
 function postMessage(type:any,text:any = undefined){
   // Notify extension that something has changed. This ends up being called by
@@ -134,7 +140,7 @@ export default function App() {
 
   return <div ref={containerRef} className="App">
       <div>
-        {initialDocument===undefined ? undefined : <TLDraw document={initialDocument} onMount={handleMount} onChange={handleChange} />}
+        {initialDocument===undefined && vscode !== undefined ? undefined : <TLDraw document={initialDocument} onMount={handleMount} onChange={handleChange} />}
         {/* <TLDraw onMount={handleMount} onChange={handleChange} /> */}
       </div>
     </div>

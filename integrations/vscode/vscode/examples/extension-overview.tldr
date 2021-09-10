@@ -15,8 +15,8 @@
           "parentId": "page1",
           "childIndex": 3,
           "point": [
-            -791.32,
-            1178.5
+            -823.77,
+            1185.6
           ],
           "size": [
             340.2599999999999,
@@ -42,8 +42,8 @@
           "parentId": "page1",
           "childIndex": 4,
           "point": [
-            -741.98,
-            1201.9
+            -774.47,
+            1209
           ],
           "rotation": 0,
           "isAspectRatioLocked": false,
@@ -66,8 +66,8 @@
           "parentId": "page1",
           "childIndex": 5,
           "point": [
-            -792.63,
-            946.48
+            -825.07,
+            953.54
           ],
           "size": [
             340.2599999999999,
@@ -93,8 +93,8 @@
           "parentId": "page1",
           "childIndex": 6,
           "point": [
-            -733.49,
-            966.94
+            -765.97,
+            973.93
           ],
           "rotation": 0,
           "isAspectRatioLocked": false,
@@ -117,8 +117,8 @@
           "parentId": "page1",
           "childIndex": 0.75,
           "point": [
-            -802.01,
-            612.02
+            -834.67,
+            616.54
           ],
           "size": [
             340.2599999999999,
@@ -144,8 +144,8 @@
           "parentId": "page1",
           "childIndex": 8,
           "point": [
-            -740.94,
-            633.43
+            -773.47,
+            640.63
           ],
           "rotation": 0,
           "isAspectRatioLocked": false,
@@ -168,8 +168,8 @@
           "parentId": "page1",
           "childIndex": 1.5,
           "point": [
-            -1001,
-            815.07
+            -1033.5,
+            822.14
           ],
           "size": [
             774.2511300601551,
@@ -195,8 +195,8 @@
           "parentId": "page1",
           "childIndex": 10,
           "point": [
-            -687.35,
-            835.66
+            -719.89,
+            842.76
           ],
           "rotation": 0,
           "isAspectRatioLocked": false,
@@ -219,8 +219,8 @@
           "parentId": "page1",
           "childIndex": 11,
           "point": [
-            -746.33,
-            758.31
+            -778.87,
+            765.48
           ],
           "rotation": 0,
           "isAspectRatioLocked": false,
@@ -273,8 +273,8 @@
           "parentId": "page1",
           "childIndex": 12,
           "point": [
-            -743.59,
-            1014.9
+            -776.07,
+            1022
           ],
           "rotation": 0,
           "isAspectRatioLocked": false,
@@ -327,8 +327,8 @@
           "parentId": "page1",
           "childIndex": 13,
           "point": [
-            -502.09,
-            754.99
+            -534.7,
+            762.18
           ],
           "rotation": 0,
           "isAspectRatioLocked": false,
@@ -381,8 +381,8 @@
           "parentId": "page1",
           "childIndex": 14,
           "point": [
-            -499.73,
-            1018.5
+            -532.34,
+            1025.6
           ],
           "rotation": 0,
           "isAspectRatioLocked": false,
@@ -435,8 +435,8 @@
           "parentId": "page1",
           "childIndex": 15,
           "point": [
-            -820.45,
-            849.41
+            -852.9,
+            856.56
           ],
           "rotation": 0,
           "isAspectRatioLocked": false,
@@ -459,8 +459,8 @@
           "parentId": "page1",
           "childIndex": 16,
           "point": [
-            -816.9,
-            1083.1
+            -849.4,
+            1090.2
           ],
           "rotation": 0,
           "isAspectRatioLocked": false,
@@ -483,8 +483,8 @@
           "parentId": "page1",
           "childIndex": 17,
           "point": [
-            -486.23,
-            1094.3
+            -518.84,
+            1101.4
           ],
           "rotation": 0,
           "isAspectRatioLocked": false,
@@ -507,8 +507,8 @@
           "parentId": "page1",
           "childIndex": 18,
           "point": [
-            -486.34,
-            848.92
+            -518.95,
+            856.06
           ],
           "rotation": 0,
           "isAspectRatioLocked": false,
@@ -531,8 +531,8 @@
           "parentId": "page1",
           "childIndex": 21,
           "point": [
-            -2267.9,
-            445.55
+            -2300.2,
+            452.74
           ],
           "rotation": 0,
           "isAspectRatioLocked": false,
@@ -555,8 +555,8 @@
           "parentId": "page1",
           "childIndex": 22,
           "point": [
-            -2214.8,
-            582.44
+            -2247.1,
+            589.64
           ],
           "rotation": 0,
           "isAspectRatioLocked": false,
@@ -579,8 +579,8 @@
           "parentId": "page1",
           "childIndex": 23,
           "point": [
-            -2565.2,
-            786.66
+            -2597.5,
+            793.78
           ],
           "size": [
             1000.2,
@@ -606,8 +606,8 @@
           "parentId": "page1",
           "childIndex": 24,
           "point": [
-            -2569.6,
-            787.86
+            -2601.9,
+            794.98
           ],
           "size": [
             251.06,
@@ -632,8 +632,8 @@
           "parentId": "page1",
           "childIndex": 25,
           "point": [
-            -2543.2,
-            831.82
+            -2575.5,
+            838.96
           ],
           "points": [
             [
@@ -712,8 +712,8 @@
           "parentId": "page1",
           "childIndex": 26,
           "point": [
-            -2539.2,
-            855.47
+            -2571.5,
+            862.56
           ],
           "points": [
             [
@@ -832,8 +832,8 @@
           "parentId": "page1",
           "childIndex": 27,
           "point": [
-            -2537.2,
-            879.82
+            -2569.5,
+            886.99
           ],
           "points": [
             [
@@ -912,8 +912,8 @@
           "parentId": "page1",
           "childIndex": 28,
           "point": [
-            -2538.1,
-            895.03
+            -2570.4,
+            902.23
           ],
           "points": [
             [
@@ -982,8 +982,8 @@
           "parentId": "page1",
           "childIndex": 29,
           "point": [
-            -2533.3,
-            915.22
+            -2565.6,
+            922.31
           ],
           "points": [
             [
@@ -1082,8 +1082,8 @@
           "parentId": "page1",
           "childIndex": 30,
           "point": [
-            -2539.4,
-            939.33
+            -2571.7,
+            946.34
           ],
           "points": [
             [
@@ -1187,8 +1187,8 @@
           "parentId": "page1",
           "childIndex": 31,
           "point": [
-            -2531.3,
-            971.82
+            -2563.6,
+            978.84
           ],
           "points": [
             [
@@ -1267,8 +1267,8 @@
           "parentId": "page1",
           "childIndex": 32,
           "point": [
-            -2527.3,
-            995.19
+            -2559.6,
+            1002.3
           ],
           "points": [
             [
@@ -1352,8 +1352,8 @@
           "parentId": "page1",
           "childIndex": 33,
           "point": [
-            -2543.5,
-            1012.2
+            -2575.8,
+            1019.3
           ],
           "points": [
             [
@@ -1502,8 +1502,8 @@
           "parentId": "page1",
           "childIndex": 34,
           "point": [
-            -2534.1,
-            1034
+            -2566.4,
+            1041.1
           ],
           "points": [
             [
@@ -1587,8 +1587,8 @@
           "parentId": "page1",
           "childIndex": 35,
           "point": [
-            -2541.5,
-            1059.9
+            -2573.8,
+            1067
           ],
           "points": [
             [
@@ -1665,41 +1665,6 @@
             "dash": "Draw"
           }
         },
-        "5e44d376-5568-4e66-100f-df31e60dc9d0": {
-          "id": "5e44d376-5568-4e66-100f-df31e60dc9d0",
-          "type": "draw",
-          "name": "Draw",
-          "parentId": "page1",
-          "childIndex": 36,
-          "point": [
-            -2079.4,
-            1561.6
-          ],
-          "points": [
-            [
-              0.33249000000000706,
-              0,
-              0.5
-            ],
-            [
-              7.049916206369744e-15,
-              0,
-              0.5
-            ],
-            [
-              0.33249000000000706,
-              0,
-              0.5
-            ]
-          ],
-          "rotation": 0,
-          "style": {
-            "color": "Black",
-            "size": "Medium",
-            "isFilled": false,
-            "dash": "Draw"
-          }
-        },
         "dee9de2f-7b16-4290-1f76-10b6f0294f9d": {
           "id": "dee9de2f-7b16-4290-1f76-10b6f0294f9d",
           "type": "draw",
@@ -1707,8 +1672,8 @@
           "parentId": "page1",
           "childIndex": 37,
           "point": [
-            -2546.2,
-            1084.4
+            -2578.5,
+            1091.5
           ],
           "points": [
             [
@@ -1787,8 +1752,8 @@
           "parentId": "page1",
           "childIndex": 38,
           "point": [
-            -2542.2,
-            1108
+            -2574.5,
+            1115.1
           ],
           "points": [
             [
@@ -1907,8 +1872,8 @@
           "parentId": "page1",
           "childIndex": 39,
           "point": [
-            -2540.2,
-            1132.4
+            -2572.5,
+            1139.5
           ],
           "points": [
             [
@@ -1987,8 +1952,8 @@
           "parentId": "page1",
           "childIndex": 40,
           "point": [
-            -2541.1,
-            1147.6
+            -2573.4,
+            1154.7
           ],
           "points": [
             [
@@ -2057,8 +2022,8 @@
           "parentId": "page1",
           "childIndex": 41,
           "point": [
-            -2536.3,
-            1167.7
+            -2568.6,
+            1174.8
           ],
           "points": [
             [
@@ -2157,8 +2122,8 @@
           "parentId": "page1",
           "childIndex": 42,
           "point": [
-            -2542.4,
-            1191.9
+            -2574.7,
+            1199
           ],
           "points": [
             [
@@ -2262,8 +2227,8 @@
           "parentId": "page1",
           "childIndex": 43,
           "point": [
-            -2534.3,
-            1224.4
+            -2566.6,
+            1231.5
           ],
           "points": [
             [
@@ -2342,8 +2307,8 @@
           "parentId": "page1",
           "childIndex": 44,
           "point": [
-            -2530.3,
-            1247.8
+            -2562.6,
+            1254.9
           ],
           "points": [
             [
@@ -2427,8 +2392,8 @@
           "parentId": "page1",
           "childIndex": 45,
           "point": [
-            -2546.5,
-            1264.7
+            -2578.8,
+            1271.8
           ],
           "points": [
             [
@@ -2577,8 +2542,8 @@
           "parentId": "page1",
           "childIndex": 46,
           "point": [
-            -2537.1,
-            1286.6
+            -2569.4,
+            1293.7
           ],
           "points": [
             [
@@ -2662,8 +2627,8 @@
           "parentId": "page1",
           "childIndex": 47,
           "point": [
-            -2544.5,
-            1312.4
+            -2576.8,
+            1319.5
           ],
           "points": [
             [
@@ -2748,8 +2713,8 @@
           "parentId": "page1",
           "childIndex": 48,
           "point": [
-            -2321.4,
-            816.69
+            -2353.7,
+            823.84
           ],
           "size": [
             391.64,
@@ -2775,8 +2740,8 @@
           "parentId": "page1",
           "childIndex": 49,
           "point": [
-            -1934.6,
-            816.53
+            -1966.9,
+            823.64
           ],
           "size": [
             368.48,
@@ -2802,8 +2767,8 @@
           "parentId": "page1",
           "childIndex": 50,
           "point": [
-            -1933.2,
-            791.67
+            -1965.5,
+            798.74
           ],
           "size": [
             128.23,
@@ -2829,8 +2794,8 @@
           "parentId": "page1",
           "childIndex": 51,
           "point": [
-            -2319,
-            791.5
+            -2351.3,
+            798.64
           ],
           "size": [
             128.23,
@@ -2855,8 +2820,8 @@
           "parentId": "page1",
           "childIndex": 52,
           "point": [
-            -1831.2,
-            1057.3
+            -1863.5,
+            1064.4
           ],
           "radius": [
             50.33910483607963,
@@ -2877,8 +2842,8 @@
           "parentId": "page1",
           "childIndex": 53,
           "point": [
-            -1797.4,
-            938.84
+            -1829.7,
+            945.84
           ],
           "points": [
             [
@@ -3462,8 +3427,8 @@
           "parentId": "page1",
           "childIndex": 54,
           "point": [
-            -1776.3,
-            1170.2
+            -1808.6,
+            1177.3
           ],
           "rotation": 0,
           "bend": 0,
@@ -3512,8 +3477,8 @@
           "parentId": "page1",
           "childIndex": 55,
           "point": [
-            -1725.5,
-            1158.5
+            -1757.8,
+            1165.6
           ],
           "rotation": 0,
           "bend": 0,
@@ -3562,8 +3527,8 @@
           "parentId": "page1",
           "childIndex": 56,
           "point": [
-            -1880.2,
-            1146.3
+            -1912.5,
+            1153.4
           ],
           "rotation": 0,
           "bend": 0,
@@ -3612,8 +3577,8 @@
           "parentId": "page1",
           "childIndex": 57,
           "point": [
-            -2205.4,
-            1052.6
+            -2237.7,
+            1059.7
           ],
           "radius": [
             50.33910483607963,
@@ -3634,8 +3599,8 @@
           "parentId": "page1",
           "childIndex": 58,
           "point": [
-            -2171.6,
-            934.19
+            -2203.9,
+            941.24
           ],
           "points": [
             [
@@ -4219,8 +4184,8 @@
           "parentId": "page1",
           "childIndex": 59,
           "point": [
-            -2150.5,
-            1165.7
+            -2182.8,
+            1172.8
           ],
           "rotation": 0,
           "bend": 0,
@@ -4269,8 +4234,8 @@
           "parentId": "page1",
           "childIndex": 60,
           "point": [
-            -2099.7,
-            1154
+            -2132,
+            1161.1
           ],
           "rotation": 0,
           "bend": 0,
@@ -4319,8 +4284,8 @@
           "parentId": "page1",
           "childIndex": 61,
           "point": [
-            -2254.4,
-            1141.8
+            -2286.7,
+            1148.9
           ],
           "rotation": 0,
           "bend": 0,
@@ -4369,8 +4334,8 @@
           "parentId": "page1",
           "childIndex": 62,
           "point": [
-            -1959,
-            645.55
+            -1991.3,
+            652.73
           ],
           "rotation": 0,
           "bend": 0,
@@ -4419,8 +4384,8 @@
           "parentId": "page1",
           "childIndex": 63,
           "point": [
-            -2252.8,
-            646.25
+            -2285.1,
+            653.43
           ],
           "rotation": 0,
           "bend": 0,
@@ -4469,8 +4434,8 @@
           "parentId": "page1",
           "childIndex": 64,
           "point": [
-            -2132.7,
-            634.4
+            -2165,
+            641.53
           ],
           "rotation": 0,
           "style": {
@@ -4490,8 +4455,8 @@
           "parentId": "page1",
           "childIndex": 19,
           "point": [
-            -2809.3,
-            449.24
+            -2841.6,
+            456.44
           ],
           "size": [
             1405.1,
@@ -4516,8 +4481,8 @@
           "parentId": "page1",
           "childIndex": 65,
           "point": [
-            -1874.7,
-            698.11
+            -1907,
+            705.32
           ],
           "rotation": 0,
           "style": {
@@ -4536,8 +4501,8 @@
           "parentId": "page1",
           "childIndex": 66,
           "point": [
-            -2589.5,
-            607.86
+            -2621.8,
+            615.04
           ],
           "rotation": 0,
           "style": {
@@ -4556,8 +4521,8 @@
           "parentId": "page1",
           "childIndex": 67,
           "point": [
-            -2580.9,
-            692.3
+            -2613.2,
+            699.43
           ],
           "rotation": 0,
           "bend": 0,
@@ -4606,8 +4571,8 @@
           "parentId": "page1",
           "childIndex": 68,
           "point": [
-            -2260.2,
-            299.24
+            -2292.5,
+            306.4
           ],
           "rotation": 0,
           "style": {
@@ -4626,8 +4591,8 @@
           "parentId": "page1",
           "childIndex": 69,
           "point": [
-            -967.99,
-            439.17
+            -1000.3,
+            446.34
           ],
           "rotation": 0,
           "style": {
@@ -4638,41 +4603,6 @@
           },
           "text": "Inter-process Communication ",
           "scale": 1
-        },
-        "d638ac5b-069c-4a1c-1168-0c824db83328": {
-          "id": "d638ac5b-069c-4a1c-1168-0c824db83328",
-          "type": "draw",
-          "name": "Draw",
-          "parentId": "page1",
-          "childIndex": 71,
-          "point": [
-            567.18,
-            1478.850809
-          ],
-          "points": [
-            [
-              0,
-              0.049191,
-              0.5
-            ],
-            [
-              2.705,
-              0,
-              0.5
-            ],
-            [
-              2.705,
-              0,
-              0.5
-            ]
-          ],
-          "rotation": 0,
-          "style": {
-            "color": "Black",
-            "size": "Medium",
-            "isFilled": false,
-            "dash": "Draw"
-          }
         }
       },
       "bindings": {}
@@ -4683,10 +4613,10 @@
       "id": "page1",
       "camera": {
         "point": [
-          2898.96626999939,
-          161.8339641187638
+          3381.3,
+          43.7
         ],
-        "zoom": 0.29560218264973837
+        "zoom": 0.25
       },
       "selectedIds": []
     }
