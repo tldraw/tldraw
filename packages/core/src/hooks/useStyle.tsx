@@ -113,7 +113,7 @@ const tlcss = css`
     --tl-scale: calc(1 / var(--tl-zoom));
     --tl-camera-x: 0px;
     --tl-camera-y: 0px;
-    --tl-padding: calc(32px * var(--tl-scale));
+    --tl-padding: calc(64px * var(--tl-scale));
     position: relative;
     box-sizing: border-box;
     width: 100%;
