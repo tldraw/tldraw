@@ -49,7 +49,7 @@ export function Bounds({
   const size = 8 / zoom // Touch target size
 
   return (
-    <Container className="tl-bounds" bounds={bounds} rotation={rotation}>
+    <Container bounds={bounds} rotation={rotation}>
       <SVGContainer>
         <CenterHandle bounds={bounds} isLocked={isLocked} />
         {!isLocked && (

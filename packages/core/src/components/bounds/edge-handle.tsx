@@ -3,10 +3,10 @@ import { useBoundsHandleEvents } from '+hooks'
 import { TLBoundsEdge, TLBounds } from '+types'
 
 const edgeClassnames = {
-  [TLBoundsEdge.Top]: 'tl-transparent tl-cursor-ns',
-  [TLBoundsEdge.Right]: 'tl-transparent tl-cursor-ew',
-  [TLBoundsEdge.Bottom]: 'tl-transparent tl-cursor-ns',
-  [TLBoundsEdge.Left]: 'tl-transparent tl-cursor-ew',
+  [TLBoundsEdge.Top]: 'tl-transparent tl-edge-handle tl-cursor-ns',
+  [TLBoundsEdge.Right]: 'tl-transparent tl-edge-handle tl-cursor-ew',
+  [TLBoundsEdge.Bottom]: 'tl-transparent tl-edge-handle tl-cursor-ns',
+  [TLBoundsEdge.Left]: 'tl-transparent tl-edge-handle tl-cursor-ew',
 }
 
 interface EdgeHandleProps {
@@ -26,6 +26,7 @@ export const EdgeHandle = React.memo(({ size, bounds, edge }: EdgeHandleProps): 
 
   return (
     <rect
+      pointerEvents="all"
       className={edgeClassnames[edge]}
       x={isHorizontal ? size / 2 : (isFarEdge ? width + 1 : -1) - size / 2}
       y={isHorizontal ? (isFarEdge ? height + 1 : -1) - size / 2 : size / 2}
