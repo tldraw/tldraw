@@ -666,7 +666,9 @@ export class TLDR {
     info: TLTransformInfo<T>,
     pageId: string
   ) {
-    return this.mutate(data, shape, getShapeUtils(shape).transform(shape, bounds, info), pageId)
+    const change = getShapeUtils(shape).transform(shape, bounds, info)
+    if (!change) return shape
+    return this.mutate(data, shape, change, pageId)
   }
 
   static transformSingle<T extends TLDrawShape>(
@@ -676,12 +678,9 @@ export class TLDR {
     info: TLTransformInfo<T>,
     pageId: string
   ) {
-    return this.mutate(
-      data,
-      shape,
-      getShapeUtils(shape).transformSingle(shape, bounds, info),
-      pageId
-    )
+    const change = getShapeUtils(shape).transformSingle(shape, bounds, info)
+    if (!change) return shape
+    return this.mutate(data, shape, change, pageId)
   }
 
   /* -------------------------------------------------- */

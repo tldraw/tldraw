@@ -476,18 +476,3 @@ const StyledTextArea = styled('textarea', {
     },
   },
 })
-
-const NormalText = styled('div', {
-  display: 'block',
-  whiteSpace: 'pre',
-  alignmentBaseline: 'mathematical',
-  dominantBaseline: 'mathematical',
-  pointerEvents: 'none',
-  opacity: '0.5',
-  padding: '4px',
-  margin: '0',
-  outline: 0,
-  fontWeight: '500',
-  lineHeight: 1.4,
-  letterSpacing: LETTER_SPACING,
-})

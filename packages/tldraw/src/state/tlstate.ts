@@ -14,7 +14,6 @@ import {
   Vec,
   brushUpdater,
   TLPointerInfo,
-  inputs,
   TLBounds,
 } from '@tldraw/core'
 import {

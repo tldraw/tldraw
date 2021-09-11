@@ -11,7 +11,6 @@ import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
 import { ErrorFallback } from '+components/error-fallback'
 import { ErrorBoundary } from '+components/error-boundary'
 import { Brush } from '+components/brush'
-import { Defs } from '+components/defs'
 import { Page } from '+components/page'
 import { useResizeObserver } from '+hooks/useResizeObserver'
 
