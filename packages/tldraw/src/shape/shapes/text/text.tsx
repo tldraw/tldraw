@@ -1,14 +1,7 @@
 import * as React from 'react'
-import { TLBounds, Utils, Vec, TLTransformInfo, Intersect } from '@tldraw/core'
+import { TLBounds, Utils, Vec, TLTransformInfo, Intersect, TLShapeProps } from '@tldraw/core'
 import { getShapeStyle, getFontSize, getFontStyle, defaultStyle } from '~shape/shape-styles'
-import {
-  TextShape,
-  TLDrawShapeUtil,
-  TLDrawShapeType,
-  TLDrawRenderInfo,
-  TLDrawToolType,
-  ArrowShape,
-} from '~types'
+import { TextShape, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType, ArrowShape } from '~types'
 import styled from '~styles'
 import TextAreaUtils from './text-utils'
 
@@ -56,7 +49,7 @@ if (typeof window !== 'undefined') {
   melm = getMeasurementDiv()
 }
 
-export class Text extends TLDrawShapeUtil<TextShape> {
+export class Text extends TLDrawShapeUtil<TextShape, SVGGElement> {
   type = TLDrawShapeType.Text as const
   toolType = TLDrawToolType.Text
   isAspectRatioLocked = true
@@ -90,156 +83,144 @@ export class Text extends TLDrawShapeUtil<TextShape> {
     )
   }
 
-  render(
-    shape: TextShape,
-    {
-      ref,
-      meta,
-      isEditing,
-      isBinding,
-      onTextBlur,
-      onTextChange,
-      onTextFocus,
-      onTextKeyDown,
-      onTextKeyUp,
-    }: TLDrawRenderInfo
-  ): JSX.Element {
-    const { id, text, style } = shape
-    const styles = getShapeStyle(style, meta.isDarkMode)
-    const font = getFontStyle(shape.style)
-    const bounds = this.getBounds(shape)
+  render = React.forwardRef<SVGGElement, TLShapeProps<TextShape, SVGGElement>>(
+    ({ shape, meta, isEditing, isBinding, events }, ref) => {
+      const rInput = React.useRef<HTMLTextAreaElement>(null)
+      const { id, text, style } = shape
+      const styles = getShapeStyle(style, meta.isDarkMode)
+      const font = getFontStyle(shape.style)
+      const bounds = this.getBounds(shape)
 
-    function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-      onTextChange?.(id, normalizeText(e.currentTarget.value))
-    }
+      function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+        events.onTextChange?.(id, normalizeText(e.currentTarget.value))
+      }
 
-    function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-      onTextKeyDown?.(id, e.key)
+      function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+        events.onTextKeyDown?.(id, e.key)
 
-      if (e.key === 'Escape') return
+        if (e.key === 'Escape') return
 
-      e.stopPropagation()
+        e.stopPropagation()
 
-      if (e.key === 'Tab') {
-        e.preventDefault()
-        if (e.shiftKey) {
-          TextAreaUtils.unindent(e.currentTarget)
-        } else {
-          TextAreaUtils.indent(e.currentTarget)
+        if (e.key === 'Tab') {
+          e.preventDefault()
+          if (e.shiftKey) {
+            TextAreaUtils.unindent(e.currentTarget)
+          } else {
+            TextAreaUtils.indent(e.currentTarget)
+          }
+
+          events.onTextChange?.(id, normalizeText(e.currentTarget.value))
+        }
+      }
+
+      function handleKeyUp(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+        events.onTextKeyUp?.(id, e.key)
+      }
+
+      function handleBlur(e: React.FocusEvent<HTMLTextAreaElement>) {
+        if (isEditing) {
+          e.currentTarget.focus()
+          e.currentTarget.select()
+          return
         }
 
-        onTextChange?.(id, normalizeText(e.currentTarget.value))
-      }
-    }
-
-    function handleKeyUp(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-      onTextKeyUp?.(id, e.key)
-    }
-
-    function handleBlur(e: React.FocusEvent<HTMLTextAreaElement>) {
-      if (isEditing) {
-        e.currentTarget.focus()
-        e.currentTarget.select()
-        return
+        setTimeout(() => {
+          events.onTextBlur?.(id)
+        }, 0)
       }
 
-      setTimeout(() => {
-        onTextBlur?.(id)
-      }, 0)
-    }
-
-    function handleFocus(e: React.FocusEvent<HTMLTextAreaElement>) {
-      if (document.activeElement === e.currentTarget) {
-        e.currentTarget.select()
-        onTextFocus?.(id)
+      function handleFocus(e: React.FocusEvent<HTMLTextAreaElement>) {
+        if (document.activeElement === e.currentTarget) {
+          e.currentTarget.select()
+          events.onTextFocus?.(id)
+        }
       }
-    }
 
-    function handlePointerDown() {
-      if (ref && ref.current.selectionEnd !== 0) {
-        ref.current.selectionEnd = 0
+      function handlePointerDown() {
+        const elm = rInput.current
+        if (!elm) return
+        if (elm.selectionEnd !== 0) {
+          elm.selectionEnd = 0
+        }
       }
-    }
 
-    const fontSize = getFontSize(shape.style.size) * (shape.style.scale || 1)
+      const fontSize = getFontSize(shape.style.size) * (shape.style.scale || 1)
 
-    const lineHeight = fontSize * 1.3
+      const lineHeight = fontSize * 1.3
 
-    if (!isEditing) {
+      if (!isEditing) {
+        return (
+          <g ref={ref} {...events}>
+            {isBinding && (
+              <rect
+                className="tl-binding-indicator"
+                x={-16}
+                y={-16}
+                width={bounds.width + 32}
+                height={bounds.height + 32}
+              />
+            )}
+            {text.split('\n').map((str, i) => (
+              <text
+                key={i}
+                x={4}
+                y={4 + fontSize / 2 + i * lineHeight}
+                fontFamily="Caveat Brush"
+                fontStyle="normal"
+                fontWeight="500"
+                letterSpacing={LETTER_SPACING}
+                fontSize={fontSize}
+                width={bounds.width}
+                height={bounds.height}
+                fill={styles.stroke}
+                color={styles.stroke}
+                stroke="none"
+                xmlSpace="preserve"
+                dominantBaseline="mathematical"
+                alignmentBaseline="mathematical"
+              >
+                {str}
+              </text>
+            ))}
+          </g>
+        )
+      }
+
       return (
-        <>
-          {isBinding && (
-            <rect
-              className="tl-binding-indicator"
-              x={-16}
-              y={-16}
-              width={bounds.width + 32}
-              height={bounds.height + 32}
-            />
-          )}
-          {text.split('\n').map((str, i) => (
-            <text
-              key={i}
-              x={4}
-              y={4 + fontSize / 2 + i * lineHeight}
-              fontFamily="Caveat Brush"
-              fontStyle="normal"
-              fontWeight="500"
-              letterSpacing={LETTER_SPACING}
-              fontSize={fontSize}
-              width={bounds.width}
-              height={bounds.height}
-              fill={styles.stroke}
-              color={styles.stroke}
-              stroke="none"
-              xmlSpace="preserve"
-              dominantBaseline="mathematical"
-              alignmentBaseline="mathematical"
-            >
-              {str}
-            </text>
-          ))}
-        </>
+        <foreignObject
+          width={bounds.width}
+          height={bounds.height}
+          pointerEvents="none"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <StyledTextArea
+            ref={rInput}
+            style={{
+              font,
+              color: styles.stroke,
+            }}
+            name="text"
+            defaultValue={text}
+            tabIndex={-1}
+            autoComplete="false"
+            autoCapitalize="false"
+            autoCorrect="false"
+            autoSave="false"
+            placeholder=""
+            color={styles.stroke}
+            autoFocus={true}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            onKeyUp={handleKeyUp}
+            onChange={handleChange}
+            onPointerDown={handlePointerDown}
+          />
+        </foreignObject>
       )
     }
-
-    if (ref === undefined) {
-      throw Error('This component should receive a ref when editing.')
-    }
-
-    return (
-      <foreignObject
-        width={bounds.width}
-        height={bounds.height}
-        pointerEvents="none"
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <StyledTextArea
-          ref={ref as React.RefObject<HTMLTextAreaElement>}
-          style={{
-            font,
-            color: styles.stroke,
-          }}
-          name="text"
-          defaultValue={text}
-          tabIndex={-1}
-          autoComplete="false"
-          autoCapitalize="false"
-          autoCorrect="false"
-          autoSave="false"
-          placeholder=""
-          color={styles.stroke}
-          autoFocus={true}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          onKeyUp={handleKeyUp}
-          onChange={handleChange}
-          onPointerDown={handlePointerDown}
-        />
-      </foreignObject>
-    )
-  }
+  )
 
   renderIndicator(): JSX.Element | null {
     return null

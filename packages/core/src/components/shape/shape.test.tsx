@@ -6,7 +6,7 @@ describe('shape', () => {
   test('mounts component without crashing', () => {
     renderWithSvg(
       <Shape
-        shape={mockUtils.box.create({})}
+        shape={mockUtils.box.create({ id: 'box' })}
         utils={mockUtils[mockUtils.box.type]}
         isEditing={false}
         isBinding={false}
@@ -17,3 +17,6 @@ describe('shape', () => {
     )
   })
 })
+
+// { shape: TLShape; ref: ForwardedRef<HTMLElement | SVGElement>; } & TLRenderInfo<any, any> & RefAttributes<HTMLElement | SVGElement>
+// { shape: BoxShape; ref: ForwardedRef<any>; } & TLRenderInfo<any, any> & RefAttributes<any>'

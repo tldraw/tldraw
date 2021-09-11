@@ -1,10 +1,27 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { useShapeEvents } from '+hooks'
-import type { IShapeTreeNode, TLShape, TLShapeUtil } from '+types'
+import { usePosition, useShapeEvents } from '+hooks'
+import type { IShapeTreeNode, TLBounds, TLShape, TLShapeUtil } from '+types'
 import { RenderedShape } from './rendered-shape'
 import { EditingTextShape } from './editing-text-shape'
+import { Container } from '+components/container'
+import { SVGContainer } from '+components/svg-container'
 
-export const Shape = <M extends Record<string, unknown>>({
+// function setTransform(elm: HTMLDivElement, bounds: TLBounds, rotation = 0) {
+//   const transform = `
+//   translate(calc(${bounds.minX}px - var(--tl-padding)),calc(${bounds.minY}px - var(--tl-padding)))
+//   rotate(${rotation + (bounds.rotation || 0)}rad)
+//   `
+//   elm.style.setProperty('transform', transform)
+//   elm.style.setProperty('width', `calc(${bounds.width}px + (var(--tl-padding) * 2))`)
+//   elm.style.setProperty('height', `calc(${bounds.height}px + (var(--tl-padding) * 2))`)
+// }
+
+export const Shape = <
+  T extends TLShape,
+  E extends SVGElement | HTMLElement,
+  M extends Record<string, unknown>
+>({
   shape,
   utils,
   isEditing,
@@ -13,42 +30,46 @@ export const Shape = <M extends Record<string, unknown>>({
   isSelected,
   isCurrentParent,
   meta,
-}: { utils: TLShapeUtil<TLShape> } & IShapeTreeNode<M>) => {
+}: IShapeTreeNode<T, M> & {
+  utils: TLShapeUtil<T, E>
+}) => {
+  const bounds = utils.getBounds(shape)
   const events = useShapeEvents(shape.id, isCurrentParent)
-  const center = utils.getCenter(shape)
-  const rotation = (shape.rotation || 0) * (180 / Math.PI)
-  const transform = `rotate(${rotation}, ${center}) translate(${shape.point})`
 
   return (
-    <g
-      className={isCurrentParent ? 'tl-shape-group tl-current-parent' : 'tl-shape-group'}
+    <Container
       id={shape.id}
-      transform={transform}
-      {...events}
+      className={'tl-shape' + (isCurrentParent ? 'tl-current-parent' : '')}
+      bounds={bounds}
+      rotation={shape.rotation}
     >
-      {isEditing && utils.isEditableText ? (
-        <EditingTextShape
-          shape={shape}
-          isBinding={false}
-          isCurrentParent={false}
-          isEditing={true}
-          isHovered={isHovered}
-          isSelected={isSelected}
-          utils={utils}
-          meta={meta}
-        />
-      ) : (
-        <RenderedShape
-          shape={shape}
-          utils={utils}
-          isBinding={isBinding}
-          isCurrentParent={isCurrentParent}
-          isEditing={isEditing}
-          isHovered={isHovered}
-          isSelected={isSelected}
-          meta={meta}
-        />
-      )}
-    </g>
+      <SVGContainer>
+        {isEditing && utils.isEditableText ? (
+          <EditingTextShape
+            shape={shape}
+            isBinding={false}
+            isCurrentParent={false}
+            isEditing={true}
+            isHovered={isHovered}
+            isSelected={isSelected}
+            utils={utils}
+            meta={meta}
+            events={events}
+          />
+        ) : (
+          <RenderedShape
+            shape={shape}
+            utils={utils as any}
+            isBinding={isBinding}
+            isCurrentParent={isCurrentParent}
+            isEditing={isEditing}
+            isHovered={isHovered}
+            isSelected={isSelected}
+            meta={meta as any}
+            events={events}
+          />
+        )}
+      </SVGContainer>
+    </Container>
   )
 }

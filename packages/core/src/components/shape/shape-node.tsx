@@ -3,7 +3,7 @@ import type { IShapeTreeNode, TLShape, TLShapeUtils } from '+types'
 import { Shape } from './shape'
 
 export const ShapeNode = React.memo(
-  <M extends Record<string, unknown>>({
+  ({
     shape,
     utils,
     children,
@@ -13,7 +13,7 @@ export const ShapeNode = React.memo(
     isSelected,
     isCurrentParent,
     meta,
-  }: { utils: TLShapeUtils<TLShape> } & IShapeTreeNode<M>) => {
+  }: { utils: TLShapeUtils<TLShape, HTMLElement | SVGElement> } & IShapeTreeNode<TLShape, any>) => {
     return (
       <>
         <Shape

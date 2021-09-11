@@ -1,12 +1,11 @@
 import * as React from 'react'
-import { TLBounds, Utils, Vec, TLTransformInfo, Intersect } from '@tldraw/core'
+import { TLBounds, Utils, Vec, Intersect, TLShapeProps } from '@tldraw/core'
 import { defaultStyle, getPerfectDashProps } from '~shape/shape-styles'
 import {
   GroupShape,
   TLDrawShapeUtil,
   TLDrawShapeType,
   TLDrawToolType,
-  TLDrawRenderInfo,
   ColorStyle,
   DashStyle,
   ArrowShape,
@@ -15,7 +14,7 @@ import {
 // TODO
 // [ ] - Find bounds based on common bounds of descendants
 
-export class Group extends TLDrawShapeUtil<GroupShape> {
+export class Group extends TLDrawShapeUtil<GroupShape, SVGGElement> {
   type = TLDrawShapeType.Group as const
   toolType = TLDrawToolType.Bounds
   canBind = true
@@ -39,59 +38,68 @@ export class Group extends TLDrawShapeUtil<GroupShape> {
     return next.size !== prev.size || next.style !== prev.style
   }
 
-  render(shape: GroupShape, { isBinding, isHovered, isSelected }: TLDrawRenderInfo) {
-    const { id, size } = shape
+  render = React.forwardRef<SVGGElement, TLShapeProps<GroupShape, SVGGElement>>(
+    ({ shape, isBinding, isHovered, isSelected, events }) => {
+      const { id, size } = shape
 
-    const sw = 2
-    const w = Math.max(0, size[0] - sw / 2)
-    const h = Math.max(0, size[1] - sw / 2)
+      const sw = 2
+      const w = Math.max(0, size[0] - sw / 2)
+      const h = Math.max(0, size[1] - sw / 2)
 
-    const strokes: [number[], number[], number][] = [
-      [[sw / 2, sw / 2], [w, sw / 2], w - sw / 2],
-      [[w, sw / 2], [w, h], h - sw / 2],
-      [[w, h], [sw / 2, h], w - sw / 2],
-      [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
-    ]
+      const strokes: [number[], number[], number][] = [
+        [[sw / 2, sw / 2], [w, sw / 2], w - sw / 2],
+        [[w, sw / 2], [w, h], h - sw / 2],
+        [[w, h], [sw / 2, h], w - sw / 2],
+        [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
+      ]
 
-    const paths = strokes.map(([start, end, length], i) => {
-      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-        length,
-        sw,
-        DashStyle.Dotted
-      )
+      const paths = strokes.map(([start, end, length], i) => {
+        const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+          length,
+          sw,
+          DashStyle.Dotted
+        )
+
+        return (
+          <line
+            key={id + '_' + i}
+            x1={start[0]}
+            y1={start[1]}
+            x2={end[0]}
+            y2={end[1]}
+            stroke={ColorStyle.Black}
+            strokeWidth={isHovered || isSelected ? sw : 0}
+            strokeLinecap="round"
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+          />
+        )
+      })
 
       return (
-        <line
-          key={id + '_' + i}
-          x1={start[0]}
-          y1={start[1]}
-          x2={end[0]}
-          y2={end[1]}
-          stroke={ColorStyle.Black}
-          strokeWidth={isHovered || isSelected ? sw : 0}
-          strokeLinecap="round"
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
-        />
-      )
-    })
-
-    return (
-      <>
-        {isBinding && (
+        <g {...events}>
+          {isBinding && (
+            <rect
+              className="tl-binding-indicator"
+              x={-32}
+              y={-32}
+              width={size[0] + 64}
+              height={size[1] + 64}
+            />
+          )}
           <rect
-            className="tl-binding-indicator"
-            x={-32}
-            y={-32}
-            width={size[0] + 64}
-            height={size[1] + 64}
+            x={0}
+            y={0}
+            width={size[0]}
+            height={size[1]}
+            fill="transparent"
+            pointerEvents="all"
           />
-        )}
-        <rect x={0} y={0} width={size[0]} height={size[1]} fill="transparent" pointerEvents="all" />
-        <g pointerEvents="stroke">{paths}</g>
-      </>
-    )
-  }
+          <g pointerEvents="stroke">{paths}</g>
+        </g>
+      )
+    }
+  )
 
   renderIndicator(shape: GroupShape) {
     const [width, height] = shape.size

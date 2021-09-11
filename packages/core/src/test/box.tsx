@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react'
-import { TLShapeUtil, TLShape, TLBounds, TLRenderInfo, TLTransformInfo } from '+types'
+import { TLShapeUtil, TLShape, TLShapeProps, TLBounds, TLRenderInfo, TLTransformInfo } from '+types'
 import Utils, { Intersect } from '+utils'
 
 export interface BoxShape extends TLShape {
   size: number[]
 }
 
-export class Box extends TLShapeUtil<BoxShape> {
+export class Box extends TLShapeUtil<BoxShape, SVGGElement> {
   type = 'box'
 
   defaultProps = {
@@ -21,13 +21,15 @@ export class Box extends TLShapeUtil<BoxShape> {
     rotation: 0,
   }
 
-  create(props: Partial<BoxShape>) {
-    return { ...this.defaultProps, ...props }
-  }
-
-  render(shape: BoxShape, info: TLRenderInfo): JSX.Element {
-    return <rect width={100} height={100} fill="none" stroke="black" />
-  }
+  render = React.forwardRef<SVGGElement, TLShapeProps<BoxShape, SVGGElement>>(
+    ({ shape, events }, ref) => {
+      return (
+        <g ref={ref} {...events}>
+          <rect width={shape.size[0]} height={shape.size[1]} fill="none" stroke="black" />
+        </g>
+      )
+    }
+  )
 
   renderIndicator(shape: BoxShape) {
     return <rect width={100} height={100} />

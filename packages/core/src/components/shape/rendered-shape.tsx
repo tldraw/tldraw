@@ -1,13 +1,9 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import type { TLShapeUtil, TLRenderInfo, TLShape } from '+types'
 
-interface RenderedShapeProps<T extends TLShape> extends TLRenderInfo {
-  shape: T
-  utils: TLShapeUtil<T>
-}
-
 export const RenderedShape = React.memo(
-  function RenderedShape({
+  <T extends TLShape, E extends SVGElement | HTMLElement, M extends Record<string, unknown>>({
     shape,
     utils,
     isEditing,
@@ -15,16 +11,29 @@ export const RenderedShape = React.memo(
     isHovered,
     isSelected,
     isCurrentParent,
+    events,
     meta,
-  }: RenderedShapeProps<TLShape>) {
-    return utils.render(shape, {
-      isEditing,
-      isBinding,
-      isHovered,
-      isSelected,
-      isCurrentParent,
-      meta,
-    })
+  }: TLRenderInfo<M, E> & {
+    shape: T
+    utils: TLShapeUtil<T, E>
+  }) => {
+    const ref = utils.getRef(shape)
+
+    return (
+      <utils.render
+        ref={ref}
+        {...{
+          shape,
+          isEditing,
+          isBinding,
+          isHovered,
+          isSelected,
+          isCurrentParent,
+          meta,
+          events,
+        }}
+      />
+    )
   },
   (prev, next) => {
     // If these have changed, then definitely render

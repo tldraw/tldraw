@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* --------------------- Primary -------------------- */
 
+import React, { ForwardedRef } from 'react'
+
 export type Patch<T> = Partial<{ [P in keyof T]: T | Partial<T> | Patch<T[P]> }>
 
 export interface TLPage<T extends TLShape, B extends TLBinding> {
@@ -54,21 +56,35 @@ export interface TLShape {
   isAspectRatioLocked?: boolean
 }
 
-export type TLShapeUtils<T extends TLShape> = Record<string, TLShapeUtil<T>>
+export type TLShapeUtils<T extends TLShape, E extends SVGElement | HTMLElement> = Record<
+  string,
+  TLShapeUtil<T, E>
+>
 
-export interface TLRenderInfo<M = any, T extends SVGElement | HTMLElement = any> {
-  ref?: React.RefObject<T>
+export interface TLRenderInfo<M = any, E = any> {
   isEditing: boolean
   isBinding: boolean
   isHovered: boolean
   isSelected: boolean
   isCurrentParent: boolean
-  onTextChange?: TLCallbacks['onTextChange']
-  onTextBlur?: TLCallbacks['onTextBlur']
-  onTextFocus?: TLCallbacks['onTextFocus']
-  onTextKeyDown?: TLCallbacks['onTextKeyDown']
-  onTextKeyUp?: TLCallbacks['onTextKeyUp']
   meta: M extends any ? M : never
+  events: {
+    onPointerDown: (e: React.PointerEvent<E>) => void
+    onPointerUp: (e: React.PointerEvent<E>) => void
+    onPointerEnter: (e: React.PointerEvent<E>) => void
+    onPointerMove: (e: React.PointerEvent<E>) => void
+    onPointerLeave: (e: React.PointerEvent<E>) => void
+    onTextChange?: TLCallbacks['onTextChange']
+    onTextBlur?: TLCallbacks['onTextBlur']
+    onTextFocus?: TLCallbacks['onTextFocus']
+    onTextKeyDown?: TLCallbacks['onTextKeyDown']
+    onTextKeyUp?: TLCallbacks['onTextKeyUp']
+  }
+}
+
+export interface TLShapeProps<T extends TLShape, E = any, M = any> extends TLRenderInfo<M, E> {
+  ref: ForwardedRef<E>
+  shape: T
 }
 
 export interface TLTool {
@@ -261,18 +277,26 @@ export interface TLBezierCurveSegment {
 /*                   Shape Utility                    */
 /* -------------------------------------------------- */
 
-export abstract class TLShapeUtil<T extends TLShape> {
+export abstract class TLShapeUtil<T extends TLShape, E extends HTMLElement | SVGElement> {
+  refMap = new Map<string, React.RefObject<E>>()
+
   boundsCache = new WeakMap<TLShape, TLBounds>()
+
   isEditableText = false
+
   isAspectRatioLocked = false
+
   canEdit = false
+
   canBind = false
 
   abstract type: T['type']
 
   abstract defaultProps: T
 
-  abstract render(shape: T, info: TLRenderInfo): JSX.Element | null
+  abstract render: React.ForwardRefExoticComponent<
+    { shape: T; ref: React.ForwardedRef<E> } & TLRenderInfo & React.RefAttributes<E>
+  >
 
   abstract renderIndicator(shape: T): JSX.Element | null
 
@@ -303,6 +327,14 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return [bounds.width / 2, bounds.height / 2]
   }
 
+  getRef(shape: T): React.RefObject<E> {
+    if (!this.refMap.has(shape.id)) {
+      this.refMap.set(shape.id, React.createRef<E>())
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return this.refMap.get(shape.id)!
+  }
+
   getBindingPoint(
     shape: T,
     fromShape: TLShape,
@@ -315,7 +347,8 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return undefined
   }
 
-  create(props: Partial<T>): T {
+  create(props: { id: string } & Partial<T>): T {
+    this.refMap.set(props.id, React.createRef<E>())
     return { ...this.defaultProps, ...props }
   }
 
@@ -380,15 +413,15 @@ export abstract class TLShapeUtil<T extends TLShape> {
 
 /* -------------------- Internal -------------------- */
 
-export interface IShapeTreeNode<M extends Record<string, unknown>> {
-  shape: TLShape
-  children?: IShapeTreeNode<M>[]
+export interface IShapeTreeNode<T extends TLShape, M extends Record<string, unknown>> {
+  shape: T
+  children?: IShapeTreeNode<TLShape, M>[]
   isEditing: boolean
   isBinding: boolean
   isHovered: boolean
   isSelected: boolean
   isCurrentParent: boolean
-  meta?: M
+  meta?: M extends any ? M : never
 }
 
 /* -------------------------------------------------- */

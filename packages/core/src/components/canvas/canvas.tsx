@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import {
   usePreventNavigation,
@@ -18,24 +19,24 @@ function resetError() {
   void null
 }
 
-interface CanvasProps<T extends TLShape> {
+interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
   pageState: TLPageState
   hideBounds?: boolean
   hideHandles?: boolean
   hideIndicators?: boolean
-  meta?: Record<string, unknown>
+  meta?: M
 }
 
-export function Canvas<T extends TLShape>({
+export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
   page,
   pageState,
   meta,
   hideHandles = false,
   hideBounds = false,
   hideIndicators = false,
-}: CanvasProps<T>): JSX.Element {
-  const rCanvas = React.useRef<SVGSVGElement>(null)
+}: CanvasProps<T, M>): JSX.Element {
+  const rCanvas = React.useRef<HTMLDivElement>(null)
   const rContainer = React.useRef<HTMLDivElement>(null)
 
   useResizeObserver(rCanvas)
@@ -48,14 +49,14 @@ export function Canvas<T extends TLShape>({
 
   const events = useCanvasEvents()
 
-  const rGroup = useCameraCss(rContainer, pageState)
+  const rLayer = useCameraCss(rContainer, pageState)
 
   return (
     <div className="tl-container" ref={rContainer}>
-      <svg id="canvas" className="tl-canvas" ref={rCanvas} {...events}>
+      <div id="canvas" className="tl-absolute tl-canvas" ref={rCanvas} {...events}>
         <ErrorBoundary FallbackComponent={ErrorFallback} onReset={resetError}>
-          <Defs zoom={pageState.camera.zoom} />
-          <g ref={rGroup} id="tl-shapes">
+          {/* <Defs zoom={pageState.camera.zoom} /> */}
+          <div ref={rLayer} className="tl-absolute tl-layer">
             <Page
               page={page}
               pageState={pageState}
@@ -65,9 +66,9 @@ export function Canvas<T extends TLShape>({
               meta={meta}
             />
             <Brush />
-          </g>
+          </div>
         </ErrorBoundary>
-      </svg>
+      </div>
     </div>
   )
 }

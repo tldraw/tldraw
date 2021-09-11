@@ -199,11 +199,17 @@ export type TLDrawShape =
   | TextShape
   | GroupShape
 
-export abstract class TLDrawShapeUtil<T extends TLDrawShape> extends TLShapeUtil<T> {
+export abstract class TLDrawShapeUtil<
+  T extends TLDrawShape,
+  E extends HTMLElement | SVGElement
+> extends TLShapeUtil<T, E> {
   abstract toolType: TLDrawToolType
 }
 
-export type TLDrawShapeUtils = Record<TLDrawShapeType, TLDrawShapeUtil<TLDrawShape>>
+export type TLDrawShapeUtils = Record<
+  TLDrawShapeType,
+  TLDrawShapeUtil<TLDrawShape, HTMLElement | SVGElement>
+>
 
 export interface ArrowBinding extends TLBinding {
   type: 'arrow'

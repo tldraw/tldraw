@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { TLBounds, Utils, Vec, TLTransformInfo, Intersect } from '@tldraw/core'
+import { TLBounds, Utils, Vec, TLTransformInfo, Intersect, TLShapeProps } from '@tldraw/core'
 import getStroke from 'perfect-freehand'
 import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import {
@@ -8,18 +8,16 @@ import {
   TLDrawShapeUtil,
   TLDrawShapeType,
   TLDrawToolType,
-  TLDrawRenderInfo,
   ArrowShape,
 } from '~types'
 
 // TODO
 // [ ] - Make sure that fill does not extend drawn shape at corners
 
-export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
+export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGGElement> {
   type = TLDrawShapeType.Rectangle as const
   toolType = TLDrawToolType.Bounds
   canBind = true
-
   pathCache = new WeakMap<number[], string>([])
 
   defaultProps: RectangleShape = {
@@ -38,105 +36,111 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
     return next.size !== prev.size || next.style !== prev.style
   }
 
-  render(shape: RectangleShape, { isBinding, meta }: TLDrawRenderInfo) {
-    const { id, size, style } = shape
-    const styles = getShapeStyle(style, meta.isDarkMode)
-    const strokeWidth = +styles.strokeWidth
+  render = React.forwardRef<SVGGElement, TLShapeProps<RectangleShape, SVGGElement>>(
+    ({ shape, isBinding, meta, events }, ref) => {
+      const { id, size, style } = shape
+      const styles = getShapeStyle(style, meta.isDarkMode)
+      const strokeWidth = +styles.strokeWidth
 
-    if (style.dash === DashStyle.Draw) {
-      const pathData = Utils.getFromCache(this.pathCache, shape.size, () => renderPath(shape))
+      React.useEffect(() => {
+        console.log(this.refMap.get(shape.id))
+      }, [])
+
+      if (style.dash === DashStyle.Draw) {
+        const pathData = Utils.getFromCache(this.pathCache, shape.size, () => renderPath(shape))
+
+        return (
+          <g ref={ref} {...events}>
+            {isBinding && (
+              <rect
+                className="tl-binding-indicator"
+                x={strokeWidth / 2 - 32}
+                y={strokeWidth / 2 - 32}
+                width={Math.max(0, size[0] - strokeWidth / 2) + 64}
+                height={Math.max(0, size[1] - strokeWidth / 2) + 64}
+              />
+            )}
+            <rect
+              x={+styles.strokeWidth / 2}
+              y={+styles.strokeWidth / 2}
+              width={Math.max(0, size[0] - strokeWidth)}
+              height={Math.max(0, size[1] - strokeWidth)}
+              fill={style.isFilled ? styles.fill : 'none'}
+              stroke="none"
+              pointerEvents="all"
+            />
+            <path
+              d={pathData}
+              fill={styles.stroke}
+              stroke={styles.stroke}
+              strokeWidth={styles.strokeWidth}
+              pointerEvents="all"
+            />
+          </g>
+        )
+      }
+
+      const sw = strokeWidth * 1.618
+
+      const w = Math.max(0, size[0] - sw / 2)
+      const h = Math.max(0, size[1] - sw / 2)
+
+      const strokes: [number[], number[], number][] = [
+        [[sw / 2, sw / 2], [w, sw / 2], w - sw / 2],
+        [[w, sw / 2], [w, h], h - sw / 2],
+        [[w, h], [sw / 2, h], w - sw / 2],
+        [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
+      ]
+
+      const paths = strokes.map(([start, end, length], i) => {
+        const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+          length,
+          sw,
+          shape.style.dash
+        )
+
+        return (
+          <line
+            key={id + '_' + i}
+            x1={start[0]}
+            y1={start[1]}
+            x2={end[0]}
+            y2={end[1]}
+            stroke={styles.stroke}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+          />
+        )
+      })
 
       return (
-        <>
+        <g ref={ref} {...events}>
           {isBinding && (
             <rect
               className="tl-binding-indicator"
-              x={strokeWidth / 2 - 32}
-              y={strokeWidth / 2 - 32}
-              width={Math.max(0, size[0] - strokeWidth / 2) + 64}
-              height={Math.max(0, size[1] - strokeWidth / 2) + 64}
+              x={sw / 2 - 32}
+              y={sw / 2 - 32}
+              width={w + 64}
+              height={h + 64}
             />
           )}
           <rect
-            x={+styles.strokeWidth / 2}
-            y={+styles.strokeWidth / 2}
-            width={Math.max(0, size[0] - strokeWidth)}
-            height={Math.max(0, size[1] - strokeWidth)}
-            fill={style.isFilled ? styles.fill : 'none'}
-            stroke="none"
+            x={sw / 2}
+            y={sw / 2}
+            width={w}
+            height={h}
+            fill={styles.fill}
+            stroke="transparent"
+            strokeWidth={sw}
             pointerEvents="all"
           />
-          <path
-            d={pathData}
-            fill={styles.stroke}
-            stroke={styles.stroke}
-            strokeWidth={styles.strokeWidth}
-            pointerEvents="all"
-          />
-        </>
+          <g pointerEvents="stroke">{paths}</g>
+        </g>
       )
     }
-
-    const sw = strokeWidth * 1.618
-
-    const w = Math.max(0, size[0] - sw / 2)
-    const h = Math.max(0, size[1] - sw / 2)
-
-    const strokes: [number[], number[], number][] = [
-      [[sw / 2, sw / 2], [w, sw / 2], w - sw / 2],
-      [[w, sw / 2], [w, h], h - sw / 2],
-      [[w, h], [sw / 2, h], w - sw / 2],
-      [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
-    ]
-
-    const paths = strokes.map(([start, end, length], i) => {
-      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-        length,
-        sw,
-        shape.style.dash
-      )
-
-      return (
-        <line
-          key={id + '_' + i}
-          x1={start[0]}
-          y1={start[1]}
-          x2={end[0]}
-          y2={end[1]}
-          stroke={styles.stroke}
-          strokeWidth={sw}
-          strokeLinecap="round"
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
-        />
-      )
-    })
-
-    return (
-      <>
-        {isBinding && (
-          <rect
-            className="tl-binding-indicator"
-            x={sw / 2 - 32}
-            y={sw / 2 - 32}
-            width={w + 64}
-            height={h + 64}
-          />
-        )}
-        <rect
-          x={sw / 2}
-          y={sw / 2}
-          width={w}
-          height={h}
-          fill={styles.fill}
-          stroke="transparent"
-          strokeWidth={sw}
-          pointerEvents="all"
-        />
-        <g pointerEvents="stroke">{paths}</g>
-      </>
-    )
-  }
+  )
 
   renderIndicator(shape: RectangleShape) {
     const {
@@ -162,6 +166,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
   }
 
   getBounds(shape: RectangleShape) {
+    console.log(this.refMap.get(shape.id))
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       const [width, height] = shape.size
       return {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import type {
@@ -13,8 +14,8 @@ import type {
 import { Utils, Vec } from '+utils'
 
 function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
-  shape: TLShape,
-  branch: IShapeTreeNode<M>[],
+  shape: T,
+  branch: IShapeTreeNode<T, M>[],
   shapes: TLPage<T, TLBinding>['shapes'],
   pageState: {
     bindingTargetId?: string
@@ -27,7 +28,7 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   },
   meta?: M
 ) {
-  const node: IShapeTreeNode<M> = {
+  const node: IShapeTreeNode<T, M> = {
     shape,
     isCurrentParent: pageState.currentParentId === shape.id,
     isEditing: pageState.editingId === shape.id,
@@ -37,7 +38,7 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
         (shape.children ? shape.children.includes(pageState.hoveredId) : false)
       : false,
     isBinding: pageState.bindingTargetId === shape.id,
-    meta,
+    meta: meta as any,
   }
 
   branch.push(node)
@@ -54,14 +55,18 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   }
 }
 
-function shapeIsInViewport(shape: TLShape, bounds: TLBounds, viewport: TLBounds) {
+function shapeIsInViewport(bounds: TLBounds, viewport: TLBounds) {
   return Utils.boundsContain(viewport, bounds) || Utils.boundsCollide(viewport, bounds)
 }
 
-export function useShapeTree<T extends TLShape, M extends Record<string, unknown>>(
+export function useShapeTree<
+  T extends TLShape,
+  E extends SVGElement | HTMLElement,
+  M extends Record<string, unknown>
+>(
   page: TLPage<T, TLBinding>,
   pageState: TLPageState,
-  shapeUtils: TLShapeUtils<T>,
+  shapeUtils: TLShapeUtils<T, E>,
   size: number[],
   meta?: M,
   onChange?: TLCallbacks['onChange']
@@ -100,7 +105,7 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
       // Don't hide selected shapes (this breaks certain drag interactions)
       if (
         selectedIds.includes(shape.id) ||
-        shapeIsInViewport(shape, shapeUtils[shape.type as T['type']].getBounds(shape), viewport)
+        shapeIsInViewport(shapeUtils[shape.type as T['type']].getBounds(shape), viewport)
       ) {
         if (shape.parentId === page.id) {
           shapesIdsToRender.add(shape.id)
@@ -132,7 +137,7 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
 
   // Populate the shape tree
 
-  const tree: IShapeTreeNode<M>[] = []
+  const tree: IShapeTreeNode<T, M>[] = []
 
   const info = { ...pageState, bindingTargetId }
 

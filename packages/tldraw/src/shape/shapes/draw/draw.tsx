@@ -1,17 +1,10 @@
 import * as React from 'react'
-import { TLBounds, Utils, Vec, TLTransformInfo, Intersect } from '@tldraw/core'
+import { TLBounds, Utils, Vec, TLTransformInfo, Intersect, TLShapeProps } from '@tldraw/core'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import {
-  DrawShape,
-  DashStyle,
-  TLDrawShapeUtil,
-  TLDrawShapeType,
-  TLDrawToolType,
-  TLDrawRenderInfo,
-} from '~types'
+import { DrawShape, DashStyle, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType } from '~types'
 
-export class Draw extends TLDrawShapeUtil<DrawShape> {
+export class Draw extends TLDrawShapeUtil<DrawShape, SVGGElement> {
   type = TLDrawShapeType.Draw as const
   toolType = TLDrawToolType.Draw
 
@@ -37,118 +30,122 @@ export class Draw extends TLDrawShapeUtil<DrawShape> {
     return next.points !== prev.points || next.style !== prev.style
   }
 
-  render(shape: DrawShape, { meta, isEditing }: TLDrawRenderInfo): JSX.Element {
-    const { points, style } = shape
+  render = React.forwardRef<SVGGElement, TLShapeProps<DrawShape, SVGGElement>>(
+    ({ shape, meta, events, isEditing }) => {
+      const { points, style } = shape
 
-    const styles = getShapeStyle(style, meta.isDarkMode)
+      const styles = getShapeStyle(style, meta.isDarkMode)
 
-    const strokeWidth = styles.strokeWidth
+      const strokeWidth = styles.strokeWidth
 
-    // For very short lines, draw a point instead of a line
-    const bounds = this.getBounds(shape)
+      // For very short lines, draw a point instead of a line
+      const bounds = this.getBounds(shape)
 
-    const verySmall = bounds.width < strokeWidth / 2 && bounds.height < strokeWidth / 2
+      const verySmall = bounds.width < strokeWidth / 2 && bounds.height < strokeWidth / 2
 
-    if (!isEditing && verySmall) {
-      const sw = strokeWidth * 0.618
+      if (!isEditing && verySmall) {
+        const sw = strokeWidth * 0.618
 
-      return (
-        <circle
-          r={strokeWidth * 0.618}
-          fill={styles.stroke}
-          stroke={styles.stroke}
-          strokeWidth={sw}
-          pointerEvents="all"
-        />
-      )
-    }
+        return (
+          <g {...events}>
+            <circle
+              r={strokeWidth * 0.618}
+              fill={styles.stroke}
+              stroke={styles.stroke}
+              strokeWidth={sw}
+              pointerEvents="all"
+            />
+          </g>
+        )
+      }
 
-    const shouldFill =
-      style.isFilled &&
-      points.length > 3 &&
-      Vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
+      const shouldFill =
+        style.isFilled &&
+        points.length > 3 &&
+        Vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
 
-    // For drawn lines, draw a line from the path cache
+      // For drawn lines, draw a line from the path cache
 
-    if (shape.style.dash === DashStyle.Draw) {
-      const polygonPathData = Utils.getFromCache(this.polygonCache, points, () =>
-        getFillPath(shape)
-      )
+      if (shape.style.dash === DashStyle.Draw) {
+        const polygonPathData = Utils.getFromCache(this.polygonCache, points, () =>
+          getFillPath(shape)
+        )
 
-      const drawPathData = isEditing
-        ? getDrawStrokePath(shape, true)
-        : Utils.getFromCache(this.drawPathCache, points, () => getDrawStrokePath(shape, false))
+        const drawPathData = isEditing
+          ? getDrawStrokePath(shape, true)
+          : Utils.getFromCache(this.drawPathCache, points, () => getDrawStrokePath(shape, false))
 
-      return (
-        <>
-          {shouldFill && (
+        return (
+          <g {...events}>
+            {shouldFill && (
+              <path
+                d={polygonPathData}
+                stroke="none"
+                fill={styles.fill}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                pointerEvents="fill"
+              />
+            )}
             <path
-              d={polygonPathData}
-              stroke="none"
-              fill={styles.fill}
+              d={drawPathData}
+              fill={styles.stroke}
+              stroke={styles.stroke}
+              strokeWidth={strokeWidth}
               strokeLinejoin="round"
               strokeLinecap="round"
-              pointerEvents="fill"
+              pointerEvents="all"
             />
-          )}
+          </g>
+        )
+      }
+
+      // For solid, dash and dotted lines, draw a regular stroke path
+
+      const strokeDasharray = {
+        [DashStyle.Draw]: 'none',
+        [DashStyle.Solid]: `none`,
+        [DashStyle.Dotted]: `${strokeWidth / 10} ${strokeWidth * 3}`,
+        [DashStyle.Dashed]: `${strokeWidth * 3} ${strokeWidth * 3}`,
+      }[style.dash]
+
+      const strokeDashoffset = {
+        [DashStyle.Draw]: 'none',
+        [DashStyle.Solid]: `none`,
+        [DashStyle.Dotted]: `-${strokeWidth / 20}`,
+        [DashStyle.Dashed]: `-${strokeWidth}`,
+      }[style.dash]
+
+      const path = Utils.getFromCache(this.simplePathCache, points, () => getSolidStrokePath(shape))
+
+      const sw = strokeWidth * 1.618
+
+      return (
+        <g {...events}>
           <path
-            d={drawPathData}
-            fill={styles.stroke}
-            stroke={styles.stroke}
-            strokeWidth={strokeWidth}
+            d={path}
+            fill={shouldFill ? styles.fill : 'none'}
+            stroke="transparent"
+            strokeWidth={Math.min(4, strokeWidth * 2)}
             strokeLinejoin="round"
             strokeLinecap="round"
-            pointerEvents="all"
+            pointerEvents={shouldFill ? 'all' : 'stroke'}
           />
-        </>
+          <path
+            d={path}
+            fill="transparent"
+            stroke={styles.stroke}
+            strokeWidth={sw}
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            pointerEvents="stroke"
+          />
+        </g>
       )
     }
-
-    // For solid, dash and dotted lines, draw a regular stroke path
-
-    const strokeDasharray = {
-      [DashStyle.Draw]: 'none',
-      [DashStyle.Solid]: `none`,
-      [DashStyle.Dotted]: `${strokeWidth / 10} ${strokeWidth * 3}`,
-      [DashStyle.Dashed]: `${strokeWidth * 3} ${strokeWidth * 3}`,
-    }[style.dash]
-
-    const strokeDashoffset = {
-      [DashStyle.Draw]: 'none',
-      [DashStyle.Solid]: `none`,
-      [DashStyle.Dotted]: `-${strokeWidth / 20}`,
-      [DashStyle.Dashed]: `-${strokeWidth}`,
-    }[style.dash]
-
-    const path = Utils.getFromCache(this.simplePathCache, points, () => getSolidStrokePath(shape))
-
-    const sw = strokeWidth * 1.618
-
-    return (
-      <>
-        <path
-          d={path}
-          fill={shouldFill ? styles.fill : 'none'}
-          stroke="transparent"
-          strokeWidth={Math.min(4, strokeWidth * 2)}
-          strokeLinejoin="round"
-          strokeLinecap="round"
-          pointerEvents={shouldFill ? 'all' : 'stroke'}
-        />
-        <path
-          d={path}
-          fill="transparent"
-          stroke={styles.stroke}
-          strokeWidth={sw}
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinejoin="round"
-          strokeLinecap="round"
-          pointerEvents="stroke"
-        />
-      </>
-    )
-  }
+  )
 
   renderIndicator(shape: DrawShape): JSX.Element {
     const { points } = shape

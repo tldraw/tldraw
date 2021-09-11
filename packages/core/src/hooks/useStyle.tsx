@@ -111,6 +111,9 @@ const tlcss = css`
   .tl-container {
     --tl-zoom: 1;
     --tl-scale: calc(1 / var(--tl-zoom));
+    --tl-camera-x: 0px;
+    --tl-camera-y: 0px;
+    --tl-padding: calc(32px * var(--tl-scale));
     position: relative;
     box-sizing: border-box;
     width: 100%;
@@ -125,6 +128,37 @@ const tlcss = css`
   .tl-container * {
     user-select: none;
     box-sizing: border-box;
+  }
+
+  .tl-absolute {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    transform-origin: center center;
+  }
+
+  .tl-positioned {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    transform-origin: center center;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tl-positioned-svg {
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .tl-layer {
+    transform: scale(var(--tl-zoom), var(--tl-zoom))
+      translate(var(--tl-camera-x), var(--tl-camera-y));
+    height: 0;
+    width: 0;
   }
 
   .tl-counter-scaled {
@@ -190,6 +224,10 @@ const tlcss = css`
     pointer-events: none;
   }
 
+  .tl-bounds {
+    pointer-events: none;
+  }
+
   .tl-bounds-center {
     fill: transparent;
     stroke: var(--tl-selectStroke);
@@ -210,10 +248,7 @@ const tlcss = css`
   }
 
   .tl-canvas {
-    position: absolute;
     overflow: hidden;
-    top: 0px;
-    left: 0px;
     width: 100%;
     height: 100%;
     touch-action: none;
@@ -256,6 +291,7 @@ const tlcss = css`
     fill: transparent;
     stroke: none;
     pointer-events: all;
+    r: calc(20 / max(1, var(--tl-zoom)));
   }
 
   .tl-binding-indicator {
@@ -264,16 +300,20 @@ const tlcss = css`
     stroke: var(--tl-selected);
   }
 
-  .tl-shape-group {
+  .tl-shape {
     outline: none;
   }
 
-  .tl-shape-group > *[data-shy='true'] {
+  .tl-shape > *[data-shy='true'] {
     opacity: 0;
   }
 
-  .tl-shape-group:hover > *[data-shy='true'] {
+  .tl-shape:hover > *[data-shy='true'] {
     opacity: 1;
+  }
+
+  .tl-centered-g {
+    transform: translate(var(--tl-padding), var(--tl-padding));
   }
 
   .tl-current-parent > *[data-shy='true'] {

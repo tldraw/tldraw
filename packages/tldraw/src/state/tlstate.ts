@@ -72,7 +72,7 @@ const defaultState: Data = {
   settings: {
     isPenMode: false,
     isDarkMode: false,
-    isZoomSnap: true,
+    isZoomSnap: false,
     isDebugMode: process.env.NODE_ENV === 'development',
     isReadonlyMode: false,
     nudgeDistanceLarge: 10,

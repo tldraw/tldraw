@@ -13,7 +13,9 @@ import type {
 } from '~types'
 
 export class TLDR {
-  static getShapeUtils<T extends TLDrawShape>(shape: T | T['type']): TLDrawShapeUtil<T> {
+  static getShapeUtils<T extends TLDrawShape>(
+    shape: T | T['type']
+  ): TLDrawShapeUtil<T, HTMLElement | SVGElement> {
     return getShapeUtils(typeof shape === 'string' ? ({ type: shape } as T) : shape)
   }
 

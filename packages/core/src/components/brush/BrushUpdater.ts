@@ -2,7 +2,7 @@ import * as React from 'react'
 import type { TLBounds } from '+types'
 
 export class BrushUpdater {
-  ref = React.createRef<SVGRectElement>()
+  ref = React.createRef<SVGSVGElement>()
 
   isControlled = false
 
@@ -18,8 +18,7 @@ export class BrushUpdater {
     if (!elm) return
 
     elm.setAttribute('opacity', '1')
-    elm.setAttribute('x', bounds.minX.toString())
-    elm.setAttribute('y', bounds.minY.toString())
+    elm.setAttribute('transform', `translate(${bounds.minX.toString()}, ${bounds.minY.toString()})`)
     elm.setAttribute('width', bounds.width.toString())
     elm.setAttribute('height', bounds.height.toString())
   }

@@ -2,13 +2,15 @@ import { useTLContext } from '+hooks'
 import * as React from 'react'
 import type { TLShapeUtil, TLRenderInfo, TLShape } from '+types'
 
-interface EditingShapeProps<T extends TLShape> extends TLRenderInfo {
+interface EditingShapeProps<T extends TLShape, E extends HTMLElement | SVGElement>
+  extends TLRenderInfo {
   shape: T
-  utils: TLShapeUtil<T>
+  utils: TLShapeUtil<T, E>
 }
 
-export function EditingTextShape({
+export function EditingTextShape<T extends TLShape, E extends HTMLElement | SVGElement>({
   shape,
+  events,
   utils,
   isEditing,
   isBinding,
@@ -16,12 +18,12 @@ export function EditingTextShape({
   isSelected,
   isCurrentParent,
   meta,
-}: EditingShapeProps<TLShape>) {
+}: EditingShapeProps<T, E>) {
   const {
     callbacks: { onTextChange, onTextBlur, onTextFocus, onTextKeyDown, onTextKeyUp },
   } = useTLContext()
 
-  const ref = React.useRef<HTMLElement>(null)
+  const ref = React.useRef<E>(null)
 
   React.useEffect(() => {
     // Firefox fix?
@@ -32,18 +34,22 @@ export function EditingTextShape({
     }, 0)
   }, [shape.id])
 
-  return utils.render(shape, {
+  return utils.render({
     ref,
+    shape,
     isEditing,
     isHovered,
     isSelected,
     isCurrentParent,
     isBinding,
-    onTextChange,
-    onTextBlur,
-    onTextFocus,
-    onTextKeyDown,
-    onTextKeyUp,
+    events: {
+      ...events,
+      onTextChange,
+      onTextBlur,
+      onTextFocus,
+      onTextKeyDown,
+      onTextKeyUp,
+    },
     meta,
   })
 }
