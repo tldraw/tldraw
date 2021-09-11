@@ -5,7 +5,6 @@ import { CenterHandle } from './center-handle'
 import { RotateHandle } from './rotate-handle'
 import { CornerHandle } from './corner-handle'
 import { EdgeHandle } from './edge-handle'
-import { usePosition } from '+hooks'
 import { Container } from '+components/container'
 import { SVGContainer } from '+components/svg-container'
 
