@@ -51,7 +51,7 @@ export class DrawSession implements Session {
         const bounds = Utils.getBoundsFromPoints(this.points)
         if (bounds.width > 8 || bounds.height > 8) {
           this.isLocked = true
-          const returning = [...this.previous]
+          const returning = [...this.last]
 
           const isVertical = bounds.height > 8
 
@@ -80,16 +80,9 @@ export class DrawSession implements Session {
     }
 
     // The previous input (not adjusted) point
-    this.previous = point
-
-    const prevTopLeft = [...this.topLeft]
-
-    this.topLeft = [Math.min(this.topLeft[0], point[0]), Math.min(this.topLeft[1], point[1])]
-
-    const delta = Vec.sub(this.topLeft, this.origin)
 
     // The new adjusted point
-    const newPoint = Vec.round(Vec.sub(this.previous, this.origin)).concat(pressure)
+    const newPoint = Vec.round(Vec.sub(point, this.origin)).concat(pressure)
 
     // Don't add duplicate points. Be sure to
     // test against the previous *adjusted* point.
@@ -98,12 +91,19 @@ export class DrawSession implements Session {
     // The new adjusted point is now the previous adjusted point.
     this.last = newPoint
 
-    let points: number[][]
+    // Does the input point create a new top left?
+    const prevTopLeft = [...this.topLeft]
+
+    this.topLeft = [Math.min(this.topLeft[0], point[0]), Math.min(this.topLeft[1], point[1])]
+
+    const delta = Vec.sub(this.topLeft, this.origin)
 
     // Add the new adjusted point to the points array
     this.points.push(newPoint)
 
     // Time to shift some points!
+
+    let points: number[][]
 
     if (Vec.isEqual(prevTopLeft, this.topLeft)) {
       // If the new top left is the same as the previous top left,
@@ -114,7 +114,7 @@ export class DrawSession implements Session {
       // If we have a new top left, then we need to iterate through
       // the "unshifted" points array and shift them based on the
       // offset between the new top left and the original top left.
-      points = this.points.map((pt) => Vec.sub(pt, delta))
+      points = this.points.map((pt) => [pt[0] - delta[0], pt[1] - delta[1], pt[2]])
     }
 
     this.shiftedPoints = points

@@ -308,7 +308,9 @@ function getDrawStrokePath(shape: DrawShape, isEditing: boolean) {
 
   const stroke = getStroke(shape.points.slice(2), {
     size: 1 + styles.strokeWidth * 2,
-    thinning: 0.85,
+    thinning: 0.8,
+    streamline: 0.7,
+    smoothing: 0.6,
     end: { taper: +styles.strokeWidth * 50 },
     start: { taper: +styles.strokeWidth * 50 },
     ...options,
