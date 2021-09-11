@@ -38,7 +38,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape, SVGGElement> {
   }
 
   render = React.forwardRef<SVGGElement, TLShapeProps<EllipseShape, SVGGElement>>(
-    ({ shape, meta, isBinding, events }) => {
+    ({ shape, meta, isBinding, events }, ref) => {
       const {
         radius: [radiusX, radiusY],
         style,
@@ -56,7 +56,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape, SVGGElement> {
         )
 
         return (
-          <g {...events}>
+          <g ref={ref} {...events}>
             {isBinding && (
               <ellipse
                 className="tl-binding-indicator"
@@ -102,7 +102,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape, SVGGElement> {
       const sw = strokeWidth * 1.618
 
       return (
-        <g {...events}>
+        <g ref={ref} {...events}>
           {isBinding && (
             <ellipse
               className="tl-binding-indicator"

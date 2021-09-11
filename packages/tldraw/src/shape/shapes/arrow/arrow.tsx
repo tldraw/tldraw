@@ -72,7 +72,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape, SVGGElement> {
   }
 
   render = React.forwardRef<SVGGElement, TLShapeProps<ArrowShape, SVGGElement>>(
-    ({ shape, meta, events }) => {
+    ({ shape, meta, events }, ref) => {
       const {
         handles: { start, bend, end },
         decorations = {},
@@ -220,7 +220,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape, SVGGElement> {
       const sw = strokeWidth * 1.618
 
       return (
-        <g {...events}>
+        <g ref={ref} {...events}>
           <g pointerEvents="none">
             {shaftPath}
             {startArrowHead && (

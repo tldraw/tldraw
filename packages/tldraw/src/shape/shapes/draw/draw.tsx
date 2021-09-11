@@ -31,7 +31,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGGElement> {
   }
 
   render = React.forwardRef<SVGGElement, TLShapeProps<DrawShape, SVGGElement>>(
-    ({ shape, meta, events, isEditing }) => {
+    ({ shape, meta, events, isEditing }, ref) => {
       const { points, style } = shape
 
       const styles = getShapeStyle(style, meta.isDarkMode)
@@ -47,7 +47,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGGElement> {
         const sw = strokeWidth * 0.618
 
         return (
-          <g {...events}>
+          <g ref={ref} {...events}>
             <circle
               r={strokeWidth * 0.618}
               fill={styles.stroke}
@@ -76,7 +76,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGGElement> {
           : Utils.getFromCache(this.drawPathCache, points, () => getDrawStrokePath(shape, false))
 
         return (
-          <g {...events}>
+          <g ref={ref} {...events}>
             {shouldFill && (
               <path
                 d={polygonPathData}
@@ -121,7 +121,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGGElement> {
       const sw = strokeWidth * 1.618
 
       return (
-        <g {...events}>
+        <g ref={ref} {...events}>
           <path
             d={path}
             fill={shouldFill ? styles.fill : 'none'}
@@ -259,19 +259,6 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGGElement> {
     info: TLTransformInfo<DrawShape>
   ): Partial<DrawShape> {
     return this.transform(shape, bounds, info)
-  }
-
-  onSessionComplete(shape: DrawShape): Partial<DrawShape> {
-    const bounds = this.getBounds(shape)
-
-    const [x1, y1] = Vec.round(Vec.sub([bounds.minX, bounds.minY], shape.point))
-
-    const points = shape.points.map(([x0, y0, p]) => Vec.round([x0 - x1, y0 - y1]).concat(p))
-
-    return {
-      points,
-      point: Vec.add(shape.point, [x1, y1]),
-    }
   }
 }
 

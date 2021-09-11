@@ -39,7 +39,7 @@ export class Group extends TLDrawShapeUtil<GroupShape, SVGGElement> {
   }
 
   render = React.forwardRef<SVGGElement, TLShapeProps<GroupShape, SVGGElement>>(
-    ({ shape, isBinding, isHovered, isSelected, events }) => {
+    ({ shape, isBinding, isHovered, isSelected, events }, ref) => {
       const { id, size } = shape
 
       const sw = 2
@@ -77,7 +77,7 @@ export class Group extends TLDrawShapeUtil<GroupShape, SVGGElement> {
       })
 
       return (
-        <g {...events}>
+        <g ref={ref} {...events}>
           {isBinding && (
             <rect
               className="tl-binding-indicator"

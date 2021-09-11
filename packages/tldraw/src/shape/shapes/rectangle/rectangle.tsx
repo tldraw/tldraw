@@ -42,10 +42,6 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGGElement> {
       const styles = getShapeStyle(style, meta.isDarkMode)
       const strokeWidth = +styles.strokeWidth
 
-      React.useEffect(() => {
-        console.log(this.refMap.get(shape.id))
-      }, [])
-
       if (style.dash === DashStyle.Draw) {
         const pathData = Utils.getFromCache(this.pathCache, shape.size, () => renderPath(shape))
 
@@ -166,7 +162,6 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGGElement> {
   }
 
   getBounds(shape: RectangleShape) {
-    console.log(this.refMap.get(shape.id))
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       const [width, height] = shape.size
       return {
