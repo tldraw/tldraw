@@ -52,19 +52,19 @@ export const Shape = <
             isEditing={true}
             isHovered={isHovered}
             isSelected={isSelected}
-            utils={utils}
-            meta={meta}
+            utils={utils as any}
+            meta={meta as any}
             events={events}
           />
         ) : (
           <RenderedShape
             shape={shape}
-            utils={utils as any}
             isBinding={isBinding}
             isCurrentParent={isCurrentParent}
             isEditing={isEditing}
             isHovered={isHovered}
             isSelected={isSelected}
+            utils={utils as any}
             meta={meta as any}
             events={events}
           />
