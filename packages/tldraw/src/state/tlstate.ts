@@ -2394,6 +2394,8 @@ export class TLDrawState extends StateManager<Data> {
             }
 
             // Start a brush session
+            // TODO: Don't start a brush session right away: we might
+            // be "maybe brushing" or "maybe double clicking"
             this.startBrushSession(this.getPagePoint(info.point))
             break
           }
@@ -2407,13 +2409,9 @@ export class TLDrawState extends StateManager<Data> {
     // Unused
     switch (this.appState.status.current) {
       case TLDrawStatus.Idle: {
-        switch (this.appState.activeTool) {
-          case TLDrawShapeType.Text: {
-            // Create a text shape
-            this.createActiveToolShape(info.point)
-            break
-          }
-        }
+        // TODO: Create a text shape
+        // this.selectTool(TLDrawShapeType.Text)
+        // this.createActiveToolShape(info.point)
         break
       }
     }

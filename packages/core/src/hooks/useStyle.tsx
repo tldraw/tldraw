@@ -153,6 +153,13 @@ const tlcss = css`
     height: 100%;
   }
 
+  .tl-positioned-div {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: var(--tl-padding);
+  }
+
   .tl-layer {
     transform: scale(var(--tl-zoom), var(--tl-zoom))
       translate(var(--tl-camera-x), var(--tl-camera-y));

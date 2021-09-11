@@ -2,7 +2,7 @@ import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
 import styled from '~styles'
-import type { Data, TLDrawDocument } from '~types'
+import { Data, TLDrawDocument, TLDrawStatus, TLDrawToolType } from '~types'
 import { TLDrawState } from '~state'
 import { TLDrawContext, useCustomFonts, useKeyboardShortcuts, useTLDrawContext } from '~hooks'
 import { tldrawShapeUtils } from '~shape'
@@ -109,7 +109,8 @@ function InnerTldraw({
   const hideHandles = isInSession || !isSelecting
 
   // Hide indicators when not using the select tool, or when in session
-  const hideIndicators = isInSession || !isSelecting
+  const hideIndicators =
+    (isInSession && tlstate.appState.status.current !== TLDrawStatus.Brushing) || !isSelecting
 
   // Custom rendering meta, with dark mode for shapes
   const meta = React.useMemo(() => ({ isDarkMode }), [isDarkMode])

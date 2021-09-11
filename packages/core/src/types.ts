@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* --------------------- Primary -------------------- */
 
+import { Intersect, Vec } from '+utils'
 import React, { ForwardedRef } from 'react'
 
 export type Patch<T> = Partial<{ [P in keyof T]: T | Partial<T> | Patch<T[P]> }>
@@ -304,16 +305,6 @@ export abstract class TLShapeUtil<T extends TLShape, E extends HTMLElement | SVG
 
   abstract getRotatedBounds(shape: T): TLBounds
 
-  abstract hitTest(shape: T, point: number[]): boolean
-
-  abstract hitTestBounds(shape: T, bounds: TLBounds): boolean
-
-  abstract transform(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T>
-
-  transformSingle(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T> {
-    return this.transform(shape, bounds, info)
-  }
-
   shouldRender(_prev: T, _next: T): boolean {
     return true
   }
@@ -354,6 +345,14 @@ export abstract class TLShapeUtil<T extends TLShape, E extends HTMLElement | SVG
 
   mutate(shape: T, props: Partial<T>): T {
     return { ...shape, ...props }
+  }
+
+  transform(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T> | void {
+    return undefined
+  }
+
+  transformSingle(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T> | void {
+    return this.transform(shape, bounds, info)
   }
 
   updateChildren<K extends TLShape>(shape: T, children: K[]): Partial<K>[] | void {
@@ -408,6 +407,40 @@ export abstract class TLShapeUtil<T extends TLShape, E extends HTMLElement | SVG
 
   onStyleChange(shape: T): Partial<T> | void {
     return
+  }
+
+  hitTest(shape: T, point: number[]) {
+    const bounds = this.getBounds(shape)
+    return !(
+      point[0] < bounds.minX ||
+      point[0] > bounds.maxX ||
+      point[1] < bounds.minY ||
+      point[1] > bounds.maxY
+    )
+  }
+
+  hitTestBounds(shape: T, bounds: TLBounds) {
+    const { minX, minY, maxX, maxY, width, height } = this.getBounds(shape)
+    const center = [minX + width / 2, minY + height / 2]
+
+    const corners = [
+      [minX, minY],
+      [maxX, minY],
+      [maxX, maxY],
+      [minX, maxY],
+    ].map((point) => Vec.rotWith(point, center, shape.rotation || 0))
+
+    return (
+      corners.every(
+        (point) =>
+          !(
+            point[0] < bounds.minX ||
+            point[0] > bounds.maxX ||
+            point[1] < bounds.minY ||
+            point[1] > bounds.maxY
+          )
+      ) || Intersect.polyline.bounds(corners, bounds).length > 0
+    )
   }
 }
 
