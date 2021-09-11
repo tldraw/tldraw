@@ -18,13 +18,13 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   branch: IShapeTreeNode<T, M>[],
   shapes: TLPage<T, TLBinding>['shapes'],
   pageState: {
-    bindingTargetId?: string
-    bindingId?: string
-    hoveredId?: string
+    bindingTargetId?: string | null
+    bindingId?: string | null
+    hoveredId?: string | null
     selectedIds: string[]
-    currentParentId?: string
-    editingId?: string
-    editingBindingId?: string
+    currentParentId?: string | null
+    editingId?: string | null
+    editingBindingId?: string | null
   },
   meta?: M
 ) {

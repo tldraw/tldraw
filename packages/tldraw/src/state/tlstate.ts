@@ -408,6 +408,7 @@ export class TLDrawState extends StateManager<Data> {
    */
   selectTool = (tool: TLDrawShapeType | 'select'): this => {
     if (this.session) return this
+
     return this.patchState(
       {
         appState: {
@@ -462,10 +463,10 @@ export class TLDrawState extends StateManager<Data> {
           document: {
             pageStates: {
               [this.currentPageId]: {
-                bindingId: undefined,
-                editingId: undefined,
-                hoveredId: undefined,
-                pointedId: undefined,
+                bindingId: null,
+                editingId: null,
+                hoveredId: null,
+                pointedId: null,
               },
             },
           },
@@ -1356,6 +1357,7 @@ export class TLDrawState extends StateManager<Data> {
 
     if (result === undefined) {
       this.isCreating = false
+
       return this.patchState(
         {
           appState: {
@@ -1391,24 +1393,9 @@ export class TLDrawState extends StateManager<Data> {
             pageStates: {
               [this.currentPageId]: {
                 selectedIds: [],
-                editingId: undefined,
-                bindingId: undefined,
-                hoveredId: undefined,
-              },
-            },
-          },
-        }
-
-        // ...and set editingId back to undefined
-        result.after = {
-          ...result.after,
-          document: {
-            ...result.after.document,
-            pageStates: {
-              ...result.after.document?.pageStates,
-              [this.currentPageId]: {
-                ...(result.after.document?.pageStates || {})[this.currentPageId],
-                editingId: undefined,
+                editingId: null,
+                bindingId: null,
+                hoveredId: null,
               },
             },
           },
@@ -1431,6 +1418,17 @@ export class TLDrawState extends StateManager<Data> {
         },
       }
 
+      result.after.document = {
+        ...result.after.document,
+        pageStates: {
+          ...result.after.document?.pageStates,
+          [this.currentPageId]: {
+            ...(result.after.document?.pageStates || {})[this.currentPageId],
+            editingId: null,
+          },
+        },
+      }
+
       this.setState(result, `session:complete:${session.id}`)
     } else {
       this.patchState(
@@ -1446,7 +1444,7 @@ export class TLDrawState extends StateManager<Data> {
           document: {
             pageStates: {
               [this.currentPageId]: {
-                editingId: undefined,
+                editingId: null,
               },
             },
           },
@@ -2399,6 +2397,9 @@ export class TLDrawState extends StateManager<Data> {
           }
         }
         break
+      }
+      case TLDrawStatus.EditingText: {
+        this.completeSession()
       }
     }
   }

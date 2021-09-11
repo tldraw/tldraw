@@ -146,7 +146,7 @@ export class TextSession implements Session {
           },
           pageState: {
             [pageId]: {
-              editingId: undefined,
+              editingId: null,
             },
           },
         },
@@ -166,7 +166,7 @@ export class TextSession implements Session {
           },
           pageState: {
             [pageId]: {
-              editingId: undefined,
+              editingId: null,
               selectedIds: [initialShape.id],
             },
           },

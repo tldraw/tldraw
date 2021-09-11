@@ -24,12 +24,12 @@ export interface TLPageState {
     zoom: number
   }
   brush?: TLBounds
-  pointedId?: string
-  hoveredId?: string
-  editingId?: string
-  bindingId?: string
+  pointedId?: string | null
+  hoveredId?: string | null
+  editingId?: string | null
+  bindingId?: string | null
   boundsRotation?: number
-  currentParentId?: string
+  currentParentId?: string | null
 }
 
 export interface TLHandle {
