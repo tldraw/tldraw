@@ -151,7 +151,6 @@ const tlcss = css`
   .tl-positioned-svg {
     width: 100%;
     height: 100%;
-    pointer-events: none;
   }
 
   .tl-layer {

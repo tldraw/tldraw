@@ -1,5 +1,13 @@
 import * as React from 'react'
-import { TLBounds, Utils, Vec, TLTransformInfo, Intersect, TLShapeProps } from '@tldraw/core'
+import {
+  SVGContainer,
+  TLBounds,
+  Utils,
+  Vec,
+  TLTransformInfo,
+  Intersect,
+  TLShapeProps,
+} from '@tldraw/core'
 import { getShapeStyle, getFontSize, getFontStyle, defaultStyle } from '~shape/shape-styles'
 import { TextShape, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType, ArrowShape } from '~types'
 import styled from '~styles'
@@ -49,7 +57,7 @@ if (typeof window !== 'undefined') {
   melm = getMeasurementDiv()
 }
 
-export class Text extends TLDrawShapeUtil<TextShape, SVGGElement> {
+export class Text extends TLDrawShapeUtil<TextShape, SVGSVGElement> {
   type = TLDrawShapeType.Text as const
   toolType = TLDrawToolType.Text
   isAspectRatioLocked = true
@@ -83,7 +91,7 @@ export class Text extends TLDrawShapeUtil<TextShape, SVGGElement> {
     )
   }
 
-  render = React.forwardRef<SVGGElement, TLShapeProps<TextShape, SVGGElement>>(
+  render = React.forwardRef<SVGSVGElement, TLShapeProps<TextShape, SVGSVGElement>>(
     ({ shape, meta, isEditing, isBinding, events }, ref) => {
       const rInput = React.useRef<HTMLTextAreaElement>(null)
       const { id, text, style } = shape
@@ -151,7 +159,7 @@ export class Text extends TLDrawShapeUtil<TextShape, SVGGElement> {
 
       if (!isEditing) {
         return (
-          <g ref={ref} {...events}>
+          <SVGContainer ref={ref} {...events}>
             {isBinding && (
               <rect
                 className="tl-binding-indicator"
@@ -183,41 +191,43 @@ export class Text extends TLDrawShapeUtil<TextShape, SVGGElement> {
                 {str}
               </text>
             ))}
-          </g>
+          </SVGContainer>
         )
       }
 
       return (
-        <foreignObject
-          width={bounds.width}
-          height={bounds.height}
-          pointerEvents="none"
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <StyledTextArea
-            ref={rInput}
-            style={{
-              font,
-              color: styles.stroke,
-            }}
-            name="text"
-            defaultValue={text}
-            tabIndex={-1}
-            autoComplete="false"
-            autoCapitalize="false"
-            autoCorrect="false"
-            autoSave="false"
-            placeholder=""
-            color={styles.stroke}
-            autoFocus={true}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            onKeyUp={handleKeyUp}
-            onChange={handleChange}
-            onPointerDown={handlePointerDown}
-          />
-        </foreignObject>
+        <SVGContainer ref={ref} {...events}>
+          <foreignObject
+            width={bounds.width}
+            height={bounds.height}
+            pointerEvents="none"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <StyledTextArea
+              ref={rInput}
+              style={{
+                font,
+                color: styles.stroke,
+              }}
+              name="text"
+              defaultValue={text}
+              tabIndex={-1}
+              autoComplete="false"
+              autoCapitalize="false"
+              autoCorrect="false"
+              autoSave="false"
+              placeholder=""
+              color={styles.stroke}
+              autoFocus={true}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              onKeyUp={handleKeyUp}
+              onChange={handleChange}
+              onPointerDown={handlePointerDown}
+            />
+          </foreignObject>
+        </SVGContainer>
       )
     }
   )

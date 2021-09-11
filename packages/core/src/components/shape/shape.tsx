@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { usePosition, useShapeEvents } from '+hooks'
-import type { IShapeTreeNode, TLBounds, TLShape, TLShapeUtil } from '+types'
+import { useShapeEvents } from '+hooks'
+import type { IShapeTreeNode, TLShape, TLShapeUtil } from '+types'
 import { RenderedShape } from './rendered-shape'
 import { EditingTextShape } from './editing-text-shape'
 import { Container } from '+components/container'
-import { SVGContainer } from '+components/svg-container'
 
 // function setTransform(elm: HTMLDivElement, bounds: TLBounds, rotation = 0) {
 //   const transform = `
@@ -43,33 +42,31 @@ export const Shape = <
       bounds={bounds}
       rotation={shape.rotation}
     >
-      <SVGContainer>
-        {isEditing && utils.isEditableText ? (
-          <EditingTextShape
-            shape={shape}
-            isBinding={false}
-            isCurrentParent={false}
-            isEditing={true}
-            isHovered={isHovered}
-            isSelected={isSelected}
-            utils={utils as any}
-            meta={meta as any}
-            events={events}
-          />
-        ) : (
-          <RenderedShape
-            shape={shape}
-            isBinding={isBinding}
-            isCurrentParent={isCurrentParent}
-            isEditing={isEditing}
-            isHovered={isHovered}
-            isSelected={isSelected}
-            utils={utils as any}
-            meta={meta as any}
-            events={events}
-          />
-        )}
-      </SVGContainer>
+      {isEditing && utils.isEditableText ? (
+        <EditingTextShape
+          shape={shape}
+          isBinding={false}
+          isCurrentParent={false}
+          isEditing={true}
+          isHovered={isHovered}
+          isSelected={isSelected}
+          utils={utils as any}
+          meta={meta as any}
+          events={events}
+        />
+      ) : (
+        <RenderedShape
+          shape={shape}
+          isBinding={isBinding}
+          isCurrentParent={isCurrentParent}
+          isEditing={isEditing}
+          isHovered={isHovered}
+          isSelected={isSelected}
+          utils={utils as any}
+          meta={meta as any}
+          events={events}
+        />
+      )}
     </Container>
   )
 }

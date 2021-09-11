@@ -1,10 +1,18 @@
 import * as React from 'react'
-import { TLBounds, Utils, Vec, TLTransformInfo, Intersect, TLShapeProps } from '@tldraw/core'
+import {
+  SVGContainer,
+  TLBounds,
+  Utils,
+  Vec,
+  TLTransformInfo,
+  Intersect,
+  TLShapeProps,
+} from '@tldraw/core'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { DrawShape, DashStyle, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType } from '~types'
 
-export class Draw extends TLDrawShapeUtil<DrawShape, SVGGElement> {
+export class Draw extends TLDrawShapeUtil<DrawShape, SVGSVGElement> {
   type = TLDrawShapeType.Draw as const
   toolType = TLDrawToolType.Draw
 
@@ -30,7 +38,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGGElement> {
     return next.points !== prev.points || next.style !== prev.style
   }
 
-  render = React.forwardRef<SVGGElement, TLShapeProps<DrawShape, SVGGElement>>(
+  render = React.forwardRef<SVGSVGElement, TLShapeProps<DrawShape, SVGSVGElement>>(
     ({ shape, meta, events, isEditing }, ref) => {
       const { points, style } = shape
 
@@ -47,7 +55,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGGElement> {
         const sw = strokeWidth * 0.618
 
         return (
-          <g ref={ref} {...events}>
+          <SVGContainer ref={ref} {...events}>
             <circle
               r={strokeWidth * 0.618}
               fill={styles.stroke}
@@ -55,7 +63,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGGElement> {
               strokeWidth={sw}
               pointerEvents="all"
             />
-          </g>
+          </SVGContainer>
         )
       }
 
@@ -76,7 +84,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGGElement> {
           : Utils.getFromCache(this.drawPathCache, points, () => getDrawStrokePath(shape, false))
 
         return (
-          <g ref={ref} {...events}>
+          <SVGContainer ref={ref} {...events}>
             {shouldFill && (
               <path
                 d={polygonPathData}
@@ -96,7 +104,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGGElement> {
               strokeLinecap="round"
               pointerEvents="all"
             />
-          </g>
+          </SVGContainer>
         )
       }
 
@@ -121,7 +129,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGGElement> {
       const sw = strokeWidth * 1.618
 
       return (
-        <g ref={ref} {...events}>
+        <SVGContainer ref={ref} {...events}>
           <path
             d={path}
             fill={shouldFill ? styles.fill : 'none'}
@@ -142,7 +150,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGGElement> {
             strokeLinecap="round"
             pointerEvents="stroke"
           />
-        </g>
+        </SVGContainer>
       )
     }
   )

@@ -1,5 +1,13 @@
 import * as React from 'react'
-import { TLBounds, Utils, Vec, TLTransformInfo, Intersect, TLShapeProps } from '@tldraw/core'
+import {
+  TLBounds,
+  Utils,
+  Vec,
+  TLTransformInfo,
+  Intersect,
+  TLShapeProps,
+  SVGContainer,
+} from '@tldraw/core'
 import getStroke from 'perfect-freehand'
 import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import {
@@ -14,7 +22,7 @@ import {
 // TODO
 // [ ] - Make sure that fill does not extend drawn shape at corners
 
-export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGGElement> {
+export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGSVGElement> {
   type = TLDrawShapeType.Rectangle as const
   toolType = TLDrawToolType.Bounds
   canBind = true
@@ -36,7 +44,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGGElement> {
     return next.size !== prev.size || next.style !== prev.style
   }
 
-  render = React.forwardRef<SVGGElement, TLShapeProps<RectangleShape, SVGGElement>>(
+  render = React.forwardRef<SVGSVGElement, TLShapeProps<RectangleShape, SVGSVGElement>>(
     ({ shape, isBinding, meta, events }, ref) => {
       const { id, size, style } = shape
       const styles = getShapeStyle(style, meta.isDarkMode)
@@ -46,7 +54,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGGElement> {
         const pathData = Utils.getFromCache(this.pathCache, shape.size, () => renderPath(shape))
 
         return (
-          <g ref={ref} {...events}>
+          <SVGContainer ref={ref} {...events}>
             {isBinding && (
               <rect
                 className="tl-binding-indicator"
@@ -72,7 +80,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGGElement> {
               strokeWidth={styles.strokeWidth}
               pointerEvents="all"
             />
-          </g>
+          </SVGContainer>
         )
       }
 

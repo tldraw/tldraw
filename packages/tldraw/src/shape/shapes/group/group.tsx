@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { TLBounds, Utils, Vec, Intersect, TLShapeProps } from '@tldraw/core'
+import { SVGContainer, TLBounds, Utils, Vec, Intersect, TLShapeProps } from '@tldraw/core'
 import { defaultStyle, getPerfectDashProps } from '~shape/shape-styles'
 import {
   GroupShape,
@@ -14,7 +14,7 @@ import {
 // TODO
 // [ ] - Find bounds based on common bounds of descendants
 
-export class Group extends TLDrawShapeUtil<GroupShape, SVGGElement> {
+export class Group extends TLDrawShapeUtil<GroupShape, SVGSVGElement> {
   type = TLDrawShapeType.Group as const
   toolType = TLDrawToolType.Bounds
   canBind = true
@@ -38,7 +38,7 @@ export class Group extends TLDrawShapeUtil<GroupShape, SVGGElement> {
     return next.size !== prev.size || next.style !== prev.style
   }
 
-  render = React.forwardRef<SVGGElement, TLShapeProps<GroupShape, SVGGElement>>(
+  render = React.forwardRef<SVGSVGElement, TLShapeProps<GroupShape, SVGSVGElement>>(
     ({ shape, isBinding, isHovered, isSelected, events }, ref) => {
       const { id, size } = shape
 
@@ -77,7 +77,7 @@ export class Group extends TLDrawShapeUtil<GroupShape, SVGGElement> {
       })
 
       return (
-        <g ref={ref} {...events}>
+        <SVGContainer ref={ref} {...events}>
           {isBinding && (
             <rect
               className="tl-binding-indicator"
@@ -96,7 +96,7 @@ export class Group extends TLDrawShapeUtil<GroupShape, SVGGElement> {
             pointerEvents="all"
           />
           <g pointerEvents="stroke">{paths}</g>
-        </g>
+        </SVGContainer>
       )
     }
   )

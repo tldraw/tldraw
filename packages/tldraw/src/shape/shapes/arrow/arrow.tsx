@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {
+  SVGContainer,
   TLBounds,
   Utils,
   Vec,
@@ -20,10 +21,9 @@ import {
   DashStyle,
   TLDrawShape,
   ArrowBinding,
-  TLDrawRenderInfo,
 } from '~types'
 
-export class Arrow extends TLDrawShapeUtil<ArrowShape, SVGGElement> {
+export class Arrow extends TLDrawShapeUtil<ArrowShape, SVGSVGElement> {
   type = TLDrawShapeType.Arrow as const
   toolType = TLDrawToolType.Handle
   canStyleFill = false
@@ -71,7 +71,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape, SVGGElement> {
     return next.handles !== prev.handles || next.style !== prev.style
   }
 
-  render = React.forwardRef<SVGGElement, TLShapeProps<ArrowShape, SVGGElement>>(
+  render = React.forwardRef<SVGSVGElement, TLShapeProps<ArrowShape, SVGSVGElement>>(
     ({ shape, meta, events }, ref) => {
       const {
         handles: { start, bend, end },
@@ -220,7 +220,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape, SVGGElement> {
       const sw = strokeWidth * 1.618
 
       return (
-        <g ref={ref} {...events}>
+        <SVGContainer ref={ref} {...events}>
           <g pointerEvents="none">
             {shaftPath}
             {startArrowHead && (
@@ -250,7 +250,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape, SVGGElement> {
               />
             )}
           </g>
-        </g>
+        </SVGContainer>
       )
     }
   )

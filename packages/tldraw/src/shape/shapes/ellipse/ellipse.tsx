@@ -1,10 +1,17 @@
 import * as React from 'react'
-import { Utils, TLTransformInfo, TLBounds, Intersect, TLShapeProps, Vec } from '@tldraw/core'
+import {
+  SVGContainer,
+  Utils,
+  TLTransformInfo,
+  TLBounds,
+  Intersect,
+  TLShapeProps,
+  Vec,
+} from '@tldraw/core'
 import {
   ArrowShape,
   DashStyle,
   EllipseShape,
-  TLDrawRenderInfo,
   TLDrawShapeType,
   TLDrawShapeUtil,
   TLDrawToolType,
@@ -15,7 +22,7 @@ import getStroke from 'perfect-freehand'
 // TODO
 // [ ] Improve indicator shape for drawn shapes
 
-export class Ellipse extends TLDrawShapeUtil<EllipseShape, SVGGElement> {
+export class Ellipse extends TLDrawShapeUtil<EllipseShape, SVGSVGElement> {
   type = TLDrawShapeType.Ellipse as const
   toolType = TLDrawToolType.Bounds
   pathCache = new WeakMap<EllipseShape, string>([])
@@ -37,7 +44,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape, SVGGElement> {
     return next.radius !== prev.radius || next.style !== prev.style
   }
 
-  render = React.forwardRef<SVGGElement, TLShapeProps<EllipseShape, SVGGElement>>(
+  render = React.forwardRef<SVGSVGElement, TLShapeProps<EllipseShape, SVGSVGElement>>(
     ({ shape, meta, isBinding, events }, ref) => {
       const {
         radius: [radiusX, radiusY],
@@ -56,7 +63,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape, SVGGElement> {
         )
 
         return (
-          <g ref={ref} {...events}>
+          <SVGContainer ref={ref} {...events}>
             {isBinding && (
               <ellipse
                 className="tl-binding-indicator"
@@ -84,7 +91,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape, SVGGElement> {
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-          </g>
+          </SVGContainer>
         )
       }
 
@@ -102,7 +109,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape, SVGGElement> {
       const sw = strokeWidth * 1.618
 
       return (
-        <g ref={ref} {...events}>
+        <SVGContainer ref={ref} {...events}>
           {isBinding && (
             <ellipse
               className="tl-binding-indicator"
@@ -126,7 +133,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape, SVGGElement> {
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-        </g>
+        </SVGContainer>
       )
     }
   )
