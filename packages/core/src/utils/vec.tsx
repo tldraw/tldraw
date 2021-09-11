@@ -360,8 +360,8 @@ export class Vec {
     return Vec.isLeft(p1, pc, p2) > 0
   }
 
-  static round = (a: number[], d = 5): number[] => {
-    return a.map((v) => +v.toPrecision(d))
+  static round = (a: number[], d = 2): number[] => {
+    return a.map((v) => +v.toFixed(d))
   }
 
   /**

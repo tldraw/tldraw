@@ -7,16 +7,6 @@ import { RenderedShape } from './rendered-shape'
 import { Container } from '+components/container'
 import { useTLContext } from '+hooks'
 
-// function setTransform(elm: HTMLDivElement, bounds: TLBounds, rotation = 0) {
-//   const transform = `
-//   translate(calc(${bounds.minX}px - var(--tl-padding)),calc(${bounds.minY}px - var(--tl-padding)))
-//   rotate(${rotation + (bounds.rotation || 0)}rad)
-//   `
-//   elm.style.setProperty('transform', transform)
-//   elm.style.setProperty('width', `calc(${bounds.width}px + (var(--tl-padding) * 2))`)
-//   elm.style.setProperty('height', `calc(${bounds.height}px + (var(--tl-padding) * 2))`)
-// }
-
 export const Shape = <T extends TLShape, E extends Element, M extends Record<string, unknown>>({
   shape,
   utils,

@@ -17,27 +17,6 @@ interface BoundsProps {
   viewportWidth: number
 }
 
-// function setTransform(elm: SVGSVGElement, padding: number, bounds: TLBounds, rotation: number) {
-//   const center = Utils.getBoundsCenter(bounds)
-//   const transform = `
-//   rotate(${rotation * (180 / Math.PI)},${center})
-//   translate(${bounds.minX - padding},${bounds.minY - padding})
-//   rotate(${(bounds.rotation || 0) * (180 / Math.PI)},0,0)`
-//   elm.setAttribute('transform', transform)
-//   elm.setAttribute('width', bounds.width + padding * 2 + 'px')
-//   elm.setAttribute('height', bounds.height + padding * 2 + 'px')
-// }
-
-// function setTransform(elm: HTMLDivElement, bounds: TLBounds, rotation = 0) {
-//   const transform = `
-//   translate(calc(${bounds.minX}px - var(--tl-padding)),calc(${bounds.minY}px - var(--tl-padding)))
-//   rotate(${rotation + (bounds.rotation || 0)}rad)
-//   `
-//   elm.style.setProperty('transform', transform)
-//   elm.style.setProperty('width', `calc(${bounds.width}px + (var(--tl-padding) * 2))`)
-//   elm.style.setProperty('height', `calc(${bounds.height}px + (var(--tl-padding) * 2))`)
-// }
-
 export function Bounds({
   zoom,
   bounds,

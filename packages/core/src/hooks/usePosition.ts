@@ -9,11 +9,13 @@ export function usePosition(bounds: TLBounds, rotation = 0) {
     const elm = rBounds.current!
     const transform = `
     translate(calc(${bounds.minX}px - var(--tl-padding)),calc(${bounds.minY}px - var(--tl-padding)))
-    rotate(${rotation + (bounds.rotation || 0)}rad)
-    `
+    rotate(${rotation + (bounds.rotation || 0)}rad)`
     elm.style.setProperty('transform', transform)
-    elm.style.setProperty('width', `calc(${bounds.width}px + (var(--tl-padding) * 2))`)
-    elm.style.setProperty('height', `calc(${bounds.height}px + (var(--tl-padding) * 2))`)
+    elm.style.setProperty('width', `calc(${Math.floor(bounds.width)}px + (var(--tl-padding) * 2))`)
+    elm.style.setProperty(
+      'height',
+      `calc(${Math.floor(bounds.height)}px + (var(--tl-padding) * 2))`
+    )
   }, [rBounds, bounds, rotation])
 
   return rBounds
