@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { useShapeEvents } from '+hooks'
 import type { IShapeTreeNode, TLShape, TLShapeUtil } from '+types'
 import { RenderedShape } from './rendered-shape'
-import { EditingTextShape } from './editing-text-shape'
 import { Container } from '+components/container'
+import { useTLContext } from '+hooks'
 
 // function setTransform(elm: HTMLDivElement, bounds: TLBounds, rotation = 0) {
 //   const transform = `
@@ -16,11 +17,7 @@ import { Container } from '+components/container'
 //   elm.style.setProperty('height', `calc(${bounds.height}px + (var(--tl-padding) * 2))`)
 // }
 
-export const Shape = <
-  T extends TLShape,
-  E extends SVGElement | HTMLElement,
-  M extends Record<string, unknown>
->({
+export const Shape = <T extends TLShape, E extends Element, M extends Record<string, unknown>>({
   shape,
   utils,
   isEditing,
@@ -32,6 +29,7 @@ export const Shape = <
 }: IShapeTreeNode<T, M> & {
   utils: TLShapeUtil<T, E>
 }) => {
+  const { callbacks } = useTLContext()
   const bounds = utils.getBounds(shape)
   const events = useShapeEvents(shape.id, isCurrentParent)
 
@@ -42,31 +40,18 @@ export const Shape = <
       bounds={bounds}
       rotation={shape.rotation}
     >
-      {isEditing && utils.isEditableText ? (
-        <EditingTextShape
-          shape={shape}
-          isBinding={false}
-          isCurrentParent={false}
-          isEditing={true}
-          isHovered={isHovered}
-          isSelected={isSelected}
-          utils={utils as any}
-          meta={meta as any}
-          events={events}
-        />
-      ) : (
-        <RenderedShape
-          shape={shape}
-          isBinding={isBinding}
-          isCurrentParent={isCurrentParent}
-          isEditing={isEditing}
-          isHovered={isHovered}
-          isSelected={isSelected}
-          utils={utils as any}
-          meta={meta as any}
-          events={events}
-        />
-      )}
+      <RenderedShape
+        shape={shape}
+        isBinding={isBinding}
+        isCurrentParent={isCurrentParent}
+        isEditing={isEditing}
+        isHovered={isHovered}
+        isSelected={isSelected}
+        utils={utils as any}
+        meta={meta as any}
+        events={events}
+        onShapeChange={callbacks.onShapeChange}
+      />
     </Container>
   )
 }

@@ -13,7 +13,7 @@ export const ShapeNode = React.memo(
     isSelected,
     isCurrentParent,
     meta,
-  }: { utils: TLShapeUtils<TLShape, HTMLElement | SVGElement> } & IShapeTreeNode<TLShape, any>) => {
+  }: { utils: TLShapeUtils<TLShape, Element> } & IShapeTreeNode<TLShape, any>) => {
     return (
       <>
         <Shape

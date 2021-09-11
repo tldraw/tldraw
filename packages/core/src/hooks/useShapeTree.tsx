@@ -61,7 +61,7 @@ function shapeIsInViewport(bounds: TLBounds, viewport: TLBounds) {
 
 export function useShapeTree<
   T extends TLShape,
-  E extends SVGElement | HTMLElement,
+  E extends Element,
   M extends Record<string, unknown>
 >(
   page: TLPage<T, TLBinding>,
@@ -69,7 +69,7 @@ export function useShapeTree<
   shapeUtils: TLShapeUtils<T, E>,
   size: number[],
   meta?: M,
-  onChange?: TLCallbacks['onChange']
+  onRenderCountChange?: TLCallbacks<T>['onRenderCountChange']
 ) {
   const rTimeout = React.useRef<unknown>()
   const rPreviousCount = React.useRef(0)
@@ -128,7 +128,7 @@ export function useShapeTree<
       clearTimeout(rTimeout.current as number)
     }
     rTimeout.current = setTimeout(() => {
-      onChange?.(Array.from(shapesIdsToRender.values()))
+      onRenderCountChange?.(Array.from(shapesIdsToRender.values()))
     }, 100)
     rPreviousCount.current = shapesToRender.size
   }

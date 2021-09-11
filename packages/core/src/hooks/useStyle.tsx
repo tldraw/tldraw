@@ -115,11 +115,16 @@ const tlcss = css`
     --tl-camera-y: 0px;
     --tl-padding: calc(64px * var(--tl-scale));
     position: relative;
-    box-sizing: border-box;
+    top: 0px;
+    left: 0px;
     width: 100%;
     height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    box-sizing: border-box;
     padding: 0px;
     margin: 0px;
+    z-index: 100;
     touch-action: none;
     overscroll-behavior: none;
     background-color: var(--tl-background);
@@ -128,6 +133,25 @@ const tlcss = css`
   .tl-container * {
     user-select: none;
     box-sizing: border-box;
+  }
+
+  .tl-canvas {
+    position: absolute;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    pointer-events: all;
+  }
+
+  .tl-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 0;
+    width: 0;
+    transform: scale(var(--tl-zoom), var(--tl-zoom))
+      translate(var(--tl-camera-x), var(--tl-camera-y));
   }
 
   .tl-absolute {
@@ -141,6 +165,7 @@ const tlcss = css`
     position: absolute;
     top: 0px;
     left: 0px;
+    overflow: hidden;
     transform-origin: center center;
     pointer-events: none;
     display: flex;
@@ -151,20 +176,15 @@ const tlcss = css`
   .tl-positioned-svg {
     width: 100%;
     height: 100%;
+    overflow: hidden;
   }
 
   .tl-positioned-div {
     position: relative;
     width: 100%;
     height: 100%;
+    overflow: hidden;
     padding: var(--tl-padding);
-  }
-
-  .tl-layer {
-    transform: scale(var(--tl-zoom), var(--tl-zoom))
-      translate(var(--tl-camera-x), var(--tl-camera-y));
-    height: 0;
-    width: 0;
   }
 
   .tl-counter-scaled {
@@ -251,14 +271,6 @@ const tlcss = css`
     stroke: var(--tl-brushStroke);
     stroke-width: calc(1px * var(--tl-scale));
     pointer-events: none;
-  }
-
-  .tl-canvas {
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-    touch-action: none;
-    pointer-events: all;
   }
 
   .tl-dot {

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
-import { useSelection, useShapeTree, useHandles, useRenderOnResize, useTLContext } from '+hooks'
+import { useSelection, useShapeTree, useHandles, useTLContext } from '+hooks'
 import { Bounds } from '+components/bounds'
 import { BoundsBg } from '+components/bounds/bounds-bg'
 import { Handles } from '+components/handles'
@@ -30,7 +30,14 @@ export function Page<T extends TLShape, M extends Record<string, unknown>>({
 }: PageProps<T, M>): JSX.Element {
   const { callbacks, shapeUtils, inputs } = useTLContext()
 
-  const shapeTree = useShapeTree(page, pageState, shapeUtils, inputs.size, meta, callbacks.onChange)
+  const shapeTree = useShapeTree(
+    page,
+    pageState,
+    shapeUtils,
+    inputs.size,
+    meta,
+    callbacks.onRenderCountChange
+  )
 
   const { shapeWithHandles } = useHandles(page, pageState)
 

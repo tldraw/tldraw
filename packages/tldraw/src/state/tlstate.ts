@@ -16,7 +16,6 @@ import {
   TLPointerInfo,
   inputs,
   TLBounds,
-  Patch,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -2234,11 +2233,11 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   onPinchEnd: TLPinchEventHandler = () => {
-    if (this.state.settings.isZoomSnap) {
-      const i = Math.round((this.pageState.camera.zoom * 100) / 25)
-      const nextZoom = TLDR.getCameraZoom(i * 0.25)
-      this.zoomTo(nextZoom, inputs.pointer?.point)
-    }
+    // if (this.state.settings.isZoomSnap) {
+    //   const i = Math.round((this.pageState.camera.zoom * 100) / 25)
+    //   const nextZoom = TLDR.getCameraZoom(i * 0.25)
+    //   this.zoomTo(nextZoom, inputs.pointer?.point)
+    // }
     this.setStatus(TLDrawStatus.Idle)
   }
 
@@ -2405,7 +2404,7 @@ export class TLDrawState extends StateManager<Data> {
     }
   }
 
-  onDoubleClickCanvas: TLCanvasEventHandler = (info) => {
+  onDoubleClickCanvas: TLCanvasEventHandler = () => {
     // Unused
     switch (this.appState.status.current) {
       case TLDrawStatus.Idle: {
@@ -2704,31 +2703,24 @@ export class TLDrawState extends StateManager<Data> {
     // Unused
   }
 
-  onTextChange = (id: string, text: string) => {
-    this.updateTextSession(text)
+  onShapeChange = (shape: { id: string } & Partial<TLDrawShape>) => {
+    switch (shape.type) {
+      case TLDrawShapeType.Text: {
+        this.updateTextSession(shape.text || '')
+      }
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onTextBlur = (id: string) => {
-    this.completeSession()
+  onShapeBlur = () => {
+    switch (this.appState.status.current) {
+      case TLDrawStatus.EditingText: {
+        this.completeSession()
+      }
+    }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onTextFocus = (id: string) => {
-    // Unused
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onTextKeyDown = (id: string, key: string) => {
-    // Unused
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onTextKeyUp = (id: string, key: string) => {
-    // Unused
-  }
-
-  onChange = (ids: string[]) => {
+  onRenderCountChange = (ids: string[]) => {
     const appState = this.getAppState()
     if (appState.isEmptyCanvas && ids.length > 0) {
       this.patchState(
@@ -2753,9 +2745,5 @@ export class TLDrawState extends StateManager<Data> {
 
   onError = () => {
     // TODO
-  }
-
-  onBlurEditingShape = () => {
-    this.completeSession()
   }
 }

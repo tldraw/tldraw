@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import type { TLBinding, TLRenderInfo } from '@tldraw/core'
+import type { TLBinding, TLShapeProps } from '@tldraw/core'
 import { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
 import type { TLPage, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
@@ -32,7 +32,11 @@ export interface TLDrawMeta {
   isDarkMode: boolean
 }
 
-export type TLDrawRenderInfo = TLRenderInfo<TLDrawMeta>
+export type TLDrawShapeProps<T extends TLDrawShape, E extends Element> = TLShapeProps<
+  T,
+  E,
+  TLDrawMeta
+>
 
 export interface Data {
   document: TLDrawDocument
@@ -171,6 +175,7 @@ export interface ArrowShape extends TLDrawBaseShape {
     middle?: Decoration
   }
 }
+
 export interface EllipseShape extends TLDrawBaseShape {
   type: TLDrawShapeType.Ellipse
   radius: number[]

@@ -15,9 +15,9 @@ import { useTLTheme, TLContext, TLContextType } from '../../hooks'
 
 export interface RendererProps<
   T extends TLShape,
-  E extends HTMLElement | SVGElement,
+  E extends Element,
   M extends Record<string, unknown>
-> extends Partial<TLCallbacks> {
+> extends Partial<TLCallbacks<T>> {
   /**
    * An object containing instances of your shape classes.
    */
@@ -66,11 +66,7 @@ export interface RendererProps<
  * @param props
  * @returns
  */
-export function Renderer<
-  T extends TLShape,
-  E extends SVGElement | HTMLElement,
-  M extends Record<string, unknown>
->({
+export function Renderer<T extends TLShape, E extends Element, M extends Record<string, unknown>>({
   shapeUtils,
   page,
   pageState,
@@ -91,6 +87,8 @@ export function Renderer<
     rPageState.current = pageState
   }, [pageState])
 
+  rest
+
   const [context] = React.useState<TLContextType<T, E>>(() => ({
     callbacks: rest,
     shapeUtils,
@@ -100,7 +98,7 @@ export function Renderer<
   }))
 
   return (
-    <TLContext.Provider value={context as TLContextType<T, E>}>
+    <TLContext.Provider value={context as unknown as TLContextType<TLShape, Element>}>
       <Canvas
         page={page}
         pageState={pageState}

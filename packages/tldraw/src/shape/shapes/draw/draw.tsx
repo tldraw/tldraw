@@ -1,16 +1,15 @@
 import * as React from 'react'
-import {
-  SVGContainer,
-  TLBounds,
-  Utils,
-  Vec,
-  TLTransformInfo,
-  Intersect,
-  TLShapeProps,
-} from '@tldraw/core'
+import { SVGContainer, TLBounds, Utils, Vec, TLTransformInfo, Intersect } from '@tldraw/core'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import { DrawShape, DashStyle, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType } from '~types'
+import {
+  DrawShape,
+  DashStyle,
+  TLDrawShapeUtil,
+  TLDrawShapeType,
+  TLDrawToolType,
+  TLDrawShapeProps,
+} from '~types'
 
 export class Draw extends TLDrawShapeUtil<DrawShape, SVGSVGElement> {
   type = TLDrawShapeType.Draw as const
@@ -38,7 +37,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGSVGElement> {
     return next.points !== prev.points || next.style !== prev.style
   }
 
-  render = React.forwardRef<SVGSVGElement, TLShapeProps<DrawShape, SVGSVGElement>>(
+  render = React.forwardRef<SVGSVGElement, TLDrawShapeProps<DrawShape, SVGSVGElement>>(
     ({ shape, meta, events, isEditing }, ref) => {
       const { points, style } = shape
 

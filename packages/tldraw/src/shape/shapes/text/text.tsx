@@ -1,15 +1,15 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
+import { HTMLContainer, TLBounds, Utils, Vec, TLTransformInfo, Intersect } from '@tldraw/core'
+import { getShapeStyle, getFontStyle, defaultStyle } from '~shape/shape-styles'
 import {
-  SVGContainer,
-  TLBounds,
-  Utils,
-  Vec,
-  TLTransformInfo,
-  Intersect,
-  TLShapeProps,
-} from '@tldraw/core'
-import { getShapeStyle, getFontSize, getFontStyle, defaultStyle } from '~shape/shape-styles'
-import { TextShape, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType, ArrowShape } from '~types'
+  TextShape,
+  TLDrawShapeUtil,
+  TLDrawShapeType,
+  TLDrawToolType,
+  ArrowShape,
+  TLDrawShapeProps,
+} from '~types'
 import styled from '~styles'
 import TextAreaUtils from './text-utils'
 
@@ -57,7 +57,7 @@ if (typeof window !== 'undefined') {
   melm = getMeasurementDiv()
 }
 
-export class Text extends TLDrawShapeUtil<TextShape, SVGSVGElement> {
+export class Text extends TLDrawShapeUtil<TextShape, HTMLDivElement> {
   type = TLDrawShapeType.Text as const
   toolType = TLDrawToolType.Text
   isAspectRatioLocked = true
@@ -91,118 +91,83 @@ export class Text extends TLDrawShapeUtil<TextShape, SVGSVGElement> {
     )
   }
 
-  render = React.forwardRef<SVGSVGElement, TLShapeProps<TextShape, SVGSVGElement>>(
-    ({ shape, meta, isEditing, isBinding, events }, ref) => {
+  render = React.forwardRef<HTMLDivElement, TLDrawShapeProps<TextShape, HTMLDivElement>>(
+    ({ shape, meta, isEditing, isBinding, onShapeChange, onShapeBlur, events }, ref) => {
       const rInput = React.useRef<HTMLTextAreaElement>(null)
-      const { id, text, style } = shape
+      const { text, style } = shape
       const styles = getShapeStyle(style, meta.isDarkMode)
       const font = getFontStyle(shape.style)
-      const bounds = this.getBounds(shape)
 
-      function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-        events.onTextChange?.(id, normalizeText(e.currentTarget.value))
-      }
+      const handleChange = React.useCallback(
+        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+          onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
+        },
+        [shape]
+      )
 
-      function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-        events.onTextKeyDown?.(id, e.key)
+      const handleKeyDown = React.useCallback(
+        (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+          if (e.key === 'Escape') return
 
-        if (e.key === 'Escape') return
+          e.stopPropagation()
 
-        e.stopPropagation()
+          if (e.key === 'Tab') {
+            e.preventDefault()
+            if (e.shiftKey) {
+              TextAreaUtils.unindent(e.currentTarget)
+            } else {
+              TextAreaUtils.indent(e.currentTarget)
+            }
 
-        if (e.key === 'Tab') {
-          e.preventDefault()
-          if (e.shiftKey) {
-            TextAreaUtils.unindent(e.currentTarget)
-          } else {
-            TextAreaUtils.indent(e.currentTarget)
+            onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
           }
+        },
+        [shape, onShapeChange]
+      )
 
-          events.onTextChange?.(id, normalizeText(e.currentTarget.value))
-        }
-      }
+      const handleBlur = React.useCallback(
+        (e: React.FocusEvent<HTMLTextAreaElement>) => {
+          e.currentTarget.setSelectionRange(0, 0)
+          onShapeBlur?.()
+        },
+        [isEditing, shape]
+      )
 
-      function handleKeyUp(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-        events.onTextKeyUp?.(id, e.key)
-      }
+      const handleFocus = React.useCallback(
+        (e: React.FocusEvent<HTMLTextAreaElement>) => {
+          if (!isEditing) return
+          if (document.activeElement === e.currentTarget) {
+            e.currentTarget.select()
+          }
+        },
+        [isEditing]
+      )
 
-      function handleBlur(e: React.FocusEvent<HTMLTextAreaElement>) {
+      const handlePointerDown = React.useCallback(
+        (e) => {
+          if (isEditing) {
+            e.stopPropagation()
+          }
+        },
+        [isEditing]
+      )
+
+      React.useEffect(() => {
         if (isEditing) {
-          e.currentTarget.focus()
-          e.currentTarget.select()
-          return
+          setTimeout(() => {
+            const elm = rInput.current!
+            elm.focus()
+            elm.select()
+          }, 0)
+        } else {
+          const elm = rInput.current!
+          elm.setSelectionRange(0, 0)
         }
-
-        setTimeout(() => {
-          events.onTextBlur?.(id)
-        }, 0)
-      }
-
-      function handleFocus(e: React.FocusEvent<HTMLTextAreaElement>) {
-        if (document.activeElement === e.currentTarget) {
-          e.currentTarget.select()
-          events.onTextFocus?.(id)
-        }
-      }
-
-      function handlePointerDown() {
-        const elm = rInput.current
-        if (!elm) return
-        if (elm.selectionEnd !== 0) {
-          elm.selectionEnd = 0
-        }
-      }
-
-      const fontSize = getFontSize(shape.style.size) * (shape.style.scale || 1)
-
-      const lineHeight = fontSize * 1.3
-
-      if (!isEditing) {
-        return (
-          <SVGContainer ref={ref} {...events}>
-            {isBinding && (
-              <rect
-                className="tl-binding-indicator"
-                x={-16}
-                y={-16}
-                width={bounds.width + 32}
-                height={bounds.height + 32}
-              />
-            )}
-            {text.split('\n').map((str, i) => (
-              <text
-                key={i}
-                x={4}
-                y={4 + fontSize / 2 + i * lineHeight}
-                fontFamily="Caveat Brush"
-                fontStyle="normal"
-                fontWeight="500"
-                letterSpacing={LETTER_SPACING}
-                fontSize={fontSize}
-                width={bounds.width}
-                height={bounds.height}
-                fill={styles.stroke}
-                color={styles.stroke}
-                stroke="none"
-                xmlSpace="preserve"
-                dominantBaseline="mathematical"
-                alignmentBaseline="mathematical"
-              >
-                {str}
-              </text>
-            ))}
-          </SVGContainer>
-        )
-      }
+      }, [isEditing])
 
       return (
-        <SVGContainer ref={ref} {...events}>
-          <foreignObject
-            width={bounds.width}
-            height={bounds.height}
-            pointerEvents="none"
-            onPointerDown={(e) => e.stopPropagation()}
-          >
+        <HTMLContainer ref={ref} {...events}>
+          <StyledWrapper isEditing={isEditing} onPointerDown={handlePointerDown}>
             <StyledTextArea
               ref={rInput}
               style={{
@@ -218,16 +183,21 @@ export class Text extends TLDrawShapeUtil<TextShape, SVGSVGElement> {
               autoSave="false"
               placeholder=""
               color={styles.stroke}
-              autoFocus={true}
               onFocus={handleFocus}
               onBlur={handleBlur}
-              onKeyDown={handleKeyDown}
-              onKeyUp={handleKeyUp}
               onChange={handleChange}
+              onKeyDown={handleKeyDown}
               onPointerDown={handlePointerDown}
+              autoFocus={isEditing}
+              isEditing={isEditing}
+              isBinding={isBinding}
+              readOnly={!isEditing}
+              wrap="off"
+              dir="auto"
+              datatype="wysiwyg"
             />
-          </foreignObject>
-        </SVGContainer>
+          </StyledWrapper>
+        </HTMLContainer>
       )
     }
   )
@@ -252,7 +222,8 @@ export class Text extends TLDrawShapeUtil<TextShape, SVGSVGElement> {
       melm.style.font = getFontStyle(shape.style)
 
       // In tests, offsetWidth and offsetHeight will be 0
-      const [width, height] = [melm.offsetWidth || 1, melm.offsetHeight || 1]
+      const width = melm.offsetWidth || 1
+      const height = melm.offsetHeight || 1
 
       return {
         minX: 0,
@@ -291,7 +262,7 @@ export class Text extends TLDrawShapeUtil<TextShape, SVGSVGElement> {
   transform(
     _shape: TextShape,
     bounds: TLBounds,
-    { initialShape, scaleX, scaleY, transformOrigin }: TLTransformInfo<TextShape>
+    { initialShape, scaleX, scaleY }: TLTransformInfo<TextShape>
   ): Partial<TextShape> {
     const {
       rotation = 0,
@@ -441,67 +412,30 @@ export class Text extends TLDrawShapeUtil<TextShape, SVGSVGElement> {
       distance,
     }
   }
-  // getBindingPoint(shape, point, origin, direction, expandDistance) {
-  //   const bounds = this.getBounds(shape)
-
-  //   const expandedBounds = expandBounds(bounds, expandDistance)
-
-  //   let bindingPoint: number[]
-  //   let distance: number
-
-  //   if (!HitTest.bounds(point, expandedBounds)) return
-
-  //   // The point is inside of the box, so we'll assume the user is
-  //   // indicating a specific point inside of the box.
-  //   if (HitTest.bounds(point, bounds)) {
-  //     bindingPoint = vec.divV(vec.sub(point, [expandedBounds.minX, expandedBounds.minY]), [
-  //       expandedBounds.width,
-  //       expandedBounds.height,
-  //     ])
-
-  //     distance = 0
-  //   } else {
-  //     // Find furthest intersection between ray from
-  //     // origin through point and expanded bounds.
-  //     const intersection = Intersect.ray
-  //       .bounds(origin, direction, expandedBounds)
-  //       .filter(int => int.didIntersect)
-  //       .map(int => int.points[0])
-  //       .sort((a, b) => vec.dist(b, origin) - vec.dist(a, origin))[0]
-
-  //     // The anchor is a point between the handle and the intersection
-  //     const anchor = vec.med(point, intersection)
-
-  //     // Find the distance between the point and the real bounds of the shape
-  //     const distanceFromShape = getBoundsSides(bounds)
-  //       .map(side => vec.distanceToLineSegment(side[1][0], side[1][1], point))
-  //       .sort((a, b) => a - b)[0]
-
-  //     if (vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12) {
-  //       // If we're close to the center, snap to the center
-  //       bindingPoint = [0.5, 0.5]
-  //     } else {
-  //       // Or else calculate a normalized point
-  //       bindingPoint = vec.divV(vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]), [
-  //         expandedBounds.width,
-  //         expandedBounds.height,
-  //       ])
-  //     }
-
-  //     distance = distanceFromShape
-  //   }
-
-  //   return {
-  //     point: bindingPoint,
-  //     distance,
-  //   }
-  // }
 }
 
-const StyledTextArea = styled('textarea', {
-  zIndex: 1,
+const StyledWrapper = styled('div', {
   width: '100%',
   height: '100%',
+  variants: {
+    isEditing: {
+      false: {
+        pointerEvents: 'all',
+      },
+      true: {
+        pointerEvents: 'none',
+      },
+    },
+  },
+})
+
+const StyledTextArea = styled('textarea', {
+  position: 'absolute',
+  top: 'var(--tl-padding)',
+  left: 'var(--tl-padding)',
+  zIndex: 1,
+  width: 'calc(100% - (var(--tl-padding) * 2))',
+  height: 'calc(100% - (var(--tl-padding) * 2))',
   border: 'none',
   padding: '4px',
   whiteSpace: 'pre',
@@ -514,12 +448,46 @@ const StyledTextArea = styled('textarea', {
   letterSpacing: LETTER_SPACING,
   outline: 0,
   fontWeight: '500',
-  backgroundColor: '$boundsBg',
   overflow: 'hidden',
-  pointerEvents: 'all',
   backfaceVisibility: 'hidden',
   display: 'inline-block',
-  userSelect: 'text',
   WebkitUserSelect: 'text',
   WebkitTouchCallout: 'none',
+  variants: {
+    isBinding: {
+      false: {},
+      true: {
+        background: '$boundsBg',
+      },
+    },
+    isEditing: {
+      false: {
+        pointerEvents: 'none',
+        userSelect: 'none',
+        background: 'none',
+        WebkitUserSelect: 'none',
+      },
+      true: {
+        pointerEvents: 'all',
+        userSelect: 'text',
+        background: '$boundsBg',
+        WebkitUserSelect: 'text',
+      },
+    },
+  },
+})
+
+const NormalText = styled('div', {
+  display: 'block',
+  whiteSpace: 'pre',
+  alignmentBaseline: 'mathematical',
+  dominantBaseline: 'mathematical',
+  pointerEvents: 'none',
+  opacity: '0.5',
+  padding: '4px',
+  margin: '0',
+  outline: 0,
+  fontWeight: '500',
+  lineHeight: 1.4,
+  letterSpacing: LETTER_SPACING,
 })

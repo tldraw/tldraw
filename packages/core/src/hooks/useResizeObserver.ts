@@ -2,7 +2,7 @@ import { useTLContext } from '+hooks'
 import * as React from 'react'
 import { Utils } from '+utils'
 
-export function useResizeObserver<T extends HTMLElement | SVGElement>(ref: React.RefObject<T>) {
+export function useResizeObserver<T extends Element>(ref: React.RefObject<T>) {
   const { inputs } = useTLContext()
   const rIsMounted = React.useRef(false)
   const forceUpdate = React.useReducer((x) => x + 1, 0)[1]

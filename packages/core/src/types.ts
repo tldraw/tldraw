@@ -57,33 +57,27 @@ export interface TLShape {
   isAspectRatioLocked?: boolean
 }
 
-export type TLShapeUtils<T extends TLShape, E extends SVGElement | HTMLElement> = Record<
-  string,
-  TLShapeUtil<T, E>
->
+export type TLShapeUtils<T extends TLShape, E extends Element> = Record<string, TLShapeUtil<T, E>>
 
-export interface TLRenderInfo<M = any, E = any> {
+export interface TLRenderInfo<T extends TLShape, M = any, E = any> {
   isEditing: boolean
   isBinding: boolean
   isHovered: boolean
   isSelected: boolean
   isCurrentParent: boolean
   meta: M extends any ? M : never
+  onShapeChange?: TLCallbacks<T>['onShapeChange']
+  onShapeBlur?: TLCallbacks<T>['onShapeBlur']
   events: {
     onPointerDown: (e: React.PointerEvent<E>) => void
     onPointerUp: (e: React.PointerEvent<E>) => void
     onPointerEnter: (e: React.PointerEvent<E>) => void
     onPointerMove: (e: React.PointerEvent<E>) => void
     onPointerLeave: (e: React.PointerEvent<E>) => void
-    onTextChange?: TLCallbacks['onTextChange']
-    onTextBlur?: TLCallbacks['onTextBlur']
-    onTextFocus?: TLCallbacks['onTextFocus']
-    onTextKeyDown?: TLCallbacks['onTextKeyDown']
-    onTextKeyUp?: TLCallbacks['onTextKeyUp']
   }
 }
 
-export interface TLShapeProps<T extends TLShape, E = any, M = any> extends TLRenderInfo<M, E> {
+export interface TLShapeProps<T extends TLShape, E = any, M = any> extends TLRenderInfo<T, M, E> {
   ref: ForwardedRef<E>
   shape: T
 }
@@ -131,9 +125,7 @@ export type TLBoundsHandleEventHandler = (
   e: React.PointerEvent
 ) => void
 
-export interface TLCallbacks {
-  onChange: (ids: string[]) => void
-
+export interface TLCallbacks<T extends TLShape> {
   // Camera events
   onPinchStart: TLPinchEventHandler
   onPinchEnd: TLPinchEventHandler
@@ -189,15 +181,10 @@ export interface TLCallbacks {
   onUnhoverHandle: TLPointerEventHandler
   onReleaseHandle: TLPointerEventHandler
 
-  // Text
-  onTextChange: (id: string, text: string) => void
-  onTextBlur: (id: string) => void
-  onTextFocus: (id: string) => void
-  onTextKeyDown: (id: string, key: string) => void
-  onTextKeyUp: (id: string, key: string) => void
-
   // Misc
-  onBlurEditingShape: () => void
+  onRenderCountChange: (ids: string[]) => void
+  onShapeChange: (shape: { id: string } & Partial<T>) => void
+  onShapeBlur: () => void
   onError: (error: Error) => void
 }
 
@@ -278,7 +265,7 @@ export interface TLBezierCurveSegment {
 /*                   Shape Utility                    */
 /* -------------------------------------------------- */
 
-export abstract class TLShapeUtil<T extends TLShape, E extends HTMLElement | SVGElement> {
+export abstract class TLShapeUtil<T extends TLShape, E extends Element> {
   refMap = new Map<string, React.RefObject<E>>()
 
   boundsCache = new WeakMap<TLShape, TLBounds>()
@@ -296,7 +283,7 @@ export abstract class TLShapeUtil<T extends TLShape, E extends HTMLElement | SVG
   abstract defaultProps: T
 
   abstract render: React.ForwardRefExoticComponent<
-    { shape: T; ref: React.ForwardedRef<E> } & TLRenderInfo & React.RefAttributes<E>
+    { shape: T; ref: React.ForwardedRef<E> } & TLRenderInfo<T> & React.RefAttributes<E>
   >
 
   abstract renderIndicator(shape: T): JSX.Element | null

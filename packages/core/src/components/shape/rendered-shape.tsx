@@ -3,7 +3,7 @@ import * as React from 'react'
 import type { TLShapeUtil, TLRenderInfo, TLShape } from '+types'
 
 export const RenderedShape = React.memo(
-  <T extends TLShape, E extends SVGElement | HTMLElement, M extends Record<string, unknown>>({
+  <T extends TLShape, E extends Element, M extends Record<string, unknown>>({
     shape,
     utils,
     isEditing,
@@ -11,9 +11,11 @@ export const RenderedShape = React.memo(
     isHovered,
     isSelected,
     isCurrentParent,
+    onShapeChange,
+    onShapeBlur,
     events,
     meta,
-  }: TLRenderInfo<M, E> & {
+  }: TLRenderInfo<T, M, E> & {
     shape: T
     utils: TLShapeUtil<T, E>
   }) => {
@@ -22,16 +24,16 @@ export const RenderedShape = React.memo(
     return (
       <utils.render
         ref={ref}
-        {...{
-          shape,
-          isEditing,
-          isBinding,
-          isHovered,
-          isSelected,
-          isCurrentParent,
-          meta,
-          events,
-        }}
+        shape={shape}
+        isEditing={isEditing}
+        isBinding={isBinding}
+        isHovered={isHovered}
+        isSelected={isSelected}
+        isCurrentParent={isCurrentParent}
+        meta={meta}
+        events={events}
+        onShapeChange={onShapeChange}
+        onShapeBlur={onShapeBlur}
       />
     )
   },

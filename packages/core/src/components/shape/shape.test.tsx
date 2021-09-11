@@ -18,5 +18,5 @@ describe('shape', () => {
   })
 })
 
-// { shape: TLShape; ref: ForwardedRef<HTMLElement | SVGElement>; } & TLRenderInfo<any, any> & RefAttributes<HTMLElement | SVGElement>
+// { shape: TLShape; ref: ForwardedRef<Element>; } & TLRenderInfo<any, any> & RefAttributes<Element>
 // { shape: BoxShape; ref: ForwardedRef<any>; } & TLRenderInfo<any, any> & RefAttributes<any>'

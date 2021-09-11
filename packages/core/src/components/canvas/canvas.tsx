@@ -51,11 +51,20 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
 
   const rLayer = useCameraCss(rContainer, pageState)
 
+  const preventScrolling = React.useCallback((e: React.UIEvent<HTMLDivElement, UIEvent>) => {
+    e.currentTarget.scrollTo(0, 0)
+  }, [])
+
   return (
     <div className="tl-container" ref={rContainer}>
-      <div id="canvas" className="tl-absolute tl-canvas" ref={rCanvas} {...events}>
+      <div
+        id="canvas"
+        className="tl-absolute tl-canvas"
+        ref={rCanvas}
+        onScroll={preventScrolling}
+        {...events}
+      >
         <ErrorBoundary FallbackComponent={ErrorFallback} onReset={resetError}>
-          {/* <Defs zoom={pageState.camera.zoom} /> */}
           <div ref={rLayer} className="tl-absolute tl-layer">
             <Page
               page={page}
