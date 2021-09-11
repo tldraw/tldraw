@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type { TLPageState, TLBounds } from '../types'
+import type { TLPageState, TLBounds, TLShape } from '../types'
 import { mockDocument } from './mockDocument'
 import { mockUtils } from './mockUtils'
-import { useTLTheme, TLContext } from '../hooks'
+import { useTLTheme, TLContext, TLContextType } from '../hooks'
 import { Inputs } from '+inputs'
 
 export const ContextWrapper: React.FC = ({ children }) => {
@@ -18,5 +18,6 @@ export const ContextWrapper: React.FC = ({ children }) => {
     inputs: new Inputs(),
   }))
 
-  return <TLContext.Provider value={context}>{children}</TLContext.Provider>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return <TLContext.Provider value={context as any}>{children}</TLContext.Provider>
 }
