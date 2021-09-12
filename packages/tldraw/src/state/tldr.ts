@@ -1,4 +1,4 @@
-import { TLBounds, TLTransformInfo, Vec, Utils, TLPageState } from '@tldraw/core'
+import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
 import { getShapeUtils } from '~shape'
 import type {
   Data,
@@ -11,6 +11,7 @@ import type {
   TLDrawCommand,
   TLDrawPatch,
 } from '~types'
+import { Vec } from '@tldraw/vec'
 
 export class TLDR {
   static getShapeUtils<T extends TLDrawShape>(

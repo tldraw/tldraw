@@ -17,6 +17,7 @@
     "README.md",
     "src"
   ],
+  "sideEffects": false,
   "dependencies": {
     "@tldraw/tldraw": "^0.0.86",
     "idb": "^6.1.2",

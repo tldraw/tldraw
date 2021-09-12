@@ -1,5 +1,7 @@
 import * as React from 'react'
-import { SVGContainer, TLBounds, Utils, Vec, TLTransformInfo, Intersect } from '@tldraw/core'
+import { SVGContainer, TLBounds, Utils, TLTransformInfo } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
+import { intersectBoundsBounds, intersectBoundsPolyline } from '@tldraw/intersect'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import {
@@ -202,10 +204,10 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGSVGElement> {
       return (
         Utils.boundsContain(brushBounds, bounds) ||
         ((Utils.boundsContain(bounds, brushBounds) ||
-          Intersect.bounds.bounds(bounds, brushBounds).length > 0) &&
-          Intersect.polyline.bounds(
-            shape.points,
-            Utils.translateBounds(brushBounds, Vec.neg(shape.point))
+          intersectBoundsBounds(bounds, brushBounds).length > 0) &&
+          intersectBoundsPolyline(
+            Utils.translateBounds(brushBounds, Vec.neg(shape.point)),
+            shape.points
           ).length > 0)
       )
     }
@@ -220,7 +222,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGSVGElement> {
 
     return (
       Utils.boundsContain(brushBounds, rBounds) ||
-      Intersect.bounds.polyline(
+      intersectBoundsPolyline(
         Utils.translateBounds(brushBounds, Vec.neg(shape.point)),
         rotatedBounds
       ).length > 0

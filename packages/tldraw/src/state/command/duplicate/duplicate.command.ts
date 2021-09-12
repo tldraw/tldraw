@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Utils, Vec } from '@tldraw/core'
+import { Utils } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/tldr'
 import type { Data, PagePartial, TLDrawCommand } from '~types'
 

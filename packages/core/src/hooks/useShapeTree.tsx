@@ -11,7 +11,8 @@ import type {
   TLBinding,
   TLBounds,
 } from '+types'
-import { Utils, Vec } from '+utils'
+import { Utils } from '+utils'
+import { Vec } from '@tldraw/vec'
 
 function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   shape: T,

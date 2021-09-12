@@ -1,15 +1,9 @@
 import * as React from 'react'
-import {
-  TLBounds,
-  Utils,
-  Vec,
-  TLTransformInfo,
-  Intersect,
-  TLShapeProps,
-  HTMLContainer,
-} from '@tldraw/core'
+import { TLBounds, Utils, TLTransformInfo, TLShapeProps, HTMLContainer } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { PostItShape, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType, ArrowShape } from '~types'
+import { intersectPolylineBounds, intersectRayBounds } from '@tldraw/intersect'
 
 // TODO
 // [ ] - Make sure that fill does not extend drawn shape at corners
@@ -154,8 +148,7 @@ export class PostIt extends TLDrawShapeUtil<PostItShape, HTMLDivElement> {
       // origin through point and expanded bounds.
 
       // TODO: Make this a ray vs rounded rect intersection
-      const intersection = Intersect.ray
-        .bounds(origin, direction, expandedBounds)
+      const intersection = intersectRayBounds(origin, direction, expandedBounds)
         .filter((int) => int.didIntersect)
         .map((int) => int.points[0])
         .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
@@ -198,7 +191,7 @@ export class PostIt extends TLDrawShapeUtil<PostItShape, HTMLDivElement> {
 
     return (
       rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
-      Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
+      intersectPolylineBounds(rotatedCorners, bounds).length > 0
     )
   }
 

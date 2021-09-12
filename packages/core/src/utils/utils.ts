@@ -4,7 +4,7 @@
 /* eslint-disable no-redeclare */
 import type React from 'react'
 import { TLBezierCurveSegment, TLBounds, TLBoundsCorner, TLBoundsEdge } from '../types'
-import vec from './vec'
+import { Vec } from '@tldraw/vec'
 import './polyfills'
 import type { Patch } from '+index'
 
@@ -204,10 +204,10 @@ export class Utils {
 
   static getRectangleSides(point: number[], size: number[], rotation = 0): [string, number[][]][] {
     const center = [point[0] + size[0] / 2, point[1] + size[1] / 2]
-    const tl = vec.rotWith(point, center, rotation)
-    const tr = vec.rotWith(vec.add(point, [size[0], 0]), center, rotation)
-    const br = vec.rotWith(vec.add(point, size), center, rotation)
-    const bl = vec.rotWith(vec.add(point, [0, size[1]]), center, rotation)
+    const tl = Vec.rotWith(point, center, rotation)
+    const tr = Vec.rotWith(Vec.add(point, [size[0], 0]), center, rotation)
+    const br = Vec.rotWith(Vec.add(point, size), center, rotation)
+    const bl = Vec.rotWith(Vec.add(point, [0, size[1]]), center, rotation)
 
     return [
       ['top', [tl, tr]],
@@ -258,10 +258,10 @@ export class Utils {
     P: number[],
     side: number
   ): number[] | null {
-    const B = vec.lrp(C, P, 0.5)
-    const r1 = vec.dist(C, B)
-    const delta = vec.sub(B, C)
-    const d = vec.len(delta)
+    const B = Vec.lrp(C, P, 0.5)
+    const r1 = Vec.dist(C, B)
+    const delta = Vec.sub(B, C)
+    const d = Vec.len(delta)
 
     if (!(d <= r + r1 && d >= Math.abs(r - r1))) {
       return null
@@ -269,11 +269,11 @@ export class Utils {
 
     const a = (r * r - r1 * r1 + d * d) / (2.0 * d)
     const n = 1 / d
-    const p = vec.add(C, vec.mul(delta, a * n))
+    const p = Vec.add(C, Vec.mul(delta, a * n))
     const h = Math.sqrt(r * r - a * a)
-    const k = vec.mul(vec.per(delta), h * n)
+    const k = Vec.mul(Vec.per(delta), h * n)
 
-    return side === 0 ? vec.add(p, k) : vec.sub(p, k)
+    return side === 0 ? Vec.add(p, k) : Vec.sub(p, k)
   }
 
   /**
@@ -292,8 +292,8 @@ export class Utils {
     C1: number[],
     r1: number
   ): number[][] | null {
-    const a0 = vec.angle(C0, C1)
-    const d = vec.dist(C0, C1)
+    const a0 = Vec.angle(C0, C1)
+    const d = Vec.dist(C0, C1)
 
     // Circles are overlapping, no tangents
     if (d < Math.abs(r1 - r0)) {
@@ -319,8 +319,8 @@ export class Utils {
    * @param P The point.
    */
   static getClosestPointOnCircle(C: number[], r: number, P: number[]): number[] {
-    const v = vec.sub(C, P)
-    return vec.sub(C, vec.mul(vec.div(v, vec.len(v)), r))
+    const v = Vec.sub(C, P)
+    return Vec.sub(C, Vec.mul(Vec.div(v, Vec.len(v)), r))
   }
 
   /**
@@ -411,7 +411,7 @@ export class Utils {
    * @param B
    */
   static getSweep(C: number[], A: number[], B: number[]): number {
-    return Utils.angleDelta(vec.angle(C, A), vec.angle(C, B))
+    return Utils.angleDelta(Vec.angle(C, A), Vec.angle(C, B))
   }
 
   /**
@@ -766,7 +766,7 @@ export class Utils {
     const len = pts.length
     const res: number[][] = [] // results
 
-    let t1x: number, // tension vectors
+    let t1x: number, // tension Vectors
       t2x: number,
       t1y: number,
       t2y: number,
@@ -871,7 +871,7 @@ export class Utils {
    * @returns
    */
   static pointInCircle(A: number[], C: number[], r: number): boolean {
-    return vec.dist(A, C) <= r
+    return Vec.dist(A, C) <= r
   }
 
   /**
@@ -887,7 +887,7 @@ export class Utils {
     rotation = rotation || 0
     const cos = Math.cos(rotation)
     const sin = Math.sin(rotation)
-    const delta = vec.sub(A, C)
+    const delta = Vec.sub(A, C)
     const tdx = cos * delta[0] + sin * delta[1]
     const tdy = sin * delta[0] - cos * delta[1]
 
@@ -914,10 +914,10 @@ export class Utils {
     points.forEach((a, i) => {
       const b = points[(i + 1) % points.length]
       if (a[1] <= p[1]) {
-        if (b[1] > p[1] && vec.cross(a, b, p) > 0) {
+        if (b[1] > p[1] && Vec.cross(a, b, p) > 0) {
           wn += 1
         }
-      } else if (b[1] <= p[1] && vec.cross(a, b, p) < 0) {
+      } else if (b[1] <= p[1] && Vec.cross(a, b, p) < 0) {
         wn -= 1
       }
     })
@@ -1024,7 +1024,7 @@ export class Utils {
 
     if (rotation !== 0) {
       return Utils.getBoundsFromPoints(
-        points.map((pt) => vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], rotation))
+        points.map((pt) => Vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], rotation))
       )
     }
 
@@ -1074,8 +1074,8 @@ export class Utils {
    * @param rotation
    */
   static rotateBounds(bounds: TLBounds, center: number[], rotation: number): TLBounds {
-    const [minX, minY] = vec.rotWith([bounds.minX, bounds.minY], center, rotation)
-    const [maxX, maxY] = vec.rotWith([bounds.maxX, bounds.maxY], center, rotation)
+    const [minX, minY] = Vec.rotWith([bounds.minX, bounds.minY], center, rotation)
+    const [maxX, maxY] = Vec.rotWith([bounds.maxX, bounds.maxY], center, rotation)
 
     return {
       minX,
@@ -1158,7 +1158,7 @@ export class Utils {
       [b.maxX, b.minY],
       [b.maxX, b.maxY],
       [b.minX, b.maxY],
-    ].map((point) => vec.rotWith(point, center, rotation))
+    ].map((point) => Vec.rotWith(point, center, rotation))
   }
 
   static getTransformedBoundingBox(
@@ -1192,7 +1192,7 @@ export class Utils {
 
     // Counter rotate the delta. This lets us make changes as if
     // the (possibly rotated) boxes were axis aligned.
-    const [dx, dy] = vec.rot(delta, -rotation)
+    const [dx, dy] = Vec.rot(delta, -rotation)
 
     /*
 1. Delta
@@ -1299,67 +1299,67 @@ new box's aspect ratio matches the original aspect ratio.
     /*
 3. Rotation
 
-If the bounds are rotated, get a vector from the rotated anchor
+If the bounds are rotated, get a Vector from the rotated anchor
 corner in the inital bounds to the rotated anchor corner in the
-result's bounds. Subtract this vector from the result's corners,
+result's bounds. Subtract this Vector from the result's corners,
 so that the two anchor points (initial and result) will be equal.
 */
 
     if (rotation % (Math.PI * 2) !== 0) {
       let cv = [0, 0]
 
-      const c0 = vec.med([ax0, ay0], [ax1, ay1])
-      const c1 = vec.med([bx0, by0], [bx1, by1])
+      const c0 = Vec.med([ax0, ay0], [ax1, ay1])
+      const c1 = Vec.med([bx0, by0], [bx1, by1])
 
       switch (handle) {
         case TLBoundsCorner.TopLeft: {
-          cv = vec.sub(vec.rotWith([bx1, by1], c1, rotation), vec.rotWith([ax1, ay1], c0, rotation))
+          cv = Vec.sub(Vec.rotWith([bx1, by1], c1, rotation), Vec.rotWith([ax1, ay1], c0, rotation))
           break
         }
         case TLBoundsCorner.TopRight: {
-          cv = vec.sub(vec.rotWith([bx0, by1], c1, rotation), vec.rotWith([ax0, ay1], c0, rotation))
+          cv = Vec.sub(Vec.rotWith([bx0, by1], c1, rotation), Vec.rotWith([ax0, ay1], c0, rotation))
           break
         }
         case TLBoundsCorner.BottomRight: {
-          cv = vec.sub(vec.rotWith([bx0, by0], c1, rotation), vec.rotWith([ax0, ay0], c0, rotation))
+          cv = Vec.sub(Vec.rotWith([bx0, by0], c1, rotation), Vec.rotWith([ax0, ay0], c0, rotation))
           break
         }
         case TLBoundsCorner.BottomLeft: {
-          cv = vec.sub(vec.rotWith([bx1, by0], c1, rotation), vec.rotWith([ax1, ay0], c0, rotation))
+          cv = Vec.sub(Vec.rotWith([bx1, by0], c1, rotation), Vec.rotWith([ax1, ay0], c0, rotation))
           break
         }
         case TLBoundsEdge.Top: {
-          cv = vec.sub(
-            vec.rotWith(vec.med([bx0, by1], [bx1, by1]), c1, rotation),
-            vec.rotWith(vec.med([ax0, ay1], [ax1, ay1]), c0, rotation)
+          cv = Vec.sub(
+            Vec.rotWith(Vec.med([bx0, by1], [bx1, by1]), c1, rotation),
+            Vec.rotWith(Vec.med([ax0, ay1], [ax1, ay1]), c0, rotation)
           )
           break
         }
         case TLBoundsEdge.Left: {
-          cv = vec.sub(
-            vec.rotWith(vec.med([bx1, by0], [bx1, by1]), c1, rotation),
-            vec.rotWith(vec.med([ax1, ay0], [ax1, ay1]), c0, rotation)
+          cv = Vec.sub(
+            Vec.rotWith(Vec.med([bx1, by0], [bx1, by1]), c1, rotation),
+            Vec.rotWith(Vec.med([ax1, ay0], [ax1, ay1]), c0, rotation)
           )
           break
         }
         case TLBoundsEdge.Bottom: {
-          cv = vec.sub(
-            vec.rotWith(vec.med([bx0, by0], [bx1, by0]), c1, rotation),
-            vec.rotWith(vec.med([ax0, ay0], [ax1, ay0]), c0, rotation)
+          cv = Vec.sub(
+            Vec.rotWith(Vec.med([bx0, by0], [bx1, by0]), c1, rotation),
+            Vec.rotWith(Vec.med([ax0, ay0], [ax1, ay0]), c0, rotation)
           )
           break
         }
         case TLBoundsEdge.Right: {
-          cv = vec.sub(
-            vec.rotWith(vec.med([bx0, by0], [bx0, by1]), c1, rotation),
-            vec.rotWith(vec.med([ax0, ay0], [ax0, ay1]), c0, rotation)
+          cv = Vec.sub(
+            Vec.rotWith(Vec.med([bx0, by0], [bx0, by1]), c1, rotation),
+            Vec.rotWith(Vec.med([ax0, ay0], [ax0, ay1]), c0, rotation)
           )
           break
         }
       }
 
-      ;[bx0, by0] = vec.sub([bx0, by0], cv)
-      ;[bx1, by1] = vec.sub([bx1, by1], cv)
+      ;[bx0, by0] = Vec.sub([bx0, by0], cv)
+      ;[bx1, by1] = Vec.sub([bx1, by1], cv)
     }
 
     /*
@@ -1500,10 +1500,10 @@ left past the initial left edge) then swap points on that axis.
    * @param rotation
    */
   static getRotatedSize(size: number[], rotation: number): number[] {
-    const center = vec.div(size, 2)
+    const center = Vec.div(size, 2)
 
     const points = [[0, 0], [size[0], 0], size, [0, size[1]]].map((point) =>
-      vec.rotWith(point, center, rotation)
+      Vec.rotWith(point, center, rotation)
     )
 
     const bounds = Utils.getBoundsFromPoints(points)
@@ -1534,7 +1534,7 @@ left past the initial left edge) then swap points on that axis.
    */
   static removeDuplicatePoints(points: number[][]) {
     return points.reduce<number[][]>((acc, pt, i) => {
-      if (i === 0 || !vec.isEqual(pt, acc[i - 1])) {
+      if (i === 0 || !Vec.isEqual(pt, acc[i - 1])) {
         acc.push(pt)
       }
       return acc

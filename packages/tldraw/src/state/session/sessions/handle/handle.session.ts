@@ -1,4 +1,4 @@
-import { Vec } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import { ShapesWithProp, TLDrawStatus } from '~types'
 import type { Session } from '~types'
 import type { Data } from '~types'

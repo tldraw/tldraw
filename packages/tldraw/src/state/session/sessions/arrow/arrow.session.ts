@@ -7,7 +7,8 @@ import {
   Session,
   TLDrawStatus,
 } from '~types'
-import { Vec, Utils, TLHandle } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
+import { Utils } from '@tldraw/core'
 import { TLDR } from '~state/tldr'
 
 export class ArrowSession implements Session {

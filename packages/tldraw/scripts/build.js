@@ -1,6 +1,7 @@
 /* eslint-disable */
 const fs = require('fs')
 const esbuild = require('esbuild')
+const { gzip } = require('zlib')
 
 const name = process.env.npm_package_name || ''
 
@@ -25,9 +26,10 @@ async function main() {
       jsxFragment: 'React.Fragment',
       tsconfig: './tsconfig.json',
       external: ['react', 'react-dom'],
+      metafile: true,
     })
 
-    esbuild.buildSync({
+    const esmResult = esbuild.buildSync({
       entryPoints: ['./src/index.ts'],
       outdir: 'dist/esm',
       minify: true,
@@ -38,6 +40,22 @@ async function main() {
       jsxFactory: 'React.createElement',
       jsxFragment: 'React.Fragment',
       external: ['react', 'react-dom'],
+      metafile: true,
+    })
+
+    let esmSize = 0
+    Object.values(esmResult.metafile.outputs).forEach((output) => {
+      esmSize += output.bytes
+    })
+
+    fs.readFile('./dist/esm/index.js', (_err, data) => {
+      gzip(data, (_err, result) => {
+        console.log(
+          `✔ ${name}: Built package. ${(esmSize / 1000).toFixed(2)}kb (${(
+            result.length / 1000
+          ).toFixed(2)}kb minified)`
+        )
+      })
     })
 
     console.log(`✔ ${name}: Built package.`)

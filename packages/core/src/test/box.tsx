@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from 'react'
 import { TLShapeUtil, TLShape, TLShapeProps, TLBounds, TLRenderInfo, TLTransformInfo } from '+types'
-import Utils, { Intersect } from '+utils'
+import Utils from '+utils'
 
 export interface BoxShape extends TLShape {
   size: number[]
@@ -60,15 +60,6 @@ export class Box extends TLShapeUtil<BoxShape, SVGGElement> {
 
   hitTest(shape: BoxShape, point: number[]) {
     return Utils.pointInBounds(point, this.getBounds(shape))
-  }
-
-  hitTestBounds(shape: BoxShape, bounds: TLBounds) {
-    const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
-
-    return (
-      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
-      Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
-    )
   }
 
   transform(shape: BoxShape, bounds: TLBounds, _info: TLTransformInfo<BoxShape>): BoxShape {

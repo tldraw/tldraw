@@ -1,5 +1,7 @@
 import * as React from 'react'
-import { SVGContainer, TLBounds, Utils, Vec, Intersect, TLShapeProps } from '@tldraw/core'
+import { SVGContainer, TLBounds, Utils, TLShapeProps } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
+import { intersectRayBounds, intersectPolylineBounds } from '@tldraw/intersect'
 import { defaultStyle, getPerfectDashProps } from '~shape/shape-styles'
 import {
   GroupShape,
@@ -179,8 +181,7 @@ export class Group extends TLDrawShapeUtil<GroupShape, SVGSVGElement> {
       // origin through point and expanded bounds.
 
       // TODO: Make this a ray vs rounded rect intersection
-      const intersection = Intersect.ray
-        .bounds(origin, direction, expandedBounds)
+      const intersection = intersectRayBounds(origin, direction, expandedBounds)
         .filter((int) => int.didIntersect)
         .map((int) => int.points[0])
         .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
@@ -228,7 +229,7 @@ export class Group extends TLDrawShapeUtil<GroupShape, SVGSVGElement> {
 
     return (
       rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
-      Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
+      intersectPolylineBounds(rotatedCorners, bounds).length > 0
     )
   }
 

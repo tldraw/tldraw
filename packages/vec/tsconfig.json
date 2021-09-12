@@ -5,15 +5,6 @@
   "compilerOptions": {
     "outDir": "./dist/types",
     "rootDir": "src",
-    "baseUrl": "src",
-    "paths": {
-      "+*": ["./*"]
-    }
-  },
-  "references": [
-    {
-      "path": "../../packages/intersect"
-    },
-    { "path": "../../packages/vec" }
-  ]
+    "baseUrl": "src"
+  }
 }
