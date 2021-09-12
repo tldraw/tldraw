@@ -6,14 +6,13 @@
     "outDir": "./dist/types",
     "rootDir": "src",
     "baseUrl": "src",
+    "emitDeclarationOnly": false,
     "paths": {
       "+*": ["./*"]
     }
   },
-  "references": [
-    {
-      "path": "../../packages/intersect"
-    },
-    { "path": "../../packages/vec" }
-  ]
+  "typedocOptions": {
+    "entryPoints": ["src/index.ts"],
+    "out": "docs"
+  }
 }

@@ -3,19 +3,16 @@
   "include": ["src"],
   "exclude": ["node_modules", "dist", "docs"],
   "compilerOptions": {
-    "strict": true,
-    "composite": true,
-    "emitDeclarationOnly": true,
-    "rootDir": ".",
     "outDir": "./dist/types",
+    "rootDir": "src",
     "baseUrl": "src",
+    "emitDeclarationOnly": false,
     "paths": {
       "~*": ["./*"]
     }
   },
-  "references": [
-    { "path": "../../packages/intersect" },
-    { "path": "../../packages/vec" },
-    { "path": "../../packages/core" }
-  ]
+  "typedocOptions": {
+    "entryPoints": ["src/index.ts"],
+    "out": "docs"
+  }
 }

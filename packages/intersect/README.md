@@ -1,3 +1,3 @@
-# Dev Server
+# @tldraw/intersect
 
-Dev server with fast refresh.
+Intersection utilities.

@@ -1,3 +1,3 @@
-# Dev Server
+# @tldraw/vec
 
-Dev server with fast refresh.
+Vector utilities.
