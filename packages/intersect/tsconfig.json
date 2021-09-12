@@ -5,7 +5,11 @@
   "compilerOptions": {
     "outDir": "./dist/types",
     "rootDir": "src",
-    "baseUrl": "src"
+    "baseUrl": "src",
+    "emitDeclarationOnly": false
   },
-  "references": [{ "path": "../../packages/vec" }]
+  "typedocOptions": {
+    "entryPoints": ["src/index.ts"],
+    "out": "docs"
+  }
 }

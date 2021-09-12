@@ -4,10 +4,10 @@
   "exclude": ["node_modules", "**/*.test.ts", "**/*.spec.ts"],
   "files": [],
   "references": [
-    { "path": "./packages/vec" },
-    { "path": "./packages/intersect" },
-    { "path": "./packages/tldraw" },
-    { "path": "./packages/core" }
+    { "path": "./packages/vec/src" },
+    { "path": "./packages/intersect/src" },
+    { "path": "./packages/tldraw/src" },
+    { "path": "./packages/core/src" }
   ],
   "compilerOptions": {
     "baseUrl": ".",

@@ -57,8 +57,6 @@ async function main() {
         )
       })
     })
-
-    console.log(`✔ ${name}: Built package.`)
   } catch (e) {
     console.log(`× ${name}: Build failed due to an error.`)
     console.log(e)

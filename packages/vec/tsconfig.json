@@ -5,6 +5,11 @@
   "compilerOptions": {
     "outDir": "./dist/types",
     "rootDir": "src",
-    "baseUrl": "src"
+    "baseUrl": "src",
+    "emitDeclarationOnly": false
+  },
+  "typedocOptions": {
+    "entryPoints": ["src/index.ts"],
+    "out": "docs"
   }
 }
