@@ -1,6 +1,7 @@
 import type React from 'react'
 import type { TLKeyboardInfo, TLPointerInfo } from './types'
-import { Vec, Utils } from './utils'
+import { Utils } from './utils'
+import { Vec } from '@tldraw/vec'
 
 const DOUBLE_CLICK_DURATION = 250
 
@@ -354,14 +355,11 @@ export class Inputs {
     e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent,
     offset = [0, 0]
   ): number[] {
-    return [
-      Number(e.clientX.toPrecision(5)) - offset[0],
-      Number(e.clientY.toPrecision(5)) - offset[1],
-    ]
+    return [+e.clientX.toFixed(2) - offset[0], +e.clientY.toFixed(2) - offset[1]]
   }
 
   static getPressure(e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent) {
-    return 'pressure' in e ? Number(e.pressure.toPrecision(5)) || 0.5 : 0.5
+    return 'pressure' in e ? +e.pressure.toFixed(2) || 0.5 : 0.5
   }
 
   static commandKey(): string {

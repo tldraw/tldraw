@@ -1,14 +1,7 @@
 import * as React from 'react'
-import {
-  TLBounds,
-  Utils,
-  Vec,
-  TLTransformInfo,
-  Intersect,
-  TLShapeProps,
-  SVGContainer,
-  HTMLContainer,
-} from '@tldraw/core'
+import { TLBounds, Utils, TLTransformInfo, TLShapeProps, SVGContainer } from '@tldraw/core'
+import { intersectRayBounds } from '@tldraw/intersect'
+import { Vec } from '@tldraw/vec'
 import getStroke from 'perfect-freehand'
 import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import {
@@ -234,8 +227,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGSVGElement> {
       // origin through point and expanded bounds.
 
       // TODO: Make this a ray vs rounded rect intersection
-      const intersection = Intersect.ray
-        .bounds(origin, direction, expandedBounds)
+      const intersection = intersectRayBounds(origin, direction, expandedBounds)
         .filter((int) => int.didIntersect)
         .map((int) => int.points[0])
         .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
@@ -278,12 +270,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGSVGElement> {
     bounds: TLBounds,
     { initialShape, transformOrigin, scaleX, scaleY }: TLTransformInfo<RectangleShape>
   ) {
-    if (!shape.rotation && !shape.isAspectRatioLocked) {
-      return {
-        point: Vec.round([bounds.minX, bounds.minY]),
-        size: Vec.round([bounds.width, bounds.height]),
-      }
-    } else {
+    if (shape.rotation || shape.isAspectRatioLocked) {
       const size = Vec.round(
         Vec.mul(initialShape.size, Math.min(Math.abs(scaleX), Math.abs(scaleY)))
       )
@@ -308,6 +295,11 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGSVGElement> {
         size,
         point,
         rotation,
+      }
+    } else {
+      return {
+        point: Vec.round([bounds.minX, bounds.minY]),
+        size: Vec.round([bounds.width, bounds.height]),
       }
     }
   }

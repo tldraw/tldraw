@@ -11,11 +11,11 @@ import {
   TLPointerEventHandler,
   TLWheelEventHandler,
   Utils,
-  Vec,
   brushUpdater,
   TLPointerInfo,
   TLBounds,
 } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import {
   FlipType,
   TextShape,

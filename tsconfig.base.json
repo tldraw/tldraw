@@ -3,7 +3,9 @@
     // For references
     "declaration": true,
     "declarationMap": true,
+    "composite": true,
     "sourceMap": true,
+    "emitDeclarationOnly": true,
     // Other
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

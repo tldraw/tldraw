@@ -1,4 +1,5 @@
-import { TLBoundsCorner, TLBoundsEdge, Utils, Vec } from '@tldraw/core'
+import { TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import { TLDrawShape, TLDrawStatus } from '~types'
 import type { Session } from '~types'
 import type { Data } from '~types'

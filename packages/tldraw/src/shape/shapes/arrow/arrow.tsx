@@ -3,13 +3,13 @@ import {
   SVGContainer,
   TLBounds,
   Utils,
-  Vec,
   TLTransformInfo,
-  Intersect,
   TLHandle,
   TLPointerInfo,
   TLShapeProps,
 } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
+
 import getStroke from 'perfect-freehand'
 import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
 import {
@@ -22,6 +22,14 @@ import {
   TLDrawShape,
   ArrowBinding,
 } from '~types'
+import {
+  intersectArcBounds,
+  intersectCircleCircle,
+  intersectCircleLineSegment,
+  intersectLineSegmentBounds,
+  intersectRayBounds,
+  intersectRayEllipse,
+} from '@tldraw/intersect'
 
 export class Arrow extends TLDrawShapeUtil<ArrowShape, SVGSVGElement> {
   type = TLDrawShapeType.Arrow as const
@@ -299,12 +307,12 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape, SVGSVGElement> {
     }
 
     if (Vec.isEqual(Vec.med(start.point, end.point), bend.point)) {
-      return Intersect.lineSegment.bounds(sp, ep, brushBounds).length > 0
+      return intersectLineSegmentBounds(sp, ep, brushBounds).length > 0
     } else {
       const [cx, cy, r] = getCtp(shape)
       const cp = Vec.add(shape.point, [cx, cy])
 
-      return Intersect.arc.bounds(cp, r, sp, ep, brushBounds).length > 0
+      return intersectArcBounds(cp, r, sp, ep, brushBounds).length > 0
     }
   }
 
@@ -430,15 +438,13 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape, SVGSVGElement> {
       const direction = Vec.uni(Vec.sub(Vec.add(anchor, shape.point), origin))
 
       if ([TLDrawShapeType.Rectangle, TLDrawShapeType.Text].includes(target.type)) {
-        let hits = Intersect.ray
-          .bounds(origin, direction, intersectBounds, target.rotation)
+        let hits = intersectRayBounds(origin, direction, intersectBounds, target.rotation)
           .filter((int) => int.didIntersect)
           .map((int) => int.points[0])
           .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
 
         if (hits.length < 2) {
-          hits = Intersect.ray
-            .bounds(origin, Vec.neg(direction), intersectBounds)
+          hits = intersectRayBounds(origin, Vec.neg(direction), intersectBounds)
             .filter((int) => int.didIntersect)
             .map((int) => int.points[0])
             .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
@@ -451,16 +457,14 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape, SVGSVGElement> {
 
         handlePoint = Vec.sub(hits[0], shape.point)
       } else if (target.type === TLDrawShapeType.Ellipse) {
-        const hits = Intersect.ray
-          .ellipse(
-            origin,
-            direction,
-            center,
-            target.radius[0] + binding.distance,
-            target.radius[1] + binding.distance,
-            target.rotation || 0
-          )
-          .points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
+        const hits = intersectRayEllipse(
+          origin,
+          direction,
+          center,
+          target.radius[0] + binding.distance,
+          target.radius[1] + binding.distance,
+          target.rotation || 0
+        ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
 
         if (!hits[0]) {
           console.warn('No intersections')
@@ -701,7 +705,7 @@ function getCurvedArrowHeadPoints(
   r2: number,
   sweep: boolean
 ) {
-  const ints = Intersect.circle.circle(A, r1 * 0.618, C, r2).points
+  const ints = intersectCircleCircle(A, r1 * 0.618, C, r2).points
   if (!ints) {
     console.warn('Could not find an intersection for the arrow head.')
     return { left: A, right: A }
@@ -714,7 +718,7 @@ function getCurvedArrowHeadPoints(
 }
 
 function getStraightArrowHeadPoints(A: number[], B: number[], r: number) {
-  const ints = Intersect.circle.lineSegment(A, r, A, B).points
+  const ints = intersectCircleLineSegment(A, r, A, B).points
   if (!ints) {
     console.warn('Could not find an intersection for the arrow head.')
     return { left: A, right: A }

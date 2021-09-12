@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLPageState, Utils, Vec } from '@tldraw/core'
+import { TLPageState, Utils } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import {
   TLDrawShape,
   TLDrawBinding,

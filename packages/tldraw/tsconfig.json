@@ -6,12 +6,16 @@
     "strict": true,
     "composite": true,
     "emitDeclarationOnly": true,
-    "rootDir": "src",
+    "rootDir": ".",
     "outDir": "./dist/types",
     "baseUrl": "src",
     "paths": {
       "~*": ["./*"]
     }
   },
-  "references": [{ "path": "../../packages/core" }]
+  "references": [
+    { "path": "../../packages/intersect" },
+    { "path": "../../packages/vec" },
+    { "path": "../../packages/core" }
+  ]
 }

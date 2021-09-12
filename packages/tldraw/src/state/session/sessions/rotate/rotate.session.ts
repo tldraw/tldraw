@@ -1,4 +1,5 @@
-import { Utils, Vec } from '@tldraw/core'
+import { Utils } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import { Session, TLDrawShape, TLDrawStatus } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'

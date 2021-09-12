@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Vec } from '+utils'
+import { Vec } from '@tldraw/vec'
 import type { TLShape } from '+types'
 import { Handle } from './handle'
 

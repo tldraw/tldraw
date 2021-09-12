@@ -1,13 +1,6 @@
 import * as React from 'react'
-import {
-  SVGContainer,
-  Utils,
-  TLTransformInfo,
-  TLBounds,
-  Intersect,
-  TLShapeProps,
-  Vec,
-} from '@tldraw/core'
+import { SVGContainer, Utils, TLTransformInfo, TLBounds, TLShapeProps } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import {
   ArrowShape,
   DashStyle,
@@ -18,6 +11,11 @@ import {
 } from '~types'
 import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
 import getStroke from 'perfect-freehand'
+import {
+  intersectLineSegmentEllipse,
+  intersectPolylineBounds,
+  intersectRayEllipse,
+} from '@tldraw/intersect'
 
 // TODO
 // [ ] Improve indicator shape for drawn shapes
@@ -181,7 +179,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape, SVGSVGElement> {
 
     return (
       rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
-      Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
+      intersectPolylineBounds(rotatedCorners, bounds).length > 0
     )
   }
 
@@ -226,15 +224,24 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape, SVGSVGElement> {
         //   .map((int) => int.points[0])
         //   .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
 
-        let intersection = Intersect.ray
-          .ellipse(origin, direction, center, shape.radius[0], shape.radius[1], shape.rotation || 0)
-
-          .points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))[0]
+        let intersection = intersectRayEllipse(
+          origin,
+          direction,
+          center,
+          shape.radius[0],
+          shape.radius[1],
+          shape.rotation || 0
+        ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))[0]
 
         if (!intersection) {
-          intersection = Intersect.lineSegment
-            .ellipse(point, center, center, shape.radius[0], shape.radius[1], shape.rotation || 0)
-            .points.sort((a, b) => Vec.dist(a, point) - Vec.dist(b, point))[0]
+          intersection = intersectLineSegmentEllipse(
+            point,
+            center,
+            center,
+            shape.radius[0],
+            shape.radius[1],
+            shape.rotation || 0
+          ).points.sort((a, b) => Vec.dist(a, point) - Vec.dist(b, point))[0]
         }
 
         // The anchor is a point between the handle and the intersection
@@ -258,7 +265,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape, SVGSVGElement> {
           distance = 16
         } else {
           // Find the distance between the point and the ellipse
-          const innerIntersection = Intersect.lineSegment.ellipse(
+          const innerIntersection = intersectLineSegmentEllipse(
             point,
             center,
             center,

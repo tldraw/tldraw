@@ -13,7 +13,9 @@
     "packages/core",
     "packages/tldraw",
     "packages/dev",
-    "packages/www"
+    "packages/www",
+    "packages/vec",
+    "packages/intersect"
   ],
   "scripts": {
     "test": "jest",
@@ -22,7 +24,7 @@
     "start": "lerna run start:pre && lerna run start --stream --parallel",
     "start:www": "yarn build:packages && lerna run start --parallel & cd packages/www && yarn dev",
     "build": "yarn build:packages && cd packages/www && yarn build",
-    "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build",
+    "build:packages": "cd packages/vec && yarn build && cd ../intersect && yarn build && cd ../core && yarn build && cd ../tldraw && yarn build",
     "publish:patch": "yarn build:packages && lerna publish patch",
     "docs": "lerna run docs --stream",
     "docs:watch": "lerna run docs:watch --stream"
@@ -105,11 +107,15 @@
     },
     "testEnvironment": "jsdom",
     "modulePathIgnorePatterns": [
+      "<rootDir>/packages/vec/dist/",
+      "<rootDir>/packages/intersect/dist/",
       "<rootDir>/packages/core/dist/",
       "<rootDir>/packages/tldraw/dist/",
       "<rootDir>/packages/tldraw/test-utils/"
     ],
     "moduleNameMapper": {
+      "@tldraw/vec": "<rootDir>/packages/vec/src",
+      "@tldraw/intersect": "<rootDir>/packages/intersect/src",
       "@tldraw/core": "<rootDir>/packages/core/src",
       "@tldraw/tldraw": "<rootDir>/packages/tldraw/src",
       "\\~(.*)": "<rootDir>/packages/tldraw/src/$1",

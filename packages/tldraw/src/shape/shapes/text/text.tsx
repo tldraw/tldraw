@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { HTMLContainer, TLBounds, Utils, Vec, TLTransformInfo, Intersect } from '@tldraw/core'
+import { HTMLContainer, TLBounds, Utils, TLTransformInfo } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import { getShapeStyle, getFontStyle, defaultStyle } from '~shape/shape-styles'
 import {
   TextShape,
@@ -12,6 +13,7 @@ import {
 } from '~types'
 import styled from '~styles'
 import TextAreaUtils from './text-utils'
+import { intersectPolylineBounds, intersectRayBounds } from '@tldraw/intersect'
 
 const LETTER_SPACING = -1.5
 
@@ -255,7 +257,7 @@ export class Text extends TLDrawShapeUtil<TextShape, HTMLDivElement> {
 
     return (
       rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
-      Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
+      intersectPolylineBounds(rotatedCorners, bounds).length > 0
     )
   }
 
@@ -373,8 +375,7 @@ export class Text extends TLDrawShapeUtil<TextShape, HTMLDivElement> {
       // origin through point and expanded bounds.
 
       // TODO: Make this a ray vs rounded rect intersection
-      const intersection = Intersect.ray
-        .bounds(origin, direction, expandedBounds)
+      const intersection = intersectRayBounds(origin, direction, expandedBounds)
         .filter((int) => int.didIntersect)
         .map((int) => int.points[0])
         .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]

@@ -2,8 +2,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* --------------------- Primary -------------------- */
 
-import { Intersect, Vec } from '+utils'
+import { Vec } from '@tldraw/vec'
 import React, { ForwardedRef } from 'react'
+import { intersectPolylineBounds } from '@tldraw/intersect'
 
 export type Patch<T> = Partial<{ [P in keyof T]: T | Partial<T> | Patch<T[P]> }>
 
@@ -426,7 +427,7 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element> {
             point[1] < bounds.minY ||
             point[1] > bounds.maxY
           )
-      ) || Intersect.polyline.bounds(corners, bounds).length > 0
+      ) || intersectPolylineBounds(corners, bounds).length > 0
     )
   }
 }
