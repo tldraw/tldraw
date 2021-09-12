@@ -4,6 +4,8 @@ import { ShapeIndicator } from './shape-indicator'
 
 describe('shape indicator', () => {
   test('mounts component without crashing', () => {
-    renderWithSvg(<ShapeIndicator shape={mockUtils.box.create({})} variant={'selected'} />)
+    renderWithSvg(
+      <ShapeIndicator shape={mockUtils.box.create({ id: 'box1' })} variant={'selected'} />
+    )
   })
 })

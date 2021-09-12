@@ -100,7 +100,7 @@ describe('Arrow session', () => {
         .startHandleSession([200, 200], 'start')
         .updateHandleSession([91, 9])
 
-      expect(tlstate.bindings[0].point).toStrictEqual([0.67839, 0.125])
+      expect(tlstate.bindings[0].point).toStrictEqual([0.68, 0.13])
 
       tlstate.updateHandleSession([91, 9], false, false, true)
     })
@@ -112,7 +112,7 @@ describe('Arrow session', () => {
         .startHandleSession([200, 200], 'start')
         .updateHandleSession([91, 9])
 
-      expect(tlstate.bindings[0].point).toStrictEqual([0.67839, 0.125])
+      expect(tlstate.bindings[0].point).toStrictEqual([0.68, 0.13])
 
       tlstate.updateHandleSession([91, 9], false, false, true)
 

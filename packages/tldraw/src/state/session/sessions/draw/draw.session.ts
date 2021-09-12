@@ -8,10 +8,12 @@ import { TLDR } from '~state/tldr'
 export class DrawSession implements Session {
   id = 'draw'
   status = TLDrawStatus.Creating
+  topLeft: number[]
   origin: number[]
   previous: number[]
   last: number[]
   points: number[][]
+  shiftedPoints: number[][] = []
   snapshot: DrawSnapshot
   isLocked?: boolean
   lockedDirection?: 'horizontal' | 'vertical'
@@ -20,6 +22,7 @@ export class DrawSession implements Session {
     this.origin = point
     this.previous = point
     this.last = point
+    this.topLeft = point
 
     this.snapshot = getDrawSnapshot(data, id)
 
@@ -48,7 +51,7 @@ export class DrawSession implements Session {
         const bounds = Utils.getBoundsFromPoints(this.points)
         if (bounds.width > 8 || bounds.height > 8) {
           this.isLocked = true
-          const returning = [...this.previous]
+          const returning = [...this.last]
 
           const isVertical = bounds.height > 8
 
@@ -77,10 +80,9 @@ export class DrawSession implements Session {
     }
 
     // The previous input (not adjusted) point
-    this.previous = point
 
     // The new adjusted point
-    const newPoint = Vec.round(Vec.sub(this.previous, this.origin)).concat(pressure)
+    const newPoint = Vec.round(Vec.sub(point, this.origin)).concat(pressure)
 
     // Don't add duplicate points. Be sure to
     // test against the previous *adjusted* point.
@@ -89,8 +91,33 @@ export class DrawSession implements Session {
     // The new adjusted point is now the previous adjusted point.
     this.last = newPoint
 
+    // Does the input point create a new top left?
+    const prevTopLeft = [...this.topLeft]
+
+    this.topLeft = [Math.min(this.topLeft[0], point[0]), Math.min(this.topLeft[1], point[1])]
+
+    const delta = Vec.sub(this.topLeft, this.origin)
+
     // Add the new adjusted point to the points array
     this.points.push(newPoint)
+
+    // Time to shift some points!
+
+    let points: number[][]
+
+    if (Vec.isEqual(prevTopLeft, this.topLeft)) {
+      // If the new top left is the same as the previous top left,
+      // we don't need to shift anything: we just shift the new point
+      // and add it to the shifted points array.
+      points = [...this.shiftedPoints, Vec.sub(newPoint, delta)]
+    } else {
+      // If we have a new top left, then we need to iterate through
+      // the "unshifted" points array and shift them based on the
+      // offset between the new top left and the original top left.
+      points = this.points.map((pt) => [pt[0] - delta[0], pt[1] - delta[1], pt[2]])
+    }
+
+    this.shiftedPoints = points
 
     return {
       document: {
@@ -98,7 +125,8 @@ export class DrawSession implements Session {
           [data.appState.currentPageId]: {
             shapes: {
               [snapshot.id]: {
-                points: [...this.points], // Set to a new array here
+                point: this.topLeft,
+                points,
               },
             },
           },
@@ -163,11 +191,7 @@ export class DrawSession implements Session {
           pages: {
             [pageId]: {
               shapes: {
-                [snapshot.id]: TLDR.onSessionComplete(
-                  data,
-                  { ...TLDR.getShape(data, snapshot.id, pageId), points: [...this.points] },
-                  pageId
-                ),
+                [snapshot.id]: TLDR.getShape(data, snapshot.id, pageId),
               },
             },
           },

@@ -6,7 +6,7 @@ import Utils, { Vec } from '+utils'
 import { useGesture } from '@use-gesture/react'
 
 // Capture zoom gestures (pinches, wheels and pans)
-export function useZoomEvents<T extends HTMLElement | SVGElement>(ref: React.RefObject<T>) {
+export function useZoomEvents<T extends Element>(ref: React.RefObject<T>) {
   const rOriginPoint = React.useRef<number[] | undefined>(undefined)
   const rPinchPoint = React.useRef<number[] | undefined>(undefined)
   const rDelta = React.useRef<number[]>([0, 0])

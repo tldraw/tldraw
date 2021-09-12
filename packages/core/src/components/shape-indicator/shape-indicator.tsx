@@ -1,20 +1,25 @@
 import * as React from 'react'
 import type { TLShape } from '+types'
-import { useTLContext } from '+hooks'
+import { usePosition, useTLContext } from '+hooks'
 
 export const ShapeIndicator = React.memo(
   ({ shape, variant }: { shape: TLShape; variant: 'selected' | 'hovered' }) => {
     const { shapeUtils } = useTLContext()
     const utils = shapeUtils[shape.type]
-
-    const center = utils.getCenter(shape)
-    const rotation = (shape.rotation || 0) * (180 / Math.PI)
-    const transform = `rotate(${rotation}, ${center}) translate(${shape.point})`
+    const bounds = utils.getBounds(shape)
+    const rBounds = usePosition(bounds, shape.rotation)
 
     return (
-      <g className={variant === 'selected' ? 'tl-selected' : 'tl-hovered'} transform={transform}>
-        {shapeUtils[shape.type].renderIndicator(shape)}
-      </g>
+      <div
+        ref={rBounds}
+        className={
+          'tl-indicator tl-absolute ' + (variant === 'selected' ? 'tl-selected' : 'tl-hovered')
+        }
+      >
+        <svg width="100%" height="100%">
+          <g className="tl-centered-g">{utils.renderIndicator(shape)}</g>
+        </svg>
+      </div>
     )
   }
 )

@@ -18,5 +18,6 @@ export const ContextWrapper: React.FC = ({ children }) => {
     inputs: new Inputs(),
   }))
 
-  return <TLContext.Provider value={context}>{children}</TLContext.Provider>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return <TLContext.Provider value={context as any}>{children}</TLContext.Provider>
 }

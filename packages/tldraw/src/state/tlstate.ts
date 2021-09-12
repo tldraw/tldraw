@@ -14,9 +14,7 @@ import {
   Vec,
   brushUpdater,
   TLPointerInfo,
-  inputs,
   TLBounds,
-  Patch,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -72,7 +70,7 @@ const defaultState: Data = {
   settings: {
     isPenMode: false,
     isDarkMode: false,
-    isZoomSnap: true,
+    isZoomSnap: false,
     isDebugMode: process.env.NODE_ENV === 'development',
     isReadonlyMode: false,
     nudgeDistanceLarge: 10,
@@ -410,6 +408,7 @@ export class TLDrawState extends StateManager<Data> {
    */
   selectTool = (tool: TLDrawShapeType | 'select'): this => {
     if (this.session) return this
+
     return this.patchState(
       {
         appState: {
@@ -464,10 +463,10 @@ export class TLDrawState extends StateManager<Data> {
           document: {
             pageStates: {
               [this.currentPageId]: {
-                bindingId: undefined,
-                editingId: undefined,
-                hoveredId: undefined,
-                pointedId: undefined,
+                bindingId: null,
+                editingId: null,
+                hoveredId: null,
+                pointedId: null,
               },
             },
           },
@@ -1358,6 +1357,7 @@ export class TLDrawState extends StateManager<Data> {
 
     if (result === undefined) {
       this.isCreating = false
+
       return this.patchState(
         {
           appState: {
@@ -1393,24 +1393,9 @@ export class TLDrawState extends StateManager<Data> {
             pageStates: {
               [this.currentPageId]: {
                 selectedIds: [],
-                editingId: undefined,
-                bindingId: undefined,
-                hoveredId: undefined,
-              },
-            },
-          },
-        }
-
-        // ...and set editingId back to undefined
-        result.after = {
-          ...result.after,
-          document: {
-            ...result.after.document,
-            pageStates: {
-              ...result.after.document?.pageStates,
-              [this.currentPageId]: {
-                ...(result.after.document?.pageStates || {})[this.currentPageId],
-                editingId: undefined,
+                editingId: null,
+                bindingId: null,
+                hoveredId: null,
               },
             },
           },
@@ -1433,6 +1418,17 @@ export class TLDrawState extends StateManager<Data> {
         },
       }
 
+      result.after.document = {
+        ...result.after.document,
+        pageStates: {
+          ...result.after.document?.pageStates,
+          [this.currentPageId]: {
+            ...(result.after.document?.pageStates || {})[this.currentPageId],
+            editingId: null,
+          },
+        },
+      }
+
       this.setState(result, `session:complete:${session.id}`)
     } else {
       this.patchState(
@@ -1448,7 +1444,7 @@ export class TLDrawState extends StateManager<Data> {
           document: {
             pageStates: {
               [this.currentPageId]: {
-                editingId: undefined,
+                editingId: null,
               },
             },
           },
@@ -2234,11 +2230,11 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   onPinchEnd: TLPinchEventHandler = () => {
-    if (this.state.settings.isZoomSnap) {
-      const i = Math.round((this.pageState.camera.zoom * 100) / 25)
-      const nextZoom = TLDR.getCameraZoom(i * 0.25)
-      this.zoomTo(nextZoom, inputs.pointer?.point)
-    }
+    // if (this.state.settings.isZoomSnap) {
+    //   const i = Math.round((this.pageState.camera.zoom * 100) / 25)
+    //   const nextZoom = TLDR.getCameraZoom(i * 0.25)
+    //   this.zoomTo(nextZoom, inputs.pointer?.point)
+    // }
     this.setStatus(TLDrawStatus.Idle)
   }
 
@@ -2394,26 +2390,27 @@ export class TLDrawState extends StateManager<Data> {
             }
 
             // Start a brush session
+            // TODO: Don't start a brush session right away: we might
+            // be "maybe brushing" or "maybe double clicking"
             this.startBrushSession(this.getPagePoint(info.point))
             break
           }
         }
         break
       }
+      case TLDrawStatus.EditingText: {
+        this.completeSession()
+      }
     }
   }
 
-  onDoubleClickCanvas: TLCanvasEventHandler = (info) => {
+  onDoubleClickCanvas: TLCanvasEventHandler = () => {
     // Unused
     switch (this.appState.status.current) {
       case TLDrawStatus.Idle: {
-        switch (this.appState.activeTool) {
-          case TLDrawShapeType.Text: {
-            // Create a text shape
-            this.createActiveToolShape(info.point)
-            break
-          }
-        }
+        // TODO: Create a text shape
+        // this.selectTool(TLDrawShapeType.Text)
+        // this.createActiveToolShape(info.point)
         break
       }
     }
@@ -2706,31 +2703,24 @@ export class TLDrawState extends StateManager<Data> {
     // Unused
   }
 
-  onTextChange = (id: string, text: string) => {
-    this.updateTextSession(text)
+  onShapeChange = (shape: { id: string } & Partial<TLDrawShape>) => {
+    switch (shape.type) {
+      case TLDrawShapeType.Text: {
+        this.updateTextSession(shape.text || '')
+      }
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onTextBlur = (id: string) => {
-    this.completeSession()
+  onShapeBlur = () => {
+    switch (this.appState.status.current) {
+      case TLDrawStatus.EditingText: {
+        this.completeSession()
+      }
+    }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onTextFocus = (id: string) => {
-    // Unused
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onTextKeyDown = (id: string, key: string) => {
-    // Unused
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onTextKeyUp = (id: string, key: string) => {
-    // Unused
-  }
-
-  onChange = (ids: string[]) => {
+  onRenderCountChange = (ids: string[]) => {
     const appState = this.getAppState()
     if (appState.isEmptyCanvas && ids.length > 0) {
       this.patchState(
@@ -2755,9 +2745,5 @@ export class TLDrawState extends StateManager<Data> {
 
   onError = () => {
     // TODO
-  }
-
-  onBlurEditingShape = () => {
-    this.completeSession()
   }
 }

@@ -2,7 +2,7 @@ import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
 import styled from '~styles'
-import type { Data, TLDrawDocument } from '~types'
+import { Data, TLDrawDocument, TLDrawStatus } from '~types'
 import { TLDrawState } from '~state'
 import { TLDrawContext, useCustomFonts, useKeyboardShortcuts, useTLDrawContext } from '~hooks'
 import { tldrawShapeUtils } from '~shape'
@@ -109,7 +109,8 @@ function InnerTldraw({
   const hideHandles = isInSession || !isSelecting
 
   // Hide indicators when not using the select tool, or when in session
-  const hideIndicators = isInSession || !isSelecting
+  const hideIndicators =
+    (isInSession && tlstate.appState.status.current !== TLDrawStatus.Brushing) || !isSelecting
 
   // Custom rendering meta, with dark mode for shapes
   const meta = React.useMemo(() => ({ isDarkMode }), [isDarkMode])
@@ -197,14 +198,10 @@ function InnerTldraw({
           onHoverHandle={tlstate.onHoverHandle}
           onUnhoverHandle={tlstate.onUnhoverHandle}
           onReleaseHandle={tlstate.onReleaseHandle}
-          onChange={tlstate.onChange}
           onError={tlstate.onError}
-          onBlurEditingShape={tlstate.onBlurEditingShape}
-          onTextBlur={tlstate.onTextBlur}
-          onTextChange={tlstate.onTextChange}
-          onTextKeyDown={tlstate.onTextKeyDown}
-          onTextFocus={tlstate.onTextFocus}
-          onTextKeyUp={tlstate.onTextKeyUp}
+          onRenderCountChange={tlstate.onRenderCountChange}
+          onShapeChange={tlstate.onShapeChange}
+          onShapeBlur={tlstate.onShapeBlur}
         />
       </ContextMenu>
       <MenuButtons>
@@ -219,10 +216,14 @@ function InnerTldraw({
 }
 
 const Layout = styled('div', {
-  overflow: 'hidden',
   position: 'absolute',
   height: '100%',
   width: '100%',
+  minHeight: 0,
+  minWidth: 0,
+  maxHeight: '100%',
+  maxWidth: '100%',
+  overflow: 'hidden',
   padding: '8px 8px 0 8px',
   display: 'flex',
   alignItems: 'flex-start',
@@ -240,9 +241,6 @@ const Layout = styled('div', {
     position: 'absolute',
     top: 0,
     left: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: 100,
   },
 })
 

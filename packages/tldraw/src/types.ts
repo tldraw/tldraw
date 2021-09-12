@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import type { TLBinding, TLRenderInfo } from '@tldraw/core'
+import type { TLBinding, TLShapeProps } from '@tldraw/core'
 import { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
 import type { TLPage, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
@@ -32,7 +32,11 @@ export interface TLDrawMeta {
   isDarkMode: boolean
 }
 
-export type TLDrawRenderInfo = TLRenderInfo<TLDrawMeta>
+export type TLDrawShapeProps<T extends TLDrawShape, E extends Element> = TLShapeProps<
+  T,
+  E,
+  TLDrawMeta
+>
 
 export interface Data {
   document: TLDrawDocument
@@ -134,6 +138,7 @@ export enum TLDrawToolType {
 }
 
 export enum TLDrawShapeType {
+  PostIt = 'post-it',
   Ellipse = 'ellipse',
   Rectangle = 'rectangle',
   Draw = 'draw',
@@ -170,6 +175,7 @@ export interface ArrowShape extends TLDrawBaseShape {
     middle?: Decoration
   }
 }
+
 export interface EllipseShape extends TLDrawBaseShape {
   type: TLDrawShapeType.Ellipse
   radius: number[]
@@ -191,6 +197,12 @@ export interface GroupShape extends TLDrawBaseShape {
   children: string[]
 }
 
+export interface PostItShape extends TLDrawBaseShape {
+  type: TLDrawShapeType.PostIt
+  size: number[]
+  text: string
+}
+
 export type TLDrawShape =
   | RectangleShape
   | EllipseShape
@@ -198,12 +210,19 @@ export type TLDrawShape =
   | ArrowShape
   | TextShape
   | GroupShape
+  | PostItShape
 
-export abstract class TLDrawShapeUtil<T extends TLDrawShape> extends TLShapeUtil<T> {
+export abstract class TLDrawShapeUtil<
+  T extends TLDrawShape,
+  E extends HTMLElement | SVGElement
+> extends TLShapeUtil<T, E> {
   abstract toolType: TLDrawToolType
 }
 
-export type TLDrawShapeUtils = Record<TLDrawShapeType, TLDrawShapeUtil<TLDrawShape>>
+export type TLDrawShapeUtils = Record<
+  TLDrawShapeType,
+  TLDrawShapeUtil<TLDrawShape, HTMLElement | SVGElement>
+>
 
 export interface ArrowBinding extends TLBinding {
   type: 'arrow'

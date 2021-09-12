@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {
+  SVGContainer,
   TLBounds,
   Utils,
   Vec,
@@ -7,6 +8,7 @@ import {
   Intersect,
   TLHandle,
   TLPointerInfo,
+  TLShapeProps,
 } from '@tldraw/core'
 import getStroke from 'perfect-freehand'
 import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
@@ -19,10 +21,9 @@ import {
   DashStyle,
   TLDrawShape,
   ArrowBinding,
-  TLDrawRenderInfo,
 } from '~types'
 
-export class Arrow extends TLDrawShapeUtil<ArrowShape> {
+export class Arrow extends TLDrawShapeUtil<ArrowShape, SVGSVGElement> {
   type = TLDrawShapeType.Arrow as const
   toolType = TLDrawToolType.Handle
   canStyleFill = false
@@ -70,62 +71,130 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     return next.handles !== prev.handles || next.style !== prev.style
   }
 
-  render = (shape: ArrowShape, { meta }: TLDrawRenderInfo) => {
-    const {
-      handles: { start, bend, end },
-      decorations = {},
-      style,
-    } = shape
+  render = React.forwardRef<SVGSVGElement, TLShapeProps<ArrowShape, SVGSVGElement>>(
+    ({ shape, meta, events }, ref) => {
+      const {
+        handles: { start, bend, end },
+        decorations = {},
+        style,
+      } = shape
 
-    const isDraw = style.dash === DashStyle.Draw
+      const isDraw = style.dash === DashStyle.Draw
 
-    // TODO: Improve drawn arrows
+      // TODO: Improve drawn arrows
 
-    const isStraightLine = Vec.dist(bend.point, Vec.round(Vec.med(start.point, end.point))) < 1
+      const isStraightLine = Vec.dist(bend.point, Vec.round(Vec.med(start.point, end.point))) < 1
 
-    const styles = getShapeStyle(style, meta.isDarkMode)
+      const styles = getShapeStyle(style, meta.isDarkMode)
 
-    const { strokeWidth } = styles
+      const { strokeWidth } = styles
 
-    const arrowDist = Vec.dist(start.point, end.point)
+      const arrowDist = Vec.dist(start.point, end.point)
 
-    const arrowHeadLength = Math.min(arrowDist / 3, strokeWidth * 8)
+      const arrowHeadLength = Math.min(arrowDist / 3, strokeWidth * 8)
 
-    let shaftPath: JSX.Element | null
-    let startArrowHead: { left: number[]; right: number[] } | undefined
-    let endArrowHead: { left: number[]; right: number[] } | undefined
+      let shaftPath: JSX.Element | null
+      let startArrowHead: { left: number[]; right: number[] } | undefined
+      let endArrowHead: { left: number[]; right: number[] } | undefined
 
-    if (isStraightLine) {
-      const sw = strokeWidth * (isDraw ? 1.25 : 1.618)
+      if (isStraightLine) {
+        const sw = strokeWidth * (isDraw ? 1.25 : 1.618)
 
-      const path = Utils.getFromCache(this.pathCache, shape, () =>
-        isDraw
-          ? renderFreehandArrowShaft(shape)
-          : 'M' + Vec.round(start.point) + 'L' + Vec.round(end.point)
-      )
+        const path = Utils.getFromCache(this.pathCache, shape, () =>
+          isDraw
+            ? renderFreehandArrowShaft(shape)
+            : 'M' + Vec.round(start.point) + 'L' + Vec.round(end.point)
+        )
 
-      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-        arrowDist,
-        sw,
-        shape.style.dash,
-        2
-      )
+        const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+          arrowDist,
+          sw,
+          shape.style.dash,
+          2
+        )
 
-      if (decorations.start) {
-        startArrowHead = getStraightArrowHeadPoints(start.point, end.point, arrowHeadLength)
-      }
+        if (decorations.start) {
+          startArrowHead = getStraightArrowHeadPoints(start.point, end.point, arrowHeadLength)
+        }
 
-      if (decorations.end) {
-        endArrowHead = getStraightArrowHeadPoints(end.point, start.point, arrowHeadLength)
-      }
+        if (decorations.end) {
+          endArrowHead = getStraightArrowHeadPoints(end.point, start.point, arrowHeadLength)
+        }
 
-      // Straight arrow path
-      shaftPath =
-        arrowDist > 2 ? (
+        // Straight arrow path
+        shaftPath =
+          arrowDist > 2 ? (
+            <>
+              <path
+                d={path}
+                fill="none"
+                strokeWidth={Math.max(8, strokeWidth * 2)}
+                strokeDasharray="none"
+                strokeDashoffset="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                pointerEvents="stroke"
+              />
+              <path
+                d={path}
+                fill={styles.stroke}
+                stroke={styles.stroke}
+                strokeWidth={sw}
+                strokeDasharray={strokeDasharray}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                pointerEvents="stroke"
+              />
+            </>
+          ) : null
+      } else {
+        const circle = getCtp(shape)
+
+        const sw = strokeWidth * (isDraw ? 1.25 : 1.618)
+
+        const path = Utils.getFromCache(this.pathCache, shape, () =>
+          isDraw
+            ? renderCurvedFreehandArrowShaft(shape, circle)
+            : getArrowArcPath(start, end, circle, shape.bend)
+        )
+
+        const { center, radius, length } = getArrowArc(shape)
+
+        const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+          length - 1,
+          sw,
+          shape.style.dash,
+          2
+        )
+
+        if (decorations.start) {
+          startArrowHead = getCurvedArrowHeadPoints(
+            start.point,
+            arrowHeadLength,
+            center,
+            radius,
+            length < 0
+          )
+        }
+
+        if (decorations.end) {
+          endArrowHead = getCurvedArrowHeadPoints(
+            end.point,
+            arrowHeadLength,
+            center,
+            radius,
+            length >= 0
+          )
+        }
+
+        // Curved arrow path
+        shaftPath = (
           <>
             <path
               d={path}
               fill="none"
+              stroke="transparent"
               strokeWidth={Math.max(8, strokeWidth * 2)}
               strokeDasharray="none"
               strokeDashoffset="none"
@@ -135,7 +204,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
             />
             <path
               d={path}
-              fill={styles.stroke}
+              fill={isDraw ? styles.stroke : 'none'}
               stroke={styles.stroke}
               strokeWidth={sw}
               strokeDasharray={strokeDasharray}
@@ -145,110 +214,46 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
               pointerEvents="stroke"
             />
           </>
-        ) : null
-    } else {
-      const circle = getCtp(shape)
-
-      const sw = strokeWidth * (isDraw ? 1.25 : 1.618)
-
-      const path = Utils.getFromCache(this.pathCache, shape, () =>
-        isDraw
-          ? renderCurvedFreehandArrowShaft(shape, circle)
-          : getArrowArcPath(start, end, circle, shape.bend)
-      )
-
-      const { center, radius, length } = getArrowArc(shape)
-
-      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-        length - 1,
-        sw,
-        shape.style.dash,
-        2
-      )
-
-      if (decorations.start) {
-        startArrowHead = getCurvedArrowHeadPoints(
-          start.point,
-          arrowHeadLength,
-          center,
-          radius,
-          length < 0
         )
       }
 
-      if (decorations.end) {
-        endArrowHead = getCurvedArrowHeadPoints(
-          end.point,
-          arrowHeadLength,
-          center,
-          radius,
-          length >= 0
-        )
-      }
+      const sw = strokeWidth * 1.618
 
-      // Curved arrow path
-      shaftPath = (
-        <>
-          <path
-            d={path}
-            fill="none"
-            stroke="transparent"
-            strokeWidth={Math.max(8, strokeWidth * 2)}
-            strokeDasharray="none"
-            strokeDashoffset="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pointerEvents="stroke"
-          />
-          <path
-            d={path}
-            fill={isDraw ? styles.stroke : 'none'}
-            stroke={styles.stroke}
-            strokeWidth={sw}
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pointerEvents="stroke"
-          />
-        </>
+      return (
+        <SVGContainer ref={ref} {...events}>
+          <g pointerEvents="none">
+            {shaftPath}
+            {startArrowHead && (
+              <path
+                d={`M ${startArrowHead.left} L ${start.point} ${startArrowHead.right}`}
+                fill="none"
+                stroke={styles.stroke}
+                strokeWidth={sw}
+                strokeDashoffset="none"
+                strokeDasharray="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                pointerEvents="stroke"
+              />
+            )}
+            {endArrowHead && (
+              <path
+                d={`M ${endArrowHead.left} L ${end.point} ${endArrowHead.right}`}
+                fill="none"
+                stroke={styles.stroke}
+                strokeWidth={sw}
+                strokeDashoffset="none"
+                strokeDasharray="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                pointerEvents="stroke"
+              />
+            )}
+          </g>
+        </SVGContainer>
       )
     }
-
-    const sw = strokeWidth * 1.618
-
-    return (
-      <g pointerEvents="none">
-        {shaftPath}
-        {startArrowHead && (
-          <path
-            d={`M ${startArrowHead.left} L ${start.point} ${startArrowHead.right}`}
-            fill="none"
-            stroke={styles.stroke}
-            strokeWidth={sw}
-            strokeDashoffset="none"
-            strokeDasharray="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pointerEvents="stroke"
-          />
-        )}
-        {endArrowHead && (
-          <path
-            d={`M ${endArrowHead.left} L ${end.point} ${endArrowHead.right}`}
-            fill="none"
-            stroke={styles.stroke}
-            strokeWidth={sw}
-            strokeDashoffset="none"
-            strokeDasharray="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pointerEvents="stroke"
-          />
-        )}
-      </g>
-    )
-  }
+  )
 
   renderIndicator(shape: ArrowShape) {
     const path = Utils.getFromCache(this.simplePathCache, shape.handles, () => getArrowPath(shape))

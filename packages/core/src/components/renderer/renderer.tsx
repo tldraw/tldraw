@@ -13,12 +13,15 @@ import { Canvas } from '../canvas'
 import { Inputs } from '../../inputs'
 import { useTLTheme, TLContext, TLContextType } from '../../hooks'
 
-export interface RendererProps<T extends TLShape, M extends Record<string, unknown>>
-  extends Partial<TLCallbacks> {
+export interface RendererProps<
+  T extends TLShape,
+  E extends Element,
+  M extends Record<string, unknown>
+> extends Partial<TLCallbacks<T>> {
   /**
    * An object containing instances of your shape classes.
    */
-  shapeUtils: TLShapeUtils<T>
+  shapeUtils: TLShapeUtils<T, E>
   /**
    * The current page, containing shapes and bindings.
    */
@@ -63,7 +66,7 @@ export interface RendererProps<T extends TLShape, M extends Record<string, unkno
  * @param props
  * @returns
  */
-export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
+export function Renderer<T extends TLShape, E extends Element, M extends Record<string, unknown>>({
   shapeUtils,
   page,
   pageState,
@@ -73,17 +76,20 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
   hideIndicators = false,
   hideBounds = false,
   ...rest
-}: RendererProps<T, M>): JSX.Element {
+}: RendererProps<T, E, M>): JSX.Element {
   useTLTheme(theme)
 
   const rScreenBounds = React.useRef<TLBounds>(null)
+
   const rPageState = React.useRef<TLPageState>(pageState)
 
   React.useEffect(() => {
     rPageState.current = pageState
   }, [pageState])
 
-  const [context] = React.useState<TLContextType>(() => ({
+  rest
+
+  const [context] = React.useState<TLContextType<T, E>>(() => ({
     callbacks: rest,
     shapeUtils,
     rScreenBounds,
@@ -92,7 +98,7 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
   }))
 
   return (
-    <TLContext.Provider value={context}>
+    <TLContext.Provider value={context as unknown as TLContextType<TLShape, Element>}>
       <Canvas
         page={page}
         pageState={pageState}

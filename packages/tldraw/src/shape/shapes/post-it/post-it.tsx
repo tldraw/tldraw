@@ -6,148 +6,68 @@ import {
   TLTransformInfo,
   Intersect,
   TLShapeProps,
-  SVGContainer,
   HTMLContainer,
 } from '@tldraw/core'
-import getStroke from 'perfect-freehand'
-import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import {
-  RectangleShape,
-  DashStyle,
-  TLDrawShapeUtil,
-  TLDrawShapeType,
-  TLDrawToolType,
-  ArrowShape,
-} from '~types'
+import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
+import { PostItShape, TLDrawShapeUtil, TLDrawShapeType, TLDrawToolType, ArrowShape } from '~types'
 
 // TODO
 // [ ] - Make sure that fill does not extend drawn shape at corners
 
-export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGSVGElement> {
-  type = TLDrawShapeType.Rectangle as const
+export class PostIt extends TLDrawShapeUtil<PostItShape, HTMLDivElement> {
+  type = TLDrawShapeType.PostIt as const
   toolType = TLDrawToolType.Bounds
   canBind = true
   pathCache = new WeakMap<number[], string>([])
 
-  defaultProps: RectangleShape = {
+  defaultProps: PostItShape = {
     id: 'id',
-    type: TLDrawShapeType.Rectangle as const,
-    name: 'Rectangle',
+    type: TLDrawShapeType.PostIt as const,
+    name: 'PostIt',
     parentId: 'page',
     childIndex: 1,
     point: [0, 0],
     size: [1, 1],
+    text: '',
     rotation: 0,
     style: defaultStyle,
   }
 
-  shouldRender(prev: RectangleShape, next: RectangleShape) {
+  shouldRender(prev: PostItShape, next: PostItShape) {
     return next.size !== prev.size || next.style !== prev.style
   }
 
-  render = React.forwardRef<SVGSVGElement, TLShapeProps<RectangleShape, SVGSVGElement>>(
+  render = React.forwardRef<HTMLDivElement, TLShapeProps<PostItShape, HTMLDivElement>>(
     ({ shape, isBinding, meta, events }, ref) => {
-      const { id, size, style } = shape
-      const styles = getShapeStyle(style, meta.isDarkMode)
-      const strokeWidth = +styles.strokeWidth
-
-      if (style.dash === DashStyle.Draw) {
-        const pathData = Utils.getFromCache(this.pathCache, shape.size, () => renderPath(shape))
-
-        return (
-          <SVGContainer ref={ref} {...events}>
-            {isBinding && (
-              <rect
-                className="tl-binding-indicator"
-                x={strokeWidth / 2 - 32}
-                y={strokeWidth / 2 - 32}
-                width={Math.max(0, size[0] - strokeWidth / 2) + 64}
-                height={Math.max(0, size[1] - strokeWidth / 2) + 64}
-              />
-            )}
-            <rect
-              x={+styles.strokeWidth / 2}
-              y={+styles.strokeWidth / 2}
-              width={Math.max(0, size[0] - strokeWidth)}
-              height={Math.max(0, size[1] - strokeWidth)}
-              fill={style.isFilled ? styles.fill : 'none'}
-              stroke="none"
-              pointerEvents="all"
-            />
-            <path
-              d={pathData}
-              fill={styles.stroke}
-              stroke={styles.stroke}
-              strokeWidth={styles.strokeWidth}
-              pointerEvents="all"
-            />
-          </SVGContainer>
-        )
-      }
-
-      const sw = strokeWidth * 1.618
-
-      const w = Math.max(0, size[0] - sw / 2)
-      const h = Math.max(0, size[1] - sw / 2)
-
-      const strokes: [number[], number[], number][] = [
-        [[sw / 2, sw / 2], [w, sw / 2], w - sw / 2],
-        [[w, sw / 2], [w, h], h - sw / 2],
-        [[w, h], [sw / 2, h], w - sw / 2],
-        [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
-      ]
-
-      const paths = strokes.map(([start, end, length], i) => {
-        const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-          length,
-          sw,
-          shape.style.dash
-        )
-
-        return (
-          <line
-            key={id + '_' + i}
-            x1={start[0]}
-            y1={start[1]}
-            x2={end[0]}
-            y2={end[1]}
-            stroke={styles.stroke}
-            strokeWidth={sw}
-            strokeLinecap="round"
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-          />
-        )
-      })
+      const [count, setCount] = React.useState(0)
 
       return (
-        <SVGContainer ref={ref} {...events}>
-          {isBinding && (
-            <rect
-              className="tl-binding-indicator"
-              x={sw / 2 - 32}
-              y={sw / 2 - 32}
-              width={w + 64}
-              height={h + 64}
-            />
-          )}
-          <rect
-            x={sw / 2}
-            y={sw / 2}
-            width={w}
-            height={h}
-            fill={styles.fill}
-            stroke="transparent"
-            strokeWidth={sw}
-            pointerEvents="all"
-          />
-          <g pointerEvents="stroke">{paths}</g>
-        </SVGContainer>
+        <HTMLContainer ref={ref} {...events}>
+          <div
+            style={{
+              pointerEvents: 'all',
+              backgroundColor: 'rgba(255, 220, 100)',
+              border: '1px solid black',
+              fontFamily: 'sans-serif',
+              height: '100%',
+              width: '100%',
+            }}
+          >
+            <div onPointerDown={(e) => e.preventDefault()}>
+              <input
+                type="textarea"
+                style={{ width: '100%', height: '50%', background: 'none' }}
+                onPointerDown={(e) => e.stopPropagation()}
+              />
+              <button onPointerDown={() => setCount((count) => count + 1)}>{count}</button>
+            </div>
+          </div>
+        </HTMLContainer>
       )
     }
   )
 
-  renderIndicator(shape: RectangleShape) {
+  renderIndicator(shape: PostItShape) {
     const {
       style,
       size: [width, height],
@@ -170,7 +90,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGSVGElement> {
     )
   }
 
-  getBounds(shape: RectangleShape) {
+  getBounds(shape: PostItShape) {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       const [width, height] = shape.size
       return {
@@ -186,16 +106,16 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGSVGElement> {
     return Utils.translateBounds(bounds, shape.point)
   }
 
-  getRotatedBounds(shape: RectangleShape) {
+  getRotatedBounds(shape: PostItShape) {
     return Utils.getBoundsFromPoints(Utils.getRotatedCorners(this.getBounds(shape), shape.rotation))
   }
 
-  getCenter(shape: RectangleShape): number[] {
+  getCenter(shape: PostItShape): number[] {
     return Utils.getBoundsCenter(this.getBounds(shape))
   }
 
   getBindingPoint(
-    shape: RectangleShape,
+    shape: PostItShape,
     fromShape: ArrowShape,
     point: number[],
     origin: number[],
@@ -273,10 +193,19 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGSVGElement> {
     }
   }
 
+  hitTestBounds(shape: PostItShape, bounds: TLBounds) {
+    const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
+
+    return (
+      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
+      Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
+    )
+  }
+
   transform(
-    shape: RectangleShape,
+    shape: PostItShape,
     bounds: TLBounds,
-    { initialShape, transformOrigin, scaleX, scaleY }: TLTransformInfo<RectangleShape>
+    { initialShape, transformOrigin, scaleX, scaleY }: TLTransformInfo<PostItShape>
   ) {
     if (!shape.rotation && !shape.isAspectRatioLocked) {
       return {
@@ -312,57 +241,10 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGSVGElement> {
     }
   }
 
-  transformSingle(_shape: RectangleShape, bounds: TLBounds) {
+  transformSingle(_shape: PostItShape, bounds: TLBounds) {
     return {
       size: Vec.round([bounds.width, bounds.height]),
       point: Vec.round([bounds.minX, bounds.minY]),
     }
   }
-}
-
-function renderPath(shape: RectangleShape) {
-  const styles = getShapeStyle(shape.style)
-
-  const getRandom = Utils.rng(shape.id)
-
-  const strokeWidth = +styles.strokeWidth
-
-  const baseOffset = strokeWidth / 2
-
-  const offsets = Array.from(Array(4)).map(() => [
-    getRandom() * baseOffset,
-    getRandom() * baseOffset,
-  ])
-
-  const sw = strokeWidth
-
-  const w = Math.max(0, shape.size[0] - sw / 2)
-  const h = Math.max(0, shape.size[1] - sw / 2)
-
-  const tl = Vec.add([sw / 2, sw / 2], offsets[0])
-  const tr = Vec.add([w, sw / 2], offsets[1])
-  const br = Vec.add([w, h], offsets[2])
-  const bl = Vec.add([sw / 2, h], offsets[3])
-
-  const lines = Utils.shuffleArr(
-    [
-      Vec.pointsBetween(tr, br),
-      Vec.pointsBetween(br, bl),
-      Vec.pointsBetween(bl, tl),
-      Vec.pointsBetween(tl, tr),
-    ],
-    Math.floor(5 + getRandom() * 4)
-  )
-
-  const stroke = getStroke([...lines.flat().slice(4), ...lines[0], ...lines[0].slice(4)], {
-    size: 1 + styles.strokeWidth,
-    thinning: 0.618,
-    easing: (t) => t * t * t * t,
-    end: { cap: true },
-    start: { cap: true },
-    simulatePressure: false,
-    last: true,
-  })
-
-  return Utils.getSvgPathFromStroke(stroke)
 }

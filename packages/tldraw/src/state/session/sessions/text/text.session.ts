@@ -30,22 +30,24 @@ export class TextSession implements Session {
     const { initialShape } = this
     const pageId = data.appState.currentPageId
 
-    let nextShape: TextShape = {
-      ...TLDR.getShape<TextShape>(data, initialShape.id, pageId),
-      text,
-    }
+    // let nextShape: TextShape = {
+    //   ...TLDR.getShape<TextShape>(data, initialShape.id, pageId),
+    //   text,
+    // }
 
-    nextShape = {
-      ...nextShape,
-      ...TLDR.getShapeUtils(nextShape).onStyleChange(nextShape),
-    } as TextShape
+    // nextShape = {
+    //   ...nextShape,
+    //   ...TLDR.getShapeUtils(nextShape).onStyleChange(nextShape),
+    // } as TextShape
 
     return {
       document: {
         pages: {
           [pageId]: {
             shapes: {
-              [initialShape.id]: nextShape,
+              [initialShape.id]: {
+                text,
+              },
             },
           },
         },
@@ -144,7 +146,7 @@ export class TextSession implements Session {
           },
           pageState: {
             [pageId]: {
-              editingId: undefined,
+              editingId: null,
             },
           },
         },
@@ -164,7 +166,7 @@ export class TextSession implements Session {
           },
           pageState: {
             [pageId]: {
-              editingId: undefined,
+              editingId: null,
               selectedIds: [initialShape.id],
             },
           },

@@ -1,10 +1,17 @@
 import * as React from 'react'
-import { Utils, TLTransformInfo, TLBounds, Intersect, Vec } from '@tldraw/core'
+import {
+  SVGContainer,
+  Utils,
+  TLTransformInfo,
+  TLBounds,
+  Intersect,
+  TLShapeProps,
+  Vec,
+} from '@tldraw/core'
 import {
   ArrowShape,
   DashStyle,
   EllipseShape,
-  TLDrawRenderInfo,
   TLDrawShapeType,
   TLDrawShapeUtil,
   TLDrawToolType,
@@ -15,7 +22,7 @@ import getStroke from 'perfect-freehand'
 // TODO
 // [ ] Improve indicator shape for drawn shapes
 
-export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
+export class Ellipse extends TLDrawShapeUtil<EllipseShape, SVGSVGElement> {
   type = TLDrawShapeType.Ellipse as const
   toolType = TLDrawToolType.Bounds
   pathCache = new WeakMap<EllipseShape, string>([])
@@ -37,32 +44,79 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
     return next.radius !== prev.radius || next.style !== prev.style
   }
 
-  render(shape: EllipseShape, { meta, isBinding }: TLDrawRenderInfo) {
-    const {
-      radius: [radiusX, radiusY],
-      style,
-    } = shape
+  render = React.forwardRef<SVGSVGElement, TLShapeProps<EllipseShape, SVGSVGElement>>(
+    ({ shape, meta, isBinding, events }, ref) => {
+      const {
+        radius: [radiusX, radiusY],
+        style,
+      } = shape
 
-    const styles = getShapeStyle(style, meta.isDarkMode)
-    const strokeWidth = +styles.strokeWidth
+      const styles = getShapeStyle(style, meta.isDarkMode)
+      const strokeWidth = +styles.strokeWidth
 
-    const rx = Math.max(0, radiusX - strokeWidth / 2)
-    const ry = Math.max(0, radiusY - strokeWidth / 2)
+      const rx = Math.max(0, radiusX - strokeWidth / 2)
+      const ry = Math.max(0, radiusY - strokeWidth / 2)
 
-    if (style.dash === DashStyle.Draw) {
-      const path = Utils.getFromCache(this.pathCache, shape, () =>
-        renderPath(shape, this.getCenter(shape))
+      if (style.dash === DashStyle.Draw) {
+        const path = Utils.getFromCache(this.pathCache, shape, () =>
+          renderPath(shape, this.getCenter(shape))
+        )
+
+        return (
+          <SVGContainer ref={ref} {...events}>
+            {isBinding && (
+              <ellipse
+                className="tl-binding-indicator"
+                cx={radiusX}
+                cy={radiusY}
+                rx={rx + 2}
+                ry={ry + 2}
+              />
+            )}
+            <ellipse
+              cx={radiusX}
+              cy={radiusY}
+              rx={rx}
+              ry={ry}
+              stroke="none"
+              fill={style.isFilled ? styles.fill : 'none'}
+              pointerEvents="all"
+            />
+            <path
+              d={path}
+              fill={styles.stroke}
+              stroke={styles.stroke}
+              strokeWidth={strokeWidth}
+              pointerEvents="all"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </SVGContainer>
+        )
+      }
+
+      const h = Math.pow(rx - ry, 2) / Math.pow(rx + ry, 2)
+
+      const perimeter = Math.PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
+
+      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+        perimeter,
+        strokeWidth * 1.618,
+        shape.style.dash,
+        4
       )
 
+      const sw = strokeWidth * 1.618
+
       return (
-        <>
+        <SVGContainer ref={ref} {...events}>
           {isBinding && (
             <ellipse
               className="tl-binding-indicator"
               cx={radiusX}
               cy={radiusY}
-              rx={rx + 2}
-              ry={ry + 2}
+              rx={rx + 32}
+              ry={ry + 32}
             />
           )}
           <ellipse
@@ -70,64 +124,19 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
             cy={radiusY}
             rx={rx}
             ry={ry}
-            stroke="none"
-            fill={style.isFilled ? styles.fill : 'none'}
-            pointerEvents="all"
-          />
-          <path
-            d={path}
-            fill={styles.stroke}
+            fill={styles.fill}
             stroke={styles.stroke}
-            strokeWidth={strokeWidth}
+            strokeWidth={sw}
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
             pointerEvents="all"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-        </>
+        </SVGContainer>
       )
     }
-
-    const h = Math.pow(rx - ry, 2) / Math.pow(rx + ry, 2)
-
-    const perimeter = Math.PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
-
-    const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-      perimeter,
-      strokeWidth * 1.618,
-      shape.style.dash,
-      4
-    )
-
-    const sw = strokeWidth * 1.618
-
-    return (
-      <>
-        {isBinding && (
-          <ellipse
-            className="tl-binding-indicator"
-            cx={radiusX}
-            cy={radiusY}
-            rx={rx + 32}
-            ry={ry + 32}
-          />
-        )}
-        <ellipse
-          cx={radiusX}
-          cy={radiusY}
-          rx={rx}
-          ry={ry}
-          fill={styles.fill}
-          stroke={styles.stroke}
-          strokeWidth={sw}
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
-          pointerEvents="all"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </>
-    )
-  }
+  )
 
   renderIndicator(shape: EllipseShape) {
     const {

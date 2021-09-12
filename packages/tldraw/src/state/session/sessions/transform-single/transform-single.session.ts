@@ -47,13 +47,17 @@ export class TransformSingleSession implements Session {
       isAspectRatioLocked || shape.isAspectRatioLocked || utils.isAspectRatioLocked
     )
 
-    shapes[shape.id] = TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
+    const change = TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
       initialShape,
       type: this.transformType,
       scaleX: newBounds.scaleX,
       scaleY: newBounds.scaleY,
       transformOrigin: [0.5, 0.5],
     })
+
+    if (change) {
+      shapes[shape.id] = change
+    }
 
     return {
       document: {

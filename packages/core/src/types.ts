@@ -2,6 +2,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* --------------------- Primary -------------------- */
 
+import { Intersect, Vec } from '+utils'
+import React, { ForwardedRef } from 'react'
+
 export type Patch<T> = Partial<{ [P in keyof T]: T | Partial<T> | Patch<T[P]> }>
 
 export interface TLPage<T extends TLShape, B extends TLBinding> {
@@ -21,12 +24,12 @@ export interface TLPageState {
     zoom: number
   }
   brush?: TLBounds
-  pointedId?: string
-  hoveredId?: string
-  editingId?: string
-  bindingId?: string
+  pointedId?: string | null
+  hoveredId?: string | null
+  editingId?: string | null
+  bindingId?: string | null
   boundsRotation?: number
-  currentParentId?: string
+  currentParentId?: string | null
 }
 
 export interface TLHandle {
@@ -54,21 +57,29 @@ export interface TLShape {
   isAspectRatioLocked?: boolean
 }
 
-export type TLShapeUtils<T extends TLShape> = Record<string, TLShapeUtil<T>>
+export type TLShapeUtils<T extends TLShape, E extends Element> = Record<string, TLShapeUtil<T, E>>
 
-export interface TLRenderInfo<M = any, T extends SVGElement | HTMLElement = any> {
-  ref?: React.RefObject<T>
+export interface TLRenderInfo<T extends TLShape, M = any, E = any> {
   isEditing: boolean
   isBinding: boolean
   isHovered: boolean
   isSelected: boolean
   isCurrentParent: boolean
-  onTextChange?: TLCallbacks['onTextChange']
-  onTextBlur?: TLCallbacks['onTextBlur']
-  onTextFocus?: TLCallbacks['onTextFocus']
-  onTextKeyDown?: TLCallbacks['onTextKeyDown']
-  onTextKeyUp?: TLCallbacks['onTextKeyUp']
   meta: M extends any ? M : never
+  onShapeChange?: TLCallbacks<T>['onShapeChange']
+  onShapeBlur?: TLCallbacks<T>['onShapeBlur']
+  events: {
+    onPointerDown: (e: React.PointerEvent<E>) => void
+    onPointerUp: (e: React.PointerEvent<E>) => void
+    onPointerEnter: (e: React.PointerEvent<E>) => void
+    onPointerMove: (e: React.PointerEvent<E>) => void
+    onPointerLeave: (e: React.PointerEvent<E>) => void
+  }
+}
+
+export interface TLShapeProps<T extends TLShape, E = any, M = any> extends TLRenderInfo<T, M, E> {
+  ref: ForwardedRef<E>
+  shape: T
 }
 
 export interface TLTool {
@@ -114,9 +125,7 @@ export type TLBoundsHandleEventHandler = (
   e: React.PointerEvent
 ) => void
 
-export interface TLCallbacks {
-  onChange: (ids: string[]) => void
-
+export interface TLCallbacks<T extends TLShape> {
   // Camera events
   onPinchStart: TLPinchEventHandler
   onPinchEnd: TLPinchEventHandler
@@ -172,15 +181,10 @@ export interface TLCallbacks {
   onUnhoverHandle: TLPointerEventHandler
   onReleaseHandle: TLPointerEventHandler
 
-  // Text
-  onTextChange: (id: string, text: string) => void
-  onTextBlur: (id: string) => void
-  onTextFocus: (id: string) => void
-  onTextKeyDown: (id: string, key: string) => void
-  onTextKeyUp: (id: string, key: string) => void
-
   // Misc
-  onBlurEditingShape: () => void
+  onRenderCountChange: (ids: string[]) => void
+  onShapeChange: (shape: { id: string } & Partial<T>) => void
+  onShapeBlur: () => void
   onError: (error: Error) => void
 }
 
@@ -261,34 +265,32 @@ export interface TLBezierCurveSegment {
 /*                   Shape Utility                    */
 /* -------------------------------------------------- */
 
-export abstract class TLShapeUtil<T extends TLShape> {
+export abstract class TLShapeUtil<T extends TLShape, E extends Element> {
+  refMap = new Map<string, React.RefObject<E>>()
+
   boundsCache = new WeakMap<TLShape, TLBounds>()
+
   isEditableText = false
+
   isAspectRatioLocked = false
+
   canEdit = false
+
   canBind = false
 
   abstract type: T['type']
 
   abstract defaultProps: T
 
-  abstract render(shape: T, info: TLRenderInfo): JSX.Element | null
+  abstract render: React.ForwardRefExoticComponent<
+    { shape: T; ref: React.ForwardedRef<E> } & TLRenderInfo<T> & React.RefAttributes<E>
+  >
 
   abstract renderIndicator(shape: T): JSX.Element | null
 
   abstract getBounds(shape: T): TLBounds
 
   abstract getRotatedBounds(shape: T): TLBounds
-
-  abstract hitTest(shape: T, point: number[]): boolean
-
-  abstract hitTestBounds(shape: T, bounds: TLBounds): boolean
-
-  abstract transform(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T>
-
-  transformSingle(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T> {
-    return this.transform(shape, bounds, info)
-  }
 
   shouldRender(_prev: T, _next: T): boolean {
     return true
@@ -303,6 +305,14 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return [bounds.width / 2, bounds.height / 2]
   }
 
+  getRef(shape: T): React.RefObject<E> {
+    if (!this.refMap.has(shape.id)) {
+      this.refMap.set(shape.id, React.createRef<E>())
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return this.refMap.get(shape.id)!
+  }
+
   getBindingPoint(
     shape: T,
     fromShape: TLShape,
@@ -315,12 +325,21 @@ export abstract class TLShapeUtil<T extends TLShape> {
     return undefined
   }
 
-  create(props: Partial<T>): T {
+  create(props: { id: string } & Partial<T>): T {
+    this.refMap.set(props.id, React.createRef<E>())
     return { ...this.defaultProps, ...props }
   }
 
   mutate(shape: T, props: Partial<T>): T {
     return { ...shape, ...props }
+  }
+
+  transform(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T> | void {
+    return undefined
+  }
+
+  transformSingle(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T> | void {
+    return this.transform(shape, bounds, info)
   }
 
   updateChildren<K extends TLShape>(shape: T, children: K[]): Partial<K>[] | void {
@@ -376,19 +395,53 @@ export abstract class TLShapeUtil<T extends TLShape> {
   onStyleChange(shape: T): Partial<T> | void {
     return
   }
+
+  hitTest(shape: T, point: number[]) {
+    const bounds = this.getBounds(shape)
+    return !(
+      point[0] < bounds.minX ||
+      point[0] > bounds.maxX ||
+      point[1] < bounds.minY ||
+      point[1] > bounds.maxY
+    )
+  }
+
+  hitTestBounds(shape: T, bounds: TLBounds) {
+    const { minX, minY, maxX, maxY, width, height } = this.getBounds(shape)
+    const center = [minX + width / 2, minY + height / 2]
+
+    const corners = [
+      [minX, minY],
+      [maxX, minY],
+      [maxX, maxY],
+      [minX, maxY],
+    ].map((point) => Vec.rotWith(point, center, shape.rotation || 0))
+
+    return (
+      corners.every(
+        (point) =>
+          !(
+            point[0] < bounds.minX ||
+            point[0] > bounds.maxX ||
+            point[1] < bounds.minY ||
+            point[1] > bounds.maxY
+          )
+      ) || Intersect.polyline.bounds(corners, bounds).length > 0
+    )
+  }
 }
 
 /* -------------------- Internal -------------------- */
 
-export interface IShapeTreeNode<M extends Record<string, unknown>> {
-  shape: TLShape
-  children?: IShapeTreeNode<M>[]
+export interface IShapeTreeNode<T extends TLShape, M extends Record<string, unknown>> {
+  shape: T
+  children?: IShapeTreeNode<TLShape, M>[]
   isEditing: boolean
   isBinding: boolean
   isHovered: boolean
   isSelected: boolean
   isCurrentParent: boolean
-  meta?: M
+  meta?: M extends any ? M : never
 }
 
 /* -------------------------------------------------- */
