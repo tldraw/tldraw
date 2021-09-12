@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/intersect",
-  "version": "0.0.86",
+  "version": "0.0.87",
   "private": false,
   "description": "A tiny little drawing app (intersect)",
   "author": "@steveruizok",
@@ -49,9 +49,8 @@
     "typedoc": "^0.21.9",
     "typescript": "^4.4.2"
   },
-  "peerDependencies": {},
   "dependencies": {
-    "@tldraw/vec": "^0.0.86"
+    "@tldraw/vec": "^0.0.87"
   },
   "gitHead": "55da8880eb3d8ab5fb62b5eb7853065922c95dcf"
 }

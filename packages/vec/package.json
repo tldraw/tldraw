@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/vec",
-  "version": "0.0.86",
+  "version": "0.0.87",
   "private": false,
   "description": "A tiny little drawing app (vec)",
   "author": "@steveruizok",
@@ -49,7 +49,5 @@
     "typedoc": "^0.21.9",
     "typescript": "^4.4.2"
   },
-  "peerDependencies": {},
-  "dependencies": {},
   "gitHead": "55da8880eb3d8ab5fb62b5eb7853065922c95dcf"
 }
