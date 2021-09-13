@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Group shape Creates a shape: group 1`] = `
+Object {
+  "childIndex": 1,
+  "children": Array [],
+  "id": "group",
+  "name": "Group",
+  "parentId": "page",
+  "point": Array [
+    0,
+    0,
+  ],
+  "rotation": 0,
+  "size": Array [
+    100,
+    100,
+  ],
+  "style": Object {
+    "color": "Black",
+    "dash": "Draw",
+    "isFilled": false,
+    "size": "Medium",
+  },
+  "type": "group",
+}
+`;

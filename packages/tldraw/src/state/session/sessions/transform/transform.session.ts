@@ -59,7 +59,6 @@ export class TransformSession implements Session {
       )
 
       shapes[id] = TLDR.transform(
-        data,
         TLDR.getShape(data, id, data.appState.currentPageId),
         newShapeBounds,
         {
@@ -68,8 +67,7 @@ export class TransformSession implements Session {
           scaleX: this.scaleX,
           scaleY: this.scaleY,
           transformOrigin,
-        },
-        data.appState.currentPageId
+        }
       )
     })
 

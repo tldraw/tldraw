@@ -1,7 +1,7 @@
 import { Ellipse } from './ellipse'
 
 describe('Ellipse shape', () => {
-  it('Creates an instance', () => {
-    new Ellipse()
+  it('Creates a shape', () => {
+    expect(Ellipse.create({ id: 'ellipse' })).toMatchSnapshot('ellipse')
   })
 })

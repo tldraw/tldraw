@@ -106,9 +106,7 @@ export class HandleSession implements Session {
             [pageId]: {
               shapes: {
                 [initialShape.id]: TLDR.onSessionComplete(
-                  data,
-                  TLDR.getShape(data, this.initialShape.id, pageId),
-                  pageId
+                  TLDR.getShape(data, this.initialShape.id, pageId)
                 ),
               },
             },

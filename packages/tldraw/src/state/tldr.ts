@@ -5,35 +5,37 @@ import type {
   ShapeStyles,
   ShapesWithProp,
   TLDrawShape,
-  TLDrawShapeUtil,
   TLDrawBinding,
   TLDrawPage,
   TLDrawCommand,
   TLDrawPatch,
+  TLDrawShapeUtil,
 } from '~types'
 import { Vec } from '@tldraw/vec'
 
 export class TLDR {
-  static getShapeUtils<T extends TLDrawShape>(
-    shape: T | T['type']
-  ): TLDrawShapeUtil<T, HTMLElement | SVGElement> {
-    return getShapeUtils(typeof shape === 'string' ? ({ type: shape } as T) : shape)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static getShapeUtils<T extends TLDrawShape>(type: T['type']): TLDrawShapeUtil<T>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static getShapeUtils<T extends TLDrawShape>(shape: T): TLDrawShapeUtil<T>
+  static getShapeUtils<T extends TLDrawShape>(shape: T | T['type']) {
+    return getShapeUtils<T>(typeof shape === 'string' ? shape : shape.type)
   }
 
   static getSelectedShapes(data: Data, pageId: string) {
-    const page = this.getPage(data, pageId)
-    const selectedIds = this.getSelectedIds(data, pageId)
+    const page = TLDR.getPage(data, pageId)
+    const selectedIds = TLDR.getSelectedIds(data, pageId)
     return selectedIds.map((id) => page.shapes[id])
   }
 
   static screenToWorld(data: Data, point: number[]) {
-    const camera = this.getPageState(data, data.appState.currentPageId).camera
+    const camera = TLDR.getPageState(data, data.appState.currentPageId).camera
     return Vec.sub(Vec.div(point, camera.zoom), camera.point)
   }
 
   static getViewport(data: Data): TLBounds {
-    const [minX, minY] = this.screenToWorld(data, [0, 0])
-    const [maxX, maxY] = this.screenToWorld(data, [window.innerWidth, window.innerHeight])
+    const [minX, minY] = TLDR.screenToWorld(data, [0, 0])
+    const [maxX, maxY] = TLDR.screenToWorld(data, [window.innerWidth, window.innerHeight])
 
     return {
       minX,
@@ -58,15 +60,15 @@ export class TLDR {
   }
 
   static getSelectedIds(data: Data, pageId: string): string[] {
-    return this.getPageState(data, pageId).selectedIds
+    return TLDR.getPageState(data, pageId).selectedIds
   }
 
   static getShapes(data: Data, pageId: string): TLDrawShape[] {
-    return Object.values(this.getPage(data, pageId).shapes)
+    return Object.values(TLDR.getPage(data, pageId).shapes)
   }
 
   static getCamera(data: Data, pageId: string): TLPageState['camera'] {
-    return this.getPageState(data, pageId).camera
+    return TLDR.getPageState(data, pageId).camera
   }
 
   static getShape<T extends TLDrawShape = TLDrawShape>(
@@ -74,56 +76,56 @@ export class TLDR {
     shapeId: string,
     pageId: string
   ): T {
-    return this.getPage(data, pageId).shapes[shapeId] as T
+    return TLDR.getPage(data, pageId).shapes[shapeId] as T
   }
 
   static getBounds<T extends TLDrawShape>(shape: T) {
-    return getShapeUtils(shape).getBounds(shape)
+    return TLDR.getShapeUtils(shape).getBounds(shape)
   }
 
   static getRotatedBounds<T extends TLDrawShape>(shape: T) {
-    return getShapeUtils(shape).getRotatedBounds(shape)
+    return TLDR.getShapeUtils(shape).getRotatedBounds(shape)
   }
 
   static getSelectedBounds(data: Data): TLBounds {
     return Utils.getCommonBounds(
-      this.getSelectedShapes(data, data.appState.currentPageId).map((shape) =>
-        getShapeUtils(shape).getBounds(shape)
+      TLDR.getSelectedShapes(data, data.appState.currentPageId).map((shape) =>
+        TLDR.getShapeUtils(shape).getBounds(shape)
       )
     )
   }
 
   static getParentId(data: Data, id: string, pageId: string) {
-    return this.getShape(data, id, pageId).parentId
+    return TLDR.getShape(data, id, pageId).parentId
   }
 
   static getPointedId(data: Data, id: string, pageId: string): string {
-    const page = this.getPage(data, pageId)
-    const pageState = this.getPageState(data, data.appState.currentPageId)
-    const shape = this.getShape(data, id, pageId)
+    const page = TLDR.getPage(data, pageId)
+    const pageState = TLDR.getPageState(data, data.appState.currentPageId)
+    const shape = TLDR.getShape(data, id, pageId)
     if (!shape) return id
 
     return shape.parentId === pageState.currentParentId || shape.parentId === page.id
       ? id
-      : this.getPointedId(data, shape.parentId, pageId)
+      : TLDR.getPointedId(data, shape.parentId, pageId)
   }
 
   static getDrilledPointedId(data: Data, id: string, pageId: string): string {
-    const shape = this.getShape(data, id, pageId)
+    const shape = TLDR.getShape(data, id, pageId)
     const { currentPageId } = data.appState
-    const { currentParentId, pointedId } = this.getPageState(data, data.appState.currentPageId)
+    const { currentParentId, pointedId } = TLDR.getPageState(data, data.appState.currentPageId)
 
     return shape.parentId === currentPageId ||
       shape.parentId === pointedId ||
       shape.parentId === currentParentId
       ? id
-      : this.getDrilledPointedId(data, shape.parentId, pageId)
+      : TLDR.getDrilledPointedId(data, shape.parentId, pageId)
   }
 
   static getTopParentId(data: Data, id: string, pageId: string): string {
-    const page = this.getPage(data, pageId)
-    const pageState = this.getPageState(data, pageId)
-    const shape = this.getShape(data, id, pageId)
+    const page = TLDR.getPage(data, pageId)
+    const pageState = TLDR.getPageState(data, pageId)
+    const shape = TLDR.getShape(data, id, pageId)
 
     if (shape.parentId === shape.id) {
       throw Error(`Shape has the same id as its parent! ${shape.id}`)
@@ -131,18 +133,18 @@ export class TLDR {
 
     return shape.parentId === page.id || shape.parentId === pageState.currentParentId
       ? id
-      : this.getTopParentId(data, shape.parentId, pageId)
+      : TLDR.getTopParentId(data, shape.parentId, pageId)
   }
 
   // Get an array of a shape id and its descendant shapes' ids
   static getDocumentBranch(data: Data, id: string, pageId: string): string[] {
-    const shape = this.getShape(data, id, pageId)
+    const shape = TLDR.getShape(data, id, pageId)
 
     if (shape.children === undefined) return [id]
 
     return [
       id,
-      ...shape.children.flatMap((childId) => this.getDocumentBranch(data, childId, pageId)),
+      ...shape.children.flatMap((childId) => TLDR.getDocumentBranch(data, childId, pageId)),
     ]
   }
 
@@ -158,10 +160,10 @@ export class TLDR {
     pageId: string,
     fn?: (shape: TLDrawShape) => K
   ): (TLDrawShape | K)[] {
-    const page = this.getPage(data, pageId)
+    const page = TLDR.getPage(data, pageId)
 
-    const copies = this.getSelectedIds(data, pageId)
-      .flatMap((id) => this.getDocumentBranch(data, id, pageId).map((id) => page.shapes[id]))
+    const copies = TLDR.getSelectedIds(data, pageId)
+      .flatMap((id) => TLDR.getDocumentBranch(data, id, pageId).map((id) => page.shapes[id]))
       .filter((shape) => !shape.isLocked)
       .map(Utils.deepClone)
 
@@ -184,7 +186,7 @@ export class TLDR {
     pageId: string,
     fn?: (shape: TLDrawShape) => K
   ): (TLDrawShape | K)[] {
-    const copies = this.getSelectedShapes(data, pageId)
+    const copies = TLDR.getSelectedShapes(data, pageId)
       .filter((shape) => !shape.isLocked)
       .map(Utils.deepClone)
 
@@ -198,7 +200,7 @@ export class TLDR {
   // For a given array of shape ids, an array of all other shapes that may be affected by a mutation to it.
   // Use this to decide which shapes to clone as before / after for a command.
   static getAllEffectedShapeIds(data: Data, ids: string[], pageId: string): string[] {
-    const page = this.getPage(data, pageId)
+    const page = TLDR.getPage(data, pageId)
 
     const visited = new Set(ids)
 
@@ -241,105 +243,6 @@ export class TLDR {
     return Array.from(visited.values())
   }
 
-  static recursivelyUpdateChildren<T extends TLDrawShape>(
-    data: Data,
-    id: string,
-    beforeShapes: Record<string, Partial<TLDrawShape>> = {},
-    afterShapes: Record<string, Partial<TLDrawShape>> = {},
-    pageId: string
-  ): Data {
-    const page = this.getPage(data, pageId)
-    const shape = page.shapes[id] as T
-
-    if (shape.children !== undefined) {
-      const deltas = this.getShapeUtils(shape).updateChildren(
-        shape,
-        shape.children.map((childId) => page.shapes[childId])
-      )
-
-      if (deltas) {
-        return deltas.reduce<Data>((cData, delta) => {
-          if (!delta.id) throw Error('Delta must include an id!')
-          const cPage = this.getPage(cData, pageId)
-          const deltaShape = this.getShape(cData, delta.id, pageId)
-
-          if (!beforeShapes[delta.id]) {
-            beforeShapes[delta.id] = deltaShape
-          }
-          cPage.shapes[delta.id] = this.getShapeUtils(deltaShape).mutate(deltaShape, delta)
-          afterShapes[delta.id] = cPage.shapes[delta.id]
-
-          if (deltaShape.children !== undefined) {
-            this.recursivelyUpdateChildren(cData, delta.id, beforeShapes, afterShapes, pageId)
-          }
-
-          return cData
-        }, data)
-      }
-    }
-
-    return data
-  }
-
-  static recursivelyUpdateParents<T extends TLDrawShape>(
-    data: Data,
-    id: string,
-    beforeShapes: Record<string, Partial<TLDrawShape>> = {},
-    afterShapes: Record<string, Partial<TLDrawShape>> = {},
-    pageId: string
-  ): Data {
-    const page = { ...this.getPage(data, pageId) }
-    const shape = this.getShape<T>(data, id, pageId)
-
-    if (page.id === 'doc') {
-      throw Error('wtf')
-    }
-
-    if (shape.parentId !== page.id) {
-      const parent = this.getShape(data, shape.parentId, pageId)
-
-      if (!parent.children) throw Error('No children in parent!')
-
-      const delta = this.getShapeUtils(parent).onChildrenChange(
-        parent,
-        parent.children.map((childId) => this.getShape(data, childId, pageId))
-      )
-
-      if (delta) {
-        if (!beforeShapes[parent.id]) {
-          beforeShapes[parent.id] = parent
-        }
-        page.shapes[parent.id] = this.getShapeUtils(parent).mutate(parent, delta)
-        afterShapes[parent.id] = page.shapes[parent.id]
-      }
-
-      if (parent.parentId !== page.id) {
-        return this.recursivelyUpdateParents(
-          data,
-          parent.parentId,
-          beforeShapes,
-          afterShapes,
-          pageId
-        )
-      }
-    }
-
-    if (data.appState.currentPageId === 'doc') {
-      console.error('WTF?')
-    }
-
-    return {
-      ...data,
-      document: {
-        ...data.document,
-        pages: {
-          ...data.document.pages,
-          [page.id]: page,
-        },
-      },
-    }
-  }
-
   static updateBindings(
     data: Data,
     id: string,
@@ -347,30 +250,28 @@ export class TLDR {
     afterShapes: Record<string, Partial<TLDrawShape>> = {},
     pageId: string
   ): Data {
-    const page = { ...this.getPage(data, pageId) }
+    const page = { ...TLDR.getPage(data, pageId) }
     return Object.values(page.bindings)
       .filter((binding) => binding.fromId === id || binding.toId === id)
       .reduce((cData, binding) => {
         if (!beforeShapes[binding.fromId]) {
           beforeShapes[binding.fromId] = Utils.deepClone(
-            this.getShape(cData, binding.fromId, pageId)
+            TLDR.getShape(cData, binding.fromId, pageId)
           )
         }
 
         if (!beforeShapes[binding.toId]) {
-          beforeShapes[binding.toId] = Utils.deepClone(this.getShape(cData, binding.toId, pageId))
+          beforeShapes[binding.toId] = Utils.deepClone(TLDR.getShape(cData, binding.toId, pageId))
         }
 
-        this.onBindingChange(
-          cData,
-          this.getShape(cData, binding.fromId, pageId),
+        TLDR.onBindingChange(
+          TLDR.getShape(cData, binding.fromId, pageId),
           binding,
-          this.getShape(cData, binding.toId, pageId),
-          pageId
+          TLDR.getShape(cData, binding.toId, pageId)
         )
 
-        afterShapes[binding.fromId] = Utils.deepClone(this.getShape(cData, binding.fromId, pageId))
-        afterShapes[binding.toId] = Utils.deepClone(this.getShape(cData, binding.toId, pageId))
+        afterShapes[binding.fromId] = Utils.deepClone(TLDR.getShape(cData, binding.fromId, pageId))
+        afterShapes[binding.toId] = Utils.deepClone(TLDR.getShape(cData, binding.toId, pageId))
 
         return cData
       }, data)
@@ -421,7 +322,7 @@ export class TLDR {
     const afterShapes: Record<string, Partial<T>> = {}
 
     ids.forEach((id, i) => {
-      const shape = this.getShape<T>(data, id, pageId)
+      const shape = TLDR.getShape<T>(data, id, pageId)
       const change = fn(shape, i)
       if (change) {
         beforeShapes[id] = Object.fromEntries(
@@ -440,18 +341,9 @@ export class TLDR {
         },
       },
     })
-
-    const dataWithChildrenChanges = ids.reduce<Data>((cData, id) => {
-      return this.recursivelyUpdateChildren(cData, id, beforeShapes, afterShapes, pageId)
-    }, dataWithMutations)
-
-    const dataWithParentChanges = ids.reduce<Data>((cData, id) => {
-      return this.recursivelyUpdateParents(cData, id, beforeShapes, afterShapes, pageId)
-    }, dataWithChildrenChanges)
-
     const dataWithBindingChanges = ids.reduce<Data>((cData, id) => {
-      return this.updateBindings(cData, id, beforeShapes, afterShapes, pageId)
-    }, dataWithParentChanges)
+      return TLDR.updateBindings(cData, id, beforeShapes, afterShapes, pageId)
+    }, dataWithMutations)
 
     return {
       before: beforeShapes,
@@ -474,7 +366,7 @@ export class TLDR {
 
                   // If the shape is a child of another shape, also save that shape
                   if (shape.parentId !== pageId) {
-                    const parent = this.getShape(data, shape.parentId, pageId)
+                    const parent = TLDR.getShape(data, shape.parentId, pageId)
                     if (!parent.children) throw Error('No children in parent!')
                     results.push([parent.id, { children: parent.children }])
                   }
@@ -502,7 +394,7 @@ export class TLDR {
 
                     // If the shape is a child of a different shape, update its parent
                     if (shape.parentId !== pageId) {
-                      const parent = this.getShape(data, shape.parentId, pageId)
+                      const parent = TLDR.getShape(data, shape.parentId, pageId)
                       if (!parent.children) throw Error('No children in parent!')
                       results.push([parent.id, { children: [...parent.children, shape.id] }])
                     }
@@ -530,7 +422,7 @@ export class TLDR {
   ): TLDrawCommand {
     pageId = pageId ? pageId : data.appState.currentPageId
 
-    const page = this.getPage(data, pageId)
+    const page = TLDR.getPage(data, pageId)
 
     const shapeIds =
       typeof shapes[0] === 'string'
@@ -615,73 +507,56 @@ export class TLDR {
     }
   }
 
-  static mutate<T extends TLDrawShape>(data: Data, shape: T, props: Partial<T>, pageId: string) {
-    let next = getShapeUtils(shape).mutate(shape, props)
-
-    if (props.children) {
-      next = this.onChildrenChange(data, next, pageId) || next
-    }
-
-    return next
-  }
-
-  static onSessionComplete<T extends TLDrawShape>(data: Data, shape: T, pageId: string) {
-    const delta = getShapeUtils(shape).onSessionComplete(shape)
+  static onSessionComplete<T extends TLDrawShape>(shape: T) {
+    const delta = TLDR.getShapeUtils(shape).onSessionComplete(shape)
     if (!delta) return shape
-    return this.mutate(data, shape, delta, pageId)
+    return { ...shape, ...delta }
   }
 
   static onChildrenChange<T extends TLDrawShape>(data: Data, shape: T, pageId: string) {
     if (!shape.children) return
 
-    const delta = getShapeUtils(shape).onChildrenChange(
+    const delta = TLDR.getShapeUtils(shape).onChildrenChange(
       shape,
-      shape.children.map((id) => this.getShape(data, id, pageId))
+      shape.children.map((id) => TLDR.getShape(data, id, pageId))
     )
+
     if (!delta) return shape
-    return this.mutate(data, shape, delta, pageId)
+
+    return { ...shape, ...delta }
   }
 
   static onBindingChange<T extends TLDrawShape>(
-    data: Data,
     shape: T,
     binding: TLDrawBinding,
-    otherShape: TLDrawShape,
-    pageId: string
+    otherShape: TLDrawShape
   ) {
-    const delta = getShapeUtils(shape).onBindingChange(
+    const delta = TLDR.getShapeUtils(shape).onBindingChange(
       shape,
       binding,
       otherShape,
-      getShapeUtils(otherShape).getBounds(otherShape),
-      getShapeUtils(otherShape).getCenter(otherShape)
+      TLDR.getShapeUtils(otherShape).getBounds(otherShape),
+      TLDR.getShapeUtils(otherShape).getCenter(otherShape)
     )
     if (!delta) return shape
-    return this.mutate(data, shape, delta, pageId)
+
+    return { ...shape, ...delta }
   }
 
-  static transform<T extends TLDrawShape>(
-    data: Data,
-    shape: T,
-    bounds: TLBounds,
-    info: TLTransformInfo<T>,
-    pageId: string
-  ) {
-    const change = getShapeUtils(shape).transform(shape, bounds, info)
-    if (!change) return shape
-    return this.mutate(data, shape, change, pageId)
+  static transform<T extends TLDrawShape>(shape: T, bounds: TLBounds, info: TLTransformInfo<T>) {
+    const delta = TLDR.getShapeUtils(shape).transform(shape, bounds, info)
+    if (!delta) return shape
+    return { ...shape, ...delta }
   }
 
   static transformSingle<T extends TLDrawShape>(
-    data: Data,
     shape: T,
     bounds: TLBounds,
-    info: TLTransformInfo<T>,
-    pageId: string
+    info: TLTransformInfo<T>
   ) {
-    const change = getShapeUtils(shape).transformSingle(shape, bounds, info)
-    if (!change) return shape
-    return this.mutate(data, shape, change, pageId)
+    const delta = TLDR.getShapeUtils(shape).transformSingle(shape, bounds, info)
+    if (!delta) return shape
+    return { ...shape, ...delta }
   }
 
   /* -------------------------------------------------- */
@@ -689,11 +564,11 @@ export class TLDR {
   /* -------------------------------------------------- */
 
   static updateParents(data: Data, pageId: string, changedShapeIds: string[]): void {
-    const page = this.getPage(data, pageId)
+    const page = TLDR.getPage(data, pageId)
 
     if (changedShapeIds.length === 0) return
 
-    const { shapes } = this.getPage(data, pageId)
+    const { shapes } = TLDR.getPage(data, pageId)
 
     const parentToUpdateIds = Array.from(
       new Set(changedShapeIds.map((id) => shapes[id].parentId).values())
@@ -706,10 +581,10 @@ export class TLDR {
         throw Error('A shape is parented to a shape without a children array.')
       }
 
-      this.onChildrenChange(data, parent, pageId)
+      TLDR.onChildrenChange(data, parent, pageId)
     }
 
-    this.updateParents(data, pageId, parentToUpdateIds)
+    TLDR.updateParents(data, pageId, parentToUpdateIds)
   }
 
   static getSelectedStyle(data: Data, pageId: string): ShapeStyles | false {
@@ -754,16 +629,16 @@ export class TLDR {
   /* -------------------------------------------------- */
 
   static getBinding(data: Data, id: string, pageId: string): TLDrawBinding {
-    return this.getPage(data, pageId).bindings[id]
+    return TLDR.getPage(data, pageId).bindings[id]
   }
 
   static getBindings(data: Data, pageId: string): TLDrawBinding[] {
-    const page = this.getPage(data, pageId)
+    const page = TLDR.getPage(data, pageId)
     return Object.values(page.bindings)
   }
 
   static getBindableShapeIds(data: Data) {
-    return this.getShapes(data, data.appState.currentPageId)
+    return TLDR.getShapes(data, data.appState.currentPageId)
       .filter((shape) => TLDR.getShapeUtils(shape).canBind)
       .sort((a, b) => b.childIndex - a.childIndex)
       .map((shape) => shape.id)
@@ -772,7 +647,7 @@ export class TLDR {
   static getBindingsWithShapeIds(data: Data, ids: string[], pageId: string): TLDrawBinding[] {
     return Array.from(
       new Set(
-        this.getBindings(data, pageId).filter((binding) => {
+        TLDR.getBindings(data, pageId).filter((binding) => {
           return ids.includes(binding.toId) || ids.includes(binding.fromId)
         })
       ).values()
@@ -782,7 +657,7 @@ export class TLDR {
   static getRelatedBindings(data: Data, ids: string[], pageId: string): TLDrawBinding[] {
     const changedShapeIds = new Set(ids)
 
-    const page = this.getPage(data, pageId)
+    const page = TLDR.getPage(data, pageId)
 
     // Find all bindings that we need to update
     const bindingsArr = Object.values(page.bindings)

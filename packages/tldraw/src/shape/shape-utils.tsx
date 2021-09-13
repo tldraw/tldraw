@@ -1,39 +1,18 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Rectangle, Ellipse, Arrow, Draw, Text, Group, PostIt } from './shapes'
-import { TLDrawShapeType, TLDrawShape, TLDrawShapeUtil, TLDrawShapeUtils } from '~types'
+import { TLDrawShapeType, TLDrawShape, TLDrawShapeUtil } from '~types'
 
-export const tldrawShapeUtils: TLDrawShapeUtils = {
-  [TLDrawShapeType.Rectangle]: new Rectangle(),
-  [TLDrawShapeType.Ellipse]: new Ellipse(),
-  [TLDrawShapeType.Draw]: new Draw(),
-  [TLDrawShapeType.Arrow]: new Arrow(),
-  [TLDrawShapeType.Text]: new Text(),
-  [TLDrawShapeType.Group]: new Group(),
-  [TLDrawShapeType.PostIt]: new PostIt(),
-} as TLDrawShapeUtils
-
-export type ShapeByType<T extends keyof TLDrawShapeUtils> = TLDrawShapeUtils[T]
-
-export function getShapeUtilsByType<T extends TLDrawShape>(
-  shape: T
-): TLDrawShapeUtil<T, HTMLElement | SVGElement> {
-  return tldrawShapeUtils[shape.type as T['type']] as unknown as TLDrawShapeUtil<
-    T,
-    HTMLElement | SVGElement
-  >
+// This is a bad "any", but the "this" context stuff we're doing doesn't allow us to union the types
+export const tldrawShapeUtils: Record<TLDrawShapeType, any> = {
+  [TLDrawShapeType.Rectangle]: Rectangle,
+  [TLDrawShapeType.Ellipse]: Ellipse,
+  [TLDrawShapeType.Draw]: Draw,
+  [TLDrawShapeType.Arrow]: Arrow,
+  [TLDrawShapeType.Text]: Text,
+  [TLDrawShapeType.Group]: Group,
+  [TLDrawShapeType.PostIt]: PostIt,
 }
 
-export function getShapeUtils<T extends TLDrawShape>(
-  shape: T
-): TLDrawShapeUtil<T, HTMLElement | SVGElement> {
-  return tldrawShapeUtils[shape.type as T['type']] as unknown as TLDrawShapeUtil<
-    T,
-    HTMLElement | SVGElement
-  >
-}
-
-export function createShape<TLDrawShape>(
-  type: TLDrawShapeType,
-  props: { id: string } & Partial<TLDrawShape>
-) {
-  return tldrawShapeUtils[type].create(props)
+export function getShapeUtils<T extends TLDrawShape>(type: T['type']) {
+  return tldrawShapeUtils[type] as TLDrawShapeUtil<T>
 }

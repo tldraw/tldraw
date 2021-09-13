@@ -8,9 +8,17 @@
     "baseUrl": "src",
     "emitDeclarationOnly": false,
     "paths": {
-      "+*": ["./*"]
+      "+*": ["./*"],
+      "@tldraw/core": ["../vec"],
+      "@tldraw/tldraw": ["../intersect"]
     }
   },
+  "references": [
+    {
+      "path": "../tldraw"
+    },
+    { "path": "../core" }
+  ],
   "typedocOptions": {
     "entryPoints": ["src/index.ts"],
     "out": "docs"

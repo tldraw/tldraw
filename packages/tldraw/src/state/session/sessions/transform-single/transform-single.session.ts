@@ -99,9 +99,7 @@ export class TransformSingleSession implements Session {
 
     beforeShapes[initialShape.id] = initialShape
     afterShapes[initialShape.id] = TLDR.onSessionComplete(
-      data,
-      TLDR.getShape(data, initialShape.id, data.appState.currentPageId),
-      data.appState.currentPageId
+      TLDR.getShape(data, initialShape.id, data.appState.currentPageId)
     )
 
     return {

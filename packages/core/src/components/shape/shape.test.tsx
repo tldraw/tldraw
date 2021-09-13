@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { mockUtils, renderWithSvg } from '+test'
+import { mockUtils, renderWithContext } from '+test'
 import { Shape } from './shape'
 
 describe('shape', () => {
   test('mounts component without crashing', () => {
-    renderWithSvg(
+    renderWithContext(
       <Shape
         shape={mockUtils.box.create({ id: 'box' })}
         utils={mockUtils[mockUtils.box.type]}

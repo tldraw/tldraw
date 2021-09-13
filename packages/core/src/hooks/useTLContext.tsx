@@ -2,10 +2,10 @@ import * as React from 'react'
 import type { Inputs } from '+inputs'
 import type { TLCallbacks, TLShape, TLBounds, TLPageState, TLShapeUtils } from '+types'
 
-export interface TLContextType<T extends TLShape, E extends Element> {
+export interface TLContextType<T extends TLShape, E extends Element, M = any> {
   id?: string
   callbacks: Partial<TLCallbacks<T>>
-  shapeUtils: TLShapeUtils<T, E>
+  shapeUtils: TLShapeUtils<T, E, M>
   rPageState: React.MutableRefObject<TLPageState>
   rScreenBounds: React.MutableRefObject<TLBounds | null>
   inputs: Inputs
