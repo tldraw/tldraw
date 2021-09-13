@@ -8,7 +8,7 @@ import {
   RowButton,
   MenuContent,
   FloatingContainer,
-  IconWrapper,
+  iconWrapper,
 } from '~components/shared'
 import { PageOptionsDialog } from '~components/page-options-dialog'
 import styled from '~styles'
@@ -107,9 +107,9 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
       <DropdownMenuDivider />
       <DropdownMenuButton onSelect={handleCreatePage}>
         <span>Create Page</span>
-        <IconWrapper size="small">
+        <div className={iconWrapper({ size: 'small' })}>
           <PlusIcon />
-        </IconWrapper>
+        </div>
       </DropdownMenuButton>
     </>
   )

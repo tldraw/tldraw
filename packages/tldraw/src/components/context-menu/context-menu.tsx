@@ -6,7 +6,7 @@ import { useTLDrawContext } from '~hooks'
 import { Data, AlignType, DistributeType, StretchType } from '~types'
 import {
   Kbd,
-  IconWrapper,
+  iconWrapper,
   breakpoints,
   RowButton,
   ContextMenuArrow,
@@ -280,9 +280,9 @@ function AlignDistributeSubMenu({
     <ContextMenuRoot>
       <RadixContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
         <span>Align / Distribute</span>
-        <IconWrapper size="small">
+        <div className={iconWrapper({ size: 'small' })}>
           <ChevronRightIcon />
-        </IconWrapper>
+        </div>
       </RadixContextMenu.TriggerItem>
       <StyledGrid
         as={RadixContextMenu.Content}
@@ -363,7 +363,7 @@ function MoveToPageMenu(): JSX.Element | null {
     <ContextMenuRoot>
       <RadixContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
         <span>Move To Page</span>
-        <IconWrapper size="small">
+        <IconWrapper className={iconWrapper()} size="small">
           <ChevronRightIcon />
         </IconWrapper>
       </RadixContextMenu.TriggerItem>

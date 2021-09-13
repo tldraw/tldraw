@@ -16,7 +16,7 @@ import { Tooltip } from './tooltip'
 import { breakpoints } from './breakpoints'
 import { RowButton } from './row-button'
 import { IconButton } from './icon-button'
-import { IconWrapper } from './icon-wrapper'
+import { iconWrapper } from './icon-wrapper'
 import { MenuContent } from './menu'
 
 import styled from '~styles'
@@ -164,9 +164,9 @@ export function DropdownMenuCheckboxItem({
     >
       {children}
       <DMItemIndicator>
-        <IconWrapper size="small">
+        <div className={iconWrapper({ size: 'small' })}>
           <CheckIcon />
-        </IconWrapper>
+        </div>
       </DMItemIndicator>
     </DMCheckboxItem>
   )

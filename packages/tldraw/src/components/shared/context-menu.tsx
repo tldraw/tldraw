@@ -13,7 +13,7 @@ import {
 import { breakpoints } from './breakpoints'
 import { RowButton } from './row-button'
 import { IconButton } from './icon-button'
-import { IconWrapper } from './icon-wrapper'
+import { iconWrapper } from './icon-wrapper'
 import { MenuContent } from './menu'
 import styled from '~styles'
 
@@ -44,9 +44,9 @@ export function ContextMenuSubMenu({ children, label }: ContextMenuSubMenuProps)
     <CMRoot dir="ltr">
       <CMTriggerItem as={RowButton} bp={breakpoints}>
         <span>{label}</span>
-        <IconWrapper size="small">
+        <div className={iconWrapper({ size: 'small' })}>
           <ChevronRightIcon />
-        </IconWrapper>
+        </div>
       </CMTriggerItem>
       <CMContent as={MenuContent} sideOffset={2} alignOffset={-2}>
         {children}

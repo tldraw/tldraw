@@ -10,7 +10,7 @@ import {
   DropdownMenuButton,
   DropdownMenuSubMenu,
   DropdownMenuDivider,
-  IconWrapper,
+  iconWrapper,
   Kbd,
 } from '~components/shared'
 import { useTLDrawContext } from '~hooks'
@@ -66,9 +66,9 @@ export const Menu = React.memo(() => {
           <DropdownMenuDivider />
           <DropdownMenuButton onSelect={handleSignOut}>
             <span>Sign Out</span>
-            <IconWrapper size="small">
+            <div className={iconWrapper({ size: 'small' })}>
               <ExitIcon />
-            </IconWrapper>
+            </div>
           </DropdownMenuButton>
         </DropdownMenu.Content>
       </DropdownMenuRoot>

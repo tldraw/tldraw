@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { IconButton, ButtonsRow, breakpoints } from '../shared'
+import { IconButton, buttonsRow, breakpoints } from '../shared'
 import { Trash } from '../icons'
 import { Tooltip } from '../shared/tooltip'
 import {
@@ -108,7 +108,7 @@ export const ShapesFunctions = React.memo(() => {
 
   return (
     <>
-      <ButtonsRow>
+      <div className={buttonsRow()}>
         <IconButton
           bp={breakpoints}
           disabled={!hasSelection}
@@ -158,8 +158,8 @@ export const ShapesFunctions = React.memo(() => {
             <GroupIcon opacity={isAllGrouped ? 1 : 0.4} />
           </Tooltip>
         </IconButton>
-      </ButtonsRow>
-      <ButtonsRow>
+      </div>
+      <div className={buttonsRow()}>
         <IconButton
           bp={breakpoints}
           disabled={!hasSelection}
@@ -209,7 +209,7 @@ export const ShapesFunctions = React.memo(() => {
             <Trash />
           </Tooltip>
         </IconButton>
-      </ButtonsRow>
+      </div>
     </>
   )
 })

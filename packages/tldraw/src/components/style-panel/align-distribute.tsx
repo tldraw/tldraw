@@ -13,7 +13,7 @@ import {
 } from '@radix-ui/react-icons'
 import { AlignType, DistributeType, StretchType } from '~types'
 import { useTLDrawContext } from '~hooks'
-import { breakpoints, ButtonsRow, IconButton } from '../shared'
+import { breakpoints, buttonsRow, IconButton } from '../shared'
 
 export interface AlignDistributeProps {
   hasTwoOrMore: boolean
@@ -66,7 +66,7 @@ export const AlignDistribute = React.memo(
 
     return (
       <>
-        <ButtonsRow>
+        <div className={buttonsRow()}>
           <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignLeft}>
             <AlignLeftIcon />
           </IconButton>
@@ -97,8 +97,8 @@ export const AlignDistribute = React.memo(
           >
             <SpaceEvenlyHorizontallyIcon />
           </IconButton>
-        </ButtonsRow>
-        <ButtonsRow>
+        </div>
+        <div className={buttonsRow()}>
           <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignTop}>
             <AlignTopIcon />
           </IconButton>
@@ -129,7 +129,7 @@ export const AlignDistribute = React.memo(
           >
             <SpaceEvenlyVerticallyIcon />
           </IconButton>
-        </ButtonsRow>
+        </div>
       </>
     )
   }

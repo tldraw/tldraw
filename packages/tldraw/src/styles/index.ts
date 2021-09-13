@@ -1,5 +1,5 @@
-import styled from './stitches.config'
+import css from './stitches.config'
 
 export * from './stitches.config'
 
-export default styled
+export default css

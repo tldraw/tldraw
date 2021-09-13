@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Checkbox from '@radix-ui/react-checkbox'
 import { BoxIcon, IsFilledFillIcon } from './styled'
-import { breakpoints, Tooltip, IconButton, IconWrapper } from '../shared'
+import { breakpoints, Tooltip, IconButton, iconWrapper } from '../shared'
 import { useTLDrawContext } from '~hooks'
 import type { Data } from '~types'
 
@@ -26,12 +26,12 @@ export const QuickFillSelect = React.memo((): JSX.Element => {
       onCheckedChange={handleIsFilledChange}
     >
       <Tooltip label="Fill">
-        <IconWrapper>
+        <div className={iconWrapper()}>
           <BoxIcon />
           <Checkbox.Indicator>
             <IsFilledFillIcon />
           </Checkbox.Indicator>
-        </IconWrapper>
+        </div>
       </Tooltip>
     </Checkbox.Root>
   )

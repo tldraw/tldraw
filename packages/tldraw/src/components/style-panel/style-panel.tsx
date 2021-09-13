@@ -13,7 +13,7 @@ import { Tooltip } from '../shared/tooltip'
 import { Kbd } from '../shared/kbd'
 import {
   IconButton,
-  ButtonsRow,
+  buttonsRow,
   breakpoints,
   RowButton,
   FloatingContainer,
@@ -28,7 +28,7 @@ export function StylePanel(): JSX.Element {
 
   return (
     <FloatingContainer direction="column">
-      <ButtonsRow>
+      <div className={buttonsRow()}>
         <QuickColorSelect />
         <QuickSizeSelect />
         <QuickDashSelect />
@@ -43,7 +43,7 @@ export function StylePanel(): JSX.Element {
             {isOpen ? <Cross2Icon /> : <DotsHorizontalIcon />}
           </Tooltip>
         </IconButton>
-      </ButtonsRow>
+      </div>
       {isOpen && <SelectedShapeContent />}
     </FloatingContainer>
   )
