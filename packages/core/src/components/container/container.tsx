@@ -15,7 +15,7 @@ export const Container = React.memo(
     const rBounds = usePosition(bounds, rotation)
 
     return (
-      <div id={id} ref={rBounds} className={className + ' tl-positioned'}>
+      <div id={id} ref={rBounds} className={['tl-positioned', className || ''].join(' ')}>
         {children}
       </div>
     )

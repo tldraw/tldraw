@@ -113,7 +113,7 @@ const tlcss = css`
     --tl-scale: calc(1 / var(--tl-zoom));
     --tl-camera-x: 0px;
     --tl-camera-y: 0px;
-    --tl-padding: calc(64px * var(--tl-scale));
+    --tl-padding: calc(64px * max(1, var(--tl-scale)));
     position: relative;
     top: 0px;
     left: 0px;
@@ -279,23 +279,23 @@ const tlcss = css`
     stroke-width: 2px;
   }
 
-  .tl-handles {
+  .tl-handle {
     pointer-events: all;
   }
 
-  .tl-handles:hover > .tl-handle-bg {
+  .tl-handle:hover .tl-handle-bg {
     fill: var(--tl-selectFill);
   }
 
-  .tl-handles:hover > .tl-handle-bg > * {
+  .tl-handle:hover .tl-handle-bg > * {
     stroke: var(--tl-selectFill);
   }
 
-  .tl-handles:active > .tl-handle-bg {
+  .tl-handle:active .tl-handle-bg {
     fill: var(--tl-selectFill);
   }
 
-  .tl-handles:active > .tl-handle-bg > * {
+  .tl-handle:active .tl-handle-bg > * {
     stroke: var(--tl-selectFill);
   }
 
@@ -309,7 +309,7 @@ const tlcss = css`
     fill: transparent;
     stroke: none;
     pointer-events: all;
-    r: calc(20 / max(1, var(--tl-zoom)));
+    r: calc(20px / max(1, var(--tl-zoom)));
   }
 
   .tl-binding-indicator {

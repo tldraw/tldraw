@@ -25,12 +25,7 @@ export const Shape = <T extends TLShape, E extends Element, M>({
   const events = useShapeEvents(shape.id, isCurrentParent)
 
   return (
-    <Container
-      id={shape.id}
-      className={'tl-shape' + (isCurrentParent ? 'tl-current-parent' : '')}
-      bounds={bounds}
-      rotation={shape.rotation}
-    >
+    <Container id={shape.id} className="tl-shape" bounds={bounds} rotation={shape.rotation}>
       <RenderedShape
         shape={shape}
         isBinding={isBinding}
