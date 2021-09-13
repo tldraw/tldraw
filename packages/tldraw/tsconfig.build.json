@@ -17,13 +17,7 @@
     "incremental": false,
     "declarationMap": false,
     "sourceMap": false,
-    "emitDeclarationOnly": true,
-    "paths": {
-      "~*": ["./*"],
-      "@tldraw/core": ["../core"],
-      "@tldraw/vec": ["../vec"],
-      "@tldraw/intersect": ["../intersect"]
-    }
+    "emitDeclarationOnly": true
   },
   "references": [{ "path": "../vec" }, { "path": "../intersect" }, { "path": "../core" }]
 }
