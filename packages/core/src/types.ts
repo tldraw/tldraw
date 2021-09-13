@@ -419,13 +419,11 @@ export interface IShapeTreeNode<T extends TLShape, M = any> {
 /*                    Utility Types                   */
 /* -------------------------------------------------- */
 
-/** @internal */
 export type MappedByType<K extends string, T extends { type: K }> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [P in T['type']]: T extends any ? (P extends T['type'] ? T : never) : never
 }
 
-/** @internal */
 export type RequiredKeys<T> = {
   [K in keyof T]-?: Record<string, unknown> extends Pick<T, K> ? never : K
 }[keyof T]

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { HTMLContainer, TLBounds, Utils, TLTransformInfo, ShapeUtil } from '@tldraw/core'
+import { HTMLContainer, TLBounds, Utils, ShapeUtil } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { getShapeStyle, getFontStyle, defaultStyle } from '~shape/shape-styles'
 import { TextShape, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
@@ -227,11 +227,7 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
     return Utils.translateBounds(bounds, shape.point)
   },
 
-  transform(
-    _shape,
-    bounds: TLBounds,
-    { initialShape, scaleX, scaleY }: TLTransformInfo<TextShape>
-  ) {
+  transform(_shape, bounds, { initialShape, scaleX, scaleY }) {
     const {
       rotation = 0,
       style: { scale = 1 },
@@ -250,11 +246,7 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
     }
   },
 
-  transformSingle(
-    _shape,
-    bounds: TLBounds,
-    { initialShape, scaleX, scaleY }: TLTransformInfo<TextShape>
-  ) {
+  transformSingle(_shape, bounds, { initialShape, scaleX, scaleY }) {
     const {
       style: { scale = 1 },
     } = initialShape

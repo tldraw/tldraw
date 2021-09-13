@@ -13,8 +13,14 @@
   "compilerOptions": {
     "composite": false,
     "incremental": false,
-    "declarationMap": false,
-    "sourceMap": false,
-    "emitDeclarationOnly": true
-  }
+    "declarationMap": true,
+    "sourceMap": true,
+    "emitDeclarationOnly": true,
+    "paths": {
+      "+*": ["./*"],
+      "@tldraw/vec": ["../vec"],
+      "@tldraw/intersect": ["../intersect"]
+    }
+  },
+  "references": [{ "path": "../vec" }, { "path": "../intersect" }]
 }
