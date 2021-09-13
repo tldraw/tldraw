@@ -12,11 +12,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "start": "next start",
     "serve": "next serve",
     "lint": "next lint"
   },
   "dependencies": {
-    "@stitches/react": "^1.0.0",
+    "@stitches/core": "^1.0.0",
     "@tldraw/tldraw": "^0.0.89",
     "next": "11.1.2",
     "next-auth": "3.29.0",
