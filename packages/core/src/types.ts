@@ -56,10 +56,12 @@ export interface TLShape {
   isAspectRatioLocked?: boolean
 }
 
-export type TLShapeUtils<T extends TLShape = any, E extends Element = any, M = any> = Record<
-  string,
-  TLShapeUtil<T, E, M>
->
+export type TLShapeUtils<
+  T extends TLShape = any,
+  E extends Element = any,
+  M = any,
+  K = any
+> = Record<string, TLShapeUtil<T, E, M, K>>
 
 export interface TLRenderInfo<T extends TLShape, E = any, M = any> {
   shape: T
@@ -269,7 +271,12 @@ export interface TLBezierCurveSegment {
 /*                   Shape Utility                    */
 /* -------------------------------------------------- */
 
-export interface TLShapeUtil<T extends TLShape, E extends Element, M extends any> {
+export type TLShapeUtil<
+  T extends TLShape,
+  E extends Element,
+  M = any,
+  K = { [key: string]: any }
+> = K & {
   type: T['type']
 
   defaultProps: T

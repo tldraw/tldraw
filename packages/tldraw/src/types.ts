@@ -212,9 +212,14 @@ export type TLDrawShape =
   | GroupShape
   | PostItShape
 
-export type TLDrawShapeUtil<T extends TLDrawShape> = TLShapeUtil<T, any, TLDrawMeta> & {
-  toolType: TLDrawToolType
-}
+export type TLDrawShapeUtil<T extends TLDrawShape> = TLShapeUtil<
+  T,
+  any,
+  TLDrawMeta,
+  {
+    toolType: TLDrawToolType
+  }
+>
 
 export type ArrowBinding = TLBinding<{
   handleId: keyof ArrowShape['handles']
