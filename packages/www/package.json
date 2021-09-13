@@ -12,7 +12,6 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
     "serve": "next serve",
     "lint": "next lint"
   },
