@@ -9,6 +9,7 @@ export class HandleSession implements Session {
   status = TLDrawStatus.TranslatingHandle
   commandId: string
   delta = [0, 0]
+  topLeft: number[]
   origin: number[]
   shiftKey = false
   initialShape: ShapesWithProp<'handles'>
@@ -17,6 +18,7 @@ export class HandleSession implements Session {
   constructor(data: Data, handleId: string, point: number[], commandId = 'move_handle') {
     const { currentPageId } = data.appState
     const shapeId = TLDR.getSelectedIds(data, currentPageId)[0]
+    this.topLeft = point
     this.origin = point
     this.handleId = handleId
     this.initialShape = TLDR.getShape(data, shapeId, currentPageId)
@@ -43,6 +45,7 @@ export class HandleSession implements Session {
     }
 
     // First update the handle's next point
+
     const change = TLDR.getShapeUtils(shape).onHandleChange(
       shape,
       {

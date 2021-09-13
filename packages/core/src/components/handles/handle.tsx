@@ -12,26 +12,22 @@ interface HandleProps {
 export const Handle = React.memo(({ id, point }: HandleProps) => {
   const events = useHandleEvents(id)
 
-  const bounds = React.useMemo(
-    () =>
-      Utils.translateBounds(
+  return (
+    <Container
+      bounds={Utils.translateBounds(
         {
           minX: 0,
           minY: 0,
-          maxX: 32,
-          maxY: 32,
-          width: 32,
-          height: 32,
+          maxX: 0,
+          maxY: 0,
+          width: 0,
+          height: 0,
         },
         point
-      ),
-    [point]
-  )
-
-  return (
-    <Container bounds={bounds}>
+      )}
+    >
       <SVGContainer>
-        <g className="tl-handles" {...events}>
+        <g className="tl-handle" {...events}>
           <circle className="tl-handle-bg" pointerEvents="all" />
           <circle className="tl-counter-scaled tl-handle" pointerEvents="none" r={4} />
         </g>

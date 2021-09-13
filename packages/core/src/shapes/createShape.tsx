@@ -206,8 +206,13 @@ export const ShapeUtil = function <T extends TLShape, E extends Element, M = any
   Object.assign(this, fn.call(this))
   Object.assign(this, fn.call(this))
 
-  this.getBounds = this.getBounds.bind(this)
-  this.Component = this.Component.bind(this)
+  // Make sure all functions are bound to this
+  for (const entry of Object.entries(this)) {
+    if (entry[1] instanceof Function) {
+      this[entry[0] as keyof typeof this] = this[entry[0]].bind(this)
+    }
+  }
+
   this._Component = React.forwardRef(this.Component)
 
   return this

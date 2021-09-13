@@ -213,6 +213,8 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
 
     const sw = strokeWidth * 1.618
 
+    const dots = getArcPoints(shape)
+
     return (
       <SVGContainer ref={ref} {...events}>
         <g pointerEvents="none">
@@ -249,7 +251,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
   },
 
   Indicator({ shape }) {
-    const path = Utils.getFromCache(simplePathCache, shape.handles, () => getArrowPath(shape))
+    const path = getArrowPath(shape)
 
     return <path d={path} />
   },
@@ -260,20 +262,25 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
 
   getBounds(shape) {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
-      const { start, bend, end } = shape.handles
-      return Utils.getBoundsFromPoints([start.point, bend.point, end.point])
+      const points = getArcPoints(shape)
+      return Utils.getBoundsFromPoints(points)
     })
 
     return Utils.translateBounds(bounds, shape.point)
   },
 
   getRotatedBounds(shape) {
-    const { start, bend, end } = shape.handles
+    let points = getArcPoints(shape)
 
-    return Utils.translateBounds(
-      Utils.getBoundsFromPoints([start.point, bend.point, end.point], shape.rotation),
-      shape.point
-    )
+    const { minX, minY, maxX, maxY } = Utils.getBoundsFromPoints(points)
+
+    if (shape.rotation !== 0) {
+      points = points.map((pt) =>
+        Vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], shape.rotation || 0)
+      )
+    }
+
+    return Utils.translateBounds(Utils.getBoundsFromPoints(points), shape.point)
   },
 
   getCenter(shape) {
@@ -544,11 +551,10 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
     // Zero out the handles to prevent handles with negative points. If a handle's x or y
     // is below zero, we need to move the shape left or up to make it zero.
 
-    const bounds = Utils.getBoundsFromPoints(
-      Object.values(nextShape.handles).map((handle) => handle.point)
-    )
+    const topLeft = shape.point
+    const nextBounds = this.getBounds({ ...nextShape } as ArrowShape)
 
-    const offset = [bounds.minX, bounds.minY]
+    const offset = Vec.sub([nextBounds.minX, nextBounds.minY], topLeft)
 
     if (!Vec.isEqual(offset, [0, 0])) {
       Object.values(nextShape.handles).forEach((handle) => {
@@ -765,4 +771,23 @@ function getArrowPath(shape: ArrowShape) {
   }
 
   return path.join(' ')
+}
+
+function getArcPoints(shape: ArrowShape) {
+  const { start, bend, end } = shape.handles
+  const points: number[][] = [start.point, end.point]
+
+  if (Vec.dist2(bend.point, Vec.med(start.point, end.point)) > 4) {
+    // We're an arc, calculate points along the arc
+    const { center, radius } = getArrowArc(shape)
+    const startAngle = Vec.angle(center, start.point)
+    const endAngle = Vec.angle(center, end.point)
+
+    for (let i = 1 / 20; i < 1; i += 1 / 20) {
+      const angle = Utils.lerpAngles(startAngle, endAngle, i)
+      points.push(Vec.nudgeAtAngle(center, angle, radius))
+    }
+  }
+
+  return points
 }

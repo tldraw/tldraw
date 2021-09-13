@@ -6,7 +6,6 @@
     "outDir": "./dist/types",
     "rootDir": "src",
     "baseUrl": "src",
-    "emitDeclarationOnly": false,
     "paths": {
       "~*": ["./*"],
       "@tldraw/core": ["../core"],

@@ -10,6 +10,7 @@ import {
 import { Vec } from '@tldraw/vec'
 import { Utils } from '@tldraw/core'
 import { TLDR } from '~state/tldr'
+import { ThickArrowDownIcon } from '@radix-ui/react-icons'
 
 export class ArrowSession implements Session {
   id = 'transform_single'
@@ -18,6 +19,7 @@ export class ArrowSession implements Session {
   delta = [0, 0]
   offset = [0, 0]
   origin: number[]
+  topLeft: number[]
   initialShape: ArrowShape
   handleId: 'start' | 'end'
   bindableShapeIds: string[]
@@ -33,6 +35,7 @@ export class ArrowSession implements Session {
     this.origin = point
     this.handleId = handleId
     this.initialShape = TLDR.getShape<ArrowShape>(data, shapeId, data.appState.currentPageId)
+    this.topLeft = this.initialShape.point
     this.bindableShapeIds = TLDR.getBindableShapeIds(data)
 
     const initialBindingId = this.initialShape.handles[this.handleId].bindingId
@@ -66,7 +69,9 @@ export class ArrowSession implements Session {
     }
 
     // First update the handle's next point
-    const change = TLDR.getShapeUtils<ArrowShape>(shape.type).onHandleChange(
+    const utils = TLDR.getShapeUtils<ArrowShape>(shape.type)
+
+    const change = utils.onHandleChange(
       shape,
       {
         [handleId]: handle,
