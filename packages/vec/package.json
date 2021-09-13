@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/vec",
-  "version": "0.0.90",
+  "version": "0.0.91",
   "private": false,
   "description": "A tiny little drawing app (vec)",
   "author": "@steveruizok",
