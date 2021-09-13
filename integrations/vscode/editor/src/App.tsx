@@ -1,56 +1,29 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import "./styles.css";
-import { TLDraw, TLDrawState, Data } from "@tldraw/tldraw";
+import { TLDraw, TLDrawState, Data, TLDrawDocument } from "@tldraw/tldraw";
 
-// const initialDocument: TLDrawDocument = {
-//   id: "doc",
-//   pages: {
-//     page1: {
-//       id: "page1",
-//       shapes: {
-//         rect1: {
-//           id: "rect1",
-//           type: TLDrawShapeType.Rectangle,
-//           parentId: "page1",
-//           name: "Rectangle",
-//           childIndex: 1,
-//           point: [0, 0],
-//           size: [100, 100],
-//           style: {
-//             dash: DashStyle.Draw,
-//             size: SizeStyle.Medium,
-//             color: ColorStyle.Blue
-//           }
-//         },
-//         rect2: {
-//           id: "rect2",
-//           parentId: "page1",
-//           name: "Rectangle",
-//           childIndex: 2,
-//           type: TLDrawShapeType.Rectangle,
-//           point: [200, 200],
-//           size: [100, 100],
-//           style: {
-//             dash: DashStyle.Draw,
-//             size: SizeStyle.Medium,
-//             color: ColorStyle.Blue
-//           }
-//         }
-//       },
-//       bindings: {}
-//     }
-//   },
-//   pageStates: {
-//     page1: {
-//       id: "page1",
-//       selectedIds: [],
-//       camera: {
-//         point: [0, 0],
-//         zoom: 1
-//       }
-//     }
-//   }
-// };
+const defaultDocument: TLDrawDocument = {
+  id: 'doc',
+  pages: {
+    page: {
+      id: 'page',
+      name: 'Page 1',
+      childIndex: 1,
+      shapes: {},
+      bindings: {},
+    },
+  },
+  pageStates: {
+    page: {
+      id: 'page',
+      selectedIds: [],
+      camera: {
+        point: [0, 0],
+        zoom: 1,
+      },
+    },
+  },
+};
 
 // HACK: Look more deeply into how to do this properly.
 // vscode/types doesn't include the globally available 'acquireVsCodeApi' function.
@@ -83,25 +56,37 @@ function postMessage(type:any,text:any = undefined){
 export default function App() {
   const [initialDocument, setInitialDocument] = useState(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
-  //throw new Error("hi!")
+
   useEffect(()=>{
-    const onKeyDown = (event: KeyboardEvent) => {
-      if(event.key === "s" && event.metaKey=== true){
-        console.log(event);
-        postMessage('save');
-      }
-    };
-    document.addEventListener('keydown', onKeyDown);
+    // const onKeyDown = (event: KeyboardEvent) => {
+    //   if(event.key === "s" && event.metaKey=== true){
+    //     console.log(event);
+    //     postMessage('save');
+    //   }
+    // };
+    // document.addEventListener('keydown', onKeyDown);
 
     if (window.self !== window.top) {
       window.onmessage = function (e:any) {
         if (e.data.type === 'load') {
-          setInitialDocument(JSON.parse(e.data.text));
+
+          // If the file doesn't parse as JSON initialize it as a new empty file
+          // and notify the extension of this new json file content
+          // This could caused by the file being empty or a the text malformed JSON
+          let json:any = undefined;
+          try{
+            json = JSON.parse(e.data.text);
+          } catch(error){
+            console.error(error);
+            json = defaultDocument;
+            //postMessage( 'update', JSON.stringify(json) );
+          }
+          setInitialDocument(json);
         }
       }
     }
     return ()=>{
-      document.removeEventListener('keydown', onKeyDown); 
+     // document.removeEventListener('keydown', onKeyDown); 
     }
   },[])
 
@@ -112,10 +97,6 @@ export default function App() {
     containerRef.current?.focus();
   }, []);
 
-  if(initialDocument!==undefined){
-    const i = 1000;
-  }
-
   const handleChange = useCallback((tldr: TLDrawState, data:Date, type: string) => {
     if(type.search("command:")=== 0){
       console.log("Action");
@@ -125,16 +106,6 @@ export default function App() {
       console.log("Change")
       console.log(type);
     }
-    // TODO: Think more about if syncing on only "command" is the way to go
-    //console.log(type);
-    // if(type.search("command") !== -1){
-    //   //console.log("changed");
-
-    //  postMessage( 'update', tldr.document );
-    // }
-    //console.log(`update: ${type}`);
-    //console.log(JSON.stringify(tldr.document,null, "    "));
-    
   }, []);
 
 

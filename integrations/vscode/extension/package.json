@@ -20,7 +20,7 @@
     "onCustomEditor:tldraw.tldr",
     "onCommand:tldraw.tldr.new"
   ],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "customEditors": [
       {

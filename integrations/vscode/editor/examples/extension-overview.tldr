@@ -4571,8 +4571,8 @@
           "parentId": "page1",
           "childIndex": 68,
           "point": [
-            -2292.5,
-            306.4
+            -2301.9,
+            170.2
           ],
           "rotation": 0,
           "style": {
@@ -4613,12 +4613,15 @@
       "id": "page1",
       "camera": {
         "point": [
-          3381.3,
-          43.7
+          3229.3,
+          431.7
         ],
         "zoom": 0.25
       },
-      "selectedIds": []
+      "selectedIds": [
+        "d67997fa-baf2-4075-2a59-4c3adb1daa05"
+      ],
+      "hoveredId": "d67997fa-baf2-4075-2a59-4c3adb1daa05"
     }
   }
 }

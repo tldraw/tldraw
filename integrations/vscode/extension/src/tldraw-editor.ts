@@ -30,7 +30,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
 
       const uri = vscode.Uri.joinPath(
         workspaceFolders[0].uri,
-        `new-${TldrawEditorProvider.newTldrawFileId++}.tldr`
+        `drawing-${TldrawEditorProvider.newTldrawFileId++}.tldr`
       ).with({
         scheme: 'untitled',
       })
@@ -247,6 +247,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
       //   </body>
       // </html>
       // `;
+    const host = 'http://localhost:4000';
     const newer = `<!DOCTYPE html>
     <html lang="en">
     
@@ -258,8 +259,8 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
           manifest.json provides metadata used when your web app is added to the
           homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
         -->
-      <!-- <link rel="manifest" href="http://localhost:3000/manifest.json"> -->
-      <link rel="shortcut icon" href="http://localhost:3000/favicon.ico">
+      <!-- <link rel="manifest" href="${host}/manifest.json"> -->
+      <link rel="shortcut icon" href="${host}/favicon.ico">
       <!--
           Notice the use of  in the tags above.
           It will be replaced with the URL of the  folder during the build.
@@ -269,7 +270,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
           work correctly both with client-side routing and a non-root  URL.
           Learn how to configure a non-root public URL by running npm run build.
         -->
-      <title>React App</title>
+      <title>Tldraw Editor</title>
     </head>
     
     <body>
@@ -277,7 +278,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
         You need to enable JavaScript to run this app.
       </noscript>
       <div id="root"></div>
-    <script src="http://localhost:3000/static/js/bundle.js"></script><script src="http://localhost:3000/static/js/vendors~main.chunk.js"></script><script src="http://localhost:3000/static/js/main.chunk.js"></script></body>
+    <script src="${host}/static/js/bundle.js"></script><script src="${host}/static/js/vendors~main.chunk.js"></script><script src="${host}/static/js/main.chunk.js"></script></body>
     
     </html>`
      return newer;
