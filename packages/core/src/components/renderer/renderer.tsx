@@ -14,7 +14,7 @@ import { Inputs } from '../../inputs'
 import { useTLTheme, TLContext, TLContextType } from '../../hooks'
 import type { TLShapeUtil } from '+index'
 
-export interface RendererProps<T extends TLShape, E extends Element, M = any>
+export interface RendererProps<T extends TLShape, E extends Element = any, M = any>
   extends Partial<TLCallbacks<T>> {
   /**
    * An object containing instances of your shape classes.

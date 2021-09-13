@@ -5,13 +5,14 @@ import type { TLShape, TLShapeUtil } from '+types'
 import Utils from '+utils'
 import { intersectPolylineBounds, intersectRayBounds } from '@tldraw/intersect'
 
-export const ShapeUtil = function <T extends TLShape, E extends Element, M = any>(
-  this: TLShapeUtil<T, E, M>,
+export const ShapeUtil = function <T extends TLShape, E extends Element, M = any, K = unknown>(
+  this: TLShapeUtil<T, E, M> & K,
   fn: (
-    this: TLShapeUtil<T, E, M>
+    this: TLShapeUtil<T, E, M> & K
   ) => Partial<TLShapeUtil<T, E, M>> &
-    Pick<TLShapeUtil<T, E, M>, 'type' | 'defaultProps' | 'Component' | 'Indicator' | 'getBounds'>
-) {
+    Pick<TLShapeUtil<T, E, M>, 'type' | 'defaultProps' | 'Component' | 'Indicator' | 'getBounds'> &
+    K
+): TLShapeUtil<T, E, M> & ReturnType<typeof fn> {
   const defaults: Partial<TLShapeUtil<T, E, M>> = {
     refMap: new Map(),
 
@@ -211,10 +212,14 @@ export const ShapeUtil = function <T extends TLShape, E extends Element, M = any
 
   return this
 } as unknown as {
-  new <T extends TLShape, E extends Element, M = any>(
+  new <T extends TLShape, E extends Element, M = any, K = unknown>(
     fn: (
       this: TLShapeUtil<T, E, M>
     ) => Partial<TLShapeUtil<T, E, M>> &
-      Pick<TLShapeUtil<T, E, M>, 'type' | 'defaultProps' | 'Component' | 'Indicator' | 'getBounds'>
-  ): TLShapeUtil<T, E, M>
+      Pick<
+        TLShapeUtil<T, E, M>,
+        'type' | 'defaultProps' | 'Component' | 'Indicator' | 'getBounds'
+      > &
+      K
+  ): TLShapeUtil<T, E, M> & ReturnType<typeof fn>
 }

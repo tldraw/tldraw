@@ -15,9 +15,9 @@ import { Vec } from '@tldraw/vec'
 
 export class TLDR {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static getShapeUtils<T extends TLDrawShape>(type: T['type']): TLDrawShapeUtil<T, any>
+  static getShapeUtils<T extends TLDrawShape>(type: T['type']): TLDrawShapeUtil<T>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static getShapeUtils<T extends TLDrawShape>(shape: T): TLDrawShapeUtil<T, any>
+  static getShapeUtils<T extends TLDrawShape>(shape: T): TLDrawShapeUtil<T>
   static getShapeUtils<T extends TLDrawShape>(shape: T | T['type']) {
     return getShapeUtils<T>(typeof shape === 'string' ? shape : shape.type)
   }

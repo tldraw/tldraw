@@ -1,7 +1,6 @@
 import { brushUpdater, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { Data, Session, TLDrawPatch, TLDrawStatus } from '~types'
-import { getShapeUtils } from '~shape'
 import { TLDR } from '~state/tldr'
 
 export class BrushSession implements Session {

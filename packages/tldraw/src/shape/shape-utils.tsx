@@ -13,6 +13,6 @@ export const tldrawShapeUtils: Record<TLDrawShapeType, any> = {
   [TLDrawShapeType.PostIt]: PostIt,
 }
 
-export function getShapeUtils<T extends TLDrawShape>(type: TLDrawShapeType) {
-  return tldrawShapeUtils[type] as TLDrawShapeUtil<T, any>
+export function getShapeUtils<T extends TLDrawShape>(type: T['type']) {
+  return tldrawShapeUtils[type] as TLDrawShapeUtil<T>
 }

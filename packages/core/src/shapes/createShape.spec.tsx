@@ -12,8 +12,9 @@ export interface BoxShape extends TLShape {
   size: number[]
 }
 
-export const Box = new ShapeUtil<BoxShape, SVGSVGElement, null>(() => {
+export const Box = new ShapeUtil<BoxShape, SVGSVGElement, null, { age: number }>(() => {
   return {
+    age: 100,
     type: 'box',
     defaultProps: {
       id: 'example1',
@@ -88,6 +89,10 @@ const box = Box.create({ id: 'box1' })
 describe('shape utils', () => {
   it('creates a shape utils', () => {
     expect(Box).toBeTruthy()
+  })
+
+  it('creates a shape utils with extended properties', () => {
+    expect(Box.age).toBe(100)
   })
 
   it('creates a shape', () => {

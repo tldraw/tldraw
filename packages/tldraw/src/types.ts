@@ -212,8 +212,7 @@ export type TLDrawShape =
   | GroupShape
   | PostItShape
 
-export interface TLDrawShapeUtil<T extends TLDrawShape, E extends Element>
-  extends TLShapeUtil<T, E, TLDrawMeta> {
+export type TLDrawShapeUtil<T extends TLDrawShape> = TLShapeUtil<T, any, TLDrawMeta> & {
   toolType: TLDrawToolType
 }
 
