@@ -1,7 +1,7 @@
 import { TLDR } from '~state/tldr'
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import type { TLDrawShape } from '~types'
+import { TLDrawShape, TLDrawShapeType } from '~types'
 
 describe('Delete command', () => {
   const tlstate = new TLDrawState()
@@ -61,12 +61,10 @@ describe('Delete command', () => {
 
     tlstate
       .deselectAll()
-      .create(
-        TLDR.getShapeUtils({ type: 'arrow' } as TLDrawShape).create({
-          id: 'arrow1',
-          parentId: 'page1',
-        })
-      )
+      .createShapes({
+        id: 'arrow1',
+        type: TLDrawShapeType.Arrow,
+      })
       .select('arrow1')
       .startHandleSession([0, 0], 'start')
       .updateHandleSession([110, 110])
@@ -77,7 +75,7 @@ describe('Delete command', () => {
     expect(binding).toBeTruthy()
     expect(binding.fromId).toBe('arrow1')
     expect(binding.toId).toBe('rect3')
-    expect(binding.handleId).toBe('start')
+    expect(binding.meta.handleId).toBe('start')
     expect(tlstate.getShape('arrow1').handles?.start.bindingId).toBe(binding.id)
 
     tlstate.select('rect3').delete()

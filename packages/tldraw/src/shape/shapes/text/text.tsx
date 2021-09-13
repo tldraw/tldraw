@@ -1,19 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { HTMLContainer, TLBounds, Utils, TLTransformInfo } from '@tldraw/core'
+import { HTMLContainer, TLBounds, Utils, TLTransformInfo, ShapeUtil } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { getShapeStyle, getFontStyle, defaultStyle } from '~shape/shape-styles'
-import {
-  TextShape,
-  TLDrawShapeUtil,
-  TLDrawShapeType,
-  TLDrawToolType,
-  ArrowShape,
-  TLDrawShapeProps,
-} from '~types'
+import { TextShape, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
 import styled from '~styles'
 import TextAreaUtils from './text-utils'
-import { intersectPolylineBounds, intersectRayBounds } from '@tldraw/intersect'
 
 const LETTER_SPACING = -1.5
 
@@ -59,18 +51,20 @@ if (typeof window !== 'undefined') {
   melm = getMeasurementDiv()
 }
 
-export class Text extends TLDrawShapeUtil<TextShape, HTMLDivElement> {
-  type = TLDrawShapeType.Text as const
-  toolType = TLDrawToolType.Text
-  isAspectRatioLocked = true
-  isEditableText = true
-  canBind = true
+export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => ({
+  type: TLDrawShapeType.Text,
 
-  pathCache = new WeakMap<number[], string>([])
+  toolType: TLDrawToolType.Text,
 
-  defaultProps = {
+  isAspectRatioLocked: true,
+
+  isEditableText: true,
+
+  canBind: true,
+
+  defaultProps: {
     id: 'id',
-    type: TLDrawShapeType.Text as const,
+    type: TLDrawShapeType.Text,
     name: 'Text',
     parentId: 'page',
     childIndex: 1,
@@ -78,142 +72,135 @@ export class Text extends TLDrawShapeUtil<TextShape, HTMLDivElement> {
     rotation: 0,
     text: ' ',
     style: defaultStyle,
-  }
+  },
 
-  create(props: Partial<TextShape>): TextShape {
+  create(props) {
     const shape = { ...this.defaultProps, ...props }
     const bounds = this.getBounds(shape)
     shape.point = Vec.sub(shape.point, [bounds.width / 2, bounds.height / 2])
     return shape
-  }
+  },
 
-  shouldRender(prev: TextShape, next: TextShape): boolean {
+  shouldRender(prev, next): boolean {
     return (
       next.text !== prev.text || next.style.scale !== prev.style.scale || next.style !== prev.style
     )
-  }
+  },
 
-  render = React.forwardRef<HTMLDivElement, TLDrawShapeProps<TextShape, HTMLDivElement>>(
-    ({ shape, meta, isEditing, isBinding, onShapeChange, onShapeBlur, events }, ref) => {
-      const rInput = React.useRef<HTMLTextAreaElement>(null)
-      const { text, style } = shape
-      const styles = getShapeStyle(style, meta.isDarkMode)
-      const font = getFontStyle(shape.style)
+  Component({ shape, meta, isEditing, isBinding, onShapeChange, onShapeBlur, events }, ref) {
+    const rInput = React.useRef<HTMLTextAreaElement>(null)
+    const { text, style } = shape
+    const styles = getShapeStyle(style, meta.isDarkMode)
+    const font = getFontStyle(shape.style)
 
-      const handleChange = React.useCallback(
-        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleChange = React.useCallback(
+      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
+      },
+      [shape]
+    )
+
+    const handleKeyDown = React.useCallback(
+      (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Escape') return
+
+        e.stopPropagation()
+
+        if (e.key === 'Tab') {
+          e.preventDefault()
+          if (e.shiftKey) {
+            TextAreaUtils.unindent(e.currentTarget)
+          } else {
+            TextAreaUtils.indent(e.currentTarget)
+          }
+
           onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
-        },
-        [shape]
-      )
-
-      const handleKeyDown = React.useCallback(
-        (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-          if (e.key === 'Escape') return
-
-          e.stopPropagation()
-
-          if (e.key === 'Tab') {
-            e.preventDefault()
-            if (e.shiftKey) {
-              TextAreaUtils.unindent(e.currentTarget)
-            } else {
-              TextAreaUtils.indent(e.currentTarget)
-            }
-
-            onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
-          }
-        },
-        [shape, onShapeChange]
-      )
-
-      const handleBlur = React.useCallback(
-        (e: React.FocusEvent<HTMLTextAreaElement>) => {
-          e.currentTarget.setSelectionRange(0, 0)
-          onShapeBlur?.()
-        },
-        [isEditing, shape]
-      )
-
-      const handleFocus = React.useCallback(
-        (e: React.FocusEvent<HTMLTextAreaElement>) => {
-          if (!isEditing) return
-          if (document.activeElement === e.currentTarget) {
-            e.currentTarget.select()
-          }
-        },
-        [isEditing]
-      )
-
-      const handlePointerDown = React.useCallback(
-        (e) => {
-          if (isEditing) {
-            e.stopPropagation()
-          }
-        },
-        [isEditing]
-      )
-
-      React.useEffect(() => {
-        if (isEditing) {
-          setTimeout(() => {
-            const elm = rInput.current!
-            elm.focus()
-            elm.select()
-          }, 0)
-        } else {
-          const elm = rInput.current!
-          elm.setSelectionRange(0, 0)
         }
-      }, [isEditing])
+      },
+      [shape, onShapeChange]
+    )
 
-      return (
-        <HTMLContainer ref={ref} {...events}>
-          <StyledWrapper isEditing={isEditing} onPointerDown={handlePointerDown}>
-            <StyledTextArea
-              ref={rInput}
-              style={{
-                font,
-                color: styles.stroke,
-              }}
-              name="text"
-              defaultValue={text}
-              tabIndex={-1}
-              autoComplete="false"
-              autoCapitalize="false"
-              autoCorrect="false"
-              autoSave="false"
-              placeholder=""
-              color={styles.stroke}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
-              onChange={handleChange}
-              onKeyDown={handleKeyDown}
-              onPointerDown={handlePointerDown}
-              autoFocus={isEditing}
-              isEditing={isEditing}
-              isBinding={isBinding}
-              readOnly={!isEditing}
-              wrap="off"
-              dir="auto"
-              datatype="wysiwyg"
-            />
-          </StyledWrapper>
-        </HTMLContainer>
-      )
-    }
-  )
+    const handleBlur = React.useCallback(
+      (e: React.FocusEvent<HTMLTextAreaElement>) => {
+        e.currentTarget.setSelectionRange(0, 0)
+        onShapeBlur?.()
+      },
+      [isEditing, shape]
+    )
 
-  renderIndicator(): JSX.Element | null {
+    const handleFocus = React.useCallback(
+      (e: React.FocusEvent<HTMLTextAreaElement>) => {
+        if (!isEditing) return
+        if (document.activeElement === e.currentTarget) {
+          e.currentTarget.select()
+        }
+      },
+      [isEditing]
+    )
+
+    const handlePointerDown = React.useCallback(
+      (e) => {
+        if (isEditing) {
+          e.stopPropagation()
+        }
+      },
+      [isEditing]
+    )
+
+    React.useEffect(() => {
+      if (isEditing) {
+        setTimeout(() => {
+          const elm = rInput.current!
+          elm.focus()
+          elm.select()
+        }, 0)
+      } else {
+        const elm = rInput.current!
+        elm.setSelectionRange(0, 0)
+      }
+    }, [isEditing])
+
+    return (
+      <HTMLContainer ref={ref} {...events}>
+        <StyledWrapper isEditing={isEditing} onPointerDown={handlePointerDown}>
+          <StyledTextArea
+            ref={rInput}
+            style={{
+              font,
+              color: styles.stroke,
+            }}
+            name="text"
+            defaultValue={text}
+            tabIndex={-1}
+            autoComplete="false"
+            autoCapitalize="false"
+            autoCorrect="false"
+            autoSave="false"
+            placeholder=""
+            color={styles.stroke}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            onPointerDown={handlePointerDown}
+            autoFocus={isEditing}
+            isEditing={isEditing}
+            isBinding={isBinding}
+            readOnly={!isEditing}
+            wrap="off"
+            dir="auto"
+            datatype="wysiwyg"
+          />
+        </StyledWrapper>
+      </HTMLContainer>
+    )
+  },
+
+  Indicator() {
     return null
-    // if (isEditing) return null
+  },
 
-    // const { width, height } = this.getBounds(shape)
-
-    // return <rect className="tl-selected" width={width} height={height} />
-  }
-
-  getBounds(shape: TextShape): TLBounds {
+  getBounds(shape): TLBounds {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       if (!melm) {
         // We're in SSR
@@ -238,34 +225,13 @@ export class Text extends TLDrawShapeUtil<TextShape, HTMLDivElement> {
     })
 
     return Utils.translateBounds(bounds, shape.point)
-  }
-
-  getRotatedBounds(shape: TextShape): TLBounds {
-    return Utils.getBoundsFromPoints(Utils.getRotatedCorners(this.getBounds(shape), shape.rotation))
-  }
-
-  getCenter(shape: TextShape): number[] {
-    return Utils.getBoundsCenter(this.getBounds(shape))
-  }
-
-  hitTest(shape: TextShape, point: number[]): boolean {
-    return Utils.pointInBounds(point, this.getBounds(shape))
-  }
-
-  hitTestBounds(shape: TextShape, bounds: TLBounds): boolean {
-    const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
-
-    return (
-      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
-      intersectPolylineBounds(rotatedCorners, bounds).length > 0
-    )
-  }
+  },
 
   transform(
-    _shape: TextShape,
+    _shape,
     bounds: TLBounds,
     { initialShape, scaleX, scaleY }: TLTransformInfo<TextShape>
-  ): Partial<TextShape> {
+  ) {
     const {
       rotation = 0,
       style: { scale = 1 },
@@ -282,13 +248,13 @@ export class Text extends TLDrawShapeUtil<TextShape, HTMLDivElement> {
         scale: nextScale,
       },
     }
-  }
+  },
 
   transformSingle(
-    _shape: TextShape,
+    _shape,
     bounds: TLBounds,
     { initialShape, scaleX, scaleY }: TLTransformInfo<TextShape>
-  ): Partial<TextShape> {
+  ) {
     const {
       style: { scale = 1 },
     } = initialShape
@@ -300,9 +266,9 @@ export class Text extends TLDrawShapeUtil<TextShape, HTMLDivElement> {
         scale: scale * Math.max(Math.abs(scaleY), Math.abs(scaleX)),
       },
     }
-  }
+  },
 
-  onBoundsReset(shape: TextShape): Partial<TextShape> {
+  onDoubleClickBoundsHandle(shape) {
     const center = this.getCenter(shape)
 
     const newCenter = this.getCenter({
@@ -320,9 +286,9 @@ export class Text extends TLDrawShapeUtil<TextShape, HTMLDivElement> {
       },
       point: Vec.round(Vec.add(shape.point, Vec.sub(center, newCenter))),
     }
-  }
+  },
 
-  onStyleChange(shape: TextShape): Partial<TextShape> {
+  onStyleChange(shape) {
     const center = this.getCenter(shape)
 
     this.boundsCache.delete(shape)
@@ -332,88 +298,12 @@ export class Text extends TLDrawShapeUtil<TextShape, HTMLDivElement> {
     return {
       point: Vec.round(Vec.add(shape.point, Vec.sub(center, newCenter))),
     }
-  }
+  },
+}))
 
-  shouldDelete(shape: TextShape): boolean {
-    return shape.text.trim().length === 0
-  }
-
-  getBindingPoint(
-    shape: TextShape,
-    fromShape: ArrowShape,
-    point: number[],
-    origin: number[],
-    direction: number[],
-    padding: number,
-    anywhere: boolean
-  ) {
-    const bounds = this.getBounds(shape)
-
-    const expandedBounds = Utils.expandBounds(bounds, padding)
-
-    let bindingPoint: number[]
-    let distance: number
-
-    // The point must be inside of the expanded bounding box
-    if (!Utils.pointInBounds(point, expandedBounds)) return
-
-    // The point is inside of the shape, so we'll assume the user is
-    // indicating a specific point inside of the shape.
-    if (anywhere) {
-      if (Vec.dist(point, this.getCenter(shape)) < 12) {
-        bindingPoint = [0.5, 0.5]
-      } else {
-        bindingPoint = Vec.divV(Vec.sub(point, [expandedBounds.minX, expandedBounds.minY]), [
-          expandedBounds.width,
-          expandedBounds.height,
-        ])
-      }
-
-      distance = 0
-    } else {
-      // Find furthest intersection between ray from
-      // origin through point and expanded bounds.
-
-      // TODO: Make this a ray vs rounded rect intersection
-      const intersection = intersectRayBounds(origin, direction, expandedBounds)
-        .filter((int) => int.didIntersect)
-        .map((int) => int.points[0])
-        .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
-
-      // The anchor is a point between the handle and the intersection
-      const anchor = Vec.med(point, intersection)
-
-      // If we're close to the center, snap to the center
-      if (Vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12) {
-        bindingPoint = [0.5, 0.5]
-      } else {
-        // Or else calculate a normalized point
-        bindingPoint = Vec.divV(Vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]), [
-          expandedBounds.width,
-          expandedBounds.height,
-        ])
-      }
-
-      if (Utils.pointInBounds(point, bounds)) {
-        distance = 16
-      } else {
-        // If the binding point was close to the shape's center, snap to the center
-        // Find the distance between the point and the real bounds of the shape
-        distance = Math.max(
-          16,
-          Utils.getBoundsSides(bounds)
-            .map((side) => Vec.distanceToLineSegment(side[1][0], side[1][1], point))
-            .sort((a, b) => a - b)[0]
-        )
-      }
-    }
-
-    return {
-      point: Vec.clampV(bindingPoint, 0, 1),
-      distance,
-    }
-  }
-}
+/* -------------------------------------------------- */
+/*                       Helpers                      */
+/* -------------------------------------------------- */
 
 const StyledWrapper = styled('div', {
   width: '100%',

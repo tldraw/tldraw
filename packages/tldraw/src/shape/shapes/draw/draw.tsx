@@ -1,31 +1,25 @@
 import * as React from 'react'
-import { SVGContainer, TLBounds, Utils, TLTransformInfo } from '@tldraw/core'
+import { SVGContainer, TLBounds, Utils, TLTransformInfo, ShapeUtil } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { intersectBoundsBounds, intersectBoundsPolyline } from '@tldraw/intersect'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import {
-  DrawShape,
-  DashStyle,
-  TLDrawShapeUtil,
-  TLDrawShapeType,
-  TLDrawToolType,
-  TLDrawShapeProps,
-} from '~types'
+import { DrawShape, DashStyle, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
 
-export class Draw extends TLDrawShapeUtil<DrawShape, SVGSVGElement> {
-  type = TLDrawShapeType.Draw as const
-  toolType = TLDrawToolType.Draw
+const pointsBoundsCache = new WeakMap<DrawShape['points'], TLBounds>([])
+const rotatedCache = new WeakMap<DrawShape, number[][]>([])
+const drawPathCache = new WeakMap<DrawShape['points'], string>([])
+const simplePathCache = new WeakMap<DrawShape['points'], string>([])
+const polygonCache = new WeakMap<DrawShape['points'], string>([])
 
-  pointsBoundsCache = new WeakMap<DrawShape['points'], TLBounds>([])
-  rotatedCache = new WeakMap<DrawShape, number[][]>([])
-  drawPathCache = new WeakMap<DrawShape['points'], string>([])
-  simplePathCache = new WeakMap<DrawShape['points'], string>([])
-  polygonCache = new WeakMap<DrawShape['points'], string>([])
+export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
+  type: TLDrawShapeType.Draw,
 
-  defaultProps: DrawShape = {
+  toolType: TLDrawToolType.Draw,
+
+  defaultProps: {
     id: 'id',
-    type: TLDrawShapeType.Draw as const,
+    type: TLDrawShapeType.Draw,
     name: 'Draw',
     parentId: 'page',
     childIndex: 1,
@@ -33,130 +27,122 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGSVGElement> {
     points: [],
     rotation: 0,
     style: defaultStyle,
-  }
+  },
 
-  shouldRender(prev: DrawShape, next: DrawShape): boolean {
-    return next.points !== prev.points || next.style !== prev.style
-  }
+  Component({ shape, meta, events, isEditing }, ref) {
+    const { points, style } = shape
 
-  render = React.forwardRef<SVGSVGElement, TLDrawShapeProps<DrawShape, SVGSVGElement>>(
-    ({ shape, meta, events, isEditing }, ref) => {
-      const { points, style } = shape
+    const styles = getShapeStyle(style, meta.isDarkMode)
 
-      const styles = getShapeStyle(style, meta.isDarkMode)
+    const strokeWidth = styles.strokeWidth
 
-      const strokeWidth = styles.strokeWidth
+    // For very short lines, draw a point instead of a line
+    const bounds = this.getBounds(shape)
 
-      // For very short lines, draw a point instead of a line
-      const bounds = this.getBounds(shape)
+    const verySmall = bounds.width < strokeWidth / 2 && bounds.height < strokeWidth / 2
 
-      const verySmall = bounds.width < strokeWidth / 2 && bounds.height < strokeWidth / 2
-
-      if (!isEditing && verySmall) {
-        const sw = strokeWidth * 0.618
-
-        return (
-          <SVGContainer ref={ref} {...events}>
-            <circle
-              r={strokeWidth * 0.618}
-              fill={styles.stroke}
-              stroke={styles.stroke}
-              strokeWidth={sw}
-              pointerEvents="all"
-            />
-          </SVGContainer>
-        )
-      }
-
-      const shouldFill =
-        style.isFilled &&
-        points.length > 3 &&
-        Vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
-
-      // For drawn lines, draw a line from the path cache
-
-      if (shape.style.dash === DashStyle.Draw) {
-        const polygonPathData = Utils.getFromCache(this.polygonCache, points, () =>
-          getFillPath(shape)
-        )
-
-        const drawPathData = isEditing
-          ? getDrawStrokePath(shape, true)
-          : Utils.getFromCache(this.drawPathCache, points, () => getDrawStrokePath(shape, false))
-
-        return (
-          <SVGContainer ref={ref} {...events}>
-            {shouldFill && (
-              <path
-                d={polygonPathData}
-                stroke="none"
-                fill={styles.fill}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-                pointerEvents="fill"
-              />
-            )}
-            <path
-              d={drawPathData}
-              fill={styles.stroke}
-              stroke={styles.stroke}
-              strokeWidth={strokeWidth}
-              strokeLinejoin="round"
-              strokeLinecap="round"
-              pointerEvents="all"
-            />
-          </SVGContainer>
-        )
-      }
-
-      // For solid, dash and dotted lines, draw a regular stroke path
-
-      const strokeDasharray = {
-        [DashStyle.Draw]: 'none',
-        [DashStyle.Solid]: `none`,
-        [DashStyle.Dotted]: `${strokeWidth / 10} ${strokeWidth * 3}`,
-        [DashStyle.Dashed]: `${strokeWidth * 3} ${strokeWidth * 3}`,
-      }[style.dash]
-
-      const strokeDashoffset = {
-        [DashStyle.Draw]: 'none',
-        [DashStyle.Solid]: `none`,
-        [DashStyle.Dotted]: `-${strokeWidth / 20}`,
-        [DashStyle.Dashed]: `-${strokeWidth}`,
-      }[style.dash]
-
-      const path = Utils.getFromCache(this.simplePathCache, points, () => getSolidStrokePath(shape))
-
-      const sw = strokeWidth * 1.618
+    if (!isEditing && verySmall) {
+      const sw = strokeWidth * 0.618
 
       return (
         <SVGContainer ref={ref} {...events}>
-          <path
-            d={path}
-            fill={shouldFill ? styles.fill : 'none'}
-            stroke="transparent"
-            strokeWidth={Math.min(4, strokeWidth * 2)}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            pointerEvents={shouldFill ? 'all' : 'stroke'}
-          />
-          <path
-            d={path}
-            fill="transparent"
+          <circle
+            r={strokeWidth * 0.618}
+            fill={styles.stroke}
             stroke={styles.stroke}
             strokeWidth={sw}
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            pointerEvents="stroke"
+            pointerEvents="all"
           />
         </SVGContainer>
       )
     }
-  )
 
-  renderIndicator(shape: DrawShape): JSX.Element {
+    const shouldFill =
+      style.isFilled &&
+      points.length > 3 &&
+      Vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
+
+    // For drawn lines, draw a line from the path cache
+
+    if (shape.style.dash === DashStyle.Draw) {
+      const polygonPathData = Utils.getFromCache(polygonCache, points, () => getFillPath(shape))
+
+      const drawPathData = isEditing
+        ? getDrawStrokePath(shape, true)
+        : Utils.getFromCache(drawPathCache, points, () => getDrawStrokePath(shape, false))
+
+      return (
+        <SVGContainer ref={ref} {...events}>
+          {shouldFill && (
+            <path
+              d={polygonPathData}
+              stroke="none"
+              fill={styles.fill}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              pointerEvents="fill"
+            />
+          )}
+          <path
+            d={drawPathData}
+            fill={styles.stroke}
+            stroke={styles.stroke}
+            strokeWidth={strokeWidth}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            pointerEvents="all"
+          />
+        </SVGContainer>
+      )
+    }
+
+    // For solid, dash and dotted lines, draw a regular stroke path
+
+    const strokeDasharray = {
+      [DashStyle.Draw]: 'none',
+      [DashStyle.Solid]: `none`,
+      [DashStyle.Dotted]: `${strokeWidth / 10} ${strokeWidth * 3}`,
+      [DashStyle.Dashed]: `${strokeWidth * 3} ${strokeWidth * 3}`,
+    }[style.dash]
+
+    const strokeDashoffset = {
+      [DashStyle.Draw]: 'none',
+      [DashStyle.Solid]: `none`,
+      [DashStyle.Dotted]: `-${strokeWidth / 20}`,
+      [DashStyle.Dashed]: `-${strokeWidth}`,
+    }[style.dash]
+
+    const path = Utils.getFromCache(simplePathCache, points, () => getSolidStrokePath(shape))
+
+    const sw = strokeWidth * 1.618
+
+    return (
+      <SVGContainer ref={ref} {...events}>
+        <path
+          d={path}
+          fill={shouldFill ? styles.fill : 'none'}
+          stroke="transparent"
+          strokeWidth={Math.min(4, strokeWidth * 2)}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          pointerEvents={shouldFill ? 'all' : 'stroke'}
+        />
+        <path
+          d={path}
+          fill="transparent"
+          stroke={styles.stroke}
+          strokeWidth={sw}
+          strokeDasharray={strokeDasharray}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          pointerEvents="stroke"
+        />
+      </SVGContainer>
+    )
+  },
+
+  Indicator({ shape }) {
     const { points } = shape
 
     const bounds = this.getBounds(shape)
@@ -167,34 +153,23 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGSVGElement> {
       return <circle x={bounds.width / 2} y={bounds.height / 2} r={1} />
     }
 
-    const path = Utils.getFromCache(this.simplePathCache, points, () => getSolidStrokePath(shape))
+    const path = Utils.getFromCache(simplePathCache, points, () => getSolidStrokePath(shape))
 
     return <path d={path} />
-  }
+  },
 
   getBounds(shape: DrawShape): TLBounds {
     return Utils.translateBounds(
-      Utils.getFromCache(this.pointsBoundsCache, shape.points, () =>
+      Utils.getFromCache(pointsBoundsCache, shape.points, () =>
         Utils.getBoundsFromPoints(shape.points)
       ),
       shape.point
     )
-  }
+  },
 
-  getRotatedBounds(shape: DrawShape): TLBounds {
-    return Utils.translateBounds(
-      Utils.getBoundsFromPoints(shape.points, shape.rotation),
-      shape.point
-    )
-  }
-
-  getCenter(shape: DrawShape): number[] {
-    return Utils.getBoundsCenter(this.getBounds(shape))
-  }
-
-  hitTest(): boolean {
-    return true
-  }
+  shouldRender(prev: DrawShape, next: DrawShape): boolean {
+    return next.points !== prev.points || next.style !== prev.style
+  },
 
   hitTestBounds(shape: DrawShape, brushBounds: TLBounds): boolean {
     // Test axis-aligned shape
@@ -215,7 +190,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGSVGElement> {
     // Test rotated shape
     const rBounds = this.getRotatedBounds(shape)
 
-    const rotatedBounds = Utils.getFromCache(this.rotatedCache, shape, () => {
+    const rotatedBounds = Utils.getFromCache(rotatedCache, shape, () => {
       const c = Utils.getBoundsCenter(Utils.getBoundsFromPoints(shape.points))
       return shape.points.map((pt) => Vec.rotWith(pt, c, shape.rotation || 0))
     })
@@ -227,7 +202,7 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGSVGElement> {
         rotatedBounds
       ).length > 0
     )
-  }
+  },
 
   transform(
     shape: DrawShape,
@@ -260,16 +235,12 @@ export class Draw extends TLDrawShapeUtil<DrawShape, SVGSVGElement> {
       points,
       point,
     }
-  }
+  },
+}))
 
-  transformSingle(
-    shape: DrawShape,
-    bounds: TLBounds,
-    info: TLTransformInfo<DrawShape>
-  ): Partial<DrawShape> {
-    return this.transform(shape, bounds, info)
-  }
-}
+/* -------------------------------------------------- */
+/*                       Helpers                      */
+/* -------------------------------------------------- */
 
 const simulatePressureSettings = {
   simulatePressure: true,

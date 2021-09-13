@@ -3,7 +3,7 @@ import * as React from 'react'
 import type { TLShapeUtil, TLRenderInfo, TLShape } from '+types'
 
 export const RenderedShape = React.memo(
-  <T extends TLShape, E extends Element, M extends Record<string, unknown>>({
+  <T extends TLShape, E extends Element, M = any>({
     shape,
     utils,
     isEditing,
@@ -15,14 +15,18 @@ export const RenderedShape = React.memo(
     onShapeBlur,
     events,
     meta,
-  }: TLRenderInfo<T, M, E> & {
+  }: TLRenderInfo<T, E, M> & {
     shape: T
-    utils: TLShapeUtil<T, E>
+    utils: TLShapeUtil<T, E, M> & {
+      _Component: React.ForwardRefExoticComponent<
+        { shape: T; ref: React.ForwardedRef<E> } & TLRenderInfo<T> & React.RefAttributes<E>
+      >
+    }
   }) => {
     const ref = utils.getRef(shape)
 
     return (
-      <utils.render
+      <utils._Component
         ref={ref}
         shape={shape}
         isEditing={isEditing}

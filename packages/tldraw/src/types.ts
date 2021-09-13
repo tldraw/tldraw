@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 import type { TLBinding, TLShapeProps } from '@tldraw/core'
-import { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
+import type { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
 import type { TLPage, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
 import type { Command, Patch } from 'rko'
@@ -212,24 +212,16 @@ export type TLDrawShape =
   | GroupShape
   | PostItShape
 
-export abstract class TLDrawShapeUtil<
-  T extends TLDrawShape,
-  E extends HTMLElement | SVGElement
-> extends TLShapeUtil<T, E> {
-  abstract toolType: TLDrawToolType
+export interface TLDrawShapeUtil<T extends TLDrawShape, E extends Element>
+  extends TLShapeUtil<T, E, TLDrawMeta> {
+  toolType: TLDrawToolType
 }
 
-export type TLDrawShapeUtils = Record<
-  TLDrawShapeType,
-  TLDrawShapeUtil<TLDrawShape, HTMLElement | SVGElement>
->
-
-export interface ArrowBinding extends TLBinding {
-  type: 'arrow'
+export type ArrowBinding = TLBinding<{
   handleId: keyof ArrowShape['handles']
   distance: number
   point: number[]
-}
+}>
 
 export type TLDrawBinding = ArrowBinding
 

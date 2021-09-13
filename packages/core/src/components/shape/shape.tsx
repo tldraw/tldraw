@@ -7,7 +7,7 @@ import { RenderedShape } from './rendered-shape'
 import { Container } from '+components/container'
 import { useTLContext } from '+hooks'
 
-export const Shape = <T extends TLShape, E extends Element, M extends Record<string, unknown>>({
+export const Shape = <T extends TLShape, E extends Element, M = any>({
   shape,
   utils,
   isEditing,
@@ -17,7 +17,7 @@ export const Shape = <T extends TLShape, E extends Element, M extends Record<str
   isCurrentParent,
   meta,
 }: IShapeTreeNode<T, M> & {
-  utils: TLShapeUtil<T, E>
+  utils: TLShapeUtil<T, E, M>
 }) => {
   const { callbacks } = useTLContext()
   const bounds = utils.getBounds(shape)

@@ -28,7 +28,7 @@ describe('Arrow session', () => {
     expect(binding).toBeTruthy()
     expect(binding.fromId).toBe('arrow1')
     expect(binding.toId).toBe('target1')
-    expect(binding.handleId).toBe('start')
+    expect(binding.meta.handleId).toBe('start')
     expect(tlstate.appState.status.current).toBe(TLDrawStatus.Idle)
     expect(tlstate.getShape('arrow1').handles?.start.bindingId).toBe(binding.id)
 
@@ -62,7 +62,7 @@ describe('Arrow session', () => {
         .select('arrow1')
         .startHandleSession([200, 200], 'start')
         .updateHandleSession([50, 50])
-      expect(tlstate.bindings[0].point).toStrictEqual([0.5, 0.5])
+      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.5, 0.5])
     })
 
     it('Snaps to the center', () => {
@@ -71,7 +71,7 @@ describe('Arrow session', () => {
         .select('arrow1')
         .startHandleSession([200, 200], 'start')
         .updateHandleSession([55, 55])
-      expect(tlstate.bindings[0].point).toStrictEqual([0.5, 0.5])
+      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.5, 0.5])
     })
 
     it('Binds at the bottom left', () => {
@@ -80,7 +80,7 @@ describe('Arrow session', () => {
         .select('arrow1')
         .startHandleSession([200, 200], 'start')
         .updateHandleSession([132, -32])
-      expect(tlstate.bindings[0].point).toStrictEqual([1, 0])
+      expect(tlstate.bindings[0].meta.point).toStrictEqual([1, 0])
     })
 
     it('Cancels the bind when off of the expanded bounds', () => {
@@ -100,7 +100,7 @@ describe('Arrow session', () => {
         .startHandleSession([200, 200], 'start')
         .updateHandleSession([91, 9])
 
-      expect(tlstate.bindings[0].point).toStrictEqual([0.68, 0.13])
+      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.68, 0.13])
 
       tlstate.updateHandleSession([91, 9], false, false, true)
     })
@@ -112,11 +112,11 @@ describe('Arrow session', () => {
         .startHandleSession([200, 200], 'start')
         .updateHandleSession([91, 9])
 
-      expect(tlstate.bindings[0].point).toStrictEqual([0.68, 0.13])
+      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.68, 0.13])
 
       tlstate.updateHandleSession([91, 9], false, false, true)
 
-      expect(tlstate.bindings[0].point).toStrictEqual([0.75, 0.25])
+      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.75, 0.25])
     })
 
     it('ignores binding when alt is held', () => {
@@ -126,11 +126,11 @@ describe('Arrow session', () => {
         .startHandleSession([200, 200], 'start')
         .updateHandleSession([55, 45])
 
-      expect(tlstate.bindings[0].point).toStrictEqual([0.5, 0.5])
+      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.5, 0.5])
 
       tlstate.updateHandleSession([55, 45], false, false, true)
 
-      expect(tlstate.bindings[0].point).toStrictEqual([0.5, 0.5])
+      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.5, 0.5])
     })
   })
 

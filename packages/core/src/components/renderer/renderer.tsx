@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import type {
   TLShape,
   TLPage,
   TLPageState,
   TLCallbacks,
-  TLShapeUtils,
   TLTheme,
   TLBounds,
   TLBinding,
@@ -12,16 +12,15 @@ import type {
 import { Canvas } from '../canvas'
 import { Inputs } from '../../inputs'
 import { useTLTheme, TLContext, TLContextType } from '../../hooks'
+import type { TLShapeUtil } from '+index'
 
-export interface RendererProps<
-  T extends TLShape,
-  E extends Element,
-  M extends Record<string, unknown>
-> extends Partial<TLCallbacks<T>> {
+export interface RendererProps<T extends TLShape, E extends Element, M = any>
+  extends Partial<TLCallbacks<T>> {
   /**
    * An object containing instances of your shape classes.
    */
-  shapeUtils: TLShapeUtils<T, E>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  shapeUtils: Record<T['type'], TLShapeUtil<T, E, M>>
   /**
    * The current page, containing shapes and bindings.
    */
@@ -89,7 +88,7 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
 
   rest
 
-  const [context] = React.useState<TLContextType<T, E>>(() => ({
+  const [context] = React.useState<TLContextType<T, E, M>>(() => ({
     callbacks: rest,
     shapeUtils,
     rScreenBounds,

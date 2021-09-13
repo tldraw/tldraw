@@ -1,7 +1,8 @@
 import { PostIt } from './post-it'
 
 describe('Post-It shape', () => {
-  it('Creates an instance', () => {
-    new PostIt()
+  it('Creates a shape', () => {
+    expect(PostIt.create).toBeDefined()
+    // expect(PostIt.create({ id: 'postit' })).toMatchSnapshot('postit')
   })
 })

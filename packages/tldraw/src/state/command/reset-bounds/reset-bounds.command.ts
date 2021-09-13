@@ -1,11 +1,12 @@
 import type { Data, TLDrawCommand } from '~types'
 import { TLDR } from '~state/tldr'
+import { TLBoundsEdge } from '~../../core/src/types'
 
 export function resetBounds(data: Data, ids: string[], pageId: string): TLDrawCommand {
   const { before, after } = TLDR.mutateShapes(
     data,
     ids,
-    (shape) => TLDR.getShapeUtils(shape).onBoundsReset(shape),
+    (shape) => TLDR.getShapeUtils(shape).onDoubleClickBoundsHandle(shape),
     pageId
   )
 
