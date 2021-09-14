@@ -11,7 +11,7 @@ import {
   ArrowShape,
   TLDrawShapeProps,
 } from '~types'
-import styled from '~styles'
+import css from '~styles'
 import TextAreaUtils from './text-utils'
 import { intersectPolylineBounds, intersectRayBounds } from '@tldraw/intersect'
 
@@ -169,8 +169,9 @@ export class Text extends TLDrawShapeUtil<TextShape, HTMLDivElement> {
 
       return (
         <HTMLContainer ref={ref} {...events}>
-          <StyledWrapper isEditing={isEditing} onPointerDown={handlePointerDown}>
-            <StyledTextArea
+          <div className={wrapper({ isEditing })} onPointerDown={handlePointerDown}>
+            <textarea
+              className={textArea({ isEditing, isBinding })}
               ref={rInput}
               style={{
                 font,
@@ -191,14 +192,12 @@ export class Text extends TLDrawShapeUtil<TextShape, HTMLDivElement> {
               onKeyDown={handleKeyDown}
               onPointerDown={handlePointerDown}
               autoFocus={isEditing}
-              isEditing={isEditing}
-              isBinding={isBinding}
               readOnly={!isEditing}
               wrap="off"
               dir="auto"
               datatype="wysiwyg"
             />
-          </StyledWrapper>
+          </div>
         </HTMLContainer>
       )
     }
@@ -415,7 +414,7 @@ export class Text extends TLDrawShapeUtil<TextShape, HTMLDivElement> {
   }
 }
 
-const StyledWrapper = styled('div', {
+const wrapper = css({
   width: '100%',
   height: '100%',
   variants: {
@@ -430,7 +429,7 @@ const StyledWrapper = styled('div', {
   },
 })
 
-const StyledTextArea = styled('textarea', {
+const textArea = css({
   position: 'absolute',
   top: 'var(--tl-padding)',
   left: 'var(--tl-padding)',

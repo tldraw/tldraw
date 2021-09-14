@@ -11,7 +11,7 @@ import {
   iconWrapper,
 } from '~components/shared'
 import { PageOptionsDialog } from '~components/page-options-dialog'
-import styled from '~styles'
+import css from '~styles'
 import { useTLDrawContext } from '~hooks'
 import type { Data } from '~types'
 
@@ -86,7 +86,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
     <>
       <DropdownMenu.RadioGroup value={currentPageId} onValueChange={handleChangePage}>
         {sortedPages.map((page) => (
-          <ButtonWithOptions key={page.id}>
+          <div className={buttonWithOptions()} key={page.id}>
             <DropdownMenu.RadioItem
               className={rowButton({ bp: breakpoints, variant: 'pageButton' })}
               value={page.id}
@@ -99,7 +99,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
               </DropdownMenu.ItemIndicator>
             </DropdownMenu.RadioItem>
             <PageOptionsDialog page={page} onClose={onClose} />
-          </ButtonWithOptions>
+          </div>
         ))}
       </DropdownMenu.RadioGroup>
       <DropdownMenuDivider />
@@ -113,7 +113,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
   )
 }
 
-const ButtonWithOptions = styled('div', {
+const buttonWithOptions = css({
   display: 'grid',
   gridTemplateColumns: '1fr auto',
   gridAutoFlow: 'column',

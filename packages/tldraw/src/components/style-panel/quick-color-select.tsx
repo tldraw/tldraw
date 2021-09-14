@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { BoxIcon, StyleDropdownItem, StyleDropdownContent } from './styled'
+import { BoxIcon, dropdownItem, dropdownContent } from './styled'
 import { DropdownMenuIconTriggerButton } from '../shared'
 import { strokes } from '~shape'
 import { useTheme, useTLDrawContext } from '~hooks'
@@ -28,11 +28,11 @@ export const QuickColorSelect = React.memo((): JSX.Element => {
         <DropdownMenu.DropdownMenuRadioGroup
           value={color as string}
           onValueChange={handleColorChange}
-          as={StyleDropdownContent}
+          className={dropdownContent()}
         >
           {Object.keys(strokes[theme]).map((colorStyle: string) => (
             <DropdownMenu.DropdownMenuRadioItem
-              as={StyleDropdownItem}
+              className={dropdownItem()}
               key={colorStyle}
               title={colorStyle}
               value={colorStyle}

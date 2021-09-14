@@ -285,7 +285,7 @@ function AlignDistributeSubMenu({
         </div>
       </RadixContextMenu.TriggerItem>
       <RadixContextMenu.Content
-        className={styledGrid({ selectedStyle: hasThreeOrMore ? 'threeOrMore' : 'twoOrMore' })}
+        className={grid({ selectedStyle: hasThreeOrMore ? 'threeOrMore' : 'twoOrMore' })}
         sideOffset={2}
         alignOffset={-2}
       >
@@ -330,7 +330,7 @@ function AlignDistributeSubMenu({
   )
 }
 
-const styledGrid = css(menuContent, {
+const grid = css(menuContent, {
   display: 'grid',
   variants: {
     selectedStyle: {
