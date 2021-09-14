@@ -3576,10 +3576,10 @@
   resolved "https://registry.yarnpkg.com/@sqltools/formatter/-/formatter-1.2.3.tgz#1185726610acc37317ddab11c3c7f9066966bd20"
   integrity sha512-O3uyB/JbkAEMZaP3YqyHH7TMnex7tWyCbCI4EfJdOCoN6HIhqdJBWTM6aCCiWQ/5f5wxjgU735QAIpJbjDvmzg==
 
-"@stitches/react@^1.0.0":
+"@stitches/core@^1.0.0":
   version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@stitches/react/-/react-1.1.0.tgz#49342e085528d689b983682e112b79c5a0b0efb4"
-  integrity sha512-g1XZsmB3tFL5i9aaBx0+P4C83j3vf/PEmLc5e9PlumE5c6q3zsdbbOVr4ZC52eGm4MCvM+2bbAJ++rtTUa6ahw==
+  resolved "https://registry.yarnpkg.com/@stitches/core/-/core-1.1.0.tgz#c4370638efbdefeb68a5e2d81b0d6158d5711b59"
+  integrity sha512-qKbNVx04ybrhkaPDhEAux6LvlWNjnKGhwum3WakHtyHBWIWoBLM39rGb3JpwkXKECaulS5+wdwldN7OQxaDBvA==
 
 "@surma/rollup-plugin-off-main-thread@^1.4.1":
   version "1.4.2"
