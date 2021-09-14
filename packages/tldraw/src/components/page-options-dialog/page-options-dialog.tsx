@@ -4,10 +4,10 @@ import { MixerVerticalIcon } from '@radix-ui/react-icons'
 import {
   breakpoints,
   iconButton,
-  DialogOverlay,
-  DialogContent,
+  dialogOverlay,
+  dialogContent,
   rowButton,
-  Divider,
+  divider,
 } from '~components/shared'
 import type { Data, TLDrawPage } from '~types'
 import { useTLDrawContext } from '~hooks'
@@ -79,8 +79,12 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
       <Dialog.Trigger className={iconButton({ bp: breakpoints, size: 'small' })} data-shy="true">
         <MixerVerticalIcon />
       </Dialog.Trigger>
-      <Dialog.Overlay as={DialogOverlay} />
-      <Dialog.Content as={DialogContent} onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
+      <Dialog.Overlay className={dialogOverlay()} />
+      <Dialog.Content
+        className={dialogContent()}
+        onKeyDown={stopPropagation}
+        onKeyUp={stopPropagation}
+      >
         <Dialog.Action className={rowButton({ bp: breakpoints })} onClick={handleRename}>
           Rename
         </Dialog.Action>
@@ -94,7 +98,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
         >
           Delete
         </Dialog.Action>
-        <Divider />
+        <div className={divider()} />
         <Dialog.Cancel className={rowButton({ bp: breakpoints })}>Cancel</Dialog.Cancel>
       </Dialog.Content>
     </Dialog.Root>

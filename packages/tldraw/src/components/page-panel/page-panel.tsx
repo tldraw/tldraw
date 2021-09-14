@@ -56,7 +56,7 @@ export function PagePanel(): JSX.Element {
           <span>{currentPageName || 'Page'}</span>
         </DropdownMenu.Trigger>
       </div>
-      <DropdownMenu.Content className={menuContent} sideOffset={8} align="start">
+      <DropdownMenu.Content className={menuContent()} sideOffset={8} align="start">
         {isOpen && <PageMenuContent onClose={handleClose} />}
       </DropdownMenu.Content>
     </DropdownMenu.Root>
@@ -93,9 +93,9 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
             >
               <span>{page.name || 'Page'}</span>
               <DropdownMenu.ItemIndicator>
-                <IconWrapper size="small">
+                <div className={iconWrapper({ size: 'small' })}>
                   <CheckIcon />
-                </IconWrapper>
+                </div>
               </DropdownMenu.ItemIndicator>
             </DropdownMenu.RadioItem>
             <PageOptionsDialog page={page} onClose={onClose} />

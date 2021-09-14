@@ -17,7 +17,7 @@ import {
   breakpoints,
   rowButton,
   floatingContainer,
-  Divider,
+  divider,
 } from '../shared'
 
 const isStyleOpenSelector = (s: Data) => s.appState.isStyleOpen
@@ -71,14 +71,14 @@ function SelectedShapeContent(): JSX.Element {
 
   return (
     <>
-      <Divider />
+      <div className={divider()} />
       <ShapesFunctions />
-      <Divider />
+      <div className={divider()} />
       <AlignDistribute
         hasTwoOrMore={selectedShapesCount > 1}
         hasThreeOrMore={selectedShapesCount > 2}
       />
-      <Divider />
+      <div className={divider()} />
       <button
         className={rowButton({ bp: breakpoints })}
         disabled={selectedShapesCount === 0}

@@ -20,8 +20,7 @@ export const QuickFillSelect = React.memo((): JSX.Element => {
   return (
     <Checkbox.Root
       dir="ltr"
-      className={iconButton()}
-      bp={breakpoints}
+      className={iconButton({ bp: breakpoints })}
       checked={isFilled}
       onCheckedChange={handleIsFilledChange}
     >

@@ -19,7 +19,7 @@ import { iconButton } from './icon-button'
 import { iconWrapper } from './icon-wrapper'
 import { menuContent } from './menu'
 
-import styled from '~styles'
+import css from '~styles'
 
 /* -------------------------------------------------- */
 /*                    Dropdown Menu                   */
@@ -70,7 +70,7 @@ export function DropdownMenuSubMenu({
   )
 }
 
-export const DropdownMenuDivider = styled(DMSeparator, {
+export const dropdownMenuDivider = css({
   backgroundColor: '$hover',
   height: 1,
   marginTop: '$2',
@@ -79,9 +79,31 @@ export const DropdownMenuDivider = styled(DMSeparator, {
   marginLeft: '-$2',
 })
 
-export const DropdownMenuArrow = styled(DMArrow, {
+export const DropdownMenuDivider = React.forwardRef<
+  React.ElementRef<typeof DMSeparator>,
+  React.ComponentProps<typeof DMSeparator>
+>((props, forwardedRef) => (
+  <DMSeparator
+    {...props}
+    ref={forwardedRef}
+    className={dropdownMenuDivider({ className: props.className })}
+  />
+))
+
+export const dropdownMenuArrow = css({
   fill: '$panel',
 })
+
+export const DropdownMenuArrow = React.forwardRef<
+  React.ElementRef<typeof DMArrow>,
+  React.ComponentProps<typeof DMArrow>
+>((props, forwardedRef) => (
+  <DMArrow
+    {...props}
+    ref={forwardedRef}
+    className={dropdownMenuArrow({ className: props.className })}
+  />
+))
 
 export interface DropdownMenuButtonProps {
   onSelect?: () => void
