@@ -555,6 +555,7 @@ export class TLDrawState extends StateManager<Data> {
    */
   newProject = () => {
     // TODO
+    this.resetDocument()
   }
 
   /**
@@ -2375,6 +2376,7 @@ export class TLDrawState extends StateManager<Data> {
   onPointCanvas: TLCanvasEventHandler = (info) => {
     if (this.appState.isStyleOpen) {
       this.toggleStylePanel()
+      return
     }
 
     switch (this.appState.status.current) {

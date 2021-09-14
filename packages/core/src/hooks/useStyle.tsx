@@ -165,18 +165,18 @@ const tlcss = css`
     position: absolute;
     top: 0px;
     left: 0px;
-    overflow: hidden;
     transform-origin: center center;
     pointer-events: none;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: clip;
   }
 
   .tl-positioned-svg {
     width: 100%;
     height: 100%;
-    overflow: hidden;
+    overflow: clip;
   }
 
   .tl-positioned-div {
@@ -185,6 +185,7 @@ const tlcss = css`
     height: 100%;
     overflow: hidden;
     padding: var(--tl-padding);
+    overflow: clip;
   }
 
   .tl-counter-scaled {
