@@ -1,7 +1,6 @@
 import { brushUpdater, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { Data, Session, TLDrawPatch, TLDrawStatus } from '~types'
-import { getShapeUtils } from '~shape'
 import { TLDR } from '~state/tldr'
 
 export class BrushSession implements Session {
@@ -123,8 +122,8 @@ export function getBrushSnapshot(data: Data) {
     )
     .map((shape) => ({
       id: shape.id,
-      util: getShapeUtils(shape),
-      bounds: getShapeUtils(shape).getBounds(shape),
+      util: TLDR.getShapeUtils(shape),
+      bounds: TLDR.getShapeUtils(shape).getBounds(shape),
       selectId: TLDR.getTopParentId(data, shape.id, currentPageId),
     }))
 

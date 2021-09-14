@@ -113,7 +113,7 @@ const tlcss = css`
     --tl-scale: calc(1 / var(--tl-zoom));
     --tl-camera-x: 0px;
     --tl-camera-y: 0px;
-    --tl-padding: calc(64px * var(--tl-scale));
+    --tl-padding: calc(64px * max(1, var(--tl-scale)));
     position: relative;
     top: 0px;
     left: 0px;
@@ -165,18 +165,18 @@ const tlcss = css`
     position: absolute;
     top: 0px;
     left: 0px;
-    overflow: hidden;
     transform-origin: center center;
     pointer-events: none;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: clip;
   }
 
   .tl-positioned-svg {
     width: 100%;
     height: 100%;
-    overflow: hidden;
+    overflow: clip;
   }
 
   .tl-positioned-div {
@@ -185,6 +185,7 @@ const tlcss = css`
     height: 100%;
     overflow: hidden;
     padding: var(--tl-padding);
+    overflow: clip;
   }
 
   .tl-counter-scaled {
@@ -279,23 +280,23 @@ const tlcss = css`
     stroke-width: 2px;
   }
 
-  .tl-handles {
+  .tl-handle {
     pointer-events: all;
   }
 
-  .tl-handles:hover > .tl-handle-bg {
+  .tl-handle:hover .tl-handle-bg {
     fill: var(--tl-selectFill);
   }
 
-  .tl-handles:hover > .tl-handle-bg > * {
+  .tl-handle:hover .tl-handle-bg > * {
     stroke: var(--tl-selectFill);
   }
 
-  .tl-handles:active > .tl-handle-bg {
+  .tl-handle:active .tl-handle-bg {
     fill: var(--tl-selectFill);
   }
 
-  .tl-handles:active > .tl-handle-bg > * {
+  .tl-handle:active .tl-handle-bg > * {
     stroke: var(--tl-selectFill);
   }
 
@@ -309,7 +310,7 @@ const tlcss = css`
     fill: transparent;
     stroke: none;
     pointer-events: all;
-    r: calc(20 / max(1, var(--tl-zoom)));
+    r: calc(20px / max(1, var(--tl-zoom)));
   }
 
   .tl-binding-indicator {

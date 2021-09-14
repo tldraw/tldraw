@@ -38,35 +38,39 @@ export class DrawSession implements Session {
   update = (data: Data, point: number[], pressure: number, isLocked = false) => {
     const { snapshot } = this
 
-    // Roundabout way of preventing the "dot" from showing while drawing
-    if (this.points.length === 0) {
-      this.points.push([0, 0, pressure])
+    // Even if we're not locked yet, we base the future locking direction
+    // on the first dimension to reach a threshold, or the bigger dimension
+    // once one or both dimensions have reached the threshold.
+    if (!this.lockedDirection && this.points.length > 1) {
+      const bounds = Utils.getBoundsFromPoints(this.points)
+      if (bounds.width > 8 || bounds.height > 8) {
+        this.lockedDirection = bounds.width > bounds.height ? 'horizontal' : 'vertical'
+      }
     }
 
     // Drawing while holding shift will "lock" the pen to either the
-    // x or y axis, depending on which direction has the greater
-    // delta. Pressing shift will also add more points to "return"
-    // the pen to the axis.
+    // x or y axis, depending on the locking direction.
     if (isLocked) {
       if (!this.isLocked && this.points.length > 1) {
-        const bounds = Utils.getBoundsFromPoints(this.points)
-        if (bounds.width > 8 || bounds.height > 8) {
-          this.isLocked = true
-          const returning = [...this.last]
-
-          const isVertical = bounds.height > 8
-
-          if (isVertical) {
-            this.lockedDirection = 'vertical'
-            returning[0] = this.origin[0]
-          } else {
-            this.lockedDirection = 'horizontal'
-            returning[1] = this.origin[1]
-          }
-
-          this.previous = returning
-          this.points.push(Vec.sub(returning, this.origin))
+        // If we're locking before knowing what direction we're in, set it
+        // early based on the bigger dimension.
+        if (!this.lockedDirection) {
+          const bounds = Utils.getBoundsFromPoints(this.points)
+          this.lockedDirection = bounds.width > bounds.height ? 'horizontal' : 'vertical'
         }
+
+        this.isLocked = true
+        // Start locking
+        const returning = [...this.last]
+
+        if (this.lockedDirection === 'vertical') {
+          returning[0] = 0
+        } else {
+          returning[1] = 0
+        }
+
+        this.previous = returning
+        this.points.push(returning.concat(pressure))
       }
     } else if (this.isLocked) {
       this.isLocked = false
@@ -80,13 +84,10 @@ export class DrawSession implements Session {
       }
     }
 
-    // The previous input (not adjusted) point
-
     // The new adjusted point
     const newPoint = Vec.round(Vec.sub(point, this.origin)).concat(pressure)
 
-    // Don't add duplicate points. Be sure to
-    // test against the previous *adjusted* point.
+    // Don't add duplicate points.
     if (Vec.isEqual(this.last, newPoint)) return
 
     // The new adjusted point is now the previous adjusted point.
@@ -95,27 +96,33 @@ export class DrawSession implements Session {
     // Does the input point create a new top left?
     const prevTopLeft = [...this.topLeft]
 
-    this.topLeft = [Math.min(this.topLeft[0], point[0]), Math.min(this.topLeft[1], point[1])]
+    const topLeft = [Math.min(this.topLeft[0], point[0]), Math.min(this.topLeft[1], point[1])]
 
-    const delta = Vec.sub(this.topLeft, this.origin)
+    const delta = Vec.sub(topLeft, this.origin)
 
     // Add the new adjusted point to the points array
     this.points.push(newPoint)
 
     // Time to shift some points!
-
     let points: number[][]
 
-    if (Vec.isEqual(prevTopLeft, this.topLeft)) {
-      // If the new top left is the same as the previous top left,
-      // we don't need to shift anything: we just shift the new point
-      // and add it to the shifted points array.
-      points = [...this.shiftedPoints, Vec.sub(newPoint, delta)]
-    } else {
+    if (prevTopLeft[0] !== topLeft[0] || prevTopLeft[1] !== topLeft[1]) {
+      this.topLeft = topLeft
       // If we have a new top left, then we need to iterate through
       // the "unshifted" points array and shift them based on the
       // offset between the new top left and the original top left.
-      points = this.points.map((pt) => [pt[0] - delta[0], pt[1] - delta[1], pt[2]])
+
+      points = this.points.map((pt) => {
+        return Vec.round(Vec.sub(pt, delta)).concat(pt[2])
+      })
+    } else {
+      // If the new top left is the same as the previous top left,
+      // we don't need to shift anything: we just shift the new point
+      // and add it to the shifted points array.
+      points = [
+        ...this.shiftedPoints,
+        Vec.sub(newPoint, Vec.sub(topLeft, this.origin)).concat(newPoint[2]),
+      ]
     }
 
     this.shiftedPoints = points

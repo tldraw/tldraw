@@ -6,8 +6,11 @@
     "outDir": "./dist/types",
     "rootDir": "src",
     "baseUrl": "src",
-    "emitDeclarationOnly": false
+    "paths": {
+      "@tldraw/vec": ["../vec"]
+    }
   },
+  "references": [{ "path": "../vec" }],
   "typedocOptions": {
     "entryPoints": ["src/index.ts"],
     "out": "docs"

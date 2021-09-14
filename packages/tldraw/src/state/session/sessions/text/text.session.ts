@@ -65,9 +65,7 @@ export class TextSession implements Session {
           [pageId]: {
             shapes: {
               [initialShape.id]: TLDR.onSessionComplete(
-                data,
-                TLDR.getShape(data, initialShape.id, pageId),
-                pageId
+                TLDR.getShape(data, initialShape.id, pageId)
               ),
             },
           },
@@ -157,9 +155,7 @@ export class TextSession implements Session {
             [pageId]: {
               shapes: {
                 [initialShape.id]: TLDR.onSessionComplete(
-                  data,
-                  TLDR.getShape(data, initialShape.id, pageId),
-                  pageId
+                  TLDR.getShape(data, initialShape.id, pageId)
                 ),
               },
             },

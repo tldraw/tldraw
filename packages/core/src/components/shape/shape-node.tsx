@@ -2,8 +2,12 @@ import * as React from 'react'
 import type { IShapeTreeNode, TLShape, TLShapeUtils } from '+types'
 import { Shape } from './shape'
 
+interface ShapeNodeProps<T extends TLShape, E extends Element> extends IShapeTreeNode<T> {
+  utils: TLShapeUtils<T, E>
+}
+
 export const ShapeNode = React.memo(
-  ({
+  <T extends TLShape, E extends Element>({
     shape,
     utils,
     children,
@@ -13,7 +17,7 @@ export const ShapeNode = React.memo(
     isSelected,
     isCurrentParent,
     meta,
-  }: { utils: TLShapeUtils<TLShape, Element> } & IShapeTreeNode<TLShape, any>) => {
+  }: ShapeNodeProps<T, E>) => {
     return (
       <>
         <Shape

@@ -76,7 +76,7 @@ export function group(
   // Create the group
   beforeShapes[groupId] = undefined
 
-  afterShapes[groupId] = TLDR.getShapeUtils({ type: TLDrawShapeType.Group } as TLDrawShape).create({
+  afterShapes[groupId] = TLDR.getShapeUtils(TLDrawShapeType.Group).create({
     id: groupId,
     childIndex: groupChildIndex,
     parentId: groupParentId,

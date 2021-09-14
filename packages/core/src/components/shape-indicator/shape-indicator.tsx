@@ -17,7 +17,9 @@ export const ShapeIndicator = React.memo(
         }
       >
         <svg width="100%" height="100%">
-          <g className="tl-centered-g">{utils.renderIndicator(shape)}</g>
+          <g className="tl-centered-g">
+            <utils.Indicator shape={shape} />
+          </g>
         </svg>
       </div>
     )

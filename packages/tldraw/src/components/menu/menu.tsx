@@ -20,7 +20,9 @@ export const Menu = React.memo(() => {
   const { tlstate } = useTLDrawContext()
 
   const handleNew = React.useCallback(() => {
-    tlstate.newProject()
+    if (window.confirm('Are you sure you want to start a new project?')) {
+      tlstate.newProject()
+    }
   }, [tlstate])
 
   const handleSave = React.useCallback(() => {
@@ -42,29 +44,29 @@ export const Menu = React.memo(() => {
           <HamburgerMenuIcon />
         </DropdownMenu.Trigger>
         <DropdownMenu.Content className={menuContent()} sideOffset={8} align="end">
-          <DropdownMenuButton onSelect={handleNew} disabled={true}>
+          <DropdownMenuButton onSelect={handleNew}>
             <span>New Project</span>
             <kbd className={kbd({ variant: 'menu' })}>#N</kbd>
           </DropdownMenuButton>
           <DropdownMenuDivider />
-          <DropdownMenuButton onSelect={handleLoad}>
+          <DropdownMenuButton disabled onSelect={handleLoad}>
             <span>Open...</span>
             <kbd className={kbd({ variant: 'menu' })}>#L</kbd>
           </DropdownMenuButton>
           <RecentFiles />
           <DropdownMenuDivider />
-          <DropdownMenuButton onSelect={handleSave}>
+          <DropdownMenuButton disabled onSelect={handleSave}>
             <span>Save</span>
             <kbd className={kbd({ variant: 'menu' })}>#S</kbd>
           </DropdownMenuButton>
-          <DropdownMenuButton onSelect={handleSave}>
+          <DropdownMenuButton disabled onSelect={handleSave}>
             <span>Save As...</span>
             <kbd className={kbd({ variant: 'menu' })}>⇧#S</kbd>
           </DropdownMenuButton>
           <DropdownMenuDivider />
           <Preferences />
           <DropdownMenuDivider />
-          <DropdownMenuButton onSelect={handleSignOut}>
+          <DropdownMenuButton disabled onSelect={handleSignOut}>
             <span>Sign Out</span>
             <div className={iconWrapper({ size: 'small' })}>
               <ExitIcon />

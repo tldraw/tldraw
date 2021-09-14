@@ -17,15 +17,11 @@
     "baseUrl": ".",
     "rootDir": ".",
     "paths": {
-      "-*": ["./*"]
+      "-*": ["./*"],
+      "@tldraw/tldraw": ["../tldraw"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"],
-  "references": [
-    {
-      "path": "../../packages/tldraw"
-    },
-    { "path": "../../packages/core" }
-  ]
+  "references": [{ "path": "../tldraw" }, { "path": "../core" }]
 }

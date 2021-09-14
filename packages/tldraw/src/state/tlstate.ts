@@ -18,7 +18,6 @@ import {
 import { Vec } from '@tldraw/vec'
 import {
   FlipType,
-  TextShape,
   TLDrawDocument,
   MoveType,
   AlignType,
@@ -139,6 +138,7 @@ export class TLDrawState extends StateManager<Data> {
     this.session = undefined
     this.pointedId = undefined
   }
+
   /* -------------------- Internal -------------------- */
 
   onReady = () => {
@@ -413,10 +413,7 @@ export class TLDrawState extends StateManager<Data> {
       {
         appState: {
           activeTool: tool,
-          activeToolType:
-            tool === 'select'
-              ? 'select'
-              : TLDR.getShapeUtils({ type: tool } as TLDrawShape).toolType,
+          activeToolType: tool === 'select' ? 'select' : TLDR.getShapeUtils(tool).toolType,
         },
       },
       `selected_tool:${tool}`
@@ -558,6 +555,7 @@ export class TLDrawState extends StateManager<Data> {
    */
   newProject = () => {
     // TODO
+    this.resetDocument()
   }
 
   /**
@@ -831,7 +829,7 @@ export class TLDrawState extends StateManager<Data> {
         const childIndex =
           this.getShapes().sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
 
-        const shape = TLDR.getShapeUtils<TextShape>(TLDrawShapeType.Text).create({
+        const shape = TLDR.getShapeUtils(TLDrawShapeType.Text).create({
           id: Utils.uniqueId(),
           parentId: this.appState.currentPageId,
           childIndex,
@@ -1638,7 +1636,7 @@ export class TLDrawState extends StateManager<Data> {
     if (shapes.length === 0) return this
     return this.create(
       ...shapes.map((shape) => {
-        return TLDR.getShapeUtils(shape as TLDrawShape).create({
+        return TLDR.getShapeUtils(shape.type).create({
           ...shape,
           parentId: shape.parentId || this.currentPageId,
         })
@@ -2044,7 +2042,7 @@ export class TLDrawState extends StateManager<Data> {
 
     if (!this.appState.activeToolType) throw Error
 
-    const utils = TLDR.getShapeUtils({ type: this.appState.activeTool } as TLDrawShape)
+    const utils = TLDR.getShapeUtils(this.appState.activeTool)
 
     const shapes = this.getShapes()
 
@@ -2378,6 +2376,7 @@ export class TLDrawState extends StateManager<Data> {
   onPointCanvas: TLCanvasEventHandler = (info) => {
     if (this.appState.isStyleOpen) {
       this.toggleStylePanel()
+      return
     }
 
     switch (this.appState.status.current) {

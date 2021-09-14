@@ -1,30 +1,23 @@
 import * as React from 'react'
-import { TLBounds, Utils, TLTransformInfo, TLShapeProps, SVGContainer } from '@tldraw/core'
-import { intersectRayBounds } from '@tldraw/intersect'
+import { Utils, SVGContainer, ShapeUtil } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import getStroke from 'perfect-freehand'
 import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import {
-  RectangleShape,
-  DashStyle,
-  TLDrawShapeUtil,
-  TLDrawShapeType,
-  TLDrawToolType,
-  ArrowShape,
-} from '~types'
+import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
+import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
 
-// TODO
-// [ ] - Make sure that fill does not extend drawn shape at corners
+const pathCache = new WeakMap<number[], string>([])
 
-export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGSVGElement> {
-  type = TLDrawShapeType.Rectangle as const
-  toolType = TLDrawToolType.Bounds
-  canBind = true
-  pathCache = new WeakMap<number[], string>([])
+export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta>(() => ({
+  type: TLDrawShapeType.Rectangle,
 
-  defaultProps: RectangleShape = {
+  toolType: TLDrawToolType.Bounds,
+
+  canBind: true,
+
+  defaultProps: {
     id: 'id',
-    type: TLDrawShapeType.Rectangle as const,
+    type: TLDrawShapeType.Rectangle,
     name: 'Rectangle',
     parentId: 'page',
     childIndex: 1,
@@ -32,115 +25,116 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGSVGElement> {
     size: [1, 1],
     rotation: 0,
     style: defaultStyle,
-  }
+  },
 
-  shouldRender(prev: RectangleShape, next: RectangleShape) {
+  shouldRender(prev, next) {
     return next.size !== prev.size || next.style !== prev.style
-  }
+  },
 
-  render = React.forwardRef<SVGSVGElement, TLShapeProps<RectangleShape, SVGSVGElement>>(
-    ({ shape, isBinding, meta, events }, ref) => {
-      const { id, size, style } = shape
-      const styles = getShapeStyle(style, meta.isDarkMode)
-      const strokeWidth = +styles.strokeWidth
+  Component({ shape, isBinding, meta, events }, ref) {
+    const { id, size, style } = shape
+    const styles = getShapeStyle(style, meta.isDarkMode)
+    const strokeWidth = +styles.strokeWidth
 
-      if (style.dash === DashStyle.Draw) {
-        const pathData = Utils.getFromCache(this.pathCache, shape.size, () => renderPath(shape))
+    this
 
-        return (
-          <SVGContainer ref={ref} {...events}>
-            {isBinding && (
-              <rect
-                className="tl-binding-indicator"
-                x={strokeWidth / 2 - 32}
-                y={strokeWidth / 2 - 32}
-                width={Math.max(0, size[0] - strokeWidth / 2) + 64}
-                height={Math.max(0, size[1] - strokeWidth / 2) + 64}
-              />
-            )}
-            <rect
-              x={+styles.strokeWidth / 2}
-              y={+styles.strokeWidth / 2}
-              width={Math.max(0, size[0] - strokeWidth)}
-              height={Math.max(0, size[1] - strokeWidth)}
-              fill={style.isFilled ? styles.fill : 'none'}
-              stroke="none"
-              pointerEvents="all"
-            />
-            <path
-              d={pathData}
-              fill={styles.stroke}
-              stroke={styles.stroke}
-              strokeWidth={styles.strokeWidth}
-              pointerEvents="all"
-            />
-          </SVGContainer>
-        )
-      }
-
-      const sw = strokeWidth * 1.618
-
-      const w = Math.max(0, size[0] - sw / 2)
-      const h = Math.max(0, size[1] - sw / 2)
-
-      const strokes: [number[], number[], number][] = [
-        [[sw / 2, sw / 2], [w, sw / 2], w - sw / 2],
-        [[w, sw / 2], [w, h], h - sw / 2],
-        [[w, h], [sw / 2, h], w - sw / 2],
-        [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
-      ]
-
-      const paths = strokes.map(([start, end, length], i) => {
-        const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-          length,
-          sw,
-          shape.style.dash
-        )
-
-        return (
-          <line
-            key={id + '_' + i}
-            x1={start[0]}
-            y1={start[1]}
-            x2={end[0]}
-            y2={end[1]}
-            stroke={styles.stroke}
-            strokeWidth={sw}
-            strokeLinecap="round"
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-          />
-        )
-      })
+    if (style.dash === DashStyle.Draw) {
+      const pathData = Utils.getFromCache(pathCache, shape.size, () => renderPath(shape))
 
       return (
         <SVGContainer ref={ref} {...events}>
           {isBinding && (
             <rect
               className="tl-binding-indicator"
-              x={sw / 2 - 32}
-              y={sw / 2 - 32}
-              width={w + 64}
-              height={h + 64}
+              x={strokeWidth / 2 - 32}
+              y={strokeWidth / 2 - 32}
+              width={Math.max(0, size[0] - strokeWidth / 2) + 64}
+              height={Math.max(0, size[1] - strokeWidth / 2) + 64}
             />
           )}
           <rect
-            x={sw / 2}
-            y={sw / 2}
-            width={w}
-            height={h}
-            fill={styles.fill}
-            stroke="transparent"
-            strokeWidth={sw}
+            x={+styles.strokeWidth / 2}
+            y={+styles.strokeWidth / 2}
+            width={Math.max(0, size[0] - strokeWidth)}
+            height={Math.max(0, size[1] - strokeWidth)}
+            fill={style.isFilled ? styles.fill : 'none'}
+            radius={strokeWidth}
+            stroke="none"
             pointerEvents="all"
           />
-          <g pointerEvents="stroke">{paths}</g>
+          <path
+            d={pathData}
+            fill={styles.stroke}
+            stroke={styles.stroke}
+            strokeWidth={styles.strokeWidth}
+            pointerEvents="all"
+          />
         </SVGContainer>
       )
     }
-  )
 
-  renderIndicator(shape: RectangleShape) {
+    const sw = strokeWidth * 1.618
+
+    const w = Math.max(0, size[0] - sw / 2)
+    const h = Math.max(0, size[1] - sw / 2)
+
+    const strokes: [number[], number[], number][] = [
+      [[sw / 2, sw / 2], [w, sw / 2], w - sw / 2],
+      [[w, sw / 2], [w, h], h - sw / 2],
+      [[w, h], [sw / 2, h], w - sw / 2],
+      [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
+    ]
+
+    const paths = strokes.map(([start, end, length], i) => {
+      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+        length,
+        sw,
+        shape.style.dash
+      )
+
+      return (
+        <line
+          key={id + '_' + i}
+          x1={start[0]}
+          y1={start[1]}
+          x2={end[0]}
+          y2={end[1]}
+          stroke={styles.stroke}
+          strokeWidth={sw}
+          strokeLinecap="round"
+          strokeDasharray={strokeDasharray}
+          strokeDashoffset={strokeDashoffset}
+        />
+      )
+    })
+
+    return (
+      <SVGContainer ref={ref} {...events}>
+        {isBinding && (
+          <rect
+            className="tl-binding-indicator"
+            x={sw / 2 - 32}
+            y={sw / 2 - 32}
+            width={w + 64}
+            height={h + 64}
+          />
+        )}
+        <rect
+          x={sw / 2}
+          y={sw / 2}
+          width={w}
+          height={h}
+          fill={styles.fill}
+          stroke="transparent"
+          strokeWidth={sw}
+          pointerEvents="all"
+        />
+        <g pointerEvents="stroke">{paths}</g>
+      </SVGContainer>
+    )
+  },
+
+  Indicator({ shape }) {
     const {
       style,
       size: [width, height],
@@ -161,156 +155,20 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape, SVGSVGElement> {
         height={Math.max(1, height - sw)}
       />
     )
-  }
+  },
 
-  getBounds(shape: RectangleShape) {
-    const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
-      const [width, height] = shape.size
-      return {
-        minX: 0,
-        maxX: width,
-        minY: 0,
-        maxY: height,
-        width,
-        height,
-      }
-    })
+  getBounds(shape) {
+    return getBoundsRectangle(shape, this.boundsCache)
+  },
 
-    return Utils.translateBounds(bounds, shape.point)
-  }
+  transform: transformRectangle,
 
-  getRotatedBounds(shape: RectangleShape) {
-    return Utils.getBoundsFromPoints(Utils.getRotatedCorners(this.getBounds(shape), shape.rotation))
-  }
+  transformSingle: transformSingleRectangle,
+}))
 
-  getCenter(shape: RectangleShape): number[] {
-    return Utils.getBoundsCenter(this.getBounds(shape))
-  }
-
-  getBindingPoint(
-    shape: RectangleShape,
-    fromShape: ArrowShape,
-    point: number[],
-    origin: number[],
-    direction: number[],
-    padding: number,
-    anywhere: boolean
-  ) {
-    const bounds = this.getBounds(shape)
-
-    const expandedBounds = Utils.expandBounds(bounds, padding)
-
-    let bindingPoint: number[]
-    let distance: number
-
-    // The point must be inside of the expanded bounding box
-    if (!Utils.pointInBounds(point, expandedBounds)) return
-
-    // The point is inside of the shape, so we'll assume the user is
-    // indicating a specific point inside of the shape.
-    if (anywhere) {
-      if (Vec.dist(point, this.getCenter(shape)) < 12) {
-        bindingPoint = [0.5, 0.5]
-      } else {
-        bindingPoint = Vec.divV(Vec.sub(point, [expandedBounds.minX, expandedBounds.minY]), [
-          expandedBounds.width,
-          expandedBounds.height,
-        ])
-      }
-
-      distance = 0
-    } else {
-      // TODO: What if the shape has a curve? In that case, should we
-      // intersect the circle-from-three-points instead?
-
-      // Find furthest intersection between ray from
-      // origin through point and expanded bounds.
-
-      // TODO: Make this a ray vs rounded rect intersection
-      const intersection = intersectRayBounds(origin, direction, expandedBounds)
-        .filter((int) => int.didIntersect)
-        .map((int) => int.points[0])
-        .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
-      // The anchor is a point between the handle and the intersection
-      const anchor = Vec.med(point, intersection)
-
-      // If we're close to the center, snap to the center
-      if (Vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12) {
-        bindingPoint = [0.5, 0.5]
-      } else {
-        // Or else calculate a normalized point
-        bindingPoint = Vec.divV(Vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]), [
-          expandedBounds.width,
-          expandedBounds.height,
-        ])
-      }
-
-      if (Utils.pointInBounds(point, bounds)) {
-        distance = 16
-      } else {
-        // If the binding point was close to the shape's center, snap to the center
-        // Find the distance between the point and the real bounds of the shape
-        distance = Math.max(
-          16,
-          Utils.getBoundsSides(bounds)
-            .map((side) => Vec.distanceToLineSegment(side[1][0], side[1][1], point))
-            .sort((a, b) => a - b)[0]
-        )
-      }
-    }
-
-    return {
-      point: Vec.clampV(bindingPoint, 0, 1),
-      distance,
-    }
-  }
-
-  transform(
-    shape: RectangleShape,
-    bounds: TLBounds,
-    { initialShape, transformOrigin, scaleX, scaleY }: TLTransformInfo<RectangleShape>
-  ) {
-    if (shape.rotation || shape.isAspectRatioLocked) {
-      const size = Vec.round(
-        Vec.mul(initialShape.size, Math.min(Math.abs(scaleX), Math.abs(scaleY)))
-      )
-
-      const point = Vec.round([
-        bounds.minX +
-          (bounds.width - shape.size[0]) *
-            (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
-        bounds.minY +
-          (bounds.height - shape.size[1]) *
-            (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
-      ])
-
-      const rotation =
-        (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0)
-          ? initialShape.rotation
-            ? -initialShape.rotation
-            : 0
-          : initialShape.rotation
-
-      return {
-        size,
-        point,
-        rotation,
-      }
-    } else {
-      return {
-        point: Vec.round([bounds.minX, bounds.minY]),
-        size: Vec.round([bounds.width, bounds.height]),
-      }
-    }
-  }
-
-  transformSingle(_shape: RectangleShape, bounds: TLBounds) {
-    return {
-      size: Vec.round([bounds.width, bounds.height]),
-      point: Vec.round([bounds.minX, bounds.minY]),
-    }
-  }
-}
+/* -------------------------------------------------- */
+/*                       Helpers                      */
+/* -------------------------------------------------- */
 
 function renderPath(shape: RectangleShape) {
   const styles = getShapeStyle(shape.style)

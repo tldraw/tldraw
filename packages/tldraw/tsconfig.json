@@ -6,11 +6,14 @@
     "outDir": "./dist/types",
     "rootDir": "src",
     "baseUrl": "src",
-    "emitDeclarationOnly": false,
     "paths": {
-      "~*": ["./*"]
+      "~*": ["./*"],
+      "@tldraw/core": ["../core"],
+      "@tldraw/vec": ["../vec"],
+      "@tldraw/intersect": ["../intersect"]
     }
   },
+  "references": [{ "path": "../vec" }, { "path": "../intersect" }, { "path": "../core" }],
   "typedocOptions": {
     "entryPoints": ["src/index.ts"],
     "out": "docs"
