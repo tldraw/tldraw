@@ -5,9 +5,9 @@ import {
   breakpoints,
   DropdownMenuButton,
   DropdownMenuDivider,
-  RowButton,
-  MenuContent,
-  FloatingContainer,
+  rowButton,
+  menuContent,
+  floatingContainer,
   iconWrapper,
 } from '~components/shared'
 import { PageOptionsDialog } from '~components/page-options-dialog'
@@ -51,14 +51,14 @@ export function PagePanel(): JSX.Element {
 
   return (
     <DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={handleOpenChange}>
-      <FloatingContainer>
-        <RowButton as={DropdownMenu.Trigger} bp={breakpoints} variant="noIcon">
+      <div className={floatingContainer()}>
+        <DropdownMenu.Trigger className={rowButton({ bp: breakpoints, variant: 'noIcon' })}>
           <span>{currentPageName || 'Page'}</span>
-        </RowButton>
-      </FloatingContainer>
-      <MenuContent as={DropdownMenu.Content} sideOffset={8} align="start">
+        </DropdownMenu.Trigger>
+      </div>
+      <DropdownMenu.Content className={menuContent} sideOffset={8} align="start">
         {isOpen && <PageMenuContent onClose={handleClose} />}
-      </MenuContent>
+      </DropdownMenu.Content>
     </DropdownMenu.Root>
   )
 }
@@ -88,10 +88,8 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
         {sortedPages.map((page) => (
           <ButtonWithOptions key={page.id}>
             <DropdownMenu.RadioItem
-              as={RowButton}
-              bp={breakpoints}
+              className={rowButton({ bp: breakpoints, variant: 'pageButton' })}
               value={page.id}
-              variant="pageButton"
             >
               <span>{page.name || 'Page'}</span>
               <DropdownMenu.ItemIndicator>

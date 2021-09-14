@@ -14,10 +14,10 @@ import {
 
 import { Tooltip } from './tooltip'
 import { breakpoints } from './breakpoints'
-import { RowButton } from './row-button'
-import { IconButton } from './icon-button'
+import { rowButton } from './row-button'
+import { iconButton } from './icon-button'
 import { iconWrapper } from './icon-wrapper'
-import { MenuContent } from './menu'
+import { menuContent } from './menu'
 
 import styled from '~styles'
 
@@ -56,13 +56,13 @@ export function DropdownMenuSubMenu({
 }: DropdownMenuSubMenuProps): JSX.Element {
   return (
     <DMRoot dir="ltr">
-      <DMTriggerItem as={RowButton} bp={breakpoints} disabled={disabled}>
+      <DMTriggerItem className={rowButton({ bp: breakpoints })} disabled={disabled}>
         <span>{label}</span>
-        <IconWrapper size="small">
+        <div className={iconWrapper({ size: 'small' })}>
           <ChevronRightIcon />
-        </IconWrapper>
+        </div>
       </DMTriggerItem>
-      <DMContent as={MenuContent} sideOffset={2} alignOffset={-2}>
+      <DMContent className={menuContent()} sideOffset={2} alignOffset={-2}>
         {children}
         <DropdownMenuArrow offset={13} />
       </DMContent>
@@ -95,7 +95,7 @@ export function DropdownMenuButton({
   disabled = false,
 }: DropdownMenuButtonProps): JSX.Element {
   return (
-    <DMItem as={RowButton} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
+    <DMItem className={rowButton({ bp: breakpoints })} disabled={disabled} onSelect={onSelect}>
       {children}
     </DMItem>
   )
@@ -113,7 +113,7 @@ export function DropdownMenuIconButton({
   disabled = false,
 }: DropdownMenuIconButtonProps): JSX.Element {
   return (
-    <DMItem as={IconButton} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
+    <DMItem className={iconButton({ bp: breakpoints })} disabled={disabled} onSelect={onSelect}>
       {children}
     </DMItem>
   )
@@ -133,7 +133,7 @@ export function DropdownMenuIconTriggerButton({
   disabled = false,
 }: DropdownMenuIconTriggerButtonProps): JSX.Element {
   return (
-    <DMTrigger as={IconButton} bp={breakpoints} disabled={disabled}>
+    <DMTrigger className={iconButton({ bp: breakpoints })} disabled={disabled}>
       <Tooltip label={label} kbd={kbd}>
         {children}
       </Tooltip>
@@ -156,8 +156,7 @@ export function DropdownMenuCheckboxItem({
 }: MenuCheckboxItemProps): JSX.Element {
   return (
     <DMCheckboxItem
-      as={RowButton}
-      bp={breakpoints}
+      className={rowButton({ bp: breakpoints })}
       onCheckedChange={onCheckedChange}
       checked={checked}
       disabled={disabled}

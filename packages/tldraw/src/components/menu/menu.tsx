@@ -2,16 +2,16 @@ import * as React from 'react'
 import { ExitIcon, HamburgerMenuIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
-  FloatingContainer,
+  floatingContainer,
   DropdownMenuRoot,
-  MenuContent,
-  IconButton,
+  menuContent,
+  iconButton,
   breakpoints,
   DropdownMenuButton,
   DropdownMenuSubMenu,
   DropdownMenuDivider,
   iconWrapper,
-  Kbd,
+  kbd,
 } from '~components/shared'
 import { useTLDrawContext } from '~hooks'
 import { Preferences } from './preferences'
@@ -36,30 +36,30 @@ export const Menu = React.memo(() => {
   }, [tlstate])
 
   return (
-    <FloatingContainer>
+    <div className={floatingContainer()}>
       <DropdownMenuRoot>
-        <DropdownMenu.Trigger as={IconButton} bp={breakpoints}>
+        <DropdownMenu.Trigger className={iconButton({ bp: breakpoints })}>
           <HamburgerMenuIcon />
         </DropdownMenu.Trigger>
-        <DropdownMenu.Content as={MenuContent} sideOffset={8} align="end">
+        <DropdownMenu.Content className={menuContent()} sideOffset={8} align="end">
           <DropdownMenuButton onSelect={handleNew} disabled={true}>
             <span>New Project</span>
-            <Kbd variant="menu">#N</Kbd>
+            <kbd className={kbd({ variant: 'menu' })}>#N</kbd>
           </DropdownMenuButton>
           <DropdownMenuDivider />
           <DropdownMenuButton onSelect={handleLoad}>
             <span>Open...</span>
-            <Kbd variant="menu">#L</Kbd>
+            <kbd className={kbd({ variant: 'menu' })}>#L</kbd>
           </DropdownMenuButton>
           <RecentFiles />
           <DropdownMenuDivider />
           <DropdownMenuButton onSelect={handleSave}>
             <span>Save</span>
-            <Kbd variant="menu">#S</Kbd>
+            <kbd className={kbd({ variant: 'menu' })}>#S</kbd>
           </DropdownMenuButton>
           <DropdownMenuButton onSelect={handleSave}>
             <span>Save As...</span>
-            <Kbd variant="menu">⇧#S</Kbd>
+            <kbd className={kbd({ variant: 'menu' })}>⇧#S</kbd>
           </DropdownMenuButton>
           <DropdownMenuDivider />
           <Preferences />
@@ -72,7 +72,7 @@ export const Menu = React.memo(() => {
           </DropdownMenuButton>
         </DropdownMenu.Content>
       </DropdownMenuRoot>
-    </FloatingContainer>
+    </div>
   )
 })
 

@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { FloatingContainer, RowButton } from '../shared'
-import styled from '~styles'
+import { floatingContainer, rowButton } from '../shared'
+import css from '~styles'
 import type { Data } from '~types'
 import { useTLDrawContext } from '~hooks'
 
@@ -16,13 +16,15 @@ export const BackToContent = React.memo(() => {
   if (!isEmptyCanvas) return null
 
   return (
-    <BackToContentButton>
-      <RowButton onClick={tlstate.zoomToContent}>Back to content</RowButton>
-    </BackToContentButton>
+    <div className={backToContentButton()}>
+      <button className={rowButton()} onClick={tlstate.zoomToContent}>
+        Back to content
+      </button>
+    </div>
   )
 })
 
-const BackToContentButton = styled(FloatingContainer, {
+const backToContentButton = css(floatingContainer, {
   pointerEvents: 'all',
   width: 'fit-content',
   gridRow: 1,

@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { FloatingContainer } from '../shared'
+import { floatingContainer } from '../shared'
 import { Tooltip } from '../shared/tooltip'
-import styled from '~styles'
+import css from '~styles'
 
-export const ToolButton = styled('button', {
+export const toolButton = css({
   position: 'relative',
   height: '32px',
   width: '32px',
@@ -38,7 +38,7 @@ export const ToolButton = styled('button', {
   },
 })
 
-export const PrimaryToolButton = styled(ToolButton, {
+export const primaryToolButton = css(toolButton, {
   variants: {
     bp: {
       mobile: {
@@ -65,7 +65,7 @@ export const PrimaryToolButton = styled(ToolButton, {
   },
 })
 
-export const SecondaryToolButton = styled(ToolButton, {
+export const secondaryToolButton = css(toolButton, {
   variants: {
     bp: {
       mobile: {
@@ -92,7 +92,7 @@ export const SecondaryToolButton = styled(ToolButton, {
   },
 })
 
-export const TertiaryToolButton = styled(ToolButton, {
+export const tertiaryToolButton = css(toolButton, {
   variants: {
     bp: {
       mobile: {
@@ -139,20 +139,22 @@ export function PrimaryButton({
 }: PrimaryToolButtonProps): JSX.Element {
   return (
     <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
-      <PrimaryToolButton
-        name={label}
-        bp={{
-          '@initial': 'mobile',
-          '@sm': 'small',
-          '@md': 'medium',
-          '@lg': 'large',
-        }}
+      <button
+        className={primaryToolButton({
+          bp: {
+            '@initial': 'mobile',
+            '@sm': 'small',
+            '@md': 'medium',
+            '@lg': 'large',
+          },
+          name: label,
+          isActive,
+        })}
         onClick={onClick}
         onDoubleClick={onDoubleClick}
-        isActive={isActive}
       >
         {children}
-      </PrimaryToolButton>
+      </button>
     </Tooltip>
   )
 }
@@ -176,20 +178,22 @@ export function SecondaryButton({
 }: SecondaryToolButtonProps): JSX.Element {
   return (
     <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
-      <SecondaryToolButton
-        name={label}
-        bp={{
-          '@initial': 'mobile',
-          '@sm': 'small',
-          '@md': 'medium',
-          '@lg': 'large',
-        }}
+      <button
+        className={secondaryToolButton({
+          bp: {
+            '@initial': 'mobile',
+            '@sm': 'small',
+            '@md': 'medium',
+            '@lg': 'large',
+          },
+          name: label,
+          isActive,
+        })}
         onClick={onClick}
         onDoubleClick={onDoubleClick}
-        isActive={isActive}
       >
         {children}
-      </SecondaryToolButton>
+      </button>
     </Tooltip>
   )
 }
@@ -211,24 +215,26 @@ export function TertiaryButton({
 }: TertiaryToolProps): JSX.Element {
   return (
     <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
-      <TertiaryToolButton
+      <button
+        className={tertiaryToolButton({
+          bp: {
+            '@initial': 'mobile',
+            '@sm': 'small',
+            '@md': 'medium',
+            '@lg': 'large',
+          },
+        })}
         name={label}
-        bp={{
-          '@initial': 'mobile',
-          '@sm': 'small',
-          '@md': 'medium',
-          '@lg': 'large',
-        }}
         onClick={onClick}
         onDoubleClick={onDoubleClick}
       >
         {children}
-      </TertiaryToolButton>
+      </button>
     </Tooltip>
   )
 }
 
-export const TertiaryButtonsContainer = styled(FloatingContainer, {
+export const tertiaryButtonsContainer = css(floatingContainer, {
   boxShadow: '$3',
   variants: {
     bp: {

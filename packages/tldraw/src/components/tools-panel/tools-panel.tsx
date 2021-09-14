@@ -9,11 +9,11 @@ import {
   SquareIcon,
   TextIcon,
 } from '@radix-ui/react-icons'
-import styled from '~styles'
+import css from '~styles'
 import { Data, TLDrawShapeType } from '~types'
 import { useTLDrawContext } from '~hooks'
 import { StatusBar } from './status-bar'
-import { FloatingContainer } from '../shared'
+import { floatingContainer } from '../shared'
 import { PrimaryButton, SecondaryButton } from './styled'
 import { UndoRedo } from './undo-redo'
 import { Zoom } from './zoom'
@@ -57,10 +57,10 @@ export const ToolsPanel = React.memo((): JSX.Element => {
   }, [tlstate])
 
   return (
-    <ToolsPanelContainer>
-      <LeftWrap size={{ '@initial': 'mobile', '@sm': 'small' }}>
+    <div className={toolsPanelContainer()}>
+      <div className={leftWrap({ size: { '@initial': 'mobile', '@sm': 'small' } })}>
         <Zoom />
-        <FloatingContainer>
+        <div className={floatingContainer()}>
           <SecondaryButton
             label={'Select'}
             kbd={'1'}
@@ -69,11 +69,11 @@ export const ToolsPanel = React.memo((): JSX.Element => {
           >
             <CursorArrowIcon />
           </SecondaryButton>
-        </FloatingContainer>
-      </LeftWrap>
-      <CenterWrap>
+        </div>
+      </div>
+      <div className={centerWrap()}>
         <BackToContent />
-        <FloatingContainer>
+        <div className={floatingContainer()}>
           <PrimaryButton
             kbd={'2'}
             label={TLDrawShapeType.Draw}
@@ -114,10 +114,10 @@ export const ToolsPanel = React.memo((): JSX.Element => {
           >
             <TextIcon />
           </PrimaryButton>
-        </FloatingContainer>
-      </CenterWrap>
-      <RightWrap size={{ '@initial': 'mobile', '@sm': 'small' }}>
-        <FloatingContainer>
+        </div>
+      </div>
+      <div className={rightWrap({ size: { '@initial': 'mobile', '@sm': 'small' } })}>
+        <div className={floatingContainer()}>
           <SecondaryButton
             kbd={'7'}
             label={'Lock Tool'}
@@ -126,19 +126,19 @@ export const ToolsPanel = React.memo((): JSX.Element => {
           >
             {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
           </SecondaryButton>
-        </FloatingContainer>
+        </div>
         <UndoRedo />
-      </RightWrap>
+      </div>
       {isDebugMode && (
-        <StatusWrap>
+        <div className={statusWrap()}>
           <StatusBar />
-        </StatusWrap>
+        </div>
       )}
-    </ToolsPanelContainer>
+    </div>
   )
 })
 
-const ToolsPanelContainer = styled('div', {
+const toolsPanelContainer = css({
   position: 'absolute',
   bottom: 0,
   left: 0,
@@ -160,7 +160,7 @@ const ToolsPanelContainer = styled('div', {
   },
 })
 
-const CenterWrap = styled('div', {
+const centerWrap = css({
   gridRow: 1,
   gridColumn: 2,
   display: 'flex',
@@ -171,7 +171,7 @@ const CenterWrap = styled('div', {
   gap: 12,
 })
 
-const LeftWrap = styled('div', {
+const leftWrap = css({
   gridRow: 1,
   gridColumn: 1,
   display: 'flex',
@@ -198,7 +198,7 @@ const LeftWrap = styled('div', {
   },
 })
 
-const RightWrap = styled('div', {
+const rightWrap = css({
   gridRow: 1,
   gridColumn: 3,
   display: 'flex',
@@ -225,7 +225,7 @@ const RightWrap = styled('div', {
   },
 })
 
-const StatusWrap = styled('div', {
+const statusWrap = css({
   gridRow: 2,
   gridColumn: '1 / span 3',
 })

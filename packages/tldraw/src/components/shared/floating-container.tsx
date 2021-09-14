@@ -1,10 +1,10 @@
-import styled from '~styles'
+import css from '~styles'
 
 /* -------------------------------------------------- */
 /*                 Floating Container                 */
 /* -------------------------------------------------- */
 
-export const FloatingContainer = styled('div', {
+export const floatingContainer = css({
   backgroundColor: '$panel',
   border: '1px solid $panel',
   borderRadius: '4px',

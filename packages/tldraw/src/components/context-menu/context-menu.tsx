@@ -1,21 +1,21 @@
 import * as React from 'react'
-import styled from '~styles'
+import css from '~styles'
 import { Utils } from '@tldraw/core'
 import * as RadixContextMenu from '@radix-ui/react-context-menu'
 import { useTLDrawContext } from '~hooks'
 import { Data, AlignType, DistributeType, StretchType } from '~types'
 import {
-  Kbd,
+  kbd,
   iconWrapper,
   breakpoints,
-  RowButton,
+  rowButton,
   ContextMenuArrow,
   ContextMenuDivider,
   ContextMenuButton,
   ContextMenuSubMenu,
   ContextMenuIconButton,
   ContextMenuRoot,
-  MenuContent,
+  menuContent,
 } from '../shared'
 import {
   ChevronRightIcon,
@@ -128,20 +128,20 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
   return (
     <ContextMenuRoot>
       <RadixContextMenu.Trigger>{children}</RadixContextMenu.Trigger>
-      <MenuContent as={RadixContextMenu.Content} ref={rContent}>
+      <RadixContextMenu.Content className={menuContent()} ref={rContent}>
         {hasSelection ? (
           <>
             <ContextMenuButton onSelect={handleFlipHorizontal}>
               <span>Flip Horizontal</span>
-              <Kbd variant="menu">⇧H</Kbd>
+              <kbd className={kbd({ variant: 'menu' })}>⇧H</kbd>
             </ContextMenuButton>
             <ContextMenuButton onSelect={handleFlipVertical}>
               <span>Flip Vertical</span>
-              <Kbd variant="menu">⇧V</Kbd>
+              <kbd className={kbd({ variant: 'menu' })}>⇧V</kbd>
             </ContextMenuButton>
             <ContextMenuButton onSelect={handleDuplicate}>
               <span>Duplicate</span>
-              <Kbd variant="menu">#D</Kbd>
+              <kbd className={kbd({ variant: 'menu' })}>#D</kbd>
             </ContextMenuButton>
             <ContextMenuDivider />
             {hasGroupSelected ||
@@ -150,13 +150,13 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
                   {hasGroupSelected && (
                     <ContextMenuButton onSelect={handleGroup}>
                       <span>Ungroup</span>
-                      <Kbd variant="menu">#⇧G</Kbd>
+                      <kbd className={kbd({ variant: 'menu' })}>#⇧G</kbd>
                     </ContextMenuButton>
                   )}
                   {hasTwoOrMore && (
                     <ContextMenuButton onSelect={handleGroup}>
                       <span>Group</span>
-                      <Kbd variant="menu">#G</Kbd>
+                      <kbd className={kbd({ variant: 'menu' })}>#G</kbd>
                     </ContextMenuButton>
                   )}
                 </>
@@ -164,19 +164,19 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
             <ContextMenuSubMenu label="Move">
               <ContextMenuButton onSelect={handleMoveToFront}>
                 <span>To Front</span>
-                <Kbd variant="menu">#⇧]</Kbd>
+                <kbd className={kbd({ variant: 'menu' })}>#⇧]</kbd>
               </ContextMenuButton>
               <ContextMenuButton onSelect={handleMoveForward}>
                 <span>Forward</span>
-                <Kbd variant="menu">#]</Kbd>
+                <kbd className={kbd({ variant: 'menu' })}>#]</kbd>
               </ContextMenuButton>
               <ContextMenuButton onSelect={handleMoveBackward}>
                 <span>Backward</span>
-                <Kbd variant="menu">#[</Kbd>
+                <kbd className={kbd({ variant: 'menu' })}>#[</kbd>
               </ContextMenuButton>
               <ContextMenuButton onSelect={handleMoveToBack}>
                 <span>To Back</span>
-                <Kbd variant="menu">#⇧[</Kbd>
+                <kbd className={kbd({ variant: 'menu' })}>#⇧[</kbd>
               </ContextMenuButton>
             </ContextMenuSubMenu>
             <MoveToPageMenu />
@@ -186,11 +186,11 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
             <ContextMenuDivider />
             <ContextMenuButton onSelect={handleCopy}>
               <span>Copy</span>
-              <Kbd variant="menu">#C</Kbd>
+              <kbd className={kbd({ variant: 'menu' })}>#C</kbd>
             </ContextMenuButton>
             <ContextMenuButton onSelect={handleCopySvg}>
               <span>Copy to SVG</span>
-              <Kbd variant="menu">⇧#C</Kbd>
+              <kbd className={kbd({ variant: 'menu' })}>⇧#C</kbd>
             </ContextMenuButton>
             {isDebugMode && (
               <ContextMenuButton onSelect={handleCopyJson}>
@@ -199,31 +199,31 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
             )}
             <ContextMenuButton onSelect={handlePaste}>
               <span>Paste</span>
-              <Kbd variant="menu">#V</Kbd>
+              <kbd className={kbd({ variant: 'menu' })}>#V</kbd>
             </ContextMenuButton>
             <ContextMenuDivider />
             <ContextMenuButton onSelect={handleDelete}>
               <span>Delete</span>
-              <Kbd variant="menu">⌫</Kbd>
+              <kbd className={kbd({ variant: 'menu' })}>⌫</kbd>
             </ContextMenuButton>
           </>
         ) : (
           <>
             <ContextMenuButton onSelect={handlePaste}>
               <span>Paste</span>
-              <Kbd variant="menu">#V</Kbd>
+              <kbd className={kbd({ variant: 'menu' })}>#V</kbd>
             </ContextMenuButton>
             <ContextMenuButton onSelect={handleUndo}>
               <span>Undo</span>
-              <Kbd variant="menu">#Z</Kbd>
+              <kbd className={kbd({ variant: 'menu' })}>#Z</kbd>
             </ContextMenuButton>
             <ContextMenuButton onSelect={handleRedo}>
               <span>Redo</span>
-              <Kbd variant="menu">#⇧Z</Kbd>
+              <kbd className={kbd({ variant: 'menu' })}>#⇧Z</kbd>
             </ContextMenuButton>
           </>
         )}
-      </MenuContent>
+      </RadixContextMenu.Content>
     </ContextMenuRoot>
   )
 })
@@ -278,17 +278,16 @@ function AlignDistributeSubMenu({
 
   return (
     <ContextMenuRoot>
-      <RadixContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
+      <RadixContextMenu.TriggerItem className={rowButton({ bp: breakpoints })}>
         <span>Align / Distribute</span>
         <div className={iconWrapper({ size: 'small' })}>
           <ChevronRightIcon />
         </div>
       </RadixContextMenu.TriggerItem>
-      <StyledGrid
-        as={RadixContextMenu.Content}
+      <RadixContextMenu.Content
+        className={styledGrid({ selectedStyle: hasThreeOrMore ? 'threeOrMore' : 'twoOrMore' })}
         sideOffset={2}
         alignOffset={-2}
-        selectedStyle={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}
       >
         <ContextMenuIconButton onSelect={alignLeft}>
           <AlignLeftIcon />
@@ -326,12 +325,12 @@ function AlignDistributeSubMenu({
           </ContextMenuIconButton>
         )}
         <ContextMenuArrow offset={13} />
-      </StyledGrid>
+      </RadixContextMenu.Content>
     </ContextMenuRoot>
   )
 }
 
-const StyledGrid = styled(MenuContent, {
+const styledGrid = css(menuContent, {
   display: 'grid',
   variants: {
     selectedStyle: {
@@ -361,13 +360,13 @@ function MoveToPageMenu(): JSX.Element | null {
 
   return (
     <ContextMenuRoot>
-      <RadixContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
+      <RadixContextMenu.TriggerItem className={rowButton({ bp: breakpoints })}>
         <span>Move To Page</span>
-        <IconWrapper className={iconWrapper()} size="small">
+        <div className={iconWrapper({ size: 'small' })}>
           <ChevronRightIcon />
-        </IconWrapper>
+        </div>
       </RadixContextMenu.TriggerItem>
-      <MenuContent as={RadixContextMenu.Content} sideOffset={2} alignOffset={-2}>
+      <RadixContextMenu.Content className={menuContent()} sideOffset={2} alignOffset={-2}>
         {sorted.map(({ id, name }, i) => (
           <ContextMenuButton
             key={id}
@@ -378,7 +377,7 @@ function MoveToPageMenu(): JSX.Element | null {
           </ContextMenuButton>
         ))}
         <ContextMenuArrow offset={13} />
-      </MenuContent>
+      </RadixContextMenu.Content>
     </ContextMenuRoot>
   )
 }

@@ -10,13 +10,13 @@ import { QuickSizeSelect } from './quick-size-select'
 import { QuickDashSelect } from './quick-dash-select'
 import { QuickFillSelect } from './quick-fill-select'
 import { Tooltip } from '../shared/tooltip'
-import { Kbd } from '../shared/kbd'
+import { kbd } from '../shared/kbd'
 import {
-  IconButton,
+  iconButton,
   buttonsRow,
   breakpoints,
-  RowButton,
-  FloatingContainer,
+  rowButton,
+  floatingContainer,
   Divider,
 } from '../shared'
 
@@ -27,25 +27,24 @@ export function StylePanel(): JSX.Element {
   const isOpen = useSelector(isStyleOpenSelector)
 
   return (
-    <FloatingContainer direction="column">
+    <div className={floatingContainer({ direction: 'column' })}>
       <div className={buttonsRow()}>
         <QuickColorSelect />
         <QuickSizeSelect />
         <QuickDashSelect />
         <QuickFillSelect />
-        <IconButton
-          bp={breakpoints}
+        <button
+          className={iconButton({ bp: breakpoints, size: 'small' })}
           title="Style"
-          size="small"
           onPointerDown={tlstate.toggleStylePanel}
         >
           <Tooltip label={isOpen ? 'Close' : 'More'}>
             {isOpen ? <Cross2Icon /> : <DotsHorizontalIcon />}
           </Tooltip>
-        </IconButton>
+        </button>
       </div>
       {isOpen && <SelectedShapeContent />}
-    </FloatingContainer>
+    </div>
   )
 }
 
@@ -80,18 +79,22 @@ function SelectedShapeContent(): JSX.Element {
         hasThreeOrMore={selectedShapesCount > 2}
       />
       <Divider />
-      <RowButton bp={breakpoints} disabled={selectedShapesCount === 0} onClick={handleCopy}>
+      <button
+        className={rowButton({ bp: breakpoints })}
+        disabled={selectedShapesCount === 0}
+        onClick={handleCopy}
+      >
         <span>Copy</span>
-        {showKbds && <Kbd variant="menu">#C</Kbd>}
-      </RowButton>
-      <RowButton bp={breakpoints} onClick={handlePaste}>
+        {showKbds && <kbd className={kbd({ variant: 'menu' })}>#C</kbd>}
+      </button>
+      <button className={rowButton({ bp: breakpoints })} onClick={handlePaste}>
         <span>Paste</span>
-        {showKbds && <Kbd variant="menu">#V</Kbd>}
-      </RowButton>
-      <RowButton bp={breakpoints} onClick={handleCopySvg}>
+        {showKbds && <kbd className={kbd({ variant: 'menu' })}>#V</kbd>}
+      </button>
+      <button className={rowButton({ bp: breakpoints })} onClick={handleCopySvg}>
         <span>Copy to SVG</span>
-        {showKbds && <Kbd variant="menu">⇧#C</Kbd>}
-      </RowButton>
+        {showKbds && <kbd className={kbd({ variant: 'menu' })}>⇧#C</kbd>}
+      </button>
     </>
   )
 }
