@@ -7,10 +7,12 @@ import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { DrawShape, DashStyle, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
 
 const pointsBoundsCache = new WeakMap<DrawShape['points'], TLBounds>([])
+const shapeBoundsCache = new Map<string, TLBounds>()
 const rotatedCache = new WeakMap<DrawShape, number[][]>([])
 const drawPathCache = new WeakMap<DrawShape['points'], string>([])
 const simplePathCache = new WeakMap<DrawShape['points'], string>([])
 const polygonCache = new WeakMap<DrawShape['points'], string>([])
+const pointCache = new WeakSet<DrawShape['point']>([])
 
 export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Draw,
@@ -159,12 +161,32 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
   },
 
   getBounds(shape: DrawShape): TLBounds {
-    return Utils.translateBounds(
-      Utils.getFromCache(pointsBoundsCache, shape.points, () =>
-        Utils.getBoundsFromPoints(shape.points)
-      ),
-      shape.point
-    )
+    // The goal here is to avoid recalculating the bounds from the
+    // points array, which is expensive. However, we still need a
+    // new bounds if the point has changed, but we will reuse the
+    // previous bounds-from-points result if we can.
+
+    const pointsHaveChanged = !pointsBoundsCache.has(shape.points)
+    const pointHasChanged = !pointCache.has(shape.point)
+
+    if (pointsHaveChanged) {
+      // If the points have changed, then bust the points cache
+      const bounds = Utils.getBoundsFromPoints(shape.points)
+      pointsBoundsCache.set(shape.points, bounds)
+      shapeBoundsCache.set(shape.id, Utils.translateBounds(bounds, shape.point))
+      pointCache.add(shape.point)
+    } else if (pointHasChanged && !pointsHaveChanged) {
+      // If the point have has changed, then bust the point cache
+      pointCache.add(shape.point)
+      shapeBoundsCache.set(
+        shape.id,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        Utils.translateBounds(pointsBoundsCache.get(shape.points)!, shape.point)
+      )
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return shapeBoundsCache.get(shape.id)!
   },
 
   shouldRender(prev: DrawShape, next: DrawShape): boolean {

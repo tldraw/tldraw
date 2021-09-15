@@ -12,10 +12,10 @@ interface ContainerProps {
 
 export const Container = React.memo(
   ({ id, bounds, rotation = 0, className, children }: ContainerProps) => {
-    const rBounds = usePosition(bounds, rotation)
+    const rPositioned = usePosition(bounds, rotation)
 
     return (
-      <div id={id} ref={rBounds} className={['tl-positioned', className || ''].join(' ')}>
+      <div id={id} ref={rPositioned} className={['tl-positioned', className || ''].join(' ')}>
         {children}
       </div>
     )
