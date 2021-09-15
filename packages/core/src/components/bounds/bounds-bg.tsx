@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import type { TLBounds } from '+types'
-import { useBoundsEvents, usePosition } from '+hooks'
+import { useBoundsEvents } from '+hooks'
 import { Container } from '+components/container'
 import { SVGContainer } from '+components/svg-container'
 

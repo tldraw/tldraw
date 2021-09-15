@@ -90,6 +90,9 @@ export class DrawSession implements Session {
     // Don't add duplicate points.
     if (Vec.isEqual(this.last, newPoint)) return
 
+    // Add the new adjusted point to the points array
+    this.points.push(newPoint)
+
     // The new adjusted point is now the previous adjusted point.
     this.last = newPoint
 
@@ -99,9 +102,6 @@ export class DrawSession implements Session {
     const topLeft = [Math.min(this.topLeft[0], point[0]), Math.min(this.topLeft[1], point[1])]
 
     const delta = Vec.sub(topLeft, this.origin)
-
-    // Add the new adjusted point to the points array
-    this.points.push(newPoint)
 
     // Time to shift some points!
     let points: number[][]

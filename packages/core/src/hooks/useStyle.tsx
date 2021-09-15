@@ -150,6 +150,7 @@ const tlcss = css`
     left: 0;
     height: 0;
     width: 0;
+    contain: layout size;
     transform: scale(var(--tl-zoom), var(--tl-zoom))
       translate(var(--tl-camera-x), var(--tl-camera-y));
   }
@@ -171,6 +172,7 @@ const tlcss = css`
     align-items: center;
     justify-content: center;
     overflow: clip;
+    contain: layout size paint;
   }
 
   .tl-positioned-svg {
@@ -317,18 +319,6 @@ const tlcss = css`
     stroke-width: calc(3px * var(--tl-scale));
     fill: var(--tl-selectFill);
     stroke: var(--tl-selected);
-  }
-
-  .tl-shape {
-    outline: none;
-  }
-
-  .tl-shape > *[data-shy='true'] {
-    opacity: 0;
-  }
-
-  .tl-shape:hover > *[data-shy='true'] {
-    opacity: 1;
   }
 
   .tl-centered-g {
