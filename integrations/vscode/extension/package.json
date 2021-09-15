@@ -36,8 +36,8 @@
     "commands": [
       {
         "command": "tldraw.tldr.new",
-        "title": "Create new Tldr editor Document",
-        "category": "Tldraw document"
+        "title": "Create a new .tldr file",
+        "category": "Tldraw"
       }
     ]
   },

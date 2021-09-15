@@ -58,17 +58,10 @@ export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(()=>{
-    // const onKeyDown = (event: KeyboardEvent) => {
-    //   if(event.key === "s" && event.metaKey=== true){
-    //     console.log(event);
-    //     postMessage('save');
-    //   }
-    // };
-    // document.addEventListener('keydown', onKeyDown);
 
     if (window.self !== window.top) {
       window.onmessage = function (e:any) {
-        if (e.data.type === 'load') {
+        if (e.data.type === 'initial-document') {
 
           // If the file doesn't parse as JSON initialize it as a new empty file
           // and notify the extension of this new json file content
@@ -99,12 +92,12 @@ export default function App() {
 
   const handleChange = useCallback((tldr: TLDrawState, data:Date, type: string) => {
     if(type.search("command:")=== 0){
-      console.log("Action");
-      console.log(type);
-      postMessage( 'update', JSON.stringify(tldr.document) );
+      // console.log("Action");
+      // console.log(type);
+      postMessage( 'tldraw-updated', JSON.stringify(tldr.document) );
     } else {
-      console.log("Change")
-      console.log(type);
+      // console.log("Change")
+      // console.log(type);
     }
   }, []);
 

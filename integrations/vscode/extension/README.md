@@ -2,6 +2,24 @@
 
 This folder contains code implementing a VS Code extension for working with tldraw within VS Code. Files are saved locally and thus play well with version control. Target use case is developer documentation.
 
+## Test Cases
+Here's a list of functionality and behavior we'd like working for an initial beta.
+
+ - Saving
+  - Save (Command+S or menu) should work
+  - Save As (menu or shortcut)
+ - Undo/Redo
+  - Should reflect correctly in VS Code menus (can/can't do it based on stack)
+ - Create new file using either of these methods
+   - Use VS Code's "New File", name the file with a .tldr extension 
+   - Use the Tldraw extensions registered command to create a blank .tldr file
+ - Opening an
+ - The editor should communicate that a file isn't valid when loading it
+ - Detect and prevent multiple instances of the editor (For now)
+
+Things we're cutting
+ - Distinguishing app state from user state (selection, zoom, pan, etc)
+
 ## Running The Extension
 
 - Open this example in VS Code 1.46+

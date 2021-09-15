@@ -1,25 +1,45 @@
 import * as vscode from 'vscode'
-import { getNonce } from './util'
+import {getHtmlForWebview} from './get-html'
 
 /**
- * Provider for .tldr editor.
- *
- * Tldraw editors are used for `.tldr` files, which are just json files.
- * To get started, run this extension and open an empty `.tldr` file in VS Code.
- *
- * This provider demonstrates:
- *
- * - Setting up the initial webview for a custom editor.
- * - Loading scripts and styles in a custom editor.
- * - Synchronizing changes between a text document and the tldraw custom editor.
+ * The Tldraw extension's editor uses CustomTextEditorProvider, which means
+ * it's underlying model from VS Code's perspective is a text file. We likely
+ * will switch to CustomEditorProvider which gives us more control but will require
+ * more book keeping on our part.
  */
 export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
   private document?: vscode.TextDocument
 
+  // When the tldraw.tldr.new command is triggered, we need to provide a file
+  // name when generating a new .tldr file. newTldrawFileId's current value is
+  // added to the end of the file to make it unique, and then incremented.
+  //
+  // While there is probably a more thoughtful way of creating suggested file names,
+  // this name is only the temporary name for the new file. The file is still only in memory
+  // and hasn't been saved to an actual underlying file. If we suggest a name that turns
+  // out to already exist, VS Code will prevent it from being used in it's save dialogs.
   private static newTldrawFileId = 1
+
+  // This is called one time by the main extension entry point. See 'extension.ts'.
+  // We register commands here and register our custom editor's provider telling VS Code
+  // that we can handle viewing/editing files with the .tldr extension.
   public static register(context: vscode.ExtensionContext): vscode.Disposable {
+
+    // This makes a new command show up in the Command Palette that will 
+    // create a new empty .tldr. The file will actually start out
+    // as an empty text file, which is fine as the editor treats
+    // blank text files as an empty Tldraw file. Once any change is made
+    // and the file saved it will be in a proper JSON format.
+    // 
+    // The command shows up as: "Tldraw: Create a new .tldr file". 
     vscode.commands.registerCommand('tldraw.tldr.new', () => {
-      vscode.window.showInformationMessage('Created a new .tldr file')
+      
+      // This was included in the example CustomTextEditorProvider. It
+      // doesn't seem like we should need a workspace to be within to edit
+      // .tldr files, but I want to punt on digging into this.
+      // TODO: Test/decide if it is necessary to need a workspace.
+      // I can't think of why we'd want a concept of a global scope
+      // for editing .tldr files.
       const workspaceFolders = vscode.workspace.workspaceFolders
       if (!workspaceFolders) {
         vscode.window.showErrorMessage(
@@ -28,13 +48,21 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
         return
       }
 
+      // Create a placeholder name for the new file. A new file isn't actually
+      // created on disk yet, so this is just an in memory temporary name.
       const uri = vscode.Uri.joinPath(
         workspaceFolders[0].uri,
-        `drawing-${TldrawEditorProvider.newTldrawFileId++}.tldr`
+        `drawing ${TldrawEditorProvider.newTldrawFileId++}.tldr`
       ).with({
         scheme: 'untitled',
       })
 
+      // This triggers VS Code to open our custom editor to edit the file.
+      // Note: Multiple editors can register to support certain files, so
+      // .tldr files might not by default open to our editor. In this case
+      // we are explicitly saying to launch our editor so we're streamlined. It
+      // may awkwardly ask if they want to use our editor or a text editor when
+      // first using our extension. 
       vscode.commands.executeCommand(
         'vscode.openWith',
         uri,
@@ -42,45 +70,74 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
       )
     })
 
+    // This registers our editor provider, indicating to VS Code that we can 
+    // handle files with the .tldr extension.
     const provider = new TldrawEditorProvider(context)
     const providerRegistration = vscode.window.registerCustomEditorProvider(
       TldrawEditorProvider.viewType,
       provider,
       {
-        // For this demo extension, we enable `retainContextWhenHidden` which keeps the
-        // webview alive even when it is not visible. You should avoid using this setting
-        // unless is absolutely required as it does have memory overhead.
+        
         webviewOptions: {
+          // This is not optimal to set as true, but simplifies our intial implementation.
+          // If not set, VS Code will kill our editor instance whenever someone navigates to another
+          // file and it's hidden in it's own tab. VS Code requires you to implement some hooks
+          // to serialize/hydrate your editor state, but it's going to take probably some serious
+          // investigation to get the tldraw/tldraw components APIs ready to enable this. Talk to Francois for
+          // more details on this thinking.
           retainContextWhenHidden: true,
         },
+
+        // I'm not sure about the exact semantics about this one. I'm going to leave it in though as
+        // it sounds right for our needs. I think this ensures we get a unique instance of our provider
+        // per Tldraw editor tab, vs it being shared. It would be really cool if we could support
+        // multiple tabs sharing the same document state, but separate editor state (like zoom/pan/selection),
+        // but this will likely be a lot of work. 
+        //
+        // The work to support this is likely very related to the  comments above about the 
+        // 'retainContextWhenHidden' flag as well as multiplayer support. Once we have more thought out
+        // support for distinguishing between the state that will be serialized and per-user/per-editor state
+        // this may become cheaper to implement.
         supportsMultipleEditorsPerDocument: false,
       }
     )
     return providerRegistration
   }
 
+  // This is a unique identifier for our custom provider
   private static readonly viewType = 'tldraw.tldr'
 
+  // We do nothing in our constructor for now
   constructor(private readonly context: vscode.ExtensionContext) {}
 
   /**
-   * Called when our custom editor is opened.
-   *
-   *
+   * Called when our custom editor is opened, this is where we need to configure
+   * the webview that each editor instance will live in. Webviews are basically iframes
+   * but usually have more functionality allowed than browsers without requiring users
+   * to approve a lot of security permissions. They can optionally even include the 
+   * node.js runtime and APIs.
+   * 
+   * Each opened .tldr file will have an assocated call to this.
+   * 
+   * NOTE: I haven't tested what happens when you have two instances of the
+   * the same file open (say in two tabs split screened)
    */
   public async resolveCustomTextEditor(
     document: vscode.TextDocument,
     webviewPanel: vscode.WebviewPanel,
     _token: vscode.CancellationToken
   ): Promise<void> {
-    this.document = document
 
-    // Setup initial content for the webview
+    // Configure the webview. For now all we do is enable scripts and also
+    // provide the initial webview's html content.
     webviewPanel.webview.options = {
       enableScripts: true,
     }
-    webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview)
+    // See get-html.ts for more details, as the logic is a little more complicated
+    // than you think in order to have a good workflow while developing.
+    webviewPanel.webview.html = getHtmlForWebview(this.context, webviewPanel.webview)
 
+    
     function updateWebview() {
       webviewPanel.webview.postMessage({
         type: 'load',
@@ -88,234 +145,67 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
       })
     }
 
-    // Hook up event handlers so that we can synchronize the webview with the text document.
+    
+    // I'm going to leave this code in as a reminder of this event, but disable it for now
+    // 
+    // TODO: Revisit this function and think about how we want to respond to changes
+    // triggered by something other than the tldraw/tldraw component logic. An example
+    // being if the file changed on disk, say from git pull that pulls down a change
+    // to a .tldr file you have open in a tab. 
     //
-    // The text document acts as our model, so we have to sync change in the document to our
-    // editor and sync changes in the editor back to the document.
-    //
-    // Remember that a single text document can also be shared between multiple custom
-    // editors (this happens for example when you split a custom editor)
-
-    let firstLoad = true
-    const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
-      (e) => {
-        if (e.document.uri.toString() === document.uri.toString()) {
-          if (firstLoad) {
-            console.log(`First load:${firstLoad}`)
-            updateWebview()
-            firstLoad = false
-          } else {
-            console.log("don't load")
-          }
-        }
-      }
-    )
-
+    // const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
+    //   (e) => {
+    //     console.log("The text model changed.")
+    //   }
+    // )
     // Make sure we get rid of the listener when our editor is closed.
-    webviewPanel.onDidDispose(() => {
-      changeDocumentSubscription.dispose()
-    })
+    // webviewPanel.onDidDispose(() => {
+    //   changeDocumentSubscription.dispose()
+    // })
 
-    // Receive message from the webview.
+    // Listen for posted messages asynchronously sent from the extensions webview code.
+    // For now there is only an update event, which is triggered when the tldraw/tldraw
+    // components document has changed.
     webviewPanel.webview.onDidReceiveMessage((e) => {
       switch (e.type) {
-        case 'update':
-          console.log(`"update" extension <-`)
-          //console.log(JSON.stringify(JSON.parse(e.text),null, "    "));////console.log(`Is it different? ${}`)
-          //vscode.window.showInformationMessage('Upated .tdlr file')
-          this.updateTextDocument(document, JSON.parse(e.text))
-          
-          break
-        case 'save':
-          console.log(`"save" extension <-`)
-          if (this.document !== undefined) {
-            console.log("document.saved");
-            //console.log(document.getText());
-            this.document.save()
-            // const writeData = Buffer.from(e.text, 'utf8')
-
-            // // I believe saving will automatically synchronize the in memory document
-            // // so we don't need to call updateTextDocument here.
-            // vscode.workspace.fs.writeFile(this.document?.uri, writeData)
-            //vscode.window.showInformationMessage('Saved .tdlr file')
-          }
-          break
+        case 'tldraw-updated':
+          // Synchronize the TextDocument  with the tldraw components document state
+          this.synchronizeTextDocument(document, JSON.parse(e.text))
+          break;
       }
     })
 
-    updateWebview()
-  }
+    // Send the initial document content to bootstrap the tldraw/tldraw component.
+    // Note: webview.postMessage is asynchronous and has the same semantics as
+    // when you post messages to an iframe from a parent window, in this case
+    // the extension isn't actually an enclosing web page.
+    webviewPanel.webview.postMessage({
+      type: 'initial-document',
+      text: document.getText(),
+    })
+  }  
+
 
   /**
-   * Get the static html used for the editor webviews.
+   * This updates the vscode.TextDocument's in memory content to match the
+   * the stringified version of the provided json. 
+   * VS Code will handle detecting if the in memory content and the on disk
+   * content are different, and then mark/unmark the tab as saved/unsaved
    */
-  private getHtmlForWebview(webview: vscode.Webview): string {
-    // Local path to script and css for the webview
-    const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this.context.extensionUri,
-        'media',
-        'tldraw-editor.js'
-      )
-    )
-
-    const styleResetUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.context.extensionUri, 'media', 'reset.css')
-    )
-
-    const styleVSCodeUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.context.extensionUri, 'media', 'vscode.css')
-    )
-
-    const styleMainUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this.context.extensionUri,
-        'media',
-        'tldraw-editor.css'
-      )
-    )
-
-    const cssUrl = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this.context.extensionUri,
-        'build/static/css',
-        'main.c353a27c.chunk.css'
-      )
-    )
-
-    const jsUrl1 = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this.context.extensionUri,
-        'build/static/js',
-        '2.fea80d75.chunk.js'
-      )
-    )
-
-    const jsUrl2 = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this.context.extensionUri,
-        'build/static/js',
-        'main.f60063b7.chunk.js'
-      )
-    )
-
-    // Use a nonce to whitelist which scripts can be run
-    const nonce = getNonce()
-
-    const older = /* html */ `
-			<!DOCTYPE html>
-			<html lang="en">
-			<head>
-				<meta charset="UTF-8">
-
-				<!--
-				Use a content security policy to only allow loading images from https or from our extension directory,
-				and only allow scripts that have a specific nonce.
-				-->
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; frame-src http://localhost:8080/; script-src 'nonce-${nonce}';">
-
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-				<link href="${styleResetUri}" rel="stylesheet" />
-				<link href="${styleVSCodeUri}" rel="stylesheet" />
-				<link href="${styleMainUri}" rel="stylesheet" />
-
-				<title>Tldraw Editor</title>
-			</head>
-			<body>
-        <iframe width="100%" height="100%" src="http://localhost:8080/"></iframe>
-				<script nonce="${nonce}" src="${scriptUri}"></script>
-			</body>
-			</html>`
-      // return older;
-      // const newer = `<!doctype html>
-      // <html lang="en">
-      //   <head>
-      //       <meta charset="utf-8">
-      //       <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
-      //       <meta name="theme-color" content="#000000">
-      //       <link rel="shortcut icon" href="./favicon.ico">
-      //       <title>React App</title>
-      //       <link href="${cssUrl}" rel="stylesheet">
-      //   </head>
-      //   <body>
-      //       <noscript>You need to enable JavaScript to run this app.</noscript>
-      //       <div id="root"></div>
-      //       <script>!function(e){function r(r){for(var n,l,a=r[0],f=r[1],i=r[2],p=0,s=[];p<a.length;p++)l=a[p],Object.prototype.hasOwnProperty.call(o,l)&&o[l]&&s.push(o[l][0]),o[l]=0;for(n in f)Object.prototype.hasOwnProperty.call(f,n)&&(e[n]=f[n]);for(c&&c(r);s.length;)s.shift()();return u.push.apply(u,i||[]),t()}function t(){for(var e,r=0;r<u.length;r++){for(var t=u[r],n=!0,a=1;a<t.length;a++){var f=t[a];0!==o[f]&&(n=!1)}n&&(u.splice(r--,1),e=l(l.s=t[0]))}return e}var n={},o={1:0},u=[];function l(r){if(n[r])return n[r].exports;var t=n[r]={i:r,l:!1,exports:{}};return e[r].call(t.exports,t,t.exports,l),t.l=!0,t.exports}l.m=e,l.c=n,l.d=function(e,r,t){l.o(e,r)||Object.defineProperty(e,r,{enumerable:!0,get:t})},l.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},l.t=function(e,r){if(1&r&&(e=l(e)),8&r)return e;if(4&r&&"object"==typeof e&&e&&e.__esModule)return e;var t=Object.create(null);if(l.r(t),Object.defineProperty(t,"default",{enumerable:!0,value:e}),2&r&&"string"!=typeof e)for(var n in e)l.d(t,n,function(r){return e[r]}.bind(null,n));return t},l.n=function(e){var r=e&&e.__esModule?function(){return e.default}:function(){return e};return l.d(r,"a",r),r},l.o=function(e,r){return Object.prototype.hasOwnProperty.call(e,r)},l.p="./";var a=this["webpackJsonptldraw-vscode"]=this["webpackJsonptldraw-vscode"]||[],f=a.push.bind(a);a.push=r,a=a.slice();for(var i=0;i<a.length;i++)r(a[i]);var c=f;t()}([])</script>
-      //       <script src="${jsUrl1}"></script>
-      //       <script src="${jsUrl2}"></script>
-      //   </body>
-      // </html>
-      // `;
-    const host = 'http://localhost:4000';
-    const newer = `<!DOCTYPE html>
-    <html lang="en">
-    
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <meta name="theme-color" content="#000000">
-      <!--
-          manifest.json provides metadata used when your web app is added to the
-          homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
-        -->
-      <!-- <link rel="manifest" href="${host}/manifest.json"> -->
-      <link rel="shortcut icon" href="${host}/favicon.ico">
-      <!--
-          Notice the use of  in the tags above.
-          It will be replaced with the URL of the  folder during the build.
-          Only files inside the  folder can be referenced from the HTML.
-    
-          Unlike "/favicon.ico" or "favicon.ico", "/favicon.ico" will
-          work correctly both with client-side routing and a non-root  URL.
-          Learn how to configure a non-root public URL by running npm run build.
-        -->
-      <title>Tldraw Editor</title>
-    </head>
-    
-    <body>
-      <noscript>
-        You need to enable JavaScript to run this app.
-      </noscript>
-      <div id="root"></div>
-    <script src="${host}/static/js/bundle.js"></script><script src="${host}/static/js/vendors~main.chunk.js"></script><script src="${host}/static/js/main.chunk.js"></script></body>
-    
-    </html>`
-     return newer;
-  }
-
-  /**
-   * Try to get a current document as json text.
-   */
-  private getDocumentAsJson(document: vscode.TextDocument): any {
-    const text = document.getText()
-    if (text.trim().length === 0) {
-      return {}
-    }
-
-    try {
-      return JSON.parse(text)
-    } catch {
-      throw new Error(
-        'Could not get document as json. Content is not valid json!!!'
-      )
-    }
-  }
-
-  /**
-   * Write out the json to a given document.
-   */
-  private updateTextDocument(document: vscode.TextDocument, json: any) {
-    const edit = new vscode.WorkspaceEdit()
+  private synchronizeTextDocument(document: vscode.TextDocument, json: any) {
 
     // Just replace the entire document every time for this example extension.
     // A more complete extension should compute minimal edits instead.
+    // TODO: Make sure to keep an eye on performance problems, as this may be the
+    // cause if the tldraw content is big or has been running for a long time.
+    // I'm not sure if VSCode is doing optimizations internally to detect/save 
+    // patches of changes in the undo/redo buffer.
+    const edit = new vscode.WorkspaceEdit()
     edit.replace(
       document.uri,
       new vscode.Range(0, 0, document.lineCount, 0),
       JSON.stringify(json, null, 2)
     )
-
     return vscode.workspace.applyEdit(edit)
   }
 }
