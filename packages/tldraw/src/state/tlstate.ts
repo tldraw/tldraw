@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { StateManager } from 'rko'
 import {
   TLBoundsCorner,
@@ -14,6 +15,7 @@ import {
   brushUpdater,
   TLPointerInfo,
   TLBounds,
+  Inputs,
 } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
@@ -97,6 +99,8 @@ const defaultState: Data = {
 export class TLDrawState extends StateManager<Data> {
   private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
   private _onMount?: (tlstate: TLDrawState) => void
+
+  inputs?: Inputs
 
   selectHistory: SelectHistory = {
     stack: [[]],
@@ -337,6 +341,10 @@ export class TLDrawState extends StateManager<Data> {
       },
       `set_status:${status}`
     )
+  }
+
+  handleMount = (inputs: Inputs): void => {
+    this.inputs = inputs
   }
 
   /* -------------------------------------------------- */
@@ -2132,9 +2140,13 @@ export class TLDrawState extends StateManager<Data> {
 
   /* ----------------- Keyboard Events ---------------- */
 
-  onKeyDown = (key: string, info: TLKeyboardInfo) => {
+  onKeyDown = (key: string) => {
+    const info = this.inputs?.pointer
+    if (!info) return
+
     if (key === 'Escape') {
       this.cancel()
+
       return
     }
 
@@ -2188,7 +2200,10 @@ export class TLDrawState extends StateManager<Data> {
     }
   }
 
-  onKeyUp = (key: string, info: TLKeyboardInfo) => {
+  onKeyUp = (key: string) => {
+    const info = this.inputs?.pointer
+    if (!info) return
+
     switch (this.appState.status.current) {
       case TLDrawStatus.Brushing: {
         if (key === 'Meta' || key === 'Control') {
