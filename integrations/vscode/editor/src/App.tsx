@@ -1,50 +1,23 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import "./styles.css";
-import { TLDraw, TLDrawState, Data, TLDrawDocument } from "@tldraw/tldraw";
+import { TLDraw, Data, TLDrawState, TLDrawDocument } from "@tldraw/tldraw";
+import defaultDocument from "./DefaultDocument";
 
-const defaultDocument: TLDrawDocument = {
-  id: 'doc',
-  pages: {
-    page: {
-      id: 'page',
-      name: 'Page 1',
-      childIndex: 1,
-      shapes: {},
-      bindings: {},
-    },
-  },
-  pageStates: {
-    page: {
-      id: 'page',
-      selectedIds: [],
-      camera: {
-        point: [0, 0],
-        zoom: 1,
-      },
-    },
-  },
-};
-
-// HACK: Look more deeply into how to do this properly.
-// vscode/types doesn't include the globally available 'acquireVsCodeApi' function.
-// Used this approach to resolve that. 
-// https://stackoverflow.com/a/54727230
-const vsCodeFunction = Function(`
-  // forgive me for my sins
-  if (typeof acquireVsCodeApi == 'function') {
-    return acquireVsCodeApi();
-  } else {
-    return undefined;
-  }
-  `);
-const vscode = vsCodeFunction();
+// Declare the global function made available to VS Code Extension webviews.
+// TODO: Figure out where this work around declaration should properly go, 
+// or find out if there are vscode type declarations we can tie into to have
+// the proper typings for this function. 
+declare function acquireVsCodeApi(): any;
+const vscode = acquireVsCodeApi();
+// This declares the global variable we inject in webpage the extension 
+// that stores the initial text content of the .tldr file
+// TODO: Figure out where to declare this more by convention
+// declare const initialDocument: string;
+declare let initialDocument: string;
 
 function postMessage(type:any,text:any = undefined){
   // Notify extension that something has changed. This ends up being called by
   // the history execute/redo/undo commands, so we put this here.
-  //console.log(`"update" (webview <- iframe)`)
-  //console.log('post-message');
-  
   if (window.self !== window.top) {
     vscode.postMessage({
       type,
@@ -54,58 +27,26 @@ function postMessage(type:any,text:any = undefined){
 }
 
 export default function App() {
-  const [initialDocument, setInitialDocument] = useState(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(()=>{
-
-    if (window.self !== window.top) {
-      window.onmessage = function (e:any) {
-        if (e.data.type === 'initial-document') {
-
-          // If the file doesn't parse as JSON initialize it as a new empty file
-          // and notify the extension of this new json file content
-          // This could caused by the file being empty or a the text malformed JSON
-          let json:any = undefined;
-          try{
-            json = JSON.parse(e.data.text);
-          } catch(error){
-            console.error(error);
-            json = defaultDocument;
-            //postMessage( 'update', JSON.stringify(json) );
-          }
-          setInitialDocument(json);
-        }
-      }
-    }
-    return ()=>{
-     // document.removeEventListener('keydown', onKeyDown); 
-    }
-  },[])
-
-  const rTLDrawState = useRef<TLDrawState>();
-
   const handleMount = useCallback((tldr: TLDrawState) => {
-    rTLDrawState.current = tldr;
     containerRef.current?.focus();
   }, []);
 
-  const handleChange = useCallback((tldr: TLDrawState, data:Date, type: string) => {
+  const handleChange = useCallback((tldr: TLDrawState, data:Data, type: string) => {
+    // Only synchronize the extension document state on commands. Changes also come
+    // from things sessions which generate a lot of change events, for example when
+    // the user is creating a draw stroke.
     if(type.search("command:")=== 0){
-      // console.log("Action");
-      // console.log(type);
       postMessage( 'tldraw-updated', JSON.stringify(tldr.document) );
-    } else {
-      // console.log("Change")
-      // console.log(type);
-    }
+    } 
   }, []);
 
+  // If the initial document is an empty string, we initialize it to the default 
+  // document text content
+  const document = initialDocument === "" ? defaultDocument : initialDocument;
 
   return <div ref={containerRef} className="App">
-      <div>
-        {initialDocument===undefined && vscode !== undefined ? undefined : <TLDraw document={initialDocument} onMount={handleMount} onChange={handleChange} />}
-        {/* <TLDraw onMount={handleMount} onChange={handleChange} /> */}
-      </div>
-    </div>
+    <TLDraw document={document} onMount={handleMount} onChange={handleChange}/>
+  </div>
 }

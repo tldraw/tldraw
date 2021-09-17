@@ -7,8 +7,8 @@ import { getNonce } from './util'
  * IMPORTANT: Notice that how this runs while developing is much different than
  * when deployed, review below to understand the differences.
  */
-export function getHtmlForWebview(context: vscode.ExtensionContext, webview: vscode.Webview): string {
-  return getDevModeHTML(context, webview);
+export function getHtmlForWebview(context: vscode.ExtensionContext, webview: vscode.Webview, document: vscode.TextDocument): string {
+  return getDevModeHTML(context, webview, document);
 }
 
 /**
@@ -21,7 +21,7 @@ export function getHtmlForWebview(context: vscode.ExtensionContext, webview: vsc
  * WARNING: This assumes the create-react-app's initial payload is unchanging, this may not be
  * true when we do npm package updates of 'react-scripts' et al. 
  */
-function getDevModeHTML(context: vscode.ExtensionContext, webview: vscode.Webview): string {
+function getDevModeHTML(context: vscode.ExtensionContext, webview: vscode.Webview, document: vscode.TextDocument): string {
   const host = 'http://localhost:4000';
   return  `
     <!DOCTYPE html>
@@ -53,6 +53,13 @@ function getDevModeHTML(context: vscode.ExtensionContext, webview: vscode.Webvie
       <noscript>
         You need to enable JavaScript to run this app.
       </noscript>
+      <script>
+      // We inject the initial document into a global so the tldraw component 
+      // can load it quickly without having to wait for a message from the extension process 
+      const initialDocument = `+
+      document.getText()
+      +`;
+      </script>
       <div id="root"></div>
     <script src="${host}/static/js/bundle.js"></script><script src="${host}/static/js/vendors~main.chunk.js"></script><script src="${host}/static/js/main.chunk.js"></script></body>
     
@@ -77,7 +84,7 @@ function getDevModeHTML(context: vscode.ExtensionContext, webview: vscode.Webvie
  *     especially synchronous file access will make the extension incompatible with the Github Codespaces
  *     client/server model
  */
-function getProductionModeHTML(context: vscode.ExtensionContext, webview: vscode.Webview): string {
+function getProductionModeHTML(context: vscode.ExtensionContext, webview: vscode.Webview, document: vscode.TextDocument): string {
   // Local path to script and css for the webview
   const scriptUri = webview.asWebviewUri(
     vscode.Uri.joinPath(

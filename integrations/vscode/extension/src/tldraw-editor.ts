@@ -135,7 +135,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
     }
     // See get-html.ts for more details, as the logic is a little more complicated
     // than you think in order to have a good workflow while developing.
-    webviewPanel.webview.html = getHtmlForWebview(this.context, webviewPanel.webview)
+    webviewPanel.webview.html = getHtmlForWebview(this.context, webviewPanel.webview, document)
 
     
     function updateWebview() {
