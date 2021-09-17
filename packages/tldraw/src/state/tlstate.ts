@@ -142,6 +142,14 @@ export class TLDrawState extends StateManager<Data> {
   /* -------------------- Internal -------------------- */
 
   onReady = () => {
+    this.patchState({
+      appState: {
+        status: {
+          current: TLDrawStatus.Idle,
+          previous: TLDrawStatus.Idle,
+        },
+      },
+    })
     this._onMount?.(this)
   }
 

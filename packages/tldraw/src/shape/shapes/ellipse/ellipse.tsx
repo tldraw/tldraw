@@ -9,6 +9,7 @@ import {
   intersectLineSegmentEllipse,
   intersectRayEllipse,
 } from '@tldraw/intersect'
+import { EASINGS } from '~state/utils'
 
 export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Ellipse,
@@ -44,7 +45,7 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
     const ry = Math.max(0, radiusY - strokeWidth / 2)
 
     if (style.dash === DashStyle.Draw) {
-      const path = renderPath(shape, this.getCenter(shape))
+      const path = getEllipsePath(shape, this.getCenter(shape))
 
       return (
         <SVGContainer ref={ref} {...events}>
@@ -302,7 +303,7 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
 /*                       Helpers                      */
 /* -------------------------------------------------- */
 
-function renderPath(shape: EllipseShape, boundsCenter: number[]) {
+function getEllipsePath(shape: EllipseShape, boundsCenter: number[]) {
   const {
     style,
     id,
@@ -316,42 +317,28 @@ function renderPath(shape: EllipseShape, boundsCenter: number[]) {
 
   const strokeWidth = +getShapeStyle(style).strokeWidth
 
-  const rx = radiusX + getRandom() * strokeWidth - strokeWidth / 2
-  const ry = radiusY + getRandom() * strokeWidth - strokeWidth / 2
+  const rx = radiusX + getRandom() * strokeWidth * 2
+  const ry = radiusY + getRandom() * strokeWidth * 2
 
   const points: number[][] = []
   const start = Math.PI + Math.PI * getRandom()
+  const extra = Math.abs(getRandom())
 
-  const overlap = Math.PI / 12
-
-  for (let i = 2; i < 8; i++) {
-    const rads = start + overlap * 2 * (i / 8)
+  for (let i = 0; i < 32; i++) {
+    const t = EASINGS.easeInOutSine(i / 32)
+    const rads = start * 2 + Math.PI * (2 + extra) * t
     const x = rx * Math.cos(rads) + center[0]
     const y = ry * Math.sin(rads) + center[1]
-    points.push([x, y])
-  }
-
-  for (let i = 5; i < 32; i++) {
-    const t = i / 35
-    const rads = start + overlap * 2 + Math.PI * 2.5 * (t * t * t)
-    const x = rx * Math.cos(rads) + center[0]
-    const y = ry * Math.sin(rads) + center[1]
-    points.push([x, y])
-  }
-
-  for (let i = 0; i < 8; i++) {
-    const rads = start + overlap * 2 * (i / 4)
-    const x = rx * Math.cos(rads) + center[0]
-    const y = ry * Math.sin(rads) + center[1]
-    points.push([x, y])
+    points.push([x, y, t + 0.5 + getRandom() / 2])
   }
 
   const stroke = getStroke(points, {
     size: 1 + strokeWidth,
     thinning: 0.6,
-    easing: (t) => t * t * t * t,
+    easing: EASINGS.easeInOutSine,
     end: { taper: strokeWidth * 20 },
     start: { taper: strokeWidth * 20 },
+    streamline: 0,
     simulatePressure: false,
   })
 

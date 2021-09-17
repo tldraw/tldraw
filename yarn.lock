@@ -3626,15 +3626,6 @@
     "@babel/runtime" "^7.12.5"
     "@testing-library/dom" "^8.0.0"
 
-"@tldraw/core@^0.0.53":
-  version "0.0.53"
-  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.0.53.tgz#2db2b27df441169e452e0aa07570adca8b06b582"
-  integrity sha512-hxZIUR3Sm320tvGW5lWEKfw1QJhe6mJu7IrG5ka5G3slusqaY3cQY9EafFqH07yEXul2MU2RENIQus7fh+Gwcg==
-  dependencies:
-    deepmerge "^4.2.2"
-    ismobilejs "^1.1.1"
-    react-use-gesture "^9.1.3"
-
 "@tootallnate/once@1":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
@@ -8144,11 +8135,6 @@ isexe@^2.0.0:
   resolved "https://registry.yarnpkg.com/isexe/-/isexe-2.0.0.tgz#e8fbf374dc556ff8947a10dcb0572d633f2cfa10"
   integrity sha1-6PvzdNxVb/iUehDcsFctYz8s+hA=
 
-ismobilejs@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/ismobilejs/-/ismobilejs-1.1.1.tgz#c56ca0ae8e52b24ca0f22ba5ef3215a2ddbbaa0e"
-  integrity sha512-VaFW53yt8QO61k2WJui0dHf4SlL8lxBofUuUmwBo0ljPk0Drz2TiuDW4jo3wDcv41qy/SxrJ+VAzJ/qYqsmzRw==
-
 isobject@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/isobject/-/isobject-2.1.0.tgz#f065561096a3f1da2ef46272f815c840d87e0c89"
@@ -10744,13 +10730,10 @@ pbkdf2@^3.0.3:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-perfect-freehand@^0.5.3:
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/perfect-freehand/-/perfect-freehand-0.5.3.tgz#41641d17aceb795db445ae84573396e3cce8878f"
-  integrity sha512-WbMEf78Chx1APwGNoKQf64fbUa12fCAXziKUf2BWoeZ2upsKu5OirCzLnIgjeZYkIB6jOoOtQawCb7CZZ+t/Aw==
-  dependencies:
-    "@tldraw/core" "^0.0.53"
-    rko "^0.5.19"
+perfect-freehand@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/perfect-freehand/-/perfect-freehand-1.0.4.tgz#1c5318164b10a74a4e6664b8519ff68799b8ab52"
+  integrity sha512-feJV7C2LSiz6czFZuexYzxh8GHzaQ32bU4Vx+Y4xdCZYxnPFFyCoMVbVL3797zmk0v5rzGJkVfMQRUkLb/uZIg==
 
 performance-now@^2.1.0:
   version "2.1.0"
@@ -11212,11 +11195,6 @@ react-style-singleton@^2.1.0:
     get-nonce "^1.0.0"
     invariant "^2.2.4"
     tslib "^1.0.0"
-
-react-use-gesture@^9.1.3:
-  version "9.1.3"
-  resolved "https://registry.yarnpkg.com/react-use-gesture/-/react-use-gesture-9.1.3.tgz#92bd143e4f58e69bd424514a5bfccba2a1d62ec0"
-  integrity sha512-CdqA2SmS/fj3kkS2W8ZU8wjTbVBAIwDWaRprX7OKaj7HlGwBasGEFggmk5qNklknqk9zK/h8D355bEJFTpqEMg==
 
 react@17.0.2, react@^17.0.2:
   version "17.0.2"
@@ -11681,7 +11659,7 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
-rko@^0.5.19, rko@^0.5.25:
+rko@^0.5.25:
   version "0.5.25"
   resolved "https://registry.yarnpkg.com/rko/-/rko-0.5.25.tgz#1095803900e3f912f6adf8a1c113b8227d3d88bf"
   integrity sha512-HU6M3PxK3VEqrr6QZKAsqO98juQX24kEgJkKSdFJhw8U/DBUGAnU/fgyxNIaTw7TCI7vjIy/RzBEXf5I4sijKg==

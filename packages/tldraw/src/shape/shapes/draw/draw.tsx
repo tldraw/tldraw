@@ -295,19 +295,18 @@ function getFillPath(shape: DrawShape) {
 function getDrawStrokePath(shape: DrawShape, isEditing: boolean) {
   const styles = getShapeStyle(shape.style)
 
-  if (shape.points.length < 2) {
-    return ''
-  }
+  if (shape.points.length < 2) return ''
 
   const options = shape.points[1][2] === 0.5 ? simulatePressureSettings : realPressureSettings
 
   const stroke = getStroke(shape.points.slice(2), {
     size: 1 + styles.strokeWidth * 2,
-    thinning: 0.8,
+    thinning: 0.7,
     streamline: 0.7,
-    smoothing: 0.6,
+    smoothing: 0.5,
     end: { taper: +styles.strokeWidth * 50 },
     start: { taper: +styles.strokeWidth * 50 },
+    easing: (t) => Math.sin((t * Math.PI) / 2),
     ...options,
     last: !isEditing,
   })

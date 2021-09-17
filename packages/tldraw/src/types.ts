@@ -307,3 +307,24 @@ export type ShapesWithProp<U> = MembersWithRequiredKey<
   MappedByType<TLDrawShapeType, TLDrawShape>,
   U
 >
+
+export type Easing =
+  | 'linear'
+  | 'easeInQuad'
+  | 'easeOutQuad'
+  | 'easeInOutQuad'
+  | 'easeInCubic'
+  | 'easeOutCubic'
+  | 'easeInOutCubic'
+  | 'easeInQuart'
+  | 'easeOutQuart'
+  | 'easeInOutQuart'
+  | 'easeInQuint'
+  | 'easeOutQuint'
+  | 'easeInOutQuint'
+  | 'easeInSine'
+  | 'easeOutSine'
+  | 'easeInOutSine'
+  | 'easeInExpo'
+  | 'easeOutExpo'
+  | 'easeInOutExpo'

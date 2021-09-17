@@ -832,6 +832,7 @@ export class Utils {
    * @param tolerance The minimum line distance (also called epsilon).
    * @returns Simplified array as [x, y, ...][]
    */
+
   static simplify(points: number[][], tolerance = 1): number[][] {
     const len = points.length
     const a = points[0]

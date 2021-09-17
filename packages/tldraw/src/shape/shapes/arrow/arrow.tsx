@@ -21,8 +21,7 @@ import {
   intersectRayBounds,
   intersectRayEllipse,
 } from '@tldraw/intersect'
-
-const simplePathCache = new WeakMap<ArrowShape['handles'], string>()
+import { EASINGS } from '~state/utils'
 
 export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Arrow,
@@ -95,11 +94,15 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
     let startArrowHead: { left: number[]; right: number[] } | undefined
     let endArrowHead: { left: number[]; right: number[] } | undefined
 
+    const getRandom = Utils.rng(shape.id)
+
+    const easing = EASINGS[getRandom() > 0 ? 'easeInOutSine' : 'easeInOutCubic']
+
     if (isStraightLine) {
-      const sw = strokeWidth * (isDraw ? 1.25 : 1.618)
+      const sw = strokeWidth * (isDraw ? 1.25 : 2)
 
       const path = isDraw
-        ? renderFreehandArrowShaft(shape)
+        ? renderFreehandArrowShaft(shape, arrowDist, easing)
         : 'M' + Vec.round(start.point) + 'L' + Vec.round(end.point)
 
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
@@ -147,13 +150,13 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
     } else {
       const circle = getCtp(shape)
 
-      const sw = strokeWidth * (isDraw ? 1.25 : 1.618)
-
-      const path = isDraw
-        ? renderCurvedFreehandArrowShaft(shape, circle)
-        : getArrowArcPath(start, end, circle, shape.bend)
+      const sw = strokeWidth * (isDraw ? 1 : 2)
 
       const { center, radius, length } = getArrowArc(shape)
+
+      const path = isDraw
+        ? renderCurvedFreehandArrowShaft(shape, circle, length, easing)
+        : getArrowArcPath(start, end, circle, shape.bend)
 
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
         length - 1,
@@ -211,9 +214,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
       )
     }
 
-    const sw = strokeWidth * 1.618
-
-    const dots = getArcPoints(shape)
+    const sw = strokeWidth * 2
 
     return (
       <SVGContainer ref={ref} {...events}>
@@ -257,7 +258,11 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
   },
 
   shouldRender(prev, next) {
-    return next.handles !== prev.handles || next.style !== prev.style
+    return (
+      next.decorations !== prev.decorations ||
+      next.handles !== prev.handles ||
+      next.style !== prev.style
+    )
   },
 
   getBounds(shape) {
@@ -603,23 +608,35 @@ function getBendPoint(handles: ArrowShape['handles'], bend: number) {
   return point
 }
 
-function renderFreehandArrowShaft(shape: ArrowShape) {
+function renderFreehandArrowShaft(
+  shape: ArrowShape,
+  length: number,
+  easing: (t: number) => number
+) {
   const { style, id } = shape
   const { start, end } = shape.handles
 
   const getRandom = Utils.rng(id)
 
-  const strokeWidth = +getShapeStyle(style).strokeWidth * 2
+  const strokeWidth = getShapeStyle(style).strokeWidth
+
+  const count = 4 + Math.floor((Math.abs(length) / 40) * (1 + getRandom() / 2))
 
   const stroke = getStroke(
-    [...Vec.pointsBetween(start.point, end.point), end.point, end.point, end.point],
+    [...Vec.pointsBetween(start.point, end.point, count, easing), end.point, end.point, end.point],
     {
-      size: strokeWidth / 2,
-      thinning: 0.5 + getRandom() * 0.3,
-      easing: (t) => t * t,
-      end: shape.decorations?.end ? { cap: true } : { taper: strokeWidth * 20 },
-      start: shape.decorations?.start ? { cap: true } : { taper: strokeWidth * 20 },
+      size: strokeWidth * 2,
+      thinning: 0.618 + getRandom() * 0.2,
+      start: shape.decorations?.start
+        ? { taper: length / 2 + 0.25 * Math.abs(getRandom()) }
+        : { cap: true },
+      end: shape.decorations?.end
+        ? { taper: length / 2 + 0.25 * Math.abs(getRandom()) }
+        : { cap: true },
+      easing: EASINGS.easeOutQuad,
       simulatePressure: true,
+      smoothing: 0,
+      streamline: 0,
       last: true,
     }
   )
@@ -629,13 +646,18 @@ function renderFreehandArrowShaft(shape: ArrowShape) {
   return path
 }
 
-function renderCurvedFreehandArrowShaft(shape: ArrowShape, circle: number[]) {
+function renderCurvedFreehandArrowShaft(
+  shape: ArrowShape,
+  circle: number[],
+  length: number,
+  easing: (t: number) => number
+) {
   const { style, id } = shape
   const { start, end } = shape.handles
 
   const getRandom = Utils.rng(id)
 
-  const strokeWidth = +getShapeStyle(style).strokeWidth * 2
+  const strokeWidth = getShapeStyle(style).strokeWidth
 
   const center = [circle[0], circle[1]]
   const radius = circle[2]
@@ -646,20 +668,25 @@ function renderCurvedFreehandArrowShaft(shape: ArrowShape, circle: number[]) {
 
   const points: number[][] = []
 
-  for (let i = 0; i < 21; i++) {
-    const t = i / 20
+  const count = 8 + Math.floor((Math.abs(length) / 40) * 1 + getRandom() / 2)
+
+  for (let i = 0; i < count + 1; i++) {
+    const t = easing(i / count)
     const angle = Utils.lerpAngles(startAngle, endAngle, t)
     points.push(Vec.round(Vec.nudgeAtAngle(center, angle, radius)))
   }
 
   const stroke = getStroke([...points, end.point, end.point, end.point], {
-    size: strokeWidth / 2,
-    thinning: 0.5 + getRandom() * 0.3,
-    easing: (t) => t * t,
-    end: shape.decorations?.end ? { cap: true } : { taper: strokeWidth * 20 },
-    start: shape.decorations?.start ? { cap: true } : { taper: strokeWidth * 20 },
+    size: strokeWidth * 2,
+    thinning: 0.618 + getRandom() * 0.2,
+    start: shape.decorations?.start
+      ? { taper: length * (0.5 * Math.abs(getRandom())) }
+      : { cap: true },
+    end: shape.decorations?.end ? { taper: length * (0.5 * Math.abs(getRandom())) } : { cap: true },
+    easing: EASINGS.easeOutQuad,
     simulatePressure: true,
-    streamline: 0.01,
+    streamline: 0,
+    smoothing: 0,
     last: true,
   })
 

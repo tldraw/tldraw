@@ -5,6 +5,7 @@ import getStroke from 'perfect-freehand'
 import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
 import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
+import { EASINGS } from '~state/utils'
 
 const pathCache = new WeakMap<number[], string>([])
 
@@ -39,7 +40,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
     this
 
     if (style.dash === DashStyle.Draw) {
-      const pathData = Utils.getFromCache(pathCache, shape.size, () => renderPath(shape))
+      const pathData = Utils.getFromCache(pathCache, shape.size, () => getRectanglePath(shape))
 
       return (
         <SVGContainer ref={ref} {...events}>
@@ -170,7 +171,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
 /*                       Helpers                      */
 /* -------------------------------------------------- */
 
-function renderPath(shape: RectangleShape) {
+function getRectanglePath(shape: RectangleShape) {
   const styles = getShapeStyle(shape.style)
 
   const getRandom = Utils.rng(shape.id)
@@ -194,25 +195,32 @@ function renderPath(shape: RectangleShape) {
   const br = Vec.add([w, h], offsets[2])
   const bl = Vec.add([sw / 2, h], offsets[3])
 
+  const px = Math.max(8, Math.floor(w / 20))
+  const py = Math.max(8, Math.floor(h / 20))
+  const rm = Math.floor(5 + getRandom() * 4)
+
   const lines = Utils.shuffleArr(
     [
-      Vec.pointsBetween(tr, br),
-      Vec.pointsBetween(br, bl),
-      Vec.pointsBetween(bl, tl),
-      Vec.pointsBetween(tl, tr),
+      Vec.pointsBetween(tr, br, py, EASINGS.easeInOutCubic),
+      Vec.pointsBetween(br, bl, px, EASINGS.easeInOutCubic),
+      Vec.pointsBetween(bl, tl, py, EASINGS.easeInOutCubic),
+      Vec.pointsBetween(tl, tr, px, EASINGS.easeInOutCubic),
     ],
-    Math.floor(5 + getRandom() * 4)
+    rm
   )
 
-  const stroke = getStroke([...lines.flat().slice(4), ...lines[0], ...lines[0].slice(4)], {
-    size: 1 + styles.strokeWidth,
-    thinning: 0.618,
-    easing: (t) => t * t * t * t,
-    end: { cap: true },
-    start: { cap: true },
-    simulatePressure: false,
-    last: true,
-  })
+  const stroke = getStroke(
+    [...lines.flat(), ...lines[0], ...lines[1]].slice(4, Math.floor((rm % 2 === 0 ? px : py) / -2)),
+    {
+      size: 1 + styles.strokeWidth,
+      thinning: 0.6,
+      easing: EASINGS.easeOutSine,
+      end: { cap: true },
+      start: { cap: true },
+      simulatePressure: false,
+      last: true,
+    }
+  )
 
   return Utils.getSvgPathFromStroke(stroke)
 }
