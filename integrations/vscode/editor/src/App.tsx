@@ -44,7 +44,7 @@ export default function App() {
 
   // If the initial document is an empty string, we initialize it to the default 
   // document text content
-  const document = initialDocument === "" ? defaultDocument : initialDocument;
+  const document = initialDocument === null ? defaultDocument : initialDocument;
 
   return <div ref={containerRef} className="App">
     <TLDraw document={document} onMount={handleMount} onChange={handleChange}/>

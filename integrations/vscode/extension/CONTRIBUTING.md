@@ -2,6 +2,17 @@
 
 This folder contains code implementing a VS Code extension for working with tldraw within VS Code. Files are saved locally and thus play well with version control. Target use case is developer documentation.
 
+### Todos
+
+- Get live reloading working while extension developing (debug launched)
+  - Watching and rebuilding is working, it's just hot-updating the running editor instances that's failing
+  - It currently at least updates every time you open a new editor, currently it's the websocket
+    needed for the live reloading logic that is failing to connect.
+- Backlog
+  - Make sure extension works in Codespaces (when one of us gets into the beta)
+  - [Supporting Remote Development and GitHub Codespaces](https://code.visualstudio.com/api/advanced-topics/remote-extensions)
+
+
 ## Test Cases
 Here's a list of functionality and behavior we'd like working for an initial beta.
 
@@ -44,9 +55,3 @@ https://code.visualstudio.com/api/working-with-extensions/publishing-extension
 - [github.com/microsoft/vscode-extension-samples](https://github.com/microsoft/vscode-extension-samples)
 - [Extensions Guide -> Webviews](https://code.visualstudio.com/api/extension-guides/webview)
 
-**Todos**
-
-- Investigate what happens when people have 2 editors instances (say two tabs pointed to same file). We may not be able to support
-- Backlog
-  - Make sure extension works in Codespaces (when one of us gets into the beta)
-  - [Supporting Remote Development and GitHub Codespaces](https://code.visualstudio.com/api/advanced-topics/remote-extensions)

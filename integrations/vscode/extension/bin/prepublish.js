@@ -19,18 +19,15 @@ const matches = [...htmlText.matchAll(allScriptsRegex)]
 let getHtmlCodePath = path.resolve("./src/get-html.ts");
 let getHtmlCodeText = fs.readFileSync(getHtmlCodePath, 'utf8')
 
+// Replace the urls/paths in the 'src/get-html/ts' file with the two captured script urls
 matches.forEach( (match, index) => {
 	const markedLineRegex = RegExp(
 		`\'(.*\.js)\'//Replace Me #${index+1}`, 
 		'g')
 	const lineMatches = [...getHtmlCodeText.matchAll(markedLineRegex)]
 	lineMatches.forEach(lineMatch=>{
-		console.log('code match ', lineMatch[1]);
 		getHtmlCodeText = getHtmlCodeText.replace(lineMatch[1], match[1]);
-	})
-		
-	console.log('html match ',match[1]);
+	})		
 })
 
-//console.log();
 fs.writeFileSync(getHtmlCodePath, getHtmlCodeText);

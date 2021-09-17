@@ -8,8 +8,21 @@ import { getNonce } from './util'
  * when deployed, review below to understand the differences.
  */
 export function getHtmlForWebview(context: vscode.ExtensionContext, webview: vscode.Webview, document: vscode.TextDocument): string {
-  //return getDevModeHTML(context, webview, document);
-  return getProductionModeHTML(context, webview, document);
+
+  // For now we're going to tread badly formed .tldr files as freshly created files.
+  // This will happen if say a user creates a new .tldr file using New File or if they
+  // have a bad auto-merge that messes up the json of an existing .tldr file
+  // We pass null as the initialDocument value if we can't parse as json.
+  let documentContent;
+  try{
+    JSON.parse(document.getText())
+    documentContent = document.getText();
+  } catch(error){
+    documentContent = "null";
+  }
+
+  return getDevModeHTML(context, webview, documentContent);
+  //return getProductionModeHTML(context, webview, documentContent);
 }
 
 /**
@@ -22,7 +35,7 @@ export function getHtmlForWebview(context: vscode.ExtensionContext, webview: vsc
  * WARNING: This assumes the create-react-app's initial payload is unchanging, this may not be
  * true when we do npm package updates of 'react-scripts' et al. 
  */
-function getDevModeHTML(context: vscode.ExtensionContext, webview: vscode.Webview, document: vscode.TextDocument): string {
+function getDevModeHTML(context: vscode.ExtensionContext, webview: vscode.Webview, documentContent: string): string {
   const host = 'http://localhost:4000';
   return  `
     <!DOCTYPE html>
@@ -54,16 +67,15 @@ function getDevModeHTML(context: vscode.ExtensionContext, webview: vscode.Webvie
       <noscript>
         You need to enable JavaScript to run this app.
       </noscript>
-      <script>
+      <script>      
       // We inject the initial document into a global so the tldraw component 
       // can load it quickly without having to wait for a message from the extension process 
       const initialDocument = `+
-      document.getText()
+      documentContent
       +`;
       </script>
       <div id="root"></div>
-    <script src="${host}/static/js/bundle.js"></script><script src="${host}/static/js/vendors~main.chunk.js"></script><script src="${host}/static/js/main.chunk.js"></script></body>
-    
+    <script src="${host}/static/js/bundle.js"></script><script src="${host}/static/js/vendors~main.chunk.js"></script><script src="${host}/static/js/main.chunk.js"></script></body>    
     </html>`;
 }
 
@@ -85,7 +97,8 @@ function getDevModeHTML(context: vscode.ExtensionContext, webview: vscode.Webvie
  *     especially synchronous file access will make the extension incompatible with the Github Codespaces
  *     client/server model
  */
-function getProductionModeHTML(context: vscode.ExtensionContext, webview: vscode.Webview, document: vscode.TextDocument): string {
+function getProductionModeHTML(context: vscode.ExtensionContext, webview: vscode.Webview, documentContent: string): string {
+
   // Local path to script and css for the webview
   const scriptUri = webview.asWebviewUri(
     vscode.Uri.joinPath(
@@ -119,8 +132,6 @@ function getProductionModeHTML(context: vscode.ExtensionContext, webview: vscode
     )
   )
 
-  
-
   return `
   <!doctype html>
 <html lang="en">
@@ -140,7 +151,7 @@ function getProductionModeHTML(context: vscode.ExtensionContext, webview: vscode
       // We inject the initial document into a global so the tldraw component 
       // can load it quickly without having to wait for a message from the extension process 
       const initialDocument = `+
-      document.getText()
+      documentContent
       +`;
       </script>
       <script src="${jsUrl1}"></script>
