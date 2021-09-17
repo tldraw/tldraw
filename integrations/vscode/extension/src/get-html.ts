@@ -8,7 +8,8 @@ import { getNonce } from './util'
  * when deployed, review below to understand the differences.
  */
 export function getHtmlForWebview(context: vscode.ExtensionContext, webview: vscode.Webview, document: vscode.TextDocument): string {
-  return getDevModeHTML(context, webview, document);
+  //return getDevModeHTML(context, webview, document);
+  return getProductionModeHTML(context, webview, document);
 }
 
 /**
@@ -92,19 +93,7 @@ function getProductionModeHTML(context: vscode.ExtensionContext, webview: vscode
       'media',
       'tldraw-editor.js'
     )
-  )
-
-  const styleResetUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(context.extensionUri, 'media', 'reset.css')
-  )
-
-  const styleMainUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(
-      context.extensionUri,
-      'media',
-      'tldraw-editor.css'
-    )
-  )
+  )  
 
   const cssUrl = webview.asWebviewUri(
     vscode.Uri.joinPath(
@@ -117,44 +106,46 @@ function getProductionModeHTML(context: vscode.ExtensionContext, webview: vscode
   const jsUrl1 = webview.asWebviewUri(
     vscode.Uri.joinPath(
       context.extensionUri,
-      'build/static/js',
-      '2.fea80d75.chunk.js'
+      'build',
+      './static/js/2.2ec010b5.chunk.js'//Replace Me #1
     )
   )
 
   const jsUrl2 = webview.asWebviewUri(
     vscode.Uri.joinPath(
       context.extensionUri,
-      'build/static/js',
-      'main.f60063b7.chunk.js'
+      'build',
+      './static/js/main.caadf3b7.chunk.js'//Replace Me #2
     )
   )
 
-  // Use a nonce to whitelist which scripts can be run
-  const nonce = getNonce()
+  
 
   return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-
-      <!--
-      Use a content security policy to only allow loading images from https or from our extension directory,
-      and only allow scripts that have a specific nonce.
-      -->
-      <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; frame-src http://localhost:8080/; script-src 'nonce-${nonce}';">
-
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-      <link href="${styleResetUri}" rel="stylesheet" />
-      <link href="${styleMainUri}" rel="stylesheet" />
-
-      <title>Tldraw Editor</title>
-    </head>
-    <body>
-      <iframe width="100%" height="100%" src="http://localhost:8080/"></iframe>
-      <script nonce="${nonce}" src="${scriptUri}"></script>
-    </body>
-    </html>`;
+  <!doctype html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+      <meta name="theme-color" content="#000000">
+      <link rel="shortcut icon" href="./favicon.ico">
+      <title>React App</title>
+      <link href="${cssUrl}" rel="stylesheet">
+   </head>
+   <body>
+      <noscript>You need to enable JavaScript to run this app.</noscript>
+      <div id="root"></div>
+      <script>!function(e){function r(r){for(var n,l,a=r[0],f=r[1],i=r[2],p=0,s=[];p<a.length;p++)l=a[p],Object.prototype.hasOwnProperty.call(o,l)&&o[l]&&s.push(o[l][0]),o[l]=0;for(n in f)Object.prototype.hasOwnProperty.call(f,n)&&(e[n]=f[n]);for(c&&c(r);s.length;)s.shift()();return u.push.apply(u,i||[]),t()}function t(){for(var e,r=0;r<u.length;r++){for(var t=u[r],n=!0,a=1;a<t.length;a++){var f=t[a];0!==o[f]&&(n=!1)}n&&(u.splice(r--,1),e=l(l.s=t[0]))}return e}var n={},o={1:0},u=[];function l(r){if(n[r])return n[r].exports;var t=n[r]={i:r,l:!1,exports:{}};return e[r].call(t.exports,t,t.exports,l),t.l=!0,t.exports}l.m=e,l.c=n,l.d=function(e,r,t){l.o(e,r)||Object.defineProperty(e,r,{enumerable:!0,get:t})},l.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},l.t=function(e,r){if(1&r&&(e=l(e)),8&r)return e;if(4&r&&"object"==typeof e&&e&&e.__esModule)return e;var t=Object.create(null);if(l.r(t),Object.defineProperty(t,"default",{enumerable:!0,value:e}),2&r&&"string"!=typeof e)for(var n in e)l.d(t,n,function(r){return e[r]}.bind(null,n));return t},l.n=function(e){var r=e&&e.__esModule?function(){return e.default}:function(){return e};return l.d(r,"a",r),r},l.o=function(e,r){return Object.prototype.hasOwnProperty.call(e,r)},l.p="./";var a=this["webpackJsonptldraw-vscode"]=this["webpackJsonptldraw-vscode"]||[],f=a.push.bind(a);a.push=r,a=a.slice();for(var i=0;i<a.length;i++)r(a[i]);var c=f;t()}([])</script>
+      <script>
+      // We inject the initial document into a global so the tldraw component 
+      // can load it quickly without having to wait for a message from the extension process 
+      const initialDocument = `+
+      document.getText()
+      +`;
+      </script>
+      <script src="${jsUrl1}"></script>
+      <script src="${jsUrl2}"></script>
+   </body>
+</html>
+  `;
 }

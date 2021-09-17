@@ -2,7 +2,7 @@
   "name": "tldraw",
   "displayName": "Tldraw Editor",
   "description": "The tldraw editor for VS Code",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "publisher": "tldr",
   "private": true,
   "license": "MIT",
@@ -42,7 +42,7 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "node ./bin/prepublish.js && npm run compile",
     "compile": "tsc -p ./",
     "lint": "eslint . --ext .ts,.tsx",
     "watch": "tsc -w -p ./"
