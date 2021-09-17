@@ -6,13 +6,11 @@ import {
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
   TLCanvasEventHandler,
-  TLKeyboardInfo,
   TLPageState,
   TLPinchEventHandler,
   TLPointerEventHandler,
   TLWheelEventHandler,
   Utils,
-  brushUpdater,
   TLPointerInfo,
   TLBounds,
   Inputs,
@@ -273,6 +271,10 @@ export class TLDrawState extends StateManager<Data> {
 
         const nextPageState: TLPageState = {
           ...data.document.pageStates[pageId],
+        }
+
+        if (!nextPageState.brush) {
+          delete nextPageState.brush
         }
 
         if (nextPageState.hoveredId && !page.shapes[nextPageState.hoveredId]) {
@@ -1365,9 +1367,9 @@ export class TLDrawState extends StateManager<Data> {
 
     if (!session) return this
 
-    const result = session.complete(this.state, ...args)
-
     this.session = undefined
+
+    const result = session.complete(this.state, ...args)
 
     if (result === undefined) {
       this.isCreating = false
@@ -1458,6 +1460,7 @@ export class TLDrawState extends StateManager<Data> {
           document: {
             pageStates: {
               [this.currentPageId]: {
+                ...result.document?.pageStates?.[this.currentPageId],
                 editingId: null,
               },
             },
@@ -1947,7 +1950,6 @@ export class TLDrawState extends StateManager<Data> {
       }
       case TLDrawStatus.Brushing: {
         this.cancelSession()
-        brushUpdater.clear()
         break
       }
       case TLDrawStatus.Translating:
@@ -2375,7 +2377,6 @@ export class TLDrawState extends StateManager<Data> {
       }
       case TLDrawStatus.Brushing: {
         this.completeSession<Sessions.BrushSession>()
-        brushUpdater.clear()
         break
       }
       case TLDrawStatus.Translating: {
@@ -2657,7 +2658,6 @@ export class TLDrawState extends StateManager<Data> {
       }
       case TLDrawStatus.Brushing: {
         this.completeSession<Sessions.BrushSession>()
-        brushUpdater.clear()
         break
       }
     }

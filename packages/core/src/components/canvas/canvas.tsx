@@ -73,7 +73,7 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
               hideHandles={hideHandles}
               meta={meta}
             />
-            <Brush />
+            {pageState.brush && <Brush brush={pageState.brush} />}
           </div>
         </ErrorBoundary>
       </div>

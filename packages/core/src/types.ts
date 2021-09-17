@@ -22,7 +22,7 @@ export interface TLPageState {
     point: number[]
     zoom: number
   }
-  brush?: TLBounds
+  brush?: TLBounds | null
   pointedId?: string | null
   hoveredId?: string | null
   editingId?: string | null
