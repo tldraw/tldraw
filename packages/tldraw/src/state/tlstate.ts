@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { StateManager } from 'rko'
 import {
   TLBoundsCorner,
@@ -5,15 +6,14 @@ import {
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
   TLCanvasEventHandler,
-  TLKeyboardInfo,
   TLPageState,
   TLPinchEventHandler,
   TLPointerEventHandler,
   TLWheelEventHandler,
   Utils,
-  brushUpdater,
   TLPointerInfo,
   TLBounds,
+  Inputs,
 } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
@@ -97,6 +97,8 @@ const defaultState: Data = {
 export class TLDrawState extends StateManager<Data> {
   private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
   private _onMount?: (tlstate: TLDrawState) => void
+
+  inputs?: Inputs
 
   selectHistory: SelectHistory = {
     stack: [[]],
@@ -271,6 +273,10 @@ export class TLDrawState extends StateManager<Data> {
           ...data.document.pageStates[pageId],
         }
 
+        if (!nextPageState.brush) {
+          delete nextPageState.brush
+        }
+
         if (nextPageState.hoveredId && !page.shapes[nextPageState.hoveredId]) {
           delete nextPageState.hoveredId
         }
@@ -337,6 +343,10 @@ export class TLDrawState extends StateManager<Data> {
       },
       `set_status:${status}`
     )
+  }
+
+  handleMount = (inputs: Inputs): void => {
+    this.inputs = inputs
   }
 
   /* -------------------------------------------------- */
@@ -1357,9 +1367,9 @@ export class TLDrawState extends StateManager<Data> {
 
     if (!session) return this
 
-    const result = session.complete(this.state, ...args)
-
     this.session = undefined
+
+    const result = session.complete(this.state, ...args)
 
     if (result === undefined) {
       this.isCreating = false
@@ -1450,6 +1460,7 @@ export class TLDrawState extends StateManager<Data> {
           document: {
             pageStates: {
               [this.currentPageId]: {
+                ...result.document?.pageStates?.[this.currentPageId],
                 editingId: null,
               },
             },
@@ -1939,7 +1950,6 @@ export class TLDrawState extends StateManager<Data> {
       }
       case TLDrawStatus.Brushing: {
         this.cancelSession()
-        brushUpdater.clear()
         break
       }
       case TLDrawStatus.Translating:
@@ -2132,9 +2142,13 @@ export class TLDrawState extends StateManager<Data> {
 
   /* ----------------- Keyboard Events ---------------- */
 
-  onKeyDown = (key: string, info: TLKeyboardInfo) => {
+  onKeyDown = (key: string) => {
+    const info = this.inputs?.pointer
+    if (!info) return
+
     if (key === 'Escape') {
       this.cancel()
+
       return
     }
 
@@ -2188,7 +2202,10 @@ export class TLDrawState extends StateManager<Data> {
     }
   }
 
-  onKeyUp = (key: string, info: TLKeyboardInfo) => {
+  onKeyUp = (key: string) => {
+    const info = this.inputs?.pointer
+    if (!info) return
+
     switch (this.appState.status.current) {
       case TLDrawStatus.Brushing: {
         if (key === 'Meta' || key === 'Control') {
@@ -2360,7 +2377,6 @@ export class TLDrawState extends StateManager<Data> {
       }
       case TLDrawStatus.Brushing: {
         this.completeSession<Sessions.BrushSession>()
-        brushUpdater.clear()
         break
       }
       case TLDrawStatus.Translating: {
@@ -2642,7 +2658,6 @@ export class TLDrawState extends StateManager<Data> {
       }
       case TLDrawStatus.Brushing: {
         this.completeSession<Sessions.BrushSession>()
-        brushUpdater.clear()
         break
       }
     }
