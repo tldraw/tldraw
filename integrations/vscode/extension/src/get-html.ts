@@ -21,8 +21,8 @@ export function getHtmlForWebview(context: vscode.ExtensionContext, webview: vsc
     documentContent = "null";
   }
 
-  return getDevModeHTML(context, webview, documentContent);
-  //return getProductionModeHTML(context, webview, documentContent);
+  // return getDevModeHTML(context, webview, documentContent);
+  return getProductionModeHTML(context, webview, documentContent);
 }
 
 /**
@@ -128,7 +128,7 @@ function getProductionModeHTML(context: vscode.ExtensionContext, webview: vscode
     vscode.Uri.joinPath(
       context.extensionUri,
       'build',
-      './static/js/main.caadf3b7.chunk.js'//Replace Me #2
+      './static/js/main.54cae952.chunk.js'//Replace Me #2
     )
   )
 

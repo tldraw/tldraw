@@ -1,15 +1,10 @@
 {
-  "name": "tldraw",
-  "displayName": "Tldraw Editor",
-  "description": "The tldraw editor for VS Code",
+  "name": "wardlt",
+  "displayName": "Wardlt Editor",
+  "description": "The wardlt editor for VS Code",
   "version": "0.1.0",
-  "publisher": "tldr",
+  "publisher": "Wardlt",
   "private": true,
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/tldraw/tldraw"
-  },
   "engines": {
     "vscode": "^1.52.0"
   },
@@ -42,11 +37,12 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "node ./bin/prepublish.js && npm run compile",
+    "vscode:prepublish": "npm run prepublish && npm run compile",
     "compile": "tsc -p ./",
     "lint": "eslint . --ext .ts,.tsx",
     "watch": "tsc -w -p ./",
-    "package": "vsce package"
+    "package": "vsce package",
+    "prepublish": "node ./bin/prepublish.js"
   },
   "devDependencies": {
     "@types/node": "^12.12.0",
