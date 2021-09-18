@@ -201,22 +201,26 @@ function getRectanglePath(shape: RectangleShape) {
 
   const lines = Utils.shuffleArr(
     [
-      Vec.pointsBetween(tr, br, py, EASINGS.easeInOutCubic),
-      Vec.pointsBetween(br, bl, px, EASINGS.easeInOutCubic),
-      Vec.pointsBetween(bl, tl, py, EASINGS.easeInOutCubic),
-      Vec.pointsBetween(tl, tr, px, EASINGS.easeInOutCubic),
+      Vec.pointsBetween(tr, br, py, EASINGS.linear),
+      Vec.pointsBetween(br, bl, px, EASINGS.linear),
+      Vec.pointsBetween(bl, tl, py, EASINGS.linear),
+      Vec.pointsBetween(tl, tr, px, EASINGS.linear),
     ],
     rm
   )
 
+  const edgeDist = rm % 2 === 0 ? px : py
+
   const stroke = getStroke(
-    [...lines.flat(), ...lines[0], ...lines[1]].slice(4, Math.floor((rm % 2 === 0 ? px : py) / -2)),
+    [...lines.flat(), ...lines[0], ...lines[1]].slice(
+      4,
+      Math.floor((rm % 2 === 0 ? px : py) / -2) + 2
+    ),
     {
-      size: 1 + styles.strokeWidth,
-      thinning: 0.6,
-      easing: EASINGS.easeOutSine,
-      end: { cap: true },
-      start: { cap: true },
+      size: 1 + styles.strokeWidth * 2,
+      thinning: 0.5,
+      end: { taper: edgeDist },
+      start: { taper: edgeDist },
       simulatePressure: false,
       last: true,
     }

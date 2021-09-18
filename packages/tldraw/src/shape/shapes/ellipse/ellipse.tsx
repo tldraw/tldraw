@@ -149,13 +149,19 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
         shape.point[1],
         shape.radius[0],
         shape.radius[1],
-        shape.rotation || 0
+        0
       )
     })
   },
 
   getRotatedBounds(shape) {
-    return Utils.getBoundsFromPoints(Utils.getRotatedCorners(this.getBounds(shape), shape.rotation))
+    return Utils.getRotatedEllipseBounds(
+      shape.point[0],
+      shape.point[1],
+      shape.radius[0],
+      shape.radius[1],
+      shape.rotation
+    )
   },
 
   getCenter(shape): number[] {
@@ -321,25 +327,30 @@ function getEllipsePath(shape: EllipseShape, boundsCenter: number[]) {
   const ry = radiusY + getRandom() * strokeWidth * 2
 
   const points: number[][] = []
+
   const start = Math.PI + Math.PI * getRandom()
+
   const extra = Math.abs(getRandom())
 
-  for (let i = 0; i < 32; i++) {
-    const t = EASINGS.easeInOutSine(i / 32)
+  const perimeter = Utils.perimeterOfEllipse(rx, ry)
+
+  const count = Math.max(16, perimeter / 10)
+
+  for (let i = 0; i < count; i++) {
+    const t = EASINGS.easeInOutSine(i / (count + 1))
     const rads = start * 2 + Math.PI * (2 + extra) * t
-    const x = rx * Math.cos(rads) + center[0]
-    const y = ry * Math.sin(rads) + center[1]
-    points.push([x, y, t + 0.5 + getRandom() / 2])
+    const c = Math.cos(rads)
+    const s = Math.sin(rads)
+    points.push([rx * c + center[0], ry * s + center[1], t + 0.5 + getRandom() / 2])
   }
 
   const stroke = getStroke(points, {
-    size: 1 + strokeWidth,
-    thinning: 0.6,
-    easing: EASINGS.easeInOutSine,
-    end: { taper: strokeWidth * 20 },
-    start: { taper: strokeWidth * 20 },
+    size: 1 + strokeWidth * 2,
+    thinning: 0.5,
+    end: { taper: perimeter / 8 },
+    start: { taper: perimeter / 12 },
     streamline: 0,
-    simulatePressure: false,
+    simulatePressure: true,
   })
 
   return Utils.getSvgPathFromStroke(stroke)
