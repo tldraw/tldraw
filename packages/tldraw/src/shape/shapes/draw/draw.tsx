@@ -10,7 +10,6 @@ import { EASINGS } from '~state/utils'
 const pointsBoundsCache = new WeakMap<DrawShape['points'], TLBounds>([])
 const shapeBoundsCache = new Map<string, TLBounds>()
 const rotatedCache = new WeakMap<DrawShape, number[][]>([])
-const simplePathCache = new WeakMap<DrawShape['points'], string>([])
 const pointCache = new WeakSet<DrawShape['point']>([])
 
 export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
