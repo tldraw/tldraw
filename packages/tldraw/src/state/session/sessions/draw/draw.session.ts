@@ -3,9 +3,6 @@ import { Vec } from '@tldraw/vec'
 import { Data, DrawShape, Session, TLDrawStatus } from '~types'
 import { TLDR } from '~state/tldr'
 
-// TODO
-// [ ] - Solve flat lines at corners on perfectly straight lines
-
 export class DrawSession implements Session {
   id = 'draw'
   status = TLDrawStatus.Creating
@@ -30,7 +27,7 @@ export class DrawSession implements Session {
     // Add a first point but don't update the shape yet. We'll update
     // when the draw session ends; if the user hasn't added additional
     // points, this single point will be interpreted as a "dot" shape.
-    this.points = []
+    this.points = [[0, 0, point[2] || 0.5]]
   }
 
   start = () => void null
@@ -51,7 +48,7 @@ export class DrawSession implements Session {
     // Drawing while holding shift will "lock" the pen to either the
     // x or y axis, depending on the locking direction.
     if (isLocked) {
-      if (!this.isLocked && this.points.length > 1) {
+      if (!this.isLocked && this.points.length > 2) {
         // If we're locking before knowing what direction we're in, set it
         // early based on the bigger dimension.
         if (!this.lockedDirection) {
@@ -173,8 +170,6 @@ export class DrawSession implements Session {
   complete = (data: Data) => {
     const { snapshot } = this
     const pageId = data.appState.currentPageId
-
-    this.points.push(this.last)
 
     return {
       id: 'create_draw',

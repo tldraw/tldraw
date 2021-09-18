@@ -5,13 +5,11 @@ import { intersectBoundsBounds, intersectBoundsPolyline } from '@tldraw/intersec
 import getStroke, { getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { DrawShape, DashStyle, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
+import { EASINGS } from '~state/utils'
 
 const pointsBoundsCache = new WeakMap<DrawShape['points'], TLBounds>([])
 const shapeBoundsCache = new Map<string, TLBounds>()
 const rotatedCache = new WeakMap<DrawShape, number[][]>([])
-const drawPathCache = new WeakMap<DrawShape['points'], string>([])
-const simplePathCache = new WeakMap<DrawShape['points'], string>([])
-const polygonCache = new WeakMap<DrawShape['points'], string>([])
 const pointCache = new WeakSet<DrawShape['point']>([])
 
 export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
@@ -33,6 +31,16 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
 
   Component({ shape, meta, events, isEditing }, ref) {
     const { points, style } = shape
+
+    const polygonPathData = React.useMemo(() => {
+      return getFillPath(shape)
+    }, [points, style.size, isEditing])
+
+    const pathData = React.useMemo(() => {
+      return style.dash === DashStyle.Draw
+        ? getDrawStrokePath(shape, isEditing)
+        : getSolidStrokePath(shape)
+    }, [points, style.size, style.dash, isEditing])
 
     const styles = getShapeStyle(style, meta.isDarkMode)
 
@@ -64,15 +72,7 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
       points.length > 3 &&
       Vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
 
-    // For drawn lines, draw a line from the path cache
-
     if (shape.style.dash === DashStyle.Draw) {
-      const polygonPathData = Utils.getFromCache(polygonCache, points, () => getFillPath(shape))
-
-      const drawPathData = isEditing
-        ? getDrawStrokePath(shape, true)
-        : Utils.getFromCache(drawPathCache, points, () => getDrawStrokePath(shape, false))
-
       return (
         <SVGContainer ref={ref} {...events}>
           {shouldFill && (
@@ -86,7 +86,7 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
             />
           )}
           <path
-            d={drawPathData}
+            d={pathData}
             fill={styles.stroke}
             stroke={styles.stroke}
             strokeWidth={strokeWidth}
@@ -114,14 +114,12 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
       [DashStyle.Dashed]: `-${strokeWidth}`,
     }[style.dash]
 
-    const path = Utils.getFromCache(simplePathCache, points, () => getSolidStrokePath(shape))
-
     const sw = strokeWidth * 1.618
 
     return (
       <SVGContainer ref={ref} {...events}>
         <path
-          d={path}
+          d={pathData}
           fill={shouldFill ? styles.fill : 'none'}
           stroke="transparent"
           strokeWidth={Math.min(4, strokeWidth * 2)}
@@ -130,7 +128,7 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
           pointerEvents={shouldFill ? 'all' : 'stroke'}
         />
         <path
-          d={path}
+          d={pathData}
           fill="transparent"
           stroke={styles.stroke}
           strokeWidth={sw}
@@ -147,6 +145,10 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
   Indicator({ shape }) {
     const { points } = shape
 
+    const pathData = React.useMemo(() => {
+      return getSolidStrokePath(shape)
+    }, [points])
+
     const bounds = this.getBounds(shape)
 
     const verySmall = bounds.width < 4 && bounds.height < 4
@@ -155,9 +157,7 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
       return <circle x={bounds.width / 2} y={bounds.height / 2} r={1} />
     }
 
-    const path = Utils.getFromCache(simplePathCache, points, () => getSolidStrokePath(shape))
-
-    return <path d={path} />
+    return <path d={pathData} />
   },
 
   getBounds(shape: DrawShape): TLBounds {
@@ -300,12 +300,11 @@ function getDrawStrokePath(shape: DrawShape, isEditing: boolean) {
   const options = shape.points[1][2] === 0.5 ? simulatePressureSettings : realPressureSettings
 
   const stroke = getStroke(shape.points.slice(2), {
-    size: 1 + styles.strokeWidth * 2,
-    thinning: 0.7,
+    size: 1 + styles.strokeWidth * 1.618,
+    thinning: 0.6,
     streamline: 0.7,
     smoothing: 0.5,
-    end: { taper: +styles.strokeWidth * 50 },
-    start: { taper: +styles.strokeWidth * 50 },
+    end: { taper: styles.strokeWidth * 10, easing: EASINGS.easeOutQuad },
     easing: (t) => Math.sin((t * Math.PI) / 2),
     ...options,
     last: !isEditing,
