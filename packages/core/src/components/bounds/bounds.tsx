@@ -23,14 +23,22 @@ export function Bounds({
   rotation,
   isLocked,
 }: BoundsProps): JSX.Element {
-  const targetSize = (viewportWidth < 768 ? 16 : 8) / zoom // Touch target size
-  const size = 8 / zoom // Touch target size
+  // Touch target size
+  const targetSize = (viewportWidth < 768 ? 16 : 8) / zoom
+  // Handle size
+  const size = 8 / zoom
+
+  const smallDimension = Math.min(bounds.width, bounds.height) * zoom
+  // If the bounds are small, don't show the rotate handle
+  const showRotateHandle = !isLocked && smallDimension > 32
+  // If the bounds are very small, don't show the corner handles
+  const showHandles = !isLocked && smallDimension > 16
 
   return (
     <Container bounds={bounds} rotation={rotation}>
       <SVGContainer>
         <CenterHandle bounds={bounds} isLocked={isLocked} />
-        {!isLocked && (
+        {showHandles && (
           <>
             <EdgeHandle
               targetSize={targetSize}
@@ -80,7 +88,9 @@ export function Bounds({
               bounds={bounds}
               corner={TLBoundsCorner.BottomLeft}
             />
-            <RotateHandle targetSize={targetSize} size={size} bounds={bounds} />
+            {showRotateHandle && (
+              <RotateHandle targetSize={targetSize} size={size} bounds={bounds} />
+            )}
           </>
         )}
       </SVGContainer>

@@ -180,6 +180,7 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
 
   hitTestBounds(shape, bounds) {
     return (
+      Utils.boundsContain(bounds, this.getBounds(shape)) ||
       intersectBoundsEllipse(
         bounds,
         this.getCenter(shape),

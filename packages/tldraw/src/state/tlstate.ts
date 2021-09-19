@@ -582,7 +582,7 @@ export class TLDrawState extends StateManager<Data> {
    * @todo
    */
   saveProject = () => {
-    // TODO
+    this.persist()
   }
 
   /**
@@ -1906,7 +1906,9 @@ export class TLDrawState extends StateManager<Data> {
    */
   rotate = (delta = Math.PI * -0.5, ids = this.selectedIds): this => {
     if (ids.length === 0) return this
-    return this.setState(Commands.rotate(this.state, ids, delta))
+    const change = Commands.rotate(this.state, ids, delta)
+    if (!change) return this
+    return this.setState(change)
   }
 
   /**

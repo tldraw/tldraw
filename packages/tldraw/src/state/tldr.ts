@@ -79,6 +79,10 @@ export class TLDR {
     return TLDR.getPage(data, pageId).shapes[shapeId] as T
   }
 
+  static getCenter<T extends TLDrawShape>(shape: T) {
+    return TLDR.getShapeUtils(shape).getCenter(shape)
+  }
+
   static getBounds<T extends TLDrawShape>(shape: T) {
     return TLDR.getShapeUtils(shape).getBounds(shape)
   }
@@ -308,6 +312,12 @@ export class TLDR {
   /*                      Mutations                     */
   /* -------------------------------------------------- */
 
+  static getBeforeShape<T extends TLDrawShape>(shape: T, change: Partial<T>): Partial<T> {
+    return Object.fromEntries(
+      Object.keys(change).map((k) => [k, shape[k as keyof T]])
+    ) as Partial<T>
+  }
+
   static mutateShapes<T extends TLDrawShape>(
     data: Data,
     ids: string[],
@@ -325,9 +335,7 @@ export class TLDR {
       const shape = TLDR.getShape<T>(data, id, pageId)
       const change = fn(shape, i)
       if (change) {
-        beforeShapes[id] = Object.fromEntries(
-          Object.keys(change).map((key) => [key, shape[key as keyof T]])
-        ) as Partial<T>
+        beforeShapes[id] = TLDR.getBeforeShape(shape, change)
         afterShapes[id] = change
       }
     })
@@ -557,6 +565,61 @@ export class TLDR {
     const delta = TLDR.getShapeUtils(shape).transformSingle(shape, bounds, info)
     if (!delta) return shape
     return { ...shape, ...delta }
+  }
+
+  /**
+   * Rotate a shape around an origin point.
+   * @param shape a shape.
+   * @param center the shape's center in page space.
+   * @param origin the page point to rotate around.
+   * @param rotation the amount to rotate the shape.
+   */
+  static getRotatedShapeMutation<T extends TLDrawShape>(
+    shape: T, // in page space
+    center: number[], // in page space
+    origin: number[], // in page space (probably the center of common bounds)
+    delta: number // The shape's rotation delta
+  ): Partial<T> | void {
+    // The shape's center relative to the shape's point
+    const relativeCenter = Vec.sub(center, shape.point)
+
+    // Rotate the center around the origin
+    const rotatedCenter = Vec.rotWith(center, origin, delta)
+
+    // Get the top left point relative to the rotated center
+    const nextPoint = Vec.round(Vec.sub(rotatedCenter, relativeCenter))
+
+    // If the shape has handles, we need to rotate the handles instead
+    // of rotating the shape. Shapes with handles should never be rotated,
+    // because that makes a lot of other things incredible difficult.
+    if (shape.handles !== undefined) {
+      const change = this.getShapeUtils(shape).onHandleChange(
+        // Base the change on a shape with the next point
+        { ...shape, point: nextPoint },
+        Object.fromEntries(
+          Object.entries(shape.handles).map(([handleId, handle]) => {
+            // Rotate each handle's point around the shape's center
+            // (in relative shape space, as the handle's point will be).
+            const point = Vec.round(Vec.rotWith(handle.point, relativeCenter, delta))
+            return [handleId, { ...handle, point }]
+          })
+        ) as T['handles'],
+        { shiftKey: false }
+      )
+
+      return change
+    }
+
+    // If the shape has no handles, move the shape to the new point
+    // and set the rotation.
+
+    // Clamp the next rotation between 0 and PI2
+    const nextRotation = Utils.clampRadians((shape.rotation || 0) + delta)
+
+    return {
+      point: nextPoint,
+      rotation: nextRotation,
+    } as Partial<T>
   }
 
   /* -------------------------------------------------- */

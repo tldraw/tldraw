@@ -18,7 +18,7 @@ export const RotateHandle = React.memo(
           className="tl-transparent"
           cx={bounds.width / 2}
           cy={size * -2}
-          r={targetSize * 2}
+          r={targetSize}
           pointerEvents="all"
           {...events}
         />

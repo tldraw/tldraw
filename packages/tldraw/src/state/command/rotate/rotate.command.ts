@@ -1,48 +1,46 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import type { TLDrawCommand, Data } from '~types'
+import type { TLDrawCommand, Data, TLDrawShape } from '~types'
 import { TLDR } from '~state/tldr'
 
 const PI2 = Math.PI * 2
 
-export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawCommand {
+export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawCommand | void {
   const { currentPageId } = data.appState
-  const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
 
-  const boundsForShapes = initialShapes.map((shape) => {
-    const utils = TLDR.getShapeUtils(shape)
-    return {
-      id: shape.id,
-      point: [...shape.point],
-      bounds: utils.getBounds(shape),
-      center: utils.getCenter(shape),
-      rotation: shape.rotation,
-    }
+  // The shapes for the before patch
+  const before: Record<string, Partial<TLDrawShape>> = {}
+
+  // The shapes for the after patch
+  const after: Record<string, Partial<TLDrawShape>> = {}
+
+  // Find the shapes that we want to rotate.
+  // We don't rotate groups: we rotate their children instead.
+  const shapesToRotate = ids.flatMap((id) => {
+    const shape = TLDR.getShape(data, id, currentPageId)
+    return shape.children
+      ? shape.children.map((childId) => TLDR.getShape(data, childId, currentPageId))
+      : shape
   })
 
-  const commonBounds = Utils.getCommonBounds(boundsForShapes.map(({ bounds }) => bounds))
-  const commonBoundsCenter = Utils.getBoundsCenter(commonBounds)
+  // Find the common center to all shapes
+  // This is the point that we'll rotate around
+  const origin = shapesToRotate.reduce((acc, shape) => {
+    return Vec.med(acc, TLDR.getCenter(shape))
+  }, TLDR.getCenter(shapesToRotate[0]))
 
-  const rotations = Object.fromEntries(
-    boundsForShapes.map(({ id, point, center, rotation }) => {
-      const offset = Vec.sub(center, point)
-      const nextPoint = Vec.sub(Vec.rotWith(center, commonBoundsCenter, -(PI2 / 4)), offset)
-      const nextRotation = (PI2 + ((rotation || 0) + delta)) % PI2
+  // Find the rotate mutations for each shape
+  shapesToRotate.forEach((shape) => {
+    const change = TLDR.getRotatedShapeMutation(shape, TLDR.getCenter(shape), origin, delta)
+    if (!change) return
+    before[shape.id] = TLDR.getBeforeShape(shape, change)
+    after[shape.id] = change
+  })
 
-      return [id, { point: nextPoint, rotation: nextRotation }]
-    })
-  )
+  // Also rotate the bounds.
+  const beforeBoundsRotation = TLDR.getPageState(data, currentPageId).boundsRotation
 
-  const pageState = TLDR.getPageState(data, currentPageId)
-  const prevBoundsRotation = pageState.boundsRotation
-  const nextBoundsRotation = (PI2 + ((pageState.boundsRotation || 0) + delta)) % PI2
-
-  const { before, after } = TLDR.mutateShapes(
-    data,
-    ids,
-    (shape) => rotations[shape.id],
-    currentPageId
-  )
+  const afterBoundsRotation = Utils.clampRadians((beforeBoundsRotation || 0) + delta)
 
   return {
     id: 'rotate',
@@ -52,7 +50,7 @@ export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawComma
           [currentPageId]: { shapes: before },
         },
         pageStates: {
-          [currentPageId]: { boundsRotation: prevBoundsRotation },
+          [currentPageId]: { boundsRotation: beforeBoundsRotation },
         },
       },
     },
@@ -62,7 +60,7 @@ export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawComma
           [currentPageId]: { shapes: after },
         },
         pageStates: {
-          [currentPageId]: { boundsRotation: nextBoundsRotation },
+          [currentPageId]: { boundsRotation: afterBoundsRotation },
         },
       },
     },

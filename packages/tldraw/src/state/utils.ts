@@ -1,5 +1,7 @@
 import type { Easing } from '~types'
 
+export const PI2 = Math.PI * 2
+
 export const EASINGS: Record<Easing, (t: number) => number> = {
   linear: (t) => t,
   easeInQuad: (t) => t * t,

@@ -448,7 +448,7 @@ export class Utils {
    * @param r
    * @param segments
    */
-  static clampToRotationToSegments(r: number, segments: number): number {
+  static snapAngleToSegments(r: number, segments: number): number {
     const seg = (Math.PI * 2) / segments
     return Math.floor((Utils.clampRadians(r) + seg / 2) / seg) * seg
   }
