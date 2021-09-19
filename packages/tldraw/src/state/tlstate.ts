@@ -2598,7 +2598,7 @@ export class TLDrawState extends StateManager<Data> {
 
   onUnhoverShape: TLPointerEventHandler = (info) => {
     const { currentPageId } = this
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       if (currentPageId === this.currentPageId && this.pageState.hoveredId === info.target) {
         this.patchState(
           {
@@ -2613,7 +2613,7 @@ export class TLDrawState extends StateManager<Data> {
           `unhovered_shape:${info.target}`
         )
       }
-    }, 10)
+    })
   }
 
   // Bounds (bounding box background)
