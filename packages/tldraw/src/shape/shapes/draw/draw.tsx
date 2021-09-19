@@ -5,12 +5,12 @@ import { intersectBoundsBounds, intersectBoundsPolyline } from '@tldraw/intersec
 import getStroke, { getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { DrawShape, DashStyle, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
+import { EASINGS } from '~state/utils'
 
 const pointsBoundsCache = new WeakMap<DrawShape['points'], TLBounds>([])
+const shapeBoundsCache = new Map<string, TLBounds>()
 const rotatedCache = new WeakMap<DrawShape, number[][]>([])
-const drawPathCache = new WeakMap<DrawShape['points'], string>([])
-const simplePathCache = new WeakMap<DrawShape['points'], string>([])
-const polygonCache = new WeakMap<DrawShape['points'], string>([])
+const pointCache: Record<string, number[]> = {}
 
 export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Draw,
@@ -32,6 +32,16 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
   Component({ shape, meta, events, isEditing }, ref) {
     const { points, style } = shape
 
+    const polygonPathData = React.useMemo(() => {
+      return getFillPath(shape)
+    }, [points, style.size, isEditing])
+
+    const pathData = React.useMemo(() => {
+      return style.dash === DashStyle.Draw
+        ? getDrawStrokePath(shape, isEditing)
+        : getSolidStrokePath(shape)
+    }, [points, style.size, style.dash, isEditing])
+
     const styles = getShapeStyle(style, meta.isDarkMode)
 
     const strokeWidth = styles.strokeWidth
@@ -45,7 +55,7 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
       const sw = strokeWidth * 0.618
 
       return (
-        <SVGContainer ref={ref} {...events}>
+        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           <circle
             r={strokeWidth * 0.618}
             fill={styles.stroke}
@@ -62,17 +72,9 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
       points.length > 3 &&
       Vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
 
-    // For drawn lines, draw a line from the path cache
-
     if (shape.style.dash === DashStyle.Draw) {
-      const polygonPathData = Utils.getFromCache(polygonCache, points, () => getFillPath(shape))
-
-      const drawPathData = isEditing
-        ? getDrawStrokePath(shape, true)
-        : Utils.getFromCache(drawPathCache, points, () => getDrawStrokePath(shape, false))
-
       return (
-        <SVGContainer ref={ref} {...events}>
+        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           {shouldFill && (
             <path
               d={polygonPathData}
@@ -84,7 +86,7 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
             />
           )}
           <path
-            d={drawPathData}
+            d={pathData}
             fill={styles.stroke}
             stroke={styles.stroke}
             strokeWidth={strokeWidth}
@@ -112,24 +114,22 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
       [DashStyle.Dashed]: `-${strokeWidth}`,
     }[style.dash]
 
-    const path = Utils.getFromCache(simplePathCache, points, () => getSolidStrokePath(shape))
-
-    const sw = strokeWidth * 1.618
+    const sw = 1 + strokeWidth * 2
 
     return (
-      <SVGContainer ref={ref} {...events}>
+      <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
         <path
-          d={path}
+          d={pathData}
           fill={shouldFill ? styles.fill : 'none'}
-          stroke="transparent"
+          stroke="none"
           strokeWidth={Math.min(4, strokeWidth * 2)}
           strokeLinejoin="round"
           strokeLinecap="round"
           pointerEvents={shouldFill ? 'all' : 'stroke'}
         />
         <path
-          d={path}
-          fill="transparent"
+          d={pathData}
+          fill="none"
           stroke={styles.stroke}
           strokeWidth={sw}
           strokeDasharray={strokeDasharray}
@@ -145,6 +145,10 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
   Indicator({ shape }) {
     const { points } = shape
 
+    const pathData = React.useMemo(() => {
+      return getSolidStrokePath(shape)
+    }, [points])
+
     const bounds = this.getBounds(shape)
 
     const verySmall = bounds.width < 4 && bounds.height < 4
@@ -153,18 +157,36 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
       return <circle x={bounds.width / 2} y={bounds.height / 2} r={1} />
     }
 
-    const path = Utils.getFromCache(simplePathCache, points, () => getSolidStrokePath(shape))
-
-    return <path d={path} />
+    return <path d={pathData} />
   },
 
   getBounds(shape: DrawShape): TLBounds {
-    return Utils.translateBounds(
-      Utils.getFromCache(pointsBoundsCache, shape.points, () =>
-        Utils.getBoundsFromPoints(shape.points)
-      ),
-      shape.point
-    )
+    // The goal here is to avoid recalculating the bounds from the
+    // points array, which is expensive. However, we still need a
+    // new bounds if the point has changed, but we will reuse the
+    // previous bounds-from-points result if we can.
+
+    const pointsHaveChanged = !pointsBoundsCache.has(shape.points)
+    const pointHasChanged = !(pointCache[shape.id] === shape.point)
+
+    if (pointsHaveChanged) {
+      // If the points have changed, then bust the points cache
+      const bounds = Utils.getBoundsFromPoints(shape.points)
+      pointsBoundsCache.set(shape.points, bounds)
+      shapeBoundsCache.set(shape.id, Utils.translateBounds(bounds, shape.point))
+      pointCache[shape.id] = shape.point
+    } else if (pointHasChanged && !pointsHaveChanged) {
+      // If the point have has changed, then bust the point cache
+      pointCache[shape.id] = shape.point
+      shapeBoundsCache.set(
+        shape.id,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        Utils.translateBounds(pointsBoundsCache.get(shape.points)!, shape.point)
+      )
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return shapeBoundsCache.get(shape.id)!
   },
 
   shouldRender(prev: DrawShape, next: DrawShape): boolean {
@@ -273,19 +295,17 @@ function getFillPath(shape: DrawShape) {
 function getDrawStrokePath(shape: DrawShape, isEditing: boolean) {
   const styles = getShapeStyle(shape.style)
 
-  if (shape.points.length < 2) {
-    return ''
-  }
+  if (shape.points.length < 2) return ''
 
   const options = shape.points[1][2] === 0.5 ? simulatePressureSettings : realPressureSettings
 
   const stroke = getStroke(shape.points.slice(2), {
-    size: 1 + styles.strokeWidth * 2,
-    thinning: 0.8,
+    size: 1 + styles.strokeWidth * 1.618,
+    thinning: 0.6,
     streamline: 0.7,
-    smoothing: 0.6,
-    end: { taper: +styles.strokeWidth * 50 },
-    start: { taper: +styles.strokeWidth * 50 },
+    smoothing: 0.5,
+    end: { taper: styles.strokeWidth * 10, easing: EASINGS.easeOutQuad },
+    easing: (t) => Math.sin((t * Math.PI) / 2),
     ...options,
     last: !isEditing,
   })

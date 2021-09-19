@@ -22,7 +22,7 @@ export interface TLPageState {
     point: number[]
     zoom: number
   }
-  brush?: TLBounds
+  brush?: TLBounds | null
   pointedId?: string | null
   hoveredId?: string | null
   editingId?: string | null
@@ -113,6 +113,7 @@ export type TLWheelEventHandler = (
   info: TLPointerInfo<string>,
   e: React.WheelEvent<Element> | WheelEvent
 ) => void
+
 export type TLPinchEventHandler = (
   info: TLPointerInfo<string>,
   e:
@@ -123,9 +124,20 @@ export type TLPinchEventHandler = (
     | React.PointerEvent<Element>
     | PointerEventInit
 ) => void
+
+export type TLShapeChangeHandler<T, K = any> = (
+  shape: { id: string } & Partial<T>,
+  info?: K
+) => void
+
+export type TLShapeBlurHandler<K = any> = (info?: K) => void
+
 export type TLPointerEventHandler = (info: TLPointerInfo<string>, e: React.PointerEvent) => void
+
 export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>, e: React.PointerEvent) => void
+
 export type TLBoundsEventHandler = (info: TLPointerInfo<'bounds'>, e: React.PointerEvent) => void
+
 export type TLBoundsHandleEventHandler = (
   info: TLPointerInfo<TLBoundsCorner | TLBoundsEdge | 'rotate'>,
   e: React.PointerEvent
@@ -188,9 +200,9 @@ export interface TLCallbacks<T extends TLShape> {
   onReleaseHandle: TLPointerEventHandler
 
   // Misc
+  onShapeChange: TLShapeChangeHandler<T, any>
+  onShapeBlur: TLShapeBlurHandler<any>
   onRenderCountChange: (ids: string[]) => void
-  onShapeChange: (shape: { id: string } & Partial<T>) => void
-  onShapeBlur: () => void
   onError: (error: Error) => void
 }
 
@@ -287,7 +299,10 @@ export type TLShapeUtil<
     ref: React.ForwardedRef<E>
   ): React.ReactElement<TLRenderInfo<T, E, M>, E['tagName']>
 
-  Indicator(this: TLShapeUtil<T, E, M>, props: { shape: T }): React.ReactElement | null
+  Indicator(
+    this: TLShapeUtil<T, E, M>,
+    props: { shape: T; meta: M; isHovered: boolean; isSelected: boolean }
+  ): React.ReactElement | null
 
   getBounds(this: TLShapeUtil<T, E, M>, shape: T): TLBounds
 

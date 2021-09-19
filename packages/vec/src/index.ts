@@ -88,6 +88,11 @@ export class Vec {
     return [A[0] * n, A[1] * n]
   }
 
+  /**
+   * Multiple two vectors.
+   * @param A
+   * @param B
+   */
   static mulV = (A: number[], B: number[]): number[] => {
     return [A[0] * B[0], A[1] * B[1]]
   }
@@ -300,7 +305,7 @@ export class Vec {
    * @param t scalar
    */
   static lrp = (A: number[], B: number[], t: number): number[] => {
-    return Vec.add(A, Vec.mul(Vec.vec(A, B), t))
+    return Vec.add(A, Vec.mul(Vec.sub(B, A), t))
   }
 
   /**
@@ -501,18 +506,21 @@ export class Vec {
   }
 
   /**
-   * Get a number of points between two points.
-   * @param a
-   * @param b
-   * @param steps
+   * Get an array of points (with simulated pressure) between two points.
+   * @param A The first point.
+   * @param B The second point.
+   * @param steps The number of points to return.
+   * @param ease An easing function to apply to the simulated pressure.
    */
-  static pointsBetween = (a: number[], b: number[], steps = 6): number[][] => {
-    return Array.from(Array(steps))
-      .map((_, i) => {
-        const t = i / steps
-        return t * t * t * t
-      })
-      .map((t) => Vec.round([...Vec.lrp(a, b, t), (1 - t) / 2]))
+  static pointsBetween = (
+    A: number[],
+    B: number[],
+    steps = 6,
+    ease = (t: number) => t * t * t * t
+  ): number[][] => {
+    return Array.from(Array(steps)).map((_, i) =>
+      Vec.round([...Vec.lrp(A, B, i / steps), (1 - ease(i / steps)) / 2])
+    )
   }
 }
 

@@ -448,7 +448,7 @@ export class Utils {
    * @param r
    * @param segments
    */
-  static clampToRotationToSegments(r: number, segments: number): number {
+  static snapAngleToSegments(r: number, segments: number): number {
     const seg = (Math.PI * 2) / segments
     return Math.floor((Utils.clampRadians(r) + seg / 2) / seg) * seg
   }
@@ -832,6 +832,7 @@ export class Utils {
    * @param tolerance The minimum line distance (also called epsilon).
    * @returns Simplified array as [x, y, ...][]
    */
+
   static simplify(points: number[][], tolerance = 1): number[][] {
     const len = points.length
     const a = points[0]
@@ -1100,7 +1101,7 @@ export class Utils {
     y: number,
     rx: number,
     ry: number,
-    rotation: number
+    rotation = 0
   ): TLBounds {
     const c = Math.cos(rotation)
     const s = Math.sin(rotation)
@@ -1648,29 +1649,34 @@ left past the initial left edge) then swap points on that axis.
     }
   }
 
+  // Regex to trim numbers to 2 decimal places
+  static TRIM_NUMBERS = /(\s?[A-Z]?,?-?[0-9]*\.[0-9]{0,2})(([0-9]|e|-)*)/g
+
   /**
    * Turn an array of points into a path of quadradic curves.
    * @param stroke ;
    */
-  static getSvgPathFromStroke(stroke: number[][]): string {
-    if (!stroke.length) return ''
+  static getSvgPathFromStroke(points: number[][]): string {
+    if (!points.length) {
+      return ''
+    }
 
-    const max = stroke.length - 1
+    const max = points.length - 1
 
-    const d = stroke.reduce(
-      (acc, [x0, y0], i, arr) => {
-        if (i === max) return acc
-        const [x1, y1] = arr[i + 1]
-        acc.push(` ${x0},${y0} ${(x0 + x1) / 2},${(y0 + y1) / 2}`)
-        return acc
-      },
-      ['M ', `${stroke[0][0]},${stroke[0][1]}`, ' Q']
-    )
-
-    return d
-      .concat('Z')
-      .join('')
-      .replaceAll(/(\s?[A-Z]?,?-?[0-9]*\.[0-9]{0,2})(([0-9]|e|-)*)/g, '$1')
+    return points
+      .reduce(
+        (acc, point, i, arr) => {
+          if (i === max) {
+            acc.push('Z')
+          } else {
+            acc.push(point, Vec.med(point, arr[i + 1]))
+          }
+          return acc
+        },
+        ['M', points[0], 'Q']
+      )
+      .join(' ')
+      .replaceAll(this.TRIM_NUMBERS, '$1')
   }
 
   /* -------------------------------------------------- */

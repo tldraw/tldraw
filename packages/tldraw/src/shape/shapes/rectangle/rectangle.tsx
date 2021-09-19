@@ -5,6 +5,7 @@ import getStroke from 'perfect-freehand'
 import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
 import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
+import { EASINGS } from '~state/utils'
 
 const pathCache = new WeakMap<number[], string>([])
 
@@ -39,10 +40,10 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
     this
 
     if (style.dash === DashStyle.Draw) {
-      const pathData = Utils.getFromCache(pathCache, shape.size, () => renderPath(shape))
+      const pathData = Utils.getFromCache(pathCache, shape.size, () => getRectanglePath(shape))
 
       return (
-        <SVGContainer ref={ref} {...events}>
+        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           {isBinding && (
             <rect
               className="tl-binding-indicator"
@@ -73,7 +74,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
       )
     }
 
-    const sw = strokeWidth * 1.618
+    const sw = 1 + strokeWidth * 2
 
     const w = Math.max(0, size[0] - sw / 2)
     const h = Math.max(0, size[1] - sw / 2)
@@ -109,7 +110,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
     })
 
     return (
-      <SVGContainer ref={ref} {...events}>
+      <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
         {isBinding && (
           <rect
             className="tl-binding-indicator"
@@ -125,7 +126,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
           width={w}
           height={h}
           fill={styles.fill}
-          stroke="transparent"
+          stroke="none"
           strokeWidth={sw}
           pointerEvents="all"
         />
@@ -170,7 +171,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
 /*                       Helpers                      */
 /* -------------------------------------------------- */
 
-function renderPath(shape: RectangleShape) {
+function getRectanglePath(shape: RectangleShape) {
   const styles = getShapeStyle(shape.style)
 
   const getRandom = Utils.rng(shape.id)
@@ -194,25 +195,36 @@ function renderPath(shape: RectangleShape) {
   const br = Vec.add([w, h], offsets[2])
   const bl = Vec.add([sw / 2, h], offsets[3])
 
+  const px = Math.max(8, Math.floor(w / 20))
+  const py = Math.max(8, Math.floor(h / 20))
+  const rm = Math.floor(5 + getRandom() * 4)
+
   const lines = Utils.shuffleArr(
     [
-      Vec.pointsBetween(tr, br),
-      Vec.pointsBetween(br, bl),
-      Vec.pointsBetween(bl, tl),
-      Vec.pointsBetween(tl, tr),
+      Vec.pointsBetween(tr, br, py, EASINGS.linear),
+      Vec.pointsBetween(br, bl, px, EASINGS.linear),
+      Vec.pointsBetween(bl, tl, py, EASINGS.linear),
+      Vec.pointsBetween(tl, tr, px, EASINGS.linear),
     ],
-    Math.floor(5 + getRandom() * 4)
+    rm
   )
 
-  const stroke = getStroke([...lines.flat().slice(4), ...lines[0], ...lines[0].slice(4)], {
-    size: 1 + styles.strokeWidth,
-    thinning: 0.618,
-    easing: (t) => t * t * t * t,
-    end: { cap: true },
-    start: { cap: true },
-    simulatePressure: false,
-    last: true,
-  })
+  const edgeDist = rm % 2 === 0 ? px : py
+
+  const stroke = getStroke(
+    [...lines.flat(), ...lines[0], ...lines[1]].slice(
+      4,
+      Math.floor((rm % 2 === 0 ? px : py) / -2) + 2
+    ),
+    {
+      size: 1 + styles.strokeWidth * 2,
+      thinning: 0.5,
+      end: { taper: edgeDist },
+      start: { taper: edgeDist },
+      simulatePressure: false,
+      last: true,
+    }
+  )
 
   return Utils.getSvgPathFromStroke(stroke)
 }

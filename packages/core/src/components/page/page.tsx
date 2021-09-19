@@ -68,13 +68,14 @@ export function Page<T extends TLShape, M extends Record<string, unknown>>({
         selectedIds
           .filter(Boolean)
           .map((id) => (
-            <ShapeIndicator key={'selected_' + id} shape={page.shapes[id]} variant="selected" />
+            <ShapeIndicator key={'selected_' + id} shape={page.shapes[id]} meta={meta} isSelected />
           ))}
       {!hideIndicators && hoveredId && (
         <ShapeIndicator
           key={'hovered_' + hoveredId}
           shape={page.shapes[hoveredId]}
-          variant="hovered"
+          meta={meta}
+          isHovered
         />
       )}
       {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} />}

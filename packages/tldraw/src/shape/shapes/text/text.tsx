@@ -149,11 +149,11 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
 
     React.useEffect(() => {
       if (isEditing) {
-        setTimeout(() => {
+        requestAnimationFrame(() => {
           const elm = rInput.current!
           elm.focus()
           elm.select()
-        }, 0)
+        })
       } else {
         const elm = rInput.current!
         elm.setSelectionRange(0, 0)

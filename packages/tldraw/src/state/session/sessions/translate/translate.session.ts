@@ -10,6 +10,7 @@ import {
   TLDrawStatus,
   ArrowShape,
   GroupShape,
+  TLDrawPatch,
 } from '~types'
 import { TLDR } from '~state/tldr'
 import type { Patch } from 'rko'
@@ -115,14 +116,14 @@ export class TranslateSession implements Session {
       }
 
       // Either way, move the clones
-      clones.forEach((shape) => {
-        const current = (nextShapes[shape.id] ||
-          TLDR.getShape(data, shape.id, data.appState.currentPageId)) as TLDrawShape
+      clones.forEach((clone) => {
+        const current = (nextShapes[clone.id] ||
+          TLDR.getShape(data, clone.id, data.appState.currentPageId)) as TLDrawShape
 
         if (!current.point) throw Error('No point on that clone!')
 
-        nextShapes[shape.id] = {
-          ...nextShapes[shape.id],
+        nextShapes[clone.id] = {
+          ...nextShapes[clone.id],
           point: Vec.round(Vec.add(current.point, trueDelta)),
         }
       })
@@ -391,12 +392,14 @@ export function getTranslateSnapshot(data: Data) {
 
     cloneMap[shape.id] = newId
 
-    clones.push({
+    const clone = {
       ...Utils.deepClone(shape),
       id: newId,
       parentId: shape.parentId,
       childIndex: TLDR.getChildIndexAbove(data, shape.id, currentPageId),
-    })
+    }
+
+    clones.push(clone)
   })
 
   clones.forEach((clone) => {
@@ -425,6 +428,7 @@ export function getTranslateSnapshot(data: Data) {
       if (clonedShapeIds.has(binding.fromId)) {
         if (clonedShapeIds.has(binding.toId)) {
           const cloneId = Utils.uniqueId()
+
           const cloneBinding = {
             ...Utils.deepClone(binding),
             id: cloneId,

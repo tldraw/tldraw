@@ -29,23 +29,32 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   },
   meta?: M
 ) {
+  // Create a node for this shape
   const node: IShapeTreeNode<T, M> = {
     shape,
+    meta: meta as any,
     isCurrentParent: pageState.currentParentId === shape.id,
     isEditing: pageState.editingId === shape.id,
-    isSelected: pageState.selectedIds.includes(shape.id),
-    isHovered: pageState.hoveredId
-      ? pageState.hoveredId === shape.id ||
-        (shape.children ? shape.children.includes(pageState.hoveredId) : false)
-      : false,
     isBinding: pageState.bindingTargetId === shape.id,
-    meta: meta as any,
+    isSelected: pageState.selectedIds.includes(shape.id),
+    isHovered:
+      // The shape is hovered..
+      pageState.hoveredId === shape.id ||
+      // Or the shape has children and...
+      (shape.children !== undefined &&
+        // One of the children is hovered
+        ((pageState.hoveredId && shape.children.includes(pageState.hoveredId)) ||
+          // Or one of the children is selected
+          shape.children.some((childId) => pageState.selectedIds.includes(childId)))),
   }
 
+  // Add the node to the branch
   branch.push(node)
 
+  // If the shape has children, add nodes for each child to the node's children array
   if (shape.children) {
     node.children = []
+
     shape.children
       .map((id) => shapes[id])
       .sort((a, b) => a.childIndex - b.childIndex)
@@ -128,9 +137,9 @@ export function useShapeTree<
     if (rTimeout.current) {
       clearTimeout(rTimeout.current as number)
     }
-    rTimeout.current = setTimeout(() => {
+    rTimeout.current = requestAnimationFrame(() => {
       onRenderCountChange?.(Array.from(shapesIdsToRender.values()))
-    }, 100)
+    })
     rPreviousCount.current = shapesToRender.size
   }
 

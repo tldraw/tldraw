@@ -55,6 +55,10 @@ export interface RendererProps<T extends TLShape, E extends Element = any, M = a
    * An object of custom options that should be passed to rendered shapes.
    */
   meta?: M
+  /**
+   * A callback that receives the renderer's inputs manager.
+   */
+  onMount?: (inputs: Inputs) => void
 }
 
 /**
@@ -74,6 +78,7 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
   hideHandles = false,
   hideIndicators = false,
   hideBounds = false,
+  onMount,
   ...rest
 }: RendererProps<T, E, M>): JSX.Element {
   useTLTheme(theme)
@@ -95,6 +100,10 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
     rPageState,
     inputs: new Inputs(),
   }))
+
+  React.useEffect(() => {
+    onMount?.(context.inputs)
+  }, [context])
 
   return (
     <TLContext.Provider value={context as unknown as TLContextType<TLShape, Element>}>

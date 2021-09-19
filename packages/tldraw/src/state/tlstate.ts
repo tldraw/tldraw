@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { StateManager } from 'rko'
 import {
   TLBoundsCorner,
@@ -5,15 +6,14 @@ import {
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
   TLCanvasEventHandler,
-  TLKeyboardInfo,
   TLPageState,
   TLPinchEventHandler,
   TLPointerEventHandler,
   TLWheelEventHandler,
   Utils,
-  brushUpdater,
   TLPointerInfo,
   TLBounds,
+  Inputs,
 } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
@@ -98,6 +98,8 @@ export class TLDrawState extends StateManager<Data> {
   private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
   private _onMount?: (tlstate: TLDrawState) => void
 
+  inputs?: Inputs
+
   selectHistory: SelectHistory = {
     stack: [[]],
     pointer: 0,
@@ -142,6 +144,14 @@ export class TLDrawState extends StateManager<Data> {
   /* -------------------- Internal -------------------- */
 
   onReady = () => {
+    this.patchState({
+      appState: {
+        status: {
+          current: TLDrawStatus.Idle,
+          previous: TLDrawStatus.Idle,
+        },
+      },
+    })
     this._onMount?.(this)
   }
 
@@ -263,6 +273,10 @@ export class TLDrawState extends StateManager<Data> {
           ...data.document.pageStates[pageId],
         }
 
+        if (!nextPageState.brush) {
+          delete nextPageState.brush
+        }
+
         if (nextPageState.hoveredId && !page.shapes[nextPageState.hoveredId]) {
           delete nextPageState.hoveredId
         }
@@ -329,6 +343,10 @@ export class TLDrawState extends StateManager<Data> {
       },
       `set_status:${status}`
     )
+  }
+
+  handleMount = (inputs: Inputs): void => {
+    this.inputs = inputs
   }
 
   /* -------------------------------------------------- */
@@ -564,7 +582,7 @@ export class TLDrawState extends StateManager<Data> {
    * @todo
    */
   saveProject = () => {
-    // TODO
+    this.persist()
   }
 
   /**
@@ -900,9 +918,14 @@ export class TLDrawState extends StateManager<Data> {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
 
     ids.forEach((id) => {
-      const elm = document.getElementById(id)
+      const elm = document.getElementById(id + '_svg')
+
+      // TODO: Create SVG elements for text
+
       if (elm) {
-        const clone = elm?.cloneNode(true)
+        const clone = elm?.cloneNode(true) as SVGElement
+        const shape = this.getShape(id, pageId)
+        clone.setAttribute('transform', `translate(${shape.point})`)
         svg.appendChild(clone)
       }
     })
@@ -1349,9 +1372,9 @@ export class TLDrawState extends StateManager<Data> {
 
     if (!session) return this
 
-    const result = session.complete(this.state, ...args)
-
     this.session = undefined
+
+    const result = session.complete(this.state, ...args)
 
     if (result === undefined) {
       this.isCreating = false
@@ -1442,6 +1465,7 @@ export class TLDrawState extends StateManager<Data> {
           document: {
             pageStates: {
               [this.currentPageId]: {
+                ...result.document?.pageStates?.[this.currentPageId],
                 editingId: null,
               },
             },
@@ -1887,7 +1911,9 @@ export class TLDrawState extends StateManager<Data> {
    */
   rotate = (delta = Math.PI * -0.5, ids = this.selectedIds): this => {
     if (ids.length === 0) return this
-    return this.setState(Commands.rotate(this.state, ids, delta))
+    const change = Commands.rotate(this.state, ids, delta)
+    if (!change) return this
+    return this.setState(change)
   }
 
   /**
@@ -1931,7 +1957,6 @@ export class TLDrawState extends StateManager<Data> {
       }
       case TLDrawStatus.Brushing: {
         this.cancelSession()
-        brushUpdater.clear()
         break
       }
       case TLDrawStatus.Translating:
@@ -2124,9 +2149,13 @@ export class TLDrawState extends StateManager<Data> {
 
   /* ----------------- Keyboard Events ---------------- */
 
-  onKeyDown = (key: string, info: TLKeyboardInfo) => {
+  onKeyDown = (key: string) => {
+    const info = this.inputs?.pointer
+    if (!info) return
+
     if (key === 'Escape') {
       this.cancel()
+
       return
     }
 
@@ -2180,7 +2209,10 @@ export class TLDrawState extends StateManager<Data> {
     }
   }
 
-  onKeyUp = (key: string, info: TLKeyboardInfo) => {
+  onKeyUp = (key: string) => {
+    const info = this.inputs?.pointer
+    if (!info) return
+
     switch (this.appState.status.current) {
       case TLDrawStatus.Brushing: {
         if (key === 'Meta' || key === 'Control') {
@@ -2352,7 +2384,6 @@ export class TLDrawState extends StateManager<Data> {
       }
       case TLDrawStatus.Brushing: {
         this.completeSession<Sessions.BrushSession>()
-        brushUpdater.clear()
         break
       }
       case TLDrawStatus.Translating: {
@@ -2574,7 +2605,7 @@ export class TLDrawState extends StateManager<Data> {
 
   onUnhoverShape: TLPointerEventHandler = (info) => {
     const { currentPageId } = this
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       if (currentPageId === this.currentPageId && this.pageState.hoveredId === info.target) {
         this.patchState(
           {
@@ -2589,7 +2620,7 @@ export class TLDrawState extends StateManager<Data> {
           `unhovered_shape:${info.target}`
         )
       }
-    }, 10)
+    })
   }
 
   // Bounds (bounding box background)
@@ -2634,7 +2665,6 @@ export class TLDrawState extends StateManager<Data> {
       }
       case TLDrawStatus.Brushing: {
         this.completeSession<Sessions.BrushSession>()
-        brushUpdater.clear()
         break
       }
     }

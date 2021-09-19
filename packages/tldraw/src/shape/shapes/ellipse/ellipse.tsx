@@ -9,6 +9,7 @@ import {
   intersectLineSegmentEllipse,
   intersectRayEllipse,
 } from '@tldraw/intersect'
+import { EASINGS } from '~state/utils'
 
 export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Ellipse,
@@ -44,10 +45,10 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
     const ry = Math.max(0, radiusY - strokeWidth / 2)
 
     if (style.dash === DashStyle.Draw) {
-      const path = renderPath(shape, this.getCenter(shape))
+      const path = getEllipsePath(shape, this.getCenter(shape))
 
       return (
-        <SVGContainer ref={ref} {...events}>
+        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           {isBinding && (
             <ellipse
               className="tl-binding-indicator"
@@ -90,10 +91,10 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
       4
     )
 
-    const sw = strokeWidth * 1.618
+    const sw = 1 + strokeWidth * 2
 
     return (
-      <SVGContainer ref={ref} {...events}>
+      <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
         {isBinding && (
           <ellipse
             className="tl-binding-indicator"
@@ -132,8 +133,6 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
 
     const sw = strokeWidth
 
-    // TODO Improve indicator shape for drawn shapes, which are
-    // intentionally not perfect circles.
     return <ellipse cx={rx} cy={ry} rx={rx - sw / 2} ry={ry - sw / 2} />
   },
 
@@ -148,13 +147,19 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
         shape.point[1],
         shape.radius[0],
         shape.radius[1],
-        shape.rotation || 0
+        0
       )
     })
   },
 
   getRotatedBounds(shape) {
-    return Utils.getBoundsFromPoints(Utils.getRotatedCorners(this.getBounds(shape), shape.rotation))
+    return Utils.getRotatedEllipseBounds(
+      shape.point[0],
+      shape.point[1],
+      shape.radius[0],
+      shape.radius[1],
+      shape.rotation
+    )
   },
 
   getCenter(shape): number[] {
@@ -173,6 +178,7 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
 
   hitTestBounds(shape, bounds) {
     return (
+      Utils.boundsContain(bounds, this.getBounds(shape)) ||
       intersectBoundsEllipse(
         bounds,
         this.getCenter(shape),
@@ -302,7 +308,7 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
 /*                       Helpers                      */
 /* -------------------------------------------------- */
 
-function renderPath(shape: EllipseShape, boundsCenter: number[]) {
+function getEllipsePath(shape: EllipseShape, boundsCenter: number[]) {
   const {
     style,
     id,
@@ -316,43 +322,34 @@ function renderPath(shape: EllipseShape, boundsCenter: number[]) {
 
   const strokeWidth = +getShapeStyle(style).strokeWidth
 
-  const rx = radiusX + getRandom() * strokeWidth - strokeWidth / 2
-  const ry = radiusY + getRandom() * strokeWidth - strokeWidth / 2
+  const rx = radiusX + getRandom() * strokeWidth * 2
+  const ry = radiusY + getRandom() * strokeWidth * 2
 
   const points: number[][] = []
+
   const start = Math.PI + Math.PI * getRandom()
 
-  const overlap = Math.PI / 12
+  const extra = Math.abs(getRandom())
 
-  for (let i = 2; i < 8; i++) {
-    const rads = start + overlap * 2 * (i / 8)
-    const x = rx * Math.cos(rads) + center[0]
-    const y = ry * Math.sin(rads) + center[1]
-    points.push([x, y])
-  }
+  const perimeter = Utils.perimeterOfEllipse(rx, ry)
 
-  for (let i = 5; i < 32; i++) {
-    const t = i / 35
-    const rads = start + overlap * 2 + Math.PI * 2.5 * (t * t * t)
-    const x = rx * Math.cos(rads) + center[0]
-    const y = ry * Math.sin(rads) + center[1]
-    points.push([x, y])
-  }
+  const count = Math.max(16, perimeter / 10)
 
-  for (let i = 0; i < 8; i++) {
-    const rads = start + overlap * 2 * (i / 4)
-    const x = rx * Math.cos(rads) + center[0]
-    const y = ry * Math.sin(rads) + center[1]
-    points.push([x, y])
+  for (let i = 0; i < count; i++) {
+    const t = EASINGS.easeInOutSine(i / (count + 1))
+    const rads = start * 2 + Math.PI * (2 + extra) * t
+    const c = Math.cos(rads)
+    const s = Math.sin(rads)
+    points.push([rx * c + center[0], ry * s + center[1], t + 0.5 + getRandom() / 2])
   }
 
   const stroke = getStroke(points, {
-    size: 1 + strokeWidth,
-    thinning: 0.6,
-    easing: (t) => t * t * t * t,
-    end: { taper: strokeWidth * 20 },
-    start: { taper: strokeWidth * 20 },
-    simulatePressure: false,
+    size: 1 + strokeWidth * 2,
+    thinning: 0.5,
+    end: { taper: perimeter / 8 },
+    start: { taper: perimeter / 12 },
+    streamline: 0,
+    simulatePressure: true,
   })
 
   return Utils.getSvgPathFromStroke(stroke)
