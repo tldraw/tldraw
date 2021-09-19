@@ -22,7 +22,7 @@
           ],
           "rotation": 0,
           "style": {
-            "color": "Yellow",
+            "color": "Red",
             "size": "Medium",
             "isFilled": true,
             "dash": "Draw"
@@ -589,7 +589,7 @@
               0.5
             ]
           ],
-          "rotation": 0.05095625977030771,
+          "rotation": 3.1425369675603605,
           "style": {
             "color": "Black",
             "size": "Medium",
@@ -893,7 +893,7 @@
         ],
         "zoom": 1
       },
-      "boundsRotation": 1.4960394162623647
+      "boundsRotation": 4.5876201240524175
     },
     "page1": {
       "id": "page1",
