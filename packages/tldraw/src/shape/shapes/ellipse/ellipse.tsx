@@ -48,7 +48,7 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
       const path = getEllipsePath(shape, this.getCenter(shape))
 
       return (
-        <SVGContainer ref={ref} {...events}>
+        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           {isBinding && (
             <ellipse
               className="tl-binding-indicator"
@@ -91,10 +91,10 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
       4
     )
 
-    const sw = strokeWidth * 1.618
+    const sw = 1 + strokeWidth * 2
 
     return (
-      <SVGContainer ref={ref} {...events}>
+      <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
         {isBinding && (
           <ellipse
             className="tl-binding-indicator"
@@ -133,8 +133,6 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
 
     const sw = strokeWidth
 
-    // TODO Improve indicator shape for drawn shapes, which are
-    // intentionally not perfect circles.
     return <ellipse cx={rx} cy={ry} rx={rx - sw / 2} ry={ry - sw / 2} />
   },
 

@@ -43,7 +43,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
       const pathData = Utils.getFromCache(pathCache, shape.size, () => getRectanglePath(shape))
 
       return (
-        <SVGContainer ref={ref} {...events}>
+        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           {isBinding && (
             <rect
               className="tl-binding-indicator"
@@ -74,7 +74,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
       )
     }
 
-    const sw = strokeWidth * 1.618
+    const sw = 1 + strokeWidth * 2
 
     const w = Math.max(0, size[0] - sw / 2)
     const h = Math.max(0, size[1] - sw / 2)
@@ -110,7 +110,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
     })
 
     return (
-      <SVGContainer ref={ref} {...events}>
+      <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
         {isBinding && (
           <rect
             className="tl-binding-indicator"
@@ -126,7 +126,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
           width={w}
           height={h}
           fill={styles.fill}
-          stroke="transparent"
+          stroke="none"
           strokeWidth={sw}
           pointerEvents="all"
         />

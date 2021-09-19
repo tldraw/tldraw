@@ -78,8 +78,6 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
 
     const isDraw = style.dash === DashStyle.Draw
 
-    // TODO: Improve drawn arrows
-
     const isStraightLine = Vec.dist(bend.point, Vec.round(Vec.med(start.point, end.point))) < 1
 
     const styles = getShapeStyle(style, meta.isDarkMode)
@@ -90,6 +88,8 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
 
     const arrowHeadLength = Math.min(arrowDist / 3, strokeWidth * 8)
 
+    const sw = isDraw ? strokeWidth * 2 : 1 + strokeWidth * 2
+
     let shaftPath: JSX.Element | null
     let startArrowHead: { left: number[]; right: number[] } | undefined
     let endArrowHead: { left: number[]; right: number[] } | undefined
@@ -99,8 +99,6 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
     const easing = EASINGS[getRandom() > 0 ? 'easeInOutSine' : 'easeInOutCubic']
 
     if (isStraightLine) {
-      const sw = strokeWidth * (isDraw ? 1.25 : 2)
-
       const path = isDraw
         ? renderFreehandArrowShaft(shape, arrowDist, easing)
         : 'M' + Vec.round(start.point) + 'L' + Vec.round(end.point)
@@ -138,7 +136,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
               d={path}
               fill={styles.stroke}
               stroke={styles.stroke}
-              strokeWidth={sw}
+              strokeWidth={isDraw ? 0 : sw}
               strokeDasharray={strokeDasharray}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
@@ -149,8 +147,6 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
         ) : null
     } else {
       const circle = getCtp(shape)
-
-      const sw = strokeWidth * (isDraw ? 1 : 2)
 
       const { center, radius, length } = getArrowArc(shape)
 
@@ -191,8 +187,8 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
           <path
             d={path}
             fill="none"
-            stroke="transparent"
-            strokeWidth={Math.max(8, strokeWidth * 2)}
+            stroke="none"
+            strokeWidth={Math.max(8, sw)}
             strokeDasharray="none"
             strokeDashoffset="none"
             strokeLinecap="round"
@@ -203,7 +199,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
             d={path}
             fill={isDraw ? styles.stroke : 'none'}
             stroke={styles.stroke}
-            strokeWidth={sw}
+            strokeWidth={isDraw ? 0 : sw}
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
@@ -214,10 +210,8 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
       )
     }
 
-    const sw = strokeWidth * 2
-
     return (
-      <SVGContainer ref={ref} {...events}>
+      <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
         <g pointerEvents="none">
           {shaftPath}
           {startArrowHead && (
@@ -297,6 +291,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
     const { start, end, bend } = shape.handles
 
     const sp = Vec.add(shape.point, start.point)
+
     const ep = Vec.add(shape.point, end.point)
 
     if (Utils.pointInBounds(sp, brushBounds) || Utils.pointInBounds(ep, brushBounds)) {
@@ -307,6 +302,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
       return intersectLineSegmentBounds(sp, ep, brushBounds).length > 0
     } else {
       const [cx, cy, r] = getCtp(shape)
+
       const cp = Vec.add(shape.point, [cx, cy])
 
       return intersectArcBounds(cp, r, sp, ep, brushBounds).length > 0
@@ -322,7 +318,9 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
 
     handles.forEach((handle) => {
       const [x, y] = nextHandles[handle].point
+
       const nw = x / initialShapeBounds.width
+
       const nh = y / initialShapeBounds.height
 
       nextHandles[handle] = {
@@ -394,6 +392,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
 
   onBindingChange(shape, binding: ArrowBinding, target, targetBounds, center) {
     const handle = shape.handles[binding.meta.handleId as keyof ArrowShape['handles']]
+
     const expandedBounds = Utils.expandBounds(targetBounds, 32)
 
     // The anchor is the "actual" point in the target shape
@@ -483,10 +482,15 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
     Object.values(handles).forEach((handle) => {
       if ((handle.id === 'start' || handle.id === 'end') && shiftKey) {
         const point = handle.point
+
         const other = handle.id === 'start' ? shape.handles.end : shape.handles.start
+
         const angle = Vec.angle(other.point, point)
+
         const distance = Vec.dist(other.point, point)
+
         const newAngle = Utils.snapAngleToSegments(angle, 24)
+
         handle.point = Vec.nudgeAtAngle(other.point, newAngle, distance)
       }
     })
@@ -508,8 +512,11 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
       const { start, end, bend } = nextHandles
 
       const distance = Vec.dist(start.point, end.point)
+
       const midPoint = Vec.med(start.point, end.point)
+
       const angle = Vec.angle(start.point, end.point)
+
       const u = Vec.uni(Vec.vec(start.point, end.point))
 
       // Create a line segment perendicular to the line between the start and end points
@@ -557,6 +564,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
     // is below zero, we need to move the shape left or up to make it zero.
 
     const topLeft = shape.point
+
     const nextBounds = this.getBounds({ ...nextShape } as ArrowShape)
 
     const offset = Vec.sub([nextBounds.minX, nextBounds.minY], topLeft)
@@ -597,8 +605,11 @@ function getBendPoint(handles: ArrowShape['handles'], bend: number) {
   const { start, end } = handles
 
   const dist = Vec.dist(start.point, end.point)
+
   const midPoint = Vec.med(start.point, end.point)
+
   const bendDist = (dist / 2) * bend
+
   const u = Vec.uni(Vec.vec(start.point, end.point))
 
   const point = Vec.round(
@@ -614,6 +625,7 @@ function renderFreehandArrowShaft(
   easing: (t: number) => number
 ) {
   const { style, id } = shape
+
   const { start, end } = shape.handles
 
   const getRandom = Utils.rng(id)
@@ -625,14 +637,12 @@ function renderFreehandArrowShaft(
   const stroke = getStroke(
     [...Vec.pointsBetween(start.point, end.point, count, easing), end.point, end.point, end.point],
     {
-      size: strokeWidth * 2,
+      size: strokeWidth * 3,
       thinning: 0.618 + getRandom() * 0.2,
       start: shape.decorations?.start
-        ? { taper: length / 2 + 0.25 * Math.abs(getRandom()) }
+        ? { taper: 32 + 0.25 * Math.abs(getRandom()) }
         : { cap: true },
-      end: shape.decorations?.end
-        ? { taper: length / 2 + 0.25 * Math.abs(getRandom()) }
-        : { cap: true },
+      end: shape.decorations?.end ? { taper: 32 + 0.25 * Math.abs(getRandom()) } : { cap: true },
       easing: EASINGS.easeOutQuad,
       simulatePressure: true,
       smoothing: 0,
@@ -653,6 +663,7 @@ function renderCurvedFreehandArrowShaft(
   easing: (t: number) => number
 ) {
   const { style, id } = shape
+
   const { start, end } = shape.handles
 
   const getRandom = Utils.rng(id)
@@ -660,6 +671,7 @@ function renderCurvedFreehandArrowShaft(
   const strokeWidth = getShapeStyle(style).strokeWidth
 
   const center = [circle[0], circle[1]]
+
   const radius = circle[2]
 
   const startAngle = Vec.angle(center, start.point)
@@ -672,17 +684,17 @@ function renderCurvedFreehandArrowShaft(
 
   for (let i = 0; i < count + 1; i++) {
     const t = easing(i / count)
+
     const angle = Utils.lerpAngles(startAngle, endAngle, t)
+
     points.push(Vec.round(Vec.nudgeAtAngle(center, angle, radius)))
   }
 
   const stroke = getStroke([...points, end.point, end.point, end.point], {
-    size: strokeWidth * 2,
+    size: strokeWidth * 3,
     thinning: 0.618 + getRandom() * 0.2,
-    start: shape.decorations?.start
-      ? { taper: length * (0.5 * Math.abs(getRandom())) }
-      : { cap: true },
-    end: shape.decorations?.end ? { taper: length * (0.5 * Math.abs(getRandom())) } : { cap: true },
+    start: shape.decorations?.start ? { taper: 32 + 0.25 * Math.abs(getRandom()) } : { cap: true },
+    end: shape.decorations?.end ? { taper: 32 + 0.25 * Math.abs(getRandom()) } : { cap: true },
     easing: EASINGS.easeOutQuad,
     simulatePressure: true,
     streamline: 0,
@@ -702,9 +714,13 @@ function getCtp(shape: ArrowShape) {
 
 function getArrowArc(shape: ArrowShape) {
   const { start, end, bend } = shape.handles
+
   const [cx, cy, radius] = Utils.circleFromThreePoints(start.point, end.point, bend.point)
+
   const center = [cx, cy]
+
   const length = Utils.getArcLength(center, radius, start.point, end.point)
+
   return { center, radius, length }
 }
 
@@ -722,8 +738,11 @@ function getCurvedArrowHeadPoints(
   }
 
   const int = sweep ? ints[0] : ints[1]
+
   const left = int ? Vec.nudge(Vec.rotWith(int, A, Math.PI / 6), A, r1 * -0.382) : A
+
   const right = int ? Vec.nudge(Vec.rotWith(int, A, -Math.PI / 6), A, r1 * -0.382) : A
+
   return { left, right }
 }
 
@@ -735,18 +754,22 @@ function getStraightArrowHeadPoints(A: number[], B: number[], r: number) {
   }
 
   const int = ints[0]
+
   const left = int ? Vec.rotWith(int, A, Math.PI / 6) : A
+
   const right = int ? Vec.rotWith(int, A, -Math.PI / 6) : A
   return { left, right }
 }
 
 function getCurvedArrowHeadPath(A: number[], r1: number, C: number[], r2: number, sweep: boolean) {
   const { left, right } = getCurvedArrowHeadPoints(A, r1, C, r2, sweep)
+
   return `M ${left} L ${A} ${right}`
 }
 
 function getStraightArrowHeadPath(A: number[], B: number[], r: number) {
   const { left, right } = getStraightArrowHeadPoints(A, B, r)
+
   return `M ${left} L ${A} ${right}`
 }
 
@@ -802,12 +825,15 @@ function getArrowPath(shape: ArrowShape) {
 
 function getArcPoints(shape: ArrowShape) {
   const { start, bend, end } = shape.handles
+
   const points: number[][] = [start.point, end.point]
 
   if (Vec.dist2(bend.point, Vec.med(start.point, end.point)) > 4) {
     // We're an arc, calculate points along the arc
     const { center, radius } = getArrowArc(shape)
+
     const startAngle = Vec.angle(center, start.point)
+
     const endAngle = Vec.angle(center, end.point)
 
     for (let i = 1 / 20; i < 1; i += 1 / 20) {

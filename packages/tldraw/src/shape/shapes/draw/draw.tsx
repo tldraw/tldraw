@@ -55,7 +55,7 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
       const sw = strokeWidth * 0.618
 
       return (
-        <SVGContainer ref={ref} {...events}>
+        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           <circle
             r={strokeWidth * 0.618}
             fill={styles.stroke}
@@ -74,7 +74,7 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
 
     if (shape.style.dash === DashStyle.Draw) {
       return (
-        <SVGContainer ref={ref} {...events}>
+        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           {shouldFill && (
             <path
               d={polygonPathData}
@@ -114,14 +114,14 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
       [DashStyle.Dashed]: `-${strokeWidth}`,
     }[style.dash]
 
-    const sw = strokeWidth * 1.618
+    const sw = 1 + strokeWidth * 2
 
     return (
-      <SVGContainer ref={ref} {...events}>
+      <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
         <path
           d={pathData}
           fill={shouldFill ? styles.fill : 'none'}
-          stroke="transparent"
+          stroke="none"
           strokeWidth={Math.min(4, strokeWidth * 2)}
           strokeLinejoin="round"
           strokeLinecap="round"
@@ -129,7 +129,7 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
         />
         <path
           d={pathData}
-          fill="transparent"
+          fill="none"
           stroke={styles.stroke}
           strokeWidth={sw}
           strokeDasharray={strokeDasharray}

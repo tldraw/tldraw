@@ -164,6 +164,7 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
       <HTMLContainer ref={ref} {...events}>
         <StyledWrapper isEditing={isEditing} onPointerDown={handlePointerDown}>
           <StyledTextArea
+            id={shape.id + '_svg'}
             ref={rInput}
             style={{
               font,

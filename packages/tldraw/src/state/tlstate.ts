@@ -918,9 +918,14 @@ export class TLDrawState extends StateManager<Data> {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
 
     ids.forEach((id) => {
-      const elm = document.getElementById(id)
+      const elm = document.getElementById(id + '_svg')
+
+      // TODO: Create SVG elements for text
+
       if (elm) {
-        const clone = elm?.cloneNode(true)
+        const clone = elm?.cloneNode(true) as SVGElement
+        const shape = this.getShape(id, pageId)
+        clone.setAttribute('transform', `translate(${shape.point})`)
         svg.appendChild(clone)
       }
     })
