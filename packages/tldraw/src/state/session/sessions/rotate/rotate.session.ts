@@ -134,8 +134,6 @@ export function getRotateSnapshot(data: Data) {
       throw Error('No selected shapes!')
     }
 
-    console.log('getting a new common bounds center')
-
     const shapesBounds = Object.fromEntries(
       initialShapes.map((shape) => [shape.id, TLDR.getBounds(shape)])
     )
