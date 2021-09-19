@@ -86,20 +86,42 @@ export const Group = new ShapeUtil<GroupShape, SVGSVGElement, TLDrawMeta>(() => 
   },
 
   Indicator({ shape }) {
-    const [width, height] = shape.size
+    const { id, size } = shape
 
     const sw = 2
+    const w = Math.max(0, size[0] - sw / 2)
+    const h = Math.max(0, size[1] - sw / 2)
 
-    return (
-      <rect
-        x={sw / 2}
-        y={sw / 2}
-        rx={1}
-        ry={1}
-        width={Math.max(1, width - sw)}
-        height={Math.max(1, height - sw)}
-      />
-    )
+    const strokes: [number[], number[], number][] = [
+      [[sw / 2, sw / 2], [w, sw / 2], w - sw / 2],
+      [[w, sw / 2], [w, h], h - sw / 2],
+      [[w, h], [sw / 2, h], w - sw / 2],
+      [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
+    ]
+
+    const paths = strokes.map(([start, end, length], i) => {
+      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+        length,
+        sw,
+        DashStyle.Dotted
+      )
+
+      return (
+        <line
+          key={id + '_' + i}
+          x1={start[0]}
+          y1={start[1]}
+          x2={end[0]}
+          y2={end[1]}
+          strokeWidth={sw}
+          strokeLinecap="round"
+          strokeDasharray={strokeDasharray}
+          strokeDashoffset={strokeDashoffset}
+        />
+      )
+    })
+
+    return <g>{paths}</g>
   },
 
   shouldRender(prev, next) {

@@ -10,7 +10,7 @@ import { EASINGS } from '~state/utils'
 const pointsBoundsCache = new WeakMap<DrawShape['points'], TLBounds>([])
 const shapeBoundsCache = new Map<string, TLBounds>()
 const rotatedCache = new WeakMap<DrawShape, number[][]>([])
-const pointCache = new WeakSet<DrawShape['point']>([])
+const pointCache: Record<string, number[]> = {}
 
 export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Draw,
@@ -167,17 +167,17 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
     // previous bounds-from-points result if we can.
 
     const pointsHaveChanged = !pointsBoundsCache.has(shape.points)
-    const pointHasChanged = !pointCache.has(shape.point)
+    const pointHasChanged = !(pointCache[shape.id] === shape.point)
 
     if (pointsHaveChanged) {
       // If the points have changed, then bust the points cache
       const bounds = Utils.getBoundsFromPoints(shape.points)
       pointsBoundsCache.set(shape.points, bounds)
       shapeBoundsCache.set(shape.id, Utils.translateBounds(bounds, shape.point))
-      pointCache.add(shape.point)
+      pointCache[shape.id] = shape.point
     } else if (pointHasChanged && !pointsHaveChanged) {
       // If the point have has changed, then bust the point cache
-      pointCache.add(shape.point)
+      pointCache[shape.id] = shape.point
       shapeBoundsCache.set(
         shape.id,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

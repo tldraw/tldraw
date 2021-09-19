@@ -348,11 +348,11 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
 
     nextHandles['bend'] = {
       ...bend,
-      point: Math.abs(bendDist) < 10 ? midPoint : point,
+      point: Vec.round(Math.abs(bendDist) < 10 ? midPoint : point),
     }
 
     return {
-      point: [bounds.minX, bounds.minY],
+      point: Vec.round([bounds.minX, bounds.minY]),
       handles: nextHandles,
     }
   },
@@ -486,7 +486,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
         const other = handle.id === 'start' ? shape.handles.end : shape.handles.start
         const angle = Vec.angle(other.point, point)
         const distance = Vec.dist(other.point, point)
-        const newAngle = Utils.clampToRotationToSegments(angle, 24)
+        const newAngle = Utils.snapAngleToSegments(angle, 24)
         handle.point = Vec.nudgeAtAngle(other.point, newAngle, distance)
       }
     })
