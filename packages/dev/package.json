@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/dev",
-  "version": "0.0.95",
+  "version": "0.0.96",
   "private": true,
   "description": "A tiny little drawing app (dev)",
   "author": "@steveruizok",
@@ -19,12 +19,12 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@tldraw/tldraw": "^0.0.95",
+    "@tldraw/tldraw": "^0.0.96",
     "idb": "^6.1.2",
-    "react-router": "^5.2.1",
-    "react-router-dom": "^5.3.0",
     "react": ">=16.8",
-    "react-dom": "^16.8 || ^17.0"
+    "react-dom": "^16.8 || ^17.0",
+    "react-router": "^5.2.1",
+    "react-router-dom": "^5.3.0"
   },
   "devDependencies": {
     "@types/node": "^14.14.35",
