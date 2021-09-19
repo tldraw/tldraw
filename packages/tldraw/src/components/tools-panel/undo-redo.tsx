@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useTLDrawContext } from '~hooks'
-import { TertiaryButton, TertiaryButtonsContainer } from './styled'
+import { TertiaryButton, tertiaryButtonsContainer } from './styled'
 import { Undo, Redo, Trash } from '../icons'
 
 export const UndoRedo = React.memo((): JSX.Element => {
@@ -15,7 +15,7 @@ export const UndoRedo = React.memo((): JSX.Element => {
   }, [tlstate])
 
   return (
-    <TertiaryButtonsContainer bp={{ '@initial': 'mobile', '@sm': 'small' }}>
+    <div className={tertiaryButtonsContainer({ bp: { '@initial': 'mobile', '@sm': 'small' } })}>
       <TertiaryButton label="Undo" kbd="#Z" onClick={tlstate.undo}>
         <Undo />
       </TertiaryButton>
@@ -25,6 +25,6 @@ export const UndoRedo = React.memo((): JSX.Element => {
       <TertiaryButton label="Delete" kbd="⌫" onClick={handleDelete} onDoubleClick={handleClear}>
         <Trash />
       </TertiaryButton>
-    </TertiaryButtonsContainer>
+    </div>
   )
 })

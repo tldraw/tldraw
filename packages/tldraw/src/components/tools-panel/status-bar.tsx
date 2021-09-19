@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useTLDrawContext } from '~hooks'
 import type { Data } from '~types'
-import styled from '~styles'
+import css from '~styles'
 
 const statusSelector = (s: Data) => s.appState.status.current
 const activeToolSelector = (s: Data) => s.appState.activeTool
@@ -12,15 +12,15 @@ export function StatusBar(): JSX.Element | null {
   const activeTool = useSelector(activeToolSelector)
 
   return (
-    <StatusBarContainer size={{ '@sm': 'small' }}>
-      <Section>
+    <div className={statusBarContainer({ size: { '@sm': 'small' } })}>
+      <div className={section()}>
         {activeTool} | {status}
-      </Section>
-    </StatusBarContainer>
+      </div>
+    </div>
   )
 }
 
-const StatusBarContainer = styled('div', {
+const statusBarContainer = css({
   height: 40,
   userSelect: 'none',
   borderTop: '1px solid $border',
@@ -44,7 +44,7 @@ const StatusBarContainer = styled('div', {
   },
 })
 
-const Section = styled('div', {
+const section = css({
   whiteSpace: 'nowrap',
   overflow: 'hidden',
 })

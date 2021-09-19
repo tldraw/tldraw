@@ -6,8 +6,8 @@ import {
   DashDottedIcon,
   DashSolidIcon,
   DashDashedIcon,
-  StyleDropdownContent,
-  StyleDropdownItem,
+  dropdownContent,
+  dropdownItem,
 } from './styled'
 import { useTLDrawContext } from '~hooks'
 import { DashStyle, Data } from '~types'
@@ -36,16 +36,14 @@ export const QuickDashSelect = React.memo((): JSX.Element => {
       <DropdownMenuIconTriggerButton label="Dash">{dashes[dash]}</DropdownMenuIconTriggerButton>
       <DropdownMenu.Content sideOffset={8}>
         <DropdownMenu.DropdownMenuRadioGroup
-          as={StyleDropdownContent}
-          direction="vertical"
+          className={dropdownContent({ direction: 'vertical' })}
           value={dash}
           onValueChange={changeDashStyle}
         >
           {Object.keys(DashStyle).map((dashStyle: string) => (
             <DropdownMenu.DropdownMenuRadioItem
-              as={StyleDropdownItem}
+              className={dropdownItem({ isActive: dash === dashStyle })}
               key={dashStyle}
-              isActive={dash === dashStyle}
               value={dashStyle}
             >
               {dashes[dashStyle as DashStyle]}

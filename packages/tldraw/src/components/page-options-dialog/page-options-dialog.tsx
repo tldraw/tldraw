@@ -3,11 +3,11 @@ import * as Dialog from '@radix-ui/react-alert-dialog'
 import { MixerVerticalIcon } from '@radix-ui/react-icons'
 import {
   breakpoints,
-  IconButton,
-  DialogOverlay,
-  DialogContent,
-  RowButton,
-  Divider,
+  iconButton,
+  dialogOverlay,
+  dialogContent,
+  rowButton,
+  divider,
 } from '~components/shared'
 import type { Data, TLDrawPage } from '~types'
 import { useTLDrawContext } from '~hooks'
@@ -76,30 +76,30 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
-      <Dialog.Trigger as={IconButton} bp={breakpoints} size="small" data-shy="true">
+      <Dialog.Trigger className={iconButton({ bp: breakpoints, size: 'small' })} data-shy="true">
         <MixerVerticalIcon />
       </Dialog.Trigger>
-      <Dialog.Overlay as={DialogOverlay} />
-      <Dialog.Content as={DialogContent} onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
-        <Dialog.Action as={RowButton} bp={breakpoints} onClick={handleRename}>
+      <Dialog.Overlay className={dialogOverlay()} />
+      <Dialog.Content
+        className={dialogContent()}
+        onKeyDown={stopPropagation}
+        onKeyUp={stopPropagation}
+      >
+        <Dialog.Action className={rowButton({ bp: breakpoints })} onClick={handleRename}>
           Rename
         </Dialog.Action>
-        <Dialog.Action as={RowButton} bp={breakpoints} onClick={handleDuplicate}>
+        <Dialog.Action className={rowButton({ bp: breakpoints })} onClick={handleDuplicate}>
           Duplicate
         </Dialog.Action>
         <Dialog.Action
-          as={RowButton}
-          bp={breakpoints}
+          className={rowButton({ bp: breakpoints, warn: true })}
           disabled={!canDelete}
           onClick={handleDelete}
-          warn={true}
         >
           Delete
         </Dialog.Action>
-        <Divider />
-        <Dialog.Cancel as={RowButton} bp={breakpoints}>
-          Cancel
-        </Dialog.Cancel>
+        <div className={divider()} />
+        <Dialog.Cancel className={rowButton({ bp: breakpoints })}>Cancel</Dialog.Cancel>
       </Dialog.Content>
     </Dialog.Root>
   )

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { DropdownMenuIconTriggerButton } from '../shared/dropdown-menu'
 import { CircleIcon } from '../icons'
-import { StyleDropdownContent, StyleDropdownItem } from './styled'
+import { dropdownContent, dropdownItem } from './styled'
 import { Data, SizeStyle } from '~types'
 import { useTLDrawContext } from '~hooks'
 
@@ -31,16 +31,14 @@ export const QuickSizeSelect = React.memo((): JSX.Element => {
       </DropdownMenuIconTriggerButton>
       <DropdownMenu.Content sideOffset={8}>
         <DropdownMenu.DropdownMenuRadioGroup
-          as={StyleDropdownContent}
-          direction="vertical"
+          className={dropdownContent({ direction: 'vertical' })}
           value={size}
           onValueChange={changeSizeStyle}
         >
           {Object.keys(SizeStyle).map((sizeStyle: string) => (
             <DropdownMenu.DropdownMenuRadioItem
               key={sizeStyle}
-              as={StyleDropdownItem}
-              isActive={size === sizeStyle}
+              className={dropdownItem({ isActive: size === sizeStyle })}
               value={sizeStyle}
             >
               <CircleIcon size={sizes[sizeStyle as SizeStyle]} />

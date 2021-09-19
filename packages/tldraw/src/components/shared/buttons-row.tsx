@@ -1,10 +1,10 @@
-import styled from '~styles'
+import css from '~styles'
 
 /* -------------------------------------------------- */
 /*                     Buttons Row                    */
 /* -------------------------------------------------- */
 
-export const ButtonsRow = styled('div', {
+export const buttonsRow = css({
   position: 'relative',
   display: 'flex',
   width: '100%',

@@ -4,7 +4,7 @@ import { HTMLContainer, TLBounds, Utils, ShapeUtil } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { getShapeStyle, getFontStyle, defaultStyle } from '~shape/shape-styles'
 import { TextShape, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
-import styled from '~styles'
+import css from '~styles'
 import TextAreaUtils from './text-utils'
 
 const LETTER_SPACING = -1.5
@@ -162,9 +162,9 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
 
     return (
       <HTMLContainer ref={ref} {...events}>
-        <StyledWrapper isEditing={isEditing} onPointerDown={handlePointerDown}>
-          <StyledTextArea
-            id={shape.id + '_svg'}
+        <div className={wrapper({ isEditing })} onPointerDown={handlePointerDown}>
+          <textarea
+            className={textArea({ isEditing, isBinding })}
             ref={rInput}
             style={{
               font,
@@ -185,14 +185,12 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
             onKeyDown={handleKeyDown}
             onPointerDown={handlePointerDown}
             autoFocus={isEditing}
-            isEditing={isEditing}
-            isBinding={isBinding}
             readOnly={!isEditing}
             wrap="off"
             dir="auto"
             datatype="wysiwyg"
           />
-        </StyledWrapper>
+        </div>
       </HTMLContainer>
     )
   },
@@ -298,7 +296,7 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
 /*                       Helpers                      */
 /* -------------------------------------------------- */
 
-const StyledWrapper = styled('div', {
+const wrapper = css({
   width: '100%',
   height: '100%',
   variants: {
@@ -313,7 +311,7 @@ const StyledWrapper = styled('div', {
   },
 })
 
-const StyledTextArea = styled('textarea', {
+const textArea = css({
   position: 'absolute',
   top: 'var(--tl-padding)',
   left: 'var(--tl-padding)',

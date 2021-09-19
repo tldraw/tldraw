@@ -3,9 +3,10 @@
 /* --------------------- Primary -------------------- */
 
 import type React from 'react'
-import type { ForwardedRef } from 'react'
 
 export type Patch<T> = Partial<{ [P in keyof T]: T | Partial<T> | Patch<T[P]> }>
+
+type ForwardedRef<T> = ((instance: T | null) => void) | React.MutableRefObject<T | null> | null
 
 export interface TLPage<T extends TLShape, B extends TLBinding> {
   id: string
@@ -296,7 +297,7 @@ export type TLShapeUtil<
   Component(
     this: TLShapeUtil<T, E, M>,
     props: TLRenderInfo<T, E, M>,
-    ref: React.ForwardedRef<E>
+    ref: ForwardedRef<E>
   ): React.ReactElement<TLRenderInfo<T, E, M>, E['tagName']>
 
   Indicator(

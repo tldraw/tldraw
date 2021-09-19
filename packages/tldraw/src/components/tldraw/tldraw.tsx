@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
-import styled from '~styles'
+import css from '~styles'
 import { Data, TLDrawDocument, TLDrawStatus } from '~types'
 import { TLDrawState } from '~state'
 import { TLDrawContext, useCustomFonts, useKeyboardShortcuts, useTLDrawContext } from '~hooks'
@@ -146,7 +146,7 @@ function InnerTldraw({
   }, [currentPageId, tlstate])
 
   return (
-    <Layout>
+    <div className={layout()}>
       <ContextMenu>
         <Renderer
           page={page}
@@ -205,18 +205,18 @@ function InnerTldraw({
           onMount={tlstate.handleMount}
         />
       </ContextMenu>
-      <MenuButtons>
+      <div className={menuButtons()}>
         <Menu />
         <PagePanel />
-      </MenuButtons>
-      <Spacer />
+      </div>
+      <div className={spacer()} />
       <StylePanel />
       <ToolsPanel />
-    </Layout>
+    </div>
   )
 }
 
-const Layout = styled('div', {
+const layout = css({
   position: 'absolute',
   height: '100%',
   width: '100%',
@@ -245,11 +245,11 @@ const Layout = styled('div', {
   },
 })
 
-const Spacer = styled('div', {
+const spacer = css({
   flexGrow: 2,
 })
 
-const MenuButtons = styled('div', {
+const menuButtons = css({
   display: 'flex',
   gap: 8,
 })
