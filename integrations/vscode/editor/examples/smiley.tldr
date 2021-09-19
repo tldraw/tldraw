@@ -22,7 +22,7 @@
           ],
           "rotation": 0,
           "style": {
-            "color": "Yellow",
+            "color": "Red",
             "size": "Medium",
             "isFilled": true,
             "dash": "Draw"
@@ -589,7 +589,7 @@
               0.5
             ]
           ],
-          "rotation": 0.01936435243908452,
+          "rotation": 3.1907724292727053,
           "style": {
             "color": "Black",
             "size": "Medium",
@@ -884,7 +884,7 @@
     "page": {
       "id": "page",
       "selectedIds": [
-        "02ed0a9e-71ef-4cde-0f1d-aa6a8509f89b"
+        "823aef1f-9742-49d7-2ee3-cff7f41c2bb9"
       ],
       "camera": {
         "point": [
@@ -893,7 +893,7 @@
         ],
         "zoom": 1
       },
-      "boundsRotation": 1.4644475089311433
+      "boundsRotation": 4.635855585764762
     },
     "page1": {
       "id": "page1",
