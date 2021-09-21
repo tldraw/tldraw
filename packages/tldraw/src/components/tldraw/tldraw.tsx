@@ -42,7 +42,7 @@ export interface TLDrawProps {
   currentPageId?: string
 
   /**
-   * (optional) Whether the editor should immediately receive focus.
+   * (optional) Whether the editor should immediately receive focus. Defaults to true.
    */
   autofocus?: boolean
   /**
@@ -55,7 +55,14 @@ export interface TLDrawProps {
   onChange?: TLDrawState['_onChange']
 }
 
-export function TLDraw({ id, document, currentPageId, autofocus, onMount, onChange }: TLDrawProps) {
+export function TLDraw({
+  id,
+  document,
+  currentPageId,
+  autofocus = true,
+  onMount,
+  onChange,
+}: TLDrawProps) {
   const [sId, setSId] = React.useState(id)
 
   const [tlstate, setTlstate] = React.useState(() => new TLDrawState(id, onChange, onMount))
