@@ -21,8 +21,8 @@ export function getHtmlForWebview(context: vscode.ExtensionContext, webview: vsc
     documentContent = "null";
   }
 
-  // return getDevModeHTML(context, webview, documentContent);
-  return getProductionModeHTML(context, webview, documentContent);
+  return getDevModeHTML(context, webview, documentContent);
+  // return getProductionModeHTML(context, webview, documentContent);
 }
 
 /**

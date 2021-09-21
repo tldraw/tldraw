@@ -1,6 +1,8 @@
 import * as vscode from 'vscode'
 import {getHtmlForWebview} from './get-html'
 
+console.log("tldraw extension loaded")
+
 /**
  * The Tldraw extension's editor uses CustomTextEditorProvider, which means
  * it's underlying model from VS Code's perspective is a text file. We likely
@@ -173,6 +175,11 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
           this.synchronizeTextDocument(document, JSON.parse(e.text))
           break;
       }
+    })
+
+    webviewPanel.onDidChangeViewState((e)=>{
+      console.log("onDidChangeViewState");
+      console.log(e);
     })
 
     // Send the initial document content to bootstrap the tldraw/tldraw component.

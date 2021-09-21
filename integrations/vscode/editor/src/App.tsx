@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useCallback } from "react";
 import "./styles.css";
 import { TLDraw, Data, TLDrawState, TLDrawDocument } from "@tldraw/tldraw";
 import defaultDocument from "./DefaultDocument";
@@ -13,7 +13,7 @@ const vscode = acquireVsCodeApi();
 // that stores the initial text content of the .tldr file
 // TODO: Figure out where to declare this more by convention
 // declare const initialDocument: string;
-declare let initialDocument: string;
+declare let initialDocument: TLDrawDocument;
 
 function postMessage(type:any,text:any = undefined){
   // Notify extension that something has changed. This ends up being called by

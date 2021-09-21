@@ -4,9 +4,8 @@
   "description": "The wardlt editor for VS Code",
   "version": "0.1.0",
   "publisher": "Wardlt",
-  "private": true,
   "engines": {
-    "vscode": "^1.52.0"
+    "vscode": "^1.60.0"
   },
   "categories": [
     "Other"
@@ -15,7 +14,9 @@
     "onCustomEditor:tldraw.tldr",
     "onCommand:tldraw.tldr.new"
   ],
+  "browser": "./dist/extension.js",
   "main": "./dist/extension.js",
+  "extensionKind": ["ui"],
   "contributes": {
     "customEditors": [
       {
