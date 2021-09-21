@@ -10,6 +10,7 @@ export default function Embedded(): JSX.Element {
           width: 'auto',
           height: '500px',
           overflow: 'hidden',
+          marginBottom: '32px',
         }}
       >
         <TLDraw id="small1" />

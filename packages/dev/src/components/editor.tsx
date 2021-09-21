@@ -14,7 +14,7 @@ export default function Editor(props: TLDrawProps): JSX.Element {
 
   return (
     <div className="tldraw">
-      <TLDraw id="tldraw" {...props} onMount={handleMount} />
+      <TLDraw id="tldraw" {...props} onMount={handleMount} autofocus />
     </div>
   )
 }

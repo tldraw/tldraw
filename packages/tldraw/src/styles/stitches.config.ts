@@ -76,15 +76,11 @@ const { css, createTheme, getCssText } = createStitches({
     transitions: {},
   },
   media: {
+    micro: '(max-width: 370px)',
     sm: '(min-width: 640px)',
     md: '(min-width: 768px)',
   },
   utils: {
-    zDash: () => (value: number) => {
-      return {
-        strokeDasharray: `calc(${value}px / var(--camera-zoom)) calc(${value}px / var(--camera-zoom))`,
-      }
-    },
     zStrokeWidth: () => (value: number | number[]) => {
       if (Array.isArray(value)) {
         return {

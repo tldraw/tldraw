@@ -14,7 +14,7 @@ export default function Editor({ id = 'home' }: EditorProps) {
 
   return (
     <div className="tldraw">
-      <TLDraw id={id} onMount={handleMount} />
+      <TLDraw id={id} onMount={handleMount} autofocus />
     </div>
   )
 }

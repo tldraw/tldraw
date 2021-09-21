@@ -40,6 +40,11 @@ export interface TLDrawProps {
    * (optional) The current page id.
    */
   currentPageId?: string
+
+  /**
+   * (optional) Whether the editor should immediately receive focus. Defaults to true.
+   */
+  autofocus?: boolean
   /**
    * (optional) A callback to run when the component mounts.
    */
@@ -50,7 +55,14 @@ export interface TLDrawProps {
   onChange?: TLDrawState['_onChange']
 }
 
-export function TLDraw({ id, document, currentPageId, onMount, onChange }: TLDrawProps) {
+export function TLDraw({
+  id,
+  document,
+  currentPageId,
+  autofocus = true,
+  onMount,
+  onChange,
+}: TLDrawProps) {
   const [sId, setSId] = React.useState(id)
 
   const [tlstate, setTlstate] = React.useState(() => new TLDrawState(id, onChange, onMount))
@@ -70,7 +82,12 @@ export function TLDraw({ id, document, currentPageId, onMount, onChange }: TLDra
   return (
     <TLDrawContext.Provider value={context}>
       <IdProvider>
-        <InnerTldraw key={sId || 'tldraw'} currentPageId={currentPageId} document={document} />
+        <InnerTldraw
+          key={sId || 'tldraw'}
+          currentPageId={currentPageId}
+          document={document}
+          autofocus={autofocus}
+        />
       </IdProvider>
     </TLDrawContext.Provider>
   )
@@ -78,16 +95,16 @@ export function TLDraw({ id, document, currentPageId, onMount, onChange }: TLDra
 
 function InnerTldraw({
   currentPageId,
+  autofocus,
   document,
 }: {
   currentPageId?: string
+  autofocus?: boolean
   document?: TLDrawDocument
 }) {
   const { tlstate, useSelector } = useTLDrawContext()
 
-  useCustomFonts()
-
-  useKeyboardShortcuts()
+  const rWrapper = React.useRef<HTMLDivElement>(null)
 
   const page = useSelector(pageSelector)
 
@@ -146,7 +163,8 @@ function InnerTldraw({
   }, [currentPageId, tlstate])
 
   return (
-    <div className={layout()}>
+    <div ref={rWrapper} className={layout()} tabIndex={0}>
+      <OneOff rWrapper={rWrapper} autofocus={autofocus} />
       <ContextMenu>
         <Renderer
           page={page}
@@ -216,6 +234,21 @@ function InnerTldraw({
   )
 }
 
+const OneOff = React.memo(
+  ({ rWrapper, autofocus }: { autofocus?: boolean; rWrapper: React.RefObject<HTMLDivElement> }) => {
+    useKeyboardShortcuts(rWrapper)
+    useCustomFonts()
+
+    React.useEffect(() => {
+      if (autofocus) {
+        rWrapper.current?.focus()
+      }
+    }, [autofocus])
+
+    return null
+  }
+)
+
 const layout = css({
   position: 'absolute',
   height: '100%',
@@ -230,9 +263,14 @@ const layout = css({
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
   boxSizing: 'border-box',
-  outline: 'none',
   pointerEvents: 'none',
+  outline: 'none',
   zIndex: 1,
+  border: '1px solid rgba(0,0,0,.1)',
+
+  '&:focus': {
+    border: '1px solid rgba(0,0,0,.2)',
+  },
 
   '& > *': {
     pointerEvents: 'all',

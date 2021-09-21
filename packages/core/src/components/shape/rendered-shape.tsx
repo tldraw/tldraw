@@ -24,6 +24,8 @@ export const RenderedShape = React.memo(
   }: RenderedShapeProps<T, E, M>) => {
     const ref = utils.getRef(shape)
 
+    // consider using layout effect to update bounds cache if the ref is filled
+
     return (
       <utils._Component
         ref={ref}

@@ -11,7 +11,9 @@ export const Wrapper: React.FC = ({ children }) => {
     return { tlstate, useSelector: tlstate.useStore }
   })
 
-  useKeyboardShortcuts()
+  const rWrapper = React.useRef<HTMLDivElement>(null)
+
+  useKeyboardShortcuts(rWrapper)
 
   React.useEffect(() => {
     if (!document) return
@@ -20,7 +22,9 @@ export const Wrapper: React.FC = ({ children }) => {
 
   return (
     <TLDrawContext.Provider value={context}>
-      <IdProvider>{children}</IdProvider>
+      <IdProvider>
+        <div ref={rWrapper}>{children}</div>
+      </IdProvider>
     </TLDrawContext.Provider>
   )
 }
