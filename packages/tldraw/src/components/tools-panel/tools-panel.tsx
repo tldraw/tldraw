@@ -116,7 +116,9 @@ export const ToolsPanel = React.memo((): JSX.Element => {
           </PrimaryButton>
         </div>
       </div>
-      <div className={rightWrap({ size: { '@initial': 'mobile', '@sm': 'small' } })}>
+      <div
+        className={rightWrap({ size: { '@initial': 'mobile', '@micro': 'micro', '@sm': 'small' } })}
+      >
         <div className={floatingContainer()}>
           <SecondaryButton
             kbd={'7'}
@@ -203,8 +205,12 @@ const rightWrap = css({
   gridColumn: 3,
   display: 'flex',
   paddingRight: '$3',
+  opacity: 1,
   variants: {
     size: {
+      micro: {
+        opacity: 0,
+      },
       mobile: {
         flexDirection: 'column-reverse',
         justifyContent: 'flex-end',
@@ -212,6 +218,7 @@ const rightWrap = css({
         '& > *:nth-of-type(2)': {
           marginBottom: '8px',
         },
+        opacity: 1,
       },
       small: {
         flexDirection: 'row',
@@ -220,6 +227,7 @@ const rightWrap = css({
         '& > *:nth-of-type(2)': {
           marginBottom: '0px',
         },
+        opacity: 1,
       },
     },
   },

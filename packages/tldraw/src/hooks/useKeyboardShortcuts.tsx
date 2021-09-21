@@ -6,13 +6,18 @@ import { useTLDrawContext } from '~hooks'
 export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   const { tlstate } = useTLDrawContext()
 
+  const canHandleEvent = React.useCallback(() => {
+    const elm = ref.current
+    return elm && (document.activeElement === elm || elm.contains(document.activeElement))
+  }, [ref])
+
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      tlstate.onKeyDown(e.key)
+      if (canHandleEvent()) tlstate.onKeyDown(e.key)
     }
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      tlstate.onKeyUp(e.key)
+      if (canHandleEvent()) tlstate.onKeyUp(e.key)
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -23,11 +28,6 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
       window.removeEventListener('keyup', handleKeyUp)
     }
   }, [tlstate])
-
-  const canHandleEvent = React.useCallback(() => {
-    const elm = ref.current
-    return elm && (document.activeElement === elm || elm.contains(document.activeElement))
-  }, [ref])
 
   /* ---------------------- Tools --------------------- */
 

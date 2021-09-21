@@ -40,6 +40,11 @@ export interface TLDrawProps {
    * (optional) The current page id.
    */
   currentPageId?: string
+
+  /**
+   * (optional) Whether the editor should immediately receive focus.
+   */
+  autofocus?: boolean
   /**
    * (optional) A callback to run when the component mounts.
    */
@@ -50,7 +55,7 @@ export interface TLDrawProps {
   onChange?: TLDrawState['_onChange']
 }
 
-export function TLDraw({ id, document, currentPageId, onMount, onChange }: TLDrawProps) {
+export function TLDraw({ id, document, currentPageId, autofocus, onMount, onChange }: TLDrawProps) {
   const [sId, setSId] = React.useState(id)
 
   const [tlstate, setTlstate] = React.useState(() => new TLDrawState(id, onChange, onMount))
@@ -70,7 +75,12 @@ export function TLDraw({ id, document, currentPageId, onMount, onChange }: TLDra
   return (
     <TLDrawContext.Provider value={context}>
       <IdProvider>
-        <InnerTldraw key={sId || 'tldraw'} currentPageId={currentPageId} document={document} />
+        <InnerTldraw
+          key={sId || 'tldraw'}
+          currentPageId={currentPageId}
+          document={document}
+          autofocus={autofocus}
+        />
       </IdProvider>
     </TLDrawContext.Provider>
   )
@@ -78,18 +88,16 @@ export function TLDraw({ id, document, currentPageId, onMount, onChange }: TLDra
 
 function InnerTldraw({
   currentPageId,
+  autofocus,
   document,
 }: {
   currentPageId?: string
+  autofocus?: boolean
   document?: TLDrawDocument
 }) {
-  const rWrapper = React.useRef<HTMLDivElement>(null)
-
   const { tlstate, useSelector } = useTLDrawContext()
 
-  useCustomFonts()
-
-  useKeyboardShortcuts(rWrapper)
+  const rWrapper = React.useRef<HTMLDivElement>(null)
 
   const page = useSelector(pageSelector)
 
@@ -149,6 +157,7 @@ function InnerTldraw({
 
   return (
     <div ref={rWrapper} className={layout()} tabIndex={0}>
+      <OneOff rWrapper={rWrapper} autofocus={autofocus} />
       <ContextMenu>
         <Renderer
           page={page}
@@ -217,6 +226,21 @@ function InnerTldraw({
     </div>
   )
 }
+
+const OneOff = React.memo(
+  ({ rWrapper, autofocus }: { autofocus?: boolean; rWrapper: React.RefObject<HTMLDivElement> }) => {
+    useKeyboardShortcuts(rWrapper)
+    useCustomFonts()
+
+    React.useEffect(() => {
+      if (autofocus) {
+        rWrapper.current?.focus()
+      }
+    }, [autofocus])
+
+    return null
+  }
+)
 
 const layout = css({
   position: 'absolute',

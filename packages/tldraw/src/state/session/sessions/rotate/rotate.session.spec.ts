@@ -1,3 +1,4 @@
+import Vec from '@tldraw/vec'
 import Utils from '~../../core/src/utils'
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
@@ -64,16 +65,21 @@ describe('Rotate session', () => {
     it('keeps the center', () => {
       tlstate.loadDocument(mockDocument).select('rect1', 'rect2')
 
-      const centerBefore = Utils.getBoundsCenter(
-        Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+      const centerBefore = Vec.round(
+        Utils.getBoundsCenter(
+          Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+        )
       )
 
       tlstate.startTransformSession([50, 0], 'rotate').updateTransformSession([100, 50])
 
-      const centerAfter = Utils.getBoundsCenter(
-        Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+      const centerAfter = Vec.round(
+        Utils.getBoundsCenter(
+          Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+        )
       )
 
+      expect(tlstate.getShape('rect1').rotation)
       expect(centerBefore).toStrictEqual(centerAfter)
     })
   })
