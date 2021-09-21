@@ -83,11 +83,13 @@ function InnerTldraw({
   currentPageId?: string
   document?: TLDrawDocument
 }) {
+  const rWrapper = React.useRef<HTMLDivElement>(null)
+
   const { tlstate, useSelector } = useTLDrawContext()
 
   useCustomFonts()
 
-  useKeyboardShortcuts()
+  useKeyboardShortcuts(rWrapper)
 
   const page = useSelector(pageSelector)
 
@@ -146,7 +148,7 @@ function InnerTldraw({
   }, [currentPageId, tlstate])
 
   return (
-    <div className={layout()}>
+    <div ref={rWrapper} className={layout()} tabIndex={0}>
       <ContextMenu>
         <Renderer
           page={page}
@@ -230,9 +232,14 @@ const layout = css({
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
   boxSizing: 'border-box',
-  outline: 'none',
   pointerEvents: 'none',
+  outline: 'none',
   zIndex: 1,
+  border: '1px solid rgba(0,0,0,.1)',
+
+  '&:focus': {
+    border: '1px solid rgba(0,0,0,.2)',
+  },
 
   '& > *': {
     pointerEvents: 'all',

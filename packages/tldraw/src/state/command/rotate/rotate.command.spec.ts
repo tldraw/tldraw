@@ -35,4 +35,8 @@ describe('Rotate command', () => {
 
     expect(tlstate.getShape('rect1').rotation).toBe(Math.PI * (6 / 4))
   })
+
+  it.todo('Rotates several shapes at once.')
+
+  it.todo('Rotates shapes with handles.')
 })

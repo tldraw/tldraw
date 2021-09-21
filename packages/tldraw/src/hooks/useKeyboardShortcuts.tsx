@@ -3,7 +3,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { TLDrawShapeType } from '~types'
 import { useTLDrawContext } from '~hooks'
 
-export function useKeyboardShortcuts() {
+export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   const { tlstate } = useTLDrawContext()
 
   React.useEffect(() => {
@@ -24,21 +24,25 @@ export function useKeyboardShortcuts() {
     }
   }, [tlstate])
 
+  const canHandleEvent = React.useCallback(() => {
+    const elm = ref.current
+    return elm && (document.activeElement === elm || elm.contains(document.activeElement))
+  }, [ref])
+
   /* ---------------------- Tools --------------------- */
 
   useHotkeys(
     'v,1',
     () => {
-      tlstate.selectTool('select')
+      if (canHandleEvent()) tlstate.selectTool('select')
     },
-    undefined,
-    [tlstate]
+    [tlstate, ref.current]
   )
 
   useHotkeys(
     'd,2',
     () => {
-      tlstate.selectTool(TLDrawShapeType.Draw)
+      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Draw)
     },
     undefined,
     [tlstate]
@@ -47,7 +51,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'r,3',
     () => {
-      tlstate.selectTool(TLDrawShapeType.Rectangle)
+      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Rectangle)
     },
     undefined,
     [tlstate]
@@ -56,7 +60,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'e,4',
     () => {
-      tlstate.selectTool(TLDrawShapeType.Ellipse)
+      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Ellipse)
     },
     undefined,
     [tlstate]
@@ -65,7 +69,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'a,5',
     () => {
-      tlstate.selectTool(TLDrawShapeType.Arrow)
+      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Arrow)
     },
     undefined,
     [tlstate]
@@ -74,7 +78,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     't,6',
     () => {
-      tlstate.selectTool(TLDrawShapeType.Text)
+      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Text)
     },
     undefined,
     [tlstate]
@@ -87,7 +91,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'ctrl+s,command+s',
     () => {
-      tlstate.saveProject()
+      if (canHandleEvent()) tlstate.saveProject()
     },
     undefined,
     [tlstate]
@@ -98,7 +102,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'command+z,ctrl+z',
     () => {
-      tlstate.undo()
+      if (canHandleEvent()) tlstate.undo()
     },
     undefined,
     [tlstate]
@@ -107,7 +111,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'ctrl+shift-z,command+shift+z',
     () => {
-      tlstate.redo()
+      if (canHandleEvent()) tlstate.redo()
     },
     undefined,
     [tlstate]
@@ -118,7 +122,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'command+u,ctrl+u',
     () => {
-      tlstate.undoSelect()
+      if (canHandleEvent()) tlstate.undoSelect()
     },
     undefined,
     [tlstate]
@@ -127,7 +131,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'ctrl+shift-u,command+shift+u',
     () => {
-      tlstate.redoSelect()
+      if (canHandleEvent()) tlstate.redoSelect()
     },
     undefined,
     [tlstate]
@@ -140,8 +144,10 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'ctrl+=,command+=',
     (e) => {
-      tlstate.zoomIn()
-      e.preventDefault()
+      if (canHandleEvent()) {
+        tlstate.zoomIn()
+        e.preventDefault()
+      }
     },
     undefined,
     [tlstate]
@@ -150,8 +156,10 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'ctrl+-,command+-',
     (e) => {
-      tlstate.zoomOut()
-      e.preventDefault()
+      if (canHandleEvent()) {
+        tlstate.zoomOut()
+        e.preventDefault()
+      }
     },
     undefined,
     [tlstate]
@@ -160,7 +168,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'shift+1',
     () => {
-      tlstate.zoomToFit()
+      if (canHandleEvent()) tlstate.zoomToFit()
     },
     undefined,
     [tlstate]
@@ -169,7 +177,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'shift+2',
     () => {
-      tlstate.zoomToSelection()
+      if (canHandleEvent()) tlstate.zoomToSelection()
     },
     undefined,
     [tlstate]
@@ -178,7 +186,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'shift+0',
     () => {
-      tlstate.zoomToActual()
+      if (canHandleEvent()) tlstate.zoomToActual()
     },
     undefined,
     [tlstate]
@@ -189,8 +197,10 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'ctrl+d,command+d',
     (e) => {
-      tlstate.duplicate()
-      e.preventDefault()
+      if (canHandleEvent()) {
+        tlstate.duplicate()
+        e.preventDefault()
+      }
     },
     undefined,
     [tlstate]
@@ -201,7 +211,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'shift+h',
     () => {
-      tlstate.flipHorizontal()
+      if (canHandleEvent()) tlstate.flipHorizontal()
     },
     undefined,
     [tlstate]
@@ -210,7 +220,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'shift+v',
     () => {
-      tlstate.flipVertical()
+      if (canHandleEvent()) tlstate.flipVertical()
     },
     undefined,
     [tlstate]
@@ -221,7 +231,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'escape',
     () => {
-      tlstate.cancel()
+      if (canHandleEvent()) tlstate.cancel()
     },
     undefined,
     [tlstate]
@@ -232,7 +242,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'backspace',
     () => {
-      tlstate.delete()
+      if (canHandleEvent()) tlstate.delete()
     },
     undefined,
     [tlstate]
@@ -243,7 +253,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'command+a,ctrl+a',
     () => {
-      tlstate.selectAll()
+      if (canHandleEvent()) tlstate.selectAll()
     },
     undefined,
     [tlstate]
@@ -254,7 +264,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'up',
     () => {
-      tlstate.nudge([0, -1], false)
+      if (canHandleEvent()) tlstate.nudge([0, -1], false)
     },
     undefined,
     [tlstate]
@@ -263,7 +273,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'right',
     () => {
-      tlstate.nudge([1, 0], false)
+      if (canHandleEvent()) tlstate.nudge([1, 0], false)
     },
     undefined,
     [tlstate]
@@ -272,7 +282,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'down',
     () => {
-      tlstate.nudge([0, 1], false)
+      if (canHandleEvent()) tlstate.nudge([0, 1], false)
     },
     undefined,
     [tlstate]
@@ -281,7 +291,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'left',
     () => {
-      tlstate.nudge([-1, 0], false)
+      if (canHandleEvent()) tlstate.nudge([-1, 0], false)
     },
     undefined,
     [tlstate]
@@ -290,7 +300,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'shift+up',
     () => {
-      tlstate.nudge([0, -1], true)
+      if (canHandleEvent()) tlstate.nudge([0, -1], true)
     },
     undefined,
     [tlstate]
@@ -299,7 +309,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'shift+right',
     () => {
-      tlstate.nudge([1, 0], true)
+      if (canHandleEvent()) tlstate.nudge([1, 0], true)
     },
     undefined,
     [tlstate]
@@ -308,7 +318,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'shift+down',
     () => {
-      tlstate.nudge([0, 1], true)
+      if (canHandleEvent()) tlstate.nudge([0, 1], true)
     },
     undefined,
     [tlstate]
@@ -317,7 +327,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'shift+left',
     () => {
-      tlstate.nudge([-1, 0], true)
+      if (canHandleEvent()) tlstate.nudge([-1, 0], true)
     },
     undefined,
     [tlstate]
@@ -328,7 +338,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'command+c,ctrl+c',
     () => {
-      tlstate.copy()
+      if (canHandleEvent()) tlstate.copy()
     },
     undefined,
     [tlstate]
@@ -337,7 +347,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'command+v,ctrl+v',
     () => {
-      tlstate.paste()
+      if (canHandleEvent()) tlstate.paste()
     },
     undefined,
     [tlstate]
@@ -348,8 +358,10 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'command+g,ctrl+g',
     (e) => {
-      tlstate.group()
-      e.preventDefault()
+      if (canHandleEvent()) {
+        tlstate.group()
+        e.preventDefault()
+      }
     },
     undefined,
     [tlstate]
@@ -358,8 +370,10 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'command+shift+g,ctrl+shift+g',
     (e) => {
-      tlstate.ungroup()
-      e.preventDefault()
+      if (canHandleEvent()) {
+        tlstate.ungroup()
+        e.preventDefault()
+      }
     },
     undefined,
     [tlstate]
@@ -370,7 +384,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     '[',
     () => {
-      tlstate.moveBackward()
+      if (canHandleEvent()) tlstate.moveBackward()
     },
     undefined,
     [tlstate]
@@ -379,7 +393,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     ']',
     () => {
-      tlstate.moveForward()
+      if (canHandleEvent()) tlstate.moveForward()
     },
     undefined,
     [tlstate]
@@ -388,7 +402,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'shift+[',
     () => {
-      tlstate.moveToBack()
+      if (canHandleEvent()) tlstate.moveToBack()
     },
     undefined,
     [tlstate]
@@ -397,7 +411,7 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'shift+]',
     () => {
-      tlstate.moveToFront()
+      if (canHandleEvent()) tlstate.moveToFront()
     },
     undefined,
     [tlstate]
@@ -406,8 +420,10 @@ export function useKeyboardShortcuts() {
   useHotkeys(
     'command+shift+backspace',
     (e) => {
-      tlstate.resetDocument()
-      e.preventDefault()
+      if (canHandleEvent()) {
+        tlstate.resetDocument()
+        e.preventDefault()
+      }
     },
     undefined,
     [tlstate]

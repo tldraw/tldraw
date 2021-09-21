@@ -119,6 +119,11 @@ export class TLDrawState extends StateManager<Data> {
 
   selectedGroupId?: string
 
+  private pasteInfo = {
+    center: [0, 0],
+    offset: [0, 0],
+  }
+
   constructor(
     id?: string,
     onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
@@ -809,17 +814,28 @@ export class TLDrawState extends StateManager<Data> {
    * @param ids The ids of the shapes to copy.
    */
   copy = (ids = this.selectedIds): this => {
-    this.clipboard = ids
+    const clones = ids
       .flatMap((id) => TLDR.getDocumentBranch(this.state, id, this.currentPageId))
-      .map((id) => {
-        const shape = this.getShape(id, this.currentPageId)
+      .map((id) => this.getShape(id, this.currentPageId))
 
-        return {
-          ...shape,
-          id: Utils.uniqueId(),
-          childIndex: TLDR.getChildIndexAbove(this.state, id, this.currentPageId),
+    if (clones.length === 0) return this
+
+    this.clipboard = clones
+
+    if (navigator.clipboard) {
+      const text = JSON.stringify({ type: 'tldr/clipboard', shapes: clones })
+
+      navigator.clipboard.writeText(text).then(
+        () => {
+          console.log('yep!')
+          // success
+        },
+        (e) => {
+          console.log('nope!', e.message)
+          // failure
         }
-      })
+      )
+    }
 
     return this
   }
@@ -827,81 +843,76 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Paste shapes (or text) from clipboard to a certain point.
    * @param point
-   * @param string
    */
-  paste = (point?: number[], string?: string): this => {
-    if (string) {
-      // Parse shapes from string
+  paste = (point?: number[]) => {
+    navigator.clipboard.readText().then((result) => {
       try {
-        const jsonShapes: TLDrawShape[] = JSON.parse(string)
+        const data: { type: string; shapes: TLDrawShape[] } = JSON.parse(result)
 
-        jsonShapes.forEach((shape) => {
-          if (shape.parentId !== this.currentPageId) {
-            shape.parentId = this.currentPageId
-          }
-        })
+        if (data.type !== 'tldr/clipboard') {
+          throw Error('The pasted string was not from the tldraw clipboard.')
+        }
 
-        this.create(...jsonShapes)
+        const idsMap = Object.fromEntries(
+          data.shapes.map((shape: TLDrawShape) => [shape.id, Utils.uniqueId()])
+        )
+
+        const shapesToPaste = data.shapes.map((shape: TLDrawShape) => ({
+          ...shape,
+          id: idsMap[shape.id],
+          parentId: idsMap[shape.parentId] || this.currentPageId,
+        }))
+
+        const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
+
+        let center = this.getPagePoint(
+          point ||
+            (this.inputs
+              ? [this.inputs.size[0] / 2, this.inputs.size[1] / 2]
+              : [window.innerWidth / 2, window.innerHeight / 2])
+        )
+
+        if (Vec.isEqual(center, this.pasteInfo.center)) {
+          this.pasteInfo.offset = Vec.add(this.pasteInfo.offset, [16, 16])
+          center = Vec.add(center, this.pasteInfo.offset)
+        } else {
+          this.pasteInfo.center = center
+          this.pasteInfo.offset = [0, 0]
+        }
+
+        const centeredBounds = Utils.centerBounds(commonBounds, center)
+
+        const delta = Vec.sub(
+          Utils.getBoundsCenter(centeredBounds),
+          Utils.getBoundsCenter(commonBounds)
+        )
+
+        // TODO: Text shapes are offset to their creation point.
+
+        this.createShapes(
+          ...shapesToPaste.map((shape) => ({
+            ...shape,
+            point: Vec.round(Vec.add(shape.point, delta)),
+          }))
+        )
       } catch (e) {
-        // Create text shape
-        const childIndex =
-          this.getShapes().sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+        const shapeId = Utils.uniqueId()
 
-        const shape = TLDR.getShapeUtils(TLDrawShapeType.Text).create({
-          id: Utils.uniqueId(),
+        this.createShapes({
+          id: shapeId,
+          type: TLDrawShapeType.Text,
           parentId: this.appState.currentPageId,
-          childIndex,
-          point: this.getPagePoint([window.innerWidth / 2, window.innerHeight / 2]),
+          text: result,
+          point: this.getPagePoint(
+            [window.innerWidth / 2, window.innerHeight / 2],
+            this.currentPageId
+          ),
           style: { ...this.appState.currentStyle },
         })
 
-        const boundsCenter = Utils.centerBounds(
-          TLDR.getShapeUtils(shape).getBounds(shape),
-          this.getPagePoint([window.innerWidth / 2, window.innerHeight / 2])
-        )
-
-        this.create(
-          TLDR.getShapeUtils(TLDrawShapeType.Text).create({
-            id: Utils.uniqueId(),
-            parentId: this.appState.currentPageId,
-            childIndex,
-            point: [boundsCenter.minX, boundsCenter.minY],
-          })
-        )
+        this.select(shapeId)
       }
-
-      return this
-    }
-
-    if (!this.clipboard) return this
-
-    const idsMap = Object.fromEntries(this.clipboard.map((shape) => [shape.id, Utils.uniqueId()]))
-
-    const shapesToPaste = this.clipboard.map((shape) => ({
-      ...shape,
-      id: idsMap[shape.id],
-      parentId: idsMap[shape.parentId] || this.currentPageId,
-    }))
-
-    const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
-
-    const centeredBounds = Utils.centerBounds(
-      commonBounds,
-      this.getPagePoint(point || [window.innerWidth / 2, window.innerHeight / 2])
-    )
-
-    let delta = Vec.sub(Utils.getBoundsCenter(centeredBounds), Utils.getBoundsCenter(commonBounds))
-
-    if (Vec.isEqual(delta, [0, 0])) {
-      delta = [16, 16]
-    }
-
-    this.create(
-      ...shapesToPaste.map((shape) => ({
-        ...shape,
-        point: Vec.round(Vec.add(shape.point, delta)),
-      }))
-    )
+    })
 
     return this
   }
@@ -2078,6 +2089,19 @@ export class TLDrawState extends StateManager<Data> {
             .filter((shape) => shape.parentId === this.currentPageId)
             .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
 
+    const newShape = utils.create({
+      id,
+      parentId: this.currentPageId,
+      childIndex,
+      point: pagePoint,
+      style: { ...this.appState.currentStyle },
+    })
+
+    if (newShape.type === TLDrawShapeType.Text) {
+      const bounds = utils.getBounds(newShape)
+      newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
+    }
+
     this.patchState(
       {
         appState: {
@@ -2090,13 +2114,7 @@ export class TLDrawState extends StateManager<Data> {
           pages: {
             [this.currentPageId]: {
               shapes: {
-                [id]: utils.create({
-                  id,
-                  parentId: this.currentPageId,
-                  childIndex,
-                  point: pagePoint,
-                  style: { ...this.appState.currentStyle },
-                }),
+                [id]: newShape,
               },
             },
           },

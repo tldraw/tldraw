@@ -74,13 +74,6 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
     style: defaultStyle,
   },
 
-  create(props) {
-    const shape = { ...this.defaultProps, ...props }
-    const bounds = this.getBounds(shape)
-    shape.point = Vec.sub(shape.point, [bounds.width / 2, bounds.height / 2])
-    return shape
-  },
-
   shouldRender(prev, next): boolean {
     return (
       next.text !== prev.text || next.style.scale !== prev.style.scale || next.style !== prev.style

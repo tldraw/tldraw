@@ -1,3 +1,4 @@
+import Utils from '~../../core/src/utils'
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 import { TLDrawStatus } from '~types'
@@ -55,5 +56,25 @@ describe('Rotate session', () => {
       .cancel()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+  })
+
+  it.todo('rotates handles only on shapes with handles')
+
+  describe('when rotating multiple shapes', () => {
+    it('keeps the center', () => {
+      tlstate.loadDocument(mockDocument).select('rect1', 'rect2')
+
+      const centerBefore = Utils.getBoundsCenter(
+        Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+      )
+
+      tlstate.startTransformSession([50, 0], 'rotate').updateTransformSession([100, 50])
+
+      const centerAfter = Utils.getBoundsCenter(
+        Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+      )
+
+      expect(centerBefore).toStrictEqual(centerAfter)
+    })
   })
 })
