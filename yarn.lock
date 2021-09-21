@@ -10751,10 +10751,10 @@ pbkdf2@^3.0.3:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-perfect-freehand@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/perfect-freehand/-/perfect-freehand-1.0.6.tgz#feeb25450241f036ec13b43fa84bbb16f8e78e0f"
-  integrity sha512-wWkFwpgUirsfBDTb9nG6+VnFR0ge119QKU2Nu96vR4MHZMPGfOsQRD7cUk+9CK5P+TUmnrtX8yOEzUrQ6KHJoA==
+perfect-freehand@^1.0.9:
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/perfect-freehand/-/perfect-freehand-1.0.9.tgz#9b5fb96181004bcec62f3721d25cebea2ec34a3f"
+  integrity sha512-YCbnozlv+Wqmxexi/3YDftCXNjqs6bpTZ01tN+pBJbiA3b8DTvgZGPgd8mxxaXkAQzEsgD0bkS1h9vy3EWnm2w==
 
 performance-now@^2.1.0:
   version "2.1.0"
