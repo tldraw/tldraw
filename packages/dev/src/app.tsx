@@ -4,6 +4,7 @@ import Basic from './basic'
 import Controlled from './controlled'
 import Imperative from './imperative'
 import Embedded from './embedded'
+import NoSizeEmbedded from '+no-size-embedded'
 import ChangingId from './changing-id'
 import Core from './core'
 import './styles.css'
@@ -30,6 +31,9 @@ export default function App(): JSX.Element {
         <Route path="/embedded">
           <Embedded />
         </Route>
+        <Route path="/no-size-embedded">
+          <NoSizeEmbedded />
+        </Route>
         <Route path="/">
           <ul>
             <li>
@@ -49,6 +53,9 @@ export default function App(): JSX.Element {
             </li>
             <li>
               <Link to="/embedded">embedded</Link>
+            </li>
+            <li>
+              <Link to="/no-size-embedded">embedded (no size)</Link>
             </li>
           </ul>
         </Route>
