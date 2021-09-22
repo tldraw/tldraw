@@ -987,13 +987,19 @@ export class TLDrawState extends StateManager<Data> {
       if (elm) {
         const clone = elm?.cloneNode(true) as SVGElement
         const shape = this.getShape(id, pageId)
-        clone.setAttribute('transform', `translate(${shape.point})`)
+        const bounds = TLDR.getShapeUtils(shape).getBounds(shape)
+        clone.setAttribute(
+          'transform',
+          `translate(${shape.point[0]}px ${shape.point[1]}px) rotate(${
+            ((shape.rotation || 0) * 180) / Math.PI
+          }, ${bounds.width / 2}, ${bounds.height / 2})`
+        )
         svg.appendChild(clone)
       }
     })
 
     const shapes = ids.map((id) => this.getShape(id, pageId))
-    const bounds = Utils.getCommonBounds(shapes.map(TLDR.getBounds))
+    const bounds = Utils.getCommonBounds(shapes.map(TLDR.getRotatedBounds))
     const padding = 16
 
     // Resize the element to the bounding box

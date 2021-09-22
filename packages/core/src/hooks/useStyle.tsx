@@ -123,6 +123,7 @@ const tlcss = css`
     padding: 0px;
     margin: 0px;
     z-index: 100;
+    overflow: clip;
     touch-action: none;
     overscroll-behavior: none;
     background-color: var(--tl-background);
