@@ -14,42 +14,42 @@ function normalizeText(text: string) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-// let melm: any
+let melm: any
 
-// function getMeasurementDiv() {
-//   // A div used for measurement
-//   document.getElementById('__textMeasure')?.remove()
+function getMeasurementDiv() {
+  // A div used for measurement
+  document.getElementById('__textMeasure')?.remove()
 
-//   const pre = document.createElement('pre')
-//   pre.id = '__textMeasure'
+  const pre = document.createElement('pre')
+  pre.id = '__textMeasure'
 
-//   Object.assign(pre.style, {
-//     whiteSpace: 'pre',
-//     width: 'auto',
-//     border: '1px solid red',
-//     padding: '4px',
-//     margin: '0px',
-//     letterSpacing: `${LETTER_SPACING}px`,
-//     opacity: '0',
-//     position: 'absolute',
-//     top: '-500px',
-//     left: '0px',
-//     zIndex: '9999',
-//     pointerEvents: 'none',
-//     userSelect: 'none',
-//     alignmentBaseline: 'mathematical',
-//     dominantBaseline: 'mathematical',
-//   })
+  Object.assign(pre.style, {
+    whiteSpace: 'pre',
+    width: 'auto',
+    border: '1px solid red',
+    padding: '4px',
+    margin: '0px',
+    letterSpacing: `${LETTER_SPACING}px`,
+    opacity: '0',
+    position: 'absolute',
+    top: '-500px',
+    left: '0px',
+    zIndex: '9999',
+    pointerEvents: 'none',
+    userSelect: 'none',
+    alignmentBaseline: 'mathematical',
+    dominantBaseline: 'mathematical',
+  })
 
-//   pre.tabIndex = -1
+  pre.tabIndex = -1
 
-//   document.body.appendChild(pre)
-//   return pre
-// }
+  document.body.appendChild(pre)
+  return pre
+}
 
-// if (typeof window !== 'undefined') {
-//   melm = getMeasurementDiv()
-// }
+if (typeof window !== 'undefined') {
+  melm = getMeasurementDiv()
+}
 
 export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Text,
@@ -193,40 +193,28 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
   },
 
   getBounds(shape): TLBounds {
-    const ref = this.getRef(shape)
-    const elm = ref.current
+    const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
+      if (!melm) {
+        // We're in SSR
+        return { minX: 0, minY: 0, maxX: 10, maxY: 10, width: 10, height: 10 }
+      }
 
-    const bounds = {
-      minX: 0,
-      minY: 0,
-      maxX: elm?.offsetWidth || 32,
-      maxY: elm?.offsetHeight || 32,
-      width: elm?.offsetWidth || 32,
-      height: elm?.offsetHeight || 32,
-    }
+      melm.innerHTML = `${shape.text}&zwj;`
+      melm.style.font = getFontStyle(shape.style)
 
-    // const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
-    //   if (!melm) {
-    //     // We're in SSR
-    //     return { minX: 0, minY: 0, maxX: 10, maxY: 10, width: 10, height: 10 }
-    //   }
+      // In tests, offsetWidth and offsetHeight will be 0
+      const width = melm.offsetWidth || 1
+      const height = melm.offsetHeight || 1
 
-    //   melm.innerHTML = `${shape.text}&zwj;`
-    //   melm.style.font = getFontStyle(shape.style)
-
-    //   // In tests, offsetWidth and offsetHeight will be 0
-    //   const width = melm.offsetWidth || 1
-    //   const height = melm.offsetHeight || 1
-
-    //   return {
-    //     minX: 0,
-    //     maxX: width,
-    //     minY: 0,
-    //     maxY: height,
-    //     width,
-    //     height,
-    //   }
-    // })
+      return {
+        minX: 0,
+        maxX: width,
+        minY: 0,
+        maxY: height,
+        width,
+        height,
+      }
+    })
 
     return Utils.translateBounds(bounds, shape.point)
   },
