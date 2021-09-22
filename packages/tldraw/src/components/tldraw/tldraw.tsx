@@ -4,7 +4,13 @@ import { Renderer } from '@tldraw/core'
 import css from '~styles'
 import { Data, TLDrawDocument, TLDrawStatus } from '~types'
 import { TLDrawState } from '~state'
-import { TLDrawContext, useCustomFonts, useKeyboardShortcuts, useTLDrawContext } from '~hooks'
+import {
+  TLDrawContext,
+  useCustomFonts,
+  useKeyboardShortcuts,
+  useThemeEffect,
+  useTLDrawContext,
+} from '~hooks'
 import { tldrawShapeUtils } from '~shape'
 import { ContextMenu } from '~components/context-menu'
 import { StylePanel } from '~components/style-panel'
@@ -26,6 +32,8 @@ const pageSelector = (s: Data) => s.document.pages[s.appState.currentPageId]
 const pageStateSelector = (s: Data) => s.document.pageStates[s.appState.currentPageId]
 
 const isDarkModeSelector = (s: Data) => s.settings.isDarkMode
+
+const isFocusModeSelector = (s: Data) => s.settings.isFocusMode
 
 export interface TLDrawProps {
   /**
@@ -84,6 +92,7 @@ export function TLDraw({
       <IdProvider>
         <InnerTldraw
           key={sId || 'tldraw'}
+          id={sId}
           currentPageId={currentPageId}
           document={document}
           autofocus={autofocus}
@@ -94,23 +103,31 @@ export function TLDraw({
 }
 
 function InnerTldraw({
+  id,
   currentPageId,
   autofocus,
   document,
 }: {
+  id?: string
   currentPageId?: string
   autofocus?: boolean
   document?: TLDrawDocument
 }) {
   const { tlstate, useSelector } = useTLDrawContext()
 
+  const rTheme = React.useRef<HTMLDivElement>(null)
+
   const rWrapper = React.useRef<HTMLDivElement>(null)
+
+  useThemeEffect(rTheme)
 
   const page = useSelector(pageSelector)
 
   const pageState = useSelector(pageStateSelector)
 
   const isDarkMode = useSelector(isDarkModeSelector)
+
+  const isFocusMode = useSelector(isFocusModeSelector)
 
   const isSelecting = useSelector(isInSelectSelector)
 
@@ -163,73 +180,80 @@ function InnerTldraw({
   }, [currentPageId, tlstate])
 
   return (
-    <div ref={rWrapper} className={layout()} tabIndex={0}>
-      <OneOff rWrapper={rWrapper} autofocus={autofocus} />
-      <ContextMenu>
-        <Renderer
-          page={page}
-          pageState={pageState}
-          shapeUtils={tldrawShapeUtils}
-          theme={theme}
-          meta={meta}
-          hideBounds={hideBounds}
-          hideHandles={hideHandles}
-          hideIndicators={hideIndicators}
-          onPinchStart={tlstate.onPinchStart}
-          onPinchEnd={tlstate.onPinchEnd}
-          onPinch={tlstate.onPinch}
-          onPan={tlstate.onPan}
-          onZoom={tlstate.onZoom}
-          onPointerDown={tlstate.onPointerDown}
-          onPointerMove={tlstate.onPointerMove}
-          onPointerUp={tlstate.onPointerUp}
-          onPointCanvas={tlstate.onPointCanvas}
-          onDoubleClickCanvas={tlstate.onDoubleClickCanvas}
-          onRightPointCanvas={tlstate.onRightPointCanvas}
-          onDragCanvas={tlstate.onDragCanvas}
-          onReleaseCanvas={tlstate.onReleaseCanvas}
-          onPointShape={tlstate.onPointShape}
-          onDoubleClickShape={tlstate.onDoubleClickShape}
-          onRightPointShape={tlstate.onRightPointShape}
-          onDragShape={tlstate.onDragShape}
-          onHoverShape={tlstate.onHoverShape}
-          onUnhoverShape={tlstate.onUnhoverShape}
-          onReleaseShape={tlstate.onReleaseShape}
-          onPointBounds={tlstate.onPointBounds}
-          onDoubleClickBounds={tlstate.onDoubleClickBounds}
-          onRightPointBounds={tlstate.onRightPointBounds}
-          onDragBounds={tlstate.onDragBounds}
-          onHoverBounds={tlstate.onHoverBounds}
-          onUnhoverBounds={tlstate.onUnhoverBounds}
-          onReleaseBounds={tlstate.onReleaseBounds}
-          onPointBoundsHandle={tlstate.onPointBoundsHandle}
-          onDoubleClickBoundsHandle={tlstate.onDoubleClickBoundsHandle}
-          onRightPointBoundsHandle={tlstate.onRightPointBoundsHandle}
-          onDragBoundsHandle={tlstate.onDragBoundsHandle}
-          onHoverBoundsHandle={tlstate.onHoverBoundsHandle}
-          onUnhoverBoundsHandle={tlstate.onUnhoverBoundsHandle}
-          onReleaseBoundsHandle={tlstate.onReleaseBoundsHandle}
-          onPointHandle={tlstate.onPointHandle}
-          onDoubleClickHandle={tlstate.onDoubleClickHandle}
-          onRightPointHandle={tlstate.onRightPointHandle}
-          onDragHandle={tlstate.onDragHandle}
-          onHoverHandle={tlstate.onHoverHandle}
-          onUnhoverHandle={tlstate.onUnhoverHandle}
-          onReleaseHandle={tlstate.onReleaseHandle}
-          onError={tlstate.onError}
-          onRenderCountChange={tlstate.onRenderCountChange}
-          onShapeChange={tlstate.onShapeChange}
-          onShapeBlur={tlstate.onShapeBlur}
-          onBoundsChange={tlstate.updateBounds}
-        />
-      </ContextMenu>
-      <div className={menuButtons()}>
-        <Menu />
-        <PagePanel />
+    <div ref={rTheme}>
+      <div ref={rWrapper} className={layout()} tabIndex={0}>
+        <OneOff rWrapper={rWrapper} autofocus={autofocus} />
+        <ContextMenu>
+          <Renderer
+            id={id}
+            page={page}
+            pageState={pageState}
+            shapeUtils={tldrawShapeUtils}
+            theme={theme}
+            meta={meta}
+            hideBounds={hideBounds}
+            hideHandles={hideHandles}
+            hideIndicators={hideIndicators}
+            onPinchStart={tlstate.onPinchStart}
+            onPinchEnd={tlstate.onPinchEnd}
+            onPinch={tlstate.onPinch}
+            onPan={tlstate.onPan}
+            onZoom={tlstate.onZoom}
+            onPointerDown={tlstate.onPointerDown}
+            onPointerMove={tlstate.onPointerMove}
+            onPointerUp={tlstate.onPointerUp}
+            onPointCanvas={tlstate.onPointCanvas}
+            onDoubleClickCanvas={tlstate.onDoubleClickCanvas}
+            onRightPointCanvas={tlstate.onRightPointCanvas}
+            onDragCanvas={tlstate.onDragCanvas}
+            onReleaseCanvas={tlstate.onReleaseCanvas}
+            onPointShape={tlstate.onPointShape}
+            onDoubleClickShape={tlstate.onDoubleClickShape}
+            onRightPointShape={tlstate.onRightPointShape}
+            onDragShape={tlstate.onDragShape}
+            onHoverShape={tlstate.onHoverShape}
+            onUnhoverShape={tlstate.onUnhoverShape}
+            onReleaseShape={tlstate.onReleaseShape}
+            onPointBounds={tlstate.onPointBounds}
+            onDoubleClickBounds={tlstate.onDoubleClickBounds}
+            onRightPointBounds={tlstate.onRightPointBounds}
+            onDragBounds={tlstate.onDragBounds}
+            onHoverBounds={tlstate.onHoverBounds}
+            onUnhoverBounds={tlstate.onUnhoverBounds}
+            onReleaseBounds={tlstate.onReleaseBounds}
+            onPointBoundsHandle={tlstate.onPointBoundsHandle}
+            onDoubleClickBoundsHandle={tlstate.onDoubleClickBoundsHandle}
+            onRightPointBoundsHandle={tlstate.onRightPointBoundsHandle}
+            onDragBoundsHandle={tlstate.onDragBoundsHandle}
+            onHoverBoundsHandle={tlstate.onHoverBoundsHandle}
+            onUnhoverBoundsHandle={tlstate.onUnhoverBoundsHandle}
+            onReleaseBoundsHandle={tlstate.onReleaseBoundsHandle}
+            onPointHandle={tlstate.onPointHandle}
+            onDoubleClickHandle={tlstate.onDoubleClickHandle}
+            onRightPointHandle={tlstate.onRightPointHandle}
+            onDragHandle={tlstate.onDragHandle}
+            onHoverHandle={tlstate.onHoverHandle}
+            onUnhoverHandle={tlstate.onUnhoverHandle}
+            onReleaseHandle={tlstate.onReleaseHandle}
+            onError={tlstate.onError}
+            onRenderCountChange={tlstate.onRenderCountChange}
+            onShapeChange={tlstate.onShapeChange}
+            onShapeBlur={tlstate.onShapeBlur}
+            onBoundsChange={tlstate.updateBounds}
+          />
+        </ContextMenu>
+        {!isFocusMode && (
+          <>
+            <div className={menuButtons()}>
+              <Menu />
+              <PagePanel />
+            </div>
+            <div className={spacer()} />
+            <StylePanel />
+            <ToolsPanel />
+          </>
+        )}
       </div>
-      <div className={spacer()} />
-      <StylePanel />
-      <ToolsPanel />
     </div>
   )
 }
@@ -266,10 +290,10 @@ const layout = css({
   pointerEvents: 'none',
   outline: 'none',
   zIndex: 1,
-  border: '1px solid rgba(0,0,0,.1)',
+  border: '1px solid $blurred',
 
   '&:focus': {
-    border: '1px solid rgba(0,0,0,.2)',
+    border: '1px solid $focused',
   },
 
   '& > *': {

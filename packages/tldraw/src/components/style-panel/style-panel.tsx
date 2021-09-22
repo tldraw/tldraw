@@ -10,8 +10,8 @@ import { QuickSizeSelect } from './quick-size-select'
 import { QuickDashSelect } from './quick-dash-select'
 import { QuickFillSelect } from './quick-fill-select'
 import { Tooltip } from '../shared/tooltip'
-import { kbd } from '../shared/kbd'
 import {
+  Kbd,
   iconButton,
   buttonsRow,
   breakpoints,
@@ -85,15 +85,15 @@ function SelectedShapeContent(): JSX.Element {
         onClick={handleCopy}
       >
         <span>Copy</span>
-        {showKbds && <kbd className={kbd({ variant: 'menu' })}>#C</kbd>}
+        {showKbds && <Kbd variant="menu">#C</Kbd>}
       </button>
       <button className={rowButton({ bp: breakpoints })} onClick={handlePaste}>
         <span>Paste</span>
-        {showKbds && <kbd className={kbd({ variant: 'menu' })}>#V</kbd>}
+        {showKbds && <Kbd variant="menu">#V</Kbd>}
       </button>
       <button className={rowButton({ bp: breakpoints })} onClick={handleCopySvg}>
         <span>Copy to SVG</span>
-        {showKbds && <kbd className={kbd({ variant: 'menu' })}>⇧#C</kbd>}
+        {showKbds && <Kbd variant="menu">⇧#C</Kbd>}
       </button>
     </>
   )

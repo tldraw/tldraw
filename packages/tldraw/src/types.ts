@@ -26,6 +26,7 @@ export interface TLDrawSettings {
   isZoomSnap: boolean
   nudgeDistanceSmall: number
   nudgeDistanceLarge: number
+  isFocusMode: boolean
 }
 
 export interface TLDrawMeta {

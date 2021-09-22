@@ -1,11 +1,10 @@
 import * as React from 'react'
-import { DropdownMenuSubMenu, DropdownMenuCheckboxItem } from '~components/shared'
+import { DropdownMenuSubMenu, DropdownMenuCheckboxItem, Kbd } from '~components/shared'
 import { useTLDrawContext } from '~hooks'
 import type { Data } from '~types'
 
 const isDebugModeSelector = (s: Data) => s.settings.isDebugMode
 const isDarkModeSelector = (s: Data) => s.settings.isDarkMode
-const isZoomSnapSelector = (s: Data) => s.settings.isZoomSnap
 
 export function Preferences() {
   const { tlstate, useSelector } = useTLDrawContext()
@@ -14,7 +13,7 @@ export function Preferences() {
 
   const isDarkMode = useSelector(isDarkModeSelector)
 
-  const isZoomSnap = useSelector(isZoomSnapSelector)
+  const isFocusMode = useSelector(isDarkModeSelector)
 
   const toggleDebugMode = React.useCallback(() => {
     tlstate.toggleDebugMode()
@@ -24,17 +23,19 @@ export function Preferences() {
     tlstate.toggleDarkMode()
   }, [tlstate])
 
-  const toggleZoomSnap = React.useCallback(() => {
-    tlstate.toggleZoomSnap()
+  const toggleFocusMode = React.useCallback(() => {
+    tlstate.toggleFocusMode()
   }, [tlstate])
 
   return (
     <DropdownMenuSubMenu label="Preferences">
       <DropdownMenuCheckboxItem checked={isDarkMode} onCheckedChange={toggleDarkMode}>
         <span>Dark Mode</span>
+        <Kbd variant="menu">#⇧D</Kbd>
       </DropdownMenuCheckboxItem>
-      <DropdownMenuCheckboxItem checked={isZoomSnap} onCheckedChange={toggleZoomSnap}>
-        <span>Zoom Snap</span>
+      <DropdownMenuCheckboxItem checked={isFocusMode} onCheckedChange={toggleFocusMode}>
+        <span>Focus Mode</span>
+        <Kbd variant="menu">⇧.</Kbd>
       </DropdownMenuCheckboxItem>
       <DropdownMenuCheckboxItem checked={isDebugMode} onCheckedChange={toggleDebugMode}>
         <span>Debug Mode</span>

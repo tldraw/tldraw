@@ -1,11 +1,10 @@
 import * as React from 'react'
 import css from '~styles'
-import { Utils } from '@tldraw/core'
 import * as RadixContextMenu from '@radix-ui/react-context-menu'
 import { useTLDrawContext } from '~hooks'
 import { Data, AlignType, DistributeType, StretchType } from '~types'
 import {
-  kbd,
+  Kbd,
   iconWrapper,
   breakpoints,
   rowButton,
@@ -133,15 +132,15 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
           <>
             <ContextMenuButton onSelect={handleFlipHorizontal}>
               <span>Flip Horizontal</span>
-              <kbd className={kbd({ variant: 'menu' })}>⇧H</kbd>
+              <Kbd variant="menu">⇧H</Kbd>
             </ContextMenuButton>
             <ContextMenuButton onSelect={handleFlipVertical}>
               <span>Flip Vertical</span>
-              <kbd className={kbd({ variant: 'menu' })}>⇧V</kbd>
+              <Kbd variant="menu">⇧V</Kbd>
             </ContextMenuButton>
             <ContextMenuButton onSelect={handleDuplicate}>
               <span>Duplicate</span>
-              <kbd className={kbd({ variant: 'menu' })}>#D</kbd>
+              <Kbd variant="menu">#D</Kbd>
             </ContextMenuButton>
             <ContextMenuDivider />
             {hasGroupSelected ||
@@ -150,13 +149,13 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
                   {hasGroupSelected && (
                     <ContextMenuButton onSelect={handleGroup}>
                       <span>Ungroup</span>
-                      <kbd className={kbd({ variant: 'menu' })}>#⇧G</kbd>
+                      <Kbd variant="menu">#⇧G</Kbd>
                     </ContextMenuButton>
                   )}
                   {hasTwoOrMore && (
                     <ContextMenuButton onSelect={handleGroup}>
                       <span>Group</span>
-                      <kbd className={kbd({ variant: 'menu' })}>#G</kbd>
+                      <Kbd variant="menu">#G</Kbd>
                     </ContextMenuButton>
                   )}
                 </>
@@ -164,19 +163,19 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
             <ContextMenuSubMenu label="Move">
               <ContextMenuButton onSelect={handleMoveToFront}>
                 <span>To Front</span>
-                <kbd className={kbd({ variant: 'menu' })}>#⇧]</kbd>
+                <Kbd variant="menu">#⇧]</Kbd>
               </ContextMenuButton>
               <ContextMenuButton onSelect={handleMoveForward}>
                 <span>Forward</span>
-                <kbd className={kbd({ variant: 'menu' })}>#]</kbd>
+                <Kbd variant="menu">#]</Kbd>
               </ContextMenuButton>
               <ContextMenuButton onSelect={handleMoveBackward}>
                 <span>Backward</span>
-                <kbd className={kbd({ variant: 'menu' })}>#[</kbd>
+                <Kbd variant="menu">#[</Kbd>
               </ContextMenuButton>
               <ContextMenuButton onSelect={handleMoveToBack}>
                 <span>To Back</span>
-                <kbd className={kbd({ variant: 'menu' })}>#⇧[</kbd>
+                <Kbd variant="menu">#⇧[</Kbd>
               </ContextMenuButton>
             </ContextMenuSubMenu>
             <MoveToPageMenu />
@@ -186,11 +185,11 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
             <ContextMenuDivider />
             <ContextMenuButton onSelect={handleCopy}>
               <span>Copy</span>
-              <kbd className={kbd({ variant: 'menu' })}>#C</kbd>
+              <Kbd variant="menu">#C</Kbd>
             </ContextMenuButton>
             <ContextMenuButton onSelect={handleCopySvg}>
               <span>Copy to SVG</span>
-              <kbd className={kbd({ variant: 'menu' })}>⇧#C</kbd>
+              <Kbd variant="menu">⇧#C</Kbd>
             </ContextMenuButton>
             {isDebugMode && (
               <ContextMenuButton onSelect={handleCopyJson}>
@@ -199,27 +198,27 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
             )}
             <ContextMenuButton onSelect={handlePaste}>
               <span>Paste</span>
-              <kbd className={kbd({ variant: 'menu' })}>#V</kbd>
+              <Kbd variant="menu">#V</Kbd>
             </ContextMenuButton>
             <ContextMenuDivider />
             <ContextMenuButton onSelect={handleDelete}>
               <span>Delete</span>
-              <kbd className={kbd({ variant: 'menu' })}>⌫</kbd>
+              <Kbd variant="menu">⌫</Kbd>
             </ContextMenuButton>
           </>
         ) : (
           <>
             <ContextMenuButton onSelect={handlePaste}>
               <span>Paste</span>
-              <kbd className={kbd({ variant: 'menu' })}>#V</kbd>
+              <Kbd variant="menu">#V</Kbd>
             </ContextMenuButton>
             <ContextMenuButton onSelect={handleUndo}>
               <span>Undo</span>
-              <kbd className={kbd({ variant: 'menu' })}>#Z</kbd>
+              <Kbd variant="menu">#Z</Kbd>
             </ContextMenuButton>
             <ContextMenuButton onSelect={handleRedo}>
               <span>Redo</span>
-              <kbd className={kbd({ variant: 'menu' })}>#⇧Z</kbd>
+              <Kbd variant="menu">#⇧Z</Kbd>
             </ContextMenuButton>
           </>
         )}

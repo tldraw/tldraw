@@ -86,6 +86,31 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   /* ---------------------- Misc ---------------------- */
 
+  // Dark Mode
+
+  useHotkeys(
+    'ctrl+shift+d,command+shift+d',
+    (e) => {
+      if (canHandleEvent()) {
+        tlstate.toggleDarkMode()
+        e.preventDefault()
+      }
+    },
+    undefined,
+    [tlstate]
+  )
+
+  // Focus Mode
+
+  useHotkeys(
+    'ctrl+.,command+.',
+    () => {
+      if (canHandleEvent()) tlstate.toggleFocusMode()
+    },
+    undefined,
+    [tlstate]
+  )
+
   // Save
 
   useHotkeys(

@@ -335,7 +335,7 @@ const tlcss = css`
   }
 `
 
-export function useTLTheme(theme?: Partial<TLTheme>) {
+export function useTLTheme(theme?: Partial<TLTheme>, selector?: string) {
   const tltheme = React.useMemo<TLTheme>(
     () => ({
       ...defaultTheme,
@@ -344,7 +344,7 @@ export function useTLTheme(theme?: Partial<TLTheme>) {
     [theme]
   )
 
-  useTheme('tl', tltheme)
+  useTheme('tl', tltheme, selector)
 
   useStyle('tl-canvas', tlcss)
 }
