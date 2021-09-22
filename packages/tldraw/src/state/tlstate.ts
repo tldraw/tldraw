@@ -119,6 +119,16 @@ export class TLDrawState extends StateManager<Data> {
 
   selectedGroupId?: string
 
+  // The editor's bounding client rect
+  bounds: TLBounds = {
+    minX: 0,
+    minY: 0,
+    maxX: 640,
+    maxY: 480,
+    width: 640,
+    height: 480,
+  }
+
   private pasteInfo = {
     center: [0, 0],
     offset: [0, 0],
@@ -352,6 +362,14 @@ export class TLDrawState extends StateManager<Data> {
 
   handleMount = (inputs: Inputs): void => {
     this.inputs = inputs
+  }
+
+  /**
+   * Update the bounding box when the renderer's bounds change.
+   * @param bounds
+   */
+  updateBounds = (bounds: TLBounds) => {
+    this.bounds = { ...bounds }
   }
 
   /* -------------------------------------------------- */
@@ -2801,10 +2819,6 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   get centerPoint() {
-    return Vec.round(
-      this.inputs
-        ? [this.inputs.size[0] / 2, this.inputs.size[1] / 2]
-        : [window.innerWidth / 2, window.innerHeight / 2]
-    )
+    return Vec.round(Utils.getBoundsCenter(this.bounds))
   }
 }

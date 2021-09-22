@@ -3,31 +3,48 @@ import * as React from 'react'
 import { Utils } from '+utils'
 
 export function useResizeObserver<T extends Element>(ref: React.RefObject<T>) {
-  const { inputs } = useTLContext()
+  const { inputs, callbacks } = useTLContext()
+
   const rIsMounted = React.useRef(false)
+
   const forceUpdate = React.useReducer((x) => x + 1, 0)[1]
 
-  const updateOffsets = React.useCallback(() => {
+  // When the element resizes, update the bounds (stored in inputs)
+  // and broadcast via the onBoundsChange callback prop.
+  const updateBounds = React.useCallback(() => {
     if (rIsMounted.current) {
       const rect = ref.current?.getBoundingClientRect()
+
       if (rect) {
-        inputs.offset = [rect.left, rect.top]
-        inputs.size = [rect.width, rect.height]
+        inputs.bounds = {
+          minX: rect.left,
+          maxX: rect.left + rect.width,
+          minY: rect.top,
+          maxY: rect.top + rect.height,
+          width: rect.width,
+          height: rect.height,
+        }
+
+        callbacks.onBoundsChange?.(inputs.bounds)
+
+        // Force an update for a second mount
         forceUpdate()
       }
+    } else {
+      // Skip the first mount
+      rIsMounted.current = true
     }
-    rIsMounted.current = true
-  }, [ref, forceUpdate])
+  }, [ref, forceUpdate, inputs, callbacks.onBoundsChange])
 
   React.useEffect(() => {
-    const debouncedUpdateOffsets = Utils.debounce(updateOffsets, 100)
-    window.addEventListener('scroll', debouncedUpdateOffsets)
-    window.addEventListener('resize', debouncedUpdateOffsets)
+    const debouncedupdateBounds = Utils.debounce(updateBounds, 100)
+    window.addEventListener('scroll', debouncedupdateBounds)
+    window.addEventListener('resize', debouncedupdateBounds)
     return () => {
-      window.removeEventListener('scroll', debouncedUpdateOffsets)
-      window.removeEventListener('resize', debouncedUpdateOffsets)
+      window.removeEventListener('scroll', debouncedupdateBounds)
+      window.removeEventListener('resize', debouncedupdateBounds)
     }
-  }, [inputs])
+  }, [])
 
   React.useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -36,7 +53,7 @@ export function useResizeObserver<T extends Element>(ref: React.RefObject<T>) {
       }
 
       if (entries[0].contentRect) {
-        updateOffsets()
+        updateBounds()
       }
     })
 
@@ -50,6 +67,6 @@ export function useResizeObserver<T extends Element>(ref: React.RefObject<T>) {
   }, [ref, inputs])
 
   React.useEffect(() => {
-    updateOffsets()
+    updateBounds()
   }, [ref])
 }

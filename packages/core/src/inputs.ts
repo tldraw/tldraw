@@ -2,17 +2,27 @@ import type React from 'react'
 import type { TLKeyboardInfo, TLPointerInfo } from './types'
 import { Utils } from './utils'
 import { Vec } from '@tldraw/vec'
+import type { TLBounds } from '+index'
 
 const DOUBLE_CLICK_DURATION = 250
 
 export class Inputs {
   pointer?: TLPointerInfo<string>
+
   keyboard?: TLKeyboardInfo
+
   keys: Record<string, boolean> = {}
+
   isPinching = false
 
-  offset = [0, 0]
-  size = [10, 10]
+  bounds: TLBounds = {
+    minX: 0,
+    maxX: 640,
+    minY: 0,
+    maxY: 480,
+    width: 640,
+    height: 480,
+  }
 
   pointerUpTime = 0
 
@@ -41,9 +51,9 @@ export class Inputs {
     const info: TLPointerInfo<T> = {
       target,
       pointerId: touch.identifier,
-      origin: Inputs.getPoint(touch),
+      origin: Inputs.getPoint(touch, this.bounds),
       delta: [0, 0],
-      point: Inputs.getPoint(touch),
+      point: Inputs.getPoint(touch, this.bounds),
       pressure: Inputs.getPressure(touch),
       shiftKey,
       ctrlKey,
@@ -64,9 +74,9 @@ export class Inputs {
     const info: TLPointerInfo<T> = {
       target,
       pointerId: touch.identifier,
-      origin: Inputs.getPoint(touch),
+      origin: Inputs.getPoint(touch, this.bounds),
       delta: [0, 0],
-      point: Inputs.getPoint(touch),
+      point: Inputs.getPoint(touch, this.bounds),
       pressure: Inputs.getPressure(touch),
       shiftKey,
       ctrlKey,
@@ -88,7 +98,7 @@ export class Inputs {
 
     const prev = this.pointer
 
-    const point = Inputs.getPoint(touch)
+    const point = Inputs.getPoint(touch, this.bounds)
 
     const delta = prev?.point ? Vec.sub(point, prev.point) : [0, 0]
 
@@ -114,7 +124,7 @@ export class Inputs {
   pointerDown<T extends string>(e: PointerEvent | React.PointerEvent, target: T): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    const point = Inputs.getPoint(e, this.offset)
+    const point = Inputs.getPoint(e, this.bounds)
 
     this.activePointer = e.pointerId
 
@@ -142,7 +152,7 @@ export class Inputs {
   ): TLPointerInfo<T> {
     const { shiftKey, ctrlKey, metaKey, altKey } = e
 
-    const point = Inputs.getPoint(e, this.offset)
+    const point = Inputs.getPoint(e, this.bounds)
 
     const info: TLPointerInfo<T> = {
       target,
@@ -167,7 +177,7 @@ export class Inputs {
 
     const prev = this.pointer
 
-    const point = Inputs.getPoint(e, this.offset)
+    const point = Inputs.getPoint(e, this.bounds)
 
     const delta = prev?.point ? Vec.sub(point, prev.point) : [0, 0]
 
@@ -195,7 +205,7 @@ export class Inputs {
 
     const prev = this.pointer
 
-    const point = Inputs.getPoint(e, this.offset)
+    const point = Inputs.getPoint(e, this.bounds)
 
     const delta = prev?.point ? Vec.sub(point, prev.point) : [0, 0]
 
@@ -231,7 +241,7 @@ export class Inputs {
       origin: this.pointer?.origin || [0, 0],
       delta: [0, 0],
       pressure: 0.5,
-      point: Inputs.getPoint(e, this.offset),
+      point: Inputs.getPoint(e, this.bounds),
       shiftKey,
       ctrlKey,
       metaKey,
@@ -252,7 +262,7 @@ export class Inputs {
 
     const prev = this.pointer
 
-    const point = Inputs.getPoint(e, this.offset)
+    const point = Inputs.getPoint(e, this.bounds)
 
     const info: TLPointerInfo<'wheel'> = {
       ...prev,
@@ -330,7 +340,7 @@ export class Inputs {
       target: 'pinch',
       origin,
       delta: delta,
-      point: Vec.sub(Vec.round(point), this.offset),
+      point: Vec.sub(Vec.round(point), [this.bounds.minX, this.bounds.minY]),
       pressure: 0.5,
       shiftKey,
       ctrlKey,
@@ -353,9 +363,9 @@ export class Inputs {
 
   static getPoint(
     e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent,
-    offset = [0, 0]
+    bounds: TLBounds
   ): number[] {
-    return [+e.clientX.toFixed(2) - offset[0], +e.clientY.toFixed(2) - offset[1]]
+    return [+e.clientX.toFixed(2) - bounds.minX, +e.clientY.toFixed(2) - bounds.minY]
   }
 
   static getPressure(e: PointerEvent | React.PointerEvent | Touch | React.Touch | WheelEvent) {

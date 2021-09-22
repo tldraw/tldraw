@@ -220,7 +220,7 @@ function InnerTldraw({
           onRenderCountChange={tlstate.onRenderCountChange}
           onShapeChange={tlstate.onShapeChange}
           onShapeBlur={tlstate.onShapeBlur}
-          onMount={tlstate.handleMount}
+          onBoundsChange={tlstate.updateBounds}
         />
       </ContextMenu>
       <div className={menuButtons()}>
