@@ -1106,13 +1106,13 @@ export class TLDrawState extends StateManager<Data> {
     const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
 
     const zoom = TLDR.getCameraZoom(
-      window.innerWidth < window.innerHeight
-        ? (window.innerWidth - 128) / bounds.width
-        : (window.innerHeight - 128) / bounds.height
+      this.bounds.width < this.bounds.height
+        ? (this.bounds.width - 128) / bounds.width
+        : (this.bounds.height - 128) / bounds.height
     )
 
-    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+    const mx = (this.bounds.width - bounds.width * zoom) / 2 / zoom
+    const my = (this.bounds.height - bounds.height * zoom) / 2 / zoom
 
     return this.setCamera(
       Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
@@ -1130,13 +1130,13 @@ export class TLDrawState extends StateManager<Data> {
     const bounds = TLDR.getSelectedBounds(this.state)
 
     const zoom = TLDR.getCameraZoom(
-      window.innerWidth < window.innerHeight
-        ? (window.innerWidth - 128) / bounds.width
-        : (window.innerHeight - 128) / bounds.height
+      this.bounds.width < this.bounds.height
+        ? (this.bounds.width - 128) / bounds.width
+        : (this.bounds.height - 128) / bounds.height
     )
 
-    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+    const mx = (this.bounds.width - bounds.width * zoom) / 2 / zoom
+    const my = (this.bounds.height - bounds.height * zoom) / 2 / zoom
 
     return this.setCamera(
       Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
@@ -1157,8 +1157,8 @@ export class TLDrawState extends StateManager<Data> {
     const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
 
     const { zoom } = pageState.camera
-    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+    const mx = (this.bounds.width - bounds.width * zoom) / 2 / zoom
+    const my = (this.bounds.height - bounds.height * zoom) / 2 / zoom
 
     return this.setCamera(
       Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
