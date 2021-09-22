@@ -16,6 +16,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@sentry/integrations": "^6.13.2",
+    "@sentry/node": "^6.13.2",
+    "@sentry/react": "^6.13.2",
+    "@sentry/tracing": "^6.13.2",
     "@stitches/react": "^1.0.0",
     "@tldraw/tldraw": "^0.0.97",
     "next": "11.1.2",
@@ -27,6 +31,7 @@
     "react-dom": "17.0.2"
   },
   "devDependencies": {
+    "@sentry/webpack-plugin": "^1.17.1",
     "@types/react": "^17.0.19",
     "@types/react-dom": "^17.0.9",
     "eslint": "7.32.0",
