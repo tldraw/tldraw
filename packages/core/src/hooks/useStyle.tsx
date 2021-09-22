@@ -151,7 +151,7 @@ const tlcss = css`
     height: 0;
     width: 0;
     contain: layout size;
-    transform: scale(var(--tl-zoom)) translate3d(var(--tl-camera-x), var(--tl-camera-y), 0px);
+    transform: scale(var(--tl-zoom)) translate(var(--tl-camera-x), var(--tl-camera-y));
   }
 
   .tl-absolute {

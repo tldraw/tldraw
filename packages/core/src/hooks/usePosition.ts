@@ -10,10 +10,9 @@ export function usePosition(bounds: TLBounds, rotation = 0) {
     const elm = rBounds.current!
 
     const transform = `
-    translate3d(
+    translate(
       calc(${bounds.minX}px - var(--tl-padding)),
-      calc(${bounds.minY}px - var(--tl-padding)), 
-      0px
+      calc(${bounds.minY}px - var(--tl-padding))
     )
     rotate(${rotation + (bounds.rotation || 0)}rad)`
 
