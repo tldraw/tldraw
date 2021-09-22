@@ -86,6 +86,17 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   /* ---------------------- Misc ---------------------- */
 
+  // Focus Mode
+
+  useHotkeys(
+    'ctrl+.,command+.',
+    () => {
+      if (canHandleEvent()) tlstate.toggleFocusMode()
+    },
+    undefined,
+    [tlstate]
+  )
+
   // Save
 
   useHotkeys(

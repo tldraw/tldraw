@@ -27,6 +27,8 @@ const pageStateSelector = (s: Data) => s.document.pageStates[s.appState.currentP
 
 const isDarkModeSelector = (s: Data) => s.settings.isDarkMode
 
+const isFocusModeSelector = (s: Data) => s.settings.isFocusMode
+
 export interface TLDrawProps {
   /**
    * (optional) If provided, the component will load / persist state under this key.
@@ -111,6 +113,8 @@ function InnerTldraw({
   const pageState = useSelector(pageStateSelector)
 
   const isDarkMode = useSelector(isDarkModeSelector)
+
+  const isFocusMode = useSelector(isFocusModeSelector)
 
   const isSelecting = useSelector(isInSelectSelector)
 
@@ -223,13 +227,17 @@ function InnerTldraw({
           onBoundsChange={tlstate.updateBounds}
         />
       </ContextMenu>
-      <div className={menuButtons()}>
-        <Menu />
-        <PagePanel />
-      </div>
-      <div className={spacer()} />
-      <StylePanel />
-      <ToolsPanel />
+      {!isFocusMode && (
+        <>
+          <div className={menuButtons()}>
+            <Menu />
+            <PagePanel />
+          </div>
+          <div className={spacer()} />
+          <StylePanel />
+          <ToolsPanel />
+        </>
+      )}
     </div>
   )
 }

@@ -70,9 +70,10 @@ const defaultState: Data = {
     isPenMode: false,
     isDarkMode: false,
     isZoomSnap: false,
+    isFocusMode: false,
     isDebugMode: process.env.NODE_ENV === 'development',
     isReadonlyMode: false,
-    nudgeDistanceLarge: 10,
+    nudgeDistanceLarge: 16,
     nudgeDistanceSmall: 1,
   },
   appState: {
@@ -375,6 +376,21 @@ export class TLDrawState extends StateManager<Data> {
   /* -------------------------------------------------- */
   /*                    Settings & UI                   */
   /* -------------------------------------------------- */
+
+  /**
+   * Toggle pen mode.
+   */
+  toggleFocusMode = (): this => {
+    if (this.session) return this
+    return this.patchState(
+      {
+        settings: {
+          isFocusMode: !this.state.settings.isFocusMode,
+        },
+      },
+      `settings:toggled_focus_mode`
+    )
+  }
 
   /**
    * Toggle pen mode.
@@ -885,7 +901,10 @@ export class TLDrawState extends StateManager<Data> {
         Vec.dist(center, this.pasteInfo.center) < 2 ||
         Vec.dist(center, Vec.round(Utils.getBoundsCenter(commonBounds))) < 2
       ) {
-        this.pasteInfo.offset = Vec.add(this.pasteInfo.offset, [16, 16])
+        this.pasteInfo.offset = Vec.add(this.pasteInfo.offset, [
+          this.state.settings.nudgeDistanceLarge,
+          this.state.settings.nudgeDistanceLarge,
+        ])
         center = Vec.add(center, this.pasteInfo.offset)
       } else {
         this.pasteInfo.center = center
