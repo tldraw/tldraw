@@ -17,6 +17,8 @@ import { StylePanel } from '~components/style-panel'
 import { ToolsPanel } from '~components/tools-panel'
 import { PagePanel } from '~components/page-panel'
 import { Menu } from '~components/menu'
+import { breakpoints, iconButton } from '~components'
+import { DotFilledIcon } from '@radix-ui/react-icons'
 
 // Selectors
 const isInSelectSelector = (s: Data) => s.appState.activeTool === 'select'
@@ -115,11 +117,9 @@ function InnerTldraw({
 }) {
   const { tlstate, useSelector } = useTLDrawContext()
 
-  const rTheme = React.useRef<HTMLDivElement>(null)
-
   const rWrapper = React.useRef<HTMLDivElement>(null)
 
-  useThemeEffect(rTheme)
+  useThemeEffect(rWrapper)
 
   const page = useSelector(pageSelector)
 
@@ -180,9 +180,9 @@ function InnerTldraw({
   }, [currentPageId, tlstate])
 
   return (
-    <div ref={rTheme}>
-      <div ref={rWrapper} className={layout()} tabIndex={0}>
-        <OneOff rWrapper={rWrapper} autofocus={autofocus} />
+    <div ref={rWrapper} tabIndex={0}>
+      <div className={layout()}>
+        <OneOff focusableRef={rWrapper} autofocus={autofocus} />
         <ContextMenu>
           <Renderer
             id={id}
@@ -242,7 +242,13 @@ function InnerTldraw({
             onBoundsChange={tlstate.updateBounds}
           />
         </ContextMenu>
-        {!isFocusMode && (
+        {isFocusMode ? (
+          <div className={unfocusButton()}>
+            <button className={iconButton({ bp: breakpoints })} onClick={tlstate.toggleFocusMode}>
+              <DotFilledIcon />
+            </button>
+          </div>
+        ) : (
           <>
             <div className={menuButtons()}>
               <Menu />
@@ -259,13 +265,19 @@ function InnerTldraw({
 }
 
 const OneOff = React.memo(
-  ({ rWrapper, autofocus }: { autofocus?: boolean; rWrapper: React.RefObject<HTMLDivElement> }) => {
-    useKeyboardShortcuts(rWrapper)
+  ({
+    focusableRef,
+    autofocus,
+  }: {
+    autofocus?: boolean
+    focusableRef: React.RefObject<HTMLDivElement>
+  }) => {
+    useKeyboardShortcuts(focusableRef)
     useCustomFonts()
 
     React.useEffect(() => {
       if (autofocus) {
-        rWrapper.current?.focus()
+        focusableRef.current?.focus()
       }
     }, [autofocus])
 
@@ -314,4 +326,18 @@ const spacer = css({
 const menuButtons = css({
   display: 'flex',
   gap: 8,
+})
+
+const unfocusButton = css({
+  opacity: 1,
+  zIndex: 100,
+  backgroundColor: 'transparent',
+
+  '& svg': {
+    color: '$muted',
+  },
+
+  '&:hover svg': {
+    color: '$text',
+  },
 })
