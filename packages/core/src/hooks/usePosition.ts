@@ -8,7 +8,9 @@ export function usePosition(bounds: TLBounds, rotation = 0) {
   React.useLayoutEffect(() => {
     const elm = rBounds.current!
     const transform = `
-    translate(calc(${bounds.minX}px - var(--tl-padding)),calc(${bounds.minY}px - var(--tl-padding)))
+    translate3d(calc(${bounds.minX}px - var(--tl-padding)),calc(${
+      bounds.minY
+    }px - var(--tl-padding)), 0)
     rotate(${rotation + (bounds.rotation || 0)}rad)`
     elm.style.setProperty('transform', transform)
 

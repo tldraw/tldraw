@@ -33,20 +33,6 @@ export class TLDR {
     return Vec.sub(Vec.div(point, camera.zoom), camera.point)
   }
 
-  static getViewport(data: Data): TLBounds {
-    const [minX, minY] = TLDR.screenToWorld(data, [0, 0])
-    const [maxX, maxY] = TLDR.screenToWorld(data, [window.innerWidth, window.innerHeight])
-
-    return {
-      minX,
-      minY,
-      maxX,
-      maxY,
-      height: maxX - minX,
-      width: maxY - minY,
-    }
-  }
-
   static getCameraZoom(zoom: number) {
     return Utils.clamp(zoom, 0.1, 5)
   }

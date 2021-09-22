@@ -322,7 +322,7 @@ const tlcss = css`
   }
 
   .tl-centered-g {
-    transform: translate(var(--tl-padding), var(--tl-padding));
+    transform: translate(var(--tl-padding), var(--tl-padding), 0);
   }
 
   .tl-current-parent > *[data-shy='true'] {

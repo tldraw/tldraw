@@ -861,14 +861,7 @@ export class TLDrawState extends StateManager<Data> {
 
       const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
 
-      let center = Vec.round(
-        this.getPagePoint(
-          point ||
-            (this.inputs
-              ? [this.inputs.size[0] / 2, this.inputs.size[1] / 2]
-              : [window.innerWidth / 2, window.innerHeight / 2])
-        )
-      )
+      let center = Vec.round(this.getPagePoint(point || this.centerPoint))
 
       if (
         Vec.dist(center, this.pasteInfo.center) < 2 ||
@@ -914,10 +907,7 @@ export class TLDrawState extends StateManager<Data> {
             type: TLDrawShapeType.Text,
             parentId: this.appState.currentPageId,
             text: result,
-            point: this.getPagePoint(
-              [window.innerWidth / 2, window.innerHeight / 2],
-              this.currentPageId
-            ),
+            point: this.getPagePoint(this.centerPoint, this.currentPageId),
             style: { ...this.appState.currentStyle },
           })
 
@@ -1030,11 +1020,7 @@ export class TLDrawState extends StateManager<Data> {
    * Reset the camera to the default position
    */
   resetCamera = (): this => {
-    return this.setCamera(
-      Vec.round([window.innerWidth / 2, window.innerHeight / 2]),
-      1,
-      `reset_camera`
-    )
+    return this.setCamera(this.centerPoint, 1, `reset_camera`)
   }
 
   /**
@@ -1066,7 +1052,7 @@ export class TLDrawState extends StateManager<Data> {
    * @param next The new zoom level.
    * @param center The point to zoom towards (defaults to screen center).
    */
-  zoomTo = (next: number, center = [window.innerWidth / 2, window.innerHeight / 2]): this => {
+  zoomTo = (next: number, center = this.centerPoint): this => {
     const { zoom, point } = this.pageState.camera
     const p0 = Vec.sub(Vec.div(center, zoom), point)
     const p1 = Vec.sub(Vec.div(center, next), point)
@@ -2812,5 +2798,13 @@ export class TLDrawState extends StateManager<Data> {
 
   onError = () => {
     // TODO
+  }
+
+  get centerPoint() {
+    return Vec.round(
+      this.inputs
+        ? [this.inputs.size[0] / 2, this.inputs.size[1] / 2]
+        : [window.innerWidth / 2, window.innerHeight / 2]
+    )
   }
 }
