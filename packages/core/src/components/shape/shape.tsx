@@ -30,7 +30,7 @@ export const Shape = React.memo(
     useForceUpdate()
 
     return (
-      <Container id={shape.id} className="tl-shape" bounds={bounds} rotation={shape.rotation}>
+      <Container id={shape.id} bounds={bounds} rotation={shape.rotation}>
         <RenderedShape
           shape={shape}
           isBinding={isBinding}

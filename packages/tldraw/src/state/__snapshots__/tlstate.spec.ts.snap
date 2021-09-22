@@ -2,8 +2,6 @@
 
 exports[` 1`] = `"[]"`;
 
-exports[` 2`] = `undefined`;
-
 exports[`TLDrawState Exposes undo/redo stack: history 1`] = `
 Array [
   Object {
@@ -126,3 +124,5 @@ Array [
   },
 ]
 `;
+
+exports[`TLDrawState When copying to SVG Copies shapes.: copied svg 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"-20.741879096242684 -20.741879096242684 236.74 236.74\\" width=\\"204.74\\" height=\\"204.74\\"/>"`;

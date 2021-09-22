@@ -217,11 +217,6 @@ describe('TLDrawState', () => {
     expect(tlstate.copyJson()).toMatchSnapshot('copied json')
   })
 
-  describe('Copies to SVG', () => {
-    tlstate.selectAll()
-    expect(tlstate.copySvg()).toMatchSnapshot('copied svg')
-  })
-
   describe('Mutates bound shapes', () => {
     const tlstate = new TLDrawState()
       .createShapes(
@@ -444,6 +439,35 @@ describe('TLDrawState', () => {
     tlstate2.undo()
 
     expect(tlstate2.shapes.length).toBe(1)
+  })
+
+  describe('When copying to SVG', () => {
+    it('Copies shapes.', () => {
+      const tlstate = new TLDrawState()
+      const result = tlstate
+        .loadDocument(mockDocument)
+        .select('rect1')
+        .rotate(0.1)
+        .selectAll()
+        .copySvg()
+      expect(result).toMatchSnapshot('copied svg')
+    })
+
+    it.todo('Copies Text shapes as <text> elements.')
+    // it('Copies Text shapes as <text> elements.', () => {
+    //   const tlstate2 = new TLDrawState()
+
+    //   const svgString = tlstate2
+    //     .createShapes({
+    //       id: 'text1',
+    //       type: TLDrawShapeType.Text,
+    //       text: 'hello world!',
+    //     })
+    //     .select('text1')
+    //     .copySvg()
+
+    //   expect(svgString).toBeTruthy()
+    // })
   })
 
   describe('when the document prop changes', () => {
