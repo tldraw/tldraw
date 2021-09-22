@@ -151,8 +151,7 @@ const tlcss = css`
     height: 0;
     width: 0;
     contain: layout size;
-    transform: scale(var(--tl-zoom), var(--tl-zoom))
-      translate(var(--tl-camera-x), var(--tl-camera-y));
+    transform: scale(var(--tl-zoom)) translate3d(var(--tl-camera-x), var(--tl-camera-y), 0px);
   }
 
   .tl-absolute {
@@ -322,7 +321,7 @@ const tlcss = css`
   }
 
   .tl-centered-g {
-    transform: translate3d(var(--tl-padding), var(--tl-padding), 0px);
+    transform: translate(var(--tl-padding), var(--tl-padding));
   }
 
   .tl-current-parent > *[data-shy='true'] {
