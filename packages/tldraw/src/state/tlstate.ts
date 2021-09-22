@@ -119,6 +119,16 @@ export class TLDrawState extends StateManager<Data> {
 
   selectedGroupId?: string
 
+  // The editor's bounding client rect
+  bounds: TLBounds = {
+    minX: 0,
+    minY: 0,
+    maxX: 640,
+    maxY: 480,
+    width: 640,
+    height: 480,
+  }
+
   private pasteInfo = {
     center: [0, 0],
     offset: [0, 0],
@@ -352,6 +362,14 @@ export class TLDrawState extends StateManager<Data> {
 
   handleMount = (inputs: Inputs): void => {
     this.inputs = inputs
+  }
+
+  /**
+   * Update the bounding box when the renderer's bounds change.
+   * @param bounds
+   */
+  updateBounds = (bounds: TLBounds) => {
+    this.bounds = { ...bounds }
   }
 
   /* -------------------------------------------------- */
@@ -861,14 +879,7 @@ export class TLDrawState extends StateManager<Data> {
 
       const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
 
-      let center = Vec.round(
-        this.getPagePoint(
-          point ||
-            (this.inputs
-              ? [this.inputs.size[0] / 2, this.inputs.size[1] / 2]
-              : [window.innerWidth / 2, window.innerHeight / 2])
-        )
-      )
+      let center = Vec.round(this.getPagePoint(point || this.centerPoint))
 
       if (
         Vec.dist(center, this.pasteInfo.center) < 2 ||
@@ -914,10 +925,7 @@ export class TLDrawState extends StateManager<Data> {
             type: TLDrawShapeType.Text,
             parentId: this.appState.currentPageId,
             text: result,
-            point: this.getPagePoint(
-              [window.innerWidth / 2, window.innerHeight / 2],
-              this.currentPageId
-            ),
+            point: this.getPagePoint(this.centerPoint, this.currentPageId),
             style: { ...this.appState.currentStyle },
           })
 
@@ -1030,11 +1038,7 @@ export class TLDrawState extends StateManager<Data> {
    * Reset the camera to the default position
    */
   resetCamera = (): this => {
-    return this.setCamera(
-      Vec.round([window.innerWidth / 2, window.innerHeight / 2]),
-      1,
-      `reset_camera`
-    )
+    return this.setCamera(this.centerPoint, 1, `reset_camera`)
   }
 
   /**
@@ -1066,7 +1070,7 @@ export class TLDrawState extends StateManager<Data> {
    * @param next The new zoom level.
    * @param center The point to zoom towards (defaults to screen center).
    */
-  zoomTo = (next: number, center = [window.innerWidth / 2, window.innerHeight / 2]): this => {
+  zoomTo = (next: number, center = this.centerPoint): this => {
     const { zoom, point } = this.pageState.camera
     const p0 = Vec.sub(Vec.div(center, zoom), point)
     const p1 = Vec.sub(Vec.div(center, next), point)
@@ -1102,13 +1106,13 @@ export class TLDrawState extends StateManager<Data> {
     const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
 
     const zoom = TLDR.getCameraZoom(
-      window.innerWidth < window.innerHeight
-        ? (window.innerWidth - 128) / bounds.width
-        : (window.innerHeight - 128) / bounds.height
+      this.bounds.width < this.bounds.height
+        ? (this.bounds.width - 128) / bounds.width
+        : (this.bounds.height - 128) / bounds.height
     )
 
-    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+    const mx = (this.bounds.width - bounds.width * zoom) / 2 / zoom
+    const my = (this.bounds.height - bounds.height * zoom) / 2 / zoom
 
     return this.setCamera(
       Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
@@ -1126,13 +1130,13 @@ export class TLDrawState extends StateManager<Data> {
     const bounds = TLDR.getSelectedBounds(this.state)
 
     const zoom = TLDR.getCameraZoom(
-      window.innerWidth < window.innerHeight
-        ? (window.innerWidth - 128) / bounds.width
-        : (window.innerHeight - 128) / bounds.height
+      this.bounds.width < this.bounds.height
+        ? (this.bounds.width - 128) / bounds.width
+        : (this.bounds.height - 128) / bounds.height
     )
 
-    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+    const mx = (this.bounds.width - bounds.width * zoom) / 2 / zoom
+    const my = (this.bounds.height - bounds.height * zoom) / 2 / zoom
 
     return this.setCamera(
       Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
@@ -1153,8 +1157,8 @@ export class TLDrawState extends StateManager<Data> {
     const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
 
     const { zoom } = pageState.camera
-    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+    const mx = (this.bounds.width - bounds.width * zoom) / 2 / zoom
+    const my = (this.bounds.height - bounds.height * zoom) / 2 / zoom
 
     return this.setCamera(
       Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
@@ -2812,5 +2816,9 @@ export class TLDrawState extends StateManager<Data> {
 
   onError = () => {
     // TODO
+  }
+
+  get centerPoint() {
+    return Vec.round(Utils.getBoundsCenter(this.bounds))
   }
 }

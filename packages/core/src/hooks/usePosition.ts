@@ -5,11 +5,18 @@ import type { TLBounds } from '+types'
 export function usePosition(bounds: TLBounds, rotation = 0) {
   const rBounds = React.useRef<HTMLDivElement>(null)
 
+  // Update the transform
   React.useLayoutEffect(() => {
     const elm = rBounds.current!
+
     const transform = `
-    translate(calc(${bounds.minX}px - var(--tl-padding)),calc(${bounds.minY}px - var(--tl-padding)))
+    translate3d(
+      calc(${bounds.minX}px - var(--tl-padding)),
+      calc(${bounds.minY}px - var(--tl-padding)), 
+      0px
+    )
     rotate(${rotation + (bounds.rotation || 0)}rad)`
+
     elm.style.setProperty('transform', transform)
 
     elm.style.setProperty('width', `calc(${Math.floor(bounds.width)}px + (var(--tl-padding) * 2))`)

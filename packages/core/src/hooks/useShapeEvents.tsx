@@ -3,7 +3,7 @@ import { Utils } from '+utils'
 import { TLContext } from '+hooks'
 
 export function useShapeEvents(id: string, disable = false) {
-  const { rPageState, rScreenBounds, callbacks, inputs } = React.useContext(TLContext)
+  const { rPageState, rSelectionBounds, callbacks, inputs } = React.useContext(TLContext)
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
@@ -26,8 +26,8 @@ export function useShapeEvents(id: string, disable = false) {
       // treat the event as a bounding box click. Unfortunately there's no way I know to pipe
       // the event to the actual bounds background element.
       if (
-        rScreenBounds.current &&
-        Utils.pointInBounds(info.point, rScreenBounds.current) &&
+        rSelectionBounds.current &&
+        Utils.pointInBounds(info.point, rSelectionBounds.current) &&
         !rPageState.current.selectedIds.includes(id)
       ) {
         callbacks.onPointBounds?.(inputs.pointerDown(e, 'bounds'), e)

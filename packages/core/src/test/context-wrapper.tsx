@@ -7,13 +7,13 @@ import { Inputs } from '+inputs'
 
 export const ContextWrapper: React.FC = ({ children }) => {
   useTLTheme()
-  const rScreenBounds = React.useRef<TLBounds>(null)
+  const rSelectionBounds = React.useRef<TLBounds>(null)
   const rPageState = React.useRef<TLPageState>(mockDocument.pageState)
 
   const [context] = React.useState(() => ({
     callbacks: {},
     shapeUtils: mockUtils,
-    rScreenBounds,
+    rSelectionBounds,
     rPageState,
     inputs: new Inputs(),
   }))

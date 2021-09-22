@@ -56,9 +56,13 @@ export interface RendererProps<T extends TLShape, E extends Element = any, M = a
    */
   meta?: M
   /**
-   * A callback that receives the renderer's inputs manager.
+   * (optional) A callback that receives the renderer's inputs manager.
    */
   onMount?: (inputs: Inputs) => void
+  /**
+   * (optional) A callback that is fired when the editor's client bounding box changes.
+   */
+  onBoundsChange?: (bounds: TLBounds) => void
 }
 
 /**
@@ -83,7 +87,7 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
 }: RendererProps<T, E, M>): JSX.Element {
   useTLTheme(theme)
 
-  const rScreenBounds = React.useRef<TLBounds>(null)
+  const rSelectionBounds = React.useRef<TLBounds>(null)
 
   const rPageState = React.useRef<TLPageState>(pageState)
 
@@ -96,7 +100,7 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
   const [context] = React.useState<TLContextType<T, E, M>>(() => ({
     callbacks: rest,
     shapeUtils,
-    rScreenBounds,
+    rSelectionBounds,
     rPageState,
     inputs: new Inputs(),
   }))

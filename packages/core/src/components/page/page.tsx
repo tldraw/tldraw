@@ -34,7 +34,7 @@ export function Page<T extends TLShape, M extends Record<string, unknown>>({
     page,
     pageState,
     shapeUtils,
-    inputs.size,
+    [inputs.bounds.width, inputs.bounds.height],
     meta,
     callbacks.onRenderCountChange
   )
@@ -59,7 +59,7 @@ export function Page<T extends TLShape, M extends Record<string, unknown>>({
         <Bounds
           zoom={zoom}
           bounds={bounds}
-          viewportWidth={inputs.size[0]}
+          viewportWidth={inputs.bounds.width}
           isLocked={isLocked}
           rotation={rotation}
         />

@@ -205,6 +205,7 @@ export interface TLCallbacks<T extends TLShape> {
   onShapeBlur: TLShapeBlurHandler<any>
   onRenderCountChange: (ids: string[]) => void
   onError: (error: Error) => void
+  onBoundsChange: (bounds: TLBounds) => void
 }
 
 export interface TLBounds {
