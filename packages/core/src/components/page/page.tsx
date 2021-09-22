@@ -52,7 +52,7 @@ export function Page<T extends TLShape, M extends Record<string, unknown>>({
   return (
     <>
       {bounds && !hideBounds && <BoundsBg bounds={bounds} rotation={rotation} />}
-      {shapeTree.map((node, i) => (
+      {shapeTree.map((node) => (
         <ShapeNode key={node.shape.id} utils={shapeUtils} {...node} />
       ))}
       {bounds && !hideBounds && (

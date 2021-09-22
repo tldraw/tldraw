@@ -2,18 +2,34 @@
 import * as React from 'react'
 import type { TLPageState } from '+types'
 
-export function useCameraCss(ref: React.RefObject<HTMLDivElement>, pageState: TLPageState) {
-  const rLayer = React.useRef<HTMLDivElement>(null)
-
+export function useCameraCss(
+  layerRef: React.RefObject<HTMLDivElement>,
+  containerRef: React.RefObject<HTMLDivElement>,
+  pageState: TLPageState
+) {
   // Update the tl-zoom CSS variable when the zoom changes
-  React.useEffect(() => {
-    ref.current!.style.setProperty('--tl-zoom', pageState.camera.zoom.toString())
-  }, [pageState.camera.zoom])
+  const rZoom = React.useRef(pageState.camera.zoom)
 
-  React.useEffect(() => {
-    ref.current!.style.setProperty('--tl-camera-x', pageState.camera.point[0] + 'px')
-    ref.current!.style.setProperty('--tl-camera-y', pageState.camera.point[1] + 'px')
-  }, [pageState.camera.point])
+  React.useLayoutEffect(() => {
+    const {
+      zoom,
+      point: [x, y],
+    } = pageState.camera
 
-  return rLayer
+    if (zoom !== rZoom.current) {
+      rZoom.current = zoom
+
+      const container = containerRef.current
+
+      if (container) {
+        container.style.setProperty('--tl-zoom', zoom.toString())
+      }
+    }
+
+    const layer = layerRef.current
+
+    if (layer) {
+      layer.style.setProperty('transform', `scale(${zoom}) translate(${x}px, ${y}px)`)
+    }
+  }, [pageState.camera])
 }

@@ -39,6 +39,7 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
 }: CanvasProps<T, M>): JSX.Element {
   const rCanvas = React.useRef<HTMLDivElement>(null)
   const rContainer = React.useRef<HTMLDivElement>(null)
+  const rLayer = React.useRef<HTMLDivElement>(null)
 
   useResizeObserver(rCanvas)
 
@@ -50,7 +51,7 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
 
   const events = useCanvasEvents()
 
-  const rLayer = useCameraCss(rContainer, pageState)
+  useCameraCss(rLayer, rContainer, pageState)
 
   const preventScrolling = React.useCallback((e: React.UIEvent<HTMLDivElement, UIEvent>) => {
     e.currentTarget.scrollTo(0, 0)

@@ -111,7 +111,8 @@ export function useShapeTree<
   shapesIdsToRender.clear()
 
   Object.values(page.shapes)
-    .filter((shape) => {
+    .sort((a, b) => a.childIndex - b.childIndex)
+    .forEach((shape) => {
       // Don't hide selected shapes (this breaks certain drag interactions)
       if (
         selectedIds.includes(shape.id) ||
@@ -123,7 +124,6 @@ export function useShapeTree<
         }
       }
     })
-    .sort((a, b) => a.childIndex - b.childIndex)
 
   // Call onChange callback when number of rendering shapes changes
 

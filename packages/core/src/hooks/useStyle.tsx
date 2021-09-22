@@ -111,8 +111,6 @@ const tlcss = css`
   .tl-container {
     --tl-zoom: 1;
     --tl-scale: calc(1 / var(--tl-zoom));
-    --tl-camera-x: 0px;
-    --tl-camera-y: 0px;
     --tl-padding: calc(64px * max(1, var(--tl-scale)));
     position: relative;
     top: 0px;
@@ -150,8 +148,6 @@ const tlcss = css`
     left: 0;
     height: 0;
     width: 0;
-    contain: layout size;
-    transform: scale(var(--tl-zoom)) translate(var(--tl-camera-x), var(--tl-camera-y));
   }
 
   .tl-absolute {
@@ -171,7 +167,6 @@ const tlcss = css`
     align-items: center;
     justify-content: center;
     overflow: clip;
-    contain: layout size paint;
   }
 
   .tl-positioned-svg {

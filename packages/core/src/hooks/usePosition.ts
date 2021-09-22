@@ -2,7 +2,7 @@
 import * as React from 'react'
 import type { TLBounds } from '+types'
 
-export function usePosition(bounds: TLBounds, rotation = 0) {
+export function usePosition(bounds: TLBounds, rotation = 0, zIndex = 0) {
   const rBounds = React.useRef<HTMLDivElement>(null)
 
   // Update the transform
@@ -24,6 +24,8 @@ export function usePosition(bounds: TLBounds, rotation = 0) {
       'height',
       `calc(${Math.floor(bounds.height)}px + (var(--tl-padding) * 2))`
     )
+
+    elm.style.setProperty('z-index', zIndex + '')
   }, [bounds, rotation])
 
   return rBounds

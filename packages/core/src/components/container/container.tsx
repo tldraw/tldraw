@@ -3,9 +3,9 @@ import type { TLBounds } from '+types'
 import { usePosition } from '+hooks'
 
 interface ContainerProps {
+  id?: string
   bounds: TLBounds
   rotation?: number
-  id?: string
   className?: string
   children: React.ReactNode
 }

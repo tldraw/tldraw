@@ -16,12 +16,14 @@ export default function Editor({ id = 'home' }: EditorProps) {
 
   // Send events to gtag as actions.
   const handleChange = React.useCallback((_tlstate: TLDrawState, _state: Data, reason: string) => {
-    gtag.event({
-      action: reason,
-      category: 'editor',
-      label: `page:${id}`,
-      value: 0,
-    })
+    if (reason.startsWith('command')) {
+      gtag.event({
+        action: reason,
+        category: 'editor',
+        label: `page:${id}`,
+        value: 0,
+      })
+    }
   }, [])
 
   return (

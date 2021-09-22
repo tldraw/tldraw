@@ -925,8 +925,11 @@ export class TLDrawState extends StateManager<Data> {
         }))
       )
     }
-
     try {
+      if (!('clipboard' in navigator && navigator.clipboard.readText)) {
+        throw Error('This browser does not support the clipboard API.')
+      }
+
       navigator.clipboard.readText().then((result) => {
         try {
           const data: { type: string; shapes: TLDrawShape[] } = JSON.parse(result)
@@ -937,6 +940,8 @@ export class TLDrawState extends StateManager<Data> {
 
           pasteInCurrentPage(data.shapes)
         } catch (e) {
+          console.warn(e)
+
           const shapeId = Utils.uniqueId()
 
           this.createShapes({
@@ -951,7 +956,8 @@ export class TLDrawState extends StateManager<Data> {
           this.select(shapeId)
         }
       })
-    } catch {
+    } catch (e: any) {
+      console.warn(e.message)
       // Navigator does not support clipboard. Note that this fallback will
       // not support pasting from one document to another.
       if (this.clipboard) {
@@ -1122,7 +1128,7 @@ export class TLDrawState extends StateManager<Data> {
 
     if (shapes.length === 0) return this
 
-    const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
+    const bounds = Utils.getCommonBounds(shapes.map(TLDR.getBounds))
 
     const zoom = TLDR.getCameraZoom(
       this.bounds.width < this.bounds.height
@@ -1135,7 +1141,7 @@ export class TLDrawState extends StateManager<Data> {
 
     return this.setCamera(
       Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
-      this.pageState.camera.zoom,
+      zoom,
       `zoomed_to_fit`
     )
   }
@@ -2326,6 +2332,7 @@ export class TLDrawState extends StateManager<Data> {
     //   const nextZoom = TLDR.getCameraZoom(i * 0.25)
     //   this.zoomTo(nextZoom, inputs.pointer?.point)
     // }
+    this.undoSelect()
     this.setStatus(TLDrawStatus.Idle)
   }
 

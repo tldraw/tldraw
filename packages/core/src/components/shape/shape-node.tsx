@@ -31,7 +31,7 @@ export const ShapeNode = React.memo(
           meta={meta}
         />
         {children &&
-          children.map((childNode) => (
+          children.map((childNode, i) => (
             <ShapeNode key={childNode.shape.id} utils={utils} {...childNode} />
           ))}
       </>
