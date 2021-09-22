@@ -1,7 +1,7 @@
 import * as RadixTooltip from '@radix-ui/react-tooltip'
 import * as React from 'react'
 import css from '~styles'
-import { kbd } from './kbd'
+import { Kbd } from './kbd'
 
 /* -------------------------------------------------- */
 /*                       Tooltip                      */
@@ -25,7 +25,7 @@ export function Tooltip({
       <RadixTooltip.Trigger as="span">{children}</RadixTooltip.Trigger>
       <RadixTooltip.Content className={content()} side={side} sideOffset={8}>
         {label}
-        {kbdProp ? <kbd className={kbd({ variant: 'tooltip' })}>{kbdProp}</kbd> : null}
+        {kbdProp ? <Kbd variant="tooltip">{kbdProp}</Kbd> : null}
         <RadixTooltip.Arrow className={arrow()} />
       </RadixTooltip.Content>
     </RadixTooltip.Root>

@@ -17,6 +17,10 @@ import type { TLShapeUtil } from '+index'
 export interface RendererProps<T extends TLShape, E extends Element = any, M = any>
   extends Partial<TLCallbacks<T>> {
   /**
+   * (optional) A unique id to be applied to the renderer element, used to scope styles.
+   */
+  id?: string
+  /**
    * An object containing instances of your shape classes.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -74,6 +78,7 @@ export interface RendererProps<T extends TLShape, E extends Element = any, M = a
  * @returns
  */
 export function Renderer<T extends TLShape, E extends Element, M extends Record<string, unknown>>({
+  id = 'tl',
   shapeUtils,
   page,
   pageState,
@@ -85,7 +90,7 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
   onMount,
   ...rest
 }: RendererProps<T, E, M>): JSX.Element {
-  useTLTheme(theme)
+  useTLTheme(theme, '#' + id)
 
   const rSelectionBounds = React.useRef<TLBounds>(null)
 
@@ -94,8 +99,6 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
   React.useEffect(() => {
     rPageState.current = pageState
   }, [pageState])
-
-  rest
 
   const [context] = React.useState<TLContextType<T, E, M>>(() => ({
     callbacks: rest,
@@ -112,6 +115,7 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
   return (
     <TLContext.Provider value={context as unknown as TLContextType<TLShape, Element>}>
       <Canvas
+        id={id}
         page={page}
         pageState={pageState}
         hideBounds={hideBounds}

@@ -120,9 +120,6 @@ export function useShapeTree<
         if (shape.parentId === page.id) {
           shapesIdsToRender.add(shape.id)
           shapesToRender.add(shape)
-        } else {
-          shapesIdsToRender.add(shape.parentId)
-          shapesToRender.add(page.shapes[shape.parentId])
         }
       }
     })

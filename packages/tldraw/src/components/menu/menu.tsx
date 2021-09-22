@@ -11,7 +11,7 @@ import {
   DropdownMenuSubMenu,
   DropdownMenuDivider,
   iconWrapper,
-  kbd,
+  Kbd,
 } from '~components/shared'
 import { useTLDrawContext } from '~hooks'
 import { Preferences } from './preferences'
@@ -46,22 +46,22 @@ export const Menu = React.memo(() => {
         <DropdownMenu.Content className={menuContent()} sideOffset={8} align="end">
           <DropdownMenuButton onSelect={handleNew}>
             <span>New Project</span>
-            <kbd className={kbd({ variant: 'menu' })}>#N</kbd>
+            <Kbd variant="menu">#N</Kbd>
           </DropdownMenuButton>
           <DropdownMenuDivider />
           <DropdownMenuButton disabled onSelect={handleLoad}>
             <span>Open...</span>
-            <kbd className={kbd({ variant: 'menu' })}>#L</kbd>
+            <Kbd variant="menu">#L</Kbd>
           </DropdownMenuButton>
           <RecentFiles />
           <DropdownMenuDivider />
           <DropdownMenuButton disabled onSelect={handleSave}>
             <span>Save</span>
-            <kbd className={kbd({ variant: 'menu' })}>#S</kbd>
+            <Kbd variant="menu">#S</Kbd>
           </DropdownMenuButton>
           <DropdownMenuButton disabled onSelect={handleSave}>
             <span>Save As...</span>
-            <kbd className={kbd({ variant: 'menu' })}>⇧#S</kbd>
+            <Kbd variant="menu">⇧#S</Kbd>
           </DropdownMenuButton>
           <DropdownMenuDivider />
           <Preferences />

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { SVGContainer, Utils, ShapeUtil } from '@tldraw/core'
+import { SVGContainer, ShapeUtil } from '@tldraw/core'
 import { defaultStyle, getPerfectDashProps } from '~shape/shape-styles'
 import {
   GroupShape,
@@ -10,6 +10,7 @@ import {
   TLDrawMeta,
 } from '~types'
 import { getBoundsRectangle } from '../shared'
+import css from '~styles'
 
 export const Group = new ShapeUtil<GroupShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Group,
@@ -45,27 +46,8 @@ export const Group = new ShapeUtil<GroupShape, SVGSVGElement, TLDrawMeta>(() => 
       [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
     ]
 
-    const paths = strokes.map(([start, end, length], i) => {
-      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-        length,
-        sw,
-        DashStyle.Dotted
-      )
-
-      return (
-        <line
-          key={id + '_' + i}
-          x1={start[0]}
-          y1={start[1]}
-          x2={end[0]}
-          y2={end[1]}
-          stroke={ColorStyle.Black}
-          strokeWidth={isHovered || isSelected ? sw : 0}
-          strokeLinecap="round"
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
-        />
-      )
+    const paths = strokes.map(([start, end], i) => {
+      return <line key={id + '_' + i} x1={start[0]} y1={start[1]} x2={end[0]} y2={end[1]} />
     })
 
     return (
@@ -80,7 +62,15 @@ export const Group = new ShapeUtil<GroupShape, SVGSVGElement, TLDrawMeta>(() => 
           />
         )}
         <rect x={0} y={0} width={size[0]} height={size[1]} fill="transparent" pointerEvents="all" />
-        <g pointerEvents="stroke">{paths}</g>
+        <g
+          className={scaledLines()}
+          stroke={ColorStyle.Black}
+          opacity={isHovered || isSelected ? 1 : 0}
+          strokeLinecap="round"
+          pointerEvents="stroke"
+        >
+          {paths}
+        </g>
       </SVGContainer>
     )
   },
@@ -99,29 +89,15 @@ export const Group = new ShapeUtil<GroupShape, SVGSVGElement, TLDrawMeta>(() => 
       [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
     ]
 
-    const paths = strokes.map(([start, end, length], i) => {
-      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-        length,
-        sw,
-        DashStyle.Dotted
-      )
-
-      return (
-        <line
-          key={id + '_' + i}
-          x1={start[0]}
-          y1={start[1]}
-          x2={end[0]}
-          y2={end[1]}
-          strokeWidth={sw}
-          strokeLinecap="round"
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
-        />
-      )
+    const paths = strokes.map(([start, end], i) => {
+      return <line key={id + '_' + i} x1={start[0]} y1={start[1]} x2={end[0]} y2={end[1]} />
     })
 
-    return <g>{paths}</g>
+    return (
+      <g className={scaledLines()} strokeLinecap="round" pointerEvents="stroke">
+        {paths}
+      </g>
+    )
   },
 
   shouldRender(prev, next) {
@@ -132,3 +108,8 @@ export const Group = new ShapeUtil<GroupShape, SVGSVGElement, TLDrawMeta>(() => 
     return getBoundsRectangle(shape, this.boundsCache)
   },
 }))
+
+const scaledLines = css({
+  strokeWidth: 'calc(1.5px * var(--tl-scale))',
+  strokeDasharray: `calc(1px * var(--tl-scale)), calc(3px * var(--tl-scale))`,
+})

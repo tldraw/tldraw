@@ -25,9 +25,11 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   hideHandles?: boolean
   hideIndicators?: boolean
   meta?: M
+  id?: string
 }
 
 export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
+  id,
   page,
   pageState,
   meta,
@@ -55,7 +57,7 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
   }, [])
 
   return (
-    <div className="tl-container" ref={rContainer}>
+    <div id={id} className="tl-container" ref={rContainer}>
       <div
         id="canvas"
         className="tl-absolute tl-canvas"
