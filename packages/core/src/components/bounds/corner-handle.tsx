@@ -14,25 +14,25 @@ interface CornerHandleProps {
   targetSize: number
   bounds: TLBounds
   corner: TLBoundsCorner
+  isHidden?: boolean
 }
 
 export const CornerHandle = React.memo(
-  ({ size, targetSize, corner, bounds }: CornerHandleProps): JSX.Element => {
+  ({ size, targetSize, isHidden, corner, bounds }: CornerHandleProps): JSX.Element => {
     const events = useBoundsHandleEvents(corner)
 
     const isTop = corner === TLBoundsCorner.TopLeft || corner === TLBoundsCorner.TopRight
     const isLeft = corner === TLBoundsCorner.TopLeft || corner === TLBoundsCorner.BottomLeft
 
     return (
-      <g>
+      <g opacity={isHidden ? 0 : 1}>
         <rect
           className={cornerBgClassnames[corner]}
           x={(isLeft ? -1 : bounds.width + 1) - targetSize}
           y={(isTop ? -1 : bounds.height + 1) - targetSize}
           width={targetSize * 2}
           height={targetSize * 2}
-          pointerEvents="all"
-          fill="red"
+          pointerEvents={isHidden ? 'none' : 'all'}
           {...events}
         />
         <rect

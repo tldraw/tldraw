@@ -55,13 +55,14 @@ export function Page<T extends TLShape, M extends Record<string, unknown>>({
       {shapeTree.map((node) => (
         <ShapeNode key={node.shape.id} utils={shapeUtils} {...node} />
       ))}
-      {bounds && !hideBounds && (
+      {bounds && (
         <Bounds
           zoom={zoom}
           bounds={bounds}
           viewportWidth={inputs.bounds.width}
           isLocked={isLocked}
           rotation={rotation}
+          isHidden={hideBounds}
         />
       )}
       {!hideIndicators &&
