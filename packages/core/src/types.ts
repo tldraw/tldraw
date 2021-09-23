@@ -133,6 +133,8 @@ export type TLShapeChangeHandler<T, K = any> = (
 
 export type TLShapeBlurHandler<K = any> = (info?: K) => void
 
+export type TLKeyboardEventHandler = (key: string, info: TLKeyboardInfo, e: KeyboardEvent) => void
+
 export type TLPointerEventHandler = (info: TLPointerInfo<string>, e: React.PointerEvent) => void
 
 export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>, e: React.PointerEvent) => void
@@ -206,6 +208,10 @@ export interface TLCallbacks<T extends TLShape> {
   onRenderCountChange: (ids: string[]) => void
   onError: (error: Error) => void
   onBoundsChange: (bounds: TLBounds) => void
+
+  // Keyboard event handlers
+  onKeyDown: TLKeyboardEventHandler
+  onKeyUp: TLKeyboardEventHandler
 }
 
 export interface TLBounds {

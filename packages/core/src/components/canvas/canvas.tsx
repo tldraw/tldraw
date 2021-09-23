@@ -6,6 +6,7 @@ import {
   useSafariFocusOutFix,
   useCanvasEvents,
   useCameraCss,
+  useKeyEvents,
 } from '+hooks'
 import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
 import { ErrorFallback } from '+components/error-fallback'
@@ -56,6 +57,8 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
   const preventScrolling = React.useCallback((e: React.UIEvent<HTMLDivElement, UIEvent>) => {
     e.currentTarget.scrollTo(0, 0)
   }, [])
+
+  useKeyEvents()
 
   return (
     <div id={id} className="tl-container" ref={rContainer}>

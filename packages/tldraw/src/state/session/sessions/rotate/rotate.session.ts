@@ -30,19 +30,28 @@ export class RotateSession implements Session {
 
     const shapes: Record<string, Partial<TLDrawShape>> = {}
 
-    const nextDirection = Vec.angle(commonBoundsCenter, point) - this.initialAngle
-
-    let nextBoundsRotation = this.snapshot.boundsRotation + nextDirection
+    let directionDelta = Vec.angle(commonBoundsCenter, point) - this.initialAngle
 
     if (isLocked) {
-      nextBoundsRotation = Utils.snapAngleToSegments(nextBoundsRotation, 24)
+      directionDelta = Utils.snapAngleToSegments(directionDelta, 24) // 15 degrees
     }
-
-    const delta = nextBoundsRotation - this.snapshot.boundsRotation
 
     // Update the shapes
     initialShapes.forEach(({ id, center, shape }) => {
-      const change = TLDR.getRotatedShapeMutation(shape, center, commonBoundsCenter, delta)
+      const { rotation = 0 } = shape
+      let shapeDelta = 0
+
+      if (isLocked) {
+        const snappedRotation = Utils.snapAngleToSegments(rotation, 24)
+        shapeDelta = snappedRotation - rotation
+      }
+
+      const change = TLDR.getRotatedShapeMutation(
+        shape,
+        center,
+        commonBoundsCenter,
+        isLocked ? directionDelta + shapeDelta : directionDelta
+      )
 
       if (change) {
         shapes[id] = change
@@ -50,6 +59,8 @@ export class RotateSession implements Session {
     })
 
     this.changes = shapes
+
+    const nextBoundsRotation = this.snapshot.boundsRotation + directionDelta
 
     return {
       document: {

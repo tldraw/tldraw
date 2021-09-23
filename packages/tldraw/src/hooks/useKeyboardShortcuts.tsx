@@ -11,24 +11,6 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     return elm && (document.activeElement === elm || elm.contains(document.activeElement))
   }, [ref])
 
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (canHandleEvent()) tlstate.onKeyDown(e.key)
-    }
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (canHandleEvent()) tlstate.onKeyUp(e.key)
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    window.addEventListener('keyup', handleKeyUp)
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-      window.removeEventListener('keyup', handleKeyUp)
-    }
-  }, [tlstate])
-
   /* ---------------------- Tools --------------------- */
 
   useHotkeys(
