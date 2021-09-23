@@ -453,6 +453,17 @@ describe('TLDrawState', () => {
       expect(result).toMatchSnapshot('copied svg')
     })
 
+    it('Copies grouped shapes.', () => {
+      const tlstate = new TLDrawState()
+      const result = tlstate
+        .loadDocument(mockDocument)
+        .select('rect1', 'rect2')
+        .group()
+        .selectAll()
+        .copySvg()
+      expect(result).toMatchSnapshot('copied svg with group')
+    })
+
     it.todo('Copies Text shapes as <text> elements.')
     // it('Copies Text shapes as <text> elements.', () => {
     //   const tlstate2 = new TLDrawState()
