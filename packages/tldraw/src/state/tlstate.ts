@@ -986,9 +986,7 @@ export class TLDrawState extends StateManager<Data> {
     function getSvgElementForShape(shape: TLDrawShape) {
       const elm = document.getElementById(shape.id + '_svg')
 
-      if (!elm) {
-        throw Error("Can't copy an element without an id_svg id")
-      }
+      if (!elm) return
 
       // TODO: Create SVG elements for text
 
@@ -1015,7 +1013,8 @@ export class TLDrawState extends StateManager<Data> {
         shape.children
           .map((childId) => this.getShape(childId, pageId))
           .map(getSvgElementForShape)
-          .forEach((element) => g.appendChild(element))
+          .filter(Boolean)
+          .forEach((element) => g.appendChild(element!))
 
         // Add the group element to the SVG
         svg.appendChild(g)
@@ -1338,13 +1337,22 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Select all shapes on the page.
    */
-  selectAll = (): this => {
+  selectAll = (pageId = this.currentPageId): this => {
     if (this.session) return this
-    this.setSelectedIds(Object.keys(this.page.shapes))
+
+    // Select only shapes that are the direct child of the page
+    this.setSelectedIds(
+      Object.values(this.document.pages[pageId].shapes)
+        .filter((shape) => shape.parentId === pageId)
+        .map((shape) => shape.id)
+    )
+
     this.addToSelectHistory(this.selectedIds)
+
     if (this.appState.activeTool !== 'select') {
       this.selectTool('select')
     }
+
     return this
   }
 

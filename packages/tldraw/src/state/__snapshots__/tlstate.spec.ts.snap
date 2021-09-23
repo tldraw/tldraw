@@ -125,4 +125,14 @@ Array [
 ]
 `;
 
+exports[`TLDrawState Selection When selecting all selects all: selected all 1`] = `
+Array [
+  "rect1",
+  "rect2",
+  "rect3",
+]
+`;
+
+exports[`TLDrawState When copying to SVG Copies grouped shapes.: copied svg with group 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"-16 -16 232 232\\" width=\\"200\\" height=\\"200\\"><g/></svg>"`;
+
 exports[`TLDrawState When copying to SVG Copies shapes.: copied svg 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"-20.741879096242684 -20.741879096242684 236.74 236.74\\" width=\\"204.74\\" height=\\"204.74\\"/>"`;

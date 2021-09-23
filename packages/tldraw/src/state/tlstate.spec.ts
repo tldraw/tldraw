@@ -113,7 +113,17 @@ describe('TLDrawState', () => {
 
     it.todo('re-creates shapes on redo after creating')
 
-    it.todo('selects all')
+    describe('When selecting all', () => {
+      it('selects all', () => {
+        const tlstate = new TLDrawState().loadDocument(mockDocument).selectAll()
+        expect(tlstate.selectedIds).toMatchSnapshot('selected all')
+      })
+
+      it('does not select children of a group', () => {
+        const tlstate = new TLDrawState().loadDocument(mockDocument).selectAll().group()
+        expect(tlstate.selectedIds.length).toBe(1)
+      })
+    })
 
     // Single click on a selected shape to select just that shape
 
