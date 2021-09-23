@@ -13,6 +13,7 @@ interface BoundsProps {
   bounds: TLBounds
   rotation: number
   isLocked: boolean
+  isHidden: boolean
   viewportWidth: number
 }
 
@@ -21,6 +22,7 @@ export function Bounds({
   bounds,
   viewportWidth,
   rotation,
+  isHidden,
   isLocked,
 }: BoundsProps): JSX.Element {
   // Touch target size
@@ -36,63 +38,66 @@ export function Bounds({
 
   return (
     <Container bounds={bounds} rotation={rotation}>
-      <SVGContainer>
+      <SVGContainer opacity={isHidden ? 0 : 1}>
         <CenterHandle bounds={bounds} isLocked={isLocked} />
-        {showHandles && (
-          <>
-            <EdgeHandle
-              targetSize={targetSize}
-              size={size}
-              bounds={bounds}
-              edge={TLBoundsEdge.Top}
-            />
-            <EdgeHandle
-              targetSize={targetSize}
-              size={size}
-              bounds={bounds}
-              edge={TLBoundsEdge.Right}
-            />
-            <EdgeHandle
-              targetSize={targetSize}
-              size={size}
-              bounds={bounds}
-              edge={TLBoundsEdge.Bottom}
-            />
-            <EdgeHandle
-              targetSize={targetSize}
-              size={size}
-              bounds={bounds}
-              edge={TLBoundsEdge.Left}
-            />
-            <CornerHandle
-              targetSize={targetSize}
-              size={size}
-              bounds={bounds}
-              corner={TLBoundsCorner.TopLeft}
-            />
-            <CornerHandle
-              targetSize={targetSize}
-              size={size}
-              bounds={bounds}
-              corner={TLBoundsCorner.TopRight}
-            />
-            <CornerHandle
-              targetSize={targetSize}
-              size={size}
-              bounds={bounds}
-              corner={TLBoundsCorner.BottomRight}
-            />
-            <CornerHandle
-              targetSize={targetSize}
-              size={size}
-              bounds={bounds}
-              corner={TLBoundsCorner.BottomLeft}
-            />
-            {showRotateHandle && (
-              <RotateHandle targetSize={targetSize} size={size} bounds={bounds} />
-            )}
-          </>
-        )}
+        <EdgeHandle
+          targetSize={targetSize}
+          size={size}
+          bounds={bounds}
+          edge={TLBoundsEdge.Top}
+          isHidden={!showHandles}
+        />
+        <EdgeHandle
+          targetSize={targetSize}
+          size={size}
+          bounds={bounds}
+          edge={TLBoundsEdge.Right}
+          isHidden={!showHandles}
+        />
+        <EdgeHandle
+          targetSize={targetSize}
+          size={size}
+          bounds={bounds}
+          edge={TLBoundsEdge.Bottom}
+          isHidden={!showHandles}
+        />
+        <EdgeHandle
+          targetSize={targetSize}
+          size={size}
+          bounds={bounds}
+          edge={TLBoundsEdge.Left}
+          isHidden={!showHandles}
+        />
+        <CornerHandle
+          targetSize={targetSize}
+          size={size}
+          bounds={bounds}
+          corner={TLBoundsCorner.TopLeft}
+        />
+        <CornerHandle
+          targetSize={targetSize}
+          size={size}
+          bounds={bounds}
+          corner={TLBoundsCorner.TopRight}
+        />
+        <CornerHandle
+          targetSize={targetSize}
+          size={size}
+          bounds={bounds}
+          corner={TLBoundsCorner.BottomRight}
+        />
+        <CornerHandle
+          targetSize={targetSize}
+          size={size}
+          bounds={bounds}
+          corner={TLBoundsCorner.BottomLeft}
+        />
+        <RotateHandle
+          targetSize={targetSize}
+          size={size}
+          bounds={bounds}
+          isHidden={!showHandles || !showRotateHandle}
+        />
       </SVGContainer>
     </Container>
   )
