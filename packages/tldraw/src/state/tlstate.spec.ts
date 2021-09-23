@@ -113,7 +113,17 @@ describe('TLDrawState', () => {
 
     it.todo('re-creates shapes on redo after creating')
 
-    it.todo('selects all')
+    describe('When selecting all', () => {
+      it('selects all', () => {
+        const tlstate = new TLDrawState().loadDocument(mockDocument).selectAll()
+        expect(tlstate.selectedIds).toMatchSnapshot('selected all')
+      })
+
+      it('does not select children of a group', () => {
+        const tlstate = new TLDrawState().loadDocument(mockDocument).selectAll().group()
+        expect(tlstate.selectedIds.length).toBe(1)
+      })
+    })
 
     // Single click on a selected shape to select just that shape
 
@@ -451,6 +461,17 @@ describe('TLDrawState', () => {
         .selectAll()
         .copySvg()
       expect(result).toMatchSnapshot('copied svg')
+    })
+
+    it('Copies grouped shapes.', () => {
+      const tlstate = new TLDrawState()
+      const result = tlstate
+        .loadDocument(mockDocument)
+        .select('rect1', 'rect2')
+        .group()
+        .selectAll()
+        .copySvg()
+      expect(result).toMatchSnapshot('copied svg with group')
     })
 
     it.todo('Copies Text shapes as <text> elements.')

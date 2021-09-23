@@ -979,26 +979,56 @@ export class TLDrawState extends StateManager<Data> {
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
 
-    ids.forEach((id) => {
-      const elm = document.getElementById(id + '_svg')
+    // const idsToCopy = ids.flatMap((id) => TLDR.getDocumentBranch(this.state, id, pageId))
+
+    const shapes = ids.map((id) => this.getShape(id, pageId))
+
+    function getSvgElementForShape(shape: TLDrawShape) {
+      const elm = document.getElementById(shape.id + '_svg')
+
+      if (!elm) return
 
       // TODO: Create SVG elements for text
 
-      if (elm) {
-        const clone = elm?.cloneNode(true) as SVGElement
-        const shape = this.getShape(id, pageId)
-        const bounds = TLDR.getShapeUtils(shape).getBounds(shape)
-        clone.setAttribute(
-          'transform',
-          `translate(${shape.point[0]}px ${shape.point[1]}px) rotate(${
-            ((shape.rotation || 0) * 180) / Math.PI
-          }, ${bounds.width / 2}, ${bounds.height / 2})`
-        )
-        svg.appendChild(clone)
+      const element = elm?.cloneNode(true) as SVGElement
+
+      const bounds = TLDR.getShapeUtils(shape).getBounds(shape)
+
+      element.setAttribute(
+        'transform',
+        `translate(${shape.point[0]}, ${shape.point[1]}) rotate(${
+          ((shape.rotation || 0) * 180) / Math.PI
+        }, ${bounds.width / 2}, ${bounds.height / 2})`
+      )
+
+      return element
+    }
+
+    shapes.forEach((shape) => {
+      if (shape.children?.length) {
+        // Create a group <g> element for shape
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+
+        // Get the shape's children as elements
+        shape.children
+          .map((childId) => this.getShape(childId, pageId))
+          .map(getSvgElementForShape)
+          .filter(Boolean)
+          .forEach((element) => g.appendChild(element!))
+
+        // Add the group element to the SVG
+        svg.appendChild(g)
+
+        return
+      }
+
+      const element = getSvgElementForShape(shape)
+
+      if (element) {
+        svg.appendChild(element)
       }
     })
 
-    const shapes = ids.map((id) => this.getShape(id, pageId))
     const bounds = Utils.getCommonBounds(shapes.map(TLDR.getRotatedBounds))
     const padding = 16
 
@@ -1307,13 +1337,22 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Select all shapes on the page.
    */
-  selectAll = (): this => {
+  selectAll = (pageId = this.currentPageId): this => {
     if (this.session) return this
-    this.setSelectedIds(Object.keys(this.page.shapes))
+
+    // Select only shapes that are the direct child of the page
+    this.setSelectedIds(
+      Object.values(this.document.pages[pageId].shapes)
+        .filter((shape) => shape.parentId === pageId)
+        .map((shape) => shape.id)
+    )
+
     this.addToSelectHistory(this.selectedIds)
+
     if (this.appState.activeTool !== 'select') {
       this.selectTool('select')
     }
+
     return this
   }
 
