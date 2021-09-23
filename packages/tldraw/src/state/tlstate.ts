@@ -5,6 +5,7 @@ import {
   TLBoundsEdge,
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
+  TLKeyboardEventHandler,
   TLCanvasEventHandler,
   TLPageState,
   TLPinchEventHandler,
@@ -359,10 +360,6 @@ export class TLDrawState extends StateManager<Data> {
       },
       `set_status:${status}`
     )
-  }
-
-  handleMount = (inputs: Inputs): void => {
-    this.inputs = inputs
   }
 
   /**
@@ -2261,15 +2258,13 @@ export class TLDrawState extends StateManager<Data> {
 
   /* ----------------- Keyboard Events ---------------- */
 
-  onKeyDown = (key: string) => {
-    const info = this.inputs?.pointer
-    if (!info) return
-
+  onKeyDown: TLKeyboardEventHandler = (key, info) => {
     if (key === 'Escape') {
       this.cancel()
-
       return
     }
+
+    if (!info) return
 
     switch (this.appState.status.current) {
       case TLDrawStatus.Idle: {
@@ -2296,9 +2291,7 @@ export class TLDrawState extends StateManager<Data> {
       case TLDrawStatus.Transforming: {
         if (key === 'Escape') {
           this.cancelSession(this.getPagePoint(info.point))
-        }
-
-        if (key === 'Shift' || key === 'Alt') {
+        } else if (key === 'Shift' || key === 'Alt') {
           this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
         }
         break
@@ -2321,8 +2314,7 @@ export class TLDrawState extends StateManager<Data> {
     }
   }
 
-  onKeyUp = (key: string) => {
-    const info = this.inputs?.pointer
+  onKeyUp: TLKeyboardEventHandler = (key, info) => {
     if (!info) return
 
     switch (this.appState.status.current) {

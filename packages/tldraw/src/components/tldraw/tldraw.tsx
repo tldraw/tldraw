@@ -240,6 +240,8 @@ function InnerTldraw({
             onShapeChange={tlstate.onShapeChange}
             onShapeBlur={tlstate.onShapeBlur}
             onBoundsChange={tlstate.updateBounds}
+            onKeyDown={tlstate.onKeyDown}
+            onKeyUp={tlstate.onKeyUp}
           />
         </ContextMenu>
         {isFocusMode ? (
