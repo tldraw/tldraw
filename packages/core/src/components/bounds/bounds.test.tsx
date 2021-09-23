@@ -11,6 +11,7 @@ describe('bounds', () => {
         rotation={0}
         viewportWidth={1000}
         isLocked={false}
+        isHidden={false}
       />
     )
   })
