@@ -992,18 +992,18 @@ export class TLDrawState extends StateManager<Data> {
 
       // TODO: Create SVG elements for text
 
-      const clone = elm?.cloneNode(true) as SVGElement
+      const element = elm?.cloneNode(true) as SVGElement
 
       const bounds = TLDR.getShapeUtils(shape).getBounds(shape)
 
-      clone.setAttribute(
+      element.setAttribute(
         'transform',
         `translate(${shape.point[0]}, ${shape.point[1]}) rotate(${
           ((shape.rotation || 0) * 180) / Math.PI
         }, ${bounds.width / 2}, ${bounds.height / 2})`
       )
 
-      return clone
+      return element
     }
 
     shapes.forEach((shape) => {
