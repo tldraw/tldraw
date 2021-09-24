@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Utils, SVGContainer, ShapeUtil } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import getStroke from 'perfect-freehand'
+import getStroke, { getStrokePoints } from 'perfect-freehand'
 import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
 import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
@@ -36,8 +36,6 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
     const { id, size, style } = shape
     const styles = getShapeStyle(style, meta.isDarkMode)
     const strokeWidth = +styles.strokeWidth
-
-    this
 
     if (style.dash === DashStyle.Draw) {
       const pathData = Utils.getFromCache(pathCache, shape.size, () => getRectanglePath(shape))
@@ -136,26 +134,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
   },
 
   Indicator({ shape }) {
-    const {
-      style,
-      size: [width, height],
-    } = shape
-
-    const styles = getShapeStyle(style, false)
-    const strokeWidth = +styles.strokeWidth
-
-    const sw = strokeWidth
-
-    return (
-      <rect
-        x={sw / 2}
-        y={sw / 2}
-        rx={1}
-        ry={1}
-        width={Math.max(1, width - sw)}
-        height={Math.max(1, height - sw)}
-      />
-    )
+    return <path d={getRectangleIndicatorPathData(shape)} />
   },
 
   getBounds(shape) {
@@ -171,7 +150,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
 /*                       Helpers                      */
 /* -------------------------------------------------- */
 
-function getRectanglePath(shape: RectangleShape) {
+function getRectangleDrawPoints(shape: RectangleShape) {
   const styles = getShapeStyle(shape.style)
 
   const getRandom = Utils.rng(shape.id)
@@ -209,22 +188,36 @@ function getRectanglePath(shape: RectangleShape) {
     rm
   )
 
-  const edgeDist = rm % 2 === 0 ? px : py
-
-  const stroke = getStroke(
-    [...lines.flat(), ...lines[0], ...lines[1]].slice(
+  return {
+    points: [...lines.flat(), ...lines[0], ...lines[1]].slice(
       4,
       Math.floor((rm % 2 === 0 ? px : py) / -2) + 2
     ),
-    {
-      size: 1 + styles.strokeWidth * 2,
-      thinning: 0.5,
-      end: { taper: edgeDist },
-      start: { taper: edgeDist },
-      simulatePressure: false,
-      last: true,
-    }
-  )
+    edgeDistance: rm % 2 === 0 ? px : py,
+  }
+}
+
+function getRectanglePath(shape: RectangleShape) {
+  const { points, edgeDistance } = getRectangleDrawPoints(shape)
+  const styles = getShapeStyle(shape.style)
+
+  const stroke = getStroke(points, {
+    size: 1 + styles.strokeWidth * 2,
+    thinning: 0.5,
+    end: { taper: edgeDistance },
+    start: { taper: edgeDistance },
+    simulatePressure: false,
+    last: true,
+  })
 
   return Utils.getSvgPathFromStroke(stroke)
+}
+
+function getRectangleIndicatorPathData(shape: RectangleShape) {
+  const { points } = getRectangleDrawPoints(shape)
+
+  return Utils.getSvgPathFromStroke(
+    getStrokePoints(points).map((pt) => pt.point.slice(0, 2)),
+    false
+  )
 }

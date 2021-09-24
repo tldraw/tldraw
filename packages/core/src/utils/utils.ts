@@ -1656,7 +1656,7 @@ left past the initial left edge) then swap points on that axis.
    * Turn an array of points into a path of quadradic curves.
    * @param stroke ;
    */
-  static getSvgPathFromStroke(points: number[][]): string {
+  static getSvgPathFromStroke(points: number[][], closed = true): string {
     if (!points.length) {
       return ''
     }
@@ -1667,7 +1667,9 @@ left past the initial left edge) then swap points on that axis.
       .reduce(
         (acc, point, i, arr) => {
           if (i === max) {
-            acc.push('Z')
+            if (closed) {
+              acc.push('Z')
+            }
           } else {
             acc.push(point, Vec.med(point, arr[i + 1]))
           }
