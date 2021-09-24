@@ -11,6 +11,7 @@ describe('page', () => {
         hideBounds={false}
         hideIndicators={false}
         hideHandles={false}
+        shapeTree={[]}
       />
     )
   })

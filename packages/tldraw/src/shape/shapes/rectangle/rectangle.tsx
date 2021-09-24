@@ -160,6 +160,22 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
     )
   },
 
+  MiniShape: ({ shape, bounds }) => {
+    const styles = getShapeStyle(shape.style, false)
+
+    return (
+      <rect
+        strokeWidth={1}
+        stroke={styles.stroke}
+        fill={styles.fill}
+        x={bounds.minX}
+        y={bounds.minY}
+        width={bounds.width}
+        height={bounds.height}
+      />
+    )
+  },
+
   getBounds(shape) {
     return getBoundsRectangle(shape, this.boundsCache)
   },

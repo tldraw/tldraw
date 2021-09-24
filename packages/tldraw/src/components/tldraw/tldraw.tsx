@@ -240,6 +240,7 @@ function InnerTldraw({
             onShapeChange={tlstate.onShapeChange}
             onShapeBlur={tlstate.onShapeBlur}
             onBoundsChange={tlstate.updateBounds}
+            onPointMinimap={tlstate.onPointMinimap}
             onKeyDown={tlstate.onKeyDown}
             onKeyUp={tlstate.onKeyUp}
           />

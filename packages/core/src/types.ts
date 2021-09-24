@@ -141,6 +141,8 @@ export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>, e: React.Poin
 
 export type TLBoundsEventHandler = (info: TLPointerInfo<'bounds'>, e: React.PointerEvent) => void
 
+export type TLMinimapHandler = (point: number[], e: React.PointerEvent<SVGSVGElement>) => void
+
 export type TLBoundsHandleEventHandler = (
   info: TLPointerInfo<TLBoundsCorner | TLBoundsEdge | 'rotate'>,
   e: React.PointerEvent
@@ -201,6 +203,9 @@ export interface TLCallbacks<T extends TLShape> {
   onHoverHandle: TLPointerEventHandler
   onUnhoverHandle: TLPointerEventHandler
   onReleaseHandle: TLPointerEventHandler
+
+  // Minimap
+  onPointMinimap: TLMinimapHandler
 
   // Misc
   onShapeChange: TLShapeChangeHandler<T, any>
@@ -310,6 +315,11 @@ export type TLShapeUtil<
   Indicator(
     this: TLShapeUtil<T, E, M>,
     props: { shape: T; meta: M; isHovered: boolean; isSelected: boolean }
+  ): React.ReactElement | null
+
+  MiniShape(
+    this: TLShapeUtil<T, E, M>,
+    props: { shape: T; bounds: TLBounds }
   ): React.ReactElement | null
 
   getBounds(this: TLShapeUtil<T, E, M>, shape: T): TLBounds

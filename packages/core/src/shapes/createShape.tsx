@@ -24,6 +24,19 @@ export const ShapeUtil = function <T extends TLShape, E extends Element, M = any
 
     isAspectRatioLocked: false,
 
+    MiniShape: ({ bounds }) => {
+      return (
+        <rect
+          fill="rgba(0,0,0,.2)"
+          stroke="rgba(0,0,0,.5)"
+          x={bounds.minX}
+          y={bounds.minY}
+          width={bounds.width}
+          height={bounds.height}
+        />
+      )
+    },
+
     create: (props) => {
       this.refMap.set(props.id, React.createRef())
       const defaults = this.defaultProps

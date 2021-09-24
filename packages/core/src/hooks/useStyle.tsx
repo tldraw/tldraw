@@ -1,5 +1,6 @@
 import * as React from 'react'
 import type { TLTheme } from '+types'
+import { MINIMAP_HEIGHT, MINIMAP_WIDTH } from '+constants'
 
 const styles = new Map<string, HTMLStyleElement>()
 
@@ -327,6 +328,23 @@ const tlcss = css`
     fill: none;
     stroke: var(--tl-selectStroke);
     stroke-width: calc(2px * var(--tl-scale));
+  }
+
+  .tl-minimap {
+    width: ${MINIMAP_WIDTH}px;
+    height: ${MINIMAP_HEIGHT}px;
+    position: absolute;
+    top: 64px;
+    left: 8px;
+    pointer-events: all;
+    background-color: var(--tl-background);
+    border: 1px solid var(--tl-foreground);
+  }
+
+  .tl-minimap-viewport {
+    fill: var(--tl-selectFill);
+    stroke: var(--tl-selectStroke);
+    stroke-width: 1;
   }
 `
 

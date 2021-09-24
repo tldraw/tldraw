@@ -11,6 +11,7 @@ import {
   TLPinchEventHandler,
   TLPointerEventHandler,
   TLWheelEventHandler,
+  TLMinimapHandler,
   Utils,
   TLPointerInfo,
   TLBounds,
@@ -250,32 +251,21 @@ export class TLDrawState extends StateManager<Data> {
             // We only need to update the binding's "from" shape
             const util = TLDR.getShapeUtils(fromShape)
 
-            try {
-              const fromDelta = util.onBindingChange(
-                fromShape,
-                binding,
-                toShape,
-                toUtils.getBounds(toShape),
-                toUtils.getCenter(toShape)
-              )
+            const fromDelta = util.onBindingChange(
+              fromShape,
+              binding,
+              toShape,
+              toUtils.getBounds(toShape),
+              toUtils.getCenter(toShape)
+            )
 
-              if (fromDelta) {
-                const nextShape = {
-                  ...fromShape,
-                  ...fromDelta,
-                } as TLDrawShape
+            if (fromDelta) {
+              const nextShape = {
+                ...fromShape,
+                ...fromDelta,
+              } as TLDrawShape
 
-                page.shapes[fromShape.id] = nextShape
-              }
-            } catch (e) {
-              console.log(
-                fromShape,
-                binding,
-                toShape,
-                toUtils.getBounds(toShape),
-                toUtils.getCenter(toShape)
-              )
-              throw Error('something went wrong')
+              page.shapes[fromShape.id] = nextShape
             }
           })
 
@@ -2942,6 +2932,14 @@ export class TLDrawState extends StateManager<Data> {
         'empty_canvas:true'
       )
     }
+  }
+
+  onPointMinimap: TLMinimapHandler = (point) => {
+    const centerPagePoint = this.getPagePoint(this.centerPoint, this.currentPageId)
+    const delta = Vec.sub(point, centerPagePoint)
+    console.log(point, centerPagePoint)
+    const { camera } = this.pageState
+    this.setCamera(Vec.sub(camera.point, delta), camera.zoom, 'pointed_minimap')
   }
 
   onError = () => {

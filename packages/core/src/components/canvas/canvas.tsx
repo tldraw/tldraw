@@ -7,6 +7,7 @@ import {
   useCanvasEvents,
   useCameraCss,
   useKeyEvents,
+  useShapeTree,
 } from '+hooks'
 import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
 import { ErrorFallback } from '+components/error-fallback'
@@ -14,6 +15,7 @@ import { ErrorBoundary } from '+components/error-boundary'
 import { Brush } from '+components/brush'
 import { Page } from '+components/page'
 import { useResizeObserver } from '+hooks/useResizeObserver'
+import { Minimap } from '+components/minimap'
 
 function resetError() {
   void null
@@ -60,6 +62,8 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
 
   useKeyEvents()
 
+  const { shapeTree, viewport, commonBounds, minimap } = useShapeTree(page, pageState, meta)
+
   return (
     <div id={id} className="tl-container" ref={rContainer}>
       <div
@@ -77,10 +81,12 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
               hideBounds={hideBounds}
               hideIndicators={hideIndicators}
               hideHandles={hideHandles}
+              shapeTree={shapeTree}
               meta={meta}
             />
             {pageState.brush && <Brush brush={pageState.brush} />}
           </div>
+          <Minimap commonBounds={commonBounds} {...minimap} />
         </ErrorBoundary>
       </div>
     </div>

@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["src"],
+  "include": ["src", "../core/src/components/minimap"],
   "exclude": ["node_modules", "dist", "docs"],
   "compilerOptions": {
     "outDir": "./dist/types",

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
+import type { IShapeTreeNode, TLBinding, TLPage, TLPageState, TLShape } from '+types'
 import { useSelection, useShapeTree, useHandles, useTLContext } from '+hooks'
 import { Bounds } from '+components/bounds'
 import { BoundsBg } from '+components/bounds/bounds-bg'
@@ -14,6 +14,7 @@ interface PageProps<T extends TLShape, M extends Record<string, unknown>> {
   hideBounds: boolean
   hideHandles: boolean
   hideIndicators: boolean
+  shapeTree: IShapeTreeNode<T, M>[]
   meta?: M
 }
 
@@ -26,18 +27,10 @@ export function Page<T extends TLShape, M extends Record<string, unknown>>({
   hideBounds,
   hideHandles,
   hideIndicators,
+  shapeTree,
   meta,
 }: PageProps<T, M>): JSX.Element {
-  const { callbacks, shapeUtils, inputs } = useTLContext()
-
-  const shapeTree = useShapeTree(
-    page,
-    pageState,
-    shapeUtils,
-    [inputs.bounds.width, inputs.bounds.height],
-    meta,
-    callbacks.onRenderCountChange
-  )
+  const { shapeUtils, inputs } = useTLContext()
 
   const { shapeWithHandles } = useHandles(page, pageState)
 

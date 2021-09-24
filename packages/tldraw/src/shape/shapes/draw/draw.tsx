@@ -160,6 +160,31 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
     return <path d={pathData} />
   },
 
+  MiniShape({ shape, bounds }) {
+    const { style, points } = shape
+    const styles = getShapeStyle(style, false)
+
+    const pathData = React.useMemo(() => {
+      return getSolidStrokePathData(shape, false)
+    }, [points])
+
+    const trueBounds = this.getBounds(shape)
+
+    return (
+      <path
+        d={pathData}
+        strokeWidth={5}
+        stroke={styles.stroke}
+        fill={styles.fill}
+        width={bounds.width}
+        height={bounds.height}
+        transform={`translate(${bounds.minX}, ${bounds.minY})  scale(${
+          bounds.width / trueBounds.width
+        }, ${bounds.height / trueBounds.height}) `}
+      />
+    )
+  },
+
   getBounds(shape: DrawShape): TLBounds {
     // The goal here is to avoid recalculating the bounds from the
     // points array, which is expensive. However, we still need a
