@@ -852,7 +852,9 @@ export class TLDrawState extends StateManager<Data> {
       TLDR.getDocumentBranch(this.state, id, this.currentPageId)
     )
 
-    const copyingShapes = copyingShapeIds.map((id) => this.getShape(id, this.currentPageId))
+    const copyingShapes = copyingShapeIds.map((id) =>
+      Utils.deepClone(this.getShape(id, this.currentPageId))
+    )
 
     if (copyingShapes.length === 0) return this
 
@@ -903,11 +905,34 @@ export class TLDrawState extends StateManager<Data> {
 
       bindings.forEach((binding) => (idsMap[binding.id] = Utils.uniqueId()))
 
-      const shapesToPaste = shapes.map((shape) => ({
-        ...shape,
-        id: idsMap[shape.id],
-        parentId: idsMap[shape.parentId] || this.currentPageId,
-      }))
+      let startIndex = TLDR.getTopChildIndex(this.state, this.currentPageId)
+
+      const shapesToPaste = shapes
+        .sort((a, b) => a.childIndex - b.childIndex)
+        .map((shape) => {
+          const parentShapeId = idsMap[shape.parentId]
+
+          const copy = {
+            ...shape,
+            id: idsMap[shape.id],
+            parentId: parentShapeId || this.currentPageId,
+          }
+
+          if (!parentShapeId) {
+            copy.childIndex = startIndex
+            startIndex++
+          }
+
+          if (copy.handles) {
+            Object.values(copy.handles).forEach((handle) => {
+              if (handle.bindingId) {
+                handle.bindingId = idsMap[handle.bindingId]
+              }
+            })
+          }
+
+          return copy
+        })
 
       const bindingsToPaste = bindings.map((binding) => ({
         ...binding,
@@ -984,8 +1009,7 @@ export class TLDrawState extends StateManager<Data> {
           this.select(shapeId)
         }
       })
-    } catch (e: any) {
-      console.warn(e.message)
+    } catch (e) {
       // Navigator does not support clipboard. Note that this fallback will
       // not support pasting from one document to another.
       if (this.clipboard) {
