@@ -244,26 +244,38 @@ export class TLDrawState extends StateManager<Data> {
           bindingsToUpdate.forEach((binding) => {
             const toShape = page.shapes[binding.toId]
             const fromShape = page.shapes[binding.fromId]
+
             const toUtils = TLDR.getShapeUtils(toShape)
 
             // We only need to update the binding's "from" shape
             const util = TLDR.getShapeUtils(fromShape)
 
-            const fromDelta = util.onBindingChange(
-              fromShape,
-              binding,
-              toShape,
-              toUtils.getBounds(toShape),
-              toUtils.getCenter(toShape)
-            )
+            try {
+              const fromDelta = util.onBindingChange(
+                fromShape,
+                binding,
+                toShape,
+                toUtils.getBounds(toShape),
+                toUtils.getCenter(toShape)
+              )
 
-            if (fromDelta) {
-              const nextShape = {
-                ...fromShape,
-                ...fromDelta,
-              } as TLDrawShape
+              if (fromDelta) {
+                const nextShape = {
+                  ...fromShape,
+                  ...fromDelta,
+                } as TLDrawShape
 
-              page.shapes[fromShape.id] = nextShape
+                page.shapes[fromShape.id] = nextShape
+              }
+            } catch (e) {
+              console.log(
+                fromShape,
+                binding,
+                toShape,
+                toUtils.getBounds(toShape),
+                toUtils.getCenter(toShape)
+              )
+              throw Error('something went wrong')
             }
           })
 

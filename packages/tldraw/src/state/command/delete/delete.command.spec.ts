@@ -56,6 +56,20 @@ describe('Delete command', () => {
     expect(tlstate.getShape('rect2')).toBe(undefined)
   })
 
+  it('deletes bound shapes, undoes and redoes', () => {
+    const tlstate = new TLDrawState()
+      .createShapes(
+        { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+        { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+      )
+      .select('arrow1')
+      .startHandleSession([200, 200], 'start')
+      .updateHandleSession([50, 50])
+      .completeSession()
+      .delete()
+      .undo()
+  })
+
   it('deletes bound shapes', () => {
     expect(Object.values(tlstate.page.bindings)[0]).toBe(undefined)
 
