@@ -1,5 +1,5 @@
 import { TLDR } from '~state/tldr'
-import type { Data, GroupShape, PagePartial } from '~types'
+import type { ArrowShape, Data, GroupShape, PagePartial } from '~types'
 
 export function removeShapesFromPage(data: Data, ids: string[], pageId: string) {
   const before: PagePartial = {
@@ -75,7 +75,10 @@ export function removeShapesFromPage(data: Data, ids: string[], pageId: string) 
                   ...before.shapes[id],
                   handles: {
                     ...before.shapes[id]?.handles,
-                    [handle.id]: { bindingId: binding.id },
+                    [handle.id]: {
+                      ...before.shapes[id]?.handles?.[handle.id as keyof ArrowShape['handles']],
+                      bindingId: binding.id,
+                    },
                   },
                 }
 
@@ -86,7 +89,10 @@ export function removeShapesFromPage(data: Data, ids: string[], pageId: string) 
                     ...after.shapes[id],
                     handles: {
                       ...after.shapes[id]?.handles,
-                      [handle.id]: { bindingId: undefined },
+                      [handle.id]: {
+                        ...after.shapes[id]?.handles?.[handle.id as keyof ArrowShape['handles']],
+                        bindingId: undefined,
+                      },
                     },
                   }
                 }
