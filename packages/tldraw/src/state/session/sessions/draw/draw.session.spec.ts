@@ -11,7 +11,7 @@ describe('Draw session', () => {
     expect(tlstate.getShape('draw1')).toBe(undefined)
 
     tlstate
-      .create({
+      .createShapes({
         id: 'draw1',
         parentId: 'page1',
         name: 'Draw',

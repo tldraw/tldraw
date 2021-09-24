@@ -107,7 +107,10 @@ export class TLDrawState extends StateManager<Data> {
     pointer: 0,
   }
 
-  clipboard?: TLDrawShape[]
+  clipboard?: {
+    shapes: TLDrawShape[]
+    bindings: TLDrawBinding[]
+  }
 
   session?: Session
 
@@ -845,16 +848,32 @@ export class TLDrawState extends StateManager<Data> {
    * @param ids The ids of the shapes to copy.
    */
   copy = (ids = this.selectedIds): this => {
-    const clones = ids
-      .flatMap((id) => TLDR.getDocumentBranch(this.state, id, this.currentPageId))
-      .map((id) => this.getShape(id, this.currentPageId))
+    const copyingShapeIds = ids.flatMap((id) =>
+      TLDR.getDocumentBranch(this.state, id, this.currentPageId)
+    )
 
-    if (clones.length === 0) return this
+    const copyingShapes = copyingShapeIds.map((id) =>
+      Utils.deepClone(this.getShape(id, this.currentPageId))
+    )
 
-    this.clipboard = clones
+    if (copyingShapes.length === 0) return this
+
+    const copyingBindings: TLDrawBinding[] = Object.values(this.page.bindings).filter(
+      (binding) =>
+        copyingShapeIds.includes(binding.fromId) && copyingShapeIds.includes(binding.toId)
+    )
+
+    this.clipboard = {
+      shapes: copyingShapes,
+      bindings: copyingBindings,
+    }
 
     try {
-      const text = JSON.stringify({ type: 'tldr/clipboard', shapes: clones })
+      const text = JSON.stringify({
+        type: 'tldr/clipboard',
+        shapes: copyingShapes,
+        bindings: copyingBindings,
+      })
 
       navigator.clipboard.writeText(text).then(
         () => {
@@ -879,15 +898,47 @@ export class TLDrawState extends StateManager<Data> {
    * @param point
    */
   paste = (point?: number[]) => {
-    const pasteInCurrentPage = (shapes: TLDrawShape[]) => {
-      const idsMap = Object.fromEntries(
-        shapes.map((shape: TLDrawShape) => [shape.id, Utils.uniqueId()])
-      )
+    const pasteInCurrentPage = (shapes: TLDrawShape[], bindings: TLDrawBinding[]) => {
+      const idsMap: Record<string, string> = {}
 
-      const shapesToPaste = shapes.map((shape: TLDrawShape) => ({
-        ...shape,
-        id: idsMap[shape.id],
-        parentId: idsMap[shape.parentId] || this.currentPageId,
+      shapes.forEach((shape) => (idsMap[shape.id] = Utils.uniqueId()))
+
+      bindings.forEach((binding) => (idsMap[binding.id] = Utils.uniqueId()))
+
+      let startIndex = TLDR.getTopChildIndex(this.state, this.currentPageId)
+
+      const shapesToPaste = shapes
+        .sort((a, b) => a.childIndex - b.childIndex)
+        .map((shape) => {
+          const parentShapeId = idsMap[shape.parentId]
+
+          const copy = {
+            ...shape,
+            id: idsMap[shape.id],
+            parentId: parentShapeId || this.currentPageId,
+          }
+
+          if (!parentShapeId) {
+            copy.childIndex = startIndex
+            startIndex++
+          }
+
+          if (copy.handles) {
+            Object.values(copy.handles).forEach((handle) => {
+              if (handle.bindingId) {
+                handle.bindingId = idsMap[handle.bindingId]
+              }
+            })
+          }
+
+          return copy
+        })
+
+      const bindingsToPaste = bindings.map((binding) => ({
+        ...binding,
+        id: idsMap[binding.id],
+        toId: idsMap[binding.toId],
+        fromId: idsMap[binding.fromId],
       }))
 
       const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
@@ -915,11 +966,15 @@ export class TLDrawState extends StateManager<Data> {
         Utils.getBoundsCenter(commonBounds)
       )
 
-      this.createShapes(
-        ...shapesToPaste.map((shape) => ({
-          ...shape,
-          point: Vec.round(Vec.add(shape.point, delta)),
-        }))
+      this.create(
+        shapesToPaste.map((shape) =>
+          TLDR.getShapeUtils(shape.type).create({
+            ...shape,
+            point: Vec.round(Vec.add(shape.point, delta)),
+            parentId: shape.parentId || this.currentPageId,
+          })
+        ),
+        bindingsToPaste
       )
     }
     try {
@@ -929,15 +984,16 @@ export class TLDrawState extends StateManager<Data> {
 
       navigator.clipboard.readText().then((result) => {
         try {
-          const data: { type: string; shapes: TLDrawShape[] } = JSON.parse(result)
+          const data: { type: string; shapes: TLDrawShape[]; bindings: TLDrawBinding[] } =
+            JSON.parse(result)
 
           if (data.type !== 'tldr/clipboard') {
             throw Error('The pasted string was not from the tldraw clipboard.')
           }
 
-          pasteInCurrentPage(data.shapes)
+          pasteInCurrentPage(data.shapes, data.bindings)
         } catch (e) {
-          console.warn(e)
+          console.log(e)
 
           const shapeId = Utils.uniqueId()
 
@@ -953,12 +1009,11 @@ export class TLDrawState extends StateManager<Data> {
           this.select(shapeId)
         }
       })
-    } catch (e: any) {
-      console.warn(e.message)
+    } catch (e) {
       // Navigator does not support clipboard. Note that this fallback will
       // not support pasting from one document to another.
       if (this.clipboard) {
-        pasteInCurrentPage(this.clipboard)
+        pasteInCurrentPage(this.clipboard.shapes, this.clipboard.bindings)
       }
     }
 
@@ -1761,12 +1816,12 @@ export class TLDrawState extends StateManager<Data> {
   ): this => {
     if (shapes.length === 0) return this
     return this.create(
-      ...shapes.map((shape) => {
-        return TLDR.getShapeUtils(shape.type).create({
+      shapes.map((shape) =>
+        TLDR.getShapeUtils(shape.type).create({
           ...shape,
           parentId: shape.parentId || this.currentPageId,
         })
-      })
+      )
     )
   }
 
@@ -1805,9 +1860,9 @@ export class TLDrawState extends StateManager<Data> {
    * @param shapes An array of shapes.
    * @command
    */
-  create = (...shapes: TLDrawShape[]): this => {
+  create = (shapes: TLDrawShape[] = [], bindings: TLDrawBinding[] = []): this => {
     if (shapes.length === 0) return this
-    return this.setState(Commands.create(this.state, shapes))
+    return this.setState(Commands.create(this.state, shapes, bindings))
   }
 
   /**

@@ -16,6 +16,7 @@ Array [
         },
         "pages": Object {
           "page1": Object {
+            "bindings": Object {},
             "shapes": Object {
               "rect1": Object {
                 "childIndex": 1,
@@ -53,6 +54,7 @@ Array [
         },
         "pages": Object {
           "page1": Object {
+            "bindings": Object {},
             "shapes": Object {
               "rect1": undefined,
             },
@@ -74,6 +76,7 @@ Array [
         },
         "pages": Object {
           "page1": Object {
+            "bindings": Object {},
             "shapes": Object {
               "rect2": Object {
                 "childIndex": 1,
@@ -113,6 +116,7 @@ Array [
         },
         "pages": Object {
           "page1": Object {
+            "bindings": Object {},
             "shapes": Object {
               "rect2": undefined,
             },

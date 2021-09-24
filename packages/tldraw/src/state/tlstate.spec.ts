@@ -1,13 +1,13 @@
 import { TLDrawState } from './tlstate'
 import { mockDocument, TLStateUtils } from '~test'
-import { ColorStyle, TLDrawShapeType } from '~types'
+import { ArrowShape, ColorStyle, TLDrawShapeType } from '~types'
 
 describe('TLDrawState', () => {
   const tlstate = new TLDrawState()
 
   const tlu = new TLStateUtils(tlstate)
 
-  describe('Copy and Paste', () => {
+  describe('When copying and pasting...', () => {
     it('copies a shape', () => {
       tlstate.loadDocument(mockDocument).deselectAll().copy(['rect1'])
     })
@@ -44,6 +44,62 @@ describe('TLDrawState', () => {
       tlstate.redo()
 
       expect(Object.keys(tlstate.page.shapes).length).toBe(1)
+    })
+
+    it.todo("Pastes in to the top child index of the page's children.")
+
+    it.todo('Pastes in the correct child index order.')
+  })
+
+  describe('When copying and pasting a shape with bindings', () => {
+    it('copies two bound shapes and their binding', () => {
+      const tlstate = new TLDrawState()
+
+      tlstate
+        .createShapes(
+          { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+          { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+        )
+        .select('arrow1')
+        .startHandleSession([200, 200], 'start')
+        .updateHandleSession([55, 55])
+        .completeSession()
+
+      expect(tlstate.bindings.length).toBe(1)
+
+      tlstate.selectAll().copy().paste()
+
+      const newArrow = tlstate.shapes.sort((a, b) => b.childIndex - a.childIndex)[0] as ArrowShape
+
+      expect(newArrow.handles.start.bindingId).not.toBe(
+        tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId
+      )
+
+      expect(tlstate.bindings.length).toBe(2)
+    })
+
+    it('removes bindings from copied shape handles', () => {
+      const tlstate = new TLDrawState()
+
+      tlstate
+        .createShapes(
+          { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+          { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+        )
+        .select('arrow1')
+        .startHandleSession([200, 200], 'start')
+        .updateHandleSession([55, 55])
+        .completeSession()
+
+      expect(tlstate.bindings.length).toBe(1)
+
+      expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeDefined()
+
+      tlstate.select('arrow1').copy().paste()
+
+      const newArrow = tlstate.shapes.sort((a, b) => b.childIndex - a.childIndex)[0] as ArrowShape
+
+      expect(newArrow.handles.start.bindingId).toBeUndefined()
     })
   })
 
