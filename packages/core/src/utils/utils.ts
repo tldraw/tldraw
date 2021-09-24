@@ -1669,8 +1669,6 @@ left past the initial left edge) then swap points on that axis.
           if (i === max) {
             if (closed) {
               acc.push('Z')
-            } else {
-              acc.push('L', point)
             }
           } else {
             acc.push(point, Vec.med(point, arr[i + 1]))
