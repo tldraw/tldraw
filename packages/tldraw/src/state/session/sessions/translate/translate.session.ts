@@ -10,7 +10,6 @@ import {
   TLDrawStatus,
   ArrowShape,
   GroupShape,
-  TLDrawPatch,
 } from '~types'
 import { TLDR } from '~state/tldr'
 import type { Patch } from 'rko'
