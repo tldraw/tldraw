@@ -88,8 +88,8 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
           <path
             d={pathData}
             fill={styles.stroke}
-            stroke={'red'} //styles.stroke}
-            strokeWidth={0}
+            stroke={styles.stroke}
+            strokeWidth={styles.strokeWidth}
             strokeLinejoin="round"
             strokeLinecap="round"
             pointerEvents="all"
@@ -264,6 +264,8 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
 /*                       Helpers                      */
 /* -------------------------------------------------- */
 
+const STREAMLINE = 0.65
+
 const simulatePressureSettings = {
   simulatePressure: true,
 }
@@ -295,7 +297,7 @@ function getFillPath(shape: DrawShape) {
 
 function getDrawStrokePoints(shape: DrawShape, isEditing: boolean) {
   return getStrokePoints(shape.points, {
-    streamline: 0.7,
+    streamline: STREAMLINE,
     last: !isEditing,
   })
 }
@@ -315,7 +317,7 @@ function getDrawStrokePathData(shape: DrawShape, isEditing: boolean) {
   const stroke = getStrokeOutlinePoints(strokePoints, {
     size: 1 + styles.strokeWidth * 1.618,
     thinning: 0.6,
-    streamline: 0.7,
+    streamline: STREAMLINE,
     smoothing: 0.5,
     end: { taper: styles.strokeWidth * 10, easing: EASINGS.easeOutQuad },
     easing: (t) => Math.sin((t * Math.PI) / 2),
