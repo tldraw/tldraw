@@ -147,43 +147,50 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
           elm.focus()
           elm.select()
         })
-      } else {
-        const elm = rInput.current!
-        elm.setSelectionRange(0, 0)
       }
     }, [isEditing])
 
     return (
       <HTMLContainer ref={ref} {...events}>
         <div className={wrapper({ isEditing })} onPointerDown={handlePointerDown}>
-          <textarea
-            className={textArea({ isEditing, isBinding })}
-            ref={rInput}
+          <div
+            className={innerWrapper()}
             style={{
               font,
               color: styles.stroke,
-              userSelect: isEditing ? 'all' : 'none',
             }}
-            name="text"
-            defaultValue={text}
-            tabIndex={-1}
-            autoComplete="false"
-            autoCapitalize="false"
-            autoCorrect="false"
-            autoSave="false"
-            placeholder=""
-            color={styles.stroke}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            onPointerDown={handlePointerDown}
-            autoFocus={isEditing}
-            readOnly={!isEditing}
-            wrap="off"
-            dir="auto"
-            datatype="wysiwyg"
-          />
+          >
+            {isEditing ? (
+              <textarea
+                className={textArea({ isBinding })}
+                ref={rInput}
+                style={{
+                  font,
+                  color: styles.stroke,
+                }}
+                name="text"
+                defaultValue={text}
+                tabIndex={-1}
+                autoComplete="false"
+                autoCapitalize="false"
+                autoCorrect="false"
+                autoSave="false"
+                placeholder=""
+                color={styles.stroke}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                onChange={handleChange}
+                onKeyDown={handleKeyDown}
+                onPointerDown={handlePointerDown}
+                autoFocus
+                wrap="off"
+                dir="auto"
+                datatype="wysiwyg"
+              />
+            ) : (
+              text
+            )}
+          </div>
         </div>
       </HTMLContainer>
     )
@@ -297,58 +304,68 @@ const wrapper = css({
     isEditing: {
       false: {
         pointerEvents: 'all',
+        userSelect: 'all',
       },
       true: {
         pointerEvents: 'none',
+        userSelect: 'none',
       },
     },
   },
 })
 
-const textArea = css({
+const innerWrapper = css({
   position: 'absolute',
   top: 'var(--tl-padding)',
   left: 'var(--tl-padding)',
-  zIndex: 1,
   width: 'calc(100% - (var(--tl-padding) * 2))',
   height: 'calc(100% - (var(--tl-padding) * 2))',
-  border: 'none',
   padding: '4px',
-  whiteSpace: 'pre',
-  alignmentBaseline: 'mathematical',
-  dominantBaseline: 'mathematical',
-  resize: 'none',
+  zIndex: 1,
   minHeight: 1,
   minWidth: 1,
   lineHeight: 1.4,
   letterSpacing: LETTER_SPACING,
   outline: 0,
   fontWeight: '500',
+  backfaceVisibility: 'hidden',
+  userSelect: 'none',
+  pointerEvents: 'none',
+  WebkitUserSelect: 'none',
+  WebkitTouchCallout: 'none',
+  isEditing: {
+    false: {},
+    true: {
+      pointerEvents: 'all',
+      background: '$boundsBg',
+      userSelect: 'text',
+      WebkitUserSelect: 'text',
+    },
+  },
+})
+
+const textArea = css({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  zIndex: 1,
+  width: '100%',
+  height: '100%',
+  border: 'none',
+  padding: '4px',
+  whiteSpace: 'pre',
+  resize: 'none',
+  minHeight: 'inherit',
+  minWidth: 'inherit',
+  lineHeight: 'inherit',
+  letterSpacing: 'inherit',
+  outline: 0,
+  fontWeight: 'inherit',
   overflow: 'hidden',
   backfaceVisibility: 'hidden',
   display: 'inline-block',
+  pointerEvents: 'all',
+  background: '$boundsBg',
+  userSelect: 'text',
   WebkitUserSelect: 'text',
-  WebkitTouchCallout: 'none',
-  variants: {
-    isBinding: {
-      false: {},
-      true: {
-        background: '$boundsBg',
-      },
-    },
-    isEditing: {
-      false: {
-        pointerEvents: 'none',
-        userSelect: 'none',
-        background: 'none',
-        WebkitUserSelect: 'none',
-      },
-      true: {
-        pointerEvents: 'all',
-        userSelect: 'text',
-        background: '$boundsBg',
-        WebkitUserSelect: 'text',
-      },
-    },
-  },
 })
