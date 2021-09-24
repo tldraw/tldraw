@@ -130,7 +130,6 @@ const tlcss = css`
   }
 
   .tl-container * {
-    user-select: none;
     box-sizing: border-box;
   }
 

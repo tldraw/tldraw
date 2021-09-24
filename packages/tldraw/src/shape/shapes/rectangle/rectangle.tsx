@@ -134,7 +134,30 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
   },
 
   Indicator({ shape }) {
-    return <path d={getRectangleIndicatorPathData(shape)} />
+    const {
+      style,
+      size: [width, height],
+    } = shape
+
+    const styles = getShapeStyle(style, false)
+    const strokeWidth = +styles.strokeWidth
+
+    const sw = strokeWidth
+
+    if (style.dash === DashStyle.Draw) {
+      return <path d={getRectangleIndicatorPathData(shape)} />
+    }
+
+    return (
+      <rect
+        x={sw}
+        y={sw}
+        rx={1}
+        ry={1}
+        width={Math.max(1, width - sw * 2)}
+        height={Math.max(1, height - sw * 2)}
+      />
+    )
   },
 
   getBounds(shape) {

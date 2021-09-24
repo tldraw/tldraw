@@ -162,6 +162,7 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
             style={{
               font,
               color: styles.stroke,
+              userSelect: isEditing ? 'all' : 'none',
             }}
             name="text"
             defaultValue={text}
