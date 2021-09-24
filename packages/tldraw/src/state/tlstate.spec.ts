@@ -7,7 +7,7 @@ describe('TLDrawState', () => {
 
   const tlu = new TLStateUtils(tlstate)
 
-  describe('Copy and Paste', () => {
+  describe('When copying and pasting...', () => {
     it('copies a shape', () => {
       tlstate.loadDocument(mockDocument).deselectAll().copy(['rect1'])
     })
@@ -44,6 +44,28 @@ describe('TLDrawState', () => {
       tlstate.redo()
 
       expect(Object.keys(tlstate.page.shapes).length).toBe(1)
+    })
+  })
+
+  describe('When copying and pasting a shape with bindings', () => {
+    it('copies two bounds shapes and their binding', () => {
+      const tlstate = new TLDrawState()
+
+      tlstate
+        .createShapes(
+          { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+          { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+        )
+        .select('arrow1')
+        .startHandleSession([200, 200], 'start')
+        .updateHandleSession([55, 55])
+        .completeSession()
+
+      expect(tlstate.bindings.length).toBe(1)
+
+      tlstate.selectAll().copy().paste()
+
+      expect(tlstate.bindings.length).toBe(2)
     })
   })
 

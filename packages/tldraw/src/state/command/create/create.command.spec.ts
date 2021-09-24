@@ -21,7 +21,7 @@ describe('Create command', () => {
 
   it('does, undoes and redoes command', () => {
     const shape = { ...tlstate.getShape('rect1'), id: 'rect4' }
-    tlstate.create(shape)
+    tlstate.create([shape])
 
     expect(tlstate.getShape('rect4')).toBeTruthy()
 
@@ -33,4 +33,6 @@ describe('Create command', () => {
 
     expect(tlstate.getShape('rect4')).toBeTruthy()
   })
+
+  it.todo('Creates bindings')
 })
