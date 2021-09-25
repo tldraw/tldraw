@@ -1,4 +1,5 @@
-import { TLBoundsCorner, TLBoundsEdge, Utils, Vec } from '@tldraw/core'
+import { TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import { Session, TLDrawShape, TLDrawStatus } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
@@ -58,7 +59,6 @@ export class TransformSession implements Session {
       )
 
       shapes[id] = TLDR.transform(
-        data,
         TLDR.getShape(data, id, data.appState.currentPageId),
         newShapeBounds,
         {
@@ -67,8 +67,7 @@ export class TransformSession implements Session {
           scaleX: this.scaleX,
           scaleY: this.scaleY,
           transformOrigin,
-        },
-        data.appState.currentPageId
+        }
       )
     })
 

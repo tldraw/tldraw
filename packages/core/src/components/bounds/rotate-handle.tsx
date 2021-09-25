@@ -2,19 +2,25 @@ import * as React from 'react'
 import { useBoundsHandleEvents } from '+hooks'
 import type { TLBounds } from '+types'
 
+interface RotateHandleProps {
+  bounds: TLBounds
+  size: number
+  targetSize: number
+  isHidden: boolean
+}
+
 export const RotateHandle = React.memo(
-  ({ bounds, size }: { bounds: TLBounds; size: number }): JSX.Element => {
+  ({ bounds, targetSize, size, isHidden }: RotateHandleProps): JSX.Element => {
     const events = useBoundsHandleEvents('rotate')
 
     return (
-      <g cursor="grab">
+      <g cursor="grab" opacity={isHidden ? 0 : 1}>
         <circle
+          className="tl-transparent"
           cx={bounds.width / 2}
           cy={size * -2}
-          r={size * 2}
-          fill="transparent"
-          stroke="none"
-          pointerEvents="all"
+          r={targetSize}
+          pointerEvents={isHidden ? 'none' : 'all'}
           {...events}
         />
         <circle

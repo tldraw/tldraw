@@ -1,13 +1,15 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import type { TLShapeUtil, TLRenderInfo, TLShape } from '+types'
 
-interface RenderedShapeProps<T extends TLShape> extends TLRenderInfo {
+interface RenderedShapeProps<T extends TLShape, E extends Element, M>
+  extends TLRenderInfo<T, E, M> {
   shape: T
-  utils: TLShapeUtil<T>
+  utils: TLShapeUtil<T, E, M>
 }
 
 export const RenderedShape = React.memo(
-  function RenderedShape({
+  <T extends TLShape, E extends Element, M>({
     shape,
     utils,
     isEditing,
@@ -15,16 +17,30 @@ export const RenderedShape = React.memo(
     isHovered,
     isSelected,
     isCurrentParent,
+    onShapeChange,
+    onShapeBlur,
+    events,
     meta,
-  }: RenderedShapeProps<TLShape>) {
-    return utils.render(shape, {
-      isEditing,
-      isBinding,
-      isHovered,
-      isSelected,
-      isCurrentParent,
-      meta,
-    })
+  }: RenderedShapeProps<T, E, M>) => {
+    const ref = utils.getRef(shape)
+
+    // consider using layout effect to update bounds cache if the ref is filled
+
+    return (
+      <utils._Component
+        ref={ref}
+        shape={shape}
+        isEditing={isEditing}
+        isBinding={isBinding}
+        isHovered={isHovered}
+        isSelected={isSelected}
+        isCurrentParent={isCurrentParent}
+        meta={meta}
+        events={events}
+        onShapeChange={onShapeChange}
+        onShapeBlur={onShapeBlur}
+      />
+    )
   },
   (prev, next) => {
     // If these have changed, then definitely render

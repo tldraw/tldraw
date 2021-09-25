@@ -2,15 +2,15 @@ import * as React from 'react'
 import { ExitIcon, HamburgerMenuIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
-  FloatingContainer,
+  floatingContainer,
   DropdownMenuRoot,
-  MenuContent,
-  IconButton,
+  menuContent,
+  iconButton,
   breakpoints,
   DropdownMenuButton,
   DropdownMenuSubMenu,
   DropdownMenuDivider,
-  IconWrapper,
+  iconWrapper,
   Kbd,
 } from '~components/shared'
 import { useTLDrawContext } from '~hooks'
@@ -20,7 +20,9 @@ export const Menu = React.memo(() => {
   const { tlstate } = useTLDrawContext()
 
   const handleNew = React.useCallback(() => {
-    tlstate.newProject()
+    if (window.confirm('Are you sure you want to start a new project?')) {
+      tlstate.newProject()
+    }
   }, [tlstate])
 
   const handleSave = React.useCallback(() => {
@@ -36,43 +38,43 @@ export const Menu = React.memo(() => {
   }, [tlstate])
 
   return (
-    <FloatingContainer>
+    <div className={floatingContainer()}>
       <DropdownMenuRoot>
-        <DropdownMenu.Trigger as={IconButton} bp={breakpoints}>
+        <DropdownMenu.Trigger className={iconButton({ bp: breakpoints })}>
           <HamburgerMenuIcon />
         </DropdownMenu.Trigger>
-        <DropdownMenu.Content as={MenuContent} sideOffset={8} align="end">
-          <DropdownMenuButton onSelect={handleNew} disabled={true}>
+        <DropdownMenu.Content className={menuContent()} sideOffset={8} align="end">
+          <DropdownMenuButton onSelect={handleNew}>
             <span>New Project</span>
             <Kbd variant="menu">#N</Kbd>
           </DropdownMenuButton>
           <DropdownMenuDivider />
-          <DropdownMenuButton onSelect={handleLoad}>
+          <DropdownMenuButton disabled onSelect={handleLoad}>
             <span>Open...</span>
             <Kbd variant="menu">#L</Kbd>
           </DropdownMenuButton>
           <RecentFiles />
           <DropdownMenuDivider />
-          <DropdownMenuButton onSelect={handleSave}>
+          <DropdownMenuButton disabled onSelect={handleSave}>
             <span>Save</span>
             <Kbd variant="menu">#S</Kbd>
           </DropdownMenuButton>
-          <DropdownMenuButton onSelect={handleSave}>
+          <DropdownMenuButton disabled onSelect={handleSave}>
             <span>Save As...</span>
             <Kbd variant="menu">⇧#S</Kbd>
           </DropdownMenuButton>
           <DropdownMenuDivider />
           <Preferences />
           <DropdownMenuDivider />
-          <DropdownMenuButton onSelect={handleSignOut}>
+          <DropdownMenuButton disabled onSelect={handleSignOut}>
             <span>Sign Out</span>
-            <IconWrapper size="small">
+            <div className={iconWrapper({ size: 'small' })}>
               <ExitIcon />
-            </IconWrapper>
+            </div>
           </DropdownMenuButton>
         </DropdownMenu.Content>
       </DropdownMenuRoot>
-    </FloatingContainer>
+    </div>
   )
 })
 

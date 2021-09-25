@@ -1,6 +1,6 @@
-import { brushUpdater, Utils, Vec } from '@tldraw/core'
+import { Utils } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import { Data, Session, TLDrawPatch, TLDrawStatus } from '~types'
-import { getShapeUtils } from '~shape'
 import { TLDR } from '~state/tldr'
 
 export class BrushSession implements Session {
@@ -23,14 +23,11 @@ export class BrushSession implements Session {
     // Create a bounding box between the origin and the new point
     const brush = Utils.getBoundsFromPoints([origin, point])
 
-    brushUpdater.set(brush)
-
     // Find ids of brushed shapes
     const hits = new Set<string>()
     const selectedIds = new Set(snapshot.selectedIds)
 
     const page = TLDR.getPage(data, currentPageId)
-    const pageState = TLDR.getPageState(data, currentPageId)
 
     snapshot.shapesToTest.forEach(({ id, util, selectId }) => {
       if (selectedIds.has(id)) return
@@ -55,17 +52,18 @@ export class BrushSession implements Session {
       }
     })
 
-    if (
-      selectedIds.size === pageState.selectedIds.length &&
-      pageState.selectedIds.every((id) => selectedIds.has(id))
-    ) {
-      return {}
-    }
+    // if (
+    //   selectedIds.size === pageState.selectedIds.length &&
+    //   pageState.selectedIds.every((id) => selectedIds.has(id))
+    // ) {
+    //   return {}
+    // }
 
     return {
       document: {
         pageStates: {
           [currentPageId]: {
+            brush,
             selectedIds: Array.from(selectedIds.values()),
           },
         },
@@ -79,6 +77,7 @@ export class BrushSession implements Session {
       document: {
         pageStates: {
           [currentPageId]: {
+            brush: null,
             selectedIds: this.snapshot.selectedIds,
           },
         },
@@ -89,10 +88,12 @@ export class BrushSession implements Session {
   complete(data: Data) {
     const { currentPageId } = data.appState
     const pageState = TLDR.getPageState(data, currentPageId)
+
     return {
       document: {
         pageStates: {
           [currentPageId]: {
+            brush: null,
             selectedIds: [...pageState.selectedIds],
           },
         },
@@ -122,8 +123,8 @@ export function getBrushSnapshot(data: Data) {
     )
     .map((shape) => ({
       id: shape.id,
-      util: getShapeUtils(shape),
-      bounds: getShapeUtils(shape).getBounds(shape),
+      util: TLDR.getShapeUtils(shape),
+      bounds: TLDR.getShapeUtils(shape).getBounds(shape),
       selectId: TLDR.getTopParentId(data, shape.id, currentPageId),
     }))
 

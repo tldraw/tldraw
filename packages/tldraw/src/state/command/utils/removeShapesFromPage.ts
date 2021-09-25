@@ -1,5 +1,5 @@
 import { TLDR } from '~state/tldr'
-import type { Data, GroupShape, PagePartial } from '~types'
+import type { ArrowShape, Data, GroupShape, PagePartial } from '~types'
 
 export function removeShapesFromPage(data: Data, ids: string[], pageId: string) {
   const before: PagePartial = {
@@ -52,44 +52,55 @@ export function removeShapesFromPage(data: Data, ids: string[], pageId: string) 
   const page = TLDR.getPage(data, pageId)
 
   // We also need to delete bindings that reference the deleted shapes
-  Object.values(page.bindings).forEach((binding) => {
-    for (const id of [binding.toId, binding.fromId]) {
-      // If the binding references a deleted shape...
-      if (after.shapes[id] === undefined) {
-        // Delete this binding
-        before.bindings[binding.id] = binding
-        after.bindings[binding.id] = undefined
+  Object.values(page.bindings)
+    .filter((binding) => deletedIds.has(binding.fromId) || deletedIds.has(binding.toId))
+    .forEach((binding) => {
+      for (const id of [binding.toId, binding.fromId]) {
+        // If the binding references a deleted shape...
+        if (after.shapes[id] === undefined) {
+          // Delete this binding
+          before.bindings[binding.id] = binding
+          after.bindings[binding.id] = undefined
 
-        // Let's also look each the bound shape...
-        const shape = TLDR.getShape(data, id, pageId)
+          // Let's also look each the bound shape...
+          const shape = TLDR.getShape(data, id, pageId)
 
-        // If the bound shape has a handle that references the deleted binding...
-        if (shape.handles) {
-          Object.values(shape.handles)
-            .filter((handle) => handle.bindingId === binding.id)
-            .forEach((handle) => {
-              // Save the binding reference in the before patch
-              before.shapes[id] = {
-                ...before.shapes[id],
-                handles: {
-                  ...before.shapes[id]?.handles,
-                  [handle.id]: { bindingId: binding.id },
-                },
-              }
-
-              // Unless we're currently deleting the shape, remove the
-              // binding reference from the after patch
-              if (!deletedIds.has(id)) {
-                after.shapes[id] = {
-                  ...after.shapes[id],
-                  handles: { ...after.shapes[id]?.handles, [handle.id]: { bindingId: undefined } },
+          // If the bound shape has a handle that references the deleted binding...
+          if (shape.handles) {
+            Object.values(shape.handles)
+              .filter((handle) => handle.bindingId === binding.id)
+              .forEach((handle) => {
+                // Save the binding reference in the before patch
+                before.shapes[id] = {
+                  ...before.shapes[id],
+                  handles: {
+                    ...before.shapes[id]?.handles,
+                    [handle.id]: {
+                      ...before.shapes[id]?.handles?.[handle.id as keyof ArrowShape['handles']],
+                      bindingId: binding.id,
+                    },
+                  },
                 }
-              }
-            })
+
+                // Unless we're currently deleting the shape, remove the
+                // binding reference from the after patch
+                if (!deletedIds.has(id)) {
+                  after.shapes[id] = {
+                    ...after.shapes[id],
+                    handles: {
+                      ...after.shapes[id]?.handles,
+                      [handle.id]: {
+                        ...after.shapes[id]?.handles?.[handle.id as keyof ArrowShape['handles']],
+                        bindingId: undefined,
+                      },
+                    },
+                  }
+                }
+              })
+          }
         }
       }
-    }
-  })
+    })
 
   return { before, after }
 }

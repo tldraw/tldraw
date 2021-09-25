@@ -1,13 +1,13 @@
 import { TLDrawState } from './tlstate'
 import { mockDocument, TLStateUtils } from '~test'
-import { ColorStyle, TLDrawShapeType } from '~types'
+import { ArrowShape, ColorStyle, TLDrawShapeType } from '~types'
 
 describe('TLDrawState', () => {
   const tlstate = new TLDrawState()
 
   const tlu = new TLStateUtils(tlstate)
 
-  describe('Copy and Paste', () => {
+  describe('When copying and pasting...', () => {
     it('copies a shape', () => {
       tlstate.loadDocument(mockDocument).deselectAll().copy(['rect1'])
     })
@@ -44,6 +44,62 @@ describe('TLDrawState', () => {
       tlstate.redo()
 
       expect(Object.keys(tlstate.page.shapes).length).toBe(1)
+    })
+
+    it.todo("Pastes in to the top child index of the page's children.")
+
+    it.todo('Pastes in the correct child index order.')
+  })
+
+  describe('When copying and pasting a shape with bindings', () => {
+    it('copies two bound shapes and their binding', () => {
+      const tlstate = new TLDrawState()
+
+      tlstate
+        .createShapes(
+          { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+          { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+        )
+        .select('arrow1')
+        .startHandleSession([200, 200], 'start')
+        .updateHandleSession([55, 55])
+        .completeSession()
+
+      expect(tlstate.bindings.length).toBe(1)
+
+      tlstate.selectAll().copy().paste()
+
+      const newArrow = tlstate.shapes.sort((a, b) => b.childIndex - a.childIndex)[0] as ArrowShape
+
+      expect(newArrow.handles.start.bindingId).not.toBe(
+        tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId
+      )
+
+      expect(tlstate.bindings.length).toBe(2)
+    })
+
+    it('removes bindings from copied shape handles', () => {
+      const tlstate = new TLDrawState()
+
+      tlstate
+        .createShapes(
+          { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+          { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+        )
+        .select('arrow1')
+        .startHandleSession([200, 200], 'start')
+        .updateHandleSession([55, 55])
+        .completeSession()
+
+      expect(tlstate.bindings.length).toBe(1)
+
+      expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeDefined()
+
+      tlstate.select('arrow1').copy().paste()
+
+      const newArrow = tlstate.shapes.sort((a, b) => b.childIndex - a.childIndex)[0] as ArrowShape
+
+      expect(newArrow.handles.start.bindingId).toBeUndefined()
     })
   })
 
@@ -113,7 +169,17 @@ describe('TLDrawState', () => {
 
     it.todo('re-creates shapes on redo after creating')
 
-    it.todo('selects all')
+    describe('When selecting all', () => {
+      it('selects all', () => {
+        const tlstate = new TLDrawState().loadDocument(mockDocument).selectAll()
+        expect(tlstate.selectedIds).toMatchSnapshot('selected all')
+      })
+
+      it('does not select children of a group', () => {
+        const tlstate = new TLDrawState().loadDocument(mockDocument).selectAll().group()
+        expect(tlstate.selectedIds.length).toBe(1)
+      })
+    })
 
     // Single click on a selected shape to select just that shape
 
@@ -215,11 +281,6 @@ describe('TLDrawState', () => {
   describe('Copies to JSON', () => {
     tlstate.selectAll()
     expect(tlstate.copyJson()).toMatchSnapshot('copied json')
-  })
-
-  describe('Copies to SVG', () => {
-    tlstate.selectAll()
-    expect(tlstate.copySvg()).toMatchSnapshot('copied svg')
   })
 
   describe('Mutates bound shapes', () => {
@@ -359,4 +420,153 @@ describe('TLDrawState', () => {
       expect(tlstate.getShape('rect5').childIndex).toBe(3)
     })
   })
+
+  it('Exposes undo/redo stack', () => {
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .createShapes({
+        id: 'rect1',
+        type: TLDrawShapeType.Rectangle,
+        point: [0, 0],
+        size: [100, 200],
+      })
+      .createShapes({
+        id: 'rect2',
+        type: TLDrawShapeType.Rectangle,
+        point: [0, 0],
+        size: [100, 200],
+      })
+
+    expect(tlstate.history.length).toBe(2)
+
+    expect(tlstate.history).toBeDefined()
+    expect(tlstate.history).toMatchSnapshot('history')
+
+    tlstate.history = []
+    expect(tlstate.history).toEqual([])
+
+    const before = tlstate.state
+    tlstate.undo()
+    const after = tlstate.state
+
+    expect(before).toBe(after)
+  })
+
+  it('Exposes undo/redo stack up to the current pointer', () => {
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .createShapes({
+        id: 'rect1',
+        type: TLDrawShapeType.Rectangle,
+        point: [0, 0],
+        size: [100, 200],
+      })
+      .createShapes({
+        id: 'rect2',
+        type: TLDrawShapeType.Rectangle,
+        point: [0, 0],
+        size: [100, 200],
+      })
+      .undo()
+
+    expect(tlstate.history.length).toBe(1)
+  })
+
+  it('Sets the undo/redo history', () => {
+    const tlstate = new TLDrawState('some_state_a')
+      .createShapes({
+        id: 'rect1',
+        type: TLDrawShapeType.Rectangle,
+        point: [0, 0],
+        size: [100, 200],
+      })
+      .createShapes({
+        id: 'rect2',
+        type: TLDrawShapeType.Rectangle,
+        point: [0, 0],
+        size: [100, 200],
+      })
+
+    // Save the history and document from the first state
+    const doc = tlstate.document
+    const history = tlstate.history
+
+    // Create a new state
+    const tlstate2 = new TLDrawState('some_state_b')
+
+    // Load the document and set the history
+    tlstate2.loadDocument(doc)
+    tlstate2.history = history
+
+    expect(tlstate2.shapes.length).toBe(2)
+
+    // We should be able to undo the change that was made on the first
+    // state, now that we've brought in its undo / redo stack
+    tlstate2.undo()
+
+    expect(tlstate2.shapes.length).toBe(1)
+  })
+
+  describe('When copying to SVG', () => {
+    it('Copies shapes.', () => {
+      const tlstate = new TLDrawState()
+      const result = tlstate
+        .loadDocument(mockDocument)
+        .select('rect1')
+        .rotate(0.1)
+        .selectAll()
+        .copySvg()
+      expect(result).toMatchSnapshot('copied svg')
+    })
+
+    it('Copies grouped shapes.', () => {
+      const tlstate = new TLDrawState()
+      const result = tlstate
+        .loadDocument(mockDocument)
+        .select('rect1', 'rect2')
+        .group()
+        .selectAll()
+        .copySvg()
+      expect(result).toMatchSnapshot('copied svg with group')
+    })
+
+    it.todo('Copies Text shapes as <text> elements.')
+    // it('Copies Text shapes as <text> elements.', () => {
+    //   const tlstate2 = new TLDrawState()
+
+    //   const svgString = tlstate2
+    //     .createShapes({
+    //       id: 'text1',
+    //       type: TLDrawShapeType.Text,
+    //       text: 'hello world!',
+    //     })
+    //     .select('text1')
+    //     .copySvg()
+
+    //   expect(svgString).toBeTruthy()
+    // })
+  })
+
+  describe('when the document prop changes', () => {
+    it.todo('replaces the document if the ids are different')
+
+    it.todo('updates the document if the new id is the same as the old one')
+  })
+  /*
+    We want to be able to use the `document` property to update the
+    document without blowing out the current state. For example, we
+    may want to patch in changes that occurred from another user.
+
+    When the `document` prop changes in the TLDraw component, we want
+    to update the document in a way that preserves the identity of as
+    much as possible, while still protecting against invalid states.
+
+    If this isn't possible, then we should guide the developer to
+    instead use a helper like `patchDocument` to update the document.
+
+    If the `id` property of the new document is the same as the
+    previous document, then we call `updateDocument`. Otherwise, we
+    call `replaceDocument`, which does a harder reset of the state's
+    internal state.
+  */
 })

@@ -1,82 +1,90 @@
-import styled from 'styles'
+import css from 'styles'
 import { getSession, signin, signout, useSession } from 'next-auth/client'
 import { GetServerSideProps } from 'next'
 import Link from 'next/link'
 import React from 'react'
+import Head from 'next/head'
 
 export default function Sponsorware(): JSX.Element {
   const [session, loading] = useSession()
 
   return (
-    <OuterContent>
-      <Content
-        size={{
-          '@sm': 'small',
-        }}
-      >
-        <h1>tldraw (is sponsorware)</h1>
-        <p>
-          Hey, thanks for visiting <Link href="/">tldraw</Link>, a tiny little drawing app by{' '}
-          <a
-            target="_blank"
-            rel="noreferrer nofollow noopener"
-            href="https://twitter.com/steveruizok"
-          >
-            steveruizok
-          </a>{' '}
-          and friends .
-        </p>
-        <video autoPlay muted playsInline onClick={(e) => e.currentTarget.play()}>
-          <source src="images/hello.mp4" type="video/mp4" />
-        </video>
-        <p>This project is currently: </p>
-        <ul>
-          <li>in development</li>
-          <li>only available for my sponsors</li>
-        </ul>
-        <p>
-          If you&apos;d like to try it out,{' '}
-          <a
-            href="https://github.com/sponsors/steveruizok"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            sponsor me on Github
-          </a>{' '}
-          (at any level) and sign in below.
-        </p>
-        <ButtonGroup>
-          {session ? (
-            <>
-              <Button onClick={() => signout()} variant={'secondary'}>
-                Sign Out
-              </Button>
-              <Detail>
-                Signed in as {session?.user?.name} ({session?.user?.email}), but it looks like
-                you&apos;re not yet a sponsor.
-                <br />
-                Something wrong? Try <Link href="/">reloading the page</Link> or DM me on{' '}
-                <a
-                  target="_blank"
-                  rel="noreferrer nofollow noopener"
-                  href="https://twitter.com/steveruizok"
-                >
-                  Twitter
-                </a>
-                .
-              </Detail>
-            </>
-          ) : (
-            <>
-              <Button onClick={() => signin('github')} variant={'primary'}>
-                {loading ? 'Loading...' : 'Sign in With Github'}
-              </Button>
-              <Detail>Already a sponsor? Just sign in to visit the app.</Detail>
-            </>
-          )}
-        </ButtonGroup>
-      </Content>
-    </OuterContent>
+    <>
+      <Head>
+        <title>tldraw</title>
+      </Head>
+      <div className={outerContent()}>
+        <div
+          className={content({
+            size: {
+              '@sm': 'small',
+            },
+          })}
+        >
+          <h1>tldraw (is sponsorware)</h1>
+          <p>
+            Hey, thanks for visiting <Link href="/">tldraw</Link>, a tiny little drawing app by{' '}
+            <a
+              target="_blank"
+              rel="noreferrer nofollow noopener"
+              href="https://twitter.com/steveruizok"
+            >
+              steveruizok
+            </a>{' '}
+            and friends .
+          </p>
+          <video autoPlay muted playsInline onClick={(e) => e.currentTarget.play()}>
+            <source src="images/hello.mp4" type="video/mp4" />
+          </video>
+          <p>This project is currently: </p>
+          <ul>
+            <li>in development</li>
+            <li>only available for my sponsors</li>
+          </ul>
+          <p>
+            If you&apos;d like to try it out,{' '}
+            <a
+              href="https://github.com/sponsors/steveruizok"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              sponsor me on Github
+            </a>{' '}
+            (at any level) and sign in below.
+          </p>
+          <div className={buttonGroup()}>
+            {session ? (
+              <>
+                <button className={button({ variant: 'secondary' })} onClick={() => signout()}>
+                  Sign Out
+                </button>
+                <p className={detail()}>
+                  Signed in as {session?.user?.name} ({session?.user?.email}), but it looks like
+                  you&apos;re not yet a sponsor.
+                  <br />
+                  Something wrong? Try <Link href="/">reloading the page</Link> or DM me on{' '}
+                  <a
+                    target="_blank"
+                    rel="noreferrer nofollow noopener"
+                    href="https://twitter.com/steveruizok"
+                  >
+                    Twitter
+                  </a>
+                  .
+                </p>
+              </>
+            ) : (
+              <>
+                <button className={button({ variant: 'primary' })} onClick={() => signin('github')}>
+                  {loading ? 'Loading...' : 'Sign in With Github'}
+                </button>
+                <p className={detail()}>Already a sponsor? Just sign in to visit the app.</p>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -90,7 +98,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 }
 
-const OuterContent = styled('div', {
+const outerContent = css({
   backgroundColor: '$canvas',
   padding: '8px 8px 64px 8px',
   margin: '0 auto',
@@ -107,7 +115,7 @@ const OuterContent = styled('div', {
   height: '100%',
 })
 
-const Content = styled('div', {
+const content = css({
   width: '720px',
   padding: '8px 16px',
   maxWidth: '100%',
@@ -155,18 +163,18 @@ const Content = styled('div', {
   },
 })
 
-const ButtonGroup = styled('div', {
+const buttonGroup = css({
   display: 'grid',
   gap: '16px',
   margin: '40px 0 32px 0',
 })
 
-const Detail = styled('p', {
+const detail = css({
   fontSize: '$2',
   textAlign: 'center',
 })
 
-const Button = styled('button', {
+const button = css({
   cursor: 'pointer',
   width: '100%',
   padding: '12px 0',

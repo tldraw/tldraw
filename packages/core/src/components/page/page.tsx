@@ -1,42 +1,43 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
-import { useSelection, useShapeTree, useHandles, useRenderOnResize, useTLContext } from '+hooks'
+import { useSelection, useShapeTree, useHandles, useTLContext } from '+hooks'
 import { Bounds } from '+components/bounds'
 import { BoundsBg } from '+components/bounds/bounds-bg'
 import { Handles } from '+components/handles'
 import { ShapeNode } from '+components/shape'
 import { ShapeIndicator } from '+components/shape-indicator'
 
-interface PageProps<T extends TLShape> {
+interface PageProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
   pageState: TLPageState
   hideBounds: boolean
   hideHandles: boolean
   hideIndicators: boolean
-  meta?: Record<string, unknown>
+  meta?: M
 }
 
 /**
  * The Page component renders the current page.
- *
- * ### Example
- *
- *```ts
- * example
- *``` */
-export function Page<T extends TLShape>({
+ */
+export function Page<T extends TLShape, M extends Record<string, unknown>>({
   page,
   pageState,
   hideBounds,
   hideHandles,
   hideIndicators,
   meta,
-}: PageProps<T>): JSX.Element {
-  const { callbacks, shapeUtils } = useTLContext()
+}: PageProps<T, M>): JSX.Element {
+  const { callbacks, shapeUtils, inputs } = useTLContext()
 
-  useRenderOnResize()
-
-  const shapeTree = useShapeTree(page, pageState, shapeUtils, meta, callbacks.onChange)
+  const shapeTree = useShapeTree(
+    page,
+    pageState,
+    shapeUtils,
+    [inputs.bounds.width, inputs.bounds.height],
+    meta,
+    callbacks.onRenderCountChange
+  )
 
   const { shapeWithHandles } = useHandles(page, pageState)
 
@@ -52,25 +53,33 @@ export function Page<T extends TLShape>({
     <>
       {bounds && !hideBounds && <BoundsBg bounds={bounds} rotation={rotation} />}
       {shapeTree.map((node) => (
-        <ShapeNode key={node.shape.id} {...node} />
+        <ShapeNode key={node.shape.id} utils={shapeUtils} {...node} />
       ))}
-      {bounds && !hideBounds && (
-        <Bounds zoom={zoom} bounds={bounds} isLocked={isLocked} rotation={rotation} />
+      {bounds && (
+        <Bounds
+          zoom={zoom}
+          bounds={bounds}
+          viewportWidth={inputs.bounds.width}
+          isLocked={isLocked}
+          rotation={rotation}
+          isHidden={hideBounds}
+        />
       )}
       {!hideIndicators &&
         selectedIds
           .filter(Boolean)
           .map((id) => (
-            <ShapeIndicator key={'selected_' + id} shape={page.shapes[id]} variant="selected" />
+            <ShapeIndicator key={'selected_' + id} shape={page.shapes[id]} meta={meta} isSelected />
           ))}
       {!hideIndicators && hoveredId && (
         <ShapeIndicator
           key={'hovered_' + hoveredId}
           shape={page.shapes[hoveredId]}
-          variant="hovered"
+          meta={meta}
+          isHovered
         />
       )}
-      {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} zoom={zoom} />}
+      {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} />}
     </>
   )
 }

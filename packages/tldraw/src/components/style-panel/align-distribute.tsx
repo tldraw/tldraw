@@ -13,7 +13,7 @@ import {
 } from '@radix-ui/react-icons'
 import { AlignType, DistributeType, StretchType } from '~types'
 import { useTLDrawContext } from '~hooks'
-import { breakpoints, ButtonsRow, IconButton } from '../shared'
+import { breakpoints, buttonsRow, iconButton } from '../shared'
 
 export interface AlignDistributeProps {
   hasTwoOrMore: boolean
@@ -66,70 +66,80 @@ export const AlignDistribute = React.memo(
 
     return (
       <>
-        <ButtonsRow>
-          <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignLeft}>
+        <div className={buttonsRow()}>
+          <button
+            className={iconButton({ bp: breakpoints, size: 'small' })}
+            disabled={!hasTwoOrMore}
+            onClick={alignLeft}
+          >
             <AlignLeftIcon />
-          </IconButton>
-          <IconButton
-            bp={breakpoints}
-            size="small"
+          </button>
+          <button
+            className={iconButton({ bp: breakpoints, size: 'small' })}
             disabled={!hasTwoOrMore}
             onClick={alignCenterHorizontal}
           >
             <AlignCenterHorizontallyIcon />
-          </IconButton>
-          <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignRight}>
+          </button>
+          <button
+            className={iconButton({ bp: breakpoints, size: 'small' })}
+            disabled={!hasTwoOrMore}
+            onClick={alignRight}
+          >
             <AlignRightIcon />
-          </IconButton>
-          <IconButton
-            bp={breakpoints}
-            size="small"
+          </button>
+          <button
+            className={iconButton({ bp: breakpoints, size: 'small' })}
             disabled={!hasTwoOrMore}
             onClick={stretchHorizontally}
           >
             <StretchHorizontallyIcon />
-          </IconButton>
-          <IconButton
-            bp={breakpoints}
-            size="small"
+          </button>
+          <button
+            className={iconButton({ bp: breakpoints, size: 'small' })}
             disabled={!hasThreeOrMore}
             onClick={distributeHorizontally}
           >
             <SpaceEvenlyHorizontallyIcon />
-          </IconButton>
-        </ButtonsRow>
-        <ButtonsRow>
-          <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignTop}>
+          </button>
+        </div>
+        <div className={buttonsRow()}>
+          <button
+            className={iconButton({ bp: breakpoints, size: 'small' })}
+            disabled={!hasTwoOrMore}
+            onClick={alignTop}
+          >
             <AlignTopIcon />
-          </IconButton>
-          <IconButton
-            bp={breakpoints}
-            size="small"
+          </button>
+          <button
+            className={iconButton({ bp: breakpoints, size: 'small' })}
             disabled={!hasTwoOrMore}
             onClick={alignCenterVertical}
           >
             <AlignCenterVerticallyIcon />
-          </IconButton>
-          <IconButton bp={breakpoints} size="small" disabled={!hasTwoOrMore} onClick={alignBottom}>
+          </button>
+          <button
+            className={iconButton({ bp: breakpoints, size: 'small' })}
+            disabled={!hasTwoOrMore}
+            onClick={alignBottom}
+          >
             <AlignBottomIcon />
-          </IconButton>
-          <IconButton
-            bp={breakpoints}
-            size="small"
+          </button>
+          <button
+            className={iconButton({ bp: breakpoints, size: 'small' })}
             disabled={!hasTwoOrMore}
             onClick={stretchVertically}
           >
             <StretchVerticallyIcon />
-          </IconButton>
-          <IconButton
-            bp={breakpoints}
-            size="small"
+          </button>
+          <button
+            className={iconButton({ bp: breakpoints, size: 'small' })}
             disabled={!hasThreeOrMore}
             onClick={distributeVertically}
           >
             <SpaceEvenlyVerticallyIcon />
-          </IconButton>
-        </ButtonsRow>
+          </button>
+        </div>
       </>
     )
   }

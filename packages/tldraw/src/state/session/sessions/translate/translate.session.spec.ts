@@ -1,6 +1,6 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { TLDrawShapeType, TLDrawStatus } from '~types'
+import { GroupShape, TLDrawShapeType, TLDrawStatus } from '~types'
 
 describe('Translate session', () => {
   const tlstate = new TLDrawState()
@@ -184,15 +184,98 @@ describe('Translate session', () => {
 
   // it.todo('clones a shape with a parent shape')
 
+  describe('when translating a child of a group', () => {
+    it('translates the shape and updates the groups size / point', () => {
+      tlstate
+        .loadDocument(mockDocument)
+        .select('rect1', 'rect2')
+        .group(['rect1', 'rect2'], 'groupA')
+        .select('rect1')
+        .startTranslateSession([10, 10])
+        .updateTranslateSession([20, 20], false, false)
+        .completeSession()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+
+      tlstate.undo()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+
+      tlstate.redo()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+    })
+
+    it('clones the shape and updates the parent', () => {
+      tlstate
+        .loadDocument(mockDocument)
+        .select('rect1', 'rect2')
+        .group(['rect1', 'rect2'], 'groupA')
+        .select('rect1')
+        .startTranslateSession([10, 10])
+        .updateTranslateSession([20, 20], false, true)
+        .completeSession()
+
+      const children = tlstate.getShape<GroupShape>('groupA').children
+      const newShapeId = children[children.length - 1]
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape<GroupShape>('groupA').children.length).toBe(3)
+      expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+      expect(tlstate.getShape(newShapeId).point).toStrictEqual([20, 20])
+      expect(tlstate.getShape(newShapeId).parentId).toBe('groupA')
+
+      tlstate.undo()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape<GroupShape>('groupA').children.length).toBe(2)
+      expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+      expect(tlstate.getShape(newShapeId)).toBeUndefined()
+
+      tlstate.redo()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape<GroupShape>('groupA').children.length).toBe(3)
+      expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+      expect(tlstate.getShape(newShapeId).point).toStrictEqual([20, 20])
+      expect(tlstate.getShape(newShapeId).parentId).toBe('groupA')
+    })
+  })
+
   describe('when translating a shape with children', () => {
     it('translates the shapes children', () => {
       tlstate
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
-        .group()
+        .group(['rect1', 'rect2'], 'groupA')
         .startTranslateSession([10, 10])
         .updateTranslateSession([20, 20], false, false)
         .completeSession()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([110, 110])
+
+      tlstate.undo()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+
+      tlstate.redo()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([110, 110])
     })
 
     it('clones the shapes and children', () => {

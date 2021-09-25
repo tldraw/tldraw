@@ -2,13 +2,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* --------------------- Primary -------------------- */
 
+import type React from 'react'
+
+export type Patch<T> = Partial<{ [P in keyof T]: T | Partial<T> | Patch<T[P]> }>
+
+type ForwardedRef<T> = ((instance: T | null) => void) | React.MutableRefObject<T | null> | null
+
 export interface TLPage<T extends TLShape, B extends TLBinding> {
   id: string
   name?: string
   childIndex?: number
   shapes: Record<string, T>
   bindings: Record<string, B>
-  backgroundColor?: string
 }
 
 export interface TLPageState {
@@ -18,13 +23,13 @@ export interface TLPageState {
     point: number[]
     zoom: number
   }
-  brush?: TLBounds
-  pointedId?: string
-  hoveredId?: string
-  editingId?: string
-  bindingId?: string
+  brush?: TLBounds | null
+  pointedId?: string | null
+  hoveredId?: string | null
+  editingId?: string | null
+  bindingId?: string | null
   boundsRotation?: number
-  currentParentId?: string
+  currentParentId?: string | null
 }
 
 export interface TLHandle {
@@ -52,21 +57,35 @@ export interface TLShape {
   isAspectRatioLocked?: boolean
 }
 
-export type TLShapeUtils<T extends TLShape> = Record<string, TLShapeUtil<T>>
+export type TLShapeUtils<
+  T extends TLShape = any,
+  E extends Element = any,
+  M = any,
+  K = any
+> = Record<string, TLShapeUtil<T, E, M, K>>
 
-export interface TLRenderInfo<M = any, T extends SVGElement | HTMLElement = any> {
-  ref?: React.RefObject<T>
+export interface TLRenderInfo<T extends TLShape, E = any, M = any> {
+  shape: T
   isEditing: boolean
   isBinding: boolean
   isHovered: boolean
   isSelected: boolean
   isCurrentParent: boolean
-  onTextChange?: TLCallbacks['onTextChange']
-  onTextBlur?: TLCallbacks['onTextBlur']
-  onTextFocus?: TLCallbacks['onTextFocus']
-  onTextKeyDown?: TLCallbacks['onTextKeyDown']
-  onTextKeyUp?: TLCallbacks['onTextKeyUp']
   meta: M extends any ? M : never
+  onShapeChange?: TLCallbacks<T>['onShapeChange']
+  onShapeBlur?: TLCallbacks<T>['onShapeBlur']
+  events: {
+    onPointerDown: (e: React.PointerEvent<E>) => void
+    onPointerUp: (e: React.PointerEvent<E>) => void
+    onPointerEnter: (e: React.PointerEvent<E>) => void
+    onPointerMove: (e: React.PointerEvent<E>) => void
+    onPointerLeave: (e: React.PointerEvent<E>) => void
+  }
+}
+
+export interface TLShapeProps<T extends TLShape, E = any, M = any> extends TLRenderInfo<T, E, M> {
+  ref: ForwardedRef<E>
+  shape: T
 }
 
 export interface TLTool {
@@ -74,11 +93,12 @@ export interface TLTool {
   name: string
 }
 
-export interface TLBinding {
+export interface TLBinding<M = any> {
   id: string
   type: string
   toId: string
   fromId: string
+  meta: M
 }
 
 export interface TLTheme {
@@ -94,21 +114,39 @@ export type TLWheelEventHandler = (
   info: TLPointerInfo<string>,
   e: React.WheelEvent<Element> | WheelEvent
 ) => void
+
 export type TLPinchEventHandler = (
   info: TLPointerInfo<string>,
-  e: React.WheelEvent<Element> | WheelEvent | React.TouchEvent<Element> | TouchEvent
+  e:
+    | React.WheelEvent<Element>
+    | WheelEvent
+    | React.TouchEvent<Element>
+    | TouchEvent
+    | React.PointerEvent<Element>
+    | PointerEventInit
 ) => void
+
+export type TLShapeChangeHandler<T, K = any> = (
+  shape: { id: string } & Partial<T>,
+  info?: K
+) => void
+
+export type TLShapeBlurHandler<K = any> = (info?: K) => void
+
+export type TLKeyboardEventHandler = (key: string, info: TLKeyboardInfo, e: KeyboardEvent) => void
+
 export type TLPointerEventHandler = (info: TLPointerInfo<string>, e: React.PointerEvent) => void
+
 export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>, e: React.PointerEvent) => void
+
 export type TLBoundsEventHandler = (info: TLPointerInfo<'bounds'>, e: React.PointerEvent) => void
+
 export type TLBoundsHandleEventHandler = (
   info: TLPointerInfo<TLBoundsCorner | TLBoundsEdge | 'rotate'>,
   e: React.PointerEvent
 ) => void
 
-export interface TLCallbacks {
-  onChange: (ids: string[]) => void
-
+export interface TLCallbacks<T extends TLShape> {
   // Camera events
   onPinchStart: TLPinchEventHandler
   onPinchEnd: TLPinchEventHandler
@@ -164,16 +202,16 @@ export interface TLCallbacks {
   onUnhoverHandle: TLPointerEventHandler
   onReleaseHandle: TLPointerEventHandler
 
-  // Text
-  onTextChange: (id: string, text: string) => void
-  onTextBlur: (id: string) => void
-  onTextFocus: (id: string) => void
-  onTextKeyDown: (id: string, key: string) => void
-  onTextKeyUp: (id: string, key: string) => void
-
   // Misc
-  onBlurEditingShape: () => void
+  onShapeChange: TLShapeChangeHandler<T, any>
+  onShapeBlur: TLShapeBlurHandler<any>
+  onRenderCountChange: (ids: string[]) => void
   onError: (error: Error) => void
+  onBoundsChange: (bounds: TLBounds) => void
+
+  // Keyboard event handlers
+  onKeyDown: TLKeyboardEventHandler
+  onKeyUp: TLKeyboardEventHandler
 }
 
 export interface TLBounds {
@@ -253,147 +291,162 @@ export interface TLBezierCurveSegment {
 /*                   Shape Utility                    */
 /* -------------------------------------------------- */
 
-export abstract class TLShapeUtil<T extends TLShape> {
-  boundsCache = new WeakMap<TLShape, TLBounds>()
-  isEditableText = false
-  isAspectRatioLocked = false
-  canEdit = false
-  canBind = false
+export type TLShapeUtil<
+  T extends TLShape,
+  E extends Element,
+  M = any,
+  K = { [key: string]: any }
+> = K & {
+  type: T['type']
 
-  abstract type: T['type']
+  defaultProps: T
 
-  abstract defaultProps: T
+  Component(
+    this: TLShapeUtil<T, E, M>,
+    props: TLRenderInfo<T, E, M>,
+    ref: ForwardedRef<E>
+  ): React.ReactElement<TLRenderInfo<T, E, M>, E['tagName']>
 
-  abstract render(shape: T, info: TLRenderInfo): JSX.Element | null
+  Indicator(
+    this: TLShapeUtil<T, E, M>,
+    props: { shape: T; meta: M; isHovered: boolean; isSelected: boolean }
+  ): React.ReactElement | null
 
-  abstract renderIndicator(shape: T): JSX.Element | null
+  getBounds(this: TLShapeUtil<T, E, M>, shape: T): TLBounds
 
-  abstract getBounds(shape: T): TLBounds
+  refMap: Map<string, React.RefObject<E>>
 
-  abstract getRotatedBounds(shape: T): TLBounds
+  boundsCache: WeakMap<TLShape, TLBounds>
 
-  abstract hitTest(shape: T, point: number[]): boolean
+  isAspectRatioLocked: boolean
 
-  abstract hitTestBounds(shape: T, bounds: TLBounds): boolean
+  canEdit: boolean
 
-  abstract transform(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T>
+  canBind: boolean
 
-  transformSingle(shape: T, bounds: TLBounds, info: TLTransformInfo<T>): Partial<T> {
-    return this.transform(shape, bounds, info)
-  }
+  getRotatedBounds(this: TLShapeUtil<T, E, M>, shape: T): TLBounds
 
-  shouldRender(_prev: T, _next: T): boolean {
-    return true
-  }
+  hitTest(this: TLShapeUtil<T, E, M>, shape: T, point: number[]): boolean
 
-  shouldDelete(_shape: T): boolean {
-    return false
-  }
+  hitTestBounds(this: TLShapeUtil<T, E, M>, shape: T, bounds: TLBounds): boolean
 
-  getCenter(shape: T): number[] {
-    const bounds = this.getBounds(shape)
-    return [bounds.width / 2, bounds.height / 2]
-  }
+  shouldRender(this: TLShapeUtil<T, E, M>, prev: T, next: T): boolean
 
-  getBindingPoint(
+  getCenter(this: TLShapeUtil<T, E, M>, shape: T): number[]
+
+  getRef(this: TLShapeUtil<T, E, M>, shape: T): React.RefObject<E>
+
+  getBindingPoint<K extends TLShape>(
+    this: TLShapeUtil<T, E, M>,
     shape: T,
-    fromShape: TLShape,
+    fromShape: K,
     point: number[],
     origin: number[],
     direction: number[],
     padding: number,
-    anywhere: boolean
-  ): { point: number[]; distance: number } | undefined {
-    return undefined
-  }
+    bindAnywhere: boolean
+  ): { point: number[]; distance: number } | undefined
 
-  create(props: Partial<T>): T {
-    return { ...this.defaultProps, ...props }
-  }
+  create: (this: TLShapeUtil<T, E, M>, props: { id: string } & Partial<T>) => T
 
-  mutate(shape: T, props: Partial<T>): T {
-    return { ...shape, ...props }
-  }
+  mutate: (this: TLShapeUtil<T, E, M>, shape: T, props: Partial<T>) => Partial<T>
 
-  updateChildren<K extends TLShape>(shape: T, children: K[]): Partial<K>[] | void {
-    return
-  }
+  transform: (
+    this: TLShapeUtil<T, E, M>,
+    shape: T,
+    bounds: TLBounds,
+    info: TLTransformInfo<T>
+  ) => Partial<T> | void
 
-  onChildrenChange(shape: T, children: TLShape[]): Partial<T> | void {
-    return
-  }
+  transformSingle: (
+    this: TLShapeUtil<T, E, M>,
+    shape: T,
+    bounds: TLBounds,
+    info: TLTransformInfo<T>
+  ) => Partial<T> | void
 
-  onBindingChange(
+  updateChildren: <K extends TLShape>(
+    this: TLShapeUtil<T, E, M>,
+    shape: T,
+    children: K[]
+  ) => Partial<K>[] | void
+
+  onChildrenChange: (this: TLShapeUtil<T, E, M>, shape: T, children: TLShape[]) => Partial<T> | void
+
+  onBindingChange: (
+    this: TLShapeUtil<T, E, M>,
     shape: T,
     binding: TLBinding,
     target: TLShape,
     targetBounds: TLBounds,
     center: number[]
-  ): Partial<T> | void {
-    return undefined
-  }
+  ) => Partial<T> | void
 
-  onHandleChange(
+  onHandleChange: (
+    this: TLShapeUtil<T, E, M>,
     shape: T,
     handle: Partial<T['handles']>,
     info: Partial<TLPointerInfo>
-  ): Partial<T> | void {
-    return
-  }
+  ) => Partial<T> | void
 
-  onRightPointHandle(
+  onRightPointHandle: (
+    this: TLShapeUtil<T, E, M>,
     shape: T,
     handle: Partial<T['handles']>,
     info: Partial<TLPointerInfo>
-  ): Partial<T> | void {
-    return
-  }
+  ) => Partial<T> | void
 
-  onDoubleClickHandle(
+  onDoubleClickHandle: (
+    this: TLShapeUtil<T, E, M>,
     shape: T,
     handle: Partial<T['handles']>,
     info: Partial<TLPointerInfo>
-  ): Partial<T> | void {
-    return
-  }
+  ) => Partial<T> | void
 
-  onSessionComplete(shape: T): Partial<T> | void {
-    return
-  }
+  onDoubleClickBoundsHandle: (this: TLShapeUtil<T, E, M>, shape: T) => Partial<T> | void
 
-  onBoundsReset(shape: T): Partial<T> | void {
-    return
-  }
+  onSessionComplete: (this: TLShapeUtil<T, E, M>, shape: T) => Partial<T> | void
 
-  onStyleChange(shape: T): Partial<T> | void {
-    return
-  }
+  onStyleChange: (this: TLShapeUtil<T, E, M>, shape: T) => Partial<T> | void
+
+  _Component: React.ForwardRefExoticComponent<any>
 }
+
+// export interface TLShapeUtil<T extends TLShape, E extends Element, M = any>
+//   extends TLShapeUtilRequired<T, E, M>,
+//     Required<TLShapeUtilDefaults<T, E>> {
+//   _Component: React.ForwardRefExoticComponent<any> & {
+//     defaultProps: any
+//     propTypes: any
+//   }
+// }
+
+// export interface TLShapeUtilConfig<T extends TLShape, E extends Element, M = any>
+//   extends TLShapeUtilRequired<T, E, M>,
+//     Partial<TLShapeUtilDefaults<T, E>> {}
 
 /* -------------------- Internal -------------------- */
 
-export interface IShapeTreeNode<M extends Record<string, unknown>> {
-  shape: TLShape
-  children?: IShapeTreeNode<M>[]
+export interface IShapeTreeNode<T extends TLShape, M = any> {
+  shape: T
+  children?: IShapeTreeNode<TLShape, M>[]
   isEditing: boolean
   isBinding: boolean
   isHovered: boolean
   isSelected: boolean
   isCurrentParent: boolean
-  meta?: M
+  meta?: M extends any ? M : never
 }
 
 /* -------------------------------------------------- */
 /*                    Utility Types                   */
 /* -------------------------------------------------- */
 
-/** @internal */
-export type MappedByType<T extends { type: string }> = {
+export type MappedByType<K extends string, T extends { type: K }> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [P in T['type']]: T extends any ? (P extends T['type'] ? T : never) : never
 }
 
-/** @internal */
 export type RequiredKeys<T> = {
   [K in keyof T]-?: Record<string, unknown> extends Pick<T, K> ? never : K
 }[keyof T]

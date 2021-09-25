@@ -1,16 +1,24 @@
 import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
-import styled from '~styles'
-import type { Data, TLDrawDocument } from '~types'
+import css from '~styles'
+import { Data, TLDrawDocument, TLDrawStatus } from '~types'
 import { TLDrawState } from '~state'
-import { TLDrawContext, useCustomFonts, useKeyboardShortcuts, useTLDrawContext } from '~hooks'
+import {
+  TLDrawContext,
+  useCustomFonts,
+  useKeyboardShortcuts,
+  useThemeEffect,
+  useTLDrawContext,
+} from '~hooks'
 import { tldrawShapeUtils } from '~shape'
 import { ContextMenu } from '~components/context-menu'
 import { StylePanel } from '~components/style-panel'
 import { ToolsPanel } from '~components/tools-panel'
 import { PagePanel } from '~components/page-panel'
 import { Menu } from '~components/menu'
+import { breakpoints, iconButton } from '~components'
+import { DotFilledIcon } from '@radix-ui/react-icons'
 
 // Selectors
 const isInSelectSelector = (s: Data) => s.appState.activeTool === 'select'
@@ -27,6 +35,8 @@ const pageStateSelector = (s: Data) => s.document.pageStates[s.appState.currentP
 
 const isDarkModeSelector = (s: Data) => s.settings.isDarkMode
 
+const isFocusModeSelector = (s: Data) => s.settings.isFocusMode
+
 export interface TLDrawProps {
   /**
    * (optional) If provided, the component will load / persist state under this key.
@@ -40,6 +50,11 @@ export interface TLDrawProps {
    * (optional) The current page id.
    */
   currentPageId?: string
+
+  /**
+   * (optional) Whether the editor should immediately receive focus. Defaults to true.
+   */
+  autofocus?: boolean
   /**
    * (optional) A callback to run when the component mounts.
    */
@@ -50,48 +65,69 @@ export interface TLDrawProps {
   onChange?: TLDrawState['_onChange']
 }
 
-export function TLDraw({ id, document, currentPageId, onMount, onChange }: TLDrawProps) {
-  const [tlstate, setTlstate] = React.useState(() => new TLDrawState(id))
+export function TLDraw({
+  id,
+  document,
+  currentPageId,
+  autofocus = true,
+  onMount,
+  onChange,
+}: TLDrawProps) {
+  const [sId, setSId] = React.useState(id)
+
+  const [tlstate, setTlstate] = React.useState(() => new TLDrawState(id, onChange, onMount))
+  const [context, setContext] = React.useState(() => ({ tlstate, useSelector: tlstate.useStore }))
 
   React.useEffect(() => {
-    setTlstate(new TLDrawState(id, onChange, onMount))
-  }, [id])
+    if (id === sId) return
+    // If a new id is loaded, replace the entire state
+    const newState = new TLDrawState(id, onChange, onMount)
+    setTlstate(newState)
+    setContext({ tlstate: newState, useSelector: newState.useStore })
+    setSId(id)
+  }, [sId, id])
 
-  const [context] = React.useState(() => {
-    return { tlstate, useSelector: tlstate.useStore }
-  })
-
-  React.useEffect(() => {
-    if (!document) return
-    tlstate.loadDocument(document)
-  }, [document, tlstate])
-
-  React.useEffect(() => {
-    if (!currentPageId) return
-    tlstate.changePage(currentPageId)
-  }, [currentPageId, tlstate])
+  // Use the `key` to ensure that new selector hooks are made when the id changes
 
   return (
     <TLDrawContext.Provider value={context}>
       <IdProvider>
-        <InnerTldraw />
+        <InnerTldraw
+          key={sId || 'tldraw'}
+          id={sId}
+          currentPageId={currentPageId}
+          document={document}
+          autofocus={autofocus}
+        />
       </IdProvider>
     </TLDrawContext.Provider>
   )
 }
 
-function InnerTldraw() {
-  useCustomFonts()
-
+function InnerTldraw({
+  id,
+  currentPageId,
+  autofocus,
+  document,
+}: {
+  id?: string
+  currentPageId?: string
+  autofocus?: boolean
+  document?: TLDrawDocument
+}) {
   const { tlstate, useSelector } = useTLDrawContext()
 
-  useKeyboardShortcuts()
+  const rWrapper = React.useRef<HTMLDivElement>(null)
+
+  useThemeEffect(rWrapper)
 
   const page = useSelector(pageSelector)
 
   const pageState = useSelector(pageStateSelector)
 
   const isDarkMode = useSelector(isDarkModeSelector)
+
+  const isFocusMode = useSelector(isFocusModeSelector)
 
   const isSelecting = useSelector(isInSelectSelector)
 
@@ -107,7 +143,8 @@ function InnerTldraw() {
   const hideHandles = isInSession || !isSelecting
 
   // Hide indicators when not using the select tool, or when in session
-  const hideIndicators = isInSession || !isSelecting
+  const hideIndicators =
+    (isInSession && tlstate.appState.status.current !== TLDrawStatus.Brushing) || !isSelecting
 
   // Custom rendering meta, with dark mode for shapes
   const meta = React.useMemo(() => ({ isDarkMode }), [isDarkMode])
@@ -128,106 +165,150 @@ function InnerTldraw() {
     return {}
   }, [isDarkMode])
 
+  React.useEffect(() => {
+    if (!document) return
+    if (document.id === tlstate.document.id) {
+      tlstate.updateDocument(document)
+    } else {
+      tlstate.loadDocument(document)
+    }
+  }, [document, tlstate])
+
+  React.useEffect(() => {
+    if (!currentPageId) return
+    tlstate.changePage(currentPageId)
+  }, [currentPageId, tlstate])
+
   return (
-    <Layout>
-      <ContextMenu>
-        <Renderer
-          page={page}
-          pageState={pageState}
-          shapeUtils={tldrawShapeUtils}
-          theme={theme}
-          meta={meta}
-          hideBounds={hideBounds}
-          hideHandles={hideHandles}
-          hideIndicators={hideIndicators}
-          onPinchStart={tlstate.onPinchStart}
-          onPinchEnd={tlstate.onPinchEnd}
-          onPinch={tlstate.onPinch}
-          onPan={tlstate.onPan}
-          onZoom={tlstate.onZoom}
-          onPointerDown={tlstate.onPointerDown}
-          onPointerMove={tlstate.onPointerMove}
-          onPointerUp={tlstate.onPointerUp}
-          onPointCanvas={tlstate.onPointCanvas}
-          onDoubleClickCanvas={tlstate.onDoubleClickCanvas}
-          onRightPointCanvas={tlstate.onRightPointCanvas}
-          onDragCanvas={tlstate.onDragCanvas}
-          onReleaseCanvas={tlstate.onReleaseCanvas}
-          onPointShape={tlstate.onPointShape}
-          onDoubleClickShape={tlstate.onDoubleClickShape}
-          onRightPointShape={tlstate.onRightPointShape}
-          onDragShape={tlstate.onDragShape}
-          onHoverShape={tlstate.onHoverShape}
-          onUnhoverShape={tlstate.onUnhoverShape}
-          onReleaseShape={tlstate.onReleaseShape}
-          onPointBounds={tlstate.onPointBounds}
-          onDoubleClickBounds={tlstate.onDoubleClickBounds}
-          onRightPointBounds={tlstate.onRightPointBounds}
-          onDragBounds={tlstate.onDragBounds}
-          onHoverBounds={tlstate.onHoverBounds}
-          onUnhoverBounds={tlstate.onUnhoverBounds}
-          onReleaseBounds={tlstate.onReleaseBounds}
-          onPointBoundsHandle={tlstate.onPointBoundsHandle}
-          onDoubleClickBoundsHandle={tlstate.onDoubleClickBoundsHandle}
-          onRightPointBoundsHandle={tlstate.onRightPointBoundsHandle}
-          onDragBoundsHandle={tlstate.onDragBoundsHandle}
-          onHoverBoundsHandle={tlstate.onHoverBoundsHandle}
-          onUnhoverBoundsHandle={tlstate.onUnhoverBoundsHandle}
-          onReleaseBoundsHandle={tlstate.onReleaseBoundsHandle}
-          onPointHandle={tlstate.onPointHandle}
-          onDoubleClickHandle={tlstate.onDoubleClickHandle}
-          onRightPointHandle={tlstate.onRightPointHandle}
-          onDragHandle={tlstate.onDragHandle}
-          onHoverHandle={tlstate.onHoverHandle}
-          onUnhoverHandle={tlstate.onUnhoverHandle}
-          onReleaseHandle={tlstate.onReleaseHandle}
-          onChange={tlstate.onChange}
-          onError={tlstate.onError}
-          onBlurEditingShape={tlstate.onBlurEditingShape}
-          onTextBlur={tlstate.onTextBlur}
-          onTextChange={tlstate.onTextChange}
-          onTextKeyDown={tlstate.onTextKeyDown}
-          onTextFocus={tlstate.onTextFocus}
-          onTextKeyUp={tlstate.onTextKeyUp}
-        />
-      </ContextMenu>
-      <MenuButtons>
-        <Menu />
-        <PagePanel />
-      </MenuButtons>
-      <Spacer />
-      <StylePanel />
-      <ToolsPanel />
-    </Layout>
+    <div ref={rWrapper} tabIndex={0}>
+      <div className={layout()}>
+        <OneOff focusableRef={rWrapper} autofocus={autofocus} />
+        <ContextMenu>
+          <Renderer
+            id={id}
+            page={page}
+            pageState={pageState}
+            shapeUtils={tldrawShapeUtils}
+            theme={theme}
+            meta={meta}
+            hideBounds={hideBounds}
+            hideHandles={hideHandles}
+            hideIndicators={hideIndicators}
+            onPinchStart={tlstate.onPinchStart}
+            onPinchEnd={tlstate.onPinchEnd}
+            onPinch={tlstate.onPinch}
+            onPan={tlstate.onPan}
+            onZoom={tlstate.onZoom}
+            onPointerDown={tlstate.onPointerDown}
+            onPointerMove={tlstate.onPointerMove}
+            onPointerUp={tlstate.onPointerUp}
+            onPointCanvas={tlstate.onPointCanvas}
+            onDoubleClickCanvas={tlstate.onDoubleClickCanvas}
+            onRightPointCanvas={tlstate.onRightPointCanvas}
+            onDragCanvas={tlstate.onDragCanvas}
+            onReleaseCanvas={tlstate.onReleaseCanvas}
+            onPointShape={tlstate.onPointShape}
+            onDoubleClickShape={tlstate.onDoubleClickShape}
+            onRightPointShape={tlstate.onRightPointShape}
+            onDragShape={tlstate.onDragShape}
+            onHoverShape={tlstate.onHoverShape}
+            onUnhoverShape={tlstate.onUnhoverShape}
+            onReleaseShape={tlstate.onReleaseShape}
+            onPointBounds={tlstate.onPointBounds}
+            onDoubleClickBounds={tlstate.onDoubleClickBounds}
+            onRightPointBounds={tlstate.onRightPointBounds}
+            onDragBounds={tlstate.onDragBounds}
+            onHoverBounds={tlstate.onHoverBounds}
+            onUnhoverBounds={tlstate.onUnhoverBounds}
+            onReleaseBounds={tlstate.onReleaseBounds}
+            onPointBoundsHandle={tlstate.onPointBoundsHandle}
+            onDoubleClickBoundsHandle={tlstate.onDoubleClickBoundsHandle}
+            onRightPointBoundsHandle={tlstate.onRightPointBoundsHandle}
+            onDragBoundsHandle={tlstate.onDragBoundsHandle}
+            onHoverBoundsHandle={tlstate.onHoverBoundsHandle}
+            onUnhoverBoundsHandle={tlstate.onUnhoverBoundsHandle}
+            onReleaseBoundsHandle={tlstate.onReleaseBoundsHandle}
+            onPointHandle={tlstate.onPointHandle}
+            onDoubleClickHandle={tlstate.onDoubleClickHandle}
+            onRightPointHandle={tlstate.onRightPointHandle}
+            onDragHandle={tlstate.onDragHandle}
+            onHoverHandle={tlstate.onHoverHandle}
+            onUnhoverHandle={tlstate.onUnhoverHandle}
+            onReleaseHandle={tlstate.onReleaseHandle}
+            onError={tlstate.onError}
+            onRenderCountChange={tlstate.onRenderCountChange}
+            onShapeChange={tlstate.onShapeChange}
+            onShapeBlur={tlstate.onShapeBlur}
+            onBoundsChange={tlstate.updateBounds}
+            onKeyDown={tlstate.onKeyDown}
+            onKeyUp={tlstate.onKeyUp}
+          />
+        </ContextMenu>
+        {isFocusMode ? (
+          <div className={unfocusButton()}>
+            <button className={iconButton({ bp: breakpoints })} onClick={tlstate.toggleFocusMode}>
+              <DotFilledIcon />
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className={menuButtons()}>
+              <Menu />
+              <PagePanel />
+            </div>
+            <div className={spacer()} />
+            <StylePanel />
+            <ToolsPanel />
+          </>
+        )}
+      </div>
+    </div>
   )
 }
 
-const Spacer = styled('div', {
-  flexGrow: 2,
-})
+const OneOff = React.memo(
+  ({
+    focusableRef,
+    autofocus,
+  }: {
+    autofocus?: boolean
+    focusableRef: React.RefObject<HTMLDivElement>
+  }) => {
+    useKeyboardShortcuts(focusableRef)
+    useCustomFonts()
 
-const MenuButtons = styled('div', {
-  display: 'flex',
-  gap: 8,
-})
+    React.useEffect(() => {
+      if (autofocus) {
+        focusableRef.current?.focus()
+      }
+    }, [autofocus])
 
-const Layout = styled('main', {
-  position: 'fixed',
-  overflow: 'hidden',
-  top: 0,
-  left: 0,
-  bottom: 0,
-  right: 0,
+    return null
+  }
+)
+
+const layout = css({
+  position: 'absolute',
   height: '100%',
   width: '100%',
+  minHeight: 0,
+  minWidth: 0,
+  maxHeight: '100%',
+  maxWidth: '100%',
+  overflow: 'hidden',
   padding: '8px 8px 0 8px',
-  zIndex: 200,
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
   boxSizing: 'border-box',
-  outline: 'none',
   pointerEvents: 'none',
+  outline: 'none',
+  zIndex: 1,
+  border: '1px solid $blurred',
+
+  '&:focus': {
+    border: '1px solid $focused',
+  },
 
   '& > *': {
     pointerEvents: 'all',
@@ -237,5 +318,28 @@ const Layout = styled('main', {
     position: 'absolute',
     top: 0,
     left: 0,
+  },
+})
+
+const spacer = css({
+  flexGrow: 2,
+})
+
+const menuButtons = css({
+  display: 'flex',
+  gap: 8,
+})
+
+const unfocusButton = css({
+  opacity: 1,
+  zIndex: 100,
+  backgroundColor: 'transparent',
+
+  '& svg': {
+    color: '$muted',
+  },
+
+  '&:hover svg': {
+    color: '$text',
   },
 })

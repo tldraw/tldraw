@@ -2,17 +2,12 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "tsc",
-      "type": "shell",
-      "command": "./node_modules/.bin/tsc",
-      "args": ["--noEmit"],
-      "presentation": {
-        "reveal": "never",
-        "echo": false,
-        "focus": false,
-        "panel": "dedicated"
-      },
-      "problemMatcher": "$tsc-watch"
+      "label": "Check for type errors",
+      "type": "typescript",
+      "tsconfig": "tsconfig.json",
+      "option": "watch",
+      "problemMatcher": ["$tsc-watch"],
+      "group": "build"
     }
   ]
 }

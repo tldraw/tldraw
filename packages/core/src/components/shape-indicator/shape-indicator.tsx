@@ -1,20 +1,38 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import type { TLShape } from '+types'
-import { useTLContext } from '+hooks'
+import { usePosition, useTLContext } from '+hooks'
+
+interface IndicatorProps<T extends TLShape, M = any> {
+  shape: T
+  meta: M extends any ? M : undefined
+  isSelected?: boolean
+  isHovered?: boolean
+}
 
 export const ShapeIndicator = React.memo(
-  ({ shape, variant }: { shape: TLShape; variant: 'selected' | 'hovered' }) => {
+  <T extends TLShape, M = any>({ isHovered, isSelected, shape, meta }: IndicatorProps<T, M>) => {
     const { shapeUtils } = useTLContext()
     const utils = shapeUtils[shape.type]
-
-    const center = utils.getCenter(shape)
-    const rotation = (shape.rotation || 0) * (180 / Math.PI)
-    const transform = `rotate(${rotation}, ${center}) translate(${shape.point})`
+    const bounds = utils.getBounds(shape)
+    const rPositioned = usePosition(bounds, shape.rotation)
 
     return (
-      <g className={variant === 'selected' ? 'tl-selected' : 'tl-hovered'} transform={transform}>
-        {shapeUtils[shape.type].renderIndicator(shape)}
-      </g>
+      <div
+        ref={rPositioned}
+        className={'tl-indicator tl-absolute ' + (isSelected ? 'tl-selected' : 'tl-hovered')}
+      >
+        <svg width="100%" height="100%">
+          <g className="tl-centered-g">
+            <utils.Indicator
+              shape={shape}
+              meta={meta}
+              isSelected={isSelected}
+              isHovered={isHovered}
+            />
+          </g>
+        </svg>
+      </div>
     )
   }
 )

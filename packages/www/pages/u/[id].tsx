@@ -1,13 +1,21 @@
 import * as React from 'react'
 import type { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/client'
+import Head from 'next/head'
 
 interface RoomProps {
   id?: string
 }
 
 export default function OtherUserPage({ id }: RoomProps): JSX.Element {
-  return <div>Todo, other user: {id}</div>
+  return (
+    <>
+      <Head>
+        <title>tldraw</title>
+      </Head>
+      <div>Todo, other user: {id}</div>
+    </>
+  )
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {

@@ -1,23 +1,30 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import type {
   TLShape,
   TLPage,
   TLPageState,
   TLCallbacks,
-  TLShapeUtils,
   TLTheme,
   TLBounds,
   TLBinding,
 } from '../../types'
 import { Canvas } from '../canvas'
-import { useTLTheme, TLContext } from '../../hooks'
+import { Inputs } from '../../inputs'
+import { useTLTheme, TLContext, TLContextType } from '../../hooks'
+import type { TLShapeUtil } from '+index'
 
-export interface RendererProps<T extends TLShape, M extends Record<string, unknown>>
-  extends Partial<TLCallbacks> {
+export interface RendererProps<T extends TLShape, E extends Element = any, M = any>
+  extends Partial<TLCallbacks<T>> {
+  /**
+   * (optional) A unique id to be applied to the renderer element, used to scope styles.
+   */
+  id?: string
   /**
    * An object containing instances of your shape classes.
    */
-  shapeUtils: TLShapeUtils<T>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  shapeUtils: Record<T['type'], TLShapeUtil<T, E, M>>
   /**
    * The current page, containing shapes and bindings.
    */
@@ -52,6 +59,14 @@ export interface RendererProps<T extends TLShape, M extends Record<string, unkno
    * An object of custom options that should be passed to rendered shapes.
    */
   meta?: M
+  /**
+   * (optional) A callback that receives the renderer's inputs manager.
+   */
+  onMount?: (inputs: Inputs) => void
+  /**
+   * (optional) A callback that is fired when the editor's client bounding box changes.
+   */
+  onBoundsChange?: (bounds: TLBounds) => void
 }
 
 /**
@@ -62,7 +77,8 @@ export interface RendererProps<T extends TLShape, M extends Record<string, unkno
  * @param props
  * @returns
  */
-export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
+export function Renderer<T extends TLShape, E extends Element, M extends Record<string, unknown>>({
+  id = 'tl',
   shapeUtils,
   page,
   pageState,
@@ -71,27 +87,35 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
   hideHandles = false,
   hideIndicators = false,
   hideBounds = false,
+  onMount,
   ...rest
-}: RendererProps<T, M>): JSX.Element {
-  useTLTheme(theme)
+}: RendererProps<T, E, M>): JSX.Element {
+  useTLTheme(theme, '#' + id)
 
-  const rScreenBounds = React.useRef<TLBounds>(null)
+  const rSelectionBounds = React.useRef<TLBounds>(null)
+
   const rPageState = React.useRef<TLPageState>(pageState)
 
   React.useEffect(() => {
     rPageState.current = pageState
   }, [pageState])
 
-  const [context] = React.useState(() => ({
+  const [context] = React.useState<TLContextType<T, E, M>>(() => ({
     callbacks: rest,
     shapeUtils,
-    rScreenBounds,
+    rSelectionBounds,
     rPageState,
+    inputs: new Inputs(),
   }))
 
+  React.useEffect(() => {
+    onMount?.(context.inputs)
+  }, [context])
+
   return (
-    <TLContext.Provider value={context}>
+    <TLContext.Provider value={context as unknown as TLContextType<TLShape, Element>}>
       <Canvas
+        id={id}
         page={page}
         pageState={pageState}
         hideBounds={hideBounds}

@@ -1,10 +1,10 @@
-import styled from '~styles'
+import css from '~styles'
 
 /* -------------------------------------------------- */
 /*                    Icon Wrapper                    */
 /* -------------------------------------------------- */
 
-export const IconWrapper = styled('div', {
+export const iconWrapper = css({
   height: '100%',
   borderRadius: '4px',
   marginRight: '1px',

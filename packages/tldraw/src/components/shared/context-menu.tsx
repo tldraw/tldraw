@@ -11,11 +11,11 @@ import {
   CheckboxItem as CMCheckboxItem,
 } from '@radix-ui/react-context-menu'
 import { breakpoints } from './breakpoints'
-import { RowButton } from './row-button'
-import { IconButton } from './icon-button'
-import { IconWrapper } from './icon-wrapper'
-import { MenuContent } from './menu'
-import styled from '~styles'
+import { rowButton } from './row-button'
+import { iconButton } from './icon-button'
+import { iconWrapper } from './icon-wrapper'
+import { menuContent } from './menu'
+import css from '~styles'
 
 /* -------------------------------------------------- */
 /*                    Context Menu                   */
@@ -42,13 +42,13 @@ export interface ContextMenuSubMenuProps {
 export function ContextMenuSubMenu({ children, label }: ContextMenuSubMenuProps): JSX.Element {
   return (
     <CMRoot dir="ltr">
-      <CMTriggerItem as={RowButton} bp={breakpoints}>
+      <CMTriggerItem className={rowButton({ bp: breakpoints })}>
         <span>{label}</span>
-        <IconWrapper size="small">
+        <div className={iconWrapper({ size: 'small' })}>
           <ChevronRightIcon />
-        </IconWrapper>
+        </div>
       </CMTriggerItem>
-      <CMContent as={MenuContent} sideOffset={2} alignOffset={-2}>
+      <CMContent className={menuContent()} sideOffset={2} alignOffset={-2}>
         {children}
         <ContextMenuArrow offset={13} />
       </CMContent>
@@ -56,15 +56,37 @@ export function ContextMenuSubMenu({ children, label }: ContextMenuSubMenuProps)
   )
 }
 
-export const ContextMenuDivider = styled(CMSeparator, {
+const contextMenuDivider = css({
   backgroundColor: '$hover',
   height: 1,
   margin: '$2 -$2',
 })
 
-export const ContextMenuArrow = styled(CMArrow, {
+export const ContextMenuDivider = React.forwardRef<
+  React.ElementRef<typeof CMSeparator>,
+  React.ComponentProps<typeof CMSeparator>
+>((props, forwardedRef) => (
+  <CMSeparator
+    {...props}
+    ref={forwardedRef}
+    className={contextMenuDivider({ className: props.className })}
+  />
+))
+
+const contextMenuArrow = css({
   fill: '$panel',
 })
+
+export const ContextMenuArrow = React.forwardRef<
+  React.ElementRef<typeof CMArrow>,
+  React.ComponentProps<typeof CMArrow>
+>((props, forwardedRef) => (
+  <CMArrow
+    {...props}
+    ref={forwardedRef}
+    className={contextMenuArrow({ className: props.className })}
+  />
+))
 
 export interface ContextMenuButtonProps {
   onSelect?: () => void
@@ -78,9 +100,9 @@ export function ContextMenuButton({
   disabled = false,
 }: ContextMenuButtonProps): JSX.Element {
   return (
-    <RowButton as={CMItem} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
+    <CMItem className={rowButton({ bp: breakpoints })} disabled={disabled} onSelect={onSelect}>
       {children}
-    </RowButton>
+    </CMItem>
   )
 }
 
@@ -96,7 +118,7 @@ export function ContextMenuIconButton({
   disabled = false,
 }: ContextMenuIconButtonProps): JSX.Element {
   return (
-    <CMItem as={IconButton} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
+    <CMItem className={iconButton({ bp: breakpoints })} disabled={disabled} onSelect={onSelect}>
       {children}
     </CMItem>
   )
@@ -117,17 +139,16 @@ export function ContextMenuCheckboxItem({
 }: ContextMenuCheckboxItemProps): JSX.Element {
   return (
     <CMCheckboxItem
-      as={RowButton}
-      bp={breakpoints}
+      className={rowButton({ bp: breakpoints })}
       onCheckedChange={onCheckedChange}
       checked={checked}
       disabled={disabled}
     >
       {children}
       <CMItemIndicator>
-        <IconWrapper size="small">
+        <div className={iconWrapper({ size: 'small' })}>
           <CheckIcon />
-        </IconWrapper>
+        </div>
       </CMItemIndicator>
     </CMCheckboxItem>
   )

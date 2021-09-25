@@ -3,7 +3,7 @@ import fs from 'fs'
 import esbuild from 'esbuild'
 import serve, { error, log } from 'create-serve'
 
-const isDevServer = process.argv.includes('--dev')
+const isDevServer = true
 
 if (!fs.existsSync('./dist')) {
   fs.mkdirSync('./dist')

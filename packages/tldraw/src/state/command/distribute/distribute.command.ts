@@ -18,7 +18,7 @@ export function distribute(data: Data, ids: string[], type: DistributeType): TLD
   )
 
   return {
-    id: 'distribute_shapes',
+    id: 'distribute',
     before: {
       document: {
         pages: {

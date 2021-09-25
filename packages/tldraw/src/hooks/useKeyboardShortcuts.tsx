@@ -1,223 +1,438 @@
 import * as React from 'react'
-import { inputs } from '@tldraw/core'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { TLDrawShapeType } from '~types'
 import { useTLDrawContext } from '~hooks'
 
-export function useKeyboardShortcuts() {
+export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   const { tlstate } = useTLDrawContext()
 
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const info = inputs.keydown(e)
-      tlstate.onKeyDown(e.key, info)
-    }
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      const info = inputs.keyup(e)
-      tlstate.onKeyUp(e.key, info)
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    window.addEventListener('keyup', handleKeyUp)
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-      window.removeEventListener('keyup', handleKeyUp)
-    }
-  }, [tlstate])
+  const canHandleEvent = React.useCallback(() => {
+    const elm = ref.current
+    return elm && (document.activeElement === elm || elm.contains(document.activeElement))
+  }, [ref])
 
   /* ---------------------- Tools --------------------- */
 
-  useHotkeys('v,1', () => {
-    tlstate.selectTool('select')
-  })
+  useHotkeys(
+    'v,1',
+    () => {
+      if (canHandleEvent()) tlstate.selectTool('select')
+    },
+    [tlstate, ref.current]
+  )
 
-  useHotkeys('d,2', () => {
-    tlstate.selectTool(TLDrawShapeType.Draw)
-  })
+  useHotkeys(
+    'd,2',
+    () => {
+      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Draw)
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('r,3', () => {
-    tlstate.selectTool(TLDrawShapeType.Rectangle)
-  })
+  useHotkeys(
+    'r,3',
+    () => {
+      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Rectangle)
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('e,4', () => {
-    tlstate.selectTool(TLDrawShapeType.Ellipse)
-  })
+  useHotkeys(
+    'e,4',
+    () => {
+      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Ellipse)
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('a,5', () => {
-    tlstate.selectTool(TLDrawShapeType.Arrow)
-  })
+  useHotkeys(
+    'a,5',
+    () => {
+      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Arrow)
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('t,6', () => {
-    tlstate.selectTool(TLDrawShapeType.Text)
-  })
+  useHotkeys(
+    't,6',
+    () => {
+      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Text)
+    },
+    undefined,
+    [tlstate]
+  )
 
   /* ---------------------- Misc ---------------------- */
 
+  // Dark Mode
+
+  useHotkeys(
+    'ctrl+shift+d,command+shift+d',
+    (e) => {
+      if (canHandleEvent()) {
+        tlstate.toggleDarkMode()
+        e.preventDefault()
+      }
+    },
+    undefined,
+    [tlstate]
+  )
+
+  // Focus Mode
+
+  useHotkeys(
+    'ctrl+.,command+.',
+    () => {
+      if (canHandleEvent()) tlstate.toggleFocusMode()
+    },
+    undefined,
+    [tlstate]
+  )
+
   // Save
 
-  useHotkeys('ctrl+s,command+s', () => {
-    tlstate.saveProject()
-  })
+  useHotkeys(
+    'ctrl+s,command+s',
+    () => {
+      if (canHandleEvent()) tlstate.saveProject()
+    },
+    undefined,
+    [tlstate]
+  )
 
   // Undo Redo
 
-  useHotkeys('command+z,ctrl+z', () => {
-    tlstate.undo()
-  })
+  useHotkeys(
+    'command+z,ctrl+z',
+    () => {
+      if (canHandleEvent()) tlstate.undo()
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('ctrl+shift-z,command+shift+z', () => {
-    tlstate.redo()
-  })
+  useHotkeys(
+    'ctrl+shift-z,command+shift+z',
+    () => {
+      if (canHandleEvent()) tlstate.redo()
+    },
+    undefined,
+    [tlstate]
+  )
 
   // Undo Redo
 
-  useHotkeys('command+u,ctrl+u', () => {
-    tlstate.undoSelect()
-  })
+  useHotkeys(
+    'command+u,ctrl+u',
+    () => {
+      if (canHandleEvent()) tlstate.undoSelect()
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('ctrl+shift-u,command+shift+u', () => {
-    tlstate.redoSelect()
-  })
+  useHotkeys(
+    'ctrl+shift-u,command+shift+u',
+    () => {
+      if (canHandleEvent()) tlstate.redoSelect()
+    },
+    undefined,
+    [tlstate]
+  )
 
   /* -------------------- Commands -------------------- */
 
   // Camera
 
-  useHotkeys('ctrl+=,command+=', (e) => {
-    tlstate.zoomIn()
-    e.preventDefault()
-  })
+  useHotkeys(
+    'ctrl+=,command+=',
+    (e) => {
+      if (canHandleEvent()) {
+        tlstate.zoomIn()
+        e.preventDefault()
+      }
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('ctrl+-,command+-', (e) => {
-    tlstate.zoomOut()
-    e.preventDefault()
-  })
+  useHotkeys(
+    'ctrl+-,command+-',
+    (e) => {
+      if (canHandleEvent()) {
+        tlstate.zoomOut()
+        e.preventDefault()
+      }
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('shift+1', () => {
-    tlstate.zoomToFit()
-  })
+  useHotkeys(
+    'shift+1',
+    () => {
+      if (canHandleEvent()) tlstate.zoomToFit()
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('shift+2', () => {
-    tlstate.zoomToSelection()
-  })
+  useHotkeys(
+    'shift+2',
+    () => {
+      if (canHandleEvent()) tlstate.zoomToSelection()
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('shift+0', () => {
-    tlstate.zoomToActual()
-  })
+  useHotkeys(
+    'shift+0',
+    () => {
+      if (canHandleEvent()) tlstate.zoomToActual()
+    },
+    undefined,
+    [tlstate]
+  )
 
   // Duplicate
 
-  useHotkeys('ctrl+d,command+d', (e) => {
-    tlstate.duplicate()
-    e.preventDefault()
-  })
+  useHotkeys(
+    'ctrl+d,command+d',
+    (e) => {
+      if (canHandleEvent()) {
+        tlstate.duplicate()
+        e.preventDefault()
+      }
+    },
+    undefined,
+    [tlstate]
+  )
 
   // Flip
 
-  useHotkeys('shift+h', () => {
-    tlstate.flipHorizontal()
-  })
+  useHotkeys(
+    'shift+h',
+    () => {
+      if (canHandleEvent()) tlstate.flipHorizontal()
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('shift+v', () => {
-    tlstate.flipVertical()
-  })
+  useHotkeys(
+    'shift+v',
+    () => {
+      if (canHandleEvent()) tlstate.flipVertical()
+    },
+    undefined,
+    [tlstate]
+  )
 
   // Cancel
 
-  useHotkeys('escape', () => {
-    tlstate.cancel()
-  })
+  useHotkeys(
+    'escape',
+    () => {
+      if (canHandleEvent()) tlstate.cancel()
+    },
+    undefined,
+    [tlstate]
+  )
 
   // Delete
 
-  useHotkeys('backspace', () => {
-    tlstate.delete()
-  })
+  useHotkeys(
+    'backspace',
+    () => {
+      if (canHandleEvent()) tlstate.delete()
+    },
+    undefined,
+    [tlstate]
+  )
 
   // Select All
 
-  useHotkeys('command+a,ctrl+a', () => {
-    tlstate.selectAll()
-  })
+  useHotkeys(
+    'command+a,ctrl+a',
+    () => {
+      if (canHandleEvent()) tlstate.selectAll()
+    },
+    undefined,
+    [tlstate]
+  )
 
   // Nudge
 
-  useHotkeys('up', () => {
-    tlstate.nudge([0, -1], false)
-  })
+  useHotkeys(
+    'up',
+    () => {
+      if (canHandleEvent()) tlstate.nudge([0, -1], false)
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('right', () => {
-    tlstate.nudge([1, 0], false)
-  })
+  useHotkeys(
+    'right',
+    () => {
+      if (canHandleEvent()) tlstate.nudge([1, 0], false)
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('down', () => {
-    tlstate.nudge([0, 1], false)
-  })
+  useHotkeys(
+    'down',
+    () => {
+      if (canHandleEvent()) tlstate.nudge([0, 1], false)
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('left', () => {
-    tlstate.nudge([-1, 0], false)
-  })
+  useHotkeys(
+    'left',
+    () => {
+      if (canHandleEvent()) tlstate.nudge([-1, 0], false)
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('shift+up', () => {
-    tlstate.nudge([0, -1], true)
-  })
+  useHotkeys(
+    'shift+up',
+    () => {
+      if (canHandleEvent()) tlstate.nudge([0, -1], true)
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('shift+right', () => {
-    tlstate.nudge([1, 0], true)
-  })
+  useHotkeys(
+    'shift+right',
+    () => {
+      if (canHandleEvent()) tlstate.nudge([1, 0], true)
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('shift+down', () => {
-    tlstate.nudge([0, 1], true)
-  })
+  useHotkeys(
+    'shift+down',
+    () => {
+      if (canHandleEvent()) tlstate.nudge([0, 1], true)
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('shift+left', () => {
-    tlstate.nudge([-1, 0], true)
-  })
+  useHotkeys(
+    'shift+left',
+    () => {
+      if (canHandleEvent()) tlstate.nudge([-1, 0], true)
+    },
+    undefined,
+    [tlstate]
+  )
 
   // Copy & Paste
 
-  useHotkeys('command+c,ctrl+c', () => {
-    tlstate.copy()
-  })
+  useHotkeys(
+    'command+c,ctrl+c',
+    () => {
+      if (canHandleEvent()) tlstate.copy()
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('command+v,ctrl+v', () => {
-    tlstate.paste()
-  })
+  useHotkeys(
+    'command+v,ctrl+v',
+    () => {
+      if (canHandleEvent()) tlstate.paste()
+    },
+    undefined,
+    [tlstate]
+  )
 
   // Group & Ungroup
 
-  useHotkeys('command+g,ctrl+g', (e) => {
-    tlstate.group()
-    e.preventDefault()
-  })
+  useHotkeys(
+    'command+g,ctrl+g',
+    (e) => {
+      if (canHandleEvent()) {
+        tlstate.group()
+        e.preventDefault()
+      }
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('command+shift+g,ctrl+shift+g', (e) => {
-    tlstate.ungroup()
-    e.preventDefault()
-  })
+  useHotkeys(
+    'command+shift+g,ctrl+shift+g',
+    (e) => {
+      if (canHandleEvent()) {
+        tlstate.ungroup()
+        e.preventDefault()
+      }
+    },
+    undefined,
+    [tlstate]
+  )
 
   // Move
 
-  useHotkeys('[', () => {
-    tlstate.moveBackward()
-  })
+  useHotkeys(
+    '[',
+    () => {
+      if (canHandleEvent()) tlstate.moveBackward()
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys(']', () => {
-    tlstate.moveForward()
-  })
+  useHotkeys(
+    ']',
+    () => {
+      if (canHandleEvent()) tlstate.moveForward()
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('shift+[', () => {
-    tlstate.moveToBack()
-  })
+  useHotkeys(
+    'shift+[',
+    () => {
+      if (canHandleEvent()) tlstate.moveToBack()
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('shift+]', () => {
-    tlstate.moveToFront()
-  })
+  useHotkeys(
+    'shift+]',
+    () => {
+      if (canHandleEvent()) tlstate.moveToFront()
+    },
+    undefined,
+    [tlstate]
+  )
 
-  useHotkeys('command+shift+backspace', (e) => {
-    tlstate.resetDocument()
-    e.preventDefault()
-  })
+  useHotkeys(
+    'command+shift+backspace',
+    (e) => {
+      if (canHandleEvent()) {
+        tlstate.resetDocument()
+        e.preventDefault()
+      }
+    },
+    undefined,
+    [tlstate]
+  )
 }

@@ -9,12 +9,10 @@ describe('Text session', () => {
   it('begins, updates and completes session', () => {
     tlstate
       .loadDocument(mockDocument)
-      .create(
-        TLDR.getShapeUtils({ type: TLDrawShapeType.Text } as TLDrawShape).create({
-          id: 'text1',
-          parentId: 'page1',
-        })
-      )
+      .createShapes({
+        id: 'text1',
+        type: TLDrawShapeType.Text,
+      })
       .select('text1')
       .startTextSession('text1')
       .updateTextSession('Hello world')
@@ -28,12 +26,10 @@ describe('Text session', () => {
   it('cancels session', () => {
     tlstate
       .loadDocument(mockDocument)
-      .create(
-        TLDR.getShapeUtils({ type: TLDrawShapeType.Text } as TLDrawShape).create({
-          id: 'text1',
-          parentId: 'page1',
-        })
-      )
+      .createShapes({
+        id: 'text1',
+        type: TLDrawShapeType.Text,
+      })
       .select('text1')
       .startTextSession('text1')
       .updateTextSession('Hello world')

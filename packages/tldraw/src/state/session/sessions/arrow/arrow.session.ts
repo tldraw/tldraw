@@ -7,8 +7,10 @@ import {
   Session,
   TLDrawStatus,
 } from '~types'
-import { Vec, Utils, TLHandle } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
+import { Utils } from '@tldraw/core'
 import { TLDR } from '~state/tldr'
+import { ThickArrowDownIcon } from '@radix-ui/react-icons'
 
 export class ArrowSession implements Session {
   id = 'transform_single'
@@ -17,6 +19,7 @@ export class ArrowSession implements Session {
   delta = [0, 0]
   offset = [0, 0]
   origin: number[]
+  topLeft: number[]
   initialShape: ArrowShape
   handleId: 'start' | 'end'
   bindableShapeIds: string[]
@@ -32,6 +35,7 @@ export class ArrowSession implements Session {
     this.origin = point
     this.handleId = handleId
     this.initialShape = TLDR.getShape<ArrowShape>(data, shapeId, data.appState.currentPageId)
+    this.topLeft = this.initialShape.point
     this.bindableShapeIds = TLDR.getBindableShapeIds(data)
 
     const initialBindingId = this.initialShape.handles[this.handleId].bindingId
@@ -65,7 +69,9 @@ export class ArrowSession implements Session {
     }
 
     // First update the handle's next point
-    const change = TLDR.getShapeUtils(shape).onHandleChange(
+    const utils = TLDR.getShapeUtils<ArrowShape>(shape.type)
+
+    const change = utils.onHandleChange(
       shape,
       {
         [handleId]: handle,
@@ -76,7 +82,7 @@ export class ArrowSession implements Session {
     // If the handle changed produced no change, bail here
     if (!change) return
 
-    // If we've made it this far, the shape should be a new objet reference
+    // If we've made it this far, the shape should be a new object reference
     // that incorporates the changes we've made due to the handle movement.
     let nextShape = { ...shape, ...change }
 
@@ -123,7 +129,7 @@ export class ArrowSession implements Session {
 
           target = TLDR.getShape(data, id, data.appState.currentPageId)
 
-          const util = TLDR.getShapeUtils(target)
+          const util = TLDR.getShapeUtils<TLDrawShape>(target.type)
 
           const bindingPoint = util.getBindingPoint(
             target,
@@ -142,10 +148,12 @@ export class ArrowSession implements Session {
             id: this.newBindingId,
             type: 'arrow',
             fromId: initialShape.id,
-            handleId: this.handleId,
             toId: target.id,
-            point: Vec.round(bindingPoint.point),
-            distance: bindingPoint.distance,
+            meta: {
+              handleId: this.handleId,
+              point: Vec.round(bindingPoint.point),
+              distance: bindingPoint.distance,
+            },
           }
 
           break
@@ -190,7 +198,7 @@ export class ArrowSession implements Session {
 
         // Now update the arrow in response to the new binding
         const targetUtils = TLDR.getShapeUtils(target)
-        const arrowChange = TLDR.getShapeUtils(nextShape).onBindingChange(
+        const arrowChange = TLDR.getShapeUtils<ArrowShape>(nextShape.type).onBindingChange(
           nextShape,
           binding,
           target,
@@ -299,9 +307,7 @@ export class ArrowSession implements Session {
             [data.appState.currentPageId]: {
               shapes: {
                 [initialShape.id]: TLDR.onSessionComplete(
-                  data,
-                  TLDR.getShape(data, initialShape.id, data.appState.currentPageId),
-                  data.appState.currentPageId
+                  TLDR.getShape(data, initialShape.id, data.appState.currentPageId)
                 ),
               },
               bindings: afterBindings,

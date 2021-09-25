@@ -1,21 +1,20 @@
 import * as React from 'react'
-import styled from '~styles'
-import { Utils } from '@tldraw/core'
+import css from '~styles'
 import * as RadixContextMenu from '@radix-ui/react-context-menu'
 import { useTLDrawContext } from '~hooks'
 import { Data, AlignType, DistributeType, StretchType } from '~types'
 import {
   Kbd,
-  IconWrapper,
+  iconWrapper,
   breakpoints,
-  RowButton,
+  rowButton,
   ContextMenuArrow,
   ContextMenuDivider,
   ContextMenuButton,
   ContextMenuSubMenu,
   ContextMenuIconButton,
   ContextMenuRoot,
-  MenuContent,
+  menuContent,
 } from '../shared'
 import {
   ChevronRightIcon,
@@ -128,7 +127,7 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
   return (
     <ContextMenuRoot>
       <RadixContextMenu.Trigger>{children}</RadixContextMenu.Trigger>
-      <MenuContent as={RadixContextMenu.Content} ref={rContent}>
+      <RadixContextMenu.Content className={menuContent()} ref={rContent}>
         {hasSelection ? (
           <>
             <ContextMenuButton onSelect={handleFlipHorizontal}>
@@ -223,7 +222,7 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
             </ContextMenuButton>
           </>
         )}
-      </MenuContent>
+      </RadixContextMenu.Content>
     </ContextMenuRoot>
   )
 })
@@ -278,17 +277,16 @@ function AlignDistributeSubMenu({
 
   return (
     <ContextMenuRoot>
-      <RadixContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
+      <RadixContextMenu.TriggerItem className={rowButton({ bp: breakpoints })}>
         <span>Align / Distribute</span>
-        <IconWrapper size="small">
+        <div className={iconWrapper({ size: 'small' })}>
           <ChevronRightIcon />
-        </IconWrapper>
+        </div>
       </RadixContextMenu.TriggerItem>
-      <StyledGrid
-        as={RadixContextMenu.Content}
+      <RadixContextMenu.Content
+        className={grid({ selectedStyle: hasThreeOrMore ? 'threeOrMore' : 'twoOrMore' })}
         sideOffset={2}
         alignOffset={-2}
-        selectedStyle={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}
       >
         <ContextMenuIconButton onSelect={alignLeft}>
           <AlignLeftIcon />
@@ -326,12 +324,12 @@ function AlignDistributeSubMenu({
           </ContextMenuIconButton>
         )}
         <ContextMenuArrow offset={13} />
-      </StyledGrid>
+      </RadixContextMenu.Content>
     </ContextMenuRoot>
   )
 }
 
-const StyledGrid = styled(MenuContent, {
+const grid = css(menuContent, {
   display: 'grid',
   variants: {
     selectedStyle: {
@@ -359,17 +357,15 @@ function MoveToPageMenu(): JSX.Element | null {
 
   if (sorted.length === 0) return null
 
-  console.log(sorted)
-
   return (
     <ContextMenuRoot>
-      <RadixContextMenu.TriggerItem as={RowButton} bp={breakpoints}>
+      <RadixContextMenu.TriggerItem className={rowButton({ bp: breakpoints })}>
         <span>Move To Page</span>
-        <IconWrapper size="small">
+        <div className={iconWrapper({ size: 'small' })}>
           <ChevronRightIcon />
-        </IconWrapper>
+        </div>
       </RadixContextMenu.TriggerItem>
-      <MenuContent as={RadixContextMenu.Content} sideOffset={2} alignOffset={-2}>
+      <RadixContextMenu.Content className={menuContent()} sideOffset={2} alignOffset={-2}>
         {sorted.map(({ id, name }, i) => (
           <ContextMenuButton
             key={id}
@@ -380,7 +376,7 @@ function MoveToPageMenu(): JSX.Element | null {
           </ContextMenuButton>
         ))}
         <ContextMenuArrow offset={13} />
-      </MenuContent>
+      </RadixContextMenu.Content>
     </ContextMenuRoot>
   )
 }

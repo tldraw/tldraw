@@ -1,24 +1,24 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { StateManager } from 'rko'
 import {
   TLBoundsCorner,
   TLBoundsEdge,
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
+  TLKeyboardEventHandler,
   TLCanvasEventHandler,
-  TLKeyboardInfo,
   TLPageState,
   TLPinchEventHandler,
   TLPointerEventHandler,
   TLWheelEventHandler,
   Utils,
-  Vec,
-  brushUpdater,
   TLPointerInfo,
-  inputs,
+  TLBounds,
+  Inputs,
 } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import {
   FlipType,
-  TextShape,
   TLDrawDocument,
   MoveType,
   AlignType,
@@ -36,6 +36,7 @@ import {
   TLDrawPage,
   TLDrawBinding,
   GroupShape,
+  TLDrawCommand,
 } from '~types'
 import { TLDR } from './tldr'
 import { defaultStyle } from '~shape'
@@ -65,14 +66,15 @@ const defaultDocument: TLDrawDocument = {
   },
 }
 
-const initialData: Data = {
+const defaultState: Data = {
   settings: {
     isPenMode: false,
     isDarkMode: false,
-    isZoomSnap: true,
+    isZoomSnap: false,
+    isFocusMode: false,
     isDebugMode: process.env.NODE_ENV === 'development',
     isReadonlyMode: false,
-    nudgeDistanceLarge: 10,
+    nudgeDistanceLarge: 16,
     nudgeDistanceSmall: 1,
   },
   appState: {
@@ -98,12 +100,17 @@ export class TLDrawState extends StateManager<Data> {
   private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
   private _onMount?: (tlstate: TLDrawState) => void
 
+  inputs?: Inputs
+
   selectHistory: SelectHistory = {
     stack: [[]],
     pointer: 0,
   }
 
-  clipboard?: TLDrawShape[]
+  clipboard?: {
+    shapes: TLDrawShape[]
+    bindings: TLDrawBinding[]
+  }
 
   session?: Session
 
@@ -117,12 +124,27 @@ export class TLDrawState extends StateManager<Data> {
 
   selectedGroupId?: string
 
+  // The editor's bounding client rect
+  bounds: TLBounds = {
+    minX: 0,
+    minY: 0,
+    maxX: 640,
+    maxY: 480,
+    width: 640,
+    height: 480,
+  }
+
+  private pasteInfo = {
+    center: [0, 0],
+    offset: [0, 0],
+  }
+
   constructor(
-    id = Utils.uniqueId(),
+    id?: string,
     onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
     onMount?: (tlstate: TLDrawState) => void
   ) {
-    super(initialData, id, 2, (prev, next, prevVersion) => {
+    super(defaultState, id, 2, (prev, next, prevVersion) => {
       const state = { ...prev }
       if (prevVersion === 1)
         state.settings = {
@@ -138,9 +160,18 @@ export class TLDrawState extends StateManager<Data> {
     this.session = undefined
     this.pointedId = undefined
   }
+
   /* -------------------- Internal -------------------- */
 
   onReady = () => {
+    this.patchState({
+      appState: {
+        status: {
+          current: TLDrawStatus.Idle,
+          previous: TLDrawStatus.Idle,
+        },
+      },
+    })
     this._onMount?.(this)
   }
 
@@ -213,26 +244,38 @@ export class TLDrawState extends StateManager<Data> {
           bindingsToUpdate.forEach((binding) => {
             const toShape = page.shapes[binding.toId]
             const fromShape = page.shapes[binding.fromId]
+
             const toUtils = TLDR.getShapeUtils(toShape)
 
             // We only need to update the binding's "from" shape
             const util = TLDR.getShapeUtils(fromShape)
 
-            const fromDelta = util.onBindingChange(
-              fromShape,
-              binding,
-              toShape,
-              toUtils.getBounds(toShape),
-              toUtils.getCenter(toShape)
-            )
+            try {
+              const fromDelta = util.onBindingChange(
+                fromShape,
+                binding,
+                toShape,
+                toUtils.getBounds(toShape),
+                toUtils.getCenter(toShape)
+              )
 
-            if (fromDelta) {
-              const nextShape = {
-                ...fromShape,
-                ...fromDelta,
-              } as TLDrawShape
+              if (fromDelta) {
+                const nextShape = {
+                  ...fromShape,
+                  ...fromDelta,
+                } as TLDrawShape
 
-              page.shapes[fromShape.id] = nextShape
+                page.shapes[fromShape.id] = nextShape
+              }
+            } catch (e) {
+              console.log(
+                fromShape,
+                binding,
+                toShape,
+                toUtils.getBounds(toShape),
+                toUtils.getCenter(toShape)
+              )
+              throw Error('something went wrong')
             }
           })
 
@@ -260,6 +303,10 @@ export class TLDrawState extends StateManager<Data> {
 
         const nextPageState: TLPageState = {
           ...data.document.pageStates[pageId],
+        }
+
+        if (!nextPageState.brush) {
+          delete nextPageState.brush
         }
 
         if (nextPageState.hoveredId && !page.shapes[nextPageState.hoveredId]) {
@@ -322,9 +369,20 @@ export class TLDrawState extends StateManager<Data> {
    * @returns
    */
   private setStatus(status: TLDrawStatus) {
-    return this.patchState({
-      appState: { status: { current: status, previous: this.appState.status.current } },
-    })
+    return this.patchState(
+      {
+        appState: { status: { current: status, previous: this.appState.status.current } },
+      },
+      `set_status:${status}`
+    )
+  }
+
+  /**
+   * Update the bounding box when the renderer's bounds change.
+   * @param bounds
+   */
+  updateBounds = (bounds: TLBounds) => {
+    this.bounds = { ...bounds }
   }
 
   /* -------------------------------------------------- */
@@ -333,7 +391,21 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Toggle pen mode.
-   * @returns this
+   */
+  toggleFocusMode = (): this => {
+    if (this.session) return this
+    return this.patchState(
+      {
+        settings: {
+          isFocusMode: !this.state.settings.isFocusMode,
+        },
+      },
+      `settings:toggled_focus_mode`
+    )
+  }
+
+  /**
+   * Toggle pen mode.
    */
   togglePenMode = (): this => {
     if (this.session) return this
@@ -349,7 +421,6 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Toggle dark mode.
-   * @returns this
    */
   toggleDarkMode = (): this => {
     if (this.session) return this
@@ -363,7 +434,6 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Toggle zoom snap.
-   * @returns this
    */
   toggleZoomSnap = () => {
     if (this.session) return this
@@ -377,7 +447,6 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Toggle debug mode.
-   * @returns this
    */
   toggleDebugMode = () => {
     if (this.session) return this
@@ -391,7 +460,6 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Toggle the style panel.
-   * @returns this
    */
   toggleStylePanel = (): this => {
     if (this.session) return this
@@ -405,19 +473,16 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Select a tool.
-   * @param tool The tool to select.
-   * @returns this
+   * @param tool The tool to select, or "select".
    */
   selectTool = (tool: TLDrawShapeType | 'select'): this => {
     if (this.session) return this
+
     return this.patchState(
       {
         appState: {
           activeTool: tool,
-          activeToolType:
-            tool === 'select'
-              ? 'select'
-              : TLDR.getShapeUtils({ type: tool } as TLDrawShape).toolType,
+          activeToolType: tool === 'select' ? 'select' : TLDR.getShapeUtils(tool).toolType,
         },
       },
       `selected_tool:${tool}`
@@ -426,7 +491,6 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Toggle the tool lock option.
-   * @returns this
    */
   toggleToolLock = (): this => {
     if (this.session) return this
@@ -446,7 +510,6 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Reset the document to a blank state.
-   * @returns this
    */
   resetDocument = (): this => {
     if (this.session) return this
@@ -466,10 +529,10 @@ export class TLDrawState extends StateManager<Data> {
           document: {
             pageStates: {
               [this.currentPageId]: {
-                bindingId: undefined,
-                editingId: undefined,
-                hoveredId: undefined,
-                pointedId: undefined,
+                bindingId: null,
+                editingId: null,
+                hoveredId: null,
+                pointedId: null,
               },
             },
           },
@@ -481,10 +544,59 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /**
+   * Update the current document.
+   * @param document
+   */
+  updateDocument = (document: TLDrawDocument, reason = 'updated_document'): this => {
+    const prevState = this.state
+
+    const nextState = { ...prevState, document: { ...prevState.document } }
+
+    if (!document.pages[this.currentPageId]) {
+      nextState.appState = {
+        ...prevState.appState,
+        currentPageId: Object.keys(document.pages)[0],
+      }
+    }
+
+    let i = 1
+
+    for (const nextPage of Object.values(document.pages)) {
+      if (nextPage !== prevState.document.pages[nextPage.id]) {
+        nextState.document.pages[nextPage.id] = nextPage
+
+        if (!nextPage.name) {
+          nextState.document.pages[nextPage.id].name = `Page ${i + 1}`
+          i++
+        }
+      }
+    }
+
+    for (const nextPageState of Object.values(document.pageStates)) {
+      if (nextPageState !== prevState.document.pageStates[nextPageState.id]) {
+        nextState.document.pageStates[nextPageState.id] = nextPageState
+
+        const nextPage = document.pages[nextPageState.id]
+        const keysToCheck = ['bindingId', 'editingId', 'hoveredId', 'pointedId'] as const
+
+        for (const key of keysToCheck) {
+          if (!nextPage.shapes[key]) {
+            nextPageState[key] = undefined
+          }
+        }
+
+        nextPageState.selectedIds = nextPageState.selectedIds.filter(
+          (id) => !!document.pages[nextPage.id].shapes[id]
+        )
+      }
+    }
+
+    return this.replaceState(nextState, `${reason}:${document.id}`)
+  }
+
+  /**
    * Load a new document.
    * @param document The document to load
-   * @param onChange (optional) A callback to call when the document changes
-   * @returns this
    */
   loadDocument = (document: TLDrawDocument): this => {
     this.deselectAll()
@@ -492,58 +604,52 @@ export class TLDrawState extends StateManager<Data> {
     this.clearSelectHistory()
     this.session = undefined
     this.selectedGroupId = undefined
-
-    return this.replaceState({
-      ...this.state,
-      appState: {
-        ...this.appState,
-        currentPageId: Object.keys(document.pages)[0],
+    return this.replaceState(
+      {
+        ...defaultState,
+        document,
+        appState: {
+          ...defaultState.appState,
+          currentPageId: Object.keys(document.pages)[0],
+        },
       },
-      document: {
-        ...document,
-        pages: Object.fromEntries(
-          Object.entries(document.pages)
-            .sort((a, b) => (a[1].childIndex || 0) - (b[1].childIndex || 0))
-            .map(([id, page], i) => {
-              return [
-                id,
-                {
-                  ...page,
-                  name: page.name ? page.name : `Page ${i++}`,
-                },
-              ]
-            })
-        ),
-        pageStates: Object.fromEntries(
-          Object.entries(document.pageStates).map(([id, pageState]) => {
-            return [
-              id,
-              {
-                ...pageState,
-                bindingId: undefined,
-                editingId: undefined,
-                hoveredId: undefined,
-                pointedId: undefined,
-              },
-            ]
-          })
-        ),
-      },
-    })
+      'loaded_document'
+    )
   }
 
+  /**
+   * Create a new project.
+   * Should move to the www layer.
+   * @todo
+   */
   newProject = () => {
     // TODO
+    this.resetDocument()
   }
 
+  /**
+   * Save the current project.
+   * Should move to the www layer.
+   * @todo
+   */
   saveProject = () => {
-    // TODO
+    this.persist()
   }
 
+  /**
+   * Load a project from the filesystem.
+   * Should move to the www layer.
+   * @todo
+   */
   loadProject = () => {
     // TODO
   }
 
+  /**
+   * Sign out of the current account.
+   * Should move to the www layer.
+   * @todo
+   */
   signOut = () => {
     // TODO
   }
@@ -551,7 +657,6 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Get the current app state.
-   * @returns this
    */
   getAppState = (): Data['appState'] => {
     return this.appState
@@ -560,7 +665,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Get a page.
    * @param pageId (optional) The page's id.
-   * @returns this
    */
   getPage = (pageId = this.currentPageId): TLDrawPage => {
     return TLDR.getPage(this.state, pageId || this.currentPageId)
@@ -569,7 +673,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Get the shapes (as an array) from a given page.
    * @param pageId (optional) The page's id.
-   * @returns this
    */
   getShapes = (pageId = this.currentPageId): TLDrawShape[] => {
     return TLDR.getShapes(this.state, pageId || this.currentPageId)
@@ -578,7 +681,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Get the bindings from a given page.
    * @param pageId (optional) The page's id.
-   * @returns this
    */
   getBindings = (pageId = this.currentPageId): TLDrawBinding[] => {
     return TLDR.getBindings(this.state, pageId || this.currentPageId)
@@ -588,17 +690,28 @@ export class TLDrawState extends StateManager<Data> {
    * Get a shape from a given page.
    * @param id The shape's id.
    * @param pageId (optional) The page's id.
-   * @returns this
    */
   getShape = <T extends TLDrawShape = TLDrawShape>(id: string, pageId = this.currentPageId): T => {
     return TLDR.getShape<T>(this.state, id, pageId)
   }
 
   /**
+   * Get the bounds of a shape on a given page.
+   * @param id The shape's id.
+   * @param pageId (optional) The page's id.
+   */
+  getShapeBounds = (id: string, pageId = this.currentPageId): TLBounds => {
+    return TLDR.getBounds(this.getShape(id, pageId))
+  }
+
+  greet() {
+    return 'hello'
+  }
+
+  /**
    * Get a binding from a given page.
    * @param id The binding's id.
    * @param pageId (optional) The page's id.
-   * @returns this
    */
   getBinding = (id: string, pageId = this.currentPageId): TLDrawBinding => {
     return TLDR.getBinding(this.state, id, pageId)
@@ -607,7 +720,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Get the page state for a given page.
    * @param pageId (optional) The page's id.
-   * @returns this
    */
   getPageState = (pageId = this.currentPageId): TLPageState => {
     return TLDR.getPageState(this.state, pageId || this.currentPageId)
@@ -617,11 +729,24 @@ export class TLDrawState extends StateManager<Data> {
    * Turn a screen point into a point on the page.
    * @param point The screen point
    * @param pageId (optional) The page to use
-   * @returns this
    */
   getPagePoint = (point: number[], pageId = this.currentPageId): number[] => {
     const { camera } = this.getPageState(pageId)
     return Vec.sub(Vec.div(point, camera.zoom), camera.point)
+  }
+
+  /**
+   * Get the current undo/redo stack.
+   */
+  get history() {
+    return this.stack.slice(0, this.pointer + 1)
+  }
+
+  /**
+   * Replace the current history stack.
+   */
+  set history(commands: TLDrawCommand[]) {
+    this.replaceHistory(commands)
   }
 
   /**
@@ -685,9 +810,8 @@ export class TLDrawState extends StateManager<Data> {
   /* -------------------------------------------------- */
 
   /**
-   * Create a new page page.
+   * Create a new page.
    * @param pageId (optional) The new page's id.
-   * @returns this
    */
   createPage = (id?: string): this => {
     return this.setState(Commands.createPage(this.state, id))
@@ -696,7 +820,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Change the current page.
    * @param pageId The new current page's id.
-   * @returns this
    */
   changePage = (pageId: string): this => {
     return this.setState(Commands.changePage(this.state, pageId))
@@ -706,7 +829,6 @@ export class TLDrawState extends StateManager<Data> {
    * Rename a page.
    * @param pageId The id of the page to rename.
    * @param name The page's new name
-   * @returns this
    */
   renamePage = (pageId: string, name: string): this => {
     return this.setState(Commands.renamePage(this.state, pageId, name))
@@ -715,7 +837,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Duplicate a page.
    * @param pageId The id of the page to duplicate.
-   * @returns this
    */
   duplicatePage = (pageId: string): this => {
     return this.setState(Commands.duplicatePage(this.state, pageId))
@@ -724,7 +845,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Delete a page.
    * @param pageId The id of the page to delete.
-   * @returns this
    */
   deletePage = (pageId?: string): this => {
     if (Object.values(this.document.pages).length <= 1) return this
@@ -738,20 +858,49 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Copy one or more shapes to the clipboard.
    * @param ids The ids of the shapes to copy.
-   * @returns this
    */
   copy = (ids = this.selectedIds): this => {
-    this.clipboard = ids
-      .flatMap((id) => TLDR.getDocumentBranch(this.state, id, this.currentPageId))
-      .map((id) => {
-        const shape = this.getShape(id, this.currentPageId)
+    const copyingShapeIds = ids.flatMap((id) =>
+      TLDR.getDocumentBranch(this.state, id, this.currentPageId)
+    )
 
-        return {
-          ...shape,
-          id: Utils.uniqueId(),
-          childIndex: TLDR.getChildIndexAbove(this.state, id, this.currentPageId),
-        }
+    const copyingShapes = copyingShapeIds.map((id) =>
+      Utils.deepClone(this.getShape(id, this.currentPageId))
+    )
+
+    if (copyingShapes.length === 0) return this
+
+    const copyingBindings: TLDrawBinding[] = Object.values(this.page.bindings).filter(
+      (binding) =>
+        copyingShapeIds.includes(binding.fromId) && copyingShapeIds.includes(binding.toId)
+    )
+
+    this.clipboard = {
+      shapes: copyingShapes,
+      bindings: copyingBindings,
+    }
+
+    try {
+      const text = JSON.stringify({
+        type: 'tldr/clipboard',
+        shapes: copyingShapes,
+        bindings: copyingBindings,
       })
+
+      navigator.clipboard.writeText(text).then(
+        () => {
+          // success
+        },
+        () => {
+          // failure
+        }
+      )
+    } catch (e) {
+      // Browser does not support copying to clipboard
+    }
+
+    this.pasteInfo.offset = [0, 0]
+    this.pasteInfo.center = [0, 0]
 
     return this
   }
@@ -759,82 +908,126 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Paste shapes (or text) from clipboard to a certain point.
    * @param point
-   * @param string
-   * @returns this
    */
-  paste = (point?: number[], string?: string): this => {
-    if (string) {
-      // Parse shapes from string
-      try {
-        const jsonShapes: TLDrawShape[] = JSON.parse(string)
+  paste = (point?: number[]) => {
+    const pasteInCurrentPage = (shapes: TLDrawShape[], bindings: TLDrawBinding[]) => {
+      const idsMap: Record<string, string> = {}
 
-        jsonShapes.forEach((shape) => {
-          if (shape.parentId !== this.currentPageId) {
-            shape.parentId = this.currentPageId
+      shapes.forEach((shape) => (idsMap[shape.id] = Utils.uniqueId()))
+
+      bindings.forEach((binding) => (idsMap[binding.id] = Utils.uniqueId()))
+
+      let startIndex = TLDR.getTopChildIndex(this.state, this.currentPageId)
+
+      const shapesToPaste = shapes
+        .sort((a, b) => a.childIndex - b.childIndex)
+        .map((shape) => {
+          const parentShapeId = idsMap[shape.parentId]
+
+          const copy = {
+            ...shape,
+            id: idsMap[shape.id],
+            parentId: parentShapeId || this.currentPageId,
           }
+
+          if (!parentShapeId) {
+            copy.childIndex = startIndex
+            startIndex++
+          }
+
+          if (copy.handles) {
+            Object.values(copy.handles).forEach((handle) => {
+              if (handle.bindingId) {
+                handle.bindingId = idsMap[handle.bindingId]
+              }
+            })
+          }
+
+          return copy
         })
 
-        this.create(...jsonShapes)
-      } catch (e) {
-        // Create text shape
-        const childIndex =
-          this.getShapes().sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+      const bindingsToPaste = bindings.map((binding) => ({
+        ...binding,
+        id: idsMap[binding.id],
+        toId: idsMap[binding.toId],
+        fromId: idsMap[binding.fromId],
+      }))
 
-        const shape = TLDR.getShapeUtils<TextShape>(TLDrawShapeType.Text).create({
-          id: Utils.uniqueId(),
-          parentId: this.appState.currentPageId,
-          childIndex,
-          point: this.getPagePoint([window.innerWidth / 2, window.innerHeight / 2]),
-          style: { ...this.appState.currentStyle },
-        })
+      const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
 
-        const boundsCenter = Utils.centerBounds(
-          TLDR.getShapeUtils(shape).getBounds(shape),
-          this.getPagePoint([window.innerWidth / 2, window.innerHeight / 2])
-        )
+      let center = Vec.round(this.getPagePoint(point || this.centerPoint))
 
-        this.create(
-          TLDR.getShapeUtils(TLDrawShapeType.Text).create({
-            id: Utils.uniqueId(),
-            parentId: this.appState.currentPageId,
-            childIndex,
-            point: [boundsCenter.minX, boundsCenter.minY],
-          })
-        )
+      if (
+        Vec.dist(center, this.pasteInfo.center) < 2 ||
+        Vec.dist(center, Vec.round(Utils.getBoundsCenter(commonBounds))) < 2
+      ) {
+        this.pasteInfo.offset = Vec.add(this.pasteInfo.offset, [
+          this.state.settings.nudgeDistanceLarge,
+          this.state.settings.nudgeDistanceLarge,
+        ])
+        center = Vec.add(center, this.pasteInfo.offset)
+      } else {
+        this.pasteInfo.center = center
+        this.pasteInfo.offset = [0, 0]
       }
 
-      return this
+      const centeredBounds = Utils.centerBounds(commonBounds, center)
+
+      const delta = Vec.sub(
+        Utils.getBoundsCenter(centeredBounds),
+        Utils.getBoundsCenter(commonBounds)
+      )
+
+      this.create(
+        shapesToPaste.map((shape) =>
+          TLDR.getShapeUtils(shape.type).create({
+            ...shape,
+            point: Vec.round(Vec.add(shape.point, delta)),
+            parentId: shape.parentId || this.currentPageId,
+          })
+        ),
+        bindingsToPaste
+      )
     }
+    try {
+      if (!('clipboard' in navigator && navigator.clipboard.readText)) {
+        throw Error('This browser does not support the clipboard API.')
+      }
 
-    if (!this.clipboard) return this
+      navigator.clipboard.readText().then((result) => {
+        try {
+          const data: { type: string; shapes: TLDrawShape[]; bindings: TLDrawBinding[] } =
+            JSON.parse(result)
 
-    const idsMap = Object.fromEntries(this.clipboard.map((shape) => [shape.id, Utils.uniqueId()]))
+          if (data.type !== 'tldr/clipboard') {
+            throw Error('The pasted string was not from the tldraw clipboard.')
+          }
 
-    const shapesToPaste = this.clipboard.map((shape) => ({
-      ...shape,
-      id: idsMap[shape.id],
-      parentId: idsMap[shape.parentId] || this.currentPageId,
-    }))
+          pasteInCurrentPage(data.shapes, data.bindings)
+        } catch (e) {
+          console.log(e)
 
-    const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
+          const shapeId = Utils.uniqueId()
 
-    const centeredBounds = Utils.centerBounds(
-      commonBounds,
-      this.getPagePoint(point || [window.innerWidth / 2, window.innerHeight / 2])
-    )
+          this.createShapes({
+            id: shapeId,
+            type: TLDrawShapeType.Text,
+            parentId: this.appState.currentPageId,
+            text: result,
+            point: this.getPagePoint(this.centerPoint, this.currentPageId),
+            style: { ...this.appState.currentStyle },
+          })
 
-    let delta = Vec.sub(Utils.getBoundsCenter(centeredBounds), Utils.getBoundsCenter(commonBounds))
-
-    if (Vec.isEqual(delta, [0, 0])) {
-      delta = [16, 16]
+          this.select(shapeId)
+        }
+      })
+    } catch (e) {
+      // Navigator does not support clipboard. Note that this fallback will
+      // not support pasting from one document to another.
+      if (this.clipboard) {
+        pasteInCurrentPage(this.clipboard.shapes, this.clipboard.bindings)
+      }
     }
-
-    this.create(
-      ...shapesToPaste.map((shape) => ({
-        ...shape,
-        point: Vec.round(Vec.add(shape.point, delta)),
-      }))
-    )
 
     return this
   }
@@ -850,16 +1043,57 @@ export class TLDrawState extends StateManager<Data> {
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
 
-    ids.forEach((id) => {
-      const elm = document.getElementById(id)
-      if (elm) {
-        const clone = elm?.cloneNode(true)
-        svg.appendChild(clone)
+    // const idsToCopy = ids.flatMap((id) => TLDR.getDocumentBranch(this.state, id, pageId))
+
+    const shapes = ids.map((id) => this.getShape(id, pageId))
+
+    function getSvgElementForShape(shape: TLDrawShape) {
+      const elm = document.getElementById(shape.id + '_svg')
+
+      if (!elm) return
+
+      // TODO: Create SVG elements for text
+
+      const element = elm?.cloneNode(true) as SVGElement
+
+      const bounds = TLDR.getShapeUtils(shape).getBounds(shape)
+
+      element.setAttribute(
+        'transform',
+        `translate(${shape.point[0]}, ${shape.point[1]}) rotate(${
+          ((shape.rotation || 0) * 180) / Math.PI
+        }, ${bounds.width / 2}, ${bounds.height / 2})`
+      )
+
+      return element
+    }
+
+    shapes.forEach((shape) => {
+      if (shape.children?.length) {
+        // Create a group <g> element for shape
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+
+        // Get the shape's children as elements
+        shape.children
+          .map((childId) => this.getShape(childId, pageId))
+          .map(getSvgElementForShape)
+          .filter(Boolean)
+          .forEach((element) => g.appendChild(element!))
+
+        // Add the group element to the SVG
+        svg.appendChild(g)
+
+        return
+      }
+
+      const element = getSvgElementForShape(shape)
+
+      if (element) {
+        svg.appendChild(element)
       }
     })
 
-    const shapes = ids.map((id) => this.getShape(id, pageId))
-    const bounds = Utils.getCommonBounds(shapes.map(TLDR.getBounds))
+    const bounds = Utils.getCommonBounds(shapes.map(TLDR.getRotatedBounds))
     const padding = 16
 
     // Resize the element to the bounding box
@@ -890,7 +1124,7 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /**
-   * Copy one or more shapes as JSON
+   * Copy one or more shapes as JSON.
    * @param ids The ids of the shapes to copy.
    * @param pageId The page from which to copy the shapes.
    * @returns A string containing the JSON.
@@ -911,7 +1145,6 @@ export class TLDrawState extends StateManager<Data> {
    * @param point The camera point (top left of the viewport).
    * @param zoom The zoom level.
    * @param reason Why did the camera change?
-   * @returns this
    */
   setCamera = (point: number[], zoom: number, reason: string): this => {
     return this.patchState(
@@ -928,20 +1161,14 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Reset the camera to the default position
-   * @returns this
    */
   resetCamera = (): this => {
-    return this.setCamera(
-      Vec.round([window.innerWidth / 2, window.innerHeight / 2]),
-      1,
-      `reset_camera`
-    )
+    return this.setCamera(this.centerPoint, 1, `reset_camera`)
   }
 
   /**
    * Pan the camera
    * @param delta
-   * @returns this
    */
   pan = (delta: number[]): this => {
     const { camera } = this.pageState
@@ -953,11 +1180,10 @@ export class TLDrawState extends StateManager<Data> {
    * @param point The current point under the cursor.
    * @param delta The movement delta.
    * @param zoomDelta The zoom detal
-   * @returns this
    */
   pinchZoom = (point: number[], delta: number[], zoomDelta: number): this => {
     const { camera } = this.pageState
-    const nextPoint = Vec.add(camera.point, Vec.div(delta, camera.zoom))
+    const nextPoint = Vec.sub(camera.point, Vec.div(delta, camera.zoom))
     const nextZoom = TLDR.getCameraZoom(camera.zoom - zoomDelta * camera.zoom)
     const p0 = Vec.sub(Vec.div(point, camera.zoom), nextPoint)
     const p1 = Vec.sub(Vec.div(point, nextZoom), nextPoint)
@@ -967,9 +1193,9 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Zoom to a new zoom level, keeping the point under the cursor in the same position
    * @param next The new zoom level.
-   * @returns this
+   * @param center The point to zoom towards (defaults to screen center).
    */
-  zoomTo = (next: number, center = [window.innerWidth / 2, window.innerHeight / 2]): this => {
+  zoomTo = (next: number, center = this.centerPoint): this => {
     const { zoom, point } = this.pageState.camera
     const p0 = Vec.sub(Vec.div(center, zoom), point)
     const p1 = Vec.sub(Vec.div(center, next), point)
@@ -978,7 +1204,6 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Zoom out by 25%
-   * @returns this
    */
   zoomIn = (): this => {
     const i = Math.round((this.pageState.camera.zoom * 100) / 25)
@@ -988,7 +1213,6 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Zoom in by 25%.
-   * @returns this
    */
   zoomOut = (): this => {
     const i = Math.round((this.pageState.camera.zoom * 100) / 25)
@@ -998,34 +1222,32 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Zoom to fit the page's shapes.
-   * @returns this
    */
   zoomToFit = (): this => {
     const shapes = this.getShapes()
 
     if (shapes.length === 0) return this
 
-    const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
+    const bounds = Utils.getCommonBounds(shapes.map(TLDR.getBounds))
 
     const zoom = TLDR.getCameraZoom(
-      window.innerWidth < window.innerHeight
-        ? (window.innerWidth - 128) / bounds.width
-        : (window.innerHeight - 128) / bounds.height
+      this.bounds.width < this.bounds.height
+        ? (this.bounds.width - 128) / bounds.width
+        : (this.bounds.height - 128) / bounds.height
     )
 
-    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+    const mx = (this.bounds.width - bounds.width * zoom) / 2 / zoom
+    const my = (this.bounds.height - bounds.height * zoom) / 2 / zoom
 
     return this.setCamera(
       Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
-      this.pageState.camera.zoom,
+      zoom,
       `zoomed_to_fit`
     )
   }
 
   /**
    * Zoom to the selected shapes.
-   * @returns this
    */
   zoomToSelection = (): this => {
     if (this.selectedIds.length === 0) return this
@@ -1033,13 +1255,13 @@ export class TLDrawState extends StateManager<Data> {
     const bounds = TLDR.getSelectedBounds(this.state)
 
     const zoom = TLDR.getCameraZoom(
-      window.innerWidth < window.innerHeight
-        ? (window.innerWidth - 128) / bounds.width
-        : (window.innerHeight - 128) / bounds.height
+      this.bounds.width < this.bounds.height
+        ? (this.bounds.width - 128) / bounds.width
+        : (this.bounds.height - 128) / bounds.height
     )
 
-    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+    const mx = (this.bounds.width - bounds.width * zoom) / 2 / zoom
+    const my = (this.bounds.height - bounds.height * zoom) / 2 / zoom
 
     return this.setCamera(
       Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
@@ -1050,7 +1272,6 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Zoom back to content when the canvas is empty.
-   * @returns this
    */
   zoomToContent = (): this => {
     const shapes = this.getShapes()
@@ -1061,8 +1282,8 @@ export class TLDrawState extends StateManager<Data> {
     const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
 
     const { zoom } = pageState.camera
-    const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-    const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+    const mx = (this.bounds.width - bounds.width * zoom) / 2 / zoom
+    const my = (this.bounds.height - bounds.height * zoom) / 2 / zoom
 
     return this.setCamera(
       Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my])),
@@ -1073,7 +1294,6 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Zoom the camera to 100%.
-   * @returns this
    */
   zoomToActual = (): this => {
     return this.zoomTo(1)
@@ -1081,12 +1301,13 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Zoom the camera by a certain delta.
-   * @returns this
+   * @param delta The zoom delta.
+   * @param center The point to zoom toward.
    */
-  zoom = Utils.throttle((delta: number): this => {
+  zoom = Utils.throttle((delta: number, center?: number[]): this => {
     const { zoom } = this.pageState.camera
     const nextZoom = TLDR.getCameraZoom(zoom - delta * zoom)
-    return this.zoomTo(nextZoom)
+    return this.zoomTo(nextZoom, center)
   }, 16)
 
   /* -------------------------------------------------- */
@@ -1118,9 +1339,10 @@ export class TLDrawState extends StateManager<Data> {
    * Set the current selection.
    * @param ids The ids to select
    * @param push Whether to add the ids to the current selection instead.
-   * @returns this
    */
   private setSelectedIds = (ids: string[], push = false): this => {
+    // Also clear any pasted center
+
     return this.patchState(
       {
         appState: {
@@ -1141,7 +1363,6 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Undo the most recent selection.
-   * @returns this
    */
   undoSelect = (): this => {
     if (this.selectHistory.pointer > 0) {
@@ -1153,7 +1374,6 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Redo the previous selection.
-   * @returns this
    */
   redoSelect = (): this => {
     if (this.selectHistory.pointer < this.selectHistory.stack.length - 1) {
@@ -1166,7 +1386,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Select one or more shapes.
    * @param ids The shape ids to select.
-   * @returns this
    */
   select = (...ids: string[]): this => {
     ids.forEach((id) => {
@@ -1181,21 +1400,28 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Select all shapes on the page.
-   * @returns this
    */
-  selectAll = (): this => {
+  selectAll = (pageId = this.currentPageId): this => {
     if (this.session) return this
-    this.setSelectedIds(Object.keys(this.page.shapes))
+
+    // Select only shapes that are the direct child of the page
+    this.setSelectedIds(
+      Object.values(this.document.pages[pageId].shapes)
+        .filter((shape) => shape.parentId === pageId)
+        .map((shape) => shape.id)
+    )
+
     this.addToSelectHistory(this.selectedIds)
+
     if (this.appState.activeTool !== 'select') {
       this.selectTool('select')
     }
+
     return this
   }
 
   /**
    * Deselect any selected shapes.
-   * @returns this
    */
   deselectAll = (): this => {
     this.setSelectedIds([])
@@ -1211,7 +1437,6 @@ export class TLDrawState extends StateManager<Data> {
    * Start a new session.
    * @param session The new session
    * @param args arguments of the session's start method.
-   * @returns this
    */
   startSession = <T extends Session>(
     session: T,
@@ -1243,7 +1468,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Update the current session.
    * @param args The arguments of the current session's update method.
-   * @returns this
    */
   updateSession = <T extends Session>(...args: ParametersExceptFirst<T['update']>): this => {
     const { session } = this
@@ -1256,7 +1480,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Cancel the current session.
    * @param args The arguments of the current session's cancel method.
-   * @returns this
    */
   cancelSession = <T extends Session>(...args: ParametersExceptFirst<T['cancel']>): this => {
     const { session } = this
@@ -1312,19 +1535,19 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Complete the current session.
    * @param args The arguments of the current session's complete method.
-   * @returns this
    */
   completeSession = <T extends Session>(...args: ParametersExceptFirst<T['complete']>): this => {
     const { session } = this
 
     if (!session) return this
 
-    const result = session.complete(this.state, ...args)
-
     this.session = undefined
+
+    const result = session.complete(this.state, ...args)
 
     if (result === undefined) {
       this.isCreating = false
+
       return this.patchState(
         {
           appState: {
@@ -1360,24 +1583,9 @@ export class TLDrawState extends StateManager<Data> {
             pageStates: {
               [this.currentPageId]: {
                 selectedIds: [],
-                editingId: undefined,
-                bindingId: undefined,
-                hoveredId: undefined,
-              },
-            },
-          },
-        }
-
-        // ...and set editingId back to undefined
-        result.after = {
-          ...result.after,
-          document: {
-            ...result.after.document,
-            pageStates: {
-              ...result.after.document?.pageStates,
-              [this.currentPageId]: {
-                ...(result.after.document?.pageStates || {})[this.currentPageId],
-                editingId: undefined,
+                editingId: null,
+                bindingId: null,
+                hoveredId: null,
               },
             },
           },
@@ -1400,6 +1608,17 @@ export class TLDrawState extends StateManager<Data> {
         },
       }
 
+      result.after.document = {
+        ...result.after.document,
+        pageStates: {
+          ...result.after.document?.pageStates,
+          [this.currentPageId]: {
+            ...(result.after.document?.pageStates || {})[this.currentPageId],
+            editingId: null,
+          },
+        },
+      }
+
       this.setState(result, `session:complete:${session.id}`)
     } else {
       this.patchState(
@@ -1415,7 +1634,8 @@ export class TLDrawState extends StateManager<Data> {
           document: {
             pageStates: {
               [this.currentPageId]: {
-                editingId: undefined,
+                ...result.document?.pageStates?.[this.currentPageId],
+                editingId: null,
               },
             },
           },
@@ -1433,23 +1653,51 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
-  /* -------------------- Sessions -------------------- */
+  /* -------------------------------------------------- */
+  /*                      Sessions                      */
+  /* -------------------------------------------------- */
+
+  /**
+   * Start a brush session.
+   * @param point
+   */
   startBrushSession = (point: number[]): this => {
     return this.startSession(new Sessions.BrushSession(this.state, point))
   }
 
+  /**
+   * Update a brush session.
+   * @param point
+   * @param metaKey
+   */
   updateBrushSession = (point: number[], metaKey = false): this => {
     return this.updateSession<Sessions.BrushSession>(point, metaKey)
   }
 
+  /**
+   * Start a translate session.
+   * @param point
+   */
   startTranslateSession = (point: number[]): this => {
     return this.startSession(new Sessions.TranslateSession(this.state, point))
   }
 
+  /**
+   * Update a translate session.
+   * @param point
+   * @param shiftKey
+   * @param altKey
+   */
   updateTranslateSession = (point: number[], shiftKey = false, altKey = false): this => {
     return this.updateSession<Sessions.TranslateSession>(point, shiftKey, altKey)
   }
 
+  /**
+   * Start a transform session
+   * @param point
+   * @param handle
+   * @param commandId
+   */
   startTransformSession = (
     point: number[],
     handle: TLBoundsCorner | TLBoundsEdge | 'rotate',
@@ -1480,6 +1728,9 @@ export class TLDrawState extends StateManager<Data> {
     )
   }
 
+  /**
+   * Update a transform session.
+   */
   updateTransformSession = (point: number[], shiftKey = false, altKey = false): this => {
     return this.updateSession<Sessions.TransformSingleSession | Sessions.TransformSession>(
       point,
@@ -1488,22 +1739,47 @@ export class TLDrawState extends StateManager<Data> {
     )
   }
 
+  /**
+   * Start a text session.
+   * @param id
+   */
   startTextSession = (id: string): this => {
     return this.startSession(new Sessions.TextSession(this.state, id))
   }
 
+  /**
+   * Update a text session.
+   * @param text
+   */
   updateTextSession = (text: string): this => {
     return this.updateSession<Sessions.TextSession>(text)
   }
 
+  /**
+   * Start a draw session.
+   * @param id
+   * @param point
+   */
   startDrawSession = (id: string, point: number[]): this => {
     return this.startSession(new Sessions.DrawSession(this.state, id, point))
   }
 
+  /**
+   * Update a draw session.
+   * @param point
+   * @param pressure
+   * @param shiftKey
+   */
   updateDrawSession = (point: number[], pressure: number, shiftKey = false): this => {
     return this.updateSession<Sessions.DrawSession>(point, pressure, shiftKey)
   }
 
+  /**
+   * Start a handle session.
+   * @param point
+   * @param handleId
+   * @param commandId
+   */
   startHandleSession = (point: number[], handleId: string, commandId?: string): this => {
     const selectedShape = this.page.shapes[this.selectedIds[0]]
     if (selectedShape.type === TLDrawShapeType.Arrow) {
@@ -1517,6 +1793,13 @@ export class TLDrawState extends StateManager<Data> {
     )
   }
 
+  /**
+   * Update a handle session.
+   * @param point
+   * @param shiftKey
+   * @param altKey
+   * @param metaKey
+   */
   updateHandleSession = (
     point: number[],
     shiftKey = false,
@@ -1539,19 +1822,18 @@ export class TLDrawState extends StateManager<Data> {
    * Manually create shapes on the page.
    * @param shapes An array of shape partials, containing the initial props for the shapes.
    * @command
-   * @returns this
    */
   createShapes = (
     ...shapes: ({ id: string; type: TLDrawShapeType } & Partial<TLDrawShape>)[]
   ): this => {
     if (shapes.length === 0) return this
     return this.create(
-      ...shapes.map((shape) => {
-        return TLDR.getShapeUtils(shape as TLDrawShape).create({
+      shapes.map((shape) =>
+        TLDR.getShapeUtils(shape.type).create({
           ...shape,
           parentId: shape.parentId || this.currentPageId,
         })
-      })
+      )
     )
   }
 
@@ -1559,29 +1841,46 @@ export class TLDrawState extends StateManager<Data> {
    * Manually update a set of shapes.
    * @param shapes An array of shape partials, containing the changes to be made to each shape.
    * @command
-   * @returns this
    */
   updateShapes = (...shapes: ({ id: string } & Partial<TLDrawShape>)[]): this => {
-    if (shapes.length === 0) return this
-    return this.setState(Commands.update(this.state, shapes), 'updated_shape')
+    const pageShapes = this.document.pages[this.currentPageId].shapes
+    const shapesToUpdate = shapes.filter((shape) => pageShapes[shape.id])
+    if (shapesToUpdate.length === 0) return this
+    return this.setState(
+      Commands.update(this.state, shapesToUpdate, this.currentPageId),
+      'updated_shapes'
+    )
+  }
+
+  /**
+   * Manually patch a set of shapes.
+   * @param shapes An array of shape partials, containing the changes to be made to each shape.
+   * @command
+   */
+  patchShapes = (...shapes: ({ id: string } & Partial<TLDrawShape>)[]): this => {
+    const pageShapes = this.document.pages[this.currentPageId].shapes
+    const shapesToUpdate = shapes.filter((shape) => pageShapes[shape.id])
+    if (shapesToUpdate.length === 0) return this
+    return this.patchState(
+      Commands.update(this.state, shapesToUpdate, this.currentPageId).after,
+      'updated_shapes'
+    )
   }
 
   /**
    * Create one or more shapes.
    * @param shapes An array of shapes.
    * @command
-   * @returns this
    */
-  create = (...shapes: TLDrawShape[]): this => {
+  create = (shapes: TLDrawShape[] = [], bindings: TLDrawBinding[] = []): this => {
     if (shapes.length === 0) return this
-    return this.setState(Commands.create(this.state, shapes))
+    return this.setState(Commands.create(this.state, shapes, bindings))
   }
 
   /**
    * Delete one or more shapes.
    * @param ids The ids of the shapes to delete.
    * @command
-   * @returns this
    */
   delete = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
@@ -1590,7 +1889,6 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Delete all shapes on the page.
-   * @returns this
    */
   clear = (): this => {
     this.selectAll()
@@ -1602,7 +1900,6 @@ export class TLDrawState extends StateManager<Data> {
    * Change the style for one or more shapes.
    * @param style A style partial to apply to the shapes.
    * @param ids The ids of the shapes to change (defaults to selection).
-   * @returns this
    */
   style = (style: Partial<ShapeStyles>, ids = this.selectedIds): this => {
     return this.setState(Commands.style(this.state, ids, style))
@@ -1612,7 +1909,6 @@ export class TLDrawState extends StateManager<Data> {
    * Align one or more shapes.
    * @param direction Whether to align horizontally or vertically.
    * @param ids The ids of the shapes to change (defaults to selection).
-   * @returns this
    */
   align = (type: AlignType, ids = this.selectedIds): this => {
     if (ids.length < 2) return this
@@ -1623,7 +1919,6 @@ export class TLDrawState extends StateManager<Data> {
    * Distribute one or more shapes.
    * @param direction Whether to distribute horizontally or vertically..
    * @param ids The ids of the shapes to change (defaults to selection).
-   * @returns this
    */
   distribute = (direction: DistributeType, ids = this.selectedIds): this => {
     if (ids.length < 3) return this
@@ -1634,7 +1929,6 @@ export class TLDrawState extends StateManager<Data> {
    * Stretch one or more shapes to their common bounds.
    * @param direction Whether to stretch horizontally or vertically.
    * @param ids The ids of the shapes to change (defaults to selection).
-   * @returns this
    */
   stretch = (direction: StretchType, ids = this.selectedIds): this => {
     if (ids.length < 2) return this
@@ -1644,7 +1938,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Flip one or more shapes horizontally.
    * @param ids The ids of the shapes to change (defaults to selection).
-   * @returns this
    */
   flipHorizontal = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
@@ -1654,7 +1947,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Flip one or more shapes vertically.
    * @param ids The ids of the shapes to change (defaults to selection).
-   * @returns this
    */
   flipVertical = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
@@ -1663,11 +1955,9 @@ export class TLDrawState extends StateManager<Data> {
 
   /**
    * Move one or more shapes to a new page. Will also break or move bindings.
-   * @param toPage The id of the page to move the shapes to.
-   * @param fromPage The id of the page to move the shapes from
-   *(defaults to current page).
+   * @param toPageId The id of the page to move the shapes to.
+   * @param fromPageId The id of the page to move the shapes from (defaults to current page).
    * @param ids The ids of the shapes to move (defaults to selection).
-   * @returns this
    */
   moveToPage = (
     toPageId: string,
@@ -1682,7 +1972,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Move one or more shapes to the back of the page.
    * @param ids The ids of the shapes to change (defaults to selection).
-   * @returns this
    */
   moveToBack = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
@@ -1692,7 +1981,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Move one or more shapes backward on of the page.
    * @param ids The ids of the shapes to change (defaults to selection).
-   * @returns this
    */
   moveBackward = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
@@ -1702,7 +1990,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Move one or more shapes forward on the page.
    * @param ids The ids of the shapes to change (defaults to selection).
-   * @returns this
    */
   moveForward = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
@@ -1712,7 +1999,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Move one or more shapes to the front of the page.
    * @param ids The ids of the shapes to change (defaults to selection).
-   * @returns this
    */
   moveToFront = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
@@ -1724,7 +2010,6 @@ export class TLDrawState extends StateManager<Data> {
    * @param delta The direction to nudge the shapes.
    * @param isMajor Whether this is a major (i.e. shift) nudge.
    * @param ids The ids to change (defaults to selection).
-   * @returns this
    */
   nudge = (delta: number[], isMajor = false, ids = this.selectedIds): this => {
     if (ids.length === 0) return this
@@ -1734,7 +2019,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Duplicate one or more shapes.
    * @param ids The ids to duplicate (defaults to selection).
-   * @returns this
    */
   duplicate = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
@@ -1742,9 +2026,19 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /**
+   * Reset the bounds for one or more shapes. Usually when the
+   * bounding box of a shape is double-clicked. Different shapes may
+   * handle this differently.
+   * @param ids The ids to change (defaults to selection).
+   */
+  resetBounds = (ids = this.selectedIds): this => {
+    const command = Commands.resetBounds(this.state, ids, this.currentPageId)
+    return this.setState(Commands.resetBounds(this.state, ids, this.currentPageId), command.id)
+  }
+
+  /**
    * Toggle the hidden property of one or more shapes.
    * @param ids The ids to change (defaults to selection).
-   * @returns this
    */
   toggleHidden = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
@@ -1754,7 +2048,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Toggle the locked property of one or more shapes.
    * @param ids The ids to change (defaults to selection).
-   * @returns this
    */
   toggleLocked = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
@@ -1764,7 +2057,6 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Toggle the fixed-aspect-ratio property of one or more shapes.
    * @param ids The ids to change (defaults to selection).
-   * @returns this
    */
   toggleAspectRatioLocked = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
@@ -1775,7 +2067,6 @@ export class TLDrawState extends StateManager<Data> {
    * Toggle the decoration at a handle of one or more shapes.
    * @param handleId The handle to toggle.
    * @param ids The ids of the shapes to toggle the decoration on.
-   * @returns this
    */
   toggleDecoration = (handleId: string, ids = this.selectedIds): this => {
     if (ids.length === 0 || !(handleId === 'start' || handleId === 'end')) return this
@@ -1786,38 +2077,45 @@ export class TLDrawState extends StateManager<Data> {
    * Rotate one or more shapes by a delta.
    * @param delta The delta in radians.
    * @param ids The ids to rotate (defaults to selection).
-   * @returns this
    */
   rotate = (delta = Math.PI * -0.5, ids = this.selectedIds): this => {
     if (ids.length === 0) return this
-    return this.setState(Commands.rotate(this.state, ids, delta))
+    const change = Commands.rotate(this.state, ids, delta)
+    if (!change) return this
+    return this.setState(change)
   }
 
   /**
    * Group the selected shapes.
-   * @returns this
-   * @todo
+   * @param ids The ids to group (defaults to selection).
+   * @param groupId The new group's id.
    */
-  group = (ids = this.selectedIds, groupId = Utils.uniqueId()): this => {
+  group = (
+    ids = this.selectedIds,
+    groupId = Utils.uniqueId(),
+    pageId = this.currentPageId
+  ): this => {
     if (ids.length < 2) return this
-    const command = Commands.group(this.state, ids, groupId)
+    const command = Commands.group(this.state, ids, groupId, pageId)
     if (!command) return this
     return this.setState(command)
   }
 
   /**
    * Ungroup the selected groups.
-   * @returns this
    * @todo
    */
-  ungroup = (): this => {
-    // TODO
-    return this
+  ungroup = (groupId = this.selectedIds[0], pageId = this.currentPageId): this => {
+    const shape = this.getShape(groupId, pageId)
+    if (shape.type !== TLDrawShapeType.Group) return this
+
+    const command = Commands.ungroup(this.state, groupId, pageId)
+    if (!command) return this
+    return this.setState(command)
   }
 
   /**
    * Cancel the current session.
-   * @returns this
    */
   cancel = (): this => {
     switch (this.state.appState.status.current) {
@@ -1828,7 +2126,6 @@ export class TLDrawState extends StateManager<Data> {
       }
       case TLDrawStatus.Brushing: {
         this.cancelSession()
-        brushUpdater.clear()
         break
       }
       case TLDrawStatus.Translating:
@@ -1927,6 +2224,11 @@ export class TLDrawState extends StateManager<Data> {
     return this
   }
 
+  /**
+   * Create a new shape based on the active tool.
+   * @param point The point at which to create the shape
+   * @param id (optional) The new shape's id.
+   */
   createActiveToolShape = (point: number[], id = Utils.uniqueId()): this => {
     const pagePoint = Vec.round(this.getPagePoint(point))
 
@@ -1934,7 +2236,7 @@ export class TLDrawState extends StateManager<Data> {
 
     if (!this.appState.activeToolType) throw Error
 
-    const utils = TLDR.getShapeUtils({ type: this.appState.activeTool } as TLDrawShape)
+    const utils = TLDR.getShapeUtils(this.appState.activeTool)
 
     const shapes = this.getShapes()
 
@@ -1944,6 +2246,19 @@ export class TLDrawState extends StateManager<Data> {
         : shapes
             .filter((shape) => shape.parentId === this.currentPageId)
             .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+
+    const newShape = utils.create({
+      id,
+      parentId: this.currentPageId,
+      childIndex,
+      point: pagePoint,
+      style: { ...this.appState.currentStyle },
+    })
+
+    if (newShape.type === TLDrawShapeType.Text) {
+      const bounds = utils.getBounds(newShape)
+      newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
+    }
 
     this.patchState(
       {
@@ -1957,13 +2272,7 @@ export class TLDrawState extends StateManager<Data> {
           pages: {
             [this.currentPageId]: {
               shapes: {
-                [id]: utils.create({
-                  id,
-                  parentId: this.currentPageId,
-                  childIndex,
-                  point: pagePoint,
-                  style: { ...this.appState.currentStyle },
-                }),
+                [id]: newShape,
               },
             },
           },
@@ -2016,11 +2325,13 @@ export class TLDrawState extends StateManager<Data> {
 
   /* ----------------- Keyboard Events ---------------- */
 
-  onKeyDown = (key: string, info: TLKeyboardInfo) => {
+  onKeyDown: TLKeyboardEventHandler = (key, info) => {
     if (key === 'Escape') {
       this.cancel()
       return
     }
+
+    if (!info) return
 
     switch (this.appState.status.current) {
       case TLDrawStatus.Idle: {
@@ -2047,9 +2358,7 @@ export class TLDrawState extends StateManager<Data> {
       case TLDrawStatus.Transforming: {
         if (key === 'Escape') {
           this.cancelSession(this.getPagePoint(info.point))
-        }
-
-        if (key === 'Shift' || key === 'Alt') {
+        } else if (key === 'Shift' || key === 'Alt') {
           this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
         }
         break
@@ -2072,7 +2381,9 @@ export class TLDrawState extends StateManager<Data> {
     }
   }
 
-  onKeyUp = (key: string, info: TLKeyboardInfo) => {
+  onKeyUp: TLKeyboardEventHandler = (key, info) => {
+    if (!info) return
+
     switch (this.appState.status.current) {
       case TLDrawStatus.Brushing: {
         if (key === 'Meta' || key === 'Control') {
@@ -2113,22 +2424,26 @@ export class TLDrawState extends StateManager<Data> {
   /* ------------- Renderer Event Handlers ------------ */
 
   onPinchStart: TLPinchEventHandler = () => {
+    if (this.session) {
+      this.cancelSession()
+    }
     this.setStatus(TLDrawStatus.Pinching)
   }
 
   onPinchEnd: TLPinchEventHandler = () => {
-    if (this.state.settings.isZoomSnap) {
-      const i = Math.round((this.pageState.camera.zoom * 100) / 25)
-      const nextZoom = TLDR.getCameraZoom(i * 0.25)
-      this.zoomTo(nextZoom, inputs.pointer?.point)
-    }
-    this.setStatus(this.appState.status.previous)
+    // if (this.state.settings.isZoomSnap) {
+    //   const i = Math.round((this.pageState.camera.zoom * 100) / 25)
+    //   const nextZoom = TLDR.getCameraZoom(i * 0.25)
+    //   this.zoomTo(nextZoom, inputs.pointer?.point)
+    // }
+    this.undoSelect()
+    this.setStatus(TLDrawStatus.Idle)
   }
 
   onPinch: TLPinchEventHandler = (info) => {
     if (this.appState.status.current !== TLDrawStatus.Pinching) return
 
-    this.pinchZoom(info.origin, info.delta, info.delta[2] / 350)
+    this.pinchZoom(info.point, info.delta, info.delta[2])
     this.updateOnPointerMove(info)
   }
 
@@ -2241,7 +2556,6 @@ export class TLDrawState extends StateManager<Data> {
       }
       case TLDrawStatus.Brushing: {
         this.completeSession<Sessions.BrushSession>()
-        brushUpdater.clear()
         break
       }
       case TLDrawStatus.Translating: {
@@ -2265,6 +2579,7 @@ export class TLDrawState extends StateManager<Data> {
   onPointCanvas: TLCanvasEventHandler = (info) => {
     if (this.appState.isStyleOpen) {
       this.toggleStylePanel()
+      return
     }
 
     switch (this.appState.status.current) {
@@ -2277,26 +2592,27 @@ export class TLDrawState extends StateManager<Data> {
             }
 
             // Start a brush session
+            // TODO: Don't start a brush session right away: we might
+            // be "maybe brushing" or "maybe double clicking"
             this.startBrushSession(this.getPagePoint(info.point))
             break
           }
         }
         break
       }
+      case TLDrawStatus.EditingText: {
+        this.completeSession()
+      }
     }
   }
 
-  onDoubleClickCanvas: TLCanvasEventHandler = (info) => {
+  onDoubleClickCanvas: TLCanvasEventHandler = () => {
     // Unused
     switch (this.appState.status.current) {
       case TLDrawStatus.Idle: {
-        switch (this.appState.activeTool) {
-          case TLDrawShapeType.Text: {
-            // Create a text shape
-            this.createActiveToolShape(info.point)
-            break
-          }
-        }
+        // TODO: Create a text shape
+        // this.selectTool(TLDrawShapeType.Text)
+        // this.createActiveToolShape(info.point)
         break
       }
     }
@@ -2461,7 +2777,7 @@ export class TLDrawState extends StateManager<Data> {
 
   onUnhoverShape: TLPointerEventHandler = (info) => {
     const { currentPageId } = this
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       if (currentPageId === this.currentPageId && this.pageState.hoveredId === info.target) {
         this.patchState(
           {
@@ -2476,7 +2792,7 @@ export class TLDrawState extends StateManager<Data> {
           `unhovered_shape:${info.target}`
         )
       }
-    }, 10)
+    })
   }
 
   // Bounds (bounding box background)
@@ -2521,7 +2837,6 @@ export class TLDrawState extends StateManager<Data> {
       }
       case TLDrawStatus.Brushing: {
         this.completeSession<Sessions.BrushSession>()
-        brushUpdater.clear()
         break
       }
     }
@@ -2534,7 +2849,9 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   onDoubleClickBoundsHandle: TLBoundsHandleEventHandler = () => {
-    // TODO
+    if (this.selectedIds.length === 1) {
+      this.resetBounds(this.selectedIds)
+    }
   }
 
   onRightPointBoundsHandle: TLBoundsHandleEventHandler = () => {
@@ -2587,31 +2904,24 @@ export class TLDrawState extends StateManager<Data> {
     // Unused
   }
 
-  onTextChange = (id: string, text: string) => {
-    this.updateTextSession(text)
+  onShapeChange = (shape: { id: string } & Partial<TLDrawShape>) => {
+    switch (shape.type) {
+      case TLDrawShapeType.Text: {
+        this.updateTextSession(shape.text || '')
+      }
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onTextBlur = (id: string) => {
-    this.completeSession()
+  onShapeBlur = () => {
+    switch (this.appState.status.current) {
+      case TLDrawStatus.EditingText: {
+        this.completeSession()
+      }
+    }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onTextFocus = (id: string) => {
-    // Unused
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onTextKeyDown = (id: string, key: string) => {
-    // Unused
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onTextKeyUp = (id: string, key: string) => {
-    // Unused
-  }
-
-  onChange = (ids: string[]) => {
+  onRenderCountChange = (ids: string[]) => {
     const appState = this.getAppState()
     if (appState.isEmptyCanvas && ids.length > 0) {
       this.patchState(
@@ -2638,7 +2948,7 @@ export class TLDrawState extends StateManager<Data> {
     // TODO
   }
 
-  onBlurEditingShape = () => {
-    this.completeSession()
+  get centerPoint() {
+    return Vec.round(Utils.getBoundsCenter(this.bounds))
   }
 }

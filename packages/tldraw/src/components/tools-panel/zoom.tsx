@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ZoomInIcon, ZoomOutIcon } from '@radix-ui/react-icons'
-import { TertiaryButton, TertiaryButtonsContainer } from './styled'
+import { TertiaryButton, tertiaryButtonsContainer } from './styled'
 import { useTLDrawContext } from '~hooks'
 import type { Data } from '~types'
 
@@ -8,7 +8,7 @@ export const Zoom = React.memo((): JSX.Element => {
   const { tlstate } = useTLDrawContext()
 
   return (
-    <TertiaryButtonsContainer bp={{ '@initial': 'mobile', '@sm': 'small' }}>
+    <div className={tertiaryButtonsContainer({ bp: { '@initial': 'mobile', '@sm': 'small' } })}>
       <TertiaryButton label="Zoom Out" kbd={`#−`} onClick={tlstate.zoomOut}>
         <ZoomOutIcon />
       </TertiaryButton>
@@ -16,7 +16,7 @@ export const Zoom = React.memo((): JSX.Element => {
         <ZoomInIcon />
       </TertiaryButton>
       <ZoomCounter />
-    </TertiaryButtonsContainer>
+    </div>
   )
 })
 

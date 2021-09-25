@@ -2,4 +2,141 @@
 
 exports[` 1`] = `"[]"`;
 
-exports[` 2`] = `undefined`;
+exports[`TLDrawState Exposes undo/redo stack: history 1`] = `
+Array [
+  Object {
+    "after": Object {
+      "document": Object {
+        "pageStates": Object {
+          "page1": Object {
+            "selectedIds": Array [
+              "rect1",
+            ],
+          },
+        },
+        "pages": Object {
+          "page1": Object {
+            "bindings": Object {},
+            "shapes": Object {
+              "rect1": Object {
+                "childIndex": 1,
+                "id": "rect1",
+                "name": "Rectangle",
+                "parentId": "page1",
+                "point": Array [
+                  0,
+                  0,
+                ],
+                "rotation": 0,
+                "size": Array [
+                  100,
+                  200,
+                ],
+                "style": Object {
+                  "color": "Black",
+                  "dash": "Draw",
+                  "isFilled": false,
+                  "size": "Medium",
+                },
+                "type": "rectangle",
+              },
+            },
+          },
+        },
+      },
+    },
+    "before": Object {
+      "document": Object {
+        "pageStates": Object {
+          "page1": Object {
+            "selectedIds": Array [],
+          },
+        },
+        "pages": Object {
+          "page1": Object {
+            "bindings": Object {},
+            "shapes": Object {
+              "rect1": undefined,
+            },
+          },
+        },
+      },
+    },
+    "id": "create",
+  },
+  Object {
+    "after": Object {
+      "document": Object {
+        "pageStates": Object {
+          "page1": Object {
+            "selectedIds": Array [
+              "rect2",
+            ],
+          },
+        },
+        "pages": Object {
+          "page1": Object {
+            "bindings": Object {},
+            "shapes": Object {
+              "rect2": Object {
+                "childIndex": 1,
+                "id": "rect2",
+                "name": "Rectangle",
+                "parentId": "page1",
+                "point": Array [
+                  0,
+                  0,
+                ],
+                "rotation": 0,
+                "size": Array [
+                  100,
+                  200,
+                ],
+                "style": Object {
+                  "color": "Black",
+                  "dash": "Draw",
+                  "isFilled": false,
+                  "size": "Medium",
+                },
+                "type": "rectangle",
+              },
+            },
+          },
+        },
+      },
+    },
+    "before": Object {
+      "document": Object {
+        "pageStates": Object {
+          "page1": Object {
+            "selectedIds": Array [
+              "rect1",
+            ],
+          },
+        },
+        "pages": Object {
+          "page1": Object {
+            "bindings": Object {},
+            "shapes": Object {
+              "rect2": undefined,
+            },
+          },
+        },
+      },
+    },
+    "id": "create",
+  },
+]
+`;
+
+exports[`TLDrawState Selection When selecting all selects all: selected all 1`] = `
+Array [
+  "rect1",
+  "rect2",
+  "rect3",
+]
+`;
+
+exports[`TLDrawState When copying to SVG Copies grouped shapes.: copied svg with group 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"-16 -16 232 232\\" width=\\"200\\" height=\\"200\\"><g/></svg>"`;
+
+exports[`TLDrawState When copying to SVG Copies shapes.: copied svg 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"-20.741879096242684 -20.741879096242684 236.74 236.74\\" width=\\"204.74\\" height=\\"204.74\\"/>"`;

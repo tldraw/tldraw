@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Utils, Vec } from '@tldraw/core'
+import { Utils } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/tldr'
 import type { Data, PagePartial, TLDrawCommand } from '~types'
 
@@ -83,46 +84,48 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
   })
 
   // Which ids did we end up duplicating?
-  const duplicatedShapeIds = Object.keys(duplicateMap)
+  const dupedShapeIds = new Set(Object.keys(duplicateMap))
 
   // Handle bindings that effect duplicated shapes
-  Object.values(page.bindings).forEach((binding) => {
-    if (duplicatedShapeIds.includes(binding.fromId)) {
-      if (duplicatedShapeIds.includes(binding.toId)) {
-        // If the binding is between two duplicating shapes then
-        // duplicate the binding, too
-        const duplicatedBindingId = Utils.uniqueId()
+  Object.values(page.bindings)
+    .filter((binding) => dupedShapeIds.has(binding.fromId) || dupedShapeIds.has(binding.toId))
+    .forEach((binding) => {
+      if (dupedShapeIds.has(binding.fromId)) {
+        if (dupedShapeIds.has(binding.toId)) {
+          // If the binding is between two duplicating shapes then
+          // duplicate the binding, too
+          const duplicatedBindingId = Utils.uniqueId()
 
-        const duplicatedBinding = {
-          ...Utils.deepClone(binding),
-          id: duplicatedBindingId,
-          fromId: duplicateMap[binding.fromId],
-          toId: duplicateMap[binding.toId],
+          const duplicatedBinding = {
+            ...Utils.deepClone(binding),
+            id: duplicatedBindingId,
+            fromId: duplicateMap[binding.fromId],
+            toId: duplicateMap[binding.toId],
+          }
+
+          before.bindings[duplicatedBindingId] = undefined
+          after.bindings[duplicatedBindingId] = duplicatedBinding
+
+          // Change the duplicated shape's handle so that it reference
+          // the duplicated binding
+          const boundShape = after.shapes[duplicatedBinding.fromId]
+          Object.values(boundShape!.handles!).forEach((handle) => {
+            if (handle!.bindingId === binding.id) {
+              handle!.bindingId = duplicatedBindingId
+            }
+          })
+        } else {
+          // If only the fromId is selected, delete the binding on
+          // the duplicated shape's handles
+          const boundShape = after.shapes[duplicateMap[binding.fromId]]
+          Object.values(boundShape!.handles!).forEach((handle) => {
+            if (handle!.bindingId === binding.id) {
+              handle!.bindingId = undefined
+            }
+          })
         }
-
-        before.bindings[duplicatedBindingId] = undefined
-        after.bindings[duplicatedBindingId] = duplicatedBinding
-
-        // Change the duplicated shape's handle so that it reference
-        // the duplicated binding
-        const boundShape = after.shapes[duplicatedBinding.fromId]
-        Object.values(boundShape!.handles!).forEach((handle) => {
-          if (handle!.bindingId === binding.id) {
-            handle!.bindingId = duplicatedBindingId
-          }
-        })
-      } else {
-        // If only the fromId is selected, delete the binding on
-        // the duplicated shape's handles
-        const boundShape = after.shapes[duplicateMap[binding.fromId]]
-        Object.values(boundShape!.handles!).forEach((handle) => {
-          if (handle!.bindingId === binding.id) {
-            handle!.bindingId = undefined
-          }
-        })
       }
-    }
-  })
+    })
 
   return {
     id: 'duplicate',
@@ -142,7 +145,9 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
           [currentPageId]: after,
         },
         pageStates: {
-          [currentPageId]: { selectedIds: duplicatedShapeIds.map((id) => duplicateMap[id]) },
+          [currentPageId]: {
+            selectedIds: Array.from(dupedShapeIds.values()).map((id) => duplicateMap[id]),
+          },
         },
       },
     },

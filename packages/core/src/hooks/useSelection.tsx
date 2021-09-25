@@ -6,12 +6,12 @@ function canvasToScreen(point: number[], camera: TLPageState['camera']): number[
   return [(point[0] + camera.point[0]) * camera.zoom, (point[1] + camera.point[1]) * camera.zoom]
 }
 
-export function useSelection<T extends TLShape>(
+export function useSelection<T extends TLShape, E extends Element>(
   page: TLPage<T, TLBinding>,
   pageState: TLPageState,
-  shapeUtils: TLShapeUtils<T>
+  shapeUtils: TLShapeUtils<T, E>
 ) {
-  const { rScreenBounds } = useTLContext()
+  const { rSelectionBounds } = useTLContext()
   const { selectedIds } = pageState
 
   let bounds: TLBounds | undefined = undefined
@@ -50,7 +50,7 @@ export function useSelection<T extends TLShape>(
     const [minX, minY] = canvasToScreen([bounds.minX, bounds.minY], pageState.camera)
     const [maxX, maxY] = canvasToScreen([bounds.maxX, bounds.maxY], pageState.camera)
 
-    rScreenBounds.current = {
+    rSelectionBounds.current = {
       minX,
       minY,
       maxX,
@@ -59,7 +59,7 @@ export function useSelection<T extends TLShape>(
       height: maxY - minY,
     }
   } else {
-    rScreenBounds.current = null
+    rSelectionBounds.current = null
   }
 
   return { bounds, rotation, isLocked }

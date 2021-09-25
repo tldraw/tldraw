@@ -9,30 +9,30 @@ const cornerBgClassnames = {
   [TLBoundsCorner.BottomLeft]: 'tl-transparent tl-cursor-nesw',
 }
 
+interface CornerHandleProps {
+  size: number
+  targetSize: number
+  bounds: TLBounds
+  corner: TLBoundsCorner
+  isHidden?: boolean
+}
+
 export const CornerHandle = React.memo(
-  ({
-    size,
-    corner,
-    bounds,
-  }: {
-    size: number
-    bounds: TLBounds
-    corner: TLBoundsCorner
-  }): JSX.Element => {
+  ({ size, targetSize, isHidden, corner, bounds }: CornerHandleProps): JSX.Element => {
     const events = useBoundsHandleEvents(corner)
 
     const isTop = corner === TLBoundsCorner.TopLeft || corner === TLBoundsCorner.TopRight
     const isLeft = corner === TLBoundsCorner.TopLeft || corner === TLBoundsCorner.BottomLeft
 
     return (
-      <g>
+      <g opacity={isHidden ? 0 : 1}>
         <rect
           className={cornerBgClassnames[corner]}
-          x={(isLeft ? -1 : bounds.width + 1) - size}
-          y={(isTop ? -1 : bounds.height + 1) - size}
-          width={size * 2}
-          height={size * 2}
-          pointerEvents="all"
+          x={(isLeft ? -1 : bounds.width + 1) - targetSize}
+          y={(isTop ? -1 : bounds.height + 1) - targetSize}
+          width={targetSize * 2}
+          height={targetSize * 2}
+          pointerEvents={isHidden ? 'none' : 'all'}
           {...events}
         />
         <rect

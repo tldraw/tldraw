@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import {
   usePreventNavigation,
@@ -5,40 +6,45 @@ import {
   useSafariFocusOutFix,
   useCanvasEvents,
   useCameraCss,
+  useKeyEvents,
 } from '+hooks'
 import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
 import { ErrorFallback } from '+components/error-fallback'
 import { ErrorBoundary } from '+components/error-boundary'
 import { Brush } from '+components/brush'
-import { Defs } from '+components/defs'
 import { Page } from '+components/page'
+import { useResizeObserver } from '+hooks/useResizeObserver'
 
 function resetError() {
   void null
 }
 
-interface CanvasProps<T extends TLShape> {
+interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
   pageState: TLPageState
   hideBounds?: boolean
   hideHandles?: boolean
   hideIndicators?: boolean
-  meta?: Record<string, unknown>
+  meta?: M
+  id?: string
 }
 
-export const Canvas = React.memo(function Canvas<T extends TLShape>({
+export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
+  id,
   page,
   pageState,
   meta,
   hideHandles = false,
   hideBounds = false,
   hideIndicators = false,
-}: CanvasProps<T>): JSX.Element {
-  const rCanvas = React.useRef<SVGSVGElement>(null)
+}: CanvasProps<T, M>): JSX.Element {
+  const rCanvas = React.useRef<HTMLDivElement>(null)
+  const rContainer = React.useRef<HTMLDivElement>(null)
+  const rLayer = React.useRef<HTMLDivElement>(null)
 
-  const rGroup = useCameraCss(pageState)
+  useResizeObserver(rCanvas)
 
-  useZoomEvents()
+  useZoomEvents(rCanvas)
 
   useSafariFocusOutFix()
 
@@ -46,12 +52,25 @@ export const Canvas = React.memo(function Canvas<T extends TLShape>({
 
   const events = useCanvasEvents()
 
+  useCameraCss(rLayer, rContainer, pageState)
+
+  const preventScrolling = React.useCallback((e: React.UIEvent<HTMLDivElement, UIEvent>) => {
+    e.currentTarget.scrollTo(0, 0)
+  }, [])
+
+  useKeyEvents()
+
   return (
-    <div className="tl-container">
-      <svg id="canvas" className="tl-canvas" ref={rCanvas} {...events}>
+    <div id={id} className="tl-container" ref={rContainer}>
+      <div
+        id="canvas"
+        className="tl-absolute tl-canvas"
+        ref={rCanvas}
+        onScroll={preventScrolling}
+        {...events}
+      >
         <ErrorBoundary FallbackComponent={ErrorFallback} onReset={resetError}>
-          <Defs zoom={pageState.camera.zoom} />
-          <g ref={rGroup} id="tl-shapes">
+          <div ref={rLayer} className="tl-absolute tl-layer">
             <Page
               page={page}
               pageState={pageState}
@@ -60,10 +79,10 @@ export const Canvas = React.memo(function Canvas<T extends TLShape>({
               hideHandles={hideHandles}
               meta={meta}
             />
-            <Brush />
-          </g>
+            {pageState.brush && <Brush brush={pageState.brush} />}
+          </div>
         </ErrorBoundary>
-      </svg>
+      </div>
     </div>
   )
-})
+}

@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import type { TLBounds } from '+types'
-import { Utils } from '+utils'
 import { useBoundsEvents } from '+hooks'
+import { Container } from '+components/container'
+import { SVGContainer } from '+components/svg-container'
 
 interface BoundsBgProps {
   bounds: TLBounds
@@ -11,20 +13,11 @@ interface BoundsBgProps {
 export function BoundsBg({ bounds, rotation }: BoundsBgProps): JSX.Element {
   const events = useBoundsEvents()
 
-  const { width, height } = bounds
-
-  const center = Utils.getBoundsCenter(bounds)
-
   return (
-    <rect
-      className="tl-bounds-bg"
-      width={Math.max(1, width)}
-      height={Math.max(1, height)}
-      transform={`
-        rotate(${rotation * (180 / Math.PI)},${center})
-        translate(${bounds.minX},${bounds.minY})
-        rotate(${(bounds.rotation || 0) * (180 / Math.PI)}, 0, 0)`}
-      {...events}
-    />
+    <Container bounds={bounds} rotation={rotation}>
+      <SVGContainer>
+        <rect className="tl-bounds-bg" width={bounds.width} height={bounds.height} {...events} />
+      </SVGContainer>
+    </Container>
   )
 }

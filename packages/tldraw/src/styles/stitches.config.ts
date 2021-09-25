@@ -1,6 +1,6 @@
-import { createStitches, defaultThemeMap } from '@stitches/react'
+import { createStitches, defaultThemeMap } from '@stitches/core'
 
-const { styled, css, createTheme, getCssText } = createStitches({
+const { css, createTheme, getCssText } = createStitches({
   themeMap: {
     ...defaultThemeMap,
   },
@@ -16,7 +16,9 @@ const { styled, css, createTheme, getCssText } = createStitches({
       highlight: 'rgba(65, 132, 244, 0.15)',
       overlay: 'rgba(0, 0, 0, 0.15)',
       overlayContrast: 'rgba(255, 255, 255, 0.15)',
-      border: '#aaaaaa',
+      border: 'rgba(143, 146, 148, 1)',
+      focused: 'rgb(143, 146, 148, .35)',
+      blurred: 'rgb(143, 146, 148, .15)',
       canvas: '#f8f9fa',
       panel: '#fefefe',
       inactive: '#cccccf',
@@ -76,15 +78,11 @@ const { styled, css, createTheme, getCssText } = createStitches({
     transitions: {},
   },
   media: {
+    micro: '(max-width: 370px)',
     sm: '(min-width: 640px)',
     md: '(min-width: 768px)',
   },
   utils: {
-    zDash: () => (value: number) => {
-      return {
-        strokeDasharray: `calc(${value}px / var(--camera-zoom)) calc(${value}px / var(--camera-zoom))`,
-      }
-    },
     zStrokeWidth: () => (value: number | number[]) => {
       if (Array.isArray(value)) {
         return {
@@ -110,7 +108,9 @@ const dark = createTheme({
     highlight: 'rgba(38, 150, 255, 0.15)',
     overlay: 'rgba(0, 0, 0, 0.15)',
     overlayContrast: 'rgba(255, 255, 255, 0.15)',
-    border: '#202529',
+    border: 'rgb(32, 37, 41, 1)',
+    focused: 'rgb(32, 37, 41, 1, .15)',
+    blurred: 'rgb(32, 37, 41, 1, .05)',
     canvas: '#343d45',
     panel: '#49555f',
     inactive: '#aaaaad',
@@ -134,6 +134,6 @@ const dark = createTheme({
   },
 })
 
-export default styled
+export default css
 
-export { css, getCssText, dark }
+export { getCssText, dark }

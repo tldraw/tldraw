@@ -8,12 +8,14 @@
     "url": "git+https://github.com/tldraw/tldraw.git"
   },
   "license": "MIT",
-  "version": "0.0.36",
+  "version": "0.0.74",
   "workspaces": [
     "packages/core",
     "packages/tldraw",
     "packages/dev",
-    "packages/www"
+    "packages/www",
+    "packages/vec",
+    "packages/intersect"
   ],
   "scripts": {
     "test": "jest",
@@ -22,9 +24,10 @@
     "start": "lerna run start:pre && lerna run start --stream --parallel",
     "start:www": "yarn build:packages && lerna run start --parallel & cd packages/www && yarn dev",
     "build": "yarn build:packages && cd packages/www && yarn build",
-    "build:packages": "cd packages/core && yarn build && cd ../tldraw && yarn build",
+    "build:packages": "cd packages/vec && yarn build && cd ../intersect && yarn build && cd ../core && yarn build && cd ../tldraw && yarn build",
     "publish:patch": "yarn build:packages && lerna publish patch",
-    "docs": "lerna run docs --stream"
+    "docs": "lerna run docs",
+    "docs:watch": "lerna run docs:watch"
   },
   "devDependencies": {
     "@babel/core": "^7.15.0",
@@ -36,20 +39,20 @@
     "@testing-library/react": "^12.0.0",
     "@types/jest": "^27.0.1",
     "@types/node": "^15.0.1",
-    "@types/react": "^17.0.19",
-    "@types/react-dom": "^17.0.9",
+    "@types/react": "^16.9.55",
+    "@types/react-dom": "^16.9.9",
     "@typescript-eslint/eslint-plugin": "^4.19.0",
     "@typescript-eslint/parser": "^4.19.0",
     "babel-jest": "^27.1.0",
     "eslint": "^7.32.0",
     "fake-indexeddb": "^3.1.3",
+    "init-package-json": "^2.0.4",
     "jest": "^27.1.0",
-    "lerna": "^3.15.0",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
+    "lerna": "^3.22.1",
+    "resize-observer-polyfill": "^1.5.1",
     "ts-jest": "^27.0.5",
     "tslib": "^2.3.0",
-    "typedoc": "^0.21.9",
+    "typedoc": "^0.22.3",
     "typescript": "^4.4.2"
   },
   "dependencies": {},
@@ -102,11 +105,15 @@
     },
     "testEnvironment": "jsdom",
     "modulePathIgnorePatterns": [
+      "<rootDir>/packages/vec/dist/",
+      "<rootDir>/packages/intersect/dist/",
       "<rootDir>/packages/core/dist/",
       "<rootDir>/packages/tldraw/dist/",
       "<rootDir>/packages/tldraw/test-utils/"
     ],
     "moduleNameMapper": {
+      "@tldraw/vec": "<rootDir>/packages/vec/src",
+      "@tldraw/intersect": "<rootDir>/packages/intersect/src",
       "@tldraw/core": "<rootDir>/packages/core/src",
       "@tldraw/tldraw": "<rootDir>/packages/tldraw/src",
       "\\~(.*)": "<rootDir>/packages/tldraw/src/$1",

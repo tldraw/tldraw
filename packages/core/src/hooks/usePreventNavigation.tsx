@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import * as React from 'react'
 
-export function usePreventNavigation(rCanvas: React.RefObject<SVGGElement>): void {
+export function usePreventNavigation(rCanvas: React.RefObject<HTMLDivElement>): void {
   React.useEffect(() => {
     const preventGestureNavigation = (event: TouchEvent) => {
       event.preventDefault()

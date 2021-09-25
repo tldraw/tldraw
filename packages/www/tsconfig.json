@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "composite": true,
     "target": "es5",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -16,9 +17,11 @@
     "baseUrl": ".",
     "rootDir": ".",
     "paths": {
-      "-*": ["./*"]
+      "-*": ["./*"],
+      "@tldraw/tldraw": ["../tldraw"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "references": [{ "path": "../tldraw" }, { "path": "../core" }]
 }

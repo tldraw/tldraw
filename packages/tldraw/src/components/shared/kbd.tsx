@@ -1,5 +1,5 @@
 import * as React from 'react'
-import styled from '~styles'
+import css from '~styles'
 import { Utils } from '@tldraw/core'
 
 /* -------------------------------------------------- */
@@ -18,18 +18,18 @@ export function Kbd({
   children: string
 }): JSX.Element | null {
   return (
-    <StyledKbd variant={variant}>
+    <kbd className={kbd({ variant })}>
       {children
         .replaceAll('#', commandKey())
         .split('')
         .map((k, i) => (
           <span key={i}>{k}</span>
         ))}
-    </StyledKbd>
+    </kbd>
   )
 }
 
-export const StyledKbd = styled('kbd', {
+export const kbd = css({
   marginLeft: '$3',
   textShadow: '$2',
   textAlign: 'center',

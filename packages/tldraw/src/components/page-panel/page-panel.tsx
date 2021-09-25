@@ -5,13 +5,13 @@ import {
   breakpoints,
   DropdownMenuButton,
   DropdownMenuDivider,
-  RowButton,
-  MenuContent,
-  FloatingContainer,
-  IconWrapper,
+  rowButton,
+  menuContent,
+  floatingContainer,
+  iconWrapper,
 } from '~components/shared'
 import { PageOptionsDialog } from '~components/page-options-dialog'
-import styled from '~styles'
+import css from '~styles'
 import { useTLDrawContext } from '~hooks'
 import type { Data } from '~types'
 
@@ -51,14 +51,14 @@ export function PagePanel(): JSX.Element {
 
   return (
     <DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={handleOpenChange}>
-      <FloatingContainer>
-        <RowButton as={DropdownMenu.Trigger} bp={breakpoints} variant="noIcon">
+      <div className={floatingContainer()}>
+        <DropdownMenu.Trigger className={rowButton({ bp: breakpoints, variant: 'noIcon' })}>
           <span>{currentPageName || 'Page'}</span>
-        </RowButton>
-      </FloatingContainer>
-      <MenuContent as={DropdownMenu.Content} sideOffset={8} align="start">
+        </DropdownMenu.Trigger>
+      </div>
+      <DropdownMenu.Content className={menuContent()} sideOffset={8} align="start">
         {isOpen && <PageMenuContent onClose={handleClose} />}
-      </MenuContent>
+      </DropdownMenu.Content>
     </DropdownMenu.Root>
   )
 }
@@ -86,36 +86,34 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
     <>
       <DropdownMenu.RadioGroup value={currentPageId} onValueChange={handleChangePage}>
         {sortedPages.map((page) => (
-          <ButtonWithOptions key={page.id}>
+          <div className={buttonWithOptions()} key={page.id}>
             <DropdownMenu.RadioItem
-              as={RowButton}
-              bp={breakpoints}
+              className={rowButton({ bp: breakpoints, variant: 'pageButton' })}
               value={page.id}
-              variant="pageButton"
             >
               <span>{page.name || 'Page'}</span>
               <DropdownMenu.ItemIndicator>
-                <IconWrapper size="small">
+                <div className={iconWrapper({ size: 'small' })}>
                   <CheckIcon />
-                </IconWrapper>
+                </div>
               </DropdownMenu.ItemIndicator>
             </DropdownMenu.RadioItem>
             <PageOptionsDialog page={page} onClose={onClose} />
-          </ButtonWithOptions>
+          </div>
         ))}
       </DropdownMenu.RadioGroup>
       <DropdownMenuDivider />
       <DropdownMenuButton onSelect={handleCreatePage}>
         <span>Create Page</span>
-        <IconWrapper size="small">
+        <div className={iconWrapper({ size: 'small' })}>
           <PlusIcon />
-        </IconWrapper>
+        </div>
       </DropdownMenuButton>
     </>
   )
 }
 
-const ButtonWithOptions = styled('div', {
+const buttonWithOptions = css({
   display: 'grid',
   gridTemplateColumns: '1fr auto',
   gridAutoFlow: 'column',

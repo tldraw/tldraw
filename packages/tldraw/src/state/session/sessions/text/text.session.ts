@@ -30,22 +30,24 @@ export class TextSession implements Session {
     const { initialShape } = this
     const pageId = data.appState.currentPageId
 
-    let nextShape: TextShape = {
-      ...TLDR.getShape<TextShape>(data, initialShape.id, pageId),
-      text,
-    }
+    // let nextShape: TextShape = {
+    //   ...TLDR.getShape<TextShape>(data, initialShape.id, pageId),
+    //   text,
+    // }
 
-    nextShape = {
-      ...nextShape,
-      ...TLDR.getShapeUtils(nextShape).onStyleChange(nextShape),
-    } as TextShape
+    // nextShape = {
+    //   ...nextShape,
+    //   ...TLDR.getShapeUtils(nextShape).onStyleChange(nextShape),
+    // } as TextShape
 
     return {
       document: {
         pages: {
           [pageId]: {
             shapes: {
-              [initialShape.id]: nextShape,
+              [initialShape.id]: {
+                text,
+              },
             },
           },
         },
@@ -63,9 +65,7 @@ export class TextSession implements Session {
           [pageId]: {
             shapes: {
               [initialShape.id]: TLDR.onSessionComplete(
-                data,
-                TLDR.getShape(data, initialShape.id, pageId),
-                pageId
+                TLDR.getShape(data, initialShape.id, pageId)
               ),
             },
           },
@@ -90,7 +90,6 @@ export class TextSession implements Session {
 
     // if (initialShape.text.trim() === '' && shape.text.trim() === '') {
     //   // delete shape
-    //   console.log('deleting shape')
     //   return {
     //     id: 'text',
     //     before: {
@@ -145,7 +144,7 @@ export class TextSession implements Session {
           },
           pageState: {
             [pageId]: {
-              editingId: undefined,
+              editingId: null,
             },
           },
         },
@@ -156,16 +155,14 @@ export class TextSession implements Session {
             [pageId]: {
               shapes: {
                 [initialShape.id]: TLDR.onSessionComplete(
-                  data,
-                  TLDR.getShape(data, initialShape.id, pageId),
-                  pageId
+                  TLDR.getShape(data, initialShape.id, pageId)
                 ),
               },
             },
           },
           pageState: {
             [pageId]: {
-              editingId: undefined,
+              editingId: null,
               selectedIds: [initialShape.id],
             },
           },

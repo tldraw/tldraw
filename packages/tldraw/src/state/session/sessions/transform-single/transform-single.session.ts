@@ -1,4 +1,5 @@
-import { TLBoundsCorner, TLBoundsEdge, Utils, Vec } from '@tldraw/core'
+import { TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import { TLDrawShape, TLDrawStatus } from '~types'
 import type { Session } from '~types'
 import type { Data } from '~types'
@@ -47,13 +48,17 @@ export class TransformSingleSession implements Session {
       isAspectRatioLocked || shape.isAspectRatioLocked || utils.isAspectRatioLocked
     )
 
-    shapes[shape.id] = TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
+    const change = TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
       initialShape,
       type: this.transformType,
       scaleX: newBounds.scaleX,
       scaleY: newBounds.scaleY,
       transformOrigin: [0.5, 0.5],
     })
+
+    if (change) {
+      shapes[shape.id] = change
+    }
 
     return {
       document: {
@@ -94,9 +99,7 @@ export class TransformSingleSession implements Session {
 
     beforeShapes[initialShape.id] = initialShape
     afterShapes[initialShape.id] = TLDR.onSessionComplete(
-      data,
-      TLDR.getShape(data, initialShape.id, data.appState.currentPageId),
-      data.appState.currentPageId
+      TLDR.getShape(data, initialShape.id, data.appState.currentPageId)
     )
 
     return {

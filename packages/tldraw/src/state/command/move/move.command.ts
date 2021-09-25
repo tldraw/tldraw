@@ -122,13 +122,26 @@ export function move(data: Data, ids: string[], type: MoveType): TLDrawCommand {
                 // i = the index of the first closed spot
                 // j = the index of the first open spot
 
-                startChildIndex =
-                  j === 0 ? sortedChildren[j].childIndex / 2 : sortedChildren[j - 1].childIndex
+                const endChildIndex = sortedChildren[j].childIndex
+                let startChildIndex: number
+                let step: number
 
-                const step = (sortedChildren[j].childIndex - startChildIndex) / (i - j + 1)
+                if (j === 0) {
+                  // We're moving below the first child, start from
+                  // half of its child index.
+
+                  startChildIndex = endChildIndex / 2
+                  step = endChildIndex / 2 / (i - j + 1)
+                } else {
+                  // Start from the child index of the child below the
+                  // child above.
+                  startChildIndex = sortedChildren[j - 1].childIndex
+                  step = (endChildIndex - startChildIndex) / (i - j + 1)
+                  startChildIndex += step
+                }
 
                 for (let k = 0; k < i - j; k++) {
-                  indexMap[sortedChildren[j + k + 1].id] = startChildIndex + step * (k + 1)
+                  indexMap[sortedChildren[j + k + 1].id] = startChildIndex + step * k
                 }
 
                 break
@@ -204,7 +217,7 @@ export function move(data: Data, ids: string[], type: MoveType): TLDrawCommand {
   })
 
   return {
-    id: 'move_shapes',
+    id: 'move',
     before: {
       document: {
         pages: {

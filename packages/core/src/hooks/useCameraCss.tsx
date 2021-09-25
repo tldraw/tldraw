@@ -1,22 +1,35 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import type { TLPageState } from '+types'
 
-export function useCameraCss(pageState: TLPageState) {
-  const rGroup = React.useRef<SVGGElement>(null)
-
+export function useCameraCss(
+  layerRef: React.RefObject<HTMLDivElement>,
+  containerRef: React.RefObject<HTMLDivElement>,
+  pageState: TLPageState
+) {
   // Update the tl-zoom CSS variable when the zoom changes
-  React.useEffect(() => {
-    document.documentElement.style.setProperty('--tl-zoom', pageState.camera.zoom.toString())
-  }, [pageState.camera.zoom])
+  const rZoom = React.useRef(pageState.camera.zoom)
 
-  // Update the group's position when the camera moves or zooms
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     const {
       zoom,
-      point: [x = 0, y = 0],
+      point: [x, y],
     } = pageState.camera
-    rGroup.current?.setAttribute('transform', `scale(${zoom}) translate(${x} ${y})`)
-  }, [pageState.camera])
 
-  return rGroup
+    if (zoom !== rZoom.current) {
+      rZoom.current = zoom
+
+      const container = containerRef.current
+
+      if (container) {
+        container.style.setProperty('--tl-zoom', zoom.toString())
+      }
+    }
+
+    const layer = layerRef.current
+
+    if (layer) {
+      layer.style.setProperty('transform', `scale(${zoom}) translate(${x}px, ${y}px)`)
+    }
+  }, [pageState.camera])
 }
