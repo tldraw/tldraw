@@ -338,8 +338,7 @@ const tlcss = css`
   }
 
   .tl-minimap-viewport {
-    fill: var(--tl-selectFill);
-    stroke: var(--tl-selectStroke);
+    stroke: var(--tl-foreground);
     stroke-width: 1;
   }
 `
