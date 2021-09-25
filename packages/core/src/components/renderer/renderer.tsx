@@ -8,10 +8,10 @@ import type {
   TLTheme,
   TLBounds,
   TLBinding,
-} from '../../types'
-import { Canvas } from '../canvas'
-import { Inputs } from '../../inputs'
-import { useTLTheme, TLContext, TLContextType } from '../../hooks'
+} from '+types'
+import { Canvas } from '+components/canvas'
+import { Inputs } from '+inputs'
+import { useTLTheme, TLContext, TLContextType } from '+hooks'
 import type { TLShapeUtil } from '+index'
 
 export interface RendererProps<T extends TLShape, E extends Element = any, M = any>
@@ -67,6 +67,8 @@ export interface RendererProps<T extends TLShape, E extends Element = any, M = a
    * (optional) A callback that is fired when the editor's client bounding box changes.
    */
   onBoundsChange?: (bounds: TLBounds) => void
+
+  children?: React.ReactNode
 }
 
 /**
@@ -88,6 +90,7 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
   hideIndicators = false,
   hideBounds = false,
   onMount,
+  children,
   ...rest
 }: RendererProps<T, E, M>): JSX.Element {
   useTLTheme(theme, '#' + id)
@@ -114,15 +117,18 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
 
   return (
     <TLContext.Provider value={context as unknown as TLContextType<TLShape, Element>}>
-      <Canvas
-        id={id}
-        page={page}
-        pageState={pageState}
-        hideBounds={hideBounds}
-        hideIndicators={hideIndicators}
-        hideHandles={hideHandles}
-        meta={meta}
-      />
+      <div id={id} className="tl-container">
+        <Canvas
+          id={id}
+          page={page}
+          pageState={pageState}
+          hideBounds={hideBounds}
+          hideIndicators={hideIndicators}
+          hideHandles={hideHandles}
+          meta={meta}
+        />
+        {children}
+      </div>
     </TLContext.Provider>
   )
 }

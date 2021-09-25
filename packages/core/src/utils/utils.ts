@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-redeclare */
 import type React from 'react'
-import { TLBezierCurveSegment, TLBounds, TLBoundsCorner, TLBoundsEdge } from '../types'
+import { TLBezierCurveSegment, TLBounds, TLBoundsCorner, TLBoundsEdge } from '+types'
 import { Vec } from '@tldraw/vec'
 import './polyfills'
 import type { Patch } from '+index'

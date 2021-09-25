@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
-import { Renderer } from '@tldraw/core'
+import { Renderer, Minimap } from '@tldraw/core'
 import css from '~styles'
 import { Data, TLDrawDocument, TLDrawStatus } from '~types'
 import { TLDrawState } from '~state'
@@ -243,7 +243,9 @@ function InnerTldraw({
             onPointMinimap={tlstate.onPointMinimap}
             onKeyDown={tlstate.onKeyDown}
             onKeyUp={tlstate.onKeyUp}
-          />
+          >
+            <Minimap page={page} pageState={pageState} bottom={112} right={8} />
+          </Renderer>
         </ContextMenu>
         {isFocusMode ? (
           <div className={unfocusButton()}>

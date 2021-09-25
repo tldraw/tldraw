@@ -5,7 +5,6 @@ import type { IShapeTreeNode, TLPage, TLPageState, TLShape, TLBinding, TLBounds 
 import { Utils } from '+utils'
 import { Vec } from '@tldraw/vec'
 import { useTLContext } from '+hooks'
-import { MINIMAP_HEIGHT, MINIMAP_WIDTH } from '+constants'
 
 function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   shape: T,
@@ -96,7 +95,6 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
     height: Math.abs(maxY - minY),
   }
 
-  const shapeBounds: Record<string, TLBounds> = {}
   const shapesToRender = rShapesToRender.current
   const shapesIdsToRender = rShapesIdsToRender.current
 
@@ -107,7 +105,6 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
 
   allShapes.forEach((shape) => {
     const bounds = shapeUtils[shape.type as T['type']].getBounds(shape)
-    shapeBounds[shape.id] = bounds
 
     // Don't hide selected shapes (this breaks certain drag interactions)
     if (selectedIds.includes(shape.id) || shapeIsInViewport(bounds, viewport)) {
@@ -143,67 +140,7 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
 
   shapesToRender.forEach((shape) => addToShapeTree(shape, tree, page.shapes, info))
 
-  const minimapShapes: { shape: T; bounds: TLBounds }[] = []
-
-  const commonBounds = Utils.getCommonBounds([viewport, ...Object.values(shapeBounds)])
-
-  // Map component size
-  const mh = MINIMAP_HEIGHT
-  const mw = MINIMAP_WIDTH
-
-  const l = commonBounds.minX
-  const r = commonBounds.maxX
-  const t = commonBounds.minY
-  const b = commonBounds.maxY
-  const w = commonBounds.width
-  const h = commonBounds.height
-
-  const iw = w < h ? mw * (w / h) : mw
-  const ih = w > h ? mh * (h / w) : mh
-  const il = w < h ? (mw - iw) / 2 : 0
-  const it = w > h ? (mh - ih) / 2 : 0
-
-  const vp = {
-    minX: il + iw * ((viewport.minX - l) / w),
-    minY: it + ih * ((viewport.minY - t) / h),
-    maxX: il + iw * ((viewport.maxX - r) / w),
-    maxY: it + ih * ((viewport.maxY - b) / h),
-    width: iw * (viewport.width / w),
-    height: ih * (viewport.height / h),
-  }
-
-  allShapes.forEach((shape) => {
-    const bounds = shapeBounds[shape.id]
-
-    minimapShapes.push({
-      shape,
-      bounds: {
-        minX: il + iw * ((bounds.minX - l) / w),
-        minY: it + ih * ((bounds.minY - t) / h),
-        maxX: il + iw * ((bounds.maxX - r) / w),
-        maxY: it + ih * ((bounds.maxY - b) / h),
-        width: (iw * bounds.width) / w,
-        height: (ih * bounds.height) / h,
-      },
-    })
-  })
-
   return {
-    allShapes,
     shapeTree: tree,
-    viewport,
-    commonBounds,
-    minimap: {
-      mapBounds: {
-        minX: il,
-        minY: it,
-        maxX: il + iw,
-        maxY: it + ih,
-        width: iw,
-        height: ih,
-      },
-      viewport: vp,
-      shapes: minimapShapes,
-    },
   }
 }

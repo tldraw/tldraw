@@ -173,9 +173,9 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
     return (
       <path
         d={pathData}
-        strokeWidth={5}
+        strokeWidth={10}
         stroke={styles.stroke}
-        fill={styles.fill}
+        fill="none"
         width={bounds.width}
         height={bounds.height}
         transform={`translate(${bounds.minX}, ${bounds.minY})  scale(${

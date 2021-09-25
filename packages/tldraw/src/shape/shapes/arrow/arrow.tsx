@@ -251,6 +251,112 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
     return <path d={path} />
   },
 
+  MiniShape({ shape, bounds }) {
+    const {
+      handles: { bend, start, end },
+      decorations,
+      style,
+    } = shape
+
+    const styles = getShapeStyle(style, false)
+
+    const trueBounds = this.getBounds(shape)
+
+    const ns = [
+      (start.point[0] / trueBounds.width) * bounds.width,
+      (start.point[1] / trueBounds.height) * bounds.height,
+    ]
+
+    const ne = [
+      (end.point[0] / trueBounds.width) * bounds.width,
+      (end.point[1] / trueBounds.height) * bounds.height,
+    ]
+
+    let shaftPath: string
+    let startArrowHead: { left: number[]; right: number[] } | undefined
+    let endArrowHead: { left: number[]; right: number[] } | undefined
+
+    const isStraightLine = Vec.dist(bend.point, Vec.round(Vec.med(start.point, end.point))) < 1
+
+    if (isStraightLine) {
+      const arrowDist = Vec.dist(ns, ne)
+
+      const arrowHeadLength = Math.min(arrowDist / 3, 3)
+
+      if (decorations?.start) {
+        startArrowHead = getStraightArrowHeadPoints(ns, ne, arrowHeadLength)
+      }
+
+      if (decorations?.end) {
+        endArrowHead = getStraightArrowHeadPoints(ne, ns, arrowHeadLength)
+      }
+
+      shaftPath = `M ${ns} L ${ne}`
+    } else {
+      const nb = [
+        (bend.point[0] / trueBounds.width) * bounds.width,
+        (bend.point[1] / trueBounds.height) * bounds.height,
+      ]
+
+      const [cx, cy, radius] = Utils.circleFromThreePoints(ns, ne, nb)
+
+      const center = [cx, cy]
+
+      const length = Utils.getArcLength(center, radius, ns, ne)
+
+      const arrowHeadLength = 3
+
+      if (decorations?.start) {
+        startArrowHead = getCurvedArrowHeadPoints(ns, arrowHeadLength, center, radius, length < 0)
+      }
+
+      if (decorations?.end) {
+        endArrowHead = getCurvedArrowHeadPoints(ne, arrowHeadLength, center, radius, length >= 0)
+      }
+
+      shaftPath = `M ${ns} A ${radius} ${radius} 0 0 ${length > 0 ? '1' : '0'} ${ne}`
+    }
+
+    console.log(shaftPath)
+
+    return (
+      <g
+        strokeWidth={1}
+        fill="none"
+        stroke={styles.stroke}
+        transform={`translate(${bounds.minX}, ${bounds.minY})`}
+      >
+        <path d={shaftPath} />
+        {startArrowHead && (
+          <path
+            d={`M ${startArrowHead.left} L ${ns} ${startArrowHead.right}`}
+            fill="none"
+            stroke={styles.stroke}
+            strokeWidth={1}
+            strokeDashoffset="none"
+            strokeDasharray="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            pointerEvents="stroke"
+          />
+        )}
+        {endArrowHead && (
+          <path
+            d={`M ${endArrowHead.left} L ${ne} ${endArrowHead.right}`}
+            fill="none"
+            stroke={styles.stroke}
+            strokeWidth={1}
+            strokeDashoffset="none"
+            strokeDasharray="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            pointerEvents="stroke"
+          />
+        )}
+      </g>
+    )
+  },
+
   shouldRender(prev, next) {
     return (
       next.decorations !== prev.decorations ||
@@ -732,6 +838,7 @@ function getCurvedArrowHeadPoints(
   sweep: boolean
 ) {
   const ints = intersectCircleCircle(A, r1 * 0.618, C, r2).points
+
   if (!ints) {
     console.warn('Could not find an intersection for the arrow head.')
     return { left: A, right: A }

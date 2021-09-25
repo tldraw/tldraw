@@ -331,11 +331,7 @@ const tlcss = css`
   }
 
   .tl-minimap {
-    width: ${MINIMAP_WIDTH}px;
-    height: ${MINIMAP_HEIGHT}px;
     position: absolute;
-    top: 64px;
-    left: 8px;
     pointer-events: all;
     background-color: var(--tl-background);
     border: 1px solid var(--tl-foreground);
