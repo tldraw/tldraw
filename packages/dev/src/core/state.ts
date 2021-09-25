@@ -5,14 +5,22 @@ import type {
   TLPointerEventHandler,
   TLShapeChangeHandler,
 } from '@tldraw/core'
-import type { RectangleShape } from './rectangle'
-import type { LabelShape } from './label'
+import { ShapeUtil } from '@tldraw/core'
+import { Article, ArticleShape } from './article'
+import { Rectangle, RectangleShape } from './rectangle'
+import { Label, LabelShape } from './label'
 import { StateManager } from 'rko'
 
-type Shapes = RectangleShape | LabelShape
+const shapeUtils: Record<string, any> = {
+  rectangle: Rectangle,
+  label: Label,
+  article: Article,
+}
+
+type Shape = RectangleShape | LabelShape | ArticleShape
 
 interface State {
-  page: TLPage<Shapes, TLBinding>
+  page: TLPage<Shape, TLBinding>
   pageState: TLPageState
   meta: {
     isDarkMode: boolean
@@ -58,10 +66,58 @@ class AppState extends StateManager<State> {
     })
   }
 
+  /**
+   * Manually create shapes on the page.
+   * @param shapes An array of shape partials, containing the initial props for the shapes.
+   * @command
+   */
+  createShapes = (...shapes: ({ id: string; type: Shape['type'] } & Partial<Shape>)[]): this => {
+    if (shapes.length === 0) return this
+    return this.create(
+      ...shapes.map((shape) => {
+        return shapeUtils[shape.type].create({
+          ...shape,
+          parentId: shape.parentId || this.state.page.id,
+        })
+      })
+    )
+  }
+
+  /**
+   * Manually update a set of shapes.
+   * @param shapes An array of shape partials, containing the changes to be made to each shape.
+   * @command
+   */
+  updateShapes = (...shapes: ({ id: string } & Partial<Shape>)[]): this => {
+    const pageShapes = this.state.page.shapes
+    const shapesToUpdate = shapes.filter((shape) => pageShapes[shape.id])
+    if (shapesToUpdate.length === 0) return this
+    return this.setState(
+      Commands.update(this.state, shapesToUpdate, this.state.page.id),
+      'updated_shapes'
+    )
+  }
+
+  /**
+   * Create one or more shapes.
+   * @param shapes An array of shapes.
+   * @command
+   */
+  create = (...shapes: TLDrawShape[]): this => {
+    if (shapes.length === 0) return this
+    return this.setState(Commands.create(this.state, shapes))
+  }
+
   /* --------------------- Events --------------------- */
 
   onPointCanvas: TLPointerEventHandler = (info) => {
-    this.deselect()
+    if (this.state.pageState.selectedIds.length > 0) {
+      this.deselect()
+    } else {
+      if (info.shiftKey) {
+        this.create
+      }
+    }
   }
 
   onPointShape: TLPointerEventHandler = (info) => {
