@@ -52,12 +52,12 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
     const verySmall = bounds.width < strokeWidth / 2 && bounds.height < strokeWidth / 2
 
     if (!isEditing && verySmall) {
-      const sw = strokeWidth * 0.618
+      const sw = strokeWidth * 1
 
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           <circle
-            r={strokeWidth * 0.618}
+            r={strokeWidth * 1}
             fill={styles.stroke}
             stroke={styles.stroke}
             strokeWidth={sw}
