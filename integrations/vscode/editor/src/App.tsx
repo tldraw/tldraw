@@ -29,6 +29,27 @@ function postMessage(type:any,text:any = undefined){
 export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // useEffect(()=>{
+  //   const handleExtensionMessage = (event:any) => {
+  //     console.log(event.data);
+  //     if(event.data.active===true){
+  //       setTimeout(()=>{
+  //       document.body.focus();
+  //     }, 500);
+  //     }
+  //   }
+  //   window.addEventListener("message", handleExtensionMessage);
+
+  //   document.body.addEventListener('focusin', (event:any) => {
+  //     console.log('focusin');
+  //     console.log(event);
+  //   })
+
+  //   return ()=>{
+  //     window.removeEventListener("message", handleExtensionMessage);
+  //   }
+  // },[])
+
   const handleMount = useCallback((tldr: TLDrawState) => {
     containerRef.current?.focus();
   }, []);
@@ -44,9 +65,10 @@ export default function App() {
 
   // If the initial document is an empty string, we initialize it to the default 
   // document text content
-  const document = initialDocument === null ? defaultDocument : initialDocument;
+  const doc = initialDocument === null ? defaultDocument : initialDocument;
 
   return <div ref={containerRef} className="App">
-    <TLDraw document={document} onMount={handleMount} onChange={handleChange}/>
+    {/* <h1 style={{zIndex: 10, color: "blue"}}>Test</h1> */}
+    <TLDraw document={doc} onMount={handleMount} onChange={handleChange}/>
   </div>
 }

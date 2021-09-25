@@ -1,7 +1,5 @@
-import * as vscode from 'vscode'
-import {getHtmlForWebview} from './get-html'
-
-console.log("tldraw extension loaded")
+import * as vscode from 'vscode';
+import {getHtmlForWebview} from './get-html';
 
 /**
  * The Tldraw extension's editor uses CustomTextEditorProvider, which means
@@ -10,7 +8,7 @@ console.log("tldraw extension loaded")
  * more book keeping on our part.
  */
 export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
-  private document?: vscode.TextDocument
+  private document?: vscode.TextDocument;
 
   // When the tldraw.tldr.new command is triggered, we need to provide a file
   // name when generating a new .tldr file. newTldrawFileId's current value is
@@ -20,7 +18,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
   // this name is only the temporary name for the new file. The file is still only in memory
   // and hasn't been saved to an actual underlying file. If we suggest a name that turns
   // out to already exist, VS Code will prevent it from being used in it's save dialogs.
-  private static newTldrawFileId = 1
+  private static newTldrawFileId = 1;
 
   // This is called one time by the main extension entry point. See 'extension.ts'.
   // We register commands here and register our custom editor's provider telling VS Code
@@ -175,11 +173,6 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
           this.synchronizeTextDocument(document, JSON.parse(e.text))
           break;
       }
-    })
-
-    webviewPanel.onDidChangeViewState((e)=>{
-      console.log("onDidChangeViewState");
-      console.log(e);
     })
 
     // Send the initial document content to bootstrap the tldraw/tldraw component.

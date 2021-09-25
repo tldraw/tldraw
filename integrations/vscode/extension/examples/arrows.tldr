@@ -533,7 +533,9 @@
   "pageStates": {
     "page": {
       "id": "page",
-      "selectedIds": [],
+      "selectedIds": [
+        "58343232-2843-48ff-214c-f801ba274f24"
+      ],
       "camera": {
         "point": [
           -257,
@@ -541,7 +543,7 @@
         ],
         "zoom": 1
       },
-      "editingId": null
+      "hoveredId": "58343232-2843-48ff-214c-f801ba274f24"
     },
     "page1": {
       "id": "page1",

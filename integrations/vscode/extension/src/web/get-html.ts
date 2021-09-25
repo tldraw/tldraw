@@ -112,23 +112,23 @@ function getProductionModeHTML(context: vscode.ExtensionContext, webview: vscode
     vscode.Uri.joinPath(
       context.extensionUri,
       'build/static/css',
-      'main.c353a27c.chunk.css'
+      'main.b6034ae7.chunk.css'
     )
   )
 
   const jsUrl1 = webview.asWebviewUri(
     vscode.Uri.joinPath(
       context.extensionUri,
-      'build',
-      './static/js/2.2ec010b5.chunk.js'//Replace Me #1
+      'build/',
+      './static/js/2.cb5846df.chunk.js'//Replace Me #1
     )
   )
 
   const jsUrl2 = webview.asWebviewUri(
     vscode.Uri.joinPath(
       context.extensionUri,
-      'build',
-      './static/js/main.54cae952.chunk.js'//Replace Me #2
+      'build/',
+      './static/js/main.69ffc2de.chunk.js'//Replace Me #2
     )
   )
 

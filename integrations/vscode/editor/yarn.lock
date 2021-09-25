@@ -2032,14 +2032,14 @@
     "@sinonjs/commons" "^1.7.0"
 
 "@stitches/core@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@stitches/core/-/core-1.2.0.tgz#5d507e1d27af1363265dbfdfd419d8e11262efce"
-  integrity sha512-UjZHg9aWpqnRGtyewmNFEwtceRAiK7O1CjAGTBtN9bbw2N02SRZFYCTLUMxpFZi4J7juBQJKxbc7yvi+Y4Qg2g==
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@stitches/core/-/core-1.2.1.tgz#64dc228d2f6e29708fe25666fcd51f4febcc40bb"
+  integrity sha512-khmA2qkQt+YWMa3PAG5ybLmc6jSGBfXEvOOsRZV6EgxbN0UTMdvOPMqzouPepo9hsUiPeEtqLzQjKktir6hPaw==
 
 "@stitches/react@^1.0.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@stitches/react/-/react-1.2.0.tgz#cdb69256d76bcb4753417d59bc42da21fd603ba1"
-  integrity sha512-GuMh610X3oJB2pdywARg1jccjAEvrDbq4iwy1SernR/4o1FX5SOTJZIjC4CquagZQjL00KFV8Cwfq/12FS6aBg==
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@stitches/react/-/react-1.2.1.tgz#1e6e5877ccb0151a26f27c731e03efee55e8f7c6"
+  integrity sha512-xVnYuU3ZwvI4ghdM5r21hCb4eejkTZQqxm3q5iRTBnrbiG/8jpbEWTi8gXXjZ9X4+PssjuqBrjvPSqAcPvya6w==
 
 "@surma/rollup-plugin-off-main-thread@^1.1.1":
   version "1.4.2"
@@ -2152,26 +2152,26 @@
     "@svgr/plugin-svgo" "^5.5.0"
     loader-utils "^2.0.0"
 
-"@tldraw/core@^0.0.97":
-  version "0.0.97"
-  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.0.97.tgz#5efc074ffa598433eff87796dcfa1f2da47194d2"
-  integrity sha512-+qHs/nKBHHgw4vskzIXuK12wtFYPrzkgPnu2B0xfTH+9DGSDrZAj8RKE5LTCdU6sO5ATVAaJI9BG4aMg9Sh7Ug==
+"@tldraw/core@^0.0.102":
+  version "0.0.102"
+  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.0.102.tgz#4e85a83bb2c90f99c570c1e490969fe74062a5cc"
+  integrity sha512-3NZVLr39/RC6pjqhtQMVWqxTagcw+YULA5RQSbCPfT1RhR6GruKquJ7GubdOhn7qXbXC8lwF7QO1ktYURgRkgg==
   dependencies:
-    "@tldraw/intersect" "^0.0.97"
-    "@tldraw/vec" "^0.0.97"
-    "@use-gesture/react" "^10.0.0-beta.24"
+    "@tldraw/intersect" "^0.0.102"
+    "@tldraw/vec" "^0.0.102"
+    "@use-gesture/react" "^10.0.0-beta.26"
 
-"@tldraw/intersect@^0.0.97":
-  version "0.0.97"
-  resolved "https://registry.yarnpkg.com/@tldraw/intersect/-/intersect-0.0.97.tgz#26ad68fc282f228ce010e8bfa4090a51ca318929"
-  integrity sha512-PZh6bj+NNaoqP8z0eFhPJdQ78kU/O9evzaUcmgfre9x/vpXHNcPwDErnh5r4FQqLO2zJbKl7kKcB8C6EmjBp8Q==
+"@tldraw/intersect@^0.0.102":
+  version "0.0.102"
+  resolved "https://registry.yarnpkg.com/@tldraw/intersect/-/intersect-0.0.102.tgz#05cacfa33efea0d3fcc64334e5733ebbd5285364"
+  integrity sha512-lR3wzYrXsbbl1Bz1Q2UmsKel/vvYXVgKpDOs3hFxaADG0uB51oczbGIydHLCyYQxdr49UHy4DZvllBUsHiutfg==
   dependencies:
-    "@tldraw/vec" "^0.0.97"
+    "@tldraw/vec" "^0.0.102"
 
-"@tldraw/tldraw@^0.0.97":
-  version "0.0.97"
-  resolved "https://registry.yarnpkg.com/@tldraw/tldraw/-/tldraw-0.0.97.tgz#9a28a110a8d06b9111bb3190733dc72e1f5d3702"
-  integrity sha512-ioyYK3o4qdLVUrV1GX4fzz7weiUb/VOd41CUe9fqDTeNGCBhyBjim93sLzPV9pP5KEuPfsLXyYsb3n9acAneXg==
+"@tldraw/tldraw@0.0.102":
+  version "0.0.102"
+  resolved "https://registry.yarnpkg.com/@tldraw/tldraw/-/tldraw-0.0.102.tgz#a0d80fc7ab466f1817c0edd01fddb427db62bbbc"
+  integrity sha512-A4ojxQDuHa+6r6fK6Rz8LUZZBplEwVPVCWpDVIzGvimsFu/+l6ZVCmpR7Xn8hvuDY2LPHEbQARvErOowe1H6RA==
   dependencies:
     "@radix-ui/react-alert-dialog" "^0.0.20"
     "@radix-ui/react-checkbox" "^0.0.16"
@@ -2183,17 +2183,17 @@
     "@radix-ui/react-tooltip" "^0.0.20"
     "@stitches/core" "^1.2.0"
     "@stitches/react" "^1.0.0"
-    "@tldraw/core" "^0.0.97"
-    "@tldraw/intersect" "^0.0.97"
-    "@tldraw/vec" "^0.0.97"
+    "@tldraw/core" "^0.0.102"
+    "@tldraw/intersect" "^0.0.102"
+    "@tldraw/vec" "^0.0.102"
     perfect-freehand "^1.0.9"
     react-hotkeys-hook "^3.4.0"
     rko "^0.5.25"
 
-"@tldraw/vec@^0.0.97":
-  version "0.0.97"
-  resolved "https://registry.yarnpkg.com/@tldraw/vec/-/vec-0.0.97.tgz#b1d857bc1dd6f1c03da13d2234adb86763c252b4"
-  integrity sha512-8W1WTxXGaOKK6N8QR0Msb/HiqojXzgSjIIRgrUq7GNa6yxQ7d9AGWuWqqYg5HuXi0Vbl2S34DAbUgHG7dFj4SA==
+"@tldraw/vec@^0.0.102":
+  version "0.0.102"
+  resolved "https://registry.yarnpkg.com/@tldraw/vec/-/vec-0.0.102.tgz#bd25b35ba3788348cc81ab1fef7eb29dbcc6900d"
+  integrity sha512-n/1CZpKGLOKyha4zKZKQaLrJtHhqrSxH0DzuWG7fXCpa2XnbcjoPso6OmTzZotMym8JiJddRiT2CYpBjrFWIGg==
 
 "@tootallnate/once@1":
   version "1.1.2"
@@ -2529,17 +2529,17 @@
     "@typescript-eslint/types" "4.30.0"
     eslint-visitor-keys "^2.0.0"
 
-"@use-gesture/core@^10.0.0-beta.26":
-  version "10.0.0-beta.26"
-  resolved "https://registry.yarnpkg.com/@use-gesture/core/-/core-10.0.0-beta.26.tgz#275a69ed65c6463cb59872a6f0b24b66212e8bf5"
-  integrity sha512-Y+fwWlYHzGlc/c4aE3fUkQy7cE4+Tbd1CWQqAlO4czN2nGpgZksW7V98FMgCHrmMGXi+VdNSTS8WBHmw8kq3Zg==
+"@use-gesture/core@^10.0.0":
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/@use-gesture/core/-/core-10.0.0.tgz#00caa83f8a5a4292f487862cc5186facb988fc3d"
+  integrity sha512-Xr8qusq1UeHy+UcEpw4yinwLLOhvyX9DOaNbiYruSYppdef2fEHC8JtA32jc1QEUU5C7DBEO1onvBQdZNXtlLg==
 
-"@use-gesture/react@^10.0.0-beta.24":
-  version "10.0.0-beta.26"
-  resolved "https://registry.yarnpkg.com/@use-gesture/react/-/react-10.0.0-beta.26.tgz#9b5c3a9111d6cda62de125612fb830efcc1df571"
-  integrity sha512-TENwg1CgB+okRTBWvcMtEaKYgQvktU0ezG4sQdo/mqZXNvTzuk9g/qK4v++8UzIhj/srqRp49NPBbY0qzsgg1w==
+"@use-gesture/react@^10.0.0-beta.26":
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/@use-gesture/react/-/react-10.0.0.tgz#31f1145bf9467c22acc4f1884dbdf3fbd41d6da3"
+  integrity sha512-ltJ+uvrqqHyeJhA4bpSj4hi7K59ijTMcjxKoHOEQdrIw5N8RVoByEw9P5EJPGA0TSHFe01lDIA+NIOiG6oG81w==
   dependencies:
-    "@use-gesture/core" "^10.0.0-beta.26"
+    "@use-gesture/core" "^10.0.0"
 
 "@webassemblyjs/ast@1.9.0":
   version "1.9.0"
@@ -8479,9 +8479,9 @@ pbkdf2@^3.0.3:
     sha.js "^2.4.8"
 
 perfect-freehand@^1.0.9:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/perfect-freehand/-/perfect-freehand-1.0.9.tgz#9b5fb96181004bcec62f3721d25cebea2ec34a3f"
-  integrity sha512-YCbnozlv+Wqmxexi/3YDftCXNjqs6bpTZ01tN+pBJbiA3b8DTvgZGPgd8mxxaXkAQzEsgD0bkS1h9vy3EWnm2w==
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/perfect-freehand/-/perfect-freehand-1.0.12.tgz#5f3614e099ad459ced4f50da9ce109fdf5b62b90"
+  integrity sha512-tY6ZVUbF672WJdHQMSz+YT45WgkeoLtbD5oe0TQNAZWCd4xD8B0Pcv+3URMEqhErR4JenRgSlV4kT7zHsbvzVg==
 
 performance-now@^2.1.0:
   version "2.1.0"

@@ -33,14 +33,23 @@ Things we're cutting
 
 ## Running The Extension
 
-- Open this example in VS Code 1.46+
-- `cd integrations/vscode-extension`
-- `yarn`
-- `yarn run watch` or `yarn run compile`
-- Open VS Code so that `integrations/vscode-extension` is the top-level folder. `cd integrations/vscode-extension; code .`
-- `F5` to start debugging
-
-Open the example files from the `exampleFiles` directory.
+- Setup/Run the editor (a create react app that houses the tldraw component)
+ - `cd integrations/vscode/editor`
+ - `yarn`
+ - `yarn start`
+- To setup/run the extension 
+ - In a new terminal
+   - Install dependencies 
+     - `yarn`
+   - Open just the extension folder in VS Code (necessary to use it's launch.json)
+     - `code .`
+   - Run the extension using F5 (the launch.json setups watching too)
+    - This will open a new VS Code window where the extension is installed in memory
+    - Open a folder containing some .tldr files. Ex. tldraw/integrations/extension/examples
+    - Select a .tldr file to test
+    - You'll have to toggle between the extension/editor/debug VS Code instances to change things and see the results 
+    - NOTE: Hot reloading doesn't work right now for the editor's create-react-app workflow. I have yet to figure out how to set the websocket host, which currently assumes it's housed on the same host as the page it's loaded in (which for the extension is some weird custom protocol)
+     - If you close and reopen a .tldr file, it will load the latest change though
 
 ## Publishing/Packaging Extensions
 
@@ -61,4 +70,3 @@ https://code.visualstudio.com/api/working-with-extensions/publishing-extension
 - [Custom Editor API](https://code.visualstudio.com/api/extension-guides/custom-editors)
 - [github.com/microsoft/vscode-extension-samples](https://github.com/microsoft/vscode-extension-samples)
 - [Extensions Guide -> Webviews](https://code.visualstudio.com/api/extension-guides/webview)
-
