@@ -1,74 +1,66 @@
-import { useRef, useCallback } from "react";
-import "./styles.css";
-import { TLDraw, Data, TLDrawState, TLDrawDocument } from "@tldraw/tldraw";
-import defaultDocument from "./DefaultDocument";
+import * as React from 'react'
+import './styles.css'
+import { TLDraw, Data, TLDrawState, TLDrawDocument } from '@tldraw/tldraw'
+import { ExtensionMessage, EXTENSION_EVENT, UI_EVENT } from './types'
+import { vscode } from './utils/vscode'
+import { eventsRegex } from './utils/eventsRegex'
+import { defaultDocument } from './utils/defaultDocument'
 
-// Declare the global function made available to VS Code Extension webviews.
-// TODO: Figure out where this work around declaration should properly go, 
-// or find out if there are vscode type declarations we can tie into to have
-// the proper typings for this function. 
-declare function acquireVsCodeApi(): any;
-const vscode = acquireVsCodeApi();
-// This declares the global variable we inject in webpage the extension 
-// that stores the initial text content of the .tldr file
-// TODO: Figure out where to declare this more by convention
-// declare const initialDocument: string;
-declare let initialDocument: TLDrawDocument;
+// Will be placed in global scope by extension
+declare let localDocument: TLDrawDocument
 
-function postMessage(type:any,text:any = undefined){
-  // Notify extension that something has changed. This ends up being called by
-  // the history execute/redo/undo commands, so we put this here.
-  if (window.self !== window.top) {
-    vscode.postMessage({
-      type,
-      text
-    })
-  }
-}
+export default function App(): JSX.Element {
+  const rTLDrawState = React.useRef<TLDrawState>()
 
-export default function App() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const rContainer = React.useRef<HTMLDivElement>(null)
 
-  // useEffect(()=>{
-  //   const handleExtensionMessage = (event:any) => {
-  //     console.log(event.data);
-  //     if(event.data.active===true){
-  //       setTimeout(()=>{
-  //       document.body.focus();
-  //     }, 500);
-  //     }
-  //   }
-  //   window.addEventListener("message", handleExtensionMessage);
+  // When the editor mounts, save the tlstate instance in a ref.
+  const handleMount = React.useCallback((tldr: TLDrawState) => {
+    rTLDrawState.current = tldr
+  }, [])
 
-  //   document.body.addEventListener('focusin', (event:any) => {
-  //     console.log('focusin');
-  //     console.log(event);
-  //   })
+  // When the editor's document changes, post the stringified document to the vscode extension.
+  const handleChange = React.useCallback((tldr: TLDrawState, data: Data, type: string) => {
+    if (type.search(eventsRegex) === 0) {
+      vscode.postMessage({ type: UI_EVENT.TLDRAW_UPDATED, text: JSON.stringify(tldr.document) })
+    }
+  }, [])
 
-  //   return ()=>{
-  //     window.removeEventListener("message", handleExtensionMessage);
-  //   }
-  // },[])
+  React.useEffect(() => {
+    const handleExtensionMessage = (message: ExtensionMessage) => {
+      switch (message.data.type) {
+        case EXTENSION_EVENT.LOCAL_FILE_UPDATED: {
+          const tlstate = rTLDrawState.current
+          if (!tlstate) return
 
-  const handleMount = useCallback((tldr: TLDrawState) => {
-    containerRef.current?.focus();
-  }, []);
+          const updatedDocument: TLDrawDocument = JSON.parse(message.data.text)
+          if (!updatedDocument) return
 
-  const handleChange = useCallback((tldr: TLDrawState, data:Data, type: string) => {
-    // Only synchronize the extension document state on commands. Changes also come
-    // from things sessions which generate a lot of change events, for example when
-    // the user is creating a draw stroke.
-    if(type.search("command:")=== 0){
-      postMessage( 'tldraw-updated', JSON.stringify(tldr.document) );
-    } 
-  }, []);
+          updatedDocument.pageStates = {}
 
-  // If the initial document is an empty string, we initialize it to the default 
-  // document text content
-  const doc = initialDocument === null ? defaultDocument : initialDocument;
+          const pageStates = tlstate.document.pageStates
+          tlstate.updateDocument({ ...updatedDocument, pageStates })
+        }
+      }
+    }
+    window.addEventListener('message', handleExtensionMessage)
+    return () => {
+      window.removeEventListener('message', handleExtensionMessage)
+    }
+  }, [])
 
-  return <div ref={containerRef} className="App">
-    {/* <h1 style={{zIndex: 10, color: "blue"}}>Test</h1> */}
-    <TLDraw document={doc} onMount={handleMount} onChange={handleChange}/>
-  </div>
+  // If the initial document is an empty string, we initialize it to the default document text content.
+  const document = localDocument === null ? defaultDocument : localDocument
+
+  return (
+    <div className="tldraw" ref={rContainer}>
+      <TLDraw
+        id={document.id}
+        document={document}
+        onMount={handleMount}
+        onChange={handleChange}
+        autofocus
+      />
+    </div>
+  )
 }
