@@ -324,6 +324,8 @@ export type TLShapeUtil<
 
   canBind: boolean
 
+  isStateful: boolean
+
   getRotatedBounds(this: TLShapeUtil<T, E, M>, shape: T): TLBounds
 
   hitTest(this: TLShapeUtil<T, E, M>, shape: T, point: number[]): boolean
