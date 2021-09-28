@@ -22,6 +22,8 @@ export const ShapeUtil = function <T extends TLShape, E extends Element, M = any
 
     canBind: false,
 
+    isStateful: false,
+
     isAspectRatioLocked: false,
 
     create: (props) => {

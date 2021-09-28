@@ -10,6 +10,7 @@ import type {
   TLCallbacks,
   TLBinding,
   TLBounds,
+  TLShapeUtil,
 } from '+types'
 import { Utils } from '+utils'
 import { Vec } from '@tldraw/vec'
@@ -69,6 +70,13 @@ function shapeIsInViewport(bounds: TLBounds, viewport: TLBounds) {
   return Utils.boundsContain(viewport, bounds) || Utils.boundsCollide(viewport, bounds)
 }
 
+function getShapeUtils<T extends TLShape, E extends Element>(
+  shape: T,
+  shapeUtils: TLShapeUtils<T, E>
+) {
+  return shapeUtils[shape.type] as TLShapeUtil<T, E>
+}
+
 export function useShapeTree<
   T extends TLShape,
   E extends Element,
@@ -111,21 +119,34 @@ export function useShapeTree<
   shapesIdsToRender.clear()
 
   Object.values(page.shapes)
+    .filter(
+      (shape) =>
+        // Always render shapes that are flagged as stateful
+        getShapeUtils(shape, shapeUtils).isStateful ||
+        // Always render selected shapes (this preserves certain drag interactions)
+        selectedIds.includes(shape.id) ||
+        // Otherwise, only render shapes that are in view
+        shapeIsInViewport(shapeUtils[shape.type as T['type']].getBounds(shape), viewport)
+    )
     .sort((a, b) => a.childIndex - b.childIndex)
     .forEach((shape) => {
-      // Don't hide selected shapes (this breaks certain drag interactions)
-      if (
-        selectedIds.includes(shape.id) ||
-        shapeIsInViewport(shapeUtils[shape.type as T['type']].getBounds(shape), viewport)
-      ) {
-        if (shape.parentId === page.id) {
-          shapesIdsToRender.add(shape.id)
-          shapesToRender.add(shape)
-        }
+      // If the shape's parent is the page, add it to our sets of shapes to render
+      if (shape.parentId === page.id) {
+        shapesIdsToRender.add(shape.id)
+        shapesToRender.add(shape)
+        return
       }
+
+      // If the shape's parent is a different shape (e.g. a group),
+      // add the parent to the sets of shapes to render. The parent's
+      // children will all be rendered.
+      shapesIdsToRender.add(shape.parentId)
+      shapesToRender.add(page.shapes[shape.parentId])
     })
 
   // Call onChange callback when number of rendering shapes changes
+
+  console.log(shapesToRender.size)
 
   if (shapesToRender.size !== rPreviousCount.current) {
     // Use a timeout to clear call stack, in case the onChange handler

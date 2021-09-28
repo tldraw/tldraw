@@ -17,6 +17,8 @@ export interface LabelShape extends TLShape {
 export const Label = new ShapeUtil<LabelShape, HTMLDivElement, { isDarkMode: boolean }>(() => ({
   type: 'label',
 
+  isStateful: true,
+
   defaultProps: {
     id: 'example1',
     type: 'label',
