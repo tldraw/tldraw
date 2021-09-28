@@ -146,8 +146,6 @@ export function useShapeTree<
 
   // Call onChange callback when number of rendering shapes changes
 
-  console.log(shapesToRender.size)
-
   if (shapesToRender.size !== rPreviousCount.current) {
     // Use a timeout to clear call stack, in case the onChange handler
     // produces a new state change, which could cause nested state
