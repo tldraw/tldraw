@@ -14,6 +14,7 @@ import { ErrorBoundary } from '+components/error-boundary'
 import { Brush } from '+components/brush'
 import { Page } from '+components/page'
 import { useResizeObserver } from '+hooks/useResizeObserver'
+import { inputs } from '+inputs'
 
 function resetError() {
   void null
@@ -42,9 +43,11 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
   const rContainer = React.useRef<HTMLDivElement>(null)
   const rLayer = React.useRef<HTMLDivElement>(null)
 
+  inputs.zoom = pageState.camera.zoom
+
   useResizeObserver(rCanvas)
 
-  useZoomEvents(rCanvas)
+  useZoomEvents(pageState.camera.zoom, rCanvas)
 
   useSafariFocusOutFix()
 

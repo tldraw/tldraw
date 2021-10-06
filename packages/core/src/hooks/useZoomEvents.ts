@@ -2,11 +2,11 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as React from 'react'
 import { useTLContext } from './useTLContext'
-import { useGesture, usePinch, useWheel } from '@use-gesture/react'
+import { useGesture } from '@use-gesture/react'
 import { Vec } from '@tldraw/vec'
 
 // Capture zoom gestures (pinches, wheels and pans)
-export function useZoomEvents<T extends Element>(ref: React.RefObject<T>) {
+export function useZoomEvents<T extends Element>(zoom: number, ref: React.RefObject<T>) {
   const rOriginPoint = React.useRef<number[] | undefined>(undefined)
   const rPinchPoint = React.useRef<number[] | undefined>(undefined)
   const rDelta = React.useRef<number[]>([0, 0])
@@ -46,7 +46,6 @@ export function useZoomEvents<T extends Element>(ref: React.RefObject<T>) {
         callbacks.onPan?.(info, e)
       },
       onPinchStart: ({ origin, event }) => {
-        console.log('hi')
         const elm = ref.current
         if (!(event.target === elm || elm?.contains(event.target as Node))) return
 
@@ -97,7 +96,8 @@ export function useZoomEvents<T extends Element>(ref: React.RefObject<T>) {
       target: window,
       eventOptions: { passive: false },
       pinch: {
-        scaleBounds: { max: 5, min: 0.1 },
+        from: zoom,
+        scaleBounds: () => ({ from: inputs.zoom, max: 5, min: 0.1 }),
       },
     }
   )
