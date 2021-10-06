@@ -1181,10 +1181,10 @@ export class TLDrawState extends StateManager<Data> {
    * @param delta The movement delta.
    * @param zoomDelta The zoom detal
    */
-  pinchZoom = (point: number[], delta: number[], zoomDelta: number): this => {
+  pinchZoom = (point: number[], delta: number[], zoom: number): this => {
     const { camera } = this.pageState
     const nextPoint = Vec.sub(camera.point, Vec.div(delta, camera.zoom))
-    const nextZoom = TLDR.getCameraZoom(camera.zoom - zoomDelta * camera.zoom)
+    const nextZoom = zoom
     const p0 = Vec.sub(Vec.div(point, camera.zoom), nextPoint)
     const p1 = Vec.sub(Vec.div(point, nextZoom), nextPoint)
     return this.setCamera(Vec.round(Vec.add(nextPoint, Vec.sub(p1, p0))), nextZoom, `pinch_zoomed`)

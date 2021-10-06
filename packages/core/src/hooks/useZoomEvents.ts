@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as React from 'react'
 import { useTLContext } from './useTLContext'
-import { useGesture } from '@use-gesture/react'
+import { useGesture, usePinch, useWheel } from '@use-gesture/react'
 import { Vec } from '@tldraw/vec'
 
 // Capture zoom gestures (pinches, wheels and pans)
@@ -46,6 +46,7 @@ export function useZoomEvents<T extends Element>(ref: React.RefObject<T>) {
         callbacks.onPan?.(info, e)
       },
       onPinchStart: ({ origin, event }) => {
+        console.log('hi')
         const elm = ref.current
         if (!(event.target === elm || elm?.contains(event.target as Node))) return
 
@@ -68,7 +69,7 @@ export function useZoomEvents<T extends Element>(ref: React.RefObject<T>) {
         rOriginPoint.current = undefined
         rDelta.current = [0, 0]
       },
-      onPinch: ({ delta, origin, event }) => {
+      onPinch: ({ origin, offset, event }) => {
         const elm = ref.current
         if (!(event.target === elm || elm?.contains(event.target as Node))) return
         if (!rOriginPoint.current) throw Error('No origin point!')
@@ -84,7 +85,7 @@ export function useZoomEvents<T extends Element>(ref: React.RefObject<T>) {
             ...info,
             point: info.point,
             origin: rOriginPoint.current,
-            delta: [...trueDelta, -delta[0]],
+            delta: [...trueDelta, offset[0]],
           },
           event
         )
@@ -95,6 +96,9 @@ export function useZoomEvents<T extends Element>(ref: React.RefObject<T>) {
     {
       target: window,
       eventOptions: { passive: false },
+      pinch: {
+        scaleBounds: { max: 5, min: 0.1 },
+      },
     }
   )
 }
