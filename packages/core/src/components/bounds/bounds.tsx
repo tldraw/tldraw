@@ -32,9 +32,9 @@ export function Bounds({
 
   const smallDimension = Math.min(bounds.width, bounds.height) * zoom
   // If the bounds are small, don't show the rotate handle
-  const showRotateHandle = !isLocked && smallDimension > 32
+  const showRotateHandle = !isHidden && !isLocked && smallDimension > 32
   // If the bounds are very small, don't show the corner handles
-  const showHandles = !isLocked && smallDimension > 16
+  const showHandles = !isHidden && !isLocked && smallDimension > 16
 
   return (
     <Container bounds={bounds} rotation={rotation}>
