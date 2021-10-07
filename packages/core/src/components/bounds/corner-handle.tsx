@@ -3,10 +3,10 @@ import { useBoundsHandleEvents } from '+hooks'
 import { TLBoundsCorner, TLBounds } from '+types'
 
 const cornerBgClassnames = {
-  [TLBoundsCorner.TopLeft]: 'tl-transparent tl-cursor-nwse',
-  [TLBoundsCorner.TopRight]: 'tl-transparent tl-cursor-nesw',
-  [TLBoundsCorner.BottomRight]: 'tl-transparent tl-cursor-nwse',
-  [TLBoundsCorner.BottomLeft]: 'tl-transparent tl-cursor-nesw',
+  [TLBoundsCorner.TopLeft]: 'tl-cursor-nwse',
+  [TLBoundsCorner.TopRight]: 'tl-cursor-nesw',
+  [TLBoundsCorner.BottomRight]: 'tl-cursor-nwse',
+  [TLBoundsCorner.BottomLeft]: 'tl-cursor-nesw',
 }
 
 interface CornerHandleProps {
@@ -27,7 +27,7 @@ export const CornerHandle = React.memo(
     return (
       <g opacity={isHidden ? 0 : 1}>
         <rect
-          className={cornerBgClassnames[corner]}
+          className={'tl-transparent ' + (isHidden ? '' : cornerBgClassnames[corner])}
           x={(isLeft ? -1 : bounds.width + 1) - targetSize}
           y={(isTop ? -1 : bounds.height + 1) - targetSize}
           width={targetSize * 2}
