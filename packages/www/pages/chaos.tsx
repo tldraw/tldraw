@@ -9,7 +9,7 @@ export default function ChaosRoom(): JSX.Element {
       <Head>
         <title>tldraw</title>
       </Head>
-      <MultiplayerEditor id={'chaos'} />
+      <MultiplayerEditor id={'chaos2'} />
     </>
   )
 }
