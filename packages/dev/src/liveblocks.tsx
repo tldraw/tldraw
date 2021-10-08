@@ -12,8 +12,10 @@ import {
 import { createClient } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useObject } from '@liveblocks/react'
 
+const publicAPIKey = process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_API_KEY as string
+
 const client = createClient({
-  publicApiKey: 'pk_live_1LJGGaqBSNLjLT-4Jalkl-U9',
+  publicApiKey: publicAPIKey,
 })
 
 export default function LiveBlocks() {
