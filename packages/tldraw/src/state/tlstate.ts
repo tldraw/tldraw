@@ -548,9 +548,35 @@ export class TLDrawState extends StateManager<Data> {
    * @param document
    */
   mergeDocument = (document: TLDrawDocument): this => {
+    // If it's a new document, do a full change.
+    if (this.document.id !== document.id) {
+      this.replaceState({
+        ...this.state,
+        appState: {
+          ...this.appState,
+          currentPageId: Object.keys(document.pages)[0],
+        },
+        document,
+      })
+      return this
+    }
+
     // Have we deleted any pages? If so, drop everything and change
     // to the first page. This is an edge case.
     const currentPageStates = { ...this.document.pageStates }
+
+    // Update the app state's current page id if needed
+    const nextAppState = {
+      ...this.appState,
+      currentPageId: document.pages[this.currentPageId]
+        ? this.currentPageId
+        : Object.keys(document.pages)[0],
+      pages: Object.values(document.pages).map((page, i) => ({
+        id: page.id,
+        name: page.name,
+        childIndex: page.childIndex || i,
+      })),
+    }
 
     // Reset the history (for now)
     this.resetHistory()
@@ -560,10 +586,9 @@ export class TLDrawState extends StateManager<Data> {
         if (pageId === this.appState.currentPageId) {
           this.cancelSession()
           this.deselectAll()
-          this.changePage(Object.keys(document.pages)[0])
         }
 
-        delete currentPageStates[pageId]
+        currentPageStates[pageId] = undefined as unknown as TLPageState
       }
     })
 
@@ -594,9 +619,19 @@ export class TLDrawState extends StateManager<Data> {
       currentPageStates[this.currentPageId].selectedIds = [editingId]
     }
 
+    console.log('next state', {
+      ...this.state,
+      appState: nextAppState,
+      document: {
+        ...document,
+        pageStates: currentPageStates,
+      },
+    })
+
     return this.replaceState(
       {
         ...this.state,
+        appState: nextAppState,
         document: {
           ...document,
           pageStates: currentPageStates,

@@ -2,7 +2,7 @@ import { TLDraw, TLDrawState, Data, TLDrawDocument } from '@tldraw/tldraw'
 import * as gtag from '-utils/gtag'
 import * as React from 'react'
 import { createClient } from '@liveblocks/client'
-import { LiveblocksProvider, RoomProvider, useObject } from '@liveblocks/react'
+import { LiveblocksProvider, RoomProvider, useObject, useErrorListener } from '@liveblocks/react'
 import { Utils } from '@tldraw/core'
 
 const client = createClient({
@@ -13,31 +13,37 @@ export default function MultiplayerEditor({ id }: { id: string }) {
   return (
     <LiveblocksProvider client={client}>
       <RoomProvider id={id}>
-        <Editor />
+        <Editor id={id} />
       </RoomProvider>
     </LiveblocksProvider>
   )
 }
 
-function Editor() {
+function Editor({ id }: { id: string }) {
   const [uuid] = React.useState(() => Utils.uniqueId())
+  const [error, setError] = React.useState<Error>(null)
   const [tlstate, setTlstate] = React.useState<TLDrawState>()
+
+  useErrorListener((err) => {
+    console.log(err)
+    setError(err)
+  })
 
   const doc = useObject<{ uuid: string; document: TLDrawDocument }>('doc', {
     uuid,
     document: {
-      id: 'doc',
+      id,
       pages: {
-        page1: {
-          id: 'page1',
+        page: {
+          id: 'page',
           shapes: {},
           bindings: {},
         },
       },
       pageStates: {
-        page1: {
-          id: 'page1',
-          selectedIds: ['rect1'],
+        page: {
+          id: 'page',
+          selectedIds: [],
           camera: {
             point: [0, 0],
             zoom: 1,
@@ -89,6 +95,8 @@ function Editor() {
 
     return () => doc.unsubscribe(updateState)
   }, [doc, uuid, tlstate])
+
+  if (error) return <div>Error: {error.message}</div>
 
   if (doc === null) return <div>loading...</div>
 
