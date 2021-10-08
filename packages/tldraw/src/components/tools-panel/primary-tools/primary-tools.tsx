@@ -3,6 +3,7 @@ import {
   ArrowTopRightIcon,
   CircleIcon,
   Pencil1Icon,
+  Pencil2Icon,
   SquareIcon,
   TextIcon,
 } from '@radix-ui/react-icons'
@@ -36,6 +37,10 @@ export const PrimaryTools = React.memo((): JSX.Element => {
 
   const selectTextTool = React.useCallback(() => {
     tlstate.selectTool(TLDrawShapeType.Text)
+  }, [tlstate])
+
+  const selectStickyTool = React.useCallback(() => {
+    tlstate.selectTool(TLDrawShapeType.Sticky)
   }, [tlstate])
 
   return (
@@ -79,6 +84,14 @@ export const PrimaryTools = React.memo((): JSX.Element => {
         isActive={activeTool === TLDrawShapeType.Text}
       >
         <TextIcon />
+      </PrimaryButton>
+      <PrimaryButton
+        kbd={'7'}
+        label={TLDrawShapeType.Sticky}
+        onClick={selectStickyTool}
+        isActive={activeTool === TLDrawShapeType.Sticky}
+      >
+        <Pencil2Icon />
       </PrimaryButton>
     </div>
   )

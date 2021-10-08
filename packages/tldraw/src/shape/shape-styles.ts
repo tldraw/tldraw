@@ -20,34 +20,23 @@ const colors = {
   [ColorStyle.Yellow]: '#ffc936',
 }
 
-export const textColors: Record<Theme, Record<ColorStyle, string>> = {
+export const stickyFills: Record<Theme, Record<ColorStyle, string>> = {
   light: {
-    [ColorStyle.Black]: '#000000',
-    [ColorStyle.White]: '#000000',
-    [ColorStyle.LightGray]: '#000000',
-    [ColorStyle.Gray]: '#000000',
-    [ColorStyle.Green]: '#000000',
-    [ColorStyle.Cyan]: '#000000',
-    [ColorStyle.Blue]: '#000000',
-    [ColorStyle.Indigo]: '#000000',
-    [ColorStyle.Violet]: '#000000',
-    [ColorStyle.Red]: '#000000',
-    [ColorStyle.Orange]: '#000000',
-    [ColorStyle.Yellow]: '#000000',
+    ...(Object.fromEntries(
+      Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasLight, 0.5)])
+    ) as Record<ColorStyle, string>),
+    [ColorStyle.White]: '#ffffff',
+    [ColorStyle.Black]: '#3d3d3d',
   },
   dark: {
-    [ColorStyle.Black]: '#FFFFFF',
-    [ColorStyle.White]: '#FFFFFF',
-    [ColorStyle.LightGray]: '#FFFFFF',
-    [ColorStyle.Gray]: '#FFFFFF',
-    [ColorStyle.Green]: '#FFFFFF',
-    [ColorStyle.Cyan]: '#FFFFFF',
-    [ColorStyle.Blue]: '#FFFFFF',
-    [ColorStyle.Indigo]: '#FFFFFF',
-    [ColorStyle.Violet]: '#FFFFFF',
-    [ColorStyle.Red]: '#FFFFFF',
-    [ColorStyle.Orange]: '#FFFFFF',
-    [ColorStyle.Yellow]: '#FFFFFF',
+    ...(Object.fromEntries(
+      Object.entries(colors).map(([k, v]) => [
+        k,
+        Utils.lerpColor(Utils.lerpColor(v, '#999999', 0.3), canvasDark, 0.4),
+      ])
+    ) as Record<ColorStyle, string>),
+    [ColorStyle.White]: '#bbbbbb',
+    [ColorStyle.Black]: '#1d1d1d',
   },
 }
 
@@ -89,9 +78,9 @@ const fontSizes = {
 }
 
 const stickyFontSizes = {
-  [SizeStyle.Small]: 16,
-  [SizeStyle.Medium]: 24,
-  [SizeStyle.Large]: 40,
+  [SizeStyle.Small]: 24,
+  [SizeStyle.Medium]: 36,
+  [SizeStyle.Large]: 48,
   auto: 'auto',
 }
 
@@ -127,8 +116,15 @@ export function getStickyShapeStyle(style: ShapeStyles, isDarkMode = false) {
   const theme: Theme = isDarkMode ? 'dark' : 'light'
 
   return {
-    fill: strokes[theme][color],
-    color: textColors[theme][color],
+    fill: stickyFills[theme][color],
+    stroke: strokes[theme][color],
+    color: isDarkMode
+      ? color === ColorStyle.White
+        ? '#1d1d1d'
+        : '#ffffff'
+      : color === ColorStyle.Black
+      ? '#efefef'
+      : '#0d0d0d',
   }
 }
 

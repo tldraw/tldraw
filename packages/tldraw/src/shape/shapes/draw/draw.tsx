@@ -49,7 +49,7 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
     // For very short lines, draw a point instead of a line
     const bounds = this.getBounds(shape)
 
-    const verySmall = bounds.width < strokeWidth / 2 && bounds.height < strokeWidth / 2
+    const verySmall = bounds.width <= strokeWidth / 2 && bounds.height <= strokeWidth / 2
 
     if (!isEditing && verySmall) {
       const sw = strokeWidth * 1

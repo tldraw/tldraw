@@ -1,9 +1,9 @@
 import * as React from 'react'
+import { css } from '@stitches/core'
 import { HTMLContainer, ShapeUtil } from '@tldraw/core'
 import { defaultStyle } from '~shape/shape-styles'
 import { StickyShape, TLDrawMeta, TLDrawShapeType, TLDrawToolType } from '~types'
 import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
-import { css } from '@stitches/core'
 import { getStickyFontStyle, getStickyShapeStyle } from '~shape'
 
 export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() => ({
@@ -34,16 +34,22 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
     return next.size !== prev.size || next.style !== prev.style || next.text !== prev.text
   },
 
-  Component({ events, shape, onShapeChange }, ref) {
+  Component({ events, shape, onShapeChange, meta }, ref) {
     const font = getStickyFontStyle(shape.style)
-    const style = getStickyShapeStyle(shape.style)
+    const { color, fill } = getStickyShapeStyle(shape.style, meta.isDarkMode)
 
     return (
       <HTMLContainer ref={ref} {...events}>
-        <div className={styledStickyContainer()} style={{ backgroundColor: style.fill }}>
+        <div className={styledStickyContainer()} style={{ backgroundColor: fill }}>
           <textarea
             className={styledStickyText()}
-            style={{ font, color: style.color }}
+            style={{
+              font,
+              color,
+              textShadow: meta.isDarkMode
+                ? `-0.5px -0.5px 1px rgba(0,0,0, .35)`
+                : `0.5px 0.5px 2px rgba(255, 255, 255,.5)`,
+            }}
             onPointerDown={(e) => e.stopPropagation()}
             value={shape.text}
             onChange={(e) =>

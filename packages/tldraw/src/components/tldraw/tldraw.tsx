@@ -185,6 +185,7 @@ function InnerTldraw({
         <ContextMenu>
           <Renderer
             id={id}
+            containerRef={rWrapper}
             page={page}
             pageState={pageState}
             shapeUtils={tldrawShapeUtils}

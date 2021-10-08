@@ -26,6 +26,7 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   hideBounds?: boolean
   hideHandles?: boolean
   hideIndicators?: boolean
+  externalContainerRef?: React.RefObject<HTMLElement>
   meta?: M
   id?: string
 }
@@ -35,6 +36,7 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
   page,
   pageState,
   meta,
+  externalContainerRef,
   hideHandles = false,
   hideBounds = false,
   hideIndicators = false,
@@ -47,7 +49,7 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
 
   useResizeObserver(rCanvas)
 
-  useZoomEvents(pageState.camera.zoom, rCanvas)
+  useZoomEvents(pageState.camera.zoom, externalContainerRef || rCanvas)
 
   useSafariFocusOutFix()
 
