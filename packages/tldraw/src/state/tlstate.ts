@@ -552,9 +552,12 @@ export class TLDrawState extends StateManager<Data> {
     // to the first page. This is an edge case.
     const currentPageStates = { ...this.document.pageStates }
 
-    Object.keys(this.state.document.pages).forEach((pageId) => {
+    // Reset the history (for now)
+    this.resetHistory()
+
+    Object.keys(this.document.pages).forEach((pageId) => {
       if (!document.pages[pageId]) {
-        if (pageId === this.state.appState.currentPageId) {
+        if (pageId === this.appState.currentPageId) {
           this.cancelSession()
           this.deselectAll()
           this.changePage(Object.keys(document.pages)[0])
@@ -564,11 +567,24 @@ export class TLDrawState extends StateManager<Data> {
       }
     })
 
-    this.resetHistory()
+    // Remove any selected ids that were deleted.
+    Object.entries(currentPageStates).forEach(([pageId, pageState]) => {
+      pageState.selectedIds = pageState.selectedIds.filter(
+        (id) => !!document.pages[pageId].shapes[id]
+      )
+    })
 
-    currentPageStates[this.currentPageId].selectedIds = this.selectedIds.filter(
-      (id) => !!document.pages[this.currentPageId].shapes[id]
-    )
+    // If the user is currently creating a shape (ie drawing), then put that
+    // shape back onto the page for the client.
+    const { editingId } = this.pageState
+
+    if (editingId) {
+      console.warn('A change occured while creating a shape')
+      if (!editingId) throw Error('Huh?')
+
+      document.pages[this.currentPageId].shapes[editingId] = this.page.shapes[editingId]
+      currentPageStates[this.currentPageId].selectedIds = [editingId]
+    }
 
     return this.replaceState(
       {

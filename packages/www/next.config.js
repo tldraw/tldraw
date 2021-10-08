@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const withPWA = require('next-pwa')
 const SentryWebpackPlugin = require('@sentry/webpack-plugin')
-const withTM = require('next-transpile-modules')(['@tldraw/tldraw'])
+const withTM = require('next-transpile-modules')(['@tldraw/tldraw', '@tldraw/core'])
 
 const {
   GITHUB_ID,
@@ -22,8 +22,8 @@ const isProduction = NODE_ENV === 'production'
 
 const basePath = ''
 
-module.exports = withTM(
-  withPWA({
+module.exports = withPWA(
+  withTM({
     reactStrictMode: true,
     pwa: {
       disable: !isProduction,
