@@ -84,6 +84,7 @@ function Editor() {
       tlstate.mergeDocument(docObject.document)
     }
 
+    updateState()
     doc.subscribe(updateState)
 
     return () => doc.unsubscribe(updateState)
