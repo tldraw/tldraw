@@ -2,7 +2,6 @@ import * as React from 'react'
 import {
   TLDraw,
   ColorStyle,
-  TLDrawPage,
   DashStyle,
   TLDrawState,
   SizeStyle,
