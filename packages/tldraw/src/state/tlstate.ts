@@ -2299,26 +2299,35 @@ export class TLDrawState extends StateManager<Data> {
       case TLDrawToolType.Point: {
         this.isCreating = false
 
-        if ('size' in newShape) {
+        this.selectTool('select')
+
+        if (newShape.type == TLDrawShapeType.Sticky) {
           this.createShapes({
             ...newShape,
             point: Vec.sub(newShape.point, Vec.div(newShape.size, 2)),
           })
-        } else {
-          this.createShapes(newShape)
-        }
-
-        this.patchState({
-          document: {
-            pageStates: {
-              [this.currentPageId]: {
-                editingId: undefined,
+          this.patchState({
+            document: {
+              pageStates: {
+                [this.currentPageId]: {
+                  editingId: newShape.id,
+                },
               },
             },
-          },
-        })
+          })
+        } else {
+          this.createShapes(newShape)
 
-        this.selectTool('select')
+          this.patchState({
+            document: {
+              pageStates: {
+                [this.currentPageId]: {
+                  editingId: undefined,
+                },
+              },
+            },
+          })
+        }
 
         break
       }
@@ -2447,6 +2456,9 @@ export class TLDrawState extends StateManager<Data> {
     //   const nextZoom = TLDR.getCameraZoom(i * 0.25)
     //   this.zoomTo(nextZoom, inputs.pointer?.point)
     // }
+    if (Utils.isMobileSafari()) {
+      this.undoSelect()
+    }
     this.setStatus(TLDrawStatus.Idle)
   }
 

@@ -54,6 +54,12 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
     const rText = React.useRef<HTMLDivElement>(null)
 
     React.useEffect(() => {
+      if (isEditing && document.activeElement !== rText.current) {
+        requestAnimationFrame(() => rTextArea.current!.focus())
+      }
+    }, [isEditing])
+
+    React.useEffect(() => {
       const handleWheel = (e: WheelEvent) => {
         const textarea = rTextArea.current
         if (!textarea) return
@@ -123,7 +129,11 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
 
     return (
       <HTMLContainer ref={ref} {...events}>
-        <div ref={rContainer} className={styledStickyContainer()} style={{ backgroundColor: fill }}>
+        <div
+          ref={rContainer}
+          className={styledStickyContainer({ isDarkMode: meta.isDarkMode })}
+          style={{ backgroundColor: fill }}
+        >
           <div ref={rText} className={styledText({ isEditing })} style={style}>
             {shape.text}
           </div>
@@ -169,7 +179,16 @@ const styledStickyContainer = css({
   padding: PADDING + 'px',
   borderRadius: '3px',
   perspective: '800px',
-  boxShadow: '2px 3px 8px -2px rgba(0,0,0,.3), 1px 2px 2px rgba(0,0,0,.1)',
+  variants: {
+    isDarkMode: {
+      true: {
+        boxShadow: '2px 3px 8px -2px rgba(0,0,0,.3), 0px 0px 2px rgba(0,0,0,.3)',
+      },
+      false: {
+        boxShadow: '2px 3px 8px -2px rgba(0,0,0,.2), 0px 0px 2px rgba(0,0,0,.16)',
+      },
+    },
+  },
 })
 
 const styledText = css({
