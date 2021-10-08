@@ -544,6 +544,104 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /**
+   * Merge a new document patch into the current document.
+   * @param document
+   */
+  mergeDocument = (document: TLDrawDocument): this => {
+    // If it's a new document, do a full change.
+    if (this.document.id !== document.id) {
+      this.replaceState({
+        ...this.state,
+        appState: {
+          ...this.appState,
+          currentPageId: Object.keys(document.pages)[0],
+        },
+        document,
+      })
+      return this
+    }
+
+    // Have we deleted any pages? If so, drop everything and change
+    // to the first page. This is an edge case.
+    const currentPageStates = { ...this.document.pageStates }
+
+    // Update the app state's current page id if needed
+    const nextAppState = {
+      ...this.appState,
+      currentPageId: document.pages[this.currentPageId]
+        ? this.currentPageId
+        : Object.keys(document.pages)[0],
+      pages: Object.values(document.pages).map((page, i) => ({
+        id: page.id,
+        name: page.name,
+        childIndex: page.childIndex || i,
+      })),
+    }
+
+    // Reset the history (for now)
+    this.resetHistory()
+
+    Object.keys(this.document.pages).forEach((pageId) => {
+      if (!document.pages[pageId]) {
+        if (pageId === this.appState.currentPageId) {
+          this.cancelSession()
+          this.deselectAll()
+        }
+
+        currentPageStates[pageId] = undefined as unknown as TLPageState
+      }
+    })
+
+    // Don't allow the selected ids to be deleted during a session—if
+    // they've been removed, put them back in the client's document.
+    if (this.session) {
+      this.selectedIds
+        .filter((id) => !document.pages[this.currentPageId].shapes[id])
+        .forEach((id) => (document.pages[this.currentPageId].shapes[id] = this.page.shapes[id]))
+    }
+
+    // For other pages, remove any selected ids that were deleted.
+    Object.entries(currentPageStates).forEach(([pageId, pageState]) => {
+      pageState.selectedIds = pageState.selectedIds.filter(
+        (id) => !!document.pages[pageId].shapes[id]
+      )
+    })
+
+    // If the user is currently creating a shape (ie drawing), then put that
+    // shape back onto the page for the client.
+    const { editingId } = this.pageState
+
+    if (editingId) {
+      console.warn('A change occured while creating a shape')
+      if (!editingId) throw Error('Huh?')
+
+      document.pages[this.currentPageId].shapes[editingId] = this.page.shapes[editingId]
+      currentPageStates[this.currentPageId].selectedIds = [editingId]
+    }
+
+    console.log('next state', {
+      ...this.state,
+      appState: nextAppState,
+      document: {
+        ...document,
+        pageStates: currentPageStates,
+      },
+    })
+
+    return this.replaceState(
+      {
+        ...this.state,
+        appState: nextAppState,
+        document: {
+          ...document,
+          pageStates: currentPageStates,
+        },
+      },
+      'merge'
+    )
+  }
+
+  /**
    * Update the current document.
    * @param document
    */

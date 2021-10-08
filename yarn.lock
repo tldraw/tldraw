@@ -2697,6 +2697,16 @@
     npmlog "^4.1.2"
     write-file-atomic "^3.0.3"
 
+"@liveblocks/client@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-0.12.0.tgz#426c9312b43933f31d4c72611d846325579da651"
+  integrity sha512-kcNPjzwqzDJBCXvLh/lPg86Xoi9quIymav3dbxgVrtufWN40m0WUPderMIiCBFkF5BIWYdBAPd70+YmHLLYjBA==
+
+"@liveblocks/react@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-0.12.0.tgz#76fdcbfb411a65e97c59a138ec876c75e11ee57b"
+  integrity sha512-4LVBRKYKS/vOt2N8OJ1t3R55RJ9o8e/iQY79WQzCFBrzZU+oXUcqSeK1wAcayhnATqJNvyUNYzE8xq9+OvhzXg==
+
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@mrmlnc/readdir-enhanced/-/readdir-enhanced-2.2.1.tgz#524af240d1a360527b730475ecfa1344aa540dde"
@@ -9924,7 +9934,7 @@ neo-async@^2.6.0:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
-next-auth@3.29.0:
+next-auth@^3.29.0:
   version "3.29.0"
   resolved "https://registry.yarnpkg.com/next-auth/-/next-auth-3.29.0.tgz#60ddbfc7ed8ae7d43ebb02c16dc58eebf5dcb337"
   integrity sha512-B//4QTv/1Of0D+roZ82URmI6L2JSbkKgeaKI7Mdrioq8lAzp9ff8NdmouvZL/7zwrPe2cUyM6MLYlasfuI3ZIQ==
@@ -9967,7 +9977,7 @@ next-transpile-modules@^8.0.0:
     enhanced-resolve "^5.7.0"
     escalade "^3.1.1"
 
-next@11.1.2:
+next@^11.1.2:
   version "11.1.2"
   resolved "https://registry.yarnpkg.com/next/-/next-11.1.2.tgz#527475787a9a362f1bc916962b0c0655cc05bc91"
   integrity sha512-azEYL0L+wFjv8lstLru3bgvrzPvK0P7/bz6B/4EJ9sYkXeW8r5Bjh78D/Ol7VOg0EIPz0CXoe72hzAlSAXo9hw==
