@@ -42,7 +42,7 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
     return next.size !== prev.size || next.style !== prev.style || next.text !== prev.text
   },
 
-  Component({ events, shape, isEditing, onShapeChange, meta }, ref) {
+  Component({ events, shape, isEditing, onShapeBlur, onShapeChange, meta }, ref) {
     const font = getStickyFontStyle(shape.style)
 
     const { color, fill } = getStickyShapeStyle(shape.style, meta.isDarkMode)
@@ -143,6 +143,7 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
             style={style}
             onPointerDown={handlePointerDown}
             value={shape.text}
+            onBlur={onShapeBlur}
             onChange={handleTextChange}
           />
         </div>

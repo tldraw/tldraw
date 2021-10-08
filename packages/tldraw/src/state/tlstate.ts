@@ -2306,6 +2306,9 @@ export class TLDrawState extends StateManager<Data> {
             ...newShape,
             point: Vec.sub(newShape.point, Vec.div(newShape.size, 2)),
           })
+
+          // TODO: Clean up this editing ID when the text blurs, consider
+          // reusing the logic for editing text, or create proper editing state
           this.patchState({
             document: {
               pageStates: {
