@@ -466,6 +466,10 @@ export class TLDrawState extends StateManager<Data> {
     return this.patchState(
       {
         appState: {
+          status: {
+            current: TLDrawStatus.Idle,
+            previous: TLDrawStatus.Idle,
+          },
           activeTool: tool,
           activeToolType: tool === 'select' ? 'select' : TLDR.getShapeUtils(tool).toolType,
         },
@@ -1536,7 +1540,7 @@ export class TLDrawState extends StateManager<Data> {
           appState: {
             status: {
               current: TLDrawStatus.Idle,
-              previous: this.appState.status.previous,
+              previous: TLDrawStatus.Idle,
             },
           },
           document: {
@@ -1810,13 +1814,14 @@ export class TLDrawState extends StateManager<Data> {
     ...shapes: ({ id: string; type: TLDrawShapeType } & Partial<TLDrawShape>)[]
   ): this => {
     if (shapes.length === 0) return this
+
     return this.create(
-      shapes.map((shape) =>
-        TLDR.getShapeUtils(shape.type).create({
+      shapes.map((shape) => {
+        return TLDR.getShapeUtils(shape.type).create({
+          parentId: this.currentPageId,
           ...shape,
-          parentId: shape.parentId || this.currentPageId,
         })
-      )
+      })
     )
   }
 
@@ -2292,6 +2297,29 @@ export class TLDrawState extends StateManager<Data> {
         return this.startTextSession(id)
       }
       case TLDrawToolType.Point: {
+        this.isCreating = false
+
+        if ('size' in newShape) {
+          this.createShapes({
+            ...newShape,
+            point: Vec.sub(newShape.point, Vec.div(newShape.size, 2)),
+          })
+        } else {
+          this.createShapes(newShape)
+        }
+
+        this.patchState({
+          document: {
+            pageStates: {
+              [this.currentPageId]: {
+                editingId: undefined,
+              },
+            },
+          },
+        })
+
+        this.selectTool('select')
+
         break
       }
       case TLDrawToolType.Points: {
@@ -2419,7 +2447,6 @@ export class TLDrawState extends StateManager<Data> {
     //   const nextZoom = TLDR.getCameraZoom(i * 0.25)
     //   this.zoomTo(nextZoom, inputs.pointer?.point)
     // }
-    this.undoSelect()
     this.setStatus(TLDrawStatus.Idle)
   }
 
@@ -2477,6 +2504,10 @@ export class TLDrawState extends StateManager<Data> {
             break
           }
           case TLDrawShapeType.Text: {
+            this.createActiveToolShape(info.point)
+            break
+          }
+          case TLDrawShapeType.Sticky: {
             this.createActiveToolShape(info.point)
             break
           }

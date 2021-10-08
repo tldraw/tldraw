@@ -423,9 +423,24 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
       // And passes through the dragging handle
       const direction = Vec.uni(Vec.sub(Vec.add(anchor, shape.point), origin))
 
-      if (
-        [TLDrawShapeType.Rectangle, TLDrawShapeType.Text].includes(target.type as TLDrawShapeType)
-      ) {
+      // Ellipses are special here
+      if (target.type === TLDrawShapeType.Ellipse) {
+        const hits = intersectRayEllipse(
+          origin,
+          direction,
+          center,
+          (target as EllipseShape).radius[0] + binding.meta.distance,
+          (target as EllipseShape).radius[1] + binding.meta.distance,
+          target.rotation || 0
+        ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
+
+        if (!hits[0]) {
+          console.warn('No intersections')
+        }
+
+        handlePoint = Vec.sub(hits[0], shape.point)
+      } else {
+        // Otherwise, intersect the bounding box as a square
         let hits = intersectRayBounds(origin, direction, intersectBounds, target.rotation)
           .filter((int) => int.didIntersect)
           .map((int) => int.points[0])
@@ -441,21 +456,6 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
         if (!hits[0]) {
           console.warn('No intersection.')
           return
-        }
-
-        handlePoint = Vec.sub(hits[0], shape.point)
-      } else if (target.type === TLDrawShapeType.Ellipse) {
-        const hits = intersectRayEllipse(
-          origin,
-          direction,
-          center,
-          (target as EllipseShape).radius[0] + binding.meta.distance,
-          (target as EllipseShape).radius[1] + binding.meta.distance,
-          target.rotation || 0
-        ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-
-        if (!hits[0]) {
-          console.warn('No intersections')
         }
 
         handlePoint = Vec.sub(hits[0], shape.point)

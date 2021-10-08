@@ -326,6 +326,14 @@ export type TLShapeUtil<
 
   isStateful: boolean
 
+  minHeight: number
+
+  minWidth: number
+
+  maxHeight: number
+
+  maxWidth: number
+
   getRotatedBounds(this: TLShapeUtil<T, E, M>, shape: T): TLBounds
 
   hitTest(this: TLShapeUtil<T, E, M>, shape: T, point: number[]): boolean
