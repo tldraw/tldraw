@@ -1,4 +1,4 @@
-import { TLDraw, TLDrawState, Data, TLDrawDocument } from '@tldraw/tldraw/dist/cjs'
+import { TLDraw, TLDrawState, Data, TLDrawDocument } from '@tldraw/tldraw'
 import * as gtag from '-utils/gtag'
 import * as React from 'react'
 import { createClient } from '@liveblocks/client'

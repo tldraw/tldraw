@@ -575,7 +575,7 @@ export class TLDrawState extends StateManager<Data> {
         .forEach((id) => (document.pages[this.currentPageId].shapes[id] = this.page.shapes[id]))
     }
 
-    // Remove any selected ids that were deleted.
+    // For other pages, remove any selected ids that were deleted.
     Object.entries(currentPageStates).forEach(([pageId, pageState]) => {
       pageState.selectedIds = pageState.selectedIds.filter(
         (id) => !!document.pages[pageId].shapes[id]
