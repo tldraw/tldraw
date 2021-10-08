@@ -544,6 +544,45 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /**
+   * Merge a new document patch into the current document.
+   * @param document
+   */
+  mergeDocument = (document: TLDrawDocument): this => {
+    // Have we deleted any pages? If so, drop everything and change
+    // to the first page. This is an edge case.
+    const currentPageStates = { ...this.document.pageStates }
+
+    Object.keys(this.state.document.pages).forEach((pageId) => {
+      if (!document.pages[pageId]) {
+        if (pageId === this.state.appState.currentPageId) {
+          this.cancelSession()
+          this.deselectAll()
+          this.changePage(Object.keys(document.pages)[0])
+        }
+
+        delete currentPageStates[pageId]
+      }
+    })
+
+    this.resetHistory()
+
+    currentPageStates[this.currentPageId].selectedIds = this.selectedIds.filter(
+      (id) => !!document.pages[this.currentPageId].shapes[id]
+    )
+
+    return this.replaceState(
+      {
+        ...this.state,
+        document: {
+          ...document,
+          pageStates: currentPageStates,
+        },
+      },
+      'merge'
+    )
+  }
+
+  /**
    * Update the current document.
    * @param document
    */
