@@ -144,15 +144,7 @@ export class TLDrawState extends StateManager<Data> {
     onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
     onMount?: (tlstate: TLDrawState) => void
   ) {
-    super(defaultState, id, 2, (prev, next, prevVersion) => {
-      const state = { ...prev }
-      if (prevVersion === 1)
-        state.settings = {
-          ...state.settings,
-          isZoomSnap: next.settings.isZoomSnap,
-        }
-      return state
-    })
+    super(defaultState, id, 2)
 
     this._onChange = onChange
     this._onMount = onMount
@@ -268,13 +260,6 @@ export class TLDrawState extends StateManager<Data> {
                 page.shapes[fromShape.id] = nextShape
               }
             } catch (e) {
-              console.log(
-                fromShape,
-                binding,
-                toShape,
-                toUtils.getBounds(toShape),
-                toUtils.getCenter(toShape)
-              )
               throw Error('something went wrong')
             }
           })
@@ -1005,8 +990,6 @@ export class TLDrawState extends StateManager<Data> {
 
           pasteInCurrentPage(data.shapes, data.bindings)
         } catch (e) {
-          console.log(e)
-
           const shapeId = Utils.uniqueId()
 
           this.createShapes({
@@ -2908,6 +2891,10 @@ export class TLDrawState extends StateManager<Data> {
     switch (shape.type) {
       case TLDrawShapeType.Text: {
         this.updateTextSession(shape.text || '')
+        break
+      }
+      default: {
+        this.updateShapes(shape)
       }
     }
   }

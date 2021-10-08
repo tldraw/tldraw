@@ -88,7 +88,6 @@ export function TLDraw({
   }, [sId, id])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes
-
   return (
     <TLDrawContext.Provider value={context}>
       <IdProvider>

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ZoomInIcon, ZoomOutIcon } from '@radix-ui/react-icons'
-import { TertiaryButton, tertiaryButtonsContainer } from './styled'
+import { TertiaryButton, tertiaryButtonsContainer } from '~components/tools-panel/styled'
 import { useTLDrawContext } from '~hooks'
 import type { Data } from '~types'
 

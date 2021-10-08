@@ -139,7 +139,7 @@ export enum TLDrawToolType {
 }
 
 export enum TLDrawShapeType {
-  PostIt = 'post-it',
+  Sticky = 'sticky',
   Ellipse = 'ellipse',
   Rectangle = 'rectangle',
   Draw = 'draw',
@@ -198,8 +198,8 @@ export interface GroupShape extends TLDrawBaseShape {
   children: string[]
 }
 
-export interface PostItShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.PostIt
+export interface StickyShape extends TLDrawBaseShape {
+  type: TLDrawShapeType.Sticky
   size: number[]
   text: string
 }
@@ -211,7 +211,7 @@ export type TLDrawShape =
   | ArrowShape
   | TextShape
   | GroupShape
-  | PostItShape
+  | StickyShape
 
 export type TLDrawShapeUtil<T extends TLDrawShape> = TLShapeUtil<
   T,

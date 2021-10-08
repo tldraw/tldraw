@@ -20,6 +20,37 @@ const colors = {
   [ColorStyle.Yellow]: '#ffc936',
 }
 
+export const textColors: Record<Theme, Record<ColorStyle, string>> = {
+  light: {
+    [ColorStyle.Black]: '#000000',
+    [ColorStyle.White]: '#000000',
+    [ColorStyle.LightGray]: '#000000',
+    [ColorStyle.Gray]: '#000000',
+    [ColorStyle.Green]: '#000000',
+    [ColorStyle.Cyan]: '#000000',
+    [ColorStyle.Blue]: '#000000',
+    [ColorStyle.Indigo]: '#000000',
+    [ColorStyle.Violet]: '#000000',
+    [ColorStyle.Red]: '#000000',
+    [ColorStyle.Orange]: '#000000',
+    [ColorStyle.Yellow]: '#000000',
+  },
+  dark: {
+    [ColorStyle.Black]: '#FFFFFF',
+    [ColorStyle.White]: '#FFFFFF',
+    [ColorStyle.LightGray]: '#FFFFFF',
+    [ColorStyle.Gray]: '#FFFFFF',
+    [ColorStyle.Green]: '#FFFFFF',
+    [ColorStyle.Cyan]: '#FFFFFF',
+    [ColorStyle.Blue]: '#FFFFFF',
+    [ColorStyle.Indigo]: '#FFFFFF',
+    [ColorStyle.Violet]: '#FFFFFF',
+    [ColorStyle.Red]: '#FFFFFF',
+    [ColorStyle.Orange]: '#FFFFFF',
+    [ColorStyle.Yellow]: '#FFFFFF',
+  },
+}
+
 export const strokes: Record<Theme, Record<ColorStyle, string>> = {
   light: colors,
   dark: {
@@ -57,6 +88,13 @@ const fontSizes = {
   auto: 'auto',
 }
 
+const stickyFontSizes = {
+  [SizeStyle.Small]: 16,
+  [SizeStyle.Medium]: 24,
+  [SizeStyle.Large]: 40,
+  auto: 'auto',
+}
+
 export function getStrokeWidth(size: SizeStyle): number {
   return strokeWidths[size]
 }
@@ -65,11 +103,33 @@ export function getFontSize(size: SizeStyle): number {
   return fontSizes[size]
 }
 
+export function getStickyFontSize(size: SizeStyle): number {
+  return stickyFontSizes[size]
+}
+
 export function getFontStyle(style: ShapeStyles): string {
   const fontSize = getFontSize(style.size)
   const { scale = 1 } = style
 
   return `${fontSize * scale}px/1.3 "Caveat Brush"`
+}
+
+export function getStickyFontStyle(style: ShapeStyles): string {
+  const fontSize = getStickyFontSize(style.size)
+  const { scale = 1 } = style
+
+  return `${fontSize * scale}px/1.3 "Caveat Brush"`
+}
+
+export function getStickyShapeStyle(style: ShapeStyles, isDarkMode = false) {
+  const { color } = style
+
+  const theme: Theme = isDarkMode ? 'dark' : 'light'
+
+  return {
+    fill: strokes[theme][color],
+    color: textColors[theme][color],
+  }
 }
 
 export function getShapeStyle(
