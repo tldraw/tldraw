@@ -567,6 +567,14 @@ export class TLDrawState extends StateManager<Data> {
       }
     })
 
+    // Don't allow the selected ids to be deleted during a session—if
+    // they've been removed, put them back in the client's document.
+    if (this.session) {
+      this.selectedIds
+        .filter((id) => !document.pages[this.currentPageId].shapes[id])
+        .forEach((id) => (document.pages[this.currentPageId].shapes[id] = this.page.shapes[id]))
+    }
+
     // Remove any selected ids that were deleted.
     Object.entries(currentPageStates).forEach(([pageId, pageState]) => {
       pageState.selectedIds = pageState.selectedIds.filter(
