@@ -2697,6 +2697,16 @@
     npmlog "^4.1.2"
     write-file-atomic "^3.0.3"
 
+"@liveblocks/client@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-0.12.0.tgz#426c9312b43933f31d4c72611d846325579da651"
+  integrity sha512-kcNPjzwqzDJBCXvLh/lPg86Xoi9quIymav3dbxgVrtufWN40m0WUPderMIiCBFkF5BIWYdBAPd70+YmHLLYjBA==
+
+"@liveblocks/react@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-0.12.0.tgz#76fdcbfb411a65e97c59a138ec876c75e11ee57b"
+  integrity sha512-4LVBRKYKS/vOt2N8OJ1t3R55RJ9o8e/iQY79WQzCFBrzZU+oXUcqSeK1wAcayhnATqJNvyUNYzE8xq9+OvhzXg==
+
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@mrmlnc/readdir-enhanced/-/readdir-enhanced-2.2.1.tgz#524af240d1a360527b730475ecfa1344aa540dde"

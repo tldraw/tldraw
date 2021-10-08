@@ -22,6 +22,8 @@ const isProduction = NODE_ENV === 'production'
 
 const basePath = ''
 
+console.log('is production?', isProduction)
+
 module.exports = withTM(
   withPWA({
     reactStrictMode: true,
