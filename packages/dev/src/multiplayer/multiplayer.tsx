@@ -1,29 +1,41 @@
-import { TLDraw, TLDrawState, Data, TLDrawDocument, TLDrawUser } from '@tldraw/tldraw'
-import * as gtag from '-utils/gtag'
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
+import { TLDraw, TLDrawState, TLDrawDocument, TLDrawUser, Data } from '@tldraw/tldraw'
 import { createClient, Presence } from '@liveblocks/client'
-import { LiveblocksProvider, RoomProvider, useObject, useErrorListener } from '@liveblocks/react'
+import {
+  LiveblocksProvider,
+  RoomProvider,
+  useErrorListener,
+  useObject,
+  useSelf,
+  useOthers,
+  useMyPresence,
+} from '@liveblocks/react'
 import { Utils } from '@tldraw/core'
 
-interface TLDrawPresence extends Presence {
+interface TLDrawUserPresence extends Presence {
   user: TLDrawUser
 }
 
+const publicAPIKey = 'pk_live_1LJGGaqBSNLjLT-4Jalkl-U9'
+
 const client = createClient({
-  publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_API_KEY,
+  publicApiKey: publicAPIKey,
 })
 
-export default function MultiplayerEditor({ id }: { id: string }) {
+const ROOM_ID = 'mp-test-1'
+
+export function Multiplayer() {
   return (
     <LiveblocksProvider client={client}>
-      <RoomProvider id={id}>
-        <Editor id={id} />
+      <RoomProvider id={ROOM_ID}>
+        <TLDrawWrapper />
       </RoomProvider>
     </LiveblocksProvider>
   )
 }
 
-function Editor({ id }: { id: string }) {
+function TLDrawWrapper() {
   const [docId] = React.useState(() => Utils.uniqueId())
 
   const [error, setError] = React.useState<Error>()
@@ -66,31 +78,24 @@ function Editor({ id }: { id: string }) {
 
   const handleChange = React.useCallback(
     (_tlstate: TLDrawState, state: Data, reason: string) => {
-      // If the client updates its document, update the room's document / gtag
+      // If the client updates its document, update the room's document
       if (reason.startsWith('command')) {
-        gtag.event({
-          action: reason,
-          category: 'editor',
-          label: '',
-          value: 0,
-        })
-
         doc?.update({ uuid: docId, document: state.document })
       }
 
       // When the client updates its presence, update the room
       if (reason === 'patch:room:self:update' && state.room) {
-        const room = client.getRoom(id)
+        const room = client.getRoom(ROOM_ID)
         if (!room) return
         const { userId, users } = state.room
         room.updatePresence({ id: userId, user: users[userId] })
       }
     },
-    [docId, doc, id]
+    [docId, doc]
   )
 
   React.useEffect(() => {
-    const room = client.getRoom(id)
+    const room = client.getRoom(ROOM_ID)
 
     if (!room) return
     if (!doc) return
@@ -101,12 +106,11 @@ function Editor({ id }: { id: string }) {
     room.updatePresence({ id: userId, user: users[userId] })
 
     // Subscribe to presence changes; when others change, update the state
-    room.subscribe<TLDrawPresence>('others', (others) => {
+    room.subscribe<TLDrawUserPresence>('others', (others) => {
       tlstate.updateUsers(
         others
           .toArray()
           .filter((other) => other.presence)
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           .map((other) => other.presence!.user)
           .filter(Boolean)
       )
@@ -146,7 +150,7 @@ function Editor({ id }: { id: string }) {
       window.removeEventListener('beforeunload', handleExit)
       doc.unsubscribe(handleDocumentUpdates)
     }
-  }, [doc, docId, tlstate, id])
+  }, [doc, docId, tlstate])
 
   if (error) return <div>Error: {error.message}</div>
 
@@ -154,7 +158,7 @@ function Editor({ id }: { id: string }) {
 
   return (
     <div className="tldraw">
-      <TLDraw onMount={handleMount} onChange={handleChange} showPages={false} autofocus />
+      <TLDraw onChange={handleChange} onMount={handleMount} showPages={false} />
     </div>
   )
 }

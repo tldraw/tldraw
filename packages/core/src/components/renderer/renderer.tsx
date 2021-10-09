@@ -12,7 +12,7 @@ import type {
 import { Canvas } from '../canvas'
 import { Inputs } from '../../inputs'
 import { useTLTheme, TLContext, TLContextType } from '../../hooks'
-import type { TLShapeUtil } from '+index'
+import type { TLShapeUtil, TLUser, TLUsers } from '+index'
 
 export interface RendererProps<T extends TLShape, E extends Element = any, M = any>
   extends Partial<TLCallbacks<T>> {
@@ -23,7 +23,6 @@ export interface RendererProps<T extends TLShape, E extends Element = any, M = a
   /**
    * An object containing instances of your shape classes.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   shapeUtils: Record<T['type'], TLShapeUtil<T, E, M>>
   /**
    * The current page, containing shapes and bindings.
@@ -34,29 +33,37 @@ export interface RendererProps<T extends TLShape, E extends Element = any, M = a
    */
   pageState: TLPageState
   /**
-   * An object of custom theme colors.
+   * (optional) The current users to render.
+   */
+  users?: TLUsers
+  /**
+   * (optional) The current user's id, used to identify the user.
+   */
+  userId?: string
+  /**
+   * (optional) An object of custom theme colors.
    */
   theme?: Partial<TLTheme>
   /**
-   * When true, the renderer will not show the bounds for selected objects.
+   * (optional) When true, the renderer will not show the bounds for selected objects.
    */
   hideBounds?: boolean
   /**
-   * When true, the renderer will not show the handles of shapes with handles.
+   * (optional) When true, the renderer will not show the handles of shapes with handles.
    */
   hideHandles?: boolean
   /**
-   * When true, the renderer will not show indicators for selected or
+   * (optional) When true, the renderer will not show indicators for selected or
    * hovered objects,
    */
   hideIndicators?: boolean
   /**
-   * When true, the renderer will ignore all inputs that were not made
+   * (optional) hen true, the renderer will ignore all inputs that were not made
    * by a stylus or pen-type device.
    */
   isPenMode?: boolean
   /**
-   * An object of custom options that should be passed to rendered shapes.
+   * (optional) An object of custom options that should be passed to rendered shapes.
    */
   meta?: M
   /**
@@ -82,6 +89,8 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
   shapeUtils,
   page,
   pageState,
+  users,
+  userId,
   theme,
   meta,
   hideHandles = false,
@@ -118,6 +127,8 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
         id={id}
         page={page}
         pageState={pageState}
+        users={users}
+        userId={userId}
         hideBounds={hideBounds}
         hideIndicators={hideIndicators}
         hideHandles={hideHandles}

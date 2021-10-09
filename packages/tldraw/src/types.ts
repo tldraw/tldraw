@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import type { TLBinding, TLShapeProps } from '@tldraw/core'
 import type { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
-import type { TLPage, TLPageState } from '@tldraw/core'
+import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
 import type { Command, Patch } from 'rko'
 
@@ -29,8 +29,19 @@ export interface TLDrawSettings {
   isFocusMode: boolean
 }
 
+export enum TLUserStatus {
+  Idle = 'idle',
+  Connecting = 'connecting',
+  Connected = 'connected',
+  Disconnected = 'disconnected',
+}
+
 export interface TLDrawMeta {
   isDarkMode: boolean
+}
+
+export interface TLDrawUser extends TLUser {
+  id: string
 }
 
 export type TLDrawShapeProps<T extends TLDrawShape, E extends Element> = TLShapeProps<
@@ -40,7 +51,6 @@ export type TLDrawShapeProps<T extends TLDrawShape, E extends Element> = TLShape
 >
 
 export interface Data {
-  document: TLDrawDocument
   settings: TLDrawSettings
   appState: {
     selectedStyle: ShapeStyles
@@ -54,6 +64,12 @@ export interface Data {
     isStyleOpen: boolean
     isEmptyCanvas: boolean
     status: { current: TLDrawStatus; previous: TLDrawStatus }
+  }
+  document: TLDrawDocument
+  room: {
+    id: string
+    userId: string
+    users: Record<string, TLDrawUser>
   }
 }
 

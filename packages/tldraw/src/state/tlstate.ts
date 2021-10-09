@@ -37,6 +37,7 @@ import {
   TLDrawBinding,
   GroupShape,
   TLDrawCommand,
+  TLDrawUser,
 } from '~types'
 import { TLDR } from './tldr'
 import { defaultStyle } from '~shape'
@@ -66,6 +67,8 @@ const defaultDocument: TLDrawDocument = {
   },
 }
 
+const uuid = Utils.uniqueId()
+
 const defaultState: Data = {
   settings: {
     isPenMode: false,
@@ -94,6 +97,17 @@ const defaultState: Data = {
     },
   },
   document: defaultDocument,
+  room: {
+    id: 'local',
+    userId: uuid,
+    users: {
+      [uuid]: {
+        id: uuid,
+        color: 'dodgerBlue',
+        point: [100, 100],
+      },
+    },
+  },
 }
 
 export class TLDrawState extends StateManager<Data> {
@@ -144,15 +158,10 @@ export class TLDrawState extends StateManager<Data> {
     onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
     onMount?: (tlstate: TLDrawState) => void
   ) {
-    super(defaultState, id, 2, (prev, next, prevVersion) => {
-      const state = { ...prev }
-      if (prevVersion === 1)
-        state.settings = {
-          ...state.settings,
-          isZoomSnap: next.settings.isZoomSnap,
-        }
-      return state
-    })
+    super(defaultState, id, 2.3, (prev, next) => ({
+      ...next,
+      ...prev,
+    }))
 
     this._onChange = onChange
     this._onMount = onMount
@@ -327,6 +336,15 @@ export class TLDrawState extends StateManager<Data> {
       })
     }
 
+    // Remove any exited users
+    if (data.room !== prev.room) {
+      Object.values(prev.room.users).forEach((user) => {
+        if (data.room.users[user.id] === undefined) {
+          delete data.room.users[user.id]
+        }
+      })
+    }
+
     const currentPageId = data.appState.currentPageId
 
     // Apply selected style change, if any
@@ -338,12 +356,6 @@ export class TLDrawState extends StateManager<Data> {
         ...data.appState,
         selectedStyle: newSelectedStyle,
       }
-    }
-
-    // Check that the correct page id is active (delete me?)
-
-    if (data.document.pageStates[currentPageId].id !== currentPageId) {
-      throw Error('Current page id is not the current page state!')
     }
 
     return data
@@ -544,6 +556,31 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /**
+   *
+   * @param document
+   */
+  updateUsers = (users: TLDrawUser[], isOwnUpdate = false) => {
+    this.patchState(
+      {
+        room: {
+          users: Object.fromEntries(users.map((user) => [user.id, user])),
+        },
+      },
+      isOwnUpdate ? 'room:self:update' : 'room:user:update'
+    )
+  }
+
+  removeUser = (userId: string) => {
+    this.patchState({
+      room: {
+        users: {
+          [userId]: undefined,
+        },
+      },
+    })
+  }
+
+  /**
    * Merge a new document patch into the current document.
    * @param document
    */
@@ -618,15 +655,6 @@ export class TLDrawState extends StateManager<Data> {
       document.pages[this.currentPageId].shapes[editingId] = this.page.shapes[editingId]
       currentPageStates[this.currentPageId].selectedIds = [editingId]
     }
-
-    console.log('next state', {
-      ...this.state,
-      appState: nextAppState,
-      document: {
-        ...document,
-        pageStates: currentPageStates,
-      },
-    })
 
     return this.replaceState(
       {
@@ -2567,6 +2595,20 @@ export class TLDrawState extends StateManager<Data> {
   /* ----------------- Pointer Events ----------------- */
 
   onPointerMove: TLPointerEventHandler = (info) => {
+    if (this.state.room) {
+      const { users, userId } = this.state.room
+
+      this.updateUsers(
+        [
+          {
+            ...users[userId],
+            point: this.getPagePoint(info.point),
+          },
+        ],
+        true
+      )
+    }
+
     // Several events (e.g. pan) can trigger the same "pointer move" behavior
     this.updateOnPointerMove(info)
   }

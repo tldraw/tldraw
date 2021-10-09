@@ -8,11 +8,12 @@ import {
   useCameraCss,
   useKeyEvents,
 } from '+hooks'
-import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
+import type { TLBinding, TLPage, TLPageState, TLShape, TLUser, TLUsers } from '+types'
 import { ErrorFallback } from '+components/error-fallback'
 import { ErrorBoundary } from '+components/error-boundary'
 import { Brush } from '+components/brush'
 import { Page } from '+components/page'
+import { Users } from '+components/users'
 import { useResizeObserver } from '+hooks/useResizeObserver'
 import { inputs } from '+inputs'
 
@@ -23,6 +24,8 @@ function resetError() {
 interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
   pageState: TLPageState
+  users?: TLUsers
+  userId?: string
   hideBounds?: boolean
   hideHandles?: boolean
   hideIndicators?: boolean
@@ -34,6 +37,8 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
   id,
   page,
   pageState,
+  users,
+  userId,
   meta,
   hideHandles = false,
   hideBounds = false,
@@ -83,6 +88,7 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
               meta={meta}
             />
             {pageState.brush && <Brush brush={pageState.brush} />}
+            {users && <Users userId={userId} users={users} />}
           </div>
         </ErrorBoundary>
       </div>
