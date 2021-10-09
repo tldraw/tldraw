@@ -1,3 +1,15 @@
+## 0.0.110
+
+### Core
+
+- Adds `user` and `users` props (optional) for multiplayer cursors. This feature is very lightly implemented.
+
+### TLDraw
+
+- Adds multiplayer support.
+- Adds `showMenu` and `showPages` props.
+- Adds `mergeState`, `updateUsers`, and `removeUser` methods.
+
 ## 0.0.109
 
 ### TLDraw
