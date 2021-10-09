@@ -233,6 +233,15 @@ const tlcss = css`
     pointer-events: none;
   }
 
+  .tl-user {
+    left: -4px;
+    top: -4px;
+    height: 8px;
+    width: 8px;
+    border-radius: 100%;
+    pointer-events: none;
+  }
+
   .tl-selected {
     fill: transparent;
     stroke: var(--tl-selectStroke);

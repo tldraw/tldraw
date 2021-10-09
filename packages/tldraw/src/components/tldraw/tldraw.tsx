@@ -31,6 +31,8 @@ const isSelectedShapeWithHandlesSelector = (s: Data) => {
 
 const pageSelector = (s: Data) => s.document.pages[s.appState.currentPageId]
 
+const usersSelector = (s: Data) => s.room?.users
+
 const pageStateSelector = (s: Data) => s.document.pageStates[s.appState.currentPageId]
 
 const isDarkModeSelector = (s: Data) => s.settings.isDarkMode
@@ -125,6 +127,8 @@ function InnerTldraw({
 
   const pageState = useSelector(pageStateSelector)
 
+  const users = useSelector(usersSelector)
+
   const isDarkMode = useSelector(isDarkModeSelector)
 
   const isFocusMode = useSelector(isFocusModeSelector)
@@ -188,6 +192,8 @@ function InnerTldraw({
             id={id}
             page={page}
             pageState={pageState}
+            users={users}
+            userId={tlstate.state.room.userId}
             shapeUtils={tldrawShapeUtils}
             theme={theme}
             meta={meta}

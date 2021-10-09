@@ -4,8 +4,8 @@ import Basic from './basic'
 import Controlled from './controlled'
 import Imperative from './imperative'
 import Embedded from './embedded'
-import NoSizeEmbedded from '+no-size-embedded'
-import LiveBlocks from './liveblocks'
+import NoSizeEmbedded from './no-size-embedded'
+import { Multiplayer } from './multiplayer'
 import ChangingId from './changing-id'
 import Core from './core'
 import './styles.css'
@@ -35,8 +35,8 @@ export default function App(): JSX.Element {
         <Route path="/no-size-embedded">
           <NoSizeEmbedded />
         </Route>
-        <Route path="/liveblocks">
-          <LiveBlocks />
+        <Route path="/multiplayer">
+          <Multiplayer />
         </Route>
         <Route path="/">
           <ul>
@@ -62,7 +62,7 @@ export default function App(): JSX.Element {
               <Link to="/no-size-embedded">embedded (no size)</Link>
             </li>
             <li>
-              <Link to="/liveblocks">liveblocks</Link>
+              <Link to="/multiplayer">multiplayer</Link>
             </li>
           </ul>
         </Route>
