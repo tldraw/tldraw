@@ -154,7 +154,7 @@ function Editor({ id }: { id: string }) {
 
   return (
     <div className="tldraw">
-      <TLDraw onMount={handleMount} onChange={handleChange} autofocus />
+      <TLDraw onMount={handleMount} onChange={handleChange} showPages={false} autofocus />
     </div>
   )
 }

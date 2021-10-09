@@ -158,7 +158,7 @@ function TLDrawWrapper() {
 
   return (
     <div className="tldraw">
-      <TLDraw onChange={handleChange} onMount={handleMount} />
+      <TLDraw onChange={handleChange} onMount={handleMount} showPages={false} />
     </div>
   )
 }

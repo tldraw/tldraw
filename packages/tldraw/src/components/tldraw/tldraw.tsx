@@ -44,10 +44,12 @@ export interface TLDrawProps {
    * (optional) If provided, the component will load / persist state under this key.
    */
   id?: string
+
   /**
    * (optional) The document to load or update from.
    */
   document?: TLDrawDocument
+
   /**
    * (optional) The current page id.
    */
@@ -57,10 +59,22 @@ export interface TLDrawProps {
    * (optional) Whether the editor should immediately receive focus. Defaults to true.
    */
   autofocus?: boolean
+
+  /**
+   * (optional) Whether to show the menu UI.
+   */
+  showMenu?: boolean
+
+  /**
+   * (optional) Whether to show the pages UI.
+   */
+  showPages?: boolean
+
   /**
    * (optional) A callback to run when the component mounts.
    */
   onMount?: (state: TLDrawState) => void
+
   /**
    * (optional) A callback to run when the component's state changes.
    */
@@ -72,6 +86,8 @@ export function TLDraw({
   document,
   currentPageId,
   autofocus = true,
+  showMenu = true,
+  showPages = true,
   onMount,
   onChange,
 }: TLDrawProps) {
@@ -100,6 +116,8 @@ export function TLDraw({
           currentPageId={currentPageId}
           document={document}
           autofocus={autofocus}
+          showPages={showPages}
+          showMenu={showMenu}
         />
       </IdProvider>
     </TLDrawContext.Provider>
@@ -110,11 +128,15 @@ function InnerTldraw({
   id,
   currentPageId,
   autofocus,
+  showPages,
+  showMenu,
   document,
 }: {
   id?: string
   currentPageId?: string
-  autofocus?: boolean
+  autofocus: boolean
+  showPages: boolean
+  showMenu: boolean
   document?: TLDrawDocument
 }) {
   const { tlstate, useSelector } = useTLDrawContext()
@@ -259,8 +281,8 @@ function InnerTldraw({
         ) : (
           <>
             <div className={menuButtons()}>
-              <Menu />
-              <PagePanel />
+              {showMenu && <Menu />}
+              {showPages && <PagePanel />}
             </div>
             <div className={spacer()} />
             <StylePanel />
