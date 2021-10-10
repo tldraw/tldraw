@@ -1,7 +1,7 @@
 import type { Data, TLDrawCommand, TLDrawPage } from '~types'
 import { Utils, TLPageState } from '@tldraw/core'
 
-export function createPage(data: Data, pageId = Utils.uniqueId()): TLDrawCommand {
+export function createPage(data: Data, center: number[], pageId = Utils.uniqueId()): TLDrawCommand {
   const { currentPageId } = data.appState
 
   const topPage = Object.values(data.document.pages).sort(
@@ -24,7 +24,7 @@ export function createPage(data: Data, pageId = Utils.uniqueId()): TLDrawCommand
   const pageState: TLPageState = {
     id: pageId,
     selectedIds: [],
-    camera: { point: [-window.innerWidth / 2, -window.innerHeight / 2], zoom: 1 },
+    camera: { point: center, zoom: 1 },
     currentParentId: pageId,
     editingId: undefined,
     bindingId: undefined,

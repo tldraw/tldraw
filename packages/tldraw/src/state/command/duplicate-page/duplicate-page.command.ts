@@ -1,7 +1,7 @@
 import type { Data, TLDrawCommand } from '~types'
 import { Utils } from '@tldraw/core'
 
-export function duplicatePage(data: Data, pageId: string): TLDrawCommand {
+export function duplicatePage(data: Data, center: number[], pageId: string): TLDrawCommand {
   const newId = Utils.uniqueId()
   const { currentPageId } = data.appState
 
@@ -51,7 +51,7 @@ export function duplicatePage(data: Data, pageId: string): TLDrawCommand {
             ...page,
             id: newId,
             selectedIds: [],
-            camera: { point: [-window.innerWidth / 2, -window.innerHeight / 2], zoom: 1 },
+            camera: { point: center, zoom: 1 },
             currentParentId: newId,
             editingId: undefined,
             bindingId: undefined,

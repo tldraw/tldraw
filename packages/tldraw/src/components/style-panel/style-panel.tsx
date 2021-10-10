@@ -48,7 +48,7 @@ export function StylePanel(): JSX.Element {
   )
 }
 
-const showKbds = !Utils.isMobileSize()
+const [showKbds] = React.useState(() => !Utils.isMobileSize())
 
 const selectedShapesCountSelector = (s: Data) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length
