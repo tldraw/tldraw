@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "0.0.110",
+  "version": "0.0.111",
   "private": false,
   "description": "A tiny little drawing app (editor)",
   "author": "@steveruizok",
@@ -64,9 +64,9 @@
     "@radix-ui/react-tooltip": "^0.0.20",
     "@stitches/core": "^1.2.0",
     "@stitches/react": "^1.0.0",
-    "@tldraw/core": "^0.0.110",
-    "@tldraw/intersect": "^0.0.110",
-    "@tldraw/vec": "^0.0.110",
+    "@tldraw/core": "^0.0.111",
+    "@tldraw/intersect": "^0.0.111",
+    "@tldraw/vec": "^0.0.111",
     "perfect-freehand": "^1.0.15",
     "react-hotkeys-hook": "^3.4.0",
     "rko": "^0.5.25"
