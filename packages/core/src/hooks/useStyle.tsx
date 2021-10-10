@@ -315,7 +315,7 @@ const tlcss = css`
     fill: transparent;
     stroke: none;
     pointer-events: all;
-    r: calc(20px / max(1, var(--tl-zoom)));
+    r: calc(16px / max(1, var(--tl-zoom)));
   }
 
   .tl-binding-indicator {

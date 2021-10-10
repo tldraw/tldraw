@@ -52,8 +52,8 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
             />
           )}
           <rect
-            x={+styles.strokeWidth / 2}
-            y={+styles.strokeWidth / 2}
+            x={styles.strokeWidth / 2}
+            y={styles.strokeWidth / 2}
             width={Math.max(0, size[0] - strokeWidth)}
             height={Math.max(0, size[1] - strokeWidth)}
             fill={style.isFilled ? styles.fill : 'none'}
@@ -72,7 +72,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
       )
     }
 
-    const sw = 1 + strokeWidth * 2
+    const sw = 1 + strokeWidth * 1.618
 
     const w = Math.max(0, size[0] - sw / 2)
     const h = Math.max(0, size[1] - sw / 2)
@@ -222,11 +222,12 @@ function getRectangleDrawPoints(shape: RectangleShape) {
 
 function getRectanglePath(shape: RectangleShape) {
   const { points, edgeDistance } = getRectangleDrawPoints(shape)
-  const styles = getShapeStyle(shape.style)
+
+  const { strokeWidth } = getShapeStyle(shape.style)
 
   const stroke = getStroke(points, {
-    size: 1 + styles.strokeWidth * 2,
-    thinning: 0.5,
+    size: 1 + strokeWidth,
+    thinning: 0.6,
     end: { taper: edgeDistance },
     start: { taper: edgeDistance },
     simulatePressure: false,

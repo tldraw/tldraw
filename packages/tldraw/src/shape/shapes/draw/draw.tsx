@@ -315,10 +315,10 @@ function getDrawStrokePathData(shape: DrawShape, isEditing: boolean) {
   const strokePoints = getDrawStrokePoints(shape, isEditing)
 
   const stroke = getStrokeOutlinePoints(strokePoints, {
-    size: 1 + styles.strokeWidth * 1.618,
+    size: 1 + styles.strokeWidth,
     thinning: 0.6,
     streamline: STREAMLINE,
-    smoothing: 0.5,
+    smoothing: 0.65,
     end: { taper: styles.strokeWidth * 10, easing: EASINGS.easeOutQuad },
     easing: (t) => Math.sin((t * Math.PI) / 2),
     ...options,

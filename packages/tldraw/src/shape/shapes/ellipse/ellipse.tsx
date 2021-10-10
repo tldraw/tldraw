@@ -3,7 +3,7 @@ import { SVGContainer, Utils, ShapeUtil, TLTransformInfo, TLBounds } from '@tldr
 import { Vec } from '@tldraw/vec'
 import { DashStyle, EllipseShape, TLDrawShapeType, TLDrawMeta, TLDrawToolType } from '~types'
 import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
-import getStroke from 'perfect-freehand'
+import getStroke, { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
 import {
   intersectBoundsEllipse,
   intersectLineSegmentEllipse,
@@ -39,10 +39,13 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
     } = shape
 
     const styles = getShapeStyle(style, meta.isDarkMode)
+
     const strokeWidth = +styles.strokeWidth
 
-    const rx = Math.max(0, radiusX - strokeWidth / 2)
-    const ry = Math.max(0, radiusY - strokeWidth / 2)
+    const sw = 1 + strokeWidth * 1.618
+
+    const rx = Math.max(0, radiusX - sw / 2)
+    const ry = Math.max(0, radiusY - sw / 2)
 
     if (style.dash === DashStyle.Draw) {
       const path = getEllipsePath(shape, this.getCenter(shape))
@@ -71,7 +74,7 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
             d={path}
             fill={styles.stroke}
             stroke={styles.stroke}
-            strokeWidth={strokeWidth}
+            strokeWidth={styles.strokeWidth}
             pointerEvents="all"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -85,13 +88,11 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
     const perimeter = Math.PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
 
     const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-      perimeter,
-      strokeWidth * 1.618,
+      perimeter < 64 ? perimeter * 2 : perimeter,
+      sw,
       shape.style.dash,
       4
     )
-
-    const sw = 1 + strokeWidth * 2
 
     return (
       <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
@@ -308,30 +309,30 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
 /*                       Helpers                      */
 /* -------------------------------------------------- */
 
-function getEllipsePath(shape: EllipseShape, boundsCenter: number[]) {
+function getEllipseStrokePoints(shape: EllipseShape, boundsCenter: number[]) {
   const {
-    style,
     id,
     radius: [radiusX, radiusY],
     point,
+    style,
   } = shape
+
+  const { strokeWidth } = getShapeStyle(style)
 
   const getRandom = Utils.rng(id)
 
   const center = Vec.sub(boundsCenter, point)
 
-  const strokeWidth = +getShapeStyle(style).strokeWidth
-
   const rx = radiusX + getRandom() * strokeWidth * 2
   const ry = radiusY + getRandom() * strokeWidth * 2
+
+  const perimeter = Utils.perimeterOfEllipse(rx, ry)
 
   const points: number[][] = []
 
   const start = Math.PI + Math.PI * getRandom()
 
   const extra = Math.abs(getRandom())
-
-  const perimeter = Utils.perimeterOfEllipse(rx, ry)
 
   const count = Math.max(16, perimeter / 10)
 
@@ -343,14 +344,40 @@ function getEllipsePath(shape: EllipseShape, boundsCenter: number[]) {
     points.push([rx * c + center[0], ry * s + center[1], t + 0.5 + getRandom() / 2])
   }
 
-  const stroke = getStroke(points, {
+  return getStrokePoints(points, {
     size: 1 + strokeWidth * 2,
-    thinning: 0.5,
+    thinning: 0.618,
     end: { taper: perimeter / 8 },
     start: { taper: perimeter / 12 },
     streamline: 0,
     simulatePressure: true,
   })
+}
 
-  return Utils.getSvgPathFromStroke(stroke)
+function getEllipsePath(shape: EllipseShape, boundsCenter: number[]) {
+  const {
+    id,
+    radius: [radiusX, radiusY],
+    style,
+  } = shape
+
+  const { strokeWidth } = getShapeStyle(style)
+
+  const getRandom = Utils.rng(id)
+
+  const rx = radiusX + getRandom() * strokeWidth * 2
+  const ry = radiusY + getRandom() * strokeWidth * 2
+
+  const perimeter = Utils.perimeterOfEllipse(rx, ry)
+
+  return Utils.getSvgPathFromStroke(
+    getStrokeOutlinePoints(getEllipseStrokePoints(shape, boundsCenter), {
+      size: 1 + strokeWidth * 2,
+      thinning: 0.618,
+      end: { taper: perimeter / 8 },
+      start: { taper: perimeter / 12 },
+      streamline: 0,
+      simulatePressure: true,
+    })
+  )
 }

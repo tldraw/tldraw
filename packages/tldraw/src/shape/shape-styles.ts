@@ -46,14 +46,14 @@ export const fills: Record<Theme, Record<ColorStyle, string>> = {
 
 const strokeWidths = {
   [SizeStyle.Small]: 2,
-  [SizeStyle.Medium]: 4,
-  [SizeStyle.Large]: 8,
+  [SizeStyle.Medium]: 3.5,
+  [SizeStyle.Large]: 5,
 }
 
 const fontSizes = {
-  [SizeStyle.Small]: 40,
+  [SizeStyle.Small]: 32,
   [SizeStyle.Medium]: 64,
-  [SizeStyle.Large]: 140,
+  [SizeStyle.Large]: 128,
   auto: 'auto',
 }
 
@@ -95,7 +95,7 @@ export function getShapeStyle(
 
 export const defaultStyle: ShapeStyles = {
   color: ColorStyle.Black,
-  size: SizeStyle.Medium,
+  size: SizeStyle.Small,
   isFilled: false,
   dash: DashStyle.Draw,
 }
@@ -136,8 +136,10 @@ export function getPerfectDashProps(
   }
 
   let dashes = Math.floor(length / dashLength / (2 * ratio))
+
   dashes -= dashes % snap
-  if (dashes === 0) dashes = 1
+
+  if (dashes < 4) dashes = 4
 
   const gapLength = (length - dashes * dashLength) / dashes
 
