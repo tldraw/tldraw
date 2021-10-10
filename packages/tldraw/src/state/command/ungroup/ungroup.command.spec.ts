@@ -44,6 +44,22 @@ describe('Ungroup command', () => {
       expect(tlstate.getShape('groupA', 'page1')).toBeDefined()
     })
 
+    it('Ungroups multiple selected groups', () => {
+      tlstate
+        .loadDocument(mockDocument)
+        .createShapes({
+          id: 'rect4',
+          type: TLDrawShapeType.Rectangle,
+        })
+        .group(['rect1', 'rect2'], 'groupA')
+        .group(['rect3', 'rect4'], 'groupB')
+        .selectAll()
+        .ungroup()
+
+      expect(tlstate.getShape('groupA', 'page1')).toBeUndefined()
+      expect(tlstate.getShape('groupB', 'page1')).toBeUndefined()
+    })
+
     it('Does not ungroup if a group shape is not selected', () => {
       tlstate.loadDocument(mockDocument).select('rect1')
       const before = tlstate.state
