@@ -88,7 +88,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
 
     const arrowHeadLength = Math.min(arrowDist / 3, strokeWidth * 8)
 
-    const sw = isDraw ? strokeWidth * 2 : 1 + strokeWidth * 2
+    const sw = 1 + strokeWidth * 1.618
 
     let shaftPath: JSX.Element | null
     let startArrowHead: { left: number[]; right: number[] } | undefined
@@ -136,7 +136,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
               d={path}
               fill={styles.stroke}
               stroke={styles.stroke}
-              strokeWidth={isDraw ? 0 : sw}
+              strokeWidth={isDraw ? sw / 2 : sw}
               strokeDasharray={strokeDasharray}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
@@ -188,7 +188,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
             d={path}
             fill="none"
             stroke="none"
-            strokeWidth={Math.max(8, sw)}
+            strokeWidth={Math.max(8, strokeWidth)}
             strokeDasharray="none"
             strokeDashoffset="none"
             strokeLinecap="round"
@@ -632,24 +632,22 @@ function renderFreehandArrowShaft(
 
   const strokeWidth = getShapeStyle(style).strokeWidth
 
-  const count = 4 + Math.floor((Math.abs(length) / 40) * (1 + getRandom() / 2))
+  const startPoint = shape.decorations?.start
+    ? Vec.nudge(start.point, end.point, strokeWidth)
+    : start.point
 
-  const stroke = getStroke(
-    [...Vec.pointsBetween(start.point, end.point, count, easing), end.point, end.point, end.point],
-    {
-      size: strokeWidth * 3,
-      thinning: 0.618 + getRandom() * 0.2,
-      start: shape.decorations?.start
-        ? { taper: 32 + 0.25 * Math.abs(getRandom()) }
-        : { cap: true },
-      end: shape.decorations?.end ? { taper: 32 + 0.25 * Math.abs(getRandom()) } : { cap: true },
-      easing: EASINGS.easeOutQuad,
-      simulatePressure: true,
-      smoothing: 0,
-      streamline: 0,
-      last: true,
-    }
-  )
+  const endPoint = shape.decorations?.end
+    ? Vec.nudge(end.point, start.point, strokeWidth)
+    : end.point
+
+  const stroke = getStroke([startPoint, endPoint], {
+    size: strokeWidth,
+    thinning: 0.618 + getRandom() * 0.2,
+    easing: EASINGS.easeOutQuad,
+    simulatePressure: true,
+    streamline: 0,
+    last: true,
+  })
 
   const path = Utils.getSvgPathFromStroke(stroke)
 
@@ -674,15 +672,23 @@ function renderCurvedFreehandArrowShaft(
 
   const radius = circle[2]
 
-  const startAngle = Vec.angle(center, start.point)
+  const startPoint = shape.decorations?.start
+    ? Vec.rotWith(start.point, center, strokeWidth / length)
+    : start.point
 
-  const endAngle = Vec.angle(center, end.point)
+  const endPoint = shape.decorations?.end
+    ? Vec.rotWith(end.point, center, -(strokeWidth / length))
+    : end.point
+
+  const startAngle = Vec.angle(center, startPoint)
+
+  const endAngle = Vec.angle(center, endPoint)
 
   const points: number[][] = []
 
-  const count = 8 + Math.floor((Math.abs(length) / 40) * 1 + getRandom() / 2)
+  const count = 8 + Math.floor((Math.abs(length) / 20) * 1 + getRandom() / 2)
 
-  for (let i = 0; i < count + 1; i++) {
+  for (let i = 0; i < count; i++) {
     const t = easing(i / count)
 
     const angle = Utils.lerpAngles(startAngle, endAngle, t)
@@ -690,15 +696,12 @@ function renderCurvedFreehandArrowShaft(
     points.push(Vec.round(Vec.nudgeAtAngle(center, angle, radius)))
   }
 
-  const stroke = getStroke([...points, end.point, end.point, end.point], {
-    size: strokeWidth * 3,
+  const stroke = getStroke([startPoint, ...points, endPoint], {
+    size: 1 + strokeWidth,
     thinning: 0.618 + getRandom() * 0.2,
-    start: shape.decorations?.start ? { taper: 32 + 0.25 * Math.abs(getRandom()) } : { cap: true },
-    end: shape.decorations?.end ? { taper: 32 + 0.25 * Math.abs(getRandom()) } : { cap: true },
     easing: EASINGS.easeOutQuad,
-    simulatePressure: true,
+    simulatePressure: false,
     streamline: 0,
-    smoothing: 0,
     last: true,
   })
 
