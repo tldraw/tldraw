@@ -61,11 +61,8 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
               ry={ry + 2}
             />
           )}
-          <ellipse
-            cx={radiusX}
-            cy={radiusY}
-            rx={rx}
-            ry={ry}
+          <path
+            d={getEllipseIndicatorPathData(shape, this.getCenter(shape))}
             stroke="none"
             fill={style.isFilled ? styles.fill : 'none'}
             pointerEvents="all"
@@ -124,17 +121,7 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
   },
 
   Indicator({ shape }) {
-    const {
-      style,
-      radius: [rx, ry],
-    } = shape
-
-    const styles = getShapeStyle(style, false)
-    const strokeWidth = +styles.strokeWidth
-
-    const sw = strokeWidth
-
-    return <ellipse cx={rx} cy={ry} rx={rx - sw / 2} ry={ry - sw / 2} />
+    return <path d={getEllipseIndicatorPathData(shape, this.getCenter(shape))} />
   },
 
   shouldRender(prev, next) {
@@ -379,5 +366,12 @@ function getEllipsePath(shape: EllipseShape, boundsCenter: number[]) {
       streamline: 0,
       simulatePressure: true,
     })
+  )
+}
+
+function getEllipseIndicatorPathData(shape: EllipseShape, boundsCenter: number[]) {
+  return Utils.getSvgPathFromStroke(
+    getEllipseStrokePoints(shape, boundsCenter).map((pt) => pt.point.slice(0, 2)),
+    false
   )
 }
