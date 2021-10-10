@@ -215,7 +215,7 @@ function InnerTldraw({
             page={page}
             pageState={pageState}
             users={users}
-            userId={tlstate.state.room.userId}
+            userId={tlstate.state.room?.userId}
             shapeUtils={tldrawShapeUtils}
             theme={theme}
             meta={meta}

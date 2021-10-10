@@ -103,18 +103,18 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
     const strokeDasharray = {
       [DashStyle.Draw]: 'none',
       [DashStyle.Solid]: `none`,
-      [DashStyle.Dotted]: `${strokeWidth / 10} ${strokeWidth * 3}`,
-      [DashStyle.Dashed]: `${strokeWidth * 3} ${strokeWidth * 3}`,
+      [DashStyle.Dotted]: `0.1 ${strokeWidth * 4}`,
+      [DashStyle.Dashed]: `${strokeWidth * 4} ${strokeWidth * 4}`,
     }[style.dash]
 
     const strokeDashoffset = {
       [DashStyle.Draw]: 'none',
       [DashStyle.Solid]: `none`,
-      [DashStyle.Dotted]: `-${strokeWidth / 20}`,
-      [DashStyle.Dashed]: `-${strokeWidth}`,
+      [DashStyle.Dotted]: `0`,
+      [DashStyle.Dashed]: `0`,
     }[style.dash]
 
-    const sw = 1 + strokeWidth * 2
+    const sw = 1 + strokeWidth * 1.5
 
     return (
       <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>

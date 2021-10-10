@@ -940,7 +940,9 @@ export class TLDrawState extends StateManager<Data> {
    * @param pageId (optional) The new page's id.
    */
   createPage = (id?: string): this => {
-    return this.setState(Commands.createPage(this.state, id))
+    return this.setState(
+      Commands.createPage(this.state, [-this.bounds.width / 2, -this.bounds.height / 2], id)
+    )
   }
 
   /**
@@ -965,7 +967,9 @@ export class TLDrawState extends StateManager<Data> {
    * @param pageId The id of the page to duplicate.
    */
   duplicatePage = (pageId: string): this => {
-    return this.setState(Commands.duplicatePage(this.state, pageId))
+    return this.setState(
+      Commands.duplicatePage(this.state, [-this.bounds.width / 2, -this.bounds.height / 2], pageId)
+    )
   }
 
   /**
@@ -2091,7 +2095,7 @@ export class TLDrawState extends StateManager<Data> {
     ids = this.selectedIds
   ): this => {
     if (ids.length === 0) return this
-    this.setState(Commands.moveToPage(this.state, ids, fromPageId, toPageId))
+    this.setState(Commands.moveToPage(this.state, ids, this.bounds, fromPageId, toPageId))
     return this
   }
 
@@ -2557,11 +2561,6 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   onPinchEnd: TLPinchEventHandler = () => {
-    // if (this.state.settings.isZoomSnap) {
-    //   const i = Math.round((this.pageState.camera.zoom * 100) / 25)
-    //   const nextZoom = TLDR.getCameraZoom(i * 0.25)
-    //   this.zoomTo(nextZoom, inputs.pointer?.point)
-    // }
     this.undoSelect()
     this.setStatus(TLDrawStatus.Idle)
   }
