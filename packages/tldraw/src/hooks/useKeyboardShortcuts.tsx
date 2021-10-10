@@ -96,9 +96,11 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   // Save
 
   useHotkeys(
-    'ctrl+s,command+s',
+    'ctrl+shift+s,command+shift+s',
     () => {
-      if (canHandleEvent()) tlstate.saveProject()
+      if (canHandleEvent()) {
+        tlstate.saveProject()
+      }
     },
     undefined,
     [tlstate]
