@@ -107,7 +107,8 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
         arrowDist,
         strokeWidth * 1.618,
         shape.style.dash,
-        2
+        2,
+        false
       )
 
       if (decorations.start) {
@@ -158,7 +159,8 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
         Math.abs(length),
         sw,
         shape.style.dash,
-        2
+        2,
+        false
       )
 
       if (decorations.start) {

@@ -111,7 +111,8 @@ export function getPerfectDashProps(
   length: number,
   strokeWidth: number,
   style: DashStyle,
-  snap = 1
+  snap = 1,
+  outset = true
 ): {
   strokeDasharray: string
   strokeDashoffset: string
@@ -128,7 +129,7 @@ export function getPerfectDashProps(
   } else if (style === DashStyle.Dashed) {
     dashLength = strokeWidth * 2
     ratio = 1
-    strokeDashoffset = (dashLength / 2).toString()
+    strokeDashoffset = outset ? (dashLength / 2).toString() : '0'
   } else {
     dashLength = strokeWidth / 100
     ratio = 100
@@ -141,7 +142,10 @@ export function getPerfectDashProps(
 
   dashes = Math.max(dashes, 4)
 
-  const gapLength = Math.max(strokeWidth * 2, (length - dashes * dashLength) / dashes)
+  const gapLength = Math.max(
+    dashLength,
+    (length - dashes * dashLength) / (outset ? dashes : dashes - 1)
+  )
 
   return {
     strokeDasharray: [dashLength, gapLength].join(' '),
