@@ -1,3 +1,9 @@
+## 0.0.114
+
+### TLDraw
+
+- Improves fills for filled shapes.
+
 ## 0.0.113
 
 ### TLDraw
