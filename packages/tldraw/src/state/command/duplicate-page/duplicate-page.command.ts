@@ -10,6 +10,7 @@ export function duplicatePage(data: Data, center: number[], pageId: string): TLD
   const nextPage = {
     ...page,
     id: newId,
+    name: page.name + ' Copy',
     shapes: Object.fromEntries(
       Object.entries(page.shapes).map(([id, shape]) => {
         return [
@@ -51,7 +52,7 @@ export function duplicatePage(data: Data, center: number[], pageId: string): TLD
             ...page,
             id: newId,
             selectedIds: [],
-            camera: { point: center, zoom: 1 },
+            camera: data.document.pageStates[currentPageId].camera,
             currentParentId: newId,
             editingId: undefined,
             bindingId: undefined,

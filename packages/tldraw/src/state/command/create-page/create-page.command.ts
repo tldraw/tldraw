@@ -11,13 +11,13 @@ export function createPage(data: Data, center: number[], pageId = Utils.uniqueId
   const nextChildIndex = topPage?.childIndex ? topPage?.childIndex + 1 : 1
 
   // TODO: Iterate the name better
-  const nextName = `Page ${nextChildIndex}`
+  const nextName = `New Page`
 
   const page: TLDrawPage = {
     id: pageId,
     name: nextName,
-    shapes: {},
     childIndex: nextChildIndex,
+    shapes: {},
     bindings: {},
   }
 

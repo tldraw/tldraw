@@ -48,14 +48,14 @@ export function StylePanel(): JSX.Element {
   )
 }
 
-const [showKbds] = React.useState(() => !Utils.isMobileSize())
-
 const selectedShapesCountSelector = (s: Data) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length
 
 function SelectedShapeContent(): JSX.Element {
   const { tlstate, useSelector } = useTLDrawContext()
   const selectedShapesCount = useSelector(selectedShapesCountSelector)
+
+  const [showKbds] = React.useState(() => !Utils.isMobileSize())
 
   const handleCopy = React.useCallback(() => {
     tlstate.copy()
