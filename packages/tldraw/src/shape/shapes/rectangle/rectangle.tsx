@@ -51,11 +51,8 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
               height={Math.max(0, size[1] - strokeWidth / 2) + 64}
             />
           )}
-          <rect
-            x={styles.strokeWidth / 2}
-            y={styles.strokeWidth / 2}
-            width={Math.max(0, size[0] - strokeWidth)}
-            height={Math.max(0, size[1] - strokeWidth)}
+          <path
+            d={getRectangleIndicatorPathData(shape)}
             fill={style.isFilled ? styles.fill : 'none'}
             radius={strokeWidth}
             stroke="none"

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Renderer } from '@tldraw/core'
-import { Rectangle } from './rectangle'
+import { Rectangle } from './box'
 import { Label } from './label'
 import { appState } from './state'
 
