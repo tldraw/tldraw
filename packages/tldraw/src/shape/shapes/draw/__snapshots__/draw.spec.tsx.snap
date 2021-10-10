@@ -16,7 +16,7 @@ Object {
     "color": "Black",
     "dash": "Draw",
     "isFilled": false,
-    "size": "Medium",
+    "size": "Small",
   },
   "type": "draw",
 }
