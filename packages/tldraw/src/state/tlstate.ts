@@ -2225,7 +2225,12 @@ export class TLDrawState extends StateManager<Data> {
     groupId = Utils.uniqueId(),
     pageId = this.currentPageId
   ): this => {
+    if (ids.length === 1 && this.getShape(ids[0], pageId).type === TLDrawShapeType.Group) {
+      return this.ungroup(ids, pageId)
+    }
+
     if (ids.length < 2) return this
+
     const command = Commands.group(this.state, ids, groupId, pageId)
     if (!command) return this
     return this.setState(command)
@@ -2235,11 +2240,14 @@ export class TLDrawState extends StateManager<Data> {
    * Ungroup the selected groups.
    * @todo
    */
-  ungroup = (groupId = this.selectedIds[0], pageId = this.currentPageId): this => {
-    const shape = this.getShape(groupId, pageId)
-    if (shape.type !== TLDrawShapeType.Group) return this
+  ungroup = (ids = this.selectedIds, pageId = this.currentPageId): this => {
+    const groups = ids
+      .map((id) => this.getShape(id, pageId))
+      .filter((shape) => shape.type === TLDrawShapeType.Group)
 
-    const command = Commands.ungroup(this.state, groupId, pageId)
+    if (groups.length === 0) return this
+
+    const command = Commands.ungroup(this.state, ids, groups as GroupShape[], pageId)
     if (!command) return this
     return this.setState(command)
   }
