@@ -2,6 +2,13 @@
 
 ### TLDraw
 
+- Fixes centering on embedded TLDraw components.
+- Removes expensive calls to window.
+
+## 0.0.111
+
+### TLDraw
+
 - Adjust stroke widths and sizes.
 - Fixes a bug on very small dashed shapes.
 
