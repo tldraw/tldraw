@@ -136,8 +136,10 @@ export function getPerfectDashProps(
   }
 
   let dashes = Math.floor(length / dashLength / (2 * ratio))
+
   dashes -= dashes % snap
-  if (dashes === 0) dashes = 1
+
+  if (dashes < 4) dashes = 4
 
   const gapLength = (length - dashes * dashLength) / dashes
 
