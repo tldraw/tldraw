@@ -1,3 +1,10 @@
+## 0.0.111
+
+### TLDraw
+
+- Adjust stroke widths and sizes.
+- Fixes a bug on very small dashed shapes.
+
 ## 0.0.110
 
 ### Core

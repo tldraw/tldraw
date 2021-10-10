@@ -105,7 +105,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
 
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
         arrowDist,
-        sw,
+        strokeWidth * 1.618,
         shape.style.dash,
         2
       )
@@ -155,7 +155,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
         : getArrowArcPath(start, end, circle, shape.bend)
 
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-        length - 1,
+        Math.abs(length),
         sw,
         shape.style.dash,
         2

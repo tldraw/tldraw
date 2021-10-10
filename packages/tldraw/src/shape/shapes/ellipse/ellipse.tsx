@@ -89,7 +89,7 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
 
     const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
       perimeter < 64 ? perimeter * 2 : perimeter,
-      sw,
+      strokeWidth * 1.618,
       shape.style.dash,
       4
     )

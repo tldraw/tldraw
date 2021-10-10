@@ -139,9 +139,9 @@ export function getPerfectDashProps(
 
   dashes -= dashes % snap
 
-  if (dashes < 4) dashes = 4
+  dashes = Math.max(dashes, 4)
 
-  const gapLength = (length - dashes * dashLength) / dashes
+  const gapLength = Math.max(strokeWidth * 2, (length - dashes * dashLength) / dashes)
 
   return {
     strokeDasharray: [dashLength, gapLength].join(' '),

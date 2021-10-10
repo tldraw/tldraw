@@ -87,7 +87,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
     const paths = strokes.map(([start, end, length], i) => {
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
         length,
-        sw,
+        strokeWidth * 1.618,
         shape.style.dash
       )
 
