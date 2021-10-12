@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { User } from '+components/user/user'
-import type { TLUsers } from '+types'
+import type { TLShape, TLUsers } from '+types'
 
 export interface UserProps {
   userId?: string
-  users: TLUsers
+  users: TLUsers<TLShape>
 }
 
 export function Users({ userId, users }: UserProps) {

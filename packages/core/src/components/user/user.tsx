@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type { TLUser } from '+types'
+import type { TLShape, TLUser } from '+types'
 
 interface UserProps {
-  user: TLUser
+  user: TLUser<TLShape>
 }
 
 export function User({ user }: UserProps) {

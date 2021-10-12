@@ -12,7 +12,7 @@ import type {
 import { Canvas } from '../canvas'
 import { Inputs } from '../../inputs'
 import { useTLTheme, TLContext, TLContextType } from '../../hooks'
-import type { TLShapeUtil, TLUser, TLUsers } from '+index'
+import type { TLShapeUtil, TLUsers } from '+index'
 
 export interface RendererProps<T extends TLShape, E extends Element = any, M = any>
   extends Partial<TLCallbacks<T>> {
@@ -35,7 +35,7 @@ export interface RendererProps<T extends TLShape, E extends Element = any, M = a
   /**
    * (optional) The current users to render.
    */
-  users?: TLUsers
+  users?: TLUsers<T>
   /**
    * (optional) The current user's id, used to identify the user.
    */
