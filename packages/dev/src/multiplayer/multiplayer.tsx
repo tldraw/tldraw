@@ -103,7 +103,8 @@ function TLDrawWrapper() {
       tlstate.updateUsers(
         others
           .toArray()
-          .map((other) => other.presence?.user)
+          .filter((other) => other.presence)
+          .map((other) => other.presence!.user)
           .filter(Boolean)
       )
     })
