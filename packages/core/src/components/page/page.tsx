@@ -20,7 +20,7 @@ interface PageProps<T extends TLShape, M extends Record<string, unknown>> {
 /**
  * The Page component renders the current page.
  */
-export function Page<T extends TLShape, M extends Record<string, unknown>>({
+export const Page = React.memo(function Page<T extends TLShape, M extends Record<string, unknown>>({
   page,
   pageState,
   hideBounds,
@@ -82,4 +82,4 @@ export function Page<T extends TLShape, M extends Record<string, unknown>>({
       {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} />}
     </>
   )
-}
+})

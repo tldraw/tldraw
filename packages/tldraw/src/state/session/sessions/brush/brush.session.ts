@@ -52,19 +52,20 @@ export class BrushSession implements Session {
       }
     })
 
-    // if (
-    //   selectedIds.size === pageState.selectedIds.length &&
-    //   pageState.selectedIds.every((id) => selectedIds.has(id))
-    // ) {
-    //   return {}
-    // }
+    const currentSelectedIds = data.document.pageStates[data.appState.currentPageId].selectedIds
+
+    const didChange =
+      selectedIds.size !== currentSelectedIds.length ||
+      currentSelectedIds.some((id) => !selectedIds.has(id))
+
+    const afterSelectedIds = didChange ? Array.from(selectedIds.values()) : currentSelectedIds
 
     return {
       document: {
         pageStates: {
           [currentPageId]: {
             brush,
-            selectedIds: Array.from(selectedIds.values()),
+            selectedIds: afterSelectedIds,
           },
         },
       },

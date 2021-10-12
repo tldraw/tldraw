@@ -43,6 +43,7 @@ import { TLDR } from './tldr'
 import { defaultStyle } from '~shape'
 import * as Sessions from './session'
 import * as Commands from './command'
+import { sample, USER_COLORS } from './utils'
 
 const defaultDocument: TLDrawDocument = {
   id: 'doc',
@@ -103,8 +104,10 @@ const defaultState: Data = {
     users: {
       [uuid]: {
         id: uuid,
-        color: 'dodgerBlue',
+        color: sample(USER_COLORS),
         point: [100, 100],
+        selectedIds: [],
+        activeShapes: [],
       },
     },
   },
@@ -336,6 +339,8 @@ export class TLDrawState extends StateManager<Data> {
       })
     }
 
+    const currentPageId = data.appState.currentPageId
+
     // Remove any exited users
     if (data.room !== prev.room) {
       Object.values(prev.room.users).forEach((user) => {
@@ -345,7 +350,16 @@ export class TLDrawState extends StateManager<Data> {
       })
     }
 
-    const currentPageId = data.appState.currentPageId
+    const currentPage = data.document.pages[currentPageId]
+    const currentPageState = data.document.pageStates[currentPageId]
+
+    // Update the room presence selected ids
+    data.room.users[data.room.userId].selectedIds = currentPageState.selectedIds
+
+    // Update the room presence active shapes
+    data.room.users[data.room.userId].activeShapes = currentPageState.selectedIds.map(
+      (id) => currentPage.shapes[id]
+    )
 
     // Apply selected style change, if any
 
@@ -1471,7 +1485,9 @@ export class TLDrawState extends StateManager<Data> {
    * @param push Whether to add the ids to the current selection instead.
    */
   private setSelectedIds = (ids: string[], push = false): this => {
-    // Also clear any pasted center
+    const nextIds = push ? [...this.pageState.selectedIds, ...ids] : [...ids]
+
+    console.log('selecting ids', ids, nextIds)
 
     return this.patchState(
       {
@@ -1482,7 +1498,15 @@ export class TLDrawState extends StateManager<Data> {
         document: {
           pageStates: {
             [this.currentPageId]: {
-              selectedIds: push ? [...this.pageState.selectedIds, ...ids] : [...ids],
+              selectedIds: nextIds,
+            },
+          },
+        },
+        room: {
+          users: {
+            [this.currentUser.id]: {
+              ...this.currentUser,
+              selectedIds: nextIds,
             },
           },
         },
@@ -3093,6 +3117,10 @@ export class TLDrawState extends StateManager<Data> {
 
   onError = () => {
     // TODO
+  }
+
+  get currentUser() {
+    return this.state.room.users[this.state.room.userId]
   }
 
   get centerPoint() {

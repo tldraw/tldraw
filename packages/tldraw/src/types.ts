@@ -40,8 +40,8 @@ export interface TLDrawMeta {
   isDarkMode: boolean
 }
 
-export interface TLDrawUser extends TLUser {
-  id: string
+export interface TLDrawUser extends TLUser<TLDrawShape> {
+  activeShapes: TLDrawShape[]
 }
 
 export type TLDrawShapeProps<T extends TLDrawShape, E extends Element> = TLShapeProps<

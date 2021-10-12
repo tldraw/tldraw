@@ -1,14 +1,7 @@
 import * as React from 'react'
 import { SVGContainer, ShapeUtil } from '@tldraw/core'
-import { defaultStyle, getPerfectDashProps } from '~shape/shape-styles'
-import {
-  GroupShape,
-  TLDrawShapeType,
-  TLDrawToolType,
-  ColorStyle,
-  DashStyle,
-  TLDrawMeta,
-} from '~types'
+import { defaultStyle } from '~shape/shape-styles'
+import { GroupShape, TLDrawShapeType, TLDrawToolType, ColorStyle, TLDrawMeta } from '~types'
 import { getBoundsRectangle } from '../shared'
 import css from '~styles'
 

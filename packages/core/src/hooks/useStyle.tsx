@@ -242,18 +242,23 @@ const tlcss = css`
     pointer-events: none;
   }
 
-  .tl-selected {
+  .tl-indicator {
     fill: transparent;
-    stroke: var(--tl-selectStroke);
     stroke-width: calc(1.5px * var(--tl-scale));
     pointer-events: none;
   }
 
-  .tl-hovered {
-    fill: transparent;
+  .tl-user-indicator-bounds {
+    border-style: solid;
+    border-width: calc(1px * var(--tl-scale));
+  }
+
+  .tl-selected {
     stroke: var(--tl-selectStroke);
-    stroke-width: calc(1.5px * var(--tl-scale));
-    pointer-events: none;
+  }
+
+  .tl-hovered {
+    stroke: var(--tl-selectStroke);
   }
 
   .tl-bounds {

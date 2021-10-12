@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLDraw, TLDrawState, Data, TLDrawDocument, TLDrawUser } from '@tldraw/tldraw'
 import * as gtag from '-utils/gtag'
 import * as React from 'react'
@@ -5,7 +6,7 @@ import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useObject, useErrorListener } from '@liveblocks/react'
 import { Utils } from '@tldraw/core'
 
-interface TLDrawPresence extends Presence {
+interface TLDrawUserPresence extends Presence {
   user: TLDrawUser
 }
 
@@ -79,7 +80,7 @@ function Editor({ id }: { id: string }) {
       }
 
       // When the client updates its presence, update the room
-      if (reason === 'patch:room:self:update' && state.room) {
+      if (state.room && (reason === 'patch:room:self:update' || reason === 'patch:selected')) {
         const room = client.getRoom(id)
         if (!room) return
         const { userId, users } = state.room
@@ -98,15 +99,18 @@ function Editor({ id }: { id: string }) {
 
     // Update the user's presence with the user from state
     const { users, userId } = tlstate.state.room
-    room.updatePresence({ id: userId, user: users[userId] })
+    room.updatePresence({
+      id: userId,
+      user: users[userId],
+      shapes: Object.fromEntries(tlstate.selectedIds.map((id) => [id, tlstate.getShape(id)])),
+    })
 
     // Subscribe to presence changes; when others change, update the state
-    room.subscribe<TLDrawPresence>('others', (others) => {
+    room.subscribe<TLDrawUserPresence>('others', (others) => {
       tlstate.updateUsers(
         others
           .toArray()
           .filter((other) => other.presence)
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           .map((other) => other.presence!.user)
           .filter(Boolean)
       )
@@ -127,6 +131,19 @@ function Editor({ id }: { id: string }) {
       // Only merge the change if it caused by someone else
       if (docObject.uuid !== docId) {
         tlstate.mergeDocument(docObject.document)
+      } else {
+        tlstate.updateUsers(
+          Object.values(tlstate.state.room.users).map((user) => {
+            const activeShapes = user.activeShapes
+              .map((shape) => docObject.document.pages[tlstate.currentPageId].shapes[shape.id])
+              .filter(Boolean)
+            return {
+              ...user,
+              activeShapes: activeShapes,
+              selectedIds: activeShapes.map((shape) => shape.id),
+            }
+          })
+        )
       }
     }
 

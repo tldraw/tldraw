@@ -16,8 +16,6 @@ export interface TLPage<T extends TLShape, B extends TLBinding> {
   bindings: Record<string, B>
 }
 
-export type TLUsers<U extends TLUser = TLUser> = Record<string, U>
-
 export interface TLPageState {
   id: string
   selectedIds: string[]
@@ -34,11 +32,15 @@ export interface TLPageState {
   currentParentId?: string | null
 }
 
-export interface TLUser {
+export interface TLUser<T extends TLShape> {
   id: string
   color: string
   point: number[]
+  selectedIds: string[]
+  activeShapes: T[]
 }
+
+export type TLUsers<T extends TLShape, U extends TLUser<T> = TLUser<T>> = Record<string, U>
 
 export interface TLHandle {
   id: string

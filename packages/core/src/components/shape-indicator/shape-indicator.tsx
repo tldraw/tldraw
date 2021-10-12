@@ -8,10 +8,17 @@ interface IndicatorProps<T extends TLShape, M = any> {
   meta: M extends any ? M : undefined
   isSelected?: boolean
   isHovered?: boolean
+  color?: string
 }
 
 export const ShapeIndicator = React.memo(
-  <T extends TLShape, M = any>({ isHovered, isSelected, shape, meta }: IndicatorProps<T, M>) => {
+  <T extends TLShape, M = any>({
+    isHovered,
+    isSelected,
+    shape,
+    color,
+    meta,
+  }: IndicatorProps<T, M>) => {
     const { shapeUtils } = useTLContext()
     const utils = shapeUtils[shape.type]
     const bounds = utils.getBounds(shape)
@@ -20,10 +27,12 @@ export const ShapeIndicator = React.memo(
     return (
       <div
         ref={rPositioned}
-        className={'tl-indicator tl-absolute ' + (isSelected ? 'tl-selected' : 'tl-hovered')}
+        className={
+          'tl-indicator tl-absolute ' + (color ? '' : isSelected ? 'tl-selected' : 'tl-hovered')
+        }
       >
         <svg width="100%" height="100%">
-          <g className="tl-centered-g">
+          <g className="tl-centered-g" stroke={color}>
             <utils.Indicator
               shape={shape}
               meta={meta}

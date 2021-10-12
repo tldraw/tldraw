@@ -2,15 +2,7 @@
 import * as React from 'react'
 import { TLDraw, TLDrawState, TLDrawDocument, TLDrawUser, Data } from '@tldraw/tldraw'
 import { createClient, Presence } from '@liveblocks/client'
-import {
-  LiveblocksProvider,
-  RoomProvider,
-  useErrorListener,
-  useObject,
-  useSelf,
-  useOthers,
-  useMyPresence,
-} from '@liveblocks/react'
+import { LiveblocksProvider, RoomProvider, useErrorListener, useObject } from '@liveblocks/react'
 import { Utils } from '@tldraw/core'
 
 interface TLDrawUserPresence extends Presence {
@@ -21,9 +13,10 @@ const publicAPIKey = 'pk_live_1LJGGaqBSNLjLT-4Jalkl-U9'
 
 const client = createClient({
   publicApiKey: publicAPIKey,
+  throttle: 80,
 })
 
-const ROOM_ID = 'mp-test-1'
+const ROOM_ID = 'mp-test-2'
 
 export function Multiplayer() {
   return (
@@ -84,7 +77,7 @@ function TLDrawWrapper() {
       }
 
       // When the client updates its presence, update the room
-      if (reason === 'patch:room:self:update' && state.room) {
+      if (state.room && (reason === 'patch:room:self:update' || reason === 'patch:selected')) {
         const room = client.getRoom(ROOM_ID)
         if (!room) return
         const { userId, users } = state.room
@@ -110,8 +103,7 @@ function TLDrawWrapper() {
       tlstate.updateUsers(
         others
           .toArray()
-          .filter((other) => other.presence)
-          .map((other) => other.presence!.user)
+          .map((other) => other.presence?.user)
           .filter(Boolean)
       )
     })
@@ -131,6 +123,19 @@ function TLDrawWrapper() {
       // Only merge the change if it caused by someone else
       if (docObject.uuid !== docId) {
         tlstate.mergeDocument(docObject.document)
+      } else {
+        tlstate.updateUsers(
+          Object.values(tlstate.state.room.users).map((user) => {
+            const activeShapes = user.activeShapes
+              .map((shape) => docObject.document.pages[tlstate.currentPageId].shapes[shape.id])
+              .filter(Boolean)
+            return {
+              ...user,
+              activeShapes: activeShapes,
+              selectedIds: activeShapes.map((shape) => shape.id),
+            }
+          })
+        )
       }
     }
 
