@@ -532,18 +532,22 @@ export class TLDrawState extends StateManager<Data> {
    * Select a tool.
    * @param tool The tool to select, or "select".
    */
-  selectTool = (tool: ToolType): this => {
+  selectTool = (type: ToolType): this => {
     if (this.session) return this
 
-    this.currentTool = this.tools[tool]
+    const tool = this.tools[type]
+
+    if (tool === this.currentTool) return this
+
+    this.currentTool = tool
 
     return this.patchState(
       {
         appState: {
-          activeTool: tool,
+          activeTool: type,
         },
       },
-      `selected_tool:${tool}`
+      `selected_tool:${type}`
     )
   }
 
