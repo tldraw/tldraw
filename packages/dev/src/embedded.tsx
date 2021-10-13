@@ -13,7 +13,7 @@ export default function Embedded(): JSX.Element {
           marginBottom: '32px',
         }}
       >
-        <TLDraw id="small1" />
+        <TLDraw id="small3" />
       </div>
 
       <div
@@ -24,7 +24,7 @@ export default function Embedded(): JSX.Element {
           overflow: 'hidden',
         }}
       >
-        <TLDraw id="small2" />
+        <TLDraw id="small4" />
       </div>
     </div>
   )

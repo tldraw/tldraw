@@ -52,3 +52,20 @@ export const EASING_STRINGS: Record<Easing, string> = {
   easeOutExpo: `(t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t))`,
   easeInOutExpo: `(t) => t <= 0 ? 0 : t >= 1 ? 1 : t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2`,
 }
+
+export const USER_COLORS = [
+  '#EC5E41',
+  '#F2555A',
+  '#F04F88',
+  '#E34BA9',
+  '#BD54C6',
+  '#9D5BD2',
+  '#7B66DC',
+  '#02B1CC',
+  '#11B3A3',
+  '#39B178',
+  '#55B467',
+  '#FF802B',
+]
+
+export const sample = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)]

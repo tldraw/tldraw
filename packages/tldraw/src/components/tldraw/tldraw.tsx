@@ -31,6 +31,8 @@ const isSelectedShapeWithHandlesSelector = (s: Data) => {
 
 const pageSelector = (s: Data) => s.document.pages[s.appState.currentPageId]
 
+const usersSelector = (s: Data) => s.room?.users
+
 const pageStateSelector = (s: Data) => s.document.pageStates[s.appState.currentPageId]
 
 const isDarkModeSelector = (s: Data) => s.settings.isDarkMode
@@ -42,10 +44,12 @@ export interface TLDrawProps {
    * (optional) If provided, the component will load / persist state under this key.
    */
   id?: string
+
   /**
    * (optional) The document to load or update from.
    */
   document?: TLDrawDocument
+
   /**
    * (optional) The current page id.
    */
@@ -55,10 +59,22 @@ export interface TLDrawProps {
    * (optional) Whether the editor should immediately receive focus. Defaults to true.
    */
   autofocus?: boolean
+
+  /**
+   * (optional) Whether to show the menu UI.
+   */
+  showMenu?: boolean
+
+  /**
+   * (optional) Whether to show the pages UI.
+   */
+  showPages?: boolean
+
   /**
    * (optional) A callback to run when the component mounts.
    */
   onMount?: (state: TLDrawState) => void
+
   /**
    * (optional) A callback to run when the component's state changes.
    */
@@ -70,6 +86,8 @@ export function TLDraw({
   document,
   currentPageId,
   autofocus = true,
+  showMenu = true,
+  showPages = true,
   onMount,
   onChange,
 }: TLDrawProps) {
@@ -97,6 +115,8 @@ export function TLDraw({
           currentPageId={currentPageId}
           document={document}
           autofocus={autofocus}
+          showPages={showPages}
+          showMenu={showMenu}
         />
       </IdProvider>
     </TLDrawContext.Provider>
@@ -107,11 +127,15 @@ function InnerTldraw({
   id,
   currentPageId,
   autofocus,
+  showPages,
+  showMenu,
   document,
 }: {
   id?: string
   currentPageId?: string
-  autofocus?: boolean
+  autofocus: boolean
+  showPages: boolean
+  showMenu: boolean
   document?: TLDrawDocument
 }) {
   const { tlstate, useSelector } = useTLDrawContext()
@@ -123,6 +147,8 @@ function InnerTldraw({
   const page = useSelector(pageSelector)
 
   const pageState = useSelector(pageStateSelector)
+
+  const users = useSelector(usersSelector)
 
   const isDarkMode = useSelector(isDarkModeSelector)
 
@@ -136,7 +162,10 @@ function InnerTldraw({
 
   // Hide bounds when not using the select tool, or when the only selected shape has handles
   const hideBounds =
-    (tlstate.session && tlstate.session.id !== 'brush') || !isSelecting || isSelectedHandlesShape
+    (isInSession && tlstate.session?.constructor.name !== 'BrushSession') ||
+    !isSelecting ||
+    isSelectedHandlesShape ||
+    !!pageState.editingId
 
   // Hide bounds when not using the select tool, or when in session
   const hideHandles = isInSession || !isSelecting
@@ -188,6 +217,8 @@ function InnerTldraw({
             containerRef={rWrapper}
             page={page}
             pageState={pageState}
+            users={users}
+            userId={tlstate.state.room?.userId}
             shapeUtils={tldrawShapeUtils}
             theme={theme}
             meta={meta}
@@ -253,8 +284,8 @@ function InnerTldraw({
         ) : (
           <>
             <div className={menuButtons()}>
-              <Menu />
-              <PagePanel />
+              {showMenu && <Menu />}
+              {showPages && <PagePanel />}
             </div>
             <div className={spacer()} />
             <StylePanel />

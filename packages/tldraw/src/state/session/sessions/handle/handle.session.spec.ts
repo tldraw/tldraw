@@ -1,12 +1,11 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { TLDR } from '~state/tldr'
-import { TLDrawShape, TLDrawShapeType, TLDrawStatus } from '~types'
+import { SessionType, TLDrawShapeType, TLDrawStatus } from '~types'
 
 describe('Handle session', () => {
   const tlstate = new TLDrawState()
 
-  it('begins, updates and completes session', () => {
+  it('begins, updateSession', () => {
     tlstate
       .loadDocument(mockDocument)
       .createShapes({
@@ -14,8 +13,8 @@ describe('Handle session', () => {
         type: TLDrawShapeType.Arrow,
       })
       .select('arrow1')
-      .startHandleSession([-10, -10], 'end')
-      .updateHandleSession([10, 10])
+      .startSession(SessionType.Arrow, [-10, -10], 'end')
+      .updateSession([10, 10])
       .completeSession()
 
     expect(tlstate.appState.status.current).toBe(TLDrawStatus.Idle)
@@ -31,8 +30,8 @@ describe('Handle session', () => {
         id: 'arrow1',
       })
       .select('arrow1')
-      .startHandleSession([-10, -10], 'end')
-      .updateHandleSession([10, 10])
+      .startSession(SessionType.Arrow, [-10, -10], 'end')
+      .updateSession([10, 10])
       .cancelSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])

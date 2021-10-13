@@ -1,11 +1,18 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { ColorStyle, DashStyle, SizeStyle, TLDrawShapeType, TLDrawStatus } from '~types'
+import {
+  ColorStyle,
+  DashStyle,
+  SessionType,
+  SizeStyle,
+  TLDrawShapeType,
+  TLDrawStatus,
+} from '~types'
 
 describe('Draw session', () => {
   const tlstate = new TLDrawState()
 
-  it('begins, updates and completes session', () => {
+  it('begins, updateSession', () => {
     tlstate.loadDocument(mockDocument)
 
     expect(tlstate.getShape('draw1')).toBe(undefined)
@@ -26,8 +33,8 @@ describe('Draw session', () => {
         },
       })
       .select('draw1')
-      .startDrawSession('draw1', [0, 0])
-      .updateDrawSession([10, 10], 0.5)
+      .startSession(SessionType.Draw, [0, 0], 'draw1')
+      .updateSession([10, 10, 0.5])
       .completeSession()
 
     expect(tlstate.appState.status.current).toBe(TLDrawStatus.Idle)

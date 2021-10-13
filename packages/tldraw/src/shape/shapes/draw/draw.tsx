@@ -4,7 +4,7 @@ import { Vec } from '@tldraw/vec'
 import { intersectBoundsBounds, intersectBoundsPolyline } from '@tldraw/intersect'
 import { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import { DrawShape, DashStyle, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
+import { DrawShape, DashStyle, TLDrawShapeType, TLDrawMeta } from '~types'
 import { EASINGS } from '~state/utils'
 
 const pointsBoundsCache = new WeakMap<DrawShape['points'], TLBounds>([])
@@ -14,8 +14,6 @@ const pointCache: Record<string, number[]> = {}
 
 export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Draw,
-
-  toolType: TLDrawToolType.Draw,
 
   defaultProps: {
     id: 'id',
@@ -103,18 +101,18 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
     const strokeDasharray = {
       [DashStyle.Draw]: 'none',
       [DashStyle.Solid]: `none`,
-      [DashStyle.Dotted]: `${strokeWidth / 10} ${strokeWidth * 3}`,
-      [DashStyle.Dashed]: `${strokeWidth * 3} ${strokeWidth * 3}`,
+      [DashStyle.Dotted]: `0.1 ${strokeWidth * 4}`,
+      [DashStyle.Dashed]: `${strokeWidth * 4} ${strokeWidth * 4}`,
     }[style.dash]
 
     const strokeDashoffset = {
       [DashStyle.Draw]: 'none',
       [DashStyle.Solid]: `none`,
-      [DashStyle.Dotted]: `-${strokeWidth / 20}`,
-      [DashStyle.Dashed]: `-${strokeWidth}`,
+      [DashStyle.Dotted]: `0`,
+      [DashStyle.Dashed]: `0`,
     }[style.dash]
 
-    const sw = 1 + strokeWidth * 2
+    const sw = 1 + strokeWidth * 1.5
 
     return (
       <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
@@ -315,10 +313,10 @@ function getDrawStrokePathData(shape: DrawShape, isEditing: boolean) {
   const strokePoints = getDrawStrokePoints(shape, isEditing)
 
   const stroke = getStrokeOutlinePoints(strokePoints, {
-    size: 1 + styles.strokeWidth * 1.618,
+    size: 1 + styles.strokeWidth,
     thinning: 0.6,
     streamline: STREAMLINE,
-    smoothing: 0.5,
+    smoothing: 0.65,
     end: { taper: styles.strokeWidth * 10, easing: EASINGS.easeOutQuad },
     easing: (t) => Math.sin((t * Math.PI) / 2),
     ...options,

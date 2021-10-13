@@ -15,7 +15,7 @@ Object {
     "color": "Black",
     "dash": "Draw",
     "isFilled": false,
-    "size": "Medium",
+    "size": "Small",
   },
   "text": " ",
   "type": "text",

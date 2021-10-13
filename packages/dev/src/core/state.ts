@@ -5,7 +5,7 @@ import type {
   TLPointerEventHandler,
   TLShapeChangeHandler,
 } from '@tldraw/core'
-import type { RectangleShape } from './rectangle'
+import type { RectangleShape } from './box'
 import type { LabelShape } from './label'
 import { StateManager } from 'rko'
 

@@ -233,18 +233,32 @@ const tlcss = css`
     pointer-events: none;
   }
 
-  .tl-selected {
+  .tl-user {
+    left: -4px;
+    top: -4px;
+    height: 8px;
+    width: 8px;
+    border-radius: 100%;
+    pointer-events: none;
+  }
+
+  .tl-indicator {
     fill: transparent;
-    stroke: var(--tl-selectStroke);
     stroke-width: calc(1.5px * var(--tl-scale));
     pointer-events: none;
   }
 
-  .tl-hovered {
-    fill: transparent;
+  .tl-user-indicator-bounds {
+    border-style: solid;
+    border-width: calc(1px * var(--tl-scale));
+  }
+
+  .tl-selected {
     stroke: var(--tl-selectStroke);
-    stroke-width: calc(1.5px * var(--tl-scale));
-    pointer-events: none;
+  }
+
+  .tl-hovered {
+    stroke: var(--tl-selectStroke);
   }
 
   .tl-bounds {
@@ -306,7 +320,7 @@ const tlcss = css`
     fill: transparent;
     stroke: none;
     pointer-events: all;
-    r: calc(20px / max(1, var(--tl-zoom)));
+    r: calc(16px / max(1, var(--tl-zoom)));
   }
 
   .tl-binding-indicator {

@@ -12,7 +12,6 @@ import {
   TLPointerEventHandler,
   TLWheelEventHandler,
   Utils,
-  TLPointerInfo,
   TLBounds,
   Inputs,
 } from '@tldraw/core'
@@ -27,21 +26,25 @@ import {
   ShapeStyles,
   TLDrawShape,
   TLDrawShapeType,
-  TLDrawToolType,
   Data,
   Session,
   TLDrawStatus,
-  ParametersExceptFirst,
   SelectHistory,
   TLDrawPage,
   TLDrawBinding,
   GroupShape,
   TLDrawCommand,
+  TLDrawUser,
+  SessionType,
+  ExceptFirst,
 } from '~types'
 import { TLDR } from './tldr'
 import { defaultStyle } from '~shape'
-import * as Sessions from './session'
 import * as Commands from './command'
+import { ArgsOfType, getSession } from './session'
+import { sample, USER_COLORS } from './utils'
+import { createTools, ToolType } from './tool'
+import type { BaseTool } from './tool/BaseTool'
 
 const defaultDocument: TLDrawDocument = {
   id: 'doc',
@@ -66,6 +69,8 @@ const defaultDocument: TLDrawDocument = {
   },
 }
 
+const uuid = Utils.uniqueId()
+
 const defaultState: Data = {
   settings: {
     isPenMode: false,
@@ -78,7 +83,6 @@ const defaultState: Data = {
     nudgeDistanceSmall: 1,
   },
   appState: {
-    activeToolType: undefined,
     activeTool: 'select',
     hoveredId: undefined,
     currentPageId: 'page',
@@ -94,6 +98,19 @@ const defaultState: Data = {
     },
   },
   document: defaultDocument,
+  room: {
+    id: 'local',
+    userId: uuid,
+    users: {
+      [uuid]: {
+        id: uuid,
+        color: sample(USER_COLORS),
+        point: [100, 100],
+        selectedIds: [],
+        activeShapes: [],
+      },
+    },
+  },
 }
 
 export class TLDrawState extends StateManager<Data> {
@@ -111,6 +128,10 @@ export class TLDrawState extends StateManager<Data> {
     shapes: TLDrawShape[]
     bindings: TLDrawBinding[]
   }
+
+  tools = createTools(this)
+
+  currentTool: BaseTool = this.tools.select
 
   session?: Session
 
@@ -144,7 +165,10 @@ export class TLDrawState extends StateManager<Data> {
     onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
     onMount?: (tlstate: TLDrawState) => void
   ) {
-    super(defaultState, id, 2)
+    super(defaultState, id, 2.3, (prev, next) => ({
+      ...next,
+      ...prev,
+    }))
 
     this._onChange = onChange
     this._onMount = onMount
@@ -242,25 +266,21 @@ export class TLDrawState extends StateManager<Data> {
             // We only need to update the binding's "from" shape
             const util = TLDR.getShapeUtils(fromShape)
 
-            try {
-              const fromDelta = util.onBindingChange(
-                fromShape,
-                binding,
-                toShape,
-                toUtils.getBounds(toShape),
-                toUtils.getCenter(toShape)
-              )
+            const fromDelta = util.onBindingChange(
+              fromShape,
+              binding,
+              toShape,
+              toUtils.getBounds(toShape),
+              toUtils.getCenter(toShape)
+            )
 
-              if (fromDelta) {
-                const nextShape = {
-                  ...fromShape,
-                  ...fromDelta,
-                } as TLDrawShape
+            if (fromDelta) {
+              const nextShape = {
+                ...fromShape,
+                ...fromDelta,
+              } as TLDrawShape
 
-                page.shapes[fromShape.id] = nextShape
-              }
-            } catch (e) {
-              throw Error('something went wrong')
+              page.shapes[fromShape.id] = nextShape
             }
           })
 
@@ -314,6 +334,26 @@ export class TLDrawState extends StateManager<Data> {
 
     const currentPageId = data.appState.currentPageId
 
+    // Remove any exited users
+    if (data.room !== prev.room) {
+      Object.values(prev.room.users).forEach((user) => {
+        if (data.room.users[user.id] === undefined) {
+          delete data.room.users[user.id]
+        }
+      })
+    }
+
+    const currentPage = data.document.pages[currentPageId]
+    const currentPageState = data.document.pageStates[currentPageId]
+
+    // Update the room presence selected ids
+    data.room.users[data.room.userId].selectedIds = currentPageState.selectedIds
+
+    // Update the room presence active shapes
+    data.room.users[data.room.userId].activeShapes = currentPageState.selectedIds.map(
+      (id) => currentPage.shapes[id]
+    )
+
     // Apply selected style change, if any
 
     const newSelectedStyle = TLDR.getSelectedStyle(data, currentPageId)
@@ -323,12 +363,6 @@ export class TLDrawState extends StateManager<Data> {
         ...data.appState,
         selectedStyle: newSelectedStyle,
       }
-    }
-
-    // Check that the correct page id is active (delete me?)
-
-    if (data.document.pageStates[currentPageId].id !== currentPageId) {
-      throw Error('Current page id is not the current page state!')
     }
 
     return data
@@ -353,7 +387,7 @@ export class TLDrawState extends StateManager<Data> {
    * @private
    * @returns
    */
-  private setStatus(status: TLDrawStatus) {
+  setStatus(status: TLDrawStatus) {
     return this.patchState(
       {
         appState: { status: { current: status, previous: this.appState.status.current } },
@@ -368,6 +402,44 @@ export class TLDrawState extends StateManager<Data> {
    */
   updateBounds = (bounds: TLBounds) => {
     this.bounds = { ...bounds }
+  }
+
+  /**
+   * Set or clear the editing id
+   * @param id [string]
+   */
+  setEditingId = (id?: string) => {
+    this.patchState(
+      {
+        document: {
+          pageStates: {
+            [this.currentPageId]: {
+              editingId: id,
+            },
+          },
+        },
+      },
+      `set_editing_id`
+    )
+  }
+
+  /**
+   * Set or clear the hovered id
+   * @param id [string]
+   */
+  setHoveredId = (id?: string) => {
+    this.patchState(
+      {
+        document: {
+          pageStates: {
+            [this.currentPageId]: {
+              hoveredId: id,
+            },
+          },
+        },
+      },
+      `set_hovered_id`
+    )
   }
 
   /* -------------------------------------------------- */
@@ -460,21 +532,22 @@ export class TLDrawState extends StateManager<Data> {
    * Select a tool.
    * @param tool The tool to select, or "select".
    */
-  selectTool = (tool: TLDrawShapeType | 'select'): this => {
+  selectTool = (type: ToolType): this => {
     if (this.session) return this
+
+    const tool = this.tools[type]
+
+    if (tool === this.currentTool) return this
+
+    this.currentTool = tool
 
     return this.patchState(
       {
         appState: {
-          status: {
-            current: TLDrawStatus.Idle,
-            previous: TLDrawStatus.Idle,
-          },
-          activeTool: tool,
-          activeToolType: tool === 'select' ? 'select' : TLDR.getShapeUtils(tool).toolType,
+          activeTool: type,
         },
       },
-      `selected_tool:${tool}`
+      `selected_tool:${type}`
     )
   }
 
@@ -530,6 +603,120 @@ export class TLDrawState extends StateManager<Data> {
       )
       .persist()
     return this
+  }
+
+  /**
+   *
+   * @param document
+   */
+  updateUsers = (users: TLDrawUser[], isOwnUpdate = false) => {
+    this.patchState(
+      {
+        room: {
+          users: Object.fromEntries(users.map((user) => [user.id, user])),
+        },
+      },
+      isOwnUpdate ? 'room:self:update' : 'room:user:update'
+    )
+  }
+
+  removeUser = (userId: string) => {
+    this.patchState({
+      room: {
+        users: {
+          [userId]: undefined,
+        },
+      },
+    })
+  }
+
+  /**
+   * Merge a new document patch into the current document.
+   * @param document
+   */
+  mergeDocument = (document: TLDrawDocument): this => {
+    // If it's a new document, do a full change.
+    if (this.document.id !== document.id) {
+      this.replaceState({
+        ...this.state,
+        appState: {
+          ...this.appState,
+          currentPageId: Object.keys(document.pages)[0],
+        },
+        document,
+      })
+      return this
+    }
+
+    // Have we deleted any pages? If so, drop everything and change
+    // to the first page. This is an edge case.
+    const currentPageStates = { ...this.document.pageStates }
+
+    // Update the app state's current page id if needed
+    const nextAppState = {
+      ...this.appState,
+      currentPageId: document.pages[this.currentPageId]
+        ? this.currentPageId
+        : Object.keys(document.pages)[0],
+      pages: Object.values(document.pages).map((page, i) => ({
+        id: page.id,
+        name: page.name,
+        childIndex: page.childIndex || i,
+      })),
+    }
+
+    // Reset the history (for now)
+    this.resetHistory()
+
+    Object.keys(this.document.pages).forEach((pageId) => {
+      if (!document.pages[pageId]) {
+        if (pageId === this.appState.currentPageId) {
+          this.cancelSession()
+          this.deselectAll()
+        }
+
+        currentPageStates[pageId] = undefined as unknown as TLPageState
+      }
+    })
+
+    // Don't allow the selected ids to be deleted during a session—if
+    // they've been removed, put them back in the client's document.
+    if (this.session) {
+      this.selectedIds
+        .filter((id) => !document.pages[this.currentPageId].shapes[id])
+        .forEach((id) => (document.pages[this.currentPageId].shapes[id] = this.page.shapes[id]))
+    }
+
+    // For other pages, remove any selected ids that were deleted.
+    Object.entries(currentPageStates).forEach(([pageId, pageState]) => {
+      pageState.selectedIds = pageState.selectedIds.filter(
+        (id) => !!document.pages[pageId].shapes[id]
+      )
+    })
+
+    // If the user is currently creating a shape (ie drawing), then put that
+    // shape back onto the page for the client.
+    const { editingId } = this.pageState
+
+    if (editingId) {
+      console.warn('A change occured while creating a shape')
+      if (!editingId) throw Error('Huh?')
+
+      document.pages[this.currentPageId].shapes[editingId] = this.page.shapes[editingId]
+      currentPageStates[this.currentPageId].selectedIds = [editingId]
+    }
+
+    return this.replaceState(
+      {
+        ...this.state,
+        appState: nextAppState,
+        document: {
+          ...document,
+          pageStates: currentPageStates,
+        },
+      },
+      'merge'
+    )
   }
 
   /**
@@ -803,7 +990,9 @@ export class TLDrawState extends StateManager<Data> {
    * @param pageId (optional) The new page's id.
    */
   createPage = (id?: string): this => {
-    return this.setState(Commands.createPage(this.state, id))
+    return this.setState(
+      Commands.createPage(this.state, [-this.bounds.width / 2, -this.bounds.height / 2], id)
+    )
   }
 
   /**
@@ -828,7 +1017,9 @@ export class TLDrawState extends StateManager<Data> {
    * @param pageId The id of the page to duplicate.
    */
   duplicatePage = (pageId: string): this => {
-    return this.setState(Commands.duplicatePage(this.state, pageId))
+    return this.setState(
+      Commands.duplicatePage(this.state, [-this.bounds.width / 2, -this.bounds.height / 2], pageId)
+    )
   }
 
   /**
@@ -994,6 +1185,8 @@ export class TLDrawState extends StateManager<Data> {
 
           pasteInCurrentPage(data.shapes, data.bindings)
         } catch (e) {
+          console.warn(e)
+
           const shapeId = Utils.uniqueId()
 
           this.createShapes({
@@ -1328,18 +1521,25 @@ export class TLDrawState extends StateManager<Data> {
    * @param push Whether to add the ids to the current selection instead.
    */
   private setSelectedIds = (ids: string[], push = false): this => {
-    // Also clear any pasted center
+    const nextIds = push ? [...this.pageState.selectedIds, ...ids] : [...ids]
 
     return this.patchState(
       {
         appState: {
           activeTool: 'select',
-          activeToolType: 'select',
         },
         document: {
           pageStates: {
             [this.currentPageId]: {
-              selectedIds: push ? [...this.pageState.selectedIds, ...ids] : [...ids],
+              selectedIds: nextIds,
+            },
+          },
+        },
+        room: {
+          users: {
+            [this.currentUser.id]: {
+              ...this.currentUser,
+              selectedIds: nextIds,
             },
           },
         },
@@ -1417,7 +1617,7 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /* -------------------------------------------------- */
-  /*                      Sessions                      */
+  /*                      Sessions                 p      */
   /* -------------------------------------------------- */
 
   /**
@@ -1425,13 +1625,13 @@ export class TLDrawState extends StateManager<Data> {
    * @param session The new session
    * @param args arguments of the session's start method.
    */
-  startSession = <T extends Session>(
-    session: T,
-    ...args: ParametersExceptFirst<T['start']>
-  ): this => {
-    this.session = session
+  startSession = <T extends SessionType>(type: T, ...args: ExceptFirst<ArgsOfType<T>>): this => {
+    const Session = getSession(type)
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    this.session = new Session(this.state, ...args)
 
-    const result = session.start(this.state, ...args)
+    const result = this.session.start(this.state)
 
     if (result) {
       return this.patchState(
@@ -1440,35 +1640,35 @@ export class TLDrawState extends StateManager<Data> {
           appState: {
             ...result.appState,
             status: {
-              current: session.status,
+              current: this.session.status,
               previous: this.appState.status.previous,
             },
           },
         },
-        `session:start_${session.id}`
+        `session:start_${this.session.constructor.name}`
       )
     }
 
-    return this.setStatus(session.status)
+    return this.setStatus(this.session.status)
   }
 
   /**
-   * Update the current session.
+   * updateSession.
    * @param args The arguments of the current session's update method.
    */
-  updateSession = <T extends Session>(...args: ParametersExceptFirst<T['update']>): this => {
+  updateSession = (point: number[], shiftKey = false, altKey = false, metaKey = false): this => {
     const { session } = this
     if (!session) return this
-    const patch = session.update(this.state, ...args)
+    const patch = session.update(this.state, point, shiftKey, altKey, metaKey)
     if (!patch) return this
-    return this.patchState(patch, `session:update:${session.id}`)
+    return this.patchState(patch, `session:updateSession.id}`)
   }
 
   /**
    * Cancel the current session.
    * @param args The arguments of the current session's cancel method.
    */
-  cancelSession = <T extends Session>(...args: ParametersExceptFirst<T['cancel']>): this => {
+  cancelSession = (): this => {
     const { session } = this
     if (!session) return this
     this.session = undefined
@@ -1501,13 +1701,13 @@ export class TLDrawState extends StateManager<Data> {
             },
           },
         },
-        `session:cancel_create:${session.id}`
+        `session:cancel_create:${session.constructor.name}`
       )
     }
 
     return this.patchState(
       {
-        ...session.cancel(this.state, ...args),
+        ...session.cancel(this.state),
         appState: {
           status: {
             current: TLDrawStatus.Idle,
@@ -1515,7 +1715,7 @@ export class TLDrawState extends StateManager<Data> {
           },
         },
       },
-      `session:cancel:${session.id}`
+      `session:cancel:${session.constructor.name}`
     )
   }
 
@@ -1523,14 +1723,14 @@ export class TLDrawState extends StateManager<Data> {
    * Complete the current session.
    * @param args The arguments of the current session's complete method.
    */
-  completeSession = <T extends Session>(...args: ParametersExceptFirst<T['complete']>): this => {
+  completeSession = (): this => {
     const { session } = this
 
     if (!session) return this
 
     this.session = undefined
 
-    const result = session.complete(this.state, ...args)
+    const result = session.complete(this.state)
 
     if (result === undefined) {
       this.isCreating = false
@@ -1551,7 +1751,7 @@ export class TLDrawState extends StateManager<Data> {
             },
           },
         },
-        `session:complete:${session.id}`
+        `session:complete:${session.constructor.name}`
       )
     } else if ('after' in result) {
       // Session ended with a command
@@ -1606,7 +1806,7 @@ export class TLDrawState extends StateManager<Data> {
         },
       }
 
-      this.setState(result, `session:complete:${session.id}`)
+      this.setState(result, `session:complete:${session.constructor.name}`)
     } else {
       this.patchState(
         {
@@ -1627,7 +1827,7 @@ export class TLDrawState extends StateManager<Data> {
             },
           },
         },
-        `session:complete:${session.id}`
+        `session:complete:${session.constructor.name}`
       )
     }
 
@@ -1638,167 +1838,6 @@ export class TLDrawState extends StateManager<Data> {
     }
 
     return this
-  }
-
-  /* -------------------------------------------------- */
-  /*                      Sessions                      */
-  /* -------------------------------------------------- */
-
-  /**
-   * Start a brush session.
-   * @param point
-   */
-  startBrushSession = (point: number[]): this => {
-    return this.startSession(new Sessions.BrushSession(this.state, point))
-  }
-
-  /**
-   * Update a brush session.
-   * @param point
-   * @param metaKey
-   */
-  updateBrushSession = (point: number[], metaKey = false): this => {
-    return this.updateSession<Sessions.BrushSession>(point, metaKey)
-  }
-
-  /**
-   * Start a translate session.
-   * @param point
-   */
-  startTranslateSession = (point: number[]): this => {
-    return this.startSession(new Sessions.TranslateSession(this.state, point))
-  }
-
-  /**
-   * Update a translate session.
-   * @param point
-   * @param shiftKey
-   * @param altKey
-   */
-  updateTranslateSession = (point: number[], shiftKey = false, altKey = false): this => {
-    return this.updateSession<Sessions.TranslateSession>(point, shiftKey, altKey)
-  }
-
-  /**
-   * Start a transform session
-   * @param point
-   * @param handle
-   * @param commandId
-   */
-  startTransformSession = (
-    point: number[],
-    handle: TLBoundsCorner | TLBoundsEdge | 'rotate',
-    commandId?: string
-  ): this => {
-    const { selectedIds } = this
-
-    if (selectedIds.length === 0) return this
-
-    this.pointedBoundsHandle = handle
-
-    if (this.pointedBoundsHandle === 'rotate') {
-      return this.startSession(new Sessions.RotateSession(this.state, point))
-    }
-
-    const idsToTransform = selectedIds.flatMap((id) =>
-      TLDR.getDocumentBranch(this.state, id, this.currentPageId)
-    )
-
-    if (idsToTransform.length === 1) {
-      return this.startSession(
-        new Sessions.TransformSingleSession(this.state, point, this.pointedBoundsHandle, commandId)
-      )
-    }
-
-    return this.startSession(
-      new Sessions.TransformSession(this.state, point, this.pointedBoundsHandle)
-    )
-  }
-
-  /**
-   * Update a transform session.
-   */
-  updateTransformSession = (point: number[], shiftKey = false, altKey = false): this => {
-    return this.updateSession<Sessions.TransformSingleSession | Sessions.TransformSession>(
-      point,
-      shiftKey,
-      altKey
-    )
-  }
-
-  /**
-   * Start a text session.
-   * @param id
-   */
-  startTextSession = (id: string): this => {
-    return this.startSession(new Sessions.TextSession(this.state, id))
-  }
-
-  /**
-   * Update a text session.
-   * @param text
-   */
-  updateTextSession = (text: string): this => {
-    return this.updateSession<Sessions.TextSession>(text)
-  }
-
-  /**
-   * Start a draw session.
-   * @param id
-   * @param point
-   */
-  startDrawSession = (id: string, point: number[]): this => {
-    return this.startSession(new Sessions.DrawSession(this.state, id, point))
-  }
-
-  /**
-   * Update a draw session.
-   * @param point
-   * @param pressure
-   * @param shiftKey
-   */
-  updateDrawSession = (point: number[], pressure: number, shiftKey = false): this => {
-    return this.updateSession<Sessions.DrawSession>(point, pressure, shiftKey)
-  }
-
-  /**
-   * Start a handle session.
-   * @param point
-   * @param handleId
-   * @param commandId
-   */
-  startHandleSession = (point: number[], handleId: string, commandId?: string): this => {
-    const selectedShape = this.page.shapes[this.selectedIds[0]]
-    if (selectedShape.type === TLDrawShapeType.Arrow) {
-      return this.startSession<Sessions.ArrowSession>(
-        new Sessions.ArrowSession(this.state, handleId as 'start' | 'end', point)
-      )
-    }
-
-    return this.startSession<Sessions.HandleSession>(
-      new Sessions.HandleSession(this.state, handleId, point, commandId)
-    )
-  }
-
-  /**
-   * Update a handle session.
-   * @param point
-   * @param shiftKey
-   * @param altKey
-   * @param metaKey
-   */
-  updateHandleSession = (
-    point: number[],
-    shiftKey = false,
-    altKey = false,
-    metaKey = false
-  ): this => {
-    return this.updateSession<Sessions.HandleSession | Sessions.ArrowSession>(
-      point,
-      shiftKey,
-      altKey,
-      metaKey
-    )
   }
 
   /* -------------------------------------------------- */
@@ -1953,7 +1992,7 @@ export class TLDrawState extends StateManager<Data> {
     ids = this.selectedIds
   ): this => {
     if (ids.length === 0) return this
-    this.setState(Commands.moveToPage(this.state, ids, fromPageId, toPageId))
+    this.setState(Commands.moveToPage(this.state, ids, this.bounds, fromPageId, toPageId))
     return this
   }
 
@@ -2083,7 +2122,12 @@ export class TLDrawState extends StateManager<Data> {
     groupId = Utils.uniqueId(),
     pageId = this.currentPageId
   ): this => {
+    if (ids.length === 1 && this.getShape(ids[0], pageId).type === TLDrawShapeType.Group) {
+      return this.ungroup(ids, pageId)
+    }
+
     if (ids.length < 2) return this
+
     const command = Commands.group(this.state, ids, groupId, pageId)
     if (!command) return this
     return this.setState(command)
@@ -2093,11 +2137,14 @@ export class TLDrawState extends StateManager<Data> {
    * Ungroup the selected groups.
    * @todo
    */
-  ungroup = (groupId = this.selectedIds[0], pageId = this.currentPageId): this => {
-    const shape = this.getShape(groupId, pageId)
-    if (shape.type !== TLDrawShapeType.Group) return this
+  ungroup = (ids = this.selectedIds, pageId = this.currentPageId): this => {
+    const groups = ids
+      .map((id) => this.getShape(id, pageId))
+      .filter((shape) => shape.type === TLDrawShapeType.Group)
 
-    const command = Commands.ungroup(this.state, groupId, pageId)
+    if (groups.length === 0) return this
+
+    const command = Commands.ungroup(this.state, ids, groups as GroupShape[], pageId)
     if (!command) return this
     return this.setState(command)
   }
@@ -2106,239 +2153,7 @@ export class TLDrawState extends StateManager<Data> {
    * Cancel the current session.
    */
   cancel = (): this => {
-    switch (this.state.appState.status.current) {
-      case TLDrawStatus.Idle: {
-        this.deselectAll()
-        this.selectTool('select')
-        break
-      }
-      case TLDrawStatus.Brushing: {
-        this.cancelSession()
-        break
-      }
-      case TLDrawStatus.Translating:
-      case TLDrawStatus.Transforming:
-      case TLDrawStatus.Rotating:
-      case TLDrawStatus.Creating: {
-        this.cancelSession()
-        break
-      }
-    }
-
-    return this
-  }
-
-  updateOnPointerMove = (info: TLPointerInfo<string>): this => {
-    switch (this.appState.status.current) {
-      case TLDrawStatus.PointingBoundsHandle: {
-        if (!this.pointedBoundsHandle) throw Error('No pointed bounds handle')
-        if (Vec.dist(info.origin, info.point) > 4) {
-          return this.startTransformSession(
-            this.getPagePoint(info.origin),
-            this.pointedBoundsHandle
-          )
-        }
-        break
-      }
-      case TLDrawStatus.PointingHandle: {
-        if (!this.pointedHandle) throw Error('No pointed handle')
-        if (Vec.dist(info.origin, info.point) > 4) {
-          return this.startHandleSession(this.getPagePoint(info.origin), this.pointedHandle)
-        }
-        break
-      }
-      case TLDrawStatus.PointingBounds: {
-        if (Vec.dist(info.origin, info.point) > 4) {
-          return this.startTranslateSession(this.getPagePoint(info.origin))
-        }
-        break
-      }
-      case TLDrawStatus.Brushing: {
-        return this.updateBrushSession(this.getPagePoint(info.point), info.metaKey)
-      }
-      case TLDrawStatus.Translating: {
-        return this.updateTranslateSession(
-          this.getPagePoint(info.point),
-          info.shiftKey,
-          info.altKey
-        )
-      }
-      case TLDrawStatus.Transforming: {
-        return this.updateTransformSession(
-          this.getPagePoint(info.point),
-          info.shiftKey,
-          info.altKey
-        )
-      }
-      case TLDrawStatus.TranslatingHandle: {
-        return this.updateHandleSession(
-          this.getPagePoint(info.point),
-          info.shiftKey,
-          info.altKey,
-          info.metaKey
-        )
-      }
-      case TLDrawStatus.Creating: {
-        switch (this.appState.activeToolType) {
-          case TLDrawToolType.Draw: {
-            return this.updateDrawSession(
-              this.getPagePoint(info.point),
-              info.pressure,
-              info.shiftKey
-            )
-          }
-          case TLDrawToolType.Bounds: {
-            return this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey)
-          }
-          case TLDrawToolType.Handle: {
-            return this.updateHandleSession(
-              this.getPagePoint(info.point),
-              info.shiftKey,
-              info.altKey,
-              info.metaKey
-            )
-          }
-          case TLDrawToolType.Point: {
-            break
-          }
-          case TLDrawToolType.Points: {
-            break
-          }
-        }
-        break
-      }
-    }
-
-    return this
-  }
-
-  /**
-   * Create a new shape based on the active tool.
-   * @param point The point at which to create the shape
-   * @param id (optional) The new shape's id.
-   */
-  createActiveToolShape = (point: number[], id = Utils.uniqueId()): this => {
-    const pagePoint = Vec.round(this.getPagePoint(point))
-
-    if (this.appState.activeTool === 'select') return this
-
-    if (!this.appState.activeToolType) throw Error
-
-    const utils = TLDR.getShapeUtils(this.appState.activeTool)
-
-    const shapes = this.getShapes()
-
-    const childIndex =
-      shapes.length === 0
-        ? 1
-        : shapes
-            .filter((shape) => shape.parentId === this.currentPageId)
-            .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
-
-    const newShape = utils.create({
-      id,
-      parentId: this.currentPageId,
-      childIndex,
-      point: pagePoint,
-      style: { ...this.appState.currentStyle },
-    })
-
-    if (newShape.type === TLDrawShapeType.Text) {
-      const bounds = utils.getBounds(newShape)
-      newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
-    }
-
-    this.patchState(
-      {
-        appState: {
-          status: {
-            current: TLDrawStatus.Creating,
-            previous: this.appState.status.current,
-          },
-        },
-        document: {
-          pages: {
-            [this.currentPageId]: {
-              shapes: {
-                [id]: newShape,
-              },
-            },
-          },
-          pageStates: {
-            [this.currentPageId]: {
-              selectedIds: [id],
-              editingId: id,
-            },
-          },
-        },
-      },
-      `started_creating:${this.appState.activeTool}`
-    )
-
-    this.isCreating = true
-
-    const { activeTool, activeToolType } = this.appState
-
-    switch (activeToolType) {
-      case TLDrawToolType.Draw: {
-        return this.startDrawSession(id, pagePoint)
-      }
-      case TLDrawToolType.Bounds: {
-        return this.startTransformSession(
-          pagePoint,
-          TLBoundsCorner.BottomRight,
-          `create_${activeTool}`
-        )
-      }
-      case TLDrawToolType.Handle: {
-        return this.startHandleSession(pagePoint, 'end', `create_${activeTool}`)
-      }
-      case TLDrawToolType.Text: {
-        return this.startTextSession(id)
-      }
-      case TLDrawToolType.Point: {
-        this.isCreating = false
-
-        this.selectTool('select')
-
-        if (newShape.type == TLDrawShapeType.Sticky) {
-          this.createShapes({
-            ...newShape,
-            point: Vec.sub(newShape.point, Vec.div(newShape.size, 2)),
-          })
-
-          // TODO: Clean up this editing ID when the text blurs, consider
-          // reusing the logic for editing text, or create proper editing state
-          this.patchState({
-            document: {
-              pageStates: {
-                [this.currentPageId]: {
-                  editingId: newShape.id,
-                },
-              },
-            },
-          })
-        } else {
-          this.createShapes(newShape)
-
-          this.patchState({
-            document: {
-              pageStates: {
-                [this.currentPageId]: {
-                  editingId: undefined,
-                },
-              },
-            },
-          })
-        }
-
-        break
-      }
-      case TLDrawToolType.Points: {
-        break
-      }
-    }
-
+    this.currentTool.onCancel?.()
     return this
   }
 
@@ -2348,100 +2163,21 @@ export class TLDrawState extends StateManager<Data> {
 
   /* ----------------- Keyboard Events ---------------- */
 
-  onKeyDown: TLKeyboardEventHandler = (key, info) => {
+  onKeyDown: TLKeyboardEventHandler = (key, info, e) => {
     if (key === 'Escape') {
       this.cancel()
       return
     }
 
-    if (!info) return
+    this.currentTool.onKeyDown?.(key, info, e)
 
-    switch (this.appState.status.current) {
-      case TLDrawStatus.Idle: {
-        break
-      }
-      case TLDrawStatus.Brushing: {
-        if (key === 'Meta' || key === 'Control') {
-          this.updateBrushSession(this.getPagePoint(info.point), info.metaKey)
-          return
-        }
-
-        break
-      }
-      case TLDrawStatus.Translating: {
-        if (key === 'Escape') {
-          this.cancelSession(this.getPagePoint(info.point))
-        }
-
-        if (key === 'Shift' || key === 'Alt') {
-          this.updateTranslateSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
-        }
-        break
-      }
-      case TLDrawStatus.Transforming: {
-        if (key === 'Escape') {
-          this.cancelSession(this.getPagePoint(info.point))
-        } else if (key === 'Shift' || key === 'Alt') {
-          this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
-        }
-        break
-      }
-      case TLDrawStatus.TranslatingHandle: {
-        if (key === 'Escape') {
-          this.cancelSession(this.getPagePoint(info.point))
-        }
-
-        if (key === 'Meta' || key === 'Control') {
-          this.updateHandleSession(
-            this.getPagePoint(info.point),
-            info.shiftKey,
-            info.altKey,
-            info.metaKey
-          )
-        }
-        break
-      }
-    }
+    return this
   }
 
-  onKeyUp: TLKeyboardEventHandler = (key, info) => {
+  onKeyUp: TLKeyboardEventHandler = (key, info, e) => {
     if (!info) return
 
-    switch (this.appState.status.current) {
-      case TLDrawStatus.Brushing: {
-        if (key === 'Meta' || key === 'Control') {
-          this.updateBrushSession(this.getPagePoint(info.point), info.metaKey)
-        }
-        break
-      }
-      case TLDrawStatus.Transforming: {
-        if (key === 'Shift' || key === 'Alt') {
-          this.updateTransformSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
-        }
-        break
-      }
-      case TLDrawStatus.Translating: {
-        if (key === 'Shift' || key === 'Alt') {
-          this.updateTranslateSession(this.getPagePoint(info.point), info.shiftKey, info.altKey)
-        }
-        break
-      }
-      case TLDrawStatus.TranslatingHandle: {
-        if (key === 'Escape') {
-          this.cancelSession(this.getPagePoint(info.point))
-        }
-
-        if (key === 'Meta' || key === 'Control') {
-          this.updateHandleSession(
-            this.getPagePoint(info.point),
-            info.shiftKey,
-            info.altKey,
-            info.metaKey
-          )
-        }
-        break
-      }
-    }
+    this.currentTool.onKeyUp?.(key, info, e)
   }
 
   /* ------------- Renderer Event Handlers ------------ */
@@ -2454,25 +2190,21 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   onPinchEnd: TLPinchEventHandler = () => {
-    // if (this.state.settings.isZoomSnap) {
-    //   const i = Math.round((this.pageState.camera.zoom * 100) / 25)
-    //   const nextZoom = TLDR.getCameraZoom(i * 0.25)
-    //   this.zoomTo(nextZoom, inputs.pointer?.point)
-    // }
     if (Utils.isMobileSafari()) {
       this.undoSelect()
     }
     this.setStatus(TLDrawStatus.Idle)
   }
 
-  onPinch: TLPinchEventHandler = (info) => {
+  onPinch: TLPinchEventHandler = (info, e) => {
     if (this.appState.status.current !== TLDrawStatus.Pinching) return
 
     this.pinchZoom(info.point, info.delta, info.delta[2])
-    this.updateOnPointerMove(info)
+
+    this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 
-  onPan: TLWheelEventHandler = (info) => {
+  onPan: TLWheelEventHandler = (info, e) => {
     if (this.appState.status.current === TLDrawStatus.Pinching) return
     // TODO: Pan and pinchzoom are firing at the same time. Considering turning one of them off!
 
@@ -2483,475 +2215,180 @@ export class TLDrawState extends StateManager<Data> {
     if (Vec.isEqual(next, prev)) return
 
     this.pan(delta)
-    this.updateOnPointerMove(info)
+    this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 
-  onZoom: TLWheelEventHandler = (info) => {
+  onZoom: TLWheelEventHandler = (info, e) => {
     this.zoom(info.delta[2] / 100)
-    this.updateOnPointerMove(info)
+    this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 
   /* ----------------- Pointer Events ----------------- */
 
-  onPointerMove: TLPointerEventHandler = (info) => {
+  onPointerMove: TLPointerEventHandler = (info, e) => {
+    if (this.state.room) {
+      const { users, userId } = this.state.room
+
+      this.updateUsers(
+        [
+          {
+            ...users[userId],
+            point: this.getPagePoint(info.point),
+          },
+        ],
+        true
+      )
+    }
+
     // Several events (e.g. pan) can trigger the same "pointer move" behavior
-    this.updateOnPointerMove(info)
+    this.currentTool.onPointerMove?.(info, e)
   }
 
-  onPointerDown: TLPointerEventHandler = (info) => {
-    switch (this.appState.status.current) {
-      case TLDrawStatus.Idle: {
-        switch (this.appState.activeTool) {
-          case TLDrawShapeType.Draw: {
-            this.createActiveToolShape(info.point)
-            break
-          }
-          case TLDrawShapeType.Rectangle: {
-            this.createActiveToolShape(info.point)
-            break
-          }
-          case TLDrawShapeType.Ellipse: {
-            this.createActiveToolShape(info.point)
-            break
-          }
-          case TLDrawShapeType.Arrow: {
-            this.createActiveToolShape(info.point)
-            break
-          }
-          case TLDrawShapeType.Text: {
-            this.createActiveToolShape(info.point)
-            break
-          }
-          case TLDrawShapeType.Sticky: {
-            this.createActiveToolShape(info.point)
-            break
-          }
-        }
-        break
-      }
-      case TLDrawStatus.EditingText: {
-        this.completeSession()
-        break
-      }
-    }
+  onPointerDown: TLPointerEventHandler = (...args) => {
+    this.currentTool.onPointerDown?.(...args)
+
+    // switch (this.appState.status.current) {
+    //   case TLDrawStatus.Idle: {
+    //     switch (this.appState.activeTool) {
+    //       case TLDrawShapeType.Draw: {
+    //         this.createActiveToolShape(info.point)
+    //         break
+    //       }
+    //       case TLDrawShapeType.Rectangle: {
+    //         this.createActiveToolShape(info.point)
+    //         break
+    //       }
+    //       case TLDrawShapeType.Ellipse: {
+    //         this.createActiveToolShape(info.point)
+    //         break
+    //       }
+    //       case TLDrawShapeType.Arrow: {
+    //         this.createActiveToolShape(info.point)
+    //         break
+    //       }
+    //       case TLDrawShapeType.Text: {
+    //         this.createActiveToolShape(info.point)
+    //         break
+    //       }
+    //     }
+    //     break
+    //   }
+    //   case TLDrawStatus.EditingText: {
+    //     this.completeSession()
+    //     break
+    //   }
+    // }
   }
 
-  onPointerUp: TLPointerEventHandler = (info) => {
-    switch (this.appState.status.current) {
-      case TLDrawStatus.PointingBounds: {
-        if (info.target === 'bounds') {
-          // If we just clicked the selecting bounds's background,
-          // clear the selection
-          this.deselectAll()
-        } else if (this.selectedIds.includes(info.target)) {
-          // If we're holding shift...
-          if (info.shiftKey) {
-            // unless we just shift-selected the shape, remove it from
-            // the selected shapes
-            if (this.pointedId !== info.target) {
-              this.select(...this.selectedIds.filter((id) => id !== info.target))
-            }
-          } else {
-            if (this.pointedId !== info.target && this.selectedIds.length > 1) {
-              this.select(info.target)
-            }
-          }
-        } else if (this.pointedId === info.target) {
-          if (info.shiftKey) {
-            this.select(...this.selectedIds, info.target)
-          } else {
-            this.select(info.target)
-          }
-        }
-
-        this.setStatus(TLDrawStatus.Idle)
-        this.pointedId = undefined
-        break
-      }
-      case TLDrawStatus.PointingBoundsHandle: {
-        this.setStatus(TLDrawStatus.Idle)
-        this.pointedBoundsHandle = undefined
-        break
-      }
-      case TLDrawStatus.PointingHandle: {
-        this.setStatus(TLDrawStatus.Idle)
-        this.pointedHandle = undefined
-        break
-      }
-      case TLDrawStatus.TranslatingHandle: {
-        this.completeSession<Sessions.HandleSession>()
-        this.pointedHandle = undefined
-        break
-      }
-      case TLDrawStatus.Brushing: {
-        this.completeSession<Sessions.BrushSession>()
-        break
-      }
-      case TLDrawStatus.Translating: {
-        this.completeSession<Sessions.TranslateSession>()
-        this.pointedId = undefined
-        break
-      }
-      case TLDrawStatus.Transforming: {
-        this.completeSession<Sessions.TransformSession>()
-        this.pointedBoundsHandle = undefined
-        break
-      }
-      case TLDrawStatus.Creating: {
-        this.completeSession(this.getPagePoint(info.point))
-        this.pointedHandle = undefined
-      }
-    }
-  }
+  onPointerUp: TLPointerEventHandler = (...args) => this.currentTool.onPointerUp?.(...args)
 
   // Canvas (background)
-  onPointCanvas: TLCanvasEventHandler = (info) => {
-    if (this.appState.isStyleOpen) {
-      this.toggleStylePanel()
-      return
-    }
+  onPointCanvas: TLCanvasEventHandler = (...args) => this.currentTool.onPointCanvas?.(...args)
 
-    switch (this.appState.status.current) {
-      case TLDrawStatus.Idle: {
-        switch (this.appState.activeTool) {
-          case 'select': {
-            // Unless the user is holding shift or meta, clear the current selection
-            if (!(info.shiftKey || info.metaKey)) {
-              this.deselectAll()
-            }
+  onDoubleClickCanvas: TLCanvasEventHandler = (...args) =>
+    this.currentTool.onDoubleClickCanvas?.(...args)
 
-            // Start a brush session
-            // TODO: Don't start a brush session right away: we might
-            // be "maybe brushing" or "maybe double clicking"
-            this.startBrushSession(this.getPagePoint(info.point))
-            break
-          }
-        }
-        break
-      }
-      case TLDrawStatus.EditingText: {
-        this.completeSession()
-      }
-    }
-  }
+  onRightPointCanvas: TLCanvasEventHandler = (...args) =>
+    this.currentTool.onRightPointCanvas?.(...args)
 
-  onDoubleClickCanvas: TLCanvasEventHandler = () => {
-    // Unused
-    switch (this.appState.status.current) {
-      case TLDrawStatus.Idle: {
-        // TODO: Create a text shape
-        // this.selectTool(TLDrawShapeType.Text)
-        // this.createActiveToolShape(info.point)
-        break
-      }
-    }
-  }
+  onDragCanvas: TLCanvasEventHandler = (...args) => this.currentTool.onDragCanvas?.(...args)
 
-  onRightPointCanvas: TLCanvasEventHandler = () => {
-    // Unused
-  }
-
-  onDragCanvas: TLCanvasEventHandler = () => {
-    // Unused
-  }
-
-  onReleaseCanvas: TLCanvasEventHandler = () => {
-    // Unused
-  }
+  onReleaseCanvas: TLCanvasEventHandler = (...args) => this.currentTool.onReleaseCanvas?.(...args)
 
   // Shape
-  onPointShape: TLPointerEventHandler = (info) => {
-    const { activeTool, status } = this.appState
+  onPointShape: TLPointerEventHandler = (...args) => this.currentTool.onPointShape?.(...args)
 
-    // While holding command and shift, select or deselect
-    // the shape, ignoring any group that may contain it. Yikes!
-    if (
-      activeTool === 'select' &&
-      (status.current === TLDrawStatus.Idle || status.current === TLDrawStatus.PointingBounds) &&
-      info.metaKey &&
-      info.shiftKey &&
-      this.pageState.hoveredId
-    ) {
-      const targetId = this.pageState.hoveredId
-      this.pointedId = targetId
+  onReleaseShape: TLPointerEventHandler = (...args) => this.currentTool.onReleaseShape?.(...args)
 
-      if (this.selectedIds.includes(targetId)) {
-        // Deselect if selected
-        this.select(...this.selectedIds.filter((id) => id !== targetId))
-      } else {
-        const shape = this.getShape(this.pageState.hoveredId)
-        // Push select the shape, deselecting the shape's parent if selected
-        this.select(...this.selectedIds.filter((id) => id !== shape.parentId), targetId)
-      }
+  onDoubleClickShape: TLPointerEventHandler = (...args) =>
+    this.currentTool.onDoubleClickShape?.(...args)
 
-      return
-    }
+  onRightPointShape: TLPointerEventHandler = (...args) =>
+    this.currentTool.onRightPointShape?.(...args)
 
-    switch (status.current) {
-      case TLDrawStatus.Idle: {
-        switch (activeTool) {
-          case 'select': {
-            if (info.metaKey) {
-              if (!info.shiftKey) {
-                this.deselectAll()
-              }
-              // While holding just command key, start a brush session
-              this.startBrushSession(this.getPagePoint(info.point))
-              return
-            }
+  onDragShape: TLPointerEventHandler = (...args) => this.currentTool.onDragShape?.(...args)
 
-            // If we've clicked on a shape that is inside of a group,
-            // then select the group rather than the shape.
-            let shapeIdToSelect: string
-            const { parentId } = this.getShape(info.target)
+  onHoverShape: TLPointerEventHandler = (...args) => this.currentTool.onHoverShape?.(...args)
 
-            // If the pointed shape is a child of the page, select the
-            // target shape and clear the selected group id.
-            if (parentId === this.currentPageId) {
-              shapeIdToSelect = info.target
-              this.selectedGroupId = undefined
-            } else {
-              // If the parent is some other group...
-              if (parentId === this.selectedGroupId) {
-                // If that group is the selected group, then select
-                // the target shape.
-                shapeIdToSelect = info.target
-              } else {
-                // Otherwise, select the group and clear the selected
-                // group id.
-                shapeIdToSelect = parentId
-                this.selectedGroupId = undefined
-              }
-            }
-
-            if (!this.selectedIds.includes(shapeIdToSelect)) {
-              // Set the pointed ID to the shape that was clicked.
-              this.pointedId = shapeIdToSelect
-
-              // If the shape is not selected: then if the user is pressing shift,
-              // add the shape to the current selection; otherwise, set the shape as
-              // the only selected shape.
-              this.select(
-                ...(info.shiftKey ? [...this.selectedIds, shapeIdToSelect] : [shapeIdToSelect])
-              )
-            }
-
-            this.setStatus(TLDrawStatus.PointingBounds)
-            break
-          }
-        }
-        break
-      }
-      case TLDrawStatus.PointingBounds: {
-        const { parentId } = this.getShape(info.target)
-        this.pointedId = parentId === this.currentPageId ? info.target : parentId
-
-        break
-      }
-    }
-  }
-
-  onReleaseShape: TLPointerEventHandler = () => {
-    // Unused
-  }
-
-  onDoubleClickShape: TLPointerEventHandler = (info) => {
-    switch (this.appState.status.current) {
-      case TLDrawStatus.Idle:
-      case TLDrawStatus.PointingBounds: {
-        switch (this.appState.activeTool) {
-          case 'select': {
-            const shape = this.getShape(info.target)
-            if (shape.parentId !== this.currentPageId) {
-              this.selectedGroupId = shape.parentId
-            }
-            if (this.selectedIds.includes(shape.id)) {
-              if (shape.type === TLDrawShapeType.Text) {
-                this.startTextSession(info.target)
-              }
-            }
-            this.select(info.target)
-            break
-          }
-        }
-        break
-      }
-    }
-  }
-
-  onRightPointShape: TLPointerEventHandler = (info) => {
-    if (!this.selectedIds.includes(info.target)) {
-      this.select(info.target)
-    }
-  }
-
-  onDragShape: TLPointerEventHandler = () => {
-    // Unused
-  }
-
-  onHoverShape: TLPointerEventHandler = (info) => {
-    this.patchState(
-      {
-        document: {
-          pageStates: {
-            [this.currentPageId]: {
-              hoveredId: info.target,
-            },
-          },
-        },
-      },
-      `hovered_shape:${info.target}`
-    )
-  }
-
-  onUnhoverShape: TLPointerEventHandler = (info) => {
-    const { currentPageId } = this
-    requestAnimationFrame(() => {
-      if (currentPageId === this.currentPageId && this.pageState.hoveredId === info.target) {
-        this.patchState(
-          {
-            document: {
-              pageStates: {
-                [this.currentPageId]: {
-                  hoveredId: undefined,
-                },
-              },
-            },
-          },
-          `unhovered_shape:${info.target}`
-        )
-      }
-    })
-  }
+  onUnhoverShape: TLPointerEventHandler = (...args) => this.currentTool.onUnhoverShape?.(...args)
 
   // Bounds (bounding box background)
-  onPointBounds: TLBoundsEventHandler = (info) => {
-    if (info.metaKey) {
-      if (!info.shiftKey) {
-        this.deselectAll()
-      }
-      // While holding just command key, start a brush session
-      this.startBrushSession(this.getPagePoint(info.point))
-      return
-    }
+  onPointBounds: TLBoundsEventHandler = (...args) => this.currentTool.onPointBounds?.(...args)
 
-    this.setStatus(TLDrawStatus.PointingBounds)
-  }
+  onDoubleClickBounds: TLBoundsEventHandler = (...args) =>
+    this.currentTool.onDoubleClickBounds?.(...args)
 
-  onDoubleClickBounds: TLBoundsEventHandler = () => {
-    // Unused
-  }
+  onRightPointBounds: TLBoundsEventHandler = (...args) =>
+    this.currentTool.onRightPointBounds?.(...args)
 
-  onRightPointBounds: TLBoundsEventHandler = () => {
-    // Unused
-  }
+  onDragBounds: TLBoundsEventHandler = (...args) => this.currentTool.onDragBounds?.(...args)
 
-  onDragBounds: TLBoundsEventHandler = () => {
-    // Unused
-  }
+  onHoverBounds: TLBoundsEventHandler = (...args) => this.currentTool.onHoverBounds?.(...args)
 
-  onHoverBounds: TLBoundsEventHandler = () => {
-    // Unused
-  }
+  onUnhoverBounds: TLBoundsEventHandler = (...args) => this.currentTool.onUnhoverBounds?.(...args)
 
-  onUnhoverBounds: TLBoundsEventHandler = () => {
-    // Unused
-  }
-
-  onReleaseBounds: TLBoundsEventHandler = (info) => {
-    switch (this.appState.status.current) {
-      case TLDrawStatus.Translating: {
-        this.completeSession(this.getPagePoint(info.point))
-        break
-      }
-      case TLDrawStatus.Brushing: {
-        this.completeSession<Sessions.BrushSession>()
-        break
-      }
-    }
-  }
+  onReleaseBounds: TLBoundsEventHandler = (...args) => this.currentTool.onReleaseBounds?.(...args)
 
   // Bounds handles (corners, edges)
-  onPointBoundsHandle: TLBoundsHandleEventHandler = (info) => {
-    this.pointedBoundsHandle = info.target
-    this.setStatus(TLDrawStatus.PointingBoundsHandle)
-  }
+  onPointBoundsHandle: TLBoundsHandleEventHandler = (...args) =>
+    this.currentTool.onPointBoundsHandle?.(...args)
 
-  onDoubleClickBoundsHandle: TLBoundsHandleEventHandler = () => {
-    if (this.selectedIds.length === 1) {
-      this.resetBounds(this.selectedIds)
-    }
-  }
+  onDoubleClickBoundsHandle: TLBoundsHandleEventHandler = (...args) =>
+    this.currentTool.onDoubleClickBoundsHandle?.(...args)
 
-  onRightPointBoundsHandle: TLBoundsHandleEventHandler = () => {
-    // TODO
-  }
+  onRightPointBoundsHandle: TLBoundsHandleEventHandler = (...args) =>
+    this.currentTool.onRightPointBoundsHandle?.(...args)
 
-  onDragBoundsHandle: TLBoundsHandleEventHandler = () => {
-    // Unused
-  }
+  onDragBoundsHandle: TLBoundsHandleEventHandler = (...args) =>
+    this.currentTool.onDragBoundsHandle?.(...args)
 
-  onHoverBoundsHandle: TLBoundsHandleEventHandler = () => {
-    // TODO
-  }
+  onHoverBoundsHandle: TLBoundsHandleEventHandler = (...args) =>
+    this.currentTool.onHoverBoundsHandle?.(...args)
 
-  onUnhoverBoundsHandle: TLBoundsHandleEventHandler = () => {
-    // TODO
-  }
+  onUnhoverBoundsHandle: TLBoundsHandleEventHandler = (...args) =>
+    this.currentTool.onUnhoverBoundsHandle?.(...args)
 
-  onReleaseBoundsHandle: TLBoundsHandleEventHandler = () => {
-    // TODO
-  }
+  onReleaseBoundsHandle: TLBoundsHandleEventHandler = (...args) =>
+    this.currentTool.onReleaseBoundsHandle?.(...args)
 
   // Handles (ie the handles of a selected arrow)
-  onPointHandle: TLPointerEventHandler = (info) => {
-    this.pointedHandle = info.target
-    this.setStatus(TLDrawStatus.PointingHandle)
-  }
+  onPointHandle: TLPointerEventHandler = (...args) => this.currentTool.onPointHandle?.(...args)
 
-  onDoubleClickHandle: TLPointerEventHandler = (info) => {
-    this.toggleDecoration(info.target)
-  }
+  onDoubleClickHandle: TLPointerEventHandler = (...args) =>
+    this.currentTool.onDoubleClickHandle?.(...args)
 
-  onRightPointHandle: TLPointerEventHandler = () => {
-    // TODO
-  }
+  onRightPointHandle: TLPointerEventHandler = (...args) =>
+    this.currentTool.onRightPointHandle?.(...args)
 
-  onDragHandle: TLPointerEventHandler = () => {
-    // TODO
-  }
+  onDragHandle: TLPointerEventHandler = (...args) => this.currentTool.onDragHandle?.(...args)
 
-  onHoverHandle: TLPointerEventHandler = () => {
-    // TODO
-  }
+  onHoverHandle: TLPointerEventHandler = (...args) => this.currentTool.onHoverHandle?.(...args)
 
-  onUnhoverHandle: TLPointerEventHandler = () => {
-    // TODO
-  }
+  onUnhoverHandle: TLPointerEventHandler = (...args) => this.currentTool.onUnhoverHandle?.(...args)
 
-  onReleaseHandle: TLPointerEventHandler = () => {
-    // Unused
-  }
+  onReleaseHandle: TLPointerEventHandler = (...args) => this.currentTool.onReleaseHandle?.(...args)
 
   onShapeChange = (shape: { id: string } & Partial<TLDrawShape>) => {
-    switch (shape.type) {
-      case TLDrawShapeType.Text: {
-        this.updateTextSession(shape.text || '')
-        break
-      }
-      default: {
-        this.updateShapes(shape)
-      }
-    }
+    this.updateShapes(shape)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onShapeBlur = () => {
-    switch (this.appState.status.current) {
-      case TLDrawStatus.EditingText: {
-        this.completeSession()
+    const { editingId } = this.pageState
+
+    if (editingId) {
+      // If we're editing text, then delete the text if it's empty
+      const shape = this.getShape(editingId)
+
+      this.setEditingId()
+
+      if (shape.type === TLDrawShapeType.Text && shape.text.trim().length <= 0) {
+        this.setState(Commands.deleteShapes(this.state, [editingId]), 'delete_empty_text')
+      } else {
+        this.select(editingId)
       }
     }
+
+    this.currentTool.onShapeBlur?.()
   }
 
   onRenderCountChange = (ids: string[]) => {
@@ -2979,6 +2416,18 @@ export class TLDrawState extends StateManager<Data> {
 
   onError = () => {
     // TODO
+  }
+
+  isSelected(id: string) {
+    return this.selectedIds.includes(id)
+  }
+
+  get status() {
+    return this.appState.status.current
+  }
+
+  get currentUser() {
+    return this.state.room.users[this.state.room.userId]
   }
 
   get centerPoint() {

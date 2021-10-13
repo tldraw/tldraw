@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import type { TLBinding, TLShapeProps } from '@tldraw/core'
 import type { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
-import type { TLPage, TLPageState } from '@tldraw/core'
+import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
 import type { Command, Patch } from 'rko'
 
@@ -29,8 +29,19 @@ export interface TLDrawSettings {
   isFocusMode: boolean
 }
 
+export enum TLUserStatus {
+  Idle = 'idle',
+  Connecting = 'connecting',
+  Connected = 'connected',
+  Disconnected = 'disconnected',
+}
+
 export interface TLDrawMeta {
   isDarkMode: boolean
+}
+
+export interface TLDrawUser extends TLUser<TLDrawShape> {
+  activeShapes: TLDrawShape[]
 }
 
 export type TLDrawShapeProps<T extends TLDrawShape, E extends Element> = TLShapeProps<
@@ -40,7 +51,6 @@ export type TLDrawShapeProps<T extends TLDrawShape, E extends Element> = TLShape
 >
 
 export interface Data {
-  document: TLDrawDocument
   settings: TLDrawSettings
   appState: {
     selectedStyle: ShapeStyles
@@ -49,11 +59,16 @@ export interface Data {
     pages: Pick<TLPage<TLDrawShape, TLDrawBinding>, 'id' | 'name' | 'childIndex'>[]
     hoveredId?: string
     activeTool: TLDrawShapeType | 'select'
-    activeToolType?: TLDrawToolType | 'select'
     isToolLocked: boolean
     isStyleOpen: boolean
     isEmptyCanvas: boolean
     status: { current: TLDrawStatus; previous: TLDrawStatus }
+  }
+  document: TLDrawDocument
+  room: {
+    id: string
+    userId: string
+    users: Record<string, TLDrawUser>
   }
 }
 
@@ -71,13 +86,30 @@ export interface SelectHistory {
   stack: string[][]
 }
 
-export interface Session {
-  id: string
-  status: TLDrawStatus
-  start: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | undefined
-  update: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | undefined
-  complete: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | TLDrawCommand | undefined
-  cancel: (data: Readonly<Data>, ...args: any[]) => TLDrawPatch | undefined
+export enum SessionType {
+  Transform = 'transform',
+  Translate = 'translate',
+  TransformSingle = 'transformSingle',
+  Brush = 'brush',
+  Arrow = 'arrow',
+  Draw = 'draw',
+  Rotate = 'rotate',
+  Handle = 'handle',
+}
+
+export abstract class Session {
+  static type: SessionType
+  abstract status: TLDrawStatus
+  abstract start: (data: Readonly<Data>) => TLDrawPatch | undefined
+  abstract update: (
+    data: Readonly<Data>,
+    point: number[],
+    shiftKey: boolean,
+    altKey: boolean,
+    metaKey: boolean
+  ) => TLDrawPatch | undefined
+  abstract complete: (data: Readonly<Data>) => TLDrawPatch | TLDrawCommand | undefined
+  abstract cancel: (data: Readonly<Data>) => TLDrawPatch | undefined
 }
 
 export enum TLDrawStatus {
@@ -97,6 +129,8 @@ export enum TLDrawStatus {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never
+
+export type ExceptFirst<T extends unknown[]> = T extends [any, ...infer U] ? U : never
 
 export enum MoveType {
   Backward = 'backward',
@@ -127,15 +161,6 @@ export enum DistributeType {
 export enum FlipType {
   Horizontal = 'horizontal',
   Vertical = 'vertical',
-}
-
-export enum TLDrawToolType {
-  Draw = 'draw',
-  Bounds = 'bounds',
-  Point = 'point',
-  Handle = 'handle',
-  Points = 'points',
-  Text = 'text',
 }
 
 export enum TLDrawShapeType {
@@ -213,14 +238,7 @@ export type TLDrawShape =
   | GroupShape
   | StickyShape
 
-export type TLDrawShapeUtil<T extends TLDrawShape> = TLShapeUtil<
-  T,
-  any,
-  TLDrawMeta,
-  {
-    toolType: TLDrawToolType
-  }
->
+export type TLDrawShapeUtil<T extends TLDrawShape> = TLShapeUtil<T, any, TLDrawMeta>
 
 export type ArrowBinding = TLBinding<{
   handleId: keyof ArrowShape['handles']

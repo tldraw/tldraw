@@ -1,37 +1,34 @@
 import Vec from '@tldraw/vec'
-import Utils from '~../../core/src/utils'
+import { Utils } from '@tldraw/core'
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { TLDrawStatus } from '~types'
+import { SessionType, TLDrawStatus } from '~types'
 
 describe('Rotate session', () => {
   const tlstate = new TLDrawState()
 
-  it('begins, updates and completes session', () => {
+  it('begins, updateSession', () => {
     tlstate.loadDocument(mockDocument)
 
     expect(tlstate.getShape('rect1').rotation).toBe(undefined)
 
-    tlstate
-      .select('rect1')
-      .startTransformSession([50, 0], 'rotate')
-      .updateTransformSession([100, 50])
+    tlstate.select('rect1').startSession(SessionType.Rotate, [50, 0]).updateSession([100, 50])
 
     expect(tlstate.getShape('rect1').rotation).toBe(Math.PI / 2)
 
-    tlstate.updateTransformSession([50, 100])
+    tlstate.updateSession([50, 100])
 
     expect(tlstate.getShape('rect1').rotation).toBe(Math.PI)
 
-    tlstate.updateTransformSession([0, 50])
+    tlstate.updateSession([0, 50])
 
     expect(tlstate.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
 
-    tlstate.updateTransformSession([50, 0])
+    tlstate.updateSession([50, 0])
 
     expect(tlstate.getShape('rect1').rotation).toBe(0)
 
-    tlstate.updateTransformSession([0, 50])
+    tlstate.updateSession([0, 50])
 
     expect(tlstate.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
 
@@ -52,8 +49,8 @@ describe('Rotate session', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1')
-      .startTransformSession([50, 0], 'rotate')
-      .updateTransformSession([100, 50])
+      .startSession(SessionType.Rotate, [50, 0])
+      .updateSession([100, 50])
       .cancel()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
@@ -64,10 +61,12 @@ describe('Rotate session', () => {
   describe('when rotating a single shape while pressing shift', () => {
     it('Clamps rotation to 15 degrees', () => {
       const tlstate = new TLDrawState()
+
+      tlstate
         .loadDocument(mockDocument)
         .select('rect1')
-        .startTransformSession([0, 0], 'rotate')
-        .updateTransformSession([20, 10], true)
+        .startSession(SessionType.Rotate, [0, 0])
+        .updateSession([20, 10], true)
         .completeSession()
 
       expect(Math.round((tlstate.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(
@@ -78,17 +77,19 @@ describe('Rotate session', () => {
     it('Clamps rotation to 15 degrees when starting from a rotation', () => {
       // Rect 1 is a little rotated
       const tlstate = new TLDrawState()
+
+      tlstate
         .loadDocument(mockDocument)
         .select('rect1')
-        .startTransformSession([0, 0], 'rotate')
-        .updateTransformSession([5, 5])
+        .startSession(SessionType.Rotate, [0, 0])
+        .updateSession([5, 5])
         .completeSession()
 
       // Rect 1 clamp rotated, starting from a little rotation
       tlstate
         .select('rect1')
-        .startTransformSession([0, 0], 'rotate')
-        .updateTransformSession([100, 200], true)
+        .startSession(SessionType.Rotate, [0, 0])
+        .updateSession([100, 200], true)
         .completeSession()
 
       expect(Math.round((tlstate.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(
@@ -98,8 +99,8 @@ describe('Rotate session', () => {
       // Try again, too.
       tlstate
         .select('rect1')
-        .startTransformSession([0, 0], 'rotate')
-        .updateTransformSession([-100, 5000], true)
+        .startSession(SessionType.Rotate, [0, 0])
+        .updateSession([-100, 5000], true)
         .completeSession()
 
       expect(Math.round((tlstate.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(
@@ -118,7 +119,7 @@ describe('Rotate session', () => {
         )
       )
 
-      tlstate.startTransformSession([50, 0], 'rotate').updateTransformSession([100, 50])
+      tlstate.startSession(SessionType.Rotate, [50, 0]).updateSession([100, 50])
 
       const centerAfter = Vec.round(
         Utils.getBoundsCenter(

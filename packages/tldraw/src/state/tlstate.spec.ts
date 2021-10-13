@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLDrawState } from './tlstate'
 import { mockDocument, TLStateUtils } from '~test'
-import { ArrowShape, ColorStyle, TLDrawShapeType } from '~types'
+import { ArrowShape, ColorStyle, SessionType, TLDrawShapeType } from '~types'
+import type { TextTool } from './tool/TextTool'
+import type { SelectTool } from './tool/SelectTool'
+import { Shape } from '~../../core/src/components/shape/shape'
 
 describe('TLDrawState', () => {
   const tlstate = new TLDrawState()
@@ -61,8 +65,8 @@ describe('TLDrawState', () => {
           { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([55, 55])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([55, 55])
         .completeSession()
 
       expect(tlstate.bindings.length).toBe(1)
@@ -87,8 +91,8 @@ describe('TLDrawState', () => {
           { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([55, 55])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([55, 55])
         .completeSession()
 
       expect(tlstate.bindings.length).toBe(1)
@@ -138,8 +142,8 @@ describe('TLDrawState', () => {
 
     it('clears selection when clicking bounds', () => {
       tlstate.loadDocument(mockDocument).deselectAll()
-      tlstate.startBrushSession([-10, -10])
-      tlstate.updateBrushSession([110, 110])
+      tlstate.startSession(SessionType.Brush, [-10, -10])
+      tlstate.updateSession([110, 110])
       tlstate.completeSession()
       expect(tlstate.selectedIds.length).toBe(3)
     })
@@ -301,8 +305,8 @@ describe('TLDrawState', () => {
         }
       )
       .select('arrow')
-      .startHandleSession([200, 200], 'start', 'arrow')
-      .updateHandleSession([10, 10])
+      .startSession(SessionType.Arrow, [200, 200], 'start')
+      .updateSession([10, 10])
       .completeSession()
       .selectAll()
       .style({ color: ColorStyle.Red })
@@ -340,7 +344,7 @@ describe('TLDrawState', () => {
 
       const tlu = new TLStateUtils(tlstate)
       tlu.doubleClickShape('rect1')
-      expect(tlstate.selectedGroupId).toStrictEqual('groupA')
+      expect((tlstate.currentTool as SelectTool).selectedGroupId).toStrictEqual('groupA')
       expect(tlstate.selectedIds).toStrictEqual(['rect1'])
     })
 
@@ -407,17 +411,35 @@ describe('TLDrawState', () => {
           }
         )
         .selectTool(TLDrawShapeType.Rectangle)
-        .createActiveToolShape([0, 0], 'rect4')
 
-      expect(tlstate.getShape('rect4').childIndex).toBe(4)
+      const tlu = new TLStateUtils(tlstate)
 
-      tlstate
-        .group(['rect2', 'rect3', 'rect4'], 'groupA')
-        .selectTool(TLDrawShapeType.Rectangle)
-        .createActiveToolShape([0, 0], 'rect5')
+      const prevA = tlstate.shapes.map((shape) => shape.id)
+
+      tlu.pointCanvas({ x: 0, y: 0 })
+      tlu.movePointer({ x: 100, y: 100 })
+      tlu.stopPointing()
+
+      const newIdA = tlstate.shapes.map((shape) => shape.id).find((id) => !prevA.includes(id))!
+      const shapeA = tlstate.getShape(newIdA)
+      expect(shapeA.childIndex).toBe(4)
+
+      tlstate.group(['rect2', 'rect3', newIdA], 'groupA')
 
       expect(tlstate.getShape('groupA').childIndex).toBe(2)
-      expect(tlstate.getShape('rect5').childIndex).toBe(3)
+
+      tlstate.deselectAll()
+      tlstate.selectTool(TLDrawShapeType.Rectangle)
+
+      const prevB = tlstate.shapes.map((shape) => shape.id)
+
+      tlu.pointCanvas({ x: 0, y: 0 })
+      tlu.movePointer({ x: 100, y: 100 })
+      tlu.stopPointing()
+
+      const newIdB = tlstate.shapes.map((shape) => shape.id).find((id) => !prevB.includes(id))!
+      const shapeB = tlstate.getShape(newIdB)
+      expect(shapeB.childIndex).toBe(3)
     })
   })
 

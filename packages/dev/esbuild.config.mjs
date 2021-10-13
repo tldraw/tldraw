@@ -23,6 +23,7 @@ esbuild
     incremental: isDevServer,
     target: ['chrome58', 'firefox57', 'safari11', 'edge18'],
     define: {
+      'process.env.LIVEBLOCKS_PUBLIC_API_KEY': process.env.LIVEBLOCKS_PUBLIC_API_KEY,
       'process.env.NODE_ENV': isDevServer ? '"development"' : '"production"',
     },
     watch: isDevServer && {

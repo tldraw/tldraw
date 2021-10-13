@@ -42,6 +42,7 @@ export const Shape = React.memo(
           meta={meta}
           events={events}
           onShapeChange={callbacks.onShapeChange}
+          onShapeBlur={callbacks.onShapeBlur}
         />
       </Container>
     )

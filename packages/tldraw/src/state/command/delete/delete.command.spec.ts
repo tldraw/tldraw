@@ -1,7 +1,6 @@
-import { TLDR } from '~state/tldr'
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { TLDrawShape, TLDrawShapeType } from '~types'
+import { SessionType, TLDrawShapeType } from '~types'
 
 describe('Delete command', () => {
   const tlstate = new TLDrawState()
@@ -57,14 +56,14 @@ describe('Delete command', () => {
   })
 
   it('deletes bound shapes, undoes and redoes', () => {
-    const tlstate = new TLDrawState()
+    new TLDrawState()
       .createShapes(
         { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
         { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
       )
       .select('arrow1')
-      .startHandleSession([200, 200], 'start')
-      .updateHandleSession([50, 50])
+      .startSession(SessionType.Arrow, [200, 200], 'start')
+      .updateSession([50, 50])
       .completeSession()
       .delete()
       .undo()
@@ -80,8 +79,8 @@ describe('Delete command', () => {
         type: TLDrawShapeType.Arrow,
       })
       .select('arrow1')
-      .startHandleSession([0, 0], 'start')
-      .updateHandleSession([110, 110])
+      .startSession(SessionType.Arrow, [0, 0], 'start')
+      .updateSession([110, 110])
       .completeSession()
 
     const binding = Object.values(tlstate.page.bindings)[0]

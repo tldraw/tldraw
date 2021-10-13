@@ -14,5 +14,6 @@ export const tldrawShapeUtils: Record<TLDrawShapeType, any> = {
 }
 
 export function getShapeUtils<T extends TLDrawShape>(type: T['type']) {
+  if (!tldrawShapeUtils[type]) throw Error(`Could not find a util of type ${type}`)
   return tldrawShapeUtils[type] as TLDrawShapeUtil<T>
 }

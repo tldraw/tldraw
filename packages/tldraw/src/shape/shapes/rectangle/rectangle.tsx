@@ -3,7 +3,7 @@ import { Utils, SVGContainer, ShapeUtil } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
 import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
+import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawMeta } from '~types'
 import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
 import { EASINGS } from '~state/utils'
 
@@ -11,8 +11,6 @@ const pathCache = new WeakMap<number[], string>([])
 
 export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Rectangle,
-
-  toolType: TLDrawToolType.Bounds,
 
   canBind: true,
 
@@ -51,11 +49,8 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
               height={Math.max(0, size[1] - strokeWidth / 2) + 64}
             />
           )}
-          <rect
-            x={+styles.strokeWidth / 2}
-            y={+styles.strokeWidth / 2}
-            width={Math.max(0, size[0] - strokeWidth)}
-            height={Math.max(0, size[1] - strokeWidth)}
+          <path
+            d={getRectangleIndicatorPathData(shape)}
             fill={style.isFilled ? styles.fill : 'none'}
             radius={strokeWidth}
             stroke="none"
@@ -72,7 +67,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
       )
     }
 
-    const sw = 1 + strokeWidth * 2
+    const sw = 1 + strokeWidth * 1.618
 
     const w = Math.max(0, size[0] - sw / 2)
     const h = Math.max(0, size[1] - sw / 2)
@@ -87,7 +82,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
     const paths = strokes.map(([start, end, length], i) => {
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
         length,
-        sw,
+        strokeWidth * 1.618,
         shape.style.dash
       )
 
@@ -222,11 +217,12 @@ function getRectangleDrawPoints(shape: RectangleShape) {
 
 function getRectanglePath(shape: RectangleShape) {
   const { points, edgeDistance } = getRectangleDrawPoints(shape)
-  const styles = getShapeStyle(shape.style)
+
+  const { strokeWidth } = getShapeStyle(shape.style)
 
   const stroke = getStroke(points, {
-    size: 1 + styles.strokeWidth * 2,
-    thinning: 0.5,
+    size: 1 + strokeWidth,
+    thinning: 0.6,
     end: { taper: edgeDistance },
     start: { taper: edgeDistance },
     simulatePressure: false,

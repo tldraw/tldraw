@@ -66,14 +66,14 @@ export const fills: Record<Theme, Record<ColorStyle, string>> = {
 
 const strokeWidths = {
   [SizeStyle.Small]: 2,
-  [SizeStyle.Medium]: 4,
-  [SizeStyle.Large]: 8,
+  [SizeStyle.Medium]: 3.5,
+  [SizeStyle.Large]: 5,
 }
 
 const fontSizes = {
-  [SizeStyle.Small]: 40,
+  [SizeStyle.Small]: 32,
   [SizeStyle.Medium]: 64,
-  [SizeStyle.Large]: 140,
+  [SizeStyle.Large]: 128,
   auto: 'auto',
 }
 
@@ -146,7 +146,7 @@ export function getShapeStyle(
 
 export const defaultStyle: ShapeStyles = {
   color: ColorStyle.Black,
-  size: SizeStyle.Medium,
+  size: SizeStyle.Small,
   isFilled: false,
   dash: DashStyle.Draw,
 }
@@ -162,7 +162,8 @@ export function getPerfectDashProps(
   length: number,
   strokeWidth: number,
   style: DashStyle,
-  snap = 1
+  snap = 1,
+  outset = true
 ): {
   strokeDasharray: string
   strokeDashoffset: string
@@ -179,7 +180,7 @@ export function getPerfectDashProps(
   } else if (style === DashStyle.Dashed) {
     dashLength = strokeWidth * 2
     ratio = 1
-    strokeDashoffset = (dashLength / 2).toString()
+    strokeDashoffset = outset ? (dashLength / 2).toString() : '0'
   } else {
     dashLength = strokeWidth / 100
     ratio = 100
@@ -187,10 +188,15 @@ export function getPerfectDashProps(
   }
 
   let dashes = Math.floor(length / dashLength / (2 * ratio))
-  dashes -= dashes % snap
-  if (dashes === 0) dashes = 1
 
-  const gapLength = (length - dashes * dashLength) / dashes
+  dashes -= dashes % snap
+
+  dashes = Math.max(dashes, 4)
+
+  const gapLength = Math.max(
+    dashLength,
+    (length - dashes * dashLength) / (outset ? dashes : dashes - 1)
+  )
 
   return {
     strokeDasharray: [dashLength, gapLength].join(' '),

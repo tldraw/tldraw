@@ -318,6 +318,36 @@ describe('Group command', () => {
       ])
     })
 
+    it('Ungroups if the only shape selected is a group', () => {
+      tlstate.resetDocument().createShapes(
+        {
+          id: 'rect1',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 1,
+        },
+        {
+          id: 'rect2',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 2,
+        },
+        {
+          id: 'rect3',
+          type: TLDrawShapeType.Rectangle,
+          childIndex: 3,
+        }
+      )
+
+      expect(tlstate.shapes.length).toBe(3)
+
+      tlstate.selectAll().group()
+
+      expect(tlstate.shapes.length).toBe(4)
+
+      tlstate.selectAll().group()
+
+      expect(tlstate.shapes.length).toBe(3)
+    })
+
     /*
       The layers should be in the same order as the original layers as
       they would have appeared on a layers tree (lowest child index

@@ -37,11 +37,27 @@ describe('Ungroup command', () => {
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .createPage('page2')
-        .ungroup('groupA', 'page1')
+        .ungroup(['groupA'], 'page1')
 
       expect(tlstate.getShape('groupA', 'page1')).toBeUndefined()
       tlstate.undo()
       expect(tlstate.getShape('groupA', 'page1')).toBeDefined()
+    })
+
+    it('Ungroups multiple selected groups', () => {
+      tlstate
+        .loadDocument(mockDocument)
+        .createShapes({
+          id: 'rect4',
+          type: TLDrawShapeType.Rectangle,
+        })
+        .group(['rect1', 'rect2'], 'groupA')
+        .group(['rect3', 'rect4'], 'groupB')
+        .selectAll()
+        .ungroup()
+
+      expect(tlstate.getShape('groupA', 'page1')).toBeUndefined()
+      expect(tlstate.getShape('groupB', 'page1')).toBeUndefined()
     })
 
     it('Does not ungroup if a group shape is not selected', () => {
@@ -50,6 +66,33 @@ describe('Ungroup command', () => {
       tlstate.group()
       // State should not have changed
       expect(tlstate.state).toStrictEqual(before)
+    })
+
+    it('Correctly selects children after ungrouping', () => {
+      const tlstate = new TLDrawState()
+        .createShapes(
+          {
+            id: 'rect1',
+            type: TLDrawShapeType.Rectangle,
+            childIndex: 1,
+          },
+          {
+            id: 'rect2',
+            type: TLDrawShapeType.Rectangle,
+            childIndex: 2,
+          },
+          {
+            id: 'rect3',
+            type: TLDrawShapeType.Rectangle,
+            childIndex: 3,
+          }
+        )
+        .group(['rect1', 'rect2'], 'groupA')
+        .selectAll()
+        .ungroup()
+
+      // State should not have changed
+      expect(tlstate.selectedIds).toStrictEqual(['rect3', 'rect1', 'rect2'])
     })
 
     it('Reparents shapes to the page at the correct childIndex', () => {
@@ -80,7 +123,7 @@ describe('Ungroup command', () => {
       expect(tlstate.getShape('rect2').childIndex).toBe(2)
       expect(tlstate.getShape('rect3').childIndex).toBe(3)
 
-      tlstate.ungroup('groupA')
+      tlstate.ungroup()
 
       expect(tlstate.getShape('rect1').childIndex).toBe(1)
       expect(tlstate.getShape('rect2').childIndex).toBe(2)

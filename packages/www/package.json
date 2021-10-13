@@ -1,6 +1,6 @@
 {
   "name": "www",
-  "version": "0.0.109",
+  "version": "0.0.114",
   "private": true,
   "description": "A tiny little drawing app (site).",
   "repository": {
@@ -16,14 +16,16 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@liveblocks/client": "^0.12.0",
+    "@liveblocks/react": "^0.12.0",
     "@sentry/integrations": "^6.13.2",
     "@sentry/node": "^6.13.2",
     "@sentry/react": "^6.13.2",
     "@sentry/tracing": "^6.13.2",
     "@stitches/react": "^1.0.0",
-    "@tldraw/tldraw": "^0.0.109",
-    "next": "11.1.2",
-    "next-auth": "3.29.0",
+    "@tldraw/tldraw": "^0.0.114",
+    "next": "^11.1.2",
+    "next-auth": "^3.29.0",
     "next-pwa": "^5.2.23",
     "next-themes": "^0.0.15",
     "next-transpile-modules": "^8.0.0",

@@ -1,10 +1,10 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { Data, Session, TLDrawPatch, TLDrawStatus } from '~types'
+import { Data, Session, SessionType, TLDrawPatch, TLDrawStatus } from '~types'
 import { TLDR } from '~state/tldr'
 
 export class BrushSession implements Session {
-  id = 'brush'
+  static type = SessionType.Brush
   status = TLDrawStatus.Brushing
   origin: number[]
   snapshot: BrushSnapshot
@@ -16,7 +16,13 @@ export class BrushSession implements Session {
 
   start = () => void null
 
-  update = (data: Data, point: number[], containMode = false): TLDrawPatch => {
+  update = (
+    data: Data,
+    point: number[],
+    shiftKey = false,
+    altKey = false,
+    metaKey = false
+  ): TLDrawPatch => {
     const { snapshot, origin } = this
     const { currentPageId } = data.appState
 
@@ -36,7 +42,7 @@ export class BrushSession implements Session {
 
       if (!hits.has(selectId)) {
         if (
-          containMode
+          metaKey
             ? Utils.boundsContain(brush, util.getBounds(shape))
             : util.hitTestBounds(shape, brush)
         ) {
@@ -52,19 +58,20 @@ export class BrushSession implements Session {
       }
     })
 
-    // if (
-    //   selectedIds.size === pageState.selectedIds.length &&
-    //   pageState.selectedIds.every((id) => selectedIds.has(id))
-    // ) {
-    //   return {}
-    // }
+    const currentSelectedIds = data.document.pageStates[data.appState.currentPageId].selectedIds
+
+    const didChange =
+      selectedIds.size !== currentSelectedIds.length ||
+      currentSelectedIds.some((id) => !selectedIds.has(id))
+
+    const afterSelectedIds = didChange ? Array.from(selectedIds.values()) : currentSelectedIds
 
     return {
       document: {
         pageStates: {
           [currentPageId]: {
             brush,
-            selectedIds: Array.from(selectedIds.values()),
+            selectedIds: afterSelectedIds,
           },
         },
       },
