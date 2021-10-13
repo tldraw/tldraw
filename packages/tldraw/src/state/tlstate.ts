@@ -1833,7 +1833,7 @@ export class TLDrawState extends StateManager<Data> {
 
     const { isToolLocked, activeTool } = this.appState
 
-    if (!isToolLocked && activeTool !== 'draw') {
+    if (!isToolLocked && activeTool !== TLDrawShapeType.Draw) {
       this.selectTool('select')
     }
 
