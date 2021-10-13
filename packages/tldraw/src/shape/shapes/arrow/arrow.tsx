@@ -7,7 +7,6 @@ import {
   ArrowShape,
   Decoration,
   TLDrawShapeType,
-  TLDrawToolType,
   DashStyle,
   ArrowBinding,
   TLDrawMeta,
@@ -25,8 +24,6 @@ import { EASINGS } from '~state/utils'
 
 export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Arrow,
-
-  toolType: TLDrawToolType.Handle,
 
   canStyleFill: false,
 
@@ -440,12 +437,9 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
             .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
         }
 
-        if (!hits[0]) {
-          console.warn('No intersection.')
-          return
+        if (hits[0]) {
+          handlePoint = Vec.sub(hits[0], shape.point)
         }
-
-        handlePoint = Vec.sub(hits[0], shape.point)
       } else if (target.type === TLDrawShapeType.Ellipse) {
         const hits = intersectRayEllipse(
           origin,
@@ -456,11 +450,9 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
           target.rotation || 0
         ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
 
-        if (!hits[0]) {
-          console.warn('No intersections')
+        if (hits[0]) {
+          handlePoint = Vec.sub(hits[0], shape.point)
         }
-
-        handlePoint = Vec.sub(hits[0], shape.point)
       }
     }
 

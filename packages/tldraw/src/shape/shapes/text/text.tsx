@@ -3,7 +3,7 @@ import * as React from 'react'
 import { HTMLContainer, TLBounds, Utils, ShapeUtil } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { getShapeStyle, getFontStyle, defaultStyle } from '~shape/shape-styles'
-import { TextShape, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
+import { TextShape, TLDrawShapeType, TLDrawMeta } from '~types'
 import css from '~styles'
 import TextAreaUtils from './text-utils'
 
@@ -53,8 +53,6 @@ if (typeof window !== 'undefined') {
 
 export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Text,
-
-  toolType: TLDrawToolType.Text,
 
   isAspectRatioLocked: true,
 

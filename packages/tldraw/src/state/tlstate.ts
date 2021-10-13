@@ -26,7 +26,6 @@ import {
   ShapeStyles,
   TLDrawShape,
   TLDrawShapeType,
-  TLDrawToolType,
   Data,
   Session,
   TLDrawStatus,
@@ -84,7 +83,6 @@ const defaultState: Data = {
     nudgeDistanceSmall: 1,
   },
   appState: {
-    activeToolType: undefined,
     activeTool: 'select',
     hoveredId: undefined,
     currentPageId: 'page',
@@ -543,7 +541,6 @@ export class TLDrawState extends StateManager<Data> {
       {
         appState: {
           activeTool: tool,
-          activeToolType: tool === 'select' ? 'select' : TLDR.getShapeUtils(tool).toolType,
         },
       },
       `selected_tool:${tool}`
@@ -1526,7 +1523,6 @@ export class TLDrawState extends StateManager<Data> {
       {
         appState: {
           activeTool: 'select',
-          activeToolType: 'select',
         },
         document: {
           pageStates: {
@@ -2153,97 +2149,6 @@ export class TLDrawState extends StateManager<Data> {
    */
   cancel = (): this => {
     this.currentTool.onCancel?.()
-    return this
-  }
-
-  /**
-   * Create a new shape based on the active tool.
-   * @param point The point at which to create the shape
-   * @param id (optional) The new shape's id.
-   */
-  createActiveToolShape = (point: number[], id = Utils.uniqueId()): this => {
-    const pagePoint = Vec.round(this.getPagePoint(point))
-
-    if (this.appState.activeTool === 'select') return this
-
-    if (!this.appState.activeToolType) throw Error
-
-    const utils = TLDR.getShapeUtils(this.appState.activeTool)
-
-    const shapes = this.getShapes()
-
-    const childIndex =
-      shapes.length === 0
-        ? 1
-        : shapes
-            .filter((shape) => shape.parentId === this.currentPageId)
-            .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
-
-    const newShape = utils.create({
-      id,
-      parentId: this.currentPageId,
-      childIndex,
-      point: pagePoint,
-      style: { ...this.appState.currentStyle },
-    })
-
-    if (newShape.type === TLDrawShapeType.Text) {
-      const bounds = utils.getBounds(newShape)
-      newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
-    }
-
-    this.patchState(
-      {
-        appState: {
-          status: {
-            current: TLDrawStatus.Creating,
-            previous: this.appState.status.current,
-          },
-        },
-        document: {
-          pages: {
-            [this.currentPageId]: {
-              shapes: {
-                [id]: newShape,
-              },
-            },
-          },
-          pageStates: {
-            [this.currentPageId]: {
-              selectedIds: [id],
-              editingId: id,
-            },
-          },
-        },
-      },
-      `started_creating:${this.appState.activeTool}`
-    )
-
-    this.isCreating = true
-
-    const { activeToolType } = this.appState
-
-    switch (activeToolType) {
-      case TLDrawToolType.Draw: {
-        //   return this.startDrawSession(id, pagePoint)
-        break
-      }
-      case TLDrawToolType.Bounds: {
-        break
-        // return this.startTransformSession(
-        //   pagePoint,
-        //   TLBoundsCorner.BottomRight,
-        //   `create_${activeTool}`
-        // )
-      }
-      case TLDrawToolType.Point: {
-        break
-      }
-      case TLDrawToolType.Points: {
-        break
-      }
-    }
-
     return this
   }
 

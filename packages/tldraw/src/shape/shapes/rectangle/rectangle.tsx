@@ -3,7 +3,7 @@ import { Utils, SVGContainer, ShapeUtil } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
 import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
+import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawMeta } from '~types'
 import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
 import { EASINGS } from '~state/utils'
 
@@ -11,8 +11,6 @@ const pathCache = new WeakMap<number[], string>([])
 
 export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Rectangle,
-
-  toolType: TLDrawToolType.Bounds,
 
   canBind: true,
 

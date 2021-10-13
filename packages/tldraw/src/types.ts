@@ -59,7 +59,6 @@ export interface Data {
     pages: Pick<TLPage<TLDrawShape, TLDrawBinding>, 'id' | 'name' | 'childIndex'>[]
     hoveredId?: string
     activeTool: TLDrawShapeType | 'select'
-    activeToolType?: TLDrawToolType | 'select'
     isToolLocked: boolean
     isStyleOpen: boolean
     isEmptyCanvas: boolean
@@ -164,15 +163,6 @@ export enum FlipType {
   Vertical = 'vertical',
 }
 
-export enum TLDrawToolType {
-  Draw = 'draw',
-  Bounds = 'bounds',
-  Point = 'point',
-  Handle = 'handle',
-  Points = 'points',
-  Text = 'text',
-}
-
 export enum TLDrawShapeType {
   PostIt = 'post-it',
   Ellipse = 'ellipse',
@@ -248,14 +238,7 @@ export type TLDrawShape =
   | GroupShape
   | PostItShape
 
-export type TLDrawShapeUtil<T extends TLDrawShape> = TLShapeUtil<
-  T,
-  any,
-  TLDrawMeta,
-  {
-    toolType: TLDrawToolType
-  }
->
+export type TLDrawShapeUtil<T extends TLDrawShape> = TLShapeUtil<T, any, TLDrawMeta>
 
 export type ArrowBinding = TLBinding<{
   handleId: keyof ArrowShape['handles']

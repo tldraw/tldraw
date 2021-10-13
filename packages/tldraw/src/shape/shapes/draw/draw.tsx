@@ -4,7 +4,7 @@ import { Vec } from '@tldraw/vec'
 import { intersectBoundsBounds, intersectBoundsPolyline } from '@tldraw/intersect'
 import { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import { DrawShape, DashStyle, TLDrawShapeType, TLDrawToolType, TLDrawMeta } from '~types'
+import { DrawShape, DashStyle, TLDrawShapeType, TLDrawMeta } from '~types'
 import { EASINGS } from '~state/utils'
 
 const pointsBoundsCache = new WeakMap<DrawShape['points'], TLBounds>([])
@@ -14,8 +14,6 @@ const pointCache: Record<string, number[]> = {}
 
 export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Draw,
-
-  toolType: TLDrawToolType.Draw,
 
   defaultProps: {
     id: 'id',

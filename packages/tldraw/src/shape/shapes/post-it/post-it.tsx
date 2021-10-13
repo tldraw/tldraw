@@ -1,13 +1,11 @@
 import * as React from 'react'
 import { HTMLContainer, ShapeUtil } from '@tldraw/core'
 import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import { PostItShape, TLDrawMeta, TLDrawShapeType, TLDrawToolType } from '~types'
+import { PostItShape, TLDrawMeta, TLDrawShapeType } from '~types'
 import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
 
 export const PostIt = new ShapeUtil<PostItShape, HTMLDivElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.PostIt,
-
-  toolType: TLDrawToolType.Bounds,
 
   canBind: true,
 
