@@ -1,12 +1,12 @@
 import { TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { TLDrawShape, TLDrawStatus } from '~types'
+import { SessionType, TLDrawShape, TLDrawStatus } from '~types'
 import type { Session } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 
 export class TransformSingleSession implements Session {
-  id = 'transform_single'
+  type = SessionType.TransformSingle
   status = TLDrawStatus.Transforming
   commandId: string
   transformType: TLBoundsEdge | TLBoundsCorner
@@ -29,7 +29,7 @@ export class TransformSingleSession implements Session {
 
   start = () => void null
 
-  update = (data: Data, point: number[], isAspectRatioLocked = false) => {
+  update = (data: Data, point: number[], shiftKey: boolean) => {
     const { transformType } = this
 
     const { initialShapeBounds, initialShape, id } = this.snapshot
@@ -45,7 +45,7 @@ export class TransformSingleSession implements Session {
       transformType,
       Vec.sub(point, this.origin),
       shape.rotation,
-      isAspectRatioLocked || shape.isAspectRatioLocked || utils.isAspectRatioLocked
+      shiftKey || shape.isAspectRatioLocked || utils.isAspectRatioLocked
     )
 
     const change = TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {

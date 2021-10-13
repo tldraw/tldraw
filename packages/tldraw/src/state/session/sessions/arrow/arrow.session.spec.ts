@@ -1,9 +1,10 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { ArrowShape, TLDrawShapeType, TLDrawStatus } from '~types'
+import { ArrowShape, SessionType, TLDrawShapeType, TLDrawStatus } from '~types'
 
 describe('Arrow session', () => {
   const tlstate = new TLDrawState()
+
   tlstate
     .loadDocument(mockDocument)
     .selectAll()
@@ -15,12 +16,12 @@ describe('Arrow session', () => {
 
   const restoreDoc = tlstate.document
 
-  it('begins, updates and completes session', () => {
-    tlstate
+  it('begins, updateSession', () => {
+    const tlstate = new TLDrawState()
       .loadDocument(restoreDoc)
       .select('arrow1')
-      .startHandleSession([200, 200], 'start')
-      .updateHandleSession([50, 50])
+      .startSession(SessionType.Arrow, [200, 200], 'start')
+      .updateSession([50, 50])
       .completeSession()
 
     const binding = tlstate.bindings[0]
@@ -44,11 +45,11 @@ describe('Arrow session', () => {
   })
 
   it('cancels session', () => {
-    tlstate
+    const tlstate = new TLDrawState()
       .loadDocument(restoreDoc)
       .select('arrow1')
-      .startHandleSession([200, 200], 'start')
-      .updateHandleSession([50, 50])
+      .startSession(SessionType.Arrow, [200, 200], 'start')
+      .updateSession([50, 50])
       .cancelSession()
 
     expect(tlstate.bindings[0]).toBe(undefined)
@@ -57,78 +58,78 @@ describe('Arrow session', () => {
 
   describe('arrow binding', () => {
     it('points to the center', () => {
-      tlstate
+      const tlstate = new TLDrawState()
         .loadDocument(restoreDoc)
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([50, 50])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([50, 50])
       expect(tlstate.bindings[0].meta.point).toStrictEqual([0.5, 0.5])
     })
 
     it('Snaps to the center', () => {
-      tlstate
+      const tlstate = new TLDrawState()
         .loadDocument(restoreDoc)
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([55, 55])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([55, 55])
       expect(tlstate.bindings[0].meta.point).toStrictEqual([0.5, 0.5])
     })
 
     it('Binds at the bottom left', () => {
-      tlstate
+      const tlstate = new TLDrawState()
         .loadDocument(restoreDoc)
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([132, -32])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([132, -32])
       expect(tlstate.bindings[0].meta.point).toStrictEqual([1, 0])
     })
 
     it('Cancels the bind when off of the expanded bounds', () => {
-      tlstate
+      const tlstate = new TLDrawState()
         .loadDocument(restoreDoc)
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([133, 133])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([133, 133])
 
       expect(tlstate.bindings[0]).toBe(undefined)
     })
 
     it('binds on the inside of a shape while meta is held', () => {
-      tlstate
+      const tlstate = new TLDrawState()
         .loadDocument(restoreDoc)
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([91, 9])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([91, 9])
 
       expect(tlstate.bindings[0].meta.point).toStrictEqual([0.68, 0.13])
 
-      tlstate.updateHandleSession([91, 9], false, false, true)
+      tlstate.updateSession([91, 9], false, false, true)
     })
 
     it('snaps to the center when the point is close to the center', () => {
-      tlstate
+      const tlstate = new TLDrawState()
         .loadDocument(restoreDoc)
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([91, 9])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([91, 9])
 
       expect(tlstate.bindings[0].meta.point).toStrictEqual([0.68, 0.13])
 
-      tlstate.updateHandleSession([91, 9], false, false, true)
+      tlstate.updateSession([91, 9], false, false, true)
 
       expect(tlstate.bindings[0].meta.point).toStrictEqual([0.75, 0.25])
     })
 
     it('ignores binding when alt is held', () => {
-      tlstate
+      const tlstate = new TLDrawState()
         .loadDocument(restoreDoc)
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([55, 45])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([55, 45])
 
       expect(tlstate.bindings[0].meta.point).toStrictEqual([0.5, 0.5])
 
-      tlstate.updateHandleSession([55, 45], false, false, true)
+      tlstate.updateSession([55, 45], false, false, true)
 
       expect(tlstate.bindings[0].meta.point).toStrictEqual([0.5, 0.5])
     })
@@ -136,11 +137,13 @@ describe('Arrow session', () => {
 
   describe('when dragging a bound shape', () => {
     it('updates the arrow', () => {
+      const tlstate = new TLDrawState()
+
       tlstate.loadDocument(restoreDoc)
       // Select the arrow and begin a session on the handle's start handle
-      tlstate.select('arrow1').startHandleSession([200, 200], 'start')
+      tlstate.select('arrow1').startSession(SessionType.Arrow, [200, 200], 'start')
       // Move to [50,50]
-      tlstate.updateHandleSession([50, 50]).completeSession()
+      tlstate.updateSession([50, 50])
       // Both handles will keep the same screen positions, but their points will have changed.
       expect(tlstate.getShape<ArrowShape>('arrow1').point).toStrictEqual([116, 116])
       expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.point).toStrictEqual([0, 0])

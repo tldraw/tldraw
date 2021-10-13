@@ -1,11 +1,11 @@
 import { TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { Session, TLDrawShape, TLDrawStatus } from '~types'
+import { Session, SessionType, TLDrawShape, TLDrawStatus } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 
 export class TransformSession implements Session {
-  id = 'transform'
+  static type = SessionType.Transform
   status = TLDrawStatus.Transforming
   scaleX = 1
   scaleY = 1
@@ -26,7 +26,7 @@ export class TransformSession implements Session {
   start = () => void null
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update = (data: Data, point: number[], isAspectRatioLocked = false, _altKey = false) => {
+  update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean, metaKey: boolean) => {
     const {
       transformType,
       snapshot: { shapeBounds, initialBounds, isAllAspectRatioLocked },
@@ -41,7 +41,7 @@ export class TransformSession implements Session {
       transformType,
       Vec.sub(point, this.origin),
       pageState.boundsRotation,
-      isAspectRatioLocked || isAllAspectRatioLocked
+      shiftKey || isAllAspectRatioLocked
     )
 
     // Now work backward to calculate a new bounding box for each of the shapes.

@@ -1,6 +1,6 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { ArrowShape, TLDrawShapeType } from '~types'
+import { ArrowShape, SessionType, TLDrawShapeType } from '~types'
 
 describe('Move to page command', () => {
   const tlstate = new TLDrawState()
@@ -67,8 +67,8 @@ describe('Move to page command', () => {
           { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([50, 50])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([50, 50])
         .completeSession()
 
       const bindingId = tlstate.bindings[0].id
@@ -108,8 +108,8 @@ describe('Move to page command', () => {
           { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([50, 50])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([50, 50])
         .completeSession()
 
       const bindingId = tlstate.bindings[0].id
@@ -149,8 +149,8 @@ describe('Move to page command', () => {
           { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([50, 50])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([50, 50])
         .completeSession()
 
       const bindingId = tlstate.bindings[0].id

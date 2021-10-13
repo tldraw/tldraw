@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { ArrowShape, TLDrawShapeType } from '~types'
+import { ArrowShape, SessionType, TLDrawShapeType } from '~types'
 
 describe('Translate command', () => {
   const tlstate = new TLDrawState()
@@ -59,8 +59,8 @@ describe('Translate command', () => {
           }
         )
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([50, 50])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([50, 50])
         .completeSession()
 
       const bindingId = tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId!
@@ -98,8 +98,8 @@ describe('Translate command', () => {
           }
         )
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([50, 50])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([50, 50])
         .completeSession()
 
       const bindingId = tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId!

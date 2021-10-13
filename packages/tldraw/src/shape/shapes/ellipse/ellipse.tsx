@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { SVGContainer, Utils, ShapeUtil, TLTransformInfo, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { DashStyle, EllipseShape, TLDrawShapeType, TLDrawMeta, TLDrawToolType } from '~types'
+import { DashStyle, EllipseShape, TLDrawShapeType, TLDrawMeta } from '~types'
 import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
 import getStroke, { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
 import {
@@ -13,8 +13,6 @@ import { EASINGS } from '~state/utils'
 
 export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Ellipse,
-
-  toolType: TLDrawToolType.Bounds,
 
   pathCache: new WeakMap<EllipseShape, string>([]),
 

@@ -6,14 +6,14 @@ import {
   Data,
   Session,
   TLDrawStatus,
+  SessionType,
 } from '~types'
 import { Vec } from '@tldraw/vec'
 import { Utils } from '@tldraw/core'
 import { TLDR } from '~state/tldr'
-import { ThickArrowDownIcon } from '@radix-ui/react-icons'
 
 export class ArrowSession implements Session {
-  id = 'transform_single'
+  static type = SessionType.Arrow
   status = TLDrawStatus.TranslatingHandle
   newBindingId = Utils.uniqueId()
   delta = [0, 0]
@@ -26,7 +26,7 @@ export class ArrowSession implements Session {
   initialBinding: TLDrawBinding | undefined
   didBind = false
 
-  constructor(data: Data, handleId: 'start' | 'end', point: number[]) {
+  constructor(data: Data, point: number[], handleId: 'start' | 'end') {
     const { currentPageId } = data.appState
     const page = data.document.pages[currentPageId]
     const pageState = data.document.pageStates[currentPageId]

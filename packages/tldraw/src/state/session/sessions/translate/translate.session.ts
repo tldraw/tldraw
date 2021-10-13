@@ -10,12 +10,13 @@ import {
   TLDrawStatus,
   ArrowShape,
   GroupShape,
+  SessionType,
 } from '~types'
 import { TLDR } from '~state/tldr'
 import type { Patch } from 'rko'
 
 export class TranslateSession implements Session {
-  id = 'translate'
+  type = SessionType.Translate
   status = TLDrawStatus.Translating
   delta = [0, 0]
   prev = [0, 0]
@@ -48,7 +49,7 @@ export class TranslateSession implements Session {
     }
   }
 
-  update = (data: Data, point: number[], isAligned = false, isCloning = false) => {
+  update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean) => {
     const { selectedIds, initialParentChildren, clones, initialShapes, bindingsToDelete } =
       this.snapshot
 
@@ -59,7 +60,7 @@ export class TranslateSession implements Session {
 
     const delta = Vec.sub(point, this.origin)
 
-    if (isAligned) {
+    if (shiftKey) {
       if (Math.abs(delta[0]) < Math.abs(delta[1])) {
         delta[0] = 0
       } else {
@@ -73,7 +74,7 @@ export class TranslateSession implements Session {
     this.prev = delta
 
     // If cloning...
-    if (isCloning) {
+    if (altKey) {
       // Not Cloning -> Cloning
       if (!this.isCloning) {
         this.isCloning = true

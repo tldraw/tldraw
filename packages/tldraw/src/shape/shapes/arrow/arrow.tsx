@@ -7,7 +7,6 @@ import {
   ArrowShape,
   Decoration,
   TLDrawShapeType,
-  TLDrawToolType,
   DashStyle,
   ArrowBinding,
   TLDrawMeta,
@@ -25,8 +24,6 @@ import { EASINGS } from '~state/utils'
 
 export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Arrow,
-
-  toolType: TLDrawToolType.Handle,
 
   canStyleFill: false,
 
@@ -100,7 +97,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
 
     if (isStraightLine) {
       const path = isDraw
-        ? renderFreehandArrowShaft(shape, arrowDist, easing)
+        ? renderFreehandArrowShaft(shape)
         : 'M' + Vec.round(start.point) + 'L' + Vec.round(end.point)
 
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
@@ -425,9 +422,20 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
       // And passes through the dragging handle
       const direction = Vec.uni(Vec.sub(Vec.add(anchor, shape.point), origin))
 
-      if (
-        [TLDrawShapeType.Rectangle, TLDrawShapeType.Text].includes(target.type as TLDrawShapeType)
-      ) {
+      if (target.type === TLDrawShapeType.Ellipse) {
+        const hits = intersectRayEllipse(
+          origin,
+          direction,
+          center,
+          (target as EllipseShape).radius[0] + binding.meta.distance,
+          (target as EllipseShape).radius[1] + binding.meta.distance,
+          target.rotation || 0
+        ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
+
+        if (hits[0]) {
+          handlePoint = Vec.sub(hits[0], shape.point)
+        }
+      } else {
         let hits = intersectRayBounds(origin, direction, intersectBounds, target.rotation)
           .filter((int) => int.didIntersect)
           .map((int) => int.points[0])
@@ -440,27 +448,9 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
             .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
         }
 
-        if (!hits[0]) {
-          console.warn('No intersection.')
-          return
+        if (hits[0]) {
+          handlePoint = Vec.sub(hits[0], shape.point)
         }
-
-        handlePoint = Vec.sub(hits[0], shape.point)
-      } else if (target.type === TLDrawShapeType.Ellipse) {
-        const hits = intersectRayEllipse(
-          origin,
-          direction,
-          center,
-          (target as EllipseShape).radius[0] + binding.meta.distance,
-          (target as EllipseShape).radius[1] + binding.meta.distance,
-          target.rotation || 0
-        ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-
-        if (!hits[0]) {
-          console.warn('No intersections')
-        }
-
-        handlePoint = Vec.sub(hits[0], shape.point)
       }
     }
 
@@ -621,11 +611,7 @@ function getBendPoint(handles: ArrowShape['handles'], bend: number) {
   return point
 }
 
-function renderFreehandArrowShaft(
-  shape: ArrowShape,
-  length: number,
-  easing: (t: number) => number
-) {
+function renderFreehandArrowShaft(shape: ArrowShape) {
   const { style, id } = shape
 
   const { start, end } = shape.handles

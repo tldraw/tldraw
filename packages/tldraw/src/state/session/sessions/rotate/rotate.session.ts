@@ -1,13 +1,13 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { Session, TLDrawShape, TLDrawStatus } from '~types'
+import { Session, SessionType, TLDrawShape, TLDrawStatus } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 
 const centerCache = new WeakMap<string[], number[]>()
 
 export class RotateSession implements Session {
-  id = 'rotate'
+  static type = SessionType.Rotate
   status = TLDrawStatus.Transforming
   delta = [0, 0]
   origin: number[]

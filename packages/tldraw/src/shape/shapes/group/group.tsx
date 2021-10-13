@@ -1,14 +1,12 @@
 import * as React from 'react'
 import { SVGContainer, ShapeUtil } from '@tldraw/core'
 import { defaultStyle } from '~shape/shape-styles'
-import { GroupShape, TLDrawShapeType, TLDrawToolType, ColorStyle, TLDrawMeta } from '~types'
+import { GroupShape, TLDrawShapeType, ColorStyle, TLDrawMeta } from '~types'
 import { getBoundsRectangle } from '../shared'
 import css from '~styles'
 
 export const Group = new ShapeUtil<GroupShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Group,
-
-  toolType: TLDrawToolType.Bounds,
 
   canBind: true,
 

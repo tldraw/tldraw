@@ -71,7 +71,7 @@ export function useZoomEvents<T extends Element>(zoom: number, ref: React.RefObj
       onPinch: ({ origin, offset, event }) => {
         const elm = ref.current
         if (!(event.target === elm || elm?.contains(event.target as Node))) return
-        if (!rOriginPoint.current) throw Error('No origin point!')
+        if (!rOriginPoint.current) return
 
         const info = inputs.pinch(origin, rOriginPoint.current)
 
