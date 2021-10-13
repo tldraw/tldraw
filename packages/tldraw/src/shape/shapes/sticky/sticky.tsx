@@ -171,16 +171,15 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
         <div
           ref={rContainer}
           className={styledStickyContainer({ isDarkMode: meta.isDarkMode })}
-          style={{ backgroundColor: fill }}
+          style={{ backgroundColor: fill, ...style }}
         >
-          <div ref={rText} className={styledText({ isEditing })} style={style}>
+          <div ref={rText} className={styledText({ isEditing })}>
             {shape.text}&#8203;
           </div>
           {isEditing && (
             <textarea
               ref={rTextArea}
               className={styledTextArea({ isEditing })}
-              style={style}
               onPointerDown={handlePointerDown}
               value={shape.text}
               onChange={handleTextChange}
@@ -268,7 +267,7 @@ const styledText = css({
   variants: {
     isEditing: {
       true: {
-        opacity: 0.5,
+        opacity: 1,
       },
       false: {
         opacity: 1,
@@ -281,11 +280,14 @@ const styledTextArea = css({
   width: '100%',
   height: '100%',
   border: 'none',
+  overflow: 'hidden',
   background: 'none',
   outline: 'none',
   textAlign: 'left',
   font: 'inherit',
   padding: 0,
+  color: 'transparent',
   verticalAlign: 'top',
   resize: 'none',
+  caretColor: 'black',
 })
