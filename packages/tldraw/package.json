@@ -67,7 +67,7 @@
     "@tldraw/core": "^0.0.114",
     "@tldraw/intersect": "^0.0.114",
     "@tldraw/vec": "^0.0.114",
-    "perfect-freehand": "^1.0.15",
+    "perfect-freehand": "^1.0.16",
     "react-hotkeys-hook": "^3.4.0",
     "rko": "^0.5.25"
   },

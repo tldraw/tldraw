@@ -52,7 +52,7 @@ export class DrawTool extends BaseTool {
       id,
       parentId: currentPageId,
       childIndex,
-      point: pagePoint,
+      point: [...pagePoint, info.pressure || 0.5],
       style: { ...currentStyle },
     })
 
@@ -66,7 +66,12 @@ export class DrawTool extends BaseTool {
   onPointerMove: TLPointerEventHandler = (info) => {
     if (this.status === Status.Creating) {
       const pagePoint = Vec.round(this.state.getPagePoint(info.point))
-      this.state.updateSession(pagePoint, info.shiftKey, info.altKey, info.metaKey)
+      this.state.updateSession(
+        [...pagePoint, info.pressure || 0.5],
+        info.shiftKey,
+        info.altKey,
+        info.metaKey
+      )
     }
   }
 

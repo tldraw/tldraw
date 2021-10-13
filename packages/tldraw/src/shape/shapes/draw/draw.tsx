@@ -2,16 +2,14 @@ import * as React from 'react'
 import { SVGContainer, TLBounds, Utils, TLTransformInfo, ShapeUtil } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { intersectBoundsBounds, intersectBoundsPolyline } from '@tldraw/intersect'
-import { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
+import { getStrokeOutlinePoints, getStrokePoints, StrokeOptions } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { DrawShape, DashStyle, TLDrawShapeType, TLDrawMeta } from '~types'
-import { EASINGS } from '~state/utils'
 
 const pointsBoundsCache = new WeakMap<DrawShape['points'], TLBounds>([])
 const shapeBoundsCache = new Map<string, TLBounds>()
 const rotatedCache = new WeakMap<DrawShape, number[][]>([])
 const pointCache: Record<string, number[]> = {}
-
 export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Draw,
 
@@ -27,18 +25,18 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
     style: defaultStyle,
   },
 
-  Component({ shape, meta, events, isEditing }, ref) {
+  Component({ shape, meta, events }, ref) {
     const { points, style } = shape
 
     const polygonPathData = React.useMemo(() => {
       return getFillPath(shape)
-    }, [points, style.size, isEditing])
+    }, [points, style.size])
 
     const pathData = React.useMemo(() => {
       return style.dash === DashStyle.Draw
-        ? getDrawStrokePathData(shape, isEditing)
-        : getSolidStrokePathData(shape, isEditing)
-    }, [points, style.size, style.dash, isEditing])
+        ? getDrawStrokePathData(shape, false)
+        : getSolidStrokePathData(shape, false)
+    }, [points, style.size, style.dash, false])
 
     const styles = getShapeStyle(style, meta.isDarkMode)
 
@@ -49,18 +47,12 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
 
     const verySmall = bounds.width <= strokeWidth / 2 && bounds.height <= strokeWidth / 2
 
-    if (!isEditing && verySmall) {
-      const sw = strokeWidth * 1
+    if (verySmall) {
+      const sw = (1 + strokeWidth) / 2
 
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-          <circle
-            r={strokeWidth * 1}
-            fill={styles.stroke}
-            stroke={styles.stroke}
-            strokeWidth={sw}
-            pointerEvents="all"
-          />
+          <circle r={sw} fill={styles.stroke} stroke={styles.stroke} pointerEvents="all" />
         </SVGContainer>
       )
     }
@@ -87,7 +79,7 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
             d={pathData}
             fill={styles.stroke}
             stroke={styles.stroke}
-            strokeWidth={styles.strokeWidth}
+            strokeWidth={styles.strokeWidth / 2}
             strokeLinejoin="round"
             strokeLinecap="round"
             pointerEvents="all"
@@ -264,64 +256,54 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
 
 const STREAMLINE = 0.65
 
-const simulatePressureSettings = {
+const simulatePressureSettings: StrokeOptions = {
+  easing: (t) => Math.sin((t * Math.PI) / 2),
   simulatePressure: true,
 }
 
-const realPressureSettings = {
-  easing: (t: number) => t * t,
+const realPressureSettings: StrokeOptions = {
+  easing: (t) => t * t,
   simulatePressure: false,
-  start: { taper: 1 },
-  end: { taper: 1 },
+}
+
+function getOptions(shape: DrawShape, isComplete: boolean) {
+  const styles = getShapeStyle(shape.style)
+
+  const options: StrokeOptions = {
+    size: 1 + styles.strokeWidth * 1.5,
+    thinning: 0.65,
+    streamline: STREAMLINE,
+    smoothing: 0.65,
+    ...(shape.points[1][2] === 0.5 ? simulatePressureSettings : realPressureSettings),
+    last: isComplete,
+  }
+
+  return options
 }
 
 function getFillPath(shape: DrawShape) {
-  const styles = getShapeStyle(shape.style)
-
-  if (shape.points.length < 2) {
-    return ''
-  }
+  if (shape.points.length < 2) return ''
 
   return Utils.getSvgPathFromStroke(
-    getStrokePoints(shape.points, {
-      size: 1 + styles.strokeWidth * 2,
-      thinning: 0.85,
-      end: { taper: +styles.strokeWidth * 10 },
-      start: { taper: +styles.strokeWidth * 10 },
-      last: true,
-    }).map((pt) => pt.point)
+    getStrokePoints(shape.points, getOptions(shape, true)).map((pt) => pt.point)
   )
 }
 
-function getDrawStrokePoints(shape: DrawShape, isEditing: boolean) {
-  return getStrokePoints(shape.points, {
-    streamline: STREAMLINE,
-    last: !isEditing,
-  })
+function getDrawStrokePoints(shape: DrawShape, options: StrokeOptions) {
+  return getStrokePoints(shape.points, options)
 }
 
 /**
  * Get path data for a stroke with the DashStyle.Draw dash style.
  */
-function getDrawStrokePathData(shape: DrawShape, isEditing: boolean) {
-  const styles = getShapeStyle(shape.style)
-
+function getDrawStrokePathData(shape: DrawShape, isComplete: boolean) {
   if (shape.points.length < 2) return ''
 
-  const options = shape.points[1][2] === 0.5 ? simulatePressureSettings : realPressureSettings
+  const options = getOptions(shape, isComplete)
 
-  const strokePoints = getDrawStrokePoints(shape, isEditing)
+  const strokePoints = getDrawStrokePoints(shape, options)
 
-  const stroke = getStrokeOutlinePoints(strokePoints, {
-    size: 1 + styles.strokeWidth,
-    thinning: 0.6,
-    streamline: STREAMLINE,
-    smoothing: 0.65,
-    end: { taper: styles.strokeWidth * 10, easing: EASINGS.easeOutQuad },
-    easing: (t) => Math.sin((t * Math.PI) / 2),
-    ...options,
-    last: !isEditing,
-  })
+  const stroke = getStrokeOutlinePoints(strokePoints, options)
 
   const path = Utils.getSvgPathFromStroke(stroke)
 
@@ -331,12 +313,14 @@ function getDrawStrokePathData(shape: DrawShape, isEditing: boolean) {
 /**
  * Get SVG path data for a shape that has a DashStyle other than DashStyles.Draw.
  */
-function getSolidStrokePathData(shape: DrawShape, isEditing: boolean) {
+function getSolidStrokePathData(shape: DrawShape, isComplete: boolean) {
   const { points } = shape
 
   if (points.length === 0) return 'M 0 0 L 0 0'
 
-  const strokePoints = getDrawStrokePoints(shape, isEditing).map((pt) => pt.point.slice(0, 2))
+  const options = getOptions(shape, isComplete)
+
+  const strokePoints = getDrawStrokePoints(shape, options).map((pt) => pt.point.slice(0, 2))
 
   const path = Utils.getSvgPathFromStroke(strokePoints, false)
 
