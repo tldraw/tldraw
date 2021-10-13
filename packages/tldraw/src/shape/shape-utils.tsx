@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Rectangle, Ellipse, Arrow, Draw, Text, Group, PostIt } from './shapes'
+import { Rectangle, Ellipse, Arrow, Draw, Text, Group, Sticky } from './shapes'
 import { TLDrawShapeType, TLDrawShape, TLDrawShapeUtil } from '~types'
 
 // This is a bad "any", but the "this" context stuff we're doing doesn't allow us to union the types
@@ -10,7 +10,7 @@ export const tldrawShapeUtils: Record<TLDrawShapeType, any> = {
   [TLDrawShapeType.Arrow]: Arrow,
   [TLDrawShapeType.Text]: Text,
   [TLDrawShapeType.Group]: Group,
-  [TLDrawShapeType.PostIt]: PostIt,
+  [TLDrawShapeType.Sticky]: Sticky,
 }
 
 export function getShapeUtils<T extends TLDrawShape>(type: T['type']) {

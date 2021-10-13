@@ -1,23 +1,15 @@
 import * as React from 'react'
-import {
-  ArrowTopRightIcon,
-  CircleIcon,
-  CursorArrowIcon,
-  LockClosedIcon,
-  LockOpen1Icon,
-  Pencil1Icon,
-  SquareIcon,
-  TextIcon,
-} from '@radix-ui/react-icons'
+import { CursorArrowIcon, LockClosedIcon, LockOpen1Icon } from '@radix-ui/react-icons'
 import css from '~styles'
-import { Data, TLDrawShapeType } from '~types'
+import type { Data } from '~types'
 import { useTLDrawContext } from '~hooks'
-import { StatusBar } from './status-bar'
-import { floatingContainer } from '../shared'
-import { PrimaryButton, SecondaryButton } from './styled'
-import { UndoRedo } from './undo-redo'
-import { Zoom } from './zoom'
-import { BackToContent } from './back-to-content'
+import { floatingContainer } from '~components/shared'
+import { StatusBar } from '~components/tools-panel/status-bar'
+import { SecondaryButton } from '~components/tools-panel/styled'
+import { UndoRedo } from '~components/tools-panel/undo-redo'
+import { Zoom } from '~components/tools-panel/zoom'
+import { BackToContent } from '~components/tools-panel/back-to-content'
+import { PrimaryTools } from '~components/tools-panel/primary-tools'
 
 const activeToolSelector = (s: Data) => s.appState.activeTool
 const isToolLockedSelector = (s: Data) => s.appState.isToolLocked
@@ -34,26 +26,6 @@ export const ToolsPanel = React.memo((): JSX.Element => {
 
   const selectSelectTool = React.useCallback(() => {
     tlstate.selectTool('select')
-  }, [tlstate])
-
-  const selectDrawTool = React.useCallback(() => {
-    tlstate.selectTool(TLDrawShapeType.Draw)
-  }, [tlstate])
-
-  const selectRectangleTool = React.useCallback(() => {
-    tlstate.selectTool(TLDrawShapeType.Rectangle)
-  }, [tlstate])
-
-  const selectEllipseTool = React.useCallback(() => {
-    tlstate.selectTool(TLDrawShapeType.Ellipse)
-  }, [tlstate])
-
-  const selectArrowTool = React.useCallback(() => {
-    tlstate.selectTool(TLDrawShapeType.Arrow)
-  }, [tlstate])
-
-  const selectTextTool = React.useCallback(() => {
-    tlstate.selectTool(TLDrawShapeType.Text)
   }, [tlstate])
 
   return (
@@ -73,48 +45,7 @@ export const ToolsPanel = React.memo((): JSX.Element => {
       </div>
       <div className={centerWrap()}>
         <BackToContent />
-        <div className={floatingContainer()}>
-          <PrimaryButton
-            kbd={'2'}
-            label={TLDrawShapeType.Draw}
-            onClick={selectDrawTool}
-            isActive={activeTool === TLDrawShapeType.Draw}
-          >
-            <Pencil1Icon />
-          </PrimaryButton>
-          <PrimaryButton
-            kbd={'3'}
-            label={TLDrawShapeType.Rectangle}
-            onClick={selectRectangleTool}
-            isActive={activeTool === TLDrawShapeType.Rectangle}
-          >
-            <SquareIcon />
-          </PrimaryButton>
-          <PrimaryButton
-            kbd={'4'}
-            label={TLDrawShapeType.Draw}
-            onClick={selectEllipseTool}
-            isActive={activeTool === TLDrawShapeType.Ellipse}
-          >
-            <CircleIcon />
-          </PrimaryButton>
-          <PrimaryButton
-            kbd={'5'}
-            label={TLDrawShapeType.Arrow}
-            onClick={selectArrowTool}
-            isActive={activeTool === TLDrawShapeType.Arrow}
-          >
-            <ArrowTopRightIcon />
-          </PrimaryButton>
-          <PrimaryButton
-            kbd={'6'}
-            label={TLDrawShapeType.Text}
-            onClick={selectTextTool}
-            isActive={activeTool === TLDrawShapeType.Text}
-          >
-            <TextIcon />
-          </PrimaryButton>
-        </div>
+        <PrimaryTools />
       </div>
       <div
         className={rightWrap({ size: { '@initial': 'mobile', '@micro': 'micro', '@sm': 'small' } })}

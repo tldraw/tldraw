@@ -24,8 +24,6 @@ enum Status {
   Rotating = 'rotating',
   Pinching = 'pinching',
   Brushing = 'brushing',
-  Creating = 'creating',
-  EditingText = 'editing-text',
 }
 
 export class SelectTool extends BaseTool {
@@ -62,6 +60,14 @@ export class SelectTool extends BaseTool {
 
   private deselectAll() {
     this.state.deselectAll()
+  }
+
+  onEnter = () => {
+    this.setStatus(Status.Idle)
+  }
+
+  onExit = () => {
+    this.setStatus(Status.Idle)
   }
 
   /* ----------------- Event Handlers ----------------- */
@@ -179,13 +185,8 @@ export class SelectTool extends BaseTool {
   }
 
   onPointerDown: TLPointerEventHandler = () => {
-    if (this.status === Status.Idle) {
-      return
-    }
-
-    if (this.status === Status.EditingText) {
-      this.state.completeSession()
-      return
+    if (this.state.appState.isStyleOpen) {
+      this.state.toggleStylePanel()
     }
   }
 
@@ -234,6 +235,9 @@ export class SelectTool extends BaseTool {
     // Unless the user is holding shift or meta, clear the current selection
     if (!info.shiftKey) {
       this.deselectAll()
+      if (this.state.pageState.editingId) {
+        this.state.setEditingId()
+      }
     }
 
     this.setStatus(Status.PointingCanvas)

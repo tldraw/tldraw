@@ -20,6 +20,26 @@ const colors = {
   [ColorStyle.Yellow]: '#ffc936',
 }
 
+export const stickyFills: Record<Theme, Record<ColorStyle, string>> = {
+  light: {
+    ...(Object.fromEntries(
+      Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasLight, 0.45)])
+    ) as Record<ColorStyle, string>),
+    [ColorStyle.White]: '#ffffff',
+    [ColorStyle.Black]: '#3d3d3d',
+  },
+  dark: {
+    ...(Object.fromEntries(
+      Object.entries(colors).map(([k, v]) => [
+        k,
+        Utils.lerpColor(Utils.lerpColor(v, '#999999', 0.3), canvasDark, 0.4),
+      ])
+    ) as Record<ColorStyle, string>),
+    [ColorStyle.White]: '#bbbbbb',
+    [ColorStyle.Black]: '#1d1d1d',
+  },
+}
+
 export const strokes: Record<Theme, Record<ColorStyle, string>> = {
   light: colors,
   dark: {
@@ -57,6 +77,13 @@ const fontSizes = {
   auto: 'auto',
 }
 
+const stickyFontSizes = {
+  [SizeStyle.Small]: 24,
+  [SizeStyle.Medium]: 36,
+  [SizeStyle.Large]: 48,
+  auto: 'auto',
+}
+
 export function getStrokeWidth(size: SizeStyle): number {
   return strokeWidths[size]
 }
@@ -65,11 +92,35 @@ export function getFontSize(size: SizeStyle): number {
   return fontSizes[size]
 }
 
+export function getStickyFontSize(size: SizeStyle): number {
+  return stickyFontSizes[size]
+}
+
 export function getFontStyle(style: ShapeStyles): string {
   const fontSize = getFontSize(style.size)
   const { scale = 1 } = style
 
   return `${fontSize * scale}px/1.3 "Caveat Brush"`
+}
+
+export function getStickyFontStyle(style: ShapeStyles): string {
+  const fontSize = getStickyFontSize(style.size)
+  const { scale = 1 } = style
+
+  return `${fontSize * scale}px/1.3 "Caveat Brush"`
+}
+
+export function getStickyShapeStyle(style: ShapeStyles, isDarkMode = false) {
+  const { color } = style
+
+  const theme: Theme = isDarkMode ? 'dark' : 'light'
+  const adjustedColor = color === ColorStyle.Black ? ColorStyle.Yellow : color
+
+  return {
+    fill: stickyFills[theme][adjustedColor],
+    stroke: strokes[theme][adjustedColor],
+    color: isDarkMode ? '#1d1d1d' : '#0d0d0d',
+  }
 }
 
 export function getShapeStyle(

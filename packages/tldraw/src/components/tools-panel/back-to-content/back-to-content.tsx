@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { floatingContainer, rowButton } from '../shared'
+import { floatingContainer, rowButton } from '~components/shared'
 import css from '~styles'
 import type { Data } from '~types'
 import { useTLDrawContext } from '~hooks'

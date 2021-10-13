@@ -21,6 +21,10 @@ export interface RendererProps<T extends TLShape, E extends Element = any, M = a
    */
   id?: string
   /**
+   * (optional) A ref for the renderer's container element, used for scoping event handlers.
+   */
+  containerRef?: React.RefObject<HTMLElement>
+  /**
    * An object containing instances of your shape classes.
    */
   shapeUtils: Record<T['type'], TLShapeUtil<T, E, M>>
@@ -93,6 +97,7 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
   userId,
   theme,
   meta,
+  containerRef,
   hideHandles = false,
   hideIndicators = false,
   hideBounds = false,
@@ -132,6 +137,7 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
         hideBounds={hideBounds}
         hideIndicators={hideIndicators}
         hideHandles={hideHandles}
+        externalContainerRef={containerRef}
         meta={meta}
       />
     </TLContext.Provider>

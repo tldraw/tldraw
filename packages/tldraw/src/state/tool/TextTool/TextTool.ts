@@ -20,6 +20,14 @@ export class TextTool extends BaseTool {
     this.status = status
   }
 
+  onEnter = () => {
+    this.setStatus(Status.Idle)
+  }
+
+  onExit = () => {
+    this.setStatus(Status.Idle)
+  }
+
   stopEditingShape = () => {
     this.setStatus(Status.Idle)
 

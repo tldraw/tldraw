@@ -15,7 +15,7 @@ export type ToolType =
   | TLDrawShapeType.Ellipse
   | TLDrawShapeType.Rectangle
   | TLDrawShapeType.Arrow
-  | TLDrawShapeType.PostIt
+  | TLDrawShapeType.Sticky
 
 export interface ToolsMap {
   select: typeof SelectTool
@@ -24,7 +24,7 @@ export interface ToolsMap {
   [TLDrawShapeType.Ellipse]: typeof EllipseTool
   [TLDrawShapeType.Rectangle]: typeof RectangleTool
   [TLDrawShapeType.Arrow]: typeof ArrowTool
-  [TLDrawShapeType.PostIt]: typeof StickyTool
+  [TLDrawShapeType.Sticky]: typeof StickyTool
 }
 
 export type ToolOfType<K extends ToolType> = ToolsMap[K]
@@ -38,7 +38,7 @@ export const tools: { [K in ToolType]: ToolsMap[K] } = {
   [TLDrawShapeType.Ellipse]: EllipseTool,
   [TLDrawShapeType.Rectangle]: RectangleTool,
   [TLDrawShapeType.Arrow]: ArrowTool,
-  [TLDrawShapeType.PostIt]: StickyTool,
+  [TLDrawShapeType.Sticky]: StickyTool,
 }
 
 export const getTool = <K extends ToolType>(type: K): ToolOfType<K> => {
@@ -53,6 +53,6 @@ export function createTools(state: TLDrawState) {
     [TLDrawShapeType.Ellipse]: new EllipseTool(state),
     [TLDrawShapeType.Rectangle]: new RectangleTool(state),
     [TLDrawShapeType.Arrow]: new ArrowTool(state),
-    [TLDrawShapeType.PostIt]: new StickyTool(state),
+    [TLDrawShapeType.Sticky]: new StickyTool(state),
   }
 }

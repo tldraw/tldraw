@@ -66,6 +66,15 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [tlstate]
   )
 
+  useHotkeys(
+    'n,7',
+    () => {
+      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Sticky)
+    },
+    undefined,
+    [tlstate]
+  )
+
   /* ---------------------- Misc ---------------------- */
 
   // Dark Mode

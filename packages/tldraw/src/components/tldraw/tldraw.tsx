@@ -19,14 +19,18 @@ import { PagePanel } from '~components/page-panel'
 import { Menu } from '~components/menu'
 import { breakpoints, iconButton } from '~components'
 import { DotFilledIcon } from '@radix-ui/react-icons'
+import { TLDR } from '~state/tldr'
 
 // Selectors
 const isInSelectSelector = (s: Data) => s.appState.activeTool === 'select'
 
-const isSelectedShapeWithHandlesSelector = (s: Data) => {
+const isHideBoundsShapeSelector = (s: Data) => {
   const { shapes } = s.document.pages[s.appState.currentPageId]
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
-  return selectedIds.length === 1 && selectedIds.every((id) => shapes[id].handles !== undefined)
+  return (
+    selectedIds.length === 1 &&
+    selectedIds.every((id) => !TLDR.getShapeUtils(shapes[id].type).showBounds)
+  )
 }
 
 const pageSelector = (s: Data) => s.document.pages[s.appState.currentPageId]
@@ -106,7 +110,6 @@ export function TLDraw({
   }, [sId, id])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes
-
   return (
     <TLDrawContext.Provider value={context}>
       <IdProvider>
@@ -157,7 +160,7 @@ function InnerTldraw({
 
   const isSelecting = useSelector(isInSelectSelector)
 
-  const isSelectedHandlesShape = useSelector(isSelectedShapeWithHandlesSelector)
+  const isHideBoundsShape = useSelector(isHideBoundsShapeSelector)
 
   const isInSession = tlstate.session !== undefined
 
@@ -165,7 +168,7 @@ function InnerTldraw({
   const hideBounds =
     (isInSession && tlstate.session?.constructor.name !== 'BrushSession') ||
     !isSelecting ||
-    isSelectedHandlesShape ||
+    isHideBoundsShape ||
     !!pageState.editingId
 
   // Hide bounds when not using the select tool, or when in session
@@ -215,6 +218,7 @@ function InnerTldraw({
         <ContextMenu>
           <Renderer
             id={id}
+            containerRef={rWrapper}
             page={page}
             pageState={pageState}
             users={users}

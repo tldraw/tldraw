@@ -79,12 +79,11 @@ export class Utils {
    *```
    */
 
-  static lerpColor(color1: string, color2: string, factor = 0.5): string | undefined {
+  static lerpColor(color1: string, color2: string, factor = 0.5): string {
     function h2r(hex: string) {
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-      return result
-        ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
-        : null
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)!
+      return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
     }
 
     function r2h(rgb: number[]) {

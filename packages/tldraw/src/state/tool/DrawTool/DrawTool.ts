@@ -21,6 +21,14 @@ export class DrawTool extends BaseTool {
     this.status = status
   }
 
+  onEnter = () => {
+    this.setStatus(Status.Idle)
+  }
+
+  onExit = () => {
+    this.setStatus(Status.Idle)
+  }
+
   /* ----------------- Event Handlers ----------------- */
 
   onPointerDown: TLPointerEventHandler = (info) => {

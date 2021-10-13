@@ -1740,7 +1740,7 @@ export class TLDrawState extends StateManager<Data> {
           appState: {
             status: {
               current: TLDrawStatus.Idle,
-              previous: this.appState.status.previous,
+              previous: TLDrawStatus.Idle,
             },
           },
           document: {
@@ -1833,7 +1833,7 @@ export class TLDrawState extends StateManager<Data> {
 
     const { isToolLocked, activeTool } = this.appState
 
-    if (!isToolLocked && activeTool !== 'draw') {
+    if (!isToolLocked && activeTool !== TLDrawShapeType.Draw) {
       this.selectTool('select')
     }
 
@@ -1853,13 +1853,14 @@ export class TLDrawState extends StateManager<Data> {
     ...shapes: ({ id: string; type: TLDrawShapeType } & Partial<TLDrawShape>)[]
   ): this => {
     if (shapes.length === 0) return this
+
     return this.create(
-      shapes.map((shape) =>
-        TLDR.getShapeUtils(shape.type).create({
+      shapes.map((shape) => {
+        return TLDR.getShapeUtils(shape.type).create({
+          parentId: this.currentPageId,
           ...shape,
-          parentId: shape.parentId || this.currentPageId,
         })
-      )
+      })
     )
   }
 
@@ -2162,130 +2163,21 @@ export class TLDrawState extends StateManager<Data> {
 
   /* ----------------- Keyboard Events ---------------- */
 
-  onKeyDown: TLKeyboardEventHandler = (key, info) => {
+  onKeyDown: TLKeyboardEventHandler = (key, info, e) => {
     if (key === 'Escape') {
       this.cancel()
       return
     }
 
-    if (!info) return
+    this.currentTool.onKeyDown?.(key, info, e)
 
-    switch (this.appState.status.current) {
-      case TLDrawStatus.Idle: {
-        break
-      }
-      case TLDrawStatus.Brushing: {
-        if (key === 'Meta' || key === 'Control') {
-          this.updateSession(
-            this.getPagePoint(info.point),
-            info.shiftKey,
-            info.altKey,
-            info.metaKey
-          )
-          return
-        }
-
-        break
-      }
-      case TLDrawStatus.Translating: {
-        if (key === 'Escape') {
-          this.cancelSession()
-        }
-
-        if (key === 'Shift' || key === 'Alt') {
-          this.updateSession(
-            this.getPagePoint(info.point),
-            info.shiftKey,
-            info.altKey,
-            info.metaKey
-          )
-        }
-        break
-      }
-      case TLDrawStatus.Transforming: {
-        if (key === 'Escape') {
-          this.cancelSession()
-        } else if (key === 'Shift' || key === 'Alt') {
-          this.updateSession(
-            this.getPagePoint(info.point),
-            info.shiftKey,
-            info.altKey,
-            info.metaKey
-          )
-        }
-        break
-      }
-      case TLDrawStatus.TranslatingHandle: {
-        if (key === 'Escape') {
-          this.cancelSession()
-        }
-
-        if (key === 'Meta' || key === 'Control') {
-          this.updateSession(
-            this.getPagePoint(info.point),
-            info.shiftKey,
-            info.altKey,
-            info.metaKey
-          )
-        }
-        break
-      }
-    }
+    return this
   }
 
-  onKeyUp: TLKeyboardEventHandler = (key, info) => {
+  onKeyUp: TLKeyboardEventHandler = (key, info, e) => {
     if (!info) return
 
-    switch (this.appState.status.current) {
-      case TLDrawStatus.Brushing: {
-        if (key === 'Meta' || key === 'Control') {
-          this.updateSession(
-            this.getPagePoint(info.point),
-            info.shiftKey,
-            info.altKey,
-            info.metaKey
-          )
-        }
-        break
-      }
-      case TLDrawStatus.Transforming: {
-        if (key === 'Shift' || key === 'Alt') {
-          this.updateSession(
-            this.getPagePoint(info.point),
-            info.shiftKey,
-            info.altKey,
-            info.metaKey
-          )
-        }
-        break
-      }
-      case TLDrawStatus.Translating: {
-        if (key === 'Shift' || key === 'Alt') {
-          this.updateSession(
-            this.getPagePoint(info.point),
-            info.shiftKey,
-            info.altKey,
-            info.metaKey
-          )
-        }
-        break
-      }
-      case TLDrawStatus.TranslatingHandle: {
-        if (key === 'Escape') {
-          this.cancelSession()
-        }
-
-        if (key === 'Meta' || key === 'Control') {
-          this.updateSession(
-            this.getPagePoint(info.point),
-            info.shiftKey,
-            info.altKey,
-            info.metaKey
-          )
-        }
-        break
-      }
-    }
+    this.currentTool.onKeyUp?.(key, info, e)
   }
 
   /* ------------- Renderer Event Handlers ------------ */
@@ -2298,7 +2190,9 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   onPinchEnd: TLPinchEventHandler = () => {
-    this.undoSelect()
+    if (Utils.isMobileSafari()) {
+      this.undoSelect()
+    }
     this.setStatus(TLDrawStatus.Idle)
   }
 
@@ -2350,41 +2244,7 @@ export class TLDrawState extends StateManager<Data> {
     this.currentTool.onPointerMove?.(info, e)
   }
 
-  onPointerDown: TLPointerEventHandler = (...args) => {
-    this.currentTool.onPointerDown?.(...args)
-
-    // switch (this.appState.status.current) {
-    //   case TLDrawStatus.Idle: {
-    //     switch (this.appState.activeTool) {
-    //       case TLDrawShapeType.Draw: {
-    //         this.createActiveToolShape(info.point)
-    //         break
-    //       }
-    //       case TLDrawShapeType.Rectangle: {
-    //         this.createActiveToolShape(info.point)
-    //         break
-    //       }
-    //       case TLDrawShapeType.Ellipse: {
-    //         this.createActiveToolShape(info.point)
-    //         break
-    //       }
-    //       case TLDrawShapeType.Arrow: {
-    //         this.createActiveToolShape(info.point)
-    //         break
-    //       }
-    //       case TLDrawShapeType.Text: {
-    //         this.createActiveToolShape(info.point)
-    //         break
-    //       }
-    //     }
-    //     break
-    //   }
-    //   case TLDrawStatus.EditingText: {
-    //     this.completeSession()
-    //     break
-    //   }
-    // }
-  }
+  onPointerDown: TLPointerEventHandler = (...args) => this.currentTool.onPointerDown?.(...args)
 
   onPointerUp: TLPointerEventHandler = (...args) => this.currentTool.onPointerUp?.(...args)
 
@@ -2487,10 +2347,12 @@ export class TLDrawState extends StateManager<Data> {
 
       this.setEditingId()
 
-      if (shape.type === TLDrawShapeType.Text && shape.text.trim().length <= 0) {
-        this.setState(Commands.deleteShapes(this.state, [editingId]), 'delete_empty_text')
-      } else {
-        this.select(editingId)
+      if (shape.type === TLDrawShapeType.Text) {
+        if (shape.text.trim().length <= 0) {
+          this.setState(Commands.deleteShapes(this.state, [editingId]), 'delete_empty_text')
+        } else {
+          this.select(editingId)
+        }
       }
     }
 

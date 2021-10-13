@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useTLDrawContext } from '~hooks'
-import { TertiaryButton, tertiaryButtonsContainer } from './styled'
-import { Undo, Redo, Trash } from '../icons'
+import { TertiaryButton, tertiaryButtonsContainer } from '~components/tools-panel/styled'
+import { Undo, Redo, Trash } from '~components/icons'
 
 export const UndoRedo = React.memo((): JSX.Element => {
   const { tlstate } = useTLDrawContext()

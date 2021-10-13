@@ -55,16 +55,6 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
       {shapeTree.map((node) => (
         <ShapeNode key={node.shape.id} utils={shapeUtils} {...node} />
       ))}
-      {bounds && (
-        <Bounds
-          zoom={zoom}
-          bounds={bounds}
-          viewportWidth={inputs.bounds.width}
-          isLocked={isLocked}
-          rotation={rotation}
-          isHidden={hideBounds}
-        />
-      )}
       {!hideIndicators &&
         selectedIds
           .filter(Boolean)
@@ -77,6 +67,16 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
           shape={page.shapes[hoveredId]}
           meta={meta}
           isHovered
+        />
+      )}
+      {bounds && (
+        <Bounds
+          zoom={zoom}
+          bounds={bounds}
+          viewportWidth={inputs.bounds.width}
+          isLocked={isLocked}
+          rotation={rotation}
+          isHidden={hideBounds}
         />
       )}
       {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} />}

@@ -22,6 +22,8 @@ export const ShapeUtil = function <T extends TLShape, E extends Element, M = any
 
     canBind: false,
 
+    showBounds: true,
+
     isStateful: false,
 
     isAspectRatioLocked: false,

@@ -19,6 +19,10 @@ export abstract class BaseTool {
     this.state = state
   }
 
+  abstract onEnter: () => void
+
+  abstract onExit: () => void
+
   getNextChildIndex = () => {
     const {
       shapes,

@@ -6,7 +6,7 @@ import { useGesture } from '@use-gesture/react'
 import { Vec } from '@tldraw/vec'
 
 // Capture zoom gestures (pinches, wheels and pans)
-export function useZoomEvents<T extends Element>(zoom: number, ref: React.RefObject<T>) {
+export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.RefObject<T>) {
   const rOriginPoint = React.useRef<number[] | undefined>(undefined)
   const rPinchPoint = React.useRef<number[] | undefined>(undefined)
   const rDelta = React.useRef<number[]>([0, 0])
@@ -35,7 +35,9 @@ export function useZoomEvents<T extends Element>(zoom: number, ref: React.RefObj
     {
       onWheel: ({ event: e, delta }) => {
         const elm = ref.current
-        if (!(e.target === elm || elm?.contains(e.target as Node))) return
+
+        if (!elm || !(e.target === elm || elm.contains(e.target as Node))) return
+
         e.preventDefault()
 
         if (inputs.isPinching) return
@@ -47,7 +49,8 @@ export function useZoomEvents<T extends Element>(zoom: number, ref: React.RefObj
       },
       onPinchStart: ({ origin, event }) => {
         const elm = ref.current
-        if (!(event.target === elm || elm?.contains(event.target as Node))) return
+
+        if (!elm || !(event.target === elm || elm.contains(event.target as Node))) return
 
         const info = inputs.pinch(origin, origin)
         inputs.isPinching = true
@@ -93,7 +96,7 @@ export function useZoomEvents<T extends Element>(zoom: number, ref: React.RefObj
       },
     },
     {
-      target: window,
+      target: ref,
       eventOptions: { passive: false },
       pinch: {
         from: zoom,
