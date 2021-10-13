@@ -264,6 +264,7 @@ const styledText = css({
   font: 'inherit',
   pointerEvents: 'none',
   whiteSpace: 'pre-wrap',
+  userSelect: 'none',
   variants: {
     isEditing: {
       true: {
