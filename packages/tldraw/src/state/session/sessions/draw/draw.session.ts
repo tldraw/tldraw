@@ -1,10 +1,10 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { Data, DrawShape, Session, TLDrawStatus } from '~types'
+import { Data, DrawShape, Session, SessionType, TLDrawStatus } from '~types'
 import { TLDR } from '~state/tldr'
 
 export class DrawSession implements Session {
-  id = 'draw'
+  static type = SessionType.Draw
   status = TLDrawStatus.Creating
   topLeft: number[]
   origin: number[]
@@ -12,17 +12,16 @@ export class DrawSession implements Session {
   last: number[]
   points: number[][]
   shiftedPoints: number[][] = []
-  snapshot: DrawSnapshot
+  shapeId: string
   isLocked?: boolean
   lockedDirection?: 'horizontal' | 'vertical'
 
-  constructor(data: Data, id: string, point: number[]) {
+  constructor(data: Data, point: number[], id: string) {
     this.origin = point
     this.previous = point
     this.last = point
     this.topLeft = point
-
-    this.snapshot = getDrawSnapshot(data, id)
+    this.shapeId = id
 
     // Add a first point but don't update the shape yet. We'll update
     // when the draw session ends; if the user hasn't added additional
@@ -32,8 +31,8 @@ export class DrawSession implements Session {
 
   start = () => void null
 
-  update = (data: Data, point: number[], pressure: number, isLocked = false) => {
-    const { snapshot } = this
+  update = (data: Data, point: number[], shiftKey: boolean) => {
+    const { shapeId } = this
 
     // Even if we're not locked yet, we base the future locking direction
     // on the first dimension to reach a threshold, or the bigger dimension
@@ -47,7 +46,7 @@ export class DrawSession implements Session {
 
     // Drawing while holding shift will "lock" the pen to either the
     // x or y axis, depending on the locking direction.
-    if (isLocked) {
+    if (shiftKey) {
       if (!this.isLocked && this.points.length > 2) {
         // If we're locking before knowing what direction we're in, set it
         // early based on the bigger dimension.
@@ -67,7 +66,7 @@ export class DrawSession implements Session {
         }
 
         this.previous = returning
-        this.points.push(returning.concat(pressure))
+        this.points.push(returning.concat(point[2]))
       }
     } else if (this.isLocked) {
       this.isLocked = false
@@ -82,7 +81,7 @@ export class DrawSession implements Session {
     }
 
     // The new adjusted point
-    const newPoint = Vec.round(Vec.sub(point, this.origin)).concat(pressure)
+    const newPoint = Vec.round(Vec.sub(point, this.origin)).concat(point[2])
 
     // Don't add duplicate points.
     if (Vec.isEqual(this.last, newPoint)) return
@@ -129,7 +128,7 @@ export class DrawSession implements Session {
         pages: {
           [data.appState.currentPageId]: {
             shapes: {
-              [snapshot.id]: {
+              [shapeId]: {
                 point: this.topLeft,
                 points,
               },
@@ -138,7 +137,7 @@ export class DrawSession implements Session {
         },
         pageStates: {
           [data.appState.currentPageId]: {
-            selectedIds: [snapshot.id],
+            selectedIds: [shapeId],
           },
         },
       },
@@ -146,7 +145,7 @@ export class DrawSession implements Session {
   }
 
   cancel = (data: Data) => {
-    const { snapshot } = this
+    const { shapeId } = this
     const pageId = data.appState.currentPageId
 
     return {
@@ -154,7 +153,7 @@ export class DrawSession implements Session {
         pages: {
           [pageId]: {
             shapes: {
-              [snapshot.id]: undefined,
+              [shapeId]: undefined,
             },
           },
         },
@@ -168,7 +167,7 @@ export class DrawSession implements Session {
   }
 
   complete = (data: Data) => {
-    const { snapshot } = this
+    const { shapeId } = this
     const pageId = data.appState.currentPageId
 
     return {
@@ -178,7 +177,7 @@ export class DrawSession implements Session {
           pages: {
             [pageId]: {
               shapes: {
-                [snapshot.id]: undefined,
+                [shapeId]: undefined,
               },
             },
           },
@@ -194,7 +193,7 @@ export class DrawSession implements Session {
           pages: {
             [pageId]: {
               shapes: {
-                [snapshot.id]: TLDR.getShape(data, snapshot.id, pageId),
+                [shapeId]: TLDR.getShape(data, shapeId, pageId),
               },
             },
           },
@@ -208,18 +207,3 @@ export class DrawSession implements Session {
     }
   }
 }
-
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function getDrawSnapshot(data: Data, shapeId: string) {
-  const page = { ...TLDR.getPage(data, data.appState.currentPageId) }
-
-  const { points, point } = Utils.deepClone(page.shapes[shapeId]) as DrawShape
-
-  return {
-    id: shapeId,
-    point,
-    points,
-  }
-}
-
-export type DrawSnapshot = ReturnType<typeof getDrawSnapshot>

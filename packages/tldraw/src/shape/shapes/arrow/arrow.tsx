@@ -100,7 +100,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
 
     if (isStraightLine) {
       const path = isDraw
-        ? renderFreehandArrowShaft(shape, arrowDist, easing)
+        ? renderFreehandArrowShaft(shape)
         : 'M' + Vec.round(start.point) + 'L' + Vec.round(end.point)
 
       const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
@@ -621,11 +621,7 @@ function getBendPoint(handles: ArrowShape['handles'], bend: number) {
   return point
 }
 
-function renderFreehandArrowShaft(
-  shape: ArrowShape,
-  length: number,
-  easing: (t: number) => number
-) {
+function renderFreehandArrowShaft(shape: ArrowShape) {
   const { style, id } = shape
 
   const { start, end } = shape.handles

@@ -60,6 +60,8 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
 
   isEditableText: true,
 
+  canEdit: true,
+
   canBind: true,
 
   defaultProps: {
@@ -85,6 +87,8 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
     const { text, style } = shape
     const styles = getShapeStyle(style, meta.isDarkMode)
     const font = getFontStyle(shape.style)
+
+    const rIsMounted = React.useRef(false)
 
     const handleChange = React.useCallback(
       (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -115,15 +119,20 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
 
     const handleBlur = React.useCallback(
       (e: React.FocusEvent<HTMLTextAreaElement>) => {
-        e.currentTarget.setSelectionRange(0, 0)
-        onShapeBlur?.()
+        if (!isEditing) return
+        if (rIsMounted.current) {
+          e.currentTarget.setSelectionRange(0, 0)
+          onShapeBlur?.()
+        }
       },
-      [isEditing, shape]
+      [isEditing]
     )
 
     const handleFocus = React.useCallback(
       (e: React.FocusEvent<HTMLTextAreaElement>) => {
         if (!isEditing) return
+        if (!rIsMounted.current) return
+
         if (document.activeElement === e.currentTarget) {
           e.currentTarget.select()
         }
@@ -143,6 +152,7 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
     React.useEffect(() => {
       if (isEditing) {
         requestAnimationFrame(() => {
+          rIsMounted.current = true
           const elm = rInput.current!
           elm.focus()
           elm.select()

@@ -2,7 +2,7 @@ import { TLBoundsCorner, Utils } from '@tldraw/core'
 import { TLDrawState } from '~state'
 import { TLDR } from '~state/tldr'
 import { mockDocument } from '~test'
-import { TLDrawShapeType } from '~types'
+import { SessionType, TLDrawShapeType } from '~types'
 
 describe('Reset bounds command', () => {
   const tlstate = new TLDrawState()
@@ -26,8 +26,8 @@ describe('Reset bounds command', () => {
 
     tlstate
       .select('text1')
-      .startTransformSession([0, 0], TLBoundsCorner.TopLeft)
-      .updateTransformSession([-100, -100], false, false)
+      .startSession(SessionType.Transform, [0, 0], TLBoundsCorner.TopLeft)
+      .updateSession([-100, -100], false, false)
       .completeSession()
 
     const scale = tlstate.getShape('text1').style.scale

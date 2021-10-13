@@ -1,6 +1,8 @@
 import { TLDrawState } from './tlstate'
 import { mockDocument, TLStateUtils } from '~test'
-import { ArrowShape, ColorStyle, TLDrawShapeType } from '~types'
+import { ArrowShape, ColorStyle, SessionType, TLDrawShapeType } from '~types'
+import type { TextTool } from './tool/TextTool'
+import type { SelectTool } from './tool/SelectTool'
 
 describe('TLDrawState', () => {
   const tlstate = new TLDrawState()
@@ -61,8 +63,8 @@ describe('TLDrawState', () => {
           { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([55, 55])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([55, 55])
         .completeSession()
 
       expect(tlstate.bindings.length).toBe(1)
@@ -87,8 +89,8 @@ describe('TLDrawState', () => {
           { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([55, 55])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([55, 55])
         .completeSession()
 
       expect(tlstate.bindings.length).toBe(1)
@@ -138,8 +140,8 @@ describe('TLDrawState', () => {
 
     it('clears selection when clicking bounds', () => {
       tlstate.loadDocument(mockDocument).deselectAll()
-      tlstate.startBrushSession([-10, -10])
-      tlstate.updateBrushSession([110, 110])
+      tlstate.startSession(SessionType.Brush, [-10, -10])
+      tlstate.updateSession([110, 110])
       tlstate.completeSession()
       expect(tlstate.selectedIds.length).toBe(3)
     })
@@ -301,8 +303,8 @@ describe('TLDrawState', () => {
         }
       )
       .select('arrow')
-      .startHandleSession([200, 200], 'start', 'arrow')
-      .updateHandleSession([10, 10])
+      .startSession(SessionType.Arrow, [200, 200], 'start')
+      .updateSession([10, 10])
       .completeSession()
       .selectAll()
       .style({ color: ColorStyle.Red })
@@ -340,7 +342,7 @@ describe('TLDrawState', () => {
 
       const tlu = new TLStateUtils(tlstate)
       tlu.doubleClickShape('rect1')
-      expect(tlstate.selectedGroupId).toStrictEqual('groupA')
+      expect((tlstate.currentTool as SelectTool).selectedGroupId).toStrictEqual('groupA')
       expect(tlstate.selectedIds).toStrictEqual(['rect1'])
     })
 

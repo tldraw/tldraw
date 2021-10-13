@@ -1,16 +1,16 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { GroupShape, TLDrawShapeType, TLDrawStatus } from '~types'
+import { GroupShape, SessionType, TLDrawShapeType, TLDrawStatus } from '~types'
 
 describe('Translate session', () => {
   const tlstate = new TLDrawState()
 
-  it('begins, updates and completes session', () => {
+  it('begins, updateSession', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1')
-      .startTranslateSession([5, 5])
-      .updateTranslateSession([10, 10])
+      .startSession(SessionType.Translate, [5, 5])
+      .updateSession([10, 10])
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([5, 5])
 
@@ -33,8 +33,8 @@ describe('Translate session', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startTranslateSession([5, 5])
-      .updateTranslateSession([10, 10])
+      .startSession(SessionType.Translate, [5, 5])
+      .updateSession([10, 10])
       .cancelSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
@@ -44,8 +44,8 @@ describe('Translate session', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1')
-      .startTranslateSession([10, 10])
-      .updateTranslateSession([20, 20])
+      .startSession(SessionType.Translate, [10, 10])
+      .updateSession([20, 20])
       .completeSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
@@ -55,8 +55,8 @@ describe('Translate session', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1')
-      .startTranslateSession([10, 10])
-      .updateTranslateSession([20, 20], true)
+      .startSession(SessionType.Translate, [10, 10])
+      .updateSession([20, 20], true)
       .completeSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([10, 0])
@@ -66,8 +66,8 @@ describe('Translate session', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startTranslateSession([10, 10])
-      .updateTranslateSession([20, 20])
+      .startSession(SessionType.Translate, [10, 10])
+      .updateSession([20, 20])
       .completeSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
@@ -78,8 +78,8 @@ describe('Translate session', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startTranslateSession([10, 10])
-      .updateTranslateSession([20, 20], false, true)
+      .startSession(SessionType.Translate, [10, 10])
+      .updateSession([20, 20], false, true)
       .completeSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
@@ -100,8 +100,8 @@ describe('Translate session', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startTranslateSession([10, 10])
-      .updateTranslateSession([20, 20], false, true)
+      .startSession(SessionType.Translate, [10, 10])
+      .updateSession([20, 20], false, true)
       .completeSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
@@ -117,12 +117,12 @@ describe('Translate session', () => {
 
     tlstate
       .select('rect1', 'rect2')
-      .startTranslateSession([10, 10])
-      .updateTranslateSession([20, 20], false, true)
+      .startSession(SessionType.Translate, [10, 10])
+      .updateSession([20, 20], false, true)
 
     expect(Object.keys(tlstate.getPage().shapes).length).toBe(5)
 
-    tlstate.updateTranslateSession([30, 30], false, false)
+    tlstate.updateSession([30, 30], false, false)
 
     expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
 
@@ -156,16 +156,16 @@ describe('Translate session', () => {
         }
       )
       .select('arrow1')
-      .startHandleSession([200, 200], 'start')
-      .updateHandleSession([50, 50])
+      .startSession(SessionType.Arrow, [200, 200], 'start')
+      .updateSession([50, 50])
       .completeSession()
 
     expect(tlstate.bindings.length).toBe(1)
 
     tlstate
       .select('arrow1')
-      .startTranslateSession([10, 10])
-      .updateTranslateSession([30, 30])
+      .startSession(SessionType.Translate, [10, 10])
+      .updateSession([30, 30])
       .completeSession()
 
     // expect(tlstate.bindings.length).toBe(0)
@@ -191,8 +191,8 @@ describe('Translate session', () => {
         .select('rect1', 'rect2')
         .group(['rect1', 'rect2'], 'groupA')
         .select('rect1')
-        .startTranslateSession([10, 10])
-        .updateTranslateSession([20, 20], false, false)
+        .startSession(SessionType.Translate, [10, 10])
+        .updateSession([20, 20], false, false)
         .completeSession()
 
       expect(tlstate.getShape('groupA').point).toStrictEqual([10, 10])
@@ -218,8 +218,8 @@ describe('Translate session', () => {
         .select('rect1', 'rect2')
         .group(['rect1', 'rect2'], 'groupA')
         .select('rect1')
-        .startTranslateSession([10, 10])
-        .updateTranslateSession([20, 20], false, true)
+        .startSession(SessionType.Translate, [10, 10])
+        .updateSession([20, 20], false, true)
         .completeSession()
 
       const children = tlstate.getShape<GroupShape>('groupA').children
@@ -257,8 +257,8 @@ describe('Translate session', () => {
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
         .group(['rect1', 'rect2'], 'groupA')
-        .startTranslateSession([10, 10])
-        .updateTranslateSession([20, 20], false, false)
+        .startSession(SessionType.Translate, [10, 10])
+        .updateSession([20, 20], false, false)
         .completeSession()
 
       expect(tlstate.getShape('groupA').point).toStrictEqual([10, 10])
@@ -283,8 +283,8 @@ describe('Translate session', () => {
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
         .group()
-        .startTranslateSession([10, 10])
-        .updateTranslateSession([20, 20], false, true)
+        .startSession(SessionType.Translate, [10, 10])
+        .updateSession([20, 20], false, true)
         .completeSession()
     })
 
@@ -293,10 +293,10 @@ describe('Translate session', () => {
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
         .group()
-        .startTranslateSession([10, 10])
-        .updateTranslateSession([20, 20], false, true)
-        .updateTranslateSession([20, 20], false, false)
-        .updateTranslateSession([20, 20], false, true)
+        .startSession(SessionType.Translate, [10, 10])
+        .updateSession([20, 20], false, true)
+        .updateSession([20, 20], false, false)
+        .updateSession([20, 20], false, true)
         .completeSession()
     })
 
@@ -306,8 +306,8 @@ describe('Translate session', () => {
         .select('rect1', 'rect2')
         .group(['rect1', 'rect2'], 'groupA')
         .select('groupA', 'rect3')
-        .startTranslateSession([10, 10])
-        .updateTranslateSession([20, 20], false, true)
+        .startSession(SessionType.Translate, [10, 10])
+        .updateSession([20, 20], false, true)
         .completeSession()
     })
   })

@@ -163,7 +163,10 @@ function InnerTldraw({
 
   // Hide bounds when not using the select tool, or when the only selected shape has handles
   const hideBounds =
-    (tlstate.session && tlstate.session.id !== 'brush') || !isSelecting || isSelectedHandlesShape
+    (isInSession && tlstate.session?.constructor.name !== 'BrushSession') ||
+    !isSelecting ||
+    isSelectedHandlesShape ||
+    !!pageState.editingId
 
   // Hide bounds when not using the select tool, or when in session
   const hideHandles = isInSession || !isSelecting
