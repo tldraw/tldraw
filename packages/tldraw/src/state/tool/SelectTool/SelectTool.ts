@@ -62,6 +62,14 @@ export class SelectTool extends BaseTool {
     this.state.deselectAll()
   }
 
+  onEnter = () => {
+    this.setStatus(Status.Idle)
+  }
+
+  onExit = () => {
+    this.setStatus(Status.Idle)
+  }
+
   /* ----------------- Event Handlers ----------------- */
 
   onCancel = () => {

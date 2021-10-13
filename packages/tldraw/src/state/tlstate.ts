@@ -2347,10 +2347,12 @@ export class TLDrawState extends StateManager<Data> {
 
       this.setEditingId()
 
-      if (shape.type === TLDrawShapeType.Text && shape.text.trim().length <= 0) {
-        this.setState(Commands.deleteShapes(this.state, [editingId]), 'delete_empty_text')
-      } else {
-        this.select(editingId)
+      if (shape.type === TLDrawShapeType.Text) {
+        if (shape.text.trim().length <= 0) {
+          this.setState(Commands.deleteShapes(this.state, [editingId]), 'delete_empty_text')
+        } else {
+          this.select(editingId)
+        }
       }
     }
 

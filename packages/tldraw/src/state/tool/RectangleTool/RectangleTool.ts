@@ -1,5 +1,5 @@
 import Vec from '@tldraw/vec'
-import { Utils, TLPointerEventHandler, TLBoundsCorner } from '@tldraw/core'
+import { Utils, TLPointerEventHandler, TLKeyboardEventHandler, TLBoundsCorner } from '@tldraw/core'
 import { Rectangle } from '~shape/shapes'
 import { SessionType, TLDrawShapeType } from '~types'
 import { BaseTool } from '../BaseTool'
@@ -18,6 +18,14 @@ export class RectangleTool extends BaseTool {
 
   private setStatus(status: Status) {
     this.status = status
+  }
+
+  onEnter = () => {
+    this.setStatus(Status.Idle)
+  }
+
+  onExit = () => {
+    this.setStatus(Status.Idle)
   }
 
   /* ----------------- Event Handlers ----------------- */
@@ -50,6 +58,18 @@ export class RectangleTool extends BaseTool {
 
   onPointerMove: TLPointerEventHandler = (info) => {
     if (this.status === Status.Creating) {
+      const pagePoint = Vec.round(this.state.getPagePoint(info.point))
+      this.state.updateSession(pagePoint, info.shiftKey, info.altKey, info.metaKey)
+    }
+  }
+
+  onKeyDown: TLKeyboardEventHandler = (key, info) => {
+    if (
+      (this.status === Status.Creating && key === 'Shift') ||
+      key === 'Meta' ||
+      key === 'Alt' ||
+      key === 'Ctrl'
+    ) {
       const pagePoint = Vec.round(this.state.getPagePoint(info.point))
       this.state.updateSession(pagePoint, info.shiftKey, info.altKey, info.metaKey)
     }

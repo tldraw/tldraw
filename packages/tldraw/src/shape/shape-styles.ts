@@ -23,7 +23,7 @@ const colors = {
 export const stickyFills: Record<Theme, Record<ColorStyle, string>> = {
   light: {
     ...(Object.fromEntries(
-      Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasLight, 0.5)])
+      Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasLight, 0.45)])
     ) as Record<ColorStyle, string>),
     [ColorStyle.White]: '#ffffff',
     [ColorStyle.Black]: '#3d3d3d',
