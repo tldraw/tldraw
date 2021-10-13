@@ -58,8 +58,6 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
 
   isAspectRatioLocked: true,
 
-  isEditableText: true,
-
   canEdit: true,
 
   canBind: true,
