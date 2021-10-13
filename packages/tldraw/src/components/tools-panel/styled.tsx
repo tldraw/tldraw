@@ -150,6 +150,7 @@ export function PrimaryButton({
           name: label,
           isActive,
         })}
+        onPointerDown={onClick}
         onClick={onClick}
         onDoubleClick={onDoubleClick}
       >
