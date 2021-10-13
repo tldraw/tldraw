@@ -1487,8 +1487,6 @@ export class TLDrawState extends StateManager<Data> {
   private setSelectedIds = (ids: string[], push = false): this => {
     const nextIds = push ? [...this.pageState.selectedIds, ...ids] : [...ids]
 
-    console.log('selecting ids', ids, nextIds)
-
     return this.patchState(
       {
         appState: {
