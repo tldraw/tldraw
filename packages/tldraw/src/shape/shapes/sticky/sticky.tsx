@@ -3,9 +3,11 @@ import * as React from 'react'
 import { css } from '@stitches/core'
 import { HTMLContainer, ShapeUtil } from '@tldraw/core'
 import { defaultStyle } from '~shape/shape-styles'
-import { StickyShape, TLDrawMeta, TLDrawShapeType, TLDrawToolType } from '~types'
-import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
+import { StickyShape, TLDrawMeta, TLDrawShapeType } from '~types'
+import { getBoundsRectangle } from '../shared'
 import { getStickyFontStyle, getStickyShapeStyle } from '~shape'
+import { TextAreaUtils } from '../shared'
+import Vec from '@tldraw/vec'
 
 const PADDING = 16
 const MIN_CONTAINER_HEIGHT = 200
@@ -17,11 +19,13 @@ function normalizeText(text: string) {
 export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Sticky,
 
+  showBounds: false,
+
   isStateful: true,
 
-  toolType: TLDrawToolType.Point,
-
   canBind: true,
+
+  canEdit: true,
 
   pathCache: new WeakMap<number[], string>([]),
 
@@ -53,30 +57,7 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
 
     const rText = React.useRef<HTMLDivElement>(null)
 
-    React.useEffect(() => {
-      if (isEditing && document.activeElement !== rText.current) {
-        requestAnimationFrame(() => rTextArea.current!.focus())
-      }
-    }, [isEditing])
-
-    React.useEffect(() => {
-      const handleWheel = (e: WheelEvent) => {
-        const textarea = rTextArea.current
-        if (!textarea) return
-
-        if (document.activeElement === textarea) {
-          e.stopPropagation()
-        }
-      }
-
-      const elm = rContainer.current
-      if (!elm) return
-
-      elm.addEventListener('wheel', handleWheel)
-      return () => {
-        elm.removeEventListener('wheel', handleWheel)
-      }
-    }, [])
+    const rIsMounted = React.useRef(false)
 
     const handlePointerDown = React.useCallback((e: React.PointerEvent) => {
       e.stopPropagation()
@@ -93,6 +74,64 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
       [onShapeChange]
     )
 
+    const handleKeyDown = React.useCallback(
+      (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Escape') return
+
+        e.stopPropagation()
+
+        if (e.key === 'Tab') {
+          e.preventDefault()
+          if (e.shiftKey) {
+            TextAreaUtils.unindent(e.currentTarget)
+          } else {
+            TextAreaUtils.indent(e.currentTarget)
+          }
+
+          onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
+        }
+      },
+      [shape, onShapeChange]
+    )
+
+    const handleBlur = React.useCallback(
+      (e: React.FocusEvent<HTMLTextAreaElement>) => {
+        if (!isEditing) return
+        if (rIsMounted.current) {
+          e.currentTarget.setSelectionRange(0, 0)
+          onShapeBlur?.()
+        }
+      },
+      [isEditing]
+    )
+
+    const handleFocus = React.useCallback(
+      (e: React.FocusEvent<HTMLTextAreaElement>) => {
+        if (!isEditing) return
+        if (!rIsMounted.current) return
+
+        if (document.activeElement === e.currentTarget) {
+          e.currentTarget.select()
+        }
+      },
+      [isEditing]
+    )
+
+    // Focus when editing changes to true
+    React.useEffect(() => {
+      if (isEditing) {
+        if (document.activeElement !== rText.current) {
+          requestAnimationFrame(() => {
+            rIsMounted.current = true
+            const elm = rTextArea.current!
+            elm.focus()
+            elm.select()
+          })
+        }
+      }
+    }, [isEditing])
+
+    // Resize to fit text
     React.useEffect(() => {
       const text = rText.current!
 
@@ -135,17 +174,25 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
           style={{ backgroundColor: fill }}
         >
           <div ref={rText} className={styledText({ isEditing })} style={style}>
-            {shape.text}
+            {shape.text}&#8203;
           </div>
-          <textarea
-            ref={rTextArea}
-            className={styledStickyText({ isEditing })}
-            style={style}
-            onPointerDown={handlePointerDown}
-            value={shape.text}
-            onBlur={onShapeBlur}
-            onChange={handleTextChange}
-          />
+          {isEditing && (
+            <textarea
+              ref={rTextArea}
+              className={styledTextArea({ isEditing })}
+              style={style}
+              onPointerDown={handlePointerDown}
+              value={shape.text}
+              onChange={handleTextChange}
+              onKeyDown={handleKeyDown}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              autoCapitalize="off"
+              autoComplete="off"
+              spellCheck={false}
+              autoFocus
+            />
+          )}
         </div>
       </HTMLContainer>
     )
@@ -165,9 +212,23 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
     return getBoundsRectangle(shape, this.boundsCache)
   },
 
-  transform: transformRectangle,
+  transform(shape, bounds, { transformOrigin, scaleX, scaleY }) {
+    const point = Vec.round([
+      bounds.minX +
+        (bounds.width - shape.size[0]) * (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
+      bounds.minY +
+        (bounds.height - shape.size[1]) *
+          (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
+    ])
 
-  transformSingle: transformSingleRectangle,
+    return {
+      point,
+    }
+  },
+
+  transformSingle(shape) {
+    return shape
+  },
 }))
 
 const styledStickyContainer = css({
@@ -183,10 +244,12 @@ const styledStickyContainer = css({
   variants: {
     isDarkMode: {
       true: {
-        boxShadow: '2px 3px 8px -2px rgba(0,0,0,.3), 0px 0px 2px rgba(0,0,0,.3)',
+        boxShadow:
+          '2px 3px 12px -2px rgba(0,0,0,.3), 1px 1px 4px rgba(0,0,0,.3), 1px 1px 2px rgba(0,0,0,.3)',
       },
       false: {
-        boxShadow: '2px 3px 8px -2px rgba(0,0,0,.2), 0px 0px 2px rgba(0,0,0,.16)',
+        boxShadow:
+          '2px 3px 12px -2px rgba(0,0,0,.2), 1px 1px 4px rgba(0,0,0,.16),  1px 1px 2px rgba(0,0,0,.16)',
       },
     },
   },
@@ -204,16 +267,16 @@ const styledText = css({
   variants: {
     isEditing: {
       true: {
-        opacity: 0,
+        opacity: 0.5,
       },
       false: {
-        opacity: 0,
+        opacity: 1,
       },
     },
   },
 })
 
-const styledStickyText = css({
+const styledTextArea = css({
   width: '100%',
   height: '100%',
   border: 'none',
@@ -224,14 +287,4 @@ const styledStickyText = css({
   padding: 0,
   verticalAlign: 'top',
   resize: 'none',
-  variants: {
-    isEditing: {
-      true: {
-        opacity: 1,
-      },
-      false: {
-        opacity: 1,
-      },
-    },
-  },
 })

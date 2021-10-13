@@ -3,7 +3,7 @@ import { SVGContainer, Utils, ShapeUtil, TLTransformInfo, TLBounds } from '@tldr
 import { Vec } from '@tldraw/vec'
 import { DashStyle, EllipseShape, TLDrawShapeType, TLDrawMeta } from '~types'
 import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
-import getStroke, { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
+import { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
 import {
   intersectBoundsEllipse,
   intersectLineSegmentEllipse,

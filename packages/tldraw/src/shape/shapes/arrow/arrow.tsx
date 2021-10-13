@@ -27,6 +27,8 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
 
   canStyleFill: false,
 
+  showBounds: false,
+
   pathCache: new WeakMap<ArrowShape, string>(),
 
   defaultProps: {

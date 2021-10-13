@@ -2244,41 +2244,7 @@ export class TLDrawState extends StateManager<Data> {
     this.currentTool.onPointerMove?.(info, e)
   }
 
-  onPointerDown: TLPointerEventHandler = (...args) => {
-    this.currentTool.onPointerDown?.(...args)
-
-    // switch (this.appState.status.current) {
-    //   case TLDrawStatus.Idle: {
-    //     switch (this.appState.activeTool) {
-    //       case TLDrawShapeType.Draw: {
-    //         this.createActiveToolShape(info.point)
-    //         break
-    //       }
-    //       case TLDrawShapeType.Rectangle: {
-    //         this.createActiveToolShape(info.point)
-    //         break
-    //       }
-    //       case TLDrawShapeType.Ellipse: {
-    //         this.createActiveToolShape(info.point)
-    //         break
-    //       }
-    //       case TLDrawShapeType.Arrow: {
-    //         this.createActiveToolShape(info.point)
-    //         break
-    //       }
-    //       case TLDrawShapeType.Text: {
-    //         this.createActiveToolShape(info.point)
-    //         break
-    //       }
-    //     }
-    //     break
-    //   }
-    //   case TLDrawStatus.EditingText: {
-    //     this.completeSession()
-    //     break
-    //   }
-    // }
-  }
+  onPointerDown: TLPointerEventHandler = (...args) => this.currentTool.onPointerDown?.(...args)
 
   onPointerUp: TLPointerEventHandler = (...args) => this.currentTool.onPointerUp?.(...args)
 

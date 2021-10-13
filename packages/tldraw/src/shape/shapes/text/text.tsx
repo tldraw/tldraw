@@ -5,7 +5,7 @@ import { Vec } from '@tldraw/vec'
 import { getShapeStyle, getFontStyle, defaultStyle } from '~shape/shape-styles'
 import { TextShape, TLDrawShapeType, TLDrawMeta } from '~types'
 import css from '~styles'
-import TextAreaUtils from './text-utils'
+import { TextAreaUtils } from '../shared'
 
 const LETTER_SPACING = -1.5
 

@@ -22,17 +22,11 @@ export const ShapeUtil = function <T extends TLShape, E extends Element, M = any
 
     canBind: false,
 
+    showBounds: true,
+
     isStateful: false,
 
     isAspectRatioLocked: false,
-
-    minHeight: 1,
-
-    minWidth: 1,
-
-    maxHeight: Infinity,
-
-    maxWidth: Infinity,
 
     create: (props) => {
       this.refMap.set(props.id, React.createRef())

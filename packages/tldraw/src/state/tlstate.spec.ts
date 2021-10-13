@@ -2,9 +2,7 @@
 import { TLDrawState } from './tlstate'
 import { mockDocument, TLStateUtils } from '~test'
 import { ArrowShape, ColorStyle, SessionType, TLDrawShapeType } from '~types'
-import type { TextTool } from './tool/TextTool'
 import type { SelectTool } from './tool/SelectTool'
-import { Shape } from '~../../core/src/components/shape/shape'
 
 describe('TLDrawState', () => {
   const tlstate = new TLDrawState()
