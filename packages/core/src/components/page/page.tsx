@@ -72,9 +72,10 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
       ))}
       {!hideIndicators &&
         selectedIds
+          .map((id) => page.shapes[id])
           .filter(Boolean)
-          .map((id) => (
-            <ShapeIndicator key={'selected_' + id} shape={page.shapes[id]} meta={meta} isSelected />
+          .map((shape) => (
+            <ShapeIndicator key={'selected_' + shape.id} shape={shape} meta={meta} isSelected />
           ))}
       {!hideIndicators && hoveredId && (
         <ShapeIndicator

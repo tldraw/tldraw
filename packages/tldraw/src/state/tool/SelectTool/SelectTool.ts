@@ -71,6 +71,51 @@ export class SelectTool extends BaseTool {
     this.setStatus(Status.Idle)
   }
 
+  getShapeClone = (id: string, side: 'top' | 'right' | 'bottom' | 'left') => {
+    const shape = this.state.getShape(id)
+
+    const utils = TLDR.getShapeUtils(shape)
+
+    if (utils.canClone) {
+      const bounds = utils.getBounds(shape)
+
+      const center = utils.getCenter(shape)
+
+      let point =
+        side === 'top'
+          ? [bounds.minX, bounds.minY - (bounds.height + 32)]
+          : side === 'right'
+          ? [bounds.maxX + 32, bounds.minY]
+          : side === 'bottom'
+          ? [bounds.minX, bounds.maxY + 32]
+          : [bounds.minX - (bounds.width + 32), bounds.minY]
+
+      if (shape.rotation !== 0) {
+        const newCenter = Vec.add(point, [bounds.width / 2, bounds.height / 2])
+
+        const rotatedCenter = Vec.rotWith(newCenter, center, shape.rotation || 0)
+
+        point = Vec.sub(rotatedCenter, [bounds.width / 2, bounds.height / 2])
+      }
+
+      const id = Utils.uniqueId()
+
+      const clone = {
+        ...shape,
+        id,
+        point,
+      }
+
+      if (clone.type === TLDrawShapeType.Sticky) {
+        clone.text = ''
+      }
+
+      return clone
+    }
+
+    return
+  }
+
   /* ----------------- Event Handlers ----------------- */
 
   onCancel = () => {
@@ -90,28 +135,14 @@ export class SelectTool extends BaseTool {
       if (this.status === Status.Idle && this.state.selectedIds.length === 1) {
         const [selectedId] = this.state.selectedIds
 
-        const shape = this.state.getShape(selectedId)
+        const clonedShape = this.getShapeClone(selectedId, 'right')
 
-        const utils = TLDR.getShapeUtils(shape)
-
-        if (utils.canClone) {
-          const bounds = utils.getBounds(shape)
-
-          const point = [bounds.maxX + 32, bounds.minY]
-
-          const id = Utils.uniqueId()
-
-          this.state.createShapes({
-            id,
-            point,
-            type: shape.type,
-            style: shape.style,
-          })
+        if (clonedShape) {
+          this.state.createShapes(clonedShape)
 
           this.setStatus(Status.Idle)
-          this.state.setEditingId(id)
-          this.state.select(id)
-          return
+          this.state.setEditingId(clonedShape.id)
+          this.state.select(clonedShape.id)
         }
       }
 
@@ -526,33 +557,15 @@ export class SelectTool extends BaseTool {
   onShapeClone: TLShapeCloneHandler = (info) => {
     const selectedShapeId = this.state.selectedIds[0]
 
-    const shape = this.state.getShape(selectedShapeId)
+    const clonedShape = this.getShapeClone(selectedShapeId, info.target)
 
-    const id = Utils.uniqueId()
+    if (clonedShape) {
+      this.state.createShapes(clonedShape)
 
-    const utils = TLDR.getShapeUtils(shape)
-
-    const bounds = utils.getBounds(shape)
-
-    const point =
-      info.target === 'top'
-        ? [bounds.minX, bounds.minY - (bounds.height + 32)]
-        : info.target === 'right'
-        ? [bounds.maxX + 32, bounds.minY]
-        : info.target === 'bottom'
-        ? [bounds.minX, bounds.maxY + 32]
-        : [bounds.minX - (bounds.width + 32), bounds.minY]
-
-    this.state.createShapes({
-      id,
-      point,
-      type: shape.type,
-      style: shape.style,
-    })
-
-    // Now start pointing the bounds, so that a user can start
-    // dragging to reposition if they wish.
-    this.pointedId = id
-    this.setStatus(Status.PointingClone)
+      // Now start pointing the bounds, so that a user can start
+      // dragging to reposition if they wish.
+      this.pointedId = clonedShape.id
+      this.setStatus(Status.PointingClone)
+    }
   }
 }
