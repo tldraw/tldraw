@@ -4,8 +4,6 @@ html,
 }
 
 body {
-  position: fixed;
-  overflow: hidden;
   overscroll-behavior: none;
   margin: 0px;
   padding: 0px;

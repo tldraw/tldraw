@@ -162,7 +162,7 @@ export class TLDrawState extends StateManager<Data> {
     onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
     onMount?: (tlstate: TLDrawState) => void
   ) {
-    super(defaultState, id, 4, (next, prev) => ({
+    super(defaultState, id, 10, (next, prev) => ({
       ...next,
       document: prev.document,
     }))
@@ -572,6 +572,7 @@ export class TLDrawState extends StateManager<Data> {
     this.session = undefined
     this.selectedGroupId = undefined
     this.currentTool.setStatus(TLDrawStatus.Idle)
+    this.pasteInfo.offset = [0, 0]
     this.resetHistory()
       .clearSelectHistory()
       .loadDocument(defaultDocument)
@@ -1126,15 +1127,21 @@ export class TLDrawState extends StateManager<Data> {
 
       let center = Vec.round(this.getPagePoint(point || this.centerPoint))
 
+      this.createShapes({
+        id: 'temp',
+        type: TLDrawShapeType.Ellipse,
+        point: center,
+      })
+
       if (
         Vec.dist(center, this.pasteInfo.center) < 2 ||
         Vec.dist(center, Vec.round(Utils.getBoundsCenter(commonBounds))) < 2
       ) {
+        center = Vec.add(center, this.pasteInfo.offset)
         this.pasteInfo.offset = Vec.add(this.pasteInfo.offset, [
           this.state.settings.nudgeDistanceLarge,
           this.state.settings.nudgeDistanceLarge,
         ])
-        center = Vec.add(center, this.pasteInfo.offset)
       } else {
         this.pasteInfo.center = center
         this.pasteInfo.offset = [0, 0]
@@ -2347,6 +2354,6 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   get centerPoint() {
-    return Vec.round(Utils.getBoundsCenter(this.bounds))
+    return Vec.round([this.bounds.width / 2, this.bounds.height / 2])
   }
 }

@@ -7,24 +7,24 @@ export default function Embedded(): JSX.Element {
       <div
         style={{
           position: 'relative',
-          width: 'auto',
+          width: '100%',
           height: '500px',
           overflow: 'hidden',
           marginBottom: '32px',
         }}
       >
-        <TLDraw id="small3" />
+        <TLDraw id="small5" />
       </div>
 
       <div
         style={{
           position: 'relative',
-          width: 'auto',
+          width: '100%',
           height: '500px',
           overflow: 'hidden',
         }}
       >
-        <TLDraw id="small4" />
+        <TLDraw id="small6" />
       </div>
     </div>
   )
