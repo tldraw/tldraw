@@ -15,6 +15,13 @@ export abstract class BaseTool {
 
   state: TLDrawState
 
+  status: string = 'idle' as const
+
+  setStatus = (status: typeof this.status) => {
+    this.status = status
+    this.state.setStatus(this.status)
+  }
+
   constructor(state: TLDrawState) {
     this.state = state
   }

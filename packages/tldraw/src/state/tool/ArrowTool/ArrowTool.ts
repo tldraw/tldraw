@@ -16,10 +16,6 @@ export class ArrowTool extends BaseTool {
 
   /* --------------------- Methods -------------------- */
 
-  private setStatus(status: Status) {
-    this.status = status
-  }
-
   onEnter = () => {
     this.setStatus(Status.Idle)
   }

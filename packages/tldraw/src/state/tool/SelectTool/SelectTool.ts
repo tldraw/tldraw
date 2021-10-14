@@ -1,11 +1,13 @@
-import type {
+import {
   TLBoundsCorner,
   TLBoundsEdge,
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
   TLCanvasEventHandler,
   TLPointerEventHandler,
+  TLPinchEventHandler,
   TLKeyboardEventHandler,
+  Utils,
 } from '@tldraw/core'
 import { SessionType, TLDrawShapeType } from '~types'
 import { BaseTool } from '../BaseTool'
@@ -40,10 +42,6 @@ export class SelectTool extends BaseTool {
   pointedBoundsHandle?: TLBoundsCorner | TLBoundsEdge | 'rotate'
 
   /* --------------------- Methods -------------------- */
-
-  private setStatus(status: Status) {
-    this.status = status
-  }
 
   private deselect(id: string) {
     this.state.select(...this.state.selectedIds.filter((oid) => oid !== id))
@@ -103,8 +101,13 @@ export class SelectTool extends BaseTool {
 
   // Pointer Events (generic)
 
-  onPointerMove: TLPointerEventHandler = (info) => {
+  onPointerMove: TLPointerEventHandler = (info, e) => {
     const point = this.state.getPagePoint(info.origin)
+
+    if (info.spaceKey && e.buttons === 1) {
+      this.state.onPan?.({ ...info, delta: Vec.neg(info.delta) }, e as unknown as WheelEvent)
+      return
+    }
 
     if (this.status === Status.PointingBoundsHandle) {
       if (!this.pointedBoundsHandle) throw Error('No pointed bounds handle')
@@ -442,5 +445,25 @@ export class SelectTool extends BaseTool {
 
   onReleaseHandle: TLPointerEventHandler = () => {
     this.setStatus(Status.Idle)
+  }
+
+  /* --------------------- Camera --------------------- */
+
+  onPinchStart: TLPinchEventHandler = () => {
+    this.state.cancelSession()
+    this.setStatus(Status.Pinching)
+  }
+
+  onPinchEnd: TLPinchEventHandler = () => {
+    if (Utils.isMobileSafari()) {
+      this.state.undoSelect()
+    }
+    this.setStatus(Status.Idle)
+  }
+
+  onPinch: TLPinchEventHandler = (info, e) => {
+    if (this.status !== Status.Pinching) return
+    this.state.pinchZoom(info.point, info.delta, info.delta[2])
+    this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 }

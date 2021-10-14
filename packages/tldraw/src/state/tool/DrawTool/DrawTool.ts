@@ -17,10 +17,6 @@ export class DrawTool extends BaseTool {
 
   /* --------------------- Methods -------------------- */
 
-  private setStatus(status: Status) {
-    this.status = status
-  }
-
   onEnter = () => {
     this.setStatus(Status.Idle)
   }
