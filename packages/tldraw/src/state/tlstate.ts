@@ -6,6 +6,7 @@ import {
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
   TLKeyboardEventHandler,
+  TLShapeCloneHandler,
   TLCanvasEventHandler,
   TLPageState,
   TLPinchEventHandler,
@@ -2321,6 +2322,8 @@ export class TLDrawState extends StateManager<Data> {
 
     this.currentTool.onShapeBlur?.()
   }
+
+  onShapeClone: TLShapeCloneHandler = (info, e) => this.currentTool.onShapeClone?.(info, e)
 
   onRenderCountChange = (ids: string[]) => {
     const appState = this.getAppState()

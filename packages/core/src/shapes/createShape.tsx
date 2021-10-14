@@ -26,6 +26,8 @@ export const ShapeUtil = function <T extends TLShape, E extends Element, M = any
 
     isStateful: false,
 
+    canClone: false,
+
     isAspectRatioLocked: false,
 
     create: (props) => {

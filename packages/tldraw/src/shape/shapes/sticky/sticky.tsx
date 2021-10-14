@@ -27,6 +27,8 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
 
   canEdit: true,
 
+  canClone: true,
+
   pathCache: new WeakMap<number[], string>([]),
 
   defaultProps: {

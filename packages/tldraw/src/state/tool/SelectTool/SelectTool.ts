@@ -7,6 +7,7 @@ import {
   TLPointerEventHandler,
   TLPinchEventHandler,
   TLKeyboardEventHandler,
+  TLShapeCloneHandler,
   Utils,
 } from '@tldraw/core'
 import { SessionType, TLDrawShapeType } from '~types'
@@ -19,6 +20,8 @@ enum Status {
   PointingCanvas = 'pointingCanvas',
   PointingHandle = 'pointingHandle',
   PointingBounds = 'pointingBounds',
+  PointingClone = 'pointingClone',
+  TranslatingClone = 'translatingClone',
   PointingBoundsHandle = 'pointingBoundsHandle',
   TranslatingHandle = 'translatingHandle',
   Translating = 'translating',
@@ -146,6 +149,15 @@ export class SelectTool extends BaseTool {
       return
     }
 
+    if (this.status === Status.PointingClone) {
+      if (Vec.dist(info.origin, info.point) > 4) {
+        this.setStatus(Status.TranslatingClone)
+        const point = this.state.getPagePoint(info.origin)
+        this.state.startSession(SessionType.Translate, point)
+      }
+      return
+    }
+
     if (this.status === Status.PointingBounds) {
       if (Vec.dist(info.origin, info.point) > 4) {
         this.setStatus(Status.Translating)
@@ -194,6 +206,16 @@ export class SelectTool extends BaseTool {
   }
 
   onPointerUp: TLPointerEventHandler = (info) => {
+    if (this.status === Status.TranslatingClone || this.status === Status.PointingClone) {
+      if (this.pointedId) {
+        this.state.completeSession()
+        this.state.setEditingId(this.pointedId)
+      }
+      this.setStatus(Status.Idle)
+      this.pointedId = undefined
+      return
+    }
+
     if (this.status === Status.PointingBounds) {
       if (info.target === 'bounds') {
         // If we just clicked the selecting bounds's background,
@@ -465,5 +487,40 @@ export class SelectTool extends BaseTool {
     if (this.status !== Status.Pinching) return
     this.state.pinchZoom(info.point, info.delta, info.delta[2])
     this.onPointerMove(info, e as unknown as React.PointerEvent)
+  }
+
+  /* ---------------------- Misc ---------------------- */
+
+  onShapeClone: TLShapeCloneHandler = (info) => {
+    const selectedShapeId = this.state.selectedIds[0]
+
+    const shape = this.state.getShape(selectedShapeId)
+
+    const id = Utils.uniqueId()
+
+    const utils = TLDR.getShapeUtils(shape)
+
+    const bounds = utils.getBounds(shape)
+
+    const point =
+      info.target === 'top'
+        ? [bounds.minX, bounds.minY - (bounds.height + 32)]
+        : info.target === 'right'
+        ? [bounds.maxX + 32, bounds.minY]
+        : info.target === 'bottom'
+        ? [bounds.minX, bounds.maxY + 32]
+        : [bounds.minX - (bounds.width + 32), bounds.minY]
+
+    this.state.createShapes({
+      id,
+      point,
+      type: shape.type,
+      style: shape.style,
+    })
+
+    // Now start pointing the bounds, so that a user can start
+    // dragging to reposition if they wish.
+    this.pointedId = id
+    this.setStatus(Status.PointingClone)
   }
 }
