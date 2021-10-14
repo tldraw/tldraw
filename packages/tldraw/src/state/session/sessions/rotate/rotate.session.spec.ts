@@ -34,7 +34,7 @@ describe('Rotate session', () => {
 
     tlstate.completeSession()
 
-    expect(tlstate.appState.status.current).toBe(TLDrawStatus.Idle)
+    expect(tlstate.appState.status).toBe(TLDrawStatus.Idle)
 
     tlstate.undo()
 

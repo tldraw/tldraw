@@ -16,7 +16,7 @@ describe('Translate session', () => {
 
     tlstate.completeSession()
 
-    expect(tlstate.appState.status.current).toBe(TLDrawStatus.Idle)
+    expect(tlstate.appState.status).toBe(TLDrawStatus.Idle)
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([5, 5])
 

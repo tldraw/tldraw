@@ -110,7 +110,7 @@ describe('TLDrawState', () => {
       tlstate.loadDocument(mockDocument).deselectAll()
       tlu.clickShape('rect1')
       expect(tlstate.selectedIds).toStrictEqual(['rect1'])
-      expect(tlstate.appState.status.current).toBe('idle')
+      expect(tlstate.appState.status).toBe('idle')
     })
 
     it('selects and deselects a shape', () => {
@@ -118,7 +118,7 @@ describe('TLDrawState', () => {
       tlu.clickShape('rect1')
       tlu.clickCanvas()
       expect(tlstate.selectedIds).toStrictEqual([])
-      expect(tlstate.appState.status.current).toBe('idle')
+      expect(tlstate.appState.status).toBe('idle')
     })
 
     it('selects multiple shapes', () => {
@@ -126,7 +126,7 @@ describe('TLDrawState', () => {
       tlu.clickShape('rect1')
       tlu.clickShape('rect2', { shiftKey: true })
       expect(tlstate.selectedIds).toStrictEqual(['rect1', 'rect2'])
-      expect(tlstate.appState.status.current).toBe('idle')
+      expect(tlstate.appState.status).toBe('idle')
     })
 
     it('shift-selects to deselect shapes', () => {
@@ -135,7 +135,7 @@ describe('TLDrawState', () => {
       tlu.clickShape('rect2', { shiftKey: true })
       tlu.clickShape('rect2', { shiftKey: true })
       expect(tlstate.selectedIds).toStrictEqual(['rect1'])
-      expect(tlstate.appState.status.current).toBe('idle')
+      expect(tlstate.appState.status).toBe('idle')
     })
 
     it('clears selection when clicking bounds', () => {
@@ -162,7 +162,7 @@ describe('TLDrawState', () => {
       tlstate.loadDocument(mockDocument).deselectAll()
       tlu.clickShape('rect1', { ctrlKey: true })
       expect(tlstate.selectedIds).toStrictEqual([])
-      expect(tlstate.appState.status.current).toBe('idle')
+      expect(tlstate.appState.status).toBe('idle')
     })
 
     it.todo('deletes shapes if cancelled during creating')
@@ -191,7 +191,7 @@ describe('TLDrawState', () => {
       tlu.clickShape('rect2', { shiftKey: true })
       tlu.clickShape('rect2')
       expect(tlstate.selectedIds).toStrictEqual(['rect2'])
-      expect(tlstate.appState.status.current).toBe('idle')
+      expect(tlstate.appState.status).toBe('idle')
     })
 
     it('single-selects shape in selection on pointerup only', () => {
@@ -202,17 +202,17 @@ describe('TLDrawState', () => {
       expect(tlstate.selectedIds).toStrictEqual(['rect1', 'rect2'])
       tlu.stopPointing('rect2')
       expect(tlstate.selectedIds).toStrictEqual(['rect2'])
-      expect(tlstate.appState.status.current).toBe('idle')
+      expect(tlstate.appState.status).toBe('idle')
     })
 
     // it('selects shapes if shift key is lifted before pointerup', () => {
     //   tlstate.deselectAll()
     //   tlu.clickShape('rect1')
     //   tlu.pointShape('rect2', { shiftKey: true })
-    //   expect(tlstate.appState.status.current).toBe('pointingBounds')
+    //   expect(tlstate.appState.status).toBe('pointingBounds')
     //   tlu.stopPointing('rect2')
     //   expect(tlstate.selectedIds).toStrictEqual(['rect2'])
-    //   expect(tlstate.appState.status.current).toBe('idle')
+    //   expect(tlstate.appState.status).toBe('idle')
     // })
   })
 

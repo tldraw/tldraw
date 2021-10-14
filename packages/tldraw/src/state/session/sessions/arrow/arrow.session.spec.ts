@@ -30,7 +30,7 @@ describe('Arrow session', () => {
     expect(binding.fromId).toBe('arrow1')
     expect(binding.toId).toBe('target1')
     expect(binding.meta.handleId).toBe('start')
-    expect(tlstate.appState.status.current).toBe(TLDrawStatus.Idle)
+    expect(tlstate.appState.status).toBe(TLDrawStatus.Idle)
     expect(tlstate.getShape('arrow1').handles?.start.bindingId).toBe(binding.id)
 
     tlstate.undo()

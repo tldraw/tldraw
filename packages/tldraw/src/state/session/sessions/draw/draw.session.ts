@@ -1,6 +1,6 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { Data, DrawShape, Session, SessionType, TLDrawStatus } from '~types'
+import { Data, Session, SessionType, TLDrawStatus } from '~types'
 import { TLDR } from '~state/tldr'
 
 export class DrawSession implements Session {

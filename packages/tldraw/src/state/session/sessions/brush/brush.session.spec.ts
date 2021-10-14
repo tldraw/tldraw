@@ -10,7 +10,7 @@ describe('Brush session', () => {
       .startSession(SessionType.Brush, [-10, -10])
       .updateSession([10, 10])
       .completeSession()
-    expect(tlstate.appState.status.current).toBe(TLDrawStatus.Idle)
+    expect(tlstate.appState.status).toBe(TLDrawStatus.Idle)
     expect(tlstate.selectedIds.length).toBe(1)
   })
 
