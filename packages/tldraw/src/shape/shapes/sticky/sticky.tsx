@@ -80,6 +80,11 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
       (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Escape') return
 
+        if (e.key === 'Tab' && shape.text.length === 0) {
+          e.preventDefault()
+          return
+        }
+
         e.stopPropagation()
 
         if (e.key === 'Tab') {

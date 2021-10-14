@@ -339,17 +339,13 @@ export type TLShapeUtil<
 
   canEdit: boolean
 
+  canClone: boolean
+
   canBind: boolean
 
   isStateful: boolean
 
-  minHeight: number
-
-  minWidth: number
-
-  maxHeight: number
-
-  maxWidth: number
+  showBounds: boolean
 
   getRotatedBounds(this: TLShapeUtil<T, E, M>, shape: T): TLBounds
 

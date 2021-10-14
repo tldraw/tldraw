@@ -86,6 +86,38 @@ export class SelectTool extends BaseTool {
       return
     }
 
+    if (key === 'Tab') {
+      if (this.status === Status.Idle && this.state.selectedIds.length === 1) {
+        const [selectedId] = this.state.selectedIds
+
+        const shape = this.state.getShape(selectedId)
+
+        const utils = TLDR.getShapeUtils(shape)
+
+        if (utils.canClone) {
+          const bounds = utils.getBounds(shape)
+
+          const point = [bounds.maxX + 32, bounds.minY]
+
+          const id = Utils.uniqueId()
+
+          this.state.createShapes({
+            id,
+            point,
+            type: shape.type,
+            style: shape.style,
+          })
+
+          this.setStatus(Status.Idle)
+          this.state.setEditingId(id)
+          this.state.select(id)
+          return
+        }
+      }
+
+      return
+    }
+
     if (key === 'Meta' || key === 'Control') {
       // TODO: Make all sessions have all of these arguments
       this.state.updateSession(

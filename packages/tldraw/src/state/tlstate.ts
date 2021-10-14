@@ -2183,6 +2183,7 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   onZoom: TLWheelEventHandler = (info, e) => {
+    if (this.state.appState.status !== TLDrawStatus.Idle) return
     this.zoom(info.delta[2] / 100, info.delta)
     this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
