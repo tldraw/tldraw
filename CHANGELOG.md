@@ -1,3 +1,14 @@
+## 0.0.115
+
+### Core
+
+- Adds [side cloning](https://github.com/tldraw/tldraw/pull/149).
+- Improves rendering.
+
+### TLDraw
+
+- Adds sticky note [side cloning](https://github.com/tldraw/tldraw/pull/149).
+
 ## 0.0.114
 
 ### TLDraw
