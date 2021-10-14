@@ -66,24 +66,28 @@ export const Bounds = React.memo(
             targetSize={targetSize}
             size={size}
             bounds={bounds}
+            isHidden={isHidden}
             corner={TLBoundsCorner.TopLeft}
           />
           <CornerHandle
             targetSize={targetSize}
             size={size}
             bounds={bounds}
+            isHidden={isHidden}
             corner={TLBoundsCorner.TopRight}
           />
           <CornerHandle
             targetSize={targetSize}
             size={size}
             bounds={bounds}
+            isHidden={isHidden}
             corner={TLBoundsCorner.BottomRight}
           />
           <CornerHandle
             targetSize={targetSize}
             size={size}
             bounds={bounds}
+            isHidden={isHidden}
             corner={TLBoundsCorner.BottomLeft}
           />
           <RotateHandle

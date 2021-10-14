@@ -43,13 +43,14 @@ export const primaryToolButton = css(toolButton, {
     bp: {
       mobile: {
         height: 44,
-        width: 44,
+        width: 36,
         '& svg:nth-of-type(1)': {
           height: '20px',
           width: '20px',
         },
       },
       small: {
+        width: 44,
         '&:hover:not(:disabled)': {
           backgroundColor: '$hover',
         },
@@ -70,13 +71,14 @@ export const secondaryToolButton = css(toolButton, {
     bp: {
       mobile: {
         height: 44,
-        width: 44,
+        width: 36,
         '& svg:nth-of-type(1)': {
           height: '18px',
           width: '18px',
         },
       },
       small: {
+        width: 44,
         '&:hover:not(:disabled)': {
           backgroundColor: '$hover',
         },
@@ -97,7 +99,7 @@ export const tertiaryToolButton = css(toolButton, {
     bp: {
       mobile: {
         height: 32,
-        width: 44,
+        width: 36,
         '& svg:nth-of-type(1)': {
           height: '16px',
           width: '16px',

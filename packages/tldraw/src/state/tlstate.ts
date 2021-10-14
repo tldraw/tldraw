@@ -1127,12 +1127,6 @@ export class TLDrawState extends StateManager<Data> {
 
       let center = Vec.round(this.getPagePoint(point || this.centerPoint))
 
-      this.createShapes({
-        id: 'temp',
-        type: TLDrawShapeType.Ellipse,
-        point: center,
-      })
-
       if (
         Vec.dist(center, this.pasteInfo.center) < 2 ||
         Vec.dist(center, Vec.round(Utils.getBoundsCenter(commonBounds))) < 2
@@ -1723,6 +1717,9 @@ export class TLDrawState extends StateManager<Data> {
 
       return this.patchState(
         {
+          appState: {
+            status: TLDrawStatus.Idle,
+          },
           document: {
             pageStates: {
               [this.currentPageId]: {
@@ -1743,6 +1740,9 @@ export class TLDrawState extends StateManager<Data> {
         // before state so that when we undo the command, we remove
         // the shape we just created.
         result.before = {
+          appState: {
+            status: TLDrawStatus.Idle,
+          },
           document: {
             pages: {
               [this.currentPageId]: {
@@ -1768,6 +1768,10 @@ export class TLDrawState extends StateManager<Data> {
         this.isCreating = false
       }
 
+      result.after.appState = {
+        status: TLDrawStatus.Idle,
+      }
+
       result.after.document = {
         ...result.after.document,
         pageStates: {
@@ -1784,6 +1788,10 @@ export class TLDrawState extends StateManager<Data> {
       this.patchState(
         {
           ...result,
+          appState: {
+            ...result.appState,
+            status: TLDrawStatus.Idle,
+          },
           document: {
             pageStates: {
               [this.currentPageId]: {

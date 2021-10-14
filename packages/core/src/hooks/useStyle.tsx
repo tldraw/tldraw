@@ -123,7 +123,7 @@ const tlcss = css`
     padding: 0px;
     margin: 0px;
     z-index: 100;
-    overflow: clip;
+    overflow: hidden;
     touch-action: none;
     overscroll-behavior: none;
     background-color: var(--tl-background);
@@ -143,7 +143,7 @@ const tlcss = css`
   }
 
   .tl-layer {
-    position: fixed;
+    position: absolute;
     top: 0px;
     left: 0px;
     height: 0px;
@@ -156,6 +156,7 @@ const tlcss = css`
     top: 0px;
     left: 0px;
     transform-origin: center center;
+    contain: layout style size;
   }
 
   .tl-positioned {
@@ -175,6 +176,7 @@ const tlcss = css`
     width: 100%;
     height: 100%;
     overflow: hidden;
+    contain: layout style size;
   }
 
   .tl-positioned-div {
@@ -184,6 +186,7 @@ const tlcss = css`
     overflow: hidden;
     padding: var(--tl-padding);
     overflow: hidden;
+    contain: layout style size;
   }
 
   .tl-counter-scaled {
