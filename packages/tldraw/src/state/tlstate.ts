@@ -92,10 +92,7 @@ const defaultState: Data = {
     isToolLocked: false,
     isStyleOpen: false,
     isEmptyCanvas: false,
-    status: {
-      current: TLDrawStatus.Idle,
-      previous: TLDrawStatus.Idle,
-    },
+    status: TLDrawStatus.Idle,
   },
   document: defaultDocument,
   room: {
@@ -165,9 +162,9 @@ export class TLDrawState extends StateManager<Data> {
     onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
     onMount?: (tlstate: TLDrawState) => void
   ) {
-    super(defaultState, id, 2.3, (prev, next) => ({
+    super(defaultState, id, 4, (next, prev) => ({
       ...next,
-      ...prev,
+      document: prev.document,
     }))
 
     this._onChange = onChange
@@ -182,10 +179,7 @@ export class TLDrawState extends StateManager<Data> {
   onReady = () => {
     this.patchState({
       appState: {
-        status: {
-          current: TLDrawStatus.Idle,
-          previous: TLDrawStatus.Idle,
-        },
+        status: TLDrawStatus.Idle,
       },
     })
     this._onMount?.(this)
@@ -387,10 +381,10 @@ export class TLDrawState extends StateManager<Data> {
    * @private
    * @returns
    */
-  setStatus(status: TLDrawStatus) {
+  setStatus(status: string) {
     return this.patchState(
       {
-        appState: { status: { current: status, previous: this.appState.status.current } },
+        appState: { status },
       },
       `set_status:${status}`
     )
@@ -577,17 +571,12 @@ export class TLDrawState extends StateManager<Data> {
     if (this.session) return this
     this.session = undefined
     this.selectedGroupId = undefined
+    this.currentTool.setStatus(TLDrawStatus.Idle)
     this.resetHistory()
       .clearSelectHistory()
       .loadDocument(defaultDocument)
       .patchState(
         {
-          appState: {
-            status: {
-              current: TLDrawStatus.Idle,
-              previous: TLDrawStatus.Idle,
-            },
-          },
           document: {
             pageStates: {
               [this.currentPageId]: {
@@ -1639,10 +1628,6 @@ export class TLDrawState extends StateManager<Data> {
           ...result,
           appState: {
             ...result.appState,
-            status: {
-              current: this.session.status,
-              previous: this.appState.status.previous,
-            },
           },
         },
         `session:start_${this.session.constructor.name}`
@@ -1677,12 +1662,6 @@ export class TLDrawState extends StateManager<Data> {
       this.isCreating = false
       return this.patchState(
         {
-          appState: {
-            status: {
-              current: TLDrawStatus.Idle,
-              previous: this.appState.status.previous,
-            },
-          },
           document: {
             pages: {
               [this.currentPageId]: {
@@ -1705,18 +1684,18 @@ export class TLDrawState extends StateManager<Data> {
       )
     }
 
-    return this.patchState(
-      {
-        ...session.cancel(this.state),
-        appState: {
-          status: {
-            current: TLDrawStatus.Idle,
-            previous: this.appState.status.current,
-          },
+    const result = session.cancel(this.state)
+
+    if (result) {
+      this.patchState(
+        {
+          ...session.cancel(this.state),
         },
-      },
-      `session:cancel:${session.constructor.name}`
-    )
+        `session:cancel:${session.constructor.name}`
+      )
+    }
+
+    return this
   }
 
   /**
@@ -1737,16 +1716,12 @@ export class TLDrawState extends StateManager<Data> {
 
       return this.patchState(
         {
-          appState: {
-            status: {
-              current: TLDrawStatus.Idle,
-              previous: TLDrawStatus.Idle,
-            },
-          },
           document: {
             pageStates: {
               [this.currentPageId]: {
                 editingId: undefined,
+                bindingId: undefined,
+                hoveredId: undefined,
               },
             },
           },
@@ -1786,15 +1761,6 @@ export class TLDrawState extends StateManager<Data> {
         this.isCreating = false
       }
 
-      // Either way, set the status back to idle
-      result.after.appState = {
-        ...result.after.appState,
-        status: {
-          current: TLDrawStatus.Idle,
-          previous: this.appState.status.previous,
-        },
-      }
-
       result.after.document = {
         ...result.after.document,
         pageStates: {
@@ -1811,13 +1777,6 @@ export class TLDrawState extends StateManager<Data> {
       this.patchState(
         {
           ...result,
-          appState: {
-            ...result.appState,
-            status: {
-              current: TLDrawStatus.Idle,
-              previous: this.appState.status.previous,
-            },
-          },
           document: {
             pageStates: {
               [this.currentPageId]: {
@@ -2182,30 +2141,14 @@ export class TLDrawState extends StateManager<Data> {
 
   /* ------------- Renderer Event Handlers ------------ */
 
-  onPinchStart: TLPinchEventHandler = () => {
-    if (this.session) {
-      this.cancelSession()
-    }
-    this.setStatus(TLDrawStatus.Pinching)
-  }
+  onPinchStart: TLPinchEventHandler = (info, e) => this.currentTool.onPinchStart?.(info, e)
 
-  onPinchEnd: TLPinchEventHandler = () => {
-    if (Utils.isMobileSafari()) {
-      this.undoSelect()
-    }
-    this.setStatus(TLDrawStatus.Idle)
-  }
+  onPinchEnd: TLPinchEventHandler = (info, e) => this.currentTool.onPinchEnd?.(info, e)
 
-  onPinch: TLPinchEventHandler = (info, e) => {
-    if (this.appState.status.current !== TLDrawStatus.Pinching) return
-
-    this.pinchZoom(info.point, info.delta, info.delta[2])
-
-    this.onPointerMove(info, e as unknown as React.PointerEvent)
-  }
+  onPinch: TLPinchEventHandler = (info, e) => this.currentTool.onPinch?.(info, e)
 
   onPan: TLWheelEventHandler = (info, e) => {
-    if (this.appState.status.current === TLDrawStatus.Pinching) return
+    if (this.appState.status === 'pinching') return
     // TODO: Pan and pinchzoom are firing at the same time. Considering turning one of them off!
 
     const delta = Vec.div(info.delta, this.pageState.camera.zoom)
@@ -2215,17 +2158,25 @@ export class TLDrawState extends StateManager<Data> {
     if (Vec.isEqual(next, prev)) return
 
     this.pan(delta)
-    this.onPointerMove(info, e as unknown as React.PointerEvent)
+
+    if (!info.spaceKey) {
+      // onPan is called by onPointerMove when spaceKey is pressed,
+      // so we shouldn't call this again.
+      this.onPointerMove(info, e as unknown as React.PointerEvent)
+    }
   }
 
   onZoom: TLWheelEventHandler = (info, e) => {
-    this.zoom(info.delta[2] / 100)
+    this.zoom(info.delta[2] / 100, info.delta)
     this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 
   /* ----------------- Pointer Events ----------------- */
 
   onPointerMove: TLPointerEventHandler = (info, e) => {
+    // Several events (e.g. pan) can trigger the same "pointer move" behavior
+    this.currentTool.onPointerMove?.(info, e)
+
     if (this.state.room) {
       const { users, userId } = this.state.room
 
@@ -2239,9 +2190,6 @@ export class TLDrawState extends StateManager<Data> {
         true
       )
     }
-
-    // Several events (e.g. pan) can trigger the same "pointer move" behavior
-    this.currentTool.onPointerMove?.(info, e)
   }
 
   onPointerDown: TLPointerEventHandler = (...args) => this.currentTool.onPointerDown?.(...args)
@@ -2391,7 +2339,7 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   get status() {
-    return this.appState.status.current
+    return this.appState.status
   }
 
   get currentUser() {

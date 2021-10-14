@@ -62,7 +62,7 @@ export interface Data {
     isToolLocked: boolean
     isStyleOpen: boolean
     isEmptyCanvas: boolean
-    status: { current: TLDrawStatus; previous: TLDrawStatus }
+    status: string
   }
   document: TLDrawDocument
   room: {
