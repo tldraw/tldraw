@@ -147,6 +147,11 @@ export type TLKeyboardEventHandler = (key: string, info: TLKeyboardInfo, e: Keyb
 
 export type TLPointerEventHandler = (info: TLPointerInfo<string>, e: React.PointerEvent) => void
 
+export type TLShapeCloneHandler = (
+  info: TLPointerInfo<'top' | 'left' | 'right' | 'bottom'>,
+  e: React.PointerEvent
+) => void
+
 export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>, e: React.PointerEvent) => void
 
 export type TLBoundsEventHandler = (info: TLPointerInfo<'bounds'>, e: React.PointerEvent) => void
@@ -215,6 +220,7 @@ export interface TLCallbacks<T extends TLShape> {
   // Misc
   onShapeChange: TLShapeChangeHandler<T, any>
   onShapeBlur: TLShapeBlurHandler<any>
+  onShapeClone: TLShapeCloneHandler
   onRenderCountChange: (ids: string[]) => void
   onError: (error: Error) => void
   onBoundsChange: (bounds: TLBounds) => void
@@ -333,17 +339,13 @@ export type TLShapeUtil<
 
   canEdit: boolean
 
+  canClone: boolean
+
   canBind: boolean
 
   isStateful: boolean
 
-  minHeight: number
-
-  minWidth: number
-
-  maxHeight: number
-
-  maxWidth: number
+  showBounds: boolean
 
   getRotatedBounds(this: TLShapeUtil<T, E, M>, shape: T): TLBounds
 

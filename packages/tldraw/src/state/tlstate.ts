@@ -6,6 +6,7 @@ import {
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
   TLKeyboardEventHandler,
+  TLShapeCloneHandler,
   TLCanvasEventHandler,
   TLPageState,
   TLPinchEventHandler,
@@ -2182,6 +2183,7 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   onZoom: TLWheelEventHandler = (info, e) => {
+    if (this.state.appState.status !== TLDrawStatus.Idle) return
     this.zoom(info.delta[2] / 100, info.delta)
     this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
@@ -2321,6 +2323,8 @@ export class TLDrawState extends StateManager<Data> {
 
     this.currentTool.onShapeBlur?.()
   }
+
+  onShapeClone: TLShapeCloneHandler = (info, e) => this.currentTool.onShapeClone?.(info, e)
 
   onRenderCountChange = (ids: string[]) => {
     const appState = this.getAppState()

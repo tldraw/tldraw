@@ -266,6 +266,31 @@ const tlcss = css`
     stroke: var(--tl-selectStroke);
   }
 
+  .tl-clone-button-target {
+    pointer-events: all;
+  }
+
+  .tl-clone-button-target:hover > .tl-clone-button {
+    stroke-width: calc(1.5px * var(--tl-scale));
+    stroke: var(--tl-selectStroke);
+    opacity: 1;
+  }
+
+  .tl-clone-button-target:hover {
+    opacity: 1;
+  }
+
+  .tl-clone-button {
+    r: calc(8px * var(--tl-scale));
+    pointer-events: all;
+    cursor: pointer;
+    fill: transparent;
+  }
+
+  .tl-clone-button:hover {
+    fill: var(--tl-selectStroke);
+  }
+
   .tl-bounds {
     pointer-events: none;
     contain: layout style size;

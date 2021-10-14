@@ -31,38 +31,28 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
     }
   }, [])
 
-  React.useEffect(() => {
-    const elm = ref.current
-
-    function handleWheel(e: WheelEvent) {
-      if (e.altKey) {
-        const point = inputs.pointer?.point ?? [inputs.bounds.width / 2, inputs.bounds.height / 2]
-
-        const info = inputs.pinch(point, point)
-
-        callbacks.onZoom?.({ ...info, delta: [...point, e.deltaY] }, e)
-        return
-      }
-
-      e.preventDefault()
-
-      if (inputs.isPinching) return
-
-      if (Vec.isEqual([e.deltaX, e.deltaY], [0, 0])) return
-
-      const info = inputs.pan([e.deltaX, e.deltaY], e as WheelEvent)
-
-      callbacks.onPan?.(info, e)
-    }
-
-    elm?.addEventListener('wheel', handleWheel, { passive: false })
-    return () => {
-      elm?.removeEventListener('wheel', handleWheel)
-    }
-  }, [ref, callbacks, inputs])
-
   useGesture(
     {
+      onWheel: ({ delta, event: e }) => {
+        if (e.altKey && e.buttons === 0) {
+          const point = inputs.pointer?.point ?? [inputs.bounds.width / 2, inputs.bounds.height / 2]
+
+          const info = inputs.pinch(point, point)
+
+          callbacks.onZoom?.({ ...info, delta: [...point, -e.deltaY] }, e)
+          return
+        }
+
+        e.preventDefault()
+
+        if (inputs.isPinching) return
+
+        if (Vec.isEqual(delta, [0, 0])) return
+
+        const info = inputs.pan(delta, e as WheelEvent)
+
+        callbacks.onPan?.(info, e)
+      },
       onPinchStart: ({ origin, event }) => {
         const elm = ref.current
 

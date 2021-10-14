@@ -12,6 +12,7 @@ describe('bounds', () => {
         viewportWidth={1000}
         isLocked={false}
         isHidden={false}
+        showCloneButtons={false}
       />
     )
   })

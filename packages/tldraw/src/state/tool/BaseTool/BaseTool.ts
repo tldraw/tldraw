@@ -5,6 +5,8 @@ import type {
   TLKeyboardEventHandler,
   TLPinchEventHandler,
   TLPointerEventHandler,
+  TLShapeBlurHandler,
+  TLShapeCloneHandler,
   TLWheelEventHandler,
 } from '~../../core/src/types'
 import type { TLDrawState } from '~state'
@@ -105,5 +107,6 @@ export abstract class BaseTool {
   onReleaseHandle?: TLPointerEventHandler
 
   // Misc
-  onShapeBlur?: () => void
+  onShapeBlur?: TLShapeBlurHandler
+  onShapeClone?: TLShapeCloneHandler
 }

@@ -7,6 +7,7 @@ import {
   TLPointerEventHandler,
   TLPinchEventHandler,
   TLKeyboardEventHandler,
+  TLShapeCloneHandler,
   Utils,
 } from '@tldraw/core'
 import { SessionType, TLDrawShapeType } from '~types'
@@ -19,6 +20,8 @@ enum Status {
   PointingCanvas = 'pointingCanvas',
   PointingHandle = 'pointingHandle',
   PointingBounds = 'pointingBounds',
+  PointingClone = 'pointingClone',
+  TranslatingClone = 'translatingClone',
   PointingBoundsHandle = 'pointingBoundsHandle',
   TranslatingHandle = 'translatingHandle',
   Translating = 'translating',
@@ -68,6 +71,51 @@ export class SelectTool extends BaseTool {
     this.setStatus(Status.Idle)
   }
 
+  getShapeClone = (id: string, side: 'top' | 'right' | 'bottom' | 'left') => {
+    const shape = this.state.getShape(id)
+
+    const utils = TLDR.getShapeUtils(shape)
+
+    if (utils.canClone) {
+      const bounds = utils.getBounds(shape)
+
+      const center = utils.getCenter(shape)
+
+      let point =
+        side === 'top'
+          ? [bounds.minX, bounds.minY - (bounds.height + 32)]
+          : side === 'right'
+          ? [bounds.maxX + 32, bounds.minY]
+          : side === 'bottom'
+          ? [bounds.minX, bounds.maxY + 32]
+          : [bounds.minX - (bounds.width + 32), bounds.minY]
+
+      if (shape.rotation !== 0) {
+        const newCenter = Vec.add(point, [bounds.width / 2, bounds.height / 2])
+
+        const rotatedCenter = Vec.rotWith(newCenter, center, shape.rotation || 0)
+
+        point = Vec.sub(rotatedCenter, [bounds.width / 2, bounds.height / 2])
+      }
+
+      const id = Utils.uniqueId()
+
+      const clone = {
+        ...shape,
+        id,
+        point,
+      }
+
+      if (clone.type === TLDrawShapeType.Sticky) {
+        clone.text = ''
+      }
+
+      return clone
+    }
+
+    return
+  }
+
   /* ----------------- Event Handlers ----------------- */
 
   onCancel = () => {
@@ -80,6 +128,24 @@ export class SelectTool extends BaseTool {
   onKeyDown: TLKeyboardEventHandler = (key, info) => {
     if (key === 'Escape') {
       this.onCancel()
+      return
+    }
+
+    if (key === 'Tab') {
+      if (this.status === Status.Idle && this.state.selectedIds.length === 1) {
+        const [selectedId] = this.state.selectedIds
+
+        const clonedShape = this.getShapeClone(selectedId, 'right')
+
+        if (clonedShape) {
+          this.state.createShapes(clonedShape)
+
+          this.setStatus(Status.Idle)
+          this.state.setEditingId(clonedShape.id)
+          this.state.select(clonedShape.id)
+        }
+      }
+
       return
     }
 
@@ -146,6 +212,15 @@ export class SelectTool extends BaseTool {
       return
     }
 
+    if (this.status === Status.PointingClone) {
+      if (Vec.dist(info.origin, info.point) > 4) {
+        this.setStatus(Status.TranslatingClone)
+        const point = this.state.getPagePoint(info.origin)
+        this.state.startSession(SessionType.Translate, point)
+      }
+      return
+    }
+
     if (this.status === Status.PointingBounds) {
       if (Vec.dist(info.origin, info.point) > 4) {
         this.setStatus(Status.Translating)
@@ -194,6 +269,16 @@ export class SelectTool extends BaseTool {
   }
 
   onPointerUp: TLPointerEventHandler = (info) => {
+    if (this.status === Status.TranslatingClone || this.status === Status.PointingClone) {
+      if (this.pointedId) {
+        this.state.completeSession()
+        this.state.setEditingId(this.pointedId)
+      }
+      this.setStatus(Status.Idle)
+      this.pointedId = undefined
+      return
+    }
+
     if (this.status === Status.PointingBounds) {
       if (info.target === 'bounds') {
         // If we just clicked the selecting bounds's background,
@@ -465,5 +550,22 @@ export class SelectTool extends BaseTool {
     if (this.status !== Status.Pinching) return
     this.state.pinchZoom(info.point, info.delta, info.delta[2])
     this.onPointerMove(info, e as unknown as React.PointerEvent)
+  }
+
+  /* ---------------------- Misc ---------------------- */
+
+  onShapeClone: TLShapeCloneHandler = (info) => {
+    const selectedShapeId = this.state.selectedIds[0]
+
+    const clonedShape = this.getShapeClone(selectedShapeId, info.target)
+
+    if (clonedShape) {
+      this.state.createShapes(clonedShape)
+
+      // Now start pointing the bounds, so that a user can start
+      // dragging to reposition if they wish.
+      this.pointedId = clonedShape.id
+      this.setStatus(Status.PointingClone)
+    }
   }
 }

@@ -27,6 +27,8 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
 
   canEdit: true,
 
+  canClone: true,
+
   pathCache: new WeakMap<number[], string>([]),
 
   defaultProps: {
@@ -77,6 +79,11 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
     const handleKeyDown = React.useCallback(
       (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Escape') return
+
+        if (e.key === 'Tab' && shape.text.length === 0) {
+          e.preventDefault()
+          return
+        }
 
         e.stopPropagation()
 

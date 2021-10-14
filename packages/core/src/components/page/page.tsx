@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
+import type { TLBinding, TLPage, TLPageState, TLShape, TLShapeUtil } from '+types'
 import { useSelection, useShapeTree, useHandles, useTLContext } from '+hooks'
 import { Bounds } from '+components/bounds'
 import { BoundsBg } from '+components/bounds/bounds-bg'
@@ -39,8 +39,6 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
     callbacks.onRenderCountChange
   )
 
-  const { shapeWithHandles } = useHandles(page, pageState)
-
   const { bounds, isLocked, rotation } = useSelection(page, pageState, shapeUtils)
 
   const {
@@ -48,6 +46,23 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
     hoveredId,
     camera: { zoom },
   } = pageState
+
+  let showCloneButtons = false
+  let shapeWithHandles: TLShape | undefined = undefined
+
+  if (selectedIds.length === 1) {
+    const id = selectedIds[0]
+
+    const shape = page.shapes[id]
+
+    const utils = shapeUtils[shape.type] as TLShapeUtil<any, any>
+
+    showCloneButtons = utils.canClone
+
+    if (shape.handles !== undefined) {
+      shapeWithHandles = shape
+    }
+  }
 
   return (
     <>
@@ -57,9 +72,10 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
       ))}
       {!hideIndicators &&
         selectedIds
+          .map((id) => page.shapes[id])
           .filter(Boolean)
-          .map((id) => (
-            <ShapeIndicator key={'selected_' + id} shape={page.shapes[id]} meta={meta} isSelected />
+          .map((shape) => (
+            <ShapeIndicator key={'selected_' + shape.id} shape={shape} meta={meta} isSelected />
           ))}
       {!hideIndicators && hoveredId && (
         <ShapeIndicator
@@ -77,6 +93,7 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
           isLocked={isLocked}
           rotation={rotation}
           isHidden={hideBounds}
+          showCloneButtons={showCloneButtons}
         />
       )}
       {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} />}

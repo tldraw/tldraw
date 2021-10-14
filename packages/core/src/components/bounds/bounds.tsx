@@ -5,6 +5,7 @@ import { CenterHandle } from './center-handle'
 import { RotateHandle } from './rotate-handle'
 import { CornerHandle } from './corner-handle'
 import { EdgeHandle } from './edge-handle'
+import { CloneButtons } from './clone-buttons'
 import { Container } from '+components/container'
 import { SVGContainer } from '+components/svg-container'
 
@@ -14,11 +15,21 @@ interface BoundsProps {
   rotation: number
   isLocked: boolean
   isHidden: boolean
+  showCloneButtons: boolean
   viewportWidth: number
+  children?: React.ReactNode
 }
 
 export const Bounds = React.memo(
-  ({ zoom, bounds, viewportWidth, rotation, isHidden, isLocked }: BoundsProps): JSX.Element => {
+  ({
+    zoom,
+    bounds,
+    viewportWidth,
+    rotation,
+    isHidden,
+    isLocked,
+    showCloneButtons,
+  }: BoundsProps): JSX.Element => {
     // Touch target size
     const targetSize = (viewportWidth < 768 ? 16 : 8) / zoom
     // Handle size
@@ -32,8 +43,8 @@ export const Bounds = React.memo(
 
     return (
       <Container bounds={bounds} rotation={rotation}>
-        <SVGContainer opacity={isHidden ? 0 : 1}>
-          <CenterHandle bounds={bounds} isLocked={isLocked} />
+        <SVGContainer>
+          <CenterHandle bounds={bounds} isLocked={isLocked} isHidden={isHidden} />
           <EdgeHandle
             targetSize={targetSize}
             size={size}
@@ -96,6 +107,7 @@ export const Bounds = React.memo(
             bounds={bounds}
             isHidden={!showHandles || !showRotateHandle}
           />
+          {showCloneButtons && <CloneButtons bounds={bounds} />}
         </SVGContainer>
       </Container>
     )

@@ -49,7 +49,7 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
     const verySmall = bounds.width <= strokeWidth / 2 && bounds.height <= strokeWidth / 2
 
     if (verySmall) {
-      const sw = (1 + strokeWidth) / 2
+      const sw = 1 + strokeWidth
 
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
@@ -139,8 +139,6 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
     const pathData = React.useMemo(() => {
       return getSolidStrokePathData(shape, false)
     }, [points])
-
-    if (!shape) return null
 
     const bounds = this.getBounds(shape)
 
@@ -321,7 +319,7 @@ function getDrawStrokePathData(shape: DrawShape, isComplete: boolean) {
 function getSolidStrokePathData(shape: DrawShape, isComplete: boolean) {
   const { points } = shape
 
-  if (points.length === 0) return 'M 0 0 L 0 0'
+  if (points.length < 2) return 'M 0 0 L 0 0'
 
   const options = getOptions(shape, isComplete)
 
