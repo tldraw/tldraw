@@ -25,7 +25,7 @@ export function usePosition(bounds: TLBounds, rotation = 0, zIndex = 0) {
       `calc(${Math.floor(bounds.height)}px + (var(--tl-padding) * 2))`
     )
 
-    elm.style.setProperty('z-index', zIndex + '')
+    // elm.style.setProperty('z-index', zIndex + '')
   }, [bounds, rotation])
 
   return rBounds

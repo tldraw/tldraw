@@ -1,3 +1,4 @@
+import Vec from '@tldraw/vec'
 import * as React from 'react'
 import { useTLContext } from './useTLContext'
 
@@ -10,8 +11,9 @@ export function useCanvasEvents() {
       if (!inputs.pointerIsValid(e)) return
       e.currentTarget.setPointerCapture(e.pointerId)
 
+      const info = inputs.pointerDown(e, 'canvas')
+
       if (e.button === 0) {
-        const info = inputs.pointerDown(e, 'canvas')
         callbacks.onPointCanvas?.(info, e)
         callbacks.onPointerDown?.(info, e)
       }
@@ -22,11 +24,12 @@ export function useCanvasEvents() {
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
       if (!inputs.pointerIsValid(e)) return
+      const info = inputs.pointerMove(e, 'canvas')
+
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        const info = inputs.pointerMove(e, 'canvas')
         callbacks.onDragCanvas?.(info, e)
       }
-      const info = inputs.pointerMove(e, 'canvas')
+
       callbacks.onPointerMove?.(info, e)
     },
     [callbacks, inputs]

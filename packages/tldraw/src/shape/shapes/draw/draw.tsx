@@ -10,6 +10,7 @@ const pointsBoundsCache = new WeakMap<DrawShape['points'], TLBounds>([])
 const shapeBoundsCache = new Map<string, TLBounds>()
 const rotatedCache = new WeakMap<DrawShape, number[][]>([])
 const pointCache: Record<string, number[]> = {}
+
 export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Draw,
 
@@ -139,6 +140,8 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
       return getSolidStrokePathData(shape, false)
     }, [points])
 
+    if (!shape) return null
+
     const bounds = this.getBounds(shape)
 
     const verySmall = bounds.width < 4 && bounds.height < 4
@@ -151,6 +154,8 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
   },
 
   getBounds(shape: DrawShape): TLBounds {
+    // return Utils.translateBounds(Utils.getBoundsFromPoints(shape.points), shape.point)
+
     // The goal here is to avoid recalculating the bounds from the
     // points array, which is expensive. However, we still need a
     // new bounds if the point has changed, but we will reuse the

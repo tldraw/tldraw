@@ -135,19 +135,20 @@ const tlcss = css`
 
   .tl-canvas {
     position: absolute;
-    overflow: hidden;
     width: 100%;
     height: 100%;
     touch-action: none;
     pointer-events: all;
+    overflow: clip;
   }
 
   .tl-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 0;
-    width: 0;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    height: 0px;
+    width: 0px;
+    contain: layout style size;
   }
 
   .tl-absolute {
@@ -166,13 +167,14 @@ const tlcss = css`
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: clip;
+    overflow: hidden;
+    contain: layout style size;
   }
 
   .tl-positioned-svg {
     width: 100%;
     height: 100%;
-    overflow: clip;
+    overflow: hidden;
   }
 
   .tl-positioned-div {
@@ -181,7 +183,7 @@ const tlcss = css`
     height: 100%;
     overflow: hidden;
     padding: var(--tl-padding);
-    overflow: clip;
+    overflow: hidden;
   }
 
   .tl-counter-scaled {
@@ -263,6 +265,14 @@ const tlcss = css`
 
   .tl-bounds {
     pointer-events: none;
+    contain: layout style size;
+  }
+
+  .tl-bounds-bg {
+    stroke: none;
+    fill: var(--tl-selectFill);
+    pointer-events: all;
+    contain: layout style size;
   }
 
   .tl-bounds-center {
@@ -271,17 +281,12 @@ const tlcss = css`
     stroke-width: calc(1.5px * var(--tl-scale));
   }
 
-  .tl-bounds-bg {
-    stroke: none;
-    fill: var(--tl-selectFill);
-    pointer-events: all;
-  }
-
   .tl-brush {
     fill: var(--tl-brushFill);
     stroke: var(--tl-brushStroke);
     stroke-width: calc(1px * var(--tl-scale));
     pointer-events: none;
+    contain: layout style size;
   }
 
   .tl-dot {

@@ -59,14 +59,15 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
 
   useSafariFocusOutFix()
 
-  usePreventNavigation(rCanvas)
+  usePreventNavigation(rCanvas, inputs.bounds.width)
 
   const events = useCanvasEvents()
 
   useCameraCss(rLayer, rContainer, pageState)
 
   const preventScrolling = React.useCallback((e: React.UIEvent<HTMLDivElement, UIEvent>) => {
-    e.currentTarget.scrollTo(0, 0)
+    e.preventDefault()
+    // e.currentTarget.scrollTo(0, 0)
   }, [])
 
   useKeyEvents()

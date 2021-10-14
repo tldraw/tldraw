@@ -10,7 +10,7 @@ interface BoundsBgProps {
   rotation: number
 }
 
-export function BoundsBg({ bounds, rotation }: BoundsBgProps): JSX.Element {
+export const BoundsBg = React.memo(({ bounds, rotation }: BoundsBgProps): JSX.Element => {
   const events = useBoundsEvents()
 
   return (
@@ -20,4 +20,4 @@ export function BoundsBg({ bounds, rotation }: BoundsBgProps): JSX.Element {
       </SVGContainer>
     </Container>
   )
-}
+})

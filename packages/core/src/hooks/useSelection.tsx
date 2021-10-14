@@ -1,3 +1,4 @@
+import * as React from 'react'
 import type { TLPage, TLPageState, TLShape, TLBounds, TLShapeUtils, TLBinding } from '+types'
 import Utils from '+utils'
 import { useTLContext } from '+hooks'
@@ -13,6 +14,7 @@ export function useSelection<T extends TLShape, E extends Element>(
 ) {
   const { rSelectionBounds } = useTLContext()
   const { selectedIds } = pageState
+  const rPrevBounds = React.useRef<TLBounds>()
 
   let bounds: TLBounds | undefined = undefined
   let rotation = 0
@@ -60,6 +62,21 @@ export function useSelection<T extends TLShape, E extends Element>(
     }
   } else {
     rSelectionBounds.current = null
+  }
+
+  const prevBounds = rPrevBounds.current
+
+  if (!prevBounds || !bounds) {
+    rPrevBounds.current = bounds
+  } else if (bounds) {
+    if (
+      prevBounds.minX === bounds.minX &&
+      prevBounds.minY === bounds.minY &&
+      prevBounds.maxX === bounds.maxX &&
+      prevBounds.maxY === bounds.maxY
+    ) {
+      bounds = rPrevBounds.current
+    }
   }
 
   return { bounds, rotation, isLocked }
