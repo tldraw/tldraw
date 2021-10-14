@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as React from 'react'
 import { useTLContext } from './useTLContext'
-import { useGesture, usePinch, useWheel } from '@use-gesture/react'
+import { useGesture } from '@use-gesture/react'
 import { Vec } from '@tldraw/vec'
 
 // Capture zoom gestures (pinches, wheels and pans)
@@ -55,7 +55,6 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
       },
       onPinchStart: ({ origin, event }) => {
         const elm = ref.current
-
         if (!elm || !(event.target === elm || elm.contains(event.target as Node))) return
 
         const info = inputs.pinch(origin, origin)

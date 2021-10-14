@@ -5,7 +5,6 @@ import {
   TLBoundsHandleEventHandler,
   TLCanvasEventHandler,
   TLPointerEventHandler,
-  TLPinchEventHandler,
   TLKeyboardEventHandler,
   TLShapeCloneHandler,
   Utils,
@@ -530,26 +529,6 @@ export class SelectTool extends BaseTool {
 
   onReleaseHandle: TLPointerEventHandler = () => {
     this.setStatus(Status.Idle)
-  }
-
-  /* --------------------- Camera --------------------- */
-
-  onPinchStart: TLPinchEventHandler = () => {
-    this.state.cancelSession()
-    this.setStatus(Status.Pinching)
-  }
-
-  onPinchEnd: TLPinchEventHandler = () => {
-    if (Utils.isMobileSafari()) {
-      this.state.undoSelect()
-    }
-    this.setStatus(Status.Idle)
-  }
-
-  onPinch: TLPinchEventHandler = (info, e) => {
-    if (this.status !== Status.Pinching) return
-    this.state.pinchZoom(info.point, info.delta, info.delta[2])
-    this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 
   /* ---------------------- Misc ---------------------- */

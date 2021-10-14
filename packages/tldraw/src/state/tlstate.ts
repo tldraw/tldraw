@@ -165,7 +165,7 @@ export class TLDrawState extends StateManager<Data> {
   ) {
     super(defaultState, id, 10, (next, prev) => ({
       ...next,
-      document: prev.document,
+      document: { ...next.document, ...prev.document },
     }))
 
     this._onChange = onChange

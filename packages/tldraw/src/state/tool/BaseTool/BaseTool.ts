@@ -9,6 +9,7 @@ import type {
   TLShapeCloneHandler,
   TLWheelEventHandler,
 } from '~../../core/src/types'
+import Utils from '~../../core/src/utils'
 import type { TLDrawState } from '~state'
 import type { TLDrawShapeType } from '~types'
 
@@ -52,9 +53,6 @@ export abstract class BaseTool {
   onKeyUp?: TLKeyboardEventHandler
 
   // Camera Events
-  onPinchStart?: TLPinchEventHandler
-  onPinchEnd?: TLPinchEventHandler
-  onPinch?: TLPinchEventHandler
   onPan?: TLWheelEventHandler
   onZoom?: TLWheelEventHandler
 
@@ -109,4 +107,24 @@ export abstract class BaseTool {
   // Misc
   onShapeBlur?: TLShapeBlurHandler
   onShapeClone?: TLShapeCloneHandler
+
+  /* --------------------- Camera --------------------- */
+
+  onPinchStart: TLPinchEventHandler = () => {
+    this.state.cancelSession()
+    this.setStatus('pinching')
+  }
+
+  onPinchEnd: TLPinchEventHandler = () => {
+    if (Utils.isMobileSafari()) {
+      this.state.undoSelect()
+    }
+    this.setStatus('idle')
+  }
+
+  onPinch: TLPinchEventHandler = (info, e) => {
+    if (this.status !== 'pinching') return
+    this.state.pinchZoom(info.point, info.delta, info.delta[2])
+    this.onPointerMove?.(info, e as unknown as React.PointerEvent)
+  }
 }
