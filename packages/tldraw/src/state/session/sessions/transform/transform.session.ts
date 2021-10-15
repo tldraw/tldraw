@@ -3,6 +3,7 @@ import { Vec } from '@tldraw/vec'
 import { Session, SessionType, TLDrawShape, TLDrawStatus } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
+import type { Command } from 'rko'
 
 export class TransformSession implements Session {
   static type = SessionType.Transform
@@ -12,15 +13,20 @@ export class TransformSession implements Session {
   transformType: TLBoundsEdge | TLBoundsCorner
   origin: number[]
   snapshot: TransformSnapshot
+  isCreate: boolean
+  initialSelectedIds: string[]
 
   constructor(
     data: Data,
     point: number[],
-    transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight
+    transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight,
+    isCreate = false
   ) {
     this.origin = point
     this.transformType = transformType
     this.snapshot = getTransformSnapshot(data, transformType)
+    this.isCreate = isCreate
+    this.initialSelectedIds = TLDR.getSelectedIds(data, data.appState.currentPageId)
   }
 
   start = () => void null
@@ -85,9 +91,13 @@ export class TransformSession implements Session {
   cancel = (data: Data) => {
     const { shapeBounds } = this.snapshot
 
-    const shapes = {} as Record<string, TLDrawShape>
+    const shapes = {} as Record<string, TLDrawShape | undefined>
 
-    shapeBounds.forEach((shape) => (shapes[shape.id] = shape.initialShape))
+    if (this.isCreate) {
+      shapeBounds.forEach((shape) => (shapes[shape.id] = undefined))
+    } else {
+      shapeBounds.forEach((shape) => (shapes[shape.id] = shape.initialShape))
+    }
 
     return {
       document: {
@@ -100,18 +110,32 @@ export class TransformSession implements Session {
     }
   }
 
-  complete(data: Data) {
+  complete(data: Data): Data | Command<Data> | undefined {
     const { hasUnlockedShapes, shapeBounds } = this.snapshot
+    undefined
+    if (!hasUnlockedShapes) return
 
-    if (!hasUnlockedShapes) return data
+    const beforeShapes: Record<string, TLDrawShape | undefined> = {}
+    const afterShapes: Record<string, TLDrawShape> = {}
 
-    const beforeShapes = {} as Record<string, TLDrawShape>
-    const afterShapes = {} as Record<string, TLDrawShape>
+    let beforeSelectedIds: string[]
+    let afterSelectedIds: string[]
 
-    shapeBounds.forEach((shape) => {
-      beforeShapes[shape.id] = shape.initialShape
-      afterShapes[shape.id] = TLDR.getShape(data, shape.id, data.appState.currentPageId)
-    })
+    if (this.isCreate) {
+      beforeSelectedIds = []
+      afterSelectedIds = []
+      shapeBounds.forEach((shape) => {
+        beforeShapes[shape.id] = undefined
+        afterShapes[shape.id] = TLDR.getShape(data, shape.id, data.appState.currentPageId)
+      })
+    } else {
+      beforeSelectedIds = this.initialSelectedIds
+      afterSelectedIds = this.initialSelectedIds
+      shapeBounds.forEach((shape) => {
+        beforeShapes[shape.id] = shape.initialShape
+        afterShapes[shape.id] = TLDR.getShape(data, shape.id, data.appState.currentPageId)
+      })
+    }
 
     return {
       id: 'transform',
@@ -122,6 +146,13 @@ export class TransformSession implements Session {
               shapes: beforeShapes,
             },
           },
+          pageStates: {
+            [data.appState.currentPageId]: {
+              selectedIds: beforeSelectedIds,
+              hoveredId: undefined,
+              editingId: undefined,
+            },
+          },
         },
       },
       after: {
@@ -129,6 +160,13 @@ export class TransformSession implements Session {
           pages: {
             [data.appState.currentPageId]: {
               shapes: afterShapes,
+            },
+          },
+          pageStates: {
+            [data.appState.currentPageId]: {
+              selectedIds: afterSelectedIds,
+              hoveredId: undefined,
+              editingId: undefined,
             },
           },
         },

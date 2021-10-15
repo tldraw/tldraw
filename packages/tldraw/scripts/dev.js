@@ -15,6 +15,7 @@ async function main() {
     jsxFragment: 'React.Fragment',
     tsconfig: './tsconfig.build.json',
     external: ['react', 'react-dom'],
+    sourcemap: true,
     incremental: true,
     watch: {
       onRebuild(error) {

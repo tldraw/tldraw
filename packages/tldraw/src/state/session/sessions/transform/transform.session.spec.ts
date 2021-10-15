@@ -218,3 +218,17 @@ describe('Transform session', () => {
     })
   })
 })
+
+describe('When creating with a transform session', () => {
+  it('Deletes the shape on undo', () => {
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .startSession(SessionType.Transform, [5, 5], TLBoundsCorner.TopLeft, true)
+      .updateSession([10, 10])
+      .completeSession()
+      .undo()
+
+    expect(tlstate.getShape('rect1')).toBe(undefined)
+  })
+})

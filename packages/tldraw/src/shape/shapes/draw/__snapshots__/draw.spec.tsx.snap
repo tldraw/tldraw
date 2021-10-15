@@ -4,6 +4,7 @@ exports[`Draw shape Creates a shape: draw 1`] = `
 Object {
   "childIndex": 1,
   "id": "draw",
+  "isComplete": false,
   "name": "Draw",
   "parentId": "page",
   "point": Array [

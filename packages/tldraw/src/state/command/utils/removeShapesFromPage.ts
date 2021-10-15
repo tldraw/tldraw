@@ -63,10 +63,10 @@ export function removeShapesFromPage(data: Data, ids: string[], pageId: string) 
           after.bindings[binding.id] = undefined
 
           // Let's also look each the bound shape...
-          const shape = TLDR.getShape(data, id, pageId)
+          const shape = page.shapes[id]
 
           // If the bound shape has a handle that references the deleted binding...
-          if (shape.handles) {
+          if (shape && shape.handles) {
             Object.values(shape.handles)
               .filter((handle) => handle.bindingId === binding.id)
               .forEach((handle) => {

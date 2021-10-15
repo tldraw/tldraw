@@ -16,6 +16,7 @@ export class ArrowSession implements Session {
   static type = SessionType.Arrow
   status = TLDrawStatus.TranslatingHandle
   newBindingId = Utils.uniqueId()
+  didBind = false
   delta = [0, 0]
   offset = [0, 0]
   origin: number[]
@@ -24,9 +25,11 @@ export class ArrowSession implements Session {
   handleId: 'start' | 'end'
   bindableShapeIds: string[]
   initialBinding: TLDrawBinding | undefined
-  didBind = false
+  isCreate: boolean
 
-  constructor(data: Data, point: number[], handleId: 'start' | 'end') {
+  constructor(data: Data, point: number[], handleId: 'start' | 'end', isCreate = false) {
+    this.isCreate = isCreate
+
     const { currentPageId } = data.appState
     const page = data.document.pages[currentPageId]
     const pageState = data.document.pageStates[currentPageId]
@@ -242,7 +245,7 @@ export class ArrowSession implements Session {
         pages: {
           [data.appState.currentPageId]: {
             shapes: {
-              [initialShape.id]: initialShape,
+              [initialShape.id]: this.isCreate ? undefined : initialShape,
             },
             bindings: {
               [newBindingId]: undefined,
@@ -251,7 +254,10 @@ export class ArrowSession implements Session {
         },
         pageStates: {
           [data.appState.currentPageId]: {
+            selectedIds: this.isCreate ? [] : [initialShape.id],
             bindingId: undefined,
+            hoveredId: undefined,
+            editingId: undefined,
           },
         },
       },
@@ -260,9 +266,11 @@ export class ArrowSession implements Session {
 
   complete(data: Data) {
     const { initialShape, initialBinding, handleId } = this
+
     const page = TLDR.getPage(data, data.appState.currentPageId)
 
     const beforeBindings: Partial<Record<string, TLDrawBinding>> = {}
+
     const afterBindings: Partial<Record<string, TLDrawBinding>> = {}
 
     const currentShape = TLDR.getShape<ArrowShape>(
@@ -270,6 +278,7 @@ export class ArrowSession implements Session {
       initialShape.id,
       data.appState.currentPageId
     )
+
     const currentBindingId = currentShape.handles[handleId].bindingId
 
     if (initialBinding) {
@@ -289,14 +298,17 @@ export class ArrowSession implements Session {
           pages: {
             [data.appState.currentPageId]: {
               shapes: {
-                [initialShape.id]: initialShape,
+                [initialShape.id]: this.isCreate ? undefined : initialShape,
               },
-              bindings: beforeBindings,
+              bindings: this.isCreate ? {} : beforeBindings,
             },
           },
           pageStates: {
             [data.appState.currentPageId]: {
+              selectedIds: this.isCreate ? [] : [initialShape.id],
               bindingId: undefined,
+              hoveredId: undefined,
+              editingId: undefined,
             },
           },
         },
@@ -315,7 +327,10 @@ export class ArrowSession implements Session {
           },
           pageStates: {
             [data.appState.currentPageId]: {
+              selectedIds: [initialShape.id],
               bindingId: undefined,
+              hoveredId: undefined,
+              editingId: undefined,
             },
           },
         },

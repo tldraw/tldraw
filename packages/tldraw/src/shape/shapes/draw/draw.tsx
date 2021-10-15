@@ -21,13 +21,14 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
     parentId: 'page',
     childIndex: 1,
     point: [0, 0],
-    points: [],
     rotation: 0,
     style: defaultStyle,
+    points: [],
+    isComplete: false,
   },
 
   Component({ shape, meta, events }, ref) {
-    const { points, style } = shape
+    const { points, style, isComplete } = shape
 
     const polygonPathData = React.useMemo(() => {
       return getFillPath(shape)
@@ -35,9 +36,9 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
 
     const pathData = React.useMemo(() => {
       return style.dash === DashStyle.Draw
-        ? getDrawStrokePathData(shape, false)
-        : getSolidStrokePathData(shape, false)
-    }, [points, style.size, style.dash, false])
+        ? getDrawStrokePathData(shape)
+        : getSolidStrokePathData(shape)
+    }, [points, style.size, style.dash, isComplete, false])
 
     const styles = getShapeStyle(style, meta.isDarkMode)
 
@@ -137,7 +138,7 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
     const { points } = shape
 
     const pathData = React.useMemo(() => {
-      return getSolidStrokePathData(shape, false)
+      return getSolidStrokePathData(shape)
     }, [points])
 
     const bounds = this.getBounds(shape)
@@ -183,7 +184,11 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
   },
 
   shouldRender(prev: DrawShape, next: DrawShape): boolean {
-    return next.points !== prev.points || next.style !== prev.style
+    return (
+      next.points !== prev.points ||
+      next.style !== prev.style ||
+      next.isComplete !== prev.isComplete
+    )
   },
 
   hitTestBounds(shape: DrawShape, brushBounds: TLBounds): boolean {
@@ -257,8 +262,6 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
 /*                       Helpers                      */
 /* -------------------------------------------------- */
 
-const STREAMLINE = 0.65
-
 const simulatePressureSettings: StrokeOptions = {
   easing: (t) => Math.sin((t * Math.PI) / 2),
   simulatePressure: true,
@@ -269,16 +272,16 @@ const realPressureSettings: StrokeOptions = {
   simulatePressure: false,
 }
 
-function getOptions(shape: DrawShape, isComplete: boolean) {
+function getOptions(shape: DrawShape) {
   const styles = getShapeStyle(shape.style)
 
   const options: StrokeOptions = {
     size: 1 + styles.strokeWidth * 1.5,
     thinning: 0.65,
-    streamline: STREAMLINE,
+    streamline: 0.9,
     smoothing: 0.65,
     ...(shape.points[1][2] === 0.5 ? simulatePressureSettings : realPressureSettings),
-    last: isComplete,
+    last: shape.isComplete,
   }
 
   return options
@@ -288,7 +291,7 @@ function getFillPath(shape: DrawShape) {
   if (shape.points.length < 2) return ''
 
   return Utils.getSvgPathFromStroke(
-    getStrokePoints(shape.points, getOptions(shape, true)).map((pt) => pt.point)
+    getStrokePoints(shape.points, getOptions(shape)).map((pt) => pt.point)
   )
 }
 
@@ -299,10 +302,10 @@ function getDrawStrokePoints(shape: DrawShape, options: StrokeOptions) {
 /**
  * Get path data for a stroke with the DashStyle.Draw dash style.
  */
-function getDrawStrokePathData(shape: DrawShape, isComplete: boolean) {
+function getDrawStrokePathData(shape: DrawShape) {
   if (shape.points.length < 2) return ''
 
-  const options = getOptions(shape, isComplete)
+  const options = getOptions(shape)
 
   const strokePoints = getDrawStrokePoints(shape, options)
 
@@ -316,12 +319,12 @@ function getDrawStrokePathData(shape: DrawShape, isComplete: boolean) {
 /**
  * Get SVG path data for a shape that has a DashStyle other than DashStyles.Draw.
  */
-function getSolidStrokePathData(shape: DrawShape, isComplete: boolean) {
+function getSolidStrokePathData(shape: DrawShape) {
   const { points } = shape
 
   if (points.length < 2) return 'M 0 0 L 0 0'
 
-  const options = getOptions(shape, isComplete)
+  const options = getOptions(shape)
 
   const strokePoints = getDrawStrokePoints(shape, options).map((pt) => pt.point.slice(0, 2))
 
