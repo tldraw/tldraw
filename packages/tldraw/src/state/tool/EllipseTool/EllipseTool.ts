@@ -46,7 +46,12 @@ export class EllipseTool extends BaseTool {
 
     this.state.createShapes(newShape)
 
-    this.state.startSession(SessionType.Transform, pagePoint, TLBoundsCorner.BottomRight)
+    this.state.startSession(
+      SessionType.TransformSingle,
+      pagePoint,
+      TLBoundsCorner.BottomRight,
+      true
+    )
 
     this.setStatus(Status.Creating)
   }

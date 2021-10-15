@@ -28,6 +28,7 @@ enum Status {
   Rotating = 'rotating',
   Pinching = 'pinching',
   Brushing = 'brushing',
+  GridCloning = 'gridCloning',
 }
 
 export class SelectTool extends BaseTool {
@@ -70,7 +71,18 @@ export class SelectTool extends BaseTool {
     this.setStatus(Status.Idle)
   }
 
-  getShapeClone = (id: string, side: 'top' | 'right' | 'bottom' | 'left') => {
+  getShapeClone = (
+    id: string,
+    side:
+      | 'top'
+      | 'right'
+      | 'bottom'
+      | 'left'
+      | 'topLeft'
+      | 'topRight'
+      | 'bottomRight'
+      | 'bottomLeft'
+  ) => {
     const shape = this.state.getShape(id)
 
     const utils = TLDR.getShapeUtils(shape)
@@ -80,14 +92,16 @@ export class SelectTool extends BaseTool {
 
       const center = utils.getCenter(shape)
 
-      let point =
-        side === 'top'
-          ? [bounds.minX, bounds.minY - (bounds.height + 32)]
-          : side === 'right'
-          ? [bounds.maxX + 32, bounds.minY]
-          : side === 'bottom'
-          ? [bounds.minX, bounds.maxY + 32]
-          : [bounds.minX - (bounds.width + 32), bounds.minY]
+      let point = {
+        top: [bounds.minX, bounds.minY - (bounds.height + 32)],
+        right: [bounds.maxX + 32, bounds.minY],
+        bottom: [bounds.minX, bounds.maxY + 32],
+        left: [bounds.minX - (bounds.width + 32), bounds.minY],
+        topLeft: [bounds.minX - (bounds.width + 32), bounds.minY - (bounds.height + 32)],
+        topRight: [bounds.maxX + 32, bounds.minY - (bounds.height + 32)],
+        bottomLeft: [bounds.minX - (bounds.width + 32), bounds.maxY + 32],
+        bottomRight: [bounds.maxX + 32, bounds.maxY + 32],
+      }[side]
 
       if (shape.rotation !== 0) {
         const newCenter = Vec.add(point, [bounds.width / 2, bounds.height / 2])
@@ -215,7 +229,7 @@ export class SelectTool extends BaseTool {
       if (Vec.dist(info.origin, info.point) > 4) {
         this.setStatus(Status.TranslatingClone)
         const point = this.state.getPagePoint(info.origin)
-        this.state.startSession(SessionType.Translate, point)
+        this.state.startSession(SessionType.Translate, point, true)
       }
       return
     }
@@ -538,13 +552,24 @@ export class SelectTool extends BaseTool {
 
     const clonedShape = this.getShapeClone(selectedShapeId, info.target)
 
-    if (clonedShape) {
-      this.state.createShapes(clonedShape)
+    if (
+      info.target === 'left' ||
+      info.target === 'right' ||
+      info.target === 'top' ||
+      info.target === 'bottom'
+    ) {
+      if (clonedShape) {
+        this.state.createShapes(clonedShape)
 
-      // Now start pointing the bounds, so that a user can start
-      // dragging to reposition if they wish.
-      this.pointedId = clonedShape.id
-      this.setStatus(Status.PointingClone)
+        // Now start pointing the bounds, so that a user can start
+        // dragging to reposition if they wish.
+        this.pointedId = clonedShape.id
+        this.setStatus(Status.PointingClone)
+      }
+    } else {
+      const point = this.state.getPagePoint(info.point)
+      this.setStatus(Status.GridCloning)
+      this.state.startSession(SessionType.Grid, selectedShapeId, this.state.currentPageId, point)
     }
   }
 }

@@ -46,7 +46,11 @@ export abstract class BaseTool {
           .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
   }
 
-  onCancel?: () => void
+  onCancel = () => {
+    if (this.status === 'creating') {
+      this.state.cancelSession()
+    }
+  }
 
   // Keyboard events
   onKeyDown?: TLKeyboardEventHandler

@@ -95,6 +95,7 @@ export enum SessionType {
   Draw = 'draw',
   Rotate = 'rotate',
   Handle = 'handle',
+  Grid = 'grid',
 }
 
 export abstract class Session {
@@ -185,6 +186,7 @@ export interface TLDrawBaseShape extends TLShape {
 export interface DrawShape extends TLDrawBaseShape {
   type: TLDrawShapeType.Draw
   points: number[][]
+  isComplete: boolean
 }
 
 export interface ArrowShape extends TLDrawBaseShape {

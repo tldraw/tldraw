@@ -312,3 +312,17 @@ describe('Translate session', () => {
     })
   })
 })
+
+describe('When creating with a translate session', () => {
+  it('Deletes the shape on undo', () => {
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .startSession(SessionType.Translate, [5, 5], true)
+      .updateSession([10, 10])
+      .completeSession()
+      .undo()
+
+    expect(tlstate.getShape('rect1')).toBe(undefined)
+  })
+})

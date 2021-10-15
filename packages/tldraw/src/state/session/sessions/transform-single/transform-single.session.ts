@@ -8,23 +8,23 @@ import { TLDR } from '~state/tldr'
 export class TransformSingleSession implements Session {
   type = SessionType.TransformSingle
   status = TLDrawStatus.Transforming
-  commandId: string
   transformType: TLBoundsEdge | TLBoundsCorner
   origin: number[]
   scaleX = 1
   scaleY = 1
+  isCreate: boolean
   snapshot: TransformSingleSnapshot
 
   constructor(
     data: Data,
     point: number[],
     transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight,
-    commandId = 'transform_single'
+    isCreate = false
   ) {
     this.origin = point
     this.transformType = transformType
     this.snapshot = getTransformSingleSnapshot(data, transformType)
-    this.commandId = commandId
+    this.isCreate = isCreate
   }
 
   start = () => void null
@@ -94,21 +94,29 @@ export class TransformSingleSession implements Session {
 
     const { initialShape } = this.snapshot
 
-    const beforeShapes = {} as Record<string, Partial<TLDrawShape>>
+    const beforeShapes = {} as Record<string, Partial<TLDrawShape> | undefined>
     const afterShapes = {} as Record<string, Partial<TLDrawShape>>
 
-    beforeShapes[initialShape.id] = initialShape
+    beforeShapes[initialShape.id] = this.isCreate ? undefined : initialShape
+
     afterShapes[initialShape.id] = TLDR.onSessionComplete(
       TLDR.getShape(data, initialShape.id, data.appState.currentPageId)
     )
 
     return {
-      id: this.commandId,
+      id: 'transform_single',
       before: {
         document: {
           pages: {
             [data.appState.currentPageId]: {
               shapes: beforeShapes,
+            },
+          },
+          pageStates: {
+            [data.appState.currentPageId]: {
+              selectedIds: this.isCreate ? [] : [initialShape.id],
+              editingId: undefined,
+              hoveredId: undefined,
             },
           },
         },
@@ -118,6 +126,13 @@ export class TransformSingleSession implements Session {
           pages: {
             [data.appState.currentPageId]: {
               shapes: afterShapes,
+            },
+          },
+          pageStates: {
+            [data.appState.currentPageId]: {
+              selectedIds: [initialShape.id],
+              editingId: undefined,
+              hoveredId: undefined,
             },
           },
         },

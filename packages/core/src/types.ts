@@ -148,7 +148,9 @@ export type TLKeyboardEventHandler = (key: string, info: TLKeyboardInfo, e: Keyb
 export type TLPointerEventHandler = (info: TLPointerInfo<string>, e: React.PointerEvent) => void
 
 export type TLShapeCloneHandler = (
-  info: TLPointerInfo<'top' | 'left' | 'right' | 'bottom'>,
+  info: TLPointerInfo<
+    'top' | 'right' | 'bottom' | 'left' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
+  >,
   e: React.PointerEvent
 ) => void
 

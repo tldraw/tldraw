@@ -1660,8 +1660,7 @@ export class TLDrawState extends StateManager<Data> {
     if (!session) return this
     this.session = undefined
 
-    if (this.isCreating) {
-      this.isCreating = false
+    if (this.status === 'creating') {
       return this.patchState(
         {
           document: {

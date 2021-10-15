@@ -46,7 +46,7 @@ export class ArrowTool extends BaseTool {
 
     this.state.createShapes(newShape)
 
-    this.state.startSession(SessionType.Arrow, pagePoint, 'end')
+    this.state.startSession(SessionType.Arrow, pagePoint, 'end', true)
 
     this.setStatus(Status.Creating)
   }

@@ -30,3 +30,17 @@ describe('Transform single session', () => {
     expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
   })
 })
+
+describe('When creating with a transform-single session', () => {
+  it('Deletes the shape on undo', () => {
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .startSession(SessionType.TransformSingle, [5, 5], TLBoundsCorner.TopLeft, true)
+      .updateSession([10, 10])
+      .completeSession()
+      .undo()
+
+    expect(tlstate.getShape('rect1')).toBe(undefined)
+  })
+})
