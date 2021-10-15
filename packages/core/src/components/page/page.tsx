@@ -66,7 +66,7 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
 
   return (
     <>
-      {bounds && !hideBounds && <BoundsBg bounds={bounds} rotation={rotation} />}
+      {bounds && <BoundsBg bounds={bounds} rotation={rotation} isHidden={hideBounds} />}
       {shapeTree.map((node) => (
         <ShapeNode key={node.shape.id} utils={shapeUtils} {...node} />
       ))}

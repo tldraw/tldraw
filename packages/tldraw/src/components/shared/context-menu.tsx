@@ -42,13 +42,13 @@ export interface ContextMenuSubMenuProps {
 export function ContextMenuSubMenu({ children, label }: ContextMenuSubMenuProps): JSX.Element {
   return (
     <CMRoot dir="ltr">
-      <CMTriggerItem className={rowButton({ bp: breakpoints })}>
+      <CMTriggerItem dir="ltr" className={rowButton({ bp: breakpoints })}>
         <span>{label}</span>
         <div className={iconWrapper({ size: 'small' })}>
           <ChevronRightIcon />
         </div>
       </CMTriggerItem>
-      <CMContent className={menuContent()} sideOffset={2} alignOffset={-2}>
+      <CMContent dir="ltr" className={menuContent()} sideOffset={2} alignOffset={-2}>
         {children}
         <ContextMenuArrow offset={13} />
       </CMContent>
@@ -100,7 +100,12 @@ export function ContextMenuButton({
   disabled = false,
 }: ContextMenuButtonProps): JSX.Element {
   return (
-    <CMItem className={rowButton({ bp: breakpoints })} disabled={disabled} onSelect={onSelect}>
+    <CMItem
+      dir="ltr"
+      className={rowButton({ bp: breakpoints })}
+      disabled={disabled}
+      onSelect={onSelect}
+    >
       {children}
     </CMItem>
   )
@@ -118,7 +123,12 @@ export function ContextMenuIconButton({
   disabled = false,
 }: ContextMenuIconButtonProps): JSX.Element {
   return (
-    <CMItem className={iconButton({ bp: breakpoints })} disabled={disabled} onSelect={onSelect}>
+    <CMItem
+      dir="ltr"
+      className={iconButton({ bp: breakpoints })}
+      disabled={disabled}
+      onSelect={onSelect}
+    >
       {children}
     </CMItem>
   )
@@ -139,13 +149,14 @@ export function ContextMenuCheckboxItem({
 }: ContextMenuCheckboxItemProps): JSX.Element {
   return (
     <CMCheckboxItem
+      dir="ltr"
       className={rowButton({ bp: breakpoints })}
       onCheckedChange={onCheckedChange}
       checked={checked}
       disabled={disabled}
     >
       {children}
-      <CMItemIndicator>
+      <CMItemIndicator dir="ltr">
         <div className={iconWrapper({ size: 'small' })}>
           <CheckIcon />
         </div>

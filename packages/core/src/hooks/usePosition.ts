@@ -2,7 +2,7 @@
 import * as React from 'react'
 import type { TLBounds } from '+types'
 
-export function usePosition(bounds: TLBounds, rotation = 0, zIndex = 0) {
+export function usePosition(bounds: TLBounds, rotation = 0) {
   const rBounds = React.useRef<HTMLDivElement>(null)
 
   // Update the transform
