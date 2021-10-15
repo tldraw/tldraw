@@ -8,15 +8,22 @@ import { SVGContainer } from '+components/svg-container'
 interface BoundsBgProps {
   bounds: TLBounds
   rotation: number
+  isHidden: boolean
 }
 
-export const BoundsBg = React.memo(({ bounds, rotation }: BoundsBgProps): JSX.Element => {
+export const BoundsBg = React.memo(({ bounds, rotation, isHidden }: BoundsBgProps): JSX.Element => {
   const events = useBoundsEvents()
 
   return (
     <Container bounds={bounds} rotation={rotation}>
       <SVGContainer>
-        <rect className="tl-bounds-bg" width={bounds.width} height={bounds.height} {...events} />
+        <rect
+          className="tl-bounds-bg"
+          width={bounds.width}
+          height={bounds.height}
+          opacity={isHidden ? 0 : 1}
+          {...events}
+        />
       </SVGContainer>
     </Container>
   )
