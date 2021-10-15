@@ -133,11 +133,10 @@ export function duplicate(data: Data, ids: string[], point?: number[]): TLDrawCo
     shapesToMove.forEach((shape) => {
       // Could be a group
       if (!shape.point) return
-
       shape.point = Vec.sub(point, Vec.sub(center, shape.point))
     })
   } else {
-    const offset = [16, 16] // Vec.div([16, 16], data.document.pageStates[page.id].camera.zoom)
+    const offset = [16, 16]
     shapesToMove.forEach((shape) => {
       // Could be a group
       if (!shape.point) return
