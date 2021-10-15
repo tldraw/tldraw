@@ -278,7 +278,7 @@ function getOptions(shape: DrawShape) {
   const options: StrokeOptions = {
     size: 1 + styles.strokeWidth * 1.5,
     thinning: 0.65,
-    streamline: 0.9,
+    streamline: 0.65,
     smoothing: 0.65,
     ...(shape.points[1][2] === 0.5 ? simulatePressureSettings : realPressureSettings),
     last: shape.isComplete,
