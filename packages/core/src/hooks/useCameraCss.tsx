@@ -10,7 +10,7 @@ export function useCameraCss(
   // Update the tl-zoom CSS variable when the zoom changes
   const rZoom = React.useRef(pageState.camera.zoom)
   const rPoint = React.useRef(pageState.camera.point)
-  const rTimeout = React.useRef<NodeJS.Timeout | null>(null)
+  // const rTimeout = React.useRef<NodeJS.Timeout | null>(null)
 
   React.useLayoutEffect(() => {
     const { zoom, point } = pageState.camera
@@ -25,17 +25,17 @@ export function useCameraCss(
       const layer = layerRef.current
       const container = containerRef.current
 
-      if (rTimeout.current === null) {
-        layer?.style.setProperty('will-change', 'transform')
-      } else {
-        clearTimeout(rTimeout.current)
-        rTimeout.current = null
-      }
+      // if (rTimeout.current === null) {
+      //   layer?.style.setProperty('will-change', 'transform')
+      // } else {
+      //   clearTimeout(rTimeout.current)
+      //   rTimeout.current = null
+      // }
 
-      rTimeout.current = setTimeout(() => {
-        layer?.style.setProperty('will-change', 'auto')
-        rTimeout.current = null
-      }, 500)
+      // rTimeout.current = setTimeout(() => {
+      //   layer?.style.setProperty('will-change', 'auto')
+      //   rTimeout.current = null
+      // }, 500)
 
       // If we zoomed, set the CSS variable for the zoom
       if (didZoom) {

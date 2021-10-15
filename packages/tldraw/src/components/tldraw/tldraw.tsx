@@ -212,10 +212,9 @@ function InnerTldraw({
   }, [currentPageId, tlstate])
 
   return (
-    <div ref={rWrapper} tabIndex={0}>
-      <div className={layout()}>
-        <OneOff focusableRef={rWrapper} autofocus={autofocus} />
-        {/* <ContextMenu> */}
+    <div ref={rWrapper} tabIndex={0} className={layout()}>
+      <OneOff focusableRef={rWrapper} autofocus={autofocus} />
+      <ContextMenu>
         <Renderer
           id={id}
           containerRef={rWrapper}
@@ -279,26 +278,25 @@ function InnerTldraw({
           onKeyDown={tlstate.onKeyDown}
           onKeyUp={tlstate.onKeyUp}
         />
-        {/* </ContextMenu> */}
-        <div className={ui()}>
-          {isFocusMode ? (
-            <div className={unfocusButton()}>
-              <button className={iconButton({ bp: breakpoints })} onClick={tlstate.toggleFocusMode}>
-                <DotFilledIcon />
-              </button>
+      </ContextMenu>
+      <div className={ui()}>
+        {isFocusMode ? (
+          <div className={unfocusButton()}>
+            <button className={iconButton({ bp: breakpoints })} onClick={tlstate.toggleFocusMode}>
+              <DotFilledIcon />
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className={menuButtons()}>
+              {showMenu && <Menu />}
+              {showPages && <PagePanel />}
             </div>
-          ) : (
-            <>
-              <div className={menuButtons()}>
-                {showMenu && <Menu />}
-                {showPages && <PagePanel />}
-              </div>
-              <div className={spacer()} />
-              <StylePanel />
-              <ToolsPanel />
-            </>
-          )}
-        </div>
+            <div className={spacer()} />
+            <StylePanel />
+            <ToolsPanel />
+          </>
+        )}
       </div>
     </div>
   )
