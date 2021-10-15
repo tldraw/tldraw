@@ -19,7 +19,7 @@ import { Menu } from '~components/menu'
 import { breakpoints, iconButton } from '~components'
 import { DotFilledIcon } from '@radix-ui/react-icons'
 import { TLDR } from '~state/tldr'
-import { ContextMenu } from '@radix-ui/react-context-menu'
+import { ContextMenu } from '~components/context-menu'
 
 // Selectors
 const isInSelectSelector = (s: Data) => s.appState.activeTool === 'select'
