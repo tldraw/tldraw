@@ -78,17 +78,25 @@ export class SelectTool extends BaseTool {
 
     const shapes = this.state.selectedIds.map((id) => this.state.getShape(id))
 
-    const bounds = Utils.centerBounds(
-      Utils.expandBounds(Utils.getCommonBounds(shapes.map(TLDR.getBounds)), 32),
-      point
-    )
+    const bounds = Utils.expandBounds(Utils.getCommonBounds(shapes.map(TLDR.getBounds)), 16)
+
+    const center = Utils.getBoundsCenter(bounds)
+
+    const size = [bounds.width, bounds.height]
+
+    const gridPoint = [
+      center[0] + size[0] * Math.floor((point[0] + size[0] / 2 - center[0]) / size[0]),
+      center[1] + size[1] * Math.floor((point[1] + size[1] / 2 - center[1]) / size[1]),
+    ]
+
+    const centeredBounds = Utils.centerBounds(bounds, gridPoint)
 
     const hit = this.state.shapes.some((shape) =>
-      TLDR.getShapeUtils(shape).hitTestBounds(shape, bounds)
+      TLDR.getShapeUtils(shape).hitTestBounds(shape, centeredBounds)
     )
 
     if (!hit) {
-      this.state.duplicate(this.state.selectedIds, point)
+      this.state.duplicate(this.state.selectedIds, gridPoint)
     }
   }
 
