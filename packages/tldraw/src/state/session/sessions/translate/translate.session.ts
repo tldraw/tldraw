@@ -23,10 +23,12 @@ export class TranslateSession implements Session {
   origin: number[]
   snapshot: TranslateSnapshot
   isCloning = false
+  isCreate: boolean
 
-  constructor(data: Data, point: number[]) {
+  constructor(data: Data, point: number[], isCreate = false) {
     this.origin = point
     this.snapshot = getTranslateSnapshot(data)
+    this.isCreate = isCreate
   }
 
   start = (data: Data) => {
@@ -74,7 +76,7 @@ export class TranslateSession implements Session {
     this.prev = delta
 
     // If cloning...
-    if (altKey) {
+    if (!this.isCreate && altKey) {
       // Not Cloning -> Cloning
       if (!this.isCloning) {
         this.isCloning = true
@@ -199,21 +201,28 @@ export class TranslateSession implements Session {
 
     const nextBindings: Record<string, Partial<TLDrawBinding> | undefined> = {}
     const nextShapes: Record<string, Partial<TLDrawShape> | undefined> = {}
-    const nextPageState: Partial<TLPageState> = {}
+    const nextPageState: Partial<TLPageState> = {
+      editingId: undefined,
+      hoveredId: undefined,
+    }
 
     // Put back any deleted bindings
     bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = binding))
 
-    // Put initial shapes back to where they started
-    initialShapes.forEach(({ id, point }) => (nextShapes[id] = { ...nextShapes[id], point }))
+    if (this.isCreate) {
+      initialShapes.forEach(({ id }) => (nextShapes[id] = undefined))
+      nextPageState.selectedIds = []
+    } else {
+      // Put initial shapes back to where they started
+      initialShapes.forEach(({ id, point }) => (nextShapes[id] = { ...nextShapes[id], point }))
+      nextPageState.selectedIds = this.snapshot.selectedIds
+    }
 
     // Delete clones
     clones.forEach((clone) => (nextShapes[clone.id] = undefined))
 
     // Delete cloned bindings
     clonedBindings.forEach((binding) => (nextBindings[binding.id] = undefined))
-
-    nextPageState.selectedIds = this.snapshot.selectedIds
 
     return {
       document: {
@@ -270,10 +279,12 @@ export class TranslateSession implements Session {
     } else {
       // If we aren't cloning, then update the initial shapes
       initialShapes.forEach((shape) => {
-        beforeShapes[shape.id] = {
-          ...beforeShapes[shape.id],
-          point: shape.point,
-        }
+        beforeShapes[shape.id] = this.isCreate
+          ? undefined
+          : {
+              ...beforeShapes[shape.id],
+              point: shape.point,
+            }
 
         afterShapes[shape.id] = {
           ...afterShapes[shape.id],
@@ -327,7 +338,7 @@ export class TranslateSession implements Session {
           },
           pageStates: {
             [data.appState.currentPageId]: {
-              selectedIds: [...this.snapshot.selectedIds],
+              selectedIds: this.isCreate ? [] : [...this.snapshot.selectedIds],
             },
           },
         },

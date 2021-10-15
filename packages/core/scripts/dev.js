@@ -16,6 +16,7 @@ async function main() {
     tsconfig: './tsconfig.json',
     external: ['react', 'react-dom'],
     incremental: true,
+    sourcemap: true,
     watch: {
       onRebuild(error) {
         if (error) {

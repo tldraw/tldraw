@@ -155,3 +155,17 @@ describe('Arrow session', () => {
     it.todo('snaps the bend to zero when dragging the bend handle toward the center')
   })
 })
+
+describe('When creating with an arrow session', () => {
+  it('Deletes the shape on undo', () => {
+    const tlstate = new TLDrawState()
+      .createShapes({ type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] })
+      .select('arrow1')
+      .startSession(SessionType.Arrow, [200, 200], 'start', true)
+      .updateSession([55, 45])
+      .completeSession()
+      .undo()
+
+    expect(tlstate.getShape('arrow1')).toBe(undefined)
+  })
+})

@@ -193,7 +193,10 @@ export class DrawSession implements Session {
           pages: {
             [pageId]: {
               shapes: {
-                [shapeId]: TLDR.getShape(data, shapeId, pageId),
+                [shapeId]: {
+                  ...TLDR.getShape(data, shapeId, pageId),
+                  isComplete: true,
+                },
               },
             },
           },

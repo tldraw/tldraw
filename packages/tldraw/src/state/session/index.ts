@@ -10,6 +10,7 @@ import {
   TransformSession,
   TransformSingleSession,
   TranslateSession,
+  GridSession,
 } from './sessions'
 
 export interface SessionsMap {
@@ -21,6 +22,7 @@ export interface SessionsMap {
   [SessionType.Transform]: typeof TransformSession
   [SessionType.TransformSingle]: typeof TransformSingleSession
   [SessionType.Translate]: typeof TranslateSession
+  [SessionType.Grid]: typeof GridSession
 }
 
 export type SessionOfType<K extends SessionType> = SessionsMap[K]
@@ -36,6 +38,7 @@ export const sessions: { [K in SessionType]: SessionsMap[K] } = {
   [SessionType.Transform]: TransformSession,
   [SessionType.TransformSingle]: TransformSingleSession,
   [SessionType.Translate]: TranslateSession,
+  [SessionType.Grid]: GridSession,
 }
 
 export const getSession = <K extends SessionType>(type: K): SessionOfType<K> => {
