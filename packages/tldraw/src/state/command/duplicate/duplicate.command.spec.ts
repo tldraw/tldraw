@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import Utils from '~../../core/src/utils'
 import { TLDrawState } from '~state'
+import { TLDR } from '~state/tldr'
 import { mockDocument } from '~test'
 import { ArrowShape, SessionType, TLDrawShapeType } from '~types'
 
@@ -172,4 +174,32 @@ describe('Duplicate command', () => {
   })
 
   it.todo('Does not delete uneffected bindings.')
+})
+
+describe('when point-duplicating', () => {
+  it('duplicates without crashing', () => {
+    const tlstate = new TLDrawState()
+
+    tlstate
+      .loadDocument(mockDocument)
+      .group(['rect1', 'rect2'])
+      .selectAll()
+      .duplicate(tlstate.selectedIds, [200, 200])
+  })
+
+  it('duplicates in the correct place', () => {
+    const tlstate = new TLDrawState()
+
+    tlstate.loadDocument(mockDocument).group(['rect1', 'rect2']).selectAll()
+
+    const before = tlstate.shapes.map((shape) => shape.id)
+
+    tlstate.duplicate(tlstate.selectedIds, [200, 200])
+
+    const after = tlstate.shapes.filter((shape) => !before.includes(shape.id))
+
+    expect(
+      Utils.getBoundsCenter(Utils.getCommonBounds(after.map((shape) => TLDR.getBounds(shape))))
+    ).toStrictEqual([200, 200])
+  })
 })

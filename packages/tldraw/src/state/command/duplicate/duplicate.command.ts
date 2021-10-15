@@ -131,13 +131,16 @@ export function duplicate(data: Data, ids: string[], point?: number[]): TLDrawCo
     const commonBounds = Utils.getCommonBounds(shapesToMove.map((shape) => TLDR.getBounds(shape)))
     const center = Utils.getBoundsCenter(commonBounds)
     shapesToMove.forEach((shape) => {
+      // Could be a group
+      if (!shape.point) return
+
       shape.point = Vec.sub(point, Vec.sub(center, shape.point))
     })
-
-    // hmmm
   } else {
     const offset = [16, 16] // Vec.div([16, 16], data.document.pageStates[page.id].camera.zoom)
     shapesToMove.forEach((shape) => {
+      // Could be a group
+      if (!shape.point) return
       shape.point = Vec.add(shape.point, offset)
     })
   }
