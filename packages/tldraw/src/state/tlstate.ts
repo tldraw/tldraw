@@ -1660,40 +1660,10 @@ export class TLDrawState extends StateManager<Data> {
     if (!session) return this
     this.session = undefined
 
-    if (this.status === 'creating') {
-      return this.patchState(
-        {
-          document: {
-            pages: {
-              [this.currentPageId]: {
-                shapes: {
-                  ...Object.fromEntries(this.selectedIds.map((id) => [id, undefined])),
-                },
-              },
-            },
-            pageStates: {
-              [this.currentPageId]: {
-                selectedIds: [],
-                editingId: undefined,
-                bindingId: undefined,
-                hoveredId: undefined,
-              },
-            },
-          },
-        },
-        `session:cancel_create:${session.constructor.name}`
-      )
-    }
-
     const result = session.cancel(this.state)
 
     if (result) {
-      this.patchState(
-        {
-          ...session.cancel(this.state),
-        },
-        `session:cancel:${session.constructor.name}`
-      )
+      this.patchState(result, `session:cancel:${session.constructor.name}`)
     }
 
     return this
@@ -2021,9 +1991,9 @@ export class TLDrawState extends StateManager<Data> {
    * Duplicate one or more shapes.
    * @param ids The ids to duplicate (defaults to selection).
    */
-  duplicate = (ids = this.selectedIds): this => {
+  duplicate = (ids = this.selectedIds, point?: number[]): this => {
     if (ids.length === 0) return this
-    return this.setState(Commands.duplicate(this.state, ids))
+    return this.setState(Commands.duplicate(this.state, ids, point))
   }
 
   /**

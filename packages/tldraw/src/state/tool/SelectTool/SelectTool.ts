@@ -29,6 +29,7 @@ enum Status {
   Pinching = 'pinching',
   Brushing = 'brushing',
   GridCloning = 'gridCloning',
+  ClonePainting = 'clonePainting',
 }
 
 export class SelectTool extends BaseTool {
@@ -162,8 +163,7 @@ export class SelectTool extends BaseTool {
       return
     }
 
-    if (key === 'Meta' || key === 'Control') {
-      // TODO: Make all sessions have all of these arguments
+    if (key === 'Meta' || key === 'Control' || key === 'Alt') {
       this.state.updateSession(
         this.state.getPagePoint(info.point),
         info.shiftKey,
@@ -174,9 +174,7 @@ export class SelectTool extends BaseTool {
     }
   }
 
-  onKeyUp: TLKeyboardEventHandler = () => {
-    /* noop */
-  }
+  // Keyup is handled on BaseTool
 
   // Pointer Events (generic)
 
@@ -263,6 +261,29 @@ export class SelectTool extends BaseTool {
       return
     }
 
+    const { shapes, selectedIds, getShapeBounds } = this.state
+
+    if (info.shiftKey && info.altKey && selectedIds.length > 0) {
+      const point = this.state.getPagePoint(info.point)
+      const bounds = Utils.expandBounds(
+        Utils.getCommonBounds(selectedIds.map((id) => getShapeBounds(id))),
+        32
+      )
+      const centeredBounds = Utils.centerBounds(bounds, point)
+
+      if (!shapes.some((shape) => TLDR.getShapeUtils(shape).hitTestBounds(shape, centeredBounds))) {
+        this.state.duplicate(this.state.selectedIds, point)
+      }
+
+      if (this.status === Status.Idle) {
+        this.setStatus(Status.ClonePainting)
+      }
+
+      return
+    } else if (this.status === Status.ClonePainting) {
+      this.setStatus(Status.Idle)
+    }
+
     if (this.state.session) {
       return this.state.updateSession(
         this.state.getPagePoint(info.point),
@@ -335,10 +356,16 @@ export class SelectTool extends BaseTool {
   onPointCanvas: TLCanvasEventHandler = (info) => {
     // Unless the user is holding shift or meta, clear the current selection
     if (!info.shiftKey) {
-      this.deselectAll()
       if (this.state.pageState.editingId) {
         this.state.setEditingId()
       }
+
+      if (info.altKey && this.state.selectedIds.length > 0) {
+        this.state.duplicate(this.state.selectedIds, this.state.getPagePoint(info.point))
+        return
+      }
+
+      this.deselectAll()
     }
 
     this.setStatus(Status.PointingCanvas)

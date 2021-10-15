@@ -2,14 +2,12 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/tldr'
-import type { Data, PagePartial, TLDrawCommand } from '~types'
+import type { Data, PagePartial, TLDrawCommand, TLDrawShape } from '~types'
 
-export function duplicate(data: Data, ids: string[]): TLDrawCommand {
+export function duplicate(data: Data, ids: string[], point?: number[]): TLDrawCommand {
   const { currentPageId } = data.appState
 
   const page = TLDR.getPage(data, currentPageId)
-
-  const delta = Vec.div([16, 16], TLDR.getCamera(data, currentPageId).zoom)
 
   const before: PagePartial = {
     shapes: {},
@@ -37,7 +35,6 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
       after.shapes[duplicatedId] = {
         ...Utils.deepClone(shape),
         id: duplicatedId,
-        point: Vec.round(Vec.add(shape.point, delta)),
         childIndex: TLDR.getChildIndexAbove(data, shape.id, currentPageId),
       }
 
@@ -74,7 +71,6 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
           ...Utils.deepClone(child),
           id: duplicatedId,
           parentId: duplicatedParentId,
-          point: Vec.round(Vec.add(child.point, delta)),
           childIndex: TLDR.getChildIndexAbove(data, child.id, currentPageId),
         }
         duplicateMap[childId] = duplicatedId
@@ -126,6 +122,28 @@ export function duplicate(data: Data, ids: string[]): TLDrawCommand {
         }
       }
     })
+
+  // Now move the shapes
+
+  const shapesToMove = Object.values(after.shapes) as TLDrawShape[]
+
+  if (point) {
+    const commonBounds = Utils.getCommonBounds(shapesToMove.map((shape) => TLDR.getBounds(shape)))
+    const center = Utils.getBoundsCenter(commonBounds)
+    shapesToMove.forEach((shape) => {
+      // Could be a group
+      if (!shape.point) return
+
+      shape.point = Vec.sub(point, Vec.sub(center, shape.point))
+    })
+  } else {
+    const offset = [16, 16] // Vec.div([16, 16], data.document.pageStates[page.id].camera.zoom)
+    shapesToMove.forEach((shape) => {
+      // Could be a group
+      if (!shape.point) return
+      shape.point = Vec.add(shape.point, offset)
+    })
+  }
 
   return {
     id: 'duplicate',

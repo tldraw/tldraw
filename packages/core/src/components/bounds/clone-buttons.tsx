@@ -13,6 +13,10 @@ export function CloneButtons({ bounds }: CloneButtonsProps) {
       <CloneButton bounds={bounds} side="right" />
       <CloneButton bounds={bounds} side="bottom" />
       <CloneButton bounds={bounds} side="left" />
+      <CloneButton bounds={bounds} side="topLeft" />
+      <CloneButton bounds={bounds} side="topRight" />
+      <CloneButton bounds={bounds} side="bottomLeft" />
+      <CloneButton bounds={bounds} side="bottomRight" />
     </>
   )
 }

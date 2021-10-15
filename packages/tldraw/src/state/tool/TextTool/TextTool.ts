@@ -68,6 +68,10 @@ export class TextTool extends BaseTool {
 
   /* ----------------- Event Handlers ----------------- */
 
+  onKeyUp = () => void null
+
+  onKeyDown = () => void null
+
   onPointerDown: TLPointerEventHandler = (info) => {
     if (this.status === Status.Idle) {
       const pagePoint = Vec.round(this.state.getPagePoint(info.point))

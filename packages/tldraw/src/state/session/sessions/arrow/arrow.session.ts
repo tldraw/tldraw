@@ -238,7 +238,14 @@ export class ArrowSession implements Session {
   }
 
   cancel = (data: Data) => {
-    const { initialShape, newBindingId } = this
+    const { initialShape, initialBinding, newBindingId } = this
+
+    const afterBindings: Record<string, TLDrawBinding | undefined> = {}
+
+    afterBindings[newBindingId] = undefined
+    if (initialBinding) {
+      afterBindings[initialBinding.id] = initialBinding
+    }
 
     return {
       document: {
@@ -247,9 +254,7 @@ export class ArrowSession implements Session {
             shapes: {
               [initialShape.id]: this.isCreate ? undefined : initialShape,
             },
-            bindings: {
-              [newBindingId]: undefined,
-            },
+            bindings: afterBindings,
           },
         },
         pageStates: {
