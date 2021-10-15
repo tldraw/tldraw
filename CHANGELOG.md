@@ -1,3 +1,15 @@
+## 0.0.116
+
+### Core
+
+- Improves rendering on Safari.
+
+### TLDraw
+
+- Improves rendering on Safari.
+- Minor bug fixes around selection.
+- Fixes bug when undoing a newly created shape.
+
 ## 0.0.115
 
 ### Core
