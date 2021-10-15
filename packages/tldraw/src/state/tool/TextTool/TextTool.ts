@@ -1,5 +1,5 @@
 import Vec from '@tldraw/vec'
-import { Utils, TLPointerEventHandler } from '@tldraw/core'
+import { Utils, TLPointerEventHandler, TLKeyboardEventHandler } from '@tldraw/core'
 import { Text } from '~shape/shapes'
 import { TLDrawShapeType } from '~types'
 import { BaseTool } from '../BaseTool'
@@ -68,9 +68,13 @@ export class TextTool extends BaseTool {
 
   /* ----------------- Event Handlers ----------------- */
 
-  onKeyUp = () => void null
+  onKeyUp: TLKeyboardEventHandler = (key, info) => {
+    // noop
+  }
 
-  onKeyDown = () => void null
+  onKeyDown: TLKeyboardEventHandler = (key, info) => {
+    // noop
+  }
 
   onPointerDown: TLPointerEventHandler = (info) => {
     if (this.status === Status.Idle) {
