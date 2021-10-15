@@ -265,7 +265,10 @@ export class SelectTool extends BaseTool {
 
     if (info.shiftKey && info.altKey && selectedIds.length > 0) {
       const point = this.state.getPagePoint(info.point)
-      const bounds = Utils.getCommonBounds(selectedIds.map((id) => getShapeBounds(id)))
+      const bounds = Utils.expandBounds(
+        Utils.getCommonBounds(selectedIds.map((id) => getShapeBounds(id))),
+        32
+      )
       const centeredBounds = Utils.centerBounds(bounds, point)
 
       if (!shapes.some((shape) => TLDR.getShapeUtils(shape).hitTestBounds(shape, centeredBounds))) {
