@@ -95,9 +95,12 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
 
     const handleKeyDown = React.useCallback(
       (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Escape') return
-
         e.stopPropagation()
+
+        if (e.key === 'Escape' || (e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
+          e.currentTarget.blur()
+          return
+        }
 
         if (e.key === 'Tab') {
           e.preventDefault()

@@ -54,7 +54,7 @@ interface ContextMenuProps {
   children: React.ReactNode
 }
 
-export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Element => {
+export const ContextMenu = ({ children }: ContextMenuProps): JSX.Element => {
   const { tlstate, useSelector } = useTLDrawContext()
   const hasSelection = useSelector(has1SelectedIdsSelector)
   const hasTwoOrMore = useSelector(has2SelectedIdsSelector)
@@ -225,7 +225,7 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
       </RadixContextMenu.Content>
     </ContextMenuRoot>
   )
-})
+}
 
 function AlignDistributeSubMenu({
   hasThreeOrMore,
@@ -305,7 +305,6 @@ function AlignDistributeSubMenu({
             <SpaceEvenlyHorizontallyIcon />
           </ContextMenuIconButton>
         )}
-
         <ContextMenuIconButton onSelect={alignTop}>
           <AlignTopIcon />
         </ContextMenuIconButton>

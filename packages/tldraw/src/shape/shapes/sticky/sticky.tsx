@@ -21,7 +21,7 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
 
   showBounds: false,
 
-  isStateful: true,
+  isStateful: false,
 
   canBind: true,
 
