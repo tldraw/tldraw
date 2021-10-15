@@ -30,6 +30,7 @@ enum Status {
   Brushing = 'brushing',
   GridCloning = 'gridCloning',
   ClonePainting = 'clonePainting',
+  SpacePanning = 'spacePanning',
 }
 
 export class SelectTool extends BaseTool {
@@ -70,6 +71,33 @@ export class SelectTool extends BaseTool {
 
   onExit = () => {
     this.setStatus(Status.Idle)
+  }
+
+  clonePaint = (point: number[]) => {
+    if (this.state.selectedIds.length === 0) return
+
+    const shapes = this.state.selectedIds.map((id) => this.state.getShape(id))
+
+    const bounds = Utils.expandBounds(Utils.getCommonBounds(shapes.map(TLDR.getBounds)), 16)
+
+    const center = Utils.getBoundsCenter(bounds)
+
+    const size = [bounds.width, bounds.height]
+
+    const gridPoint = [
+      center[0] + size[0] * Math.floor((point[0] + size[0] / 2 - center[0]) / size[0]),
+      center[1] + size[1] * Math.floor((point[1] + size[1] / 2 - center[1]) / size[1]),
+    ]
+
+    const centeredBounds = Utils.centerBounds(bounds, gridPoint)
+
+    const hit = this.state.shapes.some((shape) =>
+      TLDR.getShapeUtils(shape).hitTestBounds(shape, centeredBounds)
+    )
+
+    if (!hit) {
+      this.state.duplicate(this.state.selectedIds, gridPoint)
+    }
   }
 
   getShapeClone = (
@@ -145,6 +173,10 @@ export class SelectTool extends BaseTool {
       return
     }
 
+    if (key === ' ' && this.status === Status.Idle) {
+      this.setStatus(Status.SpacePanning)
+    }
+
     if (key === 'Tab') {
       if (this.status === Status.Idle && this.state.selectedIds.length === 1) {
         const [selectedId] = this.state.selectedIds
@@ -174,6 +206,29 @@ export class SelectTool extends BaseTool {
     }
   }
 
+  onKeyUp: TLKeyboardEventHandler = (key, info) => {
+    if (this.status === Status.ClonePainting && !(info.altKey && info.shiftKey)) {
+      this.setStatus(Status.Idle)
+      return
+    }
+
+    if (this.status === Status.SpacePanning && key === ' ') {
+      this.setStatus(Status.Idle)
+      return
+    }
+
+    /* noop */
+    if (key === 'Meta' || key === 'Control' || key === 'Alt') {
+      this.state.updateSession(
+        this.state.getPagePoint(info.point),
+        info.shiftKey,
+        info.altKey,
+        info.metaKey
+      )
+      return
+    }
+  }
+
   // Keyup is handled on BaseTool
 
   // Pointer Events (generic)
@@ -181,7 +236,7 @@ export class SelectTool extends BaseTool {
   onPointerMove: TLPointerEventHandler = (info, e) => {
     const point = this.state.getPagePoint(info.origin)
 
-    if (info.spaceKey && e.buttons === 1) {
+    if (this.status === Status.SpacePanning && e.buttons === 1) {
       this.state.onPan?.({ ...info, delta: Vec.neg(info.delta) }, e as unknown as WheelEvent)
       return
     }
@@ -261,29 +316,6 @@ export class SelectTool extends BaseTool {
       return
     }
 
-    const { shapes, selectedIds, getShapeBounds } = this.state
-
-    if (info.shiftKey && info.altKey && selectedIds.length > 0) {
-      const point = this.state.getPagePoint(info.point)
-      const bounds = Utils.expandBounds(
-        Utils.getCommonBounds(selectedIds.map((id) => getShapeBounds(id))),
-        32
-      )
-      const centeredBounds = Utils.centerBounds(bounds, point)
-
-      if (!shapes.some((shape) => TLDR.getShapeUtils(shape).hitTestBounds(shape, centeredBounds))) {
-        this.state.duplicate(this.state.selectedIds, point)
-      }
-
-      if (this.status === Status.Idle) {
-        this.setStatus(Status.ClonePainting)
-      }
-
-      return
-    } else if (this.status === Status.ClonePainting) {
-      this.setStatus(Status.Idle)
-    }
-
     if (this.state.session) {
       return this.state.updateSession(
         this.state.getPagePoint(info.point),
@@ -291,6 +323,11 @@ export class SelectTool extends BaseTool {
         info.altKey,
         info.metaKey
       )
+    }
+
+    if (this.status === Status.ClonePainting) {
+      const point = this.state.getPagePoint(info.point)
+      this.clonePaint(point)
     }
 
     return
@@ -353,7 +390,18 @@ export class SelectTool extends BaseTool {
 
   // Canvas
 
-  onPointCanvas: TLCanvasEventHandler = (info) => {
+  onPointCanvas: TLCanvasEventHandler = (info, e) => {
+    if (info.spaceKey && e.buttons === 1) {
+      return
+    }
+
+    if (this.status === Status.Idle && info.altKey && info.shiftKey) {
+      this.setStatus(Status.ClonePainting)
+      const point = this.state.getPagePoint(info.point)
+      this.clonePaint(point)
+      return
+    }
+
     // Unless the user is holding shift or meta, clear the current selection
     if (!info.shiftKey) {
       if (this.state.pageState.editingId) {
@@ -381,7 +429,11 @@ export class SelectTool extends BaseTool {
 
   // Shape
 
-  onPointShape: TLPointerEventHandler = (info) => {
+  onPointShape: TLPointerEventHandler = (info, e) => {
+    if (info.spaceKey && e.buttons === 1) {
+      return
+    }
+
     const { hoveredId } = this.state.pageState
 
     // While holding command and shift, select or deselect
