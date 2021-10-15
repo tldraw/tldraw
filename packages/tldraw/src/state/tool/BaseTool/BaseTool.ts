@@ -52,10 +52,6 @@ export abstract class BaseTool {
     }
   }
 
-  // Keyboard events
-  onKeyDown?: TLKeyboardEventHandler
-  onKeyUp?: TLKeyboardEventHandler
-
   // Camera Events
   onPan?: TLWheelEventHandler
   onZoom?: TLWheelEventHandler
@@ -130,5 +126,33 @@ export abstract class BaseTool {
     if (this.status !== 'pinching') return
     this.state.pinchZoom(info.point, info.delta, info.delta[2])
     this.onPointerMove?.(info, e as unknown as React.PointerEvent)
+  }
+
+  /* ---------------------- Keys ---------------------- */
+
+  onKeyDown: TLKeyboardEventHandler = (key, info) => {
+    /* noop */
+    if (key === 'Meta' || key === 'Control' || key === 'Alt') {
+      this.state.updateSession(
+        this.state.getPagePoint(info.point),
+        info.shiftKey,
+        info.altKey,
+        info.metaKey
+      )
+      return
+    }
+  }
+
+  onKeyUp: TLKeyboardEventHandler = (key, info) => {
+    /* noop */
+    if (key === 'Meta' || key === 'Control' || key === 'Alt') {
+      this.state.updateSession(
+        this.state.getPagePoint(info.point),
+        info.shiftKey,
+        info.altKey,
+        info.metaKey
+      )
+      return
+    }
   }
 }

@@ -162,8 +162,7 @@ export class SelectTool extends BaseTool {
       return
     }
 
-    if (key === 'Meta' || key === 'Control') {
-      // TODO: Make all sessions have all of these arguments
+    if (key === 'Meta' || key === 'Control' || key === 'Alt') {
       this.state.updateSession(
         this.state.getPagePoint(info.point),
         info.shiftKey,
@@ -174,9 +173,7 @@ export class SelectTool extends BaseTool {
     }
   }
 
-  onKeyUp: TLKeyboardEventHandler = () => {
-    /* noop */
-  }
+  // Keyup is handled on BaseTool
 
   // Pointer Events (generic)
 

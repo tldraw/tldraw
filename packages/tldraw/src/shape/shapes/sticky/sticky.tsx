@@ -163,7 +163,7 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
         onShapeChange?.({ id: shape.id, size: [size[0], MIN_CONTAINER_HEIGHT] })
         return
       }
-    }, [shape.text, shape.size[1]])
+    }, [shape.text, shape.size[1], shape.style])
 
     const style = {
       font,
