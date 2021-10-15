@@ -21,16 +21,17 @@ export function useCameraCss(
     rPoint.current = point
 
     if (didZoom || didPan) {
+      const layer = layerRef.current
+      const container = containerRef.current
+
       // If we zoomed, set the CSS variable for the zoom
       if (didZoom) {
-        const container = containerRef.current
         if (container) {
           container.style.setProperty('--tl-zoom', zoom.toString())
         }
       }
 
       // Either way, position the layer
-      const layer = layerRef.current
       if (layer) {
         layer.style.setProperty(
           'transform',

@@ -40,21 +40,21 @@ export const Menu = React.memo(() => {
   return (
     <div className={floatingContainer()}>
       <DropdownMenuRoot>
-        <DropdownMenu.Trigger className={iconButton({ bp: breakpoints })}>
+        <DropdownMenu.Trigger dir="ltr" className={iconButton({ bp: breakpoints })}>
           <HamburgerMenuIcon />
         </DropdownMenu.Trigger>
-        <DropdownMenu.Content className={menuContent()} sideOffset={8} align="end">
+        <DropdownMenu.Content dir="ltr" className={menuContent()} sideOffset={8} align="end">
           <DropdownMenuButton onSelect={handleNew}>
             <span>New Project</span>
             <Kbd variant="menu">#N</Kbd>
           </DropdownMenuButton>
-          <DropdownMenuDivider />
+          <DropdownMenuDivider dir="ltr" />
           <DropdownMenuButton disabled onSelect={handleLoad}>
             <span>Open...</span>
             <Kbd variant="menu">#L</Kbd>
           </DropdownMenuButton>
           <RecentFiles />
-          <DropdownMenuDivider />
+          <DropdownMenuDivider dir="ltr" />
           <DropdownMenuButton disabled onSelect={handleSave}>
             <span>Save</span>
             <Kbd variant="menu">#S</Kbd>
@@ -63,9 +63,9 @@ export const Menu = React.memo(() => {
             <span>Save As...</span>
             <Kbd variant="menu">⇧#S</Kbd>
           </DropdownMenuButton>
-          <DropdownMenuDivider />
+          <DropdownMenuDivider dir="ltr" />
           <Preferences />
-          <DropdownMenuDivider />
+          <DropdownMenuDivider dir="ltr" />
           <DropdownMenuButton disabled onSelect={handleSignOut}>
             <span>Sign Out</span>
             <div className={iconWrapper({ size: 'small' })}>
