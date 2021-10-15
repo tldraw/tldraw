@@ -29,6 +29,7 @@ enum Status {
   Pinching = 'pinching',
   Brushing = 'brushing',
   GridCloning = 'gridCloning',
+  ClonePainting = 'clonePainting',
 }
 
 export class SelectTool extends BaseTool {
@@ -260,6 +261,26 @@ export class SelectTool extends BaseTool {
       return
     }
 
+    const { shapes, selectedIds, getShapeBounds } = this.state
+
+    if (info.shiftKey && info.altKey && selectedIds.length > 0) {
+      const point = this.state.getPagePoint(info.point)
+      const bounds = Utils.getCommonBounds(selectedIds.map((id) => getShapeBounds(id)))
+      const centeredBounds = Utils.centerBounds(bounds, point)
+
+      if (!shapes.some((shape) => TLDR.getShapeUtils(shape).hitTestBounds(shape, centeredBounds))) {
+        this.state.duplicate(this.state.selectedIds, point)
+      }
+
+      if (this.status === Status.Idle) {
+        this.setStatus(Status.ClonePainting)
+      }
+
+      return
+    } else if (this.status === Status.ClonePainting) {
+      this.setStatus(Status.Idle)
+    }
+
     if (this.state.session) {
       return this.state.updateSession(
         this.state.getPagePoint(info.point),
@@ -267,19 +288,6 @@ export class SelectTool extends BaseTool {
         info.altKey,
         info.metaKey
       )
-    } else {
-      const { shapes, selectedIds, getShapeBounds } = this.state
-      if (info.shiftKey && info.altKey && selectedIds.length > 0) {
-        const point = this.state.getPagePoint(info.point)
-        const bounds = Utils.getCommonBounds(selectedIds.map((id) => getShapeBounds(id)))
-        const centeredBounds = Utils.centerBounds(bounds, point)
-        if (
-          !shapes.some((shape) => TLDR.getShapeUtils(shape).hitTestBounds(shape, centeredBounds))
-        ) {
-          this.state.duplicate(this.state.selectedIds, point)
-        }
-        return
-      }
     }
 
     return
