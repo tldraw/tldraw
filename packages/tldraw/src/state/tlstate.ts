@@ -1991,9 +1991,9 @@ export class TLDrawState extends StateManager<Data> {
    * Duplicate one or more shapes.
    * @param ids The ids to duplicate (defaults to selection).
    */
-  duplicate = (ids = this.selectedIds): this => {
+  duplicate = (ids = this.selectedIds, point?: number[]): this => {
     if (ids.length === 0) return this
-    return this.setState(Commands.duplicate(this.state, ids))
+    return this.setState(Commands.duplicate(this.state, ids, point))
   }
 
   /**

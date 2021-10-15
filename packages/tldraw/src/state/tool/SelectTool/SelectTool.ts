@@ -267,6 +267,19 @@ export class SelectTool extends BaseTool {
         info.altKey,
         info.metaKey
       )
+    } else {
+      const { shapes, selectedIds, getShapeBounds } = this.state
+      if (info.shiftKey && info.altKey && selectedIds.length > 0) {
+        const point = this.state.getPagePoint(info.point)
+        const bounds = Utils.getCommonBounds(selectedIds.map((id) => getShapeBounds(id)))
+        const centeredBounds = Utils.centerBounds(bounds, point)
+        if (
+          !shapes.some((shape) => TLDR.getShapeUtils(shape).hitTestBounds(shape, centeredBounds))
+        ) {
+          this.state.duplicate(this.state.selectedIds, point)
+        }
+        return
+      }
     }
 
     return
@@ -332,10 +345,16 @@ export class SelectTool extends BaseTool {
   onPointCanvas: TLCanvasEventHandler = (info) => {
     // Unless the user is holding shift or meta, clear the current selection
     if (!info.shiftKey) {
-      this.deselectAll()
       if (this.state.pageState.editingId) {
         this.state.setEditingId()
       }
+
+      if (info.altKey && this.state.selectedIds.length > 0) {
+        this.state.duplicate(this.state.selectedIds, this.state.getPagePoint(info.point))
+        return
+      }
+
+      this.deselectAll()
     }
 
     this.setStatus(Status.PointingCanvas)
