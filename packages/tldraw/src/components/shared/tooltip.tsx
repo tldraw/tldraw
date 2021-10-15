@@ -22,7 +22,9 @@ export function Tooltip({
 }: TooltipProps): JSX.Element {
   return (
     <RadixTooltip.Root>
-      <RadixTooltip.Trigger as="span">{children}</RadixTooltip.Trigger>
+      <RadixTooltip.Trigger asChild={true}>
+        <span>{children}</span>
+      </RadixTooltip.Trigger>
       <RadixTooltip.Content className={content()} side={side} sideOffset={8}>
         {label}
         {kbdProp ? <Kbd variant="tooltip">{kbdProp}</Kbd> : null}
@@ -31,6 +33,12 @@ export function Tooltip({
     </RadixTooltip.Root>
   )
 }
+
+const button = css({
+  border: 'none',
+  background: 'none',
+  padding: 0,
+})
 
 const content = css({
   borderRadius: 3,

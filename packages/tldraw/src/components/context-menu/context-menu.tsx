@@ -126,8 +126,8 @@ export const ContextMenu = React.memo(({ children }: ContextMenuProps): JSX.Elem
 
   return (
     <ContextMenuRoot>
-      <RadixContextMenu.Trigger>{children}</RadixContextMenu.Trigger>
-      <RadixContextMenu.Content className={menuContent()} ref={rContent}>
+      <RadixContextMenu.Trigger dir="ltr">{children}</RadixContextMenu.Trigger>
+      <RadixContextMenu.Content dir="ltr" className={menuContent()} ref={rContent}>
         {hasSelection ? (
           <>
             <ContextMenuButton onSelect={handleFlipHorizontal}>
