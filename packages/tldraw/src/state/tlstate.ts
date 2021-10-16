@@ -324,25 +324,30 @@ export class TLDrawState extends StateManager<Data> {
 
     const currentPageId = data.appState.currentPageId
 
-    // Remove any exited users
-    if (data.room !== prev.room) {
-      Object.values(prev.room.users).forEach((user) => {
-        if (data.room.users[user.id] === undefined) {
-          delete data.room.users[user.id]
-        }
-      })
-    }
-
     const currentPage = data.document.pages[currentPageId]
+
     const currentPageState = data.document.pageStates[currentPageId]
 
-    // Update the room presence selected ids
-    data.room.users[data.room.userId].selectedIds = currentPageState.selectedIds
+    if (data.room && prev.room && data.room !== prev.room) {
+      const room = { ...data.room, users: { ...data.room.users } }
 
-    // Update the room presence active shapes
-    data.room.users[data.room.userId].activeShapes = currentPageState.selectedIds.map(
-      (id) => currentPage.shapes[id]
-    )
+      // Remove any exited users
+      Object.values(prev.room.users).forEach((user) => {
+        if (room.users[user.id] === undefined) {
+          delete room.users[user.id]
+        }
+      })
+
+      // Update the room presence selected ids
+      // Update the room presence active shapes
+      room.users[room.userId] = {
+        ...room.users[room.userId],
+        selectedIds: currentPageState.selectedIds,
+        activeShapes: currentPageState.selectedIds.map((id) => currentPage.shapes[id]),
+      }
+
+      data.room = room
+    }
 
     // Apply selected style change, if any
 
@@ -1515,29 +1520,47 @@ export class TLDrawState extends StateManager<Data> {
   private setSelectedIds = (ids: string[], push = false): this => {
     const nextIds = push ? [...this.pageState.selectedIds, ...ids] : [...ids]
 
-    return this.patchState(
-      {
-        appState: {
-          activeTool: 'select',
-        },
-        document: {
-          pageStates: {
-            [this.currentPageId]: {
-              selectedIds: nextIds,
+    if (this.currentUser) {
+      return this.patchState(
+        {
+          appState: {
+            activeTool: 'select',
+          },
+          document: {
+            pageStates: {
+              [this.currentPageId]: {
+                selectedIds: nextIds,
+              },
+            },
+          },
+          room: {
+            users: {
+              [this.currentUser.id]: {
+                ...this.currentUser,
+                selectedIds: nextIds,
+              },
             },
           },
         },
-        room: {
-          users: {
-            [this.currentUser.id]: {
-              ...this.currentUser,
-              selectedIds: nextIds,
+        `selected`
+      )
+    } else {
+      return this.patchState(
+        {
+          appState: {
+            activeTool: 'select',
+          },
+          document: {
+            pageStates: {
+              [this.currentPageId]: {
+                selectedIds: nextIds,
+              },
             },
           },
         },
-      },
-      `selected`
-    )
+        `selected`
+      )
+    }
   }
 
   /**
@@ -2373,6 +2396,7 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   get currentUser() {
+    if (!this.state.room) return
     return this.state.room.users[this.state.room.userId]
   }
 

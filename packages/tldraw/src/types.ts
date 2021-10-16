@@ -65,7 +65,7 @@ export interface Data {
     status: string
   }
   document: TLDrawDocument
-  room: {
+  room?: {
     id: string
     userId: string
     users: Record<string, TLDrawUser>
