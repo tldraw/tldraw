@@ -106,6 +106,11 @@ export class TransformSession implements Session {
             shapes,
           },
         },
+        pageStates: {
+          [data.appState.currentPageId]: {
+            selectedIds: this.isCreate ? [] : shapeBounds.map((shape) => shape.id),
+          },
+        },
       },
     }
   }
