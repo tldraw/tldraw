@@ -9,7 +9,7 @@
 - Fixes bugs in text, arrows, stickies.
 - Adds start binding for new arrows.
 - Adds copy painting (alt + shift + drag).
-- Adds side clonig.
+- Adds side cloning.
 - Adds clone dragging.
 
 ## 0.0.116
