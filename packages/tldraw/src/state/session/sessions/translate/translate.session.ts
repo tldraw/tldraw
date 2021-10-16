@@ -328,8 +328,6 @@ export class TranslateSession implements Session {
       }
     })
 
-    console.log(afterShapes)
-
     return {
       id: 'translate',
       before: {
