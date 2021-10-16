@@ -66,23 +66,26 @@ function TLDrawWrapper() {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     window.tlstate = tlstate
+
+    tlstate.loadRoom(ROOM_ID)
+
     setTlstate(tlstate)
   }, [])
 
   const handleChange = React.useCallback(
     (_tlstate: TLDrawState, state: Data, reason: string) => {
       // If the client updates its document, update the room's document
-      if (reason.startsWith('command')) {
+      if (reason.startsWith('command') || reason.startsWith('undo') || reason.startsWith('redo')) {
         doc?.update({ uuid: docId, document: state.document })
       }
 
       // When the client updates its presence, update the room
-      if (state.room && (reason === 'patch:room:self:update' || reason === 'patch:selected')) {
-        const room = client.getRoom(ROOM_ID)
-        if (!room) return
-        const { userId, users } = state.room
-        room.updatePresence({ id: userId, user: users[userId] })
-      }
+      // if (state.room && (reason === 'patch:room:self:update' || reason === 'patch:selected')) {
+      //   const room = client.getRoom(ROOM_ID)
+      //   if (!room) return
+      //   const { userId, users } = state.room
+      //   room.updatePresence({ id: userId, user: users[userId] })
+      // }
     },
     [docId, doc]
   )
@@ -93,9 +96,11 @@ function TLDrawWrapper() {
     if (!room) return
     if (!doc) return
     if (!tlstate) return
+    if (!tlstate.state.room) return
 
     // Update the user's presence with the user from state
     const { users, userId } = tlstate.state.room
+
     room.updatePresence({ id: userId, user: users[userId] })
 
     // Subscribe to presence changes; when others change, update the state
@@ -118,6 +123,7 @@ function TLDrawWrapper() {
     function handleDocumentUpdates() {
       if (!doc) return
       if (!tlstate) return
+      if (!tlstate.state.room) return
 
       const docObject = doc.toObject()
 
@@ -127,13 +133,13 @@ function TLDrawWrapper() {
       } else {
         tlstate.updateUsers(
           Object.values(tlstate.state.room.users).map((user) => {
-            const activeShapes = user.activeShapes
-              .map((shape) => docObject.document.pages[tlstate.currentPageId].shapes[shape.id])
-              .filter(Boolean)
+            // const activeShapes = user.activeShapes
+            //   .map((shape) => docObject.document.pages[tlstate.currentPageId].shapes[shape.id])
+            //   .filter(Boolean)
             return {
               ...user,
-              activeShapes: activeShapes,
-              selectedIds: activeShapes.map((shape) => shape.id),
+              // activeShapes: activeShapes,
+              selectedIds: user.selectedIds, // activeShapes.map((shape) => shape.id),
             }
           })
         )
@@ -141,7 +147,8 @@ function TLDrawWrapper() {
     }
 
     function handleExit() {
-      room?.broadcastEvent({ name: 'exit', userId: tlstate?.state.room.userId })
+      if (!(tlstate && tlstate.state.room)) return
+      room?.broadcastEvent({ name: 'exit', userId: tlstate.state.room.userId })
     }
 
     window.addEventListener('beforeunload', handleExit)
@@ -158,13 +165,26 @@ function TLDrawWrapper() {
     }
   }, [doc, docId, tlstate])
 
+  const handleUserChange = React.useCallback(
+    (tlstate: TLDrawState, user: TLDrawUser) => {
+      const room = client.getRoom(ROOM_ID)
+      room?.updatePresence({ id: tlstate.state.room?.userId, user })
+    },
+    [client]
+  )
+
   if (error) return <div>Error: {error.message}</div>
 
   if (doc === null) return <div>Loading...</div>
 
   return (
     <div className="tldraw">
-      <TLDraw onChange={handleChange} onMount={handleMount} showPages={false} />
+      <TLDraw
+        onMount={handleMount}
+        onChange={handleChange}
+        onUserChange={handleUserChange}
+        showPages={false}
+      />
     </div>
   )
 }
