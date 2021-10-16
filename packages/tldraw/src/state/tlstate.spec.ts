@@ -2,6 +2,7 @@
 import { TLDrawState } from './tlstate'
 import { mockDocument, TLStateUtils } from '~test'
 import { ArrowShape, ColorStyle, SessionType, TLDrawShapeType } from '~types'
+import * as idb from 'idb-keyval'
 import type { SelectTool } from './tool/SelectTool'
 
 describe('TLDrawState', () => {
@@ -589,4 +590,43 @@ describe('TLDrawState', () => {
     call `replaceDocument`, which does a harder reset of the state's
     internal state.
   */
+
+  jest.setTimeout(10000)
+
+  describe('When changing versions', () => {
+    it('migrates correctly', (done) => {
+      const defaultState = TLDrawState.defaultState
+      const withoutRoom = {
+        ...defaultState,
+      }
+
+      delete withoutRoom.room
+
+      TLDrawState.defaultState = withoutRoom
+
+      const tlstate = new TLDrawState('migrate_1')
+
+      tlstate.createShapes({
+        id: 'rect1',
+        type: TLDrawShapeType.Rectangle,
+      })
+
+      setTimeout(() => {
+        // TODO: Force the version to change and restore room.
+        TLDrawState.version = 100
+        TLDrawState.defaultState.room = defaultState.room
+
+        const tlstate2 = new TLDrawState('migrate_1')
+
+        setTimeout(() => {
+          try {
+            expect(tlstate2.getShape('rect1')).toBeTruthy()
+            done()
+          } catch (e) {
+            done(e)
+          }
+        }, 100)
+      }, 100)
+    })
+  })
 })

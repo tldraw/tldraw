@@ -35,3 +35,7 @@ A cancel method is expected to revert any changes made to the state since the se
 A session may be cancelled using `TLDrawState.complete`. When a session is cancelled, `TLDrawState` calls the session's `complete` method passing in the state as the only parameter. If the `complete` method returns a patch, then that patch is applied to the state; if it returns a `command`, then that command is patched and added to the state's history.
 
 If the `complete` method returns a command, then it is expected that the command's `before` patch will revert any changes made to the state since the session began, including any changes introduced in the command's `after` patch.
+
+## Notes
+
+A session should always be cancelled by pressing escape.

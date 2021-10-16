@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { StateManager } from 'rko'
+import { Vec } from '@tldraw/vec'
 import {
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
@@ -14,7 +15,6 @@ import {
   TLBounds,
   Inputs,
 } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
 import {
   FlipType,
   TLDrawDocument,
@@ -45,69 +45,7 @@ import { sample, USER_COLORS } from './utils'
 import { createTools, ToolType } from './tool'
 import type { BaseTool } from './tool/BaseTool'
 
-const defaultDocument: TLDrawDocument = {
-  id: 'doc',
-  pages: {
-    page: {
-      id: 'page',
-      name: 'Page 1',
-      childIndex: 1,
-      shapes: {},
-      bindings: {},
-    },
-  },
-  pageStates: {
-    page: {
-      id: 'page',
-      selectedIds: [],
-      camera: {
-        point: [0, 0],
-        zoom: 1,
-      },
-    },
-  },
-}
-
 const uuid = Utils.uniqueId()
-
-const defaultState: Data = {
-  settings: {
-    isPenMode: false,
-    isDarkMode: false,
-    isZoomSnap: false,
-    isFocusMode: false,
-    isDebugMode: process.env.NODE_ENV === 'development',
-    isReadonlyMode: false,
-    nudgeDistanceLarge: 16,
-    nudgeDistanceSmall: 1,
-  },
-  appState: {
-    activeTool: 'select',
-    hoveredId: undefined,
-    currentPageId: 'page',
-    pages: [{ id: 'page', name: 'page', childIndex: 1 }],
-    currentStyle: defaultStyle,
-    selectedStyle: defaultStyle,
-    isToolLocked: false,
-    isStyleOpen: false,
-    isEmptyCanvas: false,
-    status: TLDrawStatus.Idle,
-  },
-  document: defaultDocument,
-  room: {
-    id: 'local',
-    userId: uuid,
-    users: {
-      [uuid]: {
-        id: uuid,
-        color: sample(USER_COLORS),
-        point: [100, 100],
-        selectedIds: [],
-        activeShapes: [],
-      },
-    },
-  },
-}
 
 export class TLDrawState extends StateManager<Data> {
   private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
@@ -153,10 +91,13 @@ export class TLDrawState extends StateManager<Data> {
     onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
     onMount?: (tlstate: TLDrawState) => void
   ) {
-    super(defaultState, id, 10, (next, prev) => ({
-      ...next,
-      document: { ...next.document, ...prev.document },
-    }))
+    super(TLDrawState.defaultState, id, TLDrawState.version, (prev, next) => {
+      console.log('Migrating to a new version.')
+      return {
+        ...next,
+        document: { ...next.document, ...prev.document },
+      }
+    })
 
     this._onChange = onChange
     this._onMount = onMount
@@ -167,11 +108,24 @@ export class TLDrawState extends StateManager<Data> {
   /* -------------------- Internal -------------------- */
 
   onReady = () => {
-    this.patchState({
-      appState: {
-        status: TLDrawStatus.Idle,
-      },
-    })
+    try {
+      this.patchState({
+        appState: {
+          status: TLDrawStatus.Idle,
+        },
+      })
+    } catch (e) {
+      console.error('The data appears to be corrupted. Resetting!', e)
+
+      this.patchState({
+        ...TLDrawState.defaultState,
+        appState: {
+          ...TLDrawState.defaultState.appState,
+          status: TLDrawStatus.Idle,
+        },
+      })
+    }
+
     this._onMount?.(this)
   }
 
@@ -582,7 +536,7 @@ export class TLDrawState extends StateManager<Data> {
 
     this.resetHistory()
       .clearSelectHistory()
-      .loadDocument(defaultDocument)
+      .loadDocument(TLDrawState.defaultDocument)
       .patchState(
         {
           document: {
@@ -779,10 +733,10 @@ export class TLDrawState extends StateManager<Data> {
 
     return this.replaceState(
       {
-        ...defaultState,
+        ...TLDrawState.defaultState,
         document,
         appState: {
-          ...defaultState.appState,
+          ...TLDrawState.defaultState.appState,
           currentPageId: Object.keys(document.pages)[0],
         },
       },
@@ -2402,5 +2356,69 @@ export class TLDrawState extends StateManager<Data> {
 
   get centerPoint() {
     return Vec.round([this.bounds.width / 2, this.bounds.height / 2])
+  }
+
+  static version = 10.1
+
+  static defaultDocument: TLDrawDocument = {
+    id: 'doc',
+    pages: {
+      page: {
+        id: 'page',
+        name: 'Page 1',
+        childIndex: 1,
+        shapes: {},
+        bindings: {},
+      },
+    },
+    pageStates: {
+      page: {
+        id: 'page',
+        selectedIds: [],
+        camera: {
+          point: [0, 0],
+          zoom: 1,
+        },
+      },
+    },
+  }
+
+  static defaultState: Data = {
+    settings: {
+      isPenMode: false,
+      isDarkMode: false,
+      isZoomSnap: false,
+      isFocusMode: false,
+      isDebugMode: process.env.NODE_ENV === 'development',
+      isReadonlyMode: false,
+      nudgeDistanceLarge: 16,
+      nudgeDistanceSmall: 1,
+    },
+    appState: {
+      activeTool: 'select',
+      hoveredId: undefined,
+      currentPageId: 'page',
+      pages: [{ id: 'page', name: 'page', childIndex: 1 }],
+      currentStyle: defaultStyle,
+      selectedStyle: defaultStyle,
+      isToolLocked: false,
+      isStyleOpen: false,
+      isEmptyCanvas: false,
+      status: TLDrawStatus.Idle,
+    },
+    document: TLDrawState.defaultDocument,
+    room: {
+      id: 'local',
+      userId: uuid,
+      users: {
+        [uuid]: {
+          id: uuid,
+          color: sample(USER_COLORS),
+          point: [100, 100],
+          selectedIds: [],
+          activeShapes: [],
+        },
+      },
+    },
   }
 }
