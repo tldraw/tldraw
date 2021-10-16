@@ -1,3 +1,4 @@
+import Vec from '@tldraw/vec'
 import type {
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
@@ -13,25 +14,41 @@ import Utils from '~../../core/src/utils'
 import type { TLDrawState } from '~state'
 import type { TLDrawShapeType } from '~types'
 
-export abstract class BaseTool {
+export enum Status {
+  Idle = 'idle',
+  Creating = 'creating',
+  Pinching = 'pinching',
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export abstract class BaseTool<T extends string = any> {
   abstract type: TLDrawShapeType | 'select'
 
   state: TLDrawState
 
-  status: string = 'idle' as const
-
-  setStatus = (status: typeof this.status) => {
-    this.status = status
-    this.state.setStatus(this.status)
-  }
+  status: Status | T = Status.Idle
 
   constructor(state: TLDrawState) {
     this.state = state
   }
 
-  abstract onEnter: () => void
+  protected readonly setStatus = (status: Status | T) => {
+    this.status = status as Status | T
+    this.state.setStatus(this.status as string)
+  }
 
-  abstract onExit: () => void
+  onEnter = () => {
+    this.setStatus(Status.Idle)
+  }
+
+  onExit = () => {
+    this.setStatus(Status.Idle)
+  }
+
+  onCancel = () => {
+    this.state.cancelSession()
+    this.setStatus(Status.Idle)
+  }
 
   getNextChildIndex = () => {
     const {
@@ -46,19 +63,78 @@ export abstract class BaseTool {
           .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
   }
 
-  onCancel = () => {
-    if (this.status === 'creating') {
-      this.state.cancelSession()
+  /* --------------------- Camera --------------------- */
+
+  onPinchStart: TLPinchEventHandler = () => {
+    this.state.cancelSession()
+    this.setStatus(Status.Pinching)
+  }
+
+  onPinchEnd: TLPinchEventHandler = () => {
+    if (Utils.isMobileSafari()) {
+      this.state.undoSelect()
+    }
+    this.setStatus(Status.Idle)
+  }
+
+  onPinch: TLPinchEventHandler = (info, e) => {
+    if (this.status !== 'pinching') return
+    this.state.pinchZoom(info.point, info.delta, info.delta[2])
+    this.onPointerMove?.(info, e as unknown as React.PointerEvent)
+  }
+
+  /* ---------------------- Keys ---------------------- */
+
+  onKeyDown: TLKeyboardEventHandler = (key, info) => {
+    /* noop */
+    if (key === 'Meta' || key === 'Control' || key === 'Alt') {
+      this.state.updateSession(
+        this.state.getPagePoint(info.point),
+        info.shiftKey,
+        info.altKey,
+        info.metaKey
+      )
+      return
     }
   }
+
+  onKeyUp: TLKeyboardEventHandler = (key, info) => {
+    /* noop */
+    if (key === 'Meta' || key === 'Control' || key === 'Alt') {
+      this.state.updateSession(
+        this.state.getPagePoint(info.point),
+        info.shiftKey,
+        info.altKey,
+        info.metaKey
+      )
+      return
+    }
+  }
+
+  /* --------------------- Pointer -------------------- */
+
+  onPointerMove: TLPointerEventHandler = (info) => {
+    if (this.status === Status.Creating) {
+      const pagePoint = Vec.round(this.state.getPagePoint(info.point))
+      this.state.updateSession(pagePoint, info.shiftKey, info.altKey, info.metaKey)
+    }
+  }
+
+  onPointerUp: TLPointerEventHandler = () => {
+    if (this.status === Status.Creating) {
+      this.state.completeSession()
+    }
+
+    this.setStatus(Status.Idle)
+  }
+
+  /* --------------------- Others --------------------- */
 
   // Camera Events
   onPan?: TLWheelEventHandler
   onZoom?: TLWheelEventHandler
 
   // Pointer Events
-  onPointerMove?: TLPointerEventHandler
-  onPointerUp?: TLPointerEventHandler
   onPointerDown?: TLPointerEventHandler
 
   // Canvas (background)
@@ -107,52 +183,4 @@ export abstract class BaseTool {
   // Misc
   onShapeBlur?: TLShapeBlurHandler
   onShapeClone?: TLShapeCloneHandler
-
-  /* --------------------- Camera --------------------- */
-
-  onPinchStart: TLPinchEventHandler = () => {
-    this.state.cancelSession()
-    this.setStatus('pinching')
-  }
-
-  onPinchEnd: TLPinchEventHandler = () => {
-    if (Utils.isMobileSafari()) {
-      this.state.undoSelect()
-    }
-    this.setStatus('idle')
-  }
-
-  onPinch: TLPinchEventHandler = (info, e) => {
-    if (this.status !== 'pinching') return
-    this.state.pinchZoom(info.point, info.delta, info.delta[2])
-    this.onPointerMove?.(info, e as unknown as React.PointerEvent)
-  }
-
-  /* ---------------------- Keys ---------------------- */
-
-  onKeyDown: TLKeyboardEventHandler = (key, info) => {
-    /* noop */
-    if (key === 'Meta' || key === 'Control' || key === 'Alt') {
-      this.state.updateSession(
-        this.state.getPagePoint(info.point),
-        info.shiftKey,
-        info.altKey,
-        info.metaKey
-      )
-      return
-    }
-  }
-
-  onKeyUp: TLKeyboardEventHandler = (key, info) => {
-    /* noop */
-    if (key === 'Meta' || key === 'Control' || key === 'Alt') {
-      this.state.updateSession(
-        this.state.getPagePoint(info.point),
-        info.shiftKey,
-        info.altKey,
-        info.metaKey
-      )
-      return
-    }
-  }
 }

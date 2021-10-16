@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { StateManager } from 'rko'
 import {
-  TLBoundsCorner,
-  TLBoundsEdge,
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
   TLKeyboardEventHandler,
@@ -40,7 +38,7 @@ import {
   ExceptFirst,
 } from '~types'
 import { TLDR } from './tldr'
-import { defaultStyle } from '~shape'
+import { defaultStyle, tldrawShapeUtils } from '~shape'
 import * as Commands from './command'
 import { ArgsOfType, getSession } from './session'
 import { sample, USER_COLORS } from './utils'
@@ -133,15 +131,7 @@ export class TLDrawState extends StateManager<Data> {
 
   session?: Session
 
-  pointedId?: string
-
-  pointedHandle?: string
-
-  pointedBoundsHandle?: TLBoundsCorner | TLBoundsEdge | 'rotate'
-
   isCreating = false
-
-  selectedGroupId?: string
 
   // The editor's bounding client rect
   bounds: TLBounds = {
@@ -172,7 +162,6 @@ export class TLDrawState extends StateManager<Data> {
     this._onMount = onMount
 
     this.session = undefined
-    this.pointedId = undefined
   }
 
   /* -------------------- Internal -------------------- */
@@ -534,7 +523,11 @@ export class TLDrawState extends StateManager<Data> {
 
     if (tool === this.currentTool) return this
 
+    this.currentTool.onExit()
+
     this.currentTool = tool
+
+    this.currentTool.onEnter()
 
     return this.patchState(
       {
@@ -571,9 +564,11 @@ export class TLDrawState extends StateManager<Data> {
   resetDocument = (): this => {
     if (this.session) return this
     this.session = undefined
-    this.selectedGroupId = undefined
-    this.currentTool.setStatus(TLDrawStatus.Idle)
     this.pasteInfo.offset = [0, 0]
+
+    this.tools = createTools(this)
+    this.currentTool = this.tools.select
+
     this.resetHistory()
       .clearSelectHistory()
       .loadDocument(defaultDocument)
@@ -770,7 +765,7 @@ export class TLDrawState extends StateManager<Data> {
     this.resetHistory()
     this.clearSelectHistory()
     this.session = undefined
-    this.selectedGroupId = undefined
+
     return this.replaceState(
       {
         ...defaultState,
@@ -1617,6 +1612,10 @@ export class TLDrawState extends StateManager<Data> {
    * @param args arguments of the session's start method.
    */
   startSession = <T extends SessionType>(type: T, ...args: ExceptFirst<ArgsOfType<T>>): this => {
+    if (this.session) {
+      throw Error(`Already in a session! (${this.session.constructor.name})`)
+    }
+
     const Session = getSession(type)
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -1836,6 +1835,40 @@ export class TLDrawState extends StateManager<Data> {
       Commands.update(this.state, shapesToUpdate, this.currentPageId).after,
       'updated_shapes'
     )
+  }
+
+  createTextShapeAtPoint(point: number[]) {
+    const {
+      shapes,
+      appState: { currentPageId, currentStyle },
+    } = this
+
+    const childIndex =
+      shapes.length === 0
+        ? 1
+        : shapes
+            .filter((shape) => shape.parentId === currentPageId)
+            .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+
+    const id = Utils.uniqueId()
+
+    const Text = tldrawShapeUtils.text
+
+    const newShape = Text.create({
+      id,
+      parentId: currentPageId,
+      childIndex,
+      point,
+      style: { ...currentStyle },
+    })
+
+    const bounds = Text.getBounds(newShape)
+
+    newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
+
+    this.createShapes(newShape)
+
+    this.setEditingId(id)
   }
 
   /**

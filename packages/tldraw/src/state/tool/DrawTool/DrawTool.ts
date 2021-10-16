@@ -3,27 +3,10 @@ import type { TLPointerEventHandler } from '~../../core/src/types'
 import Utils from '~../../core/src/utils'
 import { Draw } from '~shape/shapes'
 import { SessionType, TLDrawShapeType } from '~types'
-import { BaseTool } from '../BaseTool'
-
-enum Status {
-  Idle = 'idle',
-  Creating = 'creating',
-}
+import { BaseTool, Status } from '../BaseTool'
 
 export class DrawTool extends BaseTool {
   type = TLDrawShapeType.Draw
-
-  status = Status.Idle
-
-  /* --------------------- Methods -------------------- */
-
-  onEnter = () => {
-    this.setStatus(Status.Idle)
-  }
-
-  onExit = () => {
-    this.setStatus(Status.Idle)
-  }
 
   /* ----------------- Event Handlers ----------------- */
 

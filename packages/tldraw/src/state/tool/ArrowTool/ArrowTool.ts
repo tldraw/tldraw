@@ -2,27 +2,11 @@ import Vec from '@tldraw/vec'
 import { Utils, TLPointerEventHandler } from '@tldraw/core'
 import { Arrow } from '~shape/shapes'
 import { SessionType, TLDrawShapeType } from '~types'
-import { BaseTool } from '../BaseTool'
-
-enum Status {
-  Idle = 'idle',
-  Creating = 'creating',
-}
+import { BaseTool, Status } from '../BaseTool'
 
 export class ArrowTool extends BaseTool {
   type = TLDrawShapeType.Arrow
 
-  status = Status.Idle
-
-  /* --------------------- Methods -------------------- */
-
-  onEnter = () => {
-    this.setStatus(Status.Idle)
-  }
-
-  onExit = () => {
-    this.setStatus(Status.Idle)
-  }
   /* ----------------- Event Handlers ----------------- */
 
   onPointerDown: TLPointerEventHandler = (info) => {
@@ -49,20 +33,5 @@ export class ArrowTool extends BaseTool {
     this.state.startSession(SessionType.Arrow, pagePoint, 'end', true)
 
     this.setStatus(Status.Creating)
-  }
-
-  onPointerMove: TLPointerEventHandler = (info) => {
-    if (this.status === Status.Creating) {
-      const pagePoint = Vec.round(this.state.getPagePoint(info.point))
-      this.state.updateSession(pagePoint, info.shiftKey, info.altKey, info.metaKey)
-    }
-  }
-
-  onPointerUp: TLPointerEventHandler = () => {
-    if (this.status === Status.Creating) {
-      this.state.completeSession()
-    }
-
-    this.setStatus(Status.Idle)
   }
 }

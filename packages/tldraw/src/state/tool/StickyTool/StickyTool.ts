@@ -3,29 +3,12 @@ import type { TLPointerEventHandler } from '@tldraw/core'
 import { Utils } from '@tldraw/core'
 import { Sticky } from '~shape/shapes'
 import { SessionType, TLDrawShapeType } from '~types'
-import { BaseTool } from '../BaseTool'
-
-enum Status {
-  Idle = 'idle',
-  Creating = 'creating',
-}
+import { BaseTool, Status } from '../BaseTool'
 
 export class StickyTool extends BaseTool {
   type = TLDrawShapeType.Sticky
 
-  status = Status.Idle
-
   shapeId?: string
-
-  /* --------------------- Methods -------------------- */
-
-  onEnter = () => {
-    this.setStatus(Status.Idle)
-  }
-
-  onExit = () => {
-    this.setStatus(Status.Idle)
-  }
 
   /* ----------------- Event Handlers ----------------- */
 
@@ -44,16 +27,10 @@ export class StickyTool extends BaseTool {
       const pagePoint = Vec.round(this.state.getPagePoint(info.point))
 
       const {
-        shapes,
         appState: { currentPageId, currentStyle },
       } = this.state
 
-      const childIndex =
-        shapes.length === 0
-          ? 1
-          : shapes
-              .filter((shape) => shape.parentId === currentPageId)
-              .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+      const childIndex = this.getNextChildIndex()
 
       const id = Utils.uniqueId()
 
@@ -76,13 +53,6 @@ export class StickyTool extends BaseTool {
       this.state.startSession(SessionType.Translate, pagePoint)
 
       this.setStatus(Status.Creating)
-    }
-  }
-
-  onPointerMove: TLPointerEventHandler = (info) => {
-    if (this.status === Status.Creating) {
-      const pagePoint = Vec.round(this.state.getPagePoint(info.point))
-      this.state.updateSession(pagePoint, info.shiftKey, info.altKey, info.metaKey)
     }
   }
 

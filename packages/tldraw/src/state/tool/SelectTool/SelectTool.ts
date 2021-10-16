@@ -16,6 +16,8 @@ import { TLDR } from '~state/tldr'
 
 enum Status {
   Idle = 'idle',
+  Creating = 'creating',
+  Pinching = 'pinching',
   PointingCanvas = 'pointingCanvas',
   PointingHandle = 'pointingHandle',
   PointingBounds = 'pointingBounds',
@@ -26,17 +28,14 @@ enum Status {
   Translating = 'translating',
   Transforming = 'transforming',
   Rotating = 'rotating',
-  Pinching = 'pinching',
   Brushing = 'brushing',
   GridCloning = 'gridCloning',
   ClonePainting = 'clonePainting',
   SpacePanning = 'spacePanning',
 }
 
-export class SelectTool extends BaseTool {
+export class SelectTool extends BaseTool<Status> {
   type = 'select' as const
-
-  status: Status = Status.Idle
 
   pointedId?: string
 
@@ -162,7 +161,6 @@ export class SelectTool extends BaseTool {
 
   onCancel = () => {
     this.deselectAll()
-    // TODO: Make all cancel sessions have no arguments
     this.state.cancelSession()
     this.setStatus(Status.Idle)
   }
@@ -422,9 +420,8 @@ export class SelectTool extends BaseTool {
   onDoubleClickCanvas: TLCanvasEventHandler = (info) => {
     const pagePoint = this.state.getPagePoint(info.point)
     this.state.selectTool(TLDrawShapeType.Text)
-    const tool = this.state.tools[TLDrawShapeType.Text]
     this.setStatus(Status.Idle)
-    tool.createTextShapeAtPoint(pagePoint)
+    this.state.createTextShapeAtPoint(pagePoint)
   }
 
   // Shape
