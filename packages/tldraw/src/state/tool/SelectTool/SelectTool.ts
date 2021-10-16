@@ -41,7 +41,7 @@ export class SelectTool extends BaseTool<Status> {
 
   selectedGroupId?: string
 
-  pointedHandleId?: 'start' | 'end'
+  pointedHandleId?: 'start' | 'end' | 'bend'
 
   pointedBoundsHandle?: TLBoundsCorner | TLBoundsEdge | 'rotate'
 
@@ -303,12 +303,12 @@ export class SelectTool extends BaseTool<Status> {
 
         if (!selectedShape) return
 
-        const point = this.state.getPagePoint(info.origin)
+        const point = this.state.getPagePoint(info.point)
 
-        if (selectedShape.type === TLDrawShapeType.Arrow) {
-          this.state.startSession(SessionType.Arrow, point, this.pointedHandleId)
-        } else {
+        if (this.pointedHandleId === 'bend') {
           this.state.startSession(SessionType.Handle, point, this.pointedHandleId)
+        } else {
+          this.state.startSession(SessionType.Arrow, point, this.pointedHandleId, false)
         }
       }
       return

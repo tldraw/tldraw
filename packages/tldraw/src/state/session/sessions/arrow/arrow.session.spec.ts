@@ -190,4 +190,31 @@ describe('When creating with an arrow session', () => {
     expect(arrow.handles.start.bindingId).not.toBe(undefined)
     expect(arrow.handles.end.bindingId).not.toBe(undefined)
   })
+
+  it('Removes a binding when dragged away', () => {
+    const tlstate = new TLDrawState()
+      .createShapes(
+        { type: TLDrawShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
+        { type: TLDrawShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] },
+        { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [250, 250] }
+      )
+      .select('arrow1')
+      .startSession(SessionType.Arrow, [250, 250], 'end', true)
+      .updateSession([450, 250])
+      .completeSession()
+      .select('arrow1')
+      .startSession(SessionType.Arrow, [250, 250], 'start', false)
+      .updateSession([0, 0])
+      .completeSession()
+
+    const arrow = tlstate.shapes.find((shape) => shape.type === TLDrawShapeType.Arrow) as ArrowShape
+
+    expect(arrow).toBeTruthy()
+
+    expect(tlstate.bindings.length).toBe(1)
+
+    expect(arrow.handles.start.point).toStrictEqual([0, 0])
+    expect(arrow.handles.start.bindingId).toBe(undefined)
+    expect(arrow.handles.end.bindingId).not.toBe(undefined)
+  })
 })
