@@ -9,7 +9,7 @@ import {
   SessionType,
 } from '~types'
 import { Vec } from '@tldraw/vec'
-import { Utils, Patch } from '@tldraw/core'
+import { Utils } from '@tldraw/core'
 import { TLDR } from '~state/tldr'
 
 export class ArrowSession implements Session {
@@ -96,6 +96,7 @@ export class ArrowSession implements Session {
     const handle = {
       ...handles[handleId],
       point: Vec.sub(Vec.add(handles[handleId].point, delta), shape.point),
+      bindingId: undefined,
     }
 
     const utils = TLDR.getShapeUtils<ArrowShape>(shape.type)
@@ -116,8 +117,12 @@ export class ArrowSession implements Session {
     // made it this far, the shape should be a new object reference that
     // incorporates the changes we've made due to the handle movement.
     const next: { shape: ArrowShape; bindings: Record<string, TLDrawBinding | undefined> } = {
-      shape: { ...shape, ...change },
+      shape: Utils.deepMerge(shape, change),
       bindings: {},
+    }
+
+    if (this.initialBinding) {
+      next.bindings[this.initialBinding.id] = undefined
     }
 
     // START BINDING
@@ -151,6 +156,8 @@ export class ArrowSession implements Session {
       }
 
       if (startBinding) {
+        this.didBind = true
+
         next.bindings[this.newStartBindingId] = startBinding
 
         next.shape.handles = {
@@ -177,14 +184,20 @@ export class ArrowSession implements Session {
           Object.assign(next.shape, arrowChange)
         }
       } else {
-        next.bindings[this.newStartBindingId] = undefined
+        this.didBind = this.didBind || false
 
-        next.shape.handles = {
-          ...next.shape.handles,
-          start: {
-            ...next.shape.handles.start,
-            bindingId: undefined,
-          },
+        if (page.bindings[this.newStartBindingId]) {
+          next.bindings[this.newStartBindingId] = undefined
+        }
+
+        if (shape.handles.start.bindingId === this.newStartBindingId) {
+          next.shape.handles = {
+            ...next.shape.handles,
+            start: {
+              ...next.shape.handles.start,
+              bindingId: undefined,
+            },
+          }
         }
       }
     }
@@ -214,13 +227,13 @@ export class ArrowSession implements Session {
           metaKey
         )
 
-        if (draggedBinding) {
-          break
-        }
+        if (draggedBinding) break
       }
     }
 
     if (draggedBinding) {
+      this.didBind = true
+
       next.bindings[this.draggedBindingId] = draggedBinding
 
       next.shape.handles = {
@@ -247,14 +260,23 @@ export class ArrowSession implements Session {
         Object.assign(next.shape, arrowChange)
       }
     } else {
-      next.bindings[this.draggedBindingId] = undefined
+      this.didBind = this.didBind || false
 
-      next.shape.handles = {
-        ...next.shape.handles,
-        [this.handleId]: {
-          ...next.shape.handles[this.handleId],
-          bindingId: undefined,
-        },
+      const currentBindingId = shape.handles[this.handleId].bindingId
+
+      if (currentBindingId) {
+        next.bindings = {
+          ...next.bindings,
+          [currentBindingId]: undefined,
+        }
+
+        next.shape.handles = {
+          ...next.shape.handles,
+          [this.handleId]: {
+            ...next.shape.handles[this.handleId],
+            bindingId: undefined,
+          },
+        }
       }
     }
 

@@ -227,7 +227,9 @@ export class TLDrawState extends StateManager<Data> {
 
           // If binding is undefined, delete the binding
           Object.keys(page.bindings).forEach((id) => {
-            if (!page.bindings[id]) delete page.bindings[id]
+            if (!page.bindings[id]) {
+              delete page.bindings[id]
+            }
           })
 
           // Find which shapes have changed
@@ -242,6 +244,10 @@ export class TLDrawState extends StateManager<Data> {
 
           // Update all of the bindings we've just collected
           bindingsToUpdate.forEach((binding) => {
+            if (!page.bindings[binding.id]) {
+              return
+            }
+
             const toShape = page.shapes[binding.toId]
             const fromShape = page.shapes[binding.fromId]
 
@@ -1648,7 +1654,7 @@ export class TLDrawState extends StateManager<Data> {
     if (!session) return this
     const patch = session.update(this.state, point, shiftKey, altKey, metaKey)
     if (!patch) return this
-    return this.patchState(patch, `session:updateSession.id}`)
+    return this.patchState(patch, `session:${session?.constructor.name}`)
   }
 
   /**
@@ -2199,6 +2205,8 @@ export class TLDrawState extends StateManager<Data> {
 
     if (this.state.room) {
       const { users, userId } = this.state.room
+
+      if (Object.values(users).length === 1) return
 
       this.updateUsers(
         [
