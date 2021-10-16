@@ -1,17 +1,23 @@
 import * as React from 'react'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ShapeIndicator } from '+components/shape-indicator'
-import type { TLShape, TLUsers } from '+types'
+import type { TLPage, TLShape, TLUsers } from '+types'
 import Utils from '+utils'
 import { useTLContext } from '+hooks'
 
 interface UserIndicatorProps<T extends TLShape> {
+  page: TLPage<any, any>
   userId: string
   users: TLUsers<T>
   meta: any
 }
 
-export function UsersIndicators<T extends TLShape>({ userId, users, meta }: UserIndicatorProps<T>) {
+export function UsersIndicators<T extends TLShape>({
+  userId,
+  users,
+  meta,
+  page,
+}: UserIndicatorProps<T>) {
   const { shapeUtils } = useTLContext()
 
   return (
@@ -20,7 +26,9 @@ export function UsersIndicators<T extends TLShape>({ userId, users, meta }: User
         .filter(Boolean)
         .filter((user) => user.id !== userId && user.selectedIds.length > 0)
         .map((user) => {
-          const shapes = user.activeShapes //.map((id) => page.shapes[id])
+          const shapes = user.selectedIds.map((id) => page.shapes[id]).filter(Boolean)
+
+          if (shapes.length === 0) return null
 
           const bounds = Utils.getCommonBounds(
             shapes.map((shape) => shapeUtils[shape.type].getBounds(shape))

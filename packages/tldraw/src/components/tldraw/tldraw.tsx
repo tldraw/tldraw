@@ -2,7 +2,7 @@ import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
 import css from '~styles'
-import { Data, TLDrawDocument, TLDrawStatus } from '~types'
+import { Data, TLDrawDocument, TLDrawStatus, TLDrawUser } from '~types'
 import { TLDrawState } from '~state'
 import {
   TLDrawContext,
@@ -83,6 +83,8 @@ export interface TLDrawProps {
    * (optional) A callback to run when the component's state changes.
    */
   onChange?: TLDrawState['_onChange']
+
+  onUserChange?: (state: TLDrawState, user: TLDrawUser) => void
 }
 
 export function TLDraw({
@@ -94,16 +96,19 @@ export function TLDraw({
   showPages = true,
   onMount,
   onChange,
+  onUserChange,
 }: TLDrawProps) {
   const [sId, setSId] = React.useState(id)
 
-  const [tlstate, setTlstate] = React.useState(() => new TLDrawState(id, onChange, onMount))
+  const [tlstate, setTlstate] = React.useState(
+    () => new TLDrawState(id, onMount, onChange, onUserChange)
+  )
   const [context, setContext] = React.useState(() => ({ tlstate, useSelector: tlstate.useStore }))
 
   React.useEffect(() => {
     if (id === sId) return
     // If a new id is loaded, replace the entire state
-    const newState = new TLDrawState(id, onChange, onMount)
+    const newState = new TLDrawState(id, onMount, onChange, onUserChange)
     setTlstate(newState)
     setContext({ tlstate: newState, useSelector: newState.useStore })
     setSId(id)

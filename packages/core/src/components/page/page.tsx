@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import type { TLBinding, TLPage, TLPageState, TLShape, TLShapeUtil } from '+types'
-import { useSelection, useShapeTree, useHandles, useTLContext } from '+hooks'
+import { useSelection, useShapeTree, useTLContext } from '+hooks'
 import { Bounds } from '+components/bounds'
 import { BoundsBg } from '+components/bounds/bounds-bg'
 import { Handles } from '+components/handles'

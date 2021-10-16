@@ -48,8 +48,9 @@ import type { BaseTool } from './tool/BaseTool'
 const uuid = Utils.uniqueId()
 
 export class TLDrawState extends StateManager<Data> {
-  private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
   private _onMount?: (tlstate: TLDrawState) => void
+  private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
+  private _onUserChange?: (tlstate: TLDrawState, user: TLDrawUser) => void
 
   inputs?: Inputs
 
@@ -81,6 +82,9 @@ export class TLDrawState extends StateManager<Data> {
     height: 480,
   }
 
+  // The most recent pointer location
+  pointerPoint: number[] = [0, 0]
+
   private pasteInfo = {
     center: [0, 0],
     offset: [0, 0],
@@ -88,11 +92,12 @@ export class TLDrawState extends StateManager<Data> {
 
   constructor(
     id?: string,
+    onMount?: (tlstate: TLDrawState) => void,
     onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
-    onMount?: (tlstate: TLDrawState) => void
+    onUserChange?: (tlstate: TLDrawState, user: TLDrawUser) => void
   ) {
     super(TLDrawState.defaultState, id, TLDrawState.version, (prev, next) => {
-      console.log('Migrating to a new version.')
+      console.warn('Migrating to a new version.')
       return {
         ...next,
         document: { ...next.document, ...prev.document },
@@ -101,6 +106,7 @@ export class TLDrawState extends StateManager<Data> {
 
     this._onChange = onChange
     this._onMount = onMount
+    this._onUserChange = onUserChange
 
     this.session = undefined
   }
@@ -278,29 +284,31 @@ export class TLDrawState extends StateManager<Data> {
 
     const currentPageId = data.appState.currentPageId
 
-    const currentPage = data.document.pages[currentPageId]
-
     const currentPageState = data.document.pageStates[currentPageId]
 
-    if (data.room && prev.room && data.room !== prev.room) {
+    if (data.room && data.room !== prev.room) {
       const room = { ...data.room, users: { ...data.room.users } }
 
       // Remove any exited users
-      Object.values(prev.room.users).forEach((user) => {
-        if (room.users[user.id] === undefined) {
-          delete room.users[user.id]
-        }
-      })
-
-      // Update the room presence selected ids
-      // Update the room presence active shapes
-      room.users[room.userId] = {
-        ...room.users[room.userId],
-        selectedIds: currentPageState.selectedIds,
-        activeShapes: currentPageState.selectedIds.map((id) => currentPage.shapes[id]),
+      if (prev.room) {
+        Object.values(prev.room.users)
+          .filter(Boolean)
+          .forEach((user) => {
+            if (room.users[user.id] === undefined) {
+              delete room.users[user.id]
+            }
+          })
       }
 
       data.room = room
+    }
+
+    if (data.room) {
+      data.room.users[data.room.userId] = {
+        ...data.room.users[data.room.userId],
+        point: this.pointerPoint,
+        selectedIds: currentPageState.selectedIds,
+      }
     }
 
     // Apply selected style change, if any
@@ -719,6 +727,28 @@ export class TLDrawState extends StateManager<Data> {
     }
 
     return this.replaceState(nextState, `${reason}:${document.id}`)
+  }
+
+  /**
+   * Load a fresh room into the state.
+   * @param roomId
+   */
+  loadRoom = (roomId: string) => {
+    this.patchState({
+      room: {
+        id: roomId,
+        userId: uuid,
+        users: {
+          [uuid]: {
+            id: uuid,
+            color: sample(USER_COLORS),
+            point: [100, 100],
+            selectedIds: [],
+            activeShapes: [],
+          },
+        },
+      },
+    })
   }
 
   /**
@@ -1474,47 +1504,29 @@ export class TLDrawState extends StateManager<Data> {
   private setSelectedIds = (ids: string[], push = false): this => {
     const nextIds = push ? [...this.pageState.selectedIds, ...ids] : [...ids]
 
-    if (this.currentUser) {
-      return this.patchState(
-        {
-          appState: {
-            activeTool: 'select',
-          },
-          document: {
-            pageStates: {
-              [this.currentPageId]: {
-                selectedIds: nextIds,
-              },
-            },
-          },
-          room: {
-            users: {
-              [this.currentUser.id]: {
-                ...this.currentUser,
-                selectedIds: nextIds,
-              },
-            },
-          },
-        },
-        `selected`
-      )
-    } else {
-      return this.patchState(
-        {
-          appState: {
-            activeTool: 'select',
-          },
-          document: {
-            pageStates: {
-              [this.currentPageId]: {
-                selectedIds: nextIds,
-              },
-            },
-          },
-        },
-        `selected`
-      )
+    if (this.state.room) {
+      const { users, userId } = this.state.room
+      this._onUserChange?.(this, {
+        ...users[userId],
+        selectedIds: nextIds,
+      })
     }
+
+    return this.patchState(
+      {
+        appState: {
+          activeTool: 'select',
+        },
+        document: {
+          pageStates: {
+            [this.currentPageId]: {
+              selectedIds: nextIds,
+            },
+          },
+        },
+      },
+      `selected`
+    )
   }
 
   /**
@@ -2161,9 +2173,9 @@ export class TLDrawState extends StateManager<Data> {
 
     this.pan(delta)
 
+    // onPan is called by onPointerMove when spaceKey is pressed,
+    // so we shouldn't call this again.
     if (!info.spaceKey) {
-      // onPan is called by onPointerMove when spaceKey is pressed,
-      // so we shouldn't call this again.
       this.onPointerMove(info, e as unknown as React.PointerEvent)
     }
   }
@@ -2180,20 +2192,16 @@ export class TLDrawState extends StateManager<Data> {
     // Several events (e.g. pan) can trigger the same "pointer move" behavior
     this.currentTool.onPointerMove?.(info, e)
 
+    this.pointerPoint = this.getPagePoint(info.point)
+
+    // Move this to an emitted event
     if (this.state.room) {
       const { users, userId } = this.state.room
 
-      if (Object.values(users).length === 1) return
-
-      this.updateUsers(
-        [
-          {
-            ...users[userId],
-            point: this.getPagePoint(info.point),
-          },
-        ],
-        true
-      )
+      this._onUserChange?.(this, {
+        ...users[userId],
+        point: this.getPagePoint(info.point),
+      })
     }
   }
 

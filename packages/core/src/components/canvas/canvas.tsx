@@ -80,7 +80,9 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
               hideHandles={hideHandles}
               meta={meta}
             />
-            {users && userId && <UsersIndicators userId={userId} users={users} meta={meta} />}
+            {users && userId && (
+              <UsersIndicators userId={userId} users={users} page={page} meta={meta} />
+            )}
             {pageState.brush && <Brush brush={pageState.brush} />}
             {users && <Users userId={userId} users={users} />}
           </div>
