@@ -1,4 +1,10 @@
-## 0.0.117
+## 0.0.119
+
+### TLDraw
+
+- Fixes bug with bound arrows after undo.
+
+## 0.0.118
 
 ### Core
 
