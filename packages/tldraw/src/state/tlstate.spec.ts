@@ -596,6 +596,7 @@ describe('TLDrawState', () => {
   describe('When changing versions', () => {
     it('migrates correctly', (done) => {
       const defaultState = TLDrawState.defaultState
+
       const withoutRoom = {
         ...defaultState,
       }
