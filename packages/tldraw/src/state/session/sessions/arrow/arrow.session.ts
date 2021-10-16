@@ -345,12 +345,12 @@ export class ArrowSession implements Session {
 
     const afterBindings: Partial<Record<string, TLDrawBinding>> = {}
 
-    const afterShape = page.shapes[initialShape.id] as ArrowShape
+    let afterShape = page.shapes[initialShape.id] as ArrowShape
 
     const currentBindingId = afterShape.handles[handleId].bindingId
 
     if (initialBinding) {
-      beforeBindings[initialBinding.id] = initialBinding
+      beforeBindings[initialBinding.id] = this.isCreate ? undefined : initialBinding
       afterBindings[initialBinding.id] = undefined
     }
 
@@ -364,6 +364,8 @@ export class ArrowSession implements Session {
       afterBindings[newStartBindingId] = page.bindings[newStartBindingId]
     }
 
+    afterShape = TLDR.onSessionComplete(afterShape)
+
     return {
       id: 'arrow',
       before: {
@@ -373,7 +375,7 @@ export class ArrowSession implements Session {
               shapes: {
                 [initialShape.id]: this.isCreate ? undefined : initialShape,
               },
-              bindings: this.isCreate ? {} : beforeBindings,
+              bindings: beforeBindings,
             },
           },
           pageStates: {
@@ -391,7 +393,7 @@ export class ArrowSession implements Session {
           pages: {
             [data.appState.currentPageId]: {
               shapes: {
-                [initialShape.id]: TLDR.onSessionComplete(afterShape),
+                [initialShape.id]: afterShape,
               },
               bindings: afterBindings,
             },

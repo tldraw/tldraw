@@ -213,10 +213,10 @@ export class TLDrawState extends StateManager<Data> {
 
             const toUtils = TLDR.getShapeUtils(toShape)
 
-            // We only need to update the binding's "from" shape
-            const util = TLDR.getShapeUtils(fromShape)
+            const fromUtils = TLDR.getShapeUtils(fromShape)
 
-            const fromDelta = util.onBindingChange(
+            // We only need to update the binding's "from" shape
+            const fromDelta = fromUtils.onBindingChange(
               fromShape,
               binding,
               toShape,

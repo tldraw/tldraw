@@ -169,6 +169,30 @@ describe('When creating with an arrow session', () => {
     expect(tlstate.getShape('arrow1')).toBe(undefined)
   })
 
+  it("Doesn't corrupt a shape after undoing", () => {
+    const tlstate = new TLDrawState()
+      .createShapes(
+        { type: TLDrawShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
+        { type: TLDrawShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] },
+        { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [450, 250] }
+      )
+      .select('arrow1')
+      .startSession(SessionType.Arrow, [250, 250], 'start', true)
+      .updateSession([55, 45])
+      .completeSession()
+
+    expect(tlstate.bindings.length).toBe(2)
+
+    tlstate
+      .undo()
+      .select('rect1')
+      .startSession(SessionType.Translate, [250, 250])
+      .updateSession([275, 275])
+      .completeSession()
+
+    expect(tlstate.bindings.length).toBe(0)
+  })
+
   it('Creates a start binding if possible', () => {
     const tlstate = new TLDrawState()
       .createShapes(
