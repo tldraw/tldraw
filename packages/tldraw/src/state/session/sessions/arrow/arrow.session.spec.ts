@@ -168,4 +168,26 @@ describe('When creating with an arrow session', () => {
 
     expect(tlstate.getShape('arrow1')).toBe(undefined)
   })
+
+  it('Creates a start binding if possible', () => {
+    const tlstate = new TLDrawState()
+      .createShapes(
+        { type: TLDrawShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
+        { type: TLDrawShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] },
+        { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [250, 250] }
+      )
+      .select('arrow1')
+      .startSession(SessionType.Arrow, [250, 250], 'end', true)
+      .updateSession([450, 250])
+      .completeSession()
+
+    const arrow = tlstate.shapes.find((shape) => shape.type === TLDrawShapeType.Arrow) as ArrowShape
+
+    expect(arrow).toBeTruthy()
+
+    expect(tlstate.bindings.length).toBe(2)
+
+    expect(arrow.handles.start.bindingId).not.toBe(undefined)
+    expect(arrow.handles.end.bindingId).not.toBe(undefined)
+  })
 })

@@ -331,7 +331,7 @@ describe('TLDrawState', () => {
 
       const tlu = new TLStateUtils(tlstate)
       tlu.clickShape('rect1')
-      expect(tlstate.selectedGroupId).toBeUndefined()
+      expect((tlstate.currentTool as SelectTool).selectedGroupId).toBeUndefined()
       expect(tlstate.selectedIds).toStrictEqual(['groupA'])
     })
 
@@ -354,7 +354,7 @@ describe('TLDrawState', () => {
       const tlu = new TLStateUtils(tlstate)
       tlu.doubleClickShape('rect1')
       tlu.clickShape('rect3')
-      expect(tlstate.selectedGroupId).toBeUndefined()
+      expect((tlstate.currentTool as SelectTool).selectedGroupId).toBeUndefined()
       expect(tlstate.selectedIds).toStrictEqual(['rect3'])
     })
 

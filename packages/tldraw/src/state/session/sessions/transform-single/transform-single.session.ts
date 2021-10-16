@@ -74,15 +74,24 @@ export class TransformSingleSession implements Session {
   cancel = (data: Data) => {
     const { initialShape } = this.snapshot
 
-    const shapes = {} as Record<string, Partial<TLDrawShape>>
+    const shapes = {} as Record<string, TLDrawShape | undefined>
 
-    shapes[initialShape.id] = initialShape
+    if (this.isCreate) {
+      shapes[initialShape.id] = undefined
+    } else {
+      shapes[initialShape.id] = initialShape
+    }
 
     return {
       document: {
         pages: {
           [data.appState.currentPageId]: {
             shapes,
+          },
+        },
+        pageStates: {
+          [data.appState.currentPageId]: {
+            selectedIds: this.isCreate ? [] : [initialShape.id],
           },
         },
       },

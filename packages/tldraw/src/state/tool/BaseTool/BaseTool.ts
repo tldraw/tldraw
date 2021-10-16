@@ -47,7 +47,11 @@ export abstract class BaseTool<T extends string = any> {
 
   onCancel = () => {
     this.state.cancelSession()
-    this.setStatus(Status.Idle)
+    if (this.status === Status.Idle) {
+      this.state.selectTool('select')
+    } else {
+      this.setStatus(Status.Idle)
+    }
   }
 
   getNextChildIndex = () => {
@@ -86,6 +90,11 @@ export abstract class BaseTool<T extends string = any> {
   /* ---------------------- Keys ---------------------- */
 
   onKeyDown: TLKeyboardEventHandler = (key, info) => {
+    if (key === 'Escape') {
+      this.onCancel()
+      return
+    }
+
     /* noop */
     if (key === 'Meta' || key === 'Control' || key === 'Alt') {
       this.state.updateSession(

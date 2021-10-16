@@ -1624,7 +1624,7 @@ export class TLDrawState extends StateManager<Data> {
     const result = this.session.start(this.state)
 
     if (result) {
-      return this.patchState(
+      this.patchState(
         {
           ...result,
           appState: {
@@ -1635,7 +1635,8 @@ export class TLDrawState extends StateManager<Data> {
       )
     }
 
-    return this.setStatus(this.session.status)
+    return this
+    // return this.setStatus(this.session.status)
   }
 
   /**
