@@ -58,8 +58,9 @@ export class StickyTool extends BaseTool {
 
   onPointerUp: TLPointerEventHandler = () => {
     if (this.status === Status.Creating) {
-      this.state.completeSession()
       this.setStatus(Status.Idle)
+      this.state.completeSession()
+      this.state.selectTool('select')
       this.state.setEditingId(this.shapeId)
     }
   }

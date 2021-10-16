@@ -288,7 +288,9 @@ export class TranslateSession implements Session {
 
         afterShapes[shape.id] = {
           ...afterShapes[shape.id],
-          point: TLDR.getShape(data, shape.id, pageId).point,
+          ...(this.isCreate
+            ? TLDR.getShape(data, shape.id, pageId)
+            : { point: TLDR.getShape(data, shape.id, pageId).point }),
         }
       })
     }
@@ -325,6 +327,8 @@ export class TranslateSession implements Session {
           })
       }
     })
+
+    console.log(afterShapes)
 
     return {
       id: 'translate',
