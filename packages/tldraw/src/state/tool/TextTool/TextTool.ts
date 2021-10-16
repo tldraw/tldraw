@@ -27,16 +27,21 @@ export class TextTool extends BaseTool {
   }
 
   onPointerDown: TLPointerEventHandler = (info) => {
+    if (this.status === Status.Creating) {
+      this.stopEditingShape()
+      return
+    }
+
     if (this.status === Status.Idle) {
       const point = Vec.round(this.state.getPagePoint(info.point))
       this.state.createTextShapeAtPoint(point)
       this.setStatus(Status.Creating)
       return
     }
+  }
 
-    if (this.status === Status.Creating) {
-      this.stopEditingShape()
-    }
+  override onPointerUp: TLPointerEventHandler = () => {
+    // noop important!
   }
 
   onPointShape: TLPointerEventHandler = (info) => {
