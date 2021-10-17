@@ -1391,10 +1391,13 @@ export class TLDrawState extends StateManager<Data> {
 
     const bounds = Utils.getCommonBounds(shapes.map(TLDR.getBounds))
 
-    const zoom = TLDR.getCameraZoom(
-      this.bounds.width < this.bounds.height
-        ? (this.bounds.width - 128) / bounds.width
-        : (this.bounds.height - 128) / bounds.height
+    const zoom = Math.min(
+      1,
+      TLDR.getCameraZoom(
+        this.bounds.width < this.bounds.height
+          ? (this.bounds.width - 128) / bounds.width
+          : (this.bounds.height - 128) / bounds.height
+      )
     )
 
     const mx = (this.bounds.width - bounds.width * zoom) / 2 / zoom
@@ -1413,12 +1416,17 @@ export class TLDrawState extends StateManager<Data> {
   zoomToSelection = (): this => {
     if (this.selectedIds.length === 0) return this
 
+    console.log('zooming to selection')
+
     const bounds = TLDR.getSelectedBounds(this.state)
 
-    const zoom = TLDR.getCameraZoom(
-      this.bounds.width < this.bounds.height
-        ? (this.bounds.width - 128) / bounds.width
-        : (this.bounds.height - 128) / bounds.height
+    const zoom = Math.min(
+      1,
+      TLDR.getCameraZoom(
+        this.bounds.width < this.bounds.height
+          ? (this.bounds.width - 128) / bounds.width
+          : (this.bounds.height - 128) / bounds.height
+      )
     )
 
     const mx = (this.bounds.width - bounds.width * zoom) / 2 / zoom
@@ -1443,6 +1451,7 @@ export class TLDrawState extends StateManager<Data> {
     const bounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
 
     const { zoom } = pageState.camera
+
     const mx = (this.bounds.width - bounds.width * zoom) / 2 / zoom
     const my = (this.bounds.height - bounds.height * zoom) / 2 / zoom
 
