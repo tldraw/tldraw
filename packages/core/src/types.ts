@@ -42,6 +42,11 @@ export interface TLUser<T extends TLShape> {
 
 export type TLUsers<T extends TLShape, U extends TLUser<T> = TLUser<T>> = Record<string, U>
 
+export type TLSnapLine = {
+  from: number[]
+  to: number[]
+}
+
 export interface TLHandle {
   id: string
   index: number

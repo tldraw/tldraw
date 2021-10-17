@@ -29,6 +29,8 @@ const isHideBoundsShapeSelector = (s: Data) => {
 
 const pageSelector = (s: Data) => s.document.pages[s.appState.currentPageId]
 
+const snapLinesSelector = (s: Data) => s.appState.snapLines
+
 const usersSelector = (s: Data) => s.room?.users
 
 const pageStateSelector = (s: Data) => s.document.pageStates[s.appState.currentPageId]
@@ -149,6 +151,8 @@ function InnerTldraw({
 
   const pageState = useSelector(pageStateSelector)
 
+  const snapLines = useSelector(snapLinesSelector)
+
   const users = useSelector(usersSelector)
 
   const isDarkMode = useSelector(isDarkModeSelector)
@@ -217,6 +221,7 @@ function InnerTldraw({
           containerRef={rWrapper}
           page={page}
           pageState={pageState}
+          snapLines={snapLines}
           users={users}
           userId={tlstate.state.room?.userId}
           shapeUtils={tldrawShapeUtils}

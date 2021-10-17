@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLPageState, Utils } from '@tldraw/core'
+import { TLPageState, Utils, TLBounds, TLSnapLine } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
   TLDrawShape,
@@ -16,6 +16,11 @@ import {
 import { TLDR } from '~state/tldr'
 import type { Patch } from 'rko'
 
+interface BoundsWithCenter extends TLBounds {
+  midX: number
+  midY: number
+}
+
 type CloneInfo =
   | {
       state: 'empty'
@@ -24,7 +29,15 @@ type CloneInfo =
       state: 'ready'
       clones: TLDrawShape[]
       clonedBindings: ArrowBinding[]
-      bindingsToDelete: ArrowBinding[]
+    }
+
+type SnapInfo =
+  | {
+      state: 'empty'
+    }
+  | {
+      state: 'ready'
+      bounds: BoundsWithCenter[]
     }
 
 export class TranslateSession implements Session {
@@ -32,6 +45,8 @@ export class TranslateSession implements Session {
   status = TLDrawStatus.Translating
   delta = [0, 0]
   prev = [0, 0]
+  prevPoint = [0, 0]
+  speed = 1
   origin: number[]
   snapshot: TranslateSnapshot
   isCloning = false
@@ -39,6 +54,10 @@ export class TranslateSession implements Session {
   cloneInfo: CloneInfo = {
     state: 'empty',
   }
+  snapInfo: SnapInfo = {
+    state: 'empty',
+  }
+  snapLines: TLSnapLine[] = []
 
   constructor(data: Data, point: number[], isCreate = false) {
     this.origin = point
@@ -48,6 +67,8 @@ export class TranslateSession implements Session {
 
   start = (data: Data) => {
     const { bindingsToDelete } = this.snapshot
+
+    this.createSnapInfo(data)
 
     if (bindingsToDelete.length === 0) return data
 
@@ -66,15 +87,18 @@ export class TranslateSession implements Session {
     }
   }
 
-  update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean) => {
+  update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean, metaKey: boolean) => {
     const { selectedIds, initialParentChildren, initialShapes, bindingsToDelete } = this.snapshot
 
     const { currentPageId } = data.appState
+
     const nextBindings: Patch<Record<string, TLDrawBinding>> = {}
+
     const nextShapes: Patch<Record<string, TLDrawShape>> = {}
+
     const nextPageState: Patch<TLPageState> = {}
 
-    const delta = Vec.sub(point, this.origin)
+    let delta = Vec.sub(point, this.origin)
 
     if (shiftKey) {
       if (Math.abs(delta[0]) < Math.abs(delta[1])) {
@@ -84,9 +108,24 @@ export class TranslateSession implements Session {
       }
     }
 
+    const speed = Vec.dist(point, this.prevPoint)
+
+    this.prevPoint = point
+
+    this.speed = this.speed + (speed - this.speed) / 2
+
+    this.snapLines = []
+
+    if (!metaKey && this.speed < 4 && this.snapInfo.state === 'ready') {
+      const snappedDelta = this.findSnapPoints(delta)
+
+      if (snappedDelta) {
+        delta = snappedDelta
+      }
+    }
+
     const trueDelta = Vec.sub(delta, this.prev)
 
-    this.delta = delta
     this.prev = delta
 
     // If cloning...
@@ -94,7 +133,7 @@ export class TranslateSession implements Session {
       // Not Cloning -> Cloning
       if (!this.isCloning) {
         if (this.cloneInfo.state === 'empty') {
-          this.loadClones(data)
+          this.createCloneInfo(data)
         }
 
         if (this.cloneInfo.state === 'empty') throw Error
@@ -141,7 +180,7 @@ export class TranslateSession implements Session {
 
       if (this.cloneInfo.state === 'empty') throw Error
 
-      const { clones, clonedBindings } = this.cloneInfo
+      const { clones } = this.cloneInfo
 
       // Either way, move the clones
       clones.forEach((clone) => {
@@ -212,6 +251,9 @@ export class TranslateSession implements Session {
     }
 
     return {
+      appState: {
+        snapLines: this.snapLines,
+      },
       document: {
         pages: {
           [data.appState.currentPageId]: {
@@ -258,6 +300,9 @@ export class TranslateSession implements Session {
     }
 
     return {
+      appState: {
+        snapLines: [],
+      },
       document: {
         pages: {
           [data.appState.currentPageId]: {
@@ -285,7 +330,7 @@ export class TranslateSession implements Session {
 
     if (this.isCloning) {
       if (this.cloneInfo.state === 'empty') {
-        this.loadClones(data)
+        this.createCloneInfo(data)
       }
 
       if (this.cloneInfo.state !== 'ready') throw Error
@@ -370,6 +415,9 @@ export class TranslateSession implements Session {
     return {
       id: 'translate',
       before: {
+        appState: {
+          snapLines: [],
+        },
         document: {
           pages: {
             [data.appState.currentPageId]: {
@@ -385,6 +433,9 @@ export class TranslateSession implements Session {
         },
       },
       after: {
+        appState: {
+          snapLines: [],
+        },
         document: {
           pages: {
             [data.appState.currentPageId]: {
@@ -402,10 +453,114 @@ export class TranslateSession implements Session {
     }
   }
 
-  private loadClones(data: Data) {
+  private findSnapPoints = (delta: number[]) => {
+    if (this.snapInfo.state !== 'ready') return
+
+    const bounds = Utils.translateBounds(this.snapshot.commonBounds, delta)
+
+    const initialCenter = Utils.getBoundsCenter(bounds)
+
+    const A: BoundsWithCenter = {
+      ...bounds,
+      midX: initialCenter[0],
+      midY: initialCenter[1],
+    }
+
+    const offset = [0, 0]
+
+    this.snapInfo.bounds.forEach((B) => {
+      for (const x of [B.midX, B.minX, B.maxX]) {
+        if (offset[0]) {
+          continue
+        } else if (Math.abs(A.midX - x) < 6) {
+          offset[0] = A.midX - x
+          this.snapLines.push({
+            from: [x, A.midY],
+            to: [x, A.midY > B.midY ? B.minY : B.maxY],
+          })
+        } else if (Math.abs(A.minX - x) < 6) {
+          offset[0] = A.midX - (x + A.width / 2)
+          this.snapLines.push({
+            from: [x - 1, A.midY > B.midY ? A.maxY : A.minY],
+            to: [x - 1, A.midY > B.midY ? B.minY : B.maxY],
+          })
+        } else if (Math.abs(A.maxX - x) < 6) {
+          offset[0] = A.midX - (x - A.width / 2)
+          this.snapLines.push({
+            from: [x, A.midY > B.midY ? A.maxY : A.minY],
+            to: [x, A.midY > B.midY ? B.minY : B.maxY],
+          })
+        }
+      }
+
+      if (offset[0]) {
+        A.minX -= offset[0]
+        A.midX -= offset[0]
+        A.maxX -= offset[0]
+      }
+
+      for (const y of [B.midY, B.minY, B.maxY]) {
+        if (offset[1]) {
+          continue
+        } else if (Math.abs(A.midY - y) < 6) {
+          offset[1] = A.midY - y
+          this.snapLines.push({
+            from: [A.midX, y],
+            to: [A.midX > B.midX ? B.minX : B.maxX, y],
+          })
+        } else if (Math.abs(A.minY - y) < 6) {
+          offset[1] = A.midY - (y + A.height / 2)
+          this.snapLines.push({
+            from: [A.midX > B.midX ? A.maxX : A.minX, y - 1],
+            to: [A.midX > B.midX ? B.minX : B.maxX, y - 1],
+          })
+        } else if (Math.abs(A.maxY - y) < 6) {
+          offset[1] = A.midY - (y - A.height / 2)
+          this.snapLines.push({
+            from: [A.midX > B.midX ? A.maxX : A.minX, y],
+            to: [A.midX > B.midX ? B.minX : B.maxX, y],
+          })
+        }
+
+        if (offset[1]) {
+          A.minY -= offset[1]
+          A.midY -= offset[1]
+          A.maxY -= offset[1]
+        }
+      }
+    })
+
+    return Vec.sub(delta, offset)
+  }
+
+  private createSnapInfo = async (data: Data) => {
+    const { selectedIds } = this.snapshot
+    const { currentPageId } = data.appState
+    const page = data.document.pages[currentPageId]
+
+    this.snapInfo = {
+      state: 'ready',
+      bounds: Object.values(page.shapes)
+        .filter((shape) => !selectedIds.includes(shape.id))
+        .map((shape) => {
+          const bounds = TLDR.getBounds(shape)
+          return {
+            ...bounds,
+            midX: bounds.minX + bounds.width / 2,
+            midY: bounds.minY + bounds.height / 2,
+          }
+        }),
+    }
+  }
+
+  private createCloneInfo = (data: Data) => {
+    // Create clones when as they're needed.
+    // Consider doing this work in a worker.
+
     const { currentPageId } = data.appState
     const page = data.document.pages[currentPageId]
     const { selectedIds, shapesToMove, initialParentChildren } = this.snapshot
+
     const cloneMap: Record<string, string> = {}
     const clonedBindingsMap: Record<string, string> = {}
     const clonedBindings: TLDrawBinding[] = []
@@ -446,8 +601,6 @@ export class TranslateSession implements Session {
     // original shapes that were cloned, not their clones' ids.
     const clonedShapeIds = new Set(Object.keys(cloneMap))
 
-    const bindingsToDelete: TLDrawBinding[] = []
-
     // Create cloned bindings for shapes where both to and from shapes are selected
     // (if the user clones, then we will create a new binding for the clones)
     Object.values(page.bindings)
@@ -466,8 +619,6 @@ export class TranslateSession implements Session {
 
             clonedBindingsMap[binding.id] = cloneId
             clonedBindings.push(cloneBinding)
-          } else {
-            bindingsToDelete.push(binding)
           }
         }
       })
@@ -494,7 +645,6 @@ export class TranslateSession implements Session {
       state: 'ready',
       clones,
       clonedBindings,
-      bindingsToDelete,
     }
   }
 }
@@ -540,12 +690,15 @@ export function getTranslateSnapshot(data: Data) {
       initialParentChildren[id] = shape.children!
     })
 
+  const commonBounds = Utils.getCommonBounds(shapesToMove.map(TLDR.getBounds))
+
   return {
     selectedIds,
     hasUnlockedShapes,
     initialParentChildren,
     shapesToMove,
     bindingsToDelete,
+    commonBounds,
     initialShapes: shapesToMove.map(({ id, point, parentId }) => ({
       id,
       point,

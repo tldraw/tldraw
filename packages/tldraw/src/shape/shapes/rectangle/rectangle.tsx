@@ -36,7 +36,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
     const strokeWidth = +styles.strokeWidth
 
     if (style.dash === DashStyle.Draw) {
-      const pathData = Utils.getFromCache(pathCache, shape.size, () => getRectanglePath(shape))
+      const pathData = getRectanglePath(shape)
 
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>

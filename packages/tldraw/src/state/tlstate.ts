@@ -1720,6 +1720,7 @@ export class TLDrawState extends StateManager<Data> {
         // the shape we just created.
         result.before = {
           appState: {
+            ...result.before.appState,
             status: TLDrawStatus.Idle,
           },
           document: {
@@ -1748,6 +1749,7 @@ export class TLDrawState extends StateManager<Data> {
       }
 
       result.after.appState = {
+        ...result.after.appState,
         status: TLDrawStatus.Idle,
       }
 
@@ -2427,6 +2429,7 @@ export class TLDrawState extends StateManager<Data> {
       isStyleOpen: false,
       isEmptyCanvas: false,
       status: TLDrawStatus.Idle,
+      snapLines: [],
     },
     document: TLDrawState.defaultDocument,
     room: {
