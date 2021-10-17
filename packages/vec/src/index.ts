@@ -512,15 +512,12 @@ export class Vec {
    * @param steps The number of points to return.
    * @param ease An easing function to apply to the simulated pressure.
    */
-  static pointsBetween = (
-    A: number[],
-    B: number[],
-    steps = 6,
-    ease = (t: number) => t * t * t * t
-  ): number[][] => {
-    return Array.from(Array(steps)).map((_, i) =>
-      Vec.round([...Vec.lrp(A, B, i / steps), (1 - ease(i / steps)) / 2])
-    )
+  static pointsBetween = (A: number[], B: number[], steps = 6): number[][] => {
+    return Array.from(Array(steps)).map((_, i) => {
+      const t = i / (steps - 1)
+      const k = Math.min(1, 0.5 + Math.abs(0.5 - t))
+      return [...Vec.lrp(A, B, t), k]
+    })
   }
 }
 
