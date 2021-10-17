@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Utils, SVGContainer, ShapeUtil } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import getStroke, { getStrokePoints } from 'perfect-freehand'
+import getStroke, { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
 import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawMeta } from '~types'
 import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
@@ -173,70 +173,93 @@ function getRectangleDrawPoints(shape: RectangleShape) {
 
   const getRandom = Utils.rng(shape.id)
 
-  const strokeWidth = +styles.strokeWidth
+  const sw = styles.strokeWidth
 
-  const baseOffset = strokeWidth / 2
+  // Dimensions
+  const w = Math.max(0, shape.size[0])
+  const h = Math.max(0, shape.size[1])
 
-  const offsets = Array.from(Array(4)).map(() => [
-    getRandom() * baseOffset,
-    getRandom() * baseOffset,
-  ])
+  // Random corner offsets
+  const offsets = Array.from(Array(4)).map(() => {
+    return [getRandom() * sw * 0.75, getRandom() * sw * 0.75]
+  })
 
-  const sw = strokeWidth
-
-  const w = Math.max(0, shape.size[0] - sw / 2)
-  const h = Math.max(0, shape.size[1] - sw / 2)
-
+  // Corners
   const tl = Vec.add([sw / 2, sw / 2], offsets[0])
-  const tr = Vec.add([w, sw / 2], offsets[1])
-  const br = Vec.add([w, h], offsets[2])
-  const bl = Vec.add([sw / 2, h], offsets[3])
+  const tr = Vec.add([w - sw / 2, sw / 2], offsets[1])
+  const br = Vec.add([w - sw / 2, h - sw / 2], offsets[2])
+  const bl = Vec.add([sw / 2, h - sw / 2], offsets[3])
 
-  const px = Math.max(8, Math.floor(w / 20))
-  const py = Math.max(8, Math.floor(h / 20))
-  const rm = Math.floor(5 + getRandom() * 4)
+  // Which side to start drawing first
+  const rm = Math.round(Math.abs(getRandom() * 2 * 4))
 
-  const lines = Utils.shuffleArr(
+  // Corner radii
+  const rx = Math.min(w / 2, sw * 2)
+  const ry = Math.min(h / 2, sw * 2)
+
+  // Number of points per side
+  const px = Math.max(8, Math.floor(w / 16))
+  const py = Math.max(8, Math.floor(h / 16))
+
+  // Inset each line by the corner radii and let the freehand algo
+  // interpolate points for the corners.
+  const lines = Utils.rotateArray(
     [
-      Vec.pointsBetween(tr, br, py, EASINGS.linear),
-      Vec.pointsBetween(br, bl, px, EASINGS.linear),
-      Vec.pointsBetween(bl, tl, py, EASINGS.linear),
-      Vec.pointsBetween(tl, tr, px, EASINGS.linear),
+      Vec.pointsBetween(Vec.add(tl, [rx, 0]), Vec.sub(tr, [rx, 0]), px),
+      Vec.pointsBetween(Vec.add(tr, [0, ry]), Vec.sub(br, [0, ry]), py),
+      Vec.pointsBetween(Vec.sub(br, [rx, 0]), Vec.add(bl, [rx, 0]), px),
+      Vec.pointsBetween(Vec.sub(bl, [0, ry]), Vec.add(tl, [0, ry]), py),
     ],
     rm
   )
 
+  // For the final points, include the first half of the first line again,
+  // so that the line wraps around and avoids ending on a sharp corner.
+  // This has a bit of finesse and magic—if you change the points between
+  // function, then you'll likely need to change this one too.
+
+  const points = [...lines.flat(), ...lines[0]].slice(
+    5,
+    Math.floor((rm % 2 === 0 ? px : py) / -2) + 3
+  )
+
   return {
-    points: [...lines.flat(), ...lines[0], ...lines[1]].slice(
-      4,
-      Math.floor((rm % 2 === 0 ? px : py) / -2) + 2
-    ),
-    edgeDistance: rm % 2 === 0 ? px : py,
+    points,
   }
 }
 
-function getRectanglePath(shape: RectangleShape) {
-  const { points, edgeDistance } = getRectangleDrawPoints(shape)
+function getDrawStrokeInfo(shape: RectangleShape) {
+  const { points } = getRectangleDrawPoints(shape)
 
   const { strokeWidth } = getShapeStyle(shape.style)
 
-  const stroke = getStroke(points, {
-    size: 1 + strokeWidth,
-    thinning: 0.6,
-    end: { taper: edgeDistance },
-    start: { taper: edgeDistance },
+  const options = {
+    size: strokeWidth,
+    thinning: 0.65,
+    streamline: 0.3,
+    smoothing: 1,
     simulatePressure: false,
     last: true,
-  })
+  }
+
+  return { points, options }
+}
+
+function getRectanglePath(shape: RectangleShape) {
+  const { points, options } = getDrawStrokeInfo(shape)
+
+  const stroke = getStroke(points, options)
 
   return Utils.getSvgPathFromStroke(stroke)
 }
 
 function getRectangleIndicatorPathData(shape: RectangleShape) {
-  const { points } = getRectangleDrawPoints(shape)
+  const { points, options } = getDrawStrokeInfo(shape)
+
+  const strokePoints = getStrokePoints(points, options)
 
   return Utils.getSvgPathFromStroke(
-    getStrokePoints(points).map((pt) => pt.point.slice(0, 2)),
+    strokePoints.map((pt) => pt.point.slice(0, 2)),
     false
   )
 }

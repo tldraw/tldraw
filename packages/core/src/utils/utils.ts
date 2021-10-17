@@ -1585,7 +1585,7 @@ left past the initial left edge) then swap points on that axis.
    * @param arr
    * @param offset
    */
-  static shuffleArr<T>(arr: T[], offset: number): T[] {
+  static rotateArray<T>(arr: T[], offset: number): T[] {
     return arr.map((_, i) => arr[(i + offset) % arr.length])
   }
 
