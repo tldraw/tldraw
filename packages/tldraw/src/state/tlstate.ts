@@ -1416,8 +1416,6 @@ export class TLDrawState extends StateManager<Data> {
   zoomToSelection = (): this => {
     if (this.selectedIds.length === 0) return this
 
-    console.log('zooming to selection')
-
     const bounds = TLDR.getSelectedBounds(this.state)
 
     let zoom = TLDR.getCameraZoom(
