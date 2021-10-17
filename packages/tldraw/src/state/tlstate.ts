@@ -1396,7 +1396,7 @@ export class TLDrawState extends StateManager<Data> {
     )
 
     zoom =
-      this.pageState.camera.zoom === zoom || this.pageState.camera.zoom <= 1
+      this.pageState.camera.zoom === zoom || this.pageState.camera.zoom < 1
         ? Math.min(1, zoom)
         : zoom
 
@@ -1425,7 +1425,7 @@ export class TLDrawState extends StateManager<Data> {
     )
 
     zoom =
-      this.pageState.camera.zoom === zoom || this.pageState.camera.zoom <= 1
+      this.pageState.camera.zoom === zoom || this.pageState.camera.zoom < 1
         ? Math.min(1, zoom)
         : zoom
 
