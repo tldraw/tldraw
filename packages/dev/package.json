@@ -35,7 +35,7 @@
     "@types/react-router-dom": "^5.1.8",
     "concurrently": "6.0.1",
     "create-serve": "1.0.1",
-    "esbuild": "^0.12.26",
+    "esbuild": "^0.13.8",
     "rimraf": "3.0.2",
     "typescript": "4.2.3"
   },

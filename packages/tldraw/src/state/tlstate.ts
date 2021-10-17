@@ -44,6 +44,7 @@ import { ArgsOfType, getSession } from './session'
 import { sample, USER_COLORS } from './utils'
 import { createTools, ToolType } from './tool'
 import type { BaseTool } from './tool/BaseTool'
+import * as constants from './constants'
 
 const uuid = Utils.uniqueId()
 
@@ -1392,7 +1393,10 @@ export class TLDrawState extends StateManager<Data> {
     const bounds = Utils.getCommonBounds(shapes.map(TLDR.getBounds))
 
     let zoom = TLDR.getCameraZoom(
-      Math.min((this.bounds.width - 128) / bounds.width, (this.bounds.height - 128) / bounds.height)
+      Math.min(
+        (this.bounds.width - constants.FIT_TO_SCREEN_PADDING) / bounds.width,
+        (this.bounds.height - constants.FIT_TO_SCREEN_PADDING) / bounds.height
+      )
     )
 
     zoom =
@@ -1419,7 +1423,10 @@ export class TLDrawState extends StateManager<Data> {
     const bounds = TLDR.getSelectedBounds(this.state)
 
     let zoom = TLDR.getCameraZoom(
-      Math.min((this.bounds.width - 128) / bounds.width, (this.bounds.height - 128) / bounds.height)
+      Math.min(
+        (this.bounds.width - constants.FIT_TO_SCREEN_PADDING) / bounds.width,
+        (this.bounds.height - constants.FIT_TO_SCREEN_PADDING) / bounds.height
+      )
     )
 
     zoom =
