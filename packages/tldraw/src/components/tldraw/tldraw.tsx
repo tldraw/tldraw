@@ -1,16 +1,10 @@
 import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
-import css from '~styles'
+import css, { dark } from '~styles'
 import { Data, TLDrawDocument, TLDrawStatus, TLDrawUser } from '~types'
 import { TLDrawState } from '~state'
-import {
-  TLDrawContext,
-  useCustomFonts,
-  useKeyboardShortcuts,
-  useThemeEffect,
-  useTLDrawContext,
-} from '~hooks'
+import { TLDrawContext, useCustomFonts, useKeyboardShortcuts, useTLDrawContext } from '~hooks'
 import { tldrawShapeUtils } from '~shape'
 import { StylePanel } from '~components/style-panel'
 import { ToolsPanel } from '~components/tools-panel'
@@ -151,8 +145,6 @@ function InnerTldraw({
 
   const rWrapper = React.useRef<HTMLDivElement>(null)
 
-  useThemeEffect(rWrapper)
-
   const page = useSelector(pageSelector)
 
   const pageState = useSelector(pageStateSelector)
@@ -217,7 +209,7 @@ function InnerTldraw({
   }, [currentPageId, tlstate])
 
   return (
-    <div ref={rWrapper} tabIndex={0} className={layout()}>
+    <div ref={rWrapper} tabIndex={0} className={[layout(), isDarkMode ? dark : ''].join(' ')}>
       <OneOff focusableRef={rWrapper} autofocus={autofocus} />
       <ContextMenu>
         <Renderer

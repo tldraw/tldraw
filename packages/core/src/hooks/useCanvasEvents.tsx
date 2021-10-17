@@ -1,4 +1,3 @@
-import Vec from '@tldraw/vec'
 import * as React from 'react'
 import { useTLContext } from './useTLContext'
 
