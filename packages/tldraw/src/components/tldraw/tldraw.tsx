@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
-import css from '~styles'
+import css, { dark } from '~styles'
 import { Data, TLDrawDocument, TLDrawStatus, TLDrawUser } from '~types'
 import { TLDrawState } from '~state'
 import {
@@ -217,7 +217,7 @@ function InnerTldraw({
   }, [currentPageId, tlstate])
 
   return (
-    <div ref={rWrapper} tabIndex={0} className={layout()}>
+    <div tabIndex={0} className={[layout(), isDarkMode ? dark : ''].join(' ')}>
       <OneOff focusableRef={rWrapper} autofocus={autofocus} />
       <ContextMenu>
         <Renderer
@@ -348,6 +348,14 @@ const layout = css({
     width: '100%',
     zIndex: 1,
   },
+})
+
+const focusable = css({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  height: '100%',
+  width: '100%',
 })
 
 const ui = css({
