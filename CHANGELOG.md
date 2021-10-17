@@ -1,3 +1,10 @@
+## 0.0.120
+
+### TLDraw
+
+- Improves rectangle rendering.
+- Improves zoom to fit and zoom to selection.
+
 ## 0.0.119
 
 ### TLDraw
