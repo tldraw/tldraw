@@ -4,13 +4,7 @@ import { Renderer } from '@tldraw/core'
 import css, { dark } from '~styles'
 import { Data, TLDrawDocument, TLDrawStatus, TLDrawUser } from '~types'
 import { TLDrawState } from '~state'
-import {
-  TLDrawContext,
-  useCustomFonts,
-  useKeyboardShortcuts,
-  useThemeEffect,
-  useTLDrawContext,
-} from '~hooks'
+import { TLDrawContext, useCustomFonts, useKeyboardShortcuts, useTLDrawContext } from '~hooks'
 import { tldrawShapeUtils } from '~shape'
 import { StylePanel } from '~components/style-panel'
 import { ToolsPanel } from '~components/tools-panel'
@@ -150,8 +144,6 @@ function InnerTldraw({
   const { tlstate, useSelector } = useTLDrawContext()
 
   const rWrapper = React.useRef<HTMLDivElement>(null)
-
-  useThemeEffect(rWrapper)
 
   const page = useSelector(pageSelector)
 
@@ -348,14 +340,6 @@ const layout = css({
     width: '100%',
     zIndex: 1,
   },
-})
-
-const focusable = css({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  height: '100%',
-  width: '100%',
 })
 
 const ui = css({
