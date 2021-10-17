@@ -209,7 +209,7 @@ function InnerTldraw({
   }, [currentPageId, tlstate])
 
   return (
-    <div tabIndex={0} className={[layout(), isDarkMode ? dark : ''].join(' ')}>
+    <div ref={rWrapper} tabIndex={0} className={[layout(), isDarkMode ? dark : ''].join(' ')}>
       <OneOff focusableRef={rWrapper} autofocus={autofocus} />
       <ContextMenu>
         <Renderer
