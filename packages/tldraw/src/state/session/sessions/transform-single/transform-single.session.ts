@@ -1,9 +1,19 @@
-import { TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
+import { TLBoundsCorner, TLSnapLine, TLBoundsEdge, Utils, TLBoundsWithCenter } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { SessionType, TLDrawShape, TLDrawStatus } from '~types'
 import type { Session } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
+import { SNAP_DISTANCE } from '~state/constants'
+
+type SnapInfo =
+  | {
+      state: 'empty'
+    }
+  | {
+      state: 'ready'
+      bounds: TLBoundsWithCenter[]
+    }
 
 export class TransformSingleSession implements Session {
   type = SessionType.TransformSingle
@@ -14,6 +24,9 @@ export class TransformSingleSession implements Session {
   scaleY = 1
   isCreate: boolean
   snapshot: TransformSingleSnapshot
+  snapInfo: SnapInfo = { state: 'empty' }
+  prevPoint = [0, 0]
+  speed = 1
 
   constructor(
     data: Data,
@@ -27,12 +40,17 @@ export class TransformSingleSession implements Session {
     this.isCreate = isCreate
   }
 
-  start = () => void null
+  start = (data: Data) => {
+    this.createSnapInfo(data)
+    return void null
+  }
 
   update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
     const { transformType } = this
 
-    const { initialShapeBounds, initialShape, id } = this.snapshot
+    const { currentPageId, initialShapeBounds, initialShape, id } = this.snapshot
+
+    const delta = Vec.sub(point, this.origin)
 
     const shapes = {} as Record<string, Partial<TLDrawShape>>
 
@@ -40,15 +58,65 @@ export class TransformSingleSession implements Session {
 
     const utils = TLDR.getShapeUtils(shape)
 
-    const newBounds = Utils.getTransformedBoundingBox(
+    let newBounds = Utils.getTransformedBoundingBox(
       initialShapeBounds,
       transformType,
-      Vec.sub(point, this.origin),
+      delta,
       shape.rotation,
       shiftKey || shape.isAspectRatioLocked || utils.isAspectRatioLocked
     )
 
-    const change = TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
+    // Should we snap?
+
+    // Speed is used to decide which snap points to use. At a high
+    // speed, we don't use any snap points. At a low speed, we only
+    // allow center-to-center snap points. At very low speed, we
+    // enable all snap points (still preferring middle snaps). We're
+    // using an acceleration function here to smooth the changes in
+    // speed, but we also want the speed to accelerate faster than
+    // it decelerates.
+
+    const speed = Vec.dist(point, this.prevPoint)
+
+    this.prevPoint = point
+
+    const speedChange = speed - this.speed
+
+    this.speed = this.speed + speedChange * (speedChange > 1 ? 0.5 : 0.15)
+
+    let snapLines: TLSnapLine[] = []
+
+    const { zoom } = data.document.pageStates[currentPageId].camera
+
+    if (
+      !metaKey &&
+      !initialShape.rotation && // not now anyway
+      this.speed * zoom < 5 &&
+      this.snapInfo.state === 'ready'
+    ) {
+      const bounds = Utils.getBoundsWithCenter(newBounds)
+
+      const snapResult = Utils.getSnapPoints(
+        bounds,
+        this.snapInfo.bounds,
+        SNAP_DISTANCE / zoom,
+        this.speed * zoom < 0.45
+      )
+
+      if (snapResult) {
+        snapLines = snapResult.snapLines
+
+        newBounds = Utils.getTransformedBoundingBox(
+          initialShapeBounds,
+          transformType,
+          Vec.sub(delta, snapResult.offset),
+          shape.rotation,
+          shiftKey || shape.isAspectRatioLocked || utils.isAspectRatioLocked
+        )
+      }
+    }
+
+    const afterShape = TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
       initialShape,
       type: this.transformType,
       scaleX: newBounds.scaleX,
@@ -56,11 +124,14 @@ export class TransformSingleSession implements Session {
       transformOrigin: [0.5, 0.5],
     })
 
-    if (change) {
-      shapes[shape.id] = change
+    if (afterShape) {
+      shapes[shape.id] = afterShape
     }
 
     return {
+      appState: {
+        snapLines,
+      },
       document: {
         pages: {
           [data.appState.currentPageId]: {
@@ -83,6 +154,9 @@ export class TransformSingleSession implements Session {
     }
 
     return {
+      appState: {
+        snapLines: [],
+      },
       document: {
         pages: {
           [data.appState.currentPageId]: {
@@ -115,6 +189,9 @@ export class TransformSingleSession implements Session {
     return {
       id: 'transform_single',
       before: {
+        appState: {
+          snapLines: [],
+        },
         document: {
           pages: {
             [data.appState.currentPageId]: {
@@ -131,6 +208,9 @@ export class TransformSingleSession implements Session {
         },
       },
       after: {
+        appState: {
+          snapLines: [],
+        },
         document: {
           pages: {
             [data.appState.currentPageId]: {
@@ -148,30 +228,40 @@ export class TransformSingleSession implements Session {
       },
     }
   }
+
+  private createSnapInfo = async (data: Data) => {
+    const { initialShape } = this.snapshot
+    const { currentPageId } = data.appState
+    const page = data.document.pages[currentPageId]
+
+    this.snapInfo = {
+      state: 'ready',
+      bounds: Object.values(page.shapes)
+        .filter((shape) => shape.id !== initialShape.id)
+        .map((shape) => Utils.getBoundsWithCenter(TLDR.getRotatedBounds(shape))),
+    }
+  }
 }
 
 export function getTransformSingleSnapshot(
   data: Data,
   transformType: TLBoundsEdge | TLBoundsCorner
 ) {
-  const shape = TLDR.getShape(
-    data,
-    TLDR.getSelectedIds(data, data.appState.currentPageId)[0],
-    data.appState.currentPageId
-  )
+  const { currentPageId } = data.appState
+  const shape = TLDR.getShape(data, TLDR.getSelectedIds(data, currentPageId)[0], currentPageId)
 
   if (!shape) {
     throw Error('You must have one shape selected.')
   }
 
-  const bounds = TLDR.getBounds(shape)
-
   return {
     id: shape.id,
+    currentPageId,
     hasUnlockedShape: !shape.isLocked,
     type: transformType,
     initialShape: Utils.deepClone(shape),
-    initialShapeBounds: bounds,
+    initialShapeBounds: TLDR.getBounds(shape),
+    commonBounds: TLDR.getRotatedBounds(shape),
   }
 }
 
