@@ -1519,6 +1519,18 @@ left past the initial left edge) then swap points on that axis.
     return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2]
   }
 
+  /**
+   * Get a bounding box with a midX and midY.
+   * @param bounds
+   */
+  static getBoundsWithCenter(bounds: TLBounds): TLBounds & { midX: number; midY: number } {
+    return {
+      ...bounds,
+      midX: bounds.minX + bounds.width / 2,
+      midY: bounds.minY + bounds.height / 2,
+    }
+  }
+
   /* -------------------------------------------------- */
   /*                Lists and Collections               */
   /* -------------------------------------------------- */
