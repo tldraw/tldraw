@@ -337,3 +337,7 @@ describe('When snapping', () => {
   it.todo('Cleans up snap lines when starting to clone / not clone')
   it.todo('Snaps the rotated bounding box of rotated shapes')
 })
+
+describe('When translating linked shapes', () => {
+  it.todo('Translates all shapes that are chain-linked to the selected shapes')
+})
