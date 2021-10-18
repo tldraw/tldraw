@@ -68,14 +68,6 @@ export class TransformSingleSession implements Session {
 
     // Should we snap?
 
-    // Speed is used to decide which snap points to use. At a high
-    // speed, we don't use any snap points. At a low speed, we only
-    // allow center-to-center snap points. At very low speed, we
-    // enable all snap points (still preferring middle snaps). We're
-    // using an acceleration function here to smooth the changes in
-    // speed, but we also want the speed to accelerate faster than
-    // it decelerates.
-
     const speed = Vec.dist(point, this.prevPoint)
 
     this.prevPoint = point
@@ -94,10 +86,8 @@ export class TransformSingleSession implements Session {
       this.speed * zoom < 5 &&
       this.snapInfo.state === 'ready'
     ) {
-      const bounds = Utils.getBoundsWithCenter(newBounds)
-
       const snapResult = Utils.getSnapPoints(
-        bounds,
+        Utils.getBoundsWithCenter(newBounds),
         this.snapInfo.bounds,
         SNAP_DISTANCE / zoom,
         this.speed * zoom < 0.45

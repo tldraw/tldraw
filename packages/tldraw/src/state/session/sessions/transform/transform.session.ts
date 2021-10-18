@@ -1,9 +1,20 @@
 import { TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
+import type { TLSnapLine, TLBoundsWithCenter } from '@tldraw/core'
 import { Session, SessionType, TLDrawShape, TLDrawStatus } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 import type { Command } from 'rko'
+import { SNAP_DISTANCE } from '~state/constants'
+
+type SnapInfo =
+  | {
+      state: 'empty'
+    }
+  | {
+      state: 'ready'
+      bounds: TLBoundsWithCenter[]
+    }
 
 export class TransformSession implements Session {
   static type = SessionType.Transform
@@ -15,6 +26,9 @@ export class TransformSession implements Session {
   snapshot: TransformSnapshot
   isCreate: boolean
   initialSelectedIds: string[]
+  snapInfo: SnapInfo = { state: 'empty' }
+  prevPoint = [0, 0]
+  speed = 1
 
   constructor(
     data: Data,
@@ -29,7 +43,10 @@ export class TransformSession implements Session {
     this.initialSelectedIds = TLDR.getSelectedIds(data, data.appState.currentPageId)
   }
 
-  start = () => void null
+  start = (data: Data) => {
+    this.createSnapInfo(data)
+    return void null
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
@@ -42,22 +59,61 @@ export class TransformSession implements Session {
 
     const pageState = TLDR.getPageState(data, data.appState.currentPageId)
 
-    const newBoundingBox = Utils.getTransformedBoundingBox(
+    const delta = Vec.sub(point, this.origin)
+
+    let newBounds = Utils.getTransformedBoundingBox(
       initialBounds,
       transformType,
-      Vec.sub(point, this.origin),
+      delta,
       pageState.boundsRotation,
       shiftKey || isAllAspectRatioLocked
     )
 
+    // Should we snap?
+
+    const speed = Vec.dist(point, this.prevPoint)
+
+    this.prevPoint = point
+
+    const speedChange = speed - this.speed
+
+    this.speed = this.speed + speedChange * (speedChange > 1 ? 0.5 : 0.15)
+
+    let snapLines: TLSnapLine[] = []
+
+    const { currentPageId } = data.appState
+
+    const { zoom } = data.document.pageStates[currentPageId].camera
+
+    if (!metaKey && this.speed * zoom < 5 && this.snapInfo.state === 'ready') {
+      const snapResult = Utils.getSnapPoints(
+        Utils.getBoundsWithCenter(newBounds),
+        this.snapInfo.bounds,
+        SNAP_DISTANCE / zoom,
+        this.speed * zoom < 0.45
+      )
+
+      if (snapResult) {
+        snapLines = snapResult.snapLines
+
+        newBounds = Utils.getTransformedBoundingBox(
+          initialBounds,
+          transformType,
+          Vec.sub(delta, snapResult.offset),
+          pageState.boundsRotation,
+          shiftKey || isAllAspectRatioLocked
+        )
+      }
+    }
+
     // Now work backward to calculate a new bounding box for each of the shapes.
 
-    this.scaleX = newBoundingBox.scaleX
-    this.scaleY = newBoundingBox.scaleY
+    this.scaleX = newBounds.scaleX
+    this.scaleY = newBounds.scaleY
 
     shapeBounds.forEach(({ id, initialShape, initialShapeBounds, transformOrigin }) => {
       const newShapeBounds = Utils.getRelativeTransformedBoundingBox(
-        newBoundingBox,
+        newBounds,
         initialBounds,
         initialShapeBounds,
         this.scaleX < 0,
@@ -78,6 +134,9 @@ export class TransformSession implements Session {
     })
 
     return {
+      appState: {
+        snapLines,
+      },
       document: {
         pages: {
           [data.appState.currentPageId]: {
@@ -100,6 +159,9 @@ export class TransformSession implements Session {
     }
 
     return {
+      appState: {
+        snapLines: [],
+      },
       document: {
         pages: {
           [data.appState.currentPageId]: {
@@ -145,6 +207,9 @@ export class TransformSession implements Session {
     return {
       id: 'transform',
       before: {
+        appState: {
+          snapLines: [],
+        },
         document: {
           pages: {
             [data.appState.currentPageId]: {
@@ -161,6 +226,9 @@ export class TransformSession implements Session {
         },
       },
       after: {
+        appState: {
+          snapLines: [],
+        },
         document: {
           pages: {
             [data.appState.currentPageId]: {
@@ -178,10 +246,25 @@ export class TransformSession implements Session {
       },
     }
   }
+
+  private createSnapInfo = async (data: Data) => {
+    const { initialShapeIds } = this.snapshot
+    const { currentPageId } = data.appState
+    const page = data.document.pages[currentPageId]
+
+    this.snapInfo = {
+      state: 'ready',
+      bounds: Object.values(page.shapes)
+        .filter((shape) => !initialShapeIds.includes(shape.id))
+        .map((shape) => Utils.getBoundsWithCenter(TLDR.getRotatedBounds(shape))),
+    }
+  }
 }
 
 export function getTransformSnapshot(data: Data, transformType: TLBoundsEdge | TLBoundsCorner) {
   const initialShapes = TLDR.getSelectedBranchSnapshot(data, data.appState.currentPageId)
+
+  const initialShapeIds = initialShapes.map((shape) => shape.id)
 
   const hasUnlockedShapes = initialShapes.length > 0
 
@@ -205,6 +288,7 @@ export function getTransformSnapshot(data: Data, transformType: TLBoundsEdge | T
     type: transformType,
     hasUnlockedShapes,
     isAllAspectRatioLocked,
+    initialShapeIds,
     initialShapes,
     initialBounds: commonBounds,
     shapeBounds: initialShapes.map((shape) => {
