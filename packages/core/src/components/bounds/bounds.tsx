@@ -38,8 +38,10 @@ export const Bounds = React.memo(
     const smallDimension = Math.min(bounds.width, bounds.height) * zoom
     // If the bounds are small, don't show the rotate handle
     const showRotateHandle = !isHidden && !isLocked && smallDimension > 32
-    // If the bounds are very small, don't show the corner handles
-    const showHandles = !isHidden && !isLocked && smallDimension > 16
+    // If the bounds are very small, don't show the edge handles
+    const showEdgeHandles = !isHidden && !isLocked && smallDimension > 24
+    // If the bounds are very very small, don't show the corner handles
+    const showCornerHandles = !isHidden && !isLocked && smallDimension > 20
 
     return (
       <Container bounds={bounds} rotation={rotation}>
@@ -50,62 +52,62 @@ export const Bounds = React.memo(
             size={size}
             bounds={bounds}
             edge={TLBoundsEdge.Top}
-            isHidden={!showHandles}
+            isHidden={!showEdgeHandles}
           />
           <EdgeHandle
             targetSize={targetSize}
             size={size}
             bounds={bounds}
             edge={TLBoundsEdge.Right}
-            isHidden={!showHandles}
+            isHidden={!showEdgeHandles}
           />
           <EdgeHandle
             targetSize={targetSize}
             size={size}
             bounds={bounds}
             edge={TLBoundsEdge.Bottom}
-            isHidden={!showHandles}
+            isHidden={!showEdgeHandles}
           />
           <EdgeHandle
             targetSize={targetSize}
             size={size}
             bounds={bounds}
             edge={TLBoundsEdge.Left}
-            isHidden={!showHandles}
+            isHidden={!showEdgeHandles}
           />
           <CornerHandle
             targetSize={targetSize}
             size={size}
             bounds={bounds}
-            isHidden={isHidden}
+            isHidden={isHidden || !showCornerHandles}
             corner={TLBoundsCorner.TopLeft}
           />
           <CornerHandle
             targetSize={targetSize}
             size={size}
             bounds={bounds}
-            isHidden={isHidden}
+            isHidden={isHidden || !showCornerHandles}
             corner={TLBoundsCorner.TopRight}
           />
           <CornerHandle
             targetSize={targetSize}
             size={size}
             bounds={bounds}
-            isHidden={isHidden}
+            isHidden={isHidden || !showCornerHandles}
             corner={TLBoundsCorner.BottomRight}
           />
           <CornerHandle
             targetSize={targetSize}
             size={size}
             bounds={bounds}
-            isHidden={isHidden}
+            isHidden={isHidden || !showCornerHandles}
             corner={TLBoundsCorner.BottomLeft}
           />
           <RotateHandle
             targetSize={targetSize}
             size={size}
             bounds={bounds}
-            isHidden={!showHandles || !showRotateHandle}
+            isHidden={!showEdgeHandles || !showRotateHandle}
           />
           {showCloneButtons && <CloneButtons bounds={bounds} />}
         </SVGContainer>

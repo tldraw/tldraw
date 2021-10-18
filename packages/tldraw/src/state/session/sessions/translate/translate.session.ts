@@ -138,6 +138,8 @@ export class TranslateSession implements Session {
     this.snapLines = []
 
     if (!metaKey && this.speed < 4 && this.snapInfo.state === 'ready') {
+      const { zoom } = data.document.pageStates[currentPageId].camera
+
       const bounds = Utils.getBoundsWithCenter(
         Utils.translateBounds(this.snapshot.commonBounds, delta)
       )
@@ -145,8 +147,8 @@ export class TranslateSession implements Session {
       const snapResult = Utils.getSnapPoints(
         bounds,
         this.isCloning ? this.snapInfo.bounds : this.snapInfo.others,
-        SNAP_DISTANCE,
-        this.speed < 0.45
+        SNAP_DISTANCE / zoom,
+        this.speed * zoom < 0.45
       )
 
       if (snapResult) {
