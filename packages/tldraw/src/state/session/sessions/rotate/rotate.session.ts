@@ -23,7 +23,7 @@ export class RotateSession implements Session {
 
   start = () => void null
 
-  update = (data: Data, point: number[], isLocked = false) => {
+  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
     const { commonBoundsCenter, initialShapes } = this.snapshot
 
     const pageId = data.appState.currentPageId
@@ -32,7 +32,7 @@ export class RotateSession implements Session {
 
     let directionDelta = Vec.angle(commonBoundsCenter, point) - this.initialAngle
 
-    if (isLocked) {
+    if (shiftKey) {
       directionDelta = Utils.snapAngleToSegments(directionDelta, 24) // 15 degrees
     }
 
@@ -41,7 +41,7 @@ export class RotateSession implements Session {
       const { rotation = 0 } = shape
       let shapeDelta = 0
 
-      if (isLocked) {
+      if (shiftKey) {
         const snappedRotation = Utils.snapAngleToSegments(rotation, 24)
         shapeDelta = snappedRotation - rotation
       }
@@ -50,7 +50,7 @@ export class RotateSession implements Session {
         shape,
         center,
         commonBoundsCenter,
-        isLocked ? directionDelta + shapeDelta : directionDelta
+        shiftKey ? directionDelta + shapeDelta : directionDelta
       )
 
       if (change) {

@@ -31,7 +31,7 @@ export class DrawSession implements Session {
 
   start = () => void null
 
-  update = (data: Data, point: number[], shiftKey: boolean) => {
+  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
     const { shapeId } = this
 
     // Even if we're not locked yet, we base the future locking direction

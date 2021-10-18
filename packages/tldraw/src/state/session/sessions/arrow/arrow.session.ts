@@ -74,7 +74,7 @@ export class ArrowSession implements Session {
 
   start = () => void null
 
-  update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean, metaKey: boolean) => {
+  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
     const { initialShape } = this
 
     const page = TLDR.getPage(data, data.appState.currentPageId)

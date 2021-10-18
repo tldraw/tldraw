@@ -42,9 +42,7 @@ export interface TLUser<T extends TLShape> {
 
 export type TLUsers<T extends TLShape, U extends TLUser<T> = TLUser<T>> = Record<string, U>
 
-export type TLSnapLine = {
-  points: number[][]
-}
+export type TLSnapLine = number[][]
 
 export interface TLHandle {
   id: string
@@ -244,6 +242,11 @@ export interface TLBounds {
   width: number
   height: number
   rotation?: number
+}
+
+export interface TLBoundsWithCenter extends TLBounds {
+  midX: number
+  midY: number
 }
 
 export type TLIntersection = {

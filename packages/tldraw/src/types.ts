@@ -106,9 +106,9 @@ export abstract class Session {
   abstract update: (
     data: Readonly<Data>,
     point: number[],
-    shiftKey: boolean,
-    altKey: boolean,
-    metaKey: boolean
+    shiftKey?: boolean,
+    altKey?: boolean,
+    metaKey?: boolean
   ) => TLDrawPatch | undefined
   abstract complete: (data: Readonly<Data>) => TLDrawPatch | TLDrawCommand | undefined
   abstract cancel: (data: Readonly<Data>) => TLDrawPatch | undefined

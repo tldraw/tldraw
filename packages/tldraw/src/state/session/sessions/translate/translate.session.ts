@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLPageState, Utils, TLBounds, TLSnapLine } from '@tldraw/core'
+import { TLPageState, Utils, TLBoundsWithCenter, TLSnapLine } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
   TLDrawShape,
@@ -17,11 +17,6 @@ import { SNAP_DISTANCE } from '~state/constants'
 import { TLDR } from '~state/tldr'
 import type { Patch } from 'rko'
 
-interface BoundsWithCenter extends TLBounds {
-  midX: number
-  midY: number
-}
-
 type CloneInfo =
   | {
       state: 'empty'
@@ -38,7 +33,7 @@ type SnapInfo =
     }
   | {
       state: 'ready'
-      bounds: BoundsWithCenter[]
+      bounds: TLBoundsWithCenter[]
     }
 
 export class TranslateSession implements Session {
@@ -88,7 +83,7 @@ export class TranslateSession implements Session {
     }
   }
 
-  update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean, metaKey: boolean) => {
+  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
     const { selectedIds, initialParentChildren, initialShapes, bindingsToDelete } = this.snapshot
 
     const { currentPageId } = data.appState
@@ -134,7 +129,12 @@ export class TranslateSession implements Session {
         Utils.translateBounds(this.snapshot.commonBounds, delta)
       )
 
-      const snapResult = this.findSnapPoints(bounds, this.snapInfo.bounds, this.speed < 0.5)
+      const snapResult = Utils.getSnapPoints(
+        bounds,
+        this.snapInfo.bounds,
+        SNAP_DISTANCE,
+        this.speed < 0.45
+      )
 
       if (snapResult) {
         delta = Vec.sub(delta, snapResult?.offset)
@@ -161,7 +161,9 @@ export class TranslateSession implements Session {
           this.createCloneInfo(data)
         }
 
-        if (this.cloneInfo.state === 'empty') throw Error
+        if (this.cloneInfo.state === 'empty') {
+          throw Error
+        }
 
         const { clones, clonedBindings } = this.cloneInfo
 
@@ -476,135 +478,6 @@ export class TranslateSession implements Session {
         },
       },
     }
-  }
-
-  private findSnapPoints = (
-    bounds: BoundsWithCenter,
-    snappableBounds: BoundsWithCenter[],
-    isCareful: boolean
-  ) => {
-    const A = { ...bounds } // We'll mutate this
-
-    const fxs = isCareful ? [A.midX, A.minX, A.maxX] : [A.midX]
-    const fys = isCareful ? [A.midY, A.minY, A.maxY] : [A.midY]
-
-    const offset = [0, 0]
-    const snapLines: TLSnapLine[] = []
-
-    // 1.
-    // Find the snap points for the x and y axes
-
-    let xs = null as { B: BoundsWithCenter; i: number } | null
-    let ys = null as { B: BoundsWithCenter; i: number } | null
-
-    for (const B of snappableBounds) {
-      if (!xs) {
-        const txs = isCareful ? [B.midX, B.minX, B.maxX] : [B.midX]
-
-        fxs.forEach((f, i) =>
-          txs.forEach((t) => {
-            if (xs) return
-
-            if (Math.abs(t - f) < SNAP_DISTANCE) {
-              xs = { B, i }
-
-              offset[0] = [
-                // How far to offset the delta on the x axis in
-                // order to "snap" the selection to the right place
-                A.midX - t,
-                A.midX - (t + A.width / 2),
-                A.midX - (t - A.width / 2),
-              ][i]
-
-              A.minX -= offset[0]
-              A.midX -= offset[0]
-              A.maxX -= offset[0]
-            }
-          })
-        )
-      }
-
-      if (!ys) {
-        const tys = isCareful ? [B.midY, B.minY, B.maxY] : [B.midY]
-
-        fys.forEach((f, i) =>
-          tys.forEach((t) => {
-            if (ys) return
-
-            if (Math.abs(t - f) < SNAP_DISTANCE) {
-              ys = { B, i }
-
-              offset[1] = [
-                //
-                A.midY - t,
-                A.midY - (t + A.height / 2),
-                A.midY - (t - A.height / 2),
-              ][i]
-
-              A.minY -= offset[1]
-              A.midY -= offset[1]
-              A.maxY -= offset[1]
-            }
-          })
-        )
-      }
-
-      if (xs && ys) break
-    }
-
-    // 2.
-    // Apply the offset to bounds A, so that our snap lines are correct.
-
-    // 3.
-    // Calculcate snap lines based on adjusted bounds A. This has
-    // to happen after we've adjusted both dimensions x and y of
-    // the bounds A!
-
-    if (xs) {
-      const { i, B } = xs
-      const x = [A.midX, A.minX, A.maxX][i % 3]
-
-      // If A is snapped at its center, show include only the midY;
-      // otherwise, include both its minY and maxY.
-      snapLines.push({
-        points:
-          i === 0
-            ? [
-                [x, A.midY],
-                [x, B.minY],
-                [x, B.maxY],
-              ]
-            : [
-                [x, A.minY],
-                [x, A.maxY],
-                [x, B.minY],
-                [x, B.maxY],
-              ],
-      })
-    }
-
-    if (ys) {
-      const { i, B } = ys
-      const y = [A.midY, A.minY, A.maxY][i % 3]
-
-      snapLines.push({
-        points:
-          i === 0
-            ? [
-                [A.midX, y],
-                [B.minX, y],
-                [B.maxX, y],
-              ]
-            : [
-                [A.minX, y],
-                [A.maxX, y],
-                [B.minX, y],
-                [B.maxX, y],
-              ],
-      })
-    }
-
-    return { offset, snapLines }
   }
 
   private createSnapInfo = async (data: Data) => {

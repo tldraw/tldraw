@@ -29,7 +29,7 @@ export class TransformSingleSession implements Session {
 
   start = () => void null
 
-  update = (data: Data, point: number[], shiftKey: boolean) => {
+  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
     const { transformType } = this
 
     const { initialShapeBounds, initialShape, id } = this.snapshot

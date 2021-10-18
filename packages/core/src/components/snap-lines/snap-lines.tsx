@@ -13,7 +13,7 @@ export function SnapLines({ snapLines }: { snapLines: TLSnapLine[] }) {
 }
 
 export function SnapLine({ snapLine }: { snapLine: TLSnapLine }) {
-  const bounds = Utils.getBoundsFromPoints(snapLine.points)
+  const bounds = Utils.getBoundsFromPoints(snapLine)
 
   return (
     <>
@@ -29,7 +29,7 @@ export function SnapLine({ snapLine }: { snapLine: TLSnapLine }) {
           backgroundColor: 'red',
         }}
       />
-      {snapLine.points.map(([x, y], i) => (
+      {snapLine.map(([x, y], i) => (
         <div
           key={i}
           className="tl-snap-line-anchor"

@@ -1652,10 +1652,13 @@ export class TLDrawState extends StateManager<Data> {
    * updateSession.
    * @param args The arguments of the current session's update method.
    */
-  updateSession = (point: number[], shiftKey = false, altKey = false, metaKey = false): this => {
+  updateSession = <T extends Session>(...args: ExceptFirst<Parameters<T['update']>>): this => {
     const { session } = this
     if (!session) return this
-    const patch = session.update(this.state, point, shiftKey, altKey, metaKey)
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const patch = session.update(this.state, ...args)
     if (!patch) return this
     return this.patchState(patch, `session:${session?.constructor.name}`)
   }
@@ -2380,6 +2383,23 @@ export class TLDrawState extends StateManager<Data> {
 
   get centerPoint() {
     return Vec.round([this.bounds.width / 2, this.bounds.height / 2])
+  }
+
+  get viewport() {
+    const { camera } = this.pageState
+    const { width, height } = this.bounds
+
+    const [minX, minY] = Vec.sub(Vec.div([0, 0], camera.zoom), camera.point)
+    const [maxX, maxY] = Vec.sub(Vec.div([width, height], camera.zoom), camera.point)
+
+    return {
+      minX,
+      minY,
+      maxX,
+      maxY,
+      height: maxX - minX,
+      width: maxY - minY,
+    }
   }
 
   static version = 10.1

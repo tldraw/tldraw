@@ -32,7 +32,7 @@ export class TransformSession implements Session {
   start = () => void null
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean, metaKey: boolean) => {
+  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
     const {
       transformType,
       snapshot: { shapeBounds, initialBounds, isAllAspectRatioLocked },
