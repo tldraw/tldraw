@@ -33,6 +33,7 @@ type SnapInfo =
     }
   | {
       state: 'ready'
+      others: TLBoundsWithCenter[]
       bounds: TLBoundsWithCenter[]
     }
 
@@ -96,6 +97,18 @@ export class TranslateSession implements Session {
 
     let delta = Vec.sub(point, this.origin)
 
+    let didChangeCloning = false
+
+    if (!this.isCreate) {
+      if (altKey && !this.isCloning) {
+        this.isCloning = true
+        didChangeCloning = true
+      } else if (!altKey && this.isCloning) {
+        this.isCloning = false
+        didChangeCloning = true
+      }
+    }
+
     if (shiftKey) {
       if (Math.abs(delta[0]) < Math.abs(delta[1])) {
         delta[0] = 0
@@ -131,14 +144,14 @@ export class TranslateSession implements Session {
 
       const snapResult = Utils.getSnapPoints(
         bounds,
-        this.snapInfo.bounds,
+        this.isCloning ? this.snapInfo.bounds : this.snapInfo.others,
         SNAP_DISTANCE,
         this.speed < 0.45
       )
 
       if (snapResult) {
-        delta = Vec.sub(delta, snapResult?.offset)
         this.snapLines = snapResult.snapLines
+        delta = Vec.sub(delta, snapResult?.offset)
       }
     }
 
@@ -154,9 +167,9 @@ export class TranslateSession implements Session {
     this.prev = delta
 
     // If cloning...
-    if (!this.isCreate && altKey) {
+    if (this.isCloning) {
       // Not Cloning -> Cloning
-      if (!this.isCloning) {
+      if (didChangeCloning) {
         if (this.cloneInfo.state === 'empty') {
           this.createCloneInfo(data)
         }
@@ -225,7 +238,7 @@ export class TranslateSession implements Session {
       // If not cloning...
 
       // Cloning -> Not Cloning
-      if (this.isCloning) {
+      if (didChangeCloning) {
         if (this.cloneInfo.state === 'empty') throw Error
 
         const { clones, clonedBindings } = this.cloneInfo
@@ -481,15 +494,25 @@ export class TranslateSession implements Session {
   }
 
   private createSnapInfo = async (data: Data) => {
-    const { selectedIds } = this.snapshot
     const { currentPageId } = data.appState
     const page = data.document.pages[currentPageId]
+    const { selectedIds } = data.document.pageStates[currentPageId]
+
+    const allBounds: TLBoundsWithCenter[] = []
+    const otherBounds: TLBoundsWithCenter[] = []
+
+    Object.values(page.shapes).forEach((shape) => {
+      const bounds = Utils.getBoundsWithCenter(TLDR.getBounds(shape))
+      allBounds.push(bounds)
+      if (!selectedIds.includes(shape.id)) {
+        otherBounds.push(bounds)
+      }
+    })
 
     this.snapInfo = {
       state: 'ready',
-      bounds: Object.values(page.shapes)
-        .filter((shape) => !selectedIds.includes(shape.id))
-        .map((shape) => Utils.getBoundsWithCenter(TLDR.getBounds(shape))),
+      bounds: allBounds,
+      others: otherBounds,
     }
   }
 
