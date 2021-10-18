@@ -1,3 +1,9 @@
+## 0.0.122
+
+### TLDraw
+
+- Adds snapping for transforming shapes.
+
 ## 0.0.121
 
 ### Core
