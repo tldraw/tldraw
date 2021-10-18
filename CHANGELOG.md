@@ -1,3 +1,13 @@
+## 0.0.121
+
+### Core
+
+- Adds `snapLines`.
+
+### TLDraw
+
+- Adds shape snapping while translating. Hold Command/Control to disable while dragging.
+
 ## 0.0.120
 
 ### TLDraw
