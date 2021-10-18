@@ -2,7 +2,7 @@ import * as React from 'react'
 import { ShapeUtil, SVGContainer, TLBounds, Utils, TLHandle } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import getStroke from 'perfect-freehand'
-import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
+import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import {
   ArrowShape,
   Decoration,
@@ -102,7 +102,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
         ? renderFreehandArrowShaft(shape)
         : 'M' + Vec.round(start.point) + 'L' + Vec.round(end.point)
 
-      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+      const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
         arrowDist,
         strokeWidth * 1.618,
         shape.style.dash,
@@ -154,7 +154,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
         ? renderCurvedFreehandArrowShaft(shape, circle, length, easing)
         : getArrowArcPath(start, end, circle, shape.bend)
 
-      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+      const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
         Math.abs(length),
         sw,
         shape.style.dash,

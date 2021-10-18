@@ -114,6 +114,7 @@ export interface TLBinding<M = any> {
 }
 
 export interface TLTheme {
+  accent?: string
   brushFill?: string
   brushStroke?: string
   selectFill?: string

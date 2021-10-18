@@ -2,7 +2,7 @@ import * as React from 'react'
 import { SVGContainer, Utils, ShapeUtil, TLTransformInfo, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { DashStyle, EllipseShape, TLDrawShapeType, TLDrawMeta } from '~types'
-import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
+import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
 import {
   intersectBoundsEllipse,
@@ -82,7 +82,7 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
 
     const perimeter = Math.PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
 
-    const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+    const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
       perimeter < 64 ? perimeter * 2 : perimeter,
       strokeWidth * 1.618,
       shape.style.dash,

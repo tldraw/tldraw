@@ -66,6 +66,7 @@ const css = (strings: TemplateStringsArray, ...args: unknown[]) =>
   )
 
 const defaultTheme: TLTheme = {
+  accent: 'rgb(255, 0, 0)',
   brushFill: 'rgba(0,0,0,.05)',
   brushStroke: 'rgba(0,0,0,.25)',
   selectStroke: 'rgb(66, 133, 244)',
@@ -131,6 +132,24 @@ const tlcss = css`
 
   .tl-container * {
     box-sizing: border-box;
+  }
+
+  .tl-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    pointer-events: none;
+  }
+
+  .tl-snap-line {
+    stroke: var(--tl-accent);
+    stroke-width: calc(1px * var(--tl-scale));
+  }
+
+  .tl-snap-point {
+    stroke: var(--tl-accent);
+    stroke-width: calc(1px * var(--tl-scale));
   }
 
   .tl-canvas {

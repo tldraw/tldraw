@@ -1610,7 +1610,7 @@ left past the initial left edge) then swap points on that axis.
     }
 
     // 2.
-    // Calculcate snap lines based on adjusted bounds A. This has
+    // Calculate snap lines based on adjusted bounds A. This has
     // to happen after we've adjusted both dimensions x and y of
     // the bounds A!
 
@@ -1823,6 +1823,59 @@ left past the initial left edge) then swap points on that axis.
   /* -------------------------------------------------- */
   /*                   Browser and DOM                  */
   /* -------------------------------------------------- */
+
+  /**
+   * Get balanced dash-strokearray and dash-strokeoffset properties for a path of a given length.
+   * @param length The length of the path.
+   * @param strokeWidth The shape's stroke-width property.
+   * @param style The stroke's style: "dashed" or "dotted" (default "dashed").
+   * @param snap An interval for dashes (e.g. 4 will produce arrays with 4, 8, 16, etc dashes).
+   */
+  static getPerfectDashProps(
+    length: number,
+    strokeWidth: number,
+    style: 'dashed' | 'dotted' | string,
+    snap = 1,
+    outset = true
+  ): {
+    strokeDasharray: string
+    strokeDashoffset: string
+  } {
+    let dashLength: number
+    let strokeDashoffset: string
+    let ratio: number
+
+    if (style.toLowerCase() === 'dashed') {
+      dashLength = strokeWidth * 2
+      ratio = 1
+      strokeDashoffset = outset ? (dashLength / 2).toString() : '0'
+    } else if (style.toLowerCase() === 'dotted') {
+      dashLength = strokeWidth / 100
+      ratio = 100
+      strokeDashoffset = '0'
+    } else {
+      return {
+        strokeDasharray: 'none',
+        strokeDashoffset: 'none',
+      }
+    }
+
+    let dashes = Math.floor(length / dashLength / (2 * ratio))
+
+    dashes -= dashes % snap
+
+    dashes = Math.max(dashes, 4)
+
+    const gapLength = Math.max(
+      dashLength,
+      (length - dashes * dashLength) / (outset ? dashes : dashes - 1)
+    )
+
+    return {
+      strokeDasharray: [dashLength, gapLength].join(' '),
+      strokeDashoffset,
+    }
+  }
 
   static isMobileSize() {
     if (typeof window === 'undefined') return false

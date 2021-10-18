@@ -1,13 +1,10 @@
 import * as React from 'react'
 import { Utils, SVGContainer, ShapeUtil } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import getStroke, { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
-import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
+import getStroke, { getStrokePoints } from 'perfect-freehand'
+import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawMeta } from '~types'
 import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
-import { EASINGS } from '~state/utils'
-
-const pathCache = new WeakMap<number[], string>([])
 
 export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Rectangle,
@@ -80,7 +77,7 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
     ]
 
     const paths = strokes.map(([start, end, length], i) => {
-      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+      const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
         length,
         strokeWidth * 1.618,
         shape.style.dash

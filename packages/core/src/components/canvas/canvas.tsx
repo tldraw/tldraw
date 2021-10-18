@@ -18,6 +18,7 @@ import { useResizeObserver } from '+hooks/useResizeObserver'
 import { inputs } from '+inputs'
 import { UsersIndicators } from '+components/users-indicators'
 import { SnapLines } from '+components/snap-lines/snap-lines'
+import { Overlay } from '+components/overlay'
 
 function resetError() {
   void null
@@ -83,7 +84,6 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
               hideHandles={hideHandles}
               meta={meta}
             />
-            {snapLines && <SnapLines snapLines={snapLines} />}
             {users && userId && (
               <UsersIndicators userId={userId} users={users} page={page} meta={meta} />
             )}
@@ -91,6 +91,7 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
             {users && <Users userId={userId} users={users} />}
           </div>
         </ErrorBoundary>
+        <Overlay>{snapLines && <SnapLines snapLines={snapLines} />}</Overlay>
       </div>
     </div>
   )

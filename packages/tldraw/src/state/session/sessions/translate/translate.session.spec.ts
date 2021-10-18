@@ -326,3 +326,13 @@ describe('When creating with a translate session', () => {
     expect(tlstate.getShape('rect1')).toBe(undefined)
   })
 })
+
+describe('When snapping', () => {
+  it.todo('Does not snap when moving quicky')
+  it.todo('Snaps only matching edges when moving slowly')
+  it.todo('Snaps any edge to any edge when moving very slowly')
+  it.todo('Snaps a clone to its parent')
+  it.todo('Cleans up snap lines when cancelled')
+  it.todo('Cleans up snap lines when completed')
+  it.todo('Cleans up snap lines when starting to clone / not clone')
+})

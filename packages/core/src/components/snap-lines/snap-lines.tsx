@@ -17,33 +17,15 @@ export function SnapLine({ snapLine }: { snapLine: TLSnapLine }) {
 
   return (
     <>
-      <div
+      <line
         className="tl-snap-line"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          transform: `translate(${bounds.minX - 0.5}px, ${bounds.minY - 0.5}px)`,
-          width: Math.max(bounds.width, 1) + 'px',
-          height: Math.max(bounds.height, 1) + 'px',
-          backgroundColor: 'red',
-        }}
+        x1={bounds.minX}
+        y1={bounds.minY}
+        x2={bounds.maxX}
+        y2={bounds.maxY}
       />
       {snapLine.map(([x, y], i) => (
-        <div
-          key={i}
-          className="tl-snap-line-anchor"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            transform: `translate(${x - 2}px, ${y - 2}px)`,
-            width: 4 + 'px',
-            height: 4 + 'px',
-            borderRadius: '100%',
-            backgroundColor: 'red',
-          }}
-        />
+        <use key={i} href="#tl-snap-point" x={x} y={y} />
       ))}
     </>
   )
