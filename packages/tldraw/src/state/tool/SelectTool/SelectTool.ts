@@ -427,16 +427,17 @@ export class SelectTool extends BaseTool<Status> {
     this.setStatus(Status.PointingCanvas)
   }
 
-  onDoubleClickCanvas: TLCanvasEventHandler = (info) => {
-    const pagePoint = this.state.getPagePoint(info.point)
-    this.state.selectTool(TLDrawShapeType.Text)
-    this.setStatus(Status.Idle)
-    this.state.createTextShapeAtPoint(pagePoint)
+  onDoubleClickCanvas: TLCanvasEventHandler = () => {
+    // Not working on mobile
+    // const pagePoint = this.state.getPagePoint(info.point)
+    // this.state.selectTool(TLDrawShapeType.Text)
+    // this.setStatus(Status.Idle)
+    // this.state.createTextShapeAtPoint(pagePoint)
   }
 
   // Shape
 
-  onPointLinkHandle: TLPointerEventHandler = (info, e) => {
+  onPointLinkHandle: TLPointerEventHandler = () => {
     if (this.status === Status.Idle) {
       this.setStatus(Status.PointingLinkHandle)
     }
