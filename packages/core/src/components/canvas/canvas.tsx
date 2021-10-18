@@ -8,7 +8,7 @@ import {
   useCameraCss,
   useKeyEvents,
 } from '+hooks'
-import type { TLBinding, TLPage, TLPageState, TLShape, TLUsers } from '+types'
+import type { TLBinding, TLPage, TLPageState, TLShape, TLSnapLine, TLUsers } from '+types'
 import { ErrorFallback } from '+components/error-fallback'
 import { ErrorBoundary } from '+components/error-boundary'
 import { Brush } from '+components/brush'
@@ -17,6 +17,8 @@ import { Users } from '+components/users'
 import { useResizeObserver } from '+hooks/useResizeObserver'
 import { inputs } from '+inputs'
 import { UsersIndicators } from '+components/users-indicators'
+import { SnapLines } from '+components/snap-lines/snap-lines'
+import { Overlay } from '+components/overlay'
 
 function resetError() {
   void null
@@ -25,6 +27,7 @@ function resetError() {
 interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
   pageState: TLPageState
+  snapLines?: TLSnapLine[]
   users?: TLUsers<T>
   userId?: string
   hideBounds?: boolean
@@ -39,6 +42,7 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
   id,
   page,
   pageState,
+  snapLines,
   users,
   userId,
   meta,
@@ -87,6 +91,9 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
             {users && <Users userId={userId} users={users} />}
           </div>
         </ErrorBoundary>
+        <Overlay camera={pageState.camera}>
+          {snapLines && <SnapLines snapLines={snapLines} />}
+        </Overlay>
       </div>
     </div>
   )

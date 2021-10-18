@@ -69,6 +69,8 @@ export function useShapeEvents(id: string, disable = false) {
       if (!inputs.pointerIsValid(e)) return
       if (disable) return
 
+      e.stopPropagation()
+
       if (inputs.pointer && e.pointerId !== inputs.pointer.pointerId) return
 
       const info = inputs.pointerMove(e, id)

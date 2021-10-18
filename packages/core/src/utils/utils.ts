@@ -6,7 +6,7 @@ import type React from 'react'
 import { TLBezierCurveSegment, TLBounds, TLBoundsCorner, TLBoundsEdge } from '../types'
 import { Vec } from '@tldraw/vec'
 import './polyfills'
-import type { Patch } from '+index'
+import type { Patch, TLBoundsWithCenter } from '+index'
 
 export class Utils {
   /* -------------------------------------------------- */
@@ -1519,6 +1519,146 @@ left past the initial left edge) then swap points on that axis.
     return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2]
   }
 
+  /**
+   * Get a bounding box with a midX and midY.
+   * @param bounds
+   */
+  static getBoundsWithCenter(bounds: TLBounds): TLBounds & { midX: number; midY: number } {
+    return {
+      ...bounds,
+      midX: bounds.minX + bounds.width / 2,
+      midY: bounds.minY + bounds.height / 2,
+    }
+  }
+
+  static getSnapPoints = (
+    bounds: TLBoundsWithCenter,
+    others: TLBoundsWithCenter[],
+    distance: number,
+    isCareful: boolean
+  ) => {
+    const A = { ...bounds }
+
+    const offset = [0, 0]
+    const snapLines: number[][][] = []
+
+    // 1.
+    // Find the snap points for the x and y axes
+
+    let xs = null as { B: TLBoundsWithCenter; i: number } | null
+    let ys = null as { B: TLBoundsWithCenter; i: number } | null
+
+    const fxs = [A.midX, A.minX, A.maxX]
+    const fys = [A.midY, A.minY, A.maxY]
+
+    for (const B of others) {
+      if (!xs) {
+        const txs = [B.midX, B.minX, B.maxX]
+
+        fxs.forEach((f, i) =>
+          txs.forEach((t, k) => {
+            // If we're not dragging carefully, only snap to
+            // matching points, (e.g. min to min, mid to mid)
+            if (xs || !(isCareful || i === k)) return
+
+            if (Math.abs(t - f) < distance) {
+              xs = { B, i }
+
+              offset[0] = [
+                // How far to offset the delta on the x axis in
+                // order to "snap" the selection to the right place
+                A.midX - t,
+                A.midX - (t + A.width / 2),
+                A.midX - (t - A.width / 2),
+              ][i]
+
+              // Also apply the offset to the bounds
+              A.minX -= offset[0]
+              A.midX -= offset[0]
+              A.maxX -= offset[0]
+            }
+          })
+        )
+      }
+
+      if (!ys) {
+        const tys = [B.midY, B.minY, B.maxY]
+
+        fys.forEach((f, i) =>
+          tys.forEach((t, k) => {
+            if (ys || !(isCareful || i === k)) return
+
+            if (Math.abs(t - f) < distance) {
+              ys = { B, i }
+
+              offset[1] = [
+                //
+                A.midY - t,
+                A.midY - (t + A.height / 2),
+                A.midY - (t - A.height / 2),
+              ][i]
+
+              A.minY -= offset[1]
+              A.midY -= offset[1]
+              A.maxY -= offset[1]
+            }
+          })
+        )
+      }
+
+      if (xs && ys) break
+    }
+
+    // 2.
+    // Calculate snap lines based on adjusted bounds A. This has
+    // to happen after we've adjusted both dimensions x and y of
+    // the bounds A!
+
+    if (xs) {
+      const { i, B } = xs
+      const x = [A.midX, A.minX, A.maxX][i % 3]
+
+      // If A is snapped at its center, show include only the midY;
+      // otherwise, include both its minY and maxY.
+      snapLines.push(
+        i === 0
+          ? [
+              [x, A.midY],
+              [x, B.minY],
+              [x, B.maxY],
+            ]
+          : [
+              [x, A.minY],
+              [x, A.maxY],
+              [x, B.minY],
+              [x, B.maxY],
+            ]
+      )
+    }
+
+    if (ys) {
+      const { i, B } = ys
+      const y = [A.midY, A.minY, A.maxY][i % 3]
+
+      snapLines.push(
+        i === 0
+          ? [
+              [A.midX, y],
+              [B.minX, y],
+              [B.maxX, y],
+            ]
+          : [
+              [A.minX, y],
+              [A.maxX, y],
+              [B.minX, y],
+              [B.maxX, y],
+            ]
+      )
+    }
+
+    return { offset, snapLines }
+  }
+
   /* -------------------------------------------------- */
   /*                Lists and Collections               */
   /* -------------------------------------------------- */
@@ -1683,6 +1823,59 @@ left past the initial left edge) then swap points on that axis.
   /* -------------------------------------------------- */
   /*                   Browser and DOM                  */
   /* -------------------------------------------------- */
+
+  /**
+   * Get balanced dash-strokearray and dash-strokeoffset properties for a path of a given length.
+   * @param length The length of the path.
+   * @param strokeWidth The shape's stroke-width property.
+   * @param style The stroke's style: "dashed" or "dotted" (default "dashed").
+   * @param snap An interval for dashes (e.g. 4 will produce arrays with 4, 8, 16, etc dashes).
+   */
+  static getPerfectDashProps(
+    length: number,
+    strokeWidth: number,
+    style: 'dashed' | 'dotted' | string,
+    snap = 1,
+    outset = true
+  ): {
+    strokeDasharray: string
+    strokeDashoffset: string
+  } {
+    let dashLength: number
+    let strokeDashoffset: string
+    let ratio: number
+
+    if (style.toLowerCase() === 'dashed') {
+      dashLength = strokeWidth * 2
+      ratio = 1
+      strokeDashoffset = outset ? (dashLength / 2).toString() : '0'
+    } else if (style.toLowerCase() === 'dotted') {
+      dashLength = strokeWidth / 100
+      ratio = 100
+      strokeDashoffset = '0'
+    } else {
+      return {
+        strokeDasharray: 'none',
+        strokeDashoffset: 'none',
+      }
+    }
+
+    let dashes = Math.floor(length / dashLength / (2 * ratio))
+
+    dashes -= dashes % snap
+
+    dashes = Math.max(dashes, 4)
+
+    const gapLength = Math.max(
+      dashLength,
+      (length - dashes * dashLength) / (outset ? dashes : dashes - 1)
+    )
+
+    return {
+      strokeDasharray: [dashLength, gapLength].join(' '),
+      strokeDashoffset,
+    }
+  }
 
   static isMobileSize() {
     if (typeof window === 'undefined') return false

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLPageState, Utils } from '@tldraw/core'
+import { TLPageState, Utils, TLBoundsWithCenter, TLSnapLine } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
   TLDrawShape,
@@ -11,19 +11,50 @@ import {
   ArrowShape,
   GroupShape,
   SessionType,
+  ArrowBinding,
 } from '~types'
+import { SNAP_DISTANCE } from '~state/constants'
 import { TLDR } from '~state/tldr'
 import type { Patch } from 'rko'
+
+type CloneInfo =
+  | {
+      state: 'empty'
+    }
+  | {
+      state: 'ready'
+      clones: TLDrawShape[]
+      clonedBindings: ArrowBinding[]
+    }
+
+type SnapInfo =
+  | {
+      state: 'empty'
+    }
+  | {
+      state: 'ready'
+      others: TLBoundsWithCenter[]
+      bounds: TLBoundsWithCenter[]
+    }
 
 export class TranslateSession implements Session {
   type = SessionType.Translate
   status = TLDrawStatus.Translating
   delta = [0, 0]
   prev = [0, 0]
+  prevPoint = [0, 0]
+  speed = 1
   origin: number[]
   snapshot: TranslateSnapshot
   isCloning = false
   isCreate: boolean
+  cloneInfo: CloneInfo = {
+    state: 'empty',
+  }
+  snapInfo: SnapInfo = {
+    state: 'empty',
+  }
+  snapLines: TLSnapLine[] = []
 
   constructor(data: Data, point: number[], isCreate = false) {
     this.origin = point
@@ -33,6 +64,8 @@ export class TranslateSession implements Session {
 
   start = (data: Data) => {
     const { bindingsToDelete } = this.snapshot
+
+    this.createSnapInfo(data)
 
     if (bindingsToDelete.length === 0) return data
 
@@ -51,16 +84,30 @@ export class TranslateSession implements Session {
     }
   }
 
-  update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean) => {
-    const { selectedIds, initialParentChildren, clones, initialShapes, bindingsToDelete } =
-      this.snapshot
+  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
+    const { selectedIds, initialParentChildren, initialShapes, bindingsToDelete } = this.snapshot
 
     const { currentPageId } = data.appState
+
     const nextBindings: Patch<Record<string, TLDrawBinding>> = {}
+
     const nextShapes: Patch<Record<string, TLDrawShape>> = {}
+
     const nextPageState: Patch<TLPageState> = {}
 
-    const delta = Vec.sub(point, this.origin)
+    let delta = Vec.sub(point, this.origin)
+
+    let didChangeCloning = false
+
+    if (!this.isCreate) {
+      if (altKey && !this.isCloning) {
+        this.isCloning = true
+        didChangeCloning = true
+      } else if (!altKey && this.isCloning) {
+        this.isCloning = false
+        didChangeCloning = true
+      }
+    }
 
     if (shiftKey) {
       if (Math.abs(delta[0]) < Math.abs(delta[1])) {
@@ -70,15 +117,71 @@ export class TranslateSession implements Session {
       }
     }
 
-    const trueDelta = Vec.sub(delta, this.prev)
+    // Should we snap?
 
-    this.delta = delta
+    // Speed is used to decide which snap points to use. At a high
+    // speed, we don't use any snap points. At a low speed, we only
+    // allow center-to-center snap points. At very low speed, we
+    // enable all snap points (still preferring middle snaps). We're
+    // using an acceleration function here to smooth the changes in
+    // speed, but we also want the speed to accelerate faster than
+    // it decelerates.
+
+    const speed = Vec.dist(point, this.prevPoint)
+
+    this.prevPoint = point
+
+    const change = speed - this.speed
+
+    this.speed = this.speed + change * (change > 1 ? 0.5 : 0.15)
+
+    this.snapLines = []
+
+    if (!metaKey && this.speed < 4 && this.snapInfo.state === 'ready') {
+      const { zoom } = data.document.pageStates[currentPageId].camera
+
+      const bounds = Utils.getBoundsWithCenter(
+        Utils.translateBounds(this.snapshot.commonBounds, delta)
+      )
+
+      const snapResult = Utils.getSnapPoints(
+        bounds,
+        this.isCloning ? this.snapInfo.bounds : this.snapInfo.others,
+        SNAP_DISTANCE / zoom,
+        this.speed * zoom < 0.45
+      )
+
+      if (snapResult) {
+        this.snapLines = snapResult.snapLines
+        delta = Vec.sub(delta, snapResult?.offset)
+      }
+    }
+
+    // We've now calculated the "delta", or difference between the
+    // cursor's position (real or adjusted by snaps or axis locking)
+    // and the cursor's original position ("origin").
+
+    // The "movement" is the actual change of position between this
+    // computed position and the previous computed position.
+
+    const movement = Vec.sub(delta, this.prev)
+
     this.prev = delta
 
     // If cloning...
-    if (!this.isCreate && altKey) {
+    if (this.isCloning) {
       // Not Cloning -> Cloning
-      if (!this.isCloning) {
+      if (didChangeCloning) {
+        if (this.cloneInfo.state === 'empty') {
+          this.createCloneInfo(data)
+        }
+
+        if (this.cloneInfo.state === 'empty') {
+          throw Error
+        }
+
+        const { clones, clonedBindings } = this.cloneInfo
+
         this.isCloning = true
 
         // Put back any bindings we deleted
@@ -109,13 +212,17 @@ export class TranslateSession implements Session {
         })
 
         // Add the cloned bindings
-        for (const binding of this.snapshot.clonedBindings) {
+        for (const binding of clonedBindings) {
           nextBindings[binding.id] = binding
         }
 
         // Set the selected ids to the clones
         nextPageState.selectedIds = clones.map((clone) => clone.id)
       }
+
+      if (this.cloneInfo.state === 'empty') throw Error
+
+      const { clones } = this.cloneInfo
 
       // Either way, move the clones
       clones.forEach((clone) => {
@@ -126,14 +233,18 @@ export class TranslateSession implements Session {
 
         nextShapes[clone.id] = {
           ...nextShapes[clone.id],
-          point: Vec.round(Vec.add(current.point, trueDelta)),
+          point: Vec.round(Vec.add(current.point, movement)),
         }
       })
     } else {
       // If not cloning...
 
       // Cloning -> Not Cloning
-      if (this.isCloning) {
+      if (didChangeCloning) {
+        if (this.cloneInfo.state === 'empty') throw Error
+
+        const { clones, clonedBindings } = this.cloneInfo
+
         this.isCloning = false
 
         // Delete the bindings
@@ -159,7 +270,7 @@ export class TranslateSession implements Session {
         })
 
         // Delete the cloned bindings
-        for (const binding of this.snapshot.clonedBindings) {
+        for (const binding of clonedBindings) {
           nextBindings[binding.id] = undefined
         }
 
@@ -176,12 +287,15 @@ export class TranslateSession implements Session {
 
         nextShapes[shape.id] = {
           ...nextShapes[shape.id],
-          point: Vec.round(Vec.add(current.point, trueDelta)),
+          point: Vec.round(Vec.add(current.point, movement)),
         }
       })
     }
 
     return {
+      appState: {
+        snapLines: this.snapLines,
+      },
       document: {
         pages: {
           [data.appState.currentPageId]: {
@@ -197,7 +311,7 @@ export class TranslateSession implements Session {
   }
 
   cancel = (data: Data) => {
-    const { initialShapes, clones, clonedBindings, bindingsToDelete } = this.snapshot
+    const { initialShapes, bindingsToDelete } = this.snapshot
 
     const nextBindings: Record<string, Partial<TLDrawBinding> | undefined> = {}
     const nextShapes: Record<string, Partial<TLDrawShape> | undefined> = {}
@@ -218,13 +332,19 @@ export class TranslateSession implements Session {
       nextPageState.selectedIds = this.snapshot.selectedIds
     }
 
-    // Delete clones
-    clones.forEach((clone) => (nextShapes[clone.id] = undefined))
+    if (this.cloneInfo.state === 'ready') {
+      const { clones, clonedBindings } = this.cloneInfo
+      // Delete clones
+      clones.forEach((clone) => (nextShapes[clone.id] = undefined))
 
-    // Delete cloned bindings
-    clonedBindings.forEach((binding) => (nextBindings[binding.id] = undefined))
+      // Delete cloned bindings
+      clonedBindings.forEach((binding) => (nextBindings[binding.id] = undefined))
+    }
 
     return {
+      appState: {
+        snapLines: [],
+      },
       document: {
         pages: {
           [data.appState.currentPageId]: {
@@ -242,8 +362,7 @@ export class TranslateSession implements Session {
   complete(data: Data): TLDrawCommand {
     const pageId = data.appState.currentPageId
 
-    const { initialShapes, initialParentChildren, bindingsToDelete, clones, clonedBindings } =
-      this.snapshot
+    const { initialShapes, initialParentChildren, bindingsToDelete } = this.snapshot
 
     const beforeBindings: Patch<Record<string, TLDrawBinding>> = {}
     const beforeShapes: Patch<Record<string, TLDrawShape>> = {}
@@ -252,6 +371,13 @@ export class TranslateSession implements Session {
     const afterShapes: Patch<Record<string, TLDrawShape>> = {}
 
     if (this.isCloning) {
+      if (this.cloneInfo.state === 'empty') {
+        this.createCloneInfo(data)
+      }
+
+      if (this.cloneInfo.state !== 'ready') throw Error
+      const { clones, clonedBindings } = this.cloneInfo
+
       // Update the clones
       clones.forEach((clone) => {
         beforeShapes[clone.id] = undefined
@@ -331,6 +457,9 @@ export class TranslateSession implements Session {
     return {
       id: 'translate',
       before: {
+        appState: {
+          snapLines: [],
+        },
         document: {
           pages: {
             [data.appState.currentPageId]: {
@@ -346,6 +475,9 @@ export class TranslateSession implements Session {
         },
       },
       after: {
+        appState: {
+          snapLines: [],
+        },
         document: {
           pages: {
             [data.appState.currentPageId]: {
@@ -360,6 +492,124 @@ export class TranslateSession implements Session {
           },
         },
       },
+    }
+  }
+
+  private createSnapInfo = async (data: Data) => {
+    const { currentPageId } = data.appState
+    const page = data.document.pages[currentPageId]
+    const { selectedIds } = data.document.pageStates[currentPageId]
+
+    const allBounds: TLBoundsWithCenter[] = []
+    const otherBounds: TLBoundsWithCenter[] = []
+
+    Object.values(page.shapes).forEach((shape) => {
+      const bounds = Utils.getBoundsWithCenter(TLDR.getBounds(shape))
+      allBounds.push(bounds)
+      if (!selectedIds.includes(shape.id)) {
+        otherBounds.push(bounds)
+      }
+    })
+
+    this.snapInfo = {
+      state: 'ready',
+      bounds: allBounds,
+      others: otherBounds,
+    }
+  }
+
+  private createCloneInfo = (data: Data) => {
+    // Create clones when as they're needed.
+    // Consider doing this work in a worker.
+
+    const { currentPageId } = data.appState
+    const page = data.document.pages[currentPageId]
+    const { selectedIds, shapesToMove, initialParentChildren } = this.snapshot
+
+    const cloneMap: Record<string, string> = {}
+    const clonedBindingsMap: Record<string, string> = {}
+    const clonedBindings: TLDrawBinding[] = []
+
+    // Create clones of selected shapes
+    const clones: TLDrawShape[] = []
+
+    shapesToMove.forEach((shape) => {
+      const newId = Utils.uniqueId()
+
+      initialParentChildren[newId] = initialParentChildren[shape.id]
+
+      cloneMap[shape.id] = newId
+
+      const clone = {
+        ...Utils.deepClone(shape),
+        id: newId,
+        parentId: shape.parentId,
+        childIndex: TLDR.getChildIndexAbove(data, shape.id, currentPageId),
+      }
+
+      clones.push(clone)
+    })
+
+    clones.forEach((clone) => {
+      if (clone.children !== undefined) {
+        clone.children = clone.children.map((childId) => cloneMap[childId])
+      }
+    })
+
+    clones.forEach((clone) => {
+      if (selectedIds.includes(clone.parentId)) {
+        clone.parentId = cloneMap[clone.parentId]
+      }
+    })
+
+    // Potentially confusing name here: these are the ids of the
+    // original shapes that were cloned, not their clones' ids.
+    const clonedShapeIds = new Set(Object.keys(cloneMap))
+
+    // Create cloned bindings for shapes where both to and from shapes are selected
+    // (if the user clones, then we will create a new binding for the clones)
+    Object.values(page.bindings)
+      .filter((binding) => clonedShapeIds.has(binding.fromId) || clonedShapeIds.has(binding.toId))
+      .forEach((binding) => {
+        if (clonedShapeIds.has(binding.fromId)) {
+          if (clonedShapeIds.has(binding.toId)) {
+            const cloneId = Utils.uniqueId()
+
+            const cloneBinding = {
+              ...Utils.deepClone(binding),
+              id: cloneId,
+              fromId: cloneMap[binding.fromId] || binding.fromId,
+              toId: cloneMap[binding.toId] || binding.toId,
+            }
+
+            clonedBindingsMap[binding.id] = cloneId
+            clonedBindings.push(cloneBinding)
+          }
+        }
+      })
+
+    // Assign new binding ids to clones (or delete them!)
+    clones.forEach((clone) => {
+      if (clone.handles) {
+        if (clone.handles) {
+          for (const id in clone.handles) {
+            const handle = clone.handles[id as keyof ArrowShape['handles']]
+            handle.bindingId = handle.bindingId ? clonedBindingsMap[handle.bindingId] : undefined
+          }
+        }
+      }
+    })
+
+    clones.forEach((clone) => {
+      if (page.shapes[clone.id]) {
+        throw Error("uh oh, we didn't clone correctly")
+      }
+    })
+
+    this.cloneInfo = {
+      state: 'ready',
+      clones,
+      clonedBindings,
     }
   }
 }
@@ -382,6 +632,20 @@ export function getTranslateSnapshot(data: Data) {
         : [shape]
     })
 
+  const idsToMove = new Set(shapesToMove.map((shape) => shape.id))
+
+  const bindingsToDelete: ArrowBinding[] = []
+
+  Object.values(page.bindings)
+    .filter((binding) => idsToMove.has(binding.fromId) || idsToMove.has(binding.toId))
+    .forEach((binding) => {
+      if (idsToMove.has(binding.fromId)) {
+        if (!idsToMove.has(binding.toId)) {
+          bindingsToDelete.push(binding)
+        }
+      }
+    })
+
   const initialParentChildren: Record<string, string[]> = {}
 
   Array.from(new Set(shapesToMove.map((s) => s.parentId)).values())
@@ -391,102 +655,20 @@ export function getTranslateSnapshot(data: Data) {
       initialParentChildren[id] = shape.children!
     })
 
-  const cloneMap: Record<string, string> = {}
-  const clonedBindingsMap: Record<string, string> = {}
-  const clonedBindings: TLDrawBinding[] = []
-
-  // Create clones of selected shapes
-  const clones: TLDrawShape[] = []
-
-  shapesToMove.forEach((shape) => {
-    const newId = Utils.uniqueId()
-
-    initialParentChildren[newId] = initialParentChildren[shape.id]
-
-    cloneMap[shape.id] = newId
-
-    const clone = {
-      ...Utils.deepClone(shape),
-      id: newId,
-      parentId: shape.parentId,
-      childIndex: TLDR.getChildIndexAbove(data, shape.id, currentPageId),
-    }
-
-    clones.push(clone)
-  })
-
-  clones.forEach((clone) => {
-    if (clone.children !== undefined) {
-      clone.children = clone.children.map((childId) => cloneMap[childId])
-    }
-  })
-
-  clones.forEach((clone) => {
-    if (selectedIds.includes(clone.parentId)) {
-      clone.parentId = cloneMap[clone.parentId]
-    }
-  })
-
-  // Potentially confusing name here: these are the ids of the
-  // original shapes that were cloned, not their clones' ids.
-  const clonedShapeIds = new Set(Object.keys(cloneMap))
-
-  const bindingsToDelete: TLDrawBinding[] = []
-
-  // Create cloned bindings for shapes where both to and from shapes are selected
-  // (if the user clones, then we will create a new binding for the clones)
-  Object.values(page.bindings)
-    .filter((binding) => clonedShapeIds.has(binding.fromId) || clonedShapeIds.has(binding.toId))
-    .forEach((binding) => {
-      if (clonedShapeIds.has(binding.fromId)) {
-        if (clonedShapeIds.has(binding.toId)) {
-          const cloneId = Utils.uniqueId()
-
-          const cloneBinding = {
-            ...Utils.deepClone(binding),
-            id: cloneId,
-            fromId: cloneMap[binding.fromId] || binding.fromId,
-            toId: cloneMap[binding.toId] || binding.toId,
-          }
-
-          clonedBindingsMap[binding.id] = cloneId
-          clonedBindings.push(cloneBinding)
-        } else {
-          bindingsToDelete.push(binding)
-        }
-      }
-    })
-
-  // Assign new binding ids to clones (or delete them!)
-  clones.forEach((clone) => {
-    if (clone.handles) {
-      if (clone.handles) {
-        for (const id in clone.handles) {
-          const handle = clone.handles[id as keyof ArrowShape['handles']]
-          handle.bindingId = handle.bindingId ? clonedBindingsMap[handle.bindingId] : undefined
-        }
-      }
-    }
-  })
-
-  clones.forEach((clone) => {
-    if (page.shapes[clone.id]) {
-      throw Error("uh oh, we didn't clone correctly")
-    }
-  })
+  const commonBounds = Utils.getCommonBounds(shapesToMove.map(TLDR.getBounds))
 
   return {
     selectedIds,
-    bindingsToDelete,
     hasUnlockedShapes,
     initialParentChildren,
+    shapesToMove,
+    bindingsToDelete,
+    commonBounds,
     initialShapes: shapesToMove.map(({ id, point, parentId }) => ({
       id,
       point,
       parentId,
     })),
-    clones,
-    clonedBindings,
   }
 }
 

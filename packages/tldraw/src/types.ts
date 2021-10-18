@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import type { TLBinding, TLShapeProps } from '@tldraw/core'
+import type { TLBinding, TLShapeProps, TLSnapLine } from '@tldraw/core'
 import type { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
 import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
@@ -63,6 +63,7 @@ export interface Data {
     isStyleOpen: boolean
     isEmptyCanvas: boolean
     status: string
+    snapLines: TLSnapLine[]
   }
   document: TLDrawDocument
   room?: {
@@ -105,9 +106,9 @@ export abstract class Session {
   abstract update: (
     data: Readonly<Data>,
     point: number[],
-    shiftKey: boolean,
-    altKey: boolean,
-    metaKey: boolean
+    shiftKey?: boolean,
+    altKey?: boolean,
+    metaKey?: boolean
   ) => TLDrawPatch | undefined
   abstract complete: (data: Readonly<Data>) => TLDrawPatch | TLDrawCommand | undefined
   abstract cancel: (data: Readonly<Data>) => TLDrawPatch | undefined

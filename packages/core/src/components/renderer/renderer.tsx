@@ -12,7 +12,7 @@ import type {
 import { Canvas } from '../canvas'
 import { Inputs } from '../../inputs'
 import { useTLTheme, TLContext, TLContextType } from '../../hooks'
-import type { TLShapeUtil, TLUsers } from '+index'
+import type { TLShapeUtil, TLSnapLine, TLUsers } from '+index'
 
 export interface RendererProps<T extends TLShape, E extends Element = any, M = any>
   extends Partial<TLCallbacks<T>> {
@@ -40,6 +40,10 @@ export interface RendererProps<T extends TLShape, E extends Element = any, M = a
    * (optional) The current users to render.
    */
   users?: TLUsers<T>
+  /**
+   * (optional) The current snap lines to render.
+   */
+  snapLines?: TLSnapLine[]
   /**
    * (optional) The current user's id, used to identify the user.
    */
@@ -97,6 +101,7 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
   userId,
   theme,
   meta,
+  snapLines,
   containerRef,
   hideHandles = false,
   hideIndicators = false,
@@ -132,6 +137,7 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
         id={id}
         page={page}
         pageState={pageState}
+        snapLines={snapLines}
         users={users}
         userId={userId}
         hideBounds={hideBounds}

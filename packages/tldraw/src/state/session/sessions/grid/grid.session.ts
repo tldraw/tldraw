@@ -60,7 +60,7 @@ export class GridSession implements Session {
     return clone
   }
 
-  update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean, metaKey: boolean) => {
+  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
     const nextShapes: Patch<Record<string, TLDrawShape>> = {}
 
     const nextPageState: Patch<TLPageState> = {}
