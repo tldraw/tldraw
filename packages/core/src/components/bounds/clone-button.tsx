@@ -42,9 +42,9 @@ export function CloneButton({ bounds, side }: CloneButtonProps) {
   )
 
   return (
-    <g className="tl-clone-button-target" transform={`translate(${x}, ${y})`}>
+    <g className="tl-hover-target" transform={`translate(${x}, ${y})`}>
       <rect className="tl-transparent" width={88} height={88} x={-44} y={-44} />
-      <circle className="tl-clone-button" onPointerDown={handleClick} />
+      <circle className="tl-clone-button tl-hover-button" onPointerDown={handleClick} />
     </g>
   )
 }

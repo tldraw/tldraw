@@ -205,8 +205,9 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
     )
   },
 
-  Indicator() {
-    return null
+  Indicator({ shape }) {
+    const { width, height } = this.getBounds(shape)
+    return <rect x={0} y={0} width={width} height={height} />
   },
 
   getBounds(shape): TLBounds {

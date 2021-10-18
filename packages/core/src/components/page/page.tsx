@@ -39,7 +39,7 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
     callbacks.onRenderCountChange
   )
 
-  const { bounds, isLocked, rotation } = useSelection(page, pageState, shapeUtils)
+  const { bounds, isLinked, isLocked, rotation } = useSelection(page, pageState, shapeUtils)
 
   const {
     selectedIds,
@@ -48,6 +48,7 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
   } = pageState
 
   let showCloneButtons = false
+
   let shapeWithHandles: TLShape | undefined = undefined
 
   if (selectedIds.length === 1) {
@@ -93,6 +94,7 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
           isLocked={isLocked}
           rotation={rotation}
           isHidden={hideBounds}
+          isLinked={isLinked}
           showCloneButtons={showCloneButtons}
         />
       )}

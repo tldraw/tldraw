@@ -2341,6 +2341,9 @@ export class TLDrawState extends StateManager<Data> {
 
   onShapeClone: TLShapeCloneHandler = (info, e) => this.currentTool.onShapeClone?.(info, e)
 
+  onPointLinkHandle: TLPointerEventHandler = (info, e) =>
+    this.currentTool.onPointLinkHandle?.(info, e)
+
   onRenderCountChange = (ids: string[]) => {
     const appState = this.getAppState()
     if (appState.isEmptyCanvas && ids.length > 0) {

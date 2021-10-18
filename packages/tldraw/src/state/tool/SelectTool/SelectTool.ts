@@ -23,6 +23,7 @@ enum Status {
   PointingBounds = 'pointingBounds',
   PointingClone = 'pointingClone',
   TranslatingClone = 'translatingClone',
+  PointingLinkHandle = 'pointingLinkHandle',
   PointingBoundsHandle = 'pointingBoundsHandle',
   TranslatingHandle = 'translatingHandle',
   Translating = 'translating',
@@ -276,6 +277,15 @@ export class SelectTool extends BaseTool<Status> {
       return
     }
 
+    if (this.status === Status.PointingLinkHandle) {
+      if (Vec.dist(info.origin, info.point) > 4) {
+        this.setStatus(Status.Translating)
+        const point = this.state.getPagePoint(info.origin)
+        this.state.startSession(SessionType.Translate, point, false, true)
+      }
+      return
+    }
+
     if (this.status === Status.PointingClone) {
       if (Vec.dist(info.origin, info.point) > 4) {
         this.setStatus(Status.TranslatingClone)
@@ -425,6 +435,12 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   // Shape
+
+  onPointLinkHandle: TLPointerEventHandler = (info, e) => {
+    if (this.status === Status.Idle) {
+      this.setStatus(Status.PointingLinkHandle)
+    }
+  }
 
   onPointShape: TLPointerEventHandler = (info, e) => {
     if (info.spaceKey && e.buttons === 1) {

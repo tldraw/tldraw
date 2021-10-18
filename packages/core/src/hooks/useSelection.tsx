@@ -19,6 +19,7 @@ export function useSelection<T extends TLShape, E extends Element>(
   let bounds: TLBounds | undefined = undefined
   let rotation = 0
   let isLocked = false
+  let isLinked = false
 
   if (selectedIds.length === 1) {
     const id = selectedIds[0]
@@ -52,6 +53,10 @@ export function useSelection<T extends TLShape, E extends Element>(
     const [minX, minY] = canvasToScreen([bounds.minX, bounds.minY], pageState.camera)
     const [maxX, maxY] = canvasToScreen([bounds.maxX, bounds.maxY], pageState.camera)
 
+    isLinked = !!Object.values(page.bindings).find(
+      (binding) => selectedIds.includes(binding.toId) || selectedIds.includes(binding.fromId)
+    )
+
     rSelectionBounds.current = {
       minX,
       minY,
@@ -79,5 +84,5 @@ export function useSelection<T extends TLShape, E extends Element>(
     }
   }
 
-  return { bounds, rotation, isLocked }
+  return { bounds, rotation, isLocked, isLinked }
 }

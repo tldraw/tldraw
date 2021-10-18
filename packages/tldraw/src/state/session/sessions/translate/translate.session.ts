@@ -46,8 +46,6 @@ export class TranslateSession implements Session {
   speed = 1
   origin: number[]
   snapshot: TranslateSnapshot
-  isCloning = false
-  isCreate: boolean
   cloneInfo: CloneInfo = {
     state: 'empty',
   }
@@ -55,11 +53,15 @@ export class TranslateSession implements Session {
     state: 'empty',
   }
   snapLines: TLSnapLine[] = []
+  isCloning = false
+  isCreate: boolean
+  isLinked = false
 
-  constructor(data: Data, point: number[], isCreate = false) {
+  constructor(data: Data, point: number[], isCreate = false, isLinked = false) {
     this.origin = point
-    this.snapshot = getTranslateSnapshot(data)
+    this.snapshot = getTranslateSnapshot(data, isLinked)
     this.isCreate = isCreate
+    this.isLinked = isLinked
   }
 
   start = (data: Data) => {
@@ -498,7 +500,7 @@ export class TranslateSession implements Session {
   private createSnapInfo = async (data: Data) => {
     const { currentPageId } = data.appState
     const page = data.document.pages[currentPageId]
-    const { selectedIds } = data.document.pageStates[currentPageId]
+    const { idsToMove } = this.snapshot
 
     const allBounds: TLBoundsWithCenter[] = []
     const otherBounds: TLBoundsWithCenter[] = []
@@ -506,7 +508,7 @@ export class TranslateSession implements Session {
     Object.values(page.shapes).forEach((shape) => {
       const bounds = Utils.getBoundsWithCenter(TLDR.getRotatedBounds(shape))
       allBounds.push(bounds)
-      if (!selectedIds.includes(shape.id)) {
+      if (!idsToMove.has(shape.id)) {
         otherBounds.push(bounds)
       }
     })
@@ -615,17 +617,55 @@ export class TranslateSession implements Session {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function getTranslateSnapshot(data: Data) {
+export function getTranslateSnapshot(data: Data, isLinked: boolean) {
   const { currentPageId } = data.appState
-  const selectedIds = TLDR.getSelectedIds(data, currentPageId)
+
   const page = TLDR.getPage(data, currentPageId)
 
-  const selectedShapes = selectedIds.flatMap((id) => TLDR.getShape(data, id, currentPageId))
+  const selectedIds = TLDR.getSelectedIds(data, currentPageId)
+
+  let ids = selectedIds
+
+  if (isLinked) {
+    const linkedIds = new Set<string>()
+
+    const checkedIds = new Set<string>()
+
+    const idsToCheck = [...selectedIds]
+
+    const bindings = Object.values(page.bindings)
+
+    while (idsToCheck.length > 0) {
+      const id = idsToCheck.pop()
+
+      if (!id) break
+
+      checkedIds.add(id)
+
+      bindings.forEach(({ fromId, toId }) => {
+        if (fromId === id) {
+          linkedIds.add(fromId)
+          if (!checkedIds.has(toId)) {
+            idsToCheck.push(toId)
+          }
+        } else if (toId === id) {
+          linkedIds.add(toId)
+          if (!checkedIds.has(fromId)) {
+            idsToCheck.push(fromId)
+          }
+        }
+      })
+
+      ids = Array.from(linkedIds.values())
+    }
+  }
+
+  const selectedShapes = ids.flatMap((id) => TLDR.getShape(data, id, currentPageId))
 
   const hasUnlockedShapes = selectedShapes.length > 0
 
   const shapesToMove: TLDrawShape[] = selectedShapes
-    .filter((shape) => !selectedIds.includes(shape.parentId))
+    .filter((shape) => !ids.includes(shape.parentId))
     .flatMap((shape) => {
       return shape.children
         ? [shape, ...shape.children!.map((childId) => TLDR.getShape(data, childId, currentPageId))]
@@ -659,8 +699,10 @@ export function getTranslateSnapshot(data: Data) {
 
   return {
     selectedIds,
+    linkedBounds: Utils.getCommonBounds(shapesToMove.map(TLDR.getRotatedBounds)),
     hasUnlockedShapes,
     initialParentChildren,
+    idsToMove,
     shapesToMove,
     bindingsToDelete,
     commonBounds,

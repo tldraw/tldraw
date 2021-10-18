@@ -70,7 +70,7 @@ const defaultTheme: TLTheme = {
   brushFill: 'rgba(0,0,0,.05)',
   brushStroke: 'rgba(0,0,0,.25)',
   selectStroke: 'rgb(66, 133, 244)',
-  selectFill: 'rgba(65, 132, 244, 0.05)',
+  selectFill: 'rgba(65, 132, 244, 0.04)',
   background: 'rgb(248, 249, 250)',
   foreground: 'rgb(51, 51, 51)',
 }
@@ -285,18 +285,25 @@ const tlcss = css`
     stroke: var(--tl-selectStroke);
   }
 
-  .tl-clone-button-target {
+  .tl-hover-target {
     pointer-events: all;
   }
 
-  .tl-clone-button-target:hover > .tl-clone-button {
+  .tl-hover-button {
     stroke-width: calc(1.5px * var(--tl-scale));
     stroke: var(--tl-selectStroke);
-    opacity: 1;
   }
 
-  .tl-clone-button-target:hover {
-    opacity: 1;
+  .tl-hover-target > .tl-hover-button {
+  }
+
+  .tl-hover-target:hover > .tl-hover-button {
+  }
+
+  .tl-hover-target:active > .tl-hover-button {
+  }
+
+  .tl-hover-target:hover {
   }
 
   .tl-clone-button {

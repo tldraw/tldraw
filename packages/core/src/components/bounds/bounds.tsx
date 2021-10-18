@@ -8,6 +8,7 @@ import { EdgeHandle } from './edge-handle'
 import { CloneButtons } from './clone-buttons'
 import { Container } from '+components/container'
 import { SVGContainer } from '+components/svg-container'
+import { LinkHandle } from './link-handle'
 
 interface BoundsProps {
   zoom: number
@@ -15,6 +16,7 @@ interface BoundsProps {
   rotation: number
   isLocked: boolean
   isHidden: boolean
+  isLinked: boolean
   showCloneButtons: boolean
   viewportWidth: number
   children?: React.ReactNode
@@ -28,6 +30,7 @@ export const Bounds = React.memo(
     rotation,
     isHidden,
     isLocked,
+    isLinked,
     showCloneButtons,
   }: BoundsProps): JSX.Element => {
     // Touch target size
@@ -110,6 +113,14 @@ export const Bounds = React.memo(
             isHidden={!showEdgeHandles || !showRotateHandle}
           />
           {showCloneButtons && <CloneButtons bounds={bounds} />}
+          {isLinked && (
+            <LinkHandle
+              targetSize={targetSize}
+              size={size}
+              bounds={bounds}
+              isHidden={!showEdgeHandles || !showRotateHandle}
+            />
+          )}
         </SVGContainer>
       </Container>
     )
