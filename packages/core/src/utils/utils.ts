@@ -1524,10 +1524,11 @@ left past the initial left edge) then swap points on that axis.
    * @param bounds
    */
   static getBoundsWithCenter(bounds: TLBounds): TLBounds & { midX: number; midY: number } {
+    const center = Utils.getBoundsCenter(bounds)
     return {
       ...bounds,
-      midX: bounds.minX + bounds.width / 2,
-      midY: bounds.minY + bounds.height / 2,
+      midX: center[0],
+      midY: center[1],
     }
   }
 

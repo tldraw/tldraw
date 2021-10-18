@@ -137,9 +137,9 @@ export class TranslateSession implements Session {
 
     this.snapLines = []
 
-    if (!metaKey && this.speed < 4 && this.snapInfo.state === 'ready') {
-      const { zoom } = data.document.pageStates[currentPageId].camera
+    const { zoom } = data.document.pageStates[currentPageId].camera
 
+    if (!metaKey && this.speed * zoom < 5 && this.snapInfo.state === 'ready') {
       const bounds = Utils.getBoundsWithCenter(
         Utils.translateBounds(this.snapshot.commonBounds, delta)
       )
@@ -153,7 +153,7 @@ export class TranslateSession implements Session {
 
       if (snapResult) {
         this.snapLines = snapResult.snapLines
-        delta = Vec.sub(delta, snapResult?.offset)
+        delta = Vec.sub(delta, snapResult.offset)
       }
     }
 
@@ -504,7 +504,7 @@ export class TranslateSession implements Session {
     const otherBounds: TLBoundsWithCenter[] = []
 
     Object.values(page.shapes).forEach((shape) => {
-      const bounds = Utils.getBoundsWithCenter(TLDR.getBounds(shape))
+      const bounds = Utils.getBoundsWithCenter(TLDR.getRotatedBounds(shape))
       allBounds.push(bounds)
       if (!selectedIds.includes(shape.id)) {
         otherBounds.push(bounds)
@@ -655,7 +655,7 @@ export function getTranslateSnapshot(data: Data) {
       initialParentChildren[id] = shape.children!
     })
 
-  const commonBounds = Utils.getCommonBounds(shapesToMove.map(TLDR.getBounds))
+  const commonBounds = Utils.getCommonBounds(shapesToMove.map(TLDR.getRotatedBounds))
 
   return {
     selectedIds,

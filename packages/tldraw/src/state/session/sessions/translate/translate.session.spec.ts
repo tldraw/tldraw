@@ -335,4 +335,5 @@ describe('When snapping', () => {
   it.todo('Cleans up snap lines when cancelled')
   it.todo('Cleans up snap lines when completed')
   it.todo('Cleans up snap lines when starting to clone / not clone')
+  it.todo('Snaps the rotated bounding box of rotated shapes')
 })
