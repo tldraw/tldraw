@@ -14,6 +14,7 @@ import { breakpoints, iconButton } from '~components'
 import { DotFilledIcon } from '@radix-ui/react-icons'
 import { TLDR } from '~state/tldr'
 import { ContextMenu } from '~components/context-menu'
+import { EMPTY_ARRAY } from '~state/constants'
 
 // Selectors
 const isInSelectSelector = (s: Data) => s.appState.activeTool === 'select'
@@ -35,9 +36,7 @@ const usersSelector = (s: Data) => s.room?.users
 
 const pageStateSelector = (s: Data) => s.document.pageStates[s.appState.currentPageId]
 
-const isDarkModeSelector = (s: Data) => s.settings.isDarkMode
-
-const isFocusModeSelector = (s: Data) => s.settings.isFocusMode
+const settingsSelector = (s: Data) => s.settings
 
 export interface TLDrawProps {
   /**
@@ -155,9 +154,7 @@ function InnerTldraw({
 
   const users = useSelector(usersSelector)
 
-  const isDarkMode = useSelector(isDarkModeSelector)
-
-  const isFocusMode = useSelector(isFocusModeSelector)
+  const settings = useSelector(settingsSelector)
 
   const isSelecting = useSelector(isInSelectSelector)
 
@@ -180,11 +177,11 @@ function InnerTldraw({
     (isInSession && tlstate.appState.status !== TLDrawStatus.Brushing) || !isSelecting
 
   // Custom rendering meta, with dark mode for shapes
-  const meta = React.useMemo(() => ({ isDarkMode }), [isDarkMode])
+  const meta = React.useMemo(() => ({ isDarkMode: settings.isDarkMode }), [settings.isDarkMode])
 
   // Custom theme, based on darkmode
   const theme = React.useMemo(() => {
-    if (isDarkMode) {
+    if (settings.isDarkMode) {
       return {
         brushFill: 'rgba(180, 180, 180, .05)',
         brushStroke: 'rgba(180, 180, 180, .25)',
@@ -196,7 +193,7 @@ function InnerTldraw({
     }
 
     return {}
-  }, [isDarkMode])
+  }, [settings.isDarkMode])
 
   React.useEffect(() => {
     if (!document) return
@@ -213,7 +210,11 @@ function InnerTldraw({
   }, [currentPageId, tlstate])
 
   return (
-    <div ref={rWrapper} tabIndex={0} className={[layout(), isDarkMode ? dark : ''].join(' ')}>
+    <div
+      ref={rWrapper}
+      tabIndex={0}
+      className={[layout(), settings.isDarkMode ? dark : ''].join(' ')}
+    >
       <OneOff focusableRef={rWrapper} autofocus={autofocus} />
       <ContextMenu>
         <Renderer
@@ -230,6 +231,9 @@ function InnerTldraw({
           hideBounds={hideBounds}
           hideHandles={hideHandles}
           hideIndicators={hideIndicators}
+          hideBindingHandles={!settings.showBindingHandles}
+          hideCloneHandles={!settings.showCloneHandles}
+          hideRotateHandles={!settings.showRotateHandles}
           onPinchStart={tlstate.onPinchStart}
           onPinchEnd={tlstate.onPinchEnd}
           onPinch={tlstate.onPinch}
@@ -282,7 +286,7 @@ function InnerTldraw({
         />
       </ContextMenu>
       <div className={ui()}>
-        {isFocusMode ? (
+        {settings.isFocusMode ? (
           <div className={unfocusButton()}>
             <button className={iconButton({ bp: breakpoints })} onClick={tlstate.toggleFocusMode}>
               <DotFilledIcon />

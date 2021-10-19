@@ -16,8 +16,9 @@ interface BoundsProps {
   rotation: number
   isLocked: boolean
   isHidden: boolean
-  isLinked: boolean
-  showCloneButtons: boolean
+  hideCloneHandles: boolean
+  hideRotateHandle: boolean
+  hideBindingHandles: boolean
   viewportWidth: number
   children?: React.ReactNode
 }
@@ -30,8 +31,9 @@ export const Bounds = React.memo(
     rotation,
     isHidden,
     isLocked,
-    isLinked,
-    showCloneButtons,
+    hideCloneHandles,
+    hideRotateHandle,
+    hideBindingHandles,
   }: BoundsProps): JSX.Element => {
     // Touch target size
     const targetSize = (viewportWidth < 768 ? 16 : 8) / zoom
@@ -40,11 +42,13 @@ export const Bounds = React.memo(
 
     const smallDimension = Math.min(bounds.width, bounds.height) * zoom
     // If the bounds are small, don't show the rotate handle
-    const showRotateHandle = !isHidden && !isLocked && smallDimension > 32
+    const showRotateHandle = !hideRotateHandle && !isHidden && !isLocked && smallDimension > 32
     // If the bounds are very small, don't show the edge handles
     const showEdgeHandles = !isHidden && !isLocked && smallDimension > 24
     // If the bounds are very very small, don't show the corner handles
     const showCornerHandles = !isHidden && !isLocked && smallDimension > 20
+    // If the bounds are very small, don't show the clone handles
+    const showCloneHandles = !hideCloneHandles && smallDimension > 24
 
     return (
       <Container bounds={bounds} rotation={rotation}>
@@ -106,19 +110,21 @@ export const Bounds = React.memo(
             isHidden={isHidden || !showCornerHandles}
             corner={TLBoundsCorner.BottomLeft}
           />
-          <RotateHandle
-            targetSize={targetSize}
-            size={size}
-            bounds={bounds}
-            isHidden={!showEdgeHandles || !showRotateHandle}
-          />
-          {showCloneButtons && <CloneButtons bounds={bounds} />}
-          {isLinked && (
+          {showRotateHandle && (
+            <RotateHandle
+              targetSize={targetSize}
+              size={size}
+              bounds={bounds}
+              isHidden={!showEdgeHandles}
+            />
+          )}
+          {showCloneHandles && <CloneButtons bounds={bounds} targetSize={targetSize} size={size} />}
+          {!hideBindingHandles && (
             <LinkHandle
               targetSize={targetSize}
               size={size}
               bounds={bounds}
-              isHidden={!showEdgeHandles || !showRotateHandle}
+              isHidden={!showEdgeHandles}
             />
           )}
         </SVGContainer>

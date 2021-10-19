@@ -1558,9 +1558,8 @@ left past the initial left edge) then swap points on that axis.
 
         fxs.forEach((f, i) =>
           txs.forEach((t, k) => {
-            // If we're not dragging carefully, only snap to
-            // matching points, (e.g. min to min, mid to mid)
-            if (xs || !(isCareful || i === k)) return
+            // If we're not dragging carefully, only snap to center or opposite points
+            if (xs || !(isCareful || i === 0 || i + k === 3)) return
 
             if (Math.abs(t - f) < distance) {
               xs = { B, i }

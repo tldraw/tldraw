@@ -4,7 +4,7 @@ import { SessionType, TLDrawShape, TLDrawStatus } from '~types'
 import type { Session } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
-import { SNAP_DISTANCE } from '~state/constants'
+import { SLOW_SPEED, SNAP_DISTANCE, VERY_SLOW_SPEED } from '~state/constants'
 
 type SnapInfo =
   | {
@@ -81,16 +81,16 @@ export class TransformSingleSession implements Session {
     const { zoom } = data.document.pageStates[currentPageId].camera
 
     if (
-      !metaKey &&
+      ((data.settings.isSnapping && !metaKey) || (!data.settings.isSnapping && metaKey)) &&
       !initialShape.rotation && // not now anyway
-      this.speed * zoom < 5 &&
+      this.speed * zoom < SLOW_SPEED &&
       this.snapInfo.state === 'ready'
     ) {
       const snapResult = Utils.getSnapPoints(
         Utils.getBoundsWithCenter(newBounds),
         this.snapInfo.bounds,
         SNAP_DISTANCE / zoom,
-        this.speed * zoom < 0.45
+        this.speed * zoom < VERY_SLOW_SPEED
       )
 
       if (snapResult) {

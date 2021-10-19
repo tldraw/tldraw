@@ -2,12 +2,25 @@ import * as React from 'react'
 import { useTLContext } from '+hooks'
 import type { TLBounds } from '+types'
 
+const ROTATIONS = {
+  right: 0,
+  bottomRight: 45,
+  bottom: 90,
+  bottomLeft: 135,
+  left: 180,
+  topLeft: 225,
+  top: 270,
+  topRight: 315,
+}
+
 export interface CloneButtonProps {
   bounds: TLBounds
+  targetSize: number
+  size: number
   side: 'top' | 'right' | 'bottom' | 'left' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
 }
 
-export function CloneButton({ bounds, side }: CloneButtonProps) {
+export function CloneButton({ bounds, side, targetSize, size }: CloneButtonProps) {
   const x = {
     left: -44,
     topLeft: -44,
@@ -33,7 +46,7 @@ export function CloneButton({ bounds, side }: CloneButtonProps) {
   const { callbacks, inputs } = useTLContext()
 
   const handleClick = React.useCallback(
-    (e: React.PointerEvent<SVGCircleElement>) => {
+    (e: React.PointerEvent<SVGGElement>) => {
       e.stopPropagation()
       const info = inputs.pointerDown(e, side)
       callbacks.onShapeClone?.(info, e)
@@ -42,9 +55,26 @@ export function CloneButton({ bounds, side }: CloneButtonProps) {
   )
 
   return (
-    <g className="tl-hover-target" transform={`translate(${x}, ${y})`}>
-      <rect className="tl-transparent" width={88} height={88} x={-44} y={-44} />
-      <circle className="tl-clone-button tl-hover-button" onPointerDown={handleClick} />
+    <g className="tl-clone-target" transform={`translate(${x}, ${y})`}>
+      <rect
+        className="tl-transparent"
+        width={targetSize * 4}
+        height={targetSize * 4}
+        x={-targetSize * 2}
+        y={-targetSize * 2}
+      />
+      <g
+        className="tl-clone-button-target"
+        onPointerDown={handleClick}
+        transform={`rotate(${ROTATIONS[side]})`}
+      >
+        <circle className="tl-transparent " r={targetSize} />
+        <path
+          className="tl-clone-button"
+          d={`M -${size / 2},-${size / 2} L ${size / 2},0 -${size / 2},${size / 2} Z`}
+          strokeLinejoin="round"
+        />
+      </g>
     </g>
   )
 }

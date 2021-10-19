@@ -61,6 +61,18 @@ export interface RendererProps<T extends TLShape, E extends Element = any, M = a
    */
   hideHandles?: boolean
   /**
+   * (optional) When true, the renderer will not show rotate handles for selected objects.
+   */
+  hideRotateHandles?: boolean
+  /**
+   * (optional) When true, the renderer will not show buttons for cloning shapes.
+   */
+  hideCloneHandles?: boolean
+  /**
+   * (optional) When true, the renderer will not show binding controls.
+   */
+  hideBindingHandles?: boolean
+  /**
    * (optional) When true, the renderer will not show indicators for selected or
    * hovered objects,
    */
@@ -105,6 +117,9 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
   containerRef,
   hideHandles = false,
   hideIndicators = false,
+  hideCloneHandles = false,
+  hideBindingHandles = false,
+  hideRotateHandles = false,
   hideBounds = false,
   onMount,
   ...rest
@@ -140,10 +155,13 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
         snapLines={snapLines}
         users={users}
         userId={userId}
+        externalContainerRef={containerRef}
         hideBounds={hideBounds}
         hideIndicators={hideIndicators}
         hideHandles={hideHandles}
-        externalContainerRef={containerRef}
+        hideCloneHandles={hideCloneHandles}
+        hideBindingHandles={hideBindingHandles}
+        hideRotateHandle={hideRotateHandles}
         meta={meta}
       />
     </TLContext.Provider>

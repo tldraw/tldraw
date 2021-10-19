@@ -27,6 +27,10 @@ export interface TLDrawSettings {
   nudgeDistanceSmall: number
   nudgeDistanceLarge: number
   isFocusMode: boolean
+  isSnapping: boolean
+  showRotateHandles: boolean
+  showBindingHandles: boolean
+  showCloneHandles: boolean
 }
 
 export enum TLUserStatus {

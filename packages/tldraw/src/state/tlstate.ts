@@ -133,6 +133,7 @@ export class TLDrawState extends StateManager<Data> {
       })
     }
 
+    this.persist()
     this._onMount?.(this)
   }
 
@@ -403,6 +404,25 @@ export class TLDrawState extends StateManager<Data> {
   /* -------------------------------------------------- */
   /*                    Settings & UI                   */
   /* -------------------------------------------------- */
+
+  /**
+   * Set a setting.
+   */
+  setSetting = <T extends keyof Data['settings'], V extends Data['settings'][T]>(
+    name: T,
+    value: V | ((value: V) => V)
+  ): this => {
+    if (this.session) return this
+
+    return this.patchState(
+      {
+        settings: {
+          [name]: typeof value === 'function' ? value(this.state.settings[name] as V) : value,
+        },
+      },
+      `settings:${name}`
+    )
+  }
 
   /**
    * Toggle pen mode.
@@ -2402,7 +2422,7 @@ export class TLDrawState extends StateManager<Data> {
     }
   }
 
-  static version = 10.1
+  static version = 10.5
 
   static defaultDocument: TLDrawDocument = {
     id: 'doc',
@@ -2433,10 +2453,14 @@ export class TLDrawState extends StateManager<Data> {
       isDarkMode: false,
       isZoomSnap: false,
       isFocusMode: false,
+      isSnapping: false,
       isDebugMode: process.env.NODE_ENV === 'development',
       isReadonlyMode: false,
       nudgeDistanceLarge: 16,
       nudgeDistanceSmall: 1,
+      showRotateHandles: true,
+      showBindingHandles: true,
+      showCloneHandles: true,
     },
     appState: {
       activeTool: 'select',
