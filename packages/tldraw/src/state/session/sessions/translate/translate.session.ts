@@ -14,7 +14,7 @@ import {
   ArrowBinding,
   TLDrawShapeType,
 } from '~types'
-import { SNAP_DISTANCE } from '~state/constants'
+import { SLOW_SPEED, SNAP_DISTANCE, VERY_SLOW_SPEED } from '~state/constants'
 import { TLDR } from '~state/tldr'
 import type { Patch } from 'rko'
 
@@ -147,7 +147,11 @@ export class TranslateSession implements Session {
 
     const { zoom } = data.document.pageStates[currentPageId].camera
 
-    if (!metaKey && this.speed * zoom < 5 && this.snapInfo.state === 'ready') {
+    if (
+      ((data.settings.allowSnaps && !metaKey) || (!data.settings.allowSnaps && metaKey)) &&
+      this.speed * zoom < SLOW_SPEED &&
+      this.snapInfo.state === 'ready'
+    ) {
       const bounds = Utils.getBoundsWithCenter(
         Utils.translateBounds(this.snapshot.commonBounds, delta)
       )
@@ -156,7 +160,7 @@ export class TranslateSession implements Session {
         bounds,
         this.isCloning ? this.snapInfo.bounds : this.snapInfo.others,
         SNAP_DISTANCE / zoom,
-        this.speed * zoom < 0.45
+        this.speed * zoom < VERY_SLOW_SPEED
       )
 
       if (snapResult) {

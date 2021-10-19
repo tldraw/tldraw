@@ -70,7 +70,7 @@ const defaultTheme: TLTheme = {
   brushFill: 'rgba(0,0,0,.05)',
   brushStroke: 'rgba(0,0,0,.25)',
   selectStroke: 'rgb(66, 133, 244)',
-  selectFill: 'rgba(65, 132, 244, 0.04)',
+  selectFill: 'rgba(65, 132, 244, 0.05)',
   background: 'rgb(248, 249, 250)',
   foreground: 'rgb(51, 51, 51)',
 }
@@ -285,36 +285,29 @@ const tlcss = css`
     stroke: var(--tl-selectStroke);
   }
 
-  .tl-hover-target {
+  .tl-clone-target {
     pointer-events: all;
   }
 
-  .tl-hover-button {
-    stroke-width: calc(1.5px * var(--tl-scale));
-    stroke: var(--tl-selectStroke);
+  .tl-clone-target:hover .tl-clone-button {
+    opacity: 1;
   }
 
-  .tl-hover-target > .tl-hover-button {
+  .tl-clone-button-target {
+    cursor: pointer;
+    pointer-events: all;
   }
 
-  .tl-hover-target:hover > .tl-hover-button {
-  }
-
-  .tl-hover-target:active > .tl-hover-button {
-  }
-
-  .tl-hover-target:hover {
+  .tl-clone-button-target:hover .tl-clone-button {
+    fill: var(--tl-selectStroke);
   }
 
   .tl-clone-button {
+    opacity: 0;
     r: calc(8px * var(--tl-scale));
-    pointer-events: all;
-    cursor: pointer;
-    fill: transparent;
-  }
-
-  .tl-clone-button:hover {
-    fill: var(--tl-selectStroke);
+    stroke-width: calc(1.5px * var(--tl-scale));
+    stroke: var(--tl-selectStroke);
+    fill: var(--tl-background);
   }
 
   .tl-bounds {

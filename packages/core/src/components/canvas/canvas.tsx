@@ -30,9 +30,12 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   snapLines?: TLSnapLine[]
   users?: TLUsers<T>
   userId?: string
-  hideBounds?: boolean
-  hideHandles?: boolean
-  hideIndicators?: boolean
+  hideBounds: boolean
+  hideHandles: boolean
+  hideIndicators: boolean
+  hideBindingHandles: boolean
+  hideCloneHandles: boolean
+  hideRotateHandle: boolean
   externalContainerRef?: React.RefObject<HTMLElement>
   meta?: M
   id?: string
@@ -47,9 +50,12 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
   userId,
   meta,
   externalContainerRef,
-  hideHandles = false,
-  hideBounds = false,
-  hideIndicators = false,
+  hideHandles,
+  hideBounds,
+  hideIndicators,
+  hideBindingHandles,
+  hideCloneHandles,
+  hideRotateHandle,
 }: CanvasProps<T, M>): JSX.Element {
   const rCanvas = React.useRef<HTMLDivElement>(null)
   const rContainer = React.useRef<HTMLDivElement>(null)
@@ -82,6 +88,9 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
               hideBounds={hideBounds}
               hideIndicators={hideIndicators}
               hideHandles={hideHandles}
+              hideBindingHandles={hideBindingHandles}
+              hideCloneHandles={hideCloneHandles}
+              hideRotateHandle={hideRotateHandle}
               meta={meta}
             />
             {users && userId && (

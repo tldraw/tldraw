@@ -14,6 +14,9 @@ interface PageProps<T extends TLShape, M extends Record<string, unknown>> {
   hideBounds: boolean
   hideHandles: boolean
   hideIndicators: boolean
+  hideBindingHandles: boolean
+  hideCloneHandles: boolean
+  hideRotateHandle: boolean
   meta?: M
 }
 
@@ -26,6 +29,9 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
   hideBounds,
   hideHandles,
   hideIndicators,
+  hideBindingHandles,
+  hideCloneHandles,
+  hideRotateHandle,
   meta,
 }: PageProps<T, M>): JSX.Element {
   const { callbacks, shapeUtils, inputs } = useTLContext()
@@ -47,7 +53,7 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
     camera: { zoom },
   } = pageState
 
-  let showCloneButtons = false
+  let _hideCloneHandles = true
 
   let shapeWithHandles: TLShape | undefined = undefined
 
@@ -58,7 +64,7 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
 
     const utils = shapeUtils[shape.type] as TLShapeUtil<any, any>
 
-    showCloneButtons = utils.canClone
+    _hideCloneHandles = hideCloneHandles || !utils.canClone
 
     if (shape.handles !== undefined) {
       shapeWithHandles = shape
@@ -94,8 +100,9 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
           isLocked={isLocked}
           rotation={rotation}
           isHidden={hideBounds}
-          isLinked={isLinked}
-          showCloneButtons={showCloneButtons}
+          hideRotateHandle={hideRotateHandle}
+          hideBindingHandles={hideBindingHandles || !isLinked}
+          hideCloneHandles={_hideCloneHandles}
         />
       )}
       {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} />}

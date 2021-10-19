@@ -12,8 +12,9 @@ describe('bounds', () => {
         viewportWidth={1000}
         isLocked={false}
         isHidden={false}
-        isLinked={false}
-        showCloneButtons={false}
+        hideBindingHandles={false}
+        hideCloneHandles={false}
+        hideRotateHandle={false}
       />
     )
   })

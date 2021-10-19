@@ -4,19 +4,21 @@ import { CloneButton } from './clone-button'
 
 export interface CloneButtonsProps {
   bounds: TLBounds
+  targetSize: number
+  size: number
 }
 
-export function CloneButtons({ bounds }: CloneButtonsProps) {
+export function CloneButtons({ targetSize, size, bounds }: CloneButtonsProps) {
   return (
     <>
-      <CloneButton bounds={bounds} side="top" />
-      <CloneButton bounds={bounds} side="right" />
-      <CloneButton bounds={bounds} side="bottom" />
-      <CloneButton bounds={bounds} side="left" />
-      <CloneButton bounds={bounds} side="topLeft" />
-      <CloneButton bounds={bounds} side="topRight" />
-      <CloneButton bounds={bounds} side="bottomLeft" />
-      <CloneButton bounds={bounds} side="bottomRight" />
+      <CloneButton targetSize={targetSize} size={size} bounds={bounds} side="top" />
+      <CloneButton targetSize={targetSize} size={size} bounds={bounds} side="right" />
+      <CloneButton targetSize={targetSize} size={size} bounds={bounds} side="bottom" />
+      <CloneButton targetSize={targetSize} size={size} bounds={bounds} side="left" />
+      <CloneButton targetSize={targetSize} size={size} bounds={bounds} side="topLeft" />
+      <CloneButton targetSize={targetSize} size={size} bounds={bounds} side="topRight" />
+      <CloneButton targetSize={targetSize} size={size} bounds={bounds} side="bottomLeft" />
+      <CloneButton targetSize={targetSize} size={size} bounds={bounds} side="bottomRight" />
     </>
   )
 }
