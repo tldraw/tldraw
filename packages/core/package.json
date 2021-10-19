@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/core",
-  "version": "0.0.123",
+  "version": "0.0.124",
   "private": false,
   "description": "A tiny little drawing app (core)",
   "author": "@steveruizok",
@@ -57,8 +57,8 @@
     "react-dom": "^16.8 || ^17.0"
   },
   "dependencies": {
-    "@tldraw/intersect": "^0.0.123",
-    "@tldraw/vec": "^0.0.123",
+    "@tldraw/intersect": "^0.0.124",
+    "@tldraw/vec": "^0.0.124",
     "@use-gesture/react": "^10.0.2"
   },
   "gitHead": "5cb031ddc264846ec6732d7179511cddea8ef034"
