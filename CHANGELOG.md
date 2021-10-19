@@ -1,3 +1,12 @@
+## 0.0.123
+
+### TLDraw
+
+- Adds bound shape controls.
+- Drag a bound shape control to translate shapes in that direction.
+- Double click bound shape controls to select shapes in that direction.
+- Fix bug in arrow decorations toggle.
+
 ## 0.0.122
 
 ### TLDraw
