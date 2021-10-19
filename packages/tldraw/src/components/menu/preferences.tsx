@@ -35,8 +35,8 @@ export function Preferences() {
     tlstate.setSetting('showBindingHandles', (v) => !v)
   }, [tlstate])
 
-  const toggleallowSnaps = React.useCallback(() => {
-    tlstate.setSetting('allowSnaps', (v) => !v)
+  const toggleisSnapping = React.useCallback(() => {
+    tlstate.setSetting('isSnapping', (v) => !v)
   }, [tlstate])
 
   const toggleCloneControls = React.useCallback(() => {
@@ -75,8 +75,8 @@ export function Preferences() {
       >
         <span>Clone Handles</span>
       </DropdownMenuCheckboxItem>
-      <DropdownMenuCheckboxItem checked={settings.allowSnaps} onCheckedChange={toggleallowSnaps}>
-        <span>Snapping</span>
+      <DropdownMenuCheckboxItem checked={settings.isSnapping} onCheckedChange={toggleisSnapping}>
+        <span>Always Show Snaps</span>
       </DropdownMenuCheckboxItem>
     </DropdownMenuSubMenu>
   )

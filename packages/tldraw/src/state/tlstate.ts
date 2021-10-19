@@ -2422,7 +2422,7 @@ export class TLDrawState extends StateManager<Data> {
     }
   }
 
-  static version = 10.4
+  static version = 10.5
 
   static defaultDocument: TLDrawDocument = {
     id: 'doc',
@@ -2453,11 +2453,11 @@ export class TLDrawState extends StateManager<Data> {
       isDarkMode: false,
       isZoomSnap: false,
       isFocusMode: false,
+      isSnapping: false,
       isDebugMode: process.env.NODE_ENV === 'development',
       isReadonlyMode: false,
       nudgeDistanceLarge: 16,
       nudgeDistanceSmall: 1,
-      allowSnaps: true,
       showRotateHandles: true,
       showBindingHandles: true,
       showCloneHandles: true,

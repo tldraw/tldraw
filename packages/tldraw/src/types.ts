@@ -27,7 +27,7 @@ export interface TLDrawSettings {
   nudgeDistanceSmall: number
   nudgeDistanceLarge: number
   isFocusMode: boolean
-  allowSnaps: boolean
+  isSnapping: boolean
   showRotateHandles: boolean
   showBindingHandles: boolean
   showCloneHandles: boolean

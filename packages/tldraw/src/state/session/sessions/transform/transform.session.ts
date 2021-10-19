@@ -86,7 +86,7 @@ export class TransformSession implements Session {
     const { zoom } = data.document.pageStates[currentPageId].camera
 
     if (
-      ((data.settings.allowSnaps && !metaKey) || (!data.settings.allowSnaps && metaKey)) &&
+      ((data.settings.isSnapping && !metaKey) || (!data.settings.isSnapping && metaKey)) &&
       this.speed * zoom < SLOW_SPEED &&
       this.snapInfo.state === 'ready'
     ) {
