@@ -1,31 +1,41 @@
 import { Decoration } from '~types'
 import type { ArrowShape, TLDrawCommand, Data } from '~types'
 import { TLDR } from '~state/tldr'
+import type { Patch } from 'rko'
 
 export function toggleDecoration(
   data: Data,
   ids: string[],
-  handleId: 'start' | 'end'
+  decorationId: 'start' | 'end'
 ): TLDrawCommand {
   const { currentPageId } = data.appState
-  const { before, after } = TLDR.mutateShapes<ArrowShape>(
-    data,
-    ids,
-    (shape) => {
-      const decorations = shape.decorations
-        ? {
-            ...shape.decorations,
-            [handleId]: shape.decorations[handleId] ? undefined : Decoration.Arrow,
-          }
-        : {
-            [handleId]: Decoration.Arrow,
-          }
 
-      return {
-        decorations,
-      }
-    },
-    currentPageId
+  const beforeShapes: Record<string, Patch<ArrowShape>> = Object.fromEntries(
+    ids.map((id) => [
+      id,
+      {
+        decorations: {
+          [decorationId]: TLDR.getShape<ArrowShape>(data, id, currentPageId).decorations?.[
+            decorationId
+          ],
+        },
+      },
+    ])
+  )
+
+  const afterShapes: Record<string, Patch<ArrowShape>> = Object.fromEntries(
+    ids.map((id) => [
+      id,
+      {
+        decorations: {
+          [decorationId]: TLDR.getShape<ArrowShape>(data, id, currentPageId).decorations?.[
+            decorationId
+          ]
+            ? undefined
+            : Decoration.Arrow,
+        },
+      },
+    ])
   )
 
   return {
@@ -33,14 +43,14 @@ export function toggleDecoration(
     before: {
       document: {
         pages: {
-          [currentPageId]: { shapes: before },
+          [currentPageId]: { shapes: beforeShapes },
         },
       },
     },
     after: {
       document: {
         pages: {
-          [currentPageId]: { shapes: after },
+          [currentPageId]: { shapes: afterShapes },
         },
       },
     },

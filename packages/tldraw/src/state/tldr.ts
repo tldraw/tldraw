@@ -1,6 +1,6 @@
 import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
 import { getShapeUtils } from '~shape'
-import type {
+import {
   Data,
   ShapeStyles,
   ShapesWithProp,
@@ -10,6 +10,8 @@ import type {
   TLDrawCommand,
   TLDrawPatch,
   TLDrawShapeUtil,
+  TLDrawShapeType,
+  ArrowShape,
 } from '~types'
 import { Vec } from '@tldraw/vec'
 
@@ -265,6 +267,109 @@ export class TLDR {
 
         return cData
       }, data)
+  }
+
+  static getLinkedShapes(
+    data: Data,
+    pageId: string,
+    direction: 'center' | 'left' | 'right',
+    includeArrows = true
+  ) {
+    const selectedIds = TLDR.getSelectedIds(data, pageId)
+
+    const page = TLDR.getPage(data, pageId)
+
+    const linkedIds = new Set<string>(selectedIds)
+
+    const checkedIds = new Set<string>()
+
+    const idsToCheck = [...selectedIds]
+
+    const arrows = new Set(
+      Object.values(page.shapes).filter((shape) => {
+        return (
+          shape.type === TLDrawShapeType.Arrow &&
+          (shape.handles.start.bindingId || shape.handles?.end.bindingId)
+        )
+      }) as ArrowShape[]
+    )
+
+    while (idsToCheck.length) {
+      const id = idsToCheck.pop()
+
+      if (!(id && arrows.size)) break
+
+      if (checkedIds.has(id)) continue
+
+      checkedIds.add(id)
+
+      arrows.forEach((arrow) => {
+        const {
+          handles: {
+            start: { bindingId: startBindingId },
+            end: { bindingId: endBindingId },
+          },
+        } = arrow
+
+        const startBinding = startBindingId ? page.bindings[startBindingId] : null
+        const endBinding = endBindingId ? page.bindings[endBindingId] : null
+
+        let hit = false
+
+        if (startBinding && startBinding.toId === id) {
+          if (direction === 'center') {
+            hit = true
+          } else if (arrow.decorations?.start && endBinding) {
+            // The arrow is pointing to this shape at its start
+            hit = direction === 'left'
+          } else {
+            // The arrow is pointing away from this shape
+            hit = direction === 'right'
+          }
+
+          if (hit) {
+            // This arrow is bound to this shape
+            if (includeArrows) linkedIds.add(arrow.id)
+            linkedIds.add(id)
+
+            if (endBinding) {
+              linkedIds.add(endBinding.toId)
+              idsToCheck.push(endBinding.toId)
+            }
+          }
+        } else if (endBinding && endBinding.toId === id) {
+          // This arrow is bound to this shape at its end
+          if (direction === 'center') {
+            hit = true
+          } else if (arrow.decorations?.end && startBinding) {
+            // The arrow is pointing to this shape
+            hit = direction === 'left'
+          } else {
+            // The arrow is pointing away from this shape
+            hit = direction === 'right'
+          }
+
+          if (hit) {
+            if (includeArrows) linkedIds.add(arrow.id)
+            linkedIds.add(id)
+
+            if (startBinding) {
+              linkedIds.add(startBinding.toId)
+              idsToCheck.push(startBinding.toId)
+            }
+          }
+        }
+
+        if (
+          (!startBinding || linkedIds.has(startBinding.toId)) &&
+          (!endBinding || linkedIds.has(endBinding.toId))
+        ) {
+          arrows.delete(arrow)
+        }
+      })
+    }
+
+    return Array.from(linkedIds.values())
   }
 
   static getChildIndexAbove(data: Data, id: string, pageId: string): number {

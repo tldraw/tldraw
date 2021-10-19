@@ -339,5 +339,7 @@ describe('When snapping', () => {
 })
 
 describe('When translating linked shapes', () => {
-  it.todo('Translates all shapes that are chain-linked to the selected shapes')
+  it.todo('translates all linked shapes when center is dragged')
+  it.todo('translates all upstream linked shapes when left is dragged')
+  it.todo('translates all downstream linked shapes when right is dragged')
 })

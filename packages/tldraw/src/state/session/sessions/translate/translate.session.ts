@@ -12,6 +12,7 @@ import {
   GroupShape,
   SessionType,
   ArrowBinding,
+  TLDrawShapeType,
 } from '~types'
 import { SNAP_DISTANCE } from '~state/constants'
 import { TLDR } from '~state/tldr'
@@ -55,9 +56,14 @@ export class TranslateSession implements Session {
   snapLines: TLSnapLine[] = []
   isCloning = false
   isCreate: boolean
-  isLinked = false
+  isLinked: 'left' | 'right' | 'center' | false
 
-  constructor(data: Data, point: number[], isCreate = false, isLinked = false) {
+  constructor(
+    data: Data,
+    point: number[],
+    isCreate = false,
+    isLinked: 'left' | 'right' | 'center' | false = false
+  ) {
     this.origin = point
     this.snapshot = getTranslateSnapshot(data, isLinked)
     this.isCreate = isCreate
@@ -617,48 +623,17 @@ export class TranslateSession implements Session {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function getTranslateSnapshot(data: Data, isLinked: boolean) {
+export function getTranslateSnapshot(
+  data: Data,
+  linkDirection: 'left' | 'right' | 'center' | false
+) {
   const { currentPageId } = data.appState
 
   const page = TLDR.getPage(data, currentPageId)
 
   const selectedIds = TLDR.getSelectedIds(data, currentPageId)
 
-  let ids = selectedIds
-
-  if (isLinked) {
-    const linkedIds = new Set<string>()
-
-    const checkedIds = new Set<string>()
-
-    const idsToCheck = [...selectedIds]
-
-    const bindings = Object.values(page.bindings)
-
-    while (idsToCheck.length > 0) {
-      const id = idsToCheck.pop()
-
-      if (!id) break
-
-      checkedIds.add(id)
-
-      bindings.forEach(({ fromId, toId }) => {
-        if (fromId === id) {
-          linkedIds.add(fromId)
-          if (!checkedIds.has(toId)) {
-            idsToCheck.push(toId)
-          }
-        } else if (toId === id) {
-          linkedIds.add(toId)
-          if (!checkedIds.has(fromId)) {
-            idsToCheck.push(fromId)
-          }
-        }
-      })
-
-      ids = Array.from(linkedIds.values())
-    }
-  }
+  const ids = linkDirection ? TLDR.getLinkedShapes(data, currentPageId, linkDirection) : selectedIds
 
   const selectedShapes = ids.flatMap((id) => TLDR.getShape(data, id, currentPageId))
 
@@ -699,7 +674,6 @@ export function getTranslateSnapshot(data: Data, isLinked: boolean) {
 
   return {
     selectedIds,
-    linkedBounds: Utils.getCommonBounds(shapesToMove.map(TLDR.getRotatedBounds)),
     hasUnlockedShapes,
     initialParentChildren,
     idsToMove,

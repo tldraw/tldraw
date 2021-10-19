@@ -192,5 +192,4 @@ export abstract class BaseTool<T extends string = any> {
   // Misc
   onShapeBlur?: TLShapeBlurHandler
   onShapeClone?: TLShapeCloneHandler
-  onPointLinkHandle?: TLPointerEventHandler
 }
