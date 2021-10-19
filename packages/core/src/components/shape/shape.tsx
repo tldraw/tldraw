@@ -1,58 +1,50 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { useShapeEvents, useTLContext } from '+hooks'
-import type { IShapeTreeNode } from '+types'
+import { useShapeEvents } from '+hooks'
+import type { IShapeTreeNode, TLShape, TLShapeUtil } from '+types'
 import { RenderedShape } from './rendered-shape'
-import { EditingTextShape } from './editing-text-shape'
+import { Container } from '+components/container'
+import { useTLContext } from '+hooks'
+import { useForceUpdate } from '+hooks/useForceUpdate'
+
+interface ShapeProps<T extends TLShape, E extends Element, M> extends IShapeTreeNode<T, M> {
+  utils: TLShapeUtil<T, E, M>
+}
 
 export const Shape = React.memo(
-  <M extends Record<string, unknown>>({
+  <T extends TLShape, E extends Element, M>({
     shape,
+    utils,
     isEditing,
     isBinding,
     isHovered,
     isSelected,
     isCurrentParent,
     meta,
-  }: IShapeTreeNode<M>) => {
-    const { shapeUtils } = useTLContext()
+  }: ShapeProps<T, E, M>) => {
+    const { callbacks } = useTLContext()
+    const bounds = utils.getBounds(shape)
     const events = useShapeEvents(shape.id, isCurrentParent)
-    const utils = shapeUtils[shape.type]
 
-    const center = utils.getCenter(shape)
-    const rotation = (shape.rotation || 0) * (180 / Math.PI)
-    const transform = `rotate(${rotation}, ${center}) translate(${shape.point})`
+    useForceUpdate()
 
     return (
-      <g
-        className={isCurrentParent ? 'tl-shape-group tl-current-parent' : 'tl-shape-group'}
-        id={shape.id}
-        transform={transform}
-        {...events}
-      >
-        {isEditing && utils.isEditableText ? (
-          <EditingTextShape
-            shape={shape}
-            isBinding={false}
-            isCurrentParent={false}
-            isEditing={true}
-            isHovered={isHovered}
-            isSelected={isSelected}
-            utils={utils}
-            meta={meta}
-          />
-        ) : (
-          <RenderedShape
-            shape={shape}
-            utils={utils}
-            isBinding={isBinding}
-            isCurrentParent={isCurrentParent}
-            isEditing={isEditing}
-            isHovered={isHovered}
-            isSelected={isSelected}
-            meta={meta}
-          />
-        )}
-      </g>
+      <Container id={shape.id} bounds={bounds} rotation={shape.rotation}>
+        <RenderedShape
+          shape={shape}
+          isBinding={isBinding}
+          isCurrentParent={isCurrentParent}
+          isEditing={isEditing}
+          isHovered={isHovered}
+          isSelected={isSelected}
+          utils={utils as any}
+          meta={meta}
+          events={events}
+          onShapeChange={callbacks.onShapeChange}
+          onShapeBlur={callbacks.onShapeBlur}
+        />
+      </Container>
     )
   }
 )

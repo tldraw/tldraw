@@ -1,29 +1,26 @@
 import * as React from 'react'
-import { Utils, TLTransformInfo, TLBounds, Intersect, Vec } from '@tldraw/core'
+import { SVGContainer, Utils, ShapeUtil, TLTransformInfo, TLBounds } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
+import { DashStyle, EllipseShape, TLDrawShapeType, TLDrawMeta } from '~types'
+import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
+import { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
 import {
-  ArrowShape,
-  DashStyle,
-  EllipseShape,
-  TLDrawRenderInfo,
-  TLDrawShapeType,
-  TLDrawShapeUtil,
-  TLDrawToolType,
-} from '~types'
-import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
-import getStroke from 'perfect-freehand'
+  intersectBoundsEllipse,
+  intersectLineSegmentEllipse,
+  intersectRayEllipse,
+} from '@tldraw/intersect'
+import { EASINGS } from '~state/utils'
 
-// TODO
-// [ ] Improve indicator shape for drawn shapes
+export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(() => ({
+  type: TLDrawShapeType.Ellipse,
 
-export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
-  type = TLDrawShapeType.Ellipse as const
-  toolType = TLDrawToolType.Bounds
-  pathCache = new WeakMap<EllipseShape, string>([])
-  canBind = true
+  pathCache: new WeakMap<EllipseShape, string>([]),
 
-  defaultProps = {
+  canBind: true,
+
+  defaultProps: {
     id: 'id',
-    type: TLDrawShapeType.Ellipse as const,
+    type: TLDrawShapeType.Ellipse,
     name: 'Ellipse',
     parentId: 'page',
     childIndex: 1,
@@ -31,31 +28,28 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
     radius: [1, 1],
     rotation: 0,
     style: defaultStyle,
-  }
+  },
 
-  shouldRender(prev: EllipseShape, next: EllipseShape) {
-    return next.radius !== prev.radius || next.style !== prev.style
-  }
-
-  render(shape: EllipseShape, { meta, isBinding }: TLDrawRenderInfo) {
+  Component({ shape, meta, isBinding, events }, ref) {
     const {
       radius: [radiusX, radiusY],
       style,
     } = shape
 
     const styles = getShapeStyle(style, meta.isDarkMode)
+
     const strokeWidth = +styles.strokeWidth
 
-    const rx = Math.max(0, radiusX - strokeWidth / 2)
-    const ry = Math.max(0, radiusY - strokeWidth / 2)
+    const sw = 1 + strokeWidth * 1.618
+
+    const rx = Math.max(0, radiusX - sw / 2)
+    const ry = Math.max(0, radiusY - sw / 2)
 
     if (style.dash === DashStyle.Draw) {
-      const path = Utils.getFromCache(this.pathCache, shape, () =>
-        renderPath(shape, this.getCenter(shape))
-      )
+      const path = getEllipsePath(shape, this.getCenter(shape))
 
       return (
-        <>
+        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           {isBinding && (
             <ellipse
               className="tl-binding-indicator"
@@ -65,11 +59,8 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
               ry={ry + 2}
             />
           )}
-          <ellipse
-            cx={radiusX}
-            cy={radiusY}
-            rx={rx}
-            ry={ry}
+          <path
+            d={getEllipseIndicatorPathData(shape, this.getCenter(shape))}
             stroke="none"
             fill={style.isFilled ? styles.fill : 'none'}
             pointerEvents="all"
@@ -78,12 +69,12 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
             d={path}
             fill={styles.stroke}
             stroke={styles.stroke}
-            strokeWidth={strokeWidth}
+            strokeWidth={styles.strokeWidth}
             pointerEvents="all"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-        </>
+        </SVGContainer>
       )
     }
 
@@ -91,17 +82,15 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
 
     const perimeter = Math.PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
 
-    const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-      perimeter,
+    const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
+      perimeter < 64 ? perimeter * 2 : perimeter,
       strokeWidth * 1.618,
       shape.style.dash,
       4
     )
 
-    const sw = strokeWidth * 1.618
-
     return (
-      <>
+      <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
         {isBinding && (
           <ellipse
             className="tl-binding-indicator"
@@ -125,66 +114,68 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-      </>
+      </SVGContainer>
     )
-  }
+  },
 
-  renderIndicator(shape: EllipseShape) {
-    const {
-      style,
-      radius: [rx, ry],
-    } = shape
+  Indicator({ shape }) {
+    return <path d={getEllipseIndicatorPathData(shape, this.getCenter(shape))} />
+  },
 
-    const styles = getShapeStyle(style, false)
-    const strokeWidth = +styles.strokeWidth
+  shouldRender(prev, next) {
+    return next.radius !== prev.radius || next.style !== prev.style
+  },
 
-    const sw = strokeWidth
-
-    return <ellipse cx={rx} cy={ry} rx={rx - sw / 2} ry={ry - sw / 2} />
-  }
-
-  getBounds(shape: EllipseShape) {
+  getBounds(shape) {
     return Utils.getFromCache(this.boundsCache, shape, () => {
       return Utils.getRotatedEllipseBounds(
         shape.point[0],
         shape.point[1],
         shape.radius[0],
         shape.radius[1],
-        shape.rotation || 0
+        0
       )
     })
-  }
+  },
 
-  getRotatedBounds(shape: EllipseShape) {
-    return Utils.getBoundsFromPoints(Utils.getRotatedCorners(this.getBounds(shape), shape.rotation))
-  }
-
-  getCenter(shape: EllipseShape): number[] {
-    return [shape.point[0] + shape.radius[0], shape.point[1] + shape.radius[1]]
-  }
-
-  hitTest(shape: EllipseShape, point: number[]) {
-    return Utils.pointInBounds(point, this.getBounds(shape))
-  }
-
-  hitTestBounds(shape: EllipseShape, bounds: TLBounds) {
-    const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
-
-    return (
-      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
-      Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
+  getRotatedBounds(shape) {
+    return Utils.getRotatedEllipseBounds(
+      shape.point[0],
+      shape.point[1],
+      shape.radius[0],
+      shape.radius[1],
+      shape.rotation
     )
-  }
+  },
 
-  getBindingPoint(
-    shape: EllipseShape,
-    fromShape: ArrowShape,
-    point: number[],
-    origin: number[],
-    direction: number[],
-    padding: number,
-    anywhere: boolean
-  ) {
+  getCenter(shape): number[] {
+    return [shape.point[0] + shape.radius[0], shape.point[1] + shape.radius[1]]
+  },
+
+  hitTest(shape, point: number[]) {
+    return Utils.pointInEllipse(
+      point,
+      this.getCenter(shape),
+      shape.radius[0],
+      shape.radius[1],
+      shape.rotation
+    )
+  },
+
+  hitTestBounds(shape, bounds) {
+    return (
+      Utils.boundsContain(bounds, this.getBounds(shape)) ||
+      intersectBoundsEllipse(
+        bounds,
+        this.getCenter(shape),
+        shape.radius[0],
+        shape.radius[1],
+        shape.rotation
+      ).length > 0
+    )
+  },
+
+  getBindingPoint(shape, fromShape, point, origin, direction, padding, anywhere) {
     {
       const bounds = this.getBounds(shape)
 
@@ -209,23 +200,24 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
 
         distance = 0
       } else {
-        // Find furthest intersection between ray from
-        // origin through point and expanded bounds.
-        // const intersection = Intersect.ray
-        //   .bounds(origin, direction, expandedBounds)
-        //   .filter((int) => int.didIntersect)
-        //   .map((int) => int.points[0])
-        //   .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
-
-        let intersection = Intersect.ray
-          .ellipse(origin, direction, center, shape.radius[0], shape.radius[1], shape.rotation || 0)
-
-          .points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))[0]
+        let intersection = intersectRayEllipse(
+          origin,
+          direction,
+          center,
+          shape.radius[0],
+          shape.radius[1],
+          shape.rotation || 0
+        ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))[0]
 
         if (!intersection) {
-          intersection = Intersect.lineSegment
-            .ellipse(point, center, center, shape.radius[0], shape.radius[1], shape.rotation || 0)
-            .points.sort((a, b) => Vec.dist(a, point) - Vec.dist(b, point))[0]
+          intersection = intersectLineSegmentEllipse(
+            point,
+            center,
+            center,
+            shape.radius[0],
+            shape.radius[1],
+            shape.rotation || 0
+          ).points.sort((a, b) => Vec.dist(a, point) - Vec.dist(b, point))[0]
         }
 
         // The anchor is a point between the handle and the intersection
@@ -249,7 +241,7 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
           distance = 16
         } else {
           // Find the distance between the point and the ellipse
-          const innerIntersection = Intersect.lineSegment.ellipse(
+          const innerIntersection = intersectLineSegmentEllipse(
             point,
             center,
             center,
@@ -271,10 +263,10 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
         distance,
       }
     }
-  }
+  },
 
   transform(
-    _shape: EllipseShape,
+    _shape,
     bounds: TLBounds,
     { scaleX, scaleY, initialShape }: TLTransformInfo<EllipseShape>
   ) {
@@ -288,68 +280,96 @@ export class Ellipse extends TLDrawShapeUtil<EllipseShape> {
           ? -(rotation || 0)
           : rotation || 0,
     }
-  }
+  },
 
-  transformSingle(shape: EllipseShape, bounds: TLBounds) {
+  transformSingle(shape, bounds: TLBounds) {
     return {
       point: Vec.round([bounds.minX, bounds.minY]),
       radius: Vec.div([bounds.width, bounds.height], 2),
     }
-  }
-}
+  },
+}))
 
-function renderPath(shape: EllipseShape, boundsCenter: number[]) {
+/* -------------------------------------------------- */
+/*                       Helpers                      */
+/* -------------------------------------------------- */
+
+function getEllipseStrokePoints(shape: EllipseShape, boundsCenter: number[]) {
   const {
-    style,
     id,
     radius: [radiusX, radiusY],
     point,
+    style,
   } = shape
+
+  const { strokeWidth } = getShapeStyle(style)
 
   const getRandom = Utils.rng(id)
 
   const center = Vec.sub(boundsCenter, point)
 
-  const strokeWidth = +getShapeStyle(style).strokeWidth
+  const rx = radiusX + getRandom() * strokeWidth * 2
+  const ry = radiusY + getRandom() * strokeWidth * 2
 
-  const rx = radiusX + getRandom() * strokeWidth - strokeWidth / 2
-  const ry = radiusY + getRandom() * strokeWidth - strokeWidth / 2
+  const perimeter = Utils.perimeterOfEllipse(rx, ry)
 
   const points: number[][] = []
+
   const start = Math.PI + Math.PI * getRandom()
 
-  const overlap = Math.PI / 12
+  const extra = Math.abs(getRandom())
 
-  for (let i = 2; i < 8; i++) {
-    const rads = start + overlap * 2 * (i / 8)
-    const x = rx * Math.cos(rads) + center[0]
-    const y = ry * Math.sin(rads) + center[1]
-    points.push([x, y])
+  const count = Math.max(16, perimeter / 10)
+
+  for (let i = 0; i < count; i++) {
+    const t = EASINGS.easeInOutSine(i / (count + 1))
+    const rads = start * 2 + Math.PI * (2 + extra) * t
+    const c = Math.cos(rads)
+    const s = Math.sin(rads)
+    points.push([rx * c + center[0], ry * s + center[1], t + 0.5 + getRandom() / 2])
   }
 
-  for (let i = 5; i < 32; i++) {
-    const t = i / 35
-    const rads = start + overlap * 2 + Math.PI * 2.5 * (t * t * t)
-    const x = rx * Math.cos(rads) + center[0]
-    const y = ry * Math.sin(rads) + center[1]
-    points.push([x, y])
-  }
-
-  for (let i = 0; i < 8; i++) {
-    const rads = start + overlap * 2 * (i / 4)
-    const x = rx * Math.cos(rads) + center[0]
-    const y = ry * Math.sin(rads) + center[1]
-    points.push([x, y])
-  }
-
-  const stroke = getStroke(points, {
-    size: 1 + strokeWidth,
-    thinning: 0.6,
-    easing: (t) => t * t * t * t,
-    end: { taper: strokeWidth * 20 },
-    start: { taper: strokeWidth * 20 },
-    simulatePressure: false,
+  return getStrokePoints(points, {
+    size: 1 + strokeWidth * 2,
+    thinning: 0.618,
+    end: { taper: perimeter / 8 },
+    start: { taper: perimeter / 12 },
+    streamline: 0,
+    simulatePressure: true,
   })
+}
 
-  return Utils.getSvgPathFromStroke(stroke)
+function getEllipsePath(shape: EllipseShape, boundsCenter: number[]) {
+  const {
+    id,
+    radius: [radiusX, radiusY],
+    style,
+  } = shape
+
+  const { strokeWidth } = getShapeStyle(style)
+
+  const getRandom = Utils.rng(id)
+
+  const rx = radiusX + getRandom() * strokeWidth * 2
+  const ry = radiusY + getRandom() * strokeWidth * 2
+
+  const perimeter = Utils.perimeterOfEllipse(rx, ry)
+
+  return Utils.getSvgPathFromStroke(
+    getStrokeOutlinePoints(getEllipseStrokePoints(shape, boundsCenter), {
+      size: 1 + strokeWidth * 2,
+      thinning: 0.618,
+      end: { taper: perimeter / 8 },
+      start: { taper: perimeter / 12 },
+      streamline: 0,
+      simulatePressure: true,
+    })
+  )
+}
+
+function getEllipseIndicatorPathData(shape: EllipseShape, boundsCenter: number[]) {
+  return Utils.getSvgPathFromStroke(
+    getEllipseStrokePoints(shape, boundsCenter).map((pt) => pt.point.slice(0, 2)),
+    false
+  )
 }

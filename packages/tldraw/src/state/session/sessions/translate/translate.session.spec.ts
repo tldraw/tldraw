@@ -1,22 +1,22 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { TLDrawShapeType, TLDrawStatus } from '~types'
+import { GroupShape, SessionType, TLDrawShapeType, TLDrawStatus } from '~types'
 
 describe('Translate session', () => {
   const tlstate = new TLDrawState()
 
-  it('begins, updates and completes session', () => {
+  it('begins, updateSession', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1')
-      .startTranslateSession([5, 5])
-      .updateTranslateSession([10, 10])
+      .startSession(SessionType.Translate, [5, 5])
+      .updateSession([10, 10])
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([5, 5])
 
     tlstate.completeSession()
 
-    expect(tlstate.appState.status.current).toBe(TLDrawStatus.Idle)
+    expect(tlstate.appState.status).toBe(TLDrawStatus.Idle)
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([5, 5])
 
@@ -33,8 +33,8 @@ describe('Translate session', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startTranslateSession([5, 5])
-      .updateTranslateSession([10, 10])
+      .startSession(SessionType.Translate, [5, 5])
+      .updateSession([10, 10])
       .cancelSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
@@ -44,8 +44,8 @@ describe('Translate session', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1')
-      .startTranslateSession([10, 10])
-      .updateTranslateSession([20, 20])
+      .startSession(SessionType.Translate, [10, 10])
+      .updateSession([20, 20])
       .completeSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
@@ -55,8 +55,8 @@ describe('Translate session', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1')
-      .startTranslateSession([10, 10])
-      .updateTranslateSession([20, 20], true)
+      .startSession(SessionType.Translate, [10, 10])
+      .updateSession([20, 20], true)
       .completeSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([10, 0])
@@ -66,8 +66,8 @@ describe('Translate session', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startTranslateSession([10, 10])
-      .updateTranslateSession([20, 20])
+      .startSession(SessionType.Translate, [10, 10])
+      .updateSession([20, 20])
       .completeSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
@@ -78,8 +78,8 @@ describe('Translate session', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startTranslateSession([10, 10])
-      .updateTranslateSession([20, 20], false, true)
+      .startSession(SessionType.Translate, [10, 10])
+      .updateSession([20, 20], false, true)
       .completeSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
@@ -100,8 +100,8 @@ describe('Translate session', () => {
     tlstate
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startTranslateSession([10, 10])
-      .updateTranslateSession([20, 20], false, true)
+      .startSession(SessionType.Translate, [10, 10])
+      .updateSession([20, 20], false, true)
       .completeSession()
 
     expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
@@ -117,12 +117,12 @@ describe('Translate session', () => {
 
     tlstate
       .select('rect1', 'rect2')
-      .startTranslateSession([10, 10])
-      .updateTranslateSession([20, 20], false, true)
+      .startSession(SessionType.Translate, [10, 10])
+      .updateSession([20, 20], false, true)
 
     expect(Object.keys(tlstate.getPage().shapes).length).toBe(5)
 
-    tlstate.updateTranslateSession([30, 30], false, false)
+    tlstate.updateSession([30, 30], false, false)
 
     expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
 
@@ -156,16 +156,16 @@ describe('Translate session', () => {
         }
       )
       .select('arrow1')
-      .startHandleSession([200, 200], 'start')
-      .updateHandleSession([50, 50])
+      .startSession(SessionType.Arrow, [200, 200], 'start')
+      .updateSession([50, 50])
       .completeSession()
 
     expect(tlstate.bindings.length).toBe(1)
 
     tlstate
       .select('arrow1')
-      .startTranslateSession([10, 10])
-      .updateTranslateSession([30, 30])
+      .startSession(SessionType.Translate, [10, 10])
+      .updateSession([30, 30])
       .completeSession()
 
     // expect(tlstate.bindings.length).toBe(0)
@@ -184,15 +184,98 @@ describe('Translate session', () => {
 
   // it.todo('clones a shape with a parent shape')
 
+  describe('when translating a child of a group', () => {
+    it('translates the shape and updates the groups size / point', () => {
+      tlstate
+        .loadDocument(mockDocument)
+        .select('rect1', 'rect2')
+        .group(['rect1', 'rect2'], 'groupA')
+        .select('rect1')
+        .startSession(SessionType.Translate, [10, 10])
+        .updateSession([20, 20], false, false)
+        .completeSession()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+
+      tlstate.undo()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+
+      tlstate.redo()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+    })
+
+    it('clones the shape and updates the parent', () => {
+      tlstate
+        .loadDocument(mockDocument)
+        .select('rect1', 'rect2')
+        .group(['rect1', 'rect2'], 'groupA')
+        .select('rect1')
+        .startSession(SessionType.Translate, [10, 10])
+        .updateSession([20, 20], false, true)
+        .completeSession()
+
+      const children = tlstate.getShape<GroupShape>('groupA').children
+      const newShapeId = children[children.length - 1]
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape<GroupShape>('groupA').children.length).toBe(3)
+      expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+      expect(tlstate.getShape(newShapeId).point).toStrictEqual([20, 20])
+      expect(tlstate.getShape(newShapeId).parentId).toBe('groupA')
+
+      tlstate.undo()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape<GroupShape>('groupA').children.length).toBe(2)
+      expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+      expect(tlstate.getShape(newShapeId)).toBeUndefined()
+
+      tlstate.redo()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape<GroupShape>('groupA').children.length).toBe(3)
+      expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+      expect(tlstate.getShape(newShapeId).point).toStrictEqual([20, 20])
+      expect(tlstate.getShape(newShapeId).parentId).toBe('groupA')
+    })
+  })
+
   describe('when translating a shape with children', () => {
     it('translates the shapes children', () => {
       tlstate
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
-        .group()
-        .startTranslateSession([10, 10])
-        .updateTranslateSession([20, 20], false, false)
+        .group(['rect1', 'rect2'], 'groupA')
+        .startSession(SessionType.Translate, [10, 10])
+        .updateSession([20, 20], false, false)
         .completeSession()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([110, 110])
+
+      tlstate.undo()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([100, 100])
+
+      tlstate.redo()
+
+      expect(tlstate.getShape('groupA').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect1').point).toStrictEqual([10, 10])
+      expect(tlstate.getShape('rect2').point).toStrictEqual([110, 110])
     })
 
     it('clones the shapes and children', () => {
@@ -200,8 +283,8 @@ describe('Translate session', () => {
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
         .group()
-        .startTranslateSession([10, 10])
-        .updateTranslateSession([20, 20], false, true)
+        .startSession(SessionType.Translate, [10, 10])
+        .updateSession([20, 20], false, true)
         .completeSession()
     })
 
@@ -210,10 +293,10 @@ describe('Translate session', () => {
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
         .group()
-        .startTranslateSession([10, 10])
-        .updateTranslateSession([20, 20], false, true)
-        .updateTranslateSession([20, 20], false, false)
-        .updateTranslateSession([20, 20], false, true)
+        .startSession(SessionType.Translate, [10, 10])
+        .updateSession([20, 20], false, true)
+        .updateSession([20, 20], false, false)
+        .updateSession([20, 20], false, true)
         .completeSession()
     })
 
@@ -223,9 +306,40 @@ describe('Translate session', () => {
         .select('rect1', 'rect2')
         .group(['rect1', 'rect2'], 'groupA')
         .select('groupA', 'rect3')
-        .startTranslateSession([10, 10])
-        .updateTranslateSession([20, 20], false, true)
+        .startSession(SessionType.Translate, [10, 10])
+        .updateSession([20, 20], false, true)
         .completeSession()
     })
   })
+})
+
+describe('When creating with a translate session', () => {
+  it('Deletes the shape on undo', () => {
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .startSession(SessionType.Translate, [5, 5], true)
+      .updateSession([10, 10])
+      .completeSession()
+      .undo()
+
+    expect(tlstate.getShape('rect1')).toBe(undefined)
+  })
+})
+
+describe('When snapping', () => {
+  it.todo('Does not snap when moving quicky')
+  it.todo('Snaps only matching edges when moving slowly')
+  it.todo('Snaps any edge to any edge when moving very slowly')
+  it.todo('Snaps a clone to its parent')
+  it.todo('Cleans up snap lines when cancelled')
+  it.todo('Cleans up snap lines when completed')
+  it.todo('Cleans up snap lines when starting to clone / not clone')
+  it.todo('Snaps the rotated bounding box of rotated shapes')
+})
+
+describe('When translating linked shapes', () => {
+  it.todo('translates all linked shapes when center is dragged')
+  it.todo('translates all upstream linked shapes when left is dragged')
+  it.todo('translates all downstream linked shapes when right is dragged')
 })

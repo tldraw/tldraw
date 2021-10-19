@@ -1,3 +1,4 @@
+import * as React from 'react'
 import type { TLPage, TLPageState, TLShape, TLBounds, TLShapeUtils, TLBinding } from '+types'
 import Utils from '+utils'
 import { useTLContext } from '+hooks'
@@ -6,17 +7,19 @@ function canvasToScreen(point: number[], camera: TLPageState['camera']): number[
   return [(point[0] + camera.point[0]) * camera.zoom, (point[1] + camera.point[1]) * camera.zoom]
 }
 
-export function useSelection<T extends TLShape>(
+export function useSelection<T extends TLShape, E extends Element>(
   page: TLPage<T, TLBinding>,
   pageState: TLPageState,
-  shapeUtils: TLShapeUtils<T>
+  shapeUtils: TLShapeUtils<T, E>
 ) {
-  const { rScreenBounds } = useTLContext()
+  const { rSelectionBounds } = useTLContext()
   const { selectedIds } = pageState
+  const rPrevBounds = React.useRef<TLBounds>()
 
   let bounds: TLBounds | undefined = undefined
   let rotation = 0
   let isLocked = false
+  let isLinked = false
 
   if (selectedIds.length === 1) {
     const id = selectedIds[0]
@@ -50,7 +53,11 @@ export function useSelection<T extends TLShape>(
     const [minX, minY] = canvasToScreen([bounds.minX, bounds.minY], pageState.camera)
     const [maxX, maxY] = canvasToScreen([bounds.maxX, bounds.maxY], pageState.camera)
 
-    rScreenBounds.current = {
+    isLinked = !!Object.values(page.bindings).find(
+      (binding) => selectedIds.includes(binding.toId) || selectedIds.includes(binding.fromId)
+    )
+
+    rSelectionBounds.current = {
       minX,
       minY,
       maxX,
@@ -59,8 +66,23 @@ export function useSelection<T extends TLShape>(
       height: maxY - minY,
     }
   } else {
-    rScreenBounds.current = null
+    rSelectionBounds.current = null
   }
 
-  return { bounds, rotation, isLocked }
+  const prevBounds = rPrevBounds.current
+
+  if (!prevBounds || !bounds) {
+    rPrevBounds.current = bounds
+  } else if (bounds) {
+    if (
+      prevBounds.minX === bounds.minX &&
+      prevBounds.minY === bounds.minY &&
+      prevBounds.maxX === bounds.maxX &&
+      prevBounds.maxY === bounds.maxY
+    ) {
+      bounds = rPrevBounds.current
+    }
+  }
+
+  return { bounds, rotation, isLocked, isLinked }
 }

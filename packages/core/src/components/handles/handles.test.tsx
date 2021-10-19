@@ -4,6 +4,6 @@ import { Handles } from './handles'
 
 describe('handles', () => {
   test('mounts component without crashing', () => {
-    renderWithContext(<Handles zoom={1} shape={mockUtils.box.create({})} />)
+    renderWithContext(<Handles shape={mockUtils.box.create({ id: 'box' })} />)
   })
 })

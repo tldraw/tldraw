@@ -7,9 +7,20 @@
     "**/*.spec.tsx",
     "**/*.spec.ts",
     "src/test",
-    "dist"
+    "dist",
+    "docs"
   ],
   "compilerOptions": {
-    "outDir": "./dist/types"
-  }
+    "composite": false,
+    "incremental": false,
+    "declarationMap": true,
+    "sourceMap": true,
+    "emitDeclarationOnly": true,
+    "paths": {
+      "+*": ["./*"],
+      "@tldraw/vec": ["../vec"],
+      "@tldraw/intersect": ["../intersect"]
+    }
+  },
+  "references": [{ "path": "../vec" }, { "path": "../intersect" }]
 }

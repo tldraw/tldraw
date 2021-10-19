@@ -1,10 +1,26 @@
 {
   "extends": "../../tsconfig.base.json",
   "include": ["src"],
-  "exclude": ["node_modules", "**/*.test.ts", "**/*.spec.ts", "dist"],
+  "exclude": ["node_modules", "dist", "docs"],
   "compilerOptions": {
-    "rootDir": "src",
     "outDir": "./dist/types",
-    "baseUrl": "src"
+    "rootDir": "src",
+    "baseUrl": "src",
+    "emitDeclarationOnly": false,
+    "paths": {
+      "+*": ["./*"],
+      "@tldraw/core": ["../vec"],
+      "@tldraw/tldraw": ["../intersect"]
+    }
+  },
+  "references": [
+    {
+      "path": "../tldraw"
+    },
+    { "path": "../core" }
+  ],
+  "typedocOptions": {
+    "entryPoints": ["src/index.ts"],
+    "out": "docs"
   }
 }

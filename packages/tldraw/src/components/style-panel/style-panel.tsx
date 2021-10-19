@@ -10,14 +10,14 @@ import { QuickSizeSelect } from './quick-size-select'
 import { QuickDashSelect } from './quick-dash-select'
 import { QuickFillSelect } from './quick-fill-select'
 import { Tooltip } from '../shared/tooltip'
-import { Kbd } from '../shared/kbd'
 import {
-  IconButton,
-  ButtonsRow,
+  Kbd,
+  iconButton,
+  buttonsRow,
   breakpoints,
-  RowButton,
-  FloatingContainer,
-  Divider,
+  rowButton,
+  floatingContainer,
+  divider,
 } from '../shared'
 
 const isStyleOpenSelector = (s: Data) => s.appState.isStyleOpen
@@ -27,29 +27,26 @@ export function StylePanel(): JSX.Element {
   const isOpen = useSelector(isStyleOpenSelector)
 
   return (
-    <FloatingContainer direction="column">
-      <ButtonsRow>
+    <div className={floatingContainer({ direction: 'column' })}>
+      <div className={buttonsRow()}>
         <QuickColorSelect />
         <QuickSizeSelect />
         <QuickDashSelect />
         <QuickFillSelect />
-        <IconButton
-          bp={breakpoints}
+        <button
+          className={iconButton({ bp: breakpoints, size: 'small' })}
           title="Style"
-          size="small"
           onPointerDown={tlstate.toggleStylePanel}
         >
           <Tooltip label={isOpen ? 'Close' : 'More'}>
             {isOpen ? <Cross2Icon /> : <DotsHorizontalIcon />}
           </Tooltip>
-        </IconButton>
-      </ButtonsRow>
+        </button>
+      </div>
       {isOpen && <SelectedShapeContent />}
-    </FloatingContainer>
+    </div>
   )
 }
-
-const showKbds = !Utils.isMobileSize()
 
 const selectedShapesCountSelector = (s: Data) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length
@@ -57,6 +54,8 @@ const selectedShapesCountSelector = (s: Data) =>
 function SelectedShapeContent(): JSX.Element {
   const { tlstate, useSelector } = useTLDrawContext()
   const selectedShapesCount = useSelector(selectedShapesCountSelector)
+
+  const [showKbds] = React.useState(() => !Utils.isMobileSize())
 
   const handleCopy = React.useCallback(() => {
     tlstate.copy()
@@ -72,26 +71,30 @@ function SelectedShapeContent(): JSX.Element {
 
   return (
     <>
-      <Divider />
+      <div className={divider()} />
       <ShapesFunctions />
-      <Divider />
+      <div className={divider()} />
       <AlignDistribute
         hasTwoOrMore={selectedShapesCount > 1}
         hasThreeOrMore={selectedShapesCount > 2}
       />
-      <Divider />
-      <RowButton bp={breakpoints} disabled={selectedShapesCount === 0} onClick={handleCopy}>
+      <div className={divider()} />
+      <button
+        className={rowButton({ bp: breakpoints })}
+        disabled={selectedShapesCount === 0}
+        onClick={handleCopy}
+      >
         <span>Copy</span>
         {showKbds && <Kbd variant="menu">#C</Kbd>}
-      </RowButton>
-      <RowButton bp={breakpoints} onClick={handlePaste}>
+      </button>
+      <button className={rowButton({ bp: breakpoints })} onClick={handlePaste}>
         <span>Paste</span>
         {showKbds && <Kbd variant="menu">#V</Kbd>}
-      </RowButton>
-      <RowButton bp={breakpoints} onClick={handleCopySvg}>
+      </button>
+      <button className={rowButton({ bp: breakpoints })} onClick={handleCopySvg}>
         <span>Copy to SVG</span>
         {showKbds && <Kbd variant="menu">⇧#C</Kbd>}
-      </RowButton>
+      </button>
     </>
   )
 }

@@ -1,12 +1,12 @@
 import { breakpoints } from './breakpoints'
-import styled from '~styles'
-import { RowButton } from './row-button'
+import css from '~styles'
+import { rowButton } from './row-button'
 
 /* -------------------------------------------------- */
 /*                        Menu                        */
 /* -------------------------------------------------- */
 
-export const MenuContent = styled('div', {
+export const menuContent = css({
   position: 'relative',
   overflow: 'hidden',
   userSelect: 'none',
@@ -21,7 +21,7 @@ export const MenuContent = styled('div', {
   font: '$ui',
 })
 
-export const Divider = styled('div', {
+export const divider = css({
   backgroundColor: '$hover',
   height: 1,
   marginTop: '$2',
@@ -42,13 +42,17 @@ export function MenuButton({
   children: React.ReactNode
 }): JSX.Element {
   return (
-    <RowButton bp={breakpoints} disabled={disabled} warn={warn} onSelect={onSelect}>
+    <button
+      className={rowButton({ bp: breakpoints, warn })}
+      disabled={disabled}
+      onSelect={onSelect}
+    >
       {children}
-    </RowButton>
+    </button>
   )
 }
 
-export const MenuTextInput = styled('input', {
+export const menuTextInput = css({
   backgroundColor: '$panel',
   border: 'none',
   padding: '$4 $3',

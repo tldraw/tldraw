@@ -22,11 +22,7 @@ Import the `TLDraw` React component and use it in your app.
 import { TLDraw } from '@tldraw/tldraw'
 
 function App() {
-  return (
-    <div>
-      <TLDraw />
-    </div>
-  )
+  return <TLDraw />
 }
 ```
 
@@ -38,6 +34,7 @@ The `TLDraw` React component is the [tldraw](https://tldraw.com) editor exported
 
 | Prop            | Type                            | Description                                                                                                                                                             |
 | --------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`            | `string`                        | (optional) An id under which to persist the component's state.                                                                                                          |
 | `document`      | `TLDrawDocument`                | (optional) An initial [`TLDrawDocument`](#tldrawdocument) object.                                                                                                       |
 | `currentPageId` | `string`                        | (optional) A current page id, referencing the `TLDrawDocument` object provided via the `document` prop.                                                                 |
 | `onMount`       | `(TLDrawState) => void`         | (optional) A callback function that will be called when the editor first mounts, receiving the current `TLDrawState`.                                                   |

@@ -1,8 +1,12 @@
 import type { Patch } from 'rko'
 import { TLDR } from '~state/tldr'
-import type { TLDrawShape, Data, TLDrawCommand } from '~types'
+import type { TLDrawShape, Data, TLDrawCommand, TLDrawBinding } from '~types'
 
-export function create(data: Data, shapes: TLDrawShape[]): TLDrawCommand {
+export function create(
+  data: Data,
+  shapes: TLDrawShape[],
+  bindings: TLDrawBinding[] = []
+): TLDrawCommand {
   const { currentPageId } = data.appState
 
   const beforeShapes: Record<string, Patch<TLDrawShape> | undefined> = {}
@@ -13,13 +17,22 @@ export function create(data: Data, shapes: TLDrawShape[]): TLDrawCommand {
     afterShapes[shape.id] = shape
   })
 
+  const beforeBindings: Record<string, Patch<TLDrawBinding> | undefined> = {}
+  const afterBindings: Record<string, Patch<TLDrawBinding> | undefined> = {}
+
+  bindings.forEach((binding) => {
+    beforeBindings[binding.id] = undefined
+    afterBindings[binding.id] = binding
+  })
+
   return {
-    id: 'toggle_shapes',
+    id: 'create',
     before: {
       document: {
         pages: {
           [currentPageId]: {
             shapes: beforeShapes,
+            bindings: beforeBindings,
           },
         },
         pageStates: {
@@ -34,6 +47,7 @@ export function create(data: Data, shapes: TLDrawShape[]): TLDrawCommand {
         pages: {
           [currentPageId]: {
             shapes: afterShapes,
+            bindings: afterBindings,
           },
         },
         pageStates: {

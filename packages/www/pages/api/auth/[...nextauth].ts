@@ -18,7 +18,7 @@ export default function Auth(
       async redirect(url, baseUrl) {
         return baseUrl
       },
-      async signIn(user, account, profile: any) {
+      async signIn(user, account, profile: { login?: string }) {
         const canLogin = await isSponsoringMe(profile?.login)
 
         if (canLogin) {

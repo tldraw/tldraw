@@ -1,10 +1,10 @@
-import styled from '~styles'
+import css from '~styles'
 
 /* -------------------------------------------------- */
 /*                       Dialog                       */
 /* -------------------------------------------------- */
 
-export const DialogContent = styled('div', {
+export const dialogContent = css({
   position: 'fixed',
   top: '50%',
   left: '50%',
@@ -26,7 +26,7 @@ export const DialogContent = styled('div', {
   },
 })
 
-export const DialogOverlay = styled('div', {
+export const dialogOverlay = css({
   backgroundColor: 'rgba(0, 0, 0, .15)',
   position: 'fixed',
   top: 0,
@@ -35,11 +35,11 @@ export const DialogOverlay = styled('div', {
   left: 0,
 })
 
-export const DialogInputWrapper = styled('div', {
+export const dialogInputWrapper = css({
   padding: '$4 $2',
 })
 
-export const DialogTitleRow = styled('div', {
+export const dialogTitleRow = css({
   display: 'flex',
   padding: '0 0 0 $4',
   alignItems: 'center',

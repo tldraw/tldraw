@@ -1,10 +1,10 @@
-import styled from '~styles'
+import css from '~styles'
 
 /* -------------------------------------------------- */
 /*                     Icon Button                    */
 /* -------------------------------------------------- */
 
-export const IconButton = styled('button', {
+export const iconButton = css({
   position: 'relative',
   height: '32px',
   width: '32px',

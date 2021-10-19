@@ -5,8 +5,21 @@ import type { RectangleShape } from '~types'
 describe('Flip command', () => {
   const tlstate = new TLDrawState()
 
-  it('does, undoes and redoes command', () => {
+  beforeEach(() => {
     tlstate.loadDocument(mockDocument)
+  })
+
+  describe('when no shape is selected', () => {
+    it('does nothing', () => {
+      const initialState = tlstate.state
+      tlstate.flipHorizontal()
+      const currentState = tlstate.state
+
+      expect(currentState).toEqual(initialState)
+    })
+  })
+
+  it('does, undoes and redoes command', () => {
     tlstate.select('rect1', 'rect2')
     tlstate.flipHorizontal()
 
@@ -22,7 +35,6 @@ describe('Flip command', () => {
   })
 
   it('flips horizontally', () => {
-    tlstate.loadDocument(mockDocument)
     tlstate.select('rect1', 'rect2')
     tlstate.flipHorizontal()
 
@@ -30,7 +42,6 @@ describe('Flip command', () => {
   })
 
   it('flips vertically', () => {
-    tlstate.loadDocument(mockDocument)
     tlstate.select('rect1', 'rect2')
     tlstate.flipVertical()
 

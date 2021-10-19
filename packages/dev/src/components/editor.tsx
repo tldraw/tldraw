@@ -1,27 +1,20 @@
 import * as React from 'react'
-import { TLDraw, TLDrawState } from '@tldraw/tldraw'
+import { TLDraw, TLDrawProps, TLDrawState } from '@tldraw/tldraw'
 
-export default function Editor(): JSX.Element {
+export default function Editor(props: TLDrawProps): JSX.Element {
   const rTLDrawState = React.useRef<TLDrawState>()
 
   const handleMount = React.useCallback((state: TLDrawState) => {
+    rTLDrawState.current = state
+    props.onMount?.(state)
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     window.tlstate = state
-
-    rTLDrawState.current = state
-    state.selectAll()
-    state.createShapes({
-      id: 'rect1',
-      type: 'rectangle',
-      point: [100, 100],
-      size: [200, 200],
-    })
-    state.updateShapes({
-      id: 'rect1',
-      point: [150, 150],
-    })
   }, [])
 
-  return <TLDraw id="tldraw" onMount={handleMount} />
+  return (
+    <div className="tldraw">
+      <TLDraw id="tldraw1" {...props} onMount={handleMount} autofocus />
+    </div>
+  )
 }

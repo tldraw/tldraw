@@ -1,52 +1,61 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { TLDrawStatus } from '~types'
+import { SessionType, TLDrawStatus } from '~types'
 
 describe('Brush session', () => {
-  const tlstate = new TLDrawState()
-  tlstate.loadDocument(mockDocument)
-
-  it('begins, updates and completes session', () => {
-    tlstate.deselectAll()
-    tlstate.startBrushSession([-10, -10])
-    tlstate.updateBrushSession([10, 10])
-    tlstate.completeSession()
-    expect(tlstate.appState.status.current).toBe(TLDrawStatus.Idle)
+  it('begins, updateSession', () => {
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .deselectAll()
+      .startSession(SessionType.Brush, [-10, -10])
+      .updateSession([10, 10])
+      .completeSession()
+    expect(tlstate.appState.status).toBe(TLDrawStatus.Idle)
     expect(tlstate.selectedIds.length).toBe(1)
   })
 
   it('selects multiple shapes', () => {
-    tlstate.deselectAll()
-    tlstate.startBrushSession([-10, -10])
-    tlstate.updateBrushSession([110, 110])
-    tlstate.completeSession()
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .deselectAll()
+      .startSession(SessionType.Brush, [-10, -10])
+      .updateSession([110, 110])
+      .completeSession()
     expect(tlstate.selectedIds.length).toBe(3)
   })
 
   it('does not de-select original shapes', () => {
-    tlstate.deselectAll()
-    tlstate
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .deselectAll()
       .select('rect1')
-      .startBrushSession([300, 300])
-      .updateBrushSession([301, 301])
+      .startSession(SessionType.Brush, [300, 300])
+      .updateSession([301, 301])
       .completeSession()
     expect(tlstate.selectedIds.length).toBe(1)
   })
 
-  it('does not select hidden shapes', () => {
-    tlstate.toggleHidden(['rect1'])
-    tlstate.deselectAll()
-    tlstate.startBrushSession([-10, -10])
-    tlstate.updateBrushSession([10, 10])
-    tlstate.completeSession()
-    expect(tlstate.selectedIds.length).toBe(0)
-  })
+  // it('does not select hidden shapes', () => {
+  //   const tlstate = new TLDrawState()
+  //     .loadDocument(mockDocument)
+  //     .deselectAll()
+  //     .toggleHidden(['rect1'])
+  //     .deselectAll()
+  //     .startSession(SessionType.Brush, [-10, -10])
+  //     .updateSession([10, 10])
+  //     .completeSession()
+  // })
 
   it('when command is held, require the entire shape to be selected', () => {
-    tlstate.loadDocument(mockDocument)
-    tlstate.deselectAll()
-    tlstate.startBrushSession([-10, -10])
-    tlstate.updateBrushSession([10, 10])
-    tlstate.completeSession()
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .deselectAll()
+      .loadDocument(mockDocument)
+      .deselectAll()
+      .startSession(SessionType.Brush, [-10, -10])
+      .updateSession([10, 10], false, false, true)
+      .completeSession()
+
+    expect(tlstate.selectedIds.length).toBe(0)
   })
 })

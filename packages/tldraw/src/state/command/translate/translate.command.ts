@@ -1,4 +1,4 @@
-import { Vec } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import type { Data, TLDrawCommand, PagePartial } from '~types'
 import { TLDR } from '~state/tldr'
 
@@ -63,7 +63,7 @@ export function translate(data: Data, ids: string[], delta: number[]): TLDrawCom
   })
 
   return {
-    id: 'translate_shapes',
+    id: 'translate',
     before: {
       document: {
         pages: {

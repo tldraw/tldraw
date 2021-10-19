@@ -1,14 +1,30 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import Utils from '~../../core/src/utils'
 import { TLDrawState } from '~state'
+import { TLDR } from '~state/tldr'
 import { mockDocument } from '~test'
-import { ArrowShape, GroupShape, TLDrawShapeType } from '~types'
+import { ArrowShape, SessionType, TLDrawShapeType } from '~types'
 
 describe('Duplicate command', () => {
   const tlstate = new TLDrawState()
-  tlstate.loadDocument(mockDocument)
-  tlstate.select('rect1')
+
+  beforeEach(() => {
+    tlstate.loadDocument(mockDocument)
+  })
+
+  describe('when no shape is selected', () => {
+    it('does nothing', () => {
+      const initialState = tlstate.state
+      tlstate.duplicate()
+      const currentState = tlstate.state
+
+      expect(currentState).toEqual(initialState)
+    })
+  })
 
   it('does, undoes and redoes command', () => {
+    tlstate.select('rect1')
+
     expect(Object.keys(tlstate.getPage().shapes).length).toBe(3)
 
     tlstate.duplicate()
@@ -48,8 +64,8 @@ describe('Duplicate command', () => {
 
       tlstate
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([50, 50])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([50, 50])
         .completeSession()
 
       const beforeArrow = tlstate.getShape<ArrowShape>('arrow1')
@@ -88,8 +104,8 @@ describe('Duplicate command', () => {
 
       tlstate
         .select('arrow1')
-        .startHandleSession([200, 200], 'start')
-        .updateHandleSession([50, 50])
+        .startSession(SessionType.Arrow, [200, 200], 'start')
+        .updateSession([50, 50])
         .completeSession()
 
       const oldBindingId = tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId
@@ -121,7 +137,6 @@ describe('Duplicate command', () => {
     })
 
     it('duplicates groups', () => {
-      tlstate.loadDocument(mockDocument)
       tlstate.group(['rect1', 'rect2'], 'newGroup').select('newGroup')
 
       const beforeShapeIds = Object.keys(tlstate.page.shapes)
@@ -140,7 +155,6 @@ describe('Duplicate command', () => {
     })
 
     it('duplicates grouped shapes', () => {
-      tlstate.loadDocument(mockDocument)
       tlstate.group(['rect1', 'rect2'], 'newGroup').select('rect1')
 
       const beforeShapeIds = Object.keys(tlstate.page.shapes)
@@ -157,5 +171,35 @@ describe('Duplicate command', () => {
 
       expect(Object.keys(tlstate.page.shapes).length).toBe(beforeShapeIds.length + 1)
     })
+  })
+
+  it.todo('Does not delete uneffected bindings.')
+})
+
+describe('when point-duplicating', () => {
+  it('duplicates without crashing', () => {
+    const tlstate = new TLDrawState()
+
+    tlstate
+      .loadDocument(mockDocument)
+      .group(['rect1', 'rect2'])
+      .selectAll()
+      .duplicate(tlstate.selectedIds, [200, 200])
+  })
+
+  it('duplicates in the correct place', () => {
+    const tlstate = new TLDrawState()
+
+    tlstate.loadDocument(mockDocument).group(['rect1', 'rect2']).selectAll()
+
+    const before = tlstate.shapes.map((shape) => shape.id)
+
+    tlstate.duplicate(tlstate.selectedIds, [200, 200])
+
+    const after = tlstate.shapes.filter((shape) => !before.includes(shape.id))
+
+    expect(
+      Utils.getBoundsCenter(Utils.getCommonBounds(after.map((shape) => TLDR.getBounds(shape))))
+    ).toStrictEqual([200, 200])
   })
 })

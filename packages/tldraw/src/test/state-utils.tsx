@@ -17,6 +17,11 @@ export class TLStateUtils {
     this.tlstate = tlstate
   }
 
+  movePointer = (options: PointerOptions = {}) => {
+    const { tlstate } = this
+    tlstate.onPointerMove(inputs.pointerMove(this.getPoint(options), ''), {} as React.PointerEvent)
+  }
+
   hoverShape = (id: string, options: PointerOptions = {}) => {
     const { tlstate } = this
     tlstate.onHoverShape(inputs.pointerDown(this.getPoint(options), id), {} as React.PointerEvent)
@@ -24,6 +29,10 @@ export class TLStateUtils {
 
   pointCanvas = (options: PointerOptions = {}) => {
     this.tlstate.onPointCanvas(
+      inputs.pointerDown(this.getPoint(options), 'canvas'),
+      {} as React.PointerEvent
+    )
+    this.tlstate.onPointerDown(
       inputs.pointerDown(this.getPoint(options), 'canvas'),
       {} as React.PointerEvent
     )
@@ -35,6 +44,10 @@ export class TLStateUtils {
       inputs.pointerDown(this.getPoint(options), id),
       {} as React.PointerEvent
     )
+    this.tlstate.onPointerDown(
+      inputs.pointerDown(this.getPoint(options), 'canvas'),
+      {} as React.PointerEvent
+    )
     return this
   }
 
@@ -43,12 +56,20 @@ export class TLStateUtils {
       inputs.pointerDown(this.getPoint(options), id),
       {} as React.PointerEvent
     )
+    this.tlstate.onPointerDown(
+      inputs.pointerDown(this.getPoint(options), 'canvas'),
+      {} as React.PointerEvent
+    )
     return this
   }
 
   pointBounds = (options: PointerOptions = {}) => {
     this.tlstate.onPointBounds(
       inputs.pointerDown(this.getPoint(options), 'bounds'),
+      {} as React.PointerEvent
+    )
+    this.tlstate.onPointerDown(
+      inputs.pointerDown(this.getPoint(options), 'canvas'),
       {} as React.PointerEvent
     )
     return this
@@ -60,6 +81,10 @@ export class TLStateUtils {
   ) => {
     this.tlstate.onPointBounds(
       inputs.pointerDown(this.getPoint(options), 'bounds'),
+      {} as React.PointerEvent
+    )
+    this.tlstate.onPointerDown(
+      inputs.pointerDown(this.getPoint(options), 'canvas'),
       {} as React.PointerEvent
     )
     return this

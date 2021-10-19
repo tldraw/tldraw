@@ -1,12 +1,13 @@
 import * as React from 'react'
-import { mockUtils, renderWithSvg } from '+test'
+import { mockUtils, renderWithContext } from '+test'
 import { Shape } from './shape'
 
 describe('shape', () => {
   test('mounts component without crashing', () => {
-    renderWithSvg(
+    renderWithContext(
       <Shape
-        shape={mockUtils.box.create({})}
+        shape={mockUtils.box.create({ id: 'box' })}
+        utils={mockUtils[mockUtils.box.type]}
         isEditing={false}
         isBinding={false}
         isHovered={false}
@@ -16,3 +17,6 @@ describe('shape', () => {
     )
   })
 })
+
+// { shape: TLShape; ref: ForwardedRef<Element>; } & TLRenderInfo<any, any> & RefAttributes<Element>
+// { shape: BoxShape; ref: ForwardedRef<any>; } & TLRenderInfo<any, any> & RefAttributes<any>'

@@ -1,6 +1,6 @@
 {
   "name": "www",
-  "version": "0.0.59",
+  "version": "0.0.124",
   "private": true,
   "description": "A tiny little drawing app (site).",
   "repository": {
@@ -16,10 +16,16 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@liveblocks/client": "^0.12.0",
+    "@liveblocks/react": "^0.12.0",
+    "@sentry/integrations": "^6.13.2",
+    "@sentry/node": "^6.13.2",
+    "@sentry/react": "^6.13.2",
+    "@sentry/tracing": "^6.13.2",
     "@stitches/react": "^1.0.0",
-    "@tldraw/tldraw": "^0.0.59",
-    "next": "11.1.2",
-    "next-auth": "3.29.0",
+    "@tldraw/tldraw": "^0.0.124",
+    "next": "^11.1.2",
+    "next-auth": "^3.29.0",
     "next-pwa": "^5.2.23",
     "next-themes": "^0.0.15",
     "next-transpile-modules": "^8.0.0",
@@ -27,6 +33,7 @@
     "react-dom": "17.0.2"
   },
   "devDependencies": {
+    "@sentry/webpack-plugin": "^1.17.1",
     "@types/react": "^17.0.19",
     "@types/react-dom": "^17.0.9",
     "eslint": "7.32.0",

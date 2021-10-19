@@ -50,7 +50,7 @@ export function align(data: Data, ids: string[], type: AlignType): TLDrawCommand
   )
 
   return {
-    id: 'align_shapes',
+    id: 'align',
     before: {
       document: {
         pages: {

@@ -1,6 +1,6 @@
 import * as RadixTooltip from '@radix-ui/react-tooltip'
 import * as React from 'react'
-import styled from '~styles'
+import css from '~styles'
 import { Kbd } from './kbd'
 
 /* -------------------------------------------------- */
@@ -14,20 +14,33 @@ interface TooltipProps {
   side?: 'bottom' | 'left' | 'right' | 'top'
 }
 
-export function Tooltip({ children, label, kbd, side = 'top' }: TooltipProps): JSX.Element {
+export function Tooltip({
+  children,
+  label,
+  kbd: kbdProp,
+  side = 'top',
+}: TooltipProps): JSX.Element {
   return (
     <RadixTooltip.Root>
-      <RadixTooltip.Trigger as="span">{children}</RadixTooltip.Trigger>
-      <StyledContent side={side} sideOffset={8}>
+      <RadixTooltip.Trigger asChild={true}>
+        <span>{children}</span>
+      </RadixTooltip.Trigger>
+      <RadixTooltip.Content className={content()} side={side} sideOffset={8}>
         {label}
-        {kbd ? <Kbd variant="tooltip">{kbd}</Kbd> : null}
-        <StyledArrow />
-      </StyledContent>
+        {kbdProp ? <Kbd variant="tooltip">{kbdProp}</Kbd> : null}
+        <RadixTooltip.Arrow className={arrow()} />
+      </RadixTooltip.Content>
     </RadixTooltip.Root>
   )
 }
 
-const StyledContent = styled(RadixTooltip.Content, {
+const button = css({
+  border: 'none',
+  background: 'none',
+  padding: 0,
+})
+
+const content = css({
   borderRadius: 3,
   padding: '$3 $3 $3 $3',
   fontSize: '$1',
@@ -40,7 +53,7 @@ const StyledContent = styled(RadixTooltip.Content, {
   userSelect: 'none',
 })
 
-const StyledArrow = styled(RadixTooltip.Arrow, {
+const arrow = css({
   fill: '$tooltipBg',
   margin: '0 8px',
 })

@@ -1,14 +1,14 @@
 import * as React from 'react'
-import { inputs } from '+inputs'
-import { useTLContext } from './useTLContext'
 import { Utils } from '+utils'
+import { TLContext } from '+hooks'
 
 export function useShapeEvents(id: string, disable = false) {
-  const { rPageState, rScreenBounds, callbacks } = useTLContext()
+  const { rPageState, rSelectionBounds, callbacks, inputs } = React.useContext(TLContext)
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
       if (disable) return
+      if (!inputs.pointerIsValid(e)) return
 
       if (e.button === 2) {
         callbacks.onRightPointShape?.(inputs.pointerDown(e, id), e)
@@ -26,8 +26,8 @@ export function useShapeEvents(id: string, disable = false) {
       // treat the event as a bounding box click. Unfortunately there's no way I know to pipe
       // the event to the actual bounds background element.
       if (
-        rScreenBounds.current &&
-        Utils.pointInBounds(info.point, rScreenBounds.current) &&
+        rSelectionBounds.current &&
+        Utils.pointInBounds(info.point, rSelectionBounds.current) &&
         !rPageState.current.selectedIds.includes(id)
       ) {
         callbacks.onPointBounds?.(inputs.pointerDown(e, 'bounds'), e)
@@ -38,12 +38,13 @@ export function useShapeEvents(id: string, disable = false) {
       callbacks.onPointShape?.(info, e)
       callbacks.onPointerDown?.(info, e)
     },
-    [callbacks, id, disable]
+    [inputs, callbacks, id, disable]
   )
 
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       if (disable) return
       e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
@@ -60,12 +61,15 @@ export function useShapeEvents(id: string, disable = false) {
       callbacks.onReleaseShape?.(info, e)
       callbacks.onPointerUp?.(info, e)
     },
-    [callbacks, id, disable]
+    [inputs, callbacks, id, disable]
   )
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       if (disable) return
+
+      e.stopPropagation()
 
       if (inputs.pointer && e.pointerId !== inputs.pointer.pointerId) return
 
@@ -77,34 +81,28 @@ export function useShapeEvents(id: string, disable = false) {
 
       callbacks.onPointerMove?.(info, e)
     },
-    [callbacks, id, disable]
+    [inputs, callbacks, id, disable]
   )
 
   const onPointerEnter = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       if (disable) return
       const info = inputs.pointerEnter(e, id)
       callbacks.onHoverShape?.(info, e)
     },
-    [callbacks, id, disable]
+    [inputs, callbacks, id, disable]
   )
 
   const onPointerLeave = React.useCallback(
     (e: React.PointerEvent) => {
       if (disable) return
+      if (!inputs.pointerIsValid(e)) return
       const info = inputs.pointerEnter(e, id)
       callbacks.onUnhoverShape?.(info, e)
     },
-    [callbacks, id, disable]
+    [inputs, callbacks, id, disable]
   )
-
-  const onTouchStart = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-  }, [])
-
-  const onTouchEnd = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-  }, [])
 
   return {
     onPointerDown,
@@ -112,7 +110,5 @@ export function useShapeEvents(id: string, disable = false) {
     onPointerEnter,
     onPointerMove,
     onPointerLeave,
-    onTouchStart,
-    onTouchEnd,
   }
 }

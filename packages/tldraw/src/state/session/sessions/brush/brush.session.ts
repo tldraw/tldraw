@@ -1,10 +1,10 @@
-import { brushUpdater, Utils, Vec } from '@tldraw/core'
-import { Data, Session, TLDrawPatch, TLDrawStatus } from '~types'
-import { getShapeUtils } from '~shape'
+import { Utils } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
+import { Data, Session, SessionType, TLDrawPatch, TLDrawStatus } from '~types'
 import { TLDR } from '~state/tldr'
 
 export class BrushSession implements Session {
-  id = 'brush'
+  static type = SessionType.Brush
   status = TLDrawStatus.Brushing
   origin: number[]
   snapshot: BrushSnapshot
@@ -16,21 +16,24 @@ export class BrushSession implements Session {
 
   start = () => void null
 
-  update = (data: Data, point: number[], containMode = false): TLDrawPatch => {
+  update = (
+    data: Data,
+    point: number[],
+    shiftKey = false,
+    altKey = false,
+    metaKey = false
+  ): TLDrawPatch => {
     const { snapshot, origin } = this
     const { currentPageId } = data.appState
 
     // Create a bounding box between the origin and the new point
     const brush = Utils.getBoundsFromPoints([origin, point])
 
-    brushUpdater.set(brush)
-
     // Find ids of brushed shapes
     const hits = new Set<string>()
     const selectedIds = new Set(snapshot.selectedIds)
 
     const page = TLDR.getPage(data, currentPageId)
-    const pageState = TLDR.getPageState(data, currentPageId)
 
     snapshot.shapesToTest.forEach(({ id, util, selectId }) => {
       if (selectedIds.has(id)) return
@@ -39,7 +42,7 @@ export class BrushSession implements Session {
 
       if (!hits.has(selectId)) {
         if (
-          containMode
+          metaKey
             ? Utils.boundsContain(brush, util.getBounds(shape))
             : util.hitTestBounds(shape, brush)
         ) {
@@ -55,18 +58,20 @@ export class BrushSession implements Session {
       }
     })
 
-    if (
-      selectedIds.size === pageState.selectedIds.length &&
-      pageState.selectedIds.every((id) => selectedIds.has(id))
-    ) {
-      return {}
-    }
+    const currentSelectedIds = data.document.pageStates[data.appState.currentPageId].selectedIds
+
+    const didChange =
+      selectedIds.size !== currentSelectedIds.length ||
+      currentSelectedIds.some((id) => !selectedIds.has(id))
+
+    const afterSelectedIds = didChange ? Array.from(selectedIds.values()) : currentSelectedIds
 
     return {
       document: {
         pageStates: {
           [currentPageId]: {
-            selectedIds: Array.from(selectedIds.values()),
+            brush,
+            selectedIds: afterSelectedIds,
           },
         },
       },
@@ -79,6 +84,7 @@ export class BrushSession implements Session {
       document: {
         pageStates: {
           [currentPageId]: {
+            brush: null,
             selectedIds: this.snapshot.selectedIds,
           },
         },
@@ -89,10 +95,12 @@ export class BrushSession implements Session {
   complete(data: Data) {
     const { currentPageId } = data.appState
     const pageState = TLDR.getPageState(data, currentPageId)
+
     return {
       document: {
         pageStates: {
           [currentPageId]: {
+            brush: null,
             selectedIds: [...pageState.selectedIds],
           },
         },
@@ -122,8 +130,8 @@ export function getBrushSnapshot(data: Data) {
     )
     .map((shape) => ({
       id: shape.id,
-      util: getShapeUtils(shape),
-      bounds: getShapeUtils(shape).getBounds(shape),
+      util: TLDR.getShapeUtils(shape),
+      bounds: TLDR.getShapeUtils(shape).getBounds(shape),
       selectId: TLDR.getTopParentId(data, shape.id, currentPageId),
     }))
 

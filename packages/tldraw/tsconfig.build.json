@@ -7,9 +7,17 @@
     "**/*.spec.tsx",
     "**/*.spec.ts",
     "src/test",
-    "dist"
+    "dist",
+    "docs"
   ],
   "compilerOptions": {
-    "outDir": "./dist/types"
-  }
+    "rootDir": "src",
+    "baseUrl": "src",
+    "composite": false,
+    "incremental": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "emitDeclarationOnly": true
+  },
+  "references": [{ "path": "../vec" }, { "path": "../intersect" }, { "path": "../core" }]
 }

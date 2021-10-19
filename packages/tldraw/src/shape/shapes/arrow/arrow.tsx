@@ -1,37 +1,39 @@
 import * as React from 'react'
-import {
-  TLBounds,
-  Utils,
-  Vec,
-  TLTransformInfo,
-  Intersect,
-  TLHandle,
-  TLPointerInfo,
-} from '@tldraw/core'
+import { ShapeUtil, SVGContainer, TLBounds, Utils, TLHandle } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 import getStroke from 'perfect-freehand'
-import { defaultStyle, getPerfectDashProps, getShapeStyle } from '~shape/shape-styles'
+import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import {
   ArrowShape,
   Decoration,
-  TLDrawShapeUtil,
   TLDrawShapeType,
-  TLDrawToolType,
   DashStyle,
-  TLDrawShape,
   ArrowBinding,
-  TLDrawRenderInfo,
+  TLDrawMeta,
+  EllipseShape,
 } from '~types'
+import {
+  intersectArcBounds,
+  intersectCircleCircle,
+  intersectCircleLineSegment,
+  intersectLineSegmentBounds,
+  intersectRayBounds,
+  intersectRayEllipse,
+} from '@tldraw/intersect'
+import { EASINGS } from '~state/utils'
 
-export class Arrow extends TLDrawShapeUtil<ArrowShape> {
-  type = TLDrawShapeType.Arrow as const
-  toolType = TLDrawToolType.Handle
-  canStyleFill = false
-  simplePathCache = new WeakMap<ArrowShape['handles'], string>()
-  pathCache = new WeakMap<ArrowShape, string>()
+export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => ({
+  type: TLDrawShapeType.Arrow,
 
-  defaultProps = {
+  canStyleFill: false,
+
+  showBounds: false,
+
+  pathCache: new WeakMap<ArrowShape, string>(),
+
+  defaultProps: {
     id: 'id',
-    type: TLDrawShapeType.Arrow as const,
+    type: TLDrawShapeType.Arrow,
     name: 'Arrow',
     parentId: 'page',
     childIndex: 1,
@@ -64,13 +66,9 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
       ...defaultStyle,
       isFilled: false,
     },
-  }
+  },
 
-  shouldRender = (prev: ArrowShape, next: ArrowShape) => {
-    return next.handles !== prev.handles || next.style !== prev.style
-  }
-
-  render = (shape: ArrowShape, { meta }: TLDrawRenderInfo) => {
+  Component({ shape, meta, events }, ref) {
     const {
       handles: { start, bend, end },
       decorations = {},
@@ -78,8 +76,6 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     } = shape
 
     const isDraw = style.dash === DashStyle.Draw
-
-    // TODO: Improve drawn arrows
 
     const isStraightLine = Vec.dist(bend.point, Vec.round(Vec.med(start.point, end.point))) < 1
 
@@ -91,24 +87,27 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
 
     const arrowHeadLength = Math.min(arrowDist / 3, strokeWidth * 8)
 
+    const sw = 1 + strokeWidth * 1.618
+
     let shaftPath: JSX.Element | null
     let startArrowHead: { left: number[]; right: number[] } | undefined
     let endArrowHead: { left: number[]; right: number[] } | undefined
 
+    const getRandom = Utils.rng(shape.id)
+
+    const easing = EASINGS[getRandom() > 0 ? 'easeInOutSine' : 'easeInOutCubic']
+
     if (isStraightLine) {
-      const sw = strokeWidth * (isDraw ? 1.25 : 1.618)
+      const path = isDraw
+        ? renderFreehandArrowShaft(shape)
+        : 'M' + Vec.round(start.point) + 'L' + Vec.round(end.point)
 
-      const path = Utils.getFromCache(this.pathCache, shape, () =>
-        isDraw
-          ? renderFreehandArrowShaft(shape)
-          : 'M' + Vec.round(start.point) + 'L' + Vec.round(end.point)
-      )
-
-      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+      const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
         arrowDist,
-        sw,
+        strokeWidth * 1.618,
         shape.style.dash,
-        2
+        2,
+        false
       )
 
       if (decorations.start) {
@@ -137,7 +136,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
               d={path}
               fill={styles.stroke}
               stroke={styles.stroke}
-              strokeWidth={sw}
+              strokeWidth={isDraw ? sw / 2 : sw}
               strokeDasharray={strokeDasharray}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
@@ -149,21 +148,18 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     } else {
       const circle = getCtp(shape)
 
-      const sw = strokeWidth * (isDraw ? 1.25 : 1.618)
-
-      const path = Utils.getFromCache(this.pathCache, shape, () =>
-        isDraw
-          ? renderCurvedFreehandArrowShaft(shape, circle)
-          : getArrowArcPath(start, end, circle, shape.bend)
-      )
-
       const { center, radius, length } = getArrowArc(shape)
 
-      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-        length - 1,
+      const path = isDraw
+        ? renderCurvedFreehandArrowShaft(shape, circle, length, easing)
+        : getArrowArcPath(start, end, circle, shape.bend)
+
+      const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
+        Math.abs(length),
         sw,
         shape.style.dash,
-        2
+        2,
+        false
       )
 
       if (decorations.start) {
@@ -192,8 +188,8 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
           <path
             d={path}
             fill="none"
-            stroke="transparent"
-            strokeWidth={Math.max(8, strokeWidth * 2)}
+            stroke="none"
+            strokeWidth={Math.max(8, strokeWidth)}
             strokeDasharray="none"
             strokeDashoffset="none"
             strokeLinecap="round"
@@ -204,7 +200,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
             d={path}
             fill={isDraw ? styles.stroke : 'none'}
             stroke={styles.stroke}
-            strokeWidth={sw}
+            strokeWidth={isDraw ? 0 : sw}
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
@@ -215,78 +211,88 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
       )
     }
 
-    const sw = strokeWidth * 1.618
-
     return (
-      <g pointerEvents="none">
-        {shaftPath}
-        {startArrowHead && (
-          <path
-            d={`M ${startArrowHead.left} L ${start.point} ${startArrowHead.right}`}
-            fill="none"
-            stroke={styles.stroke}
-            strokeWidth={sw}
-            strokeDashoffset="none"
-            strokeDasharray="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pointerEvents="stroke"
-          />
-        )}
-        {endArrowHead && (
-          <path
-            d={`M ${endArrowHead.left} L ${end.point} ${endArrowHead.right}`}
-            fill="none"
-            stroke={styles.stroke}
-            strokeWidth={sw}
-            strokeDashoffset="none"
-            strokeDasharray="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pointerEvents="stroke"
-          />
-        )}
-      </g>
+      <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
+        <g pointerEvents="none">
+          {shaftPath}
+          {startArrowHead && (
+            <path
+              d={`M ${startArrowHead.left} L ${start.point} ${startArrowHead.right}`}
+              fill="none"
+              stroke={styles.stroke}
+              strokeWidth={sw}
+              strokeDashoffset="none"
+              strokeDasharray="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              pointerEvents="stroke"
+            />
+          )}
+          {endArrowHead && (
+            <path
+              d={`M ${endArrowHead.left} L ${end.point} ${endArrowHead.right}`}
+              fill="none"
+              stroke={styles.stroke}
+              strokeWidth={sw}
+              strokeDashoffset="none"
+              strokeDasharray="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              pointerEvents="stroke"
+            />
+          )}
+        </g>
+      </SVGContainer>
     )
-  }
+  },
 
-  renderIndicator(shape: ArrowShape) {
-    const path = Utils.getFromCache(this.simplePathCache, shape.handles, () => getArrowPath(shape))
+  Indicator({ shape }) {
+    const path = getArrowPath(shape)
 
     return <path d={path} />
-  }
+  },
 
-  getBounds = (shape: ArrowShape) => {
+  shouldRender(prev, next) {
+    return (
+      next.decorations !== prev.decorations ||
+      next.handles !== prev.handles ||
+      next.style !== prev.style
+    )
+  },
+
+  getBounds(shape) {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
-      const { start, bend, end } = shape.handles
-      return Utils.getBoundsFromPoints([start.point, bend.point, end.point])
+      const points = getArcPoints(shape)
+      return Utils.getBoundsFromPoints(points)
     })
 
     return Utils.translateBounds(bounds, shape.point)
-  }
+  },
 
-  getRotatedBounds = (shape: ArrowShape) => {
-    const { start, bend, end } = shape.handles
+  getRotatedBounds(shape) {
+    let points = getArcPoints(shape)
 
-    return Utils.translateBounds(
-      Utils.getBoundsFromPoints([start.point, bend.point, end.point], shape.rotation),
-      shape.point
-    )
-  }
+    const { minX, minY, maxX, maxY } = Utils.getBoundsFromPoints(points)
 
-  getCenter = (shape: ArrowShape) => {
+    if (shape.rotation !== 0) {
+      points = points.map((pt) =>
+        Vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], shape.rotation || 0)
+      )
+    }
+
+    return Utils.translateBounds(Utils.getBoundsFromPoints(points), shape.point)
+  },
+
+  getCenter(shape) {
     const { start, end } = shape.handles
     return Vec.add(shape.point, Vec.med(start.point, end.point))
-  }
+  },
 
-  hitTest = () => {
-    return true
-  }
-
-  hitTestBounds = (shape: ArrowShape, brushBounds: TLBounds) => {
+  hitTestBounds(shape, brushBounds: TLBounds) {
     const { start, end, bend } = shape.handles
 
     const sp = Vec.add(shape.point, start.point)
+
     const ep = Vec.add(shape.point, end.point)
 
     if (Utils.pointInBounds(sp, brushBounds) || Utils.pointInBounds(ep, brushBounds)) {
@@ -294,20 +300,17 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     }
 
     if (Vec.isEqual(Vec.med(start.point, end.point), bend.point)) {
-      return Intersect.lineSegment.bounds(sp, ep, brushBounds).length > 0
+      return intersectLineSegmentBounds(sp, ep, brushBounds).length > 0
     } else {
       const [cx, cy, r] = getCtp(shape)
+
       const cp = Vec.add(shape.point, [cx, cy])
 
-      return Intersect.arc.bounds(cp, r, sp, ep, brushBounds).length > 0
+      return intersectArcBounds(cp, r, sp, ep, brushBounds).length > 0
     }
-  }
+  },
 
-  transform = (
-    _shape: ArrowShape,
-    bounds: TLBounds,
-    { initialShape, scaleX, scaleY }: TLTransformInfo<ArrowShape>
-  ): Partial<ArrowShape> => {
+  transform(_shape, bounds, { initialShape, scaleX, scaleY }) {
     const initialShapeBounds = this.getBounds(initialShape)
 
     const handles: (keyof ArrowShape['handles'])[] = ['start', 'end']
@@ -316,7 +319,9 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
 
     handles.forEach((handle) => {
       const [x, y] = nextHandles[handle].point
+
       const nw = x / initialShapeBounds.width
+
       const nh = y / initialShapeBounds.height
 
       nextHandles[handle] = {
@@ -342,16 +347,16 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
 
     nextHandles['bend'] = {
       ...bend,
-      point: Math.abs(bendDist) < 10 ? midPoint : point,
+      point: Vec.round(Math.abs(bendDist) < 10 ? midPoint : point),
     }
 
     return {
-      point: [bounds.minX, bounds.minY],
+      point: Vec.round([bounds.minX, bounds.minY]),
       handles: nextHandles,
     }
-  }
+  },
 
-  onDoubleClickHandle = (shape: ArrowShape, handle: Partial<ArrowShape['handles']>) => {
+  onDoubleClickHandle(shape, handle) {
     switch (handle) {
       case 'bend': {
         return {
@@ -384,16 +389,11 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     }
 
     return this
-  }
+  },
 
-  onBindingChange = (
-    shape: ArrowShape,
-    binding: ArrowBinding,
-    target: TLDrawShape,
-    targetBounds: TLBounds,
-    center: number[]
-  ): void | Partial<ArrowShape> => {
-    const handle = shape.handles[binding.handleId]
+  onBindingChange(shape, binding: ArrowBinding, target, targetBounds, center) {
+    const handle = shape.handles[binding.meta.handleId as keyof ArrowShape['handles']]
+
     const expandedBounds = Utils.expandBounds(targetBounds, 32)
 
     // The anchor is the "actual" point in the target shape
@@ -403,7 +403,7 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
         [expandedBounds.minX, expandedBounds.minY],
         Vec.mulV(
           [expandedBounds.width, expandedBounds.height],
-          Vec.rotWith(binding.point, [0.5, 0.5], target.rotation || 0)
+          Vec.rotWith(binding.meta.point, [0.5, 0.5], target.rotation || 0)
         )
       ),
       shape.point
@@ -412,8 +412,8 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     // We're looking for the point to put the dragging handle
     let handlePoint = anchor
 
-    if (binding.distance) {
-      const intersectBounds = Utils.expandBounds(targetBounds, binding.distance)
+    if (binding.meta.distance) {
+      const intersectBounds = Utils.expandBounds(targetBounds, binding.meta.distance)
 
       // The direction vector starts from the arrow's opposite handle
       const origin = Vec.add(
@@ -424,44 +424,35 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
       // And passes through the dragging handle
       const direction = Vec.uni(Vec.sub(Vec.add(anchor, shape.point), origin))
 
-      if ([TLDrawShapeType.Rectangle, TLDrawShapeType.Text].includes(target.type)) {
-        let hits = Intersect.ray
-          .bounds(origin, direction, intersectBounds, target.rotation)
+      if (target.type === TLDrawShapeType.Ellipse) {
+        const hits = intersectRayEllipse(
+          origin,
+          direction,
+          center,
+          (target as EllipseShape).radius[0] + binding.meta.distance,
+          (target as EllipseShape).radius[1] + binding.meta.distance,
+          target.rotation || 0
+        ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
+
+        if (hits[0]) {
+          handlePoint = Vec.sub(hits[0], shape.point)
+        }
+      } else {
+        let hits = intersectRayBounds(origin, direction, intersectBounds, target.rotation)
           .filter((int) => int.didIntersect)
           .map((int) => int.points[0])
           .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
 
         if (hits.length < 2) {
-          hits = Intersect.ray
-            .bounds(origin, Vec.neg(direction), intersectBounds)
+          hits = intersectRayBounds(origin, Vec.neg(direction), intersectBounds)
             .filter((int) => int.didIntersect)
             .map((int) => int.points[0])
             .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
         }
 
-        if (!hits[0]) {
-          console.warn('No intersection.')
-          return
+        if (hits[0]) {
+          handlePoint = Vec.sub(hits[0], shape.point)
         }
-
-        handlePoint = Vec.sub(hits[0], shape.point)
-      } else if (target.type === TLDrawShapeType.Ellipse) {
-        const hits = Intersect.ray
-          .ellipse(
-            origin,
-            direction,
-            center,
-            target.radius[0] + binding.distance,
-            target.radius[1] + binding.distance,
-            target.rotation || 0
-          )
-          .points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-
-        if (!hits[0]) {
-          console.warn('No intersections')
-        }
-
-        handlePoint = Vec.sub(hits[0], shape.point)
       }
     }
 
@@ -475,13 +466,9 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
       },
       { shiftKey: false }
     )
-  }
+  },
 
-  onHandleChange = (
-    shape: ArrowShape,
-    handles: Partial<ArrowShape['handles']>,
-    { shiftKey }: Partial<TLPointerInfo>
-  ) => {
+  onHandleChange(shape, handles, { shiftKey }) {
     let nextHandles = Utils.deepMerge<ArrowShape['handles']>(shape.handles, handles)
     let nextBend = shape.bend
 
@@ -489,10 +476,15 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     Object.values(handles).forEach((handle) => {
       if ((handle.id === 'start' || handle.id === 'end') && shiftKey) {
         const point = handle.point
+
         const other = handle.id === 'start' ? shape.handles.end : shape.handles.start
+
         const angle = Vec.angle(other.point, point)
+
         const distance = Vec.dist(other.point, point)
-        const newAngle = Utils.clampToRotationToSegments(angle, 24)
+
+        const newAngle = Utils.snapAngleToSegments(angle, 24)
+
         handle.point = Vec.nudgeAtAngle(other.point, newAngle, distance)
       }
     })
@@ -514,8 +506,11 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
       const { start, end, bend } = nextHandles
 
       const distance = Vec.dist(start.point, end.point)
+
       const midPoint = Vec.med(start.point, end.point)
+
       const angle = Vec.angle(start.point, end.point)
+
       const u = Vec.uni(Vec.vec(start.point, end.point))
 
       // Create a line segment perendicular to the line between the start and end points
@@ -562,11 +557,11 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     // Zero out the handles to prevent handles with negative points. If a handle's x or y
     // is below zero, we need to move the shape left or up to make it zero.
 
-    const bounds = Utils.getBoundsFromPoints(
-      Object.values(nextShape.handles).map((handle) => handle.point)
-    )
+    const topLeft = shape.point
 
-    const offset = [bounds.minX, bounds.minY]
+    const nextBounds = this.getBounds({ ...nextShape } as ArrowShape)
+
+    const offset = Vec.sub([nextBounds.minX, nextBounds.minY], topLeft)
 
     if (!Vec.isEqual(offset, [0, 0])) {
       Object.values(nextShape.handles).forEach((handle) => {
@@ -577,8 +572,12 @@ export class Arrow extends TLDrawShapeUtil<ArrowShape> {
     }
 
     return nextShape
-  }
-}
+  },
+}))
+
+/* -------------------------------------------------- */
+/*                       Helpers                      */
+/* -------------------------------------------------- */
 
 function getArrowArcPath(start: TLHandle, end: TLHandle, circle: number[], bend: number) {
   return [
@@ -600,8 +599,11 @@ function getBendPoint(handles: ArrowShape['handles'], bend: number) {
   const { start, end } = handles
 
   const dist = Vec.dist(start.point, end.point)
+
   const midPoint = Vec.med(start.point, end.point)
+
   const bendDist = (dist / 2) * bend
+
   const u = Vec.uni(Vec.vec(start.point, end.point))
 
   const point = Vec.round(
@@ -613,61 +615,83 @@ function getBendPoint(handles: ArrowShape['handles'], bend: number) {
 
 function renderFreehandArrowShaft(shape: ArrowShape) {
   const { style, id } = shape
+
   const { start, end } = shape.handles
 
   const getRandom = Utils.rng(id)
 
-  const strokeWidth = +getShapeStyle(style).strokeWidth * 2
+  const strokeWidth = getShapeStyle(style).strokeWidth
 
-  const stroke = getStroke(
-    [...Vec.pointsBetween(start.point, end.point), end.point, end.point, end.point],
-    {
-      size: strokeWidth / 2,
-      thinning: 0.5 + getRandom() * 0.3,
-      easing: (t) => t * t,
-      end: shape.decorations?.end ? { cap: true } : { taper: strokeWidth * 20 },
-      start: shape.decorations?.start ? { cap: true } : { taper: strokeWidth * 20 },
-      simulatePressure: true,
-      last: true,
-    }
-  )
+  const startPoint = shape.decorations?.start
+    ? Vec.nudge(start.point, end.point, strokeWidth)
+    : start.point
+
+  const endPoint = shape.decorations?.end
+    ? Vec.nudge(end.point, start.point, strokeWidth)
+    : end.point
+
+  const stroke = getStroke([startPoint, endPoint], {
+    size: strokeWidth,
+    thinning: 0.618 + getRandom() * 0.2,
+    easing: EASINGS.easeOutQuad,
+    simulatePressure: true,
+    streamline: 0,
+    last: true,
+  })
 
   const path = Utils.getSvgPathFromStroke(stroke)
 
   return path
 }
 
-function renderCurvedFreehandArrowShaft(shape: ArrowShape, circle: number[]) {
+function renderCurvedFreehandArrowShaft(
+  shape: ArrowShape,
+  circle: number[],
+  length: number,
+  easing: (t: number) => number
+) {
   const { style, id } = shape
+
   const { start, end } = shape.handles
 
   const getRandom = Utils.rng(id)
 
-  const strokeWidth = +getShapeStyle(style).strokeWidth * 2
+  const strokeWidth = getShapeStyle(style).strokeWidth
 
   const center = [circle[0], circle[1]]
+
   const radius = circle[2]
 
-  const startAngle = Vec.angle(center, start.point)
+  const startPoint = shape.decorations?.start
+    ? Vec.rotWith(start.point, center, strokeWidth / length)
+    : start.point
 
-  const endAngle = Vec.angle(center, end.point)
+  const endPoint = shape.decorations?.end
+    ? Vec.rotWith(end.point, center, -(strokeWidth / length))
+    : end.point
+
+  const startAngle = Vec.angle(center, startPoint)
+
+  const endAngle = Vec.angle(center, endPoint)
 
   const points: number[][] = []
 
-  for (let i = 0; i < 21; i++) {
-    const t = i / 20
+  const count = 8 + Math.floor((Math.abs(length) / 20) * 1 + getRandom() / 2)
+
+  for (let i = 0; i < count; i++) {
+    const t = easing(i / count)
+
     const angle = Utils.lerpAngles(startAngle, endAngle, t)
+
     points.push(Vec.round(Vec.nudgeAtAngle(center, angle, radius)))
   }
 
-  const stroke = getStroke([...points, end.point, end.point, end.point], {
-    size: strokeWidth / 2,
-    thinning: 0.5 + getRandom() * 0.3,
-    easing: (t) => t * t,
-    end: shape.decorations?.end ? { cap: true } : { taper: strokeWidth * 20 },
-    start: shape.decorations?.start ? { cap: true } : { taper: strokeWidth * 20 },
-    simulatePressure: true,
-    streamline: 0.01,
+  const stroke = getStroke([startPoint, ...points, endPoint], {
+    size: 1 + strokeWidth,
+    thinning: 0.618 + getRandom() * 0.2,
+    easing: EASINGS.easeOutQuad,
+    simulatePressure: false,
+    streamline: 0,
     last: true,
   })
 
@@ -683,9 +707,13 @@ function getCtp(shape: ArrowShape) {
 
 function getArrowArc(shape: ArrowShape) {
   const { start, end, bend } = shape.handles
+
   const [cx, cy, radius] = Utils.circleFromThreePoints(start.point, end.point, bend.point)
+
   const center = [cx, cy]
+
   const length = Utils.getArcLength(center, radius, start.point, end.point)
+
   return { center, radius, length }
 }
 
@@ -696,38 +724,45 @@ function getCurvedArrowHeadPoints(
   r2: number,
   sweep: boolean
 ) {
-  const ints = Intersect.circle.circle(A, r1 * 0.618, C, r2).points
+  const ints = intersectCircleCircle(A, r1 * 0.618, C, r2).points
   if (!ints) {
     console.warn('Could not find an intersection for the arrow head.')
     return { left: A, right: A }
   }
 
   const int = sweep ? ints[0] : ints[1]
+
   const left = int ? Vec.nudge(Vec.rotWith(int, A, Math.PI / 6), A, r1 * -0.382) : A
+
   const right = int ? Vec.nudge(Vec.rotWith(int, A, -Math.PI / 6), A, r1 * -0.382) : A
+
   return { left, right }
 }
 
 function getStraightArrowHeadPoints(A: number[], B: number[], r: number) {
-  const ints = Intersect.circle.lineSegment(A, r, A, B).points
+  const ints = intersectCircleLineSegment(A, r, A, B).points
   if (!ints) {
     console.warn('Could not find an intersection for the arrow head.')
     return { left: A, right: A }
   }
 
   const int = ints[0]
+
   const left = int ? Vec.rotWith(int, A, Math.PI / 6) : A
+
   const right = int ? Vec.rotWith(int, A, -Math.PI / 6) : A
   return { left, right }
 }
 
 function getCurvedArrowHeadPath(A: number[], r1: number, C: number[], r2: number, sweep: boolean) {
   const { left, right } = getCurvedArrowHeadPoints(A, r1, C, r2, sweep)
+
   return `M ${left} L ${A} ${right}`
 }
 
 function getStraightArrowHeadPath(A: number[], B: number[], r: number) {
   const { left, right } = getStraightArrowHeadPoints(A, B, r)
+
   return `M ${left} L ${A} ${right}`
 }
 
@@ -779,4 +814,26 @@ function getArrowPath(shape: ArrowShape) {
   }
 
   return path.join(' ')
+}
+
+function getArcPoints(shape: ArrowShape) {
+  const { start, bend, end } = shape.handles
+
+  const points: number[][] = [start.point, end.point]
+
+  if (Vec.dist2(bend.point, Vec.med(start.point, end.point)) > 4) {
+    // We're an arc, calculate points along the arc
+    const { center, radius } = getArrowArc(shape)
+
+    const startAngle = Vec.angle(center, start.point)
+
+    const endAngle = Vec.angle(center, end.point)
+
+    for (let i = 1 / 20; i < 1; i += 1 / 20) {
+      const angle = Utils.lerpAngles(startAngle, endAngle, i)
+      points.push(Vec.nudgeAtAngle(center, angle, radius))
+    }
+  }
+
+  return points
 }

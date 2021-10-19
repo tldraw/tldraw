@@ -1,7 +1,7 @@
 import { Arrow } from './arrow'
 
 describe('Arrow shape', () => {
-  it('Creates an instance', () => {
-    new Arrow()
+  it('Creates a shape', () => {
+    expect(Arrow.create({ id: 'arrow' })).toMatchSnapshot('arrow')
   })
 })

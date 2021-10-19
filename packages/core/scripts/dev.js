@@ -6,16 +6,17 @@ const name = process.env.npm_package_name || ''
 async function main() {
   esbuild.build({
     entryPoints: ['./src/index.ts'],
-    outdir: 'dist/cjs',
+    outdir: 'dist/esm',
     minify: false,
     bundle: true,
-    format: 'cjs',
+    format: 'esm',
     target: 'es6',
     jsxFactory: 'React.createElement',
     jsxFragment: 'React.Fragment',
     tsconfig: './tsconfig.json',
     external: ['react', 'react-dom'],
     incremental: true,
+    sourcemap: true,
     watch: {
       onRebuild(error) {
         if (error) {

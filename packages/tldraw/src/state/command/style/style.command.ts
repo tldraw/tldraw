@@ -14,7 +14,7 @@ export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>):
   )
 
   return {
-    id: 'style_shapes',
+    id: 'style',
     before: {
       document: {
         pages: {

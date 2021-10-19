@@ -1,13 +1,13 @@
 import * as React from 'react'
-import { inputs } from '+inputs'
 import { useTLContext } from './useTLContext'
 
 export function useBoundsEvents() {
-  const { callbacks } = useTLContext()
+  const { callbacks, inputs } = useTLContext()
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       e.stopPropagation()
       e.currentTarget?.setPointerCapture(e.pointerId)
       const info = inputs.pointerDown(e, 'bounds')
@@ -15,12 +15,13 @@ export function useBoundsEvents() {
       callbacks.onPointBounds?.(info, e)
       callbacks.onPointerDown?.(info, e)
     },
-    [callbacks]
+    [callbacks, inputs]
   )
 
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      if (!inputs.pointerIsValid(e)) return
       e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, 'bounds')
@@ -36,43 +37,36 @@ export function useBoundsEvents() {
       callbacks.onReleaseBounds?.(info, e)
       callbacks.onPointerUp?.(info, e)
     },
-    [callbacks]
+    [callbacks, inputs]
   )
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
-      if (inputs.pointer && e.pointerId !== inputs.pointer.pointerId) return
-
+      if (!inputs.pointerIsValid(e)) return
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         callbacks.onDragBounds?.(inputs.pointerMove(e, 'bounds'), e)
       }
       const info = inputs.pointerMove(e, 'bounds')
       callbacks.onPointerMove?.(info, e)
     },
-    [callbacks]
+    [callbacks, inputs]
   )
 
   const onPointerEnter = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       callbacks.onHoverBounds?.(inputs.pointerEnter(e, 'bounds'), e)
     },
-    [callbacks]
+    [callbacks, inputs]
   )
 
   const onPointerLeave = React.useCallback(
     (e: React.PointerEvent) => {
+      if (!inputs.pointerIsValid(e)) return
       callbacks.onUnhoverBounds?.(inputs.pointerEnter(e, 'bounds'), e)
     },
-    [callbacks]
+    [callbacks, inputs]
   )
-
-  const onTouchStart = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-  }, [])
-
-  const onTouchEnd = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-  }, [])
 
   return {
     onPointerDown,
@@ -80,7 +74,5 @@ export function useBoundsEvents() {
     onPointerEnter,
     onPointerMove,
     onPointerLeave,
-    onTouchStart,
-    onTouchEnd,
   }
 }

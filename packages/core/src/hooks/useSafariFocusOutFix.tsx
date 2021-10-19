@@ -9,7 +9,7 @@ export function useSafariFocusOutFix(): void {
 
   useEffect(() => {
     function handleFocusOut() {
-      callbacks.onBlurEditingShape?.()
+      callbacks.onShapeBlur?.()
     }
 
     if (Utils.isMobileSafari()) {

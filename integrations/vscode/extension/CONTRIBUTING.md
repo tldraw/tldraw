@@ -42,6 +42,7 @@ Things we're cutting
    - Install dependencies 
      - `yarn`
    - Open just the extension folder in VS Code (necessary to use it's launch.json)
+     - `cd integrations/vscode/extension`
      - `code .`
    - Run the extension using F5 (the launch.json setups watching too)
     - This will open a new VS Code window where the extension is installed in memory

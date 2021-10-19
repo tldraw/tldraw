@@ -3,10 +3,24 @@ import { mockDocument } from '~test'
 
 describe('Rotate command', () => {
   const tlstate = new TLDrawState()
-  tlstate.loadDocument(mockDocument)
-  tlstate.select('rect1')
+
+  beforeEach(() => {
+    tlstate.loadDocument(mockDocument)
+  })
+
+  describe('when no shape is selected', () => {
+    it('does nothing', () => {
+      const initialState = tlstate.state
+      tlstate.rotate()
+      const currentState = tlstate.state
+
+      expect(currentState).toEqual(initialState)
+    })
+  })
 
   it('does, undoes and redoes command', () => {
+    tlstate.select('rect1')
+
     expect(tlstate.getShape('rect1').rotation).toBe(undefined)
 
     tlstate.rotate()
@@ -21,4 +35,8 @@ describe('Rotate command', () => {
 
     expect(tlstate.getShape('rect1').rotation).toBe(Math.PI * (6 / 4))
   })
+
+  it.todo('Rotates several shapes at once.')
+
+  it.todo('Rotates shapes with handles.')
 })

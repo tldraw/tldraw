@@ -16,7 +16,7 @@ export function toggle(data: Data, ids: string[], prop: keyof TLDrawShape): TLDr
   )
 
   return {
-    id: 'toggle_shapes',
+    id: 'toggle',
     before: {
       document: {
         pages: {

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { IconButton, ButtonsRow, breakpoints } from '../shared'
+import { iconButton, buttonsRow, breakpoints } from '../shared'
 import { Trash } from '../icons'
 import { Tooltip } from '../shared/tooltip'
 import {
@@ -108,108 +108,108 @@ export const ShapesFunctions = React.memo(() => {
 
   return (
     <>
-      <ButtonsRow>
-        <IconButton
-          bp={breakpoints}
+      <div className={buttonsRow()}>
+        <button
+          className={iconButton({ bp: breakpoints, size: 'small' })}
           disabled={!hasSelection}
-          size="small"
           onClick={handleDuplicate}
         >
           <Tooltip label="Duplicate" kbd={`#D`}>
             <CopyIcon />
           </Tooltip>
-        </IconButton>
+        </button>
 
-        <IconButton disabled={!hasSelection} size="small" onClick={handleRotate}>
+        <button
+          className={iconButton({ size: 'small' })}
+          disabled={!hasSelection}
+          onClick={handleRotate}
+        >
           <Tooltip label="Rotate">
             <RotateCounterClockwiseIcon />
           </Tooltip>
-        </IconButton>
+        </button>
 
-        <IconButton
-          bp={breakpoints}
+        <button
+          className={iconButton({ bp: breakpoints, size: 'small' })}
           disabled={!hasSelection}
-          size="small"
           onClick={handleToggleLocked}
         >
           <Tooltip label="Toogle Locked" kbd={`#L`}>
             {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon opacity={0.4} />}
           </Tooltip>
-        </IconButton>
+        </button>
 
-        <IconButton
-          bp={breakpoints}
+        <button
+          className={iconButton({ bp: breakpoints, size: 'small' })}
           disabled={!hasSelection}
-          size="small"
           onClick={handleToggleAspectRatio}
         >
           <Tooltip label="Toogle Aspect Ratio Lock">
             <AspectRatioIcon opacity={isAllAspectLocked ? 1 : 0.4} />
           </Tooltip>
-        </IconButton>
+        </button>
 
-        <IconButton
-          bp={breakpoints}
+        <button
+          className={iconButton({ bp: breakpoints, size: 'small' })}
           disabled={!isAllGrouped && !hasMultipleSelection}
-          size="small"
           onClick={handleGroup}
         >
           <Tooltip label="Group" kbd={`#G`}>
             <GroupIcon opacity={isAllGrouped ? 1 : 0.4} />
           </Tooltip>
-        </IconButton>
-      </ButtonsRow>
-      <ButtonsRow>
-        <IconButton
-          bp={breakpoints}
+        </button>
+      </div>
+      <div className={buttonsRow()}>
+        <button
+          className={iconButton({ bp: breakpoints, size: 'small' })}
           disabled={!hasSelection}
-          size="small"
           onClick={handleMoveToBack}
         >
           <Tooltip label="Move to Back" kbd={`#⇧[`}>
             <PinBottomIcon />
           </Tooltip>
-        </IconButton>
+        </button>
 
-        <IconButton
-          bp={breakpoints}
+        <button
+          className={iconButton({ bp: breakpoints, size: 'small' })}
           disabled={!hasSelection}
-          size="small"
           onClick={handleMoveBackward}
         >
           <Tooltip label="Move Backward" kbd={`#[`}>
             <ArrowDownIcon />
           </Tooltip>
-        </IconButton>
+        </button>
 
-        <IconButton
-          bp={breakpoints}
+        <button
+          className={iconButton({ bp: breakpoints, size: 'small' })}
           disabled={!hasSelection}
-          size="small"
           onClick={handleMoveForward}
         >
           <Tooltip label="Move Forward" kbd={`#]`}>
             <ArrowUpIcon />
           </Tooltip>
-        </IconButton>
+        </button>
 
-        <IconButton
-          bp={breakpoints}
+        <button
+          className={iconButton({ bp: breakpoints, size: 'small' })}
           disabled={!hasSelection}
-          size="small"
           onClick={handleMoveToFront}
         >
           <Tooltip label="More to Front" kbd={`#⇧]`}>
             <PinTopIcon />
           </Tooltip>
-        </IconButton>
+        </button>
 
-        <IconButton bp={breakpoints} disabled={!hasSelection} size="small" onClick={handleDelete}>
+        <button
+          className={iconButton({ bp: breakpoints, size: 'small' })}
+          disabled={!hasSelection}
+          onClick={handleDelete}
+        >
           <Tooltip label="Delete" kbd="⌫">
             <Trash />
           </Tooltip>
-        </IconButton>
-      </ButtonsRow>
+        </button>
+      </div>
     </>
   )
 })

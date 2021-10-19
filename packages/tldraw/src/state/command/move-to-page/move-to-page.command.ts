@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { ArrowShape, Data, PagePartial, TLDrawCommand, TLDrawShape } from '~types'
 import { TLDR } from '~state/tldr'
-import { Utils, Vec } from '@tldraw/core'
+import { Utils, TLBounds } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
 
 export function moveToPage(
   data: Data,
   ids: string[],
+  viewportBounds: TLBounds,
   fromPageId: string,
   toPageId: string
 ): TLDrawCommand {
@@ -156,14 +158,18 @@ export function moveToPage(
   // Finally, center camera on selection
 
   const toPageState = data.document.pageStates[toPageId]
+
   const bounds = Utils.getCommonBounds(movingShapes.map((shape) => TLDR.getBounds(shape)))
+
   const zoom = TLDR.getCameraZoom(
-    window.innerWidth < window.innerHeight
-      ? (window.innerWidth - 128) / bounds.width
-      : (window.innerHeight - 128) / bounds.height
+    viewportBounds.width < viewportBounds.height
+      ? (viewportBounds.width - 128) / bounds.width
+      : (viewportBounds.height - 128) / bounds.height
   )
-  const mx = (window.innerWidth - bounds.width * zoom) / 2 / zoom
-  const my = (window.innerHeight - bounds.height * zoom) / 2 / zoom
+
+  const mx = (viewportBounds.width - bounds.width * zoom) / 2 / zoom
+  const my = (viewportBounds.height - bounds.height * zoom) / 2 / zoom
+
   const point = Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my]))
 
   return {

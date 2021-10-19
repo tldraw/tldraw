@@ -1,30 +1,19 @@
 import * as React from 'react'
-import { TLBounds, Utils, Vec, TLTransformInfo, Intersect } from '@tldraw/core'
-import getStroke from 'perfect-freehand'
-import { getPerfectDashProps, defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import {
-  RectangleShape,
-  DashStyle,
-  TLDrawShapeUtil,
-  TLDrawShapeType,
-  TLDrawToolType,
-  TLDrawRenderInfo,
-  ArrowShape,
-} from '~types'
+import { Utils, SVGContainer, ShapeUtil } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
+import getStroke, { getStrokePoints } from 'perfect-freehand'
+import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
+import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawMeta } from '~types'
+import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
 
-// TODO
-// [ ] - Make sure that fill does not extend drawn shape at corners
+export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta>(() => ({
+  type: TLDrawShapeType.Rectangle,
 
-export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
-  type = TLDrawShapeType.Rectangle as const
-  toolType = TLDrawToolType.Bounds
-  canBind = true
+  canBind: true,
 
-  pathCache = new WeakMap<number[], string>([])
-
-  defaultProps: RectangleShape = {
+  defaultProps: {
     id: 'id',
-    type: TLDrawShapeType.Rectangle as const,
+    type: TLDrawShapeType.Rectangle,
     name: 'Rectangle',
     parentId: 'page',
     childIndex: 1,
@@ -32,22 +21,22 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
     size: [1, 1],
     rotation: 0,
     style: defaultStyle,
-  }
+  },
 
-  shouldRender(prev: RectangleShape, next: RectangleShape) {
+  shouldRender(prev, next) {
     return next.size !== prev.size || next.style !== prev.style
-  }
+  },
 
-  render(shape: RectangleShape, { isBinding, meta }: TLDrawRenderInfo) {
+  Component({ shape, isBinding, meta, events }, ref) {
     const { id, size, style } = shape
     const styles = getShapeStyle(style, meta.isDarkMode)
     const strokeWidth = +styles.strokeWidth
 
     if (style.dash === DashStyle.Draw) {
-      const pathData = Utils.getFromCache(this.pathCache, shape.size, () => renderPath(shape))
+      const pathData = getRectanglePath(shape)
 
       return (
-        <>
+        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           {isBinding && (
             <rect
               className="tl-binding-indicator"
@@ -57,12 +46,10 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
               height={Math.max(0, size[1] - strokeWidth / 2) + 64}
             />
           )}
-          <rect
-            x={+styles.strokeWidth / 2}
-            y={+styles.strokeWidth / 2}
-            width={Math.max(0, size[0] - strokeWidth)}
-            height={Math.max(0, size[1] - strokeWidth)}
+          <path
+            d={getRectangleIndicatorPathData(shape)}
             fill={style.isFilled ? styles.fill : 'none'}
+            radius={strokeWidth}
             stroke="none"
             pointerEvents="all"
           />
@@ -73,11 +60,11 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
             strokeWidth={styles.strokeWidth}
             pointerEvents="all"
           />
-        </>
+        </SVGContainer>
       )
     }
 
-    const sw = strokeWidth * 1.618
+    const sw = 1 + strokeWidth * 1.618
 
     const w = Math.max(0, size[0] - sw / 2)
     const h = Math.max(0, size[1] - sw / 2)
@@ -90,9 +77,9 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
     ]
 
     const paths = strokes.map(([start, end, length], i) => {
-      const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+      const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
         length,
-        sw,
+        strokeWidth * 1.618,
         shape.style.dash
       )
 
@@ -113,7 +100,7 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
     })
 
     return (
-      <>
+      <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
         {isBinding && (
           <rect
             className="tl-binding-indicator"
@@ -129,16 +116,16 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
           width={w}
           height={h}
           fill={styles.fill}
-          stroke="transparent"
+          stroke="none"
           strokeWidth={sw}
           pointerEvents="all"
         />
         <g pointerEvents="stroke">{paths}</g>
-      </>
+      </SVGContainer>
     )
-  }
+  },
 
-  renderIndicator(shape: RectangleShape) {
+  Indicator({ shape }) {
     const {
       style,
       size: [width, height],
@@ -149,224 +136,127 @@ export class Rectangle extends TLDrawShapeUtil<RectangleShape> {
 
     const sw = strokeWidth
 
+    if (style.dash === DashStyle.Draw) {
+      return <path d={getRectangleIndicatorPathData(shape)} />
+    }
+
     return (
       <rect
-        x={sw / 2}
-        y={sw / 2}
+        x={sw}
+        y={sw}
         rx={1}
         ry={1}
-        width={Math.max(1, width - sw)}
-        height={Math.max(1, height - sw)}
+        width={Math.max(1, width - sw * 2)}
+        height={Math.max(1, height - sw * 2)}
       />
     )
-  }
+  },
 
-  getBounds(shape: RectangleShape) {
-    const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
-      const [width, height] = shape.size
-      return {
-        minX: 0,
-        maxX: width,
-        minY: 0,
-        maxY: height,
-        width,
-        height,
-      }
-    })
+  getBounds(shape) {
+    return getBoundsRectangle(shape, this.boundsCache)
+  },
 
-    return Utils.translateBounds(bounds, shape.point)
-  }
+  transform: transformRectangle,
 
-  getRotatedBounds(shape: RectangleShape) {
-    return Utils.getBoundsFromPoints(Utils.getRotatedCorners(this.getBounds(shape), shape.rotation))
-  }
+  transformSingle: transformSingleRectangle,
+}))
 
-  getCenter(shape: RectangleShape): number[] {
-    return Utils.getBoundsCenter(this.getBounds(shape))
-  }
+/* -------------------------------------------------- */
+/*                       Helpers                      */
+/* -------------------------------------------------- */
 
-  getBindingPoint(
-    shape: RectangleShape,
-    fromShape: ArrowShape,
-    point: number[],
-    origin: number[],
-    direction: number[],
-    padding: number,
-    anywhere: boolean
-  ) {
-    const bounds = this.getBounds(shape)
-
-    const expandedBounds = Utils.expandBounds(bounds, padding)
-
-    let bindingPoint: number[]
-    let distance: number
-
-    // The point must be inside of the expanded bounding box
-    if (!Utils.pointInBounds(point, expandedBounds)) return
-
-    // The point is inside of the shape, so we'll assume the user is
-    // indicating a specific point inside of the shape.
-    if (anywhere) {
-      if (Vec.dist(point, this.getCenter(shape)) < 12) {
-        bindingPoint = [0.5, 0.5]
-      } else {
-        bindingPoint = Vec.divV(Vec.sub(point, [expandedBounds.minX, expandedBounds.minY]), [
-          expandedBounds.width,
-          expandedBounds.height,
-        ])
-      }
-
-      distance = 0
-    } else {
-      // TODO: What if the shape has a curve? In that case, should we
-      // intersect the circle-from-three-points instead?
-
-      // Find furthest intersection between ray from
-      // origin through point and expanded bounds.
-
-      // TODO: Make this a ray vs rounded rect intersection
-      const intersection = Intersect.ray
-        .bounds(origin, direction, expandedBounds)
-        .filter((int) => int.didIntersect)
-        .map((int) => int.points[0])
-        .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
-      // The anchor is a point between the handle and the intersection
-      const anchor = Vec.med(point, intersection)
-
-      // If we're close to the center, snap to the center
-      if (Vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12) {
-        bindingPoint = [0.5, 0.5]
-      } else {
-        // Or else calculate a normalized point
-        bindingPoint = Vec.divV(Vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]), [
-          expandedBounds.width,
-          expandedBounds.height,
-        ])
-      }
-
-      if (Utils.pointInBounds(point, bounds)) {
-        distance = 16
-      } else {
-        // If the binding point was close to the shape's center, snap to the center
-        // Find the distance between the point and the real bounds of the shape
-        distance = Math.max(
-          16,
-          Utils.getBoundsSides(bounds)
-            .map((side) => Vec.distanceToLineSegment(side[1][0], side[1][1], point))
-            .sort((a, b) => a - b)[0]
-        )
-      }
-    }
-
-    return {
-      point: Vec.clampV(bindingPoint, 0, 1),
-      distance,
-    }
-  }
-
-  hitTest(shape: RectangleShape, point: number[]) {
-    return Utils.pointInBounds(point, this.getBounds(shape))
-  }
-
-  hitTestBounds(shape: RectangleShape, bounds: TLBounds) {
-    const rotatedCorners = Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
-
-    return (
-      rotatedCorners.every((point) => Utils.pointInBounds(point, bounds)) ||
-      Intersect.polyline.bounds(rotatedCorners, bounds).length > 0
-    )
-  }
-
-  transform(
-    shape: RectangleShape,
-    bounds: TLBounds,
-    { initialShape, transformOrigin, scaleX, scaleY }: TLTransformInfo<RectangleShape>
-  ) {
-    if (!shape.rotation && !shape.isAspectRatioLocked) {
-      return {
-        point: Vec.round([bounds.minX, bounds.minY]),
-        size: Vec.round([bounds.width, bounds.height]),
-      }
-    } else {
-      const size = Vec.round(
-        Vec.mul(initialShape.size, Math.min(Math.abs(scaleX), Math.abs(scaleY)))
-      )
-
-      const point = Vec.round([
-        bounds.minX +
-          (bounds.width - shape.size[0]) *
-            (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
-        bounds.minY +
-          (bounds.height - shape.size[1]) *
-            (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
-      ])
-
-      const rotation =
-        (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0)
-          ? initialShape.rotation
-            ? -initialShape.rotation
-            : 0
-          : initialShape.rotation
-
-      return {
-        size,
-        point,
-        rotation,
-      }
-    }
-  }
-
-  transformSingle(_shape: RectangleShape, bounds: TLBounds) {
-    return {
-      size: Vec.round([bounds.width, bounds.height]),
-      point: Vec.round([bounds.minX, bounds.minY]),
-    }
-  }
-}
-
-function renderPath(shape: RectangleShape) {
+function getRectangleDrawPoints(shape: RectangleShape) {
   const styles = getShapeStyle(shape.style)
 
   const getRandom = Utils.rng(shape.id)
 
-  const strokeWidth = +styles.strokeWidth
+  const sw = styles.strokeWidth
 
-  const baseOffset = strokeWidth / 2
+  // Dimensions
+  const w = Math.max(0, shape.size[0])
+  const h = Math.max(0, shape.size[1])
 
-  const offsets = Array.from(Array(4)).map(() => [
-    getRandom() * baseOffset,
-    getRandom() * baseOffset,
-  ])
-
-  const sw = strokeWidth
-
-  const w = Math.max(0, shape.size[0] - sw / 2)
-  const h = Math.max(0, shape.size[1] - sw / 2)
-
-  const tl = Vec.add([sw / 2, sw / 2], offsets[0])
-  const tr = Vec.add([w, sw / 2], offsets[1])
-  const br = Vec.add([w, h], offsets[2])
-  const bl = Vec.add([sw / 2, h], offsets[3])
-
-  const lines = Utils.shuffleArr(
-    [
-      Vec.pointsBetween(tr, br),
-      Vec.pointsBetween(br, bl),
-      Vec.pointsBetween(bl, tl),
-      Vec.pointsBetween(tl, tr),
-    ],
-    Math.floor(5 + getRandom() * 4)
-  )
-
-  const stroke = getStroke([...lines.flat().slice(4), ...lines[0], ...lines[0].slice(4)], {
-    size: 1 + styles.strokeWidth,
-    thinning: 0.618,
-    easing: (t) => t * t * t * t,
-    end: { cap: true },
-    start: { cap: true },
-    simulatePressure: false,
-    last: true,
+  // Random corner offsets
+  const offsets = Array.from(Array(4)).map(() => {
+    return [getRandom() * sw * 0.75, getRandom() * sw * 0.75]
   })
 
+  // Corners
+  const tl = Vec.add([sw / 2, sw / 2], offsets[0])
+  const tr = Vec.add([w - sw / 2, sw / 2], offsets[1])
+  const br = Vec.add([w - sw / 2, h - sw / 2], offsets[2])
+  const bl = Vec.add([sw / 2, h - sw / 2], offsets[3])
+
+  // Which side to start drawing first
+  const rm = Math.round(Math.abs(getRandom() * 2 * 4))
+
+  // Corner radii
+  const rx = Math.min(w / 2, sw * 2)
+  const ry = Math.min(h / 2, sw * 2)
+
+  // Number of points per side
+  const px = Math.max(8, Math.floor(w / 16))
+  const py = Math.max(8, Math.floor(h / 16))
+
+  // Inset each line by the corner radii and let the freehand algo
+  // interpolate points for the corners.
+  const lines = Utils.rotateArray(
+    [
+      Vec.pointsBetween(Vec.add(tl, [rx, 0]), Vec.sub(tr, [rx, 0]), px),
+      Vec.pointsBetween(Vec.add(tr, [0, ry]), Vec.sub(br, [0, ry]), py),
+      Vec.pointsBetween(Vec.sub(br, [rx, 0]), Vec.add(bl, [rx, 0]), px),
+      Vec.pointsBetween(Vec.sub(bl, [0, ry]), Vec.add(tl, [0, ry]), py),
+    ],
+    rm
+  )
+
+  // For the final points, include the first half of the first line again,
+  // so that the line wraps around and avoids ending on a sharp corner.
+  // This has a bit of finesse and magic—if you change the points between
+  // function, then you'll likely need to change this one too.
+
+  const points = [...lines.flat(), ...lines[0]].slice(
+    5,
+    Math.floor((rm % 2 === 0 ? px : py) / -2) + 3
+  )
+
+  return {
+    points,
+  }
+}
+
+function getDrawStrokeInfo(shape: RectangleShape) {
+  const { points } = getRectangleDrawPoints(shape)
+
+  const { strokeWidth } = getShapeStyle(shape.style)
+
+  const options = {
+    size: strokeWidth,
+    thinning: 0.65,
+    streamline: 0.3,
+    smoothing: 1,
+    simulatePressure: false,
+    last: true,
+  }
+
+  return { points, options }
+}
+
+function getRectanglePath(shape: RectangleShape) {
+  const { points, options } = getDrawStrokeInfo(shape)
+
+  const stroke = getStroke(points, options)
+
   return Utils.getSvgPathFromStroke(stroke)
+}
+
+function getRectangleIndicatorPathData(shape: RectangleShape) {
+  const { points, options } = getDrawStrokeInfo(shape)
+
+  const strokePoints = getStrokePoints(points, options)
+
+  return Utils.getSvgPathFromStroke(
+    strokePoints.map((pt) => pt.point.slice(0, 2)),
+    false
+  )
 }

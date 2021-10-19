@@ -1,5 +1,8 @@
-import type { TLBinding, TLPage, TLPageState } from '+types'
-import type { BoxShape } from './box'
+import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
+
+interface BoxShape extends TLShape {
+  size: number[]
+}
 
 export const mockDocument: { page: TLPage<BoxShape, TLBinding>; pageState: TLPageState } = {
   page: {

@@ -1,22 +1,24 @@
-import { Vec } from '@tldraw/core'
-import { ShapesWithProp, TLDrawStatus } from '~types'
+import { Vec } from '@tldraw/vec'
+import { SessionType, ShapesWithProp, TLDrawStatus } from '~types'
 import type { Session } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 
 export class HandleSession implements Session {
-  id = 'transform_single'
+  static type = SessionType.Handle
   status = TLDrawStatus.TranslatingHandle
   commandId: string
   delta = [0, 0]
+  topLeft: number[]
   origin: number[]
   shiftKey = false
   initialShape: ShapesWithProp<'handles'>
   handleId: string
 
-  constructor(data: Data, handleId: string, point: number[], commandId = 'move_handle') {
+  constructor(data: Data, point: number[], handleId: string, commandId = 'move_handle') {
     const { currentPageId } = data.appState
     const shapeId = TLDR.getSelectedIds(data, currentPageId)[0]
+    this.topLeft = point
     this.origin = point
     this.handleId = handleId
     this.initialShape = TLDR.getShape(data, shapeId, currentPageId)
@@ -25,7 +27,7 @@ export class HandleSession implements Session {
 
   start = () => void null
 
-  update = (data: Data, point: number[], shiftKey: boolean, altKey: boolean, metaKey: boolean) => {
+  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
     const { initialShape } = this
     const { currentPageId } = data.appState
 
@@ -43,6 +45,7 @@ export class HandleSession implements Session {
     }
 
     // First update the handle's next point
+
     const change = TLDR.getShapeUtils(shape).onHandleChange(
       shape,
       {
@@ -106,9 +109,7 @@ export class HandleSession implements Session {
             [pageId]: {
               shapes: {
                 [initialShape.id]: TLDR.onSessionComplete(
-                  data,
-                  TLDR.getShape(data, this.initialShape.id, pageId),
-                  pageId
+                  TLDR.getShape(data, this.initialShape.id, pageId)
                 ),
               },
             },

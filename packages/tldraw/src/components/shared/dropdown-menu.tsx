@@ -14,12 +14,12 @@ import {
 
 import { Tooltip } from './tooltip'
 import { breakpoints } from './breakpoints'
-import { RowButton } from './row-button'
-import { IconButton } from './icon-button'
-import { IconWrapper } from './icon-wrapper'
-import { MenuContent } from './menu'
+import { rowButton } from './row-button'
+import { iconButton } from './icon-button'
+import { iconWrapper } from './icon-wrapper'
+import { menuContent } from './menu'
 
-import styled from '~styles'
+import css from '~styles'
 
 /* -------------------------------------------------- */
 /*                    Dropdown Menu                   */
@@ -56,13 +56,13 @@ export function DropdownMenuSubMenu({
 }: DropdownMenuSubMenuProps): JSX.Element {
   return (
     <DMRoot dir="ltr">
-      <DMTriggerItem as={RowButton} bp={breakpoints} disabled={disabled}>
+      <DMTriggerItem dir="ltr" className={rowButton({ bp: breakpoints })} disabled={disabled}>
         <span>{label}</span>
-        <IconWrapper size="small">
+        <div className={iconWrapper({ size: 'small' })}>
           <ChevronRightIcon />
-        </IconWrapper>
+        </div>
       </DMTriggerItem>
-      <DMContent as={MenuContent} sideOffset={2} alignOffset={-2}>
+      <DMContent dir="ltr" className={menuContent()} sideOffset={2} alignOffset={-2}>
         {children}
         <DropdownMenuArrow offset={13} />
       </DMContent>
@@ -70,7 +70,7 @@ export function DropdownMenuSubMenu({
   )
 }
 
-export const DropdownMenuDivider = styled(DMSeparator, {
+export const dropdownMenuDivider = css({
   backgroundColor: '$hover',
   height: 1,
   marginTop: '$2',
@@ -79,9 +79,31 @@ export const DropdownMenuDivider = styled(DMSeparator, {
   marginLeft: '-$2',
 })
 
-export const DropdownMenuArrow = styled(DMArrow, {
+export const DropdownMenuDivider = React.forwardRef<
+  React.ElementRef<typeof DMSeparator>,
+  React.ComponentProps<typeof DMSeparator>
+>((props, forwardedRef) => (
+  <DMSeparator
+    {...props}
+    ref={forwardedRef}
+    className={dropdownMenuDivider({ className: props.className })}
+  />
+))
+
+export const dropdownMenuArrow = css({
   fill: '$panel',
 })
+
+export const DropdownMenuArrow = React.forwardRef<
+  React.ElementRef<typeof DMArrow>,
+  React.ComponentProps<typeof DMArrow>
+>((props, forwardedRef) => (
+  <DMArrow
+    {...props}
+    ref={forwardedRef}
+    className={dropdownMenuArrow({ className: props.className })}
+  />
+))
 
 export interface DropdownMenuButtonProps {
   onSelect?: () => void
@@ -95,7 +117,12 @@ export function DropdownMenuButton({
   disabled = false,
 }: DropdownMenuButtonProps): JSX.Element {
   return (
-    <DMItem as={RowButton} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
+    <DMItem
+      dir="ltr"
+      className={rowButton({ bp: breakpoints })}
+      disabled={disabled}
+      onSelect={onSelect}
+    >
       {children}
     </DMItem>
   )
@@ -113,7 +140,12 @@ export function DropdownMenuIconButton({
   disabled = false,
 }: DropdownMenuIconButtonProps): JSX.Element {
   return (
-    <DMItem as={IconButton} bp={breakpoints} disabled={disabled} onSelect={onSelect}>
+    <DMItem
+      dir="ltr"
+      className={iconButton({ bp: breakpoints })}
+      disabled={disabled}
+      onSelect={onSelect}
+    >
       {children}
     </DMItem>
   )
@@ -133,7 +165,7 @@ export function DropdownMenuIconTriggerButton({
   disabled = false,
 }: DropdownMenuIconTriggerButtonProps): JSX.Element {
   return (
-    <DMTrigger as={IconButton} bp={breakpoints} disabled={disabled}>
+    <DMTrigger dir="ltr" className={iconButton({ bp: breakpoints })} disabled={disabled}>
       <Tooltip label={label} kbd={kbd}>
         {children}
       </Tooltip>
@@ -156,17 +188,17 @@ export function DropdownMenuCheckboxItem({
 }: MenuCheckboxItemProps): JSX.Element {
   return (
     <DMCheckboxItem
-      as={RowButton}
-      bp={breakpoints}
+      dir="ltr"
+      className={rowButton({ bp: breakpoints })}
       onCheckedChange={onCheckedChange}
       checked={checked}
       disabled={disabled}
     >
       {children}
-      <DMItemIndicator>
-        <IconWrapper size="small">
+      <DMItemIndicator dir="ltr">
+        <div className={iconWrapper({ size: 'small' })}>
           <CheckIcon />
-        </IconWrapper>
+        </div>
       </DMItemIndicator>
     </DMCheckboxItem>
   )

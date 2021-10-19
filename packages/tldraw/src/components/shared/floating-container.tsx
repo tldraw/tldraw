@@ -1,11 +1,12 @@
-import styled from '~styles'
+import css from '~styles'
 
 /* -------------------------------------------------- */
 /*                 Floating Container                 */
 /* -------------------------------------------------- */
 
-export const FloatingContainer = styled('div', {
+export const floatingContainer = css({
   backgroundColor: '$panel',
+  willChange: 'transform',
   border: '1px solid $panel',
   borderRadius: '4px',
   boxShadow: '$4',
@@ -16,7 +17,6 @@ export const FloatingContainer = styled('div', {
   position: 'relative',
   userSelect: 'none',
   zIndex: 200,
-
   variants: {
     direction: {
       row: {

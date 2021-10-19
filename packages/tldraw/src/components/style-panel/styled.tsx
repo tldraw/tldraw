@@ -1,7 +1,7 @@
 import * as React from 'react'
-import styled from '~styles'
+import css from '~styles'
 
-export const StyleDropdownContent = styled('div', {
+export const dropdownContent = css({
   display: 'grid',
   padding: 4,
   gridTemplateColumns: 'repeat(4, 1fr)',
@@ -19,7 +19,7 @@ export const StyleDropdownContent = styled('div', {
   },
 })
 
-export const StyleDropdownItem = styled('button', {
+export const dropdownItem = css({
   height: '32px',
   width: '32px',
   backgroundColor: '$panel',
