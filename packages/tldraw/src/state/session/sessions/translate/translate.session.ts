@@ -633,7 +633,9 @@ export function getTranslateSnapshot(
 
   const selectedIds = TLDR.getSelectedIds(data, currentPageId)
 
-  const ids = linkDirection ? TLDR.getLinkedShapes(data, currentPageId, linkDirection) : selectedIds
+  const ids = linkDirection
+    ? TLDR.getLinkedShapes(data, currentPageId, linkDirection, false)
+    : selectedIds
 
   const selectedShapes = ids.flatMap((id) => TLDR.getShape(data, id, currentPageId))
 
