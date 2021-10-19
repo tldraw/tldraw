@@ -2,7 +2,9 @@ import * as React from 'react'
 import type { TLBoundsEdge, TLBoundsCorner } from '+types'
 import { useTLContext } from './useTLContext'
 
-export function useBoundsHandleEvents(id: TLBoundsCorner | TLBoundsEdge | 'rotate') {
+export function useBoundsHandleEvents(
+  id: TLBoundsCorner | TLBoundsEdge | 'rotate' | 'center' | 'left' | 'right'
+) {
   const { callbacks, inputs } = useTLContext()
 
   const onPointerDown = React.useCallback(

@@ -164,7 +164,7 @@ export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>, e: React.Poin
 export type TLBoundsEventHandler = (info: TLPointerInfo<'bounds'>, e: React.PointerEvent) => void
 
 export type TLBoundsHandleEventHandler = (
-  info: TLPointerInfo<TLBoundsCorner | TLBoundsEdge | 'rotate'>,
+  info: TLPointerInfo<TLBoundsCorner | TLBoundsEdge | 'rotate' | 'center' | 'left' | 'right'>,
   e: React.PointerEvent
 ) => void
 
@@ -231,7 +231,6 @@ export interface TLCallbacks<T extends TLShape> {
   onRenderCountChange: (ids: string[]) => void
   onError: (error: Error) => void
   onBoundsChange: (bounds: TLBounds) => void
-  onPointLinkHandle: TLPointerEventHandler
 
   // Keyboard event handlers
   onKeyDown: TLKeyboardEventHandler

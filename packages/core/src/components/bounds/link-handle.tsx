@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useTLContext } from '+hooks'
+import { useBoundsHandleEvents, useTLContext } from '+hooks'
 import type { TLBounds } from '+types'
 
 interface LinkHandleProps {
@@ -9,35 +9,40 @@ interface LinkHandleProps {
   bounds: TLBounds
 }
 
-export function LinkHandle({ size, bounds, targetSize, isHidden }: LinkHandleProps) {
-  const { callbacks, inputs } = useTLContext()
-
-  const handleClick = React.useCallback(
-    (e: React.PointerEvent<SVGCircleElement>) => {
-      e.stopPropagation()
-      const info = inputs.pointerDown(e, 'link')
-      callbacks.onPointLinkHandle?.(info, e)
-    },
-    [callbacks.onPointLinkHandle]
-  )
+export function LinkHandle({ size, bounds, isHidden }: LinkHandleProps) {
+  const leftEvents = useBoundsHandleEvents('left')
+  const centerEvents = useBoundsHandleEvents('center')
+  const rightEvents = useBoundsHandleEvents('right')
 
   return (
-    <g cursor="grab">
-      <circle
-        className="tl-transparent"
-        cx={bounds.width / 2}
-        cy={bounds.height + size * 2}
-        r={targetSize}
-        pointerEvents={isHidden ? 'none' : 'all'}
-        onPointerDown={handleClick}
-      />
-      <path
-        className="tl-rotate-handle"
-        transform={`translate(${bounds.width / 2 - size / 2}, ${bounds.height + size * 1.7})`}
-        d={`M 0,0 L ${size},0 ${size / 2},${size} Z`}
-        pointerEvents="none"
-        opacity={isHidden ? 0 : 1}
-      />
+    <g
+      cursor="grab"
+      transform={`translate(${bounds.width / 2 - size * 4}, ${bounds.height + size * 2})`}
+    >
+      <g className="tl-transparent" pointerEvents={isHidden ? 'none' : 'all'}>
+        <rect x={0} y={0} width={size * 2} height={size * 2} {...leftEvents} />
+        <rect x={size * 3} y={0} width={size * 2} height={size * 2} {...centerEvents} />
+        <rect x={size * 6} y={0} width={size * 2} height={size * 2} {...rightEvents} />
+      </g>
+      <g className="tl-rotate-handle" transform={`translate(${size / 2}, ${size / 2})`}>
+        <path
+          d={`M 0,${size / 2} L ${size},${size} ${size},0 Z`}
+          pointerEvents="none"
+          opacity={isHidden ? 0 : 1}
+        />
+        <path
+          transform={`translate(${size * 3}, 0)`}
+          d={`M 0,0 L ${size},0 ${size / 2},${size} Z`}
+          pointerEvents="none"
+          opacity={isHidden ? 0 : 1}
+        />
+        <path
+          transform={`translate(${size * 6}, 0)`}
+          d={`M ${size},${size / 2} L 0,0 0,${size} Z`}
+          pointerEvents="none"
+          opacity={isHidden ? 0 : 1}
+        />
+      </g>
     </g>
   )
 }

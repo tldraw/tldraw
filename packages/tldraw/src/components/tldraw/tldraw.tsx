@@ -276,7 +276,6 @@ function InnerTldraw({
           onShapeChange={tlstate.onShapeChange}
           onShapeBlur={tlstate.onShapeBlur}
           onShapeClone={tlstate.onShapeClone}
-          onPointLinkHandle={tlstate.onPointLinkHandle}
           onBoundsChange={tlstate.updateBounds}
           onKeyDown={tlstate.onKeyDown}
           onKeyUp={tlstate.onKeyUp}

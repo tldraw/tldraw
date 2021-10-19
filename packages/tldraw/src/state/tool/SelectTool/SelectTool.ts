@@ -23,7 +23,6 @@ enum Status {
   PointingBounds = 'pointingBounds',
   PointingClone = 'pointingClone',
   TranslatingClone = 'translatingClone',
-  PointingLinkHandle = 'pointingLinkHandle',
   PointingBoundsHandle = 'pointingBoundsHandle',
   TranslatingHandle = 'translatingHandle',
   Translating = 'translating',
@@ -44,7 +43,9 @@ export class SelectTool extends BaseTool<Status> {
 
   pointedHandleId?: 'start' | 'end' | 'bend'
 
-  pointedBoundsHandle?: TLBoundsCorner | TLBoundsEdge | 'rotate'
+  pointedBoundsHandle?: TLBoundsCorner | TLBoundsEdge | 'rotate' | 'center' | 'left' | 'right'
+
+  pointedLinkHandleId?: 'left' | 'center' | 'right'
 
   /* --------------------- Methods -------------------- */
 
@@ -248,6 +249,14 @@ export class SelectTool extends BaseTool<Status> {
           this.setStatus(Status.Rotating)
 
           this.state.startSession(SessionType.Rotate, point)
+        } else if (
+          this.pointedBoundsHandle === 'center' ||
+          this.pointedBoundsHandle === 'left' ||
+          this.pointedBoundsHandle === 'right'
+        ) {
+          this.setStatus(Status.Translating)
+          const point = this.state.getPagePoint(info.origin)
+          this.state.startSession(SessionType.Translate, point, false, this.pointedBoundsHandle)
         } else {
           // Stat a transform session
           this.setStatus(Status.Transforming)
@@ -273,15 +282,6 @@ export class SelectTool extends BaseTool<Status> {
         const point = this.state.getPagePoint(info.point)
         this.state.startSession(SessionType.Brush, point)
         this.setStatus(Status.Brushing)
-      }
-      return
-    }
-
-    if (this.status === Status.PointingLinkHandle) {
-      if (Vec.dist(info.origin, info.point) > 4) {
-        this.setStatus(Status.Translating)
-        const point = this.state.getPagePoint(info.origin)
-        this.state.startSession(SessionType.Translate, point, false, true)
       }
       return
     }
@@ -436,12 +436,6 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   // Shape
-
-  onPointLinkHandle: TLPointerEventHandler = () => {
-    if (this.status === Status.Idle) {
-      this.setStatus(Status.PointingLinkHandle)
-    }
-  }
 
   onPointShape: TLPointerEventHandler = (info, e) => {
     if (info.spaceKey && e.buttons === 1) {
@@ -613,7 +607,18 @@ export class SelectTool extends BaseTool<Status> {
     this.setStatus(Status.PointingBoundsHandle)
   }
 
-  onDoubleClickBoundsHandle: TLBoundsHandleEventHandler = () => {
+  onDoubleClickBoundsHandle: TLBoundsHandleEventHandler = (info) => {
+    if (info.target === 'center' || info.target === 'left' || info.target === 'right') {
+      this.state.select(
+        ...TLDR.getLinkedShapes(
+          this.state.state,
+          this.state.currentPageId,
+          info.target,
+          info.shiftKey
+        )
+      )
+    }
+
     if (this.state.selectedIds.length === 1) {
       this.state.resetBounds(this.state.selectedIds)
     }
