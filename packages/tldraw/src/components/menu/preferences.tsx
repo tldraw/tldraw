@@ -76,7 +76,7 @@ export function Preferences() {
         <span>Clone Controls</span>
       </DropdownMenuCheckboxItem>
       <DropdownMenuCheckboxItem checked={settings.allowSnaps} onCheckedChange={toggleallowSnaps}>
-        <span>Show Snaps</span>
+        <span>Snapping</span>
       </DropdownMenuCheckboxItem>
     </DropdownMenuSubMenu>
   )
