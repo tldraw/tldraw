@@ -1,3 +1,9 @@
+## 0.0.124
+
+### TLDraw
+
+- Fix typings.
+
 ## 0.0.123
 
 ### TLDraw
