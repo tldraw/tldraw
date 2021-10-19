@@ -67,13 +67,13 @@ export function Preferences() {
         checked={settings.showBindingHandles}
         onCheckedChange={toggleBoundShapesHandle}
       >
-        <span>Binding Controls</span>
+        <span>Binding Handles</span>
       </DropdownMenuCheckboxItem>
       <DropdownMenuCheckboxItem
         checked={settings.showCloneHandles}
         onCheckedChange={toggleCloneControls}
       >
-        <span>Clone Controls</span>
+        <span>Clone Handles</span>
       </DropdownMenuCheckboxItem>
       <DropdownMenuCheckboxItem checked={settings.allowSnaps} onCheckedChange={toggleallowSnaps}>
         <span>Snapping</span>
