@@ -261,40 +261,50 @@ const styledStickyContainer = css({
   },
 })
 
-const styledText = css({
-  position: 'absolute',
-  top: PADDING,
-  left: PADDING,
-  width: `calc(100% - ${PADDING * 2}px)`,
-  height: 'fit-content',
-  font: 'inherit',
-  pointerEvents: 'none',
+const commonTextWrapping = css({
   whiteSpace: 'pre-wrap',
-  userSelect: 'none',
-  variants: {
-    isEditing: {
-      true: {
-        opacity: 1,
-      },
-      false: {
-        opacity: 1,
+  overflowWrap: 'break-word',
+})
+
+const styledText = css(
+  {
+    position: 'absolute',
+    top: PADDING,
+    left: PADDING,
+    width: `calc(100% - ${PADDING * 2}px)`,
+    height: 'fit-content',
+    font: 'inherit',
+    pointerEvents: 'none',
+    userSelect: 'none',
+    variants: {
+      isEditing: {
+        true: {
+          opacity: 1,
+        },
+        false: {
+          opacity: 1,
+        },
       },
     },
   },
-})
+  commonTextWrapping
+)
 
-const styledTextArea = css({
-  width: '100%',
-  height: '100%',
-  border: 'none',
-  overflow: 'hidden',
-  background: 'none',
-  outline: 'none',
-  textAlign: 'left',
-  font: 'inherit',
-  padding: 0,
-  color: 'transparent',
-  verticalAlign: 'top',
-  resize: 'none',
-  caretColor: 'black',
-})
+const styledTextArea = css(
+  {
+    width: '100%',
+    height: '100%',
+    border: 'none',
+    overflow: 'hidden',
+    background: 'none',
+    outline: 'none',
+    textAlign: 'left',
+    font: 'inherit',
+    padding: 0,
+    color: 'transparent',
+    verticalAlign: 'top',
+    resize: 'none',
+    caretColor: 'black',
+  },
+  commonTextWrapping
+)
