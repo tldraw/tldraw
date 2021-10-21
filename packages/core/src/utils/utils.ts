@@ -28,7 +28,7 @@ export class Utils {
     for (const [key, value] of entries)
       result[key] =
         value === Object(value) && !Array.isArray(value)
-          ? this.deepMerge(result[key], value)
+          ? Utils.deepMerge(result[key], value)
           : value
 
     return result
@@ -1541,6 +1541,7 @@ left past the initial left edge) then swap points on that axis.
     const A = { ...bounds }
 
     const offset = [0, 0]
+
     const snapLines: number[][][] = []
 
     // 1.
@@ -1564,18 +1565,9 @@ left past the initial left edge) then swap points on that axis.
             if (Math.abs(t - f) < distance) {
               xs = { B, i }
 
-              offset[0] = [
-                // How far to offset the delta on the x axis in
-                // order to "snap" the selection to the right place
-                A.midX - t,
-                A.midX - (t + A.width / 2),
-                A.midX - (t - A.width / 2),
-              ][i]
+              offset[0] = f - t
 
               // Also apply the offset to the bounds
-              A.minX -= offset[0]
-              A.midX -= offset[0]
-              A.maxX -= offset[0]
             }
           })
         )
@@ -1591,16 +1583,7 @@ left past the initial left edge) then swap points on that axis.
             if (Math.abs(t - f) < distance) {
               ys = { B, i }
 
-              offset[1] = [
-                //
-                A.midY - t,
-                A.midY - (t + A.height / 2),
-                A.midY - (t - A.height / 2),
-              ][i]
-
-              A.minY -= offset[1]
-              A.midY -= offset[1]
-              A.maxY -= offset[1]
+              offset[1] = f - t
             }
           })
         )
@@ -1608,6 +1591,13 @@ left past the initial left edge) then swap points on that axis.
 
       if (xs && ys) break
     }
+
+    A.minX -= offset[0]
+    A.midX -= offset[0]
+    A.maxX -= offset[0]
+    A.minY -= offset[1]
+    A.midY -= offset[1]
+    A.maxY -= offset[1]
 
     // 2.
     // Calculate snap lines based on adjusted bounds A. This has

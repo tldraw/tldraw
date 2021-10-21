@@ -474,6 +474,8 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
 
     // If the user is holding shift, we want to snap the handles to angles
     Object.values(handles).forEach((handle) => {
+      if (!handle) return
+
       if ((handle.id === 'start' || handle.id === 'end') && shiftKey) {
         const point = handle.point
 
