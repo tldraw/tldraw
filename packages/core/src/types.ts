@@ -316,6 +316,25 @@ export interface TLBezierCurveSegment {
   pressureEnd: number
 }
 
+export enum SnapPoints {
+  minX = 'minX',
+  midX = 'midX',
+  maxX = 'maxX',
+  minY = 'minY',
+  midY = 'midY',
+  maxY = 'maxY',
+}
+
+export type Snap =
+  | { id: SnapPoints; isSnapped: false }
+  | {
+      id: SnapPoints
+      isSnapped: true
+      to: number
+      B: TLBoundsWithCenter
+      distance: number
+    }
+
 /* -------------------------------------------------- */
 /*                   Shape Utility                    */
 /* -------------------------------------------------- */

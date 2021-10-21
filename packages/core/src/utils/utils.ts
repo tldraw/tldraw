@@ -3,7 +3,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-redeclare */
 import type React from 'react'
-import { TLBezierCurveSegment, TLBounds, TLBoundsCorner, TLBoundsEdge } from '../types'
+import {
+  TLBezierCurveSegment,
+  TLBounds,
+  TLBoundsCorner,
+  SnapPoints,
+  Snap,
+  TLBoundsEdge,
+} from '../types'
 import { Vec } from '@tldraw/vec'
 import './polyfills'
 import type { Patch, TLBoundsWithCenter } from '+index'
@@ -1535,8 +1542,7 @@ left past the initial left edge) then swap points on that axis.
   static getSnapPoints = (
     bounds: TLBoundsWithCenter,
     others: TLBoundsWithCenter[],
-    distance: number,
-    isCareful: boolean
+    snapDistance: number
   ) => {
     const A = { ...bounds }
 
@@ -1547,50 +1553,106 @@ left past the initial left edge) then swap points on that axis.
     // 1.
     // Find the snap points for the x and y axes
 
-    let xs = null as { B: TLBoundsWithCenter; i: number } | null
-    let ys = null as { B: TLBoundsWithCenter; i: number } | null
-
-    const fxs = [A.midX, A.minX, A.maxX]
-    const fys = [A.midY, A.minY, A.maxY]
-
-    for (const B of others) {
-      if (!xs) {
-        const txs = [B.midX, B.minX, B.maxX]
-
-        fxs.forEach((f, i) =>
-          txs.forEach((t, k) => {
-            // If we're not dragging carefully, only snap to center or opposite points
-            if (xs || !(isCareful || i === 0 || i + k === 3)) return
-
-            if (Math.abs(t - f) < distance) {
-              xs = { B, i }
-
-              offset[0] = f - t
-
-              // Also apply the offset to the bounds
-            }
-          })
-        )
-      }
-
-      if (!ys) {
-        const tys = [B.midY, B.minY, B.maxY]
-
-        fys.forEach((f, i) =>
-          tys.forEach((t, k) => {
-            if (ys || !(isCareful || i === k)) return
-
-            if (Math.abs(t - f) < distance) {
-              ys = { B, i }
-
-              offset[1] = f - t
-            }
-          })
-        )
-      }
-
-      if (xs && ys) break
+    const snaps: Record<SnapPoints, Snap> = {
+      [SnapPoints.minX]: { id: SnapPoints.minX, isSnapped: false },
+      [SnapPoints.midX]: { id: SnapPoints.midX, isSnapped: false },
+      [SnapPoints.maxX]: { id: SnapPoints.maxX, isSnapped: false },
+      [SnapPoints.minY]: { id: SnapPoints.minY, isSnapped: false },
+      [SnapPoints.midY]: { id: SnapPoints.midY, isSnapped: false },
+      [SnapPoints.maxY]: { id: SnapPoints.maxY, isSnapped: false },
     }
+
+    const xs = [SnapPoints.midX, SnapPoints.minX, SnapPoints.maxX]
+    const ys = [SnapPoints.midY, SnapPoints.minY, SnapPoints.maxY]
+
+    const snapResults = others.map((B) => {
+      const rx = xs.flatMap((f, i) =>
+        xs.map((t, k) => {
+          const gap = A[f] - B[t]
+          const distance = Math.abs(gap)
+          return {
+            f,
+            t,
+            gap,
+            distance,
+            isCareful: i === 0 || i + k === 3,
+          }
+        })
+      )
+
+      const ry = ys.flatMap((f, i) =>
+        ys.map((t, k) => {
+          const gap = A[f] - B[t]
+          const distance = Math.abs(gap)
+          return {
+            f,
+            t,
+            gap,
+            distance,
+            isCareful: i === 0 || i + k === 3,
+          }
+        })
+      )
+
+      return [B, rx, ry] as const
+    })
+
+    let gapX = Infinity
+    let gapY = Infinity
+
+    let minX = Infinity
+    let minY = Infinity
+
+    snapResults.forEach(([_, rx, ry]) => {
+      rx.forEach((r) => {
+        if (r.distance < snapDistance && r.distance < minX) {
+          minX = r.distance
+          gapX = r.gap
+        }
+      })
+
+      ry.forEach((r) => {
+        if (r.distance < snapDistance && r.distance < minY) {
+          minY = r.distance
+          gapY = r.gap
+        }
+      })
+    })
+
+    // Check for other shapes with the same gap
+
+    snapResults.forEach(([B, rx, ry]) => {
+      if (gapX !== Infinity) {
+        rx.forEach((r) => {
+          if (Math.abs(r.gap - gapX) < 2) {
+            snaps[r.f] = {
+              ...snaps[r.f],
+              isSnapped: true,
+              to: B[r.t],
+              B,
+              distance: r.distance,
+            }
+          }
+        })
+      }
+
+      if (gapY !== Infinity) {
+        ry.forEach((r) => {
+          if (Math.abs(r.gap - gapY) < 2) {
+            snaps[r.f] = {
+              ...snaps[r.f],
+              isSnapped: true,
+              to: B[r.t],
+              B,
+              distance: r.distance,
+            }
+          }
+        })
+      }
+    })
+
+    offset[0] = gapX === Infinity ? 0 : gapX
+    offset[1] = gapY === Infinity ? 0 : gapY
 
     A.minX -= offset[0]
     A.midX -= offset[0]
@@ -1603,15 +1665,18 @@ left past the initial left edge) then swap points on that axis.
     // Calculate snap lines based on adjusted bounds A. This has
     // to happen after we've adjusted both dimensions x and y of
     // the bounds A!
+    xs.forEach((from) => {
+      const snap = snaps[from]
 
-    if (xs) {
-      const { i, B } = xs
-      const x = [A.midX, A.minX, A.maxX][i % 3]
+      if (!snap.isSnapped) return
+
+      const { id, B } = snap
+      const x = A[id]
 
       // If A is snapped at its center, show include only the midY;
       // otherwise, include both its minY and maxY.
       snapLines.push(
-        i === 0
+        id === SnapPoints.minX
           ? [
               [x, A.midY],
               [x, B.minY],
@@ -1624,14 +1689,18 @@ left past the initial left edge) then swap points on that axis.
               [x, B.maxY],
             ]
       )
-    }
+    })
 
-    if (ys) {
-      const { i, B } = ys
-      const y = [A.midY, A.minY, A.maxY][i % 3]
+    ys.forEach((from) => {
+      const snap = snaps[from]
+
+      if (!snap.isSnapped) return
+
+      const { id, B } = snap
+      const y = A[id]
 
       snapLines.push(
-        i === 0
+        id === SnapPoints.midY
           ? [
               [A.midX, y],
               [B.minX, y],
@@ -1644,7 +1713,7 @@ left past the initial left edge) then swap points on that axis.
               [B.maxX, y],
             ]
       )
-    }
+    })
 
     return { offset, snapLines }
   }

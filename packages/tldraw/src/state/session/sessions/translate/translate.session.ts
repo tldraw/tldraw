@@ -159,8 +159,7 @@ export class TranslateSession implements Session {
       const snapResult = Utils.getSnapPoints(
         bounds,
         this.isCloning ? this.snapInfo.bounds : this.snapInfo.others,
-        SNAP_DISTANCE / zoom,
-        this.speed * zoom < VERY_SLOW_SPEED
+        SNAP_DISTANCE / zoom
       )
 
       if (snapResult) {

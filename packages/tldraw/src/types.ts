@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import type { TLBinding, TLShapeProps, TLSnapLine } from '@tldraw/core'
+import type { TLBinding, TLShapeProps, TLSnapLine, TLBoundsWithCenter } from '@tldraw/core'
 import type { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
 import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'

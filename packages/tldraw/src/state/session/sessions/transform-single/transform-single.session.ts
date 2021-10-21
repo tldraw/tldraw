@@ -89,8 +89,7 @@ export class TransformSingleSession implements Session {
       const snapResult = Utils.getSnapPoints(
         Utils.getBoundsWithCenter(newBounds),
         this.snapInfo.bounds,
-        SNAP_DISTANCE / zoom,
-        this.speed * zoom < VERY_SLOW_SPEED
+        SNAP_DISTANCE / zoom
       )
 
       if (snapResult) {
