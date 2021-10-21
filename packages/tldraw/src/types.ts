@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import type { TLBinding, TLShapeProps, TLSnapLine, TLBoundsWithCenter } from '@tldraw/core'
+import type { TLBinding, TLShapeProps, TLBounds, TLSnapLine } from '@tldraw/core'
 import type { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
 import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
@@ -116,6 +116,16 @@ export abstract class Session {
   ) => TLDrawPatch | undefined
   abstract complete: (data: Readonly<Data>) => TLDrawPatch | TLDrawCommand | undefined
   abstract cancel: (data: Readonly<Data>) => TLDrawPatch | undefined
+
+  viewport: TLBounds
+
+  constructor(viewport: TLBounds) {
+    this.viewport = viewport
+  }
+
+  updateViewport = (viewport: TLBounds) => {
+    this.viewport = viewport
+  }
 }
 
 export enum TLDrawStatus {
@@ -137,6 +147,8 @@ export enum TLDrawStatus {
 export type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never
 
 export type ExceptFirst<T extends unknown[]> = T extends [any, ...infer U] ? U : never
+
+export type ExceptFirstTwo<T extends unknown[]> = T extends [any, any, ...infer U] ? U : never
 
 export enum MoveType {
   Backward = 'backward',

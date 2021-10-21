@@ -1,11 +1,11 @@
-import { TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
+import { TLBounds, TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import type { TLSnapLine, TLBoundsWithCenter } from '@tldraw/core'
 import { Session, SessionType, TLDrawShape, TLDrawStatus } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 import type { Command } from 'rko'
-import { SLOW_SPEED, SNAP_DISTANCE, VERY_SLOW_SPEED } from '~state/constants'
+import { SLOW_SPEED, SNAP_DISTANCE } from '~state/constants'
 
 type SnapInfo =
   | {
@@ -16,7 +16,7 @@ type SnapInfo =
       bounds: TLBoundsWithCenter[]
     }
 
-export class TransformSession implements Session {
+export class TransformSession extends Session {
   static type = SessionType.Transform
   status = TLDrawStatus.Transforming
   scaleX = 1
@@ -32,10 +32,12 @@ export class TransformSession implements Session {
 
   constructor(
     data: Data,
+    viewport: TLBounds,
     point: number[],
     transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight,
     isCreate = false
   ) {
+    super(viewport)
     this.origin = point
     this.transformType = transformType
     this.snapshot = getTransformSnapshot(data, transformType)
@@ -92,7 +94,10 @@ export class TransformSession implements Session {
     ) {
       const snapResult = Utils.getSnapPoints(
         Utils.getBoundsWithCenter(newBounds),
-        this.snapInfo.bounds,
+        this.snapInfo.bounds.filter(
+          (bounds) =>
+            Utils.boundsContain(this.viewport, bounds) || Utils.boundsCollide(this.viewport, bounds)
+        ),
         SNAP_DISTANCE / zoom
       )
 
@@ -180,7 +185,7 @@ export class TransformSession implements Session {
     }
   }
 
-  complete(data: Data): Data | Command<Data> | undefined {
+  complete = (data: Data): Data | Command<Data> | undefined => {
     const { hasUnlockedShapes, shapeBounds } = this.snapshot
     undefined
     if (!hasUnlockedShapes) return

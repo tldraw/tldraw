@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import Utils from '~../../core/src/utils'
+import { Utils } from '@tldraw/core'
 import { TLDrawState } from '~state'
 import { TLDR } from '~state/tldr'
 import { mockDocument } from '~test'

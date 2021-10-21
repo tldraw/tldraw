@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLPageState, Utils, TLBoundsWithCenter, TLSnapLine } from '@tldraw/core'
+import { TLPageState, Utils, TLBoundsWithCenter, TLSnapLine, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
   TLDrawShape,
@@ -12,9 +12,8 @@ import {
   GroupShape,
   SessionType,
   ArrowBinding,
-  TLDrawShapeType,
 } from '~types'
-import { SLOW_SPEED, SNAP_DISTANCE, VERY_SLOW_SPEED } from '~state/constants'
+import { SLOW_SPEED, SNAP_DISTANCE } from '~state/constants'
 import { TLDR } from '~state/tldr'
 import type { Patch } from 'rko'
 
@@ -38,7 +37,7 @@ type SnapInfo =
       bounds: TLBoundsWithCenter[]
     }
 
-export class TranslateSession implements Session {
+export class TranslateSession extends Session {
   type = SessionType.Translate
   status = TLDrawStatus.Translating
   delta = [0, 0]
@@ -60,10 +59,12 @@ export class TranslateSession implements Session {
 
   constructor(
     data: Data,
+    viewport: TLBounds,
     point: number[],
     isCreate = false,
     isLinked: 'left' | 'right' | 'center' | false = false
   ) {
+    super(viewport)
     this.origin = point
     this.snapshot = getTranslateSnapshot(data, isLinked)
     this.isCreate = isCreate
@@ -92,7 +93,14 @@ export class TranslateSession implements Session {
     }
   }
 
-  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
+  update = (
+    data: Data,
+    point: number[],
+    shiftKey = false,
+    altKey = false,
+    metaKey = false,
+    viewPort = {} as TLBounds
+  ) => {
     const { selectedIds, initialParentChildren, initialShapes, bindingsToDelete } = this.snapshot
 
     const { currentPageId } = data.appState
@@ -158,7 +166,10 @@ export class TranslateSession implements Session {
 
       const snapResult = Utils.getSnapPoints(
         bounds,
-        this.isCloning ? this.snapInfo.bounds : this.snapInfo.others,
+        (this.isCloning ? this.snapInfo.bounds : this.snapInfo.others).filter(
+          (bounds) =>
+            Utils.boundsContain(this.viewport, bounds) || Utils.boundsCollide(this.viewport, bounds)
+        ),
         SNAP_DISTANCE / zoom
       )
 
@@ -370,7 +381,7 @@ export class TranslateSession implements Session {
     }
   }
 
-  complete(data: Data): TLDrawCommand {
+  complete = (data: Data): TLDrawCommand => {
     const pageId = data.appState.currentPageId
 
     const { initialShapes, initialParentChildren, bindingsToDelete } = this.snapshot

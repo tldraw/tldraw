@@ -36,6 +36,7 @@ import {
   TLDrawUser,
   SessionType,
   ExceptFirst,
+  ExceptFirstTwo,
 } from '~types'
 import { TLDR } from './tldr'
 import { defaultStyle, tldrawShapeUtils } from '~shape'
@@ -361,6 +362,10 @@ export class TLDrawState extends StateManager<Data> {
    */
   updateBounds = (bounds: TLBounds) => {
     this.bounds = { ...bounds }
+    if (this.session) {
+      this.session.updateViewport(this.viewport)
+      this.session.update(this.state, this.pointerPoint, false, false, false)
+    }
   }
 
   /**
@@ -1329,7 +1334,7 @@ export class TLDrawState extends StateManager<Data> {
    * @param reason Why did the camera change?
    */
   setCamera = (point: number[], zoom: number, reason: string): this => {
-    return this.patchState(
+    this.patchState(
       {
         document: {
           pageStates: {
@@ -1339,6 +1344,12 @@ export class TLDrawState extends StateManager<Data> {
       },
       reason
     )
+
+    if (this.session) {
+      this.session.updateViewport(this.viewport)
+    }
+
+    return this
   }
 
   /**
@@ -1640,7 +1651,7 @@ export class TLDrawState extends StateManager<Data> {
    * @param session The new session
    * @param args arguments of the session's start method.
    */
-  startSession = <T extends SessionType>(type: T, ...args: ExceptFirst<ArgsOfType<T>>): this => {
+  startSession = <T extends SessionType>(type: T, ...args: ExceptFirstTwo<ArgsOfType<T>>): this => {
     if (this.session) {
       throw Error(`Already in a session! (${this.session.constructor.name})`)
     }
@@ -1648,7 +1659,7 @@ export class TLDrawState extends StateManager<Data> {
     const Session = getSession(type)
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    this.session = new Session(this.state, ...args)
+    this.session = new Session(this.state, this.viewport, ...args)
 
     const result = this.session.start(this.state)
 

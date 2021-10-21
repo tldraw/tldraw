@@ -1,6 +1,5 @@
 import Vec from '@tldraw/vec'
-import type { TLPointerEventHandler } from '~../../core/src/types'
-import Utils from '~../../core/src/utils'
+import { Utils, TLPointerEventHandler } from '@tldraw/core'
 import { Draw } from '~shape/shapes'
 import { SessionType, TLDrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'

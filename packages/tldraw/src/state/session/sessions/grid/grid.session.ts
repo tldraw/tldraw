@@ -16,7 +16,7 @@ import {
 import { TLDR } from '~state/tldr'
 import type { Patch } from 'rko'
 
-export class GridSession implements Session {
+export class GridSession extends Session {
   type = SessionType.Grid
   status = TLDrawStatus.Translating
   origin: number[]
@@ -29,7 +29,8 @@ export class GridSession implements Session {
   rows = 1
   isCopying = false
 
-  constructor(data: Data, id: string, pageId: string, point: number[]) {
+  constructor(data: Data, viewport: TLBounds, id: string, pageId: string, point: number[]) {
+    super(viewport)
     this.origin = point
     this.shape = TLDR.getShape(data, id, pageId)
     this.grid['0_0'] = this.shape.id
@@ -189,7 +190,7 @@ export class GridSession implements Session {
     }
   }
 
-  complete(data: Data) {
+  complete = (data: Data) => {
     const pageId = data.appState.currentPageId
 
     const beforeShapes: Patch<Record<string, TLDrawShape>> = {}

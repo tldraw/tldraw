@@ -1,15 +1,16 @@
-import { Utils } from '@tldraw/core'
+import { Utils, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { Data, Session, SessionType, TLDrawPatch, TLDrawStatus } from '~types'
 import { TLDR } from '~state/tldr'
 
-export class BrushSession implements Session {
+export class BrushSession extends Session {
   static type = SessionType.Brush
   status = TLDrawStatus.Brushing
   origin: number[]
   snapshot: BrushSnapshot
 
-  constructor(data: Data, point: number[]) {
+  constructor(data: Data, viewport: TLBounds, point: number[]) {
+    super(viewport)
     this.origin = Vec.round(point)
     this.snapshot = getBrushSnapshot(data)
   }
@@ -78,7 +79,7 @@ export class BrushSession implements Session {
     }
   }
 
-  cancel(data: Data) {
+  cancel = (data: Data) => {
     const { currentPageId } = data.appState
     return {
       document: {
@@ -92,7 +93,7 @@ export class BrushSession implements Session {
     }
   }
 
-  complete(data: Data) {
+  complete = (data: Data) => {
     const { currentPageId } = data.appState
     const pageState = TLDR.getPageState(data, currentPageId)
 
