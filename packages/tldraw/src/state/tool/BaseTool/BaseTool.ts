@@ -1,5 +1,5 @@
 import Vec from '@tldraw/vec'
-import type {
+import {
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
   TLCanvasEventHandler,
@@ -9,8 +9,8 @@ import type {
   TLShapeBlurHandler,
   TLShapeCloneHandler,
   TLWheelEventHandler,
-} from '~../../core/src/types'
-import Utils from '~../../core/src/utils'
+  Utils,
+} from '@tldraw/core'
 import type { TLDrawState } from '~state'
 import type { TLDrawShapeType } from '~types'
 

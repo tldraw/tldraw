@@ -1,5 +1,7 @@
 # @tldraw/core
 
+> `This library is not yet released and these docs are partially out of date!`
+
 This package contains the core of the [tldraw](https://tldraw.com) library. It includes:
 
 - [`Renderer`](#renderer) - a React component
@@ -14,7 +16,7 @@ This package contains the core of the [tldraw](https://tldraw.com) library. It i
 ## Installation
 
 ```bash
-yarn add @tldraw/core --peer
+yarn add @tldraw/core
 ```
 
 ## Usage

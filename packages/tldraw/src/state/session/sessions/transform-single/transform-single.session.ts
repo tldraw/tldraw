@@ -1,10 +1,17 @@
-import { TLBoundsCorner, TLSnapLine, TLBoundsEdge, Utils, TLBoundsWithCenter } from '@tldraw/core'
+import {
+  TLBounds,
+  TLBoundsCorner,
+  TLSnapLine,
+  TLBoundsEdge,
+  Utils,
+  TLBoundsWithCenter,
+} from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { SessionType, TLDrawShape, TLDrawStatus } from '~types'
-import type { Session } from '~types'
+import { Session } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
-import { SLOW_SPEED, SNAP_DISTANCE, VERY_SLOW_SPEED } from '~state/constants'
+import { SLOW_SPEED, SNAP_DISTANCE } from '~state/constants'
 
 type SnapInfo =
   | {
@@ -15,7 +22,7 @@ type SnapInfo =
       bounds: TLBoundsWithCenter[]
     }
 
-export class TransformSingleSession implements Session {
+export class TransformSingleSession extends Session {
   type = SessionType.TransformSingle
   status = TLDrawStatus.Transforming
   transformType: TLBoundsEdge | TLBoundsCorner
@@ -30,10 +37,12 @@ export class TransformSingleSession implements Session {
 
   constructor(
     data: Data,
+    viewport: TLBounds,
     point: number[],
     transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight,
     isCreate = false
   ) {
+    super(viewport)
     this.origin = point
     this.transformType = transformType
     this.snapshot = getTransformSingleSnapshot(data, transformType)
@@ -88,9 +97,11 @@ export class TransformSingleSession implements Session {
     ) {
       const snapResult = Utils.getSnapPoints(
         Utils.getBoundsWithCenter(newBounds),
-        this.snapInfo.bounds,
-        SNAP_DISTANCE / zoom,
-        this.speed * zoom < VERY_SLOW_SPEED
+        this.snapInfo.bounds.filter(
+          (bounds) =>
+            Utils.boundsContain(this.viewport, bounds) || Utils.boundsCollide(this.viewport, bounds)
+        ),
+        SNAP_DISTANCE / zoom
       )
 
       if (snapResult) {
@@ -162,7 +173,7 @@ export class TransformSingleSession implements Session {
     }
   }
 
-  complete(data: Data) {
+  complete = (data: Data) => {
     if (!this.snapshot.hasUnlockedShape) return data
 
     const { initialShape } = this.snapshot

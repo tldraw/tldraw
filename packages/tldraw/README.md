@@ -1,5 +1,7 @@
 # @tldraw/tldraw
 
+> `This library is not yet released and these docs are partially out of date!`
+
 This package contains the [tldraw](https://tldraw.com) editor as a standalone React component.
 
 ## Installation

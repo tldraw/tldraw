@@ -9,10 +9,10 @@ import {
   SessionType,
 } from '~types'
 import { Vec } from '@tldraw/vec'
-import { Utils } from '@tldraw/core'
+import { Utils, TLBounds } from '@tldraw/core'
 import { TLDR } from '~state/tldr'
 
-export class ArrowSession implements Session {
+export class ArrowSession extends Session {
   static type = SessionType.Arrow
   status = TLDrawStatus.TranslatingHandle
   newStartBindingId = Utils.uniqueId()
@@ -29,7 +29,15 @@ export class ArrowSession implements Session {
   startBindingShapeId?: string
   isCreate: boolean
 
-  constructor(data: Data, point: number[], handleId: 'start' | 'end', isCreate = false) {
+  constructor(
+    data: Data,
+    viewport: TLBounds,
+    point: number[],
+    handleId: 'start' | 'end',
+    isCreate = false
+  ) {
+    super(viewport)
+
     this.isCreate = isCreate
 
     const { currentPageId } = data.appState
@@ -336,7 +344,7 @@ export class ArrowSession implements Session {
     }
   }
 
-  complete(data: Data) {
+  complete = (data: Data) => {
     const { initialShape, initialBinding, newStartBindingId, startBindingShapeId, handleId } = this
 
     const page = TLDR.getPage(data, data.appState.currentPageId)

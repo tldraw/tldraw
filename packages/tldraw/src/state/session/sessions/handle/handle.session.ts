@@ -1,10 +1,11 @@
 import { Vec } from '@tldraw/vec'
+import type { TLBounds } from '@tldraw/core'
 import { SessionType, ShapesWithProp, TLDrawStatus } from '~types'
-import type { Session } from '~types'
+import { Session } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 
-export class HandleSession implements Session {
+export class HandleSession extends Session {
   static type = SessionType.Handle
   status = TLDrawStatus.TranslatingHandle
   commandId: string
@@ -15,7 +16,14 @@ export class HandleSession implements Session {
   initialShape: ShapesWithProp<'handles'>
   handleId: string
 
-  constructor(data: Data, point: number[], handleId: string, commandId = 'move_handle') {
+  constructor(
+    data: Data,
+    viewport: TLBounds,
+    point: number[],
+    handleId: string,
+    commandId = 'move_handle'
+  ) {
+    super(viewport)
     const { currentPageId } = data.appState
     const shapeId = TLDR.getSelectedIds(data, currentPageId)[0]
     this.topLeft = point
@@ -86,7 +94,7 @@ export class HandleSession implements Session {
     }
   }
 
-  complete(data: Data) {
+  complete = (data: Data) => {
     const { initialShape } = this
     const pageId = data.appState.currentPageId
 

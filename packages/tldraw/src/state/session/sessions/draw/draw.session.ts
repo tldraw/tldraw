@@ -1,9 +1,9 @@
-import { Utils } from '@tldraw/core'
+import { Utils, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { Data, Session, SessionType, TLDrawStatus } from '~types'
 import { TLDR } from '~state/tldr'
 
-export class DrawSession implements Session {
+export class DrawSession extends Session {
   static type = SessionType.Draw
   status = TLDrawStatus.Creating
   topLeft: number[]
@@ -16,7 +16,8 @@ export class DrawSession implements Session {
   isLocked?: boolean
   lockedDirection?: 'horizontal' | 'vertical'
 
-  constructor(data: Data, point: number[], id: string) {
+  constructor(data: Data, viewport: TLBounds, point: number[], id: string) {
+    super(viewport)
     this.origin = point
     this.previous = point
     this.last = point

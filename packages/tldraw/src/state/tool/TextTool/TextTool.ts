@@ -40,7 +40,7 @@ export class TextTool extends BaseTool {
     }
   }
 
-  override onPointerUp: TLPointerEventHandler = () => {
+  onPointerUp: TLPointerEventHandler = () => {
     // noop important!
   }
 

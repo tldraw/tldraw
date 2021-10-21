@@ -1,4 +1,4 @@
-import { Utils } from '@tldraw/core'
+import { Utils, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { Session, SessionType, TLDrawShape, TLDrawStatus } from '~types'
 import type { Data } from '~types'
@@ -6,7 +6,7 @@ import { TLDR } from '~state/tldr'
 
 const centerCache = new WeakMap<string[], number[]>()
 
-export class RotateSession implements Session {
+export class RotateSession extends Session {
   static type = SessionType.Rotate
   status = TLDrawStatus.Transforming
   delta = [0, 0]
@@ -15,7 +15,8 @@ export class RotateSession implements Session {
   initialAngle: number
   changes: Record<string, Partial<TLDrawShape>> = {}
 
-  constructor(data: Data, point: number[]) {
+  constructor(data: Data, viewport: TLBounds, point: number[]) {
+    super(viewport)
     this.origin = point
     this.snapshot = getRotateSnapshot(data)
     this.initialAngle = Vec.angle(this.snapshot.commonBoundsCenter, this.origin)
@@ -97,7 +98,7 @@ export class RotateSession implements Session {
     }
   }
 
-  complete(data: Data) {
+  complete = (data: Data) => {
     const { initialShapes } = this.snapshot
     const pageId = data.appState.currentPageId
 
