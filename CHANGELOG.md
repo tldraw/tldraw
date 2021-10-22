@@ -1,3 +1,15 @@
+## 0.0.126
+
+### TLDraw
+
+- Swap behavior of command and alt keys in arrow shapes.
+
+## 0.0.125
+
+### TLDraw
+
+- Bug fixes.
+
 ## 0.0.124
 
 ### TLDraw
