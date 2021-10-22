@@ -15,17 +15,10 @@ export function translate(data: Data, ids: string[], delta: number[]): TLDrawCom
     bindings: {},
   }
 
-  const idsToMutate = ids
-    .map((id) => TLDR.getShape(data, id, currentPageId))
-    .reduce((acc, cur) => {
-      if (cur.children) {
-        acc.push(...cur.children)
-      } else {
-        acc.push(cur.id)
-      }
-
-      return acc
-    }, [] as string[])
+  const idsToMutate = ids.flatMap((id) => {
+    const shape = TLDR.getShape(data, id, currentPageId)
+    return shape.children ? shape.children : shape.id
+  })
 
   const change = TLDR.mutateShapes(
     data,
