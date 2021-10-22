@@ -529,20 +529,19 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   onDoubleClickShape: TLPointerEventHandler = (info) => {
-    // if (this.status !== Status.Idle) return
-
     const shape = this.state.getShape(info.target)
 
-    const utils = TLDR.getShapeUtils(shape.type)
+    // If we can edit the shape (and if we can select the shape) then
+    // start editing
+    if (
+      TLDR.getShapeUtils(shape.type).canEdit &&
+      (shape.parentId === this.state.currentPageId || shape.parentId === this.selectedGroupId)
+    ) {
+      this.state.setEditingId(info.target)
+    }
 
-    // If the shape is the child of a group, then drill
-    // into the group?
-    if (shape.parentId === this.state.currentPageId) {
-      if (utils.canEdit) {
-        this.state.setEditingId(info.target)
-        // this.state.startTextSession(info.target)
-      }
-    } else {
+    // If the shape is the child of a group, then drill into the group?
+    if (shape.parentId !== this.state.currentPageId) {
       this.selectedGroupId = shape.parentId
     }
 
