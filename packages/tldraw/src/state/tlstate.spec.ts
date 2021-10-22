@@ -49,6 +49,36 @@ describe('TLDrawState', () => {
       expect(Object.keys(tlstate.page.shapes).length).toBe(1)
     })
 
+    it('Copies grouped shapes.', () => {
+      const tlstate = new TLDrawState()
+        .loadDocument(mockDocument)
+        .group(['rect1', 'rect2'], 'groupA')
+        .select('groupA')
+        .copy()
+
+      const beforeShapes = tlstate.shapes
+
+      tlstate.paste()
+
+      expect(tlstate.shapes.filter((shape) => shape.type === TLDrawShapeType.Group).length).toBe(2)
+
+      const afterShapes = tlstate.shapes
+
+      const newShapes = afterShapes.filter(
+        (shape) => !beforeShapes.find(({ id }) => id === shape.id)
+      )
+
+      const newGroup = newShapes.find((shape) => shape.type === TLDrawShapeType.Group)
+
+      console.log(newGroup)
+
+      const newChildIds = newShapes
+        .filter((shape) => shape.type !== TLDrawShapeType.Group)
+        .map((shape) => shape.id)
+
+      expect(new Set(newGroup!.children)).toEqual(new Set(newChildIds))
+    })
+
     it.todo("Pastes in to the top child index of the page's children.")
 
     it.todo('Pastes in the correct child index order.')
@@ -548,6 +578,7 @@ describe('TLDrawState', () => {
         .group()
         .selectAll()
         .copySvg()
+
       expect(result).toMatchSnapshot('copied svg with group')
     })
 
