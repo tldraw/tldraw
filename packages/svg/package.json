@@ -1,8 +1,8 @@
 {
-  "name": "@tldraw/vec",
+  "name": "@tldraw/svg",
   "version": "0.0.126",
   "private": false,
-  "description": "Vector utilities for tldraw.",
+  "description": "SVG utilities for tldraw.",
   "author": "@steveruizok",
   "repository": {
     "type": "git",

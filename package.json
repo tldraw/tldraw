@@ -13,9 +13,10 @@
     "packages/core",
     "packages/tldraw",
     "packages/dev",
-    "packages/www",
     "packages/vec",
-    "packages/intersect"
+    "packages/svg",
+    "packages/intersect",
+    "packages/www"
   ],
   "scripts": {
     "test": "jest",

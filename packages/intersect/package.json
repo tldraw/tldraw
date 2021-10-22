@@ -2,7 +2,7 @@
   "name": "@tldraw/intersect",
   "version": "0.0.126",
   "private": false,
-  "description": "A tiny little drawing app (intersect)",
+  "description": "Intersection utilities for tldraw.",
   "author": "@steveruizok",
   "repository": {
     "type": "git",
@@ -21,7 +21,7 @@
   "typings": "./dist/types/index.d.ts",
   "scripts": {
     "start:pre": "node scripts/pre-dev && yarn types:pre",
-    "start": "node scripts/dev & yarn types:dev",
+    "start:utils": "node scripts/dev & yarn types:dev",
     "build": "node scripts/build && yarn types:build",
     "types:pre": "tsc",
     "types:dev": "tsc --watch",
@@ -33,8 +33,6 @@
     "docs:watch": "typedoc --watch"
   },
   "devDependencies": {
-    "@babel/core": "^7.15.5",
-    "@babel/preset-env": "^7.15.4",
     "@types/jest": "^27.0.1",
     "@types/node": "^16.7.10",
     "@typescript-eslint/eslint-plugin": "^4.30.0",
@@ -42,7 +40,6 @@
     "esbuild": "^0.13.8",
     "eslint": "^7.32.0",
     "lerna": "^4.0.0",
-    "ts-node": "^10.2.1",
     "tslib": "^2.3.1",
     "typedoc": "^0.22.3",
     "typescript": "^4.4.2"
