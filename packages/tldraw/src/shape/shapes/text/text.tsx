@@ -289,18 +289,6 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
       point: Vec.round(Vec.add(shape.point, Vec.sub(center, newCenter))),
     }
   },
-
-  onStyleChange(shape) {
-    const center = this.getCenter(shape)
-
-    this.boundsCache.delete(shape)
-
-    const newCenter = this.getCenter(shape)
-
-    return {
-      point: Vec.round(Vec.add(shape.point, Vec.sub(center, newCenter))),
-    }
-  },
 }))
 
 /* -------------------------------------------------- */

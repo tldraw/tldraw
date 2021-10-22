@@ -535,14 +535,14 @@ export class SelectTool extends BaseTool<Status> {
 
     const utils = TLDR.getShapeUtils(shape.type)
 
-    if (utils.canEdit) {
-      this.state.setEditingId(info.target)
-      // this.state.startTextSession(info.target)
-    }
-
     // If the shape is the child of a group, then drill
     // into the group?
-    if (shape.parentId !== this.state.currentPageId) {
+    if (shape.parentId === this.state.currentPageId) {
+      if (utils.canEdit) {
+        this.state.setEditingId(info.target)
+        // this.state.startTextSession(info.target)
+      }
+    } else {
       this.selectedGroupId = shape.parentId
     }
 

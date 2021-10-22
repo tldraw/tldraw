@@ -461,8 +461,6 @@ export type TLShapeUtil<
 
   onSessionComplete: (this: TLShapeUtil<T, E, M>, shape: T) => Partial<T> | void
 
-  onStyleChange: (this: TLShapeUtil<T, E, M>, shape: T) => Partial<T> | void
-
   _Component: React.ForwardRefExoticComponent<any>
 }
 
