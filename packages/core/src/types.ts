@@ -164,7 +164,7 @@ export type TLCanvasEventHandler = (info: TLPointerInfo<'canvas'>, e: React.Poin
 export type TLBoundsEventHandler = (info: TLPointerInfo<'bounds'>, e: React.PointerEvent) => void
 
 export type TLBoundsHandleEventHandler = (
-  info: TLPointerInfo<TLBoundsCorner | TLBoundsEdge | 'rotate' | 'center' | 'left' | 'right'>,
+  info: TLPointerInfo<TLBoundsHandle>,
   e: React.PointerEvent
 ) => void
 
@@ -271,6 +271,8 @@ export enum TLBoundsCorner {
   BottomRight = 'bottom_right_corner',
   BottomLeft = 'bottom_left_corner',
 }
+
+export type TLBoundsHandle = TLBoundsCorner | TLBoundsEdge | 'rotate' | 'center' | 'left' | 'right'
 
 export interface TLPointerInfo<T extends string = string> {
   target: T

@@ -120,7 +120,13 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'command+z,ctrl+z',
     () => {
-      if (canHandleEvent()) tlstate.undo()
+      if (canHandleEvent()) {
+        if (tlstate.session) {
+          tlstate.cancelSession()
+        } else {
+          tlstate.undo()
+        }
+      }
     },
     undefined,
     [tlstate]
@@ -129,7 +135,13 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+shift-z,command+shift+z',
     () => {
-      if (canHandleEvent()) tlstate.redo()
+      if (canHandleEvent()) {
+        if (tlstate.session) {
+          tlstate.cancelSession()
+        } else {
+          tlstate.redo()
+        }
+      }
     },
     undefined,
     [tlstate]

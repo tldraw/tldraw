@@ -247,15 +247,14 @@ export class SelectTool extends BaseTool<Status> {
         if (this.pointedBoundsHandle === 'rotate') {
           // Stat a rotate session
           this.setStatus(Status.Rotating)
-
           this.state.startSession(SessionType.Rotate, point)
         } else if (
           this.pointedBoundsHandle === 'center' ||
           this.pointedBoundsHandle === 'left' ||
           this.pointedBoundsHandle === 'right'
         ) {
-          this.setStatus(Status.Translating)
           const point = this.state.getPagePoint(info.origin)
+          this.setStatus(Status.Translating)
           this.state.startSession(SessionType.Translate, point, false, this.pointedBoundsHandle)
         } else {
           // Stat a transform session
@@ -273,6 +272,14 @@ export class SelectTool extends BaseTool<Status> {
             this.state.startSession(SessionType.Transform, point, this.pointedBoundsHandle)
           }
         }
+
+        // Also update the session with the current point
+        this.state.updateSession(
+          this.state.getPagePoint(info.point),
+          info.shiftKey,
+          info.altKey,
+          info.metaKey
+        )
       }
       return
     }
