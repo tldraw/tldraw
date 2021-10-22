@@ -1,10 +1,10 @@
 import * as React from 'react'
-import './styles.css'
-import { TLDraw, Data, TLDrawState, TLDrawDocument } from '@tldraw/tldraw'
-import { ExtensionMessage, EXTENSION_EVENT, UI_EVENT } from './types'
+import { TLDraw, TLDrawState, TLDrawDocument, Data } from '@tldraw/tldraw'
 import { vscode } from './utils/vscode'
 import { eventsRegex } from './utils/eventsRegex'
 import { defaultDocument } from './utils/defaultDocument'
+import { UI_EVENT } from './types'
+import './styles.css'
 
 // Will be placed in global scope by extension
 declare let localDocument: TLDrawDocument
@@ -26,30 +26,8 @@ export default function App(): JSX.Element {
     }
   }, [])
 
-  React.useEffect(() => {
-    const handleExtensionMessage = (message: ExtensionMessage) => {
-      switch (message.data.type) {
-        case EXTENSION_EVENT.LOCAL_FILE_UPDATED: {
-          const tlstate = rTLDrawState.current
-          if (!tlstate) return
-
-          const updatedDocument: TLDrawDocument = JSON.parse(message.data.text)
-          if (!updatedDocument) return
-
-          updatedDocument.pageStates = {}
-
-          const pageStates = tlstate.document.pageStates
-          tlstate.updateDocument({ ...updatedDocument, pageStates })
-        }
-      }
-    }
-    window.addEventListener('message', handleExtensionMessage)
-    return () => {
-      window.removeEventListener('message', handleExtensionMessage)
-    }
-  }, [])
-
-  // If the initial document is an empty string, we initialize it to the default document text content.
+  // If the initial document is an empty string, we initialize it to the default
+  // document text content
   const document = localDocument === null ? defaultDocument : localDocument
 
   return (
