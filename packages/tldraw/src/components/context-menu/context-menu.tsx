@@ -163,19 +163,19 @@ export const ContextMenu = ({ children }: ContextMenuProps): JSX.Element => {
             <ContextMenuSubMenu label="Move">
               <ContextMenuButton onSelect={handleMoveToFront}>
                 <span>To Front</span>
-                <Kbd variant="menu">#⇧]</Kbd>
+                <Kbd variant="menu">⇧]</Kbd>
               </ContextMenuButton>
               <ContextMenuButton onSelect={handleMoveForward}>
                 <span>Forward</span>
-                <Kbd variant="menu">#]</Kbd>
+                <Kbd variant="menu">]</Kbd>
               </ContextMenuButton>
               <ContextMenuButton onSelect={handleMoveBackward}>
                 <span>Backward</span>
-                <Kbd variant="menu">#[</Kbd>
+                <Kbd variant="menu">[</Kbd>
               </ContextMenuButton>
               <ContextMenuButton onSelect={handleMoveToBack}>
                 <span>To Back</span>
-                <Kbd variant="menu">#⇧[</Kbd>
+                <Kbd variant="menu">⇧[</Kbd>
               </ContextMenuButton>
             </ContextMenuSubMenu>
             <MoveToPageMenu />
