@@ -1,6 +1,7 @@
+import Vec from '@tldraw/vec'
 import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
-import { DistributeType } from '~types'
+import { mockDocument, TLStateUtils } from '~test'
+import { AlignType, DistributeType, TLDrawShapeType } from '~types'
 
 describe('Distribute command', () => {
   const tlstate = new TLDrawState()
