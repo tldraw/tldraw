@@ -25,9 +25,9 @@ export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawComma
 
   // Find the common center to all shapes
   // This is the point that we'll rotate around
-  const origin = shapesToRotate.reduce((acc, shape) => {
-    return Vec.med(acc, TLDR.getCenter(shape))
-  }, TLDR.getCenter(shapesToRotate[0]))
+  const origin = Utils.getBoundsCenter(
+    Utils.getCommonBounds(shapesToRotate.map((shape) => TLDR.getBounds(shape)))
+  )
 
   // Find the rotate mutations for each shape
   shapesToRotate.forEach((shape) => {
