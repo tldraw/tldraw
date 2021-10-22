@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/vec",
-  "version": "0.0.127",
+  "version": "0.0.128",
   "private": false,
   "description": "Vector utilities for tldraw.",
   "author": "@steveruizok",
