@@ -90,7 +90,7 @@ describe('Arrow session', () => {
       expect(tlstate.bindings[0]).toBe(undefined)
     })
 
-    it('binds on the inside of a shape while meta is held', () => {
+    it('binds on the inside of a shape while alt is held', () => {
       const tlstate = new TLDrawState()
         .loadDocument(restoreDoc)
         .select('arrow1')
@@ -99,31 +99,27 @@ describe('Arrow session', () => {
 
       expect(tlstate.bindings[0].meta.point).toStrictEqual([0.71, 0.11])
 
-      tlstate.updateSession([91, 9], false, false, true)
+      tlstate.updateSession([91, 9], false, true, false)
     })
 
-    it('snaps to the center when the point is close to the center', () => {
+    it('snaps to the inside center when the point is close to the center', () => {
       const tlstate = new TLDrawState()
         .loadDocument(restoreDoc)
         .select('arrow1')
         .startSession(SessionType.Arrow, [200, 200], 'start')
-        .updateSession([91, 9], false, false, true)
+        .updateSession([91, 9], false, true, false)
 
       expect(tlstate.bindings[0].meta.point).toStrictEqual([0.78, 0.22])
     })
 
-    it('ignores binding when alt is held', () => {
+    it('ignores binding when meta is held', () => {
       const tlstate = new TLDrawState()
         .loadDocument(restoreDoc)
         .select('arrow1')
         .startSession(SessionType.Arrow, [200, 200], 'start')
-        .updateSession([55, 45])
+        .updateSession([55, 45], false, false, true)
 
-      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.5, 0.5])
-
-      tlstate.updateSession([55, 45], false, false, true)
-
-      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.5, 0.5])
+      expect(tlstate.bindings.length).toBe(0)
     })
   })
 
