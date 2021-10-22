@@ -99,7 +99,6 @@ export class TLDrawState extends StateManager<Data> {
     onUserChange?: (tlstate: TLDrawState, user: TLDrawUser) => void
   ) {
     super(TLDrawState.defaultState, id, TLDrawState.version, (prev, next) => {
-      console.warn('Migrating to a new version.')
       return {
         ...next,
         document: { ...next.document, ...prev.document },
@@ -1115,6 +1114,10 @@ export class TLDrawState extends StateManager<Data> {
             ...shape,
             id: idsMap[shape.id],
             parentId: parentShapeId || this.currentPageId,
+          }
+
+          if (shape.children) {
+            copy.children = shape.children.map((id) => idsMap[id])
           }
 
           if (!parentShapeId) {
