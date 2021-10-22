@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
+import { mockDocument, TLStateUtils } from '~test'
 import { ArrowShape, SessionType, TLDrawShapeType } from '~types'
 
 describe('Translate command', () => {
@@ -118,6 +118,20 @@ describe('Translate command', () => {
 
       expect(tlstate.getBinding(bindingId)).toBeDefined()
       expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
+    })
+  })
+})
+
+describe('When nudging groups', () => {
+  it('nudges children instead', () => {
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .group(['rect1', 'rect2'], 'groupA')
+      .nudge([1, 1])
+
+    new TLStateUtils(tlstate).expectShapesToBeAtPoints({
+      rect1: [1, 1],
+      rect2: [101, 101],
     })
   })
 })
