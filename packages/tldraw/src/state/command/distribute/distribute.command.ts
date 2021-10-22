@@ -24,12 +24,22 @@ export function distribute(data: Data, ids: string[], type: DistributeType): TLD
         pages: {
           [currentPageId]: { shapes: before },
         },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
+          },
+        },
       },
     },
     after: {
       document: {
         pages: {
           [currentPageId]: { shapes: after },
+        },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
+          },
         },
       },
     },

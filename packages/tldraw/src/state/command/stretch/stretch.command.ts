@@ -6,6 +6,8 @@ import { TLDR } from '~state/tldr'
 export function stretch(data: Data, ids: string[], type: StretchType): TLDrawCommand {
   const { currentPageId } = data.appState
 
+  const selectedIds = TLDR.getSelectedIds(data, currentPageId)
+
   const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
 
   const boundsForShapes = initialShapes.map((shape) => TLDR.getBounds(shape))
@@ -63,12 +65,22 @@ export function stretch(data: Data, ids: string[], type: StretchType): TLDrawCom
         pages: {
           [currentPageId]: { shapes: before },
         },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds,
+          },
+        },
       },
     },
     after: {
       document: {
         pages: {
           [currentPageId]: { shapes: after },
+        },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds,
+          },
         },
       },
     },

@@ -199,7 +199,7 @@ export function group(
         },
         pageStates: {
           [pageId]: {
-            selectedIds: TLDR.getSelectedIds(data, pageId),
+            selectedIds: ids,
           },
         },
       },

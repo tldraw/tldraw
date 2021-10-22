@@ -50,7 +50,10 @@ export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawComma
           [currentPageId]: { shapes: before },
         },
         pageStates: {
-          [currentPageId]: { boundsRotation: beforeBoundsRotation },
+          [currentPageId]: {
+            selectedIds: ids,
+            boundsRotation: beforeBoundsRotation,
+          },
         },
       },
     },
@@ -60,7 +63,10 @@ export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawComma
           [currentPageId]: { shapes: after },
         },
         pageStates: {
-          [currentPageId]: { boundsRotation: afterBoundsRotation },
+          [currentPageId]: {
+            selectedIds: ids,
+            boundsRotation: afterBoundsRotation,
+          },
         },
       },
     },

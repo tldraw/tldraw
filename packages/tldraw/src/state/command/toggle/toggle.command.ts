@@ -3,7 +3,9 @@ import { TLDR } from '~state/tldr'
 
 export function toggle(data: Data, ids: string[], prop: keyof TLDrawShape): TLDrawCommand {
   const { currentPageId } = data.appState
+
   const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
+
   const isAllToggled = initialShapes.every((shape) => shape[prop])
 
   const { before, after } = TLDR.mutateShapes(
@@ -24,6 +26,11 @@ export function toggle(data: Data, ids: string[], prop: keyof TLDrawShape): TLDr
             shapes: before,
           },
         },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
+          },
+        },
       },
     },
     after: {
@@ -31,6 +38,11 @@ export function toggle(data: Data, ids: string[], prop: keyof TLDrawShape): TLDr
         pages: {
           [currentPageId]: {
             shapes: after,
+          },
+        },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
           },
         },
       },

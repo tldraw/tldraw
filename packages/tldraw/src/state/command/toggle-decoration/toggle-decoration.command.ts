@@ -45,12 +45,22 @@ export function toggleDecoration(
         pages: {
           [currentPageId]: { shapes: beforeShapes },
         },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
+          },
+        },
       },
     },
     after: {
       document: {
         pages: {
           [currentPageId]: { shapes: afterShapes },
+        },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
+          },
         },
       },
     },

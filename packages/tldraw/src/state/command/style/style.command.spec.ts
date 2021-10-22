@@ -3,11 +3,10 @@ import { mockDocument } from '~test'
 import { SizeStyle } from '~types'
 
 describe('Style command', () => {
-  const tlstate = new TLDrawState()
-  tlstate.loadDocument(mockDocument)
-  tlstate.select('rect1')
-
   it('does, undoes and redoes command', () => {
+    const tlstate = new TLDrawState()
+    tlstate.loadDocument(mockDocument)
+    tlstate.select('rect1')
     expect(tlstate.getShape('rect1').style.size).toEqual(SizeStyle.Medium)
 
     tlstate.style({ size: SizeStyle.Small })
@@ -45,5 +44,22 @@ describe('Style command', () => {
       expect(tlstate.getShape('rect1').style.size).toEqual(SizeStyle.Small)
       expect(tlstate.getShape('rect2').style.size).toEqual(SizeStyle.Small)
     })
+  })
+})
+
+describe('when running the command', () => {
+  it('restores selection on undo', () => {
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .style({ size: SizeStyle.Small })
+      .deselectAll()
+      .undo()
+
+    expect(tlstate.selectedIds).toEqual(['rect1'])
+
+    tlstate.deselectAll().redo()
+
+    expect(tlstate.selectedIds).toEqual(['rect1'])
   })
 })
