@@ -30,11 +30,7 @@
     "docs:watch": "lerna run docs:watch"
   },
   "devDependencies": {
-    "@babel/core": "^7.15.0",
-    "@babel/plugin-syntax-import-meta": "^7.10.4",
-    "@babel/preset-env": "^7.15.0",
-    "@babel/preset-react": "^7.14.5",
-    "@babel/preset-typescript": "^7.15.0",
+    "@swc-node/jest": "^1.3.3",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.0.0",
     "@types/jest": "^27.0.1",
@@ -43,14 +39,12 @@
     "@types/react-dom": "^16.9.9",
     "@typescript-eslint/eslint-plugin": "^4.19.0",
     "@typescript-eslint/parser": "^4.19.0",
-    "babel-jest": "^27.1.0",
     "eslint": "^7.32.0",
     "fake-indexeddb": "^3.1.3",
     "init-package-json": "^2.0.4",
     "jest": "^27.1.0",
     "lerna": "^3.22.1",
     "resize-observer-polyfill": "^1.5.1",
-    "ts-jest": "^27.0.5",
     "tslib": "^2.3.0",
     "typedoc": "^0.22.3",
     "typescript": "^4.4.2"
@@ -63,12 +57,11 @@
     "printWidth": 100
   },
   "jest": {
-    "preset": "ts-jest",
     "setupFilesAfterEnv": [
       "<rootDir>/setupTests.ts"
     ],
     "transform": {
-      "^.+\\.(tsx|jsx|ts|js|mjs)?$": "ts-jest"
+      "^.+\\.(tsx|jsx|ts|js|mjs)?$": "@swc-node/jest"
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "moduleFileExtensions": [
@@ -79,30 +72,6 @@
       "json",
       "node"
     ],
-    "globals": {
-      "ts-jest": {
-        "tsconfig": "tsconfig.json",
-        "babelConfig": {
-          "presets": [
-            [
-              "@babel/preset-env",
-              {
-                "targets": {
-                  "esmodules": true
-                }
-              }
-            ],
-            [
-              "@babel/preset-react"
-            ],
-            "@babel/preset-typescript"
-          ],
-          "plugins": [
-            "@babel/plugin-syntax-import-meta"
-          ]
-        }
-      }
-    },
     "testEnvironment": "jsdom",
     "modulePathIgnorePatterns": [
       "<rootDir>/packages/vec/dist/",
