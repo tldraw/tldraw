@@ -37,11 +37,6 @@ export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawComma
     after[shape.id] = change
   })
 
-  // Also rotate the bounds.
-  const beforeBoundsRotation = TLDR.getPageState(data, currentPageId).boundsRotation
-
-  const afterBoundsRotation = Utils.clampRadians((beforeBoundsRotation || 0) + delta)
-
   return {
     id: 'rotate',
     before: {
@@ -52,7 +47,6 @@ export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawComma
         pageStates: {
           [currentPageId]: {
             selectedIds: ids,
-            boundsRotation: beforeBoundsRotation,
           },
         },
       },
@@ -65,7 +59,6 @@ export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawComma
         pageStates: {
           [currentPageId]: {
             selectedIds: ids,
-            boundsRotation: afterBoundsRotation,
           },
         },
       },

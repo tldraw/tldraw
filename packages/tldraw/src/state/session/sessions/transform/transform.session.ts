@@ -67,7 +67,7 @@ export class TransformSession extends Session {
       initialBounds,
       transformType,
       delta,
-      pageState.boundsRotation,
+      0,
       shiftKey || isAllAspectRatioLocked
     )
 
@@ -108,7 +108,7 @@ export class TransformSession extends Session {
           initialBounds,
           transformType,
           Vec.sub(delta, snapResult.offset),
-          pageState.boundsRotation,
+          0,
           shiftKey || isAllAspectRatioLocked
         )
       }
