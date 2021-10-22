@@ -55,12 +55,13 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
 
   let _hideCloneHandles = true
 
+  // Does the selected shape have handles?
   let shapeWithHandles: TLShape | undefined = undefined
 
-  if (selectedIds.length === 1) {
-    const id = selectedIds[0]
+  const selectedShapes = selectedIds.map((id) => page.shapes[id])
 
-    const shape = page.shapes[id]
+  if (selectedShapes.length === 1) {
+    const shape = selectedShapes[0]
 
     const utils = shapeUtils[shape.type] as TLShapeUtil<any, any>
 
@@ -78,12 +79,9 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
         <ShapeNode key={node.shape.id} utils={shapeUtils} {...node} />
       ))}
       {!hideIndicators &&
-        selectedIds
-          .map((id) => page.shapes[id])
-          .filter(Boolean)
-          .map((shape) => (
-            <ShapeIndicator key={'selected_' + shape.id} shape={shape} meta={meta} isSelected />
-          ))}
+        selectedShapes.map((shape) => (
+          <ShapeIndicator key={'selected_' + shape.id} shape={shape} meta={meta} isSelected />
+        ))}
       {!hideIndicators && hoveredId && (
         <ShapeIndicator
           key={'hovered_' + hoveredId}
