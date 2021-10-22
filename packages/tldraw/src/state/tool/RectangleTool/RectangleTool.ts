@@ -28,7 +28,7 @@ export class RectangleTool extends BaseTool {
       style: { ...currentStyle },
     })
 
-    this.state.createShapes(newShape)
+    this.state.patchCreate([newShape])
 
     this.state.startSession(
       SessionType.TransformSingle,

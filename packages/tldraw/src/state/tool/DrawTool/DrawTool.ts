@@ -34,7 +34,7 @@ export class DrawTool extends BaseTool {
       style: { ...currentStyle },
     })
 
-    this.state.createShapes(newShape)
+    this.state.patchCreate([newShape])
 
     this.state.startSession(SessionType.Draw, pagePoint, id)
 

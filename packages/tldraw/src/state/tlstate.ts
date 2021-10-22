@@ -1931,6 +1931,16 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   /**
+   * Patch in a new set of shapes
+   * @param shapes
+   * @param bindings
+   */
+  patchCreate = (shapes: TLDrawShape[] = [], bindings: TLDrawBinding[] = []): this => {
+    if (shapes.length === 0) return this
+    return this.patchState(Commands.create(this.state, shapes, bindings).after)
+  }
+
+  /**
    * Delete one or more shapes.
    * @param ids The ids of the shapes to delete.
    * @command

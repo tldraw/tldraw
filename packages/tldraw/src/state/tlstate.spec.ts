@@ -70,8 +70,6 @@ describe('TLDrawState', () => {
 
       const newGroup = newShapes.find((shape) => shape.type === TLDrawShapeType.Group)
 
-      console.log(newGroup)
-
       const newChildIds = newShapes
         .filter((shape) => shape.type !== TLDrawShapeType.Group)
         .map((shape) => shape.id)

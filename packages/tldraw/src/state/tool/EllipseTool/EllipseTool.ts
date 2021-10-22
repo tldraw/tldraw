@@ -1,5 +1,5 @@
 import Vec from '@tldraw/vec'
-import { Utils, TLPointerEventHandler, TLKeyboardEventHandler, TLBoundsCorner } from '@tldraw/core'
+import { Utils, TLPointerEventHandler, TLBoundsCorner } from '@tldraw/core'
 import { Ellipse } from '~shape/shapes'
 import { SessionType, TLDrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
@@ -28,7 +28,7 @@ export class EllipseTool extends BaseTool {
       style: { ...currentStyle },
     })
 
-    this.state.createShapes(newShape)
+    this.state.patchCreate([newShape])
 
     this.state.startSession(
       SessionType.TransformSingle,
