@@ -1,6 +1,7 @@
+import Vec from '@tldraw/vec'
 import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
-import { AlignType } from '~types'
+import { mockDocument, TLStateUtils } from '~test'
+import { AlignType, TLDrawShapeType } from '~types'
 
 describe('Align command', () => {
   const tlstate = new TLDrawState()
@@ -72,6 +73,32 @@ describe('Align command', () => {
 
       expect(tlstate.getShape('rect1').point).toEqual([0, 50])
       expect(tlstate.getShape('rect2').point).toEqual([100, 50])
+    })
+  })
+})
+
+describe('when aligning groups', () => {
+  it('aligns children', () => {
+    const tlstate = new TLDrawState()
+      .createShapes(
+        { id: 'rect1', type: TLDrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
+        { id: 'rect2', type: TLDrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
+        { id: 'rect3', type: TLDrawShapeType.Rectangle, point: [200, 200], size: [100, 100] },
+        { id: 'rect4', type: TLDrawShapeType.Rectangle, point: [0, 0], size: [200, 200] }
+      )
+      .group(['rect1', 'rect2'], 'groupA')
+      .select('rect3', 'rect4')
+      .align(AlignType.CenterVertical)
+
+    const p0 = tlstate.getShape('rect4').point
+    const p1 = tlstate.getShape('rect3').point
+
+    tlstate.undo().delete(['rect4']).selectAll().align(AlignType.CenterVertical)
+
+    new TLStateUtils(tlstate).expectShapesToBeAtPoints({
+      rect1: p0,
+      rect2: Vec.add(p0, [100, 100]),
+      rect3: p1,
     })
   })
 })

@@ -25,9 +25,9 @@ export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawComma
 
   // Find the common center to all shapes
   // This is the point that we'll rotate around
-  const origin = shapesToRotate.reduce((acc, shape) => {
-    return Vec.med(acc, TLDR.getCenter(shape))
-  }, TLDR.getCenter(shapesToRotate[0]))
+  const origin = Utils.getBoundsCenter(
+    Utils.getCommonBounds(shapesToRotate.map((shape) => TLDR.getBounds(shape)))
+  )
 
   // Find the rotate mutations for each shape
   shapesToRotate.forEach((shape) => {
@@ -36,11 +36,6 @@ export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawComma
     before[shape.id] = TLDR.getBeforeShape(shape, change)
     after[shape.id] = change
   })
-
-  // Also rotate the bounds.
-  const beforeBoundsRotation = TLDR.getPageState(data, currentPageId).boundsRotation
-
-  const afterBoundsRotation = Utils.clampRadians((beforeBoundsRotation || 0) + delta)
 
   return {
     id: 'rotate',
@@ -52,7 +47,6 @@ export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawComma
         pageStates: {
           [currentPageId]: {
             selectedIds: ids,
-            boundsRotation: beforeBoundsRotation,
           },
         },
       },
@@ -65,7 +59,6 @@ export function rotate(data: Data, ids: string[], delta = -PI2 / 4): TLDrawComma
         pageStates: {
           [currentPageId]: {
             selectedIds: ids,
-            boundsRotation: afterBoundsRotation,
           },
         },
       },

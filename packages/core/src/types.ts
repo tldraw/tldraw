@@ -28,7 +28,6 @@ export interface TLPageState {
   hoveredId?: string | null
   editingId?: string | null
   bindingId?: string | null
-  boundsRotation?: number
   currentParentId?: string | null
 }
 

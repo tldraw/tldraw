@@ -1,12 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLBoundsCorner, Utils } from '@tldraw/core'
-import { StretchType } from '~types'
+import { StretchType, TLDrawShapeType } from '~types'
 import type { Data, TLDrawCommand } from '~types'
 import { TLDR } from '~state/tldr'
 
 export function stretch(data: Data, ids: string[], type: StretchType): TLDrawCommand {
   const { currentPageId } = data.appState
-
-  const selectedIds = TLDR.getSelectedIds(data, currentPageId)
 
   const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
 
@@ -14,9 +13,14 @@ export function stretch(data: Data, ids: string[], type: StretchType): TLDrawCom
 
   const commonBounds = Utils.getCommonBounds(boundsForShapes)
 
+  const idsToMutate = ids.flatMap((id) => {
+    const shape = TLDR.getShape(data, id, currentPageId)
+    return shape.children ? shape.children : shape.id
+  })
+
   const { before, after } = TLDR.mutateShapes(
     data,
-    ids,
+    idsToMutate,
     (shape) => {
       const bounds = TLDR.getBounds(shape)
 
@@ -58,6 +62,13 @@ export function stretch(data: Data, ids: string[], type: StretchType): TLDrawCom
     currentPageId
   )
 
+  initialShapes.forEach((shape) => {
+    if (shape.type === TLDrawShapeType.Group) {
+      delete before[shape.id]
+      delete after[shape.id]
+    }
+  })
+
   return {
     id: 'stretch',
     before: {
@@ -67,7 +78,7 @@ export function stretch(data: Data, ids: string[], type: StretchType): TLDrawCom
         },
         pageStates: {
           [currentPageId]: {
-            selectedIds,
+            selectedIds: ids,
           },
         },
       },
@@ -79,7 +90,7 @@ export function stretch(data: Data, ids: string[], type: StretchType): TLDrawCom
         },
         pageStates: {
           [currentPageId]: {
-            selectedIds,
+            selectedIds: ids,
           },
         },
       },

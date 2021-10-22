@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
-import { AlignType, TLDrawCommand } from '~types'
+import { AlignType, TLDrawCommand, TLDrawShapeType } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
+import Vec from '@tldraw/vec'
 
 export function align(data: Data, ids: string[], type: AlignType): TLDrawCommand {
   const { currentPageId } = data.appState
+
   const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
 
   const boundsForShapes = initialShapes.map((shape) => {
@@ -18,6 +21,7 @@ export function align(data: Data, ids: string[], type: AlignType): TLDrawCommand
   const commonBounds = Utils.getCommonBounds(boundsForShapes.map(({ bounds }) => bounds))
 
   const midX = commonBounds.minX + commonBounds.width / 2
+
   const midY = commonBounds.minY + commonBounds.height / 2
 
   const deltaMap = Object.fromEntries(
@@ -48,6 +52,21 @@ export function align(data: Data, ids: string[], type: AlignType): TLDrawCommand
     },
     currentPageId
   )
+
+  initialShapes.forEach((shape) => {
+    if (shape.type === TLDrawShapeType.Group) {
+      const delta = Vec.sub(after[shape.id].point!, before[shape.id].point!)
+
+      shape.children.forEach((id) => {
+        const child = TLDR.getShape(data, id, currentPageId)
+        before[child.id] = { point: child.point }
+        after[child.id] = { point: Vec.add(child.point, delta) }
+      })
+
+      delete before[shape.id]
+      delete after[shape.id]
+    }
+  })
 
   return {
     id: 'align',

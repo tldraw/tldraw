@@ -1,6 +1,7 @@
-import { StretchType, RectangleShape } from '~types'
+import { StretchType, RectangleShape, TLDrawShapeType } from '~types'
 import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
+import { mockDocument, TLStateUtils } from '~test'
+import Vec from '@tldraw/vec'
 
 describe('Stretch command', () => {
   const tlstate = new TLDrawState()
@@ -79,5 +80,25 @@ describe('when running the command', () => {
     tlstate.deselectAll().redo()
 
     expect(tlstate.selectedIds).toEqual(['rect1', 'rect2'])
+  })
+})
+
+describe('when stretching groups', () => {
+  it('stretches children', () => {
+    const tlstate = new TLDrawState()
+      .createShapes(
+        { id: 'rect1', type: TLDrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
+        { id: 'rect2', type: TLDrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
+        { id: 'rect3', type: TLDrawShapeType.Rectangle, point: [200, 200], size: [100, 100] }
+      )
+      .group(['rect1', 'rect2'], 'groupA')
+      .selectAll()
+      .stretch(StretchType.Vertical)
+
+    new TLStateUtils(tlstate).expectShapesToHaveProps({
+      rect1: { point: [0, 0], size: [100, 300] },
+      rect2: { point: [100, 0], size: [100, 300] },
+      rect3: { point: [200, 0], size: [100, 300] },
+    })
   })
 })

@@ -15,9 +15,14 @@ export function translate(data: Data, ids: string[], delta: number[]): TLDrawCom
     bindings: {},
   }
 
+  const idsToMutate = ids.flatMap((id) => {
+    const shape = TLDR.getShape(data, id, currentPageId)
+    return shape.children ? shape.children : shape.id
+  })
+
   const change = TLDR.mutateShapes(
     data,
-    ids,
+    idsToMutate,
     (shape) => ({
       point: Vec.round(Vec.add(shape.point, delta)),
     }),

@@ -61,17 +61,12 @@ export class RotateSession extends Session {
 
     this.changes = shapes
 
-    const nextBoundsRotation = this.snapshot.boundsRotation + directionDelta
-
     return {
       document: {
         pages: {
           [pageId]: {
             shapes,
           },
-        },
-        pageState: {
-          boundsRotation: Utils.clampRadians(nextBoundsRotation),
         },
       },
     }
@@ -101,8 +96,6 @@ export class RotateSession extends Session {
   complete = (data: Data) => {
     const { initialShapes } = this.snapshot
     const pageId = data.appState.currentPageId
-
-    // if (!hasUnlockedShapes) return data
 
     const beforeShapes = {} as Record<string, Partial<TLDrawShape>>
     const afterShapes = this.changes
@@ -156,7 +149,6 @@ export function getRotateSnapshot(data: Data) {
   })
 
   return {
-    boundsRotation: pageState.boundsRotation || 0,
     commonBoundsCenter,
     initialShapes: initialShapes
       .filter((shape) => shape.children === undefined)
