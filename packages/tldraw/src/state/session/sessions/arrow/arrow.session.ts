@@ -145,7 +145,7 @@ export class ArrowSession extends Session {
 
       const targetUtils = TLDR.getShapeUtils(target)
 
-      if (!altKey) {
+      if (!metaKey) {
         const center = targetUtils.getCenter(target)
         const handle = next.shape.handles.start
         const rayPoint = Vec.add(handle.point, next.shape.point)
@@ -215,7 +215,7 @@ export class ArrowSession extends Session {
 
     let draggedBinding: ArrowBinding | undefined
 
-    if (!altKey) {
+    if (!metaKey) {
       const handle = next.shape.handles[this.handleId]
       const oppositeHandle = next.shape.handles[this.handleId === 'start' ? 'end' : 'start']
       const rayOrigin = Vec.add(oppositeHandle.point, next.shape.point)
@@ -233,7 +233,7 @@ export class ArrowSession extends Session {
           rayPoint,
           rayOrigin,
           rayDirection,
-          metaKey
+          altKey
         )
 
         if (draggedBinding) break
