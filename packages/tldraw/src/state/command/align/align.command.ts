@@ -58,6 +58,11 @@ export function align(data: Data, ids: string[], type: AlignType): TLDrawCommand
             shapes: before,
           },
         },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
+          },
+        },
       },
     },
     after: {
@@ -65,6 +70,11 @@ export function align(data: Data, ids: string[], type: AlignType): TLDrawCommand
         pages: {
           [currentPageId]: {
             shapes: after,
+          },
+        },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
           },
         },
       },

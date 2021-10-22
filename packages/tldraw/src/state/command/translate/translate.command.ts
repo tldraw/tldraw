@@ -67,14 +67,24 @@ export function translate(data: Data, ids: string[], delta: number[]): TLDrawCom
     before: {
       document: {
         pages: {
-          [data.appState.currentPageId]: before,
+          [currentPageId]: before,
+        },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
+          },
         },
       },
     },
     after: {
       document: {
         pages: {
-          [data.appState.currentPageId]: after,
+          [currentPageId]: after,
+        },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
+          },
         },
       },
     },

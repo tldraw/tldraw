@@ -40,3 +40,20 @@ describe('Rotate command', () => {
 
   it.todo('Rotates shapes with handles.')
 })
+
+describe('when running the command', () => {
+  it('restores selection on undo', () => {
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .select('rect1')
+      .rotate()
+      .deselectAll()
+      .undo()
+
+    expect(tlstate.selectedIds).toEqual(['rect1'])
+
+    tlstate.deselectAll().redo()
+
+    expect(tlstate.selectedIds).toEqual(['rect1'])
+  })
+})

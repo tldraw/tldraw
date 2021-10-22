@@ -64,12 +64,22 @@ export function flip(data: Data, ids: string[], type: FlipType): TLDrawCommand {
         pages: {
           [data.appState.currentPageId]: { shapes: before },
         },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
+          },
+        },
       },
     },
     after: {
       document: {
         pages: {
           [data.appState.currentPageId]: { shapes: after },
+        },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
+          },
         },
       },
     },

@@ -221,14 +221,24 @@ export function move(data: Data, ids: string[], type: MoveType): TLDrawCommand {
     before: {
       document: {
         pages: {
-          [data.appState.currentPageId]: { shapes: result.before },
+          [currentPageId]: { shapes: result.before },
+        },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
+          },
         },
       },
     },
     after: {
       document: {
         pages: {
-          [data.appState.currentPageId]: { shapes: result.after },
+          [currentPageId]: { shapes: result.after },
+        },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
+          },
         },
       },
     },

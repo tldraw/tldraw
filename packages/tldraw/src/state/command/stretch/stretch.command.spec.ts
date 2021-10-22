@@ -64,3 +64,20 @@ describe('Stretch command', () => {
     expect(tlstate.getShape<RectangleShape>('rect2').size).toStrictEqual([100, 200])
   })
 })
+
+describe('when running the command', () => {
+  it('restores selection on undo', () => {
+    const tlstate = new TLDrawState()
+      .loadDocument(mockDocument)
+      .select('rect1', 'rect2')
+      .stretch(StretchType.Horizontal)
+      .deselectAll()
+      .undo()
+
+    expect(tlstate.selectedIds).toEqual(['rect1', 'rect2'])
+
+    tlstate.deselectAll().redo()
+
+    expect(tlstate.selectedIds).toEqual(['rect1', 'rect2'])
+  })
+})

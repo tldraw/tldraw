@@ -60,6 +60,11 @@ export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>):
             shapes: beforeShapes,
           },
         },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
+          },
+        },
       },
       appState: {
         currentStyle: { ...data.appState.currentStyle },
@@ -70,6 +75,11 @@ export function style(data: Data, ids: string[], changes: Partial<ShapeStyles>):
         pages: {
           [currentPageId]: {
             shapes: afterShapes,
+          },
+        },
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: ids,
           },
         },
       },
