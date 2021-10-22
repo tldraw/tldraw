@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
-import { DistributeType, TLDrawShape, Data, TLDrawCommand } from '~types'
+import { DistributeType, TLDrawShape, Data, TLDrawCommand, TLDrawShapeType } from '~types'
 import { TLDR } from '~state/tldr'
+import Vec from '@tldraw/vec'
 
 export function distribute(data: Data, ids: string[], type: DistributeType): TLDrawCommand {
   const { currentPageId } = data.appState
@@ -18,6 +20,21 @@ export function distribute(data: Data, ids: string[], type: DistributeType): TLD
     },
     currentPageId
   )
+
+  initialShapes.forEach((shape) => {
+    if (shape.type === TLDrawShapeType.Group) {
+      const delta = Vec.sub(after[shape.id].point!, before[shape.id].point!)
+
+      shape.children.forEach((id) => {
+        const child = TLDR.getShape(data, id, currentPageId)
+        before[child.id] = { point: child.point }
+        after[child.id] = { point: Vec.add(child.point, delta) }
+      })
+
+      delete before[shape.id]
+      delete after[shape.id]
+    }
+  })
 
   return {
     id: 'distribute',

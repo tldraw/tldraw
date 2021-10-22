@@ -59,9 +59,7 @@ export function align(data: Data, ids: string[], type: AlignType): TLDrawCommand
 
       shape.children.forEach((id) => {
         const child = TLDR.getShape(data, id, currentPageId)
-
         before[child.id] = { point: child.point }
-
         after[child.id] = { point: Vec.add(child.point, delta) }
       })
 
