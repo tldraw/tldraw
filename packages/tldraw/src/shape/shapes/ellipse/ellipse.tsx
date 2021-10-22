@@ -10,6 +10,7 @@ import {
   intersectRayEllipse,
 } from '@tldraw/intersect'
 import { EASINGS } from '~state/utils'
+import { BINDING_DISTANCE } from '~constants'
 
 export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Ellipse,
@@ -186,7 +187,15 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
       let bindingPoint: number[]
       let distance: number
 
-      if (!Utils.pointInEllipse(point, center, shape.radius[0] + 32, shape.radius[1] + 32)) return
+      if (
+        !Utils.pointInEllipse(
+          point,
+          center,
+          shape.radius[0] + BINDING_DISTANCE,
+          shape.radius[1] + BINDING_DISTANCE
+        )
+      )
+        return
 
       if (anywhere) {
         if (Vec.dist(point, this.getCenter(shape)) < 12) {
@@ -238,7 +247,7 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
           Utils.pointInEllipse(point, center, shape.radius[0], shape.radius[1], shape.rotation || 0)
         ) {
           // Pad the arrow out by 16 points
-          distance = 16
+          distance = BINDING_DISTANCE / 2
         } else {
           // Find the distance between the point and the ellipse
           const innerIntersection = intersectLineSegmentEllipse(
@@ -254,7 +263,7 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
             return undefined
           }
 
-          distance = Math.max(16, Vec.dist(point, innerIntersection))
+          distance = Math.max(BINDING_DISTANCE / 2, Vec.dist(point, innerIntersection))
         }
       }
 

@@ -13,6 +13,7 @@ import { SessionType, TLDrawShapeType } from '~types'
 import { BaseTool } from '../BaseTool'
 import Vec from '@tldraw/vec'
 import { TLDR } from '~state/tldr'
+import { CLONING_DISTANCE } from '~constants'
 
 enum Status {
   Idle = 'idle',
@@ -123,14 +124,23 @@ export class SelectTool extends BaseTool<Status> {
       const center = utils.getCenter(shape)
 
       let point = {
-        top: [bounds.minX, bounds.minY - (bounds.height + 32)],
-        right: [bounds.maxX + 32, bounds.minY],
-        bottom: [bounds.minX, bounds.maxY + 32],
-        left: [bounds.minX - (bounds.width + 32), bounds.minY],
-        topLeft: [bounds.minX - (bounds.width + 32), bounds.minY - (bounds.height + 32)],
-        topRight: [bounds.maxX + 32, bounds.minY - (bounds.height + 32)],
-        bottomLeft: [bounds.minX - (bounds.width + 32), bounds.maxY + 32],
-        bottomRight: [bounds.maxX + 32, bounds.maxY + 32],
+        top: [bounds.minX, bounds.minY - (bounds.height + CLONING_DISTANCE)],
+        right: [bounds.maxX + CLONING_DISTANCE, bounds.minY],
+        bottom: [bounds.minX, bounds.maxY + CLONING_DISTANCE],
+        left: [bounds.minX - (bounds.width + CLONING_DISTANCE), bounds.minY],
+        topLeft: [
+          bounds.minX - (bounds.width + CLONING_DISTANCE),
+          bounds.minY - (bounds.height + CLONING_DISTANCE),
+        ],
+        topRight: [
+          bounds.maxX + CLONING_DISTANCE,
+          bounds.minY - (bounds.height + CLONING_DISTANCE),
+        ],
+        bottomLeft: [
+          bounds.minX - (bounds.width + CLONING_DISTANCE),
+          bounds.maxY + CLONING_DISTANCE,
+        ],
+        bottomRight: [bounds.maxX + CLONING_DISTANCE, bounds.maxY + CLONING_DISTANCE],
       }[side]
 
       if (shape.rotation !== 0) {

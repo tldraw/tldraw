@@ -6,6 +6,7 @@ import { getShapeStyle, getFontStyle, defaultStyle } from '~shape/shape-styles'
 import { TextShape, TLDrawShapeType, TLDrawMeta } from '~types'
 import css from '~styles'
 import { TextAreaUtils } from '../shared'
+import { BINDING_DISTANCE } from '~constants'
 
 const LETTER_SPACING = -1.5
 
@@ -169,6 +170,19 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
               color: styles.stroke,
             }}
           >
+            {isBinding && (
+              <div
+                className="tl-binding-indicator"
+                style={{
+                  position: 'absolute',
+                  top: -BINDING_DISTANCE,
+                  left: -BINDING_DISTANCE,
+                  width: `calc(100% + ${BINDING_DISTANCE * 2}px)`,
+                  height: `calc(100% + ${BINDING_DISTANCE * 2}px)`,
+                  backgroundColor: 'var(--tl-selectFill)',
+                }}
+              />
+            )}
             {isEditing ? (
               <textarea
                 className={textArea({ isBinding })}

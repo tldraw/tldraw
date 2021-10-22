@@ -5,6 +5,7 @@ import getStroke, { getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawMeta } from '~types'
 import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
+import { BINDING_DISTANCE } from '~constants'
 
 export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Rectangle,
@@ -40,10 +41,10 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
           {isBinding && (
             <rect
               className="tl-binding-indicator"
-              x={strokeWidth / 2 - 32}
-              y={strokeWidth / 2 - 32}
-              width={Math.max(0, size[0] - strokeWidth / 2) + 64}
-              height={Math.max(0, size[1] - strokeWidth / 2) + 64}
+              x={strokeWidth / 2 - BINDING_DISTANCE}
+              y={strokeWidth / 2 - BINDING_DISTANCE}
+              width={Math.max(0, size[0] - strokeWidth / 2) + BINDING_DISTANCE * 2}
+              height={Math.max(0, size[1] - strokeWidth / 2) + BINDING_DISTANCE * 2}
             />
           )}
           <path

@@ -21,6 +21,7 @@ import {
   intersectRayEllipse,
 } from '@tldraw/intersect'
 import { EASINGS } from '~state/utils'
+import { BINDING_DISTANCE } from '~constants'
 
 export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Arrow,
@@ -394,7 +395,7 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
   onBindingChange(shape, binding: ArrowBinding, target, targetBounds, center) {
     const handle = shape.handles[binding.meta.handleId as keyof ArrowShape['handles']]
 
-    const expandedBounds = Utils.expandBounds(targetBounds, 32)
+    const expandedBounds = Utils.expandBounds(targetBounds, BINDING_DISTANCE)
 
     // The anchor is the "actual" point in the target shape
     // (Remember that the binding.point is normalized)
