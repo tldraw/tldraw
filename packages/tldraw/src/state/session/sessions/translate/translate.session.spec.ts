@@ -298,6 +298,21 @@ describe('Translate session', () => {
         .updateSession([20, 20], false, false)
         .updateSession([20, 20], false, true)
         .completeSession()
+
+      expect(tlstate.shapes.filter((shape) => shape.type === TLDrawShapeType.Group).length).toBe(2)
+    })
+
+    it('deletes clones when not cloning anymore', () => {
+      tlstate
+        .loadDocument(mockDocument)
+        .select('rect1', 'rect2')
+        .group()
+        .startSession(SessionType.Translate, [10, 10])
+        .updateSession([20, 20], false, true)
+        .updateSession([20, 20], false, false)
+        .completeSession()
+
+      expect(tlstate.shapes.filter((shape) => shape.type === TLDrawShapeType.Group).length).toBe(1)
     })
 
     it('clones the shapes and children when selecting a group and a different shape', () => {

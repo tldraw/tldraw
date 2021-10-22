@@ -12,6 +12,7 @@ import {
   GroupShape,
   SessionType,
   ArrowBinding,
+  TLDrawShapeType,
 } from '~types'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~state/constants'
 import { TLDR } from '~state/tldr'
@@ -273,9 +274,8 @@ export class TranslateSession extends Session {
 
         bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = undefined))
 
-        // Delete the clones
+        // Remove the clones from parents
         clones.forEach((clone) => {
-          nextShapes[clone.id] = undefined
           if (clone.parentId !== currentPageId) {
             nextShapes[clone.parentId] = {
               ...nextShapes[clone.parentId],
@@ -283,6 +283,9 @@ export class TranslateSession extends Session {
             }
           }
         })
+
+        // Delete the clones (including any parent clones)
+        clones.forEach((clone) => (nextShapes[clone.id] = undefined))
 
         // Move the original shapes back to the cursor position
         initialShapes.forEach((shape) => {
