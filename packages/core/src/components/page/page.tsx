@@ -105,7 +105,7 @@ export const Page = React.memo(function Page<T extends TLShape, M extends Record
           hideCloneHandles={_hideCloneHandles}
         />
       )}
-      {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} />}
+      {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} zoom={zoom} />}
     </>
   )
 })

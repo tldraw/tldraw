@@ -104,7 +104,7 @@ export class ArrowSession extends Session {
 
     const handle = {
       ...handles[handleId],
-      point: Vec.sub(Vec.add(handles[handleId].point, delta), shape.point),
+      point: Vec.round(Vec.sub(Vec.add(handles[handleId].point, delta), shape.point)),
       bindingId: undefined,
     }
 
