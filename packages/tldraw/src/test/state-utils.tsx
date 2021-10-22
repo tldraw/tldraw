@@ -1,5 +1,6 @@
 import { inputs, TLBoundsEdge, TLBoundsCorner, TLBoundsHandle } from '@tldraw/core'
 import type { TLDrawState } from '~state'
+import type { TLDrawShape } from '~types'
 
 interface PointerOptions {
   id?: number
@@ -158,6 +159,16 @@ export class TLStateUtils {
   expectShapesToBeAtPoints = (shapes: Record<string, number[]>) => {
     Object.entries(shapes).forEach(([id, point]) => {
       expect(this.tlstate.getShape(id).point).toEqual(point)
+    })
+    return this
+  }
+
+  expectShapesToHaveProps = <T extends TLDrawShape>(shapes: Record<string, Partial<T>>) => {
+    Object.entries(shapes).forEach(([id, props]) => {
+      const shape = this.tlstate.getShape<T>(id)
+      Object.entries(props).forEach(([key, value]) => {
+        expect(shape[key as keyof T]).toEqual(value)
+      })
     })
     return this
   }

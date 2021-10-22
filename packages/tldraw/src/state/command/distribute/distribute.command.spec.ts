@@ -40,8 +40,8 @@ describe('Distribute command', () => {
   })
 })
 
-describe('when aligning groups', () => {
-  it('aligns children', () => {
+describe('when distributing groups', () => {
+  it('distributes children', () => {
     const tlstate = new TLDrawState()
       .createShapes(
         { id: 'rect1', type: TLDrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
