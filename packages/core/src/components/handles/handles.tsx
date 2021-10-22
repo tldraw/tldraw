@@ -26,6 +26,8 @@ export const Handles = React.memo(({ shape, zoom }: HandlesProps): JSX.Element |
     return acc
   }, [] as TLHandle[])
 
+  if (handlesToShow.length === 1) return null
+
   return (
     <>
       {handlesToShow.map((handle) => (
