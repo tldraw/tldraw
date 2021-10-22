@@ -2,7 +2,7 @@
 	"name": "wardlt",
 	"displayName": "Wardlt Editor",
 	"description": "The wardlt editor for VS Code",
-	"version": "0.7.0",
+	"version": "0.10.0",
 	"publisher": "Wardlt",
 	"repository": "https://github.com/microsoft/vscode-extension-samples/helloworld-web-sample",
 	"engines": {

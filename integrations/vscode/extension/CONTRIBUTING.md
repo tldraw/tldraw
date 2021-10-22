@@ -53,9 +53,45 @@ Things we're cutting
      - If you close and reopen a .tldr file, it will load the latest change though
 
 ## Publishing/Packaging Extensions
+**This stuff needs to be fully automated!!! We're not quite there yet.**
 
-Read instructions here:
-https://code.visualstudio.com/api/working-with-extensions/publishing-extension
+ - Make sure you have the vsce command line tool installed
+  - `npm install -g vsce`
+ - Build the editor static site
+  - `cd integrations/vscode/editor`
+  - `yarn build`
+  - This will build a static version of the create react app and put it into `integrations/vscode/editor`.
+ - Bump the package.json version
+   - Just do this manually in the file
+ - Change the code in `integrations/vscode/extension/src/get-html.ts` so it uses the production path. It should look like this:
+   
+          //return getDevModeHTML(context, webview, documentContent);
+          return getProductionModeHTML(context, webview, documentContent);
+
+ - Run script that copies over the latest static file path hashes
+   - **TODO**: Find this script. It seems to have gone missing and I can't find it in history
+    - The manual version is to look at the latest editor-build/index.html and copy/reference it into get-html.ts
+ - Compile the extension in production mode
+   - `npm run package-web`
+ - Package up the extension as an extension installer .vsix
+   - `vsce package`
+   - A file with a name like: `wardlt-0.8.0.vsix` will now be put in the extension root
+     - TODO: Make this get build to a proper temp directory like dist
+ - Before publishing test using the .vsix based installation workflow available in VS Code Desktop
+ - Use the Web UI to publish the latest extension by uploading the .vsix file
+   - https://marketplace.visualstudio.com/manage/publishers/Wardlt
+   - Click on the elipse button and choose Update, then select the .vsix we just generated
+   - It should take a few minutes to go through some automated validation the VS Code Marketplace does
+ - Now test it quickly 
+   - Desktop
+   - github.dev
+    - Go here and then press '.' https://github.com/tldraw/tldraw/tree/vscode-extension-v1/integrations/vscode/extension/examples
+     - Try one of the .tldr files
+   - Codespaces
+     - Go here: https://github.com/conveyhq/codespaces-test
+     - Select Code -> main or go straight there via link: https://seflless-conveyhq-codespaces-test-x76jf9xq7.github.dev/
+     - I have a test code space here with a .tldr file already included
+ - Read more about this topic here: [Publishing Extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
 
 #### Good References
 
@@ -71,3 +107,4 @@ https://code.visualstudio.com/api/working-with-extensions/publishing-extension
 - [Custom Editor API](https://code.visualstudio.com/api/extension-guides/custom-editors)
 - [github.com/microsoft/vscode-extension-samples](https://github.com/microsoft/vscode-extension-samples)
 - [Extensions Guide -> Webviews](https://code.visualstudio.com/api/extension-guides/webview)
+- [Publishing Extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
