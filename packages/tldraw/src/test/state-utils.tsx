@@ -1,4 +1,4 @@
-import { inputs, TLBoundsEdge, TLBoundsCorner } from '@tldraw/core'
+import { inputs, TLBoundsEdge, TLBoundsCorner, TLBoundsHandle } from '@tldraw/core'
 import type { TLDrawState } from '~state'
 
 interface PointerOptions {
@@ -20,11 +20,13 @@ export class TLStateUtils {
   movePointer = (options: PointerOptions = {}) => {
     const { tlstate } = this
     tlstate.onPointerMove(inputs.pointerMove(this.getPoint(options), ''), {} as React.PointerEvent)
+    return this
   }
 
   hoverShape = (id: string, options: PointerOptions = {}) => {
     const { tlstate } = this
     tlstate.onHoverShape(inputs.pointerDown(this.getPoint(options), id), {} as React.PointerEvent)
+    return this
   }
 
   pointCanvas = (options: PointerOptions = {}) => {
@@ -75,12 +77,21 @@ export class TLStateUtils {
     return this
   }
 
-  pointBoundsHandle = (
-    id: TLBoundsCorner | TLBoundsEdge | 'rotate',
-    options: PointerOptions = {}
-  ) => {
-    this.tlstate.onPointBounds(
-      inputs.pointerDown(this.getPoint(options), 'bounds'),
+  pointBoundsHandle = (id: TLBoundsHandle, options: PointerOptions = {}) => {
+    this.tlstate.onPointBoundsHandle(
+      inputs.pointerDown(this.getPoint(options), id),
+      {} as React.PointerEvent
+    )
+    this.tlstate.onPointerDown(
+      inputs.pointerDown(this.getPoint(options), 'canvas'),
+      {} as React.PointerEvent
+    )
+    return this
+  }
+
+  doubleClickBoundHandle = (id: TLBoundsHandle, options: PointerOptions = {}) => {
+    this.tlstate.onDoubleClickBoundsHandle(
+      inputs.pointerDown(this.getPoint(options), id),
       {} as React.PointerEvent
     )
     this.tlstate.onPointerDown(
@@ -137,5 +148,17 @@ export class TLStateUtils {
       clientX: x,
       clientY: y,
     } as PointerEvent
+  }
+
+  expectSelectedIdsToBe = (b: string[]) => {
+    expect(new Set(this.tlstate.selectedIds)).toEqual(new Set(b))
+    return this
+  }
+
+  expectShapesToBeAtPoints = (shapes: Record<string, number[]>) => {
+    Object.entries(shapes).forEach(([id, point]) => {
+      expect(this.tlstate.getShape(id).point).toEqual(point)
+    })
+    return this
   }
 }

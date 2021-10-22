@@ -4,6 +4,7 @@ import { defaultStyle } from '~shape/shape-styles'
 import { GroupShape, TLDrawShapeType, ColorStyle, TLDrawMeta } from '~types'
 import { getBoundsRectangle } from '../shared'
 import css from '~styles'
+import { BINDING_DISTANCE } from '~constants'
 
 export const Group = new ShapeUtil<GroupShape, SVGSVGElement, TLDrawMeta>(() => ({
   type: TLDrawShapeType.Group,
@@ -46,10 +47,10 @@ export const Group = new ShapeUtil<GroupShape, SVGSVGElement, TLDrawMeta>(() => 
         {isBinding && (
           <rect
             className="tl-binding-indicator"
-            x={-32}
-            y={-32}
-            width={size[0] + 64}
-            height={size[1] + 64}
+            x={-BINDING_DISTANCE}
+            y={-BINDING_DISTANCE}
+            width={size[0] + BINDING_DISTANCE * 2}
+            height={size[1] + BINDING_DISTANCE * 2}
           />
         )}
         <rect x={0} y={0} width={size[0]} height={size[1]} fill="transparent" pointerEvents="all" />

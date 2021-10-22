@@ -11,6 +11,7 @@ import {
 import { Vec } from '@tldraw/vec'
 import { Utils, TLBounds } from '@tldraw/core'
 import { TLDR } from '~state/tldr'
+import { BINDING_DISTANCE } from '~constants'
 
 export class ArrowSession extends Session {
   static type = SessionType.Arrow
@@ -437,7 +438,7 @@ export class ArrowSession extends Session {
       point,
       origin,
       direction,
-      32,
+      BINDING_DISTANCE,
       bindAnywhere
     )
 

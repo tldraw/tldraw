@@ -3,18 +3,14 @@ import { mockDocument } from '~test'
 import { ArrowShape, SessionType, TLDrawShapeType, TLDrawStatus } from '~types'
 
 describe('Arrow session', () => {
-  const tlstate = new TLDrawState()
-
-  tlstate
+  const restoreDoc = new TLDrawState()
     .loadDocument(mockDocument)
     .selectAll()
     .delete()
     .createShapes(
       { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
       { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
-    )
-
-  const restoreDoc = tlstate.document
+    ).document
 
   it('begins, updateSession', () => {
     const tlstate = new TLDrawState()
@@ -80,7 +76,7 @@ describe('Arrow session', () => {
         .loadDocument(restoreDoc)
         .select('arrow1')
         .startSession(SessionType.Arrow, [200, 200], 'start')
-        .updateSession([132, -32])
+        .updateSession([124, -24])
       expect(tlstate.bindings[0].meta.point).toStrictEqual([1, 0])
     })
 
@@ -101,7 +97,7 @@ describe('Arrow session', () => {
         .startSession(SessionType.Arrow, [200, 200], 'start')
         .updateSession([91, 9])
 
-      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.68, 0.13])
+      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.71, 0.11])
 
       tlstate.updateSession([91, 9], false, false, true)
     })
@@ -111,13 +107,9 @@ describe('Arrow session', () => {
         .loadDocument(restoreDoc)
         .select('arrow1')
         .startSession(SessionType.Arrow, [200, 200], 'start')
-        .updateSession([91, 9])
+        .updateSession([91, 9], false, false, true)
 
-      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.68, 0.13])
-
-      tlstate.updateSession([91, 9], false, false, true)
-
-      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.75, 0.25])
+      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.78, 0.22])
     })
 
     it('ignores binding when alt is held', () => {

@@ -191,10 +191,6 @@ export const ShapeUtil = function <T extends TLShape, E extends Element, M = any
       return
     },
 
-    onStyleChange() {
-      return
-    },
-
     onBindingChange() {
       return
     },

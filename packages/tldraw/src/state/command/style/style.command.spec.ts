@@ -1,6 +1,7 @@
 import { TLDrawState } from '~state'
+import { TLDR } from '~state/tldr'
 import { mockDocument } from '~test'
-import { SizeStyle } from '~types'
+import { SizeStyle, TLDrawShapeType } from '~types'
 
 describe('Style command', () => {
   const tlstate = new TLDrawState()
@@ -44,6 +45,34 @@ describe('Style command', () => {
 
       expect(tlstate.getShape('rect1').style.size).toEqual(SizeStyle.Small)
       expect(tlstate.getShape('rect2').style.size).toEqual(SizeStyle.Small)
+    })
+  })
+
+  describe('When styling text', () => {
+    it('recenters the shape if the size changed', () => {
+      const tlstate = new TLDrawState().createShapes({
+        id: 'text1',
+        type: TLDrawShapeType.Text,
+        text: 'Hello world',
+      })
+
+      const centerA = TLDR.getShapeUtils(TLDrawShapeType.Text).getCenter(tlstate.getShape('text1'))
+
+      tlstate.select('text1').style({ size: SizeStyle.Large })
+
+      const centerB = TLDR.getShapeUtils(TLDrawShapeType.Text).getCenter(tlstate.getShape('text1'))
+
+      tlstate.style({ size: SizeStyle.Small })
+
+      const centerC = TLDR.getShapeUtils(TLDrawShapeType.Text).getCenter(tlstate.getShape('text1'))
+
+      tlstate.style({ size: SizeStyle.Medium })
+
+      const centerD = TLDR.getShapeUtils(TLDrawShapeType.Text).getCenter(tlstate.getShape('text1'))
+
+      expect(centerA).toEqual(centerB)
+      expect(centerA).toEqual(centerC)
+      expect(centerB).toEqual(centerD)
     })
   })
 })

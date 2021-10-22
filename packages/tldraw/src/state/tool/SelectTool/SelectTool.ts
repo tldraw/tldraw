@@ -13,6 +13,7 @@ import { SessionType, TLDrawShapeType } from '~types'
 import { BaseTool } from '../BaseTool'
 import Vec from '@tldraw/vec'
 import { TLDR } from '~state/tldr'
+import { CLONING_DISTANCE } from '~constants'
 
 enum Status {
   Idle = 'idle',
@@ -123,14 +124,23 @@ export class SelectTool extends BaseTool<Status> {
       const center = utils.getCenter(shape)
 
       let point = {
-        top: [bounds.minX, bounds.minY - (bounds.height + 32)],
-        right: [bounds.maxX + 32, bounds.minY],
-        bottom: [bounds.minX, bounds.maxY + 32],
-        left: [bounds.minX - (bounds.width + 32), bounds.minY],
-        topLeft: [bounds.minX - (bounds.width + 32), bounds.minY - (bounds.height + 32)],
-        topRight: [bounds.maxX + 32, bounds.minY - (bounds.height + 32)],
-        bottomLeft: [bounds.minX - (bounds.width + 32), bounds.maxY + 32],
-        bottomRight: [bounds.maxX + 32, bounds.maxY + 32],
+        top: [bounds.minX, bounds.minY - (bounds.height + CLONING_DISTANCE)],
+        right: [bounds.maxX + CLONING_DISTANCE, bounds.minY],
+        bottom: [bounds.minX, bounds.maxY + CLONING_DISTANCE],
+        left: [bounds.minX - (bounds.width + CLONING_DISTANCE), bounds.minY],
+        topLeft: [
+          bounds.minX - (bounds.width + CLONING_DISTANCE),
+          bounds.minY - (bounds.height + CLONING_DISTANCE),
+        ],
+        topRight: [
+          bounds.maxX + CLONING_DISTANCE,
+          bounds.minY - (bounds.height + CLONING_DISTANCE),
+        ],
+        bottomLeft: [
+          bounds.minX - (bounds.width + CLONING_DISTANCE),
+          bounds.maxY + CLONING_DISTANCE,
+        ],
+        bottomRight: [bounds.maxX + CLONING_DISTANCE, bounds.maxY + CLONING_DISTANCE],
       }[side]
 
       if (shape.rotation !== 0) {
@@ -247,15 +257,14 @@ export class SelectTool extends BaseTool<Status> {
         if (this.pointedBoundsHandle === 'rotate') {
           // Stat a rotate session
           this.setStatus(Status.Rotating)
-
           this.state.startSession(SessionType.Rotate, point)
         } else if (
           this.pointedBoundsHandle === 'center' ||
           this.pointedBoundsHandle === 'left' ||
           this.pointedBoundsHandle === 'right'
         ) {
-          this.setStatus(Status.Translating)
           const point = this.state.getPagePoint(info.origin)
+          this.setStatus(Status.Translating)
           this.state.startSession(SessionType.Translate, point, false, this.pointedBoundsHandle)
         } else {
           // Stat a transform session
@@ -273,6 +282,14 @@ export class SelectTool extends BaseTool<Status> {
             this.state.startSession(SessionType.Transform, point, this.pointedBoundsHandle)
           }
         }
+
+        // Also update the session with the current point
+        this.state.updateSession(
+          this.state.getPagePoint(info.point),
+          info.shiftKey,
+          info.altKey,
+          info.metaKey
+        )
       }
       return
     }
@@ -529,19 +546,18 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   onDoubleClickShape: TLPointerEventHandler = (info) => {
-    // if (this.status !== Status.Idle) return
-
     const shape = this.state.getShape(info.target)
 
-    const utils = TLDR.getShapeUtils(shape.type)
-
-    if (utils.canEdit) {
+    // If we can edit the shape (and if we can select the shape) then
+    // start editing
+    if (
+      TLDR.getShapeUtils(shape.type).canEdit &&
+      (shape.parentId === this.state.currentPageId || shape.parentId === this.selectedGroupId)
+    ) {
       this.state.setEditingId(info.target)
-      // this.state.startTextSession(info.target)
     }
 
-    // If the shape is the child of a group, then drill
-    // into the group?
+    // If the shape is the child of a group, then drill into the group?
     if (shape.parentId !== this.state.currentPageId) {
       this.selectedGroupId = shape.parentId
     }
