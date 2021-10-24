@@ -13,8 +13,8 @@
           "parentId": "page",
           "childIndex": 1,
           "point": [
-            91.07,
-            663.96
+            356.21,
+            431.95
           ],
           "size": [
             200,
@@ -23,7 +23,7 @@
           "text": "Post Progress Video ",
           "rotation": 0,
           "style": {
-            "color": "Yellow",
+            "color": "Green",
             "size": "Small",
             "isFilled": false,
             "dash": "Draw"
@@ -392,13 +392,15 @@
   "pageStates": {
     "page": {
       "id": "page",
-      "selectedIds": [],
+      "selectedIds": [
+        "8fbe9251-ae23-4564-1627-d081621ee5fe"
+      ],
       "camera": {
         "point": [
-          366.91,
-          248.46
+          296.05,
+          199.88
         ],
-        "zoom": 0.5124249867870267
+        "zoom": 0.5912757644643258
       },
       "editingId": null
     }
