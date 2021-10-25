@@ -728,6 +728,7 @@ function getCurvedArrowHeadPoints(
   sweep: boolean
 ) {
   const ints = intersectCircleCircle(A, r1 * 0.618, C, r2).points
+
   if (!ints) {
     console.warn('Could not find an intersection for the arrow head.')
     return { left: A, right: A }
@@ -754,6 +755,7 @@ function getStraightArrowHeadPoints(A: number[], B: number[], r: number) {
   const left = int ? Vec.rotWith(int, A, Math.PI / 6) : A
 
   const right = int ? Vec.rotWith(int, A, -Math.PI / 6) : A
+
   return { left, right }
 }
 

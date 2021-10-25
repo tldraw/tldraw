@@ -197,7 +197,7 @@ export class Vec {
    * @returns
    */
   static tangent = (A: number[], B: number[]): number[] => {
-    return Vec.normalize(Vec.sub(A, B))
+    return Vec.uni(Vec.sub(A, B))
   }
 
   /**
@@ -446,21 +446,17 @@ export class Vec {
     P: number[],
     clamp = true
   ): number[] => {
-    const delta = Vec.sub(B, A)
-    const length = Vec.len(delta)
-    const u = Vec.div(delta, length)
-
-    const pt = Vec.add(A, Vec.mul(u, Vec.pry(Vec.sub(P, A), u)))
+    const u = Vec.uni(Vec.sub(B, A))
+    const C = Vec.add(A, Vec.mul(u, Vec.pry(Vec.sub(P, A), u)))
 
     if (clamp) {
-      const da = Vec.dist(A, pt)
-      const db = Vec.dist(B, pt)
-
-      if (db < da && da > length) return B
-      if (da < db && db > length) return A
+      if (C[0] < Math.min(A[0], B[0])) return A[0] < B[0] ? A : B
+      if (C[0] > Math.max(A[0], B[0])) return A[0] > B[0] ? A : B
+      if (C[1] < Math.min(A[1], B[1])) return A[1] < B[1] ? A : B
+      if (C[1] > Math.max(A[1], B[1])) return A[1] > B[1] ? A : B
     }
 
-    return pt
+    return C
   }
 
   /**
@@ -483,7 +479,7 @@ export class Vec {
    * @returns
    */
   static nudge = (A: number[], B: number[], d: number): number[] => {
-    return Vec.add(A, Vec.mul(Vec.uni(Vec.vec(A, B)), d))
+    return Vec.add(A, Vec.mul(Vec.uni(Vec.sub(B, A)), d))
   }
 
   /**

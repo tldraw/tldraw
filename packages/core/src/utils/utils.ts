@@ -15,6 +15,8 @@ import { Vec } from '@tldraw/vec'
 import './polyfills'
 import type { Patch, TLBoundsWithCenter } from '+index'
 
+const TAU = Math.PI * 2
+
 export class Utils {
   /* -------------------------------------------------- */
   /*                    Math & Geometry                 */
@@ -467,9 +469,9 @@ export class Utils {
    */
   static isAngleBetween(a: number, b: number, c: number): boolean {
     if (c === a || c === b) return true
-    const PI2 = Math.PI * 2
-    const AB = (b - a + PI2) % PI2
-    const AC = (c - a + PI2) % PI2
+
+    const AB = (b - a + TAU) % TAU
+    const AC = (c - a + TAU) % TAU
     return AB <= Math.PI !== AC > AB
   }
 
@@ -497,8 +499,22 @@ export class Utils {
    * @param B
    */
   static getArcLength(C: number[], r: number, A: number[], B: number[]): number {
-    const sweep = Utils.getSweep(C, A, B)
+    const sweep = Utils.getSweepFlag(C, A, B)
     return r * (2 * Math.PI) * (sweep / (2 * Math.PI))
+  }
+
+  static getSweepFlag(A: number[], B: number[], C: number[]) {
+    const angleAC = Vec.angle(A, C)
+    const angleAB = Vec.angle(A, B)
+    const angleCAB = ((angleAB - angleAC + 3 * Math.PI) % (2 * Math.PI)) - Math.PI
+    return angleCAB > 0 ? 0 : 1
+  }
+
+  static getLargeArcFlag(A: number[], C: number[], P: number[]) {
+    const anglePA = Vec.angle(P, A)
+    const anglePC = Vec.angle(P, C)
+    const angleAPC = ((anglePC - anglePA + 3 * Math.PI) % (2 * Math.PI)) - Math.PI
+    return Math.abs(angleAPC) > Math.PI / 2 ? 0 : 1
   }
 
   /**
@@ -510,7 +526,7 @@ export class Utils {
    * @param step
    */
   static getArcDashOffset(C: number[], r: number, A: number[], B: number[], step: number): number {
-    const del0 = Utils.getSweep(C, A, B)
+    const del0 = Utils.getSweepFlag(C, A, B)
     const len0 = Utils.getArcLength(C, r, A, B)
     const off0 = del0 < 0 ? len0 : 2 * Math.PI * C[2] - len0
     return -off0 / 2 + step
