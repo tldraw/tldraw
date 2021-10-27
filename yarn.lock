@@ -3722,10 +3722,10 @@
     "@babel/runtime" "^7.12.5"
     "@testing-library/dom" "^8.0.0"
 
-"@tldraw/core@^0.1.3":
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.1.3.tgz#f2fb61ca1d37b42befaeccaf4067cce4cc6ba69d"
-  integrity sha512-BJNcQc8flOdZj3Xjw96RuMC4QqErmltNmrXQEailDyjlYv5V10Nfznvrbx1QfeVBSB2/9FZAGeuJCcM6JOU6TQ==
+"@tldraw/core@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.1.4.tgz#eb44b63baf6d6a56adb3924e7860cb68f6af45b4"
+  integrity sha512-lxIUBhsP86MGyH8b2rrXI5gHOJw1EyStjWyOmVw4dykBSeTCS5EbNDaolBzSgg8hxGzOkCZdar4vyFRTg07XzQ==
   dependencies:
     "@tldraw/intersect" "^0.0.130"
     "@tldraw/vec" "^0.0.130"
