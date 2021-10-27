@@ -18,5 +18,5 @@ describe('shape', () => {
   })
 })
 
-// { shape: TLShape; ref: ForwardedRef<Element>; } & TLRenderInfo<any, any> & RefAttributes<Element>
-// { shape: BoxShape; ref: ForwardedRef<any>; } & TLRenderInfo<any, any> & RefAttributes<any>'
+// { shape: TLShape; ref: ForwardedRef<Element>; } & TLComponentProps<any, any> & RefAttributes<Element>
+// { shape: BoxShape; ref: ForwardedRef<any>; } & TLComponentProps<any, any> & RefAttributes<any>'

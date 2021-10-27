@@ -1,232 +1,229 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import * as React from 'react'
-import { Vec } from '@tldraw/vec'
-import type { TLShape, TLShapeUtil } from '+types'
-import Utils from '+utils'
-import { intersectPolylineBounds, intersectRayBounds } from '@tldraw/intersect'
+// /* eslint-disable @typescript-eslint/no-explicit-any */
+// import * as React from 'react'
+// import { Vec } from '@tldraw/vec'
+// import type { TLShape, TLShapeUtil } from '+types'
+// import Utils from '+utils'
+// import { intersectPolylineBounds, intersectRayBounds } from '@tldraw/intersect'
 
-export const ShapeUtil = function <T extends TLShape, E extends Element, M = any, K = unknown>(
-  this: TLShapeUtil<T, E, M> & K,
-  fn: (
-    this: TLShapeUtil<T, E, M> & K
-  ) => Partial<TLShapeUtil<T, E, M>> &
-    Pick<TLShapeUtil<T, E, M>, 'type' | 'defaultProps' | 'Component' | 'Indicator' | 'getBounds'> &
-    K
-): TLShapeUtil<T, E, M> & ReturnType<typeof fn> {
-  const defaults: Partial<TLShapeUtil<T, E, M>> = {
-    refMap: new Map(),
+// export const ShapeUtil = function <T extends TLShape, E extends Element, M = any, K = unknown>(
+//   this: TLShapeUtil<T, E, M> & K,
+//   fn: (
+//     this: TLShapeUtil<T, E, M> & K
+//   ) => Partial<TLShapeUtil<T, E, M>> &
+//     Pick<TLShapeUtil<T, E, M>, 'type' | 'defaultProps' | 'Component' | 'Indicator' | 'getBounds'> &
+//     K
+// ): TLShapeUtil<T, E, M> & ReturnType<typeof fn> {
+//   const defaults: Partial<TLShapeUtil<T, E, M>> = {
+//     refMap: new Map(),
 
-    boundsCache: new WeakMap(),
+//     boundsCache: new WeakMap(),
 
-    canEdit: false,
+//     canEdit: false,
 
-    canBind: false,
+//     canBind: false,
 
-    showBounds: true,
+//     showBounds: true,
 
-    isStateful: false,
+//     isStateful: false,
 
-    canClone: false,
+//     canClone: false,
 
-    isAspectRatioLocked: false,
+//     isAspectRatioLocked: false,
 
-    create: (props) => {
-      this.refMap.set(props.id, React.createRef())
-      const defaults = this.defaultProps
-      return { ...defaults, ...props }
-    },
+//     create: (props) => {
+//       this.refMap.set(props.id, React.createRef())
+//       const defaults = this.defaultProps
+//       return { ...defaults, ...props }
+//     },
 
-    getRef: (shape) => {
-      if (!this.refMap.has(shape.id)) {
-        this.refMap.set(shape.id, React.createRef<E>())
-      }
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return this.refMap.get(shape.id)!
-    },
+//     getRef: (shape) => {
+//       if (!this.refMap.has(shape.id)) {
+//         this.refMap.set(shape.id, React.createRef<E>())
+//       }
+//       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+//       return this.refMap.get(shape.id)!
+//     },
 
-    mutate: (shape, props) => {
-      return { ...shape, ...props }
-    },
+//     mutate: (shape, props) => {
+//       return { ...shape, ...props }
+//     },
 
-    transform: (shape, bounds) => {
-      return { ...shape, point: [bounds.minX, bounds.minY] }
-    },
+//     transform: (shape, bounds) => {
+//       return { ...shape, point: [bounds.minX, bounds.minY] }
+//     },
 
-    transformSingle: (shape, bounds, info) => {
-      return this.transform(shape, bounds, info)
-    },
+//     transformSingle: (shape, bounds, info) => {
+//       return this.transform(shape, bounds, info)
+//     },
 
-    shouldRender: () => {
-      return true
-    },
+//     shouldRender: () => {
+//       return true
+//     },
 
-    getRotatedBounds: (shape) => {
-      return Utils.getBoundsFromPoints(
-        Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
-      )
-    },
+//     getRotatedBounds: (shape) => {
+//       return Utils.getBoundsFromPoints(
+//         Utils.getRotatedCorners(this.getBounds(shape), shape.rotation)
+//       )
+//     },
 
-    getCenter: (shape) => {
-      return Utils.getBoundsCenter(this.getBounds(shape))
-    },
+//     getCenter: (shape) => {
+//       return Utils.getBoundsCenter(this.getBounds(shape))
+//     },
 
-    hitTest: (shape, point) => {
-      return Utils.pointInBounds(point, this.getBounds(shape))
-    },
+//     hitTest: (shape, point) => {
+//       return Utils.pointInBounds(point, this.getBounds(shape))
+//     },
 
-    hitTestBounds: (shape, bounds) => {
-      const { minX, minY, maxX, maxY, width, height } = this.getBounds(shape)
-      const center = [minX + width / 2, minY + height / 2]
+//     hitTestBounds: (shape, bounds) => {
+//       const shapeBounds = this.getBounds(shape)
 
-      const corners = [
-        [minX, minY],
-        [maxX, minY],
-        [maxX, maxY],
-        [minX, maxY],
-      ].map((point) => Vec.rotWith(point, center, shape.rotation || 0))
+//       if (!shape.rotation) {
+//         return (
+//           Utils.boundsContain(bounds, shapeBounds) ||
+//           Utils.boundsContain(shapeBounds, bounds) ||
+//           Utils.boundsCollide(shapeBounds, bounds)
+//         )
+//       }
 
-      return (
-        corners.every(
-          (point) =>
-            !(
-              point[0] < bounds.minX ||
-              point[0] > bounds.maxX ||
-              point[1] < bounds.minY ||
-              point[1] > bounds.maxY
-            )
-        ) || intersectPolylineBounds(corners, bounds).length > 0
-      )
-    },
+//       const corners = Utils.getRotatedCorners(shapeBounds, shape.rotation)
 
-    getBindingPoint: (shape, fromShape, point, origin, direction, padding, bindAnywhere) => {
-      // Algorithm time! We need to find the binding point (a normalized point inside of the shape, or around the shape, where the arrow will point to) and the distance from the binding shape to the anchor.
+//       return (
+//         corners.every((point) => Utils.pointInBounds(point, bounds)) ||
+//         intersectPolylineBounds(corners, bounds).length > 0
+//       )
+//     },
 
-      let bindingPoint: number[]
+//     getBindingPoint: (shape, fromShape, point, origin, direction, padding, bindAnywhere) => {
+//       // Algorithm time! We need to find the binding point (a normalized point inside of the shape, or around the shape, where the arrow will point to) and the distance from the binding shape to the anchor.
 
-      let distance: number
+//       let bindingPoint: number[]
 
-      const bounds = this.getBounds(shape)
+//       let distance: number
 
-      const expandedBounds = Utils.expandBounds(bounds, padding)
+//       const bounds = this.getBounds(shape)
 
-      // The point must be inside of the expanded bounding box
-      if (!Utils.pointInBounds(point, expandedBounds)) return
+//       const expandedBounds = Utils.expandBounds(bounds, padding)
 
-      // The point is inside of the shape, so we'll assume the user is indicating a specific point inside of the shape.
-      if (bindAnywhere) {
-        if (Vec.dist(point, this.getCenter(shape)) < 12) {
-          bindingPoint = [0.5, 0.5]
-        } else {
-          bindingPoint = Vec.divV(Vec.sub(point, [expandedBounds.minX, expandedBounds.minY]), [
-            expandedBounds.width,
-            expandedBounds.height,
-          ])
-        }
+//       // The point must be inside of the expanded bounding box
+//       if (!Utils.pointInBounds(point, expandedBounds)) return
 
-        distance = 0
-      } else {
-        // (1) Binding point
+//       // The point is inside of the shape, so we'll assume the user is indicating a specific point inside of the shape.
+//       if (bindAnywhere) {
+//         if (Vec.dist(point, this.getCenter(shape)) < 12) {
+//           bindingPoint = [0.5, 0.5]
+//         } else {
+//           bindingPoint = Vec.divV(Vec.sub(point, [expandedBounds.minX, expandedBounds.minY]), [
+//             expandedBounds.width,
+//             expandedBounds.height,
+//           ])
+//         }
 
-        // Find furthest intersection between ray from origin through point and expanded bounds. TODO: What if the shape has a curve? In that case, should we intersect the circle-from-three-points instead?
+//         distance = 0
+//       } else {
+//         // (1) Binding point
 
-        const intersection = intersectRayBounds(origin, direction, expandedBounds)
-          .filter((int) => int.didIntersect)
-          .map((int) => int.points[0])
-          .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
+//         // Find furthest intersection between ray from origin through point and expanded bounds. TODO: What if the shape has a curve? In that case, should we intersect the circle-from-three-points instead?
 
-        // The anchor is a point between the handle and the intersection
-        const anchor = Vec.med(point, intersection)
+//         const intersection = intersectRayBounds(origin, direction, expandedBounds)
+//           .filter((int) => int.didIntersect)
+//           .map((int) => int.points[0])
+//           .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
 
-        // If we're close to the center, snap to the center, or else calculate a normalized point based on the anchor and the expanded bounds.
+//         // The anchor is a point between the handle and the intersection
+//         const anchor = Vec.med(point, intersection)
 
-        if (Vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12) {
-          bindingPoint = [0.5, 0.5]
-        } else {
-          //
-          bindingPoint = Vec.divV(Vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]), [
-            expandedBounds.width,
-            expandedBounds.height,
-          ])
-        }
+//         // If we're close to the center, snap to the center, or else calculate a normalized point based on the anchor and the expanded bounds.
 
-        // (3) Distance
+//         if (Vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12) {
+//           bindingPoint = [0.5, 0.5]
+//         } else {
+//           //
+//           bindingPoint = Vec.divV(Vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]), [
+//             expandedBounds.width,
+//             expandedBounds.height,
+//           ])
+//         }
 
-        // If the point is inside of the bounds, set the distance to a fixed value.
-        if (Utils.pointInBounds(point, bounds)) {
-          distance = 16
-        } else {
-          // If the binding point was close to the shape's center, snap to to the center. Find the distance between the point and the real bounds of the shape
-          distance = Math.max(
-            16,
-            Utils.getBoundsSides(bounds)
-              .map((side) => Vec.distanceToLineSegment(side[1][0], side[1][1], point))
-              .sort((a, b) => a - b)[0]
-          )
-        }
-      }
+//         // (3) Distance
 
-      return {
-        point: Vec.clampV(bindingPoint, 0, 1),
-        distance,
-      }
-    },
+//         // If the point is inside of the bounds, set the distance to a fixed value.
+//         if (Utils.pointInBounds(point, bounds)) {
+//           distance = 16
+//         } else {
+//           // If the binding point was close to the shape's center, snap to to the center. Find the distance between the point and the real bounds of the shape
+//           distance = Math.max(
+//             16,
+//             Utils.getBoundsSides(bounds)
+//               .map((side) => Vec.distanceToLineSegment(side[1][0], side[1][1], point))
+//               .sort((a, b) => a - b)[0]
+//           )
+//         }
+//       }
 
-    onDoubleClickBoundsHandle() {
-      return
-    },
+//       return {
+//         point: Vec.clampV(bindingPoint, 0, 1),
+//         distance,
+//       }
+//     },
 
-    onDoubleClickHandle() {
-      return
-    },
+//     onDoubleClickBoundsHandle() {
+//       return
+//     },
 
-    onHandleChange() {
-      return
-    },
+//     onDoubleClickHandle() {
+//       return
+//     },
 
-    onRightPointHandle() {
-      return
-    },
+//     onHandleChange() {
+//       return
+//     },
 
-    onSessionComplete() {
-      return
-    },
+//     onRightPointHandle() {
+//       return
+//     },
 
-    onBindingChange() {
-      return
-    },
+//     onSessionComplete() {
+//       return
+//     },
 
-    onChildrenChange() {
-      return
-    },
+//     onBindingChange() {
+//       return
+//     },
 
-    updateChildren() {
-      return
-    },
-  }
+//     onChildrenChange() {
+//       return
+//     },
 
-  Object.assign(this, defaults)
-  Object.assign(this, fn.call(this))
-  Object.assign(this, fn.call(this))
+//     updateChildren() {
+//       return
+//     },
+//   }
 
-  // Make sure all functions are bound to this
-  for (const entry of Object.entries(this)) {
-    if (entry[1] instanceof Function) {
-      this[entry[0] as keyof typeof this] = this[entry[0]].bind(this)
-    }
-  }
+//   Object.assign(this, defaults)
+//   Object.assign(this, fn.call(this))
+//   Object.assign(this, fn.call(this))
 
-  this._Component = React.forwardRef(this.Component)
+//   // Make sure all functions are bound to this
+//   for (const entry of Object.entries(this)) {
+//     if (entry[1] instanceof Function) {
+//       this[entry[0] as keyof typeof this] = this[entry[0]].bind(this)
+//     }
+//   }
 
-  return this
-} as unknown as {
-  new <T extends TLShape, E extends Element, M = any, K = unknown>(
-    fn: (
-      this: TLShapeUtil<T, E, M>
-    ) => Partial<TLShapeUtil<T, E, M>> &
-      Pick<
-        TLShapeUtil<T, E, M>,
-        'type' | 'defaultProps' | 'Component' | 'Indicator' | 'getBounds'
-      > &
-      K
-  ): TLShapeUtil<T, E, M> & ReturnType<typeof fn>
-}
+//   this._Component = React.forwardRef(this.Component)
+
+//   return this
+// } as unknown as {
+//   new <T extends TLShape, E extends Element, M = any, K = unknown>(
+//     fn: (
+//       this: TLShapeUtil<T, E, M>
+//     ) => Partial<TLShapeUtil<T, E, M>> &
+//       Pick<
+//         TLShapeUtil<T, E, M>,
+//         'type' | 'defaultProps' | 'Component' | 'Indicator' | 'getBounds'
+//       > &
+//       K
+//   ): TLShapeUtil<T, E, M> & ReturnType<typeof fn>
+// }
+
+export {}

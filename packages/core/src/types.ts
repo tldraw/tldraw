@@ -6,7 +6,10 @@ import type React from 'react'
 
 export type Patch<T> = Partial<{ [P in keyof T]: T | Partial<T> | Patch<T[P]> }>
 
-type ForwardedRef<T> = ((instance: T | null) => void) | React.MutableRefObject<T | null> | null
+export type TLForwardedRef<T> =
+  | ((instance: T | null) => void)
+  | React.MutableRefObject<T | null>
+  | null
 
 export interface TLPage<T extends TLShape, B extends TLBinding> {
   id: string
@@ -68,14 +71,7 @@ export interface TLShape {
   isAspectRatioLocked?: boolean
 }
 
-export type TLShapeUtils<
-  T extends TLShape = any,
-  E extends Element = any,
-  M = any,
-  K = any
-> = Record<string, TLShapeUtil<T, E, M, K>>
-
-export interface TLRenderInfo<T extends TLShape, E = any, M = any> {
+export interface TLComponentProps<T extends TLShape, E = any, M = any> {
   shape: T
   isEditing: boolean
   isBinding: boolean
@@ -94,8 +90,9 @@ export interface TLRenderInfo<T extends TLShape, E = any, M = any> {
   }
 }
 
-export interface TLShapeProps<T extends TLShape, E = any, M = any> extends TLRenderInfo<T, E, M> {
-  ref: ForwardedRef<E>
+export interface TLShapeProps<T extends TLShape, E = any, M = any>
+  extends TLComponentProps<T, E, M> {
+  ref: TLForwardedRef<E>
   shape: T
 }
 
@@ -340,130 +337,130 @@ export type Snap =
 /*                   Shape Utility                    */
 /* -------------------------------------------------- */
 
-export type TLShapeUtil<
-  T extends TLShape,
-  E extends Element,
-  M = any,
-  K = { [key: string]: any }
-> = K & {
-  type: T['type']
+// export type TLShapeUtil<
+//   T extends TLShape,
+//   E extends Element,
+//   M = any,
+//   K = { [key: string]: any }
+// > = K & {
+//   type: T['type']
 
-  defaultProps: T
+//   defaultProps: T
 
-  Component(
-    this: TLShapeUtil<T, E, M>,
-    props: TLRenderInfo<T, E, M>,
-    ref: ForwardedRef<E>
-  ): React.ReactElement<TLRenderInfo<T, E, M>, E['tagName']>
+//   Component(
+//     this: TLShapeUtil<T, E, M>,
+//     props: TLComponentProps<T, E, M>,
+//     ref: TLForwardedRef<E>
+//   ): React.ReactElement<TLComponentProps<T, E, M>, E['tagName']>
 
-  Indicator(
-    this: TLShapeUtil<T, E, M>,
-    props: { shape: T; meta: M; isHovered: boolean; isSelected: boolean }
-  ): React.ReactElement | null
+//   Indicator(
+//     this: TLShapeUtil<T, E, M>,
+//     props: { shape: T; meta: M; isHovered: boolean; isSelected: boolean }
+//   ): React.ReactElement | null
 
-  getBounds(this: TLShapeUtil<T, E, M>, shape: T): TLBounds
+//   getBounds(this: TLShapeUtil<T, E, M>, shape: T): TLBounds
 
-  refMap: Map<string, React.RefObject<E>>
+//   refMap: Map<string, React.RefObject<E>>
 
-  boundsCache: WeakMap<TLShape, TLBounds>
+//   boundsCache: WeakMap<TLShape, TLBounds>
 
-  isAspectRatioLocked: boolean
+//   isAspectRatioLocked: boolean
 
-  canEdit: boolean
+//   canEdit: boolean
 
-  canClone: boolean
+//   canClone: boolean
 
-  canBind: boolean
+//   canBind: boolean
 
-  isStateful: boolean
+//   isStateful: boolean
 
-  showBounds: boolean
+//   showBounds: boolean
 
-  getRotatedBounds(this: TLShapeUtil<T, E, M>, shape: T): TLBounds
+//   getRotatedBounds(this: TLShapeUtil<T, E, M>, shape: T): TLBounds
 
-  hitTest(this: TLShapeUtil<T, E, M>, shape: T, point: number[]): boolean
+//   hitTest(this: TLShapeUtil<T, E, M>, shape: T, point: number[]): boolean
 
-  hitTestBounds(this: TLShapeUtil<T, E, M>, shape: T, bounds: TLBounds): boolean
+//   hitTestBounds(this: TLShapeUtil<T, E, M>, shape: T, bounds: TLBounds): boolean
 
-  shouldRender(this: TLShapeUtil<T, E, M>, prev: T, next: T): boolean
+//   shouldRender(this: TLShapeUtil<T, E, M>, prev: T, next: T): boolean
 
-  getCenter(this: TLShapeUtil<T, E, M>, shape: T): number[]
+//   getCenter(this: TLShapeUtil<T, E, M>, shape: T): number[]
 
-  getRef(this: TLShapeUtil<T, E, M>, shape: T): React.RefObject<E>
+//   getRef(this: TLShapeUtil<T, E, M>, shape: T): React.RefObject<E>
 
-  getBindingPoint<K extends TLShape>(
-    this: TLShapeUtil<T, E, M>,
-    shape: T,
-    fromShape: K,
-    point: number[],
-    origin: number[],
-    direction: number[],
-    padding: number,
-    bindAnywhere: boolean
-  ): { point: number[]; distance: number } | undefined
+//   getBindingPoint<K extends TLShape>(
+//     this: TLShapeUtil<T, E, M>,
+//     shape: T,
+//     fromShape: K,
+//     point: number[],
+//     origin: number[],
+//     direction: number[],
+//     padding: number,
+//     bindAnywhere: boolean
+//   ): { point: number[]; distance: number } | undefined
 
-  create: (this: TLShapeUtil<T, E, M>, props: { id: string } & Partial<T>) => T
+//   create: (this: TLShapeUtil<T, E, M>, props: { id: string } & Partial<T>) => T
 
-  mutate: (this: TLShapeUtil<T, E, M>, shape: T, props: Partial<T>) => Partial<T>
+//   mutate: (this: TLShapeUtil<T, E, M>, shape: T, props: Partial<T>) => Partial<T>
 
-  transform: (
-    this: TLShapeUtil<T, E, M>,
-    shape: T,
-    bounds: TLBounds,
-    info: TLTransformInfo<T>
-  ) => Partial<T> | void
+//   transform: (
+//     this: TLShapeUtil<T, E, M>,
+//     shape: T,
+//     bounds: TLBounds,
+//     info: TLTransformInfo<T>
+//   ) => Partial<T> | void
 
-  transformSingle: (
-    this: TLShapeUtil<T, E, M>,
-    shape: T,
-    bounds: TLBounds,
-    info: TLTransformInfo<T>
-  ) => Partial<T> | void
+//   transformSingle: (
+//     this: TLShapeUtil<T, E, M>,
+//     shape: T,
+//     bounds: TLBounds,
+//     info: TLTransformInfo<T>
+//   ) => Partial<T> | void
 
-  updateChildren: <K extends TLShape>(
-    this: TLShapeUtil<T, E, M>,
-    shape: T,
-    children: K[]
-  ) => Partial<K>[] | void
+//   updateChildren: <K extends TLShape>(
+//     this: TLShapeUtil<T, E, M>,
+//     shape: T,
+//     children: K[]
+//   ) => Partial<K>[] | void
 
-  onChildrenChange: (this: TLShapeUtil<T, E, M>, shape: T, children: TLShape[]) => Partial<T> | void
+//   onChildrenChange: (this: TLShapeUtil<T, E, M>, shape: T, children: TLShape[]) => Partial<T> | void
 
-  onBindingChange: (
-    this: TLShapeUtil<T, E, M>,
-    shape: T,
-    binding: TLBinding,
-    target: TLShape,
-    targetBounds: TLBounds,
-    center: number[]
-  ) => Partial<T> | void
+//   onBindingChange: (
+//     this: TLShapeUtil<T, E, M>,
+//     shape: T,
+//     binding: TLBinding,
+//     target: TLShape,
+//     targetBounds: TLBounds,
+//     center: number[]
+//   ) => Partial<T> | void
 
-  onHandleChange: (
-    this: TLShapeUtil<T, E, M>,
-    shape: T,
-    handle: Partial<T['handles']>,
-    info: Partial<TLPointerInfo>
-  ) => Partial<T> | void
+//   onHandleChange: (
+//     this: TLShapeUtil<T, E, M>,
+//     shape: T,
+//     handle: Partial<T['handles']>,
+//     info: Partial<TLPointerInfo>
+//   ) => Partial<T> | void
 
-  onRightPointHandle: (
-    this: TLShapeUtil<T, E, M>,
-    shape: T,
-    handle: Partial<T['handles']>,
-    info: Partial<TLPointerInfo>
-  ) => Partial<T> | void
+//   onRightPointHandle: (
+//     this: TLShapeUtil<T, E, M>,
+//     shape: T,
+//     handle: Partial<T['handles']>,
+//     info: Partial<TLPointerInfo>
+//   ) => Partial<T> | void
 
-  onDoubleClickHandle: (
-    this: TLShapeUtil<T, E, M>,
-    shape: T,
-    handle: Partial<T['handles']>,
-    info: Partial<TLPointerInfo>
-  ) => Partial<T> | void
+//   onDoubleClickHandle: (
+//     this: TLShapeUtil<T, E, M>,
+//     shape: T,
+//     handle: Partial<T['handles']>,
+//     info: Partial<TLPointerInfo>
+//   ) => Partial<T> | void
 
-  onDoubleClickBoundsHandle: (this: TLShapeUtil<T, E, M>, shape: T) => Partial<T> | void
+//   onDoubleClickBoundsHandle: (this: TLShapeUtil<T, E, M>, shape: T) => Partial<T> | void
 
-  onSessionComplete: (this: TLShapeUtil<T, E, M>, shape: T) => Partial<T> | void
+//   onSessionComplete: (this: TLShapeUtil<T, E, M>, shape: T) => Partial<T> | void
 
-  _Component: React.ForwardRefExoticComponent<any>
-}
+//   _Component: React.ForwardRefExoticComponent<any>
+// }
 
 // export interface TLShapeUtil<T extends TLShape, E extends Element, M = any>
 //   extends TLShapeUtilRequired<T, E, M>,

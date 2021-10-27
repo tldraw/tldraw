@@ -6,14 +6,13 @@ import type {
   TLPage,
   TLPageState,
   TLShape,
-  TLShapeUtils,
   TLCallbacks,
   TLBinding,
   TLBounds,
-  TLShapeUtil,
 } from '+types'
 import { Utils } from '+utils'
 import { Vec } from '@tldraw/vec'
+import type { TLShapeUtil, TLShapeUtilsMap } from '+shape-utils'
 
 function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   shape: T,
@@ -70,13 +69,6 @@ function shapeIsInViewport(bounds: TLBounds, viewport: TLBounds) {
   return Utils.boundsContain(viewport, bounds) || Utils.boundsCollide(viewport, bounds)
 }
 
-function getShapeUtils<T extends TLShape, E extends Element>(
-  shape: T,
-  shapeUtils: TLShapeUtils<T, E>
-) {
-  return shapeUtils[shape.type] as TLShapeUtil<T, E>
-}
-
 export function useShapeTree<
   T extends TLShape,
   E extends Element,
@@ -84,7 +76,7 @@ export function useShapeTree<
 >(
   page: TLPage<T, TLBinding>,
   pageState: TLPageState,
-  shapeUtils: TLShapeUtils<T, E>,
+  shapeUtils: TLShapeUtilsMap<T>,
   size: number[],
   meta?: M,
   onRenderCountChange?: TLCallbacks<T>['onRenderCountChange']
@@ -122,7 +114,7 @@ export function useShapeTree<
     .filter(
       (shape) =>
         // Always render shapes that are flagged as stateful
-        getShapeUtils(shape, shapeUtils).isStateful ||
+        shapeUtils[shape.type as T['type']].isStateful ||
         // Always render selected shapes (this preserves certain drag interactions)
         selectedIds.includes(shape.id) ||
         // Otherwise, only render shapes that are in view

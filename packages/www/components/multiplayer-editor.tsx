@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLDraw, TLDrawState, Data, TLDrawDocument, TLDrawUser } from '@tldraw/tldraw'
-import * as gtag from '-utils/gtag'
 import * as React from 'react'
 import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useObject, useErrorListener } from '@liveblocks/react'
@@ -59,15 +58,18 @@ function Editor({ id }: { id: string }) {
   })
 
   // Put the tlstate into the window, for debugging.
-  const handleMount = React.useCallback((tlstate: TLDrawState) => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    window.tlstate = tlstate
+  const handleMount = React.useCallback(
+    (tlstate: TLDrawState) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      window.tlstate = tlstate
 
-    tlstate.loadRoom(id)
+      tlstate.loadRoom(id)
 
-    setTlstate(tlstate)
-  }, [])
+      setTlstate(tlstate)
+    },
+    [id]
+  )
 
   const handleChange = React.useCallback(
     (_tlstate: TLDrawState, state: Data, reason: string) => {

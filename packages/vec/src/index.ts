@@ -264,7 +264,7 @@ export class Vec {
    * @param A
    * @param r rotation in radians
    */
-  static rot = (A: number[], r: number): number[] => {
+  static rot = (A: number[], r = 0): number[] => {
     return [A[0] * Math.cos(r) - A[1] * Math.sin(r), A[0] * Math.sin(r) + A[1] * Math.cos(r)]
   }
 
@@ -274,7 +274,7 @@ export class Vec {
    * @param C center
    * @param r rotation in radians
    */
-  static rotWith = (A: number[], C: number[], r: number): number[] => {
+  static rotWith = (A: number[], C: number[], r = 0): number[] => {
     if (r === 0) return A
 
     const s = Math.sin(r)

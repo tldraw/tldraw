@@ -1,7 +1,8 @@
 import * as React from 'react'
-import type { TLPage, TLPageState, TLShape, TLBounds, TLShapeUtils, TLBinding } from '+types'
+import type { TLPage, TLPageState, TLShape, TLBounds, TLBinding } from '+types'
 import Utils from '+utils'
 import { useTLContext } from '+hooks'
+import type { TLShapeUtilsMap } from '+shape-utils'
 
 function canvasToScreen(point: number[], camera: TLPageState['camera']): number[] {
   return [(point[0] + camera.point[0]) * camera.zoom, (point[1] + camera.point[1]) * camera.zoom]
@@ -10,7 +11,7 @@ function canvasToScreen(point: number[], camera: TLPageState['camera']): number[
 export function useSelection<T extends TLShape, E extends Element>(
   page: TLPage<T, TLBinding>,
   pageState: TLPageState,
-  shapeUtils: TLShapeUtils<T, E>
+  shapeUtils: TLShapeUtilsMap<T>
 ) {
   const { rSelectionBounds } = useTLContext()
   const { selectedIds } = pageState
