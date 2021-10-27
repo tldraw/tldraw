@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { Utils, HTMLContainer, TLBounds, TLIndicator, TLComponent } from '@tldraw/core'
+import { Utils, HTMLContainer, TLBounds, TLIndicator, TLComponentProps } from '@tldraw/core'
 import { defaultStyle } from '../shape-styles'
 import { StickyShape, TLDrawShapeType, TLDrawTransformInfo } from '~types'
 import { getBoundsRectangle, TextAreaUtils } from '../shared'
@@ -35,164 +35,163 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component: TLComponent<T, E> = (
-    { shape, meta, events, isEditing, onShapeBlur, onShapeChange },
-    ref
-  ) => {
-    const font = getStickyFontStyle(shape.style)
+  Component = React.forwardRef<E, TLComponentProps<T, E>>(
+    ({ shape, meta, events, isEditing, onShapeBlur, onShapeChange }, ref) => {
+      const font = getStickyFontStyle(shape.style)
 
-    const { color, fill } = getStickyShapeStyle(shape.style, meta.isDarkMode)
+      const { color, fill } = getStickyShapeStyle(shape.style, meta.isDarkMode)
 
-    const rContainer = React.useRef<HTMLDivElement>(null)
+      const rContainer = React.useRef<HTMLDivElement>(null)
 
-    const rTextArea = React.useRef<HTMLTextAreaElement>(null)
+      const rTextArea = React.useRef<HTMLTextAreaElement>(null)
 
-    const rText = React.useRef<HTMLDivElement>(null)
+      const rText = React.useRef<HTMLDivElement>(null)
 
-    const rIsMounted = React.useRef(false)
+      const rIsMounted = React.useRef(false)
 
-    const handlePointerDown = React.useCallback((e: React.PointerEvent) => {
-      e.stopPropagation()
-    }, [])
+      const handlePointerDown = React.useCallback((e: React.PointerEvent) => {
+        e.stopPropagation()
+      }, [])
 
-    const handleTextChange = React.useCallback(
-      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        onShapeChange?.({
-          id: shape.id,
-          type: shape.type,
-          text: normalizeText(e.currentTarget.value),
-        })
-      },
-      [onShapeChange]
-    )
+      const handleTextChange = React.useCallback(
+        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+          onShapeChange?.({
+            id: shape.id,
+            type: shape.type,
+            text: normalizeText(e.currentTarget.value),
+          })
+        },
+        [onShapeChange]
+      )
 
-    const handleKeyDown = React.useCallback(
-      (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Escape') return
+      const handleKeyDown = React.useCallback(
+        (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+          if (e.key === 'Escape') return
 
-        if (e.key === 'Tab' && shape.text.length === 0) {
-          e.preventDefault()
+          if (e.key === 'Tab' && shape.text.length === 0) {
+            e.preventDefault()
+            return
+          }
+
+          e.stopPropagation()
+
+          if (e.key === 'Tab') {
+            e.preventDefault()
+            if (e.shiftKey) {
+              TextAreaUtils.unindent(e.currentTarget)
+            } else {
+              TextAreaUtils.indent(e.currentTarget)
+            }
+
+            onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
+          }
+        },
+        [shape, onShapeChange]
+      )
+
+      const handleBlur = React.useCallback(
+        (e: React.FocusEvent<HTMLTextAreaElement>) => {
+          if (!isEditing) return
+          if (rIsMounted.current) {
+            e.currentTarget.setSelectionRange(0, 0)
+            onShapeBlur?.()
+          }
+        },
+        [isEditing]
+      )
+
+      const handleFocus = React.useCallback(
+        (e: React.FocusEvent<HTMLTextAreaElement>) => {
+          if (!isEditing) return
+          if (!rIsMounted.current) return
+
+          if (document.activeElement === e.currentTarget) {
+            e.currentTarget.select()
+          }
+        },
+        [isEditing]
+      )
+
+      // Focus when editing changes to true
+      React.useEffect(() => {
+        if (isEditing) {
+          if (document.activeElement !== rText.current) {
+            requestAnimationFrame(() => {
+              rIsMounted.current = true
+              const elm = rTextArea.current!
+              elm.focus()
+              elm.select()
+            })
+          }
+        }
+      }, [isEditing])
+
+      // Resize to fit text
+      React.useEffect(() => {
+        const text = rText.current!
+
+        const { size } = shape
+        const { offsetHeight: currTextHeight } = text
+        const minTextHeight = MIN_CONTAINER_HEIGHT - PADDING * 2
+        const prevTextHeight = size[1] - PADDING * 2
+
+        // Same size? We can quit here
+        if (currTextHeight === prevTextHeight) return
+
+        if (currTextHeight > minTextHeight) {
+          // Snap the size to the text content if the text only when the
+          // text is larger than the minimum text height.
+          onShapeChange?.({ id: shape.id, size: [size[0], currTextHeight + PADDING * 2] })
           return
         }
 
-        e.stopPropagation()
-
-        if (e.key === 'Tab') {
-          e.preventDefault()
-          if (e.shiftKey) {
-            TextAreaUtils.unindent(e.currentTarget)
-          } else {
-            TextAreaUtils.indent(e.currentTarget)
-          }
-
-          onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
+        if (currTextHeight < minTextHeight && size[1] > MIN_CONTAINER_HEIGHT) {
+          // If we're smaller than the minimum height and the container
+          // is too tall, snap it down to the minimum container height
+          onShapeChange?.({ id: shape.id, size: [size[0], MIN_CONTAINER_HEIGHT] })
+          return
         }
-      },
-      [shape, onShapeChange]
-    )
+      }, [shape.text, shape.size[1], shape.style])
 
-    const handleBlur = React.useCallback(
-      (e: React.FocusEvent<HTMLTextAreaElement>) => {
-        if (!isEditing) return
-        if (rIsMounted.current) {
-          e.currentTarget.setSelectionRange(0, 0)
-          onShapeBlur?.()
-        }
-      },
-      [isEditing]
-    )
-
-    const handleFocus = React.useCallback(
-      (e: React.FocusEvent<HTMLTextAreaElement>) => {
-        if (!isEditing) return
-        if (!rIsMounted.current) return
-
-        if (document.activeElement === e.currentTarget) {
-          e.currentTarget.select()
-        }
-      },
-      [isEditing]
-    )
-
-    // Focus when editing changes to true
-    React.useEffect(() => {
-      if (isEditing) {
-        if (document.activeElement !== rText.current) {
-          requestAnimationFrame(() => {
-            rIsMounted.current = true
-            const elm = rTextArea.current!
-            elm.focus()
-            elm.select()
-          })
-        }
-      }
-    }, [isEditing])
-
-    // Resize to fit text
-    React.useEffect(() => {
-      const text = rText.current!
-
-      const { size } = shape
-      const { offsetHeight: currTextHeight } = text
-      const minTextHeight = MIN_CONTAINER_HEIGHT - PADDING * 2
-      const prevTextHeight = size[1] - PADDING * 2
-
-      // Same size? We can quit here
-      if (currTextHeight === prevTextHeight) return
-
-      if (currTextHeight > minTextHeight) {
-        // Snap the size to the text content if the text only when the
-        // text is larger than the minimum text height.
-        onShapeChange?.({ id: shape.id, size: [size[0], currTextHeight + PADDING * 2] })
-        return
+      const style = {
+        font,
+        color,
+        textShadow: meta.isDarkMode
+          ? `0.5px 0.5px 2px rgba(255, 255, 255,.25)`
+          : `0.5px 0.5px 2px rgba(255, 255, 255,.5)`,
       }
 
-      if (currTextHeight < minTextHeight && size[1] > MIN_CONTAINER_HEIGHT) {
-        // If we're smaller than the minimum height and the container
-        // is too tall, snap it down to the minimum container height
-        onShapeChange?.({ id: shape.id, size: [size[0], MIN_CONTAINER_HEIGHT] })
-        return
-      }
-    }, [shape.text, shape.size[1], shape.style])
-
-    const style = {
-      font,
-      color,
-      textShadow: meta.isDarkMode
-        ? `0.5px 0.5px 2px rgba(255, 255, 255,.25)`
-        : `0.5px 0.5px 2px rgba(255, 255, 255,.5)`,
-    }
-
-    return (
-      <HTMLContainer ref={ref} {...events}>
-        <div
-          ref={rContainer}
-          className={styledStickyContainer({ isDarkMode: meta.isDarkMode })}
-          style={{ backgroundColor: fill, ...style }}
-        >
-          <div ref={rText} className={styledText({ isEditing })}>
-            {shape.text}&#8203;
+      return (
+        <HTMLContainer ref={ref} {...events}>
+          <div
+            ref={rContainer}
+            className={styledStickyContainer({ isDarkMode: meta.isDarkMode })}
+            style={{ backgroundColor: fill, ...style }}
+          >
+            <div ref={rText} className={styledText({ isEditing })}>
+              {shape.text}&#8203;
+            </div>
+            {isEditing && (
+              <textarea
+                ref={rTextArea}
+                className={styledTextArea({ isEditing })}
+                onPointerDown={handlePointerDown}
+                value={shape.text}
+                onChange={handleTextChange}
+                onKeyDown={handleKeyDown}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                autoCapitalize="off"
+                autoComplete="off"
+                spellCheck={false}
+                autoFocus
+              />
+            )}
           </div>
-          {isEditing && (
-            <textarea
-              ref={rTextArea}
-              className={styledTextArea({ isEditing })}
-              onPointerDown={handlePointerDown}
-              value={shape.text}
-              onChange={handleTextChange}
-              onKeyDown={handleKeyDown}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
-              autoCapitalize="off"
-              autoComplete="off"
-              spellCheck={false}
-              autoFocus
-            />
-          )}
-        </div>
-      </HTMLContainer>
-    )
-  }
+        </HTMLContainer>
+      )
+    }
+  )
 
   Indicator: TLIndicator<T> = ({ shape }) => {
     const {

@@ -1,12 +1,12 @@
 import * as React from 'react'
-import { Renderer } from '@tldraw/core'
-import { Rectangle } from './box'
-import { Label } from './label'
+import { Renderer, TLShapeUtilsMap } from '@tldraw/core'
+import { BoxShape, BoxUtil } from './box'
+import { LabelUtil, LabelShape } from './label'
 import { appState } from './state'
 
-const shapeUtils: any = {
-  rectangle: Rectangle,
-  label: Label,
+const shapeUtils: TLShapeUtilsMap<BoxShape | LabelShape> = {
+  box: new BoxUtil(),
+  label: new LabelUtil(),
 }
 
 export default function Core() {

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Utils, SVGContainer, TLIndicator, TLComponent } from '@tldraw/core'
+import { Utils, SVGContainer, TLIndicator, TLComponentProps } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { getStroke, getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '../shape-styles'
@@ -33,103 +33,105 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component: TLComponent<T, E> = ({ shape, isBinding, meta, events }, ref) => {
-    const { id, size, style } = shape
-    const styles = getShapeStyle(style, meta.isDarkMode)
-    const strokeWidth = +styles.strokeWidth
+  Component = React.forwardRef<E, TLComponentProps<T, E>>(
+    ({ shape, isBinding, meta, events }, ref) => {
+      const { id, size, style } = shape
+      const styles = getShapeStyle(style, meta.isDarkMode)
+      const strokeWidth = +styles.strokeWidth
 
-    if (style.dash === DashStyle.Draw) {
-      const pathData = getRectanglePath(shape)
+      if (style.dash === DashStyle.Draw) {
+        const pathData = getRectanglePath(shape)
+
+        return (
+          <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
+            {isBinding && (
+              <rect
+                className="tl-binding-indicator"
+                x={strokeWidth / 2 - BINDING_DISTANCE}
+                y={strokeWidth / 2 - BINDING_DISTANCE}
+                width={Math.max(0, size[0] - strokeWidth / 2) + BINDING_DISTANCE * 2}
+                height={Math.max(0, size[1] - strokeWidth / 2) + BINDING_DISTANCE * 2}
+              />
+            )}
+            <path
+              d={getRectangleIndicatorPathData(shape)}
+              fill={style.isFilled ? styles.fill : 'none'}
+              radius={strokeWidth}
+              stroke="none"
+              pointerEvents="all"
+            />
+            <path
+              d={pathData}
+              fill={styles.stroke}
+              stroke={styles.stroke}
+              strokeWidth={styles.strokeWidth}
+              pointerEvents="all"
+            />
+          </SVGContainer>
+        )
+      }
+
+      const sw = 1 + strokeWidth * 1.618
+
+      const w = Math.max(0, size[0] - sw / 2)
+      const h = Math.max(0, size[1] - sw / 2)
+
+      const strokes: [number[], number[], number][] = [
+        [[sw / 2, sw / 2], [w, sw / 2], w - sw / 2],
+        [[w, sw / 2], [w, h], h - sw / 2],
+        [[w, h], [sw / 2, h], w - sw / 2],
+        [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
+      ]
+
+      const paths = strokes.map(([start, end, length], i) => {
+        const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
+          length,
+          strokeWidth * 1.618,
+          shape.style.dash
+        )
+
+        return (
+          <line
+            key={id + '_' + i}
+            x1={start[0]}
+            y1={start[1]}
+            x2={end[0]}
+            y2={end[1]}
+            stroke={styles.stroke}
+            strokeWidth={sw}
+            strokeLinecap="round"
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+          />
+        )
+      })
 
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           {isBinding && (
             <rect
               className="tl-binding-indicator"
-              x={strokeWidth / 2 - BINDING_DISTANCE}
-              y={strokeWidth / 2 - BINDING_DISTANCE}
-              width={Math.max(0, size[0] - strokeWidth / 2) + BINDING_DISTANCE * 2}
-              height={Math.max(0, size[1] - strokeWidth / 2) + BINDING_DISTANCE * 2}
+              x={sw / 2 - 32}
+              y={sw / 2 - 32}
+              width={w + 64}
+              height={h + 64}
             />
           )}
-          <path
-            d={getRectangleIndicatorPathData(shape)}
-            fill={style.isFilled ? styles.fill : 'none'}
-            radius={strokeWidth}
+          <rect
+            x={sw / 2}
+            y={sw / 2}
+            width={w}
+            height={h}
+            fill={styles.fill}
             stroke="none"
+            strokeWidth={sw}
             pointerEvents="all"
           />
-          <path
-            d={pathData}
-            fill={styles.stroke}
-            stroke={styles.stroke}
-            strokeWidth={styles.strokeWidth}
-            pointerEvents="all"
-          />
+          <g pointerEvents="stroke">{paths}</g>
         </SVGContainer>
       )
     }
-
-    const sw = 1 + strokeWidth * 1.618
-
-    const w = Math.max(0, size[0] - sw / 2)
-    const h = Math.max(0, size[1] - sw / 2)
-
-    const strokes: [number[], number[], number][] = [
-      [[sw / 2, sw / 2], [w, sw / 2], w - sw / 2],
-      [[w, sw / 2], [w, h], h - sw / 2],
-      [[w, h], [sw / 2, h], w - sw / 2],
-      [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
-    ]
-
-    const paths = strokes.map(([start, end, length], i) => {
-      const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
-        length,
-        strokeWidth * 1.618,
-        shape.style.dash
-      )
-
-      return (
-        <line
-          key={id + '_' + i}
-          x1={start[0]}
-          y1={start[1]}
-          x2={end[0]}
-          y2={end[1]}
-          stroke={styles.stroke}
-          strokeWidth={sw}
-          strokeLinecap="round"
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
-        />
-      )
-    })
-
-    return (
-      <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-        {isBinding && (
-          <rect
-            className="tl-binding-indicator"
-            x={sw / 2 - 32}
-            y={sw / 2 - 32}
-            width={w + 64}
-            height={h + 64}
-          />
-        )}
-        <rect
-          x={sw / 2}
-          y={sw / 2}
-          width={w}
-          height={h}
-          fill={styles.fill}
-          stroke="none"
-          strokeWidth={sw}
-          pointerEvents="all"
-        />
-        <g pointerEvents="stroke">{paths}</g>
-      </SVGContainer>
-    )
-  }
+  )
 
   Indicator: TLIndicator<T> = ({ shape }) => {
     const {

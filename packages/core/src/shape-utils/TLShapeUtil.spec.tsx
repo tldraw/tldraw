@@ -2,12 +2,12 @@
 import * as React from 'react'
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type { TLShape, TLBounds } from '+types'
+import type { TLShape, TLBounds, TLComponentProps } from '+types'
 import { TLShapeUtil } from './TLShapeUtil'
 import { render } from '@testing-library/react'
 import { SVGContainer } from '+components'
 import Utils from '+utils'
-import type { TLComponent, TLIndicator } from '+shape-utils'
+import type { TLIndicator } from '+shape-utils'
 
 export interface BoxShape extends TLShape {
   type: 'box'
@@ -32,18 +32,20 @@ export const boxShape: BoxShape = {
 export class BoxUtil extends TLShapeUtil<BoxShape, SVGSVGElement, Meta> {
   age = 100
 
-  Component: TLComponent<BoxShape, SVGSVGElement, Meta> = ({ shape, events, meta }, ref) => {
-    type T = typeof meta.legs
-    type C = T['toFixed']
+  Component = React.forwardRef<SVGSVGElement, TLComponentProps<BoxShape, SVGSVGElement>>(
+    ({ shape, events, meta }, ref) => {
+      type T = typeof meta.legs
+      type C = T['toFixed']
 
-    return (
-      <SVGContainer ref={ref}>
-        <g {...events}>
-          <rect width={shape.size[0]} height={shape.size[1]} fill="none" stroke="black" />
-        </g>
-      </SVGContainer>
-    )
-  }
+      return (
+        <SVGContainer ref={ref}>
+          <g {...events}>
+            <rect width={shape.size[0]} height={shape.size[1]} fill="none" stroke="black" />
+          </g>
+        </SVGContainer>
+      )
+    }
+  )
 
   Indicator: TLIndicator<BoxShape, SVGSVGElement, Meta> = ({ shape }) => {
     return (
@@ -93,7 +95,7 @@ describe('When creating a minimal ShapeUtil', () => {
     render(<H message="Hello" />)
 
     render(
-      <Box._Component
+      <Box.Component
         ref={ref}
         shape={boxShape}
         isEditing={false}
@@ -129,18 +131,20 @@ describe('When creating a realistic API around TLShapeUtil', () => {
 
     age = 100
 
-    Component: TLComponent<BoxShape, SVGSVGElement, Meta> = ({ shape, events, meta }, ref) => {
-      type T = typeof meta.legs
-      type C = T['toFixed']
+    Component = React.forwardRef<SVGSVGElement, TLComponentProps<BoxShape, SVGSVGElement>>(
+      ({ shape, events, meta }, ref) => {
+        type T = typeof meta.legs
+        type C = T['toFixed']
 
-      return (
-        <SVGContainer ref={ref}>
-          <g {...events}>
-            <rect width={shape.size[0]} height={shape.size[1]} fill="none" stroke="black" />
-          </g>
-        </SVGContainer>
-      )
-    }
+        return (
+          <SVGContainer ref={ref}>
+            <g {...events}>
+              <rect width={shape.size[0]} height={shape.size[1]} fill="none" stroke="black" />
+            </g>
+          </SVGContainer>
+        )
+      }
+    )
 
     Indicator: TLIndicator<BoxShape, SVGSVGElement, Meta> = ({ shape }) => {
       return (
@@ -214,7 +218,7 @@ describe('When creating a realistic API around TLShapeUtil', () => {
     render(<H message="Hello" />)
 
     render(
-      <Box._Component
+      <Box.Component
         ref={ref}
         shape={box}
         isEditing={false}

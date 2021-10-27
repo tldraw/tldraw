@@ -71,7 +71,7 @@ export interface TLShape {
   isAspectRatioLocked?: boolean
 }
 
-export interface TLComponentProps<T extends TLShape, E = any, M = any> {
+export type TLComponentProps<T extends TLShape, E = any, M = any> = {
   shape: T
   isEditing: boolean
   isBinding: boolean
@@ -88,7 +88,7 @@ export interface TLComponentProps<T extends TLShape, E = any, M = any> {
     onPointerMove: (e: React.PointerEvent<E>) => void
     onPointerLeave: (e: React.PointerEvent<E>) => void
   }
-}
+} & React.RefAttributes<E>
 
 export interface TLShapeProps<T extends TLShape, E = any, M = any>
   extends TLComponentProps<T, E, M> {

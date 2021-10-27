@@ -2,7 +2,15 @@
 /* refresh-reset */
 
 import * as React from 'react'
-import { TLShape, Utils, TLBounds, ShapeUtil, HTMLContainer } from '@tldraw/core'
+import {
+  TLShape,
+  Utils,
+  TLBounds,
+  HTMLContainer,
+  TLComponent,
+  TLShapeUtil,
+  TLIndicator,
+} from '@tldraw/core'
 import { appState } from './state'
 
 // Define a custom shape
@@ -14,53 +22,37 @@ export interface LabelShape extends TLShape {
 
 // Create a "shape utility" class that interprets that shape
 
-export const Label = new ShapeUtil<LabelShape, HTMLDivElement, { isDarkMode: boolean }>(() => ({
-  type: 'label',
+export class LabelUtil extends TLShapeUtil<LabelShape, HTMLDivElement> {
+  type = 'label' as const
 
-  isStateful: true,
+  isStateful = true
 
-  defaultProps: {
-    id: 'example1',
-    type: 'label',
-    parentId: 'page1',
-    childIndex: 0,
-    name: 'Example Shape',
-    point: [0, 0],
-    rotation: 0,
-    text: 'Hello world!',
-  },
-
-  Component({ shape, events, meta, onShapeChange, isSelected }, ref) {
+  Component: TLComponent<LabelShape, HTMLDivElement> = (
+    { shape, events, isSelected, onShapeChange, meta },
+    ref
+  ) => {
     const color = meta.isDarkMode ? 'white' : 'black'
-
     const bounds = this.getBounds(shape)
-
     const rInput = React.useRef<HTMLDivElement>(null)
-
     function updateShapeSize() {
       const elm = rInput.current!
-
       appState.changeShapeText(shape.id, elm.innerText)
-
       onShapeChange?.({
         id: shape.id,
         text: elm.innerText,
       })
     }
-
     React.useLayoutEffect(() => {
       const elm = rInput.current!
       elm.innerText = shape.text
       updateShapeSize()
       const observer = new MutationObserver(updateShapeSize)
-
       observer.observe(elm, {
         attributes: true,
         characterData: true,
         subtree: true,
       })
     }, [])
-
     return (
       <HTMLContainer>
         <div
@@ -94,9 +86,10 @@ export const Label = new ShapeUtil<LabelShape, HTMLDivElement, { isDarkMode: boo
         </div>
       </HTMLContainer>
     )
-  },
-  Indicator({ shape }) {
-    const bounds = this?.getBounds(shape)
+  }
+
+  Indicator: TLIndicator<LabelShape> = ({ shape }) => {
+    const bounds = this.getBounds(shape)
 
     return (
       <rect
@@ -108,8 +101,9 @@ export const Label = new ShapeUtil<LabelShape, HTMLDivElement, { isDarkMode: boo
         pointerEvents="none"
       />
     )
-  },
-  getBounds(shape) {
+  }
+
+  getBounds = (shape: LabelShape) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       const ref = this.getRef(shape)
       const width = ref.current?.offsetWidth || 0
@@ -126,5 +120,5 @@ export const Label = new ShapeUtil<LabelShape, HTMLDivElement, { isDarkMode: boo
     })
 
     return Utils.translateBounds(bounds, shape.point)
-  },
-}))
+  }
+}

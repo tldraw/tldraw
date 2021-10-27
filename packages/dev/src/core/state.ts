@@ -5,11 +5,11 @@ import type {
   TLPointerEventHandler,
   TLShapeChangeHandler,
 } from '@tldraw/core'
-import type { RectangleShape } from './box'
+import type { BoxShape } from './box'
 import type { LabelShape } from './label'
 import { StateManager } from 'rko'
 
-type Shapes = RectangleShape | LabelShape
+type Shapes = BoxShape | LabelShape
 
 interface State {
   page: TLPage<Shapes, TLBinding>
@@ -89,7 +89,7 @@ class AppState extends StateManager<State> {
   }
 
   onShapeChange: TLShapeChangeHandler<Shapes> = (shape) => {
-    if (shape.type === 'rectangle' && shape.size) {
+    if (shape.type === 'box' && shape.size) {
       this.patchState({
         page: {
           shapes: {
@@ -110,7 +110,7 @@ export const appState = new AppState({
         parentId: 'page1',
         name: 'Rectangle',
         childIndex: 1,
-        type: 'rectangle',
+        type: 'box',
         point: [0, 0],
         rotation: 0,
         size: [100, 100],

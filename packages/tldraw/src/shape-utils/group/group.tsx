@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Utils, SVGContainer, TLIndicator, TLComponent } from '@tldraw/core'
+import { Utils, SVGContainer, TLIndicator, TLComponentProps } from '@tldraw/core'
 import { defaultStyle } from '../shape-styles'
 import { TLDrawShapeType, GroupShape, ColorStyle } from '~types'
 import { getBoundsRectangle } from '../shared'
@@ -33,48 +33,57 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component: TLComponent<T, E> = ({ shape, isBinding, isHovered, isSelected, events }, ref) => {
-    const { id, size } = shape
+  Component = React.forwardRef<E, TLComponentProps<T, E>>(
+    ({ shape, isBinding, isHovered, isSelected, events }, ref) => {
+      const { id, size } = shape
 
-    const sw = 2
-    const w = Math.max(0, size[0] - sw / 2)
-    const h = Math.max(0, size[1] - sw / 2)
+      const sw = 2
+      const w = Math.max(0, size[0] - sw / 2)
+      const h = Math.max(0, size[1] - sw / 2)
 
-    const strokes: [number[], number[], number][] = [
-      [[sw / 2, sw / 2], [w, sw / 2], w - sw / 2],
-      [[w, sw / 2], [w, h], h - sw / 2],
-      [[w, h], [sw / 2, h], w - sw / 2],
-      [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
-    ]
+      const strokes: [number[], number[], number][] = [
+        [[sw / 2, sw / 2], [w, sw / 2], w - sw / 2],
+        [[w, sw / 2], [w, h], h - sw / 2],
+        [[w, h], [sw / 2, h], w - sw / 2],
+        [[sw / 2, h], [sw / 2, sw / 2], h - sw / 2],
+      ]
 
-    const paths = strokes.map(([start, end], i) => {
-      return <line key={id + '_' + i} x1={start[0]} y1={start[1]} x2={end[0]} y2={end[1]} />
-    })
+      const paths = strokes.map(([start, end], i) => {
+        return <line key={id + '_' + i} x1={start[0]} y1={start[1]} x2={end[0]} y2={end[1]} />
+      })
 
-    return (
-      <SVGContainer ref={ref} {...events}>
-        {isBinding && (
+      return (
+        <SVGContainer ref={ref} {...events}>
+          {isBinding && (
+            <rect
+              className="tl-binding-indicator"
+              x={-BINDING_DISTANCE}
+              y={-BINDING_DISTANCE}
+              width={size[0] + BINDING_DISTANCE * 2}
+              height={size[1] + BINDING_DISTANCE * 2}
+            />
+          )}
           <rect
-            className="tl-binding-indicator"
-            x={-BINDING_DISTANCE}
-            y={-BINDING_DISTANCE}
-            width={size[0] + BINDING_DISTANCE * 2}
-            height={size[1] + BINDING_DISTANCE * 2}
+            x={0}
+            y={0}
+            width={size[0]}
+            height={size[1]}
+            fill="transparent"
+            pointerEvents="all"
           />
-        )}
-        <rect x={0} y={0} width={size[0]} height={size[1]} fill="transparent" pointerEvents="all" />
-        <g
-          className={scaledLines()}
-          stroke={ColorStyle.Black}
-          opacity={isHovered || isSelected ? 1 : 0}
-          strokeLinecap="round"
-          pointerEvents="stroke"
-        >
-          {paths}
-        </g>
-      </SVGContainer>
-    )
-  }
+          <g
+            className={scaledLines()}
+            stroke={ColorStyle.Black}
+            opacity={isHovered || isSelected ? 1 : 0}
+            strokeLinecap="round"
+            pointerEvents="stroke"
+          >
+            {paths}
+          </g>
+        </SVGContainer>
+      )
+    }
+  )
 
   Indicator: TLIndicator<T> = ({ shape }) => {
     const { id, size } = shape

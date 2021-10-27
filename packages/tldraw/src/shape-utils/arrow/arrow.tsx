@@ -6,7 +6,7 @@ import {
   TLBinding,
   TLBounds,
   TLIndicator,
-  TLComponent,
+  TLComponentProps,
   TLPointerInfo,
 } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
@@ -86,7 +86,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component: TLComponent<T, E> = ({ shape, meta, events }, ref) => {
+  Component = React.forwardRef<E, TLComponentProps<T, E, M>>(({ shape, meta, events }, ref) => {
     const {
       handles: { start, bend, end },
       decorations = {},
@@ -262,7 +262,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
         </g>
       </SVGContainer>
     )
-  }
+  })
 
   Indicator: TLIndicator<T> = ({ shape }) => {
     const path = getArrowPath(shape)

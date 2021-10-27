@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { Utils, HTMLContainer, TLIndicator, TLComponent, TLBounds } from '@tldraw/core'
+import { Utils, HTMLContainer, TLIndicator, TLComponentProps, TLBounds } from '@tldraw/core'
 import { defaultStyle, getShapeStyle, getFontStyle } from '../shape-styles'
 import { TextShape, TLDrawShapeType, TLDrawTransformInfo } from '~types'
 import { TextAreaUtils } from '../shared'
@@ -38,148 +38,147 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component: TLComponent<T, E> = (
-    { shape, isBinding, isEditing, onShapeBlur, onShapeChange, meta, events },
-    ref
-  ) => {
-    const rInput = React.useRef<HTMLTextAreaElement>(null)
-    const { text, style } = shape
-    const styles = getShapeStyle(style, meta.isDarkMode)
-    const font = getFontStyle(shape.style)
+  Component = React.forwardRef<E, TLComponentProps<T, E>>(
+    ({ shape, isBinding, isEditing, onShapeBlur, onShapeChange, meta, events }, ref) => {
+      const rInput = React.useRef<HTMLTextAreaElement>(null)
+      const { text, style } = shape
+      const styles = getShapeStyle(style, meta.isDarkMode)
+      const font = getFontStyle(shape.style)
 
-    const rIsMounted = React.useRef(false)
+      const rIsMounted = React.useRef(false)
 
-    const handleChange = React.useCallback(
-      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
-      },
-      [shape]
-    )
+      const handleChange = React.useCallback(
+        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+          onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
+        },
+        [shape]
+      )
 
-    const handleKeyDown = React.useCallback(
-      (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        e.stopPropagation()
+      const handleKeyDown = React.useCallback(
+        (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+          e.stopPropagation()
 
-        if (e.key === 'Escape' || (e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
-          e.currentTarget.blur()
-          return
-        }
-
-        if (e.key === 'Tab') {
-          e.preventDefault()
-          if (e.shiftKey) {
-            TextAreaUtils.unindent(e.currentTarget)
-          } else {
-            TextAreaUtils.indent(e.currentTarget)
+          if (e.key === 'Escape' || (e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
+            e.currentTarget.blur()
+            return
           }
 
-          onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
-        }
-      },
-      [shape, onShapeChange]
-    )
+          if (e.key === 'Tab') {
+            e.preventDefault()
+            if (e.shiftKey) {
+              TextAreaUtils.unindent(e.currentTarget)
+            } else {
+              TextAreaUtils.indent(e.currentTarget)
+            }
 
-    const handleBlur = React.useCallback(
-      (e: React.FocusEvent<HTMLTextAreaElement>) => {
-        if (!isEditing) return
-        if (rIsMounted.current) {
-          e.currentTarget.setSelectionRange(0, 0)
-          onShapeBlur?.()
-        }
-      },
-      [isEditing]
-    )
+            onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
+          }
+        },
+        [shape, onShapeChange]
+      )
 
-    const handleFocus = React.useCallback(
-      (e: React.FocusEvent<HTMLTextAreaElement>) => {
-        if (!isEditing) return
-        if (!rIsMounted.current) return
+      const handleBlur = React.useCallback(
+        (e: React.FocusEvent<HTMLTextAreaElement>) => {
+          if (!isEditing) return
+          if (rIsMounted.current) {
+            e.currentTarget.setSelectionRange(0, 0)
+            onShapeBlur?.()
+          }
+        },
+        [isEditing]
+      )
 
-        if (document.activeElement === e.currentTarget) {
-          e.currentTarget.select()
-        }
-      },
-      [isEditing]
-    )
+      const handleFocus = React.useCallback(
+        (e: React.FocusEvent<HTMLTextAreaElement>) => {
+          if (!isEditing) return
+          if (!rIsMounted.current) return
 
-    const handlePointerDown = React.useCallback(
-      (e) => {
+          if (document.activeElement === e.currentTarget) {
+            e.currentTarget.select()
+          }
+        },
+        [isEditing]
+      )
+
+      const handlePointerDown = React.useCallback(
+        (e) => {
+          if (isEditing) {
+            e.stopPropagation()
+          }
+        },
+        [isEditing]
+      )
+
+      React.useEffect(() => {
         if (isEditing) {
-          e.stopPropagation()
+          requestAnimationFrame(() => {
+            rIsMounted.current = true
+            const elm = rInput.current!
+            elm.focus()
+            elm.select()
+          })
         }
-      },
-      [isEditing]
-    )
+      }, [isEditing])
 
-    React.useEffect(() => {
-      if (isEditing) {
-        requestAnimationFrame(() => {
-          rIsMounted.current = true
-          const elm = rInput.current!
-          elm.focus()
-          elm.select()
-        })
-      }
-    }, [isEditing])
-
-    return (
-      <HTMLContainer ref={ref} {...events}>
-        <div className={wrapper({ isEditing })} onPointerDown={handlePointerDown}>
-          <div
-            className={innerWrapper()}
-            style={{
-              font,
-              color: styles.stroke,
-            }}
-          >
-            {isBinding && (
-              <div
-                className="tl-binding-indicator"
-                style={{
-                  position: 'absolute',
-                  top: -BINDING_DISTANCE,
-                  left: -BINDING_DISTANCE,
-                  width: `calc(100% + ${BINDING_DISTANCE * 2}px)`,
-                  height: `calc(100% + ${BINDING_DISTANCE * 2}px)`,
-                  backgroundColor: 'var(--tl-selectFill)',
-                }}
-              />
-            )}
-            {isEditing ? (
-              <textarea
-                className={textArea({ isBinding })}
-                ref={rInput}
-                style={{
-                  font,
-                  color: styles.stroke,
-                }}
-                name="text"
-                defaultValue={text}
-                tabIndex={-1}
-                autoComplete="false"
-                autoCapitalize="false"
-                autoCorrect="false"
-                autoSave="false"
-                placeholder=""
-                color={styles.stroke}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-                onPointerDown={handlePointerDown}
-                autoFocus
-                wrap="off"
-                dir="auto"
-                datatype="wysiwyg"
-              />
-            ) : (
-              text
-            )}
+      return (
+        <HTMLContainer ref={ref} {...events}>
+          <div className={wrapper({ isEditing })} onPointerDown={handlePointerDown}>
+            <div
+              className={innerWrapper()}
+              style={{
+                font,
+                color: styles.stroke,
+              }}
+            >
+              {isBinding && (
+                <div
+                  className="tl-binding-indicator"
+                  style={{
+                    position: 'absolute',
+                    top: -BINDING_DISTANCE,
+                    left: -BINDING_DISTANCE,
+                    width: `calc(100% + ${BINDING_DISTANCE * 2}px)`,
+                    height: `calc(100% + ${BINDING_DISTANCE * 2}px)`,
+                    backgroundColor: 'var(--tl-selectFill)',
+                  }}
+                />
+              )}
+              {isEditing ? (
+                <textarea
+                  className={textArea({ isBinding })}
+                  ref={rInput}
+                  style={{
+                    font,
+                    color: styles.stroke,
+                  }}
+                  name="text"
+                  defaultValue={text}
+                  tabIndex={-1}
+                  autoComplete="false"
+                  autoCapitalize="false"
+                  autoCorrect="false"
+                  autoSave="false"
+                  placeholder=""
+                  color={styles.stroke}
+                  onFocus={handleFocus}
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  onKeyDown={handleKeyDown}
+                  onPointerDown={handlePointerDown}
+                  autoFocus
+                  wrap="off"
+                  dir="auto"
+                  datatype="wysiwyg"
+                />
+              ) : (
+                text
+              )}
+            </div>
           </div>
-        </div>
-      </HTMLContainer>
-    )
-  }
+        </HTMLContainer>
+      )
+    }
+  )
 
   Indicator: TLIndicator<T> = ({ shape }) => {
     const { width, height } = this.getBounds(shape)

@@ -28,7 +28,7 @@ export const RenderedShape = React.memo(
     // consider using layout effect to update bounds cache if the ref is filled
 
     return (
-      <utils._Component
+      <utils.Component
         ref={ref}
         shape={shape}
         isEditing={isEditing}

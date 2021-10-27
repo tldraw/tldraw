@@ -2,15 +2,7 @@
 import * as React from 'react'
 import Utils from '+utils'
 import { intersectPolylineBounds } from '@tldraw/intersect'
-import type { TLBounds, TLForwardedRef, TLComponentProps, TLShape } from 'types'
-
-export interface TLComponent<T extends TLShape, E extends Element = any, M = any> {
-  (
-    this: TLShapeUtil<T, E, M>,
-    props: TLComponentProps<T, E, M>,
-    ref: TLForwardedRef<E>
-  ): React.ReactElement<TLComponentProps<T, E, M>, E['tagName']> | null
-}
+import type { TLBounds, TLComponentProps, TLShape } from 'types'
 
 export interface TLIndicator<T extends TLShape, E extends Element = any, M = any> {
   (
@@ -20,12 +12,6 @@ export interface TLIndicator<T extends TLShape, E extends Element = any, M = any
 }
 
 export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M = any> {
-  _Component: React.ForwardRefExoticComponent<any>
-
-  constructor() {
-    this._Component = React.forwardRef(this.Component)
-  }
-
   refMap = new Map<string, React.RefObject<E>>()
 
   boundsCache = new WeakMap<TLShape, TLBounds>()
@@ -42,9 +28,9 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
 
   isAspectRatioLocked = false
 
-  Component: TLComponent<T, E, M> = () => null
+  abstract Component: React.ForwardRefExoticComponent<TLComponentProps<T, E, M>>
 
-  Indicator: TLIndicator<T, E, M> = () => null
+  abstract Indicator: TLIndicator<T, E, M>
 
   shouldRender: (prev: T, next: T) => boolean = () => true
 
