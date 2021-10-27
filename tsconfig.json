@@ -6,14 +6,12 @@
   "references": [
     { "path": "./packages/vec" },
     { "path": "./packages/intersect" },
-    { "path": "./packages/tldraw" },
-    { "path": "./packages/core" }
+    { "path": "./packages/tldraw" }
   ],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@tldraw/tldraw": ["./packages/tldraw"],
-      "@tldraw/core": ["./packages/core"],
       "@tldraw/vec": ["./packages/vec"],
       "@tldraw/intersect": ["./packages/intersect"],
       "+*": ["./packages/core/src/*"],

@@ -19,5 +19,5 @@
     "sourceMap": false,
     "emitDeclarationOnly": true
   },
-  "references": [{ "path": "../vec" }, { "path": "../intersect" }, { "path": "../core" }]
+  "references": [{ "path": "../vec" }, { "path": "../intersect" }]
 }

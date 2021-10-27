@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { Utils, SVGContainer, TLIndicator, TLComponentProps } from '@tldraw/core'
+import { Utils, SVGContainer, TLIndicator } from '@tldraw/core'
 import { defaultStyle } from '../shape-styles'
-import { TLDrawShapeType, GroupShape, ColorStyle } from '~types'
+import { TLDrawShapeType, GroupShape, ColorStyle, TLDrawComponentProps } from '~types'
 import { getBoundsRectangle } from '../shared'
 import { BINDING_DISTANCE } from '~constants'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
@@ -33,7 +33,7 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = React.forwardRef<E, TLComponentProps<T, E>>(
+  Component = React.forwardRef<E, TLDrawComponentProps<T, E>>(
     ({ shape, isBinding, isHovered, isSelected, events }, ref) => {
       const { id, size } = shape
 

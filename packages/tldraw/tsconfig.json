@@ -13,7 +13,7 @@
       "@tldraw/intersect": ["../intersect"]
     }
   },
-  "references": [{ "path": "../vec" }, { "path": "../intersect" }, { "path": "../core" }],
+  "references": [{ "path": "../vec" }, { "path": "../intersect" }],
   "typedocOptions": {
     "entryPoints": ["src/index.ts"],
     "out": "docs"

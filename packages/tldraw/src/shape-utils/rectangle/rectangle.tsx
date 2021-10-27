@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { Utils, SVGContainer, TLIndicator, TLComponentProps } from '@tldraw/core'
+import { Utils, SVGContainer, TLIndicator } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { getStroke, getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '../shape-styles'
-import { RectangleShape, DashStyle, TLDrawShapeType } from '~types'
+import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawComponentProps } from '~types'
 import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
 import { BINDING_DISTANCE } from '~constants'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
@@ -33,7 +33,7 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = React.forwardRef<E, TLComponentProps<T, E>>(
+  Component = React.forwardRef<E, TLDrawComponentProps<T, E>>(
     ({ shape, isBinding, meta, events }, ref) => {
       const { id, size, style } = shape
       const styles = getShapeStyle(style, meta.isDarkMode)

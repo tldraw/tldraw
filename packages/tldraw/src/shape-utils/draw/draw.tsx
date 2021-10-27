@@ -1,9 +1,15 @@
 import * as React from 'react'
-import { Utils, SVGContainer, TLBounds, TLIndicator, TLComponentProps } from '@tldraw/core'
+import { Utils, SVGContainer, TLBounds, TLIndicator } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { getStrokeOutlinePoints, getStrokePoints, StrokeOptions } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '../shape-styles'
-import { DrawShape, DashStyle, TLDrawShapeType, TLDrawTransformInfo } from '~types'
+import {
+  DrawShape,
+  DashStyle,
+  TLDrawShapeType,
+  TLDrawTransformInfo,
+  TLDrawComponentProps,
+} from '~types'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
 import { intersectBoundsBounds, intersectBoundsPolyline } from '@tldraw/intersect'
 
@@ -39,7 +45,7 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = React.forwardRef<E, TLComponentProps<T, E>>(({ shape, meta, events }, ref) => {
+  Component = React.forwardRef<E, TLDrawComponentProps<T, E>>(({ shape, meta, events }, ref) => {
     const { points, style, isComplete } = shape
 
     const polygonPathData = React.useMemo(() => {

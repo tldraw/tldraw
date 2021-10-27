@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { Utils, HTMLContainer, TLIndicator, TLComponentProps, TLBounds } from '@tldraw/core'
+import { Utils, HTMLContainer, TLIndicator, TLBounds } from '@tldraw/core'
 import { defaultStyle, getShapeStyle, getFontStyle } from '../shape-styles'
 import { TextShape, TLDrawComponentProps, TLDrawShapeType, TLDrawTransformInfo } from '~types'
 import { TextAreaUtils } from '../shared'

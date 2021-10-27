@@ -64,7 +64,7 @@
     "@radix-ui/react-tooltip": "^0.1.1",
     "@stitches/core": "^1.2.5",
     "@stitches/react": "^1.0.0",
-    "@tldraw/core": "^0.0.130",
+    "@tldraw/core": "^0.1.3",
     "@tldraw/intersect": "^0.0.130",
     "@tldraw/vec": "^0.0.130",
     "perfect-freehand": "^1.0.16",
