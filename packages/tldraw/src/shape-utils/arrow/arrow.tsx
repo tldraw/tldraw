@@ -6,7 +6,6 @@ import {
   TLBinding,
   TLBounds,
   TLIndicator,
-  TLComponentProps,
   TLPointerInfo,
 } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
@@ -20,6 +19,7 @@ import {
   TLDrawShapeType,
   TLDrawShape,
   EllipseShape,
+  TLDrawComponentProps,
 } from '~types'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
 import {
@@ -86,7 +86,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = React.forwardRef<E, TLComponentProps<T, E, M>>(({ shape, meta, events }, ref) => {
+  Component = React.forwardRef<E, TLDrawComponentProps<T, E>>(({ shape, meta, events }, ref) => {
     const {
       handles: { start, bend, end },
       decorations = {},

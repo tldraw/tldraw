@@ -1,3 +1,13 @@
+## 0.0.130
+
+### TLCore
+
+- Major change to ShapeUtils API
+
+### TLDraw
+
+- Rewrite utils with new API.
+
 ## 0.0.126
 
 ### TLDraw

@@ -2,7 +2,7 @@
 import * as React from 'react'
 import { Utils, HTMLContainer, TLIndicator, TLComponentProps, TLBounds } from '@tldraw/core'
 import { defaultStyle, getShapeStyle, getFontStyle } from '../shape-styles'
-import { TextShape, TLDrawShapeType, TLDrawTransformInfo } from '~types'
+import { TextShape, TLDrawComponentProps, TLDrawShapeType, TLDrawTransformInfo } from '~types'
 import { TextAreaUtils } from '../shared'
 import { BINDING_DISTANCE } from '~constants'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
@@ -38,7 +38,7 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = React.forwardRef<E, TLComponentProps<T, E>>(
+  Component = React.forwardRef<E, TLDrawComponentProps<T, E>>(
     ({ shape, isBinding, isEditing, onShapeBlur, onShapeChange, meta, events }, ref) => {
       const rInput = React.useRef<HTMLTextAreaElement>(null)
       const { text, style } = shape

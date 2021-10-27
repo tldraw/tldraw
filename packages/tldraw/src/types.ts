@@ -9,6 +9,7 @@ import type {
   TLHandle,
   TLBounds,
   TLSnapLine,
+  TLComponentProps,
 } from '@tldraw/core'
 import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
@@ -21,6 +22,12 @@ export interface TLDrawTransformInfo<T extends TLShape> {
   scaleY: number
   transformOrigin: number[]
 }
+
+export type TLDrawComponentProps<T extends TLDrawShape, E extends Element = any> = TLComponentProps<
+  T,
+  E,
+  TLDrawMeta
+>
 
 // old
 export type TLStore = StoreApi<Data>
