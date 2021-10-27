@@ -1,4 +1,4 @@
-import { Sticky } from './sticky'
+import { Sticky } from '../'
 
 describe('Post-It shape', () => {
   it('Creates a shape', () => {

@@ -1,11 +1,28 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import type { TLBinding, TLShapeProps, TLBounds, TLSnapLine } from '@tldraw/core'
-import type { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
+import type {
+  TLBinding,
+  TLBoundsCorner,
+  TLBoundsEdge,
+  TLShapeProps,
+  TLShape,
+  TLHandle,
+  TLBounds,
+  TLSnapLine,
+} from '@tldraw/core'
 import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
 import type { Command, Patch } from 'rko'
 
+export interface TLDrawTransformInfo<T extends TLShape> {
+  type: TLBoundsEdge | TLBoundsCorner
+  initialShape: T
+  scaleX: number
+  scaleY: number
+  transformOrigin: number[]
+}
+
+// old
 export type TLStore = StoreApi<Data>
 
 export type TLChange = Data
@@ -256,8 +273,6 @@ export type TLDrawShape =
   | TextShape
   | GroupShape
   | StickyShape
-
-export type TLDrawShapeUtil<T extends TLDrawShape> = TLShapeUtil<T, any, TLDrawMeta>
 
 export type ArrowBinding = TLBinding<{
   handleId: keyof ArrowShape['handles']

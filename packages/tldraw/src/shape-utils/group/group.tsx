@@ -1,30 +1,39 @@
 import * as React from 'react'
-import { SVGContainer, ShapeUtil } from '@tldraw/core'
-import { defaultStyle } from '~shape/shape-styles'
-import { GroupShape, TLDrawShapeType, ColorStyle, TLDrawMeta } from '~types'
+import { Utils, SVGContainer, TLIndicator, TLComponent } from '@tldraw/core'
+import { defaultStyle } from '../shape-styles'
+import { TLDrawShapeType, GroupShape, ColorStyle } from '~types'
 import { getBoundsRectangle } from '../shared'
-import css from '~styles'
 import { BINDING_DISTANCE } from '~constants'
+import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
+import css from '~styles'
 
-export const Group = new ShapeUtil<GroupShape, SVGSVGElement, TLDrawMeta>(() => ({
-  type: TLDrawShapeType.Group,
+type T = GroupShape
+type E = SVGSVGElement
 
-  canBind: true,
+export class GroupUtil extends TLDrawShapeUtil<T, E> {
+  type = TLDrawShapeType.Group as const
 
-  defaultProps: {
-    id: 'id',
-    type: TLDrawShapeType.Group,
-    name: 'Group',
-    parentId: 'page',
-    childIndex: 1,
-    point: [0, 0],
-    size: [100, 100],
-    rotation: 0,
-    children: [],
-    style: defaultStyle,
-  },
+  canBind = true
 
-  Component({ shape, isBinding, isHovered, isSelected, events }, ref) {
+  getShape = (props: Partial<T>): T => {
+    return Utils.deepMerge<T>(
+      {
+        id: 'id',
+        type: TLDrawShapeType.Group,
+        name: 'Group',
+        parentId: 'page',
+        childIndex: 1,
+        point: [0, 0],
+        size: [100, 100],
+        rotation: 0,
+        children: [],
+        style: defaultStyle,
+      },
+      props
+    )
+  }
+
+  Component: TLComponent<T, E> = ({ shape, isBinding, isHovered, isSelected, events }, ref) => {
     const { id, size } = shape
 
     const sw = 2
@@ -65,9 +74,9 @@ export const Group = new ShapeUtil<GroupShape, SVGSVGElement, TLDrawMeta>(() => 
         </g>
       </SVGContainer>
     )
-  },
+  }
 
-  Indicator({ shape }) {
+  Indicator: TLIndicator<T> = ({ shape }) => {
     const { id, size } = shape
 
     const sw = 2
@@ -90,16 +99,16 @@ export const Group = new ShapeUtil<GroupShape, SVGSVGElement, TLDrawMeta>(() => 
         {paths}
       </g>
     )
-  },
+  }
 
-  shouldRender(prev, next) {
-    return next.size !== prev.size || next.style !== prev.style
-  },
-
-  getBounds(shape) {
+  getBounds = (shape: T) => {
     return getBoundsRectangle(shape, this.boundsCache)
-  },
-}))
+  }
+
+  shouldRender = (prev: T, next: T) => {
+    return next.size !== prev.size || next.style !== prev.style
+  }
+}
 
 const scaledLines = css({
   strokeWidth: 'calc(1.5px * var(--tl-scale))',

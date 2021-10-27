@@ -1,34 +1,39 @@
 import * as React from 'react'
-import { Utils, SVGContainer, ShapeUtil } from '@tldraw/core'
+import { Utils, SVGContainer, TLIndicator, TLComponent } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import getStroke, { getStrokePoints } from 'perfect-freehand'
-import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawMeta } from '~types'
+import { getStroke, getStrokePoints } from 'perfect-freehand'
+import { defaultStyle, getShapeStyle } from '../shape-styles'
+import { RectangleShape, DashStyle, TLDrawShapeType } from '~types'
 import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
 import { BINDING_DISTANCE } from '~constants'
+import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
 
-export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta>(() => ({
-  type: TLDrawShapeType.Rectangle,
+type T = RectangleShape
+type E = SVGSVGElement
 
-  canBind: true,
+export class RectangleUtil extends TLDrawShapeUtil<T, E> {
+  type = TLDrawShapeType.Rectangle as const
 
-  defaultProps: {
-    id: 'id',
-    type: TLDrawShapeType.Rectangle,
-    name: 'Rectangle',
-    parentId: 'page',
-    childIndex: 1,
-    point: [0, 0],
-    size: [1, 1],
-    rotation: 0,
-    style: defaultStyle,
-  },
+  canBind = true
 
-  shouldRender(prev, next) {
-    return next.size !== prev.size || next.style !== prev.style
-  },
+  getShape = (props: Partial<T>): T => {
+    return Utils.deepMerge<T>(
+      {
+        id: 'id',
+        type: TLDrawShapeType.Rectangle,
+        name: 'Rectangle',
+        parentId: 'page',
+        childIndex: 1,
+        point: [0, 0],
+        size: [1, 1],
+        rotation: 0,
+        style: defaultStyle,
+      },
+      props
+    )
+  }
 
-  Component({ shape, isBinding, meta, events }, ref) {
+  Component: TLComponent<T, E> = ({ shape, isBinding, meta, events }, ref) => {
     const { id, size, style } = shape
     const styles = getShapeStyle(style, meta.isDarkMode)
     const strokeWidth = +styles.strokeWidth
@@ -124,9 +129,9 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
         <g pointerEvents="stroke">{paths}</g>
       </SVGContainer>
     )
-  },
+  }
 
-  Indicator({ shape }) {
+  Indicator: TLIndicator<T> = ({ shape }) => {
     const {
       style,
       size: [width, height],
@@ -151,16 +156,20 @@ export const Rectangle = new ShapeUtil<RectangleShape, SVGSVGElement, TLDrawMeta
         height={Math.max(1, height - sw * 2)}
       />
     )
-  },
+  }
 
-  getBounds(shape) {
+  getBounds = (shape: T) => {
     return getBoundsRectangle(shape, this.boundsCache)
-  },
+  }
 
-  transform: transformRectangle,
+  shouldRender = (prev: T, next: T) => {
+    return next.size !== prev.size || next.style !== prev.style
+  }
 
-  transformSingle: transformSingleRectangle,
-}))
+  transform = transformRectangle
+
+  transformSingle = transformSingleRectangle
+}
 
 /* -------------------------------------------------- */
 /*                       Helpers                      */

@@ -1,4 +1,4 @@
-import { Arrow } from './arrow'
+import { Arrow } from '../'
 
 describe('Arrow shape', () => {
   it('Creates a shape', () => {

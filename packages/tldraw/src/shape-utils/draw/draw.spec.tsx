@@ -1,4 +1,4 @@
-import { Draw } from './draw'
+import { Draw } from '../'
 
 describe('Draw shape', () => {
   it('Creates a shape', () => {

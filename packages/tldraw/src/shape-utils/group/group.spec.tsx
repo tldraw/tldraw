@@ -1,4 +1,4 @@
-import { Group } from './group'
+import { Group } from '../'
 
 describe('Group shape', () => {
   it('Creates a shape', () => {

@@ -1,9 +1,10 @@
 import * as React from 'react'
-import { mockUtils, renderWithContext } from '+test'
+import { renderWithContext } from '+test'
 import { Handles } from './handles'
+import { boxShape } from '+shape-utils/TLShapeUtil.spec'
 
 describe('handles', () => {
   test('mounts component without crashing', () => {
-    renderWithContext(<Handles shape={mockUtils.box.create({ id: 'box' })} zoom={1} />)
+    renderWithContext(<Handles shape={boxShape} zoom={1} />)
   })
 })

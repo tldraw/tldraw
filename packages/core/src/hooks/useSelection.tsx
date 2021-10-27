@@ -1,16 +1,21 @@
 import * as React from 'react'
-import type { TLPage, TLPageState, TLShape, TLBounds, TLShapeUtils, TLBinding } from '+types'
+import type { TLPage, TLPageState, TLShape, TLBounds, TLBinding } from '+types'
 import Utils from '+utils'
 import { useTLContext } from '+hooks'
+import type { TLShapeUtil, TLShapeUtilsMap } from '+shape-utils'
 
 function canvasToScreen(point: number[], camera: TLPageState['camera']): number[] {
   return [(point[0] + camera.point[0]) * camera.zoom, (point[1] + camera.point[1]) * camera.zoom]
 }
 
-export function useSelection<T extends TLShape, E extends Element>(
+function getShapeUtils<T extends TLShape>(shapeUtils: TLShapeUtilsMap<T>, shape: T) {
+  return shapeUtils[shape.type as T['type']] as unknown as TLShapeUtil<T>
+}
+
+export function useSelection<T extends TLShape>(
   page: TLPage<T, TLBinding>,
   pageState: TLPageState,
-  shapeUtils: TLShapeUtils<T, E>
+  shapeUtils: TLShapeUtilsMap<T>
 ) {
   const { rSelectionBounds } = useTLContext()
   const { selectedIds } = pageState
@@ -30,7 +35,7 @@ export function useSelection<T extends TLShape, E extends Element>(
 
     isLocked = shape.isLocked || false
 
-    bounds = shapeUtils[shape.type as T['type']].getBounds(shape)
+    bounds = getShapeUtils(shapeUtils, shape).getBounds(shape)
   } else if (selectedIds.length > 1) {
     const selectedShapes = selectedIds.map((id) => page.shapes[id])
 
@@ -40,12 +45,9 @@ export function useSelection<T extends TLShape, E extends Element>(
 
     bounds = selectedShapes.reduce((acc, shape, i) => {
       if (i === 0) {
-        return shapeUtils[shape.type as T['type']].getRotatedBounds(shape)
+        return getShapeUtils(shapeUtils, shape).getRotatedBounds(shape)
       }
-      return Utils.getExpandedBounds(
-        acc,
-        shapeUtils[shape.type as T['type']].getRotatedBounds(shape)
-      )
+      return Utils.getExpandedBounds(acc, getShapeUtils(shapeUtils, shape).getRotatedBounds(shape))
     }, {} as TLBounds)
   }
 

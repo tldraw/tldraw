@@ -39,13 +39,13 @@ import {
   ExceptFirstTwo,
 } from '~types'
 import { TLDR } from './tldr'
-import { defaultStyle, tldrawShapeUtils } from '~shape'
+import { defaultStyle, shapeUtils } from '~shape-utils'
 import * as Commands from './command'
 import { ArgsOfType, getSession } from './session'
-import { sample, USER_COLORS } from './utils'
+import { sample } from './utils'
 import { createTools, ToolType } from './tool'
 import type { BaseTool } from './tool/BaseTool'
-import * as constants from './constants'
+import { USER_COLORS, FIT_TO_SCREEN_PADDING } from '~constants'
 
 const uuid = Utils.uniqueId()
 
@@ -218,7 +218,7 @@ export class TLDrawState extends StateManager<Data> {
             const fromUtils = TLDR.getShapeUtils(fromShape)
 
             // We only need to update the binding's "from" shape
-            const fromDelta = fromUtils.onBindingChange(
+            const fromDelta = fromUtils.onBindingChange?.(
               fromShape,
               binding,
               toShape,
@@ -1428,8 +1428,8 @@ export class TLDrawState extends StateManager<Data> {
 
     let zoom = TLDR.getCameraZoom(
       Math.min(
-        (this.bounds.width - constants.FIT_TO_SCREEN_PADDING) / bounds.width,
-        (this.bounds.height - constants.FIT_TO_SCREEN_PADDING) / bounds.height
+        (this.bounds.width - FIT_TO_SCREEN_PADDING) / bounds.width,
+        (this.bounds.height - FIT_TO_SCREEN_PADDING) / bounds.height
       )
     )
 
@@ -1458,8 +1458,8 @@ export class TLDrawState extends StateManager<Data> {
 
     let zoom = TLDR.getCameraZoom(
       Math.min(
-        (this.bounds.width - constants.FIT_TO_SCREEN_PADDING) / bounds.width,
-        (this.bounds.height - constants.FIT_TO_SCREEN_PADDING) / bounds.height
+        (this.bounds.width - FIT_TO_SCREEN_PADDING) / bounds.width,
+        (this.bounds.height - FIT_TO_SCREEN_PADDING) / bounds.height
       )
     )
 
@@ -1901,7 +1901,7 @@ export class TLDrawState extends StateManager<Data> {
 
     const id = Utils.uniqueId()
 
-    const Text = tldrawShapeUtils.text
+    const Text = shapeUtils[TLDrawShapeType.Text]
 
     const newShape = Text.create({
       id,

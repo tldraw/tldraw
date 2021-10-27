@@ -1,7 +1,7 @@
 import Vec from '@tldraw/vec'
 import type { TLPointerEventHandler } from '@tldraw/core'
 import { Utils } from '@tldraw/core'
-import { Sticky } from '~shape/shapes'
+import { Sticky } from '~shape-utils'
 import { SessionType, TLDrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 

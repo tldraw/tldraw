@@ -12,10 +12,10 @@ import type {
 import { Canvas } from '../canvas'
 import { Inputs } from '../../inputs'
 import { useTLTheme, TLContext, TLContextType } from '../../hooks'
-import type { TLShapeUtil, TLSnapLine, TLUsers } from '+index'
+import type { TLSnapLine, TLUsers } from '+index'
+import type { TLShapeUtilsMap } from '+shape-utils'
 
-export interface RendererProps<T extends TLShape, E extends Element = any, M = any>
-  extends Partial<TLCallbacks<T>> {
+export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCallbacks<T>> {
   /**
    * (optional) A unique id to be applied to the renderer element, used to scope styles.
    */
@@ -27,7 +27,7 @@ export interface RendererProps<T extends TLShape, E extends Element = any, M = a
   /**
    * An object containing instances of your shape classes.
    */
-  shapeUtils: Record<T['type'], TLShapeUtil<T, E, M>>
+  shapeUtils: TLShapeUtilsMap<T>
   /**
    * The current page, containing shapes and bindings.
    */
@@ -104,7 +104,7 @@ export interface RendererProps<T extends TLShape, E extends Element = any, M = a
  * @param props
  * @returns
  */
-export function Renderer<T extends TLShape, E extends Element, M extends Record<string, unknown>>({
+export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
   id = 'tl',
   shapeUtils,
   page,
@@ -123,7 +123,7 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
   hideBounds = false,
   onMount,
   ...rest
-}: RendererProps<T, E, M>): JSX.Element {
+}: RendererProps<T, M>): JSX.Element {
   useTLTheme(theme, '#' + id)
 
   const rSelectionBounds = React.useRef<TLBounds>(null)
@@ -134,7 +134,7 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
     rPageState.current = pageState
   }, [pageState])
 
-  const [context] = React.useState<TLContextType<T, E, M>>(() => ({
+  const [context] = React.useState<TLContextType<T>>(() => ({
     callbacks: rest,
     shapeUtils,
     rSelectionBounds,
@@ -147,7 +147,7 @@ export function Renderer<T extends TLShape, E extends Element, M extends Record<
   }, [context])
 
   return (
-    <TLContext.Provider value={context as unknown as TLContextType<TLShape, Element>}>
+    <TLContext.Provider value={context as unknown as TLContextType<TLShape>}>
       <Canvas
         id={id}
         page={page}

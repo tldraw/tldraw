@@ -7,7 +7,7 @@ export function resetBounds(data: Data, ids: string[], pageId: string): TLDrawCo
   const { before, after } = TLDR.mutateShapes(
     data,
     ids,
-    (shape) => TLDR.getShapeUtils(shape).onDoubleClickBoundsHandle(shape),
+    (shape) => TLDR.getShapeUtils(shape).onDoubleClickBoundsHandle?.(shape),
     pageId
   )
 

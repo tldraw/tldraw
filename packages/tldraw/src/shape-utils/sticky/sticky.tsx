@@ -1,54 +1,44 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { css } from '@stitches/core'
-import { HTMLContainer, ShapeUtil } from '@tldraw/core'
-import { defaultStyle } from '~shape/shape-styles'
-import { StickyShape, TLDrawMeta, TLDrawShapeType } from '~types'
-import { getBoundsRectangle } from '../shared'
-import { getStickyFontStyle, getStickyShapeStyle } from '~shape'
-import { TextAreaUtils } from '../shared'
+import { Utils, HTMLContainer, TLBounds, TLIndicator, TLComponent } from '@tldraw/core'
+import { defaultStyle } from '../shape-styles'
+import { StickyShape, TLDrawShapeType, TLDrawTransformInfo } from '~types'
+import { getBoundsRectangle, TextAreaUtils } from '../shared'
+import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
+import { getStickyFontStyle, getStickyShapeStyle } from '../shape-styles'
+import css from '~styles'
 import Vec from '@tldraw/vec'
 
-const PADDING = 16
-const MIN_CONTAINER_HEIGHT = 200
+type T = StickyShape
+type E = HTMLDivElement
 
-function normalizeText(text: string) {
-  return text.replace(/\r?\n|\r/g, '\n')
-}
+export class StickyUtil extends TLDrawShapeUtil<T, E> {
+  type = TLDrawShapeType.Sticky as const
 
-export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() => ({
-  type: TLDrawShapeType.Sticky,
+  canBind = true
 
-  showBounds: false,
+  getShape = (props: Partial<T>): T => {
+    return Utils.deepMerge<T>(
+      {
+        id: 'id',
+        type: TLDrawShapeType.Sticky,
+        name: 'Sticky',
+        parentId: 'page',
+        childIndex: 1,
+        point: [0, 0],
+        size: [200, 200],
+        text: '',
+        rotation: 0,
+        style: defaultStyle,
+      },
+      props
+    )
+  }
 
-  isStateful: false,
-
-  canBind: true,
-
-  canEdit: true,
-
-  canClone: true,
-
-  pathCache: new WeakMap<number[], string>([]),
-
-  defaultProps: {
-    id: 'id',
-    type: TLDrawShapeType.Sticky,
-    name: 'Sticky',
-    parentId: 'page',
-    childIndex: 1,
-    point: [0, 0],
-    size: [200, 200],
-    text: '',
-    rotation: 0,
-    style: defaultStyle,
-  },
-
-  shouldRender(prev, next) {
-    return next.size !== prev.size || next.style !== prev.style || next.text !== prev.text
-  },
-
-  Component({ events, shape, isEditing, onShapeBlur, onShapeChange, meta }, ref) {
+  Component: TLComponent<T, E> = (
+    { shape, meta, events, isEditing, onShapeBlur, onShapeChange },
+    ref
+  ) => {
     const font = getStickyFontStyle(shape.style)
 
     const { color, fill } = getStickyShapeStyle(shape.style, meta.isDarkMode)
@@ -202,9 +192,9 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
         </div>
       </HTMLContainer>
     )
-  },
+  }
 
-  Indicator({ shape }) {
+  Indicator: TLIndicator<T> = ({ shape }) => {
     const {
       size: [width, height],
     } = shape
@@ -212,13 +202,21 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
     return (
       <rect x={0} y={0} rx={3} ry={3} width={Math.max(1, width)} height={Math.max(1, height)} />
     )
-  },
+  }
 
-  getBounds(shape) {
+  getBounds = (shape: T) => {
     return getBoundsRectangle(shape, this.boundsCache)
-  },
+  }
 
-  transform(shape, bounds, { transformOrigin, scaleX, scaleY }) {
+  shouldRender = (prev: T, next: T) => {
+    return next.size !== prev.size || next.style !== prev.style || next.text !== prev.text
+  }
+
+  transform = (
+    shape: T,
+    bounds: TLBounds,
+    { scaleX, scaleY, transformOrigin }: TLDrawTransformInfo<T>
+  ): Partial<T> => {
     const point = Vec.round([
       bounds.minX +
         (bounds.width - shape.size[0]) * (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
@@ -230,12 +228,23 @@ export const Sticky = new ShapeUtil<StickyShape, HTMLDivElement, TLDrawMeta>(() 
     return {
       point,
     }
-  },
+  }
 
-  transformSingle(shape) {
+  transformSingle = (shape: T): Partial<T> => {
     return shape
-  },
-}))
+  }
+}
+
+/* -------------------------------------------------- */
+/*                       Helpers                      */
+/* -------------------------------------------------- */
+
+const PADDING = 16
+const MIN_CONTAINER_HEIGHT = 200
+
+function normalizeText(text: string) {
+  return text.replace(/\r?\n|\r/g, '\n')
+}
 
 const styledStickyContainer = css({
   pointerEvents: 'all',

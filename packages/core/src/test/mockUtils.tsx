@@ -1,6 +1,5 @@
-import type { TLShapeUtils } from '+types'
-import { Box } from '../shapes/createShape.spec'
+import { BoxUtil } from '+shape-utils/TLShapeUtil.spec'
 
-export const mockUtils: TLShapeUtils = {
-  box: Box,
+export const mockUtils = {
+  box: new BoxUtil(),
 }

@@ -5,7 +5,7 @@ import { Session, SessionType, TLDrawShape, TLDrawStatus } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 import type { Command } from 'rko'
-import { SLOW_SPEED, SNAP_DISTANCE } from '~state/constants'
+import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 
 type SnapInfo =
   | {

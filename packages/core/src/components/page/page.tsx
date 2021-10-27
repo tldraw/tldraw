@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import type { TLBinding, TLPage, TLPageState, TLShape, TLShapeUtil } from '+types'
+import type { TLBinding, TLPage, TLPageState, TLShape } from '+types'
 import { useSelection, useShapeTree, useTLContext } from '+hooks'
 import { Bounds } from '+components/bounds'
 import { BoundsBg } from '+components/bounds/bounds-bg'
 import { Handles } from '+components/handles'
 import { ShapeNode } from '+components/shape'
 import { ShapeIndicator } from '+components/shape-indicator'
+import type { TLShapeUtil } from '+shape-utils'
 
 interface PageProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>

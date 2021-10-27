@@ -2,18 +2,19 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { useShapeEvents } from '+hooks'
-import type { IShapeTreeNode, TLShape, TLShapeUtil } from '+types'
+import type { IShapeTreeNode, TLShape } from '+types'
 import { RenderedShape } from './rendered-shape'
 import { Container } from '+components/container'
 import { useTLContext } from '+hooks'
 import { useForceUpdate } from '+hooks/useForceUpdate'
+import type { TLShapeUtil } from '+shape-utils'
 
-interface ShapeProps<T extends TLShape, E extends Element, M> extends IShapeTreeNode<T, M> {
-  utils: TLShapeUtil<T, E, M>
+interface ShapeProps<T extends TLShape, M> extends IShapeTreeNode<T, M> {
+  utils: TLShapeUtil<T>
 }
 
 export const Shape = React.memo(
-  <T extends TLShape, E extends Element, M>({
+  <T extends TLShape, M>({
     shape,
     utils,
     isEditing,
@@ -22,7 +23,7 @@ export const Shape = React.memo(
     isSelected,
     isCurrentParent,
     meta,
-  }: ShapeProps<T, E, M>) => {
+  }: ShapeProps<T, M>) => {
     const { callbacks } = useTLContext()
     const bounds = utils.getBounds(shape)
     const events = useShapeEvents(shape.id, isCurrentParent)

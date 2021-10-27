@@ -5,7 +5,7 @@ import css, { dark } from '~styles'
 import { Data, TLDrawDocument, TLDrawStatus, TLDrawUser } from '~types'
 import { TLDrawState } from '~state'
 import { TLDrawContext, useCustomFonts, useKeyboardShortcuts, useTLDrawContext } from '~hooks'
-import { tldrawShapeUtils } from '~shape'
+import { shapeUtils } from '~shape-utils'
 import { StylePanel } from '~components/style-panel'
 import { ToolsPanel } from '~components/tools-panel'
 import { PagePanel } from '~components/page-panel'
@@ -14,7 +14,6 @@ import { breakpoints, iconButton } from '~components'
 import { DotFilledIcon } from '@radix-ui/react-icons'
 import { TLDR } from '~state/tldr'
 import { ContextMenu } from '~components/context-menu'
-import { EMPTY_ARRAY } from '~state/constants'
 
 // Selectors
 const isInSelectSelector = (s: Data) => s.appState.activeTool === 'select'
@@ -225,7 +224,7 @@ function InnerTldraw({
           snapLines={snapLines}
           users={users}
           userId={tlstate.state.room?.userId}
-          shapeUtils={tldrawShapeUtils}
+          shapeUtils={shapeUtils}
           theme={theme}
           meta={meta}
           hideBounds={hideBounds}
