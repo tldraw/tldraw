@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/intersect",
-  "version": "0.0.128",
+  "version": "0.0.129",
   "private": false,
   "description": "Intersection utilities for tldraw.",
   "author": "@steveruizok",
@@ -45,7 +45,7 @@
     "typescript": "^4.4.2"
   },
   "dependencies": {
-    "@tldraw/vec": "^0.0.128"
+    "@tldraw/vec": "^0.0.129"
   },
   "gitHead": "083b36e167b6911927a6b58cbbb830b11b33f00a"
 }

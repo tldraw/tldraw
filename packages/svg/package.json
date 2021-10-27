@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/svg",
-  "version": "0.0.128",
+  "version": "0.0.129",
   "private": false,
   "description": "SVG utilities for tldraw.",
   "author": "@steveruizok",
