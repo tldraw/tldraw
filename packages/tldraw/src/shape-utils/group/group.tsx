@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { Utils, SVGContainer, TLIndicator, TLComponent } from '@tldraw/core'
-import { defaultStyle } from '~shape/shape-styles'
+import { defaultStyle } from '../shape-styles'
 import { TLDrawShapeType, GroupShape, ColorStyle } from '~types'
 import { getBoundsRectangle } from '../shared'
 import { BINDING_DISTANCE } from '~constants'
-import { TLDrawShapeUtil } from '~shape-utils'
+import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
 import css from '~styles'
 
 type T = GroupShape
@@ -31,14 +31,6 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
       },
       props
     )
-  }
-
-  getBounds = (shape: T) => {
-    return getBoundsRectangle(shape, this.boundsCache)
-  }
-
-  shouldRender = (prev: T, next: T) => {
-    return next.size !== prev.size || next.style !== prev.style
   }
 
   Component: TLComponent<T, E> = ({ shape, isBinding, isHovered, isSelected, events }, ref) => {
@@ -108,11 +100,17 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
       </g>
     )
   }
+
+  getBounds = (shape: T) => {
+    return getBoundsRectangle(shape, this.boundsCache)
+  }
+
+  shouldRender = (prev: T, next: T) => {
+    return next.size !== prev.size || next.style !== prev.style
+  }
 }
 
 const scaledLines = css({
   strokeWidth: 'calc(1.5px * var(--tl-scale))',
   strokeDasharray: `calc(1px * var(--tl-scale)), calc(3px * var(--tl-scale))`,
 })
-
-export const Group = new GroupUtil()

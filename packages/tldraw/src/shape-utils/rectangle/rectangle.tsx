@@ -2,11 +2,11 @@ import * as React from 'react'
 import { Utils, SVGContainer, TLIndicator, TLComponent } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { getStroke, getStrokePoints } from 'perfect-freehand'
-import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
+import { defaultStyle, getShapeStyle } from '../shape-styles'
 import { RectangleShape, DashStyle, TLDrawShapeType } from '~types'
 import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
 import { BINDING_DISTANCE } from '~constants'
-import { TLDrawShapeUtil } from '~shape-utils'
+import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
 
 type T = RectangleShape
 type E = SVGSVGElement
@@ -31,14 +31,6 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
       },
       props
     )
-  }
-
-  getBounds = (shape: T) => {
-    return getBoundsRectangle(shape, this.boundsCache)
-  }
-
-  shouldRender = (prev: T, next: T) => {
-    return next.size !== prev.size || next.style !== prev.style
   }
 
   Component: TLComponent<T, E> = ({ shape, isBinding, meta, events }, ref) => {
@@ -166,6 +158,14 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
+  getBounds = (shape: T) => {
+    return getBoundsRectangle(shape, this.boundsCache)
+  }
+
+  shouldRender = (prev: T, next: T) => {
+    return next.size !== prev.size || next.style !== prev.style
+  }
+
   transform = transformRectangle
 
   transformSingle = transformSingleRectangle
@@ -270,5 +270,3 @@ function getRectangleIndicatorPathData(shape: RectangleShape) {
     false
   )
 }
-
-export const Rectangle = new RectangleUtil()

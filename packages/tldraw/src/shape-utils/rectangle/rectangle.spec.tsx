@@ -1,4 +1,4 @@
-import { Rectangle } from './rectangle'
+import { Rectangle } from '../'
 
 describe('Rectangle shape', () => {
   it('Creates a shape', () => {

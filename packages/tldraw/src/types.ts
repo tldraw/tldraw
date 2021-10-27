@@ -9,13 +9,10 @@ import type {
   TLHandle,
   TLBounds,
   TLSnapLine,
-  TLPointerInfo,
 } from '@tldraw/core'
-import { TLShapeUtil } from '@tldraw/core'
 import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
 import type { Command, Patch } from 'rko'
-import * as React from 'react'
 
 export interface TLDrawTransformInfo<T extends TLShape> {
   type: TLBoundsEdge | TLBoundsCorner

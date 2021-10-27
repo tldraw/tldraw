@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { BoxIcon, dropdownItem, dropdownContent } from './styled'
 import { DropdownMenuIconTriggerButton } from '../shared'
-import { strokes } from '~shape'
+import { strokes } from '~shape-utils'
 import { useTheme, useTLDrawContext } from '~hooks'
 import type { Data, ColorStyle } from '~types'
 

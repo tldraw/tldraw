@@ -1,17 +1,27 @@
 import * as React from 'react'
-import { ShapeUtil, SVGContainer, TLBounds, Utils, TLHandle } from '@tldraw/core'
+import {
+  Utils,
+  TLHandle,
+  SVGContainer,
+  TLBinding,
+  TLBounds,
+  TLIndicator,
+  TLComponent,
+  TLPointerInfo,
+} from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import getStroke from 'perfect-freehand'
-import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
+import { defaultStyle, getShapeStyle } from '../shape-styles'
 import {
   ArrowShape,
+  DashStyle,
+  TLDrawTransformInfo,
   Decoration,
   TLDrawShapeType,
-  DashStyle,
-  ArrowBinding,
-  TLDrawMeta,
+  TLDrawShape,
   EllipseShape,
 } from '~types'
+import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
 import {
   intersectArcBounds,
   intersectCircleCircle,
@@ -20,56 +30,63 @@ import {
   intersectRayBounds,
   intersectRayEllipse,
 } from '@tldraw/intersect'
-import { EASINGS } from '~state/utils'
-import { BINDING_DISTANCE } from '~constants'
+import { EASINGS, BINDING_DISTANCE } from '~constants'
 
-export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => ({
-  type: TLDrawShapeType.Arrow,
+type T = ArrowShape
+type E = SVGSVGElement
 
-  canStyleFill: false,
+export class ArrowUtil extends TLDrawShapeUtil<T, E> {
+  type = TLDrawShapeType.Arrow as const
 
-  showBounds: false,
+  canStyleFill = false
 
-  pathCache: new WeakMap<ArrowShape, string>(),
+  showBounds = false
 
-  defaultProps: {
-    id: 'id',
-    type: TLDrawShapeType.Arrow,
-    name: 'Arrow',
-    parentId: 'page',
-    childIndex: 1,
-    point: [0, 0],
-    rotation: 0,
-    bend: 0,
-    handles: {
-      start: {
-        id: 'start',
-        index: 0,
+  pathCache = new WeakMap<T, string>()
+
+  getShape = (props: Partial<T>): T => {
+    return Utils.deepMerge<T>(
+      {
+        id: 'id',
+        type: TLDrawShapeType.Arrow,
+        name: 'Arrow',
+        parentId: 'page',
+        childIndex: 1,
         point: [0, 0],
-        canBind: true,
+        rotation: 0,
+        bend: 0,
+        handles: {
+          start: {
+            id: 'start',
+            index: 0,
+            point: [0, 0],
+            canBind: true,
+          },
+          end: {
+            id: 'end',
+            index: 1,
+            point: [1, 1],
+            canBind: true,
+          },
+          bend: {
+            id: 'bend',
+            index: 2,
+            point: [0.5, 0.5],
+          },
+        },
+        decorations: {
+          end: Decoration.Arrow,
+        },
+        style: {
+          ...defaultStyle,
+          isFilled: false,
+        },
       },
-      end: {
-        id: 'end',
-        index: 1,
-        point: [1, 1],
-        canBind: true,
-      },
-      bend: {
-        id: 'bend',
-        index: 2,
-        point: [0.5, 0.5],
-      },
-    },
-    decorations: {
-      end: Decoration.Arrow,
-    },
-    style: {
-      ...defaultStyle,
-      isFilled: false,
-    },
-  },
+      props
+    )
+  }
 
-  Component({ shape, meta, events }, ref) {
+  Component: TLComponent<T, E> = ({ shape, meta, events }, ref) => {
     const {
       handles: { start, bend, end },
       decorations = {},
@@ -245,32 +262,24 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
         </g>
       </SVGContainer>
     )
-  },
+  }
 
-  Indicator({ shape }) {
+  Indicator: TLIndicator<T> = ({ shape }) => {
     const path = getArrowPath(shape)
 
     return <path d={path} />
-  },
+  }
 
-  shouldRender(prev, next) {
-    return (
-      next.decorations !== prev.decorations ||
-      next.handles !== prev.handles ||
-      next.style !== prev.style
-    )
-  },
-
-  getBounds(shape) {
+  getBounds = (shape: T) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       const points = getArcPoints(shape)
       return Utils.getBoundsFromPoints(points)
     })
 
     return Utils.translateBounds(bounds, shape.point)
-  },
+  }
 
-  getRotatedBounds(shape) {
+  getRotatedBounds = (shape: T) => {
     let points = getArcPoints(shape)
 
     const { minX, minY, maxX, maxY } = Utils.getBoundsFromPoints(points)
@@ -282,39 +291,51 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
     }
 
     return Utils.translateBounds(Utils.getBoundsFromPoints(points), shape.point)
-  },
+  }
 
-  getCenter(shape) {
+  getCenter = (shape: T) => {
     const { start, end } = shape.handles
     return Vec.add(shape.point, Vec.med(start.point, end.point))
-  },
+  }
 
-  hitTestBounds(shape, brushBounds: TLBounds) {
+  shouldRender = (prev: T, next: T) => {
+    return (
+      next.decorations !== prev.decorations ||
+      next.handles !== prev.handles ||
+      next.style !== prev.style
+    )
+  }
+
+  hitTestBounds = (shape: T, bounds: TLBounds) => {
     const { start, end, bend } = shape.handles
 
     const sp = Vec.add(shape.point, start.point)
 
     const ep = Vec.add(shape.point, end.point)
 
-    if (Utils.pointInBounds(sp, brushBounds) || Utils.pointInBounds(ep, brushBounds)) {
+    if (Utils.pointInBounds(sp, bounds) || Utils.pointInBounds(ep, bounds)) {
       return true
     }
 
     if (Vec.isEqual(Vec.med(start.point, end.point), bend.point)) {
-      return intersectLineSegmentBounds(sp, ep, brushBounds).length > 0
+      return intersectLineSegmentBounds(sp, ep, bounds).length > 0
     } else {
       const [cx, cy, r] = getCtp(shape)
 
       const cp = Vec.add(shape.point, [cx, cy])
 
-      return intersectArcBounds(cp, r, sp, ep, brushBounds).length > 0
+      return intersectArcBounds(cp, r, sp, ep, bounds).length > 0
     }
-  },
+  }
 
-  transform(_shape, bounds, { initialShape, scaleX, scaleY }) {
+  transform = (
+    shape: T,
+    bounds: TLBounds,
+    { initialShape, scaleX, scaleY }: TLDrawTransformInfo<T>
+  ): Partial<T> => {
     const initialShapeBounds = this.getBounds(initialShape)
 
-    const handles: (keyof ArrowShape['handles'])[] = ['start', 'end']
+    const handles: (keyof T['handles'])[] = ['start', 'end']
 
     const nextHandles = { ...initialShape.handles }
 
@@ -355,9 +376,9 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
       point: Vec.round([bounds.minX, bounds.minY]),
       handles: nextHandles,
     }
-  },
+  }
 
-  onDoubleClickHandle(shape, handle) {
+  onDoubleClickHandle = (shape: T, handle: Partial<T['handles']>): Partial<T> | void => {
     switch (handle) {
       case 'bend': {
         return {
@@ -390,9 +411,15 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
     }
 
     return this
-  },
+  }
 
-  onBindingChange(shape, binding: ArrowBinding, target, targetBounds, center) {
+  onBindingChange = (
+    shape: T,
+    binding: TLBinding,
+    target: TLDrawShape,
+    targetBounds: TLBounds,
+    center: number[]
+  ): Partial<T> | void => {
     const handle = shape.handles[binding.meta.handleId as keyof ArrowShape['handles']]
 
     const expandedBounds = Utils.expandBounds(targetBounds, BINDING_DISTANCE)
@@ -467,9 +494,13 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
       },
       { shiftKey: false }
     )
-  },
+  }
 
-  onHandleChange(shape, handles, { shiftKey }) {
+  onHandleChange = (
+    shape: T,
+    handles: Partial<T['handles']>,
+    { shiftKey }: Partial<TLPointerInfo>
+  ): Partial<T> | void => {
     let nextHandles = Utils.deepMerge<ArrowShape['handles']>(shape.handles, handles)
     let nextBend = shape.bend
 
@@ -575,8 +606,8 @@ export const Arrow = new ShapeUtil<ArrowShape, SVGSVGElement, TLDrawMeta>(() => 
     }
 
     return nextShape
-  },
-}))
+  }
+}
 
 /* -------------------------------------------------- */
 /*                       Helpers                      */

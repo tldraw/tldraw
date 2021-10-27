@@ -1,5 +1,5 @@
 import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
-import { getShapeUtils } from '~shape'
+import { getShapeUtils, TLDrawShapeUtil } from '~shape-utils'
 import {
   Data,
   ShapeStyles,
@@ -9,7 +9,6 @@ import {
   TLDrawPage,
   TLDrawCommand,
   TLDrawPatch,
-  TLDrawShapeUtil,
   TLDrawShapeType,
   ArrowShape,
 } from '~types'
@@ -21,7 +20,7 @@ export class TLDR {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static getShapeUtils<T extends TLDrawShape>(shape: T): TLDrawShapeUtil<T>
   static getShapeUtils<T extends TLDrawShape>(shape: T | T['type']) {
-    return getShapeUtils<T>(typeof shape === 'string' ? shape : shape.type)
+    return getShapeUtils<T>(shape)
   }
 
   static getSelectedShapes(data: Data, pageId: string) {
@@ -607,7 +606,7 @@ export class TLDR {
   }
 
   static onSessionComplete<T extends TLDrawShape>(shape: T) {
-    const delta = TLDR.getShapeUtils(shape).onSessionComplete(shape)
+    const delta = TLDR.getShapeUtils(shape).onSessionComplete?.(shape)
     if (!delta) return shape
     return { ...shape, ...delta }
   }
@@ -615,7 +614,7 @@ export class TLDR {
   static onChildrenChange<T extends TLDrawShape>(data: Data, shape: T, pageId: string) {
     if (!shape.children) return
 
-    const delta = TLDR.getShapeUtils(shape).onChildrenChange(
+    const delta = TLDR.getShapeUtils(shape).onChildrenChange?.(
       shape,
       shape.children.map((id) => TLDR.getShape(data, id, pageId))
     )
@@ -630,7 +629,7 @@ export class TLDR {
     binding: TLDrawBinding,
     otherShape: TLDrawShape
   ) {
-    const delta = TLDR.getShapeUtils(shape).onBindingChange(
+    const delta = TLDR.getShapeUtils(shape).onBindingChange?.(
       shape,
       binding,
       otherShape,
@@ -684,7 +683,7 @@ export class TLDR {
     // of rotating the shape. Shapes with handles should never be rotated,
     // because that makes a lot of other things incredible difficult.
     if (shape.handles !== undefined) {
-      const change = this.getShapeUtils(shape).onHandleChange(
+      const change = this.getShapeUtils(shape).onHandleChange?.(
         // Base the change on a shape with the next point
         { ...shape, point: nextPoint },
         Object.fromEntries(

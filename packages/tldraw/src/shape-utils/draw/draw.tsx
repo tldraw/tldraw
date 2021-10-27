@@ -1,33 +1,45 @@
 import * as React from 'react'
-import { SVGContainer, TLBounds, Utils, TLTransformInfo, ShapeUtil } from '@tldraw/core'
+import { Utils, SVGContainer, TLBounds, TLIndicator, TLComponent } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { intersectBoundsBounds, intersectBoundsPolyline } from '@tldraw/intersect'
 import { getStrokeOutlinePoints, getStrokePoints, StrokeOptions } from 'perfect-freehand'
-import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
-import { DrawShape, DashStyle, TLDrawShapeType, TLDrawMeta } from '~types'
+import { defaultStyle, getShapeStyle } from '../shape-styles'
+import { DrawShape, DashStyle, TLDrawShapeType, TLDrawTransformInfo } from '~types'
+import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
+import { intersectBoundsBounds, intersectBoundsPolyline } from '@tldraw/intersect'
 
-const pointsBoundsCache = new WeakMap<DrawShape['points'], TLBounds>([])
-const shapeBoundsCache = new Map<string, TLBounds>()
-const rotatedCache = new WeakMap<DrawShape, number[][]>([])
-const pointCache: Record<string, number[]> = {}
+type T = DrawShape
+type E = SVGSVGElement
 
-export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
-  type: TLDrawShapeType.Draw,
+export class DrawUtil extends TLDrawShapeUtil<T, E> {
+  type = TLDrawShapeType.Draw as const
 
-  defaultProps: {
-    id: 'id',
-    type: TLDrawShapeType.Draw,
-    name: 'Draw',
-    parentId: 'page',
-    childIndex: 1,
-    point: [0, 0],
-    rotation: 0,
-    style: defaultStyle,
-    points: [],
-    isComplete: false,
-  },
+  pointsBoundsCache = new WeakMap<T['points'], TLBounds>([])
 
-  Component({ shape, meta, events }, ref) {
+  shapeBoundsCache = new Map<string, TLBounds>()
+
+  rotatedCache = new WeakMap<T, number[][]>([])
+
+  pointCache: Record<string, number[]> = {}
+
+  getShape = (props: Partial<T>): T => {
+    return Utils.deepMerge<T>(
+      {
+        id: 'id',
+        type: TLDrawShapeType.Draw,
+        name: 'Draw',
+        parentId: 'page',
+        childIndex: 1,
+        point: [0, 0],
+        rotation: 0,
+        style: defaultStyle,
+        points: [],
+        isComplete: false,
+      },
+      props
+    )
+  }
+
+  Component: TLComponent<T, E> = ({ shape, meta, events }, ref) => {
     const { points, style, isComplete } = shape
 
     const polygonPathData = React.useMemo(() => {
@@ -132,9 +144,9 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
         />
       </SVGContainer>
     )
-  },
+  }
 
-  Indicator({ shape }) {
+  Indicator: TLIndicator<T> = ({ shape }) => {
     const { points } = shape
 
     const pathData = React.useMemo(() => {
@@ -150,85 +162,12 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
     }
 
     return <path d={pathData} />
-  },
-
-  getBounds(shape: DrawShape): TLBounds {
-    // return Utils.translateBounds(Utils.getBoundsFromPoints(shape.points), shape.point)
-
-    // The goal here is to avoid recalculating the bounds from the
-    // points array, which is expensive. However, we still need a
-    // new bounds if the point has changed, but we will reuse the
-    // previous bounds-from-points result if we can.
-
-    const pointsHaveChanged = !pointsBoundsCache.has(shape.points)
-    const pointHasChanged = !(pointCache[shape.id] === shape.point)
-
-    if (pointsHaveChanged) {
-      // If the points have changed, then bust the points cache
-      const bounds = Utils.getBoundsFromPoints(shape.points)
-      pointsBoundsCache.set(shape.points, bounds)
-      shapeBoundsCache.set(shape.id, Utils.translateBounds(bounds, shape.point))
-      pointCache[shape.id] = shape.point
-    } else if (pointHasChanged && !pointsHaveChanged) {
-      // If the point have has changed, then bust the point cache
-      pointCache[shape.id] = shape.point
-      shapeBoundsCache.set(
-        shape.id,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        Utils.translateBounds(pointsBoundsCache.get(shape.points)!, shape.point)
-      )
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return shapeBoundsCache.get(shape.id)!
-  },
-
-  shouldRender(prev: DrawShape, next: DrawShape): boolean {
-    return (
-      next.points !== prev.points ||
-      next.style !== prev.style ||
-      next.isComplete !== prev.isComplete
-    )
-  },
-
-  hitTestBounds(shape: DrawShape, brushBounds: TLBounds): boolean {
-    // Test axis-aligned shape
-    if (!shape.rotation) {
-      const bounds = this.getBounds(shape)
-
-      return (
-        Utils.boundsContain(brushBounds, bounds) ||
-        ((Utils.boundsContain(bounds, brushBounds) ||
-          intersectBoundsBounds(bounds, brushBounds).length > 0) &&
-          intersectBoundsPolyline(
-            Utils.translateBounds(brushBounds, Vec.neg(shape.point)),
-            shape.points
-          ).length > 0)
-      )
-    }
-
-    // Test rotated shape
-    const rBounds = this.getRotatedBounds(shape)
-
-    const rotatedBounds = Utils.getFromCache(rotatedCache, shape, () => {
-      const c = Utils.getBoundsCenter(Utils.getBoundsFromPoints(shape.points))
-      return shape.points.map((pt) => Vec.rotWith(pt, c, shape.rotation || 0))
-    })
-
-    return (
-      Utils.boundsContain(brushBounds, rBounds) ||
-      intersectBoundsPolyline(
-        Utils.translateBounds(brushBounds, Vec.neg(shape.point)),
-        rotatedBounds
-      ).length > 0
-    )
-  },
-
-  transform(
-    shape: DrawShape,
+  }
+  transform = (
+    shape: T,
     bounds: TLBounds,
-    { initialShape, scaleX, scaleY }: TLTransformInfo<DrawShape>
-  ): Partial<DrawShape> {
+    { initialShape, scaleX, scaleY }: TLDrawTransformInfo<T>
+  ): Partial<T> => {
     const initialShapeBounds = Utils.getFromCache(this.boundsCache, initialShape, () =>
       Utils.getBoundsFromPoints(initialShape.points)
     )
@@ -255,8 +194,74 @@ export const Draw = new ShapeUtil<DrawShape, SVGSVGElement, TLDrawMeta>(() => ({
       points,
       point,
     }
-  },
-}))
+  }
+
+  getBounds = (shape: T) => {
+    // The goal here is to avoid recalculating the bounds from the
+    // points array, which is expensive. However, we still need a
+    // new bounds if the point has changed, but we will reuse the
+    // previous bounds-from-points result if we can.
+
+    const pointsHaveChanged = !this.pointsBoundsCache.has(shape.points)
+    const pointHasChanged = !(this.pointCache[shape.id] === shape.point)
+
+    if (pointsHaveChanged) {
+      // If the points have changed, then bust the points cache
+      const bounds = Utils.getBoundsFromPoints(shape.points)
+      this.pointsBoundsCache.set(shape.points, bounds)
+      this.shapeBoundsCache.set(shape.id, Utils.translateBounds(bounds, shape.point))
+      this.pointCache[shape.id] = shape.point
+    } else if (pointHasChanged && !pointsHaveChanged) {
+      // If the point have has changed, then bust the point cache
+      this.pointCache[shape.id] = shape.point
+      this.shapeBoundsCache.set(
+        shape.id,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        Utils.translateBounds(this.pointsBoundsCache.get(shape.points)!, shape.point)
+      )
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return this.shapeBoundsCache.get(shape.id)!
+  }
+
+  shouldRender = (prev: T, next: T) => {
+    return (
+      next.points !== prev.points ||
+      next.style !== prev.style ||
+      next.isComplete !== prev.isComplete
+    )
+  }
+
+  hitTestBounds = (shape: T, bounds: TLBounds) => {
+    // Test axis-aligned shape
+    if (!shape.rotation) {
+      const shapeBounds = this.getBounds(shape)
+
+      return (
+        Utils.boundsContain(bounds, shapeBounds) ||
+        ((Utils.boundsContain(shapeBounds, bounds) ||
+          intersectBoundsBounds(shapeBounds, bounds).length > 0) &&
+          intersectBoundsPolyline(Utils.translateBounds(bounds, Vec.neg(shape.point)), shape.points)
+            .length > 0)
+      )
+    }
+
+    // Test rotated shape
+    const rBounds = this.getRotatedBounds(shape)
+
+    const rotatedBounds = Utils.getFromCache(this.rotatedCache, shape, () => {
+      const c = Utils.getBoundsCenter(Utils.getBoundsFromPoints(shape.points))
+      return shape.points.map((pt) => Vec.rotWith(pt, c, shape.rotation || 0))
+    })
+
+    return (
+      Utils.boundsContain(bounds, rBounds) ||
+      intersectBoundsPolyline(Utils.translateBounds(bounds, Vec.neg(shape.point)), rotatedBounds)
+        .length > 0
+    )
+  }
+}
 
 /* -------------------------------------------------- */
 /*                       Helpers                      */
@@ -272,7 +277,7 @@ const realPressureSettings: StrokeOptions = {
   simulatePressure: false,
 }
 
-function getOptions(shape: DrawShape) {
+function getOptions(shape: T) {
   const styles = getShapeStyle(shape.style)
 
   const options: StrokeOptions = {
@@ -287,7 +292,7 @@ function getOptions(shape: DrawShape) {
   return options
 }
 
-function getFillPath(shape: DrawShape) {
+function getFillPath(shape: T) {
   if (shape.points.length < 2) return ''
 
   return Utils.getSvgPathFromStroke(
@@ -295,14 +300,14 @@ function getFillPath(shape: DrawShape) {
   )
 }
 
-function getDrawStrokePoints(shape: DrawShape, options: StrokeOptions) {
+function getDrawStrokePoints(shape: T, options: StrokeOptions) {
   return getStrokePoints(shape.points, options)
 }
 
 /**
  * Get path data for a stroke with the DashStyle.Draw dash style.
  */
-function getDrawStrokePathData(shape: DrawShape) {
+function getDrawStrokePathData(shape: T) {
   if (shape.points.length < 2) return ''
 
   const options = getOptions(shape)
@@ -319,7 +324,7 @@ function getDrawStrokePathData(shape: DrawShape) {
 /**
  * Get SVG path data for a shape that has a DashStyle other than DashStyles.Draw.
  */
-function getSolidStrokePathData(shape: DrawShape) {
+function getSolidStrokePathData(shape: T) {
   const { points } = shape
 
   if (points.length < 2) return 'M 0 0 L 0 0'

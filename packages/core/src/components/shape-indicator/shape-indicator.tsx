@@ -13,8 +13,8 @@ interface IndicatorProps<T extends TLShape, M = any> {
 
 export const ShapeIndicator = React.memo(
   <T extends TLShape, M = any>({
-    isHovered,
-    isSelected,
+    isHovered = false,
+    isSelected = false,
     shape,
     color,
     meta,

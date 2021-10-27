@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import type { TLShapeUtil, TLComponentProps, TLShape } from '+types'
+import type { TLComponentProps, TLShape } from '+types'
+import type { TLShapeUtil } from '+shape-utils'
 
 interface RenderedShapeProps<T extends TLShape, E extends Element, M>
   extends TLComponentProps<T, E, M> {

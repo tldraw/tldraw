@@ -54,7 +54,7 @@ export class HandleSession extends Session {
 
     // First update the handle's next point
 
-    const change = TLDR.getShapeUtils(shape).onHandleChange(
+    const change = TLDR.getShapeUtils(shape).onHandleChange?.(
       shape,
       {
         [handleId]: handle,

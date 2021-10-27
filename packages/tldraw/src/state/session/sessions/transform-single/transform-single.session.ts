@@ -11,7 +11,7 @@ import { SessionType, TLDrawShape, TLDrawStatus } from '~types'
 import { Session } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
-import { SLOW_SPEED, SNAP_DISTANCE } from '~state/constants'
+import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 
 type SnapInfo =
   | {
@@ -54,7 +54,7 @@ export class TransformSingleSession extends Session {
     return void null
   }
 
-  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
+  update = (data: Data, point: number[], shiftKey = false, _altKey = false, metaKey = false) => {
     const { transformType } = this
 
     const { currentPageId, initialShapeBounds, initialShape, id } = this.snapshot

@@ -1,85 +1,47 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { HTMLContainer, TLBounds, Utils, ShapeUtil } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
-import { getShapeStyle, getFontStyle, defaultStyle } from '~shape/shape-styles'
-import { TextShape, TLDrawShapeType, TLDrawMeta } from '~types'
-import css from '~styles'
+import { Utils, HTMLContainer, TLIndicator, TLComponent, TLBounds } from '@tldraw/core'
+import { defaultStyle, getShapeStyle, getFontStyle } from '../shape-styles'
+import { TextShape, TLDrawShapeType, TLDrawTransformInfo } from '~types'
 import { TextAreaUtils } from '../shared'
 import { BINDING_DISTANCE } from '~constants'
+import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
+import css from '~styles'
+import Vec from '@tldraw/vec'
 
-const LETTER_SPACING = -1.5
+type T = TextShape
+type E = HTMLDivElement
 
-function normalizeText(text: string) {
-  return text.replace(/\r?\n|\r/g, '\n')
-}
+export class TextUtil extends TLDrawShapeUtil<T, E> {
+  type = TLDrawShapeType.Text as const
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let melm: any
+  isAspectRatioLocked = true
 
-function getMeasurementDiv() {
-  // A div used for measurement
-  document.getElementById('__textMeasure')?.remove()
+  canEdit = true
 
-  const pre = document.createElement('pre')
-  pre.id = '__textMeasure'
+  canBind = true
 
-  Object.assign(pre.style, {
-    whiteSpace: 'pre',
-    width: 'auto',
-    border: '1px solid red',
-    padding: '4px',
-    margin: '0px',
-    letterSpacing: `${LETTER_SPACING}px`,
-    opacity: '0',
-    position: 'absolute',
-    top: '-500px',
-    left: '0px',
-    zIndex: '9999',
-    pointerEvents: 'none',
-    userSelect: 'none',
-    alignmentBaseline: 'mathematical',
-    dominantBaseline: 'mathematical',
-  })
-
-  pre.tabIndex = -1
-
-  document.body.appendChild(pre)
-  return pre
-}
-
-if (typeof window !== 'undefined') {
-  melm = getMeasurementDiv()
-}
-
-export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => ({
-  type: TLDrawShapeType.Text,
-
-  isAspectRatioLocked: true,
-
-  canEdit: true,
-
-  canBind: true,
-
-  defaultProps: {
-    id: 'id',
-    type: TLDrawShapeType.Text,
-    name: 'Text',
-    parentId: 'page',
-    childIndex: 1,
-    point: [0, 0],
-    rotation: 0,
-    text: ' ',
-    style: defaultStyle,
-  },
-
-  shouldRender(prev, next): boolean {
-    return (
-      next.text !== prev.text || next.style.scale !== prev.style.scale || next.style !== prev.style
+  getShape = (props: Partial<T>): T => {
+    return Utils.deepMerge<T>(
+      {
+        id: 'id',
+        type: TLDrawShapeType.Text,
+        name: 'Text',
+        parentId: 'page',
+        childIndex: 1,
+        point: [0, 0],
+        rotation: 0,
+        text: ' ',
+        style: defaultStyle,
+      },
+      props
     )
-  },
+  }
 
-  Component({ shape, meta, isEditing, isBinding, onShapeChange, onShapeBlur, events }, ref) {
+  Component: TLComponent<T, E> = (
+    { shape, isBinding, isEditing, onShapeBlur, onShapeChange, meta, events },
+    ref
+  ) => {
     const rInput = React.useRef<HTMLTextAreaElement>(null)
     const { text, style } = shape
     const styles = getShapeStyle(style, meta.isDarkMode)
@@ -217,14 +179,14 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
         </div>
       </HTMLContainer>
     )
-  },
+  }
 
-  Indicator({ shape }) {
+  Indicator: TLIndicator<T> = ({ shape }) => {
     const { width, height } = this.getBounds(shape)
     return <rect x={0} y={0} width={width} height={height} />
-  },
+  }
 
-  getBounds(shape): TLBounds {
+  getBounds = (shape: T) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       if (!melm) {
         // We're in SSR
@@ -249,9 +211,19 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
     })
 
     return Utils.translateBounds(bounds, shape.point)
-  },
+  }
 
-  transform(_shape, bounds, { initialShape, scaleX, scaleY }) {
+  shouldRender = (prev: T, next: T): boolean => {
+    return (
+      next.text !== prev.text || next.style.scale !== prev.style.scale || next.style !== prev.style
+    )
+  }
+
+  transform = (
+    shape: T,
+    bounds: TLBounds,
+    { initialShape, scaleX, scaleY }: TLDrawTransformInfo<T>
+  ): Partial<T> => {
     const {
       rotation = 0,
       style: { scale = 1 },
@@ -268,9 +240,13 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
         scale: nextScale,
       },
     }
-  },
+  }
 
-  transformSingle(_shape, bounds, { initialShape, scaleX, scaleY }) {
+  transformSingle = (
+    shape: T,
+    bounds: TLBounds,
+    { initialShape, scaleX, scaleY }: TLDrawTransformInfo<T>
+  ): Partial<T> | void => {
     const {
       style: { scale = 1 },
     } = initialShape
@@ -282,9 +258,9 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
         scale: scale * Math.max(Math.abs(scaleY), Math.abs(scaleX)),
       },
     }
-  },
+  }
 
-  onDoubleClickBoundsHandle(shape) {
+  onDoubleClickBoundsHandle = (shape: T) => {
     const center = this.getCenter(shape)
 
     const newCenter = this.getCenter({
@@ -302,12 +278,56 @@ export const Text = new ShapeUtil<TextShape, HTMLDivElement, TLDrawMeta>(() => (
       },
       point: Vec.round(Vec.add(shape.point, Vec.sub(center, newCenter))),
     }
-  },
-}))
+  }
+}
 
 /* -------------------------------------------------- */
 /*                       Helpers                      */
 /* -------------------------------------------------- */
+
+const LETTER_SPACING = -1.5
+
+function normalizeText(text: string) {
+  return text.replace(/\r?\n|\r/g, '\n')
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let melm: any
+
+function getMeasurementDiv() {
+  // A div used for measurement
+  document.getElementById('__textMeasure')?.remove()
+
+  const pre = document.createElement('pre')
+  pre.id = '__textMeasure'
+
+  Object.assign(pre.style, {
+    whiteSpace: 'pre',
+    width: 'auto',
+    border: '1px solid red',
+    padding: '4px',
+    margin: '0px',
+    letterSpacing: `${LETTER_SPACING}px`,
+    opacity: '0',
+    position: 'absolute',
+    top: '-500px',
+    left: '0px',
+    zIndex: '9999',
+    pointerEvents: 'none',
+    userSelect: 'none',
+    alignmentBaseline: 'mathematical',
+    dominantBaseline: 'mathematical',
+  })
+
+  pre.tabIndex = -1
+
+  document.body.appendChild(pre)
+  return pre
+}
+
+if (typeof window !== 'undefined') {
+  melm = getMeasurementDiv()
+}
 
 const wrapper = css({
   width: '100%',

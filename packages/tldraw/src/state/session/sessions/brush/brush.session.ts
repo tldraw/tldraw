@@ -20,8 +20,8 @@ export class BrushSession extends Session {
   update = (
     data: Data,
     point: number[],
-    shiftKey = false,
-    altKey = false,
+    _shiftKey = false,
+    _altKey = false,
     metaKey = false
   ): TLDrawPatch => {
     const { snapshot, origin } = this

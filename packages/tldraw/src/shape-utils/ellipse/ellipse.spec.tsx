@@ -1,4 +1,4 @@
-import { Ellipse } from './ellipse'
+import { Ellipse } from '../'
 
 describe('Ellipse shape', () => {
   it('Creates a shape', () => {

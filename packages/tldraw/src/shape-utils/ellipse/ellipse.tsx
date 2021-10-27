@@ -1,37 +1,39 @@
 import * as React from 'react'
-import { SVGContainer, Utils, ShapeUtil, TLTransformInfo, TLBounds } from '@tldraw/core'
+import { Utils, SVGContainer, TLIndicator, TLComponent, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { DashStyle, EllipseShape, TLDrawShapeType, TLDrawMeta } from '~types'
-import { defaultStyle, getShapeStyle } from '~shape/shape-styles'
 import { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
-import {
-  intersectBoundsEllipse,
-  intersectLineSegmentEllipse,
-  intersectRayEllipse,
-} from '@tldraw/intersect'
-import { EASINGS } from '~state/utils'
-import { BINDING_DISTANCE } from '~constants'
+import { defaultStyle, getShapeStyle } from '../shape-styles'
+import { EllipseShape, DashStyle, TLDrawShapeType, TLDrawShape, TLDrawTransformInfo } from '~types'
+import { EASINGS, BINDING_DISTANCE } from '~constants'
+import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
+import { intersectLineSegmentEllipse, intersectRayEllipse } from '@tldraw/intersect'
 
-export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(() => ({
-  type: TLDrawShapeType.Ellipse,
+type T = EllipseShape
+type E = SVGSVGElement
 
-  pathCache: new WeakMap<EllipseShape, string>([]),
+export class EllipseUtil extends TLDrawShapeUtil<T, E> {
+  type = TLDrawShapeType.Ellipse as const
 
-  canBind: true,
+  canBind = true
 
-  defaultProps: {
-    id: 'id',
-    type: TLDrawShapeType.Ellipse,
-    name: 'Ellipse',
-    parentId: 'page',
-    childIndex: 1,
-    point: [0, 0],
-    radius: [1, 1],
-    rotation: 0,
-    style: defaultStyle,
-  },
+  getShape = (props: Partial<T>): T => {
+    return Utils.deepMerge<T>(
+      {
+        id: 'id',
+        type: TLDrawShapeType.Ellipse,
+        name: 'Ellipse',
+        parentId: 'page',
+        childIndex: 1,
+        point: [0, 0],
+        radius: [1, 1],
+        rotation: 0,
+        style: defaultStyle,
+      },
+      props
+    )
+  }
 
-  Component({ shape, meta, isBinding, events }, ref) {
+  Component: TLComponent<T, E> = ({ shape, isBinding, meta, events }, ref) => {
     const {
       radius: [radiusX, radiusY],
       style,
@@ -117,17 +119,13 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
         />
       </SVGContainer>
     )
-  },
+  }
 
-  Indicator({ shape }) {
+  Indicator: TLIndicator<T> = ({ shape }) => {
     return <path d={getEllipseIndicatorPathData(shape, this.getCenter(shape))} />
-  },
+  }
 
-  shouldRender(prev, next) {
-    return next.radius !== prev.radius || next.style !== prev.style
-  },
-
-  getBounds(shape) {
+  getBounds = (shape: T) => {
     return Utils.getFromCache(this.boundsCache, shape, () => {
       return Utils.getRotatedEllipseBounds(
         shape.point[0],
@@ -137,9 +135,9 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
         0
       )
     })
-  },
+  }
 
-  getRotatedBounds(shape) {
+  getRotatedBounds = (shape: T): TLBounds => {
     return Utils.getRotatedEllipseBounds(
       shape.point[0],
       shape.point[1],
@@ -147,36 +145,25 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
       shape.radius[1],
       shape.rotation
     )
-  },
+  }
 
-  getCenter(shape): number[] {
+  shouldRender = (prev: T, next: T): boolean => {
+    return next.radius !== prev.radius || next.style !== prev.style
+  }
+
+  getCenter = (shape: T): number[] => {
     return [shape.point[0] + shape.radius[0], shape.point[1] + shape.radius[1]]
-  },
+  }
 
-  hitTest(shape, point: number[]) {
-    return Utils.pointInEllipse(
-      point,
-      this.getCenter(shape),
-      shape.radius[0],
-      shape.radius[1],
-      shape.rotation
-    )
-  },
-
-  hitTestBounds(shape, bounds) {
-    return (
-      Utils.boundsContain(bounds, this.getBounds(shape)) ||
-      intersectBoundsEllipse(
-        bounds,
-        this.getCenter(shape),
-        shape.radius[0],
-        shape.radius[1],
-        shape.rotation
-      ).length > 0
-    )
-  },
-
-  getBindingPoint(shape, fromShape, point, origin, direction, padding, anywhere) {
+  getBindingPoint = <K extends TLDrawShape>(
+    shape: T,
+    fromShape: K,
+    point: number[],
+    origin: number[],
+    direction: number[],
+    padding: number,
+    bindAnywhere: boolean
+  ) => {
     {
       const bounds = this.getBounds(shape)
 
@@ -197,7 +184,7 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
       )
         return
 
-      if (anywhere) {
+      if (bindAnywhere) {
         if (Vec.dist(point, this.getCenter(shape)) < 12) {
           bindingPoint = [0.5, 0.5]
         } else {
@@ -272,13 +259,13 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
         distance,
       }
     }
-  },
+  }
 
-  transform(
-    _shape,
+  transform = (
+    shape: T,
     bounds: TLBounds,
-    { scaleX, scaleY, initialShape }: TLTransformInfo<EllipseShape>
-  ) {
+    { scaleX, scaleY, initialShape }: TLDrawTransformInfo<T>
+  ): Partial<T> => {
     const { rotation = 0 } = initialShape
 
     return {
@@ -289,15 +276,15 @@ export const Ellipse = new ShapeUtil<EllipseShape, SVGSVGElement, TLDrawMeta>(()
           ? -(rotation || 0)
           : rotation || 0,
     }
-  },
+  }
 
-  transformSingle(shape, bounds: TLBounds) {
+  transformSingle = (shape: T, bounds: TLBounds): Partial<T> => {
     return {
       point: Vec.round([bounds.minX, bounds.minY]),
       radius: Vec.div([bounds.width, bounds.height], 2),
     }
-  },
-}))
+  }
+}
 
 /* -------------------------------------------------- */
 /*                       Helpers                      */

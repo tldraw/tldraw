@@ -1,13 +1,16 @@
 import * as React from 'react'
-import { mockUtils, renderWithContext } from '+test'
+import { renderWithContext } from '+test'
 import { Shape } from './shape'
+import { BoxUtil, boxShape } from '+shape-utils/TLShapeUtil.spec'
+import type { TLShapeUtil } from '+shape-utils'
+import type { TLShape } from '+types'
 
 describe('shape', () => {
   test('mounts component without crashing', () => {
     renderWithContext(
       <Shape
-        shape={mockUtils.box.create({ id: 'box' })}
-        utils={mockUtils[mockUtils.box.type]}
+        shape={boxShape}
+        utils={new BoxUtil() as unknown as TLShapeUtil<TLShape>}
         isEditing={false}
         isBinding={false}
         isHovered={false}

@@ -14,7 +14,7 @@ import {
   ArrowBinding,
   TLDrawShapeType,
 } from '~types'
-import { SLOW_SPEED, SNAP_DISTANCE } from '~state/constants'
+import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { TLDR } from '~state/tldr'
 import type { Patch } from 'rko'
 

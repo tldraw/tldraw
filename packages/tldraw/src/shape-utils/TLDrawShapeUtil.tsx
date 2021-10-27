@@ -135,19 +135,19 @@ export abstract class TLDrawShapeUtil<
 
   onHandleChange?: (
     shape: T,
-    handle: Partial<T['handles']>,
+    handles: Partial<T['handles']>,
     info: Partial<TLPointerInfo>
   ) => Partial<T> | void
 
   onRightPointHandle?: (
     shape: T,
-    handle: Partial<T['handles']>,
+    handles: Partial<T['handles']>,
     info: Partial<TLPointerInfo>
   ) => Partial<T> | void
 
   onDoubleClickHandle?: (
     shape: T,
-    handle: Partial<T['handles']>,
+    handles: Partial<T['handles']>,
     info: Partial<TLPointerInfo>
   ) => Partial<T> | void
 

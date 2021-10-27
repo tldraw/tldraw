@@ -8,7 +8,7 @@ function canvasToScreen(point: number[], camera: TLPageState['camera']): number[
   return [(point[0] + camera.point[0]) * camera.zoom, (point[1] + camera.point[1]) * camera.zoom]
 }
 
-export function useSelection<T extends TLShape, E extends Element>(
+export function useSelection<T extends TLShape>(
   page: TLPage<T, TLBinding>,
   pageState: TLPageState,
   shapeUtils: TLShapeUtilsMap<T>

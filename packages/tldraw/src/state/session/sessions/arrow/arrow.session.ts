@@ -7,11 +7,13 @@ import {
   Session,
   TLDrawStatus,
   SessionType,
+  TLDrawShapeType,
 } from '~types'
 import { Vec } from '@tldraw/vec'
 import { Utils, TLBounds } from '@tldraw/core'
 import { TLDR } from '~state/tldr'
 import { BINDING_DISTANCE } from '~constants'
+import { shapeUtils } from '~shape-utils'
 
 export class ArrowSession extends Session {
   static type = SessionType.Arrow
@@ -108,9 +110,9 @@ export class ArrowSession extends Session {
       bindingId: undefined,
     }
 
-    const utils = TLDR.getShapeUtils<ArrowShape>(shape.type)
+    const utils = shapeUtils[TLDrawShapeType.Arrow]
 
-    const change = utils.onHandleChange(
+    const change = utils.onHandleChange?.(
       shape,
       {
         [handleId]: handle,
@@ -181,7 +183,7 @@ export class ArrowSession extends Session {
 
         const targetUtils = TLDR.getShapeUtils(target)
 
-        const arrowChange = TLDR.getShapeUtils<ArrowShape>(next.shape.type).onBindingChange(
+        const arrowChange = TLDR.getShapeUtils<ArrowShape>(next.shape.type).onBindingChange?.(
           next.shape,
           startBinding,
           target,
@@ -257,7 +259,9 @@ export class ArrowSession extends Session {
 
       const targetUtils = TLDR.getShapeUtils(target)
 
-      const arrowChange = TLDR.getShapeUtils<ArrowShape>(next.shape.type).onBindingChange(
+      const utils = shapeUtils[TLDrawShapeType.Arrow]
+
+      const arrowChange = utils.onBindingChange(
         next.shape,
         draggedBinding,
         target,

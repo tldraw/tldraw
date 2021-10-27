@@ -1,17 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { Utils, HTMLContainer, TLIndicator, TLComponent } from '@tldraw/core'
-import { defaultStyle } from '~shape/shape-styles'
-import { StickyShape, TLDrawShapeType } from '~types'
-import {
-  getBoundsRectangle,
-  TextAreaUtils,
-  transformRectangle,
-  transformSingleRectangle,
-} from '../shared'
-import { TLDrawShapeUtil } from '~shape-utils'
-import { getStickyFontStyle, getStickyShapeStyle } from '~shape'
+import { Utils, HTMLContainer, TLBounds, TLIndicator, TLComponent } from '@tldraw/core'
+import { defaultStyle } from '../shape-styles'
+import { StickyShape, TLDrawShapeType, TLDrawTransformInfo } from '~types'
+import { getBoundsRectangle, TextAreaUtils } from '../shared'
+import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
+import { getStickyFontStyle, getStickyShapeStyle } from '../shape-styles'
 import css from '~styles'
+import Vec from '@tldraw/vec'
 
 type T = StickyShape
 type E = HTMLDivElement
@@ -37,14 +33,6 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
       },
       props
     )
-  }
-
-  getBounds = (shape: T) => {
-    return getBoundsRectangle(shape, this.boundsCache)
-  }
-
-  shouldRender = (prev: T, next: T) => {
-    return next.size !== prev.size || next.style !== prev.style || next.text !== prev.text
   }
 
   Component: TLComponent<T, E> = (
@@ -216,9 +204,35 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  transform = transformRectangle
+  getBounds = (shape: T) => {
+    return getBoundsRectangle(shape, this.boundsCache)
+  }
 
-  transformSingle = transformSingleRectangle
+  shouldRender = (prev: T, next: T) => {
+    return next.size !== prev.size || next.style !== prev.style || next.text !== prev.text
+  }
+
+  transform = (
+    shape: T,
+    bounds: TLBounds,
+    { scaleX, scaleY, transformOrigin }: TLDrawTransformInfo<T>
+  ): Partial<T> => {
+    const point = Vec.round([
+      bounds.minX +
+        (bounds.width - shape.size[0]) * (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
+      bounds.minY +
+        (bounds.height - shape.size[1]) *
+          (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
+    ])
+
+    return {
+      point,
+    }
+  }
+
+  transformSingle = (shape: T): Partial<T> => {
+    return shape
+  }
 }
 
 /* -------------------------------------------------- */

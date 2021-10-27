@@ -9,7 +9,7 @@ import { SVGContainer } from '+components'
 import Utils from '+utils'
 import type { TLComponent, TLIndicator } from '+shape-utils'
 
-interface BoxShape extends TLShape {
+export interface BoxShape extends TLShape {
   type: 'box'
   size: number[]
 }
@@ -18,7 +18,7 @@ const meta = { legs: 93 }
 
 type Meta = typeof meta
 
-const boxShape: BoxShape = {
+export const boxShape: BoxShape = {
   id: 'example1',
   type: 'box',
   parentId: 'page',
@@ -29,48 +29,48 @@ const boxShape: BoxShape = {
   rotation: 0,
 }
 
-describe('When creating a minimal ShapeUtil', () => {
-  class BoxUtil extends TLShapeUtil<BoxShape, SVGSVGElement, Meta> {
-    age = 100
+export class BoxUtil extends TLShapeUtil<BoxShape, SVGSVGElement, Meta> {
+  age = 100
 
-    Component: TLComponent<BoxShape, SVGSVGElement, Meta> = ({ shape, events, meta }, ref) => {
-      type T = typeof meta.legs
-      type C = T['toFixed']
+  Component: TLComponent<BoxShape, SVGSVGElement, Meta> = ({ shape, events, meta }, ref) => {
+    type T = typeof meta.legs
+    type C = T['toFixed']
 
-      return (
-        <SVGContainer ref={ref}>
-          <g {...events}>
-            <rect width={shape.size[0]} height={shape.size[1]} fill="none" stroke="black" />
-          </g>
-        </SVGContainer>
-      )
-    }
-
-    Indicator: TLIndicator<BoxShape, SVGSVGElement, Meta> = ({ shape }) => {
-      return (
-        <SVGContainer>
+    return (
+      <SVGContainer ref={ref}>
+        <g {...events}>
           <rect width={shape.size[0]} height={shape.size[1]} fill="none" stroke="black" />
-        </SVGContainer>
-      )
-    }
-
-    getBounds = (shape: BoxShape) => {
-      const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
-        const [width, height] = shape.size
-        return {
-          minX: 0,
-          maxX: width,
-          minY: 0,
-          maxY: height,
-          width,
-          height,
-        } as TLBounds
-      })
-
-      return Utils.translateBounds(bounds, shape.point)
-    }
+        </g>
+      </SVGContainer>
+    )
   }
 
+  Indicator: TLIndicator<BoxShape, SVGSVGElement, Meta> = ({ shape }) => {
+    return (
+      <SVGContainer>
+        <rect width={shape.size[0]} height={shape.size[1]} fill="none" stroke="black" />
+      </SVGContainer>
+    )
+  }
+
+  getBounds = (shape: BoxShape) => {
+    const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
+      const [width, height] = shape.size
+      return {
+        minX: 0,
+        maxX: width,
+        minY: 0,
+        maxY: height,
+        width,
+        height,
+      } as TLBounds
+    })
+
+    return Utils.translateBounds(bounds, shape.point)
+  }
+}
+
+describe('When creating a minimal ShapeUtil', () => {
   const Box = new BoxUtil()
 
   it('creates a shape utils', () => {

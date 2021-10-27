@@ -2,7 +2,6 @@
 import { TLDrawState } from './tlstate'
 import { mockDocument, TLStateUtils } from '~test'
 import { ArrowShape, ColorStyle, SessionType, TLDrawShapeType } from '~types'
-import * as idb from 'idb-keyval'
 import type { SelectTool } from './tool/SelectTool'
 
 describe('TLDrawState', () => {

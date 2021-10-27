@@ -1,4 +1,4 @@
-import { Text } from './text'
+import { Text } from '../'
 
 describe('Text shape', () => {
   it('Creates a shape', () => {
