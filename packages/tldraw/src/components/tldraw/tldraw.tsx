@@ -23,7 +23,7 @@ const isHideBoundsShapeSelector = (s: Data) => {
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return (
     selectedIds.length === 1 &&
-    !selectedIds.every((id) => !TLDR.getShapeUtils(shapes[id].type).hideBounds)
+    selectedIds.every((id) => !TLDR.getShapeUtils(shapes[id].type).hideBounds)
   )
 }
 
