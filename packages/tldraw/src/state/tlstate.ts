@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { StateManager } from 'rko'
 import { Vec } from '@tldraw/vec'
@@ -99,6 +100,15 @@ export class TLDrawState extends StateManager<Data> {
     onUserChange?: (tlstate: TLDrawState, user: TLDrawUser) => void
   ) {
     super(TLDrawState.defaultState, id, TLDrawState.version, (prev, next) => {
+      Object.values(prev.document.pages).forEach((page) => {
+        Object.values(page.bindings).forEach((binding) => {
+          if ('meta' in binding) {
+            // @ts-ignore
+            Object.assign(binding, binding.meta)
+          }
+        })
+      })
+
       return {
         ...next,
         document: { ...next.document, ...prev.document },
@@ -2446,7 +2456,7 @@ export class TLDrawState extends StateManager<Data> {
     }
   }
 
-  static version = 10.5
+  static version = 11
 
   static defaultDocument: TLDrawDocument = {
     id: 'doc',
