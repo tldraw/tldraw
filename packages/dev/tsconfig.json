@@ -9,15 +9,14 @@
     "emitDeclarationOnly": false,
     "paths": {
       "+*": ["./*"],
-      "@tldraw/core": ["../vec"],
-      "@tldraw/tldraw": ["../intersect"]
+      "@tldraw/core": ["../core"],
+      "@tldraw/tldraw": ["../tldraw"]
     }
   },
   "references": [
     {
       "path": "../tldraw"
-    },
-    { "path": "../core" }
+    }
   ],
   "typedocOptions": {
     "entryPoints": ["src/index.ts"],

@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { Utils, SVGContainer, TLIndicator } from '@tldraw/core'
+import { Utils, SVGContainer } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { getStroke, getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '../shape-styles'
-import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawComponentProps } from '~types'
+import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawMeta } from '~types'
 import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
 import { BINDING_DISTANCE } from '~constants'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
@@ -33,7 +33,7 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = React.forwardRef<E, TLDrawComponentProps<T, E>>(
+  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
     ({ shape, isBinding, meta, events }, ref) => {
       const { id, size, style } = shape
       const styles = getShapeStyle(style, meta.isDarkMode)
@@ -123,8 +123,8 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
             width={w}
             height={h}
             fill={styles.fill}
-            stroke="none"
             strokeWidth={sw}
+            stroke="none"
             pointerEvents="all"
           />
           <g pointerEvents="stroke">{paths}</g>
@@ -133,7 +133,7 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
     }
   )
 
-  Indicator: TLIndicator<T> = ({ shape }) => {
+  Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
     const {
       style,
       size: [width, height],
@@ -158,7 +158,7 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
         height={Math.max(1, height - sw * 2)}
       />
     )
-  }
+  })
 
   getBounds = (shape: T) => {
     return getBoundsRectangle(shape, this.boundsCache)

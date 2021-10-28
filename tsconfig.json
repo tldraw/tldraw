@@ -14,7 +14,6 @@
       "@tldraw/tldraw": ["./packages/tldraw"],
       "@tldraw/vec": ["./packages/vec"],
       "@tldraw/intersect": ["./packages/intersect"],
-      "+*": ["./packages/core/src/*"],
       "~*": ["./packages/tldraw/src/*"]
     }
   }

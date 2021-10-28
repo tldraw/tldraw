@@ -7,7 +7,6 @@ import { StickyUtil } from './sticky'
 import { TextUtil } from './text'
 import { DrawUtil } from './draw'
 import { TLDrawShape, TLDrawShapeType } from '~types'
-import type { TLShapeUtilsMap } from '@tldraw/core'
 
 export * from './shape-styles'
 export * from './TLDrawShapeUtil'

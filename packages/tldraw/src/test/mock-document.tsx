@@ -56,7 +56,6 @@ export const mockDocument: TLDrawDocument = {
     page1: {
       id: 'page1',
       selectedIds: [],
-      currentParentId: 'page1',
       camera: {
         point: [0, 0],
         zoom: 1,

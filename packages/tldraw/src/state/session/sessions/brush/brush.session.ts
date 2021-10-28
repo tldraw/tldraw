@@ -133,7 +133,7 @@ export function getBrushSnapshot(data: Data) {
       id: shape.id,
       util: TLDR.getShapeUtils(shape),
       bounds: TLDR.getShapeUtils(shape).getBounds(shape),
-      selectId: TLDR.getTopParentId(data, shape.id, currentPageId),
+      selectId: shape.id, //TLDR.getTopParentId(data, shape.id, currentPageId),
     }))
 
   return {

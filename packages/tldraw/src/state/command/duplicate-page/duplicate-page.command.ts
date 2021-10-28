@@ -53,7 +53,6 @@ export function duplicatePage(data: Data, center: number[], pageId: string): TLD
             id: newId,
             selectedIds: [],
             camera: data.document.pageStates[currentPageId].camera,
-            currentParentId: newId,
             editingId: undefined,
             bindingId: undefined,
             hoveredId: undefined,

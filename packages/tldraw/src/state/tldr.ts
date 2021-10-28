@@ -90,42 +90,42 @@ export class TLDR {
     return TLDR.getShape(data, id, pageId).parentId
   }
 
-  static getPointedId(data: Data, id: string, pageId: string): string {
-    const page = TLDR.getPage(data, pageId)
-    const pageState = TLDR.getPageState(data, data.appState.currentPageId)
-    const shape = TLDR.getShape(data, id, pageId)
-    if (!shape) return id
+  // static getPointedId(data: Data, id: string, pageId: string): string {
+  //   const page = TLDR.getPage(data, pageId)
+  //   const pageState = TLDR.getPageState(data, data.appState.currentPageId)
+  //   const shape = TLDR.getShape(data, id, pageId)
+  //   if (!shape) return id
 
-    return shape.parentId === pageState.currentParentId || shape.parentId === page.id
-      ? id
-      : TLDR.getPointedId(data, shape.parentId, pageId)
-  }
+  //   return shape.parentId === pageState.currentParentId || shape.parentId === page.id
+  //     ? id
+  //     : TLDR.getPointedId(data, shape.parentId, pageId)
+  // }
 
-  static getDrilledPointedId(data: Data, id: string, pageId: string): string {
-    const shape = TLDR.getShape(data, id, pageId)
-    const { currentPageId } = data.appState
-    const { currentParentId, pointedId } = TLDR.getPageState(data, data.appState.currentPageId)
+  // static getDrilledPointedId(data: Data, id: string, pageId: string): string {
+  //   const shape = TLDR.getShape(data, id, pageId)
+  //   const { currentPageId } = data.appState
+  //   const { currentParentId, pointedId } = TLDR.getPageState(data, data.appState.currentPageId)
 
-    return shape.parentId === currentPageId ||
-      shape.parentId === pointedId ||
-      shape.parentId === currentParentId
-      ? id
-      : TLDR.getDrilledPointedId(data, shape.parentId, pageId)
-  }
+  //   return shape.parentId === currentPageId ||
+  //     shape.parentId === pointedId ||
+  //     shape.parentId === currentParentId
+  //     ? id
+  //     : TLDR.getDrilledPointedId(data, shape.parentId, pageId)
+  // }
 
-  static getTopParentId(data: Data, id: string, pageId: string): string {
-    const page = TLDR.getPage(data, pageId)
-    const pageState = TLDR.getPageState(data, pageId)
-    const shape = TLDR.getShape(data, id, pageId)
+  // static getTopParentId(data: Data, id: string, pageId: string): string {
+  //   const page = TLDR.getPage(data, pageId)
+  //   const pageState = TLDR.getPageState(data, pageId)
+  //   const shape = TLDR.getShape(data, id, pageId)
 
-    if (shape.parentId === shape.id) {
-      throw Error(`Shape has the same id as its parent! ${shape.id}`)
-    }
+  //   if (shape.parentId === shape.id) {
+  //     throw Error(`Shape has the same id as its parent! ${shape.id}`)
+  //   }
 
-    return shape.parentId === page.id || shape.parentId === pageState.currentParentId
-      ? id
-      : TLDR.getTopParentId(data, shape.parentId, pageId)
-  }
+  //   return shape.parentId === page.id || shape.parentId === pageState.currentParentId
+  //     ? id
+  //     : TLDR.getTopParentId(data, shape.parentId, pageId)
+  // }
 
   // Get an array of a shape id and its descendant shapes' ids
   static getDocumentBranch(data: Data, id: string, pageId: string): string[] {

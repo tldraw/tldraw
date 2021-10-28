@@ -25,7 +25,6 @@ export function createPage(data: Data, center: number[], pageId = Utils.uniqueId
     id: pageId,
     selectedIds: [],
     camera: { point: center, zoom: 1 },
-    currentParentId: pageId,
     editingId: undefined,
     bindingId: undefined,
     hoveredId: undefined,
