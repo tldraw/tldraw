@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Utils, SVGContainer, TLIndicator, TLBounds } from '@tldraw/core'
+import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '../shape-styles'
@@ -9,7 +9,7 @@ import {
   TLDrawShapeType,
   TLDrawShape,
   TLDrawTransformInfo,
-  TLDrawComponentProps,
+  TLDrawMeta,
 } from '~types'
 import { EASINGS, BINDING_DISTANCE } from '~constants'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
@@ -40,7 +40,7 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = React.forwardRef<E, TLDrawComponentProps<T, E>>(
+  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
     ({ shape, isBinding, meta, events }, ref) => {
       const {
         radius: [radiusX, radiusY],
@@ -130,9 +130,9 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
     }
   )
 
-  Indicator: TLIndicator<T> = ({ shape }) => {
+  Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
     return <path d={getEllipseIndicatorPathData(shape, this.getCenter(shape))} />
-  }
+  })
 
   getBounds = (shape: T) => {
     return Utils.getFromCache(this.boundsCache, shape, () => {

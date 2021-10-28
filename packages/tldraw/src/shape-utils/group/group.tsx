@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { Utils, SVGContainer, TLIndicator } from '@tldraw/core'
+import { Utils, SVGContainer } from '@tldraw/core'
 import { defaultStyle } from '../shape-styles'
-import { TLDrawShapeType, GroupShape, ColorStyle, TLDrawComponentProps } from '~types'
+import { TLDrawShapeType, GroupShape, ColorStyle, TLDrawMeta } from '~types'
 import { getBoundsRectangle } from '../shared'
 import { BINDING_DISTANCE } from '~constants'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
@@ -33,7 +33,7 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = React.forwardRef<E, TLDrawComponentProps<T, E>>(
+  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
     ({ shape, isBinding, isHovered, isSelected, events }, ref) => {
       const { id, size } = shape
 
@@ -85,7 +85,7 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
     }
   )
 
-  Indicator: TLIndicator<T> = ({ shape }) => {
+  Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
     const { id, size } = shape
 
     const sw = 2
@@ -108,7 +108,7 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
         {paths}
       </g>
     )
-  }
+  })
 
   getBounds = (shape: T) => {
     return getBoundsRectangle(shape, this.boundsCache)

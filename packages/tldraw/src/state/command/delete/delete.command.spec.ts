@@ -88,7 +88,7 @@ describe('Delete command', () => {
     expect(binding).toBeTruthy()
     expect(binding.fromId).toBe('arrow1')
     expect(binding.toId).toBe('rect3')
-    expect(binding.meta.handleId).toBe('start')
+    expect(binding.handleId).toBe('start')
     expect(tlstate.getShape('arrow1').handles?.start.bindingId).toBe(binding.id)
 
     tlstate.select('rect3').delete()

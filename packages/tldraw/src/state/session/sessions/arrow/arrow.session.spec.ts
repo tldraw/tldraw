@@ -25,7 +25,7 @@ describe('Arrow session', () => {
     expect(binding).toBeTruthy()
     expect(binding.fromId).toBe('arrow1')
     expect(binding.toId).toBe('target1')
-    expect(binding.meta.handleId).toBe('start')
+    expect(binding.handleId).toBe('start')
     expect(tlstate.appState.status).toBe(TLDrawStatus.Idle)
     expect(tlstate.getShape('arrow1').handles?.start.bindingId).toBe(binding.id)
 
@@ -59,7 +59,7 @@ describe('Arrow session', () => {
         .select('arrow1')
         .startSession(SessionType.Arrow, [200, 200], 'start')
         .updateSession([50, 50])
-      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.5, 0.5])
+      expect(tlstate.bindings[0].point).toStrictEqual([0.5, 0.5])
     })
 
     it('Snaps to the center', () => {
@@ -68,7 +68,7 @@ describe('Arrow session', () => {
         .select('arrow1')
         .startSession(SessionType.Arrow, [200, 200], 'start')
         .updateSession([55, 55])
-      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.5, 0.5])
+      expect(tlstate.bindings[0].point).toStrictEqual([0.5, 0.5])
     })
 
     it('Binds at the bottom left', () => {
@@ -77,7 +77,7 @@ describe('Arrow session', () => {
         .select('arrow1')
         .startSession(SessionType.Arrow, [200, 200], 'start')
         .updateSession([124, -24])
-      expect(tlstate.bindings[0].meta.point).toStrictEqual([1, 0])
+      expect(tlstate.bindings[0].point).toStrictEqual([1, 0])
     })
 
     it('Cancels the bind when off of the expanded bounds', () => {
@@ -97,7 +97,7 @@ describe('Arrow session', () => {
         .startSession(SessionType.Arrow, [200, 200], 'start')
         .updateSession([91, 9])
 
-      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.71, 0.11])
+      expect(tlstate.bindings[0].point).toStrictEqual([0.71, 0.11])
 
       tlstate.updateSession([91, 9], false, true, false)
     })
@@ -109,7 +109,7 @@ describe('Arrow session', () => {
         .startSession(SessionType.Arrow, [200, 200], 'start')
         .updateSession([91, 9], false, true, false)
 
-      expect(tlstate.bindings[0].meta.point).toStrictEqual([0.78, 0.22])
+      expect(tlstate.bindings[0].point).toStrictEqual([0.78, 0.22])
     })
 
     it('ignores binding when meta is held', () => {

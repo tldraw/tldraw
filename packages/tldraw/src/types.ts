@@ -15,6 +15,11 @@ import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
 import type { Command, Patch } from 'rko'
 
+export interface TLDrawHandle extends TLHandle {
+  canBind?: boolean
+  bindingId?: string
+}
+
 export interface TLDrawTransformInfo<T extends TLShape> {
   type: TLBoundsEdge | TLBoundsCorner
   initialShape: T
@@ -222,6 +227,7 @@ export enum Decoration {
 export interface TLDrawBaseShape extends TLShape {
   style: ShapeStyles
   type: TLDrawShapeType
+  handles?: Record<string, TLDrawHandle>
 }
 
 export interface DrawShape extends TLDrawBaseShape {
@@ -234,9 +240,9 @@ export interface ArrowShape extends TLDrawBaseShape {
   type: TLDrawShapeType.Arrow
   bend: number
   handles: {
-    start: TLHandle
-    bend: TLHandle
-    end: TLHandle
+    start: TLDrawHandle
+    bend: TLDrawHandle
+    end: TLDrawHandle
   }
   decorations?: {
     start?: Decoration
@@ -281,11 +287,11 @@ export type TLDrawShape =
   | GroupShape
   | StickyShape
 
-export type ArrowBinding = TLBinding<{
+export interface ArrowBinding extends TLBinding {
   handleId: keyof ArrowShape['handles']
   distance: number
   point: number[]
-}>
+}
 
 export type TLDrawBinding = ArrowBinding
 

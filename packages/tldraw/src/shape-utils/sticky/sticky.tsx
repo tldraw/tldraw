@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { Utils, HTMLContainer, TLBounds, TLIndicator } from '@tldraw/core'
+import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
 import { defaultStyle } from '../shape-styles'
-import { StickyShape, TLDrawComponentProps, TLDrawShapeType, TLDrawTransformInfo } from '~types'
+import { StickyShape, TLDrawMeta, TLDrawShapeType, TLDrawTransformInfo } from '~types'
 import { getBoundsRectangle, TextAreaUtils } from '../shared'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
 import { getStickyFontStyle, getStickyShapeStyle } from '../shape-styles'
@@ -35,7 +35,7 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = React.forwardRef<E, TLDrawComponentProps<T, E>>(
+  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
     ({ shape, meta, events, isEditing, onShapeBlur, onShapeChange }, ref) => {
       const font = getStickyFontStyle(shape.style)
 
@@ -193,7 +193,7 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
     }
   )
 
-  Indicator: TLIndicator<T> = ({ shape }) => {
+  Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
     const {
       size: [width, height],
     } = shape
@@ -201,7 +201,7 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
     return (
       <rect x={0} y={0} rx={3} ry={3} width={Math.max(1, width)} height={Math.max(1, height)} />
     )
-  }
+  })
 
   getBounds = (shape: T) => {
     return getBoundsRectangle(shape, this.boundsCache)

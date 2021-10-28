@@ -1,3 +1,13 @@
+## 0.0.131
+
+### TLCore
+
+- Extracted into its own repository (`tldraw/core`) and open sourced! :clap:
+
+### TLDraw
+
+- Updated with latest `@tldraw/core`, updated ShapeUtils API.
+
 ## 0.0.130
 
 ### TLCore

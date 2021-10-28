@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { render } from '@testing-library/react'
-import { act } from 'react-dom/test-utils'
 import { TLDraw } from './tldraw'
 
 describe('tldraw', () => {

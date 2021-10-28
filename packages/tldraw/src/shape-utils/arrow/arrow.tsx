@@ -1,13 +1,5 @@
 import * as React from 'react'
-import {
-  Utils,
-  TLHandle,
-  SVGContainer,
-  TLBinding,
-  TLBounds,
-  TLIndicator,
-  TLPointerInfo,
-} from '@tldraw/core'
+import { Utils, SVGContainer, TLBounds, TLPointerInfo } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import getStroke from 'perfect-freehand'
 import { defaultStyle, getShapeStyle } from '../shape-styles'
@@ -19,7 +11,9 @@ import {
   TLDrawShapeType,
   TLDrawShape,
   EllipseShape,
-  TLDrawComponentProps,
+  TLDrawMeta,
+  TLDrawHandle,
+  TLDrawBinding,
 } from '~types'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
 import {
@@ -86,7 +80,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = React.forwardRef<E, TLDrawComponentProps<T, E>>(({ shape, meta, events }, ref) => {
+  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(({ shape, meta, events }, ref) => {
     const {
       handles: { start, bend, end },
       decorations = {},
@@ -264,11 +258,11 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
     )
   })
 
-  Indicator: TLIndicator<T> = ({ shape }) => {
+  Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
     const path = getArrowPath(shape)
 
     return <path d={path} />
-  }
+  })
 
   getBounds = (shape: T) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
@@ -415,12 +409,12 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
 
   onBindingChange = (
     shape: T,
-    binding: TLBinding,
+    binding: TLDrawBinding,
     target: TLDrawShape,
     targetBounds: TLBounds,
     center: number[]
   ): Partial<T> | void => {
-    const handle = shape.handles[binding.meta.handleId as keyof ArrowShape['handles']]
+    const handle = shape.handles[binding.handleId as keyof ArrowShape['handles']]
 
     const expandedBounds = Utils.expandBounds(targetBounds, BINDING_DISTANCE)
 
@@ -431,7 +425,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
         [expandedBounds.minX, expandedBounds.minY],
         Vec.mulV(
           [expandedBounds.width, expandedBounds.height],
-          Vec.rotWith(binding.meta.point, [0.5, 0.5], target.rotation || 0)
+          Vec.rotWith(binding.point, [0.5, 0.5], target.rotation || 0)
         )
       ),
       shape.point
@@ -440,8 +434,8 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
     // We're looking for the point to put the dragging handle
     let handlePoint = anchor
 
-    if (binding.meta.distance) {
-      const intersectBounds = Utils.expandBounds(targetBounds, binding.meta.distance)
+    if (binding.distance) {
+      const intersectBounds = Utils.expandBounds(targetBounds, binding.distance)
 
       // The direction vector starts from the arrow's opposite handle
       const origin = Vec.add(
@@ -457,8 +451,8 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
           origin,
           direction,
           center,
-          (target as EllipseShape).radius[0] + binding.meta.distance,
-          (target as EllipseShape).radius[1] + binding.meta.distance,
+          (target as EllipseShape).radius[0] + binding.distance,
+          (target as EllipseShape).radius[1] + binding.distance,
           target.rotation || 0
         ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
 
@@ -613,7 +607,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
 /*                       Helpers                      */
 /* -------------------------------------------------- */
 
-function getArrowArcPath(start: TLHandle, end: TLHandle, circle: number[], bend: number) {
+function getArrowArcPath(start: TLDrawHandle, end: TLDrawHandle, circle: number[], bend: number) {
   return [
     'M',
     start.point[0],

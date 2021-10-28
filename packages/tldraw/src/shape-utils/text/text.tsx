@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { Utils, HTMLContainer, TLIndicator, TLBounds } from '@tldraw/core'
+import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
 import { defaultStyle, getShapeStyle, getFontStyle } from '../shape-styles'
-import { TextShape, TLDrawComponentProps, TLDrawShapeType, TLDrawTransformInfo } from '~types'
+import { TextShape, TLDrawMeta, TLDrawShapeType, TLDrawTransformInfo } from '~types'
 import { TextAreaUtils } from '../shared'
 import { BINDING_DISTANCE } from '~constants'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
@@ -38,7 +38,7 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = React.forwardRef<E, TLDrawComponentProps<T, E>>(
+  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
     ({ shape, isBinding, isEditing, onShapeBlur, onShapeChange, meta, events }, ref) => {
       const rInput = React.useRef<HTMLTextAreaElement>(null)
       const { text, style } = shape
@@ -180,10 +180,10 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
     }
   )
 
-  Indicator: TLIndicator<T> = ({ shape }) => {
+  Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
     const { width, height } = this.getBounds(shape)
     return <rect x={0} y={0} width={width} height={height} />
-  }
+  })
 
   getBounds = (shape: T) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {

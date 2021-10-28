@@ -454,11 +454,9 @@ export class ArrowSession extends Session {
       type: 'arrow',
       fromId: shape.id,
       toId: target.id,
-      meta: {
-        handleId: handleId,
-        point: Vec.round(bindingPoint.point),
-        distance: bindingPoint.distance,
-      },
+      handleId: handleId,
+      point: Vec.round(bindingPoint.point),
+      distance: bindingPoint.distance,
     }
   }
 }
