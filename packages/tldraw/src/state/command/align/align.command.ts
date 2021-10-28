@@ -10,11 +10,13 @@ export function align(data: Data, ids: string[], type: AlignType): TLDrawCommand
 
   const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
 
-  const boundsForShapes = initialShapes.map((shape) => ({
-    id: shape.id,
-    point: [...shape.point],
-    bounds: TLDR.getShapeUtils(shape).getBounds(shape),
-  }))
+  const boundsForShapes = initialShapes.map((shape) => {
+    return {
+      id: shape.id,
+      point: [...shape.point],
+      bounds: TLDR.getShapeUtils(shape).getBounds(shape),
+    }
+  })
 
   const commonBounds = Utils.getCommonBounds(boundsForShapes.map(({ bounds }) => bounds))
 
@@ -44,7 +46,10 @@ export function align(data: Data, ids: string[], type: AlignType): TLDrawCommand
   const { before, after } = TLDR.mutateShapes(
     data,
     ids,
-    (shape) => (deltaMap[shape.id] ? { point: deltaMap[shape.id].next } : shape),
+    (shape) => {
+      if (!deltaMap[shape.id]) return shape
+      return { point: deltaMap[shape.id].next }
+    },
     currentPageId
   )
 

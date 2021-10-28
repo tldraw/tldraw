@@ -564,7 +564,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
       // then also snap the bend to center
       if (Vec.isEqual(midPoint, getBendPoint(nextHandles, nextBend))) {
         nextBend = 0
-      } else if (Utils.isAngleBetween(angle, angle + Math.PI, angleToBend)) {
+      } else if (isAngleBetween(angle, angle + Math.PI, angleToBend)) {
         // Otherwise, fix the bend direction
         nextBend *= -1
       }
@@ -740,7 +740,7 @@ function getArrowArc(shape: ArrowShape) {
 
   const center = [cx, cy]
 
-  const length = Utils.getArcLength(center, radius, start.point, end.point)
+  const length = getArcLength(center, radius, start.point, end.point)
 
   return { center, radius, length }
 }
@@ -866,4 +866,17 @@ function getArcPoints(shape: ArrowShape) {
   }
 
   return points
+}
+
+function isAngleBetween(a: number, b: number, c: number): boolean {
+  if (c === a || c === b) return true
+  const PI2 = Math.PI * 2
+  const AB = (b - a + PI2) % PI2
+  const AC = (c - a + PI2) % PI2
+  return AB <= Math.PI !== AC > AB
+}
+
+function getArcLength(C: number[], r: number, A: number[], B: number[]): number {
+  const sweep = Utils.getSweep(C, A, B)
+  return r * (2 * Math.PI) * (sweep / (2 * Math.PI))
 }
