@@ -32,8 +32,6 @@ type E = SVGSVGElement
 export class ArrowUtil extends TLDrawShapeUtil<T, E> {
   type = TLDrawShapeType.Arrow as const
 
-  canStyleFill = false
-
   hideBounds = true
 
   pathCache = new WeakMap<T, string>()

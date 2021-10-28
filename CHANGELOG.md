@@ -1,3 +1,9 @@
+## 0.0.132
+
+### TLCore
+
+- Fix bug with bounds handles.
+
 ## 0.0.131
 
 ### TLCore
