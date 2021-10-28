@@ -34,7 +34,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
 
   canStyleFill = false
 
-  showBounds = false
+  hideBounds = true
 
   pathCache = new WeakMap<T, string>()
 
