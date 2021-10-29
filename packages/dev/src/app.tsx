@@ -7,7 +7,6 @@ import Embedded from './embedded'
 import NoSizeEmbedded from './no-size-embedded'
 import { Multiplayer } from './multiplayer'
 import ChangingId from './changing-id'
-import Core from './core'
 import './styles.css'
 
 export default function App(): JSX.Element {
@@ -16,9 +15,6 @@ export default function App(): JSX.Element {
       <Switch>
         <Route path="/basic">
           <Basic />
-        </Route>
-        <Route path="/core">
-          <Core />
         </Route>
         <Route path="/controlled">
           <Controlled />
@@ -42,9 +38,6 @@ export default function App(): JSX.Element {
           <ul>
             <li>
               <Link to="/basic">basic</Link>
-            </li>
-            <li>
-              <Link to="/core">core</Link>
             </li>
             <li>
               <Link to="/controlled">controlled</Link>
