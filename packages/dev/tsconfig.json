@@ -9,7 +9,6 @@
     "emitDeclarationOnly": false,
     "paths": {
       "+*": ["./*"],
-      "@tldraw/core": ["../core"],
       "@tldraw/tldraw": ["../tldraw"]
     }
   },

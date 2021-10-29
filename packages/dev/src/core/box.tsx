@@ -2,16 +2,7 @@
 /* refresh-reset */
 
 import * as React from 'react'
-import {
-  TLShape,
-  Utils,
-  TLBounds,
-  TLShapeUtil,
-  HTMLContainer,
-  TLComponent,
-  SVGContainer,
-  TLIndicator,
-} from '@tldraw/core'
+import { TLShape, Utils, TLBounds, TLShapeUtil, HTMLContainer, SVGContainer } from '@tldraw/core'
 
 // Define a custom shape
 
@@ -37,86 +28,84 @@ export const boxShape: BoxShape = {
 export class BoxUtil extends TLShapeUtil<BoxShape, HTMLDivElement> {
   age = 100
 
-  Component: TLComponent<BoxShape, HTMLDivElement> = (
-    { shape, events, onShapeChange, isEditing, meta },
-    ref
-  ) => {
-    console.log('hi')
-    const color = meta.isDarkMode ? 'white' : 'black'
+  Component = TLShapeUtil.Component<BoxShape, HTMLDivElement>(
+    ({ shape, events, onShapeChange, isEditing, meta }, ref) => {
+      const color = meta.isDarkMode ? 'white' : 'black'
 
-    const rInput = React.useRef<HTMLDivElement>(null)
+      const rInput = React.useRef<HTMLDivElement>(null)
 
-    function updateShapeSize() {
-      const elm = rInput.current!
+      function updateShapeSize() {
+        const elm = rInput.current!
 
-      onShapeChange?.({
-        ...shape,
-        text: elm.innerText,
-        size: [elm.offsetWidth + 44, elm.offsetHeight + 44],
-      })
-    }
-
-    React.useLayoutEffect(() => {
-      const elm = rInput.current!
-
-      const observer = new MutationObserver(updateShapeSize)
-
-      observer.observe(elm, {
-        attributes: true,
-        characterData: true,
-        subtree: true,
-      })
-
-      elm.innerText = shape.text
-      updateShapeSize()
-
-      return () => {
-        observer.disconnect()
+        onShapeChange?.({
+          ...shape,
+          text: elm.innerText,
+          size: [elm.offsetWidth + 44, elm.offsetHeight + 44],
+        })
       }
-    }, [])
 
-    React.useEffect(() => {
-      if (isEditing) {
-        rInput.current!.focus()
-      }
-    }, [isEditing])
+      React.useLayoutEffect(() => {
+        const elm = rInput.current!
 
-    return (
-      <HTMLContainer ref={ref}>
-        <div
-          {...events}
-          style={{
-            pointerEvents: 'all',
-            width: shape.size[0],
-            height: shape.size[1],
-            display: 'flex',
-            fontSize: 20,
-            fontFamily: 'sans-serif',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: `2px solid ${color}`,
-            color,
-          }}
-        >
-          <div onPointerDown={(e) => isEditing && e.stopPropagation()}>
-            <div
-              ref={rInput}
-              style={{
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textAlign: 'center',
-                outline: 'none',
-                userSelect: isEditing ? 'all' : 'none',
-              }}
-              contentEditable={isEditing}
-            />
+        const observer = new MutationObserver(updateShapeSize)
+
+        observer.observe(elm, {
+          attributes: true,
+          characterData: true,
+          subtree: true,
+        })
+
+        elm.innerText = shape.text
+        updateShapeSize()
+
+        return () => {
+          observer.disconnect()
+        }
+      }, [])
+
+      React.useEffect(() => {
+        if (isEditing) {
+          rInput.current!.focus()
+        }
+      }, [isEditing])
+
+      return (
+        <HTMLContainer ref={ref}>
+          <div
+            {...events}
+            style={{
+              pointerEvents: 'all',
+              width: shape.size[0],
+              height: shape.size[1],
+              display: 'flex',
+              fontSize: 20,
+              fontFamily: 'sans-serif',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: `2px solid ${color}`,
+              color,
+            }}
+          >
+            <div onPointerDown={(e) => isEditing && e.stopPropagation()}>
+              <div
+                ref={rInput}
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textAlign: 'center',
+                  outline: 'none',
+                  userSelect: isEditing ? 'all' : 'none',
+                }}
+                contentEditable={isEditing}
+              />
+            </div>
           </div>
-        </div>
-      </HTMLContainer>
-    )
-  }
+        </HTMLContainer>
+      )
+    }
+  )
 
-  Indicator: TLIndicator<BoxShape> = ({ shape }) => {
+  Indicator = TLShapeUtil.Indicator<BoxShape>(({ shape }) => {
     return (
       <SVGContainer>
         <rect
@@ -129,7 +118,7 @@ export class BoxUtil extends TLShapeUtil<BoxShape, HTMLDivElement> {
         />
       </SVGContainer>
     )
-  }
+  })
 
   getBounds = (shape: BoxShape) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {

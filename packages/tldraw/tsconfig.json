@@ -8,7 +8,6 @@
     "baseUrl": "src",
     "paths": {
       "~*": ["./*"],
-      "@tldraw/core": ["../core"],
       "@tldraw/vec": ["../vec"],
       "@tldraw/intersect": ["../intersect"]
     }
