@@ -11,10 +11,7 @@ async function main() {
     bundle: true,
     format: 'cjs',
     target: 'es6',
-    jsxFactory: 'React.createElement',
-    jsxFragment: 'React.Fragment',
     tsconfig: './tsconfig.json',
-    external: ['react', 'react-dom'],
     incremental: true,
     watch: {
       onRebuild(error) {

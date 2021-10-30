@@ -3722,10 +3722,10 @@
     "@babel/runtime" "^7.12.5"
     "@testing-library/dom" "^8.0.0"
 
-"@tldraw/core@^0.1.9":
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.1.9.tgz#006748ee0c395ef15756ee1aa3c93b7eef109432"
-  integrity sha512-3vzFceettMZVkVM+ASaAFyFy2YibwnEkIcIiWTmKER+5R0HIEKnwDuH+zXiv+C1dcbagUvArHRw0AiuzA5ft8g==
+"@tldraw/core@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.1.10.tgz#fe6aa880b619361473ebccb5c932082efb535518"
+  integrity sha512-kLqCDQHRykWfskMvcbSn3Ll8Ssd46hMmMdTpqw1O3i3AV2zuWDYkdgGD3PO6PRSkkMZyGNr5/zpkU+Yrk5DYZQ==
   dependencies:
     "@use-gesture/react" "^10.0.2"
 

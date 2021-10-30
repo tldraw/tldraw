@@ -43,6 +43,7 @@ export class TransformSession extends Session {
     this.snapshot = getTransformSnapshot(data, transformType)
     this.isCreate = isCreate
     this.initialSelectedIds = TLDR.getSelectedIds(data, data.appState.currentPageId)
+    Session.cache.selectedIds = [...this.initialSelectedIds]
   }
 
   start = (data: Data) => {
@@ -58,8 +59,6 @@ export class TransformSession extends Session {
     } = this
 
     const shapes = {} as Record<string, TLDrawShape>
-
-    const pageState = TLDR.getPageState(data, data.appState.currentPageId)
 
     const delta = Vec.sub(point, this.origin)
 

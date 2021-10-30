@@ -347,6 +347,10 @@ export class TLDrawState extends StateManager<Data> {
       this.clearSelectHistory()
     }
 
+    if (id.startsWith('undo') || id.startsWith('redo')) {
+      Session.cache.selectedIds = [...this.selectedIds]
+    }
+
     this._onChange?.(this, state, id)
   }
 
@@ -1670,6 +1674,7 @@ export class TLDrawState extends StateManager<Data> {
     }
 
     const Session = getSession(type)
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     this.session = new Session(this.state, this.viewport, ...args)

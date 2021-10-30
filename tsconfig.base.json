@@ -11,6 +11,7 @@
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
     "importsNotUsedAsValues": "error",
+    "resolveJsonModule": true,
     "incremental": true,
     "jsx": "preserve",
     "lib": ["dom", "esnext"],

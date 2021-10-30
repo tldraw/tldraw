@@ -47,6 +47,7 @@ export class TransformSingleSession extends Session {
     this.transformType = transformType
     this.snapshot = getTransformSingleSnapshot(data, transformType)
     this.isCreate = isCreate
+    Session.cache.selectedIds = [...this.snapshot.initialShape.id]
   }
 
   start = (data: Data) => {

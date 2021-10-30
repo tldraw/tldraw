@@ -4,8 +4,6 @@ import { Session, SessionType, TLDrawShape, TLDrawStatus } from '~types'
 import type { Data } from '~types'
 import { TLDR } from '~state/tldr'
 
-const centerCache = new WeakMap<string[], number[]>()
-
 export class RotateSession extends Session {
   static type = SessionType.Rotate
   status = TLDrawStatus.Transforming
@@ -17,6 +15,7 @@ export class RotateSession extends Session {
 
   constructor(data: Data, viewport: TLBounds, point: number[]) {
     super(viewport)
+
     this.origin = point
     this.snapshot = getRotateSnapshot(data)
     this.initialAngle = Vec.angle(this.snapshot.commonBoundsCenter, this.origin)
@@ -134,19 +133,25 @@ export function getRotateSnapshot(data: Data) {
   const pageState = TLDR.getPageState(data, currentPageId)
   const initialShapes = TLDR.getSelectedBranchSnapshot(data, currentPageId)
 
-  const commonBoundsCenter = Utils.getFromCache(centerCache, pageState.selectedIds, () => {
-    if (initialShapes.length === 0) {
-      throw Error('No selected shapes!')
+  if (initialShapes.length === 0) {
+    throw Error('No selected shapes!')
+  }
+
+  let commonBoundsCenter: number[]
+
+  if (Session.cache.selectedIds === pageState.selectedIds) {
+    if (Session.cache.center === undefined) {
+      throw Error('The center was not added to the cache!')
     }
 
-    const shapesBounds = Object.fromEntries(
-      initialShapes.map((shape) => [shape.id, TLDR.getBounds(shape)])
+    commonBoundsCenter = Session.cache.center
+  } else {
+    commonBoundsCenter = Utils.getBoundsCenter(
+      Utils.getCommonBounds(initialShapes.map(TLDR.getBounds))
     )
-
-    const bounds = Utils.getCommonBounds(Object.values(shapesBounds))
-
-    return Utils.getBoundsCenter(bounds)
-  })
+    Session.cache.selectedIds = pageState.selectedIds
+    Session.cache.center = commonBoundsCenter
+  }
 
   return {
     commonBoundsCenter,

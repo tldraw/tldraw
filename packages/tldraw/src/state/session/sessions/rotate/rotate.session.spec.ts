@@ -119,16 +119,64 @@ describe('Rotate session', () => {
         )
       )
 
-      tlstate.startSession(SessionType.Rotate, [50, 0]).updateSession([100, 50])
+      tlstate.startSession(SessionType.Rotate, [50, 0]).updateSession([100, 50]).completeSession()
 
-      const centerAfter = Vec.round(
+      const centerAfterA = Vec.round(
+        Utils.getBoundsCenter(
+          Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+        )
+      )
+
+      tlstate.startSession(SessionType.Rotate, [100, 0]).updateSession([50, 0]).completeSession()
+
+      const centerAfterB = Vec.round(
         Utils.getBoundsCenter(
           Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
         )
       )
 
       expect(tlstate.getShape('rect1').rotation)
-      expect(centerBefore).toStrictEqual(centerAfter)
+      expect(centerBefore).toStrictEqual(centerAfterA)
+      expect(centerAfterA).toStrictEqual(centerAfterB)
+    })
+
+    it.todo('clears the cached center after transforming')
+    it.todo('clears the cached center after translating')
+    it.todo('clears the cached center after undoing')
+    it.todo('clears the cached center after redoing')
+    it.todo('clears the cached center after any command other than a rotate command, tbh')
+
+    it('changes the center after nudging', () => {
+      const tlstate = new TLDrawState().loadDocument(mockDocument).select('rect1', 'rect2')
+
+      const centerBefore = Vec.round(
+        Utils.getBoundsCenter(
+          Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+        )
+      )
+
+      tlstate.startSession(SessionType.Rotate, [50, 0]).updateSession([100, 50]).completeSession()
+
+      const centerAfterA = Vec.round(
+        Utils.getBoundsCenter(
+          Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+        )
+      )
+
+      expect(tlstate.getShape('rect1').rotation)
+      expect(centerBefore).toStrictEqual(centerAfterA)
+
+      tlstate.selectAll().nudge([10, 10])
+
+      tlstate.startSession(SessionType.Rotate, [50, 0]).updateSession([100, 50]).completeSession()
+
+      const centerAfterB = Vec.round(
+        Utils.getBoundsCenter(
+          Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+        )
+      )
+
+      expect(centerAfterB).not.toStrictEqual(centerAfterA)
     })
   })
 })
