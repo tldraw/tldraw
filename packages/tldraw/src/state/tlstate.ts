@@ -1670,6 +1670,7 @@ export class TLDrawState extends StateManager<Data> {
     }
 
     const Session = getSession(type)
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     this.session = new Session(this.state, this.viewport, ...args)

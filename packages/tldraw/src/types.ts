@@ -155,6 +155,14 @@ export abstract class Session {
   updateViewport = (viewport: TLBounds) => {
     this.viewport = viewport
   }
+
+  static cache: {
+    selectedIds: string[]
+    center: number[]
+  } = {
+    selectedIds: [],
+    center: [0, 0],
+  }
 }
 
 export enum TLDrawStatus {

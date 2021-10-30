@@ -1,9 +1,12 @@
 import { Vec } from '@tldraw/vec'
-import type { Data, TLDrawCommand, PagePartial } from '~types'
+import { Data, TLDrawCommand, PagePartial, Session } from '~types'
 import { TLDR } from '~state/tldr'
 
 export function translate(data: Data, ids: string[], delta: number[]): TLDrawCommand {
   const { currentPageId } = data.appState
+
+  // Clear session cache
+  Session.cache.selectedIds = TLDR.getSelectedIds(data, data.appState.currentPageId)
 
   const before: PagePartial = {
     shapes: {},

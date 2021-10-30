@@ -12,7 +12,6 @@ import {
   GroupShape,
   SessionType,
   ArrowBinding,
-  TLDrawShapeType,
 } from '~types'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { TLDR } from '~state/tldr'
@@ -70,6 +69,7 @@ export class TranslateSession extends Session {
     this.snapshot = getTranslateSnapshot(data, isLinked)
     this.isCreate = isCreate
     this.isLinked = isLinked
+    Session.cache.selectedIds = [...TLDR.getSelectedIds(data, data.appState.currentPageId)]
   }
 
   start = (data: Data) => {
@@ -94,14 +94,7 @@ export class TranslateSession extends Session {
     }
   }
 
-  update = (
-    data: Data,
-    point: number[],
-    shiftKey = false,
-    altKey = false,
-    metaKey = false,
-    viewPort = {} as TLBounds
-  ) => {
+  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
     const { selectedIds, initialParentChildren, initialShapes, bindingsToDelete } = this.snapshot
 
     const { currentPageId } = data.appState
