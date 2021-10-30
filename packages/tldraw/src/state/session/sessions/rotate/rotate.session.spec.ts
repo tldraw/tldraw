@@ -140,7 +140,13 @@ describe('Rotate session', () => {
       expect(centerAfterA).toStrictEqual(centerAfterB)
     })
 
-    it('changes the center after moving', () => {
+    it.todo('clears the cached center after transforming')
+    it.todo('clears the cached center after translating')
+    it.todo('clears the cached center after undoing')
+    it.todo('clears the cached center after redoing')
+    it.todo('clears the cached center after any command other than a rotate command, tbh')
+
+    it('changes the center after nudging', () => {
       const tlstate = new TLDrawState().loadDocument(mockDocument).select('rect1', 'rect2')
 
       const centerBefore = Vec.round(

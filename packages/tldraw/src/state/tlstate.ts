@@ -347,6 +347,10 @@ export class TLDrawState extends StateManager<Data> {
       this.clearSelectHistory()
     }
 
+    if (id.startsWith('undo') || id.startsWith('redo')) {
+      Session.cache.selectedIds = [...this.selectedIds]
+    }
+
     this._onChange?.(this, state, id)
   }
 

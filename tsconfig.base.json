@@ -20,7 +20,7 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
-    "noUnusedLocals": false,
+    "noUnusedLocayarnls": false,
     "noUnusedParameters": false,
     "skipLibCheck": true,
     "strict": true,
