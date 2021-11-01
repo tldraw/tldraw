@@ -1,12 +1,12 @@
 ## 0.0.133
 
-### TLCore
+- Removed libraries (vec, svg, and intersect) to their own repositories.
+
+## 0.0.133
 
 - Migration for bindings.
 
 ## 0.0.132
-
-### TLCore
 
 - Fix bug with bounds handles.
 
