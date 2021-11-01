@@ -68,7 +68,7 @@ export class ArrowSession extends Session {
 
       this.startBindingShapeId = this.bindableShapeIds
         .map((id) => page.shapes[id])
-        .find((shape) => TLDR.getShapeUtils(shape).hitTest(shape, point))?.id
+        .find((shape) => Utils.pointInBounds(point, TLDR.getShapeUtils(shape).getBounds(shape)))?.id
     } else {
       // If we're editing an existing line, is there a binding already
       // for the dragging handle?

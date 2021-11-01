@@ -1,3 +1,0 @@
-# @tldraw/svg
-
-SVG utilities.

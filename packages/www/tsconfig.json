@@ -2,7 +2,11 @@
   "compilerOptions": {
     "composite": true,
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
@@ -11,19 +15,29 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "node",
-    "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "baseUrl": ".",
     "rootDir": ".",
     "paths": {
-      "-*": ["./*"],
-      "@tldraw/tldraw": ["../tldraw"]
+      "-*": [
+        "./*"
+      ],
+      "@tldraw/tldraw": [
+        "../tldraw"
+      ]
     },
-    "incremental": true
+    "incremental": true,
+    "resolveJsonModule": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
   "references": [
     {
       "path": "../tldraw"
