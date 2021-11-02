@@ -1,11 +1,12 @@
 {
   "name": "tldraw",
   "private": true,
-  "author": "@steveruizok",
   "description": "A tiny little drawing app.",
+  "author": "@steveruizok",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tldraw/tldraw.git"
+    "url": "git+https://github.com/tldraw/tldraw.git",
+    "directory": "packages/tldraw"
   },
   "license": "MIT",
   "workspaces": [
