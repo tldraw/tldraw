@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["src", "src/test/old-doc.json"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist", "docs"],
   "compilerOptions": {
     "resolveJsonModule": true,

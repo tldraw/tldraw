@@ -1,61 +1,147 @@
-# tldraw
+# @tldraw/tldraw
 
-A tiny little drawing app.
+> `This library is not yet released and these docs are partially out of date!`
 
-Visit [tldraw.com](https://tldraw.com/).
+This package contains the [tldraw](https://tldraw.com) editor as a standalone React component.
 
-## Author
+## Installation
 
-- [steveruizok](https://twitter.com/steveruizok)
-- ...and more!
+```bash
+npm i @tldraw/tldraw
+```
 
-## Support
+or
 
-To support this project (and gain access to the project while it is in development) you can [sponsor the author](https://github.com/sponsors/steveruizok) on GitHub. Thanks!
+```bash
+yarn add @tldraw/tldraw
+```
+
+## Usage
+
+Import the `TLDraw` React component and use it in your app.
+
+```tsx
+import { TLDraw } from '@tldraw/tldraw'
+
+function App() {
+  return <TLDraw />
+}
+```
 
 ## Documentation
 
-In progress! Check the README files in [packages/core](packages/core/README.md) and [packages/tldraw](packages/tldraw/README.md).
+### `TLDraw`
 
-## Examples
+The `TLDraw` React component is the [tldraw](https://tldraw.com) editor exported as a standalone component. You can control the editor through props, or through the `TLDrawState`'s imperative API.
 
-- [@tldraw/core example](https://codesandbox.io/s/tldraw-core-example-88c74)
-- [@tldraw/tldraw example](https://codesandbox.io/s/tldraw-example-n539u)
+| Prop            | Type                            | Description                                                                                                                                                             |
+| --------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`            | `string`                        | (optional) An id under which to persist the component's state.                                                                                                          |
+| `document`      | `TLDrawDocument`                | (optional) An initial [`TLDrawDocument`](#tldrawdocument) object.                                                                                                       |
+| `currentPageId` | `string`                        | (optional) A current page id, referencing the `TLDrawDocument` object provided via the `document` prop.                                                                 |
+| `onMount`       | `(TLDrawState) => void`         | (optional) A callback function that will be called when the editor first mounts, receiving the current `TLDrawState`.                                                   |
+| `onChange`      | `(TLDrawState, string) => void` | (optional) A callback function that will be called whenever the `TLDrawState` updates. The update will include the current `TLDrawState` and the reason for the change. |
 
-## Local Development
+### `TLDrawDocument`
 
-### The tldraw packages
+A `TLDrawDocument` is an object with three properties:
 
-To work on the packages (@tldraw/core or @tldraw/tldraw), you'll want to run the (extremely fast) dev server.
+- `id` - A unique ID for this document
+- `pages` - A table of `TLPage` objects
+- `pageStates` - A table of `TLPageState` objects
 
-1. Download or clone the repository.
+```ts
+const tldocument: TLDrawDocument = {
+  id: 'doc',
+  pages: {
+    page1: {
+      id: 'page1',
+      shapes: {},
+      bindings: {},
+    },
+  },
+  pageStates: {
+    page1: {
+      id: 'page1',
+      selectedIds: [],
+      currentParentId: 'page1',
+      camera: {
+        point: [0, 0],
+        zoom: 1,
+      },
+    },
+  },
+}
+```
 
-   ```bash
-   git clone https://github.com/tldraw/tldraw.git
-   ```
+**Important:** In the `pages` object, each `TLPage` object must be keyed under its `id` property. Likewise, each `TLPageState` object must be keyed under its `id`. In addition, each `TLPageState` object must have an `id` that matches its corresponding page.
 
-2. Install dependencies.
+In the example above, the page above with the id `page1`is at `tldocument.pages["page1"]`. Its corresponding page state has the same id (`page1`) and is at `tldocument.pageStates["page1"]`.
 
-   ```bash
-   yarn
-   ```
+### Shapes
 
-3. Start the development server.
+Your `TLPage` objects may include shapes: objects that fit one of the `TLDrawShape` interfaces listed below. All `TLDrawShapes` extends a common interface:
 
-   ```bash
-   yarn start
-   ```
+| Property              | Type         | Description                                                     |
+| --------------------- | ------------ | --------------------------------------------------------------- |
+| `id`                  | `string`     | A unique ID for the shape.                                      |
+| `name`                | `string`     | The shape's name.                                               |
+| `type`                | `string`     | The shape's type.                                               |
+| `parentId`            | `string`     | The ID of the shape's parent (a shape or its page).             |
+| `childIndex`          | `number`     | The shape's order within its parent's children, indexed from 1. |
+| `point`               | `number[]`   | The `[x, y]` position of the shape.                             |
+| `rotation`            | `number[]`   | (optional) The shape's rotation in radians.                     |
+| `children`            | `string[]`   | (optional) The shape's child shape ids.                         |
+| `handles`             | `TLHandle{}` | (optional) A table of `TLHandle` objects.                       |
+| `isLocked`            | `boolean`    | True if the shape is locked.                                    |
+| `isHidden`            | `boolean`    | True if the shape is hidden.                                    |
+| `isEditing`           | `boolean`    | True if the shape is currently editing.                         |
+| `isGenerated`         | `boolean`    | True if the shape is generated.                                 |
+| `isAspectRatioLocked` | `boolean`    | True if the shape's aspect ratio is locked.                     |
 
-4. Open the local site at `https://localhost:5000`.
+> **Important:** In order for re-ordering to work correctly, a shape's `childIndex` values _must_ start from 1, not 0. The page or parent shape's "bottom-most" child should have a `childIndex` of 1.
 
-### The tldraw app
+The `ShapeStyle` object is a common style API for all shapes.
 
-To work on the app itself (that embeds @tldraw/tldraw), run the Next.js app. This won't directly respond to changes to packages, so for concurrent package dev work be sure to use the package dev server instead. (This is being worked on.)
+| Property   | Type         | Description                             |
+| ---------- | ------------ | --------------------------------------- |
+| `size`     | `SizeStyle`  | The size of the shape's stroke.         |
+| `dash`     | `DashStyle`  | The style of the shape's stroke.        |
+| `color`    | `ColorStyle` | The shape's color.                      |
+| `isFilled` | `boolean`    | (optional) True if the shape is filled. |
 
-1. Start the development server.
+#### Draw
 
-   ```bash
-   yarn start:www
-   ```
+| Property | Type         | Description                               |
+| -------- | ------------ | ----------------------------------------- |
+| `points` | `number[][]` | An array of points as `[x, y, pressure]`. |
 
-2. Open the local site at `https://localhost:3000`.
+##### Rectangle
+
+| Property | Type       | Description                             |
+| -------- | ---------- | --------------------------------------- |
+| `size`   | `number[]` | The `[width, height]` of the rectangle. |
+
+#### Ellipse
+
+| Property | Type       | Description                         |
+| -------- | ---------- | ----------------------------------- |
+| `radius` | `number[]` | The `[x, y]` radius of the ellipse. |
+
+#### Arrow
+
+| Property  | Type     | Description                                                             |
+| --------- | -------- | ----------------------------------------------------------------------- |
+| `handles` | `object` | An object with three `TLHandle` properties: `start`, `end`, and `bend`. |
+
+#### Text
+
+| Property | Type     | Description               |
+| -------- | -------- | ------------------------- |
+| `text`   | `string` | The shape's text content. |
+
+## Development
+
+### Running unit tests
+
+Run `nx test tldraw` to execute the unit tests via [Jest](https://jestjs.io).
