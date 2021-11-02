@@ -10,16 +10,16 @@
   "license": "MIT",
   "workspaces": [
     "packages/tldraw",
-    "packages/dev",
-    "packages/www"
+    "dev",
+    "www"
   ],
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watchAll",
     "lerna": "lerna",
     "start": "lerna run start:pre && lerna run start --stream --parallel",
-    "start:www": "yarn build:packages && lerna run start --parallel & cd packages/www && yarn dev",
-    "build": "yarn build:packages && cd packages/www && yarn build",
+    "start:www": "yarn build:packages && lerna run start --parallel & cd www && yarn dev",
+    "build": "yarn build:packages && cd www && yarn build",
     "build:packages": "cd packages/tldraw && yarn build",
     "publish:patch": "yarn build:packages && lerna publish patch",
     "docs": "lerna run docs",
