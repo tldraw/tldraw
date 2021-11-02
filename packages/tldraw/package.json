@@ -20,7 +20,7 @@
   "typings": "./dist/types/index.d.ts",
   "scripts": {
     "start": "node scripts/dev & yarn types:dev",
-    "build": "node scripts/build && yarn types:build",
+    "build": "node scripts/build && yarn types:build && node scripts/copy-readme",
     "types:pre": "tsc",
     "types:dev": "tsc -w",
     "types:build": "tsc -p tsconfig.build.json && tsconfig-replace-paths -p tsconfig.build.json",
