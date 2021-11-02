@@ -5,8 +5,6 @@ const { gzip } = require('zlib')
 
 const name = process.env.npm_package_name || ''
 
-import { copyFile } from 'fs'
-
 async function main() {
   if (fs.existsSync('./dist')) {
     fs.rmSync('./dist', { recursive: true }, (e) => {
