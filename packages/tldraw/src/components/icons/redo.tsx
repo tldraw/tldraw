@@ -2,7 +2,7 @@ import * as React from 'react'
 
 function SvgRedo(props: React.SVGProps<SVGSVGElement>): JSX.Element {
   return (
-    <svg viewBox="0 0 15 15" fill="currentColor" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <svg viewBox="0 -1 15 15" fill="currentColor" xmlns="http://www.w3.org/2000/svg" {...props}>
       <path
         fillRule="evenodd"
         clipRule="evenodd"

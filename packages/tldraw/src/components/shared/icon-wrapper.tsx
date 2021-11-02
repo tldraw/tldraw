@@ -8,6 +8,7 @@ export const iconWrapper = css({
   height: '100%',
   borderRadius: '4px',
   marginRight: '1px',
+  width: 'fit-content',
   display: 'grid',
   alignItems: 'center',
   justifyContent: 'center',

@@ -6,10 +6,8 @@ import { Data, TLDrawDocument, TLDrawStatus, TLDrawUser } from '~types'
 import { TLDrawState } from '~state'
 import { TLDrawContext, useCustomFonts, useKeyboardShortcuts, useTLDrawContext } from '~hooks'
 import { shapeUtils } from '~shape-utils'
-import { StylePanel } from '~components/style-panel'
 import { ToolsPanel } from '~components/tools-panel'
-import { PagePanel } from '~components/page-panel'
-import { Menu } from '~components/menu'
+import { TopPanel } from '~components/top-panel'
 import { breakpoints, iconButton } from '~components'
 import { DotFilledIcon } from '@radix-ui/react-icons'
 import { TLDR } from '~state/tldr'
@@ -293,12 +291,13 @@ function InnerTldraw({
           </div>
         ) : (
           <>
-            <div className={menuButtons()}>
+            <TopPanel />
+            {/* <div className={menuButtons()}>
               {showMenu && <Menu />}
               {showPages && <PagePanel />}
-            </div>
+            </div> */}
             <div className={spacer()} />
-            <StylePanel />
+            {/* <StylePanel /> */}
             <ToolsPanel />
           </>
         )}

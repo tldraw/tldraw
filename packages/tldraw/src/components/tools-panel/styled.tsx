@@ -1,253 +1,68 @@
-import * as React from 'react'
-import { floatingContainer } from '../shared'
-import { Tooltip } from '../shared/tooltip'
+import { toolButton, toolButtonInner } from '~components'
 import css from '~styles'
 
-export const toolButton = css({
-  position: 'relative',
-  height: '32px',
-  width: '32px',
-  color: '$text',
+export const buttonsContainer = css({
   backgroundColor: '$panel',
-  borderRadius: '4px',
-  padding: '0',
-  margin: '0',
-  display: 'grid',
-  alignItems: 'center',
-  justifyContent: 'center',
-  outline: 'none',
-  border: 'none',
-  pointerEvents: 'all',
-  fontSize: '$0',
-  cursor: 'pointer',
-
-  '& > *': {
-    gridRow: 1,
-    gridColumn: 1,
-  },
-
-  '&:disabled': {
-    opacity: '0.5',
-  },
-
-  '& > span': {
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    alignItems: 'center',
+  display: 'flex',
+  flexDirection: 'row',
+  padding: '0 $2',
+  variants: {
+    side: {
+      center: {
+        borderTopLeftRadius: '$4',
+        borderTopRightRadius: '$4',
+        borderTop: '1px solid $panelBorder',
+        borderLeft: '1px solid $panelBorder',
+        borderRight: '1px solid $panelBorder',
+      },
+      left: {
+        borderBottomRightRadius: '$4',
+        borderBottom: '1px solid $panelBorder',
+        borderRight: '1px solid $panelBorder',
+      },
+      right: {
+        borderBottomLeftRadius: '$4',
+        borderBottom: '1px solid $panelBorder',
+        borderLeft: '1px solid $panelBorder',
+      },
+    },
   },
 })
 
-export const primaryToolButton = css(toolButton, {
+export const secondaryButtonsContainer = css(buttonsContainer, {
+  display: 'none',
   variants: {
     bp: {
       mobile: {
-        height: 44,
-        width: 36,
-        '& svg:nth-of-type(1)': {
-          height: '20px',
-          width: '20px',
-        },
+        display: 'none',
       },
       small: {
-        width: 44,
-        '&:hover:not(:disabled)': {
-          backgroundColor: '$hover',
-        },
+        display: 'flex',
       },
-      medium: {},
-      large: {},
     },
+  },
+})
+
+export const floatToolButton = css(toolButton, {})
+
+export const floatToolButtonInner = css(toolButtonInner, {
+  borderRadius: '100%',
+  border: '1px solid $panelBorder',
+  variants: {
     isActive: {
+      false: {
+        '& > svg': {
+          width: 14,
+          height: 14,
+        },
+      },
       true: {
-        color: '$selected',
-      },
-    },
-  },
-})
-
-export const secondaryToolButton = css(toolButton, {
-  variants: {
-    bp: {
-      mobile: {
-        height: 44,
-        width: 36,
-        '& svg:nth-of-type(1)': {
-          height: '18px',
-          width: '18px',
+        backgroundColor: '$selected',
+        color: '$panel',
+        '& > svg': {
+          width: 14,
+          height: 14,
         },
-      },
-      small: {
-        width: 44,
-        '&:hover:not(:disabled)': {
-          backgroundColor: '$hover',
-        },
-      },
-      medium: {},
-      large: {},
-    },
-    isActive: {
-      true: {
-        color: '$selected',
-      },
-    },
-  },
-})
-
-export const tertiaryToolButton = css(toolButton, {
-  variants: {
-    bp: {
-      mobile: {
-        height: 32,
-        width: 36,
-        '& svg:nth-of-type(1)': {
-          height: '16px',
-          width: '16px',
-        },
-      },
-      small: {
-        height: 40,
-        width: 40,
-        '& svg:nth-of-type(1)': {
-          height: '18px',
-          width: '18px',
-        },
-        '&:hover:not(:disabled)': {
-          backgroundColor: '$hover',
-        },
-      },
-      medium: {},
-      large: {},
-    },
-  },
-})
-
-interface PrimaryToolButtonProps {
-  label: string
-  kbd: string
-  onClick: () => void
-  onDoubleClick?: () => void
-  isActive: boolean
-  children: React.ReactNode
-}
-
-export function PrimaryButton({
-  label,
-  kbd,
-  onClick,
-  onDoubleClick,
-  isActive,
-  children,
-}: PrimaryToolButtonProps): JSX.Element {
-  return (
-    <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
-      <button
-        className={primaryToolButton({
-          bp: {
-            '@initial': 'mobile',
-            '@sm': 'small',
-            '@md': 'medium',
-            '@lg': 'large',
-          },
-          name: label,
-          isActive,
-        })}
-        onPointerDown={onClick}
-        onClick={onClick}
-        onDoubleClick={onDoubleClick}
-      >
-        {children}
-      </button>
-    </Tooltip>
-  )
-}
-
-interface SecondaryToolButtonProps {
-  label: string
-  kbd: string
-  onClick: () => void
-  onDoubleClick?: () => void
-  isActive: boolean
-  children: React.ReactNode
-}
-
-export function SecondaryButton({
-  label,
-  kbd,
-  onClick,
-  onDoubleClick,
-  isActive,
-  children,
-}: SecondaryToolButtonProps): JSX.Element {
-  return (
-    <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
-      <button
-        className={secondaryToolButton({
-          bp: {
-            '@initial': 'mobile',
-            '@sm': 'small',
-            '@md': 'medium',
-            '@lg': 'large',
-          },
-          name: label,
-          isActive,
-        })}
-        onClick={onClick}
-        onDoubleClick={onDoubleClick}
-      >
-        {children}
-      </button>
-    </Tooltip>
-  )
-}
-
-interface TertiaryToolProps {
-  label: string
-  kbd: string
-  onClick: () => void
-  onDoubleClick?: () => void
-  children: React.ReactNode
-}
-
-export function TertiaryButton({
-  label,
-  kbd,
-  onClick,
-  onDoubleClick,
-  children,
-}: TertiaryToolProps): JSX.Element {
-  return (
-    <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
-      <button
-        className={tertiaryToolButton({
-          bp: {
-            '@initial': 'mobile',
-            '@sm': 'small',
-            '@md': 'medium',
-            '@lg': 'large',
-          },
-        })}
-        name={label}
-        onClick={onClick}
-        onDoubleClick={onDoubleClick}
-      >
-        {children}
-      </button>
-    </Tooltip>
-  )
-}
-
-export const tertiaryButtonsContainer = css(floatingContainer, {
-  boxShadow: '$3',
-  variants: {
-    bp: {
-      mobile: {
-        alignItems: 'center',
-        flexDirection: 'column',
-      },
-      small: {
-        alignItems: 'center',
-        flexDirection: 'row',
       },
     },
   },

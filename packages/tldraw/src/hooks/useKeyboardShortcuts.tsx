@@ -261,7 +261,9 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'escape',
     () => {
-      if (canHandleEvent()) tlstate.cancel()
+      if (canHandleEvent()) {
+        tlstate.cancel()
+      }
     },
     undefined,
     [tlstate]
