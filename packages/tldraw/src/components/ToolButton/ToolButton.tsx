@@ -59,6 +59,7 @@ export const StyledToolButtonInner = styled('div', {
   userSelect: 'none',
   boxSizing: 'border-box',
   border: '1px solid transparent',
+
   variants: {
     variant: {
       icon: {
@@ -102,11 +103,6 @@ export const StyledToolButton = styled('button', {
   cursor: 'pointer',
   pointerEvents: 'all',
   border: 'none',
-
-  '& > svg': {
-    width: 20,
-    height: 20,
-  },
 
   variants: {
     variant: {
