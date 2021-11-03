@@ -1,6 +1,6 @@
-import { createStitches, defaultThemeMap } from '@stitches/core'
+import { createStitches, defaultThemeMap } from '@stitches/react'
 
-const { css, globalCss, createTheme, getCssText } = createStitches({
+const { styled, globalCss, createTheme, getCssText } = createStitches({
   themeMap: {
     ...defaultThemeMap,
   },
@@ -141,6 +141,6 @@ const globalStyles = globalCss({
   '*': { boxSizing: 'border-box' },
 })
 
-export default css
+export default styled
 
 export { getCssText, globalStyles, light, dark }

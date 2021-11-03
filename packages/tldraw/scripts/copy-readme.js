@@ -1,10 +1,10 @@
 /* eslint-disable */
 const fs = require('fs')
 
-const filesToCopy = ['README.md', 'card-repo.png']
+const filesToCopy = ['README.md', 'LICENSE.md', 'card-repo.png']
 
 filesToCopy.forEach((file) => {
-  fs.copyFile(`../../${file}`, `./dist/${file}`, (err) => {
+  fs.copyFile(`../../${file}`, `./${file}`, (err) => {
     if (err) throw err
   })
 })

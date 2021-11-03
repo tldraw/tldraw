@@ -2869,12 +2869,7 @@
   resolved "https://registry.yarnpkg.com/@sqltools/formatter/-/formatter-1.2.3.tgz#1185726610acc37317ddab11c3c7f9066966bd20"
   integrity sha512-O3uyB/JbkAEMZaP3YqyHH7TMnex7tWyCbCI4EfJdOCoN6HIhqdJBWTM6aCCiWQ/5f5wxjgU735QAIpJbjDvmzg==
 
-"@stitches/core@^1.2.5":
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/@stitches/core/-/core-1.2.5.tgz#6dd8d1aa3d5f437cea7448498e66b2c1e9d7193e"
-  integrity sha512-E2N+Y2bKK7YS+J0kyORduGSwZMQsztYZAp3G/6Hgl2smA+Zzugwfuhc7sAYscdY3ShRf4gvHueNmO2vX+uLB4Q==
-
-"@stitches/react@^1.0.0":
+"@stitches/react@^1.2.5":
   version "1.2.5"
   resolved "https://registry.yarnpkg.com/@stitches/react/-/react-1.2.5.tgz#2353343c220f0c59ba388a26fdd9ff7962cb6031"
   integrity sha512-95Wwjp5cvoYQjg616OBiHZM1PnIF51pnFQIgSPxPzS/xXBrer9sNO1tfpVfLYfOifvuotse2IFNbypJ92BXzvg==

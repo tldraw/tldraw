@@ -5,7 +5,7 @@ import { TLDrawShapeType, GroupShape, ColorStyle, TLDrawMeta } from '~types'
 import { getBoundsRectangle } from '../shared'
 import { BINDING_DISTANCE } from '~constants'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
-import css from '~styles'
+import styled from '~styles'
 
 type T = GroupShape
 type E = SVGSVGElement
@@ -71,15 +71,14 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
             fill="transparent"
             pointerEvents="all"
           />
-          <g
-            className={scaledLines()}
+          <ScaledLines
             stroke={ColorStyle.Black}
             opacity={isHovered || isSelected ? 1 : 0}
             strokeLinecap="round"
             pointerEvents="stroke"
           >
             {paths}
-          </g>
+          </ScaledLines>
         </SVGContainer>
       )
     }
@@ -104,9 +103,9 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
     })
 
     return (
-      <g className={scaledLines()} strokeLinecap="round" pointerEvents="stroke">
+      <ScaledLines strokeLinecap="round" pointerEvents="stroke">
         {paths}
-      </g>
+      </ScaledLines>
     )
   })
 
@@ -119,7 +118,7 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
   }
 }
 
-const scaledLines = css({
+const ScaledLines = styled('g', {
   strokeWidth: 'calc(1.5px * var(--tl-scale))',
   strokeDasharray: `calc(1px * var(--tl-scale)), calc(3px * var(--tl-scale))`,
 })
