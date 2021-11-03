@@ -8,6 +8,7 @@ import { DMContent, DMRadioItem, DMTriggerIcon } from '~components/DropdownMenu'
 import { BoxIcon } from '~components/icons'
 import { IconButton } from '~components/IconButton'
 import { ToolButton } from '~components/ToolButton'
+import { Tooltip } from '~components/Tooltip'
 
 const selectColor = (s: Data) => s.appState.selectedStyle.color
 

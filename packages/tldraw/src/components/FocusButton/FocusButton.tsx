@@ -10,7 +10,7 @@ interface FocusButtonProps {
 export function FocusButton({ onSelect }: FocusButtonProps) {
   return (
     <StyledButtonContainer>
-      <IconButton onSelect={onSelect}>
+      <IconButton onClick={onSelect}>
         <DotFilledIcon />
       </IconButton>
     </StyledButtonContainer>

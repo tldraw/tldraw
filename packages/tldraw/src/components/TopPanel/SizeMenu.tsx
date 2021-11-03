@@ -5,6 +5,7 @@ import { useTLDrawContext } from '~hooks'
 import { DMContent, DMTriggerIcon } from '~components/DropdownMenu'
 import { ToolButton } from '~components/ToolButton'
 import { SizeSmallIcon, SizeMediumIcon, SizeLargeIcon } from '~components/icons'
+import { Tooltip } from '~components/Tooltip'
 
 const sizes = {
   [SizeStyle.Small]: <SizeSmallIcon />,

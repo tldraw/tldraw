@@ -2,10 +2,10 @@ import * as React from 'react'
 import { ContextMenuItem } from '@radix-ui/react-context-menu'
 import { ToolButton, ToolButtonProps } from '~components/ToolButton'
 
-export function CMIconButton(props: ToolButtonProps): JSX.Element {
+export function CMIconButton({ onSelect, ...rest }: ToolButtonProps): JSX.Element {
   return (
-    <ContextMenuItem dir="ltr" asChild>
-      <ToolButton {...props} />
+    <ContextMenuItem dir="ltr" onSelect={onSelect} asChild>
+      <ToolButton {...rest} />
     </ContextMenuItem>
   )
 }

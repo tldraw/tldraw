@@ -39,5 +39,5 @@ export function ZoomMenu() {
 }
 
 const FixedWidthToolButton = styled(ToolButton, {
-  width: 52,
+  minWidth: 56,
 })

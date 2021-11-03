@@ -57,6 +57,8 @@ export const StyledToolButtonInner = styled('div', {
   justifyContent: 'center',
   fontFamily: '$ui',
   userSelect: 'none',
+  boxSizing: 'border-box',
+  border: '1px solid transparent',
   variants: {
     variant: {
       icon: {
@@ -72,7 +74,7 @@ export const StyledToolButtonInner = styled('div', {
       },
       circle: {
         borderRadius: '100%',
-        border: '1px solid $panelBorder',
+        boxShadow: '$panel',
       },
     },
     isActive: {
@@ -97,9 +99,9 @@ export const StyledToolButton = styled('button', {
   alignItems: 'center',
   justifyContent: 'center',
   outline: 'none',
-  border: 'none',
   cursor: 'pointer',
   pointerEvents: 'all',
+  border: 'none',
 
   '& > svg': {
     width: 20,
@@ -119,6 +121,7 @@ export const StyledToolButton = styled('button', {
       false: {
         [`&:hover:not(:disabled) ${StyledToolButtonInner}`]: {
           backgroundColor: '$hover',
+          border: '1px solid $panel',
         },
       },
     },

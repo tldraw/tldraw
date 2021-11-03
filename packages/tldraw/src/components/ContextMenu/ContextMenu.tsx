@@ -132,21 +132,17 @@ export const ContextMenu = ({ children }: ContextMenuProps): JSX.Element => {
                 Duplicate
               </CMRowButton>
               <Divider />
-              {hasGroupSelected ||
-                (hasTwoOrMore && (
-                  <>
-                    {hasGroupSelected && (
-                      <CMRowButton onSelect={handleGroup} kbd="#⇧G">
-                        Ungroup
-                      </CMRowButton>
-                    )}
-                    {hasTwoOrMore && (
-                      <CMRowButton onSelect={handleGroup} kbd="#G">
-                        Group
-                      </CMRowButton>
-                    )}
-                  </>
-                ))}
+              {hasTwoOrMore && (
+                <CMRowButton onSelect={handleGroup} kbd="#G">
+                  Group
+                </CMRowButton>
+              )}
+              <Divider />
+              {hasGroupSelected && (
+                <CMRowButton onSelect={handleGroup} kbd="#⇧G">
+                  Ungroup
+                </CMRowButton>
+              )}
               <ContextMenuSubMenu label="Move">
                 <CMRowButton onSelect={handleMoveToFront} kbd="⇧]">
                   To Front
@@ -173,9 +169,9 @@ export const ContextMenu = ({ children }: ContextMenuProps): JSX.Element => {
                 Copy
               </CMRowButton>
               <CMRowButton onSelect={handleCopySvg} kbd="⇧#C">
-                Copy to SVG
+                Copy as SVG
               </CMRowButton>
-              {isDebugMode && <CMRowButton onSelect={handleCopyJson}>Copy to JSON</CMRowButton>}
+              {isDebugMode && <CMRowButton onSelect={handleCopyJson}>Copy as JSON</CMRowButton>}
               <CMRowButton onSelect={handlePaste} kbd="#V">
                 Paste
               </CMRowButton>

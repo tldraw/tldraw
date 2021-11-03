@@ -27,6 +27,14 @@ export const Menu = React.memo(() => {
     tlstate.signOut()
   }, [tlstate])
 
+  const handleCopy = React.useCallback(() => {
+    tlstate.copy()
+  }, [tlstate])
+
+  const handlePaste = React.useCallback(() => {
+    tlstate.paste()
+  }, [tlstate])
+
   const handleCopySvg = React.useCallback(() => {
     tlstate.copySvg()
   }, [tlstate])
@@ -71,17 +79,17 @@ export const Menu = React.memo(() => {
             Redo
           </DMItem>
           <DMDivider dir="ltr" />
-          <DMItem onSelect={tlstate.undo} kbd="#C">
+          <DMItem onSelect={handleCopy} kbd="#C">
             Copy
           </DMItem>
-          <DMItem onSelect={tlstate.paste} kbd="#V">
+          <DMItem onSelect={handlePaste} kbd="#V">
             Paste
           </DMItem>
           <DMDivider dir="ltr" />
           <DMItem onSelect={handleCopySvg} kbd="#⇧C">
-            Copy to SVG
+            Copy as SVG
           </DMItem>
-          <DMItem onSelect={handleCopyJson}>Copy to JSON</DMItem>
+          <DMItem onSelect={handleCopyJson}>Copy as JSON</DMItem>
           <DMDivider dir="ltr" />
           <DMItem onSelect={handleSelectAll} kbd="#A">
             Select All

@@ -1068,6 +1068,8 @@ export class TLDrawState extends StateManager<Data> {
       Utils.deepClone(this.getShape(id, this.currentPageId))
     )
 
+    console.log(copyingShapes.length)
+
     if (copyingShapes.length === 0) return this
 
     const copyingBindings: TLDrawBinding[] = Object.values(this.page.bindings).filter(

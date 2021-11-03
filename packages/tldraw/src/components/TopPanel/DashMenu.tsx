@@ -4,6 +4,7 @@ import { useTLDrawContext } from '~hooks'
 import { DashStyle, Data } from '~types'
 import { DMContent, DMRadioItem, DMTriggerIcon } from '~components/DropdownMenu'
 import { ToolButton } from '~components/ToolButton'
+import { Tooltip } from '~components/Tooltip'
 
 const dashes = {
   [DashStyle.Draw]: <DashDrawIcon />,

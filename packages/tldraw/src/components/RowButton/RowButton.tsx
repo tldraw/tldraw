@@ -19,7 +19,17 @@ export interface RowButtonProps {
 
 export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
   (
-    { onSelect, children, isActive, isWarning, hasIndicator, hasArrow, disabled, kbd, ...rest },
+    {
+      onSelect,
+      isActive = false,
+      isWarning = false,
+      hasIndicator = false,
+      hasArrow = false,
+      disabled = false,
+      kbd,
+      children,
+      ...rest
+    },
     ref
   ) => {
     return (
@@ -32,50 +42,42 @@ export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
         onPointerDown={onSelect}
         {...rest}
       >
-        {children}
-        {kbd ? <Kbd variant="menu">{kbd}</Kbd> : undefined}
-        {hasIndicator && (
-          <ItemIndicator dir="ltr">
+        <StyledRowButtonInner>
+          {children}
+          {kbd ? <Kbd variant="menu">{kbd}</Kbd> : undefined}
+          {hasIndicator && (
+            <ItemIndicator dir="ltr">
+              <SmallIcon>
+                <CheckIcon />
+              </SmallIcon>
+            </ItemIndicator>
+          )}
+          {hasArrow && (
             <SmallIcon>
-              <CheckIcon />
+              <ChevronRightIcon />
             </SmallIcon>
-          </ItemIndicator>
-        )}
-        {hasArrow && (
-          <SmallIcon>
-            <ChevronRightIcon />
-          </SmallIcon>
-        )}
+          )}
+        </StyledRowButtonInner>
       </StyledRowButton>
     )
   }
 )
 
-export const StyledRowButton = styled('button', {
-  position: 'relative',
-  display: 'flex',
-  flexDirection: 'row',
+const StyledRowButtonInner = styled('div', {
+  height: '100%',
   width: '100%',
-  background: 'none',
-  height: '32px',
-  border: 'none',
-  cursor: 'pointer',
   color: '$text',
-  outline: 'none',
-  alignItems: 'center',
   fontFamily: '$ui',
   fontWeight: 400,
   fontSize: '$1',
+  backgroundColor: '$panel',
+  borderRadius: '$2',
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'center',
+  padding: '0 $3',
   justifyContent: 'space-between',
-  padding: '4px 8px 4px 12px',
-  borderRadius: 4,
-  userSelect: 'none',
-
-  '& label': {
-    fontWeight: '$1',
-    margin: 0,
-    padding: 0,
-  },
+  border: '1px solid transparent',
 
   '& svg': {
     position: 'relative',
@@ -83,6 +85,20 @@ export const StyledRowButton = styled('button', {
     strokeWidth: 1,
     zIndex: 1,
   },
+})
+
+export const StyledRowButton = styled('button', {
+  position: 'relative',
+  width: '100%',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  height: '32px',
+  outline: 'none',
+  borderRadius: 4,
+  userSelect: 'none',
+  margin: 0,
+  padding: '0 0',
 
   '&[data-disabled]': {
     opacity: 0.3,
@@ -95,42 +111,13 @@ export const StyledRowButton = styled('button', {
   variants: {
     bp: {
       mobile: {},
-      small: {
-        '& *[data-shy="true"]': {
-          opacity: 0,
-        },
-        '&:hover:not(:disabled)': {
-          backgroundColor: '$hover',
-          '& *[data-shy="true"]': {
-            opacity: 1,
-          },
-        },
-      },
+      small: {},
     },
     size: {
       icon: {
         padding: '4px ',
         width: 'auto',
       },
-    },
-    variant: {
-      // pageButton: {
-      //   display: 'grid',
-      //   gridTemplateColumns: '24px auto',
-      //   width: '100%',
-      //   paddingLeft: '$1',
-      //   gap: '$3',
-      //   justifyContent: 'flex-start',
-      //   [`& > *[data-state="checked"]`]: {
-      //     gridRow: 1,
-      //     gridColumn: 1,
-      //   },
-      //   '& > span': {
-      //     gridRow: 1,
-      //     gridColumn: 2,
-      //     width: '100%',
-      //   },
-      // },
     },
     isWarning: {
       true: {
@@ -140,6 +127,15 @@ export const StyledRowButton = styled('button', {
     isActive: {
       true: {
         backgroundColor: '$hover',
+      },
+      false: {
+        [`&:hover:not(:disabled) ${StyledRowButtonInner}`]: {
+          backgroundColor: '$hover',
+          border: '1px solid $panel',
+          '& *[data-shy="true"]': {
+            opacity: 1,
+          },
+        },
       },
     },
   },

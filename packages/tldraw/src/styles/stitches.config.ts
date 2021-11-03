@@ -1,6 +1,6 @@
 import { createStitches, defaultThemeMap } from '@stitches/react'
 
-const { css, styled, createTheme, getCssText } = createStitches({
+const { styled, createTheme, getCssText } = createStitches({
   themeMap: {
     ...defaultThemeMap,
   },
@@ -24,7 +24,7 @@ const { css, styled, createTheme, getCssText } = createStitches({
       panelBorder: 'rgba(0, 0, 0, 0.12)',
       panelActive: '#fefefe',
       inactive: '#cccccf',
-      hover: '#efefef',
+      hover: '#eaf2ff',
       text: '#333333',
       tooltipBg: '#1d1d1d',
       tooltipText: '#ffffff',
@@ -42,6 +42,9 @@ const { css, styled, createTheme, getCssText } = createStitches({
       12: '0px 12px 17px rgba(0, 0, 0, 0.14)',
       24: '0px 24px 38px rgba(0, 0, 0, 0.14)',
       key: '1px 1px rgba(0,0,0,1)',
+      panel: `0px 0px 16px -1px rgba(0, 0, 0, 0.05), 
+        0px 0px 16px -8px rgba(0, 0, 0, 0.05), 
+        0px 0px 16px -12px rgba(0, 0, 0, 0.12)`,
     },
     space: {
       0: '2px',
@@ -137,6 +140,9 @@ const dark = createTheme({
     8: '0px 12px 17px rgba(0, 0, 0, 0.24)',
     12: '0px 12px 17px rgba(0, 0, 0, 0.24)',
     24: '0px 24px 38px rgba(0, 0, 0, 0.24)',
+    panel: `0px 0px 16px -1px rgba(0, 0, 0, 0.05), 
+      0px 0px 16px -8px rgba(0, 0, 0, 0.09), 
+      0px 0px 16px -12px rgba(0, 0, 0, 0.2)`,
   },
 })
 
