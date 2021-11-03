@@ -1,17 +1,16 @@
 import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
-import css, { dark } from '~styles'
+import styled, { dark } from '~styles'
 import { Data, TLDrawDocument, TLDrawStatus, TLDrawUser } from '~types'
 import { TLDrawState } from '~state'
 import { TLDrawContext, useCustomFonts, useKeyboardShortcuts, useTLDrawContext } from '~hooks'
 import { shapeUtils } from '~shape-utils'
-import { ToolsPanel } from '~components/tools-panel'
-import { TopPanel } from '~components/top-panel'
-import { breakpoints, iconButton } from '~components'
-import { DotFilledIcon } from '@radix-ui/react-icons'
+import { ToolsPanel } from '~components/ToolsPanel'
+import { TopPanel } from '~components/TopPanel'
 import { TLDR } from '~state/tldr'
-import { ContextMenu } from '~components/context-menu'
+import { ContextMenu } from '~components/ContextMenu'
+import { FocusButton } from '~components/FocusButton/FocusButton'
 
 // Selectors
 const isInSelectSelector = (s: Data) => s.appState.activeTool === 'select'
@@ -67,6 +66,26 @@ export interface TLDrawProps {
   showPages?: boolean
 
   /**
+   * (optional) Whether to show the styles UI.
+   */
+  showStyles?: boolean
+
+  /**
+   * (optional) Whether to show the zoom UI.
+   */
+  showZoom?: boolean
+
+  /**
+   * (optional) Whether to show the tools UI.
+   */
+  showTools?: boolean
+
+  /**
+   * (optional) Whether to show the UI.
+   */
+  showUI?: boolean
+
+  /**
    * (optional) A callback to run when the component mounts.
    */
   onMount?: (state: TLDrawState) => void
@@ -86,6 +105,10 @@ export function TLDraw({
   autofocus = true,
   showMenu = true,
   showPages = true,
+  showTools = true,
+  showZoom = true,
+  showStyles = true,
+  showUI = true,
   onMount,
   onChange,
   onUserChange,
@@ -118,10 +141,27 @@ export function TLDraw({
           autofocus={autofocus}
           showPages={showPages}
           showMenu={showMenu}
+          showStyles={showStyles}
+          showZoom={showZoom}
+          showTools={showTools}
+          showUI={showUI}
         />
       </IdProvider>
     </TLDrawContext.Provider>
   )
+}
+
+interface InnerTLDrawProps {
+  id?: string
+  currentPageId?: string
+  autofocus: boolean
+  showPages: boolean
+  showMenu: boolean
+  showZoom: boolean
+  showStyles: boolean
+  showUI: boolean
+  showTools: boolean
+  document?: TLDrawDocument
 }
 
 function InnerTldraw({
@@ -130,15 +170,12 @@ function InnerTldraw({
   autofocus,
   showPages,
   showMenu,
+  showZoom,
+  showStyles,
+  showTools,
+  showUI,
   document,
-}: {
-  id?: string
-  currentPageId?: string
-  autofocus: boolean
-  showPages: boolean
-  showMenu: boolean
-  document?: TLDrawDocument
-}) {
+}: InnerTLDrawProps) {
   const { tlstate, useSelector } = useTLDrawContext()
 
   const rWrapper = React.useRef<HTMLDivElement>(null)
@@ -207,11 +244,7 @@ function InnerTldraw({
   }, [currentPageId, tlstate])
 
   return (
-    <div
-      ref={rWrapper}
-      tabIndex={0}
-      className={[layout(), settings.isDarkMode ? dark : ''].join(' ')}
-    >
+    <StyledLayout ref={rWrapper} tabIndex={0} className={settings.isDarkMode ? dark : ''}>
       <OneOff focusableRef={rWrapper} autofocus={autofocus} />
       <ContextMenu>
         <Renderer
@@ -282,27 +315,25 @@ function InnerTldraw({
           onKeyUp={tlstate.onKeyUp}
         />
       </ContextMenu>
-      <div className={ui()}>
-        {settings.isFocusMode ? (
-          <div className={unfocusButton()}>
-            <button className={iconButton({ bp: breakpoints })} onClick={tlstate.toggleFocusMode}>
-              <DotFilledIcon />
-            </button>
-          </div>
-        ) : (
-          <>
-            <TopPanel />
-            {/* <div className={menuButtons()}>
-              {showMenu && <Menu />}
-              {showPages && <PagePanel />}
-            </div> */}
-            <div className={spacer()} />
-            {/* <StylePanel /> */}
-            <ToolsPanel />
-          </>
-        )}
-      </div>
-    </div>
+      {showUI && (
+        <StyledUI>
+          {settings.isFocusMode ? (
+            <FocusButton onSelect={tlstate.toggleFocusMode} />
+          ) : (
+            <>
+              <TopPanel
+                showPages={showPages}
+                showMenu={showMenu}
+                showZoom={showZoom}
+                showStyles={showStyles}
+              />
+              <StyledSpacer />
+              {showTools && <ToolsPanel />}
+            </>
+          )}
+        </StyledUI>
+      )}
+    </StyledLayout>
   )
 }
 
@@ -327,7 +358,7 @@ const OneOff = React.memo(
   }
 )
 
-const layout = css({
+const StyledLayout = styled('div', {
   position: 'absolute',
   height: '100%',
   width: '100%',
@@ -349,7 +380,7 @@ const layout = css({
   },
 })
 
-const ui = css({
+const StyledUI = styled('div', {
   position: 'absolute',
   top: 0,
   left: 0,
@@ -366,25 +397,6 @@ const ui = css({
   },
 })
 
-const spacer = css({
+const StyledSpacer = styled('div', {
   flexGrow: 2,
-})
-
-const menuButtons = css({
-  display: 'flex',
-  gap: 8,
-})
-
-const unfocusButton = css({
-  opacity: 1,
-  zIndex: 100,
-  backgroundColor: 'transparent',
-
-  '& svg': {
-    color: '$muted',
-  },
-
-  '&:hover svg': {
-    color: '$text',
-  },
 })

@@ -1,1 +1,1 @@
-export * from './tldraw'
+export * from './TLDraw'

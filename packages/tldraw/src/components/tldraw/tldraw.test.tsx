@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { render } from '@testing-library/react'
-import { TLDraw } from './tldraw'
+import { TLDraw } from './TLDraw'
 
 describe('tldraw', () => {
   test('mounts component without crashing', () => {

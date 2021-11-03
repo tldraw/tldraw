@@ -6,7 +6,7 @@ import { StickyShape, TLDrawMeta, TLDrawShapeType, TLDrawTransformInfo } from '~
 import { getBoundsRectangle, TextAreaUtils } from '../shared'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
 import { getStickyFontStyle, getStickyShapeStyle } from '../shape-styles'
-import css from '~styles'
+import styled from '~styles'
 import Vec from '@tldraw/vec'
 
 type T = StickyShape
@@ -163,18 +163,17 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
 
       return (
         <HTMLContainer ref={ref} {...events}>
-          <div
+          <StyledStickyContainer
             ref={rContainer}
-            className={styledStickyContainer({ isDarkMode: meta.isDarkMode })}
+            isDarkMode={meta.isDarkMode}
             style={{ backgroundColor: fill, ...style }}
           >
-            <div ref={rText} className={styledText({ isEditing })}>
+            <StyledText ref={rText} isEditing={isEditing}>
               {shape.text}&#8203;
-            </div>
+            </StyledText>
             {isEditing && (
-              <textarea
+              <StyledTextArea
                 ref={rTextArea}
-                className={styledTextArea({ isEditing })}
                 onPointerDown={handlePointerDown}
                 value={shape.text}
                 onChange={handleTextChange}
@@ -187,7 +186,7 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
                 autoFocus
               />
             )}
-          </div>
+          </StyledStickyContainer>
         </HTMLContainer>
       )
     }
@@ -245,7 +244,7 @@ function normalizeText(text: string) {
   return text.replace(/\r?\n|\r/g, '\n')
 }
 
-const styledStickyContainer = css({
+const StyledStickyContainer = styled('div', {
   pointerEvents: 'all',
   position: 'relative',
   backgroundColor: 'rgba(255, 220, 100)',
@@ -269,50 +268,46 @@ const styledStickyContainer = css({
   },
 })
 
-const commonTextWrapping = css({
+const commonTextWrapping = {
   whiteSpace: 'pre-wrap',
   overflowWrap: 'break-word',
-})
+}
 
-const styledText = css(
-  {
-    position: 'absolute',
-    top: PADDING,
-    left: PADDING,
-    width: `calc(100% - ${PADDING * 2}px)`,
-    height: 'fit-content',
-    font: 'inherit',
-    pointerEvents: 'none',
-    userSelect: 'none',
-    variants: {
-      isEditing: {
-        true: {
-          opacity: 1,
-        },
-        false: {
-          opacity: 1,
-        },
+const StyledText = styled('div', {
+  position: 'absolute',
+  top: PADDING,
+  left: PADDING,
+  width: `calc(100% - ${PADDING * 2}px)`,
+  height: 'fit-content',
+  font: 'inherit',
+  pointerEvents: 'none',
+  userSelect: 'none',
+  variants: {
+    isEditing: {
+      true: {
+        opacity: 1,
+      },
+      false: {
+        opacity: 1,
       },
     },
   },
-  commonTextWrapping
-)
+  ...commonTextWrapping,
+})
 
-const styledTextArea = css(
-  {
-    width: '100%',
-    height: '100%',
-    border: 'none',
-    overflow: 'hidden',
-    background: 'none',
-    outline: 'none',
-    textAlign: 'left',
-    font: 'inherit',
-    padding: 0,
-    color: 'transparent',
-    verticalAlign: 'top',
-    resize: 'none',
-    caretColor: 'black',
-  },
-  commonTextWrapping
-)
+const StyledTextArea = styled('textarea', {
+  width: '100%',
+  height: '100%',
+  border: 'none',
+  overflow: 'hidden',
+  background: 'none',
+  outline: 'none',
+  textAlign: 'left',
+  font: 'inherit',
+  padding: 0,
+  color: 'transparent',
+  verticalAlign: 'top',
+  resize: 'none',
+  caretColor: 'black',
+  ...commonTextWrapping,
+})

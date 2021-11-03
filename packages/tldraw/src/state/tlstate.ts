@@ -2499,7 +2499,7 @@ export class TLDrawState extends StateManager<Data> {
       nudgeDistanceSmall: 1,
       showRotateHandles: true,
       showBindingHandles: true,
-      showCloneHandles: true,
+      showCloneHandles: false,
     },
     appState: {
       activeTool: 'select',

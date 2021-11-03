@@ -1,4 +1,4 @@
-import css from 'styles'
+import styled from 'styles'
 import { getSession, signin, signout, useSession } from 'next-auth/client'
 import { GetServerSideProps } from 'next'
 import Link from 'next/link'
@@ -13,13 +13,11 @@ export default function Sponsorware(): JSX.Element {
       <Head>
         <title>tldraw</title>
       </Head>
-      <div className={outerContent()}>
-        <div
-          className={content({
-            size: {
-              '@sm': 'small',
-            },
-          })}
+      <StyledOuterContent>
+        <StyledContent
+          size={{
+            '@sm': 'small',
+          }}
         >
           <h1>tldraw (is sponsorware)</h1>
           <p>
@@ -52,13 +50,13 @@ export default function Sponsorware(): JSX.Element {
             </a>{' '}
             (at any level) and sign in below.
           </p>
-          <div className={buttonGroup()}>
+          <StyledButtonGroup>
             {session ? (
               <>
-                <button className={button({ variant: 'secondary' })} onClick={() => signout()}>
+                <StyledButton variant="secondary" onClick={() => signout()}>
                   Sign Out
-                </button>
-                <p className={detail()}>
+                </StyledButton>
+                <StyledDetail>
                   Signed in as {session?.user?.name} ({session?.user?.email}), but it looks like
                   you&apos;re not yet a sponsor.
                   <br />
@@ -71,19 +69,19 @@ export default function Sponsorware(): JSX.Element {
                     Twitter
                   </a>
                   .
-                </p>
+                </StyledDetail>
               </>
             ) : (
               <>
-                <button className={button({ variant: 'primary' })} onClick={() => signin('github')}>
+                <StyledButton variant="primary" onClick={() => signin('github')}>
                   {loading ? 'Loading...' : 'Sign in With Github'}
-                </button>
-                <p className={detail()}>Already a sponsor? Just sign in to visit the app.</p>
+                </StyledButton>
+                <StyledDetail>Already a sponsor? Just sign in to visit the app.</StyledDetail>
               </>
             )}
-          </div>
-        </div>
-      </div>
+          </StyledButtonGroup>
+        </StyledContent>
+      </StyledOuterContent>
     </>
   )
 }
@@ -98,7 +96,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 }
 
-const outerContent = css({
+const StyledOuterContent = styled('div', {
   backgroundColor: '$canvas',
   padding: '8px 8px 64px 8px',
   margin: '0 auto',
@@ -115,7 +113,7 @@ const outerContent = css({
   height: '100%',
 })
 
-const content = css({
+const StyledContent = styled('div', {
   width: '720px',
   padding: '8px 16px',
   maxWidth: '100%',
@@ -163,18 +161,18 @@ const content = css({
   },
 })
 
-const buttonGroup = css({
+const StyledButtonGroup = styled('div', {
   display: 'grid',
   gap: '16px',
   margin: '40px 0 32px 0',
 })
 
-const detail = css({
+const StyledDetail = styled('p', {
   fontSize: '$2',
   textAlign: 'center',
 })
 
-const button = css({
+const StyledButton = styled('button', {
   cursor: 'pointer',
   width: '100%',
   padding: '12px 0',

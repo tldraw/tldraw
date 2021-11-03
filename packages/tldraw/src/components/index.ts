@@ -1,6 +1,0 @@
-export * from './shared/tooltip'
-export * from './shared/kbd'
-export * from './shared'
-export * from './icons'
-export * from './tldraw'
-export * from './tool-button'

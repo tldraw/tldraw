@@ -6,7 +6,7 @@ import { TextShape, TLDrawMeta, TLDrawShapeType, TLDrawTransformInfo } from '~ty
 import { TextAreaUtils } from '../shared'
 import { BINDING_DISTANCE } from '~constants'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
-import css from '~styles'
+import styled from '~styles'
 import Vec from '@tldraw/vec'
 
 type T = TextShape
@@ -122,9 +122,8 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
 
       return (
         <HTMLContainer ref={ref} {...events}>
-          <div className={wrapper({ isEditing })} onPointerDown={handlePointerDown}>
-            <div
-              className={innerWrapper()}
+          <Wrapper isEditing={isEditing} onPointerDown={handlePointerDown}>
+            <InnerWrapper
               style={{
                 font,
                 color: styles.stroke,
@@ -144,8 +143,7 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
                 />
               )}
               {isEditing ? (
-                <textarea
-                  className={textArea({ isBinding })}
+                <TextArea
                   ref={rInput}
                   style={{
                     font,
@@ -173,8 +171,8 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
               ) : (
                 text
               )}
-            </div>
-          </div>
+            </InnerWrapper>
+          </Wrapper>
         </HTMLContainer>
       )
     }
@@ -328,7 +326,7 @@ if (typeof window !== 'undefined') {
   melm = getMeasurementDiv()
 }
 
-const wrapper = css({
+const Wrapper = styled('div', {
   width: '100%',
   height: '100%',
   variants: {
@@ -345,7 +343,7 @@ const wrapper = css({
   },
 })
 
-const innerWrapper = css({
+const InnerWrapper = styled('div', {
   position: 'absolute',
   top: 'var(--tl-padding)',
   left: 'var(--tl-padding)',
@@ -375,7 +373,7 @@ const innerWrapper = css({
   },
 })
 
-const textArea = css({
+const TextArea = styled('textarea', {
   position: 'absolute',
   top: 0,
   left: 0,
