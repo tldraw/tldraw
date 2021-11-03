@@ -6,7 +6,7 @@ export interface ToolButtonProps {
   onSelect?: () => void
   onDoubleClick?: () => void
   isActive?: boolean
-  variant?: 'icon' | 'text' | 'circle'
+  variant?: 'icon' | 'text' | 'circle' | 'primary'
   children: React.ReactNode
 }
 
@@ -39,7 +39,7 @@ interface ToolButtonWithTooltipProps extends ToolButtonProps {
 export function ToolButtonWithTooltip({ label, kbd, ...rest }: ToolButtonWithTooltipProps) {
   return (
     <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
-      <ToolButton {...rest} />
+      <ToolButton variant="primary" {...rest} />
     </Tooltip>
   )
 }
@@ -62,6 +62,12 @@ export const StyledToolButtonInner = styled('div', {
 
   variants: {
     variant: {
+      primary: {
+        '& svg': {
+          width: 20,
+          height: 20,
+        },
+      },
       icon: {
         display: 'grid',
         '& > *': {
@@ -106,6 +112,7 @@ export const StyledToolButton = styled('button', {
 
   variants: {
     variant: {
+      primary: {},
       icon: {},
       text: {
         width: 'auto',
