@@ -62,12 +62,12 @@ const isAllGroupedSelector = (s: Data) => {
   )
 }
 
-const hasSelectionSelector = (s: Data) => {
+const hasSelectionClickor = (s: Data) => {
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.length > 0
 }
 
-const hasMultipleSelectionSelector = (s: Data) => {
+const hasMultipleSelectionClickor = (s: Data) => {
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.length > 1
 }
@@ -81,9 +81,9 @@ export function ActionButton(): JSX.Element {
 
   const isAllGrouped = useSelector(isAllGroupedSelector)
 
-  const hasSelection = useSelector(hasSelectionSelector)
+  const hasSelection = useSelector(hasSelectionClickor)
 
-  const hasMultipleSelection = useSelector(hasMultipleSelectionSelector)
+  const hasMultipleSelection = useSelector(hasMultipleSelectionClickor)
 
   const handleRotate = React.useCallback(() => {
     tlstate.rotate()
@@ -180,55 +180,55 @@ export function ActionButton(): JSX.Element {
       <DMContent>
         <>
           <ButtonsRow>
-            <IconButton disabled={!hasSelection} onSelect={handleDuplicate}>
+            <IconButton disabled={!hasSelection} onClick={handleDuplicate}>
               <Tooltip label="Duplicate" kbd={`#D`}>
                 <CopyIcon />
               </Tooltip>
             </IconButton>
-            <IconButton disabled={!hasSelection} onSelect={handleRotate}>
+            <IconButton disabled={!hasSelection} onClick={handleRotate}>
               <Tooltip label="Rotate">
                 <RotateCounterClockwiseIcon />
               </Tooltip>
             </IconButton>
-            <IconButton disabled={!hasSelection} onSelect={handleToggleLocked}>
+            <IconButton disabled={!hasSelection} onClick={handleToggleLocked}>
               <Tooltip label="Toogle Locked" kbd={`#L`}>
                 {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon opacity={0.4} />}
               </Tooltip>
             </IconButton>
-            <IconButton disabled={!hasSelection} onSelect={handleToggleAspectRatio}>
+            <IconButton disabled={!hasSelection} onClick={handleToggleAspectRatio}>
               <Tooltip label="Toogle Aspect Ratio Lock">
                 <AspectRatioIcon opacity={isAllAspectLocked ? 1 : 0.4} />
               </Tooltip>
             </IconButton>
-            <IconButton disabled={!isAllGrouped && !hasMultipleSelection} onSelect={handleGroup}>
+            <IconButton disabled={!isAllGrouped && !hasMultipleSelection} onClick={handleGroup}>
               <Tooltip label="Group" kbd={`#G`}>
                 <GroupIcon opacity={isAllGrouped ? 1 : 0.4} />
               </Tooltip>
             </IconButton>
           </ButtonsRow>
           <ButtonsRow>
-            <IconButton disabled={!hasSelection} onSelect={handleMoveToBack}>
+            <IconButton disabled={!hasSelection} onClick={handleMoveToBack}>
               <Tooltip label="Move to Back" kbd={`#⇧[`}>
                 <PinBottomIcon />
               </Tooltip>
             </IconButton>
 
-            <IconButton disabled={!hasSelection} onSelect={handleMoveBackward}>
+            <IconButton disabled={!hasSelection} onClick={handleMoveBackward}>
               <Tooltip label="Move Backward" kbd={`#[`}>
                 <ArrowDownIcon />
               </Tooltip>
             </IconButton>
-            <IconButton disabled={!hasSelection} onSelect={handleMoveForward}>
+            <IconButton disabled={!hasSelection} onClick={handleMoveForward}>
               <Tooltip label="Move Forward" kbd={`#]`}>
                 <ArrowUpIcon />
               </Tooltip>
             </IconButton>
-            <IconButton disabled={!hasSelection} onSelect={handleMoveToFront}>
+            <IconButton disabled={!hasSelection} onClick={handleMoveToFront}>
               <Tooltip label="More to Front" kbd={`#⇧]`}>
                 <PinTopIcon />
               </Tooltip>
             </IconButton>
-            <IconButton disabled={!hasSelection} onSelect={handleDelete}>
+            <IconButton disabled={!hasSelection} onClick={handleDelete}>
               <Tooltip label="Delete" kbd="⌫">
                 <TrashIcon />
               </Tooltip>
@@ -236,36 +236,36 @@ export function ActionButton(): JSX.Element {
           </ButtonsRow>
           <Divider />
           <ButtonsRow>
-            <IconButton disabled={!hasTwoOrMore} onSelect={alignLeft}>
+            <IconButton disabled={!hasTwoOrMore} onClick={alignLeft}>
               <AlignLeftIcon />
             </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onSelect={alignCenterHorizontal}>
+            <IconButton disabled={!hasTwoOrMore} onClick={alignCenterHorizontal}>
               <AlignCenterHorizontallyIcon />
             </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onSelect={alignRight}>
+            <IconButton disabled={!hasTwoOrMore} onClick={alignRight}>
               <AlignRightIcon />
             </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onSelect={stretchHorizontally}>
+            <IconButton disabled={!hasTwoOrMore} onClick={stretchHorizontally}>
               <StretchHorizontallyIcon />
             </IconButton>
-            <IconButton disabled={!hasThreeOrMore} onSelect={distributeHorizontally}>
+            <IconButton disabled={!hasThreeOrMore} onClick={distributeHorizontally}>
               <SpaceEvenlyHorizontallyIcon />
             </IconButton>
           </ButtonsRow>
           <ButtonsRow>
-            <IconButton disabled={!hasTwoOrMore} onSelect={alignTop}>
+            <IconButton disabled={!hasTwoOrMore} onClick={alignTop}>
               <AlignTopIcon />
             </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onSelect={alignCenterVertical}>
+            <IconButton disabled={!hasTwoOrMore} onClick={alignCenterVertical}>
               <AlignCenterVerticallyIcon />
             </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onSelect={alignBottom}>
+            <IconButton disabled={!hasTwoOrMore} onClick={alignBottom}>
               <AlignBottomIcon />
             </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onSelect={stretchVertically}>
+            <IconButton disabled={!hasTwoOrMore} onClick={stretchVertically}>
               <StretchVerticallyIcon />
             </IconButton>
-            <IconButton disabled={!hasThreeOrMore} onSelect={distributeVertically}>
+            <IconButton disabled={!hasThreeOrMore} onClick={distributeVertically}>
               <SpaceEvenlyVerticallyIcon />
             </IconButton>
           </ButtonsRow>
