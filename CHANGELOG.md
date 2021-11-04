@@ -1,3 +1,7 @@
+## 0.1.2
+
+- Improve migrations.
+
 ## 0.1.1
 
 - Update dependencies
