@@ -5,7 +5,6 @@ import { useTLDrawContext } from '~hooks'
 import { DMContent, DMTriggerIcon } from '~components/DropdownMenu'
 import { ToolButton } from '~components/ToolButton'
 import { SizeSmallIcon, SizeMediumIcon, SizeLargeIcon } from '~components/icons'
-import { Tooltip } from '~components/Tooltip'
 
 const sizes = {
   [SizeStyle.Small]: <SizeSmallIcon />,
@@ -23,7 +22,7 @@ export const SizeMenu = React.memo((): JSX.Element => {
   return (
     <DropdownMenu.Root dir="ltr">
       <DMTriggerIcon>{sizes[size as SizeStyle]}</DMTriggerIcon>
-      <DMContent>
+      <DMContent variant="horizontal">
         {Object.keys(SizeStyle).map((sizeStyle: string) => (
           <ToolButton
             key={sizeStyle}
