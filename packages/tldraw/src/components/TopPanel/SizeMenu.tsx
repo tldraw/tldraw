@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Data, SizeStyle } from '~types'
 import { useTLDrawContext } from '~hooks'
-import { DMContent, DMItem, DMTriggerIcon } from '~components/DropdownMenu'
+import { DMContent, DMTriggerIcon } from '~components/DropdownMenu'
 import { ToolButton } from '~components/ToolButton'
 import { SizeSmallIcon, SizeMediumIcon, SizeLargeIcon } from '~components/icons'
 
