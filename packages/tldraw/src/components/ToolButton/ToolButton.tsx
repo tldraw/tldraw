@@ -111,6 +111,8 @@ export const StyledToolButton = styled('button', {
     variant: {
       primary: {
         padding: '$3 $2',
+        height: '52px',
+        width: '44px',
       },
       icon: {},
       text: {
