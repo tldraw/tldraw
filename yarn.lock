@@ -3014,12 +3014,14 @@
     "@babel/runtime" "^7.12.5"
     "@testing-library/dom" "^8.0.0"
 
-"@tldraw/core@^0.1.13":
-  version "0.1.13"
-  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.1.13.tgz#e37099ec80ac989f3ff8187b35a12a073728df1a"
-  integrity sha512-bfbURvvumkj8fjdyDDEJmX1m09IFFmDg3uFlNZuLFi66KEKPQ5rOO+/lo5NCbJqy1vH66n5/qlhRm+ZeRc9GxA==
+"@tldraw/core@^0.1.16":
+  version "0.1.16"
+  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.1.16.tgz#31377c5549ec83dc84b13d4af864892a9f4cf97a"
+  integrity sha512-IJSIgM7ndFIoLA0tgqFU9qaTlQVdv8vyswCqPlTCfo7cz0cVsA5A3ndfWazoTM19S0x6AkvE1cxMDkuNq6U79Q==
   dependencies:
-    "@use-gesture/react" "^10.0.2"
+    "@tldraw/intersect" "^0.1.3"
+    "@tldraw/vec" "^0.1.3"
+    "@use-gesture/react" "^10.1.3"
 
 "@tldraw/intersect@^0.1.3":
   version "0.1.3"
@@ -3350,17 +3352,17 @@
     "@typescript-eslint/types" "4.33.0"
     eslint-visitor-keys "^2.0.0"
 
-"@use-gesture/core@10.1.1":
-  version "10.1.1"
-  resolved "https://registry.yarnpkg.com/@use-gesture/core/-/core-10.1.1.tgz#e1a6ef6f2566fc5f2eaeb8b5549ebe93d5cafb82"
-  integrity sha512-IAHo/pus6kzgNErKnUoS9h/eAbRFByyHL+02MmBRa6A8zu8raXpwl/VIgHjBTUNh7fJtlhzyljIPI6r9Bwz6bA==
+"@use-gesture/core@10.1.3":
+  version "10.1.3"
+  resolved "https://registry.yarnpkg.com/@use-gesture/core/-/core-10.1.3.tgz#3fc3515af7b1bf26e2035350d653e3287a6e1fe0"
+  integrity sha512-eAwlcE7vppFtaki6mcrSwRa88Z2JAPlfNh35b1MRzhhutgKCUmudYur5JfrKPEvjnUk+KGXWFHCHVfb63c8DPQ==
 
-"@use-gesture/react@^10.0.2":
-  version "10.1.1"
-  resolved "https://registry.yarnpkg.com/@use-gesture/react/-/react-10.1.1.tgz#b0daa4baa81185f4732756568793e6a3e0efc913"
-  integrity sha512-wjaUJzhtHtkzg5QLirdgKyM0B4MweT8dWrP1vrz1uc6K9zcv78qwGR7k/k3tG2bXw/yGvZBYO+vKvLYTJu4hmA==
+"@use-gesture/react@^10.1.3":
+  version "10.1.3"
+  resolved "https://registry.yarnpkg.com/@use-gesture/react/-/react-10.1.3.tgz#a884f8a345a2a602a1aac42b11746f9e48fdc10f"
+  integrity sha512-i7q2k9pRmNG3YWiMMKSQd99uZQoo20OCwT238ejkWdWru8+0SWJmnDdXA4UfYLT47G4ASEpbMtkTkduDVAm1WA==
   dependencies:
-    "@use-gesture/core" "10.1.1"
+    "@use-gesture/core" "10.1.3"
 
 "@zkochan/cmd-shim@^3.1.0":
   version "3.1.0"

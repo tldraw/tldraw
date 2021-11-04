@@ -30,13 +30,6 @@
     "docs": "typedoc",
     "docs:watch": "typedoc --watch"
   },
-  "devDependencies": {
-    "tsconfig-replace-paths": "^0.0.5"
-  },
-  "peerDependencies": {
-    "react": ">=16.8",
-    "react-dom": "^16.8 || ^17.0"
-  },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^0.1.1",
     "@radix-ui/react-checkbox": "^0.1.1",
@@ -47,12 +40,18 @@
     "@radix-ui/react-radio-group": "^0.1.1",
     "@radix-ui/react-tooltip": "^0.1.1",
     "@stitches/react": "^1.2.5",
+    "perfect-freehand": "^1.0.16",
+    "react": ">=16.8",
+    "react-dom": "^16.8 || ^17.0",
+    "react-hotkeys-hook": "^3.4.0",
+    "rko": "^0.5.25",
     "@tldraw/core": "^0.1.13",
     "@tldraw/intersect": "^0.1.3",
-    "@tldraw/vec": "^0.1.3",
-    "perfect-freehand": "^1.0.16",
-    "react-hotkeys-hook": "^3.4.0",
-    "rko": "^0.5.25"
+    "@tldraw/vec": "^0.1.3"
+  },
+  "peerDependencies": {},
+  "devDependencies": {
+    "tsconfig-replace-paths": "^0.0.5"
   },
   "gitHead": "083b36e167b6911927a6b58cbbb830b11b33f00a"
 }

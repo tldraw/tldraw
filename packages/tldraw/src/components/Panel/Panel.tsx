@@ -11,19 +11,12 @@ export const Panel = styled('div', {
       center: {
         borderTopLeftRadius: '$4',
         borderTopRightRadius: '$4',
-        // borderTop: '1px solid $panelBorder',
-        // borderLeft: '1px solid $panelBorder',
-        // borderRight: '1px solid $panelBorder',
       },
       left: {
         borderBottomRightRadius: '$3',
-        // borderBottom: '1px solid $panelBorder',
-        // borderRight: '1px solid $panelBorder',
       },
       right: {
         borderBottomLeftRadius: '$3',
-        // borderBottom: '1px solid $panelBorder',
-        // borderLeft: '1px solid $panelBorder',
       },
     },
   },

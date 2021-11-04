@@ -21,7 +21,25 @@ async function main() {
     jsxFactory: 'React.createElement',
     jsxFragment: 'React.Fragment',
     tsconfig: './tsconfig.build.json',
-    external: ['react', 'react-dom'],
+    external: [
+      'react',
+      'react-dom',
+      '@stitches/react',
+      '@radix-ui/react-alert-dialog',
+      '@radix-ui/react-checkbox',
+      '@radix-ui/react-context-menu',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-icons',
+      '@radix-ui/react-id',
+      '@radix-ui/react-radio',
+      '@radix-ui/react-tooltip',
+      '@tldraw/core',
+      '@tldraw/vec',
+      '@tldraw/intersect',
+      'perfect-freehand',
+      'rko',
+      'react-hotkeys-hook',
+    ],
   })
 }
 

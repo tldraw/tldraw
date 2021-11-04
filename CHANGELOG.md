@@ -1,3 +1,8 @@
+## 0.1.0
+
+- Mark dependencies as external
+- Revamp UI
+
 ## 0.0.133
 
 - Removed libraries (vec, svg, and intersect) to their own repositories.
