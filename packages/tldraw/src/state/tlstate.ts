@@ -101,8 +101,16 @@ export class TLDrawState extends StateManager<Data> {
     onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
     onUserChange?: (tlstate: TLDrawState, user: TLDrawUser) => void
   ) {
-    super(TLDrawState.defaultState, id, TLDrawState.version, (prev) => prev)
+    super(TLDrawState.defaultState, id, TLDrawState.version, (prev, next) => {
+      const nextDoc = {
+        ...next,
+        document: migrate({ ...next.document, ...prev.document }, TLDrawState.version),
+      }
 
+      return nextDoc
+    })
+
+    this.loadDocument(this.document)
     this.patchState({ document: migrate(this.document, TLDrawState.version) })
 
     this._onChange = onChange
@@ -2453,11 +2461,11 @@ export class TLDrawState extends StateManager<Data> {
     }
   }
 
-  static version = 12
+  static version = 12.3
 
   static defaultDocument: TLDrawDocument = {
     id: 'doc',
-    version: 12,
+    version: 12.3,
     pages: {
       page: {
         id: 'page',
