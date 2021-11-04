@@ -15,6 +15,8 @@ const dashes = {
 
 const selectDash = (s: Data) => s.appState.selectedStyle.dash
 
+const preventEvent = (e: Event) => e.preventDefault()
+
 export const DashMenu = React.memo((): JSX.Element => {
   const { tlstate, useSelector } = useTLDrawContext()
 
@@ -24,15 +26,16 @@ export const DashMenu = React.memo((): JSX.Element => {
     <DropdownMenu.Root dir="ltr">
       <DMTriggerIcon>{dashes[dash]}</DMTriggerIcon>
       <DMContent variant="horizontal">
-        {Object.keys(DashStyle).map((dashStyle) => (
-          <ToolButton
-            key={dashStyle}
-            variant="icon"
-            isActive={dash === dashStyle}
-            onSelect={() => tlstate.style({ dash: dashStyle as DashStyle })}
-          >
-            {dashes[dashStyle as DashStyle]}
-          </ToolButton>
+        {Object.values(DashStyle).map((dashStyle) => (
+          <DropdownMenu.Item key={dashStyle} onSelect={preventEvent} asChild>
+            <ToolButton
+              variant="icon"
+              isActive={dash === dashStyle}
+              onClick={() => tlstate.style({ dash: dashStyle as DashStyle })}
+            >
+              {dashes[dashStyle as DashStyle]}
+            </ToolButton>
+          </DropdownMenu.Item>
         ))}
       </DMContent>
     </DropdownMenu.Root>

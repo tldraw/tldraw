@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Data, SizeStyle } from '~types'
 import { useTLDrawContext } from '~hooks'
-import { DMContent, DMTriggerIcon } from '~components/DropdownMenu'
+import { DMContent, DMItem, DMTriggerIcon } from '~components/DropdownMenu'
 import { ToolButton } from '~components/ToolButton'
 import { SizeSmallIcon, SizeMediumIcon, SizeLargeIcon } from '~components/icons'
 
@@ -14,6 +14,8 @@ const sizes = {
 
 const selectSize = (s: Data) => s.appState.selectedStyle.size
 
+const preventEvent = (e: Event) => e.preventDefault()
+
 export const SizeMenu = React.memo((): JSX.Element => {
   const { tlstate, useSelector } = useTLDrawContext()
 
@@ -23,14 +25,16 @@ export const SizeMenu = React.memo((): JSX.Element => {
     <DropdownMenu.Root dir="ltr">
       <DMTriggerIcon>{sizes[size as SizeStyle]}</DMTriggerIcon>
       <DMContent variant="horizontal">
-        {Object.keys(SizeStyle).map((sizeStyle: string) => (
-          <ToolButton
-            key={sizeStyle}
-            isActive={size === sizeStyle}
-            onSelect={() => tlstate.style({ size: sizeStyle as SizeStyle })}
-          >
-            {sizes[sizeStyle as SizeStyle]}
-          </ToolButton>
+        {Object.values(SizeStyle).map((sizeStyle: string) => (
+          <DropdownMenu.Item key={sizeStyle} onSelect={preventEvent} asChild>
+            <ToolButton
+              isActive={size === sizeStyle}
+              variant="icon"
+              onClick={() => tlstate.style({ size: sizeStyle as SizeStyle })}
+            >
+              {sizes[sizeStyle as SizeStyle]}
+            </ToolButton>
+          </DropdownMenu.Item>
         ))}
       </DMContent>
     </DropdownMenu.Root>
