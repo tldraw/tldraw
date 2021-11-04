@@ -8,3 +8,7 @@ docs/
 .DS_Store
 coverage
 *.log
+
+worker*
+sw.js
+sw.js.map

@@ -48,7 +48,7 @@ import { sample } from './utils'
 import { createTools, ToolType } from './tool'
 import type { BaseTool } from './tool/BaseTool'
 import { USER_COLORS, FIT_TO_SCREEN_PADDING } from '~constants'
-import { migrate } from './migrations'
+import { migrate } from './migrate'
 
 const uuid = Utils.uniqueId()
 
