@@ -37,23 +37,7 @@ function Editor({ id }: { id: string }) {
     uuid: docId,
     document: {
       id: 'test-room',
-      pages: {
-        page: {
-          id: 'page',
-          shapes: {},
-          bindings: {},
-        },
-      },
-      pageStates: {
-        page: {
-          id: 'page',
-          selectedIds: [],
-          camera: {
-            point: [0, 0],
-            zoom: 1,
-          },
-        },
-      },
+      ...TLDrawState.defaultDocument,
     },
   })
 
@@ -156,7 +140,11 @@ function Editor({ id }: { id: string }) {
     doc.subscribe(handleDocumentUpdates)
 
     // Load the shared document
-    tlstate.loadDocument(doc.toObject().document)
+    const newDocument = doc.toObject().document
+
+    if (newDocument) {
+      tlstate.loadDocument(newDocument)
+    }
 
     return () => {
       window.removeEventListener('beforeunload', handleExit)

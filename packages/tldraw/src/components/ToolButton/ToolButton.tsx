@@ -4,6 +4,7 @@ import { Tooltip } from '~components/Tooltip'
 import styled from '~styles'
 
 export interface ToolButtonProps {
+  onClick?: () => void
   onSelect?: () => void
   onDoubleClick?: () => void
   isActive?: boolean
@@ -12,12 +13,13 @@ export interface ToolButtonProps {
 }
 
 export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
-  ({ onSelect, onDoubleClick, isActive = false, variant, children, ...rest }, ref) => {
+  ({ onSelect, onClick, onDoubleClick, isActive = false, variant, children, ...rest }, ref) => {
     return (
       <StyledToolButton
         ref={ref}
         isActive={isActive}
         variant={variant}
+        onClick={onClick}
         onPointerDown={onSelect}
         onDoubleClick={onDoubleClick}
         bp={breakpoints}

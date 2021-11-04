@@ -40,24 +40,8 @@ function TLDrawWrapper() {
   const doc = useObject<{ uuid: string; document: TLDrawDocument }>('doc', {
     uuid: docId,
     document: {
+      ...TLDrawState.defaultDocument,
       id: 'test-room',
-      pages: {
-        page: {
-          id: 'page',
-          shapes: {},
-          bindings: {},
-        },
-      },
-      pageStates: {
-        page: {
-          id: 'page',
-          selectedIds: [],
-          camera: {
-            point: [0, 0],
-            zoom: 1,
-          },
-        },
-      },
     },
   })
 

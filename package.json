@@ -10,7 +10,7 @@
   "license": "MIT",
   "workspaces": [
     "packages/tldraw",
-    "dev",
+    "example",
     "www"
   ],
   "scripts": {
@@ -44,9 +44,6 @@
     "tslib": "^2.3.0",
     "typedoc": "^0.22.3",
     "typescript": "^4.4.2"
-  },
-  "dependencies": {
-    "www": "0.0.133"
   },
   "prettier": {
     "trailingComma": "es5",

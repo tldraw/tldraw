@@ -11,8 +11,6 @@ export class TextTool extends BaseTool {
   stopEditingShape = () => {
     this.setStatus(Status.Idle)
 
-    console.log(this.state.appState.isToolLocked)
-
     if (!this.state.appState.isToolLocked) {
       this.state.selectTool('select')
     }

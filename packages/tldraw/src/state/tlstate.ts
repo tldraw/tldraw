@@ -47,6 +47,7 @@ import { sample } from './utils'
 import { createTools, ToolType } from './tool'
 import type { BaseTool } from './tool/BaseTool'
 import { USER_COLORS, FIT_TO_SCREEN_PADDING } from '~constants'
+import { migrate } from './migrate'
 
 const uuid = Utils.uniqueId()
 
@@ -100,20 +101,14 @@ export class TLDrawState extends StateManager<Data> {
     onUserChange?: (tlstate: TLDrawState, user: TLDrawUser) => void
   ) {
     super(TLDrawState.defaultState, id, TLDrawState.version, (prev, next) => {
-      Object.values(prev.document.pages).forEach((page) => {
-        Object.values(page.bindings).forEach((binding) => {
-          if ('meta' in binding) {
-            // @ts-ignore
-            Object.assign(binding, binding.meta)
-          }
-        })
-      })
-
       return {
         ...next,
         document: { ...next.document, ...prev.document },
       }
     })
+
+    this.loadDocument(this.document)
+    this.patchState({ document: migrate(this.document, TLDrawState.version) })
 
     this._onChange = onChange
     this._onMount = onMount
@@ -130,6 +125,7 @@ export class TLDrawState extends StateManager<Data> {
         appState: {
           status: TLDrawStatus.Idle,
         },
+        document: migrate(this.document, TLDrawState.version),
       })
     } catch (e) {
       console.error('The data appears to be corrupted. Resetting!', e)
@@ -641,7 +637,7 @@ export class TLDrawState extends StateManager<Data> {
           ...this.appState,
           currentPageId: Object.keys(document.pages)[0],
         },
-        document,
+        document: migrate(document, TLDrawState.version),
       })
       return this
     }
@@ -709,7 +705,7 @@ export class TLDrawState extends StateManager<Data> {
         ...this.state,
         appState: nextAppState,
         document: {
-          ...document,
+          ...migrate(document, TLDrawState.version),
           pageStates: currentPageStates,
         },
       },
@@ -803,7 +799,7 @@ export class TLDrawState extends StateManager<Data> {
     return this.replaceState(
       {
         ...TLDrawState.defaultState,
-        document,
+        document: migrate(document, TLDrawState.version),
         appState: {
           ...TLDrawState.defaultState.appState,
           currentPageId: Object.keys(document.pages)[0],
@@ -1067,8 +1063,6 @@ export class TLDrawState extends StateManager<Data> {
     const copyingShapes = copyingShapeIds.map((id) =>
       Utils.deepClone(this.getShape(id, this.currentPageId))
     )
-
-    console.log(copyingShapes.length)
 
     if (copyingShapes.length === 0) return this
 
@@ -2463,10 +2457,11 @@ export class TLDrawState extends StateManager<Data> {
     }
   }
 
-  static version = 11
+  static version = 12.5
 
   static defaultDocument: TLDrawDocument = {
     id: 'doc',
+    version: 12.4,
     pages: {
       page: {
         id: 'page',
