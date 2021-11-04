@@ -38,7 +38,6 @@ import {
   SessionType,
   ExceptFirst,
   ExceptFirstTwo,
-  Decoration,
 } from '~types'
 import { TLDR } from './tldr'
 import { defaultStyle, shapeUtils } from '~shape-utils'
@@ -102,12 +101,10 @@ export class TLDrawState extends StateManager<Data> {
     onUserChange?: (tlstate: TLDrawState, user: TLDrawUser) => void
   ) {
     super(TLDrawState.defaultState, id, TLDrawState.version, (prev, next) => {
-      const nextDoc = {
+      return {
         ...next,
-        document: migrate({ ...next.document, ...prev.document }, TLDrawState.version),
+        document: { ...next.document, ...prev.document },
       }
-
-      return nextDoc
     })
 
     this.loadDocument(this.document)
@@ -128,6 +125,7 @@ export class TLDrawState extends StateManager<Data> {
         appState: {
           status: TLDrawStatus.Idle,
         },
+        document: migrate(this.document, TLDrawState.version),
       })
     } catch (e) {
       console.error('The data appears to be corrupted. Resetting!', e)
@@ -1065,8 +1063,6 @@ export class TLDrawState extends StateManager<Data> {
     const copyingShapes = copyingShapeIds.map((id) =>
       Utils.deepClone(this.getShape(id, this.currentPageId))
     )
-
-    console.log(copyingShapes.length)
 
     if (copyingShapes.length === 0) return this
 
@@ -2461,11 +2457,11 @@ export class TLDrawState extends StateManager<Data> {
     }
   }
 
-  static version = 12.3
+  static version = 12.5
 
   static defaultDocument: TLDrawDocument = {
     id: 'doc',
-    version: 12.3,
+    version: 12.4,
     pages: {
       page: {
         id: 'page',

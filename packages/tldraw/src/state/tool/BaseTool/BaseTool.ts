@@ -46,8 +46,6 @@ export abstract class BaseTool<T extends string = any> {
   }
 
   onCancel = () => {
-    console.log('cancelling')
-
     if (this.status === Status.Idle) {
       this.state.selectTool('select')
     } else {

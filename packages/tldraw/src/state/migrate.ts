@@ -37,6 +37,16 @@ export function migrate(document: TLDrawDocument, newVersion: number): TLDrawDoc
     })
   }
 
+  Object.values(document.pageStates).forEach((pageState) => {
+    pageState.selectedIds = pageState.selectedIds.filter((id) => {
+      return document.pages[pageState.id].shapes[id] !== undefined
+    })
+    pageState.bindingId = undefined
+    pageState.editingId = undefined
+    pageState.hoveredId = undefined
+    pageState.pointedId = undefined
+  })
+
   document.version = newVersion
 
   return document

@@ -140,7 +140,11 @@ function Editor({ id }: { id: string }) {
     doc.subscribe(handleDocumentUpdates)
 
     // Load the shared document
-    tlstate.loadDocument(doc.toObject().document)
+    const newDocument = doc.toObject().document
+
+    if (newDocument) {
+      tlstate.loadDocument(newDocument)
+    }
 
     return () => {
       window.removeEventListener('beforeunload', handleExit)
