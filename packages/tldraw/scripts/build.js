@@ -28,6 +28,7 @@ async function main() {
       external: [
         'react',
         'react-dom',
+        'tslib',
         '@stitches/react',
         '@radix-ui/react-alert-dialog',
         '@radix-ui/react-checkbox',
@@ -57,6 +58,7 @@ async function main() {
       external: [
         'react',
         'react-dom',
+        'tslib',
         '@stitches/react',
         '@radix-ui/react-alert-dialog',
         '@radix-ui/react-checkbox',
