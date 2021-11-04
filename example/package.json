@@ -1,8 +1,8 @@
 {
-  "name": "@tldraw/dev",
+  "name": "@tldraw/tldraw-example",
   "version": "0.1.1",
   "private": true,
-  "description": "A tiny little drawing app (dev)",
+  "description": "A tiny little drawing app example.",
   "author": "@steveruizok",
   "license": "MIT",
   "keywords": [
@@ -18,14 +18,10 @@
     "src"
   ],
   "sideEffects": false,
-  "dependencies": {
-    "@liveblocks/client": "^0.12.1",
-    "@liveblocks/react": "^0.12.1",
-    "@tldraw/tldraw": "^0.1.1",
+  "dependencies": {},
+  "peerDependencies": {
     "react": ">=16.8",
-    "react-dom": "^16.8 || ^17.0",
-    "react-router": "^5.2.1",
-    "react-router-dom": "^5.3.0"
+    "react-dom": "^16.8 || ^17.0"
   },
   "devDependencies": {
     "@types/node": "^14.14.35",
@@ -36,7 +32,12 @@
     "create-serve": "1.0.1",
     "esbuild": "^0.13.8",
     "rimraf": "3.0.2",
-    "typescript": "4.2.3"
+    "typescript": "4.2.3",
+    "@liveblocks/client": "^0.12.1",
+    "@liveblocks/react": "^0.12.1",
+    "@tldraw/tldraw": "^0.1.1",
+    "react-router": "^5.2.1",
+    "react-router-dom": "^5.3.0"
   },
   "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6"
 }

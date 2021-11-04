@@ -10,7 +10,7 @@
   "license": "MIT",
   "workspaces": [
     "packages/tldraw",
-    "dev",
+    "example",
     "www"
   ],
   "scripts": {
