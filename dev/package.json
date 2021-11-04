@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/dev",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "A tiny little drawing app (dev)",
   "author": "@steveruizok",
@@ -21,7 +21,7 @@
   "dependencies": {
     "@liveblocks/client": "^0.12.1",
     "@liveblocks/react": "^0.12.1",
-    "@tldraw/tldraw": "^0.1.0",
+    "@tldraw/tldraw": "^0.1.1",
     "react": ">=16.8",
     "react-dom": "^16.8 || ^17.0",
     "react-router": "^5.2.1",
