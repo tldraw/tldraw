@@ -38,6 +38,7 @@ import {
   SessionType,
   ExceptFirst,
   ExceptFirstTwo,
+  Decoration,
 } from '~types'
 import { TLDR } from './tldr'
 import { defaultStyle, shapeUtils } from '~shape-utils'
@@ -47,6 +48,7 @@ import { sample } from './utils'
 import { createTools, ToolType } from './tool'
 import type { BaseTool } from './tool/BaseTool'
 import { USER_COLORS, FIT_TO_SCREEN_PADDING } from '~constants'
+import { migrate } from './migrations'
 
 const uuid = Utils.uniqueId()
 
@@ -99,21 +101,9 @@ export class TLDrawState extends StateManager<Data> {
     onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
     onUserChange?: (tlstate: TLDrawState, user: TLDrawUser) => void
   ) {
-    super(TLDrawState.defaultState, id, TLDrawState.version, (prev, next) => {
-      Object.values(prev.document.pages).forEach((page) => {
-        Object.values(page.bindings).forEach((binding) => {
-          if ('meta' in binding) {
-            // @ts-ignore
-            Object.assign(binding, binding.meta)
-          }
-        })
-      })
+    super(TLDrawState.defaultState, id, TLDrawState.version, (prev) => prev)
 
-      return {
-        ...next,
-        document: { ...next.document, ...prev.document },
-      }
-    })
+    this.patchState({ document: migrate(this.document, TLDrawState.version) })
 
     this._onChange = onChange
     this._onMount = onMount
@@ -641,7 +631,7 @@ export class TLDrawState extends StateManager<Data> {
           ...this.appState,
           currentPageId: Object.keys(document.pages)[0],
         },
-        document,
+        document: migrate(document, TLDrawState.version),
       })
       return this
     }
@@ -709,7 +699,7 @@ export class TLDrawState extends StateManager<Data> {
         ...this.state,
         appState: nextAppState,
         document: {
-          ...document,
+          ...migrate(document, TLDrawState.version),
           pageStates: currentPageStates,
         },
       },
@@ -803,7 +793,7 @@ export class TLDrawState extends StateManager<Data> {
     return this.replaceState(
       {
         ...TLDrawState.defaultState,
-        document,
+        document: migrate(document, TLDrawState.version),
         appState: {
           ...TLDrawState.defaultState.appState,
           currentPageId: Object.keys(document.pages)[0],
@@ -2463,10 +2453,11 @@ export class TLDrawState extends StateManager<Data> {
     }
   }
 
-  static version = 11
+  static version = 12
 
   static defaultDocument: TLDrawDocument = {
     id: 'doc',
+    version: 12,
     pages: {
       page: {
         id: 'page',

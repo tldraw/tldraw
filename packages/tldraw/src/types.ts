@@ -9,7 +9,6 @@ import type {
   TLHandle,
   TLBounds,
   TLSnapLine,
-  TLComponentProps,
 } from '@tldraw/core'
 import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
@@ -28,12 +27,6 @@ export interface TLDrawTransformInfo<T extends TLShape> {
   transformOrigin: number[]
 }
 
-export type TLDrawComponentProps<T extends TLDrawShape, E extends Element = any> = TLComponentProps<
-  T,
-  E,
-  TLDrawMeta
->
-
 // old
 export type TLStore = StoreApi<Data>
 
@@ -45,6 +38,7 @@ export interface TLDrawDocument {
   id: string
   pages: Record<string, TLDrawPage>
   pageStates: Record<string, TLPageState>
+  version: number
 }
 
 export interface TLDrawSettings {
@@ -229,7 +223,7 @@ export enum TLDrawShapeType {
 }
 
 export enum Decoration {
-  Arrow = 'Arrow',
+  Arrow = 'arrow',
 }
 
 export interface TLDrawBaseShape extends TLShape {
@@ -304,38 +298,38 @@ export interface ArrowBinding extends TLBinding {
 export type TLDrawBinding = ArrowBinding
 
 export enum ColorStyle {
-  White = 'White',
-  LightGray = 'LightGray',
-  Gray = 'Gray',
-  Black = 'Black',
-  Green = 'Green',
-  Cyan = 'Cyan',
-  Blue = 'Blue',
-  Indigo = 'Indigo',
-  Violet = 'Violet',
-  Red = 'Red',
-  Orange = 'Orange',
-  Yellow = 'Yellow',
+  White = 'white',
+  LightGray = 'lightGray',
+  Gray = 'gray',
+  Black = 'black',
+  Green = 'green',
+  Cyan = 'cyan',
+  Blue = 'blue',
+  Indigo = 'indigo',
+  Violet = 'violet',
+  Red = 'red',
+  Orange = 'orange',
+  Yellow = 'yellow',
 }
 
 export enum SizeStyle {
-  Small = 'Small',
-  Medium = 'Medium',
-  Large = 'Large',
+  Small = 'small',
+  Medium = 'medium',
+  Large = 'large',
 }
 
 export enum DashStyle {
-  Draw = 'Draw',
-  Solid = 'Solid',
-  Dashed = 'Dashed',
-  Dotted = 'Dotted',
+  Draw = 'draw',
+  Solid = 'solid',
+  Dashed = 'dashed',
+  Dotted = 'dotted',
 }
 
 export enum FontSize {
-  Small = 'Small',
-  Medium = 'Medium',
-  Large = 'Large',
-  ExtraLarge = 'ExtraLarge',
+  Small = 'small',
+  Medium = 'medium',
+  Large = 'large',
+  ExtraLarge = 'extraLarge',
 }
 
 export type ShapeStyles = {

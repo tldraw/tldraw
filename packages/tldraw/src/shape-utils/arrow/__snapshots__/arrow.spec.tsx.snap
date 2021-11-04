@@ -5,7 +5,7 @@ Object {
   "bend": 0,
   "childIndex": 1,
   "decorations": Object {
-    "end": "Arrow",
+    "end": "arrow",
   },
   "handles": Object {
     "bend": Object {
@@ -44,10 +44,10 @@ Object {
   ],
   "rotation": 0,
   "style": Object {
-    "color": "Black",
-    "dash": "Draw",
+    "color": "black",
+    "dash": "draw",
     "isFilled": false,
-    "size": "Small",
+    "size": "small",
   },
   "type": "arrow",
 }
