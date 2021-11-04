@@ -4,7 +4,7 @@ import styled from '~styles/stitches.config'
 import { MenuContent } from '~components/MenuContent'
 
 export interface DMContentProps {
-  variant?: 'grid' | 'menu'
+  variant?: 'grid' | 'menu' | 'horizontal'
   align?: 'start' | 'center' | 'end'
   children: React.ReactNode
 }
