@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { breakpoints } from '~components/breakpoints'
 import { Tooltip } from '~components/Tooltip'
 import styled from '~styles'
 
@@ -19,11 +20,10 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
         variant={variant}
         onPointerDown={onSelect}
         onDoubleClick={onDoubleClick}
+        bp={breakpoints}
         {...rest}
       >
-        <StyledToolButtonInner isActive={isActive} variant={variant}>
-          {children}
-        </StyledToolButtonInner>
+        <StyledToolButtonInner>{children}</StyledToolButtonInner>
       </StyledToolButton>
     )
   }
@@ -59,46 +59,15 @@ export const StyledToolButtonInner = styled('div', {
   userSelect: 'none',
   boxSizing: 'border-box',
   border: '1px solid transparent',
-
-  variants: {
-    variant: {
-      primary: {
-        '& svg': {
-          width: 20,
-          height: 20,
-        },
-      },
-      icon: {
-        display: 'grid',
-        '& > *': {
-          gridRow: 1,
-          gridColumn: 1,
-        },
-      },
-      text: {
-        fontSize: '$1',
-        padding: '0 $3',
-      },
-      circle: {
-        borderRadius: '100%',
-        boxShadow: '$panel',
-      },
-    },
-    isActive: {
-      true: {},
-    },
-  },
 })
 
 export const StyledToolButton = styled('button', {
   position: 'relative',
   color: '$text',
-  height: '44px',
-  width: '44px',
   fontSize: '$0',
   background: 'none',
   margin: '0',
-  padding: '$2 $2',
+  padding: '$2',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -106,19 +75,41 @@ export const StyledToolButton = styled('button', {
   cursor: 'pointer',
   pointerEvents: 'all',
   border: 'none',
+  height: '40px',
+  width: '40px',
 
   variants: {
     variant: {
       primary: {
-        padding: '$3 $2',
-        height: '52px',
-        width: '44px',
+        marginTop: '0',
       },
-      icon: {},
+      icon: {
+        [`& ${StyledToolButtonInner}`]: {
+          display: 'grid',
+          '& > *': {
+            gridRow: 1,
+            gridColumn: 1,
+          },
+        },
+      },
       text: {
         width: 'auto',
+        [`& ${StyledToolButtonInner}`]: {
+          fontSize: '$1',
+          padding: '0 $3',
+        },
       },
-      circle: {},
+      circle: {
+        padding: '$2',
+        [`& ${StyledToolButtonInner}`]: {
+          borderRadius: '100%',
+          boxShadow: '$panel',
+        },
+        [`& ${StyledToolButtonInner} > svg`]: {
+          width: 14,
+          height: 14,
+        },
+      },
     },
     isActive: {
       true: {
@@ -137,5 +128,35 @@ export const StyledToolButton = styled('button', {
         },
       },
     },
+    bp: {
+      mobile: {},
+      small: {},
+    },
   },
+  compoundVariants: [
+    {
+      variant: 'primary',
+      bp: 'mobile',
+      css: {
+        height: '40px',
+        width: '40px',
+        [`& ${StyledToolButtonInner} > svg`]: {
+          width: 16,
+          height: 16,
+        },
+      },
+    },
+    {
+      variant: 'primary',
+      bp: 'small',
+      css: {
+        height: '44px',
+        width: '44px',
+        [`& ${StyledToolButtonInner} > svg`]: {
+          width: 20,
+          height: 20,
+        },
+      },
+    },
+  ],
 })

@@ -47,7 +47,6 @@ const StyledToolsPanelContainer = styled('div', {
   gridTemplateRows: 'auto auto',
   justifyContent: 'space-between',
   padding: '0',
-  alignItems: 'flex-end',
   zIndex: 200,
   pointerEvents: 'none',
   '& > div > *': {
@@ -63,7 +62,7 @@ const StyledCenterWrap = styled('div', {
   alignItems: 'center',
   justifyContent: 'center',
   flexDirection: 'column',
-  gap: 12,
+  gap: '$4',
 })
 
 const StyledStatusWrap = styled('div', {
@@ -74,5 +73,6 @@ const StyledStatusWrap = styled('div', {
 const StyledPrimaryTools = styled('div', {
   position: 'relative',
   display: 'flex',
+  alignItems: 'center',
   gap: '$2',
 })

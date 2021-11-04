@@ -4,8 +4,8 @@ export const Panel = styled('div', {
   backgroundColor: '$panel',
   display: 'flex',
   flexDirection: 'row',
-  padding: '0 $2',
   boxShadow: '$panel',
+  padding: '$2',
   variants: {
     side: {
       center: {
@@ -17,13 +17,11 @@ export const Panel = styled('div', {
       },
       left: {
         borderBottomRightRadius: '$3',
-        padding: '0 0',
         // borderBottom: '1px solid $panelBorder',
         // borderRight: '1px solid $panelBorder',
       },
       right: {
         borderBottomLeftRadius: '$3',
-        padding: '0 0',
         // borderBottom: '1px solid $panelBorder',
         // borderLeft: '1px solid $panelBorder',
       },

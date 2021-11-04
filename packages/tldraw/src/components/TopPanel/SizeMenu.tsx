@@ -25,6 +25,7 @@ export const SizeMenu = React.memo((): JSX.Element => {
       <DMContent variant="horizontal">
         {Object.keys(SizeStyle).map((sizeStyle: string) => (
           <ToolButton
+            key={sizeStyle}
             isActive={size === sizeStyle}
             onSelect={() => tlstate.style({ size: sizeStyle as SizeStyle })}
           >
