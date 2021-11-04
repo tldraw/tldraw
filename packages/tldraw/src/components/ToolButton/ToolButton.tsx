@@ -85,10 +85,7 @@ export const StyledToolButtonInner = styled('div', {
       },
     },
     isActive: {
-      true: {
-        backgroundColor: '$selected',
-        color: '$panelActive',
-      },
+      true: {},
     },
   },
 })
@@ -96,12 +93,12 @@ export const StyledToolButtonInner = styled('div', {
 export const StyledToolButton = styled('button', {
   position: 'relative',
   color: '$text',
-  height: '48px',
-  width: '40px',
+  height: '44px',
+  width: '44px',
   fontSize: '$0',
   background: 'none',
   margin: '0',
-  padding: '$3 $2',
+  padding: '$2 $2',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -112,7 +109,9 @@ export const StyledToolButton = styled('button', {
 
   variants: {
     variant: {
-      primary: {},
+      primary: {
+        padding: '$3 $2',
+      },
       icon: {},
       text: {
         width: 'auto',
@@ -120,11 +119,19 @@ export const StyledToolButton = styled('button', {
       circle: {},
     },
     isActive: {
-      true: {},
+      true: {
+        [`${StyledToolButtonInner}`]: {
+          backgroundColor: '$selected',
+          color: '$panelActive',
+        },
+      },
       false: {
         [`&:hover:not(:disabled) ${StyledToolButtonInner}`]: {
           backgroundColor: '$hover',
           border: '1px solid $panel',
+        },
+        [`&:focus:not(:disabled) ${StyledToolButtonInner}`]: {
+          backgroundColor: '$hover',
         },
       },
     },

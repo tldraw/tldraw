@@ -28,6 +28,9 @@ export const StyledContent = styled(MenuContent, {
         gridTemplateColumns: 'repeat(4, auto)',
         gap: 0,
       },
+      horizontal: {
+        flexDirection: 'row',
+      },
       menu: {
         minWidth: 128,
       },
