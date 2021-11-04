@@ -9,6 +9,6 @@ docs/
 coverage
 *.log
 
-worker*
+public/worker*
 sw.js
 sw.js.map
