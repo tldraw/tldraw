@@ -41,6 +41,7 @@ async function main() {
         'perfect-freehand',
         'rko',
         'react-hotkeys-hook',
+        'browser-fs-access',
       ],
       metafile: true,
     })
@@ -74,6 +75,7 @@ async function main() {
         'perfect-freehand',
         'rko',
         'react-hotkeys-hook',
+        'browser-fs-access',
       ],
       metafile: true,
     })

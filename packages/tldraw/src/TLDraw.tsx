@@ -86,6 +86,11 @@ export interface TLDrawProps {
   showUI?: boolean
 
   /**
+   * (optional) Whether to the document should be read only.
+   */
+  readOnly?: boolean
+
+  /**
    * (optional) A callback to run when the component mounts.
    */
   onMount?: (state: TLDrawState) => void
@@ -109,6 +114,7 @@ export function TLDraw({
   showZoom = true,
   showStyles = true,
   showUI = true,
+  readOnly = false,
   onMount,
   onChange,
   onUserChange,
@@ -129,6 +135,10 @@ export function TLDraw({
     setSId(id)
   }, [sId, id])
 
+  React.useEffect(() => {
+    tlstate.readOnly = readOnly
+  }, [tlstate, readOnly])
+
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
     <TLDrawContext.Provider value={context}>
@@ -145,6 +155,7 @@ export function TLDraw({
           showZoom={showZoom}
           showTools={showTools}
           showUI={showUI}
+          readOnly={readOnly}
         />
       </IdProvider>
     </TLDrawContext.Provider>
@@ -161,6 +172,7 @@ interface InnerTLDrawProps {
   showStyles: boolean
   showUI: boolean
   showTools: boolean
+  readOnly: boolean
   document?: TLDrawDocument
 }
 
@@ -173,6 +185,7 @@ function InnerTldraw({
   showZoom,
   showStyles,
   showTools,
+  readOnly,
   showUI,
   document,
 }: InnerTLDrawProps) {
@@ -250,12 +263,12 @@ function InnerTldraw({
         <Renderer
           id={id}
           containerRef={rWrapper}
+          shapeUtils={shapeUtils}
           page={page}
           pageState={pageState}
           snapLines={snapLines}
           users={users}
           userId={tlstate.state.room?.userId}
-          shapeUtils={shapeUtils}
           theme={theme}
           meta={meta}
           hideBounds={hideBounds}
@@ -322,13 +335,14 @@ function InnerTldraw({
           ) : (
             <>
               <TopPanel
+                readOnly={readOnly}
                 showPages={showPages}
                 showMenu={showMenu}
-                showZoom={showZoom}
                 showStyles={showStyles}
+                showZoom={showZoom}
               />
               <StyledSpacer />
-              {showTools && <ToolsPanel />}
+              {showTools && !readOnly && <ToolsPanel />}
             </>
           )}
         </StyledUI>

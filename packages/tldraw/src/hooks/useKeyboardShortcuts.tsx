@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { TLDrawShapeType } from '~types'
-import { useTLDrawContext } from '~hooks'
+import { useFileSystem, useTLDrawContext } from '~hooks'
 
 export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   const { tlstate } = useTLDrawContext()
@@ -102,13 +102,50 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [tlstate]
   )
 
-  // Save
+  // File System
+
+  const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystem()
+
+  useHotkeys(
+    'ctrl+n,command+n',
+    (e) => {
+      if (canHandleEvent()) {
+        e.preventDefault()
+        onNewProject()
+      }
+    },
+    undefined,
+    [tlstate]
+  )
+  useHotkeys(
+    'ctrl+s,command+s',
+    (e) => {
+      if (canHandleEvent()) {
+        e.preventDefault()
+        onSaveProject()
+      }
+    },
+    undefined,
+    [tlstate]
+  )
 
   useHotkeys(
     'ctrl+shift+s,command+shift+s',
-    () => {
+    (e) => {
       if (canHandleEvent()) {
-        tlstate.saveProject()
+        e.preventDefault()
+        onSaveProjectAs()
+      }
+    },
+    undefined,
+    [tlstate]
+  )
+  useHotkeys(
+    'ctrl+o,command+o',
+    (e) => {
+      if (canHandleEvent()) {
+        e.preventDefault()
+        onOpenProject()
       }
     },
     undefined,
@@ -453,7 +490,9 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     'command+shift+backspace',
     (e) => {
       if (canHandleEvent()) {
-        tlstate.resetDocument()
+        if (process.env.NODE_ENV === 'development') {
+          tlstate.resetDocument()
+        }
         e.preventDefault()
       }
     },

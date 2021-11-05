@@ -3,6 +3,7 @@ import { TLDrawDocument, ColorStyle, DashStyle, SizeStyle, TLDrawShapeType } fro
 export const mockDocument: TLDrawDocument = {
   version: 0,
   id: 'doc',
+  name: 'New Document',
   pages: {
     page1: {
       id: 'page1',

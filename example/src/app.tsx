@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Switch, Route, Link } from 'react-router-dom'
 import Basic from './basic'
+import ReadOnly from './readonly'
 import Controlled from './controlled'
 import Imperative from './imperative'
 import Embedded from './embedded'
@@ -15,6 +16,9 @@ export default function App(): JSX.Element {
       <Switch>
         <Route path="/basic">
           <Basic />
+        </Route>
+        <Route path="/readonly">
+          <ReadOnly />
         </Route>
         <Route path="/controlled">
           <Controlled />
@@ -38,6 +42,9 @@ export default function App(): JSX.Element {
           <ul>
             <li>
               <Link to="/basic">basic</Link>
+            </li>
+            <li>
+              <Link to="/readonly">readonly</Link>
             </li>
             <li>
               <Link to="/controlled">controlled</Link>

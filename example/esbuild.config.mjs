@@ -3,8 +3,6 @@ import fs from 'fs'
 import esbuild from 'esbuild'
 import serve, { error, log } from 'create-serve'
 
-const isDevServer = true
-
 if (!fs.existsSync('./dist')) {
   fs.mkdirSync('./dist')
 }
@@ -16,17 +14,18 @@ fs.copyFile('./src/index.html', './dist/index.html', (err) => {
 esbuild
   .build({
     entryPoints: ['src/index.tsx'],
-    bundle: true,
-    outfile: 'dist/bundle.js',
+    outfile: 'dist/index.js',
     minify: false,
+    bundle: true,
     sourcemap: true,
-    incremental: isDevServer,
-    target: ['chrome58', 'firefox57', 'safari11', 'edge18'],
+    incremental: true,
+    format: 'esm',
+    target: 'esnext',
     define: {
       'process.env.LIVEBLOCKS_PUBLIC_API_KEY': process.env.LIVEBLOCKS_PUBLIC_API_KEY,
-      'process.env.NODE_ENV': isDevServer ? '"development"' : '"production"',
+      'process.env.NODE_ENV': '"development"',
     },
-    watch: isDevServer && {
+    watch: {
       onRebuild(err) {
         serve.update()
         err ? error('❌ Failed') : log('✅ Updated')
@@ -35,10 +34,8 @@ esbuild
   })
   .catch(() => process.exit(1))
 
-if (isDevServer) {
-  serve.start({
-    port: 5000,
-    root: './dist',
-    live: true,
-  })
-}
+serve.start({
+  port: 5000,
+  root: './dist',
+  live: true,
+})

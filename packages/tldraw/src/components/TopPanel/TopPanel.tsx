@@ -10,25 +10,26 @@ import { ColorMenu } from './ColorMenu'
 import { Panel } from '~components/Panel'
 
 interface TopPanelProps {
+  readOnly: boolean
   showPages: boolean
   showMenu: boolean
   showStyles: boolean
   showZoom: boolean
 }
 
-export function TopPanel({ showPages, showMenu, showStyles, showZoom }: TopPanelProps) {
+export function TopPanel({ readOnly, showPages, showMenu, showStyles, showZoom }: TopPanelProps) {
   return (
     <StyledTopPanel>
       {(showMenu || showPages) && (
         <Panel side="left">
-          {showMenu && <Menu />}
+          {showMenu && <Menu readOnly={readOnly} />}
           {showPages && <PageMenu />}
         </Panel>
       )}
       <StyledSpacer />
       {(showStyles || showZoom) && (
         <Panel side="right">
-          {showStyles && (
+          {showStyles && !readOnly && (
             <>
               <ColorMenu />
               <SizeMenu />

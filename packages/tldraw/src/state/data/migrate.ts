@@ -4,10 +4,9 @@ import { Decoration, TLDrawDocument, TLDrawShapeType } from '~types'
 export function migrate(document: TLDrawDocument, newVersion: number): TLDrawDocument {
   const { version = 0 } = document
 
-  console.log(`Migrating document from ${version} to ${newVersion}.`)
-
   if (version === newVersion) return document
 
+  // Lowercase styles, move binding meta to binding
   if (version <= 13) {
     Object.values(document.pages).forEach((page) => {
       Object.values(page.bindings).forEach((binding) => {
@@ -39,6 +38,12 @@ export function migrate(document: TLDrawDocument, newVersion: number): TLDrawDoc
     })
   }
 
+  // Add document name and file system handle
+  if (version <= 13.1) {
+    document.name = 'New Document'
+  }
+
+  // Cleanup
   Object.values(document.pageStates).forEach((pageState) => {
     pageState.selectedIds = pageState.selectedIds.filter((id) => {
       return document.pages[pageState.id].shapes[id] !== undefined

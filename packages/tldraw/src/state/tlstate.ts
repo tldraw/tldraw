@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { StateManager } from 'rko'
 import { Vec } from '@tldraw/vec'
+import type { FileSystemHandle } from 'browser-fs-access'
 import {
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
@@ -48,6 +50,7 @@ import { createTools, ToolType } from './tool'
 import type { BaseTool } from './tool/BaseTool'
 import { USER_COLORS, FIT_TO_SCREEN_PADDING } from '~constants'
 import { migrate } from './data/migrate'
+import { loadFileHandle, openFromFileSystem, saveToFileSystem } from './data/filesystem'
 
 const uuid = Utils.uniqueId()
 
@@ -55,6 +58,8 @@ export class TLDrawState extends StateManager<Data> {
   private _onMount?: (tlstate: TLDrawState) => void
   private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
   private _onUserChange?: (tlstate: TLDrawState, user: TLDrawUser) => void
+
+  readOnly = false
 
   inputs?: Inputs
 
@@ -94,6 +99,10 @@ export class TLDrawState extends StateManager<Data> {
     offset: [0, 0],
   }
 
+  fileSystemHandle: FileSystemHandle | null = null
+
+  isDirty = false
+
   constructor(
     id?: string,
     onMount?: (tlstate: TLDrawState) => void,
@@ -112,6 +121,10 @@ export class TLDrawState extends StateManager<Data> {
 
     this.loadDocument(this.document)
     this.patchState({ document: migrate(this.document, TLDrawState.version) })
+
+    loadFileHandle().then((fileHandle) => {
+      this.fileSystemHandle = fileHandle
+    })
 
     this._onChange = onChange
     this._onMount = onMount
@@ -334,6 +347,13 @@ export class TLDrawState extends StateManager<Data> {
       }
     }
 
+    // Temporary block on editing pages while in readonly mode.
+    // This is a broad solution but not a very good one: the UX
+    // for interacting with a readOnly document will be more nuanced.
+    if (this.readOnly) {
+      data.document.pages = prev.document.pages
+    }
+
     return data
   }
 
@@ -344,6 +364,12 @@ export class TLDrawState extends StateManager<Data> {
    */
   protected onStateDidChange = (state: Data, id: string): void => {
     if (!id.startsWith('patch')) {
+      if (!id.startsWith('replace')) {
+        // If we've changed the undo stack, then the file is out of
+        // sync with any saved version on the file system.
+        this.isDirty = true
+      }
+
       this.clearSelectHistory()
     }
 
@@ -583,22 +609,7 @@ export class TLDrawState extends StateManager<Data> {
 
     this.resetHistory()
       .clearSelectHistory()
-      .loadDocument(TLDrawState.defaultDocument)
-      .patchState(
-        {
-          document: {
-            pageStates: {
-              [this.currentPageId]: {
-                bindingId: null,
-                editingId: null,
-                hoveredId: null,
-                pointedId: null,
-              },
-            },
-          },
-        },
-        'reset_document'
-      )
+      .loadDocument(migrate(TLDrawState.defaultDocument, TLDrawState.version))
       .persist()
     return this
   }
@@ -813,32 +824,72 @@ export class TLDrawState extends StateManager<Data> {
     )
   }
 
+  // Should we move this to the app layer? onSave, onSaveAs, etc?
+
   /**
    * Create a new project.
-   * Should move to the www layer.
-   * @todo
    */
   newProject = () => {
-    // TODO
+    if (!this.isLocal) return
+    this.fileSystemHandle = null
     this.resetDocument()
   }
 
   /**
    * Save the current project.
-   * Should move to the www layer.
-   * @todo
    */
-  saveProject = () => {
-    this.persist()
+  saveProject = async () => {
+    if (this.readOnly) return
+    try {
+      const fileHandle = await saveToFileSystem(this.document, this.fileSystemHandle)
+      this.fileSystemHandle = fileHandle
+      this.persist()
+      this.isDirty = false
+    } catch (e: any) {
+      // Likely cancelled
+      console.error(e.message)
+    }
+    return this
+  }
+
+  /**
+   * Save the current project as a new file.
+   */
+  saveProjectAs = async () => {
+    try {
+      const fileHandle = await saveToFileSystem(this.document, null)
+      this.fileSystemHandle = fileHandle
+      this.persist()
+      this.isDirty = false
+    } catch (e: any) {
+      // Likely cancelled
+      console.error(e.message)
+    }
+    return this
   }
 
   /**
    * Load a project from the filesystem.
-   * Should move to the www layer.
    * @todo
    */
-  loadProject = () => {
-    // TODO
+  openProject = async () => {
+    if (!this.isLocal) return
+
+    try {
+      const result = await openFromFileSystem()
+      if (!result) {
+        throw Error()
+      }
+
+      const { fileHandle, document } = result
+      this.loadDocument(document)
+      this.fileSystemHandle = fileHandle
+      this.persist()
+    } catch (e) {
+      console.error(e)
+    } finally {
+      this.persist()
+    }
   }
 
   /**
@@ -847,7 +898,7 @@ export class TLDrawState extends StateManager<Data> {
    * @todo
    */
   signOut = () => {
-    // TODO
+    // todo
   }
   /* -------------------- Getters --------------------- */
 
@@ -1037,6 +1088,7 @@ export class TLDrawState extends StateManager<Data> {
    * @param pageId The id of the page to duplicate.
    */
   duplicatePage = (pageId: string): this => {
+    if (this.readOnly) return this
     return this.setState(
       Commands.duplicatePage(this.state, [-this.bounds.width / 2, -this.bounds.height / 2], pageId)
     )
@@ -1047,6 +1099,7 @@ export class TLDrawState extends StateManager<Data> {
    * @param pageId The id of the page to delete.
    */
   deletePage = (pageId?: string): this => {
+    if (this.readOnly) return this
     if (Object.values(this.document.pages).length <= 1) return this
     return this.setState(Commands.deletePage(this.state, pageId ? pageId : this.currentPageId))
   }
@@ -1110,6 +1163,7 @@ export class TLDrawState extends StateManager<Data> {
    * @param point
    */
   paste = (point?: number[]) => {
+    if (this.readOnly) return
     const pasteInCurrentPage = (shapes: TLDrawShape[], bindings: TLDrawBinding[]) => {
       const idsMap: Record<string, string> = {}
 
@@ -1669,6 +1723,7 @@ export class TLDrawState extends StateManager<Data> {
    * @param args arguments of the session's start method.
    */
   startSession = <T extends SessionType>(type: T, ...args: ExceptFirstTwo<ArgsOfType<T>>): this => {
+    if (this.readOnly && type !== SessionType.Brush) return this
     if (this.session) {
       throw Error(`Already in a session! (${this.session.constructor.name})`)
     }
@@ -1738,9 +1793,7 @@ export class TLDrawState extends StateManager<Data> {
     const { session } = this
 
     if (!session) return this
-
     this.session = undefined
-
     const result = session.complete(this.state)
 
     if (result === undefined) {
@@ -1901,7 +1954,7 @@ export class TLDrawState extends StateManager<Data> {
     )
   }
 
-  createTextShapeAtPoint(point: number[]) {
+  createTextShapeAtPoint(point: number[]): this {
     const {
       shapes,
       appState: { currentPageId, currentStyle },
@@ -1915,9 +1968,7 @@ export class TLDrawState extends StateManager<Data> {
             .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
 
     const id = Utils.uniqueId()
-
     const Text = shapeUtils[TLDrawShapeType.Text]
-
     const newShape = Text.create({
       id,
       parentId: currentPageId,
@@ -1925,14 +1976,12 @@ export class TLDrawState extends StateManager<Data> {
       point,
       style: { ...currentStyle },
     })
-
     const bounds = Text.getBounds(newShape)
-
     newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
-
     this.createShapes(newShape)
-
     this.setEditingId(id)
+
+    return this
   }
 
   /**
@@ -2099,6 +2148,7 @@ export class TLDrawState extends StateManager<Data> {
    * @param ids The ids to duplicate (defaults to selection).
    */
   duplicate = (ids = this.selectedIds, point?: number[]): this => {
+    if (this.readOnly) return this
     if (ids.length === 0) return this
     return this.setState(Commands.duplicate(this.state, ids, point))
   }
@@ -2173,6 +2223,8 @@ export class TLDrawState extends StateManager<Data> {
     groupId = Utils.uniqueId(),
     pageId = this.currentPageId
   ): this => {
+    if (this.readOnly) return this
+
     if (ids.length === 1 && this.getShape(ids[0], pageId).type === TLDrawShapeType.Group) {
       return this.ungroup(ids, pageId)
     }
@@ -2189,6 +2241,8 @@ export class TLDrawState extends StateManager<Data> {
    * @todo
    */
   ungroup = (ids = this.selectedIds, pageId = this.currentPageId): this => {
+    if (this.readOnly) return this
+
     const groups = ids
       .map((id) => this.getShape(id, pageId))
       .filter((shape) => shape.type === TLDrawShapeType.Group)
@@ -2431,6 +2485,10 @@ export class TLDrawState extends StateManager<Data> {
     return this.selectedIds.includes(id)
   }
 
+  get isLocal() {
+    return this.state.room === undefined || this.state.room.id === 'local'
+  }
+
   get status() {
     return this.appState.status
   }
@@ -2465,6 +2523,7 @@ export class TLDrawState extends StateManager<Data> {
 
   static defaultDocument: TLDrawDocument = {
     id: 'doc',
+    name: 'New Document',
     version: 13,
     pages: {
       page: {

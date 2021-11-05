@@ -18,11 +18,9 @@
     "src"
   ],
   "sideEffects": false,
-  "peerDependencies": {
-    "react": ">=16.8",
-    "react-dom": "^16.8 || ^17.0"
-  },
   "devDependencies": {
+    "react": ">=16.8",
+    "react-dom": "^16.8 || ^17.0",
     "@liveblocks/client": "^0.12.1",
     "@liveblocks/react": "^0.12.1",
     "@tldraw/tldraw": "^0.1.2",

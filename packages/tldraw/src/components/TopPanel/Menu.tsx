@@ -5,23 +5,16 @@ import { useTLDrawContext } from '~hooks'
 import { PreferencesMenu } from './PreferencesMenu'
 import { DMItem, DMContent, DMDivider, DMSubMenu, DMTriggerIcon } from '~components/DropdownMenu'
 import { SmallIcon } from '~components/SmallIcon'
+import { useFileSystem } from '~hooks'
 
-export const Menu = React.memo(() => {
+interface MenuProps {
+  readOnly: boolean
+}
+
+export const Menu = React.memo(({ readOnly }: MenuProps) => {
   const { tlstate } = useTLDrawContext()
 
-  const handleNew = React.useCallback(() => {
-    if (window.confirm('Are you sure you want to start a new project?')) {
-      tlstate.newProject()
-    }
-  }, [tlstate])
-
-  const handleSave = React.useCallback(() => {
-    tlstate.saveProject()
-  }, [tlstate])
-
-  const handleLoad = React.useCallback(() => {
-    tlstate.loadProject()
-  }, [tlstate])
+  const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystem()
 
   const handleSignOut = React.useCallback(() => {
     tlstate.signOut()
@@ -58,45 +51,50 @@ export const Menu = React.memo(() => {
       </DMTriggerIcon>
       <DMContent variant="menu">
         <DMSubMenu label="File...">
-          <DMItem onSelect={handleNew} kbd="#N">
+          <DMItem onSelect={onNewProject} kbd="#N">
             New Project
           </DMItem>
-          <DMItem disabled onSelect={handleLoad} kbd="#L">
+          <DMItem disabled onSelect={onOpenProject} kbd="#L">
             Open...
           </DMItem>
-          <DMItem disabled onSelect={handleSave} kbd="#S">
+          <DMItem disabled onSelect={onSaveProject} kbd="#S">
             Save
           </DMItem>
-          <DMItem disabled onSelect={handleSave} kbd="⇧#S">
+          <DMItem disabled onSelect={onSaveProjectAs} kbd="⇧#S">
             Save As...
           </DMItem>
         </DMSubMenu>
-        <DMSubMenu label="Edit...">
-          <DMItem onSelect={tlstate.undo} kbd="#Z">
-            Undo
-          </DMItem>
-          <DMItem onSelect={tlstate.redo} kbd="#⇧Z">
-            Redo
-          </DMItem>
-          <DMDivider dir="ltr" />
-          <DMItem onSelect={handleCopy} kbd="#C">
-            Copy
-          </DMItem>
-          <DMItem onSelect={handlePaste} kbd="#V">
-            Paste
-          </DMItem>
-          <DMDivider dir="ltr" />
-          <DMItem onSelect={handleCopySvg} kbd="#⇧C">
-            Copy as SVG
-          </DMItem>
-          <DMItem onSelect={handleCopyJson}>Copy as JSON</DMItem>
-          <DMDivider dir="ltr" />
-          <DMItem onSelect={handleSelectAll} kbd="#A">
-            Select All
-          </DMItem>
-          <DMItem onSelect={handleDeselectAll}>Select None</DMItem>
-        </DMSubMenu>
-        <DMDivider dir="ltr" />
+        {!readOnly && (
+          <>
+            {' '}
+            <DMSubMenu label="Edit...">
+              <DMItem onSelect={tlstate.undo} kbd="#Z">
+                Undo
+              </DMItem>
+              <DMItem onSelect={tlstate.redo} kbd="#⇧Z">
+                Redo
+              </DMItem>
+              <DMDivider dir="ltr" />
+              <DMItem onSelect={handleCopy} kbd="#C">
+                Copy
+              </DMItem>
+              <DMItem onSelect={handlePaste} kbd="#V">
+                Paste
+              </DMItem>
+              <DMDivider dir="ltr" />
+              <DMItem onSelect={handleCopySvg} kbd="#⇧C">
+                Copy as SVG
+              </DMItem>
+              <DMItem onSelect={handleCopyJson}>Copy as JSON</DMItem>
+              <DMDivider dir="ltr" />
+              <DMItem onSelect={handleSelectAll} kbd="#A">
+                Select All
+              </DMItem>
+              <DMItem onSelect={handleDeselectAll}>Select None</DMItem>
+            </DMSubMenu>
+            <DMDivider dir="ltr" />
+          </>
+        )}
         <PreferencesMenu />
         <DMDivider dir="ltr" />
         <DMItem disabled onSelect={handleSignOut}>

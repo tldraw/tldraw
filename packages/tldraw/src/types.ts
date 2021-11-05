@@ -13,6 +13,7 @@ import type {
 import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
 import type { Command, Patch } from 'rko'
+import type { FileSystemHandle } from '~state/data/browser-fs-access'
 
 export interface TLDrawHandle extends TLHandle {
   canBind?: boolean
@@ -36,6 +37,7 @@ export type TLDrawPage = TLPage<TLDrawShape, TLDrawBinding>
 
 export interface TLDrawDocument {
   id: string
+  name: string
   pages: Record<string, TLDrawPage>
   pageStates: Record<string, TLPageState>
   version: number
@@ -396,3 +398,12 @@ export type Easing =
   | 'easeInExpo'
   | 'easeOutExpo'
   | 'easeInOutExpo'
+
+/* ------------------- File System ------------------ */
+
+export interface TLDrawFile {
+  name: string
+  fileHandle: FileSystemHandle | null
+  document: TLDrawDocument
+  assets: Record<string, unknown>
+}
