@@ -14,9 +14,25 @@ export default function Editor(props: TLDrawProps): JSX.Element {
     window.tlstate = state
   }, [])
 
+  const onSignIn = React.useCallback((state: TLDrawState) => {
+    // Sign in?
+  }, [])
+
+  const onSignOut = React.useCallback((state: TLDrawState) => {
+    // Sign out?
+  }, [])
+
   return (
     <div className="tldraw">
-      <TLDraw id="tldraw1" {...props} onMount={handleMount} {...fileSystemEvents} autofocus />
+      <TLDraw
+        id="tldraw1"
+        {...props}
+        onMount={handleMount}
+        onSignIn={onSignIn}
+        onSignOut={onSignOut}
+        {...fileSystemEvents}
+        autofocus
+      />
     </div>
   )
 }

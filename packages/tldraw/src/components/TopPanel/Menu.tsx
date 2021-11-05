@@ -16,8 +16,12 @@ export const Menu = React.memo(({ readOnly }: MenuProps) => {
 
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
 
+  const handleSignIn = React.useCallback(() => {
+    callbacks.onSignIn?.(tlstate)
+  }, [tlstate])
+
   const handleSignOut = React.useCallback(() => {
-    tlstate.signOut()
+    callbacks.onSignOut?.(tlstate)
   }, [tlstate])
 
   const handleCopy = React.useCallback(() => {
@@ -49,6 +53,8 @@ export const Menu = React.memo(({ readOnly }: MenuProps) => {
     callbacks.onOpenProject ||
     callbacks.onSaveProject ||
     callbacks.onSaveProjectAs
+
+  const showSignInOutMenu = callbacks.onSignIn || callbacks.onSignOut
 
   return (
     <DropdownMenu.Root>
@@ -112,15 +118,18 @@ export const Menu = React.memo(({ readOnly }: MenuProps) => {
           </>
         )}
         <PreferencesMenu />
-        {callbacks.onSignOut && (
+        {showSignInOutMenu && (
           <>
             <DMDivider dir="ltr" />{' '}
-            <DMItem onSelect={handleSignOut}>
-              Sign Out
-              <SmallIcon>
-                <ExitIcon />
-              </SmallIcon>
-            </DMItem>
+            {callbacks.onSignIn && <DMItem onSelect={handleSignOut}>Sign In</DMItem>}
+            {callbacks.onSignOut && (
+              <DMItem onSelect={handleSignOut}>
+                Sign Out
+                <SmallIcon>
+                  <ExitIcon />
+                </SmallIcon>
+              </DMItem>
+            )}
           </>
         )}
       </DMContent>

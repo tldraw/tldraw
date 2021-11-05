@@ -123,6 +123,10 @@ export interface TLDrawProps {
    */
   onOpenProject?: (state: TLDrawState, e?: KeyboardEvent) => void
   /**
+   * (optional) A callback to run when the user signs in via the menu.
+   */
+  onSignIn?: (state: TLDrawState) => void
+  /**
    * (optional) A callback to run when the user signs out via the menu.
    */
   onSignOut?: (state: TLDrawState) => void
@@ -152,6 +156,7 @@ export function TLDraw({
   onSaveProjectAs,
   onOpenProject,
   onSignOut,
+  onSignIn,
 }: TLDrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -166,6 +171,7 @@ export function TLDraw({
       onSaveProject,
       onSaveProjectAs,
       onOpenProject,
+      onSignIn,
       onSignOut,
     },
   }))
@@ -188,9 +194,16 @@ export function TLDraw({
   React.useEffect(() => {
     setContext((ctx) => ({
       ...ctx,
-      callbacks: { onNewProject, onSaveProject, onSaveProjectAs, onOpenProject, onSignOut },
+      callbacks: {
+        onNewProject,
+        onSaveProject,
+        onSaveProjectAs,
+        onOpenProject,
+        onSignIn,
+        onSignOut,
+      },
     }))
-  }, [onNewProject, onSaveProject, onSaveProjectAs, onOpenProject, onSignOut])
+  }, [onNewProject, onSaveProject, onSaveProjectAs, onOpenProject, onSignIn, onSignOut])
 
   React.useEffect(() => {
     tlstate.readOnly = readOnly

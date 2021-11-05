@@ -17,28 +17,23 @@ export function useFileSystem() {
   }, [])
 
   const onNewProject = React.useCallback(
-    async (tlstate: TLDrawState, e?: KeyboardEvent) => {
-      if (e) e.preventDefault()
+    async (tlstate: TLDrawState) => {
       await promptSaveBeforeChange(tlstate)
       tlstate.newProject()
     },
     [promptSaveBeforeChange]
   )
 
-  const onSaveProject = React.useCallback((tlstate: TLDrawState, e?: KeyboardEvent) => {
-    if (e) e.preventDefault()
+  const onSaveProject = React.useCallback((tlstate: TLDrawState) => {
     tlstate.saveProject()
   }, [])
 
-  const onSaveProjectAs = React.useCallback((tlstate: TLDrawState, e?: KeyboardEvent) => {
-    if (e) e.preventDefault()
+  const onSaveProjectAs = React.useCallback((tlstate: TLDrawState) => {
     tlstate.saveProjectAs()
   }, [])
 
   const onOpenProject = React.useCallback(
-    async (tlstate: TLDrawState, e?: KeyboardEvent) => {
-      if (!tlstate) return
-      if (e) e.preventDefault()
+    async (tlstate: TLDrawState) => {
       await promptSaveBeforeChange(tlstate)
       tlstate.openProject()
     },

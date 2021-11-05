@@ -7,10 +7,11 @@ export interface TLDrawContextType {
   tlstate: TLDrawState
   useSelector: UseBoundStore<Data>
   callbacks: {
-    onNewProject?: (tlstate: TLDrawState, event?: KeyboardEvent) => void
-    onSaveProject?: (tlstate: TLDrawState, event?: KeyboardEvent) => void
-    onSaveProjectAs?: (tlstate: TLDrawState, event?: KeyboardEvent) => void
-    onOpenProject?: (tlstate: TLDrawState, event?: KeyboardEvent) => void
+    onNewProject?: (tlstate: TLDrawState) => void
+    onSaveProject?: (tlstate: TLDrawState) => void
+    onSaveProjectAs?: (tlstate: TLDrawState) => void
+    onOpenProject?: (tlstate: TLDrawState) => void
+    onSignIn?: (tlstate: TLDrawState) => void
     onSignOut?: (tlstate: TLDrawState) => void
   }
 }

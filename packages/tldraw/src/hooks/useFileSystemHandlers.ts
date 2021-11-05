@@ -6,29 +6,32 @@ export function useFileSystemHandlers() {
 
   const onNewProject = React.useCallback(
     async (e?: KeyboardEvent) => {
-      callbacks.onNewProject?.(tlstate, e)
+      if (e && callbacks.onOpenProject) e.preventDefault()
+      callbacks.onNewProject?.(tlstate)
     },
     [callbacks]
   )
 
   const onSaveProject = React.useCallback(
     (e?: KeyboardEvent) => {
-      console.log('saving project')
-      callbacks.onSaveProject?.(tlstate, e)
+      if (e && callbacks.onOpenProject) e.preventDefault()
+      callbacks.onSaveProject?.(tlstate)
     },
     [callbacks]
   )
 
   const onSaveProjectAs = React.useCallback(
     (e?: KeyboardEvent) => {
-      callbacks.onSaveProjectAs?.(tlstate, e)
+      if (e && callbacks.onOpenProject) e.preventDefault()
+      callbacks.onSaveProjectAs?.(tlstate)
     },
     [callbacks]
   )
 
   const onOpenProject = React.useCallback(
     async (e?: KeyboardEvent) => {
-      callbacks.onOpenProject?.(tlstate, e)
+      if (e && callbacks.onOpenProject) e.preventDefault()
+      callbacks.onOpenProject?.(tlstate)
     },
     [callbacks]
   )
