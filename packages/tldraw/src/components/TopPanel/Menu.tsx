@@ -121,7 +121,7 @@ export const Menu = React.memo(({ readOnly }: MenuProps) => {
         {showSignInOutMenu && (
           <>
             <DMDivider dir="ltr" />{' '}
-            {callbacks.onSignIn && <DMItem onSelect={handleSignOut}>Sign In</DMItem>}
+            {callbacks.onSignIn && <DMItem onSelect={handleSignIn}>Sign In</DMItem>}
             {callbacks.onSignOut && (
               <DMItem onSelect={handleSignOut}>
                 Sign Out

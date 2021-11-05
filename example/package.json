@@ -2,7 +2,7 @@
   "name": "@tldraw/tldraw-example",
   "version": "0.1.2",
   "private": true,
-  "description": "A tiny little drawing app example.",
+  "description": "An example project for @tldraw/tldraw.",
   "author": "@steveruizok",
   "license": "MIT",
   "keywords": [
@@ -11,16 +11,10 @@
     "esbuild"
   ],
   "scripts": {
-    "start": "node ./esbuild.config.mjs --dev tsc --watch"
+    "start": "node scripts/dev.mjs -w",
+    "build": "node scripts/build.mjs"
   },
-  "files": [
-    "README.md",
-    "src"
-  ],
-  "sideEffects": false,
   "devDependencies": {
-    "react": ">=16.8",
-    "react-dom": "^16.8 || ^17.0",
     "@liveblocks/client": "^0.12.1",
     "@liveblocks/react": "^0.12.1",
     "@tldraw/tldraw": "^0.1.2",
@@ -31,6 +25,9 @@
     "concurrently": "6.0.1",
     "create-serve": "1.0.1",
     "esbuild": "^0.13.8",
+    "esbuild-serve": "^1.0.1",
+    "react": ">=16.8",
+    "react-dom": "^16.8 || ^17.0",
     "react-router": "^5.2.1",
     "react-router-dom": "^5.3.0",
     "rimraf": "3.0.2",
