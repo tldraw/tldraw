@@ -27,9 +27,9 @@
       "purpose": "any maskable"
     }
   ],
-  "theme_color": "#fafafa",
-  "background_color": "#fafafa",
-  "start_url": "/",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "start_url": "/shhh",
   "display": "standalone",
   "orientation": "portrait"
 }
