@@ -2465,7 +2465,7 @@ export class TLDrawState extends StateManager<Data> {
 
   static defaultDocument: TLDrawDocument = {
     id: 'doc',
-    version: 12.4,
+    version: 13,
     pages: {
       page: {
         id: 'page',
