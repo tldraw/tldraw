@@ -103,7 +103,7 @@ export class TLDrawState extends StateManager<Data> {
     super(TLDrawState.defaultState, id, TLDrawState.version, (prev, next) => {
       return {
         ...next,
-        document: { ...next.document, ...prev.document, version: prev.document.version },
+        document: migrate({ ...next.document, ...prev.document, version: 0 }, TLDrawState.version),
       }
     })
 
