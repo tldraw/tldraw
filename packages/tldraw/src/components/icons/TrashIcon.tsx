@@ -2,7 +2,14 @@ import * as React from 'react'
 
 export function TrashIcon(props: React.SVGProps<SVGSVGElement>): JSX.Element {
   return (
-    <svg viewBox="0 0 15 15" fill="currentColor" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <svg
+      width={18}
+      height={18}
+      viewBox="0 0 15 15"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
       <path
         fillRule="evenodd"
         clipRule="evenodd"
