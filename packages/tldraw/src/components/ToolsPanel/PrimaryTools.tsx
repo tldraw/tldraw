@@ -53,7 +53,7 @@ export const PrimaryTools = React.memo((): JSX.Element => {
       <ToolButtonWithTooltip
         kbd={'2'}
         label={'select'}
-        onSelect={selectSelectTool}
+        onClick={selectSelectTool}
         isActive={activeTool === 'select'}
       >
         <CursorArrowIcon />
@@ -61,7 +61,7 @@ export const PrimaryTools = React.memo((): JSX.Element => {
       <ToolButtonWithTooltip
         kbd={'2'}
         label={TLDrawShapeType.Draw}
-        onSelect={selectDrawTool}
+        onClick={selectDrawTool}
         isActive={activeTool === TLDrawShapeType.Draw}
       >
         <Pencil1Icon />
@@ -69,7 +69,7 @@ export const PrimaryTools = React.memo((): JSX.Element => {
       <ToolButtonWithTooltip
         kbd={'3'}
         label={TLDrawShapeType.Rectangle}
-        onSelect={selectRectangleTool}
+        onClick={selectRectangleTool}
         isActive={activeTool === TLDrawShapeType.Rectangle}
       >
         <SquareIcon />
@@ -77,7 +77,7 @@ export const PrimaryTools = React.memo((): JSX.Element => {
       <ToolButtonWithTooltip
         kbd={'4'}
         label={TLDrawShapeType.Draw}
-        onSelect={selectEllipseTool}
+        onClick={selectEllipseTool}
         isActive={activeTool === TLDrawShapeType.Ellipse}
       >
         <CircleIcon />
@@ -85,7 +85,7 @@ export const PrimaryTools = React.memo((): JSX.Element => {
       <ToolButtonWithTooltip
         kbd={'5'}
         label={TLDrawShapeType.Arrow}
-        onSelect={selectArrowTool}
+        onClick={selectArrowTool}
         isActive={activeTool === TLDrawShapeType.Arrow}
       >
         <ArrowTopRightIcon />
@@ -93,7 +93,7 @@ export const PrimaryTools = React.memo((): JSX.Element => {
       <ToolButtonWithTooltip
         kbd={'6'}
         label={TLDrawShapeType.Text}
-        onSelect={selectTextTool}
+        onClick={selectTextTool}
         isActive={activeTool === TLDrawShapeType.Text}
       >
         <TextIcon />
@@ -101,7 +101,7 @@ export const PrimaryTools = React.memo((): JSX.Element => {
       <ToolButtonWithTooltip
         kbd={'7'}
         label={TLDrawShapeType.Sticky}
-        onSelect={selectStickyTool}
+        onClick={selectStickyTool}
         isActive={activeTool === TLDrawShapeType.Sticky}
       >
         <Pencil2Icon />

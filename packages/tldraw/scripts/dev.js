@@ -33,6 +33,7 @@ async function main() {
       'perfect-freehand',
       'rko',
       'react-hotkeys-hook',
+      'browser-fs-access',
     ],
     sourcemap: true,
     incremental: true,

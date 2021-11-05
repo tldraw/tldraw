@@ -4,7 +4,13 @@ import { Renderer } from '@tldraw/core'
 import styled, { dark } from '~styles'
 import { Data, TLDrawDocument, TLDrawStatus, TLDrawUser } from '~types'
 import { TLDrawState } from '~state'
-import { TLDrawContext, useCustomFonts, useKeyboardShortcuts, useTLDrawContext } from '~hooks'
+import {
+  TLDrawContext,
+  TLDrawContextType,
+  useCustomFonts,
+  useKeyboardShortcuts,
+  useTLDrawContext,
+} from '~hooks'
 import { shapeUtils } from '~shape-utils'
 import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
@@ -86,6 +92,11 @@ export interface TLDrawProps {
   showUI?: boolean
 
   /**
+   * (optional) Whether to the document should be read only.
+   */
+  readOnly?: boolean
+
+  /**
    * (optional) A callback to run when the component mounts.
    */
   onMount?: (state: TLDrawState) => void
@@ -95,6 +106,33 @@ export interface TLDrawProps {
    */
   onChange?: TLDrawState['_onChange']
 
+  /**
+   * (optional) A callback to run when the user creates a new project through the menu or through a keyboard shortcut.
+   */
+  onNewProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+  /**
+   * (optional) A callback to run when the user saves a project through the menu or through a keyboard shortcut.
+   */
+  onSaveProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+  /**
+   * (optional) A callback to run when the user saves a project as a new project through the menu or through a keyboard shortcut.
+   */
+  onSaveProjectAs?: (state: TLDrawState, e?: KeyboardEvent) => void
+  /**
+   * (optional) A callback to run when the user opens new project through the menu or through a keyboard shortcut.
+   */
+  onOpenProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+  /**
+   * (optional) A callback to run when the user signs in via the menu.
+   */
+  onSignIn?: (state: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the user signs out via the menu.
+   */
+  onSignOut?: (state: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the user creates a new project.
+   */
   onUserChange?: (state: TLDrawState, user: TLDrawUser) => void
 }
 
@@ -109,25 +147,67 @@ export function TLDraw({
   showZoom = true,
   showStyles = true,
   showUI = true,
+  readOnly = false,
   onMount,
   onChange,
   onUserChange,
+  onNewProject,
+  onSaveProject,
+  onSaveProjectAs,
+  onOpenProject,
+  onSignOut,
+  onSignIn,
 }: TLDrawProps) {
   const [sId, setSId] = React.useState(id)
 
   const [tlstate, setTlstate] = React.useState(
     () => new TLDrawState(id, onMount, onChange, onUserChange)
   )
-  const [context, setContext] = React.useState(() => ({ tlstate, useSelector: tlstate.useStore }))
+  const [context, setContext] = React.useState<TLDrawContextType>(() => ({
+    tlstate,
+    useSelector: tlstate.useStore,
+    callbacks: {
+      onNewProject,
+      onSaveProject,
+      onSaveProjectAs,
+      onOpenProject,
+      onSignIn,
+      onSignOut,
+    },
+  }))
 
   React.useEffect(() => {
     if (id === sId) return
+
     // If a new id is loaded, replace the entire state
+    setSId(id)
     const newState = new TLDrawState(id, onMount, onChange, onUserChange)
     setTlstate(newState)
-    setContext({ tlstate: newState, useSelector: newState.useStore })
-    setSId(id)
+    setContext((ctx) => ({
+      ...ctx,
+      tlstate: newState,
+      useSelector: newState.useStore,
+    }))
   }, [sId, id])
+
+  // Update the callbacks when any callback changes
+  React.useEffect(() => {
+    setContext((ctx) => ({
+      ...ctx,
+      callbacks: {
+        onNewProject,
+        onSaveProject,
+        onSaveProjectAs,
+        onOpenProject,
+        onSignIn,
+        onSignOut,
+      },
+    }))
+  }, [onNewProject, onSaveProject, onSaveProjectAs, onOpenProject, onSignIn, onSignOut])
+
+  React.useEffect(() => {
+    tlstate.readOnly = readOnly
+  }, [tlstate, readOnly])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
@@ -145,6 +225,7 @@ export function TLDraw({
           showZoom={showZoom}
           showTools={showTools}
           showUI={showUI}
+          readOnly={readOnly}
         />
       </IdProvider>
     </TLDrawContext.Provider>
@@ -161,6 +242,7 @@ interface InnerTLDrawProps {
   showStyles: boolean
   showUI: boolean
   showTools: boolean
+  readOnly: boolean
   document?: TLDrawDocument
 }
 
@@ -173,6 +255,7 @@ function InnerTldraw({
   showZoom,
   showStyles,
   showTools,
+  readOnly,
   showUI,
   document,
 }: InnerTLDrawProps) {
@@ -250,12 +333,12 @@ function InnerTldraw({
         <Renderer
           id={id}
           containerRef={rWrapper}
+          shapeUtils={shapeUtils}
           page={page}
           pageState={pageState}
           snapLines={snapLines}
           users={users}
           userId={tlstate.state.room?.userId}
-          shapeUtils={shapeUtils}
           theme={theme}
           meta={meta}
           hideBounds={hideBounds}
@@ -322,13 +405,14 @@ function InnerTldraw({
           ) : (
             <>
               <TopPanel
+                readOnly={readOnly}
                 showPages={showPages}
                 showMenu={showMenu}
-                showZoom={showZoom}
                 showStyles={showStyles}
+                showZoom={showZoom}
               />
               <StyledSpacer />
-              {showTools && <ToolsPanel />}
+              {showTools && !readOnly && <ToolsPanel />}
             </>
           )}
         </StyledUI>

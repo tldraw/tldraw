@@ -41,6 +41,8 @@ const hasGroupSelectedSelector = (s: Data) => {
   )
 }
 
+const preventDefault = (e: Event) => e.stopPropagation()
+
 interface ContextMenuProps {
   children: React.ReactNode
 }
@@ -118,7 +120,7 @@ export const ContextMenu = ({ children }: ContextMenuProps): JSX.Element => {
   return (
     <RadixContextMenu.Root>
       <RadixContextMenu.Trigger dir="ltr">{children}</RadixContextMenu.Trigger>
-      <RadixContextMenu.Content dir="ltr" ref={rContent} asChild>
+      <RadixContextMenu.Content dir="ltr" ref={rContent} onEscapeKeyDown={preventDefault} asChild>
         <MenuContent>
           {hasSelection ? (
             <>
