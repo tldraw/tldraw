@@ -2,8 +2,7 @@
 const fs = require('fs')
 const esbuild = require('esbuild')
 const { gzip } = require('zlib')
-
-const name = process.env.npm_package_name || ''
+const pkg = require('../package.json')
 
 async function main() {
   if (fs.existsSync('./dist')) {
@@ -25,24 +24,7 @@ async function main() {
       jsxFactory: 'React.createElement',
       jsxFragment: 'React.Fragment',
       tsconfig: './tsconfig.json',
-      external: [
-        'react',
-        'react-dom',
-        'tslib',
-        '@stitches/react',
-        '@radix-ui/react-alert-dialog',
-        '@radix-ui/react-checkbox',
-        '@radix-ui/react-context-menu',
-        '@radix-ui/react-dropdown-menu',
-        '@radix-ui/react-icons',
-        '@radix-ui/react-id',
-        '@radix-ui/react-radio',
-        '@radix-ui/react-tooltip',
-        'perfect-freehand',
-        'rko',
-        'react-hotkeys-hook',
-        'browser-fs-access',
-      ],
+      external: Object.keys(pkg.dependencies).concat(Object.keys(pkg.peerDependencies)),
       metafile: true,
     })
 
@@ -56,27 +38,7 @@ async function main() {
       tsconfig: './tsconfig.build.json',
       jsxFactory: 'React.createElement',
       jsxFragment: 'React.Fragment',
-      external: [
-        'react',
-        'react-dom',
-        'tslib',
-        '@stitches/react',
-        '@radix-ui/react-alert-dialog',
-        '@radix-ui/react-checkbox',
-        '@radix-ui/react-context-menu',
-        '@radix-ui/react-dropdown-menu',
-        '@radix-ui/react-icons',
-        '@radix-ui/react-id',
-        '@radix-ui/react-radio',
-        '@radix-ui/react-tooltip',
-        '@tldraw/core',
-        '@tldraw/vec',
-        '@tldraw/intersect',
-        'perfect-freehand',
-        'rko',
-        'react-hotkeys-hook',
-        'browser-fs-access',
-      ],
+      external: Object.keys(pkg.dependencies).concat(Object.keys(pkg.peerDependencies)),
       metafile: true,
     })
 
@@ -88,14 +50,14 @@ async function main() {
     fs.readFile('./dist/esm/index.js', (_err, data) => {
       gzip(data, (_err, result) => {
         console.log(
-          `✔ ${name}: Built package. ${(esmSize / 1000).toFixed(2)}kb (${(
+          `✔ ${pkg.name}: Built pkg. ${(esmSize / 1000).toFixed(2)}kb (${(
             result.length / 1000
           ).toFixed(2)}kb minified)`
         )
       })
     })
   } catch (e) {
-    console.log(`× ${name}: Build failed due to an error.`)
+    console.log(`× ${pkg.name}: Build failed due to an error.`)
     console.log(e)
   }
 }

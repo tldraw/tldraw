@@ -6,10 +6,13 @@ import {
   SizeStyle,
   TLDrawDocument,
   TLDrawShapeType,
+  TLDrawState,
 } from '@tldraw/tldraw'
 
 export default function Controlled() {
   const rDocument = React.useRef<TLDrawDocument>({
+    name: 'New Document',
+    version: TLDrawState.version,
     id: 'doc',
     pages: {
       page1: {
