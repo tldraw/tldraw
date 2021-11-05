@@ -9,9 +9,11 @@ export interface DMContentProps {
   children: React.ReactNode
 }
 
+const preventDefault = (e: Event) => e.stopPropagation()
+
 export function DMContent({ children, align, variant }: DMContentProps): JSX.Element {
   return (
-    <Content sideOffset={8} dir="ltr" asChild align={align}>
+    <Content sideOffset={8} dir="ltr" asChild align={align} onEscapeKeyDown={preventDefault}>
       <StyledContent variant={variant}>{children}</StyledContent>
     </Content>
   )

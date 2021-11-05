@@ -48,6 +48,7 @@
     "@tldraw/core": "^0.1.17",
     "@tldraw/intersect": "^0.1.3",
     "@tldraw/vec": "^0.1.3",
+    "browser-fs-access": "^0.21.0",
     "perfect-freehand": "^1.0.16",
     "react-hotkeys-hook": "^3.4.0",
     "rko": "^0.6.0"

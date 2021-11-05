@@ -9,7 +9,6 @@ import { BoxIcon } from '~components/icons'
 import { ToolButton } from '~components/ToolButton'
 
 const selectColor = (s: Data) => s.appState.selectedStyle.color
-
 const preventEvent = (e: Event) => e.preventDefault()
 
 export const ColorMenu = React.memo((): JSX.Element => {
