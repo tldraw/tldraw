@@ -4,9 +4,11 @@ import { Decoration, TLDrawDocument, TLDrawShapeType } from '~types'
 export function migrate(document: TLDrawDocument, newVersion: number): TLDrawDocument {
   const { version = 0 } = document
 
+  console.log(`Migrating document from ${version} to ${newVersion}.`)
+
   if (version === newVersion) return document
 
-  if (version <= 12) {
+  if (version <= 13) {
     Object.values(document.pages).forEach((page) => {
       Object.values(page.bindings).forEach((binding) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
