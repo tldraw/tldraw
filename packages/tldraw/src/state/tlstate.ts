@@ -103,7 +103,7 @@ export class TLDrawState extends StateManager<Data> {
     super(TLDrawState.defaultState, id, TLDrawState.version, (prev, next) => {
       return {
         ...next,
-        document: { ...next.document, ...prev.document },
+        document: { ...next.document, ...prev.document, version: prev.document.version },
       }
     })
 
@@ -129,6 +129,7 @@ export class TLDrawState extends StateManager<Data> {
       })
     } catch (e) {
       console.error('The data appears to be corrupted. Resetting!', e)
+      localStorage.setItem(this.document.id + '_corrupted', JSON.stringify(this.document))
 
       this.patchState({
         ...TLDrawState.defaultState,
@@ -2457,7 +2458,7 @@ export class TLDrawState extends StateManager<Data> {
     }
   }
 
-  static version = 12.5
+  static version = 12.6
 
   static defaultDocument: TLDrawDocument = {
     id: 'doc',
