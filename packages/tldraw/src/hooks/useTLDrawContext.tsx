@@ -1,11 +1,18 @@
 import * as React from 'react'
 import type { Data } from '~types'
-import type { UseStore } from 'zustand'
+import type { UseBoundStore } from 'zustand'
 import type { TLDrawState } from '~state'
 
 export interface TLDrawContextType {
   tlstate: TLDrawState
-  useSelector: UseStore<Data>
+  useSelector: UseBoundStore<Data>
+  callbacks: {
+    onNewProject?: (tlstate: TLDrawState, event?: KeyboardEvent) => void
+    onSaveProject?: (tlstate: TLDrawState, event?: KeyboardEvent) => void
+    onSaveProjectAs?: (tlstate: TLDrawState, event?: KeyboardEvent) => void
+    onOpenProject?: (tlstate: TLDrawState, event?: KeyboardEvent) => void
+    onSignOut?: (tlstate: TLDrawState) => void
+  }
 }
 
 export const TLDrawContext = React.createContext<TLDrawContextType>({} as TLDrawContextType)

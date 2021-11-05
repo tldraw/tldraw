@@ -5,16 +5,16 @@ import { useTLDrawContext } from '~hooks'
 import { PreferencesMenu } from './PreferencesMenu'
 import { DMItem, DMContent, DMDivider, DMSubMenu, DMTriggerIcon } from '~components/DropdownMenu'
 import { SmallIcon } from '~components/SmallIcon'
-import { useFileSystem } from '~hooks'
+import { useFileSystemHandlers } from '~hooks'
 
 interface MenuProps {
   readOnly: boolean
 }
 
 export const Menu = React.memo(({ readOnly }: MenuProps) => {
-  const { tlstate } = useTLDrawContext()
+  const { tlstate, callbacks } = useTLDrawContext()
 
-  const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystem()
+  const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
 
   const handleSignOut = React.useCallback(() => {
     tlstate.signOut()
@@ -44,26 +44,42 @@ export const Menu = React.memo(({ readOnly }: MenuProps) => {
     tlstate.deselectAll()
   }, [tlstate])
 
+  const showFileMenu =
+    callbacks.onNewProject ||
+    callbacks.onOpenProject ||
+    callbacks.onSaveProject ||
+    callbacks.onSaveProjectAs
+
   return (
     <DropdownMenu.Root>
       <DMTriggerIcon>
         <HamburgerMenuIcon />
       </DMTriggerIcon>
       <DMContent variant="menu">
-        <DMSubMenu label="File...">
-          <DMItem onSelect={onNewProject} kbd="#N">
-            New Project
-          </DMItem>
-          <DMItem disabled onSelect={onOpenProject} kbd="#L">
-            Open...
-          </DMItem>
-          <DMItem disabled onSelect={onSaveProject} kbd="#S">
-            Save
-          </DMItem>
-          <DMItem disabled onSelect={onSaveProjectAs} kbd="⇧#S">
-            Save As...
-          </DMItem>
-        </DMSubMenu>
+        {showFileMenu && (
+          <DMSubMenu label="File...">
+            {callbacks.onNewProject && (
+              <DMItem onSelect={onNewProject} kbd="#N">
+                New Project
+              </DMItem>
+            )}
+            {callbacks.onOpenProject && (
+              <DMItem onSelect={onOpenProject} kbd="#L">
+                Open...
+              </DMItem>
+            )}
+            {callbacks.onSaveProject && (
+              <DMItem onSelect={onSaveProject} kbd="#S">
+                Save
+              </DMItem>
+            )}
+            {callbacks.onSaveProjectAs && (
+              <DMItem onSelect={onSaveProjectAs} kbd="⇧#S">
+                Save As...
+              </DMItem>
+            )}
+          </DMSubMenu>
+        )}
         {!readOnly && (
           <>
             {' '}
@@ -96,13 +112,17 @@ export const Menu = React.memo(({ readOnly }: MenuProps) => {
           </>
         )}
         <PreferencesMenu />
-        <DMDivider dir="ltr" />
-        <DMItem disabled onSelect={handleSignOut}>
-          Sign Out
-          <SmallIcon>
-            <ExitIcon />
-          </SmallIcon>
-        </DMItem>
+        {callbacks.onSignOut && (
+          <>
+            <DMDivider dir="ltr" />{' '}
+            <DMItem onSelect={handleSignOut}>
+              Sign Out
+              <SmallIcon>
+                <ExitIcon />
+              </SmallIcon>
+            </DMItem>
+          </>
+        )}
       </DMContent>
     </DropdownMenu.Root>
   )

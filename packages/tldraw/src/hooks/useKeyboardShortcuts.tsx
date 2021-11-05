@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { TLDrawShapeType } from '~types'
-import { useFileSystem, useTLDrawContext } from '~hooks'
+import { useFileSystemHandlers, useTLDrawContext } from '~hooks'
 
 export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   const { tlstate } = useTLDrawContext()
@@ -104,14 +104,13 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   // File System
 
-  const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystem()
+  const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
 
   useHotkeys(
     'ctrl+n,command+n',
     (e) => {
       if (canHandleEvent()) {
-        e.preventDefault()
-        onNewProject()
+        onNewProject(e)
       }
     },
     undefined,
@@ -121,8 +120,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     'ctrl+s,command+s',
     (e) => {
       if (canHandleEvent()) {
-        e.preventDefault()
-        onSaveProject()
+        onSaveProject(e)
       }
     },
     undefined,
@@ -133,8 +131,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     'ctrl+shift+s,command+shift+s',
     (e) => {
       if (canHandleEvent()) {
-        e.preventDefault()
-        onSaveProjectAs()
+        onSaveProjectAs(e)
       }
     },
     undefined,
@@ -144,8 +141,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     'ctrl+o,command+o',
     (e) => {
       if (canHandleEvent()) {
-        e.preventDefault()
-        onOpenProject()
+        onOpenProject(e)
       }
     },
     undefined,

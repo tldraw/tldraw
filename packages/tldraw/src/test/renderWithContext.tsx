@@ -8,7 +8,7 @@ import { render } from '@testing-library/react'
 export const Wrapper: React.FC = ({ children }) => {
   const [tlstate] = React.useState(() => new TLDrawState())
   const [context] = React.useState(() => {
-    return { tlstate, useSelector: tlstate.useStore }
+    return { tlstate, useSelector: tlstate.useStore, callbacks: {} }
   })
 
   const rWrapper = React.useRef<HTMLDivElement>(null)

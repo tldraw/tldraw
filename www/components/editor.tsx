@@ -1,4 +1,4 @@
-import { TLDraw, TLDrawState, Data } from '@tldraw/tldraw'
+import { TLDraw, TLDrawState, Data, useFileSystem } from '@tldraw/tldraw'
 import * as gtag from '-utils/gtag'
 import React from 'react'
 
@@ -29,9 +29,17 @@ export default function Editor({ id = 'home' }: EditorProps) {
     [id]
   )
 
+  const fileSystemEvents = useFileSystem()
+
   return (
     <div className="tldraw">
-      <TLDraw id={id} onMount={handleMount} onChange={handleChange} autofocus />
+      <TLDraw
+        id={id}
+        onMount={handleMount}
+        onChange={handleChange}
+        autofocus
+        {...fileSystemEvents}
+      />
     </div>
   )
 }

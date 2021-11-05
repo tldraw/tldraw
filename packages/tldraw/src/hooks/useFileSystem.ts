@@ -1,10 +1,8 @@
 import * as React from 'react'
-import { useTLDrawContext } from '~hooks'
+import type { TLDrawState } from '~state'
 
 export function useFileSystem() {
-  const { tlstate } = useTLDrawContext()
-
-  const promptSaveBeforeChange = React.useCallback(async () => {
+  const promptSaveBeforeChange = React.useCallback(async (tlstate: TLDrawState) => {
     if (tlstate.isDirty) {
       if (tlstate.fileSystemHandle) {
         if (window.confirm('Do you want to save changes to your current project?')) {
@@ -16,25 +14,36 @@ export function useFileSystem() {
         }
       }
     }
-  }, [tlstate])
+  }, [])
 
-  const onNewProject = React.useCallback(async () => {
-    await promptSaveBeforeChange()
-    tlstate.newProject()
-  }, [tlstate, promptSaveBeforeChange])
+  const onNewProject = React.useCallback(
+    async (tlstate: TLDrawState, e?: KeyboardEvent) => {
+      if (e) e.preventDefault()
+      await promptSaveBeforeChange(tlstate)
+      tlstate.newProject()
+    },
+    [promptSaveBeforeChange]
+  )
 
-  const onSaveProject = React.useCallback(() => {
+  const onSaveProject = React.useCallback((tlstate: TLDrawState, e?: KeyboardEvent) => {
+    if (e) e.preventDefault()
     tlstate.saveProject()
-  }, [tlstate])
+  }, [])
 
-  const onSaveProjectAs = React.useCallback(() => {
+  const onSaveProjectAs = React.useCallback((tlstate: TLDrawState, e?: KeyboardEvent) => {
+    if (e) e.preventDefault()
     tlstate.saveProjectAs()
-  }, [tlstate])
+  }, [])
 
-  const onOpenProject = React.useCallback(async () => {
-    await promptSaveBeforeChange()
-    tlstate.openProject()
-  }, [tlstate, promptSaveBeforeChange])
+  const onOpenProject = React.useCallback(
+    async (tlstate: TLDrawState, e?: KeyboardEvent) => {
+      if (!tlstate) return
+      if (e) e.preventDefault()
+      await promptSaveBeforeChange(tlstate)
+      tlstate.openProject()
+    },
+    [promptSaveBeforeChange]
+  )
 
   return {
     onNewProject,

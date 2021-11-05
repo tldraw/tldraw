@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { StateManager } from 'rko'
 import { Vec } from '@tldraw/vec'
-import type { FileSystemHandle } from 'browser-fs-access'
 import {
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
@@ -51,6 +50,7 @@ import type { BaseTool } from './tool/BaseTool'
 import { USER_COLORS, FIT_TO_SCREEN_PADDING } from '~constants'
 import { migrate } from './data/migrate'
 import { loadFileHandle, openFromFileSystem, saveToFileSystem } from './data/filesystem'
+import type { FileSystemHandle } from './data/browser-fs-access'
 
 const uuid = Utils.uniqueId()
 
@@ -884,6 +884,7 @@ export class TLDrawState extends StateManager<Data> {
       const { fileHandle, document } = result
       this.loadDocument(document)
       this.fileSystemHandle = fileHandle
+      this.zoomToFit()
       this.persist()
     } catch (e) {
       console.error(e)
