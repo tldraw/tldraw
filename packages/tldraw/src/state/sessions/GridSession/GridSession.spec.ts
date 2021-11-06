@@ -1,6 +1,6 @@
 import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
-import { GroupShape, SessionType, TLDrawShapeType, TLDrawStatus } from '~types'
+import { SessionType, TLDrawStatus } from '~types'
 
 describe('Grid session', () => {
   const tlstate = new TLDrawState()
