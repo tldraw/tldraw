@@ -1,0 +1,124 @@
+{
+  "fileHandle": null,
+  "document": {
+    "id": "doc",
+    "version": 13,
+    "pages": {
+      "page": {
+        "id": "page",
+        "name": "Page 1",
+        "childIndex": 1,
+        "shapes": {
+          "3805a6e3-b50a-4bb2-0782-e687526cafc8": {
+            "id": "3805a6e3-b50a-4bb2-0782-e687526cafc8",
+            "type": "rectangle",
+            "name": "Rectangle",
+            "parentId": "page",
+            "childIndex": 1,
+            "point": [
+              351.95,
+              77.76
+            ],
+            "size": [
+              174.79,
+              98.23
+            ],
+            "rotation": 0,
+            "style": {
+              "color": "black",
+              "size": "small",
+              "isFilled": false,
+              "dash": "draw"
+            }
+          },
+          "fe792a2f-5a42-46dd-260e-a4135536d16d": {
+            "id": "fe792a2f-5a42-46dd-260e-a4135536d16d",
+            "type": "rectangle",
+            "name": "Rectangle",
+            "parentId": "page",
+            "childIndex": 2,
+            "point": [
+              137.22,
+              202.71
+            ],
+            "size": [
+              249.64,
+              180.38
+            ],
+            "rotation": 0,
+            "style": {
+              "color": "black",
+              "size": "small",
+              "isFilled": false,
+              "dash": "draw"
+            }
+          },
+          "640a8876-2e56-45c2-0bdc-7fadde58a6b7": {
+            "id": "640a8876-2e56-45c2-0bdc-7fadde58a6b7",
+            "type": "rectangle",
+            "name": "Rectangle",
+            "parentId": "page",
+            "childIndex": 3,
+            "point": [
+              237.27,
+              641.01
+            ],
+            "size": [
+              1,
+              1
+            ],
+            "rotation": 0,
+            "style": {
+              "color": "black",
+              "size": "small",
+              "isFilled": false,
+              "dash": "draw"
+            }
+          },
+          "5d8a0762-e20a-45e9-05ad-6bd407ecec8c": {
+            "id": "5d8a0762-e20a-45e9-05ad-6bd407ecec8c",
+            "type": "draw",
+            "name": "Draw",
+            "parentId": "page",
+            "childIndex": 4,
+            "point": [
+              362.41,
+              599.42
+            ],
+            "rotation": 0,
+            "style": {
+              "color": "black",
+              "size": "small",
+              "isFilled": false,
+              "dash": "draw"
+            },
+            "points": [
+              [
+                0.24,
+                0,
+                0.5
+              ]
+            ],
+            "isComplete": true
+          }
+        },
+        "bindings": {}
+      }
+    },
+    "pageStates": {
+      "page": {
+        "id": "page",
+        "selectedIds": [],
+        "camera": {
+          "point": [
+            0,
+            0
+          ],
+          "zoom": 1
+        },
+        "editingId": null
+      }
+    }
+  },
+  "assets": {}
+}

@@ -314,9 +314,12 @@ function InnerTldraw({
 
   React.useEffect(() => {
     if (!document) return
+
     if (document.id === tlstate.document.id) {
+      console.log('updating')
       tlstate.updateDocument(document)
     } else {
+      console.log('loading')
       tlstate.loadDocument(document)
     }
   }, [document, tlstate])

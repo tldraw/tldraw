@@ -22,6 +22,7 @@
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
   "scripts": {
+    "start:vscode": "yarn start",
     "start": "node scripts/dev & yarn types:dev",
     "build": "node scripts/build && yarn types:build && node scripts/copy-readme",
     "types:dev": "tsc -w",
