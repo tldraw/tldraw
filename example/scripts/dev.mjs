@@ -16,8 +16,8 @@ async function main() {
       {
         entryPoints: ['src/index.tsx'],
         outfile: 'dist/index.js',
-        bundle: true,
         minify: false,
+        bundle: true,
         sourcemap: true,
         incremental: true,
         target: ['chrome58', 'firefox57', 'safari11', 'edge18'],
