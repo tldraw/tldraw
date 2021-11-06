@@ -1,3 +1,6 @@
+// This file isn't doing much; however it cannot be removed, or else
+// the build will fail due to the fact that we're targeting ES6.
+
 {
   "presets": [
     [
