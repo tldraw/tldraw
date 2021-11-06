@@ -17,7 +17,7 @@ const selectDash = (s: Data) => s.appState.selectedStyle.dash
 
 const preventEvent = (e: Event) => e.preventDefault()
 
-export const DashMenu = React.memo((): JSX.Element => {
+export const DashMenu = React.memo(function DashMenu(): JSX.Element {
   const { tlstate, useSelector } = useTLDrawContext()
 
   const dash = useSelector(selectDash)

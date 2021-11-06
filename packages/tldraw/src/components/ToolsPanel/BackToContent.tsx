@@ -9,7 +9,7 @@ const isEmptyCanvasSelector = (s: Data) =>
   Object.keys(s.document.pages[s.appState.currentPageId].shapes).length > 0 &&
   s.appState.isEmptyCanvas
 
-export const BackToContent = React.memo(() => {
+export const BackToContent = React.memo(function BackToContent() {
   const { tlstate, useSelector } = useTLDrawContext()
 
   const isEmptyCanvas = useSelector(isEmptyCanvasSelector)

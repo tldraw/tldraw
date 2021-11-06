@@ -10,7 +10,7 @@ import { LockButton } from './LockButton'
 
 const isDebugModeSelector = (s: Data) => s.settings.isDebugMode
 
-export const ToolsPanel = React.memo((): JSX.Element => {
+export const ToolsPanel = React.memo(function ToolsPanel(): JSX.Element {
   const { useSelector } = useTLDrawContext()
 
   const isDebugMode = useSelector(isDebugModeSelector)

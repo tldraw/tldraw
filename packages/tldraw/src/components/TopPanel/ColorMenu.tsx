@@ -11,7 +11,7 @@ const selectColor = (s: Data) => s.appState.selectedStyle.color
 const preventEvent = (e: Event) => e.preventDefault()
 const themeSelector = (data: Data) => (data.settings.isDarkMode ? 'dark' : 'light')
 
-export const ColorMenu = React.memo((): JSX.Element => {
+export const ColorMenu = React.memo(function ColorMenu(): JSX.Element {
   const { tlstate, useSelector } = useTLDrawContext()
 
   const theme = useSelector(themeSelector)

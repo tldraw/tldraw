@@ -421,26 +421,24 @@ function InnerTldraw({
   )
 }
 
-const OneOff = React.memo(
-  ({
-    focusableRef,
-    autofocus,
-  }: {
-    autofocus?: boolean
-    focusableRef: React.RefObject<HTMLDivElement>
-  }) => {
-    useKeyboardShortcuts(focusableRef)
-    useStylesheet()
+const OneOff = React.memo(function OneOff({
+  focusableRef,
+  autofocus,
+}: {
+  autofocus?: boolean
+  focusableRef: React.RefObject<HTMLDivElement>
+}) {
+  useKeyboardShortcuts(focusableRef)
+  useStylesheet()
 
-    React.useEffect(() => {
-      if (autofocus) {
-        focusableRef.current?.focus()
-      }
-    }, [autofocus])
+  React.useEffect(() => {
+    if (autofocus) {
+      focusableRef.current?.focus()
+    }
+  }, [autofocus])
 
-    return null
-  }
-)
+  return null
+})
 
 const StyledLayout = styled('div', {
   position: 'absolute',

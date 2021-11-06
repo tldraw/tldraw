@@ -16,7 +16,7 @@ const selectSize = (s: Data) => s.appState.selectedStyle.size
 
 const preventEvent = (e: Event) => e.preventDefault()
 
-export const SizeMenu = React.memo((): JSX.Element => {
+export const SizeMenu = React.memo(function SizeMenu(): JSX.Element {
   const { tlstate, useSelector } = useTLDrawContext()
 
   const size = useSelector(selectSize)

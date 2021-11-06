@@ -11,7 +11,7 @@ interface MenuProps {
   readOnly: boolean
 }
 
-export const Menu = React.memo(({ readOnly }: MenuProps) => {
+export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
   const { tlstate, callbacks } = useTLDrawContext()
 
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()

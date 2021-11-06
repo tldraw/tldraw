@@ -15,7 +15,7 @@ import { Panel } from '~components/Panel'
 
 const activeToolSelector = (s: Data) => s.appState.activeTool
 
-export const PrimaryTools = React.memo((): JSX.Element => {
+export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
   const { tlstate, useSelector } = useTLDrawContext()
 
   const activeTool = useSelector(activeToolSelector)
