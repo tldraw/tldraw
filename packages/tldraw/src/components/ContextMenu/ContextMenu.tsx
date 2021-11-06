@@ -133,23 +133,18 @@ export const ContextMenu = ({ children }: ContextMenuProps): JSX.Element => {
               <CMRowButton onSelect={handleDuplicate} kbd="#D">
                 Duplicate
               </CMRowButton>
-              <Divider />
+              {(hasTwoOrMore || hasGroupSelected) && <Divider />}
               {hasTwoOrMore && (
-                <>
-                  <CMRowButton onSelect={handleGroup} kbd="#G">
-                    Group
-                  </CMRowButton>
-                  <Divider />
-                </>
+                <CMRowButton onSelect={handleGroup} kbd="#G">
+                  Group
+                </CMRowButton>
               )}
               {hasGroupSelected && (
-                <>
-                  <CMRowButton onSelect={handleGroup} kbd="#⇧G">
-                    Ungroup
-                  </CMRowButton>
-                  <Divider />
-                </>
+                <CMRowButton onSelect={handleGroup} kbd="#⇧G">
+                  Ungroup
+                </CMRowButton>
               )}
+              <Divider />
               <ContextMenuSubMenu label="Move">
                 <CMRowButton onSelect={handleMoveToFront} kbd="⇧]">
                   To Front
