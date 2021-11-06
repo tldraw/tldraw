@@ -1,4 +1,5 @@
-export * from './components/tldraw'
+export * from './TLDraw'
 export * from './types'
-export * from './shape'
+export * from './state/shapes'
 export { TLDrawState } from './state'
+export { useFileSystem } from './hooks'

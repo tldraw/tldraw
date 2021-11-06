@@ -1,74 +1,76 @@
 {
   "name": "tldraw",
   "private": true,
-  "author": "@steveruizok",
   "description": "A tiny little drawing app.",
+  "author": "@steveruizok",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tldraw/tldraw.git"
   },
   "license": "MIT",
-  "version": "0.0.74",
   "workspaces": [
-    "packages/core",
     "packages/tldraw",
-    "packages/dev",
-    "packages/www",
-    "packages/vec",
-    "packages/intersect"
+    "example",
+    "www"
   ],
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watchAll",
     "lerna": "lerna",
-    "start": "lerna run start:pre && lerna run start --stream --parallel",
-    "start:www": "yarn build:packages && lerna run start --parallel & cd packages/www && yarn dev",
-    "build": "yarn build:packages && cd packages/www && yarn build",
-    "build:packages": "cd packages/vec && yarn build && cd ../intersect && yarn build && cd ../core && yarn build && cd ../tldraw && yarn build",
-    "publish:patch": "yarn build:packages && lerna publish patch",
+    "start": "lerna run start --stream --parallel",
+    "start:www": "yarn build:packages && lerna run start --parallel & cd www && yarn dev",
+    "build": "yarn build:packages && cd www && yarn build",
+    "build:packages": "cd packages/tldraw && yarn build",
+    "publish:patch": "yarn test && yarn build:packages && lerna publish patch",
     "docs": "lerna run docs",
-    "docs:watch": "lerna run docs:watch"
+    "docs:watch": "lerna run docs:watch",
+    "postinstall": "husky install",
+    "fix:style": "yarn run prettier ./packages/tldraw/src --write"
   },
   "devDependencies": {
-    "@babel/core": "^7.15.0",
-    "@babel/plugin-syntax-import-meta": "^7.10.4",
-    "@babel/preset-env": "^7.15.0",
-    "@babel/preset-react": "^7.14.5",
-    "@babel/preset-typescript": "^7.15.0",
+    "@swc-node/jest": "^1.3.3",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.0.0",
-    "@types/jest": "^27.0.1",
+    "@types/jest": "^27.0.2",
     "@types/node": "^15.0.1",
-    "@types/react": "^16.9.55",
-    "@types/react-dom": "^16.9.9",
+    "@types/react": "^17.0.33",
+    "@types/react-dom": "^17.0.10",
     "@typescript-eslint/eslint-plugin": "^4.19.0",
     "@typescript-eslint/parser": "^4.19.0",
-    "babel-jest": "^27.1.0",
     "eslint": "^7.32.0",
     "fake-indexeddb": "^3.1.3",
+    "husky": "^7.0.4",
     "init-package-json": "^2.0.4",
-    "jest": "^27.1.0",
+    "jest": "^27.3.1",
     "lerna": "^3.22.1",
+    "lint-staged": "^11.2.6",
+    "prettier": "^2.4.1",
     "resize-observer-polyfill": "^1.5.1",
-    "ts-jest": "^27.0.5",
     "tslib": "^2.3.0",
     "typedoc": "^0.22.3",
     "typescript": "^4.4.2"
   },
-  "dependencies": {},
   "prettier": {
     "trailingComma": "es5",
     "singleQuote": true,
     "semi": false,
     "printWidth": 100
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "test && lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*": "fix:style && eslint"
+  },
   "jest": {
-    "preset": "ts-jest",
     "setupFilesAfterEnv": [
       "<rootDir>/setupTests.ts"
     ],
     "transform": {
-      "^.+\\.(tsx|jsx|ts|js|mjs)?$": "ts-jest"
+      "^.+\\.(tsx|jsx|ts|js|mjs)?$": "@swc-node/jest"
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "moduleFileExtensions": [
@@ -79,45 +81,14 @@
       "json",
       "node"
     ],
-    "globals": {
-      "ts-jest": {
-        "tsconfig": "tsconfig.json",
-        "babelConfig": {
-          "presets": [
-            [
-              "@babel/preset-env",
-              {
-                "targets": {
-                  "esmodules": true
-                }
-              }
-            ],
-            [
-              "@babel/preset-react"
-            ],
-            "@babel/preset-typescript"
-          ],
-          "plugins": [
-            "@babel/plugin-syntax-import-meta"
-          ]
-        }
-      }
-    },
     "testEnvironment": "jsdom",
     "modulePathIgnorePatterns": [
-      "<rootDir>/packages/vec/dist/",
-      "<rootDir>/packages/intersect/dist/",
-      "<rootDir>/packages/core/dist/",
       "<rootDir>/packages/tldraw/dist/",
       "<rootDir>/packages/tldraw/test-utils/"
     ],
     "moduleNameMapper": {
-      "@tldraw/vec": "<rootDir>/packages/vec/src",
-      "@tldraw/intersect": "<rootDir>/packages/intersect/src",
-      "@tldraw/core": "<rootDir>/packages/core/src",
       "@tldraw/tldraw": "<rootDir>/packages/tldraw/src",
-      "\\~(.*)": "<rootDir>/packages/tldraw/src/$1",
-      "\\+(.*)": "<rootDir>/packages/core/src/$1"
+      "\\~(.*)": "<rootDir>/packages/tldraw/src/$1"
     }
   }
 }

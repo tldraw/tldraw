@@ -1,11 +1,34 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import type { TLBinding, TLShapeProps, TLSnapLine } from '@tldraw/core'
-import type { TLShape, TLShapeUtil, TLHandle } from '@tldraw/core'
+import type {
+  TLBinding,
+  TLBoundsCorner,
+  TLBoundsEdge,
+  TLShapeProps,
+  TLShape,
+  TLHandle,
+  TLBounds,
+  TLSnapLine,
+} from '@tldraw/core'
 import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
 import type { Command, Patch } from 'rko'
+import type { FileSystemHandle } from '~state/data/browser-fs-access'
 
+export interface TLDrawHandle extends TLHandle {
+  canBind?: boolean
+  bindingId?: string
+}
+
+export interface TLDrawTransformInfo<T extends TLShape> {
+  type: TLBoundsEdge | TLBoundsCorner
+  initialShape: T
+  scaleX: number
+  scaleY: number
+  transformOrigin: number[]
+}
+
+// old
 export type TLStore = StoreApi<Data>
 
 export type TLChange = Data
@@ -14,8 +37,10 @@ export type TLDrawPage = TLPage<TLDrawShape, TLDrawBinding>
 
 export interface TLDrawDocument {
   id: string
+  name: string
   pages: Record<string, TLDrawPage>
   pageStates: Record<string, TLPageState>
+  version: number
 }
 
 export interface TLDrawSettings {
@@ -116,6 +141,24 @@ export abstract class Session {
   ) => TLDrawPatch | undefined
   abstract complete: (data: Readonly<Data>) => TLDrawPatch | TLDrawCommand | undefined
   abstract cancel: (data: Readonly<Data>) => TLDrawPatch | undefined
+
+  viewport: TLBounds
+
+  constructor(viewport: TLBounds) {
+    this.viewport = viewport
+  }
+
+  updateViewport = (viewport: TLBounds) => {
+    this.viewport = viewport
+  }
+
+  static cache: {
+    selectedIds: string[]
+    center: number[]
+  } = {
+    selectedIds: [],
+    center: [0, 0],
+  }
 }
 
 export enum TLDrawStatus {
@@ -137,6 +180,8 @@ export enum TLDrawStatus {
 export type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never
 
 export type ExceptFirst<T extends unknown[]> = T extends [any, ...infer U] ? U : never
+
+export type ExceptFirstTwo<T extends unknown[]> = T extends [any, any, ...infer U] ? U : never
 
 export enum MoveType {
   Backward = 'backward',
@@ -180,12 +225,13 @@ export enum TLDrawShapeType {
 }
 
 export enum Decoration {
-  Arrow = 'Arrow',
+  Arrow = 'arrow',
 }
 
 export interface TLDrawBaseShape extends TLShape {
   style: ShapeStyles
   type: TLDrawShapeType
+  handles?: Record<string, TLDrawHandle>
 }
 
 export interface DrawShape extends TLDrawBaseShape {
@@ -198,9 +244,9 @@ export interface ArrowShape extends TLDrawBaseShape {
   type: TLDrawShapeType.Arrow
   bend: number
   handles: {
-    start: TLHandle
-    bend: TLHandle
-    end: TLHandle
+    start: TLDrawHandle
+    bend: TLDrawHandle
+    end: TLDrawHandle
   }
   decorations?: {
     start?: Decoration
@@ -245,49 +291,47 @@ export type TLDrawShape =
   | GroupShape
   | StickyShape
 
-export type TLDrawShapeUtil<T extends TLDrawShape> = TLShapeUtil<T, any, TLDrawMeta>
-
-export type ArrowBinding = TLBinding<{
+export interface ArrowBinding extends TLBinding {
   handleId: keyof ArrowShape['handles']
   distance: number
   point: number[]
-}>
+}
 
 export type TLDrawBinding = ArrowBinding
 
 export enum ColorStyle {
-  White = 'White',
-  LightGray = 'LightGray',
-  Gray = 'Gray',
-  Black = 'Black',
-  Green = 'Green',
-  Cyan = 'Cyan',
-  Blue = 'Blue',
-  Indigo = 'Indigo',
-  Violet = 'Violet',
-  Red = 'Red',
-  Orange = 'Orange',
-  Yellow = 'Yellow',
+  White = 'white',
+  LightGray = 'lightGray',
+  Gray = 'gray',
+  Black = 'black',
+  Green = 'green',
+  Cyan = 'cyan',
+  Blue = 'blue',
+  Indigo = 'indigo',
+  Violet = 'violet',
+  Red = 'red',
+  Orange = 'orange',
+  Yellow = 'yellow',
 }
 
 export enum SizeStyle {
-  Small = 'Small',
-  Medium = 'Medium',
-  Large = 'Large',
+  Small = 'small',
+  Medium = 'medium',
+  Large = 'large',
 }
 
 export enum DashStyle {
-  Draw = 'Draw',
-  Solid = 'Solid',
-  Dashed = 'Dashed',
-  Dotted = 'Dotted',
+  Draw = 'draw',
+  Solid = 'solid',
+  Dashed = 'dashed',
+  Dotted = 'dotted',
 }
 
 export enum FontSize {
-  Small = 'Small',
-  Medium = 'Medium',
-  Large = 'Large',
-  ExtraLarge = 'ExtraLarge',
+  Small = 'small',
+  Medium = 'medium',
+  Large = 'large',
+  ExtraLarge = 'extraLarge',
 }
 
 export type ShapeStyles = {
@@ -354,3 +398,12 @@ export type Easing =
   | 'easeInExpo'
   | 'easeOutExpo'
   | 'easeInOutExpo'
+
+/* ------------------- File System ------------------ */
+
+export interface TLDrawFile {
+  name: string
+  fileHandle: FileSystemHandle | null
+  document: TLDrawDocument
+  assets: Record<string, unknown>
+}

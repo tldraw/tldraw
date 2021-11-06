@@ -18,6 +18,5 @@
     "declarationMap": false,
     "sourceMap": false,
     "emitDeclarationOnly": true
-  },
-  "references": [{ "path": "../vec" }, { "path": "../intersect" }, { "path": "../core" }]
+  }
 }

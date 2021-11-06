@@ -1,28 +1,29 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "0.0.124",
-  "private": false,
+  "version": "0.1.4",
   "description": "A tiny little drawing app (editor)",
   "author": "@steveruizok",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tldraw/tldraw.git",
-    "directory": "packages/tldraw"
+    "url": "git+https://github.com/tldraw/tldraw.git"
   },
   "license": "MIT",
-  "keywords": [],
+  "keywords": [
+    "react",
+    "canvas",
+    "zoom",
+    "drawing",
+    "whiteboard"
+  ],
   "files": [
     "dist/**/*"
   ],
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
-  "typings": "./dist/types/index.d.ts",
   "scripts": {
-    "start:pre": "node scripts/pre-dev && yarn types:pre",
     "start": "node scripts/dev & yarn types:dev",
-    "build": "node scripts/build && yarn types:build",
-    "types:pre": "tsc",
+    "build": "node scripts/build && yarn types:build && node scripts/copy-readme",
     "types:dev": "tsc -w",
     "types:build": "tsc -p tsconfig.build.json && tsconfig-replace-paths -p tsconfig.build.json",
     "lint": "eslint src/ --ext .ts,.tsx",
@@ -30,24 +31,6 @@
     "ts-node": "ts-node",
     "docs": "typedoc",
     "docs:watch": "typedoc --watch"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.15.5",
-    "@babel/preset-env": "^7.15.4",
-    "@types/jest": "^27.0.1",
-    "@types/node": "^16.7.10",
-    "@types/react": "^16.9.55",
-    "@types/react-dom": "^16.9.9",
-    "@typescript-eslint/eslint-plugin": "^4.30.0",
-    "@typescript-eslint/parser": "^4.30.0",
-    "esbuild": "^0.13.8",
-    "eslint": "^7.32.0",
-    "lerna": "^4.0.0",
-    "ts-node": "^10.2.1",
-    "tsconfig-replace-paths": "^0.0.5",
-    "tslib": "^2.3.1",
-    "typedoc": "^0.22.3",
-    "typescript": "^4.4.2"
   },
   "peerDependencies": {
     "react": ">=16.8",
@@ -62,14 +45,17 @@
     "@radix-ui/react-id": "^0.1.1",
     "@radix-ui/react-radio-group": "^0.1.1",
     "@radix-ui/react-tooltip": "^0.1.1",
-    "@stitches/core": "^1.2.5",
-    "@stitches/react": "^1.0.0",
-    "@tldraw/core": "^0.0.124",
-    "@tldraw/intersect": "^0.0.124",
-    "@tldraw/vec": "^0.0.124",
+    "@stitches/react": "^1.2.5",
+    "@tldraw/core": "^0.1.18",
+    "@tldraw/intersect": "^0.1.3",
+    "@tldraw/vec": "^0.1.3",
     "perfect-freehand": "^1.0.16",
     "react-hotkeys-hook": "^3.4.0",
-    "rko": "^0.5.25"
+    "rko": "^0.6.0",
+    "tslib": "^2.3.1"
   },
-  "gitHead": "5cb031ddc264846ec6732d7179511cddea8ef034"
+  "devDependencies": {
+    "tsconfig-replace-paths": "^0.0.5"
+  },
+  "gitHead": "083b36e167b6911927a6b58cbbb830b11b33f00a"
 }

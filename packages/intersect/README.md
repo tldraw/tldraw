@@ -1,3 +1,0 @@
-# @tldraw/intersect
-
-Intersection utilities.

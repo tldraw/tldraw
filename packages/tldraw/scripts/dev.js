@@ -1,7 +1,6 @@
 /* eslint-disable */
 const esbuild = require('esbuild')
-
-const name = process.env.npm_package_name || ''
+const pkg = require('../package.json')
 
 async function main() {
   esbuild.build({
@@ -14,16 +13,16 @@ async function main() {
     jsxFactory: 'React.createElement',
     jsxFragment: 'React.Fragment',
     tsconfig: './tsconfig.build.json',
-    external: ['react', 'react-dom'],
+    external: Object.keys(pkg.dependencies).concat(Object.keys(pkg.peerDependencies)),
     sourcemap: true,
     incremental: true,
     watch: {
       onRebuild(error) {
         if (error) {
-          console.log(`× ${name}: An error in prevented the rebuild.`)
+          console.log(`× ${pkg.name}: An error in prevented the rebuild.`)
           return
         }
-        console.log(`✔ ${name}: Rebuilt.`)
+        console.log(`✔ ${pkg.name}: Rebuilt.`)
       },
     },
   })

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { TLDrawShapeType } from '~types'
-import { useTLDrawContext } from '~hooks'
+import { useFileSystemHandlers, useTLDrawContext } from '~hooks'
 
 export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   const { tlstate } = useTLDrawContext()
@@ -102,13 +102,46 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [tlstate]
   )
 
-  // Save
+  // File System
+
+  const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
+
+  useHotkeys(
+    'ctrl+n,command+n',
+    (e) => {
+      if (canHandleEvent()) {
+        onNewProject(e)
+      }
+    },
+    undefined,
+    [tlstate]
+  )
+  useHotkeys(
+    'ctrl+s,command+s',
+    (e) => {
+      if (canHandleEvent()) {
+        onSaveProject(e)
+      }
+    },
+    undefined,
+    [tlstate]
+  )
 
   useHotkeys(
     'ctrl+shift+s,command+shift+s',
-    () => {
+    (e) => {
       if (canHandleEvent()) {
-        tlstate.saveProject()
+        onSaveProjectAs(e)
+      }
+    },
+    undefined,
+    [tlstate]
+  )
+  useHotkeys(
+    'ctrl+o,command+o',
+    (e) => {
+      if (canHandleEvent()) {
+        onOpenProject(e)
       }
     },
     undefined,
@@ -120,7 +153,13 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'command+z,ctrl+z',
     () => {
-      if (canHandleEvent()) tlstate.undo()
+      if (canHandleEvent()) {
+        if (tlstate.session) {
+          tlstate.cancelSession()
+        } else {
+          tlstate.undo()
+        }
+      }
     },
     undefined,
     [tlstate]
@@ -129,7 +168,13 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+shift-z,command+shift+z',
     () => {
-      if (canHandleEvent()) tlstate.redo()
+      if (canHandleEvent()) {
+        if (tlstate.session) {
+          tlstate.cancelSession()
+        } else {
+          tlstate.redo()
+        }
+      }
     },
     undefined,
     [tlstate]
@@ -249,7 +294,9 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'escape',
     () => {
-      if (canHandleEvent()) tlstate.cancel()
+      if (canHandleEvent()) {
+        tlstate.cancel()
+      }
     },
     undefined,
     [tlstate]
@@ -439,7 +486,9 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     'command+shift+backspace',
     (e) => {
       if (canHandleEvent()) {
-        tlstate.resetDocument()
+        if (process.env.NODE_ENV === 'development') {
+          tlstate.resetDocument()
+        }
         e.preventDefault()
       }
     },

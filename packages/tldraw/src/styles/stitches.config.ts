@@ -1,6 +1,6 @@
-import { createStitches, defaultThemeMap } from '@stitches/core'
+import { createStitches, defaultThemeMap } from '@stitches/react'
 
-const { css, createTheme, getCssText } = createStitches({
+const { styled, createTheme } = createStitches({
   themeMap: {
     ...defaultThemeMap,
   },
@@ -21,8 +21,10 @@ const { css, createTheme, getCssText } = createStitches({
       blurred: 'rgb(143, 146, 148, .15)',
       canvas: '#f8f9fa',
       panel: '#fefefe',
+      panelBorder: 'rgba(0, 0, 0, 0.12)',
+      panelActive: '#fefefe',
       inactive: '#cccccf',
-      hover: '#efefef',
+      hover: '#eaf2ff',
       text: '#333333',
       tooltipBg: '#1d1d1d',
       tooltipText: '#ffffff',
@@ -40,6 +42,9 @@ const { css, createTheme, getCssText } = createStitches({
       12: '0px 12px 17px rgba(0, 0, 0, 0.14)',
       24: '0px 24px 38px rgba(0, 0, 0, 0.14)',
       key: '1px 1px rgba(0,0,0,1)',
+      panel: `0px 0px 16px -1px rgba(0, 0, 0, 0.05), 
+        0px 0px 16px -8px rgba(0, 0, 0, 0.05), 
+        0px 0px 16px -12px rgba(0, 0, 0, 0.12)`,
     },
     space: {
       0: '2px',
@@ -73,6 +78,8 @@ const { css, createTheme, getCssText } = createStitches({
       0: '2px',
       1: '4px',
       2: '8px',
+      3: '12px',
+      4: '16px',
     },
     zIndices: {},
     transitions: {},
@@ -97,7 +104,7 @@ const { css, createTheme, getCssText } = createStitches({
   },
 })
 
-const dark = createTheme({
+export const dark = createTheme({
   colors: {
     brushFill: 'rgba(180, 180, 180, .05)',
     brushStroke: 'rgba(180, 180, 180, .25)',
@@ -113,6 +120,8 @@ const dark = createTheme({
     blurred: 'rgb(32, 37, 41, 1, .05)',
     canvas: '#343d45',
     panel: '#49555f',
+    panelBorder: 'rgba(255, 255, 255, 0.12)',
+    panelActive: '#fefefe',
     inactive: '#aaaaad',
     hover: '#343d45',
     text: '#f8f9fa',
@@ -131,9 +140,10 @@ const dark = createTheme({
     8: '0px 12px 17px rgba(0, 0, 0, 0.24)',
     12: '0px 12px 17px rgba(0, 0, 0, 0.24)',
     24: '0px 24px 38px rgba(0, 0, 0, 0.24)',
+    panel: `0px 0px 16px -1px rgba(0, 0, 0, 0.05), 
+      0px 0px 16px -8px rgba(0, 0, 0, 0.09), 
+      0px 0px 16px -12px rgba(0, 0, 0, 0.2)`,
   },
 })
 
-export default css
-
-export { getCssText, dark }
+export { styled }

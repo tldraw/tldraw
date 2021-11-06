@@ -5,7 +5,6 @@ const themeSelector = (data: Data): Theme => (data.settings.isDarkMode ? 'dark' 
 
 export function useTheme() {
   const { tlstate, useSelector } = useTLDrawContext()
-
   const theme = useSelector(themeSelector)
 
   return {

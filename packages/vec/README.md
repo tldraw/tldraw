@@ -1,3 +1,0 @@
-# @tldraw/vec
-
-Vector utilities.
