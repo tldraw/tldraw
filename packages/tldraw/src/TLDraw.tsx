@@ -1,20 +1,20 @@
 import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
-import styled, { dark } from '~styles'
+import { styled, dark } from '~styles'
 import { Data, TLDrawDocument, TLDrawStatus, TLDrawUser } from '~types'
 import { TLDrawState } from '~state'
 import {
   TLDrawContext,
   TLDrawContextType,
-  useCustomFonts,
+  useStylesheet,
   useKeyboardShortcuts,
   useTLDrawContext,
 } from '~hooks'
-import { shapeUtils } from '~shape-utils'
+import { shapeUtils } from '~state/shapes'
 import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
-import { TLDR } from '~state/tldr'
+import { TLDR } from '~state/TLDR'
 import { ContextMenu } from '~components/ContextMenu'
 import { FocusButton } from '~components/FocusButton/FocusButton'
 
@@ -430,7 +430,7 @@ const OneOff = React.memo(
     focusableRef: React.RefObject<HTMLDivElement>
   }) => {
     useKeyboardShortcuts(focusableRef)
-    useCustomFonts()
+    useStylesheet()
 
     React.useEffect(() => {
       if (autofocus) {

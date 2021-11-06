@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Menu } from './Menu'
-import styled from '~styles'
+import { styled } from '~styles'
 import { PageMenu } from './PageMenu'
 import { ZoomMenu } from './ZoomMenu'
 import { DashMenu } from './DashMenu'

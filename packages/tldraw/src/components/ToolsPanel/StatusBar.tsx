@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useTLDrawContext } from '~hooks'
 import type { Data } from '~types'
-import styled from '~styles'
+import { styled } from '~styles'
 import { breakpoints } from '~components/breakpoints'
 
 const statusSelector = (s: Data) => s.appState.status

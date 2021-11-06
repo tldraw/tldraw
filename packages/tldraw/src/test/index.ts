@@ -1,3 +1,3 @@
-export * from './mock-document'
+export * from './mockDocument'
 export * from './renderWithContext'
-export * from './state-utils'
+export * from './TLDrawStateUtils'

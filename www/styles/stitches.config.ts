@@ -141,6 +141,4 @@ const globalStyles = globalCss({
   '*': { boxSizing: 'border-box' },
 })
 
-export default styled
-
-export { getCssText, globalStyles, light, dark }
+export { styled, getCssText, globalStyles, light, dark }

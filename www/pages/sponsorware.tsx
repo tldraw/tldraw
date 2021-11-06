@@ -1,4 +1,4 @@
-import styled from 'styles'
+import { styled } from 'styles'
 import { getSession, signin, signout, useSession } from 'next-auth/client'
 import { GetServerSideProps } from 'next'
 import Link from 'next/link'

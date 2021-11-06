@@ -1,5 +1,5 @@
 import * as React from 'react'
-import styled from '~styles'
+import { styled } from '~styles'
 import type { Data } from '~types'
 import { useTLDrawContext } from '~hooks'
 import { StatusBar } from './StatusBar'

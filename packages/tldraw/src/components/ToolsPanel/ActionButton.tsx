@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Tooltip } from '~components/Tooltip/Tooltip'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTLDrawContext } from '~hooks'
-import styled from '~styles'
+import { styled } from '~styles'
 import { AlignType, Data, DistributeType, StretchType } from '~types'
 import {
   ArrowDownIcon,

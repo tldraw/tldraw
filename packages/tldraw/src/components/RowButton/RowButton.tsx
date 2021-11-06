@@ -4,7 +4,7 @@ import * as React from 'react'
 import { breakpoints } from '~components/breakpoints'
 import { Kbd } from '~components/Kbd'
 import { SmallIcon } from '~components/SmallIcon'
-import styled from '~styles'
+import { styled } from '~styles'
 
 export interface RowButtonProps {
   onSelect?: () => void

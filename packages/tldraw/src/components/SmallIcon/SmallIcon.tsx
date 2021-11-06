@@ -1,4 +1,4 @@
-import styled from '~styles'
+import { styled } from '~styles'
 
 export const SmallIcon = styled('div', {
   height: '100%',
