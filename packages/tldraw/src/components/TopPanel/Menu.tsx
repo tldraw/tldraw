@@ -70,7 +70,7 @@ export const Menu = React.memo(({ readOnly }: MenuProps) => {
               </DMItem>
             )}
             {callbacks.onOpenProject && (
-              <DMItem onSelect={onOpenProject} kbd="#L">
+              <DMItem onSelect={onOpenProject} kbd="#O">
                 Open...
               </DMItem>
             )}
@@ -88,7 +88,6 @@ export const Menu = React.memo(({ readOnly }: MenuProps) => {
         )}
         {!readOnly && (
           <>
-            {' '}
             <DMSubMenu label="Edit...">
               <DMItem onSelect={tlstate.undo} kbd="#Z">
                 Undo

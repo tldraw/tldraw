@@ -1,6 +1,10 @@
+## 0.1.4
+
+- UI bug fixes.
+
 ## 0.1.3
 
-- Update dependencies
+- Update dependencies.
 
 ## 0.1.2
 
@@ -8,11 +12,11 @@
 
 ## 0.1.1
 
-- Update dependencies
+- Update dependencies.
 
 ## 0.1.0
 
-- Mark dependencies as external
+- Mark dependencies as external.
 - Revamp UI
 
 ## 0.0.133
@@ -41,7 +45,7 @@
 
 ### TLCore
 
-- Major change to ShapeUtils API
+- Major change to ShapeUtils API.
 
 ### TLDraw
 
