@@ -18,7 +18,7 @@ async function main() {
     esbuild.buildSync({
       entryPoints: ['./src/index.tsx'],
       outfile: 'dist/index.js',
-      minify: true,
+      minify: false,
       bundle: true,
       format: 'cjs',
       target: 'es6',
