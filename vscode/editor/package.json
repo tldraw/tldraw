@@ -12,7 +12,6 @@
   ],
   "scripts": {
     "start:vscode": "node scripts/dev.mjs -w",
-    "start": "node scripts/dev.mjs -w",
     "build": "node scripts/build.mjs"
   },
   "devDependencies": {
