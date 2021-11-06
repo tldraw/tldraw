@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Content } from '@radix-ui/react-dropdown-menu'
-import styled from '~styles/stitches.config'
+import { styled } from '~styles/stitches.config'
 import { MenuContent } from '~components/MenuContent'
 
 export interface DMContentProps {

@@ -1,5 +1,4 @@
 export * from './BoxIcon'
-export * from './CheckIcon'
 export * from './CircleIcon'
 export * from './DashDashedIcon'
 export * from './DashDottedIcon'

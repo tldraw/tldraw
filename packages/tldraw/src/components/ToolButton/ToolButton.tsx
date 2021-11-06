@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { breakpoints } from '~components/breakpoints'
 import { Tooltip } from '~components/Tooltip'
-import styled from '~styles'
+import { styled } from '~styles'
 
 export interface ToolButtonProps {
   onClick?: () => void

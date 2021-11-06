@@ -1,5 +1,5 @@
 import * as React from 'react'
-import styled from '~styles'
+import { styled } from '~styles'
 import * as RadixContextMenu from '@radix-ui/react-context-menu'
 import { useTLDrawContext } from '~hooks'
 import { Data, AlignType, DistributeType, StretchType } from '~types'

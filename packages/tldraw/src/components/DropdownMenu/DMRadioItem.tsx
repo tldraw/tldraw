@@ -1,5 +1,5 @@
 import { RadioItem } from '@radix-ui/react-dropdown-menu'
-import styled from '~styles/stitches.config'
+import { styled } from '~styles/stitches.config'
 
 export const DMRadioItem = styled(RadioItem, {
   height: '32px',

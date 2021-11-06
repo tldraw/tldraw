@@ -1,20 +1,20 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { strokes } from '~shapes'
-import { useTheme, useTLDrawContext } from '~hooks'
-import type { Data, ColorStyle } from '~types'
-import CircleIcon from '~components/icons/CircleIcon'
+import { strokes } from '~state/shapes'
+import { useTLDrawContext } from '~hooks'
 import { DMContent, DMTriggerIcon } from '~components/DropdownMenu'
-import { BoxIcon } from '~components/icons'
+import { BoxIcon, CircleIcon } from '~components/icons'
 import { ToolButton } from '~components/ToolButton'
+import type { Data, ColorStyle } from '~types'
 
 const selectColor = (s: Data) => s.appState.selectedStyle.color
 const preventEvent = (e: Event) => e.preventDefault()
+const themeSelector = (data: Data) => (data.settings.isDarkMode ? 'dark' : 'light')
 
 export const ColorMenu = React.memo((): JSX.Element => {
-  const { theme } = useTheme()
   const { tlstate, useSelector } = useTLDrawContext()
 
+  const theme = useSelector(themeSelector)
   const color = useSelector(selectColor)
 
   return (

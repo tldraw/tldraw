@@ -2,7 +2,7 @@ import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { TLDrawState } from '~state'
 import { useKeyboardShortcuts, TLDrawContext } from '~hooks'
-import { mockDocument } from './mock-document'
+import { mockDocument } from './mockDocument'
 import { render } from '@testing-library/react'
 
 export const Wrapper: React.FC = ({ children }) => {

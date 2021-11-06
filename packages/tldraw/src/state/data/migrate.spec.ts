@@ -1,7 +1,7 @@
 import type { TLDrawDocument } from '~types'
 import { TLDrawState } from '~state'
-import oldDoc from '../../test/old-doc'
-import oldDoc2 from '../../test/old-doc-2'
+import oldDoc from '~test/documents/old-doc'
+import oldDoc2 from '~test/documents/old-doc-2'
 
 describe('When migrating bindings', () => {
   it('migrates a document without a version', () => {
