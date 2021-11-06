@@ -24,7 +24,8 @@
     "publish:patch": "yarn test && yarn build:packages && lerna publish patch",
     "docs": "lerna run docs",
     "docs:watch": "lerna run docs:watch",
-    "postinstall": "husky install"
+    "postinstall": "husky install",
+    "fix:style": "yarn run prettier ./packages/tldraw/src --write"
   },
   "devDependencies": {
     "@swc-node/jest": "^1.3.3",
@@ -43,6 +44,7 @@
     "jest": "^27.3.1",
     "lerna": "^3.22.1",
     "lint-staged": "^11.2.6",
+    "prettier": "^2.4.1",
     "resize-observer-polyfill": "^1.5.1",
     "tslib": "^2.3.0",
     "typedoc": "^0.22.3",
@@ -57,11 +59,11 @@
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged",
-      "pre-push": "test"
+      "pre-push": "test && lint-staged"
     }
   },
   "lint-staged": {
-    "*": "prettier"
+    "*": "fix:style && eslint"
   },
   "jest": {
     "setupFilesAfterEnv": [
