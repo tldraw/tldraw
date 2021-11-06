@@ -1,6 +1,6 @@
 import Vec from '@tldraw/vec'
 import { Utils, TLPointerEventHandler, TLBoundsCorner } from '@tldraw/core'
-import { Rectangle } from '~shape-utils'
+import { Rectangle } from '~shapes'
 import { SessionType, TLDrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 

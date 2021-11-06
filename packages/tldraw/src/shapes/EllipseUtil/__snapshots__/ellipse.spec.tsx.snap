@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Ellipse shape Creates a shape: ellipse 1`] = `
+Object {
+  "childIndex": 1,
+  "id": "ellipse",
+  "name": "Ellipse",
+  "parentId": "page",
+  "point": Array [
+    0,
+    0,
+  ],
+  "radius": Array [
+    1,
+    1,
+  ],
+  "rotation": 0,
+  "style": Object {
+    "color": "black",
+    "dash": "draw",
+    "isFilled": false,
+    "size": "small",
+  },
+  "type": "ellipse",
+}
+`;

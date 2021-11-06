@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { strokes } from '~shape-utils'
+import { strokes } from '~shapes'
 import { useTheme, useTLDrawContext } from '~hooks'
 import type { Data, ColorStyle } from '~types'
 import CircleIcon from '~components/icons/CircleIcon'

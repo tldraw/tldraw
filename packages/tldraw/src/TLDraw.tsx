@@ -11,7 +11,7 @@ import {
   useKeyboardShortcuts,
   useTLDrawContext,
 } from '~hooks'
-import { shapeUtils } from '~shape-utils'
+import { shapeUtils } from '~shapes'
 import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
 import { TLDR } from '~state/tldr'

@@ -1,5 +1,5 @@
 import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
-import { getShapeUtils, TLDrawShapeUtil } from '~shape-utils'
+import { getShapeUtils, TLDrawShapeUtil } from '~shapes'
 import {
   Data,
   ShapeStyles,

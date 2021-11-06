@@ -1,5 +1,5 @@
 export * from './TLDraw'
 export * from './types'
-export * from './shape-utils'
+export * from './shapes'
 export { TLDrawState } from './state'
 export { useFileSystem } from './hooks'

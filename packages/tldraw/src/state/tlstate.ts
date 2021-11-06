@@ -41,7 +41,7 @@ import {
   ExceptFirstTwo,
 } from '~types'
 import { TLDR } from './tldr'
-import { defaultStyle, shapeUtils } from '~shape-utils'
+import { defaultStyle, shapeUtils } from '~shapes'
 import * as Commands from './command'
 import { ArgsOfType, getSession } from './session'
 import { sample } from './utils'
