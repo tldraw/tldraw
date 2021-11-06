@@ -1,0 +1,38 @@
+{
+  "name": "@tldraw/vscode-editor",
+  "version": "0.1.4",
+  "private": true,
+  "description": "An an editor for the tldraw vscode extension.",
+  "author": "@steveruizok",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "typescript",
+    "esbuild"
+  ],
+  "main": "dist/electron.js",
+  "scripts": {
+    "start:electron": "concurrently -k \"node scripts/dev.mjs -w\" \"yarn:electron\"",
+    "build": "node scripts/build.mjs",
+    "electron": "wait-on tcp:5420 && electron ."
+  },
+  "devDependencies": {
+    "@tldraw/tldraw": "^0.1.4",
+    "@types/node": "^14.14.35",
+    "@types/react": "^16.9.55",
+    "@types/react-dom": "^16.9.9",
+    "@types/react-router-dom": "^5.1.8",
+    "concurrently": "6.0.1",
+    "create-serve": "1.0.1",
+    "electron": "^15.3.0",
+    "electron-is-dev": "^2.0.0",
+    "esbuild": "^0.13.8",
+    "esbuild-serve": "^1.0.1",
+    "react": ">=16.8",
+    "react-dom": "^16.8 || ^17.0",
+    "rimraf": "3.0.2",
+    "typescript": "4.2.3",
+    "wait-on": "^6.0.0"
+  },
+  "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6"
+}
