@@ -8,9 +8,6 @@ import { TextUtil } from './TextUtil'
 import { DrawUtil } from './DrawUtil'
 import { TLDrawShape, TLDrawShapeType } from '~types'
 
-export * from './shape-styles'
-export * from './TLDrawShapeUtil'
-
 export const Rectangle = new RectangleUtil()
 export const Ellipse = new EllipseUtil()
 export const Draw = new DrawUtil()

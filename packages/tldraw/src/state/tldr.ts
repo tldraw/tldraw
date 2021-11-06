@@ -1,5 +1,4 @@
 import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
-import { getShapeUtils, TLDrawShapeUtil } from '~state/shapes'
 import {
   Data,
   ShapeStyles,
@@ -13,6 +12,8 @@ import {
   ArrowShape,
 } from '~types'
 import { Vec } from '@tldraw/vec'
+import type { TLDrawShapeUtil } from './shapes/TLDrawShapeUtil'
+import { getShapeUtils } from './shapes'
 
 export class TLDR {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

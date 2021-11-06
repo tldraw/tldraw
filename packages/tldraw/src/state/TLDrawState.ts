@@ -40,17 +40,21 @@ import {
   ExceptFirst,
   ExceptFirstTwo,
 } from '~types'
+import {
+  migrate,
+  FileSystemHandle,
+  loadFileHandle,
+  openFromFileSystem,
+  saveToFileSystem,
+} from './data'
 import { TLDR } from './TLDR'
-import { defaultStyle, shapeUtils } from '~state/shapes'
+import { shapeUtils } from '~state/shapes'
+import { defaultStyle } from '~state/shapes/shape-styles'
 import * as Commands from './commands'
 import { ArgsOfType, getSession } from './sessions'
-import { sample } from './utils'
 import { createTools, ToolType } from './tools'
 import type { BaseTool } from './tools/BaseTool'
 import { USER_COLORS, FIT_TO_SCREEN_PADDING } from '~constants'
-import { migrate } from './data/migrate'
-import { loadFileHandle, openFromFileSystem, saveToFileSystem } from './data/filesystem'
-import type { FileSystemHandle } from './data/browser-fs-access'
 
 const uuid = Utils.uniqueId()
 
@@ -791,7 +795,7 @@ export class TLDrawState extends StateManager<Data> {
         users: {
           [uuid]: {
             id: uuid,
-            color: sample(USER_COLORS),
+            color: USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)],
             point: [100, 100],
             selectedIds: [],
             activeShapes: [],
@@ -2582,7 +2586,7 @@ export class TLDrawState extends StateManager<Data> {
       users: {
         [uuid]: {
           id: uuid,
-          color: sample(USER_COLORS),
+          color: USER_COLORS[0],
           point: [100, 100],
           selectedIds: [],
           activeShapes: [],

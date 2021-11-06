@@ -1,11 +1,11 @@
 import * as React from 'react'
+import { styled } from '~styles'
 import { Utils, SVGContainer } from '@tldraw/core'
 import { defaultStyle } from '../shape-styles'
 import { TLDrawShapeType, GroupShape, ColorStyle, TLDrawMeta } from '~types'
-import { getBoundsRectangle } from '../shared'
 import { BINDING_DISTANCE } from '~constants'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
-import { styled } from '~styles'
+import { getBoundsRectangle } from '../shared'
 
 type T = GroupShape
 type E = SVGSVGElement
