@@ -9,6 +9,7 @@
   },
   "license": "MIT",
   "workspaces": [
+    "vscode/editor",
     "packages/tldraw",
     "example",
     "www"
@@ -17,6 +18,7 @@
     "test": "jest",
     "test:watch": "jest --watchAll",
     "lerna": "lerna",
+    "start:vscode": "lerna run start:vscode --stream --parallel",
     "start": "lerna run start --stream --parallel",
     "start:www": "yarn build:packages && lerna run start --parallel & cd www && yarn dev",
     "build": "yarn build:packages && cd www && yarn build",

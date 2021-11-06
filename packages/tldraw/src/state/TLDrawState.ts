@@ -780,6 +780,8 @@ export class TLDrawState extends StateManager<Data> {
       }
     }
 
+    nextState.document = migrate(nextState.document, nextState.document.version || 0)
+
     return this.replaceState(nextState, `${reason}:${document.id}`)
   }
 
