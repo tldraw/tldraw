@@ -4,9 +4,10 @@
   "exclude": ["node_modules", "dist", "docs"],
   "compilerOptions": {
     "outDir": "./dist/types",
-    "rootDir": "src",
-    "baseUrl": "src",
-    "emitDeclarationOnly": false,
+    "rootDir": ".",
+    "baseUrl": ".",
+    "allowJs": false,
+    "emitDeclarationOnly": true,
     "paths": {
       "@tldraw/tldraw": ["../packages/tldraw"]
     }

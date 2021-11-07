@@ -10,11 +10,11 @@
     "typescript",
     "esbuild"
   ],
-  "main": "dist/electron.js",
   "scripts": {
-    "start:electron": "concurrently -k \"node scripts/dev.mjs -w\" \"yarn:electron\"",
-    "build": "node scripts/build.mjs",
-    "electron": "wait-on tcp:5420 && electron ."
+    "start:electron": "dev",
+    "dev": "electron-esbuild dev",
+    "build": "electron-esbuild build",
+    "package": "electron-builder"
   },
   "devDependencies": {
     "@tldraw/tldraw": "^0.1.4",
@@ -22,17 +22,57 @@
     "@types/react": "^16.9.55",
     "@types/react-dom": "^16.9.9",
     "@types/react-router-dom": "^5.1.8",
-    "concurrently": "6.0.1",
-    "create-serve": "1.0.1",
-    "electron": "^15.3.0",
-    "electron-is-dev": "^2.0.0",
+    "electron": "15.3.0",
+    "electron-builder": "^22.13.1",
+    "electron-esbuild": "^3.0.0",
+    "electron-util": "^0.17.2",
     "esbuild": "^0.13.8",
     "esbuild-serve": "^1.0.1",
     "react": ">=16.8",
     "react-dom": "^16.8 || ^17.0",
     "rimraf": "3.0.2",
-    "typescript": "4.2.3",
-    "wait-on": "^6.0.0"
+    "typescript": "4.2.3"
+  },
+  "build": {
+    "appId": "io.comp.tldraw-electron",
+    "productName": "TLDraw",
+    "extraMetadata": {
+      "name": "TLDraw",
+      "main": "main.js"
+    },
+    "files": [
+      {
+        "from": ".",
+        "filter": [
+          "package.json"
+        ]
+      },
+      {
+        "from": "dist/main"
+      },
+      {
+        "from": "dist/renderer"
+      }
+    ],
+    "win": {
+      "target": [
+        "zip"
+      ]
+    },
+    "mac": {
+      "target": [
+        "zip"
+      ]
+    },
+    "linux": {
+      "target": [
+        "zip"
+      ]
+    },
+    "directories": {
+      "buildResources": "resources"
+    },
+    "publish": null
   },
   "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6"
 }

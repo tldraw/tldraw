@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { TLDraw, TLDrawState } from '@tldraw/tldraw'
-import './styles.css'
 
 export default function App(): JSX.Element {
   const rTLDrawState = React.useRef<TLDrawState>()
