@@ -26,13 +26,12 @@ async function main() {
         },
         watch: {
           onRebuild(err) {
-            serve.update()
             err ? error('❌ Failed') : log('✅ Updated')
           },
         },
       },
       {
-        port: 5000,
+        port: 5420,
         root: './dist',
         live: true,
       }
