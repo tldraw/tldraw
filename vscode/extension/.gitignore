@@ -1,4 +1,5 @@
 dist
+dist-editor
 node_modules
 .vscode-test-web/
 *.vsix

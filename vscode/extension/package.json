@@ -1,5 +1,5 @@
 {
-	"name": "@tldraw/vscode-extension",
+	"name": "tldraw-extension",
 	"displayName": "Tldraw Editor",
 	"description": "The Tldraw editor for VS Code",
 	"version": "0.1.6",
@@ -29,7 +29,7 @@
 		"customEditors": [
 			{
 				"viewType": "tldraw.tldr",
-				"displayName": "Tldr Editor",
+				"displayName": "Tldraw Editor",
 				"selector": [
 					{
 						"filenamePattern": "*.tldr"
@@ -40,7 +40,7 @@
 		"commands": [
 			{
 				"command": "tldraw.tldr.new",
-				"title": "Create a new .tldr file",
+				"title": "Create a new Tldraw file",
 				"category": "Tldraw"
 			}
 		]
@@ -51,7 +51,7 @@
 		"test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/index.js",
 		"web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
 		"pretest": "npm run compile-web",
-		"vscode:prepublish": "node scripts/dev",
+		"vscode:prepublish": "node scripts/build",
 		"package-web": "webpack --mode production --devtool hidden-source-map",
 		"lint": "eslint src --ext ts"
 	},

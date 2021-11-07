@@ -23,8 +23,12 @@ export function getHtmlForWebview(
     documentContent = 'null'
   }
 
-  return getDevModeHTML(context, webview, documentContent)
-  // return getProductionModeHTML(context, webview, documentContent);
+  if(process.env.NODE_ENV === 'production'){
+    return getProductionModeHTML(context, webview, documentContent);
+  } else {
+    return getDevModeHTML(context, webview, documentContent)
+  }
+  
 }
 
 /**
@@ -85,12 +89,14 @@ function getProductionModeHTML(
   documentContent: string
 ): string {
   const cssUrl = webview.asWebviewUri(
-    vscode.Uri.joinPath(context.extensionUri, 'editor-build/static/css', 'index.css')
+    vscode.Uri.joinPath(context.extensionUri, 'dist-editor/', 'index.css')
   )
 
   const jsUrl = webview.asWebviewUri(
-    vscode.Uri.joinPath(context.extensionUri, 'editor-build/', 'index.js')
+    vscode.Uri.joinPath(context.extensionUri, 'dist-editor/', 'index.js')
   )
+
+  console.log("production mode");
 
   return `
   <!DOCTYPE html>
