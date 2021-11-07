@@ -1,7 +1,3 @@
-## 0.1.5
-
-- Fix touch events on top of screen.
-
 ## 0.1.4
 
 - UI bug fixes.
