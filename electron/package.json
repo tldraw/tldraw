@@ -11,7 +11,7 @@
     "esbuild"
   ],
   "scripts": {
-    "start:electron": "dev",
+    "start:electron": "yarn dev",
     "dev": "electron-esbuild dev",
     "build": "electron-esbuild build",
     "package": "electron-builder"
