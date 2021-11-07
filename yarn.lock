@@ -3395,6 +3395,11 @@
   resolved "https://registry.yarnpkg.com/@types/verror/-/verror-1.10.5.tgz#2a1413aded46e67a1fe2386800e291123ed75eb1"
   integrity sha512-9UjMCHK5GPgQRoNbqdLIAvAy0EInuiqbW0PBMtVP6B5B2HQJlvoJHM+KodPZMEjOa5VkSc+5LH7xy+cUzQdmHw==
 
+"@types/vscode@^1.59.0":
+  version "1.62.0"
+  resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.62.0.tgz#b4d6d192d5aeb75e91d0adef689c3ecef9879da7"
+  integrity sha512-iGlQJ1w5e3qPUryroO6v4lxg3ql1ztdTCwQW3xEwFawdyPLoeUSv48SYfMwc7kQA7h6ThUqflZIjgKAykeF9oA==
+
 "@types/yargs-parser@*":
   version "20.2.1"
   resolved "https://registry.yarnpkg.com/@types/yargs-parser/-/yargs-parser-20.2.1.tgz#3b9ce2489919d9e4fea439b76916abc34b2df129"

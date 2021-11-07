@@ -11,6 +11,7 @@
   "workspaces": [
     "electron",
     "vscode/editor",
+    "vscode/extension",
     "packages/tldraw",
     "example",
     "www"
@@ -35,6 +36,7 @@
     "@swc-node/jest": "^1.3.3",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.0.0",
+    "@types/vscode": "^1.59.0",
     "@types/jest": "^27.0.2",
     "@types/node": "^15.0.1",
     "@types/react": "^17.0.33",

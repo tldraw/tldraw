@@ -1,8 +1,8 @@
 {
-	"name": "tldraw-vscode-extension",
+	"name": "@tldraw/vscode-extension",
 	"displayName": "Tldraw Editor",
 	"description": "The Tldraw editor for VS Code",
-	"version": "0.10.0",
+	"version": "0.1.6",
 	"publisher": "Tldraw",
 	"repository": "https://github.com/tldraw/tldraw",
 	"engines": {
@@ -46,18 +46,21 @@
 		]
 	},
 	"scripts": {
+		"start:vscode": "node scripts/dev & yarn types:dev",
+		"types:dev": "tsc -w",
 		"test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/index.js",
 		"web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
 		"pretest": "npm run compile-web",
-		"vscode:prepublish": "npm run package-web",
-		"compile-web": "webpack",
-		"watch-web": "webpack --watch",
+		"vscode:prepublish": "node scripts/dev",
 		"package-web": "webpack --mode production --devtool hidden-source-map",
 		"lint": "eslint src --ext ts"
 	},
+	"dependencies": {
+	},
+	"peerDependencies": {
+	},
 	"devDependencies": {
-		"@types/vscode": "^1.59.0",
-		"@types/mocha": "^9.0.0",
+		
 		"eslint": "^7.32.0",
 		"@typescript-eslint/eslint-plugin": "^4.31.1",
 		"@typescript-eslint/parser": "^4.31.1",
@@ -65,9 +68,6 @@
 		"typescript": "^4.4.3",
 		"@vscode/test-web": "^0.0.12",
 		"ts-loader": "^9.2.5",
-		"webpack": "^5.52.1",
-		"webpack-cli": "^4.8.0",
-		"@types/webpack-env": "^1.16.2",
 		"assert": "^2.0.0",
 		"process": "^0.11.10"
 	}
