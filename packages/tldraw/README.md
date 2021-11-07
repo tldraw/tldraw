@@ -221,7 +221,7 @@ A binding is a connection **from** one shape and **to** another shape. At the mo
 
 - Run `yarn start` to start the development server for the package and for the example.
 
-- Open `localhost:5000` to view the example project.
+- Open `localhost:5420` to view the example project.
 
 - Run `yarn test` to execute unit tests via [Jest](https://jestjs.io).
 
