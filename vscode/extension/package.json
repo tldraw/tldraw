@@ -1,19 +1,15 @@
 {
-	"name": "tldraw-extension",
+	"name": "wardlt",
 	"displayName": "Tldraw Editor",
 	"description": "The Tldraw editor for VS Code",
 	"version": "0.1.6",
-	"publisher": "Tldraw",
+	"publisher": "Wardlt",
 	"repository": "https://github.com/tldraw/tldraw",
 	"engines": {
 		"vscode": "^1.59.0"
 	},
 	"categories": [
-		"Diagram",
-		"Sketch",
-		"Draw",
-		"Flowchart",
-		"Mind Map"
+		"Visualization"
 	],
 	"activationEvents": [
 		"onCustomEditor:tldraw.tldr",
