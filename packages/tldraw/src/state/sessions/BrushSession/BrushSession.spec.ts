@@ -6,7 +6,7 @@ describe('Brush session', () => {
   it('begins, updateSession', () => {
     const tlstate = new TLDrawState()
       .loadDocument(mockDocument)
-      .deselectAll()
+      .selectNone()
       .startSession(SessionType.Brush, [-10, -10])
       .updateSession([10, 10])
       .completeSession()
@@ -17,7 +17,7 @@ describe('Brush session', () => {
   it('selects multiple shapes', () => {
     const tlstate = new TLDrawState()
       .loadDocument(mockDocument)
-      .deselectAll()
+      .selectNone()
       .startSession(SessionType.Brush, [-10, -10])
       .updateSession([110, 110])
       .completeSession()
@@ -27,7 +27,7 @@ describe('Brush session', () => {
   it('does not de-select original shapes', () => {
     const tlstate = new TLDrawState()
       .loadDocument(mockDocument)
-      .deselectAll()
+      .selectNone()
       .select('rect1')
       .startSession(SessionType.Brush, [300, 300])
       .updateSession([301, 301])
@@ -38,9 +38,9 @@ describe('Brush session', () => {
   // it('does not select hidden shapes', () => {
   //   const tlstate = new TLDrawState()
   //     .loadDocument(mockDocument)
-  //     .deselectAll()
+  //     .selectNone()
   //     .toggleHidden(['rect1'])
-  //     .deselectAll()
+  //     .selectNone()
   //     .startSession(SessionType.Brush, [-10, -10])
   //     .updateSession([10, 10])
   //     .completeSession()
@@ -49,9 +49,9 @@ describe('Brush session', () => {
   it('when command is held, require the entire shape to be selected', () => {
     const tlstate = new TLDrawState()
       .loadDocument(mockDocument)
-      .deselectAll()
+      .selectNone()
       .loadDocument(mockDocument)
-      .deselectAll()
+      .selectNone()
       .startSession(SessionType.Brush, [-10, -10])
       .updateSession([10, 10], false, false, true)
       .completeSession()

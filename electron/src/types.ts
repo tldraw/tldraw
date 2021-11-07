@@ -1,7 +1,19 @@
-export enum UI_EVENT {
-  TLDRAW_UPDATED = 'TLDRAW_UPDATED',
-}
+export type Message =
+  | { type: 'zoomIn' }
+  | { type: 'zoomOut' }
+  | { type: 'resetZoom' }
+  | { type: 'zoomToFit' }
+  | { type: 'zoomToSelection' }
+  | { type: 'undo' }
+  | { type: 'redo' }
+  | { type: 'cut' }
+  | { type: 'copy' }
+  | { type: 'paste' }
+  | { type: 'delete' }
+  | { type: 'selectAll' }
+  | { type: 'selectNone' }
 
-export enum EXTENSION_EVENT {
-  LOCAL_FILE_UPDATED = 'LOCAL_FILE_UPDATED',
+export type TLApi = {
+  send: (channel: string, data: Message) => void
+  on: (channel: string, cb: (message: Message) => void) => void
 }

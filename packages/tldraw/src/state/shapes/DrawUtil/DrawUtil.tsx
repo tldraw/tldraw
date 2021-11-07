@@ -50,7 +50,7 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
       return style.dash === DashStyle.Draw
         ? getDrawStrokePathData(shape)
         : getSolidStrokePathData(shape)
-    }, [points, style.size, style.dash, isComplete, false])
+    }, [points, style.size, style.dash, isComplete])
 
     const styles = getShapeStyle(style, meta.isDarkMode)
 

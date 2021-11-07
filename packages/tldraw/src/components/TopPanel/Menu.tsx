@@ -24,6 +24,10 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
     callbacks.onSignOut?.(tlstate)
   }, [tlstate])
 
+  const handleCut = React.useCallback(() => {
+    tlstate.cut()
+  }, [tlstate])
+
   const handleCopy = React.useCallback(() => {
     tlstate.copy()
   }, [tlstate])
@@ -44,8 +48,8 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
     tlstate.selectAll()
   }, [tlstate])
 
-  const handleDeselectAll = React.useCallback(() => {
-    tlstate.deselectAll()
+  const handleselectNone = React.useCallback(() => {
+    tlstate.selectNone()
   }, [tlstate])
 
   const showFileMenu =
@@ -96,6 +100,9 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
                 Redo
               </DMItem>
               <DMDivider dir="ltr" />
+              <DMItem onSelect={handleCut} kbd="#X">
+                Cut
+              </DMItem>
               <DMItem onSelect={handleCopy} kbd="#C">
                 Copy
               </DMItem>
@@ -111,7 +118,7 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
               <DMItem onSelect={handleSelectAll} kbd="#A">
                 Select All
               </DMItem>
-              <DMItem onSelect={handleDeselectAll}>Select None</DMItem>
+              <DMItem onSelect={handleselectNone}>Select None</DMItem>
             </DMSubMenu>
             <DMDivider dir="ltr" />
           </>

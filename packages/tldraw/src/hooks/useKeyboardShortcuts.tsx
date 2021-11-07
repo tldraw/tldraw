@@ -249,7 +249,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'shift+0',
     () => {
-      if (canHandleEvent()) tlstate.zoomToActual()
+      if (canHandleEvent()) tlstate.resetZoom()
     },
     undefined,
     [tlstate]
@@ -398,12 +398,21 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [tlstate]
   )
 
-  // Copy & Paste
+  // Copy, Cut & Paste
 
   useHotkeys(
     'command+c,ctrl+c',
     () => {
       if (canHandleEvent()) tlstate.copy()
+    },
+    undefined,
+    [tlstate]
+  )
+
+  useHotkeys(
+    'command+x,ctrl+x',
+    () => {
+      if (canHandleEvent()) tlstate.cut()
     },
     undefined,
     [tlstate]

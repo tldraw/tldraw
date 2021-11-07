@@ -56,7 +56,7 @@ describe('When double clicking link controls', () => {
     .startSession(SessionType.Arrow, [200, 200], 'end')
     .updateSession([250, 50])
     .completeSession()
-    .deselectAll().document
+    .selectNone().document
 
   it('moves all linked shapes when center is dragged', () => {
     const tlstate = new TLDrawState().loadDocument(doc).select('rect2')

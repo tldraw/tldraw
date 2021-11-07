@@ -1,6 +1,6 @@
-# @tldraw/tldraw-example
+# @tldraw/tldraw-electron
 
-An example for @tldraw/tldraw with a very fast dev server.
+A React app for the @tldraw/electron package.
 
 **Note:** You probably do not need to start the server here: it is started as
-part of `yarn start` in the root directory.
+part of `yarn start:electron` in the root directory.

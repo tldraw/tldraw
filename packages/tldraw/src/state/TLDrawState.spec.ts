@@ -11,7 +11,7 @@ describe('TLDrawState', () => {
 
   describe('When copying and pasting...', () => {
     it('copies a shape', () => {
-      tlstate.loadDocument(mockDocument).deselectAll().copy(['rect1'])
+      tlstate.loadDocument(mockDocument).selectNone().copy(['rect1'])
     })
 
     it('pastes a shape', () => {
@@ -19,7 +19,7 @@ describe('TLDrawState', () => {
 
       const prevCount = Object.keys(tlstate.page.shapes).length
 
-      tlstate.deselectAll().copy(['rect1']).paste()
+      tlstate.selectNone().copy(['rect1']).paste()
 
       expect(Object.keys(tlstate.page.shapes).length).toBe(prevCount + 1)
 
@@ -35,7 +35,7 @@ describe('TLDrawState', () => {
     it('pastes a shape to a new page', () => {
       tlstate.loadDocument(mockDocument)
 
-      tlstate.deselectAll().copy(['rect1']).createPage().paste()
+      tlstate.selectNone().copy(['rect1']).createPage().paste()
 
       expect(Object.keys(tlstate.page.shapes).length).toBe(1)
 
@@ -135,14 +135,14 @@ describe('TLDrawState', () => {
 
   describe('Selection', () => {
     it('selects a shape', () => {
-      tlstate.loadDocument(mockDocument).deselectAll()
+      tlstate.loadDocument(mockDocument).selectNone()
       tlu.clickShape('rect1')
       expect(tlstate.selectedIds).toStrictEqual(['rect1'])
       expect(tlstate.appState.status).toBe('idle')
     })
 
     it('selects and deselects a shape', () => {
-      tlstate.loadDocument(mockDocument).deselectAll()
+      tlstate.loadDocument(mockDocument).selectNone()
       tlu.clickShape('rect1')
       tlu.clickCanvas()
       expect(tlstate.selectedIds).toStrictEqual([])
@@ -150,7 +150,7 @@ describe('TLDrawState', () => {
     })
 
     it('selects multiple shapes', () => {
-      tlstate.loadDocument(mockDocument).deselectAll()
+      tlstate.loadDocument(mockDocument).selectNone()
       tlu.clickShape('rect1')
       tlu.clickShape('rect2', { shiftKey: true })
       expect(tlstate.selectedIds).toStrictEqual(['rect1', 'rect2'])
@@ -158,7 +158,7 @@ describe('TLDrawState', () => {
     })
 
     it('shift-selects to deselect shapes', () => {
-      tlstate.loadDocument(mockDocument).deselectAll()
+      tlstate.loadDocument(mockDocument).selectNone()
       tlu.clickShape('rect1')
       tlu.clickShape('rect2', { shiftKey: true })
       tlu.clickShape('rect2', { shiftKey: true })
@@ -167,7 +167,7 @@ describe('TLDrawState', () => {
     })
 
     it('clears selection when clicking bounds', () => {
-      tlstate.loadDocument(mockDocument).deselectAll()
+      tlstate.loadDocument(mockDocument).selectNone()
       tlstate.startSession(SessionType.Brush, [-10, -10])
       tlstate.updateSession([110, 110])
       tlstate.completeSession()
@@ -187,7 +187,7 @@ describe('TLDrawState', () => {
     // })
 
     it('does not select on meta-click', () => {
-      tlstate.loadDocument(mockDocument).deselectAll()
+      tlstate.loadDocument(mockDocument).selectNone()
       tlu.clickShape('rect1', { ctrlKey: true })
       expect(tlstate.selectedIds).toStrictEqual([])
       expect(tlstate.appState.status).toBe('idle')
@@ -214,7 +214,7 @@ describe('TLDrawState', () => {
     // Single click on a selected shape to select just that shape
 
     it('single-selects shape in selection on click', () => {
-      tlstate.deselectAll()
+      tlstate.selectNone()
       tlu.clickShape('rect1')
       tlu.clickShape('rect2', { shiftKey: true })
       tlu.clickShape('rect2')
@@ -223,7 +223,7 @@ describe('TLDrawState', () => {
     })
 
     it('single-selects shape in selection on pointerup only', () => {
-      tlstate.deselectAll()
+      tlstate.selectNone()
       tlu.clickShape('rect1')
       tlu.clickShape('rect2', { shiftKey: true })
       tlu.pointShape('rect2')
@@ -234,7 +234,7 @@ describe('TLDrawState', () => {
     })
 
     // it('selects shapes if shift key is lifted before pointerup', () => {
-    //   tlstate.deselectAll()
+    //   tlstate.selectNone()
     //   tlu.clickShape('rect1')
     //   tlu.pointShape('rect2', { shiftKey: true })
     //   expect(tlstate.appState.status).toBe('pointingBounds')
@@ -390,7 +390,7 @@ describe('TLDrawState', () => {
       const tlstate = new TLDrawState()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
-        .deselectAll()
+        .selectNone()
 
       const tlu = new TLDrawStateUtils(tlstate)
 
@@ -454,7 +454,7 @@ describe('TLDrawState', () => {
 
       expect(tlstate.getShape('groupA').childIndex).toBe(2)
 
-      tlstate.deselectAll()
+      tlstate.selectNone()
       tlstate.selectTool(TLDrawShapeType.Rectangle)
 
       const prevB = tlstate.shapes.map((shape) => shape.id)

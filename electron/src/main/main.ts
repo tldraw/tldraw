@@ -1,65 +1,32 @@
-import path from 'path'
-import { format } from 'url'
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { app, BrowserWindow } from 'electron'
 import { is } from 'electron-util'
+import type { Message } from 'src/types'
+import { createMenu } from './createMenu'
+import { createWindow } from './createWindow'
+import './preload'
 
 let win: BrowserWindow | null = null
 
-async function createWindow() {
-  win = new BrowserWindow({
-    width: 800,
-    height: 820,
-    minHeight: 600,
-    minWidth: 650,
-    webPreferences: {
-      nodeIntegration: true,
-      devTools: true,
-    },
-    show: false,
-  })
+async function main() {
+  win = await createWindow()
 
-  const isDev = is.development
-
-  if (isDev) {
-    win.loadURL('http://localhost:9080')
-  } else {
-    win.loadURL(
-      format({
-        pathname: path.join(__dirname, 'index.html'),
-        protocol: 'file',
-        slashes: true,
-      })
-    )
+  async function send(message: Message) {
+    win!.webContents.send('projectMsg', message)
   }
 
-  win.on('closed', () => {
-    win = null
-  })
-
-  win.webContents.on('devtools-opened', () => {
-    win!.focus()
-  })
-
-  win.on('ready-to-show', () => {
-    win!.show()
-    win!.focus()
-
-    if (isDev) {
-      win!.webContents.openDevTools({ mode: 'bottom' })
-    }
-  })
+  await createMenu(send)
 }
 
-app.on('ready', createWindow)
-
-app.on('window-all-closed', () => {
-  if (!is.macos) {
-    app.quit()
-  }
-})
-
-app.on('activate', () => {
-  if (win === null && app.isReady()) {
-    createWindow()
-  }
-})
+app
+  .on('ready', main)
+  .on('window-all-closed', () => {
+    if (!is.macos) {
+      app.quit()
+    }
+  })
+  .on('activate', () => {
+    if (win === null && app.isReady()) {
+      main()
+    }
+  })
