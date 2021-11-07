@@ -26,7 +26,7 @@ describe('Group command', () => {
 
   describe('when less than two shapes are selected', () => {
     it('does nothing', () => {
-      tlstate.deselectAll()
+      tlstate.selectNone()
 
       // @ts-ignore
       const stackLength = tlstate.stack.length

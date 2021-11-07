@@ -63,8 +63,8 @@ export class SelectTool extends BaseTool<Status> {
     this.state.select(...this.state.selectedIds.filter((oid) => oid !== shape.parentId), id)
   }
 
-  private deselectAll() {
-    this.state.deselectAll()
+  private selectNone() {
+    this.state.selectNone()
   }
 
   onEnter = () => {
@@ -172,7 +172,7 @@ export class SelectTool extends BaseTool<Status> {
   /* ----------------- Event Handlers ----------------- */
 
   onCancel = () => {
-    this.deselectAll()
+    this.selectNone()
     this.state.cancelSession()
     this.setStatus(Status.Idle)
   }
@@ -379,7 +379,7 @@ export class SelectTool extends BaseTool<Status> {
       if (info.target === 'bounds') {
         // If we just clicked the selecting bounds's background,
         // clear the selection
-        this.deselectAll()
+        this.selectNone()
       } else if (this.state.isSelected(info.target)) {
         // If we're holding shift...
         if (info.shiftKey) {
@@ -438,7 +438,7 @@ export class SelectTool extends BaseTool<Status> {
         return
       }
 
-      this.deselectAll()
+      this.selectNone()
     }
 
     this.setStatus(Status.PointingCanvas)
@@ -494,7 +494,7 @@ export class SelectTool extends BaseTool<Status> {
 
       if (info.metaKey) {
         if (!info.shiftKey) {
-          this.deselectAll()
+          this.selectNone()
         }
 
         const point = this.state.getPagePoint(info.point)
@@ -595,7 +595,7 @@ export class SelectTool extends BaseTool<Status> {
   onPointBounds: TLBoundsEventHandler = (info) => {
     if (info.metaKey) {
       if (!info.shiftKey) {
-        this.deselectAll()
+        this.selectNone()
       }
 
       const point = this.state.getPagePoint(info.point)

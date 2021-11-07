@@ -685,7 +685,7 @@ export class TLDrawState extends StateManager<Data> {
       if (!document.pages[pageId]) {
         if (pageId === this.appState.currentPageId) {
           this.cancelSession()
-          this.deselectAll()
+          this.selectNone()
         }
 
         currentPageStates[pageId] = undefined as unknown as TLPageState
@@ -812,7 +812,7 @@ export class TLDrawState extends StateManager<Data> {
    * @param document The document to load
    */
   loadDocument = (document: TLDrawDocument): this => {
-    this.deselectAll()
+    this.selectNone()
     this.resetHistory()
     this.clearSelectHistory()
     this.session = undefined
@@ -1162,6 +1162,16 @@ export class TLDrawState extends StateManager<Data> {
     this.pasteInfo.offset = [0, 0]
     this.pasteInfo.center = [0, 0]
 
+    return this
+  }
+
+  /**
+   * Cut (copy and delete) one or more shapes to the clipboard.
+   * @param ids The ids of the shapes to cut.
+   */
+  cut = (ids = this.selectedIds): this => {
+    this.copy(ids)
+    this.delete(ids)
     return this
   }
 
@@ -1579,7 +1589,7 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Zoom the camera to 100%.
    */
-  zoomToActual = (): this => {
+  resetZoom = (): this => {
     return this.zoomTo(1)
   }
 
@@ -1714,7 +1724,7 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Deselect any selected shapes.
    */
-  deselectAll = (): this => {
+  selectNone = (): this => {
     this.setSelectedIds([])
     this.addToSelectHistory(this.selectedIds)
     return this

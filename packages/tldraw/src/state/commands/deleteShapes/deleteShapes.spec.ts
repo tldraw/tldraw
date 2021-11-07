@@ -73,7 +73,7 @@ describe('Delete command', () => {
     expect(Object.values(tlstate.page.bindings)[0]).toBe(undefined)
 
     tlstate
-      .deselectAll()
+      .selectNone()
       .createShapes({
         id: 'arrow1',
         type: TLDrawShapeType.Arrow,

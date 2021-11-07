@@ -24,7 +24,7 @@ export function ZoomMenu() {
         <DMItem onSelect={tlstate.zoomOut} kbd="#−">
           Zoom Out
         </DMItem>
-        <DMItem onSelect={tlstate.zoomToActual} kbd="⇧0">
+        <DMItem onSelect={tlstate.resetZoom} kbd="⇧0">
           To 100%
         </DMItem>
         <DMItem onSelect={tlstate.zoomToFit} kbd="⇧1">

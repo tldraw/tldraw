@@ -67,12 +67,12 @@ describe('when running the command', () => {
       .loadDocument(mockDocument)
       .select('rect1')
       .toggleHidden()
-      .deselectAll()
+      .selectNone()
       .undo()
 
     expect(tlstate.selectedIds).toEqual(['rect1'])
 
-    tlstate.deselectAll().redo()
+    tlstate.selectNone().redo()
 
     expect(tlstate.selectedIds).toEqual(['rect1'])
   })
