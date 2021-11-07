@@ -1,5 +1,5 @@
 import type { TLDrawDocument, TLDrawFile } from '~types'
-import { fileSave, fileOpen, FileSystemHandle } from './browser-fs-access'
+import { fileSave, fileOpen, FileSystemHandle } from '~state/data/browser-fs-access'
 import { get as getFromIdb, set as setToIdb } from 'idb-keyval'
 
 const options = { mode: 'readwrite' as const }

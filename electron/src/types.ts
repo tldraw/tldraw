@@ -1,9 +1,12 @@
+import type { TLDrawDocument, TLDrawFile } from '../../packages/tldraw/src'
+
 export type Message =
-  | { type: 'zoomIn' }
-  | { type: 'zoomOut' }
-  | { type: 'resetZoom' }
-  | { type: 'zoomToFit' }
-  | { type: 'zoomToSelection' }
+  // File
+  | { type: 'newFile'; file: TLDrawFile }
+  | { type: 'openFile'; file: TLDrawFile }
+  | { type: 'saveFile' }
+  | { type: 'saveFileAs' }
+  // Edit
   | { type: 'undo' }
   | { type: 'redo' }
   | { type: 'cut' }
@@ -12,8 +15,16 @@ export type Message =
   | { type: 'delete' }
   | { type: 'selectAll' }
   | { type: 'selectNone' }
+  // View
+  | { type: 'zoomIn' }
+  | { type: 'zoomOut' }
+  | { type: 'resetZoom' }
+  | { type: 'zoomToFit' }
+  | { type: 'zoomToSelection' }
+
+export type MessageToMain = { type: 'change'; document: TLDrawDocument }
 
 export type TLApi = {
-  send: (channel: string, data: Message) => void
-  on: (channel: string, cb: (message: Message) => void) => void
+  sendMessage: (data: MessageToMain) => void
+  onMessage: (cb: (message: Message) => void) => void
 }

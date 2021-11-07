@@ -5,6 +5,7 @@ const config: BuildOptions = {
   platform: 'node',
   entryPoints: [path.resolve('src/main/main.ts'), path.resolve('src/main/preload.ts')],
   bundle: true,
+  minify: false,
   target: 'node16.5.0', // electron version target
   sourcemap: true,
 }

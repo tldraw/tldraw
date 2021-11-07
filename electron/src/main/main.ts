@@ -1,21 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcRenderer, IpcRendererEvent } from 'electron'
 import { is } from 'electron-util'
-import type { Message } from 'src/types'
-import { createMenu } from './createMenu'
-import { createWindow } from './createWindow'
+import { createMenu } from './menu'
+import { win, createWindow } from './window'
 import './preload'
 
-let win: BrowserWindow | null = null
-
 async function main() {
-  win = await createWindow()
-
-  async function send(message: Message) {
-    win!.webContents.send('projectMsg', message)
-  }
-
-  await createMenu(send)
+  await createWindow()
+  await createMenu()
 }
 
 app

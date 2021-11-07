@@ -288,15 +288,16 @@ var _,
   })
 p(exports, { directoryOpen: () => A, fileOpen: () => L, fileSave: () => $, supported: () => m })
 var H = (() => {
-    if ('top' in self && self !== top)
+    if (typeof window === undefined) return
+    if ('top' in window && window !== top)
       try {
         top.location + ''
       } catch (e) {
         return !1
       }
     else {
-      if ('chooseFileSystemEntries' in self) return 'chooseFileSystemEntries'
-      if ('showOpenFilePicker' in self) return 'showOpenFilePicker'
+      if ('chooseFileSystemEntries' in window) return 'chooseFileSystemEntries'
+      if ('showOpenFilePicker' in window) return 'showOpenFilePicker'
     }
     return !1
   })(),

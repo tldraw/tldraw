@@ -28,6 +28,7 @@
     "electron-util": "^0.17.2",
     "esbuild": "^0.13.8",
     "esbuild-serve": "^1.0.1",
+    "nanoid": "^3.1.30",
     "react": ">=16.8",
     "react-dom": "^16.8 || ^17.0",
     "rimraf": "3.0.2",

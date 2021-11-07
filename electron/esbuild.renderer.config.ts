@@ -5,6 +5,7 @@ const config: BuildOptions = {
   platform: 'browser',
   entryPoints: [path.resolve('src/renderer/index.tsx')],
   bundle: true,
+  minify: false,
   target: 'chrome94', // electron version target
   sourcemap: true,
 }

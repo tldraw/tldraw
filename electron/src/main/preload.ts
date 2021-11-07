@@ -1,12 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { Message, TLApi } from 'src/types'
+import type { Message, MessageToMain, TLApi } from 'src/types'
 
 const api: TLApi = {
-  send: (channel: string, data: Message) => {
-    ipcRenderer.send(channel, data)
+  sendMessage: (data: MessageToMain) => {
+    ipcRenderer.send('projectMsg', data)
   },
-  on: (channel, cb) => {
-    ipcRenderer.on(channel, (event, message) => cb(message as Message))
+  onMessage: (cb) => {
+    ipcRenderer.on('projectMsg', (event, message) => cb(message as Message))
   },
 }
 

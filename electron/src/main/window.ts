@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import path from 'path'
-import { format } from 'url'
-import { BrowserWindow } from 'electron'
+import { BrowserWindow, ipcMain, IpcMainEvent, ipcRenderer } from 'electron'
 import { is } from 'electron-util'
+import type { Message, MessageToMain } from 'src/types'
+
+export let win: BrowserWindow | null = null
+
+export async function sendMessage(message: Message) {
+  win!.webContents.send('projectMsg', message)
+}
 
 export async function createWindow() {
-  let win: BrowserWindow | null = null
-
   win = new BrowserWindow({
     width: 720,
     height: 450,
@@ -34,7 +38,7 @@ export async function createWindow() {
   }
 
   win.setPosition(0, 0, false)
-  win.setSize(700, 1200)
+  win.setSize(700, 600)
 
   win.on('closed', () => {
     win = null
