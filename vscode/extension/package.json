@@ -1,15 +1,19 @@
 {
-	"name": "wardlt",
-	"displayName": "Wardlt Editor",
-	"description": "The wardlt editor for VS Code",
+	"name": "tldraw-vscode-extension",
+	"displayName": "Tldraw Editor",
+	"description": "The Tldraw editor for VS Code",
 	"version": "0.10.0",
-	"publisher": "Wardlt",
-	"repository": "https://github.com/microsoft/vscode-extension-samples/helloworld-web-sample",
+	"publisher": "Tldraw",
+	"repository": "https://github.com/tldraw/tldraw",
 	"engines": {
 		"vscode": "^1.59.0"
 	},
 	"categories": [
-		"Other"
+		"Diagram",
+		"Sketch",
+		"Draw",
+		"Flowchart",
+		"Mind Map"
 	],
 	"activationEvents": [
 		"onCustomEditor:tldraw.tldr",
