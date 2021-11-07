@@ -52,8 +52,13 @@ const StyledTopPanel = styled('div', {
   right: 0,
   display: 'flex',
   flexDirection: 'row',
+  pointerEvents: 'none',
+  '& > *': {
+    pointerEvents: 'all',
+  },
 })
 
 const StyledSpacer = styled('div', {
   flexGrow: 2,
+  pointerEvents: 'none',
 })
