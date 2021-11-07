@@ -1,8 +1,8 @@
 {
-  "name": "@tldraw/vscode-editor",
+  "name": "@tldraw/electron",
   "version": "0.1.4",
   "private": true,
-  "description": "An an editor for the tldraw vscode extension.",
+  "description": "An electron app for tldraw.",
   "author": "@steveruizok",
   "license": "MIT",
   "keywords": [

@@ -9,6 +9,7 @@
   },
   "license": "MIT",
   "workspaces": [
+    "electron",
     "vscode/editor",
     "packages/tldraw",
     "example",
@@ -18,6 +19,7 @@
     "test": "jest",
     "test:watch": "jest --watchAll",
     "lerna": "lerna",
+    "start:electron": "lerna run start:electron --stream --parallel",
     "start:vscode": "lerna run start:vscode --stream --parallel",
     "start": "lerna run start --stream --parallel",
     "start:www": "yarn build:packages && lerna run start --parallel & cd www && yarn dev",
