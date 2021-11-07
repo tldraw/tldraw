@@ -1,6 +1,11 @@
 # @tldraw/tldraw-electron
 
-A React app for the @tldraw/electron package.
+An electron wrapper for TLDraw. Not yet published.
 
-**Note:** You probably do not need to start the server here: it is started as
-part of `yarn start:electron` in the root directory.
+## Development
+
+From the root of the repository, run:
+
+```bash
+yarn start:vscode
+```
