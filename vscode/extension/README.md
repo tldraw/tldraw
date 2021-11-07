@@ -1,4 +1,4 @@
-# Wardlt
+# Tldraw
 This is an awesome sketch/diagramming extension for making doodles and diagrams of system. It allows you to naturally create informal but legible diagrams, designed to be version controlled along side your code.
 
 ## Features
