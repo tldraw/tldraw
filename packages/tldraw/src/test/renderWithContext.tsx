@@ -6,9 +6,9 @@ import { mockDocument } from './mockDocument'
 import { render } from '@testing-library/react'
 
 export const Wrapper: React.FC = ({ children }) => {
-  const [tlstate] = React.useState(() => new TLDrawState())
+  const [state] = React.useState(() => new TLDrawState())
   const [context] = React.useState(() => {
-    return { tlstate, useSelector: tlstate.useStore, callbacks: {} }
+    return { state, useSelector: state.useStore, callbacks: {} }
   })
 
   const rWrapper = React.useRef<HTMLDivElement>(null)
@@ -17,8 +17,8 @@ export const Wrapper: React.FC = ({ children }) => {
 
   React.useEffect(() => {
     if (!document) return
-    tlstate.loadDocument(mockDocument)
-  }, [document, tlstate])
+    state.loadDocument(mockDocument)
+  }, [document, state])
 
   return (
     <TLDrawContext.Provider value={context}>

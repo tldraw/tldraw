@@ -8,13 +8,13 @@ import { ToolButton } from '~components/ToolButton'
 const isFilledSelector = (s: Data) => s.appState.selectedStyle.isFilled
 
 export const FillCheckbox = React.memo(function FillCheckbox(): JSX.Element {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
 
   const isFilled = useSelector(isFilledSelector)
 
   const handleIsFilledChange = React.useCallback(
-    (isFilled: boolean) => tlstate.style({ isFilled }),
-    [tlstate]
+    (isFilled: boolean) => state.style({ isFilled }),
+    [state]
   )
 
   return (

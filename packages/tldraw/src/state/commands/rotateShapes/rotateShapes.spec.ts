@@ -2,38 +2,38 @@ import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 
 describe('Rotate command', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   beforeEach(() => {
-    tlstate.loadDocument(mockDocument)
+    state.loadDocument(mockDocument)
   })
 
   describe('when no shape is selected', () => {
     it('does nothing', () => {
-      const initialState = tlstate.state
-      tlstate.rotate()
-      const currentState = tlstate.state
+      const initialState = state.state
+      state.rotate()
+      const currentState = state.state
 
       expect(currentState).toEqual(initialState)
     })
   })
 
   it('does, undoes and redoes command', () => {
-    tlstate.select('rect1')
+    state.select('rect1')
 
-    expect(tlstate.getShape('rect1').rotation).toBe(undefined)
+    expect(state.getShape('rect1').rotation).toBe(undefined)
 
-    tlstate.rotate()
+    state.rotate()
 
-    expect(tlstate.getShape('rect1').rotation).toBe(Math.PI * (6 / 4))
+    expect(state.getShape('rect1').rotation).toBe(Math.PI * (6 / 4))
 
-    tlstate.undo()
+    state.undo()
 
-    expect(tlstate.getShape('rect1').rotation).toBe(undefined)
+    expect(state.getShape('rect1').rotation).toBe(undefined)
 
-    tlstate.redo()
+    state.redo()
 
-    expect(tlstate.getShape('rect1').rotation).toBe(Math.PI * (6 / 4))
+    expect(state.getShape('rect1').rotation).toBe(Math.PI * (6 / 4))
   })
 
   it.todo('Rotates several shapes at once.')
@@ -43,17 +43,17 @@ describe('Rotate command', () => {
 
 describe('when running the command', () => {
   it('restores selection on undo', () => {
-    const tlstate = new TLDrawState()
+    const state = new TLDrawState()
       .loadDocument(mockDocument)
       .select('rect1')
       .rotate()
       .selectNone()
       .undo()
 
-    expect(tlstate.selectedIds).toEqual(['rect1'])
+    expect(state.selectedIds).toEqual(['rect1'])
 
-    tlstate.selectNone().redo()
+    state.selectNone().redo()
 
-    expect(tlstate.selectedIds).toEqual(['rect1'])
+    expect(state.selectedIds).toEqual(['rect1'])
   })
 })

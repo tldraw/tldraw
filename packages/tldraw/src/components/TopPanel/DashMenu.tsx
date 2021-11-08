@@ -18,7 +18,7 @@ const selectDash = (s: Data) => s.appState.selectedStyle.dash
 const preventEvent = (e: Event) => e.preventDefault()
 
 export const DashMenu = React.memo(function DashMenu(): JSX.Element {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
 
   const dash = useSelector(selectDash)
 
@@ -31,7 +31,7 @@ export const DashMenu = React.memo(function DashMenu(): JSX.Element {
             <ToolButton
               variant="icon"
               isActive={dash === dashStyle}
-              onClick={() => tlstate.style({ dash: dashStyle as DashStyle })}
+              onClick={() => state.style({ dash: dashStyle as DashStyle })}
             >
               {dashes[dashStyle as DashStyle]}
             </ToolButton>

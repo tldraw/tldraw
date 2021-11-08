@@ -29,7 +29,7 @@ function Editor({ id }: { id: string }) {
 
   const [error, setError] = React.useState<Error>()
 
-  const [tlstate, setTlstate] = React.useState<TLDrawState>()
+  const [state, setstate] = React.useState<TLDrawState>()
 
   useErrorListener((err) => setError(err))
 
@@ -41,22 +41,22 @@ function Editor({ id }: { id: string }) {
     },
   })
 
-  // Put the tlstate into the window, for debugging.
+  // Put the state into the window, for debugging.
   const handleMount = React.useCallback(
-    (tlstate: TLDrawState) => {
+    (state: TLDrawState) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      window.tlstate = tlstate
+      window.state = state
 
-      tlstate.loadRoom(id)
+      state.loadRoom(id)
 
-      setTlstate(tlstate)
+      setstate(state)
     },
     [id]
   )
 
   const handleChange = React.useCallback(
-    (_tlstate: TLDrawState, state: Data, reason: string) => {
+    (_state: TLDrawState, state: Data, reason: string) => {
       // If the client updates its document, update the room's document
       if (reason.startsWith('command') || reason.startsWith('undo') || reason.startsWith('redo')) {
         doc?.update({ uuid: docId, document: state.document })
@@ -78,17 +78,17 @@ function Editor({ id }: { id: string }) {
 
     if (!room) return
     if (!doc) return
-    if (!tlstate) return
-    if (!tlstate.state.room) return
+    if (!state) return
+    if (!state.state.room) return
 
     // Update the user's presence with the user from state
-    const { users, userId } = tlstate.state.room
+    const { users, userId } = state.state.room
 
     room.updatePresence({ id: userId, user: users[userId] })
 
     // Subscribe to presence changes; when others change, update the state
     room.subscribe<TLDrawUserPresence>('others', (others) => {
-      tlstate.updateUsers(
+      state.updateUsers(
         others
           .toArray()
           .filter((other) => other.presence)
@@ -99,25 +99,25 @@ function Editor({ id }: { id: string }) {
 
     room.subscribe('event', (event) => {
       if (event.event?.name === 'exit') {
-        tlstate.removeUser(event.event.userId)
+        state.removeUser(event.event.userId)
       }
     })
 
     function handleDocumentUpdates() {
       if (!doc) return
-      if (!tlstate) return
-      if (!tlstate.state.room) return
+      if (!state) return
+      if (!state.state.room) return
 
       const docObject = doc.toObject()
 
       // Only merge the change if it caused by someone else
       if (docObject.uuid !== docId) {
-        tlstate.mergeDocument(docObject.document)
+        state.mergeDocument(docObject.document)
       } else {
-        tlstate.updateUsers(
-          Object.values(tlstate.state.room.users).map((user) => {
+        state.updateUsers(
+          Object.values(state.state.room.users).map((user) => {
             // const activeShapes = user.activeShapes
-            //   .map((shape) => docObject.document.pages[tlstate.currentPageId].shapes[shape.id])
+            //   .map((shape) => docObject.document.pages[state.currentPageId].shapes[shape.id])
             //   .filter(Boolean)
             return {
               ...user,
@@ -130,8 +130,8 @@ function Editor({ id }: { id: string }) {
     }
 
     function handleExit() {
-      if (!(tlstate && tlstate.state.room)) return
-      room?.broadcastEvent({ name: 'exit', userId: tlstate.state.room.userId })
+      if (!(state && state.state.room)) return
+      room?.broadcastEvent({ name: 'exit', userId: state.state.room.userId })
     }
 
     window.addEventListener('beforeunload', handleExit)
@@ -143,19 +143,19 @@ function Editor({ id }: { id: string }) {
     const newDocument = doc.toObject().document
 
     if (newDocument) {
-      tlstate.loadDocument(newDocument)
+      state.loadDocument(newDocument)
     }
 
     return () => {
       window.removeEventListener('beforeunload', handleExit)
       doc.unsubscribe(handleDocumentUpdates)
     }
-  }, [doc, docId, tlstate, id])
+  }, [doc, docId, state, id])
 
   const handleUserChange = React.useCallback(
-    (tlstate: TLDrawState, user: TLDrawUser) => {
+    (state: TLDrawState, user: TLDrawUser) => {
       const room = client.getRoom(id)
-      room?.updatePresence({ id: tlstate.state.room?.userId, user })
+      room?.updatePresence({ id: state.state.room?.userId, user })
     },
     [id]
   )

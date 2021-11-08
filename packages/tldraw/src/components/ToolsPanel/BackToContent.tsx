@@ -10,7 +10,7 @@ const isEmptyCanvasSelector = (s: Data) =>
   s.appState.isEmptyCanvas
 
 export const BackToContent = React.memo(function BackToContent() {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
 
   const isEmptyCanvas = useSelector(isEmptyCanvasSelector)
 
@@ -18,7 +18,7 @@ export const BackToContent = React.memo(function BackToContent() {
 
   return (
     <BackToContentContainer>
-      <RowButton onSelect={tlstate.zoomToContent}>Back to content</RowButton>
+      <RowButton onSelect={state.zoomToContent}>Back to content</RowButton>
     </BackToContentContainer>
   )
 })

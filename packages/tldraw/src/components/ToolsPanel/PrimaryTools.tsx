@@ -16,37 +16,37 @@ import { Panel } from '~components/Panel'
 const activeToolSelector = (s: Data) => s.appState.activeTool
 
 export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
 
   const activeTool = useSelector(activeToolSelector)
 
   const selectSelectTool = React.useCallback(() => {
-    tlstate.selectTool('select')
-  }, [tlstate])
+    state.selectTool('select')
+  }, [state])
 
   const selectDrawTool = React.useCallback(() => {
-    tlstate.selectTool(TLDrawShapeType.Draw)
-  }, [tlstate])
+    state.selectTool(TLDrawShapeType.Draw)
+  }, [state])
 
   const selectRectangleTool = React.useCallback(() => {
-    tlstate.selectTool(TLDrawShapeType.Rectangle)
-  }, [tlstate])
+    state.selectTool(TLDrawShapeType.Rectangle)
+  }, [state])
 
   const selectEllipseTool = React.useCallback(() => {
-    tlstate.selectTool(TLDrawShapeType.Ellipse)
-  }, [tlstate])
+    state.selectTool(TLDrawShapeType.Ellipse)
+  }, [state])
 
   const selectArrowTool = React.useCallback(() => {
-    tlstate.selectTool(TLDrawShapeType.Arrow)
-  }, [tlstate])
+    state.selectTool(TLDrawShapeType.Arrow)
+  }, [state])
 
   const selectTextTool = React.useCallback(() => {
-    tlstate.selectTool(TLDrawShapeType.Text)
-  }, [tlstate])
+    state.selectTool(TLDrawShapeType.Text)
+  }, [state])
 
   const selectStickyTool = React.useCallback(() => {
-    tlstate.selectTool(TLDrawShapeType.Sticky)
-  }, [tlstate])
+    state.selectTool(TLDrawShapeType.Sticky)
+  }, [state])
 
   return (
     <Panel side="center">

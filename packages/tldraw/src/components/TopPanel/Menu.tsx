@@ -12,53 +12,53 @@ interface MenuProps {
 }
 
 export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
-  const { tlstate } = useTLDrawContext()
+  const { state } = useTLDrawContext()
 
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
 
   const handleSignIn = React.useCallback(() => {
-    tlstate.callbacks.onSignIn?.(tlstate)
-  }, [tlstate])
+    state.callbacks.onSignIn?.(state)
+  }, [state])
 
   const handleSignOut = React.useCallback(() => {
-    tlstate.callbacks.onSignOut?.(tlstate)
-  }, [tlstate])
+    state.callbacks.onSignOut?.(state)
+  }, [state])
 
   const handleCut = React.useCallback(() => {
-    tlstate.cut()
-  }, [tlstate])
+    state.cut()
+  }, [state])
 
   const handleCopy = React.useCallback(() => {
-    tlstate.copy()
-  }, [tlstate])
+    state.copy()
+  }, [state])
 
   const handlePaste = React.useCallback(() => {
-    tlstate.paste()
-  }, [tlstate])
+    state.paste()
+  }, [state])
 
   const handleCopySvg = React.useCallback(() => {
-    tlstate.copySvg()
-  }, [tlstate])
+    state.copySvg()
+  }, [state])
 
   const handleCopyJson = React.useCallback(() => {
-    tlstate.copyJson()
-  }, [tlstate])
+    state.copyJson()
+  }, [state])
 
   const handleSelectAll = React.useCallback(() => {
-    tlstate.selectAll()
-  }, [tlstate])
+    state.selectAll()
+  }, [state])
 
   const handleselectNone = React.useCallback(() => {
-    tlstate.selectNone()
-  }, [tlstate])
+    state.selectNone()
+  }, [state])
 
   const showFileMenu =
-    tlstate.callbacks.onNewProject ||
-    tlstate.callbacks.onOpenProject ||
-    tlstate.callbacks.onSaveProject ||
-    tlstate.callbacks.onSaveProjectAs
+    state.callbacks.onNewProject ||
+    state.callbacks.onOpenProject ||
+    state.callbacks.onSaveProject ||
+    state.callbacks.onSaveProjectAs
 
-  const showSignInOutMenu = tlstate.callbacks.onSignIn || tlstate.callbacks.onSignOut
+  const showSignInOutMenu = state.callbacks.onSignIn || state.callbacks.onSignOut
 
   return (
     <DropdownMenu.Root>
@@ -68,22 +68,22 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
       <DMContent variant="menu">
         {showFileMenu && (
           <DMSubMenu label="File...">
-            {tlstate.callbacks.onNewProject && (
+            {state.callbacks.onNewProject && (
               <DMItem onSelect={onNewProject} kbd="#N">
                 New Project
               </DMItem>
             )}
-            {tlstate.callbacks.onOpenProject && (
+            {state.callbacks.onOpenProject && (
               <DMItem onSelect={onOpenProject} kbd="#O">
                 Open...
               </DMItem>
             )}
-            {tlstate.callbacks.onSaveProject && (
+            {state.callbacks.onSaveProject && (
               <DMItem onSelect={onSaveProject} kbd="#S">
                 Save
               </DMItem>
             )}
-            {tlstate.callbacks.onSaveProjectAs && (
+            {state.callbacks.onSaveProjectAs && (
               <DMItem onSelect={onSaveProjectAs} kbd="⇧#S">
                 Save As...
               </DMItem>
@@ -93,10 +93,10 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
         {!readOnly && (
           <>
             <DMSubMenu label="Edit...">
-              <DMItem onSelect={tlstate.undo} kbd="#Z">
+              <DMItem onSelect={state.undo} kbd="#Z">
                 Undo
               </DMItem>
-              <DMItem onSelect={tlstate.redo} kbd="#⇧Z">
+              <DMItem onSelect={state.redo} kbd="#⇧Z">
                 Redo
               </DMItem>
               <DMDivider dir="ltr" />
@@ -127,8 +127,8 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
         {showSignInOutMenu && (
           <>
             <DMDivider dir="ltr" />{' '}
-            {tlstate.callbacks.onSignIn && <DMItem onSelect={handleSignIn}>Sign In</DMItem>}
-            {tlstate.callbacks.onSignOut && (
+            {state.callbacks.onSignIn && <DMItem onSelect={handleSignIn}>Sign In</DMItem>}
+            {state.callbacks.onSignOut && (
               <DMItem onSelect={handleSignOut}>
                 Sign Out
                 <SmallIcon>

@@ -6,37 +6,37 @@ import type { Data } from '~types'
 const settingsSelector = (s: Data) => s.settings
 
 export function PreferencesMenu() {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
 
   const settings = useSelector(settingsSelector)
 
   const toggleDebugMode = React.useCallback(() => {
-    tlstate.setSetting('isDebugMode', (v) => !v)
-  }, [tlstate])
+    state.setSetting('isDebugMode', (v) => !v)
+  }, [state])
 
   const toggleDarkMode = React.useCallback(() => {
-    tlstate.setSetting('isDarkMode', (v) => !v)
-  }, [tlstate])
+    state.setSetting('isDarkMode', (v) => !v)
+  }, [state])
 
   const toggleFocusMode = React.useCallback(() => {
-    tlstate.setSetting('isFocusMode', (v) => !v)
-  }, [tlstate])
+    state.setSetting('isFocusMode', (v) => !v)
+  }, [state])
 
   const toggleRotateHandle = React.useCallback(() => {
-    tlstate.setSetting('showRotateHandles', (v) => !v)
-  }, [tlstate])
+    state.setSetting('showRotateHandles', (v) => !v)
+  }, [state])
 
   const toggleBoundShapesHandle = React.useCallback(() => {
-    tlstate.setSetting('showBindingHandles', (v) => !v)
-  }, [tlstate])
+    state.setSetting('showBindingHandles', (v) => !v)
+  }, [state])
 
   const toggleisSnapping = React.useCallback(() => {
-    tlstate.setSetting('isSnapping', (v) => !v)
-  }, [tlstate])
+    state.setSetting('isSnapping', (v) => !v)
+  }, [state])
 
   const toggleCloneControls = React.useCallback(() => {
-    tlstate.setSetting('showCloneHandles', (v) => !v)
-  }, [tlstate])
+    state.setSetting('showCloneHandles', (v) => !v)
+  }, [state])
 
   return (
     <DMSubMenu label="Preferences">

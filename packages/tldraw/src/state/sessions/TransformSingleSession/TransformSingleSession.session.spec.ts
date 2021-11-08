@@ -4,36 +4,36 @@ import { TLBoundsCorner } from '@tldraw/core'
 import { SessionType, TLDrawStatus } from '~types'
 
 describe('Transform single session', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   it('begins, updateSession', () => {
-    tlstate
+    state
       .loadDocument(mockDocument)
       .select('rect1')
       .startSession(SessionType.TransformSingle, [-10, -10], TLBoundsCorner.TopLeft)
       .updateSession([10, 10])
       .completeSession()
 
-    expect(tlstate.appState.status).toBe(TLDrawStatus.Idle)
+    expect(state.appState.status).toBe(TLDrawStatus.Idle)
 
-    tlstate.undo().redo()
+    state.undo().redo()
   })
 
   it('cancels session', () => {
-    tlstate
+    state
       .loadDocument(mockDocument)
       .select('rect1')
       .startSession(SessionType.TransformSingle, [5, 5], TLBoundsCorner.TopLeft)
       .updateSession([10, 10])
       .cancelSession()
 
-    expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+    expect(state.getShape('rect1').point).toStrictEqual([0, 0])
   })
 })
 
 describe('When creating with a transform-single session', () => {
   it('Deletes the shape on undo', () => {
-    const tlstate = new TLDrawState()
+    const state = new TLDrawState()
       .loadDocument(mockDocument)
       .select('rect1')
       .startSession(SessionType.TransformSingle, [5, 5], TLBoundsCorner.TopLeft, true)
@@ -41,7 +41,7 @@ describe('When creating with a transform-single session', () => {
       .completeSession()
       .undo()
 
-    expect(tlstate.getShape('rect1')).toBe(undefined)
+    expect(state.getShape('rect1')).toBe(undefined)
   })
 })
 

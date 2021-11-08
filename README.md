@@ -66,8 +66,8 @@ You can also control the `TLDraw` component imperatively through the `TLDrawStat
 import { TLDraw, TLDrawState } from '@tldraw/tldraw'
 
 function App() {
-  const handleMount = React.useCallback((tlstate: TLDrawState) => {
-    tlstate.selectAll()
+  const handleMount = React.useCallback((state: TLDrawState) => {
+    state.selectAll()
   }, [])
 
   return <TLDraw onMount={handleMount} />
@@ -84,7 +84,7 @@ You can respond to changes and user actions using the `onChange` callback.
 import { TLDraw, TLDrawState } from '@tldraw/tldraw'
 
 function App() {
-  const handleChange = React.useCallback((tlstate: TLDrawState, reason: string) => {}, [])
+  const handleChange = React.useCallback((state: TLDrawState, reason: string) => {}, [])
 
   return <TLDraw onMount={handleMount} />
 }

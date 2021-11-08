@@ -8,13 +8,13 @@ import type { Data } from '~types'
 const isToolLockedSelector = (s: Data) => s.appState.isToolLocked
 
 export function LockButton(): JSX.Element {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
 
   const isToolLocked = useSelector(isToolLockedSelector)
 
   return (
     <Tooltip label="Lock Tool" kbd="7">
-      <ToolButton variant="circle" isActive={isToolLocked} onSelect={tlstate.toggleToolLock}>
+      <ToolButton variant="circle" isActive={isToolLocked} onSelect={state.toggleToolLock}>
         {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
       </ToolButton>
     </Tooltip>

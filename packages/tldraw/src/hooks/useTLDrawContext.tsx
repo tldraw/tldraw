@@ -4,7 +4,7 @@ import type { UseBoundStore } from 'zustand'
 import type { TLDrawState } from '~state'
 
 export interface TLDrawContextType {
-  tlstate: TLDrawState
+  state: TLDrawState
   useSelector: UseBoundStore<Data>
 }
 

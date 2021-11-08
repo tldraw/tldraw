@@ -2,36 +2,36 @@ import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 
 describe('Create command', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   beforeEach(() => {
-    tlstate.loadDocument(mockDocument)
+    state.loadDocument(mockDocument)
   })
 
   describe('when no shape is provided', () => {
     it('does nothing', () => {
-      const initialState = tlstate.state
-      tlstate.create()
+      const initialState = state.state
+      state.create()
 
-      const currentState = tlstate.state
+      const currentState = state.state
 
       expect(currentState).toEqual(initialState)
     })
   })
 
   it('does, undoes and redoes command', () => {
-    const shape = { ...tlstate.getShape('rect1'), id: 'rect4' }
-    tlstate.create([shape])
+    const shape = { ...state.getShape('rect1'), id: 'rect4' }
+    state.create([shape])
 
-    expect(tlstate.getShape('rect4')).toBeTruthy()
+    expect(state.getShape('rect4')).toBeTruthy()
 
-    tlstate.undo()
+    state.undo()
 
-    expect(tlstate.getShape('rect4')).toBe(undefined)
+    expect(state.getShape('rect4')).toBe(undefined)
 
-    tlstate.redo()
+    state.redo()
 
-    expect(tlstate.getShape('rect4')).toBeTruthy()
+    expect(state.getShape('rect4')).toBeTruthy()
   })
 
   it.todo('Creates bindings')

@@ -3,7 +3,7 @@ import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
 import { styled, dark } from '~styles'
 import { Data, TLDrawDocument, TLDrawStatus, TLDrawUser } from '~types'
-import { TLDrawState } from '~state'
+import { TLDrawCallbacks, TLDrawState } from '~state'
 import {
   TLDrawContext,
   TLDrawContextType,
@@ -40,7 +40,7 @@ const pageStateSelector = (s: Data) => s.document.pageStates[s.appState.currentP
 
 const settingsSelector = (s: Data) => s.settings
 
-export interface TLDrawProps {
+export interface TLDrawProps extends TLDrawCallbacks {
   /**
    * (optional) If provided, the component will load / persist state under this key.
    */
@@ -136,23 +136,23 @@ export interface TLDrawProps {
   /**
    * (optional) A callback to run when the state is patched.
    */
-  onPatch?: (tlstate: TLDrawState, reason?: string) => void
+  onPatch?: (state: TLDrawState, reason?: string) => void
   /**
    * (optional) A callback to run when the state is changed with a command.
    */
-  onCommand?: (tlstate: TLDrawState, reason?: string) => void
+  onCommand?: (state: TLDrawState, reason?: string) => void
   /**
    * (optional) A callback to run when the state is persisted.
    */
-  onPersist?: (tlstate: TLDrawState) => void
+  onPersist?: (state: TLDrawState) => void
   /**
    * (optional) A callback to run when the user undos.
    */
-  onUndo?: (tlstate: TLDrawState) => void
+  onUndo?: (state: TLDrawState) => void
   /**
    * (optional) A callback to run when the user redos.
    */
-  onRedo?: (tlstate: TLDrawState) => void
+  onRedo?: (state: TLDrawState) => void
 }
 
 export function TLDraw({
@@ -184,39 +184,45 @@ export function TLDraw({
 }: TLDrawProps) {
   const [sId, setSId] = React.useState(id)
 
-  const [tlstate, setTlstate] = React.useState(
-    () =>
-      new TLDrawState(id, {
-        onMount,
-        onChange,
-        onUserChange,
-        onNewProject,
-        onSaveProject,
-        onSaveProjectAs,
-        onOpenProject,
-        onSignOut,
-        onSignIn,
-        onUndo,
-        onRedo,
-        onPatch,
-        onCommand,
-        onPersist,
-      })
-  )
+  const [state, setState] = React.useState(() => new TLDrawState(id))
 
   const [context, setContext] = React.useState<TLDrawContextType>(() => ({
-    tlstate,
-    useSelector: tlstate.useStore,
+    state,
+    useSelector: state.useStore,
   }))
 
   React.useEffect(() => {
     if (id === sId) return
 
-    // If a new id is loaded, replace the entire state
-    setSId(id)
     const newState = new TLDrawState(id)
 
-    newState.callbacks = {
+    setSId(id)
+
+    setContext((ctx) => ({
+      ...ctx,
+      state: newState,
+      useSelector: newState.useStore,
+    }))
+
+    setState(newState)
+  }, [sId, id])
+
+  React.useEffect(() => {
+    state.readOnly = readOnly
+  }, [state, readOnly])
+
+  React.useEffect(() => {
+    if (!document) return
+
+    if (document.id === state.document.id) {
+      state.updateDocument(document)
+    } else {
+      state.loadDocument(document)
+    }
+  }, [document, state])
+
+  React.useEffect(() => {
+    state.callbacks = {
       onMount,
       onChange,
       onUserChange,
@@ -232,17 +238,23 @@ export function TLDraw({
       onCommand,
       onPersist,
     }
-    setTlstate(newState)
-    setContext((ctx) => ({
-      ...ctx,
-      tlstate: newState,
-      useSelector: newState.useStore,
-    }))
-  }, [sId, id])
-
-  React.useEffect(() => {
-    tlstate.readOnly = readOnly
-  }, [tlstate, readOnly])
+  }, [
+    state,
+    onMount,
+    onChange,
+    onUserChange,
+    onNewProject,
+    onSaveProject,
+    onSaveProjectAs,
+    onOpenProject,
+    onSignOut,
+    onSignIn,
+    onUndo,
+    onRedo,
+    onPatch,
+    onCommand,
+    onPersist,
+  ])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
@@ -252,7 +264,6 @@ export function TLDraw({
           key={sId || 'tldraw'}
           id={sId}
           currentPageId={currentPageId}
-          document={document}
           autofocus={autofocus}
           showPages={showPages}
           showMenu={showMenu}
@@ -278,10 +289,9 @@ interface InnerTLDrawProps {
   showUI: boolean
   showTools: boolean
   readOnly: boolean
-  document?: TLDrawDocument
 }
 
-function InnerTldraw({
+const InnerTldraw = React.memo(function InnerTldraw({
   id,
   currentPageId,
   autofocus,
@@ -292,9 +302,8 @@ function InnerTldraw({
   showTools,
   readOnly,
   showUI,
-  document,
 }: InnerTLDrawProps) {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
 
   const rWrapper = React.useRef<HTMLDivElement>(null)
 
@@ -312,11 +321,11 @@ function InnerTldraw({
 
   const isHideBoundsShape = useSelector(isHideBoundsShapeSelector)
 
-  const isInSession = tlstate.session !== undefined
+  const isInSession = state.session !== undefined
 
   // Hide bounds when not using the select tool, or when the only selected shape has handles
   const hideBounds =
-    (isInSession && tlstate.session?.constructor.name !== 'BrushSession') ||
+    (isInSession && state.session?.constructor.name !== 'BrushSession') ||
     !isSelecting ||
     isHideBoundsShape ||
     !!pageState.editingId
@@ -326,7 +335,7 @@ function InnerTldraw({
 
   // Hide indicators when not using the select tool, or when in session
   const hideIndicators =
-    (isInSession && tlstate.appState.status !== TLDrawStatus.Brushing) || !isSelecting
+    (isInSession && state.appState.status !== TLDrawStatus.Brushing) || !isSelecting
 
   // Custom rendering meta, with dark mode for shapes
   const meta = React.useMemo(() => ({ isDarkMode: settings.isDarkMode }), [settings.isDarkMode])
@@ -348,19 +357,9 @@ function InnerTldraw({
   }, [settings.isDarkMode])
 
   React.useEffect(() => {
-    if (!document) return
-
-    if (document.id === tlstate.document.id) {
-      tlstate.updateDocument(document)
-    } else {
-      tlstate.loadDocument(document)
-    }
-  }, [document, tlstate])
-
-  React.useEffect(() => {
     if (!currentPageId) return
-    tlstate.changePage(currentPageId)
-  }, [currentPageId, tlstate])
+    state.changePage(currentPageId)
+  }, [currentPageId, state])
 
   return (
     <StyledLayout ref={rWrapper} tabIndex={0} className={settings.isDarkMode ? dark : ''}>
@@ -374,7 +373,7 @@ function InnerTldraw({
           pageState={pageState}
           snapLines={snapLines}
           users={users}
-          userId={tlstate.state.room?.userId}
+          userId={state.state.room?.userId}
           theme={theme}
           meta={meta}
           hideBounds={hideBounds}
@@ -383,61 +382,61 @@ function InnerTldraw({
           hideBindingHandles={!settings.showBindingHandles}
           hideCloneHandles={!settings.showCloneHandles}
           hideRotateHandles={!settings.showRotateHandles}
-          onPinchStart={tlstate.onPinchStart}
-          onPinchEnd={tlstate.onPinchEnd}
-          onPinch={tlstate.onPinch}
-          onPan={tlstate.onPan}
-          onZoom={tlstate.onZoom}
-          onPointerDown={tlstate.onPointerDown}
-          onPointerMove={tlstate.onPointerMove}
-          onPointerUp={tlstate.onPointerUp}
-          onPointCanvas={tlstate.onPointCanvas}
-          onDoubleClickCanvas={tlstate.onDoubleClickCanvas}
-          onRightPointCanvas={tlstate.onRightPointCanvas}
-          onDragCanvas={tlstate.onDragCanvas}
-          onReleaseCanvas={tlstate.onReleaseCanvas}
-          onPointShape={tlstate.onPointShape}
-          onDoubleClickShape={tlstate.onDoubleClickShape}
-          onRightPointShape={tlstate.onRightPointShape}
-          onDragShape={tlstate.onDragShape}
-          onHoverShape={tlstate.onHoverShape}
-          onUnhoverShape={tlstate.onUnhoverShape}
-          onReleaseShape={tlstate.onReleaseShape}
-          onPointBounds={tlstate.onPointBounds}
-          onDoubleClickBounds={tlstate.onDoubleClickBounds}
-          onRightPointBounds={tlstate.onRightPointBounds}
-          onDragBounds={tlstate.onDragBounds}
-          onHoverBounds={tlstate.onHoverBounds}
-          onUnhoverBounds={tlstate.onUnhoverBounds}
-          onReleaseBounds={tlstate.onReleaseBounds}
-          onPointBoundsHandle={tlstate.onPointBoundsHandle}
-          onDoubleClickBoundsHandle={tlstate.onDoubleClickBoundsHandle}
-          onRightPointBoundsHandle={tlstate.onRightPointBoundsHandle}
-          onDragBoundsHandle={tlstate.onDragBoundsHandle}
-          onHoverBoundsHandle={tlstate.onHoverBoundsHandle}
-          onUnhoverBoundsHandle={tlstate.onUnhoverBoundsHandle}
-          onReleaseBoundsHandle={tlstate.onReleaseBoundsHandle}
-          onPointHandle={tlstate.onPointHandle}
-          onDoubleClickHandle={tlstate.onDoubleClickHandle}
-          onRightPointHandle={tlstate.onRightPointHandle}
-          onDragHandle={tlstate.onDragHandle}
-          onHoverHandle={tlstate.onHoverHandle}
-          onUnhoverHandle={tlstate.onUnhoverHandle}
-          onReleaseHandle={tlstate.onReleaseHandle}
-          onError={tlstate.onError}
-          onRenderCountChange={tlstate.onRenderCountChange}
-          onShapeChange={tlstate.onShapeChange}
-          onShapeBlur={tlstate.onShapeBlur}
-          onShapeClone={tlstate.onShapeClone}
-          onBoundsChange={tlstate.updateBounds}
-          onKeyDown={tlstate.onKeyDown}
-          onKeyUp={tlstate.onKeyUp}
+          onPinchStart={state.onPinchStart}
+          onPinchEnd={state.onPinchEnd}
+          onPinch={state.onPinch}
+          onPan={state.onPan}
+          onZoom={state.onZoom}
+          onPointerDown={state.onPointerDown}
+          onPointerMove={state.onPointerMove}
+          onPointerUp={state.onPointerUp}
+          onPointCanvas={state.onPointCanvas}
+          onDoubleClickCanvas={state.onDoubleClickCanvas}
+          onRightPointCanvas={state.onRightPointCanvas}
+          onDragCanvas={state.onDragCanvas}
+          onReleaseCanvas={state.onReleaseCanvas}
+          onPointShape={state.onPointShape}
+          onDoubleClickShape={state.onDoubleClickShape}
+          onRightPointShape={state.onRightPointShape}
+          onDragShape={state.onDragShape}
+          onHoverShape={state.onHoverShape}
+          onUnhoverShape={state.onUnhoverShape}
+          onReleaseShape={state.onReleaseShape}
+          onPointBounds={state.onPointBounds}
+          onDoubleClickBounds={state.onDoubleClickBounds}
+          onRightPointBounds={state.onRightPointBounds}
+          onDragBounds={state.onDragBounds}
+          onHoverBounds={state.onHoverBounds}
+          onUnhoverBounds={state.onUnhoverBounds}
+          onReleaseBounds={state.onReleaseBounds}
+          onPointBoundsHandle={state.onPointBoundsHandle}
+          onDoubleClickBoundsHandle={state.onDoubleClickBoundsHandle}
+          onRightPointBoundsHandle={state.onRightPointBoundsHandle}
+          onDragBoundsHandle={state.onDragBoundsHandle}
+          onHoverBoundsHandle={state.onHoverBoundsHandle}
+          onUnhoverBoundsHandle={state.onUnhoverBoundsHandle}
+          onReleaseBoundsHandle={state.onReleaseBoundsHandle}
+          onPointHandle={state.onPointHandle}
+          onDoubleClickHandle={state.onDoubleClickHandle}
+          onRightPointHandle={state.onRightPointHandle}
+          onDragHandle={state.onDragHandle}
+          onHoverHandle={state.onHoverHandle}
+          onUnhoverHandle={state.onUnhoverHandle}
+          onReleaseHandle={state.onReleaseHandle}
+          onError={state.onError}
+          onRenderCountChange={state.onRenderCountChange}
+          onShapeChange={state.onShapeChange}
+          onShapeBlur={state.onShapeBlur}
+          onShapeClone={state.onShapeClone}
+          onBoundsChange={state.updateBounds}
+          onKeyDown={state.onKeyDown}
+          onKeyUp={state.onKeyUp}
         />
       </ContextMenu>
       {showUI && (
         <StyledUI>
           {settings.isFocusMode ? (
-            <FocusButton onSelect={tlstate.toggleFocusMode} />
+            <FocusButton onSelect={state.toggleFocusMode} />
           ) : (
             <>
               <TopPanel
@@ -455,7 +454,7 @@ function InnerTldraw({
       )}
     </StyledLayout>
   )
-}
+})
 
 const OneOff = React.memo(function OneOff({
   focusableRef,

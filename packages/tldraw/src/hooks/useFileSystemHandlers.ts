@@ -2,38 +2,38 @@ import * as React from 'react'
 import { useTLDrawContext } from '~hooks'
 
 export function useFileSystemHandlers() {
-  const { tlstate } = useTLDrawContext()
+  const { state } = useTLDrawContext()
 
   const onNewProject = React.useCallback(
     async (e?: KeyboardEvent) => {
-      if (e && tlstate.callbacks.onOpenProject) e.preventDefault()
-      tlstate.callbacks.onNewProject?.(tlstate)
+      if (e && state.callbacks.onOpenProject) e.preventDefault()
+      state.callbacks.onNewProject?.(state)
     },
-    [tlstate]
+    [state]
   )
 
   const onSaveProject = React.useCallback(
     (e?: KeyboardEvent) => {
-      if (e && tlstate.callbacks.onOpenProject) e.preventDefault()
-      tlstate.callbacks.onSaveProject?.(tlstate)
+      if (e && state.callbacks.onOpenProject) e.preventDefault()
+      state.callbacks.onSaveProject?.(state)
     },
-    [tlstate]
+    [state]
   )
 
   const onSaveProjectAs = React.useCallback(
     (e?: KeyboardEvent) => {
-      if (e && tlstate.callbacks.onOpenProject) e.preventDefault()
-      tlstate.callbacks.onSaveProjectAs?.(tlstate)
+      if (e && state.callbacks.onOpenProject) e.preventDefault()
+      state.callbacks.onSaveProjectAs?.(state)
     },
-    [tlstate]
+    [state]
   )
 
   const onOpenProject = React.useCallback(
     async (e?: KeyboardEvent) => {
-      if (e && tlstate.callbacks.onOpenProject) e.preventDefault()
-      tlstate.callbacks.onOpenProject?.(tlstate)
+      if (e && state.callbacks.onOpenProject) e.preventDefault()
+      state.callbacks.onOpenProject?.(state)
     },
-    [tlstate]
+    [state]
   )
 
   return {

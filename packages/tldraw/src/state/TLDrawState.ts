@@ -58,65 +58,67 @@ import { USER_COLORS, FIT_TO_SCREEN_PADDING } from '~constants'
 
 const uuid = Utils.uniqueId()
 
+export interface TLDrawCallbacks {
+  /**
+   * (optional) A callback to run when the component mounts.
+   */
+  onMount?: (state: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the component's state changes.
+   */
+  onChange?: (state: TLDrawState, reason?: string) => void
+  /**
+   * (optional) A callback to run when the user creates a new project through the menu or through a keyboard shortcut.
+   */
+  onNewProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+  /**
+   * (optional) A callback to run when the user saves a project through the menu or through a keyboard shortcut.
+   */
+  onSaveProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+  /**
+   * (optional) A callback to run when the user saves a project as a new project through the menu or through a keyboard shortcut.
+   */
+  onSaveProjectAs?: (state: TLDrawState, e?: KeyboardEvent) => void
+  /**
+   * (optional) A callback to run when the user opens new project through the menu or through a keyboard shortcut.
+   */
+  onOpenProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+  /**
+   * (optional) A callback to run when the user signs in via the menu.
+   */
+  onSignIn?: (state: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the user signs out via the menu.
+   */
+  onSignOut?: (state: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the user creates a new project.
+   */
+  onUserChange?: (state: TLDrawState, user: TLDrawUser) => void
+  /**
+   * (optional) A callback to run when the state is patched.
+   */
+  onPatch?: (state: TLDrawState, reason?: string) => void
+  /**
+   * (optional) A callback to run when the state is changed with a command.
+   */
+  onCommand?: (state: TLDrawState, reason?: string) => void
+  /**
+   * (optional) A callback to run when the state is persisted.
+   */
+  onPersist?: (state: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the user undos.
+   */
+  onUndo?: (state: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the user redos.
+   */
+  onRedo?: (state: TLDrawState) => void
+}
+
 export class TLDrawState extends StateManager<Data> {
-  public callbacks: {
-    /**
-     * (optional) A callback to run when the component mounts.
-     */
-    onMount?: (state: TLDrawState) => void
-    /**
-     * (optional) A callback to run when the component's state changes.
-     */
-    onChange?: (state: TLDrawState, reason?: string) => void
-    /**
-     * (optional) A callback to run when the user creates a new project through the menu or through a keyboard shortcut.
-     */
-    onNewProject?: (state: TLDrawState, e?: KeyboardEvent) => void
-    /**
-     * (optional) A callback to run when the user saves a project through the menu or through a keyboard shortcut.
-     */
-    onSaveProject?: (state: TLDrawState, e?: KeyboardEvent) => void
-    /**
-     * (optional) A callback to run when the user saves a project as a new project through the menu or through a keyboard shortcut.
-     */
-    onSaveProjectAs?: (state: TLDrawState, e?: KeyboardEvent) => void
-    /**
-     * (optional) A callback to run when the user opens new project through the menu or through a keyboard shortcut.
-     */
-    onOpenProject?: (state: TLDrawState, e?: KeyboardEvent) => void
-    /**
-     * (optional) A callback to run when the user signs in via the menu.
-     */
-    onSignIn?: (state: TLDrawState) => void
-    /**
-     * (optional) A callback to run when the user signs out via the menu.
-     */
-    onSignOut?: (state: TLDrawState) => void
-    /**
-     * (optional) A callback to run when the user creates a new project.
-     */
-    onUserChange?: (state: TLDrawState, user: TLDrawUser) => void
-    /**
-     * (optional) A callback to run when the state is patched.
-     */
-    onPatch?: (tlstate: TLDrawState, reason?: string) => void
-    /**
-     * (optional) A callback to run when the state is changed with a command.
-     */
-    onCommand?: (tlstate: TLDrawState, reason?: string) => void
-    /**
-     * (optional) A callback to run when the state is persisted.
-     */
-    onPersist?: (tlstate: TLDrawState) => void
-    /**
-     * (optional) A callback to run when the user undos.
-     */
-    onUndo?: (tlstate: TLDrawState) => void
-    /**
-     * (optional) A callback to run when the user redos.
-     */
-    onRedo?: (tlstate: TLDrawState) => void
-  } = {}
+  public callbacks: TLDrawCallbacks = {}
 
   readOnly = false
 
@@ -162,25 +164,7 @@ export class TLDrawState extends StateManager<Data> {
 
   isDirty = false
 
-  constructor(
-    id?: string,
-    callbacks = {} as {
-      onMount?: (state: TLDrawState) => void
-      onNewProject?: (state: TLDrawState) => void
-      onSaveProject?: (state: TLDrawState) => void
-      onSaveProjectAs?: (state: TLDrawState) => void
-      onOpenProject?: (state: TLDrawState) => void
-      onSignIn?: (state: TLDrawState) => void
-      onSignOut?: (state: TLDrawState) => void
-      onUserChange?: (state: TLDrawState, user: TLDrawUser) => void
-      onPatch?: (tlstate: TLDrawState, reason?: string) => void
-      onCommand?: (tlstate: TLDrawState, reason?: string) => void
-      onChange?: (state: TLDrawState, reason?: string) => void
-      onPersist?: (tlstate: TLDrawState) => void
-      onUndo?: (tlstate: TLDrawState) => void
-      onRedo?: (tlstate: TLDrawState) => void
-    }
-  ) {
+  constructor(id?: string, callbacks = {} as TLDrawCallbacks) {
     super(TLDrawState.defaultState, id, TLDrawState.version, (prev, next, prevVersion) => {
       return {
         ...next,
@@ -192,19 +176,17 @@ export class TLDrawState extends StateManager<Data> {
     })
 
     this.callbacks = callbacks
-    this.loadDocument(this.document)
-    this.patchState({ document: migrate(this.document, TLDrawState.version) })
-
-    loadFileHandle().then((fileHandle) => {
-      this.fileSystemHandle = fileHandle
-    })
-
-    this.session = undefined
   }
 
   /* -------------------- Internal -------------------- */
 
   onReady = () => {
+    this.loadDocument(this.document)
+
+    loadFileHandle().then((fileHandle) => {
+      this.fileSystemHandle = fileHandle
+    })
+
     try {
       this.patchState({
         appState: {
@@ -225,7 +207,6 @@ export class TLDrawState extends StateManager<Data> {
       })
     }
 
-    this.persist()
     this.callbacks.onMount?.(this)
   }
 
@@ -556,7 +537,7 @@ export class TLDrawState extends StateManager<Data> {
   ): this => {
     if (this.session) return this
 
-    return this.patchState(
+    this.patchState(
       {
         settings: {
           [name]: typeof value === 'function' ? value(this.state.settings[name] as V) : value,
@@ -564,6 +545,8 @@ export class TLDrawState extends StateManager<Data> {
       },
       `settings:${name}`
     )
+    this.persist()
+    return this
   }
 
   /**
@@ -571,7 +554,7 @@ export class TLDrawState extends StateManager<Data> {
    */
   toggleFocusMode = (): this => {
     if (this.session) return this
-    return this.patchState(
+    this.patchState(
       {
         settings: {
           isFocusMode: !this.state.settings.isFocusMode,
@@ -579,6 +562,8 @@ export class TLDrawState extends StateManager<Data> {
       },
       `settings:toggled_focus_mode`
     )
+    this.persist()
+    return this
   }
 
   /**
@@ -586,7 +571,7 @@ export class TLDrawState extends StateManager<Data> {
    */
   togglePenMode = (): this => {
     if (this.session) return this
-    return this.patchState(
+    this.patchState(
       {
         settings: {
           isPenMode: !this.state.settings.isPenMode,
@@ -594,6 +579,8 @@ export class TLDrawState extends StateManager<Data> {
       },
       `settings:toggled_pen_mode`
     )
+    this.persist()
+    return this
   }
 
   /**
@@ -910,8 +897,7 @@ export class TLDrawState extends StateManager<Data> {
     this.resetHistory()
     this.clearSelectHistory()
     this.session = undefined
-
-    return this.replaceState(
+    this.replaceState(
       {
         ...TLDrawState.defaultState,
         document: migrate(document, TLDrawState.version),
@@ -922,6 +908,7 @@ export class TLDrawState extends StateManager<Data> {
       },
       'loaded_document'
     )
+    return this
   }
 
   // Should we move this to the app layer? onSave, onSaveAs, etc?

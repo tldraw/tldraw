@@ -50,10 +50,10 @@ Or imperatively through the `TLDrawState` instance:
 import { TLDraw, TLDrawState } from '@tldraw/tldraw'
 
 function App() {
-  const handleMount = React.useCallback((tlstate: TLDrawState) => {
+  const handleMount = React.useCallback((state: TLDrawState) => {
     const myDocument: TLDrawDocument = {}
 
-    tlstate.loadDocument(myDocument).selectAll()
+    state.loadDocument(myDocument).selectAll()
   }, [])
 
   return <TLDraw onMount={handleMount} />

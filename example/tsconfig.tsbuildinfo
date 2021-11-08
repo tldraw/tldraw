@@ -396,7 +396,7 @@
         "signature": "1444afb2d3c50b5a15354934187d75bc9a7ca2d10bf20fe9c79cbcd1f8548549",
         "affectsGlobalScope": false
       },
-      "../tldraw/dist/types/state/tlstate.d.ts": {
+      "../tldraw/dist/types/state/state.d.ts": {
         "version": "3a31dc5b6306ee6cff5e03e4a3ab1eda22f07231bc207f77807915e7c01a96a9",
         "signature": "3a31dc5b6306ee6cff5e03e4a3ab1eda22f07231bc207f77807915e7c01a96a9",
         "affectsGlobalScope": false
@@ -1245,9 +1245,9 @@
         "../tldraw/dist/types/types.d.ts"
       ],
       "../tldraw/dist/types/state/index.d.ts": [
-        "../tldraw/dist/types/state/tlstate.d.ts"
+        "../tldraw/dist/types/state/state.d.ts"
       ],
-      "../tldraw/dist/types/state/tlstate.d.ts": [
+      "../tldraw/dist/types/state/state.d.ts": [
         "../../node_modules/rko/dist/types/index.d.ts",
         "../core/dist/types/index.d.ts",
         "../tldraw/dist/types/types.d.ts"
@@ -1621,9 +1621,9 @@
         "../tldraw/dist/types/types.d.ts"
       ],
       "../tldraw/dist/types/state/index.d.ts": [
-        "../tldraw/dist/types/state/tlstate.d.ts"
+        "../tldraw/dist/types/state/state.d.ts"
       ],
-      "../tldraw/dist/types/state/tlstate.d.ts": [
+      "../tldraw/dist/types/state/state.d.ts": [
         "../../node_modules/rko/dist/types/index.d.ts",
         "../core/dist/types/index.d.ts",
         "../tldraw/dist/types/types.d.ts"
@@ -1792,7 +1792,7 @@
       "../tldraw/dist/types/shape/shape-styles.d.ts",
       "../tldraw/dist/types/shape/shape-utils.d.ts",
       "../tldraw/dist/types/state/index.d.ts",
-      "../tldraw/dist/types/state/tlstate.d.ts",
+      "../tldraw/dist/types/state/state.d.ts",
       "../tldraw/dist/types/types.d.ts"
     ]
   },

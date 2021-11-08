@@ -4,42 +4,42 @@ import { mockDocument } from '~test'
 import { GroupShape, TLDrawShape, TLDrawShapeType } from '~types'
 
 describe('Group command', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   beforeEach(() => {
-    tlstate.loadDocument(mockDocument)
+    state.loadDocument(mockDocument)
   })
 
   it('does, undoes and redoes command', () => {
-    tlstate.group(['rect1', 'rect2'], 'newGroup')
+    state.group(['rect1', 'rect2'], 'newGroup')
 
-    expect(tlstate.getShape<GroupShape>('newGroup')).toBeTruthy()
+    expect(state.getShape<GroupShape>('newGroup')).toBeTruthy()
 
-    tlstate.undo()
+    state.undo()
 
-    expect(tlstate.getShape<GroupShape>('newGroup')).toBeUndefined()
+    expect(state.getShape<GroupShape>('newGroup')).toBeUndefined()
 
-    tlstate.redo()
+    state.redo()
 
-    expect(tlstate.getShape<GroupShape>('newGroup')).toBeTruthy()
+    expect(state.getShape<GroupShape>('newGroup')).toBeTruthy()
   })
 
   describe('when less than two shapes are selected', () => {
     it('does nothing', () => {
-      tlstate.selectNone()
+      state.selectNone()
 
       // @ts-ignore
-      const stackLength = tlstate.stack.length
+      const stackLength = state.stack.length
 
-      tlstate.group([], 'newGroup')
-      expect(tlstate.getShape<GroupShape>('newGroup')).toBeUndefined()
+      state.group([], 'newGroup')
+      expect(state.getShape<GroupShape>('newGroup')).toBeUndefined()
       // @ts-ignore
-      expect(tlstate.stack.length).toBe(stackLength)
+      expect(state.stack.length).toBe(stackLength)
 
-      tlstate.group(['rect1'], 'newGroup')
-      expect(tlstate.getShape<GroupShape>('newGroup')).toBeUndefined()
+      state.group(['rect1'], 'newGroup')
+      expect(state.getShape<GroupShape>('newGroup')).toBeUndefined()
       // @ts-ignore
-      expect(tlstate.stack.length).toBe(stackLength)
+      expect(state.stack.length).toBe(stackLength)
     })
   })
 
@@ -51,7 +51,7 @@ describe('Group command', () => {
     */
 
     it('creates a group with the correct props', () => {
-      tlstate.updateShapes(
+      state.updateShapes(
         {
           id: 'rect1',
           point: [300, 300],
@@ -64,8 +64,8 @@ describe('Group command', () => {
         }
       )
 
-      tlstate.group(['rect1', 'rect2'], 'newGroup')
-      const group = tlstate.getShape<GroupShape>('newGroup')
+      state.group(['rect1', 'rect2'], 'newGroup')
+      const group = state.getShape<GroupShape>('newGroup')
       expect(group).toBeTruthy()
       expect(group.parentId).toBe('page1')
       expect(group.childIndex).toBe(3)
@@ -74,7 +74,7 @@ describe('Group command', () => {
     })
 
     it('reparents the grouped shapes', () => {
-      tlstate.updateShapes(
+      state.updateShapes(
         {
           id: 'rect1',
           childIndex: 2.5,
@@ -85,13 +85,13 @@ describe('Group command', () => {
         }
       )
 
-      tlstate.group(['rect1', 'rect2'], 'newGroup')
+      state.group(['rect1', 'rect2'], 'newGroup')
 
       let rect1: TLDrawShape
       let rect2: TLDrawShape
 
-      rect1 = tlstate.getShape('rect1')
-      rect2 = tlstate.getShape('rect2')
+      rect1 = state.getShape('rect1')
+      rect2 = state.getShape('rect2')
       // Reparents the shapes
       expect(rect1.parentId).toBe('newGroup')
       expect(rect2.parentId).toBe('newGroup')
@@ -99,10 +99,10 @@ describe('Group command', () => {
       expect(rect1.childIndex).toBe(1)
       expect(rect2.childIndex).toBe(2)
 
-      tlstate.undo()
+      state.undo()
 
-      rect1 = tlstate.getShape('rect1')
-      rect2 = tlstate.getShape('rect2')
+      rect1 = state.getShape('rect1')
+      rect2 = state.getShape('rect2')
       // Restores the shapes' parentIds
       expect(rect1.parentId).toBe('page1')
       expect(rect2.parentId).toBe('page1')
@@ -127,7 +127,7 @@ describe('Group command', () => {
       original group be updated to only contain the remaining ones.
       */
 
-      tlstate.resetDocument().createShapes(
+      state.resetDocument().createShapes(
         {
           id: 'rect1',
           type: TLDrawShapeType.Rectangle,
@@ -150,59 +150,59 @@ describe('Group command', () => {
         }
       )
 
-      tlstate.group(['rect1', 'rect2', 'rect3', 'rect4'], 'newGroupA')
+      state.group(['rect1', 'rect2', 'rect3', 'rect4'], 'newGroupA')
 
-      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeTruthy()
-      expect(tlstate.getShape('rect1').childIndex).toBe(1)
-      expect(tlstate.getShape('rect2').childIndex).toBe(2)
-      expect(tlstate.getShape('rect3').childIndex).toBe(3)
-      expect(tlstate.getShape('rect4').childIndex).toBe(4)
-      expect(tlstate.getShape<GroupShape>('newGroupA').children).toStrictEqual([
+      expect(state.getShape<GroupShape>('newGroupA')).toBeTruthy()
+      expect(state.getShape('rect1').childIndex).toBe(1)
+      expect(state.getShape('rect2').childIndex).toBe(2)
+      expect(state.getShape('rect3').childIndex).toBe(3)
+      expect(state.getShape('rect4').childIndex).toBe(4)
+      expect(state.getShape<GroupShape>('newGroupA').children).toStrictEqual([
         'rect1',
         'rect2',
         'rect3',
         'rect4',
       ])
 
-      tlstate.group(['rect1', 'rect3'], 'newGroupB')
+      state.group(['rect1', 'rect3'], 'newGroupB')
 
-      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeTruthy()
-      expect(tlstate.getShape('rect2').childIndex).toBe(2)
-      expect(tlstate.getShape('rect4').childIndex).toBe(4)
-      expect(tlstate.getShape<GroupShape>('newGroupA').children).toStrictEqual(['rect2', 'rect4'])
+      expect(state.getShape<GroupShape>('newGroupA')).toBeTruthy()
+      expect(state.getShape('rect2').childIndex).toBe(2)
+      expect(state.getShape('rect4').childIndex).toBe(4)
+      expect(state.getShape<GroupShape>('newGroupA').children).toStrictEqual(['rect2', 'rect4'])
 
-      expect(tlstate.getShape<GroupShape>('newGroupB')).toBeTruthy()
-      expect(tlstate.getShape('rect1').childIndex).toBe(1)
-      expect(tlstate.getShape('rect3').childIndex).toBe(2)
-      expect(tlstate.getShape<GroupShape>('newGroupB').children).toStrictEqual(['rect1', 'rect3'])
+      expect(state.getShape<GroupShape>('newGroupB')).toBeTruthy()
+      expect(state.getShape('rect1').childIndex).toBe(1)
+      expect(state.getShape('rect3').childIndex).toBe(2)
+      expect(state.getShape<GroupShape>('newGroupB').children).toStrictEqual(['rect1', 'rect3'])
 
-      tlstate.undo()
+      state.undo()
 
-      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeTruthy()
-      expect(tlstate.getShape('rect1').childIndex).toBe(1)
-      expect(tlstate.getShape('rect2').childIndex).toBe(2)
-      expect(tlstate.getShape('rect3').childIndex).toBe(3)
-      expect(tlstate.getShape('rect4').childIndex).toBe(4)
-      expect(tlstate.getShape<GroupShape>('newGroupA').children).toStrictEqual([
+      expect(state.getShape<GroupShape>('newGroupA')).toBeTruthy()
+      expect(state.getShape('rect1').childIndex).toBe(1)
+      expect(state.getShape('rect2').childIndex).toBe(2)
+      expect(state.getShape('rect3').childIndex).toBe(3)
+      expect(state.getShape('rect4').childIndex).toBe(4)
+      expect(state.getShape<GroupShape>('newGroupA').children).toStrictEqual([
         'rect1',
         'rect2',
         'rect3',
         'rect4',
       ])
 
-      expect(tlstate.getShape<GroupShape>('newGroupB')).toBeUndefined()
+      expect(state.getShape<GroupShape>('newGroupB')).toBeUndefined()
 
-      tlstate.redo()
+      state.redo()
 
-      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeTruthy()
-      expect(tlstate.getShape('rect2').childIndex).toBe(2)
-      expect(tlstate.getShape('rect4').childIndex).toBe(4)
-      expect(tlstate.getShape<GroupShape>('newGroupA').children).toStrictEqual(['rect2', 'rect4'])
+      expect(state.getShape<GroupShape>('newGroupA')).toBeTruthy()
+      expect(state.getShape('rect2').childIndex).toBe(2)
+      expect(state.getShape('rect4').childIndex).toBe(4)
+      expect(state.getShape<GroupShape>('newGroupA').children).toStrictEqual(['rect2', 'rect4'])
 
-      expect(tlstate.getShape<GroupShape>('newGroupB')).toBeTruthy()
-      expect(tlstate.getShape('rect1').childIndex).toBe(1)
-      expect(tlstate.getShape('rect3').childIndex).toBe(2)
-      expect(tlstate.getShape<GroupShape>('newGroupB').children).toStrictEqual(['rect1', 'rect3'])
+      expect(state.getShape<GroupShape>('newGroupB')).toBeTruthy()
+      expect(state.getShape('rect1').childIndex).toBe(1)
+      expect(state.getShape('rect3').childIndex).toBe(2)
+      expect(state.getShape<GroupShape>('newGroupB').children).toStrictEqual(['rect1', 'rect3'])
     })
 
     it('does nothing if all shapes in the group are selected', () => {
@@ -210,7 +210,7 @@ describe('Group command', () => {
       If the selected shapes represent ALL of the children of the a
       group, then no effect should occur.
       */
-      tlstate.resetDocument().createShapes(
+      state.resetDocument().createShapes(
         {
           id: 'rect1',
           type: TLDrawShapeType.Rectangle,
@@ -228,9 +228,9 @@ describe('Group command', () => {
         }
       )
 
-      tlstate.group(['rect1', 'rect2', 'rect3'], 'newGroupA')
-      tlstate.group(['rect1', 'rect2', 'rect3'], 'newGroupB')
-      expect(tlstate.getShape<GroupShape>('newGroupB')).toBeUndefined()
+      state.group(['rect1', 'rect2', 'rect3'], 'newGroupA')
+      state.group(['rect1', 'rect2', 'rect3'], 'newGroupB')
+      expect(state.getShape<GroupShape>('newGroupB')).toBeUndefined()
     })
 
     it('deletes any groups that no longer have children', () => {
@@ -240,7 +240,7 @@ describe('Group command', () => {
       Other rules around deleted shapes should here apply: bindings
       connected to the group should be deleted, etc.
       */
-      tlstate.resetDocument().createShapes(
+      state.resetDocument().createShapes(
         {
           id: 'rect1',
           type: TLDrawShapeType.Rectangle,
@@ -258,10 +258,10 @@ describe('Group command', () => {
         }
       )
 
-      tlstate.group(['rect1', 'rect2'], 'newGroupA')
-      tlstate.group(['rect1', 'rect2', 'rect3'], 'newGroupB')
-      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeUndefined()
-      expect(tlstate.getShape<GroupShape>('newGroupB').children).toStrictEqual([
+      state.group(['rect1', 'rect2'], 'newGroupA')
+      state.group(['rect1', 'rect2', 'rect3'], 'newGroupB')
+      expect(state.getShape<GroupShape>('newGroupA')).toBeUndefined()
+      expect(state.getShape<GroupShape>('newGroupB').children).toStrictEqual([
         'rect1',
         'rect2',
         'rect3',
@@ -274,7 +274,7 @@ describe('Group command', () => {
       groups, then the selected groups should be destroyed and a new
       group created with the selected shapes and the group(s)' children.
       */
-      tlstate.resetDocument().createShapes(
+      state.resetDocument().createShapes(
         {
           id: 'rect1',
           type: TLDrawShapeType.Rectangle,
@@ -292,26 +292,26 @@ describe('Group command', () => {
         }
       )
 
-      tlstate.group(['rect1', 'rect2'], 'newGroupA')
-      tlstate.group(['newGroupA', 'rect3'], 'newGroupB')
-      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeUndefined()
-      expect(tlstate.getShape<GroupShape>('newGroupB').children).toStrictEqual([
+      state.group(['rect1', 'rect2'], 'newGroupA')
+      state.group(['newGroupA', 'rect3'], 'newGroupB')
+      expect(state.getShape<GroupShape>('newGroupA')).toBeUndefined()
+      expect(state.getShape<GroupShape>('newGroupB').children).toStrictEqual([
         'rect1',
         'rect2',
         'rect3',
       ])
 
-      tlstate.undo()
+      state.undo()
 
-      expect(tlstate.getShape<GroupShape>('newGroupB')).toBeUndefined()
-      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeDefined()
-      expect(tlstate.getShape<GroupShape>('newGroupA').children).toStrictEqual(['rect1', 'rect2'])
+      expect(state.getShape<GroupShape>('newGroupB')).toBeUndefined()
+      expect(state.getShape<GroupShape>('newGroupA')).toBeDefined()
+      expect(state.getShape<GroupShape>('newGroupA').children).toStrictEqual(['rect1', 'rect2'])
 
-      tlstate.redo()
+      state.redo()
 
-      expect(tlstate.getShape<GroupShape>('newGroupA')).toBeUndefined()
-      expect(tlstate.getShape<GroupShape>('newGroupB')).toBeDefined()
-      expect(tlstate.getShape<GroupShape>('newGroupB').children).toStrictEqual([
+      expect(state.getShape<GroupShape>('newGroupA')).toBeUndefined()
+      expect(state.getShape<GroupShape>('newGroupB')).toBeDefined()
+      expect(state.getShape<GroupShape>('newGroupB').children).toStrictEqual([
         'rect1',
         'rect2',
         'rect3',
@@ -319,7 +319,7 @@ describe('Group command', () => {
     })
 
     it('Ungroups if the only shape selected is a group', () => {
-      tlstate.resetDocument().createShapes(
+      state.resetDocument().createShapes(
         {
           id: 'rect1',
           type: TLDrawShapeType.Rectangle,
@@ -337,15 +337,15 @@ describe('Group command', () => {
         }
       )
 
-      expect(tlstate.shapes.length).toBe(3)
+      expect(state.shapes.length).toBe(3)
 
-      tlstate.selectAll().group()
+      state.selectAll().group()
 
-      expect(tlstate.shapes.length).toBe(4)
+      expect(state.shapes.length).toBe(4)
 
-      tlstate.selectAll().group()
+      state.selectAll().group()
 
-      expect(tlstate.shapes.length).toBe(3)
+      expect(state.shapes.length).toBe(3)
     })
 
     /*

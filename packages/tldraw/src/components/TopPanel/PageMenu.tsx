@@ -57,22 +57,22 @@ export function PageMenu(): JSX.Element {
 }
 
 function PageMenuContent({ onClose }: { onClose: () => void }) {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
 
   const sortedPages = useSelector(sortedSelector)
 
   const currentPageId = useSelector(currentPageIdSelector)
 
   const handleCreatePage = React.useCallback(() => {
-    tlstate.createPage()
-  }, [tlstate])
+    state.createPage()
+  }, [state])
 
   const handleChangePage = React.useCallback(
     (id: string) => {
       onClose()
-      tlstate.changePage(id)
+      state.changePage(id)
     },
-    [tlstate]
+    [state]
   )
 
   return (
