@@ -59,9 +59,64 @@ import { USER_COLORS, FIT_TO_SCREEN_PADDING } from '~constants'
 const uuid = Utils.uniqueId()
 
 export class TLDrawState extends StateManager<Data> {
-  private _onMount?: (tlstate: TLDrawState) => void
-  private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
-  private _onUserChange?: (tlstate: TLDrawState, user: TLDrawUser) => void
+  public callbacks: {
+    /**
+     * (optional) A callback to run when the component mounts.
+     */
+    onMount?: (state: TLDrawState) => void
+    /**
+     * (optional) A callback to run when the component's state changes.
+     */
+    onChange?: (state: TLDrawState, reason?: string) => void
+    /**
+     * (optional) A callback to run when the user creates a new project through the menu or through a keyboard shortcut.
+     */
+    onNewProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+    /**
+     * (optional) A callback to run when the user saves a project through the menu or through a keyboard shortcut.
+     */
+    onSaveProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+    /**
+     * (optional) A callback to run when the user saves a project as a new project through the menu or through a keyboard shortcut.
+     */
+    onSaveProjectAs?: (state: TLDrawState, e?: KeyboardEvent) => void
+    /**
+     * (optional) A callback to run when the user opens new project through the menu or through a keyboard shortcut.
+     */
+    onOpenProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+    /**
+     * (optional) A callback to run when the user signs in via the menu.
+     */
+    onSignIn?: (state: TLDrawState) => void
+    /**
+     * (optional) A callback to run when the user signs out via the menu.
+     */
+    onSignOut?: (state: TLDrawState) => void
+    /**
+     * (optional) A callback to run when the user creates a new project.
+     */
+    onUserChange?: (state: TLDrawState, user: TLDrawUser) => void
+    /**
+     * (optional) A callback to run when the state is patched.
+     */
+    onPatch?: (tlstate: TLDrawState, reason?: string) => void
+    /**
+     * (optional) A callback to run when the state is changed with a command.
+     */
+    onCommand?: (tlstate: TLDrawState, reason?: string) => void
+    /**
+     * (optional) A callback to run when the state is persisted.
+     */
+    onPersist?: (tlstate: TLDrawState) => void
+    /**
+     * (optional) A callback to run when the user undos.
+     */
+    onUndo?: (tlstate: TLDrawState) => void
+    /**
+     * (optional) A callback to run when the user redos.
+     */
+    onRedo?: (tlstate: TLDrawState) => void
+  } = {}
 
   readOnly = false
 
@@ -109,9 +164,22 @@ export class TLDrawState extends StateManager<Data> {
 
   constructor(
     id?: string,
-    onMount?: (tlstate: TLDrawState) => void,
-    onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
-    onUserChange?: (tlstate: TLDrawState, user: TLDrawUser) => void
+    callbacks = {} as {
+      onMount?: (state: TLDrawState) => void
+      onNewProject?: (state: TLDrawState) => void
+      onSaveProject?: (state: TLDrawState) => void
+      onSaveProjectAs?: (state: TLDrawState) => void
+      onOpenProject?: (state: TLDrawState) => void
+      onSignIn?: (state: TLDrawState) => void
+      onSignOut?: (state: TLDrawState) => void
+      onUserChange?: (state: TLDrawState, user: TLDrawUser) => void
+      onPatch?: (tlstate: TLDrawState, reason?: string) => void
+      onCommand?: (tlstate: TLDrawState, reason?: string) => void
+      onChange?: (state: TLDrawState, reason?: string) => void
+      onPersist?: (tlstate: TLDrawState) => void
+      onUndo?: (tlstate: TLDrawState) => void
+      onRedo?: (tlstate: TLDrawState) => void
+    }
   ) {
     super(TLDrawState.defaultState, id, TLDrawState.version, (prev, next, prevVersion) => {
       return {
@@ -123,16 +191,13 @@ export class TLDrawState extends StateManager<Data> {
       }
     })
 
+    this.callbacks = callbacks
     this.loadDocument(this.document)
     this.patchState({ document: migrate(this.document, TLDrawState.version) })
 
     loadFileHandle().then((fileHandle) => {
       this.fileSystemHandle = fileHandle
     })
-
-    this._onChange = onChange
-    this._onMount = onMount
-    this._onUserChange = onUserChange
 
     this.session = undefined
   }
@@ -161,7 +226,7 @@ export class TLDrawState extends StateManager<Data> {
     }
 
     this.persist()
-    this._onMount?.(this)
+    this.callbacks.onMount?.(this)
   }
 
   /**
@@ -361,28 +426,57 @@ export class TLDrawState extends StateManager<Data> {
     return data
   }
 
+  onPatch = (state: Data, id?: string) => {
+    this.callbacks.onPatch?.(this, id)
+  }
+
+  onCommand = (state: Data, id?: string) => {
+    this.clearSelectHistory()
+    this.isDirty = true
+    this.callbacks.onCommand?.(this, id)
+  }
+
+  onReplace = () => {
+    this.clearSelectHistory()
+    this.isDirty = false
+  }
+
+  onUndo = () => {
+    Session.cache.selectedIds = [...this.selectedIds]
+    this.callbacks.onUndo?.(this)
+  }
+
+  onRedo = () => {
+    Session.cache.selectedIds = [...this.selectedIds]
+    this.callbacks.onRedo?.(this)
+  }
+
+  onPersist = () => {
+    this.callbacks.onPersist?.(this)
+  }
+
   /**
    * Clear the selection history after each new command, undo or redo.
    * @param state
    * @param id
    */
-  protected onStateDidChange = (state: Data, id: string): void => {
-    if (!id.startsWith('patch')) {
-      if (!id.startsWith('replace')) {
-        // If we've changed the undo stack, then the file is out of
-        // sync with any saved version on the file system.
-        this.isDirty = true
-      }
-
-      this.clearSelectHistory()
-    }
-
-    if (id.startsWith('undo') || id.startsWith('redo')) {
-      Session.cache.selectedIds = [...this.selectedIds]
-    }
-
-    this._onChange?.(this, state, id)
+  protected onStateDidChange = (_state: Data, id?: string): void => {
+    this.callbacks.onChange?.(this, id)
   }
+
+  // if (id && !id.startsWith('patch')) {
+  //   if (!id.startsWith('replace')) {
+  //     // If we've changed the undo stack, then the file is out of
+  //     // sync with any saved version on the file system.
+  //     this.isDirty = true
+  //   }
+  //   this.clearSelectHistory()
+  // }
+  // if (id.startsWith('undo') || id.startsWith('redo')) {
+  //   Session.cache.selectedIds = [...this.selectedIds]
+  // }
+  // this.onChange?.(this, id)
+  // }
 
   /**
    * Set the current status.
@@ -1639,7 +1733,8 @@ export class TLDrawState extends StateManager<Data> {
 
     if (this.state.room) {
       const { users, userId } = this.state.room
-      this._onUserChange?.(this, {
+
+      this.callbacks.onUserChange?.(this, {
         ...users[userId],
         selectedIds: nextIds,
       })
@@ -2349,7 +2444,7 @@ export class TLDrawState extends StateManager<Data> {
     if (this.state.room) {
       const { users, userId } = this.state.room
 
-      this._onUserChange?.(this, {
+      this.callbacks.onUserChange?.(this, {
         ...users[userId],
         point: this.getPagePoint(info.point),
       })

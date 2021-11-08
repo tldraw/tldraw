@@ -12,16 +12,16 @@ interface MenuProps {
 }
 
 export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
-  const { tlstate, callbacks } = useTLDrawContext()
+  const { tlstate } = useTLDrawContext()
 
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
 
   const handleSignIn = React.useCallback(() => {
-    callbacks.onSignIn?.(tlstate)
+    tlstate.callbacks.onSignIn?.(tlstate)
   }, [tlstate])
 
   const handleSignOut = React.useCallback(() => {
-    callbacks.onSignOut?.(tlstate)
+    tlstate.callbacks.onSignOut?.(tlstate)
   }, [tlstate])
 
   const handleCut = React.useCallback(() => {
@@ -53,12 +53,12 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
   }, [tlstate])
 
   const showFileMenu =
-    callbacks.onNewProject ||
-    callbacks.onOpenProject ||
-    callbacks.onSaveProject ||
-    callbacks.onSaveProjectAs
+    tlstate.callbacks.onNewProject ||
+    tlstate.callbacks.onOpenProject ||
+    tlstate.callbacks.onSaveProject ||
+    tlstate.callbacks.onSaveProjectAs
 
-  const showSignInOutMenu = callbacks.onSignIn || callbacks.onSignOut
+  const showSignInOutMenu = tlstate.callbacks.onSignIn || tlstate.callbacks.onSignOut
 
   return (
     <DropdownMenu.Root>
@@ -68,22 +68,22 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
       <DMContent variant="menu">
         {showFileMenu && (
           <DMSubMenu label="File...">
-            {callbacks.onNewProject && (
+            {tlstate.callbacks.onNewProject && (
               <DMItem onSelect={onNewProject} kbd="#N">
                 New Project
               </DMItem>
             )}
-            {callbacks.onOpenProject && (
+            {tlstate.callbacks.onOpenProject && (
               <DMItem onSelect={onOpenProject} kbd="#O">
                 Open...
               </DMItem>
             )}
-            {callbacks.onSaveProject && (
+            {tlstate.callbacks.onSaveProject && (
               <DMItem onSelect={onSaveProject} kbd="#S">
                 Save
               </DMItem>
             )}
-            {callbacks.onSaveProjectAs && (
+            {tlstate.callbacks.onSaveProjectAs && (
               <DMItem onSelect={onSaveProjectAs} kbd="⇧#S">
                 Save As...
               </DMItem>
@@ -127,8 +127,8 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
         {showSignInOutMenu && (
           <>
             <DMDivider dir="ltr" />{' '}
-            {callbacks.onSignIn && <DMItem onSelect={handleSignIn}>Sign In</DMItem>}
-            {callbacks.onSignOut && (
+            {tlstate.callbacks.onSignIn && <DMItem onSelect={handleSignIn}>Sign In</DMItem>}
+            {tlstate.callbacks.onSignOut && (
               <DMItem onSelect={handleSignOut}>
                 Sign Out
                 <SmallIcon>

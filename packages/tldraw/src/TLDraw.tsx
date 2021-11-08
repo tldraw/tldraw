@@ -100,12 +100,6 @@ export interface TLDrawProps {
    * (optional) A callback to run when the component mounts.
    */
   onMount?: (state: TLDrawState) => void
-
-  /**
-   * (optional) A callback to run when the component's state changes.
-   */
-  onChange?: TLDrawState['_onChange']
-
   /**
    * (optional) A callback to run when the user creates a new project through the menu or through a keyboard shortcut.
    */
@@ -130,10 +124,35 @@ export interface TLDrawProps {
    * (optional) A callback to run when the user signs out via the menu.
    */
   onSignOut?: (state: TLDrawState) => void
+
   /**
    * (optional) A callback to run when the user creates a new project.
    */
   onUserChange?: (state: TLDrawState, user: TLDrawUser) => void
+  /**
+   * (optional) A callback to run when the component's state changes.
+   */
+  onChange?: (state: TLDrawState, reason?: string) => void
+  /**
+   * (optional) A callback to run when the state is patched.
+   */
+  onPatch?: (tlstate: TLDrawState, reason?: string) => void
+  /**
+   * (optional) A callback to run when the state is changed with a command.
+   */
+  onCommand?: (tlstate: TLDrawState, reason?: string) => void
+  /**
+   * (optional) A callback to run when the state is persisted.
+   */
+  onPersist?: (tlstate: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the user undos.
+   */
+  onUndo?: (tlstate: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the user redos.
+   */
+  onRedo?: (tlstate: TLDrawState) => void
 }
 
 export function TLDraw({
@@ -157,23 +176,37 @@ export function TLDraw({
   onOpenProject,
   onSignOut,
   onSignIn,
+  onUndo,
+  onRedo,
+  onPersist,
+  onPatch,
+  onCommand,
 }: TLDrawProps) {
   const [sId, setSId] = React.useState(id)
 
   const [tlstate, setTlstate] = React.useState(
-    () => new TLDrawState(id, onMount, onChange, onUserChange)
+    () =>
+      new TLDrawState(id, {
+        onMount,
+        onChange,
+        onUserChange,
+        onNewProject,
+        onSaveProject,
+        onSaveProjectAs,
+        onOpenProject,
+        onSignOut,
+        onSignIn,
+        onUndo,
+        onRedo,
+        onPatch,
+        onCommand,
+        onPersist,
+      })
   )
+
   const [context, setContext] = React.useState<TLDrawContextType>(() => ({
     tlstate,
     useSelector: tlstate.useStore,
-    callbacks: {
-      onNewProject,
-      onSaveProject,
-      onSaveProjectAs,
-      onOpenProject,
-      onSignIn,
-      onSignOut,
-    },
   }))
 
   React.useEffect(() => {
@@ -181,7 +214,24 @@ export function TLDraw({
 
     // If a new id is loaded, replace the entire state
     setSId(id)
-    const newState = new TLDrawState(id, onMount, onChange, onUserChange)
+    const newState = new TLDrawState(id)
+
+    newState.callbacks = {
+      onMount,
+      onChange,
+      onUserChange,
+      onNewProject,
+      onSaveProject,
+      onSaveProjectAs,
+      onOpenProject,
+      onSignOut,
+      onSignIn,
+      onUndo,
+      onRedo,
+      onPatch,
+      onCommand,
+      onPersist,
+    }
     setTlstate(newState)
     setContext((ctx) => ({
       ...ctx,
@@ -189,21 +239,6 @@ export function TLDraw({
       useSelector: newState.useStore,
     }))
   }, [sId, id])
-
-  // Update the callbacks when any callback changes
-  React.useEffect(() => {
-    setContext((ctx) => ({
-      ...ctx,
-      callbacks: {
-        onNewProject,
-        onSaveProject,
-        onSaveProjectAs,
-        onOpenProject,
-        onSignIn,
-        onSignOut,
-      },
-    }))
-  }, [onNewProject, onSaveProject, onSaveProjectAs, onOpenProject, onSignIn, onSignOut])
 
   React.useEffect(() => {
     tlstate.readOnly = readOnly
@@ -316,10 +351,8 @@ function InnerTldraw({
     if (!document) return
 
     if (document.id === tlstate.document.id) {
-      console.log('updating')
       tlstate.updateDocument(document)
     } else {
-      console.log('loading')
       tlstate.loadDocument(document)
     }
   }, [document, tlstate])
