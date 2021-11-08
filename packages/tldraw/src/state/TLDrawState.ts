@@ -27,7 +27,7 @@ import {
   ShapeStyles,
   TLDrawShape,
   TLDrawShapeType,
-  Data,
+  TLDrawSnapshot,
   Session,
   TLDrawStatus,
   SelectHistory,
@@ -58,35 +58,86 @@ import { USER_COLORS, FIT_TO_SCREEN_PADDING } from '~constants'
 
 const uuid = Utils.uniqueId()
 
-export class TLDrawState extends StateManager<Data> {
-  private _onMount?: (tlstate: TLDrawState) => void
-  private _onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void
-  private _onUserChange?: (tlstate: TLDrawState, user: TLDrawUser) => void
+export interface TLDrawCallbacks {
+  /**
+   * (optional) A callback to run when the component mounts.
+   */
+  onMount?: (state: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the component's state changes.
+   */
+  onChange?: (state: TLDrawState, reason?: string) => void
+  /**
+   * (optional) A callback to run when the user creates a new project through the menu or through a keyboard shortcut.
+   */
+  onNewProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+  /**
+   * (optional) A callback to run when the user saves a project through the menu or through a keyboard shortcut.
+   */
+  onSaveProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+  /**
+   * (optional) A callback to run when the user saves a project as a new project through the menu or through a keyboard shortcut.
+   */
+  onSaveProjectAs?: (state: TLDrawState, e?: KeyboardEvent) => void
+  /**
+   * (optional) A callback to run when the user opens new project through the menu or through a keyboard shortcut.
+   */
+  onOpenProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+  /**
+   * (optional) A callback to run when the user signs in via the menu.
+   */
+  onSignIn?: (state: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the user signs out via the menu.
+   */
+  onSignOut?: (state: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the user creates a new project.
+   */
+  onUserChange?: (state: TLDrawState, user: TLDrawUser) => void
+  /**
+   * (optional) A callback to run when the state is patched.
+   */
+  onPatch?: (state: TLDrawState, reason?: string) => void
+  /**
+   * (optional) A callback to run when the state is changed with a command.
+   */
+  onCommand?: (state: TLDrawState, reason?: string) => void
+  /**
+   * (optional) A callback to run when the state is persisted.
+   */
+  onPersist?: (state: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the user undos.
+   */
+  onUndo?: (state: TLDrawState) => void
+  /**
+   * (optional) A callback to run when the user redos.
+   */
+  onRedo?: (state: TLDrawState) => void
+}
 
-  readOnly = false
-
-  inputs?: Inputs
+export class TLDrawState extends StateManager<TLDrawSnapshot> {
+  public callbacks: TLDrawCallbacks = {}
 
   selectHistory: SelectHistory = {
     stack: [[]],
     pointer: 0,
   }
 
-  clipboard?: {
+  private clipboard?: {
     shapes: TLDrawShape[]
     bindings: TLDrawBinding[]
   }
 
-  tools = createTools(this)
+  private tools = createTools(this)
 
   currentTool: BaseTool = this.tools.select
 
-  session?: Session
-
-  isCreating = false
+  private isCreating = false
 
   // The editor's bounding client rect
-  bounds: TLBounds = {
+  private bounds: TLBounds = {
     minX: 0,
     minY: 0,
     maxX: 640,
@@ -96,7 +147,7 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   // The most recent pointer location
-  pointerPoint: number[] = [0, 0]
+  private pointerPoint: number[] = [0, 0]
 
   private pasteInfo = {
     center: [0, 0],
@@ -104,15 +155,11 @@ export class TLDrawState extends StateManager<Data> {
   }
 
   fileSystemHandle: FileSystemHandle | null = null
-
+  readOnly = false
+  session?: Session
   isDirty = false
 
-  constructor(
-    id?: string,
-    onMount?: (tlstate: TLDrawState) => void,
-    onChange?: (tlstate: TLDrawState, data: Data, reason: string) => void,
-    onUserChange?: (tlstate: TLDrawState, user: TLDrawUser) => void
-  ) {
+  constructor(id?: string, callbacks = {} as TLDrawCallbacks) {
     super(TLDrawState.defaultState, id, TLDrawState.version, (prev, next, prevVersion) => {
       return {
         ...next,
@@ -123,23 +170,18 @@ export class TLDrawState extends StateManager<Data> {
       }
     })
 
+    this.callbacks = callbacks
+  }
+
+  /* -------------------- Internal -------------------- */
+
+  protected onReady = () => {
     this.loadDocument(this.document)
-    this.patchState({ document: migrate(this.document, TLDrawState.version) })
 
     loadFileHandle().then((fileHandle) => {
       this.fileSystemHandle = fileHandle
     })
 
-    this._onChange = onChange
-    this._onMount = onMount
-    this._onUserChange = onUserChange
-
-    this.session = undefined
-  }
-
-  /* -------------------- Internal -------------------- */
-
-  onReady = () => {
     try {
       this.patchState({
         appState: {
@@ -160,8 +202,7 @@ export class TLDrawState extends StateManager<Data> {
       })
     }
 
-    this.persist()
-    this._onMount?.(this)
+    this.callbacks.onMount?.(this)
   }
 
   /**
@@ -171,7 +212,7 @@ export class TLDrawState extends StateManager<Data> {
    * @protected
    * @returns The final state
    */
-  protected cleanup = (state: Data, prev: Data): Data => {
+  protected cleanup = (state: TLDrawSnapshot, prev: TLDrawSnapshot): TLDrawSnapshot => {
     const data = { ...state }
 
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
@@ -361,28 +402,57 @@ export class TLDrawState extends StateManager<Data> {
     return data
   }
 
+  onPatch = (state: TLDrawSnapshot, id?: string) => {
+    this.callbacks.onPatch?.(this, id)
+  }
+
+  onCommand = (state: TLDrawSnapshot, id?: string) => {
+    this.clearSelectHistory()
+    this.isDirty = true
+    this.callbacks.onCommand?.(this, id)
+  }
+
+  onReplace = () => {
+    this.clearSelectHistory()
+    this.isDirty = false
+  }
+
+  onUndo = () => {
+    Session.cache.selectedIds = [...this.selectedIds]
+    this.callbacks.onUndo?.(this)
+  }
+
+  onRedo = () => {
+    Session.cache.selectedIds = [...this.selectedIds]
+    this.callbacks.onRedo?.(this)
+  }
+
+  onPersist = () => {
+    this.callbacks.onPersist?.(this)
+  }
+
   /**
    * Clear the selection history after each new command, undo or redo.
    * @param state
    * @param id
    */
-  protected onStateDidChange = (state: Data, id: string): void => {
-    if (!id.startsWith('patch')) {
-      if (!id.startsWith('replace')) {
-        // If we've changed the undo stack, then the file is out of
-        // sync with any saved version on the file system.
-        this.isDirty = true
-      }
-
-      this.clearSelectHistory()
-    }
-
-    if (id.startsWith('undo') || id.startsWith('redo')) {
-      Session.cache.selectedIds = [...this.selectedIds]
-    }
-
-    this._onChange?.(this, state, id)
+  protected onStateDidChange = (_state: TLDrawSnapshot, id?: string): void => {
+    this.callbacks.onChange?.(this, id)
   }
+
+  // if (id && !id.startsWith('patch')) {
+  //   if (!id.startsWith('replace')) {
+  //     // If we've changed the undo stack, then the file is out of
+  //     // sync with any saved version on the file system.
+  //     this.isDirty = true
+  //   }
+  //   this.clearSelectHistory()
+  // }
+  // if (id.startsWith('undo') || id.startsWith('redo')) {
+  //   Session.cache.selectedIds = [...this.selectedIds]
+  // }
+  // this.onChange?.(this, id)
+  // }
 
   /**
    * Set the current status.
@@ -456,13 +526,16 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Set a setting.
    */
-  setSetting = <T extends keyof Data['settings'], V extends Data['settings'][T]>(
+  setSetting = <
+    T extends keyof TLDrawSnapshot['settings'],
+    V extends TLDrawSnapshot['settings'][T]
+  >(
     name: T,
     value: V | ((value: V) => V)
   ): this => {
     if (this.session) return this
 
-    return this.patchState(
+    this.patchState(
       {
         settings: {
           [name]: typeof value === 'function' ? value(this.state.settings[name] as V) : value,
@@ -470,6 +543,8 @@ export class TLDrawState extends StateManager<Data> {
       },
       `settings:${name}`
     )
+    this.persist()
+    return this
   }
 
   /**
@@ -477,7 +552,7 @@ export class TLDrawState extends StateManager<Data> {
    */
   toggleFocusMode = (): this => {
     if (this.session) return this
-    return this.patchState(
+    this.patchState(
       {
         settings: {
           isFocusMode: !this.state.settings.isFocusMode,
@@ -485,6 +560,8 @@ export class TLDrawState extends StateManager<Data> {
       },
       `settings:toggled_focus_mode`
     )
+    this.persist()
+    return this
   }
 
   /**
@@ -492,7 +569,7 @@ export class TLDrawState extends StateManager<Data> {
    */
   togglePenMode = (): this => {
     if (this.session) return this
-    return this.patchState(
+    this.patchState(
       {
         settings: {
           isPenMode: !this.state.settings.isPenMode,
@@ -500,6 +577,8 @@ export class TLDrawState extends StateManager<Data> {
       },
       `settings:toggled_pen_mode`
     )
+    this.persist()
+    return this
   }
 
   /**
@@ -816,8 +895,7 @@ export class TLDrawState extends StateManager<Data> {
     this.resetHistory()
     this.clearSelectHistory()
     this.session = undefined
-
-    return this.replaceState(
+    this.replaceState(
       {
         ...TLDrawState.defaultState,
         document: migrate(document, TLDrawState.version),
@@ -828,6 +906,7 @@ export class TLDrawState extends StateManager<Data> {
       },
       'loaded_document'
     )
+    return this
   }
 
   // Should we move this to the app layer? onSave, onSaveAs, etc?
@@ -912,7 +991,7 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Get the current app state.
    */
-  getAppState = (): Data['appState'] => {
+  getAppState = (): TLDrawSnapshot['appState'] => {
     return this.appState
   }
 
@@ -956,10 +1035,6 @@ export class TLDrawState extends StateManager<Data> {
    */
   getShapeBounds = (id: string, pageId = this.currentPageId): TLBounds => {
     return TLDR.getBounds(this.getShape(id, pageId))
-  }
-
-  greet() {
-    return 'hello'
   }
 
   /**
@@ -1013,7 +1088,7 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * The current app state.
    */
-  get appState(): Data['appState'] {
+  get appState(): TLDrawSnapshot['appState'] {
     return this.state.appState
   }
 
@@ -1598,7 +1673,7 @@ export class TLDrawState extends StateManager<Data> {
    * @param delta The zoom delta.
    * @param center The point to zoom toward.
    */
-  zoom = Utils.throttle((delta: number, center?: number[]): this => {
+  zoomBy = Utils.throttle((delta: number, center?: number[]): this => {
     const { zoom } = this.pageState.camera
     const nextZoom = TLDR.getCameraZoom(zoom - delta * zoom)
     return this.zoomTo(nextZoom, center)
@@ -1639,7 +1714,8 @@ export class TLDrawState extends StateManager<Data> {
 
     if (this.state.room) {
       const { users, userId } = this.state.room
-      this._onUserChange?.(this, {
+
+      this.callbacks.onUserChange?.(this, {
         ...users[userId],
         selectedIds: nextIds,
       })
@@ -2034,7 +2110,7 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Delete all shapes on the page.
    */
-  clear = (): this => {
+  deleteAll = (): this => {
     this.selectAll()
     this.delete()
     return this
@@ -2333,7 +2409,7 @@ export class TLDrawState extends StateManager<Data> {
 
   onZoom: TLWheelEventHandler = (info, e) => {
     if (this.state.appState.status !== TLDrawStatus.Idle) return
-    this.zoom(info.delta[2] / 100, info.delta)
+    this.zoomBy(info.delta[2] / 100, info.delta)
     this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 
@@ -2349,7 +2425,7 @@ export class TLDrawState extends StateManager<Data> {
     if (this.state.room) {
       const { users, userId } = this.state.room
 
-      this._onUserChange?.(this, {
+      this.callbacks.onUserChange?.(this, {
         ...users[userId],
         point: this.getPagePoint(info.point),
       })
@@ -2565,7 +2641,7 @@ export class TLDrawState extends StateManager<Data> {
     },
   }
 
-  static defaultState: Data = {
+  static defaultState: TLDrawSnapshot = {
     settings: {
       isPenMode: false,
       isDarkMode: false,

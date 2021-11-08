@@ -2,33 +2,33 @@ import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 
 describe('Create page command', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   it('does, undoes and redoes command', () => {
-    tlstate.loadDocument(mockDocument)
+    state.loadDocument(mockDocument)
 
-    const initialId = tlstate.page.id
-    const initialPageState = tlstate.pageState
+    const initialId = state.page.id
+    const initialPageState = state.pageState
 
-    tlstate.createPage()
+    state.createPage()
 
-    const nextId = tlstate.page.id
-    const nextPageState = tlstate.pageState
+    const nextId = state.page.id
+    const nextPageState = state.pageState
 
-    expect(Object.keys(tlstate.document.pages).length).toBe(2)
-    expect(tlstate.page.id).toBe(nextId)
-    expect(tlstate.pageState).toEqual(nextPageState)
+    expect(Object.keys(state.document.pages).length).toBe(2)
+    expect(state.page.id).toBe(nextId)
+    expect(state.pageState).toEqual(nextPageState)
 
-    tlstate.undo()
+    state.undo()
 
-    expect(Object.keys(tlstate.document.pages).length).toBe(1)
-    expect(tlstate.page.id).toBe(initialId)
-    expect(tlstate.pageState).toEqual(initialPageState)
+    expect(Object.keys(state.document.pages).length).toBe(1)
+    expect(state.page.id).toBe(initialId)
+    expect(state.pageState).toEqual(initialPageState)
 
-    tlstate.redo()
+    state.redo()
 
-    expect(Object.keys(tlstate.document.pages).length).toBe(2)
-    expect(tlstate.page.id).toBe(nextId)
-    expect(tlstate.pageState).toEqual(nextPageState)
+    expect(Object.keys(state.document.pages).length).toBe(2)
+    expect(state.page.id).toBe(nextId)
+    expect(state.pageState).toEqual(nextPageState)
   })
 })

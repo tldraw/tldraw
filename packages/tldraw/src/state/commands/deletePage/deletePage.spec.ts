@@ -2,40 +2,40 @@ import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 
 describe('Delete page', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   beforeEach(() => {
-    tlstate.loadDocument(mockDocument)
+    state.loadDocument(mockDocument)
   })
 
   describe('when there are no pages in the current document', () => {
     it('does nothing', () => {
-      tlstate.resetDocument()
-      const initialState = tlstate.state
-      tlstate.deletePage('page1')
-      const currentState = tlstate.state
+      state.resetDocument()
+      const initialState = state.state
+      state.deletePage('page1')
+      const currentState = state.state
 
       expect(currentState).toEqual(initialState)
     })
   })
 
   it('does, undoes and redoes command', () => {
-    const initialId = tlstate.currentPageId
+    const initialId = state.currentPageId
 
-    tlstate.createPage()
+    state.createPage()
 
-    const nextId = tlstate.currentPageId
+    const nextId = state.currentPageId
 
-    tlstate.deletePage()
+    state.deletePage()
 
-    expect(tlstate.currentPageId).toBe(initialId)
+    expect(state.currentPageId).toBe(initialId)
 
-    tlstate.undo()
+    state.undo()
 
-    expect(tlstate.currentPageId).toBe(nextId)
+    expect(state.currentPageId).toBe(nextId)
 
-    tlstate.redo()
+    state.redo()
 
-    expect(tlstate.currentPageId).toBe(initialId)
+    expect(state.currentPageId).toBe(initialId)
   })
 })

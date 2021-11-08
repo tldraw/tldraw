@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { useTLDrawContext } from '~hooks'
-import type { Data } from '~types'
+import type { TLDrawSnapshot } from '~types'
 import { styled } from '~styles'
 import { breakpoints } from '~components/breakpoints'
 
-const statusSelector = (s: Data) => s.appState.status
-const activeToolSelector = (s: Data) => s.appState.activeTool
+const statusSelector = (s: TLDrawSnapshot) => s.appState.status
+const activeToolSelector = (s: TLDrawSnapshot) => s.appState.activeTool
 
 export function StatusBar(): JSX.Element | null {
   const { useSelector } = useTLDrawContext()

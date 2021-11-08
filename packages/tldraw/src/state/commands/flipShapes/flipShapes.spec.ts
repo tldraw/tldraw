@@ -3,48 +3,48 @@ import { mockDocument } from '~test'
 import type { RectangleShape } from '~types'
 
 describe('Flip command', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   beforeEach(() => {
-    tlstate.loadDocument(mockDocument)
+    state.loadDocument(mockDocument)
   })
 
   describe('when no shape is selected', () => {
     it('does nothing', () => {
-      const initialState = tlstate.state
-      tlstate.flipHorizontal()
-      const currentState = tlstate.state
+      const initialState = state.state
+      state.flipHorizontal()
+      const currentState = state.state
 
       expect(currentState).toEqual(initialState)
     })
   })
 
   it('does, undoes and redoes command', () => {
-    tlstate.select('rect1', 'rect2')
-    tlstate.flipHorizontal()
+    state.select('rect1', 'rect2')
+    state.flipHorizontal()
 
-    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 0])
+    expect(state.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 0])
 
-    tlstate.undo()
+    state.undo()
 
-    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 0])
+    expect(state.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 0])
 
-    tlstate.redo()
+    state.redo()
 
-    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 0])
+    expect(state.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 0])
   })
 
   it('flips horizontally', () => {
-    tlstate.select('rect1', 'rect2')
-    tlstate.flipHorizontal()
+    state.select('rect1', 'rect2')
+    state.flipHorizontal()
 
-    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 0])
+    expect(state.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 0])
   })
 
   it('flips vertically', () => {
-    tlstate.select('rect1', 'rect2')
-    tlstate.flipVertical()
+    state.select('rect1', 'rect2')
+    state.flipVertical()
 
-    expect(tlstate.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 100])
+    expect(state.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 100])
   })
 })

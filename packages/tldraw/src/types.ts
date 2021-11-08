@@ -29,9 +29,9 @@ export interface TLDrawTransformInfo<T extends TLShape> {
 }
 
 // old
-export type TLStore = StoreApi<Data>
+export type TLStore = StoreApi<TLDrawSnapshot>
 
-export type TLChange = Data
+export type TLChange = TLDrawSnapshot
 
 export type TLDrawPage = TLPage<TLDrawShape, TLDrawBinding>
 
@@ -79,7 +79,7 @@ export type TLDrawShapeProps<T extends TLDrawShape, E extends Element> = TLShape
   TLDrawMeta
 >
 
-export interface Data {
+export interface TLDrawSnapshot {
   settings: TLDrawSettings
   appState: {
     selectedStyle: ShapeStyles
@@ -102,9 +102,9 @@ export interface Data {
   }
 }
 
-export type TLDrawPatch = Patch<Data>
+export type TLDrawPatch = Patch<TLDrawSnapshot>
 
-export type TLDrawCommand = Command<Data>
+export type TLDrawCommand = Command<TLDrawSnapshot>
 
 export type PagePartial = {
   shapes: Patch<TLDrawPage['shapes']>
@@ -131,16 +131,18 @@ export enum SessionType {
 export abstract class Session {
   static type: SessionType
   abstract status: TLDrawStatus
-  abstract start: (data: Readonly<Data>) => TLDrawPatch | undefined
+  abstract start: (TLDrawSnapshot: Readonly<TLDrawSnapshot>) => TLDrawPatch | undefined
   abstract update: (
-    data: Readonly<Data>,
+    TLDrawSnapshot: Readonly<TLDrawSnapshot>,
     point: number[],
     shiftKey?: boolean,
     altKey?: boolean,
     metaKey?: boolean
   ) => TLDrawPatch | undefined
-  abstract complete: (data: Readonly<Data>) => TLDrawPatch | TLDrawCommand | undefined
-  abstract cancel: (data: Readonly<Data>) => TLDrawPatch | undefined
+  abstract complete: (
+    TLDrawSnapshot: Readonly<TLDrawSnapshot>
+  ) => TLDrawPatch | TLDrawCommand | undefined
+  abstract cancel: (TLDrawSnapshot: Readonly<TLDrawSnapshot>) => TLDrawPatch | undefined
 
   viewport: TLBounds
 

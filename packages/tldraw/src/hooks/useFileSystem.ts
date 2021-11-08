@@ -2,40 +2,40 @@ import * as React from 'react'
 import type { TLDrawState } from '~state'
 
 export function useFileSystem() {
-  const promptSaveBeforeChange = React.useCallback(async (tlstate: TLDrawState) => {
-    if (tlstate.isDirty) {
-      if (tlstate.fileSystemHandle) {
+  const promptSaveBeforeChange = React.useCallback(async (state: TLDrawState) => {
+    if (state.isDirty) {
+      if (state.fileSystemHandle) {
         if (window.confirm('Do you want to save changes to your current project?')) {
-          await tlstate.saveProject()
+          await state.saveProject()
         }
       } else {
         if (window.confirm('Do you want to save your current project?')) {
-          await tlstate.saveProject()
+          await state.saveProject()
         }
       }
     }
   }, [])
 
   const onNewProject = React.useCallback(
-    async (tlstate: TLDrawState) => {
-      await promptSaveBeforeChange(tlstate)
-      tlstate.newProject()
+    async (state: TLDrawState) => {
+      await promptSaveBeforeChange(state)
+      state.newProject()
     },
     [promptSaveBeforeChange]
   )
 
-  const onSaveProject = React.useCallback((tlstate: TLDrawState) => {
-    tlstate.saveProject()
+  const onSaveProject = React.useCallback((state: TLDrawState) => {
+    state.saveProject()
   }, [])
 
-  const onSaveProjectAs = React.useCallback((tlstate: TLDrawState) => {
-    tlstate.saveProjectAs()
+  const onSaveProjectAs = React.useCallback((state: TLDrawState) => {
+    state.saveProjectAs()
   }, [])
 
   const onOpenProject = React.useCallback(
-    async (tlstate: TLDrawState) => {
-      await promptSaveBeforeChange(tlstate)
-      tlstate.openProject()
+    async (state: TLDrawState) => {
+      await promptSaveBeforeChange(state)
+      state.openProject()
     },
     [promptSaveBeforeChange]
   )

@@ -5,8 +5,8 @@ import { SelectTool } from '.'
 
 describe('SelectTool', () => {
   it('creates tool', () => {
-    const tlstate = new TLDrawState()
-    new SelectTool(tlstate)
+    const state = new TLDrawState()
+    new SelectTool(state)
   })
 })
 
@@ -59,8 +59,8 @@ describe('When double clicking link controls', () => {
     .selectNone().document
 
   it('moves all linked shapes when center is dragged', () => {
-    const tlstate = new TLDrawState().loadDocument(doc).select('rect2')
-    const tlu = new TLDrawStateUtils(tlstate)
+    const state = new TLDrawState().loadDocument(doc).select('rect2')
+    const tlu = new TLDrawStateUtils(state)
 
     tlu
       .pointBoundsHandle('center')
@@ -71,7 +71,7 @@ describe('When double clicking link controls', () => {
         rect3: [300, 100],
       })
 
-    tlstate.completeSession().undo()
+    state.completeSession().undo()
 
     tlu.expectShapesToBeAtPoints({
       rect1: [0, 0],
@@ -81,37 +81,37 @@ describe('When double clicking link controls', () => {
   })
 
   it('moves all upstream shapes when center is dragged', () => {
-    const tlstate = new TLDrawState().loadDocument(doc).select('rect2')
-    const tlu = new TLDrawStateUtils(tlstate)
+    const state = new TLDrawState().loadDocument(doc).select('rect2')
+    const tlu = new TLDrawStateUtils(state)
 
     tlu.pointBoundsHandle('left').movePointer({ x: 100, y: 100 })
 
-    expect(tlstate.getShape('rect1').point).toEqual([100, 100])
-    expect(tlstate.getShape('rect2').point).toEqual([200, 100])
-    expect(tlstate.getShape('rect3').point).toEqual([200, 0])
+    expect(state.getShape('rect1').point).toEqual([100, 100])
+    expect(state.getShape('rect2').point).toEqual([200, 100])
+    expect(state.getShape('rect3').point).toEqual([200, 0])
   })
 
   it('moves all downstream shapes when center is dragged', () => {
-    const tlstate = new TLDrawState().loadDocument(doc).select('rect2')
-    const tlu = new TLDrawStateUtils(tlstate)
+    const state = new TLDrawState().loadDocument(doc).select('rect2')
+    const tlu = new TLDrawStateUtils(state)
 
     tlu.pointBoundsHandle('right').movePointer({ x: 100, y: 100 })
 
-    expect(tlstate.getShape('rect1').point).toEqual([0, 0])
-    expect(tlstate.getShape('rect2').point).toEqual([200, 100])
-    expect(tlstate.getShape('rect3').point).toEqual([300, 100])
+    expect(state.getShape('rect1').point).toEqual([0, 0])
+    expect(state.getShape('rect2').point).toEqual([200, 100])
+    expect(state.getShape('rect3').point).toEqual([300, 100])
   })
 
   it('selects all linked shapes when center is double clicked', () => {
-    const tlstate = new TLDrawState().loadDocument(doc).select('rect2')
-    const tlu = new TLDrawStateUtils(tlstate)
+    const state = new TLDrawState().loadDocument(doc).select('rect2')
+    const tlu = new TLDrawStateUtils(state)
 
     tlu.doubleClickBoundHandle('center').expectSelectedIdsToBe(['rect2', 'rect1', 'rect3'])
   })
 
   it('selects all linked shapes and arrows when center is double clicked while holding shift', () => {
-    const tlstate = new TLDrawState().loadDocument(doc).select('rect2')
-    const tlu = new TLDrawStateUtils(tlstate)
+    const state = new TLDrawState().loadDocument(doc).select('rect2')
+    const tlu = new TLDrawStateUtils(state)
 
     tlu
       .doubleClickBoundHandle('center', { shiftKey: true })
@@ -119,15 +119,15 @@ describe('When double clicking link controls', () => {
   })
 
   it('selects all upstream linked shapes when left is double clicked', () => {
-    const tlstate = new TLDrawState().loadDocument(doc).select('rect2')
-    const tlu = new TLDrawStateUtils(tlstate)
+    const state = new TLDrawState().loadDocument(doc).select('rect2')
+    const tlu = new TLDrawStateUtils(state)
 
     tlu.doubleClickBoundHandle('left').expectSelectedIdsToBe(['rect1', 'rect2'])
   })
 
   it('selects all upstream linked shapes and arrows when left is double clicked with shift', () => {
-    const tlstate = new TLDrawState().loadDocument(doc).select('rect2')
-    const tlu = new TLDrawStateUtils(tlstate)
+    const state = new TLDrawState().loadDocument(doc).select('rect2')
+    const tlu = new TLDrawStateUtils(state)
 
     tlu
       .doubleClickBoundHandle('left', { shiftKey: true })
@@ -135,15 +135,15 @@ describe('When double clicking link controls', () => {
   })
 
   it('selects all downstream linked shapes when right is double clicked', () => {
-    const tlstate = new TLDrawState().loadDocument(doc).select('rect2')
-    const tlu = new TLDrawStateUtils(tlstate)
+    const state = new TLDrawState().loadDocument(doc).select('rect2')
+    const tlu = new TLDrawStateUtils(state)
 
     tlu.doubleClickBoundHandle('right').expectSelectedIdsToBe(['rect2', 'rect3'])
   })
 
   it('selects all downstream linked shapes and arrows when right is double clicked with shift', () => {
-    const tlstate = new TLDrawState().loadDocument(doc).select('rect2')
-    const tlu = new TLDrawStateUtils(tlstate)
+    const state = new TLDrawState().loadDocument(doc).select('rect2')
+    const tlu = new TLDrawStateUtils(state)
 
     tlu
       .doubleClickBoundHandle('right', { shiftKey: true })
@@ -153,42 +153,42 @@ describe('When double clicking link controls', () => {
 
 describe('When selecting grouped shapes', () => {
   it('Selects the group on single click', () => {
-    const tlstate = new TLDrawState().loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA')
+    const state = new TLDrawState().loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA')
 
-    new TLDrawStateUtils(tlstate).clickShape('rect1')
+    new TLDrawStateUtils(state).clickShape('rect1')
 
-    expect(tlstate.selectedIds).toStrictEqual(['groupA'])
+    expect(state.selectedIds).toStrictEqual(['groupA'])
   })
 
   it('Drills in and selects the child on double click', () => {
-    const tlstate = new TLDrawState().loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA')
+    const state = new TLDrawState().loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA')
 
-    new TLDrawStateUtils(tlstate).doubleClickShape('rect1')
+    new TLDrawStateUtils(state).doubleClickShape('rect1')
 
-    expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+    expect(state.selectedIds).toStrictEqual(['rect1'])
   })
 
   it('Selects a sibling on single click after drilling', () => {
-    const tlstate = new TLDrawState().loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA')
+    const state = new TLDrawState().loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA')
 
-    new TLDrawStateUtils(tlstate).doubleClickShape('rect1').clickShape('rect2')
+    new TLDrawStateUtils(state).doubleClickShape('rect1').clickShape('rect2')
 
-    expect(tlstate.selectedIds).toStrictEqual(['rect2'])
+    expect(state.selectedIds).toStrictEqual(['rect2'])
   })
 
   it('Selects the group again after selecting a different shape', () => {
-    const tlstate = new TLDrawState()
+    const state = new TLDrawState()
       .loadDocument(mockDocument)
       .selectAll()
       .group(['rect1', 'rect2'], 'groupA')
 
-    new TLDrawStateUtils(tlstate).doubleClickShape('rect1').clickShape('rect3').clickShape('rect1')
+    new TLDrawStateUtils(state).doubleClickShape('rect1').clickShape('rect3').clickShape('rect1')
 
-    expect(tlstate.selectedIds).toStrictEqual(['groupA'])
+    expect(state.selectedIds).toStrictEqual(['groupA'])
   })
 
   it('Selects grouped text on double click', () => {
-    const tlstate = new TLDrawState()
+    const state = new TLDrawState()
       .loadDocument(mockDocument)
       .createShapes({
         id: 'text1',
@@ -197,14 +197,14 @@ describe('When selecting grouped shapes', () => {
       })
       .group(['rect1', 'rect2', 'text1'], 'groupA')
 
-    new TLDrawStateUtils(tlstate).doubleClickShape('text1')
+    new TLDrawStateUtils(state).doubleClickShape('text1')
 
-    expect(tlstate.selectedIds).toStrictEqual(['text1'])
-    expect(tlstate.pageState.editingId).toBeUndefined()
+    expect(state.selectedIds).toStrictEqual(['text1'])
+    expect(state.pageState.editingId).toBeUndefined()
   })
 
   it('Edits grouped text on double click after selecting', () => {
-    const tlstate = new TLDrawState()
+    const state = new TLDrawState()
       .loadDocument(mockDocument)
       .createShapes({
         id: 'text1',
@@ -213,9 +213,9 @@ describe('When selecting grouped shapes', () => {
       })
       .group(['rect1', 'rect2', 'text1'], 'groupA')
 
-    new TLDrawStateUtils(tlstate).doubleClickShape('text1').doubleClickShape('text1')
+    new TLDrawStateUtils(state).doubleClickShape('text1').doubleClickShape('text1')
 
-    expect(tlstate.selectedIds).toStrictEqual(['text1'])
-    expect(tlstate.pageState.editingId).toBe('text1')
+    expect(state.selectedIds).toStrictEqual(['text1'])
+    expect(state.pageState.editingId).toBe('text1')
   })
 })

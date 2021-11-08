@@ -1,16 +1,16 @@
 import * as React from 'react'
 import { styled } from '~styles'
-import type { Data } from '~types'
+import type { TLDrawSnapshot } from '~types'
 import { useTLDrawContext } from '~hooks'
 import { RowButton } from '~components/RowButton'
 import { MenuContent } from '~components/MenuContent'
 
-const isEmptyCanvasSelector = (s: Data) =>
+const isEmptyCanvasSelector = (s: TLDrawSnapshot) =>
   Object.keys(s.document.pages[s.appState.currentPageId].shapes).length > 0 &&
   s.appState.isEmptyCanvas
 
 export const BackToContent = React.memo(function BackToContent() {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
 
   const isEmptyCanvas = useSelector(isEmptyCanvasSelector)
 
@@ -18,7 +18,7 @@ export const BackToContent = React.memo(function BackToContent() {
 
   return (
     <BackToContentContainer>
-      <RowButton onSelect={tlstate.zoomToContent}>Back to content</RowButton>
+      <RowButton onSelect={state.zoomToContent}>Back to content</RowButton>
     </BackToContentContainer>
   )
 })

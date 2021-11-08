@@ -1,7 +1,7 @@
 import { TLDR } from '~state/TLDR'
-import type { ArrowShape, Data, GroupShape, PagePartial } from '~types'
+import type { ArrowShape, TLDrawSnapshot, GroupShape, PagePartial } from '~types'
 
-export function removeShapesFromPage(data: Data, ids: string[], pageId: string) {
+export function removeShapesFromPage(data: TLDrawSnapshot, ids: string[], pageId: string) {
   const before: PagePartial = {
     shapes: {},
     bindings: {},

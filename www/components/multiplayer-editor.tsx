@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLDraw, TLDrawState, Data, TLDrawDocument, TLDrawUser } from '@tldraw/tldraw'
+import { TLDraw, TLDrawState, TLDrawDocument, TLDrawUser } from '@tldraw/tldraw'
 import * as React from 'react'
 import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useObject, useErrorListener } from '@liveblocks/react'
@@ -10,85 +10,57 @@ interface TLDrawUserPresence extends Presence {
 }
 
 const client = createClient({
-  publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_API_KEY,
+  publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_API_KEY || '',
   throttle: 80,
 })
 
-export default function MultiplayerEditor({ id }: { id: string }) {
+export default function MultiplayerEditor({ roomId }: { roomId: string }) {
   return (
     <LiveblocksProvider client={client}>
-      <RoomProvider id={id}>
-        <Editor id={id} />
+      <RoomProvider id={roomId}>
+        <Editor roomId={roomId} />
       </RoomProvider>
     </LiveblocksProvider>
   )
 }
 
-function Editor({ id }: { id: string }) {
+function Editor({ roomId }: { roomId: string }) {
   const [docId] = React.useState(() => Utils.uniqueId())
+
+  const [state, setState] = React.useState<TLDrawState>()
 
   const [error, setError] = React.useState<Error>()
 
-  const [tlstate, setTlstate] = React.useState<TLDrawState>()
-
   useErrorListener((err) => setError(err))
+
+  // Setup document
 
   const doc = useObject<{ uuid: string; document: TLDrawDocument }>('doc', {
     uuid: docId,
     document: {
-      id: 'test-room',
       ...TLDrawState.defaultDocument,
+      id: roomId,
     },
   })
 
-  // Put the tlstate into the window, for debugging.
-  const handleMount = React.useCallback(
-    (tlstate: TLDrawState) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      window.tlstate = tlstate
-
-      tlstate.loadRoom(id)
-
-      setTlstate(tlstate)
-    },
-    [id]
-  )
-
-  const handleChange = React.useCallback(
-    (_tlstate: TLDrawState, state: Data, reason: string) => {
-      // If the client updates its document, update the room's document
-      if (reason.startsWith('command') || reason.startsWith('undo') || reason.startsWith('redo')) {
-        doc?.update({ uuid: docId, document: state.document })
-      }
-
-      // When the client updates its presence, update the room
-      // if (state.room && (reason === 'patch:room:self:update' || reason === 'patch:selected')) {
-      //   const room = client.getRoom(ROOM_ID)
-      //   if (!room) return
-      //   const { userId, users } = state.room
-      //   room.updatePresence({ id: userId, user: users[userId] })
-      // }
-    },
-    [docId, doc]
-  )
+  // Setup client
 
   React.useEffect(() => {
-    const room = client.getRoom(id)
+    const room = client.getRoom(roomId)
 
     if (!room) return
     if (!doc) return
-    if (!tlstate) return
-    if (!tlstate.state.room) return
+    if (!state) return
+    if (!state.state.room) return
 
     // Update the user's presence with the user from state
-    const { users, userId } = tlstate.state.room
+    const { users, userId } = state.state.room
 
     room.updatePresence({ id: userId, user: users[userId] })
 
     // Subscribe to presence changes; when others change, update the state
     room.subscribe<TLDrawUserPresence>('others', (others) => {
-      tlstate.updateUsers(
+      state.updateUsers(
         others
           .toArray()
           .filter((other) => other.presence)
@@ -99,30 +71,26 @@ function Editor({ id }: { id: string }) {
 
     room.subscribe('event', (event) => {
       if (event.event?.name === 'exit') {
-        tlstate.removeUser(event.event.userId)
+        state.removeUser(event.event.userId)
       }
     })
 
     function handleDocumentUpdates() {
       if (!doc) return
-      if (!tlstate) return
-      if (!tlstate.state.room) return
+      if (!state) return
+      if (!state.state.room) return
 
       const docObject = doc.toObject()
 
       // Only merge the change if it caused by someone else
       if (docObject.uuid !== docId) {
-        tlstate.mergeDocument(docObject.document)
+        state.mergeDocument(docObject.document)
       } else {
-        tlstate.updateUsers(
-          Object.values(tlstate.state.room.users).map((user) => {
-            // const activeShapes = user.activeShapes
-            //   .map((shape) => docObject.document.pages[tlstate.currentPageId].shapes[shape.id])
-            //   .filter(Boolean)
+        state.updateUsers(
+          Object.values(state.state.room.users).map((user) => {
             return {
               ...user,
-              // activeShapes: activeShapes,
-              selectedIds: user.selectedIds, // activeShapes.map((shape) => shape.id),
+              selectedIds: user.selectedIds,
             }
           })
         )
@@ -130,8 +98,8 @@ function Editor({ id }: { id: string }) {
     }
 
     function handleExit() {
-      if (!(tlstate && tlstate.state.room)) return
-      room?.broadcastEvent({ name: 'exit', userId: tlstate.state.room.userId })
+      if (!(state && state.state.room)) return
+      room?.broadcastEvent({ name: 'exit', userId: state.state.room.userId })
     }
 
     window.addEventListener('beforeunload', handleExit)
@@ -143,21 +111,39 @@ function Editor({ id }: { id: string }) {
     const newDocument = doc.toObject().document
 
     if (newDocument) {
-      tlstate.loadDocument(newDocument)
+      state.loadDocument(newDocument)
     }
 
     return () => {
       window.removeEventListener('beforeunload', handleExit)
       doc.unsubscribe(handleDocumentUpdates)
     }
-  }, [doc, docId, tlstate, id])
+  }, [doc, docId, state, roomId])
+
+  const handleMount = React.useCallback(
+    (state: TLDrawState) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      window.state = state
+      state.loadRoom(roomId)
+      setState(state)
+    },
+    [roomId]
+  )
+
+  const handlePersist = React.useCallback(
+    (state: TLDrawState) => {
+      doc?.update({ uuid: docId, document: state.document })
+    },
+    [docId, doc]
+  )
 
   const handleUserChange = React.useCallback(
-    (tlstate: TLDrawState, user: TLDrawUser) => {
-      const room = client.getRoom(id)
-      room?.updatePresence({ id: tlstate.state.room?.userId, user })
+    (state: TLDrawState, user: TLDrawUser) => {
+      const room = client.getRoom(roomId)
+      room?.updatePresence({ id: state.state.room?.userId, user })
     },
-    [id]
+    [roomId]
   )
 
   if (error) return <div>Error: {error.message}</div>
@@ -168,7 +154,7 @@ function Editor({ id }: { id: string }) {
     <div className="tldraw">
       <TLDraw
         onMount={handleMount}
-        onChange={handleChange}
+        onPersist={handlePersist}
         onUserChange={handleUserChange}
         showPages={false}
         autofocus

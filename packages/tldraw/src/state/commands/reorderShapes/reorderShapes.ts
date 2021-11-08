@@ -1,7 +1,7 @@
-import { MoveType, Data, TLDrawShape, TLDrawCommand } from '~types'
+import { MoveType, TLDrawSnapshot, TLDrawShape, TLDrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
 
-export function reorderShapes(data: Data, ids: string[], type: MoveType): TLDrawCommand {
+export function reorderShapes(data: TLDrawSnapshot, ids: string[], type: MoveType): TLDrawCommand {
   const { currentPageId } = data.appState
 
   // Get the unique parent ids for the selected elements

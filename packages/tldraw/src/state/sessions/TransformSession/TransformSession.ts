@@ -2,7 +2,7 @@ import { TLBounds, TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import type { TLSnapLine, TLBoundsWithCenter } from '@tldraw/core'
 import { Session, SessionType, TLDrawShape, TLDrawStatus } from '~types'
-import type { Data } from '~types'
+import type { TLDrawSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
 import type { Command } from 'rko'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
@@ -31,7 +31,7 @@ export class TransformSession extends Session {
   speed = 1
 
   constructor(
-    data: Data,
+    data: TLDrawSnapshot,
     viewport: TLBounds,
     point: number[],
     transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight,
@@ -46,13 +46,19 @@ export class TransformSession extends Session {
     Session.cache.selectedIds = [...this.initialSelectedIds]
   }
 
-  start = (data: Data) => {
+  start = (data: TLDrawSnapshot) => {
     this.createSnapInfo(data)
     return void null
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
+  update = (
+    data: TLDrawSnapshot,
+    point: number[],
+    shiftKey = false,
+    altKey = false,
+    metaKey = false
+  ) => {
     const {
       transformType,
       snapshot: { shapeBounds, initialBounds, isAllAspectRatioLocked },
@@ -154,7 +160,7 @@ export class TransformSession extends Session {
     }
   }
 
-  cancel = (data: Data) => {
+  cancel = (data: TLDrawSnapshot) => {
     const { shapeBounds } = this.snapshot
 
     const shapes = {} as Record<string, TLDrawShape | undefined>
@@ -184,7 +190,7 @@ export class TransformSession extends Session {
     }
   }
 
-  complete = (data: Data): Data | Command<Data> | undefined => {
+  complete = (data: TLDrawSnapshot): TLDrawSnapshot | Command<TLDrawSnapshot> | undefined => {
     const { hasUnlockedShapes, shapeBounds } = this.snapshot
     undefined
     if (!hasUnlockedShapes) return
@@ -254,7 +260,7 @@ export class TransformSession extends Session {
     }
   }
 
-  private createSnapInfo = async (data: Data) => {
+  private createSnapInfo = async (data: TLDrawSnapshot) => {
     const { initialShapeIds } = this.snapshot
     const { currentPageId } = data.appState
     const page = data.document.pages[currentPageId]
@@ -268,7 +274,10 @@ export class TransformSession extends Session {
   }
 }
 
-export function getTransformSnapshot(data: Data, transformType: TLBoundsEdge | TLBoundsCorner) {
+export function getTransformSnapshot(
+  data: TLDrawSnapshot,
+  transformType: TLBoundsEdge | TLBoundsCorner
+) {
   const initialShapes = TLDR.getSelectedBranchSnapshot(data, data.appState.currentPageId)
 
   const initialShapeIds = initialShapes.map((shape) => shape.id)

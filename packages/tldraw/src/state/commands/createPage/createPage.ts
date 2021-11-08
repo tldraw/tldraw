@@ -1,7 +1,11 @@
-import type { Data, TLDrawCommand, TLDrawPage } from '~types'
+import type { TLDrawSnapshot, TLDrawCommand, TLDrawPage } from '~types'
 import { Utils, TLPageState } from '@tldraw/core'
 
-export function createPage(data: Data, center: number[], pageId = Utils.uniqueId()): TLDrawCommand {
+export function createPage(
+  data: TLDrawSnapshot,
+  center: number[],
+  pageId = Utils.uniqueId()
+): TLDrawCommand {
   const { currentPageId } = data.appState
 
   const topPage = Object.values(data.document.pages).sort(

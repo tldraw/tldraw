@@ -3,7 +3,7 @@ import { ArrowTool } from '.'
 
 describe('ArrowTool', () => {
   it('creates tool', () => {
-    const tlstate = new TLDrawState()
-    new ArrowTool(tlstate)
+    const state = new TLDrawState()
+    new ArrowTool(state)
   })
 })

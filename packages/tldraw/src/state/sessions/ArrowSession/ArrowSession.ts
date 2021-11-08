@@ -3,7 +3,7 @@ import {
   ArrowShape,
   TLDrawShape,
   TLDrawBinding,
-  Data,
+  TLDrawSnapshot,
   Session,
   TLDrawStatus,
   SessionType,
@@ -33,7 +33,7 @@ export class ArrowSession extends Session {
   isCreate: boolean
 
   constructor(
-    data: Data,
+    data: TLDrawSnapshot,
     viewport: TLBounds,
     point: number[],
     handleId: 'start' | 'end',
@@ -85,7 +85,13 @@ export class ArrowSession extends Session {
 
   start = () => void null
 
-  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
+  update = (
+    data: TLDrawSnapshot,
+    point: number[],
+    shiftKey = false,
+    altKey = false,
+    metaKey = false
+  ) => {
     const { initialShape } = this
 
     const page = TLDR.getPage(data, data.appState.currentPageId)
@@ -312,7 +318,7 @@ export class ArrowSession extends Session {
     }
   }
 
-  cancel = (data: Data) => {
+  cancel = (data: TLDrawSnapshot) => {
     const { initialShape, initialBinding, newStartBindingId, draggedBindingId } = this
 
     const afterBindings: Record<string, TLDrawBinding | undefined> = {}
@@ -349,7 +355,7 @@ export class ArrowSession extends Session {
     }
   }
 
-  complete = (data: Data) => {
+  complete = (data: TLDrawSnapshot) => {
     const { initialShape, initialBinding, newStartBindingId, startBindingShapeId, handleId } = this
 
     const page = TLDR.getPage(data, data.appState.currentPageId)

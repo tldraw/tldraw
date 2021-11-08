@@ -5,7 +5,11 @@ import { defaultStyle, getShapeStyle } from '../shape-styles'
 import { DrawShape, DashStyle, TLDrawShapeType, TLDrawTransformInfo, TLDrawMeta } from '~types'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
 import { intersectBoundsBounds, intersectBoundsPolyline } from '@tldraw/intersect'
-import { getDrawStrokePathData, getFillPath, getSolidStrokePathData } from './drawHelpers'
+import {
+  getDrawStrokePathTLDrawSnapshot,
+  getFillPath,
+  getSolidStrokePathTLDrawSnapshot,
+} from './drawHelpers'
 
 type T = DrawShape
 type E = SVGSVGElement
@@ -42,14 +46,14 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
   Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(({ shape, meta, events }, ref) => {
     const { points, style, isComplete } = shape
 
-    const polygonPathData = React.useMemo(() => {
+    const polygonPathTLDrawSnapshot = React.useMemo(() => {
       return getFillPath(shape)
     }, [points, style.size])
 
-    const pathData = React.useMemo(() => {
+    const pathTLDrawSnapshot = React.useMemo(() => {
       return style.dash === DashStyle.Draw
-        ? getDrawStrokePathData(shape)
-        : getSolidStrokePathData(shape)
+        ? getDrawStrokePathTLDrawSnapshot(shape)
+        : getSolidStrokePathTLDrawSnapshot(shape)
     }, [points, style.size, style.dash, isComplete])
 
     const styles = getShapeStyle(style, meta.isDarkMode)
@@ -81,7 +85,7 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           {shouldFill && (
             <path
-              d={polygonPathData}
+              d={polygonPathTLDrawSnapshot}
               stroke="none"
               fill={styles.fill}
               strokeLinejoin="round"
@@ -90,7 +94,7 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
             />
           )}
           <path
-            d={pathData}
+            d={pathTLDrawSnapshot}
             fill={styles.stroke}
             stroke={styles.stroke}
             strokeWidth={styles.strokeWidth / 2}
@@ -123,7 +127,7 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
     return (
       <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
         <path
-          d={pathData}
+          d={pathTLDrawSnapshot}
           fill={shouldFill ? styles.fill : 'none'}
           stroke="none"
           strokeWidth={Math.min(4, strokeWidth * 2)}
@@ -132,7 +136,7 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
           pointerEvents={shouldFill ? 'all' : 'stroke'}
         />
         <path
-          d={pathData}
+          d={pathTLDrawSnapshot}
           fill="none"
           stroke={styles.stroke}
           strokeWidth={sw}
@@ -149,8 +153,8 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
   Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
     const { points } = shape
 
-    const pathData = React.useMemo(() => {
-      return getSolidStrokePathData(shape)
+    const pathTLDrawSnapshot = React.useMemo(() => {
+      return getSolidStrokePathTLDrawSnapshot(shape)
     }, [points])
 
     const bounds = this.getBounds(shape)
@@ -161,7 +165,7 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
       return <circle x={bounds.width / 2} y={bounds.height / 2} r={1} />
     }
 
-    return <path d={pathData} />
+    return <path d={pathTLDrawSnapshot} />
   })
 
   transform = (

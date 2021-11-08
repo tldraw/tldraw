@@ -3,10 +3,10 @@ import { mockDocument } from '~test'
 import { SessionType, TLDrawShapeType, TLDrawStatus } from '~types'
 
 describe('Handle session', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   it('begins, updateSession', () => {
-    tlstate
+    state
       .loadDocument(mockDocument)
       .createShapes({
         id: 'arrow1',
@@ -17,13 +17,13 @@ describe('Handle session', () => {
       .updateSession([10, 10])
       .completeSession()
 
-    expect(tlstate.appState.status).toBe(TLDrawStatus.Idle)
+    expect(state.appState.status).toBe(TLDrawStatus.Idle)
 
-    tlstate.undo().redo()
+    state.undo().redo()
   })
 
   it('cancels session', () => {
-    tlstate
+    state
       .loadDocument(mockDocument)
       .createShapes({
         type: TLDrawShapeType.Arrow,
@@ -34,6 +34,6 @@ describe('Handle session', () => {
       .updateSession([10, 10])
       .cancelSession()
 
-    expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+    expect(state.getShape('rect1').point).toStrictEqual([0, 0])
   })
 })

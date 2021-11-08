@@ -4,45 +4,45 @@ import { mockDocument, TLDrawStateUtils } from '~test'
 import { AlignType, DistributeType, TLDrawShapeType } from '~types'
 
 describe('Distribute command', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   beforeEach(() => {
-    tlstate.loadDocument(mockDocument)
+    state.loadDocument(mockDocument)
   })
 
   describe('when less than three shapes are selected', () => {
     it('does nothing', () => {
-      tlstate.select('rect1', 'rect2')
-      const initialState = tlstate.state
-      tlstate.distribute(DistributeType.Horizontal)
-      const currentState = tlstate.state
+      state.select('rect1', 'rect2')
+      const initialState = state.state
+      state.distribute(DistributeType.Horizontal)
+      const currentState = state.state
 
       expect(currentState).toEqual(initialState)
     })
   })
 
   it('does, undoes and redoes command', () => {
-    tlstate.selectAll()
-    tlstate.distribute(DistributeType.Horizontal)
+    state.selectAll()
+    state.distribute(DistributeType.Horizontal)
 
-    expect(tlstate.getShape('rect3').point).toEqual([50, 20])
-    tlstate.undo()
-    expect(tlstate.getShape('rect3').point).toEqual([20, 20])
-    tlstate.redo()
-    expect(tlstate.getShape('rect3').point).toEqual([50, 20])
+    expect(state.getShape('rect3').point).toEqual([50, 20])
+    state.undo()
+    expect(state.getShape('rect3').point).toEqual([20, 20])
+    state.redo()
+    expect(state.getShape('rect3').point).toEqual([50, 20])
   })
 
   it('distributes vertically', () => {
-    tlstate.selectAll()
-    tlstate.distribute(DistributeType.Vertical)
+    state.selectAll()
+    state.distribute(DistributeType.Vertical)
 
-    expect(tlstate.getShape('rect3').point).toEqual([20, 50])
+    expect(state.getShape('rect3').point).toEqual([20, 50])
   })
 })
 
 describe('when distributing groups', () => {
   it('distributes children', () => {
-    const tlstate = new TLDrawState()
+    const state = new TLDrawState()
       .createShapes(
         { id: 'rect1', type: TLDrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
         { id: 'rect2', type: TLDrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
@@ -54,12 +54,12 @@ describe('when distributing groups', () => {
       .select('rect3', 'rect4', 'rect5')
       .distribute(DistributeType.Vertical)
 
-    const p0 = tlstate.getShape('rect4').point
-    const p1 = tlstate.getShape('rect3').point
+    const p0 = state.getShape('rect4').point
+    const p1 = state.getShape('rect3').point
 
-    tlstate.undo().delete(['rect4']).selectAll().distribute(DistributeType.Vertical)
+    state.undo().delete(['rect4']).selectAll().distribute(DistributeType.Vertical)
 
-    new TLDrawStateUtils(tlstate).expectShapesToBeAtPoints({
+    new TLDrawStateUtils(state).expectShapesToBeAtPoints({
       rect1: p0,
       rect2: Vec.add(p0, [100, 100]),
       rect3: p1,

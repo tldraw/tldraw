@@ -6,67 +6,67 @@ import type { Message, TLApi } from 'src/types'
 export default function App(): JSX.Element {
   const rTLDrawState = React.useRef<TLDrawState>()
 
-  // When the editor mounts, save the tlstate instance in a ref.
+  // When the editor mounts, save the state instance in a ref.
   const handleMount = React.useCallback((tldr: TLDrawState) => {
     rTLDrawState.current = tldr
   }, [])
 
   React.useEffect(() => {
     function handleEvent(message: Message) {
-      const tlstate = rTLDrawState.current
-      if (!tlstate) return
+      const state = rTLDrawState.current
+      if (!state) return
 
       switch (message.type) {
         case 'resetZoom': {
-          tlstate.resetZoom()
+          state.resetZoom()
           break
         }
         case 'zoomIn': {
-          tlstate.zoomIn()
+          state.zoomIn()
           break
         }
         case 'zoomOut': {
-          tlstate.zoomOut()
+          state.zoomOut()
           break
         }
         case 'zoomToFit': {
-          tlstate.zoomToFit()
+          state.zoomToFit()
           break
         }
         case 'zoomToSelection': {
-          tlstate.zoomToSelection()
+          state.zoomToSelection()
           break
         }
         case 'undo': {
-          tlstate.undo()
+          state.undo()
           break
         }
         case 'redo': {
-          tlstate.redo()
+          state.redo()
           break
         }
         case 'cut': {
-          tlstate.cut()
+          state.cut()
           break
         }
         case 'copy': {
-          tlstate.copy()
+          state.copy()
           break
         }
         case 'paste': {
-          tlstate.paste()
+          state.paste()
           break
         }
         case 'delete': {
-          tlstate.delete()
+          state.delete()
           break
         }
         case 'selectAll': {
-          tlstate.selectAll()
+          state.selectAll()
           break
         }
         case 'selectNone': {
-          tlstate.selectNone()
+          state.selectNone()
           break
         }
       }

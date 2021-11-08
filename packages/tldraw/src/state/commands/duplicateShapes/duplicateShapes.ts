@@ -2,9 +2,13 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
-import type { Data, PagePartial, TLDrawCommand, TLDrawShape } from '~types'
+import type { TLDrawSnapshot, PagePartial, TLDrawCommand, TLDrawShape } from '~types'
 
-export function duplicateShapes(data: Data, ids: string[], point?: number[]): TLDrawCommand {
+export function duplicateShapes(
+  data: TLDrawSnapshot,
+  ids: string[],
+  point?: number[]
+): TLDrawCommand {
   const { currentPageId } = data.appState
 
   const page = TLDR.getPage(data, currentPageId)

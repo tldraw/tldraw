@@ -1,10 +1,10 @@
 import type { GroupShape, TLDrawBinding, TLDrawShape } from '~types'
-import type { Data, TLDrawCommand } from '~types'
+import type { TLDrawSnapshot, TLDrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
 import type { Patch } from 'rko'
 
 export function ungroupShapes(
-  data: Data,
+  data: TLDrawSnapshot,
   selectedIds: string[],
   groupShapes: GroupShape[],
   pageId: string

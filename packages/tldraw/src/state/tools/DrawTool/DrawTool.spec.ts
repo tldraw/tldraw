@@ -3,7 +3,7 @@ import { DrawTool } from '.'
 
 describe('DrawTool', () => {
   it('creates tool', () => {
-    const tlstate = new TLDrawState()
-    new DrawTool(tlstate)
+    const state = new TLDrawState()
+    new DrawTool(state)
   })
 })

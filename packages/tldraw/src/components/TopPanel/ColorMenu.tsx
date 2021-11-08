@@ -5,14 +5,14 @@ import { useTLDrawContext } from '~hooks'
 import { DMContent, DMTriggerIcon } from '~components/DropdownMenu'
 import { BoxIcon, CircleIcon } from '~components/icons'
 import { ToolButton } from '~components/ToolButton'
-import type { Data, ColorStyle } from '~types'
+import type { TLDrawSnapshot, ColorStyle } from '~types'
 
-const selectColor = (s: Data) => s.appState.selectedStyle.color
+const selectColor = (s: TLDrawSnapshot) => s.appState.selectedStyle.color
 const preventEvent = (e: Event) => e.preventDefault()
-const themeSelector = (data: Data) => (data.settings.isDarkMode ? 'dark' : 'light')
+const themeSelector = (data: TLDrawSnapshot) => (data.settings.isDarkMode ? 'dark' : 'light')
 
 export const ColorMenu = React.memo(function ColorMenu(): JSX.Element {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
 
   const theme = useSelector(themeSelector)
   const color = useSelector(selectColor)
@@ -28,7 +28,7 @@ export const ColorMenu = React.memo(function ColorMenu(): JSX.Element {
             <ToolButton
               variant="icon"
               isActive={color === colorStyle}
-              onClick={() => tlstate.style({ color: colorStyle as ColorStyle })}
+              onClick={() => state.style({ color: colorStyle as ColorStyle })}
             >
               <BoxIcon
                 fill={strokes[theme][colorStyle as ColorStyle]}

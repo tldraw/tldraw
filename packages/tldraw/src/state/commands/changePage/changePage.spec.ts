@@ -2,31 +2,31 @@ import { TLDrawState } from '~state'
 import { mockDocument } from '~test'
 
 describe('Change page command', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   it('does, undoes and redoes command', () => {
-    tlstate.loadDocument(mockDocument)
+    state.loadDocument(mockDocument)
 
-    const initialId = tlstate.page.id
+    const initialId = state.page.id
 
-    tlstate.createPage()
+    state.createPage()
 
-    const nextId = tlstate.page.id
+    const nextId = state.page.id
 
-    tlstate.changePage(initialId)
+    state.changePage(initialId)
 
-    expect(tlstate.page.id).toBe(initialId)
+    expect(state.page.id).toBe(initialId)
 
-    tlstate.changePage(nextId)
+    state.changePage(nextId)
 
-    expect(tlstate.page.id).toBe(nextId)
+    expect(state.page.id).toBe(nextId)
 
-    tlstate.undo()
+    state.undo()
 
-    expect(tlstate.page.id).toBe(initialId)
+    expect(state.page.id).toBe(initialId)
 
-    tlstate.redo()
+    state.redo()
 
-    expect(tlstate.page.id).toBe(nextId)
+    expect(state.page.id).toBe(nextId)
   })
 })

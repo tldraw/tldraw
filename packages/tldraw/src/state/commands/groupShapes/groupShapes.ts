@@ -1,11 +1,11 @@
 import { TLDrawBinding, TLDrawShape, TLDrawShapeType } from '~types'
 import { Utils } from '@tldraw/core'
-import type { Data, TLDrawCommand } from '~types'
+import type { TLDrawSnapshot, TLDrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
 import type { Patch } from 'rko'
 
 export function groupShapes(
-  data: Data,
+  data: TLDrawSnapshot,
   ids: string[],
   groupId: string,
   pageId: string

@@ -4,48 +4,44 @@ import { mockDocument } from '~test'
 import { GroupShape, TLDrawShapeType } from '~types'
 
 describe('Ungroup command', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   it('does, undoes and redoes command', () => {
-    tlstate
-      .loadDocument(mockDocument)
-      .group(['rect1', 'rect2'], 'groupA')
-      .select('groupA')
-      .ungroup()
+    state.loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA').select('groupA').ungroup()
 
-    expect(tlstate.getShape<GroupShape>('groupA')).toBeUndefined()
-    expect(tlstate.getShape('rect1').parentId).toBe('page1')
-    expect(tlstate.getShape('rect2').parentId).toBe('page1')
+    expect(state.getShape<GroupShape>('groupA')).toBeUndefined()
+    expect(state.getShape('rect1').parentId).toBe('page1')
+    expect(state.getShape('rect2').parentId).toBe('page1')
 
-    tlstate.undo()
+    state.undo()
 
-    expect(tlstate.getShape<GroupShape>('groupA')).toBeDefined()
-    expect(tlstate.getShape<GroupShape>('groupA').children).toStrictEqual(['rect1', 'rect2'])
-    expect(tlstate.getShape('rect1').parentId).toBe('groupA')
-    expect(tlstate.getShape('rect2').parentId).toBe('groupA')
+    expect(state.getShape<GroupShape>('groupA')).toBeDefined()
+    expect(state.getShape<GroupShape>('groupA').children).toStrictEqual(['rect1', 'rect2'])
+    expect(state.getShape('rect1').parentId).toBe('groupA')
+    expect(state.getShape('rect2').parentId).toBe('groupA')
 
-    tlstate.redo()
+    state.redo()
 
-    expect(tlstate.getShape<GroupShape>('groupA')).toBeUndefined()
-    expect(tlstate.getShape('rect1').parentId).toBe('page1')
-    expect(tlstate.getShape('rect2').parentId).toBe('page1')
+    expect(state.getShape<GroupShape>('groupA')).toBeUndefined()
+    expect(state.getShape('rect1').parentId).toBe('page1')
+    expect(state.getShape('rect2').parentId).toBe('page1')
   })
 
   describe('When ungrouping', () => {
     it('Ungroups shapes on any page', () => {
-      tlstate
+      state
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .createPage('page2')
         .ungroup(['groupA'], 'page1')
 
-      expect(tlstate.getShape('groupA', 'page1')).toBeUndefined()
-      tlstate.undo()
-      expect(tlstate.getShape('groupA', 'page1')).toBeDefined()
+      expect(state.getShape('groupA', 'page1')).toBeUndefined()
+      state.undo()
+      expect(state.getShape('groupA', 'page1')).toBeDefined()
     })
 
     it('Ungroups multiple selected groups', () => {
-      tlstate
+      state
         .loadDocument(mockDocument)
         .createShapes({
           id: 'rect4',
@@ -56,20 +52,20 @@ describe('Ungroup command', () => {
         .selectAll()
         .ungroup()
 
-      expect(tlstate.getShape('groupA', 'page1')).toBeUndefined()
-      expect(tlstate.getShape('groupB', 'page1')).toBeUndefined()
+      expect(state.getShape('groupA', 'page1')).toBeUndefined()
+      expect(state.getShape('groupB', 'page1')).toBeUndefined()
     })
 
     it('Does not ungroup if a group shape is not selected', () => {
-      tlstate.loadDocument(mockDocument).select('rect1')
-      const before = tlstate.state
-      tlstate.group()
+      state.loadDocument(mockDocument).select('rect1')
+      const before = state.state
+      state.group()
       // State should not have changed
-      expect(tlstate.state).toStrictEqual(before)
+      expect(state.state).toStrictEqual(before)
     })
 
     it('Correctly selects children after ungrouping', () => {
-      const tlstate = new TLDrawState()
+      const state = new TLDrawState()
         .createShapes(
           {
             id: 'rect1',
@@ -92,11 +88,11 @@ describe('Ungroup command', () => {
         .ungroup()
 
       // State should not have changed
-      expect(tlstate.selectedIds).toStrictEqual(['rect3', 'rect1', 'rect2'])
+      expect(state.selectedIds).toStrictEqual(['rect3', 'rect1', 'rect2'])
     })
 
     it('Reparents shapes to the page at the correct childIndex', () => {
-      const tlstate = new TLDrawState()
+      const state = new TLDrawState()
         .createShapes(
           {
             id: 'rect1',
@@ -116,18 +112,18 @@ describe('Ungroup command', () => {
         )
         .group(['rect1', 'rect2'], 'groupA')
 
-      const { childIndex } = tlstate.getShape<GroupShape>('groupA')
+      const { childIndex } = state.getShape<GroupShape>('groupA')
 
       expect(childIndex).toBe(1)
-      expect(tlstate.getShape('rect1').childIndex).toBe(1)
-      expect(tlstate.getShape('rect2').childIndex).toBe(2)
-      expect(tlstate.getShape('rect3').childIndex).toBe(3)
+      expect(state.getShape('rect1').childIndex).toBe(1)
+      expect(state.getShape('rect2').childIndex).toBe(2)
+      expect(state.getShape('rect3').childIndex).toBe(3)
 
-      tlstate.ungroup()
+      state.ungroup()
 
-      expect(tlstate.getShape('rect1').childIndex).toBe(1)
-      expect(tlstate.getShape('rect2').childIndex).toBe(2)
-      expect(tlstate.getShape('rect3').childIndex).toBe(3)
+      expect(state.getShape('rect1').childIndex).toBe(1)
+      expect(state.getShape('rect2').childIndex).toBe(2)
+      expect(state.getShape('rect3').childIndex).toBe(3)
     })
     it.todo('Deletes any bindings to the group')
   })

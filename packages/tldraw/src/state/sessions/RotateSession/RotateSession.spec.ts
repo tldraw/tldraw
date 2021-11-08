@@ -5,80 +5,78 @@ import { mockDocument } from '~test'
 import { SessionType, TLDrawStatus } from '~types'
 
 describe('Rotate session', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   it('begins, updateSession', () => {
-    tlstate.loadDocument(mockDocument)
+    state.loadDocument(mockDocument)
 
-    expect(tlstate.getShape('rect1').rotation).toBe(undefined)
+    expect(state.getShape('rect1').rotation).toBe(undefined)
 
-    tlstate.select('rect1').startSession(SessionType.Rotate, [50, 0]).updateSession([100, 50])
+    state.select('rect1').startSession(SessionType.Rotate, [50, 0]).updateSession([100, 50])
 
-    expect(tlstate.getShape('rect1').rotation).toBe(Math.PI / 2)
+    expect(state.getShape('rect1').rotation).toBe(Math.PI / 2)
 
-    tlstate.updateSession([50, 100])
+    state.updateSession([50, 100])
 
-    expect(tlstate.getShape('rect1').rotation).toBe(Math.PI)
+    expect(state.getShape('rect1').rotation).toBe(Math.PI)
 
-    tlstate.updateSession([0, 50])
+    state.updateSession([0, 50])
 
-    expect(tlstate.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
+    expect(state.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
 
-    tlstate.updateSession([50, 0])
+    state.updateSession([50, 0])
 
-    expect(tlstate.getShape('rect1').rotation).toBe(0)
+    expect(state.getShape('rect1').rotation).toBe(0)
 
-    tlstate.updateSession([0, 50])
+    state.updateSession([0, 50])
 
-    expect(tlstate.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
+    expect(state.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
 
-    tlstate.completeSession()
+    state.completeSession()
 
-    expect(tlstate.appState.status).toBe(TLDrawStatus.Idle)
+    expect(state.appState.status).toBe(TLDrawStatus.Idle)
 
-    tlstate.undo()
+    state.undo()
 
-    expect(tlstate.getShape('rect1').rotation).toBe(undefined)
+    expect(state.getShape('rect1').rotation).toBe(undefined)
 
-    tlstate.redo()
+    state.redo()
 
-    expect(tlstate.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
+    expect(state.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
   })
 
   it('cancels session', () => {
-    tlstate
+    state
       .loadDocument(mockDocument)
       .select('rect1')
       .startSession(SessionType.Rotate, [50, 0])
       .updateSession([100, 50])
       .cancel()
 
-    expect(tlstate.getShape('rect1').point).toStrictEqual([0, 0])
+    expect(state.getShape('rect1').point).toStrictEqual([0, 0])
   })
 
   it.todo('rotates handles only on shapes with handles')
 
   describe('when rotating a single shape while pressing shift', () => {
     it('Clamps rotation to 15 degrees', () => {
-      const tlstate = new TLDrawState()
+      const state = new TLDrawState()
 
-      tlstate
+      state
         .loadDocument(mockDocument)
         .select('rect1')
         .startSession(SessionType.Rotate, [0, 0])
         .updateSession([20, 10], true)
         .completeSession()
 
-      expect(Math.round((tlstate.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(
-        0
-      )
+      expect(Math.round((state.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(0)
     })
 
     it('Clamps rotation to 15 degrees when starting from a rotation', () => {
       // Rect 1 is a little rotated
-      const tlstate = new TLDrawState()
+      const state = new TLDrawState()
 
-      tlstate
+      state
         .loadDocument(mockDocument)
         .select('rect1')
         .startSession(SessionType.Rotate, [0, 0])
@@ -86,56 +84,52 @@ describe('Rotate session', () => {
         .completeSession()
 
       // Rect 1 clamp rotated, starting from a little rotation
-      tlstate
+      state
         .select('rect1')
         .startSession(SessionType.Rotate, [0, 0])
         .updateSession([100, 200], true)
         .completeSession()
 
-      expect(Math.round((tlstate.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(
-        0
-      )
+      expect(Math.round((state.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(0)
 
       // Try again, too.
-      tlstate
+      state
         .select('rect1')
         .startSession(SessionType.Rotate, [0, 0])
         .updateSession([-100, 5000], true)
         .completeSession()
 
-      expect(Math.round((tlstate.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(
-        0
-      )
+      expect(Math.round((state.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(0)
     })
   })
 
   describe('when rotating multiple shapes', () => {
     it('keeps the center', () => {
-      tlstate.loadDocument(mockDocument).select('rect1', 'rect2')
+      state.loadDocument(mockDocument).select('rect1', 'rect2')
 
       const centerBefore = Vec.round(
         Utils.getBoundsCenter(
-          Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+          Utils.getCommonBounds(state.selectedIds.map((id) => state.getShapeBounds(id)))
         )
       )
 
-      tlstate.startSession(SessionType.Rotate, [50, 0]).updateSession([100, 50]).completeSession()
+      state.startSession(SessionType.Rotate, [50, 0]).updateSession([100, 50]).completeSession()
 
       const centerAfterA = Vec.round(
         Utils.getBoundsCenter(
-          Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+          Utils.getCommonBounds(state.selectedIds.map((id) => state.getShapeBounds(id)))
         )
       )
 
-      tlstate.startSession(SessionType.Rotate, [100, 0]).updateSession([50, 0]).completeSession()
+      state.startSession(SessionType.Rotate, [100, 0]).updateSession([50, 0]).completeSession()
 
       const centerAfterB = Vec.round(
         Utils.getBoundsCenter(
-          Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+          Utils.getCommonBounds(state.selectedIds.map((id) => state.getShapeBounds(id)))
         )
       )
 
-      expect(tlstate.getShape('rect1').rotation)
+      expect(state.getShape('rect1').rotation)
       expect(centerBefore).toStrictEqual(centerAfterA)
       expect(centerAfterA).toStrictEqual(centerAfterB)
     })
@@ -147,32 +141,32 @@ describe('Rotate session', () => {
     it.todo('clears the cached center after any command other than a rotate command, tbh')
 
     it('changes the center after nudging', () => {
-      const tlstate = new TLDrawState().loadDocument(mockDocument).select('rect1', 'rect2')
+      const state = new TLDrawState().loadDocument(mockDocument).select('rect1', 'rect2')
 
       const centerBefore = Vec.round(
         Utils.getBoundsCenter(
-          Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+          Utils.getCommonBounds(state.selectedIds.map((id) => state.getShapeBounds(id)))
         )
       )
 
-      tlstate.startSession(SessionType.Rotate, [50, 0]).updateSession([100, 50]).completeSession()
+      state.startSession(SessionType.Rotate, [50, 0]).updateSession([100, 50]).completeSession()
 
       const centerAfterA = Vec.round(
         Utils.getBoundsCenter(
-          Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+          Utils.getCommonBounds(state.selectedIds.map((id) => state.getShapeBounds(id)))
         )
       )
 
-      expect(tlstate.getShape('rect1').rotation)
+      expect(state.getShape('rect1').rotation)
       expect(centerBefore).toStrictEqual(centerAfterA)
 
-      tlstate.selectAll().nudge([10, 10])
+      state.selectAll().nudge([10, 10])
 
-      tlstate.startSession(SessionType.Rotate, [50, 0]).updateSession([100, 50]).completeSession()
+      state.startSession(SessionType.Rotate, [50, 0]).updateSession([100, 50]).completeSession()
 
       const centerAfterB = Vec.round(
         Utils.getBoundsCenter(
-          Utils.getCommonBounds(tlstate.selectedIds.map((id) => tlstate.getShapeBounds(id)))
+          Utils.getCommonBounds(state.selectedIds.map((id) => state.getShapeBounds(id)))
         )
       )
 
