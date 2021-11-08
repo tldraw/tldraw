@@ -40,7 +40,7 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
       const strokeWidth = +styles.strokeWidth
 
       if (style.dash === DashStyle.Draw) {
-        const pathData = getRectanglePath(shape)
+        const pathTLDrawSnapshot = getRectanglePath(shape)
 
         return (
           <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
@@ -54,14 +54,14 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
               />
             )}
             <path
-              d={getRectangleIndicatorPathData(shape)}
+              d={getRectangleIndicatorPathTLDrawSnapshot(shape)}
               fill={style.isFilled ? styles.fill : 'none'}
               radius={strokeWidth}
               stroke="none"
               pointerEvents="all"
             />
             <path
-              d={pathData}
+              d={pathTLDrawSnapshot}
               fill={styles.stroke}
               stroke={styles.stroke}
               strokeWidth={styles.strokeWidth}
@@ -145,7 +145,7 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
     const sw = strokeWidth
 
     if (style.dash === DashStyle.Draw) {
-      return <path d={getRectangleIndicatorPathData(shape)} />
+      return <path d={getRectangleIndicatorPathTLDrawSnapshot(shape)} />
     }
 
     return (
@@ -262,7 +262,7 @@ function getRectanglePath(shape: RectangleShape) {
   return Utils.getSvgPathFromStroke(stroke)
 }
 
-function getRectangleIndicatorPathData(shape: RectangleShape) {
+function getRectangleIndicatorPathTLDrawSnapshot(shape: RectangleShape) {
   const { points, options } = getDrawStrokeInfo(shape)
 
   const strokePoints = getStrokePoints(points, options)

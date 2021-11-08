@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLDraw, TLDrawState, Data, TLDrawDocument, TLDrawUser } from '@tldraw/tldraw'
+import { TLDraw, TLDrawState, TLDrawDocument, TLDrawUser } from '@tldraw/tldraw'
 import * as React from 'react'
 import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useObject, useErrorListener } from '@liveblocks/react'
@@ -10,21 +10,21 @@ interface TLDrawUserPresence extends Presence {
 }
 
 const client = createClient({
-  publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_API_KEY,
+  publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_API_KEY || '',
   throttle: 80,
 })
 
-export default function MultiplayerEditor({ id }: { id: string }) {
+export default function MultiplayerEditor({ roomId }: { roomId: string }) {
   return (
     <LiveblocksProvider client={client}>
-      <RoomProvider id={id}>
-        <Editor id={id} />
+      <RoomProvider id={roomId}>
+        <Editor roomId={roomId} />
       </RoomProvider>
     </LiveblocksProvider>
   )
 }
 
-function Editor({ id }: { id: string }) {
+function Editor({ roomId }: { roomId: string }) {
   const [docId] = React.useState(() => Utils.uniqueId())
 
   const [error, setError] = React.useState<Error>()
@@ -36,8 +36,8 @@ function Editor({ id }: { id: string }) {
   const doc = useObject<{ uuid: string; document: TLDrawDocument }>('doc', {
     uuid: docId,
     document: {
-      id: 'test-room',
       ...TLDrawState.defaultDocument,
+      id: roomId,
     },
   })
 
@@ -47,16 +47,14 @@ function Editor({ id }: { id: string }) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       window.state = state
-
-      state.loadRoom(id)
-
+      state.loadRoom(roomId)
       setstate(state)
     },
-    [id]
+    [roomId]
   )
 
   React.useEffect(() => {
-    const room = client.getRoom(id)
+    const room = client.getRoom(roomId)
 
     if (!room) return
     if (!doc) return
@@ -98,13 +96,9 @@ function Editor({ id }: { id: string }) {
       } else {
         state.updateUsers(
           Object.values(state.state.room.users).map((user) => {
-            // const activeShapes = user.activeShapes
-            //   .map((shape) => docObject.document.pages[state.currentPageId].shapes[shape.id])
-            //   .filter(Boolean)
             return {
               ...user,
-              // activeShapes: activeShapes,
-              selectedIds: user.selectedIds, // activeShapes.map((shape) => shape.id),
+              selectedIds: user.selectedIds,
             }
           })
         )
@@ -132,7 +126,7 @@ function Editor({ id }: { id: string }) {
       window.removeEventListener('beforeunload', handleExit)
       doc.unsubscribe(handleDocumentUpdates)
     }
-  }, [doc, docId, state, id])
+  }, [doc, docId, state, roomId])
 
   const handlePersist = React.useCallback(
     (state: TLDrawState) => {
@@ -143,10 +137,10 @@ function Editor({ id }: { id: string }) {
 
   const handleUserChange = React.useCallback(
     (state: TLDrawState, user: TLDrawUser) => {
-      const room = client.getRoom(id)
+      const room = client.getRoom(roomId)
       room?.updatePresence({ id: state.state.room?.userId, user })
     },
-    [id]
+    [roomId]
   )
 
   if (error) return <div>Error: {error.message}</div>

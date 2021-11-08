@@ -14,12 +14,12 @@ const client = createClient({
   throttle: 80,
 })
 
-const ROOM_ID = 'mp-test-2'
+const roomId = 'mp-test-2'
 
 export function Multiplayer() {
   return (
     <LiveblocksProvider client={client}>
-      <RoomProvider id={ROOM_ID}>
+      <RoomProvider id={roomId}>
         <TLDrawWrapper />
       </RoomProvider>
     </LiveblocksProvider>
@@ -39,23 +39,24 @@ function TLDrawWrapper() {
     uuid: docId,
     document: {
       ...TLDrawState.defaultDocument,
-      id: 'test-room',
+      id: roomId,
     },
   })
 
   // Put the state into the window, for debugging.
-  const handleMount = React.useCallback((state: TLDrawState) => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    window.state = state
-
-    state.loadRoom(ROOM_ID)
-
-    setstate(state)
-  }, [])
+  const handleMount = React.useCallback(
+    (state: TLDrawState) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      window.state = state
+      state.loadRoom(roomId)
+      setstate(state)
+    },
+    [roomId]
+  )
 
   React.useEffect(() => {
-    const room = client.getRoom(ROOM_ID)
+    const room = client.getRoom(roomId)
 
     if (!room) return
     if (!doc) return
@@ -117,7 +118,11 @@ function TLDrawWrapper() {
     doc.subscribe(handleDocumentUpdates)
 
     // Load the shared document
-    state.loadDocument(doc.toObject().document)
+    const newDocument = doc.toObject().document
+
+    if (newDocument) {
+      state.loadDocument(newDocument)
+    }
 
     return () => {
       window.removeEventListener('beforeunload', handleExit)
@@ -134,7 +139,7 @@ function TLDrawWrapper() {
 
   const handleUserChange = React.useCallback(
     (state: TLDrawState, user: TLDrawUser) => {
-      const room = client.getRoom(ROOM_ID)
+      const room = client.getRoom(roomId)
       room?.updatePresence({ id: state.state.room?.userId, user })
     },
     [client]

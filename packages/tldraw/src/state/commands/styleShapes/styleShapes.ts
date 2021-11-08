@@ -1,10 +1,17 @@
-import { ShapeStyles, TLDrawCommand, Data, TLDrawShape, TLDrawShapeType, TextShape } from '~types'
+import {
+  ShapeStyles,
+  TLDrawCommand,
+  TLDrawSnapshot,
+  TLDrawShape,
+  TLDrawShapeType,
+  TextShape,
+} from '~types'
 import { TLDR } from '~state/TLDR'
 import type { Patch } from 'rko'
 import Vec from '@tldraw/vec'
 
 export function styleShapes(
-  data: Data,
+  data: TLDrawSnapshot,
   ids: string[],
   changes: Partial<ShapeStyles>
 ): TLDrawCommand {

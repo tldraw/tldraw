@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Dialog from '@radix-ui/react-alert-dialog'
 import { MixerVerticalIcon } from '@radix-ui/react-icons'
-import type { Data, TLDrawPage } from '~types'
+import type { TLDrawSnapshot, TLDrawPage } from '~types'
 import { useTLDrawContext } from '~hooks'
 import { RowButton, RowButtonProps } from '~components/RowButton'
 import { styled } from '~styles'
@@ -10,7 +10,7 @@ import { IconButton } from '~components/IconButton/IconButton'
 import { SmallIcon } from '~components/SmallIcon'
 import { breakpoints } from '~components/breakpoints'
 
-const canDeleteSelector = (s: Data) => {
+const canDeleteSelector = (s: TLDrawSnapshot) => {
   return Object.keys(s.document.pages).length > 1
 }
 

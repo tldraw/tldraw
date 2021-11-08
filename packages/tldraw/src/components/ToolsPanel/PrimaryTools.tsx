@@ -8,12 +8,12 @@ import {
   SquareIcon,
   TextIcon,
 } from '@radix-ui/react-icons'
-import { Data, TLDrawShapeType } from '~types'
+import { TLDrawSnapshot, TLDrawShapeType } from '~types'
 import { useTLDrawContext } from '~hooks'
 import { ToolButtonWithTooltip } from '~components/ToolButton'
 import { Panel } from '~components/Panel'
 
-const activeToolSelector = (s: Data) => s.appState.activeTool
+const activeToolSelector = (s: TLDrawSnapshot) => s.appState.activeTool
 
 export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
   const { state, useSelector } = useTLDrawContext()

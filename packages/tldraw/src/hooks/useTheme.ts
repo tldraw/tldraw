@@ -1,7 +1,7 @@
-import type { Data, Theme } from '~types'
+import type { TLDrawSnapshot, Theme } from '~types'
 import { useTLDrawContext } from './useTLDrawContext'
 
-const themeSelector = (data: Data): Theme => (data.settings.isDarkMode ? 'dark' : 'light')
+const themeSelector = (data: TLDrawSnapshot): Theme => (data.settings.isDarkMode ? 'dark' : 'light')
 
 export function useTheme() {
   const { state, useSelector } = useTLDrawContext()

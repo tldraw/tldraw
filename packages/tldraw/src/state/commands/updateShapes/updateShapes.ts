@@ -1,8 +1,8 @@
-import type { Data, TLDrawCommand, PagePartial, TLDrawShape } from '~types'
+import type { TLDrawSnapshot, TLDrawCommand, PagePartial, TLDrawShape } from '~types'
 import { TLDR } from '~state/TLDR'
 
 export function update(
-  data: Data,
+  data: TLDrawSnapshot,
   updates: ({ id: string } & Partial<TLDrawShape>)[],
   pageId: string
 ): TLDrawCommand {

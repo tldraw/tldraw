@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { useTLDrawContext } from '~hooks'
-import type { Data } from '~types'
+import type { TLDrawSnapshot } from '~types'
 import { styled } from '~styles'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { DMItem, DMContent } from '~components/DropdownMenu'
 import { ToolButton } from '~components/ToolButton'
 
-const zoomSelector = (s: Data) => s.document.pageStates[s.appState.currentPageId].camera.zoom
+const zoomSelector = (s: TLDrawSnapshot) =>
+  s.document.pageStates[s.appState.currentPageId].camera.zoom
 
 export function ZoomMenu() {
   const { state, useSelector } = useTLDrawContext()

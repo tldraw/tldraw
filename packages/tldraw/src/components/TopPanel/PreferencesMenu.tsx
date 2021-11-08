@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { DMCheckboxItem, DMDivider, DMSubMenu } from '~components/DropdownMenu'
 import { useTLDrawContext } from '~hooks'
-import type { Data } from '~types'
+import type { TLDrawSnapshot } from '~types'
 
-const settingsSelector = (s: Data) => s.settings
+const settingsSelector = (s: TLDrawSnapshot) => s.settings
 
 export function PreferencesMenu() {
   const { state, useSelector } = useTLDrawContext()

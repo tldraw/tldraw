@@ -1,9 +1,9 @@
 import { FlipType } from '~types'
 import { TLBoundsCorner, Utils } from '@tldraw/core'
-import type { Data, TLDrawCommand } from '~types'
+import type { TLDrawSnapshot, TLDrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
 
-export function flipShapes(data: Data, ids: string[], type: FlipType): TLDrawCommand {
+export function flipShapes(data: TLDrawSnapshot, ids: string[], type: FlipType): TLDrawCommand {
   const { currentPageId } = data.appState
   const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
 

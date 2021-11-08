@@ -3,7 +3,7 @@ import { Tooltip } from '~components/Tooltip/Tooltip'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTLDrawContext } from '~hooks'
 import { styled } from '~styles'
-import { AlignType, Data, DistributeType, StretchType } from '~types'
+import { AlignType, TLDrawSnapshot, DistributeType, StretchType } from '~types'
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -33,22 +33,22 @@ import { TrashIcon } from '~components/icons'
 import { IconButton } from '~components/IconButton'
 import { ToolButton } from '~components/ToolButton'
 
-const selectedShapesCountSelector = (s: Data) =>
+const selectedShapesCountSelector = (s: TLDrawSnapshot) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length
 
-const isAllLockedSelector = (s: Data) => {
+const isAllLockedSelector = (s: TLDrawSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.every((id) => page.shapes[id].isLocked)
 }
 
-const isAllAspectLockedSelector = (s: Data) => {
+const isAllAspectLockedSelector = (s: TLDrawSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.every((id) => page.shapes[id].isAspectRatioLocked)
 }
 
-const isAllGroupedSelector = (s: Data) => {
+const isAllGroupedSelector = (s: TLDrawSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const selectedShapes = s.document.pageStates[s.appState.currentPageId].selectedIds.map(
     (id) => page.shapes[id]
@@ -62,12 +62,12 @@ const isAllGroupedSelector = (s: Data) => {
   )
 }
 
-const hasSelectionClickor = (s: Data) => {
+const hasSelectionClickor = (s: TLDrawSnapshot) => {
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.length > 0
 }
 
-const hasMultipleSelectionClickor = (s: Data) => {
+const hasMultipleSelectionClickor = (s: TLDrawSnapshot) => {
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.length > 1
 }

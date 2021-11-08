@@ -15,7 +15,7 @@ export default function Room({ id }: RoomProps): JSX.Element {
       <Head>
         <title>tldraw</title>
       </Head>
-      <MultiplayerEditor id={id} />
+      <MultiplayerEditor roomId={id} />
     </>
   )
 }

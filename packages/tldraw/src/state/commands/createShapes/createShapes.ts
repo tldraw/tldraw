@@ -1,9 +1,9 @@
 import type { Patch } from 'rko'
 import { TLDR } from '~state/TLDR'
-import type { TLDrawShape, Data, TLDrawCommand, TLDrawBinding } from '~types'
+import type { TLDrawShape, TLDrawSnapshot, TLDrawCommand, TLDrawBinding } from '~types'
 
 export function createShapes(
-  data: Data,
+  data: TLDrawSnapshot,
   shapes: TLDrawShape[],
   bindings: TLDrawBinding[] = []
 ): TLDrawCommand {

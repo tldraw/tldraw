@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
-import { DistributeType, TLDrawShape, Data, TLDrawCommand, TLDrawShapeType } from '~types'
+import { DistributeType, TLDrawShape, TLDrawSnapshot, TLDrawCommand, TLDrawShapeType } from '~types'
 import { TLDR } from '~state/TLDR'
 import Vec from '@tldraw/vec'
 
-export function distributeShapes(data: Data, ids: string[], type: DistributeType): TLDrawCommand {
+export function distributeShapes(
+  data: TLDrawSnapshot,
+  ids: string[],
+  type: DistributeType
+): TLDrawCommand {
   const { currentPageId } = data.appState
 
   const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))

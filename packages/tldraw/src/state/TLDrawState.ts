@@ -27,7 +27,7 @@ import {
   ShapeStyles,
   TLDrawShape,
   TLDrawShapeType,
-  Data,
+  TLDrawSnapshot,
   Session,
   TLDrawStatus,
   SelectHistory,
@@ -117,7 +117,7 @@ export interface TLDrawCallbacks {
   onRedo?: (state: TLDrawState) => void
 }
 
-export class TLDrawState extends StateManager<Data> {
+export class TLDrawState extends StateManager<TLDrawSnapshot> {
   public callbacks: TLDrawCallbacks = {}
 
   readOnly = false
@@ -217,7 +217,7 @@ export class TLDrawState extends StateManager<Data> {
    * @protected
    * @returns The final state
    */
-  protected cleanup = (state: Data, prev: Data): Data => {
+  protected cleanup = (state: TLDrawSnapshot, prev: TLDrawSnapshot): TLDrawSnapshot => {
     const data = { ...state }
 
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
@@ -407,11 +407,11 @@ export class TLDrawState extends StateManager<Data> {
     return data
   }
 
-  onPatch = (state: Data, id?: string) => {
+  onPatch = (state: TLDrawSnapshot, id?: string) => {
     this.callbacks.onPatch?.(this, id)
   }
 
-  onCommand = (state: Data, id?: string) => {
+  onCommand = (state: TLDrawSnapshot, id?: string) => {
     this.clearSelectHistory()
     this.isDirty = true
     this.callbacks.onCommand?.(this, id)
@@ -441,7 +441,7 @@ export class TLDrawState extends StateManager<Data> {
    * @param state
    * @param id
    */
-  protected onStateDidChange = (_state: Data, id?: string): void => {
+  protected onStateDidChange = (_state: TLDrawSnapshot, id?: string): void => {
     this.callbacks.onChange?.(this, id)
   }
 
@@ -531,7 +531,10 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Set a setting.
    */
-  setSetting = <T extends keyof Data['settings'], V extends Data['settings'][T]>(
+  setSetting = <
+    T extends keyof TLDrawSnapshot['settings'],
+    V extends TLDrawSnapshot['settings'][T]
+  >(
     name: T,
     value: V | ((value: V) => V)
   ): this => {
@@ -993,7 +996,7 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * Get the current app state.
    */
-  getAppState = (): Data['appState'] => {
+  getAppState = (): TLDrawSnapshot['appState'] => {
     return this.appState
   }
 
@@ -1094,7 +1097,7 @@ export class TLDrawState extends StateManager<Data> {
   /**
    * The current app state.
    */
-  get appState(): Data['appState'] {
+  get appState(): TLDrawSnapshot['appState'] {
     return this.state.appState
   }
 
@@ -2647,7 +2650,7 @@ export class TLDrawState extends StateManager<Data> {
     },
   }
 
-  static defaultState: Data = {
+  static defaultState: TLDrawSnapshot = {
     settings: {
       isPenMode: false,
       isDarkMode: false,

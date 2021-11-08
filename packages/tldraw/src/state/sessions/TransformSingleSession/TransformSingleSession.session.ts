@@ -9,7 +9,7 @@ import {
 import { Vec } from '@tldraw/vec'
 import { SessionType, TLDrawShape, TLDrawStatus } from '~types'
 import { Session } from '~types'
-import type { Data } from '~types'
+import type { TLDrawSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 
@@ -36,7 +36,7 @@ export class TransformSingleSession extends Session {
   speed = 1
 
   constructor(
-    data: Data,
+    data: TLDrawSnapshot,
     viewport: TLBounds,
     point: number[],
     transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight,
@@ -50,12 +50,18 @@ export class TransformSingleSession extends Session {
     Session.cache.selectedIds = [...this.snapshot.initialShape.id]
   }
 
-  start = (data: Data) => {
+  start = (data: TLDrawSnapshot) => {
     this.createSnapInfo(data)
     return void null
   }
 
-  update = (data: Data, point: number[], shiftKey = false, _altKey = false, metaKey = false) => {
+  update = (
+    data: TLDrawSnapshot,
+    point: number[],
+    shiftKey = false,
+    _altKey = false,
+    metaKey = false
+  ) => {
     const { transformType } = this
 
     const { currentPageId, initialShapeBounds, initialShape, id } = this.snapshot
@@ -144,7 +150,7 @@ export class TransformSingleSession extends Session {
     }
   }
 
-  cancel = (data: Data) => {
+  cancel = (data: TLDrawSnapshot) => {
     const { initialShape } = this.snapshot
 
     const shapes = {} as Record<string, TLDrawShape | undefined>
@@ -174,7 +180,7 @@ export class TransformSingleSession extends Session {
     }
   }
 
-  complete = (data: Data) => {
+  complete = (data: TLDrawSnapshot) => {
     if (!this.snapshot.hasUnlockedShape) return data
 
     const { initialShape } = this.snapshot
@@ -231,7 +237,7 @@ export class TransformSingleSession extends Session {
     }
   }
 
-  private createSnapInfo = async (data: Data) => {
+  private createSnapInfo = async (data: TLDrawSnapshot) => {
     const { initialShape } = this.snapshot
     const { currentPageId } = data.appState
     const page = data.document.pages[currentPageId]
@@ -246,7 +252,7 @@ export class TransformSingleSession extends Session {
 }
 
 export function getTransformSingleSnapshot(
-  data: Data,
+  data: TLDrawSnapshot,
   transformType: TLBoundsEdge | TLBoundsCorner
 ) {
   const { currentPageId } = data.appState

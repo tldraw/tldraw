@@ -1,10 +1,10 @@
 import { Decoration } from '~types'
-import type { ArrowShape, TLDrawCommand, Data } from '~types'
+import type { ArrowShape, TLDrawCommand, TLDrawSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
 import type { Patch } from 'rko'
 
 export function toggleShapesDecoration(
-  data: Data,
+  data: TLDrawSnapshot,
   ids: string[],
   decorationId: 'start' | 'end'
 ): TLDrawCommand {

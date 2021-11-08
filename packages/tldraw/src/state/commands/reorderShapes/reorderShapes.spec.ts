@@ -1,5 +1,5 @@
 import { TLDrawState } from '~state'
-import { Data, TLDrawShapeType } from '~types'
+import { TLDrawSnapshot, TLDrawShapeType } from '~types'
 import { TLDR } from '~state/TLDR'
 
 const state = new TLDrawState().createShapes(
@@ -27,14 +27,14 @@ const state = new TLDrawState().createShapes(
 
 const doc = { ...state.document }
 
-function getSortedShapeIds(data: Data) {
+function getSortedShapeIds(data: TLDrawSnapshot) {
   return TLDR.getShapes(data, data.appState.currentPageId)
     .sort((a, b) => a.childIndex - b.childIndex)
     .map((shape) => shape.id)
     .join('')
 }
 
-function getSortedIndices(data: Data) {
+function getSortedIndices(data: TLDrawSnapshot) {
   return TLDR.getShapes(data, data.appState.currentPageId)
     .sort((a, b) => a.childIndex - b.childIndex)
     .map((shape) => shape.childIndex.toFixed(2))

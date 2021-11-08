@@ -13,7 +13,7 @@ import {
 import { BINDING_DISTANCE } from '~constants'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
 import { intersectLineSegmentEllipse, intersectRayEllipse } from '@tldraw/intersect'
-import { getEllipseIndicatorPathData, getEllipsePath } from './ellipseHelpers'
+import { getEllipseIndicatorPathTLDrawSnapshot, getEllipsePath } from './ellipseHelpers'
 
 type T = EllipseShape
 type E = SVGSVGElement
@@ -71,7 +71,7 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
               />
             )}
             <path
-              d={getEllipseIndicatorPathData(shape, this.getCenter(shape))}
+              d={getEllipseIndicatorPathTLDrawSnapshot(shape, this.getCenter(shape))}
               stroke="none"
               fill={style.isFilled ? styles.fill : 'none'}
               pointerEvents="all"
@@ -131,7 +131,7 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
   )
 
   Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
-    return <path d={getEllipseIndicatorPathData(shape, this.getCenter(shape))} />
+    return <path d={getEllipseIndicatorPathTLDrawSnapshot(shape, this.getCenter(shape))} />
   })
 
   getBounds = (shape: T) => {

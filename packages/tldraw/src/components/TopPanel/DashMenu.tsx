@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTLDrawContext } from '~hooks'
-import { DashStyle, Data } from '~types'
+import { DashStyle, TLDrawSnapshot } from '~types'
 import { DMContent, DMTriggerIcon } from '~components/DropdownMenu'
 import { ToolButton } from '~components/ToolButton'
 import { DashDashedIcon, DashDottedIcon, DashDrawIcon, DashSolidIcon } from '~components/icons'
@@ -13,7 +13,7 @@ const dashes = {
   [DashStyle.Dotted]: <DashDottedIcon />,
 }
 
-const selectDash = (s: Data) => s.appState.selectedStyle.dash
+const selectDash = (s: TLDrawSnapshot) => s.appState.selectedStyle.dash
 
 const preventEvent = (e: Event) => e.preventDefault()
 

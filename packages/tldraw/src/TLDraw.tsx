@@ -2,7 +2,7 @@ import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
 import { styled, dark } from '~styles'
-import { Data, TLDrawDocument, TLDrawStatus, TLDrawUser } from '~types'
+import { TLDrawSnapshot, TLDrawDocument, TLDrawStatus, TLDrawUser } from '~types'
 import { TLDrawCallbacks, TLDrawState } from '~state'
 import {
   TLDrawContext,
@@ -19,9 +19,9 @@ import { ContextMenu } from '~components/ContextMenu'
 import { FocusButton } from '~components/FocusButton/FocusButton'
 
 // Selectors
-const isInSelectSelector = (s: Data) => s.appState.activeTool === 'select'
+const isInSelectSelector = (s: TLDrawSnapshot) => s.appState.activeTool === 'select'
 
-const isHideBoundsShapeSelector = (s: Data) => {
+const isHideBoundsShapeSelector = (s: TLDrawSnapshot) => {
   const { shapes } = s.document.pages[s.appState.currentPageId]
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return (
@@ -30,15 +30,15 @@ const isHideBoundsShapeSelector = (s: Data) => {
   )
 }
 
-const pageSelector = (s: Data) => s.document.pages[s.appState.currentPageId]
+const pageSelector = (s: TLDrawSnapshot) => s.document.pages[s.appState.currentPageId]
 
-const snapLinesSelector = (s: Data) => s.appState.snapLines
+const snapLinesSelector = (s: TLDrawSnapshot) => s.appState.snapLines
 
-const usersSelector = (s: Data) => s.room?.users
+const usersSelector = (s: TLDrawSnapshot) => s.room?.users
 
-const pageStateSelector = (s: Data) => s.document.pageStates[s.appState.currentPageId]
+const pageStateSelector = (s: TLDrawSnapshot) => s.document.pageStates[s.appState.currentPageId]
 
-const settingsSelector = (s: Data) => s.settings
+const settingsSelector = (s: TLDrawSnapshot) => s.settings
 
 export interface TLDrawProps extends TLDrawCallbacks {
   /**

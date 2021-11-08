@@ -1,6 +1,6 @@
 import { Utils, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { Data, Session, SessionType, TLDrawStatus } from '~types'
+import { TLDrawSnapshot, Session, SessionType, TLDrawStatus } from '~types'
 import { TLDR } from '~state/TLDR'
 
 export class DrawSession extends Session {
@@ -16,7 +16,7 @@ export class DrawSession extends Session {
   isLocked?: boolean
   lockedDirection?: 'horizontal' | 'vertical'
 
-  constructor(data: Data, viewport: TLBounds, point: number[], id: string) {
+  constructor(data: TLDrawSnapshot, viewport: TLBounds, point: number[], id: string) {
     super(viewport)
     this.origin = point
     this.previous = point
@@ -32,7 +32,13 @@ export class DrawSession extends Session {
 
   start = () => void null
 
-  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
+  update = (
+    data: TLDrawSnapshot,
+    point: number[],
+    shiftKey = false,
+    altKey = false,
+    metaKey = false
+  ) => {
     const { shapeId } = this
 
     // Even if we're not locked yet, we base the future locking direction
@@ -145,7 +151,7 @@ export class DrawSession extends Session {
     }
   }
 
-  cancel = (data: Data) => {
+  cancel = (data: TLDrawSnapshot) => {
     const { shapeId } = this
     const pageId = data.appState.currentPageId
 
@@ -167,7 +173,7 @@ export class DrawSession extends Session {
     }
   }
 
-  complete = (data: Data) => {
+  complete = (data: TLDrawSnapshot) => {
     const { shapeId } = this
     const pageId = data.appState.currentPageId
 

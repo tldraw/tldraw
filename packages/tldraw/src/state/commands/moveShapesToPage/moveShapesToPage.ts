@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { ArrowShape, Data, PagePartial, TLDrawCommand, TLDrawShape } from '~types'
+import type { ArrowShape, TLDrawSnapshot, PagePartial, TLDrawCommand, TLDrawShape } from '~types'
 import { TLDR } from '~state/TLDR'
 import { Utils, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 
 export function moveShapesToPage(
-  data: Data,
+  data: TLDrawSnapshot,
   ids: string[],
   viewportBounds: TLBounds,
   fromPageId: string,

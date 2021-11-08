@@ -1,7 +1,11 @@
-import type { Data, TLDrawCommand } from '~types'
+import type { TLDrawSnapshot, TLDrawCommand } from '~types'
 import { Utils } from '@tldraw/core'
 
-export function duplicatePage(data: Data, center: number[], pageId: string): TLDrawCommand {
+export function duplicatePage(
+  data: TLDrawSnapshot,
+  center: number[],
+  pageId: string
+): TLDrawCommand {
   const newId = Utils.uniqueId()
   const { currentPageId } = data.appState
 
