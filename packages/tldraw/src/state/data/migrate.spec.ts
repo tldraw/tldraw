@@ -9,7 +9,7 @@ describe('When migrating bindings', () => {
   })
 
   it('migrates a document with an older version', () => {
-    const tlstate = new TLDrawState().loadDocument(oldDoc2 as unknown as TLDrawDocument)
-    expect(tlstate.getShape('d7ab0a49-3cb3-43ae-3d83-f5cf2f4a510a').style.color).toBe('black')
+    const state = new TLDrawState().loadDocument(oldDoc2 as unknown as TLDrawDocument)
+    expect(state.getShape('d7ab0a49-3cb3-43ae-3d83-f5cf2f4a510a').style.color).toBe('black')
   })
 })

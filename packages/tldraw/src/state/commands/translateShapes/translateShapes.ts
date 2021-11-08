@@ -1,8 +1,12 @@
 import { Vec } from '@tldraw/vec'
-import { Data, TLDrawCommand, PagePartial, Session } from '~types'
+import { TLDrawSnapshot, TLDrawCommand, PagePartial, Session } from '~types'
 import { TLDR } from '~state/TLDR'
 
-export function translateShapes(data: Data, ids: string[], delta: number[]): TLDrawCommand {
+export function translateShapes(
+  data: TLDrawSnapshot,
+  ids: string[],
+  delta: number[]
+): TLDrawCommand {
   const { currentPageId } = data.appState
 
   // Clear session cache

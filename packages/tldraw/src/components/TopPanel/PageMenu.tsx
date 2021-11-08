@@ -4,18 +4,19 @@ import { PlusIcon, CheckIcon } from '@radix-ui/react-icons'
 import { PageOptionsDialog } from './PageOptionsDialog'
 import { styled } from '~styles'
 import { useTLDrawContext } from '~hooks'
-import type { Data } from '~types'
+import type { TLDrawSnapshot } from '~types'
 import { DMContent, DMDivider } from '~components/DropdownMenu'
 import { SmallIcon } from '~components/SmallIcon'
 import { RowButton } from '~components/RowButton'
 import { ToolButton } from '~components/ToolButton'
 
-const sortedSelector = (s: Data) =>
+const sortedSelector = (s: TLDrawSnapshot) =>
   Object.values(s.document.pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
 
-const currentPageNameSelector = (s: Data) => s.document.pages[s.appState.currentPageId].name
+const currentPageNameSelector = (s: TLDrawSnapshot) =>
+  s.document.pages[s.appState.currentPageId].name
 
-const currentPageIdSelector = (s: Data) => s.document.pages[s.appState.currentPageId].id
+const currentPageIdSelector = (s: TLDrawSnapshot) => s.document.pages[s.appState.currentPageId].id
 
 export function PageMenu(): JSX.Element {
   const { useSelector } = useTLDrawContext()
@@ -57,22 +58,22 @@ export function PageMenu(): JSX.Element {
 }
 
 function PageMenuContent({ onClose }: { onClose: () => void }) {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
 
   const sortedPages = useSelector(sortedSelector)
 
   const currentPageId = useSelector(currentPageIdSelector)
 
   const handleCreatePage = React.useCallback(() => {
-    tlstate.createPage()
-  }, [tlstate])
+    state.createPage()
+  }, [state])
 
   const handleChangePage = React.useCallback(
     (id: string) => {
       onClose()
-      tlstate.changePage(id)
+      state.changePage(id)
     },
-    [tlstate]
+    [state]
   )
 
   return (

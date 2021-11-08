@@ -2,7 +2,7 @@ import * as React from 'react'
 import { styled } from '~styles'
 import * as RadixContextMenu from '@radix-ui/react-context-menu'
 import { useTLDrawContext } from '~hooks'
-import { Data, AlignType, DistributeType, StretchType } from '~types'
+import { TLDrawSnapshot, AlignType, DistributeType, StretchType } from '~types'
 import {
   AlignBottomIcon,
   AlignCenterHorizontallyIcon,
@@ -21,21 +21,21 @@ import { CMTriggerButton } from './CMTriggerButton'
 import { Divider } from '~components/Divider'
 import { MenuContent } from '~components/MenuContent'
 
-const has1SelectedIdsSelector = (s: Data) => {
+const has1SelectedIdsSelector = (s: TLDrawSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 0
 }
-const has2SelectedIdsSelector = (s: Data) => {
+const has2SelectedIdsSelector = (s: TLDrawSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 1
 }
-const has3SelectedIdsSelector = (s: Data) => {
+const has3SelectedIdsSelector = (s: TLDrawSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 2
 }
 
-const isDebugModeSelector = (s: Data) => {
+const isDebugModeSelector = (s: TLDrawSnapshot) => {
   return s.settings.isDebugMode
 }
 
-const hasGroupSelectedSelector = (s: Data) => {
+const hasGroupSelectedSelector = (s: TLDrawSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.some(
     (id) => s.document.pages[s.appState.currentPageId].shapes[id].children !== undefined
   )
@@ -48,7 +48,7 @@ interface ContextMenuProps {
 }
 
 export const ContextMenu = ({ children }: ContextMenuProps): JSX.Element => {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
   const hasSelection = useSelector(has1SelectedIdsSelector)
   const hasTwoOrMore = useSelector(has2SelectedIdsSelector)
   const hasThreeOrMore = useSelector(has3SelectedIdsSelector)
@@ -58,64 +58,64 @@ export const ContextMenu = ({ children }: ContextMenuProps): JSX.Element => {
   const rContent = React.useRef<HTMLDivElement>(null)
 
   const handleFlipHorizontal = React.useCallback(() => {
-    tlstate.flipHorizontal()
-  }, [tlstate])
+    state.flipHorizontal()
+  }, [state])
 
   const handleFlipVertical = React.useCallback(() => {
-    tlstate.flipVertical()
-  }, [tlstate])
+    state.flipVertical()
+  }, [state])
 
   const handleDuplicate = React.useCallback(() => {
-    tlstate.duplicate()
-  }, [tlstate])
+    state.duplicate()
+  }, [state])
 
   const handleGroup = React.useCallback(() => {
-    tlstate.group()
-  }, [tlstate])
+    state.group()
+  }, [state])
 
   const handleMoveToBack = React.useCallback(() => {
-    tlstate.moveToBack()
-  }, [tlstate])
+    state.moveToBack()
+  }, [state])
 
   const handleMoveBackward = React.useCallback(() => {
-    tlstate.moveBackward()
-  }, [tlstate])
+    state.moveBackward()
+  }, [state])
 
   const handleMoveForward = React.useCallback(() => {
-    tlstate.moveForward()
-  }, [tlstate])
+    state.moveForward()
+  }, [state])
 
   const handleMoveToFront = React.useCallback(() => {
-    tlstate.moveToFront()
-  }, [tlstate])
+    state.moveToFront()
+  }, [state])
 
   const handleDelete = React.useCallback(() => {
-    tlstate.delete()
-  }, [tlstate])
+    state.delete()
+  }, [state])
 
   const handleCopyJson = React.useCallback(() => {
-    tlstate.copyJson()
-  }, [tlstate])
+    state.copyJson()
+  }, [state])
 
   const handleCopy = React.useCallback(() => {
-    tlstate.copy()
-  }, [tlstate])
+    state.copy()
+  }, [state])
 
   const handlePaste = React.useCallback(() => {
-    tlstate.paste()
-  }, [tlstate])
+    state.paste()
+  }, [state])
 
   const handleCopySvg = React.useCallback(() => {
-    tlstate.copySvg()
-  }, [tlstate])
+    state.copySvg()
+  }, [state])
 
   const handleUndo = React.useCallback(() => {
-    tlstate.undo()
-  }, [tlstate])
+    state.undo()
+  }, [state])
 
   const handleRedo = React.useCallback(() => {
-    tlstate.redo()
-  }, [tlstate])
+    state.redo()
+  }, [state])
 
   return (
     <RadixContextMenu.Root>
@@ -207,47 +207,47 @@ function AlignDistributeSubMenu({
   hasTwoOrMore: boolean
   hasThreeOrMore: boolean
 }) {
-  const { tlstate } = useTLDrawContext()
+  const { state } = useTLDrawContext()
 
   const alignTop = React.useCallback(() => {
-    tlstate.align(AlignType.Top)
-  }, [tlstate])
+    state.align(AlignType.Top)
+  }, [state])
 
   const alignCenterVertical = React.useCallback(() => {
-    tlstate.align(AlignType.CenterVertical)
-  }, [tlstate])
+    state.align(AlignType.CenterVertical)
+  }, [state])
 
   const alignBottom = React.useCallback(() => {
-    tlstate.align(AlignType.Bottom)
-  }, [tlstate])
+    state.align(AlignType.Bottom)
+  }, [state])
 
   const stretchVertically = React.useCallback(() => {
-    tlstate.stretch(StretchType.Vertical)
-  }, [tlstate])
+    state.stretch(StretchType.Vertical)
+  }, [state])
 
   const distributeVertically = React.useCallback(() => {
-    tlstate.distribute(DistributeType.Vertical)
-  }, [tlstate])
+    state.distribute(DistributeType.Vertical)
+  }, [state])
 
   const alignLeft = React.useCallback(() => {
-    tlstate.align(AlignType.Left)
-  }, [tlstate])
+    state.align(AlignType.Left)
+  }, [state])
 
   const alignCenterHorizontal = React.useCallback(() => {
-    tlstate.align(AlignType.CenterHorizontal)
-  }, [tlstate])
+    state.align(AlignType.CenterHorizontal)
+  }, [state])
 
   const alignRight = React.useCallback(() => {
-    tlstate.align(AlignType.Right)
-  }, [tlstate])
+    state.align(AlignType.Right)
+  }, [state])
 
   const stretchHorizontally = React.useCallback(() => {
-    tlstate.stretch(StretchType.Horizontal)
-  }, [tlstate])
+    state.stretch(StretchType.Horizontal)
+  }, [state])
 
   const distributeHorizontally = React.useCallback(() => {
-    tlstate.distribute(DistributeType.Horizontal)
-  }, [tlstate])
+    state.distribute(DistributeType.Horizontal)
+  }, [state])
 
   return (
     <RadixContextMenu.Root>
@@ -311,11 +311,11 @@ const StyledGridContent = styled(MenuContent, {
 
 /* ------------------ Move to Page ------------------ */
 
-const currentPageIdSelector = (s: Data) => s.appState.currentPageId
-const documentPagesSelector = (s: Data) => s.document.pages
+const currentPageIdSelector = (s: TLDrawSnapshot) => s.appState.currentPageId
+const documentPagesSelector = (s: TLDrawSnapshot) => s.document.pages
 
 function MoveToPageMenu(): JSX.Element | null {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
   const currentPageId = useSelector(currentPageIdSelector)
   const documentPages = useSelector(documentPagesSelector)
 
@@ -334,7 +334,7 @@ function MoveToPageMenu(): JSX.Element | null {
             <CMRowButton
               key={id}
               disabled={id === currentPageId}
-              onSelect={() => tlstate.moveToPage(id)}
+              onSelect={() => state.moveToPage(id)}
             >
               {name || `Page ${i}`}
             </CMRowButton>

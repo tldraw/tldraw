@@ -5,7 +5,7 @@ import {
   TLDrawShape,
   TLDrawBinding,
   Session,
-  Data,
+  TLDrawSnapshot,
   TLDrawCommand,
   TLDrawStatus,
   ArrowShape,
@@ -58,7 +58,7 @@ export class TranslateSession extends Session {
   isLinked: 'left' | 'right' | 'center' | false
 
   constructor(
-    data: Data,
+    data: TLDrawSnapshot,
     viewport: TLBounds,
     point: number[],
     isCreate = false,
@@ -72,7 +72,7 @@ export class TranslateSession extends Session {
     Session.cache.selectedIds = [...TLDR.getSelectedIds(data, data.appState.currentPageId)]
   }
 
-  start = (data: Data) => {
+  start = (data: TLDrawSnapshot) => {
     const { bindingsToDelete } = this.snapshot
 
     this.createSnapInfo(data)
@@ -94,7 +94,13 @@ export class TranslateSession extends Session {
     }
   }
 
-  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
+  update = (
+    data: TLDrawSnapshot,
+    point: number[],
+    shiftKey = false,
+    altKey = false,
+    metaKey = false
+  ) => {
     const { selectedIds, initialParentChildren, initialShapes, bindingsToDelete } = this.snapshot
 
     const { currentPageId } = data.appState
@@ -328,7 +334,7 @@ export class TranslateSession extends Session {
     }
   }
 
-  cancel = (data: Data) => {
+  cancel = (data: TLDrawSnapshot) => {
     const { initialShapes, bindingsToDelete } = this.snapshot
 
     const nextBindings: Record<string, Partial<TLDrawBinding> | undefined> = {}
@@ -377,7 +383,7 @@ export class TranslateSession extends Session {
     }
   }
 
-  complete = (data: Data): TLDrawCommand => {
+  complete = (data: TLDrawSnapshot): TLDrawCommand => {
     const pageId = data.appState.currentPageId
 
     const { initialShapes, initialParentChildren, bindingsToDelete } = this.snapshot
@@ -513,7 +519,7 @@ export class TranslateSession extends Session {
     }
   }
 
-  private createSnapInfo = async (data: Data) => {
+  private createSnapInfo = async (data: TLDrawSnapshot) => {
     const { currentPageId } = data.appState
     const page = data.document.pages[currentPageId]
     const { idsToMove } = this.snapshot
@@ -536,7 +542,7 @@ export class TranslateSession extends Session {
     }
   }
 
-  private createCloneInfo = (data: Data) => {
+  private createCloneInfo = (data: TLDrawSnapshot) => {
     // Create clones when as they're needed.
     // Consider doing this work in a worker.
 
@@ -634,7 +640,7 @@ export class TranslateSession extends Session {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getTranslateSnapshot(
-  data: Data,
+  data: TLDrawSnapshot,
   linkDirection: 'left' | 'right' | 'center' | false
 ) {
   const { currentPageId } = data.appState

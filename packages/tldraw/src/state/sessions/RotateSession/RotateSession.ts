@@ -1,7 +1,7 @@
 import { Utils, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { Session, SessionType, TLDrawShape, TLDrawStatus } from '~types'
-import type { Data } from '~types'
+import type { TLDrawSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
 
 export class RotateSession extends Session {
@@ -13,7 +13,7 @@ export class RotateSession extends Session {
   initialAngle: number
   changes: Record<string, Partial<TLDrawShape>> = {}
 
-  constructor(data: Data, viewport: TLBounds, point: number[]) {
+  constructor(data: TLDrawSnapshot, viewport: TLBounds, point: number[]) {
     super(viewport)
 
     this.origin = point
@@ -23,7 +23,13 @@ export class RotateSession extends Session {
 
   start = () => void null
 
-  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
+  update = (
+    data: TLDrawSnapshot,
+    point: number[],
+    shiftKey = false,
+    altKey = false,
+    metaKey = false
+  ) => {
     const { commonBoundsCenter, initialShapes } = this.snapshot
 
     const pageId = data.appState.currentPageId
@@ -71,7 +77,7 @@ export class RotateSession extends Session {
     }
   }
 
-  cancel = (data: Data) => {
+  cancel = (data: TLDrawSnapshot) => {
     const { initialShapes } = this.snapshot
     const pageId = data.appState.currentPageId
 
@@ -92,7 +98,7 @@ export class RotateSession extends Session {
     }
   }
 
-  complete = (data: Data) => {
+  complete = (data: TLDrawSnapshot) => {
     const { initialShapes } = this.snapshot
     const pageId = data.appState.currentPageId
 
@@ -128,7 +134,7 @@ export class RotateSession extends Session {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function getRotateSnapshot(data: Data) {
+export function getRotateSnapshot(data: TLDrawSnapshot) {
   const currentPageId = data.appState.currentPageId
   const pageState = TLDR.getPageState(data, currentPageId)
   const initialShapes = TLDR.getSelectedBranchSnapshot(data, currentPageId)

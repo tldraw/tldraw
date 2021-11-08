@@ -1,10 +1,14 @@
 import { Utils } from '@tldraw/core'
-import type { TLDrawCommand, Data, TLDrawShape } from '~types'
+import type { TLDrawCommand, TLDrawSnapshot, TLDrawShape } from '~types'
 import { TLDR } from '~state/TLDR'
 
 const PI2 = Math.PI * 2
 
-export function rotateShapes(data: Data, ids: string[], delta = -PI2 / 4): TLDrawCommand | void {
+export function rotateShapes(
+  data: TLDrawSnapshot,
+  ids: string[],
+  delta = -PI2 / 4
+): TLDrawCommand | void {
   const { currentPageId } = data.appState
 
   // The shapes for the before patch

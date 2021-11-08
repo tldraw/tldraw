@@ -1,7 +1,11 @@
-import type { TLDrawShape, Data, TLDrawCommand } from '~types'
+import type { TLDrawShape, TLDrawSnapshot, TLDrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
 
-export function toggleShapeProp(data: Data, ids: string[], prop: keyof TLDrawShape): TLDrawCommand {
+export function toggleShapeProp(
+  data: TLDrawSnapshot,
+  ids: string[],
+  prop: keyof TLDrawShape
+): TLDrawCommand {
   const { currentPageId } = data.appState
 
   const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))

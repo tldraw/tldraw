@@ -1,6 +1,9 @@
 /* eslint-disable no-undef */
 import fs from 'fs'
 import esbuildServe from 'esbuild-serve'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 async function main() {
   if (!fs.existsSync('./dist')) {
@@ -11,6 +14,8 @@ async function main() {
     if (err) throw err
   })
 
+  console.log(process.env.LIVEBLOCKS_PUBLIC_API_KEY)
+
   try {
     await esbuildServe(
       {
@@ -20,9 +25,11 @@ async function main() {
         bundle: true,
         sourcemap: true,
         incremental: true,
-        target: ['chrome58', 'firefox57', 'safari11', 'edge18'],
+        format: 'cjs',
+        target: 'es6',
         define: {
           'process.env.NODE_ENV': '"development"',
+          'process.env.LIVEBLOCKS_PUBLIC_API_KEY': `"${process.env.LIVEBLOCKS_PUBLIC_API_KEY}"`,
         },
         watch: {
           onRebuild(err) {

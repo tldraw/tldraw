@@ -4,46 +4,46 @@ import { mockDocument, TLDrawStateUtils } from '~test'
 import { ArrowShape, SessionType, TLDrawShapeType } from '~types'
 
 describe('Translate command', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   beforeEach(() => {
-    tlstate.loadDocument(mockDocument)
+    state.loadDocument(mockDocument)
   })
 
   describe('when no shape is selected', () => {
     it('does nothing', () => {
-      const initialState = tlstate.state
-      tlstate.nudge([1, 2])
-      const currentState = tlstate.state
+      const initialState = state.state
+      state.nudge([1, 2])
+      const currentState = state.state
 
       expect(currentState).toEqual(initialState)
     })
   })
 
   it('does, undoes and redoes command', () => {
-    tlstate.selectAll()
-    tlstate.nudge([1, 2])
+    state.selectAll()
+    state.nudge([1, 2])
 
-    expect(tlstate.getShape('rect2').point).toEqual([101, 102])
+    expect(state.getShape('rect2').point).toEqual([101, 102])
 
-    tlstate.undo()
+    state.undo()
 
-    expect(tlstate.getShape('rect2').point).toEqual([100, 100])
+    expect(state.getShape('rect2').point).toEqual([100, 100])
 
-    tlstate.redo()
+    state.redo()
 
-    expect(tlstate.getShape('rect2').point).toEqual([101, 102])
+    expect(state.getShape('rect2').point).toEqual([101, 102])
   })
 
   it('major nudges', () => {
-    tlstate.selectAll()
-    tlstate.nudge([1, 2], true)
-    expect(tlstate.getShape('rect2').point).toEqual([110, 120])
+    state.selectAll()
+    state.nudge([1, 2], true)
+    expect(state.getShape('rect2').point).toEqual([110, 120])
   })
 
   describe('when nudging shapes with bindings', () => {
     it('deleted bindings if nudging shape is bound to other shapes', () => {
-      tlstate
+      state
         .resetDocument()
         .createShapes(
           {
@@ -63,26 +63,26 @@ describe('Translate command', () => {
         .updateSession([50, 50])
         .completeSession()
 
-      const bindingId = tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId!
+      const bindingId = state.getShape<ArrowShape>('arrow1').handles.start.bindingId!
 
-      tlstate.select('arrow1').nudge([10, 10])
+      state.select('arrow1').nudge([10, 10])
 
-      expect(tlstate.getBinding(bindingId)).toBeUndefined()
-      expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeUndefined()
+      expect(state.getBinding(bindingId)).toBeUndefined()
+      expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeUndefined()
 
-      tlstate.undo()
+      state.undo()
 
-      expect(tlstate.getBinding(bindingId)).toBeDefined()
-      expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
+      expect(state.getBinding(bindingId)).toBeDefined()
+      expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
 
-      tlstate.redo()
+      state.redo()
 
-      expect(tlstate.getBinding(bindingId)).toBeUndefined()
-      expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeUndefined()
+      expect(state.getBinding(bindingId)).toBeUndefined()
+      expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeUndefined()
     })
 
     it('does not delete bindings if both bound and bound-to shapes are nudged', () => {
-      tlstate
+      state
         .resetDocument()
         .createShapes(
           {
@@ -102,34 +102,34 @@ describe('Translate command', () => {
         .updateSession([50, 50])
         .completeSession()
 
-      const bindingId = tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId!
+      const bindingId = state.getShape<ArrowShape>('arrow1').handles.start.bindingId!
 
-      tlstate.select('arrow1', 'target1').nudge([10, 10])
+      state.select('arrow1', 'target1').nudge([10, 10])
 
-      expect(tlstate.getBinding(bindingId)).toBeDefined()
-      expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
+      expect(state.getBinding(bindingId)).toBeDefined()
+      expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
 
-      tlstate.undo()
+      state.undo()
 
-      expect(tlstate.getBinding(bindingId)).toBeDefined()
-      expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
+      expect(state.getBinding(bindingId)).toBeDefined()
+      expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
 
-      tlstate.redo()
+      state.redo()
 
-      expect(tlstate.getBinding(bindingId)).toBeDefined()
-      expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
+      expect(state.getBinding(bindingId)).toBeDefined()
+      expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
     })
   })
 })
 
 describe('When nudging groups', () => {
   it('nudges children instead', () => {
-    const tlstate = new TLDrawState()
+    const state = new TLDrawState()
       .loadDocument(mockDocument)
       .group(['rect1', 'rect2'], 'groupA')
       .nudge([1, 1])
 
-    new TLDrawStateUtils(tlstate).expectShapesToBeAtPoints({
+    new TLDrawStateUtils(state).expectShapesToBeAtPoints({
       rect1: [1, 1],
       rect2: [101, 101],
     })

@@ -101,8 +101,8 @@ export default function Controlled() {
     }
   }, [])
 
-  const handleChange = React.useCallback((tlstate) => {
-    rDocument.current = tlstate.document
+  const handleChange = React.useCallback((state) => {
+    rDocument.current = state.document
   }, [])
 
   return <TLDraw document={doc} onChange={handleChange} />

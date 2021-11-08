@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLBoundsCorner, Utils } from '@tldraw/core'
 import { StretchType, TLDrawShapeType } from '~types'
-import type { Data, TLDrawCommand } from '~types'
+import type { TLDrawSnapshot, TLDrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
 
-export function stretchShapes(data: Data, ids: string[], type: StretchType): TLDrawCommand {
+export function stretchShapes(
+  data: TLDrawSnapshot,
+  ids: string[],
+  type: StretchType
+): TLDrawCommand {
   const { currentPageId } = data.appState
 
   const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))

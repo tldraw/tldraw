@@ -4,7 +4,7 @@ import { TLDrawShapeType } from '~types'
 import { useFileSystemHandlers, useTLDrawContext } from '~hooks'
 
 export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
-  const { tlstate } = useTLDrawContext()
+  const { state } = useTLDrawContext()
 
   const canHandleEvent = React.useCallback(() => {
     const elm = ref.current
@@ -16,63 +16,63 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'v,1',
     () => {
-      if (canHandleEvent()) tlstate.selectTool('select')
+      if (canHandleEvent()) state.selectTool('select')
     },
-    [tlstate, ref.current]
+    [state, ref.current]
   )
 
   useHotkeys(
     'd,2',
     () => {
-      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Draw)
+      if (canHandleEvent()) state.selectTool(TLDrawShapeType.Draw)
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'r,3',
     () => {
-      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Rectangle)
+      if (canHandleEvent()) state.selectTool(TLDrawShapeType.Rectangle)
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'e,4',
     () => {
-      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Ellipse)
+      if (canHandleEvent()) state.selectTool(TLDrawShapeType.Ellipse)
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'a,5',
     () => {
-      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Arrow)
+      if (canHandleEvent()) state.selectTool(TLDrawShapeType.Arrow)
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     't,6',
     () => {
-      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Text)
+      if (canHandleEvent()) state.selectTool(TLDrawShapeType.Text)
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'n,7',
     () => {
-      if (canHandleEvent()) tlstate.selectTool(TLDrawShapeType.Sticky)
+      if (canHandleEvent()) state.selectTool(TLDrawShapeType.Sticky)
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   /* ---------------------- Misc ---------------------- */
@@ -83,12 +83,12 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     'ctrl+shift+d,command+shift+d',
     (e) => {
       if (canHandleEvent()) {
-        tlstate.toggleDarkMode()
+        state.toggleDarkMode()
         e.preventDefault()
       }
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   // Focus Mode
@@ -96,10 +96,10 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+.,command+.',
     () => {
-      if (canHandleEvent()) tlstate.toggleFocusMode()
+      if (canHandleEvent()) state.toggleFocusMode()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   // File System
@@ -114,7 +114,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
       }
     },
     undefined,
-    [tlstate]
+    [state]
   )
   useHotkeys(
     'ctrl+s,command+s',
@@ -124,7 +124,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
       }
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
@@ -135,7 +135,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
       }
     },
     undefined,
-    [tlstate]
+    [state]
   )
   useHotkeys(
     'ctrl+o,command+o',
@@ -145,7 +145,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
       }
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   // Undo Redo
@@ -154,30 +154,30 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     'command+z,ctrl+z',
     () => {
       if (canHandleEvent()) {
-        if (tlstate.session) {
-          tlstate.cancelSession()
+        if (state.session) {
+          state.cancelSession()
         } else {
-          tlstate.undo()
+          state.undo()
         }
       }
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'ctrl+shift-z,command+shift+z',
     () => {
       if (canHandleEvent()) {
-        if (tlstate.session) {
-          tlstate.cancelSession()
+        if (state.session) {
+          state.cancelSession()
         } else {
-          tlstate.redo()
+          state.redo()
         }
       }
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   // Undo Redo
@@ -185,19 +185,19 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'command+u,ctrl+u',
     () => {
-      if (canHandleEvent()) tlstate.undoSelect()
+      if (canHandleEvent()) state.undoSelect()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'ctrl+shift-u,command+shift+u',
     () => {
-      if (canHandleEvent()) tlstate.redoSelect()
+      if (canHandleEvent()) state.redoSelect()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   /* -------------------- Commands -------------------- */
@@ -208,51 +208,51 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     'ctrl+=,command+=',
     (e) => {
       if (canHandleEvent()) {
-        tlstate.zoomIn()
+        state.zoomIn()
         e.preventDefault()
       }
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'ctrl+-,command+-',
     (e) => {
       if (canHandleEvent()) {
-        tlstate.zoomOut()
+        state.zoomOut()
         e.preventDefault()
       }
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'shift+1',
     () => {
-      if (canHandleEvent()) tlstate.zoomToFit()
+      if (canHandleEvent()) state.zoomToFit()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'shift+2',
     () => {
-      if (canHandleEvent()) tlstate.zoomToSelection()
+      if (canHandleEvent()) state.zoomToSelection()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'shift+0',
     () => {
-      if (canHandleEvent()) tlstate.resetZoom()
+      if (canHandleEvent()) state.resetZoom()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   // Duplicate
@@ -261,12 +261,12 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     'ctrl+d,command+d',
     (e) => {
       if (canHandleEvent()) {
-        tlstate.duplicate()
+        state.duplicate()
         e.preventDefault()
       }
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   // Flip
@@ -274,19 +274,19 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'shift+h',
     () => {
-      if (canHandleEvent()) tlstate.flipHorizontal()
+      if (canHandleEvent()) state.flipHorizontal()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'shift+v',
     () => {
-      if (canHandleEvent()) tlstate.flipVertical()
+      if (canHandleEvent()) state.flipVertical()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   // Cancel
@@ -295,11 +295,11 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     'escape',
     () => {
       if (canHandleEvent()) {
-        tlstate.cancel()
+        state.cancel()
       }
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   // Delete
@@ -307,10 +307,10 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'backspace',
     () => {
-      if (canHandleEvent()) tlstate.delete()
+      if (canHandleEvent()) state.delete()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   // Select All
@@ -318,10 +318,10 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'command+a,ctrl+a',
     () => {
-      if (canHandleEvent()) tlstate.selectAll()
+      if (canHandleEvent()) state.selectAll()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   // Nudge
@@ -329,73 +329,73 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'up',
     () => {
-      if (canHandleEvent()) tlstate.nudge([0, -1], false)
+      if (canHandleEvent()) state.nudge([0, -1], false)
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'right',
     () => {
-      if (canHandleEvent()) tlstate.nudge([1, 0], false)
+      if (canHandleEvent()) state.nudge([1, 0], false)
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'down',
     () => {
-      if (canHandleEvent()) tlstate.nudge([0, 1], false)
+      if (canHandleEvent()) state.nudge([0, 1], false)
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'left',
     () => {
-      if (canHandleEvent()) tlstate.nudge([-1, 0], false)
+      if (canHandleEvent()) state.nudge([-1, 0], false)
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'shift+up',
     () => {
-      if (canHandleEvent()) tlstate.nudge([0, -1], true)
+      if (canHandleEvent()) state.nudge([0, -1], true)
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'shift+right',
     () => {
-      if (canHandleEvent()) tlstate.nudge([1, 0], true)
+      if (canHandleEvent()) state.nudge([1, 0], true)
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'shift+down',
     () => {
-      if (canHandleEvent()) tlstate.nudge([0, 1], true)
+      if (canHandleEvent()) state.nudge([0, 1], true)
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'shift+left',
     () => {
-      if (canHandleEvent()) tlstate.nudge([-1, 0], true)
+      if (canHandleEvent()) state.nudge([-1, 0], true)
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   // Copy, Cut & Paste
@@ -403,28 +403,28 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'command+c,ctrl+c',
     () => {
-      if (canHandleEvent()) tlstate.copy()
+      if (canHandleEvent()) state.copy()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'command+x,ctrl+x',
     () => {
-      if (canHandleEvent()) tlstate.cut()
+      if (canHandleEvent()) state.cut()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'command+v,ctrl+v',
     () => {
-      if (canHandleEvent()) tlstate.paste()
+      if (canHandleEvent()) state.paste()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   // Group & Ungroup
@@ -433,24 +433,24 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     'command+g,ctrl+g',
     (e) => {
       if (canHandleEvent()) {
-        tlstate.group()
+        state.group()
         e.preventDefault()
       }
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'command+shift+g,ctrl+shift+g',
     (e) => {
       if (canHandleEvent()) {
-        tlstate.ungroup()
+        state.ungroup()
         e.preventDefault()
       }
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   // Move
@@ -458,37 +458,37 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     '[',
     () => {
-      if (canHandleEvent()) tlstate.moveBackward()
+      if (canHandleEvent()) state.moveBackward()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     ']',
     () => {
-      if (canHandleEvent()) tlstate.moveForward()
+      if (canHandleEvent()) state.moveForward()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'shift+[',
     () => {
-      if (canHandleEvent()) tlstate.moveToBack()
+      if (canHandleEvent()) state.moveToBack()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
     'shift+]',
     () => {
-      if (canHandleEvent()) tlstate.moveToFront()
+      if (canHandleEvent()) state.moveToFront()
     },
     undefined,
-    [tlstate]
+    [state]
   )
 
   useHotkeys(
@@ -496,12 +496,12 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     (e) => {
       if (canHandleEvent()) {
         if (process.env.NODE_ENV === 'development') {
-          tlstate.resetDocument()
+          state.resetDocument()
         }
         e.preventDefault()
       }
     },
     undefined,
-    [tlstate]
+    [state]
   )
 }

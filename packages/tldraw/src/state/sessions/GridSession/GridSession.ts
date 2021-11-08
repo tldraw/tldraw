@@ -5,7 +5,7 @@ import {
   TLDrawShape,
   TLDrawBinding,
   Session,
-  Data,
+  TLDrawSnapshot,
   TLDrawCommand,
   TLDrawStatus,
   ArrowShape,
@@ -29,7 +29,13 @@ export class GridSession extends Session {
   rows = 1
   isCopying = false
 
-  constructor(data: Data, viewport: TLBounds, id: string, pageId: string, point: number[]) {
+  constructor(
+    data: TLDrawSnapshot,
+    viewport: TLBounds,
+    id: string,
+    pageId: string,
+    point: number[]
+  ) {
     super(viewport)
     this.origin = point
     this.shape = TLDR.getShape(data, id, pageId)
@@ -61,7 +67,13 @@ export class GridSession extends Session {
     return clone
   }
 
-  update = (data: Data, point: number[], shiftKey = false, altKey = false, metaKey = false) => {
+  update = (
+    data: TLDrawSnapshot,
+    point: number[],
+    shiftKey = false,
+    altKey = false,
+    metaKey = false
+  ) => {
     const nextShapes: Patch<Record<string, TLDrawShape>> = {}
 
     const nextPageState: Patch<TLPageState> = {}
@@ -156,7 +168,7 @@ export class GridSession extends Session {
     }
   }
 
-  cancel = (data: Data) => {
+  cancel = (data: TLDrawSnapshot) => {
     const nextShapes: Record<string, Partial<TLDrawShape> | undefined> = {}
 
     // Delete clones
@@ -190,7 +202,7 @@ export class GridSession extends Session {
     }
   }
 
-  complete = (data: Data) => {
+  complete = (data: TLDrawSnapshot) => {
     const pageId = data.appState.currentPageId
 
     const beforeShapes: Patch<Record<string, TLDrawShape>> = {}

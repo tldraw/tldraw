@@ -1,6 +1,6 @@
-import type { Data, TLDrawCommand } from '~types'
+import type { TLDrawSnapshot, TLDrawCommand } from '~types'
 
-export function deletePage(data: Data, pageId: string): TLDrawCommand {
+export function deletePage(data: TLDrawSnapshot, pageId: string): TLDrawCommand {
   const { currentPageId } = data.appState
 
   const pagesArr = Object.values(data.document.pages).sort(

@@ -5,63 +5,63 @@ import { ArrowShape, ColorStyle, SessionType, TLDrawShapeType } from '~types'
 import type { SelectTool } from './tools/SelectTool'
 
 describe('TLDrawState', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
-  const tlu = new TLDrawStateUtils(tlstate)
+  const tlu = new TLDrawStateUtils(state)
 
   describe('When copying and pasting...', () => {
     it('copies a shape', () => {
-      tlstate.loadDocument(mockDocument).selectNone().copy(['rect1'])
+      state.loadDocument(mockDocument).selectNone().copy(['rect1'])
     })
 
     it('pastes a shape', () => {
-      tlstate.loadDocument(mockDocument)
+      state.loadDocument(mockDocument)
 
-      const prevCount = Object.keys(tlstate.page.shapes).length
+      const prevCount = Object.keys(state.page.shapes).length
 
-      tlstate.selectNone().copy(['rect1']).paste()
+      state.selectNone().copy(['rect1']).paste()
 
-      expect(Object.keys(tlstate.page.shapes).length).toBe(prevCount + 1)
+      expect(Object.keys(state.page.shapes).length).toBe(prevCount + 1)
 
-      tlstate.undo()
+      state.undo()
 
-      expect(Object.keys(tlstate.page.shapes).length).toBe(prevCount)
+      expect(Object.keys(state.page.shapes).length).toBe(prevCount)
 
-      tlstate.redo()
+      state.redo()
 
-      expect(Object.keys(tlstate.page.shapes).length).toBe(prevCount + 1)
+      expect(Object.keys(state.page.shapes).length).toBe(prevCount + 1)
     })
 
     it('pastes a shape to a new page', () => {
-      tlstate.loadDocument(mockDocument)
+      state.loadDocument(mockDocument)
 
-      tlstate.selectNone().copy(['rect1']).createPage().paste()
+      state.selectNone().copy(['rect1']).createPage().paste()
 
-      expect(Object.keys(tlstate.page.shapes).length).toBe(1)
+      expect(Object.keys(state.page.shapes).length).toBe(1)
 
-      tlstate.undo()
+      state.undo()
 
-      expect(Object.keys(tlstate.page.shapes).length).toBe(0)
+      expect(Object.keys(state.page.shapes).length).toBe(0)
 
-      tlstate.redo()
+      state.redo()
 
-      expect(Object.keys(tlstate.page.shapes).length).toBe(1)
+      expect(Object.keys(state.page.shapes).length).toBe(1)
     })
 
     it('Copies grouped shapes.', () => {
-      const tlstate = new TLDrawState()
+      const state = new TLDrawState()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .select('groupA')
         .copy()
 
-      const beforeShapes = tlstate.shapes
+      const beforeShapes = state.shapes
 
-      tlstate.paste()
+      state.paste()
 
-      expect(tlstate.shapes.filter((shape) => shape.type === TLDrawShapeType.Group).length).toBe(2)
+      expect(state.shapes.filter((shape) => shape.type === TLDrawShapeType.Group).length).toBe(2)
 
-      const afterShapes = tlstate.shapes
+      const afterShapes = state.shapes
 
       const newShapes = afterShapes.filter(
         (shape) => !beforeShapes.find(({ id }) => id === shape.id)
@@ -83,9 +83,9 @@ describe('TLDrawState', () => {
 
   describe('When copying and pasting a shape with bindings', () => {
     it('copies two bound shapes and their binding', () => {
-      const tlstate = new TLDrawState()
+      const state = new TLDrawState()
 
-      tlstate
+      state
         .createShapes(
           { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
           { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
@@ -95,23 +95,23 @@ describe('TLDrawState', () => {
         .updateSession([55, 55])
         .completeSession()
 
-      expect(tlstate.bindings.length).toBe(1)
+      expect(state.bindings.length).toBe(1)
 
-      tlstate.selectAll().copy().paste()
+      state.selectAll().copy().paste()
 
-      const newArrow = tlstate.shapes.sort((a, b) => b.childIndex - a.childIndex)[0] as ArrowShape
+      const newArrow = state.shapes.sort((a, b) => b.childIndex - a.childIndex)[0] as ArrowShape
 
       expect(newArrow.handles.start.bindingId).not.toBe(
-        tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId
+        state.getShape<ArrowShape>('arrow1').handles.start.bindingId
       )
 
-      expect(tlstate.bindings.length).toBe(2)
+      expect(state.bindings.length).toBe(2)
     })
 
     it('removes bindings from copied shape handles', () => {
-      const tlstate = new TLDrawState()
+      const state = new TLDrawState()
 
-      tlstate
+      state
         .createShapes(
           { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
           { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
@@ -121,13 +121,13 @@ describe('TLDrawState', () => {
         .updateSession([55, 55])
         .completeSession()
 
-      expect(tlstate.bindings.length).toBe(1)
+      expect(state.bindings.length).toBe(1)
 
-      expect(tlstate.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeDefined()
+      expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeDefined()
 
-      tlstate.select('arrow1').copy().paste()
+      state.select('arrow1').copy().paste()
 
-      const newArrow = tlstate.shapes.sort((a, b) => b.childIndex - a.childIndex)[0] as ArrowShape
+      const newArrow = state.shapes.sort((a, b) => b.childIndex - a.childIndex)[0] as ArrowShape
 
       expect(newArrow.handles.start.bindingId).toBeUndefined()
     })
@@ -135,62 +135,62 @@ describe('TLDrawState', () => {
 
   describe('Selection', () => {
     it('selects a shape', () => {
-      tlstate.loadDocument(mockDocument).selectNone()
+      state.loadDocument(mockDocument).selectNone()
       tlu.clickShape('rect1')
-      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
-      expect(tlstate.appState.status).toBe('idle')
+      expect(state.selectedIds).toStrictEqual(['rect1'])
+      expect(state.appState.status).toBe('idle')
     })
 
     it('selects and deselects a shape', () => {
-      tlstate.loadDocument(mockDocument).selectNone()
+      state.loadDocument(mockDocument).selectNone()
       tlu.clickShape('rect1')
       tlu.clickCanvas()
-      expect(tlstate.selectedIds).toStrictEqual([])
-      expect(tlstate.appState.status).toBe('idle')
+      expect(state.selectedIds).toStrictEqual([])
+      expect(state.appState.status).toBe('idle')
     })
 
     it('selects multiple shapes', () => {
-      tlstate.loadDocument(mockDocument).selectNone()
+      state.loadDocument(mockDocument).selectNone()
       tlu.clickShape('rect1')
       tlu.clickShape('rect2', { shiftKey: true })
-      expect(tlstate.selectedIds).toStrictEqual(['rect1', 'rect2'])
-      expect(tlstate.appState.status).toBe('idle')
+      expect(state.selectedIds).toStrictEqual(['rect1', 'rect2'])
+      expect(state.appState.status).toBe('idle')
     })
 
     it('shift-selects to deselect shapes', () => {
-      tlstate.loadDocument(mockDocument).selectNone()
+      state.loadDocument(mockDocument).selectNone()
       tlu.clickShape('rect1')
       tlu.clickShape('rect2', { shiftKey: true })
       tlu.clickShape('rect2', { shiftKey: true })
-      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
-      expect(tlstate.appState.status).toBe('idle')
+      expect(state.selectedIds).toStrictEqual(['rect1'])
+      expect(state.appState.status).toBe('idle')
     })
 
     it('clears selection when clicking bounds', () => {
-      tlstate.loadDocument(mockDocument).selectNone()
-      tlstate.startSession(SessionType.Brush, [-10, -10])
-      tlstate.updateSession([110, 110])
-      tlstate.completeSession()
-      expect(tlstate.selectedIds.length).toBe(3)
+      state.loadDocument(mockDocument).selectNone()
+      state.startSession(SessionType.Brush, [-10, -10])
+      state.updateSession([110, 110])
+      state.completeSession()
+      expect(state.selectedIds.length).toBe(3)
     })
 
     it('selects selected shape when single-clicked', () => {
-      tlstate.loadDocument(mockDocument).selectAll()
+      state.loadDocument(mockDocument).selectAll()
       tlu.clickShape('rect2')
-      expect(tlstate.selectedIds).toStrictEqual(['rect2'])
+      expect(state.selectedIds).toStrictEqual(['rect2'])
     })
 
     // it('selects shape when double-clicked', () => {
-    //   tlstate.loadDocument(mockDocument).selectAll()
+    //   state.loadDocument(mockDocument).selectAll()
     //   tlu.doubleClickShape('rect2')
-    //   expect(tlstate.selectedIds).toStrictEqual(['rect2'])
+    //   expect(state.selectedIds).toStrictEqual(['rect2'])
     // })
 
     it('does not select on meta-click', () => {
-      tlstate.loadDocument(mockDocument).selectNone()
+      state.loadDocument(mockDocument).selectNone()
       tlu.clickShape('rect1', { ctrlKey: true })
-      expect(tlstate.selectedIds).toStrictEqual([])
-      expect(tlstate.appState.status).toBe('idle')
+      expect(state.selectedIds).toStrictEqual([])
+      expect(state.appState.status).toBe('idle')
     })
 
     it.todo('deletes shapes if cancelled during creating')
@@ -201,120 +201,120 @@ describe('TLDrawState', () => {
 
     describe('When selecting all', () => {
       it('selects all', () => {
-        const tlstate = new TLDrawState().loadDocument(mockDocument).selectAll()
-        expect(tlstate.selectedIds).toMatchSnapshot('selected all')
+        const state = new TLDrawState().loadDocument(mockDocument).selectAll()
+        expect(state.selectedIds).toMatchSnapshot('selected all')
       })
 
       it('does not select children of a group', () => {
-        const tlstate = new TLDrawState().loadDocument(mockDocument).selectAll().group()
-        expect(tlstate.selectedIds.length).toBe(1)
+        const state = new TLDrawState().loadDocument(mockDocument).selectAll().group()
+        expect(state.selectedIds.length).toBe(1)
       })
     })
 
     // Single click on a selected shape to select just that shape
 
     it('single-selects shape in selection on click', () => {
-      tlstate.selectNone()
+      state.selectNone()
       tlu.clickShape('rect1')
       tlu.clickShape('rect2', { shiftKey: true })
       tlu.clickShape('rect2')
-      expect(tlstate.selectedIds).toStrictEqual(['rect2'])
-      expect(tlstate.appState.status).toBe('idle')
+      expect(state.selectedIds).toStrictEqual(['rect2'])
+      expect(state.appState.status).toBe('idle')
     })
 
     it('single-selects shape in selection on pointerup only', () => {
-      tlstate.selectNone()
+      state.selectNone()
       tlu.clickShape('rect1')
       tlu.clickShape('rect2', { shiftKey: true })
       tlu.pointShape('rect2')
-      expect(tlstate.selectedIds).toStrictEqual(['rect1', 'rect2'])
+      expect(state.selectedIds).toStrictEqual(['rect1', 'rect2'])
       tlu.stopPointing('rect2')
-      expect(tlstate.selectedIds).toStrictEqual(['rect2'])
-      expect(tlstate.appState.status).toBe('idle')
+      expect(state.selectedIds).toStrictEqual(['rect2'])
+      expect(state.appState.status).toBe('idle')
     })
 
     // it('selects shapes if shift key is lifted before pointerup', () => {
-    //   tlstate.selectNone()
+    //   state.selectNone()
     //   tlu.clickShape('rect1')
     //   tlu.pointShape('rect2', { shiftKey: true })
-    //   expect(tlstate.appState.status).toBe('pointingBounds')
+    //   expect(state.appState.status).toBe('pointingBounds')
     //   tlu.stopPointing('rect2')
-    //   expect(tlstate.selectedIds).toStrictEqual(['rect2'])
-    //   expect(tlstate.appState.status).toBe('idle')
+    //   expect(state.selectedIds).toStrictEqual(['rect2'])
+    //   expect(state.appState.status).toBe('idle')
     // })
   })
 
   describe('Select history', () => {
     it('selects, undoes and redoes', () => {
-      tlstate.reset().loadDocument(mockDocument)
+      state.reset().loadDocument(mockDocument)
 
-      expect(tlstate.selectHistory.pointer).toBe(0)
-      expect(tlstate.selectHistory.stack).toStrictEqual([[]])
-      expect(tlstate.selectedIds).toStrictEqual([])
+      expect(state.selectHistory.pointer).toBe(0)
+      expect(state.selectHistory.stack).toStrictEqual([[]])
+      expect(state.selectedIds).toStrictEqual([])
 
       tlu.pointShape('rect1')
 
-      expect(tlstate.selectHistory.pointer).toBe(1)
-      expect(tlstate.selectHistory.stack).toStrictEqual([[], ['rect1']])
-      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+      expect(state.selectHistory.pointer).toBe(1)
+      expect(state.selectHistory.stack).toStrictEqual([[], ['rect1']])
+      expect(state.selectedIds).toStrictEqual(['rect1'])
 
       tlu.stopPointing('rect1')
 
-      expect(tlstate.selectHistory.pointer).toBe(1)
-      expect(tlstate.selectHistory.stack).toStrictEqual([[], ['rect1']])
-      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+      expect(state.selectHistory.pointer).toBe(1)
+      expect(state.selectHistory.stack).toStrictEqual([[], ['rect1']])
+      expect(state.selectedIds).toStrictEqual(['rect1'])
 
       tlu.clickShape('rect2', { shiftKey: true })
 
-      expect(tlstate.selectHistory.pointer).toBe(2)
-      expect(tlstate.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
-      expect(tlstate.selectedIds).toStrictEqual(['rect1', 'rect2'])
+      expect(state.selectHistory.pointer).toBe(2)
+      expect(state.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
+      expect(state.selectedIds).toStrictEqual(['rect1', 'rect2'])
 
-      tlstate.undoSelect()
+      state.undoSelect()
 
-      expect(tlstate.selectHistory.pointer).toBe(1)
-      expect(tlstate.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
-      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+      expect(state.selectHistory.pointer).toBe(1)
+      expect(state.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
+      expect(state.selectedIds).toStrictEqual(['rect1'])
 
-      tlstate.undoSelect()
+      state.undoSelect()
 
-      expect(tlstate.selectHistory.pointer).toBe(0)
-      expect(tlstate.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
-      expect(tlstate.selectedIds).toStrictEqual([])
+      expect(state.selectHistory.pointer).toBe(0)
+      expect(state.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
+      expect(state.selectedIds).toStrictEqual([])
 
-      tlstate.redoSelect()
+      state.redoSelect()
 
-      expect(tlstate.selectHistory.pointer).toBe(1)
-      expect(tlstate.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
-      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+      expect(state.selectHistory.pointer).toBe(1)
+      expect(state.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
+      expect(state.selectedIds).toStrictEqual(['rect1'])
 
-      tlstate.select('rect2')
+      state.select('rect2')
 
-      expect(tlstate.selectHistory.pointer).toBe(2)
-      expect(tlstate.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect2']])
-      expect(tlstate.selectedIds).toStrictEqual(['rect2'])
+      expect(state.selectHistory.pointer).toBe(2)
+      expect(state.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect2']])
+      expect(state.selectedIds).toStrictEqual(['rect2'])
 
-      tlstate.delete()
+      state.delete()
 
-      expect(tlstate.selectHistory.pointer).toBe(0)
-      expect(tlstate.selectHistory.stack).toStrictEqual([[]])
-      expect(tlstate.selectedIds).toStrictEqual([])
+      expect(state.selectHistory.pointer).toBe(0)
+      expect(state.selectHistory.stack).toStrictEqual([[]])
+      expect(state.selectedIds).toStrictEqual([])
 
-      tlstate.undoSelect()
+      state.undoSelect()
 
-      expect(tlstate.selectHistory.pointer).toBe(0)
-      expect(tlstate.selectHistory.stack).toStrictEqual([[]])
-      expect(tlstate.selectedIds).toStrictEqual([])
+      expect(state.selectHistory.pointer).toBe(0)
+      expect(state.selectHistory.stack).toStrictEqual([[]])
+      expect(state.selectedIds).toStrictEqual([])
     })
   })
 
   describe('Copies to JSON', () => {
-    tlstate.selectAll()
-    expect(tlstate.copyJson()).toMatchSnapshot('copied json')
+    state.selectAll()
+    expect(state.copyJson()).toMatchSnapshot('copied json')
   })
 
   describe('Mutates bound shapes', () => {
-    const tlstate = new TLDrawState()
+    const state = new TLDrawState()
       .createShapes(
         {
           id: 'rect',
@@ -337,88 +337,80 @@ describe('TLDrawState', () => {
       .selectAll()
       .style({ color: ColorStyle.Red })
 
-    expect(tlstate.getShape('arrow').style.color).toBe(ColorStyle.Red)
-    expect(tlstate.getShape('rect').style.color).toBe(ColorStyle.Red)
+    expect(state.getShape('arrow').style.color).toBe(ColorStyle.Red)
+    expect(state.getShape('rect').style.color).toBe(ColorStyle.Red)
 
-    tlstate.undo()
+    state.undo()
 
-    expect(tlstate.getShape('arrow').style.color).toBe(ColorStyle.Black)
-    expect(tlstate.getShape('rect').style.color).toBe(ColorStyle.Black)
+    expect(state.getShape('arrow').style.color).toBe(ColorStyle.Black)
+    expect(state.getShape('rect').style.color).toBe(ColorStyle.Black)
 
-    tlstate.redo()
+    state.redo()
 
-    expect(tlstate.getShape('arrow').style.color).toBe(ColorStyle.Red)
-    expect(tlstate.getShape('rect').style.color).toBe(ColorStyle.Red)
+    expect(state.getShape('arrow').style.color).toBe(ColorStyle.Red)
+    expect(state.getShape('rect').style.color).toBe(ColorStyle.Red)
   })
 
   describe('when selecting shapes in a group', () => {
     it('selects the group when a grouped shape is clicked', () => {
-      const tlstate = new TLDrawState()
-        .loadDocument(mockDocument)
-        .group(['rect1', 'rect2'], 'groupA')
+      const state = new TLDrawState().loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA')
 
-      const tlu = new TLDrawStateUtils(tlstate)
+      const tlu = new TLDrawStateUtils(state)
       tlu.clickShape('rect1')
-      expect((tlstate.currentTool as SelectTool).selectedGroupId).toBeUndefined()
-      expect(tlstate.selectedIds).toStrictEqual(['groupA'])
+      expect((state.currentTool as SelectTool).selectedGroupId).toBeUndefined()
+      expect(state.selectedIds).toStrictEqual(['groupA'])
     })
 
     it('selects the grouped shape when double clicked', () => {
-      const tlstate = new TLDrawState()
-        .loadDocument(mockDocument)
-        .group(['rect1', 'rect2'], 'groupA')
+      const state = new TLDrawState().loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA')
 
-      const tlu = new TLDrawStateUtils(tlstate)
+      const tlu = new TLDrawStateUtils(state)
       tlu.doubleClickShape('rect1')
-      expect((tlstate.currentTool as SelectTool).selectedGroupId).toStrictEqual('groupA')
-      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+      expect((state.currentTool as SelectTool).selectedGroupId).toStrictEqual('groupA')
+      expect(state.selectedIds).toStrictEqual(['rect1'])
     })
 
     it('clears the selectedGroupId when selecting a different shape', () => {
-      const tlstate = new TLDrawState()
-        .loadDocument(mockDocument)
-        .group(['rect1', 'rect2'], 'groupA')
+      const state = new TLDrawState().loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA')
 
-      const tlu = new TLDrawStateUtils(tlstate)
+      const tlu = new TLDrawStateUtils(state)
       tlu.doubleClickShape('rect1')
       tlu.clickShape('rect3')
-      expect((tlstate.currentTool as SelectTool).selectedGroupId).toBeUndefined()
-      expect(tlstate.selectedIds).toStrictEqual(['rect3'])
+      expect((state.currentTool as SelectTool).selectedGroupId).toBeUndefined()
+      expect(state.selectedIds).toStrictEqual(['rect3'])
     })
 
     it('selects a grouped shape when meta-shift-clicked', () => {
-      const tlstate = new TLDrawState()
+      const state = new TLDrawState()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .selectNone()
 
-      const tlu = new TLDrawStateUtils(tlstate)
+      const tlu = new TLDrawStateUtils(state)
 
       tlu.clickShape('rect1', { ctrlKey: true, shiftKey: true })
-      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+      expect(state.selectedIds).toStrictEqual(['rect1'])
 
       tlu.clickShape('rect1', { ctrlKey: true, shiftKey: true })
-      expect(tlstate.selectedIds).toStrictEqual([])
+      expect(state.selectedIds).toStrictEqual([])
     })
 
     it('selects a hovered shape from the selected group when meta-shift-clicked', () => {
-      const tlstate = new TLDrawState()
-        .loadDocument(mockDocument)
-        .group(['rect1', 'rect2'], 'groupA')
+      const state = new TLDrawState().loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA')
 
-      const tlu = new TLDrawStateUtils(tlstate)
+      const tlu = new TLDrawStateUtils(state)
 
       tlu.clickShape('rect1', { ctrlKey: true, shiftKey: true })
-      expect(tlstate.selectedIds).toStrictEqual(['rect1'])
+      expect(state.selectedIds).toStrictEqual(['rect1'])
 
       tlu.clickShape('rect1', { ctrlKey: true, shiftKey: true })
-      expect(tlstate.selectedIds).toStrictEqual([])
+      expect(state.selectedIds).toStrictEqual([])
     })
   })
 
   describe('when creating shapes', () => {
     it('Creates shapes with the correct child index', () => {
-      const tlstate = new TLDrawState()
+      const state = new TLDrawState()
         .createShapes(
           {
             id: 'rect1',
@@ -438,39 +430,39 @@ describe('TLDrawState', () => {
         )
         .selectTool(TLDrawShapeType.Rectangle)
 
-      const tlu = new TLDrawStateUtils(tlstate)
+      const tlu = new TLDrawStateUtils(state)
 
-      const prevA = tlstate.shapes.map((shape) => shape.id)
+      const prevA = state.shapes.map((shape) => shape.id)
 
       tlu.pointCanvas({ x: 0, y: 0 })
       tlu.movePointer({ x: 100, y: 100 })
       tlu.stopPointing()
 
-      const newIdA = tlstate.shapes.map((shape) => shape.id).find((id) => !prevA.includes(id))!
-      const shapeA = tlstate.getShape(newIdA)
+      const newIdA = state.shapes.map((shape) => shape.id).find((id) => !prevA.includes(id))!
+      const shapeA = state.getShape(newIdA)
       expect(shapeA.childIndex).toBe(4)
 
-      tlstate.group(['rect2', 'rect3', newIdA], 'groupA')
+      state.group(['rect2', 'rect3', newIdA], 'groupA')
 
-      expect(tlstate.getShape('groupA').childIndex).toBe(2)
+      expect(state.getShape('groupA').childIndex).toBe(2)
 
-      tlstate.selectNone()
-      tlstate.selectTool(TLDrawShapeType.Rectangle)
+      state.selectNone()
+      state.selectTool(TLDrawShapeType.Rectangle)
 
-      const prevB = tlstate.shapes.map((shape) => shape.id)
+      const prevB = state.shapes.map((shape) => shape.id)
 
       tlu.pointCanvas({ x: 0, y: 0 })
       tlu.movePointer({ x: 100, y: 100 })
       tlu.stopPointing()
 
-      const newIdB = tlstate.shapes.map((shape) => shape.id).find((id) => !prevB.includes(id))!
-      const shapeB = tlstate.getShape(newIdB)
+      const newIdB = state.shapes.map((shape) => shape.id).find((id) => !prevB.includes(id))!
+      const shapeB = state.getShape(newIdB)
       expect(shapeB.childIndex).toBe(3)
     })
   })
 
   it('Exposes undo/redo stack', () => {
-    const tlstate = new TLDrawState()
+    const state = new TLDrawState()
       .loadDocument(mockDocument)
       .createShapes({
         id: 'rect1',
@@ -485,23 +477,23 @@ describe('TLDrawState', () => {
         size: [100, 200],
       })
 
-    expect(tlstate.history.length).toBe(2)
+    expect(state.history.length).toBe(2)
 
-    expect(tlstate.history).toBeDefined()
-    expect(tlstate.history).toMatchSnapshot('history')
+    expect(state.history).toBeDefined()
+    expect(state.history).toMatchSnapshot('history')
 
-    tlstate.history = []
-    expect(tlstate.history).toEqual([])
+    state.history = []
+    expect(state.history).toEqual([])
 
-    const before = tlstate.state
-    tlstate.undo()
-    const after = tlstate.state
+    const before = state.state
+    state.undo()
+    const after = state.state
 
     expect(before).toBe(after)
   })
 
   it('Exposes undo/redo stack up to the current pointer', () => {
-    const tlstate = new TLDrawState()
+    const state = new TLDrawState()
       .loadDocument(mockDocument)
       .createShapes({
         id: 'rect1',
@@ -517,11 +509,11 @@ describe('TLDrawState', () => {
       })
       .undo()
 
-    expect(tlstate.history.length).toBe(1)
+    expect(state.history.length).toBe(1)
   })
 
   it('Sets the undo/redo history', () => {
-    const tlstate = new TLDrawState('some_state_a')
+    const state = new TLDrawState('some_state_a')
       .createShapes({
         id: 'rect1',
         type: TLDrawShapeType.Rectangle,
@@ -536,29 +528,29 @@ describe('TLDrawState', () => {
       })
 
     // Save the history and document from the first state
-    const doc = tlstate.document
-    const history = tlstate.history
+    const doc = state.document
+    const history = state.history
 
     // Create a new state
-    const tlstate2 = new TLDrawState('some_state_b')
+    const state2 = new TLDrawState('some_state_b')
 
     // Load the document and set the history
-    tlstate2.loadDocument(doc)
-    tlstate2.history = history
+    state2.loadDocument(doc)
+    state2.history = history
 
-    expect(tlstate2.shapes.length).toBe(2)
+    expect(state2.shapes.length).toBe(2)
 
     // We should be able to undo the change that was made on the first
     // state, now that we've brought in its undo / redo stack
-    tlstate2.undo()
+    state2.undo()
 
-    expect(tlstate2.shapes.length).toBe(1)
+    expect(state2.shapes.length).toBe(1)
   })
 
   describe('When copying to SVG', () => {
     it('Copies shapes.', () => {
-      const tlstate = new TLDrawState()
-      const result = tlstate
+      const state = new TLDrawState()
+      const result = state
         .loadDocument(mockDocument)
         .select('rect1')
         .rotate(0.1)
@@ -568,8 +560,8 @@ describe('TLDrawState', () => {
     })
 
     it('Copies grouped shapes.', () => {
-      const tlstate = new TLDrawState()
-      const result = tlstate
+      const state = new TLDrawState()
+      const result = state
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
         .group()
@@ -581,9 +573,9 @@ describe('TLDrawState', () => {
 
     it.todo('Copies Text shapes as <text> elements.')
     // it('Copies Text shapes as <text> elements.', () => {
-    //   const tlstate2 = new TLDrawState()
+    //   const state2 = new TLDrawState()
 
-    //   const svgString = tlstate2
+    //   const svgString = state2
     //     .createShapes({
     //       id: 'text1',
     //       type: TLDrawShapeType.Text,
@@ -633,9 +625,9 @@ describe('TLDrawState', () => {
 
       TLDrawState.defaultState = withoutRoom
 
-      const tlstate = new TLDrawState('migrate_1')
+      const state = new TLDrawState('migrate_1')
 
-      tlstate.createShapes({
+      state.createShapes({
         id: 'rect1',
         type: TLDrawShapeType.Rectangle,
       })
@@ -645,11 +637,11 @@ describe('TLDrawState', () => {
         TLDrawState.version = 100
         TLDrawState.defaultState.room = defaultState.room
 
-        const tlstate2 = new TLDrawState('migrate_1')
+        const state2 = new TLDrawState('migrate_1')
 
         setTimeout(() => {
           try {
-            expect(tlstate2.getShape('rect1')).toBeTruthy()
+            expect(state2.getShape('rect1')).toBeTruthy()
             done()
           } catch (e) {
             done(e)

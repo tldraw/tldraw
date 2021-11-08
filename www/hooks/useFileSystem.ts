@@ -1,38 +1,38 @@
 import * as React from 'react'
 import { TLDrawState } from '@tldraw/tldraw'
 
-export function useFileSystem(tlstate: TLDrawState) {
+export function useFileSystem(state: TLDrawState) {
   const promptSaveBeforeChange = React.useCallback(async () => {
-    if (tlstate.isDirty) {
-      if (tlstate.fileSystemHandle) {
+    if (state.isDirty) {
+      if (state.fileSystemHandle) {
         if (window.confirm('Do you want to save changes to your current project?')) {
-          await tlstate.saveProject()
+          await state.saveProject()
         }
       } else {
         if (window.confirm('Do you want to save your current project?')) {
-          await tlstate.saveProject()
+          await state.saveProject()
         }
       }
     }
-  }, [tlstate])
+  }, [state])
 
   const onNewProject = React.useCallback(async () => {
     await promptSaveBeforeChange()
-    tlstate.newProject()
-  }, [tlstate, promptSaveBeforeChange])
+    state.newProject()
+  }, [state, promptSaveBeforeChange])
 
   const onSaveProject = React.useCallback(() => {
-    tlstate.saveProject()
-  }, [tlstate])
+    state.saveProject()
+  }, [state])
 
   const onSaveProjectAs = React.useCallback(() => {
-    tlstate.saveProjectAs()
-  }, [tlstate])
+    state.saveProjectAs()
+  }, [state])
 
   const onOpenProject = React.useCallback(async () => {
     await promptSaveBeforeChange()
-    tlstate.openProject()
-  }, [tlstate, promptSaveBeforeChange])
+    state.openProject()
+  }, [state, promptSaveBeforeChange])
 
   return {
     onNewProject,

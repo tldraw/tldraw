@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
 import { AlignType, TLDrawCommand, TLDrawShapeType } from '~types'
-import type { Data } from '~types'
+import type { TLDrawSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
 import Vec from '@tldraw/vec'
 
-export function alignShapes(data: Data, ids: string[], type: AlignType): TLDrawCommand {
+export function alignShapes(data: TLDrawSnapshot, ids: string[], type: AlignType): TLDrawCommand {
   const { currentPageId } = data.appState
 
   const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))

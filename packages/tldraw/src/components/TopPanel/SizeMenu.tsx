@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { Data, SizeStyle } from '~types'
+import { TLDrawSnapshot, SizeStyle } from '~types'
 import { useTLDrawContext } from '~hooks'
 import { DMContent, DMTriggerIcon } from '~components/DropdownMenu'
 import { ToolButton } from '~components/ToolButton'
@@ -12,12 +12,12 @@ const sizes = {
   [SizeStyle.Large]: <SizeLargeIcon />,
 }
 
-const selectSize = (s: Data) => s.appState.selectedStyle.size
+const selectSize = (s: TLDrawSnapshot) => s.appState.selectedStyle.size
 
 const preventEvent = (e: Event) => e.preventDefault()
 
 export const SizeMenu = React.memo(function SizeMenu(): JSX.Element {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
 
   const size = useSelector(selectSize)
 
@@ -30,7 +30,7 @@ export const SizeMenu = React.memo(function SizeMenu(): JSX.Element {
             <ToolButton
               isActive={size === sizeStyle}
               variant="icon"
-              onClick={() => tlstate.style({ size: sizeStyle as SizeStyle })}
+              onClick={() => state.style({ size: sizeStyle as SizeStyle })}
             >
               {sizes[sizeStyle as SizeStyle]}
             </ToolButton>

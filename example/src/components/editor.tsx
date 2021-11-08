@@ -11,7 +11,7 @@ export default function Editor(props: TLDrawProps): JSX.Element {
     props.onMount?.(state)
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    window.tlstate = state
+    window.state = state
   }, [])
 
   const onSignIn = React.useCallback((state: TLDrawState) => {

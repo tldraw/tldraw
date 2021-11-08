@@ -1,9 +1,9 @@
 import { TLDR } from '~state/TLDR'
-import type { Data, TLDrawCommand } from '~types'
+import type { TLDrawSnapshot, TLDrawCommand } from '~types'
 import { removeShapesFromPage } from '../shared/removeShapesFromPage'
 
 export function deleteShapes(
-  data: Data,
+  data: TLDrawSnapshot,
   ids: string[],
   pageId = data.appState.currentPageId
 ): TLDrawCommand {

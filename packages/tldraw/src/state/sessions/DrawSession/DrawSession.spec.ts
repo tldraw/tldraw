@@ -10,14 +10,14 @@ import {
 } from '~types'
 
 describe('Draw session', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   it('begins, updateSession', () => {
-    tlstate.loadDocument(mockDocument)
+    state.loadDocument(mockDocument)
 
-    expect(tlstate.getShape('draw1')).toBe(undefined)
+    expect(state.getShape('draw1')).toBe(undefined)
 
-    tlstate
+    state
       .createShapes({
         id: 'draw1',
         parentId: 'page1',
@@ -37,18 +37,18 @@ describe('Draw session', () => {
       .updateSession([10, 10, 0.5])
       .completeSession()
 
-    expect(tlstate.appState.status).toBe(TLDrawStatus.Idle)
+    expect(state.appState.status).toBe(TLDrawStatus.Idle)
   })
 
   it('does, undoes and redoes', () => {
-    expect(tlstate.getShape('draw1')).toBeTruthy()
+    expect(state.getShape('draw1')).toBeTruthy()
 
-    tlstate.undo()
+    state.undo()
 
-    expect(tlstate.getShape('draw1')).toBe(undefined)
+    expect(state.getShape('draw1')).toBe(undefined)
 
-    tlstate.redo()
+    state.redo()
 
-    expect(tlstate.getShape('draw1')).toBeTruthy()
+    expect(state.getShape('draw1')).toBeTruthy()
   })
 })

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { styled } from '~styles'
-import type { Data } from '~types'
+import type { TLDrawSnapshot } from '~types'
 import { useTLDrawContext } from '~hooks'
 import { StatusBar } from './StatusBar'
 import { BackToContent } from './BackToContent'
@@ -8,7 +8,7 @@ import { PrimaryTools } from './PrimaryTools'
 import { ActionButton } from './ActionButton'
 import { LockButton } from './LockButton'
 
-const isDebugModeSelector = (s: Data) => s.settings.isDebugMode
+const isDebugModeSelector = (s: TLDrawSnapshot) => s.settings.isDebugMode
 
 export const ToolsPanel = React.memo(function ToolsPanel(): JSX.Element {
   const { useSelector } = useTLDrawContext()

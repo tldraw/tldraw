@@ -4,17 +4,17 @@ import { mockDocument } from '~test'
 import { ArrowShape, Decoration, TLDrawShape, TLDrawShapeType } from '~types'
 
 describe('Toggle decoration command', () => {
-  const tlstate = new TLDrawState()
+  const state = new TLDrawState()
 
   beforeEach(() => {
-    tlstate.loadDocument(mockDocument)
+    state.loadDocument(mockDocument)
   })
 
   describe('when no shape is selected', () => {
     it('does nothing', () => {
-      const initialState = tlstate.state
-      tlstate.toggleDecoration('start')
-      const currentState = tlstate.state
+      const initialState = state.state
+      state.toggleDecoration('start')
+      const currentState = state.state
 
       expect(currentState).toEqual(initialState)
     })
@@ -22,34 +22,34 @@ describe('Toggle decoration command', () => {
 
   describe('when handle id is invalid', () => {
     it('does nothing', () => {
-      const initialState = tlstate.state
-      tlstate.toggleDecoration('invalid')
-      const currentState = tlstate.state
+      const initialState = state.state
+      state.toggleDecoration('invalid')
+      const currentState = state.state
 
       expect(currentState).toEqual(initialState)
     })
   })
 
   it('does, undoes and redoes command', () => {
-    tlstate
+    state
       .createShapes({
         id: 'arrow1',
         type: TLDrawShapeType.Arrow,
       })
       .select('arrow1')
 
-    expect(tlstate.getShape<ArrowShape>('arrow1').decorations?.end).toBe(Decoration.Arrow)
+    expect(state.getShape<ArrowShape>('arrow1').decorations?.end).toBe(Decoration.Arrow)
 
-    tlstate.toggleDecoration('end')
+    state.toggleDecoration('end')
 
-    expect(tlstate.getShape<ArrowShape>('arrow1').decorations?.end).toBe(undefined)
+    expect(state.getShape<ArrowShape>('arrow1').decorations?.end).toBe(undefined)
 
-    tlstate.undo()
+    state.undo()
 
-    expect(tlstate.getShape<ArrowShape>('arrow1').decorations?.end).toBe(Decoration.Arrow)
+    expect(state.getShape<ArrowShape>('arrow1').decorations?.end).toBe(Decoration.Arrow)
 
-    tlstate.redo()
+    state.redo()
 
-    expect(tlstate.getShape<ArrowShape>('arrow1').decorations?.end).toBe(undefined)
+    expect(state.getShape<ArrowShape>('arrow1').decorations?.end).toBe(undefined)
   })
 })

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Dialog from '@radix-ui/react-alert-dialog'
 import { MixerVerticalIcon } from '@radix-ui/react-icons'
-import type { Data, TLDrawPage } from '~types'
+import type { TLDrawSnapshot, TLDrawPage } from '~types'
 import { useTLDrawContext } from '~hooks'
 import { RowButton, RowButtonProps } from '~components/RowButton'
 import { styled } from '~styles'
@@ -10,7 +10,7 @@ import { IconButton } from '~components/IconButton/IconButton'
 import { SmallIcon } from '~components/SmallIcon'
 import { breakpoints } from '~components/breakpoints'
 
-const canDeleteSelector = (s: Data) => {
+const canDeleteSelector = (s: TLDrawSnapshot) => {
   return Object.keys(s.document.pages).length > 1
 }
 
@@ -21,7 +21,7 @@ interface PageOptionsDialogProps {
 }
 
 export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogProps): JSX.Element {
-  const { tlstate, useSelector } = useTLDrawContext()
+  const { state, useSelector } = useTLDrawContext()
 
   const [isOpen, setIsOpen] = React.useState(false)
 
@@ -30,16 +30,16 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
   const rInput = React.useRef<HTMLInputElement>(null)
 
   const handleDuplicate = React.useCallback(() => {
-    tlstate.duplicatePage(page.id)
+    state.duplicatePage(page.id)
     onClose?.()
-  }, [tlstate])
+  }, [state])
 
   const handleDelete = React.useCallback(() => {
     if (window.confirm(`Are you sure you want to delete this page?`)) {
-      tlstate.deletePage(page.id)
+      state.deletePage(page.id)
       onClose?.()
     }
-  }, [tlstate])
+  }, [state])
 
   const handleOpenChange = React.useCallback(
     (isOpen: boolean) => {
@@ -50,7 +50,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
         return
       }
     },
-    [tlstate, name]
+    [state, name]
   )
 
   function stopPropagation(e: React.KeyboardEvent<HTMLDivElement>) {
@@ -60,7 +60,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
   // TODO: Replace with text input
   function handleRename() {
     const nextName = window.prompt('New name:', page.name)
-    tlstate.renamePage(page.id, nextName || page.name || 'Page')
+    state.renamePage(page.id, nextName || page.name || 'Page')
   }
 
   React.useEffect(() => {

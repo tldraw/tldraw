@@ -1,6 +1,6 @@
 import { Utils, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { Data, Session, SessionType, TLDrawPatch, TLDrawStatus } from '~types'
+import { TLDrawSnapshot, Session, SessionType, TLDrawPatch, TLDrawStatus } from '~types'
 import { TLDR } from '~state/TLDR'
 
 export class BrushSession extends Session {
@@ -9,7 +9,7 @@ export class BrushSession extends Session {
   origin: number[]
   snapshot: BrushSnapshot
 
-  constructor(data: Data, viewport: TLBounds, point: number[]) {
+  constructor(data: TLDrawSnapshot, viewport: TLBounds, point: number[]) {
     super(viewport)
     this.origin = Vec.round(point)
     this.snapshot = getBrushSnapshot(data)
@@ -18,7 +18,7 @@ export class BrushSession extends Session {
   start = () => void null
 
   update = (
-    data: Data,
+    data: TLDrawSnapshot,
     point: number[],
     _shiftKey = false,
     _altKey = false,
@@ -79,7 +79,7 @@ export class BrushSession extends Session {
     }
   }
 
-  cancel = (data: Data) => {
+  cancel = (data: TLDrawSnapshot) => {
     const { currentPageId } = data.appState
     return {
       document: {
@@ -93,7 +93,7 @@ export class BrushSession extends Session {
     }
   }
 
-  complete = (data: Data) => {
+  complete = (data: TLDrawSnapshot) => {
     const { currentPageId } = data.appState
     const pageState = TLDR.getPageState(data, currentPageId)
 
@@ -115,7 +115,7 @@ export class BrushSession extends Session {
  * not already selected, the shape's id and a test to see whether the
  * brush will intersect that shape. For tests, start broad -> fine.
  */
-export function getBrushSnapshot(data: Data) {
+export function getBrushSnapshot(data: TLDrawSnapshot) {
   const { currentPageId } = data.appState
   const selectedIds = [...TLDR.getSelectedIds(data, currentPageId)]
 
