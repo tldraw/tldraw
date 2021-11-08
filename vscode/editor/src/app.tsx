@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { TLDraw, TLDrawState, TLDrawDocument, TLDrawSnapshot, TLDrawFile } from '@tldraw/tldraw'
+import { TLDraw, TLDrawState, TLDrawSnapshot, TLDrawFile } from '@tldraw/tldraw'
 import { vscode } from './utils/vscode'
 import { eventsRegex } from './utils/eventsRegex'
 import { defaultDocument } from './utils/defaultDocument'
@@ -18,14 +18,9 @@ export default function App(): JSX.Element {
   }, [])
 
   // When the editor's document changes, post the stringified document to the vscode extension.
-  const handleChange = React.useCallback(
-    (tldr: TLDrawState, data: TLDrawSnapshot, type: string) => {
-      if (type.search(eventsRegex) === 0) {
-        vscode.postMessage({ type: UI_EVENT.TLDRAW_UPDATED, text: JSON.stringify(tldr.document) })
-      }
-    },
-    []
-  )
+  const handlePersist = React.useCallback((tldr: TLDrawState) => {
+    vscode.postMessage({ type: UI_EVENT.TLDRAW_UPDATED, text: JSON.stringify(tldr.document) })
+  }, [])
 
   return (
     <div className="tldraw">
@@ -33,7 +28,7 @@ export default function App(): JSX.Element {
         id={currentFile.document.id}
         document={currentFile.document ?? defaultDocument}
         onMount={handleMount}
-        onChange={handleChange}
+        onPersist={handlePersist}
         autofocus
       />
     </div>

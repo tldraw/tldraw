@@ -9,7 +9,7 @@ export default function Room(): JSX.Element {
       <Head>
         <title>tldraw</title>
       </Head>
-      <MultiplayerEditor id={'shhhmp'} />
+      <MultiplayerEditor roomId={'shhhmp'} />
     </>
   )
 }
