@@ -120,30 +120,24 @@ export interface TLDrawCallbacks {
 export class TLDrawState extends StateManager<TLDrawSnapshot> {
   public callbacks: TLDrawCallbacks = {}
 
-  readOnly = false
-
-  inputs?: Inputs
-
   selectHistory: SelectHistory = {
     stack: [[]],
     pointer: 0,
   }
 
-  clipboard?: {
+  private clipboard?: {
     shapes: TLDrawShape[]
     bindings: TLDrawBinding[]
   }
 
-  tools = createTools(this)
+  private tools = createTools(this)
 
   currentTool: BaseTool = this.tools.select
 
-  session?: Session
-
-  isCreating = false
+  private isCreating = false
 
   // The editor's bounding client rect
-  bounds: TLBounds = {
+  private bounds: TLBounds = {
     minX: 0,
     minY: 0,
     maxX: 640,
@@ -153,7 +147,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
   }
 
   // The most recent pointer location
-  pointerPoint: number[] = [0, 0]
+  private pointerPoint: number[] = [0, 0]
 
   private pasteInfo = {
     center: [0, 0],
@@ -161,7 +155,8 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
   }
 
   fileSystemHandle: FileSystemHandle | null = null
-
+  readOnly = false
+  session?: Session
   isDirty = false
 
   constructor(id?: string, callbacks = {} as TLDrawCallbacks) {
@@ -180,7 +175,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
 
   /* -------------------- Internal -------------------- */
 
-  onReady = () => {
+  protected onReady = () => {
     this.loadDocument(this.document)
 
     loadFileHandle().then((fileHandle) => {
@@ -1042,10 +1037,6 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
     return TLDR.getBounds(this.getShape(id, pageId))
   }
 
-  greet() {
-    return 'hello'
-  }
-
   /**
    * Get a binding from a given page.
    * @param id The binding's id.
@@ -1682,7 +1673,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
    * @param delta The zoom delta.
    * @param center The point to zoom toward.
    */
-  zoom = Utils.throttle((delta: number, center?: number[]): this => {
+  zoomBy = Utils.throttle((delta: number, center?: number[]): this => {
     const { zoom } = this.pageState.camera
     const nextZoom = TLDR.getCameraZoom(zoom - delta * zoom)
     return this.zoomTo(nextZoom, center)
@@ -2119,7 +2110,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
   /**
    * Delete all shapes on the page.
    */
-  clear = (): this => {
+  deleteAll = (): this => {
     this.selectAll()
     this.delete()
     return this
@@ -2418,7 +2409,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
 
   onZoom: TLWheelEventHandler = (info, e) => {
     if (this.state.appState.status !== TLDrawStatus.Idle) return
-    this.zoom(info.delta[2] / 100, info.delta)
+    this.zoomBy(info.delta[2] / 100, info.delta)
     this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 
