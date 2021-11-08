@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { Utils, TLBounds, TLPointerInfo, SVGContainer } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { defaultStyle, getShapeStyle } from '../shape-styles'
