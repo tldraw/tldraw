@@ -19,7 +19,15 @@ export default function App(): JSX.Element {
 
   // When the editor's document changes, post the stringified document to the vscode extension.
   const handlePersist = React.useCallback((tldr: TLDrawState) => {
-    vscode.postMessage({ type: UI_EVENT.TLDRAW_UPDATED, text: JSON.stringify(tldr.document) })
+    vscode.postMessage({ 
+      type: UI_EVENT.TLDRAW_UPDATED, 
+      text: JSON.stringify({
+        fileHandle: null,
+        name: tldr.document.name || 'New Document',
+        document: tldr.document,
+        assets: {}
+      })
+    })
   }, [])
 
   return (
