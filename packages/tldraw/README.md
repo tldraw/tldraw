@@ -32,7 +32,21 @@ function App() {
 }
 ```
 
-You can control the `TLDraw` component through props:
+### Persisting the State
+
+You can use the `id` to persist the state in a user's browser storage.
+
+```tsx
+import { TLDraw } from '@tldraw/tldraw'
+
+function App() {
+  return <TLDraw id="myState" />
+}
+```
+
+### Controlling the Component through Props
+
+You can control the `TLDraw` component through its props.
 
 ```tsx
 import { TLDraw, TLDrawDocument } from '@tldraw/tldraw'
@@ -44,21 +58,39 @@ function App() {
 }
 ```
 
-Or imperatively through the `TLDrawState` instance:
+### Controlling the Component through the TLDrawState API
+
+You can also control the `TLDraw` component imperatively through the `TLDrawState` API.
 
 ```tsx
 import { TLDraw, TLDrawState } from '@tldraw/tldraw'
 
 function App() {
   const handleMount = React.useCallback((state: TLDrawState) => {
-    const myDocument: TLDrawDocument = {}
-
-    state.loadDocument(myDocument).selectAll()
+    state.selectAll()
   }, [])
 
   return <TLDraw onMount={handleMount} />
 }
 ```
+
+Internally, the `TLDraw` component's user interface uses this API to make changes to the component's state. See the `TLDrawState` section for more on this API.
+
+### Responding to Changes
+
+You can respond to changes and user actions using the `onChange` callback.
+
+```tsx
+import { TLDraw, TLDrawState } from '@tldraw/tldraw'
+
+function App() {
+  const handleChange = React.useCallback((state: TLDrawState, reason: string) => {}, [])
+
+  return <TLDraw onMount={handleMount} />
+}
+```
+
+Internally, the `TLDraw` component's user interface uses this API to make changes to the component's state. See the `TLDrawState` section for more on this API.
 
 ## Documentation
 

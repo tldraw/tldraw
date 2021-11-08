@@ -55,24 +55,6 @@ function Editor({ id }: { id: string }) {
     [id]
   )
 
-  const handleChange = React.useCallback(
-    (_state: TLDrawState, state: Data, reason: string) => {
-      // If the client updates its document, update the room's document
-      if (reason.startsWith('command') || reason.startsWith('undo') || reason.startsWith('redo')) {
-        doc?.update({ uuid: docId, document: state.document })
-      }
-
-      // When the client updates its presence, update the room
-      // if (state.room && (reason === 'patch:room:self:update' || reason === 'patch:selected')) {
-      //   const room = client.getRoom(ROOM_ID)
-      //   if (!room) return
-      //   const { userId, users } = state.room
-      //   room.updatePresence({ id: userId, user: users[userId] })
-      // }
-    },
-    [docId, doc]
-  )
-
   React.useEffect(() => {
     const room = client.getRoom(id)
 
@@ -152,6 +134,13 @@ function Editor({ id }: { id: string }) {
     }
   }, [doc, docId, state, id])
 
+  const handlePersist = React.useCallback(
+    (state: TLDrawState) => {
+      doc?.update({ uuid: docId, document: state.document })
+    },
+    [docId, doc]
+  )
+
   const handleUserChange = React.useCallback(
     (state: TLDrawState, user: TLDrawUser) => {
       const room = client.getRoom(id)
@@ -168,7 +157,7 @@ function Editor({ id }: { id: string }) {
     <div className="tldraw">
       <TLDraw
         onMount={handleMount}
-        onChange={handleChange}
+        onPersist={handlePersist}
         onUserChange={handleUserChange}
         showPages={false}
         autofocus

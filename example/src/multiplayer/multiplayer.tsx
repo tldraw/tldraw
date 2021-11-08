@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { TLDraw, TLDrawState, TLDrawDocument, TLDrawUser, Data } from '@tldraw/tldraw'
+import { TLDraw, TLDrawState, TLDrawDocument, TLDrawUser } from '@tldraw/tldraw'
 import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useErrorListener, useObject } from '@liveblocks/react'
 import { Utils } from '@tldraw/core'
@@ -53,13 +53,6 @@ function TLDrawWrapper() {
 
     setstate(state)
   }, [])
-
-  const handlePersist = React.useCallback(
-    (state: TLDrawState) => {
-      doc?.update({ uuid: docId, document: state.document })
-    },
-    [docId, doc]
-  )
 
   React.useEffect(() => {
     const room = client.getRoom(ROOM_ID)
@@ -131,6 +124,13 @@ function TLDrawWrapper() {
       doc.unsubscribe(handleDocumentUpdates)
     }
   }, [doc, docId, state])
+
+  const handlePersist = React.useCallback(
+    (state: TLDrawState) => {
+      doc?.update({ uuid: docId, document: state.document })
+    },
+    [docId, doc]
+  )
 
   const handleUserChange = React.useCallback(
     (state: TLDrawState, user: TLDrawUser) => {

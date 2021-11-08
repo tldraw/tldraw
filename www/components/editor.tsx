@@ -1,4 +1,4 @@
-import { TLDraw, TLDrawState, Data, useFileSystem } from '@tldraw/tldraw'
+import { TLDraw, TLDrawState, useFileSystem } from '@tldraw/tldraw'
 import * as gtag from '-utils/gtag'
 import React from 'react'
 
@@ -15,19 +15,14 @@ export default function Editor({ id = 'home' }: EditorProps) {
   }, [])
 
   // Send events to gtag as actions.
-  const handleChange = React.useCallback(
-    (_state: TLDrawState, _state: Data, reason: string) => {
-      if (reason.startsWith('command')) {
-        gtag.event({
-          action: reason,
-          category: 'editor',
-          label: `page:${id}`,
-          value: 0,
-        })
-      }
-    },
-    [id]
-  )
+  const handlePersist = React.useCallback((_state: TLDrawState, reason?: string) => {
+    gtag.event({
+      action: reason,
+      category: 'editor',
+      label: reason || 'persist',
+      value: 0,
+    })
+  }, [])
 
   const fileSystemEvents = useFileSystem()
 
@@ -36,7 +31,7 @@ export default function Editor({ id = 'home' }: EditorProps) {
       <TLDraw
         id={id}
         onMount={handleMount}
-        onChange={handleChange}
+        onPersist={handlePersist}
         autofocus
         {...fileSystemEvents}
       />
