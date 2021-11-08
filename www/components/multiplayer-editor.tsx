@@ -27,11 +27,13 @@ export default function MultiplayerEditor({ roomId }: { roomId: string }) {
 function Editor({ roomId }: { roomId: string }) {
   const [docId] = React.useState(() => Utils.uniqueId())
 
+  const [state, setState] = React.useState<TLDrawState>()
+
   const [error, setError] = React.useState<Error>()
 
-  const [state, setstate] = React.useState<TLDrawState>()
-
   useErrorListener((err) => setError(err))
+
+  // Setup document
 
   const doc = useObject<{ uuid: string; document: TLDrawDocument }>('doc', {
     uuid: docId,
@@ -41,17 +43,7 @@ function Editor({ roomId }: { roomId: string }) {
     },
   })
 
-  // Put the state into the window, for debugging.
-  const handleMount = React.useCallback(
-    (state: TLDrawState) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      window.state = state
-      state.loadRoom(roomId)
-      setstate(state)
-    },
-    [roomId]
-  )
+  // Setup client
 
   React.useEffect(() => {
     const room = client.getRoom(roomId)
@@ -127,6 +119,17 @@ function Editor({ roomId }: { roomId: string }) {
       doc.unsubscribe(handleDocumentUpdates)
     }
   }, [doc, docId, state, roomId])
+
+  const handleMount = React.useCallback(
+    (state: TLDrawState) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      window.state = state
+      state.loadRoom(roomId)
+      setState(state)
+    },
+    [roomId]
+  )
 
   const handlePersist = React.useCallback(
     (state: TLDrawState) => {
