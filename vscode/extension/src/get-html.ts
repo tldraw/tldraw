@@ -89,11 +89,11 @@ function getProductionModeHTML(
   documentContent: string
 ): string {
   const cssUrl = webview.asWebviewUri(
-    vscode.Uri.joinPath(context.extensionUri, 'dist-editor/', 'index.css')
+    vscode.Uri.joinPath(context.extensionUri, 'editor/', 'index.css')
   )
 
   const jsUrl = webview.asWebviewUri(
-    vscode.Uri.joinPath(context.extensionUri, 'dist-editor/', 'index.js')
+    vscode.Uri.joinPath(context.extensionUri, 'editor/', 'index.js')
   )
 
   console.log("production mode");

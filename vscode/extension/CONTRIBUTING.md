@@ -79,7 +79,7 @@ Things we're cutting
      - TODO: Make this get build to a proper temp directory like dist
  - Before publishing test using the .vsix based installation workflow available in VS Code Desktop
  - Use the Web UI to publish the latest extension by uploading the .vsix file
-   - https://marketplace.visualstudio.com/manage/publishers/Tldraw
+   - https://marketplace.visualstudio.com/manage/publishers/Wardlt
    - Click on the elipse button and choose Update, then select the .vsix we just generated
    - It should take a few minutes to go through some automated validation the VS Code Marketplace does
  - Now test it quickly 
