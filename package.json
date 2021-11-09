@@ -21,7 +21,7 @@
     "test:watch": "jest --watchAll",
     "lerna": "lerna",
     "start:electron": "lerna run start:electron --stream --parallel",
-    "start:vscode": "lerna run start:vscode --stream --parallel",
+    "start:vscode": "code vscode/extension; lerna run start:vscode --stream --parallel",
     "build:vscode": "cd vscode/extension && yarn build",
     "start": "lerna run start --stream --parallel",
     "start:www": "yarn build:packages && lerna run start --parallel & cd www && yarn dev",
