@@ -1,3 +1,7 @@
+## 0.1.7
+
+- Fixes text and sticky shapes on iOS.
+
 ## 0.1.4
 
 - UI bug fixes.
