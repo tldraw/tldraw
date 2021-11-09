@@ -79,10 +79,12 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
 
       const handleBlur = React.useCallback(
         (e: React.FocusEvent<HTMLTextAreaElement>) => {
-          if (!isEditing) return
-          if (rIsMounted.current) {
-            e.currentTarget.setSelectionRange(0, 0)
-            onShapeBlur?.()
+          if (isEditing) {
+            requestAnimationFrame(() => {
+              if (!rIsMounted.current) return
+              e.currentTarget.setSelectionRange(0, 0)
+              onShapeBlur?.()
+            })
           }
         },
         [isEditing]

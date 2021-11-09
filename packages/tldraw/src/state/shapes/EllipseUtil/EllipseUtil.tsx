@@ -12,7 +12,11 @@ import {
 } from '~types'
 import { BINDING_DISTANCE } from '~constants'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
-import { intersectLineSegmentEllipse, intersectRayEllipse } from '@tldraw/intersect'
+import {
+  intersectEllipseBounds,
+  intersectLineSegmentEllipse,
+  intersectRayEllipse,
+} from '@tldraw/intersect'
 import { getEllipseIndicatorPathTLDrawSnapshot, getEllipsePath } from './ellipseHelpers'
 
 type T = EllipseShape
@@ -156,12 +160,27 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
+  hitTestBounds = (shape: T, bounds: TLBounds): boolean => {
+    const shapeBounds = this.getBounds(shape)
+
+    return (
+      Utils.boundsContained(shapeBounds, bounds) ||
+      intersectEllipseBounds(
+        this.getCenter(shape),
+        shape.radius[0],
+        shape.radius[1],
+        shape.rotation || 0,
+        bounds
+      ).length > 0
+    )
+  }
+
   shouldRender = (prev: T, next: T): boolean => {
     return next.radius !== prev.radius || next.style !== prev.style
   }
 
   getCenter = (shape: T): number[] => {
-    return [shape.point[0] + shape.radius[0], shape.point[1] + shape.radius[1]]
+    return Vec.add(shape.point, shape.radius)
   }
 
   getBindingPoint = <K extends TLDrawShape>(

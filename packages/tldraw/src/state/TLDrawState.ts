@@ -2527,23 +2527,6 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
   }
 
   onShapeBlur = () => {
-    const { editingId } = this.pageState
-
-    if (editingId) {
-      // If we're editing text, then delete the text if it's empty
-      const shape = this.getShape(editingId)
-
-      this.setEditingId()
-
-      if (shape.type === TLDrawShapeType.Text) {
-        if (shape.text.trim().length <= 0) {
-          this.setState(Commands.deleteShapes(this.state, [editingId]), 'delete_empty_text')
-        } else {
-          this.select(editingId)
-        }
-      }
-    }
-
     this.currentTool.onShapeBlur?.()
   }
 
