@@ -2,6 +2,8 @@
 
 This folder contains the source for the tldraw VSCode extension.
 
+## Developing
+
 ## 1. Install dependencies
 
 - Run `yarn` from the root folder
@@ -19,3 +21,14 @@ This folder contains the source for the tldraw VSCode extension.
 - Open `vscode/extension` in a new VSCode window
 - Install dependencies (`yarn`)
 - Start the debugger (F5)
+
+## Publishing
+
+To publish, chat with the team on the [Discord channel](https://discord.gg/s4FXZ6fppJ).
+
+- Install `vsce` globally
+- Run `vsce login tldraw-org` and sign in
+
+In the `vscode/extension` folder:
+
+- Run `yarn vscode:publish`
