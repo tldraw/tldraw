@@ -457,7 +457,11 @@ export class SelectTool extends BaseTool<Status> {
       return
     }
 
-    const { hoveredId } = this.state.pageState
+    const { editingId, hoveredId } = this.state.pageState
+
+    if (editingId && info.target !== editingId) {
+      this.state.onShapeBlur()
+    }
 
     // While holding command and shift, select or deselect
     // the shape, ignoring any group that may contain it. Yikes!
