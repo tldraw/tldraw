@@ -1,5 +1,5 @@
 {
-	"name": "@tldraw/vscode-extension",
+	"name": "tldraw-vscode",
 	"displayName": "TLDraw",
 	"description": "The TLDraw Extension for VS Code",
 	"version": "0.1.8",
@@ -45,7 +45,6 @@
 	"scripts": {
 		"start:vscode": "node scripts/dev & yarn types:dev",
 		"types:dev": "tsc -w",
-		"test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/index.js",
 		"web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
 		"build": "node scripts/build",
 		"pretest": "yarn build",
@@ -64,6 +63,7 @@
 		"mocha": "^9.1.1",
 		"process": "^0.11.10",
 		"ts-loader": "^9.2.5",
-		"typescript": "^4.4.3"
+		"typescript": "^4.4.3",
+		"vsce": "^2.2.0"
 	}
 }

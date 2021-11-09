@@ -22,6 +22,7 @@
     "lerna": "lerna",
     "start:electron": "lerna run start:electron --stream --parallel",
     "start:vscode": "lerna run start:vscode --stream --parallel",
+    "build:vscode": "cd vscode/extension && yarn build",
     "start": "lerna run start --stream --parallel",
     "start:www": "yarn build:packages && lerna run start --parallel & cd www && yarn dev",
     "build": "yarn build:packages && cd www && yarn build",
@@ -55,12 +56,6 @@
     "tslib": "^2.3.0",
     "typedoc": "^0.22.3",
     "typescript": "^4.4.2"
-  },
-  "prettier": {
-    "trailingComma": "es5",
-    "singleQuote": true,
-    "semi": false,
-    "printWidth": 100
   },
   "husky": {
     "hooks": {

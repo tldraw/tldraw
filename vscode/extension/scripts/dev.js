@@ -25,9 +25,10 @@ async function main() {
         'process.env.NODE_ENV': '"development"',
       },
       tsconfig: './tsconfig.json',
-      external: Object.keys(pkg.dependencies).concat(Object.keys(pkg.peerDependencies)).concat(["vscode"]),
+      external: Object.keys(pkg.dependencies)
+        .concat(Object.keys(pkg.peerDependencies))
+        .concat(['vscode']),
       metafile: true,
-      
     })
 
     let esmSize = 0
