@@ -212,7 +212,22 @@ export function TLDraw({
   React.useEffect(() => {
     if (id === sId) return
 
-    const newState = new TLDrawState(id)
+    const newState = new TLDrawState(id, {
+      onMount,
+      onChange,
+      onUserChange,
+      onNewProject,
+      onSaveProject,
+      onSaveProjectAs,
+      onOpenProject,
+      onSignOut,
+      onSignIn,
+      onUndo,
+      onRedo,
+      onPatch,
+      onCommand,
+      onPersist,
+    })
 
     setSId(id)
 
