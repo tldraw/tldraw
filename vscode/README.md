@@ -2,14 +2,20 @@
 
 This folder contains the source for the tldraw VSCode extension.
 
-## 1. Setup editor project
+## 1. Install dependencies
 
-- Open `vscode/editor`
-- Install dependencies (`yarn`)
-- Start the development server (`yarn start`)
+- Run `yarn` from the root folder
 
-## 2. Start the Extension
+## 2. Build @tldraw/tldraw
+
+- Run `yarn build:packages` from the root folder.
+
+## 3. Start the editor
+
+- Run `yarn start:vscode` from the root folder.
+
+## 4. Start the extension
 
 - Open `vscode/extension` in a new VSCode window
 - Install dependencies (`yarn`)
-- Run the extension (F5)
+- Start the debugger (F5)

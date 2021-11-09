@@ -98,20 +98,25 @@ Internally, the `TLDraw` component's user interface uses this API to make change
 
 The `TLDraw` React component is the [tldraw](https://tldraw.com) editor exported as a standalone component. You can control the editor through props, or through the `TLDrawState`'s imperative API. **All props are optional.**
 
-| Prop            | Type             | Description                                                                                                                                                  |
-| --------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`            | `string`         | An id under which to persist the component's state.                                                                                                          |
-| `document`      | `TLDrawDocument` | An initial [`TLDrawDocument`](#tldrawdocument) object.                                                                                                       |
-| `currentPageId` | `string`         | A current page id, referencing the `TLDrawDocument` object provided via the `document` prop.                                                                 |
-| `onMount`       | `Function`       | A callback function that will be called when the editor first mounts, receiving the current `TLDrawState`.                                                   |
-| `onChange`      | `Function`       | A callback function that will be called whenever the `TLDrawState` updates. The update will include the current `TLDrawState` and the reason for the change. |
-| `onUserChange`  | `Function`       | A callback function that will be fired when the user's "presence" information changes.                                                                       |
-| `autofocus`     | `boolean`        | Whether the editor should immediately receive focus. Defaults to true.                                                                                       |
-| `showMenu`      | `boolean`        | Whether to show the menu.                                                                                                                                    |
-| `showPages`     | `boolean`        | Whether to show the pages menu.                                                                                                                              |
-| `showStyles`    | `boolean`        | Whether to show the styles menu.                                                                                                                             |
-| `showTools`     | `boolean`        | Whether to show the tools.                                                                                                                                   |
-| `showUI`        | `boolean`        | Whether to show any UI other than the canvas.                                                                                                                |
+| Prop            | Type             | Description                                                                                  |
+| --------------- | ---------------- | -------------------------------------------------------------------------------------------- |
+| `id`            | `string`         | An id under which to persist the component's state.                                          |
+| `document`      | `TLDrawDocument` | An initial [`TLDrawDocument`](#tldrawdocument) object.                                       |
+| `currentPageId` | `string`         | A current page id, referencing the `TLDrawDocument` object provided via the `document` prop. |
+| `onMount`       | `Function`       | Called when the editor first mounts, receiving the current `TLDrawState`.                    |
+| `onPatch`       | `Function`       | Called when the state is updated via a patch.                                                |
+| `onCommand`     | `Function`       | Called when the state is updated via a command.                                              |
+| `onPersist`     | `Function`       | Called when the state is persisted after an action.                                          |
+| `onChange`      | `Function`       | Called when the `TLDrawState` updates for any reason.                                        |
+| `onUndo`        | `Function`       | Called when the `TLDrawState` updates after an undo.                                         |
+| `onRedo`        | `Function`       | Called when the `TLDrawState` updates after a redo.                                          |
+| `onUserChange`  | `Function`       | Called when the user's "presence" information changes.                                       |
+| `autofocus`     | `boolean`        | Whether the editor should immediately receive focus. Defaults to true.                       |
+| `showMenu`      | `boolean`        | Whether to show the menu.                                                                    |
+| `showPages`     | `boolean`        | Whether to show the pages menu.                                                              |
+| `showStyles`    | `boolean`        | Whether to show the styles menu.                                                             |
+| `showTools`     | `boolean`        | Whether to show the tools.                                                                   |
+| `showUI`        | `boolean`        | Whether to show any UI other than the canvas.                                                |
 
 ### `TLDrawDocument`
 
@@ -246,6 +251,72 @@ A binding is a connection **from** one shape and **to** another shape. At the mo
 | `handleId` | `start` or `end` | The connected arrow handle.                              |
 | `distance` | `number`         | The distance from the bound point.                       |
 | `point`    | `number[]`       | A normalized point representing the bound point.         |
+
+### `TLDrawState` API
+
+You can change the `TLDraw` component's state through an imperative API called `TLDrawState`. To access this API, use the `onMount` callback, or any of the component's callback props, like `onPersist`.
+
+```tsx
+import { TLDraw, TLDrawState } from '@tldraw/tldraw'
+
+function App() {
+  const handleMount = React.useCallback((state: TLDrawState) => {
+    state.selectAll()
+  }, [])
+
+  return <TLDraw onMount={handleMount} />
+}
+```
+
+The `TLDrawState` API is too large to document here. To view documentation for the API, build the documentation by running `yarn docs` from the root folder and open the file at `/packages/tldraw/docs/classes/TLDrawState.html` in your browser.
+
+Here are some useful methods:
+
+| Method            | Description |
+| ----------------- | ----------- |
+| `loadDocument`    |             |
+| `select`          |             |
+| `selectAll`       |             |
+| `selectNone`      |             |
+| `delete`          |             |
+| `deleteAll`       |             |
+| `deletePage`      |             |
+| `changePage`      |             |
+| `cut`             |             |
+| `copy`            |             |
+| `paste`           |             |
+| `copyJson`        |             |
+| `copySvg`         |             |
+| `undo`            |             |
+| `redo`            |             |
+| `zoomIn`          |             |
+| `zoomOut`         |             |
+| `zoomToContent`   |             |
+| `zoomToSelection` |             |
+| `zoomToFit`       |             |
+| `zoomTo`          |             |
+| `resetZoom`       |             |
+| `setCamera`       |             |
+| `resetCamera`     |             |
+| `align`           |             |
+| `distribute`      |             |
+| `stretch`         |             |
+| `nudge`           |             |
+| `duplicate`       |             |
+| `flipHorizontal`  |             |
+| `flipVertical`    |             |
+| `rotate`          |             |
+| `style`           |             |
+| `group`           |             |
+| `ungroup`         |             |
+| `createShapes`    |             |
+| `updateShapes`    |             |
+| `updateDocument`  |             |
+| `updateUsers`     |             |
+| `removeUser`      |             |
+| `setSetting`      |             |
+| `selectTool`      |             |
+| `cancel`          |             |
 
 ## Local Development
 

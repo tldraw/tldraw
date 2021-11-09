@@ -3,6 +3,7 @@
   "fileHandle": {},
   "document": {
     "id": "doc",
+    "name": "New Document",
     "version": 13,
     "pages": {
       "page": {
@@ -17,8 +18,8 @@
             "parentId": "page",
             "childIndex": 1,
             "point": [
-              258.7,
-              246.85
+              268.18,
+              247.52
             ],
             "rotation": 0,
             "style": {
@@ -1095,9 +1096,7 @@
             -220.86
           ],
           "zoom": 2.462934947049924
-        },
-        "editingId": null,
-        "hoveredId": "60a83a6a-6477-45ff-3cd9-5c705c210c3a"
+        }
       }
     }
   },

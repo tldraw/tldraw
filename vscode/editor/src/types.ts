@@ -3,5 +3,5 @@ export enum UI_EVENT {
 }
 
 export enum EXTENSION_EVENT {
-  LOCAL_FILE_UPDATED = 'LOCAL_FILE_UPDATED',
+  FILE_UPDATED = 'FILE_UPDATED',
 }

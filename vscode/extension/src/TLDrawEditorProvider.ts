@@ -1,6 +1,8 @@
 import * as vscode from 'vscode'
-import { getHtmlForWebview } from './get-html'
+import { TLDrawFile } from '@tldraw/tldraw'
+import { getHtmlForWebview } from './getHtmlForWebview'
 import { EXTENSION_EVENT, UI_EVENT } from './types'
+import { sanitizeDocument } from './utils'
 
 /**
  * The Tldraw extension's editor uses CustomTextEditorProvider, which means
@@ -8,7 +10,7 @@ import { EXTENSION_EVENT, UI_EVENT } from './types'
  * will switch to CustomEditorProvider which gives us more control but will require
  * more book keeping on our part.
  */
-export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
+export class TLDrawEditorProvider implements vscode.CustomTextEditorProvider {
   private document?: vscode.TextDocument
 
   // When the tldraw.tldr.new command is triggered, we need to provide a file
@@ -51,7 +53,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
       // created on disk yet, so this is just an in memory temporary name.
       const uri = vscode.Uri.joinPath(
         workspaceFolders[0].uri,
-        `drawing ${TldrawEditorProvider.newTldrawFileId++}.tldr`
+        `drawing ${TLDrawEditorProvider.newTldrawFileId++}.tldr`
       ).with({
         scheme: 'untitled',
       })
@@ -62,15 +64,15 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
       // we are explicitly saying to launch our editor so we're streamlined. It
       // may awkwardly ask if they want to use our editor or a text editor when
       // first using our extension.
-      vscode.commands.executeCommand('vscode.openWith', uri, TldrawEditorProvider.viewType)
+      vscode.commands.executeCommand('vscode.openWith', uri, TLDrawEditorProvider.viewType)
     })
 
     // This registers our editor provider, indicating to VS Code that we can
     // handle files with the .tldr extension.
-    const provider = new TldrawEditorProvider(context)
+    const provider = new TLDrawEditorProvider(context)
 
     const providerRegistration = vscode.window.registerCustomEditorProvider(
-      TldrawEditorProvider.viewType,
+      TLDrawEditorProvider.viewType,
       provider,
       {
         webviewOptions: {
@@ -147,9 +149,9 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
     // being if the file changed on disk, say from git pull that pulls down a change
     // to a .tldr file you have open in a tab.
 
-    const changeDocumentSubscription = vscode.workspace.onDidSaveTextDocument((e) => {
+    const changeDocumentSubscription = vscode.workspace.onDidSaveTextDocument(() => {
       webviewPanel.webview.postMessage({
-        type: EXTENSION_EVENT.LOCAL_FILE_UPDATED,
+        type: EXTENSION_EVENT.FILE_UPDATED,
         text: document.getText(),
       })
     })
@@ -165,8 +167,14 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
     webviewPanel.webview.onDidReceiveMessage((e) => {
       switch (e.type) {
         case UI_EVENT.TLDRAW_UPDATED: {
-          // Synchronize the TextDocument  with the tldraw components document state
-          this.synchronizeTextDocument(document, JSON.parse(e.text))
+          // Synchronize the TextDocument with the tldraw components document state
+
+          const prevFile = JSON.parse(document.getText()) as TLDrawFile
+          const nextFile = JSON.parse(e.text) as TLDrawFile
+
+          nextFile.document = sanitizeDocument(prevFile.document, nextFile.document)
+
+          this.synchronizeTextDocument(document, nextFile)
           break
         }
       }
@@ -178,7 +186,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
     // the extension isn't actually an enclosing web page.
 
     webviewPanel.webview.postMessage({
-      type: EXTENSION_EVENT.INITIAL_DOCUMENT,
+      type: EXTENSION_EVENT.OPENED_FILE,
       text: document.getText(),
     })
   }
@@ -189,7 +197,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
    * VS Code will handle detecting if the in memory content and the on disk
    * content are different, and then mark/unmark the tab as saved/unsaved
    */
-  private synchronizeTextDocument(document: vscode.TextDocument, json: any) {
+  private synchronizeTextDocument(document: vscode.TextDocument, nextFile: TLDrawFile) {
     // Just replace the entire document every time for this example extension.
     // A more complete extension should compute minimal edits instead.
     // TODO: Make sure to keep an eye on performance problems, as this may be the
@@ -201,7 +209,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
     edit.replace(
       document.uri,
       new vscode.Range(0, 0, document.lineCount, 0),
-      JSON.stringify(json, null, 2)
+      JSON.stringify(nextFile, null, 2)
     )
 
     return vscode.workspace.applyEdit(edit)

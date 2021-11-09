@@ -21,7 +21,6 @@ async function main() {
         },
         watch: {
           onRebuild(err) {
-            serve.update()
             err ? error('❌ Failed') : log('✅ Updated')
           },
         },
