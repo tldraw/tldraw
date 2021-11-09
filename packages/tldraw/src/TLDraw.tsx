@@ -184,7 +184,25 @@ export function TLDraw({
 }: TLDrawProps) {
   const [sId, setSId] = React.useState(id)
 
-  const [state, setState] = React.useState(() => new TLDrawState(id))
+  const [state, setState] = React.useState(
+    () =>
+      new TLDrawState(id, {
+        onMount,
+        onChange,
+        onUserChange,
+        onNewProject,
+        onSaveProject,
+        onSaveProjectAs,
+        onOpenProject,
+        onSignOut,
+        onSignIn,
+        onUndo,
+        onRedo,
+        onPatch,
+        onCommand,
+        onPersist,
+      })
+  )
 
   const [context, setContext] = React.useState<TLDrawContextType>(() => ({
     state,
@@ -194,7 +212,22 @@ export function TLDraw({
   React.useEffect(() => {
     if (id === sId) return
 
-    const newState = new TLDrawState(id)
+    const newState = new TLDrawState(id, {
+      onMount,
+      onChange,
+      onUserChange,
+      onNewProject,
+      onSaveProject,
+      onSaveProjectAs,
+      onOpenProject,
+      onSignOut,
+      onSignIn,
+      onUndo,
+      onRedo,
+      onPatch,
+      onCommand,
+      onPersist,
+    })
 
     setSId(id)
 
