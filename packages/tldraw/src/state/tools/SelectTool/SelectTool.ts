@@ -429,9 +429,7 @@ export class SelectTool extends BaseTool<Status> {
 
     // Unless the user is holding shift or meta, clear the current selection
     if (!info.shiftKey) {
-      if (this.state.pageState.editingId) {
-        this.state.setEditingId()
-      }
+      this.state.onShapeBlur()
 
       if (info.altKey && this.state.selectedIds.length > 0) {
         this.state.duplicate(this.state.selectedIds, this.state.getPagePoint(info.point))

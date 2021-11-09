@@ -77,18 +77,10 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
         [shape, onShapeChange]
       )
 
-      const handleBlur = React.useCallback(
-        (e: React.FocusEvent<HTMLTextAreaElement>) => {
-          if (isEditing) {
-            requestAnimationFrame(() => {
-              if (!rIsMounted.current) return
-              e.currentTarget.setSelectionRange(0, 0)
-              onShapeBlur?.()
-            })
-          }
-        },
-        [isEditing]
-      )
+      const handleBlur = React.useCallback((e: React.FocusEvent<HTMLTextAreaElement>) => {
+        e.currentTarget.setSelectionRange(0, 0)
+        onShapeBlur?.()
+      }, [])
 
       const handleFocus = React.useCallback(
         (e: React.FocusEvent<HTMLTextAreaElement>) => {
@@ -119,6 +111,8 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
             elm.focus()
             elm.select()
           })
+        } else {
+          onShapeBlur?.()
         }
       }, [isEditing])
 
@@ -158,14 +152,14 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
                   autoCapitalize="false"
                   autoCorrect="false"
                   autoSave="false"
+                  autoFocus
                   placeholder=""
                   color={styles.stroke}
                   onFocus={handleFocus}
-                  onBlur={handleBlur}
                   onChange={handleChange}
                   onKeyDown={handleKeyDown}
+                  onBlur={handleBlur}
                   onPointerDown={handlePointerDown}
-                  autoFocus
                   wrap="off"
                   dir="auto"
                   datatype="wysiwyg"

@@ -15,7 +15,6 @@ import {
   TLWheelEventHandler,
   Utils,
   TLBounds,
-  Inputs,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -133,6 +132,8 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
   private tools = createTools(this)
 
   currentTool: BaseTool = this.tools.select
+
+  private editingStartTime = -1
 
   private isCreating = false
 
@@ -2053,6 +2054,8 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
       appState: { currentPageId, currentStyle },
     } = this
 
+    this.editingStartTime = Date.now()
+
     const childIndex =
       shapes.length === 0
         ? 1
@@ -2527,6 +2530,24 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
   }
 
   onShapeBlur = () => {
+    // This prevents an auto-blur event from Safari
+    if (Date.now() - this.editingStartTime < 50) return
+
+    const { editingId } = this.pageState
+
+    if (editingId) {
+      // If we're editing text, then delete the text if it's empty
+      const shape = this.getShape(editingId)
+      this.setEditingId()
+      if (shape.type === TLDrawShapeType.Text) {
+        if (shape.text.trim().length <= 0) {
+          this.setState(Commands.deleteShapes(this.state, [editingId]), 'delete_empty_text')
+        } else {
+          this.select(editingId)
+        }
+      }
+    }
+
     this.currentTool.onShapeBlur?.()
   }
 
