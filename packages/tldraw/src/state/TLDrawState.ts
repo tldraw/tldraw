@@ -133,7 +133,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
 
   currentTool: BaseTool = this.tools.select
 
-  private editingStartTime = -1
+  editingStartTime = -1
 
   private isCreating = false
 
@@ -487,6 +487,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
    * @param id [string]
    */
   setEditingId = (id?: string) => {
+    this.editingStartTime = Date.now()
     this.patchState(
       {
         document: {
@@ -2053,8 +2054,6 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
       shapes,
       appState: { currentPageId, currentStyle },
     } = this
-
-    this.editingStartTime = Date.now()
 
     const childIndex =
       shapes.length === 0
