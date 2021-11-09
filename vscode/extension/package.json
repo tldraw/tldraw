@@ -1,10 +1,10 @@
 {
-	"name": "tldraw",
-	"displayName": "TLDraw Editor",
-	"description": "The TLDraw editor for VS Code",
-	"version": "0.1.7",
+	"name": "@tldraw/vscode-extension",
+	"displayName": "TLDraw",
+	"description": "The TLDraw Extension for VS Code",
+	"version": "0.1.8",
 	"license": "MIT",
-	"publisher": "Wardlt",
+	"publisher": "@tldraw",
 	"repository": "https://github.com/tldraw/tldraw",
 	"engines": {
 		"vscode": "^1.59.0"
@@ -26,7 +26,7 @@
 		"customEditors": [
 			{
 				"viewType": "tldraw.tldr",
-				"displayName": "TLDraw Editor",
+				"displayName": "TLDraw",
 				"selector": [
 					{
 						"filenamePattern": "*.tldr"
@@ -37,7 +37,7 @@
 		"commands": [
 			{
 				"command": "tldraw.tldr.new",
-				"title": "Create a new TLDraw file",
+				"title": "New TLDraw File",
 				"category": "TLDraw"
 			}
 		]
@@ -47,22 +47,23 @@
 		"types:dev": "tsc -w",
 		"test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/index.js",
 		"web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
-		"pretest": "npm run compile-web",
-		"vscode:prepublish": "node scripts/build",
-		"package": "node scripts/build && node scripts/package",
+		"build": "node scripts/build",
+		"pretest": "yarn build",
+		"vscode:prepublish": "yarn build",
+		"package": "yarn build && node scripts/package",
 		"lint": "eslint src --ext ts"
 	},
 	"dependencies": {},
 	"peerDependencies": {},
 	"devDependencies": {
-		"eslint": "^7.32.0",
 		"@typescript-eslint/eslint-plugin": "^4.31.1",
 		"@typescript-eslint/parser": "^4.31.1",
-		"mocha": "^9.1.1",
-		"typescript": "^4.4.3",
 		"@vscode/test-web": "^0.0.12",
-		"ts-loader": "^9.2.5",
 		"assert": "^2.0.0",
-		"process": "^0.11.10"
+		"eslint": "^7.32.0",
+		"mocha": "^9.1.1",
+		"process": "^0.11.10",
+		"ts-loader": "^9.2.5",
+		"typescript": "^4.4.3"
 	}
 }
