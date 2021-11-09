@@ -1,7 +1,7 @@
 {
 	"name": "tldraw",
-	"displayName": "Tldraw Editor",
-	"description": "The Tldraw editor for VS Code",
+	"displayName": "TLDraw Editor",
+	"description": "The TLDraw editor for VS Code",
 	"version": "0.1.7",
 	"license": "MIT",
 	"publisher": "Wardlt",
@@ -26,7 +26,7 @@
 		"customEditors": [
 			{
 				"viewType": "tldraw.tldr",
-				"displayName": "Tldraw Editor",
+				"displayName": "TLDraw Editor",
 				"selector": [
 					{
 						"filenamePattern": "*.tldr"
@@ -37,8 +37,8 @@
 		"commands": [
 			{
 				"command": "tldraw.tldr.new",
-				"title": "Create a new Tldraw file",
-				"category": "Tldraw"
+				"title": "Create a new TLDraw file",
+				"category": "TLDraw"
 			}
 		]
 	},
@@ -52,12 +52,9 @@
 		"package": "node scripts/build && node scripts/package",
 		"lint": "eslint src --ext ts"
 	},
-	"dependencies": {
-	},
-	"peerDependencies": {
-	},
+	"dependencies": {},
+	"peerDependencies": {},
 	"devDependencies": {
-		
 		"eslint": "^7.32.0",
 		"@typescript-eslint/eslint-plugin": "^4.31.1",
 		"@typescript-eslint/parser": "^4.31.1",

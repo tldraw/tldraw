@@ -5,7 +5,7 @@ import { EXTENSION_EVENT, UI_EVENT } from './types'
 import { sanitizeDocument } from './utils'
 
 /**
- * The Tldraw extension's editor uses CustomTextEditorProvider, which means
+ * The TLDraw extension's editor uses CustomTextEditorProvider, which means
  * it's underlying model from VS Code's perspective is a text file. We likely
  * will switch to CustomEditorProvider which gives us more control but will require
  * more book keeping on our part.
@@ -14,14 +14,14 @@ export class TLDrawEditorProvider implements vscode.CustomTextEditorProvider {
   private document?: vscode.TextDocument
 
   // When the tldraw.tldr.new command is triggered, we need to provide a file
-  // name when generating a new .tldr file. newTldrawFileId's current value is
+  // name when generating a new .tldr file. newTLDrawFileId's current value is
   // added to the end of the file to make it unique, and then incremented.
   //
   // While there is probably a more thoughtful way of creating suggested file names,
   // this name is only the temporary name for the new file. The file is still only in memory
   // and hasn't been saved to an actual underlying file. If we suggest a name that turns
   // out to already exist, VS Code will prevent it from being used in it's save dialogs.
-  private static newTldrawFileId = 1
+  private static newTLDrawFileId = 1
 
   // This is called one time by the main extension entry point. See 'extension.ts'.
   // We register commands here and register our custom editor's provider telling VS Code
@@ -30,10 +30,10 @@ export class TLDrawEditorProvider implements vscode.CustomTextEditorProvider {
     // This makes a new command show up in the Command Palette that will
     // create a new empty .tldr. The file will actually start out
     // as an empty text file, which is fine as the editor treats
-    // blank text files as an empty Tldraw file. Once any change is made
+    // blank text files as an empty TLDraw file. Once any change is made
     // and the file saved it will be in a proper JSON format.
     //
-    // The command shows up as: "Tldraw: Create a new .tldr file".
+    // The command shows up as: "TLDraw: Create a new .tldr file".
     vscode.commands.registerCommand('tldraw.tldr.new', () => {
       // This was included in the example CustomTextEditorProvider. It
       // doesn't seem like we should need a workspace to be within to edit
@@ -44,7 +44,7 @@ export class TLDrawEditorProvider implements vscode.CustomTextEditorProvider {
       const workspaceFolders = vscode.workspace.workspaceFolders
       if (!workspaceFolders) {
         vscode.window.showErrorMessage(
-          'Creating new Tldraw Editor files currently requires opening a workspace'
+          'Creating new TLDraw Editor files currently requires opening a workspace'
         )
         return
       }
@@ -53,7 +53,7 @@ export class TLDrawEditorProvider implements vscode.CustomTextEditorProvider {
       // created on disk yet, so this is just an in memory temporary name.
       const uri = vscode.Uri.joinPath(
         workspaceFolders[0].uri,
-        `drawing ${TLDrawEditorProvider.newTldrawFileId++}.tldr`
+        `drawing ${TLDrawEditorProvider.newTLDrawFileId++}.tldr`
       ).with({
         scheme: 'untitled',
       })
@@ -87,7 +87,7 @@ export class TLDrawEditorProvider implements vscode.CustomTextEditorProvider {
 
         // I'm not sure about the exact semantics about this one. I'm going to leave it in though as
         // it sounds right for our needs. I think this ensures we get a unique instance of our provider
-        // per Tldraw editor tab, vs it being shared. It would be really cool if we could support
+        // per TLDraw editor tab, vs it being shared. It would be really cool if we could support
         // multiple tabs sharing the same document state, but separate editor state (like zoom/pan/selection),
         // but this will likely be a lot of work.
         //
