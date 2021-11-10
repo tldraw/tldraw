@@ -1,3 +1,7 @@
+## 0.1.8
+
+- Fixes spacing in text and sticky shapes.
+
 ## 0.1.7
 
 - Fixes text and sticky shapes on iOS.
