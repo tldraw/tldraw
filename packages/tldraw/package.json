@@ -23,7 +23,6 @@
   "types": "./dist/types/index.d.ts",
   "scripts": {
     "start:electron": "yarn start",
-    "start:vscode": "yarn build",
     "start": "node scripts/dev & yarn types:dev",
     "build": "node scripts/build && yarn types:build && node scripts/copy-readme",
     "types:dev": "tsc -w",
