@@ -17,6 +17,8 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
 
   canBind = true
 
+  canEdit = true
+
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
       {
@@ -89,25 +91,16 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
         [shape, onShapeChange]
       )
 
-      const handleBlur = React.useCallback(
-        (e: React.FocusEvent<HTMLTextAreaElement>) => {
-          if (!isEditing) return
-          if (rIsMounted.current) {
-            e.currentTarget.setSelectionRange(0, 0)
-            onShapeBlur?.()
-          }
-        },
-        [isEditing]
-      )
+      const handleBlur = React.useCallback((e: React.FocusEvent<HTMLTextAreaElement>) => {
+        e.currentTarget.setSelectionRange(0, 0)
+        onShapeBlur?.()
+      }, [])
 
       const handleFocus = React.useCallback(
         (e: React.FocusEvent<HTMLTextAreaElement>) => {
           if (!isEditing) return
           if (!rIsMounted.current) return
-
-          if (document.activeElement === e.currentTarget) {
-            e.currentTarget.select()
-          }
+          e.currentTarget.select()
         },
         [isEditing]
       )
@@ -115,14 +108,10 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
       // Focus when editing changes to true
       React.useEffect(() => {
         if (isEditing) {
-          if (document.activeElement !== rText.current) {
-            requestAnimationFrame(() => {
-              rIsMounted.current = true
-              const elm = rTextArea.current!
-              elm.focus()
-              elm.select()
-            })
-          }
+          rIsMounted.current = true
+          const elm = rTextArea.current!
+          elm.focus()
+          elm.select()
         }
       }, [isEditing])
 
@@ -151,6 +140,9 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
           onShapeChange?.({ id: shape.id, size: [size[0], MIN_CONTAINER_HEIGHT] })
           return
         }
+
+        const textarea = rTextArea.current
+        textarea?.focus()
       }, [shape.text, shape.size[1], shape.style])
 
       const style = {
@@ -180,10 +172,13 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
                 onKeyDown={handleKeyDown}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
-                autoCapitalize="off"
-                autoComplete="off"
-                spellCheck={false}
+                tabIndex={-1}
+                autoComplete="false"
+                autoCapitalize="false"
+                autoCorrect="false"
+                autoSave="false"
                 autoFocus
+                spellCheck={false}
               />
             )}
           </StyledStickyContainer>
@@ -240,8 +235,11 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
 const PADDING = 16
 const MIN_CONTAINER_HEIGHT = 200
 
+const fixNewLines = /\r?\n|\r/g
+const fixSpaces = / /g
+
 function normalizeText(text: string) {
-  return text.replace(/\r?\n|\r/g, '\n')
+  return text.replace(fixNewLines, '\n').replace(fixSpaces, '\u00a0')
 }
 
 const StyledStickyContainer = styled('div', {

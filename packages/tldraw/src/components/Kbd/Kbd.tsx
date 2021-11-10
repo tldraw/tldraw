@@ -34,6 +34,7 @@ export const StyledKbd = styled('kbd', {
   fontSize: '$0',
   fontFamily: '$ui',
   fontWeight: 400,
+  color: '$text',
   gap: '$1',
   display: 'flex',
   alignItems: 'center',

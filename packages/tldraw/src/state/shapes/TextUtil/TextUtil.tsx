@@ -77,16 +77,10 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
         [shape, onShapeChange]
       )
 
-      const handleBlur = React.useCallback(
-        (e: React.FocusEvent<HTMLTextAreaElement>) => {
-          if (!isEditing) return
-          if (rIsMounted.current) {
-            e.currentTarget.setSelectionRange(0, 0)
-            onShapeBlur?.()
-          }
-        },
-        [isEditing]
-      )
+      const handleBlur = React.useCallback((e: React.FocusEvent<HTMLTextAreaElement>) => {
+        e.currentTarget.setSelectionRange(0, 0)
+        onShapeBlur?.()
+      }, [])
 
       const handleFocus = React.useCallback(
         (e: React.FocusEvent<HTMLTextAreaElement>) => {
@@ -117,6 +111,8 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
             elm.focus()
             elm.select()
           })
+        } else {
+          onShapeBlur?.()
         }
       }, [isEditing])
 
@@ -156,14 +152,14 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
                   autoCapitalize="false"
                   autoCorrect="false"
                   autoSave="false"
+                  autoFocus
                   placeholder=""
                   color={styles.stroke}
                   onFocus={handleFocus}
-                  onBlur={handleBlur}
                   onChange={handleChange}
                   onKeyDown={handleKeyDown}
+                  onBlur={handleBlur}
                   onPointerDown={handlePointerDown}
-                  autoFocus
                   wrap="off"
                   dir="auto"
                   datatype="wysiwyg"
@@ -284,8 +280,11 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
 
 const LETTER_SPACING = -1.5
 
+const fixNewLines = /\r?\n|\r/g
+const fixSpaces = / /g
+
 function normalizeText(text: string) {
-  return text.replace(/\r?\n|\r/g, '\n')
+  return text.replace(fixNewLines, '\n').replace(fixSpaces, '\u00a0')
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -14,8 +14,6 @@ async function main() {
     if (err) throw err
   })
 
-  console.log(process.env.LIVEBLOCKS_PUBLIC_API_KEY)
-
   try {
     await esbuildServe(
       {
