@@ -32,33 +32,18 @@ export class TLDrawEditorProvider implements vscode.CustomTextEditorProvider {
     // as an empty text file, which is fine as the editor treats
     // blank text files as an empty TLDraw file. Once any change is made
     // and the file saved it will be in a proper JSON format.
-    //
+
     // The command shows up as: "TLDraw: Create a new .tldr file".
     vscode.commands.registerCommand('tldraw.tldr.new', () => {
-      // This was included in the example CustomTextEditorProvider. It
-      // doesn't seem like we should need a workspace to be within to edit
-      // .tldr files, but I want to punt on digging into this.
-      // TODO: Test/decide if it is necessary to need a workspace.
-      // I can't think of why we'd want a concept of a global scope
-      // for editing .tldr files.
-      const workspaceFolders = vscode.workspace.workspaceFolders
-      if (!workspaceFolders) {
-        vscode.window.showErrorMessage(
-          'Creating new TLDraw Editor files currently requires opening a workspace'
-        )
-        return
-      }
-
-      const id = TLDrawEditorProvider.newTLDrawFileId++
-
       // Create a placeholder name for the new file. A new file isn't actually
       // created on disk yet, so this is just an in memory temporary name.
-      const uri = vscode.Uri.joinPath(
-        workspaceFolders[0].uri,
-        id > 1 ? `New Document ${id}.tldr` : `New Document.tldr`
-      ).with({
-        scheme: 'untitled',
-      })
+      const id = TLDrawEditorProvider.newTLDrawFileId++
+      const name = id > 1 ? `New Document ${id}.tldr` : `New Document.tldr`
+
+      // Create a placeholder file path for the folder. Use the workspace folder
+      // if one exists, otherwise make up an empty one.
+      const workspaceFolders = vscode.workspace.workspaceFolders
+      const path = workspaceFolders ? workspaceFolders[0].uri : vscode.Uri.parse('')
 
       // This triggers VS Code to open our custom editor to edit the file.
       // Note: Multiple editors can register to support certain files, so
@@ -66,7 +51,11 @@ export class TLDrawEditorProvider implements vscode.CustomTextEditorProvider {
       // we are explicitly saying to launch our editor so we're streamlined. It
       // may awkwardly ask if they want to use our editor or a text editor when
       // first using our extension.
-      vscode.commands.executeCommand('vscode.openWith', uri, TLDrawEditorProvider.viewType)
+      vscode.commands.executeCommand(
+        'vscode.openWith',
+        vscode.Uri.joinPath(path, name).with({ scheme: 'untitled' }),
+        TLDrawEditorProvider.viewType
+      )
     })
 
     // This registers our editor provider, indicating to VS Code that we can
