@@ -1,13 +1,30 @@
 {
 	"name": "tldraw-vscode",
 	"displayName": "TLDraw",
-	"description": "The TLDraw Extension for VS Code",
-	"version": "0.1.11",
+	"description": "The TLDraw Extension for VS Code.",
+	"version": "0.1.12",
 	"license": "MIT",
 	"publisher": "tldraw-org",
-	"repository": "https://github.com/tldraw/tldraw",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
 	"engines": {
 		"vscode": "^1.59.0"
+	},
+	"keywords": [
+		"diagram",
+		"draw",
+		"drawing",
+		"sketch",
+		"design",
+		"documentation",
+		"tldraw"
+	],
+	"icon": "./icon.png",
+	"galleryBanner": {
+		"color": "#1d1d1d",
+		"theme": "dark"
 	},
 	"categories": [
 		"Visualization"
