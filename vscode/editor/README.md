@@ -1,6 +1,9 @@
-# @tldraw/tldraw-example
+<div style="text-align: center; transform: scale(.5);">
+  <img src="card-repo.png"/>
+</div>
 
-An example for @tldraw/tldraw with a very fast dev server.
+# @tldraw/vscode-editor
 
-**Note:** You probably do not need to start the server here: it is started as
-part of `yarn start` in the root directory.
+The app for the TLDraw VS Code Extension.
+
+See the README at `vscode` for more about this project.
