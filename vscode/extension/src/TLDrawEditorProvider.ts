@@ -163,7 +163,7 @@ export class TLDrawEditorProvider implements vscode.CustomTextEditorProvider {
           const nextFile = JSON.parse(e.text) as TLDrawFile
 
           // There's no reason to sanitize if the file contents are still an empty file.
-          if( document.getText() !== "" ){
+          if (document.getText() !== '') {
             const prevFile = JSON.parse(document.getText()) as TLDrawFile
             nextFile.document = sanitizeDocument(prevFile.document, nextFile.document)
           }

@@ -38,8 +38,8 @@ export default function App(): JSX.Element {
   // When the file changes from VS Code's side, update the editor's document.
   React.useEffect(() => {
     function handleMessage(event: MessageEvent) {
-      if (event.type === EXTENSION_EVENT.FILE_UPDATED) {
-        const { document } = event.data as TLDrawFile
+      if (event.data.type === EXTENSION_EVENT.FILE_UPDATED) {
+        const { document } = JSON.parse(event.data.text) as TLDrawFile
         const state = rTLDrawState.current!
         state.updateDocument(document)
       }
