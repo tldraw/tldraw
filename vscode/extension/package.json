@@ -21,7 +21,7 @@
 		"documentation",
 		"tldraw"
 	],
-	"icon": "./icon.png",
+	"icon": "icon.png",
 	"galleryBanner": {
 		"color": "#1d1d1d",
 		"theme": "dark"

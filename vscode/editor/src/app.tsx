@@ -11,7 +11,9 @@ declare let currentFile: TLDrawFile
 
 export default function App(): JSX.Element {
   const rTLDrawState = React.useRef<TLDrawState>()
-  const rInitialDocument = React.useRef<TLDrawDocument>(currentFile.document ?? defaultDocument)
+  const rInitialDocument = React.useRef<TLDrawDocument>(
+    currentFile ? currentFile.document : defaultDocument
+  )
 
   // When the editor mounts, save the state instance in a ref.
   const handleMount = React.useCallback((state: TLDrawState) => {
@@ -35,8 +37,8 @@ export default function App(): JSX.Element {
   return (
     <div className="tldraw">
       <TLDraw
-        id={currentFile.document.id}
-        document={currentFile.document ?? defaultDocument}
+        id={rInitialDocument.current.id}
+        document={rInitialDocument.current}
         onMount={handleMount}
         onPersist={handlePersist}
         autofocus

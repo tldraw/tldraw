@@ -49,11 +49,13 @@ export class TLDrawEditorProvider implements vscode.CustomTextEditorProvider {
         return
       }
 
+      const id = TLDrawEditorProvider.newTLDrawFileId++
+
       // Create a placeholder name for the new file. A new file isn't actually
       // created on disk yet, so this is just an in memory temporary name.
       const uri = vscode.Uri.joinPath(
         workspaceFolders[0].uri,
-        `drawing ${TLDrawEditorProvider.newTLDrawFileId++}.tldr`
+        id > 1 ? `New Document ${id}.tldr` : `New Document.tldr`
       ).with({
         scheme: 'untitled',
       })
