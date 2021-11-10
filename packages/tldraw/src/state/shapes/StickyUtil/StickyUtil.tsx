@@ -235,8 +235,11 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
 const PADDING = 16
 const MIN_CONTAINER_HEIGHT = 200
 
+const fixNewLines = /\r?\n|\r/g
+const fixSpaces = / /g
+
 function normalizeText(text: string) {
-  return text.replace(/\r?\n|\r/g, '\n')
+  return text.replace(fixNewLines, '\n').replace(fixSpaces, '\u00a0')
 }
 
 const StyledStickyContainer = styled('div', {

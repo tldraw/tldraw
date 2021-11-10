@@ -280,8 +280,11 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
 
 const LETTER_SPACING = -1.5
 
+const fixNewLines = /\r?\n|\r/g
+const fixSpaces = / /g
+
 function normalizeText(text: string) {
-  return text.replace(/\r?\n|\r/g, '\n')
+  return text.replace(fixNewLines, '\n').replace(fixSpaces, '\u00a0')
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
