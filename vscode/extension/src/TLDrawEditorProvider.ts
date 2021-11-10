@@ -160,10 +160,13 @@ export class TLDrawEditorProvider implements vscode.CustomTextEditorProvider {
         case UI_EVENT.TLDRAW_UPDATED: {
           // Synchronize the TextDocument with the tldraw components document state
 
-          const prevFile = JSON.parse(document.getText()) as TLDrawFile
           const nextFile = JSON.parse(e.text) as TLDrawFile
 
-          nextFile.document = sanitizeDocument(prevFile.document, nextFile.document)
+          // There's no reason to sanitize if the file contents are still an empty file.
+          if( document.getText() !== "" ){
+            const prevFile = JSON.parse(document.getText()) as TLDrawFile
+            nextFile.document = sanitizeDocument(prevFile.document, nextFile.document)
+          }
 
           this.synchronizeTextDocument(document, nextFile)
           break
