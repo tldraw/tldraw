@@ -1,7 +1,3 @@
 **/node_modules/*
 **/out/*
 **/.next/*
-
-# TODO: Remove these, vscode experiments are based on existing examples and are punting on making eslint happy just yet.
-**/integrations/vscode-extension/*
-**/integrations/vscode-simple/*

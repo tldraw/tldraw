@@ -17,11 +17,10 @@ async function main() {
         incremental: true,
         target: 'es6',
         define: {
-          'process.env.NODE_ENV': '"development"',
+          'process.env.NODE_ENV': '"production"',
         },
         watch: {
           onRebuild(err) {
-            serve.update()
             err ? error('❌ Failed') : log('✅ Updated')
           },
         },

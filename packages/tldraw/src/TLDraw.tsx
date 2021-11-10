@@ -293,7 +293,7 @@ export function TLDraw({
   return (
     <TLDrawContext.Provider value={context}>
       <IdProvider>
-        <InnerTldraw
+        <InnerTLDraw
           key={sId || 'tldraw'}
           id={sId}
           currentPageId={currentPageId}
@@ -324,7 +324,7 @@ interface InnerTLDrawProps {
   readOnly: boolean
 }
 
-const InnerTldraw = React.memo(function InnerTldraw({
+const InnerTLDraw = React.memo(function InnerTLDraw({
   id,
   currentPageId,
   autofocus,

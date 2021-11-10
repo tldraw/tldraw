@@ -1,15 +1,33 @@
 {
-	"name": "wardlt",
-	"displayName": "Wardlt Editor",
-	"description": "The wardlt editor for VS Code",
-	"version": "0.10.0",
-	"publisher": "Wardlt",
-	"repository": "https://github.com/microsoft/vscode-extension-samples/helloworld-web-sample",
+	"name": "tldraw-vscode",
+	"displayName": "TLDraw",
+	"description": "The TLDraw Extension for VS Code.",
+	"version": "0.1.15",
+	"license": "MIT",
+	"publisher": "tldraw-org",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
 	"engines": {
 		"vscode": "^1.59.0"
 	},
+	"keywords": [
+		"diagram",
+		"draw",
+		"drawing",
+		"sketch",
+		"design",
+		"documentation",
+		"tldraw"
+	],
+	"icon": "icon.png",
+	"galleryBanner": {
+		"color": "#1d1d1d",
+		"theme": "dark"
+	},
 	"categories": [
-		"Other"
+		"Visualization"
 	],
 	"activationEvents": [
 		"onCustomEditor:tldraw.tldr",
@@ -25,7 +43,7 @@
 		"customEditors": [
 			{
 				"viewType": "tldraw.tldr",
-				"displayName": "Tldr Editor",
+				"displayName": "TLDraw",
 				"selector": [
 					{
 						"filenamePattern": "*.tldr"
@@ -36,35 +54,31 @@
 		"commands": [
 			{
 				"command": "tldraw.tldr.new",
-				"title": "Create a new .tldr file",
-				"category": "Tldraw"
+				"title": "New TLDraw File",
+				"category": "TLDraw"
 			}
 		]
 	},
 	"scripts": {
-		"test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/index.js",
+		"start:vscode": "node scripts/dev & yarn types:dev",
+		"types:dev": "tsc -w",
 		"web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
-		"pretest": "npm run compile-web",
-		"vscode:prepublish": "npm run package-web",
-		"compile-web": "webpack",
-		"watch-web": "webpack --watch",
-		"package-web": "webpack --mode production --devtool hidden-source-map",
+		"package": "cd ../editor && yarn build && cd ../extension && node scripts/build && node scripts/package",
+		"vscode:publish": "yarn version && yarn package && vsce publish",
 		"lint": "eslint src --ext ts"
 	},
+	"dependencies": {},
+	"peerDependencies": {},
 	"devDependencies": {
-		"@types/vscode": "^1.59.0",
-		"@types/mocha": "^9.0.0",
-		"eslint": "^7.32.0",
 		"@typescript-eslint/eslint-plugin": "^4.31.1",
 		"@typescript-eslint/parser": "^4.31.1",
-		"mocha": "^9.1.1",
-		"typescript": "^4.4.3",
 		"@vscode/test-web": "^0.0.12",
-		"ts-loader": "^9.2.5",
-		"webpack": "^5.52.1",
-		"webpack-cli": "^4.8.0",
-		"@types/webpack-env": "^1.16.2",
 		"assert": "^2.0.0",
-		"process": "^0.11.10"
+		"eslint": "^7.32.0",
+		"mocha": "^9.1.1",
+		"process": "^0.11.10",
+		"ts-loader": "^9.2.5",
+		"typescript": "^4.4.3",
+		"vsce": "^2.2.0"
 	}
 }

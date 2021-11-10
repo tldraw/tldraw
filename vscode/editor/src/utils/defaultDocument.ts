@@ -1,7 +1,9 @@
-import type { TLDrawDocument } from '@tldraw/tldraw'
+import { TLDrawDocument, TLDrawState } from '@tldraw/tldraw'
 
 export const defaultDocument: TLDrawDocument = {
   id: 'doc',
+  name: 'New Document',
+  version: TLDrawState.version,
   pages: {
     page: {
       id: 'page',

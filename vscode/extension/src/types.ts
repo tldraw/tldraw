@@ -3,5 +3,6 @@ export enum UI_EVENT {
 }
 
 export enum EXTENSION_EVENT {
+  OPENED_FILE = 'OPENED_FILE',
   FILE_UPDATED = 'FILE_UPDATED',
 }
