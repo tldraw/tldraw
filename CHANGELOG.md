@@ -1,4 +1,4 @@
-## 0.1.8
+## 0.1.10
 
 - Fixes spacing in text and sticky shapes.
 
