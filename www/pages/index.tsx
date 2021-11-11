@@ -5,7 +5,7 @@ import Head from 'next/head'
 
 const Editor = dynamic(() => import('components/editor'), { ssr: false })
 
-export default function Shhh(): JSX.Element {
+export default function Home(): JSX.Element {
   return (
     <>
       <Head>
@@ -18,11 +18,6 @@ export default function Shhh(): JSX.Element {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession(context)
-
-  if (!session?.user && process.env.NODE_ENV !== 'development') {
-    context.res.setHeader('Location', `/sponsorware`)
-    context.res.statusCode = 307
-  }
 
   return {
     props: {

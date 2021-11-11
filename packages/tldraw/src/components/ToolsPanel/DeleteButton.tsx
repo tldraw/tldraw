@@ -12,7 +12,7 @@ export function DeleteButton(): JSX.Element {
   }, [state])
 
   return (
-    <Tooltip label="Delete" kbd="7">
+    <Tooltip label="Delete" kbd="⌫">
       <ToolButton variant="circle" onSelect={handleDelete}>
         <TrashIcon />
       </ToolButton>
