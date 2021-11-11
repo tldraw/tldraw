@@ -24,7 +24,7 @@ export default function Embedded(): JSX.Element {
           overflow: 'hidden',
         }}
       >
-        <TLDraw id="small6" />
+        <TLDraw id="embedded" />
       </div>
     </div>
   )
