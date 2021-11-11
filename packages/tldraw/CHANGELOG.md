@@ -1,6 +1,13 @@
-## 0.1.11
+## 0.1.13
+
+- Fixes bugs related to `readOnly` mode.
+
+## 0.1.12
 
 - Fixes behavior of context menu.
+
+## 0.1.11
+
 - Fixes appearance of keyboard shortcuts in tooltips.
 
 ## 0.1.10

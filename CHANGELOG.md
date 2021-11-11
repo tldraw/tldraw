@@ -1,3 +1,7 @@
+## 0.1.13
+
+- Fixes bugs related to `readOnly` mode.
+
 ## 0.1.12
 
 - Fixes behavior of context menu.
