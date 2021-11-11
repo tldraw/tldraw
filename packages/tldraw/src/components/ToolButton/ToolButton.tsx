@@ -9,16 +9,30 @@ export interface ToolButtonProps {
   onSelect?: () => void
   onDoubleClick?: () => void
   isActive?: boolean
+  isSponsor?: boolean
   variant?: 'icon' | 'text' | 'circle' | 'primary'
   children: React.ReactNode
 }
 
 export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
-  ({ onSelect, onClick, onDoubleClick, isActive = false, variant, children, ...rest }, ref) => {
+  (
+    {
+      onSelect,
+      onClick,
+      onDoubleClick,
+      variant,
+      children,
+      isActive = false,
+      isSponsor = false,
+      ...rest
+    },
+    ref
+  ) => {
     return (
       <StyledToolButton
         ref={ref}
         isActive={isActive}
+        isSponsor={isSponsor}
         variant={variant}
         onClick={onClick}
         onPointerDown={onSelect}
@@ -121,22 +135,16 @@ export const StyledToolButton = styled('button', {
         },
       },
     },
-    isActive: {
+    isSponsor: {
       true: {
         [`${StyledToolButtonInner}`]: {
-          backgroundColor: '$selected',
-          color: '$panelActive',
+          backgroundColor: '$sponsorLight',
         },
       },
-      false: {
-        [`&:hover:not(:disabled) ${StyledToolButtonInner}`]: {
-          backgroundColor: '$hover',
-          border: '1px solid $panel',
-        },
-        [`&:focus:not(:disabled) ${StyledToolButtonInner}`]: {
-          backgroundColor: '$hover',
-        },
-      },
+    },
+    isActive: {
+      true: {},
+      false: {},
     },
     bp: {
       mobile: {},
@@ -165,6 +173,30 @@ export const StyledToolButton = styled('button', {
         [`& ${StyledToolButtonInner} > svg`]: {
           width: 20,
           height: 20,
+        },
+      },
+    },
+    {
+      isActive: true,
+      isSponsor: false,
+      css: {
+        [`${StyledToolButtonInner}`]: {
+          backgroundColor: '$selected',
+          color: '$panelActive',
+        },
+      },
+    },
+    {
+      isActive: false,
+      isSponsor: false,
+      bp: 'small',
+      css: {
+        [`&:hover:not(:disabled) ${StyledToolButtonInner}`]: {
+          backgroundColor: '$hover',
+          border: '1px solid $panel',
+        },
+        [`&:focus:not(:disabled) ${StyledToolButtonInner}`]: {
+          backgroundColor: '$hover',
         },
       },
     },

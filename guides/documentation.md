@@ -28,6 +28,7 @@ The `TLDraw` React component is the [tldraw](https://tldraw.com) editor exported
 | `showStyles`      | `boolean`        | Whether to show the styles menu.                                                                          |
 | `showTools`       | `boolean`        | Whether to show the tools.                                                                                |
 | `showUI`          | `boolean`        | Whether to show any UI other than the canvas.                                                             |
+| `showSponsorLink` | `boolean`        | Whether to show a sponsor link.                                                                           |
 | `onMount`         | `Function`       | Called when the editor first mounts, receiving the current `TLDrawState`.                                 |
 | `onPatch`         | `Function`       | Called when the state is updated via a patch.                                                             |
 | `onCommand`       | `Function`       | Called when the state is updated via a command.                                                           |

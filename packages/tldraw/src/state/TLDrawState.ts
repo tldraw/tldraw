@@ -649,8 +649,6 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
     const tool = this.tools[type]
 
     if (tool === this.currentTool) {
-      console.log('hi')
-
       this.patchState({
         appState: {
           isToolLocked: false,
@@ -660,9 +658,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
     }
 
     this.currentTool.onExit()
-
     this.currentTool = tool
-
     this.currentTool.onEnter()
 
     return this.patchState(

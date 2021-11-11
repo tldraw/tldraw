@@ -1,15 +1,15 @@
 import * as React from 'react'
 import { Trigger } from '@radix-ui/react-dropdown-menu'
-import { ToolButton } from '~components/ToolButton'
+import { ToolButton, ToolButtonProps } from '~components/ToolButton'
 
-interface DMTriggerIconProps {
+interface DMTriggerIconProps extends ToolButtonProps {
   children: React.ReactNode
 }
 
-export function DMTriggerIcon({ children }: DMTriggerIconProps) {
+export function DMTriggerIcon({ children, ...rest }: DMTriggerIconProps) {
   return (
     <Trigger asChild>
-      <ToolButton>{children}</ToolButton>
+      <ToolButton {...rest}>{children}</ToolButton>
     </Trigger>
   )
 }

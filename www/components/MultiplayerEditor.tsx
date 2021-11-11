@@ -4,6 +4,7 @@ import * as React from 'react'
 import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useObject, useErrorListener } from '@liveblocks/react'
 import { Utils } from '@tldraw/core'
+import { useAccountHandlers } from '-hooks/useAccountHandlers'
 
 interface TLDrawUserPresence extends Presence {
   user: TLDrawUser
@@ -146,6 +147,8 @@ function Editor({ roomId }: { roomId: string }) {
     [roomId]
   )
 
+  const accountEvents = useAccountHandlers()
+
   if (error) return <div>Error: {error.message}</div>
 
   if (doc === null) return <div>Loading...</div>
@@ -153,11 +156,12 @@ function Editor({ roomId }: { roomId: string }) {
   return (
     <div className="tldraw">
       <TLDraw
+        autofocus
         onMount={handleMount}
         onPersist={handlePersist}
         onUserChange={handleUserChange}
         showPages={false}
-        autofocus
+        {...accountEvents}
       />
     </div>
   )

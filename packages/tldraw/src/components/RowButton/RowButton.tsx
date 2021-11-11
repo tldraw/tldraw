@@ -11,6 +11,7 @@ export interface RowButtonProps {
   children: React.ReactNode
   disabled?: boolean
   kbd?: string
+  variant?: 'sponsor'
   isActive?: boolean
   isWarning?: boolean
   hasIndicator?: boolean
@@ -26,6 +27,7 @@ export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
       hasIndicator = false,
       hasArrow = false,
       disabled = false,
+      variant,
       kbd,
       children,
       ...rest
@@ -40,6 +42,7 @@ export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
         isActive={isActive}
         disabled={disabled}
         onPointerDown={onSelect}
+        variant={variant}
         {...rest}
       >
         <StyledRowButtonInner>
@@ -66,13 +69,10 @@ export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
 const StyledRowButtonInner = styled('div', {
   height: '100%',
   width: '100%',
-  color: '$text',
-  fontFamily: '$ui',
-  fontWeight: 400,
-  fontSize: '$1',
   backgroundColor: '$panel',
   borderRadius: '$2',
   display: 'flex',
+  gap: '$1',
   flexDirection: 'row',
   alignItems: 'center',
   padding: '0 $3',
@@ -95,6 +95,10 @@ export const StyledRowButton = styled('button', {
   cursor: 'pointer',
   height: '32px',
   outline: 'none',
+  color: '$text',
+  fontFamily: '$ui',
+  fontWeight: 400,
+  fontSize: '$1',
   borderRadius: 4,
   userSelect: 'none',
   margin: 0,
@@ -116,6 +120,11 @@ export const StyledRowButton = styled('button', {
     bp: {
       mobile: {},
       small: {},
+    },
+    variant: {
+      sponsor: {
+        color: '#eb30a2',
+      },
     },
     size: {
       icon: {

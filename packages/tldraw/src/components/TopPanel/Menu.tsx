@@ -8,10 +8,11 @@ import { SmallIcon } from '~components/SmallIcon'
 import { useFileSystemHandlers } from '~hooks'
 
 interface MenuProps {
+  showSponsorLink: boolean
   readOnly: boolean
 }
 
-export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
+export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: MenuProps) {
   const { state } = useTLDrawContext()
 
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
@@ -58,11 +59,11 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
     state.callbacks.onSaveProject ||
     state.callbacks.onSaveProjectAs
 
-  const showSignInOutMenu = state.callbacks.onSignIn || state.callbacks.onSignOut
+  const showSignInOutMenu = state.callbacks.onSignIn || state.callbacks.onSignOut || showSponsorLink
 
   return (
     <DropdownMenu.Root>
-      <DMTriggerIcon>
+      <DMTriggerIcon isSponsor={showSponsorLink}>
         <HamburgerMenuIcon />
       </DMTriggerIcon>
       <DMContent variant="menu">
@@ -123,10 +124,18 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
             <DMDivider dir="ltr" />
           </>
         )}
-        <PreferencesMenu />
+        <a href="https://tldraw.com/r">
+          <DMItem>Create a Multiplayer Room</DMItem>
+        </a>
+        <DMDivider dir="ltr" /> <PreferencesMenu />
         {showSignInOutMenu && (
           <>
             <DMDivider dir="ltr" />{' '}
+            {showSponsorLink && (
+              <a href="https://github.com/sponsors/steveruizok" target="_blank" rel="nofollow">
+                <DMItem variant="sponsor">Become a Sponsor</DMItem>
+              </a>
+            )}
             {state.callbacks.onSignIn && <DMItem onSelect={handleSignIn}>Sign In</DMItem>}
             {state.callbacks.onSignOut && (
               <DMItem onSelect={handleSignOut}>

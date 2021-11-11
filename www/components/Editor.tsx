@@ -1,13 +1,14 @@
 import { TLDraw, TLDrawState, useFileSystem } from '@tldraw/tldraw'
-import { signIn, signOut } from 'next-auth/client'
 import * as gtag from '-utils/gtag'
 import React from 'react'
+import { useAccountHandlers } from '-hooks/useAccountHandlers'
 
 interface EditorProps {
   id?: string
+  isSponsor?: boolean
 }
 
-export default function Editor({ id = 'home' }: EditorProps) {
+export default function Editor({ id = 'home', isSponsor = false }: EditorProps) {
   // Put the state into the window, for debugging.
   const handleMount = React.useCallback((state: TLDrawState) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -27,13 +28,7 @@ export default function Editor({ id = 'home' }: EditorProps) {
 
   const fileSystemEvents = useFileSystem()
 
-  const handleSignIn = React.useCallback(() => {
-    signIn()
-  }, [])
-
-  const handleSignOut = React.useCallback(() => {
-    signOut()
-  }, [])
+  const accountEvents = useAccountHandlers()
 
   return (
     <div className="tldraw">
@@ -42,9 +37,9 @@ export default function Editor({ id = 'home' }: EditorProps) {
         autofocus
         onMount={handleMount}
         onPersist={handlePersist}
-        onSignIn={handleSignIn}
-        onSignOut={handleSignOut}
+        showSponsorLink={!isSponsor}
         {...fileSystemEvents}
+        {...accountEvents}
       />
     </div>
   )

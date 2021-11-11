@@ -24,7 +24,7 @@ const { styled, createTheme } = createStitches({
       panelBorder: 'rgba(0, 0, 0, 0.12)',
       panelActive: '#fefefe',
       inactive: '#cccccf',
-      hover: '#eaf2ff',
+      hover: '#deeaff',
       text: '#333333',
       tooltipBg: '#1d1d1d',
       tooltipText: '#ffffff',
@@ -33,6 +33,8 @@ const { styled, createTheme } = createStitches({
       inputBorder: '#dddddd',
       warn: 'rgba(255, 100, 100, 1)',
       lineError: 'rgba(255, 0, 0, .1)',
+      sponsor: '#ec6cb9',
+      sponsorLight: '#ffd1ec',
     },
     shadows: {
       2: '0px 1px 1px rgba(0, 0, 0, 0.14)',

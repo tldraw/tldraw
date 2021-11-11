@@ -15,14 +15,22 @@ interface TopPanelProps {
   showMenu: boolean
   showStyles: boolean
   showZoom: boolean
+  showSponsorLink: boolean
 }
 
-export function TopPanel({ readOnly, showPages, showMenu, showStyles, showZoom }: TopPanelProps) {
+export function TopPanel({
+  readOnly,
+  showPages,
+  showMenu,
+  showStyles,
+  showZoom,
+  showSponsorLink,
+}: TopPanelProps) {
   return (
     <StyledTopPanel>
       {(showMenu || showPages) && (
         <Panel side="left">
-          {showMenu && <Menu readOnly={readOnly} />}
+          {showMenu && <Menu showSponsorLink={showSponsorLink} readOnly={readOnly} />}
           {showPages && <PageMenu />}
         </Panel>
       )}

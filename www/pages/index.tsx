@@ -3,15 +3,15 @@ import { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/client'
 import Head from 'next/head'
 
-const Editor = dynamic(() => import('components/editor'), { ssr: false })
+const Editor = dynamic(() => import('-components/Editor'), { ssr: false })
 
-export default function Home(): JSX.Element {
+export default function Home({ isSponsor }: { isSponsor: boolean }): JSX.Element {
   return (
     <>
       <Head>
         <title>tldraw</title>
       </Head>
-      <Editor id="home" />
+      <Editor id="home" isSponsor={isSponsor} />
     </>
   )
 }
@@ -21,7 +21,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     props: {
-      session,
+      isSponsor: session?.user ? true : false,
     },
   }
 }

@@ -87,6 +87,11 @@ export interface TLDrawProps extends TLDrawCallbacks {
   showTools?: boolean
 
   /**
+   * (optional) Whether to show a sponsor link for TLDraw.
+   */
+  showSponsorLink?: boolean
+
+  /**
    * (optional) Whether to show the UI.
    */
   showUI?: boolean
@@ -167,6 +172,7 @@ export function TLDraw({
   showStyles = true,
   showUI = true,
   readOnly = false,
+  showSponsorLink = false,
   onMount,
   onChange,
   onUserChange,
@@ -304,6 +310,7 @@ export function TLDraw({
           showZoom={showZoom}
           showTools={showTools}
           showUI={showUI}
+          showSponsorLink={showSponsorLink}
           readOnly={readOnly}
         />
       </IdProvider>
@@ -321,6 +328,7 @@ interface InnerTLDrawProps {
   showStyles: boolean
   showUI: boolean
   showTools: boolean
+  showSponsorLink: boolean
   readOnly: boolean
 }
 
@@ -333,6 +341,7 @@ const InnerTLDraw = React.memo(function InnerTLDraw({
   showZoom,
   showStyles,
   showTools,
+  showSponsorLink,
   readOnly,
   showUI,
 }: InnerTLDrawProps) {
@@ -489,6 +498,7 @@ const InnerTLDraw = React.memo(function InnerTLDraw({
                 showMenu={showMenu}
                 showStyles={showStyles}
                 showZoom={showZoom}
+                showSponsorLink={showSponsorLink}
               />
               <StyledSpacer />
               {showTools && !readOnly && <ToolsPanel />}
