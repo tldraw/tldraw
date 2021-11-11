@@ -1,3 +1,8 @@
+## 0.1.11
+
+- Fixes behavior of context menu.
+- Fixes appearance of keyboard shortcuts in tooltips.
+
 ## 0.1.10
 
 - Fixes spacing in text and sticky shapes.
