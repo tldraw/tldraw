@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { TLDraw, TLDrawState, TLDrawFile, TLDrawDocument } from '@tldraw/tldraw'
 import { vscode } from './utils/vscode'
 import { defaultDocument } from './utils/defaultDocument'
-import { UI_EVENT } from './types'
+import { EXTENSION_EVENT, UI_EVENT } from './types'
 import './styles.css'
 import { sanitizeDocument } from 'utils/sanitizeDocument'
 
@@ -33,6 +34,23 @@ export default function App(): JSX.Element {
       }),
     })
   }, [])
+
+  // When the file changes from VS Code's side, update the editor's document.
+  React.useEffect(() => {
+    function handleMessage(event: MessageEvent) {
+      if (event.data.type === EXTENSION_EVENT.FILE_UPDATED) {
+        const { document } = JSON.parse(event.data.text) as TLDrawFile
+        const state = rTLDrawState.current!
+        state.updateDocument(document)
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+
+    return () => {
+      window.removeEventListener('message', handleMessage)
+    }
+  })
 
   return (
     <div className="tldraw">
