@@ -44,10 +44,11 @@ const hasGroupSelectedSelector = (s: TLDrawSnapshot) => {
 const preventDefault = (e: Event) => e.stopPropagation()
 
 interface ContextMenuProps {
+  onBlur: React.FocusEventHandler
   children: React.ReactNode
 }
 
-export const ContextMenu = ({ children }: ContextMenuProps): JSX.Element => {
+export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element => {
   const { state, useSelector } = useTLDrawContext()
   const hasSelection = useSelector(has1SelectedIdsSelector)
   const hasTwoOrMore = useSelector(has2SelectedIdsSelector)
@@ -120,7 +121,14 @@ export const ContextMenu = ({ children }: ContextMenuProps): JSX.Element => {
   return (
     <RadixContextMenu.Root>
       <RadixContextMenu.Trigger dir="ltr">{children}</RadixContextMenu.Trigger>
-      <RadixContextMenu.Content dir="ltr" ref={rContent} onEscapeKeyDown={preventDefault} asChild>
+      <RadixContextMenu.Content
+        dir="ltr"
+        ref={rContent}
+        onEscapeKeyDown={preventDefault}
+        asChild
+        tabIndex={-1}
+        onBlur={onBlur}
+      >
         <MenuContent>
           {hasSelection ? (
             <>

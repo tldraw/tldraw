@@ -394,10 +394,21 @@ const InnerTLDraw = React.memo(function InnerTLDraw({
     state.changePage(currentPageId)
   }, [currentPageId, state])
 
+  // When the context menu is blurred, close the menu by sending pointer events
+  // to the context menu's ref. This is a hack around the fact that certain shapes
+  // stop event propagation, which causes the menu to stay open even when blurred.
+  const handleContextMenuBlur = React.useCallback<React.FocusEventHandler>((e) => {
+    const elm = rWrapper.current
+    if (!elm) return
+    if (!elm.contains(e.relatedTarget)) return
+    elm.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    elm.dispatchEvent(new Event('pointerup', { bubbles: true }))
+  }, [])
+
   return (
     <StyledLayout ref={rWrapper} tabIndex={0} className={settings.isDarkMode ? dark : ''}>
       <OneOff focusableRef={rWrapper} autofocus={autofocus} />
-      <ContextMenu>
+      <ContextMenu onBlur={handleContextMenuBlur}>
         <Renderer
           id={id}
           containerRef={rWrapper}
