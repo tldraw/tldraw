@@ -1,4 +1,5 @@
 import { TLDraw, TLDrawState, useFileSystem } from '@tldraw/tldraw'
+import { signIn, signOut } from 'next-auth/client'
 import * as gtag from '-utils/gtag'
 import React from 'react'
 
@@ -26,13 +27,23 @@ export default function Editor({ id = 'home' }: EditorProps) {
 
   const fileSystemEvents = useFileSystem()
 
+  const handleSignIn = React.useCallback(() => {
+    signIn()
+  }, [])
+
+  const handleSignOut = React.useCallback(() => {
+    signOut()
+  }, [])
+
   return (
     <div className="tldraw">
       <TLDraw
         id={id}
+        autofocus
         onMount={handleMount}
         onPersist={handlePersist}
-        autofocus
+        onSignIn={handleSignIn}
+        onSignOut={handleSignOut}
         {...fileSystemEvents}
       />
     </div>

@@ -401,6 +401,15 @@ export type Easing =
   | 'easeOutExpo'
   | 'easeInOutExpo'
 
+export type TLDrawToolType =
+  | 'select'
+  | TLDrawShapeType.Text
+  | TLDrawShapeType.Draw
+  | TLDrawShapeType.Ellipse
+  | TLDrawShapeType.Rectangle
+  | TLDrawShapeType.Arrow
+  | TLDrawShapeType.Sticky
+
 /* ------------------- File System ------------------ */
 
 export interface TLDrawFile {

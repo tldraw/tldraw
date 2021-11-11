@@ -7,6 +7,7 @@ import { BackToContent } from './BackToContent'
 import { PrimaryTools } from './PrimaryTools'
 import { ActionButton } from './ActionButton'
 import { LockButton } from './LockButton'
+import { DeleteButton } from './DeleteButton'
 
 const isDebugModeSelector = (s: TLDrawSnapshot) => s.settings.isDebugMode
 
@@ -22,7 +23,7 @@ export const ToolsPanel = React.memo(function ToolsPanel(): JSX.Element {
         <StyledPrimaryTools>
           <ActionButton />
           <PrimaryTools />
-          <LockButton />
+          <DeleteButton />
         </StyledPrimaryTools>
       </StyledCenterWrap>
       {isDebugMode && (
