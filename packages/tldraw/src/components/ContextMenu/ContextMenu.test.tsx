@@ -5,7 +5,7 @@ import { renderWithContext } from '~test'
 describe('context menu', () => {
   test('mounts component without crashing', () => {
     renderWithContext(
-      <ContextMenu>
+      <ContextMenu onBlur={jest.fn()}>
         <div>Hello</div>
       </ContextMenu>
     )
