@@ -401,11 +401,8 @@ const InnerTLDraw = React.memo(function InnerTLDraw({
     const elm = rWrapper.current
     if (!elm) return
     if (!elm.contains(e.relatedTarget)) return
-
-    const downEvent = new Event('pointerdown', { bubbles: true })
-    const upEvent = new Event('pointerup', { bubbles: true })
-    elm.dispatchEvent(downEvent)
-    elm.dispatchEvent(upEvent)
+    elm.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    elm.dispatchEvent(new Event('pointerup', { bubbles: true }))
   }, [])
 
   return (
