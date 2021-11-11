@@ -12,6 +12,7 @@ import Persisted from './persisted'
 import Develop from './develop'
 import Api from './api'
 import FileSystem from './file-system'
+import UIOptions from './ui-options'
 import { Multiplayer } from './multiplayer'
 import './styles.css'
 
@@ -25,6 +26,9 @@ export default function App(): JSX.Element {
         </Route>
         <Route path="/basic">
           <Basic />
+        </Route>
+        <Route path="/ui-options">
+          <UIOptions />
         </Route>
         <Route path="/persisted">
           <Persisted />
@@ -67,6 +71,9 @@ export default function App(): JSX.Element {
             <hr />
             <li>
               <Link to="/basic">Basic</Link>
+            </li>
+            <li>
+              <Link to="/ui-options">UI Options</Link>
             </li>
             <li>
               <Link to="/persisted">Persisting State with an ID</Link>
