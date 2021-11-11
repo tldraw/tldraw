@@ -31,4 +31,4 @@ Need help? Please [open an issue](https://github.com/tldraw/tldraw/issues/new) f
 
 ### Discussion
 
-Want to connect with other devs? Visit the [Discord channel](https://discord.gg/s4FXZ6fppJ).
+Want to connect with other devs? Visit the [Discord channel](https://discord.gg/SBBEVCA4PG).

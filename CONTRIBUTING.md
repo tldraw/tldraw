@@ -19,7 +19,7 @@ To get an overview of the project, read the [README](README.md). Here are some r
 
 ## Getting started
 
-Join the [Discord channel](https://discord.gg/s4FXZ6fppJ). If you have questions or feedback, this is the best place to reach the team and other contributors directly.
+Join the [Discord channel](https://discord.gg/SBBEVCA4PG). If you have questions or feedback, this is the best place to reach the team and other contributors directly.
 
 ### Issues
 

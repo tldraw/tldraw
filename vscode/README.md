@@ -29,7 +29,7 @@ Open a `.tldr` file or create a new `.tldr` file from the command palette.
 
 ## Publishing
 
-To publish, chat with the team on the [Discord channel](https://discord.gg/s4FXZ6fppJ).
+To publish, chat with the team on the [Discord channel](https://discord.gg/SBBEVCA4PG).
 
 - Install `vsce` globally
 - Run `vsce login tldraw-org` and sign in

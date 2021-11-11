@@ -8,7 +8,7 @@ This package contains the [TLDraw](https://tldraw.com) editor as a React compone
 
 💕 Love this library? Consider [becoming a sponsor](https://github.com/sponsors/steveruizok?frequency=recurring&sponsor=steveruizok).
 
-🙌 Questions? Join the [Discord channel](https://discord.gg/s4FXZ6fppJ) or start a [discussion](https://github.com/tldraw/tldraw/discussions/new).
+🙌 Questions? Join the [Discord channel](https://discord.gg/SBBEVCA4PG) or start a [discussion](https://github.com/tldraw/tldraw/discussions/new).
 
 🎨 Want to build your own TLDraw-ish app instead? Try [@tldraw/core](https://github.com/tldraw/core).
 
@@ -118,7 +118,7 @@ Need help? Please [open an issue](https://github.com/tldraw/tldraw/issues/new) f
 
 ### Discussion
 
-Want to connect with other devs? Visit the [Discord channel](https://discord.gg/s4FXZ6fppJ).
+Want to connect with other devs? Visit the [Discord channel](https://discord.gg/SBBEVCA4PG).
 
 ### License
 
