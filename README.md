@@ -94,7 +94,7 @@ function App() {
 
 ## Documentation
 
-See the project's [documentation](/guides/documentation).
+See the project's [documentation](/guides/documentation.md).
 
 ## Contribution
 
