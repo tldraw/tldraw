@@ -12,6 +12,7 @@ import { PreferencesMenu } from './PreferencesMenu'
 import { DMItem, DMContent, DMDivider, DMSubMenu, DMTriggerIcon } from '~components/DropdownMenu'
 import { SmallIcon } from '~components/SmallIcon'
 import { useFileSystemHandlers } from '~hooks'
+import { HeartIcon } from '~components/icons/HeartIcon'
 
 interface MenuProps {
   showSponsorLink: boolean
@@ -153,7 +154,12 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
         </a>
         {showSponsorLink && (
           <a href="https://github.com/sponsors/steveruizok" target="_blank" rel="nofollow">
-            <DMItem variant="sponsor">Become a Sponsor</DMItem>
+            <DMItem variant="sponsor">
+              Become a Sponsor{' '}
+              <SmallIcon>
+                <HeartIcon />
+              </SmallIcon>
+            </DMItem>
           </a>
         )}
         {showSignInOutMenu && (

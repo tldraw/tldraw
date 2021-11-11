@@ -35,7 +35,7 @@ export default function Develop(): JSX.Element {
         onSignIn={handleSignIn}
         onSignOut={handleSignOut}
         onPersist={handlePersist}
-        showSponsorLink={false}
+        showSponsorLink={true}
       />
     </div>
   )
