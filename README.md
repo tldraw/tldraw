@@ -6,9 +6,11 @@
 
 This package contains the [TLDraw](https://tldraw.com) editor as a React component named `<TLDraw>`. You can use this package to embed the editor in any React application.
 
-🎨 Want to build your own TLDraw-ish app instead? Try [@tldraw/core](https://github.com/tldraw/core).
-
 💕 Love this library? Consider [becoming a sponsor](https://github.com/sponsors/steveruizok?frequency=recurring&sponsor=steveruizok).
+
+🙌 Questions? Join the [Discord channel](https://discord.gg/s4FXZ6fppJ) or start a [discussion](https://github.com/tldraw/tldraw/discussions/new).
+
+🎨 Want to build your own TLDraw-ish app instead? Try [@tldraw/core](https://github.com/tldraw/core).
 
 ## Installation
 
