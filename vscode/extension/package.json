@@ -2,7 +2,7 @@
 	"name": "tldraw-vscode",
 	"displayName": "TLDraw",
 	"description": "The TLDraw Extension for VS Code.",
-	"version": "0.1.18",
+	"version": "0.1.12",
 	"license": "MIT",
 	"publisher": "tldraw-org",
 	"repository": {
@@ -67,8 +67,6 @@
 		"vscode:publish": "yarn version && yarn package && vsce publish",
 		"lint": "eslint src --ext ts"
 	},
-	"dependencies": {},
-	"peerDependencies": {},
 	"devDependencies": {
 		"@typescript-eslint/eslint-plugin": "^4.31.1",
 		"@typescript-eslint/parser": "^4.31.1",

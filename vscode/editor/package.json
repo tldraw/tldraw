@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/vscode-editor",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "private": true,
   "description": "An an editor for the tldraw vscode extension.",
   "author": "@steveruizok",
@@ -15,7 +15,7 @@
     "build": "node scripts/build.mjs"
   },
   "devDependencies": {
-    "@tldraw/tldraw": "^0.1.11",
+    "@tldraw/tldraw": "^0.1.12",
     "@types/node": "^14.14.35",
     "@types/react": "^16.9.55",
     "@types/react-dom": "^16.9.9",
