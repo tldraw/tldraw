@@ -44,7 +44,7 @@ const hasGroupSelectedSelector = (s: TLDrawSnapshot) => {
 const preventDefault = (e: Event) => e.stopPropagation()
 
 interface ContextMenuProps {
-  onBlur: () => void
+  onBlur: React.FocusEventHandler
   children: React.ReactNode
 }
 

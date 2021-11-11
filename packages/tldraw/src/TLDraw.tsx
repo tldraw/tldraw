@@ -394,13 +394,15 @@ const InnerTLDraw = React.memo(function InnerTLDraw({
     state.changePage(currentPageId)
   }, [currentPageId, state])
 
-  const handleBlur = React.useCallback(() => {
-    const downEvent = new Event('pointerdown', { bubbles: true })
-    const upEvent = new Event('pointerup', { bubbles: true })
-    const node = rWrapper.current
-    if (!node) return
-    node.dispatchEvent(downEvent)
-    node.dispatchEvent(upEvent)
+  const handleBlur = React.useCallback<React.FocusEventHandler>((e) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      const downEvent = new Event('pointerdown', { bubbles: true })
+      const upEvent = new Event('pointerup', { bubbles: true })
+      const node = rWrapper.current
+      if (!node) return
+      node.dispatchEvent(downEvent)
+      node.dispatchEvent(upEvent)
+    }
   }, [])
 
   return (
