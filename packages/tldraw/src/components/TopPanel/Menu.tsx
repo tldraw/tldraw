@@ -1,5 +1,11 @@
 import * as React from 'react'
-import { ExitIcon, HamburgerMenuIcon } from '@radix-ui/react-icons'
+import {
+  ExitIcon,
+  GitHubLogoIcon,
+  HamburgerMenuIcon,
+  RocketIcon,
+  TwitterLogoIcon,
+} from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTLDrawContext } from '~hooks'
 import { PreferencesMenu } from './PreferencesMenu'
@@ -121,21 +127,38 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
               </DMItem>
               <DMItem onSelect={handleselectNone}>Select None</DMItem>
             </DMSubMenu>
-            <DMDivider dir="ltr" />
           </>
         )}
         <a href="https://tldraw.com/r">
           <DMItem>Create a Multiplayer Room</DMItem>
         </a>
-        <DMDivider dir="ltr" /> <PreferencesMenu />
+        <DMDivider dir="ltr" />
+        <PreferencesMenu />
+        <DMDivider dir="ltr" />
+        <a href="https://github.com/tldraw/tldraw" target="_blank" rel="nofollow">
+          <DMItem>
+            Github
+            <SmallIcon>
+              <GitHubLogoIcon />
+            </SmallIcon>
+          </DMItem>
+        </a>
+        <a href="https://twitter.com/tldraw" target="_blank" rel="nofollow">
+          <DMItem>
+            Twitter
+            <SmallIcon>
+              <TwitterLogoIcon />
+            </SmallIcon>
+          </DMItem>
+        </a>
+        {showSponsorLink && (
+          <a href="https://github.com/sponsors/steveruizok" target="_blank" rel="nofollow">
+            <DMItem variant="sponsor">Become a Sponsor</DMItem>
+          </a>
+        )}
         {showSignInOutMenu && (
           <>
             <DMDivider dir="ltr" />{' '}
-            {showSponsorLink && (
-              <a href="https://github.com/sponsors/steveruizok" target="_blank" rel="nofollow">
-                <DMItem variant="sponsor">Become a Sponsor</DMItem>
-              </a>
-            )}
             {state.callbacks.onSignIn && <DMItem onSelect={handleSignIn}>Sign In</DMItem>}
             {state.callbacks.onSignOut && (
               <DMItem onSelect={handleSignOut}>

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLDraw, TLDrawState, TLDrawDocument, TLDrawUser } from '@tldraw/tldraw'
+import { TLDraw, TLDrawState, TLDrawDocument, TLDrawUser, useFileSystem } from '@tldraw/tldraw'
 import * as React from 'react'
 import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useObject, useErrorListener } from '@liveblocks/react'
@@ -15,17 +15,23 @@ const client = createClient({
   throttle: 80,
 })
 
-export default function MultiplayerEditor({ roomId }: { roomId: string }) {
+export default function MultiplayerEditor({
+  roomId,
+  isSponsor,
+}: {
+  roomId: string
+  isSponsor: boolean
+}) {
   return (
     <LiveblocksProvider client={client}>
       <RoomProvider id={roomId}>
-        <Editor roomId={roomId} />
+        <Editor roomId={roomId} isSponsor={isSponsor} />
       </RoomProvider>
     </LiveblocksProvider>
   )
 }
 
-function Editor({ roomId }: { roomId: string }) {
+function Editor({ roomId, isSponsor }: { roomId: string; isSponsor: boolean }) {
   const [docId] = React.useState(() => Utils.uniqueId())
 
   const [state, setState] = React.useState<TLDrawState>()
@@ -147,6 +153,8 @@ function Editor({ roomId }: { roomId: string }) {
     [roomId]
   )
 
+  const fileSystemEvents = useFileSystem()
+
   const accountEvents = useAccountHandlers()
 
   if (error) return <div>Error: {error.message}</div>
@@ -161,6 +169,8 @@ function Editor({ roomId }: { roomId: string }) {
         onPersist={handlePersist}
         onUserChange={handleUserChange}
         showPages={false}
+        showSponsorLink={isSponsor}
+        {...fileSystemEvents}
         {...accountEvents}
       />
     </div>
