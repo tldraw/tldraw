@@ -398,14 +398,14 @@ const InnerTLDraw = React.memo(function InnerTLDraw({
   // to the context menu's ref. This is a hack around the fact that certain shapes
   // stop event propagation, which causes the menu to stay open even when blurred.
   const handleContextMenuBlur = React.useCallback<React.FocusEventHandler>((e) => {
-    const node = rWrapper.current
-    if (!node) return
-    if (e.currentTarget.contains(e.relatedTarget)) return
+    const elm = rWrapper.current
+    if (!elm) return
+    if (!elm.contains(e.relatedTarget)) return
 
     const downEvent = new Event('pointerdown', { bubbles: true })
     const upEvent = new Event('pointerup', { bubbles: true })
-    node.dispatchEvent(downEvent)
-    node.dispatchEvent(upEvent)
+    elm.dispatchEvent(downEvent)
+    elm.dispatchEvent(upEvent)
   }, [])
 
   return (
