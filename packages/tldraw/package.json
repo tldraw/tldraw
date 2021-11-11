@@ -24,7 +24,7 @@
   "scripts": {
     "start:electron": "yarn start",
     "start": "node scripts/dev & yarn types:dev",
-    "build": "node scripts/build && yarn types:build && node scripts/copy-readme",
+    "build": "node scripts/build && yarn types:build && node scripts/copy-files",
     "types:dev": "tsc -w",
     "types:build": "tsc -p tsconfig.build.json && tsconfig-replace-paths -p tsconfig.build.json",
     "lint": "eslint src/ --ext .ts,.tsx",
