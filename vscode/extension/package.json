@@ -60,8 +60,7 @@
 		]
 	},
 	"scripts": {
-		"start:vscode": "node scripts/dev & yarn types:dev",
-		"types:dev": "tsc -w",
+		"start:vscode": "node scripts/dev",
 		"web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
 		"package": "cd ../editor && yarn build && cd ../extension && node scripts/build && node scripts/package",
 		"vscode:publish": "yarn version && yarn package && vsce publish",
