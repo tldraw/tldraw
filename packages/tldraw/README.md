@@ -12,7 +12,7 @@ This package contains the [tldraw](https://tldraw.com) editor as a React compone
 
 ## Installation
 
-Use your package manager of choice to install `@tldraw/core` and its peer dependencies.
+Use your package manager of choice to install `@tldraw/tldraw` and its peer dependencies.
 
 ```bash
 yarn add @tldraw/tldraw
@@ -154,7 +154,7 @@ const tldocument: TLDrawDocument = {
 }
 ```
 
-**Tip:** TLDraw is built [@tldraw/core](https://github.com/tldraw/core). The pages and pagestates in TLDraw are just objects containing `TLPage` and `TLPageState` objects from the core library. For more about these types, check out the [@tldraw/core](https://github.com/tldraw/core) documentation.
+**Tip:** TLDraw is built on [@tldraw/core](https://github.com/tldraw/core). The pages and pageStates in TLDraw are just objects containing `TLPage` and `TLPageState` objects from the core library. For more about these types, check out the [@tldraw/core](https://github.com/tldraw/core) documentation.
 
 **Important:** In the `pages` object, each `TLPage` object must be keyed under its `id` property. Likewise, each `TLPageState` object must be keyed under its `id`. In addition, each `TLPageState` object must have an `id` that matches its corresponding page.
 

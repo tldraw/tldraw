@@ -3118,16 +3118,16 @@
     "@babel/runtime" "^7.12.5"
     "@testing-library/dom" "^8.0.0"
 
-"@tldraw/core@^0.1.18":
-  version "0.1.18"
-  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.1.18.tgz#b768c759c205038c9b8c7b9c9e018c67c49be0de"
-  integrity sha512-Oe5cPVb76oENbvJa+QDuZLfW0wXwc1XNntDB0szFq4HUofd6CtG+4P5ZXtnc0pAff61Pyp5ajwozogNy5+sVlA==
+"@tldraw/core@latest":
+  version "0.1.19"
+  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.1.19.tgz#4bed3b8faeb48933aa75761cf76665bd69d0abe6"
+  integrity sha512-O/ZHfd6qEg8G+0rEIcd3trEhbF9R2SdEG9H0BZUo2ZG+6JyJNUDka2OCJi6gdFg90JEvLCq5rKg23ay7qEUidQ==
   dependencies:
     "@tldraw/intersect" latest
     "@tldraw/vec" latest
     "@use-gesture/react" "^10.1.3"
 
-"@tldraw/intersect@^0.1.3", "@tldraw/intersect@latest":
+"@tldraw/intersect@latest":
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/@tldraw/intersect/-/intersect-0.1.3.tgz#ea784576632084710cebab0ff0a56de9d2cb6fa4"
   integrity sha512-8NeLOuVmiqhHTBeqFuMP3ljS8vUirenMteX336O+/2H4IfT3FiJjeN3qZyTT5N5jZvaHJKraHOp4E45wraoNZQ==
