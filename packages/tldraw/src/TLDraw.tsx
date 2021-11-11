@@ -394,10 +394,19 @@ const InnerTLDraw = React.memo(function InnerTLDraw({
     state.changePage(currentPageId)
   }, [currentPageId, state])
 
+  const handleBlur = React.useCallback(() => {
+    const downEvent = new Event('pointerdown', { bubbles: true })
+    const upEvent = new Event('pointerup', { bubbles: true })
+    const node = rWrapper.current
+    if (!node) return
+    node.dispatchEvent(downEvent)
+    node.dispatchEvent(upEvent)
+  }, [])
+
   return (
     <StyledLayout ref={rWrapper} tabIndex={0} className={settings.isDarkMode ? dark : ''}>
       <OneOff focusableRef={rWrapper} autofocus={autofocus} />
-      <ContextMenu>
+      <ContextMenu onBlur={handleBlur}>
         <Renderer
           id={id}
           containerRef={rWrapper}
