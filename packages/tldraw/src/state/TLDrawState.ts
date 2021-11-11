@@ -475,6 +475,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
    * @param bounds
    */
   updateBounds = (bounds: TLBounds) => {
+    if (this.readOnly) return
     this.bounds = { ...bounds }
     if (this.session) {
       this.session.updateViewport(this.viewport)
@@ -487,6 +488,8 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
    * @param id [string]
    */
   setEditingId = (id?: string) => {
+    if (this.readOnly) return
+
     this.editingStartTime = Date.now()
     this.patchState(
       {
@@ -640,7 +643,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
    * @param tool The tool to select, or "select".
    */
   selectTool = (type: ToolType): this => {
-    if (this.session) return this
+    if (this.readOnly || this.session) return this
 
     const tool = this.tools[type]
 
@@ -1145,6 +1148,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
    * @param pageId (optional) The new page's id.
    */
   createPage = (id?: string): this => {
+    if (this.readOnly) return this
     return this.setState(
       Commands.createPage(this.state, [-this.bounds.width / 2, -this.bounds.height / 2], id)
     )
@@ -1164,6 +1168,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
    * @param name The page's new name
    */
   renamePage = (pageId: string, name: string): this => {
+    if (this.readOnly) return this
     return this.setState(Commands.renamePage(this.state, pageId, name))
   }
 

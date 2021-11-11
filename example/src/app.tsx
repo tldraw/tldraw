@@ -2,29 +2,50 @@ import * as React from 'react'
 import { Switch, Route, Link } from 'react-router-dom'
 import Basic from './basic'
 import ReadOnly from './readonly'
-import Controlled from './controlled'
-import Imperative from './imperative'
+import PropsControl from './props-control'
+import ApiControl from './api-control'
+import LoadingFiles from './loading-files'
 import Embedded from './embedded'
 import NoSizeEmbedded from './no-size-embedded'
-import { Multiplayer } from './multiplayer'
 import ChangingId from './changing-id'
+import Persisted from './persisted'
+import Develop from './develop'
+import Api from './api'
+import FileSystem from './file-system'
+import { Multiplayer } from './multiplayer'
 import './styles.css'
 
 export default function App(): JSX.Element {
   return (
     <main>
+      <img className="hero" src="./card-repo.png" />
       <Switch>
         <Route path="/basic">
+          <Develop />
+        </Route>
+        <Route path="/basic">
           <Basic />
+        </Route>
+        <Route path="/persisted">
+          <Persisted />
+        </Route>
+        <Route path="/loading-files">
+          <LoadingFiles />
+        </Route>
+        <Route path="/file-system">
+          <FileSystem />
+        </Route>
+        <Route path="/api">
+          <Api />
         </Route>
         <Route path="/readonly">
           <ReadOnly />
         </Route>
         <Route path="/controlled">
-          <Controlled />
+          <PropsControl />
         </Route>
         <Route path="/imperative">
-          <Imperative />
+          <ApiControl />
         </Route>
         <Route path="/changing-id">
           <ChangingId />
@@ -39,30 +60,49 @@ export default function App(): JSX.Element {
           <Multiplayer />
         </Route>
         <Route path="/">
-          <ul>
+          <ul className="links">
             <li>
-              <Link to="/basic">basic</Link>
+              <Link to="/basic">Develop</Link>
+            </li>
+            <hr />
+            <li>
+              <Link to="/basic">Basic</Link>
             </li>
             <li>
-              <Link to="/readonly">readonly</Link>
+              <Link to="/persisted">Persisting State with an ID</Link>
             </li>
             <li>
-              <Link to="/controlled">controlled</Link>
+              <Link to="/file-system">Using the File System</Link>
             </li>
             <li>
-              <Link to="/imperative">imperative</Link>
+              <Link to="/readonly">Readonly Mode</Link>
             </li>
             <li>
-              <Link to="/changing-id">changing id</Link>
+              <Link to="/loading-files">Loading Files</Link>
             </li>
             <li>
-              <Link to="/embedded">embedded</Link>
+              <Link to="/file-system">Using the File System</Link>
             </li>
             <li>
-              <Link to="/no-size-embedded">embedded (no size)</Link>
+              <Link to="/controlled">Controlled via Props</Link>
             </li>
             <li>
-              <Link to="/multiplayer">multiplayer</Link>
+              <Link to="/api">Using the TLDrawState API</Link>
+            </li>
+            <li>
+              <Link to="/imperative">Controlled via TLDrawState API</Link>
+            </li>
+            <li>
+              <Link to="/changing-id">Changing ID</Link>
+            </li>
+            <li>
+              <Link to="/embedded">Embedded</Link>
+            </li>
+            <li>
+              <Link to="/no-size-embedded">Embedded (without explicit size)</Link>
+            </li>
+            <li>
+              <Link to="/multiplayer">Multiplayer</Link>
             </li>
           </ul>
         </Route>

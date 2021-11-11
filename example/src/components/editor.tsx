@@ -25,7 +25,6 @@ export default function Editor(props: TLDrawProps): JSX.Element {
   return (
     <div className="tldraw">
       <TLDraw
-        id="tldraw1"
         {...props}
         onMount={handleMount}
         onSignIn={onSignIn}

@@ -1,7 +1,7 @@
 import { TLDraw, TLDrawFile } from '@tldraw/tldraw'
 import * as React from 'react'
 
-export default function ReadOnly(): JSX.Element {
+export default function LoadingFiles(): JSX.Element {
   const [file, setFile] = React.useState<TLDrawFile>()
 
   React.useEffect(() => {
@@ -13,9 +13,5 @@ export default function ReadOnly(): JSX.Element {
     loadFile()
   }, [])
 
-  return (
-    <div className="tldraw">
-      <TLDraw readOnly document={file?.document} />
-    </div>
-  )
+  return <TLDraw document={file?.document} />
 }

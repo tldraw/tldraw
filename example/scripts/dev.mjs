@@ -1,18 +1,27 @@
 /* eslint-disable no-undef */
 import fs from 'fs'
+import path from 'path'
 import esbuildServe from 'esbuild-serve'
 import dotenv from 'dotenv'
 
 dotenv.config()
 
 async function main() {
-  if (!fs.existsSync('./dist')) {
-    fs.mkdirSync('./dist')
+  if (fs.existsSync('./dist')) {
+    fs.rmSync('./dist', { recursive: true }, (e) => {
+      if (e) {
+        throw e
+      }
+    })
   }
 
-  fs.copyFile('./src/index.html', './dist/index.html', (err) => {
-    if (err) throw err
-  })
+  fs.mkdirSync('./dist')
+
+  fs.readdirSync('./src/public').forEach((file) =>
+    fs.copyFile(path.join('./src/public', file), path.join('./dist', file), (err) => {
+      if (err) throw err
+    })
+  )
 
   try {
     await esbuildServe(
