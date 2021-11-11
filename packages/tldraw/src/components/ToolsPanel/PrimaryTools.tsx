@@ -51,7 +51,7 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
   return (
     <Panel side="center">
       <ToolButtonWithTooltip
-        kbd={'2'}
+        kbd={'1'}
         label={'select'}
         onClick={selectSelectTool}
         isActive={activeTool === 'select'}
@@ -76,7 +76,7 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'4'}
-        label={TLDrawShapeType.Draw}
+        label={TLDrawShapeType.Ellipse}
         onClick={selectEllipseTool}
         isActive={activeTool === TLDrawShapeType.Ellipse}
       >
