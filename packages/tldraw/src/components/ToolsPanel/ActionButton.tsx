@@ -200,7 +200,10 @@ export function ActionButton(): JSX.Element {
                 <AspectRatioIcon opacity={isAllAspectLocked ? 1 : 0.4} />
               </Tooltip>
             </IconButton>
-            <IconButton disabled={!isAllGrouped && !hasMultipleSelection} onClick={handleGroup}>
+            <IconButton
+              disabled={!hasSelection || (!isAllGrouped && !hasMultipleSelection)}
+              onClick={handleGroup}
+            >
               <Tooltip label="Group" kbd={`#G`}>
                 <GroupIcon opacity={isAllGrouped ? 1 : 0.4} />
               </Tooltip>
@@ -212,7 +215,6 @@ export function ActionButton(): JSX.Element {
                 <PinBottomIcon />
               </Tooltip>
             </IconButton>
-
             <IconButton disabled={!hasSelection} onClick={handleMoveBackward}>
               <Tooltip label="Move Backward" kbd={`#[`}>
                 <ArrowDownIcon />

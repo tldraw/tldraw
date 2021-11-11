@@ -12,7 +12,6 @@ import {
   Utils,
 } from '@tldraw/core'
 import type { TLDrawState } from '~state'
-import type { TLDrawShapeType } from '~types'
 
 export enum Status {
   Idle = 'idle',
@@ -22,8 +21,6 @@ export enum Status {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export abstract class BaseTool<T extends string = any> {
-  abstract type: TLDrawShapeType | 'select'
-
   state: TLDrawState
 
   status: Status | T = Status.Idle

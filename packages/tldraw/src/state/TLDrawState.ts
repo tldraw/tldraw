@@ -38,6 +38,7 @@ import {
   SessionType,
   ExceptFirst,
   ExceptFirstTwo,
+  TLDrawToolType,
 } from '~types'
 import {
   migrate,
@@ -51,7 +52,7 @@ import { shapeUtils } from '~state/shapes'
 import { defaultStyle } from '~state/shapes/shape-styles'
 import * as Commands from './commands'
 import { ArgsOfType, getSession } from './sessions'
-import { createTools, ToolType } from './tools'
+import { createTools } from './tools'
 import type { BaseTool } from './tools/BaseTool'
 import { USER_COLORS, FIT_TO_SCREEN_PADDING } from '~constants'
 
@@ -642,12 +643,21 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
    * Select a tool.
    * @param tool The tool to select, or "select".
    */
-  selectTool = (type: ToolType): this => {
+  selectTool = (type: TLDrawToolType): this => {
     if (this.readOnly || this.session) return this
 
     const tool = this.tools[type]
 
-    if (tool === this.currentTool) return this
+    if (tool === this.currentTool) {
+      console.log('hi')
+
+      this.patchState({
+        appState: {
+          isToolLocked: false,
+        },
+      })
+      return this
+    }
 
     this.currentTool.onExit()
 
@@ -659,6 +669,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
       {
         appState: {
           activeTool: type,
+          isToolLocked: false,
         },
       },
       `selected_tool:${type}`

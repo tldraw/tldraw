@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { breakpoints } from '~components/breakpoints'
 import { Tooltip } from '~components/Tooltip'
+import { useTLDrawContext } from '~hooks'
 import { styled } from '~styles'
 
 export interface ToolButtonProps {
@@ -39,9 +40,16 @@ interface ToolButtonWithTooltipProps extends ToolButtonProps {
 }
 
 export function ToolButtonWithTooltip({ label, kbd, ...rest }: ToolButtonWithTooltipProps) {
+  const { state } = useTLDrawContext()
+
+  const handleDoubleClick = React.useCallback(() => {
+    console.log('double clicking')
+    state.toggleToolLock()
+  }, [])
+
   return (
     <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
-      <ToolButton variant="primary" {...rest} />
+      <ToolButton {...rest} variant="primary" onDoubleClick={handleDoubleClick} />
     </Tooltip>
   )
 }
