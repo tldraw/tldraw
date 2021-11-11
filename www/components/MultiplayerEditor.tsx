@@ -17,21 +17,25 @@ const client = createClient({
 
 export default function MultiplayerEditor({
   roomId,
-  isSponsor,
+  isUser = false,
+  isSponsor = false,
 }: {
   roomId: string
+  isUser: boolean
   isSponsor: boolean
 }) {
   return (
     <LiveblocksProvider client={client}>
       <RoomProvider id={roomId}>
-        <Editor roomId={roomId} isSponsor={isSponsor} />
+        <Editor roomId={roomId} isSponsor={isSponsor} isUser={isUser} />
       </RoomProvider>
     </LiveblocksProvider>
   )
 }
 
-function Editor({ roomId, isSponsor }: { roomId: string; isSponsor: boolean }) {
+// Inner Editor
+
+function Editor({ roomId, isUser, isSponsor }: { roomId: string; isUser; isSponsor: boolean }) {
   const [docId] = React.useState(() => Utils.uniqueId())
 
   const [state, setState] = React.useState<TLDrawState>()
@@ -155,7 +159,7 @@ function Editor({ roomId, isSponsor }: { roomId: string; isSponsor: boolean }) {
 
   const fileSystemEvents = useFileSystem()
 
-  const accountEvents = useAccountHandlers()
+  const { onSignIn, onSignOut } = useAccountHandlers()
 
   if (error) return <div>Error: {error.message}</div>
 
@@ -170,8 +174,9 @@ function Editor({ roomId, isSponsor }: { roomId: string; isSponsor: boolean }) {
         onUserChange={handleUserChange}
         showPages={false}
         showSponsorLink={isSponsor}
+        onSignIn={isSponsor ? undefined : onSignIn}
+        onSignOut={onSignOut}
         {...fileSystemEvents}
-        {...accountEvents}
       />
     </div>
   )

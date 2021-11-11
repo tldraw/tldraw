@@ -8,15 +8,16 @@ const MultiplayerEditor = dynamic(() => import('-components/MultiplayerEditor'),
 interface RoomProps {
   id: string
   isSponsor: boolean
+  isUser: boolean
 }
 
-export default function Room({ id, isSponsor }: RoomProps): JSX.Element {
+export default function Room({ id, isUser, isSponsor }: RoomProps): JSX.Element {
   return (
     <>
       <Head>
         <title>tldraw</title>
       </Head>
-      <MultiplayerEditor isSponsor={isSponsor} roomId={id} />
+      <MultiplayerEditor isUser={isUser} isSponsor={isSponsor} roomId={id} />
     </>
   )
 }
@@ -29,6 +30,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
       id,
+      isUser: false,
       isSponsor: session?.user ? true : false,
     },
   }

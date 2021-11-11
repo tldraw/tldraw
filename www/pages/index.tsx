@@ -5,13 +5,18 @@ import Head from 'next/head'
 
 const Editor = dynamic(() => import('-components/Editor'), { ssr: false })
 
-export default function Home({ isSponsor }: { isSponsor: boolean }): JSX.Element {
+interface PageProps {
+  isUser: boolean
+  isSponsor: boolean
+}
+
+export default function Home({ isUser, isSponsor }: PageProps): JSX.Element {
   return (
     <>
       <Head>
         <title>tldraw</title>
       </Head>
-      <Editor id="home" isSponsor={isSponsor} />
+      <Editor id="home" isUser={isUser} isSponsor={isSponsor} />
     </>
   )
 }
@@ -21,6 +26,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     props: {
+      isUser: false,
       isSponsor: session?.user ? true : false,
     },
   }

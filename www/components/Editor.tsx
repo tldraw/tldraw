@@ -5,10 +5,11 @@ import { useAccountHandlers } from '-hooks/useAccountHandlers'
 
 interface EditorProps {
   id?: string
+  isUser?: boolean
   isSponsor?: boolean
 }
 
-export default function Editor({ id = 'home', isSponsor = false }: EditorProps) {
+export default function Editor({ id = 'home', isUser = false, isSponsor = false }: EditorProps) {
   // Put the state into the window, for debugging.
   const handleMount = React.useCallback((state: TLDrawState) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -28,7 +29,7 @@ export default function Editor({ id = 'home', isSponsor = false }: EditorProps) 
 
   const fileSystemEvents = useFileSystem()
 
-  const accountEvents = useAccountHandlers()
+  const { onSignIn, onSignOut } = useAccountHandlers()
 
   return (
     <div className="tldraw">
@@ -39,7 +40,8 @@ export default function Editor({ id = 'home', isSponsor = false }: EditorProps) 
         onPersist={handlePersist}
         showSponsorLink={!isSponsor}
         {...fileSystemEvents}
-        {...accountEvents}
+        onSignIn={isSponsor ? undefined : onSignIn}
+        onSignOut={onSignOut}
       />
     </div>
   )

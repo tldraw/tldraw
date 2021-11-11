@@ -2061,7 +2061,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
     )
   }
 
-  createTextShapeAtPoint(point: number[]): this {
+  createTextShapeAtPoint(point: number[], id?: string): this {
     const {
       shapes,
       appState: { currentPageId, currentStyle },
@@ -2074,10 +2074,9 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
             .filter((shape) => shape.parentId === currentPageId)
             .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
 
-    const id = Utils.uniqueId()
     const Text = shapeUtils[TLDrawShapeType.Text]
     const newShape = Text.create({
-      id,
+      id: id || Utils.uniqueId(),
       parentId: currentPageId,
       childIndex,
       point,

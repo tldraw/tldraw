@@ -34,7 +34,7 @@ const { styled, createTheme } = createStitches({
       warn: 'rgba(255, 100, 100, 1)',
       lineError: 'rgba(255, 0, 0, .1)',
       sponsor: '#ec6cb9',
-      sponsorLight: '#ffd1ec',
+      sponsorLight: '#ec6cb944',
     },
     shadows: {
       2: '0px 1px 1px rgba(0, 0, 0, 0.14)',
