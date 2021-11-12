@@ -1,3 +1,7 @@
+## 0.1.14
+
+- Fixes "shifting" bug with drawing tool. Finally!
+
 ## 0.1.13
 
 - Fixes bugs related to `readOnly` mode.
