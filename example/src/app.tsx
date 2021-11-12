@@ -19,7 +19,6 @@ import './styles.css'
 export default function App(): JSX.Element {
   return (
     <main>
-      <img className="hero" src="./card-repo.png" />
       <Switch>
         <Route path="/basic">
           <Develop />
@@ -64,6 +63,7 @@ export default function App(): JSX.Element {
           <Multiplayer />
         </Route>
         <Route path="/">
+          <img className="hero" src="./card-repo.png" />
           <ul className="links">
             <li>
               <Link to="/basic">Develop</Link>
