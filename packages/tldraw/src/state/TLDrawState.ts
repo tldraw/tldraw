@@ -658,6 +658,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
     }
 
     this.currentTool.onExit()
+    tool.previous = this.currentTool.type
     this.currentTool = tool
     this.currentTool.onEnter()
 
@@ -1996,12 +1997,6 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
         },
         `session:complete:${session.constructor.name}`
       )
-    }
-
-    const { isToolLocked, activeTool } = this.appState
-
-    if (!isToolLocked && activeTool !== TLDrawShapeType.Draw) {
-      this.selectTool('select')
     }
 
     return this

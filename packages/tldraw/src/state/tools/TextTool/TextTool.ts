@@ -4,7 +4,7 @@ import { TLDrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class TextTool extends BaseTool {
-  type = TLDrawShapeType.Text
+  type = TLDrawShapeType.Text as const
 
   /* --------------------- Methods -------------------- */
 

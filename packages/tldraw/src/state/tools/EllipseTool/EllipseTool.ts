@@ -5,7 +5,7 @@ import { SessionType, TLDrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class EllipseTool extends BaseTool {
-  type = TLDrawShapeType.Ellipse
+  type = TLDrawShapeType.Ellipse as const
 
   /* ----------------- Event Handlers ----------------- */
 

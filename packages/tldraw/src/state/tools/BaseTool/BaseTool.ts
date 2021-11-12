@@ -12,6 +12,7 @@ import {
   Utils,
 } from '@tldraw/core'
 import type { TLDrawState } from '~state'
+import type { TLDrawToolType } from '~types'
 
 export enum Status {
   Idle = 'idle',
@@ -21,6 +22,10 @@ export enum Status {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export abstract class BaseTool<T extends string = any> {
+  type: TLDrawToolType = 'select' as const
+
+  previous?: TLDrawToolType
+
   state: TLDrawState
 
   status: Status | T = Status.Idle
@@ -130,6 +135,12 @@ export abstract class BaseTool<T extends string = any> {
   onPointerUp: TLPointerEventHandler = () => {
     if (this.status === Status.Creating) {
       this.state.completeSession()
+
+      const { isToolLocked } = this.state.appState
+
+      if (!isToolLocked) {
+        this.state.selectTool('select')
+      }
     }
 
     this.setStatus(Status.Idle)

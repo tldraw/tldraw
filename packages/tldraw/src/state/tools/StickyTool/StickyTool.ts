@@ -6,7 +6,7 @@ import { SessionType, TLDrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class StickyTool extends BaseTool {
-  type = TLDrawShapeType.Sticky
+  type = TLDrawShapeType.Sticky as const
 
   shapeId?: string
 

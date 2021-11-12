@@ -9,7 +9,8 @@ enum Status {
 }
 
 export class EraseTool extends BaseTool {
-  type = 'eraser'
+  type = 'erase' as const
+
   status: Status = Status.Idle
 
   /* ----------------- Event Handlers ----------------- */
@@ -37,8 +38,28 @@ export class EraseTool extends BaseTool {
   onPointerUp: TLPointerEventHandler = () => {
     if (this.status === Status.Erasing) {
       this.state.completeSession()
+
+      if (this.previous) {
+        this.state.selectTool(this.previous)
+      } else {
+        this.state.selectTool('select')
+      }
     }
 
     this.setStatus(Status.Idle)
+  }
+
+  onCancel = () => {
+    if (this.status === Status.Idle) {
+      if (this.previous) {
+        this.state.selectTool(this.previous)
+      } else {
+        this.state.selectTool('select')
+      }
+    } else {
+      this.setStatus(Status.Idle)
+    }
+
+    this.state.cancelSession()
   }
 }

@@ -5,7 +5,7 @@ import { SessionType, TLDrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class ArrowTool extends BaseTool {
-  type = TLDrawShapeType.Arrow
+  type = TLDrawShapeType.Arrow as const
 
   /* ----------------- Event Handlers ----------------- */
 

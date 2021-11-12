@@ -5,7 +5,7 @@ import { SessionType, TLDrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class RectangleTool extends BaseTool {
-  type = TLDrawShapeType.Rectangle
+  type = TLDrawShapeType.Rectangle as const
 
   /* ----------------- Event Handlers ----------------- */
 
