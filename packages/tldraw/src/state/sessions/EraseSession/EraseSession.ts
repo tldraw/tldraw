@@ -33,17 +33,9 @@ export class EraseSession extends Session {
 
   start = () => void null
 
-  update = (
-    data: TLDrawSnapshot,
-    point: number[],
-    shiftKey = false,
-    altKey = false,
-    metaKey = false
-  ) => {
+  update = (data: TLDrawSnapshot, point: number[], shiftKey = false) => {
     const pageId = data.appState.currentPageId
 
-    // // Drawing while holding shift will "lock" the pen to either the
-    // // x or y axis, depending on the locking direction.
     if (shiftKey) {
       if (!this.isLocked && Vec.dist(this.origin, point) > 4) {
         // If we're locking before knowing what direction we're in, set it
