@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "0.1.13",
+  "version": "0.1.17",
   "description": "A tiny little drawing app (editor)",
   "author": "@steveruizok",
   "repository": {
@@ -24,7 +24,7 @@
   "scripts": {
     "start:electron": "yarn start",
     "start": "node scripts/dev & yarn types:dev",
-    "build": "node scripts/build && yarn types:build && node scripts/copy-files",
+    "build": "node scripts/build && yarn types:build",
     "types:dev": "tsc -w",
     "types:build": "tsc -p tsconfig.build.json && tsconfig-replace-paths -p tsconfig.build.json",
     "lint": "eslint src/ --ext .ts,.tsx",

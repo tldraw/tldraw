@@ -28,6 +28,7 @@ export class DrawSession extends Session {
     // when the draw session ends; if the user hasn't added additional
     // points, this single point will be interpreted as a "dot" shape.
     this.points = [[0, 0, point[2] || 0.5]]
+    this.shiftedPoints = [...this.points]
   }
 
   start = () => void null
@@ -122,10 +123,7 @@ export class DrawSession extends Session {
       // If the new top left is the same as the previous top left,
       // we don't need to shift anything: we just shift the new point
       // and add it to the shifted points array.
-      points = [
-        ...this.shiftedPoints,
-        Vec.sub(newPoint, Vec.sub(topLeft, this.origin)).concat(newPoint[2]),
-      ]
+      points = [...this.shiftedPoints, Vec.sub(newPoint, delta).concat(newPoint[2])]
     }
 
     this.shiftedPoints = points
