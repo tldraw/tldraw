@@ -24,9 +24,14 @@ const isInSelectSelector = (s: TLDrawSnapshot) => s.appState.activeTool === 'sel
 const isHideBoundsShapeSelector = (s: TLDrawSnapshot) => {
   const { shapes } = s.document.pages[s.appState.currentPageId]
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
+  return selectedIds.length === 1 && TLDR.getShapeUtils(shapes[selectedIds[0]].type).hideBounds
+}
+
+const isHideResizeHandlesShapeSelector = (s: TLDrawSnapshot) => {
+  const { shapes } = s.document.pages[s.appState.currentPageId]
+  const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return (
-    selectedIds.length === 1 &&
-    selectedIds.every((id) => TLDR.getShapeUtils(shapes[id].type).hideBounds)
+    selectedIds.length === 1 && TLDR.getShapeUtils(shapes[selectedIds[0]].type).hideResizeHandles
   )
 }
 
@@ -363,6 +368,8 @@ const InnerTLDraw = React.memo(function InnerTLDraw({
 
   const isHideBoundsShape = useSelector(isHideBoundsShapeSelector)
 
+  const isHideResizeHandlesShape = useSelector(isHideResizeHandlesShapeSelector)
+
   const isInSession = state.session !== undefined
 
   // Hide bounds when not using the select tool, or when the only selected shape has handles
@@ -431,6 +438,7 @@ const InnerTLDraw = React.memo(function InnerTLDraw({
           meta={meta}
           hideBounds={hideBounds}
           hideHandles={hideHandles}
+          hideResizeHandles={isHideResizeHandlesShape}
           hideIndicators={hideIndicators}
           hideBindingHandles={!settings.showBindingHandles}
           hideCloneHandles={!settings.showCloneHandles}

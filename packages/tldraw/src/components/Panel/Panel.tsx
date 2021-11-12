@@ -9,8 +9,7 @@ export const Panel = styled('div', {
   variants: {
     side: {
       center: {
-        borderTopLeftRadius: '$4',
-        borderTopRightRadius: '$4',
+        borderRadius: '$4',
       },
       left: {
         borderBottomRightRadius: '$3',

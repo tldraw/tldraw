@@ -6,7 +6,6 @@ import { StatusBar } from './StatusBar'
 import { BackToContent } from './BackToContent'
 import { PrimaryTools } from './PrimaryTools'
 import { ActionButton } from './ActionButton'
-import { LockButton } from './LockButton'
 import { DeleteButton } from './DeleteButton'
 
 const isDebugModeSelector = (s: TLDrawSnapshot) => s.settings.isDebugMode
@@ -48,6 +47,7 @@ const StyledToolsPanelContainer = styled('div', {
   gridTemplateRows: 'auto auto',
   justifyContent: 'space-between',
   padding: '0',
+  gap: '$3',
   zIndex: 200,
   pointerEvents: 'none',
   '& > div > *': {

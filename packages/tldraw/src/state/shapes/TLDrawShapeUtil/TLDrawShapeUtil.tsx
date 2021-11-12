@@ -21,6 +21,8 @@ export abstract class TLDrawShapeUtil<
 
   isAspectRatioLocked = false
 
+  hideResizeHandles = false
+
   abstract getShape: (props: Partial<T>) => T
 
   create = (props: { id: string } & Partial<T>) => {

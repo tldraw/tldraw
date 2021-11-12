@@ -3118,10 +3118,10 @@
     "@babel/runtime" "^7.12.5"
     "@testing-library/dom" "^8.0.0"
 
-"@tldraw/core@latest":
-  version "0.1.19"
-  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.1.19.tgz#4bed3b8faeb48933aa75761cf76665bd69d0abe6"
-  integrity sha512-O/ZHfd6qEg8G+0rEIcd3trEhbF9R2SdEG9H0BZUo2ZG+6JyJNUDka2OCJi6gdFg90JEvLCq5rKg23ay7qEUidQ==
+"@tldraw/core@^0.1.20":
+  version "0.1.20"
+  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-0.1.20.tgz#f3683137855c1396720d89af236bb9f25a8e3b44"
+  integrity sha512-rJDZz/kA/oAOK1nxd63QLWqClC8rfwm8faSG3MmXMyCLimp52CruAwn9VQbCG/7EEEejn7+i2b3bpzdIhBZknw==
   dependencies:
     "@tldraw/intersect" latest
     "@tldraw/vec" latest

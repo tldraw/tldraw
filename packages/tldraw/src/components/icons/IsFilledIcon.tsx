@@ -11,7 +11,7 @@ export function IsFilledIcon(): JSX.Element {
         rx="2"
         strokeWidth="2"
         fill="currentColor"
-        opacity=".3"
+        opacity=".9"
       />
     </svg>
   )

@@ -2075,6 +2075,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
             .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
 
     const Text = shapeUtils[TLDrawShapeType.Text]
+
     const newShape = Text.create({
       id: id || Utils.uniqueId(),
       parentId: currentPageId,
@@ -2082,6 +2083,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
       point,
       style: { ...currentStyle },
     })
+
     const bounds = Text.getBounds(newShape)
     newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
     this.createShapes(newShape)
@@ -2551,7 +2553,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
       this.setEditingId()
       if (shape.type === TLDrawShapeType.Text) {
         if (shape.text.trim().length <= 0) {
-          this.setState(Commands.deleteShapes(this.state, [editingId]), 'delete_empty_text')
+          this.patchState(Commands.deleteShapes(this.state, [editingId]).after, 'delete_empty_text')
         } else {
           this.select(editingId)
         }

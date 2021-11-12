@@ -19,6 +19,8 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
 
   canEdit = true
 
+  hideResizeHandles = true
+
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
       {

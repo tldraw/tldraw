@@ -57,7 +57,6 @@ export function ToolButtonWithTooltip({ label, kbd, ...rest }: ToolButtonWithToo
   const { state } = useTLDrawContext()
 
   const handleDoubleClick = React.useCallback(() => {
-    console.log('double clicking')
     state.toggleToolLock()
   }, [])
 
