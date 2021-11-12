@@ -4,7 +4,12 @@ import { Vec } from '@tldraw/vec'
 import { defaultStyle, getShapeStyle } from '../shape-styles'
 import { DrawShape, DashStyle, TLDrawShapeType, TLDrawTransformInfo, TLDrawMeta } from '~types'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
-import { intersectBoundsBounds, intersectBoundsPolyline } from '@tldraw/intersect'
+import {
+  intersectBoundsBounds,
+  intersectBoundsPolyline,
+  intersectLineSegmentBounds,
+  intersectLineSegmentLineSegment,
+} from '@tldraw/intersect'
 import {
   getDrawStrokePathTLDrawSnapshot,
   getFillPath,
@@ -236,6 +241,23 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
       next.style !== prev.style ||
       next.isComplete !== prev.isComplete
     )
+  }
+
+  hitTestLineSegment = (shape: T, A: number[], B: number[]): boolean => {
+    const { points, point } = shape
+    const ptA = Vec.sub(A, point)
+    const ptB = Vec.sub(B, point)
+    const bounds = this.getBounds(shape)
+
+    if (intersectLineSegmentBounds(ptA, ptB, bounds)) {
+      for (let i = 1; i < points.length; i++) {
+        if (intersectLineSegmentLineSegment(points[i - 1], points[i], ptA, ptB).didIntersect) {
+          return true
+        }
+      }
+    }
+
+    return false
   }
 
   hitTestBounds = (shape: T, bounds: TLBounds) => {

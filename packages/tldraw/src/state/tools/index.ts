@@ -8,9 +8,11 @@ import { RectangleTool } from './RectangleTool'
 import { SelectTool } from './SelectTool'
 import { StickyTool } from './StickyTool'
 import { TextTool } from './TextTool'
+import { EraseTool } from './EraseTool'
 
 export interface ToolsMap {
   select: typeof SelectTool
+  erase: typeof EraseTool
   [TLDrawShapeType.Text]: typeof TextTool
   [TLDrawShapeType.Draw]: typeof DrawTool
   [TLDrawShapeType.Ellipse]: typeof EllipseTool
@@ -25,6 +27,7 @@ export type ArgsOfType<K extends TLDrawToolType> = ConstructorParameters<ToolOfT
 
 export const tools: { [K in TLDrawToolType]: ToolsMap[K] } = {
   select: SelectTool,
+  erase: EraseTool,
   [TLDrawShapeType.Text]: TextTool,
   [TLDrawShapeType.Draw]: DrawTool,
   [TLDrawShapeType.Ellipse]: EllipseTool,
@@ -40,6 +43,7 @@ export const getTool = <K extends TLDrawToolType>(type: K): ToolOfType<K> => {
 export function createTools(state: TLDrawState): Record<TLDrawToolType, BaseTool> {
   return {
     select: new SelectTool(state),
+    erase: new EraseTool(state),
     [TLDrawShapeType.Text]: new TextTool(state),
     [TLDrawShapeType.Draw]: new DrawTool(state),
     [TLDrawShapeType.Ellipse]: new EllipseTool(state),

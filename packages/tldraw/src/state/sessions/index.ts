@@ -7,12 +7,14 @@ import { RotateSession } from './RotateSession'
 import { TransformSession } from './TransformSession'
 import { TransformSingleSession } from './TransformSingleSession'
 import { TranslateSession } from './TranslateSession'
+import { EraseSession } from './EraseSession'
 import { GridSession } from './GridSession'
 
 export interface SessionsMap {
   [SessionType.Arrow]: typeof ArrowSession
   [SessionType.Brush]: typeof BrushSession
   [SessionType.Draw]: typeof DrawSession
+  [SessionType.Erase]: typeof EraseSession
   [SessionType.Handle]: typeof HandleSession
   [SessionType.Rotate]: typeof RotateSession
   [SessionType.Transform]: typeof TransformSession
@@ -29,6 +31,7 @@ export const sessions: { [K in SessionType]: SessionsMap[K] } = {
   [SessionType.Arrow]: ArrowSession,
   [SessionType.Brush]: BrushSession,
   [SessionType.Draw]: DrawSession,
+  [SessionType.Erase]: EraseSession,
   [SessionType.Handle]: HandleSession,
   [SessionType.Rotate]: RotateSession,
   [SessionType.Transform]: TransformSession,

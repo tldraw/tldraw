@@ -138,6 +138,30 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
     return <path d={getEllipseIndicatorPathTLDrawSnapshot(shape, this.getCenter(shape))} />
   })
 
+  hitTestPoint = (shape: T, point: number[]): boolean => {
+    return (
+      Utils.pointInBounds(point, this.getRotatedBounds(shape)) &&
+      Utils.pointInEllipse(
+        point,
+        this.getCenter(shape),
+        shape.radius[0],
+        shape.radius[1],
+        shape.rotation || 0
+      )
+    )
+  }
+
+  hitTestLineSegment = (shape: T, A: number[], B: number[]): boolean => {
+    return intersectLineSegmentEllipse(
+      A,
+      B,
+      this.getCenter(shape),
+      shape.radius[0],
+      shape.radius[1],
+      shape.rotation || 0
+    ).didIntersect
+  }
+
   getBounds = (shape: T) => {
     return Utils.getFromCache(this.boundsCache, shape, () => {
       return Utils.getRotatedEllipseBounds(

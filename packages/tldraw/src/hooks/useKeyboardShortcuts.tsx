@@ -31,7 +31,16 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'r,3',
+    'e,3',
+    () => {
+      if (canHandleEvent()) state.selectTool('erase')
+    },
+    undefined,
+    [state]
+  )
+
+  useHotkeys(
+    'r,4',
     () => {
       if (canHandleEvent()) state.selectTool(TLDrawShapeType.Rectangle)
     },
@@ -40,7 +49,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'e,4',
+    '5',
     () => {
       if (canHandleEvent()) state.selectTool(TLDrawShapeType.Ellipse)
     },
@@ -49,7 +58,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'a,5',
+    'a,6',
     () => {
       if (canHandleEvent()) state.selectTool(TLDrawShapeType.Arrow)
     },
@@ -58,7 +67,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    't,6',
+    't,7',
     () => {
       if (canHandleEvent()) state.selectTool(TLDrawShapeType.Text)
     },
@@ -67,7 +76,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'n,7',
+    'n,8',
     () => {
       if (canHandleEvent()) state.selectTool(TLDrawShapeType.Sticky)
     },

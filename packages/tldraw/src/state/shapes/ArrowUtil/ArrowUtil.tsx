@@ -17,6 +17,7 @@ import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
 import {
   intersectArcBounds,
   intersectLineSegmentBounds,
+  intersectLineSegmentLineSegment,
   intersectRayBounds,
   intersectRayEllipse,
 } from '@tldraw/intersect'
@@ -271,8 +272,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
 
   getBounds = (shape: T) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
-      const points = getArcPoints(shape)
-      return Utils.getBoundsFromPoints(points)
+      return Utils.getBoundsFromPoints(getArcPoints(shape))
     })
 
     return Utils.translateBounds(bounds, shape.point)
@@ -303,6 +303,34 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
       next.handles !== prev.handles ||
       next.style !== prev.style
     )
+  }
+
+  hitTestPoint = (shape: T, point: number[]): boolean => {
+    const pt = Vec.sub(point, shape.point)
+    const points = getArcPoints(shape)
+
+    for (let i = 1; i < points.length; i++) {
+      if (Vec.distanceToLineSegment(points[i - 1], points[i], pt) < 1) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  hitTestLineSegment = (shape: T, A: number[], B: number[]): boolean => {
+    const ptA = Vec.sub(A, shape.point)
+    const ptB = Vec.sub(B, shape.point)
+
+    const points = getArcPoints(shape)
+
+    for (let i = 1; i < points.length; i++) {
+      if (intersectLineSegmentLineSegment(points[i - 1], points[i], ptA, ptB).didIntersect) {
+        return true
+      }
+    }
+
+    return false
   }
 
   hitTestBounds = (shape: T, bounds: TLBounds) => {

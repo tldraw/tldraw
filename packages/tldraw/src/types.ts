@@ -87,7 +87,7 @@ export interface TLDrawSnapshot {
     currentPageId: string
     pages: Pick<TLPage<TLDrawShape, TLDrawBinding>, 'id' | 'name' | 'childIndex'>[]
     hoveredId?: string
-    activeTool: TLDrawShapeType | 'select'
+    activeTool: TLDrawToolType
     isToolLocked: boolean
     isStyleOpen: boolean
     isEmptyCanvas: boolean
@@ -123,6 +123,7 @@ export enum SessionType {
   Brush = 'brush',
   Arrow = 'arrow',
   Draw = 'draw',
+  Erase = 'erase',
   Rotate = 'rotate',
   Handle = 'handle',
   Grid = 'grid',
@@ -403,6 +404,7 @@ export type Easing =
 
 export type TLDrawToolType =
   | 'select'
+  | 'erase'
   | TLDrawShapeType.Text
   | TLDrawShapeType.Draw
   | TLDrawShapeType.Ellipse

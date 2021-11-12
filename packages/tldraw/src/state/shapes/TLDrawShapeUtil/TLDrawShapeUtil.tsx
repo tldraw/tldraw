@@ -2,7 +2,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Utils, TLShapeUtil } from '@tldraw/core'
 import type { TLPointerInfo, TLBounds } from '@tldraw/core'
-import { intersectRayBounds } from '@tldraw/intersect'
+import {
+  intersectLineSegmentBounds,
+  intersectLineSegmentPolyline,
+  intersectRayBounds,
+} from '@tldraw/intersect'
 import { Vec } from '@tldraw/vec'
 import type { TLDrawBinding, TLDrawMeta, TLDrawShape, TLDrawTransformInfo } from '~types'
 import * as React from 'react'
@@ -24,6 +28,20 @@ export abstract class TLDrawShapeUtil<
   hideResizeHandles = false
 
   abstract getShape: (props: Partial<T>) => T
+
+  hitTestPoint = (shape: T, point: number[]): boolean => {
+    return Utils.pointInBounds(point, this.getRotatedBounds(shape))
+  }
+
+  hitTestLineSegment = (shape: T, A: number[], B: number[]): boolean => {
+    const box = Utils.getBoundsFromPoints([A, B])
+    const bounds = this.getBounds(shape)
+
+    return Utils.boundsContain(bounds, box) || shape.rotation
+      ? intersectLineSegmentPolyline(A, B, Utils.getRotatedCorners(this.getBounds(shape)))
+          .didIntersect
+      : intersectLineSegmentBounds(A, B, this.getBounds(shape)).length > 0
+  }
 
   create = (props: { id: string } & Partial<T>) => {
     this.refMap.set(props.id, React.createRef())
