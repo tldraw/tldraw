@@ -11,21 +11,7 @@
       "debugWebWorkerHost": true,
       "request": "launch",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}", "--extensionDevelopmentKind=web"],
-      "outFiles": ["${workspaceFolder}/dist/web/**/*.js"],
-      "preLaunchTask": "npm: start:vscode"
-    },
-    {
-      "name": "Extension Tests",
-      "type": "extensionHost",
-      "debugWebWorkerHost": true,
-      "request": "launch",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionDevelopmentKind=web",
-        "--extensionTestsPath=${workspaceFolder}/dist/web/test/suite/index"
-      ],
-      "outFiles": ["${workspaceFolder}/dist/web/**/*.js"],
-      "preLaunchTask": "npm: start:vscode"
+      "outFiles": ["${workspaceFolder}/dist/web/**/*.js"]
     }
   ]
 }

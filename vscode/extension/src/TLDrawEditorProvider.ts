@@ -126,20 +126,9 @@ export class TLDrawEditorProvider implements vscode.CustomTextEditorProvider {
     // than you think in order to have a good workflow while developing.
     webviewPanel.webview.html = getHtmlForWebview(this.context, webviewPanel.webview, document)
 
-    function updateWebview() {
-      webviewPanel.webview.postMessage({
-        type: 'load',
-        text: document.getText(),
-      })
-    }
-
-    // I'm going to leave this code in as a reminder of this event, but disable it for now
-    //
-    // TODO: Revisit this function and think about how we want to respond to changes
-    // triggered by something other than the tldraw/tldraw component logic. An example
-    // being if the file changed on disk, say from git pull that pulls down a change
-    // to a .tldr file you have open in a tab.
-
+    // This method (onDidSaveTextDocument) only seems to be called when the save
+    // event originates from VS Code itself. It is not triggered when the file is
+    // changed by some other app.
     const changeDocumentSubscription = vscode.workspace.onDidSaveTextDocument(() => {
       webviewPanel.webview.postMessage({
         type: EXTENSION_EVENT.FILE_UPDATED,
@@ -147,9 +136,10 @@ export class TLDrawEditorProvider implements vscode.CustomTextEditorProvider {
       })
     })
 
-    // Make sure we get rid of the listener when our editor is closed.
-    webviewPanel.onDidDispose(() => {
-      changeDocumentSubscription.dispose()
+    // This method is fired both when the file changes because of a change made
+    // in VS Code, or because the file is changed by some other app.
+    vscode.workspace.onDidChangeTextDocument((e) => {
+      console.log('changed', e)
     })
 
     // Listen for posted messages asynchronously sent from the extensions webview code.
@@ -175,13 +165,14 @@ export class TLDrawEditorProvider implements vscode.CustomTextEditorProvider {
     })
 
     // Send the initial document content to bootstrap the tldraw/tldraw component.
-    // Note: webview.postMessage is asynchronous and has the same semantics as
-    // when you post messages to an iframe from a parent window, in this case
-    // the extension isn't actually an enclosing web page.
-
     webviewPanel.webview.postMessage({
       type: EXTENSION_EVENT.OPENED_FILE,
       text: document.getText(),
+    })
+
+    // Make sure we get rid of the listener when our editor is closed.
+    webviewPanel.onDidDispose(() => {
+      changeDocumentSubscription.dispose()
     })
   }
 
