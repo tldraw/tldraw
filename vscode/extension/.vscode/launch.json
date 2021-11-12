@@ -8,12 +8,9 @@
     {
       "name": "Run Web Extension ",
       "type": "pwa-extensionHost",
-      "debugWebWorkerHost": true,
       "request": "launch",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}", "--extensionDevelopmentKind=web"],
-      "outFiles": ["${workspaceFolder}/dist/web/**/*.js"],
-      "debugWebviews": true,
-      "trace": true
+      "outFiles": ["${workspaceFolder}/dist/web/**/*.js"]
     }
   ]
 }
