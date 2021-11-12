@@ -2085,7 +2085,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
     const bounds = Text.getBounds(newShape)
     newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
     this.createShapes(newShape)
-    this.setEditingId(id)
+    this.setEditingId(newShape.id)
 
     return this
   }
