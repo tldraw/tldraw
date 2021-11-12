@@ -13,7 +13,7 @@ export function EraserIcon(): JSX.Element {
         x2="10.7959"
         y2="12.5"
         stroke="currentColor"
-        stroke-linecap="round"
+        strokeLinecap="round"
       />
       <line x1="5.50834" y1="5.74606" x2="10.1984" y2="10.4361" stroke="currentColor" />
     </svg>
