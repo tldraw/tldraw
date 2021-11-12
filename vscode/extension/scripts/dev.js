@@ -24,7 +24,6 @@ async function main() {
       },
       tsconfig: './tsconfig.json',
       external: ['vscode'],
-      metafile: true,
     })
 
     console.log(`Built package.`)

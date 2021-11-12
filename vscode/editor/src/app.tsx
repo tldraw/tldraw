@@ -3,14 +3,15 @@ import * as React from 'react'
 import { TLDraw, TLDrawState, TLDrawFile, TLDrawDocument } from '@tldraw/tldraw'
 import { vscode } from './utils/vscode'
 import { defaultDocument } from './utils/defaultDocument'
-import { EXTENSION_EVENT, UI_EVENT } from './types'
-import './styles.css'
+import type { MessageFromExtension, MessageFromWebview } from './types'
 import { sanitizeDocument } from 'utils/sanitizeDocument'
 
 // Will be placed in global scope by extension
 declare let currentFile: TLDrawFile
 
 export default function App(): JSX.Element {
+  console.log('hello world!')
+
   const rTLDrawState = React.useRef<TLDrawState>()
   const rInitialDocument = React.useRef<TLDrawDocument>(
     currentFile ? currentFile.document : defaultDocument
@@ -26,19 +27,19 @@ export default function App(): JSX.Element {
     const initialDocument = rInitialDocument.current
 
     vscode.postMessage({
-      type: UI_EVENT.TLDRAW_UPDATED,
+      type: 'editorUpdated',
       text: JSON.stringify({
         ...currentFile,
         document: sanitizeDocument(initialDocument, state.document),
         assets: {},
       }),
-    })
+    } as MessageFromWebview)
   }, [])
 
   // When the file changes from VS Code's side, update the editor's document.
   React.useEffect(() => {
-    function handleMessage(event: MessageEvent) {
-      if (event.data.type === EXTENSION_EVENT.FILE_UPDATED) {
+    function handleMessage(event: MessageEvent<MessageFromExtension>) {
+      if (event.data.type === 'openedFile') {
         const { document } = JSON.parse(event.data.text) as TLDrawFile
         const state = rTLDrawState.current!
         state.updateDocument(document)
