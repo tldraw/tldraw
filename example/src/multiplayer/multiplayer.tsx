@@ -49,7 +49,6 @@ function TLDrawWrapper() {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       window.state = state
-      state.loadRoom(roomId)
       setstate(state)
     },
     [roomId]
@@ -61,12 +60,6 @@ function TLDrawWrapper() {
     if (!room) return
     if (!doc) return
     if (!state) return
-    if (!state.state.room) return
-
-    // Update the user's presence with the user from state
-    const { users, userId } = state.state.room
-
-    room.updatePresence({ id: userId, user: users[userId] })
 
     // Subscribe to presence changes; when others change, update the state
     room.subscribe<TLDrawUserPresence>('others', (others) => {
@@ -122,6 +115,13 @@ function TLDrawWrapper() {
 
     if (newDocument) {
       state.loadDocument(newDocument)
+      state.loadRoom(roomId)
+
+      // Update the user's presence with the user from state
+      if (state.state.room) {
+        const { users, userId } = state.state.room
+        room.updatePresence({ id: userId, user: users[userId] })
+      }
     }
 
     return () => {

@@ -20,7 +20,7 @@ export default function App(): JSX.Element {
   return (
     <main>
       <Switch>
-        <Route path="/basic">
+        <Route path="/develop">
           <Develop />
         </Route>
         <Route path="/basic">
@@ -66,7 +66,7 @@ export default function App(): JSX.Element {
           <img className="hero" src="./card-repo.png" />
           <ul className="links">
             <li>
-              <Link to="/basic">Develop</Link>
+              <Link to="/develop">Develop</Link>
             </li>
             <hr />
             <li>

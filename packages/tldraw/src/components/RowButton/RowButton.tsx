@@ -116,6 +116,11 @@ export const StyledRowButton = styled('button', {
     backgroundColor: '$hover',
   },
 
+  '& a': {
+    textDecoration: 'none',
+    color: '$text',
+  },
+
   variants: {
     bp: {
       mobile: {},

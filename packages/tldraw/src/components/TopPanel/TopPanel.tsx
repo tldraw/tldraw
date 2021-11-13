@@ -8,6 +8,7 @@ import { SizeMenu } from './SizeMenu'
 import { FillCheckbox } from './FillCheckbox'
 import { ColorMenu } from './ColorMenu'
 import { Panel } from '~components/Panel'
+import { MultiplayerMenu } from './MultiplayerMenu'
 
 interface TopPanelProps {
   readOnly: boolean
@@ -31,6 +32,7 @@ export function TopPanel({
       {(showMenu || showPages) && (
         <Panel side="left">
           {showMenu && <Menu showSponsorLink={showSponsorLink} readOnly={readOnly} />}
+          {/* <MultiplayerMenu /> */}
           {showPages && <PageMenu />}
         </Panel>
       )}

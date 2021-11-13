@@ -804,9 +804,6 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
     const { editingId } = this.pageState
 
     if (editingId) {
-      console.warn('A change occured while creating a shape')
-      if (!editingId) throw Error('Huh?')
-
       document.pages[this.currentPageId].shapes[editingId] = this.page.shapes[editingId]
       currentPageStates[this.currentPageId].selectedIds = [editingId]
     }
@@ -908,6 +905,7 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
     this.resetHistory()
     this.clearSelectHistory()
     this.session = undefined
+
     this.replaceState(
       {
         ...TLDrawState.defaultState,
@@ -2599,6 +2597,10 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
     return this.selectedIds.includes(id)
   }
 
+  get room() {
+    return this.state.room
+  }
+
   get isLocal() {
     return this.state.room === undefined || this.state.room.id === 'local'
   }
@@ -2689,18 +2691,5 @@ export class TLDrawState extends StateManager<TLDrawSnapshot> {
       snapLines: [],
     },
     document: TLDrawState.defaultDocument,
-    room: {
-      id: 'local',
-      userId: uuid,
-      users: {
-        [uuid]: {
-          id: uuid,
-          color: USER_COLORS[0],
-          point: [100, 100],
-          selectedIds: [],
-          activeShapes: [],
-        },
-      },
-    },
   }
 }
