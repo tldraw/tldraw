@@ -20,7 +20,7 @@ async function main() {
       format: 'cjs',
       target: 'es6',
       define: {
-        'process.env.NODE_ENV': '"development"',
+        'process.env.NODE_ENV': '"production"',
       },
       tsconfig: './tsconfig.json',
       external: ['vscode'],
