@@ -1,8 +1,8 @@
-import type { UI_EVENT } from '../types'
+import type { MessageFromWebview } from '../types'
 
 // Will be placed in global scope by extension
 declare function acquireVsCodeApi(): {
-  postMessage(options: { type: UI_EVENT; text?: string }): void
+  postMessage(options: MessageFromWebview): void
 }
 
 export const vscode = acquireVsCodeApi()

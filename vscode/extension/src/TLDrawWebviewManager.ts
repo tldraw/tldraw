@@ -37,7 +37,7 @@ export class TLDrawWebviewManager {
 
     // Listen for messages sent from the extensions webview.
     webviewPanel.webview.onDidReceiveMessage(
-      this.handleMessageFromTLDrawApp,
+      this.handleMessageFromWebview,
       undefined,
       this.disposables
     )
@@ -73,7 +73,7 @@ export class TLDrawWebviewManager {
     // show that external change.
   }
 
-  private handleMessageFromTLDrawApp = (e: MessageFromWebview) => {
+  private handleMessageFromWebview = (e: MessageFromWebview) => {
     const { document } = this
     if (!document) return
 
@@ -82,19 +82,22 @@ export class TLDrawWebviewManager {
         // The event will contain the new TLDrawFile as JSON.
         const nextFile = JSON.parse(e.text) as TLDrawFile
 
-        // There's no reason to sanitize if the file contents are still an empty file.
-        if (document.getText() === null) break
+        if (document.getText()) {
+          try {
+            // Parse the contents of the current document.
+            const currentFile = JSON.parse(document.getText()) as TLDrawFile
 
-        // Parse the contents of the current document.
-        const currentFile = JSON.parse(document.getText()) as TLDrawFile
-
-        // Ensure that the current file's pageStates are preserved
-        // in the next file, unless the associated pages have been deleted.
-        Object.values(currentFile.document.pageStates).forEach((pageState) => {
-          if (nextFile.document.pages[pageState.id] !== undefined) {
-            nextFile.document.pageStates[pageState.id] = pageState
+            // Ensure that the current file's pageStates are preserved
+            // in the next file, unless the associated pages have been deleted.
+            Object.values(currentFile.document.pageStates).forEach((pageState) => {
+              if (nextFile.document.pages[pageState.id] !== undefined) {
+                nextFile.document.pageStates[pageState.id] = pageState
+              }
+            })
+          } catch (e) {
+            console.error('Could not parse the current file to JSON.')
           }
-        })
+        }
 
         // Create an edit that replaces the document's current text
         // content (a serialized TLDrawFile) with the next file.
