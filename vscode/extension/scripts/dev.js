@@ -12,7 +12,7 @@ async function main() {
   }
 
   try {
-    esbuild.buildSync({
+    await esbuild.build({
       entryPoints: ['./src/extension.ts'],
       outdir: 'dist/web',
       minify: false,
@@ -25,6 +25,12 @@ async function main() {
       },
       tsconfig: './tsconfig.json',
       external: ['vscode'],
+      incremental: true,
+      watch: {
+        onRebuild(err) {
+          err ? console.error('❌ Failed') : console.log('✅ Updated')
+        },
+      },
     })
 
     console.log(`Built package.`)
