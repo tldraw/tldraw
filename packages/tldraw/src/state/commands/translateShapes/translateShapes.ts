@@ -22,10 +22,12 @@ export function translateShapes(
     bindings: {},
   }
 
-  const idsToMutate = ids.flatMap((id) => {
-    const shape = TLDR.getShape(data, id, currentPageId)
-    return shape.children ? shape.children : shape.id
-  })
+  const idsToMutate = ids
+    .flatMap((id) => {
+      const shape = TLDR.getShape(data, id, currentPageId)
+      return shape.children ? shape.children : shape.id
+    })
+    .filter((id) => !TLDR.getShape(data, id, currentPageId).isLocked)
 
   const change = TLDR.mutateShapes(
     data,

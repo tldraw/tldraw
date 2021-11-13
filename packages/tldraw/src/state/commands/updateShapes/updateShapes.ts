@@ -6,6 +6,8 @@ export function update(
   updates: ({ id: string } & Partial<TLDrawShape>)[],
   pageId: string
 ): TLDrawCommand {
+  const { currentPageId } = data.appState
+
   const ids = updates.map((update) => update.id)
 
   const before: PagePartial = {
@@ -18,7 +20,12 @@ export function update(
     bindings: {},
   }
 
-  const change = TLDR.mutateShapes(data, ids, (_shape, i) => updates[i], pageId)
+  const change = TLDR.mutateShapes(
+    data,
+    ids.filter((id) => !TLDR.getShape(data, id, currentPageId).isLocked),
+    (_shape, i) => updates[i],
+    pageId
+  )
 
   before.shapes = change.before
   after.shapes = change.after

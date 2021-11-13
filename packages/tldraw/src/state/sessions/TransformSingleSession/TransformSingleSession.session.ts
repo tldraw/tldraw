@@ -66,6 +66,8 @@ export class TransformSingleSession extends Session {
 
     const { currentPageId, initialShapeBounds, initialShape, id } = this.snapshot
 
+    if (initialShape.isLocked) return void null
+
     const delta = Vec.sub(point, this.origin)
 
     const shapes = {} as Record<string, Partial<TLDrawShape>>

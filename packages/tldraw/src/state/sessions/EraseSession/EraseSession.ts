@@ -28,7 +28,9 @@ export class EraseSession extends Session {
     this.origin = point
     this.prevPoint = point
     this.initialSelectedShapes = TLDR.getSelectedShapes(data, data.appState.currentPageId)
-    this.erasableShapes = TLDR.getShapes(data, data.appState.currentPageId)
+    this.erasableShapes = TLDR.getShapes(data, data.appState.currentPageId).filter(
+      (shape) => !shape.isLocked
+    )
   }
 
   start = () => void null

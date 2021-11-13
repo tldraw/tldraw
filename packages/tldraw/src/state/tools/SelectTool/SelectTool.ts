@@ -395,6 +395,7 @@ export class SelectTool extends BaseTool<Status> {
           }
         }
       } else if (this.pointedId === info.target) {
+        if (this.state.getShape(info.target).isLocked) return
         // If the target is not selected and was just pointed
         // on pointer down...
         if (info.shiftKey) {
@@ -456,6 +457,8 @@ export class SelectTool extends BaseTool<Status> {
     if (info.spaceKey && e.buttons === 1) {
       return
     }
+
+    if (this.state.getShape(info.target).isLocked) return
 
     const { editingId, hoveredId } = this.state.pageState
 
@@ -549,6 +552,11 @@ export class SelectTool extends BaseTool<Status> {
 
   onDoubleClickShape: TLPointerEventHandler = (info) => {
     const shape = this.state.getShape(info.target)
+
+    if (shape.isLocked) {
+      this.state.select(info.target)
+      return
+    }
 
     // If we can edit the shape (and if we can select the shape) then
     // start editing

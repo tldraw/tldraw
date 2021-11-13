@@ -19,12 +19,14 @@ export function rotateShapes(
 
   // Find the shapes that we want to rotate.
   // We don't rotate groups: we rotate their children instead.
-  const shapesToRotate = ids.flatMap((id) => {
-    const shape = TLDR.getShape(data, id, currentPageId)
-    return shape.children
-      ? shape.children.map((childId) => TLDR.getShape(data, childId, currentPageId))
-      : shape
-  })
+  const shapesToRotate = ids
+    .flatMap((id) => {
+      const shape = TLDR.getShape(data, id, currentPageId)
+      return shape.children
+        ? shape.children.map((childId) => TLDR.getShape(data, childId, currentPageId))
+        : shape
+    })
+    .filter((shape) => !shape.isLocked)
 
   // Find the common center to all shapes
   // This is the point that we'll rotate around

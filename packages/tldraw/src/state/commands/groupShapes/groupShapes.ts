@@ -24,12 +24,16 @@ export function groupShapes(
   // Collect all of the shapes to group (and their ids)
   for (const id of ids) {
     const shape = TLDR.getShape(data, id, pageId)
+    if (shape.isLocked) continue
+
     if (shape.children === undefined) {
       shapesToGroup.push(shape)
     } else {
+      const childIds = shape.children.filter((id) => !TLDR.getShape(data, id, pageId).isLocked)
+
       otherEffectedGroups.push(shape)
-      idsToGroup.push(...shape.children)
-      shapesToGroup.push(...shape.children.map((id) => TLDR.getShape(data, id, pageId)))
+      idsToGroup.push(...childIds)
+      shapesToGroup.push(...childIds.map((id) => TLDR.getShape(data, id, pageId)))
     }
   }
 

@@ -6,7 +6,7 @@ export function resetBounds(data: TLDrawSnapshot, ids: string[], pageId: string)
 
   const { before, after } = TLDR.mutateShapes(
     data,
-    ids,
+    ids.filter((id) => !TLDR.getShape(data, id, currentPageId).isLocked),
     (shape) => TLDR.getShapeUtils(shape).onDoubleClickBoundsHandle?.(shape),
     pageId
   )

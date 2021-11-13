@@ -13,7 +13,7 @@ export function flipShapes(data: TLDrawSnapshot, ids: string[], type: FlipType):
 
   const { before, after } = TLDR.mutateShapes(
     data,
-    ids,
+    ids.filter((id) => !TLDR.getShape(data, id, currentPageId).isLocked),
     (shape) => {
       const shapeBounds = TLDR.getBounds(shape)
 

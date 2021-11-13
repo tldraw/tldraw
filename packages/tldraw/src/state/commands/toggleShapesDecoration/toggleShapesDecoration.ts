@@ -24,18 +24,20 @@ export function toggleShapesDecoration(
   )
 
   const afterShapes: Record<string, Patch<ArrowShape>> = Object.fromEntries(
-    ids.map((id) => [
-      id,
-      {
-        decorations: {
-          [decorationId]: TLDR.getShape<ArrowShape>(data, id, currentPageId).decorations?.[
-            decorationId
-          ]
-            ? undefined
-            : Decoration.Arrow,
+    ids
+      .filter((id) => !TLDR.getShape(data, id, currentPageId).isLocked)
+      .map((id) => [
+        id,
+        {
+          decorations: {
+            [decorationId]: TLDR.getShape<ArrowShape>(data, id, currentPageId).decorations?.[
+              decorationId
+            ]
+              ? undefined
+              : Decoration.Arrow,
+          },
         },
-      },
-    ])
+      ])
   )
 
   return {

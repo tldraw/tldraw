@@ -407,6 +407,15 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [state]
   )
 
+  useHotkeys(
+    'command+shift+l,ctrl+shift+l',
+    () => {
+      if (canHandleEvent()) state.toggleLocked()
+    },
+    undefined,
+    [state]
+  )
+
   // Copy, Cut & Paste
 
   useHotkeys(

@@ -43,6 +43,7 @@ export function moveShapesToPage(
 
   ids
     .map((id) => TLDR.getShape(data, id, fromPageId))
+    .filter((shape) => !shape.isLocked)
     .forEach((shape) => {
       movingShapeIds.add(shape.id)
       shapesToMove.add(shape)

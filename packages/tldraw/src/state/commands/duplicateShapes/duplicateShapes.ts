@@ -148,6 +148,13 @@ export function duplicateShapes(
     })
   }
 
+  // Unlock any locked shapes
+  shapesToMove.forEach((shape) => {
+    if (shape.isLocked) {
+      shape.isLocked = false
+    }
+  })
+
   return {
     id: 'duplicate',
     before: {

@@ -123,6 +123,7 @@ export function getBrushSnapshot(data: TLDrawSnapshot) {
     .filter(
       (shape) =>
         !(
+          shape.isLocked ||
           shape.isHidden ||
           shape.children !== undefined ||
           selectedIds.includes(shape.id) ||

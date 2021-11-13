@@ -137,7 +137,9 @@ export class RotateSession extends Session {
 export function getRotateSnapshot(data: TLDrawSnapshot) {
   const currentPageId = data.appState.currentPageId
   const pageState = TLDR.getPageState(data, currentPageId)
-  const initialShapes = TLDR.getSelectedBranchSnapshot(data, currentPageId)
+  const initialShapes = TLDR.getSelectedBranchSnapshot(data, currentPageId).filter(
+    (shape) => !shape.isLocked
+  )
 
   if (initialShapes.length === 0) {
     throw Error('No selected shapes!')

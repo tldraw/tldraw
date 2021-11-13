@@ -18,27 +18,29 @@ export function removeShapesFromPage(data: TLDrawSnapshot, ids: string[], pageId
 
   // These are the shapes we're definitely going to delete
 
-  ids.forEach((id) => {
-    deletedIds.add(id)
-    const shape = TLDR.getShape(data, id, pageId)
-    before.shapes[id] = shape
-    after.shapes[id] = undefined
+  ids
+    .filter((id) => !TLDR.getShape(data, id, pageId).isLocked)
+    .forEach((id) => {
+      deletedIds.add(id)
+      const shape = TLDR.getShape(data, id, pageId)
+      before.shapes[id] = shape
+      after.shapes[id] = undefined
 
-    // Also delete the shape's children
+      // Also delete the shape's children
 
-    if (shape.children !== undefined) {
-      shape.children.forEach((childId) => {
-        deletedIds.add(childId)
-        const child = TLDR.getShape(data, childId, pageId)
-        before.shapes[childId] = child
-        after.shapes[childId] = undefined
-      })
-    }
+      if (shape.children !== undefined) {
+        shape.children.forEach((childId) => {
+          deletedIds.add(childId)
+          const child = TLDR.getShape(data, childId, pageId)
+          before.shapes[childId] = child
+          after.shapes[childId] = undefined
+        })
+      }
 
-    if (shape.parentId !== pageId) {
-      parentsToUpdate.push(TLDR.getShape(data, shape.parentId, pageId))
-    }
-  })
+      if (shape.parentId !== pageId) {
+        parentsToUpdate.push(TLDR.getShape(data, shape.parentId, pageId))
+      }
+    })
 
   parentsToUpdate.forEach((parent) => {
     if (ids.includes(parent.id)) return

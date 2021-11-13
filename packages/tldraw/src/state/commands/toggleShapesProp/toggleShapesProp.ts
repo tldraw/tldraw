@@ -14,7 +14,9 @@ export function toggleShapeProp(
 
   const { before, after } = TLDR.mutateShapes(
     data,
-    TLDR.getSelectedIds(data, currentPageId),
+    ids.filter((id) =>
+      prop === 'isLocked' ? true : !TLDR.getShape(data, id, currentPageId).isLocked
+    ),
     () => ({
       [prop]: !isAllToggled,
     }),

@@ -45,7 +45,7 @@ export function alignShapes(data: TLDrawSnapshot, ids: string[], type: AlignType
 
   const { before, after } = TLDR.mutateShapes(
     data,
-    ids,
+    ids.filter((id) => !TLDR.getShape(data, id, currentPageId).isLocked),
     (shape) => {
       if (!deltaMap[shape.id]) return shape
       return { point: deltaMap[shape.id].next }

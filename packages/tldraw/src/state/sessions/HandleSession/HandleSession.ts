@@ -47,6 +47,8 @@ export class HandleSession extends Session {
 
     const shape = TLDR.getShape<ShapesWithProp<'handles'>>(data, initialShape.id, currentPageId)
 
+    if (shape.isLocked) return void null
+
     const handles = shape.handles
 
     const handleId = this.handleId as keyof typeof handles

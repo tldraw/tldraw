@@ -278,7 +278,9 @@ export function getTransformSnapshot(
   data: TLDrawSnapshot,
   transformType: TLBoundsEdge | TLBoundsCorner
 ) {
-  const initialShapes = TLDR.getSelectedBranchSnapshot(data, data.appState.currentPageId)
+  const initialShapes = TLDR.getSelectedBranchSnapshot(data, data.appState.currentPageId).filter(
+    (shape) => !shape.isLocked
+  )
 
   const initialShapeIds = initialShapes.map((shape) => shape.id)
 

@@ -17,7 +17,9 @@ export function styleShapes(
 ): TLDrawCommand {
   const { currentPageId } = data.appState
 
-  const shapeIdsToMutate = ids.flatMap((id) => TLDR.getDocumentBranch(data, id, currentPageId))
+  const shapeIdsToMutate = ids
+    .flatMap((id) => TLDR.getDocumentBranch(data, id, currentPageId))
+    .filter((id) => !TLDR.getShape(data, id, currentPageId).isLocked)
 
   // const { before, after } = TLDR.mutateShapes(
   //   data,

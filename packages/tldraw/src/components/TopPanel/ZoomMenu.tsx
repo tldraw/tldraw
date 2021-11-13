@@ -16,7 +16,9 @@ export function ZoomMenu() {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
-        <FixedWidthToolButton variant="text">{Math.round(zoom * 100)}%</FixedWidthToolButton>
+        <FixedWidthToolButton onDoubleClick={state.resetZoom} variant="text">
+          {Math.round(zoom * 100)}%
+        </FixedWidthToolButton>
       </DropdownMenu.Trigger>
       <DMContent align="end">
         <DMItem onSelect={state.zoomIn} kbd="#+">

@@ -98,6 +98,8 @@ export class ArrowSession extends Session {
 
     const shape = TLDR.getShape<ArrowShape>(data, initialShape.id, data.appState.currentPageId)
 
+    if (shape.isLocked) return
+
     const handles = shape.handles
 
     const handleId = this.handleId as keyof typeof handles

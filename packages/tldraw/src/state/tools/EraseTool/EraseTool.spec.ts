@@ -1,6 +1,4 @@
 import { TLDrawState } from '~state'
-import { mockDocument, TLDrawStateUtils } from '~test'
-import { SessionType, TLDrawShapeType } from '~types'
 import { EraseTool } from './EraseTool'
 
 describe('EraseTool', () => {

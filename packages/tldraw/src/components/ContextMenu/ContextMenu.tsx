@@ -70,6 +70,10 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
     state.duplicate()
   }, [state])
 
+  const handleLock = React.useCallback(() => {
+    state.toggleLocked()
+  }, [state])
+
   const handleGroup = React.useCallback(() => {
     state.group()
   }, [state])
@@ -132,14 +136,17 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
         <MenuContent>
           {hasSelection ? (
             <>
+              <CMRowButton onSelect={handleDuplicate} kbd="#D">
+                Duplicate
+              </CMRowButton>
               <CMRowButton onSelect={handleFlipHorizontal} kbd="⇧H">
                 Flip Horizontal
               </CMRowButton>
               <CMRowButton onSelect={handleFlipVertical} kbd="⇧V">
                 Flip Vertical
               </CMRowButton>
-              <CMRowButton onSelect={handleDuplicate} kbd="#D">
-                Duplicate
+              <CMRowButton onSelect={handleLock} kbd="#⇧L">
+                Lock / Unlock
               </CMRowButton>
               {(hasTwoOrMore || hasGroupSelected) && <Divider />}
               {hasTwoOrMore && (
