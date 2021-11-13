@@ -1,8 +1,6 @@
 /* eslint-disable */
 const fs = require('fs')
 const esbuild = require('esbuild')
-const { gzip } = require('zlib')
-const pkg = require('../package.json')
 
 async function main() {
   if (fs.existsSync('./dist')) {
@@ -14,7 +12,7 @@ async function main() {
   }
 
   try {
-    const esmResult = esbuild.buildSync({
+    esbuild.buildSync({
       entryPoints: ['./src/extension.ts'],
       outdir: 'dist/web',
       minify: true,
@@ -25,27 +23,12 @@ async function main() {
         'process.env.NODE_ENV': '"production"',
       },
       tsconfig: './tsconfig.json',
-      external: Object.keys(pkg.dependencies).concat(Object.keys(pkg.peerDependencies)).concat(["vscode"]),
+      external: ['vscode'],
       metafile: true,
-      
     })
-
-    let esmSize = 0
-    Object.values(esmResult.metafile.outputs).forEach((output) => {
-      esmSize += output.bytes
-    })
-
-    fs.readFile('./dist/web/index.js', (_err, data) => {
-      gzip(data, (_err, result) => {
-        console.log(
-          `✔ ${pkg.name}: Built pkg. ${(esmSize / 1000).toFixed(2)}kb (${(
-            result.length / 1000
-          ).toFixed(2)}kb minified)`
-        )
-      })
-    })
+    console.log(`Built package.`)
   } catch (e) {
-    console.log(`× ${pkg.name}: Build failed due to an error.`)
+    console.log(`× Build failed due to an error.`)
     console.log(e)
   }
 }

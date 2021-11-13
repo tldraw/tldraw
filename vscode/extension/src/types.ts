@@ -1,8 +1,14 @@
-export enum UI_EVENT {
-  TLDRAW_UPDATED = 'TLDRAW_UPDATED',
+export type MessageFromWebview = {
+  type: 'editorUpdated'
+  text: string
 }
 
-export enum EXTENSION_EVENT {
-  OPENED_FILE = 'OPENED_FILE',
-  FILE_UPDATED = 'FILE_UPDATED',
-}
+export type MessageFromExtension =
+  | {
+      type: 'openedFile'
+      text: string
+    }
+  | {
+      type: 'fileSaved'
+      text: string
+    }

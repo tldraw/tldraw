@@ -1,10 +1,17 @@
 /* eslint-disable no-undef */
 import fs from 'fs'
 import esbuildServe from 'esbuild-serve'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 async function main() {
-  if (!fs.existsSync('./dist')) {
-    fs.mkdirSync('./dist')
+  if (fs.existsSync('./dist')) {
+    fs.rmSync('./dist', { recursive: true }, (e) => {
+      if (e) {
+        throw e
+      }
+    })
   }
 
   try {
