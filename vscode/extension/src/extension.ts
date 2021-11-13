@@ -6,6 +6,6 @@ export function activate(context: vscode.ExtensionContext) {
   try {
     context.subscriptions.push(TLDrawEditorProvider.register(context))
   } catch (e) {
-    console.log(e)
+    console.error(e)
   }
 }
