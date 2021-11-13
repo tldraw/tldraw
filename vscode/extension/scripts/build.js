@@ -15,16 +15,15 @@ async function main() {
     esbuild.buildSync({
       entryPoints: ['./src/extension.ts'],
       outdir: 'dist/web',
-      minify: true,
+      minify: false,
       bundle: true,
       format: 'cjs',
       target: 'es6',
       define: {
-        'process.env.NODE_ENV': '"production"',
+        'process.env.NODE_ENV': '"development"',
       },
       tsconfig: './tsconfig.json',
       external: ['vscode'],
-      metafile: true,
     })
     console.log(`Built package.`)
   } catch (e) {
