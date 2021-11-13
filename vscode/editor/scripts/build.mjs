@@ -18,9 +18,9 @@ async function main() {
     esbuild.buildSync({
       entryPoints: ['./src/index.tsx'],
       outfile: 'dist/index.js',
-      minify: false,
+      minify: true,
       bundle: true,
-      format: 'cjs',
+      format: 'esm',
       target: 'es6',
       jsxFactory: 'React.createElement',
       jsxFragment: 'React.Fragment',

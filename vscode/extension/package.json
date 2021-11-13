@@ -60,8 +60,7 @@
 		]
 	},
 	"scripts": {
-		"start:vscode": "node scripts/dev & yarn types:dev",
-		"types:dev": "tsc -w",
+		"start:vscode": "node scripts/dev",
 		"web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
 		"package": "cd ../editor && yarn build && cd ../extension && node scripts/build && node scripts/package",
 		"vscode:publish": "yarn version && yarn package && vsce publish",
@@ -76,6 +75,7 @@
 		"mocha": "^9.1.1",
 		"process": "^0.11.10",
 		"ts-loader": "^9.2.5",
+		"tslib": "^2.3.1",
 		"typescript": "^4.4.3",
 		"vsce": "^2.2.0"
 	}
