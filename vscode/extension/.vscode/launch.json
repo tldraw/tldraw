@@ -9,8 +9,22 @@
       "name": "Run Web Extension ",
       "type": "pwa-extensionHost",
       "request": "launch",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}", "--extensionDevelopmentKind=web"],
-      "outFiles": ["${workspaceFolder}/dist/web/**/*.js"]
+      "program": "${workspaceFolder}/src/extension.ts",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "--disable-extensions",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "${workspaceFolder}/src/extension.ts"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/dist/web/**/*.js",
+        "!**/node_modules/**"
+      ],
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**"
+      ],
+      "sourceMaps": true,
     }
   ]
 }

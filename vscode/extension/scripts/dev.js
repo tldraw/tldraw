@@ -19,6 +19,7 @@ async function main() {
       bundle: true,
       format: 'cjs',
       target: 'es6',
+      sourcemap: 'inline',
       define: {
         'process.env.NODE_ENV': '"development"',
       },
