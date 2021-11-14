@@ -35,7 +35,7 @@ export default function MultiplayerEditor({
 
 // Inner Editor
 
-function Editor({ roomId, isUser, isSponsor }: { roomId: string; isUser; isSponsor: boolean }) {
+function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: boolean }) {
   const [docId] = React.useState(() => Utils.uniqueId())
 
   const [state, setState] = React.useState<TLDrawState>()

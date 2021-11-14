@@ -9,7 +9,7 @@ interface EditorProps {
   isSponsor?: boolean
 }
 
-export default function Editor({ id = 'home', isUser = false, isSponsor = false }: EditorProps) {
+export default function Editor({ id = 'home', isSponsor = false }: EditorProps) {
   // Put the state into the window, for debugging.
   const handleMount = React.useCallback((state: TLDrawState) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment

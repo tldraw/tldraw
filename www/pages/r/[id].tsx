@@ -1,6 +1,5 @@
 import * as React from 'react'
 import type { GetServerSideProps } from 'next'
-import Head from 'next/head'
 import { getSession } from 'next-auth/client'
 import dynamic from 'next/dynamic'
 const MultiplayerEditor = dynamic(() => import('-components/MultiplayerEditor'), { ssr: false })

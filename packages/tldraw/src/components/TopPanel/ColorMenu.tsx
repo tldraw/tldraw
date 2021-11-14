@@ -20,7 +20,7 @@ export const ColorMenu = React.memo(function ColorMenu(): JSX.Element {
   return (
     <DropdownMenu.Root dir="ltr">
       <DMTriggerIcon>
-        <CircleIcon size={16} fill={strokes[theme][color]} stroke={strokes[theme][color]} />
+        <CircleIcon size={18} fill={strokes[theme][color]} stroke={strokes[theme][color]} />
       </DMTriggerIcon>
       <DMContent variant="grid">
         {Object.keys(strokes[theme]).map((colorStyle: string) => (
