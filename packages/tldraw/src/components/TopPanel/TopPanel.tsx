@@ -8,7 +8,6 @@ import { SizeMenu } from './SizeMenu'
 import { FillCheckbox } from './FillCheckbox'
 import { ColorMenu } from './ColorMenu'
 import { Panel } from '~components/Panel'
-import { MultiplayerMenu } from './MultiplayerMenu'
 
 interface TopPanelProps {
   readOnly: boolean

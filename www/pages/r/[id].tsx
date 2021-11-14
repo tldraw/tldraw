@@ -12,14 +12,7 @@ interface RoomProps {
 }
 
 export default function Room({ id, isUser, isSponsor }: RoomProps): JSX.Element {
-  return (
-    <>
-      <Head>
-        <title>tldraw</title>
-      </Head>
-      <MultiplayerEditor isUser={isUser} isSponsor={isSponsor} roomId={id} />
-    </>
-  )
+  return <MultiplayerEditor isUser={isUser} isSponsor={isSponsor} roomId={id} />
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {

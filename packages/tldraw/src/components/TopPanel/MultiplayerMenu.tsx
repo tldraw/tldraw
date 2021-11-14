@@ -1,23 +1,11 @@
 import * as React from 'react'
-import {
-  CheckIcon,
-  ClipboardIcon,
-  CopyIcon,
-  ExitIcon,
-  GitHubLogoIcon,
-  HamburgerMenuIcon,
-  TwitterLogoIcon,
-} from '@radix-ui/react-icons'
+import { CheckIcon, ClipboardIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTLDrawContext } from '~hooks'
-import { PreferencesMenu } from './PreferencesMenu'
-import { DMItem, DMContent, DMDivider, DMSubMenu, DMTriggerIcon } from '~components/DropdownMenu'
+import { DMItem, DMContent, DMDivider, DMTriggerIcon } from '~components/DropdownMenu'
 import { SmallIcon } from '~components/SmallIcon'
-import { useFileSystemHandlers } from '~hooks'
-import { HeartIcon } from '~components/icons/HeartIcon'
 import { MultiplayerIcon } from '~components/icons'
 import type { TLDrawSnapshot } from '~types'
-import { Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
 
 interface MultiplayerMenuProps {
@@ -66,7 +54,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu({ id }: Multi
       'Content-Type': 'application/json',
     })
 
-    const res = await fetch('http://localhost:3000/api/create-multiplayer-room', {
+    const res = await fetch('http://tldraw.com/api/create-multiplayer-room', {
       headers: myHeaders,
       method: 'POST',
       mode: 'cors',
@@ -74,7 +62,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu({ id }: Multi
       body: JSON.stringify(state.document),
     }).then((res) => res.json())
 
-    window.location.href = `http://localhost:3000/r/${res.roomId}`
+    window.location.href = `http://tldraw.com/r/${res.roomId}`
   }, [])
 
   return (
