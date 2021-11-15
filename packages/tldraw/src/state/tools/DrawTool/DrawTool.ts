@@ -1,4 +1,3 @@
-import Vec from '@tldraw/vec'
 import { Utils, TLPointerEventHandler } from '@tldraw/core'
 import { Draw } from '~state/shapes'
 import { SessionType, TLDrawShapeType } from '~types'
@@ -10,12 +9,11 @@ export class DrawTool extends BaseTool {
   /* ----------------- Event Handlers ----------------- */
 
   onPointerDown: TLPointerEventHandler = (info) => {
-    const pagePoint = Vec.round(this.state.getPagePoint(info.point))
-
     const {
       shapes,
+      mutables: { currentPoint },
       appState: { currentPageId, currentStyle },
-    } = this.state
+    } = this.app
 
     const childIndex =
       shapes.length === 0
@@ -30,32 +28,26 @@ export class DrawTool extends BaseTool {
       id,
       parentId: currentPageId,
       childIndex,
-      point: [...pagePoint, info.pressure || 0.5],
+      point: [...currentPoint, info.pressure || 0.5],
       style: { ...currentStyle },
     })
 
-    this.state.patchCreate([newShape])
+    this.app.patchCreate([newShape])
 
-    this.state.startSession(SessionType.Draw, pagePoint, id)
+    this.app.startSession(SessionType.Draw, id)
 
     this.setStatus(Status.Creating)
   }
 
-  onPointerMove: TLPointerEventHandler = (info) => {
+  onPointerMove: TLPointerEventHandler = () => {
     if (this.status === Status.Creating) {
-      const pagePoint = Vec.round(this.state.getPagePoint(info.point))
-      this.state.updateSession(
-        [...pagePoint, info.pressure || 0.5],
-        info.shiftKey,
-        info.altKey,
-        info.metaKey
-      )
+      this.app.updateSession()
     }
   }
 
   onPointerUp: TLPointerEventHandler = () => {
     if (this.status === Status.Creating) {
-      this.state.completeSession()
+      this.app.completeSession()
     }
 
     this.setStatus(Status.Idle)

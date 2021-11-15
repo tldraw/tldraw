@@ -1,9 +1,8 @@
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
+import { mockDocument, TLDrawTestApp } from '~test'
 import { ArrowShape, SessionType, TLDrawShapeType } from '~types'
 
 describe('Move to page command', () => {
-  const state = new TLDrawState()
+  const state = new TLDrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument).createPage('page2').changePage('page1')
@@ -67,8 +66,9 @@ describe('Move to page command', () => {
           { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
-        .startSession(SessionType.Arrow, [200, 200], 'start')
-        .updateSession([50, 50])
+        .movePointer([200, 200])
+        .startSession(SessionType.Arrow, 'arrow1', 'start')
+        .movePointer([50, 50])
         .completeSession()
 
       const bindingId = state.bindings[0].id
@@ -102,8 +102,9 @@ describe('Move to page command', () => {
           { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
-        .startSession(SessionType.Arrow, [200, 200], 'start')
-        .updateSession([50, 50])
+        .movePointer([200, 200])
+        .startSession(SessionType.Arrow, 'arrow1', 'start')
+        .movePointer([50, 50])
         .completeSession()
 
       const bindingId = state.bindings[0].id
@@ -137,8 +138,9 @@ describe('Move to page command', () => {
           { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
-        .startSession(SessionType.Arrow, [200, 200], 'start')
-        .updateSession([50, 50])
+        .movePointer([200, 200])
+        .startSession(SessionType.Arrow, 'arrow1', 'start')
+        .movePointer([50, 50])
         .completeSession()
 
       const bindingId = state.bindings[0].id

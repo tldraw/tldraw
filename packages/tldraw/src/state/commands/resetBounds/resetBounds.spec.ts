@@ -1,11 +1,10 @@
 import { TLBoundsCorner, Utils } from '@tldraw/core'
-import { TLDrawState } from '~state'
 import { TLDR } from '~state/TLDR'
-import { mockDocument } from '~test'
+import { mockDocument, TLDrawTestApp } from '~test'
 import { SessionType, TLDrawShapeType } from '~types'
 
 describe('Reset bounds command', () => {
-  const state = new TLDrawState()
+  const state = new TLDrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)
@@ -26,8 +25,9 @@ describe('Reset bounds command', () => {
 
     state
       .select('text1')
-      .startSession(SessionType.Transform, [0, 0], TLBoundsCorner.TopLeft)
-      .updateSession([-100, -100], false, false)
+      .movePointer([0, 0])
+      .startSession(SessionType.Transform, TLBoundsCorner.TopLeft)
+      .movePointer({ x: -100, y: -100, shiftKey: false, altKey: false })
       .completeSession()
 
     const scale = state.getShape('text1').style.scale

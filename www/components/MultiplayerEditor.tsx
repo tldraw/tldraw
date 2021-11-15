@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLDraw, TLDrawState, TLDrawDocument, TLDrawUser, useFileSystem } from '@tldraw/tldraw'
+import { TLDraw, TLDrawApp, TLDrawDocument, TLDrawUser, useFileSystem } from '@tldraw/tldraw'
 import * as React from 'react'
 import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useObject, useErrorListener } from '@liveblocks/react'
@@ -38,7 +38,7 @@ export default function MultiplayerEditor({
 function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: boolean }) {
   const [docId] = React.useState(() => Utils.uniqueId())
 
-  const [state, setState] = React.useState<TLDrawState>()
+  const [state, setState] = React.useState<TLDrawApp>()
 
   const [error, setError] = React.useState<Error>()
 
@@ -49,7 +49,7 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
   const doc = useObject<{ uuid: string; document: TLDrawDocument }>('doc', {
     uuid: docId,
     document: {
-      ...TLDrawState.defaultDocument,
+      ...TLDrawApp.defaultDocument,
       id: roomId,
     },
   })
@@ -132,7 +132,7 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
   }, [doc, docId, state, roomId])
 
   const handleMount = React.useCallback(
-    (state: TLDrawState) => {
+    (state: TLDrawApp) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       window.state = state
@@ -143,14 +143,14 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
   )
 
   const handlePersist = React.useCallback(
-    (state: TLDrawState) => {
+    (state: TLDrawApp) => {
       doc?.update({ uuid: docId, document: state.document })
     },
     [docId, doc]
   )
 
   const handleUserChange = React.useCallback(
-    (state: TLDrawState, user: TLDrawUser) => {
+    (state: TLDrawApp, user: TLDrawUser) => {
       const room = client.getRoom(roomId)
       room?.updatePresence({ id: state.state.room?.userId, user })
     },

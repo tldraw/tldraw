@@ -1,14 +1,15 @@
-import type { TLDrawSnapshot, TLDrawCommand, TLDrawPage } from '~types'
+import type { TLDrawCommand, TLDrawPage } from '~types'
 import { Utils, TLPageState } from '@tldraw/core'
+import type { TLDrawApp } from '~state'
 
 export function createPage(
-  data: TLDrawSnapshot,
+  app: TLDrawApp,
   center: number[],
   pageId = Utils.uniqueId()
 ): TLDrawCommand {
-  const { currentPageId } = data.appState
+  const { currentPageId } = app
 
-  const topPage = Object.values(data.document.pages).sort(
+  const topPage = Object.values(app.state.document.pages).sort(
     (a, b) => (b.childIndex || 0) - (a.childIndex || 0)
   )[0]
 

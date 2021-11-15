@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { strokes } from '~state/shapes/shape-styles'
+import { strokes } from '~state/shapes/shared/shape-styles'
 import { useTLDrawContext } from '~hooks'
 import { DMContent, DMTriggerIcon } from '~components/DropdownMenu'
 import { BoxIcon, CircleIcon } from '~components/icons'

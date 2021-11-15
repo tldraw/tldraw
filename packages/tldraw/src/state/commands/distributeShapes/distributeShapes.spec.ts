@@ -1,10 +1,9 @@
 import Vec from '@tldraw/vec'
-import { TLDrawState } from '~state'
-import { mockDocument, TLDrawStateUtils } from '~test'
-import { AlignType, DistributeType, TLDrawShapeType } from '~types'
+import { mockDocument, TLDrawTestApp } from '~test'
+import { DistributeType, TLDrawShapeType } from '~types'
 
 describe('Distribute command', () => {
-  const state = new TLDrawState()
+  const state = new TLDrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)
@@ -42,7 +41,7 @@ describe('Distribute command', () => {
 
 describe('when distributing groups', () => {
   it('distributes children', () => {
-    const state = new TLDrawState()
+    const state = new TLDrawTestApp()
       .createShapes(
         { id: 'rect1', type: TLDrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
         { id: 'rect2', type: TLDrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
@@ -57,12 +56,15 @@ describe('when distributing groups', () => {
     const p0 = state.getShape('rect4').point
     const p1 = state.getShape('rect3').point
 
-    state.undo().delete(['rect4']).selectAll().distribute(DistributeType.Vertical)
-
-    new TLDrawStateUtils(state).expectShapesToBeAtPoints({
-      rect1: p0,
-      rect2: Vec.add(p0, [100, 100]),
-      rect3: p1,
-    })
+    state
+      .undo()
+      .delete(['rect4'])
+      .selectAll()
+      .distribute(DistributeType.Vertical)
+      .expectShapesToBeAtPoints({
+        rect1: p0,
+        rect2: Vec.add(p0, [100, 100]),
+        rect3: p1,
+      })
   })
 })

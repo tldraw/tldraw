@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { ColorStyle, TLDraw, TLDrawShapeType, TLDrawState } from '@tldraw/tldraw'
+import { ColorStyle, TLDraw, TLDrawShapeType, TLDrawApp } from '@tldraw/tldraw'
 
 export default function Imperative(): JSX.Element {
-  const rTLDrawState = React.useRef<TLDrawState>()
+  const rTLDrawApp = React.useRef<TLDrawApp>()
 
-  const handleMount = React.useCallback((state: TLDrawState) => {
-    rTLDrawState.current = state
+  const handleMount = React.useCallback((state: TLDrawApp) => {
+    rTLDrawApp.current = state
 
     state.createShapes(
       {
@@ -30,7 +30,7 @@ export default function Imperative(): JSX.Element {
   React.useEffect(() => {
     let i = 0
     const interval = setInterval(() => {
-      const state = rTLDrawState.current!
+      const state = rTLDrawApp.current!
       const rect1 = state.getShape('rect1')
 
       if (!rect1) {

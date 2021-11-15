@@ -1,19 +1,19 @@
 import { FlipType } from '~types'
 import { TLBoundsCorner, Utils } from '@tldraw/core'
-import type { TLDrawSnapshot, TLDrawCommand } from '~types'
+import type { TLDrawCommand } from '~types'
+import type { TLDrawApp } from '../../internal'
 import { TLDR } from '~state/TLDR'
 
-export function flipShapes(data: TLDrawSnapshot, ids: string[], type: FlipType): TLDrawCommand {
-  const { currentPageId } = data.appState
-  const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
+export function flipShapes(app: TLDrawApp, ids: string[], type: FlipType): TLDrawCommand {
+  const { selectedIds, currentPageId, shapes } = app
 
-  const boundsForShapes = initialShapes.map((shape) => TLDR.getBounds(shape))
+  const boundsForShapes = shapes.map((shape) => TLDR.getBounds(shape))
 
   const commonBounds = Utils.getCommonBounds(boundsForShapes)
 
   const { before, after } = TLDR.mutateShapes(
-    data,
-    ids.filter((id) => !TLDR.getShape(data, id, currentPageId).isLocked),
+    app.state,
+    ids,
     (shape) => {
       const shapeBounds = TLDR.getBounds(shape)
 
@@ -62,11 +62,11 @@ export function flipShapes(data: TLDrawSnapshot, ids: string[], type: FlipType):
     before: {
       document: {
         pages: {
-          [data.appState.currentPageId]: { shapes: before },
+          [currentPageId]: { shapes: before },
         },
         pageStates: {
           [currentPageId]: {
-            selectedIds: ids,
+            selectedIds,
           },
         },
       },
@@ -74,7 +74,7 @@ export function flipShapes(data: TLDrawSnapshot, ids: string[], type: FlipType):
     after: {
       document: {
         pages: {
-          [data.appState.currentPageId]: { shapes: after },
+          [currentPageId]: { shapes: after },
         },
         pageStates: {
           [currentPageId]: {

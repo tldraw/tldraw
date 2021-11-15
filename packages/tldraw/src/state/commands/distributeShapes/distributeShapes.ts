@@ -1,27 +1,25 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
-import { DistributeType, TLDrawShape, TLDrawSnapshot, TLDrawCommand, TLDrawShapeType } from '~types'
+import { DistributeType, TLDrawShape, TLDrawCommand, TLDrawShapeType } from '~types'
 import { TLDR } from '~state/TLDR'
 import Vec from '@tldraw/vec'
+import type { TLDrawApp } from '../../internal'
 
 export function distributeShapes(
-  data: TLDrawSnapshot,
+  app: TLDrawApp,
   ids: string[],
   type: DistributeType
 ): TLDrawCommand {
-  const { currentPageId } = data.appState
+  const { currentPageId } = app
 
-  const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
+  const initialShapes = ids.map((id) => app.getShape(id))
 
   const deltaMap = Object.fromEntries(getDistributions(initialShapes, type).map((d) => [d.id, d]))
 
   const { before, after } = TLDR.mutateShapes(
-    data,
-    ids.filter((id) => !TLDR.getShape(data, id, currentPageId).isLocked),
-    (shape) => {
-      if (!deltaMap[shape.id]) return shape
-      return { point: deltaMap[shape.id].next }
-    },
+    app.state,
+    ids.filter((id) => deltaMap[id] !== undefined),
+    (shape) => ({ point: deltaMap[shape.id].next }),
     currentPageId
   )
 
@@ -30,7 +28,7 @@ export function distributeShapes(
       const delta = Vec.sub(after[shape.id].point!, before[shape.id].point!)
 
       shape.children.forEach((id) => {
-        const child = TLDR.getShape(data, id, currentPageId)
+        const child = app.getShape(id)
         before[child.id] = { point: child.point }
         after[child.id] = { point: Vec.add(child.point, delta) }
       })

@@ -1,9 +1,8 @@
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
+import { mockDocument, TLDrawTestApp } from '~test'
 import { SessionType, TLDrawShapeType } from '~types'
 
 describe('Delete command', () => {
-  const state = new TLDrawState()
+  const state = new TLDrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)
@@ -56,14 +55,15 @@ describe('Delete command', () => {
   })
 
   it('deletes bound shapes, undoes and redoes', () => {
-    new TLDrawState()
+    new TLDrawTestApp()
       .createShapes(
         { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
         { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
       )
       .select('arrow1')
-      .startSession(SessionType.Arrow, [200, 200], 'start')
-      .updateSession([50, 50])
+      .movePointer([200, 200])
+      .startSession(SessionType.Arrow, 'arrow1', 'start')
+      .movePointer([50, 50])
       .completeSession()
       .delete()
       .undo()
@@ -79,8 +79,9 @@ describe('Delete command', () => {
         type: TLDrawShapeType.Arrow,
       })
       .select('arrow1')
-      .startSession(SessionType.Arrow, [0, 0], 'start')
-      .updateSession([110, 110])
+      .movePointer([0, 0])
+      .startSession(SessionType.Arrow, 'arrow1', 'start')
+      .movePointer([110, 110])
       .completeSession()
 
     const binding = Object.values(state.page.bindings)[0]

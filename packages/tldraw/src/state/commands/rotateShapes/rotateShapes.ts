@@ -1,15 +1,16 @@
 import { Utils } from '@tldraw/core'
-import type { TLDrawCommand, TLDrawSnapshot, TLDrawShape } from '~types'
+import type { TLDrawCommand, TLDrawShape } from '~types'
 import { TLDR } from '~state/TLDR'
+import type { TLDrawApp } from '../../internal'
 
 const PI2 = Math.PI * 2
 
 export function rotateShapes(
-  data: TLDrawSnapshot,
+  app: TLDrawApp,
   ids: string[],
   delta = -PI2 / 4
 ): TLDrawCommand | void {
-  const { currentPageId } = data.appState
+  const { currentPageId } = app
 
   // The shapes for the before patch
   const before: Record<string, Partial<TLDrawShape>> = {}
@@ -21,10 +22,8 @@ export function rotateShapes(
   // We don't rotate groups: we rotate their children instead.
   const shapesToRotate = ids
     .flatMap((id) => {
-      const shape = TLDR.getShape(data, id, currentPageId)
-      return shape.children
-        ? shape.children.map((childId) => TLDR.getShape(data, childId, currentPageId))
-        : shape
+      const shape = app.getShape(id)
+      return shape.children ? shape.children.map((childId) => app.getShape(childId)) : shape
     })
     .filter((shape) => !shape.isLocked)
 

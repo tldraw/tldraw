@@ -12,23 +12,22 @@ export class StickyTool extends BaseTool {
 
   /* ----------------- Event Handlers ----------------- */
 
-  onPointerDown: TLPointerEventHandler = (info) => {
+  onPointerDown: TLPointerEventHandler = () => {
     if (this.status === Status.Creating) {
       this.setStatus(Status.Idle)
 
-      if (!this.state.appState.isToolLocked) {
-        this.state.selectTool('select')
+      if (!this.app.appState.isToolLocked) {
+        this.app.selectTool('select')
       }
 
       return
     }
 
     if (this.status === Status.Idle) {
-      const pagePoint = Vec.round(this.state.getPagePoint(info.point))
-
       const {
+        mutables: { currentPoint },
         appState: { currentPageId, currentStyle },
-      } = this.state
+      } = this.app
 
       const childIndex = this.getNextChildIndex()
 
@@ -40,7 +39,7 @@ export class StickyTool extends BaseTool {
         id,
         parentId: currentPageId,
         childIndex,
-        point: pagePoint,
+        point: currentPoint,
         style: { ...currentStyle },
       })
 
@@ -48,9 +47,9 @@ export class StickyTool extends BaseTool {
 
       newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
 
-      this.state.createShapes(newShape)
+      this.app.createShapes(newShape)
 
-      this.state.startSession(SessionType.Translate, pagePoint)
+      this.app.startSession(SessionType.Translate)
 
       this.setStatus(Status.Creating)
     }
@@ -59,9 +58,9 @@ export class StickyTool extends BaseTool {
   onPointerUp: TLPointerEventHandler = () => {
     if (this.status === Status.Creating) {
       this.setStatus(Status.Idle)
-      this.state.completeSession()
-      this.state.selectTool('select')
-      this.state.setEditingId(this.shapeId)
+      this.app.completeSession()
+      this.app.selectTool('select')
+      this.app.setEditingId(this.shapeId)
     }
   }
 }

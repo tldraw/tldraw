@@ -1,23 +1,21 @@
 import { Decoration } from '~types'
-import type { ArrowShape, TLDrawCommand, TLDrawSnapshot } from '~types'
-import { TLDR } from '~state/TLDR'
+import type { ArrowShape, TLDrawCommand } from '~types'
 import type { Patch } from 'rko'
+import type { TLDrawApp } from '../../internal'
 
 export function toggleShapesDecoration(
-  data: TLDrawSnapshot,
+  app: TLDrawApp,
   ids: string[],
   decorationId: 'start' | 'end'
 ): TLDrawCommand {
-  const { currentPageId } = data.appState
+  const { currentPageId, selectedIds } = app
 
   const beforeShapes: Record<string, Patch<ArrowShape>> = Object.fromEntries(
     ids.map((id) => [
       id,
       {
         decorations: {
-          [decorationId]: TLDR.getShape<ArrowShape>(data, id, currentPageId).decorations?.[
-            decorationId
-          ],
+          [decorationId]: app.getShape<ArrowShape>(id).decorations?.[decorationId],
         },
       },
     ])
@@ -25,14 +23,12 @@ export function toggleShapesDecoration(
 
   const afterShapes: Record<string, Patch<ArrowShape>> = Object.fromEntries(
     ids
-      .filter((id) => !TLDR.getShape(data, id, currentPageId).isLocked)
+      .filter((id) => !app.getShape(id).isLocked)
       .map((id) => [
         id,
         {
           decorations: {
-            [decorationId]: TLDR.getShape<ArrowShape>(data, id, currentPageId).decorations?.[
-              decorationId
-            ]
+            [decorationId]: app.getShape<ArrowShape>(id).decorations?.[decorationId]
               ? undefined
               : Decoration.Arrow,
           },
@@ -49,7 +45,7 @@ export function toggleShapesDecoration(
         },
         pageStates: {
           [currentPageId]: {
-            selectedIds: ids,
+            selectedIds,
           },
         },
       },

@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
+import { mockDocument, TLDrawTestApp } from '~test'
 import { GroupShape, TLDrawShape, TLDrawShapeType } from '~types'
 
 describe('Group command', () => {
-  const state = new TLDrawState()
+  const state = new TLDrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)

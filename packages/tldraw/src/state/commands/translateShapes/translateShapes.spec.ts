@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLDrawState } from '~state'
-import { mockDocument, TLDrawStateUtils } from '~test'
+import { mockDocument, TLDrawTestApp } from '~test'
 import { ArrowShape, SessionType, TLDrawShapeType } from '~types'
 
 describe('Translate command', () => {
-  const state = new TLDrawState()
+  const state = new TLDrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)
@@ -59,8 +58,9 @@ describe('Translate command', () => {
           }
         )
         .select('arrow1')
-        .startSession(SessionType.Arrow, [200, 200], 'start')
-        .updateSession([50, 50])
+        .movePointer([200, 200])
+        .startSession(SessionType.Arrow, 'arrow1', 'start')
+        .movePointer([50, 50])
         .completeSession()
 
       const bindingId = state.getShape<ArrowShape>('arrow1').handles.start.bindingId!
@@ -98,8 +98,9 @@ describe('Translate command', () => {
           }
         )
         .select('arrow1')
-        .startSession(SessionType.Arrow, [200, 200], 'start')
-        .updateSession([50, 50])
+        .movePointer([200, 200])
+        .startSession(SessionType.Arrow, 'arrow1', 'start')
+        .movePointer([50, 50])
         .completeSession()
 
       const bindingId = state.getShape<ArrowShape>('arrow1').handles.start.bindingId!
@@ -124,14 +125,13 @@ describe('Translate command', () => {
 
 describe('When nudging groups', () => {
   it('nudges children instead', () => {
-    const state = new TLDrawState()
+    new TLDrawTestApp()
       .loadDocument(mockDocument)
       .group(['rect1', 'rect2'], 'groupA')
       .nudge([1, 1])
-
-    new TLDrawStateUtils(state).expectShapesToBeAtPoints({
-      rect1: [1, 1],
-      rect2: [101, 101],
-    })
+      .expectShapesToBeAtPoints({
+        rect1: [1, 1],
+        rect2: [101, 101],
+      })
   })
 })

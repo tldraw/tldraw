@@ -1,5 +1,5 @@
 import { inputs, TLBoundsEdge, TLBoundsCorner, TLBoundsHandle } from '@tldraw/core'
-import type { TLDrawState } from '~state'
+import { TLDrawApp } from '~state'
 import type { TLDrawShape } from '~types'
 
 interface PointerOptions {
@@ -11,114 +11,102 @@ interface PointerOptions {
   ctrlKey?: boolean
 }
 
-export class TLDrawStateUtils {
-  state: TLDrawState
-
-  constructor(state: TLDrawState) {
-    this.state = state
-  }
-
-  movePointer = (options: PointerOptions = {}) => {
-    const { state } = this
-    state.onPointerMove(inputs.pointerMove(this.getPoint(options), ''), {} as React.PointerEvent)
-    return this
-  }
-
+export class TLDrawTestApp extends TLDrawApp {
   hoverShape = (id: string, options: PointerOptions = {}) => {
-    const { state } = this
-    state.onHoverShape(inputs.pointerDown(this.getPoint(options), id), {} as React.PointerEvent)
+    this.onHoverShape(inputs.pointerDown(this.getPoint(options), id), {} as React.PointerEvent)
     return this
   }
 
-  pointCanvas = (options: PointerOptions = {}) => {
-    this.state.onPointCanvas(
+  movePointer = (options?: PointerOptions | number[]) => {
+    this.onPointerMove(inputs.pointerMove(this.getPoint(options), ''), {} as React.PointerEvent)
+    return this
+  }
+
+  pointCanvas = (options?: PointerOptions | number[]) => {
+    this.onPointCanvas(
       inputs.pointerDown(this.getPoint(options), 'canvas'),
       {} as React.PointerEvent
     )
-    this.state.onPointerDown(
+    this.onPointerDown(
       inputs.pointerDown(this.getPoint(options), 'canvas'),
       {} as React.PointerEvent
     )
     return this
   }
 
-  pointShape = (id: string, options: PointerOptions = {}) => {
-    this.state.onPointShape(
+  pointShape = (id: string, options?: PointerOptions | number[]) => {
+    this.onPointShape(inputs.pointerDown(this.getPoint(options), id), {} as React.PointerEvent)
+    this.onPointerDown(
+      inputs.pointerDown(this.getPoint(options), 'canvas'),
+      {} as React.PointerEvent
+    )
+    return this
+  }
+
+  doubleClickShape = (id: string, options?: PointerOptions | number[]) => {
+    this.onPointerDown(
+      inputs.pointerDown(this.getPoint(options), 'canvas'),
+      {} as React.PointerEvent
+    )
+    this.onDoubleClickShape(
       inputs.pointerDown(this.getPoint(options), id),
       {} as React.PointerEvent
     )
-    this.state.onPointerDown(
-      inputs.pointerDown(this.getPoint(options), 'canvas'),
-      {} as React.PointerEvent
-    )
+    this.onPointerUp(inputs.pointerUp(this.getPoint(options), 'canvas'), {} as React.PointerEvent)
     return this
   }
 
-  doubleClickShape = (id: string, options: PointerOptions = {}) => {
-    this.state.onDoubleClickShape(
-      inputs.pointerDown(this.getPoint(options), id),
-      {} as React.PointerEvent
-    )
-    this.state.onPointerDown(
-      inputs.pointerDown(this.getPoint(options), 'canvas'),
-      {} as React.PointerEvent
-    )
-    return this
-  }
-
-  pointBounds = (options: PointerOptions = {}) => {
-    this.state.onPointBounds(
+  pointBounds = (options?: PointerOptions | number[]) => {
+    this.onPointBounds(
       inputs.pointerDown(this.getPoint(options), 'bounds'),
       {} as React.PointerEvent
     )
-    this.state.onPointerDown(
+    this.onPointerDown(
       inputs.pointerDown(this.getPoint(options), 'canvas'),
       {} as React.PointerEvent
     )
     return this
   }
 
-  pointBoundsHandle = (id: TLBoundsHandle, options: PointerOptions = {}) => {
-    this.state.onPointBoundsHandle(
+  pointBoundsHandle = (id: TLBoundsHandle, options?: PointerOptions | number[]) => {
+    this.onPointBoundsHandle(
       inputs.pointerDown(this.getPoint(options), id),
       {} as React.PointerEvent
     )
-    this.state.onPointerDown(
+    this.onPointerDown(
       inputs.pointerDown(this.getPoint(options), 'canvas'),
       {} as React.PointerEvent
     )
     return this
   }
 
-  doubleClickBoundHandle = (id: TLBoundsHandle, options: PointerOptions = {}) => {
-    this.state.onDoubleClickBoundsHandle(
+  doubleClickBoundHandle = (id: TLBoundsHandle, options?: PointerOptions | number[]) => {
+    this.onDoubleClickBoundsHandle(
       inputs.pointerDown(this.getPoint(options), id),
       {} as React.PointerEvent
     )
-    this.state.onPointerDown(
+    this.onPointerDown(
       inputs.pointerDown(this.getPoint(options), 'canvas'),
       {} as React.PointerEvent
     )
     return this
   }
 
-  stopPointing = (target = 'canvas', options: PointerOptions = {}) => {
-    this.state.onPointerUp(
-      inputs.pointerUp(this.getPoint(options), target),
-      {} as React.PointerEvent
-    )
+  stopPointing = (target = 'canvas', options?: PointerOptions | number[]) => {
+    this.onPointerUp(inputs.pointerUp(this.getPoint(options), target), {} as React.PointerEvent)
     return this
   }
 
-  clickCanvas = (options: PointerOptions = {}) => {
+  clickCanvas = (options?: PointerOptions | number[]) => {
     this.pointCanvas(options)
     this.stopPointing()
     return this
   }
 
-  clickShape = (id: string, options: PointerOptions = {}) => {
+  clickShape = (id: string, options?: PointerOptions | number[]) => {
     this.hoverShape(id)
     this.pointShape(id, options)
+    this.onReleaseShape(inputs.pointerUp(this.getPoint(options), id), {} as React.PointerEvent)
     this.stopPointing(id, options)
     return this
   }
@@ -138,8 +126,9 @@ export class TLDrawStateUtils {
     return this
   }
 
-  getPoint(options: PointerOptions = {} as PointerOptions): PointerEvent {
-    const { id = 1, x = 0, y = 0, shiftKey = false, altKey = false, ctrlKey = false } = options
+  getPoint(options: PointerOptions | number[] = {} as PointerOptions): PointerEvent {
+    const opts = Array.isArray(options) ? { x: options[0], y: options[1] } : options
+    const { id = 1, x = 0, y = 0, shiftKey = false, altKey = false, ctrlKey = false } = opts
 
     return {
       shiftKey,
@@ -152,20 +141,20 @@ export class TLDrawStateUtils {
   }
 
   expectSelectedIdsToBe = (b: string[]) => {
-    expect(new Set(this.state.selectedIds)).toEqual(new Set(b))
+    expect(new Set(this.selectedIds)).toEqual(new Set(b))
     return this
   }
 
   expectShapesToBeAtPoints = (shapes: Record<string, number[]>) => {
     Object.entries(shapes).forEach(([id, point]) => {
-      expect(this.state.getShape(id).point).toEqual(point)
+      expect(this.getShape(id).point).toEqual(point)
     })
     return this
   }
 
   expectShapesToHaveProps = <T extends TLDrawShape>(shapes: Record<string, Partial<T>>) => {
     Object.entries(shapes).forEach(([id, props]) => {
-      const shape = this.state.getShape<T>(id)
+      const shape = this.getShape<T>(id)
       Object.entries(props).forEach(([key, value]) => {
         expect(shape[key as keyof T]).toEqual(value)
       })

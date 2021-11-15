@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type { TLDrawState } from '~state'
+import type { TLDrawApp } from '~state'
 
 export function useFileSystem() {
-  const promptSaveBeforeChange = React.useCallback(async (state: TLDrawState) => {
+  const promptSaveBeforeChange = React.useCallback(async (state: TLDrawApp) => {
     if (state.isDirty) {
       if (state.fileSystemHandle) {
         if (window.confirm('Do you want to save changes to your current project?')) {
@@ -17,23 +17,23 @@ export function useFileSystem() {
   }, [])
 
   const onNewProject = React.useCallback(
-    async (state: TLDrawState) => {
+    async (state: TLDrawApp) => {
       await promptSaveBeforeChange(state)
       state.newProject()
     },
     [promptSaveBeforeChange]
   )
 
-  const onSaveProject = React.useCallback((state: TLDrawState) => {
+  const onSaveProject = React.useCallback((state: TLDrawApp) => {
     state.saveProject()
   }, [])
 
-  const onSaveProjectAs = React.useCallback((state: TLDrawState) => {
+  const onSaveProjectAs = React.useCallback((state: TLDrawApp) => {
     state.saveProjectAs()
   }, [])
 
   const onOpenProject = React.useCallback(
-    async (state: TLDrawState) => {
+    async (state: TLDrawApp) => {
       await promptSaveBeforeChange(state)
       state.openProject()
     },

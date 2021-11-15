@@ -1,51 +1,41 @@
 import { Vec } from '@tldraw/vec'
-import type { TLBounds } from '@tldraw/core'
-import { SessionType, ShapesWithProp, TLDrawStatus } from '~types'
-import { Session } from '~types'
-import type { TLDrawSnapshot } from '~types'
+import { SessionType, ShapesWithProp, TLDrawCommand, TLDrawPatch, TLDrawStatus } from '~types'
 import { TLDR } from '~state/TLDR'
+import { BaseSession } from '../BaseSession'
+import type { TLDrawApp } from '../../internal'
 
-export class HandleSession extends Session {
-  static type = SessionType.Handle
+export class HandleSession extends BaseSession {
+  type = SessionType.Handle
   status = TLDrawStatus.TranslatingHandle
   commandId: string
-  delta = [0, 0]
   topLeft: number[]
-  origin: number[]
   shiftKey = false
   initialShape: ShapesWithProp<'handles'>
   handleId: string
 
-  constructor(
-    data: TLDrawSnapshot,
-    viewport: TLBounds,
-    point: number[],
-    handleId: string,
-    commandId = 'move_handle'
-  ) {
-    super(viewport)
-    const { currentPageId } = data.appState
-    const shapeId = TLDR.getSelectedIds(data, currentPageId)[0]
-    this.topLeft = point
-    this.origin = point
+  constructor(app: TLDrawApp, shapeId: string, handleId: string, commandId = 'move_handle') {
+    super(app)
+    const {
+      mutables: { originPoint },
+    } = app
+    this.topLeft = [...originPoint]
     this.handleId = handleId
-    this.initialShape = TLDR.getShape(data, shapeId, currentPageId)
+    this.initialShape = this.app.getShape(shapeId)
     this.commandId = commandId
   }
 
-  start = () => void null
+  start = (): TLDrawPatch | undefined => void null
 
-  update = (
-    data: TLDrawSnapshot,
-    point: number[],
-    shiftKey = false,
-    altKey = false,
-    metaKey = false
-  ) => {
-    const { initialShape } = this
-    const { currentPageId } = data.appState
+  update = (): TLDrawPatch | undefined => {
+    const {
+      initialShape,
+      app: {
+        currentPageId,
+        mutables: { currentPoint, shiftKey, altKey, metaKey },
+      },
+    } = this
 
-    const shape = TLDR.getShape<ShapesWithProp<'handles'>>(data, initialShape.id, currentPageId)
+    const shape = this.app.getShape<ShapesWithProp<'handles'>>(initialShape.id)
 
     if (shape.isLocked) return void null
 
@@ -53,7 +43,7 @@ export class HandleSession extends Session {
 
     const handleId = this.handleId as keyof typeof handles
 
-    const delta = Vec.sub(point, handles[handleId].point)
+    const delta = Vec.sub(currentPoint, handles[handleId].point)
 
     const handle = {
       ...handles[handleId],
@@ -70,7 +60,7 @@ export class HandleSession extends Session {
       { delta, shiftKey, altKey, metaKey }
     )
 
-    if (!change) return data
+    if (!change) return
 
     return {
       document: {
@@ -85,9 +75,11 @@ export class HandleSession extends Session {
     }
   }
 
-  cancel = (data: TLDrawSnapshot) => {
-    const { initialShape } = this
-    const { currentPageId } = data.appState
+  cancel = (): TLDrawPatch | undefined => {
+    const {
+      initialShape,
+      app: { currentPageId },
+    } = this
 
     return {
       document: {
@@ -102,16 +94,18 @@ export class HandleSession extends Session {
     }
   }
 
-  complete = (data: TLDrawSnapshot) => {
-    const { initialShape } = this
-    const pageId = data.appState.currentPageId
+  complete = (): TLDrawPatch | TLDrawCommand | undefined => {
+    const {
+      initialShape,
+      app: { currentPageId },
+    } = this
 
     return {
       id: this.commandId,
       before: {
         document: {
           pages: {
-            [pageId]: {
+            [currentPageId]: {
               shapes: {
                 [initialShape.id]: initialShape,
               },
@@ -122,11 +116,9 @@ export class HandleSession extends Session {
       after: {
         document: {
           pages: {
-            [pageId]: {
+            [currentPageId]: {
               shapes: {
-                [initialShape.id]: TLDR.onSessionComplete(
-                  TLDR.getShape(data, this.initialShape.id, pageId)
-                ),
+                [initialShape.id]: TLDR.onSessionComplete(this.app.getShape(this.initialShape.id)),
               },
             },
           },

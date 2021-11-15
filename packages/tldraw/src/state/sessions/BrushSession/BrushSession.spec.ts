@@ -1,59 +1,63 @@
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
+import { mockDocument, TLDrawTestApp } from '~test'
 import { SessionType, TLDrawStatus } from '~types'
 
 describe('Brush session', () => {
   it('begins, updateSession', () => {
-    const state = new TLDrawState()
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .selectNone()
-      .startSession(SessionType.Brush, [-10, -10])
-      .updateSession([10, 10])
+      .movePointer([-10, -10])
+      .startSession(SessionType.Brush)
+      .movePointer([10, 10])
       .completeSession()
     expect(state.appState.status).toBe(TLDrawStatus.Idle)
     expect(state.selectedIds.length).toBe(1)
   })
 
   it('selects multiple shapes', () => {
-    const state = new TLDrawState()
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .selectNone()
-      .startSession(SessionType.Brush, [-10, -10])
-      .updateSession([110, 110])
+      .movePointer([-10, -10])
+      .startSession(SessionType.Brush)
+      .movePointer([110, 110])
       .completeSession()
     expect(state.selectedIds.length).toBe(3)
   })
 
-  it('does not de-select original shapes', () => {
-    const state = new TLDrawState()
+  it('does not de-select original shapes when shift selecting', () => {
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .selectNone()
       .select('rect1')
-      .startSession(SessionType.Brush, [300, 300])
-      .updateSession([301, 301])
+      .pointCanvas({ x: 300, y: 300, shiftKey: true })
+      .startSession(SessionType.Brush)
+      .movePointer({ x: 301, y: 301, shiftKey: true })
       .completeSession()
     expect(state.selectedIds.length).toBe(1)
   })
 
-  // it('does not select hidden shapes', () => {
-  //   const state = new TLDrawState()
-  //     .loadDocument(mockDocument)
-  //     .selectNone()
-  //     .toggleHidden(['rect1'])
-  //     .selectNone()
-  //     .startSession(SessionType.Brush, [-10, -10])
-  //     .updateSession([10, 10])
-  //     .completeSession()
-  // })
+  it('does not select locked shapes', () => {
+    const state = new TLDrawTestApp()
+      .loadDocument(mockDocument)
+      .selectNone()
+      .toggleLocked(['rect1'])
+      .selectNone()
+      .pointCanvas({ x: -10, y: -10, shiftKey: true })
+      .movePointer([-10, -10])
+      .completeSession()
+    expect(state.selectedIds.length).toBe(0)
+  })
 
   it('when command is held, require the entire shape to be selected', () => {
-    const state = new TLDrawState()
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .selectNone()
       .loadDocument(mockDocument)
       .selectNone()
-      .startSession(SessionType.Brush, [-10, -10])
-      .updateSession([10, 10], false, false, true)
+      .movePointer([-10, -10])
+      .startSession(SessionType.Brush)
+      .movePointer({ x: 10, y: 10, shiftKey: false, altKey: false, ctrlKey: true })
       .completeSession()
 
     expect(state.selectedIds.length).toBe(0)

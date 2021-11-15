@@ -1,10 +1,8 @@
-import { TLDR } from '~state/TLDR'
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
-import { ArrowShape, Decoration, TLDrawShape, TLDrawShapeType } from '~types'
+import { mockDocument, TLDrawTestApp } from '~test'
+import { ArrowShape, Decoration, TLDrawShapeType } from '~types'
 
 describe('Toggle decoration command', () => {
-  const state = new TLDrawState()
+  const state = new TLDrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)

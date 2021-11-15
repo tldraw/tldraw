@@ -1,11 +1,12 @@
-import { MoveType, TLDrawSnapshot, TLDrawShape, TLDrawCommand } from '~types'
+import { MoveType, TLDrawShape, TLDrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
+import type { TLDrawApp } from '../../internal'
 
-export function reorderShapes(data: TLDrawSnapshot, ids: string[], type: MoveType): TLDrawCommand {
-  const { currentPageId } = data.appState
+export function reorderShapes(app: TLDrawApp, ids: string[], type: MoveType): TLDrawCommand {
+  const { currentPageId, page } = app
 
   // Get the unique parent ids for the selected elements
-  const parentIds = new Set(ids.map((id) => TLDR.getShape(data, id, currentPageId).parentId))
+  const parentIds = new Set(ids.map((id) => app.getShape(id).parentId))
 
   let result: {
     before: Record<string, Partial<TLDrawShape>>
@@ -16,19 +17,17 @@ export function reorderShapes(data: TLDrawSnapshot, ids: string[], type: MoveTyp
   let startChildIndex: number
   let step: number
 
-  const page = TLDR.getPage(data, currentPageId)
-
   // Collect shapes with common parents into a table under their parent id
   Array.from(parentIds.values()).forEach((parentId) => {
     let sortedChildren: TLDrawShape[] = []
     if (parentId === page.id) {
       sortedChildren = Object.values(page.shapes).sort((a, b) => a.childIndex - b.childIndex)
     } else {
-      const parent = TLDR.getShape(data, parentId, currentPageId)
+      const parent = app.getShape(parentId)
       if (!parent.children) throw Error('No children in parent!')
 
       sortedChildren = parent.children
-        .map((childId) => TLDR.getShape(data, childId, currentPageId))
+        .map((childId) => app.getShape(childId))
         .sort((a, b) => a.childIndex - b.childIndex)
     }
 
@@ -63,7 +62,7 @@ export function reorderShapes(data: TLDrawSnapshot, ids: string[], type: MoveTyp
 
         // Get the results of moving the selected shapes below the first open index's shape
         result = TLDR.mutateShapes(
-          data,
+          app.state,
           sortedIndicesToMove.map((i) => sortedChildren[i].id).reverse(),
           (_shape, i) => ({
             childIndex: startChildIndex - (i + 1) * step,
@@ -94,7 +93,7 @@ export function reorderShapes(data: TLDrawSnapshot, ids: string[], type: MoveTyp
 
         // Get the results of moving the selected shapes below the first open index's shape
         result = TLDR.mutateShapes(
-          data,
+          app.state,
           sortedIndicesToMove.map((i) => sortedChildren[i].id),
           (_shape, i) => ({
             childIndex: startChildIndex + (i + 1),
@@ -153,7 +152,7 @@ export function reorderShapes(data: TLDrawSnapshot, ids: string[], type: MoveTyp
         if (Object.values(indexMap).length > 0) {
           // Get the results of moving the selected shapes below the first open index's shape
           result = TLDR.mutateShapes(
-            data,
+            app.state,
             sortedIndicesToMove.map((i) => sortedChildren[i].id),
             (shape) => ({
               childIndex: indexMap[shape.id],
@@ -202,7 +201,7 @@ export function reorderShapes(data: TLDrawSnapshot, ids: string[], type: MoveTyp
         if (Object.values(indexMap).length > 0) {
           // Get the results of moving the selected shapes below the first open index's shape
           result = TLDR.mutateShapes(
-            data,
+            app.state,
             sortedIndicesToMove.map((i) => sortedChildren[i].id),
             (shape) => ({
               childIndex: indexMap[shape.id],

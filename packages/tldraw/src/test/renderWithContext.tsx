@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
-import { TLDrawState } from '~state'
+import { TLDrawApp } from '~state'
 import { useKeyboardShortcuts, TLDrawContext } from '~hooks'
 import { mockDocument } from './mockDocument'
 import { render } from '@testing-library/react'
 
 export const Wrapper: React.FC = ({ children }) => {
-  const [state] = React.useState(() => new TLDrawState())
+  const [state] = React.useState(() => new TLDrawApp())
   const [context] = React.useState(() => {
     return { state, useSelector: state.useStore, callbacks: {} }
   })

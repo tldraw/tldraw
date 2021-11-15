@@ -1,22 +1,21 @@
-import type { TLDrawShape, TLDrawSnapshot, TLDrawCommand } from '~types'
+import type { TLDrawShape, TLDrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
+import type { TLDrawApp } from '~state'
 
 export function toggleShapeProp(
-  data: TLDrawSnapshot,
+  app: TLDrawApp,
   ids: string[],
   prop: keyof TLDrawShape
 ): TLDrawCommand {
-  const { currentPageId } = data.appState
+  const { currentPageId } = app
 
-  const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
+  const initialShapes = ids.map((id) => app.getShape(id))
 
   const isAllToggled = initialShapes.every((shape) => shape[prop])
 
   const { before, after } = TLDR.mutateShapes(
-    data,
-    ids.filter((id) =>
-      prop === 'isLocked' ? true : !TLDR.getShape(data, id, currentPageId).isLocked
-    ),
+    app.state,
+    ids.filter((id) => (prop === 'isLocked' ? true : !app.getShape(id).isLocked)),
     () => ({
       [prop]: !isAllToggled,
     }),

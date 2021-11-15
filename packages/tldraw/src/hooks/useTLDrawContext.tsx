@@ -1,10 +1,10 @@
 import * as React from 'react'
 import type { TLDrawSnapshot } from '~types'
 import type { UseBoundStore } from 'zustand'
-import type { TLDrawState } from '~state'
+import type { TLDrawApp } from '~state'
 
 export interface TLDrawContextType {
-  state: TLDrawState
+  state: TLDrawApp
   useSelector: UseBoundStore<TLDrawSnapshot>
 }
 

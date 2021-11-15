@@ -1,16 +1,12 @@
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
+import { mockDocument, TLDrawTestApp } from '~test'
 import { GroupShape, SessionType, TLDrawShapeType, TLDrawStatus } from '~types'
 
 describe('Translate session', () => {
-  const state = new TLDrawState()
-
   it('begins, updateSession', () => {
-    state
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
-      .select('rect1')
-      .startSession(SessionType.Translate, [5, 5])
-      .updateSession([10, 10])
+      .pointShape('rect1', [5, 5])
+      .movePointer([10, 10])
 
     expect(state.getShape('rect1').point).toStrictEqual([5, 5])
 
@@ -30,44 +26,43 @@ describe('Translate session', () => {
   })
 
   it('cancels session', () => {
-    state
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startSession(SessionType.Translate, [5, 5])
-      .updateSession([10, 10])
+      .pointBounds([5, 5])
+      .movePointer([10, 10])
       .cancelSession()
 
     expect(state.getShape('rect1').point).toStrictEqual([0, 0])
   })
 
   it('moves a single shape', () => {
-    state
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
-      .select('rect1')
-      .startSession(SessionType.Translate, [10, 10])
-      .updateSession([20, 20])
+      .pointShape('rect1', [10, 10])
+      .movePointer([20, 20])
       .completeSession()
 
     expect(state.getShape('rect1').point).toStrictEqual([10, 10])
   })
 
   it('moves a single shape along a locked axis', () => {
-    state
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1')
-      .startSession(SessionType.Translate, [10, 10])
-      .updateSession([20, 20], true)
+      .pointShape('rect1', [10, 10])
+      .movePointer({ x: 20, y: 20, shiftKey: true })
       .completeSession()
 
     expect(state.getShape('rect1').point).toStrictEqual([10, 0])
   })
 
   it('moves two shapes', () => {
-    state
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startSession(SessionType.Translate, [10, 10])
-      .updateSession([20, 20])
+      .pointBounds([10, 10])
+      .movePointer([20, 20])
       .completeSession()
 
     expect(state.getShape('rect1').point).toStrictEqual([10, 10])
@@ -75,11 +70,11 @@ describe('Translate session', () => {
   })
 
   it('undos and redos clones', () => {
-    state
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startSession(SessionType.Translate, [10, 10])
-      .updateSession([20, 20], false, true)
+      .pointBounds([10, 10])
+      .movePointer({ x: 20, y: 20, altKey: true })
       .completeSession()
 
     expect(state.getShape('rect1').point).toStrictEqual([0, 0])
@@ -97,11 +92,11 @@ describe('Translate session', () => {
   })
 
   it('clones shapes', () => {
-    state
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startSession(SessionType.Translate, [10, 10])
-      .updateSession([20, 20], false, true)
+      .pointBounds([10, 10])
+      .movePointer({ x: 20, y: 20, altKey: true })
       .completeSession()
 
     expect(state.getShape('rect1').point).toStrictEqual([0, 0])
@@ -111,18 +106,15 @@ describe('Translate session', () => {
   })
 
   it('destroys clones when last update is not cloning', () => {
-    state.resetDocument().loadDocument(mockDocument)
+    const state = new TLDrawTestApp().loadDocument(mockDocument)
 
     expect(Object.keys(state.getPage().shapes).length).toBe(3)
 
-    state
-      .select('rect1', 'rect2')
-      .startSession(SessionType.Translate, [10, 10])
-      .updateSession([20, 20], false, true)
+    state.select('rect1', 'rect2').pointBounds([10, 10]).movePointer({ x: 20, y: 20, altKey: true })
 
     expect(Object.keys(state.getPage().shapes).length).toBe(5)
 
-    state.updateSession([30, 30], false, false)
+    state.movePointer({ x: 30, y: 30 })
 
     expect(Object.keys(state.getPage().shapes).length).toBe(3)
 
@@ -136,7 +128,7 @@ describe('Translate session', () => {
   })
 
   it('destroys bindings from the translating shape', () => {
-    state
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .selectAll()
       .delete()
@@ -156,17 +148,14 @@ describe('Translate session', () => {
         }
       )
       .select('arrow1')
-      .startSession(SessionType.Arrow, [200, 200], 'start')
-      .updateSession([50, 50])
+      .movePointer([200, 200])
+      .startSession(SessionType.Arrow, 'arrow1', 'start')
+      .movePointer([50, 50])
       .completeSession()
 
     expect(state.bindings.length).toBe(1)
 
-    state
-      .select('arrow1')
-      .startSession(SessionType.Translate, [10, 10])
-      .updateSession([30, 30])
-      .completeSession()
+    state.pointShape('arrow1', [10, 10]).movePointer([30, 30]).completeSession()
 
     // expect(state.bindings.length).toBe(0)
     // expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(undefined)
@@ -186,18 +175,17 @@ describe('Translate session', () => {
 
   describe('when translating a child of a group', () => {
     it('translates the shape and updates the groups size / point', () => {
-      state
+      const state = new TLDrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
         .group(['rect1', 'rect2'], 'groupA')
-        .select('rect1')
-        .startSession(SessionType.Translate, [10, 10])
-        .updateSession([20, 20], false, false)
+        .pointShape('rect1', [10, 10])
+        .movePointer({ x: 20, y: 20 })
         .completeSession()
 
       expect(state.getShape('groupA').point).toStrictEqual([10, 10])
       expect(state.getShape('rect1').point).toStrictEqual([10, 10])
-      expect(state.getShape('rect2').point).toStrictEqual([100, 100])
+      expect(state.getShape('rect2').point).toStrictEqual([110, 110])
 
       state.undo()
 
@@ -209,17 +197,18 @@ describe('Translate session', () => {
 
       expect(state.getShape('groupA').point).toStrictEqual([10, 10])
       expect(state.getShape('rect1').point).toStrictEqual([10, 10])
-      expect(state.getShape('rect2').point).toStrictEqual([100, 100])
+      expect(state.getShape('rect2').point).toStrictEqual([110, 110])
     })
 
     it('clones the shape and updates the parent', () => {
-      state
+      const state = new TLDrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
         .group(['rect1', 'rect2'], 'groupA')
-        .select('rect1')
-        .startSession(SessionType.Translate, [10, 10])
-        .updateSession([20, 20], false, true)
+        .doubleClickShape('rect1')
+        .pointShape('rect1', [10, 10])
+        .movePointer({ x: 10, y: 10, altKey: true })
+        .movePointer({ x: 20, y: 20, altKey: true })
         .completeSession()
 
       const children = state.getShape<GroupShape>('groupA').children
@@ -253,12 +242,12 @@ describe('Translate session', () => {
 
   describe('when translating a shape with children', () => {
     it('translates the shapes children', () => {
-      state
+      const state = new TLDrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
         .group(['rect1', 'rect2'], 'groupA')
-        .startSession(SessionType.Translate, [10, 10])
-        .updateSession([20, 20], false, false)
+        .pointShape('groupA', [10, 10])
+        .movePointer({ x: 20, y: 20 })
         .completeSession()
 
       expect(state.getShape('groupA').point).toStrictEqual([10, 10])
@@ -279,50 +268,50 @@ describe('Translate session', () => {
     })
 
     it('clones the shapes and children', () => {
-      state
+      new TLDrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
-        .group()
-        .startSession(SessionType.Translate, [10, 10])
-        .updateSession([20, 20], false, true)
+        .group(['rect1', 'rect2'], 'groupA')
+        .pointShape('groupA', [10, 10])
+        .movePointer({ x: 20, y: 20, altKey: true })
         .completeSession()
     })
 
     it('deletes clones when not cloning anymore', () => {
-      state
+      const state = new TLDrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
-        .group()
-        .startSession(SessionType.Translate, [10, 10])
-        .updateSession([20, 20], false, true)
-        .updateSession([20, 20], false, false)
-        .updateSession([20, 20], false, true)
+        .group(['rect1', 'rect2'], 'groupA')
+        .pointShape('groupA', [10, 10])
+        .movePointer({ x: 20, y: 20, altKey: true })
+        .movePointer({ x: 20, y: 20, altKey: false })
+        .movePointer({ x: 20, y: 20, altKey: true })
         .completeSession()
 
       expect(state.shapes.filter((shape) => shape.type === TLDrawShapeType.Group).length).toBe(2)
     })
 
     it('deletes clones when not cloning anymore', () => {
-      state
+      const state = new TLDrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
-        .group()
-        .startSession(SessionType.Translate, [10, 10])
-        .updateSession([20, 20], false, true)
-        .updateSession([20, 20], false, false)
+        .group(['rect1', 'rect2'], 'groupA')
+        .pointShape('groupA', [10, 10])
+        .movePointer({ x: 20, y: 20, altKey: true })
+        .movePointer({ x: 20, y: 20, altKey: false })
         .completeSession()
 
       expect(state.shapes.filter((shape) => shape.type === TLDrawShapeType.Group).length).toBe(1)
     })
 
     it('clones the shapes and children when selecting a group and a different shape', () => {
-      state
+      const state = new TLDrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
         .group(['rect1', 'rect2'], 'groupA')
         .select('groupA', 'rect3')
-        .startSession(SessionType.Translate, [10, 10])
-        .updateSession([20, 20], false, true)
+        .pointBounds([10, 10])
+        .movePointer({ x: 20, y: 20, altKey: true })
         .completeSession()
     })
   })
@@ -330,15 +319,17 @@ describe('Translate session', () => {
 
 describe('When creating with a translate session', () => {
   it('Deletes the shape on undo', () => {
-    const state = new TLDrawState()
-      .loadDocument(mockDocument)
-      .select('rect1')
-      .startSession(SessionType.Translate, [5, 5], true)
-      .updateSession([10, 10])
+    const state = new TLDrawTestApp()
+      .selectTool(TLDrawShapeType.Rectangle)
+      .pointCanvas([0, 0])
+      .movePointer([10, 10])
       .completeSession()
-      .undo()
 
-    expect(state.getShape('rect1')).toBe(undefined)
+    expect(state.shapes.length).toBe(1)
+
+    state.undo()
+
+    expect(state.shapes.length).toBe(0)
   })
 })
 

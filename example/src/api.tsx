@@ -1,11 +1,11 @@
 import * as React from 'react'
-import { TLDraw, TLDrawState, TLDrawShapeType, ColorStyle } from '@tldraw/tldraw'
+import { TLDraw, TLDrawApp, TLDrawShapeType, ColorStyle } from '@tldraw/tldraw'
 
 export default function Api(): JSX.Element {
-  const rTLDrawState = React.useRef<TLDrawState>()
+  const rTLDrawApp = React.useRef<TLDrawApp>()
 
-  const handleMount = React.useCallback((state: TLDrawState) => {
-    rTLDrawState.current = state
+  const handleMount = React.useCallback((state: TLDrawApp) => {
+    rTLDrawApp.current = state
 
     state
       .createShapes({

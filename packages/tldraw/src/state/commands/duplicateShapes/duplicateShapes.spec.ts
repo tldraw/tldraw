@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
-import { TLDrawState } from '~state'
 import { TLDR } from '~state/TLDR'
-import { mockDocument } from '~test'
+import { mockDocument, TLDrawTestApp } from '~test'
 import { ArrowShape, SessionType, TLDrawShapeType } from '~types'
 
 describe('Duplicate command', () => {
-  const state = new TLDrawState()
+  const state = new TLDrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)
@@ -64,8 +63,9 @@ describe('Duplicate command', () => {
 
       state
         .select('arrow1')
-        .startSession(SessionType.Arrow, [200, 200], 'start')
-        .updateSession([50, 50])
+        .movePointer([200, 200])
+        .startSession(SessionType.Arrow, 'arrow1', 'start')
+        .movePointer([50, 50])
         .completeSession()
 
       const beforeArrow = state.getShape<ArrowShape>('arrow1')
@@ -104,8 +104,9 @@ describe('Duplicate command', () => {
 
       state
         .select('arrow1')
-        .startSession(SessionType.Arrow, [200, 200], 'start')
-        .updateSession([50, 50])
+        .movePointer([200, 200])
+        .startSession(SessionType.Arrow, 'arrow1', 'start')
+        .movePointer([50, 50])
         .completeSession()
 
       const oldBindingId = state.getShape<ArrowShape>('arrow1').handles.start.bindingId
@@ -176,7 +177,7 @@ describe('Duplicate command', () => {
 
 describe('when point-duplicating', () => {
   it('duplicates without crashing', () => {
-    const state = new TLDrawState()
+    const state = new TLDrawTestApp()
 
     state
       .loadDocument(mockDocument)
@@ -186,7 +187,7 @@ describe('when point-duplicating', () => {
   })
 
   it('duplicates in the correct place', () => {
-    const state = new TLDrawState()
+    const state = new TLDrawTestApp()
 
     state.loadDocument(mockDocument).group(['rect1', 'rect2']).selectAll()
 

@@ -3,7 +3,9 @@ import * as React from 'react'
 const styles = new Map<string, HTMLStyleElement>()
 
 const UID = `tldraw-fonts`
-const CSS = `@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&display=swap')`
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&display=swap')
+`
 
 export function useStylesheet() {
   React.useLayoutEffect(() => {

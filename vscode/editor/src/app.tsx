@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { TLDraw, TLDrawState, TLDrawFile, TLDrawDocument } from '@tldraw/tldraw'
+import { TLDraw, TLDrawApp, TLDrawFile, TLDrawDocument } from '@tldraw/tldraw'
 import { vscode } from './utils/vscode'
 import { defaultDocument } from './utils/defaultDocument'
 import type { MessageFromExtension, MessageFromWebview } from './types'
@@ -9,18 +9,18 @@ import type { MessageFromExtension, MessageFromWebview } from './types'
 declare let currentFile: TLDrawFile
 
 export default function App(): JSX.Element {
-  const rTLDrawState = React.useRef<TLDrawState>()
+  const rTLDrawApp = React.useRef<TLDrawApp>()
   const rInitialDocument = React.useRef<TLDrawDocument>(
     currentFile ? currentFile.document : defaultDocument
   )
 
   // When the editor mounts, save the state instance in a ref.
-  const handleMount = React.useCallback((state: TLDrawState) => {
-    rTLDrawState.current = state
+  const handleMount = React.useCallback((state: TLDrawApp) => {
+    rTLDrawApp.current = state
   }, [])
 
   // When the editor's document changes, post the stringified document to the vscode extension.
-  const handlePersist = React.useCallback((state: TLDrawState) => {
+  const handlePersist = React.useCallback((state: TLDrawApp) => {
     vscode.postMessage({
       type: 'editorUpdated',
       text: JSON.stringify({
@@ -37,7 +37,7 @@ export default function App(): JSX.Element {
       if (data.type === 'openedFile') {
         try {
           const { document } = JSON.parse(data.text) as TLDrawFile
-          const state = rTLDrawState.current!
+          const state = rTLDrawApp.current!
           state.updateDocument(document)
         } catch (e) {
           console.warn('Failed to parse file:', data.text)

@@ -1,20 +1,17 @@
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
+import { mockDocument, TLDrawTestApp } from '~test'
 import { TLBoundsCorner, Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
-import { SessionType, TLDrawStatus } from '~types'
+import { SessionType, TLDrawShapeType, TLDrawStatus } from '~types'
 
-function getShapeBounds(state: TLDrawState, ...ids: string[]) {
+function getShapeBounds(state: TLDrawTestApp, ...ids: string[]) {
   return Utils.getCommonBounds(
     (ids.length ? ids : state.selectedIds).map((id) => TLDR.getBounds(state.getShape(id)))
   )
 }
 
 describe('Transform session', () => {
-  const state = new TLDrawState()
-
   it('begins, updateSession', () => {
-    state.loadDocument(mockDocument)
+    const state = new TLDrawTestApp().loadDocument(mockDocument)
 
     expect(getShapeBounds(state, 'rect1')).toMatchObject({
       minX: 0,
@@ -27,8 +24,8 @@ describe('Transform session', () => {
 
     state
       .select('rect1', 'rect2')
-      .startSession(SessionType.Transform, [0, 0], TLBoundsCorner.TopLeft)
-      .updateSession([10, 10])
+      .pointBoundsHandle(TLBoundsCorner.TopLeft, { x: 0, y: 0 })
+      .movePointer([10, 10])
       .completeSession()
 
     expect(state.appState.status).toBe(TLDrawStatus.Idle)
@@ -57,11 +54,11 @@ describe('Transform session', () => {
   })
 
   it('cancels session', () => {
-    state
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startSession(SessionType.Transform, [5, 5], TLBoundsCorner.TopLeft)
-      .updateSession([10, 10])
+      .pointBoundsHandle(TLBoundsCorner.TopLeft, { x: 5, y: 5 })
+      .movePointer([10, 10])
       .cancelSession()
 
     expect(state.getShape('rect1').point).toStrictEqual([0, 0])
@@ -69,11 +66,11 @@ describe('Transform session', () => {
 
   describe('when transforming from the top-left corner', () => {
     it('transforms a single shape', () => {
-      state
+      const state = new TLDrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1')
-        .startSession(SessionType.Transform, [0, 0], TLBoundsCorner.TopLeft)
-        .updateSession([10, 10])
+        .pointBoundsHandle(TLBoundsCorner.TopLeft, { x: 0, y: 0 })
+        .movePointer([10, 10])
         .completeSession()
 
       expect(getShapeBounds(state)).toMatchObject({
@@ -87,11 +84,11 @@ describe('Transform session', () => {
     })
 
     it('transforms a single shape while holding shift', () => {
-      state
+      const state = new TLDrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1')
-        .startSession(SessionType.Transform, [0, 0], TLBoundsCorner.TopLeft)
-        .updateSession([20, 10], true)
+        .pointBoundsHandle(TLBoundsCorner.TopLeft, { x: 0, y: 0 })
+        .movePointer({ x: 20, y: 10, shiftKey: true })
         .completeSession()
 
       expect(getShapeBounds(state, 'rect1')).toMatchObject({
@@ -105,11 +102,11 @@ describe('Transform session', () => {
     })
 
     it('transforms multiple shapes', () => {
-      state
+      const state = new TLDrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
-        .startSession(SessionType.Transform, [0, 0], TLBoundsCorner.TopLeft)
-        .updateSession([10, 10])
+        .pointBoundsHandle(TLBoundsCorner.TopLeft, { x: 0, y: 0 })
+        .movePointer([10, 10])
         .completeSession()
 
       expect(getShapeBounds(state, 'rect1')).toMatchObject({
@@ -132,11 +129,11 @@ describe('Transform session', () => {
     })
 
     it('transforms multiple shapes while holding shift', () => {
-      state
+      const state = new TLDrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
-        .startSession(SessionType.Transform, [0, 0], TLBoundsCorner.TopLeft)
-        .updateSession([20, 10], true)
+        .pointBoundsHandle(TLBoundsCorner.TopLeft, { x: 0, y: 0 })
+        .movePointer({ x: 20, y: 10, shiftKey: true })
         .completeSession()
 
       expect(getShapeBounds(state, 'rect1')).toMatchObject({
@@ -189,13 +186,12 @@ describe('Transform session', () => {
 
   describe('when transforming a group', () => {
     it('transforms the groups children', () => {
-      const state = new TLDrawState()
-      state
+      const state = new TLDrawTestApp()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .select('groupA')
-        .startSession(SessionType.Transform, [0, 0], TLBoundsCorner.TopLeft)
-        .updateSession([10, 10])
+        .pointBoundsHandle(TLBoundsCorner.TopLeft, { x: 0, y: 0 })
+        .movePointer([10, 10])
         .completeSession()
 
       expect(getShapeBounds(state, 'rect1')).toMatchObject({
@@ -221,15 +217,17 @@ describe('Transform session', () => {
 
 describe('When creating with a transform session', () => {
   it('Deletes the shape on undo', () => {
-    const state = new TLDrawState()
-      .loadDocument(mockDocument)
-      .select('rect1')
-      .startSession(SessionType.Transform, [5, 5], TLBoundsCorner.TopLeft, true)
-      .updateSession([10, 10])
-      .completeSession()
-      .undo()
+    const state = new TLDrawTestApp()
+      .selectTool(TLDrawShapeType.Rectangle)
+      .pointCanvas([0, 0])
+      .movePointer([10, 10])
+      .stopPointing()
 
-    expect(state.getShape('rect1')).toBe(undefined)
+    expect(state.shapes.length).toBe(1)
+
+    state.undo()
+
+    expect(state.shapes.length).toBe(0)
   })
 })
 

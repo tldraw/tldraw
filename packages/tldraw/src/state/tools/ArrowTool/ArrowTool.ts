@@ -9,12 +9,13 @@ export class ArrowTool extends BaseTool {
 
   /* ----------------- Event Handlers ----------------- */
 
-  onPointerDown: TLPointerEventHandler = (info) => {
-    const pagePoint = Vec.round(this.state.getPagePoint(info.point))
+  onPointerDown: TLPointerEventHandler = () => {
+    const { currentPoint } = this.app.mutables
+    const pagePoint = Vec.round(currentPoint)
 
     const {
       appState: { currentPageId, currentStyle },
-    } = this.state
+    } = this.app
 
     const childIndex = this.getNextChildIndex()
 
@@ -28,9 +29,9 @@ export class ArrowTool extends BaseTool {
       style: { ...currentStyle },
     })
 
-    this.state.patchCreate([newShape])
+    this.app.patchCreate([newShape])
 
-    this.state.startSession(SessionType.Arrow, pagePoint, 'end', true)
+    this.app.startSession(SessionType.Arrow, newShape.id, 'end', true)
 
     this.setStatus(Status.Creating)
   }

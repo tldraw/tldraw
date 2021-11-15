@@ -1,38 +1,25 @@
-import {
-  ShapeStyles,
-  TLDrawCommand,
-  TLDrawSnapshot,
-  TLDrawShape,
-  TLDrawShapeType,
-  TextShape,
-} from '~types'
+import { ShapeStyles, TLDrawCommand, TLDrawShape, TLDrawShapeType, TextShape } from '~types'
 import { TLDR } from '~state/TLDR'
-import type { Patch } from 'rko'
 import Vec from '@tldraw/vec'
+import type { Patch } from 'rko'
+import type { TLDrawApp } from '../../internal'
 
 export function styleShapes(
-  data: TLDrawSnapshot,
+  app: TLDrawApp,
   ids: string[],
   changes: Partial<ShapeStyles>
 ): TLDrawCommand {
-  const { currentPageId } = data.appState
+  const { currentPageId, selectedIds } = app
 
   const shapeIdsToMutate = ids
-    .flatMap((id) => TLDR.getDocumentBranch(data, id, currentPageId))
-    .filter((id) => !TLDR.getShape(data, id, currentPageId).isLocked)
-
-  // const { before, after } = TLDR.mutateShapes(
-  //   data,
-  //   shapeIdsToMutate,
-  //   (shape) => ({ style: { ...shape.style, ...changes } }),
-  //   currentPageId
-  // )
+    .flatMap((id) => TLDR.getDocumentBranch(app.state, id, currentPageId))
+    .filter((id) => !app.getShape(id).isLocked)
 
   const beforeShapes: Record<string, Patch<TLDrawShape>> = {}
   const afterShapes: Record<string, Patch<TLDrawShape>> = {}
 
   shapeIdsToMutate
-    .map((id) => TLDR.getShape(data, id, currentPageId))
+    .map((id) => app.getShape(id))
     .filter((shape) => !shape.isLocked)
     .forEach((shape) => {
       beforeShapes[shape.id] = {
@@ -53,8 +40,8 @@ export function styleShapes(
           Vec.add(
             shape.point,
             Vec.sub(
-              TLDR.getShapeUtils(shape).getCenter(shape),
-              TLDR.getShapeUtils(shape).getCenter({
+              app.getShapeUtils(shape).getCenter(shape),
+              app.getShapeUtils(shape).getCenter({
                 ...shape,
                 style: { ...shape.style, ...changes },
               } as TextShape)
@@ -75,12 +62,12 @@ export function styleShapes(
         },
         pageStates: {
           [currentPageId]: {
-            selectedIds: ids,
+            selectedIds: selectedIds,
           },
         },
       },
       appState: {
-        currentStyle: { ...data.appState.currentStyle },
+        currentStyle: { ...app.appState.currentStyle },
       },
     },
     after: {
@@ -97,7 +84,7 @@ export function styleShapes(
         },
       },
       appState: {
-        currentStyle: { ...data.appState.currentStyle, ...changes },
+        currentStyle: changes,
       },
     },
   }

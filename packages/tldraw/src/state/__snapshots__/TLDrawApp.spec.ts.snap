@@ -1,8 +1,71 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[` 1`] = `"[]"`;
+exports[` 1`] = `
+"[
+  {
+    \\"id\\": \\"rect1\\",
+    \\"parentId\\": \\"page1\\",
+    \\"name\\": \\"Rectangle\\",
+    \\"childIndex\\": 1,
+    \\"type\\": \\"rectangle\\",
+    \\"point\\": [
+      0,
+      0
+    ],
+    \\"size\\": [
+      100,
+      100
+    ],
+    \\"style\\": {
+      \\"dash\\": \\"draw\\",
+      \\"size\\": \\"medium\\",
+      \\"color\\": \\"blue\\"
+    }
+  },
+  {
+    \\"id\\": \\"rect2\\",
+    \\"parentId\\": \\"page1\\",
+    \\"name\\": \\"Rectangle\\",
+    \\"childIndex\\": 2,
+    \\"type\\": \\"rectangle\\",
+    \\"point\\": [
+      100,
+      100
+    ],
+    \\"size\\": [
+      100,
+      100
+    ],
+    \\"style\\": {
+      \\"dash\\": \\"draw\\",
+      \\"size\\": \\"medium\\",
+      \\"color\\": \\"blue\\"
+    }
+  },
+  {
+    \\"id\\": \\"rect3\\",
+    \\"parentId\\": \\"page1\\",
+    \\"name\\": \\"Rectangle\\",
+    \\"childIndex\\": 3,
+    \\"type\\": \\"rectangle\\",
+    \\"point\\": [
+      20,
+      20
+    ],
+    \\"size\\": [
+      100,
+      100
+    ],
+    \\"style\\": {
+      \\"dash\\": \\"draw\\",
+      \\"size\\": \\"medium\\",
+      \\"color\\": \\"blue\\"
+    }
+  }
+]"
+`;
 
-exports[`TLDrawState Exposes undo/redo stack: history 1`] = `
+exports[`TLDrawTestApp Exposes undo/redo stack: history 1`] = `
 Array [
   Object {
     "after": Object {
@@ -129,7 +192,7 @@ Array [
 ]
 `;
 
-exports[`TLDrawState Selection When selecting all selects all: selected all 1`] = `
+exports[`TLDrawTestApp Selection When selecting all selects all: selected all 1`] = `
 Array [
   "rect1",
   "rect2",
@@ -137,6 +200,6 @@ Array [
 ]
 `;
 
-exports[`TLDrawState When copying to SVG Copies grouped shapes.: copied svg with group 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"-16 -16 232 232\\" width=\\"200\\" height=\\"200\\"><g/></svg>"`;
+exports[`TLDrawTestApp When copying to SVG Copies grouped shapes.: copied svg with group 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"-16 -16 232 232\\" width=\\"200\\" height=\\"200\\"><g/></svg>"`;
 
-exports[`TLDrawState When copying to SVG Copies shapes.: copied svg 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"-20.741879096242684 -20.741879096242684 236.74 236.74\\" width=\\"204.74\\" height=\\"204.74\\"/>"`;
+exports[`TLDrawTestApp When copying to SVG Copies shapes.: copied svg 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"-20.741879096242684 -20.741879096242684 236.74 236.74\\" width=\\"204.74\\" height=\\"204.74\\"/>"`;

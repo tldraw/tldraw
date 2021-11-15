@@ -1,54 +1,42 @@
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
-import {
-  ColorStyle,
-  DashStyle,
-  SessionType,
-  SizeStyle,
-  TLDrawShapeType,
-  TLDrawStatus,
-} from '~types'
+import { TLDrawTestApp } from '~test'
+import { TLDrawShapeType, TLDrawStatus } from '~types'
 
 describe('Draw session', () => {
-  const state = new TLDrawState()
-
   it('begins, updateSession', () => {
-    state.loadDocument(mockDocument)
-
-    expect(state.getShape('draw1')).toBe(undefined)
+    const state = new TLDrawTestApp()
 
     state
-      .createShapes({
-        id: 'draw1',
-        parentId: 'page1',
-        name: 'Draw',
-        childIndex: 5,
-        type: TLDrawShapeType.Draw,
-        point: [32, 32],
-        points: [[0, 0]],
-        style: {
-          dash: DashStyle.Draw,
-          size: SizeStyle.Medium,
-          color: ColorStyle.Blue,
-        },
-      })
-      .select('draw1')
-      .startSession(SessionType.Draw, [0, 0], 'draw1')
-      .updateSession([10, 10, 0.5])
+      .selectTool(TLDrawShapeType.Draw)
+      .pointCanvas([0, 0])
+      .movePointer([10, 10, 0.5])
       .completeSession()
+
+    const shape = state.shapes[0]
+
+    expect(shape).toBeTruthy()
 
     expect(state.appState.status).toBe(TLDrawStatus.Idle)
   })
 
   it('does, undoes and redoes', () => {
-    expect(state.getShape('draw1')).toBeTruthy()
+    const state = new TLDrawTestApp()
+
+    state
+      .selectTool(TLDrawShapeType.Draw)
+      .pointCanvas([0, 0])
+      .movePointer([10, 10, 0.5])
+      .completeSession()
+
+    const shape = state.shapes[0]
+
+    expect(state.getShape(shape.id)).toBeTruthy()
 
     state.undo()
 
-    expect(state.getShape('draw1')).toBe(undefined)
+    expect(state.getShape(shape.id)).toBe(undefined)
 
     state.redo()
 
-    expect(state.getShape('draw1')).toBeTruthy()
+    expect(state.getShape(shape.id)).toBeTruthy()
   })
 })

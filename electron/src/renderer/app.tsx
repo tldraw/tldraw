@@ -1,19 +1,19 @@
 import * as React from 'react'
-import { TLDraw, TLDrawState } from '@tldraw/tldraw'
+import { TLDraw, TLDrawApp } from '@tldraw/tldraw'
 import type { IpcMainEvent, IpcMain, IpcRenderer } from 'electron'
 import type { Message, TLApi } from 'src/types'
 
 export default function App(): JSX.Element {
-  const rTLDrawState = React.useRef<TLDrawState>()
+  const rTLDrawApp = React.useRef<TLDrawApp>()
 
   // When the editor mounts, save the state instance in a ref.
-  const handleMount = React.useCallback((tldr: TLDrawState) => {
-    rTLDrawState.current = tldr
+  const handleMount = React.useCallback((tldr: TLDrawApp) => {
+    rTLDrawApp.current = tldr
   }, [])
 
   React.useEffect(() => {
     function handleEvent(message: Message) {
-      const state = rTLDrawState.current
+      const state = rTLDrawApp.current
       if (!state) return
 
       switch (message.type) {

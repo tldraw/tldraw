@@ -3,7 +3,7 @@ import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
 import { styled, dark } from '~styles'
 import { TLDrawSnapshot, TLDrawDocument, TLDrawStatus, TLDrawUser } from '~types'
-import { TLDrawCallbacks, TLDrawState } from '~state'
+import { TLDrawApp, TLDrawCallbacks } from '~state'
 import {
   TLDrawContext,
   TLDrawContextType,
@@ -109,60 +109,60 @@ export interface TLDrawProps extends TLDrawCallbacks {
   /**
    * (optional) A callback to run when the component mounts.
    */
-  onMount?: (state: TLDrawState) => void
+  onMount?: (state: TLDrawApp) => void
   /**
    * (optional) A callback to run when the user creates a new project through the menu or through a keyboard shortcut.
    */
-  onNewProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+  onNewProject?: (state: TLDrawApp, e?: KeyboardEvent) => void
   /**
    * (optional) A callback to run when the user saves a project through the menu or through a keyboard shortcut.
    */
-  onSaveProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+  onSaveProject?: (state: TLDrawApp, e?: KeyboardEvent) => void
   /**
    * (optional) A callback to run when the user saves a project as a new project through the menu or through a keyboard shortcut.
    */
-  onSaveProjectAs?: (state: TLDrawState, e?: KeyboardEvent) => void
+  onSaveProjectAs?: (state: TLDrawApp, e?: KeyboardEvent) => void
   /**
    * (optional) A callback to run when the user opens new project through the menu or through a keyboard shortcut.
    */
-  onOpenProject?: (state: TLDrawState, e?: KeyboardEvent) => void
+  onOpenProject?: (state: TLDrawApp, e?: KeyboardEvent) => void
   /**
    * (optional) A callback to run when the user signs in via the menu.
    */
-  onSignIn?: (state: TLDrawState) => void
+  onSignIn?: (state: TLDrawApp) => void
   /**
    * (optional) A callback to run when the user signs out via the menu.
    */
-  onSignOut?: (state: TLDrawState) => void
+  onSignOut?: (state: TLDrawApp) => void
 
   /**
    * (optional) A callback to run when the user creates a new project.
    */
-  onUserChange?: (state: TLDrawState, user: TLDrawUser) => void
+  onUserChange?: (state: TLDrawApp, user: TLDrawUser) => void
   /**
    * (optional) A callback to run when the component's state changes.
    */
-  onChange?: (state: TLDrawState, reason?: string) => void
+  onChange?: (state: TLDrawApp, reason?: string) => void
   /**
    * (optional) A callback to run when the state is patched.
    */
-  onPatch?: (state: TLDrawState, reason?: string) => void
+  onPatch?: (state: TLDrawApp, reason?: string) => void
   /**
    * (optional) A callback to run when the state is changed with a command.
    */
-  onCommand?: (state: TLDrawState, reason?: string) => void
+  onCommand?: (state: TLDrawApp, reason?: string) => void
   /**
    * (optional) A callback to run when the state is persisted.
    */
-  onPersist?: (state: TLDrawState) => void
+  onPersist?: (state: TLDrawApp) => void
   /**
    * (optional) A callback to run when the user undos.
    */
-  onUndo?: (state: TLDrawState) => void
+  onUndo?: (state: TLDrawApp) => void
   /**
    * (optional) A callback to run when the user redos.
    */
-  onRedo?: (state: TLDrawState) => void
+  onRedo?: (state: TLDrawApp) => void
 }
 
 export function TLDraw({
@@ -197,7 +197,7 @@ export function TLDraw({
 
   const [state, setState] = React.useState(
     () =>
-      new TLDrawState(id, {
+      new TLDrawApp(id, {
         onMount,
         onChange,
         onUserChange,
@@ -223,7 +223,7 @@ export function TLDraw({
   React.useEffect(() => {
     if (id === sId) return
 
-    const newState = new TLDrawState(id, {
+    const newState = new TLDrawApp(id, {
       onMount,
       onChange,
       onUserChange,

@@ -2,11 +2,16 @@ import * as React from 'react'
 import { Utils, SVGContainer } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { getStroke, getStrokePoints } from 'perfect-freehand'
-import { defaultStyle, getShapeStyle } from '../shape-styles'
 import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawMeta } from '~types'
-import { getBoundsRectangle, transformRectangle, transformSingleRectangle } from '../shared'
-import { BINDING_DISTANCE } from '~constants'
-import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
+import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
+import { TLDrawShapeUtil } from '~state/shapes/TLDrawShapeUtil'
+import {
+  defaultStyle,
+  getShapeStyle,
+  getBoundsRectangle,
+  transformRectangle,
+  transformSingleRectangle,
+} from '~state/shapes/shared'
 
 type T = RectangleShape
 type E = SVGSVGElement
@@ -34,10 +39,10 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
   }
 
   Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
-    ({ shape, isBinding, meta, events }, ref) => {
+    ({ shape, isBinding, isGhost, meta, events }, ref) => {
       const { id, size, style } = shape
       const styles = getShapeStyle(style, meta.isDarkMode)
-      const strokeWidth = +styles.strokeWidth
+      const { strokeWidth } = styles
 
       if (style.dash === DashStyle.Draw) {
         const pathTLDrawSnapshot = getRectanglePath(shape)
@@ -66,6 +71,7 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
               stroke={styles.stroke}
               strokeWidth={styles.strokeWidth}
               pointerEvents="all"
+              opacity={isGhost ? GHOSTED_OPACITY : 1}
             />
           </SVGContainer>
         )
@@ -140,9 +146,7 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
     } = shape
 
     const styles = getShapeStyle(style, false)
-    const strokeWidth = +styles.strokeWidth
-
-    const sw = strokeWidth
+    const sw = styles.strokeWidth
 
     if (style.dash === DashStyle.Draw) {
       return <path d={getRectangleIndicatorPathTLDrawSnapshot(shape)} />

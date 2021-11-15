@@ -1,4 +1,4 @@
-import { TLDraw, TLDrawState, useFileSystem } from '@tldraw/tldraw'
+import { TLDraw, TLDrawApp, useFileSystem } from '@tldraw/tldraw'
 import * as gtag from '-utils/gtag'
 import React from 'react'
 import { useAccountHandlers } from '-hooks/useAccountHandlers'
@@ -11,14 +11,14 @@ interface EditorProps {
 
 export default function Editor({ id = 'home', isSponsor = false }: EditorProps) {
   // Put the state into the window, for debugging.
-  const handleMount = React.useCallback((state: TLDrawState) => {
+  const handleMount = React.useCallback((state: TLDrawApp) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     window.state = state
   }, [])
 
   // Send events to gtag as actions.
-  const handlePersist = React.useCallback((_state: TLDrawState, reason?: string) => {
+  const handlePersist = React.useCallback((_state: TLDrawApp, reason?: string) => {
     gtag.event({
       action: reason,
       category: 'editor',

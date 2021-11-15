@@ -1,4 +1,4 @@
-import type { TLDrawState } from '~state'
+import type { TLDrawApp } from '~state'
 import { TLDrawShapeType, TLDrawToolType } from '~types'
 import type { BaseTool } from './BaseTool'
 import { ArrowTool } from './ArrowTool'
@@ -40,7 +40,7 @@ export const getTool = <K extends TLDrawToolType>(type: K): ToolOfType<K> => {
   return tools[type]
 }
 
-export function createTools(state: TLDrawState): Record<TLDrawToolType, BaseTool> {
+export function createTools(state: TLDrawApp): Record<TLDrawToolType, BaseTool> {
   return {
     select: new SelectTool(state),
     erase: new EraseTool(state),

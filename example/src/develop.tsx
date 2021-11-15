@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import { TLDraw, TLDrawState, useFileSystem } from '@tldraw/tldraw'
+import { TLDraw, TLDrawApp, useFileSystem } from '@tldraw/tldraw'
 
-declare const window: Window & { state: TLDrawState }
+declare const window: Window & { state: TLDrawApp }
 
 export default function Develop(): JSX.Element {
-  const rTLDrawState = React.useRef<TLDrawState>()
+  const rTLDrawApp = React.useRef<TLDrawApp>()
 
   const fileSystemEvents = useFileSystem()
 
-  const handleMount = React.useCallback((state: TLDrawState) => {
+  const handleMount = React.useCallback((state: TLDrawApp) => {
     window.state = state
-    rTLDrawState.current = state
+    rTLDrawApp.current = state
   }, [])
 
   const handleSignOut = React.useCallback(() => {

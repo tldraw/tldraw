@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
-import { defaultStyle, getShapeStyle, getFontStyle } from '../shape-styles'
+import { defaultStyle, getShapeStyle, getFontStyle } from '../shared/shape-styles'
 import { TextShape, TLDrawMeta, TLDrawShapeType, TLDrawTransformInfo } from '~types'
 import { TextAreaUtils } from '../shared'
-import { BINDING_DISTANCE } from '~constants'
+import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
 import { styled } from '~styles'
 import Vec from '@tldraw/vec'
@@ -39,7 +39,7 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
   }
 
   Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
-    ({ shape, isBinding, isEditing, onShapeBlur, onShapeChange, meta, events }, ref) => {
+    ({ shape, isBinding, isGhost, isEditing, onShapeBlur, onShapeChange, meta, events }, ref) => {
       const rInput = React.useRef<HTMLTextAreaElement>(null)
       const { text, style } = shape
       const styles = getShapeStyle(style, meta.isDarkMode)
@@ -118,7 +118,7 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
 
       return (
         <HTMLContainer ref={ref} {...events}>
-          <Wrapper isEditing={isEditing} onPointerDown={handlePointerDown}>
+          <Wrapper isGhost={isGhost} isEditing={isEditing} onPointerDown={handlePointerDown}>
             <InnerWrapper
               style={{
                 font,
@@ -329,6 +329,10 @@ const Wrapper = styled('div', {
   width: '100%',
   height: '100%',
   variants: {
+    isGhost: {
+      false: { opacity: 1 },
+      true: { transition: 'opacity .2s', opacity: GHOSTED_OPACITY },
+    },
     isEditing: {
       false: {
         pointerEvents: 'all',

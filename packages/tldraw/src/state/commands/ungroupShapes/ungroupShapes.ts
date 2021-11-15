@@ -1,14 +1,17 @@
-import type { GroupShape, TLDrawBinding, TLDrawShape } from '~types'
-import type { TLDrawSnapshot, TLDrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
+import type { GroupShape, TLDrawBinding, TLDrawShape } from '~types'
+import type { TLDrawCommand } from '~types'
 import type { Patch } from 'rko'
+import type { TLDrawApp } from '../../internal'
 
 export function ungroupShapes(
-  data: TLDrawSnapshot,
+  app: TLDrawApp,
   selectedIds: string[],
   groupShapes: GroupShape[],
   pageId: string
 ): TLDrawCommand | undefined {
+  const { bindings } = app
+
   const beforeShapes: Record<string, Patch<TLDrawShape | undefined>> = {}
   const afterShapes: Record<string, Patch<TLDrawShape | undefined>> = {}
 
@@ -32,7 +35,7 @@ export function ungroupShapes(
       // Select its children in the next state
       groupShape.children.forEach((id) => {
         afterSelectedIds.push(id)
-        const shape = TLDR.getShape(data, id, pageId)
+        const shape = app.getShape(id, pageId)
         shapesToReparent.push(shape)
       })
 
@@ -40,7 +43,7 @@ export function ungroupShapes(
       const startingChildIndex = groupShape.childIndex
 
       // And we'll need to fit them under this child index
-      const endingChildIndex = TLDR.getChildIndexAbove(data, groupShape.id, pageId)
+      const endingChildIndex = TLDR.getChildIndexAbove(app.state, groupShape.id, pageId)
 
       const step = (endingChildIndex - startingChildIndex) / shapesToReparent.length
 
@@ -60,10 +63,8 @@ export function ungroupShapes(
         }
       })
 
-      const page = TLDR.getPage(data, pageId)
-
       // We also need to delete bindings that reference the deleted shapes
-      Object.values(page.bindings)
+      bindings
         .filter((binding) => binding.toId === groupShape.id || binding.fromId === groupShape.id)
         .forEach((binding) => {
           for (const id of [binding.toId, binding.fromId]) {
@@ -74,7 +75,7 @@ export function ungroupShapes(
               afterBindings[binding.id] = undefined
 
               // Let's also look each the bound shape...
-              const shape = TLDR.getShape(data, id, pageId)
+              const shape = app.getShape(id, pageId)
 
               // If the bound shape has a handle that references the deleted binding...
               if (shape.handles) {

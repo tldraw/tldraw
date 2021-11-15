@@ -1,16 +1,13 @@
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
-import { SessionType, TLDrawStatus } from '~types'
+import { mockDocument, TLDrawTestApp } from '~test'
+import { TLDrawStatus } from '~types'
 
 describe('Grid session', () => {
-  const state = new TLDrawState()
-
   it('begins, updateSession', () => {
-    state
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1')
-      .startSession(SessionType.Translate, [5, 5])
-      .updateSession([10, 10])
+      .pointShape('rect1', [5, 5])
+      .movePointer([10, 10])
 
     expect(state.getShape('rect1').point).toStrictEqual([5, 5])
 
@@ -30,11 +27,11 @@ describe('Grid session', () => {
   })
 
   it('cancels session', () => {
-    state
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startSession(SessionType.Translate, [5, 5])
-      .updateSession([10, 10])
+      .pointBounds([5, 5])
+      .movePointer([10, 10])
       .cancelSession()
 
     expect(state.getShape('rect1').point).toStrictEqual([0, 0])

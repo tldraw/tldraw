@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
+import { mockDocument, TLDrawTestApp } from '~test'
 import { GroupShape, TLDrawShapeType } from '~types'
 
 describe('Ungroup command', () => {
-  const state = new TLDrawState()
+  const state = new TLDrawTestApp()
 
   it('does, undoes and redoes command', () => {
     state.loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA').select('groupA').ungroup()
@@ -65,7 +64,7 @@ describe('Ungroup command', () => {
     })
 
     it('Correctly selects children after ungrouping', () => {
-      const state = new TLDrawState()
+      const state = new TLDrawTestApp()
         .createShapes(
           {
             id: 'rect1',
@@ -92,7 +91,7 @@ describe('Ungroup command', () => {
     })
 
     it('Reparents shapes to the page at the correct childIndex', () => {
-      const state = new TLDrawState()
+      const state = new TLDrawTestApp()
         .createShapes(
           {
             id: 'rect1',

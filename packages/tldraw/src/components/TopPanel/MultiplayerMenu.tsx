@@ -28,8 +28,6 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu({ id }: Multi
     setTimeout(() => setCopied(false), 1200)
   }, [])
 
-  console.log('room id', room)
-
   const handleCreateMultiplayerRoom = React.useCallback(async () => {
     if (state.isDirty) {
       if (state.fileSystemHandle) {

@@ -3,23 +3,19 @@ import { TLPageState, TLBounds, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
   TLDrawShape,
-  TLDrawBinding,
-  Session,
-  TLDrawSnapshot,
-  TLDrawCommand,
   TLDrawStatus,
-  ArrowShape,
-  GroupShape,
   SessionType,
   TLDrawShapeType,
+  TLDrawPatch,
+  TLDrawCommand,
 } from '~types'
-import { TLDR } from '~state/TLDR'
 import type { Patch } from 'rko'
+import { BaseSession } from '../BaseSession'
+import type { TLDrawApp } from '../../internal'
 
-export class GridSession extends Session {
+export class GridSession extends BaseSession {
   type = SessionType.Grid
   status = TLDrawStatus.Translating
-  origin: number[]
   shape: TLDrawShape
   bounds: TLBounds
   initialSelectedIds: string[]
@@ -29,58 +25,34 @@ export class GridSession extends Session {
   rows = 1
   isCopying = false
 
-  constructor(
-    data: TLDrawSnapshot,
-    viewport: TLBounds,
-    id: string,
-    pageId: string,
-    point: number[]
-  ) {
-    super(viewport)
-    this.origin = point
-    this.shape = TLDR.getShape(data, id, pageId)
+  constructor(app: TLDrawApp, id: string) {
+    super(app)
+    this.shape = this.app.getShape(id)
     this.grid['0_0'] = this.shape.id
-    this.bounds = TLDR.getBounds(this.shape)
-    this.initialSelectedIds = TLDR.getSelectedIds(data, pageId)
-    if (this.shape.parentId !== pageId) {
-      this.initialSiblings = TLDR.getShape(data, this.shape.parentId, pageId).children?.filter(
-        (id) => id !== this.shape.id
-      )
+    this.bounds = this.app.getShapeBounds(id)
+    this.initialSelectedIds = [...this.app.selectedIds]
+    if (this.shape.parentId !== this.app.currentPageId) {
+      this.initialSiblings = this.app
+        .getShape(this.shape.parentId)
+        .children?.filter((id) => id !== this.shape.id)
     }
   }
 
-  start = () => void null
+  start = (): TLDrawPatch | undefined => void null
 
-  getClone = (point: number[], copy: boolean) => {
-    const clone = {
-      ...this.shape,
-      id: Utils.uniqueId(),
-      point,
-    }
+  update = (): TLDrawPatch | undefined => {
+    const {
+      currentPageId,
+      mutables: { altKey, shiftKey, currentPoint },
+    } = this.app
 
-    if (!copy) {
-      if (clone.type === TLDrawShapeType.Sticky) {
-        clone.text = ''
-      }
-    }
-
-    return clone
-  }
-
-  update = (
-    data: TLDrawSnapshot,
-    point: number[],
-    shiftKey = false,
-    altKey = false,
-    metaKey = false
-  ) => {
     const nextShapes: Patch<Record<string, TLDrawShape>> = {}
 
     const nextPageState: Patch<TLPageState> = {}
 
     const center = Utils.getBoundsCenter(this.bounds)
 
-    const offset = Vec.sub(point, center)
+    const offset = Vec.sub(currentPoint, center)
 
     if (shiftKey) {
       if (Math.abs(offset[0]) < Math.abs(offset[1])) {
@@ -157,18 +129,19 @@ export class GridSession extends Session {
     return {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             shapes: nextShapes,
           },
         },
         pageStates: {
-          [data.appState.currentPageId]: nextPageState,
+          [currentPageId]: nextPageState,
         },
       },
     }
   }
 
-  cancel = (data: TLDrawSnapshot) => {
+  cancel = (): TLDrawPatch | undefined => {
+    const { currentPageId } = this.app
     const nextShapes: Record<string, Partial<TLDrawShape> | undefined> = {}
 
     // Delete clones
@@ -189,12 +162,12 @@ export class GridSession extends Session {
     return {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             shapes: nextShapes,
           },
         },
         pageStates: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             selectedIds: [this.shape.id],
           },
         },
@@ -202,8 +175,8 @@ export class GridSession extends Session {
     }
   }
 
-  complete = (data: TLDrawSnapshot) => {
-    const pageId = data.appState.currentPageId
+  complete = (): TLDrawPatch | TLDrawCommand | undefined => {
+    const { currentPageId } = this.app
 
     const beforeShapes: Patch<Record<string, TLDrawShape>> = {}
 
@@ -213,7 +186,7 @@ export class GridSession extends Session {
 
     Object.values(this.grid).forEach((id) => {
       beforeShapes[id] = undefined
-      afterShapes[id] = TLDR.getShape(data, id, pageId)
+      afterShapes[id] = this.app.getShape(id)
       afterSelectedIds.push(id)
       // TODO: Add shape to parent if grouped
     })
@@ -239,12 +212,12 @@ export class GridSession extends Session {
       before: {
         document: {
           pages: {
-            [pageId]: {
+            [currentPageId]: {
               shapes: beforeShapes,
             },
           },
           pageStates: {
-            [pageId]: {
+            [currentPageId]: {
               selectedIds: [],
               hoveredId: undefined,
             },
@@ -254,12 +227,12 @@ export class GridSession extends Session {
       after: {
         document: {
           pages: {
-            [pageId]: {
+            [currentPageId]: {
               shapes: afterShapes,
             },
           },
           pageStates: {
-            [pageId]: {
+            [currentPageId]: {
               selectedIds: afterSelectedIds,
               hoveredId: undefined,
             },
@@ -267,5 +240,21 @@ export class GridSession extends Session {
         },
       },
     }
+  }
+
+  private getClone = (point: number[], copy: boolean) => {
+    const clone = {
+      ...this.shape,
+      id: Utils.uniqueId(),
+      point,
+    }
+
+    if (!copy) {
+      if (clone.type === TLDrawShapeType.Sticky) {
+        clone.text = ''
+      }
+    }
+
+    return clone
   }
 }

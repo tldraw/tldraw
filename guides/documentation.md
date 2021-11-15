@@ -10,12 +10,12 @@ In addition to the docs written below, this project also includes **generated do
 2. Open the file at:
 
 ```
-/packages/tldraw/docs/classes/TLDrawState.html
+/packages/tldraw/docs/classes/TLDrawApp.html
 ```
 
 ## `TLDraw`
 
-The `TLDraw` React component is the [tldraw](https://tldraw.com) editor exported as a standalone component. You can control the editor through props, or through the `TLDrawState`'s imperative API. **All props are optional.**
+The `TLDraw` React component is the [tldraw](https://tldraw.com) editor exported as a standalone component. You can control the editor through props, or through the `TLDrawApp`'s imperative API. **All props are optional.**
 
 | Prop              | Type             | Description                                                                                               |
 | ----------------- | ---------------- | --------------------------------------------------------------------------------------------------------- |
@@ -29,14 +29,14 @@ The `TLDraw` React component is the [tldraw](https://tldraw.com) editor exported
 | `showTools`       | `boolean`        | Whether to show the tools.                                                                                |
 | `showUI`          | `boolean`        | Whether to show any UI other than the canvas.                                                             |
 | `showSponsorLink` | `boolean`        | Whether to show a sponsor link.                                                                           |
-| `onMount`         | `Function`       | Called when the editor first mounts, receiving the current `TLDrawState`.                                 |
+| `onMount`         | `Function`       | Called when the editor first mounts, receiving the current `TLDrawApp`.                                   |
 | `onPatch`         | `Function`       | Called when the state is updated via a patch.                                                             |
 | `onCommand`       | `Function`       | Called when the state is updated via a command.                                                           |
 | `onPersist`       | `Function`       | Called when the state is persisted after an action.                                                       |
-| `onChange`        | `Function`       | Called when the `TLDrawState` updates for any reason.                                                     |
+| `onChange`        | `Function`       | Called when the `TLDrawApp` updates for any reason.                                                       |
 | `onUserChange`    | `Function`       | Called when the user's "presence" information changes.                                                    |
-| `onUndo`          | `Function`       | Called when the `TLDrawState` updates after an undo.                                                      |
-| `onRedo`          | `Function`       | Called when the `TLDrawState` updates after a redo.                                                       |
+| `onUndo`          | `Function`       | Called when the `TLDrawApp` updates after an undo.                                                        |
+| `onRedo`          | `Function`       | Called when the `TLDrawApp` updates after a redo.                                                         |
 | `onSignIn`        | `Function`       | Called when the user selects Sign In from the menu.                                                       |
 | `onSignOut`       | `Function`       | Called when the user selects Sign Out from the menu.                                                      |
 | `onNewProject`    | `Function`       | Called when the user when the user creates a new project through the menu or through a keyboard shortcut. |
@@ -70,11 +70,11 @@ You can initialize or control the `<TLDraw>` component via its `document` proper
 - `version` - The document's version, used internally for migrations.
 
 ```ts
-import { TLDrawDocument, TLDrawState } from '@tldraw/tldraw'
+import { TLDrawDocument, TLDrawApp } from '@tldraw/tldraw'
 
 const myDocument: TLDrawDocument = {
   id: 'doc',
-  version: TLDrawState.version,
+  version: TLDrawApp.version,
   pages: {
     page1: {
       id: 'page1',
@@ -198,15 +198,15 @@ A binding is a connection **from** one shape and **to** another shape. At the mo
 | `distance` | `number`         | The distance from the bound point.                       |
 | `point`    | `number[]`       | A normalized point representing the bound point.         |
 
-## `TLDrawState` API
+## `TLDrawApp` API
 
-You can change the `TLDraw` component's state through an imperative API called `TLDrawState`. To access this API, use the `onMount` callback, or any of the component's callback props, like `onPersist`.
+You can change the `TLDraw` component's state through an imperative API called `TLDrawApp`. To access this API, use the `onMount` callback, or any of the component's callback props, like `onPersist`.
 
 ```tsx
-import { TLDraw, TLDrawState } from '@tldraw/tldraw'
+import { TLDraw, TLDrawApp } from '@tldraw/tldraw'
 
 function App() {
-  const handleMount = React.useCallback((state: TLDrawState) => {
+  const handleMount = React.useCallback((state: TLDrawApp) => {
     state.selectAll()
   }, [])
 
@@ -214,10 +214,10 @@ function App() {
 }
 ```
 
-To view the full documentation of the `TLDrawState` API, generate the project's documentation by running `yarn docs` from the root folder, then open the file at:
+To view the full documentation of the `TLDrawApp` API, generate the project's documentation by running `yarn docs` from the root folder, then open the file at:
 
 ```
-/packages/tldraw/docs/classes/TLDrawState.html
+/packages/tldraw/docs/classes/TLDrawApp.html
 ```
 
 Here are some useful methods:

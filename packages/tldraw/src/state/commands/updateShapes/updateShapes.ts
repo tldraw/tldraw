@@ -1,48 +1,38 @@
-import type { TLDrawSnapshot, TLDrawCommand, PagePartial, TLDrawShape } from '~types'
+import type { TLDrawCommand, TLDrawShape } from '~types'
 import { TLDR } from '~state/TLDR'
+import type { TLDrawApp } from '../../internal'
 
 export function update(
-  data: TLDrawSnapshot,
+  app: TLDrawApp,
   updates: ({ id: string } & Partial<TLDrawShape>)[],
   pageId: string
 ): TLDrawCommand {
-  const { currentPageId } = data.appState
-
   const ids = updates.map((update) => update.id)
 
-  const before: PagePartial = {
-    shapes: {},
-    bindings: {},
-  }
-
-  const after: PagePartial = {
-    shapes: {},
-    bindings: {},
-  }
-
   const change = TLDR.mutateShapes(
-    data,
-    ids.filter((id) => !TLDR.getShape(data, id, currentPageId).isLocked),
+    app.state,
+    ids.filter((id) => !app.getShape(id, pageId).isLocked),
     (_shape, i) => updates[i],
     pageId
   )
-
-  before.shapes = change.before
-  after.shapes = change.after
 
   return {
     id: 'update',
     before: {
       document: {
         pages: {
-          [pageId]: before,
+          [pageId]: {
+            shapes: change.before,
+          },
         },
       },
     },
     after: {
       document: {
         pages: {
-          [pageId]: after,
+          [pageId]: {
+            shapes: change.after,
+          },
         },
       },
     },

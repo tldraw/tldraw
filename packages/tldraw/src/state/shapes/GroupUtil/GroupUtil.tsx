@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { styled } from '~styles'
 import { Utils, SVGContainer } from '@tldraw/core'
-import { defaultStyle } from '../shape-styles'
+import { defaultStyle } from '../shared/shape-styles'
 import { TLDrawShapeType, GroupShape, ColorStyle, TLDrawMeta } from '~types'
-import { BINDING_DISTANCE } from '~constants'
+import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
 import { getBoundsRectangle } from '../shared'
 
@@ -34,7 +34,7 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
   }
 
   Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
-    ({ shape, isBinding, isHovered, isSelected, events }, ref) => {
+    ({ shape, isBinding, isGhost, isHovered, isSelected, events }, ref) => {
       const { id, size } = shape
 
       const sw = 2
@@ -63,22 +63,24 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
               height={size[1] + BINDING_DISTANCE * 2}
             />
           )}
-          <rect
-            x={0}
-            y={0}
-            width={size[0]}
-            height={size[1]}
-            fill="transparent"
-            pointerEvents="all"
-          />
-          <ScaledLines
-            stroke={ColorStyle.Black}
-            opacity={isHovered || isSelected ? 1 : 0}
-            strokeLinecap="round"
-            pointerEvents="stroke"
-          >
-            {paths}
-          </ScaledLines>
+          <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
+            <rect
+              x={0}
+              y={0}
+              width={size[0]}
+              height={size[1]}
+              fill="transparent"
+              pointerEvents="all"
+            />
+            <ScaledLines
+              stroke={ColorStyle.Black}
+              opacity={isHovered || isSelected ? 1 : 0}
+              strokeLinecap="round"
+              pointerEvents="stroke"
+            >
+              {paths}
+            </ScaledLines>
+          </g>
         </SVGContainer>
       )
     }

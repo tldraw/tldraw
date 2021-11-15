@@ -2,9 +2,12 @@ import Vec from '@tldraw/vec'
 import type { TLPointerEventHandler } from '@tldraw/core'
 import { SessionType } from '~types'
 import { BaseTool } from '../BaseTool'
+import { DEAD_ZONE } from '~constants'
+import type { TLDrawApp } from '../../internal'
 
 enum Status {
   Idle = 'idle',
+  Pointing = 'pointing',
   Erasing = 'erasing',
 }
 
@@ -15,34 +18,34 @@ export class EraseTool extends BaseTool {
 
   /* ----------------- Event Handlers ----------------- */
 
-  onPointerDown: TLPointerEventHandler = (info) => {
-    const pagePoint = Vec.round(this.state.getPagePoint(info.point))
-
-    this.state.startSession(SessionType.Erase, pagePoint)
-
-    this.setStatus(Status.Erasing)
+  onPointerDown: TLPointerEventHandler = () => {
+    this.setStatus(Status.Pointing)
   }
 
   onPointerMove: TLPointerEventHandler = (info) => {
-    if (this.status === Status.Erasing) {
-      const pagePoint = Vec.round(this.state.getPagePoint(info.point))
-      this.state.updateSession(
-        [...pagePoint, info.pressure || 0.5],
-        info.shiftKey,
-        info.altKey,
-        info.metaKey
-      )
+    switch (this.status) {
+      case Status.Pointing: {
+        if (Vec.dist(info.origin, info.point) > DEAD_ZONE) {
+          this.app.startSession(SessionType.Erase)
+          this.app.updateSession()
+          this.setStatus(Status.Erasing)
+        }
+        break
+      }
+      case Status.Erasing: {
+        this.app.updateSession()
+      }
     }
   }
 
   onPointerUp: TLPointerEventHandler = () => {
     if (this.status === Status.Erasing) {
-      this.state.completeSession()
+      this.app.completeSession()
 
       if (this.previous) {
-        this.state.selectTool(this.previous)
+        this.app.selectTool(this.previous)
       } else {
-        this.state.selectTool('select')
+        this.app.selectTool('select')
       }
     }
 
@@ -52,14 +55,14 @@ export class EraseTool extends BaseTool {
   onCancel = () => {
     if (this.status === Status.Idle) {
       if (this.previous) {
-        this.state.selectTool(this.previous)
+        this.app.selectTool(this.previous)
       } else {
-        this.state.selectTool('select')
+        this.app.selectTool('select')
       }
     } else {
       this.setStatus(Status.Idle)
     }
 
-    this.state.cancelSession()
+    this.app.cancelSession()
   }
 }

@@ -1,7 +1,7 @@
 import { Utils } from '@tldraw/core'
 import { getStrokeOutlinePoints, getStrokePoints, StrokeOptions } from 'perfect-freehand'
 import type { DrawShape } from '~types'
-import { getShapeStyle } from '../shape-styles'
+import { getShapeStyle } from '../shared/shape-styles'
 
 const simulatePressureSettings: StrokeOptions = {
   easing: (t) => Math.sin((t * Math.PI) / 2),

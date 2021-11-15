@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
-import { defaultStyle } from '../shape-styles'
+import { defaultStyle } from '../shared/shape-styles'
 import { StickyShape, TLDrawMeta, TLDrawShapeType, TLDrawTransformInfo } from '~types'
 import { getBoundsRectangle, TextAreaUtils } from '../shared'
 import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
-import { getStickyFontStyle, getStickyShapeStyle } from '../shape-styles'
+import { getStickyFontStyle, getStickyShapeStyle } from '../shared/shape-styles'
 import { styled } from '~styles'
 import Vec from '@tldraw/vec'
+import { GHOSTED_OPACITY } from '~constants'
 
 type T = StickyShape
 type E = HTMLDivElement
@@ -40,7 +41,7 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
   }
 
   Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
-    ({ shape, meta, events, isEditing, onShapeBlur, onShapeChange }, ref) => {
+    ({ shape, meta, events, isGhost, isEditing, onShapeBlur, onShapeChange }, ref) => {
       const font = getStickyFontStyle(shape.style)
 
       const { color, fill } = getStickyShapeStyle(shape.style, meta.isDarkMode)
@@ -160,6 +161,7 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
           <StyledStickyContainer
             ref={rContainer}
             isDarkMode={meta.isDarkMode}
+            isGhost={isGhost}
             style={{ backgroundColor: fill, ...style }}
           >
             <StyledText ref={rText} isEditing={isEditing}>
@@ -255,6 +257,10 @@ const StyledStickyContainer = styled('div', {
   borderRadius: '3px',
   perspective: '800px',
   variants: {
+    isGhost: {
+      false: { opacity: 1 },
+      true: { transition: 'opacity .2s', opacity: GHOSTED_OPACITY },
+    },
     isDarkMode: {
       true: {
         boxShadow:

@@ -1,13 +1,13 @@
 import type { Patch } from 'rko'
-import { TLDR } from '~state/TLDR'
-import type { TLDrawShape, TLDrawSnapshot, TLDrawCommand, TLDrawBinding } from '~types'
+import type { TLDrawShape, TLDrawCommand, TLDrawBinding } from '~types'
+import type { TLDrawApp } from '../../internal'
 
 export function createShapes(
-  data: TLDrawSnapshot,
+  app: TLDrawApp,
   shapes: TLDrawShape[],
   bindings: TLDrawBinding[] = []
 ): TLDrawCommand {
-  const { currentPageId } = data.appState
+  const { currentPageId } = app
 
   const beforeShapes: Record<string, Patch<TLDrawShape> | undefined> = {}
   const afterShapes: Record<string, Patch<TLDrawShape> | undefined> = {}
@@ -37,7 +37,7 @@ export function createShapes(
         },
         pageStates: {
           [currentPageId]: {
-            selectedIds: [...TLDR.getSelectedIds(data, currentPageId)],
+            selectedIds: [...app.selectedIds],
           },
         },
       },

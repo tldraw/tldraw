@@ -1,8 +1,8 @@
-import { TLDrawState } from '~state'
 import { TLDrawSnapshot, TLDrawShapeType } from '~types'
 import { TLDR } from '~state/TLDR'
+import { TLDrawTestApp } from '~test'
 
-const state = new TLDrawState().createShapes(
+const state = new TLDrawTestApp().createShapes(
   {
     type: TLDrawShapeType.Rectangle,
     id: 'a',

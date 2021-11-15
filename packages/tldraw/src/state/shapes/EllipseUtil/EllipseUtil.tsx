@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { defaultStyle, getShapeStyle } from '../shape-styles'
+import { defaultStyle, getShapeStyle } from '~state/shapes/shared'
 import {
   EllipseShape,
   DashStyle,
@@ -10,8 +10,8 @@ import {
   TLDrawTransformInfo,
   TLDrawMeta,
 } from '~types'
-import { BINDING_DISTANCE } from '~constants'
-import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
+import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
+import { TLDrawShapeUtil } from '~state/shapes/TLDrawShapeUtil'
 import {
   intersectEllipseBounds,
   intersectLineSegmentEllipse,
@@ -45,7 +45,7 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
   }
 
   Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
-    ({ shape, isBinding, meta, events }, ref) => {
+    ({ shape, isGhost, isBinding, meta, events }, ref) => {
       const {
         radius: [radiusX, radiusY],
         style,
@@ -53,7 +53,7 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
 
       const styles = getShapeStyle(style, meta.isDarkMode)
 
-      const strokeWidth = +styles.strokeWidth
+      const strokeWidth = styles.strokeWidth
 
       const sw = 1 + strokeWidth * 1.618
 
@@ -88,6 +88,7 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
               pointerEvents="all"
               strokeLinecap="round"
               strokeLinejoin="round"
+              opacity={isGhost ? GHOSTED_OPACITY : 1}
             />
           </SVGContainer>
         )

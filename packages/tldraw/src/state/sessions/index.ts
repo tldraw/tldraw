@@ -1,4 +1,4 @@
-import { SessionType } from '~types'
+import { ExceptFirst, SessionType } from '~types'
 import { ArrowSession } from './ArrowSession'
 import { BrushSession } from './BrushSession'
 import { DrawSession } from './DrawSession'
@@ -9,6 +9,18 @@ import { TransformSingleSession } from './TransformSingleSession'
 import { TranslateSession } from './TranslateSession'
 import { EraseSession } from './EraseSession'
 import { GridSession } from './GridSession'
+
+export type TLDrawSession =
+  | ArrowSession
+  | BrushSession
+  | DrawSession
+  | HandleSession
+  | RotateSession
+  | TransformSession
+  | TransformSingleSession
+  | TranslateSession
+  | EraseSession
+  | GridSession
 
 export interface SessionsMap {
   [SessionType.Arrow]: typeof ArrowSession
@@ -25,7 +37,9 @@ export interface SessionsMap {
 
 export type SessionOfType<K extends SessionType> = SessionsMap[K]
 
-export type ArgsOfType<K extends SessionType> = ConstructorParameters<SessionOfType<K>>
+export type SessionArgsOfType<K extends SessionType> = ExceptFirst<
+  ConstructorParameters<SessionOfType<K>>
+>
 
 export const sessions: { [K in SessionType]: SessionsMap[K] } = {
   [SessionType.Arrow]: ArrowSession,

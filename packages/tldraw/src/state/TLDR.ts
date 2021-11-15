@@ -275,7 +275,7 @@ export class TLDR {
       }, data)
   }
 
-  static getLinkedShapes(
+  static getLinkedShapeIds(
     data: TLDrawSnapshot,
     pageId: string,
     direction: 'center' | 'left' | 'right',
@@ -430,6 +430,8 @@ export class TLDR {
 
     ids.forEach((id, i) => {
       const shape = TLDR.getShape<T>(data, id, pageId)
+      if (shape.isLocked) return
+
       const change = fn(shape, i)
       if (change) {
         beforeShapes[id] = TLDR.getBeforeShape(shape, change)

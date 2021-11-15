@@ -2,16 +2,11 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
-import type { TLDrawSnapshot, PagePartial, TLDrawCommand, TLDrawShape } from '~types'
+import type { PagePartial, TLDrawCommand, TLDrawShape } from '~types'
+import type { TLDrawApp } from '../../internal'
 
-export function duplicateShapes(
-  data: TLDrawSnapshot,
-  ids: string[],
-  point?: number[]
-): TLDrawCommand {
-  const { currentPageId } = data.appState
-
-  const page = TLDR.getPage(data, currentPageId)
+export function duplicateShapes(app: TLDrawApp, ids: string[], point?: number[]): TLDrawCommand {
+  const { selectedIds, currentPageId, page, shapes } = app
 
   const before: PagePartial = {
     shapes: {},
@@ -23,51 +18,49 @@ export function duplicateShapes(
     bindings: {},
   }
 
-  const shapes = TLDR.getSelectedIds(data, currentPageId).map((id) =>
-    TLDR.getShape(data, id, currentPageId)
-  )
-
   const duplicateMap: Record<string, string> = {}
 
-  // Create duplicates
-  shapes
+  const shapesToDuplicate = ids
+    .map((id) => app.getShape(id))
     .filter((shape) => !ids.includes(shape.parentId))
-    .forEach((shape) => {
-      const duplicatedId = Utils.uniqueId()
-      before.shapes[duplicatedId] = undefined
 
-      after.shapes[duplicatedId] = {
-        ...Utils.deepClone(shape),
-        id: duplicatedId,
-        childIndex: TLDR.getChildIndexAbove(data, shape.id, currentPageId),
+  // Create duplicates
+  shapesToDuplicate.forEach((shape) => {
+    const duplicatedId = Utils.uniqueId()
+    before.shapes[duplicatedId] = undefined
+
+    after.shapes[duplicatedId] = {
+      ...Utils.deepClone(shape),
+      id: duplicatedId,
+      childIndex: TLDR.getChildIndexAbove(app.state, shape.id, currentPageId),
+    }
+
+    if (shape.children) {
+      after.shapes[duplicatedId]!.children = []
+    }
+
+    if (shape.parentId !== currentPageId) {
+      const parent = app.getShape(shape.parentId)
+
+      before.shapes[parent.id] = {
+        ...before.shapes[parent.id],
+        children: parent.children,
       }
 
-      if (shape.children) {
-        after.shapes[duplicatedId]!.children = []
+      after.shapes[parent.id] = {
+        ...after.shapes[parent.id],
+        children: [...(after.shapes[parent.id] || parent).children!, duplicatedId],
       }
+    }
 
-      if (shape.parentId !== currentPageId) {
-        const parent = TLDR.getShape(data, shape.parentId, currentPageId)
-
-        before.shapes[parent.id] = {
-          ...before.shapes[parent.id],
-          children: parent.children,
-        }
-
-        after.shapes[parent.id] = {
-          ...after.shapes[parent.id],
-          children: [...(after.shapes[parent.id] || parent).children!, duplicatedId],
-        }
-      }
-
-      duplicateMap[shape.id] = duplicatedId
-    })
+    duplicateMap[shape.id] = duplicatedId
+  })
 
   // If the shapes have children, then duplicate those too
-  shapes.forEach((shape) => {
+  shapesToDuplicate.forEach((shape) => {
     if (shape.children) {
       shape.children.forEach((childId) => {
-        const child = TLDR.getShape(data, childId, currentPageId)
+        const child = app.getShape(childId)
         const duplicatedId = Utils.uniqueId()
         const duplicatedParentId = duplicateMap[shape.id]
         before.shapes[duplicatedId] = undefined
@@ -75,7 +68,7 @@ export function duplicateShapes(
           ...Utils.deepClone(child),
           id: duplicatedId,
           parentId: duplicatedParentId,
-          childIndex: TLDR.getChildIndexAbove(data, child.id, currentPageId),
+          childIndex: TLDR.getChildIndexAbove(app.state, child.id, currentPageId),
         }
         duplicateMap[childId] = duplicatedId
         after.shapes[duplicateMap[shape.id]]?.children?.push(duplicatedId)
@@ -163,7 +156,7 @@ export function duplicateShapes(
           [currentPageId]: before,
         },
         pageStates: {
-          [currentPageId]: { selectedIds: ids },
+          [currentPageId]: { selectedIds },
         },
       },
     },

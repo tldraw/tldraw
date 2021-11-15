@@ -1,10 +1,8 @@
 import { StretchType, RectangleShape, TLDrawShapeType } from '~types'
-import { TLDrawState } from '~state'
-import { mockDocument, TLDrawStateUtils } from '~test'
-import Vec from '@tldraw/vec'
+import { mockDocument, TLDrawTestApp } from '~test'
 
 describe('Stretch command', () => {
-  const state = new TLDrawState()
+  const state = new TLDrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)
@@ -68,7 +66,7 @@ describe('Stretch command', () => {
 
 describe('when running the command', () => {
   it('restores selection on undo', () => {
-    const state = new TLDrawState()
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
       .stretch(StretchType.Horizontal)
@@ -85,7 +83,7 @@ describe('when running the command', () => {
 
 describe('when stretching groups', () => {
   it('stretches children', () => {
-    const state = new TLDrawState()
+    new TLDrawTestApp()
       .createShapes(
         { id: 'rect1', type: TLDrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
         { id: 'rect2', type: TLDrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
@@ -94,11 +92,10 @@ describe('when stretching groups', () => {
       .group(['rect1', 'rect2'], 'groupA')
       .selectAll()
       .stretch(StretchType.Vertical)
-
-    new TLDrawStateUtils(state).expectShapesToHaveProps({
-      rect1: { point: [0, 0], size: [100, 300] },
-      rect2: { point: [100, 0], size: [100, 300] },
-      rect3: { point: [200, 0], size: [100, 300] },
-    })
+      .expectShapesToHaveProps({
+        rect1: { point: [0, 0], size: [100, 300] },
+        rect2: { point: [100, 0], size: [100, 300] },
+        rect3: { point: [200, 0], size: [100, 300] },
+      })
   })
 })

@@ -7,8 +7,16 @@ import type {
   TLShapeProps,
   TLShape,
   TLHandle,
-  TLBounds,
   TLSnapLine,
+  TLPinchEventHandler,
+  TLKeyboardEventHandler,
+  TLPointerEventHandler,
+  TLWheelEventHandler,
+  TLCanvasEventHandler,
+  TLBoundsEventHandler,
+  TLBoundsHandleEventHandler,
+  TLShapeBlurHandler,
+  TLShapeCloneHandler,
 } from '@tldraw/core'
 import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
 import type { StoreApi } from 'zustand'
@@ -129,39 +137,52 @@ export enum SessionType {
   Grid = 'grid',
 }
 
-export abstract class Session {
-  static type: SessionType
-  abstract status: TLDrawStatus
-  abstract start: (TLDrawSnapshot: Readonly<TLDrawSnapshot>) => TLDrawPatch | undefined
-  abstract update: (
-    TLDrawSnapshot: Readonly<TLDrawSnapshot>,
-    point: number[],
-    shiftKey?: boolean,
-    altKey?: boolean,
-    metaKey?: boolean
-  ) => TLDrawPatch | undefined
-  abstract complete: (
-    TLDrawSnapshot: Readonly<TLDrawSnapshot>
-  ) => TLDrawPatch | TLDrawCommand | undefined
-  abstract cancel: (TLDrawSnapshot: Readonly<TLDrawSnapshot>) => TLDrawPatch | undefined
-
-  viewport: TLBounds
-
-  constructor(viewport: TLBounds) {
-    this.viewport = viewport
-  }
-
-  updateViewport = (viewport: TLBounds) => {
-    this.viewport = viewport
-  }
-
-  static cache: {
-    selectedIds: string[]
-    center: number[]
-  } = {
-    selectedIds: [],
-    center: [0, 0],
-  }
+export class TLDrawEventHandler {
+  onPinchStart?: TLPinchEventHandler
+  onPinchEnd?: TLPinchEventHandler
+  onPinch?: TLPinchEventHandler
+  onKeyDown?: TLKeyboardEventHandler
+  onKeyUp?: TLKeyboardEventHandler
+  onPointerMove?: TLPointerEventHandler
+  onPointerUp?: TLPointerEventHandler
+  onPan?: TLWheelEventHandler
+  onZoom?: TLWheelEventHandler
+  onPointerDown?: TLPointerEventHandler
+  onPointCanvas?: TLCanvasEventHandler
+  onDoubleClickCanvas?: TLCanvasEventHandler
+  onRightPointCanvas?: TLCanvasEventHandler
+  onDragCanvas?: TLCanvasEventHandler
+  onReleaseCanvas?: TLCanvasEventHandler
+  onPointShape?: TLPointerEventHandler
+  onDoubleClickShape?: TLPointerEventHandler
+  onRightPointShape?: TLPointerEventHandler
+  onDragShape?: TLPointerEventHandler
+  onHoverShape?: TLPointerEventHandler
+  onUnhoverShape?: TLPointerEventHandler
+  onReleaseShape?: TLPointerEventHandler
+  onPointBounds?: TLBoundsEventHandler
+  onDoubleClickBounds?: TLBoundsEventHandler
+  onRightPointBounds?: TLBoundsEventHandler
+  onDragBounds?: TLBoundsEventHandler
+  onHoverBounds?: TLBoundsEventHandler
+  onUnhoverBounds?: TLBoundsEventHandler
+  onReleaseBounds?: TLBoundsEventHandler
+  onPointBoundsHandle?: TLBoundsHandleEventHandler
+  onDoubleClickBoundsHandle?: TLBoundsHandleEventHandler
+  onRightPointBoundsHandle?: TLBoundsHandleEventHandler
+  onDragBoundsHandle?: TLBoundsHandleEventHandler
+  onHoverBoundsHandle?: TLBoundsHandleEventHandler
+  onUnhoverBoundsHandle?: TLBoundsHandleEventHandler
+  onReleaseBoundsHandle?: TLBoundsHandleEventHandler
+  onPointHandle?: TLPointerEventHandler
+  onDoubleClickHandle?: TLPointerEventHandler
+  onRightPointHandle?: TLPointerEventHandler
+  onDragHandle?: TLPointerEventHandler
+  onHoverHandle?: TLPointerEventHandler
+  onUnhoverHandle?: TLPointerEventHandler
+  onReleaseHandle?: TLPointerEventHandler
+  onShapeBlur?: TLShapeBlurHandler
+  onShapeClone?: TLShapeCloneHandler
 }
 
 export enum TLDrawStatus {

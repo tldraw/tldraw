@@ -1,11 +1,15 @@
-import type { TLDrawSnapshot, TLDrawCommand } from '~types'
+import type { TLDrawCommand } from '~types'
+import type { TLDrawApp } from '../../internal'
 
-export function deletePage(data: TLDrawSnapshot, pageId: string): TLDrawCommand {
-  const { currentPageId } = data.appState
+export function deletePage(app: TLDrawApp, pageId: string): TLDrawCommand {
+  const {
+    currentPageId,
+    state: {
+      document: { pages, pageStates },
+    },
+  } = app
 
-  const pagesArr = Object.values(data.document.pages).sort(
-    (a, b) => (a.childIndex || 0) - (b.childIndex || 0)
-  )
+  const pagesArr = Object.values(pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
 
   const currentIndex = pagesArr.findIndex((page) => page.id === pageId)
 
@@ -29,10 +33,10 @@ export function deletePage(data: TLDrawSnapshot, pageId: string): TLDrawCommand 
       },
       document: {
         pages: {
-          [pageId]: { ...data.document.pages[pageId] },
+          [pageId]: { ...pages[pageId] },
         },
         pageStates: {
-          [pageId]: { ...data.document.pageStates[pageId] },
+          [pageId]: { ...pageStates[pageId] },
         },
       },
     },

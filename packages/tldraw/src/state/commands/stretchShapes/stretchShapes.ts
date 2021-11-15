@@ -1,17 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLBoundsCorner, Utils } from '@tldraw/core'
 import { StretchType, TLDrawShapeType } from '~types'
-import type { TLDrawSnapshot, TLDrawCommand } from '~types'
+import type { TLDrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
+import type { TLDrawApp } from '../../internal'
 
-export function stretchShapes(
-  data: TLDrawSnapshot,
-  ids: string[],
-  type: StretchType
-): TLDrawCommand {
-  const { currentPageId } = data.appState
+export function stretchShapes(app: TLDrawApp, ids: string[], type: StretchType): TLDrawCommand {
+  const { currentPageId, selectedIds } = app
 
-  const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
+  const initialShapes = ids.map((id) => app.getShape(id))
 
   const boundsForShapes = initialShapes.map((shape) => TLDR.getBounds(shape))
 
@@ -19,13 +16,13 @@ export function stretchShapes(
 
   const idsToMutate = ids
     .flatMap((id) => {
-      const shape = TLDR.getShape(data, id, currentPageId)
+      const shape = app.getShape(id)
       return shape.children ? shape.children : shape.id
     })
-    .filter((id) => !TLDR.getShape(data, id, currentPageId).isLocked)
+    .filter((id) => !app.getShape(id).isLocked)
 
   const { before, after } = TLDR.mutateShapes(
-    data,
+    app.state,
     idsToMutate,
     (shape) => {
       const bounds = TLDR.getBounds(shape)
@@ -84,7 +81,7 @@ export function stretchShapes(
         },
         pageStates: {
           [currentPageId]: {
-            selectedIds: ids,
+            selectedIds,
           },
         },
       },

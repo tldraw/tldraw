@@ -1,9 +1,8 @@
 import type { RectangleShape } from '~types'
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
+import { mockDocument, TLDrawTestApp } from '~test'
 
 describe('Toggle command', () => {
-  const state = new TLDrawState()
+  const state = new TLDrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)
@@ -63,7 +62,7 @@ describe('Toggle command', () => {
 
 describe('when running the command', () => {
   it('restores selection on undo', () => {
-    const state = new TLDrawState()
+    const state = new TLDrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1')
       .toggleHidden()

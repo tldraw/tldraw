@@ -60,15 +60,15 @@ function App() {
 }
 ```
 
-### Controlling the Component through the TLDrawState API
+### Controlling the Component through the TLDrawApp API
 
-You can also control the `TLDraw` component imperatively through the `TLDrawState` API.
+You can also control the `TLDraw` component imperatively through the `TLDrawApp` API.
 
 ```tsx
-import { TLDraw, TLDrawState } from '@tldraw/tldraw'
+import { TLDraw, TLDrawApp } from '@tldraw/tldraw'
 
 function App() {
-  const handleMount = React.useCallback((state: TLDrawState) => {
+  const handleMount = React.useCallback((state: TLDrawApp) => {
     state.selectAll()
   }, [])
 
@@ -76,17 +76,17 @@ function App() {
 }
 ```
 
-Internally, the `TLDraw` component's user interface uses this API to make changes to the component's state. See the `TLDrawState` section of the [documentation](guides/documentation) for more on this API.
+Internally, the `TLDraw` component's user interface uses this API to make changes to the component's state. See the `TLDrawApp` section of the [documentation](guides/documentation) for more on this API.
 
 ### Responding to Changes
 
 You can respond to changes and user actions using the `onChange` callback. For more specific changes, you can also use the `onPatch`, `onCommand`, or `onPersist` callbacks. See the [documentation](guides/documentation) for more.
 
 ```tsx
-import { TLDraw, TLDrawState } from '@tldraw/tldraw'
+import { TLDraw, TLDrawApp } from '@tldraw/tldraw'
 
 function App() {
-  const handleChange = React.useCallback((state: TLDrawState, reason: string) => {
+  const handleChange = React.useCallback((state: TLDrawApp, reason: string) => {
     // Do something with the change
   }, [])
 

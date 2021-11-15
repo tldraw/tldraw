@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { TLDraw, TLDrawState, TLDrawDocument, TLDrawUser } from '@tldraw/tldraw'
+import { TLDraw, TLDrawApp, TLDrawDocument, TLDrawUser } from '@tldraw/tldraw'
 import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useErrorListener, useObject } from '@liveblocks/react'
 import { Utils } from '@tldraw/core'
@@ -31,21 +31,21 @@ function TLDrawWrapper() {
 
   const [error, setError] = React.useState<Error>()
 
-  const [state, setstate] = React.useState<TLDrawState>()
+  const [state, setstate] = React.useState<TLDrawApp>()
 
   useErrorListener((err) => setError(err))
 
   const doc = useObject<{ uuid: string; document: TLDrawDocument }>('doc', {
     uuid: docId,
     document: {
-      ...TLDrawState.defaultDocument,
+      ...TLDrawApp.defaultDocument,
       id: roomId,
     },
   })
 
   // Put the state into the window, for debugging.
   const handleMount = React.useCallback(
-    (state: TLDrawState) => {
+    (state: TLDrawApp) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       window.state = state
@@ -131,14 +131,14 @@ function TLDrawWrapper() {
   }, [doc, docId, state])
 
   const handlePersist = React.useCallback(
-    (state: TLDrawState) => {
+    (state: TLDrawApp) => {
       doc?.update({ uuid: docId, document: state.document })
     },
     [docId, doc]
   )
 
   const handleUserChange = React.useCallback(
-    (state: TLDrawState, user: TLDrawUser) => {
+    (state: TLDrawApp, user: TLDrawUser) => {
       const room = client.getRoom(roomId)
       room?.updatePresence({ id: state.state.room?.userId, user })
     },

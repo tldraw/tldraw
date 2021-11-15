@@ -1,10 +1,9 @@
 import Vec from '@tldraw/vec'
-import { TLDrawState } from '~state'
-import { mockDocument, TLDrawStateUtils } from '~test'
+import { mockDocument, TLDrawTestApp } from '~test'
 import { AlignType, TLDrawShapeType } from '~types'
 
 describe('Align command', () => {
-  const state = new TLDrawState()
+  const state = new TLDrawTestApp()
 
   describe('when less than two shapes are selected', () => {
     it('does nothing', () => {
@@ -79,7 +78,7 @@ describe('Align command', () => {
 
 describe('when aligning groups', () => {
   it('aligns children', () => {
-    const state = new TLDrawState()
+    const state = new TLDrawTestApp()
       .createShapes(
         { id: 'rect1', type: TLDrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
         { id: 'rect2', type: TLDrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
@@ -93,12 +92,15 @@ describe('when aligning groups', () => {
     const p0 = state.getShape('rect4').point
     const p1 = state.getShape('rect3').point
 
-    state.undo().delete(['rect4']).selectAll().align(AlignType.CenterVertical)
-
-    new TLDrawStateUtils(state).expectShapesToBeAtPoints({
-      rect1: p0,
-      rect2: Vec.add(p0, [100, 100]),
-      rect3: p1,
-    })
+    state
+      .undo()
+      .delete(['rect4'])
+      .selectAll()
+      .align(AlignType.CenterVertical)
+      .expectShapesToBeAtPoints({
+        rect1: p0,
+        rect2: Vec.add(p0, [100, 100]),
+        rect3: p1,
+      })
   })
 })

@@ -1,8 +1,7 @@
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
+import { mockDocument, TLDrawTestApp } from '~test'
 
 describe('Rename page command', () => {
-  const state = new TLDrawState()
+  const state = new TLDrawTestApp()
 
   it('does, undoes and redoes command', () => {
     state.loadDocument(mockDocument)

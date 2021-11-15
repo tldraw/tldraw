@@ -3,7 +3,7 @@ import { intersectCircleCircle, intersectCircleLineSegment } from '@tldraw/inter
 import Vec from '@tldraw/vec'
 import getStroke from 'perfect-freehand'
 import { EASINGS } from '~constants'
-import { getShapeStyle } from '../shape-styles'
+import { getShapeStyle } from '../shared/shape-styles'
 import type { ArrowShape, TLDrawHandle } from '~types'
 
 export function getArrowArcPath(
