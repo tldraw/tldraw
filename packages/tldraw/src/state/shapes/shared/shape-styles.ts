@@ -149,4 +149,5 @@ export const defaultStyle: ShapeStyles = {
   size: SizeStyle.Small,
   isFilled: false,
   dash: DashStyle.Draw,
+  scale: 1,
 }

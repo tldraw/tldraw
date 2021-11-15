@@ -1654,14 +1654,14 @@ export class TLDrawApp extends StateManager<TLDrawSnapshot> {
    * Zoom back to content when the canvas is empty.
    */
   zoomToContent = (): this => {
-    const shapes = this.getShapes()
+    const shapes = this.shapes
     const pageState = this.pageState
 
     if (shapes.length === 0) return this
 
     const { rendererBounds } = this.mutables
     const { zoom } = pageState.camera
-    const commonBounds = Utils.getCommonBounds(Object.values(shapes).map(TLDR.getBounds))
+    const commonBounds = Utils.getCommonBounds(shapes.map(TLDR.getBounds))
 
     const mx = (rendererBounds.width - commonBounds.width * zoom) / 2 / zoom
     const my = (rendererBounds.height - commonBounds.height * zoom) / 2 / zoom

@@ -19,6 +19,7 @@ Object {
     "color": "black",
     "dash": "draw",
     "isFilled": false,
+    "scale": 1,
     "size": "small",
   },
   "type": "rectangle",

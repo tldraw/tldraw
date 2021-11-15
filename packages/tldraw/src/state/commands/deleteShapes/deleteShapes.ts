@@ -8,6 +8,7 @@ export function deleteShapes(
   ids: string[],
   pageId = app.currentPageId
 ): TLDrawCommand {
+  const { pageState, selectedIds } = app
   const { before, after } = removeShapesFromPage(app.state, ids, pageId)
 
   return {
@@ -18,7 +19,7 @@ export function deleteShapes(
           [pageId]: before,
         },
         pageStates: {
-          [pageId]: { selectedIds: TLDR.getSelectedIds(app.state, pageId) },
+          [pageId]: { selectedIds: [...app.selectedIds] },
         },
       },
     },
@@ -28,7 +29,13 @@ export function deleteShapes(
           [pageId]: after,
         },
         pageStates: {
-          [pageId]: { selectedIds: [] },
+          [pageId]: {
+            selectedIds: selectedIds.filter((id) => !ids.includes(id)),
+            hoveredId:
+              pageState.hoveredId && ids.includes(pageState.hoveredId)
+                ? undefined
+                : pageState.hoveredId,
+          },
         },
       },
     },

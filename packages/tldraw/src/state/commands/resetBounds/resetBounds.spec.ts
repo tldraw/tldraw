@@ -19,7 +19,7 @@ describe('Reset bounds command', () => {
     })
 
     // Scale is undefined by default
-    expect(state.getShape('text1').style.scale).toBeUndefined()
+    expect(state.getShape('text1').style.scale).toBe(1)
 
     // Transform the shape in order to change its point and scale
 
