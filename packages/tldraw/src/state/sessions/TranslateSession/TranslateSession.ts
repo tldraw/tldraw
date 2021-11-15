@@ -172,9 +172,7 @@ export class TranslateSession extends BaseSession {
       bindingsToDelete,
       app: {
         pageState: { camera },
-        state: {
-          settings: { isSnapping },
-        },
+        settings: { isSnapping },
         currentPageId,
         mutables: {
           viewport,

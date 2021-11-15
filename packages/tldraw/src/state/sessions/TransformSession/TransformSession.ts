@@ -104,10 +104,10 @@ export class TransformSession extends BaseSession {
       initialCommonBounds,
       isAllAspectRatioLocked,
       app: {
-        state: { settings: isSnapping },
         currentPageId,
         pageState: { camera },
         mutables: { viewport, currentPoint, previousPoint, originPoint, shiftKey, metaKey },
+        settings: { isSnapping },
       },
     } = this
 

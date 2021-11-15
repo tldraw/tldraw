@@ -1102,6 +1102,13 @@ export class TLDrawApp extends StateManager<TLDrawSnapshot> {
   /**
    * The current app state.
    */
+  get settings(): TLDrawSnapshot['settings'] {
+    return this.state.settings
+  }
+
+  /**
+   * The current app state.
+   */
   get appState(): TLDrawSnapshot['appState'] {
     return this.state.appState
   }

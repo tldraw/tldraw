@@ -70,7 +70,7 @@ export class TransformSingleSession extends BaseSession {
       initialShape,
       initialShapeBounds,
       app: {
-        state: { settings: isSnapping },
+        settings: { isSnapping },
         currentPageId,
         pageState: { camera },
         mutables: { viewport, currentPoint, previousPoint, originPoint, shiftKey, metaKey },
@@ -104,6 +104,8 @@ export class TransformSingleSession extends BaseSession {
     this.speed = this.speed + speedChange * (speedChange > 1 ? 0.5 : 0.15)
 
     let snapLines: TLSnapLine[] = []
+
+    console.log(isSnapping, metaKey)
 
     if (
       ((isSnapping && !metaKey) || (!isSnapping && metaKey)) &&
