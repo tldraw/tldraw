@@ -22,20 +22,22 @@ export function Multiplayer() {
   return (
     <LiveblocksProvider client={client}>
       <RoomProvider id={roomId}>
-        <TldrawWrapper />
+        <Editor roomId={roomId} />
       </RoomProvider>
     </LiveblocksProvider>
   )
 }
 
-function TldrawWrapper() {
+function Editor({ roomId }: { roomId: string }) {
   const [docId] = React.useState(() => Utils.uniqueId())
-
-  const [error, setError] = React.useState<Error>()
 
   const [app, setApp] = React.useState<TldrawApp>()
 
+  const [error, setError] = React.useState<Error>()
+
   useErrorListener((err) => setError(err))
+
+  // Setup document
 
   const doc = useObject<{ uuid: string; document: TDDocument }>('doc', {
     uuid: docId,
@@ -46,13 +48,10 @@ function TldrawWrapper() {
   })
 
   // Put the state into the window, for debugging.
-  const handleMount = React.useCallback(
-    (app: TldrawApp) => {
-      window.app = app
-      setApp(app)
-    },
-    [roomId]
-  )
+  const handleMount = React.useCallback((app: TldrawApp) => {
+    window.app = app
+    setApp(app)
+  }, [])
 
   React.useEffect(() => {
     const room = client.getRoom(roomId)
@@ -80,8 +79,7 @@ function TldrawWrapper() {
 
     function handleDocumentUpdates() {
       if (!doc) return
-      if (!app) return
-      if (!app.room) return
+      if (!app?.room) return
 
       const docObject = doc.toObject()
 
@@ -101,7 +99,7 @@ function TldrawWrapper() {
     }
 
     function handleExit() {
-      if (!(app && app.room)) return
+      if (!app?.room) return
       room?.broadcastEvent({ name: 'exit', userId: app.room.userId })
     }
 

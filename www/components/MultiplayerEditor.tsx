@@ -29,7 +29,7 @@ export default function MultiplayerEditor({
 }) {
   return (
     <LiveblocksProvider client={client}>
-      <RoomProvider id={roomId}>
+      <RoomProvider id={roomId} defaultStorageRoot={TldrawApp.defaultDocument}>
         <Editor roomId={roomId} isSponsor={isSponsor} isUser={isUser} />
       </RoomProvider>
     </LiveblocksProvider>
@@ -57,6 +57,12 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
     },
   })
 
+  // Put the state into the window, for debugging.
+  const handleMount = React.useCallback((app: TldrawApp) => {
+    window.app = app
+    setApp(app)
+  }, [])
+
   // Setup client
 
   React.useEffect(() => {
@@ -64,12 +70,9 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
 
     if (!room) return
     if (!doc) return
-    if (!app?.room) return
+    if (!app) return
 
-    // Update the user's presence with the user from state
-    const { users, userId } = app.room
-
-    room.updatePresence({ id: userId, user: users[userId] })
+    app.loadRoom(roomId)
 
     // Subscribe to presence changes; when others change, update the state
     room.subscribe<TDUserPresence>('others', (others) => {
@@ -124,6 +127,13 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
 
     if (newDocument) {
       app.loadDocument(newDocument)
+      app.loadRoom(roomId)
+
+      // Update the user's presence with the user from state
+      if (app.state.room) {
+        const { users, userId } = app.state.room
+        room.updatePresence({ id: userId, user: users[userId] })
+      }
     }
 
     return () => {
@@ -131,15 +141,6 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
       doc.unsubscribe(handleDocumentUpdates)
     }
   }, [doc, docId, app, roomId])
-
-  const handleMount = React.useCallback(
-    (app: TldrawApp) => {
-      window.app = app
-      app.loadRoom(roomId)
-      setApp(app)
-    },
-    [roomId]
-  )
 
   const handlePersist = React.useCallback(
     (app: TldrawApp) => {

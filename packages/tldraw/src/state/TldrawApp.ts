@@ -922,7 +922,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Load a fresh room into the state.
    * @param roomId
    */
-  loadRoom = (roomId: string) => {
+  loadRoom = (roomId: string): this => {
     this.patchState({
       room: {
         id: roomId,
@@ -938,6 +938,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         },
       },
     })
+    return this
   }
 
   /**
