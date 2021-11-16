@@ -52,7 +52,7 @@ export const StyledKbd = styled('kbd', {
     variant: {
       tooltip: {
         '& > span': {
-          color: '$tooltipText',
+          color: '$tooltipContrast',
           background: '$overlayContrast',
           boxShadow: '$key',
           width: '20px',

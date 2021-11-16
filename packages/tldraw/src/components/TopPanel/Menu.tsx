@@ -158,7 +158,6 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
         )}
         {showSignInOutMenu && (
           <>
-            pzoo
             <DMDivider dir="ltr" />{' '}
             {app.callbacks.onSignIn && <DMItem onSelect={handleSignIn}>Sign In</DMItem>}
             {app.callbacks.onSignOut && (

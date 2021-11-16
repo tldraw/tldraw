@@ -137,7 +137,7 @@ export const StyledToolButton = styled('button', {
     isSponsor: {
       true: {
         [`${StyledToolButtonInner}`]: {
-          backgroundColor: '$sponsorLight',
+          backgroundColor: '$sponsorContrast',
         },
       },
     },
@@ -181,7 +181,7 @@ export const StyledToolButton = styled('button', {
       css: {
         [`${StyledToolButtonInner}`]: {
           backgroundColor: '$selected',
-          color: '$panelActive',
+          color: '$selectedContrast',
         },
       },
     },

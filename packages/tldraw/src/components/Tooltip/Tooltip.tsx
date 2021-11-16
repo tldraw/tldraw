@@ -38,8 +38,8 @@ const StyledContent = styled(RadixTooltip.Content, {
   borderRadius: 3,
   padding: '$3 $3 $3 $3',
   fontSize: '$1',
-  backgroundColor: '$tooltipBg',
-  color: '$tooltipText',
+  backgroundColor: '$tooltip',
+  color: '$tooltipContrast',
   boxShadow: '$3',
   display: 'flex',
   alignItems: 'center',
@@ -48,6 +48,6 @@ const StyledContent = styled(RadixTooltip.Content, {
 })
 
 const StyledArrow = styled(RadixTooltip.Arrow, {
-  fill: '$tooltipBg',
+  fill: '$tooltip',
   margin: '0 8px',
 })
