@@ -10,17 +10,11 @@ export class DrawTool extends BaseTool {
 
   onPointerDown: TLPointerEventHandler = (info) => {
     const {
-      shapes,
       mutables: { currentPoint },
       appState: { currentPageId, currentStyle },
     } = this.app
 
-    const childIndex =
-      shapes.length === 0
-        ? 1
-        : shapes
-            .filter((shape) => shape.parentId === currentPageId)
-            .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+    const childIndex = this.getNextChildIndex()
 
     const id = Utils.uniqueId()
 

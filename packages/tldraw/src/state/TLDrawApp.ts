@@ -2465,7 +2465,7 @@ export class TLDrawApp extends StateManager<TLDrawSnapshot> {
   /* ----------------- Pointer Events ----------------- */
 
   updateMutables: TLPointerEventHandler = (info) => {
-    this.mutables.currentPoint = this.getPagePoint(info.point)
+    this.mutables.currentPoint = [...this.getPagePoint(info.point), info.pressure]
     this.mutables.shiftKey = info.shiftKey
     this.mutables.altKey = info.altKey
     this.mutables.ctrlKey = info.ctrlKey
