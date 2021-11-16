@@ -1,27 +1,27 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
-import { AlignType, TLDrawCommand, TLDrawShapeType } from '~types'
-import type { TLDrawSnapshot } from '~types'
+import { AlignType, TldrawCommand, TDShapeType } from '~types'
+import type { TDSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
 import Vec from '@tldraw/vec'
+import type { TldrawApp } from '../../internal'
 
-export function alignShapes(data: TLDrawSnapshot, ids: string[], type: AlignType): TLDrawCommand {
-  const { currentPageId } = data.appState
+export function alignShapes(app: TldrawApp, ids: string[], type: AlignType): TldrawCommand {
+  const { currentPageId } = app
 
-  const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
+  const initialShapes = ids.map((id) => app.getShape(id))
 
   const boundsForShapes = initialShapes.map((shape) => {
     return {
       id: shape.id,
       point: [...shape.point],
-      bounds: TLDR.getShapeUtils(shape).getBounds(shape),
+      bounds: TLDR.getBounds(shape),
     }
   })
 
   const commonBounds = Utils.getCommonBounds(boundsForShapes.map(({ bounds }) => bounds))
 
   const midX = commonBounds.minX + commonBounds.width / 2
-
   const midY = commonBounds.minY + commonBounds.height / 2
 
   const deltaMap = Object.fromEntries(
@@ -44,7 +44,7 @@ export function alignShapes(data: TLDrawSnapshot, ids: string[], type: AlignType
   )
 
   const { before, after } = TLDR.mutateShapes(
-    data,
+    app.state,
     ids,
     (shape) => {
       if (!deltaMap[shape.id]) return shape
@@ -54,11 +54,11 @@ export function alignShapes(data: TLDrawSnapshot, ids: string[], type: AlignType
   )
 
   initialShapes.forEach((shape) => {
-    if (shape.type === TLDrawShapeType.Group) {
+    if (shape.type === TDShapeType.Group) {
       const delta = Vec.sub(after[shape.id].point!, before[shape.id].point!)
 
       shape.children.forEach((id) => {
-        const child = TLDR.getShape(data, id, currentPageId)
+        const child = app.getShape(id)
         before[child.id] = { point: child.point }
         after[child.id] = { point: Vec.add(child.point, delta) }
       })

@@ -3,7 +3,7 @@ import Vec from '@tldraw/vec'
 import { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
 import { EASINGS } from '~constants'
 import type { EllipseShape } from '~types'
-import { getShapeStyle } from '../shape-styles'
+import { getShapeStyle } from '../shared/shape-styles'
 
 export function getEllipseStrokePoints(shape: EllipseShape, boundsCenter: number[]) {
   const {
@@ -78,7 +78,7 @@ export function getEllipsePath(shape: EllipseShape, boundsCenter: number[]) {
   )
 }
 
-export function getEllipseIndicatorPathTLDrawSnapshot(shape: EllipseShape, boundsCenter: number[]) {
+export function getEllipseIndicatorPathTDSnapshot(shape: EllipseShape, boundsCenter: number[]) {
   return Utils.getSvgPathFromStroke(
     getEllipseStrokePoints(shape, boundsCenter).map((pt) => pt.point.slice(0, 2)),
     false

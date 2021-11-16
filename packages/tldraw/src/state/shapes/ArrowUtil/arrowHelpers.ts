@@ -3,12 +3,12 @@ import { intersectCircleCircle, intersectCircleLineSegment } from '@tldraw/inter
 import Vec from '@tldraw/vec'
 import getStroke from 'perfect-freehand'
 import { EASINGS } from '~constants'
-import { getShapeStyle } from '../shape-styles'
-import type { ArrowShape, TLDrawHandle } from '~types'
+import { getShapeStyle } from '../shared/shape-styles'
+import type { ArrowShape, TldrawHandle } from '~types'
 
 export function getArrowArcPath(
-  start: TLDrawHandle,
-  end: TLDrawHandle,
+  start: TldrawHandle,
+  end: TldrawHandle,
   circle: number[],
   bend: number
 ) {
@@ -259,9 +259,9 @@ export function getArrowPath(shape: ArrowShape) {
 export function getArcPoints(shape: ArrowShape) {
   const { start, bend, end } = shape.handles
 
-  const points: number[][] = [start.point, end.point]
-
   if (Vec.dist2(bend.point, Vec.med(start.point, end.point)) > 4) {
+    const points: number[][] = []
+
     // We're an arc, calculate points along the arc
     const { center, radius } = getArrowArc(shape)
 
@@ -273,9 +273,11 @@ export function getArcPoints(shape: ArrowShape) {
       const angle = Utils.lerpAngles(startAngle, endAngle, i)
       points.push(Vec.nudgeAtAngle(center, angle, radius))
     }
-  }
 
-  return points
+    return points
+  } else {
+    return [start.point, end.point]
+  }
 }
 
 export function isAngleBetween(a: number, b: number, c: number): boolean {

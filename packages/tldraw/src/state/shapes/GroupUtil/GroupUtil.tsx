@@ -1,17 +1,17 @@
 import * as React from 'react'
 import { styled } from '~styles'
 import { Utils, SVGContainer } from '@tldraw/core'
-import { defaultStyle } from '../shape-styles'
-import { TLDrawShapeType, GroupShape, ColorStyle, TLDrawMeta } from '~types'
-import { BINDING_DISTANCE } from '~constants'
-import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
+import { defaultStyle } from '../shared/shape-styles'
+import { TDShapeType, GroupShape, ColorStyle, TDMeta } from '~types'
+import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
+import { TDShapeUtil } from '../TDShapeUtil'
 import { getBoundsRectangle } from '../shared'
 
 type T = GroupShape
 type E = SVGSVGElement
 
-export class GroupUtil extends TLDrawShapeUtil<T, E> {
-  type = TLDrawShapeType.Group as const
+export class GroupUtil extends TDShapeUtil<T, E> {
+  type = TDShapeType.Group as const
 
   canBind = true
 
@@ -19,7 +19,7 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
     return Utils.deepMerge<T>(
       {
         id: 'id',
-        type: TLDrawShapeType.Group,
+        type: TDShapeType.Group,
         name: 'Group',
         parentId: 'page',
         childIndex: 1,
@@ -33,8 +33,8 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
-    ({ shape, isBinding, isHovered, isSelected, events }, ref) => {
+  Component = TDShapeUtil.Component<T, E, TDMeta>(
+    ({ shape, isBinding, isGhost, isHovered, isSelected, events }, ref) => {
       const { id, size } = shape
 
       const sw = 2
@@ -63,28 +63,30 @@ export class GroupUtil extends TLDrawShapeUtil<T, E> {
               height={size[1] + BINDING_DISTANCE * 2}
             />
           )}
-          <rect
-            x={0}
-            y={0}
-            width={size[0]}
-            height={size[1]}
-            fill="transparent"
-            pointerEvents="all"
-          />
-          <ScaledLines
-            stroke={ColorStyle.Black}
-            opacity={isHovered || isSelected ? 1 : 0}
-            strokeLinecap="round"
-            pointerEvents="stroke"
-          >
-            {paths}
-          </ScaledLines>
+          <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
+            <rect
+              x={0}
+              y={0}
+              width={size[0]}
+              height={size[1]}
+              fill="transparent"
+              pointerEvents="all"
+            />
+            <ScaledLines
+              stroke={ColorStyle.Black}
+              opacity={isHovered || isSelected ? 1 : 0}
+              strokeLinecap="round"
+              pointerEvents="stroke"
+            >
+              {paths}
+            </ScaledLines>
+          </g>
         </SVGContainer>
       )
     }
   )
 
-  Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
+  Indicator = TDShapeUtil.Indicator<T>(({ shape }) => {
     const { id, size } = shape
 
     const sw = 2

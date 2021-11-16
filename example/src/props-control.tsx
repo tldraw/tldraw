@@ -1,18 +1,18 @@
 import * as React from 'react'
 import {
-  TLDraw,
+  Tldraw,
   ColorStyle,
   DashStyle,
   SizeStyle,
-  TLDrawDocument,
-  TLDrawShapeType,
-  TLDrawState,
+  TDDocument,
+  TDShapeType,
+  TldrawApp,
 } from '@tldraw/tldraw'
 
 export default function Controlled() {
-  const rDocument = React.useRef<TLDrawDocument>({
+  const rDocument = React.useRef<TDDocument>({
     name: 'New Document',
-    version: TLDrawState.version,
+    version: TldrawApp.version,
     id: 'doc',
     pages: {
       page1: {
@@ -20,7 +20,7 @@ export default function Controlled() {
         shapes: {
           rect1: {
             id: 'rect1',
-            type: TLDrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             parentId: 'page1',
             name: 'Rectangle',
             childIndex: 1,
@@ -34,7 +34,7 @@ export default function Controlled() {
           },
           rect2: {
             id: 'rect2',
-            type: TLDrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             parentId: 'page1',
             name: 'Rectangle',
             childIndex: 1,
@@ -62,7 +62,7 @@ export default function Controlled() {
     },
   })
 
-  const [doc, setDoc] = React.useState<TLDrawDocument>(rDocument.current)
+  const [doc, setDoc] = React.useState<TDDocument>(rDocument.current)
 
   React.useEffect(() => {
     let i = 0
@@ -105,5 +105,5 @@ export default function Controlled() {
     rDocument.current = state.document
   }, [])
 
-  return <TLDraw document={doc} onChange={handleChange} />
+  return <Tldraw document={doc} onChange={handleChange} />
 }

@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Dialog from '@radix-ui/react-alert-dialog'
 import { MixerVerticalIcon } from '@radix-ui/react-icons'
-import type { TLDrawSnapshot, TLDrawPage } from '~types'
-import { useTLDrawContext } from '~hooks'
+import type { TDSnapshot, TDPage } from '~types'
+import { useTldrawApp } from '~hooks'
 import { RowButton, RowButtonProps } from '~components/RowButton'
 import { styled } from '~styles'
 import { Divider } from '~components/Divider'
@@ -10,36 +10,36 @@ import { IconButton } from '~components/IconButton/IconButton'
 import { SmallIcon } from '~components/SmallIcon'
 import { breakpoints } from '~components/breakpoints'
 
-const canDeleteSelector = (s: TLDrawSnapshot) => {
+const canDeleteSelector = (s: TDSnapshot) => {
   return Object.keys(s.document.pages).length > 1
 }
 
 interface PageOptionsDialogProps {
-  page: TLDrawPage
+  page: TDPage
   onOpen?: () => void
   onClose?: () => void
 }
 
 export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogProps): JSX.Element {
-  const { state, useSelector } = useTLDrawContext()
+  const app = useTldrawApp()
 
   const [isOpen, setIsOpen] = React.useState(false)
 
-  const canDelete = useSelector(canDeleteSelector)
+  const canDelete = app.useStore(canDeleteSelector)
 
   const rInput = React.useRef<HTMLInputElement>(null)
 
   const handleDuplicate = React.useCallback(() => {
-    state.duplicatePage(page.id)
+    app.duplicatePage(page.id)
     onClose?.()
-  }, [state])
+  }, [app])
 
   const handleDelete = React.useCallback(() => {
     if (window.confirm(`Are you sure you want to delete this page?`)) {
-      state.deletePage(page.id)
+      app.deletePage(page.id)
       onClose?.()
     }
-  }, [state])
+  }, [app])
 
   const handleOpenChange = React.useCallback(
     (isOpen: boolean) => {
@@ -50,7 +50,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
         return
       }
     },
-    [state, name]
+    [app]
   )
 
   function stopPropagation(e: React.KeyboardEvent<HTMLDivElement>) {
@@ -60,7 +60,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
   // TODO: Replace with text input
   function handleRename() {
     const nextName = window.prompt('New name:', page.name)
-    state.renamePage(page.id, nextName || page.name || 'Page')
+    app.renamePage(page.id, nextName || page.name || 'Page')
   }
 
   React.useEffect(() => {
@@ -82,7 +82,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
         </IconButton>
       </Dialog.Trigger>
       <StyledDialogOverlay />
-      <StyledDialogContent onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
+      <StyledDialogContent dir="ltr" onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
         <DialogAction onSelect={handleRename}>Rename</DialogAction>
         <DialogAction onSelect={handleDuplicate}>Duplicate</DialogAction>
         <DialogAction disabled={!canDelete} onSelect={handleDelete}>
@@ -112,7 +112,6 @@ export const StyledDialogContent = styled(Dialog.Content, {
   marginTop: '-5vh',
   pointerEvents: 'all',
   backgroundColor: '$panel',
-  border: '1px solid $panelBorder',
   padding: '$0',
   borderRadius: '$2',
   font: '$ui',
@@ -132,9 +131,9 @@ export const StyledDialogOverlay = styled(Dialog.Overlay, {
   height: '100%',
 })
 
-function DialogAction({ onSelect, ...rest }: RowButtonProps) {
+function DialogAction({ ...rest }: RowButtonProps & { onSelect: (e: Event) => void }) {
   return (
-    <Dialog.Action asChild onClick={onSelect}>
+    <Dialog.Action asChild>
       <RowButton {...rest} />
     </Dialog.Action>
   )

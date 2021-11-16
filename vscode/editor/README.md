@@ -4,6 +4,6 @@
 
 # @tldraw/vscode-editor
 
-The app for the TLDraw VS Code Extension.
+The app for the tldraw VS Code Extension.
 
 See the README at `vscode` for more about this project.

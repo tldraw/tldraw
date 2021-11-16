@@ -1,20 +1,19 @@
 import * as React from 'react'
 import { styled } from '~styles'
-import type { TLDrawSnapshot } from '~types'
-import { useTLDrawContext } from '~hooks'
+import type { TDSnapshot } from '~types'
+import { useTldrawApp } from '~hooks'
 import { StatusBar } from './StatusBar'
 import { BackToContent } from './BackToContent'
 import { PrimaryTools } from './PrimaryTools'
 import { ActionButton } from './ActionButton'
-import { LockButton } from './LockButton'
 import { DeleteButton } from './DeleteButton'
 
-const isDebugModeSelector = (s: TLDrawSnapshot) => s.settings.isDebugMode
+const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
 
 export const ToolsPanel = React.memo(function ToolsPanel(): JSX.Element {
-  const { useSelector } = useTLDrawContext()
+  const app = useTldrawApp()
 
-  const isDebugMode = useSelector(isDebugModeSelector)
+  const isDebugMode = app.useStore(isDebugModeSelector)
 
   return (
     <StyledToolsPanelContainer>
@@ -48,6 +47,7 @@ const StyledToolsPanelContainer = styled('div', {
   gridTemplateRows: 'auto auto',
   justifyContent: 'space-between',
   padding: '0',
+  gap: '$4',
   zIndex: 200,
   pointerEvents: 'none',
   '& > div > *': {

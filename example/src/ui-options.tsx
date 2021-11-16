@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { TLDraw } from '@tldraw/tldraw'
+import { Tldraw } from '@tldraw/tldraw'
 
 export default function UIOptions(): JSX.Element {
   return (
     <div className="tldraw">
-      <TLDraw
+      <Tldraw
         showUI={true}
         showMenu={true}
         showPages={true}

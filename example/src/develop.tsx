@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import { TLDraw, TLDrawState, useFileSystem } from '@tldraw/tldraw'
+import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
 
-declare const window: Window & { state: TLDrawState }
+declare const window: Window & { app: TldrawApp }
 
 export default function Develop(): JSX.Element {
-  const rTLDrawState = React.useRef<TLDrawState>()
+  const rTldrawApp = React.useRef<TldrawApp>()
 
   const fileSystemEvents = useFileSystem()
 
-  const handleMount = React.useCallback((state: TLDrawState) => {
-    window.state = state
-    rTLDrawState.current = state
+  const handleMount = React.useCallback((app: TldrawApp) => {
+    window.app = app
+    rTldrawApp.current = app
   }, [])
 
   const handleSignOut = React.useCallback(() => {
@@ -28,13 +28,14 @@ export default function Develop(): JSX.Element {
 
   return (
     <div className="tldraw">
-      <TLDraw
+      <Tldraw
         id="develop"
         {...fileSystemEvents}
         onMount={handleMount}
         onSignIn={handleSignIn}
         onSignOut={handleSignOut}
         onPersist={handlePersist}
+        showSponsorLink={true}
       />
     </div>
   )

@@ -5,7 +5,7 @@
   "author": "@steveruizok",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tldraw/tldraw.git"
+    "url": "https://github.com/tldraw/tldraw.git"
   },
   "license": "MIT",
   "keywords": [

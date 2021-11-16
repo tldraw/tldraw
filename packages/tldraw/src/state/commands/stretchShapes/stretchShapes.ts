@@ -1,29 +1,28 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLBoundsCorner, Utils } from '@tldraw/core'
-import { StretchType, TLDrawShapeType } from '~types'
-import type { TLDrawSnapshot, TLDrawCommand } from '~types'
+import { StretchType, TDShapeType } from '~types'
+import type { TldrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '../../internal'
 
-export function stretchShapes(
-  data: TLDrawSnapshot,
-  ids: string[],
-  type: StretchType
-): TLDrawCommand {
-  const { currentPageId } = data.appState
+export function stretchShapes(app: TldrawApp, ids: string[], type: StretchType): TldrawCommand {
+  const { currentPageId, selectedIds } = app
 
-  const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
+  const initialShapes = ids.map((id) => app.getShape(id))
 
   const boundsForShapes = initialShapes.map((shape) => TLDR.getBounds(shape))
 
   const commonBounds = Utils.getCommonBounds(boundsForShapes)
 
-  const idsToMutate = ids.flatMap((id) => {
-    const shape = TLDR.getShape(data, id, currentPageId)
-    return shape.children ? shape.children : shape.id
-  })
+  const idsToMutate = ids
+    .flatMap((id) => {
+      const shape = app.getShape(id)
+      return shape.children ? shape.children : shape.id
+    })
+    .filter((id) => !app.getShape(id).isLocked)
 
   const { before, after } = TLDR.mutateShapes(
-    data,
+    app.state,
     idsToMutate,
     (shape) => {
       const bounds = TLDR.getBounds(shape)
@@ -37,7 +36,7 @@ export function stretchShapes(
             width: commonBounds.width,
           }
 
-          return TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
+          return TLDR.getShapeUtil(shape).transformSingle(shape, newBounds, {
             type: TLBoundsCorner.TopLeft,
             scaleX: newBounds.width / bounds.width,
             scaleY: 1,
@@ -53,7 +52,7 @@ export function stretchShapes(
             height: commonBounds.height,
           }
 
-          return TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
+          return TLDR.getShapeUtil(shape).transformSingle(shape, newBounds, {
             type: TLBoundsCorner.TopLeft,
             scaleX: 1,
             scaleY: newBounds.height / bounds.height,
@@ -67,7 +66,7 @@ export function stretchShapes(
   )
 
   initialShapes.forEach((shape) => {
-    if (shape.type === TLDrawShapeType.Group) {
+    if (shape.type === TDShapeType.Group) {
       delete before[shape.id]
       delete after[shape.id]
     }
@@ -82,7 +81,7 @@ export function stretchShapes(
         },
         pageStates: {
           [currentPageId]: {
-            selectedIds: ids,
+            selectedIds,
           },
         },
       },

@@ -1,18 +1,17 @@
-import Vec from '@tldraw/vec'
 import type { TLPointerEventHandler, TLKeyboardEventHandler } from '@tldraw/core'
-import { TLDrawShapeType } from '~types'
+import { TDShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class TextTool extends BaseTool {
-  type = TLDrawShapeType.Text
+  type = TDShapeType.Text as const
 
   /* --------------------- Methods -------------------- */
 
   stopEditingShape = () => {
     this.setStatus(Status.Idle)
 
-    if (!this.state.appState.isToolLocked) {
-      this.state.selectTool('select')
+    if (!this.app.appState.isToolLocked) {
+      this.app.selectTool('select')
     }
   }
 
@@ -26,29 +25,30 @@ export class TextTool extends BaseTool {
     // noop
   }
 
-  onPointerDown: TLPointerEventHandler = (info) => {
+  onPointerDown: TLPointerEventHandler = () => {
     if (this.status === Status.Creating) {
       this.stopEditingShape()
       return
     }
 
     if (this.status === Status.Idle) {
-      const point = Vec.round(this.state.getPagePoint(info.point))
-      this.state.createTextShapeAtPoint(point)
+      const { currentPoint } = this.app
+      this.app.createTextShapeAtPoint(currentPoint)
       this.setStatus(Status.Creating)
       return
     }
   }
 
   onPointerUp: TLPointerEventHandler = () => {
-    // noop important!
+    // noop important! We don't want the inherited event
+    // from BaseUtil to run.
   }
 
   onPointShape: TLPointerEventHandler = (info) => {
-    const shape = this.state.getShape(info.target)
-    if (shape.type === TLDrawShapeType.Text) {
+    const shape = this.app.getShape(info.target)
+    if (shape.type === TDShapeType.Text) {
       this.setStatus(Status.Idle)
-      this.state.setEditingId(shape.id)
+      this.app.setEditingId(shape.id)
     }
   }
 

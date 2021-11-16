@@ -1,20 +1,18 @@
-import Vec from '@tldraw/vec'
 import { Utils, TLPointerEventHandler, TLBoundsCorner } from '@tldraw/core'
 import { Ellipse } from '~state/shapes'
-import { SessionType, TLDrawShapeType } from '~types'
+import { SessionType, TDShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class EllipseTool extends BaseTool {
-  type = TLDrawShapeType.Ellipse
+  type = TDShapeType.Ellipse as const
 
   /* ----------------- Event Handlers ----------------- */
 
-  onPointerDown: TLPointerEventHandler = (info) => {
-    const pagePoint = Vec.round(this.state.getPagePoint(info.point))
-
+  onPointerDown: TLPointerEventHandler = () => {
     const {
+      currentPoint,
       appState: { currentPageId, currentStyle },
-    } = this.state
+    } = this.app
 
     const childIndex = this.getNextChildIndex()
 
@@ -24,15 +22,15 @@ export class EllipseTool extends BaseTool {
       id,
       parentId: currentPageId,
       childIndex,
-      point: pagePoint,
+      point: currentPoint,
       style: { ...currentStyle },
     })
 
-    this.state.patchCreate([newShape])
+    this.app.patchCreate([newShape])
 
-    this.state.startSession(
+    this.app.startSession(
       SessionType.TransformSingle,
-      pagePoint,
+      newShape.id,
       TLBoundsCorner.BottomRight,
       true
     )

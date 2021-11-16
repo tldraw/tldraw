@@ -1,47 +1,65 @@
-import { Utils, TLBounds } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
-import { TLDrawSnapshot, Session, SessionType, TLDrawPatch, TLDrawStatus } from '~types'
-import { TLDR } from '~state/TLDR'
+import { TLBounds, Utils } from '@tldraw/core'
+import { SessionType, TldrawPatch, TDStatus, TldrawCommand } from '~types'
+import type { TldrawApp } from '../../internal'
+import { BaseSession } from '../BaseSession'
 
-export class BrushSession extends Session {
-  static type = SessionType.Brush
-  status = TLDrawStatus.Brushing
-  origin: number[]
-  snapshot: BrushSnapshot
+export class BrushSession extends BaseSession {
+  type = SessionType.Brush
+  status = TDStatus.Brushing
+  initialSelectedIds: Set<string>
+  shapesToTest: {
+    id: string
+    bounds: TLBounds
+    selectId: string
+  }[]
 
-  constructor(data: TLDrawSnapshot, viewport: TLBounds, point: number[]) {
-    super(viewport)
-    this.origin = Vec.round(point)
-    this.snapshot = getBrushSnapshot(data)
+  constructor(app: TldrawApp) {
+    super(app)
+    this.initialSelectedIds = new Set(this.app.selectedIds)
+    this.shapesToTest = this.app.shapes
+      .filter(
+        (shape) =>
+          !(
+            shape.isLocked ||
+            shape.isHidden ||
+            shape.children !== undefined ||
+            this.initialSelectedIds.has(shape.id) ||
+            this.initialSelectedIds.has(shape.parentId)
+          )
+      )
+      .map((shape) => ({
+        id: shape.id,
+        bounds: this.app.getShapeUtil(shape).getBounds(shape),
+        selectId: shape.id, //TLDR.getTopParentId(data, shape.id, currentPageId),
+      }))
   }
 
-  start = () => void null
+  start = (): TldrawPatch | undefined => void null
 
-  update = (
-    data: TLDrawSnapshot,
-    point: number[],
-    _shiftKey = false,
-    _altKey = false,
-    metaKey = false
-  ): TLDrawPatch => {
-    const { snapshot, origin } = this
-    const { currentPageId } = data.appState
+  update = (): TldrawPatch | undefined => {
+    const {
+      initialSelectedIds,
+      shapesToTest,
+      app: { originPoint, currentPoint },
+    } = this
 
     // Create a bounding box between the origin and the new point
-    const brush = Utils.getBoundsFromPoints([origin, point])
+    const brush = Utils.getBoundsFromPoints([originPoint, currentPoint])
 
     // Find ids of brushed shapes
     const hits = new Set<string>()
-    const selectedIds = new Set(snapshot.selectedIds)
 
-    const page = TLDR.getPage(data, currentPageId)
+    const selectedIds = new Set(initialSelectedIds)
 
-    snapshot.shapesToTest.forEach(({ id, util, selectId }) => {
+    shapesToTest.forEach(({ id, selectId }) => {
       if (selectedIds.has(id)) return
 
-      const shape = page.shapes[id]
+      const { metaKey } = this.app
+
+      const shape = this.app.getShape(id)
 
       if (!hits.has(selectId)) {
+        const util = this.app.getShapeUtil(shape)
         if (
           metaKey
             ? Utils.boundsContain(brush, util.getBounds(shape))
@@ -59,7 +77,7 @@ export class BrushSession extends Session {
       }
     })
 
-    const currentSelectedIds = data.document.pageStates[data.appState.currentPageId].selectedIds
+    const currentSelectedIds = this.app.selectedIds
 
     const didChange =
       selectedIds.size !== currentSelectedIds.length ||
@@ -70,7 +88,7 @@ export class BrushSession extends Session {
     return {
       document: {
         pageStates: {
-          [currentPageId]: {
+          [this.app.currentPageId]: {
             brush,
             selectedIds: afterSelectedIds,
           },
@@ -79,67 +97,29 @@ export class BrushSession extends Session {
     }
   }
 
-  cancel = (data: TLDrawSnapshot) => {
-    const { currentPageId } = data.appState
+  cancel = (): TldrawPatch | undefined => {
     return {
       document: {
         pageStates: {
-          [currentPageId]: {
+          [this.app.currentPageId]: {
             brush: null,
-            selectedIds: this.snapshot.selectedIds,
+            selectedIds: Array.from(this.initialSelectedIds.values()),
           },
         },
       },
     }
   }
 
-  complete = (data: TLDrawSnapshot) => {
-    const { currentPageId } = data.appState
-    const pageState = TLDR.getPageState(data, currentPageId)
-
+  complete = (): TldrawPatch | TldrawCommand | undefined => {
     return {
       document: {
         pageStates: {
-          [currentPageId]: {
+          [this.app.currentPageId]: {
             brush: null,
-            selectedIds: [...pageState.selectedIds],
+            selectedIds: [...this.app.selectedIds],
           },
         },
       },
     }
   }
 }
-
-/**
- * Get a snapshot of the current selected ids, for each shape that is
- * not already selected, the shape's id and a test to see whether the
- * brush will intersect that shape. For tests, start broad -> fine.
- */
-export function getBrushSnapshot(data: TLDrawSnapshot) {
-  const { currentPageId } = data.appState
-  const selectedIds = [...TLDR.getSelectedIds(data, currentPageId)]
-
-  const shapesToTest = TLDR.getShapes(data, currentPageId)
-    .filter(
-      (shape) =>
-        !(
-          shape.isHidden ||
-          shape.children !== undefined ||
-          selectedIds.includes(shape.id) ||
-          selectedIds.includes(shape.parentId)
-        )
-    )
-    .map((shape) => ({
-      id: shape.id,
-      util: TLDR.getShapeUtils(shape),
-      bounds: TLDR.getShapeUtils(shape).getBounds(shape),
-      selectId: shape.id, //TLDR.getTopParentId(data, shape.id, currentPageId),
-    }))
-
-  return {
-    selectedIds,
-    shapesToTest,
-  }
-}
-
-export type BrushSnapshot = ReturnType<typeof getBrushSnapshot>

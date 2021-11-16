@@ -1,74 +1,57 @@
 import {
   ArrowBinding,
   ArrowShape,
-  TLDrawShape,
-  TLDrawBinding,
-  TLDrawSnapshot,
-  Session,
-  TLDrawStatus,
+  TDShape,
+  TDBinding,
+  TDStatus,
   SessionType,
-  TLDrawShapeType,
+  TDShapeType,
+  TldrawPatch,
+  TldrawCommand,
 } from '~types'
 import { Vec } from '@tldraw/vec'
-import { Utils, TLBounds } from '@tldraw/core'
+import { Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
 import { BINDING_DISTANCE } from '~constants'
 import { shapeUtils } from '~state/shapes'
+import { BaseSession } from '../BaseSession'
+import type { TldrawApp } from '../../internal'
 
-export class ArrowSession extends Session {
-  static type = SessionType.Arrow
-  status = TLDrawStatus.TranslatingHandle
+export class ArrowSession extends BaseSession {
+  type = SessionType.Arrow
+  status = TDStatus.TranslatingHandle
   newStartBindingId = Utils.uniqueId()
   draggedBindingId = Utils.uniqueId()
   didBind = false
-  delta = [0, 0]
-  offset = [0, 0]
-  origin: number[]
-  topLeft: number[]
   initialShape: ArrowShape
   handleId: 'start' | 'end'
   bindableShapeIds: string[]
-  initialBinding?: TLDrawBinding
+  initialBinding?: TDBinding
   startBindingShapeId?: string
   isCreate: boolean
 
-  constructor(
-    data: TLDrawSnapshot,
-    viewport: TLBounds,
-    point: number[],
-    handleId: 'start' | 'end',
-    isCreate = false
-  ) {
-    super(viewport)
-
+  constructor(app: TldrawApp, shapeId: string, handleId: 'start' | 'end', isCreate = false) {
+    super(app)
     this.isCreate = isCreate
-
-    const { currentPageId } = data.appState
-    const page = data.document.pages[currentPageId]
-    const pageState = data.document.pageStates[currentPageId]
-
-    const shapeId = pageState.selectedIds[0]
-
-    this.origin = point
-
+    const { currentPageId } = app.state.appState
+    const page = app.state.document.pages[currentPageId]
     this.handleId = handleId
-
     this.initialShape = page.shapes[shapeId] as ArrowShape
-
-    this.topLeft = this.initialShape.point
-
-    this.bindableShapeIds = TLDR.getBindableShapeIds(data).filter(
+    this.bindableShapeIds = TLDR.getBindableShapeIds(app.state).filter(
       (id) => !(id === this.initialShape.id || id === this.initialShape.parentId)
     )
+
+    const { originPoint } = this.app
 
     if (this.isCreate) {
       // If we're creating a new shape, should we bind its first point?
       // The method may return undefined, which is correct if there is no
       // bindable shape under the pointer.
-
       this.startBindingShapeId = this.bindableShapeIds
         .map((id) => page.shapes[id])
-        .find((shape) => Utils.pointInBounds(point, TLDR.getShapeUtils(shape).getBounds(shape)))?.id
+        .find((shape) =>
+          Utils.pointInBounds(originPoint, TLDR.getShapeUtil(shape).getBounds(shape))
+        )?.id
     } else {
       // If we're editing an existing line, is there a binding already
       // for the dragging handle?
@@ -83,20 +66,15 @@ export class ArrowSession extends Session {
     }
   }
 
-  start = () => void null
+  start = (): TldrawPatch | undefined => void null
 
-  update = (
-    data: TLDrawSnapshot,
-    point: number[],
-    shiftKey = false,
-    altKey = false,
-    metaKey = false
-  ) => {
+  update = (): TldrawPatch | undefined => {
     const { initialShape } = this
+    const { currentPoint, shiftKey, altKey, metaKey } = this.app
 
-    const page = TLDR.getPage(data, data.appState.currentPageId)
+    const shape = this.app.getShape<ArrowShape>(initialShape.id)
 
-    const shape = TLDR.getShape<ArrowShape>(data, initialShape.id, data.appState.currentPageId)
+    if (shape.isLocked) return
 
     const handles = shape.handles
 
@@ -108,7 +86,7 @@ export class ArrowSession extends Session {
 
     // First update the handle's next point
 
-    const delta = Vec.sub(point, handles[handleId].point)
+    const delta = Vec.sub(currentPoint, handles[handleId].point)
 
     const handle = {
       ...handles[handleId],
@@ -116,7 +94,7 @@ export class ArrowSession extends Session {
       bindingId: undefined,
     }
 
-    const utils = shapeUtils[TLDrawShapeType.Arrow]
+    const utils = shapeUtils[TDShapeType.Arrow]
 
     const change = utils.onHandleChange?.(
       shape,
@@ -133,7 +111,7 @@ export class ArrowSession extends Session {
     // before. If it does change, we'll redefine this later on. And if we've
     // made it this far, the shape should be a new object reference that
     // incorporates the changes we've made due to the handle movement.
-    const next: { shape: ArrowShape; bindings: Record<string, TLDrawBinding | undefined> } = {
+    const next: { shape: ArrowShape; bindings: Record<string, TDBinding | undefined> } = {
       shape: Utils.deepMerge(shape, change),
       bindings: {},
     }
@@ -149,9 +127,9 @@ export class ArrowSession extends Session {
     if (this.startBindingShapeId) {
       let startBinding: ArrowBinding | undefined
 
-      const target = page.shapes[this.startBindingShapeId]
+      const target = this.app.page.shapes[this.startBindingShapeId]
 
-      const targetUtils = TLDR.getShapeUtils(target)
+      const targetUtils = TLDR.getShapeUtil(target)
 
       if (!metaKey) {
         const center = targetUtils.getCenter(target)
@@ -185,11 +163,11 @@ export class ArrowSession extends Session {
           },
         }
 
-        const target = page.shapes[this.startBindingShapeId]
+        const target = this.app.page.shapes[this.startBindingShapeId]
 
-        const targetUtils = TLDR.getShapeUtils(target)
+        const targetUtils = TLDR.getShapeUtil(target)
 
-        const arrowChange = TLDR.getShapeUtils<ArrowShape>(next.shape.type).onBindingChange?.(
+        const arrowChange = TLDR.getShapeUtil<ArrowShape>(next.shape.type).onBindingChange?.(
           next.shape,
           startBinding,
           target,
@@ -203,7 +181,7 @@ export class ArrowSession extends Session {
       } else {
         this.didBind = this.didBind || false
 
-        if (page.bindings[this.newStartBindingId]) {
+        if (this.app.page.bindings[this.newStartBindingId]) {
           next.bindings[this.newStartBindingId] = undefined
         }
 
@@ -230,7 +208,7 @@ export class ArrowSession extends Session {
       const rayPoint = Vec.add(handle.point, next.shape.point)
       const rayDirection = Vec.uni(Vec.sub(rayPoint, rayOrigin))
 
-      const targets = this.bindableShapeIds.map((id) => page.shapes[id])
+      const targets = this.bindableShapeIds.map((id) => this.app.page.shapes[id])
 
       for (const target of targets) {
         draggedBinding = this.findBindingPoint(
@@ -261,11 +239,11 @@ export class ArrowSession extends Session {
         },
       }
 
-      const target = page.shapes[draggedBinding.toId]
+      const target = this.app.page.shapes[draggedBinding.toId]
 
-      const targetUtils = TLDR.getShapeUtils(target)
+      const targetUtils = TLDR.getShapeUtil(target)
 
-      const utils = shapeUtils[TLDrawShapeType.Arrow]
+      const utils = shapeUtils[TDShapeType.Arrow]
 
       const arrowChange = utils.onBindingChange(
         next.shape,
@@ -302,7 +280,7 @@ export class ArrowSession extends Session {
     return {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [this.app.currentPageId]: {
             shapes: {
               [shape.id]: next.shape,
             },
@@ -310,7 +288,7 @@ export class ArrowSession extends Session {
           },
         },
         pageStates: {
-          [data.appState.currentPageId]: {
+          [this.app.currentPageId]: {
             bindingId: next.shape.handles[handleId].bindingId,
           },
         },
@@ -318,10 +296,10 @@ export class ArrowSession extends Session {
     }
   }
 
-  cancel = (data: TLDrawSnapshot) => {
+  cancel = (): TldrawPatch | undefined => {
     const { initialShape, initialBinding, newStartBindingId, draggedBindingId } = this
 
-    const afterBindings: Record<string, TLDrawBinding | undefined> = {}
+    const afterBindings: Record<string, TDBinding | undefined> = {}
 
     afterBindings[draggedBindingId] = undefined
 
@@ -336,7 +314,7 @@ export class ArrowSession extends Session {
     return {
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [this.app.currentPageId]: {
             shapes: {
               [initialShape.id]: this.isCreate ? undefined : initialShape,
             },
@@ -344,7 +322,7 @@ export class ArrowSession extends Session {
           },
         },
         pageStates: {
-          [data.appState.currentPageId]: {
+          [this.app.currentPageId]: {
             selectedIds: this.isCreate ? [] : [initialShape.id],
             bindingId: undefined,
             hoveredId: undefined,
@@ -355,16 +333,14 @@ export class ArrowSession extends Session {
     }
   }
 
-  complete = (data: TLDrawSnapshot) => {
+  complete = (): TldrawPatch | TldrawCommand | undefined => {
     const { initialShape, initialBinding, newStartBindingId, startBindingShapeId, handleId } = this
 
-    const page = TLDR.getPage(data, data.appState.currentPageId)
+    const beforeBindings: Partial<Record<string, TDBinding>> = {}
 
-    const beforeBindings: Partial<Record<string, TLDrawBinding>> = {}
+    const afterBindings: Partial<Record<string, TDBinding>> = {}
 
-    const afterBindings: Partial<Record<string, TLDrawBinding>> = {}
-
-    let afterShape = page.shapes[initialShape.id] as ArrowShape
+    let afterShape = this.app.page.shapes[initialShape.id] as ArrowShape
 
     const currentBindingId = afterShape.handles[handleId].bindingId
 
@@ -375,12 +351,12 @@ export class ArrowSession extends Session {
 
     if (currentBindingId) {
       beforeBindings[currentBindingId] = undefined
-      afterBindings[currentBindingId] = page.bindings[currentBindingId]
+      afterBindings[currentBindingId] = this.app.page.bindings[currentBindingId]
     }
 
     if (startBindingShapeId) {
       beforeBindings[newStartBindingId] = undefined
-      afterBindings[newStartBindingId] = page.bindings[newStartBindingId]
+      afterBindings[newStartBindingId] = this.app.page.bindings[newStartBindingId]
     }
 
     afterShape = TLDR.onSessionComplete(afterShape)
@@ -390,7 +366,7 @@ export class ArrowSession extends Session {
       before: {
         document: {
           pages: {
-            [data.appState.currentPageId]: {
+            [this.app.currentPageId]: {
               shapes: {
                 [initialShape.id]: this.isCreate ? undefined : initialShape,
               },
@@ -398,7 +374,7 @@ export class ArrowSession extends Session {
             },
           },
           pageStates: {
-            [data.appState.currentPageId]: {
+            [this.app.currentPageId]: {
               selectedIds: this.isCreate ? [] : [initialShape.id],
               bindingId: undefined,
               hoveredId: undefined,
@@ -410,7 +386,7 @@ export class ArrowSession extends Session {
       after: {
         document: {
           pages: {
-            [data.appState.currentPageId]: {
+            [this.app.currentPageId]: {
               shapes: {
                 [initialShape.id]: afterShape,
               },
@@ -418,7 +394,7 @@ export class ArrowSession extends Session {
             },
           },
           pageStates: {
-            [data.appState.currentPageId]: {
+            [this.app.currentPageId]: {
               selectedIds: [initialShape.id],
               bindingId: undefined,
               hoveredId: undefined,
@@ -432,7 +408,7 @@ export class ArrowSession extends Session {
 
   private findBindingPoint = (
     shape: ArrowShape,
-    target: TLDrawShape,
+    target: TDShape,
     handleId: 'start' | 'end',
     bindingId: string,
     point: number[],
@@ -440,7 +416,7 @@ export class ArrowSession extends Session {
     direction: number[],
     bindAnywhere: boolean
   ) => {
-    const util = TLDR.getShapeUtils<TLDrawShape>(target.type)
+    const util = TLDR.getShapeUtil<TDShape>(target.type)
 
     const bindingPoint = util.getBindingPoint(
       target,

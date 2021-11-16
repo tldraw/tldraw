@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { TLDraw, useFileSystem } from '@tldraw/tldraw'
+import { Tldraw, useFileSystem } from '@tldraw/tldraw'
 
 export default function FileSystem(): JSX.Element {
   const fileSystemEvents = useFileSystem()
@@ -8,7 +8,7 @@ export default function FileSystem(): JSX.Element {
 
   return (
     <div className="tldraw">
-      <TLDraw {...fileSystemEvents} />
+      <Tldraw {...fileSystemEvents} />
     </div>
   )
 }

@@ -1,7 +1,9 @@
-import type { TLDrawSnapshot, TLDrawCommand } from '~types'
+import type { TldrawCommand } from '~types'
+import type { TldrawApp } from '../../internal'
 
-export function renamePage(data: TLDrawSnapshot, pageId: string, name: string): TLDrawCommand {
-  const page = data.document.pages[pageId]
+export function renamePage(app: TldrawApp, pageId: string, name: string): TldrawCommand {
+  const { page } = app
+
   return {
     id: 'rename_page',
     before: {

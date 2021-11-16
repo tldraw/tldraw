@@ -1,7 +1,7 @@
 import { TLDR } from '~state/TLDR'
-import type { ArrowShape, TLDrawSnapshot, GroupShape, PagePartial } from '~types'
+import type { ArrowShape, TDSnapshot, GroupShape, PagePartial } from '~types'
 
-export function removeShapesFromPage(data: TLDrawSnapshot, ids: string[], pageId: string) {
+export function removeShapesFromPage(data: TDSnapshot, ids: string[], pageId: string) {
   const before: PagePartial = {
     shapes: {},
     bindings: {},
@@ -18,33 +18,40 @@ export function removeShapesFromPage(data: TLDrawSnapshot, ids: string[], pageId
 
   // These are the shapes we're definitely going to delete
 
-  ids.forEach((id) => {
-    deletedIds.add(id)
-    const shape = TLDR.getShape(data, id, pageId)
-    before.shapes[id] = shape
-    after.shapes[id] = undefined
+  ids
+    .filter((id) => !TLDR.getShape(data, id, pageId).isLocked)
+    .forEach((id) => {
+      deletedIds.add(id)
+      const shape = TLDR.getShape(data, id, pageId)
+      before.shapes[id] = shape
+      after.shapes[id] = undefined
 
-    // Also delete the shape's children
+      // Also delete the shape's children
 
-    if (shape.children !== undefined) {
-      shape.children.forEach((childId) => {
-        deletedIds.add(childId)
-        const child = TLDR.getShape(data, childId, pageId)
-        before.shapes[childId] = child
-        after.shapes[childId] = undefined
-      })
-    }
+      if (shape.children !== undefined) {
+        shape.children.forEach((childId) => {
+          deletedIds.add(childId)
+          const child = TLDR.getShape(data, childId, pageId)
+          before.shapes[childId] = child
+          after.shapes[childId] = undefined
+        })
+      }
 
-    if (shape.parentId !== pageId) {
-      parentsToUpdate.push(TLDR.getShape(data, shape.parentId, pageId))
-    }
-  })
+      if (shape.parentId !== pageId) {
+        parentsToUpdate.push(TLDR.getShape(data, shape.parentId, pageId))
+      }
+    })
 
   parentsToUpdate.forEach((parent) => {
     if (ids.includes(parent.id)) return
     deletedIds.add(parent.id)
     before.shapes[parent.id] = { children: parent.children }
     after.shapes[parent.id] = { children: parent.children.filter((id) => !ids.includes(id)) }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if (after.shapes[parent.id]?.children!.length === 0) {
+      after.shapes[parent.id] = undefined
+      before.shapes[parent.id] = TLDR.getShape(data, parent.id, pageId)
+    }
   })
 
   // Recursively check for empty parents?

@@ -4,13 +4,13 @@
 
 # @tldraw/tldraw
 
-This package contains the [TLDraw](https://tldraw.com) editor as a React component named `<TLDraw>`. You can use this package to embed the editor in any React application.
+This package contains the [tldraw](https://tldraw.com) editor as a React component named `<Tldraw>`. You can use this package to embed the editor in any React application.
 
 💕 Love this library? Consider [becoming a sponsor](https://github.com/sponsors/steveruizok?frequency=recurring&sponsor=steveruizok).
 
 🙌 Questions? Join the [Discord channel](https://discord.gg/SBBEVCA4PG) or start a [discussion](https://github.com/tldraw/tldraw/discussions/new).
 
-🎨 Want to build your own TLDraw-ish app instead? Try [@tldraw/core](https://github.com/tldraw/core).
+🎨 Want to build your own tldraw-ish app instead? Try [@tldraw/core](https://github.com/tldraw/core).
 
 ## Installation
 
@@ -24,13 +24,13 @@ npm i @tldraw/tldraw
 
 ## Usage
 
-Import the `TLDraw` React component and use it in your app.
+Import the `tldraw` React component and use it in your app.
 
 ```tsx
-import { TLDraw } from '@tldraw/tldraw'
+import { Tldraw } from '@tldraw/tldraw'
 
 function App() {
-  return <TLDraw />
+  return <Tldraw />
 }
 ```
 
@@ -39,58 +39,58 @@ function App() {
 You can use the `id` to persist the state in a user's browser storage.
 
 ```tsx
-import { TLDraw } from '@tldraw/tldraw'
+import { Tldraw } from '@tldraw/tldraw'
 
 function App() {
-  return <TLDraw id="myState" />
+  return <Tldraw id="myState" />
 }
 ```
 
 ### Controlling the Component through Props
 
-You can control the `TLDraw` component through its props.
+You can control the `tldraw` component through its props.
 
 ```tsx
-import { TLDraw, TLDrawDocument } from '@tldraw/tldraw'
+import { Tldraw, TDDocument } from '@tldraw/tldraw'
 
 function App() {
-  const myDocument: TLDrawDocument = {}
+  const myDocument: TDDocument = {}
 
-  return <TLDraw document={document} />
+  return <Tldraw document={document} />
 }
 ```
 
-### Controlling the Component through the TLDrawState API
+### Controlling the Component through the tldrawApp API
 
-You can also control the `TLDraw` component imperatively through the `TLDrawState` API.
+You can also control the `tldraw` component imperatively through the `tldrawApp` API.
 
 ```tsx
-import { TLDraw, TLDrawState } from '@tldraw/tldraw'
+import { Tldraw, tldrawApp } from '@tldraw/tldraw'
 
 function App() {
-  const handleMount = React.useCallback((state: TLDrawState) => {
+  const handleMount = React.useCallback((state: tldrawApp) => {
     state.selectAll()
   }, [])
 
-  return <TLDraw onMount={handleMount} />
+  return <Tldraw onMount={handleMount} />
 }
 ```
 
-Internally, the `TLDraw` component's user interface uses this API to make changes to the component's state. See the `TLDrawState` section of the [documentation](guides/documentation) for more on this API.
+Internally, the `tldraw` component's user interface uses this API to make changes to the component's state. See the `tldrawApp` section of the [documentation](guides/documentation) for more on this API.
 
 ### Responding to Changes
 
 You can respond to changes and user actions using the `onChange` callback. For more specific changes, you can also use the `onPatch`, `onCommand`, or `onPersist` callbacks. See the [documentation](guides/documentation) for more.
 
 ```tsx
-import { TLDraw, TLDrawState } from '@tldraw/tldraw'
+import { Tldraw, tldrawApp } from '@tldraw/tldraw'
 
 function App() {
-  const handleChange = React.useCallback((state: TLDrawState, reason: string) => {
+  const handleChange = React.useCallback((state: tldrawApp, reason: string) => {
     // Do something with the change
   }, [])
 
-  return <TLDraw onMount={handleMount} />
+  return <Tldraw onMount={handleMount} />
 }
 ```
 
@@ -108,7 +108,7 @@ See the [development guide](/guides/development.md).
 
 ## Example
 
-See the `example` folder for examples of how to use the `<TLDraw/>` component.
+See the `example` folder for examples of how to use the `<Tldraw/>` component.
 
 ## Community
 

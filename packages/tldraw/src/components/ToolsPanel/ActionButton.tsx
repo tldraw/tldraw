@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { Tooltip } from '~components/Tooltip/Tooltip'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { useTLDrawContext } from '~hooks'
+import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
-import { AlignType, TLDrawSnapshot, DistributeType, StretchType } from '~types'
+import { AlignType, TDSnapshot, DistributeType, StretchType } from '~types'
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -30,25 +30,24 @@ import {
 import { DMContent } from '~components/DropdownMenu'
 import { Divider } from '~components/Divider'
 import { TrashIcon } from '~components/icons'
-import { IconButton } from '~components/IconButton'
 import { ToolButton } from '~components/ToolButton'
 
-const selectedShapesCountSelector = (s: TLDrawSnapshot) =>
+const selectedShapesCountSelector = (s: TDSnapshot) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length
 
-const isAllLockedSelector = (s: TLDrawSnapshot) => {
+const isAllLockedSelector = (s: TDSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.every((id) => page.shapes[id].isLocked)
 }
 
-const isAllAspectLockedSelector = (s: TLDrawSnapshot) => {
+const isAllAspectLockedSelector = (s: TDSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.every((id) => page.shapes[id].isAspectRatioLocked)
 }
 
-const isAllGroupedSelector = (s: TLDrawSnapshot) => {
+const isAllGroupedSelector = (s: TDSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const selectedShapes = s.document.pageStates[s.appState.currentPageId].selectedIds.map(
     (id) => page.shapes[id]
@@ -62,110 +61,110 @@ const isAllGroupedSelector = (s: TLDrawSnapshot) => {
   )
 }
 
-const hasSelectionClickor = (s: TLDrawSnapshot) => {
+const hasSelectionClickor = (s: TDSnapshot) => {
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.length > 0
 }
 
-const hasMultipleSelectionClickor = (s: TLDrawSnapshot) => {
+const hasMultipleSelectionClickor = (s: TDSnapshot) => {
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.length > 1
 }
 
 export function ActionButton(): JSX.Element {
-  const { state, useSelector } = useTLDrawContext()
+  const app = useTldrawApp()
 
-  const isAllLocked = useSelector(isAllLockedSelector)
+  const isAllLocked = app.useStore(isAllLockedSelector)
 
-  const isAllAspectLocked = useSelector(isAllAspectLockedSelector)
+  const isAllAspectLocked = app.useStore(isAllAspectLockedSelector)
 
-  const isAllGrouped = useSelector(isAllGroupedSelector)
+  const isAllGrouped = app.useStore(isAllGroupedSelector)
 
-  const hasSelection = useSelector(hasSelectionClickor)
+  const hasSelection = app.useStore(hasSelectionClickor)
 
-  const hasMultipleSelection = useSelector(hasMultipleSelectionClickor)
+  const hasMultipleSelection = app.useStore(hasMultipleSelectionClickor)
 
   const handleRotate = React.useCallback(() => {
-    state.rotate()
-  }, [state])
+    app.rotate()
+  }, [app])
 
   const handleDuplicate = React.useCallback(() => {
-    state.duplicate()
-  }, [state])
+    app.duplicate()
+  }, [app])
 
   const handleToggleLocked = React.useCallback(() => {
-    state.toggleLocked()
-  }, [state])
+    app.toggleLocked()
+  }, [app])
 
   const handleToggleAspectRatio = React.useCallback(() => {
-    state.toggleAspectRatioLocked()
-  }, [state])
+    app.toggleAspectRatioLocked()
+  }, [app])
 
   const handleGroup = React.useCallback(() => {
-    state.group()
-  }, [state])
+    app.group()
+  }, [app])
 
   const handleMoveToBack = React.useCallback(() => {
-    state.moveToBack()
-  }, [state])
+    app.moveToBack()
+  }, [app])
 
   const handleMoveBackward = React.useCallback(() => {
-    state.moveBackward()
-  }, [state])
+    app.moveBackward()
+  }, [app])
 
   const handleMoveForward = React.useCallback(() => {
-    state.moveForward()
-  }, [state])
+    app.moveForward()
+  }, [app])
 
   const handleMoveToFront = React.useCallback(() => {
-    state.moveToFront()
-  }, [state])
+    app.moveToFront()
+  }, [app])
 
   const handleDelete = React.useCallback(() => {
-    state.delete()
-  }, [state])
+    app.delete()
+  }, [app])
 
   const alignTop = React.useCallback(() => {
-    state.align(AlignType.Top)
-  }, [state])
+    app.align(AlignType.Top)
+  }, [app])
 
   const alignCenterVertical = React.useCallback(() => {
-    state.align(AlignType.CenterVertical)
-  }, [state])
+    app.align(AlignType.CenterVertical)
+  }, [app])
 
   const alignBottom = React.useCallback(() => {
-    state.align(AlignType.Bottom)
-  }, [state])
+    app.align(AlignType.Bottom)
+  }, [app])
 
   const stretchVertically = React.useCallback(() => {
-    state.stretch(StretchType.Vertical)
-  }, [state])
+    app.stretch(StretchType.Vertical)
+  }, [app])
 
   const distributeVertically = React.useCallback(() => {
-    state.distribute(DistributeType.Vertical)
-  }, [state])
+    app.distribute(DistributeType.Vertical)
+  }, [app])
 
   const alignLeft = React.useCallback(() => {
-    state.align(AlignType.Left)
-  }, [state])
+    app.align(AlignType.Left)
+  }, [app])
 
   const alignCenterHorizontal = React.useCallback(() => {
-    state.align(AlignType.CenterHorizontal)
-  }, [state])
+    app.align(AlignType.CenterHorizontal)
+  }, [app])
 
   const alignRight = React.useCallback(() => {
-    state.align(AlignType.Right)
-  }, [state])
+    app.align(AlignType.Right)
+  }, [app])
 
   const stretchHorizontally = React.useCallback(() => {
-    state.stretch(StretchType.Horizontal)
-  }, [state])
+    app.stretch(StretchType.Horizontal)
+  }, [app])
 
   const distributeHorizontally = React.useCallback(() => {
-    state.distribute(DistributeType.Horizontal)
-  }, [state])
+    app.distribute(DistributeType.Horizontal)
+  }, [app])
 
-  const selectedShapesCount = useSelector(selectedShapesCountSelector)
+  const selectedShapesCount = app.useStore(selectedShapesCountSelector)
 
   const hasTwoOrMore = selectedShapesCount > 1
   const hasThreeOrMore = selectedShapesCount > 2
@@ -177,99 +176,99 @@ export function ActionButton(): JSX.Element {
           <DotsHorizontalIcon />
         </ToolButton>
       </DropdownMenu.Trigger>
-      <DMContent>
+      <DMContent sideOffset={16}>
         <>
           <ButtonsRow>
-            <IconButton disabled={!hasSelection} onClick={handleDuplicate}>
+            <ToolButton variant="icon" disabled={!hasSelection} onClick={handleDuplicate}>
               <Tooltip label="Duplicate" kbd={`#D`}>
                 <CopyIcon />
               </Tooltip>
-            </IconButton>
-            <IconButton disabled={!hasSelection} onClick={handleRotate}>
+            </ToolButton>
+            <ToolButton disabled={!hasSelection} onClick={handleRotate}>
               <Tooltip label="Rotate">
                 <RotateCounterClockwiseIcon />
               </Tooltip>
-            </IconButton>
-            <IconButton disabled={!hasSelection} onClick={handleToggleLocked}>
+            </ToolButton>
+            <ToolButton disabled={!hasSelection} onClick={handleToggleLocked}>
               <Tooltip label="Toogle Locked" kbd={`#L`}>
                 {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon opacity={0.4} />}
               </Tooltip>
-            </IconButton>
-            <IconButton disabled={!hasSelection} onClick={handleToggleAspectRatio}>
+            </ToolButton>
+            <ToolButton disabled={!hasSelection} onClick={handleToggleAspectRatio}>
               <Tooltip label="Toogle Aspect Ratio Lock">
                 <AspectRatioIcon opacity={isAllAspectLocked ? 1 : 0.4} />
               </Tooltip>
-            </IconButton>
-            <IconButton
+            </ToolButton>
+            <ToolButton
               disabled={!hasSelection || (!isAllGrouped && !hasMultipleSelection)}
               onClick={handleGroup}
             >
               <Tooltip label="Group" kbd={`#G`}>
                 <GroupIcon opacity={isAllGrouped ? 1 : 0.4} />
               </Tooltip>
-            </IconButton>
+            </ToolButton>
           </ButtonsRow>
           <ButtonsRow>
-            <IconButton disabled={!hasSelection} onClick={handleMoveToBack}>
+            <ToolButton disabled={!hasSelection} onClick={handleMoveToBack}>
               <Tooltip label="Move to Back" kbd={`#⇧[`}>
                 <PinBottomIcon />
               </Tooltip>
-            </IconButton>
-            <IconButton disabled={!hasSelection} onClick={handleMoveBackward}>
+            </ToolButton>
+            <ToolButton disabled={!hasSelection} onClick={handleMoveBackward}>
               <Tooltip label="Move Backward" kbd={`#[`}>
                 <ArrowDownIcon />
               </Tooltip>
-            </IconButton>
-            <IconButton disabled={!hasSelection} onClick={handleMoveForward}>
+            </ToolButton>
+            <ToolButton disabled={!hasSelection} onClick={handleMoveForward}>
               <Tooltip label="Move Forward" kbd={`#]`}>
                 <ArrowUpIcon />
               </Tooltip>
-            </IconButton>
-            <IconButton disabled={!hasSelection} onClick={handleMoveToFront}>
+            </ToolButton>
+            <ToolButton disabled={!hasSelection} onClick={handleMoveToFront}>
               <Tooltip label="More to Front" kbd={`#⇧]`}>
                 <PinTopIcon />
               </Tooltip>
-            </IconButton>
-            <IconButton disabled={!hasSelection} onClick={handleDelete}>
+            </ToolButton>
+            <ToolButton disabled={!hasSelection} onClick={handleDelete}>
               <Tooltip label="Delete" kbd="⌫">
                 <TrashIcon />
               </Tooltip>
-            </IconButton>
+            </ToolButton>
           </ButtonsRow>
           <Divider />
           <ButtonsRow>
-            <IconButton disabled={!hasTwoOrMore} onClick={alignLeft}>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignLeft}>
               <AlignLeftIcon />
-            </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onClick={alignCenterHorizontal}>
+            </ToolButton>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignCenterHorizontal}>
               <AlignCenterHorizontallyIcon />
-            </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onClick={alignRight}>
+            </ToolButton>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignRight}>
               <AlignRightIcon />
-            </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onClick={stretchHorizontally}>
+            </ToolButton>
+            <ToolButton disabled={!hasTwoOrMore} onClick={stretchHorizontally}>
               <StretchHorizontallyIcon />
-            </IconButton>
-            <IconButton disabled={!hasThreeOrMore} onClick={distributeHorizontally}>
+            </ToolButton>
+            <ToolButton disabled={!hasThreeOrMore} onClick={distributeHorizontally}>
               <SpaceEvenlyHorizontallyIcon />
-            </IconButton>
+            </ToolButton>
           </ButtonsRow>
           <ButtonsRow>
-            <IconButton disabled={!hasTwoOrMore} onClick={alignTop}>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignTop}>
               <AlignTopIcon />
-            </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onClick={alignCenterVertical}>
+            </ToolButton>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignCenterVertical}>
               <AlignCenterVerticallyIcon />
-            </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onClick={alignBottom}>
+            </ToolButton>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignBottom}>
               <AlignBottomIcon />
-            </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onClick={stretchVertically}>
+            </ToolButton>
+            <ToolButton disabled={!hasTwoOrMore} onClick={stretchVertically}>
               <StretchVerticallyIcon />
-            </IconButton>
-            <IconButton disabled={!hasThreeOrMore} onClick={distributeVertically}>
+            </ToolButton>
+            <ToolButton disabled={!hasThreeOrMore} onClick={distributeVertically}>
               <SpaceEvenlyVerticallyIcon />
-            </IconButton>
+            </ToolButton>
           </ButtonsRow>
         </>
       </DMContent>

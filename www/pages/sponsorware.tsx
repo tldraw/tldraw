@@ -11,7 +11,7 @@ export default function Sponsorware(): JSX.Element {
   return (
     <>
       <Head>
-        <title>tldraw</title>
+        <title>Tldraw</title>
       </Head>
       <StyledOuterContent>
         <StyledContent
@@ -19,9 +19,9 @@ export default function Sponsorware(): JSX.Element {
             '@sm': 'small',
           }}
         >
-          <h1>tldraw (is sponsorware)</h1>
+          <h1>Tldraw (is sponsorware)</h1>
           <p>
-            Hey, thanks for visiting <Link href="/">tldraw</Link>, a tiny little drawing app by{' '}
+            Hey, thanks for visiting <Link href="/">Tldraw</Link>, a tiny little drawing app by{' '}
             <a
               target="_blank"
               rel="noreferrer nofollow noopener"

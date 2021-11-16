@@ -7,10 +7,12 @@ import { SmallIcon } from '~components/SmallIcon'
 import { styled } from '~styles'
 
 export interface RowButtonProps {
-  onSelect?: () => void
+  onClick?: React.MouseEventHandler<HTMLButtonElement>
   children: React.ReactNode
   disabled?: boolean
   kbd?: string
+  variant?: 'wide'
+  isSponsor?: boolean
   isActive?: boolean
   isWarning?: boolean
   hasIndicator?: boolean
@@ -20,12 +22,14 @@ export interface RowButtonProps {
 export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
   (
     {
-      onSelect,
+      onClick,
       isActive = false,
       isWarning = false,
       hasIndicator = false,
       hasArrow = false,
       disabled = false,
+      isSponsor = false,
+      variant,
       kbd,
       children,
       ...rest
@@ -38,8 +42,10 @@ export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
         bp={breakpoints}
         isWarning={isWarning}
         isActive={isActive}
+        isSponsor={isSponsor}
         disabled={disabled}
-        onPointerDown={onSelect}
+        onClick={onClick}
+        variant={variant}
         {...rest}
       >
         <StyledRowButtonInner>
@@ -66,13 +72,10 @@ export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
 const StyledRowButtonInner = styled('div', {
   height: '100%',
   width: '100%',
-  color: '$text',
-  fontFamily: '$ui',
-  fontWeight: 400,
-  fontSize: '$1',
   backgroundColor: '$panel',
   borderRadius: '$2',
   display: 'flex',
+  gap: '$1',
   flexDirection: 'row',
   alignItems: 'center',
   padding: '0 $3',
@@ -95,6 +98,10 @@ export const StyledRowButton = styled('button', {
   cursor: 'pointer',
   height: '32px',
   outline: 'none',
+  color: '$text',
+  fontFamily: '$ui',
+  fontWeight: 400,
+  fontSize: '$1',
   borderRadius: 4,
   userSelect: 'none',
   margin: 0,
@@ -112,16 +119,32 @@ export const StyledRowButton = styled('button', {
     backgroundColor: '$hover',
   },
 
+  '& a': {
+    textDecoration: 'none',
+    color: '$text',
+  },
+
   variants: {
     bp: {
       mobile: {},
       small: {},
+    },
+    variant: {
+      wide: {
+        gridColumn: '1 / span 4',
+      },
     },
     size: {
       icon: {
         padding: '4px ',
         width: 'auto',
       },
+    },
+    isSponsor: {
+      true: {
+        color: '#eb30a2',
+      },
+      false: {},
     },
     isWarning: {
       true: {
@@ -132,7 +155,29 @@ export const StyledRowButton = styled('button', {
       true: {
         backgroundColor: '$hover',
       },
-      false: {
+      false: {},
+    },
+  },
+  compoundVariants: [
+    {
+      isActive: false,
+      isSponsor: true,
+      bp: 'small',
+      css: {
+        [`&:hover:not(:disabled) ${StyledRowButtonInner}`]: {
+          backgroundColor: '$sponsorContrast',
+          border: '1px solid $panel',
+          '& *[data-shy="true"]': {
+            opacity: 1,
+          },
+        },
+      },
+    },
+    {
+      isActive: false,
+      isSponsor: false,
+      bp: 'small',
+      css: {
         [`&:hover:not(:disabled) ${StyledRowButtonInner}`]: {
           backgroundColor: '$hover',
           border: '1px solid $panel',
@@ -142,5 +187,5 @@ export const StyledRowButton = styled('button', {
         },
       },
     },
-  },
+  ],
 })

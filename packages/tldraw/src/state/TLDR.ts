@@ -1,36 +1,36 @@
 import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
 import {
-  TLDrawSnapshot,
+  TDSnapshot,
   ShapeStyles,
   ShapesWithProp,
-  TLDrawShape,
-  TLDrawBinding,
-  TLDrawPage,
-  TLDrawCommand,
-  TLDrawPatch,
-  TLDrawShapeType,
+  TDShape,
+  TDBinding,
+  TDPage,
+  TldrawCommand,
+  TldrawPatch,
+  TDShapeType,
   ArrowShape,
 } from '~types'
 import { Vec } from '@tldraw/vec'
-import type { TLDrawShapeUtil } from './shapes/TLDrawShapeUtil'
-import { getShapeUtils } from './shapes'
+import type { TDShapeUtil } from './shapes/TDShapeUtil'
+import { getShapeUtil } from './shapes'
 
 export class TLDR {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static getShapeUtils<T extends TLDrawShape>(type: T['type']): TLDrawShapeUtil<T>
+  static getShapeUtil<T extends TDShape>(type: T['type']): TDShapeUtil<T>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static getShapeUtils<T extends TLDrawShape>(shape: T): TLDrawShapeUtil<T>
-  static getShapeUtils<T extends TLDrawShape>(shape: T | T['type']) {
-    return getShapeUtils<T>(shape)
+  static getShapeUtil<T extends TDShape>(shape: T): TDShapeUtil<T>
+  static getShapeUtil<T extends TDShape>(shape: T | T['type']) {
+    return getShapeUtil<T>(shape)
   }
 
-  static getSelectedShapes(data: TLDrawSnapshot, pageId: string) {
+  static getSelectedShapes(data: TDSnapshot, pageId: string) {
     const page = TLDR.getPage(data, pageId)
     const selectedIds = TLDR.getSelectedIds(data, pageId)
     return selectedIds.map((id) => page.shapes[id])
   }
 
-  static screenToWorld(data: TLDrawSnapshot, point: number[]) {
+  static screenToWorld(data: TDSnapshot, point: number[]) {
     const camera = TLDR.getPageState(data, data.appState.currentPageId).camera
     return Vec.sub(Vec.div(point, camera.zoom), camera.point)
   }
@@ -39,59 +39,59 @@ export class TLDR {
     return Utils.clamp(zoom, 0.1, 5)
   }
 
-  static getPage(data: TLDrawSnapshot, pageId: string): TLDrawPage {
+  static getPage(data: TDSnapshot, pageId: string): TDPage {
     return data.document.pages[pageId]
   }
 
-  static getPageState(data: TLDrawSnapshot, pageId: string): TLPageState {
+  static getPageState(data: TDSnapshot, pageId: string): TLPageState {
     return data.document.pageStates[pageId]
   }
 
-  static getSelectedIds(data: TLDrawSnapshot, pageId: string): string[] {
+  static getSelectedIds(data: TDSnapshot, pageId: string): string[] {
     return TLDR.getPageState(data, pageId).selectedIds
   }
 
-  static getShapes(data: TLDrawSnapshot, pageId: string): TLDrawShape[] {
+  static getShapes(data: TDSnapshot, pageId: string): TDShape[] {
     return Object.values(TLDR.getPage(data, pageId).shapes)
   }
 
-  static getCamera(data: TLDrawSnapshot, pageId: string): TLPageState['camera'] {
+  static getCamera(data: TDSnapshot, pageId: string): TLPageState['camera'] {
     return TLDR.getPageState(data, pageId).camera
   }
 
-  static getShape<T extends TLDrawShape = TLDrawShape>(
-    data: TLDrawSnapshot,
+  static getShape<T extends TDShape = TDShape>(
+    data: TDSnapshot,
     shapeId: string,
     pageId: string
   ): T {
     return TLDR.getPage(data, pageId).shapes[shapeId] as T
   }
 
-  static getCenter<T extends TLDrawShape>(shape: T) {
-    return TLDR.getShapeUtils(shape).getCenter(shape)
+  static getCenter<T extends TDShape>(shape: T) {
+    return TLDR.getShapeUtil(shape).getCenter(shape)
   }
 
-  static getBounds<T extends TLDrawShape>(shape: T) {
-    return TLDR.getShapeUtils(shape).getBounds(shape)
+  static getBounds<T extends TDShape>(shape: T) {
+    return TLDR.getShapeUtil(shape).getBounds(shape)
   }
 
-  static getRotatedBounds<T extends TLDrawShape>(shape: T) {
-    return TLDR.getShapeUtils(shape).getRotatedBounds(shape)
+  static getRotatedBounds<T extends TDShape>(shape: T) {
+    return TLDR.getShapeUtil(shape).getRotatedBounds(shape)
   }
 
-  static getSelectedBounds(data: TLDrawSnapshot): TLBounds {
+  static getSelectedBounds(data: TDSnapshot): TLBounds {
     return Utils.getCommonBounds(
       TLDR.getSelectedShapes(data, data.appState.currentPageId).map((shape) =>
-        TLDR.getShapeUtils(shape).getBounds(shape)
+        TLDR.getShapeUtil(shape).getBounds(shape)
       )
     )
   }
 
-  static getParentId(data: TLDrawSnapshot, id: string, pageId: string) {
+  static getParentId(data: TDSnapshot, id: string, pageId: string) {
     return TLDR.getShape(data, id, pageId).parentId
   }
 
-  // static getPointedId(data: TLDrawSnapshot, id: string, pageId: string): string {
+  // static getPointedId(data: TDSnapshot, id: string, pageId: string): string {
   //   const page = TLDR.getPage(data, pageId)
   //   const pageState = TLDR.getPageState(data, data.appState.currentPageId)
   //   const shape = TLDR.getShape(data, id, pageId)
@@ -102,7 +102,7 @@ export class TLDR {
   //     : TLDR.getPointedId(data, shape.parentId, pageId)
   // }
 
-  // static getDrilledPointedId(data: TLDrawSnapshot, id: string, pageId: string): string {
+  // static getDrilledPointedId(data: TDSnapshot, id: string, pageId: string): string {
   //   const shape = TLDR.getShape(data, id, pageId)
   //   const { currentPageId } = data.appState
   //   const { currentParentId, pointedId } = TLDR.getPageState(data, data.appState.currentPageId)
@@ -114,7 +114,7 @@ export class TLDR {
   //     : TLDR.getDrilledPointedId(data, shape.parentId, pageId)
   // }
 
-  // static getTopParentId(data: TLDrawSnapshot, id: string, pageId: string): string {
+  // static getTopParentId(data: TDSnapshot, id: string, pageId: string): string {
   //   const page = TLDR.getPage(data, pageId)
   //   const pageState = TLDR.getPageState(data, pageId)
   //   const shape = TLDR.getShape(data, id, pageId)
@@ -129,7 +129,7 @@ export class TLDR {
   // }
 
   // Get an array of a shape id and its descendant shapes' ids
-  static getDocumentBranch(data: TLDrawSnapshot, id: string, pageId: string): string[] {
+  static getDocumentBranch(data: TDSnapshot, id: string, pageId: string): string[] {
     const shape = TLDR.getShape(data, id, pageId)
 
     if (shape.children === undefined) return [id]
@@ -142,16 +142,16 @@ export class TLDR {
 
   // Get a deep array of unproxied shapes and their descendants
   static getSelectedBranchSnapshot<K>(
-    data: TLDrawSnapshot,
+    data: TDSnapshot,
     pageId: string,
-    fn: (shape: TLDrawShape) => K
+    fn: (shape: TDShape) => K
   ): ({ id: string } & K)[]
-  static getSelectedBranchSnapshot(data: TLDrawSnapshot, pageId: string): TLDrawShape[]
+  static getSelectedBranchSnapshot(data: TDSnapshot, pageId: string): TDShape[]
   static getSelectedBranchSnapshot<K>(
-    data: TLDrawSnapshot,
+    data: TDSnapshot,
     pageId: string,
-    fn?: (shape: TLDrawShape) => K
-  ): (TLDrawShape | K)[] {
+    fn?: (shape: TDShape) => K
+  ): (TDShape | K)[] {
     const page = TLDR.getPage(data, pageId)
 
     const copies = TLDR.getSelectedIds(data, pageId)
@@ -167,17 +167,17 @@ export class TLDR {
   }
 
   // Get a shallow array of unproxied shapes
-  static getSelectedShapeSnapshot(data: TLDrawSnapshot, pageId: string): TLDrawShape[]
+  static getSelectedShapeSnapshot(data: TDSnapshot, pageId: string): TDShape[]
   static getSelectedShapeSnapshot<K>(
-    data: TLDrawSnapshot,
+    data: TDSnapshot,
     pageId: string,
-    fn?: (shape: TLDrawShape) => K
+    fn?: (shape: TDShape) => K
   ): ({ id: string } & K)[]
   static getSelectedShapeSnapshot<K>(
-    data: TLDrawSnapshot,
+    data: TDSnapshot,
     pageId: string,
-    fn?: (shape: TLDrawShape) => K
-  ): (TLDrawShape | K)[] {
+    fn?: (shape: TDShape) => K
+  ): (TDShape | K)[] {
     const copies = TLDR.getSelectedShapes(data, pageId)
       .filter((shape) => !shape.isLocked)
       .map(Utils.deepClone)
@@ -191,7 +191,7 @@ export class TLDR {
 
   // For a given array of shape ids, an array of all other shapes that may be affected by a mutation to it.
   // Use this to decide which shapes to clone as before / after for a command.
-  static getAllEffectedShapeIds(data: TLDrawSnapshot, ids: string[], pageId: string): string[] {
+  static getAllEffectedShapeIds(data: TDSnapshot, ids: string[], pageId: string): string[] {
     const page = TLDR.getPage(data, pageId)
 
     const visited = new Set(ids)
@@ -200,7 +200,7 @@ export class TLDR {
       const shape = page.shapes[id]
 
       // Add descendant shapes
-      function collectDescendants(shape: TLDrawShape): void {
+      function collectDescendants(shape: TDShape): void {
         if (shape.children === undefined) return
         shape.children
           .filter((childId) => !visited.has(childId))
@@ -213,7 +213,7 @@ export class TLDR {
       collectDescendants(shape)
 
       // Add asecendant shapes
-      function collectAscendants(shape: TLDrawShape): void {
+      function collectAscendants(shape: TDShape): void {
         const parentId = shape.parentId
         if (parentId === page.id) return
         if (visited.has(parentId)) return
@@ -236,47 +236,47 @@ export class TLDR {
   }
 
   static updateBindings(
-    data: TLDrawSnapshot,
+    data: TDSnapshot,
     id: string,
-    beforeShapes: Record<string, Partial<TLDrawShape>> = {},
-    afterShapes: Record<string, Partial<TLDrawShape>> = {},
+    beforeShapes: Record<string, Partial<TDShape>> = {},
+    afterShapes: Record<string, Partial<TDShape>> = {},
     pageId: string
-  ): TLDrawSnapshot {
+  ): TDSnapshot {
     const page = { ...TLDR.getPage(data, pageId) }
     return Object.values(page.bindings)
       .filter((binding) => binding.fromId === id || binding.toId === id)
-      .reduce((cTLDrawSnapshot, binding) => {
+      .reduce((cTDSnapshot, binding) => {
         if (!beforeShapes[binding.fromId]) {
           beforeShapes[binding.fromId] = Utils.deepClone(
-            TLDR.getShape(cTLDrawSnapshot, binding.fromId, pageId)
+            TLDR.getShape(cTDSnapshot, binding.fromId, pageId)
           )
         }
 
         if (!beforeShapes[binding.toId]) {
           beforeShapes[binding.toId] = Utils.deepClone(
-            TLDR.getShape(cTLDrawSnapshot, binding.toId, pageId)
+            TLDR.getShape(cTDSnapshot, binding.toId, pageId)
           )
         }
 
         TLDR.onBindingChange(
-          TLDR.getShape(cTLDrawSnapshot, binding.fromId, pageId),
+          TLDR.getShape(cTDSnapshot, binding.fromId, pageId),
           binding,
-          TLDR.getShape(cTLDrawSnapshot, binding.toId, pageId)
+          TLDR.getShape(cTDSnapshot, binding.toId, pageId)
         )
 
         afterShapes[binding.fromId] = Utils.deepClone(
-          TLDR.getShape(cTLDrawSnapshot, binding.fromId, pageId)
+          TLDR.getShape(cTDSnapshot, binding.fromId, pageId)
         )
         afterShapes[binding.toId] = Utils.deepClone(
-          TLDR.getShape(cTLDrawSnapshot, binding.toId, pageId)
+          TLDR.getShape(cTDSnapshot, binding.toId, pageId)
         )
 
-        return cTLDrawSnapshot
+        return cTDSnapshot
       }, data)
   }
 
-  static getLinkedShapes(
-    data: TLDrawSnapshot,
+  static getLinkedShapeIds(
+    data: TDSnapshot,
     pageId: string,
     direction: 'center' | 'left' | 'right',
     includeArrows = true
@@ -294,7 +294,7 @@ export class TLDR {
     const arrows = new Set(
       Object.values(page.shapes).filter((shape) => {
         return (
-          shape.type === TLDrawShapeType.Arrow &&
+          shape.type === TDShapeType.Arrow &&
           (shape.handles.start.bindingId || shape.handles?.end.bindingId)
         )
       }) as ArrowShape[]
@@ -378,11 +378,11 @@ export class TLDR {
     return Array.from(linkedIds.values())
   }
 
-  static getChildIndexAbove(data: TLDrawSnapshot, id: string, pageId: string): number {
+  static getChildIndexAbove(data: TDSnapshot, id: string, pageId: string): number {
     const page = data.document.pages[pageId]
     const shape = page.shapes[id]
 
-    let siblings: TLDrawShape[]
+    let siblings: TDShape[]
 
     if (shape.parentId === page.id) {
       siblings = Object.values(page.shapes)
@@ -409,27 +409,29 @@ export class TLDR {
   /*                      Mutations                     */
   /* -------------------------------------------------- */
 
-  static getBeforeShape<T extends TLDrawShape>(shape: T, change: Partial<T>): Partial<T> {
+  static getBeforeShape<T extends TDShape>(shape: T, change: Partial<T>): Partial<T> {
     return Object.fromEntries(
       Object.keys(change).map((k) => [k, shape[k as keyof T]])
     ) as Partial<T>
   }
 
-  static mutateShapes<T extends TLDrawShape>(
-    data: TLDrawSnapshot,
+  static mutateShapes<T extends TDShape>(
+    data: TDSnapshot,
     ids: string[],
     fn: (shape: T, i: number) => Partial<T> | void,
     pageId: string
   ): {
     before: Record<string, Partial<T>>
     after: Record<string, Partial<T>>
-    data: TLDrawSnapshot
+    data: TDSnapshot
   } {
     const beforeShapes: Record<string, Partial<T>> = {}
     const afterShapes: Record<string, Partial<T>> = {}
 
     ids.forEach((id, i) => {
       const shape = TLDR.getShape<T>(data, id, pageId)
+      if (shape.isLocked) return
+
       const change = fn(shape, i)
       if (change) {
         beforeShapes[id] = TLDR.getBeforeShape(shape, change)
@@ -446,8 +448,8 @@ export class TLDR {
         },
       },
     })
-    const dataWithBindingChanges = ids.reduce<TLDrawSnapshot>((cTLDrawSnapshot, id) => {
-      return TLDR.updateBindings(cTLDrawSnapshot, id, beforeShapes, afterShapes, pageId)
+    const dataWithBindingChanges = ids.reduce<TDSnapshot>((cTDSnapshot, id) => {
+      return TLDR.updateBindings(cTDSnapshot, id, beforeShapes, afterShapes, pageId)
     }, dataWithMutations)
 
     return {
@@ -457,17 +459,15 @@ export class TLDR {
     }
   }
 
-  static createShapes(data: TLDrawSnapshot, shapes: TLDrawShape[], pageId: string): TLDrawCommand {
-    const before: TLDrawPatch = {
+  static createShapes(data: TDSnapshot, shapes: TDShape[], pageId: string): TldrawCommand {
+    const before: TldrawPatch = {
       document: {
         pages: {
           [pageId]: {
             shapes: {
               ...Object.fromEntries(
                 shapes.flatMap((shape) => {
-                  const results: [string, Partial<TLDrawShape> | undefined][] = [
-                    [shape.id, undefined],
-                  ]
+                  const results: [string, Partial<TDShape> | undefined][] = [[shape.id, undefined]]
 
                   // If the shape is a child of another shape, also save that shape
                   if (shape.parentId !== pageId) {
@@ -485,7 +485,7 @@ export class TLDR {
       },
     }
 
-    const after: TLDrawPatch = {
+    const after: TldrawPatch = {
       document: {
         pages: {
           [pageId]: {
@@ -493,9 +493,7 @@ export class TLDR {
               shapes: {
                 ...Object.fromEntries(
                   shapes.flatMap((shape) => {
-                    const results: [string, Partial<TLDrawShape> | undefined][] = [
-                      [shape.id, shape],
-                    ]
+                    const results: [string, Partial<TDShape> | undefined][] = [[shape.id, shape]]
 
                     // If the shape is a child of a different shape, update its parent
                     if (shape.parentId !== pageId) {
@@ -521,10 +519,10 @@ export class TLDR {
   }
 
   static deleteShapes(
-    data: TLDrawSnapshot,
-    shapes: TLDrawShape[] | string[],
+    data: TDSnapshot,
+    shapes: TDShape[] | string[],
     pageId?: string
-  ): TLDrawCommand {
+  ): TldrawCommand {
     pageId = pageId ? pageId : data.appState.currentPageId
 
     const page = TLDR.getPage(data, pageId)
@@ -532,9 +530,9 @@ export class TLDR {
     const shapeIds =
       typeof shapes[0] === 'string'
         ? (shapes as string[])
-        : (shapes as TLDrawShape[]).map((shape) => shape.id)
+        : (shapes as TDShape[]).map((shape) => shape.id)
 
-    const before: TLDrawPatch = {
+    const before: TldrawPatch = {
       document: {
         pages: {
           [pageId]: {
@@ -543,7 +541,7 @@ export class TLDR {
               ...Object.fromEntries(
                 shapeIds.flatMap((id) => {
                   const shape = page.shapes[id]
-                  const results: [string, Partial<TLDrawShape> | undefined][] = [[shape.id, shape]]
+                  const results: [string, Partial<TDShape> | undefined][] = [[shape.id, shape]]
 
                   // If the shape is a child of another shape, also add that shape
                   if (shape.parentId !== pageId) {
@@ -573,7 +571,7 @@ export class TLDR {
       },
     }
 
-    const after: TLDrawPatch = {
+    const after: TldrawPatch = {
       document: {
         pages: {
           [pageId]: {
@@ -581,9 +579,7 @@ export class TLDR {
               ...Object.fromEntries(
                 shapeIds.flatMap((id) => {
                   const shape = page.shapes[id]
-                  const results: [string, Partial<TLDrawShape> | undefined][] = [
-                    [shape.id, undefined],
-                  ]
+                  const results: [string, Partial<TDShape> | undefined][] = [[shape.id, undefined]]
 
                   // If the shape is a child of a different shape, update its parent
                   if (shape.parentId !== page.id) {
@@ -612,16 +608,16 @@ export class TLDR {
     }
   }
 
-  static onSessionComplete<T extends TLDrawShape>(shape: T) {
-    const delta = TLDR.getShapeUtils(shape).onSessionComplete?.(shape)
+  static onSessionComplete<T extends TDShape>(shape: T) {
+    const delta = TLDR.getShapeUtil(shape).onSessionComplete?.(shape)
     if (!delta) return shape
     return { ...shape, ...delta }
   }
 
-  static onChildrenChange<T extends TLDrawShape>(data: TLDrawSnapshot, shape: T, pageId: string) {
+  static onChildrenChange<T extends TDShape>(data: TDSnapshot, shape: T, pageId: string) {
     if (!shape.children) return
 
-    const delta = TLDR.getShapeUtils(shape).onChildrenChange?.(
+    const delta = TLDR.getShapeUtil(shape).onChildrenChange?.(
       shape,
       shape.children.map((id) => TLDR.getShape(data, id, pageId))
     )
@@ -631,35 +627,27 @@ export class TLDR {
     return { ...shape, ...delta }
   }
 
-  static onBindingChange<T extends TLDrawShape>(
-    shape: T,
-    binding: TLDrawBinding,
-    otherShape: TLDrawShape
-  ) {
-    const delta = TLDR.getShapeUtils(shape).onBindingChange?.(
+  static onBindingChange<T extends TDShape>(shape: T, binding: TDBinding, otherShape: TDShape) {
+    const delta = TLDR.getShapeUtil(shape).onBindingChange?.(
       shape,
       binding,
       otherShape,
-      TLDR.getShapeUtils(otherShape).getBounds(otherShape),
-      TLDR.getShapeUtils(otherShape).getCenter(otherShape)
+      TLDR.getShapeUtil(otherShape).getBounds(otherShape),
+      TLDR.getShapeUtil(otherShape).getCenter(otherShape)
     )
     if (!delta) return shape
 
     return { ...shape, ...delta }
   }
 
-  static transform<T extends TLDrawShape>(shape: T, bounds: TLBounds, info: TLTransformInfo<T>) {
-    const delta = TLDR.getShapeUtils(shape).transform(shape, bounds, info)
+  static transform<T extends TDShape>(shape: T, bounds: TLBounds, info: TLTransformInfo<T>) {
+    const delta = TLDR.getShapeUtil(shape).transform(shape, bounds, info)
     if (!delta) return shape
     return { ...shape, ...delta }
   }
 
-  static transformSingle<T extends TLDrawShape>(
-    shape: T,
-    bounds: TLBounds,
-    info: TLTransformInfo<T>
-  ) {
-    const delta = TLDR.getShapeUtils(shape).transformSingle(shape, bounds, info)
+  static transformSingle<T extends TDShape>(shape: T, bounds: TLBounds, info: TLTransformInfo<T>) {
+    const delta = TLDR.getShapeUtil(shape).transformSingle(shape, bounds, info)
     if (!delta) return shape
     return { ...shape, ...delta }
   }
@@ -671,7 +659,7 @@ export class TLDR {
    * @param origin the page point to rotate around.
    * @param rotation the amount to rotate the shape.
    */
-  static getRotatedShapeMutation<T extends TLDrawShape>(
+  static getRotatedShapeMutation<T extends TDShape>(
     shape: T, // in page space
     center: number[], // in page space
     origin: number[], // in page space (probably the center of common bounds)
@@ -690,7 +678,7 @@ export class TLDR {
     // of rotating the shape. Shapes with handles should never be rotated,
     // because that makes a lot of other things incredible difficult.
     if (shape.handles !== undefined) {
-      const change = this.getShapeUtils(shape).onHandleChange?.(
+      const change = this.getShapeUtil(shape).onHandleChange?.(
         // Base the change on a shape with the next point
         { ...shape, point: nextPoint },
         Object.fromEntries(
@@ -723,7 +711,7 @@ export class TLDR {
   /*                       Parents                      */
   /* -------------------------------------------------- */
 
-  static updateParents(data: TLDrawSnapshot, pageId: string, changedShapeIds: string[]): void {
+  static updateParents(data: TDSnapshot, pageId: string, changedShapeIds: string[]): void {
     const page = TLDR.getPage(data, pageId)
 
     if (changedShapeIds.length === 0) return
@@ -747,7 +735,7 @@ export class TLDR {
     TLDR.updateParents(data, pageId, parentToUpdateIds)
   }
 
-  static getSelectedStyle(data: TLDrawSnapshot, pageId: string): ShapeStyles | false {
+  static getSelectedStyle(data: TDSnapshot, pageId: string): ShapeStyles | false {
     const { currentStyle } = data.appState
 
     const page = data.document.pages[pageId]
@@ -788,27 +776,23 @@ export class TLDR {
   /*                      Bindings                      */
   /* -------------------------------------------------- */
 
-  static getBinding(data: TLDrawSnapshot, id: string, pageId: string): TLDrawBinding {
+  static getBinding(data: TDSnapshot, id: string, pageId: string): TDBinding {
     return TLDR.getPage(data, pageId).bindings[id]
   }
 
-  static getBindings(data: TLDrawSnapshot, pageId: string): TLDrawBinding[] {
+  static getBindings(data: TDSnapshot, pageId: string): TDBinding[] {
     const page = TLDR.getPage(data, pageId)
     return Object.values(page.bindings)
   }
 
-  static getBindableShapeIds(data: TLDrawSnapshot) {
+  static getBindableShapeIds(data: TDSnapshot) {
     return TLDR.getShapes(data, data.appState.currentPageId)
-      .filter((shape) => TLDR.getShapeUtils(shape).canBind)
+      .filter((shape) => TLDR.getShapeUtil(shape).canBind)
       .sort((a, b) => b.childIndex - a.childIndex)
       .map((shape) => shape.id)
   }
 
-  static getBindingsWithShapeIds(
-    data: TLDrawSnapshot,
-    ids: string[],
-    pageId: string
-  ): TLDrawBinding[] {
+  static getBindingsWithShapeIds(data: TDSnapshot, ids: string[], pageId: string): TDBinding[] {
     return Array.from(
       new Set(
         TLDR.getBindings(data, pageId).filter((binding) => {
@@ -818,7 +802,7 @@ export class TLDR {
     )
   }
 
-  static getRelatedBindings(data: TLDrawSnapshot, ids: string[], pageId: string): TLDrawBinding[] {
+  static getRelatedBindings(data: TDSnapshot, ids: string[], pageId: string): TDBinding[] {
     const changedShapeIds = new Set(ids)
 
     const page = TLDR.getPage(data, pageId)
@@ -897,7 +881,7 @@ export class TLDR {
   /*                       Groups                       */
   /* -------------------------------------------------- */
 
-  static flattenShape = (data: TLDrawSnapshot, shape: TLDrawShape): TLDrawShape[] => {
+  static flattenShape = (data: TDSnapshot, shape: TDShape): TDShape[] => {
     return [
       shape,
       ...(shape.children ?? [])
@@ -907,13 +891,13 @@ export class TLDR {
     ]
   }
 
-  static flattenPage = (data: TLDrawSnapshot, pageId: string): TLDrawShape[] => {
+  static flattenPage = (data: TDSnapshot, pageId: string): TDShape[] => {
     return Object.values(data.document.pages[pageId].shapes)
       .sort((a, b) => a.childIndex - b.childIndex)
-      .reduce<TLDrawShape[]>((acc, shape) => [...acc, ...TLDR.flattenShape(data, shape)], [])
+      .reduce<TDShape[]>((acc, shape) => [...acc, ...TLDR.flattenShape(data, shape)], [])
   }
 
-  static getTopChildIndex = (data: TLDrawSnapshot, pageId: string): number => {
+  static getTopChildIndex = (data: TDSnapshot, pageId: string): number => {
     const shapes = TLDR.getShapes(data, pageId)
     return shapes.length === 0
       ? 1
@@ -923,11 +907,22 @@ export class TLDR {
   }
 
   /* -------------------------------------------------- */
+  /*                        Text                        */
+  /* -------------------------------------------------- */
+
+  static fixNewLines = /\r?\n|\r/g
+  static fixSpaces = / /g
+
+  static normalizeText(text: string) {
+    return text.replace(TLDR.fixNewLines, '\n').replace(TLDR.fixSpaces, '\u00a0')
+  }
+
+  /* -------------------------------------------------- */
   /*                     Assertions                     */
   /* -------------------------------------------------- */
 
-  static assertShapeHasProperty<P extends keyof TLDrawShape>(
-    shape: TLDrawShape,
+  static assertShapeHasProperty<P extends keyof TDShape>(
+    shape: TDShape,
     prop: P
   ): asserts shape is ShapesWithProp<P> {
     if (shape[prop] === undefined) {

@@ -1,6 +1,6 @@
 # Tools
 
-Tools are classes that handle events. A TLDrawState instance has a set of tools (`tools`) and one current tool (`currentTool`). The state delegates events (such as `onPointerMove`) to its current tool for handling.
+Tools are classes that handle events. A tldrawApp instance has a set of tools (`tools`) and one current tool (`currentTool`). The state delegates events (such as `onPointerMove`) to its current tool for handling.
 
 In this way, tools function as a finite state machine: events are always handled by a tool and will only ever be handled by one tool.
 

@@ -1,4 +1,4 @@
-import { TLDraw } from '@tldraw/tldraw'
+import { Tldraw } from '@tldraw/tldraw'
 import * as React from 'react'
 
 export default function Embedded(): JSX.Element {
@@ -13,7 +13,7 @@ export default function Embedded(): JSX.Element {
           marginBottom: '32px',
         }}
       >
-        <TLDraw id="small5" />
+        <Tldraw id="small5" />
       </div>
 
       <div
@@ -24,7 +24,7 @@ export default function Embedded(): JSX.Element {
           overflow: 'hidden',
         }}
       >
-        <TLDraw id="embedded" />
+        <Tldraw id="embedded" />
       </div>
     </div>
   )

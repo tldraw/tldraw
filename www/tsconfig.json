@@ -23,10 +23,5 @@
     "resolveJsonModule": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"],
-  "references": [
-    {
-      "path": "../packages/tldraw"
-    }
-  ]
+  "exclude": ["node_modules"]
 }

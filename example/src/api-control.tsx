@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { ColorStyle, TLDraw, TLDrawShapeType, TLDrawState } from '@tldraw/tldraw'
+import { ColorStyle, Tldraw, TDShapeType, TldrawApp } from '@tldraw/tldraw'
 
 export default function Imperative(): JSX.Element {
-  const rTLDrawState = React.useRef<TLDrawState>()
+  const rTldrawApp = React.useRef<TldrawApp>()
 
-  const handleMount = React.useCallback((state: TLDrawState) => {
-    rTLDrawState.current = state
+  const handleMount = React.useCallback((app: TldrawApp) => {
+    rTldrawApp.current = app
 
-    state.createShapes(
+    app.createShapes(
       {
         id: 'rect1',
-        type: TLDrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
         name: 'Rectangle',
         childIndex: 1,
         point: [0, 0],
@@ -20,7 +20,7 @@ export default function Imperative(): JSX.Element {
       {
         id: 'rect2',
         name: 'Rectangle',
-        type: TLDrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
         point: [200, 200],
         size: [100, 100],
       }
@@ -30,13 +30,13 @@ export default function Imperative(): JSX.Element {
   React.useEffect(() => {
     let i = 0
     const interval = setInterval(() => {
-      const state = rTLDrawState.current!
-      const rect1 = state.getShape('rect1')
+      const app = rTldrawApp.current!
+      const rect1 = app.getShape('rect1')
 
       if (!rect1) {
-        state.createShapes({
+        app.createShapes({
           id: 'rect1',
-          type: TLDrawShapeType.Rectangle,
+          type: TDShapeType.Rectangle,
           name: 'Rectangle',
           childIndex: 1,
           point: [0, 0],
@@ -47,7 +47,7 @@ export default function Imperative(): JSX.Element {
 
       const color = i % 2 ? ColorStyle.Red : ColorStyle.Blue
 
-      state.patchShapes({
+      app.patchShapes({
         id: 'rect1',
         style: {
           ...rect1.style,
@@ -60,5 +60,5 @@ export default function Imperative(): JSX.Element {
     return () => clearInterval(interval)
   }, [])
 
-  return <TLDraw onMount={handleMount} />
+  return <Tldraw onMount={handleMount} />
 }

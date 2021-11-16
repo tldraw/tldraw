@@ -1,13 +1,15 @@
+import type { TldrawApp } from '../../internal'
 import { TLDR } from '~state/TLDR'
-import type { TLDrawSnapshot, TLDrawCommand } from '~types'
+import type { TldrawCommand } from '~types'
 import { removeShapesFromPage } from '../shared/removeShapesFromPage'
 
 export function deleteShapes(
-  data: TLDrawSnapshot,
+  app: TldrawApp,
   ids: string[],
-  pageId = data.appState.currentPageId
-): TLDrawCommand {
-  const { before, after } = removeShapesFromPage(data, ids, pageId)
+  pageId = app.currentPageId
+): TldrawCommand {
+  const { pageState, selectedIds } = app
+  const { before, after } = removeShapesFromPage(app.state, ids, pageId)
 
   return {
     id: 'delete',
@@ -17,7 +19,7 @@ export function deleteShapes(
           [pageId]: before,
         },
         pageStates: {
-          [pageId]: { selectedIds: TLDR.getSelectedIds(data, pageId) },
+          [pageId]: { selectedIds: [...app.selectedIds] },
         },
       },
     },
@@ -27,7 +29,13 @@ export function deleteShapes(
           [pageId]: after,
         },
         pageStates: {
-          [pageId]: { selectedIds: [] },
+          [pageId]: {
+            selectedIds: selectedIds.filter((id) => !ids.includes(id)),
+            hoveredId:
+              pageState.hoveredId && ids.includes(pageState.hoveredId)
+                ? undefined
+                : pageState.hoveredId,
+          },
         },
       },
     },

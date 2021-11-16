@@ -13,7 +13,7 @@ export async function createWindow() {
     minHeight: 480,
     minWidth: 600,
     titleBarStyle: 'hidden',
-    title: 'TLDraw',
+    title: 'Tldraw',
     webPreferences: {
       nodeIntegration: true,
       devTools: true,

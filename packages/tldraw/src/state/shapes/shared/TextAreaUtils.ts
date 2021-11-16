@@ -113,10 +113,10 @@ export class TextAreaUtils {
 
   static indent(element: HTMLTextAreaElement): void {
     const { selectionStart, selectionEnd, value } = element
-    const selectedText = value.slice(selectionStart, selectionEnd)
+    const selectedContrast = value.slice(selectionStart, selectionEnd)
     // The first line should be indented, even if it starts with `\n`
     // The last line should only be indented if includes any character after `\n`
-    const lineBreakCount = /\n/g.exec(selectedText)?.length
+    const lineBreakCount = /\n/g.exec(selectedContrast)?.length
 
     if (lineBreakCount && lineBreakCount > 0) {
       // Select full first line to replace everything at once

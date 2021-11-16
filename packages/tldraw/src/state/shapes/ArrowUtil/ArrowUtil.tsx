@@ -1,26 +1,27 @@
 import * as React from 'react'
 import { Utils, TLBounds, TLPointerInfo, SVGContainer } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { defaultStyle, getShapeStyle } from '../shape-styles'
+import { defaultStyle, getShapeStyle } from '../shared/shape-styles'
 import {
   ArrowShape,
-  TLDrawTransformInfo,
+  TransformInfo,
   Decoration,
-  TLDrawShapeType,
-  TLDrawShape,
+  TDShapeType,
+  TDShape,
   EllipseShape,
-  TLDrawBinding,
+  TDBinding,
   DashStyle,
-  TLDrawMeta,
+  TDMeta,
 } from '~types'
-import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
+import { TDShapeUtil } from '../TDShapeUtil'
 import {
   intersectArcBounds,
   intersectLineSegmentBounds,
+  intersectLineSegmentLineSegment,
   intersectRayBounds,
   intersectRayEllipse,
 } from '@tldraw/intersect'
-import { BINDING_DISTANCE, EASINGS } from '~constants'
+import { BINDING_DISTANCE, EASINGS, GHOSTED_OPACITY } from '~constants'
 import {
   getArcPoints,
   getArrowArc,
@@ -38,8 +39,8 @@ import {
 type T = ArrowShape
 type E = SVGSVGElement
 
-export class ArrowUtil extends TLDrawShapeUtil<T, E> {
-  type = TLDrawShapeType.Arrow as const
+export class ArrowUtil extends TDShapeUtil<T, E> {
+  type = TDShapeType.Arrow as const
 
   hideBounds = true
 
@@ -49,7 +50,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
     return Utils.deepMerge<T>(
       {
         id: 'id',
-        type: TLDrawShapeType.Arrow,
+        type: TDShapeType.Arrow,
         name: 'Arrow',
         parentId: 'page',
         childIndex: 1,
@@ -87,7 +88,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(({ shape, meta, events }, ref) => {
+  Component = TDShapeUtil.Component<T, E, TDMeta>(({ shape, isGhost, meta, events }, ref) => {
     const {
       handles: { start, bend, end },
       decorations = {},
@@ -232,7 +233,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
 
     return (
       <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-        <g pointerEvents="none">
+        <g pointerEvents="none" opacity={isGhost ? GHOSTED_OPACITY : 1}>
           {shaftPath}
           {startArrowHead && (
             <path
@@ -265,14 +266,13 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
     )
   })
 
-  Indicator = TLDrawShapeUtil.Indicator<ArrowShape>(({ shape }) => {
+  Indicator = TDShapeUtil.Indicator<ArrowShape>(({ shape }) => {
     return <path d={getArrowPath(shape)} />
   })
 
   getBounds = (shape: T) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
-      const points = getArcPoints(shape)
-      return Utils.getBoundsFromPoints(points)
+      return Utils.getBoundsFromPoints(getArcPoints(shape))
     })
 
     return Utils.translateBounds(bounds, shape.point)
@@ -305,6 +305,34 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
+  hitTestPoint = (shape: T, point: number[]): boolean => {
+    const pt = Vec.sub(point, shape.point)
+    const points = getArcPoints(shape)
+
+    for (let i = 1; i < points.length; i++) {
+      if (Vec.distanceToLineSegment(points[i - 1], points[i], pt) < 1) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  hitTestLineSegment = (shape: T, A: number[], B: number[]): boolean => {
+    const ptA = Vec.sub(A, shape.point)
+    const ptB = Vec.sub(B, shape.point)
+
+    const points = getArcPoints(shape)
+
+    for (let i = 1; i < points.length; i++) {
+      if (intersectLineSegmentLineSegment(points[i - 1], points[i], ptA, ptB).didIntersect) {
+        return true
+      }
+    }
+
+    return false
+  }
+
   hitTestBounds = (shape: T, bounds: TLBounds) => {
     const { start, end, bend } = shape.handles
 
@@ -330,7 +358,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
   transform = (
     shape: T,
     bounds: TLBounds,
-    { initialShape, scaleX, scaleY }: TLDrawTransformInfo<T>
+    { initialShape, scaleX, scaleY }: TransformInfo<T>
   ): Partial<T> => {
     const initialShapeBounds = this.getBounds(initialShape)
 
@@ -414,8 +442,8 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
 
   onBindingChange = (
     shape: T,
-    binding: TLDrawBinding,
-    target: TLDrawShape,
+    binding: TDBinding,
+    target: TDShape,
     targetBounds: TLBounds,
     center: number[]
   ): Partial<T> | void => {
@@ -451,7 +479,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
       // And passes through the dragging handle
       const direction = Vec.uni(Vec.sub(Vec.add(anchor, shape.point), origin))
 
-      if (target.type === TLDrawShapeType.Ellipse) {
+      if (target.type === TDShapeType.Ellipse) {
         const hits = intersectRayEllipse(
           origin,
           direction,

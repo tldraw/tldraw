@@ -6,6 +6,8 @@ export const SNAP_DISTANCE = 5
 export const EMPTY_ARRAY = [] as any[]
 export const SLOW_SPEED = 10
 export const VERY_SLOW_SPEED = 2.5
+export const GHOSTED_OPACITY = 0.3
+export const DEAD_ZONE = 3
 
 import type { Easing } from '~types'
 

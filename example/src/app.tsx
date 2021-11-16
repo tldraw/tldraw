@@ -19,9 +19,8 @@ import './styles.css'
 export default function App(): JSX.Element {
   return (
     <main>
-      <img className="hero" src="./card-repo.png" />
       <Switch>
-        <Route path="/basic">
+        <Route path="/develop">
           <Develop />
         </Route>
         <Route path="/basic">
@@ -64,9 +63,10 @@ export default function App(): JSX.Element {
           <Multiplayer />
         </Route>
         <Route path="/">
+          <img className="hero" src="./card-repo.png" />
           <ul className="links">
             <li>
-              <Link to="/basic">Develop</Link>
+              <Link to="/develop">Develop</Link>
             </li>
             <hr />
             <li>
@@ -94,10 +94,10 @@ export default function App(): JSX.Element {
               <Link to="/controlled">Controlled via Props</Link>
             </li>
             <li>
-              <Link to="/api">Using the TLDrawState API</Link>
+              <Link to="/api">Using the TldrawApp API</Link>
             </li>
             <li>
-              <Link to="/imperative">Controlled via TLDrawState API</Link>
+              <Link to="/imperative">Controlled via TldrawApp API</Link>
             </li>
             <li>
               <Link to="/changing-id">Changing ID</Link>
