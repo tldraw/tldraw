@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { CheckIcon, ClipboardIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { useTLDrawContext } from '~hooks'
+import { useTldrawApp } from '~hooks'
 import { DMItem, DMContent, DMDivider, DMTriggerIcon } from '~components/DropdownMenu'
 import { SmallIcon } from '~components/SmallIcon'
 import { MultiplayerIcon } from '~components/icons'
-import type { TLDrawSnapshot } from '~types'
+import type { TldrawSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
 
 interface MultiplayerMenuProps {
@@ -13,12 +13,12 @@ interface MultiplayerMenuProps {
   // noop
 }
 
-const roomSelector = (state: TLDrawSnapshot) => state.room
+const roomSelector = (state: TldrawSnapshot) => state.room
 
 export const MultiplayerMenu = React.memo(function MultiplayerMenu({ id }: MultiplayerMenuProps) {
-  const { state, useSelector } = useTLDrawContext()
+  const app = useTldrawApp()
 
-  const room = useSelector(roomSelector)
+  const room = app.useStore(roomSelector)
 
   const [copied, setCopied] = React.useState(false)
 
@@ -29,19 +29,19 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu({ id }: Multi
   }, [])
 
   const handleCreateMultiplayerRoom = React.useCallback(async () => {
-    if (state.isDirty) {
-      if (state.fileSystemHandle) {
+    if (app.isDirty) {
+      if (app.fileSystemHandle) {
         if (window.confirm('Do you want to save changes to your current project?')) {
-          await state.saveProject()
+          await app.saveProject()
         }
       } else {
         if (window.confirm('Do you want to save your current project?')) {
-          await state.saveProject()
+          await app.saveProject()
         }
       }
-    } else if (!state.fileSystemHandle) {
+    } else if (!app.fileSystemHandle) {
       if (window.confirm('Do you want to save your current project?')) {
-        await state.saveProject()
+        await app.saveProject()
       }
     }
   }, [])
@@ -52,15 +52,15 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu({ id }: Multi
       'Content-Type': 'application/json',
     })
 
-    const res = await fetch('http://tldraw.com/api/create-multiplayer-room', {
+    const res = await fetch('http://Tldraw.com/api/create-multiplayer-room', {
       headers: myHeaders,
       method: 'POST',
       mode: 'cors',
       cache: 'no-cache',
-      body: JSON.stringify(state.document),
+      body: JSON.stringify(app.document),
     }).then((res) => res.json())
 
-    window.location.href = `http://tldraw.com/r/${res.roomId}`
+    window.location.href = `http://Tldraw.com/r/${res.roomId}`
   }, [])
 
   return (
@@ -70,7 +70,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu({ id }: Multi
       </DMTriggerIcon>
       <DMContent variant="menu" align="start">
         <DMItem onSelect={handleCreateMultiplayerRoom}>
-          <a href="https://tldraw.com/r">Create a Multiplayer Room</a>
+          <a href="https://Tldraw.com/r">Create a Multiplayer Room</a>
         </DMItem>
         <DMItem onSelect={handleCopyToMultiplayerRoom}>Copy to Multiplayer Room</DMItem>
         {room && (

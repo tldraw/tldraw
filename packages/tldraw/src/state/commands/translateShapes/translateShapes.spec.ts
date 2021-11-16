@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { mockDocument, TLDrawTestApp } from '~test'
-import { ArrowShape, SessionType, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { ArrowShape, SessionType, TldrawShapeType } from '~types'
 
 describe('Translate command', () => {
-  const state = new TLDrawTestApp()
+  const state = new TldrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)
@@ -47,12 +47,12 @@ describe('Translate command', () => {
         .createShapes(
           {
             id: 'target1',
-            type: TLDrawShapeType.Rectangle,
+            type: TldrawShapeType.Rectangle,
             point: [0, 0],
             size: [100, 100],
           },
           {
-            type: TLDrawShapeType.Arrow,
+            type: TldrawShapeType.Arrow,
             id: 'arrow1',
             point: [200, 200],
           }
@@ -87,12 +87,12 @@ describe('Translate command', () => {
         .createShapes(
           {
             id: 'target1',
-            type: TLDrawShapeType.Rectangle,
+            type: TldrawShapeType.Rectangle,
             point: [0, 0],
             size: [100, 100],
           },
           {
-            type: TLDrawShapeType.Arrow,
+            type: TldrawShapeType.Arrow,
             id: 'arrow1',
             point: [200, 200],
           }
@@ -125,7 +125,7 @@ describe('Translate command', () => {
 
 describe('When nudging groups', () => {
   it('nudges children instead', () => {
-    new TLDrawTestApp()
+    new TldrawTestApp()
       .loadDocument(mockDocument)
       .group(['rect1', 'rect2'], 'groupA')
       .nudge([1, 1])

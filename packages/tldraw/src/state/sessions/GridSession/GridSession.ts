@@ -2,21 +2,21 @@
 import { TLPageState, TLBounds, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
-  TLDrawShape,
-  TLDrawStatus,
+  TldrawShape,
+  TldrawStatus,
   SessionType,
-  TLDrawShapeType,
-  TLDrawPatch,
-  TLDrawCommand,
+  TldrawShapeType,
+  TldrawPatch,
+  TldrawCommand,
 } from '~types'
 import type { Patch } from 'rko'
 import { BaseSession } from '../BaseSession'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 
 export class GridSession extends BaseSession {
   type = SessionType.Grid
-  status = TLDrawStatus.Translating
-  shape: TLDrawShape
+  status = TldrawStatus.Translating
+  shape: TldrawShape
   bounds: TLBounds
   initialSelectedIds: string[]
   initialSiblings?: string[]
@@ -25,7 +25,7 @@ export class GridSession extends BaseSession {
   rows = 1
   isCopying = false
 
-  constructor(app: TLDrawApp, id: string) {
+  constructor(app: TldrawApp, id: string) {
     super(app)
     this.shape = this.app.getShape(id)
     this.grid['0_0'] = this.shape.id
@@ -38,15 +38,12 @@ export class GridSession extends BaseSession {
     }
   }
 
-  start = (): TLDrawPatch | undefined => void null
+  start = (): TldrawPatch | undefined => void null
 
-  update = (): TLDrawPatch | undefined => {
-    const {
-      currentPageId,
-      mutables: { altKey, shiftKey, currentPoint },
-    } = this.app
+  update = (): TldrawPatch | undefined => {
+    const { currentPageId, altKey, shiftKey, currentPoint } = this.app
 
-    const nextShapes: Patch<Record<string, TLDrawShape>> = {}
+    const nextShapes: Patch<Record<string, TldrawShape>> = {}
 
     const nextPageState: Patch<TLPageState> = {}
 
@@ -140,9 +137,9 @@ export class GridSession extends BaseSession {
     }
   }
 
-  cancel = (): TLDrawPatch | undefined => {
+  cancel = (): TldrawPatch | undefined => {
     const { currentPageId } = this.app
-    const nextShapes: Record<string, Partial<TLDrawShape> | undefined> = {}
+    const nextShapes: Record<string, Partial<TldrawShape> | undefined> = {}
 
     // Delete clones
     Object.values(this.grid).forEach((id) => {
@@ -175,12 +172,12 @@ export class GridSession extends BaseSession {
     }
   }
 
-  complete = (): TLDrawPatch | TLDrawCommand | undefined => {
+  complete = (): TldrawPatch | TldrawCommand | undefined => {
     const { currentPageId } = this.app
 
-    const beforeShapes: Patch<Record<string, TLDrawShape>> = {}
+    const beforeShapes: Patch<Record<string, TldrawShape>> = {}
 
-    const afterShapes: Patch<Record<string, TLDrawShape>> = {}
+    const afterShapes: Patch<Record<string, TldrawShape>> = {}
 
     const afterSelectedIds: string[] = []
 
@@ -250,7 +247,7 @@ export class GridSession extends BaseSession {
     }
 
     if (!copy) {
-      if (clone.type === TLDrawShapeType.Sticky) {
+      if (clone.type === TldrawShapeType.Sticky) {
         clone.text = ''
       }
     }

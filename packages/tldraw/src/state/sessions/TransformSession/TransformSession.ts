@@ -1,11 +1,11 @@
 import { TLBounds, TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import type { TLSnapLine, TLBoundsWithCenter } from '@tldraw/core'
-import { SessionType, TLDrawCommand, TLDrawPatch, TLDrawShape, TLDrawStatus } from '~types'
+import { SessionType, TldrawCommand, TldrawPatch, TldrawShape, TldrawStatus } from '~types'
 import { TLDR } from '~state/TLDR'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { BaseSession } from '../BaseSession'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 
 type SnapInfo =
   | {
@@ -18,14 +18,14 @@ type SnapInfo =
 
 export class TransformSession extends BaseSession {
   type = SessionType.Transform
-  status = TLDrawStatus.Transforming
+  status = TldrawStatus.Transforming
   scaleX = 1
   scaleY = 1
-  initialShapes: TLDrawShape[]
+  initialShapes: TldrawShape[]
   initialShapeIds: string[]
   initialSelectedIds: string[]
   shapeBounds: {
-    initialShape: TLDrawShape
+    initialShape: TldrawShape
     initialShapeBounds: TLBounds
     transformOrigin: number[]
   }[]
@@ -37,13 +37,13 @@ export class TransformSession extends BaseSession {
   speed = 1
 
   constructor(
-    app: TLDrawApp,
+    app: TldrawApp,
     public transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight,
     public isCreate = false
   ) {
     super(app)
     this.initialSelectedIds = [...this.app.selectedIds]
-    this.app.mutables.selectedIds = [...this.initialSelectedIds]
+    this.app.selectedIdsForRotation = [...this.initialSelectedIds]
 
     this.initialShapes = TLDR.getSelectedBranchSnapshot(
       this.app.state,
@@ -85,7 +85,7 @@ export class TransformSession extends BaseSession {
     })
   }
 
-  start = (): TLDrawPatch | undefined => {
+  start = (): TldrawPatch | undefined => {
     this.snapInfo = {
       state: 'ready',
       bounds: this.app.shapes
@@ -97,7 +97,7 @@ export class TransformSession extends BaseSession {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update = (): TLDrawPatch | undefined => {
+  update = (): TldrawPatch | undefined => {
     const {
       transformType,
       shapeBounds,
@@ -106,12 +106,17 @@ export class TransformSession extends BaseSession {
       app: {
         currentPageId,
         pageState: { camera },
-        mutables: { viewport, currentPoint, previousPoint, originPoint, shiftKey, metaKey },
+        viewport,
+        currentPoint,
+        previousPoint,
+        originPoint,
+        shiftKey,
+        metaKey,
         settings: { isSnapping },
       },
     } = this
 
-    const shapes = {} as Record<string, TLDrawShape>
+    const shapes = {} as Record<string, TldrawShape>
 
     const delta = Vec.sub(currentPoint, originPoint)
 
@@ -196,13 +201,13 @@ export class TransformSession extends BaseSession {
     }
   }
 
-  cancel = (): TLDrawPatch | undefined => {
+  cancel = (): TldrawPatch | undefined => {
     const {
       shapeBounds,
       app: { currentPageId },
     } = this
 
-    const shapes = {} as Record<string, TLDrawShape | undefined>
+    const shapes = {} as Record<string, TldrawShape | undefined>
 
     if (this.isCreate) {
       shapeBounds.forEach((shape) => (shapes[shape.initialShape.id] = undefined))
@@ -229,7 +234,7 @@ export class TransformSession extends BaseSession {
     }
   }
 
-  complete = (): TLDrawPatch | TLDrawCommand | undefined => {
+  complete = (): TldrawPatch | TldrawCommand | undefined => {
     const {
       isCreate,
       shapeBounds,
@@ -239,8 +244,8 @@ export class TransformSession extends BaseSession {
 
     if (!hasUnlockedShapes) return
 
-    const beforeShapes: Record<string, TLDrawShape | undefined> = {}
-    const afterShapes: Record<string, TLDrawShape> = {}
+    const beforeShapes: Record<string, TldrawShape | undefined> = {}
+    const afterShapes: Record<string, TldrawShape> = {}
 
     let beforeSelectedIds: string[]
     let afterSelectedIds: string[]

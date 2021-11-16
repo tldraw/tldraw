@@ -1,8 +1,8 @@
-import { mockDocument, TLDrawTestApp } from '~test'
-import { ArrowShape, Decoration, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { ArrowShape, Decoration, TldrawShapeType } from '~types'
 
 describe('Toggle decoration command', () => {
-  const state = new TLDrawTestApp()
+  const state = new TldrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)
@@ -32,7 +32,7 @@ describe('Toggle decoration command', () => {
     state
       .createShapes({
         id: 'arrow1',
-        type: TLDrawShapeType.Arrow,
+        type: TldrawShapeType.Arrow,
       })
       .select('arrow1')
 

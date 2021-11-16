@@ -1,26 +1,26 @@
-import { TLDrawShape, TLDrawShapeType } from '~types'
+import { TldrawShape, TldrawShapeType } from '~types'
 import { Utils } from '@tldraw/core'
-import type { TLDrawSnapshot, TLDrawCommand, TLDrawBinding } from '~types'
+import type { TldrawSnapshot, TldrawCommand, TldrawBinding } from '~types'
 import type { Patch } from 'rko'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 import { TLDR } from '~state/TLDR'
 
 export function groupShapes(
-  app: TLDrawApp,
+  app: TldrawApp,
   ids: string[],
   groupId: string,
   pageId: string
-): TLDrawCommand | undefined {
-  const beforeShapes: Record<string, Patch<TLDrawShape | undefined>> = {}
-  const afterShapes: Record<string, Patch<TLDrawShape | undefined>> = {}
+): TldrawCommand | undefined {
+  const beforeShapes: Record<string, Patch<TldrawShape | undefined>> = {}
+  const afterShapes: Record<string, Patch<TldrawShape | undefined>> = {}
 
-  const beforeBindings: Record<string, Patch<TLDrawBinding | undefined>> = {}
-  const afterBindings: Record<string, Patch<TLDrawBinding | undefined>> = {}
+  const beforeBindings: Record<string, Patch<TldrawBinding | undefined>> = {}
+  const afterBindings: Record<string, Patch<TldrawBinding | undefined>> = {}
 
   const idsToGroup = [...ids]
-  const shapesToGroup: TLDrawShape[] = []
+  const shapesToGroup: TldrawShape[] = []
   const deletedGroupIds: string[] = []
-  const otherEffectedGroups: TLDrawShape[] = []
+  const otherEffectedGroups: TldrawShape[] = []
 
   // Collect all of the shapes to group (and their ids)
   for (const id of ids) {
@@ -81,7 +81,7 @@ export function groupShapes(
   // Create the group
   beforeShapes[groupId] = undefined
 
-  afterShapes[groupId] = TLDR.getShapeUtils(TLDrawShapeType.Group).create({
+  afterShapes[groupId] = TLDR.getShapeUtils(TldrawShapeType.Group).create({
     id: groupId,
     childIndex: groupChildIndex,
     parentId: groupParentId,

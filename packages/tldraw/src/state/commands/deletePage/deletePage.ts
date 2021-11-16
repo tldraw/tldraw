@@ -1,7 +1,7 @@
-import type { TLDrawCommand } from '~types'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawCommand } from '~types'
+import type { TldrawApp } from '../../internal'
 
-export function deletePage(app: TLDrawApp, pageId: string): TLDrawCommand {
+export function deletePage(app: TldrawApp, pageId: string): TldrawCommand {
   const {
     currentPageId,
     state: {

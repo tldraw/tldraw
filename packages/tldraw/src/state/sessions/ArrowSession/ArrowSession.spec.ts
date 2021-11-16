@@ -1,18 +1,18 @@
-import { mockDocument, TLDrawTestApp } from '~test'
-import { ArrowShape, SessionType, TLDrawShapeType, TLDrawStatus } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { ArrowShape, SessionType, TldrawShapeType, TldrawStatus } from '~types'
 
 describe('Arrow session', () => {
-  const restoreDoc = new TLDrawTestApp()
+  const restoreDoc = new TldrawTestApp()
     .loadDocument(mockDocument)
     .selectAll()
     .delete()
     .createShapes(
-      { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
-      { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+      { type: TldrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+      { type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
     ).document
 
   it('begins, updateSession', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(restoreDoc)
       .select('arrow1')
       .movePointer([200, 200])
@@ -26,7 +26,7 @@ describe('Arrow session', () => {
     expect(binding.fromId).toBe('arrow1')
     expect(binding.toId).toBe('target1')
     expect(binding.handleId).toBe('start')
-    expect(state.appState.status).toBe(TLDrawStatus.Idle)
+    expect(state.appState.status).toBe(TldrawStatus.Idle)
     expect(state.getShape('arrow1').handles?.start.bindingId).toBe(binding.id)
 
     state.undo()
@@ -41,7 +41,7 @@ describe('Arrow session', () => {
   })
 
   it('cancels session', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(restoreDoc)
       .select('arrow1')
       .movePointer([200, 200])
@@ -55,7 +55,7 @@ describe('Arrow session', () => {
 
   describe('arrow binding', () => {
     it('points to the center', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(restoreDoc)
         .select('arrow1')
         .movePointer([200, 200])
@@ -65,7 +65,7 @@ describe('Arrow session', () => {
     })
 
     it('Snaps to the center', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(restoreDoc)
         .select('arrow1')
         .movePointer([200, 200])
@@ -75,7 +75,7 @@ describe('Arrow session', () => {
     })
 
     it('Binds at the bottom left', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(restoreDoc)
         .select('arrow1')
         .movePointer([200, 200])
@@ -85,7 +85,7 @@ describe('Arrow session', () => {
     })
 
     it('Cancels the bind when off of the expanded bounds', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(restoreDoc)
         .select('arrow1')
         .movePointer([200, 200])
@@ -96,7 +96,7 @@ describe('Arrow session', () => {
     })
 
     it('binds on the inside of a shape while alt is held', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(restoreDoc)
         .select('arrow1')
         .movePointer([200, 200])
@@ -109,7 +109,7 @@ describe('Arrow session', () => {
     })
 
     it('snaps to the inside center when the point is close to the center', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(restoreDoc)
         .select('arrow1')
         .movePointer([200, 200])
@@ -120,7 +120,7 @@ describe('Arrow session', () => {
     })
 
     it('ignores binding when meta is held', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(restoreDoc)
         .select('arrow1')
         .movePointer([200, 200])
@@ -133,7 +133,7 @@ describe('Arrow session', () => {
 
   describe('when dragging a bound shape', () => {
     it('updates the arrow', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
 
       state
         .loadDocument(restoreDoc)
@@ -157,8 +157,8 @@ describe('Arrow session', () => {
 
 describe('When creating with an arrow session', () => {
   it('Deletes the shape on undo', () => {
-    const state = new TLDrawTestApp()
-      .createShapes({ type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] })
+    const state = new TldrawTestApp()
+      .createShapes({ type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] })
       .select('arrow1')
       .movePointer([200, 200])
       .startSession(SessionType.Arrow, 'arrow1', 'start', true)
@@ -170,12 +170,12 @@ describe('When creating with an arrow session', () => {
   })
 
   it("Doesn't corrupt a shape after undoing", () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .createShapes(
-        { type: TLDrawShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
-        { type: TLDrawShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] }
+        { type: TldrawShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
+        { type: TldrawShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] }
       )
-      .selectTool(TLDrawShapeType.Arrow)
+      .selectTool(TldrawShapeType.Arrow)
       .pointShape('rect1', { x: 250, y: 250 })
       .movePointer([450, 250])
       .stopPointing()
@@ -192,17 +192,17 @@ describe('When creating with an arrow session', () => {
   })
 
   it('Creates a start binding if possible', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .createShapes(
-        { type: TLDrawShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
-        { type: TLDrawShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] }
+        { type: TldrawShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
+        { type: TldrawShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] }
       )
-      .selectTool(TLDrawShapeType.Arrow)
+      .selectTool(TldrawShapeType.Arrow)
       .pointShape('rect1', { x: 250, y: 250 })
       .movePointer([450, 250])
       .completeSession()
 
-    const arrow = state.shapes.find((shape) => shape.type === TLDrawShapeType.Arrow) as ArrowShape
+    const arrow = state.shapes.find((shape) => shape.type === TldrawShapeType.Arrow) as ArrowShape
 
     expect(arrow).toBeTruthy()
     expect(state.bindings.length).toBe(2)
@@ -211,11 +211,11 @@ describe('When creating with an arrow session', () => {
   })
 
   it('Removes a binding when dragged away', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .createShapes(
-        { type: TLDrawShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
-        { type: TLDrawShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] },
-        { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [250, 250] }
+        { type: TldrawShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
+        { type: TldrawShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] },
+        { type: TldrawShapeType.Arrow, id: 'arrow1', point: [250, 250] }
       )
       .select('arrow1')
       .movePointer([250, 250])
@@ -227,7 +227,7 @@ describe('When creating with an arrow session', () => {
       .movePointer([0, 0])
       .completeSession()
 
-    const arrow = state.shapes.find((shape) => shape.type === TLDrawShapeType.Arrow) as ArrowShape
+    const arrow = state.shapes.find((shape) => shape.type === TldrawShapeType.Arrow) as ArrowShape
 
     expect(arrow).toBeTruthy()
 

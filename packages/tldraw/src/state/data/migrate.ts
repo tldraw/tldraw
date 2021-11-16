@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Decoration, TLDrawDocument, TLDrawShapeType } from '~types'
+import { Decoration, TldrawDocument, TldrawShapeType } from '~types'
 
-export function migrate(document: TLDrawDocument, newVersion: number): TLDrawDocument {
+export function migrate(document: TldrawDocument, newVersion: number): TldrawDocument {
   const { version = 0 } = document
 
   if (version === newVersion) return document
@@ -22,7 +22,7 @@ export function migrate(document: TLDrawDocument, newVersion: number): TLDrawDoc
           }
         })
 
-        if (shape.type === TLDrawShapeType.Arrow) {
+        if (shape.type === TldrawShapeType.Arrow) {
           if (shape.decorations) {
             Object.entries(shape.decorations).forEach(([id, decoration]) => {
               if ((decoration as unknown) === 'Arrow') {

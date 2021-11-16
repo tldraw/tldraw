@@ -1,6 +1,6 @@
 import { inputs, TLBoundsEdge, TLBoundsCorner, TLBoundsHandle } from '@tldraw/core'
-import { TLDrawApp } from '~state'
-import type { TLDrawShape } from '~types'
+import { TldrawApp } from '~state'
+import type { TldrawShape } from '~types'
 
 interface PointerOptions {
   id?: number
@@ -11,7 +11,7 @@ interface PointerOptions {
   ctrlKey?: boolean
 }
 
-export class TLDrawTestApp extends TLDrawApp {
+export class TldrawTestApp extends TldrawApp {
   hoverShape = (id: string, options: PointerOptions = {}) => {
     this.onHoverShape(inputs.pointerDown(this.getPoint(options), id), {} as React.PointerEvent)
     return this
@@ -152,7 +152,7 @@ export class TLDrawTestApp extends TLDrawApp {
     return this
   }
 
-  expectShapesToHaveProps = <T extends TLDrawShape>(shapes: Record<string, Partial<T>>) => {
+  expectShapesToHaveProps = <T extends TldrawShape>(shapes: Record<string, Partial<T>>) => {
     Object.entries(shapes).forEach(([id, props]) => {
       const shape = this.getShape<T>(id)
       Object.entries(props).forEach(([key, value]) => {

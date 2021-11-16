@@ -1,43 +1,43 @@
-import { mockDocument, TLDrawTestApp } from '~test'
-import { SessionType, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { SessionType, TldrawShapeType } from '~types'
 import { SelectTool } from '.'
 
 describe('SelectTool', () => {
   it('creates tool', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
     new SelectTool(state)
   })
 })
 
 describe('When double clicking link controls', () => {
-  const doc = new TLDrawTestApp()
+  const doc = new TldrawTestApp()
     .createShapes(
       {
         id: 'rect1',
-        type: TLDrawShapeType.Rectangle,
+        type: TldrawShapeType.Rectangle,
         point: [0, 0],
         size: [100, 100],
       },
       {
         id: 'rect2',
-        type: TLDrawShapeType.Rectangle,
+        type: TldrawShapeType.Rectangle,
         point: [100, 0],
         size: [100, 100],
       },
       {
         id: 'rect3',
-        type: TLDrawShapeType.Rectangle,
+        type: TldrawShapeType.Rectangle,
         point: [200, 0],
         size: [100, 100],
       },
       {
         id: 'arrow1',
-        type: TLDrawShapeType.Arrow,
+        type: TldrawShapeType.Arrow,
         point: [200, 200],
       },
       {
         id: 'arrow2',
-        type: TLDrawShapeType.Arrow,
+        type: TldrawShapeType.Arrow,
         point: [200, 200],
       }
     )
@@ -62,7 +62,7 @@ describe('When double clicking link controls', () => {
     .selectNone().document
 
   it('moves all linked shapes when center is dragged', () => {
-    const app = new TLDrawTestApp()
+    const app = new TldrawTestApp()
       .loadDocument(doc)
       .select('rect2')
       .pointBoundsHandle('center', { x: 0, y: 0 })
@@ -83,7 +83,7 @@ describe('When double clicking link controls', () => {
   })
 
   it('moves all upstream shapes when center is dragged', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(doc)
       .select('rect2')
       .pointBoundsHandle('center')
@@ -95,7 +95,7 @@ describe('When double clicking link controls', () => {
   })
 
   it('moves all downstream shapes when center is dragged', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(doc)
       .select('rect2')
       .pointBoundsHandle('right')
@@ -107,7 +107,7 @@ describe('When double clicking link controls', () => {
   })
 
   it('selects all linked shapes when center is double clicked', () => {
-    new TLDrawTestApp()
+    new TldrawTestApp()
       .loadDocument(doc)
       .select('rect2')
       .doubleClickBoundHandle('center')
@@ -115,7 +115,7 @@ describe('When double clicking link controls', () => {
   })
 
   it('selects all linked shapes and arrows when center is double clicked while holding shift', () => {
-    new TLDrawTestApp()
+    new TldrawTestApp()
       .loadDocument(doc)
       .select('rect2')
       .doubleClickBoundHandle('center', { shiftKey: true })
@@ -123,7 +123,7 @@ describe('When double clicking link controls', () => {
   })
 
   it('selects all upstream linked shapes when left is double clicked', () => {
-    new TLDrawTestApp()
+    new TldrawTestApp()
       .loadDocument(doc)
       .select('rect2')
       .doubleClickBoundHandle('left')
@@ -131,7 +131,7 @@ describe('When double clicking link controls', () => {
   })
 
   it('selects all upstream linked shapes and arrows when left is double clicked with shift', () => {
-    new TLDrawTestApp()
+    new TldrawTestApp()
       .loadDocument(doc)
       .select('rect2')
       .doubleClickBoundHandle('left', { shiftKey: true })
@@ -139,7 +139,7 @@ describe('When double clicking link controls', () => {
   })
 
   it('selects all downstream linked shapes when right is double clicked', () => {
-    new TLDrawTestApp()
+    new TldrawTestApp()
       .loadDocument(doc)
       .select('rect2')
       .doubleClickBoundHandle('right')
@@ -147,7 +147,7 @@ describe('When double clicking link controls', () => {
   })
 
   it('selects all downstream linked shapes and arrows when right is double clicked with shift', () => {
-    new TLDrawTestApp()
+    new TldrawTestApp()
       .loadDocument(doc)
       .select('rect2')
       .doubleClickBoundHandle('right', { shiftKey: true })
@@ -157,7 +157,7 @@ describe('When double clicking link controls', () => {
 
 describe('When selecting grouped shapes', () => {
   it('Selects the group on single click', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .group(['rect1', 'rect2'], 'groupA')
 
@@ -167,7 +167,7 @@ describe('When selecting grouped shapes', () => {
   })
 
   it('Drills in and selects the child on double click', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .group(['rect1', 'rect2'], 'groupA')
       .doubleClickShape('rect1')
@@ -176,7 +176,7 @@ describe('When selecting grouped shapes', () => {
   })
 
   it('Selects a sibling on single click after drilling', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .group(['rect1', 'rect2'], 'groupA')
       .doubleClickShape('rect1')
@@ -186,7 +186,7 @@ describe('When selecting grouped shapes', () => {
   })
 
   it('Selects the group again after selecting a different shape', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .selectAll()
       .group(['rect1', 'rect2'], 'groupA')
@@ -198,11 +198,11 @@ describe('When selecting grouped shapes', () => {
   })
 
   it('Selects grouped text on double click', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .createShapes({
         id: 'text1',
-        type: TLDrawShapeType.Text,
+        type: TldrawShapeType.Text,
         text: 'Hello world',
       })
       .group(['rect1', 'rect2', 'text1'], 'groupA')
@@ -213,11 +213,11 @@ describe('When selecting grouped shapes', () => {
   })
 
   it('Edits grouped text on double click after selecting', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .createShapes({
         id: 'text1',
-        type: TLDrawShapeType.Text,
+        type: TldrawShapeType.Text,
         text: 'Hello world',
       })
       .group(['rect1', 'rect2', 'text1'], 'groupA')

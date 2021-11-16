@@ -1,9 +1,9 @@
-import { TLDrawApp } from '~state'
+import { TldrawApp } from '~state'
 import { DrawTool } from '.'
 
 describe('DrawTool', () => {
   it('creates tool', () => {
-    const state = new TLDrawApp()
+    const state = new TldrawApp()
     new DrawTool(state)
   })
 })

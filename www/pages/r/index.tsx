@@ -10,7 +10,7 @@ export default function RandomRoomPage({ id }: RoomProps): JSX.Element {
   return (
     <>
       <Head>
-        <title>tldraw</title>
+        <title>Tldraw</title>
       </Head>
       <div>Should have routed to room: {id}</div>
     </>

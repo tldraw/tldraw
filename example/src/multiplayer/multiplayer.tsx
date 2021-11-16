@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { TLDraw, TLDrawApp, TLDrawDocument, TLDrawUser } from '@tldraw/tldraw'
+import { Tldraw, TldrawApp, TldrawDocument, TldrawUser } from '@tldraw/Tldraw'
 import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useErrorListener, useObject } from '@liveblocks/react'
 import { Utils } from '@tldraw/core'
 
-interface TLDrawUserPresence extends Presence {
-  user: TLDrawUser
+interface TldrawUserPresence extends Presence {
+  user: TldrawUser
 }
 
 const client = createClient({
@@ -20,32 +20,32 @@ export function Multiplayer() {
   return (
     <LiveblocksProvider client={client}>
       <RoomProvider id={roomId}>
-        <TLDrawWrapper />
+        <TldrawWrapper />
       </RoomProvider>
     </LiveblocksProvider>
   )
 }
 
-function TLDrawWrapper() {
+function TldrawWrapper() {
   const [docId] = React.useState(() => Utils.uniqueId())
 
   const [error, setError] = React.useState<Error>()
 
-  const [state, setstate] = React.useState<TLDrawApp>()
+  const [state, setstate] = React.useState<TldrawApp>()
 
   useErrorListener((err) => setError(err))
 
-  const doc = useObject<{ uuid: string; document: TLDrawDocument }>('doc', {
+  const doc = useObject<{ uuid: string; document: TldrawDocument }>('doc', {
     uuid: docId,
     document: {
-      ...TLDrawApp.defaultDocument,
+      ...TldrawApp.defaultDocument,
       id: roomId,
     },
   })
 
   // Put the state into the window, for debugging.
   const handleMount = React.useCallback(
-    (state: TLDrawApp) => {
+    (state: TldrawApp) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       window.state = state
@@ -62,7 +62,7 @@ function TLDrawWrapper() {
     if (!state) return
 
     // Subscribe to presence changes; when others change, update the state
-    room.subscribe<TLDrawUserPresence>('others', (others) => {
+    room.subscribe<TldrawUserPresence>('others', (others) => {
       state.updateUsers(
         others
           .toArray()
@@ -131,14 +131,14 @@ function TLDrawWrapper() {
   }, [doc, docId, state])
 
   const handlePersist = React.useCallback(
-    (state: TLDrawApp) => {
+    (state: TldrawApp) => {
       doc?.update({ uuid: docId, document: state.document })
     },
     [docId, doc]
   )
 
   const handleUserChange = React.useCallback(
-    (state: TLDrawApp, user: TLDrawUser) => {
+    (state: TldrawApp, user: TldrawUser) => {
       const room = client.getRoom(roomId)
       room?.updatePresence({ id: state.state.room?.userId, user })
     },
@@ -150,8 +150,8 @@ function TLDrawWrapper() {
   if (doc === null) return <div>Loading...</div>
 
   return (
-    <div className="tldraw">
-      <TLDraw
+    <div className="Tldraw">
+      <Tldraw
         onMount={handleMount}
         onPersist={handlePersist}
         onUserChange={handleUserChange}

@@ -1,8 +1,8 @@
-import { StretchType, RectangleShape, TLDrawShapeType } from '~types'
-import { mockDocument, TLDrawTestApp } from '~test'
+import { StretchType, RectangleShape, TldrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
 
 describe('Stretch command', () => {
-  const state = new TLDrawTestApp()
+  const state = new TldrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)
@@ -66,7 +66,7 @@ describe('Stretch command', () => {
 
 describe('when running the command', () => {
   it('restores selection on undo', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
       .stretch(StretchType.Horizontal)
@@ -83,11 +83,11 @@ describe('when running the command', () => {
 
 describe('when stretching groups', () => {
   it('stretches children', () => {
-    new TLDrawTestApp()
+    new TldrawTestApp()
       .createShapes(
-        { id: 'rect1', type: TLDrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
-        { id: 'rect2', type: TLDrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
-        { id: 'rect3', type: TLDrawShapeType.Rectangle, point: [200, 200], size: [100, 100] }
+        { id: 'rect1', type: TldrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
+        { id: 'rect2', type: TldrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
+        { id: 'rect3', type: TldrawShapeType.Rectangle, point: [200, 200], size: [100, 100] }
       )
       .group(['rect1', 'rect2'], 'groupA')
       .selectAll()

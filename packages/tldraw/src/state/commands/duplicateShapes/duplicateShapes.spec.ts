@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
-import { mockDocument, TLDrawTestApp } from '~test'
-import { ArrowShape, SessionType, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { ArrowShape, SessionType, TldrawShapeType } from '~types'
 
 describe('Duplicate command', () => {
-  const state = new TLDrawTestApp()
+  const state = new TldrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)
@@ -48,12 +48,12 @@ describe('Duplicate command', () => {
       state.resetDocument().createShapes(
         {
           id: 'target1',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           point: [0, 0],
           size: [100, 100],
         },
         {
-          type: TLDrawShapeType.Arrow,
+          type: TldrawShapeType.Arrow,
           id: 'arrow1',
           point: [200, 200],
         }
@@ -89,12 +89,12 @@ describe('Duplicate command', () => {
       state.resetDocument().createShapes(
         {
           id: 'target1',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           point: [0, 0],
           size: [100, 100],
         },
         {
-          type: TLDrawShapeType.Arrow,
+          type: TldrawShapeType.Arrow,
           id: 'arrow1',
           point: [200, 200],
         }
@@ -177,7 +177,7 @@ describe('Duplicate command', () => {
 
 describe('when point-duplicating', () => {
   it('duplicates without crashing', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
 
     state
       .loadDocument(mockDocument)
@@ -187,7 +187,7 @@ describe('when point-duplicating', () => {
   })
 
   it('duplicates in the correct place', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
 
     state.loadDocument(mockDocument).group(['rect1', 'rect2']).selectAll()
 

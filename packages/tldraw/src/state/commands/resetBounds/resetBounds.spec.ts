@@ -1,10 +1,10 @@
 import { TLBoundsCorner, Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
-import { mockDocument, TLDrawTestApp } from '~test'
-import { SessionType, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { SessionType, TldrawShapeType } from '~types'
 
 describe('Reset bounds command', () => {
-  const state = new TLDrawTestApp()
+  const state = new TldrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)
@@ -13,7 +13,7 @@ describe('Reset bounds command', () => {
   it('does, undoes and redoes command', () => {
     state.createShapes({
       id: 'text1',
-      type: TLDrawShapeType.Text,
+      type: TldrawShapeType.Text,
       point: [0, 0],
       text: 'Hello World',
     })

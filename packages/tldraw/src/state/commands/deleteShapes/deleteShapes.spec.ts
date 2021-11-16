@@ -1,8 +1,8 @@
-import { mockDocument, TLDrawTestApp } from '~test'
-import { SessionType, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { SessionType, TldrawShapeType } from '~types'
 
 describe('Delete command', () => {
-  const app = new TLDrawTestApp()
+  const app = new TldrawTestApp()
 
   beforeEach(() => {
     app.loadDocument(mockDocument)
@@ -10,7 +10,7 @@ describe('Delete command', () => {
 
   describe('when no shape is selected', () => {
     it('does nothing', () => {
-      const app = new TLDrawTestApp()
+      const app = new TldrawTestApp()
       const initialapp = app.state
       app.delete()
       const currentapp = app.state
@@ -56,10 +56,10 @@ describe('Delete command', () => {
   })
 
   it('deletes bound shapes, undoes and redoes', () => {
-    new TLDrawTestApp()
+    new TldrawTestApp()
       .createShapes(
-        { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
-        { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+        { type: TldrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+        { type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
       )
       .select('arrow1')
       .movePointer([200, 200])
@@ -77,7 +77,7 @@ describe('Delete command', () => {
       .selectNone()
       .createShapes({
         id: 'arrow1',
-        type: TLDrawShapeType.Arrow,
+        type: TldrawShapeType.Arrow,
       })
       .select('arrow1')
       .movePointer([0, 0])
@@ -135,7 +135,7 @@ describe('Delete command', () => {
 
   describe('when deleting grouped shapes', () => {
     it('deletes the group too', () => {
-      const app = new TLDrawTestApp()
+      const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2', 'rect3'], 'newGroup')
         .select('rect1', 'rect2', 'rect3')

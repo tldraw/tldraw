@@ -1,13 +1,13 @@
-import { mockDocument, TLDrawTestApp } from '~test'
-import { SessionType, TLDrawShapeType, TLDrawStatus } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { SessionType, TldrawShapeType, TldrawStatus } from '~types'
 
 describe('Handle session', () => {
   it('begins, updateSession', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .createShapes({
         id: 'arrow1',
-        type: TLDrawShapeType.Arrow,
+        type: TldrawShapeType.Arrow,
       })
       .select('arrow1')
       .movePointer([-10, -10])
@@ -15,16 +15,16 @@ describe('Handle session', () => {
       .movePointer([10, 10])
       .completeSession()
 
-    expect(state.appState.status).toBe(TLDrawStatus.Idle)
+    expect(state.appState.status).toBe(TldrawStatus.Idle)
 
     state.undo().redo()
   })
 
   it('cancels session', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .createShapes({
-        type: TLDrawShapeType.Arrow,
+        type: TldrawShapeType.Arrow,
         id: 'arrow1',
       })
       .select('arrow1')

@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
-import { DistributeType, TLDrawShape, TLDrawCommand, TLDrawShapeType } from '~types'
+import { DistributeType, TldrawShape, TldrawCommand, TldrawShapeType } from '~types'
 import { TLDR } from '~state/TLDR'
 import Vec from '@tldraw/vec'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 
 export function distributeShapes(
-  app: TLDrawApp,
+  app: TldrawApp,
   ids: string[],
   type: DistributeType
-): TLDrawCommand {
+): TldrawCommand {
   const { currentPageId } = app
 
   const initialShapes = ids.map((id) => app.getShape(id))
@@ -24,7 +24,7 @@ export function distributeShapes(
   )
 
   initialShapes.forEach((shape) => {
-    if (shape.type === TLDrawShapeType.Group) {
+    if (shape.type === TldrawShapeType.Group) {
       const delta = Vec.sub(after[shape.id].point!, before[shape.id].point!)
 
       shape.children.forEach((id) => {
@@ -67,7 +67,7 @@ export function distributeShapes(
   }
 }
 
-function getDistributions(initialShapes: TLDrawShape[], type: DistributeType) {
+function getDistributions(initialShapes: TldrawShape[], type: DistributeType) {
   const entries = initialShapes.map((shape) => {
     const utils = TLDR.getShapeUtils(shape)
     return {

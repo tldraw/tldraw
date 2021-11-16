@@ -1,8 +1,8 @@
-import { mockDocument, TLDrawTestApp } from '~test'
-import { ArrowShape, SessionType, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { ArrowShape, SessionType, TldrawShapeType } from '~types'
 
 describe('Move to page command', () => {
-  const state = new TLDrawTestApp()
+  const state = new TldrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument).createPage('page2').changePage('page1')
@@ -62,8 +62,8 @@ describe('Move to page command', () => {
         .selectAll()
         .delete()
         .createShapes(
-          { type: TLDrawShapeType.Rectangle, id: 'target1', size: [100, 100] },
-          { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+          { type: TldrawShapeType.Rectangle, id: 'target1', size: [100, 100] },
+          { type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
         .movePointer([200, 200])
@@ -98,8 +98,8 @@ describe('Move to page command', () => {
         .selectAll()
         .delete()
         .createShapes(
-          { type: TLDrawShapeType.Rectangle, id: 'target1', size: [100, 100] },
-          { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+          { type: TldrawShapeType.Rectangle, id: 'target1', size: [100, 100] },
+          { type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
         .movePointer([200, 200])
@@ -134,8 +134,8 @@ describe('Move to page command', () => {
         .selectAll()
         .delete()
         .createShapes(
-          { type: TLDrawShapeType.Rectangle, id: 'target1', size: [100, 100] },
-          { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+          { type: TldrawShapeType.Rectangle, id: 'target1', size: [100, 100] },
+          { type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
         .movePointer([200, 200])

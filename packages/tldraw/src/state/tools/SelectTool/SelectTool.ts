@@ -9,7 +9,7 @@ import {
   TLShapeCloneHandler,
   Utils,
 } from '@tldraw/core'
-import { SessionType, TLDrawShapeType } from '~types'
+import { SessionType, TldrawShapeType } from '~types'
 import { BaseTool } from '../BaseTool'
 import Vec from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
@@ -159,7 +159,7 @@ export class SelectTool extends BaseTool<Status> {
         point,
       }
 
-      if (clone.type === TLDrawShapeType.Sticky) {
+      if (clone.type === TldrawShapeType.Sticky) {
         clone.text = ''
       }
 
@@ -234,7 +234,7 @@ export class SelectTool extends BaseTool<Status> {
   // Pointer Events (generic)
 
   onPointerMove: TLPointerEventHandler = (info, e) => {
-    const { originPoint, currentPoint } = this.app.mutables
+    const { originPoint, currentPoint } = this.app
 
     if (this.status === Status.SpacePanning && e.buttons === 1) {
       this.app.onPan?.({ ...info, delta: Vec.neg(info.delta) }, e as unknown as WheelEvent)
@@ -395,7 +395,7 @@ export class SelectTool extends BaseTool<Status> {
   // Canvas
 
   onPointCanvas: TLCanvasEventHandler = (info, e) => {
-    const { currentPoint } = this.app.mutables
+    const { currentPoint } = this.app
 
     if (info.spaceKey && e.buttons === 1) return
 
@@ -422,8 +422,8 @@ export class SelectTool extends BaseTool<Status> {
 
   onDoubleClickCanvas: TLCanvasEventHandler = () => {
     // Needs debugging
-    // const { currentPoint } = this.app.mutables
-    // this.app.selectTool(TLDrawShapeType.Text)
+    // const { currentPoint } = this.app
+    // this.app.selectTool(TldrawShapeType.Text)
     // this.setStatus(Status.Idle)
     // this.app.createTextShapeAtPoint(currentPoint)
   }

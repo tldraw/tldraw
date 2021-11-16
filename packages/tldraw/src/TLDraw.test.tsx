@@ -1,17 +1,17 @@
 import * as React from 'react'
 import { render, waitFor } from '@testing-library/react'
-import { TLDraw } from './TLDraw'
+import { Tldraw } from './Tldraw'
 
-describe('tldraw', () => {
+describe('Tldraw', () => {
   test('mounts component and calls onMount', async () => {
     const onMount = jest.fn()
-    render(<TLDraw onMount={onMount} />)
+    render(<Tldraw onMount={onMount} />)
     await waitFor(onMount)
   })
 
   test('mounts component and calls onMount when id is present', async () => {
     const onMount = jest.fn()
-    render(<TLDraw id="someId" onMount={onMount} />)
+    render(<Tldraw id="someId" onMount={onMount} />)
     await waitFor(onMount)
   })
 })

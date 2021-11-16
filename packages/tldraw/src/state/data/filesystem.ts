@@ -1,4 +1,4 @@
-import type { TLDrawDocument, TLDrawFile } from '~types'
+import type { TldrawDocument, TldrawFile } from '~types'
 import { fileSave, fileOpen, FileSystemHandle } from './browser-fs-access'
 import { get as getFromIdb, set as setToIdb } from 'idb-keyval'
 
@@ -12,21 +12,21 @@ const checkPermissions = async (handle: FileSystemHandle) => {
 }
 
 export async function loadFileHandle() {
-  const fileHandle = await getFromIdb(`tldraw_file_handle_${window.location.origin}`)
+  const fileHandle = await getFromIdb(`Tldraw_file_handle_${window.location.origin}`)
   if (!fileHandle) return null
   return fileHandle
 }
 
 export async function saveFileHandle(fileHandle: FileSystemHandle | null) {
-  return setToIdb(`tldraw_file_handle_${window.location.origin}`, fileHandle)
+  return setToIdb(`Tldraw_file_handle_${window.location.origin}`, fileHandle)
 }
 
 export async function saveToFileSystem(
-  document: TLDrawDocument,
+  document: TldrawDocument,
   fileHandle: FileSystemHandle | null
 ) {
   // Create the saved file data
-  const file: TLDrawFile = {
+  const file: TldrawFile = {
     name: document.name || 'New Document',
     fileHandle: fileHandle ?? null,
     document,
@@ -38,7 +38,7 @@ export async function saveToFileSystem(
 
   // Create blob
   const blob = new Blob([json], {
-    type: 'application/vnd.tldraw+json',
+    type: 'application/vnd.Tldraw+json',
   })
 
   if (fileHandle) {
@@ -51,7 +51,7 @@ export async function saveToFileSystem(
     blob,
     {
       fileName: `${file.name}.tldr`,
-      description: 'TLDraw File',
+      description: 'Tldraw File',
       extensions: [`.tldr`],
     },
     fileHandle
@@ -65,11 +65,11 @@ export async function saveToFileSystem(
 
 export async function openFromFileSystem(): Promise<null | {
   fileHandle: FileSystemHandle | null
-  document: TLDrawDocument
+  document: TldrawDocument
 }> {
   // Get the blob
   const blob = await fileOpen({
-    description: 'TLDraw File',
+    description: 'Tldraw File',
     extensions: [`.tldr`],
     multiple: false,
   })
@@ -88,7 +88,7 @@ export async function openFromFileSystem(): Promise<null | {
   })
 
   // Parse
-  const file: TLDrawFile = JSON.parse(json)
+  const file: TldrawFile = JSON.parse(json)
 
   const fileHandle = blob.handle ?? null
 

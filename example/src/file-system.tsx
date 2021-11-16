@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { TLDraw, useFileSystem } from '@tldraw/tldraw'
+import { Tldraw, useFileSystem } from '@tldraw/Tldraw'
 
 export default function FileSystem(): JSX.Element {
   const fileSystemEvents = useFileSystem()
@@ -7,8 +7,8 @@ export default function FileSystem(): JSX.Element {
   // Use the Menu > File to create, open, and save .tldr files.
 
   return (
-    <div className="tldraw">
-      <TLDraw {...fileSystemEvents} />
+    <div className="Tldraw">
+      <Tldraw {...fileSystemEvents} />
     </div>
   )
 }

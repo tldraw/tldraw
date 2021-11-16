@@ -1,13 +1,13 @@
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
-import type { TLDrawCommand, PagePartial } from '~types'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawCommand, PagePartial } from '~types'
+import type { TldrawApp } from '../../internal'
 
-export function translateShapes(app: TLDrawApp, ids: string[], delta: number[]): TLDrawCommand {
+export function translateShapes(app: TldrawApp, ids: string[], delta: number[]): TldrawCommand {
   const { currentPageId, selectedIds } = app
 
   // Clear session cache
-  app.mutables.selectedIds = [...selectedIds]
+  app.selectedIdsForRotation = [...selectedIds]
 
   const before: PagePartial = {
     shapes: {},

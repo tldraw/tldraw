@@ -1,39 +1,39 @@
 import * as React from 'react'
-import { useTLDrawContext } from '~hooks'
+import { useTldrawApp } from '~hooks'
 
 export function useFileSystemHandlers() {
-  const { state } = useTLDrawContext()
+  const app = useTldrawApp()
 
   const onNewProject = React.useCallback(
     async (e?: KeyboardEvent) => {
-      if (e && state.callbacks.onOpenProject) e.preventDefault()
-      state.callbacks.onNewProject?.(state)
+      if (e && app.callbacks.onOpenProject) e.preventDefault()
+      app.callbacks.onNewProject?.(app)
     },
-    [state]
+    [app]
   )
 
   const onSaveProject = React.useCallback(
     (e?: KeyboardEvent) => {
-      if (e && state.callbacks.onOpenProject) e.preventDefault()
-      state.callbacks.onSaveProject?.(state)
+      if (e && app.callbacks.onOpenProject) e.preventDefault()
+      app.callbacks.onSaveProject?.(app)
     },
-    [state]
+    [app]
   )
 
   const onSaveProjectAs = React.useCallback(
     (e?: KeyboardEvent) => {
-      if (e && state.callbacks.onOpenProject) e.preventDefault()
-      state.callbacks.onSaveProjectAs?.(state)
+      if (e && app.callbacks.onOpenProject) e.preventDefault()
+      app.callbacks.onSaveProjectAs?.(app)
     },
-    [state]
+    [app]
   )
 
   const onOpenProject = React.useCallback(
     async (e?: KeyboardEvent) => {
-      if (e && state.callbacks.onOpenProject) e.preventDefault()
-      state.callbacks.onOpenProject?.(state)
+      if (e && app.callbacks.onOpenProject) e.preventDefault()
+      app.callbacks.onOpenProject?.(app)
     },
-    [state]
+    [app]
   )
 
   return {

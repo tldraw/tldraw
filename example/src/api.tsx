@@ -1,16 +1,16 @@
 import * as React from 'react'
-import { TLDraw, TLDrawApp, TLDrawShapeType, ColorStyle } from '@tldraw/tldraw'
+import { Tldraw, TldrawApp, TldrawShapeType, ColorStyle } from '@tldraw/Tldraw'
 
 export default function Api(): JSX.Element {
-  const rTLDrawApp = React.useRef<TLDrawApp>()
+  const rTldrawApp = React.useRef<TldrawApp>()
 
-  const handleMount = React.useCallback((state: TLDrawApp) => {
-    rTLDrawApp.current = state
+  const handleMount = React.useCallback((state: TldrawApp) => {
+    rTldrawApp.current = state
 
     state
       .createShapes({
         id: 'rect1',
-        type: TLDrawShapeType.Rectangle,
+        type: TldrawShapeType.Rectangle,
         point: [100, 100],
         size: [200, 200],
       })
@@ -23,8 +23,8 @@ export default function Api(): JSX.Element {
   }, [])
 
   return (
-    <div className="tldraw">
-      <TLDraw onMount={handleMount} />
+    <div className="Tldraw">
+      <Tldraw onMount={handleMount} />
     </div>
   )
 }

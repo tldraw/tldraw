@@ -1,13 +1,13 @@
 import { Decoration } from '~types'
-import type { ArrowShape, TLDrawCommand } from '~types'
+import type { ArrowShape, TldrawCommand } from '~types'
 import type { Patch } from 'rko'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 
 export function toggleShapesDecoration(
-  app: TLDrawApp,
+  app: TldrawApp,
   ids: string[],
   decorationId: 'start' | 'end'
-): TLDrawCommand {
+): TldrawCommand {
   const { currentPageId, selectedIds } = app
 
   const beforeShapes: Record<string, Patch<ArrowShape>> = Object.fromEntries(

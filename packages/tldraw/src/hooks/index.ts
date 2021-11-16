@@ -1,5 +1,5 @@
 export * from './useKeyboardShortcuts'
-export * from './useTLDrawContext'
+export * from './useTldrawApp'
 export * from './useTheme'
 export * from './useStylesheet'
 export * from './useFileSystemHandlers'

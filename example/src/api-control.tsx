@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { ColorStyle, TLDraw, TLDrawShapeType, TLDrawApp } from '@tldraw/tldraw'
+import { ColorStyle, Tldraw, TldrawShapeType, TldrawApp } from '@tldraw/Tldraw'
 
 export default function Imperative(): JSX.Element {
-  const rTLDrawApp = React.useRef<TLDrawApp>()
+  const rTldrawApp = React.useRef<TldrawApp>()
 
-  const handleMount = React.useCallback((state: TLDrawApp) => {
-    rTLDrawApp.current = state
+  const handleMount = React.useCallback((state: TldrawApp) => {
+    rTldrawApp.current = state
 
     state.createShapes(
       {
         id: 'rect1',
-        type: TLDrawShapeType.Rectangle,
+        type: TldrawShapeType.Rectangle,
         name: 'Rectangle',
         childIndex: 1,
         point: [0, 0],
@@ -20,7 +20,7 @@ export default function Imperative(): JSX.Element {
       {
         id: 'rect2',
         name: 'Rectangle',
-        type: TLDrawShapeType.Rectangle,
+        type: TldrawShapeType.Rectangle,
         point: [200, 200],
         size: [100, 100],
       }
@@ -30,13 +30,13 @@ export default function Imperative(): JSX.Element {
   React.useEffect(() => {
     let i = 0
     const interval = setInterval(() => {
-      const state = rTLDrawApp.current!
+      const state = rTldrawApp.current!
       const rect1 = state.getShape('rect1')
 
       if (!rect1) {
         state.createShapes({
           id: 'rect1',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           name: 'Rectangle',
           childIndex: 1,
           point: [0, 0],
@@ -60,5 +60,5 @@ export default function Imperative(): JSX.Element {
     return () => clearInterval(interval)
   }, [])
 
-  return <TLDraw onMount={handleMount} />
+  return <Tldraw onMount={handleMount} />
 }

@@ -1,16 +1,16 @@
 import { Utils, TLPointerEventHandler, TLBoundsCorner } from '@tldraw/core'
 import { Rectangle } from '~state/shapes'
-import { SessionType, TLDrawShapeType } from '~types'
+import { SessionType, TldrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class RectangleTool extends BaseTool {
-  type = TLDrawShapeType.Rectangle as const
+  type = TldrawShapeType.Rectangle as const
 
   /* ----------------- Event Handlers ----------------- */
 
   onPointerDown: TLPointerEventHandler = () => {
     const {
-      mutables: { currentPoint },
+      currentPoint,
       appState: { currentPageId, currentStyle },
     } = this.app
 

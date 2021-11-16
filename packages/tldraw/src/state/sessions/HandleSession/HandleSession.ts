@@ -1,38 +1,33 @@
 import { Vec } from '@tldraw/vec'
-import { SessionType, ShapesWithProp, TLDrawCommand, TLDrawPatch, TLDrawStatus } from '~types'
+import { SessionType, ShapesWithProp, TldrawCommand, TldrawPatch, TldrawStatus } from '~types'
 import { TLDR } from '~state/TLDR'
 import { BaseSession } from '../BaseSession'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 
 export class HandleSession extends BaseSession {
   type = SessionType.Handle
-  status = TLDrawStatus.TranslatingHandle
+  status = TldrawStatus.TranslatingHandle
   commandId: string
   topLeft: number[]
   shiftKey = false
   initialShape: ShapesWithProp<'handles'>
   handleId: string
 
-  constructor(app: TLDrawApp, shapeId: string, handleId: string, commandId = 'move_handle') {
+  constructor(app: TldrawApp, shapeId: string, handleId: string, commandId = 'move_handle') {
     super(app)
-    const {
-      mutables: { originPoint },
-    } = app
+    const { originPoint } = app
     this.topLeft = [...originPoint]
     this.handleId = handleId
     this.initialShape = this.app.getShape(shapeId)
     this.commandId = commandId
   }
 
-  start = (): TLDrawPatch | undefined => void null
+  start = (): TldrawPatch | undefined => void null
 
-  update = (): TLDrawPatch | undefined => {
+  update = (): TldrawPatch | undefined => {
     const {
       initialShape,
-      app: {
-        currentPageId,
-        mutables: { currentPoint, shiftKey, altKey, metaKey },
-      },
+      app: { currentPageId, currentPoint, shiftKey, altKey, metaKey },
     } = this
 
     const shape = this.app.getShape<ShapesWithProp<'handles'>>(initialShape.id)
@@ -75,7 +70,7 @@ export class HandleSession extends BaseSession {
     }
   }
 
-  cancel = (): TLDrawPatch | undefined => {
+  cancel = (): TldrawPatch | undefined => {
     const {
       initialShape,
       app: { currentPageId },
@@ -94,7 +89,7 @@ export class HandleSession extends BaseSession {
     }
   }
 
-  complete = (): TLDrawPatch | TLDrawCommand | undefined => {
+  complete = (): TldrawPatch | TldrawCommand | undefined => {
     const {
       initialShape,
       app: { currentPageId },

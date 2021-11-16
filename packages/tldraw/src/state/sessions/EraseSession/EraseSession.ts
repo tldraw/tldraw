@@ -1,41 +1,38 @@
 import { Vec } from '@tldraw/vec'
 import {
   SessionType,
-  TLDrawStatus,
-  TLDrawShape,
+  TldrawStatus,
+  TldrawShape,
   PagePartial,
-  TLDrawBinding,
-  TLDrawPatch,
-  TLDrawCommand,
+  TldrawBinding,
+  TldrawPatch,
+  TldrawCommand,
 } from '~types'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'
 
 export class EraseSession extends BaseSession {
   type = SessionType.Draw
-  status = TLDrawStatus.Creating
+  status = TldrawStatus.Creating
   isLocked?: boolean
   lockedDirection?: 'horizontal' | 'vertical'
-  erasedShapes = new Set<TLDrawShape>()
-  erasedBindings = new Set<TLDrawBinding>()
-  initialSelectedShapes: TLDrawShape[]
-  erasableShapes: TLDrawShape[]
+  erasedShapes = new Set<TldrawShape>()
+  erasedBindings = new Set<TldrawBinding>()
+  initialSelectedShapes: TldrawShape[]
+  erasableShapes: TldrawShape[]
   prevPoint: number[]
 
-  constructor(app: TLDrawApp) {
+  constructor(app: TldrawApp) {
     super(app)
-    this.prevPoint = app.mutables.originPoint
+    this.prevPoint = [...app.originPoint]
     this.initialSelectedShapes = this.app.selectedIds.map((id) => this.app.getShape(id))
     this.erasableShapes = this.app.shapes.filter((shape) => !shape.isLocked)
   }
 
-  start = (): TLDrawPatch | undefined => void null
+  start = (): TldrawPatch | undefined => void null
 
-  update = (): TLDrawPatch | undefined => {
-    const {
-      page,
-      mutables: { shiftKey, originPoint, currentPoint },
-    } = this.app
+  update = (): TldrawPatch | undefined => {
+    const { page, shiftKey, originPoint, currentPoint } = this.app
 
     if (shiftKey) {
       if (!this.isLocked && Vec.dist(originPoint, currentPoint) > 4) {
@@ -105,7 +102,7 @@ export class EraseSession extends BaseSession {
     }
   }
 
-  cancel = (): TLDrawPatch | undefined => {
+  cancel = (): TldrawPatch | undefined => {
     const { page } = this.app
 
     const erasedShapes = Array.from(this.erasedShapes.values())
@@ -126,7 +123,7 @@ export class EraseSession extends BaseSession {
     }
   }
 
-  complete = (): TLDrawPatch | TLDrawCommand | undefined => {
+  complete = (): TldrawPatch | TldrawCommand | undefined => {
     const { page } = this.app
 
     const erasedShapes = Array.from(this.erasedShapes.values())

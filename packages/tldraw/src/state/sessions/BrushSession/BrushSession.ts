@@ -1,11 +1,11 @@
 import { TLBounds, Utils } from '@tldraw/core'
-import { SessionType, TLDrawPatch, TLDrawStatus, TLDrawCommand } from '~types'
-import type { TLDrawApp } from '../../internal'
+import { SessionType, TldrawPatch, TldrawStatus, TldrawCommand } from '~types'
+import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'
 
 export class BrushSession extends BaseSession {
   type = SessionType.Brush
-  status = TLDrawStatus.Brushing
+  status = TldrawStatus.Brushing
   initialSelectedIds: Set<string>
   shapesToTest: {
     id: string
@@ -13,7 +13,7 @@ export class BrushSession extends BaseSession {
     selectId: string
   }[]
 
-  constructor(app: TLDrawApp) {
+  constructor(app: TldrawApp) {
     super(app)
     this.initialSelectedIds = new Set(this.app.selectedIds)
     this.shapesToTest = this.app.shapes
@@ -34,15 +34,13 @@ export class BrushSession extends BaseSession {
       }))
   }
 
-  start = (): TLDrawPatch | undefined => void null
+  start = (): TldrawPatch | undefined => void null
 
-  update = (): TLDrawPatch | undefined => {
+  update = (): TldrawPatch | undefined => {
     const {
       initialSelectedIds,
       shapesToTest,
-      app: {
-        mutables: { originPoint, currentPoint },
-      },
+      app: { originPoint, currentPoint },
     } = this
 
     // Create a bounding box between the origin and the new point
@@ -56,7 +54,7 @@ export class BrushSession extends BaseSession {
     shapesToTest.forEach(({ id, selectId }) => {
       if (selectedIds.has(id)) return
 
-      const { metaKey } = this.app.mutables
+      const { metaKey } = this.app
 
       const shape = this.app.getShape(id)
 
@@ -99,7 +97,7 @@ export class BrushSession extends BaseSession {
     }
   }
 
-  cancel = (): TLDrawPatch | undefined => {
+  cancel = (): TldrawPatch | undefined => {
     return {
       document: {
         pageStates: {
@@ -112,7 +110,7 @@ export class BrushSession extends BaseSession {
     }
   }
 
-  complete = (): TLDrawPatch | TLDrawCommand | undefined => {
+  complete = (): TldrawPatch | TldrawCommand | undefined => {
     return {
       document: {
         pageStates: {

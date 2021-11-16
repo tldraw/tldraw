@@ -1,16 +1,16 @@
 import { Utils, TLPointerEventHandler } from '@tldraw/core'
 import { Draw } from '~state/shapes'
-import { SessionType, TLDrawShapeType } from '~types'
+import { SessionType, TldrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class DrawTool extends BaseTool {
-  type = TLDrawShapeType.Draw as const
+  type = TldrawShapeType.Draw as const
 
   /* ----------------- Event Handlers ----------------- */
 
   onPointerDown: TLPointerEventHandler = (info) => {
     const {
-      mutables: { currentPoint },
+      currentPoint,
       appState: { currentPageId, currentStyle },
     } = this.app
 

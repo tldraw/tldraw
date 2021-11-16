@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ExitIcon, GitHubLogoIcon, HamburgerMenuIcon, TwitterLogoIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { useTLDrawContext } from '~hooks'
+import { useTldrawApp } from '~hooks'
 import { PreferencesMenu } from './PreferencesMenu'
 import { DMItem, DMContent, DMDivider, DMSubMenu, DMTriggerIcon } from '~components/DropdownMenu'
 import { SmallIcon } from '~components/SmallIcon'
@@ -14,53 +14,53 @@ interface MenuProps {
 }
 
 export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: MenuProps) {
-  const { state } = useTLDrawContext()
+  const app = useTldrawApp()
 
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
 
   const handleSignIn = React.useCallback(() => {
-    state.callbacks.onSignIn?.(state)
-  }, [state])
+    app.callbacks.onSignIn?.(app)
+  }, [app])
 
   const handleSignOut = React.useCallback(() => {
-    state.callbacks.onSignOut?.(state)
-  }, [state])
+    app.callbacks.onSignOut?.(app)
+  }, [app])
 
   const handleCut = React.useCallback(() => {
-    state.cut()
-  }, [state])
+    app.cut()
+  }, [app])
 
   const handleCopy = React.useCallback(() => {
-    state.copy()
-  }, [state])
+    app.copy()
+  }, [app])
 
   const handlePaste = React.useCallback(() => {
-    state.paste()
-  }, [state])
+    app.paste()
+  }, [app])
 
   const handleCopySvg = React.useCallback(() => {
-    state.copySvg()
-  }, [state])
+    app.copySvg()
+  }, [app])
 
   const handleCopyJson = React.useCallback(() => {
-    state.copyJson()
-  }, [state])
+    app.copyJson()
+  }, [app])
 
   const handleSelectAll = React.useCallback(() => {
-    state.selectAll()
-  }, [state])
+    app.selectAll()
+  }, [app])
 
   const handleselectNone = React.useCallback(() => {
-    state.selectNone()
-  }, [state])
+    app.selectNone()
+  }, [app])
 
   const showFileMenu =
-    state.callbacks.onNewProject ||
-    state.callbacks.onOpenProject ||
-    state.callbacks.onSaveProject ||
-    state.callbacks.onSaveProjectAs
+    app.callbacks.onNewProject ||
+    app.callbacks.onOpenProject ||
+    app.callbacks.onSaveProject ||
+    app.callbacks.onSaveProjectAs
 
-  const showSignInOutMenu = state.callbacks.onSignIn || state.callbacks.onSignOut || showSponsorLink
+  const showSignInOutMenu = app.callbacks.onSignIn || app.callbacks.onSignOut || showSponsorLink
 
   return (
     <DropdownMenu.Root>
@@ -70,22 +70,22 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
       <DMContent variant="menu">
         {showFileMenu && (
           <DMSubMenu label="File...">
-            {state.callbacks.onNewProject && (
+            {app.callbacks.onNewProject && (
               <DMItem onSelect={onNewProject} kbd="#N">
                 New Project
               </DMItem>
             )}
-            {state.callbacks.onOpenProject && (
+            {app.callbacks.onOpenProject && (
               <DMItem onSelect={onOpenProject} kbd="#O">
                 Open...
               </DMItem>
             )}
-            {state.callbacks.onSaveProject && (
+            {app.callbacks.onSaveProject && (
               <DMItem onSelect={onSaveProject} kbd="#S">
                 Save
               </DMItem>
             )}
-            {state.callbacks.onSaveProjectAs && (
+            {app.callbacks.onSaveProjectAs && (
               <DMItem onSelect={onSaveProjectAs} kbd="⇧#S">
                 Save As...
               </DMItem>
@@ -95,10 +95,10 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
         {!readOnly && (
           <>
             <DMSubMenu label="Edit...">
-              <DMItem onSelect={state.undo} kbd="#Z">
+              <DMItem onSelect={app.undo} kbd="#Z">
                 Undo
               </DMItem>
-              <DMItem onSelect={state.redo} kbd="#⇧Z">
+              <DMItem onSelect={app.redo} kbd="#⇧Z">
                 Redo
               </DMItem>
               <DMDivider dir="ltr" />
@@ -124,13 +124,13 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
             </DMSubMenu>
           </>
         )}
-        <a href="https://tldraw.com/r">
+        <a href="https://Tldraw.com/r">
           <DMItem>Create a Multiplayer Room</DMItem>
         </a>
         <DMDivider dir="ltr" />
         <PreferencesMenu />
         <DMDivider dir="ltr" />
-        <a href="https://github.com/tldraw/tldraw" target="_blank" rel="nofollow">
+        <a href="https://github.com/Tldraw/Tldraw" target="_blank" rel="nofollow">
           <DMItem>
             Github
             <SmallIcon>
@@ -138,7 +138,7 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
             </SmallIcon>
           </DMItem>
         </a>
-        <a href="https://twitter.com/tldraw" target="_blank" rel="nofollow">
+        <a href="https://twitter.com/Tldraw" target="_blank" rel="nofollow">
           <DMItem>
             Twitter
             <SmallIcon>
@@ -158,9 +158,10 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
         )}
         {showSignInOutMenu && (
           <>
+            pzoo
             <DMDivider dir="ltr" />{' '}
-            {state.callbacks.onSignIn && <DMItem onSelect={handleSignIn}>Sign In</DMItem>}
-            {state.callbacks.onSignOut && (
+            {app.callbacks.onSignIn && <DMItem onSelect={handleSignIn}>Sign In</DMItem>}
+            {app.callbacks.onSignOut && (
               <DMItem onSelect={handleSignOut}>
                 Sign Out
                 <SmallIcon>

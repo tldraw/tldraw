@@ -4,16 +4,16 @@ import { Vec } from '@tldraw/vec'
 import { defaultStyle, getShapeStyle } from '../shared/shape-styles'
 import {
   ArrowShape,
-  TLDrawTransformInfo,
+  TldrawTransformInfo,
   Decoration,
-  TLDrawShapeType,
-  TLDrawShape,
+  TldrawShapeType,
+  TldrawShape,
   EllipseShape,
-  TLDrawBinding,
+  TldrawBinding,
   DashStyle,
-  TLDrawMeta,
+  TldrawMeta,
 } from '~types'
-import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
+import { TldrawShapeUtil } from '../TldrawShapeUtil'
 import {
   intersectArcBounds,
   intersectLineSegmentBounds,
@@ -39,8 +39,8 @@ import {
 type T = ArrowShape
 type E = SVGSVGElement
 
-export class ArrowUtil extends TLDrawShapeUtil<T, E> {
-  type = TLDrawShapeType.Arrow as const
+export class ArrowUtil extends TldrawShapeUtil<T, E> {
+  type = TldrawShapeType.Arrow as const
 
   hideBounds = true
 
@@ -50,7 +50,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
     return Utils.deepMerge<T>(
       {
         id: 'id',
-        type: TLDrawShapeType.Arrow,
+        type: TldrawShapeType.Arrow,
         name: 'Arrow',
         parentId: 'page',
         childIndex: 1,
@@ -88,7 +88,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
+  Component = TldrawShapeUtil.Component<T, E, TldrawMeta>(
     ({ shape, isGhost, meta, events }, ref) => {
       const {
         handles: { start, bend, end },
@@ -268,7 +268,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
     }
   )
 
-  Indicator = TLDrawShapeUtil.Indicator<ArrowShape>(({ shape }) => {
+  Indicator = TldrawShapeUtil.Indicator<ArrowShape>(({ shape }) => {
     return <path d={getArrowPath(shape)} />
   })
 
@@ -360,7 +360,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
   transform = (
     shape: T,
     bounds: TLBounds,
-    { initialShape, scaleX, scaleY }: TLDrawTransformInfo<T>
+    { initialShape, scaleX, scaleY }: TldrawTransformInfo<T>
   ): Partial<T> => {
     const initialShapeBounds = this.getBounds(initialShape)
 
@@ -444,8 +444,8 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
 
   onBindingChange = (
     shape: T,
-    binding: TLDrawBinding,
-    target: TLDrawShape,
+    binding: TldrawBinding,
+    target: TldrawShape,
     targetBounds: TLBounds,
     center: number[]
   ): Partial<T> | void => {
@@ -481,7 +481,7 @@ export class ArrowUtil extends TLDrawShapeUtil<T, E> {
       // And passes through the dragging handle
       const direction = Vec.uni(Vec.sub(Vec.add(anchor, shape.point), origin))
 
-      if (target.type === TLDrawShapeType.Ellipse) {
+      if (target.type === TldrawShapeType.Ellipse) {
         const hits = intersectRayEllipse(
           origin,
           direction,

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { mockDocument, TLDrawTestApp } from '~test'
-import { GroupShape, TLDrawShape, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { GroupShape, TldrawShape, TldrawShapeType } from '~types'
 
 describe('Group command', () => {
-  const state = new TLDrawTestApp()
+  const state = new TldrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)
@@ -86,8 +86,8 @@ describe('Group command', () => {
 
       state.group(['rect1', 'rect2'], 'newGroup')
 
-      let rect1: TLDrawShape
-      let rect2: TLDrawShape
+      let rect1: TldrawShape
+      let rect2: TldrawShape
 
       rect1 = state.getShape('rect1')
       rect2 = state.getShape('rect2')
@@ -129,22 +129,22 @@ describe('Group command', () => {
       state.resetDocument().createShapes(
         {
           id: 'rect1',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 1,
         },
         {
           id: 'rect2',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 2,
         },
         {
           id: 'rect3',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 3,
         },
         {
           id: 'rect4',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 4,
         }
       )
@@ -212,17 +212,17 @@ describe('Group command', () => {
       state.resetDocument().createShapes(
         {
           id: 'rect1',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 1,
         },
         {
           id: 'rect2',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 2,
         },
         {
           id: 'rect3',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 3,
         }
       )
@@ -242,17 +242,17 @@ describe('Group command', () => {
       state.resetDocument().createShapes(
         {
           id: 'rect1',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 1,
         },
         {
           id: 'rect2',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 2,
         },
         {
           id: 'rect3',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 3,
         }
       )
@@ -276,17 +276,17 @@ describe('Group command', () => {
       state.resetDocument().createShapes(
         {
           id: 'rect1',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 1,
         },
         {
           id: 'rect2',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 2,
         },
         {
           id: 'rect3',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 3,
         }
       )
@@ -321,17 +321,17 @@ describe('Group command', () => {
       state.resetDocument().createShapes(
         {
           id: 'rect1',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 1,
         },
         {
           id: 'rect2',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 2,
         },
         {
           id: 'rect3',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
           childIndex: 3,
         }
       )

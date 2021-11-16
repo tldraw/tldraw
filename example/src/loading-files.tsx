@@ -1,8 +1,8 @@
-import { TLDraw, TLDrawFile } from '@tldraw/tldraw'
+import { Tldraw, TldrawFile } from '@tldraw/Tldraw'
 import * as React from 'react'
 
 export default function LoadingFiles(): JSX.Element {
-  const [file, setFile] = React.useState<TLDrawFile>()
+  const [file, setFile] = React.useState<TldrawFile>()
 
   React.useEffect(() => {
     async function loadFile(): Promise<void> {
@@ -13,5 +13,5 @@ export default function LoadingFiles(): JSX.Element {
     loadFile()
   }, [])
 
-  return <TLDraw document={file?.document} />
+  return <Tldraw document={file?.document} />
 }

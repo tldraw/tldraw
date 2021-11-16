@@ -1,12 +1,12 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { SessionType, TLDrawStatus, TLDrawPatch, TLDrawCommand, DrawShape } from '~types'
-import type { TLDrawApp } from '../../internal'
+import { SessionType, TldrawStatus, TldrawPatch, TldrawCommand, DrawShape } from '~types'
+import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'
 
 export class DrawSession extends BaseSession {
   type = SessionType.Draw
-  status = TLDrawStatus.Creating
+  status = TldrawStatus.Creating
   topLeft: number[]
   points: number[][]
   lastAdjustedPoint: number[]
@@ -15,10 +15,10 @@ export class DrawSession extends BaseSession {
   isLocked?: boolean
   lockedDirection?: 'horizontal' | 'vertical'
 
-  constructor(app: TLDrawApp, id: string) {
+  constructor(app: TldrawApp, id: string) {
     super(app)
-    const { originPoint } = this.app.mutables
-    this.topLeft = [...this.app.mutables.originPoint]
+    const { originPoint } = this.app
+    this.topLeft = [...originPoint]
     this.shapeId = id
 
     // Add a first point but don't update the shape yet. We'll update
@@ -29,11 +29,11 @@ export class DrawSession extends BaseSession {
     this.lastAdjustedPoint = [0, 0]
   }
 
-  start = (): TLDrawPatch | undefined => void null
+  start = (): TldrawPatch | undefined => void null
 
-  update = (): TLDrawPatch | undefined => {
+  update = (): TldrawPatch | undefined => {
     const { shapeId } = this
-    const { currentPoint, originPoint, shiftKey } = this.app.mutables
+    const { currentPoint, originPoint, shiftKey } = this.app
 
     // Even if we're not locked yet, we base the future locking direction
     // on the first dimension to reach a threshold, or the bigger dimension
@@ -144,7 +144,7 @@ export class DrawSession extends BaseSession {
     }
   }
 
-  cancel = (): TLDrawPatch | undefined => {
+  cancel = (): TldrawPatch | undefined => {
     const { shapeId } = this
     const pageId = this.app.currentPageId
 
@@ -166,7 +166,7 @@ export class DrawSession extends BaseSession {
     }
   }
 
-  complete = (): TLDrawPatch | TLDrawCommand | undefined => {
+  complete = (): TldrawPatch | TldrawCommand | undefined => {
     const { shapeId } = this
     const pageId = this.app.currentPageId
 

@@ -1,13 +1,13 @@
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 import { TLDR } from '~state/TLDR'
-import type { TLDrawCommand } from '~types'
+import type { TldrawCommand } from '~types'
 import { removeShapesFromPage } from '../shared/removeShapesFromPage'
 
 export function deleteShapes(
-  app: TLDrawApp,
+  app: TldrawApp,
   ids: string[],
   pageId = app.currentPageId
-): TLDrawCommand {
+): TldrawCommand {
   const { pageState, selectedIds } = app
   const { before, after } = removeShapesFromPage(app.state, ids, pageId)
 

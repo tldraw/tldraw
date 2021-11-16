@@ -1,7 +1,7 @@
-import { mockDocument, TLDrawTestApp } from '~test'
+import { mockDocument, TldrawTestApp } from '~test'
 
 describe('Create page command', () => {
-  const state = new TLDrawTestApp()
+  const state = new TldrawTestApp()
 
   it('does, undoes and redoes command', () => {
     state.loadDocument(mockDocument)

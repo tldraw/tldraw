@@ -2,21 +2,21 @@
 import { TLPageState, Utils, TLBoundsWithCenter, TLSnapLine, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
-  TLDrawShape,
-  TLDrawBinding,
-  TLDrawCommand,
-  TLDrawStatus,
+  TldrawShape,
+  TldrawBinding,
+  TldrawCommand,
+  TldrawStatus,
   ArrowShape,
   GroupShape,
   SessionType,
   ArrowBinding,
-  TLDrawPatch,
+  TldrawPatch,
 } from '~types'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { TLDR } from '~state/TLDR'
 import type { Patch } from 'rko'
 import { BaseSession } from '../BaseSession'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 
 type CloneInfo =
   | {
@@ -24,7 +24,7 @@ type CloneInfo =
     }
   | {
       state: 'ready'
-      clones: TLDrawShape[]
+      clones: TldrawShape[]
       clonedBindings: ArrowBinding[]
     }
 
@@ -40,7 +40,7 @@ type SnapInfo =
 
 export class TranslateSession extends BaseSession {
   type = SessionType.Translate
-  status = TLDrawStatus.Translating
+  status = TldrawStatus.Translating
   delta = [0, 0]
   prev = [0, 0]
   prevPoint = [0, 0]
@@ -60,11 +60,11 @@ export class TranslateSession extends BaseSession {
   hasUnlockedShapes: boolean
   initialSelectedIds: string[]
   initialCommonBounds: TLBounds
-  initialShapes: TLDrawShape[]
+  initialShapes: TldrawShape[]
   initialParentChildren: Record<string, string[]>
   bindingsToDelete: ArrowBinding[]
 
-  constructor(app: TLDrawApp, isCreate = false, link: 'left' | 'right' | 'center' | false = false) {
+  constructor(app: TldrawApp, isCreate = false, link: 'left' | 'right' | 'center' | false = false) {
     super(app)
     this.isCreate = isCreate
     this.link = link
@@ -120,10 +120,10 @@ export class TranslateSession extends BaseSession {
 
     this.initialCommonBounds = Utils.getCommonBounds(this.initialShapes.map(TLDR.getRotatedBounds))
 
-    this.app.mutables.selectedIds = [...this.app.selectedIds]
+    this.app.selectedIdsForRotation = [...this.app.selectedIds]
   }
 
-  start = (): TLDrawPatch | undefined => {
+  start = (): TldrawPatch | undefined => {
     const {
       bindingsToDelete,
       initialIds,
@@ -149,7 +149,7 @@ export class TranslateSession extends BaseSession {
 
     if (bindingsToDelete.length === 0) return
 
-    const nextBindings: Patch<Record<string, TLDrawBinding>> = {}
+    const nextBindings: Patch<Record<string, TldrawBinding>> = {}
 
     bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = undefined))
 
@@ -164,7 +164,7 @@ export class TranslateSession extends BaseSession {
     }
   }
 
-  update = (): TLDrawPatch | undefined => {
+  update = (): TldrawPatch | undefined => {
     const {
       initialParentChildren,
       initialShapes,
@@ -174,22 +174,20 @@ export class TranslateSession extends BaseSession {
         pageState: { camera },
         settings: { isSnapping },
         currentPageId,
-        mutables: {
-          viewport,
-          selectedIds,
-          currentPoint,
-          previousPoint,
-          originPoint,
-          altKey,
-          shiftKey,
-          metaKey,
-        },
+        viewport,
+        selectedIds,
+        currentPoint,
+        previousPoint,
+        originPoint,
+        altKey,
+        shiftKey,
+        metaKey,
       },
     } = this
 
-    const nextBindings: Patch<Record<string, TLDrawBinding>> = {}
+    const nextBindings: Patch<Record<string, TldrawBinding>> = {}
 
-    const nextShapes: Patch<Record<string, TLDrawShape>> = {}
+    const nextShapes: Patch<Record<string, TldrawShape>> = {}
 
     const nextPageState: Patch<TLPageState> = {}
 
@@ -320,7 +318,7 @@ export class TranslateSession extends BaseSession {
 
       // Either way, move the clones
       clones.forEach((clone) => {
-        const current = (nextShapes[clone.id] || this.app.getShape(clone.id)) as TLDrawShape
+        const current = (nextShapes[clone.id] || this.app.getShape(clone.id)) as TldrawShape
 
         if (!current.point) throw Error('No point on that clone!')
 
@@ -375,7 +373,7 @@ export class TranslateSession extends BaseSession {
 
       // Move the shapes by the delta
       initialShapes.forEach((shape) => {
-        const current = (nextShapes[shape.id] || this.app.getShape(shape.id)) as TLDrawShape
+        const current = (nextShapes[shape.id] || this.app.getShape(shape.id)) as TldrawShape
 
         if (!current.point) throw Error('No point on that clone!')
 
@@ -404,7 +402,7 @@ export class TranslateSession extends BaseSession {
     }
   }
 
-  cancel = (): TLDrawPatch | undefined => {
+  cancel = (): TldrawPatch | undefined => {
     const {
       initialShapes,
       initialSelectedIds,
@@ -412,8 +410,8 @@ export class TranslateSession extends BaseSession {
       app: { currentPageId },
     } = this
 
-    const nextBindings: Record<string, Partial<TLDrawBinding> | undefined> = {}
-    const nextShapes: Record<string, Partial<TLDrawShape> | undefined> = {}
+    const nextBindings: Record<string, Partial<TldrawBinding> | undefined> = {}
+    const nextShapes: Record<string, Partial<TldrawShape> | undefined> = {}
     const nextPageState: Partial<TLPageState> = {
       editingId: undefined,
       hoveredId: undefined,
@@ -458,7 +456,7 @@ export class TranslateSession extends BaseSession {
     }
   }
 
-  complete = (): TLDrawPatch | TLDrawCommand | undefined => {
+  complete = (): TldrawPatch | TldrawCommand | undefined => {
     const {
       initialShapes,
       initialParentChildren,
@@ -466,11 +464,11 @@ export class TranslateSession extends BaseSession {
       app: { currentPageId },
     } = this
 
-    const beforeBindings: Patch<Record<string, TLDrawBinding>> = {}
-    const beforeShapes: Patch<Record<string, TLDrawShape>> = {}
+    const beforeBindings: Patch<Record<string, TldrawBinding>> = {}
+    const beforeShapes: Patch<Record<string, TldrawShape>> = {}
 
-    const afterBindings: Patch<Record<string, TLDrawBinding>> = {}
-    const afterShapes: Patch<Record<string, TLDrawShape>> = {}
+    const afterBindings: Patch<Record<string, TldrawBinding>> = {}
+    const afterShapes: Patch<Record<string, TldrawShape>> = {}
 
     if (this.isCloning) {
       if (this.cloneInfo.state === 'empty') {
@@ -609,10 +607,10 @@ export class TranslateSession extends BaseSession {
 
     const cloneMap: Record<string, string> = {}
     const clonedBindingsMap: Record<string, string> = {}
-    const clonedBindings: TLDrawBinding[] = []
+    const clonedBindings: TldrawBinding[] = []
 
     // Create clones of selected shapes
-    const clones: TLDrawShape[] = []
+    const clones: TldrawShape[] = []
 
     initialShapes.forEach((shape) => {
       const newId = Utils.uniqueId()

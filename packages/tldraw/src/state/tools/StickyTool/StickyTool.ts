@@ -2,11 +2,11 @@ import Vec from '@tldraw/vec'
 import type { TLPointerEventHandler } from '@tldraw/core'
 import { Utils } from '@tldraw/core'
 import { Sticky } from '~state/shapes'
-import { SessionType, TLDrawShapeType } from '~types'
+import { SessionType, TldrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class StickyTool extends BaseTool {
-  type = TLDrawShapeType.Sticky as const
+  type = TldrawShapeType.Sticky as const
 
   shapeId?: string
 
@@ -25,7 +25,7 @@ export class StickyTool extends BaseTool {
 
     if (this.status === Status.Idle) {
       const {
-        mutables: { currentPoint },
+        currentPoint,
         appState: { currentPageId, currentStyle },
       } = this.app
 

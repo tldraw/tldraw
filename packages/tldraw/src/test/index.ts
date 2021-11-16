@@ -1,3 +1,3 @@
 export * from './mockDocument'
 export * from './renderWithContext'
-export * from './TLDrawTestApp'
+export * from './TldrawTestApp'

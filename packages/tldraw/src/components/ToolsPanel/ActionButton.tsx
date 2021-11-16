@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { Tooltip } from '~components/Tooltip/Tooltip'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { useTLDrawContext } from '~hooks'
+import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
-import { AlignType, TLDrawSnapshot, DistributeType, StretchType } from '~types'
+import { AlignType, TldrawSnapshot, DistributeType, StretchType } from '~types'
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -33,22 +33,22 @@ import { TrashIcon } from '~components/icons'
 import { IconButton } from '~components/IconButton'
 import { ToolButton } from '~components/ToolButton'
 
-const selectedShapesCountSelector = (s: TLDrawSnapshot) =>
+const selectedShapesCountSelector = (s: TldrawSnapshot) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length
 
-const isAllLockedSelector = (s: TLDrawSnapshot) => {
+const isAllLockedSelector = (s: TldrawSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.every((id) => page.shapes[id].isLocked)
 }
 
-const isAllAspectLockedSelector = (s: TLDrawSnapshot) => {
+const isAllAspectLockedSelector = (s: TldrawSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.every((id) => page.shapes[id].isAspectRatioLocked)
 }
 
-const isAllGroupedSelector = (s: TLDrawSnapshot) => {
+const isAllGroupedSelector = (s: TldrawSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const selectedShapes = s.document.pageStates[s.appState.currentPageId].selectedIds.map(
     (id) => page.shapes[id]
@@ -62,110 +62,110 @@ const isAllGroupedSelector = (s: TLDrawSnapshot) => {
   )
 }
 
-const hasSelectionClickor = (s: TLDrawSnapshot) => {
+const hasSelectionClickor = (s: TldrawSnapshot) => {
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.length > 0
 }
 
-const hasMultipleSelectionClickor = (s: TLDrawSnapshot) => {
+const hasMultipleSelectionClickor = (s: TldrawSnapshot) => {
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.length > 1
 }
 
 export function ActionButton(): JSX.Element {
-  const { state, useSelector } = useTLDrawContext()
+  const app = useTldrawApp()
 
-  const isAllLocked = useSelector(isAllLockedSelector)
+  const isAllLocked = app.useStore(isAllLockedSelector)
 
-  const isAllAspectLocked = useSelector(isAllAspectLockedSelector)
+  const isAllAspectLocked = app.useStore(isAllAspectLockedSelector)
 
-  const isAllGrouped = useSelector(isAllGroupedSelector)
+  const isAllGrouped = app.useStore(isAllGroupedSelector)
 
-  const hasSelection = useSelector(hasSelectionClickor)
+  const hasSelection = app.useStore(hasSelectionClickor)
 
-  const hasMultipleSelection = useSelector(hasMultipleSelectionClickor)
+  const hasMultipleSelection = app.useStore(hasMultipleSelectionClickor)
 
   const handleRotate = React.useCallback(() => {
     state.rotate()
-  }, [state])
+  }, [app])
 
   const handleDuplicate = React.useCallback(() => {
     state.duplicate()
-  }, [state])
+  }, [app])
 
   const handleToggleLocked = React.useCallback(() => {
     state.toggleLocked()
-  }, [state])
+  }, [app])
 
   const handleToggleAspectRatio = React.useCallback(() => {
     state.toggleAspectRatioLocked()
-  }, [state])
+  }, [app])
 
   const handleGroup = React.useCallback(() => {
     state.group()
-  }, [state])
+  }, [app])
 
   const handleMoveToBack = React.useCallback(() => {
     state.moveToBack()
-  }, [state])
+  }, [app])
 
   const handleMoveBackward = React.useCallback(() => {
     state.moveBackward()
-  }, [state])
+  }, [app])
 
   const handleMoveForward = React.useCallback(() => {
     state.moveForward()
-  }, [state])
+  }, [app])
 
   const handleMoveToFront = React.useCallback(() => {
     state.moveToFront()
-  }, [state])
+  }, [app])
 
   const handleDelete = React.useCallback(() => {
     state.delete()
-  }, [state])
+  }, [app])
 
   const alignTop = React.useCallback(() => {
     state.align(AlignType.Top)
-  }, [state])
+  }, [app])
 
   const alignCenterVertical = React.useCallback(() => {
     state.align(AlignType.CenterVertical)
-  }, [state])
+  }, [app])
 
   const alignBottom = React.useCallback(() => {
     state.align(AlignType.Bottom)
-  }, [state])
+  }, [app])
 
   const stretchVertically = React.useCallback(() => {
     state.stretch(StretchType.Vertical)
-  }, [state])
+  }, [app])
 
   const distributeVertically = React.useCallback(() => {
     state.distribute(DistributeType.Vertical)
-  }, [state])
+  }, [app])
 
   const alignLeft = React.useCallback(() => {
     state.align(AlignType.Left)
-  }, [state])
+  }, [app])
 
   const alignCenterHorizontal = React.useCallback(() => {
     state.align(AlignType.CenterHorizontal)
-  }, [state])
+  }, [app])
 
   const alignRight = React.useCallback(() => {
     state.align(AlignType.Right)
-  }, [state])
+  }, [app])
 
   const stretchHorizontally = React.useCallback(() => {
     state.stretch(StretchType.Horizontal)
-  }, [state])
+  }, [app])
 
   const distributeHorizontally = React.useCallback(() => {
     state.distribute(DistributeType.Horizontal)
-  }, [state])
+  }, [app])
 
-  const selectedShapesCount = useSelector(selectedShapesCountSelector)
+  const selectedShapesCount = app.useStore(selectedShapesCountSelector)
 
   const hasTwoOrMore = selectedShapesCount > 1
   const hasThreeOrMore = selectedShapesCount > 2

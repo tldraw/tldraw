@@ -1,16 +1,16 @@
-import { MoveType, TLDrawShape, TLDrawCommand } from '~types'
+import { MoveType, TldrawShape, TldrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 
-export function reorderShapes(app: TLDrawApp, ids: string[], type: MoveType): TLDrawCommand {
+export function reorderShapes(app: TldrawApp, ids: string[], type: MoveType): TldrawCommand {
   const { currentPageId, page } = app
 
   // Get the unique parent ids for the selected elements
   const parentIds = new Set(ids.map((id) => app.getShape(id).parentId))
 
   let result: {
-    before: Record<string, Partial<TLDrawShape>>
-    after: Record<string, Partial<TLDrawShape>>
+    before: Record<string, Partial<TldrawShape>>
+    after: Record<string, Partial<TldrawShape>>
   } = { before: {}, after: {} }
 
   let startIndex: number
@@ -19,7 +19,7 @@ export function reorderShapes(app: TLDrawApp, ids: string[], type: MoveType): TL
 
   // Collect shapes with common parents into a table under their parent id
   Array.from(parentIds.values()).forEach((parentId) => {
-    let sortedChildren: TLDrawShape[] = []
+    let sortedChildren: TldrawShape[] = []
     if (parentId === page.id) {
       sortedChildren = Object.values(page.shapes).sort((a, b) => a.childIndex - b.childIndex)
     } else {

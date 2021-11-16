@@ -7,11 +7,11 @@ import {
   TLBounds,
 } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { SessionType, TLDrawCommand, TLDrawPatch, TLDrawShape, TLDrawStatus } from '~types'
+import { SessionType, TldrawCommand, TldrawPatch, TldrawShape, TldrawStatus } from '~types'
 import { TLDR } from '~state/TLDR'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { BaseSession } from '../BaseSession'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 
 type SnapInfo =
   | {
@@ -24,12 +24,12 @@ type SnapInfo =
 
 export class TransformSingleSession extends BaseSession {
   type = SessionType.TransformSingle
-  status = TLDrawStatus.Transforming
+  status = TldrawStatus.Transforming
   transformType: TLBoundsEdge | TLBoundsCorner
   scaleX = 1
   scaleY = 1
   isCreate: boolean
-  initialShape: TLDrawShape
+  initialShape: TldrawShape
   initialShapeBounds: TLBounds
   initialCommonBounds: TLBounds
   snapInfo: SnapInfo = { state: 'empty' }
@@ -37,7 +37,7 @@ export class TransformSingleSession extends BaseSession {
   speed = 1
 
   constructor(
-    app: TLDrawApp,
+    app: TldrawApp,
     id: string,
     transformType: TLBoundsEdge | TLBoundsCorner,
     isCreate = false
@@ -50,10 +50,10 @@ export class TransformSingleSession extends BaseSession {
     this.initialShape = shape
     this.initialShapeBounds = TLDR.getBounds(shape)
     this.initialCommonBounds = TLDR.getRotatedBounds(shape)
-    this.app.mutables.selectedIds = [...this.initialShape.id]
+    this.app.selectedIdsForRotation = [shape.id]
   }
 
-  start = (): TLDrawPatch | undefined => {
+  start = (): TldrawPatch | undefined => {
     this.snapInfo = {
       state: 'ready',
       bounds: this.app.shapes
@@ -64,7 +64,7 @@ export class TransformSingleSession extends BaseSession {
     return void null
   }
 
-  update = (): TLDrawPatch | undefined => {
+  update = (): TldrawPatch | undefined => {
     const {
       transformType,
       initialShape,
@@ -73,7 +73,12 @@ export class TransformSingleSession extends BaseSession {
         settings: { isSnapping },
         currentPageId,
         pageState: { camera },
-        mutables: { viewport, currentPoint, previousPoint, originPoint, shiftKey, metaKey },
+        viewport,
+        currentPoint,
+        previousPoint,
+        originPoint,
+        shiftKey,
+        metaKey,
       },
     } = this
 
@@ -81,7 +86,7 @@ export class TransformSingleSession extends BaseSession {
 
     const delta = Vec.sub(currentPoint, originPoint)
 
-    const shapes = {} as Record<string, Partial<TLDrawShape>>
+    const shapes = {} as Record<string, Partial<TldrawShape>>
 
     const shape = this.app.getShape(initialShape.id)
 
@@ -104,8 +109,6 @@ export class TransformSingleSession extends BaseSession {
     this.speed = this.speed + speedChange * (speedChange > 1 ? 0.5 : 0.15)
 
     let snapLines: TLSnapLine[] = []
-
-    console.log(isSnapping, metaKey)
 
     if (
       ((isSnapping && !metaKey) || (!isSnapping && metaKey)) &&
@@ -160,13 +163,13 @@ export class TransformSingleSession extends BaseSession {
     }
   }
 
-  cancel = (): TLDrawPatch | undefined => {
+  cancel = (): TldrawPatch | undefined => {
     const {
       initialShape,
       app: { currentPageId },
     } = this
 
-    const shapes = {} as Record<string, TLDrawShape | undefined>
+    const shapes = {} as Record<string, TldrawShape | undefined>
 
     if (this.isCreate) {
       shapes[initialShape.id] = undefined
@@ -193,7 +196,7 @@ export class TransformSingleSession extends BaseSession {
     }
   }
 
-  complete = (): TLDrawPatch | TLDrawCommand | undefined => {
+  complete = (): TldrawPatch | TldrawCommand | undefined => {
     const {
       initialShape,
       app: { currentPageId },
@@ -201,8 +204,8 @@ export class TransformSingleSession extends BaseSession {
 
     if (initialShape.isLocked) return
 
-    const beforeShapes = {} as Record<string, Partial<TLDrawShape> | undefined>
-    const afterShapes = {} as Record<string, Partial<TLDrawShape>>
+    const beforeShapes = {} as Record<string, Partial<TldrawShape> | undefined>
+    const afterShapes = {} as Record<string, Partial<TldrawShape>>
 
     beforeShapes[initialShape.id] = this.isCreate ? undefined : initialShape
 

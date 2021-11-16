@@ -1,42 +1,42 @@
 import * as React from 'react'
 import { DMCheckboxItem, DMDivider, DMSubMenu } from '~components/DropdownMenu'
-import { useTLDrawContext } from '~hooks'
-import type { TLDrawSnapshot } from '~types'
+import { useTldrawApp } from '~hooks'
+import type { TldrawSnapshot } from '~types'
 
-const settingsSelector = (s: TLDrawSnapshot) => s.settings
+const settingsSelector = (s: TldrawSnapshot) => s.settings
 
 export function PreferencesMenu() {
-  const { state, useSelector } = useTLDrawContext()
+  const app = useTldrawApp()
 
-  const settings = useSelector(settingsSelector)
+  const settings = app.useStore(settingsSelector)
 
   const toggleDebugMode = React.useCallback(() => {
     state.setSetting('isDebugMode', (v) => !v)
-  }, [state])
+  }, [app])
 
   const toggleDarkMode = React.useCallback(() => {
     state.setSetting('isDarkMode', (v) => !v)
-  }, [state])
+  }, [app])
 
   const toggleFocusMode = React.useCallback(() => {
     state.setSetting('isFocusMode', (v) => !v)
-  }, [state])
+  }, [app])
 
   const toggleRotateHandle = React.useCallback(() => {
     state.setSetting('showRotateHandles', (v) => !v)
-  }, [state])
+  }, [app])
 
   const toggleBoundShapesHandle = React.useCallback(() => {
     state.setSetting('showBindingHandles', (v) => !v)
-  }, [state])
+  }, [app])
 
   const toggleisSnapping = React.useCallback(() => {
     state.setSetting('isSnapping', (v) => !v)
-  }, [state])
+  }, [app])
 
   const toggleCloneControls = React.useCallback(() => {
     state.setSetting('showCloneHandles', (v) => !v)
-  }, [state])
+  }, [app])
 
   return (
     <DMSubMenu label="Preferences">

@@ -1,3 +1,3 @@
 import './internal'
 
-export * from './TLDrawApp'
+export * from './TldrawApp'

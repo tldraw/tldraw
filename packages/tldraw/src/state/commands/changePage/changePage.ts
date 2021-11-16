@@ -1,7 +1,7 @@
-import type { TLDrawCommand } from '~types'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawCommand } from '~types'
+import type { TldrawApp } from '../../internal'
 
-export function changePage(app: TLDrawApp, pageId: string): TLDrawCommand {
+export function changePage(app: TldrawApp, pageId: string): TldrawCommand {
   return {
     id: 'change_page',
     before: {

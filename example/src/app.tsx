@@ -94,10 +94,10 @@ export default function App(): JSX.Element {
               <Link to="/controlled">Controlled via Props</Link>
             </li>
             <li>
-              <Link to="/api">Using the TLDrawApp API</Link>
+              <Link to="/api">Using the TldrawApp API</Link>
             </li>
             <li>
-              <Link to="/imperative">Controlled via TLDrawApp API</Link>
+              <Link to="/imperative">Controlled via TldrawApp API</Link>
             </li>
             <li>
               <Link to="/changing-id">Changing ID</Link>

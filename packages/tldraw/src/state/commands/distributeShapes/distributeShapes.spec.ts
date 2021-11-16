@@ -1,9 +1,9 @@
 import Vec from '@tldraw/vec'
-import { mockDocument, TLDrawTestApp } from '~test'
-import { DistributeType, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { DistributeType, TldrawShapeType } from '~types'
 
 describe('Distribute command', () => {
-  const state = new TLDrawTestApp()
+  const state = new TldrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)
@@ -41,13 +41,13 @@ describe('Distribute command', () => {
 
 describe('when distributing groups', () => {
   it('distributes children', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .createShapes(
-        { id: 'rect1', type: TLDrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
-        { id: 'rect2', type: TLDrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
-        { id: 'rect3', type: TLDrawShapeType.Rectangle, point: [200, 200], size: [100, 100] },
-        { id: 'rect4', type: TLDrawShapeType.Rectangle, point: [0, 0], size: [200, 200] },
-        { id: 'rect5', type: TLDrawShapeType.Rectangle, point: [300, -200], size: [100, 100] }
+        { id: 'rect1', type: TldrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
+        { id: 'rect2', type: TldrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
+        { id: 'rect3', type: TldrawShapeType.Rectangle, point: [200, 200], size: [100, 100] },
+        { id: 'rect4', type: TldrawShapeType.Rectangle, point: [0, 0], size: [200, 200] },
+        { id: 'rect5', type: TldrawShapeType.Rectangle, point: [300, -200], size: [100, 100] }
       )
       .group(['rect1', 'rect2'], 'groupA')
       .select('rect3', 'rect4', 'rect5')

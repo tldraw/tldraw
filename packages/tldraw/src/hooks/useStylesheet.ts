@@ -2,7 +2,7 @@ import * as React from 'react'
 
 const styles = new Map<string, HTMLStyleElement>()
 
-const UID = `tldraw-fonts`
+const UID = `Tldraw-fonts`
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&display=swap')
 `

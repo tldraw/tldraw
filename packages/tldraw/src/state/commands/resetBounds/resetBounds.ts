@@ -1,8 +1,8 @@
-import type { TLDrawCommand } from '~types'
+import type { TldrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 
-export function resetBounds(app: TLDrawApp, ids: string[], pageId: string): TLDrawCommand {
+export function resetBounds(app: TldrawApp, ids: string[], pageId: string): TldrawCommand {
   const { currentPageId } = app
 
   const { before, after } = TLDR.mutateShapes(

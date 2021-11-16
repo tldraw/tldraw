@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { ArrowShape, PagePartial, TLDrawCommand, TLDrawShape } from '~types'
-import type { TLDrawApp } from '../../internal'
+import type { ArrowShape, PagePartial, TldrawCommand, TldrawShape } from '~types'
+import type { TldrawApp } from '../../internal'
 import { TLDR } from '~state/TLDR'
 import { Utils, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 
 export function moveShapesToPage(
-  app: TLDrawApp,
+  app: TldrawApp,
   ids: string[],
   viewportBounds: TLBounds,
   fromPageId: string,
   toPageId: string
-): TLDrawCommand {
+): TldrawCommand {
   const { page } = app
 
   const fromPage: Record<string, PagePartial> = {
@@ -38,7 +38,7 @@ export function moveShapesToPage(
 
   // Collect all the shapes to move and their keys.
   const movingShapeIds = new Set<string>()
-  const shapesToMove = new Set<TLDrawShape>()
+  const shapesToMove = new Set<TldrawShape>()
 
   ids
     .map((id) => app.getShape(id, fromPageId))

@@ -78,7 +78,7 @@ export function getEllipsePath(shape: EllipseShape, boundsCenter: number[]) {
   )
 }
 
-export function getEllipseIndicatorPathTLDrawSnapshot(shape: EllipseShape, boundsCenter: number[]) {
+export function getEllipseIndicatorPathTldrawSnapshot(shape: EllipseShape, boundsCenter: number[]) {
   return Utils.getSvgPathFromStroke(
     getEllipseStrokePoints(shape, boundsCenter).map((pt) => pt.point.slice(0, 2)),
     false

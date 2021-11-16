@@ -1,9 +1,9 @@
 import Vec from '@tldraw/vec'
-import { mockDocument, TLDrawTestApp } from '~test'
-import { AlignType, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { AlignType, TldrawShapeType } from '~types'
 
 describe('Align command', () => {
-  const state = new TLDrawTestApp()
+  const state = new TldrawTestApp()
 
   describe('when less than two shapes are selected', () => {
     it('does nothing', () => {
@@ -78,12 +78,12 @@ describe('Align command', () => {
 
 describe('when aligning groups', () => {
   it('aligns children', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .createShapes(
-        { id: 'rect1', type: TLDrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
-        { id: 'rect2', type: TLDrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
-        { id: 'rect3', type: TLDrawShapeType.Rectangle, point: [200, 200], size: [100, 100] },
-        { id: 'rect4', type: TLDrawShapeType.Rectangle, point: [0, 0], size: [200, 200] }
+        { id: 'rect1', type: TldrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
+        { id: 'rect2', type: TldrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
+        { id: 'rect3', type: TldrawShapeType.Rectangle, point: [200, 200], size: [100, 100] },
+        { id: 'rect4', type: TldrawShapeType.Rectangle, point: [0, 0], size: [200, 200] }
       )
       .group(['rect1', 'rect2'], 'groupA')
       .select('rect3', 'rect4')

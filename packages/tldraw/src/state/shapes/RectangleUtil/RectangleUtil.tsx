@@ -2,9 +2,9 @@ import * as React from 'react'
 import { Utils, SVGContainer } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { getStroke, getStrokePoints } from 'perfect-freehand'
-import { RectangleShape, DashStyle, TLDrawShapeType, TLDrawMeta } from '~types'
+import { RectangleShape, DashStyle, TldrawShapeType, TldrawMeta } from '~types'
 import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
-import { TLDrawShapeUtil } from '~state/shapes/TLDrawShapeUtil'
+import { TldrawShapeUtil } from '~state/shapes/TldrawShapeUtil'
 import {
   defaultStyle,
   getShapeStyle,
@@ -16,8 +16,8 @@ import {
 type T = RectangleShape
 type E = SVGSVGElement
 
-export class RectangleUtil extends TLDrawShapeUtil<T, E> {
-  type = TLDrawShapeType.Rectangle as const
+export class RectangleUtil extends TldrawShapeUtil<T, E> {
+  type = TldrawShapeType.Rectangle as const
 
   canBind = true
 
@@ -25,7 +25,7 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
     return Utils.deepMerge<T>(
       {
         id: 'id',
-        type: TLDrawShapeType.Rectangle,
+        type: TldrawShapeType.Rectangle,
         name: 'Rectangle',
         parentId: 'page',
         childIndex: 1,
@@ -38,14 +38,14 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
+  Component = TldrawShapeUtil.Component<T, E, TldrawMeta>(
     ({ shape, isBinding, isGhost, meta, events }, ref) => {
       const { id, size, style } = shape
       const styles = getShapeStyle(style, meta.isDarkMode)
       const { strokeWidth } = styles
 
       if (style.dash === DashStyle.Draw) {
-        const pathTLDrawSnapshot = getRectanglePath(shape)
+        const pathTldrawSnapshot = getRectanglePath(shape)
 
         return (
           <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
@@ -59,14 +59,14 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
               />
             )}
             <path
-              d={getRectangleIndicatorPathTLDrawSnapshot(shape)}
+              d={getRectangleIndicatorPathTldrawSnapshot(shape)}
               fill={style.isFilled ? styles.fill : 'none'}
               radius={strokeWidth}
               stroke="none"
               pointerEvents="all"
             />
             <path
-              d={pathTLDrawSnapshot}
+              d={pathTldrawSnapshot}
               fill={styles.stroke}
               stroke={styles.stroke}
               strokeWidth={styles.strokeWidth}
@@ -139,7 +139,7 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
     }
   )
 
-  Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
+  Indicator = TldrawShapeUtil.Indicator<T>(({ shape }) => {
     const {
       style,
       size: [width, height],
@@ -149,7 +149,7 @@ export class RectangleUtil extends TLDrawShapeUtil<T, E> {
     const sw = styles.strokeWidth
 
     if (style.dash === DashStyle.Draw) {
-      return <path d={getRectangleIndicatorPathTLDrawSnapshot(shape)} />
+      return <path d={getRectangleIndicatorPathTldrawSnapshot(shape)} />
     }
 
     return (
@@ -266,7 +266,7 @@ function getRectanglePath(shape: RectangleShape) {
   return Utils.getSvgPathFromStroke(stroke)
 }
 
-function getRectangleIndicatorPathTLDrawSnapshot(shape: RectangleShape) {
+function getRectangleIndicatorPathTldrawSnapshot(shape: RectangleShape) {
   const { points, options } = getDrawStrokeInfo(shape)
 
   const strokePoints = getStrokePoints(points, options)

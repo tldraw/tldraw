@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { mockDocument, TLDrawTestApp } from '~test'
-import { ArrowShape, ColorStyle, SessionType, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { ArrowShape, ColorStyle, SessionType, TldrawShapeType } from '~types'
 import type { SelectTool } from './tools/SelectTool'
 
-describe('TLDrawTestApp', () => {
+describe('TldrawTestApp', () => {
   describe('When copying and pasting...', () => {
     it('copies a shape', () => {
-      const state = new TLDrawTestApp().loadDocument(mockDocument).selectNone().copy(['rect1'])
+      const state = new TldrawTestApp().loadDocument(mockDocument).selectNone().copy(['rect1'])
     })
 
     it('pastes a shape', () => {
-      const state = new TLDrawTestApp().loadDocument(mockDocument)
+      const state = new TldrawTestApp().loadDocument(mockDocument)
 
       const prevCount = Object.keys(state.page.shapes).length
 
@@ -28,7 +28,7 @@ describe('TLDrawTestApp', () => {
     })
 
     it('pastes a shape to a new page', () => {
-      const state = new TLDrawTestApp().loadDocument(mockDocument)
+      const state = new TldrawTestApp().loadDocument(mockDocument)
 
       state.selectNone().copy(['rect1']).createPage().paste()
 
@@ -44,7 +44,7 @@ describe('TLDrawTestApp', () => {
     })
 
     it('Copies grouped shapes.', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .select('groupA')
@@ -54,7 +54,7 @@ describe('TLDrawTestApp', () => {
 
       state.paste()
 
-      expect(state.shapes.filter((shape) => shape.type === TLDrawShapeType.Group).length).toBe(2)
+      expect(state.shapes.filter((shape) => shape.type === TldrawShapeType.Group).length).toBe(2)
 
       const afterShapes = state.shapes
 
@@ -62,10 +62,10 @@ describe('TLDrawTestApp', () => {
         (shape) => !beforeShapes.find(({ id }) => id === shape.id)
       )
 
-      const newGroup = newShapes.find((shape) => shape.type === TLDrawShapeType.Group)
+      const newGroup = newShapes.find((shape) => shape.type === TldrawShapeType.Group)
 
       const newChildIds = newShapes
-        .filter((shape) => shape.type !== TLDrawShapeType.Group)
+        .filter((shape) => shape.type !== TldrawShapeType.Group)
         .map((shape) => shape.id)
 
       expect(new Set(newGroup!.children)).toEqual(new Set(newChildIds))
@@ -78,12 +78,12 @@ describe('TLDrawTestApp', () => {
 
   describe('When copying and pasting a shape with bindings', () => {
     it('copies two bound shapes and their binding', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
 
       state
         .createShapes(
-          { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
-          { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+          { type: TldrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+          { type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
         .movePointer([200, 200])
@@ -105,12 +105,12 @@ describe('TLDrawTestApp', () => {
     })
 
     it('removes bindings from copied shape handles', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
 
       state
         .createShapes(
-          { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
-          { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+          { type: TldrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+          { type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
         .movePointer([200, 200])
@@ -132,13 +132,13 @@ describe('TLDrawTestApp', () => {
 
   describe('Selection', () => {
     it('selects a shape', () => {
-      const state = new TLDrawTestApp().loadDocument(mockDocument).selectNone().clickShape('rect1')
+      const state = new TldrawTestApp().loadDocument(mockDocument).selectNone().clickShape('rect1')
       expect(state.selectedIds).toStrictEqual(['rect1'])
       expect(state.appState.status).toBe('idle')
     })
 
     it('selects and deselects a shape', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(mockDocument)
         .selectNone()
         .clickShape('rect1')
@@ -148,7 +148,7 @@ describe('TLDrawTestApp', () => {
     })
 
     it('selects multiple shapes', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(mockDocument)
         .selectNone()
         .clickShape('rect1')
@@ -158,7 +158,7 @@ describe('TLDrawTestApp', () => {
     })
 
     it('shift-selects to deselect shapes', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(mockDocument)
         .selectNone()
         .clickShape('rect1')
@@ -169,7 +169,7 @@ describe('TLDrawTestApp', () => {
     })
 
     it('clears selection when clicking bounds', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(mockDocument)
         .selectAll()
         .clickBounds()
@@ -178,7 +178,7 @@ describe('TLDrawTestApp', () => {
     })
 
     it('selects selected shape when single-clicked', () => {
-      new TLDrawTestApp()
+      new TldrawTestApp()
         .loadDocument(mockDocument)
         .selectAll()
         .expectSelectedIdsToBe(['rect1', 'rect2', 'rect3'])
@@ -195,7 +195,7 @@ describe('TLDrawTestApp', () => {
     // })
 
     it('does not select on meta-click', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(mockDocument)
         .selectNone()
         .clickShape('rect1', { ctrlKey: true })
@@ -212,12 +212,12 @@ describe('TLDrawTestApp', () => {
 
     describe('When selecting all', () => {
       it('selects all', () => {
-        const state = new TLDrawTestApp().loadDocument(mockDocument).selectAll()
+        const state = new TldrawTestApp().loadDocument(mockDocument).selectAll()
         expect(state.selectedIds).toMatchSnapshot('selected all')
       })
 
       it('does not select children of a group', () => {
-        const state = new TLDrawTestApp().loadDocument(mockDocument).selectAll().group()
+        const state = new TldrawTestApp().loadDocument(mockDocument).selectAll().group()
         expect(state.selectedIds.length).toBe(1)
       })
     })
@@ -225,7 +225,7 @@ describe('TLDrawTestApp', () => {
     // Single click on a selected shape to select just that shape
 
     it('single-selects shape in selection on click', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(mockDocument)
         .clickShape('rect1')
         .clickShape('rect2', { shiftKey: true })
@@ -235,7 +235,7 @@ describe('TLDrawTestApp', () => {
     })
 
     it('single-selects shape in selection on pointerup only', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(mockDocument)
         .clickShape('rect1')
         .clickShape('rect2', { shiftKey: true })
@@ -259,7 +259,7 @@ describe('TLDrawTestApp', () => {
 
   describe('Select history', () => {
     it('selects, undoes and redoes', () => {
-      const state = new TLDrawTestApp().loadDocument(mockDocument)
+      const state = new TldrawTestApp().loadDocument(mockDocument)
 
       expect(state.selectHistory.pointer).toBe(0)
       expect(state.selectHistory.stack).toStrictEqual([[]])
@@ -321,25 +321,25 @@ describe('TLDrawTestApp', () => {
   })
 
   describe('Copies to JSON', () => {
-    const state = new TLDrawTestApp().loadDocument(mockDocument).selectAll()
+    const state = new TldrawTestApp().loadDocument(mockDocument).selectAll()
     expect(state.copyJson()).toMatchSnapshot('copied json')
   })
 
   describe('Mutates bound shapes', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .createShapes(
         {
           id: 'rect',
           point: [0, 0],
           size: [100, 100],
           childIndex: 1,
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
         },
         {
           id: 'arrow',
           point: [200, 200],
           childIndex: 2,
-          type: TLDrawShapeType.Arrow,
+          type: TldrawShapeType.Arrow,
         }
       )
       .select('arrow')
@@ -366,7 +366,7 @@ describe('TLDrawTestApp', () => {
 
   describe('when selecting shapes in a group', () => {
     it('selects the group when a grouped shape is clicked', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .clickShape('rect1')
@@ -376,7 +376,7 @@ describe('TLDrawTestApp', () => {
     })
 
     it('selects the grouped shape when double clicked', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .doubleClickShape('rect1')
@@ -386,7 +386,7 @@ describe('TLDrawTestApp', () => {
     })
 
     it('clears the selectedGroupId when selecting a different shape', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .doubleClickShape('rect1')
@@ -397,7 +397,7 @@ describe('TLDrawTestApp', () => {
     })
 
     it('selects a grouped shape when meta-shift-clicked', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .selectNone()
@@ -411,7 +411,7 @@ describe('TLDrawTestApp', () => {
     })
 
     it('selects a hovered shape from the selected group when meta-shift-clicked', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .clickShape('rect1', { ctrlKey: true, shiftKey: true })
@@ -426,25 +426,25 @@ describe('TLDrawTestApp', () => {
 
   describe('when creating shapes', () => {
     it('Creates shapes with the correct child index', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .createShapes(
           {
             id: 'rect1',
-            type: TLDrawShapeType.Rectangle,
+            type: TldrawShapeType.Rectangle,
             childIndex: 1,
           },
           {
             id: 'rect2',
-            type: TLDrawShapeType.Rectangle,
+            type: TldrawShapeType.Rectangle,
             childIndex: 2,
           },
           {
             id: 'rect3',
-            type: TLDrawShapeType.Rectangle,
+            type: TldrawShapeType.Rectangle,
             childIndex: 3,
           }
         )
-        .selectTool(TLDrawShapeType.Rectangle)
+        .selectTool(TldrawShapeType.Rectangle)
 
       const prevA = state.shapes.map((shape) => shape.id)
 
@@ -459,7 +459,7 @@ describe('TLDrawTestApp', () => {
       expect(state.getShape('groupA').childIndex).toBe(2)
 
       state.selectNone()
-      state.selectTool(TLDrawShapeType.Rectangle)
+      state.selectTool(TldrawShapeType.Rectangle)
 
       const prevB = state.shapes.map((shape) => shape.id)
 
@@ -472,17 +472,17 @@ describe('TLDrawTestApp', () => {
   })
 
   it('Exposes undo/redo stack', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .createShapes({
         id: 'rect1',
-        type: TLDrawShapeType.Rectangle,
+        type: TldrawShapeType.Rectangle,
         point: [0, 0],
         size: [100, 200],
       })
       .createShapes({
         id: 'rect2',
-        type: TLDrawShapeType.Rectangle,
+        type: TldrawShapeType.Rectangle,
         point: [0, 0],
         size: [100, 200],
       })
@@ -503,17 +503,17 @@ describe('TLDrawTestApp', () => {
   })
 
   it('Exposes undo/redo stack up to the current pointer', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .createShapes({
         id: 'rect1',
-        type: TLDrawShapeType.Rectangle,
+        type: TldrawShapeType.Rectangle,
         point: [0, 0],
         size: [100, 200],
       })
       .createShapes({
         id: 'rect2',
-        type: TLDrawShapeType.Rectangle,
+        type: TldrawShapeType.Rectangle,
         point: [0, 0],
         size: [100, 200],
       })
@@ -523,16 +523,16 @@ describe('TLDrawTestApp', () => {
   })
 
   it('Sets the undo/redo history', () => {
-    const state = new TLDrawTestApp('some_state_a')
+    const state = new TldrawTestApp('some_state_a')
       .createShapes({
         id: 'rect1',
-        type: TLDrawShapeType.Rectangle,
+        type: TldrawShapeType.Rectangle,
         point: [0, 0],
         size: [100, 200],
       })
       .createShapes({
         id: 'rect2',
-        type: TLDrawShapeType.Rectangle,
+        type: TldrawShapeType.Rectangle,
         point: [0, 0],
         size: [100, 200],
       })
@@ -542,7 +542,7 @@ describe('TLDrawTestApp', () => {
     const history = state.history
 
     // Create a new state
-    const state2 = new TLDrawTestApp('some_state_b')
+    const state2 = new TldrawTestApp('some_state_b')
 
     // Load the document and set the history
     state2.loadDocument(doc)
@@ -559,7 +559,7 @@ describe('TLDrawTestApp', () => {
 
   describe('When copying to SVG', () => {
     it('Copies shapes.', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
       const result = state
         .loadDocument(mockDocument)
         .select('rect1')
@@ -570,7 +570,7 @@ describe('TLDrawTestApp', () => {
     })
 
     it('Copies grouped shapes.', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
       const result = state
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
@@ -583,12 +583,12 @@ describe('TLDrawTestApp', () => {
 
     it.todo('Copies Text shapes as <text> elements.')
     // it('Copies Text shapes as <text> elements.', () => {
-    //   const state2 = new TLDrawTestApp()
+    //   const state2 = new TldrawTestApp()
 
     //   const svgString = state2
     //     .createShapes({
     //       id: 'text1',
-    //       type: TLDrawShapeType.Text,
+    //       type: TldrawShapeType.Text,
     //       text: 'hello world!',
     //     })
     //     .select('text1')
@@ -608,7 +608,7 @@ describe('TLDrawTestApp', () => {
     document without blowing out the current state. For example, we
     may want to patch in changes that occurred from another user.
 
-    When the `document` prop changes in the TLDraw component, we want
+    When the `document` prop changes in the Tldraw component, we want
     to update the document in a way that preserves the identity of as
     much as possible, while still protecting against invalid states.
 
@@ -625,7 +625,7 @@ describe('TLDrawTestApp', () => {
 
   describe('When changing versions', () => {
     it('migrates correctly', (done) => {
-      const defaultState = TLDrawTestApp.defaultState
+      const defaultState = TldrawTestApp.defaultState
 
       const withoutRoom = {
         ...defaultState,
@@ -633,21 +633,21 @@ describe('TLDrawTestApp', () => {
 
       delete withoutRoom.room
 
-      TLDrawTestApp.defaultState = withoutRoom
+      TldrawTestApp.defaultState = withoutRoom
 
-      const state = new TLDrawTestApp('migrate_1')
+      const state = new TldrawTestApp('migrate_1')
 
       state.createShapes({
         id: 'rect1',
-        type: TLDrawShapeType.Rectangle,
+        type: TldrawShapeType.Rectangle,
       })
 
       setTimeout(() => {
         // TODO: Force the version to change and restore room.
-        TLDrawTestApp.version = 100
-        TLDrawTestApp.defaultState.room = defaultState.room
+        TldrawTestApp.version = 100
+        TldrawTestApp.defaultState.room = defaultState.room
 
-        const state2 = new TLDrawTestApp('migrate_1')
+        const state2 = new TldrawTestApp('migrate_1')
 
         setTimeout(() => {
           try {

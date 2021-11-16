@@ -10,7 +10,7 @@ import { TranslateSession } from './TranslateSession'
 import { EraseSession } from './EraseSession'
 import { GridSession } from './GridSession'
 
-export type TLDrawSession =
+export type TldrawSession =
   | ArrowSession
   | BrushSession
   | DrawSession

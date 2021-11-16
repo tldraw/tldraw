@@ -23,12 +23,12 @@ import type { StoreApi } from 'zustand'
 import type { Command, Patch } from 'rko'
 import type { FileSystemHandle } from '~state/data/browser-fs-access'
 
-export interface TLDrawHandle extends TLHandle {
+export interface TldrawHandle extends TLHandle {
   canBind?: boolean
   bindingId?: string
 }
 
-export interface TLDrawTransformInfo<T extends TLShape> {
+export interface TldrawTransformInfo<T extends TLShape> {
   type: TLBoundsEdge | TLBoundsCorner
   initialShape: T
   scaleX: number
@@ -37,21 +37,21 @@ export interface TLDrawTransformInfo<T extends TLShape> {
 }
 
 // old
-export type TLStore = StoreApi<TLDrawSnapshot>
+export type TLStore = StoreApi<TldrawSnapshot>
 
-export type TLChange = TLDrawSnapshot
+export type TLChange = TldrawSnapshot
 
-export type TLDrawPage = TLPage<TLDrawShape, TLDrawBinding>
+export type TldrawPage = TLPage<TldrawShape, TldrawBinding>
 
-export interface TLDrawDocument {
+export interface TldrawDocument {
   id: string
   name: string
-  pages: Record<string, TLDrawPage>
+  pages: Record<string, TldrawPage>
   pageStates: Record<string, TLPageState>
   version: number
 }
 
-export interface TLDrawSettings {
+export interface TldrawSettings {
   isDarkMode: boolean
   isDebugMode: boolean
   isPenMode: boolean
@@ -73,50 +73,50 @@ export enum TLUserStatus {
   Disconnected = 'disconnected',
 }
 
-export interface TLDrawMeta {
+export interface TldrawMeta {
   isDarkMode: boolean
 }
 
-export interface TLDrawUser extends TLUser<TLDrawShape> {
-  activeShapes: TLDrawShape[]
+export interface TldrawUser extends TLUser<TldrawShape> {
+  activeShapes: TldrawShape[]
 }
 
-export type TLDrawShapeProps<T extends TLDrawShape, E extends Element> = TLShapeProps<
+export type TldrawShapeProps<T extends TldrawShape, E extends Element> = TLShapeProps<
   T,
   E,
-  TLDrawMeta
+  TldrawMeta
 >
 
-export interface TLDrawSnapshot {
-  settings: TLDrawSettings
+export interface TldrawSnapshot {
+  settings: TldrawSettings
   appState: {
     selectedStyle: ShapeStyles
     currentStyle: ShapeStyles
     currentPageId: string
-    pages: Pick<TLPage<TLDrawShape, TLDrawBinding>, 'id' | 'name' | 'childIndex'>[]
+    pages: Pick<TLPage<TldrawShape, TldrawBinding>, 'id' | 'name' | 'childIndex'>[]
     hoveredId?: string
-    activeTool: TLDrawToolType
+    activeTool: TldrawToolType
     isToolLocked: boolean
     isStyleOpen: boolean
     isEmptyCanvas: boolean
     status: string
     snapLines: TLSnapLine[]
   }
-  document: TLDrawDocument
+  document: TldrawDocument
   room?: {
     id: string
     userId: string
-    users: Record<string, TLDrawUser>
+    users: Record<string, TldrawUser>
   }
 }
 
-export type TLDrawPatch = Patch<TLDrawSnapshot>
+export type TldrawPatch = Patch<TldrawSnapshot>
 
-export type TLDrawCommand = Command<TLDrawSnapshot>
+export type TldrawCommand = Command<TldrawSnapshot>
 
 export type PagePartial = {
-  shapes: Patch<TLDrawPage['shapes']>
-  bindings: Patch<TLDrawPage['bindings']>
+  shapes: Patch<TldrawPage['shapes']>
+  bindings: Patch<TldrawPage['bindings']>
 }
 
 export interface SelectHistory {
@@ -137,7 +137,7 @@ export enum SessionType {
   Grid = 'grid',
 }
 
-export class TLDrawEventHandler {
+export class TldrawEventHandler {
   onPinchStart?: TLPinchEventHandler
   onPinchEnd?: TLPinchEventHandler
   onPinch?: TLPinchEventHandler
@@ -185,7 +185,7 @@ export class TLDrawEventHandler {
   onShapeClone?: TLShapeCloneHandler
 }
 
-export enum TLDrawStatus {
+export enum TldrawStatus {
   Idle = 'idle',
   PointingHandle = 'pointingHandle',
   PointingBounds = 'pointingBounds',
@@ -238,7 +238,7 @@ export enum FlipType {
   Vertical = 'vertical',
 }
 
-export enum TLDrawShapeType {
+export enum TldrawShapeType {
   Sticky = 'sticky',
   Ellipse = 'ellipse',
   Rectangle = 'rectangle',
@@ -252,25 +252,25 @@ export enum Decoration {
   Arrow = 'arrow',
 }
 
-export interface TLDrawBaseShape extends TLShape {
+export interface TldrawBaseShape extends TLShape {
   style: ShapeStyles
-  type: TLDrawShapeType
-  handles?: Record<string, TLDrawHandle>
+  type: TldrawShapeType
+  handles?: Record<string, TldrawHandle>
 }
 
-export interface DrawShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.Draw
+export interface DrawShape extends TldrawBaseShape {
+  type: TldrawShapeType.Draw
   points: number[][]
   isComplete: boolean
 }
 
-export interface ArrowShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.Arrow
+export interface ArrowShape extends TldrawBaseShape {
+  type: TldrawShapeType.Arrow
   bend: number
   handles: {
-    start: TLDrawHandle
-    bend: TLDrawHandle
-    end: TLDrawHandle
+    start: TldrawHandle
+    bend: TldrawHandle
+    end: TldrawHandle
   }
   decorations?: {
     start?: Decoration
@@ -279,34 +279,34 @@ export interface ArrowShape extends TLDrawBaseShape {
   }
 }
 
-export interface EllipseShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.Ellipse
+export interface EllipseShape extends TldrawBaseShape {
+  type: TldrawShapeType.Ellipse
   radius: number[]
 }
 
-export interface RectangleShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.Rectangle
+export interface RectangleShape extends TldrawBaseShape {
+  type: TldrawShapeType.Rectangle
   size: number[]
 }
 
-export interface TextShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.Text
+export interface TextShape extends TldrawBaseShape {
+  type: TldrawShapeType.Text
   text: string
 }
 
-export interface GroupShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.Group
+export interface GroupShape extends TldrawBaseShape {
+  type: TldrawShapeType.Group
   size: number[]
   children: string[]
 }
 
-export interface StickyShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.Sticky
+export interface StickyShape extends TldrawBaseShape {
+  type: TldrawShapeType.Sticky
   size: number[]
   text: string
 }
 
-export type TLDrawShape =
+export type TldrawShape =
   | RectangleShape
   | EllipseShape
   | DrawShape
@@ -321,7 +321,7 @@ export interface ArrowBinding extends TLBinding {
   point: number[]
 }
 
-export type TLDrawBinding = ArrowBinding
+export type TldrawBinding = ArrowBinding
 
 export enum ColorStyle {
   White = 'white',
@@ -368,12 +368,12 @@ export type ShapeStyles = {
 
 export type PropsOfType<U> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [K in keyof TLDrawShape]: TLDrawShape[K] extends any
-    ? TLDrawShape[K] extends U
+  [K in keyof TldrawShape]: TldrawShape[K] extends any
+    ? TldrawShape[K] extends U
       ? K
       : never
     : never
-}[keyof TLDrawShape]
+}[keyof TldrawShape]
 
 export type Theme = 'dark' | 'light'
 
@@ -398,7 +398,7 @@ export type MappedByType<U extends string, T extends { type: U }> = {
 }
 
 export type ShapesWithProp<U> = MembersWithRequiredKey<
-  MappedByType<TLDrawShapeType, TLDrawShape>,
+  MappedByType<TldrawShapeType, TldrawShape>,
   U
 >
 
@@ -423,21 +423,21 @@ export type Easing =
   | 'easeOutExpo'
   | 'easeInOutExpo'
 
-export type TLDrawToolType =
+export type TldrawToolType =
   | 'select'
   | 'erase'
-  | TLDrawShapeType.Text
-  | TLDrawShapeType.Draw
-  | TLDrawShapeType.Ellipse
-  | TLDrawShapeType.Rectangle
-  | TLDrawShapeType.Arrow
-  | TLDrawShapeType.Sticky
+  | TldrawShapeType.Text
+  | TldrawShapeType.Draw
+  | TldrawShapeType.Ellipse
+  | TldrawShapeType.Rectangle
+  | TldrawShapeType.Arrow
+  | TldrawShapeType.Sticky
 
 /* ------------------- File System ------------------ */
 
-export interface TLDrawFile {
+export interface TldrawFile {
   name: string
   fileHandle: FileSystemHandle | null
-  document: TLDrawDocument
+  document: TldrawDocument
   assets: Record<string, unknown>
 }

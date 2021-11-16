@@ -1,25 +1,25 @@
-import { TLDrawSnapshot, TLDrawShapeType } from '~types'
+import { TldrawSnapshot, TldrawShapeType } from '~types'
 import { TLDR } from '~state/TLDR'
-import { TLDrawTestApp } from '~test'
+import { TldrawTestApp } from '~test'
 
-const state = new TLDrawTestApp().createShapes(
+const state = new TldrawTestApp().createShapes(
   {
-    type: TLDrawShapeType.Rectangle,
+    type: TldrawShapeType.Rectangle,
     id: 'a',
     childIndex: 1.0,
   },
   {
-    type: TLDrawShapeType.Rectangle,
+    type: TldrawShapeType.Rectangle,
     id: 'b',
     childIndex: 2.0,
   },
   {
-    type: TLDrawShapeType.Rectangle,
+    type: TldrawShapeType.Rectangle,
     id: 'c',
     childIndex: 3,
   },
   {
-    type: TLDrawShapeType.Rectangle,
+    type: TldrawShapeType.Rectangle,
     id: 'd',
     childIndex: 4,
   }
@@ -27,14 +27,14 @@ const state = new TLDrawTestApp().createShapes(
 
 const doc = { ...state.document }
 
-function getSortedShapeIds(data: TLDrawSnapshot) {
+function getSortedShapeIds(data: TldrawSnapshot) {
   return TLDR.getShapes(data, data.appState.currentPageId)
     .sort((a, b) => a.childIndex - b.childIndex)
     .map((shape) => shape.id)
     .join('')
 }
 
-function getSortedIndices(data: TLDrawSnapshot) {
+function getSortedIndices(data: TldrawSnapshot) {
   return TLDR.getShapes(data, data.appState.currentPageId)
     .sort((a, b) => a.childIndex - b.childIndex)
     .map((shape) => shape.childIndex.toFixed(2))

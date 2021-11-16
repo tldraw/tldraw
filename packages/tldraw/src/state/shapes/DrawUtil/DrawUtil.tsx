@@ -2,8 +2,8 @@ import * as React from 'react'
 import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { defaultStyle, getShapeStyle } from '../shared/shape-styles'
-import { DrawShape, DashStyle, TLDrawShapeType, TLDrawTransformInfo, TLDrawMeta } from '~types'
-import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
+import { DrawShape, DashStyle, TldrawShapeType, TldrawTransformInfo, TldrawMeta } from '~types'
+import { TldrawShapeUtil } from '../TldrawShapeUtil'
 import {
   intersectBoundsBounds,
   intersectBoundsPolyline,
@@ -11,17 +11,17 @@ import {
   intersectLineSegmentLineSegment,
 } from '@tldraw/intersect'
 import {
-  getDrawStrokePathTLDrawSnapshot,
+  getDrawStrokePathTldrawSnapshot,
   getFillPath,
-  getSolidStrokePathTLDrawSnapshot,
+  getSolidStrokePathTldrawSnapshot,
 } from './drawHelpers'
 import { GHOSTED_OPACITY } from '~constants'
 
 type T = DrawShape
 type E = SVGSVGElement
 
-export class DrawUtil extends TLDrawShapeUtil<T, E> {
-  type = TLDrawShapeType.Draw as const
+export class DrawUtil extends TldrawShapeUtil<T, E> {
+  type = TldrawShapeType.Draw as const
 
   pointsBoundsCache = new WeakMap<T['points'], TLBounds>([])
 
@@ -35,7 +35,7 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
     return Utils.deepMerge<T>(
       {
         id: 'id',
-        type: TLDrawShapeType.Draw,
+        type: TldrawShapeType.Draw,
         name: 'Draw',
         parentId: 'page',
         childIndex: 1,
@@ -49,18 +49,18 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
+  Component = TldrawShapeUtil.Component<T, E, TldrawMeta>(
     ({ shape, meta, isGhost, events }, ref) => {
       const { points, style, isComplete } = shape
 
-      const polygonPathTLDrawSnapshot = React.useMemo(() => {
+      const polygonPathTldrawSnapshot = React.useMemo(() => {
         return getFillPath(shape)
       }, [points, style.size])
 
-      const pathTLDrawSnapshot = React.useMemo(() => {
+      const pathTldrawSnapshot = React.useMemo(() => {
         return style.dash === DashStyle.Draw
-          ? getDrawStrokePathTLDrawSnapshot(shape)
-          : getSolidStrokePathTLDrawSnapshot(shape)
+          ? getDrawStrokePathTldrawSnapshot(shape)
+          : getSolidStrokePathTldrawSnapshot(shape)
       }, [points, style.size, style.dash, isComplete])
 
       const styles = getShapeStyle(style, meta.isDarkMode)
@@ -92,7 +92,7 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
             <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
               {shouldFill && (
                 <path
-                  d={polygonPathTLDrawSnapshot}
+                  d={polygonPathTldrawSnapshot}
                   stroke="none"
                   fill={fill}
                   strokeLinejoin="round"
@@ -101,7 +101,7 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
                 />
               )}
               <path
-                d={pathTLDrawSnapshot}
+                d={pathTldrawSnapshot}
                 fill={stroke}
                 stroke={stroke}
                 strokeWidth={strokeWidth / 2}
@@ -136,7 +136,7 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
             <path
-              d={pathTLDrawSnapshot}
+              d={pathTldrawSnapshot}
               fill={shouldFill ? fill : 'none'}
               stroke="none"
               strokeWidth={Math.min(4, strokeWidth * 2)}
@@ -145,7 +145,7 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
               pointerEvents={shouldFill ? 'all' : 'stroke'}
             />
             <path
-              d={pathTLDrawSnapshot}
+              d={pathTldrawSnapshot}
               fill="none"
               stroke={stroke}
               strokeWidth={sw}
@@ -161,11 +161,11 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
     }
   )
 
-  Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
+  Indicator = TldrawShapeUtil.Indicator<T>(({ shape }) => {
     const { points } = shape
 
-    const pathTLDrawSnapshot = React.useMemo(() => {
-      return getSolidStrokePathTLDrawSnapshot(shape)
+    const pathTldrawSnapshot = React.useMemo(() => {
+      return getSolidStrokePathTldrawSnapshot(shape)
     }, [points])
 
     const bounds = this.getBounds(shape)
@@ -176,13 +176,13 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
       return <circle x={bounds.width / 2} y={bounds.height / 2} r={1} />
     }
 
-    return <path d={pathTLDrawSnapshot} />
+    return <path d={pathTldrawSnapshot} />
   })
 
   transform = (
     shape: T,
     bounds: TLBounds,
-    { initialShape, scaleX, scaleY }: TLDrawTransformInfo<T>
+    { initialShape, scaleX, scaleY }: TldrawTransformInfo<T>
   ): Partial<T> => {
     const initialShapeBounds = Utils.getFromCache(this.boundsCache, initialShape, () =>
       Utils.getBoundsFromPoints(initialShape.points)

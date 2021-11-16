@@ -4,11 +4,11 @@ import Vec from '@tldraw/vec'
 import getStroke from 'perfect-freehand'
 import { EASINGS } from '~constants'
 import { getShapeStyle } from '../shared/shape-styles'
-import type { ArrowShape, TLDrawHandle } from '~types'
+import type { ArrowShape, TldrawHandle } from '~types'
 
 export function getArrowArcPath(
-  start: TLDrawHandle,
-  end: TLDrawHandle,
+  start: TldrawHandle,
+  end: TldrawHandle,
   circle: number[],
   bend: number
 ) {

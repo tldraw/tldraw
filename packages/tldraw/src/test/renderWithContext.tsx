@@ -1,14 +1,14 @@
 import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
-import { TLDrawApp } from '~state'
-import { useKeyboardShortcuts, TLDrawContext } from '~hooks'
+import { TldrawApp } from '~state'
+import { useKeyboardShortcuts, TldrawContext } from '~hooks'
 import { mockDocument } from './mockDocument'
 import { render } from '@testing-library/react'
 
 export const Wrapper: React.FC = ({ children }) => {
-  const [state] = React.useState(() => new TLDrawApp())
+  const [app] = React.useState(() => new TldrawApp())
   const [context] = React.useState(() => {
-    return { state, useSelector: state.useStore, callbacks: {} }
+    return app
   })
 
   const rWrapper = React.useRef<HTMLDivElement>(null)
@@ -17,15 +17,15 @@ export const Wrapper: React.FC = ({ children }) => {
 
   React.useEffect(() => {
     if (!document) return
-    state.loadDocument(mockDocument)
-  }, [document, state])
+    app.loadDocument(mockDocument)
+  }, [document, app])
 
   return (
-    <TLDrawContext.Provider value={context}>
+    <TldrawContext.Provider value={context}>
       <IdProvider>
         <div ref={rWrapper}>{children}</div>
       </IdProvider>
-    </TLDrawContext.Provider>
+    </TldrawContext.Provider>
   )
 }
 

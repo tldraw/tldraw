@@ -1,16 +1,16 @@
-import type { SessionType, TLDrawCommand, TLDrawPatch } from '~types'
-import type { TLDrawApp } from '../internal'
+import type { SessionType, TldrawCommand, TldrawPatch } from '~types'
+import type { TldrawApp } from '../internal'
 
 export abstract class BaseSession {
   abstract type: SessionType
 
-  constructor(public app: TLDrawApp) {}
+  constructor(public app: TldrawApp) {}
 
-  abstract start: () => TLDrawPatch | undefined
+  abstract start: () => TldrawPatch | undefined
 
-  abstract update: () => TLDrawPatch | undefined
+  abstract update: () => TldrawPatch | undefined
 
-  abstract complete: () => TLDrawPatch | TLDrawCommand | undefined
+  abstract complete: () => TldrawPatch | TldrawCommand | undefined
 
-  abstract cancel: () => TLDrawPatch | undefined
+  abstract cancel: () => TldrawPatch | undefined
 }

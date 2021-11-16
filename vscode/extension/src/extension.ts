@@ -1,10 +1,10 @@
 import * as vscode from 'vscode'
-import { TLDrawEditorProvider } from './TLDrawEditorProvider'
+import { TldrawEditorProvider } from './TldrawEditorProvider'
 
 // When a .tldr is first opened or created, activate the extension.
 export function activate(context: vscode.ExtensionContext) {
   try {
-    context.subscriptions.push(TLDrawEditorProvider.register(context))
+    context.subscriptions.push(TldrawEditorProvider.register(context))
   } catch (e) {
     console.error(e)
   }

@@ -65,7 +65,7 @@ exports[` 1`] = `
 ]"
 `;
 
-exports[`TLDrawTestApp Exposes undo/redo stack: history 1`] = `
+exports[`TldrawTestApp Exposes undo/redo stack: history 1`] = `
 Array [
   Object {
     "after": Object {
@@ -194,7 +194,7 @@ Array [
 ]
 `;
 
-exports[`TLDrawTestApp Selection When selecting all selects all: selected all 1`] = `
+exports[`TldrawTestApp Selection When selecting all selects all: selected all 1`] = `
 Array [
   "rect1",
   "rect2",
@@ -202,6 +202,6 @@ Array [
 ]
 `;
 
-exports[`TLDrawTestApp When copying to SVG Copies grouped shapes.: copied svg with group 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"-16 -16 232 232\\" width=\\"200\\" height=\\"200\\"><g/></svg>"`;
+exports[`TldrawTestApp When copying to SVG Copies grouped shapes.: copied svg with group 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"-16 -16 232 232\\" width=\\"200\\" height=\\"200\\"><g/></svg>"`;
 
-exports[`TLDrawTestApp When copying to SVG Copies shapes.: copied svg 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"-20.741879096242684 -20.741879096242684 236.74 236.74\\" width=\\"204.74\\" height=\\"204.74\\"/>"`;
+exports[`TldrawTestApp When copying to SVG Copies shapes.: copied svg 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"-20.741879096242684 -20.741879096242684 236.74 236.74\\" width=\\"204.74\\" height=\\"204.74\\"/>"`;

@@ -1,12 +1,12 @@
-import type { TLDrawCommand, TLDrawShape } from '~types'
+import type { TldrawCommand, TldrawShape } from '~types'
 import { TLDR } from '~state/TLDR'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 
 export function update(
-  app: TLDrawApp,
-  updates: ({ id: string } & Partial<TLDrawShape>)[],
+  app: TldrawApp,
+  updates: ({ id: string } & Partial<TldrawShape>)[],
   pageId: string
-): TLDrawCommand {
+): TldrawCommand {
   const ids = updates.map((update) => update.id)
 
   const change = TLDR.mutateShapes(

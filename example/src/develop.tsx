@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import { TLDraw, TLDrawApp, useFileSystem } from '@tldraw/tldraw'
+import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/Tldraw'
 
-declare const window: Window & { state: TLDrawApp }
+declare const window: Window & { state: TldrawApp }
 
 export default function Develop(): JSX.Element {
-  const rTLDrawApp = React.useRef<TLDrawApp>()
+  const rTldrawApp = React.useRef<TldrawApp>()
 
   const fileSystemEvents = useFileSystem()
 
-  const handleMount = React.useCallback((state: TLDrawApp) => {
+  const handleMount = React.useCallback((state: TldrawApp) => {
     window.state = state
-    rTLDrawApp.current = state
+    rTldrawApp.current = state
   }, [])
 
   const handleSignOut = React.useCallback(() => {
@@ -27,8 +27,8 @@ export default function Develop(): JSX.Element {
   }, [])
 
   return (
-    <div className="tldraw">
-      <TLDraw
+    <div className="Tldraw">
+      <Tldraw
         id="develop"
         {...fileSystemEvents}
         onMount={handleMount}

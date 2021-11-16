@@ -1,19 +1,17 @@
 import Vec from '@tldraw/vec'
 import { Utils, TLPointerEventHandler } from '@tldraw/core'
 import { Arrow } from '~state/shapes'
-import { SessionType, TLDrawShapeType } from '~types'
+import { SessionType, TldrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class ArrowTool extends BaseTool {
-  type = TLDrawShapeType.Arrow as const
+  type = TldrawShapeType.Arrow as const
 
   /* ----------------- Event Handlers ----------------- */
 
   onPointerDown: TLPointerEventHandler = () => {
-    const { currentPoint } = this.app.mutables
-    const pagePoint = Vec.round(currentPoint)
-
     const {
+      currentPoint,
       appState: { currentPageId, currentStyle },
     } = this.app
 
@@ -25,7 +23,7 @@ export class ArrowTool extends BaseTool {
       id,
       parentId: currentPageId,
       childIndex,
-      point: pagePoint,
+      point: currentPoint,
       style: { ...currentStyle },
     })
 

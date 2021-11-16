@@ -1,14 +1,14 @@
-import type { TLDrawSnapshot, Theme } from '~types'
-import { useTLDrawContext } from './useTLDrawContext'
+import type { TldrawSnapshot, Theme } from '~types'
+import { useTldrawApp } from './useTldrawApp'
 
-const themeSelector = (data: TLDrawSnapshot): Theme => (data.settings.isDarkMode ? 'dark' : 'light')
+const themeSelector = (data: TldrawSnapshot): Theme => (data.settings.isDarkMode ? 'dark' : 'light')
 
 export function useTheme() {
-  const { state, useSelector } = useTLDrawContext()
-  const theme = useSelector(themeSelector)
+  const app = useTldrawApp()
+  const theme = app.useStore(themeSelector)
 
   return {
     theme,
-    toggle: state.toggleDarkMode,
+    toggle: app.toggleDarkMode,
   }
 }

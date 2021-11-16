@@ -1,9 +1,9 @@
 import type { TLPointerEventHandler, TLKeyboardEventHandler } from '@tldraw/core'
-import { TLDrawShapeType } from '~types'
+import { TldrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class TextTool extends BaseTool {
-  type = TLDrawShapeType.Text as const
+  type = TldrawShapeType.Text as const
 
   /* --------------------- Methods -------------------- */
 
@@ -32,7 +32,7 @@ export class TextTool extends BaseTool {
     }
 
     if (this.status === Status.Idle) {
-      const { currentPoint } = this.app.mutables
+      const { currentPoint } = this.app
       this.app.createTextShapeAtPoint(currentPoint)
       this.setStatus(Status.Creating)
       return
@@ -46,7 +46,7 @@ export class TextTool extends BaseTool {
 
   onPointShape: TLPointerEventHandler = (info) => {
     const shape = this.app.getShape(info.target)
-    if (shape.type === TLDrawShapeType.Text) {
+    if (shape.type === TldrawShapeType.Text) {
       this.setStatus(Status.Idle)
       this.app.setEditingId(shape.id)
     }

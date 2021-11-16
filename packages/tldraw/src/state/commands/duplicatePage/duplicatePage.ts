@@ -1,8 +1,8 @@
-import type { TLDrawCommand } from '~types'
+import type { TldrawCommand } from '~types'
 import { Utils } from '@tldraw/core'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 
-export function duplicatePage(app: TLDrawApp, pageId: string): TLDrawCommand {
+export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
   const newId = Utils.uniqueId()
   const {
     currentPageId,

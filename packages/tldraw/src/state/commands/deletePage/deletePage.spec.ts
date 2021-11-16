@@ -1,7 +1,7 @@
-import { mockDocument, TLDrawTestApp } from '~test'
+import { mockDocument, TldrawTestApp } from '~test'
 
 describe('Delete page', () => {
-  const state = new TLDrawTestApp()
+  const state = new TldrawTestApp()
 
   beforeEach(() => {
     state.loadDocument(mockDocument)

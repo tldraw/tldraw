@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Dialog from '@radix-ui/react-alert-dialog'
 import { MixerVerticalIcon } from '@radix-ui/react-icons'
-import type { TLDrawSnapshot, TLDrawPage } from '~types'
-import { useTLDrawContext } from '~hooks'
+import type { TldrawSnapshot, TldrawPage } from '~types'
+import { useTldrawApp } from '~hooks'
 import { RowButton, RowButtonProps } from '~components/RowButton'
 import { styled } from '~styles'
 import { Divider } from '~components/Divider'
@@ -10,36 +10,36 @@ import { IconButton } from '~components/IconButton/IconButton'
 import { SmallIcon } from '~components/SmallIcon'
 import { breakpoints } from '~components/breakpoints'
 
-const canDeleteSelector = (s: TLDrawSnapshot) => {
+const canDeleteSelector = (s: TldrawSnapshot) => {
   return Object.keys(s.document.pages).length > 1
 }
 
 interface PageOptionsDialogProps {
-  page: TLDrawPage
+  page: TldrawPage
   onOpen?: () => void
   onClose?: () => void
 }
 
 export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogProps): JSX.Element {
-  const { state, useSelector } = useTLDrawContext()
+  const app = useTldrawApp()
 
   const [isOpen, setIsOpen] = React.useState(false)
 
-  const canDelete = useSelector(canDeleteSelector)
+  const canDelete = app.useStore(canDeleteSelector)
 
   const rInput = React.useRef<HTMLInputElement>(null)
 
   const handleDuplicate = React.useCallback(() => {
     state.duplicatePage(page.id)
     onClose?.()
-  }, [state])
+  }, [app])
 
   const handleDelete = React.useCallback(() => {
     if (window.confirm(`Are you sure you want to delete this page?`)) {
       state.deletePage(page.id)
       onClose?.()
     }
-  }, [state])
+  }, [app])
 
   const handleOpenChange = React.useCallback(
     (isOpen: boolean) => {

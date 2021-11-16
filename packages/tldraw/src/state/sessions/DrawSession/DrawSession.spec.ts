@@ -1,12 +1,12 @@
-import { TLDrawTestApp } from '~test'
-import { TLDrawShapeType, TLDrawStatus } from '~types'
+import { TldrawTestApp } from '~test'
+import { TldrawShapeType, TldrawStatus } from '~types'
 
 describe('Draw session', () => {
   it('begins, updateSession', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
 
     state
-      .selectTool(TLDrawShapeType.Draw)
+      .selectTool(TldrawShapeType.Draw)
       .pointCanvas([0, 0])
       .movePointer([10, 10, 0.5])
       .completeSession()
@@ -15,14 +15,14 @@ describe('Draw session', () => {
 
     expect(shape).toBeTruthy()
 
-    expect(state.appState.status).toBe(TLDrawStatus.Idle)
+    expect(state.appState.status).toBe(TldrawStatus.Idle)
   })
 
   it('does, undoes and redoes', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
 
     state
-      .selectTool(TLDrawShapeType.Draw)
+      .selectTool(TldrawShapeType.Draw)
       .pointCanvas([0, 0])
       .movePointer([10, 10, 0.5])
       .completeSession()

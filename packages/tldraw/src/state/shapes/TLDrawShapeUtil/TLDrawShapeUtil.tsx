@@ -8,13 +8,13 @@ import {
   intersectRayBounds,
 } from '@tldraw/intersect'
 import { Vec } from '@tldraw/vec'
-import type { TLDrawBinding, TLDrawMeta, TLDrawShape, TLDrawTransformInfo } from '~types'
+import type { TldrawBinding, TldrawMeta, TldrawShape, TldrawTransformInfo } from '~types'
 import * as React from 'react'
 
-export abstract class TLDrawShapeUtil<
-  T extends TLDrawShape,
+export abstract class TldrawShapeUtil<
+  T extends TldrawShape,
   E extends Element = any
-> extends TLShapeUtil<T, E, TLDrawMeta> {
+> extends TLShapeUtil<T, E, TldrawMeta> {
   abstract type: T['type']
 
   canBind = false
@@ -52,7 +52,7 @@ export abstract class TLDrawShapeUtil<
     return Utils.getBoundsCenter(this.getBounds(shape))
   }
 
-  getBindingPoint = <K extends TLDrawShape>(
+  getBindingPoint = <K extends TldrawShape>(
     shape: T,
     fromShape: K,
     point: number[],
@@ -137,26 +137,26 @@ export abstract class TLDrawShapeUtil<
     return props
   }
 
-  transform = (shape: T, bounds: TLBounds, info: TLDrawTransformInfo<T>): Partial<T> => {
+  transform = (shape: T, bounds: TLBounds, info: TldrawTransformInfo<T>): Partial<T> => {
     return { ...shape, point: [bounds.minX, bounds.minY] }
   }
 
   transformSingle = (
     shape: T,
     bounds: TLBounds,
-    info: TLDrawTransformInfo<T>
+    info: TldrawTransformInfo<T>
   ): Partial<T> | void => {
     return this.transform(shape, bounds, info)
   }
 
-  updateChildren?: <K extends TLDrawShape>(shape: T, children: K[]) => Partial<K>[] | void
+  updateChildren?: <K extends TldrawShape>(shape: T, children: K[]) => Partial<K>[] | void
 
-  onChildrenChange?: (shape: T, children: TLDrawShape[]) => Partial<T> | void
+  onChildrenChange?: (shape: T, children: TldrawShape[]) => Partial<T> | void
 
   onBindingChange?: (
     shape: T,
-    binding: TLDrawBinding,
-    target: TLDrawShape,
+    binding: TldrawBinding,
+    target: TldrawShape,
     targetBounds: TLBounds,
     center: number[]
   ) => Partial<T> | void

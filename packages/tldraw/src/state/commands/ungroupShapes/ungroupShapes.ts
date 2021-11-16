@@ -1,22 +1,22 @@
 import { TLDR } from '~state/TLDR'
-import type { GroupShape, TLDrawBinding, TLDrawShape } from '~types'
-import type { TLDrawCommand } from '~types'
+import type { GroupShape, TldrawBinding, TldrawShape } from '~types'
+import type { TldrawCommand } from '~types'
 import type { Patch } from 'rko'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 
 export function ungroupShapes(
-  app: TLDrawApp,
+  app: TldrawApp,
   selectedIds: string[],
   groupShapes: GroupShape[],
   pageId: string
-): TLDrawCommand | undefined {
+): TldrawCommand | undefined {
   const { bindings } = app
 
-  const beforeShapes: Record<string, Patch<TLDrawShape | undefined>> = {}
-  const afterShapes: Record<string, Patch<TLDrawShape | undefined>> = {}
+  const beforeShapes: Record<string, Patch<TldrawShape | undefined>> = {}
+  const afterShapes: Record<string, Patch<TldrawShape | undefined>> = {}
 
-  const beforeBindings: Record<string, Patch<TLDrawBinding | undefined>> = {}
-  const afterBindings: Record<string, Patch<TLDrawBinding | undefined>> = {}
+  const beforeBindings: Record<string, Patch<TldrawBinding | undefined>> = {}
+  const afterBindings: Record<string, Patch<TldrawBinding | undefined>> = {}
 
   const beforeSelectedIds = selectedIds
   const afterSelectedIds = selectedIds.filter((id) => !groupShapes.find((shape) => shape.id === id))
@@ -25,7 +25,7 @@ export function ungroupShapes(
   groupShapes
     .filter((shape) => !shape.isLocked)
     .forEach((groupShape) => {
-      const shapesToReparent: TLDrawShape[] = []
+      const shapesToReparent: TldrawShape[] = []
       const deletedGroupIds: string[] = []
 
       // Remove the group shape in the next state

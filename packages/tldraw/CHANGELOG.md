@@ -1,3 +1,17 @@
+## 0.2.0
+
+Improvements
+
+- Updates UI in toolbars, menus
+- Simplifies state and context
+- Adds and updtes tests
+- Renames TLDraw to tldraw throughout the app and documentation.
+- Renames TLDrawState to TldrawApp, state to app
+
+New
+
+- Double-click a tool icon to toggle "tool lock". This will prevent the app from returning to the select tool after creating a shape.
+
 ## 0.1.17
 
 - Fixes "shifting" bug with drawing tool. Finally!
@@ -61,7 +75,7 @@
 
 - Extracted into its own repository (`tldraw/core`) and open sourced! :clap:
 
-### TLDraw
+### tldraw
 
 - Updated with latest `@tldraw/core`, updated ShapeUtils API.
 
@@ -71,31 +85,31 @@
 
 - Major change to ShapeUtils API.
 
-### TLDraw
+### tldraw
 
 - Rewrite utils with new API.
 
 ## 0.0.126
 
-### TLDraw
+### tldraw
 
 - Swap behavior of command and alt keys in arrow shapes.
 
 ## 0.0.125
 
-### TLDraw
+### tldraw
 
 - Bug fixes.
 
 ## 0.0.124
 
-### TLDraw
+### tldraw
 
 - Fix typings.
 
 ## 0.0.123
 
-### TLDraw
+### tldraw
 
 - Adds bound shape controls.
 - Drag a bound shape control to translate shapes in that direction.
@@ -104,7 +118,7 @@
 
 ## 0.0.122
 
-### TLDraw
+### tldraw
 
 - Adds snapping for transforming shapes.
 
@@ -114,20 +128,20 @@
 
 - Adds `snapLines`.
 
-### TLDraw
+### tldraw
 
 - Adds shape snapping while translating. Hold Command/Control to disable while dragging.
 
 ## 0.0.120
 
-### TLDraw
+### tldraw
 
 - Improves rectangle rendering.
 - Improves zoom to fit and zoom to selection.
 
 ## 0.0.119
 
-### TLDraw
+### tldraw
 
 - Fixes bug with bound arrows after undo.
 
@@ -137,7 +151,7 @@
 
 - Improves multiplayer features.
 
-### TLDraw
+### tldraw
 
 - Fixes bugs in text, arrows, stickies.
 - Adds start binding for new arrows.
@@ -151,7 +165,7 @@
 
 - Improves rendering on Safari.
 
-### TLDraw
+### tldraw
 
 - Improves rendering on Safari.
 - Minor bug fixes around selection.
@@ -164,32 +178,32 @@
 - Adds [side cloning](https://github.com/tldraw/tldraw/pull/149).
 - Improves rendering.
 
-### TLDraw
+### tldraw
 
 - Adds sticky note [side cloning](https://github.com/tldraw/tldraw/pull/149).
 
 ## 0.0.114
 
-### TLDraw
+### tldraw
 
 - Improves fills for filled shapes.
 
 ## 0.0.113
 
-### TLDraw
+### tldraw
 
 - Improves grouping and ungrouping.
 
 ## 0.0.112
 
-### TLDraw
+### tldraw
 
-- Fixes centering on embedded TLDraw components.
+- Fixes centering on embedded tldraw components.
 - Removes expensive calls to window.
 
 ## 0.0.111
 
-### TLDraw
+### tldraw
 
 - Adjust stroke widths and sizes.
 - Fixes a bug on very small dashed shapes.
@@ -200,7 +214,7 @@
 
 - Adds `user` and `users` props (optional) for multiplayer cursors. This feature is very lightly implemented.
 
-### TLDraw
+### tldraw
 
 - Adds multiplayer support.
 - Adds `showMenu` and `showPages` props.
@@ -208,7 +222,7 @@
 
 ## 0.0.109
 
-### TLDraw
+### tldraw
 
 - Bumps perfect-freehand
 - Fixes dots for small sized draw shapes
@@ -217,6 +231,6 @@
 
 - Adds CHANGELOG. Only 108 releases late!
 
-### TLDraw
+### tldraw
 
 - Fixes a bug with bounding boxes on arrows.

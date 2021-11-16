@@ -1,10 +1,10 @@
 import { TLDR } from '~state/TLDR'
-import { mockDocument, TLDrawTestApp } from '~test'
-import { SizeStyle, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { SizeStyle, TldrawShapeType } from '~types'
 
 describe('Style command', () => {
   it('does, undoes and redoes command', () => {
-    const state = new TLDrawTestApp().loadDocument(mockDocument).select('rect1')
+    const state = new TldrawTestApp().loadDocument(mockDocument).select('rect1')
     expect(state.getShape('rect1').style.size).toEqual(SizeStyle.Medium)
 
     state.style({ size: SizeStyle.Small })
@@ -22,7 +22,7 @@ describe('Style command', () => {
 
   describe('When styling groups', () => {
     it('applies style to all group children', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
       state
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
@@ -46,25 +46,25 @@ describe('Style command', () => {
 
   describe('When styling text', () => {
     it('recenters the shape if the size changed', () => {
-      const state = new TLDrawTestApp().createShapes({
+      const state = new TldrawTestApp().createShapes({
         id: 'text1',
-        type: TLDrawShapeType.Text,
+        type: TldrawShapeType.Text,
         text: 'Hello world',
       })
 
-      const centerA = TLDR.getShapeUtils(TLDrawShapeType.Text).getCenter(state.getShape('text1'))
+      const centerA = TLDR.getShapeUtils(TldrawShapeType.Text).getCenter(state.getShape('text1'))
 
       state.select('text1').style({ size: SizeStyle.Large })
 
-      const centerB = TLDR.getShapeUtils(TLDrawShapeType.Text).getCenter(state.getShape('text1'))
+      const centerB = TLDR.getShapeUtils(TldrawShapeType.Text).getCenter(state.getShape('text1'))
 
       state.style({ size: SizeStyle.Small })
 
-      const centerC = TLDR.getShapeUtils(TLDrawShapeType.Text).getCenter(state.getShape('text1'))
+      const centerC = TLDR.getShapeUtils(TldrawShapeType.Text).getCenter(state.getShape('text1'))
 
       state.style({ size: SizeStyle.Medium })
 
-      const centerD = TLDR.getShapeUtils(TLDrawShapeType.Text).getCenter(state.getShape('text1'))
+      const centerD = TLDR.getShapeUtils(TldrawShapeType.Text).getCenter(state.getShape('text1'))
 
       expect(centerA).toEqual(centerB)
       expect(centerA).toEqual(centerC)
@@ -75,7 +75,7 @@ describe('Style command', () => {
 
 describe('when running the command', () => {
   it('restores selection on undo', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1')
       .style({ size: SizeStyle.Small })

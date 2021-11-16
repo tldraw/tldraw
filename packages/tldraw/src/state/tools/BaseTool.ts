@@ -4,8 +4,8 @@ import {
   TLPointerEventHandler,
   Utils,
 } from '@tldraw/core'
-import type { TLDrawApp } from '../internal'
-import { TLDrawEventHandler, TLDrawToolType } from '~types'
+import type { TldrawApp } from '../internal'
+import { TldrawEventHandler, TldrawToolType } from '~types'
 
 export enum Status {
   Idle = 'idle',
@@ -14,14 +14,14 @@ export enum Status {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export abstract class BaseTool<T extends string = any> extends TLDrawEventHandler {
-  type: TLDrawToolType = 'select' as const
+export abstract class BaseTool<T extends string = any> extends TldrawEventHandler {
+  type: TldrawToolType = 'select' as const
 
-  previous?: TLDrawToolType
+  previous?: TldrawToolType
 
   status: Status | T = Status.Idle
 
-  constructor(public app: TLDrawApp) {
+  constructor(public app: TldrawApp) {
     super()
   }
 

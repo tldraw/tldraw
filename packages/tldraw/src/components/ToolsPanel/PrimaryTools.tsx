@@ -6,51 +6,51 @@ import {
   Pencil2Icon,
   TextIcon,
 } from '@radix-ui/react-icons'
-import { TLDrawSnapshot, TLDrawShapeType } from '~types'
-import { useTLDrawContext } from '~hooks'
+import { TldrawSnapshot, TldrawShapeType } from '~types'
+import { useTldrawApp } from '~hooks'
 import { ToolButtonWithTooltip } from '~components/ToolButton'
 import { Panel } from '~components/Panel'
 import { ShapesMenu } from './ShapesMenu'
 import { EraserIcon } from '~components/icons'
 
-const activeToolSelector = (s: TLDrawSnapshot) => s.appState.activeTool
+const activeToolSelector = (s: TldrawSnapshot) => s.appState.activeTool
 
 export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
-  const { state, useSelector } = useTLDrawContext()
+  const app = useTldrawApp()
 
-  const activeTool = useSelector(activeToolSelector)
+  const activeTool = app.useStore(activeToolSelector)
 
   const selectSelectTool = React.useCallback(() => {
     state.selectTool('select')
-  }, [state])
+  }, [app])
 
   const selectEraseTool = React.useCallback(() => {
     state.selectTool('erase')
-  }, [state])
+  }, [app])
 
   const selectDrawTool = React.useCallback(() => {
-    state.selectTool(TLDrawShapeType.Draw)
-  }, [state])
+    state.selectTool(TldrawShapeType.Draw)
+  }, [app])
 
   const selectRectangleTool = React.useCallback(() => {
-    state.selectTool(TLDrawShapeType.Rectangle)
-  }, [state])
+    state.selectTool(TldrawShapeType.Rectangle)
+  }, [app])
 
   const selectEllipseTool = React.useCallback(() => {
-    state.selectTool(TLDrawShapeType.Ellipse)
-  }, [state])
+    state.selectTool(TldrawShapeType.Ellipse)
+  }, [app])
 
   const selectArrowTool = React.useCallback(() => {
-    state.selectTool(TLDrawShapeType.Arrow)
-  }, [state])
+    state.selectTool(TldrawShapeType.Arrow)
+  }, [app])
 
   const selectTextTool = React.useCallback(() => {
-    state.selectTool(TLDrawShapeType.Text)
-  }, [state])
+    state.selectTool(TldrawShapeType.Text)
+  }, [app])
 
   const selectStickyTool = React.useCallback(() => {
-    state.selectTool(TLDrawShapeType.Sticky)
-  }, [state])
+    state.selectTool(TldrawShapeType.Sticky)
+  }, [app])
 
   return (
     <Panel side="center">
@@ -64,9 +64,9 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'2'}
-        label={TLDrawShapeType.Draw}
+        label={TldrawShapeType.Draw}
         onClick={selectDrawTool}
-        isActive={activeTool === TLDrawShapeType.Draw}
+        isActive={activeTool === TldrawShapeType.Draw}
       >
         <Pencil1Icon />
       </ToolButtonWithTooltip>
@@ -81,25 +81,25 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
       <ShapesMenu activeTool={activeTool} />
       <ToolButtonWithTooltip
         kbd={'6'}
-        label={TLDrawShapeType.Arrow}
+        label={TldrawShapeType.Arrow}
         onClick={selectArrowTool}
-        isActive={activeTool === TLDrawShapeType.Arrow}
+        isActive={activeTool === TldrawShapeType.Arrow}
       >
         <ArrowTopRightIcon />
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'7'}
-        label={TLDrawShapeType.Text}
+        label={TldrawShapeType.Text}
         onClick={selectTextTool}
-        isActive={activeTool === TLDrawShapeType.Text}
+        isActive={activeTool === TldrawShapeType.Text}
       >
         <TextIcon />
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'8'}
-        label={TLDrawShapeType.Sticky}
+        label={TldrawShapeType.Sticky}
         onClick={selectStickyTool}
-        isActive={activeTool === TLDrawShapeType.Sticky}
+        isActive={activeTool === TldrawShapeType.Sticky}
       >
         <Pencil2Icon />
       </ToolButtonWithTooltip>

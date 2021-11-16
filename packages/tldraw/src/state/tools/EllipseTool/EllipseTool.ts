@@ -1,16 +1,16 @@
 import { Utils, TLPointerEventHandler, TLBoundsCorner } from '@tldraw/core'
 import { Ellipse } from '~state/shapes'
-import { SessionType, TLDrawShapeType } from '~types'
+import { SessionType, TldrawShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class EllipseTool extends BaseTool {
-  type = TLDrawShapeType.Ellipse as const
+  type = TldrawShapeType.Ellipse as const
 
   /* ----------------- Event Handlers ----------------- */
 
   onPointerDown: TLPointerEventHandler = () => {
     const {
-      mutables: { currentPoint },
+      currentPoint,
       appState: { currentPageId, currentStyle },
     } = this.app
 

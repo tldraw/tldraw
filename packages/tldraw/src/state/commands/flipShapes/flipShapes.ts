@@ -1,10 +1,10 @@
 import { FlipType } from '~types'
 import { TLBoundsCorner, Utils } from '@tldraw/core'
-import type { TLDrawCommand } from '~types'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawCommand } from '~types'
+import type { TldrawApp } from '../../internal'
 import { TLDR } from '~state/TLDR'
 
-export function flipShapes(app: TLDrawApp, ids: string[], type: FlipType): TLDrawCommand {
+export function flipShapes(app: TldrawApp, ids: string[], type: FlipType): TldrawCommand {
   const { selectedIds, currentPageId, shapes } = app
 
   const boundsForShapes = shapes.map((shape) => TLDR.getBounds(shape))

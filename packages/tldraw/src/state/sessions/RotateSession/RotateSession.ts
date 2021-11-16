@@ -1,27 +1,27 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { SessionType, TLDrawCommand, TLDrawPatch, TLDrawShape, TLDrawStatus } from '~types'
+import { SessionType, TldrawCommand, TldrawPatch, TldrawShape, TldrawStatus } from '~types'
 import { TLDR } from '~state/TLDR'
 import { BaseSession } from '../BaseSession'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 
 export class RotateSession extends BaseSession {
   type = SessionType.Rotate
-  status = TLDrawStatus.Transforming
+  status = TldrawStatus.Transforming
   delta = [0, 0]
   commonBoundsCenter: number[]
   initialAngle: number
   initialShapes: {
-    shape: TLDrawShape
+    shape: TldrawShape
     center: number[]
   }[]
-  changes: Record<string, Partial<TLDrawShape>> = {}
+  changes: Record<string, Partial<TldrawShape>> = {}
 
-  constructor(app: TLDrawApp) {
+  constructor(app: TldrawApp) {
     super(app)
 
     const {
-      app: { currentPageId, pageState, mutables },
+      app: { currentPageId, pageState, originPoint },
     } = this
 
     const initialShapes = TLDR.getSelectedBranchSnapshot(app.state, currentPageId).filter(
@@ -32,18 +32,18 @@ export class RotateSession extends BaseSession {
       throw Error('No selected shapes!')
     }
 
-    if (mutables.selectedIds === pageState.selectedIds) {
-      if (mutables.center === undefined) {
-        throw Error('The center was not added to the cache!')
+    if (app.selectedIdsForRotation === pageState.selectedIds) {
+      if (app.centerForRotation === undefined) {
+        throw Error('We should have a center for rotation!')
       }
 
-      this.commonBoundsCenter = mutables.center
+      this.commonBoundsCenter = app.centerForRotation
     } else {
       this.commonBoundsCenter = Utils.getBoundsCenter(
         Utils.getCommonBounds(initialShapes.map(TLDR.getBounds))
       )
-      mutables.selectedIds = pageState.selectedIds
-      mutables.center = this.commonBoundsCenter
+      app.selectedIdsForRotation = pageState.selectedIds
+      app.centerForRotation = this.commonBoundsCenter
     }
 
     this.initialShapes = initialShapes
@@ -55,22 +55,19 @@ export class RotateSession extends BaseSession {
         }
       })
 
-    this.initialAngle = Vec.angle(this.commonBoundsCenter, app.mutables.originPoint)
+    this.initialAngle = Vec.angle(this.commonBoundsCenter, originPoint)
   }
 
-  start = (): TLDrawPatch | undefined => void null
+  start = (): TldrawPatch | undefined => void null
 
-  update = (): TLDrawPatch | undefined => {
+  update = (): TldrawPatch | undefined => {
     const {
       commonBoundsCenter,
       initialShapes,
-      app: {
-        currentPageId,
-        mutables: { currentPoint, shiftKey },
-      },
+      app: { currentPageId, currentPoint, shiftKey },
     } = this
 
-    const shapes: Record<string, Partial<TLDrawShape>> = {}
+    const shapes: Record<string, Partial<TldrawShape>> = {}
 
     let directionDelta = Vec.angle(commonBoundsCenter, currentPoint) - this.initialAngle
 
@@ -113,13 +110,13 @@ export class RotateSession extends BaseSession {
     }
   }
 
-  cancel = (): TLDrawPatch | undefined => {
+  cancel = (): TldrawPatch | undefined => {
     const {
       initialShapes,
       app: { currentPageId },
     } = this
 
-    const shapes: Record<string, TLDrawShape> = {}
+    const shapes: Record<string, TldrawShape> = {}
     initialShapes.forEach(({ shape }) => (shapes[shape.id] = shape))
 
     return {
@@ -133,13 +130,13 @@ export class RotateSession extends BaseSession {
     }
   }
 
-  complete = (): TLDrawPatch | TLDrawCommand | undefined => {
+  complete = (): TldrawPatch | TldrawCommand | undefined => {
     const {
       initialShapes,
       app: { currentPageId },
     } = this
 
-    const beforeShapes = {} as Record<string, Partial<TLDrawShape>>
+    const beforeShapes = {} as Record<string, Partial<TldrawShape>>
     const afterShapes = this.changes
 
     initialShapes.forEach(({ shape: { id, point, rotation, handles } }) => {

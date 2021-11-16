@@ -1,10 +1,10 @@
 import Vec from '@tldraw/vec'
 import { Utils } from '@tldraw/core'
-import { mockDocument, TLDrawTestApp } from '~test'
-import { SessionType, TLDrawStatus } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { SessionType, TldrawStatus } from '~types'
 
 describe('Rotate session', () => {
-  const state = new TLDrawTestApp()
+  const state = new TldrawTestApp()
 
   it('begins, updates session', () => {
     state.loadDocument(mockDocument)
@@ -33,7 +33,7 @@ describe('Rotate session', () => {
 
     state.completeSession()
 
-    expect(state.appState.status).toBe(TLDrawStatus.Idle)
+    expect(state.appState.status).toBe(TldrawStatus.Idle)
 
     state.undo()
 
@@ -59,7 +59,7 @@ describe('Rotate session', () => {
 
   describe('when rotating a single shape while pressing shift', () => {
     it('Clamps rotation to 15 degrees', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
 
       state
         .loadDocument(mockDocument)
@@ -73,7 +73,7 @@ describe('Rotate session', () => {
 
     it('Clamps rotation to 15 degrees when starting from a rotation', () => {
       // Rect 1 is a little rotated
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
 
       state
         .loadDocument(mockDocument)
@@ -140,7 +140,7 @@ describe('Rotate session', () => {
     it.todo('clears the cached center after any command other than a rotate command, tbh')
 
     it('changes the center after nudging', () => {
-      const state = new TLDrawTestApp().loadDocument(mockDocument).select('rect1', 'rect2')
+      const state = new TldrawTestApp().loadDocument(mockDocument).select('rect1', 'rect2')
 
       const centerBefore = Vec.round(
         Utils.getBoundsCenter(

@@ -2,15 +2,9 @@ import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
 import { styled, dark } from '~styles'
-import { TLDrawSnapshot, TLDrawDocument, TLDrawStatus, TLDrawUser } from '~types'
-import { TLDrawApp, TLDrawCallbacks } from '~state'
-import {
-  TLDrawContext,
-  TLDrawContextType,
-  useStylesheet,
-  useKeyboardShortcuts,
-  useTLDrawContext,
-} from '~hooks'
+import { TldrawSnapshot, TldrawDocument, TldrawStatus, TldrawUser } from '~types'
+import { TldrawApp, TldrawCallbacks } from '~state'
+import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
 import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
@@ -18,34 +12,7 @@ import { TLDR } from '~state/TLDR'
 import { ContextMenu } from '~components/ContextMenu'
 import { FocusButton } from '~components/FocusButton/FocusButton'
 
-// Selectors
-const isInSelectSelector = (s: TLDrawSnapshot) => s.appState.activeTool === 'select'
-
-const isHideBoundsShapeSelector = (s: TLDrawSnapshot) => {
-  const { shapes } = s.document.pages[s.appState.currentPageId]
-  const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
-  return selectedIds.length === 1 && TLDR.getShapeUtils(shapes[selectedIds[0]].type).hideBounds
-}
-
-const isHideResizeHandlesShapeSelector = (s: TLDrawSnapshot) => {
-  const { shapes } = s.document.pages[s.appState.currentPageId]
-  const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
-  return (
-    selectedIds.length === 1 && TLDR.getShapeUtils(shapes[selectedIds[0]].type).hideResizeHandles
-  )
-}
-
-const pageSelector = (s: TLDrawSnapshot) => s.document.pages[s.appState.currentPageId]
-
-const snapLinesSelector = (s: TLDrawSnapshot) => s.appState.snapLines
-
-const usersSelector = (s: TLDrawSnapshot) => s.room?.users
-
-const pageStateSelector = (s: TLDrawSnapshot) => s.document.pageStates[s.appState.currentPageId]
-
-const settingsSelector = (s: TLDrawSnapshot) => s.settings
-
-export interface TLDrawProps extends TLDrawCallbacks {
+export interface TldrawProps extends TldrawCallbacks {
   /**
    * (optional) If provided, the component will load / persist state under this key.
    */
@@ -54,7 +21,7 @@ export interface TLDrawProps extends TLDrawCallbacks {
   /**
    * (optional) The document to load or update from.
    */
-  document?: TLDrawDocument
+  document?: TldrawDocument
 
   /**
    * (optional) The current page id.
@@ -92,7 +59,7 @@ export interface TLDrawProps extends TLDrawCallbacks {
   showTools?: boolean
 
   /**
-   * (optional) Whether to show a sponsor link for TLDraw.
+   * (optional) Whether to show a sponsor link for Tldraw.
    */
   showSponsorLink?: boolean
 
@@ -109,63 +76,63 @@ export interface TLDrawProps extends TLDrawCallbacks {
   /**
    * (optional) A callback to run when the component mounts.
    */
-  onMount?: (state: TLDrawApp) => void
+  onMount?: (state: TldrawApp) => void
   /**
    * (optional) A callback to run when the user creates a new project through the menu or through a keyboard shortcut.
    */
-  onNewProject?: (state: TLDrawApp, e?: KeyboardEvent) => void
+  onNewProject?: (state: TldrawApp, e?: KeyboardEvent) => void
   /**
    * (optional) A callback to run when the user saves a project through the menu or through a keyboard shortcut.
    */
-  onSaveProject?: (state: TLDrawApp, e?: KeyboardEvent) => void
+  onSaveProject?: (state: TldrawApp, e?: KeyboardEvent) => void
   /**
    * (optional) A callback to run when the user saves a project as a new project through the menu or through a keyboard shortcut.
    */
-  onSaveProjectAs?: (state: TLDrawApp, e?: KeyboardEvent) => void
+  onSaveProjectAs?: (state: TldrawApp, e?: KeyboardEvent) => void
   /**
    * (optional) A callback to run when the user opens new project through the menu or through a keyboard shortcut.
    */
-  onOpenProject?: (state: TLDrawApp, e?: KeyboardEvent) => void
+  onOpenProject?: (state: TldrawApp, e?: KeyboardEvent) => void
   /**
    * (optional) A callback to run when the user signs in via the menu.
    */
-  onSignIn?: (state: TLDrawApp) => void
+  onSignIn?: (state: TldrawApp) => void
   /**
    * (optional) A callback to run when the user signs out via the menu.
    */
-  onSignOut?: (state: TLDrawApp) => void
+  onSignOut?: (state: TldrawApp) => void
 
   /**
    * (optional) A callback to run when the user creates a new project.
    */
-  onUserChange?: (state: TLDrawApp, user: TLDrawUser) => void
+  onUserChange?: (state: TldrawApp, user: TldrawUser) => void
   /**
    * (optional) A callback to run when the component's state changes.
    */
-  onChange?: (state: TLDrawApp, reason?: string) => void
+  onChange?: (state: TldrawApp, reason?: string) => void
   /**
    * (optional) A callback to run when the state is patched.
    */
-  onPatch?: (state: TLDrawApp, reason?: string) => void
+  onPatch?: (state: TldrawApp, reason?: string) => void
   /**
    * (optional) A callback to run when the state is changed with a command.
    */
-  onCommand?: (state: TLDrawApp, reason?: string) => void
+  onCommand?: (state: TldrawApp, reason?: string) => void
   /**
    * (optional) A callback to run when the state is persisted.
    */
-  onPersist?: (state: TLDrawApp) => void
+  onPersist?: (state: TldrawApp) => void
   /**
    * (optional) A callback to run when the user undos.
    */
-  onUndo?: (state: TLDrawApp) => void
+  onUndo?: (state: TldrawApp) => void
   /**
    * (optional) A callback to run when the user redos.
    */
-  onRedo?: (state: TLDrawApp) => void
+  onRedo?: (state: TldrawApp) => void
 }
 
-export function TLDraw({
+export function Tldraw({
   id,
   document,
   currentPageId,
@@ -192,12 +159,12 @@ export function TLDraw({
   onPersist,
   onPatch,
   onCommand,
-}: TLDrawProps) {
+}: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
-  const [state, setState] = React.useState(
+  const [app, setApp] = React.useState(
     () =>
-      new TLDrawApp(id, {
+      new TldrawApp(id, {
         onMount,
         onChange,
         onUserChange,
@@ -215,15 +182,10 @@ export function TLDraw({
       })
   )
 
-  const [context, setContext] = React.useState<TLDrawContextType>(() => ({
-    state,
-    useSelector: state.useStore,
-  }))
-
   React.useEffect(() => {
     if (id === sId) return
 
-    const newState = new TLDrawApp(id, {
+    const newApp = new TldrawApp(id, {
       onMount,
       onChange,
       onUserChange,
@@ -242,31 +204,25 @@ export function TLDraw({
 
     setSId(id)
 
-    setContext((ctx) => ({
-      ...ctx,
-      state: newState,
-      useSelector: newState.useStore,
-    }))
-
-    setState(newState)
+    setApp(newApp)
   }, [sId, id])
 
   React.useEffect(() => {
-    state.readOnly = readOnly
-  }, [state, readOnly])
+    app.readOnly = readOnly
+  }, [app, readOnly])
 
   React.useEffect(() => {
     if (!document) return
 
-    if (document.id === state.document.id) {
-      state.updateDocument(document)
+    if (document.id === app.document.id) {
+      app.updateDocument(document)
     } else {
-      state.loadDocument(document)
+      app.loadDocument(document)
     }
-  }, [document, state])
+  }, [document, app])
 
   React.useEffect(() => {
-    state.callbacks = {
+    app.callbacks = {
       onMount,
       onChange,
       onUserChange,
@@ -283,7 +239,7 @@ export function TLDraw({
       onPersist,
     }
   }, [
-    state,
+    app,
     onMount,
     onChange,
     onUserChange,
@@ -302,10 +258,10 @@ export function TLDraw({
 
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
-    <TLDrawContext.Provider value={context}>
+    <TldrawContext.Provider value={app}>
       <IdProvider>
-        <InnerTLDraw
-          key={sId || 'tldraw'}
+        <InnerTldraw
+          key={sId || 'Tldraw'}
           id={sId}
           currentPageId={currentPageId}
           autofocus={autofocus}
@@ -319,11 +275,11 @@ export function TLDraw({
           readOnly={readOnly}
         />
       </IdProvider>
-    </TLDrawContext.Provider>
+    </TldrawContext.Provider>
   )
 }
 
-interface InnerTLDrawProps {
+interface InnerTldrawProps {
   id?: string
   currentPageId?: string
   autofocus: boolean
@@ -337,7 +293,7 @@ interface InnerTLDrawProps {
   readOnly: boolean
 }
 
-const InnerTLDraw = React.memo(function InnerTLDraw({
+const InnerTldraw = React.memo(function InnerTldraw({
   id,
   currentPageId,
   autofocus,
@@ -349,32 +305,34 @@ const InnerTLDraw = React.memo(function InnerTLDraw({
   showSponsorLink,
   readOnly,
   showUI,
-}: InnerTLDrawProps) {
-  const { state, useSelector } = useTLDrawContext()
+}: InnerTldrawProps) {
+  const app = useTldrawApp()
 
   const rWrapper = React.useRef<HTMLDivElement>(null)
 
-  const page = useSelector(pageSelector)
+  const state = app.useStore()
 
-  const pageState = useSelector(pageStateSelector)
+  const { document, settings, appState, room } = state
 
-  const snapLines = useSelector(snapLinesSelector)
+  const isSelecting = state.appState.activeTool === 'select'
 
-  const users = useSelector(usersSelector)
+  const page = document.pages[appState.currentPageId]
+  const pageState = document.pageStates[page.id]
+  const { selectedIds } = state.document.pageStates[page.id]
 
-  const settings = useSelector(settingsSelector)
+  const isHideBoundsShape =
+    pageState.selectedIds.length === 1 &&
+    TLDR.getShapeUtils(page.shapes[selectedIds[0]].type).hideBounds
 
-  const isSelecting = useSelector(isInSelectSelector)
+  const isHideResizeHandlesShape =
+    selectedIds.length === 1 &&
+    TLDR.getShapeUtils(page.shapes[selectedIds[0]].type).hideResizeHandles
 
-  const isHideBoundsShape = useSelector(isHideBoundsShapeSelector)
-
-  const isHideResizeHandlesShape = useSelector(isHideResizeHandlesShapeSelector)
-
-  const isInSession = state.session !== undefined
+  const isInSession = app.session !== undefined
 
   // Hide bounds when not using the select tool, or when the only selected shape has handles
   const hideBounds =
-    (isInSession && state.session?.constructor.name !== 'BrushSession') ||
+    (isInSession && app.session?.constructor.name !== 'BrushSession') ||
     !isSelecting ||
     isHideBoundsShape ||
     !!pageState.editingId
@@ -384,7 +342,7 @@ const InnerTLDraw = React.memo(function InnerTLDraw({
 
   // Hide indicators when not using the select tool, or when in session
   const hideIndicators =
-    (isInSession && state.appState.status !== TLDrawStatus.Brushing) || !isSelecting
+    (isInSession && state.appState.status !== TldrawStatus.Brushing) || !isSelecting
 
   // Custom rendering meta, with dark mode for shapes
   const meta = React.useMemo(() => ({ isDarkMode: settings.isDarkMode }), [settings.isDarkMode])
@@ -407,8 +365,8 @@ const InnerTLDraw = React.memo(function InnerTLDraw({
 
   React.useEffect(() => {
     if (!currentPageId) return
-    state.changePage(currentPageId)
-  }, [currentPageId, state])
+    app.changePage(currentPageId)
+  }, [currentPageId, app])
 
   // When the context menu is blurred, close the menu by sending pointer events
   // to the context menu's ref. This is a hack around the fact that certain shapes
@@ -431,9 +389,9 @@ const InnerTLDraw = React.memo(function InnerTLDraw({
           shapeUtils={shapeUtils}
           page={page}
           pageState={pageState}
-          snapLines={snapLines}
-          users={users}
-          userId={state.state.room?.userId}
+          snapLines={appState.snapLines}
+          users={room?.users}
+          userId={room?.userId}
           theme={theme}
           meta={meta}
           hideBounds={hideBounds}
@@ -443,61 +401,61 @@ const InnerTLDraw = React.memo(function InnerTLDraw({
           hideBindingHandles={!settings.showBindingHandles}
           hideCloneHandles={!settings.showCloneHandles}
           hideRotateHandles={!settings.showRotateHandles}
-          onPinchStart={state.onPinchStart}
-          onPinchEnd={state.onPinchEnd}
-          onPinch={state.onPinch}
-          onPan={state.onPan}
-          onZoom={state.onZoom}
-          onPointerDown={state.onPointerDown}
-          onPointerMove={state.onPointerMove}
-          onPointerUp={state.onPointerUp}
-          onPointCanvas={state.onPointCanvas}
-          onDoubleClickCanvas={state.onDoubleClickCanvas}
-          onRightPointCanvas={state.onRightPointCanvas}
-          onDragCanvas={state.onDragCanvas}
-          onReleaseCanvas={state.onReleaseCanvas}
-          onPointShape={state.onPointShape}
-          onDoubleClickShape={state.onDoubleClickShape}
-          onRightPointShape={state.onRightPointShape}
-          onDragShape={state.onDragShape}
-          onHoverShape={state.onHoverShape}
-          onUnhoverShape={state.onUnhoverShape}
-          onReleaseShape={state.onReleaseShape}
-          onPointBounds={state.onPointBounds}
-          onDoubleClickBounds={state.onDoubleClickBounds}
-          onRightPointBounds={state.onRightPointBounds}
-          onDragBounds={state.onDragBounds}
-          onHoverBounds={state.onHoverBounds}
-          onUnhoverBounds={state.onUnhoverBounds}
-          onReleaseBounds={state.onReleaseBounds}
-          onPointBoundsHandle={state.onPointBoundsHandle}
-          onDoubleClickBoundsHandle={state.onDoubleClickBoundsHandle}
-          onRightPointBoundsHandle={state.onRightPointBoundsHandle}
-          onDragBoundsHandle={state.onDragBoundsHandle}
-          onHoverBoundsHandle={state.onHoverBoundsHandle}
-          onUnhoverBoundsHandle={state.onUnhoverBoundsHandle}
-          onReleaseBoundsHandle={state.onReleaseBoundsHandle}
-          onPointHandle={state.onPointHandle}
-          onDoubleClickHandle={state.onDoubleClickHandle}
-          onRightPointHandle={state.onRightPointHandle}
-          onDragHandle={state.onDragHandle}
-          onHoverHandle={state.onHoverHandle}
-          onUnhoverHandle={state.onUnhoverHandle}
-          onReleaseHandle={state.onReleaseHandle}
-          onError={state.onError}
-          onRenderCountChange={state.onRenderCountChange}
-          onShapeChange={state.onShapeChange}
-          onShapeBlur={state.onShapeBlur}
-          onShapeClone={state.onShapeClone}
-          onBoundsChange={state.updateBounds}
-          onKeyDown={state.onKeyDown}
-          onKeyUp={state.onKeyUp}
+          onPinchStart={app.onPinchStart}
+          onPinchEnd={app.onPinchEnd}
+          onPinch={app.onPinch}
+          onPan={app.onPan}
+          onZoom={app.onZoom}
+          onPointerDown={app.onPointerDown}
+          onPointerMove={app.onPointerMove}
+          onPointerUp={app.onPointerUp}
+          onPointCanvas={app.onPointCanvas}
+          onDoubleClickCanvas={app.onDoubleClickCanvas}
+          onRightPointCanvas={app.onRightPointCanvas}
+          onDragCanvas={app.onDragCanvas}
+          onReleaseCanvas={app.onReleaseCanvas}
+          onPointShape={app.onPointShape}
+          onDoubleClickShape={app.onDoubleClickShape}
+          onRightPointShape={app.onRightPointShape}
+          onDragShape={app.onDragShape}
+          onHoverShape={app.onHoverShape}
+          onUnhoverShape={app.onUnhoverShape}
+          onReleaseShape={app.onReleaseShape}
+          onPointBounds={app.onPointBounds}
+          onDoubleClickBounds={app.onDoubleClickBounds}
+          onRightPointBounds={app.onRightPointBounds}
+          onDragBounds={app.onDragBounds}
+          onHoverBounds={app.onHoverBounds}
+          onUnhoverBounds={app.onUnhoverBounds}
+          onReleaseBounds={app.onReleaseBounds}
+          onPointBoundsHandle={app.onPointBoundsHandle}
+          onDoubleClickBoundsHandle={app.onDoubleClickBoundsHandle}
+          onRightPointBoundsHandle={app.onRightPointBoundsHandle}
+          onDragBoundsHandle={app.onDragBoundsHandle}
+          onHoverBoundsHandle={app.onHoverBoundsHandle}
+          onUnhoverBoundsHandle={app.onUnhoverBoundsHandle}
+          onReleaseBoundsHandle={app.onReleaseBoundsHandle}
+          onPointHandle={app.onPointHandle}
+          onDoubleClickHandle={app.onDoubleClickHandle}
+          onRightPointHandle={app.onRightPointHandle}
+          onDragHandle={app.onDragHandle}
+          onHoverHandle={app.onHoverHandle}
+          onUnhoverHandle={app.onUnhoverHandle}
+          onReleaseHandle={app.onReleaseHandle}
+          onError={app.onError}
+          onRenderCountChange={app.onRenderCountChange}
+          onShapeChange={app.onShapeChange}
+          onShapeBlur={app.onShapeBlur}
+          onShapeClone={app.onShapeClone}
+          onBoundsChange={app.updateBounds}
+          onKeyDown={app.onKeyDown}
+          onKeyUp={app.onKeyUp}
         />
       </ContextMenu>
       {showUI && (
         <StyledUI>
           {settings.isFocusMode ? (
-            <FocusButton onSelect={state.toggleFocusMode} />
+            <FocusButton onSelect={app.toggleFocusMode} />
           ) : (
             <>
               <TopPanel

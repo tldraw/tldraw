@@ -3,23 +3,23 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { PlusIcon, CheckIcon } from '@radix-ui/react-icons'
 import { PageOptionsDialog } from './PageOptionsDialog'
 import { styled } from '~styles'
-import { useTLDrawContext } from '~hooks'
-import type { TLDrawSnapshot } from '~types'
+import { useTldrawApp } from '~hooks'
+import type { TldrawSnapshot } from '~types'
 import { DMContent, DMDivider } from '~components/DropdownMenu'
 import { SmallIcon } from '~components/SmallIcon'
 import { RowButton } from '~components/RowButton'
 import { ToolButton } from '~components/ToolButton'
 
-const sortedSelector = (s: TLDrawSnapshot) =>
+const sortedSelector = (s: TldrawSnapshot) =>
   Object.values(s.document.pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
 
-const currentPageNameSelector = (s: TLDrawSnapshot) =>
+const currentPageNameSelector = (s: TldrawSnapshot) =>
   s.document.pages[s.appState.currentPageId].name
 
-const currentPageIdSelector = (s: TLDrawSnapshot) => s.document.pages[s.appState.currentPageId].id
+const currentPageIdSelector = (s: TldrawSnapshot) => s.document.pages[s.appState.currentPageId].id
 
 export function PageMenu(): JSX.Element {
-  const { useSelector } = useTLDrawContext()
+  const app = useTldrawApp()
 
   const rIsOpen = React.useRef(false)
 
@@ -43,7 +43,7 @@ export function PageMenu(): JSX.Element {
     },
     [setIsOpen]
   )
-  const currentPageName = useSelector(currentPageNameSelector)
+  const currentPageName = app.useStore(currentPageNameSelector)
 
   return (
     <DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={handleOpenChange}>
@@ -58,22 +58,22 @@ export function PageMenu(): JSX.Element {
 }
 
 function PageMenuContent({ onClose }: { onClose: () => void }) {
-  const { state, useSelector } = useTLDrawContext()
+  const app = useTldrawApp()
 
-  const sortedPages = useSelector(sortedSelector)
+  const sortedPages = app.useStore(sortedSelector)
 
-  const currentPageId = useSelector(currentPageIdSelector)
+  const currentPageId = app.useStore(currentPageIdSelector)
 
   const handleCreatePage = React.useCallback(() => {
-    state.createPage()
-  }, [state])
+    app.createPage()
+  }, [app])
 
   const handleChangePage = React.useCallback(
     (id: string) => {
       onClose()
-      state.changePage(id)
+      app.changePage(id)
     },
-    [state]
+    [app]
   )
 
   return (

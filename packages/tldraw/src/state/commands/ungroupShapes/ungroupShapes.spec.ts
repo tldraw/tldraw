@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { mockDocument, TLDrawTestApp } from '~test'
-import { GroupShape, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { GroupShape, TldrawShapeType } from '~types'
 
 describe('Ungroup command', () => {
-  const state = new TLDrawTestApp()
+  const state = new TldrawTestApp()
 
   it('does, undoes and redoes command', () => {
     state.loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA').select('groupA').ungroup()
@@ -44,7 +44,7 @@ describe('Ungroup command', () => {
         .loadDocument(mockDocument)
         .createShapes({
           id: 'rect4',
-          type: TLDrawShapeType.Rectangle,
+          type: TldrawShapeType.Rectangle,
         })
         .group(['rect1', 'rect2'], 'groupA')
         .group(['rect3', 'rect4'], 'groupB')
@@ -64,21 +64,21 @@ describe('Ungroup command', () => {
     })
 
     it('Correctly selects children after ungrouping', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .createShapes(
           {
             id: 'rect1',
-            type: TLDrawShapeType.Rectangle,
+            type: TldrawShapeType.Rectangle,
             childIndex: 1,
           },
           {
             id: 'rect2',
-            type: TLDrawShapeType.Rectangle,
+            type: TldrawShapeType.Rectangle,
             childIndex: 2,
           },
           {
             id: 'rect3',
-            type: TLDrawShapeType.Rectangle,
+            type: TldrawShapeType.Rectangle,
             childIndex: 3,
           }
         )
@@ -91,21 +91,21 @@ describe('Ungroup command', () => {
     })
 
     it('Reparents shapes to the page at the correct childIndex', () => {
-      const state = new TLDrawTestApp()
+      const state = new TldrawTestApp()
         .createShapes(
           {
             id: 'rect1',
-            type: TLDrawShapeType.Rectangle,
+            type: TldrawShapeType.Rectangle,
             childIndex: 1,
           },
           {
             id: 'rect2',
-            type: TLDrawShapeType.Rectangle,
+            type: TldrawShapeType.Rectangle,
             childIndex: 2,
           },
           {
             id: 'rect3',
-            type: TLDrawShapeType.Rectangle,
+            type: TldrawShapeType.Rectangle,
             childIndex: 3,
           }
         )

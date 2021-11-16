@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { breakpoints } from '~components/breakpoints'
 import { Tooltip } from '~components/Tooltip'
-import { useTLDrawContext } from '~hooks'
+import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 
 export interface ToolButtonProps {
@@ -54,7 +54,7 @@ interface ToolButtonWithTooltipProps extends ToolButtonProps {
 }
 
 export function ToolButtonWithTooltip({ label, kbd, ...rest }: ToolButtonWithTooltipProps) {
-  const { state } = useTLDrawContext()
+  const { state } = useTldrawApp()
 
   const handleDoubleClick = React.useCallback(() => {
     state.toggleToolLock()

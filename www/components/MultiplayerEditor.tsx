@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLDraw, TLDrawApp, TLDrawDocument, TLDrawUser, useFileSystem } from '@tldraw/tldraw'
+import { Tldraw, TldrawApp, TldrawDocument, TldrawUser, useFileSystem } from '@tldraw/Tldraw'
 import * as React from 'react'
 import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useObject, useErrorListener } from '@liveblocks/react'
 import { Utils } from '@tldraw/core'
 import { useAccountHandlers } from '-hooks/useAccountHandlers'
 
-interface TLDrawUserPresence extends Presence {
-  user: TLDrawUser
+interface TldrawUserPresence extends Presence {
+  user: TldrawUser
 }
 
 const client = createClient({
@@ -38,7 +38,7 @@ export default function MultiplayerEditor({
 function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: boolean }) {
   const [docId] = React.useState(() => Utils.uniqueId())
 
-  const [state, setState] = React.useState<TLDrawApp>()
+  const [state, setState] = React.useState<TldrawApp>()
 
   const [error, setError] = React.useState<Error>()
 
@@ -46,10 +46,10 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
 
   // Setup document
 
-  const doc = useObject<{ uuid: string; document: TLDrawDocument }>('doc', {
+  const doc = useObject<{ uuid: string; document: TldrawDocument }>('doc', {
     uuid: docId,
     document: {
-      ...TLDrawApp.defaultDocument,
+      ...TldrawApp.defaultDocument,
       id: roomId,
     },
   })
@@ -70,7 +70,7 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
     room.updatePresence({ id: userId, user: users[userId] })
 
     // Subscribe to presence changes; when others change, update the state
-    room.subscribe<TLDrawUserPresence>('others', (others) => {
+    room.subscribe<TldrawUserPresence>('others', (others) => {
       state.updateUsers(
         others
           .toArray()
@@ -132,7 +132,7 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
   }, [doc, docId, state, roomId])
 
   const handleMount = React.useCallback(
-    (state: TLDrawApp) => {
+    (state: TldrawApp) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       window.state = state
@@ -143,14 +143,14 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
   )
 
   const handlePersist = React.useCallback(
-    (state: TLDrawApp) => {
+    (state: TldrawApp) => {
       doc?.update({ uuid: docId, document: state.document })
     },
     [docId, doc]
   )
 
   const handleUserChange = React.useCallback(
-    (state: TLDrawApp, user: TLDrawUser) => {
+    (state: TldrawApp, user: TldrawUser) => {
       const room = client.getRoom(roomId)
       room?.updatePresence({ id: state.state.room?.userId, user })
     },
@@ -166,8 +166,8 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
   if (doc === null) return <div>Loading...</div>
 
   return (
-    <div className="tldraw">
-      <TLDraw
+    <div className="Tldraw">
+      <Tldraw
         autofocus
         onMount={handleMount}
         onPersist={handlePersist}

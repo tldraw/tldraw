@@ -1,6 +1,6 @@
-import { TLDrawDocument } from '@tldraw/tldraw'
+import { TldrawDocument } from '@tldraw/Tldraw'
 import { LiveObject } from '@liveblocks/client'
 
-export interface TLDrawStorage {
-  doc: LiveObject<{ uuid: string; document: TLDrawDocument }>
+export interface TldrawStorage {
+  doc: LiveObject<{ uuid: string; document: TldrawDocument }>
 }

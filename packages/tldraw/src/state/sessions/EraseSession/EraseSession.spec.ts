@@ -1,9 +1,9 @@
-import { mockDocument, TLDrawTestApp } from '~test'
-import { TLDrawStatus } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawStatus } from '~types'
 
 describe('Draw session', () => {
   it('begins, updates, completes session', () => {
-    const state = new TLDrawTestApp().loadDocument(mockDocument)
+    const state = new TldrawTestApp().loadDocument(mockDocument)
 
     state.selectTool('erase').pointCanvas([300, 300])
 
@@ -15,13 +15,13 @@ describe('Draw session', () => {
 
     state.stopPointing()
 
-    expect(state.appState.status).toBe(TLDrawStatus.Idle)
+    expect(state.appState.status).toBe(TldrawStatus.Idle)
 
     expect(state.shapes.length).toBe(0)
   })
 
   it('does, undoes and redoes', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .selectTool('erase')
       .pointCanvas([300, 300])

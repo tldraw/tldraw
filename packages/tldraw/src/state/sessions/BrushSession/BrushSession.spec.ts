@@ -1,21 +1,21 @@
-import { mockDocument, TLDrawTestApp } from '~test'
-import { SessionType, TLDrawStatus } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { SessionType, TldrawStatus } from '~types'
 
 describe('Brush session', () => {
   it('begins, updateSession', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .selectNone()
       .movePointer([-10, -10])
       .startSession(SessionType.Brush)
       .movePointer([10, 10])
       .completeSession()
-    expect(state.appState.status).toBe(TLDrawStatus.Idle)
+    expect(state.appState.status).toBe(TldrawStatus.Idle)
     expect(state.selectedIds.length).toBe(1)
   })
 
   it('selects multiple shapes', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .selectNone()
       .movePointer([-10, -10])
@@ -26,7 +26,7 @@ describe('Brush session', () => {
   })
 
   it('does not de-select original shapes when shift selecting', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .selectNone()
       .select('rect1')
@@ -38,7 +38,7 @@ describe('Brush session', () => {
   })
 
   it('does not select locked shapes', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .selectNone()
       .toggleLocked(['rect1'])
@@ -50,7 +50,7 @@ describe('Brush session', () => {
   })
 
   it('when command is held, require the entire shape to be selected', () => {
-    const state = new TLDrawTestApp()
+    const state = new TldrawTestApp()
       .loadDocument(mockDocument)
       .selectNone()
       .loadDocument(mockDocument)

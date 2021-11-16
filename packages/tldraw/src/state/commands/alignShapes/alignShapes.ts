@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
-import { AlignType, TLDrawCommand, TLDrawShapeType } from '~types'
-import type { TLDrawSnapshot } from '~types'
+import { AlignType, TldrawCommand, TldrawShapeType } from '~types'
+import type { TldrawSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
 import Vec from '@tldraw/vec'
-import type { TLDrawApp } from '../../internal'
+import type { TldrawApp } from '../../internal'
 
-export function alignShapes(app: TLDrawApp, ids: string[], type: AlignType): TLDrawCommand {
+export function alignShapes(app: TldrawApp, ids: string[], type: AlignType): TldrawCommand {
   const { currentPageId } = app
 
   const initialShapes = ids.map((id) => app.getShape(id))
@@ -54,7 +54,7 @@ export function alignShapes(app: TLDrawApp, ids: string[], type: AlignType): TLD
   )
 
   initialShapes.forEach((shape) => {
-    if (shape.type === TLDrawShapeType.Group) {
+    if (shape.type === TldrawShapeType.Group) {
       const delta = Vec.sub(after[shape.id].point!, before[shape.id].point!)
 
       shape.children.forEach((id) => {
