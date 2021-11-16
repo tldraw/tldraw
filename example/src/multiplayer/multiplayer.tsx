@@ -5,6 +5,8 @@ import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useErrorListener, useObject } from '@liveblocks/react'
 import { Utils } from '@tldraw/core'
 
+declare const window: Window & { app: TldrawApp }
+
 interface TldrawUserPresence extends Presence {
   user: TldrawUser
 }
@@ -31,7 +33,7 @@ function TldrawWrapper() {
 
   const [error, setError] = React.useState<Error>()
 
-  const [state, setstate] = React.useState<TldrawApp>()
+  const [app, setApp] = React.useState<TldrawApp>()
 
   useErrorListener((err) => setError(err))
 
@@ -45,11 +47,9 @@ function TldrawWrapper() {
 
   // Put the state into the window, for debugging.
   const handleMount = React.useCallback(
-    (state: TldrawApp) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      window.state = state
-      setstate(state)
+    (app: TldrawApp) => {
+      window.app = app
+      setApp(app)
     },
     [roomId]
   )
@@ -59,11 +59,11 @@ function TldrawWrapper() {
 
     if (!room) return
     if (!doc) return
-    if (!state) return
+    if (!app) return
 
     // Subscribe to presence changes; when others change, update the state
     room.subscribe<TldrawUserPresence>('others', (others) => {
-      state.updateUsers(
+      app.updateUsers(
         others
           .toArray()
           .filter((other) => other.presence)
@@ -74,23 +74,23 @@ function TldrawWrapper() {
 
     room.subscribe('event', (event) => {
       if (event.event?.name === 'exit') {
-        state.removeUser(event.event.userId)
+        app.removeUser(event.event.userId)
       }
     })
 
     function handleDocumentUpdates() {
       if (!doc) return
-      if (!state) return
-      if (!state.state.room) return
+      if (!app) return
+      if (!app.state.room) return
 
       const docObject = doc.toObject()
 
       // Only merge the change if it caused by someone else
       if (docObject.uuid !== docId) {
-        state.mergeDocument(docObject.document)
+        app.mergeDocument(docObject.document)
       } else {
-        state.updateUsers(
-          Object.values(state.state.room.users).map((user) => {
+        app.updateUsers(
+          Object.values(app.state.room.users).map((user) => {
             return {
               ...user,
               selectedIds: user.selectedIds,
@@ -101,8 +101,8 @@ function TldrawWrapper() {
     }
 
     function handleExit() {
-      if (!(state && state.state.room)) return
-      room?.broadcastEvent({ name: 'exit', userId: state.state.room.userId })
+      if (!(app && app.room)) return
+      room?.broadcastEvent({ name: 'exit', userId: app.room.userId })
     }
 
     window.addEventListener('beforeunload', handleExit)
@@ -114,12 +114,12 @@ function TldrawWrapper() {
     const newDocument = doc.toObject().document
 
     if (newDocument) {
-      state.loadDocument(newDocument)
-      state.loadRoom(roomId)
+      app.loadDocument(newDocument)
+      app.loadRoom(roomId)
 
       // Update the user's presence with the user from state
-      if (state.state.room) {
-        const { users, userId } = state.state.room
+      if (app.state.room) {
+        const { users, userId } = app.state.room
         room.updatePresence({ id: userId, user: users[userId] })
       }
     }
@@ -128,19 +128,19 @@ function TldrawWrapper() {
       window.removeEventListener('beforeunload', handleExit)
       doc.unsubscribe(handleDocumentUpdates)
     }
-  }, [doc, docId, state])
+  }, [doc, docId, app])
 
   const handlePersist = React.useCallback(
-    (state: TldrawApp) => {
-      doc?.update({ uuid: docId, document: state.document })
+    (app: TldrawApp) => {
+      doc?.update({ uuid: docId, document: app.document })
     },
     [docId, doc]
   )
 
   const handleUserChange = React.useCallback(
-    (state: TldrawApp, user: TldrawUser) => {
+    (app: TldrawApp, user: TldrawUser) => {
       const room = client.getRoom(roomId)
-      room?.updatePresence({ id: state.state.room?.userId, user })
+      room?.updatePresence({ id: app.room?.userId, user })
     },
     [client]
   )
@@ -150,7 +150,7 @@ function TldrawWrapper() {
   if (doc === null) return <div>Loading...</div>
 
   return (
-    <div className="Tldraw">
+    <div className="tldraw">
       <Tldraw
         onMount={handleMount}
         onPersist={handlePersist}

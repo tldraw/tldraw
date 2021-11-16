@@ -54,10 +54,10 @@ interface ToolButtonWithTooltipProps extends ToolButtonProps {
 }
 
 export function ToolButtonWithTooltip({ label, kbd, ...rest }: ToolButtonWithTooltipProps) {
-  const { state } = useTldrawApp()
+  const app = useTldrawApp()
 
   const handleDoubleClick = React.useCallback(() => {
-    state.toggleToolLock()
+    app.toggleToolLock()
   }, [])
 
   return (

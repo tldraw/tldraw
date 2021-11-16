@@ -7,7 +7,7 @@ export function translateShapes(app: TldrawApp, ids: string[], delta: number[]):
   const { currentPageId, selectedIds } = app
 
   // Clear session cache
-  app.selectedIdsForRotation = [...selectedIds]
+  app.rotationInfo.selectedIds = [...selectedIds]
 
   const before: PagePartial = {
     shapes: {},

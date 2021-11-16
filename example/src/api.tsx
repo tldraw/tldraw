@@ -4,10 +4,10 @@ import { Tldraw, TldrawApp, TldrawShapeType, ColorStyle } from '@tldraw/Tldraw'
 export default function Api(): JSX.Element {
   const rTldrawApp = React.useRef<TldrawApp>()
 
-  const handleMount = React.useCallback((state: TldrawApp) => {
-    rTldrawApp.current = state
+  const handleMount = React.useCallback((app: TldrawApp) => {
+    rTldrawApp.current = app
 
-    state
+    app
       .createShapes({
         id: 'rect1',
         type: TldrawShapeType.Rectangle,
@@ -23,7 +23,7 @@ export default function Api(): JSX.Element {
   }, [])
 
   return (
-    <div className="Tldraw">
+    <div className="tldraw">
       <Tldraw onMount={handleMount} />
     </div>
   )

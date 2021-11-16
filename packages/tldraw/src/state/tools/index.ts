@@ -1,6 +1,4 @@
-import type { TldrawApp } from '~state'
 import { TldrawShapeType, TldrawToolType } from '~types'
-import type { BaseTool } from './BaseTool'
 import { ArrowTool } from './ArrowTool'
 import { DrawTool } from './DrawTool'
 import { EllipseTool } from './EllipseTool'

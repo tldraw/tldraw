@@ -7,7 +7,7 @@ export default function FileSystem(): JSX.Element {
   // Use the Menu > File to create, open, and save .tldr files.
 
   return (
-    <div className="Tldraw">
+    <div className="tldraw">
       <Tldraw {...fileSystemEvents} />
     </div>
   )

@@ -2,14 +2,15 @@
 
 Improvements
 
-- Updates UI in toolbars, menus
-- Simplifies state and context
-- Adds and updtes tests
+- Updates UI in toolbars, menus.
+- Simplifies state and context.
+- Adds and updtes tests.
 - Renames TLDraw to tldraw throughout the app and documentation.
-- Renames TLDrawState to TldrawApp, state to app
+- Renames TLDrawState to TldrawApp, state to app.
 
 New
 
+- Adds `darkMode` prop for controlling dark mode UI.
 - Double-click a tool icon to toggle "tool lock". This will prevent the app from returning to the select tool after creating a shape.
 
 ## 0.1.17

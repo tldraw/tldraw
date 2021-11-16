@@ -14,7 +14,7 @@ export default function ReadOnly(): JSX.Element {
   }, [])
 
   return (
-    <div className="Tldraw">
+    <div className="tldraw">
       <Tldraw readOnly document={file?.document} />
     </div>
   )

@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
+import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
+import type { Command, Patch } from 'rko'
+import type { FileSystemHandle } from '~state/data/browser-fs-access'
 import type {
   TLBinding,
   TLBoundsCorner,
   TLBoundsEdge,
-  TLShapeProps,
   TLShape,
   TLHandle,
   TLSnapLine,
@@ -18,9 +20,10 @@ import type {
   TLShapeBlurHandler,
   TLShapeCloneHandler,
 } from '@tldraw/core'
-import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
-import type { Command, Patch } from 'rko'
-import type { FileSystemHandle } from '~state/data/browser-fs-access'
+
+/* -------------------------------------------------- */
+/*                         App                        */
+/* -------------------------------------------------- */
 
 // A base class for all classes that handle events from the Renderer,
 // including TldrawApp and all Tools.

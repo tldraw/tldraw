@@ -32,18 +32,18 @@ export class RotateSession extends BaseSession {
       throw Error('No selected shapes!')
     }
 
-    if (app.selectedIdsForRotation === pageState.selectedIds) {
-      if (app.centerForRotation === undefined) {
+    if (app.rotationInfo.selectedIds === pageState.selectedIds) {
+      if (app.rotationInfo.center === undefined) {
         throw Error('We should have a center for rotation!')
       }
 
-      this.commonBoundsCenter = app.centerForRotation
+      this.commonBoundsCenter = app.rotationInfo.center
     } else {
       this.commonBoundsCenter = Utils.getBoundsCenter(
         Utils.getCommonBounds(initialShapes.map(TLDR.getBounds))
       )
-      app.selectedIdsForRotation = pageState.selectedIds
-      app.centerForRotation = this.commonBoundsCenter
+      app.rotationInfo.selectedIds = pageState.selectedIds
+      app.rotationInfo.center = this.commonBoundsCenter
     }
 
     this.initialShapes = initialShapes

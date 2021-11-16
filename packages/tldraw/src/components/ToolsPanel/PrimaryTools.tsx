@@ -21,35 +21,27 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
   const activeTool = app.useStore(activeToolSelector)
 
   const selectSelectTool = React.useCallback(() => {
-    state.selectTool('select')
+    app.selectTool('select')
   }, [app])
 
   const selectEraseTool = React.useCallback(() => {
-    state.selectTool('erase')
+    app.selectTool('erase')
   }, [app])
 
   const selectDrawTool = React.useCallback(() => {
-    state.selectTool(TldrawShapeType.Draw)
-  }, [app])
-
-  const selectRectangleTool = React.useCallback(() => {
-    state.selectTool(TldrawShapeType.Rectangle)
-  }, [app])
-
-  const selectEllipseTool = React.useCallback(() => {
-    state.selectTool(TldrawShapeType.Ellipse)
+    app.selectTool(TldrawShapeType.Draw)
   }, [app])
 
   const selectArrowTool = React.useCallback(() => {
-    state.selectTool(TldrawShapeType.Arrow)
+    app.selectTool(TldrawShapeType.Arrow)
   }, [app])
 
   const selectTextTool = React.useCallback(() => {
-    state.selectTool(TldrawShapeType.Text)
+    app.selectTool(TldrawShapeType.Text)
   }, [app])
 
   const selectStickyTool = React.useCallback(() => {
-    state.selectTool(TldrawShapeType.Sticky)
+    app.selectTool(TldrawShapeType.Sticky)
   }, [app])
 
   return (

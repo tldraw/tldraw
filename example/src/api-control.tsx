@@ -5,10 +5,10 @@ import { ColorStyle, Tldraw, TldrawShapeType, TldrawApp } from '@tldraw/Tldraw'
 export default function Imperative(): JSX.Element {
   const rTldrawApp = React.useRef<TldrawApp>()
 
-  const handleMount = React.useCallback((state: TldrawApp) => {
-    rTldrawApp.current = state
+  const handleMount = React.useCallback((app: TldrawApp) => {
+    rTldrawApp.current = app
 
-    state.createShapes(
+    app.createShapes(
       {
         id: 'rect1',
         type: TldrawShapeType.Rectangle,
@@ -30,11 +30,11 @@ export default function Imperative(): JSX.Element {
   React.useEffect(() => {
     let i = 0
     const interval = setInterval(() => {
-      const state = rTldrawApp.current!
-      const rect1 = state.getShape('rect1')
+      const app = rTldrawApp.current!
+      const rect1 = app.getShape('rect1')
 
       if (!rect1) {
-        state.createShapes({
+        app.createShapes({
           id: 'rect1',
           type: TldrawShapeType.Rectangle,
           name: 'Rectangle',
@@ -47,7 +47,7 @@ export default function Imperative(): JSX.Element {
 
       const color = i % 2 ? ColorStyle.Red : ColorStyle.Blue
 
-      state.patchShapes({
+      app.patchShapes({
         id: 'rect1',
         style: {
           ...rect1.style,

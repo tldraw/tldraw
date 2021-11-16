@@ -166,7 +166,7 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
   if (doc === null) return <div>Loading...</div>
 
   return (
-    <div className="Tldraw">
+    <div className="tldraw">
       <Tldraw
         autofocus
         onMount={handleMount}

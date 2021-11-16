@@ -43,7 +43,7 @@ export class TransformSession extends BaseSession {
   ) {
     super(app)
     this.initialSelectedIds = [...this.app.selectedIds]
-    this.app.selectedIdsForRotation = [...this.initialSelectedIds]
+    this.app.rotationInfo.selectedIds = [...this.initialSelectedIds]
 
     this.initialShapes = TLDR.getSelectedBranchSnapshot(
       this.app.state,

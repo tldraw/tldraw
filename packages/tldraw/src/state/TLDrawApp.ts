@@ -138,19 +138,17 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
 
   session?: TldrawSession
 
-  editingStartTime = -1
+  readOnly = false
+
+  isDirty = false
+
+  isCreating = false
 
   originPoint = [0, 0]
 
   currentPoint = [0, 0]
 
   previousPoint = [0, 0]
-
-  isCreating = false
-
-  selectedIdsForRotation: string[] = []
-
-  centerForRotation = [0, 0]
 
   shiftKey = false
 
@@ -162,11 +160,9 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
 
   spaceKey = false
 
+  editingStartTime = -1
+
   fileSystemHandle: FileSystemHandle | null = null
-
-  readOnly = false
-
-  isDirty = false
 
   viewport = Utils.getBoundsFromPoints([
     [0, 0],
@@ -178,17 +174,22 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
     [100, 100],
   ])
 
-  private selectHistory = {
+  selectHistory = {
     stack: [[]] as string[][],
     pointer: 0,
   }
 
-  private clipboard?: {
+  clipboard?: {
     shapes: TldrawShape[]
     bindings: TldrawBinding[]
   }
 
-  private pasteInfo = {
+  rotationInfo = {
+    selectedIds: [] as string[],
+    center: [0, 0],
+  }
+
+  pasteInfo = {
     center: [0, 0],
     offset: [0, 0],
   }
@@ -452,12 +453,12 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
   }
 
   onUndo = () => {
-    this.selectedIdsForRotation = [...this.selectedIds]
+    this.rotationInfo.selectedIds = [...this.selectedIds]
     this.callbacks.onUndo?.(this)
   }
 
   onRedo = () => {
-    this.selectedIdsForRotation = [...this.selectedIds]
+    this.rotationInfo.selectedIds = [...this.selectedIds]
     this.callbacks.onRedo?.(this)
   }
 

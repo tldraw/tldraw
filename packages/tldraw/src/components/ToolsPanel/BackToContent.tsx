@@ -18,7 +18,7 @@ export const BackToContent = React.memo(function BackToContent() {
 
   return (
     <BackToContentContainer>
-      <RowButton onSelect={state.zoomToContent}>Back to content</RowButton>
+      <RowButton onSelect={app.zoomToContent}>Back to content</RowButton>
     </BackToContentContainer>
   )
 })

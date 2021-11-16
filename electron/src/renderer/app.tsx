@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { Tldraw, TldrawApp } from '@tldraw/Tldraw'
-import type { IpcMainEvent, IpcMain, IpcRenderer } from 'electron'
-import type { Message, TLApi } from 'src/types'
+import type { Message, TldrawBridgeApi } from 'src/types'
+
+declare const window: Window & { TldrawBridgeApi: TldrawBridgeApi }
 
 export default function App(): JSX.Element {
   const rTldrawApp = React.useRef<TldrawApp>()
@@ -13,72 +14,72 @@ export default function App(): JSX.Element {
 
   React.useEffect(() => {
     function handleEvent(message: Message) {
-      const state = rTldrawApp.current
-      if (!state) return
+      const app = rTldrawApp.current
+      if (!app) return
 
       switch (message.type) {
         case 'resetZoom': {
-          state.resetZoom()
+          app.resetZoom()
           break
         }
         case 'zoomIn': {
-          state.zoomIn()
+          app.zoomIn()
           break
         }
         case 'zoomOut': {
-          state.zoomOut()
+          app.zoomOut()
           break
         }
         case 'zoomToFit': {
-          state.zoomToFit()
+          app.zoomToFit()
           break
         }
         case 'zoomToSelection': {
-          state.zoomToSelection()
+          app.zoomToSelection()
           break
         }
         case 'undo': {
-          state.undo()
+          app.undo()
           break
         }
         case 'redo': {
-          state.redo()
+          app.redo()
           break
         }
         case 'cut': {
-          state.cut()
+          app.cut()
           break
         }
         case 'copy': {
-          state.copy()
+          app.copy()
           break
         }
         case 'paste': {
-          state.paste()
+          app.paste()
           break
         }
         case 'delete': {
-          state.delete()
+          app.delete()
           break
         }
         case 'selectAll': {
-          state.selectAll()
+          app.selectAll()
           break
         }
         case 'selectNone': {
-          state.selectNone()
+          app.selectNone()
           break
         }
       }
     }
 
-    const { send, on } = (window as unknown as Window & { TLApi: TLApi })['TLApi']
+    const { on } = window.TldrawBridgeApi
 
     on('projectMsg', handleEvent)
   })
 
   return (
-    <div className="Tldraw">
+    <div className="tldraw">
       <Tldraw id="electron" onMount={handleMount} autofocus showMenu={false} />
     </div>
   )

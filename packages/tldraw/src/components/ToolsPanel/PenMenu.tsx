@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Panel } from '~components/Panel'
-import { ToolButton, ToolButtonWithTooltip } from '~components/ToolButton'
+import { ToolButton } from '~components/ToolButton'
 import { TldrawShapeType, TldrawToolType } from '~types'
 import { useTldrawApp } from '~hooks'
-import { SquareIcon, CircleIcon, Pencil1Icon } from '@radix-ui/react-icons'
+import { Pencil1Icon } from '@radix-ui/react-icons'
 import { Tooltip } from '~components/Tooltip'
 
 interface ShapesMenuProps {
@@ -18,7 +18,7 @@ const penShapeIcons = {
 }
 
 export const PenMenu = React.memo(function PenMenu({ activeTool }: ShapesMenuProps) {
-  const { state } = useTldrawApp()
+  const app = useTldrawApp()
 
   const [lastActiveTool, setLastActiveTool] = React.useState<PenShape>(TldrawShapeType.Draw)
 
@@ -29,11 +29,11 @@ export const PenMenu = React.memo(function PenMenu({ activeTool }: ShapesMenuPro
   }, [activeTool])
 
   const selectShapeTool = React.useCallback(() => {
-    state.selectTool(lastActiveTool)
-  }, [activeTool, state])
+    app.selectTool(lastActiveTool)
+  }, [activeTool, app])
 
   const handleDoubleClick = React.useCallback(() => {
-    state.toggleToolLock()
+    app.toggleToolLock()
   }, [])
 
   return (
@@ -60,7 +60,7 @@ export const PenMenu = React.memo(function PenMenu({ activeTool }: ShapesMenuPro
                 <ToolButton
                   variant="primary"
                   onClick={() => {
-                    state.selectTool(shape)
+                    app.selectTool(shape)
                     setLastActiveTool(shape)
                   }}
                 >

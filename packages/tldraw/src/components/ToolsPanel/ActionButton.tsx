@@ -86,83 +86,83 @@ export function ActionButton(): JSX.Element {
   const hasMultipleSelection = app.useStore(hasMultipleSelectionClickor)
 
   const handleRotate = React.useCallback(() => {
-    state.rotate()
+    app.rotate()
   }, [app])
 
   const handleDuplicate = React.useCallback(() => {
-    state.duplicate()
+    app.duplicate()
   }, [app])
 
   const handleToggleLocked = React.useCallback(() => {
-    state.toggleLocked()
+    app.toggleLocked()
   }, [app])
 
   const handleToggleAspectRatio = React.useCallback(() => {
-    state.toggleAspectRatioLocked()
+    app.toggleAspectRatioLocked()
   }, [app])
 
   const handleGroup = React.useCallback(() => {
-    state.group()
+    app.group()
   }, [app])
 
   const handleMoveToBack = React.useCallback(() => {
-    state.moveToBack()
+    app.moveToBack()
   }, [app])
 
   const handleMoveBackward = React.useCallback(() => {
-    state.moveBackward()
+    app.moveBackward()
   }, [app])
 
   const handleMoveForward = React.useCallback(() => {
-    state.moveForward()
+    app.moveForward()
   }, [app])
 
   const handleMoveToFront = React.useCallback(() => {
-    state.moveToFront()
+    app.moveToFront()
   }, [app])
 
   const handleDelete = React.useCallback(() => {
-    state.delete()
+    app.delete()
   }, [app])
 
   const alignTop = React.useCallback(() => {
-    state.align(AlignType.Top)
+    app.align(AlignType.Top)
   }, [app])
 
   const alignCenterVertical = React.useCallback(() => {
-    state.align(AlignType.CenterVertical)
+    app.align(AlignType.CenterVertical)
   }, [app])
 
   const alignBottom = React.useCallback(() => {
-    state.align(AlignType.Bottom)
+    app.align(AlignType.Bottom)
   }, [app])
 
   const stretchVertically = React.useCallback(() => {
-    state.stretch(StretchType.Vertical)
+    app.stretch(StretchType.Vertical)
   }, [app])
 
   const distributeVertically = React.useCallback(() => {
-    state.distribute(DistributeType.Vertical)
+    app.distribute(DistributeType.Vertical)
   }, [app])
 
   const alignLeft = React.useCallback(() => {
-    state.align(AlignType.Left)
+    app.align(AlignType.Left)
   }, [app])
 
   const alignCenterHorizontal = React.useCallback(() => {
-    state.align(AlignType.CenterHorizontal)
+    app.align(AlignType.CenterHorizontal)
   }, [app])
 
   const alignRight = React.useCallback(() => {
-    state.align(AlignType.Right)
+    app.align(AlignType.Right)
   }, [app])
 
   const stretchHorizontally = React.useCallback(() => {
-    state.stretch(StretchType.Horizontal)
+    app.stretch(StretchType.Horizontal)
   }, [app])
 
   const distributeHorizontally = React.useCallback(() => {
-    state.distribute(DistributeType.Horizontal)
+    app.distribute(DistributeType.Horizontal)
   }, [app])
 
   const selectedShapesCount = app.useStore(selectedShapesCountSelector)

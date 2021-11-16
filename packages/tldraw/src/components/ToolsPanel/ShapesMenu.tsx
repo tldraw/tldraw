@@ -19,7 +19,7 @@ const shapeShapeIcons = {
 }
 
 export const ShapesMenu = React.memo(function ShapesMenu({ activeTool }: ShapesMenuProps) {
-  const { state } = useTldrawApp()
+  const app = useTldrawApp()
 
   const [lastActiveTool, setLastActiveTool] = React.useState<ShapeShape>(TldrawShapeType.Rectangle)
 
@@ -30,12 +30,12 @@ export const ShapesMenu = React.memo(function ShapesMenu({ activeTool }: ShapesM
   }, [activeTool])
 
   const selectShapeTool = React.useCallback(() => {
-    state.selectTool(lastActiveTool)
-  }, [activeTool, state])
+    app.selectTool(lastActiveTool)
+  }, [activeTool, app])
 
   const handleDoubleClick = React.useCallback(() => {
-    state.toggleToolLock()
-  }, [])
+    app.toggleToolLock()
+  }, [app])
 
   return (
     <DropdownMenu.Root dir="ltr">
@@ -61,7 +61,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({ activeTool }: ShapesM
                 <ToolButton
                   variant="primary"
                   onClick={() => {
-                    state.selectTool(shape)
+                    app.selectTool(shape)
                     setLastActiveTool(shape)
                   }}
                 >

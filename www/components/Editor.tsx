@@ -32,7 +32,7 @@ export default function Editor({ id = 'home', isSponsor = false }: EditorProps) 
   const { onSignIn, onSignOut } = useAccountHandlers()
 
   return (
-    <div className="Tldraw">
+    <div className="tldraw">
       <Tldraw
         id={id}
         autofocus

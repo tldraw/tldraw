@@ -1,4 +1,3 @@
-import Vec from '@tldraw/vec'
 import { Utils, TLPointerEventHandler } from '@tldraw/core'
 import { Arrow } from '~state/shapes'
 import { SessionType, TldrawShapeType } from '~types'

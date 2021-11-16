@@ -120,7 +120,7 @@ export class TranslateSession extends BaseSession {
 
     this.initialCommonBounds = Utils.getCommonBounds(this.initialShapes.map(TLDR.getRotatedBounds))
 
-    this.app.selectedIdsForRotation = [...this.app.selectedIds]
+    this.app.rotationInfo.selectedIds = [...this.app.selectedIds]
   }
 
   start = (): TldrawPatch | undefined => {

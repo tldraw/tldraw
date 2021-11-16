@@ -50,7 +50,7 @@ export class TransformSingleSession extends BaseSession {
     this.initialShape = shape
     this.initialShapeBounds = TLDR.getBounds(shape)
     this.initialCommonBounds = TLDR.getRotatedBounds(shape)
-    this.app.selectedIdsForRotation = [shape.id]
+    this.app.rotationInfo.selectedIds = [shape.id]
   }
 
   start = (): TldrawPatch | undefined => {

@@ -2,16 +2,16 @@
 import * as React from 'react'
 import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/Tldraw'
 
-declare const window: Window & { state: TldrawApp }
+declare const window: Window & { app: TldrawApp }
 
 export default function Develop(): JSX.Element {
   const rTldrawApp = React.useRef<TldrawApp>()
 
   const fileSystemEvents = useFileSystem()
 
-  const handleMount = React.useCallback((state: TldrawApp) => {
-    window.state = state
-    rTldrawApp.current = state
+  const handleMount = React.useCallback((app: TldrawApp) => {
+    window.app = app
+    rTldrawApp.current = app
   }, [])
 
   const handleSignOut = React.useCallback(() => {
@@ -27,7 +27,7 @@ export default function Develop(): JSX.Element {
   }, [])
 
   return (
-    <div className="Tldraw">
+    <div className="tldraw">
       <Tldraw
         id="develop"
         {...fileSystemEvents}

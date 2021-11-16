@@ -3,7 +3,7 @@ import { Tldraw } from '@tldraw/Tldraw'
 
 export default function Basic(): JSX.Element {
   return (
-    <div className="Tldraw">
+    <div className="tldraw">
       <Tldraw />
     </div>
   )
