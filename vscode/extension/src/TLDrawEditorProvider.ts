@@ -12,12 +12,12 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
 
   private static newTDFileId = 1
 
-  private static readonly viewType = 'Tldraw.tldr'
+  private static readonly viewType = 'tldraw.tldr'
 
   public static register = (context: vscode.ExtensionContext): vscode.Disposable => {
     // Register the 'Create new Tldraw file' command, which creates
     // a temporary .tldr file and opens it in the editor.
-    vscode.commands.registerCommand('Tldraw.tldr.new', () => {
+    vscode.commands.registerCommand('tldraw.tldr.new', () => {
       const id = TldrawEditorProvider.newTDFileId++
       const name = id > 1 ? `New Document ${id}.tldr` : `New Document.tldr`
 

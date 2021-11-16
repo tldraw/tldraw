@@ -35,9 +35,9 @@
   },
   "build": {
     "appId": "io.comp.tldraw-electron",
-    "productName": "TLDraw",
+    "productName": "tldraw",
     "extraMetadata": {
-      "name": "TLDraw",
+      "name": "tldraw",
       "main": "main.js"
     },
     "files": [

@@ -1,7 +1,7 @@
 {
 	"name": "tldraw-vscode",
-	"displayName": "TLDraw",
-	"description": "The TLDraw Extension for VS Code.",
+	"displayName": "tldraw",
+	"description": "The tldraw Extension for VS Code.",
 	"version": "1.0.0",
 	"license": "MIT",
 	"publisher": "tldraw-org",
@@ -43,7 +43,7 @@
 		"customEditors": [
 			{
 				"viewType": "tldraw.tldr",
-				"displayName": "TLDraw",
+				"displayName": "tldraw",
 				"selector": [
 					{
 						"filenamePattern": "*.tldr"
@@ -54,8 +54,8 @@
 		"commands": [
 			{
 				"command": "tldraw.tldr.new",
-				"title": "New TLDraw File",
-				"category": "TLDraw"
+				"title": "New tldraw File",
+				"category": "tldraw"
 			}
 		]
 	},
