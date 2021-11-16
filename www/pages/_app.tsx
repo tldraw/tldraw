@@ -5,7 +5,7 @@ import useGtag from '-utils/useGtag'
 
 init()
 
-const APP_NAME = 'Tldraw'
+const APP_NAME = 'tldraw'
 const APP_DESCRIPTION = 'A tiny little drawing app.'
 const APP_URL = 'https://tldraw.com'
 const IMAGE = 'https://tldraw.com/social-image.png'
