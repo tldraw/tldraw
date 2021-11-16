@@ -28,7 +28,6 @@ import {
   TldrawShapeType,
   TldrawSnapshot,
   TldrawStatus,
-  SelectHistory,
   TldrawPage,
   TldrawBinding,
   GroupShape,
@@ -179,8 +178,8 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
     [100, 100],
   ])
 
-  private selectHistory: SelectHistory = {
-    stack: [[]],
+  private selectHistory = {
+    stack: [[]] as string[][],
     pointer: 0,
   }
 

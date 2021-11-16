@@ -74,29 +74,40 @@ export interface TldrawProps extends TldrawCallbacks {
   readOnly?: boolean
 
   /**
+   * (optional) Whether to to show the app's dark mode UI.
+   */
+  darkMode?: boolean
+
+  /**
    * (optional) A callback to run when the component mounts.
    */
   onMount?: (state: TldrawApp) => void
+
   /**
    * (optional) A callback to run when the user creates a new project through the menu or through a keyboard shortcut.
    */
   onNewProject?: (state: TldrawApp, e?: KeyboardEvent) => void
+
   /**
    * (optional) A callback to run when the user saves a project through the menu or through a keyboard shortcut.
    */
   onSaveProject?: (state: TldrawApp, e?: KeyboardEvent) => void
+
   /**
    * (optional) A callback to run when the user saves a project as a new project through the menu or through a keyboard shortcut.
    */
   onSaveProjectAs?: (state: TldrawApp, e?: KeyboardEvent) => void
+
   /**
    * (optional) A callback to run when the user opens new project through the menu or through a keyboard shortcut.
    */
   onOpenProject?: (state: TldrawApp, e?: KeyboardEvent) => void
+
   /**
    * (optional) A callback to run when the user signs in via the menu.
    */
   onSignIn?: (state: TldrawApp) => void
+
   /**
    * (optional) A callback to run when the user signs out via the menu.
    */
@@ -136,6 +147,7 @@ export function Tldraw({
   id,
   document,
   currentPageId,
+  darkMode = false,
   autofocus = true,
   showMenu = true,
   showPages = true,
@@ -162,6 +174,7 @@ export function Tldraw({
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
+  // Create a new app when the component mounts.
   const [app, setApp] = React.useState(
     () =>
       new TldrawApp(id, {
@@ -182,6 +195,7 @@ export function Tldraw({
       })
   )
 
+  // Create a new app if the `id` prop changes.
   React.useEffect(() => {
     if (id === sId) return
 
@@ -207,10 +221,8 @@ export function Tldraw({
     setApp(newApp)
   }, [sId, id])
 
-  React.useEffect(() => {
-    app.readOnly = readOnly
-  }, [app, readOnly])
-
+  // Update the document if the `document` prop changes but the ids,
+  // are the same, or else load a new document if the ids are different.
   React.useEffect(() => {
     if (!document) return
 
@@ -221,6 +233,25 @@ export function Tldraw({
     }
   }, [document, app])
 
+  // Change the page when the `currentPageId` prop changes
+  React.useEffect(() => {
+    if (!currentPageId) return
+    app.changePage(currentPageId)
+  }, [currentPageId, app])
+
+  // Toggle the app's readOnly mode when the `readOnly` prop changes
+  React.useEffect(() => {
+    app.readOnly = readOnly
+  }, [app, readOnly])
+
+  // Toggle the app's readOnly mode when the `readOnly` prop changes
+  React.useEffect(() => {
+    if (darkMode !== app.state.settings.isDarkMode) {
+      app.toggleDarkMode()
+    }
+  }, [app, darkMode])
+
+  // Update the app's callbacks when any callback changes.
   React.useEffect(() => {
     app.callbacks = {
       onMount,
@@ -263,7 +294,6 @@ export function Tldraw({
         <InnerTldraw
           key={sId || 'Tldraw'}
           id={sId}
-          currentPageId={currentPageId}
           autofocus={autofocus}
           showPages={showPages}
           showMenu={showMenu}
@@ -281,7 +311,6 @@ export function Tldraw({
 
 interface InnerTldrawProps {
   id?: string
-  currentPageId?: string
   autofocus: boolean
   showPages: boolean
   showMenu: boolean
@@ -295,7 +324,6 @@ interface InnerTldrawProps {
 
 const InnerTldraw = React.memo(function InnerTldraw({
   id,
-  currentPageId,
   autofocus,
   showPages,
   showMenu,
@@ -362,11 +390,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
 
     return {}
   }, [settings.isDarkMode])
-
-  React.useEffect(() => {
-    if (!currentPageId) return
-    app.changePage(currentPageId)
-  }, [currentPageId, app])
 
   // When the context menu is blurred, close the menu by sending pointer events
   // to the context menu's ref. This is a hack around the fact that certain shapes

@@ -19,124 +19,11 @@ import type {
   TLShapeCloneHandler,
 } from '@tldraw/core'
 import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
-import type { StoreApi } from 'zustand'
 import type { Command, Patch } from 'rko'
 import type { FileSystemHandle } from '~state/data/browser-fs-access'
 
-export interface TldrawHandle extends TLHandle {
-  canBind?: boolean
-  bindingId?: string
-}
-
-export interface TldrawTransformInfo<T extends TLShape> {
-  type: TLBoundsEdge | TLBoundsCorner
-  initialShape: T
-  scaleX: number
-  scaleY: number
-  transformOrigin: number[]
-}
-
-// old
-export type TLStore = StoreApi<TldrawSnapshot>
-
-export type TLChange = TldrawSnapshot
-
-export type TldrawPage = TLPage<TldrawShape, TldrawBinding>
-
-export interface TldrawDocument {
-  id: string
-  name: string
-  pages: Record<string, TldrawPage>
-  pageStates: Record<string, TLPageState>
-  version: number
-}
-
-export interface TldrawSettings {
-  isDarkMode: boolean
-  isDebugMode: boolean
-  isPenMode: boolean
-  isReadonlyMode: boolean
-  isZoomSnap: boolean
-  nudgeDistanceSmall: number
-  nudgeDistanceLarge: number
-  isFocusMode: boolean
-  isSnapping: boolean
-  showRotateHandles: boolean
-  showBindingHandles: boolean
-  showCloneHandles: boolean
-}
-
-export enum TLUserStatus {
-  Idle = 'idle',
-  Connecting = 'connecting',
-  Connected = 'connected',
-  Disconnected = 'disconnected',
-}
-
-export interface TldrawMeta {
-  isDarkMode: boolean
-}
-
-export interface TldrawUser extends TLUser<TldrawShape> {
-  activeShapes: TldrawShape[]
-}
-
-export type TldrawShapeProps<T extends TldrawShape, E extends Element> = TLShapeProps<
-  T,
-  E,
-  TldrawMeta
->
-
-export interface TldrawSnapshot {
-  settings: TldrawSettings
-  appState: {
-    selectedStyle: ShapeStyles
-    currentStyle: ShapeStyles
-    currentPageId: string
-    pages: Pick<TLPage<TldrawShape, TldrawBinding>, 'id' | 'name' | 'childIndex'>[]
-    hoveredId?: string
-    activeTool: TldrawToolType
-    isToolLocked: boolean
-    isStyleOpen: boolean
-    isEmptyCanvas: boolean
-    status: string
-    snapLines: TLSnapLine[]
-  }
-  document: TldrawDocument
-  room?: {
-    id: string
-    userId: string
-    users: Record<string, TldrawUser>
-  }
-}
-
-export type TldrawPatch = Patch<TldrawSnapshot>
-
-export type TldrawCommand = Command<TldrawSnapshot>
-
-export type PagePartial = {
-  shapes: Patch<TldrawPage['shapes']>
-  bindings: Patch<TldrawPage['bindings']>
-}
-
-export interface SelectHistory {
-  pointer: number
-  stack: string[][]
-}
-
-export enum SessionType {
-  Transform = 'transform',
-  Translate = 'translate',
-  TransformSingle = 'transformSingle',
-  Brush = 'brush',
-  Arrow = 'arrow',
-  Draw = 'draw',
-  Erase = 'erase',
-  Rotate = 'rotate',
-  Handle = 'handle',
-  Grid = 'grid',
-}
-
+// A base class for all classes that handle events from the Renderer,
+// including TldrawApp and all Tools.
 export class TldrawEventHandler {
   onPinchStart?: TLPinchEventHandler
   onPinchEnd?: TLPinchEventHandler
@@ -185,6 +72,116 @@ export class TldrawEventHandler {
   onShapeClone?: TLShapeCloneHandler
 }
 
+// The shape of the TldrawApp's React (zustand) store
+export interface TldrawSnapshot {
+  settings: {
+    isDarkMode: boolean
+    isDebugMode: boolean
+    isPenMode: boolean
+    isReadonlyMode: boolean
+    isZoomSnap: boolean
+    nudgeDistanceSmall: number
+    nudgeDistanceLarge: number
+    isFocusMode: boolean
+    isSnapping: boolean
+    showRotateHandles: boolean
+    showBindingHandles: boolean
+    showCloneHandles: boolean
+  }
+  appState: {
+    selectedStyle: ShapeStyles
+    currentStyle: ShapeStyles
+    currentPageId: string
+    pages: Pick<TLPage<TldrawShape, TldrawBinding>, 'id' | 'name' | 'childIndex'>[]
+    hoveredId?: string
+    activeTool: TldrawToolType
+    isToolLocked: boolean
+    isStyleOpen: boolean
+    isEmptyCanvas: boolean
+    status: string
+    snapLines: TLSnapLine[]
+  }
+  document: TldrawDocument
+  room?: {
+    id: string
+    userId: string
+    users: Record<string, TldrawUser>
+  }
+}
+
+export type TldrawPatch = Patch<TldrawSnapshot>
+
+export type TldrawCommand = Command<TldrawSnapshot>
+
+// The shape of the files stored in JSON
+export interface TldrawFile {
+  name: string
+  fileHandle: FileSystemHandle | null
+  document: TldrawDocument
+  assets: Record<string, unknown>
+}
+
+// The shape of the Tldraw document
+export interface TldrawDocument {
+  id: string
+  name: string
+  version: number
+  pages: Record<string, TldrawPage>
+  pageStates: Record<string, TLPageState>
+}
+
+// The shape of a single page in the Tldraw document
+export type TldrawPage = TLPage<TldrawShape, TldrawBinding>
+
+// A partial of a TldrawPage, used for commands / patches
+export type PagePartial = {
+  shapes: Patch<TldrawPage['shapes']>
+  bindings: Patch<TldrawPage['bindings']>
+}
+
+// The meta information passed to TldrawShapeUtil components
+export interface TldrawMeta {
+  isDarkMode: boolean
+}
+
+// The type of info given to shapes when transforming
+export interface TldrawTransformInfo<T extends TLShape> {
+  type: TLBoundsEdge | TLBoundsCorner
+  initialShape: T
+  scaleX: number
+  scaleY: number
+  transformOrigin: number[]
+}
+
+// The status of a TldrawUser
+export enum TLUserStatus {
+  Idle = 'idle',
+  Connecting = 'connecting',
+  Connected = 'connected',
+  Disconnected = 'disconnected',
+}
+
+// A TldrawUser, for multiplayer rooms
+export interface TldrawUser extends TLUser<TldrawShape> {
+  activeShapes: TldrawShape[]
+  status: TLUserStatus
+}
+
+export type Theme = 'dark' | 'light'
+
+export enum SessionType {
+  Transform = 'transform',
+  Translate = 'translate',
+  TransformSingle = 'transformSingle',
+  Brush = 'brush',
+  Arrow = 'arrow',
+  Draw = 'draw',
+  Erase = 'erase',
+  Rotate = 'rotate',
+  Handle = 'handle',
+  Grid = 'grid',
+}
+
 export enum TldrawStatus {
   Idle = 'idle',
   PointingHandle = 'pointingHandle',
@@ -200,12 +197,36 @@ export enum TldrawStatus {
   EditingText = 'editing-text',
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never
+export type TldrawToolType =
+  | 'select'
+  | 'erase'
+  | TldrawShapeType.Text
+  | TldrawShapeType.Draw
+  | TldrawShapeType.Ellipse
+  | TldrawShapeType.Rectangle
+  | TldrawShapeType.Arrow
+  | TldrawShapeType.Sticky
 
-export type ExceptFirst<T extends unknown[]> = T extends [any, ...infer U] ? U : never
-
-export type ExceptFirstTwo<T extends unknown[]> = T extends [any, any, ...infer U] ? U : never
+export type Easing =
+  | 'linear'
+  | 'easeInQuad'
+  | 'easeOutQuad'
+  | 'easeInOutQuad'
+  | 'easeInCubic'
+  | 'easeOutCubic'
+  | 'easeInOutCubic'
+  | 'easeInQuart'
+  | 'easeOutQuart'
+  | 'easeInOutQuart'
+  | 'easeInQuint'
+  | 'easeOutQuint'
+  | 'easeInOutQuint'
+  | 'easeInSine'
+  | 'easeOutSine'
+  | 'easeInOutSine'
+  | 'easeInExpo'
+  | 'easeOutExpo'
+  | 'easeInOutExpo'
 
 export enum MoveType {
   Backward = 'backward',
@@ -238,6 +259,10 @@ export enum FlipType {
   Vertical = 'vertical',
 }
 
+/* -------------------------------------------------- */
+/*                       Shapes                       */
+/* -------------------------------------------------- */
+
 export enum TldrawShapeType {
   Sticky = 'sticky',
   Ellipse = 'ellipse',
@@ -258,12 +283,20 @@ export interface TldrawBaseShape extends TLShape {
   handles?: Record<string, TldrawHandle>
 }
 
+// The shape created with the draw tool
 export interface DrawShape extends TldrawBaseShape {
   type: TldrawShapeType.Draw
   points: number[][]
   isComplete: boolean
 }
 
+// The extended handle (used for arrows)
+export interface TldrawHandle extends TLHandle {
+  canBind?: boolean
+  bindingId?: string
+}
+
+// The shape created with the arrow tool
 export interface ArrowShape extends TldrawBaseShape {
   type: TldrawShapeType.Arrow
   bend: number
@@ -279,33 +312,47 @@ export interface ArrowShape extends TldrawBaseShape {
   }
 }
 
+export interface ArrowBinding extends TLBinding {
+  handleId: keyof ArrowShape['handles']
+  distance: number
+  point: number[]
+}
+
+export type TldrawBinding = ArrowBinding
+
+// The shape created by the ellipse tool
 export interface EllipseShape extends TldrawBaseShape {
   type: TldrawShapeType.Ellipse
   radius: number[]
 }
 
+// The shape created by the rectangle tool
 export interface RectangleShape extends TldrawBaseShape {
   type: TldrawShapeType.Rectangle
   size: number[]
 }
 
+// The shape created by the text tool
 export interface TextShape extends TldrawBaseShape {
   type: TldrawShapeType.Text
   text: string
 }
 
-export interface GroupShape extends TldrawBaseShape {
-  type: TldrawShapeType.Group
-  size: number[]
-  children: string[]
-}
-
+// The shape created by the sticky tool
 export interface StickyShape extends TldrawBaseShape {
   type: TldrawShapeType.Sticky
   size: number[]
   text: string
 }
 
+// The shape created when multiple shapes are grouped
+export interface GroupShape extends TldrawBaseShape {
+  type: TldrawShapeType.Group
+  size: number[]
+  children: string[]
+}
+
+// A union of all shapes
 export type TldrawShape =
   | RectangleShape
   | EllipseShape
@@ -315,13 +362,7 @@ export type TldrawShape =
   | GroupShape
   | StickyShape
 
-export interface ArrowBinding extends TLBinding {
-  handleId: keyof ArrowShape['handles']
-  distance: number
-  point: number[]
-}
-
-export type TldrawBinding = ArrowBinding
+/* ------------------ Shape Styles ------------------ */
 
 export enum ColorStyle {
   White = 'white',
@@ -366,6 +407,17 @@ export type ShapeStyles = {
   scale?: number
 }
 
+/* -------------------------------------------------- */
+/*                    Type Helpers                    */
+/* -------------------------------------------------- */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never
+
+export type ExceptFirst<T extends unknown[]> = T extends [any, ...infer U] ? U : never
+
+export type ExceptFirstTwo<T extends unknown[]> = T extends [any, any, ...infer U] ? U : never
+
 export type PropsOfType<U> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [K in keyof TldrawShape]: TldrawShape[K] extends any
@@ -374,8 +426,6 @@ export type PropsOfType<U> = {
       : never
     : never
 }[keyof TldrawShape]
-
-export type Theme = 'dark' | 'light'
 
 export type Difference<A, B, C = A> = A extends B ? never : C
 
@@ -401,43 +451,3 @@ export type ShapesWithProp<U> = MembersWithRequiredKey<
   MappedByType<TldrawShapeType, TldrawShape>,
   U
 >
-
-export type Easing =
-  | 'linear'
-  | 'easeInQuad'
-  | 'easeOutQuad'
-  | 'easeInOutQuad'
-  | 'easeInCubic'
-  | 'easeOutCubic'
-  | 'easeInOutCubic'
-  | 'easeInQuart'
-  | 'easeOutQuart'
-  | 'easeInOutQuart'
-  | 'easeInQuint'
-  | 'easeOutQuint'
-  | 'easeInOutQuint'
-  | 'easeInSine'
-  | 'easeOutSine'
-  | 'easeInOutSine'
-  | 'easeInExpo'
-  | 'easeOutExpo'
-  | 'easeInOutExpo'
-
-export type TldrawToolType =
-  | 'select'
-  | 'erase'
-  | TldrawShapeType.Text
-  | TldrawShapeType.Draw
-  | TldrawShapeType.Ellipse
-  | TldrawShapeType.Rectangle
-  | TldrawShapeType.Arrow
-  | TldrawShapeType.Sticky
-
-/* ------------------- File System ------------------ */
-
-export interface TldrawFile {
-  name: string
-  fileHandle: FileSystemHandle | null
-  document: TldrawDocument
-  assets: Record<string, unknown>
-}
