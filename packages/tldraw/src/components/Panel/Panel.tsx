@@ -14,11 +14,15 @@ export const Panel = styled('div', {
       },
       left: {
         padding: 0,
+        borderTopRightRadius: '$1',
         borderBottomRightRadius: '$3',
+        borderBottomLeftRadius: '$1',
       },
       right: {
         padding: 0,
+        borderTopLeftRadius: '$1',
         borderBottomLeftRadius: '$3',
+        borderBottomRightRadius: '$1',
       },
     },
   },
