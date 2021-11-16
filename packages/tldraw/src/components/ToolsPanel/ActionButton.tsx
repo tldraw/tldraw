@@ -31,6 +31,7 @@ import { DMContent } from '~components/DropdownMenu'
 import { Divider } from '~components/Divider'
 import { TrashIcon } from '~components/icons'
 import { ToolButton } from '~components/ToolButton'
+import { GHOSTED_OPACITY } from '~constants'
 
 const selectedShapesCountSelector = (s: TDSnapshot) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length
@@ -172,8 +173,8 @@ export function ActionButton(): JSX.Element {
   return (
     <DropdownMenu.Root dir="ltr">
       <DropdownMenu.Trigger dir="ltr" asChild>
-        <ToolButton variant="circle">
-          <DotsHorizontalIcon />
+        <ToolButton disabled={!hasSelection} variant="circle">
+          <DotsHorizontalIcon opacity={hasSelection ? 1 : GHOSTED_OPACITY} />
         </ToolButton>
       </DropdownMenu.Trigger>
       <DMContent sideOffset={16}>

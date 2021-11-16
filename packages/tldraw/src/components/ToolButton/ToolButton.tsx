@@ -88,7 +88,6 @@ export const StyledToolButtonInner = styled('div', {
   position: 'relative',
   height: '100%',
   width: '100%',
-  color: '$text',
   backgroundColor: '$panel',
   borderRadius: '$2',
   margin: '0',
@@ -96,6 +95,7 @@ export const StyledToolButtonInner = styled('div', {
   alignItems: 'center',
   justifyContent: 'center',
   fontFamily: '$ui',
+  color: 'inherit',
   userSelect: 'none',
   boxSizing: 'border-box',
   border: '1px solid transparent',
@@ -117,7 +117,6 @@ export const StyledToolButton = styled('button', {
   border: 'none',
   height: '40px',
   width: '40px',
-
   variants: {
     variant: {
       primary: {
