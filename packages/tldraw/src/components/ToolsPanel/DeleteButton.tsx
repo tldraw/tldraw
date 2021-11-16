@@ -19,7 +19,7 @@ export function DeleteButton(): JSX.Element {
   return (
     <Tooltip label="Delete" kbd="⌫">
       <ToolButton variant="circle" disabled={!hasSelection} onSelect={handleDelete}>
-        <TrashIcon opacity={hasSelection ? 1 : GHOSTED_OPACITY} />
+        <TrashIcon opacity={hasSelection ? 1 : 0.618} />
       </ToolButton>
     </Tooltip>
   )

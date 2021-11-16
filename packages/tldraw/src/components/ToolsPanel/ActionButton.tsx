@@ -174,7 +174,7 @@ export function ActionButton(): JSX.Element {
     <DropdownMenu.Root dir="ltr">
       <DropdownMenu.Trigger dir="ltr" asChild>
         <ToolButton disabled={!hasSelection} variant="circle">
-          <DotsHorizontalIcon opacity={hasSelection ? 1 : GHOSTED_OPACITY} />
+          <DotsHorizontalIcon opacity={hasSelection ? 1 : 0.618} />
         </ToolButton>
       </DropdownMenu.Trigger>
       <DMContent sideOffset={16}>
