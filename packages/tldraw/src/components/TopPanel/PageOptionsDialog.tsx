@@ -131,9 +131,9 @@ export const StyledDialogOverlay = styled(Dialog.Overlay, {
   height: '100%',
 })
 
-function DialogAction({ onSelect, ...rest }: RowButtonProps) {
+function DialogAction({ ...rest }: RowButtonProps & { onSelect: (e: Event) => void }) {
   return (
-    <Dialog.Action asChild onClick={onSelect}>
+    <Dialog.Action asChild>
       <RowButton {...rest} />
     </Dialog.Action>
   )

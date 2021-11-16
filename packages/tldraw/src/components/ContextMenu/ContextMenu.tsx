@@ -136,41 +136,41 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
         <MenuContent>
           {hasSelection ? (
             <>
-              <CMRowButton onSelect={handleDuplicate} kbd="#D">
+              <CMRowButton onClick={handleDuplicate} kbd="#D">
                 Duplicate
               </CMRowButton>
-              <CMRowButton onSelect={handleFlipHorizontal} kbd="⇧H">
+              <CMRowButton onClick={handleFlipHorizontal} kbd="⇧H">
                 Flip Horizontal
               </CMRowButton>
-              <CMRowButton onSelect={handleFlipVertical} kbd="⇧V">
+              <CMRowButton onClick={handleFlipVertical} kbd="⇧V">
                 Flip Vertical
               </CMRowButton>
-              <CMRowButton onSelect={handleLock} kbd="#⇧L">
+              <CMRowButton onClick={handleLock} kbd="#⇧L">
                 Lock / Unlock
               </CMRowButton>
               {(hasTwoOrMore || hasGroupSelected) && <Divider />}
               {hasTwoOrMore && (
-                <CMRowButton onSelect={handleGroup} kbd="#G">
+                <CMRowButton onClick={handleGroup} kbd="#G">
                   Group
                 </CMRowButton>
               )}
               {hasGroupSelected && (
-                <CMRowButton onSelect={handleGroup} kbd="#⇧G">
+                <CMRowButton onClick={handleGroup} kbd="#⇧G">
                   Ungroup
                 </CMRowButton>
               )}
               <Divider />
               <ContextMenuSubMenu label="Move">
-                <CMRowButton onSelect={handleMoveToFront} kbd="⇧]">
+                <CMRowButton onClick={handleMoveToFront} kbd="⇧]">
                   To Front
                 </CMRowButton>
-                <CMRowButton onSelect={handleMoveForward} kbd="]">
+                <CMRowButton onClick={handleMoveForward} kbd="]">
                   Forward
                 </CMRowButton>
-                <CMRowButton onSelect={handleMoveBackward} kbd="[">
+                <CMRowButton onClick={handleMoveBackward} kbd="[">
                   Backward
                 </CMRowButton>
-                <CMRowButton onSelect={handleMoveToBack} kbd="⇧[">
+                <CMRowButton onClick={handleMoveToBack} kbd="⇧[">
                   To Back
                 </CMRowButton>
               </ContextMenuSubMenu>
@@ -182,30 +182,30 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
                 />
               )}
               <Divider />
-              <CMRowButton onSelect={handleCopy} kbd="#C">
+              <CMRowButton onClick={handleCopy} kbd="#C">
                 Copy
               </CMRowButton>
-              <CMRowButton onSelect={handleCopySvg} kbd="⇧#C">
+              <CMRowButton onClick={handleCopySvg} kbd="⇧#C">
                 Copy as SVG
               </CMRowButton>
-              {isDebugMode && <CMRowButton onSelect={handleCopyJson}>Copy as JSON</CMRowButton>}
-              <CMRowButton onSelect={handlePaste} kbd="#V">
+              {isDebugMode && <CMRowButton onClick={handleCopyJson}>Copy as JSON</CMRowButton>}
+              <CMRowButton onClick={handlePaste} kbd="#V">
                 Paste
               </CMRowButton>
               <Divider />
-              <CMRowButton onSelect={handleDelete} kbd="⌫">
+              <CMRowButton onClick={handleDelete} kbd="⌫">
                 Delete
               </CMRowButton>
             </>
           ) : (
             <>
-              <CMRowButton onSelect={handlePaste} kbd="#V">
+              <CMRowButton onClick={handlePaste} kbd="#V">
                 Paste
               </CMRowButton>
-              <CMRowButton onSelect={handleUndo} kbd="#Z">
+              <CMRowButton onClick={handleUndo} kbd="#Z">
                 Undo
               </CMRowButton>
-              <CMRowButton onSelect={handleRedo} kbd="#⇧Z">
+              <CMRowButton onClick={handleRedo} kbd="#⇧Z">
                 Redo
               </CMRowButton>
             </>
@@ -269,37 +269,37 @@ function AlignDistributeSubMenu({
       <CMTriggerButton isSubmenu>Align / Distribute</CMTriggerButton>
       <RadixContextMenu.Content asChild sideOffset={2} alignOffset={-2}>
         <StyledGridContent selectedStyle={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}>
-          <CMIconButton onSelect={alignLeft}>
+          <CMIconButton onClick={alignLeft}>
             <AlignLeftIcon />
           </CMIconButton>
-          <CMIconButton onSelect={alignCenterHorizontal}>
+          <CMIconButton onClick={alignCenterHorizontal}>
             <AlignCenterHorizontallyIcon />
           </CMIconButton>
-          <CMIconButton onSelect={alignRight}>
+          <CMIconButton onClick={alignRight}>
             <AlignRightIcon />
           </CMIconButton>
-          <CMIconButton onSelect={stretchHorizontally}>
+          <CMIconButton onClick={stretchHorizontally}>
             <StretchHorizontallyIcon />
           </CMIconButton>
           {hasThreeOrMore && (
-            <CMIconButton onSelect={distributeHorizontally}>
+            <CMIconButton onClick={distributeHorizontally}>
               <SpaceEvenlyHorizontallyIcon />
             </CMIconButton>
           )}
-          <CMIconButton onSelect={alignTop}>
+          <CMIconButton onClick={alignTop}>
             <AlignTopIcon />
           </CMIconButton>
-          <CMIconButton onSelect={alignCenterVertical}>
+          <CMIconButton onClick={alignCenterVertical}>
             <AlignCenterVerticallyIcon />
           </CMIconButton>
-          <CMIconButton onSelect={alignBottom}>
+          <CMIconButton onClick={alignBottom}>
             <AlignBottomIcon />
           </CMIconButton>
-          <CMIconButton onSelect={stretchVertically}>
+          <CMIconButton onClick={stretchVertically}>
             <StretchVerticallyIcon />
           </CMIconButton>
           {hasThreeOrMore && (
-            <CMIconButton onSelect={distributeVertically}>
+            <CMIconButton onClick={distributeVertically}>
               <SpaceEvenlyVerticallyIcon />
             </CMIconButton>
           )}
@@ -349,7 +349,7 @@ function MoveToPageMenu(): JSX.Element | null {
             <CMRowButton
               key={id}
               disabled={id === currentPageId}
-              onSelect={() => app.moveToPage(id)}
+              onClick={() => app.moveToPage(id)}
             >
               {name || `Page ${i}`}
             </CMRowButton>
