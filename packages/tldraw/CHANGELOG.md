@@ -19,6 +19,8 @@ Improvements
 
 New
 
+- Adds shape menu
+- Adds eraser tool (click or drag to erase)
 - Adds `darkMode` prop for controlling dark mode UI.
 - Double-click a tool icon to toggle "tool lock". This will prevent the app from returning to the select tool after creating a shape.
 

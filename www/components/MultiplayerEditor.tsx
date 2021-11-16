@@ -5,6 +5,7 @@ import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useObject, useErrorListener } from '@liveblocks/react'
 import { Utils } from '@tldraw/core'
 import { useAccountHandlers } from '-hooks/useAccountHandlers'
+import { styled } from '-styles'
 
 declare const window: Window & { app: TldrawApp }
 
@@ -159,9 +160,9 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
 
   const { onSignIn, onSignOut } = useAccountHandlers()
 
-  if (error) return <div>Error: {error.message}</div>
+  if (error) return <LoadingScreen>Error: {error.message}</LoadingScreen>
 
-  if (doc === null) return <div>Loading...</div>
+  if (doc === null) return <LoadingScreen>Loading...</LoadingScreen>
 
   return (
     <div className="tldraw">
@@ -179,3 +180,14 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
     </div>
   )
 }
+
+const LoadingScreen = styled('div', {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+})
