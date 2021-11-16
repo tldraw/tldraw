@@ -4,9 +4,7 @@ import type { TldrawApp } from '../../internal'
 export function deletePage(app: TldrawApp, pageId: string): TldrawCommand {
   const {
     currentPageId,
-    state: {
-      document: { pages, pageStates },
-    },
+    document: { pages, pageStates },
   } = app
 
   const pagesArr = Object.values(pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))

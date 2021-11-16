@@ -3,8 +3,8 @@ import { EraseTool } from './EraseTool'
 
 describe('EraseTool', () => {
   it('creates tool', () => {
-    const state = new TldrawApp()
-    new EraseTool(state)
+    const app = new TldrawApp()
+    new EraseTool(app)
   })
 
   it.todo('restores previous tool after erasing')

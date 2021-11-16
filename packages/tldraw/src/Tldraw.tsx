@@ -246,7 +246,7 @@ export function Tldraw({
 
   // Toggle the app's readOnly mode when the `readOnly` prop changes
   React.useEffect(() => {
-    if (darkMode !== app.state.settings.isDarkMode) {
+    if (darkMode !== app.settings.isDarkMode) {
       app.toggleDarkMode()
     }
   }, [app, darkMode])

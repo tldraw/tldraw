@@ -1,36 +1,36 @@
 import { mockDocument, TldrawTestApp } from '~test'
 
 describe('Create command', () => {
-  const state = new TldrawTestApp()
+  const app = new TldrawTestApp()
 
   beforeEach(() => {
-    state.loadDocument(mockDocument)
+    app.loadDocument(mockDocument)
   })
 
   describe('when no shape is provided', () => {
     it('does nothing', () => {
-      const initialState = state.state
-      state.create()
+      const initialState = app.state
+      app.create()
 
-      const currentState = state.state
+      const currentState = app.state
 
       expect(currentState).toEqual(initialState)
     })
   })
 
   it('does, undoes and redoes command', () => {
-    const shape = { ...state.getShape('rect1'), id: 'rect4' }
-    state.create([shape])
+    const shape = { ...app.getShape('rect1'), id: 'rect4' }
+    app.create([shape])
 
-    expect(state.getShape('rect4')).toBeTruthy()
+    expect(app.getShape('rect4')).toBeTruthy()
 
-    state.undo()
+    app.undo()
 
-    expect(state.getShape('rect4')).toBe(undefined)
+    expect(app.getShape('rect4')).toBe(undefined)
 
-    state.redo()
+    app.redo()
 
-    expect(state.getShape('rect4')).toBeTruthy()
+    expect(app.getShape('rect4')).toBeTruthy()
   })
 
   it.todo('Creates bindings')

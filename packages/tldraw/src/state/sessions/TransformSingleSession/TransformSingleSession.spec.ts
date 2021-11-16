@@ -1,28 +1,28 @@
 import { mockDocument, TldrawTestApp } from '~test'
 import { TLBoundsCorner } from '@tldraw/core'
-import { SessionType, TldrawStatus } from '~types'
+import { TldrawStatus } from '~types'
 
 describe('Transform single session', () => {
   it('begins, updateSession', () => {
-    const state = new TldrawTestApp()
+    const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1')
       .pointBoundsHandle(TLBoundsCorner.TopLeft, { x: -10, y: -10 })
       .stopPointing()
 
-    expect(state.appState.status).toBe(TldrawStatus.Idle)
+    expect(app.status).toBe(TldrawStatus.Idle)
 
-    state.undo().redo()
+    app.undo().redo()
   })
 
   it('cancels session', () => {
-    const state = new TldrawTestApp()
+    const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1')
       .pointBoundsHandle(TLBoundsCorner.TopLeft, { x: 5, y: 5 })
       .cancelSession()
 
-    expect(state.getShape('rect1').point).toStrictEqual([0, 0])
+    expect(app.getShape('rect1').point).toStrictEqual([0, 0])
   })
 })
 

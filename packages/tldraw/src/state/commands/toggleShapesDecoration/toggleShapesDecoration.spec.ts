@@ -2,17 +2,12 @@ import { mockDocument, TldrawTestApp } from '~test'
 import { ArrowShape, Decoration, TldrawShapeType } from '~types'
 
 describe('Toggle decoration command', () => {
-  const state = new TldrawTestApp()
-
-  beforeEach(() => {
-    state.loadDocument(mockDocument)
-  })
-
   describe('when no shape is selected', () => {
     it('does nothing', () => {
-      const initialState = state.state
-      state.toggleDecoration('start')
-      const currentState = state.state
+      const app = new TldrawTestApp()
+      const initialState = app.state
+      app.toggleDecoration('start')
+      const currentState = app.state
 
       expect(currentState).toEqual(initialState)
     })
@@ -20,34 +15,35 @@ describe('Toggle decoration command', () => {
 
   describe('when handle id is invalid', () => {
     it('does nothing', () => {
-      const initialState = state.state
-      state.toggleDecoration('invalid')
-      const currentState = state.state
+      const app = new TldrawTestApp()
+      const initialState = app.state
+      app.toggleDecoration('invalid')
+      const currentState = app.state
 
       expect(currentState).toEqual(initialState)
     })
   })
 
   it('does, undoes and redoes command', () => {
-    state
+    const app = new TldrawTestApp()
       .createShapes({
         id: 'arrow1',
         type: TldrawShapeType.Arrow,
       })
       .select('arrow1')
 
-    expect(state.getShape<ArrowShape>('arrow1').decorations?.end).toBe(Decoration.Arrow)
+    expect(app.getShape<ArrowShape>('arrow1').decorations?.end).toBe(Decoration.Arrow)
 
-    state.toggleDecoration('end')
+    app.toggleDecoration('end')
 
-    expect(state.getShape<ArrowShape>('arrow1').decorations?.end).toBe(undefined)
+    expect(app.getShape<ArrowShape>('arrow1').decorations?.end).toBe(undefined)
 
-    state.undo()
+    app.undo()
 
-    expect(state.getShape<ArrowShape>('arrow1').decorations?.end).toBe(Decoration.Arrow)
+    expect(app.getShape<ArrowShape>('arrow1').decorations?.end).toBe(Decoration.Arrow)
 
-    state.redo()
+    app.redo()
 
-    expect(state.getShape<ArrowShape>('arrow1').decorations?.end).toBe(undefined)
+    expect(app.getShape<ArrowShape>('arrow1').decorations?.end).toBe(undefined)
   })
 })

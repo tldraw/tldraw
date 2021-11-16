@@ -3,46 +3,46 @@ import { mockDocument, TldrawTestApp } from '~test'
 import { ArrowShape, SessionType, TldrawShapeType } from '~types'
 
 describe('Translate command', () => {
-  const state = new TldrawTestApp()
+  const app = new TldrawTestApp()
 
   beforeEach(() => {
-    state.loadDocument(mockDocument)
+    app.loadDocument(mockDocument)
   })
 
   describe('when no shape is selected', () => {
     it('does nothing', () => {
-      const initialState = state.state
-      state.nudge([1, 2])
-      const currentState = state.state
+      const initialState = app.state
+      app.nudge([1, 2])
+      const currentState = app.state
 
       expect(currentState).toEqual(initialState)
     })
   })
 
   it('does, undoes and redoes command', () => {
-    state.selectAll()
-    state.nudge([1, 2])
+    app.selectAll()
+    app.nudge([1, 2])
 
-    expect(state.getShape('rect2').point).toEqual([101, 102])
+    expect(app.getShape('rect2').point).toEqual([101, 102])
 
-    state.undo()
+    app.undo()
 
-    expect(state.getShape('rect2').point).toEqual([100, 100])
+    expect(app.getShape('rect2').point).toEqual([100, 100])
 
-    state.redo()
+    app.redo()
 
-    expect(state.getShape('rect2').point).toEqual([101, 102])
+    expect(app.getShape('rect2').point).toEqual([101, 102])
   })
 
   it('major nudges', () => {
-    state.selectAll()
-    state.nudge([1, 2], true)
-    expect(state.getShape('rect2').point).toEqual([110, 120])
+    app.selectAll()
+    app.nudge([1, 2], true)
+    expect(app.getShape('rect2').point).toEqual([110, 120])
   })
 
   describe('when nudging shapes with bindings', () => {
     it('deleted bindings if nudging shape is bound to other shapes', () => {
-      state
+      app
         .resetDocument()
         .createShapes(
           {
@@ -63,26 +63,26 @@ describe('Translate command', () => {
         .movePointer([50, 50])
         .completeSession()
 
-      const bindingId = state.getShape<ArrowShape>('arrow1').handles.start.bindingId!
+      const bindingId = app.getShape<ArrowShape>('arrow1').handles.start.bindingId!
 
-      state.select('arrow1').nudge([10, 10])
+      app.select('arrow1').nudge([10, 10])
 
-      expect(state.getBinding(bindingId)).toBeUndefined()
-      expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeUndefined()
+      expect(app.getBinding(bindingId)).toBeUndefined()
+      expect(app.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeUndefined()
 
-      state.undo()
+      app.undo()
 
-      expect(state.getBinding(bindingId)).toBeDefined()
-      expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
+      expect(app.getBinding(bindingId)).toBeDefined()
+      expect(app.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
 
-      state.redo()
+      app.redo()
 
-      expect(state.getBinding(bindingId)).toBeUndefined()
-      expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeUndefined()
+      expect(app.getBinding(bindingId)).toBeUndefined()
+      expect(app.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeUndefined()
     })
 
     it('does not delete bindings if both bound and bound-to shapes are nudged', () => {
-      state
+      app
         .resetDocument()
         .createShapes(
           {
@@ -103,22 +103,22 @@ describe('Translate command', () => {
         .movePointer([50, 50])
         .completeSession()
 
-      const bindingId = state.getShape<ArrowShape>('arrow1').handles.start.bindingId!
+      const bindingId = app.getShape<ArrowShape>('arrow1').handles.start.bindingId!
 
-      state.select('arrow1', 'target1').nudge([10, 10])
+      app.select('arrow1', 'target1').nudge([10, 10])
 
-      expect(state.getBinding(bindingId)).toBeDefined()
-      expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
+      expect(app.getBinding(bindingId)).toBeDefined()
+      expect(app.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
 
-      state.undo()
+      app.undo()
 
-      expect(state.getBinding(bindingId)).toBeDefined()
-      expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
+      expect(app.getBinding(bindingId)).toBeDefined()
+      expect(app.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
 
-      state.redo()
+      app.redo()
 
-      expect(state.getBinding(bindingId)).toBeDefined()
-      expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
+      expect(app.getBinding(bindingId)).toBeDefined()
+      expect(app.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(bindingId)
     })
   })
 })

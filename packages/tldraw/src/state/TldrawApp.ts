@@ -593,7 +593,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
     this.patchState(
       {
         settings: {
-          [name]: typeof value === 'function' ? value(this.state.settings[name] as V) : value,
+          [name]: typeof value === 'function' ? value(this.settings[name] as V) : value,
         },
       },
       `settings:${name}`
@@ -610,7 +610,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
     this.patchState(
       {
         settings: {
-          isFocusMode: !this.state.settings.isFocusMode,
+          isFocusMode: !this.settings.isFocusMode,
         },
       },
       `settings:toggled_focus_mode`
@@ -627,7 +627,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
     this.patchState(
       {
         settings: {
-          isPenMode: !this.state.settings.isPenMode,
+          isPenMode: !this.settings.isPenMode,
         },
       },
       `settings:toggled_pen_mode`
@@ -642,7 +642,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
   toggleDarkMode = (): this => {
     if (this.session) return this
     this.patchState(
-      { settings: { isDarkMode: !this.state.settings.isDarkMode } },
+      { settings: { isDarkMode: !this.settings.isDarkMode } },
       `settings:toggled_dark_mode`
     )
     this.persist()
@@ -655,7 +655,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
   toggleZoomSnap = () => {
     if (this.session) return this
     this.patchState(
-      { settings: { isZoomSnap: !this.state.settings.isZoomSnap } },
+      { settings: { isZoomSnap: !this.settings.isZoomSnap } },
       `settings:toggled_zoom_snap`
     )
     this.persist()
@@ -668,7 +668,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
   toggleDebugMode = () => {
     if (this.session) return this
     this.patchState(
-      { settings: { isDebugMode: !this.state.settings.isDebugMode } },
+      { settings: { isDebugMode: !this.settings.isDebugMode } },
       `settings:toggled_debug`
     )
     this.persist()
@@ -1377,8 +1377,8 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
       ) {
         center = Vec.add(center, this.pasteInfo.offset)
         this.pasteInfo.offset = Vec.add(this.pasteInfo.offset, [
-          this.state.settings.nudgeDistanceLarge,
-          this.state.settings.nudgeDistanceLarge,
+          this.settings.nudgeDistanceLarge,
+          this.settings.nudgeDistanceLarge,
         ])
       } else {
         this.pasteInfo.center = center

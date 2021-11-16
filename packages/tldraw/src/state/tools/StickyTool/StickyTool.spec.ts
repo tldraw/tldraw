@@ -3,7 +3,7 @@ import { StickyTool } from '.'
 
 describe('StickyTool', () => {
   it('creates tool', () => {
-    const state = new TldrawApp()
-    new StickyTool(state)
+    const app = new TldrawApp()
+    new StickyTool(app)
   })
 })

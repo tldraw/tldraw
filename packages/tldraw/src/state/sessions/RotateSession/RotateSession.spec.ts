@@ -4,78 +4,78 @@ import { mockDocument, TldrawTestApp } from '~test'
 import { SessionType, TldrawStatus } from '~types'
 
 describe('Rotate session', () => {
-  const state = new TldrawTestApp()
+  const app = new TldrawTestApp()
 
   it('begins, updates session', () => {
-    state.loadDocument(mockDocument)
+    app.loadDocument(mockDocument)
 
-    expect(state.getShape('rect1').rotation).toBe(undefined)
+    expect(app.getShape('rect1').rotation).toBe(undefined)
 
-    state.select('rect1').pointBoundsHandle('rotate', { x: 50, y: 0 }).movePointer([100, 50])
+    app.select('rect1').pointBoundsHandle('rotate', { x: 50, y: 0 }).movePointer([100, 50])
 
-    expect(state.getShape('rect1').rotation).toBe(Math.PI / 2)
+    expect(app.getShape('rect1').rotation).toBe(Math.PI / 2)
 
-    state.movePointer([50, 100])
+    app.movePointer([50, 100])
 
-    expect(state.getShape('rect1').rotation).toBe(Math.PI)
+    expect(app.getShape('rect1').rotation).toBe(Math.PI)
 
-    state.movePointer([0, 50])
+    app.movePointer([0, 50])
 
-    expect(state.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
+    expect(app.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
 
-    state.movePointer([50, 0])
+    app.movePointer([50, 0])
 
-    expect(state.getShape('rect1').rotation).toBe(0)
+    expect(app.getShape('rect1').rotation).toBe(0)
 
-    state.movePointer([0, 50])
+    app.movePointer([0, 50])
 
-    expect(state.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
+    expect(app.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
 
-    state.completeSession()
+    app.completeSession()
 
-    expect(state.appState.status).toBe(TldrawStatus.Idle)
+    expect(app.appState.status).toBe(TldrawStatus.Idle)
 
-    state.undo()
+    app.undo()
 
-    expect(state.getShape('rect1').rotation).toBe(undefined)
+    expect(app.getShape('rect1').rotation).toBe(undefined)
 
-    state.redo()
+    app.redo()
 
-    expect(state.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
+    expect(app.getShape('rect1').rotation).toBe((Math.PI * 3) / 2)
   })
 
   it('cancels session', () => {
-    state
+    app
       .loadDocument(mockDocument)
       .select('rect1')
       .pointBoundsHandle('rotate', { x: 50, y: 0 })
       .movePointer([100, 50])
       .cancel()
 
-    expect(state.getShape('rect1').point).toStrictEqual([0, 0])
+    expect(app.getShape('rect1').point).toStrictEqual([0, 0])
   })
 
   it.todo('rotates handles only on shapes with handles')
 
   describe('when rotating a single shape while pressing shift', () => {
     it('Clamps rotation to 15 degrees', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
 
-      state
+      app
         .loadDocument(mockDocument)
         .select('rect1')
         .pointBoundsHandle('rotate', { x: 0, y: 0 })
         .movePointer({ x: 20, y: 10, shiftKey: true })
         .completeSession()
 
-      expect(Math.round((state.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(0)
+      expect(Math.round((app.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(0)
     })
 
     it('Clamps rotation to 15 degrees when starting from a rotation', () => {
       // Rect 1 is a little rotated
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
 
-      state
+      app
         .loadDocument(mockDocument)
         .select('rect1')
         .pointBoundsHandle('rotate', { x: 0, y: 0 })
@@ -83,52 +83,52 @@ describe('Rotate session', () => {
         .completeSession()
 
       // Rect 1 clamp rotated, starting from a little rotation
-      state
+      app
         .select('rect1')
         .pointBoundsHandle('rotate', { x: 0, y: 0 })
         .movePointer({ x: 100, y: 200, shiftKey: true })
         .completeSession()
 
-      expect(Math.round((state.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(0)
+      expect(Math.round((app.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(0)
 
       // Try again, too.
-      state
+      app
         .select('rect1')
         .pointBoundsHandle('rotate', { x: 0, y: 0 })
         .movePointer({ x: -100, y: 5000, shiftKey: true })
         .completeSession()
 
-      expect(Math.round((state.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(0)
+      expect(Math.round((app.getShape('rect1').rotation || 0) * (180 / Math.PI)) % 15).toEqual(0)
     })
   })
 
   describe('when rotating multiple shapes', () => {
     it('keeps the center', () => {
-      state.loadDocument(mockDocument).select('rect1', 'rect2')
+      app.loadDocument(mockDocument).select('rect1', 'rect2')
 
       const centerBefore = Vec.round(
         Utils.getBoundsCenter(
-          Utils.getCommonBounds(state.selectedIds.map((id) => state.getShapeBounds(id)))
+          Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
       )
 
-      state.pointBoundsHandle('rotate', { x: 50, y: 0 }).movePointer([100, 50]).completeSession()
+      app.pointBoundsHandle('rotate', { x: 50, y: 0 }).movePointer([100, 50]).completeSession()
 
       const centerAfterA = Vec.round(
         Utils.getBoundsCenter(
-          Utils.getCommonBounds(state.selectedIds.map((id) => state.getShapeBounds(id)))
+          Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
       )
 
-      state.pointBoundsHandle('rotate', { x: 100, y: 0 }).movePointer([50, 0]).completeSession()
+      app.pointBoundsHandle('rotate', { x: 100, y: 0 }).movePointer([50, 0]).completeSession()
 
       const centerAfterB = Vec.round(
         Utils.getBoundsCenter(
-          Utils.getCommonBounds(state.selectedIds.map((id) => state.getShapeBounds(id)))
+          Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
       )
 
-      expect(state.getShape('rect1').rotation)
+      expect(app.getShape('rect1').rotation)
       expect(centerBefore).toStrictEqual(centerAfterA)
       expect(centerAfterA).toStrictEqual(centerAfterB)
     })
@@ -140,32 +140,32 @@ describe('Rotate session', () => {
     it.todo('clears the cached center after any command other than a rotate command, tbh')
 
     it('changes the center after nudging', () => {
-      const state = new TldrawTestApp().loadDocument(mockDocument).select('rect1', 'rect2')
+      const app = new TldrawTestApp().loadDocument(mockDocument).select('rect1', 'rect2')
 
       const centerBefore = Vec.round(
         Utils.getBoundsCenter(
-          Utils.getCommonBounds(state.selectedIds.map((id) => state.getShapeBounds(id)))
+          Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
       )
 
-      state.pointBoundsHandle('rotate', { x: 50, y: 0 }).movePointer([100, 50]).completeSession()
+      app.pointBoundsHandle('rotate', { x: 50, y: 0 }).movePointer([100, 50]).completeSession()
 
       const centerAfterA = Vec.round(
         Utils.getBoundsCenter(
-          Utils.getCommonBounds(state.selectedIds.map((id) => state.getShapeBounds(id)))
+          Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
       )
 
-      expect(state.getShape('rect1').rotation)
+      expect(app.getShape('rect1').rotation)
       expect(centerBefore).toStrictEqual(centerAfterA)
 
-      state.selectAll().nudge([10, 10])
+      app.selectAll().nudge([10, 10])
 
-      state.pointBoundsHandle('rotate', { x: 50, y: 0 }).movePointer([100, 50]).completeSession()
+      app.pointBoundsHandle('rotate', { x: 50, y: 0 }).movePointer([100, 50]).completeSession()
 
       const centerAfterB = Vec.round(
         Utils.getBoundsCenter(
-          Utils.getCommonBounds(state.selectedIds.map((id) => state.getShapeBounds(id)))
+          Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
       )
 

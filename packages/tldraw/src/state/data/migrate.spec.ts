@@ -9,7 +9,7 @@ describe('When migrating bindings', () => {
   })
 
   it('migrates a document with an older version', () => {
-    const state = new TldrawApp().loadDocument(oldDoc2 as unknown as TldrawDocument)
-    expect(state.getShape('d7ab0a49-3cb3-43ae-3d83-f5cf2f4a510a').style.color).toBe('black')
+    const app = new TldrawApp().loadDocument(oldDoc2 as unknown as TldrawDocument)
+    expect(app.getShape('d7ab0a49-3cb3-43ae-3d83-f5cf2f4a510a').style.color).toBe('black')
   })
 })

@@ -1,38 +1,38 @@
 import { mockDocument, TldrawTestApp } from '~test'
 
 describe('Rotate command', () => {
-  const state = new TldrawTestApp()
+  const app = new TldrawTestApp()
 
   beforeEach(() => {
-    state.loadDocument(mockDocument)
+    app.loadDocument(mockDocument)
   })
 
   describe('when no shape is selected', () => {
     it('does nothing', () => {
-      const initialState = state.state
-      state.rotate()
-      const currentState = state.state
+      const initialState = app.state
+      app.rotate()
+      const currentState = app.state
 
       expect(currentState).toEqual(initialState)
     })
   })
 
   it('does, undoes and redoes command', () => {
-    state.select('rect1')
+    app.select('rect1')
 
-    expect(state.getShape('rect1').rotation).toBe(undefined)
+    expect(app.getShape('rect1').rotation).toBe(undefined)
 
-    state.rotate()
+    app.rotate()
 
-    expect(state.getShape('rect1').rotation).toBe(Math.PI * (6 / 4))
+    expect(app.getShape('rect1').rotation).toBe(Math.PI * (6 / 4))
 
-    state.undo()
+    app.undo()
 
-    expect(state.getShape('rect1').rotation).toBe(undefined)
+    expect(app.getShape('rect1').rotation).toBe(undefined)
 
-    state.redo()
+    app.redo()
 
-    expect(state.getShape('rect1').rotation).toBe(Math.PI * (6 / 4))
+    expect(app.getShape('rect1').rotation).toBe(Math.PI * (6 / 4))
   })
 
   it.todo('Rotates several shapes at once.')
@@ -42,17 +42,17 @@ describe('Rotate command', () => {
 
 describe('when running the command', () => {
   it('restores selection on undo', () => {
-    const state = new TldrawTestApp()
+    const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1')
       .rotate()
       .selectNone()
       .undo()
 
-    expect(state.selectedIds).toEqual(['rect1'])
+    expect(app.selectedIds).toEqual(['rect1'])
 
-    state.selectNone().redo()
+    app.selectNone().redo()
 
-    expect(state.selectedIds).toEqual(['rect1'])
+    expect(app.selectedIds).toEqual(['rect1'])
   })
 })

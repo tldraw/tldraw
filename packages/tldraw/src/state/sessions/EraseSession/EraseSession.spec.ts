@@ -3,39 +3,39 @@ import { TldrawStatus } from '~types'
 
 describe('Draw session', () => {
   it('begins, updates, completes session', () => {
-    const state = new TldrawTestApp().loadDocument(mockDocument)
+    const app = new TldrawTestApp().loadDocument(mockDocument)
 
-    state.selectTool('erase').pointCanvas([300, 300])
+    app.selectTool('erase').pointCanvas([300, 300])
 
-    expect(state.status).toBe('pointing')
+    expect(app.status).toBe('pointing')
 
-    state.movePointer([0, 0])
+    app.movePointer([0, 0])
 
-    expect(state.status).toBe('erasing')
+    expect(app.status).toBe('erasing')
 
-    state.stopPointing()
+    app.stopPointing()
 
-    expect(state.appState.status).toBe(TldrawStatus.Idle)
+    expect(app.appState.status).toBe(TldrawStatus.Idle)
 
-    expect(state.shapes.length).toBe(0)
+    expect(app.shapes.length).toBe(0)
   })
 
   it('does, undoes and redoes', () => {
-    const state = new TldrawTestApp()
+    const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .selectTool('erase')
       .pointCanvas([300, 300])
       .movePointer([0, 0])
       .stopPointing()
 
-    expect(state.shapes.length).toBe(0)
+    expect(app.shapes.length).toBe(0)
 
-    state.undo()
+    app.undo()
 
-    expect(state.shapes.length).toBe(3)
+    expect(app.shapes.length).toBe(3)
 
-    state.redo()
+    app.redo()
 
-    expect(state.shapes.length).toBe(0)
+    expect(app.shapes.length).toBe(0)
   })
 })

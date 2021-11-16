@@ -2,77 +2,77 @@ import type { RectangleShape } from '~types'
 import { mockDocument, TldrawTestApp } from '~test'
 
 describe('Toggle command', () => {
-  const state = new TldrawTestApp()
+  const app = new TldrawTestApp()
 
   beforeEach(() => {
-    state.loadDocument(mockDocument)
+    app.loadDocument(mockDocument)
   })
 
   describe('when no shape is selected', () => {
     it('does nothing', () => {
-      const initialState = state.state
-      state.toggleHidden()
-      const currentState = state.state
+      const initialState = app.state
+      app.toggleHidden()
+      const currentState = app.state
 
       expect(currentState).toEqual(initialState)
     })
   })
 
   it('does, undoes and redoes command', () => {
-    state.selectAll()
+    app.selectAll()
 
-    expect(state.getShape('rect2').isLocked).toBe(undefined)
+    expect(app.getShape('rect2').isLocked).toBe(undefined)
 
-    state.toggleLocked()
+    app.toggleLocked()
 
-    expect(state.getShape('rect2').isLocked).toBe(true)
+    expect(app.getShape('rect2').isLocked).toBe(true)
 
-    state.undo()
+    app.undo()
 
-    expect(state.getShape('rect2').isLocked).toBe(undefined)
+    expect(app.getShape('rect2').isLocked).toBe(undefined)
 
-    state.redo()
+    app.redo()
 
-    expect(state.getShape('rect2').isLocked).toBe(true)
+    expect(app.getShape('rect2').isLocked).toBe(true)
   })
 
   it('toggles on before off when mixed values', () => {
-    state.select('rect2')
+    app.select('rect2')
 
-    expect(state.getShape<RectangleShape>('rect1').isAspectRatioLocked).toBe(undefined)
-    expect(state.getShape<RectangleShape>('rect2').isAspectRatioLocked).toBe(undefined)
+    expect(app.getShape<RectangleShape>('rect1').isAspectRatioLocked).toBe(undefined)
+    expect(app.getShape<RectangleShape>('rect2').isAspectRatioLocked).toBe(undefined)
 
-    state.toggleAspectRatioLocked()
+    app.toggleAspectRatioLocked()
 
-    expect(state.getShape<RectangleShape>('rect1').isAspectRatioLocked).toBe(undefined)
-    expect(state.getShape<RectangleShape>('rect2').isAspectRatioLocked).toBe(true)
+    expect(app.getShape<RectangleShape>('rect1').isAspectRatioLocked).toBe(undefined)
+    expect(app.getShape<RectangleShape>('rect2').isAspectRatioLocked).toBe(true)
 
-    state.selectAll()
-    state.toggleAspectRatioLocked()
+    app.selectAll()
+    app.toggleAspectRatioLocked()
 
-    expect(state.getShape<RectangleShape>('rect1').isAspectRatioLocked).toBe(true)
-    expect(state.getShape<RectangleShape>('rect1').isAspectRatioLocked).toBe(true)
+    expect(app.getShape<RectangleShape>('rect1').isAspectRatioLocked).toBe(true)
+    expect(app.getShape<RectangleShape>('rect1').isAspectRatioLocked).toBe(true)
 
-    state.toggleAspectRatioLocked()
+    app.toggleAspectRatioLocked()
 
-    expect(state.getShape<RectangleShape>('rect1').isAspectRatioLocked).toBe(false)
-    expect(state.getShape<RectangleShape>('rect1').isAspectRatioLocked).toBe(false)
+    expect(app.getShape<RectangleShape>('rect1').isAspectRatioLocked).toBe(false)
+    expect(app.getShape<RectangleShape>('rect1').isAspectRatioLocked).toBe(false)
   })
 })
 
 describe('when running the command', () => {
   it('restores selection on undo', () => {
-    const state = new TldrawTestApp()
+    const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1')
       .toggleHidden()
       .selectNone()
       .undo()
 
-    expect(state.selectedIds).toEqual(['rect1'])
+    expect(app.selectedIds).toEqual(['rect1'])
 
-    state.selectNone().redo()
+    app.selectNone().redo()
 
-    expect(state.selectedIds).toEqual(['rect1'])
+    expect(app.selectedIds).toEqual(['rect1'])
   })
 })

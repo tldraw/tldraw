@@ -3,7 +3,7 @@ import { DrawTool } from '.'
 
 describe('DrawTool', () => {
   it('creates tool', () => {
-    const state = new TldrawApp()
-    new DrawTool(state)
+    const app = new TldrawApp()
+    new DrawTool(app)
   })
 })

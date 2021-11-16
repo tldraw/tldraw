@@ -6,57 +6,57 @@ import type { SelectTool } from './tools/SelectTool'
 describe('TldrawTestApp', () => {
   describe('When copying and pasting...', () => {
     it('copies a shape', () => {
-      const state = new TldrawTestApp().loadDocument(mockDocument).selectNone().copy(['rect1'])
+      const app = new TldrawTestApp().loadDocument(mockDocument).selectNone().copy(['rect1'])
     })
 
     it('pastes a shape', () => {
-      const state = new TldrawTestApp().loadDocument(mockDocument)
+      const app = new TldrawTestApp().loadDocument(mockDocument)
 
-      const prevCount = Object.keys(state.page.shapes).length
+      const prevCount = Object.keys(app.page.shapes).length
 
-      state.selectNone().copy(['rect1']).paste()
+      app.selectNone().copy(['rect1']).paste()
 
-      expect(Object.keys(state.page.shapes).length).toBe(prevCount + 1)
+      expect(Object.keys(app.page.shapes).length).toBe(prevCount + 1)
 
-      state.undo()
+      app.undo()
 
-      expect(Object.keys(state.page.shapes).length).toBe(prevCount)
+      expect(Object.keys(app.page.shapes).length).toBe(prevCount)
 
-      state.redo()
+      app.redo()
 
-      expect(Object.keys(state.page.shapes).length).toBe(prevCount + 1)
+      expect(Object.keys(app.page.shapes).length).toBe(prevCount + 1)
     })
 
     it('pastes a shape to a new page', () => {
-      const state = new TldrawTestApp().loadDocument(mockDocument)
+      const app = new TldrawTestApp().loadDocument(mockDocument)
 
-      state.selectNone().copy(['rect1']).createPage().paste()
+      app.selectNone().copy(['rect1']).createPage().paste()
 
-      expect(Object.keys(state.page.shapes).length).toBe(1)
+      expect(Object.keys(app.page.shapes).length).toBe(1)
 
-      state.undo()
+      app.undo()
 
-      expect(Object.keys(state.page.shapes).length).toBe(0)
+      expect(Object.keys(app.page.shapes).length).toBe(0)
 
-      state.redo()
+      app.redo()
 
-      expect(Object.keys(state.page.shapes).length).toBe(1)
+      expect(Object.keys(app.page.shapes).length).toBe(1)
     })
 
     it('Copies grouped shapes.', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .select('groupA')
         .copy()
 
-      const beforeShapes = state.shapes
+      const beforeShapes = app.shapes
 
-      state.paste()
+      app.paste()
 
-      expect(state.shapes.filter((shape) => shape.type === TldrawShapeType.Group).length).toBe(2)
+      expect(app.shapes.filter((shape) => shape.type === TldrawShapeType.Group).length).toBe(2)
 
-      const afterShapes = state.shapes
+      const afterShapes = app.shapes
 
       const newShapes = afterShapes.filter(
         (shape) => !beforeShapes.find(({ id }) => id === shape.id)
@@ -78,9 +78,9 @@ describe('TldrawTestApp', () => {
 
   describe('When copying and pasting a shape with bindings', () => {
     it('copies two bound shapes and their binding', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
 
-      state
+      app
         .createShapes(
           { type: TldrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
           { type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
@@ -91,23 +91,23 @@ describe('TldrawTestApp', () => {
         .movePointer([55, 55])
         .completeSession()
 
-      expect(state.bindings.length).toBe(1)
+      expect(app.bindings.length).toBe(1)
 
-      state.selectAll().copy().paste()
+      app.selectAll().copy().paste()
 
-      const newArrow = state.shapes.sort((a, b) => b.childIndex - a.childIndex)[0] as ArrowShape
+      const newArrow = app.shapes.sort((a, b) => b.childIndex - a.childIndex)[0] as ArrowShape
 
       expect(newArrow.handles.start.bindingId).not.toBe(
-        state.getShape<ArrowShape>('arrow1').handles.start.bindingId
+        app.getShape<ArrowShape>('arrow1').handles.start.bindingId
       )
 
-      expect(state.bindings.length).toBe(2)
+      expect(app.bindings.length).toBe(2)
     })
 
     it('removes bindings from copied shape handles', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
 
-      state
+      app
         .createShapes(
           { type: TldrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
           { type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
@@ -118,13 +118,13 @@ describe('TldrawTestApp', () => {
         .movePointer([55, 55])
         .completeSession()
 
-      expect(state.bindings.length).toBe(1)
+      expect(app.bindings.length).toBe(1)
 
-      expect(state.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeDefined()
+      expect(app.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeDefined()
 
-      state.select('arrow1').copy().paste()
+      app.select('arrow1').copy().paste()
 
-      const newArrow = state.shapes.sort((a, b) => b.childIndex - a.childIndex)[0] as ArrowShape
+      const newArrow = app.shapes.sort((a, b) => b.childIndex - a.childIndex)[0] as ArrowShape
 
       expect(newArrow.handles.start.bindingId).toBeUndefined()
     })
@@ -132,49 +132,49 @@ describe('TldrawTestApp', () => {
 
   describe('Selection', () => {
     it('selects a shape', () => {
-      const state = new TldrawTestApp().loadDocument(mockDocument).selectNone().clickShape('rect1')
-      expect(state.selectedIds).toStrictEqual(['rect1'])
-      expect(state.appState.status).toBe('idle')
+      const app = new TldrawTestApp().loadDocument(mockDocument).selectNone().clickShape('rect1')
+      expect(app.selectedIds).toStrictEqual(['rect1'])
+      expect(app.status).toBe('idle')
     })
 
     it('selects and deselects a shape', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .selectNone()
         .clickShape('rect1')
         .clickCanvas()
-      expect(state.selectedIds).toStrictEqual([])
-      expect(state.appState.status).toBe('idle')
+      expect(app.selectedIds).toStrictEqual([])
+      expect(app.status).toBe('idle')
     })
 
     it('selects multiple shapes', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .selectNone()
         .clickShape('rect1')
         .clickShape('rect2', { shiftKey: true })
-      expect(state.selectedIds).toStrictEqual(['rect1', 'rect2'])
-      expect(state.appState.status).toBe('idle')
+      expect(app.selectedIds).toStrictEqual(['rect1', 'rect2'])
+      expect(app.status).toBe('idle')
     })
 
     it('shift-selects to deselect shapes', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .selectNone()
         .clickShape('rect1')
         .clickShape('rect2', { shiftKey: true })
         .clickShape('rect2', { shiftKey: true })
-      expect(state.selectedIds).toStrictEqual(['rect1'])
-      expect(state.appState.status).toBe('idle')
+      expect(app.selectedIds).toStrictEqual(['rect1'])
+      expect(app.status).toBe('idle')
     })
 
     it('clears selection when clicking bounds', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .selectAll()
         .clickBounds()
         .completeSession()
-      expect(state.selectedIds.length).toBe(0)
+      expect(app.selectedIds.length).toBe(0)
     })
 
     it('selects selected shape when single-clicked', () => {
@@ -189,19 +189,19 @@ describe('TldrawTestApp', () => {
     })
 
     // it('selects shape when double-clicked', () => {
-    //   state.loadDocument(mockDocument).selectAll()
+    //   app.loadDocument(mockDocument).selectAll()
     //   .doubleClickShape('rect2')
-    //   expect(state.selectedIds).toStrictEqual(['rect2'])
+    //   expect(app.selectedIds).toStrictEqual(['rect2'])
     // })
 
     it('does not select on meta-click', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .selectNone()
         .clickShape('rect1', { ctrlKey: true })
         .expectSelectedIdsToBe([])
 
-      expect(state.appState.status).toBe('idle')
+      expect(app.status).toBe('idle')
     })
 
     it.todo('deletes shapes if cancelled during creating')
@@ -212,121 +212,121 @@ describe('TldrawTestApp', () => {
 
     describe('When selecting all', () => {
       it('selects all', () => {
-        const state = new TldrawTestApp().loadDocument(mockDocument).selectAll()
-        expect(state.selectedIds).toMatchSnapshot('selected all')
+        const app = new TldrawTestApp().loadDocument(mockDocument).selectAll()
+        expect(app.selectedIds).toMatchSnapshot('selected all')
       })
 
       it('does not select children of a group', () => {
-        const state = new TldrawTestApp().loadDocument(mockDocument).selectAll().group()
-        expect(state.selectedIds.length).toBe(1)
+        const app = new TldrawTestApp().loadDocument(mockDocument).selectAll().group()
+        expect(app.selectedIds.length).toBe(1)
       })
     })
 
     // Single click on a selected shape to select just that shape
 
     it('single-selects shape in selection on click', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .clickShape('rect1')
         .clickShape('rect2', { shiftKey: true })
         .clickShape('rect2')
-      expect(state.selectedIds).toStrictEqual(['rect2'])
-      expect(state.appState.status).toBe('idle')
+      expect(app.selectedIds).toStrictEqual(['rect2'])
+      expect(app.status).toBe('idle')
     })
 
     it('single-selects shape in selection on pointerup only', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .clickShape('rect1')
         .clickShape('rect2', { shiftKey: true })
         .pointShape('rect2')
-      expect(state.selectedIds).toStrictEqual(['rect1', 'rect2'])
-      state.stopPointing('rect2')
-      expect(state.selectedIds).toStrictEqual(['rect2'])
-      expect(state.appState.status).toBe('idle')
+      expect(app.selectedIds).toStrictEqual(['rect1', 'rect2'])
+      app.stopPointing('rect2')
+      expect(app.selectedIds).toStrictEqual(['rect2'])
+      expect(app.status).toBe('idle')
     })
 
     // it('selects shapes if shift key is lifted before pointerup', () => {
-    //   state.selectNone()
+    //   app.selectNone()
     //   .clickShape('rect1')
     //   .pointShape('rect2', { shiftKey: true })
-    //   expect(state.appState.status).toBe('pointingBounds')
+    //   expect(app.status).toBe('pointingBounds')
     //   .stopPointing('rect2')
-    //   expect(state.selectedIds).toStrictEqual(['rect2'])
-    //   expect(state.appState.status).toBe('idle')
+    //   expect(app.selectedIds).toStrictEqual(['rect2'])
+    //   expect(app.status).toBe('idle')
     // })
   })
 
   describe('Select history', () => {
     it('selects, undoes and redoes', () => {
-      const state = new TldrawTestApp().loadDocument(mockDocument)
+      const app = new TldrawTestApp().loadDocument(mockDocument)
 
-      expect(state.selectHistory.pointer).toBe(0)
-      expect(state.selectHistory.stack).toStrictEqual([[]])
-      expect(state.selectedIds).toStrictEqual([])
-      state.pointShape('rect1')
+      expect(app.selectHistory.pointer).toBe(0)
+      expect(app.selectHistory.stack).toStrictEqual([[]])
+      expect(app.selectedIds).toStrictEqual([])
+      app.pointShape('rect1')
 
-      expect(state.selectHistory.pointer).toBe(1)
-      expect(state.selectHistory.stack).toStrictEqual([[], ['rect1']])
-      expect(state.selectedIds).toStrictEqual(['rect1'])
+      expect(app.selectHistory.pointer).toBe(1)
+      expect(app.selectHistory.stack).toStrictEqual([[], ['rect1']])
+      expect(app.selectedIds).toStrictEqual(['rect1'])
 
-      state.stopPointing('rect1')
+      app.stopPointing('rect1')
 
-      expect(state.selectHistory.pointer).toBe(1)
-      expect(state.selectHistory.stack).toStrictEqual([[], ['rect1']])
-      expect(state.selectedIds).toStrictEqual(['rect1'])
+      expect(app.selectHistory.pointer).toBe(1)
+      expect(app.selectHistory.stack).toStrictEqual([[], ['rect1']])
+      expect(app.selectedIds).toStrictEqual(['rect1'])
 
-      state.clickShape('rect2', { shiftKey: true })
+      app.clickShape('rect2', { shiftKey: true })
 
-      expect(state.selectHistory.pointer).toBe(2)
-      expect(state.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
-      expect(state.selectedIds).toStrictEqual(['rect1', 'rect2'])
+      expect(app.selectHistory.pointer).toBe(2)
+      expect(app.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
+      expect(app.selectedIds).toStrictEqual(['rect1', 'rect2'])
 
-      state.undoSelect()
+      app.undoSelect()
 
-      expect(state.selectHistory.pointer).toBe(1)
-      expect(state.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
-      expect(state.selectedIds).toStrictEqual(['rect1'])
+      expect(app.selectHistory.pointer).toBe(1)
+      expect(app.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
+      expect(app.selectedIds).toStrictEqual(['rect1'])
 
-      state.undoSelect()
+      app.undoSelect()
 
-      expect(state.selectHistory.pointer).toBe(0)
-      expect(state.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
-      expect(state.selectedIds).toStrictEqual([])
+      expect(app.selectHistory.pointer).toBe(0)
+      expect(app.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
+      expect(app.selectedIds).toStrictEqual([])
 
-      state.redoSelect()
+      app.redoSelect()
 
-      expect(state.selectHistory.pointer).toBe(1)
-      expect(state.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
-      expect(state.selectedIds).toStrictEqual(['rect1'])
+      expect(app.selectHistory.pointer).toBe(1)
+      expect(app.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect1', 'rect2']])
+      expect(app.selectedIds).toStrictEqual(['rect1'])
 
-      state.select('rect2')
+      app.select('rect2')
 
-      expect(state.selectHistory.pointer).toBe(2)
-      expect(state.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect2']])
-      expect(state.selectedIds).toStrictEqual(['rect2'])
+      expect(app.selectHistory.pointer).toBe(2)
+      expect(app.selectHistory.stack).toStrictEqual([[], ['rect1'], ['rect2']])
+      expect(app.selectedIds).toStrictEqual(['rect2'])
 
-      state.delete()
+      app.delete()
 
-      expect(state.selectHistory.pointer).toBe(0)
-      expect(state.selectHistory.stack).toStrictEqual([[]])
-      expect(state.selectedIds).toStrictEqual([])
+      expect(app.selectHistory.pointer).toBe(0)
+      expect(app.selectHistory.stack).toStrictEqual([[]])
+      expect(app.selectedIds).toStrictEqual([])
 
-      state.undoSelect()
+      app.undoSelect()
 
-      expect(state.selectHistory.pointer).toBe(0)
-      expect(state.selectHistory.stack).toStrictEqual([[]])
-      expect(state.selectedIds).toStrictEqual([])
+      expect(app.selectHistory.pointer).toBe(0)
+      expect(app.selectHistory.stack).toStrictEqual([[]])
+      expect(app.selectedIds).toStrictEqual([])
     })
   })
 
   describe('Copies to JSON', () => {
-    const state = new TldrawTestApp().loadDocument(mockDocument).selectAll()
-    expect(state.copyJson()).toMatchSnapshot('copied json')
+    const app = new TldrawTestApp().loadDocument(mockDocument).selectAll()
+    expect(app.copyJson()).toMatchSnapshot('copied json')
   })
 
   describe('Mutates bound shapes', () => {
-    const state = new TldrawTestApp()
+    const app = new TldrawTestApp()
       .createShapes(
         {
           id: 'rect',
@@ -350,83 +350,83 @@ describe('TldrawTestApp', () => {
       .selectAll()
       .style({ color: ColorStyle.Red })
 
-    expect(state.getShape('arrow').style.color).toBe(ColorStyle.Red)
-    expect(state.getShape('rect').style.color).toBe(ColorStyle.Red)
+    expect(app.getShape('arrow').style.color).toBe(ColorStyle.Red)
+    expect(app.getShape('rect').style.color).toBe(ColorStyle.Red)
 
-    state.undo()
+    app.undo()
 
-    expect(state.getShape('arrow').style.color).toBe(ColorStyle.Black)
-    expect(state.getShape('rect').style.color).toBe(ColorStyle.Black)
+    expect(app.getShape('arrow').style.color).toBe(ColorStyle.Black)
+    expect(app.getShape('rect').style.color).toBe(ColorStyle.Black)
 
-    state.redo()
+    app.redo()
 
-    expect(state.getShape('arrow').style.color).toBe(ColorStyle.Red)
-    expect(state.getShape('rect').style.color).toBe(ColorStyle.Red)
+    expect(app.getShape('arrow').style.color).toBe(ColorStyle.Red)
+    expect(app.getShape('rect').style.color).toBe(ColorStyle.Red)
   })
 
   describe('when selecting shapes in a group', () => {
     it('selects the group when a grouped shape is clicked', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .clickShape('rect1')
 
-      expect((state.currentTool as SelectTool).selectedGroupId).toBeUndefined()
-      expect(state.selectedIds).toStrictEqual(['groupA'])
+      expect((app.currentTool as SelectTool).selectedGroupId).toBeUndefined()
+      expect(app.selectedIds).toStrictEqual(['groupA'])
     })
 
     it('selects the grouped shape when double clicked', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .doubleClickShape('rect1')
 
-      expect((state.currentTool as SelectTool).selectedGroupId).toStrictEqual('groupA')
-      expect(state.selectedIds).toStrictEqual(['rect1'])
+      expect((app.currentTool as SelectTool).selectedGroupId).toStrictEqual('groupA')
+      expect(app.selectedIds).toStrictEqual(['rect1'])
     })
 
     it('clears the selectedGroupId when selecting a different shape', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .doubleClickShape('rect1')
         .clickShape('rect3')
 
-      expect((state.currentTool as SelectTool).selectedGroupId).toBeUndefined()
-      expect(state.selectedIds).toStrictEqual(['rect3'])
+      expect((app.currentTool as SelectTool).selectedGroupId).toBeUndefined()
+      expect(app.selectedIds).toStrictEqual(['rect3'])
     })
 
     it('selects a grouped shape when meta-shift-clicked', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .selectNone()
         .clickShape('rect1', { ctrlKey: true, shiftKey: true })
 
-      expect(state.selectedIds).toStrictEqual(['rect1'])
+      expect(app.selectedIds).toStrictEqual(['rect1'])
 
-      state.clickShape('rect1', { ctrlKey: true, shiftKey: true })
+      app.clickShape('rect1', { ctrlKey: true, shiftKey: true })
 
-      expect(state.selectedIds).toStrictEqual([])
+      expect(app.selectedIds).toStrictEqual([])
     })
 
     it('selects a hovered shape from the selected group when meta-shift-clicked', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .clickShape('rect1', { ctrlKey: true, shiftKey: true })
 
-      expect(state.selectedIds).toStrictEqual(['rect1'])
+      expect(app.selectedIds).toStrictEqual(['rect1'])
 
-      state.clickShape('rect1', { ctrlKey: true, shiftKey: true })
+      app.clickShape('rect1', { ctrlKey: true, shiftKey: true })
 
-      expect(state.selectedIds).toStrictEqual([])
+      expect(app.selectedIds).toStrictEqual([])
     })
   })
 
   describe('when creating shapes', () => {
     it('Creates shapes with the correct child index', () => {
-      const state = new TldrawTestApp()
+      const app = new TldrawTestApp()
         .createShapes(
           {
             id: 'rect1',
@@ -446,33 +446,33 @@ describe('TldrawTestApp', () => {
         )
         .selectTool(TldrawShapeType.Rectangle)
 
-      const prevA = state.shapes.map((shape) => shape.id)
+      const prevA = app.shapes.map((shape) => shape.id)
 
-      state.pointCanvas({ x: 0, y: 0 }).movePointer({ x: 100, y: 100 }).stopPointing()
+      app.pointCanvas({ x: 0, y: 0 }).movePointer({ x: 100, y: 100 }).stopPointing()
 
-      const newIdA = state.shapes.map((shape) => shape.id).find((id) => !prevA.includes(id))!
-      const shapeA = state.getShape(newIdA)
+      const newIdA = app.shapes.map((shape) => shape.id).find((id) => !prevA.includes(id))!
+      const shapeA = app.getShape(newIdA)
       expect(shapeA.childIndex).toBe(4)
 
-      state.group(['rect2', 'rect3', newIdA], 'groupA')
+      app.group(['rect2', 'rect3', newIdA], 'groupA')
 
-      expect(state.getShape('groupA').childIndex).toBe(2)
+      expect(app.getShape('groupA').childIndex).toBe(2)
 
-      state.selectNone()
-      state.selectTool(TldrawShapeType.Rectangle)
+      app.selectNone()
+      app.selectTool(TldrawShapeType.Rectangle)
 
-      const prevB = state.shapes.map((shape) => shape.id)
+      const prevB = app.shapes.map((shape) => shape.id)
 
-      state.pointCanvas({ x: 0, y: 0 }).movePointer({ x: 100, y: 100 }).stopPointing()
+      app.pointCanvas({ x: 0, y: 0 }).movePointer({ x: 100, y: 100 }).stopPointing()
 
-      const newIdB = state.shapes.map((shape) => shape.id).find((id) => !prevB.includes(id))!
-      const shapeB = state.getShape(newIdB)
+      const newIdB = app.shapes.map((shape) => shape.id).find((id) => !prevB.includes(id))!
+      const shapeB = app.getShape(newIdB)
       expect(shapeB.childIndex).toBe(3)
     })
   })
 
   it('Exposes undo/redo stack', () => {
-    const state = new TldrawTestApp()
+    const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .createShapes({
         id: 'rect1',
@@ -487,23 +487,23 @@ describe('TldrawTestApp', () => {
         size: [100, 200],
       })
 
-    expect(state.history.length).toBe(2)
+    expect(app.history.length).toBe(2)
 
-    expect(state.history).toBeDefined()
-    expect(state.history).toMatchSnapshot('history')
+    expect(app.history).toBeDefined()
+    expect(app.history).toMatchSnapshot('history')
 
-    state.history = []
-    expect(state.history).toEqual([])
+    app.history = []
+    expect(app.history).toEqual([])
 
-    const before = state.state
-    state.undo()
-    const after = state.state
+    const before = app.state
+    app.undo()
+    const after = app.state
 
     expect(before).toBe(after)
   })
 
   it('Exposes undo/redo stack up to the current pointer', () => {
-    const state = new TldrawTestApp()
+    const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .createShapes({
         id: 'rect1',
@@ -519,11 +519,11 @@ describe('TldrawTestApp', () => {
       })
       .undo()
 
-    expect(state.history.length).toBe(1)
+    expect(app.history.length).toBe(1)
   })
 
   it('Sets the undo/redo history', () => {
-    const state = new TldrawTestApp('some_state_a')
+    const app = new TldrawTestApp('some_state_a')
       .createShapes({
         id: 'rect1',
         type: TldrawShapeType.Rectangle,
@@ -538,8 +538,8 @@ describe('TldrawTestApp', () => {
       })
 
     // Save the history and document from the first state
-    const doc = state.document
-    const history = state.history
+    const doc = app.document
+    const history = app.history
 
     // Create a new state
     const state2 = new TldrawTestApp('some_state_b')
@@ -559,8 +559,7 @@ describe('TldrawTestApp', () => {
 
   describe('When copying to SVG', () => {
     it('Copies shapes.', () => {
-      const state = new TldrawTestApp()
-      const result = state
+      const result = new TldrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1')
         .rotate(0.1)
@@ -570,8 +569,7 @@ describe('TldrawTestApp', () => {
     })
 
     it('Copies grouped shapes.', () => {
-      const state = new TldrawTestApp()
-      const result = state
+      const result = new TldrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
         .group()
@@ -605,7 +603,7 @@ describe('TldrawTestApp', () => {
   })
   /*
     We want to be able to use the `document` property to update the
-    document without blowing out the current state. For example, we
+    document without blowing out the current app. For example, we
     may want to patch in changes that occurred from another user.
 
     When the `document` prop changes in the Tldraw component, we want
@@ -618,7 +616,7 @@ describe('TldrawTestApp', () => {
     If the `id` property of the new document is the same as the
     previous document, then we call `updateDocument`. Otherwise, we
     call `replaceDocument`, which does a harder reset of the state's
-    internal state.
+    internal app.
   */
 
   jest.setTimeout(10000)
@@ -635,9 +633,9 @@ describe('TldrawTestApp', () => {
 
       TldrawTestApp.defaultState = withoutRoom
 
-      const state = new TldrawTestApp('migrate_1')
+      const app = new TldrawTestApp('migrate_1')
 
-      state.createShapes({
+      app.createShapes({
         id: 'rect1',
         type: TldrawShapeType.Rectangle,
       })
@@ -647,11 +645,11 @@ describe('TldrawTestApp', () => {
         TldrawTestApp.version = 100
         TldrawTestApp.defaultState.room = defaultState.room
 
-        const state2 = new TldrawTestApp('migrate_1')
+        const app2 = new TldrawTestApp('migrate_1')
 
         setTimeout(() => {
           try {
-            expect(state2.getShape('rect1')).toBeTruthy()
+            expect(app2.getShape('rect1')).toBeTruthy()
             done()
           } catch (e) {
             done(e)

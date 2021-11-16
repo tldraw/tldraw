@@ -3,14 +3,14 @@ import { mockDocument, TldrawTestApp } from '~test'
 import { AlignType, TldrawShapeType } from '~types'
 
 describe('Align command', () => {
-  const state = new TldrawTestApp()
+  const app = new TldrawTestApp()
 
   describe('when less than two shapes are selected', () => {
     it('does nothing', () => {
-      state.loadDocument(mockDocument).select('rect2')
-      const initialState = state.state
-      state.align(AlignType.Top)
-      const currentState = state.state
+      app.loadDocument(mockDocument).select('rect2')
+      const initialState = app.state
+      app.align(AlignType.Top)
+      const currentState = app.state
 
       expect(currentState).toEqual(initialState)
     })
@@ -18,67 +18,67 @@ describe('Align command', () => {
 
   describe('when multiple shapes are selected', () => {
     beforeEach(() => {
-      state.loadDocument(mockDocument)
-      state.selectAll()
+      app.loadDocument(mockDocument)
+      app.selectAll()
     })
 
     it('does, undoes and redoes command', () => {
-      state.align(AlignType.Top)
+      app.align(AlignType.Top)
 
-      expect(state.getShape('rect2').point).toEqual([100, 0])
+      expect(app.getShape('rect2').point).toEqual([100, 0])
 
-      state.undo()
+      app.undo()
 
-      expect(state.getShape('rect2').point).toEqual([100, 100])
+      expect(app.getShape('rect2').point).toEqual([100, 100])
 
-      state.redo()
+      app.redo()
 
-      expect(state.getShape('rect2').point).toEqual([100, 0])
+      expect(app.getShape('rect2').point).toEqual([100, 0])
     })
 
     it('aligns top', () => {
-      state.align(AlignType.Top)
+      app.align(AlignType.Top)
 
-      expect(state.getShape('rect2').point).toEqual([100, 0])
+      expect(app.getShape('rect2').point).toEqual([100, 0])
     })
 
     it('aligns right', () => {
-      state.align(AlignType.Right)
+      app.align(AlignType.Right)
 
-      expect(state.getShape('rect1').point).toEqual([100, 0])
+      expect(app.getShape('rect1').point).toEqual([100, 0])
     })
 
     it('aligns bottom', () => {
-      state.align(AlignType.Bottom)
+      app.align(AlignType.Bottom)
 
-      expect(state.getShape('rect1').point).toEqual([0, 100])
+      expect(app.getShape('rect1').point).toEqual([0, 100])
     })
 
     it('aligns left', () => {
-      state.align(AlignType.Left)
+      app.align(AlignType.Left)
 
-      expect(state.getShape('rect2').point).toEqual([0, 100])
+      expect(app.getShape('rect2').point).toEqual([0, 100])
     })
 
     it('aligns center horizontal', () => {
-      state.align(AlignType.CenterHorizontal)
+      app.align(AlignType.CenterHorizontal)
 
-      expect(state.getShape('rect1').point).toEqual([50, 0])
-      expect(state.getShape('rect2').point).toEqual([50, 100])
+      expect(app.getShape('rect1').point).toEqual([50, 0])
+      expect(app.getShape('rect2').point).toEqual([50, 100])
     })
 
     it('aligns center vertical', () => {
-      state.align(AlignType.CenterVertical)
+      app.align(AlignType.CenterVertical)
 
-      expect(state.getShape('rect1').point).toEqual([0, 50])
-      expect(state.getShape('rect2').point).toEqual([100, 50])
+      expect(app.getShape('rect1').point).toEqual([0, 50])
+      expect(app.getShape('rect2').point).toEqual([100, 50])
     })
   })
 })
 
 describe('when aligning groups', () => {
   it('aligns children', () => {
-    const state = new TldrawTestApp()
+    const app = new TldrawTestApp()
       .createShapes(
         { id: 'rect1', type: TldrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
         { id: 'rect2', type: TldrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
@@ -89,10 +89,10 @@ describe('when aligning groups', () => {
       .select('rect3', 'rect4')
       .align(AlignType.CenterVertical)
 
-    const p0 = state.getShape('rect4').point
-    const p1 = state.getShape('rect3').point
+    const p0 = app.getShape('rect4').point
+    const p1 = app.getShape('rect3').point
 
-    state
+    app
       .undo()
       .delete(['rect4'])
       .selectAll()

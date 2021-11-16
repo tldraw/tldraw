@@ -3,7 +3,7 @@ import { SessionType, TldrawShapeType, TldrawStatus } from '~types'
 
 describe('Handle session', () => {
   it('begins, updateSession', () => {
-    const state = new TldrawTestApp()
+    const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .createShapes({
         id: 'arrow1',
@@ -15,13 +15,13 @@ describe('Handle session', () => {
       .movePointer([10, 10])
       .completeSession()
 
-    expect(state.appState.status).toBe(TldrawStatus.Idle)
+    expect(app.status).toBe(TldrawStatus.Idle)
 
-    state.undo().redo()
+    app.undo().redo()
   })
 
   it('cancels session', () => {
-    const state = new TldrawTestApp()
+    const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .createShapes({
         type: TldrawShapeType.Arrow,
@@ -33,6 +33,6 @@ describe('Handle session', () => {
       .movePointer([10, 10])
       .cancelSession()
 
-    expect(state.getShape('rect1').point).toStrictEqual([0, 0])
+    expect(app.getShape('rect1').point).toStrictEqual([0, 0])
   })
 })

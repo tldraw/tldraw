@@ -1,40 +1,40 @@
 import { mockDocument, TldrawTestApp } from '~test'
 
 describe('Delete page', () => {
-  const state = new TldrawTestApp()
+  const app = new TldrawTestApp()
 
   beforeEach(() => {
-    state.loadDocument(mockDocument)
+    app.loadDocument(mockDocument)
   })
 
   describe('when there are no pages in the current document', () => {
     it('does nothing', () => {
-      state.resetDocument()
-      const initialState = state.state
-      state.deletePage('page1')
-      const currentState = state.state
+      app.resetDocument()
+      const initialState = app.state
+      app.deletePage('page1')
+      const currentState = app.state
 
       expect(currentState).toEqual(initialState)
     })
   })
 
   it('does, undoes and redoes command', () => {
-    const initialId = state.currentPageId
+    const initialId = app.currentPageId
 
-    state.createPage()
+    app.createPage()
 
-    const nextId = state.currentPageId
+    const nextId = app.currentPageId
 
-    state.deletePage()
+    app.deletePage()
 
-    expect(state.currentPageId).toBe(initialId)
+    expect(app.currentPageId).toBe(initialId)
 
-    state.undo()
+    app.undo()
 
-    expect(state.currentPageId).toBe(nextId)
+    expect(app.currentPageId).toBe(nextId)
 
-    state.redo()
+    app.redo()
 
-    expect(state.currentPageId).toBe(initialId)
+    expect(app.currentPageId).toBe(initialId)
   })
 })
