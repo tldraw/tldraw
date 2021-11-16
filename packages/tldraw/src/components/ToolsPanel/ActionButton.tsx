@@ -26,12 +26,12 @@ import {
   SpaceEvenlyVerticallyIcon,
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
+  BoxIcon,
 } from '@radix-ui/react-icons'
 import { DMContent } from '~components/DropdownMenu'
 import { Divider } from '~components/Divider'
 import { TrashIcon } from '~components/icons'
 import { ToolButton } from '~components/ToolButton'
-import { GHOSTED_OPACITY } from '~constants'
 
 const selectedShapesCountSelector = (s: TDSnapshot) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length
@@ -84,6 +84,12 @@ export function ActionButton(): JSX.Element {
   const hasSelection = app.useStore(hasSelectionClickor)
 
   const hasMultipleSelection = app.useStore(hasMultipleSelectionClickor)
+
+  const selectedShapesCount = app.useStore(selectedShapesCountSelector)
+
+  const hasTwoOrMore = selectedShapesCount > 1
+
+  const hasThreeOrMore = selectedShapesCount > 2
 
   const handleRotate = React.useCallback(() => {
     app.rotate()
@@ -165,16 +171,11 @@ export function ActionButton(): JSX.Element {
     app.distribute(DistributeType.Horizontal)
   }, [app])
 
-  const selectedShapesCount = app.useStore(selectedShapesCountSelector)
-
-  const hasTwoOrMore = selectedShapesCount > 1
-  const hasThreeOrMore = selectedShapesCount > 2
-
   return (
     <DropdownMenu.Root dir="ltr">
-      <DropdownMenu.Trigger dir="ltr" asChild>
+      <DropdownMenu.Trigger disabled={!hasSelection} dir="ltr" asChild>
         <ToolButton disabled={!hasSelection} variant="circle">
-          <DotsHorizontalIcon opacity={hasSelection ? 1 : 0.618} />
+          <DotsHorizontalIcon />
         </ToolButton>
       </DropdownMenu.Trigger>
       <DMContent sideOffset={16}>
@@ -192,12 +193,12 @@ export function ActionButton(): JSX.Element {
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleToggleLocked}>
               <Tooltip label="Toogle Locked" kbd={`#L`}>
-                {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon opacity={0.4} />}
+                {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleToggleAspectRatio}>
               <Tooltip label="Toogle Aspect Ratio Lock">
-                <AspectRatioIcon opacity={isAllAspectLocked ? 1 : 0.4} />
+                {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
               </Tooltip>
             </ToolButton>
             <ToolButton
@@ -205,7 +206,7 @@ export function ActionButton(): JSX.Element {
               onClick={handleGroup}
             >
               <Tooltip label="Group" kbd={`#G`}>
-                <GroupIcon opacity={isAllGrouped ? 1 : 0.4} />
+                <GroupIcon />
               </Tooltip>
             </ToolButton>
           </ButtonsRow>

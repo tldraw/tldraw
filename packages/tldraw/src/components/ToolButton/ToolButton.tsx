@@ -117,6 +117,11 @@ export const StyledToolButton = styled('button', {
   border: 'none',
   height: '40px',
   width: '40px',
+
+  [`&:disabled ${StyledToolButtonInner}`]: {
+    opacity: 0.618,
+  },
+
   variants: {
     variant: {
       primary: {
