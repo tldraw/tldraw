@@ -14,11 +14,14 @@ import { ShapesMenu } from './ShapesMenu'
 import { EraserIcon } from '~components/icons'
 
 const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
+const toolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked
 
 export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
   const app = useTldrawApp()
 
   const activeTool = app.useStore(activeToolSelector)
+
+  const isToolLocked = app.useStore(toolLockedSelector)
 
   const selectSelectTool = React.useCallback(() => {
     app.selectTool('select')
@@ -70,11 +73,12 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
       >
         <EraserIcon />
       </ToolButtonWithTooltip>
-      <ShapesMenu activeTool={activeTool} />
+      <ShapesMenu activeTool={activeTool} isToolLocked={isToolLocked} />
       <ToolButtonWithTooltip
         kbd={'6'}
         label={TDShapeType.Arrow}
         onClick={selectArrowTool}
+        isLocked={isToolLocked}
         isActive={activeTool === TDShapeType.Arrow}
       >
         <ArrowTopRightIcon />
@@ -83,6 +87,7 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
         kbd={'7'}
         label={TDShapeType.Text}
         onClick={selectTextTool}
+        isLocked={isToolLocked}
         isActive={activeTool === TDShapeType.Text}
       >
         <TextIcon />
@@ -91,6 +96,7 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
         kbd={'8'}
         label={TDShapeType.Sticky}
         onClick={selectStickyTool}
+        isLocked={isToolLocked}
         isActive={activeTool === TDShapeType.Sticky}
       >
         <Pencil2Icon />

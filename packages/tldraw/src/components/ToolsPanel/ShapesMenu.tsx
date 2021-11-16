@@ -9,6 +9,7 @@ import { Tooltip } from '~components/Tooltip'
 
 interface ShapesMenuProps {
   activeTool: TDToolType
+  isToolLocked: boolean
 }
 
 type ShapeShape = TDShapeType.Rectangle | TDShapeType.Ellipse
@@ -18,7 +19,10 @@ const shapeShapeIcons = {
   [TDShapeType.Ellipse]: <CircleIcon />,
 }
 
-export const ShapesMenu = React.memo(function ShapesMenu({ activeTool }: ShapesMenuProps) {
+export const ShapesMenu = React.memo(function ShapesMenu({
+  activeTool,
+  isToolLocked,
+}: ShapesMenuProps) {
   const app = useTldrawApp()
 
   const [lastActiveTool, setLastActiveTool] = React.useState<ShapeShape>(TDShapeType.Rectangle)
@@ -37,6 +41,8 @@ export const ShapesMenu = React.memo(function ShapesMenu({ activeTool }: ShapesM
     app.toggleToolLock()
   }, [app])
 
+  const isActive = shapeShapes.includes(activeTool as ShapeShape)
+
   return (
     <DropdownMenu.Root dir="ltr">
       <DropdownMenu.Trigger dir="ltr" asChild>
@@ -44,7 +50,8 @@ export const ShapesMenu = React.memo(function ShapesMenu({ activeTool }: ShapesM
           variant="primary"
           onDoubleClick={handleDoubleClick}
           onClick={selectShapeTool}
-          isActive={shapeShapes.includes(activeTool as ShapeShape)}
+          isToolLocked={isActive && isToolLocked}
+          isActive={isActive}
         >
           {shapeShapeIcons[lastActiveTool]}
         </ToolButton>

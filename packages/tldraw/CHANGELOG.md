@@ -1,4 +1,8 @@
-## 0.2.0
+## 1.0.0
+
+Breaking
+
+- Renames many props, components (e.g. `TLDrawState` to `TLDrawApp`)
 
 Improvements
 
@@ -7,6 +11,11 @@ Improvements
 - Adds and updtes tests.
 - Renames TLDraw to tldraw throughout the app and documentation.
 - Renames TLDrawState to TldrawApp, state to app.
+- Improves action menu
+- Improves dark colors
+- Consolidates style menu
+- Fixes performance bug with menus
+- Fixes text formatting in Text shapes
 
 New
 

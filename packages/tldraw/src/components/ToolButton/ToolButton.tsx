@@ -11,6 +11,7 @@ export interface ToolButtonProps {
   disabled?: boolean
   isActive?: boolean
   isSponsor?: boolean
+  isToolLocked?: boolean
   variant?: 'icon' | 'text' | 'circle' | 'primary'
   children: React.ReactNode
 }
@@ -23,6 +24,7 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
       onDoubleClick,
       variant,
       children,
+      isToolLocked = false,
       disabled = false,
       isActive = false,
       isSponsor = false,
@@ -44,6 +46,7 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
         {...rest}
       >
         <StyledToolButtonInner>{children}</StyledToolButtonInner>
+        {isToolLocked && <ToolLockIndicator />}
       </StyledToolButton>
     )
   }
@@ -53,10 +56,16 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
 
 interface ToolButtonWithTooltipProps extends ToolButtonProps {
   label: string
+  isLocked?: boolean
   kbd?: string
 }
 
-export function ToolButtonWithTooltip({ label, kbd, ...rest }: ToolButtonWithTooltipProps) {
+export function ToolButtonWithTooltip({
+  label,
+  kbd,
+  isLocked,
+  ...rest
+}: ToolButtonWithTooltipProps) {
   const app = useTldrawApp()
 
   const handleDoubleClick = React.useCallback(() => {
@@ -65,7 +74,12 @@ export function ToolButtonWithTooltip({ label, kbd, ...rest }: ToolButtonWithToo
 
   return (
     <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
-      <ToolButton {...rest} variant="primary" onDoubleClick={handleDoubleClick} />
+      <ToolButton
+        {...rest}
+        variant="primary"
+        isToolLocked={isLocked && rest.isActive}
+        onDoubleClick={handleDoubleClick}
+      />
     </Tooltip>
   )
 }
@@ -204,4 +218,15 @@ export const StyledToolButton = styled('button', {
       },
     },
   ],
+})
+
+const ToolLockIndicator = styled('div', {
+  position: 'absolute',
+  width: 10,
+  height: 10,
+  backgroundColor: '$selected',
+  borderRadius: '100%',
+  bottom: -2,
+  border: '2px solid $panel',
+  zIndex: 100,
 })
