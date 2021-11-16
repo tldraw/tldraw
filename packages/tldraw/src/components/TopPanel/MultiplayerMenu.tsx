@@ -64,7 +64,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu({ id }: Multi
   }, [])
 
   return (
-    <DropdownMenu.Root>
+    <DropdownMenu.Root dir="ltr">
       <DMTriggerIcon>
         <MultiplayerIcon />
       </DMTriggerIcon>

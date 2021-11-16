@@ -14,7 +14,7 @@ export function ZoomMenu() {
   const zoom = app.useStore(zoomSelector)
 
   return (
-    <DropdownMenu.Root>
+    <DropdownMenu.Root dir="ltr">
       <DropdownMenu.Trigger asChild>
         <FixedWidthToolButton onDoubleClick={app.resetZoom} variant="text">
           {Math.round(zoom * 100)}%

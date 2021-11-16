@@ -203,7 +203,7 @@ A binding is a connection **from** one shape and **to** another shape. At the mo
 You can change the `tldraw` component's state through an imperative API called `TldrawApp`. To access this API, use the `onMount` callback, or any of the component's callback props, like `onPersist`.
 
 ```tsx
-import { tldraw, TldrawApp } from '@tldraw/tldraw'
+import { Tldraw, TldrawApp } from '@tldraw/tldraw'
 
 function App() {
   const handleMount = React.useCallback((state: TldrawApp) => {

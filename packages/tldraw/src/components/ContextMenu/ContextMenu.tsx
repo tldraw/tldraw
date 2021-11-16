@@ -123,7 +123,7 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
   }, [app])
 
   return (
-    <RadixContextMenu.Root>
+    <RadixContextMenu.Root dir="ltr">
       <RadixContextMenu.Trigger dir="ltr">{children}</RadixContextMenu.Trigger>
       <RadixContextMenu.Content
         dir="ltr"
@@ -265,7 +265,7 @@ function AlignDistributeSubMenu({
   }, [app])
 
   return (
-    <RadixContextMenu.Root>
+    <RadixContextMenu.Root dir="ltr">
       <CMTriggerButton isSubmenu>Align / Distribute</CMTriggerButton>
       <RadixContextMenu.Content asChild sideOffset={2} alignOffset={-2}>
         <StyledGridContent selectedStyle={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}>

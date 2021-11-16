@@ -22,10 +22,10 @@ export function Tooltip({
 }: TooltipProps): JSX.Element {
   return (
     <RadixTooltip.Root>
-      <RadixTooltip.Trigger asChild={true}>
+      <RadixTooltip.Trigger dir="ltr" asChild={true}>
         <span>{children}</span>
       </RadixTooltip.Trigger>
-      <StyledContent side={side} sideOffset={8}>
+      <StyledContent dir="ltr" side={side} sideOffset={8}>
         {label}
         {kbdProp ? <Kbd variant="tooltip">{kbdProp}</Kbd> : null}
         <StyledArrow />
@@ -41,6 +41,7 @@ const StyledContent = styled(RadixTooltip.Content, {
   backgroundColor: '$tooltip',
   color: '$tooltipContrast',
   boxShadow: '$3',
+  border: '1px solid $hover',
   display: 'flex',
   alignItems: 'center',
   fontFamily: '$ui',

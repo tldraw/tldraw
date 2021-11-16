@@ -383,7 +383,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
         brushStroke: 'rgba(180, 180, 180, .25)',
         selected: 'rgba(38, 150, 255, 1.000)',
         selectFill: 'rgba(38, 150, 255, 0.05)',
-        background: '#343d45',
+        background: '#212529',
         foreground: '#49555f',
       }
     }

@@ -82,7 +82,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
         </IconButton>
       </Dialog.Trigger>
       <StyledDialogOverlay />
-      <StyledDialogContent onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
+      <StyledDialogContent dir="ltr" onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
         <DialogAction onSelect={handleRename}>Rename</DialogAction>
         <DialogAction onSelect={handleDuplicate}>Duplicate</DialogAction>
         <DialogAction disabled={!canDelete} onSelect={handleDelete}>

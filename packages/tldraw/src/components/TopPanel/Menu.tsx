@@ -63,7 +63,7 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
   const showSignInOutMenu = app.callbacks.onSignIn || app.callbacks.onSignOut || showSponsorLink
 
   return (
-    <DropdownMenu.Root>
+    <DropdownMenu.Root dir="ltr">
       <DMTriggerIcon isSponsor={showSponsorLink}>
         <HamburgerMenuIcon />
       </DMTriggerIcon>

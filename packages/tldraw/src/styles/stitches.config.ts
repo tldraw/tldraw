@@ -6,15 +6,13 @@ const { styled, createTheme } = createStitches({
   },
   theme: {
     colors: {
-      border: 'rgba(143, 146, 148, 1)',
       bounds: 'rgba(65, 132, 244, 1.000)',
       boundsBg: 'rgba(65, 132, 244, 0.05)',
-      canvas: '#f8f9fa',
-      hover: 'rgba(144, 144, 144, .1)',
-      muted: '#777777',
+      hover: '#ececec',
       overlay: 'rgba(0, 0, 0, 0.15)',
       overlayContrast: 'rgba(255, 255, 255, 0.15)',
       panel: '#fefefe',
+      panelContrast: '#ffffff',
       selected: 'rgba(66, 133, 244, 1.000)',
       selectedContrast: '#fefefe',
       sponsor: '#ec6cb9',
@@ -96,14 +94,13 @@ const { styled, createTheme } = createStitches({
 
 export const dark = createTheme({
   colors: {
-    border: 'rgb(32, 37, 41, 1)',
     bounds: 'rgba(38, 150, 255, 1.000)',
     boundsBg: 'rgba(38, 150, 255, 0.05)',
-    canvas: '#343d45',
-    hover: '#343d45',
+    hover: '#444A50',
     overlay: 'rgba(0, 0, 0, 0.15)',
     overlayContrast: 'rgba(255, 255, 255, 0.15)',
-    panel: '#49555f',
+    panel: '#363D44',
+    panelContrast: '#49555f',
     selected: 'rgba(38, 150, 255, 1.000)',
     selectedContrast: '#fefefe',
     text: '#f8f9fa',

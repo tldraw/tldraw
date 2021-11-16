@@ -24,7 +24,7 @@ export function StatusBar(): JSX.Element | null {
 const StyledStatusBar = styled('div', {
   height: 40,
   userSelect: 'none',
-  borderTop: '1px solid $border',
+  borderTop: '1px solid $panelContrast',
   gridArea: 'status',
   display: 'flex',
   color: '$text',

@@ -23,7 +23,7 @@ const StyledButtonContainer = styled('div', {
   backgroundColor: 'transparent',
 
   '& svg': {
-    color: '$muted',
+    color: '$text',
   },
 
   '&:hover svg': {

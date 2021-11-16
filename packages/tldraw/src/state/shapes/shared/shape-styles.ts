@@ -35,8 +35,8 @@ export const stickyFills: Record<Theme, Record<ColorStyle, string>> = {
         Utils.lerpColor(Utils.lerpColor(v, '#999999', 0.3), canvasDark, 0.4),
       ])
     ) as Record<ColorStyle, string>),
-    [ColorStyle.White]: '#bbbbbb',
-    [ColorStyle.Black]: '#1d1d1d',
+    [ColorStyle.White]: '#1d1d1d',
+    [ColorStyle.Black]: '#bbbbbb',
   },
 }
 
@@ -59,9 +59,13 @@ export const fills: Record<Theme, Record<ColorStyle, string>> = {
     [ColorStyle.White]: '#ffffff',
     [ColorStyle.Black]: '#ffffff',
   },
-  dark: Object.fromEntries(
-    Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasDark, 0.618)])
-  ) as Record<ColorStyle, string>,
+  dark: {
+    ...(Object.fromEntries(
+      Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasDark, 0.618)])
+    ) as Record<ColorStyle, string>),
+    [ColorStyle.White]: '#ffffff',
+    [ColorStyle.Black]: '#ffffff',
+  },
 }
 
 const strokeWidths = {

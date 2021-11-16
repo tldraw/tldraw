@@ -77,7 +77,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
 
   return (
     <>
-      <DropdownMenu.RadioGroup value={currentPageId} onValueChange={handleChangePage}>
+      <DropdownMenu.RadioGroup dir="ltr" value={currentPageId} onValueChange={handleChangePage}>
         {sortedPages.map((page) => (
           <ButtonWithOptions key={page.id}>
             <DropdownMenu.RadioItem
