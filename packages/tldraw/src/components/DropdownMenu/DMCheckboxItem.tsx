@@ -1,8 +1,7 @@
 import * as React from 'react'
 import { CheckboxItem } from '@radix-ui/react-dropdown-menu'
 import { RowButton, RowButtonProps } from '~components/RowButton'
-
-const preventDefault = (e: Event) => e.preventDefault()
+import { preventEvent } from '~components/preventEvent'
 
 interface DMCheckboxItemProps {
   checked: boolean
@@ -24,7 +23,7 @@ export function DMCheckboxItem({
   return (
     <CheckboxItem
       dir="ltr"
-      onSelect={preventDefault}
+      onSelect={preventEvent}
       onCheckedChange={onCheckedChange}
       checked={checked}
       disabled={disabled}

@@ -9,6 +9,7 @@ import { getStickyFontStyle, getStickyShapeStyle } from '../shared/shape-styles'
 import { styled } from '~styles'
 import Vec from '@tldraw/vec'
 import { GHOSTED_OPACITY } from '~constants'
+import { TLDR } from '~state/TLDR'
 
 type T = StickyShape
 type E = HTMLDivElement
@@ -63,7 +64,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
           onShapeChange?.({
             id: shape.id,
             type: shape.type,
-            text: normalizeText(e.currentTarget.value),
+            text: TLDR.normalizeText(e.currentTarget.value),
           })
         },
         [onShapeChange]
@@ -88,7 +89,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
               TextAreaUtils.indent(e.currentTarget)
             }
 
-            onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
+            onShapeChange?.({ ...shape, text: TLDR.normalizeText(e.currentTarget.value) })
           }
         },
         [shape, onShapeChange]
@@ -238,13 +239,6 @@ export class StickyUtil extends TDShapeUtil<T, E> {
 
 const PADDING = 16
 const MIN_CONTAINER_HEIGHT = 200
-
-const fixNewLines = /\r?\n|\r/g
-const fixSpaces = / /g
-
-function normalizeText(text: string) {
-  return text.replace(fixNewLines, '\n').replace(fixSpaces, '\u00a0')
-}
 
 const StyledStickyContainer = styled('div', {
   pointerEvents: 'all',

@@ -907,6 +907,17 @@ export class TLDR {
   }
 
   /* -------------------------------------------------- */
+  /*                        Text                        */
+  /* -------------------------------------------------- */
+
+  static fixNewLines = /\r?\n|\r/g
+  static fixSpaces = / /g
+
+  static normalizeText(text: string) {
+    return text.replace(TLDR.fixNewLines, '\n').replace(TLDR.fixSpaces, '\u00a0')
+  }
+
+  /* -------------------------------------------------- */
   /*                     Assertions                     */
   /* -------------------------------------------------- */
 

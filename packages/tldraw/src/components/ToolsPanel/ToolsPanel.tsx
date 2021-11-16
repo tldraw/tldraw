@@ -47,7 +47,7 @@ const StyledToolsPanelContainer = styled('div', {
   gridTemplateRows: 'auto auto',
   justifyContent: 'space-between',
   padding: '0',
-  gap: '$3',
+  gap: '$4',
   zIndex: 200,
   pointerEvents: 'none',
   '& > div > *': {

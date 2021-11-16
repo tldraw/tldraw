@@ -8,6 +8,7 @@ import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import { styled } from '~styles'
 import Vec from '@tldraw/vec'
+import { TLDR } from '~state/TLDR'
 
 type T = TextShape
 type E = HTMLDivElement
@@ -49,7 +50,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
       const handleChange = React.useCallback(
         (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-          onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
+          onShapeChange?.({ ...shape, text: TLDR.normalizeText(e.currentTarget.value) })
         },
         [shape]
       )
@@ -71,7 +72,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
               TextAreaUtils.indent(e.currentTarget)
             }
 
-            onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
+            onShapeChange?.({ ...shape, text: TLDR.normalizeText(e.currentTarget.value) })
           }
         },
         [shape, onShapeChange]
@@ -167,6 +168,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
               ) : (
                 text
               )}
+              &#8203;
             </InnerWrapper>
           </Wrapper>
         </HTMLContainer>
@@ -280,13 +282,6 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
 const LETTER_SPACING = -1.5
 
-const fixNewLines = /\r?\n|\r/g
-const fixSpaces = / /g
-
-function normalizeText(text: string) {
-  return text.replace(fixNewLines, '\n').replace(fixSpaces, '\u00a0')
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let melm: any
 
@@ -346,6 +341,11 @@ const Wrapper = styled('div', {
   },
 })
 
+const commonTextWrapping = {
+  whiteSpace: 'pre-wrap',
+  overflowWrap: 'break-word',
+}
+
 const InnerWrapper = styled('div', {
   position: 'absolute',
   top: 'var(--tl-padding)',
@@ -374,6 +374,7 @@ const InnerWrapper = styled('div', {
       WebkitUserSelect: 'text',
     },
   },
+  ...commonTextWrapping,
 })
 
 const TextArea = styled('textarea', {
@@ -385,7 +386,6 @@ const TextArea = styled('textarea', {
   height: '100%',
   border: 'none',
   padding: '4px',
-  whiteSpace: 'pre',
   resize: 'none',
   minHeight: 'inherit',
   minWidth: 'inherit',
@@ -400,4 +400,5 @@ const TextArea = styled('textarea', {
   background: '$boundsBg',
   userSelect: 'text',
   WebkitUserSelect: 'text',
+  ...commonTextWrapping,
 })

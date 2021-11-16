@@ -8,14 +8,9 @@ import { MultiplayerIcon } from '~components/icons'
 import type { TDSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
 
-interface MultiplayerMenuProps {
-  id?: string
-  // noop
-}
-
 const roomSelector = (state: TDSnapshot) => state.room
 
-export const MultiplayerMenu = React.memo(function MultiplayerMenu({ id }: MultiplayerMenuProps) {
+export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
   const app = useTldrawApp()
 
   const room = app.useStore(roomSelector)
@@ -69,14 +64,14 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu({ id }: Multi
         <MultiplayerIcon />
       </DMTriggerIcon>
       <DMContent variant="menu" align="start">
-        <DMItem onSelect={handleCreateMultiplayerRoom}>
+        <DMItem onClick={handleCreateMultiplayerRoom}>
           <a href="https://tldraw.com/r">Create a Multiplayer Room</a>
         </DMItem>
-        <DMItem onSelect={handleCopyToMultiplayerRoom}>Copy to Multiplayer Room</DMItem>
+        <DMItem onClick={handleCopyToMultiplayerRoom}>Copy to Multiplayer Room</DMItem>
         {room && (
           <>
             <DMDivider />
-            <DMItem onSelect={handleCopySelect}>
+            <DMItem onClick={handleCopySelect}>
               Copy Invite Link<SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
             </DMItem>
           </>

@@ -5,7 +5,7 @@ export function useFileSystemHandlers() {
   const app = useTldrawApp()
 
   const onNewProject = React.useCallback(
-    async (e?: KeyboardEvent) => {
+    async (e?: React.MouseEvent | React.KeyboardEvent | KeyboardEvent) => {
       if (e && app.callbacks.onOpenProject) e.preventDefault()
       app.callbacks.onNewProject?.(app)
     },
@@ -13,7 +13,7 @@ export function useFileSystemHandlers() {
   )
 
   const onSaveProject = React.useCallback(
-    (e?: KeyboardEvent) => {
+    (e?: React.MouseEvent | React.KeyboardEvent | KeyboardEvent) => {
       if (e && app.callbacks.onOpenProject) e.preventDefault()
       app.callbacks.onSaveProject?.(app)
     },
@@ -21,7 +21,7 @@ export function useFileSystemHandlers() {
   )
 
   const onSaveProjectAs = React.useCallback(
-    (e?: KeyboardEvent) => {
+    (e?: React.MouseEvent | React.KeyboardEvent | KeyboardEvent) => {
       if (e && app.callbacks.onOpenProject) e.preventDefault()
       app.callbacks.onSaveProjectAs?.(app)
     },
@@ -29,7 +29,7 @@ export function useFileSystemHandlers() {
   )
 
   const onOpenProject = React.useCallback(
-    async (e?: KeyboardEvent) => {
+    async (e?: React.MouseEvent | React.KeyboardEvent | KeyboardEvent) => {
       if (e && app.callbacks.onOpenProject) e.preventDefault()
       app.callbacks.onOpenProject?.(app)
     },

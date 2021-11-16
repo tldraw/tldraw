@@ -18,9 +18,9 @@ import { TDSnapshot, ColorStyle, DashStyle, SizeStyle } from '~types'
 import { styled } from '~styles'
 import { breakpoints } from '~components/breakpoints'
 import { Divider } from '~components/Divider'
+import { preventEvent } from '~components/preventEvent'
 
 const selectedStyleSelector = (s: TDSnapshot) => s.appState.selectedStyle
-const preventEvent = (e: Event) => e.preventDefault()
 
 const dashes = {
   [DashStyle.Draw]: <DashDrawIcon />,
@@ -35,12 +35,12 @@ const sizes = {
   [SizeStyle.Large]: <SizeLargeIcon />,
 }
 
-// const themeSelector = (data: TDSnapshot) => (data.settings.isDarkMode ? 'dark' : 'light')
+const themeSelector = (data: TDSnapshot) => (data.settings.isDarkMode ? 'dark' : 'light')
 
 export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
   const app = useTldrawApp()
 
-  // const theme = app.useStore(themeSelector)
+  const theme = app.useStore(themeSelector)
 
   const style = app.useStore(selectedStyleSelector)
 
@@ -61,11 +61,11 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
       <DMTriggerIcon>
         <OverlapIcons
           style={{
-            color: strokes.light[style.color as ColorStyle],
+            color: strokes[theme][style.color as ColorStyle],
           }}
         >
           {style.isFilled && (
-            <CircleIcon size={18} stroke="none" fill={fills.light[style.color as ColorStyle]} />
+            <CircleIcon size={16} stroke="none" fill={fills[theme][style.color as ColorStyle]} />
           )}
           {dashes[style.dash]}
         </OverlapIcons>

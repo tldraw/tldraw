@@ -2,18 +2,29 @@ import * as React from 'react'
 import { Content } from '@radix-ui/react-dropdown-menu'
 import { styled } from '~styles/stitches.config'
 import { MenuContent } from '~components/MenuContent'
+import { stopPropagation } from '~components/stopPropagation'
 
 export interface DMContentProps {
   variant?: 'menu' | 'horizontal'
   align?: 'start' | 'center' | 'end'
+  sideOffset?: number
   children: React.ReactNode
 }
 
-const preventDefault = (e: Event) => e.stopPropagation()
-
-export function DMContent({ children, align, variant }: DMContentProps): JSX.Element {
+export function DMContent({
+  sideOffset = 8,
+  children,
+  align,
+  variant,
+}: DMContentProps): JSX.Element {
   return (
-    <Content sideOffset={8} dir="ltr" asChild align={align} onEscapeKeyDown={preventDefault}>
+    <Content
+      dir="ltr"
+      align={align}
+      sideOffset={sideOffset}
+      onEscapeKeyDown={stopPropagation}
+      asChild
+    >
       <StyledContent variant={variant}>{children}</StyledContent>
     </Content>
   )

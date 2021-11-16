@@ -8,6 +8,7 @@ export interface ToolButtonProps {
   onClick?: () => void
   onSelect?: () => void
   onDoubleClick?: () => void
+  disabled?: boolean
   isActive?: boolean
   isSponsor?: boolean
   variant?: 'icon' | 'text' | 'circle' | 'primary'
@@ -22,6 +23,7 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
       onDoubleClick,
       variant,
       children,
+      disabled = false,
       isActive = false,
       isSponsor = false,
       ...rest
@@ -35,6 +37,7 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
         isSponsor={isSponsor}
         variant={variant}
         onClick={onClick}
+        disabled={disabled}
         onPointerDown={onSelect}
         onDoubleClick={onDoubleClick}
         bp={breakpoints}

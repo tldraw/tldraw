@@ -30,7 +30,6 @@ import {
 import { DMContent } from '~components/DropdownMenu'
 import { Divider } from '~components/Divider'
 import { TrashIcon } from '~components/icons'
-import { IconButton } from '~components/IconButton'
 import { ToolButton } from '~components/ToolButton'
 
 const selectedShapesCountSelector = (s: TDSnapshot) =>
@@ -177,99 +176,99 @@ export function ActionButton(): JSX.Element {
           <DotsHorizontalIcon />
         </ToolButton>
       </DropdownMenu.Trigger>
-      <DMContent>
+      <DMContent sideOffset={16}>
         <>
           <ButtonsRow>
-            <IconButton disabled={!hasSelection} onClick={handleDuplicate}>
+            <ToolButton variant="icon" disabled={!hasSelection} onClick={handleDuplicate}>
               <Tooltip label="Duplicate" kbd={`#D`}>
                 <CopyIcon />
               </Tooltip>
-            </IconButton>
-            <IconButton disabled={!hasSelection} onClick={handleRotate}>
+            </ToolButton>
+            <ToolButton disabled={!hasSelection} onClick={handleRotate}>
               <Tooltip label="Rotate">
                 <RotateCounterClockwiseIcon />
               </Tooltip>
-            </IconButton>
-            <IconButton disabled={!hasSelection} onClick={handleToggleLocked}>
+            </ToolButton>
+            <ToolButton disabled={!hasSelection} onClick={handleToggleLocked}>
               <Tooltip label="Toogle Locked" kbd={`#L`}>
                 {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon opacity={0.4} />}
               </Tooltip>
-            </IconButton>
-            <IconButton disabled={!hasSelection} onClick={handleToggleAspectRatio}>
+            </ToolButton>
+            <ToolButton disabled={!hasSelection} onClick={handleToggleAspectRatio}>
               <Tooltip label="Toogle Aspect Ratio Lock">
                 <AspectRatioIcon opacity={isAllAspectLocked ? 1 : 0.4} />
               </Tooltip>
-            </IconButton>
-            <IconButton
+            </ToolButton>
+            <ToolButton
               disabled={!hasSelection || (!isAllGrouped && !hasMultipleSelection)}
               onClick={handleGroup}
             >
               <Tooltip label="Group" kbd={`#G`}>
                 <GroupIcon opacity={isAllGrouped ? 1 : 0.4} />
               </Tooltip>
-            </IconButton>
+            </ToolButton>
           </ButtonsRow>
           <ButtonsRow>
-            <IconButton disabled={!hasSelection} onClick={handleMoveToBack}>
+            <ToolButton disabled={!hasSelection} onClick={handleMoveToBack}>
               <Tooltip label="Move to Back" kbd={`#⇧[`}>
                 <PinBottomIcon />
               </Tooltip>
-            </IconButton>
-            <IconButton disabled={!hasSelection} onClick={handleMoveBackward}>
+            </ToolButton>
+            <ToolButton disabled={!hasSelection} onClick={handleMoveBackward}>
               <Tooltip label="Move Backward" kbd={`#[`}>
                 <ArrowDownIcon />
               </Tooltip>
-            </IconButton>
-            <IconButton disabled={!hasSelection} onClick={handleMoveForward}>
+            </ToolButton>
+            <ToolButton disabled={!hasSelection} onClick={handleMoveForward}>
               <Tooltip label="Move Forward" kbd={`#]`}>
                 <ArrowUpIcon />
               </Tooltip>
-            </IconButton>
-            <IconButton disabled={!hasSelection} onClick={handleMoveToFront}>
+            </ToolButton>
+            <ToolButton disabled={!hasSelection} onClick={handleMoveToFront}>
               <Tooltip label="More to Front" kbd={`#⇧]`}>
                 <PinTopIcon />
               </Tooltip>
-            </IconButton>
-            <IconButton disabled={!hasSelection} onClick={handleDelete}>
+            </ToolButton>
+            <ToolButton disabled={!hasSelection} onClick={handleDelete}>
               <Tooltip label="Delete" kbd="⌫">
                 <TrashIcon />
               </Tooltip>
-            </IconButton>
+            </ToolButton>
           </ButtonsRow>
           <Divider />
           <ButtonsRow>
-            <IconButton disabled={!hasTwoOrMore} onClick={alignLeft}>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignLeft}>
               <AlignLeftIcon />
-            </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onClick={alignCenterHorizontal}>
+            </ToolButton>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignCenterHorizontal}>
               <AlignCenterHorizontallyIcon />
-            </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onClick={alignRight}>
+            </ToolButton>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignRight}>
               <AlignRightIcon />
-            </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onClick={stretchHorizontally}>
+            </ToolButton>
+            <ToolButton disabled={!hasTwoOrMore} onClick={stretchHorizontally}>
               <StretchHorizontallyIcon />
-            </IconButton>
-            <IconButton disabled={!hasThreeOrMore} onClick={distributeHorizontally}>
+            </ToolButton>
+            <ToolButton disabled={!hasThreeOrMore} onClick={distributeHorizontally}>
               <SpaceEvenlyHorizontallyIcon />
-            </IconButton>
+            </ToolButton>
           </ButtonsRow>
           <ButtonsRow>
-            <IconButton disabled={!hasTwoOrMore} onClick={alignTop}>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignTop}>
               <AlignTopIcon />
-            </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onClick={alignCenterVertical}>
+            </ToolButton>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignCenterVertical}>
               <AlignCenterVerticallyIcon />
-            </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onClick={alignBottom}>
+            </ToolButton>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignBottom}>
               <AlignBottomIcon />
-            </IconButton>
-            <IconButton disabled={!hasTwoOrMore} onClick={stretchVertically}>
+            </ToolButton>
+            <ToolButton disabled={!hasTwoOrMore} onClick={stretchVertically}>
               <StretchVerticallyIcon />
-            </IconButton>
-            <IconButton disabled={!hasThreeOrMore} onClick={distributeVertically}>
+            </ToolButton>
+            <ToolButton disabled={!hasThreeOrMore} onClick={distributeVertically}>
               <SpaceEvenlyVerticallyIcon />
-            </IconButton>
+            </ToolButton>
           </ButtonsRow>
         </>
       </DMContent>

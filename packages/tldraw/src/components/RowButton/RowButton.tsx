@@ -7,7 +7,7 @@ import { SmallIcon } from '~components/SmallIcon'
 import { styled } from '~styles'
 
 export interface RowButtonProps {
-  onSelect?: () => void
+  onClick?: React.MouseEventHandler<HTMLButtonElement>
   children: React.ReactNode
   disabled?: boolean
   kbd?: string
@@ -22,7 +22,7 @@ export interface RowButtonProps {
 export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
   (
     {
-      onSelect,
+      onClick,
       isActive = false,
       isWarning = false,
       hasIndicator = false,
@@ -44,7 +44,7 @@ export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
         isActive={isActive}
         isSponsor={isSponsor}
         disabled={disabled}
-        onPointerDown={onSelect}
+        onClick={onClick}
         variant={variant}
         {...rest}
       >

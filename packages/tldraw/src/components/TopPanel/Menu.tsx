@@ -7,6 +7,7 @@ import { DMItem, DMContent, DMDivider, DMSubMenu, DMTriggerIcon } from '~compone
 import { SmallIcon } from '~components/SmallIcon'
 import { useFileSystemHandlers } from '~hooks'
 import { HeartIcon } from '~components/icons/HeartIcon'
+import { preventEvent } from '~components/preventEvent'
 
 interface MenuProps {
   showSponsorLink: boolean
@@ -71,22 +72,22 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
         {showFileMenu && (
           <DMSubMenu label="File...">
             {app.callbacks.onNewProject && (
-              <DMItem onSelect={onNewProject} kbd="#N">
+              <DMItem onClick={onNewProject} kbd="#N">
                 New Project
               </DMItem>
             )}
             {app.callbacks.onOpenProject && (
-              <DMItem onSelect={onOpenProject} kbd="#O">
+              <DMItem onClick={onOpenProject} kbd="#O">
                 Open...
               </DMItem>
             )}
             {app.callbacks.onSaveProject && (
-              <DMItem onSelect={onSaveProject} kbd="#S">
+              <DMItem onClick={onSaveProject} kbd="#S">
                 Save
               </DMItem>
             )}
             {app.callbacks.onSaveProjectAs && (
-              <DMItem onSelect={onSaveProjectAs} kbd="⇧#S">
+              <DMItem onClick={onSaveProjectAs} kbd="⇧#S">
                 Save As...
               </DMItem>
             )}
@@ -95,32 +96,36 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
         {!readOnly && (
           <>
             <DMSubMenu label="Edit...">
-              <DMItem onSelect={app.undo} kbd="#Z">
+              <DMItem onSelect={preventEvent} onClick={app.undo} kbd="#Z">
                 Undo
               </DMItem>
-              <DMItem onSelect={app.redo} kbd="#⇧Z">
+              <DMItem onSelect={preventEvent} onClick={app.redo} kbd="#⇧Z">
                 Redo
               </DMItem>
               <DMDivider dir="ltr" />
-              <DMItem onSelect={handleCut} kbd="#X">
+              <DMItem onSelect={preventEvent} onClick={handleCut} kbd="#X">
                 Cut
               </DMItem>
-              <DMItem onSelect={handleCopy} kbd="#C">
+              <DMItem onSelect={preventEvent} onClick={handleCopy} kbd="#C">
                 Copy
               </DMItem>
-              <DMItem onSelect={handlePaste} kbd="#V">
+              <DMItem onSelect={preventEvent} onClick={handlePaste} kbd="#V">
                 Paste
               </DMItem>
               <DMDivider dir="ltr" />
-              <DMItem onSelect={handleCopySvg} kbd="#⇧C">
+              <DMItem onSelect={preventEvent} onClick={handleCopySvg} kbd="#⇧C">
                 Copy as SVG
               </DMItem>
-              <DMItem onSelect={handleCopyJson}>Copy as JSON</DMItem>
+              <DMItem onSelect={preventEvent} onClick={handleCopyJson}>
+                Copy as JSON
+              </DMItem>
               <DMDivider dir="ltr" />
-              <DMItem onSelect={handleSelectAll} kbd="#A">
+              <DMItem onSelect={preventEvent} onClick={handleSelectAll} kbd="#A">
                 Select All
               </DMItem>
-              <DMItem onSelect={handleselectNone}>Select None</DMItem>
+              <DMItem onSelect={preventEvent} onClick={handleselectNone}>
+                Select None
+              </DMItem>
             </DMSubMenu>
           </>
         )}
