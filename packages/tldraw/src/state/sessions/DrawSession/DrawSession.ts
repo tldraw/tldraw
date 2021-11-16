@@ -170,6 +170,8 @@ export class DrawSession extends BaseSession {
     const { shapeId } = this
     const pageId = this.app.currentPageId
 
+    const shape = this.app.getShape<DrawShape>(shapeId)
+
     return {
       id: 'create_draw',
       before: {
@@ -194,7 +196,9 @@ export class DrawSession extends BaseSession {
             [pageId]: {
               shapes: {
                 [shapeId]: {
-                  ...this.app.getShape<DrawShape>(shapeId),
+                  ...shape,
+                  point: Vec.round(shape.point),
+                  points: shape.points.map((pt) => Vec.round(pt)),
                   isComplete: true,
                 },
               },
