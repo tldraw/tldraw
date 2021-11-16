@@ -4,7 +4,7 @@ import { GA_TRACKING_ID } from '../utils/gtag'
 
 const APP_NAME = 'Tldraw'
 const APP_DESCRIPTION = 'A tiny little drawing app.'
-const APP_URL = 'https://Tldraw.com'
+const APP_URL = 'https://tldraw.com'
 
 class MyDocument extends NextDocument {
   static async getInitialProps(ctx: DocumentContext): Promise<{

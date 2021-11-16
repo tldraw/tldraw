@@ -41,7 +41,9 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
   Component = TDShapeUtil.Component<T, E, TDMeta>(
     ({ shape, isBinding, isGhost, meta, events }, ref) => {
       const { id, size, style } = shape
+
       const styles = getShapeStyle(style, meta.isDarkMode)
+
       const { strokeWidth } = styles
 
       if (style.dash === DashStyle.Draw) {

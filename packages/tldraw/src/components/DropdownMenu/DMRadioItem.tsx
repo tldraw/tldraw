@@ -16,11 +16,32 @@ export const DMRadioItem = styled(RadioItem, {
   pointerEvents: 'all',
   cursor: 'pointer',
 
-  '&:focus': {
-    backgroundColor: '$hover',
+  variants: {
+    isActive: {
+      true: {
+        backgroundColor: '$selected',
+        color: '$panel',
+      },
+      false: {},
+    },
+    bp: {
+      mobile: {},
+      small: {},
+    },
   },
 
-  '&:hover:not(:disabled)': {
-    backgroundColor: '$hover',
-  },
+  compoundVariants: [
+    {
+      isActive: false,
+      bp: 'small',
+      css: {
+        '&:focus': {
+          backgroundColor: '$hover',
+        },
+        '&:hover:not(:disabled)': {
+          backgroundColor: '$hover',
+        },
+      },
+    },
+  ],
 })

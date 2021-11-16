@@ -246,8 +246,8 @@ export function Tldraw({
 
   // Toggle the app's readOnly mode when the `readOnly` prop changes
   React.useEffect(() => {
-    if (darkMode !== app.settings.isDarkMode) {
-      app.toggleDarkMode()
+    if (darkMode && !app.settings.isDarkMode) {
+      // app.toggleDarkMode()
     }
   }, [app, darkMode])
 
@@ -373,7 +373,9 @@ const InnerTldraw = React.memo(function InnerTldraw({
     (isInSession && state.appState.status !== TDStatus.Brushing) || !isSelecting
 
   // Custom rendering meta, with dark mode for shapes
-  const meta = React.useMemo(() => ({ isDarkMode: settings.isDarkMode }), [settings.isDarkMode])
+  const meta = React.useMemo(() => {
+    return { isDarkMode: settings.isDarkMode }
+  }, [settings.isDarkMode])
 
   // Custom theme, based on darkmode
   const theme = React.useMemo(() => {

@@ -4,7 +4,7 @@ import { styled } from '~styles/stitches.config'
 import { MenuContent } from '~components/MenuContent'
 
 export interface DMContentProps {
-  variant?: 'grid' | 'menu' | 'horizontal'
+  variant?: 'menu' | 'horizontal'
   align?: 'start' | 'center' | 'end'
   children: React.ReactNode
 }
@@ -25,11 +25,6 @@ export const StyledContent = styled(MenuContent, {
   minWidth: 0,
   variants: {
     variant: {
-      grid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, auto)',
-        gap: 0,
-      },
       horizontal: {
         flexDirection: 'row',
       },

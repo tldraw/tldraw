@@ -52,7 +52,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu({ id }: Multi
       'Content-Type': 'application/json',
     })
 
-    const res = await fetch('http://Tldraw.com/api/create-multiplayer-room', {
+    const res = await fetch('http://tldraw.com/api/create-multiplayer-room', {
       headers: myHeaders,
       method: 'POST',
       mode: 'cors',
@@ -60,7 +60,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu({ id }: Multi
       body: JSON.stringify(app.document),
     }).then((res) => res.json())
 
-    window.location.href = `http://Tldraw.com/r/${res.roomId}`
+    window.location.href = `http://tldraw.com/r/${res.roomId}`
   }, [])
 
   return (
@@ -70,7 +70,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu({ id }: Multi
       </DMTriggerIcon>
       <DMContent variant="menu" align="start">
         <DMItem onSelect={handleCreateMultiplayerRoom}>
-          <a href="https://Tldraw.com/r">Create a Multiplayer Room</a>
+          <a href="https://tldraw.com/r">Create a Multiplayer Room</a>
         </DMItem>
         <DMItem onSelect={handleCopyToMultiplayerRoom}>Copy to Multiplayer Room</DMItem>
         {room && (

@@ -6,10 +6,10 @@ const canvasLight = '#fafafa'
 const canvasDark = '#343d45'
 
 const colors = {
-  [ColorStyle.Black]: '#212528',
   [ColorStyle.White]: '#f0f1f3',
   [ColorStyle.LightGray]: '#c6cbd1',
   [ColorStyle.Gray]: '#788492',
+  [ColorStyle.Black]: '#1d1d1d',
   [ColorStyle.Green]: '#36b24d',
   [ColorStyle.Cyan]: '#0e98ad',
   [ColorStyle.Blue]: '#1c7ed6',
@@ -41,13 +41,16 @@ export const stickyFills: Record<Theme, Record<ColorStyle, string>> = {
 }
 
 export const strokes: Record<Theme, Record<ColorStyle, string>> = {
-  light: colors,
+  light: {
+    ...colors,
+    [ColorStyle.White]: '#1d1d1d',
+  },
   dark: {
     ...(Object.fromEntries(
       Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasDark, 0.1)])
     ) as Record<ColorStyle, string>),
-    [ColorStyle.White]: '#ffffff',
-    [ColorStyle.Black]: '#000',
+    [ColorStyle.White]: '#cecece',
+    [ColorStyle.Black]: '#cecece',
   },
 }
 
@@ -56,15 +59,15 @@ export const fills: Record<Theme, Record<ColorStyle, string>> = {
     ...(Object.fromEntries(
       Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasLight, 0.82)])
     ) as Record<ColorStyle, string>),
-    [ColorStyle.White]: '#ffffff',
-    [ColorStyle.Black]: '#ffffff',
+    [ColorStyle.White]: '#fefefe',
+    [ColorStyle.Black]: '#4d4d4d',
   },
   dark: {
     ...(Object.fromEntries(
       Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasDark, 0.618)])
     ) as Record<ColorStyle, string>),
-    [ColorStyle.White]: '#ffffff',
-    [ColorStyle.Black]: '#ffffff',
+    [ColorStyle.White]: 'rgb(30,33,37)',
+    [ColorStyle.Black]: '#1e1e1f',
   },
 }
 
@@ -129,7 +132,7 @@ export function getStickyShapeStyle(style: ShapeStyles, isDarkMode = false) {
 
 export function getShapeStyle(
   style: ShapeStyles,
-  isDarkMode = false
+  isDarkMode?: boolean
 ): {
   stroke: string
   fill: string

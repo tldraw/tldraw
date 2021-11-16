@@ -11,7 +11,8 @@ export interface RowButtonProps {
   children: React.ReactNode
   disabled?: boolean
   kbd?: string
-  variant?: 'sponsor'
+  variant?: 'wide'
+  isSponsor?: boolean
   isActive?: boolean
   isWarning?: boolean
   hasIndicator?: boolean
@@ -27,6 +28,7 @@ export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
       hasIndicator = false,
       hasArrow = false,
       disabled = false,
+      isSponsor = false,
       variant,
       kbd,
       children,
@@ -40,6 +42,7 @@ export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
         bp={breakpoints}
         isWarning={isWarning}
         isActive={isActive}
+        isSponsor={isSponsor}
         disabled={disabled}
         onPointerDown={onSelect}
         variant={variant}
@@ -127,8 +130,8 @@ export const StyledRowButton = styled('button', {
       small: {},
     },
     variant: {
-      sponsor: {
-        color: '#eb30a2',
+      wide: {
+        gridColumn: '1 / span 4',
       },
     },
     size: {
@@ -136,6 +139,12 @@ export const StyledRowButton = styled('button', {
         padding: '4px ',
         width: 'auto',
       },
+    },
+    isSponsor: {
+      true: {
+        color: '#eb30a2',
+      },
+      false: {},
     },
     isWarning: {
       true: {
@@ -146,7 +155,29 @@ export const StyledRowButton = styled('button', {
       true: {
         backgroundColor: '$hover',
       },
-      false: {
+      false: {},
+    },
+  },
+  compoundVariants: [
+    {
+      isActive: false,
+      isSponsor: true,
+      bp: 'small',
+      css: {
+        [`&:hover:not(:disabled) ${StyledRowButtonInner}`]: {
+          backgroundColor: '$sponsorContrast',
+          border: '1px solid $panel',
+          '& *[data-shy="true"]': {
+            opacity: 1,
+          },
+        },
+      },
+    },
+    {
+      isActive: false,
+      isSponsor: false,
+      bp: 'small',
+      css: {
         [`&:hover:not(:disabled) ${StyledRowButtonInner}`]: {
           backgroundColor: '$hover',
           border: '1px solid $panel',
@@ -156,5 +187,5 @@ export const StyledRowButton = styled('button', {
         },
       },
     },
-  },
+  ],
 })

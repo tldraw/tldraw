@@ -3,10 +3,7 @@ import { Menu } from './Menu'
 import { styled } from '~styles'
 import { PageMenu } from './PageMenu'
 import { ZoomMenu } from './ZoomMenu'
-import { DashMenu } from './DashMenu'
-import { SizeMenu } from './SizeMenu'
-import { FillCheckbox } from './FillCheckbox'
-import { ColorMenu } from './ColorMenu'
+import { StyleMenu } from './StyleMenu'
 import { Panel } from '~components/Panel'
 
 interface TopPanelProps {
@@ -31,21 +28,13 @@ export function TopPanel({
       {(showMenu || showPages) && (
         <Panel side="left">
           {showMenu && <Menu showSponsorLink={showSponsorLink} readOnly={readOnly} />}
-          {/* <MultiplayerMenu /> */}
           {showPages && <PageMenu />}
         </Panel>
       )}
       <StyledSpacer />
       {(showStyles || showZoom) && (
         <Panel side="right">
-          {showStyles && !readOnly && (
-            <>
-              <ColorMenu />
-              <SizeMenu />
-              <DashMenu />
-              <FillCheckbox />
-            </>
-          )}
+          {showStyles && !readOnly && <StyleMenu />}
           {showZoom && <ZoomMenu />}
         </Panel>
       )}

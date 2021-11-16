@@ -124,7 +124,7 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
             </DMSubMenu>
           </>
         )}
-        <a href="https://Tldraw.com/r">
+        <a href="https://tldraw.com/r">
           <DMItem>Create a Multiplayer Room</DMItem>
         </a>
         <DMDivider dir="ltr" />
@@ -148,7 +148,7 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
         </a>
         {showSponsorLink && (
           <a href="https://github.com/sponsors/steveruizok" target="_blank" rel="nofollow">
-            <DMItem variant="sponsor">
+            <DMItem isSponsor>
               Become a Sponsor{' '}
               <SmallIcon>
                 <HeartIcon />

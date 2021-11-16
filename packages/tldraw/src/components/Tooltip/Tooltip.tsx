@@ -41,7 +41,6 @@ const StyledContent = styled(RadixTooltip.Content, {
   backgroundColor: '$tooltip',
   color: '$tooltipContrast',
   boxShadow: '$3',
-  border: '1px solid $hover',
   display: 'flex',
   alignItems: 'center',
   fontFamily: '$ui',

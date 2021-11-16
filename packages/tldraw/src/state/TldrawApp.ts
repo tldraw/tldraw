@@ -1638,12 +1638,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Zoom to fit the page's shapes.
    */
   zoomToFit = (): this => {
-    const shapes = this.getShapes()
+    const shapes = this.shapes
 
     if (shapes.length === 0) return this
 
     const { rendererBounds } = this
-    const commonBounds = TLDR.getSelectedBounds(this.state)
+
+    const commonBounds = Utils.getCommonBounds(shapes.map(TLDR.getBounds))
 
     let zoom = TLDR.getCameraZoom(
       Math.min(
