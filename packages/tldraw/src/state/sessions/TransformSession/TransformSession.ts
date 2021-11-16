@@ -1,11 +1,11 @@
 import { TLBounds, TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import type { TLSnapLine, TLBoundsWithCenter } from '@tldraw/core'
-import { Session, SessionType, TLDrawShape, TLDrawStatus } from '~types'
-import type { TLDrawSnapshot } from '~types'
+import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
 import { TLDR } from '~state/TLDR'
-import type { Command } from 'rko'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
+import { BaseSession } from '../BaseSession'
+import type { TldrawApp } from '../../internal'
 
 type SnapInfo =
   | {
@@ -16,60 +16,112 @@ type SnapInfo =
       bounds: TLBoundsWithCenter[]
     }
 
-export class TransformSession extends Session {
-  static type = SessionType.Transform
-  status = TLDrawStatus.Transforming
+export class TransformSession extends BaseSession {
+  type = SessionType.Transform
+  status = TDStatus.Transforming
   scaleX = 1
   scaleY = 1
-  transformType: TLBoundsEdge | TLBoundsCorner
-  origin: number[]
-  snapshot: TransformSnapshot
-  isCreate: boolean
+  initialShapes: TDShape[]
+  initialShapeIds: string[]
   initialSelectedIds: string[]
+  shapeBounds: {
+    initialShape: TDShape
+    initialShapeBounds: TLBounds
+    transformOrigin: number[]
+  }[]
+  hasUnlockedShapes: boolean
+  isAllAspectRatioLocked: boolean
+  initialCommonBounds: TLBounds
   snapInfo: SnapInfo = { state: 'empty' }
   prevPoint = [0, 0]
   speed = 1
 
   constructor(
-    data: TLDrawSnapshot,
-    viewport: TLBounds,
-    point: number[],
-    transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight,
-    isCreate = false
+    app: TldrawApp,
+    public transformType: TLBoundsEdge | TLBoundsCorner = TLBoundsCorner.BottomRight,
+    public isCreate = false
   ) {
-    super(viewport)
-    this.origin = point
-    this.transformType = transformType
-    this.snapshot = getTransformSnapshot(data, transformType)
-    this.isCreate = isCreate
-    this.initialSelectedIds = TLDR.getSelectedIds(data, data.appState.currentPageId)
-    Session.cache.selectedIds = [...this.initialSelectedIds]
+    super(app)
+    this.initialSelectedIds = [...this.app.selectedIds]
+    this.app.rotationInfo.selectedIds = [...this.initialSelectedIds]
+
+    this.initialShapes = TLDR.getSelectedBranchSnapshot(
+      this.app.state,
+      this.app.currentPageId
+    ).filter((shape) => !shape.isLocked)
+
+    this.initialShapeIds = this.initialShapes.map((shape) => shape.id)
+
+    this.hasUnlockedShapes = this.initialShapes.length > 0
+
+    this.isAllAspectRatioLocked = this.initialShapes.every(
+      (shape) => shape.isAspectRatioLocked || TLDR.getShapeUtil(shape).isAspectRatioLocked
+    )
+
+    const shapesBounds = Object.fromEntries(
+      this.initialShapes.map((shape) => [shape.id, TLDR.getBounds(shape)])
+    )
+
+    const boundsArr = Object.values(shapesBounds)
+
+    this.initialCommonBounds = Utils.getCommonBounds(boundsArr)
+
+    const initialInnerBounds = Utils.getBoundsFromPoints(boundsArr.map(Utils.getBoundsCenter))
+
+    // Return a mapping of shapes to bounds together with the relative
+    // positions of the shape's bounds within the common bounds shape.
+    this.shapeBounds = this.initialShapes.map((shape) => {
+      const initialShapeBounds = shapesBounds[shape.id]
+      const ic = Utils.getBoundsCenter(initialShapeBounds)
+
+      const ix = (ic[0] - initialInnerBounds.minX) / initialInnerBounds.width
+      const iy = (ic[1] - initialInnerBounds.minY) / initialInnerBounds.height
+
+      return {
+        initialShape: shape,
+        initialShapeBounds,
+        transformOrigin: [ix, iy],
+      }
+    })
   }
 
-  start = (data: TLDrawSnapshot) => {
-    this.createSnapInfo(data)
+  start = (): TldrawPatch | undefined => {
+    this.snapInfo = {
+      state: 'ready',
+      bounds: this.app.shapes
+        .filter((shape) => !this.initialShapeIds.includes(shape.id))
+        .map((shape) => Utils.getBoundsWithCenter(TLDR.getRotatedBounds(shape))),
+    }
+
     return void null
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update = (
-    data: TLDrawSnapshot,
-    point: number[],
-    shiftKey = false,
-    altKey = false,
-    metaKey = false
-  ) => {
+  update = (): TldrawPatch | undefined => {
     const {
       transformType,
-      snapshot: { shapeBounds, initialBounds, isAllAspectRatioLocked },
+      shapeBounds,
+      initialCommonBounds,
+      isAllAspectRatioLocked,
+      app: {
+        currentPageId,
+        pageState: { camera },
+        viewport,
+        currentPoint,
+        previousPoint,
+        originPoint,
+        shiftKey,
+        metaKey,
+        settings: { isSnapping },
+      },
     } = this
 
-    const shapes = {} as Record<string, TLDrawShape>
+    const shapes = {} as Record<string, TDShape>
 
-    const delta = Vec.sub(point, this.origin)
+    const delta = Vec.sub(currentPoint, originPoint)
 
     let newBounds = Utils.getTransformedBoundingBox(
-      initialBounds,
+      initialCommonBounds,
       transformType,
       delta,
       0,
@@ -78,9 +130,7 @@ export class TransformSession extends Session {
 
     // Should we snap?
 
-    const speed = Vec.dist(point, this.prevPoint)
-
-    this.prevPoint = point
+    const speed = Vec.dist(currentPoint, previousPoint)
 
     const speedChange = speed - this.speed
 
@@ -88,29 +138,24 @@ export class TransformSession extends Session {
 
     let snapLines: TLSnapLine[] = []
 
-    const { currentPageId } = data.appState
-
-    const { zoom } = data.document.pageStates[currentPageId].camera
-
     if (
-      ((data.settings.isSnapping && !metaKey) || (!data.settings.isSnapping && metaKey)) &&
-      this.speed * zoom < SLOW_SPEED &&
+      ((isSnapping && !metaKey) || (!isSnapping && metaKey)) &&
+      this.speed * camera.zoom < SLOW_SPEED &&
       this.snapInfo.state === 'ready'
     ) {
       const snapResult = Utils.getSnapPoints(
         Utils.getBoundsWithCenter(newBounds),
         this.snapInfo.bounds.filter(
-          (bounds) =>
-            Utils.boundsContain(this.viewport, bounds) || Utils.boundsCollide(this.viewport, bounds)
+          (bounds) => Utils.boundsContain(viewport, bounds) || Utils.boundsCollide(viewport, bounds)
         ),
-        SNAP_DISTANCE / zoom
+        SNAP_DISTANCE / camera.zoom
       )
 
       if (snapResult) {
         snapLines = snapResult.snapLines
 
         newBounds = Utils.getTransformedBoundingBox(
-          initialBounds,
+          initialCommonBounds,
           transformType,
           Vec.sub(delta, snapResult.offset),
           0,
@@ -124,26 +169,22 @@ export class TransformSession extends Session {
     this.scaleX = newBounds.scaleX
     this.scaleY = newBounds.scaleY
 
-    shapeBounds.forEach(({ id, initialShape, initialShapeBounds, transformOrigin }) => {
+    shapeBounds.forEach(({ initialShape, initialShapeBounds, transformOrigin }) => {
       const newShapeBounds = Utils.getRelativeTransformedBoundingBox(
         newBounds,
-        initialBounds,
+        initialCommonBounds,
         initialShapeBounds,
         this.scaleX < 0,
         this.scaleY < 0
       )
 
-      shapes[id] = TLDR.transform(
-        TLDR.getShape(data, id, data.appState.currentPageId),
-        newShapeBounds,
-        {
-          type: this.transformType,
-          initialShape,
-          scaleX: this.scaleX,
-          scaleY: this.scaleY,
-          transformOrigin,
-        }
-      )
+      shapes[initialShape.id] = TLDR.transform(this.app.getShape(initialShape.id), newShapeBounds, {
+        type: this.transformType,
+        initialShape,
+        scaleX: this.scaleX,
+        scaleY: this.scaleY,
+        transformOrigin,
+      })
     })
 
     return {
@@ -152,7 +193,7 @@ export class TransformSession extends Session {
       },
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             shapes,
           },
         },
@@ -160,15 +201,18 @@ export class TransformSession extends Session {
     }
   }
 
-  cancel = (data: TLDrawSnapshot) => {
-    const { shapeBounds } = this.snapshot
+  cancel = (): TldrawPatch | undefined => {
+    const {
+      shapeBounds,
+      app: { currentPageId },
+    } = this
 
-    const shapes = {} as Record<string, TLDrawShape | undefined>
+    const shapes = {} as Record<string, TDShape | undefined>
 
     if (this.isCreate) {
-      shapeBounds.forEach((shape) => (shapes[shape.id] = undefined))
+      shapeBounds.forEach((shape) => (shapes[shape.initialShape.id] = undefined))
     } else {
-      shapeBounds.forEach((shape) => (shapes[shape.id] = shape.initialShape))
+      shapeBounds.forEach((shape) => (shapes[shape.initialShape.id] = shape.initialShape))
     }
 
     return {
@@ -177,43 +221,48 @@ export class TransformSession extends Session {
       },
       document: {
         pages: {
-          [data.appState.currentPageId]: {
+          [currentPageId]: {
             shapes,
           },
         },
         pageStates: {
-          [data.appState.currentPageId]: {
-            selectedIds: this.isCreate ? [] : shapeBounds.map((shape) => shape.id),
+          [currentPageId]: {
+            selectedIds: this.isCreate ? [] : shapeBounds.map((shape) => shape.initialShape.id),
           },
         },
       },
     }
   }
 
-  complete = (data: TLDrawSnapshot): TLDrawSnapshot | Command<TLDrawSnapshot> | undefined => {
-    const { hasUnlockedShapes, shapeBounds } = this.snapshot
-    undefined
+  complete = (): TldrawPatch | TldrawCommand | undefined => {
+    const {
+      isCreate,
+      shapeBounds,
+      hasUnlockedShapes,
+      app: { currentPageId },
+    } = this
+
     if (!hasUnlockedShapes) return
 
-    const beforeShapes: Record<string, TLDrawShape | undefined> = {}
-    const afterShapes: Record<string, TLDrawShape> = {}
+    const beforeShapes: Record<string, TDShape | undefined> = {}
+    const afterShapes: Record<string, TDShape> = {}
 
     let beforeSelectedIds: string[]
     let afterSelectedIds: string[]
 
-    if (this.isCreate) {
+    if (isCreate) {
       beforeSelectedIds = []
       afterSelectedIds = []
-      shapeBounds.forEach((shape) => {
-        beforeShapes[shape.id] = undefined
-        afterShapes[shape.id] = TLDR.getShape(data, shape.id, data.appState.currentPageId)
+      shapeBounds.forEach(({ initialShape }) => {
+        beforeShapes[initialShape.id] = undefined
+        afterShapes[initialShape.id] = this.app.getShape(initialShape.id)
       })
     } else {
       beforeSelectedIds = this.initialSelectedIds
       afterSelectedIds = this.initialSelectedIds
-      shapeBounds.forEach((shape) => {
-        beforeShapes[shape.id] = shape.initialShape
-        afterShapes[shape.id] = TLDR.getShape(data, shape.id, data.appState.currentPageId)
+      shapeBounds.forEach(({ initialShape }) => {
+        beforeShapes[initialShape.id] = initialShape
+        afterShapes[initialShape.id] = this.app.getShape(initialShape.id)
       })
     }
 
@@ -225,12 +274,12 @@ export class TransformSession extends Session {
         },
         document: {
           pages: {
-            [data.appState.currentPageId]: {
+            [currentPageId]: {
               shapes: beforeShapes,
             },
           },
           pageStates: {
-            [data.appState.currentPageId]: {
+            [currentPageId]: {
               selectedIds: beforeSelectedIds,
               hoveredId: undefined,
               editingId: undefined,
@@ -244,12 +293,12 @@ export class TransformSession extends Session {
         },
         document: {
           pages: {
-            [data.appState.currentPageId]: {
+            [currentPageId]: {
               shapes: afterShapes,
             },
           },
           pageStates: {
-            [data.appState.currentPageId]: {
+            [currentPageId]: {
               selectedIds: afterSelectedIds,
               hoveredId: undefined,
               editingId: undefined,
@@ -259,69 +308,4 @@ export class TransformSession extends Session {
       },
     }
   }
-
-  private createSnapInfo = async (data: TLDrawSnapshot) => {
-    const { initialShapeIds } = this.snapshot
-    const { currentPageId } = data.appState
-    const page = data.document.pages[currentPageId]
-
-    this.snapInfo = {
-      state: 'ready',
-      bounds: Object.values(page.shapes)
-        .filter((shape) => !initialShapeIds.includes(shape.id))
-        .map((shape) => Utils.getBoundsWithCenter(TLDR.getRotatedBounds(shape))),
-    }
-  }
 }
-
-export function getTransformSnapshot(
-  data: TLDrawSnapshot,
-  transformType: TLBoundsEdge | TLBoundsCorner
-) {
-  const initialShapes = TLDR.getSelectedBranchSnapshot(data, data.appState.currentPageId)
-
-  const initialShapeIds = initialShapes.map((shape) => shape.id)
-
-  const hasUnlockedShapes = initialShapes.length > 0
-
-  const isAllAspectRatioLocked = initialShapes.every(
-    (shape) => shape.isAspectRatioLocked || TLDR.getShapeUtils(shape).isAspectRatioLocked
-  )
-
-  const shapesBounds = Object.fromEntries(
-    initialShapes.map((shape) => [shape.id, TLDR.getBounds(shape)])
-  )
-
-  const boundsArr = Object.values(shapesBounds)
-
-  const commonBounds = Utils.getCommonBounds(boundsArr)
-
-  const initialInnerBounds = Utils.getBoundsFromPoints(boundsArr.map(Utils.getBoundsCenter))
-
-  // Return a mapping of shapes to bounds together with the relative
-  // positions of the shape's bounds within the common bounds shape.
-  return {
-    type: transformType,
-    hasUnlockedShapes,
-    isAllAspectRatioLocked,
-    initialShapeIds,
-    initialShapes,
-    initialBounds: commonBounds,
-    shapeBounds: initialShapes.map((shape) => {
-      const initialShapeBounds = shapesBounds[shape.id]
-      const ic = Utils.getBoundsCenter(initialShapeBounds)
-
-      const ix = (ic[0] - initialInnerBounds.minX) / initialInnerBounds.width
-      const iy = (ic[1] - initialInnerBounds.minY) / initialInnerBounds.height
-
-      return {
-        id: shape.id,
-        initialShape: shape,
-        initialShapeBounds,
-        transformOrigin: [ix, iy],
-      }
-    }),
-  }
-}
-
-export type TransformSnapshot = ReturnType<typeof getTransformSnapshot>

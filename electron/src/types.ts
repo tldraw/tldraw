@@ -13,7 +13,7 @@ export type Message =
   | { type: 'selectAll' }
   | { type: 'selectNone' }
 
-export type TLApi = {
+export type TldrawBridgeApi = {
   send: (channel: string, data: Message) => void
   on: (channel: string, cb: (message: Message) => void) => void
 }

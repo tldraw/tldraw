@@ -1,1 +1,1 @@
-export * from './TransformSingleSession.session'
+export * from './TransformSingleSession'

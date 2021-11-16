@@ -1,16 +1,16 @@
 import * as React from 'react'
-import { useTLDrawContext } from '~hooks'
-import type { TLDrawSnapshot } from '~types'
+import { useTldrawApp } from '~hooks'
+import type { TDSnapshot } from '~types'
 import { styled } from '~styles'
 import { breakpoints } from '~components/breakpoints'
 
-const statusSelector = (s: TLDrawSnapshot) => s.appState.status
-const activeToolSelector = (s: TLDrawSnapshot) => s.appState.activeTool
+const statusSelector = (s: TDSnapshot) => s.appState.status
+const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 
 export function StatusBar(): JSX.Element | null {
-  const { useSelector } = useTLDrawContext()
-  const status = useSelector(statusSelector)
-  const activeTool = useSelector(activeToolSelector)
+  const app = useTldrawApp()
+  const status = app.useStore(statusSelector)
+  const activeTool = app.useStore(activeToolSelector)
 
   return (
     <StyledStatusBar bp={breakpoints}>
@@ -24,7 +24,7 @@ export function StatusBar(): JSX.Element | null {
 const StyledStatusBar = styled('div', {
   height: 40,
   userSelect: 'none',
-  borderTop: '1px solid $border',
+  borderTop: '1px solid $panelContrast',
   gridArea: 'status',
   display: 'flex',
   color: '$text',

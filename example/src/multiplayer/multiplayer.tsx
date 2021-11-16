@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { TLDraw, TLDrawState, TLDrawDocument, TLDrawUser } from '@tldraw/tldraw'
+import { Tldraw, TldrawApp, TDDocument, TDUser } from '@tldraw/tldraw'
 import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useErrorListener, useObject } from '@liveblocks/react'
 import { Utils } from '@tldraw/core'
 
-interface TLDrawUserPresence extends Presence {
-  user: TLDrawUser
+declare const window: Window & { app: TldrawApp }
+
+interface TDUserPresence extends Presence {
+  user: TDUser
 }
 
 const client = createClient({
@@ -20,37 +22,34 @@ export function Multiplayer() {
   return (
     <LiveblocksProvider client={client}>
       <RoomProvider id={roomId}>
-        <TLDrawWrapper />
+        <TldrawWrapper />
       </RoomProvider>
     </LiveblocksProvider>
   )
 }
 
-function TLDrawWrapper() {
+function TldrawWrapper() {
   const [docId] = React.useState(() => Utils.uniqueId())
 
   const [error, setError] = React.useState<Error>()
 
-  const [state, setstate] = React.useState<TLDrawState>()
+  const [app, setApp] = React.useState<TldrawApp>()
 
   useErrorListener((err) => setError(err))
 
-  const doc = useObject<{ uuid: string; document: TLDrawDocument }>('doc', {
+  const doc = useObject<{ uuid: string; document: TDDocument }>('doc', {
     uuid: docId,
     document: {
-      ...TLDrawState.defaultDocument,
+      ...TldrawApp.defaultDocument,
       id: roomId,
     },
   })
 
   // Put the state into the window, for debugging.
   const handleMount = React.useCallback(
-    (state: TLDrawState) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      window.state = state
-      state.loadRoom(roomId)
-      setstate(state)
+    (app: TldrawApp) => {
+      window.app = app
+      setApp(app)
     },
     [roomId]
   )
@@ -60,17 +59,11 @@ function TLDrawWrapper() {
 
     if (!room) return
     if (!doc) return
-    if (!state) return
-    if (!state.state.room) return
-
-    // Update the user's presence with the user from state
-    const { users, userId } = state.state.room
-
-    room.updatePresence({ id: userId, user: users[userId] })
+    if (!app) return
 
     // Subscribe to presence changes; when others change, update the state
-    room.subscribe<TLDrawUserPresence>('others', (others) => {
-      state.updateUsers(
+    room.subscribe<TDUserPresence>('others', (others) => {
+      app.updateUsers(
         others
           .toArray()
           .filter((other) => other.presence)
@@ -81,23 +74,23 @@ function TLDrawWrapper() {
 
     room.subscribe('event', (event) => {
       if (event.event?.name === 'exit') {
-        state.removeUser(event.event.userId)
+        app.removeUser(event.event.userId)
       }
     })
 
     function handleDocumentUpdates() {
       if (!doc) return
-      if (!state) return
-      if (!state.state.room) return
+      if (!app) return
+      if (!app.room) return
 
       const docObject = doc.toObject()
 
       // Only merge the change if it caused by someone else
       if (docObject.uuid !== docId) {
-        state.mergeDocument(docObject.document)
+        app.mergeDocument(docObject.document)
       } else {
-        state.updateUsers(
-          Object.values(state.state.room.users).map((user) => {
+        app.updateUsers(
+          Object.values(app.room.users).map((user) => {
             return {
               ...user,
               selectedIds: user.selectedIds,
@@ -108,8 +101,8 @@ function TLDrawWrapper() {
     }
 
     function handleExit() {
-      if (!(state && state.state.room)) return
-      room?.broadcastEvent({ name: 'exit', userId: state.state.room.userId })
+      if (!(app && app.room)) return
+      room?.broadcastEvent({ name: 'exit', userId: app.room.userId })
     }
 
     window.addEventListener('beforeunload', handleExit)
@@ -121,26 +114,33 @@ function TLDrawWrapper() {
     const newDocument = doc.toObject().document
 
     if (newDocument) {
-      state.loadDocument(newDocument)
+      app.loadDocument(newDocument)
+      app.loadRoom(roomId)
+
+      // Update the user's presence with the user from state
+      if (app.state.room) {
+        const { users, userId } = app.state.room
+        room.updatePresence({ id: userId, user: users[userId] })
+      }
     }
 
     return () => {
       window.removeEventListener('beforeunload', handleExit)
       doc.unsubscribe(handleDocumentUpdates)
     }
-  }, [doc, docId, state])
+  }, [doc, docId, app])
 
   const handlePersist = React.useCallback(
-    (state: TLDrawState) => {
-      doc?.update({ uuid: docId, document: state.document })
+    (app: TldrawApp) => {
+      doc?.update({ uuid: docId, document: app.document })
     },
     [docId, doc]
   )
 
   const handleUserChange = React.useCallback(
-    (state: TLDrawState, user: TLDrawUser) => {
+    (app: TldrawApp, user: TDUser) => {
       const room = client.getRoom(roomId)
-      room?.updatePresence({ id: state.state.room?.userId, user })
+      room?.updatePresence({ id: app.room?.userId, user })
     },
     [client]
   )
@@ -151,7 +151,7 @@ function TLDrawWrapper() {
 
   return (
     <div className="tldraw">
-      <TLDraw
+      <Tldraw
         onMount={handleMount}
         onPersist={handlePersist}
         onUserChange={handleUserChange}

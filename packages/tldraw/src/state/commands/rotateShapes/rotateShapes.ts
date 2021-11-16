@@ -1,30 +1,31 @@
 import { Utils } from '@tldraw/core'
-import type { TLDrawCommand, TLDrawSnapshot, TLDrawShape } from '~types'
+import type { TldrawCommand, TDShape } from '~types'
 import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '../../internal'
 
 const PI2 = Math.PI * 2
 
 export function rotateShapes(
-  data: TLDrawSnapshot,
+  app: TldrawApp,
   ids: string[],
   delta = -PI2 / 4
-): TLDrawCommand | void {
-  const { currentPageId } = data.appState
+): TldrawCommand | void {
+  const { currentPageId } = app
 
   // The shapes for the before patch
-  const before: Record<string, Partial<TLDrawShape>> = {}
+  const before: Record<string, Partial<TDShape>> = {}
 
   // The shapes for the after patch
-  const after: Record<string, Partial<TLDrawShape>> = {}
+  const after: Record<string, Partial<TDShape>> = {}
 
   // Find the shapes that we want to rotate.
   // We don't rotate groups: we rotate their children instead.
-  const shapesToRotate = ids.flatMap((id) => {
-    const shape = TLDR.getShape(data, id, currentPageId)
-    return shape.children
-      ? shape.children.map((childId) => TLDR.getShape(data, childId, currentPageId))
-      : shape
-  })
+  const shapesToRotate = ids
+    .flatMap((id) => {
+      const shape = app.getShape(id)
+      return shape.children ? shape.children.map((childId) => app.getShape(childId)) : shape
+    })
+    .filter((shape) => !shape.isLocked)
 
   // Find the common center to all shapes
   // This is the point that we'll rotate around

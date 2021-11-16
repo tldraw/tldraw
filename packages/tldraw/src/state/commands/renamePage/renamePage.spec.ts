@@ -1,25 +1,24 @@
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
+import { mockDocument, TldrawTestApp } from '~test'
 
 describe('Rename page command', () => {
-  const state = new TLDrawState()
+  const app = new TldrawTestApp()
 
   it('does, undoes and redoes command', () => {
-    state.loadDocument(mockDocument)
+    app.loadDocument(mockDocument)
 
-    const initialId = state.page.id
-    const initialName = state.page.name
+    const initialId = app.page.id
+    const initialName = app.page.name
 
-    state.renamePage(initialId, 'My Special Page')
+    app.renamePage(initialId, 'My Special Page')
 
-    expect(state.page.name).toBe('My Special Page')
+    expect(app.page.name).toBe('My Special Page')
 
-    state.undo()
+    app.undo()
 
-    expect(state.page.name).toBe(initialName)
+    expect(app.page.name).toBe(initialName)
 
-    state.redo()
+    app.redo()
 
-    expect(state.page.name).toBe('My Special Page')
+    expect(app.page.name).toBe('My Special Page')
   })
 })

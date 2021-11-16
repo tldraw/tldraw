@@ -1,26 +1,154 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
+import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
+import type { Command, Patch } from 'rko'
+import type { FileSystemHandle } from '~state/data/browser-fs-access'
 import type {
   TLBinding,
   TLBoundsCorner,
   TLBoundsEdge,
-  TLShapeProps,
   TLShape,
   TLHandle,
-  TLBounds,
   TLSnapLine,
+  TLPinchEventHandler,
+  TLKeyboardEventHandler,
+  TLPointerEventHandler,
+  TLWheelEventHandler,
+  TLCanvasEventHandler,
+  TLBoundsEventHandler,
+  TLBoundsHandleEventHandler,
+  TLShapeBlurHandler,
+  TLShapeCloneHandler,
 } from '@tldraw/core'
-import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
-import type { StoreApi } from 'zustand'
-import type { Command, Patch } from 'rko'
-import type { FileSystemHandle } from '~state/data/browser-fs-access'
 
-export interface TLDrawHandle extends TLHandle {
-  canBind?: boolean
-  bindingId?: string
+/* -------------------------------------------------- */
+/*                         App                        */
+/* -------------------------------------------------- */
+
+// A base class for all classes that handle events from the Renderer,
+// including TDApp and all Tools.
+export class TDEventHandler {
+  onPinchStart?: TLPinchEventHandler
+  onPinchEnd?: TLPinchEventHandler
+  onPinch?: TLPinchEventHandler
+  onKeyDown?: TLKeyboardEventHandler
+  onKeyUp?: TLKeyboardEventHandler
+  onPointerMove?: TLPointerEventHandler
+  onPointerUp?: TLPointerEventHandler
+  onPan?: TLWheelEventHandler
+  onZoom?: TLWheelEventHandler
+  onPointerDown?: TLPointerEventHandler
+  onPointCanvas?: TLCanvasEventHandler
+  onDoubleClickCanvas?: TLCanvasEventHandler
+  onRightPointCanvas?: TLCanvasEventHandler
+  onDragCanvas?: TLCanvasEventHandler
+  onReleaseCanvas?: TLCanvasEventHandler
+  onPointShape?: TLPointerEventHandler
+  onDoubleClickShape?: TLPointerEventHandler
+  onRightPointShape?: TLPointerEventHandler
+  onDragShape?: TLPointerEventHandler
+  onHoverShape?: TLPointerEventHandler
+  onUnhoverShape?: TLPointerEventHandler
+  onReleaseShape?: TLPointerEventHandler
+  onPointBounds?: TLBoundsEventHandler
+  onDoubleClickBounds?: TLBoundsEventHandler
+  onRightPointBounds?: TLBoundsEventHandler
+  onDragBounds?: TLBoundsEventHandler
+  onHoverBounds?: TLBoundsEventHandler
+  onUnhoverBounds?: TLBoundsEventHandler
+  onReleaseBounds?: TLBoundsEventHandler
+  onPointBoundsHandle?: TLBoundsHandleEventHandler
+  onDoubleClickBoundsHandle?: TLBoundsHandleEventHandler
+  onRightPointBoundsHandle?: TLBoundsHandleEventHandler
+  onDragBoundsHandle?: TLBoundsHandleEventHandler
+  onHoverBoundsHandle?: TLBoundsHandleEventHandler
+  onUnhoverBoundsHandle?: TLBoundsHandleEventHandler
+  onReleaseBoundsHandle?: TLBoundsHandleEventHandler
+  onPointHandle?: TLPointerEventHandler
+  onDoubleClickHandle?: TLPointerEventHandler
+  onRightPointHandle?: TLPointerEventHandler
+  onDragHandle?: TLPointerEventHandler
+  onHoverHandle?: TLPointerEventHandler
+  onUnhoverHandle?: TLPointerEventHandler
+  onReleaseHandle?: TLPointerEventHandler
+  onShapeBlur?: TLShapeBlurHandler
+  onShapeClone?: TLShapeCloneHandler
 }
 
-export interface TLDrawTransformInfo<T extends TLShape> {
+// The shape of the TldrawApp's React (zustand) store
+export interface TDSnapshot {
+  settings: {
+    isDarkMode: boolean
+    isDebugMode: boolean
+    isPenMode: boolean
+    isReadonlyMode: boolean
+    isZoomSnap: boolean
+    nudgeDistanceSmall: number
+    nudgeDistanceLarge: number
+    isFocusMode: boolean
+    isSnapping: boolean
+    showRotateHandles: boolean
+    showBindingHandles: boolean
+    showCloneHandles: boolean
+  }
+  appState: {
+    selectedStyle: ShapeStyles
+    currentStyle: ShapeStyles
+    currentPageId: string
+    pages: Pick<TLPage<TDShape, TDBinding>, 'id' | 'name' | 'childIndex'>[]
+    hoveredId?: string
+    activeTool: TDToolType
+    isToolLocked: boolean
+    isStyleOpen: boolean
+    isEmptyCanvas: boolean
+    status: string
+    snapLines: TLSnapLine[]
+  }
+  document: TDDocument
+  room?: {
+    id: string
+    userId: string
+    users: Record<string, TDUser>
+  }
+}
+
+export type TldrawPatch = Patch<TDSnapshot>
+
+export type TldrawCommand = Command<TDSnapshot>
+
+// The shape of the files stored in JSON
+export interface TDFile {
+  name: string
+  fileHandle: FileSystemHandle | null
+  document: TDDocument
+  assets: Record<string, unknown>
+}
+
+// The shape of the Tldraw document
+export interface TDDocument {
+  id: string
+  name: string
+  version: number
+  pages: Record<string, TDPage>
+  pageStates: Record<string, TLPageState>
+}
+
+// The shape of a single page in the Tldraw document
+export type TDPage = TLPage<TDShape, TDBinding>
+
+// A partial of a TDPage, used for commands / patches
+export type PagePartial = {
+  shapes: Patch<TDPage['shapes']>
+  bindings: Patch<TDPage['bindings']>
+}
+
+// The meta information passed to TDShapeUtil components
+export interface TDMeta {
+  isDarkMode: boolean
+}
+
+// The type of info given to shapes when transforming
+export interface TransformInfo<T extends TLShape> {
   type: TLBoundsEdge | TLBoundsCorner
   initialShape: T
   scaleX: number
@@ -28,93 +156,21 @@ export interface TLDrawTransformInfo<T extends TLShape> {
   transformOrigin: number[]
 }
 
-// old
-export type TLStore = StoreApi<TLDrawSnapshot>
-
-export type TLChange = TLDrawSnapshot
-
-export type TLDrawPage = TLPage<TLDrawShape, TLDrawBinding>
-
-export interface TLDrawDocument {
-  id: string
-  name: string
-  pages: Record<string, TLDrawPage>
-  pageStates: Record<string, TLPageState>
-  version: number
-}
-
-export interface TLDrawSettings {
-  isDarkMode: boolean
-  isDebugMode: boolean
-  isPenMode: boolean
-  isReadonlyMode: boolean
-  isZoomSnap: boolean
-  nudgeDistanceSmall: number
-  nudgeDistanceLarge: number
-  isFocusMode: boolean
-  isSnapping: boolean
-  showRotateHandles: boolean
-  showBindingHandles: boolean
-  showCloneHandles: boolean
-}
-
-export enum TLUserStatus {
+// The status of a TDUser
+export enum TDUserStatus {
   Idle = 'idle',
   Connecting = 'connecting',
   Connected = 'connected',
   Disconnected = 'disconnected',
 }
 
-export interface TLDrawMeta {
-  isDarkMode: boolean
+// A TDUser, for multiplayer rooms
+export interface TDUser extends TLUser<TDShape> {
+  activeShapes: TDShape[]
+  status: TDUserStatus
 }
 
-export interface TLDrawUser extends TLUser<TLDrawShape> {
-  activeShapes: TLDrawShape[]
-}
-
-export type TLDrawShapeProps<T extends TLDrawShape, E extends Element> = TLShapeProps<
-  T,
-  E,
-  TLDrawMeta
->
-
-export interface TLDrawSnapshot {
-  settings: TLDrawSettings
-  appState: {
-    selectedStyle: ShapeStyles
-    currentStyle: ShapeStyles
-    currentPageId: string
-    pages: Pick<TLPage<TLDrawShape, TLDrawBinding>, 'id' | 'name' | 'childIndex'>[]
-    hoveredId?: string
-    activeTool: TLDrawShapeType | 'select'
-    isToolLocked: boolean
-    isStyleOpen: boolean
-    isEmptyCanvas: boolean
-    status: string
-    snapLines: TLSnapLine[]
-  }
-  document: TLDrawDocument
-  room?: {
-    id: string
-    userId: string
-    users: Record<string, TLDrawUser>
-  }
-}
-
-export type TLDrawPatch = Patch<TLDrawSnapshot>
-
-export type TLDrawCommand = Command<TLDrawSnapshot>
-
-export type PagePartial = {
-  shapes: Patch<TLDrawPage['shapes']>
-  bindings: Patch<TLDrawPage['bindings']>
-}
-
-export interface SelectHistory {
-  pointer: number
-  stack: string[][]
-}
+export type Theme = 'dark' | 'light'
 
 export enum SessionType {
   Transform = 'transform',
@@ -123,47 +179,13 @@ export enum SessionType {
   Brush = 'brush',
   Arrow = 'arrow',
   Draw = 'draw',
+  Erase = 'erase',
   Rotate = 'rotate',
   Handle = 'handle',
   Grid = 'grid',
 }
 
-export abstract class Session {
-  static type: SessionType
-  abstract status: TLDrawStatus
-  abstract start: (TLDrawSnapshot: Readonly<TLDrawSnapshot>) => TLDrawPatch | undefined
-  abstract update: (
-    TLDrawSnapshot: Readonly<TLDrawSnapshot>,
-    point: number[],
-    shiftKey?: boolean,
-    altKey?: boolean,
-    metaKey?: boolean
-  ) => TLDrawPatch | undefined
-  abstract complete: (
-    TLDrawSnapshot: Readonly<TLDrawSnapshot>
-  ) => TLDrawPatch | TLDrawCommand | undefined
-  abstract cancel: (TLDrawSnapshot: Readonly<TLDrawSnapshot>) => TLDrawPatch | undefined
-
-  viewport: TLBounds
-
-  constructor(viewport: TLBounds) {
-    this.viewport = viewport
-  }
-
-  updateViewport = (viewport: TLBounds) => {
-    this.viewport = viewport
-  }
-
-  static cache: {
-    selectedIds: string[]
-    center: number[]
-  } = {
-    selectedIds: [],
-    center: [0, 0],
-  }
-}
-
-export enum TLDrawStatus {
+export enum TDStatus {
   Idle = 'idle',
   PointingHandle = 'pointingHandle',
   PointingBounds = 'pointingBounds',
@@ -178,12 +200,36 @@ export enum TLDrawStatus {
   EditingText = 'editing-text',
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never
+export type TDToolType =
+  | 'select'
+  | 'erase'
+  | TDShapeType.Text
+  | TDShapeType.Draw
+  | TDShapeType.Ellipse
+  | TDShapeType.Rectangle
+  | TDShapeType.Arrow
+  | TDShapeType.Sticky
 
-export type ExceptFirst<T extends unknown[]> = T extends [any, ...infer U] ? U : never
-
-export type ExceptFirstTwo<T extends unknown[]> = T extends [any, any, ...infer U] ? U : never
+export type Easing =
+  | 'linear'
+  | 'easeInQuad'
+  | 'easeOutQuad'
+  | 'easeInOutQuad'
+  | 'easeInCubic'
+  | 'easeOutCubic'
+  | 'easeInOutCubic'
+  | 'easeInQuart'
+  | 'easeOutQuart'
+  | 'easeInOutQuart'
+  | 'easeInQuint'
+  | 'easeOutQuint'
+  | 'easeInOutQuint'
+  | 'easeInSine'
+  | 'easeOutSine'
+  | 'easeInOutSine'
+  | 'easeInExpo'
+  | 'easeOutExpo'
+  | 'easeInOutExpo'
 
 export enum MoveType {
   Backward = 'backward',
@@ -216,7 +262,11 @@ export enum FlipType {
   Vertical = 'vertical',
 }
 
-export enum TLDrawShapeType {
+/* -------------------------------------------------- */
+/*                       Shapes                       */
+/* -------------------------------------------------- */
+
+export enum TDShapeType {
   Sticky = 'sticky',
   Ellipse = 'ellipse',
   Rectangle = 'rectangle',
@@ -230,25 +280,33 @@ export enum Decoration {
   Arrow = 'arrow',
 }
 
-export interface TLDrawBaseShape extends TLShape {
+export interface TDBaseShape extends TLShape {
   style: ShapeStyles
-  type: TLDrawShapeType
-  handles?: Record<string, TLDrawHandle>
+  type: TDShapeType
+  handles?: Record<string, TldrawHandle>
 }
 
-export interface DrawShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.Draw
+// The shape created with the draw tool
+export interface DrawShape extends TDBaseShape {
+  type: TDShapeType.Draw
   points: number[][]
   isComplete: boolean
 }
 
-export interface ArrowShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.Arrow
+// The extended handle (used for arrows)
+export interface TldrawHandle extends TLHandle {
+  canBind?: boolean
+  bindingId?: string
+}
+
+// The shape created with the arrow tool
+export interface ArrowShape extends TDBaseShape {
+  type: TDShapeType.Arrow
   bend: number
   handles: {
-    start: TLDrawHandle
-    bend: TLDrawHandle
-    end: TLDrawHandle
+    start: TldrawHandle
+    bend: TldrawHandle
+    end: TldrawHandle
   }
   decorations?: {
     start?: Decoration
@@ -257,34 +315,48 @@ export interface ArrowShape extends TLDrawBaseShape {
   }
 }
 
-export interface EllipseShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.Ellipse
+export interface ArrowBinding extends TLBinding {
+  handleId: keyof ArrowShape['handles']
+  distance: number
+  point: number[]
+}
+
+export type TDBinding = ArrowBinding
+
+// The shape created by the ellipse tool
+export interface EllipseShape extends TDBaseShape {
+  type: TDShapeType.Ellipse
   radius: number[]
 }
 
-export interface RectangleShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.Rectangle
+// The shape created by the rectangle tool
+export interface RectangleShape extends TDBaseShape {
+  type: TDShapeType.Rectangle
   size: number[]
 }
 
-export interface TextShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.Text
+// The shape created by the text tool
+export interface TextShape extends TDBaseShape {
+  type: TDShapeType.Text
   text: string
 }
 
-export interface GroupShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.Group
+// The shape created by the sticky tool
+export interface StickyShape extends TDBaseShape {
+  type: TDShapeType.Sticky
+  size: number[]
+  text: string
+}
+
+// The shape created when multiple shapes are grouped
+export interface GroupShape extends TDBaseShape {
+  type: TDShapeType.Group
   size: number[]
   children: string[]
 }
 
-export interface StickyShape extends TLDrawBaseShape {
-  type: TLDrawShapeType.Sticky
-  size: number[]
-  text: string
-}
-
-export type TLDrawShape =
+// A union of all shapes
+export type TDShape =
   | RectangleShape
   | EllipseShape
   | DrawShape
@@ -293,13 +365,7 @@ export type TLDrawShape =
   | GroupShape
   | StickyShape
 
-export interface ArrowBinding extends TLBinding {
-  handleId: keyof ArrowShape['handles']
-  distance: number
-  point: number[]
-}
-
-export type TLDrawBinding = ArrowBinding
+/* ------------------ Shape Styles ------------------ */
 
 export enum ColorStyle {
   White = 'white',
@@ -344,16 +410,21 @@ export type ShapeStyles = {
   scale?: number
 }
 
+/* -------------------------------------------------- */
+/*                    Type Helpers                    */
+/* -------------------------------------------------- */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never
+
+export type ExceptFirst<T extends unknown[]> = T extends [any, ...infer U] ? U : never
+
+export type ExceptFirstTwo<T extends unknown[]> = T extends [any, any, ...infer U] ? U : never
+
 export type PropsOfType<U> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [K in keyof TLDrawShape]: TLDrawShape[K] extends any
-    ? TLDrawShape[K] extends U
-      ? K
-      : never
-    : never
-}[keyof TLDrawShape]
-
-export type Theme = 'dark' | 'light'
+  [K in keyof TDShape]: TDShape[K] extends any ? (TDShape[K] extends U ? K : never) : never
+}[keyof TDShape]
 
 export type Difference<A, B, C = A> = A extends B ? never : C
 
@@ -375,46 +446,4 @@ export type MappedByType<U extends string, T extends { type: U }> = {
   [P in T['type']]: T extends any ? (P extends T['type'] ? T : never) : never
 }
 
-export type ShapesWithProp<U> = MembersWithRequiredKey<
-  MappedByType<TLDrawShapeType, TLDrawShape>,
-  U
->
-
-export type Easing =
-  | 'linear'
-  | 'easeInQuad'
-  | 'easeOutQuad'
-  | 'easeInOutQuad'
-  | 'easeInCubic'
-  | 'easeOutCubic'
-  | 'easeInOutCubic'
-  | 'easeInQuart'
-  | 'easeOutQuart'
-  | 'easeInOutQuart'
-  | 'easeInQuint'
-  | 'easeOutQuint'
-  | 'easeInOutQuint'
-  | 'easeInSine'
-  | 'easeOutSine'
-  | 'easeInOutSine'
-  | 'easeInExpo'
-  | 'easeOutExpo'
-  | 'easeInOutExpo'
-
-export type TLDrawToolType =
-  | 'select'
-  | TLDrawShapeType.Text
-  | TLDrawShapeType.Draw
-  | TLDrawShapeType.Ellipse
-  | TLDrawShapeType.Rectangle
-  | TLDrawShapeType.Arrow
-  | TLDrawShapeType.Sticky
-
-/* ------------------- File System ------------------ */
-
-export interface TLDrawFile {
-  name: string
-  fileHandle: FileSystemHandle | null
-  document: TLDrawDocument
-  assets: Record<string, unknown>
-}
+export type ShapesWithProp<U> = MembersWithRequiredKey<MappedByType<TDShapeType, TDShape>, U>

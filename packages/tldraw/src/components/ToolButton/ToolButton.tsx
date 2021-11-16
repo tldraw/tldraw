@@ -1,32 +1,52 @@
 import * as React from 'react'
 import { breakpoints } from '~components/breakpoints'
 import { Tooltip } from '~components/Tooltip'
-import { useTLDrawContext } from '~hooks'
+import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 
 export interface ToolButtonProps {
   onClick?: () => void
   onSelect?: () => void
   onDoubleClick?: () => void
+  disabled?: boolean
   isActive?: boolean
+  isSponsor?: boolean
+  isToolLocked?: boolean
   variant?: 'icon' | 'text' | 'circle' | 'primary'
   children: React.ReactNode
 }
 
 export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
-  ({ onSelect, onClick, onDoubleClick, isActive = false, variant, children, ...rest }, ref) => {
+  (
+    {
+      onSelect,
+      onClick,
+      onDoubleClick,
+      variant,
+      children,
+      isToolLocked = false,
+      disabled = false,
+      isActive = false,
+      isSponsor = false,
+      ...rest
+    },
+    ref
+  ) => {
     return (
       <StyledToolButton
         ref={ref}
         isActive={isActive}
+        isSponsor={isSponsor}
         variant={variant}
         onClick={onClick}
+        disabled={disabled}
         onPointerDown={onSelect}
         onDoubleClick={onDoubleClick}
         bp={breakpoints}
         {...rest}
       >
         <StyledToolButtonInner>{children}</StyledToolButtonInner>
+        {isToolLocked && <ToolLockIndicator />}
       </StyledToolButton>
     )
   }
@@ -36,20 +56,30 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
 
 interface ToolButtonWithTooltipProps extends ToolButtonProps {
   label: string
+  isLocked?: boolean
   kbd?: string
 }
 
-export function ToolButtonWithTooltip({ label, kbd, ...rest }: ToolButtonWithTooltipProps) {
-  const { state } = useTLDrawContext()
+export function ToolButtonWithTooltip({
+  label,
+  kbd,
+  isLocked,
+  ...rest
+}: ToolButtonWithTooltipProps) {
+  const app = useTldrawApp()
 
   const handleDoubleClick = React.useCallback(() => {
-    console.log('double clicking')
-    state.toggleToolLock()
+    app.toggleToolLock()
   }, [])
 
   return (
     <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
-      <ToolButton {...rest} variant="primary" onDoubleClick={handleDoubleClick} />
+      <ToolButton
+        {...rest}
+        variant="primary"
+        isToolLocked={isLocked && rest.isActive}
+        onDoubleClick={handleDoubleClick}
+      />
     </Tooltip>
   )
 }
@@ -112,6 +142,7 @@ export const StyledToolButton = styled('button', {
       circle: {
         padding: '$2',
         [`& ${StyledToolButtonInner}`]: {
+          border: '1px solid $panelContrast',
           borderRadius: '100%',
           boxShadow: '$panel',
         },
@@ -121,22 +152,16 @@ export const StyledToolButton = styled('button', {
         },
       },
     },
-    isActive: {
+    isSponsor: {
       true: {
         [`${StyledToolButtonInner}`]: {
-          backgroundColor: '$selected',
-          color: '$panelActive',
+          backgroundColor: '$sponsorContrast',
         },
       },
-      false: {
-        [`&:hover:not(:disabled) ${StyledToolButtonInner}`]: {
-          backgroundColor: '$hover',
-          border: '1px solid $panel',
-        },
-        [`&:focus:not(:disabled) ${StyledToolButtonInner}`]: {
-          backgroundColor: '$hover',
-        },
-      },
+    },
+    isActive: {
+      true: {},
+      false: {},
     },
     bp: {
       mobile: {},
@@ -168,5 +193,40 @@ export const StyledToolButton = styled('button', {
         },
       },
     },
+    {
+      isActive: true,
+      isSponsor: false,
+      css: {
+        [`${StyledToolButtonInner}`]: {
+          backgroundColor: '$selected',
+          color: '$selectedContrast',
+        },
+      },
+    },
+    {
+      isActive: false,
+      isSponsor: false,
+      bp: 'small',
+      css: {
+        [`&:hover:not(:disabled) ${StyledToolButtonInner}`]: {
+          backgroundColor: '$hover',
+          border: '1px solid $panel',
+        },
+        [`&:focus:not(:disabled) ${StyledToolButtonInner}`]: {
+          backgroundColor: '$hover',
+        },
+      },
+    },
   ],
+})
+
+const ToolLockIndicator = styled('div', {
+  position: 'absolute',
+  width: 10,
+  height: 10,
+  backgroundColor: '$selected',
+  borderRadius: '100%',
+  bottom: -2,
+  border: '2px solid $panel',
+  zIndex: 100,
 })

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { TLDraw } from '@tldraw/tldraw'
+import { Tldraw } from '@tldraw/tldraw'
 
 export default function ChangingId() {
   const [id, setId] = React.useState('example')
@@ -10,5 +10,5 @@ export default function ChangingId() {
     return () => clearTimeout(timeout)
   }, [])
 
-  return <TLDraw id={id} />
+  return <Tldraw id={id} />
 }

@@ -33,8 +33,9 @@ export const StyledKbd = styled('kbd', {
   textAlign: 'center',
   fontSize: '$0',
   fontFamily: '$ui',
-  fontWeight: 400,
   color: '$text',
+  background: 'none',
+  fontWeight: 400,
   gap: '$1',
   display: 'flex',
   alignItems: 'center',
@@ -51,7 +52,7 @@ export const StyledKbd = styled('kbd', {
     variant: {
       tooltip: {
         '& > span': {
-          color: '$tooltipText',
+          color: '$tooltipContrast',
           background: '$overlayContrast',
           boxShadow: '$key',
           width: '20px',

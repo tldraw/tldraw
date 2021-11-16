@@ -1,12 +1,12 @@
 import * as vscode from 'vscode'
-import { TLDrawFile } from '@tldraw/tldraw'
+import { TDFile } from '@tldraw/tldraw'
 import { MessageFromWebview, MessageFromExtension } from './types'
 
 /**
  * When a new editor is opened, an instance of this class will
  * be created to configure the webview and handle its events.
  */
-export class TLDrawWebviewManager {
+export class TldrawWebviewManager {
   private disposables: vscode.Disposable[] = []
 
   constructor(
@@ -42,7 +42,7 @@ export class TLDrawWebviewManager {
       this.disposables
     )
 
-    // Send the initial document content to bootstrap the tldraw/tldraw component.
+    // Send the initial document content to bootstrap the Tldraw/Tldraw component.
     webviewPanel.webview.postMessage({
       type: 'openedFile',
       text: document.getText(),
@@ -79,13 +79,13 @@ export class TLDrawWebviewManager {
 
     switch (e.type) {
       case 'editorUpdated': {
-        // The event will contain the new TLDrawFile as JSON.
-        const nextFile = JSON.parse(e.text) as TLDrawFile
+        // The event will contain the new TDFile as JSON.
+        const nextFile = JSON.parse(e.text) as TDFile
 
         if (document.getText()) {
           try {
             // Parse the contents of the current document.
-            const currentFile = JSON.parse(document.getText()) as TLDrawFile
+            const currentFile = JSON.parse(document.getText()) as TDFile
 
             // Ensure that the current file's pageStates are preserved
             // in the next file, unless the associated pages have been deleted.
@@ -100,7 +100,7 @@ export class TLDrawWebviewManager {
         }
 
         // Create an edit that replaces the document's current text
-        // content (a serialized TLDrawFile) with the next file.
+        // content (a serialized TDFile) with the next file.
         const edit = new vscode.WorkspaceEdit()
 
         edit.replace(
@@ -154,7 +154,7 @@ export class TLDrawWebviewManager {
           <meta charset="utf-8" />
           <link rel="stylesheet" href="${cssUrl}" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>TLDraw</title>
+          <title>Tldraw</title>
         </head>
         <body>
           <div id="root"></div>

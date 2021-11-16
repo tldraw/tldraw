@@ -1,7 +1,7 @@
 import { Utils } from '@tldraw/core'
 import { getStrokeOutlinePoints, getStrokePoints, StrokeOptions } from 'perfect-freehand'
 import type { DrawShape } from '~types'
-import { getShapeStyle } from '../shape-styles'
+import { getShapeStyle } from '../shared/shape-styles'
 
 const simulatePressureSettings: StrokeOptions = {
   easing: (t) => Math.sin((t * Math.PI) / 2),
@@ -43,7 +43,7 @@ export function getDrawStrokePoints(shape: DrawShape, options: StrokeOptions) {
 /**
  * Get path data for a stroke with the DashStyle.Draw dash style.
  */
-export function getDrawStrokePathTLDrawSnapshot(shape: DrawShape) {
+export function getDrawStrokePathTDSnapshot(shape: DrawShape) {
   if (shape.points.length < 2) return ''
 
   const options = getFreehandOptions(shape)
@@ -60,7 +60,7 @@ export function getDrawStrokePathTLDrawSnapshot(shape: DrawShape) {
 /**
  * Get SVG path data for a shape that has a DashStyle other than DashStyles.Draw.
  */
-export function getSolidStrokePathTLDrawSnapshot(shape: DrawShape) {
+export function getSolidStrokePathTDSnapshot(shape: DrawShape) {
   const { points } = shape
 
   if (points.length < 2) return 'M 0 0 L 0 0'

@@ -1,21 +1,27 @@
 import * as React from 'react'
 import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { defaultStyle, getShapeStyle } from '../shape-styles'
-import { DrawShape, DashStyle, TLDrawShapeType, TLDrawTransformInfo, TLDrawMeta } from '~types'
-import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
-import { intersectBoundsBounds, intersectBoundsPolyline } from '@tldraw/intersect'
+import { defaultStyle, getShapeStyle } from '../shared/shape-styles'
+import { DrawShape, DashStyle, TDShapeType, TransformInfo, TDMeta } from '~types'
+import { TDShapeUtil } from '../TDShapeUtil'
 import {
-  getDrawStrokePathTLDrawSnapshot,
+  intersectBoundsBounds,
+  intersectBoundsPolyline,
+  intersectLineSegmentBounds,
+  intersectLineSegmentLineSegment,
+} from '@tldraw/intersect'
+import {
+  getDrawStrokePathTDSnapshot,
   getFillPath,
-  getSolidStrokePathTLDrawSnapshot,
+  getSolidStrokePathTDSnapshot,
 } from './drawHelpers'
+import { GHOSTED_OPACITY } from '~constants'
 
 type T = DrawShape
 type E = SVGSVGElement
 
-export class DrawUtil extends TLDrawShapeUtil<T, E> {
-  type = TLDrawShapeType.Draw as const
+export class DrawUtil extends TDShapeUtil<T, E> {
+  type = TDShapeType.Draw as const
 
   pointsBoundsCache = new WeakMap<T['points'], TLBounds>([])
 
@@ -29,7 +35,7 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
     return Utils.deepMerge<T>(
       {
         id: 'id',
-        type: TLDrawShapeType.Draw,
+        type: TDShapeType.Draw,
         name: 'Draw',
         parentId: 'page',
         childIndex: 1,
@@ -43,22 +49,21 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(({ shape, meta, events }, ref) => {
+  Component = TDShapeUtil.Component<T, E, TDMeta>(({ shape, meta, isGhost, events }, ref) => {
     const { points, style, isComplete } = shape
 
-    const polygonPathTLDrawSnapshot = React.useMemo(() => {
+    const polygonPathTDSnapshot = React.useMemo(() => {
       return getFillPath(shape)
     }, [points, style.size])
 
-    const pathTLDrawSnapshot = React.useMemo(() => {
+    const pathTDSnapshot = React.useMemo(() => {
       return style.dash === DashStyle.Draw
-        ? getDrawStrokePathTLDrawSnapshot(shape)
-        : getSolidStrokePathTLDrawSnapshot(shape)
+        ? getDrawStrokePathTDSnapshot(shape)
+        : getSolidStrokePathTDSnapshot(shape)
     }, [points, style.size, style.dash, isComplete])
 
     const styles = getShapeStyle(style, meta.isDarkMode)
-
-    const strokeWidth = styles.strokeWidth
+    const { stroke, fill, strokeWidth } = styles
 
     // For very short lines, draw a point instead of a line
     const bounds = this.getBounds(shape)
@@ -70,7 +75,13 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
 
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-          <circle r={sw} fill={styles.stroke} stroke={styles.stroke} pointerEvents="all" />
+          <circle
+            r={sw}
+            fill={stroke}
+            stroke={stroke}
+            pointerEvents="all"
+            opacity={isGhost ? GHOSTED_OPACITY : 1}
+          />
         </SVGContainer>
       )
     }
@@ -78,30 +89,32 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
     const shouldFill =
       style.isFilled &&
       points.length > 3 &&
-      Vec.dist(points[0], points[points.length - 1]) < +styles.strokeWidth * 2
+      Vec.dist(points[0], points[points.length - 1]) < strokeWidth * 2
 
     if (shape.style.dash === DashStyle.Draw) {
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-          {shouldFill && (
+          <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
+            {shouldFill && (
+              <path
+                d={polygonPathTDSnapshot}
+                stroke="none"
+                fill={fill}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                pointerEvents="fill"
+              />
+            )}
             <path
-              d={polygonPathTLDrawSnapshot}
-              stroke="none"
-              fill={styles.fill}
+              d={pathTDSnapshot}
+              fill={stroke}
+              stroke={stroke}
+              strokeWidth={strokeWidth / 2}
               strokeLinejoin="round"
               strokeLinecap="round"
-              pointerEvents="fill"
+              pointerEvents="all"
             />
-          )}
-          <path
-            d={pathTLDrawSnapshot}
-            fill={styles.stroke}
-            stroke={styles.stroke}
-            strokeWidth={styles.strokeWidth / 2}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            pointerEvents="all"
-          />
+          </g>
         </SVGContainer>
       )
     }
@@ -126,35 +139,37 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
 
     return (
       <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-        <path
-          d={pathTLDrawSnapshot}
-          fill={shouldFill ? styles.fill : 'none'}
-          stroke="none"
-          strokeWidth={Math.min(4, strokeWidth * 2)}
-          strokeLinejoin="round"
-          strokeLinecap="round"
-          pointerEvents={shouldFill ? 'all' : 'stroke'}
-        />
-        <path
-          d={pathTLDrawSnapshot}
-          fill="none"
-          stroke={styles.stroke}
-          strokeWidth={sw}
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinejoin="round"
-          strokeLinecap="round"
-          pointerEvents="stroke"
-        />
+        <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
+          <path
+            d={pathTDSnapshot}
+            fill={shouldFill ? fill : 'none'}
+            stroke="none"
+            strokeWidth={Math.min(4, strokeWidth * 2)}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            pointerEvents={shouldFill ? 'all' : 'stroke'}
+          />
+          <path
+            d={pathTDSnapshot}
+            fill="none"
+            stroke={stroke}
+            strokeWidth={sw}
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            pointerEvents="stroke"
+          />
+        </g>
       </SVGContainer>
     )
   })
 
-  Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
+  Indicator = TDShapeUtil.Indicator<T>(({ shape }) => {
     const { points } = shape
 
-    const pathTLDrawSnapshot = React.useMemo(() => {
-      return getSolidStrokePathTLDrawSnapshot(shape)
+    const pathTDSnapshot = React.useMemo(() => {
+      return getSolidStrokePathTDSnapshot(shape)
     }, [points])
 
     const bounds = this.getBounds(shape)
@@ -165,13 +180,13 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
       return <circle x={bounds.width / 2} y={bounds.height / 2} r={1} />
     }
 
-    return <path d={pathTLDrawSnapshot} />
+    return <path d={pathTDSnapshot} />
   })
 
   transform = (
     shape: T,
     bounds: TLBounds,
-    { initialShape, scaleX, scaleY }: TLDrawTransformInfo<T>
+    { initialShape, scaleX, scaleY }: TransformInfo<T>
   ): Partial<T> => {
     const initialShapeBounds = Utils.getFromCache(this.boundsCache, initialShape, () =>
       Utils.getBoundsFromPoints(initialShape.points)
@@ -236,6 +251,32 @@ export class DrawUtil extends TLDrawShapeUtil<T, E> {
       next.style !== prev.style ||
       next.isComplete !== prev.isComplete
     )
+  }
+
+  hitTestPoint = (shape: T, point: number[]) => {
+    const ptA = Vec.sub(point, shape.point)
+    return Utils.pointInPolyline(ptA, shape.points)
+  }
+
+  hitTestLineSegment = (shape: T, A: number[], B: number[]): boolean => {
+    const { points, point } = shape
+    const ptA = Vec.sub(A, point)
+    const ptB = Vec.sub(B, point)
+    const bounds = this.getBounds(shape)
+
+    if (points.length <= 2) {
+      return Vec.distanceToLineSegment(A, B, shape.point) < 4
+    }
+
+    if (intersectLineSegmentBounds(ptA, ptB, bounds)) {
+      for (let i = 1; i < points.length; i++) {
+        if (intersectLineSegmentLineSegment(points[i - 1], points[i], ptA, ptB).didIntersect) {
+          return true
+        }
+      }
+    }
+
+    return false
   }
 
   hitTestBounds = (shape: T, bounds: TLBounds) => {

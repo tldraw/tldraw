@@ -1,6 +1,6 @@
 # @tldraw/tldraw-electron
 
-An electron wrapper for TLDraw. Not yet published.
+An electron wrapper for tldraw. Not yet published.
 
 ## Development
 

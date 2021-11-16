@@ -1,13 +1,14 @@
-import type { TLDrawSnapshot, TLDrawCommand } from '~types'
+import type { TldrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '../../internal'
 
-export function resetBounds(data: TLDrawSnapshot, ids: string[], pageId: string): TLDrawCommand {
-  const { currentPageId } = data.appState
+export function resetBounds(app: TldrawApp, ids: string[], pageId: string): TldrawCommand {
+  const { currentPageId } = app
 
   const { before, after } = TLDR.mutateShapes(
-    data,
+    app.state,
     ids,
-    (shape) => TLDR.getShapeUtils(shape).onDoubleClickBoundsHandle?.(shape),
+    (shape) => app.getShapeUtil(shape).onDoubleClickBoundsHandle?.(shape),
     pageId
   )
 
@@ -16,7 +17,7 @@ export function resetBounds(data: TLDrawSnapshot, ids: string[], pageId: string)
     before: {
       document: {
         pages: {
-          [data.appState.currentPageId]: { shapes: before },
+          [currentPageId]: { shapes: before },
         },
         pageStates: {
           [currentPageId]: {
@@ -28,7 +29,7 @@ export function resetBounds(data: TLDrawSnapshot, ids: string[], pageId: string)
     after: {
       document: {
         pages: {
-          [data.appState.currentPageId]: { shapes: after },
+          [currentPageId]: { shapes: after },
         },
         pageStates: {
           [currentPageId]: {

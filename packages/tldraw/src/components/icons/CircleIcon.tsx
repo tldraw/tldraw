@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 export function CircleIcon(
-  props: Pick<React.SVGProps<SVGSVGElement>, 'stroke' | 'fill'> & {
+  props: Pick<React.SVGProps<SVGSVGElement>, 'strokeWidth' | 'stroke' | 'fill'> & {
     size: number
   }
 ) {

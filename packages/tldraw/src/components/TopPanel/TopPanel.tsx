@@ -3,10 +3,7 @@ import { Menu } from './Menu'
 import { styled } from '~styles'
 import { PageMenu } from './PageMenu'
 import { ZoomMenu } from './ZoomMenu'
-import { DashMenu } from './DashMenu'
-import { SizeMenu } from './SizeMenu'
-import { FillCheckbox } from './FillCheckbox'
-import { ColorMenu } from './ColorMenu'
+import { StyleMenu } from './StyleMenu'
 import { Panel } from '~components/Panel'
 
 interface TopPanelProps {
@@ -15,28 +12,29 @@ interface TopPanelProps {
   showMenu: boolean
   showStyles: boolean
   showZoom: boolean
+  showSponsorLink: boolean
 }
 
-export function TopPanel({ readOnly, showPages, showMenu, showStyles, showZoom }: TopPanelProps) {
+export function TopPanel({
+  readOnly,
+  showPages,
+  showMenu,
+  showStyles,
+  showZoom,
+  showSponsorLink,
+}: TopPanelProps) {
   return (
     <StyledTopPanel>
       {(showMenu || showPages) && (
         <Panel side="left">
-          {showMenu && <Menu readOnly={readOnly} />}
+          {showMenu && <Menu showSponsorLink={showSponsorLink} readOnly={readOnly} />}
           {showPages && <PageMenu />}
         </Panel>
       )}
       <StyledSpacer />
       {(showStyles || showZoom) && (
         <Panel side="right">
-          {showStyles && !readOnly && (
-            <>
-              <ColorMenu />
-              <SizeMenu />
-              <DashMenu />
-              <FillCheckbox />
-            </>
-          )}
+          {showStyles && !readOnly && <StyleMenu />}
           {showZoom && <ZoomMenu />}
         </Panel>
       )}

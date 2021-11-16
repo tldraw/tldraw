@@ -1,29 +1,33 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
-import { defaultStyle } from '../shape-styles'
-import { StickyShape, TLDrawMeta, TLDrawShapeType, TLDrawTransformInfo } from '~types'
+import { defaultStyle } from '../shared/shape-styles'
+import { StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
 import { getBoundsRectangle, TextAreaUtils } from '../shared'
-import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
-import { getStickyFontStyle, getStickyShapeStyle } from '../shape-styles'
+import { TDShapeUtil } from '../TDShapeUtil'
+import { getStickyFontStyle, getStickyShapeStyle } from '../shared/shape-styles'
 import { styled } from '~styles'
 import Vec from '@tldraw/vec'
+import { GHOSTED_OPACITY } from '~constants'
+import { TLDR } from '~state/TLDR'
 
 type T = StickyShape
 type E = HTMLDivElement
 
-export class StickyUtil extends TLDrawShapeUtil<T, E> {
-  type = TLDrawShapeType.Sticky as const
+export class StickyUtil extends TDShapeUtil<T, E> {
+  type = TDShapeType.Sticky as const
 
   canBind = true
 
   canEdit = true
 
+  hideResizeHandles = true
+
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
       {
         id: 'id',
-        type: TLDrawShapeType.Sticky,
+        type: TDShapeType.Sticky,
         name: 'Sticky',
         parentId: 'page',
         childIndex: 1,
@@ -37,8 +41,8 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
-    ({ shape, meta, events, isEditing, onShapeBlur, onShapeChange }, ref) => {
+  Component = TDShapeUtil.Component<T, E, TDMeta>(
+    ({ shape, meta, events, isGhost, isEditing, onShapeBlur, onShapeChange }, ref) => {
       const font = getStickyFontStyle(shape.style)
 
       const { color, fill } = getStickyShapeStyle(shape.style, meta.isDarkMode)
@@ -60,7 +64,7 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
           onShapeChange?.({
             id: shape.id,
             type: shape.type,
-            text: normalizeText(e.currentTarget.value),
+            text: TLDR.normalizeText(e.currentTarget.value),
           })
         },
         [onShapeChange]
@@ -85,7 +89,7 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
               TextAreaUtils.indent(e.currentTarget)
             }
 
-            onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
+            onShapeChange?.({ ...shape, text: TLDR.normalizeText(e.currentTarget.value) })
           }
         },
         [shape, onShapeChange]
@@ -158,6 +162,7 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
           <StyledStickyContainer
             ref={rContainer}
             isDarkMode={meta.isDarkMode}
+            isGhost={isGhost}
             style={{ backgroundColor: fill, ...style }}
           >
             <StyledText ref={rText} isEditing={isEditing}>
@@ -187,7 +192,7 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
     }
   )
 
-  Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
+  Indicator = TDShapeUtil.Indicator<T>(({ shape }) => {
     const {
       size: [width, height],
     } = shape
@@ -208,7 +213,7 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
   transform = (
     shape: T,
     bounds: TLBounds,
-    { scaleX, scaleY, transformOrigin }: TLDrawTransformInfo<T>
+    { scaleX, scaleY, transformOrigin }: TransformInfo<T>
   ): Partial<T> => {
     const point = Vec.round([
       bounds.minX +
@@ -235,13 +240,6 @@ export class StickyUtil extends TLDrawShapeUtil<T, E> {
 const PADDING = 16
 const MIN_CONTAINER_HEIGHT = 200
 
-const fixNewLines = /\r?\n|\r/g
-const fixSpaces = / /g
-
-function normalizeText(text: string) {
-  return text.replace(fixNewLines, '\n').replace(fixSpaces, '\u00a0')
-}
-
 const StyledStickyContainer = styled('div', {
   pointerEvents: 'all',
   position: 'relative',
@@ -253,6 +251,10 @@ const StyledStickyContainer = styled('div', {
   borderRadius: '3px',
   perspective: '800px',
   variants: {
+    isGhost: {
+      false: { opacity: 1 },
+      true: { transition: 'opacity .2s', opacity: GHOSTED_OPACITY },
+    },
     isDarkMode: {
       true: {
         boxShadow:

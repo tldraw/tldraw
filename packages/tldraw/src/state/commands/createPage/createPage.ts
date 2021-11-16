@@ -1,14 +1,15 @@
-import type { TLDrawSnapshot, TLDrawCommand, TLDrawPage } from '~types'
+import type { TldrawCommand, TDPage } from '~types'
 import { Utils, TLPageState } from '@tldraw/core'
+import type { TldrawApp } from '~state'
 
 export function createPage(
-  data: TLDrawSnapshot,
+  app: TldrawApp,
   center: number[],
   pageId = Utils.uniqueId()
-): TLDrawCommand {
-  const { currentPageId } = data.appState
+): TldrawCommand {
+  const { currentPageId } = app
 
-  const topPage = Object.values(data.document.pages).sort(
+  const topPage = Object.values(app.state.document.pages).sort(
     (a, b) => (b.childIndex || 0) - (a.childIndex || 0)
   )[0]
 
@@ -17,7 +18,7 @@ export function createPage(
   // TODO: Iterate the name better
   const nextName = `New Page`
 
-  const page: TLDrawPage = {
+  const page: TDPage = {
     id: pageId,
     name: nextName,
     childIndex: nextChildIndex,

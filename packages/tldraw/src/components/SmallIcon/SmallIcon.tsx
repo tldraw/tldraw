@@ -12,7 +12,7 @@ export const SmallIcon = styled('div', {
   border: 'none',
   pointerEvents: 'all',
   cursor: 'pointer',
-  color: '$text',
+  color: 'currentColor',
 
   '& svg': {
     height: 16,

@@ -1,42 +1,39 @@
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
-import { SessionType, TLDrawStatus } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { TDStatus } from '~types'
 
 describe('Grid session', () => {
-  const state = new TLDrawState()
-
   it('begins, updateSession', () => {
-    state
+    const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1')
-      .startSession(SessionType.Translate, [5, 5])
-      .updateSession([10, 10])
+      .pointShape('rect1', [5, 5])
+      .movePointer([10, 10])
 
-    expect(state.getShape('rect1').point).toStrictEqual([5, 5])
+    expect(app.getShape('rect1').point).toStrictEqual([5, 5])
 
-    state.completeSession()
+    app.completeSession()
 
-    expect(state.appState.status).toBe(TLDrawStatus.Idle)
+    expect(app.appState.status).toBe(TDStatus.Idle)
 
-    expect(state.getShape('rect1').point).toStrictEqual([5, 5])
+    expect(app.getShape('rect1').point).toStrictEqual([5, 5])
 
-    state.undo()
+    app.undo()
 
-    expect(state.getShape('rect1').point).toStrictEqual([0, 0])
+    expect(app.getShape('rect1').point).toStrictEqual([0, 0])
 
-    state.redo()
+    app.redo()
 
-    expect(state.getShape('rect1').point).toStrictEqual([5, 5])
+    expect(app.getShape('rect1').point).toStrictEqual([5, 5])
   })
 
   it('cancels session', () => {
-    state
+    const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1', 'rect2')
-      .startSession(SessionType.Translate, [5, 5])
-      .updateSession([10, 10])
+      .pointBounds([5, 5])
+      .movePointer([10, 10])
       .cancelSession()
 
-    expect(state.getShape('rect1').point).toStrictEqual([0, 0])
+    expect(app.getShape('rect1').point).toStrictEqual([0, 0])
   })
 })

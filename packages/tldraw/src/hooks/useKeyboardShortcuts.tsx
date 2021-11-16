@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { TLDrawShapeType } from '~types'
-import { useFileSystemHandlers, useTLDrawContext } from '~hooks'
+import { TDShapeType } from '~types'
+import { useFileSystemHandlers, useTldrawApp } from '~hooks'
 
 export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
-  const { state } = useTLDrawContext()
+  const app = useTldrawApp()
 
   const canHandleEvent = React.useCallback(() => {
     const elm = ref.current
@@ -16,63 +16,80 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'v,1',
     () => {
-      if (canHandleEvent()) state.selectTool('select')
+      if (!canHandleEvent()) return
+      app.selectTool('select')
     },
-    [state, ref.current]
+    [app, ref.current]
   )
 
   useHotkeys(
     'd,2',
     () => {
-      if (canHandleEvent()) state.selectTool(TLDrawShapeType.Draw)
+      if (!canHandleEvent()) return
+      app.selectTool(TDShapeType.Draw)
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
-    'r,3',
+    'e,3',
     () => {
-      if (canHandleEvent()) state.selectTool(TLDrawShapeType.Rectangle)
+      if (!canHandleEvent()) return
+      app.selectTool('erase')
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
-    'e,4',
+    'r,4',
     () => {
-      if (canHandleEvent()) state.selectTool(TLDrawShapeType.Ellipse)
+      if (!canHandleEvent()) return
+      app.selectTool(TDShapeType.Rectangle)
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
-    'a,5',
+    '5',
     () => {
-      if (canHandleEvent()) state.selectTool(TLDrawShapeType.Arrow)
+      if (!canHandleEvent()) return
+      app.selectTool(TDShapeType.Ellipse)
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
-    't,6',
+    'a,6',
     () => {
-      if (canHandleEvent()) state.selectTool(TLDrawShapeType.Text)
+      if (!canHandleEvent()) return
+      app.selectTool(TDShapeType.Arrow)
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
-    'n,7',
+    't,7',
     () => {
-      if (canHandleEvent()) state.selectTool(TLDrawShapeType.Sticky)
+      if (!canHandleEvent()) return
+      app.selectTool(TDShapeType.Text)
     },
     undefined,
-    [state]
+    [app]
+  )
+
+  useHotkeys(
+    'n,8',
+    () => {
+      if (!canHandleEvent()) return
+      app.selectTool(TDShapeType.Sticky)
+    },
+    undefined,
+    [app]
   )
 
   /* ---------------------- Misc ---------------------- */
@@ -82,13 +99,12 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+shift+d,command+shift+d',
     (e) => {
-      if (canHandleEvent()) {
-        state.toggleDarkMode()
-        e.preventDefault()
-      }
+      if (!canHandleEvent()) return
+      app.toggleDarkMode()
+      e.preventDefault()
     },
     undefined,
-    [state]
+    [app]
   )
 
   // Focus Mode
@@ -96,10 +112,11 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+.,command+.',
     () => {
-      if (canHandleEvent()) state.toggleFocusMode()
+      if (!canHandleEvent()) return
+      app.toggleFocusMode()
     },
     undefined,
-    [state]
+    [app]
   )
 
   // File System
@@ -109,43 +126,43 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+n,command+n',
     (e) => {
-      if (canHandleEvent()) {
-        onNewProject(e)
-      }
+      if (!canHandleEvent()) return
+
+      onNewProject(e)
     },
     undefined,
-    [state]
+    [app]
   )
   useHotkeys(
     'ctrl+s,command+s',
     (e) => {
-      if (canHandleEvent()) {
-        onSaveProject(e)
-      }
+      if (!canHandleEvent()) return
+
+      onSaveProject(e)
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'ctrl+shift+s,command+shift+s',
     (e) => {
-      if (canHandleEvent()) {
-        onSaveProjectAs(e)
-      }
+      if (!canHandleEvent()) return
+
+      onSaveProjectAs(e)
     },
     undefined,
-    [state]
+    [app]
   )
   useHotkeys(
     'ctrl+o,command+o',
     (e) => {
-      if (canHandleEvent()) {
-        onOpenProject(e)
-      }
+      if (!canHandleEvent()) return
+
+      onOpenProject(e)
     },
     undefined,
-    [state]
+    [app]
   )
 
   // Undo Redo
@@ -153,31 +170,31 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'command+z,ctrl+z',
     () => {
-      if (canHandleEvent()) {
-        if (state.session) {
-          state.cancelSession()
-        } else {
-          state.undo()
-        }
+      if (!canHandleEvent()) return
+
+      if (app.session) {
+        app.cancelSession()
+      } else {
+        app.undo()
       }
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'ctrl+shift-z,command+shift+z',
     () => {
-      if (canHandleEvent()) {
-        if (state.session) {
-          state.cancelSession()
-        } else {
-          state.redo()
-        }
+      if (!canHandleEvent()) return
+
+      if (app.session) {
+        app.cancelSession()
+      } else {
+        app.redo()
       }
     },
     undefined,
-    [state]
+    [app]
   )
 
   // Undo Redo
@@ -185,19 +202,21 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'command+u,ctrl+u',
     () => {
-      if (canHandleEvent()) state.undoSelect()
+      if (!canHandleEvent()) return
+      app.undoSelect()
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'ctrl+shift-u,command+shift+u',
     () => {
-      if (canHandleEvent()) state.redoSelect()
+      if (!canHandleEvent()) return
+      app.redoSelect()
     },
     undefined,
-    [state]
+    [app]
   )
 
   /* -------------------- Commands -------------------- */
@@ -207,52 +226,55 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+=,command+=',
     (e) => {
-      if (canHandleEvent()) {
-        state.zoomIn()
-        e.preventDefault()
-      }
+      if (!canHandleEvent()) return
+
+      app.zoomIn()
+      e.preventDefault()
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'ctrl+-,command+-',
     (e) => {
-      if (canHandleEvent()) {
-        state.zoomOut()
-        e.preventDefault()
-      }
+      if (!canHandleEvent()) return
+
+      app.zoomOut()
+      e.preventDefault()
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'shift+1',
     () => {
-      if (canHandleEvent()) state.zoomToFit()
+      if (!canHandleEvent()) return
+      app.zoomToFit()
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'shift+2',
     () => {
-      if (canHandleEvent()) state.zoomToSelection()
+      if (!canHandleEvent()) return
+      app.zoomToSelection()
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'shift+0',
     () => {
-      if (canHandleEvent()) state.resetZoom()
+      if (!canHandleEvent()) return
+      app.resetZoom()
     },
     undefined,
-    [state]
+    [app]
   )
 
   // Duplicate
@@ -260,13 +282,13 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+d,command+d',
     (e) => {
-      if (canHandleEvent()) {
-        state.duplicate()
-        e.preventDefault()
-      }
+      if (!canHandleEvent()) return
+
+      app.duplicate()
+      e.preventDefault()
     },
     undefined,
-    [state]
+    [app]
   )
 
   // Flip
@@ -274,19 +296,21 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'shift+h',
     () => {
-      if (canHandleEvent()) state.flipHorizontal()
+      if (!canHandleEvent()) return
+      app.flipHorizontal()
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'shift+v',
     () => {
-      if (canHandleEvent()) state.flipVertical()
+      if (!canHandleEvent()) return
+      app.flipVertical()
     },
     undefined,
-    [state]
+    [app]
   )
 
   // Cancel
@@ -294,12 +318,12 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'escape',
     () => {
-      if (canHandleEvent()) {
-        state.cancel()
-      }
+      if (!canHandleEvent()) return
+
+      app.cancel()
     },
     undefined,
-    [state]
+    [app]
   )
 
   // Delete
@@ -307,10 +331,11 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'backspace',
     () => {
-      if (canHandleEvent()) state.delete()
+      if (!canHandleEvent()) return
+      app.delete()
     },
     undefined,
-    [state]
+    [app]
   )
 
   // Select All
@@ -318,10 +343,11 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'command+a,ctrl+a',
     () => {
-      if (canHandleEvent()) state.selectAll()
+      if (!canHandleEvent()) return
+      app.selectAll()
     },
     undefined,
-    [state]
+    [app]
   )
 
   // Nudge
@@ -329,73 +355,91 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'up',
     () => {
-      if (canHandleEvent()) state.nudge([0, -1], false)
+      if (!canHandleEvent()) return
+      app.nudge([0, -1], false)
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'right',
     () => {
-      if (canHandleEvent()) state.nudge([1, 0], false)
+      if (!canHandleEvent()) return
+      app.nudge([1, 0], false)
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'down',
     () => {
-      if (canHandleEvent()) state.nudge([0, 1], false)
+      if (!canHandleEvent()) return
+      app.nudge([0, 1], false)
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'left',
     () => {
-      if (canHandleEvent()) state.nudge([-1, 0], false)
+      if (!canHandleEvent()) return
+      app.nudge([-1, 0], false)
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'shift+up',
     () => {
-      if (canHandleEvent()) state.nudge([0, -1], true)
+      if (!canHandleEvent()) return
+      app.nudge([0, -1], true)
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'shift+right',
     () => {
-      if (canHandleEvent()) state.nudge([1, 0], true)
+      if (!canHandleEvent()) return
+      app.nudge([1, 0], true)
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'shift+down',
     () => {
-      if (canHandleEvent()) state.nudge([0, 1], true)
+      if (!canHandleEvent()) return
+      app.nudge([0, 1], true)
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'shift+left',
     () => {
-      if (canHandleEvent()) state.nudge([-1, 0], true)
+      if (!canHandleEvent()) return
+      app.nudge([-1, 0], true)
     },
     undefined,
-    [state]
+    [app]
+  )
+
+  useHotkeys(
+    'command+shift+l,ctrl+shift+l',
+    () => {
+      if (!canHandleEvent()) return
+      app.toggleLocked()
+    },
+    undefined,
+    [app]
   )
 
   // Copy, Cut & Paste
@@ -403,28 +447,31 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'command+c,ctrl+c',
     () => {
-      if (canHandleEvent()) state.copy()
+      if (!canHandleEvent()) return
+      app.copy()
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'command+x,ctrl+x',
     () => {
-      if (canHandleEvent()) state.cut()
+      if (!canHandleEvent()) return
+      app.cut()
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'command+v,ctrl+v',
     () => {
-      if (canHandleEvent()) state.paste()
+      if (!canHandleEvent()) return
+      app.paste()
     },
     undefined,
-    [state]
+    [app]
   )
 
   // Group & Ungroup
@@ -432,25 +479,25 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'command+g,ctrl+g',
     (e) => {
-      if (canHandleEvent()) {
-        state.group()
-        e.preventDefault()
-      }
+      if (!canHandleEvent()) return
+
+      app.group()
+      e.preventDefault()
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'command+shift+g,ctrl+shift+g',
     (e) => {
-      if (canHandleEvent()) {
-        state.ungroup()
-        e.preventDefault()
-      }
+      if (!canHandleEvent()) return
+
+      app.ungroup()
+      e.preventDefault()
     },
     undefined,
-    [state]
+    [app]
   )
 
   // Move
@@ -458,50 +505,53 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     '[',
     () => {
-      if (canHandleEvent()) state.moveBackward()
+      if (!canHandleEvent()) return
+      app.moveBackward()
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     ']',
     () => {
-      if (canHandleEvent()) state.moveForward()
+      if (!canHandleEvent()) return
+      app.moveForward()
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'shift+[',
     () => {
-      if (canHandleEvent()) state.moveToBack()
+      if (!canHandleEvent()) return
+      app.moveToBack()
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'shift+]',
     () => {
-      if (canHandleEvent()) state.moveToFront()
+      if (!canHandleEvent()) return
+      app.moveToFront()
     },
     undefined,
-    [state]
+    [app]
   )
 
   useHotkeys(
     'command+shift+backspace',
     (e) => {
-      if (canHandleEvent()) {
-        if (process.env.NODE_ENV === 'development') {
-          state.resetDocument()
-        }
-        e.preventDefault()
+      if (!canHandleEvent()) return
+      if (app.settings.isDebugMode) {
+        app.resetDocument()
       }
+      e.preventDefault()
     },
     undefined,
-    [state]
+    [app]
   )
 }

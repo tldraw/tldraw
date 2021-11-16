@@ -1,28 +1,20 @@
-import Vec from '@tldraw/vec'
 import { Utils, TLPointerEventHandler } from '@tldraw/core'
 import { Draw } from '~state/shapes'
-import { SessionType, TLDrawShapeType } from '~types'
+import { SessionType, TDShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class DrawTool extends BaseTool {
-  type = TLDrawShapeType.Draw
+  type = TDShapeType.Draw as const
 
   /* ----------------- Event Handlers ----------------- */
 
   onPointerDown: TLPointerEventHandler = (info) => {
-    const pagePoint = Vec.round(this.state.getPagePoint(info.point))
-
     const {
-      shapes,
+      currentPoint,
       appState: { currentPageId, currentStyle },
-    } = this.state
+    } = this.app
 
-    const childIndex =
-      shapes.length === 0
-        ? 1
-        : shapes
-            .filter((shape) => shape.parentId === currentPageId)
-            .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+    const childIndex = this.getNextChildIndex()
 
     const id = Utils.uniqueId()
 
@@ -30,32 +22,26 @@ export class DrawTool extends BaseTool {
       id,
       parentId: currentPageId,
       childIndex,
-      point: [...pagePoint, info.pressure || 0.5],
+      point: [...currentPoint, info.pressure || 0.5],
       style: { ...currentStyle },
     })
 
-    this.state.patchCreate([newShape])
+    this.app.patchCreate([newShape])
 
-    this.state.startSession(SessionType.Draw, pagePoint, id)
+    this.app.startSession(SessionType.Draw, id)
 
     this.setStatus(Status.Creating)
   }
 
-  onPointerMove: TLPointerEventHandler = (info) => {
+  onPointerMove: TLPointerEventHandler = () => {
     if (this.status === Status.Creating) {
-      const pagePoint = Vec.round(this.state.getPagePoint(info.point))
-      this.state.updateSession(
-        [...pagePoint, info.pressure || 0.5],
-        info.shiftKey,
-        info.altKey,
-        info.metaKey
-      )
+      this.app.updateSession()
     }
   }
 
   onPointerUp: TLPointerEventHandler = () => {
     if (this.status === Status.Creating) {
-      this.state.completeSession()
+      this.app.completeSession()
     }
 
     this.setStatus(Status.Idle)

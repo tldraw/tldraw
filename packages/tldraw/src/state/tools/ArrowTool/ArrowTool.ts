@@ -1,20 +1,18 @@
-import Vec from '@tldraw/vec'
 import { Utils, TLPointerEventHandler } from '@tldraw/core'
 import { Arrow } from '~state/shapes'
-import { SessionType, TLDrawShapeType } from '~types'
+import { SessionType, TDShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class ArrowTool extends BaseTool {
-  type = TLDrawShapeType.Arrow
+  type = TDShapeType.Arrow as const
 
   /* ----------------- Event Handlers ----------------- */
 
-  onPointerDown: TLPointerEventHandler = (info) => {
-    const pagePoint = Vec.round(this.state.getPagePoint(info.point))
-
+  onPointerDown: TLPointerEventHandler = () => {
     const {
+      currentPoint,
       appState: { currentPageId, currentStyle },
-    } = this.state
+    } = this.app
 
     const childIndex = this.getNextChildIndex()
 
@@ -24,13 +22,13 @@ export class ArrowTool extends BaseTool {
       id,
       parentId: currentPageId,
       childIndex,
-      point: pagePoint,
+      point: currentPoint,
       style: { ...currentStyle },
     })
 
-    this.state.patchCreate([newShape])
+    this.app.patchCreate([newShape])
 
-    this.state.startSession(SessionType.Arrow, pagePoint, 'end', true)
+    this.app.startSession(SessionType.Arrow, newShape.id, 'end', true)
 
     this.setStatus(Status.Creating)
   }

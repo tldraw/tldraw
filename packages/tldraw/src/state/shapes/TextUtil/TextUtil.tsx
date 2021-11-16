@@ -1,19 +1,20 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
-import { defaultStyle, getShapeStyle, getFontStyle } from '../shape-styles'
-import { TextShape, TLDrawMeta, TLDrawShapeType, TLDrawTransformInfo } from '~types'
+import { defaultStyle, getShapeStyle, getFontStyle } from '../shared/shape-styles'
+import { TextShape, TDMeta, TDShapeType, TransformInfo } from '~types'
 import { TextAreaUtils } from '../shared'
-import { BINDING_DISTANCE } from '~constants'
-import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
+import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
+import { TDShapeUtil } from '../TDShapeUtil'
 import { styled } from '~styles'
 import Vec from '@tldraw/vec'
+import { TLDR } from '~state/TLDR'
 
 type T = TextShape
 type E = HTMLDivElement
 
-export class TextUtil extends TLDrawShapeUtil<T, E> {
-  type = TLDrawShapeType.Text as const
+export class TextUtil extends TDShapeUtil<T, E> {
+  type = TDShapeType.Text as const
 
   isAspectRatioLocked = true
 
@@ -25,7 +26,7 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
     return Utils.deepMerge<T>(
       {
         id: 'id',
-        type: TLDrawShapeType.Text,
+        type: TDShapeType.Text,
         name: 'Text',
         parentId: 'page',
         childIndex: 1,
@@ -38,8 +39,8 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
-    ({ shape, isBinding, isEditing, onShapeBlur, onShapeChange, meta, events }, ref) => {
+  Component = TDShapeUtil.Component<T, E, TDMeta>(
+    ({ shape, isBinding, isGhost, isEditing, onShapeBlur, onShapeChange, meta, events }, ref) => {
       const rInput = React.useRef<HTMLTextAreaElement>(null)
       const { text, style } = shape
       const styles = getShapeStyle(style, meta.isDarkMode)
@@ -49,7 +50,7 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
 
       const handleChange = React.useCallback(
         (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-          onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
+          onShapeChange?.({ ...shape, text: TLDR.normalizeText(e.currentTarget.value) })
         },
         [shape]
       )
@@ -71,7 +72,7 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
               TextAreaUtils.indent(e.currentTarget)
             }
 
-            onShapeChange?.({ ...shape, text: normalizeText(e.currentTarget.value) })
+            onShapeChange?.({ ...shape, text: TLDR.normalizeText(e.currentTarget.value) })
           }
         },
         [shape, onShapeChange]
@@ -118,7 +119,7 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
 
       return (
         <HTMLContainer ref={ref} {...events}>
-          <Wrapper isEditing={isEditing} onPointerDown={handlePointerDown}>
+          <Wrapper isGhost={isGhost} isEditing={isEditing} onPointerDown={handlePointerDown}>
             <InnerWrapper
               style={{
                 font,
@@ -167,6 +168,7 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
               ) : (
                 text
               )}
+              &#8203;
             </InnerWrapper>
           </Wrapper>
         </HTMLContainer>
@@ -174,7 +176,7 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
     }
   )
 
-  Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
+  Indicator = TDShapeUtil.Indicator<T>(({ shape }) => {
     const { width, height } = this.getBounds(shape)
     return <rect x={0} y={0} width={width} height={height} />
   })
@@ -215,7 +217,7 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
   transform = (
     shape: T,
     bounds: TLBounds,
-    { initialShape, scaleX, scaleY }: TLDrawTransformInfo<T>
+    { initialShape, scaleX, scaleY }: TransformInfo<T>
   ): Partial<T> => {
     const {
       rotation = 0,
@@ -238,7 +240,7 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
   transformSingle = (
     shape: T,
     bounds: TLBounds,
-    { initialShape, scaleX, scaleY }: TLDrawTransformInfo<T>
+    { initialShape, scaleX, scaleY }: TransformInfo<T>
   ): Partial<T> | void => {
     const {
       style: { scale = 1 },
@@ -279,13 +281,6 @@ export class TextUtil extends TLDrawShapeUtil<T, E> {
 /* -------------------------------------------------- */
 
 const LETTER_SPACING = -1.5
-
-const fixNewLines = /\r?\n|\r/g
-const fixSpaces = / /g
-
-function normalizeText(text: string) {
-  return text.replace(fixNewLines, '\n').replace(fixSpaces, '\u00a0')
-}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let melm: any
@@ -329,6 +324,10 @@ const Wrapper = styled('div', {
   width: '100%',
   height: '100%',
   variants: {
+    isGhost: {
+      false: { opacity: 1 },
+      true: { transition: 'opacity .2s', opacity: GHOSTED_OPACITY },
+    },
     isEditing: {
       false: {
         pointerEvents: 'all',
@@ -341,6 +340,11 @@ const Wrapper = styled('div', {
     },
   },
 })
+
+const commonTextWrapping = {
+  whiteSpace: 'pre-wrap',
+  overflowWrap: 'break-word',
+}
 
 const InnerWrapper = styled('div', {
   position: 'absolute',
@@ -370,6 +374,7 @@ const InnerWrapper = styled('div', {
       WebkitUserSelect: 'text',
     },
   },
+  ...commonTextWrapping,
 })
 
 const TextArea = styled('textarea', {
@@ -381,7 +386,6 @@ const TextArea = styled('textarea', {
   height: '100%',
   border: 'none',
   padding: '4px',
-  whiteSpace: 'pre',
   resize: 'none',
   minHeight: 'inherit',
   minWidth: 'inherit',
@@ -396,4 +400,5 @@ const TextArea = styled('textarea', {
   background: '$boundsBg',
   userSelect: 'text',
   WebkitUserSelect: 'text',
+  ...commonTextWrapping,
 })

@@ -1,128 +1,151 @@
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
-import { SessionType, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { SessionType, TDShapeType } from '~types'
 
 describe('Delete command', () => {
-  const state = new TLDrawState()
+  const app = new TldrawTestApp()
 
   beforeEach(() => {
-    state.loadDocument(mockDocument)
+    app.loadDocument(mockDocument)
   })
 
   describe('when no shape is selected', () => {
     it('does nothing', () => {
-      const initialState = state.state
-      state.delete()
-      const currentState = state.state
+      const app = new TldrawTestApp()
+      const initialapp = app.state
+      app.delete()
+      const currentapp = app.state
 
-      expect(currentState).toEqual(initialState)
+      expect(currentapp).toEqual(initialapp)
     })
   })
 
   it('does, undoes and redoes command', () => {
-    state.select('rect2')
-    state.delete()
+    app.select('rect2')
+    app.delete()
 
-    expect(state.getShape('rect2')).toBe(undefined)
-    expect(state.getPageState().selectedIds.length).toBe(0)
+    expect(app.getShape('rect2')).toBe(undefined)
+    expect(app.selectedIds.length).toBe(0)
 
-    state.undo()
+    app.undo()
 
-    expect(state.getShape('rect2')).toBeTruthy()
-    expect(state.getPageState().selectedIds.length).toBe(1)
+    expect(app.getShape('rect2')).toBeTruthy()
+    expect(app.selectedIds.length).toBe(1)
 
-    state.redo()
+    app.redo()
 
-    expect(state.getShape('rect2')).toBe(undefined)
-    expect(state.getPageState().selectedIds.length).toBe(0)
+    expect(app.getShape('rect2')).toBe(undefined)
+    expect(app.selectedIds.length).toBe(0)
   })
 
   it('deletes two shapes', () => {
-    state.selectAll()
-    state.delete()
+    app.selectAll()
+    app.delete()
 
-    expect(state.getShape('rect1')).toBe(undefined)
-    expect(state.getShape('rect2')).toBe(undefined)
+    expect(app.getShape('rect1')).toBe(undefined)
+    expect(app.getShape('rect2')).toBe(undefined)
 
-    state.undo()
+    app.undo()
 
-    expect(state.getShape('rect1')).toBeTruthy()
-    expect(state.getShape('rect2')).toBeTruthy()
+    expect(app.getShape('rect1')).toBeTruthy()
+    expect(app.getShape('rect2')).toBeTruthy()
 
-    state.redo()
+    app.redo()
 
-    expect(state.getShape('rect1')).toBe(undefined)
-    expect(state.getShape('rect2')).toBe(undefined)
+    expect(app.getShape('rect1')).toBe(undefined)
+    expect(app.getShape('rect2')).toBe(undefined)
   })
 
   it('deletes bound shapes, undoes and redoes', () => {
-    new TLDrawState()
+    new TldrawTestApp()
       .createShapes(
-        { type: TLDrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
-        { type: TLDrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+        { type: TDShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+        { type: TDShapeType.Arrow, id: 'arrow1', point: [200, 200] }
       )
       .select('arrow1')
-      .startSession(SessionType.Arrow, [200, 200], 'start')
-      .updateSession([50, 50])
+      .movePointer([200, 200])
+      .startSession(SessionType.Arrow, 'arrow1', 'start')
+      .movePointer([50, 50])
       .completeSession()
       .delete()
       .undo()
   })
 
   it('deletes bound shapes', () => {
-    expect(Object.values(state.page.bindings)[0]).toBe(undefined)
+    expect(Object.values(app.page.bindings)[0]).toBe(undefined)
 
-    state
+    app
       .selectNone()
       .createShapes({
         id: 'arrow1',
-        type: TLDrawShapeType.Arrow,
+        type: TDShapeType.Arrow,
       })
       .select('arrow1')
-      .startSession(SessionType.Arrow, [0, 0], 'start')
-      .updateSession([110, 110])
+      .movePointer([0, 0])
+      .startSession(SessionType.Arrow, 'arrow1', 'start')
+      .movePointer([110, 110])
       .completeSession()
 
-    const binding = Object.values(state.page.bindings)[0]
+    const binding = Object.values(app.page.bindings)[0]
 
     expect(binding).toBeTruthy()
     expect(binding.fromId).toBe('arrow1')
     expect(binding.toId).toBe('rect3')
     expect(binding.handleId).toBe('start')
-    expect(state.getShape('arrow1').handles?.start.bindingId).toBe(binding.id)
+    expect(app.getShape('arrow1').handles?.start.bindingId).toBe(binding.id)
 
-    state.select('rect3').delete()
+    app.select('rect3').delete()
 
-    expect(Object.values(state.page.bindings)[0]).toBe(undefined)
-    expect(state.getShape('arrow1').handles?.start.bindingId).toBe(undefined)
+    expect(Object.values(app.page.bindings)[0]).toBe(undefined)
+    expect(app.getShape('arrow1').handles?.start.bindingId).toBe(undefined)
 
-    state.undo()
+    app.undo()
 
-    expect(Object.values(state.page.bindings)[0]).toBeTruthy()
-    expect(state.getShape('arrow1').handles?.start.bindingId).toBe(binding.id)
+    expect(Object.values(app.page.bindings)[0]).toBeTruthy()
+    expect(app.getShape('arrow1').handles?.start.bindingId).toBe(binding.id)
 
-    state.redo()
+    app.redo()
 
-    expect(Object.values(state.page.bindings)[0]).toBe(undefined)
-    expect(state.getShape('arrow1').handles?.start.bindingId).toBe(undefined)
+    expect(Object.values(app.page.bindings)[0]).toBe(undefined)
+    expect(app.getShape('arrow1').handles?.start.bindingId).toBe(undefined)
   })
 
   describe('when deleting shapes in a group', () => {
     it('updates the group', () => {
-      state.group(['rect1', 'rect2', 'rect3'], 'newGroup').select('rect1').delete()
+      app.group(['rect1', 'rect2', 'rect3'], 'newGroup').select('rect1').delete()
 
-      expect(state.getShape('rect1')).toBeUndefined()
-      expect(state.getShape('newGroup').children).toStrictEqual(['rect2', 'rect3'])
+      expect(app.getShape('rect1')).toBeUndefined()
+      expect(app.getShape('newGroup').children).toStrictEqual(['rect2', 'rect3'])
     })
   })
 
   describe('when deleting a group', () => {
     it('deletes all grouped shapes', () => {
-      state.group(['rect1', 'rect2'], 'newGroup').select('newGroup').delete()
+      app.group(['rect1', 'rect2'], 'newGroup').select('newGroup').delete()
 
-      expect(state.getShape('rect1')).toBeUndefined()
-      expect(state.getShape('rect2')).toBeUndefined()
-      expect(state.getShape('newGroup')).toBeUndefined()
+      expect(app.getShape('rect1')).toBeUndefined()
+      expect(app.getShape('rect2')).toBeUndefined()
+      expect(app.getShape('newGroup')).toBeUndefined()
+
+      app.undo()
+      expect(app.getShape('rect1')).toBeTruthy()
+      expect(app.getShape('rect2')).toBeTruthy()
+      expect(app.getShape('newGroup')).toBeTruthy()
+    })
+  })
+
+  describe('when deleting grouped shapes', () => {
+    it('deletes the group too', () => {
+      const app = new TldrawTestApp()
+        .loadDocument(mockDocument)
+        .group(['rect1', 'rect2', 'rect3'], 'newGroup')
+        .select('rect1', 'rect2', 'rect3')
+        .delete()
+
+      expect(app.getShape('newGroup')).toBeUndefined()
+
+      app.undo()
+
+      expect(app.getShape('newGroup')).toBeTruthy()
     })
   })
 

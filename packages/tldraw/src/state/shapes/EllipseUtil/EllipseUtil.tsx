@@ -1,29 +1,22 @@
 import * as React from 'react'
 import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { defaultStyle, getShapeStyle } from '../shape-styles'
-import {
-  EllipseShape,
-  DashStyle,
-  TLDrawShapeType,
-  TLDrawShape,
-  TLDrawTransformInfo,
-  TLDrawMeta,
-} from '~types'
-import { BINDING_DISTANCE } from '~constants'
-import { TLDrawShapeUtil } from '../TLDrawShapeUtil'
+import { defaultStyle, getShapeStyle } from '~state/shapes/shared'
+import { EllipseShape, DashStyle, TDShapeType, TDShape, TransformInfo, TDMeta } from '~types'
+import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
+import { TDShapeUtil } from '../TDShapeUtil'
 import {
   intersectEllipseBounds,
   intersectLineSegmentEllipse,
   intersectRayEllipse,
 } from '@tldraw/intersect'
-import { getEllipseIndicatorPathTLDrawSnapshot, getEllipsePath } from './ellipseHelpers'
+import { getEllipseIndicatorPathTDSnapshot, getEllipsePath } from './ellipseHelpers'
 
 type T = EllipseShape
 type E = SVGSVGElement
 
-export class EllipseUtil extends TLDrawShapeUtil<T, E> {
-  type = TLDrawShapeType.Ellipse as const
+export class EllipseUtil extends TDShapeUtil<T, E> {
+  type = TDShapeType.Ellipse as const
 
   canBind = true
 
@@ -31,7 +24,7 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
     return Utils.deepMerge<T>(
       {
         id: 'id',
-        type: TLDrawShapeType.Ellipse,
+        type: TDShapeType.Ellipse,
         name: 'Ellipse',
         parentId: 'page',
         childIndex: 1,
@@ -44,8 +37,8 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
     )
   }
 
-  Component = TLDrawShapeUtil.Component<T, E, TLDrawMeta>(
-    ({ shape, isBinding, meta, events }, ref) => {
+  Component = TDShapeUtil.Component<T, E, TDMeta>(
+    ({ shape, isGhost, isBinding, meta, events }, ref) => {
       const {
         radius: [radiusX, radiusY],
         style,
@@ -53,7 +46,7 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
 
       const styles = getShapeStyle(style, meta.isDarkMode)
 
-      const strokeWidth = +styles.strokeWidth
+      const strokeWidth = styles.strokeWidth
 
       const sw = 1 + strokeWidth * 1.618
 
@@ -75,7 +68,7 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
               />
             )}
             <path
-              d={getEllipseIndicatorPathTLDrawSnapshot(shape, this.getCenter(shape))}
+              d={getEllipseIndicatorPathTDSnapshot(shape, this.getCenter(shape))}
               stroke="none"
               fill={style.isFilled ? styles.fill : 'none'}
               pointerEvents="all"
@@ -88,6 +81,7 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
               pointerEvents="all"
               strokeLinecap="round"
               strokeLinejoin="round"
+              opacity={isGhost ? GHOSTED_OPACITY : 1}
             />
           </SVGContainer>
         )
@@ -134,9 +128,33 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
     }
   )
 
-  Indicator = TLDrawShapeUtil.Indicator<T>(({ shape }) => {
-    return <path d={getEllipseIndicatorPathTLDrawSnapshot(shape, this.getCenter(shape))} />
+  Indicator = TDShapeUtil.Indicator<T>(({ shape }) => {
+    return <path d={getEllipseIndicatorPathTDSnapshot(shape, this.getCenter(shape))} />
   })
+
+  hitTestPoint = (shape: T, point: number[]): boolean => {
+    return (
+      Utils.pointInBounds(point, this.getRotatedBounds(shape)) &&
+      Utils.pointInEllipse(
+        point,
+        this.getCenter(shape),
+        shape.radius[0],
+        shape.radius[1],
+        shape.rotation || 0
+      )
+    )
+  }
+
+  hitTestLineSegment = (shape: T, A: number[], B: number[]): boolean => {
+    return intersectLineSegmentEllipse(
+      A,
+      B,
+      this.getCenter(shape),
+      shape.radius[0],
+      shape.radius[1],
+      shape.rotation || 0
+    ).didIntersect
+  }
 
   getBounds = (shape: T) => {
     return Utils.getFromCache(this.boundsCache, shape, () => {
@@ -183,7 +201,7 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
     return Vec.add(shape.point, shape.radius)
   }
 
-  getBindingPoint = <K extends TLDrawShape>(
+  getBindingPoint = <K extends TDShape>(
     shape: T,
     fromShape: K,
     point: number[],
@@ -292,7 +310,7 @@ export class EllipseUtil extends TLDrawShapeUtil<T, E> {
   transform = (
     shape: T,
     bounds: TLBounds,
-    { scaleX, scaleY, initialShape }: TLDrawTransformInfo<T>
+    { scaleX, scaleY, initialShape }: TransformInfo<T>
   ): Partial<T> => {
     const { rotation = 0 } = initialShape
 

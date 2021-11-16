@@ -1,34 +1,33 @@
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
+import { mockDocument, TldrawTestApp } from '~test'
 
 describe('Create page command', () => {
-  const state = new TLDrawState()
+  const app = new TldrawTestApp()
 
   it('does, undoes and redoes command', () => {
-    state.loadDocument(mockDocument)
+    app.loadDocument(mockDocument)
 
-    const initialId = state.page.id
-    const initialPageState = state.pageState
+    const initialId = app.page.id
+    const initialPageState = app.pageState
 
-    state.createPage()
+    app.createPage()
 
-    const nextId = state.page.id
-    const nextPageState = state.pageState
+    const nextId = app.page.id
+    const nextPageState = app.pageState
 
-    expect(Object.keys(state.document.pages).length).toBe(2)
-    expect(state.page.id).toBe(nextId)
-    expect(state.pageState).toEqual(nextPageState)
+    expect(Object.keys(app.document.pages).length).toBe(2)
+    expect(app.page.id).toBe(nextId)
+    expect(app.pageState).toEqual(nextPageState)
 
-    state.undo()
+    app.undo()
 
-    expect(Object.keys(state.document.pages).length).toBe(1)
-    expect(state.page.id).toBe(initialId)
-    expect(state.pageState).toEqual(initialPageState)
+    expect(Object.keys(app.document.pages).length).toBe(1)
+    expect(app.page.id).toBe(initialId)
+    expect(app.pageState).toEqual(initialPageState)
 
-    state.redo()
+    app.redo()
 
-    expect(Object.keys(state.document.pages).length).toBe(2)
-    expect(state.page.id).toBe(nextId)
-    expect(state.pageState).toEqual(nextPageState)
+    expect(Object.keys(app.document.pages).length).toBe(2)
+    expect(app.page.id).toBe(nextId)
+    expect(app.pageState).toEqual(nextPageState)
   })
 })

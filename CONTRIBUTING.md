@@ -1,4 +1,4 @@
-# Welcome to the TLDraw contributing guide <!-- omit in toc -->
+# Welcome to the tldraw contributing guide <!-- omit in toc -->
 
 Thank you for investing your time in contributing to our project! Any contribution you make will be reflected in the @tldraw/tldraw package and at [tldraw.com](https://tldraw.com).
 
@@ -77,4 +77,4 @@ When you're finished with the changes, create a pull request, also known as a PR
 
 Congratulations :tada::tada: The GitHub team thanks you :sparkles:.
 
-Once your PR is merged, your contributions will become part of the next TLDraw release, and will be visible in the [TLDraw app](https://tldraw.com).
+Once your PR is merged, your contributions will become part of the next tldraw release, and will be visible in the [tldraw app](https://tldraw.com).

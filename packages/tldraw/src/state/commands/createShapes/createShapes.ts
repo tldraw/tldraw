@@ -1,24 +1,24 @@
 import type { Patch } from 'rko'
-import { TLDR } from '~state/TLDR'
-import type { TLDrawShape, TLDrawSnapshot, TLDrawCommand, TLDrawBinding } from '~types'
+import type { TDShape, TldrawCommand, TDBinding } from '~types'
+import type { TldrawApp } from '../../internal'
 
 export function createShapes(
-  data: TLDrawSnapshot,
-  shapes: TLDrawShape[],
-  bindings: TLDrawBinding[] = []
-): TLDrawCommand {
-  const { currentPageId } = data.appState
+  app: TldrawApp,
+  shapes: TDShape[],
+  bindings: TDBinding[] = []
+): TldrawCommand {
+  const { currentPageId } = app
 
-  const beforeShapes: Record<string, Patch<TLDrawShape> | undefined> = {}
-  const afterShapes: Record<string, Patch<TLDrawShape> | undefined> = {}
+  const beforeShapes: Record<string, Patch<TDShape> | undefined> = {}
+  const afterShapes: Record<string, Patch<TDShape> | undefined> = {}
 
   shapes.forEach((shape) => {
     beforeShapes[shape.id] = undefined
     afterShapes[shape.id] = shape
   })
 
-  const beforeBindings: Record<string, Patch<TLDrawBinding> | undefined> = {}
-  const afterBindings: Record<string, Patch<TLDrawBinding> | undefined> = {}
+  const beforeBindings: Record<string, Patch<TDBinding> | undefined> = {}
+  const afterBindings: Record<string, Patch<TDBinding> | undefined> = {}
 
   bindings.forEach((binding) => {
     beforeBindings[binding.id] = undefined
@@ -37,7 +37,7 @@ export function createShapes(
         },
         pageStates: {
           [currentPageId]: {
-            selectedIds: [...TLDR.getSelectedIds(data, currentPageId)],
+            selectedIds: [...app.selectedIds],
           },
         },
       },

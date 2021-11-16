@@ -1,85 +1,84 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
-import { GroupShape, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { GroupShape, TDShapeType } from '~types'
 
 describe('Ungroup command', () => {
-  const state = new TLDrawState()
+  const app = new TldrawTestApp()
 
   it('does, undoes and redoes command', () => {
-    state.loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA').select('groupA').ungroup()
+    app.loadDocument(mockDocument).group(['rect1', 'rect2'], 'groupA').select('groupA').ungroup()
 
-    expect(state.getShape<GroupShape>('groupA')).toBeUndefined()
-    expect(state.getShape('rect1').parentId).toBe('page1')
-    expect(state.getShape('rect2').parentId).toBe('page1')
+    expect(app.getShape<GroupShape>('groupA')).toBeUndefined()
+    expect(app.getShape('rect1').parentId).toBe('page1')
+    expect(app.getShape('rect2').parentId).toBe('page1')
 
-    state.undo()
+    app.undo()
 
-    expect(state.getShape<GroupShape>('groupA')).toBeDefined()
-    expect(state.getShape<GroupShape>('groupA').children).toStrictEqual(['rect1', 'rect2'])
-    expect(state.getShape('rect1').parentId).toBe('groupA')
-    expect(state.getShape('rect2').parentId).toBe('groupA')
+    expect(app.getShape<GroupShape>('groupA')).toBeDefined()
+    expect(app.getShape<GroupShape>('groupA').children).toStrictEqual(['rect1', 'rect2'])
+    expect(app.getShape('rect1').parentId).toBe('groupA')
+    expect(app.getShape('rect2').parentId).toBe('groupA')
 
-    state.redo()
+    app.redo()
 
-    expect(state.getShape<GroupShape>('groupA')).toBeUndefined()
-    expect(state.getShape('rect1').parentId).toBe('page1')
-    expect(state.getShape('rect2').parentId).toBe('page1')
+    expect(app.getShape<GroupShape>('groupA')).toBeUndefined()
+    expect(app.getShape('rect1').parentId).toBe('page1')
+    expect(app.getShape('rect2').parentId).toBe('page1')
   })
 
   describe('When ungrouping', () => {
     it('Ungroups shapes on any page', () => {
-      state
+      app
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .createPage('page2')
         .ungroup(['groupA'], 'page1')
 
-      expect(state.getShape('groupA', 'page1')).toBeUndefined()
-      state.undo()
-      expect(state.getShape('groupA', 'page1')).toBeDefined()
+      expect(app.getShape('groupA', 'page1')).toBeUndefined()
+      app.undo()
+      expect(app.getShape('groupA', 'page1')).toBeDefined()
     })
 
     it('Ungroups multiple selected groups', () => {
-      state
+      app
         .loadDocument(mockDocument)
         .createShapes({
           id: 'rect4',
-          type: TLDrawShapeType.Rectangle,
+          type: TDShapeType.Rectangle,
         })
         .group(['rect1', 'rect2'], 'groupA')
         .group(['rect3', 'rect4'], 'groupB')
         .selectAll()
         .ungroup()
 
-      expect(state.getShape('groupA', 'page1')).toBeUndefined()
-      expect(state.getShape('groupB', 'page1')).toBeUndefined()
+      expect(app.getShape('groupA', 'page1')).toBeUndefined()
+      expect(app.getShape('groupB', 'page1')).toBeUndefined()
     })
 
     it('Does not ungroup if a group shape is not selected', () => {
-      state.loadDocument(mockDocument).select('rect1')
-      const before = state.state
-      state.group()
+      app.loadDocument(mockDocument).select('rect1')
+      const before = app.state
+      app.group()
       // State should not have changed
-      expect(state.state).toStrictEqual(before)
+      expect(app.state).toStrictEqual(before)
     })
 
     it('Correctly selects children after ungrouping', () => {
-      const state = new TLDrawState()
+      const app = new TldrawTestApp()
         .createShapes(
           {
             id: 'rect1',
-            type: TLDrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 1,
           },
           {
             id: 'rect2',
-            type: TLDrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 2,
           },
           {
             id: 'rect3',
-            type: TLDrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 3,
           }
         )
@@ -88,42 +87,42 @@ describe('Ungroup command', () => {
         .ungroup()
 
       // State should not have changed
-      expect(state.selectedIds).toStrictEqual(['rect3', 'rect1', 'rect2'])
+      expect(app.selectedIds).toStrictEqual(['rect3', 'rect1', 'rect2'])
     })
 
     it('Reparents shapes to the page at the correct childIndex', () => {
-      const state = new TLDrawState()
+      const app = new TldrawTestApp()
         .createShapes(
           {
             id: 'rect1',
-            type: TLDrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 1,
           },
           {
             id: 'rect2',
-            type: TLDrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 2,
           },
           {
             id: 'rect3',
-            type: TLDrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 3,
           }
         )
         .group(['rect1', 'rect2'], 'groupA')
 
-      const { childIndex } = state.getShape<GroupShape>('groupA')
+      const { childIndex } = app.getShape<GroupShape>('groupA')
 
       expect(childIndex).toBe(1)
-      expect(state.getShape('rect1').childIndex).toBe(1)
-      expect(state.getShape('rect2').childIndex).toBe(2)
-      expect(state.getShape('rect3').childIndex).toBe(3)
+      expect(app.getShape('rect1').childIndex).toBe(1)
+      expect(app.getShape('rect2').childIndex).toBe(2)
+      expect(app.getShape('rect3').childIndex).toBe(3)
 
-      state.ungroup()
+      app.ungroup()
 
-      expect(state.getShape('rect1').childIndex).toBe(1)
-      expect(state.getShape('rect2').childIndex).toBe(2)
-      expect(state.getShape('rect3').childIndex).toBe(3)
+      expect(app.getShape('rect1').childIndex).toBe(1)
+      expect(app.getShape('rect2').childIndex).toBe(2)
+      expect(app.getShape('rect3').childIndex).toBe(3)
     })
     it.todo('Deletes any bindings to the group')
   })

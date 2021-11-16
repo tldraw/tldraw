@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { styled } from '~styles'
 import * as RadixContextMenu from '@radix-ui/react-context-menu'
-import { useTLDrawContext } from '~hooks'
-import { TLDrawSnapshot, AlignType, DistributeType, StretchType } from '~types'
+import { useTldrawApp } from '~hooks'
+import { TDSnapshot, AlignType, DistributeType, StretchType } from '~types'
 import {
   AlignBottomIcon,
   AlignCenterHorizontallyIcon,
@@ -21,21 +21,21 @@ import { CMTriggerButton } from './CMTriggerButton'
 import { Divider } from '~components/Divider'
 import { MenuContent } from '~components/MenuContent'
 
-const has1SelectedIdsSelector = (s: TLDrawSnapshot) => {
+const has1SelectedIdsSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 0
 }
-const has2SelectedIdsSelector = (s: TLDrawSnapshot) => {
+const has2SelectedIdsSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 1
 }
-const has3SelectedIdsSelector = (s: TLDrawSnapshot) => {
+const has3SelectedIdsSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 2
 }
 
-const isDebugModeSelector = (s: TLDrawSnapshot) => {
+const isDebugModeSelector = (s: TDSnapshot) => {
   return s.settings.isDebugMode
 }
 
-const hasGroupSelectedSelector = (s: TLDrawSnapshot) => {
+const hasGroupSelectedSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.some(
     (id) => s.document.pages[s.appState.currentPageId].shapes[id].children !== undefined
   )
@@ -49,77 +49,81 @@ interface ContextMenuProps {
 }
 
 export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element => {
-  const { state, useSelector } = useTLDrawContext()
-  const hasSelection = useSelector(has1SelectedIdsSelector)
-  const hasTwoOrMore = useSelector(has2SelectedIdsSelector)
-  const hasThreeOrMore = useSelector(has3SelectedIdsSelector)
-  const isDebugMode = useSelector(isDebugModeSelector)
-  const hasGroupSelected = useSelector(hasGroupSelectedSelector)
+  const app = useTldrawApp()
+  const hasSelection = app.useStore(has1SelectedIdsSelector)
+  const hasTwoOrMore = app.useStore(has2SelectedIdsSelector)
+  const hasThreeOrMore = app.useStore(has3SelectedIdsSelector)
+  const isDebugMode = app.useStore(isDebugModeSelector)
+  const hasGroupSelected = app.useStore(hasGroupSelectedSelector)
 
   const rContent = React.useRef<HTMLDivElement>(null)
 
   const handleFlipHorizontal = React.useCallback(() => {
-    state.flipHorizontal()
-  }, [state])
+    app.flipHorizontal()
+  }, [app])
 
   const handleFlipVertical = React.useCallback(() => {
-    state.flipVertical()
-  }, [state])
+    app.flipVertical()
+  }, [app])
 
   const handleDuplicate = React.useCallback(() => {
-    state.duplicate()
-  }, [state])
+    app.duplicate()
+  }, [app])
+
+  const handleLock = React.useCallback(() => {
+    app.toggleLocked()
+  }, [app])
 
   const handleGroup = React.useCallback(() => {
-    state.group()
-  }, [state])
+    app.group()
+  }, [app])
 
   const handleMoveToBack = React.useCallback(() => {
-    state.moveToBack()
-  }, [state])
+    app.moveToBack()
+  }, [app])
 
   const handleMoveBackward = React.useCallback(() => {
-    state.moveBackward()
-  }, [state])
+    app.moveBackward()
+  }, [app])
 
   const handleMoveForward = React.useCallback(() => {
-    state.moveForward()
-  }, [state])
+    app.moveForward()
+  }, [app])
 
   const handleMoveToFront = React.useCallback(() => {
-    state.moveToFront()
-  }, [state])
+    app.moveToFront()
+  }, [app])
 
   const handleDelete = React.useCallback(() => {
-    state.delete()
-  }, [state])
+    app.delete()
+  }, [app])
 
   const handleCopyJson = React.useCallback(() => {
-    state.copyJson()
-  }, [state])
+    app.copyJson()
+  }, [app])
 
   const handleCopy = React.useCallback(() => {
-    state.copy()
-  }, [state])
+    app.copy()
+  }, [app])
 
   const handlePaste = React.useCallback(() => {
-    state.paste()
-  }, [state])
+    app.paste()
+  }, [app])
 
   const handleCopySvg = React.useCallback(() => {
-    state.copySvg()
-  }, [state])
+    app.copySvg()
+  }, [app])
 
   const handleUndo = React.useCallback(() => {
-    state.undo()
-  }, [state])
+    app.undo()
+  }, [app])
 
   const handleRedo = React.useCallback(() => {
-    state.redo()
-  }, [state])
+    app.redo()
+  }, [app])
 
   return (
-    <RadixContextMenu.Root>
+    <RadixContextMenu.Root dir="ltr">
       <RadixContextMenu.Trigger dir="ltr">{children}</RadixContextMenu.Trigger>
       <RadixContextMenu.Content
         dir="ltr"
@@ -132,38 +136,41 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
         <MenuContent>
           {hasSelection ? (
             <>
-              <CMRowButton onSelect={handleFlipHorizontal} kbd="⇧H">
+              <CMRowButton onClick={handleDuplicate} kbd="#D">
+                Duplicate
+              </CMRowButton>
+              <CMRowButton onClick={handleFlipHorizontal} kbd="⇧H">
                 Flip Horizontal
               </CMRowButton>
-              <CMRowButton onSelect={handleFlipVertical} kbd="⇧V">
+              <CMRowButton onClick={handleFlipVertical} kbd="⇧V">
                 Flip Vertical
               </CMRowButton>
-              <CMRowButton onSelect={handleDuplicate} kbd="#D">
-                Duplicate
+              <CMRowButton onClick={handleLock} kbd="#⇧L">
+                Lock / Unlock
               </CMRowButton>
               {(hasTwoOrMore || hasGroupSelected) && <Divider />}
               {hasTwoOrMore && (
-                <CMRowButton onSelect={handleGroup} kbd="#G">
+                <CMRowButton onClick={handleGroup} kbd="#G">
                   Group
                 </CMRowButton>
               )}
               {hasGroupSelected && (
-                <CMRowButton onSelect={handleGroup} kbd="#⇧G">
+                <CMRowButton onClick={handleGroup} kbd="#⇧G">
                   Ungroup
                 </CMRowButton>
               )}
               <Divider />
               <ContextMenuSubMenu label="Move">
-                <CMRowButton onSelect={handleMoveToFront} kbd="⇧]">
+                <CMRowButton onClick={handleMoveToFront} kbd="⇧]">
                   To Front
                 </CMRowButton>
-                <CMRowButton onSelect={handleMoveForward} kbd="]">
+                <CMRowButton onClick={handleMoveForward} kbd="]">
                   Forward
                 </CMRowButton>
-                <CMRowButton onSelect={handleMoveBackward} kbd="[">
+                <CMRowButton onClick={handleMoveBackward} kbd="[">
                   Backward
                 </CMRowButton>
-                <CMRowButton onSelect={handleMoveToBack} kbd="⇧[">
+                <CMRowButton onClick={handleMoveToBack} kbd="⇧[">
                   To Back
                 </CMRowButton>
               </ContextMenuSubMenu>
@@ -175,30 +182,30 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
                 />
               )}
               <Divider />
-              <CMRowButton onSelect={handleCopy} kbd="#C">
+              <CMRowButton onClick={handleCopy} kbd="#C">
                 Copy
               </CMRowButton>
-              <CMRowButton onSelect={handleCopySvg} kbd="⇧#C">
+              <CMRowButton onClick={handleCopySvg} kbd="⇧#C">
                 Copy as SVG
               </CMRowButton>
-              {isDebugMode && <CMRowButton onSelect={handleCopyJson}>Copy as JSON</CMRowButton>}
-              <CMRowButton onSelect={handlePaste} kbd="#V">
+              {isDebugMode && <CMRowButton onClick={handleCopyJson}>Copy as JSON</CMRowButton>}
+              <CMRowButton onClick={handlePaste} kbd="#V">
                 Paste
               </CMRowButton>
               <Divider />
-              <CMRowButton onSelect={handleDelete} kbd="⌫">
+              <CMRowButton onClick={handleDelete} kbd="⌫">
                 Delete
               </CMRowButton>
             </>
           ) : (
             <>
-              <CMRowButton onSelect={handlePaste} kbd="#V">
+              <CMRowButton onClick={handlePaste} kbd="#V">
                 Paste
               </CMRowButton>
-              <CMRowButton onSelect={handleUndo} kbd="#Z">
+              <CMRowButton onClick={handleUndo} kbd="#Z">
                 Undo
               </CMRowButton>
-              <CMRowButton onSelect={handleRedo} kbd="#⇧Z">
+              <CMRowButton onClick={handleRedo} kbd="#⇧Z">
                 Redo
               </CMRowButton>
             </>
@@ -215,84 +222,84 @@ function AlignDistributeSubMenu({
   hasTwoOrMore: boolean
   hasThreeOrMore: boolean
 }) {
-  const { state } = useTLDrawContext()
+  const app = useTldrawApp()
 
   const alignTop = React.useCallback(() => {
-    state.align(AlignType.Top)
-  }, [state])
+    app.align(AlignType.Top)
+  }, [app])
 
   const alignCenterVertical = React.useCallback(() => {
-    state.align(AlignType.CenterVertical)
-  }, [state])
+    app.align(AlignType.CenterVertical)
+  }, [app])
 
   const alignBottom = React.useCallback(() => {
-    state.align(AlignType.Bottom)
-  }, [state])
+    app.align(AlignType.Bottom)
+  }, [app])
 
   const stretchVertically = React.useCallback(() => {
-    state.stretch(StretchType.Vertical)
-  }, [state])
+    app.stretch(StretchType.Vertical)
+  }, [app])
 
   const distributeVertically = React.useCallback(() => {
-    state.distribute(DistributeType.Vertical)
-  }, [state])
+    app.distribute(DistributeType.Vertical)
+  }, [app])
 
   const alignLeft = React.useCallback(() => {
-    state.align(AlignType.Left)
-  }, [state])
+    app.align(AlignType.Left)
+  }, [app])
 
   const alignCenterHorizontal = React.useCallback(() => {
-    state.align(AlignType.CenterHorizontal)
-  }, [state])
+    app.align(AlignType.CenterHorizontal)
+  }, [app])
 
   const alignRight = React.useCallback(() => {
-    state.align(AlignType.Right)
-  }, [state])
+    app.align(AlignType.Right)
+  }, [app])
 
   const stretchHorizontally = React.useCallback(() => {
-    state.stretch(StretchType.Horizontal)
-  }, [state])
+    app.stretch(StretchType.Horizontal)
+  }, [app])
 
   const distributeHorizontally = React.useCallback(() => {
-    state.distribute(DistributeType.Horizontal)
-  }, [state])
+    app.distribute(DistributeType.Horizontal)
+  }, [app])
 
   return (
-    <RadixContextMenu.Root>
+    <RadixContextMenu.Root dir="ltr">
       <CMTriggerButton isSubmenu>Align / Distribute</CMTriggerButton>
       <RadixContextMenu.Content asChild sideOffset={2} alignOffset={-2}>
         <StyledGridContent selectedStyle={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}>
-          <CMIconButton onSelect={alignLeft}>
+          <CMIconButton onClick={alignLeft}>
             <AlignLeftIcon />
           </CMIconButton>
-          <CMIconButton onSelect={alignCenterHorizontal}>
+          <CMIconButton onClick={alignCenterHorizontal}>
             <AlignCenterHorizontallyIcon />
           </CMIconButton>
-          <CMIconButton onSelect={alignRight}>
+          <CMIconButton onClick={alignRight}>
             <AlignRightIcon />
           </CMIconButton>
-          <CMIconButton onSelect={stretchHorizontally}>
+          <CMIconButton onClick={stretchHorizontally}>
             <StretchHorizontallyIcon />
           </CMIconButton>
           {hasThreeOrMore && (
-            <CMIconButton onSelect={distributeHorizontally}>
+            <CMIconButton onClick={distributeHorizontally}>
               <SpaceEvenlyHorizontallyIcon />
             </CMIconButton>
           )}
-          <CMIconButton onSelect={alignTop}>
+          <CMIconButton onClick={alignTop}>
             <AlignTopIcon />
           </CMIconButton>
-          <CMIconButton onSelect={alignCenterVertical}>
+          <CMIconButton onClick={alignCenterVertical}>
             <AlignCenterVerticallyIcon />
           </CMIconButton>
-          <CMIconButton onSelect={alignBottom}>
+          <CMIconButton onClick={alignBottom}>
             <AlignBottomIcon />
           </CMIconButton>
-          <CMIconButton onSelect={stretchVertically}>
+          <CMIconButton onClick={stretchVertically}>
             <StretchVerticallyIcon />
           </CMIconButton>
           {hasThreeOrMore && (
-            <CMIconButton onSelect={distributeVertically}>
+            <CMIconButton onClick={distributeVertically}>
               <SpaceEvenlyVerticallyIcon />
             </CMIconButton>
           )}
@@ -319,13 +326,13 @@ const StyledGridContent = styled(MenuContent, {
 
 /* ------------------ Move to Page ------------------ */
 
-const currentPageIdSelector = (s: TLDrawSnapshot) => s.appState.currentPageId
-const documentPagesSelector = (s: TLDrawSnapshot) => s.document.pages
+const currentPageIdSelector = (s: TDSnapshot) => s.appState.currentPageId
+const documentPagesSelector = (s: TDSnapshot) => s.document.pages
 
 function MoveToPageMenu(): JSX.Element | null {
-  const { state, useSelector } = useTLDrawContext()
-  const currentPageId = useSelector(currentPageIdSelector)
-  const documentPages = useSelector(documentPagesSelector)
+  const app = useTldrawApp()
+  const currentPageId = app.useStore(currentPageIdSelector)
+  const documentPages = app.useStore(documentPagesSelector)
 
   const sorted = Object.values(documentPages)
     .sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
@@ -342,7 +349,7 @@ function MoveToPageMenu(): JSX.Element | null {
             <CMRowButton
               key={id}
               disabled={id === currentPageId}
-              onSelect={() => state.moveToPage(id)}
+              onClick={() => app.moveToPage(id)}
             >
               {name || `Page ${i}`}
             </CMRowButton>

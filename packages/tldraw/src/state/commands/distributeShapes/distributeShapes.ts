@@ -1,36 +1,34 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
-import { DistributeType, TLDrawShape, TLDrawSnapshot, TLDrawCommand, TLDrawShapeType } from '~types'
+import { DistributeType, TDShape, TldrawCommand, TDShapeType } from '~types'
 import { TLDR } from '~state/TLDR'
 import Vec from '@tldraw/vec'
+import type { TldrawApp } from '../../internal'
 
 export function distributeShapes(
-  data: TLDrawSnapshot,
+  app: TldrawApp,
   ids: string[],
   type: DistributeType
-): TLDrawCommand {
-  const { currentPageId } = data.appState
+): TldrawCommand {
+  const { currentPageId } = app
 
-  const initialShapes = ids.map((id) => TLDR.getShape(data, id, currentPageId))
+  const initialShapes = ids.map((id) => app.getShape(id))
 
   const deltaMap = Object.fromEntries(getDistributions(initialShapes, type).map((d) => [d.id, d]))
 
   const { before, after } = TLDR.mutateShapes(
-    data,
-    ids,
-    (shape) => {
-      if (!deltaMap[shape.id]) return shape
-      return { point: deltaMap[shape.id].next }
-    },
+    app.state,
+    ids.filter((id) => deltaMap[id] !== undefined),
+    (shape) => ({ point: deltaMap[shape.id].next }),
     currentPageId
   )
 
   initialShapes.forEach((shape) => {
-    if (shape.type === TLDrawShapeType.Group) {
+    if (shape.type === TDShapeType.Group) {
       const delta = Vec.sub(after[shape.id].point!, before[shape.id].point!)
 
       shape.children.forEach((id) => {
-        const child = TLDR.getShape(data, id, currentPageId)
+        const child = app.getShape(id)
         before[child.id] = { point: child.point }
         after[child.id] = { point: Vec.add(child.point, delta) }
       })
@@ -69,9 +67,9 @@ export function distributeShapes(
   }
 }
 
-function getDistributions(initialShapes: TLDrawShape[], type: DistributeType) {
+function getDistributions(initialShapes: TDShape[], type: DistributeType) {
   const entries = initialShapes.map((shape) => {
-    const utils = TLDR.getShapeUtils(shape)
+    const utils = TLDR.getShapeUtil(shape)
     return {
       id: shape.id,
       point: [...shape.point],

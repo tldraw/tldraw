@@ -1,36 +1,25 @@
-import {
-  ShapeStyles,
-  TLDrawCommand,
-  TLDrawSnapshot,
-  TLDrawShape,
-  TLDrawShapeType,
-  TextShape,
-} from '~types'
+import { ShapeStyles, TldrawCommand, TDShape, TDShapeType, TextShape } from '~types'
 import { TLDR } from '~state/TLDR'
-import type { Patch } from 'rko'
 import Vec from '@tldraw/vec'
+import type { Patch } from 'rko'
+import type { TldrawApp } from '../../internal'
 
 export function styleShapes(
-  data: TLDrawSnapshot,
+  app: TldrawApp,
   ids: string[],
   changes: Partial<ShapeStyles>
-): TLDrawCommand {
-  const { currentPageId } = data.appState
+): TldrawCommand {
+  const { currentPageId, selectedIds } = app
 
-  const shapeIdsToMutate = ids.flatMap((id) => TLDR.getDocumentBranch(data, id, currentPageId))
+  const shapeIdsToMutate = ids
+    .flatMap((id) => TLDR.getDocumentBranch(app.state, id, currentPageId))
+    .filter((id) => !app.getShape(id).isLocked)
 
-  // const { before, after } = TLDR.mutateShapes(
-  //   data,
-  //   shapeIdsToMutate,
-  //   (shape) => ({ style: { ...shape.style, ...changes } }),
-  //   currentPageId
-  // )
-
-  const beforeShapes: Record<string, Patch<TLDrawShape>> = {}
-  const afterShapes: Record<string, Patch<TLDrawShape>> = {}
+  const beforeShapes: Record<string, Patch<TDShape>> = {}
+  const afterShapes: Record<string, Patch<TDShape>> = {}
 
   shapeIdsToMutate
-    .map((id) => TLDR.getShape(data, id, currentPageId))
+    .map((id) => app.getShape(id))
     .filter((shape) => !shape.isLocked)
     .forEach((shape) => {
       beforeShapes[shape.id] = {
@@ -45,14 +34,14 @@ export function styleShapes(
         style: changes,
       }
 
-      if (shape.type === TLDrawShapeType.Text) {
+      if (shape.type === TDShapeType.Text) {
         beforeShapes[shape.id].point = shape.point
         afterShapes[shape.id].point = Vec.round(
           Vec.add(
             shape.point,
             Vec.sub(
-              TLDR.getShapeUtils(shape).getCenter(shape),
-              TLDR.getShapeUtils(shape).getCenter({
+              app.getShapeUtil(shape).getCenter(shape),
+              app.getShapeUtil(shape).getCenter({
                 ...shape,
                 style: { ...shape.style, ...changes },
               } as TextShape)
@@ -73,12 +62,12 @@ export function styleShapes(
         },
         pageStates: {
           [currentPageId]: {
-            selectedIds: ids,
+            selectedIds: selectedIds,
           },
         },
       },
       appState: {
-        currentStyle: { ...data.appState.currentStyle },
+        currentStyle: { ...app.appState.currentStyle },
       },
     },
     after: {
@@ -95,7 +84,7 @@ export function styleShapes(
         },
       },
       appState: {
-        currentStyle: { ...data.appState.currentStyle, ...changes },
+        currentStyle: changes,
       },
     },
   }

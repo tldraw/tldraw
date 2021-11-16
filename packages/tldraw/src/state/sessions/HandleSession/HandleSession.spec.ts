@@ -1,39 +1,38 @@
-import { TLDrawState } from '~state'
-import { mockDocument } from '~test'
-import { SessionType, TLDrawShapeType, TLDrawStatus } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { SessionType, TDShapeType, TDStatus } from '~types'
 
 describe('Handle session', () => {
-  const state = new TLDrawState()
-
   it('begins, updateSession', () => {
-    state
+    const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .createShapes({
         id: 'arrow1',
-        type: TLDrawShapeType.Arrow,
+        type: TDShapeType.Arrow,
       })
       .select('arrow1')
-      .startSession(SessionType.Arrow, [-10, -10], 'end')
-      .updateSession([10, 10])
+      .movePointer([-10, -10])
+      .startSession(SessionType.Arrow, 'arrow1', 'end')
+      .movePointer([10, 10])
       .completeSession()
 
-    expect(state.appState.status).toBe(TLDrawStatus.Idle)
+    expect(app.status).toBe(TDStatus.Idle)
 
-    state.undo().redo()
+    app.undo().redo()
   })
 
   it('cancels session', () => {
-    state
+    const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .createShapes({
-        type: TLDrawShapeType.Arrow,
+        type: TDShapeType.Arrow,
         id: 'arrow1',
       })
       .select('arrow1')
-      .startSession(SessionType.Arrow, [-10, -10], 'end')
-      .updateSession([10, 10])
+      .movePointer([-10, -10])
+      .startSession(SessionType.Arrow, 'arrow1', 'end')
+      .movePointer([10, 10])
       .cancelSession()
 
-    expect(state.getShape('rect1').point).toStrictEqual([0, 0])
+    expect(app.getShape('rect1').point).toStrictEqual([0, 0])
   })
 })

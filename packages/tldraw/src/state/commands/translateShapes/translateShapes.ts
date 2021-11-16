@@ -1,16 +1,13 @@
 import { Vec } from '@tldraw/vec'
-import { TLDrawSnapshot, TLDrawCommand, PagePartial, Session } from '~types'
 import { TLDR } from '~state/TLDR'
+import type { TldrawCommand, PagePartial } from '~types'
+import type { TldrawApp } from '../../internal'
 
-export function translateShapes(
-  data: TLDrawSnapshot,
-  ids: string[],
-  delta: number[]
-): TLDrawCommand {
-  const { currentPageId } = data.appState
+export function translateShapes(app: TldrawApp, ids: string[], delta: number[]): TldrawCommand {
+  const { currentPageId, selectedIds } = app
 
   // Clear session cache
-  Session.cache.selectedIds = TLDR.getSelectedIds(data, data.appState.currentPageId)
+  app.rotationInfo.selectedIds = [...selectedIds]
 
   const before: PagePartial = {
     shapes: {},
@@ -22,13 +19,15 @@ export function translateShapes(
     bindings: {},
   }
 
-  const idsToMutate = ids.flatMap((id) => {
-    const shape = TLDR.getShape(data, id, currentPageId)
-    return shape.children ? shape.children : shape.id
-  })
+  const idsToMutate = ids
+    .flatMap((id) => {
+      const shape = app.getShape(id)
+      return shape.children ? shape.children : shape.id
+    })
+    .filter((id) => !app.getShape(id).isLocked)
 
   const change = TLDR.mutateShapes(
-    data,
+    app.state,
     idsToMutate,
     (shape) => ({
       point: Vec.round(Vec.add(shape.point, delta)),
@@ -40,7 +39,7 @@ export function translateShapes(
   after.shapes = change.after
 
   // Delete bindings from nudged shapes, unless both bound and bound-to shapes are selected
-  const bindingsToDelete = TLDR.getBindings(data, currentPageId).filter(
+  const bindingsToDelete = TLDR.getBindings(app.state, currentPageId).filter(
     (binding) => ids.includes(binding.fromId) && !ids.includes(binding.toId)
   )
 
@@ -50,7 +49,7 @@ export function translateShapes(
 
     for (const id of [binding.toId, binding.fromId]) {
       // Let's also look at the bound shape...
-      const shape = TLDR.getShape(data, id, data.appState.currentPageId)
+      const shape = app.getShape(id)
 
       if (!shape.handles) continue
 

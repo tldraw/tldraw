@@ -12,3 +12,5 @@ coverage
 www/public/worker-*
 www/public/sw.js
 www/public/sw.js.map
+
+.vercel

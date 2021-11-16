@@ -1,18 +1,18 @@
 import * as React from 'react'
 import { Tooltip } from '~components/Tooltip'
-import { useTLDrawContext } from '~hooks'
+import { useTldrawApp } from '~hooks'
 import { ToolButton } from '~components/ToolButton'
 import { TrashIcon } from '~components/icons'
 
 export function DeleteButton(): JSX.Element {
-  const { state } = useTLDrawContext()
+  const app = useTldrawApp()
 
   const handleDelete = React.useCallback(() => {
-    state.delete()
-  }, [state])
+    app.delete()
+  }, [app])
 
   return (
-    <Tooltip label="Delete" kbd="7">
+    <Tooltip label="Delete" kbd="⌫">
       <ToolButton variant="circle" onSelect={handleDelete}>
         <TrashIcon />
       </ToolButton>

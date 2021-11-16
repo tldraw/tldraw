@@ -1,73 +1,70 @@
-import { TLDrawState } from '~state'
 import { TLDR } from '~state/TLDR'
-import { mockDocument } from '~test'
-import { SizeStyle, TLDrawShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { SizeStyle, TDShapeType } from '~types'
 
 describe('Style command', () => {
   it('does, undoes and redoes command', () => {
-    const state = new TLDrawState()
-    state.loadDocument(mockDocument)
-    state.select('rect1')
-    expect(state.getShape('rect1').style.size).toEqual(SizeStyle.Medium)
+    const app = new TldrawTestApp().loadDocument(mockDocument).select('rect1')
+    expect(app.getShape('rect1').style.size).toEqual(SizeStyle.Medium)
 
-    state.style({ size: SizeStyle.Small })
+    app.style({ size: SizeStyle.Small })
 
-    expect(state.getShape('rect1').style.size).toEqual(SizeStyle.Small)
+    expect(app.getShape('rect1').style.size).toEqual(SizeStyle.Small)
 
-    state.undo()
+    app.undo()
 
-    expect(state.getShape('rect1').style.size).toEqual(SizeStyle.Medium)
+    expect(app.getShape('rect1').style.size).toEqual(SizeStyle.Medium)
 
-    state.redo()
+    app.redo()
 
-    expect(state.getShape('rect1').style.size).toEqual(SizeStyle.Small)
+    expect(app.getShape('rect1').style.size).toEqual(SizeStyle.Small)
   })
 
   describe('When styling groups', () => {
     it('applies style to all group children', () => {
-      const state = new TLDrawState()
-      state
+      const app = new TldrawTestApp()
+      app
         .loadDocument(mockDocument)
         .group(['rect1', 'rect2'], 'groupA')
         .select('groupA')
         .style({ size: SizeStyle.Small })
 
-      expect(state.getShape('rect1').style.size).toEqual(SizeStyle.Small)
-      expect(state.getShape('rect2').style.size).toEqual(SizeStyle.Small)
+      expect(app.getShape('rect1').style.size).toEqual(SizeStyle.Small)
+      expect(app.getShape('rect2').style.size).toEqual(SizeStyle.Small)
 
-      state.undo()
+      app.undo()
 
-      expect(state.getShape('rect1').style.size).toEqual(SizeStyle.Medium)
-      expect(state.getShape('rect2').style.size).toEqual(SizeStyle.Medium)
+      expect(app.getShape('rect1').style.size).toEqual(SizeStyle.Medium)
+      expect(app.getShape('rect2').style.size).toEqual(SizeStyle.Medium)
 
-      state.redo()
+      app.redo()
 
-      expect(state.getShape('rect1').style.size).toEqual(SizeStyle.Small)
-      expect(state.getShape('rect2').style.size).toEqual(SizeStyle.Small)
+      expect(app.getShape('rect1').style.size).toEqual(SizeStyle.Small)
+      expect(app.getShape('rect2').style.size).toEqual(SizeStyle.Small)
     })
   })
 
   describe('When styling text', () => {
     it('recenters the shape if the size changed', () => {
-      const state = new TLDrawState().createShapes({
+      const app = new TldrawTestApp().createShapes({
         id: 'text1',
-        type: TLDrawShapeType.Text,
+        type: TDShapeType.Text,
         text: 'Hello world',
       })
 
-      const centerA = TLDR.getShapeUtils(TLDrawShapeType.Text).getCenter(state.getShape('text1'))
+      const centerA = TLDR.getShapeUtil(TDShapeType.Text).getCenter(app.getShape('text1'))
 
-      state.select('text1').style({ size: SizeStyle.Large })
+      app.select('text1').style({ size: SizeStyle.Large })
 
-      const centerB = TLDR.getShapeUtils(TLDrawShapeType.Text).getCenter(state.getShape('text1'))
+      const centerB = TLDR.getShapeUtil(TDShapeType.Text).getCenter(app.getShape('text1'))
 
-      state.style({ size: SizeStyle.Small })
+      app.style({ size: SizeStyle.Small })
 
-      const centerC = TLDR.getShapeUtils(TLDrawShapeType.Text).getCenter(state.getShape('text1'))
+      const centerC = TLDR.getShapeUtil(TDShapeType.Text).getCenter(app.getShape('text1'))
 
-      state.style({ size: SizeStyle.Medium })
+      app.style({ size: SizeStyle.Medium })
 
-      const centerD = TLDR.getShapeUtils(TLDrawShapeType.Text).getCenter(state.getShape('text1'))
+      const centerD = TLDR.getShapeUtil(TDShapeType.Text).getCenter(app.getShape('text1'))
 
       expect(centerA).toEqual(centerB)
       expect(centerA).toEqual(centerC)
@@ -78,17 +75,17 @@ describe('Style command', () => {
 
 describe('when running the command', () => {
   it('restores selection on undo', () => {
-    const state = new TLDrawState()
+    const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .select('rect1')
       .style({ size: SizeStyle.Small })
       .selectNone()
       .undo()
 
-    expect(state.selectedIds).toEqual(['rect1'])
+    expect(app.selectedIds).toEqual(['rect1'])
 
-    state.selectNone().redo()
+    app.selectNone().redo()
 
-    expect(state.selectedIds).toEqual(['rect1'])
+    expect(app.selectedIds).toEqual(['rect1'])
   })
 })

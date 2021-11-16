@@ -1,19 +1,18 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import type { ArrowShape, TLDrawSnapshot, PagePartial, TLDrawCommand, TLDrawShape } from '~types'
+import type { ArrowShape, PagePartial, TldrawCommand, TDShape } from '~types'
+import type { TldrawApp } from '../../internal'
 import { TLDR } from '~state/TLDR'
 import { Utils, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 
 export function moveShapesToPage(
-  data: TLDrawSnapshot,
+  app: TldrawApp,
   ids: string[],
   viewportBounds: TLBounds,
   fromPageId: string,
   toPageId: string
-): TLDrawCommand {
-  const { currentPageId } = data.appState
-
-  const page = TLDR.getPage(data, currentPageId)
+): TldrawCommand {
+  const { page } = app
 
   const fromPage: Record<string, PagePartial> = {
     before: {
@@ -39,23 +38,24 @@ export function moveShapesToPage(
 
   // Collect all the shapes to move and their keys.
   const movingShapeIds = new Set<string>()
-  const shapesToMove = new Set<TLDrawShape>()
+  const shapesToMove = new Set<TDShape>()
 
   ids
-    .map((id) => TLDR.getShape(data, id, fromPageId))
+    .map((id) => app.getShape(id, fromPageId))
+    .filter((shape) => !shape.isLocked)
     .forEach((shape) => {
       movingShapeIds.add(shape.id)
       shapesToMove.add(shape)
       if (shape.children !== undefined) {
         shape.children.forEach((childId) => {
           movingShapeIds.add(childId)
-          shapesToMove.add(TLDR.getShape(data, childId, fromPageId))
+          shapesToMove.add(app.getShape(childId, fromPageId))
         })
       }
     })
 
   // Where should we put start putting shapes on the "to" page?
-  const startingChildIndex = TLDR.getTopChildIndex(data, toPageId)
+  const startingChildIndex = TLDR.getTopChildIndex(app.state, toPageId)
 
   // Which shapes are we moving?
   const movingShapes = Array.from(shapesToMove.values())
@@ -81,7 +81,7 @@ export function moveShapesToPage(
       // If the shape was in a group, then pull the shape from the
       // parent's children array.
       if (shape.parentId !== fromPageId) {
-        const parent = TLDR.getShape(data, shape.parentId, fromPageId)
+        const parent = app.getShape(shape.parentId, fromPageId)
         fromPage.before.shapes[parent.id] = {
           children: parent.children,
         }
@@ -104,7 +104,7 @@ export function moveShapesToPage(
 
       // Delete the reference from the binding's fromShape
 
-      const fromBoundShape = TLDR.getShape(data, binding.fromId, fromPageId)
+      const fromBoundShape = app.getShape(binding.fromId, fromPageId)
 
       // Will we be copying this binding to the new page?
 
@@ -118,7 +118,7 @@ export function moveShapesToPage(
         if (movingShapeIds.has(binding.fromId)) {
           // If we are only moving the "from" shape, we need to delete
           // the binding reference from the "from" shapes handles
-          const fromShape = TLDR.getShape(data, binding.fromId, fromPageId)
+          const fromShape = app.getShape(binding.fromId, fromPageId)
           const handle = Object.values(fromBoundShape.handles!).find(
             (handle) => handle.bindingId === binding.id
           )!
@@ -139,7 +139,7 @@ export function moveShapesToPage(
         } else {
           // If we are only moving the "to" shape, we need to delete
           // the binding reference from the "from" shape's handles
-          const fromShape = TLDR.getShape(data, binding.fromId, fromPageId)
+          const fromShape = app.getShape(binding.fromId, fromPageId)
           const handle = Object.values(fromBoundShape.handles!).find(
             (handle) => handle.bindingId === binding.id
           )!
@@ -157,7 +157,7 @@ export function moveShapesToPage(
 
   // Finally, center camera on selection
 
-  const toPageState = data.document.pageStates[toPageId]
+  const toPageState = app.state.document.pageStates[toPageId]
 
   const bounds = Utils.getCommonBounds(movingShapes.map((shape) => TLDR.getBounds(shape)))
 

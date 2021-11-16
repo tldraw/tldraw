@@ -3,15 +3,20 @@ import { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/client'
 import Head from 'next/head'
 
-const Editor = dynamic(() => import('components/editor'), { ssr: false })
+const Editor = dynamic(() => import('-components/Editor'), { ssr: false })
 
-export default function Shhh(): JSX.Element {
+interface PageProps {
+  isUser: boolean
+  isSponsor: boolean
+}
+
+export default function Home({ isUser, isSponsor }: PageProps): JSX.Element {
   return (
     <>
       <Head>
-        <title>tldraw</title>
+        <title>Tldraw</title>
       </Head>
-      <Editor id="home" />
+      <Editor id="home" isUser={isUser} isSponsor={isSponsor} />
     </>
   )
 }
@@ -19,14 +24,10 @@ export default function Shhh(): JSX.Element {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession(context)
 
-  if (!session?.user && process.env.NODE_ENV !== 'development') {
-    context.res.setHeader('Location', `/sponsorware`)
-    context.res.statusCode = 307
-  }
-
   return {
     props: {
-      session,
+      isUser: false,
+      isSponsor: session?.user ? true : false,
     },
   }
 }
