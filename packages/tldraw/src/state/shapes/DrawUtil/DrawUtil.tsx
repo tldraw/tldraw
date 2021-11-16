@@ -75,7 +75,13 @@ export class DrawUtil extends TDShapeUtil<T, E> {
 
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-          <circle r={sw} fill={stroke} stroke={stroke} pointerEvents="all" />
+          <circle
+            r={sw}
+            fill={stroke}
+            stroke={stroke}
+            pointerEvents="all"
+            opacity={isGhost ? GHOSTED_OPACITY : 1}
+          />
         </SVGContainer>
       )
     }
@@ -247,11 +253,20 @@ export class DrawUtil extends TDShapeUtil<T, E> {
     )
   }
 
+  hitTestPoint = (shape: T, point: number[]) => {
+    const ptA = Vec.sub(point, shape.point)
+    return Utils.pointInPolyline(ptA, shape.points)
+  }
+
   hitTestLineSegment = (shape: T, A: number[], B: number[]): boolean => {
     const { points, point } = shape
     const ptA = Vec.sub(A, point)
     const ptB = Vec.sub(B, point)
     const bounds = this.getBounds(shape)
+
+    if (points.length <= 2) {
+      return Vec.distanceToLineSegment(A, B, shape.point) < 4
+    }
 
     if (intersectLineSegmentBounds(ptA, ptB, bounds)) {
       for (let i = 1; i < points.length; i++) {

@@ -38,13 +38,27 @@ export class EraseTool extends BaseTool {
   }
 
   onPointerUp: TLPointerEventHandler = () => {
-    if (this.status === Status.Erasing) {
-      this.app.completeSession()
+    switch (this.status) {
+      case Status.Pointing: {
+        const shapeIdsAtPoint = this.app.shapes
+          .filter((shape) => !shape.isLocked)
+          .filter((shape) =>
+            this.app.getShapeUtil(shape).hitTestPoint(shape, this.app.currentPoint)
+          )
+          .flatMap((shape) => (shape.children ? [shape.id, ...shape.children] : shape.id))
 
-      if (this.previous) {
-        this.app.selectTool(this.previous)
-      } else {
-        this.app.selectTool('select')
+        this.app.delete(shapeIdsAtPoint)
+
+        break
+      }
+      case Status.Erasing: {
+        this.app.completeSession()
+
+        if (this.previous) {
+          this.app.selectTool(this.previous)
+        } else {
+          this.app.selectTool('select')
+        }
       }
     }
 
