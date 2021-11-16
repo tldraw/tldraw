@@ -48,7 +48,7 @@ function App() {
 
 ### Controlling the Component through Props
 
-You can control the `tldraw` component through its props.
+You can control the `<Tldraw/>` component through its props.
 
 ```tsx
 import { Tldraw, TDDocument } from '@tldraw/tldraw'
@@ -62,31 +62,31 @@ function App() {
 
 ### Controlling the Component through the tldrawApp API
 
-You can also control the `tldraw` component imperatively through the `tldrawApp` API.
+You can also control the `<Tldraw/>` component imperatively through the `TldrawApp` API.
 
 ```tsx
 import { Tldraw, tldrawApp } from '@tldraw/tldraw'
 
 function App() {
-  const handleMount = React.useCallback((state: tldrawApp) => {
-    state.selectAll()
+  const handleMount = React.useCallback((app: TldrawApp) => {
+    app.selectAll()
   }, [])
 
   return <Tldraw onMount={handleMount} />
 }
 ```
 
-Internally, the `tldraw` component's user interface uses this API to make changes to the component's state. See the `tldrawApp` section of the [documentation](guides/documentation) for more on this API.
+Internally, the `<Tldraw/>` component's user interface uses this API to make changes to the component's state. See the `tldrawApp` section of the [documentation](guides/documentation) for more on this API.
 
 ### Responding to Changes
 
 You can respond to changes and user actions using the `onChange` callback. For more specific changes, you can also use the `onPatch`, `onCommand`, or `onPersist` callbacks. See the [documentation](guides/documentation) for more.
 
 ```tsx
-import { Tldraw, tldrawApp } from '@tldraw/tldraw'
+import { Tldraw, TldrawApp } from '@tldraw/tldraw'
 
 function App() {
-  const handleChange = React.useCallback((state: tldrawApp, reason: string) => {
+  const handleChange = React.useCallback((app: TldrawApp, reason: string) => {
     // Do something with the change
   }, [])
 

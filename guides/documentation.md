@@ -206,8 +206,8 @@ You can change the `tldraw` component's state through an imperative API called `
 import { Tldraw, TldrawApp } from '@tldraw/tldraw'
 
 function App() {
-  const handleMount = React.useCallback((state: TldrawApp) => {
-    state.selectAll()
+  const handleMount = React.useCallback((app: TldrawApp) => {
+    app.selectAll()
   }, [])
 
   return <Tldraw onMount={handleMount} />
