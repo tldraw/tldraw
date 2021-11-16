@@ -11,7 +11,7 @@ export default function Sponsorware(): JSX.Element {
   return (
     <>
       <Head>
-        <title>Tldraw</title>
+        <title>tldraw</title>
       </Head>
       <StyledOuterContent>
         <StyledContent

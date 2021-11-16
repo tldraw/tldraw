@@ -14,7 +14,7 @@ export default function Home({ isUser, isSponsor }: PageProps): JSX.Element {
   return (
     <>
       <Head>
-        <title>Tldraw</title>
+        <title>tldraw</title>
       </Head>
       <Editor id="home" isUser={isUser} isSponsor={isSponsor} />
     </>
