@@ -28,7 +28,7 @@ export const ColorMenu = React.memo(function ColorMenu(): JSX.Element {
             <ToolButton
               variant="icon"
               isActive={color === colorStyle}
-              onClick={() => state.style({ color: colorStyle as ColorStyle })}
+              onClick={() => app.style({ color: colorStyle as ColorStyle })}
             >
               <BoxIcon
                 fill={strokes[theme][colorStyle as ColorStyle]}

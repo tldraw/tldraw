@@ -30,7 +30,7 @@ export const SizeMenu = React.memo(function SizeMenu(): JSX.Element {
             <ToolButton
               isActive={size === sizeStyle}
               variant="icon"
-              onClick={() => state.style({ size: sizeStyle as SizeStyle })}
+              onClick={() => app.style({ size: sizeStyle as SizeStyle })}
             >
               {sizes[sizeStyle as SizeStyle]}
             </ToolButton>

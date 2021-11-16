@@ -13,7 +13,7 @@ export const FillCheckbox = React.memo(function FillCheckbox(): JSX.Element {
   const isFilled = app.useStore(isFilledSelector)
 
   const handleIsFilledChange = React.useCallback(
-    (isFilled: boolean) => state.style({ isFilled }),
+    (isFilled: boolean) => app.style({ isFilled }),
     [app]
   )
 

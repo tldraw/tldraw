@@ -11,31 +11,31 @@ export function PreferencesMenu() {
   const settings = app.useStore(settingsSelector)
 
   const toggleDebugMode = React.useCallback(() => {
-    state.setSetting('isDebugMode', (v) => !v)
+    app.setSetting('isDebugMode', (v) => !v)
   }, [app])
 
   const toggleDarkMode = React.useCallback(() => {
-    state.setSetting('isDarkMode', (v) => !v)
+    app.setSetting('isDarkMode', (v) => !v)
   }, [app])
 
   const toggleFocusMode = React.useCallback(() => {
-    state.setSetting('isFocusMode', (v) => !v)
+    app.setSetting('isFocusMode', (v) => !v)
   }, [app])
 
   const toggleRotateHandle = React.useCallback(() => {
-    state.setSetting('showRotateHandles', (v) => !v)
+    app.setSetting('showRotateHandles', (v) => !v)
   }, [app])
 
   const toggleBoundShapesHandle = React.useCallback(() => {
-    state.setSetting('showBindingHandles', (v) => !v)
+    app.setSetting('showBindingHandles', (v) => !v)
   }, [app])
 
   const toggleisSnapping = React.useCallback(() => {
-    state.setSetting('isSnapping', (v) => !v)
+    app.setSetting('isSnapping', (v) => !v)
   }, [app])
 
   const toggleCloneControls = React.useCallback(() => {
-    state.setSetting('showCloneHandles', (v) => !v)
+    app.setSetting('showCloneHandles', (v) => !v)
   }, [app])
 
   return (

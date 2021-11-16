@@ -30,13 +30,13 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
   const rInput = React.useRef<HTMLInputElement>(null)
 
   const handleDuplicate = React.useCallback(() => {
-    state.duplicatePage(page.id)
+    app.duplicatePage(page.id)
     onClose?.()
   }, [app])
 
   const handleDelete = React.useCallback(() => {
     if (window.confirm(`Are you sure you want to delete this page?`)) {
-      state.deletePage(page.id)
+      app.deletePage(page.id)
       onClose?.()
     }
   }, [app])
@@ -50,7 +50,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
         return
       }
     },
-    [state, name]
+    [app]
   )
 
   function stopPropagation(e: React.KeyboardEvent<HTMLDivElement>) {
@@ -60,7 +60,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
   // TODO: Replace with text input
   function handleRename() {
     const nextName = window.prompt('New name:', page.name)
-    state.renamePage(page.id, nextName || page.name || 'Page')
+    app.renamePage(page.id, nextName || page.name || 'Page')
   }
 
   React.useEffect(() => {

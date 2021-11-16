@@ -31,7 +31,7 @@ export const DashMenu = React.memo(function DashMenu(): JSX.Element {
             <ToolButton
               variant="icon"
               isActive={dash === dashStyle}
-              onClick={() => state.style({ dash: dashStyle as DashStyle })}
+              onClick={() => app.style({ dash: dashStyle as DashStyle })}
             >
               {dashes[dashStyle as DashStyle]}
             </ToolButton>
