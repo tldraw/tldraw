@@ -8,7 +8,7 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": false,
     "importHelpers": true,
     "importsNotUsedAsValues": "error",
     "resolveJsonModule": true,
