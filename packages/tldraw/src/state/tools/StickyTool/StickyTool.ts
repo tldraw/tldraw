@@ -2,11 +2,11 @@ import Vec from '@tldraw/vec'
 import type { TLPointerEventHandler } from '@tldraw/core'
 import { Utils } from '@tldraw/core'
 import { Sticky } from '~state/shapes'
-import { SessionType, TldrawShapeType } from '~types'
+import { SessionType, TDShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class StickyTool extends BaseTool {
-  type = TldrawShapeType.Sticky as const
+  type = TDShapeType.Sticky as const
 
   shapeId?: string
 

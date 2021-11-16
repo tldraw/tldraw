@@ -1,12 +1,8 @@
-import type { TldrawShape, TldrawCommand } from '~types'
+import type { TDShape, TldrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
 import type { TldrawApp } from '~state'
 
-export function toggleShapeProp(
-  app: TldrawApp,
-  ids: string[],
-  prop: keyof TldrawShape
-): TldrawCommand {
+export function toggleShapeProp(app: TldrawApp, ids: string[], prop: keyof TDShape): TldrawCommand {
   const { currentPageId } = app
 
   const initialShapes = ids.map((id) => app.getShape(id))

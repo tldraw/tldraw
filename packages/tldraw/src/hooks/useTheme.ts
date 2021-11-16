@@ -1,7 +1,7 @@
-import type { TldrawSnapshot, Theme } from '~types'
+import type { TDSnapshot, Theme } from '~types'
 import { useTldrawApp } from './useTldrawApp'
 
-const themeSelector = (data: TldrawSnapshot): Theme => (data.settings.isDarkMode ? 'dark' : 'light')
+const themeSelector = (data: TDSnapshot): Theme => (data.settings.isDarkMode ? 'dark' : 'light')
 
 export function useTheme() {
   const app = useTldrawApp()

@@ -2,26 +2,26 @@ import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Panel } from '~components/Panel'
 import { ToolButton } from '~components/ToolButton'
-import { TldrawShapeType, TldrawToolType } from '~types'
+import { TDShapeType, TDToolType } from '~types'
 import { useTldrawApp } from '~hooks'
 import { SquareIcon, CircleIcon } from '@radix-ui/react-icons'
 import { Tooltip } from '~components/Tooltip'
 
 interface ShapesMenuProps {
-  activeTool: TldrawToolType
+  activeTool: TDToolType
 }
 
-type ShapeShape = TldrawShapeType.Rectangle | TldrawShapeType.Ellipse
-const shapeShapes: ShapeShape[] = [TldrawShapeType.Rectangle, TldrawShapeType.Ellipse]
+type ShapeShape = TDShapeType.Rectangle | TDShapeType.Ellipse
+const shapeShapes: ShapeShape[] = [TDShapeType.Rectangle, TDShapeType.Ellipse]
 const shapeShapeIcons = {
-  [TldrawShapeType.Rectangle]: <SquareIcon />,
-  [TldrawShapeType.Ellipse]: <CircleIcon />,
+  [TDShapeType.Rectangle]: <SquareIcon />,
+  [TDShapeType.Ellipse]: <CircleIcon />,
 }
 
 export const ShapesMenu = React.memo(function ShapesMenu({ activeTool }: ShapesMenuProps) {
   const app = useTldrawApp()
 
-  const [lastActiveTool, setLastActiveTool] = React.useState<ShapeShape>(TldrawShapeType.Rectangle)
+  const [lastActiveTool, setLastActiveTool] = React.useState<ShapeShape>(TDShapeType.Rectangle)
 
   React.useEffect(() => {
     if (shapeShapes.includes(activeTool as ShapeShape) && lastActiveTool !== activeTool) {

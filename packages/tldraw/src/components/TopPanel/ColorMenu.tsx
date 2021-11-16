@@ -5,11 +5,11 @@ import { useTldrawApp } from '~hooks'
 import { DMContent, DMTriggerIcon } from '~components/DropdownMenu'
 import { BoxIcon, CircleIcon } from '~components/icons'
 import { ToolButton } from '~components/ToolButton'
-import type { TldrawSnapshot, ColorStyle } from '~types'
+import type { TDSnapshot, ColorStyle } from '~types'
 
-const selectColor = (s: TldrawSnapshot) => s.appState.selectedStyle.color
+const selectColor = (s: TDSnapshot) => s.appState.selectedStyle.color
 const preventEvent = (e: Event) => e.preventDefault()
-const themeSelector = (data: TldrawSnapshot) => (data.settings.isDarkMode ? 'dark' : 'light')
+const themeSelector = (data: TDSnapshot) => (data.settings.isDarkMode ? 'dark' : 'light')
 
 export const ColorMenu = React.memo(function ColorMenu(): JSX.Element {
   const app = useTldrawApp()

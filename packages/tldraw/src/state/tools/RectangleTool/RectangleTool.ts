@@ -1,10 +1,10 @@
 import { Utils, TLPointerEventHandler, TLBoundsCorner } from '@tldraw/core'
 import { Rectangle } from '~state/shapes'
-import { SessionType, TldrawShapeType } from '~types'
+import { SessionType, TDShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class RectangleTool extends BaseTool {
-  type = TldrawShapeType.Rectangle as const
+  type = TDShapeType.Rectangle as const
 
   /* ----------------- Event Handlers ----------------- */
 

@@ -1,10 +1,10 @@
 import { Utils, TLPointerEventHandler } from '@tldraw/core'
 import { Draw } from '~state/shapes'
-import { SessionType, TldrawShapeType } from '~types'
+import { SessionType, TDShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class DrawTool extends BaseTool {
-  type = TldrawShapeType.Draw as const
+  type = TDShapeType.Draw as const
 
   /* ----------------- Event Handlers ----------------- */
 

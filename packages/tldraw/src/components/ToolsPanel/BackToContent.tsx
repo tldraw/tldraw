@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { styled } from '~styles'
-import type { TldrawSnapshot } from '~types'
+import type { TDSnapshot } from '~types'
 import { useTldrawApp } from '~hooks'
 import { RowButton } from '~components/RowButton'
 import { MenuContent } from '~components/MenuContent'
 
-const isEmptyCanvasSelector = (s: TldrawSnapshot) =>
+const isEmptyCanvasSelector = (s: TDSnapshot) =>
   Object.keys(s.document.pages[s.appState.currentPageId].shapes).length > 0 &&
   s.appState.isEmptyCanvas
 

@@ -2,7 +2,7 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
-import type { PagePartial, TldrawCommand, TldrawShape } from '~types'
+import type { PagePartial, TldrawCommand, TDShape } from '~types'
 import type { TldrawApp } from '../../internal'
 
 export function duplicateShapes(app: TldrawApp, ids: string[], point?: number[]): TldrawCommand {
@@ -122,7 +122,7 @@ export function duplicateShapes(app: TldrawApp, ids: string[], point?: number[])
 
   // Now move the shapes
 
-  const shapesToMove = Object.values(after.shapes) as TldrawShape[]
+  const shapesToMove = Object.values(after.shapes) as TDShape[]
 
   if (point) {
     const commonBounds = Utils.getCommonBounds(shapesToMove.map((shape) => TLDR.getBounds(shape)))

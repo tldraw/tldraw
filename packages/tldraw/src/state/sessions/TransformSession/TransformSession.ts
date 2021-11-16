@@ -1,7 +1,7 @@
 import { TLBounds, TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import type { TLSnapLine, TLBoundsWithCenter } from '@tldraw/core'
-import { SessionType, TldrawCommand, TldrawPatch, TldrawShape, TldrawStatus } from '~types'
+import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
 import { TLDR } from '~state/TLDR'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { BaseSession } from '../BaseSession'
@@ -18,14 +18,14 @@ type SnapInfo =
 
 export class TransformSession extends BaseSession {
   type = SessionType.Transform
-  status = TldrawStatus.Transforming
+  status = TDStatus.Transforming
   scaleX = 1
   scaleY = 1
-  initialShapes: TldrawShape[]
+  initialShapes: TDShape[]
   initialShapeIds: string[]
   initialSelectedIds: string[]
   shapeBounds: {
-    initialShape: TldrawShape
+    initialShape: TDShape
     initialShapeBounds: TLBounds
     transformOrigin: number[]
   }[]
@@ -116,7 +116,7 @@ export class TransformSession extends BaseSession {
       },
     } = this
 
-    const shapes = {} as Record<string, TldrawShape>
+    const shapes = {} as Record<string, TDShape>
 
     const delta = Vec.sub(currentPoint, originPoint)
 
@@ -207,7 +207,7 @@ export class TransformSession extends BaseSession {
       app: { currentPageId },
     } = this
 
-    const shapes = {} as Record<string, TldrawShape | undefined>
+    const shapes = {} as Record<string, TDShape | undefined>
 
     if (this.isCreate) {
       shapeBounds.forEach((shape) => (shapes[shape.initialShape.id] = undefined))
@@ -244,8 +244,8 @@ export class TransformSession extends BaseSession {
 
     if (!hasUnlockedShapes) return
 
-    const beforeShapes: Record<string, TldrawShape | undefined> = {}
-    const afterShapes: Record<string, TldrawShape> = {}
+    const beforeShapes: Record<string, TDShape | undefined> = {}
+    const afterShapes: Record<string, TDShape> = {}
 
     let beforeSelectedIds: string[]
     let afterSelectedIds: string[]

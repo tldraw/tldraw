@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { DMCheckboxItem, DMDivider, DMSubMenu } from '~components/DropdownMenu'
 import { useTldrawApp } from '~hooks'
-import type { TldrawSnapshot } from '~types'
+import type { TDSnapshot } from '~types'
 
-const settingsSelector = (s: TldrawSnapshot) => s.settings
+const settingsSelector = (s: TDSnapshot) => s.settings
 
 export function PreferencesMenu() {
   const app = useTldrawApp()

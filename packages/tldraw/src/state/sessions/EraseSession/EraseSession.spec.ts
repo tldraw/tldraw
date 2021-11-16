@@ -1,5 +1,5 @@
 import { mockDocument, TldrawTestApp } from '~test'
-import { TldrawStatus } from '~types'
+import { TDStatus } from '~types'
 
 describe('Draw session', () => {
   it('begins, updates, completes session', () => {
@@ -15,7 +15,7 @@ describe('Draw session', () => {
 
     app.stopPointing()
 
-    expect(app.appState.status).toBe(TldrawStatus.Idle)
+    expect(app.appState.status).toBe(TDStatus.Idle)
 
     expect(app.shapes.length).toBe(0)
   })

@@ -1,9 +1,9 @@
 import type { TLPointerEventHandler, TLKeyboardEventHandler } from '@tldraw/core'
-import { TldrawShapeType } from '~types'
+import { TDShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class TextTool extends BaseTool {
-  type = TldrawShapeType.Text as const
+  type = TDShapeType.Text as const
 
   /* --------------------- Methods -------------------- */
 
@@ -46,7 +46,7 @@ export class TextTool extends BaseTool {
 
   onPointShape: TLPointerEventHandler = (info) => {
     const shape = this.app.getShape(info.target)
-    if (shape.type === TldrawShapeType.Text) {
+    if (shape.type === TDShapeType.Text) {
       this.setStatus(Status.Idle)
       this.app.setEditingId(shape.id)
     }

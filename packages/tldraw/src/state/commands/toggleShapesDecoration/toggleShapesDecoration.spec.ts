@@ -1,5 +1,5 @@
 import { mockDocument, TldrawTestApp } from '~test'
-import { ArrowShape, Decoration, TldrawShapeType } from '~types'
+import { ArrowShape, Decoration, TDShapeType } from '~types'
 
 describe('Toggle decoration command', () => {
   describe('when no shape is selected', () => {
@@ -28,7 +28,7 @@ describe('Toggle decoration command', () => {
     const app = new TldrawTestApp()
       .createShapes({
         id: 'arrow1',
-        type: TldrawShapeType.Arrow,
+        type: TDShapeType.Arrow,
       })
       .select('arrow1')
 

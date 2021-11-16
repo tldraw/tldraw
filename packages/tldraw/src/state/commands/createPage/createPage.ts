@@ -1,4 +1,4 @@
-import type { TldrawCommand, TldrawPage } from '~types'
+import type { TldrawCommand, TDPage } from '~types'
 import { Utils, TLPageState } from '@tldraw/core'
 import type { TldrawApp } from '~state'
 
@@ -18,7 +18,7 @@ export function createPage(
   // TODO: Iterate the name better
   const nextName = `New Page`
 
-  const page: TldrawPage = {
+  const page: TDPage = {
     id: pageId,
     name: nextName,
     childIndex: nextChildIndex,

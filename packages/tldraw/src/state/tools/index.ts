@@ -1,4 +1,4 @@
-import { TldrawShapeType, TldrawToolType } from '~types'
+import { TDShapeType, TDToolType } from '~types'
 import { ArrowTool } from './ArrowTool'
 import { DrawTool } from './DrawTool'
 import { EllipseTool } from './EllipseTool'
@@ -11,25 +11,25 @@ import { EraseTool } from './EraseTool'
 export interface ToolsMap {
   select: typeof SelectTool
   erase: typeof EraseTool
-  [TldrawShapeType.Text]: typeof TextTool
-  [TldrawShapeType.Draw]: typeof DrawTool
-  [TldrawShapeType.Ellipse]: typeof EllipseTool
-  [TldrawShapeType.Rectangle]: typeof RectangleTool
-  [TldrawShapeType.Arrow]: typeof ArrowTool
-  [TldrawShapeType.Sticky]: typeof StickyTool
+  [TDShapeType.Text]: typeof TextTool
+  [TDShapeType.Draw]: typeof DrawTool
+  [TDShapeType.Ellipse]: typeof EllipseTool
+  [TDShapeType.Rectangle]: typeof RectangleTool
+  [TDShapeType.Arrow]: typeof ArrowTool
+  [TDShapeType.Sticky]: typeof StickyTool
 }
 
-export type ToolOfType<K extends TldrawToolType> = ToolsMap[K]
+export type ToolOfType<K extends TDToolType> = ToolsMap[K]
 
-export type ArgsOfType<K extends TldrawToolType> = ConstructorParameters<ToolOfType<K>>
+export type ArgsOfType<K extends TDToolType> = ConstructorParameters<ToolOfType<K>>
 
-export const tools: { [K in TldrawToolType]: ToolsMap[K] } = {
+export const tools: { [K in TDToolType]: ToolsMap[K] } = {
   select: SelectTool,
   erase: EraseTool,
-  [TldrawShapeType.Text]: TextTool,
-  [TldrawShapeType.Draw]: DrawTool,
-  [TldrawShapeType.Ellipse]: EllipseTool,
-  [TldrawShapeType.Rectangle]: RectangleTool,
-  [TldrawShapeType.Arrow]: ArrowTool,
-  [TldrawShapeType.Sticky]: StickyTool,
+  [TDShapeType.Text]: TextTool,
+  [TDShapeType.Draw]: DrawTool,
+  [TDShapeType.Ellipse]: EllipseTool,
+  [TDShapeType.Rectangle]: RectangleTool,
+  [TDShapeType.Arrow]: ArrowTool,
+  [TDShapeType.Sticky]: StickyTool,
 }

@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { useTldrawApp } from '~hooks'
-import type { TldrawSnapshot } from '~types'
+import type { TDSnapshot } from '~types'
 import { styled } from '~styles'
 import { breakpoints } from '~components/breakpoints'
 
-const statusSelector = (s: TldrawSnapshot) => s.appState.status
-const activeToolSelector = (s: TldrawSnapshot) => s.appState.activeTool
+const statusSelector = (s: TDSnapshot) => s.appState.status
+const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 
 export function StatusBar(): JSX.Element | null {
   const app = useTldrawApp()

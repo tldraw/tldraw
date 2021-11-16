@@ -1,7 +1,7 @@
 import { mockDocument, TldrawTestApp } from '~test'
 import { TLBoundsCorner, Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
-import { TldrawShapeType, TldrawStatus } from '~types'
+import { TDShapeType, TDStatus } from '~types'
 
 function getShapeBounds(app: TldrawTestApp, ...ids: string[]) {
   return Utils.getCommonBounds(
@@ -28,7 +28,7 @@ describe('Transform session', () => {
       .movePointer([10, 10])
       .completeSession()
 
-    expect(app.status).toBe(TldrawStatus.Idle)
+    expect(app.status).toBe(TDStatus.Idle)
 
     expect(getShapeBounds(app, 'rect1')).toMatchObject({
       minX: 10,
@@ -218,7 +218,7 @@ describe('Transform session', () => {
 describe('When creating with a transform session', () => {
   it('Deletes the shape on undo', () => {
     const app = new TldrawTestApp()
-      .selectTool(TldrawShapeType.Rectangle)
+      .selectTool(TDShapeType.Rectangle)
       .pointCanvas([0, 0])
       .movePointer([10, 10])
       .stopPointing()

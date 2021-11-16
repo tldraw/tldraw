@@ -1,6 +1,6 @@
 import { TLDR } from '~state/TLDR'
 import { mockDocument, TldrawTestApp } from '~test'
-import { SizeStyle, TldrawShapeType } from '~types'
+import { SizeStyle, TDShapeType } from '~types'
 
 describe('Style command', () => {
   it('does, undoes and redoes command', () => {
@@ -48,23 +48,23 @@ describe('Style command', () => {
     it('recenters the shape if the size changed', () => {
       const app = new TldrawTestApp().createShapes({
         id: 'text1',
-        type: TldrawShapeType.Text,
+        type: TDShapeType.Text,
         text: 'Hello world',
       })
 
-      const centerA = TLDR.getShapeUtil(TldrawShapeType.Text).getCenter(app.getShape('text1'))
+      const centerA = TLDR.getShapeUtil(TDShapeType.Text).getCenter(app.getShape('text1'))
 
       app.select('text1').style({ size: SizeStyle.Large })
 
-      const centerB = TLDR.getShapeUtil(TldrawShapeType.Text).getCenter(app.getShape('text1'))
+      const centerB = TLDR.getShapeUtil(TDShapeType.Text).getCenter(app.getShape('text1'))
 
       app.style({ size: SizeStyle.Small })
 
-      const centerC = TLDR.getShapeUtil(TldrawShapeType.Text).getCenter(app.getShape('text1'))
+      const centerC = TLDR.getShapeUtil(TDShapeType.Text).getCenter(app.getShape('text1'))
 
       app.style({ size: SizeStyle.Medium })
 
-      const centerD = TLDR.getShapeUtil(TldrawShapeType.Text).getCenter(app.getShape('text1'))
+      const centerD = TLDR.getShapeUtil(TDShapeType.Text).getCenter(app.getShape('text1'))
 
       expect(centerA).toEqual(centerB)
       expect(centerA).toEqual(centerC)

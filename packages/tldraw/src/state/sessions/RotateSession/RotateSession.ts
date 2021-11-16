@@ -1,21 +1,21 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { SessionType, TldrawCommand, TldrawPatch, TldrawShape, TldrawStatus } from '~types'
+import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
 import { TLDR } from '~state/TLDR'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
 
 export class RotateSession extends BaseSession {
   type = SessionType.Rotate
-  status = TldrawStatus.Transforming
+  status = TDStatus.Transforming
   delta = [0, 0]
   commonBoundsCenter: number[]
   initialAngle: number
   initialShapes: {
-    shape: TldrawShape
+    shape: TDShape
     center: number[]
   }[]
-  changes: Record<string, Partial<TldrawShape>> = {}
+  changes: Record<string, Partial<TDShape>> = {}
 
   constructor(app: TldrawApp) {
     super(app)
@@ -67,7 +67,7 @@ export class RotateSession extends BaseSession {
       app: { currentPageId, currentPoint, shiftKey },
     } = this
 
-    const shapes: Record<string, Partial<TldrawShape>> = {}
+    const shapes: Record<string, Partial<TDShape>> = {}
 
     let directionDelta = Vec.angle(commonBoundsCenter, currentPoint) - this.initialAngle
 
@@ -116,7 +116,7 @@ export class RotateSession extends BaseSession {
       app: { currentPageId },
     } = this
 
-    const shapes: Record<string, TldrawShape> = {}
+    const shapes: Record<string, TDShape> = {}
     initialShapes.forEach(({ shape }) => (shapes[shape.id] = shape))
 
     return {
@@ -136,7 +136,7 @@ export class RotateSession extends BaseSession {
       app: { currentPageId },
     } = this
 
-    const beforeShapes = {} as Record<string, Partial<TldrawShape>>
+    const beforeShapes = {} as Record<string, Partial<TDShape>>
     const afterShapes = this.changes
 
     initialShapes.forEach(({ shape: { id, point, rotation, handles } }) => {

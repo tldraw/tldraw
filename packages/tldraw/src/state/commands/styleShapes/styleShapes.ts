@@ -1,4 +1,4 @@
-import { ShapeStyles, TldrawCommand, TldrawShape, TldrawShapeType, TextShape } from '~types'
+import { ShapeStyles, TldrawCommand, TDShape, TDShapeType, TextShape } from '~types'
 import { TLDR } from '~state/TLDR'
 import Vec from '@tldraw/vec'
 import type { Patch } from 'rko'
@@ -15,8 +15,8 @@ export function styleShapes(
     .flatMap((id) => TLDR.getDocumentBranch(app.state, id, currentPageId))
     .filter((id) => !app.getShape(id).isLocked)
 
-  const beforeShapes: Record<string, Patch<TldrawShape>> = {}
-  const afterShapes: Record<string, Patch<TldrawShape>> = {}
+  const beforeShapes: Record<string, Patch<TDShape>> = {}
+  const afterShapes: Record<string, Patch<TDShape>> = {}
 
   shapeIdsToMutate
     .map((id) => app.getShape(id))
@@ -34,7 +34,7 @@ export function styleShapes(
         style: changes,
       }
 
-      if (shape.type === TldrawShapeType.Text) {
+      if (shape.type === TDShapeType.Text) {
         beforeShapes[shape.id].point = shape.point
         afterShapes[shape.id].point = Vec.round(
           Vec.add(

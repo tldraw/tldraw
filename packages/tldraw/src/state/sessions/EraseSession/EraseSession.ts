@@ -1,10 +1,10 @@
 import { Vec } from '@tldraw/vec'
 import {
   SessionType,
-  TldrawStatus,
-  TldrawShape,
+  TDStatus,
+  TDShape,
   PagePartial,
-  TldrawBinding,
+  TDBinding,
   TldrawPatch,
   TldrawCommand,
 } from '~types'
@@ -13,13 +13,13 @@ import { BaseSession } from '../BaseSession'
 
 export class EraseSession extends BaseSession {
   type = SessionType.Draw
-  status = TldrawStatus.Creating
+  status = TDStatus.Creating
   isLocked?: boolean
   lockedDirection?: 'horizontal' | 'vertical'
-  erasedShapes = new Set<TldrawShape>()
-  erasedBindings = new Set<TldrawBinding>()
-  initialSelectedShapes: TldrawShape[]
-  erasableShapes: TldrawShape[]
+  erasedShapes = new Set<TDShape>()
+  erasedBindings = new Set<TDBinding>()
+  initialSelectedShapes: TDShape[]
+  erasableShapes: TDShape[]
   prevPoint: number[]
 
   constructor(app: TldrawApp) {

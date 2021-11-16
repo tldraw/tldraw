@@ -43,7 +43,7 @@ export function getDrawStrokePoints(shape: DrawShape, options: StrokeOptions) {
 /**
  * Get path data for a stroke with the DashStyle.Draw dash style.
  */
-export function getDrawStrokePathTldrawSnapshot(shape: DrawShape) {
+export function getDrawStrokePathTDSnapshot(shape: DrawShape) {
   if (shape.points.length < 2) return ''
 
   const options = getFreehandOptions(shape)
@@ -60,7 +60,7 @@ export function getDrawStrokePathTldrawSnapshot(shape: DrawShape) {
 /**
  * Get SVG path data for a shape that has a DashStyle other than DashStyles.Draw.
  */
-export function getSolidStrokePathTldrawSnapshot(shape: DrawShape) {
+export function getSolidStrokePathTDSnapshot(shape: DrawShape) {
   const { points } = shape
 
   if (points.length < 2) return 'M 0 0 L 0 0'

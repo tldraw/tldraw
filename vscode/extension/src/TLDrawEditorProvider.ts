@@ -10,7 +10,7 @@ import { TldrawWebviewManager } from './TldrawWebviewManager'
 export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
   constructor(private readonly context: vscode.ExtensionContext) {}
 
-  private static newTldrawFileId = 1
+  private static newTDFileId = 1
 
   private static readonly viewType = 'Tldraw.tldr'
 
@@ -18,7 +18,7 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
     // Register the 'Create new Tldraw file' command, which creates
     // a temporary .tldr file and opens it in the editor.
     vscode.commands.registerCommand('Tldraw.tldr.new', () => {
-      const id = TldrawEditorProvider.newTldrawFileId++
+      const id = TldrawEditorProvider.newTDFileId++
       const name = id > 1 ? `New Document ${id}.tldr` : `New Document.tldr`
 
       const workspaceFolders = vscode.workspace.workspaceFolders

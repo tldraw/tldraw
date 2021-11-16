@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { mockDocument, TldrawTestApp } from '~test'
-import { GroupShape, TldrawShapeType } from '~types'
+import { GroupShape, TDShapeType } from '~types'
 
 describe('Ungroup command', () => {
   const app = new TldrawTestApp()
@@ -44,7 +44,7 @@ describe('Ungroup command', () => {
         .loadDocument(mockDocument)
         .createShapes({
           id: 'rect4',
-          type: TldrawShapeType.Rectangle,
+          type: TDShapeType.Rectangle,
         })
         .group(['rect1', 'rect2'], 'groupA')
         .group(['rect3', 'rect4'], 'groupB')
@@ -68,17 +68,17 @@ describe('Ungroup command', () => {
         .createShapes(
           {
             id: 'rect1',
-            type: TldrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 1,
           },
           {
             id: 'rect2',
-            type: TldrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 2,
           },
           {
             id: 'rect3',
-            type: TldrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 3,
           }
         )
@@ -95,17 +95,17 @@ describe('Ungroup command', () => {
         .createShapes(
           {
             id: 'rect1',
-            type: TldrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 1,
           },
           {
             id: 'rect2',
-            type: TldrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 2,
           },
           {
             id: 'rect3',
-            type: TldrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 3,
           }
         )

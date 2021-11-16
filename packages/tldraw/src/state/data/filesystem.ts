@@ -1,4 +1,4 @@
-import type { TldrawDocument, TldrawFile } from '~types'
+import type { TDDocument, TDFile } from '~types'
 import { fileSave, fileOpen, FileSystemHandle } from './browser-fs-access'
 import { get as getFromIdb, set as setToIdb } from 'idb-keyval'
 
@@ -21,12 +21,9 @@ export async function saveFileHandle(fileHandle: FileSystemHandle | null) {
   return setToIdb(`Tldraw_file_handle_${window.location.origin}`, fileHandle)
 }
 
-export async function saveToFileSystem(
-  document: TldrawDocument,
-  fileHandle: FileSystemHandle | null
-) {
+export async function saveToFileSystem(document: TDDocument, fileHandle: FileSystemHandle | null) {
   // Create the saved file data
-  const file: TldrawFile = {
+  const file: TDFile = {
     name: document.name || 'New Document',
     fileHandle: fileHandle ?? null,
     document,
@@ -65,7 +62,7 @@ export async function saveToFileSystem(
 
 export async function openFromFileSystem(): Promise<null | {
   fileHandle: FileSystemHandle | null
-  document: TldrawDocument
+  document: TDDocument
 }> {
   // Get the blob
   const blob = await fileOpen({
@@ -88,7 +85,7 @@ export async function openFromFileSystem(): Promise<null | {
   })
 
   // Parse
-  const file: TldrawFile = JSON.parse(json)
+  const file: TDFile = JSON.parse(json)
 
   const fileHandle = blob.handle ?? null
 

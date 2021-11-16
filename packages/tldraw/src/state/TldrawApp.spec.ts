@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { mockDocument, TldrawTestApp } from '~test'
-import { ArrowShape, ColorStyle, SessionType, TldrawShapeType } from '~types'
+import { ArrowShape, ColorStyle, SessionType, TDShapeType } from '~types'
 import type { SelectTool } from './tools/SelectTool'
 
 describe('TldrawTestApp', () => {
@@ -54,7 +54,7 @@ describe('TldrawTestApp', () => {
 
       app.paste()
 
-      expect(app.shapes.filter((shape) => shape.type === TldrawShapeType.Group).length).toBe(2)
+      expect(app.shapes.filter((shape) => shape.type === TDShapeType.Group).length).toBe(2)
 
       const afterShapes = app.shapes
 
@@ -62,10 +62,10 @@ describe('TldrawTestApp', () => {
         (shape) => !beforeShapes.find(({ id }) => id === shape.id)
       )
 
-      const newGroup = newShapes.find((shape) => shape.type === TldrawShapeType.Group)
+      const newGroup = newShapes.find((shape) => shape.type === TDShapeType.Group)
 
       const newChildIds = newShapes
-        .filter((shape) => shape.type !== TldrawShapeType.Group)
+        .filter((shape) => shape.type !== TDShapeType.Group)
         .map((shape) => shape.id)
 
       expect(new Set(newGroup!.children)).toEqual(new Set(newChildIds))
@@ -82,8 +82,8 @@ describe('TldrawTestApp', () => {
 
       app
         .createShapes(
-          { type: TldrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
-          { type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+          { type: TDShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+          { type: TDShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
         .movePointer([200, 200])
@@ -109,8 +109,8 @@ describe('TldrawTestApp', () => {
 
       app
         .createShapes(
-          { type: TldrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
-          { type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+          { type: TDShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+          { type: TDShapeType.Arrow, id: 'arrow1', point: [200, 200] }
         )
         .select('arrow1')
         .movePointer([200, 200])
@@ -333,13 +333,13 @@ describe('TldrawTestApp', () => {
           point: [0, 0],
           size: [100, 100],
           childIndex: 1,
-          type: TldrawShapeType.Rectangle,
+          type: TDShapeType.Rectangle,
         },
         {
           id: 'arrow',
           point: [200, 200],
           childIndex: 2,
-          type: TldrawShapeType.Arrow,
+          type: TDShapeType.Arrow,
         }
       )
       .select('arrow')
@@ -430,21 +430,21 @@ describe('TldrawTestApp', () => {
         .createShapes(
           {
             id: 'rect1',
-            type: TldrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 1,
           },
           {
             id: 'rect2',
-            type: TldrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 2,
           },
           {
             id: 'rect3',
-            type: TldrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             childIndex: 3,
           }
         )
-        .selectTool(TldrawShapeType.Rectangle)
+        .selectTool(TDShapeType.Rectangle)
 
       const prevA = app.shapes.map((shape) => shape.id)
 
@@ -459,7 +459,7 @@ describe('TldrawTestApp', () => {
       expect(app.getShape('groupA').childIndex).toBe(2)
 
       app.selectNone()
-      app.selectTool(TldrawShapeType.Rectangle)
+      app.selectTool(TDShapeType.Rectangle)
 
       const prevB = app.shapes.map((shape) => shape.id)
 
@@ -476,13 +476,13 @@ describe('TldrawTestApp', () => {
       .loadDocument(mockDocument)
       .createShapes({
         id: 'rect1',
-        type: TldrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
         point: [0, 0],
         size: [100, 200],
       })
       .createShapes({
         id: 'rect2',
-        type: TldrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
         point: [0, 0],
         size: [100, 200],
       })
@@ -507,13 +507,13 @@ describe('TldrawTestApp', () => {
       .loadDocument(mockDocument)
       .createShapes({
         id: 'rect1',
-        type: TldrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
         point: [0, 0],
         size: [100, 200],
       })
       .createShapes({
         id: 'rect2',
-        type: TldrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
         point: [0, 0],
         size: [100, 200],
       })
@@ -526,13 +526,13 @@ describe('TldrawTestApp', () => {
     const app = new TldrawTestApp('some_state_a')
       .createShapes({
         id: 'rect1',
-        type: TldrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
         point: [0, 0],
         size: [100, 200],
       })
       .createShapes({
         id: 'rect2',
-        type: TldrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
         point: [0, 0],
         size: [100, 200],
       })
@@ -586,7 +586,7 @@ describe('TldrawTestApp', () => {
     //   const svgString = state2
     //     .createShapes({
     //       id: 'text1',
-    //       type: TldrawShapeType.Text,
+    //       type: TDShapeType.Text,
     //       text: 'hello world!',
     //     })
     //     .select('text1')
@@ -637,7 +637,7 @@ describe('TldrawTestApp', () => {
 
       app.createShapes({
         id: 'rect1',
-        type: TldrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
       })
 
       setTimeout(() => {

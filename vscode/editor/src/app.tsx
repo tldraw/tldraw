@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { Tldraw, TldrawApp, TldrawFile, TldrawDocument } from '@tldraw/Tldraw'
+import { Tldraw, TldrawApp, TDFile, TDDocument } from '@tldraw/Tldraw'
 import { vscode } from './utils/vscode'
 import { defaultDocument } from './utils/defaultDocument'
 import type { MessageFromExtension, MessageFromWebview } from './types'
 
 // Will be placed in global scope by extension
-declare let currentFile: TldrawFile
+declare let currentFile: TDFile
 
 export default function App(): JSX.Element {
   const rTldrawApp = React.useRef<TldrawApp>()
-  const rInitialDocument = React.useRef<TldrawDocument>(
+  const rInitialDocument = React.useRef<TDDocument>(
     currentFile ? currentFile.document : defaultDocument
   )
 
@@ -27,7 +27,7 @@ export default function App(): JSX.Element {
         ...currentFile,
         document: state.document,
         assets: {},
-      } as TldrawFile),
+      } as TDFile),
     } as MessageFromWebview)
   }, [])
 
@@ -36,7 +36,7 @@ export default function App(): JSX.Element {
     function handleMessage({ data }: MessageEvent<MessageFromExtension>) {
       if (data.type === 'openedFile') {
         try {
-          const { document } = JSON.parse(data.text) as TldrawFile
+          const { document } = JSON.parse(data.text) as TDFile
           const state = rTldrawApp.current!
           state.updateDocument(document)
         } catch (e) {

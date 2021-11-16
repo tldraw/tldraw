@@ -1,10 +1,10 @@
-import type { TldrawCommand, TldrawShape } from '~types'
+import type { TldrawCommand, TDShape } from '~types'
 import { TLDR } from '~state/TLDR'
 import type { TldrawApp } from '../../internal'
 
 export function update(
   app: TldrawApp,
-  updates: ({ id: string } & Partial<TldrawShape>)[],
+  updates: ({ id: string } & Partial<TDShape>)[],
   pageId: string
 ): TldrawCommand {
   const ids = updates.map((update) => update.id)

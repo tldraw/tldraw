@@ -2,10 +2,10 @@
 import { TLPageState, Utils, TLBoundsWithCenter, TLSnapLine, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
-  TldrawShape,
-  TldrawBinding,
+  TDShape,
+  TDBinding,
   TldrawCommand,
-  TldrawStatus,
+  TDStatus,
   ArrowShape,
   GroupShape,
   SessionType,
@@ -24,7 +24,7 @@ type CloneInfo =
     }
   | {
       state: 'ready'
-      clones: TldrawShape[]
+      clones: TDShape[]
       clonedBindings: ArrowBinding[]
     }
 
@@ -40,7 +40,7 @@ type SnapInfo =
 
 export class TranslateSession extends BaseSession {
   type = SessionType.Translate
-  status = TldrawStatus.Translating
+  status = TDStatus.Translating
   delta = [0, 0]
   prev = [0, 0]
   prevPoint = [0, 0]
@@ -60,7 +60,7 @@ export class TranslateSession extends BaseSession {
   hasUnlockedShapes: boolean
   initialSelectedIds: string[]
   initialCommonBounds: TLBounds
-  initialShapes: TldrawShape[]
+  initialShapes: TDShape[]
   initialParentChildren: Record<string, string[]>
   bindingsToDelete: ArrowBinding[]
 
@@ -149,7 +149,7 @@ export class TranslateSession extends BaseSession {
 
     if (bindingsToDelete.length === 0) return
 
-    const nextBindings: Patch<Record<string, TldrawBinding>> = {}
+    const nextBindings: Patch<Record<string, TDBinding>> = {}
 
     bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = undefined))
 
@@ -185,9 +185,9 @@ export class TranslateSession extends BaseSession {
       },
     } = this
 
-    const nextBindings: Patch<Record<string, TldrawBinding>> = {}
+    const nextBindings: Patch<Record<string, TDBinding>> = {}
 
-    const nextShapes: Patch<Record<string, TldrawShape>> = {}
+    const nextShapes: Patch<Record<string, TDShape>> = {}
 
     const nextPageState: Patch<TLPageState> = {}
 
@@ -318,7 +318,7 @@ export class TranslateSession extends BaseSession {
 
       // Either way, move the clones
       clones.forEach((clone) => {
-        const current = (nextShapes[clone.id] || this.app.getShape(clone.id)) as TldrawShape
+        const current = (nextShapes[clone.id] || this.app.getShape(clone.id)) as TDShape
 
         if (!current.point) throw Error('No point on that clone!')
 
@@ -373,7 +373,7 @@ export class TranslateSession extends BaseSession {
 
       // Move the shapes by the delta
       initialShapes.forEach((shape) => {
-        const current = (nextShapes[shape.id] || this.app.getShape(shape.id)) as TldrawShape
+        const current = (nextShapes[shape.id] || this.app.getShape(shape.id)) as TDShape
 
         if (!current.point) throw Error('No point on that clone!')
 
@@ -410,8 +410,8 @@ export class TranslateSession extends BaseSession {
       app: { currentPageId },
     } = this
 
-    const nextBindings: Record<string, Partial<TldrawBinding> | undefined> = {}
-    const nextShapes: Record<string, Partial<TldrawShape> | undefined> = {}
+    const nextBindings: Record<string, Partial<TDBinding> | undefined> = {}
+    const nextShapes: Record<string, Partial<TDShape> | undefined> = {}
     const nextPageState: Partial<TLPageState> = {
       editingId: undefined,
       hoveredId: undefined,
@@ -464,11 +464,11 @@ export class TranslateSession extends BaseSession {
       app: { currentPageId },
     } = this
 
-    const beforeBindings: Patch<Record<string, TldrawBinding>> = {}
-    const beforeShapes: Patch<Record<string, TldrawShape>> = {}
+    const beforeBindings: Patch<Record<string, TDBinding>> = {}
+    const beforeShapes: Patch<Record<string, TDShape>> = {}
 
-    const afterBindings: Patch<Record<string, TldrawBinding>> = {}
-    const afterShapes: Patch<Record<string, TldrawShape>> = {}
+    const afterBindings: Patch<Record<string, TDBinding>> = {}
+    const afterShapes: Patch<Record<string, TDShape>> = {}
 
     if (this.isCloning) {
       if (this.cloneInfo.state === 'empty') {
@@ -607,10 +607,10 @@ export class TranslateSession extends BaseSession {
 
     const cloneMap: Record<string, string> = {}
     const clonedBindingsMap: Record<string, string> = {}
-    const clonedBindings: TldrawBinding[] = []
+    const clonedBindings: TDBinding[] = []
 
     // Create clones of selected shapes
-    const clones: TldrawShape[] = []
+    const clones: TDShape[] = []
 
     initialShapes.forEach((shape) => {
       const newId = Utils.uniqueId()

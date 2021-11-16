@@ -2,9 +2,9 @@
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
 import { defaultStyle } from '../shared/shape-styles'
-import { StickyShape, TldrawMeta, TldrawShapeType, TldrawTransformInfo } from '~types'
+import { StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
 import { getBoundsRectangle, TextAreaUtils } from '../shared'
-import { TldrawShapeUtil } from '../TldrawShapeUtil'
+import { TDShapeUtil } from '../TDShapeUtil'
 import { getStickyFontStyle, getStickyShapeStyle } from '../shared/shape-styles'
 import { styled } from '~styles'
 import Vec from '@tldraw/vec'
@@ -13,8 +13,8 @@ import { GHOSTED_OPACITY } from '~constants'
 type T = StickyShape
 type E = HTMLDivElement
 
-export class StickyUtil extends TldrawShapeUtil<T, E> {
-  type = TldrawShapeType.Sticky as const
+export class StickyUtil extends TDShapeUtil<T, E> {
+  type = TDShapeType.Sticky as const
 
   canBind = true
 
@@ -26,7 +26,7 @@ export class StickyUtil extends TldrawShapeUtil<T, E> {
     return Utils.deepMerge<T>(
       {
         id: 'id',
-        type: TldrawShapeType.Sticky,
+        type: TDShapeType.Sticky,
         name: 'Sticky',
         parentId: 'page',
         childIndex: 1,
@@ -40,7 +40,7 @@ export class StickyUtil extends TldrawShapeUtil<T, E> {
     )
   }
 
-  Component = TldrawShapeUtil.Component<T, E, TldrawMeta>(
+  Component = TDShapeUtil.Component<T, E, TDMeta>(
     ({ shape, meta, events, isGhost, isEditing, onShapeBlur, onShapeChange }, ref) => {
       const font = getStickyFontStyle(shape.style)
 
@@ -191,7 +191,7 @@ export class StickyUtil extends TldrawShapeUtil<T, E> {
     }
   )
 
-  Indicator = TldrawShapeUtil.Indicator<T>(({ shape }) => {
+  Indicator = TDShapeUtil.Indicator<T>(({ shape }) => {
     const {
       size: [width, height],
     } = shape
@@ -212,7 +212,7 @@ export class StickyUtil extends TldrawShapeUtil<T, E> {
   transform = (
     shape: T,
     bounds: TLBounds,
-    { scaleX, scaleY, transformOrigin }: TldrawTransformInfo<T>
+    { scaleX, scaleY, transformOrigin }: TransformInfo<T>
   ): Partial<T> => {
     const point = Vec.round([
       bounds.minX +

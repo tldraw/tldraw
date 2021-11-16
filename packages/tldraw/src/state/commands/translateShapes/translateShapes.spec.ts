@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { mockDocument, TldrawTestApp } from '~test'
-import { ArrowShape, SessionType, TldrawShapeType } from '~types'
+import { ArrowShape, SessionType, TDShapeType } from '~types'
 
 describe('Translate command', () => {
   const app = new TldrawTestApp()
@@ -47,12 +47,12 @@ describe('Translate command', () => {
         .createShapes(
           {
             id: 'target1',
-            type: TldrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             point: [0, 0],
             size: [100, 100],
           },
           {
-            type: TldrawShapeType.Arrow,
+            type: TDShapeType.Arrow,
             id: 'arrow1',
             point: [200, 200],
           }
@@ -87,12 +87,12 @@ describe('Translate command', () => {
         .createShapes(
           {
             id: 'target1',
-            type: TldrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             point: [0, 0],
             size: [100, 100],
           },
           {
-            type: TldrawShapeType.Arrow,
+            type: TDShapeType.Arrow,
             id: 'arrow1',
             point: [200, 200],
           }

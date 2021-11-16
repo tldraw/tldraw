@@ -3,7 +3,7 @@ import { Tooltip } from '~components/Tooltip/Tooltip'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
-import { AlignType, TldrawSnapshot, DistributeType, StretchType } from '~types'
+import { AlignType, TDSnapshot, DistributeType, StretchType } from '~types'
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -33,22 +33,22 @@ import { TrashIcon } from '~components/icons'
 import { IconButton } from '~components/IconButton'
 import { ToolButton } from '~components/ToolButton'
 
-const selectedShapesCountSelector = (s: TldrawSnapshot) =>
+const selectedShapesCountSelector = (s: TDSnapshot) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length
 
-const isAllLockedSelector = (s: TldrawSnapshot) => {
+const isAllLockedSelector = (s: TDSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.every((id) => page.shapes[id].isLocked)
 }
 
-const isAllAspectLockedSelector = (s: TldrawSnapshot) => {
+const isAllAspectLockedSelector = (s: TDSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.every((id) => page.shapes[id].isAspectRatioLocked)
 }
 
-const isAllGroupedSelector = (s: TldrawSnapshot) => {
+const isAllGroupedSelector = (s: TDSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const selectedShapes = s.document.pageStates[s.appState.currentPageId].selectedIds.map(
     (id) => page.shapes[id]
@@ -62,12 +62,12 @@ const isAllGroupedSelector = (s: TldrawSnapshot) => {
   )
 }
 
-const hasSelectionClickor = (s: TldrawSnapshot) => {
+const hasSelectionClickor = (s: TDSnapshot) => {
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.length > 0
 }
 
-const hasMultipleSelectionClickor = (s: TldrawSnapshot) => {
+const hasMultipleSelectionClickor = (s: TDSnapshot) => {
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.length > 1
 }

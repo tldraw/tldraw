@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLBoundsCorner, Utils } from '@tldraw/core'
-import { StretchType, TldrawShapeType } from '~types'
+import { StretchType, TDShapeType } from '~types'
 import type { TldrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
 import type { TldrawApp } from '../../internal'
@@ -66,7 +66,7 @@ export function stretchShapes(app: TldrawApp, ids: string[], type: StretchType):
   )
 
   initialShapes.forEach((shape) => {
-    if (shape.type === TldrawShapeType.Group) {
+    if (shape.type === TDShapeType.Group) {
       delete before[shape.id]
       delete after[shape.id]
     }

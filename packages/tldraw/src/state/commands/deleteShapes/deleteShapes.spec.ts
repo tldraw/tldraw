@@ -1,5 +1,5 @@
 import { mockDocument, TldrawTestApp } from '~test'
-import { SessionType, TldrawShapeType } from '~types'
+import { SessionType, TDShapeType } from '~types'
 
 describe('Delete command', () => {
   const app = new TldrawTestApp()
@@ -58,8 +58,8 @@ describe('Delete command', () => {
   it('deletes bound shapes, undoes and redoes', () => {
     new TldrawTestApp()
       .createShapes(
-        { type: TldrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
-        { type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+        { type: TDShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+        { type: TDShapeType.Arrow, id: 'arrow1', point: [200, 200] }
       )
       .select('arrow1')
       .movePointer([200, 200])
@@ -77,7 +77,7 @@ describe('Delete command', () => {
       .selectNone()
       .createShapes({
         id: 'arrow1',
-        type: TldrawShapeType.Arrow,
+        type: TDShapeType.Arrow,
       })
       .select('arrow1')
       .movePointer([0, 0])

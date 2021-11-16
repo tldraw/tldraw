@@ -1,5 +1,5 @@
 import { Utils } from '@tldraw/core'
-import type { TldrawCommand, TldrawShape } from '~types'
+import type { TldrawCommand, TDShape } from '~types'
 import { TLDR } from '~state/TLDR'
 import type { TldrawApp } from '../../internal'
 
@@ -13,10 +13,10 @@ export function rotateShapes(
   const { currentPageId } = app
 
   // The shapes for the before patch
-  const before: Record<string, Partial<TldrawShape>> = {}
+  const before: Record<string, Partial<TDShape>> = {}
 
   // The shapes for the after patch
-  const after: Record<string, Partial<TldrawShape>> = {}
+  const after: Record<string, Partial<TDShape>> = {}
 
   // Find the shapes that we want to rotate.
   // We don't rotate groups: we rotate their children instead.

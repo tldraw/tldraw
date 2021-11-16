@@ -1,25 +1,25 @@
-import { TldrawSnapshot, TldrawShapeType } from '~types'
+import { TDSnapshot, TDShapeType } from '~types'
 import { TLDR } from '~state/TLDR'
 import { TldrawTestApp } from '~test'
 
 const app = new TldrawTestApp().createShapes(
   {
-    type: TldrawShapeType.Rectangle,
+    type: TDShapeType.Rectangle,
     id: 'a',
     childIndex: 1.0,
   },
   {
-    type: TldrawShapeType.Rectangle,
+    type: TDShapeType.Rectangle,
     id: 'b',
     childIndex: 2.0,
   },
   {
-    type: TldrawShapeType.Rectangle,
+    type: TDShapeType.Rectangle,
     id: 'c',
     childIndex: 3,
   },
   {
-    type: TldrawShapeType.Rectangle,
+    type: TDShapeType.Rectangle,
     id: 'd',
     childIndex: 4,
   }
@@ -27,14 +27,14 @@ const app = new TldrawTestApp().createShapes(
 
 const doc = { ...app.document }
 
-function getSortedShapeIds(data: TldrawSnapshot) {
+function getSortedShapeIds(data: TDSnapshot) {
   return TLDR.getShapes(data, data.appState.currentPageId)
     .sort((a, b) => a.childIndex - b.childIndex)
     .map((shape) => shape.id)
     .join('')
 }
 
-function getSortedIndices(data: TldrawSnapshot) {
+function getSortedIndices(data: TDSnapshot) {
   return TLDR.getShapes(data, data.appState.currentPageId)
     .sort((a, b) => a.childIndex - b.childIndex)
     .map((shape) => shape.childIndex.toFixed(2))

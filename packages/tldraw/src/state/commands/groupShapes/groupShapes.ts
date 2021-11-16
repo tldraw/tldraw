@@ -1,6 +1,6 @@
-import { TldrawShape, TldrawShapeType } from '~types'
+import { TDShape, TDShapeType } from '~types'
 import { Utils } from '@tldraw/core'
-import type { TldrawSnapshot, TldrawCommand, TldrawBinding } from '~types'
+import type { TDSnapshot, TldrawCommand, TDBinding } from '~types'
 import type { Patch } from 'rko'
 import type { TldrawApp } from '../../internal'
 import { TLDR } from '~state/TLDR'
@@ -11,16 +11,16 @@ export function groupShapes(
   groupId: string,
   pageId: string
 ): TldrawCommand | undefined {
-  const beforeShapes: Record<string, Patch<TldrawShape | undefined>> = {}
-  const afterShapes: Record<string, Patch<TldrawShape | undefined>> = {}
+  const beforeShapes: Record<string, Patch<TDShape | undefined>> = {}
+  const afterShapes: Record<string, Patch<TDShape | undefined>> = {}
 
-  const beforeBindings: Record<string, Patch<TldrawBinding | undefined>> = {}
-  const afterBindings: Record<string, Patch<TldrawBinding | undefined>> = {}
+  const beforeBindings: Record<string, Patch<TDBinding | undefined>> = {}
+  const afterBindings: Record<string, Patch<TDBinding | undefined>> = {}
 
   const idsToGroup = [...ids]
-  const shapesToGroup: TldrawShape[] = []
+  const shapesToGroup: TDShape[] = []
   const deletedGroupIds: string[] = []
-  const otherEffectedGroups: TldrawShape[] = []
+  const otherEffectedGroups: TDShape[] = []
 
   // Collect all of the shapes to group (and their ids)
   for (const id of ids) {
@@ -81,7 +81,7 @@ export function groupShapes(
   // Create the group
   beforeShapes[groupId] = undefined
 
-  afterShapes[groupId] = TLDR.getShapeUtil(TldrawShapeType.Group).create({
+  afterShapes[groupId] = TLDR.getShapeUtil(TDShapeType.Group).create({
     id: groupId,
     childIndex: groupChildIndex,
     parentId: groupParentId,

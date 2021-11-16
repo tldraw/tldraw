@@ -2,16 +2,16 @@ import * as React from 'react'
 import { styled } from '~styles'
 import { Utils, SVGContainer } from '@tldraw/core'
 import { defaultStyle } from '../shared/shape-styles'
-import { TldrawShapeType, GroupShape, ColorStyle, TldrawMeta } from '~types'
+import { TDShapeType, GroupShape, ColorStyle, TDMeta } from '~types'
 import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
-import { TldrawShapeUtil } from '../TldrawShapeUtil'
+import { TDShapeUtil } from '../TDShapeUtil'
 import { getBoundsRectangle } from '../shared'
 
 type T = GroupShape
 type E = SVGSVGElement
 
-export class GroupUtil extends TldrawShapeUtil<T, E> {
-  type = TldrawShapeType.Group as const
+export class GroupUtil extends TDShapeUtil<T, E> {
+  type = TDShapeType.Group as const
 
   canBind = true
 
@@ -19,7 +19,7 @@ export class GroupUtil extends TldrawShapeUtil<T, E> {
     return Utils.deepMerge<T>(
       {
         id: 'id',
-        type: TldrawShapeType.Group,
+        type: TDShapeType.Group,
         name: 'Group',
         parentId: 'page',
         childIndex: 1,
@@ -33,7 +33,7 @@ export class GroupUtil extends TldrawShapeUtil<T, E> {
     )
   }
 
-  Component = TldrawShapeUtil.Component<T, E, TldrawMeta>(
+  Component = TDShapeUtil.Component<T, E, TDMeta>(
     ({ shape, isBinding, isGhost, isHovered, isSelected, events }, ref) => {
       const { id, size } = shape
 
@@ -86,7 +86,7 @@ export class GroupUtil extends TldrawShapeUtil<T, E> {
     }
   )
 
-  Indicator = TldrawShapeUtil.Indicator<T>(({ shape }) => {
+  Indicator = TDShapeUtil.Indicator<T>(({ shape }) => {
     const { id, size } = shape
 
     const sw = 2

@@ -7,7 +7,7 @@ import {
   TLBounds,
 } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { SessionType, TldrawCommand, TldrawPatch, TldrawShape, TldrawStatus } from '~types'
+import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
 import { TLDR } from '~state/TLDR'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { BaseSession } from '../BaseSession'
@@ -24,12 +24,12 @@ type SnapInfo =
 
 export class TransformSingleSession extends BaseSession {
   type = SessionType.TransformSingle
-  status = TldrawStatus.Transforming
+  status = TDStatus.Transforming
   transformType: TLBoundsEdge | TLBoundsCorner
   scaleX = 1
   scaleY = 1
   isCreate: boolean
-  initialShape: TldrawShape
+  initialShape: TDShape
   initialShapeBounds: TLBounds
   initialCommonBounds: TLBounds
   snapInfo: SnapInfo = { state: 'empty' }
@@ -86,7 +86,7 @@ export class TransformSingleSession extends BaseSession {
 
     const delta = Vec.sub(currentPoint, originPoint)
 
-    const shapes = {} as Record<string, Partial<TldrawShape>>
+    const shapes = {} as Record<string, Partial<TDShape>>
 
     const shape = this.app.getShape(initialShape.id)
 
@@ -169,7 +169,7 @@ export class TransformSingleSession extends BaseSession {
       app: { currentPageId },
     } = this
 
-    const shapes = {} as Record<string, TldrawShape | undefined>
+    const shapes = {} as Record<string, TDShape | undefined>
 
     if (this.isCreate) {
       shapes[initialShape.id] = undefined
@@ -204,8 +204,8 @@ export class TransformSingleSession extends BaseSession {
 
     if (initialShape.isLocked) return
 
-    const beforeShapes = {} as Record<string, Partial<TldrawShape> | undefined>
-    const afterShapes = {} as Record<string, Partial<TldrawShape>>
+    const beforeShapes = {} as Record<string, Partial<TDShape> | undefined>
+    const afterShapes = {} as Record<string, Partial<TDShape>>
 
     beforeShapes[initialShape.id] = this.isCreate ? undefined : initialShape
 

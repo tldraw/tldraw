@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { TldrawFile } from '@tldraw/Tldraw'
+import { TDFile } from '@tldraw/Tldraw'
 import { MessageFromWebview, MessageFromExtension } from './types'
 
 /**
@@ -79,13 +79,13 @@ export class TldrawWebviewManager {
 
     switch (e.type) {
       case 'editorUpdated': {
-        // The event will contain the new TldrawFile as JSON.
-        const nextFile = JSON.parse(e.text) as TldrawFile
+        // The event will contain the new TDFile as JSON.
+        const nextFile = JSON.parse(e.text) as TDFile
 
         if (document.getText()) {
           try {
             // Parse the contents of the current document.
-            const currentFile = JSON.parse(document.getText()) as TldrawFile
+            const currentFile = JSON.parse(document.getText()) as TDFile
 
             // Ensure that the current file's pageStates are preserved
             // in the next file, unless the associated pages have been deleted.
@@ -100,7 +100,7 @@ export class TldrawWebviewManager {
         }
 
         // Create an edit that replaces the document's current text
-        // content (a serialized TldrawFile) with the next file.
+        // content (a serialized TDFile) with the next file.
         const edit = new vscode.WorkspaceEdit()
 
         edit.replace(

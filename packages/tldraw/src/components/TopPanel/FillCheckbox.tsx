@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as Checkbox from '@radix-ui/react-checkbox'
 import { useTldrawApp } from '~hooks'
-import type { TldrawSnapshot } from '~types'
+import type { TDSnapshot } from '~types'
 import { BoxIcon, IsFilledIcon } from '~components/icons'
 import { ToolButton } from '~components/ToolButton'
 
-const isFilledSelector = (s: TldrawSnapshot) => s.appState.selectedStyle.isFilled
+const isFilledSelector = (s: TDSnapshot) => s.appState.selectedStyle.isFilled
 
 export const FillCheckbox = React.memo(function FillCheckbox(): JSX.Element {
   const app = useTldrawApp()

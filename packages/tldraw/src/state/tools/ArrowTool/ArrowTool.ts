@@ -1,10 +1,10 @@
 import { Utils, TLPointerEventHandler } from '@tldraw/core'
 import { Arrow } from '~state/shapes'
-import { SessionType, TldrawShapeType } from '~types'
+import { SessionType, TDShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
 export class ArrowTool extends BaseTool {
-  type = TldrawShapeType.Arrow as const
+  type = TDShapeType.Arrow as const
 
   /* ----------------- Event Handlers ----------------- */
 

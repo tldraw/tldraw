@@ -1,6 +1,6 @@
 import { inputs, TLBoundsEdge, TLBoundsCorner, TLBoundsHandle } from '@tldraw/core'
 import { TldrawApp } from '~state'
-import type { TldrawShape } from '~types'
+import type { TDShape } from '~types'
 
 interface PointerOptions {
   id?: number
@@ -152,7 +152,7 @@ export class TldrawTestApp extends TldrawApp {
     return this
   }
 
-  expectShapesToHaveProps = <T extends TldrawShape>(shapes: Record<string, Partial<T>>) => {
+  expectShapesToHaveProps = <T extends TDShape>(shapes: Record<string, Partial<T>>) => {
     Object.entries(shapes).forEach(([id, props]) => {
       const shape = this.getShape<T>(id)
       Object.entries(props).forEach(([key, value]) => {

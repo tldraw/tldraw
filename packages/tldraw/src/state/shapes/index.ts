@@ -1,4 +1,4 @@
-import type { TldrawShapeUtil } from './TldrawShapeUtil'
+import type { TDShapeUtil } from './TDShapeUtil'
 import { RectangleUtil } from './RectangleUtil'
 import { EllipseUtil } from './EllipseUtil'
 import { ArrowUtil } from './ArrowUtil'
@@ -6,7 +6,7 @@ import { GroupUtil } from './GroupUtil'
 import { StickyUtil } from './StickyUtil'
 import { TextUtil } from './TextUtil'
 import { DrawUtil } from './DrawUtil'
-import { TldrawShape, TldrawShapeType } from '~types'
+import { TDShape, TDShapeType } from '~types'
 
 export const Rectangle = new RectangleUtil()
 export const Ellipse = new EllipseUtil()
@@ -17,16 +17,16 @@ export const Group = new GroupUtil()
 export const Sticky = new StickyUtil()
 
 export const shapeUtils = {
-  [TldrawShapeType.Rectangle]: Rectangle,
-  [TldrawShapeType.Ellipse]: Ellipse,
-  [TldrawShapeType.Draw]: Draw,
-  [TldrawShapeType.Arrow]: Arrow,
-  [TldrawShapeType.Text]: Text,
-  [TldrawShapeType.Group]: Group,
-  [TldrawShapeType.Sticky]: Sticky,
+  [TDShapeType.Rectangle]: Rectangle,
+  [TDShapeType.Ellipse]: Ellipse,
+  [TDShapeType.Draw]: Draw,
+  [TDShapeType.Arrow]: Arrow,
+  [TDShapeType.Text]: Text,
+  [TDShapeType.Group]: Group,
+  [TDShapeType.Sticky]: Sticky,
 }
 
-export const getShapeUtil = <T extends TldrawShape>(shape: T | T['type']) => {
-  if (typeof shape === 'string') return shapeUtils[shape] as unknown as TldrawShapeUtil<T>
-  return shapeUtils[shape.type] as unknown as TldrawShapeUtil<T>
+export const getShapeUtil = <T extends TDShape>(shape: T | T['type']) => {
+  if (typeof shape === 'string') return shapeUtils[shape] as unknown as TDShapeUtil<T>
+  return shapeUtils[shape.type] as unknown as TDShapeUtil<T>
 }

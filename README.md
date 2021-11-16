@@ -4,7 +4,7 @@
 
 # @tldraw/tldraw
 
-This package contains the [tldraw](https://tldraw.com) editor as a React component named `<tldraw>`. You can use this package to embed the editor in any React application.
+This package contains the [tldraw](https://tldraw.com) editor as a React component named `<Tldraw>`. You can use this package to embed the editor in any React application.
 
 💕 Love this library? Consider [becoming a sponsor](https://github.com/sponsors/steveruizok?frequency=recurring&sponsor=steveruizok).
 
@@ -27,10 +27,10 @@ npm i @tldraw/tldraw
 Import the `tldraw` React component and use it in your app.
 
 ```tsx
-import { tldraw } from '@tldraw/tldraw'
+import { Tldraw } from '@tldraw/tldraw'
 
 function App() {
-  return <tldraw />
+  return <Tldraw />
 }
 ```
 
@@ -39,10 +39,10 @@ function App() {
 You can use the `id` to persist the state in a user's browser storage.
 
 ```tsx
-import { tldraw } from '@tldraw/tldraw'
+import { Tldraw } from '@tldraw/tldraw'
 
 function App() {
-  return <tldraw id="myState" />
+  return <Tldraw id="myState" />
 }
 ```
 
@@ -51,12 +51,12 @@ function App() {
 You can control the `tldraw` component through its props.
 
 ```tsx
-import { tldraw, tldrawDocument } from '@tldraw/tldraw'
+import { Tldraw, TDDocument } from '@tldraw/tldraw'
 
 function App() {
-  const myDocument: tldrawDocument = {}
+  const myDocument: TDDocument = {}
 
-  return <tldraw document={document} />
+  return <Tldraw document={document} />
 }
 ```
 
@@ -65,14 +65,14 @@ function App() {
 You can also control the `tldraw` component imperatively through the `tldrawApp` API.
 
 ```tsx
-import { tldraw, tldrawApp } from '@tldraw/tldraw'
+import { Tldraw, tldrawApp } from '@tldraw/tldraw'
 
 function App() {
   const handleMount = React.useCallback((state: tldrawApp) => {
     state.selectAll()
   }, [])
 
-  return <tldraw onMount={handleMount} />
+  return <Tldraw onMount={handleMount} />
 }
 ```
 
@@ -83,14 +83,14 @@ Internally, the `tldraw` component's user interface uses this API to make change
 You can respond to changes and user actions using the `onChange` callback. For more specific changes, you can also use the `onPatch`, `onCommand`, or `onPersist` callbacks. See the [documentation](guides/documentation) for more.
 
 ```tsx
-import { tldraw, tldrawApp } from '@tldraw/tldraw'
+import { Tldraw, tldrawApp } from '@tldraw/tldraw'
 
 function App() {
   const handleChange = React.useCallback((state: tldrawApp, reason: string) => {
     // Do something with the change
   }, [])
 
-  return <tldraw onMount={handleMount} />
+  return <Tldraw onMount={handleMount} />
 }
 ```
 
@@ -108,7 +108,7 @@ See the [development guide](/guides/development.md).
 
 ## Example
 
-See the `example` folder for examples of how to use the `<tldraw/>` component.
+See the `example` folder for examples of how to use the `<Tldraw/>` component.
 
 ## Community
 

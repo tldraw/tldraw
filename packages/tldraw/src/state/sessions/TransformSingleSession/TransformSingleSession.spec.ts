@@ -1,6 +1,6 @@
 import { mockDocument, TldrawTestApp } from '~test'
 import { TLBoundsCorner } from '@tldraw/core'
-import { TldrawStatus } from '~types'
+import { TDStatus } from '~types'
 
 describe('Transform single session', () => {
   it('begins, updateSession', () => {
@@ -10,7 +10,7 @@ describe('Transform single session', () => {
       .pointBoundsHandle(TLBoundsCorner.TopLeft, { x: -10, y: -10 })
       .stopPointing()
 
-    expect(app.status).toBe(TldrawStatus.Idle)
+    expect(app.status).toBe(TDStatus.Idle)
 
     app.undo().redo()
   })

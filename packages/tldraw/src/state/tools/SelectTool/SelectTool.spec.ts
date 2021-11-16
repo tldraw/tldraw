@@ -1,5 +1,5 @@
 import { mockDocument, TldrawTestApp } from '~test'
-import { SessionType, TldrawShapeType } from '~types'
+import { SessionType, TDShapeType } from '~types'
 import { SelectTool } from '.'
 
 describe('SelectTool', () => {
@@ -14,30 +14,30 @@ describe('When double clicking link controls', () => {
     .createShapes(
       {
         id: 'rect1',
-        type: TldrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
         point: [0, 0],
         size: [100, 100],
       },
       {
         id: 'rect2',
-        type: TldrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
         point: [100, 0],
         size: [100, 100],
       },
       {
         id: 'rect3',
-        type: TldrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
         point: [200, 0],
         size: [100, 100],
       },
       {
         id: 'arrow1',
-        type: TldrawShapeType.Arrow,
+        type: TDShapeType.Arrow,
         point: [200, 200],
       },
       {
         id: 'arrow2',
-        type: TldrawShapeType.Arrow,
+        type: TDShapeType.Arrow,
         point: [200, 200],
       }
     )
@@ -202,7 +202,7 @@ describe('When selecting grouped shapes', () => {
       .loadDocument(mockDocument)
       .createShapes({
         id: 'text1',
-        type: TldrawShapeType.Text,
+        type: TDShapeType.Text,
         text: 'Hello world',
       })
       .group(['rect1', 'rect2', 'text1'], 'groupA')
@@ -217,7 +217,7 @@ describe('When selecting grouped shapes', () => {
       .loadDocument(mockDocument)
       .createShapes({
         id: 'text1',
-        type: TldrawShapeType.Text,
+        type: TDShapeType.Text,
         text: 'Hello world',
       })
       .group(['rect1', 'rect2', 'text1'], 'groupA')

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { styled } from '~styles'
-import type { TldrawSnapshot } from '~types'
+import type { TDSnapshot } from '~types'
 import { useTldrawApp } from '~hooks'
 import { StatusBar } from './StatusBar'
 import { BackToContent } from './BackToContent'
@@ -8,7 +8,7 @@ import { PrimaryTools } from './PrimaryTools'
 import { ActionButton } from './ActionButton'
 import { DeleteButton } from './DeleteButton'
 
-const isDebugModeSelector = (s: TldrawSnapshot) => s.settings.isDebugMode
+const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
 
 export const ToolsPanel = React.memo(function ToolsPanel(): JSX.Element {
   const app = useTldrawApp()

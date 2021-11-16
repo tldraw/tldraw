@@ -8,13 +8,14 @@ import {
   intersectRayBounds,
 } from '@tldraw/intersect'
 import { Vec } from '@tldraw/vec'
-import type { TldrawBinding, TldrawMeta, TldrawShape, TldrawTransformInfo } from '~types'
+import type { TDBinding, TDMeta, TDShape, TransformInfo } from '~types'
 import * as React from 'react'
 
-export abstract class TldrawShapeUtil<
-  T extends TldrawShape,
-  E extends Element = any
-> extends TLShapeUtil<T, E, TldrawMeta> {
+export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> extends TLShapeUtil<
+  T,
+  E,
+  TDMeta
+> {
   abstract type: T['type']
 
   canBind = false
@@ -52,7 +53,7 @@ export abstract class TldrawShapeUtil<
     return Utils.getBoundsCenter(this.getBounds(shape))
   }
 
-  getBindingPoint = <K extends TldrawShape>(
+  getBindingPoint = <K extends TDShape>(
     shape: T,
     fromShape: K,
     point: number[],
@@ -137,26 +138,22 @@ export abstract class TldrawShapeUtil<
     return props
   }
 
-  transform = (shape: T, bounds: TLBounds, info: TldrawTransformInfo<T>): Partial<T> => {
+  transform = (shape: T, bounds: TLBounds, info: TransformInfo<T>): Partial<T> => {
     return { ...shape, point: [bounds.minX, bounds.minY] }
   }
 
-  transformSingle = (
-    shape: T,
-    bounds: TLBounds,
-    info: TldrawTransformInfo<T>
-  ): Partial<T> | void => {
+  transformSingle = (shape: T, bounds: TLBounds, info: TransformInfo<T>): Partial<T> | void => {
     return this.transform(shape, bounds, info)
   }
 
-  updateChildren?: <K extends TldrawShape>(shape: T, children: K[]) => Partial<K>[] | void
+  updateChildren?: <K extends TDShape>(shape: T, children: K[]) => Partial<K>[] | void
 
-  onChildrenChange?: (shape: T, children: TldrawShape[]) => Partial<T> | void
+  onChildrenChange?: (shape: T, children: TDShape[]) => Partial<T> | void
 
   onBindingChange?: (
     shape: T,
-    binding: TldrawBinding,
-    target: TldrawShape,
+    binding: TDBinding,
+    target: TDShape,
     targetBounds: TLBounds,
     center: number[]
   ) => Partial<T> | void

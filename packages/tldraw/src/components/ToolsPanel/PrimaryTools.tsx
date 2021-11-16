@@ -6,14 +6,14 @@ import {
   Pencil2Icon,
   TextIcon,
 } from '@radix-ui/react-icons'
-import { TldrawSnapshot, TldrawShapeType } from '~types'
+import { TDSnapshot, TDShapeType } from '~types'
 import { useTldrawApp } from '~hooks'
 import { ToolButtonWithTooltip } from '~components/ToolButton'
 import { Panel } from '~components/Panel'
 import { ShapesMenu } from './ShapesMenu'
 import { EraserIcon } from '~components/icons'
 
-const activeToolSelector = (s: TldrawSnapshot) => s.appState.activeTool
+const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 
 export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
   const app = useTldrawApp()
@@ -29,19 +29,19 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
   }, [app])
 
   const selectDrawTool = React.useCallback(() => {
-    app.selectTool(TldrawShapeType.Draw)
+    app.selectTool(TDShapeType.Draw)
   }, [app])
 
   const selectArrowTool = React.useCallback(() => {
-    app.selectTool(TldrawShapeType.Arrow)
+    app.selectTool(TDShapeType.Arrow)
   }, [app])
 
   const selectTextTool = React.useCallback(() => {
-    app.selectTool(TldrawShapeType.Text)
+    app.selectTool(TDShapeType.Text)
   }, [app])
 
   const selectStickyTool = React.useCallback(() => {
-    app.selectTool(TldrawShapeType.Sticky)
+    app.selectTool(TDShapeType.Sticky)
   }, [app])
 
   return (
@@ -56,9 +56,9 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'2'}
-        label={TldrawShapeType.Draw}
+        label={TDShapeType.Draw}
         onClick={selectDrawTool}
-        isActive={activeTool === TldrawShapeType.Draw}
+        isActive={activeTool === TDShapeType.Draw}
       >
         <Pencil1Icon />
       </ToolButtonWithTooltip>
@@ -73,25 +73,25 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
       <ShapesMenu activeTool={activeTool} />
       <ToolButtonWithTooltip
         kbd={'6'}
-        label={TldrawShapeType.Arrow}
+        label={TDShapeType.Arrow}
         onClick={selectArrowTool}
-        isActive={activeTool === TldrawShapeType.Arrow}
+        isActive={activeTool === TDShapeType.Arrow}
       >
         <ArrowTopRightIcon />
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'7'}
-        label={TldrawShapeType.Text}
+        label={TDShapeType.Text}
         onClick={selectTextTool}
-        isActive={activeTool === TldrawShapeType.Text}
+        isActive={activeTool === TDShapeType.Text}
       >
         <TextIcon />
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'8'}
-        label={TldrawShapeType.Sticky}
+        label={TDShapeType.Sticky}
         onClick={selectStickyTool}
-        isActive={activeTool === TldrawShapeType.Sticky}
+        isActive={activeTool === TDShapeType.Sticky}
       >
         <Pencil2Icon />
       </ToolButtonWithTooltip>

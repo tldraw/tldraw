@@ -2,25 +2,25 @@ import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Panel } from '~components/Panel'
 import { ToolButton } from '~components/ToolButton'
-import { TldrawShapeType, TldrawToolType } from '~types'
+import { TDShapeType, TDToolType } from '~types'
 import { useTldrawApp } from '~hooks'
 import { Pencil1Icon } from '@radix-ui/react-icons'
 import { Tooltip } from '~components/Tooltip'
 
 interface ShapesMenuProps {
-  activeTool: TldrawToolType
+  activeTool: TDToolType
 }
 
-type PenShape = TldrawShapeType.Draw
-const penShapes: PenShape[] = [TldrawShapeType.Draw]
+type PenShape = TDShapeType.Draw
+const penShapes: PenShape[] = [TDShapeType.Draw]
 const penShapeIcons = {
-  [TldrawShapeType.Draw]: <Pencil1Icon />,
+  [TDShapeType.Draw]: <Pencil1Icon />,
 }
 
 export const PenMenu = React.memo(function PenMenu({ activeTool }: ShapesMenuProps) {
   const app = useTldrawApp()
 
-  const [lastActiveTool, setLastActiveTool] = React.useState<PenShape>(TldrawShapeType.Draw)
+  const [lastActiveTool, setLastActiveTool] = React.useState<PenShape>(TDShapeType.Draw)
 
   React.useEffect(() => {
     if (penShapes.includes(activeTool as PenShape) && lastActiveTool !== activeTool) {

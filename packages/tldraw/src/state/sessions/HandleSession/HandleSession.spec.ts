@@ -1,5 +1,5 @@
 import { mockDocument, TldrawTestApp } from '~test'
-import { SessionType, TldrawShapeType, TldrawStatus } from '~types'
+import { SessionType, TDShapeType, TDStatus } from '~types'
 
 describe('Handle session', () => {
   it('begins, updateSession', () => {
@@ -7,7 +7,7 @@ describe('Handle session', () => {
       .loadDocument(mockDocument)
       .createShapes({
         id: 'arrow1',
-        type: TldrawShapeType.Arrow,
+        type: TDShapeType.Arrow,
       })
       .select('arrow1')
       .movePointer([-10, -10])
@@ -15,7 +15,7 @@ describe('Handle session', () => {
       .movePointer([10, 10])
       .completeSession()
 
-    expect(app.status).toBe(TldrawStatus.Idle)
+    expect(app.status).toBe(TDStatus.Idle)
 
     app.undo().redo()
   })
@@ -24,7 +24,7 @@ describe('Handle session', () => {
     const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .createShapes({
-        type: TldrawShapeType.Arrow,
+        type: TDShapeType.Arrow,
         id: 'arrow1',
       })
       .select('arrow1')

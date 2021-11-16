@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Tldraw, TldrawApp, TldrawShapeType, ColorStyle } from '@tldraw/Tldraw'
+import { Tldraw, TldrawApp, TDShapeType, ColorStyle } from '@tldraw/Tldraw'
 
 declare const window: Window & { app: TldrawApp }
 
@@ -14,7 +14,7 @@ export default function Api(): JSX.Element {
     app
       .createShapes({
         id: 'rect1',
-        type: TldrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
         point: [100, 100],
         size: [200, 200],
       })

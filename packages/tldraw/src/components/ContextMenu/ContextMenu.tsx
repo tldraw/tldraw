@@ -2,7 +2,7 @@ import * as React from 'react'
 import { styled } from '~styles'
 import * as RadixContextMenu from '@radix-ui/react-context-menu'
 import { useTldrawApp } from '~hooks'
-import { TldrawSnapshot, AlignType, DistributeType, StretchType } from '~types'
+import { TDSnapshot, AlignType, DistributeType, StretchType } from '~types'
 import {
   AlignBottomIcon,
   AlignCenterHorizontallyIcon,
@@ -21,21 +21,21 @@ import { CMTriggerButton } from './CMTriggerButton'
 import { Divider } from '~components/Divider'
 import { MenuContent } from '~components/MenuContent'
 
-const has1SelectedIdsSelector = (s: TldrawSnapshot) => {
+const has1SelectedIdsSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 0
 }
-const has2SelectedIdsSelector = (s: TldrawSnapshot) => {
+const has2SelectedIdsSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 1
 }
-const has3SelectedIdsSelector = (s: TldrawSnapshot) => {
+const has3SelectedIdsSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 2
 }
 
-const isDebugModeSelector = (s: TldrawSnapshot) => {
+const isDebugModeSelector = (s: TDSnapshot) => {
   return s.settings.isDebugMode
 }
 
-const hasGroupSelectedSelector = (s: TldrawSnapshot) => {
+const hasGroupSelectedSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.some(
     (id) => s.document.pages[s.appState.currentPageId].shapes[id].children !== undefined
   )
@@ -326,8 +326,8 @@ const StyledGridContent = styled(MenuContent, {
 
 /* ------------------ Move to Page ------------------ */
 
-const currentPageIdSelector = (s: TldrawSnapshot) => s.appState.currentPageId
-const documentPagesSelector = (s: TldrawSnapshot) => s.document.pages
+const currentPageIdSelector = (s: TDSnapshot) => s.appState.currentPageId
+const documentPagesSelector = (s: TDSnapshot) => s.document.pages
 
 function MoveToPageMenu(): JSX.Element | null {
   const app = useTldrawApp()

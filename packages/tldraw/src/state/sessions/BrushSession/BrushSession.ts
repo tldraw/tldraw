@@ -1,11 +1,11 @@
 import { TLBounds, Utils } from '@tldraw/core'
-import { SessionType, TldrawPatch, TldrawStatus, TldrawCommand } from '~types'
+import { SessionType, TldrawPatch, TDStatus, TldrawCommand } from '~types'
 import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'
 
 export class BrushSession extends BaseSession {
   type = SessionType.Brush
-  status = TldrawStatus.Brushing
+  status = TDStatus.Brushing
   initialSelectedIds: Set<string>
   shapesToTest: {
     id: string

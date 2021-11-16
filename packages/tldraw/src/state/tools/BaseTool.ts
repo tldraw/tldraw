@@ -5,7 +5,7 @@ import {
   Utils,
 } from '@tldraw/core'
 import type { TldrawApp } from '../internal'
-import { TldrawEventHandler, TldrawToolType } from '~types'
+import { TDEventHandler, TDToolType } from '~types'
 
 export enum Status {
   Idle = 'idle',
@@ -14,10 +14,10 @@ export enum Status {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export abstract class BaseTool<T extends string = any> extends TldrawEventHandler {
-  type: TldrawToolType = 'select' as const
+export abstract class BaseTool<T extends string = any> extends TDEventHandler {
+  type: TDToolType = 'select' as const
 
-  previous?: TldrawToolType
+  previous?: TDToolType
 
   status: Status | T = Status.Idle
 

@@ -2,18 +2,18 @@
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
 import { defaultStyle, getShapeStyle, getFontStyle } from '../shared/shape-styles'
-import { TextShape, TldrawMeta, TldrawShapeType, TldrawTransformInfo } from '~types'
+import { TextShape, TDMeta, TDShapeType, TransformInfo } from '~types'
 import { TextAreaUtils } from '../shared'
 import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
-import { TldrawShapeUtil } from '../TldrawShapeUtil'
+import { TDShapeUtil } from '../TDShapeUtil'
 import { styled } from '~styles'
 import Vec from '@tldraw/vec'
 
 type T = TextShape
 type E = HTMLDivElement
 
-export class TextUtil extends TldrawShapeUtil<T, E> {
-  type = TldrawShapeType.Text as const
+export class TextUtil extends TDShapeUtil<T, E> {
+  type = TDShapeType.Text as const
 
   isAspectRatioLocked = true
 
@@ -25,7 +25,7 @@ export class TextUtil extends TldrawShapeUtil<T, E> {
     return Utils.deepMerge<T>(
       {
         id: 'id',
-        type: TldrawShapeType.Text,
+        type: TDShapeType.Text,
         name: 'Text',
         parentId: 'page',
         childIndex: 1,
@@ -38,7 +38,7 @@ export class TextUtil extends TldrawShapeUtil<T, E> {
     )
   }
 
-  Component = TldrawShapeUtil.Component<T, E, TldrawMeta>(
+  Component = TDShapeUtil.Component<T, E, TDMeta>(
     ({ shape, isBinding, isGhost, isEditing, onShapeBlur, onShapeChange, meta, events }, ref) => {
       const rInput = React.useRef<HTMLTextAreaElement>(null)
       const { text, style } = shape
@@ -174,7 +174,7 @@ export class TextUtil extends TldrawShapeUtil<T, E> {
     }
   )
 
-  Indicator = TldrawShapeUtil.Indicator<T>(({ shape }) => {
+  Indicator = TDShapeUtil.Indicator<T>(({ shape }) => {
     const { width, height } = this.getBounds(shape)
     return <rect x={0} y={0} width={width} height={height} />
   })
@@ -215,7 +215,7 @@ export class TextUtil extends TldrawShapeUtil<T, E> {
   transform = (
     shape: T,
     bounds: TLBounds,
-    { initialShape, scaleX, scaleY }: TldrawTransformInfo<T>
+    { initialShape, scaleX, scaleY }: TransformInfo<T>
   ): Partial<T> => {
     const {
       rotation = 0,
@@ -238,7 +238,7 @@ export class TextUtil extends TldrawShapeUtil<T, E> {
   transformSingle = (
     shape: T,
     bounds: TLBounds,
-    { initialShape, scaleX, scaleY }: TldrawTransformInfo<T>
+    { initialShape, scaleX, scaleY }: TransformInfo<T>
   ): Partial<T> | void => {
     const {
       style: { scale = 1 },

@@ -1,5 +1,5 @@
 import { mockDocument, TldrawTestApp } from '~test'
-import { ArrowShape, SessionType, TldrawShapeType, TldrawStatus } from '~types'
+import { ArrowShape, SessionType, TDShapeType, TDStatus } from '~types'
 
 describe('Arrow session', () => {
   const restoreDoc = new TldrawTestApp()
@@ -7,8 +7,8 @@ describe('Arrow session', () => {
     .selectAll()
     .delete()
     .createShapes(
-      { type: TldrawShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
-      { type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+      { type: TDShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+      { type: TDShapeType.Arrow, id: 'arrow1', point: [200, 200] }
     ).document
 
   it('begins, updateSession', () => {
@@ -26,7 +26,7 @@ describe('Arrow session', () => {
     expect(binding.fromId).toBe('arrow1')
     expect(binding.toId).toBe('target1')
     expect(binding.handleId).toBe('start')
-    expect(app.appState.status).toBe(TldrawStatus.Idle)
+    expect(app.appState.status).toBe(TDStatus.Idle)
     expect(app.getShape('arrow1').handles?.start.bindingId).toBe(binding.id)
 
     app.undo()
@@ -158,7 +158,7 @@ describe('Arrow session', () => {
 describe('When creating with an arrow session', () => {
   it('Deletes the shape on undo', () => {
     const app = new TldrawTestApp()
-      .createShapes({ type: TldrawShapeType.Arrow, id: 'arrow1', point: [200, 200] })
+      .createShapes({ type: TDShapeType.Arrow, id: 'arrow1', point: [200, 200] })
       .select('arrow1')
       .movePointer([200, 200])
       .startSession(SessionType.Arrow, 'arrow1', 'start', true)
@@ -172,10 +172,10 @@ describe('When creating with an arrow session', () => {
   it("Doesn't corrupt a shape after undoing", () => {
     const app = new TldrawTestApp()
       .createShapes(
-        { type: TldrawShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
-        { type: TldrawShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] }
+        { type: TDShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
+        { type: TDShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] }
       )
-      .selectTool(TldrawShapeType.Arrow)
+      .selectTool(TDShapeType.Arrow)
       .pointShape('rect1', { x: 250, y: 250 })
       .movePointer([450, 250])
       .stopPointing()
@@ -194,15 +194,15 @@ describe('When creating with an arrow session', () => {
   it('Creates a start binding if possible', () => {
     const app = new TldrawTestApp()
       .createShapes(
-        { type: TldrawShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
-        { type: TldrawShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] }
+        { type: TDShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
+        { type: TDShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] }
       )
-      .selectTool(TldrawShapeType.Arrow)
+      .selectTool(TDShapeType.Arrow)
       .pointShape('rect1', { x: 250, y: 250 })
       .movePointer([450, 250])
       .completeSession()
 
-    const arrow = app.shapes.find((shape) => shape.type === TldrawShapeType.Arrow) as ArrowShape
+    const arrow = app.shapes.find((shape) => shape.type === TDShapeType.Arrow) as ArrowShape
 
     expect(arrow).toBeTruthy()
     expect(app.bindings.length).toBe(2)
@@ -213,9 +213,9 @@ describe('When creating with an arrow session', () => {
   it('Removes a binding when dragged away', () => {
     const app = new TldrawTestApp()
       .createShapes(
-        { type: TldrawShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
-        { type: TldrawShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] },
-        { type: TldrawShapeType.Arrow, id: 'arrow1', point: [250, 250] }
+        { type: TDShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
+        { type: TDShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] },
+        { type: TDShapeType.Arrow, id: 'arrow1', point: [250, 250] }
       )
       .select('arrow1')
       .movePointer([250, 250])
@@ -227,7 +227,7 @@ describe('When creating with an arrow session', () => {
       .movePointer([0, 0])
       .completeSession()
 
-    const arrow = app.shapes.find((shape) => shape.type === TldrawShapeType.Arrow) as ArrowShape
+    const arrow = app.shapes.find((shape) => shape.type === TDShapeType.Arrow) as ArrowShape
 
     expect(arrow).toBeTruthy()
 

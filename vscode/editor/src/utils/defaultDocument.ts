@@ -1,6 +1,6 @@
-import { TldrawDocument, TldrawApp } from '@tldraw/Tldraw'
+import { TDDocument, TldrawApp } from '@tldraw/Tldraw'
 
-export const defaultDocument: TldrawDocument = {
+export const defaultDocument: TDDocument = {
   id: 'doc',
   name: 'New Document',
   version: TldrawApp.version,

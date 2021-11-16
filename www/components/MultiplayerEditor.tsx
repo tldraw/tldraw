@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Tldraw, TldrawApp, TldrawDocument, TldrawUser, useFileSystem } from '@tldraw/Tldraw'
+import { Tldraw, TldrawApp, TDDocument, TDUser, useFileSystem } from '@tldraw/Tldraw'
 import * as React from 'react'
 import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useObject, useErrorListener } from '@liveblocks/react'
@@ -8,8 +8,8 @@ import { useAccountHandlers } from '-hooks/useAccountHandlers'
 
 declare const window: Window & { app: TldrawApp }
 
-interface TldrawUserPresence extends Presence {
-  user: TldrawUser
+interface TDUserPresence extends Presence {
+  user: TDUser
 }
 
 const client = createClient({
@@ -48,7 +48,7 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
 
   // Setup document
 
-  const doc = useObject<{ uuid: string; document: TldrawDocument }>('doc', {
+  const doc = useObject<{ uuid: string; document: TDDocument }>('doc', {
     uuid: docId,
     document: {
       ...TldrawApp.defaultDocument,
@@ -71,7 +71,7 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
     room.updatePresence({ id: userId, user: users[userId] })
 
     // Subscribe to presence changes; when others change, update the state
-    room.subscribe<TldrawUserPresence>('others', (others) => {
+    room.subscribe<TDUserPresence>('others', (others) => {
       app.updateUsers(
         others
           .toArray()
@@ -148,7 +148,7 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
   )
 
   const handleUserChange = React.useCallback(
-    (app: TldrawApp, user: TldrawUser) => {
+    (app: TldrawApp, user: TDUser) => {
       const room = client.getRoom(roomId)
       room?.updatePresence({ id: app.room?.userId, user })
     },

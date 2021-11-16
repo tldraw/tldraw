@@ -1,11 +1,11 @@
 import {
   ArrowBinding,
   ArrowShape,
-  TldrawShape,
-  TldrawBinding,
-  TldrawStatus,
+  TDShape,
+  TDBinding,
+  TDStatus,
   SessionType,
-  TldrawShapeType,
+  TDShapeType,
   TldrawPatch,
   TldrawCommand,
 } from '~types'
@@ -19,14 +19,14 @@ import type { TldrawApp } from '../../internal'
 
 export class ArrowSession extends BaseSession {
   type = SessionType.Arrow
-  status = TldrawStatus.TranslatingHandle
+  status = TDStatus.TranslatingHandle
   newStartBindingId = Utils.uniqueId()
   draggedBindingId = Utils.uniqueId()
   didBind = false
   initialShape: ArrowShape
   handleId: 'start' | 'end'
   bindableShapeIds: string[]
-  initialBinding?: TldrawBinding
+  initialBinding?: TDBinding
   startBindingShapeId?: string
   isCreate: boolean
 
@@ -94,7 +94,7 @@ export class ArrowSession extends BaseSession {
       bindingId: undefined,
     }
 
-    const utils = shapeUtils[TldrawShapeType.Arrow]
+    const utils = shapeUtils[TDShapeType.Arrow]
 
     const change = utils.onHandleChange?.(
       shape,
@@ -111,7 +111,7 @@ export class ArrowSession extends BaseSession {
     // before. If it does change, we'll redefine this later on. And if we've
     // made it this far, the shape should be a new object reference that
     // incorporates the changes we've made due to the handle movement.
-    const next: { shape: ArrowShape; bindings: Record<string, TldrawBinding | undefined> } = {
+    const next: { shape: ArrowShape; bindings: Record<string, TDBinding | undefined> } = {
       shape: Utils.deepMerge(shape, change),
       bindings: {},
     }
@@ -243,7 +243,7 @@ export class ArrowSession extends BaseSession {
 
       const targetUtils = TLDR.getShapeUtil(target)
 
-      const utils = shapeUtils[TldrawShapeType.Arrow]
+      const utils = shapeUtils[TDShapeType.Arrow]
 
       const arrowChange = utils.onBindingChange(
         next.shape,
@@ -299,7 +299,7 @@ export class ArrowSession extends BaseSession {
   cancel = (): TldrawPatch | undefined => {
     const { initialShape, initialBinding, newStartBindingId, draggedBindingId } = this
 
-    const afterBindings: Record<string, TldrawBinding | undefined> = {}
+    const afterBindings: Record<string, TDBinding | undefined> = {}
 
     afterBindings[draggedBindingId] = undefined
 
@@ -336,9 +336,9 @@ export class ArrowSession extends BaseSession {
   complete = (): TldrawPatch | TldrawCommand | undefined => {
     const { initialShape, initialBinding, newStartBindingId, startBindingShapeId, handleId } = this
 
-    const beforeBindings: Partial<Record<string, TldrawBinding>> = {}
+    const beforeBindings: Partial<Record<string, TDBinding>> = {}
 
-    const afterBindings: Partial<Record<string, TldrawBinding>> = {}
+    const afterBindings: Partial<Record<string, TDBinding>> = {}
 
     let afterShape = this.app.page.shapes[initialShape.id] as ArrowShape
 
@@ -408,7 +408,7 @@ export class ArrowSession extends BaseSession {
 
   private findBindingPoint = (
     shape: ArrowShape,
-    target: TldrawShape,
+    target: TDShape,
     handleId: 'start' | 'end',
     bindingId: string,
     point: number[],
@@ -416,7 +416,7 @@ export class ArrowSession extends BaseSession {
     direction: number[],
     bindAnywhere: boolean
   ) => {
-    const util = TLDR.getShapeUtil<TldrawShape>(target.type)
+    const util = TLDR.getShapeUtil<TDShape>(target.type)
 
     const bindingPoint = util.getBindingPoint(
       target,

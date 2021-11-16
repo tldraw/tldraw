@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { Tldraw, TldrawApp, TldrawDocument, TldrawUser } from '@tldraw/Tldraw'
+import { Tldraw, TldrawApp, TDDocument, TDUser } from '@tldraw/Tldraw'
 import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useErrorListener, useObject } from '@liveblocks/react'
 import { Utils } from '@tldraw/core'
 
 declare const window: Window & { app: TldrawApp }
 
-interface TldrawUserPresence extends Presence {
-  user: TldrawUser
+interface TDUserPresence extends Presence {
+  user: TDUser
 }
 
 const client = createClient({
@@ -37,7 +37,7 @@ function TldrawWrapper() {
 
   useErrorListener((err) => setError(err))
 
-  const doc = useObject<{ uuid: string; document: TldrawDocument }>('doc', {
+  const doc = useObject<{ uuid: string; document: TDDocument }>('doc', {
     uuid: docId,
     document: {
       ...TldrawApp.defaultDocument,
@@ -62,7 +62,7 @@ function TldrawWrapper() {
     if (!app) return
 
     // Subscribe to presence changes; when others change, update the state
-    room.subscribe<TldrawUserPresence>('others', (others) => {
+    room.subscribe<TDUserPresence>('others', (others) => {
       app.updateUsers(
         others
           .toArray()
@@ -138,7 +138,7 @@ function TldrawWrapper() {
   )
 
   const handleUserChange = React.useCallback(
-    (app: TldrawApp, user: TldrawUser) => {
+    (app: TldrawApp, user: TDUser) => {
       const room = client.getRoom(roomId)
       room?.updatePresence({ id: app.room?.userId, user })
     },

@@ -24,7 +24,7 @@ const { styled, createTheme } = createStitches({
       panelBorder: 'rgba(0, 0, 0, 0.12)',
       panelActive: '#fefefe',
       inactive: '#cccccf',
-      hover: '#deeaff',
+      hover: 'rgba(144, 144, 144, .1)',
       text: '#333333',
       tooltipBg: '#1d1d1d',
       tooltipText: '#ffffff',

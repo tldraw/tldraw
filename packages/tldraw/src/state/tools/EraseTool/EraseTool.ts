@@ -3,7 +3,6 @@ import type { TLPointerEventHandler } from '@tldraw/core'
 import { SessionType } from '~types'
 import { BaseTool } from '../BaseTool'
 import { DEAD_ZONE } from '~constants'
-import type { TldrawApp } from '../../internal'
 
 enum Status {
   Idle = 'idle',

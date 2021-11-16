@@ -5,7 +5,7 @@ import { useTldrawApp } from '~hooks'
 import { DMItem, DMContent, DMDivider, DMTriggerIcon } from '~components/DropdownMenu'
 import { SmallIcon } from '~components/SmallIcon'
 import { MultiplayerIcon } from '~components/icons'
-import type { TldrawSnapshot } from '~types'
+import type { TDSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
 
 interface MultiplayerMenuProps {
@@ -13,7 +13,7 @@ interface MultiplayerMenuProps {
   // noop
 }
 
-const roomSelector = (state: TldrawSnapshot) => state.room
+const roomSelector = (state: TDSnapshot) => state.room
 
 export const MultiplayerMenu = React.memo(function MultiplayerMenu({ id }: MultiplayerMenuProps) {
   const app = useTldrawApp()

@@ -1,7 +1,7 @@
 import Vec from '@tldraw/vec'
 import { Utils } from '@tldraw/core'
 import { mockDocument, TldrawTestApp } from '~test'
-import { SessionType, TldrawStatus } from '~types'
+import { SessionType, TDStatus } from '~types'
 
 describe('Rotate session', () => {
   const app = new TldrawTestApp()
@@ -33,7 +33,7 @@ describe('Rotate session', () => {
 
     app.completeSession()
 
-    expect(app.appState.status).toBe(TldrawStatus.Idle)
+    expect(app.appState.status).toBe(TDStatus.Idle)
 
     app.undo()
 

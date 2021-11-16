@@ -1,6 +1,6 @@
 import Vec from '@tldraw/vec'
 import { mockDocument, TldrawTestApp } from '~test'
-import { AlignType, TldrawShapeType } from '~types'
+import { AlignType, TDShapeType } from '~types'
 
 describe('Align command', () => {
   const app = new TldrawTestApp()
@@ -80,10 +80,10 @@ describe('when aligning groups', () => {
   it('aligns children', () => {
     const app = new TldrawTestApp()
       .createShapes(
-        { id: 'rect1', type: TldrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
-        { id: 'rect2', type: TldrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
-        { id: 'rect3', type: TldrawShapeType.Rectangle, point: [200, 200], size: [100, 100] },
-        { id: 'rect4', type: TldrawShapeType.Rectangle, point: [0, 0], size: [200, 200] }
+        { id: 'rect1', type: TDShapeType.Rectangle, point: [0, 0], size: [100, 100] },
+        { id: 'rect2', type: TDShapeType.Rectangle, point: [100, 100], size: [100, 100] },
+        { id: 'rect3', type: TDShapeType.Rectangle, point: [200, 200], size: [100, 100] },
+        { id: 'rect4', type: TDShapeType.Rectangle, point: [0, 0], size: [200, 200] }
       )
       .group(['rect1', 'rect2'], 'groupA')
       .select('rect3', 'rect4')

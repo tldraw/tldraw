@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { ColorStyle, Tldraw, TldrawShapeType, TldrawApp } from '@tldraw/Tldraw'
+import { ColorStyle, Tldraw, TDShapeType, TldrawApp } from '@tldraw/Tldraw'
 
 export default function Imperative(): JSX.Element {
   const rTldrawApp = React.useRef<TldrawApp>()
@@ -11,7 +11,7 @@ export default function Imperative(): JSX.Element {
     app.createShapes(
       {
         id: 'rect1',
-        type: TldrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
         name: 'Rectangle',
         childIndex: 1,
         point: [0, 0],
@@ -20,7 +20,7 @@ export default function Imperative(): JSX.Element {
       {
         id: 'rect2',
         name: 'Rectangle',
-        type: TldrawShapeType.Rectangle,
+        type: TDShapeType.Rectangle,
         point: [200, 200],
         size: [100, 100],
       }
@@ -36,7 +36,7 @@ export default function Imperative(): JSX.Element {
       if (!rect1) {
         app.createShapes({
           id: 'rect1',
-          type: TldrawShapeType.Rectangle,
+          type: TDShapeType.Rectangle,
           name: 'Rectangle',
           childIndex: 1,
           point: [0, 0],

@@ -1,12 +1,12 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { SessionType, TldrawStatus, TldrawPatch, TldrawCommand, DrawShape } from '~types'
+import { SessionType, TDStatus, TldrawPatch, TldrawCommand, DrawShape } from '~types'
 import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'
 
 export class DrawSession extends BaseSession {
   type = SessionType.Draw
-  status = TldrawStatus.Creating
+  status = TDStatus.Creating
   topLeft: number[]
   points: number[][]
   lastAdjustedPoint: number[]

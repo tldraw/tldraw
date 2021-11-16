@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { TldrawShapeType } from '~types'
+import { TDShapeType } from '~types'
 import { useFileSystemHandlers, useTldrawApp } from '~hooks'
 
 export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
@@ -24,7 +24,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'd,2',
     () => {
-      if (canHandleEvent()) app.selectTool(TldrawShapeType.Draw)
+      if (canHandleEvent()) app.selectTool(TDShapeType.Draw)
     },
     undefined,
     [app]
@@ -42,7 +42,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'r,4',
     () => {
-      if (canHandleEvent()) app.selectTool(TldrawShapeType.Rectangle)
+      if (canHandleEvent()) app.selectTool(TDShapeType.Rectangle)
     },
     undefined,
     [app]
@@ -51,7 +51,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     '5',
     () => {
-      if (canHandleEvent()) app.selectTool(TldrawShapeType.Ellipse)
+      if (canHandleEvent()) app.selectTool(TDShapeType.Ellipse)
     },
     undefined,
     [app]
@@ -60,7 +60,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'a,6',
     () => {
-      if (canHandleEvent()) app.selectTool(TldrawShapeType.Arrow)
+      if (canHandleEvent()) app.selectTool(TDShapeType.Arrow)
     },
     undefined,
     [app]
@@ -69,7 +69,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     't,7',
     () => {
-      if (canHandleEvent()) app.selectTool(TldrawShapeType.Text)
+      if (canHandleEvent()) app.selectTool(TDShapeType.Text)
     },
     undefined,
     [app]
@@ -78,7 +78,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'n,8',
     () => {
-      if (canHandleEvent()) app.selectTool(TldrawShapeType.Sticky)
+      if (canHandleEvent()) app.selectTool(TDShapeType.Sticky)
     },
     undefined,
     [app]

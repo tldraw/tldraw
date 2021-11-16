@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
-import { DistributeType, TldrawShape, TldrawCommand, TldrawShapeType } from '~types'
+import { DistributeType, TDShape, TldrawCommand, TDShapeType } from '~types'
 import { TLDR } from '~state/TLDR'
 import Vec from '@tldraw/vec'
 import type { TldrawApp } from '../../internal'
@@ -24,7 +24,7 @@ export function distributeShapes(
   )
 
   initialShapes.forEach((shape) => {
-    if (shape.type === TldrawShapeType.Group) {
+    if (shape.type === TDShapeType.Group) {
       const delta = Vec.sub(after[shape.id].point!, before[shape.id].point!)
 
       shape.children.forEach((id) => {
@@ -67,7 +67,7 @@ export function distributeShapes(
   }
 }
 
-function getDistributions(initialShapes: TldrawShape[], type: DistributeType) {
+function getDistributions(initialShapes: TDShape[], type: DistributeType) {
   const entries = initialShapes.map((shape) => {
     const utils = TLDR.getShapeUtil(shape)
     return {

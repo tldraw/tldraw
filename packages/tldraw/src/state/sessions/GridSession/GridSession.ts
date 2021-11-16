@@ -1,22 +1,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLPageState, TLBounds, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import {
-  TldrawShape,
-  TldrawStatus,
-  SessionType,
-  TldrawShapeType,
-  TldrawPatch,
-  TldrawCommand,
-} from '~types'
+import { TDShape, TDStatus, SessionType, TDShapeType, TldrawPatch, TldrawCommand } from '~types'
 import type { Patch } from 'rko'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
 
 export class GridSession extends BaseSession {
   type = SessionType.Grid
-  status = TldrawStatus.Translating
-  shape: TldrawShape
+  status = TDStatus.Translating
+  shape: TDShape
   bounds: TLBounds
   initialSelectedIds: string[]
   initialSiblings?: string[]
@@ -43,7 +36,7 @@ export class GridSession extends BaseSession {
   update = (): TldrawPatch | undefined => {
     const { currentPageId, altKey, shiftKey, currentPoint } = this.app
 
-    const nextShapes: Patch<Record<string, TldrawShape>> = {}
+    const nextShapes: Patch<Record<string, TDShape>> = {}
 
     const nextPageState: Patch<TLPageState> = {}
 
@@ -139,7 +132,7 @@ export class GridSession extends BaseSession {
 
   cancel = (): TldrawPatch | undefined => {
     const { currentPageId } = this.app
-    const nextShapes: Record<string, Partial<TldrawShape> | undefined> = {}
+    const nextShapes: Record<string, Partial<TDShape> | undefined> = {}
 
     // Delete clones
     Object.values(this.grid).forEach((id) => {
@@ -175,9 +168,9 @@ export class GridSession extends BaseSession {
   complete = (): TldrawPatch | TldrawCommand | undefined => {
     const { currentPageId } = this.app
 
-    const beforeShapes: Patch<Record<string, TldrawShape>> = {}
+    const beforeShapes: Patch<Record<string, TDShape>> = {}
 
-    const afterShapes: Patch<Record<string, TldrawShape>> = {}
+    const afterShapes: Patch<Record<string, TDShape>> = {}
 
     const afterSelectedIds: string[] = []
 
@@ -247,7 +240,7 @@ export class GridSession extends BaseSession {
     }
 
     if (!copy) {
-      if (clone.type === TldrawShapeType.Sticky) {
+      if (clone.type === TDShapeType.Sticky) {
         clone.text = ''
       }
     }

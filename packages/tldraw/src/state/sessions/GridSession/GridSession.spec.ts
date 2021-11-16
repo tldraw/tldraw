@@ -1,5 +1,5 @@
 import { mockDocument, TldrawTestApp } from '~test'
-import { TldrawStatus } from '~types'
+import { TDStatus } from '~types'
 
 describe('Grid session', () => {
   it('begins, updateSession', () => {
@@ -13,7 +13,7 @@ describe('Grid session', () => {
 
     app.completeSession()
 
-    expect(app.appState.status).toBe(TldrawStatus.Idle)
+    expect(app.appState.status).toBe(TDStatus.Idle)
 
     expect(app.getShape('rect1').point).toStrictEqual([5, 5])
 

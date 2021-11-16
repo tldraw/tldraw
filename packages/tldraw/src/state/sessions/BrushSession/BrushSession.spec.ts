@@ -1,5 +1,5 @@
 import { mockDocument, TldrawTestApp } from '~test'
-import { SessionType, TldrawStatus } from '~types'
+import { SessionType, TDStatus } from '~types'
 
 describe('Brush session', () => {
   it('begins, updateSession', () => {
@@ -10,7 +10,7 @@ describe('Brush session', () => {
       .startSession(SessionType.Brush)
       .movePointer([10, 10])
       .completeSession()
-    expect(app.status).toBe(TldrawStatus.Idle)
+    expect(app.status).toBe(TDStatus.Idle)
     expect(app.selectedIds.length).toBe(1)
   })
 

@@ -18,23 +18,23 @@ import {
 } from '@tldraw/core'
 import {
   FlipType,
-  TldrawDocument,
+  TDDocument,
   MoveType,
   AlignType,
   StretchType,
   DistributeType,
   ShapeStyles,
-  TldrawShape,
-  TldrawShapeType,
-  TldrawSnapshot,
-  TldrawStatus,
-  TldrawPage,
-  TldrawBinding,
+  TDShape,
+  TDShapeType,
+  TDSnapshot,
+  TDStatus,
+  TDPage,
+  TDBinding,
   GroupShape,
   TldrawCommand,
-  TldrawUser,
+  TDUser,
   SessionType,
-  TldrawToolType,
+  TDToolType,
 } from '~types'
 import {
   migrate,
@@ -61,7 +61,7 @@ import { StickyTool } from './tools/StickyTool'
 
 const uuid = Utils.uniqueId()
 
-export interface TldrawCallbacks {
+export interface TDCallbacks {
   /**
    * (optional) A callback to run when the component mounts.
    */
@@ -97,7 +97,7 @@ export interface TldrawCallbacks {
   /**
    * (optional) A callback to run when the user creates a new project.
    */
-  onUserChange?: (state: TldrawApp, user: TldrawUser) => void
+  onUserChange?: (state: TldrawApp, user: TDUser) => void
   /**
    * (optional) A callback to run when the state is patched.
    */
@@ -120,18 +120,18 @@ export interface TldrawCallbacks {
   onRedo?: (state: TldrawApp) => void
 }
 
-export class TldrawApp extends StateManager<TldrawSnapshot> {
-  callbacks: TldrawCallbacks = {}
+export class TldrawApp extends StateManager<TDSnapshot> {
+  callbacks: TDCallbacks = {}
 
   tools = {
     select: new SelectTool(this),
     erase: new EraseTool(this),
-    [TldrawShapeType.Text]: new TextTool(this),
-    [TldrawShapeType.Draw]: new DrawTool(this),
-    [TldrawShapeType.Ellipse]: new EllipseTool(this),
-    [TldrawShapeType.Rectangle]: new RectangleTool(this),
-    [TldrawShapeType.Arrow]: new ArrowTool(this),
-    [TldrawShapeType.Sticky]: new StickyTool(this),
+    [TDShapeType.Text]: new TextTool(this),
+    [TDShapeType.Draw]: new DrawTool(this),
+    [TDShapeType.Ellipse]: new EllipseTool(this),
+    [TDShapeType.Rectangle]: new RectangleTool(this),
+    [TDShapeType.Arrow]: new ArrowTool(this),
+    [TDShapeType.Sticky]: new StickyTool(this),
   }
 
   currentTool: BaseTool = this.tools.select
@@ -180,8 +180,8 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
   }
 
   clipboard?: {
-    shapes: TldrawShape[]
-    bindings: TldrawBinding[]
+    shapes: TDShape[]
+    bindings: TDBinding[]
   }
 
   rotationInfo = {
@@ -194,7 +194,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
     offset: [0, 0],
   }
 
-  constructor(id?: string, callbacks = {} as TldrawCallbacks) {
+  constructor(id?: string, callbacks = {} as TDCallbacks) {
     super(TldrawApp.defaultState, id, TldrawApp.version, (prev, next, prevVersion) => {
       return {
         ...next,
@@ -220,7 +220,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
     try {
       this.patchState({
         appState: {
-          status: TldrawStatus.Idle,
+          status: TDStatus.Idle,
         },
         document: migrate(this.document, TldrawApp.version),
       })
@@ -232,7 +232,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
         ...TldrawApp.defaultState,
         appState: {
           ...TldrawApp.defaultState.appState,
-          status: TldrawStatus.Idle,
+          status: TDStatus.Idle,
         },
       })
     }
@@ -247,7 +247,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * @protected
    * @returns The final state
    */
-  protected cleanup = (state: TldrawSnapshot, prev: TldrawSnapshot): TldrawSnapshot => {
+  protected cleanup = (state: TDSnapshot, prev: TDSnapshot): TDSnapshot => {
     const data = { ...state }
 
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
@@ -333,7 +333,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
               const nextShape = {
                 ...fromShape,
                 ...fromDelta,
-              } as TldrawShape
+              } as TDShape
 
               page.shapes[fromShape.id] = nextShape
             }
@@ -437,11 +437,11 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
     return data
   }
 
-  onPatch = (state: TldrawSnapshot, id?: string) => {
+  onPatch = (state: TDSnapshot, id?: string) => {
     this.callbacks.onPatch?.(this, id)
   }
 
-  onCommand = (state: TldrawSnapshot, id?: string) => {
+  onCommand = (state: TDSnapshot, id?: string) => {
     this.clearSelectHistory()
     this.isDirty = true
     this.callbacks.onCommand?.(this, id)
@@ -471,7 +471,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * @param state
    * @param id
    */
-  protected onStateDidChange = (_state: TldrawSnapshot, id?: string): void => {
+  protected onStateDidChange = (_state: TDSnapshot, id?: string): void => {
     this.callbacks.onChange?.(this, id)
   }
 
@@ -581,10 +581,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
   /**
    * Set a setting.
    */
-  setSetting = <
-    T extends keyof TldrawSnapshot['settings'],
-    V extends TldrawSnapshot['settings'][T]
-  >(
+  setSetting = <T extends keyof TDSnapshot['settings'], V extends TDSnapshot['settings'][T]>(
     name: T,
     value: V | ((value: V) => V)
   ): this => {
@@ -692,7 +689,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * Select a tool.
    * @param tool The tool to select, or "select".
    */
-  selectTool = (type: TldrawToolType): this => {
+  selectTool = (type: TDToolType): this => {
     if (this.readOnly || this.session) return this
 
     const tool = this.tools[type]
@@ -761,7 +758,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    *
    * @param document
    */
-  updateUsers = (users: TldrawUser[], isOwnUpdate = false) => {
+  updateUsers = (users: TDUser[], isOwnUpdate = false) => {
     this.patchState(
       {
         room: {
@@ -786,7 +783,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * Merge a new document patch into the current document.
    * @param document
    */
-  mergeDocument = (document: TldrawDocument): this => {
+  mergeDocument = (document: TDDocument): this => {
     // If it's a new document, do a full change.
     if (this.document.id !== document.id) {
       this.replaceState({
@@ -872,7 +869,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * Update the current document.
    * @param document
    */
-  updateDocument = (document: TldrawDocument, reason = 'updated_document'): this => {
+  updateDocument = (document: TDDocument, reason = 'updated_document'): this => {
     const prevState = this.state
 
     const nextState = { ...prevState, document: { ...prevState.document } }
@@ -947,7 +944,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * Load a new document.
    * @param document The document to load
    */
-  loadDocument = (document: TldrawDocument): this => {
+  loadDocument = (document: TDDocument): this => {
     this.selectNone()
     this.resetHistory()
     this.clearSelectHistory()
@@ -1049,7 +1046,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
   /**
    * Get the current app state.
    */
-  getAppState = (): TldrawSnapshot['appState'] => {
+  getAppState = (): TDSnapshot['appState'] => {
     return this.appState
   }
 
@@ -1057,7 +1054,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * Get a page.
    * @param pageId (optional) The page's id.
    */
-  getPage = (pageId = this.currentPageId): TldrawPage => {
+  getPage = (pageId = this.currentPageId): TDPage => {
     return TLDR.getPage(this.state, pageId || this.currentPageId)
   }
 
@@ -1065,7 +1062,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * Get the shapes (as an array) from a given page.
    * @param pageId (optional) The page's id.
    */
-  getShapes = (pageId = this.currentPageId): TldrawShape[] => {
+  getShapes = (pageId = this.currentPageId): TDShape[] => {
     return TLDR.getShapes(this.state, pageId || this.currentPageId)
   }
 
@@ -1073,7 +1070,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * Get the bindings from a given page.
    * @param pageId (optional) The page's id.
    */
-  getBindings = (pageId = this.currentPageId): TldrawBinding[] => {
+  getBindings = (pageId = this.currentPageId): TDBinding[] => {
     return TLDR.getBindings(this.state, pageId || this.currentPageId)
   }
 
@@ -1082,7 +1079,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * @param id The shape's id.
    * @param pageId (optional) The page's id.
    */
-  getShape = <T extends TldrawShape = TldrawShape>(id: string, pageId = this.currentPageId): T => {
+  getShape = <T extends TDShape = TDShape>(id: string, pageId = this.currentPageId): T => {
     return TLDR.getShape<T>(this.state, id, pageId)
   }
 
@@ -1100,7 +1097,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * @param id The binding's id.
    * @param pageId (optional) The page's id.
    */
-  getBinding = (id: string, pageId = this.currentPageId): TldrawBinding => {
+  getBinding = (id: string, pageId = this.currentPageId): TDBinding => {
     return TLDR.getBinding(this.state, id, pageId)
   }
 
@@ -1139,21 +1136,21 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
   /**
    * The current document.
    */
-  get document(): TldrawDocument {
+  get document(): TDDocument {
     return this.state.document
   }
 
   /**
    * The current app state.
    */
-  get settings(): TldrawSnapshot['settings'] {
+  get settings(): TDSnapshot['settings'] {
     return this.state.settings
   }
 
   /**
    * The current app state.
    */
-  get appState(): TldrawSnapshot['appState'] {
+  get appState(): TDSnapshot['appState'] {
     return this.state.appState
   }
 
@@ -1167,21 +1164,21 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
   /**
    * The current page.
    */
-  get page(): TldrawPage {
+  get page(): TDPage {
     return this.state.document.pages[this.currentPageId]
   }
 
   /**
    * The current page's shapes (as an array).
    */
-  get shapes(): TldrawShape[] {
+  get shapes(): TDShape[] {
     return Object.values(this.page.shapes)
   }
 
   /**
    * The current page's bindings.
    */
-  get bindings(): TldrawBinding[] {
+  get bindings(): TDBinding[] {
     return Object.values(this.page.bindings)
   }
 
@@ -1269,7 +1266,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
 
     if (copyingShapes.length === 0) return this
 
-    const copyingBindings: TldrawBinding[] = Object.values(this.page.bindings).filter(
+    const copyingBindings: TDBinding[] = Object.values(this.page.bindings).filter(
       (binding) =>
         copyingShapeIds.includes(binding.fromId) && copyingShapeIds.includes(binding.toId)
     )
@@ -1320,7 +1317,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    */
   paste = (point?: number[]) => {
     if (this.readOnly) return
-    const pasteInCurrentPage = (shapes: TldrawShape[], bindings: TldrawBinding[]) => {
+    const pasteInCurrentPage = (shapes: TDShape[], bindings: TDBinding[]) => {
       const idsMap: Record<string, string> = {}
 
       shapes.forEach((shape) => (idsMap[shape.id] = Utils.uniqueId()))
@@ -1410,7 +1407,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
 
       navigator.clipboard.readText().then((result) => {
         try {
-          const data: { type: string; shapes: TldrawShape[]; bindings: TldrawBinding[] } =
+          const data: { type: string; shapes: TDShape[]; bindings: TDBinding[] } =
             JSON.parse(result)
 
           if (data.type !== 'tldr/clipboard') {
@@ -1425,7 +1422,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
 
           this.createShapes({
             id: shapeId,
-            type: TldrawShapeType.Text,
+            type: TDShapeType.Text,
             parentId: this.appState.currentPageId,
             text: result,
             point: this.getPagePoint(this.centerPoint, this.currentPageId),
@@ -1461,7 +1458,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
 
     const shapes = ids.map((id) => this.getShape(id, pageId))
 
-    function getSvgElementForShape(shape: TldrawShape) {
+    function getSvgElementForShape(shape: TDShape) {
       const elm = document.getElementById(shape.id + '_svg')
 
       if (!elm) return
@@ -1949,7 +1946,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
       return this.patchState(
         {
           appState: {
-            status: TldrawStatus.Idle,
+            status: TDStatus.Idle,
           },
           document: {
             pageStates: {
@@ -1973,7 +1970,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
         result.before = {
           appState: {
             ...result.before.appState,
-            status: TldrawStatus.Idle,
+            status: TDStatus.Idle,
           },
           document: {
             pages: {
@@ -2002,7 +1999,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
 
       result.after.appState = {
         ...result.after.appState,
-        status: TldrawStatus.Idle,
+        status: TDStatus.Idle,
       }
 
       result.after.document = {
@@ -2023,7 +2020,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
           ...result,
           appState: {
             ...result.appState,
-            status: TldrawStatus.Idle,
+            status: TDStatus.Idle,
           },
           document: {
             pageStates: {
@@ -2050,9 +2047,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * @param shapes An array of shape partials, containing the initial props for the shapes.
    * @command
    */
-  createShapes = (
-    ...shapes: ({ id: string; type: TldrawShapeType } & Partial<TldrawShape>)[]
-  ): this => {
+  createShapes = (...shapes: ({ id: string; type: TDShapeType } & Partial<TDShape>)[]): this => {
     if (shapes.length === 0) return this
 
     return this.create(
@@ -2070,7 +2065,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * @param shapes An array of shape partials, containing the changes to be made to each shape.
    * @command
    */
-  updateShapes = (...shapes: ({ id: string } & Partial<TldrawShape>)[]): this => {
+  updateShapes = (...shapes: ({ id: string } & Partial<TDShape>)[]): this => {
     const pageShapes = this.document.pages[this.currentPageId].shapes
     const shapesToUpdate = shapes.filter((shape) => pageShapes[shape.id])
     if (shapesToUpdate.length === 0) return this
@@ -2085,7 +2080,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * @param shapes An array of shape partials, containing the changes to be made to each shape.
    * @command
    */
-  patchShapes = (...shapes: ({ id: string } & Partial<TldrawShape>)[]): this => {
+  patchShapes = (...shapes: ({ id: string } & Partial<TDShape>)[]): this => {
     const pageShapes = this.document.pages[this.currentPageId].shapes
     const shapesToUpdate = shapes.filter((shape) => pageShapes[shape.id])
     if (shapesToUpdate.length === 0) return this
@@ -2108,7 +2103,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
             .filter((shape) => shape.parentId === currentPageId)
             .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
 
-    const Text = shapeUtils[TldrawShapeType.Text]
+    const Text = shapeUtils[TDShapeType.Text]
 
     const newShape = Text.create({
       id: id || Utils.uniqueId(),
@@ -2131,7 +2126,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * @param shapes An array of shapes.
    * @command
    */
-  create = (shapes: TldrawShape[] = [], bindings: TldrawBinding[] = []): this => {
+  create = (shapes: TDShape[] = [], bindings: TDBinding[] = []): this => {
     if (shapes.length === 0) return this
     return this.setState(Commands.createShapes(this, shapes, bindings))
   }
@@ -2141,7 +2136,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
    * @param shapes
    * @param bindings
    */
-  patchCreate = (shapes: TldrawShape[] = [], bindings: TldrawBinding[] = []): this => {
+  patchCreate = (shapes: TDShape[] = [], bindings: TDBinding[] = []): this => {
     if (shapes.length === 0) return this
     return this.patchState(Commands.createShapes(this, shapes, bindings).after)
   }
@@ -2368,7 +2363,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
   ): this => {
     if (this.readOnly) return this
 
-    if (ids.length === 1 && this.getShape(ids[0], pageId).type === TldrawShapeType.Group) {
+    if (ids.length === 1 && this.getShape(ids[0], pageId).type === TDShapeType.Group) {
       return this.ungroup(ids, pageId)
     }
 
@@ -2388,7 +2383,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
 
     const groups = ids
       .map((id) => this.getShape(id, pageId))
-      .filter((shape) => shape.type === TldrawShapeType.Group)
+      .filter((shape) => shape.type === TDShapeType.Group)
 
     if (groups.length === 0) return this
 
@@ -2493,7 +2488,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
   }
 
   onZoom: TLWheelEventHandler = (info, e) => {
-    if (this.state.appState.status !== TldrawStatus.Idle) return
+    if (this.state.appState.status !== TDStatus.Idle) return
 
     const delta =
       e.deltaMode === WheelEvent.DOM_DELTA_PIXEL
@@ -2727,7 +2722,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
     this.currentTool.onReleaseHandle?.(info, e)
   }
 
-  onShapeChange = (shape: { id: string } & Partial<TldrawShape>) => {
+  onShapeChange = (shape: { id: string } & Partial<TDShape>) => {
     this.updateShapes(shape)
   }
 
@@ -2741,7 +2736,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
       // If we're editing text, then delete the text if it's empty
       const shape = this.getShape(editingId)
       this.setEditingId()
-      if (shape.type === TldrawShapeType.Text) {
+      if (shape.type === TDShapeType.Text) {
         if (shape.text.trim().length <= 0) {
           this.patchState(Commands.deleteShapes(this, [editingId]).after, 'delete_empty_text')
         } else {
@@ -2813,7 +2808,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
 
   static version = 13
 
-  static defaultDocument: TldrawDocument = {
+  static defaultDocument: TDDocument = {
     id: 'doc',
     name: 'New Document',
     version: 13,
@@ -2838,7 +2833,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
     },
   }
 
-  static defaultState: TldrawSnapshot = {
+  static defaultState: TDSnapshot = {
     settings: {
       isPenMode: false,
       isDarkMode: false,
@@ -2863,7 +2858,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
       isToolLocked: false,
       isStyleOpen: false,
       isEmptyCanvas: false,
-      status: TldrawStatus.Idle,
+      status: TDStatus.Idle,
       snapLines: [],
     },
     document: TldrawApp.defaultDocument,

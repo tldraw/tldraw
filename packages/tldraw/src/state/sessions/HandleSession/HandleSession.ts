@@ -1,12 +1,12 @@
 import { Vec } from '@tldraw/vec'
-import { SessionType, ShapesWithProp, TldrawCommand, TldrawPatch, TldrawStatus } from '~types'
+import { SessionType, ShapesWithProp, TldrawCommand, TldrawPatch, TDStatus } from '~types'
 import { TLDR } from '~state/TLDR'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
 
 export class HandleSession extends BaseSession {
   type = SessionType.Handle
-  status = TldrawStatus.TranslatingHandle
+  status = TDStatus.TranslatingHandle
   commandId: string
   topLeft: number[]
   shiftKey = false

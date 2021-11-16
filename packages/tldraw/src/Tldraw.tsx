@@ -2,8 +2,8 @@ import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
 import { styled, dark } from '~styles'
-import { TldrawDocument, TldrawStatus, TldrawUser } from '~types'
-import { TldrawApp, TldrawCallbacks } from '~state'
+import { TDDocument, TDStatus, TDUser } from '~types'
+import { TldrawApp, TDCallbacks } from '~state'
 import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
 import { ToolsPanel } from '~components/ToolsPanel'
@@ -12,7 +12,7 @@ import { TLDR } from '~state/TLDR'
 import { ContextMenu } from '~components/ContextMenu'
 import { FocusButton } from '~components/FocusButton/FocusButton'
 
-export interface TldrawProps extends TldrawCallbacks {
+export interface TldrawProps extends TDCallbacks {
   /**
    * (optional) If provided, the component will load / persist state under this key.
    */
@@ -21,7 +21,7 @@ export interface TldrawProps extends TldrawCallbacks {
   /**
    * (optional) The document to load or update from.
    */
-  document?: TldrawDocument
+  document?: TDDocument
 
   /**
    * (optional) The current page id.
@@ -116,7 +116,7 @@ export interface TldrawProps extends TldrawCallbacks {
   /**
    * (optional) A callback to run when the user creates a new project.
    */
-  onUserChange?: (state: TldrawApp, user: TldrawUser) => void
+  onUserChange?: (state: TldrawApp, user: TDUser) => void
   /**
    * (optional) A callback to run when the component's state changes.
    */
@@ -370,7 +370,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
 
   // Hide indicators when not using the select tool, or when in session
   const hideIndicators =
-    (isInSession && state.appState.status !== TldrawStatus.Brushing) || !isSelecting
+    (isInSession && state.appState.status !== TDStatus.Brushing) || !isSelecting
 
   // Custom rendering meta, with dark mode for shapes
   const meta = React.useMemo(() => ({ isDarkMode: settings.isDarkMode }), [settings.isDarkMode])

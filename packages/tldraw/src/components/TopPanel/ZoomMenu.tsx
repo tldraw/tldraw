@@ -1,13 +1,12 @@
 import * as React from 'react'
 import { useTldrawApp } from '~hooks'
-import type { TldrawSnapshot } from '~types'
+import type { TDSnapshot } from '~types'
 import { styled } from '~styles'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { DMItem, DMContent } from '~components/DropdownMenu'
 import { ToolButton } from '~components/ToolButton'
 
-const zoomSelector = (s: TldrawSnapshot) =>
-  s.document.pageStates[s.appState.currentPageId].camera.zoom
+const zoomSelector = (s: TDSnapshot) => s.document.pageStates[s.appState.currentPageId].camera.zoom
 
 export function ZoomMenu() {
   const app = useTldrawApp()

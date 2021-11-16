@@ -4,13 +4,13 @@ import {
   ColorStyle,
   DashStyle,
   SizeStyle,
-  TldrawDocument,
-  TldrawShapeType,
+  TDDocument,
+  TDShapeType,
   TldrawApp,
 } from '@tldraw/Tldraw'
 
 export default function Controlled() {
-  const rDocument = React.useRef<TldrawDocument>({
+  const rDocument = React.useRef<TDDocument>({
     name: 'New Document',
     version: TldrawApp.version,
     id: 'doc',
@@ -20,7 +20,7 @@ export default function Controlled() {
         shapes: {
           rect1: {
             id: 'rect1',
-            type: TldrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             parentId: 'page1',
             name: 'Rectangle',
             childIndex: 1,
@@ -34,7 +34,7 @@ export default function Controlled() {
           },
           rect2: {
             id: 'rect2',
-            type: TldrawShapeType.Rectangle,
+            type: TDShapeType.Rectangle,
             parentId: 'page1',
             name: 'Rectangle',
             childIndex: 1,
@@ -62,7 +62,7 @@ export default function Controlled() {
     },
   })
 
-  const [doc, setDoc] = React.useState<TldrawDocument>(rDocument.current)
+  const [doc, setDoc] = React.useState<TDDocument>(rDocument.current)
 
   React.useEffect(() => {
     let i = 0

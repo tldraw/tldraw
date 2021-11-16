@@ -1,6 +1,6 @@
-import { TldrawDocument, ColorStyle, DashStyle, SizeStyle, TldrawShapeType } from '~types'
+import { TDDocument, ColorStyle, DashStyle, SizeStyle, TDShapeType } from '~types'
 
-export const mockDocument: TldrawDocument = {
+export const mockDocument: TDDocument = {
   version: 0,
   id: 'doc',
   name: 'New Document',
@@ -13,7 +13,7 @@ export const mockDocument: TldrawDocument = {
           parentId: 'page1',
           name: 'Rectangle',
           childIndex: 1,
-          type: TldrawShapeType.Rectangle,
+          type: TDShapeType.Rectangle,
           point: [0, 0],
           size: [100, 100],
           style: {
@@ -27,7 +27,7 @@ export const mockDocument: TldrawDocument = {
           parentId: 'page1',
           name: 'Rectangle',
           childIndex: 2,
-          type: TldrawShapeType.Rectangle,
+          type: TDShapeType.Rectangle,
           point: [100, 100],
           size: [100, 100],
           style: {
@@ -41,7 +41,7 @@ export const mockDocument: TldrawDocument = {
           parentId: 'page1',
           name: 'Rectangle',
           childIndex: 3,
-          type: TldrawShapeType.Rectangle,
+          type: TDShapeType.Rectangle,
           point: [20, 20],
           size: [100, 100],
           style: {

@@ -1,4 +1,4 @@
-import { StretchType, RectangleShape, TldrawShapeType } from '~types'
+import { StretchType, RectangleShape, TDShapeType } from '~types'
 import { mockDocument, TldrawTestApp } from '~test'
 
 describe('Stretch command', () => {
@@ -85,9 +85,9 @@ describe('when stretching groups', () => {
   it('stretches children', () => {
     new TldrawTestApp()
       .createShapes(
-        { id: 'rect1', type: TldrawShapeType.Rectangle, point: [0, 0], size: [100, 100] },
-        { id: 'rect2', type: TldrawShapeType.Rectangle, point: [100, 100], size: [100, 100] },
-        { id: 'rect3', type: TldrawShapeType.Rectangle, point: [200, 200], size: [100, 100] }
+        { id: 'rect1', type: TDShapeType.Rectangle, point: [0, 0], size: [100, 100] },
+        { id: 'rect2', type: TDShapeType.Rectangle, point: [100, 100], size: [100, 100] },
+        { id: 'rect3', type: TDShapeType.Rectangle, point: [200, 200], size: [100, 100] }
       )
       .group(['rect1', 'rect2'], 'groupA')
       .selectAll()

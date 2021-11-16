@@ -1,5 +1,5 @@
 import { mockDocument, TldrawTestApp } from '~test'
-import { GroupShape, SessionType, TldrawShapeType, TldrawStatus } from '~types'
+import { GroupShape, SessionType, TDShapeType, TDStatus } from '~types'
 
 describe('Translate session', () => {
   it('begins, updateSession', () => {
@@ -12,7 +12,7 @@ describe('Translate session', () => {
 
     app.completeSession()
 
-    expect(app.status).toBe(TldrawStatus.Idle)
+    expect(app.status).toBe(TDStatus.Idle)
 
     expect(app.getShape('rect1').point).toStrictEqual([5, 5])
 
@@ -135,14 +135,14 @@ describe('Translate session', () => {
       .createShapes(
         {
           id: 'target1',
-          type: TldrawShapeType.Rectangle,
+          type: TDShapeType.Rectangle,
           parentId: 'page1',
           point: [0, 0],
           size: [100, 100],
         },
         {
           id: 'arrow1',
-          type: TldrawShapeType.Arrow,
+          type: TDShapeType.Arrow,
           parentId: 'page1',
           point: [200, 200],
         }
@@ -288,7 +288,7 @@ describe('Translate session', () => {
         .movePointer({ x: 20, y: 20, altKey: true })
         .completeSession()
 
-      expect(app.shapes.filter((shape) => shape.type === TldrawShapeType.Group).length).toBe(2)
+      expect(app.shapes.filter((shape) => shape.type === TDShapeType.Group).length).toBe(2)
     })
 
     it('deletes clones when not cloning anymore', () => {
@@ -301,7 +301,7 @@ describe('Translate session', () => {
         .movePointer({ x: 20, y: 20, altKey: false })
         .completeSession()
 
-      expect(app.shapes.filter((shape) => shape.type === TldrawShapeType.Group).length).toBe(1)
+      expect(app.shapes.filter((shape) => shape.type === TDShapeType.Group).length).toBe(1)
     })
 
     it('clones the shapes and children when selecting a group and a different shape', () => {
@@ -320,7 +320,7 @@ describe('Translate session', () => {
 describe('When creating with a translate session', () => {
   it('Deletes the shape on undo', () => {
     const app = new TldrawTestApp()
-      .selectTool(TldrawShapeType.Rectangle)
+      .selectTool(TDShapeType.Rectangle)
       .pointCanvas([0, 0])
       .movePointer([10, 10])
       .completeSession()

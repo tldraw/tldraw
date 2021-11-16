@@ -9,7 +9,7 @@ import {
   TLShapeCloneHandler,
   Utils,
 } from '@tldraw/core'
-import { SessionType, TldrawShapeType } from '~types'
+import { SessionType, TDShapeType } from '~types'
 import { BaseTool } from '../BaseTool'
 import Vec from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
@@ -159,7 +159,7 @@ export class SelectTool extends BaseTool<Status> {
         point,
       }
 
-      if (clone.type === TldrawShapeType.Sticky) {
+      if (clone.type === TDShapeType.Sticky) {
         clone.text = ''
       }
 
@@ -423,7 +423,7 @@ export class SelectTool extends BaseTool<Status> {
   onDoubleClickCanvas: TLCanvasEventHandler = () => {
     // Needs debugging
     // const { currentPoint } = this.app
-    // this.app.selectTool(TldrawShapeType.Text)
+    // this.app.selectTool(TDShapeType.Text)
     // this.setStatus(Status.Idle)
     // this.app.createTextShapeAtPoint(currentPoint)
   }

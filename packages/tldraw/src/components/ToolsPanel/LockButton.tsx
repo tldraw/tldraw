@@ -3,9 +3,9 @@ import { LockClosedIcon, LockOpen1Icon } from '@radix-ui/react-icons'
 import { Tooltip } from '~components/Tooltip'
 import { useTldrawApp } from '~hooks'
 import { ToolButton } from '~components/ToolButton'
-import type { TldrawSnapshot } from '~types'
+import type { TDSnapshot } from '~types'
 
-const isToolLockedSelector = (s: TldrawSnapshot) => s.appState.isToolLocked
+const isToolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked
 
 export function LockButton(): JSX.Element {
   const app = useTldrawApp()
