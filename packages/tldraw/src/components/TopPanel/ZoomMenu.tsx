@@ -8,14 +8,14 @@ import { ToolButton } from '~components/ToolButton'
 
 const zoomSelector = (s: TDSnapshot) => s.document.pageStates[s.appState.currentPageId].camera.zoom
 
-export function ZoomMenu() {
+export const ZoomMenu = React.memo(function ZoomMenu() {
   const app = useTldrawApp()
 
   const zoom = app.useStore(zoomSelector)
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DropdownMenu.Trigger asChild>
+      <DropdownMenu.Trigger dir="ltr" asChild>
         <FixedWidthToolButton onDoubleClick={app.resetZoom} variant="text">
           {Math.round(zoom * 100)}%
         </FixedWidthToolButton>
@@ -39,7 +39,7 @@ export function ZoomMenu() {
       </DMContent>
     </DropdownMenu.Root>
   )
-}
+})
 
 const FixedWidthToolButton = styled(ToolButton, {
   minWidth: 56,
