@@ -44,12 +44,11 @@ export const ShapesMenu = React.memo(function ShapesMenu({
   const isActive = shapeShapes.includes(activeTool as ShapeShape)
 
   return (
-    <DropdownMenu.Root dir="ltr">
+    <DropdownMenu.Root dir="ltr" onOpenChange={selectShapeTool}>
       <DropdownMenu.Trigger dir="ltr" asChild>
         <ToolButton
           variant="primary"
           onDoubleClick={handleDoubleClick}
-          onClick={selectShapeTool}
           isToolLocked={isActive && isToolLocked}
           isActive={isActive}
         >

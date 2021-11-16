@@ -540,6 +540,13 @@ const StyledLayout = styled('div', {
     width: '100%',
     zIndex: 1,
   },
+
+  '& input, textarea, button, select, label, button': {
+    webkitTouchCallout: 'none',
+    webkitUserSelect: 'none',
+    '-webkit-tap-highlight-color': 'transparent',
+    'tap-highlight-color': 'transparent',
+  },
 })
 
 const StyledUI = styled('div', {
