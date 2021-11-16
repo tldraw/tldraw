@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { ColorStyle, Tldraw, TDShapeType, TldrawApp } from '@tldraw/Tldraw'
+import { ColorStyle, Tldraw, TDShapeType, TldrawApp } from '@tldraw/tldraw'
 
 export default function Imperative(): JSX.Element {
   const rTldrawApp = React.useRef<TldrawApp>()

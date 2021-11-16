@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Tldraw, useFileSystem } from '@tldraw/Tldraw'
+import { Tldraw, useFileSystem } from '@tldraw/tldraw'
 
 export default function FileSystem(): JSX.Element {
   const fileSystemEvents = useFileSystem()

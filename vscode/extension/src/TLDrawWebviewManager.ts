@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { TDFile } from '@tldraw/Tldraw'
+import { TDFile } from '@tldraw/tldraw'
 import { MessageFromWebview, MessageFromExtension } from './types'
 
 /**

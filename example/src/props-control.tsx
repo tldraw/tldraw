@@ -7,7 +7,7 @@ import {
   TDDocument,
   TDShapeType,
   TldrawApp,
-} from '@tldraw/Tldraw'
+} from '@tldraw/tldraw'
 
 export default function Controlled() {
   const rDocument = React.useRef<TDDocument>({

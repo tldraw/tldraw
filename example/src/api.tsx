@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Tldraw, TldrawApp, TDShapeType, ColorStyle } from '@tldraw/Tldraw'
+import { Tldraw, TldrawApp, TDShapeType, ColorStyle } from '@tldraw/tldraw'
 
 declare const window: Window & { app: TldrawApp }
 

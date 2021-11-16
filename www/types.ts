@@ -1,4 +1,4 @@
-import { TDDocument } from '@tldraw/Tldraw'
+import { TDDocument } from '@tldraw/tldraw'
 import { LiveObject } from '@liveblocks/client'
 
 export interface TldrawStorage {

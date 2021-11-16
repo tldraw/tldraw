@@ -1,4 +1,4 @@
-import { Tldraw, TDFile } from '@tldraw/Tldraw'
+import { Tldraw, TDFile } from '@tldraw/tldraw'
 import * as React from 'react'
 
 export default function LoadingFiles(): JSX.Element {

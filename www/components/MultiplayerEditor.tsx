@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Tldraw, TldrawApp, TDDocument, TDUser, useFileSystem } from '@tldraw/Tldraw'
+import { Tldraw, TldrawApp, TDDocument, TDUser, useFileSystem } from '@tldraw/tldraw'
 import * as React from 'react'
 import { createClient, Presence } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider, useObject, useErrorListener } from '@liveblocks/react'
