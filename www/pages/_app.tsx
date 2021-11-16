@@ -49,7 +49,7 @@ function MyApp({ Component, pageProps }) {
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
 
-        <title>Tldraw</title>
+        <title>tldraw</title>
       </Head>
       <Component {...pageProps} />
     </>
