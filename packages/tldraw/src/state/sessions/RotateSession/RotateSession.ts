@@ -51,7 +51,7 @@ export class RotateSession extends BaseSession {
       .map((shape) => {
         return {
           shape,
-          center: this.app.getShapeUtils(shape).getCenter(shape),
+          center: this.app.getShapeUtil(shape).getCenter(shape),
         }
       })
 

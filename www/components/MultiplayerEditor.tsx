@@ -6,6 +6,8 @@ import { LiveblocksProvider, RoomProvider, useObject, useErrorListener } from '@
 import { Utils } from '@tldraw/core'
 import { useAccountHandlers } from '-hooks/useAccountHandlers'
 
+declare const window: Window & { app: TldrawApp }
+
 interface TldrawUserPresence extends Presence {
   user: TldrawUser
 }
@@ -38,7 +40,7 @@ export default function MultiplayerEditor({
 function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: boolean }) {
   const [docId] = React.useState(() => Utils.uniqueId())
 
-  const [state, setState] = React.useState<TldrawApp>()
+  const [app, setApp] = React.useState<TldrawApp>()
 
   const [error, setError] = React.useState<Error>()
 
@@ -61,17 +63,16 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
 
     if (!room) return
     if (!doc) return
-    if (!state) return
-    if (!state.state.room) return
+    if (!app?.room) return
 
     // Update the user's presence with the user from state
-    const { users, userId } = state.state.room
+    const { users, userId } = app.room
 
     room.updatePresence({ id: userId, user: users[userId] })
 
     // Subscribe to presence changes; when others change, update the state
     room.subscribe<TldrawUserPresence>('others', (others) => {
-      state.updateUsers(
+      app.updateUsers(
         others
           .toArray()
           .filter((other) => other.presence)
@@ -82,23 +83,22 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
 
     room.subscribe('event', (event) => {
       if (event.event?.name === 'exit') {
-        state.removeUser(event.event.userId)
+        app.removeUser(event.event.userId)
       }
     })
 
     function handleDocumentUpdates() {
       if (!doc) return
-      if (!state) return
-      if (!state.state.room) return
+      if (!app?.room) return
 
       const docObject = doc.toObject()
 
       // Only merge the change if it caused by someone else
       if (docObject.uuid !== docId) {
-        state.mergeDocument(docObject.document)
+        app.mergeDocument(docObject.document)
       } else {
-        state.updateUsers(
-          Object.values(state.state.room.users).map((user) => {
+        app.updateUsers(
+          Object.values(app.room.users).map((user) => {
             return {
               ...user,
               selectedIds: user.selectedIds,
@@ -109,8 +109,8 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
     }
 
     function handleExit() {
-      if (!(state && state.state.room)) return
-      room?.broadcastEvent({ name: 'exit', userId: state.state.room.userId })
+      if (!app?.room) return
+      room?.broadcastEvent({ name: 'exit', userId: app.room.userId })
     }
 
     window.addEventListener('beforeunload', handleExit)
@@ -122,37 +122,35 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
     const newDocument = doc.toObject().document
 
     if (newDocument) {
-      state.loadDocument(newDocument)
+      app.loadDocument(newDocument)
     }
 
     return () => {
       window.removeEventListener('beforeunload', handleExit)
       doc.unsubscribe(handleDocumentUpdates)
     }
-  }, [doc, docId, state, roomId])
+  }, [doc, docId, app, roomId])
 
   const handleMount = React.useCallback(
-    (state: TldrawApp) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      window.state = state
-      state.loadRoom(roomId)
-      setState(state)
+    (app: TldrawApp) => {
+      window.app = app
+      app.loadRoom(roomId)
+      setApp(app)
     },
     [roomId]
   )
 
   const handlePersist = React.useCallback(
-    (state: TldrawApp) => {
-      doc?.update({ uuid: docId, document: state.document })
+    (app: TldrawApp) => {
+      doc?.update({ uuid: docId, document: app.document })
     },
     [docId, doc]
   )
 
   const handleUserChange = React.useCallback(
-    (state: TldrawApp, user: TldrawUser) => {
+    (app: TldrawApp, user: TldrawUser) => {
       const room = client.getRoom(roomId)
-      room?.updatePresence({ id: state.state.room?.userId, user })
+      room?.updatePresence({ id: app.room?.userId, user })
     },
     [roomId]
   )

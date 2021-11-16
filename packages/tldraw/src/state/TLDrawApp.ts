@@ -316,9 +316,9 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
             const toShape = page.shapes[binding.toId]
             const fromShape = page.shapes[binding.fromId]
 
-            const toUtils = TLDR.getShapeUtils(toShape)
+            const toUtils = TLDR.getShapeUtil(toShape)
 
-            const fromUtils = TLDR.getShapeUtils(fromShape)
+            const fromUtils = TLDR.getShapeUtil(fromShape)
 
             // We only need to update the binding's "from" shape
             const fromDelta = fromUtils.onBindingChange?.(
@@ -1394,7 +1394,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
 
       this.create(
         shapesToPaste.map((shape) =>
-          TLDR.getShapeUtils(shape.type).create({
+          TLDR.getShapeUtil(shape.type).create({
             ...shape,
             point: Vec.round(Vec.add(shape.point, delta)),
             parentId: shape.parentId || this.currentPageId,
@@ -1470,7 +1470,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
 
       const element = elm?.cloneNode(true) as SVGElement
 
-      const bounds = TLDR.getShapeUtils(shape).getBounds(shape)
+      const bounds = TLDR.getShapeUtil(shape).getBounds(shape)
 
       element.setAttribute(
         'transform',
@@ -2057,7 +2057,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
 
     return this.create(
       shapes.map((shape) => {
-        return TLDR.getShapeUtils(shape.type).create({
+        return TLDR.getShapeUtil(shape.type).create({
           parentId: this.currentPageId,
           ...shape,
         })
@@ -2809,7 +2809,7 @@ export class TldrawApp extends StateManager<TldrawSnapshot> {
     return Vec.round([width / 2, height / 2])
   }
 
-  getShapeUtils = TLDR.getShapeUtils
+  getShapeUtil = TLDR.getShapeUtil
 
   static version = 13
 

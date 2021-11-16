@@ -4,7 +4,7 @@ import { Vec } from '@tldraw/vec'
 import { getStroke, getStrokePoints } from 'perfect-freehand'
 import { RectangleShape, DashStyle, TldrawShapeType, TldrawMeta } from '~types'
 import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
-import { TldrawShapeUtil } from '~state/shapes/TldrawShapeUtil'
+import { TldrawShapeUtil } from '../TldrawShapeUtil'
 import {
   defaultStyle,
   getShapeStyle,

@@ -26,7 +26,7 @@ export const shapeUtils = {
   [TldrawShapeType.Sticky]: Sticky,
 }
 
-export const getShapeUtils = <T extends TldrawShape>(shape: T | T['type']) => {
+export const getShapeUtil = <T extends TldrawShape>(shape: T | T['type']) => {
   if (typeof shape === 'string') return shapeUtils[shape] as unknown as TldrawShapeUtil<T>
   return shapeUtils[shape.type] as unknown as TldrawShapeUtil<T>
 }

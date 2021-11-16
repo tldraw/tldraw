@@ -36,7 +36,7 @@ export function stretchShapes(app: TldrawApp, ids: string[], type: StretchType):
             width: commonBounds.width,
           }
 
-          return TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
+          return TLDR.getShapeUtil(shape).transformSingle(shape, newBounds, {
             type: TLBoundsCorner.TopLeft,
             scaleX: newBounds.width / bounds.width,
             scaleY: 1,
@@ -52,7 +52,7 @@ export function stretchShapes(app: TldrawApp, ids: string[], type: StretchType):
             height: commonBounds.height,
           }
 
-          return TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
+          return TLDR.getShapeUtil(shape).transformSingle(shape, newBounds, {
             type: TLBoundsCorner.TopLeft,
             scaleX: 1,
             scaleY: newBounds.height / bounds.height,

@@ -27,7 +27,7 @@ export function flipShapes(app: TldrawApp, ids: string[], type: FlipType): Tldra
             false
           )
 
-          return TLDR.getShapeUtils(shape).transform(shape, newShapeBounds, {
+          return TLDR.getShapeUtil(shape).transform(shape, newShapeBounds, {
             type: TLBoundsCorner.TopLeft,
             scaleX: -1,
             scaleY: 1,
@@ -44,7 +44,7 @@ export function flipShapes(app: TldrawApp, ids: string[], type: FlipType): Tldra
             true
           )
 
-          return TLDR.getShapeUtils(shape).transform(shape, newShapeBounds, {
+          return TLDR.getShapeUtil(shape).transform(shape, newShapeBounds, {
             type: TLBoundsCorner.TopLeft,
             scaleX: 1,
             scaleY: -1,

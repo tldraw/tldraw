@@ -13,15 +13,15 @@ import {
 } from '~types'
 import { Vec } from '@tldraw/vec'
 import type { TldrawShapeUtil } from './shapes/TldrawShapeUtil'
-import { getShapeUtils } from './shapes'
+import { getShapeUtil } from './shapes'
 
 export class TLDR {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static getShapeUtils<T extends TldrawShape>(type: T['type']): TldrawShapeUtil<T>
+  static getShapeUtil<T extends TldrawShape>(type: T['type']): TldrawShapeUtil<T>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static getShapeUtils<T extends TldrawShape>(shape: T): TldrawShapeUtil<T>
-  static getShapeUtils<T extends TldrawShape>(shape: T | T['type']) {
-    return getShapeUtils<T>(shape)
+  static getShapeUtil<T extends TldrawShape>(shape: T): TldrawShapeUtil<T>
+  static getShapeUtil<T extends TldrawShape>(shape: T | T['type']) {
+    return getShapeUtil<T>(shape)
   }
 
   static getSelectedShapes(data: TldrawSnapshot, pageId: string) {
@@ -68,21 +68,21 @@ export class TLDR {
   }
 
   static getCenter<T extends TldrawShape>(shape: T) {
-    return TLDR.getShapeUtils(shape).getCenter(shape)
+    return TLDR.getShapeUtil(shape).getCenter(shape)
   }
 
   static getBounds<T extends TldrawShape>(shape: T) {
-    return TLDR.getShapeUtils(shape).getBounds(shape)
+    return TLDR.getShapeUtil(shape).getBounds(shape)
   }
 
   static getRotatedBounds<T extends TldrawShape>(shape: T) {
-    return TLDR.getShapeUtils(shape).getRotatedBounds(shape)
+    return TLDR.getShapeUtil(shape).getRotatedBounds(shape)
   }
 
   static getSelectedBounds(data: TldrawSnapshot): TLBounds {
     return Utils.getCommonBounds(
       TLDR.getSelectedShapes(data, data.appState.currentPageId).map((shape) =>
-        TLDR.getShapeUtils(shape).getBounds(shape)
+        TLDR.getShapeUtil(shape).getBounds(shape)
       )
     )
   }
@@ -615,7 +615,7 @@ export class TLDR {
   }
 
   static onSessionComplete<T extends TldrawShape>(shape: T) {
-    const delta = TLDR.getShapeUtils(shape).onSessionComplete?.(shape)
+    const delta = TLDR.getShapeUtil(shape).onSessionComplete?.(shape)
     if (!delta) return shape
     return { ...shape, ...delta }
   }
@@ -623,7 +623,7 @@ export class TLDR {
   static onChildrenChange<T extends TldrawShape>(data: TldrawSnapshot, shape: T, pageId: string) {
     if (!shape.children) return
 
-    const delta = TLDR.getShapeUtils(shape).onChildrenChange?.(
+    const delta = TLDR.getShapeUtil(shape).onChildrenChange?.(
       shape,
       shape.children.map((id) => TLDR.getShape(data, id, pageId))
     )
@@ -638,12 +638,12 @@ export class TLDR {
     binding: TldrawBinding,
     otherShape: TldrawShape
   ) {
-    const delta = TLDR.getShapeUtils(shape).onBindingChange?.(
+    const delta = TLDR.getShapeUtil(shape).onBindingChange?.(
       shape,
       binding,
       otherShape,
-      TLDR.getShapeUtils(otherShape).getBounds(otherShape),
-      TLDR.getShapeUtils(otherShape).getCenter(otherShape)
+      TLDR.getShapeUtil(otherShape).getBounds(otherShape),
+      TLDR.getShapeUtil(otherShape).getCenter(otherShape)
     )
     if (!delta) return shape
 
@@ -651,7 +651,7 @@ export class TLDR {
   }
 
   static transform<T extends TldrawShape>(shape: T, bounds: TLBounds, info: TLTransformInfo<T>) {
-    const delta = TLDR.getShapeUtils(shape).transform(shape, bounds, info)
+    const delta = TLDR.getShapeUtil(shape).transform(shape, bounds, info)
     if (!delta) return shape
     return { ...shape, ...delta }
   }
@@ -661,7 +661,7 @@ export class TLDR {
     bounds: TLBounds,
     info: TLTransformInfo<T>
   ) {
-    const delta = TLDR.getShapeUtils(shape).transformSingle(shape, bounds, info)
+    const delta = TLDR.getShapeUtil(shape).transformSingle(shape, bounds, info)
     if (!delta) return shape
     return { ...shape, ...delta }
   }
@@ -692,7 +692,7 @@ export class TLDR {
     // of rotating the shape. Shapes with handles should never be rotated,
     // because that makes a lot of other things incredible difficult.
     if (shape.handles !== undefined) {
-      const change = this.getShapeUtils(shape).onHandleChange?.(
+      const change = this.getShapeUtil(shape).onHandleChange?.(
         // Base the change on a shape with the next point
         { ...shape, point: nextPoint },
         Object.fromEntries(
@@ -801,7 +801,7 @@ export class TLDR {
 
   static getBindableShapeIds(data: TldrawSnapshot) {
     return TLDR.getShapes(data, data.appState.currentPageId)
-      .filter((shape) => TLDR.getShapeUtils(shape).canBind)
+      .filter((shape) => TLDR.getShapeUtil(shape).canBind)
       .sort((a, b) => b.childIndex - a.childIndex)
       .map((shape) => shape.id)
   }

@@ -94,7 +94,7 @@ export class SelectTool extends BaseTool<Status> {
     const centeredBounds = Utils.centerBounds(bounds, gridPoint)
 
     const hit = this.app.shapes.some((shape) =>
-      TLDR.getShapeUtils(shape).hitTestBounds(shape, centeredBounds)
+      TLDR.getShapeUtil(shape).hitTestBounds(shape, centeredBounds)
     )
 
     if (!hit) {
@@ -116,7 +116,7 @@ export class SelectTool extends BaseTool<Status> {
   ) => {
     const shape = this.app.getShape(id)
 
-    const utils = TLDR.getShapeUtils(shape)
+    const utils = TLDR.getShapeUtil(shape)
 
     if (utils.canClone) {
       const bounds = utils.getBounds(shape)
@@ -535,7 +535,7 @@ export class SelectTool extends BaseTool<Status> {
     // If we can edit the shape (and if we can select the shape) then
     // start editing
     if (
-      TLDR.getShapeUtils(shape.type).canEdit &&
+      TLDR.getShapeUtil(shape.type).canEdit &&
       (shape.parentId === this.app.currentPageId || shape.parentId === this.selectedGroupId)
     ) {
       this.app.setEditingId(info.target)

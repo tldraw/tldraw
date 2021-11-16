@@ -50,7 +50,7 @@ export class ArrowSession extends BaseSession {
       this.startBindingShapeId = this.bindableShapeIds
         .map((id) => page.shapes[id])
         .find((shape) =>
-          Utils.pointInBounds(originPoint, TLDR.getShapeUtils(shape).getBounds(shape))
+          Utils.pointInBounds(originPoint, TLDR.getShapeUtil(shape).getBounds(shape))
         )?.id
     } else {
       // If we're editing an existing line, is there a binding already
@@ -129,7 +129,7 @@ export class ArrowSession extends BaseSession {
 
       const target = this.app.page.shapes[this.startBindingShapeId]
 
-      const targetUtils = TLDR.getShapeUtils(target)
+      const targetUtils = TLDR.getShapeUtil(target)
 
       if (!metaKey) {
         const center = targetUtils.getCenter(target)
@@ -165,9 +165,9 @@ export class ArrowSession extends BaseSession {
 
         const target = this.app.page.shapes[this.startBindingShapeId]
 
-        const targetUtils = TLDR.getShapeUtils(target)
+        const targetUtils = TLDR.getShapeUtil(target)
 
-        const arrowChange = TLDR.getShapeUtils<ArrowShape>(next.shape.type).onBindingChange?.(
+        const arrowChange = TLDR.getShapeUtil<ArrowShape>(next.shape.type).onBindingChange?.(
           next.shape,
           startBinding,
           target,
@@ -241,7 +241,7 @@ export class ArrowSession extends BaseSession {
 
       const target = this.app.page.shapes[draggedBinding.toId]
 
-      const targetUtils = TLDR.getShapeUtils(target)
+      const targetUtils = TLDR.getShapeUtil(target)
 
       const utils = shapeUtils[TldrawShapeType.Arrow]
 
@@ -416,7 +416,7 @@ export class ArrowSession extends BaseSession {
     direction: number[],
     bindAnywhere: boolean
   ) => {
-    const util = TLDR.getShapeUtils<TldrawShape>(target.type)
+    const util = TLDR.getShapeUtil<TldrawShape>(target.type)
 
     const bindingPoint = util.getBindingPoint(
       target,

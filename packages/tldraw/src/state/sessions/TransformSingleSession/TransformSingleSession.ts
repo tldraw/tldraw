@@ -90,7 +90,7 @@ export class TransformSingleSession extends BaseSession {
 
     const shape = this.app.getShape(initialShape.id)
 
-    const utils = TLDR.getShapeUtils(shape)
+    const utils = TLDR.getShapeUtil(shape)
 
     let newBounds = Utils.getTransformedBoundingBox(
       initialShapeBounds,
@@ -137,7 +137,7 @@ export class TransformSingleSession extends BaseSession {
       }
     }
 
-    const afterShape = TLDR.getShapeUtils(shape).transformSingle(shape, newBounds, {
+    const afterShape = TLDR.getShapeUtil(shape).transformSingle(shape, newBounds, {
       initialShape,
       type: this.transformType,
       scaleX: newBounds.scaleX,

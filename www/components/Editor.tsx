@@ -3,6 +3,8 @@ import * as gtag from '-utils/gtag'
 import React from 'react'
 import { useAccountHandlers } from '-hooks/useAccountHandlers'
 
+declare const window: Window & { app: TldrawApp }
+
 interface EditorProps {
   id?: string
   isUser?: boolean
@@ -10,15 +12,12 @@ interface EditorProps {
 }
 
 export default function Editor({ id = 'home', isSponsor = false }: EditorProps) {
-  // Put the state into the window, for debugging.
-  const handleMount = React.useCallback((state: TldrawApp) => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    window.state = state
+  const handleMount = React.useCallback((app: TldrawApp) => {
+    window.app = app
   }, [])
 
   // Send events to gtag as actions.
-  const handlePersist = React.useCallback((_state: TldrawApp, reason?: string) => {
+  const handlePersist = React.useCallback((_app: TldrawApp, reason?: string) => {
     gtag.event({
       action: reason,
       category: 'editor',
@@ -39,9 +38,9 @@ export default function Editor({ id = 'home', isSponsor = false }: EditorProps) 
         onMount={handleMount}
         onPersist={handlePersist}
         showSponsorLink={!isSponsor}
-        {...fileSystemEvents}
         onSignIn={isSponsor ? undefined : onSignIn}
         onSignOut={onSignOut}
+        {...fileSystemEvents}
       />
     </div>
   )

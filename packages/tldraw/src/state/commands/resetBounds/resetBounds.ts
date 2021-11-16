@@ -8,7 +8,7 @@ export function resetBounds(app: TldrawApp, ids: string[], pageId: string): Tldr
   const { before, after } = TLDR.mutateShapes(
     app.state,
     ids,
-    (shape) => app.getShapeUtils(shape).onDoubleClickBoundsHandle?.(shape),
+    (shape) => app.getShapeUtil(shape).onDoubleClickBoundsHandle?.(shape),
     pageId
   )
 

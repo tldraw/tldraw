@@ -69,7 +69,7 @@ export function distributeShapes(
 
 function getDistributions(initialShapes: TldrawShape[], type: DistributeType) {
   const entries = initialShapes.map((shape) => {
-    const utils = TLDR.getShapeUtils(shape)
+    const utils = TLDR.getShapeUtil(shape)
     return {
       id: shape.id,
       point: [...shape.point],

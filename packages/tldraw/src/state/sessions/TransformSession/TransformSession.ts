@@ -55,7 +55,7 @@ export class TransformSession extends BaseSession {
     this.hasUnlockedShapes = this.initialShapes.length > 0
 
     this.isAllAspectRatioLocked = this.initialShapes.every(
-      (shape) => shape.isAspectRatioLocked || TLDR.getShapeUtils(shape).isAspectRatioLocked
+      (shape) => shape.isAspectRatioLocked || TLDR.getShapeUtil(shape).isAspectRatioLocked
     )
 
     const shapesBounds = Object.fromEntries(

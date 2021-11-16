@@ -52,19 +52,19 @@ describe('Style command', () => {
         text: 'Hello world',
       })
 
-      const centerA = TLDR.getShapeUtils(TldrawShapeType.Text).getCenter(state.getShape('text1'))
+      const centerA = TLDR.getShapeUtil(TldrawShapeType.Text).getCenter(state.getShape('text1'))
 
       state.select('text1').style({ size: SizeStyle.Large })
 
-      const centerB = TLDR.getShapeUtils(TldrawShapeType.Text).getCenter(state.getShape('text1'))
+      const centerB = TLDR.getShapeUtil(TldrawShapeType.Text).getCenter(state.getShape('text1'))
 
       state.style({ size: SizeStyle.Small })
 
-      const centerC = TLDR.getShapeUtils(TldrawShapeType.Text).getCenter(state.getShape('text1'))
+      const centerC = TLDR.getShapeUtil(TldrawShapeType.Text).getCenter(state.getShape('text1'))
 
       state.style({ size: SizeStyle.Medium })
 
-      const centerD = TLDR.getShapeUtils(TldrawShapeType.Text).getCenter(state.getShape('text1'))
+      const centerD = TLDR.getShapeUtil(TldrawShapeType.Text).getCenter(state.getShape('text1'))
 
       expect(centerA).toEqual(centerB)
       expect(centerA).toEqual(centerC)

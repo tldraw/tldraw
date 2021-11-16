@@ -64,7 +64,7 @@ export class EraseSession extends BaseSession {
     for (const shape of this.erasableShapes) {
       if (this.erasedShapes.has(shape)) continue
 
-      if (this.app.getShapeUtils(shape).hitTestLineSegment(shape, this.prevPoint, newPoint)) {
+      if (this.app.getShapeUtil(shape).hitTestLineSegment(shape, this.prevPoint, newPoint)) {
         this.erasedShapes.add(shape)
         deletedShapeIds.add(shape.id)
 

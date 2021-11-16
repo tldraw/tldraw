@@ -11,7 +11,7 @@ import {
   TldrawMeta,
 } from '~types'
 import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
-import { TldrawShapeUtil } from '~state/shapes/TldrawShapeUtil'
+import { TldrawShapeUtil } from '../TldrawShapeUtil'
 import {
   intersectEllipseBounds,
   intersectLineSegmentEllipse,

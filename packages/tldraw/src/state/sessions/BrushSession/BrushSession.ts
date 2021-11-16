@@ -29,7 +29,7 @@ export class BrushSession extends BaseSession {
       )
       .map((shape) => ({
         id: shape.id,
-        bounds: this.app.getShapeUtils(shape).getBounds(shape),
+        bounds: this.app.getShapeUtil(shape).getBounds(shape),
         selectId: shape.id, //TLDR.getTopParentId(data, shape.id, currentPageId),
       }))
   }
@@ -59,7 +59,7 @@ export class BrushSession extends BaseSession {
       const shape = this.app.getShape(id)
 
       if (!hits.has(selectId)) {
-        const util = this.app.getShapeUtils(shape)
+        const util = this.app.getShapeUtil(shape)
         if (
           metaKey
             ? Utils.boundsContain(brush, util.getBounds(shape))

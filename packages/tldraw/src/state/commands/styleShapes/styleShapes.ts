@@ -40,8 +40,8 @@ export function styleShapes(
           Vec.add(
             shape.point,
             Vec.sub(
-              app.getShapeUtils(shape).getCenter(shape),
-              app.getShapeUtils(shape).getCenter({
+              app.getShapeUtil(shape).getCenter(shape),
+              app.getShapeUtil(shape).getCenter({
                 ...shape,
                 style: { ...shape.style, ...changes },
               } as TextShape)

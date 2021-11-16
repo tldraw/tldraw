@@ -1,11 +1,15 @@
 import * as React from 'react'
 import { Tldraw, TldrawApp, TldrawShapeType, ColorStyle } from '@tldraw/Tldraw'
 
+declare const window: Window & { app: TldrawApp }
+
 export default function Api(): JSX.Element {
   const rTldrawApp = React.useRef<TldrawApp>()
 
   const handleMount = React.useCallback((app: TldrawApp) => {
     rTldrawApp.current = app
+
+    window.app = app
 
     app
       .createShapes({

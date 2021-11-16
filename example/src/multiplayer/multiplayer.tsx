@@ -81,7 +81,7 @@ function TldrawWrapper() {
     function handleDocumentUpdates() {
       if (!doc) return
       if (!app) return
-      if (!app.state.room) return
+      if (!app.room) return
 
       const docObject = doc.toObject()
 
@@ -90,7 +90,7 @@ function TldrawWrapper() {
         app.mergeDocument(docObject.document)
       } else {
         app.updateUsers(
-          Object.values(app.state.room.users).map((user) => {
+          Object.values(app.room.users).map((user) => {
             return {
               ...user,
               selectedIds: user.selectedIds,
