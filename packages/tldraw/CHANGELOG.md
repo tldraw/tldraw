@@ -1,3 +1,7 @@
+## 1.0.2
+
+- Bumps rko dependency.
+
 ## 1.0.1
 
 - Improves appearance of action menu and delete button while disabled
