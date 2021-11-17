@@ -1,5 +1,5 @@
 import { mockDocument, TldrawTestApp } from '~test'
-import { TLBoundsCorner, Utils } from '@tldraw/core'
+import { TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
 import { TDShapeType, TDStatus } from '~types'
 
@@ -243,4 +243,78 @@ describe('When snapping', () => {
   it.todo('Snaps to a shape on screen')
   it.todo('Does not snap to a shape off screen.')
   it.todo('Snaps while panning.')
+})
+
+describe('When holding alt', () => {
+  it('resizes edge from center', () => {
+    const app = new TldrawTestApp().loadDocument(mockDocument)
+
+    const beforeCenter = Utils.getBoundsCenter(
+      Utils.getCommonBounds(app.shapes.map(TLDR.getBounds))
+    )
+
+    app
+      .selectAll()
+      .pointBoundsHandle(TLBoundsEdge.Left, { x: 0, y: 0 })
+      .movePointer({ x: 20, y: 10, altKey: true })
+      .completeSession()
+
+    const afterCenter = Utils.getBoundsCenter(Utils.getCommonBounds(app.shapes.map(TLDR.getBounds)))
+
+    expect(beforeCenter).toEqual(afterCenter)
+  })
+
+  it('resizes edge from center while holding shift', () => {
+    const app = new TldrawTestApp().loadDocument(mockDocument)
+
+    const beforeCenter = Utils.getBoundsCenter(
+      Utils.getCommonBounds(app.shapes.map(TLDR.getBounds))
+    )
+
+    app
+      .selectAll()
+      .pointBoundsHandle(TLBoundsEdge.Left, { x: 0, y: 0 })
+      .movePointer({ x: 20, y: 10, shiftKey: true, altKey: true })
+      .completeSession()
+
+    const afterCenter = Utils.getBoundsCenter(Utils.getCommonBounds(app.shapes.map(TLDR.getBounds)))
+
+    expect(beforeCenter).toEqual(afterCenter)
+  })
+
+  it('resizes corner from center', () => {
+    const app = new TldrawTestApp().loadDocument(mockDocument)
+
+    const beforeCenter = Utils.getBoundsCenter(
+      Utils.getCommonBounds(app.shapes.map(TLDR.getBounds))
+    )
+
+    app
+      .selectAll()
+      .pointBoundsHandle(TLBoundsCorner.TopLeft, { x: 0, y: 0 })
+      .movePointer({ x: 20, y: 10, altKey: true })
+      .completeSession()
+
+    const afterCenter = Utils.getBoundsCenter(Utils.getCommonBounds(app.shapes.map(TLDR.getBounds)))
+
+    expect(beforeCenter).toEqual(afterCenter)
+  })
+
+  it('resizes corner from center while holding shift', () => {
+    const app = new TldrawTestApp().loadDocument(mockDocument)
+
+    const beforeCenter = Utils.getBoundsCenter(
+      Utils.getCommonBounds(app.shapes.map(TLDR.getBounds))
+    )
+
+    app
+      .selectAll()
+      .pointBoundsHandle(TLBoundsCorner.TopLeft, { x: 0, y: 0 })
+      .movePointer({ x: 20, y: 10, shiftKey: true, altKey: true })
+      .completeSession()
+
+    const afterCenter = Utils.getBoundsCenter(Utils.getCommonBounds(app.shapes.map(TLDR.getBounds)))
+
+    expect(beforeCenter).toEqual(afterCenter)
+  })
 })
