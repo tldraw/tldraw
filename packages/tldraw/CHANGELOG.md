@@ -1,3 +1,8 @@
+## 1.0.1
+
+- Improves appearance of action menu and delete button while disabled
+- Adds "resize from center" for transform sessions. Hold the Alt or Option key while resizing to preserve the selection's center point.
+
 ## 1.0.0
 
 Breaking
