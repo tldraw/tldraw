@@ -27,7 +27,7 @@
     "start:www": "yarn build:packages && lerna run start --parallel & cd www && yarn dev",
     "build": "yarn build:packages && cd www && yarn build",
     "build:packages": "cd packages/tldraw && yarn build",
-    "publish:patch": "yarn test && yarn build:packages && lerna publish patch",
+    "publish:patch": "yarn test && yarn build:packages && lerna publish patch --ignore tldraw-vscode",
     "publish:vscode": "cd vscode/extension && yarn package && vsce publish",
     "postpublish": "yarn publish:vscode",
     "docs": "lerna run docs",
