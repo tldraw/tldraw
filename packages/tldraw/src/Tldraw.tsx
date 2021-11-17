@@ -404,6 +404,10 @@ const InnerTldraw = React.memo(function InnerTldraw({
     elm.dispatchEvent(new Event('pointerup', { bubbles: true }))
   }, [])
 
+  React.useEffect(() => {
+    app.cursorManager.rContainer = rWrapper
+  }, [app])
+
   return (
     <StyledLayout ref={rWrapper} tabIndex={0} className={settings.isDarkMode ? dark : ''}>
       <OneOff focusableRef={rWrapper} autofocus={autofocus} />

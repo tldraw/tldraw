@@ -58,6 +58,7 @@ import { EllipseTool } from './tools/EllipseTool'
 import { RectangleTool } from './tools/RectangleTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
+import { CursorManager } from './CursorManager'
 
 const uuid = Utils.uniqueId()
 
@@ -122,6 +123,8 @@ export interface TDCallbacks {
 
 export class TldrawApp extends StateManager<TDSnapshot> {
   callbacks: TDCallbacks = {}
+
+  cursorManager = new CursorManager()
 
   tools = {
     select: new SelectTool(this),

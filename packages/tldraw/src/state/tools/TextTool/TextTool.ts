@@ -7,6 +7,16 @@ export class TextTool extends BaseTool {
 
   /* --------------------- Methods -------------------- */
 
+  onEnter = () => {
+    this.setStatus(Status.Idle)
+    this.app.cursorManager.showText()
+  }
+
+  onExit = () => {
+    this.setStatus(Status.Idle)
+    this.app.cursorManager.showPrevious()
+  }
+
   stopEditingShape = () => {
     this.setStatus(Status.Idle)
 

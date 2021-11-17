@@ -629,6 +629,38 @@ export class SelectTool extends BaseTool<Status> {
 
   /* --------------------- Handles -------------------- */
 
+  onHoverBoundsHandle: TLBoundsHandleEventHandler = (info) => {
+    let rotation: number | undefined
+
+    if (this.app.selectedIds.length === 1) {
+      rotation = this.app.getShape(this.app.selectedIds[0]).rotation
+    }
+
+    switch (info.target) {
+      case TLBoundsCorner.TopLeft:
+      case TLBoundsCorner.TopRight:
+      case TLBoundsCorner.BottomRight:
+      case TLBoundsCorner.BottomLeft: {
+        this.app.cursorManager.showResizeCorner(rotation)
+        break
+      }
+      case TLBoundsEdge.Top:
+      case TLBoundsEdge.Right:
+      case TLBoundsEdge.Bottom:
+      case TLBoundsEdge.Left: {
+        this.app.cursorManager.showResizeEdge(rotation)
+        break
+      }
+      default: {
+        this.app.cursorManager.showGrab()
+      }
+    }
+  }
+
+  onUnhoverBoundsHandle: TLBoundsHandleEventHandler = () => {
+    this.app.cursorManager.showPrevious()
+  }
+
   onPointHandle: TLPointerEventHandler = (info) => {
     this.pointedHandleId = info.target as 'start' | 'end'
     this.setStatus(Status.PointingHandle)
