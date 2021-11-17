@@ -78,13 +78,16 @@ export class TransformSingleSession extends BaseSession {
         previousPoint,
         originPoint,
         shiftKey,
+        altKey,
         metaKey,
       },
     } = this
 
     if (initialShape.isLocked) return void null
 
-    const delta = Vec.sub(currentPoint, originPoint)
+    const delta = altKey
+      ? Vec.mul(Vec.sub(currentPoint, originPoint), 2)
+      : Vec.sub(currentPoint, originPoint)
 
     const shapes = {} as Record<string, Partial<TDShape>>
 
@@ -99,6 +102,13 @@ export class TransformSingleSession extends BaseSession {
       shape.rotation,
       shiftKey || shape.isAspectRatioLocked || utils.isAspectRatioLocked
     )
+
+    if (altKey) {
+      newBounds = {
+        ...newBounds,
+        ...Utils.centerBounds(newBounds, Utils.getBoundsCenter(initialShapeBounds)),
+      }
+    }
 
     // Should we snap?
 
