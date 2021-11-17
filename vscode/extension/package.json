@@ -63,7 +63,7 @@
 		"start:vscode": "node scripts/dev",
 		"web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
 		"package": "cd ../editor && yarn build && cd ../extension && node scripts/build && node scripts/package",
-		"publish:patch": "yarn package && vsce publish",
+		"publish": "yarn package && vsce publish",
 		"lint": "eslint src --ext ts"
 	},
 	"devDependencies": {

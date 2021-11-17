@@ -1,3 +1,7 @@
+## 1.0.3
+
+- Improves compatibility with Create React App.
+
 ## 1.0.2
 
 - Bumps rko dependency.
