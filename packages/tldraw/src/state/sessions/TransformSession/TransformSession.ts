@@ -111,6 +111,7 @@ export class TransformSession extends BaseSession {
         previousPoint,
         originPoint,
         shiftKey,
+        altKey,
         metaKey,
         settings: { isSnapping },
       },
@@ -118,7 +119,9 @@ export class TransformSession extends BaseSession {
 
     const shapes = {} as Record<string, TDShape>
 
-    const delta = Vec.sub(currentPoint, originPoint)
+    const delta = altKey
+      ? Vec.mul(Vec.sub(currentPoint, originPoint), 2)
+      : Vec.sub(currentPoint, originPoint)
 
     let newBounds = Utils.getTransformedBoundingBox(
       initialCommonBounds,
@@ -127,6 +130,13 @@ export class TransformSession extends BaseSession {
       0,
       shiftKey || isAllAspectRatioLocked
     )
+
+    if (altKey) {
+      newBounds = {
+        ...newBounds,
+        ...Utils.centerBounds(newBounds, Utils.getBoundsCenter(initialCommonBounds)),
+      }
+    }
 
     // Should we snap?
 
