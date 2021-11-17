@@ -2,17 +2,12 @@ import * as React from 'react'
 import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
 
-interface RoomProps {
-  id?: string
-}
-
-export default function RandomRoomPage({ id }: RoomProps): JSX.Element {
+export default function RandomRoomPage(): JSX.Element {
   return (
     <>
       <Head>
         <title>tldraw</title>
       </Head>
-      <div>Should have routed to room: {id}</div>
     </>
   )
 }
@@ -27,8 +22,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   // Return id (though it shouldn't matter)
   return {
-    props: {
-      id,
-    },
+    props: {},
   }
 }
