@@ -3,14 +3,14 @@ import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
 import { styled, dark } from '~styles'
 import { TDDocument, TDStatus, TDUser } from '~types'
-import { TldrawApp, TDCallbacks } from '~state'
 import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
 import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
-import { TLDR } from '~state/TLDR'
 import { ContextMenu } from '~components/ContextMenu'
 import { FocusButton } from '~components/FocusButton/FocusButton'
+import { TldrawApp, TDCallbacks } from '~state'
+import { TLDR } from '~state/TLDR'
 
 export interface TldrawProps extends TDCallbacks {
   /**

@@ -681,7 +681,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       { appState: { isStyleOpen: !this.appState.isStyleOpen } },
       'ui:toggled_style_panel'
     )
-    this.persist()
+    return this
+  }
+
+  /**
+   * Toggle the guide panel.
+   */
+  toggleGuidePanel = (): this => {
+    if (this.session) return this
+    this.patchState(
+      { appState: { isGuideOpen: !this.appState.isGuideOpen } },
+      'ui:toggled_guide_panel'
+    )
     return this
   }
 
@@ -2858,8 +2869,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       currentStyle: defaultStyle,
       selectedStyle: defaultStyle,
       isToolLocked: false,
-      isStyleOpen: false,
       isEmptyCanvas: false,
+      isStyleOpen: false,
+      isGuideOpen: false,
       status: TDStatus.Idle,
       snapLines: [],
     },

@@ -7,6 +7,8 @@ import { BackToContent } from './BackToContent'
 import { PrimaryTools } from './PrimaryTools'
 import { ActionButton } from './ActionButton'
 import { DeleteButton } from './DeleteButton'
+import { Guide } from '~components/Guide'
+import { GuideButton } from './GuideButton'
 
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
 
@@ -19,11 +21,16 @@ export const ToolsPanel = React.memo(function ToolsPanel(): JSX.Element {
     <StyledToolsPanelContainer>
       <StyledCenterWrap>
         <BackToContent />
-        <StyledPrimaryTools>
-          <ActionButton />
+        <StyledMainButtons>
+          <LeftContent>
+            <ActionButton />
+          </LeftContent>
           <PrimaryTools />
-          <DeleteButton />
-        </StyledPrimaryTools>
+          <RightContent>
+            <DeleteButton />
+            <GuideButton />
+          </RightContent>
+        </StyledMainButtons>
       </StyledCenterWrap>
       {isDebugMode && (
         <StyledStatusWrap>
@@ -34,20 +41,19 @@ export const ToolsPanel = React.memo(function ToolsPanel(): JSX.Element {
   )
 })
 
+const Spacer = styled('div', { flexGrow: 2 })
+
 const StyledToolsPanelContainer = styled('div', {
   position: 'absolute',
   bottom: 0,
   left: 0,
-  right: 0,
   width: '100%',
   minWidth: 0,
   maxWidth: '100%',
-  display: 'grid',
-  gridTemplateColumns: 'auto auto auto',
-  gridTemplateRows: 'auto auto',
+  display: 'flex',
+  flexDirection: 'column',
   justifyContent: 'space-between',
-  padding: '0',
-  gap: '$4',
+  alignItems: 'center',
   zIndex: 200,
   pointerEvents: 'none',
   '& > div > *': {
@@ -56,24 +62,39 @@ const StyledToolsPanelContainer = styled('div', {
 })
 
 const StyledCenterWrap = styled('div', {
-  gridRow: 1,
-  gridColumn: 2,
   display: 'flex',
-  width: 'fit-content',
+  width: '100%',
   alignItems: 'center',
   justifyContent: 'center',
   flexDirection: 'column',
   gap: '$4',
+  paddingBottom: '$4',
 })
 
 const StyledStatusWrap = styled('div', {
-  gridRow: 2,
-  gridColumn: '1 / span 3',
+  width: '100%',
 })
 
-const StyledPrimaryTools = styled('div', {
-  position: 'relative',
-  display: 'flex',
-  alignItems: 'center',
+const StyledMainButtons = styled('div', {
+  display: 'grid',
+  gridTemplateColumns: '1fr auto 1fr',
+  justifyContent: 'center',
+  alignItems: 'flex-end',
+  width: '100%',
   gap: '$2',
+})
+
+const LeftContent = styled('div', {
+  display: 'flex',
+  justifyContent: 'flex-end',
+  alignItems: 'center',
+  paddingBottom: '$2',
+})
+
+const RightContent = styled('div', {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  flexWrap: 'wrap-reverse',
+  paddingBottom: '$2',
 })

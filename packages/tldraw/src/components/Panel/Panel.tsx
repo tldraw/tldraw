@@ -10,6 +10,10 @@ export const Panel = styled('div', {
   gap: 0,
   variants: {
     side: {
+      guide: {
+        position: 'relative',
+        marginBottom: '$2',
+      },
       center: {
         borderRadius: '$4',
       },

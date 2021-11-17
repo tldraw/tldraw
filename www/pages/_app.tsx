@@ -1,9 +1,6 @@
 import '../styles/globals.css'
-import { init } from '-utils/sentry'
 import Head from 'next/head'
 import useGtag from '-utils/useGtag'
-
-init()
 
 const APP_NAME = 'tldraw'
 const APP_DESCRIPTION = 'A tiny little drawing app.'

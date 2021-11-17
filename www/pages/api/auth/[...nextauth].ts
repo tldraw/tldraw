@@ -1,11 +1,9 @@
 import { NextApiHandler, NextApiRequest, NextApiResponse } from 'next'
 import NextAuth from 'next-auth'
 import Providers from 'next-auth/providers'
+import { withSentry } from '@sentry/nextjs'
 
-export default function Auth(
-  req: NextApiRequest,
-  res: NextApiResponse
-): ReturnType<NextApiHandler> {
+function Auth(req: NextApiRequest, res: NextApiResponse): ReturnType<NextApiHandler> {
   return NextAuth(req, res, {
     providers: [
       Providers.GitHub({
@@ -30,6 +28,8 @@ export default function Auth(
     },
   })
 }
+
+export default withSentry(Auth)
 
 const whitelist = ['steveruizok']
 

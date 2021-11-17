@@ -100,6 +100,7 @@ export interface TDSnapshot {
     activeTool: TDToolType
     isToolLocked: boolean
     isStyleOpen: boolean
+    isGuideOpen: boolean
     isEmptyCanvas: boolean
     status: string
     snapLines: TLSnapLine[]

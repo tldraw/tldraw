@@ -22,6 +22,6 @@
     "incremental": true,
     "resolveJsonModule": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "**/*.json", "**/*.ts", "**/*.tsx", "tsconfig.scripts.json"],
   "exclude": ["node_modules"]
 }

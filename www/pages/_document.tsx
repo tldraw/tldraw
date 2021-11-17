@@ -3,29 +3,29 @@ import { getCssText } from '../styles'
 import { GA_TRACKING_ID } from '../utils/gtag'
 
 class MyDocument extends NextDocument {
-  static async getInitialProps(ctx: DocumentContext): Promise<{
-    styles: JSX.Element
-    html: string
-    head?: JSX.Element[]
-  }> {
-    try {
-      const initialProps = await NextDocument.getInitialProps(ctx)
+  // static async getInitialProps(ctx: DocumentContext): Promise<{
+  //   styles: JSX.Element
+  //   html: string
+  //   head?: JSX.Element[]
+  // }> {
+  //   try {
+  //     const initialProps = await NextDocument.getInitialProps(ctx)
 
-      return {
-        ...initialProps,
-        styles: (
-          <>
-            {initialProps.styles}
-            <style id="stitches" dangerouslySetInnerHTML={{ __html: getCssText() }} />
-          </>
-        ),
-      }
-    } catch (e) {
-      console.error(e.message)
-    } finally {
-      null
-    }
-  }
+  //     return {
+  //       ...initialProps,
+  //       styles: (
+  //         <>
+  //           {initialProps.styles}
+  //           <style id="stitches" dangerouslySetInnerHTML={{ __html: getCssText() }} />
+  //         </>
+  //       ),
+  //     }
+  //   } catch (e) {
+  //     console.error(e.message)
+  //   } finally {
+  //     null
+  //   }
+  // }
 
   render(): JSX.Element {
     return (
