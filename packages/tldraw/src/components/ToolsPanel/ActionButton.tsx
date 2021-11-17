@@ -62,12 +62,12 @@ const isAllGroupedSelector = (s: TDSnapshot) => {
   )
 }
 
-const hasSelectionClickor = (s: TDSnapshot) => {
+const hasSelectionSelector = (s: TDSnapshot) => {
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.length > 0
 }
 
-const hasMultipleSelectionClickor = (s: TDSnapshot) => {
+const hasMultipleSelectionSelector = (s: TDSnapshot) => {
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.length > 1
 }
@@ -81,9 +81,9 @@ export function ActionButton(): JSX.Element {
 
   const isAllGrouped = app.useStore(isAllGroupedSelector)
 
-  const hasSelection = app.useStore(hasSelectionClickor)
+  const hasSelection = app.useStore(hasSelectionSelector)
 
-  const hasMultipleSelection = app.useStore(hasMultipleSelectionClickor)
+  const hasMultipleSelection = app.useStore(hasMultipleSelectionSelector)
 
   const selectedShapesCount = app.useStore(selectedShapesCountSelector)
 
@@ -173,8 +173,8 @@ export function ActionButton(): JSX.Element {
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DropdownMenu.Trigger disabled={!hasSelection} dir="ltr" asChild>
-        <ToolButton disabled={!hasSelection} variant="circle">
+      <DropdownMenu.Trigger dir="ltr" asChild>
+        <ToolButton variant="circle">
           <DotsHorizontalIcon />
         </ToolButton>
       </DropdownMenu.Trigger>

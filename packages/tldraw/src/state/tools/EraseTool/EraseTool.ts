@@ -54,11 +54,14 @@ export class EraseTool extends BaseTool {
       case Status.Erasing: {
         this.app.completeSession()
 
-        if (this.previous) {
-          this.app.selectTool(this.previous)
-        } else {
-          this.app.selectTool('select')
-        }
+        // Should the app go back to the previous state, the select
+        // state, or stay in the eraser state?
+
+        // if (this.previous) {
+        //   this.app.selectTool(this.previous)
+        // } else {
+        //   this.app.selectTool('select')
+        // }
       }
     }
 

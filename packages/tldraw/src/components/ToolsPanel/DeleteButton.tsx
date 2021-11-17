@@ -3,7 +3,6 @@ import { Tooltip } from '~components/Tooltip'
 import { useTldrawApp } from '~hooks'
 import { ToolButton } from '~components/ToolButton'
 import { TrashIcon } from '~components/icons'
-import { GHOSTED_OPACITY } from '~constants'
 
 export function DeleteButton(): JSX.Element {
   const app = useTldrawApp()
@@ -13,13 +12,15 @@ export function DeleteButton(): JSX.Element {
   }, [app])
 
   const hasSelection = app.useStore(
-    (s) => s.document.pageStates[s.appState.currentPageId].selectedIds.length > 0
+    (s) =>
+      s.appState.status === 'idle' &&
+      s.document.pageStates[s.appState.currentPageId].selectedIds.length > 0
   )
 
   return (
     <Tooltip label="Delete" kbd="⌫">
       <ToolButton variant="circle" disabled={!hasSelection} onSelect={handleDelete}>
-        <TrashIcon opacity={hasSelection ? 1 : 0.618} />
+        <TrashIcon />
       </ToolButton>
     </Tooltip>
   )
