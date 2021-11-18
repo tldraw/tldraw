@@ -550,6 +550,7 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   onRightPointShape: TLPointerEventHandler = (info) => {
+    console.log('right point shape')
     if (!this.app.isSelected(info.target)) {
       this.app.select(info.target)
     }
@@ -589,6 +590,11 @@ export class SelectTool extends BaseTool<Status> {
     }
 
     this.setStatus(Status.PointingBounds)
+  }
+
+  onRightPointBounds: TLPointerEventHandler = (info, e) => {
+    console.log('right point bounds')
+    e.stopPropagation()
   }
 
   onReleaseBounds: TLBoundsEventHandler = () => {

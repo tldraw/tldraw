@@ -66,8 +66,11 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
   React.useEffect(() => {
     if (isOpen) {
       requestAnimationFrame(() => {
-        rInput.current?.focus()
-        rInput.current?.select()
+        const elm = rInput.current
+        if (elm) {
+          elm.focus()
+          elm.select()
+        }
       })
     }
   }, [isOpen])

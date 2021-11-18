@@ -108,9 +108,11 @@ export class TextUtil extends TDShapeUtil<T, E> {
         if (isEditing) {
           requestAnimationFrame(() => {
             rIsMounted.current = true
-            const elm = rInput.current!
-            elm.focus()
-            elm.select()
+            const elm = rInput.current
+            if (elm) {
+              elm.focus()
+              elm.select()
+            }
           })
         } else {
           onShapeBlur?.()

@@ -1,0 +1,44 @@
+{
+  "version": "0.1.21",
+  "name": "@tldraw/core-example-advanced",
+  "description": "An advanced example project for @tldraw/core.",
+  "author": "@steveruizok",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tldraw/tldraw.git"
+  },
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build:core": "yarn build",
+    "start:core": "node scripts/dev.mjs -w",
+    "build": "node scripts/build.mjs"
+  },
+  "files": [],
+  "devDependencies": {
+    "@stitches/react": "^1.2.5",
+    "@tldraw/core": "^0.1.21",
+    "@tldraw/intersect": "latest",
+    "@tldraw/vec": "latest",
+    "@types/node": "^14.14.35",
+    "@types/react": "^16.9.55",
+    "@types/react-dom": "^16.9.9",
+    "@types/react-router-dom": "^5.1.8",
+    "concurrently": "6.0.1",
+    "create-serve": "1.0.1",
+    "esbuild": "^0.13.8",
+    "esbuild-serve": "^1.0.1",
+    "immer": "^9.0.6",
+    "lodash": "^4.17.21",
+    "nanoid": "^3.1.30",
+    "react": ">=16.8",
+    "react-dom": "^16.8 || ^17.0",
+    "react-feather": "^2.0.9",
+    "rimraf": "3.0.2",
+    "typescript": "4.2.3",
+    "@state-designer/react": "3.0.0",
+    "perfect-freehand": "^1.0.16"
+  },
+  "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6",
+  "dependencies": {}
+}
