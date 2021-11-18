@@ -20,7 +20,12 @@ export const Container = React.memo(function Container({
   const rPositioned = usePosition(bounds, rotation)
 
   return (
-    <div id={id} ref={rPositioned} className={isGhost ? 'tl-positioned tl-ghost' : 'tl-positioned'}>
+    <div
+      id={id}
+      ref={rPositioned}
+      className={isGhost ? 'tl-positioned tl-ghost' : 'tl-positioned'}
+      aria-label="container"
+    >
       {children}
     </div>
   )

@@ -27,7 +27,7 @@ export const Handle = React.memo(function Handle({ id, point }: HandleProps) {
       )}
     >
       <SVGContainer>
-        <g className="tl-handle" {...events}>
+        <g className="tl-handle" aria-label="handle" {...events}>
           <circle className="tl-handle-bg" pointerEvents="all" />
           <circle className="tl-counter-scaled tl-handle" pointerEvents="none" r={4} />
         </g>

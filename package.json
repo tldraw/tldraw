@@ -1,5 +1,5 @@
 {
-  "name": "tldraw",
+  "name": "@tldraw/monorepo",
   "private": true,
   "description": "A tiny little drawing app.",
   "author": "@steveruizok",
