@@ -1453,11 +1453,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   copySvg = (ids = this.selectedIds, pageId = this.currentPageId) => {
     if (ids.length === 0) ids = Object.keys(this.page.shapes)
 
-    console.log(ids)
-
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-
-    // const idsToCopy = ids.flatMap((id) => TLDR.getDocumentBranch(this.state, id, pageId))
 
     const shapes = ids.map((id) => this.getShape(id, pageId))
 
