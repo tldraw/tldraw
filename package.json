@@ -9,31 +9,37 @@
   },
   "license": "MIT",
   "workspaces": [
-    "electron",
-    "vscode/editor",
-    "vscode/extension",
     "packages/tldraw",
-    "example",
-    "www"
+    "packages/core",
+    "apps/www",
+    "apps/electron",
+    "apps/vscode/editor",
+    "apps/vscode/extension",
+    "examples/tldraw-example",
+    "examples/core-example",
+    "examples/core-example-advanced"
   ],
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watchAll",
-    "lerna": "lerna",
-    "start:electron": "lerna run start:electron --stream --parallel",
-    "start:vscode": "code vscode/extension & lerna run start:vscode --parallel; ",
-    "build:vscode": "cd vscode/extension && yarn package",
+    "build": "lerna run build --stream",
+    "build:www": "yarn build:packages && cd apps/www && yarn build",
+    "build:core": "lerna run build:core",
+    "build:packages": "lerna run build:packages --stream",
+    "build:apps": "lerna run build:apps",
     "start": "lerna run start --stream --parallel",
-    "start:www": "yarn build:packages && lerna run start --parallel & cd www && yarn dev",
-    "build": "yarn build:packages && cd www && yarn build",
-    "build:packages": "cd packages/tldraw && yarn build",
+    "start:core": "lerna run start:core --stream --parallel",
+    "start:www": "yarn build:packages && lerna run start --parallel & cd apps/www && yarn dev",
+    "start:electron": "lerna run start:electron --stream --parallel",
+    "start:vscode": "code apps/vscode/extension & lerna run start:vscode --parallel; ",
     "publish:patch": "yarn test && yarn build:packages && lerna publish patch --ignore tldraw-vscode",
     "publish:vscode": "cd vscode/extension && yarn package && vsce publish",
-    "postpublish": "yarn publish:vscode",
-    "docs": "lerna run docs",
-    "docs:watch": "lerna run docs:watch",
-    "postinstall": "husky install",
-    "fix:style": "yarn run prettier ./packages/tldraw/src --write"
+    "fix:style": "yarn run prettier ./packages/tldraw/src --write",
+    "lerna": "lerna",
+    "test": "lerna run test --stream",
+    "test:ci": "lerna run test:ci --stream",
+    "test:watch": "lerna run test:watch --stream",
+    "docs": "lerna run typedoc",
+    "docs:watch": "lerna run typedoc --watch",
+    "postinstall": "husky install"
   },
   "devDependencies": {
     "@swc-node/jest": "^1.3.3",
@@ -67,31 +73,5 @@
   },
   "lint-staged": {
     "*": "fix:style && eslint"
-  },
-  "jest": {
-    "setupFilesAfterEnv": [
-      "<rootDir>/setupTests.ts"
-    ],
-    "transform": {
-      "^.+\\.(tsx|jsx|ts|js|mjs)?$": "@swc-node/jest"
-    },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ],
-    "testEnvironment": "jsdom",
-    "modulePathIgnorePatterns": [
-      "<rootDir>/packages/tldraw/dist/",
-      "<rootDir>/packages/tldraw/test-utils/"
-    ],
-    "moduleNameMapper": {
-      "@tldraw/tldraw": "<rootDir>/packages/tldraw/src",
-      "\\~(.*)": "<rootDir>/packages/tldraw/src/$1"
-    }
   }
 }

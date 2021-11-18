@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "docs"],
+  "compilerOptions": {
+    "outDir": "./dist/types",
+    "rootDir": "src",
+    "baseUrl": "src",
+    "emitDeclarationOnly": false,
+    "paths": {
+      "@tldraw/core": ["../packages/core"]
+    }
+  },
+  "references": [{ "path": "../../packages/core" }],
+  "typedocOptions": {
+    "entryPoints": ["src/index.ts"],
+    "out": "docs"
+  }
+}

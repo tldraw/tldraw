@@ -1462,11 +1462,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @returns A string containing the JSON.
    */
   copySvg = (ids = this.selectedIds, pageId = this.currentPageId) => {
-    if (ids.length === 0) return
+    if (ids.length === 0) ids = Object.keys(this.page.shapes)
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-
-    // const idsToCopy = ids.flatMap((id) => TLDR.getDocumentBranch(this.state, id, pageId))
 
     const shapes = ids.map((id) => this.getShape(id, pageId))
 
@@ -1553,6 +1551,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @returns A string containing the JSON.
    */
   copyJson = (ids = this.selectedIds, pageId = this.currentPageId) => {
+    if (ids.length === 0) ids = Object.keys(this.page.shapes)
     const shapes = ids.map((id) => this.getShape(id, pageId))
     const json = JSON.stringify(shapes, null, 2)
     TLDR.copyStringToClipboard(json)
