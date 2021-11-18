@@ -17,13 +17,10 @@
     "serve": "next serve",
     "lint": "next lint"
   },
-  "dependencies": {
+  "devDependencies": {
     "@liveblocks/client": "^0.12.3",
     "@liveblocks/react": "^0.12.3",
-    "@sentry/integrations": "^6.13.2",
-    "@sentry/node": "^6.13.2",
-    "@sentry/react": "^6.13.2",
-    "@sentry/tracing": "^6.13.2",
+    "@sentry/nextjs": "^6.15.0",
     "@stitches/react": "^1.2.5",
     "@tldraw/tldraw": "^1.0.3",
     "@types/next-auth": "^3.15.0",
@@ -33,9 +30,7 @@
     "next-themes": "^0.0.15",
     "next-transpile-modules": "^9.0.0",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
-  },
-  "devDependencies": {
+    "react-dom": "17.0.2",
     "@sentry/webpack-plugin": "^1.17.1",
     "@types/react": "^17.0.19",
     "@types/react-dom": "^17.0.9",
