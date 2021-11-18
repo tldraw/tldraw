@@ -21,6 +21,7 @@
   ],
   "scripts": {
     "build": "yarn build:packages && cd apps/www && yarn build",
+    "build:core": "lerna run build:core",
     "build:packages": "lerna run build:package",
     "build:apps": "lerna run build:apps",
     "start": "lerna run start --stream --parallel",

@@ -5,7 +5,7 @@
   "author": "@steveruizok",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tldraw/core.git"
+    "url": "git+https://github.com/tldraw/tldraw.git"
   },
   "license": "MIT",
   "keywords": [
@@ -24,6 +24,7 @@
   "scripts": {
     "start:core": "yarn start",
     "start": "node scripts/dev & yarn types:dev",
+    "build:core": "yarn build",
     "build": "node scripts/build && yarn types:build && node scripts/copy-readme",
     "types:dev": "tsc -w --p tsconfig.build.json",
     "types:build": "tsc -p tsconfig.build.json && tsconfig-replace-paths -p tsconfig.build.json",

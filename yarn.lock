@@ -2966,6 +2966,21 @@
   resolved "https://registry.yarnpkg.com/@sqltools/formatter/-/formatter-1.2.3.tgz#1185726610acc37317ddab11c3c7f9066966bd20"
   integrity sha512-O3uyB/JbkAEMZaP3YqyHH7TMnex7tWyCbCI4EfJdOCoN6HIhqdJBWTM6aCCiWQ/5f5wxjgU735QAIpJbjDvmzg==
 
+"@state-designer/core@latest":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@state-designer/core/-/core-3.0.0.tgz#c716d99f8862dd0e58fe48250c4cf875ecc76570"
+  integrity sha512-Cfi7SIajaagYioeh79CCDDNTa/aQ0+IeR9sgtM8ODaESbGpRfUdbXyrI353C6m57OXUg1L7mD4RQxh0RaX29mA==
+  dependencies:
+    immer "^9.0.6"
+    nanoid "^3.1.30"
+
+"@state-designer/react@3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@state-designer/react/-/react-3.0.0.tgz#da3e9a6627341b3a59c242155a3931417d9a18a5"
+  integrity sha512-FPke45GKptw0ainn5QLM0qAUYkotCM23YaejtTHWQ+6Xbz+PmyfNXZc2gs4qQwsc8JHUIhfVXpRwREAJlIZZyg==
+  dependencies:
+    "@state-designer/core" latest
+
 "@stitches/react@^1.2.5":
   version "1.2.5"
   resolved "https://registry.yarnpkg.com/@stitches/react/-/react-1.2.5.tgz#2353343c220f0c59ba388a26fdd9ff7962cb6031"
@@ -8191,6 +8206,11 @@ immediate@~3.0.5:
   resolved "https://registry.yarnpkg.com/immediate/-/immediate-3.0.6.tgz#9db1dbd0faf8de6fbe0f5dd5e56bb606280de69b"
   integrity sha1-nbHb0Pr43m++D13V5Wu2BigN5ps=
 
+immer@^9.0.6:
+  version "9.0.6"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-9.0.6.tgz#7a96bf2674d06c8143e327cbf73539388ddf1a73"
+  integrity sha512-G95ivKpy+EvVAnAab4fVa4YGYn24J1SpEktnJX7JJ45Bd7xqME/SCplFzYFmTbrkwZbQ4xJK1xMTUYBkN6pWsQ==
+
 import-fresh@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/import-fresh/-/import-fresh-2.0.0.tgz#d81355c15612d386c61f9ddd3922d4304822a546"
@@ -9984,7 +10004,7 @@ lodash.uniq@^4.5.0:
   resolved "https://registry.yarnpkg.com/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
   integrity sha1-0CJTc662Uq3BvILklFM5qEJ1R3M=
 
-lodash@^4.17.10, lodash@^4.17.12, lodash@^4.17.15, lodash@^4.17.20, lodash@^4.2.1, lodash@^4.7.0:
+lodash@^4.17.10, lodash@^4.17.12, lodash@^4.17.15, lodash@^4.17.20, lodash@^4.17.21, lodash@^4.2.1, lodash@^4.7.0:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
@@ -12057,6 +12077,13 @@ react-dom@17.0.2, "react-dom@^16.8 || ^17.0", react-dom@^17.0.2:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
     scheduler "^0.20.2"
+
+react-feather@^2.0.9:
+  version "2.0.9"
+  resolved "https://registry.yarnpkg.com/react-feather/-/react-feather-2.0.9.tgz#6e42072130d2fa9a09d4476b0e61b0ed17814480"
+  integrity sha512-yMfCGRkZdXwIs23Zw/zIWCJO3m3tlaUvtHiXlW+3FH7cIT6fiK1iJ7RJWugXq7Fso8ZaQyUm92/GOOHXvkiVUw==
+  dependencies:
+    prop-types "^15.7.2"
 
 react-hotkeys-hook@^3.4.0:
   version "3.4.4"

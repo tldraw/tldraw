@@ -5,11 +5,12 @@
   "author": "@steveruizok",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tldraw/core.git"
+    "url": "git+https://github.com/tldraw/tldraw.git"
   },
   "license": "MIT",
   "private": true,
   "scripts": {
+    "build:core": "yarn build",
     "start:core": "node scripts/dev.mjs -w",
     "build": "node scripts/build.mjs"
   },
