@@ -262,6 +262,10 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
           ).points.sort((a, b) => Vec.dist(a, point) - Vec.dist(b, point))[0]
         }
 
+        if (!intersection) {
+          return undefined
+        }
+
         // The anchor is a point between the handle and the intersection
         const anchor = Vec.med(point, intersection)
 
