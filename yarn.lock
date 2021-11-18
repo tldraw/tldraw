@@ -12652,10 +12652,10 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
-rko@^0.6.4:
-  version "0.6.4"
-  resolved "https://registry.yarnpkg.com/rko/-/rko-0.6.4.tgz#40e2fe205032b623df26144db1f9c2cacab8818c"
-  integrity sha512-Nz3I+3NpoWS8rkQxC0ntjAWH9mtMq2xpnzlQMU6VvHZenIfF1O3saanw8YQa3CHVOqyfeH+Zwz8WDdWwJGN3LA==
+rko@^0.6.5:
+  version "0.6.5"
+  resolved "https://registry.yarnpkg.com/rko/-/rko-0.6.5.tgz#48069a97bc3ae96c86da2502e909247c6c25f861"
+  integrity sha512-0cYMs8iYJY2J7IuxSzGxWoelxkghvvvT3fWCwi/942uy6ORAYaJpQ73s7DIRR87W6jHNJvtcCzyZVfmtkoQzmg==
   dependencies:
     idb-keyval "^6.0.3"
     zustand "^3.6.4"
