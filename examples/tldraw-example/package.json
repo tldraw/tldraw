@@ -1,0 +1,41 @@
+{
+  "name": "@tldraw/tldraw-example",
+  "version": "1.0.3",
+  "private": true,
+  "description": "An example project for @tldraw/tldraw.",
+  "author": "@steveruizok",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "typescript",
+    "esbuild"
+  ],
+  "scripts": {
+    "start": "node scripts/dev.mjs -w",
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "@liveblocks/client": "^0.12.3",
+    "@liveblocks/react": "^0.12.3",
+    "@tldraw/tldraw": "^1.0.3",
+    "@types/node": "^14.14.35",
+    "@types/react": "^16.9.55",
+    "@types/react-dom": "^16.9.9",
+    "@types/react-router-dom": "^5.1.8",
+    "concurrently": "6.0.1",
+    "create-serve": "1.0.1",
+    "dotenv": "^10.0.0",
+    "esbuild": "^0.13.8",
+    "esbuild-envfile-plugin": "^1.0.1",
+    "esbuild-serve": "^1.0.1",
+    "react-router": "^5.2.1",
+    "react-router-dom": "^5.3.0",
+    "rimraf": "3.0.2",
+    "typescript": "4.2.3"
+  },
+  "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6",
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  }
+}

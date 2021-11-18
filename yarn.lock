@@ -3134,6 +3134,11 @@
   dependencies:
     "@tldraw/vec" "^0.1.3"
 
+"@tldraw/vec@^0.0.130":
+  version "0.0.130"
+  resolved "https://registry.yarnpkg.com/@tldraw/vec/-/vec-0.0.130.tgz#49be3dfabf9281c8361d0c3648e94c11f3a5ae83"
+  integrity sha512-0vUa2asaUrxqDiu+1sseC1NSVN+IdSEK/gfrdyG7ZlrQPWECu8nhbanbKfbLkYafJuFsZnc6TZXnLs12T/+22g==
+
 "@tldraw/vec@^0.1.3", "@tldraw/vec@latest":
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/@tldraw/vec/-/vec-0.1.3.tgz#9c2ea9592058dd1458b49dbd817690a0c74e5473"
@@ -3280,7 +3285,7 @@
   dependencies:
     next-auth "*"
 
-"@types/node@*", "@types/node@>= 8":
+"@types/node@*", "@types/node@>= 8", "@types/node@^16.11.6":
   version "16.11.7"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.7.tgz#36820945061326978c42a01e56b61cd223dfdc42"
   integrity sha512-QB5D2sqfSjCmTuWcBWyJ+/44bcjO7VbjSbOE0ucoVbAsSNQc4Lt6QkgkVXkTDwkL4z/beecZNDvVX15D4P8Jbw==
@@ -12044,7 +12049,7 @@ rc@^1.2.7, rc@^1.2.8:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-react-dom@17.0.2, "react-dom@^16.8 || ^17.0":
+react-dom@17.0.2, "react-dom@^16.8 || ^17.0", react-dom@^17.0.2:
   version "17.0.2"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-17.0.2.tgz#ecffb6845e3ad8dbfcdc498f0d0a939736502c23"
   integrity sha512-s4h96KtLDUQlsENhMn1ar8t2bEa+q/YAtj8pPPdIjPDGBDIVNsrD9aXNWqspUe6AzKCIG0C1HZZLqLV7qpOBGA==
@@ -12132,7 +12137,7 @@ react-style-singleton@^2.1.0:
     invariant "^2.2.4"
     tslib "^1.0.0"
 
-react@17.0.2, react@>=16.8:
+react@17.0.2, react@>=16.8, react@^17.0.2:
   version "17.0.2"
   resolved "https://registry.yarnpkg.com/react/-/react-17.0.2.tgz#d0b5cc516d29eb3eee383f75b62864cfb6800037"
   integrity sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA==

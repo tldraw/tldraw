@@ -30,8 +30,8 @@
     "lint": "eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf dist",
     "ts-node": "ts-node",
-    "docs": "typedoc",
-    "docs:watch": "typedoc --watch"
+    "test": "jest",
+    "test:watch": "jest --watchAll"
   },
   "peerDependencies": {
     "react": ">=16.8",
@@ -56,7 +56,36 @@
     "tslib": "^2.3.1"
   },
   "devDependencies": {
+    "@swc-node/jest": "^1.3.3",
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^12.0.0",
     "tsconfig-replace-paths": "^0.0.5"
+  },
+  "jest": {
+    "setupFilesAfterEnv": [
+      "<rootDir>/../../setupTests.ts"
+    ],
+    "transform": {
+      "^.+\\.(tsx|jsx|ts|js|mjs)?$": "@swc-node/jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "testEnvironment": "jsdom",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/dist/",
+      "<rootDir>/src/test/"
+    ],
+    "moduleNameMapper": {
+      "@tldraw/tldraw": "<rootDir>/src",
+      "\\~(.*)": "<rootDir>/src/$1"
+    }
   },
   "gitHead": "325008ff82bd27b63d625ad1b760f8871fb71af9"
 }
