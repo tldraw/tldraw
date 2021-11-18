@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { StateManager } from 'rko'
+import { Patch, StateManager } from 'rko'
 import { Vec } from '@tldraw/vec'
 import {
   TLBoundsEventHandler,
@@ -248,15 +248,17 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @returns The final state
    */
   protected cleanup = (state: TDSnapshot, prev: TDSnapshot): TDSnapshot => {
-    const data = { ...state }
+    const next = { ...state }
+
+    let didChangeStyle = next.appState.selectedStyle !== prev.appState.selectedStyle
 
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
-    if (data.document !== prev.document) {
-      Object.entries(data.document.pages).forEach(([pageId, page]) => {
+    if (next.document !== prev.document) {
+      Object.entries(next.document.pages).forEach(([pageId, page]) => {
         if (page === undefined) {
           // If page is undefined, delete the page and pagestate
-          delete data.document.pages[pageId]
-          delete data.document.pageStates[pageId]
+          delete next.document.pages[pageId]
+          delete next.document.pageStates[pageId]
           return
         }
 
@@ -269,14 +271,20 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           const groupsToUpdate = new Set<GroupShape>()
 
           // If shape is undefined, delete the shape
-          Object.keys(page.shapes).forEach((id) => {
-            const shape = page.shapes[id]
+          Object.entries(page.shapes).forEach(([id, shape]) => {
             let parentId: string
 
             if (!shape) {
               parentId = prevPage.shapes[id]?.parentId
+              if (!didChangeStyle) {
+                didChangeStyle = true
+              }
               delete page.shapes[id]
             } else {
+              if (!didChangeStyle && shape.style !== prevPage?.shapes[id]?.style) {
+                didChangeStyle = true
+              }
+
               parentId = shape.parentId
             }
 
@@ -302,10 +310,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             .filter((shape) => prevPage?.shapes[shape.id] !== shape)
             .map((shape) => shape.id)
 
-          data.document.pages[pageId] = page
+          next.document.pages[pageId] = page
 
           // Get bindings related to the changed shapes
-          const bindingsToUpdate = TLDR.getRelatedBindings(data, changedShapeIds, pageId)
+          const bindingsToUpdate = TLDR.getRelatedBindings(next, changedShapeIds, pageId)
 
           // Update all of the bindings we've just collected
           bindingsToUpdate.forEach((binding) => {
@@ -362,7 +370,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         // Clean up page state, preventing hovers on deleted shapes
 
         const nextPageState: TLPageState = {
-          ...data.document.pageStates[pageId],
+          ...next.document.pageStates[pageId],
         }
 
         if (!nextPageState.brush) {
@@ -383,16 +391,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           delete nextPageState.editingId
         }
 
-        data.document.pageStates[pageId] = nextPageState
+        next.document.pageStates[pageId] = nextPageState
       })
     }
 
-    const currentPageId = data.appState.currentPageId
+    const currentPageId = next.appState.currentPageId
 
-    const currentPageState = data.document.pageStates[currentPageId]
+    const currentPageState = next.document.pageStates[currentPageId]
 
-    if (data.room && data.room !== prev.room) {
-      const room = { ...data.room, users: { ...data.room.users } }
+    if (next.room && next.room !== prev.room) {
+      const room = { ...next.room, users: { ...next.room.users } }
 
       // Remove any exited users
       if (prev.room) {
@@ -405,12 +413,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           })
       }
 
-      data.room = room
+      next.room = room
     }
 
-    if (data.room) {
-      data.room.users[data.room.userId] = {
-        ...data.room.users[data.room.userId],
+    if (next.room) {
+      next.room.users[next.room.userId] = {
+        ...next.room.users[next.room.userId],
         point: this.currentPoint,
         selectedIds: currentPageState.selectedIds,
       }
@@ -418,12 +426,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     // Apply selected style change, if any
 
-    const newSelectedStyle = TLDR.getSelectedStyle(data, currentPageId)
+    if (didChangeStyle) {
+      const newSelectedStyle = TLDR.getSelectedStyle(next, currentPageId)
 
-    if (newSelectedStyle) {
-      data.appState = {
-        ...data.appState,
-        selectedStyle: newSelectedStyle,
+      if (newSelectedStyle) {
+        next.appState = {
+          ...next.appState,
+          selectedStyle: newSelectedStyle,
+        }
       }
     }
 
@@ -431,10 +441,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // This is a broad solution but not a very good one: the UX
     // for interacting with a readOnly document will be more nuanced.
     if (this.readOnly) {
-      data.document.pages = prev.document.pages
+      next.document.pages = prev.document.pages
     }
 
-    return data
+    return next
   }
 
   onPatch = (state: TDSnapshot, id?: string) => {
@@ -2168,6 +2178,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param ids The ids of the shapes to change (defaults to selection).
    */
   style = (style: Partial<ShapeStyles>, ids = this.selectedIds): this => {
+    if (ids.length === 0) {
+      this.patchState(
+        {
+          appState: {
+            selectedStyle: style,
+          },
+        },
+        'changed_style'
+      )
+      return this
+    }
+
     return this.setState(Commands.styleShapes(this, ids, style))
   }
 

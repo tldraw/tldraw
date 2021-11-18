@@ -310,23 +310,34 @@ export class TranslateSession extends BaseSession {
 
         // Set the selected ids to the clones
         nextPageState.selectedIds = clones.map((clone) => clone.id)
+
+        // Either way, move the clones
+        clones.forEach((clone) => {
+          const current = (nextShapes[clone.id] || this.app.getShape(clone.id)) as TDShape
+
+          if (!current.point) throw Error('No point on that clone!')
+
+          nextShapes[clone.id] = {
+            ...clone,
+            point: Vec.round(Vec.add(current.point, movement)),
+          }
+        })
+      } else {
+        if (this.cloneInfo.state === 'empty') throw Error
+
+        const { clones } = this.cloneInfo
+
+        // Either way, move the clones
+        clones.forEach((clone) => {
+          const current = (nextShapes[clone.id] || this.app.getShape(clone.id)) as TDShape
+
+          if (!current.point) throw Error('No point on that clone!')
+
+          nextShapes[clone.id] = {
+            point: Vec.round(Vec.add(current.point, movement)),
+          }
+        })
       }
-
-      if (this.cloneInfo.state === 'empty') throw Error
-
-      const { clones } = this.cloneInfo
-
-      // Either way, move the clones
-      clones.forEach((clone) => {
-        const current = (nextShapes[clone.id] || this.app.getShape(clone.id)) as TDShape
-
-        if (!current.point) throw Error('No point on that clone!')
-
-        nextShapes[clone.id] = {
-          ...nextShapes[clone.id],
-          point: Vec.round(Vec.add(current.point, movement)),
-        }
-      })
     } else {
       // If not cloning...
 
@@ -378,7 +389,6 @@ export class TranslateSession extends BaseSession {
         if (!current.point) throw Error('No point on that clone!')
 
         nextShapes[shape.id] = {
-          ...nextShapes[shape.id],
           point: Vec.round(Vec.add(current.point, movement)),
         }
       })
