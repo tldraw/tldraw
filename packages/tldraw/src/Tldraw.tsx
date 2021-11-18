@@ -396,7 +396,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   // When the context menu is blurred, close the menu by sending pointer events
   // to the context menu's ref. This is a hack around the fact that certain shapes
   // stop event propagation, which causes the menu to stay open even when blurred.
-  const handleContextMenuBlur = React.useCallback<React.FocusEventHandler>((e) => {
+  const handleMenuBlur = React.useCallback<React.FocusEventHandler>((e) => {
     const elm = rWrapper.current
     if (!elm) return
     if (!elm.contains(e.relatedTarget)) return
@@ -405,9 +405,9 @@ const InnerTldraw = React.memo(function InnerTldraw({
   }, [])
 
   return (
-    <StyledLayout ref={rWrapper} tabIndex={0} className={settings.isDarkMode ? dark : ''}>
+    <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
       <OneOff focusableRef={rWrapper} autofocus={autofocus} />
-      <ContextMenu onBlur={handleContextMenuBlur}>
+      <ContextMenu onBlur={handleMenuBlur}>
         <Renderer
           id={id}
           containerRef={rWrapper}
@@ -492,7 +492,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
                 showSponsorLink={showSponsorLink}
               />
               <StyledSpacer />
-              {showTools && !readOnly && <ToolsPanel />}
+              {showTools && !readOnly && <ToolsPanel onBlur={handleMenuBlur} />}
             </>
           )}
         </StyledUI>

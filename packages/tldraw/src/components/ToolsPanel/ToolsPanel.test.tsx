@@ -4,6 +4,6 @@ import { renderWithContext } from '~test'
 
 describe('tools panel', () => {
   test('mounts component without crashing', () => {
-    renderWithContext(<ToolsPanel />)
+    renderWithContext(<ToolsPanel onBlur={() => void null} />)
   })
 })
