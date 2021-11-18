@@ -13,7 +13,7 @@
     "dev": "next dev",
     "build:apps": "yarn build",
     "build:www": "yarn build",
-    "build": "next build",
+    "build": "yarn content && next build",
     "serve": "next serve",
     "lint": "next lint",
     "content": "ts-node --project tsconfig.scripts.json ./scripts/generate-content.ts"

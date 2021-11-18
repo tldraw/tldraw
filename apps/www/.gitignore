@@ -35,3 +35,6 @@ yarn-error.log*
 
 # Sentry
 .sentryclirc
+
+# Sentry
+.sentryclirc

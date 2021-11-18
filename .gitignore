@@ -14,3 +14,6 @@ coverage
 apps/www/public/worker-*
 apps/www/public/sw.js
 apps/www/public/sw.js.map
+apps/www/content.json
+
+.sentryclirc
