@@ -70,7 +70,7 @@ function App() {
   return (<Renderer
     page={page}
     pageState={pageState}
-    shapeUtils={myShapes}
+    shapeUtils={shapeUtils}
   />)
 }
 ```
