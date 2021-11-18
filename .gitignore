@@ -9,8 +9,8 @@ docs/
 coverage
 *.log
 
-www/public/worker-*
-www/public/sw.js
-www/public/sw.js.map
+apps/www/public/worker-*
+apps/www/public/sw.js
+apps/www/public/sw.js.map
 
 .vercel
