@@ -18,8 +18,10 @@ export function useFileSystem() {
 
   const onNewProject = React.useCallback(
     async (app: TldrawApp) => {
-      await promptSaveBeforeChange(app)
-      app.newProject()
+      if (window.confirm('Do you want to create a new project?')) {
+        await promptSaveBeforeChange(app)
+        app.newProject()
+      }
     },
     [promptSaveBeforeChange]
   )
