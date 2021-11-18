@@ -1879,7 +1879,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   startSession = <T extends SessionType>(type: T, ...args: SessionArgsOfType<T>): this => {
     if (this.readOnly && type !== SessionType.Brush) return this
     if (this.session) {
-      throw Error(`Already in a session! (${this.session.constructor.name})`)
+      console.warn(`Already in a session! (${this.session.constructor.name})`)
+      this.cancelSession()
     }
 
     const Session = getSession(type)
