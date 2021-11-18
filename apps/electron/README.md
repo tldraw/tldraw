@@ -1,11 +1,9 @@
-# @tldraw/tldraw-electron
+<div style="text-align: center; transform: scale(.5);">
+  <img src="card-repo.png"/>
+</div>
 
-An electron wrapper for tldraw. Not yet published.
+# @tldraw/electron
 
-## Development
+An experimental electron wrapper for [tldraw](https://tldraw.com).
 
-From the root of the repository, run:
-
-```bash
-yarn start:vscode
-```
+Not yet distributed.

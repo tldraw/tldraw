@@ -1,6 +1,12 @@
+<div style="text-align: center; transform: scale(.5);">
+  <img src="card-repo.png"/>
+</div>
+
 # @tldraw/tldraw-example
 
-An example for @tldraw/tldraw with a very fast dev server.
+An example project for `@tldraw/tldraw`.
 
-**Note:** You probably do not need to start the server here: it is started as
-part of `yarn start` in the root directory.
+To start this project:
+
+- run `yarn start` from the repository's root directory
+- open `http://localhost:5420` in your browser

@@ -76,11 +76,11 @@ function App() {
 }
 ```
 
-Internally, the `<Tldraw/>` component's user interface uses this API to make changes to the component's state. See the `tldrawApp` section of the [documentation](guides/documentation) for more on this API.
+Internally, the `<Tldraw/>` component's user interface uses this API to make changes to the component's state. See the `tldrawApp` section of the [documentation](/guides/documentation.md) for more on this API.
 
 ### Responding to Changes
 
-You can respond to changes and user actions using the `onChange` callback. For more specific changes, you can also use the `onPatch`, `onCommand`, or `onPersist` callbacks. See the [documentation](guides/documentation) for more.
+You can respond to changes and user actions using the `onChange` callback. For more specific changes, you can also use the `onPatch`, `onCommand`, or `onPersist` callbacks. See the [documentation](/guides/documentation.md) for more.
 
 ```tsx
 import { Tldraw, TldrawApp } from '@tldraw/tldraw'
@@ -96,7 +96,7 @@ function App() {
 
 ## Documentation
 
-See the project's [documentation](/packages/tldraw/guides/documentation.md).
+See the project's [documentation](/guides/documentation.md).
 
 ## Contribution
 
@@ -104,7 +104,7 @@ See the [contributing guide](/CONTRIBUTING.md).
 
 ## Development
 
-See the [development guide](/packages/tldraw/guides/development.md).
+See the [development guide](/guides/development.md).
 
 ## Example
 
