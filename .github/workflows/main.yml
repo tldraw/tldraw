@@ -17,4 +17,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          test-command: 'yarn test --ci --runInBand --updateSnapshot'
+          test-command: 'yarn test:ci'

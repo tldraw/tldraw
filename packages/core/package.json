@@ -33,6 +33,7 @@
     "lint": "eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf dist",
     "test": "jest",
+    "test:ci": "jest --ci --runInBand --updateSnapshot",
     "test:watch": "jest --watchAll"
   },
   "dependencies": {

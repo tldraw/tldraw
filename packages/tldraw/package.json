@@ -32,6 +32,7 @@
     "clean": "rm -rf dist",
     "ts-node": "ts-node",
     "test": "jest",
+    "test:ci": "jest --ci --runInBand --updateSnapshot",
     "test:watch": "jest --watchAll"
   },
   "peerDependencies": {
