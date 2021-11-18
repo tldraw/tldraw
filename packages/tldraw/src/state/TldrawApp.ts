@@ -250,8 +250,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   protected cleanup = (state: TDSnapshot, prev: TDSnapshot): TDSnapshot => {
     const next = { ...state }
 
-    let didChangeStyle = next.appState.selectedStyle !== prev.appState.selectedStyle
-
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
     if (next.document !== prev.document) {
       Object.entries(next.document.pages).forEach(([pageId, page]) => {
@@ -276,15 +274,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
             if (!shape) {
               parentId = prevPage.shapes[id]?.parentId
-              if (!didChangeStyle) {
-                didChangeStyle = true
-              }
               delete page.shapes[id]
             } else {
-              if (!didChangeStyle && shape.style !== prevPage?.shapes[id]?.style) {
-                didChangeStyle = true
-              }
-
               parentId = shape.parentId
             }
 
@@ -426,14 +417,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     // Apply selected style change, if any
 
-    if (didChangeStyle) {
-      const newSelectedStyle = TLDR.getSelectedStyle(next, currentPageId)
+    const newSelectedStyle = TLDR.getSelectedStyle(next, currentPageId)
 
-      if (newSelectedStyle) {
-        next.appState = {
-          ...next.appState,
-          selectedStyle: newSelectedStyle,
-        }
+    if (newSelectedStyle) {
+      next.appState = {
+        ...next.appState,
+        selectedStyle: newSelectedStyle,
       }
     }
 
@@ -2178,18 +2167,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param ids The ids of the shapes to change (defaults to selection).
    */
   style = (style: Partial<ShapeStyles>, ids = this.selectedIds): this => {
-    if (ids.length === 0) {
-      this.patchState(
-        {
-          appState: {
-            selectedStyle: style,
-          },
-        },
-        'changed_style'
-      )
-      return this
-    }
-
     return this.setState(Commands.styleShapes(this, ids, style))
   }
 
