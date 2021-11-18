@@ -1,5 +1,5 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "../../tsconfig.base.json",
   "include": ["src"],
   "exclude": ["node_modules", "dist", "docs"],
   "compilerOptions": {
@@ -9,12 +9,12 @@
     "allowJs": false,
     "emitDeclarationOnly": true,
     "paths": {
-      "@tldraw/tldraw": ["../packages/tldraw"]
+      "@tldraw/tldraw": ["../../packages/tldraw"]
     }
   },
   "references": [
     {
-      "path": "../packages/tldraw"
+      "path": "../../packages/tldraw"
     }
   ],
   "typedocOptions": {

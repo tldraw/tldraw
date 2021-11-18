@@ -2,7 +2,6 @@
 import fs from 'fs'
 import path from 'path'
 import esbuild from 'esbuild'
-import dotenv from 'dotenv'
 import { createRequire } from 'module'
 
 const pkg = createRequire(import.meta.url)('../package.json')

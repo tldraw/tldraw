@@ -20,9 +20,10 @@
     "examples/core-example-advanced"
   ],
   "scripts": {
-    "build": "yarn build:packages && cd apps/www && yarn build",
+    "build": "lerna run build --stream",
+    "build:www": "yarn build:packages && cd apps/www && yarn build",
     "build:core": "lerna run build:core",
-    "build:packages": "lerna run build:package",
+    "build:packages": "lerna run build:packages --stream",
     "build:apps": "lerna run build:apps",
     "start": "lerna run start --stream --parallel",
     "start:core": "lerna run start:core --stream --parallel",

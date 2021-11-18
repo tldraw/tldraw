@@ -22,9 +22,10 @@
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
   "scripts": {
-    "start:electron": "yarn start",
     "start": "node scripts/dev & yarn types:dev",
+    "start:packages": "yarn start",
     "build": "node scripts/build && yarn types:build",
+    "build:packages": "yarn build",
     "types:dev": "tsc -w",
     "types:build": "tsc -p tsconfig.build.json && tsconfig-replace-paths -p tsconfig.build.json",
     "lint": "eslint src/ --ext .ts,.tsx",
