@@ -9,12 +9,8 @@ jobs:
       - name: Install modules
         run: yarn
       # build
-      - name: Build
+      - name: Build Packages
         run: yarn build:packages
       # run unit tests
       - name: Jest Annotations & Coverage
-        uses: mattallty/jest-github-action@v1.0.3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          test-command: 'yarn test:ci'
+        run: yarn test:ci
