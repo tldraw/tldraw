@@ -29,6 +29,9 @@ export function getBoundHandlePoint(
     // If the other handle is also bound to a shape, use that other shape's center instead
     // of the handle's actual point
     const otherToShape = data.page.shapes[oppositeBinding.toId]
+
+    if (!otherToShape) return
+
     oppositePoint = getShapeUtils(otherToShape).getCenter(otherToShape)
   } else {
     oppositePoint = Vec.add(fromShape.point, oppositeHandle.point)
