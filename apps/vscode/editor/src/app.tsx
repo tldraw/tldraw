@@ -21,6 +21,7 @@ export default function App(): JSX.Element {
 
   // When the editor's document changes, post the stringified document to the vscode extension.
   const handlePersist = React.useCallback((state: TldrawApp) => {
+    console.log(state.copySvg());
     vscode.postMessage({
       type: 'editorUpdated',
       text: JSON.stringify({
