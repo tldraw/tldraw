@@ -2,11 +2,17 @@ import * as React from 'react'
 import { ExitIcon, GitHubLogoIcon, HamburgerMenuIcon, TwitterLogoIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTldrawApp } from '~hooks'
-import { PreferencesMenu } from './PreferencesMenu'
-import { DMItem, DMContent, DMDivider, DMSubMenu, DMTriggerIcon } from '~components/DropdownMenu'
-import { SmallIcon } from '~components/SmallIcon'
+import { PreferencesMenu } from '../PreferencesMenu'
+import {
+  DMItem,
+  DMContent,
+  DMDivider,
+  DMSubMenu,
+  DMTriggerIcon,
+} from '~components/Primitives/DropdownMenu'
+import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { useFileSystemHandlers } from '~hooks'
-import { HeartIcon } from '~components/icons/HeartIcon'
+import { HeartIcon } from '~components/Primitives/icons/HeartIcon'
 import { preventEvent } from '~components/preventEvent'
 
 interface MenuProps {

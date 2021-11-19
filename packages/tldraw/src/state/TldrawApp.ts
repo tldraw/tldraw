@@ -247,7 +247,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @protected
    * @returns The final state
    */
-  protected cleanup = (state: TDSnapshot, prev: TDSnapshot): TDSnapshot => {
+  protected cleanup = (
+    state: TDSnapshot,
+    prev: TDSnapshot,
+    patch: Patch<TDSnapshot>
+  ): TDSnapshot => {
     const next = { ...state }
 
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
@@ -412,17 +416,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         ...next.room.users[next.room.userId],
         point: this.currentPoint,
         selectedIds: currentPageState.selectedIds,
-      }
-    }
-
-    // Apply selected style change, if any
-
-    const newSelectedStyle = TLDR.getSelectedStyle(next, currentPageId)
-
-    if (newSelectedStyle) {
-      next.appState = {
-        ...next.appState,
-        selectedStyle: newSelectedStyle,
       }
     }
 
@@ -2855,7 +2848,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       currentPageId: 'page',
       pages: [{ id: 'page', name: 'page', childIndex: 1 }],
       currentStyle: defaultStyle,
-      selectedStyle: defaultStyle,
       isToolLocked: false,
       isStyleOpen: false,
       isEmptyCanvas: false,

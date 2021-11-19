@@ -1,6 +1,6 @@
 import * as RadixTooltip from '@radix-ui/react-tooltip'
 import * as React from 'react'
-import { Kbd } from '~components/Kbd'
+import { Kbd } from '~components/Primitives/Kbd'
 import { styled } from '~styles'
 
 /* -------------------------------------------------- */

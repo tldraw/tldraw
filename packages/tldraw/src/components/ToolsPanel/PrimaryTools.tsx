@@ -8,10 +8,10 @@ import {
 } from '@radix-ui/react-icons'
 import { TDSnapshot, TDShapeType } from '~types'
 import { useTldrawApp } from '~hooks'
-import { ToolButtonWithTooltip } from '~components/ToolButton'
-import { Panel } from '~components/Panel'
+import { ToolButtonWithTooltip } from '~components/Primitives/ToolButton'
+import { Panel } from '~components/Primitives/Panel'
 import { ShapesMenu } from './ShapesMenu'
-import { EraserIcon } from '~components/icons'
+import { EraserIcon } from '~components/Primitives/icons'
 
 const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 const toolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked

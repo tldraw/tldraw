@@ -735,44 +735,6 @@ export class TLDR {
     TLDR.updateParents(data, pageId, parentToUpdateIds)
   }
 
-  static getSelectedStyle(data: TDSnapshot, pageId: string): ShapeStyles | false {
-    const { currentStyle } = data.appState
-
-    const page = data.document.pages[pageId]
-    const pageState = data.document.pageStates[pageId]
-
-    if (pageState.selectedIds.length === 0) {
-      return currentStyle
-    }
-
-    const shapeStyles = pageState.selectedIds.map((id) => page.shapes[id].style)
-
-    const commonStyle = {} as ShapeStyles
-
-    const overrides = new Set<string>([])
-
-    for (const shapeStyle of shapeStyles) {
-      const styles = Object.keys(currentStyle) as (keyof ShapeStyles)[]
-
-      styles.forEach((key) => {
-        if (overrides.has(key)) return
-        if (commonStyle[key] === undefined) {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          commonStyle[key] = shapeStyle[key]
-        } else {
-          if (commonStyle[key] === shapeStyle[key]) return
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          commonStyle[key] = currentStyle[key]
-          overrides.add(key)
-        }
-      })
-    }
-
-    return commonStyle
-  }
-
   /* -------------------------------------------------- */
   /*                      Bindings                      */
   /* -------------------------------------------------- */

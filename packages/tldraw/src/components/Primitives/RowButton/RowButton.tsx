@@ -2,8 +2,8 @@ import { ItemIndicator } from '@radix-ui/react-dropdown-menu'
 import { ChevronRightIcon, CheckIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
 import { breakpoints } from '~components/breakpoints'
-import { Kbd } from '~components/Kbd'
-import { SmallIcon } from '~components/SmallIcon'
+import { Kbd } from '~components/Primitives/Kbd'
+import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { styled } from '~styles'
 
 export interface RowButtonProps {

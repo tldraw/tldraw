@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { CheckboxItem } from '@radix-ui/react-dropdown-menu'
-import { RowButton, RowButtonProps } from '~components/RowButton'
+import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
 import { preventEvent } from '~components/preventEvent'
 
 interface DMCheckboxItemProps {

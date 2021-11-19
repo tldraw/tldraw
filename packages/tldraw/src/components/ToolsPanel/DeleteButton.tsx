@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { Tooltip } from '~components/Tooltip'
+import { Tooltip } from '~components/Primitives/Tooltip'
 import { useTldrawApp } from '~hooks'
-import { ToolButton } from '~components/ToolButton'
-import { TrashIcon } from '~components/icons'
+import { ToolButton } from '~components/Primitives/ToolButton'
+import { TrashIcon } from '~components/Primitives/icons'
 
 export function DeleteButton(): JSX.Element {
   const app = useTldrawApp()

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Item } from '@radix-ui/react-dropdown-menu'
-import { RowButton, RowButtonProps } from '~components/RowButton'
+import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
 
 export function DMItem({
   onSelect,

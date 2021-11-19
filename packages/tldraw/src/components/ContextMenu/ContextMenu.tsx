@@ -15,20 +15,13 @@ import {
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
 } from '@radix-ui/react-icons'
-import { CMRowButton } from './CMRowButton'
-import { CMIconButton } from './CMIconButton'
-import { CMTriggerButton } from './CMTriggerButton'
-import { Divider } from '~components/Divider'
-import { MenuContent } from '~components/MenuContent'
+import { Divider } from '~components/Primitives/Divider'
+import { MenuContent } from '~components/Primitives/MenuContent'
+import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
+import { ToolButton, ToolButtonProps } from '~components/Primitives/ToolButton'
 
-const has1SelectedIdsSelector = (s: TDSnapshot) => {
-  return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 0
-}
-const has2SelectedIdsSelector = (s: TDSnapshot) => {
-  return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 1
-}
-const has3SelectedIdsSelector = (s: TDSnapshot) => {
-  return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 2
+const numberOfSelectedIdsSelector = (s: TDSnapshot) => {
+  return s.document.pageStates[s.appState.currentPageId].selectedIds.length
 }
 
 const isDebugModeSelector = (s: TDSnapshot) => {
@@ -50,9 +43,7 @@ interface ContextMenuProps {
 
 export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element => {
   const app = useTldrawApp()
-  const hasSelection = app.useStore(has1SelectedIdsSelector)
-  const hasTwoOrMore = app.useStore(has2SelectedIdsSelector)
-  const hasThreeOrMore = app.useStore(has3SelectedIdsSelector)
+  const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
   const isDebugMode = app.useStore(isDebugModeSelector)
   const hasGroupSelected = app.useStore(hasGroupSelectedSelector)
 
@@ -121,6 +112,10 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
   const handleRedo = React.useCallback(() => {
     app.redo()
   }, [app])
+
+  const hasSelection = numberOfSelectedIds > 0
+  const hasTwoOrMore = numberOfSelectedIds > 1
+  const hasThreeOrMore = numberOfSelectedIds > 2
 
   return (
     <RadixContextMenu.Root dir="ltr">
@@ -216,6 +211,8 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
   )
 }
 
+/* ---------- Align and Distribute Sub Menu --------- */
+
 function AlignDistributeSubMenu({
   hasThreeOrMore,
 }: {
@@ -268,7 +265,7 @@ function AlignDistributeSubMenu({
     <RadixContextMenu.Root dir="ltr">
       <CMTriggerButton isSubmenu>Align / Distribute</CMTriggerButton>
       <RadixContextMenu.Content asChild sideOffset={2} alignOffset={-2}>
-        <StyledGridContent selectedStyle={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}>
+        <StyledGridContent numberOfSelected={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}>
           <CMIconButton onClick={alignLeft}>
             <AlignLeftIcon />
           </CMIconButton>
@@ -313,7 +310,7 @@ function AlignDistributeSubMenu({
 const StyledGridContent = styled(MenuContent, {
   display: 'grid',
   variants: {
-    selectedStyle: {
+    numberOfSelected: {
       threeOrMore: {
         gridTemplateColumns: 'repeat(5, auto)',
       },
@@ -324,7 +321,7 @@ const StyledGridContent = styled(MenuContent, {
   },
 })
 
-/* ------------------ Move to Page ------------------ */
+/* -------------- Move to Page Sub Menu ------------- */
 
 const currentPageIdSelector = (s: TDSnapshot) => s.appState.currentPageId
 const documentPagesSelector = (s: TDSnapshot) => s.document.pages
@@ -387,3 +384,37 @@ export function ContextMenuSubMenu({ children, label }: ContextMenuSubMenuProps)
 const CMArrow = styled(RadixContextMenu.ContextMenuArrow, {
   fill: '$panel',
 })
+
+/* ------------------- IconButton ------------------- */
+
+function CMIconButton({ onSelect, ...rest }: ToolButtonProps): JSX.Element {
+  return (
+    <RadixContextMenu.ContextMenuItem dir="ltr" onSelect={onSelect} asChild>
+      <ToolButton {...rest} />
+    </RadixContextMenu.ContextMenuItem>
+  )
+}
+
+/* -------------------- RowButton ------------------- */
+
+const CMRowButton = ({ ...rest }: RowButtonProps) => {
+  return (
+    <RadixContextMenu.ContextMenuItem asChild>
+      <RowButton {...rest} />
+    </RadixContextMenu.ContextMenuItem>
+  )
+}
+
+/* ----------------- Trigger Button ----------------- */
+
+interface CMTriggerButtonProps extends RowButtonProps {
+  isSubmenu?: boolean
+}
+
+export const CMTriggerButton = ({ isSubmenu, ...rest }: CMTriggerButtonProps) => {
+  return (
+    <RadixContextMenu.ContextMenuTriggerItem asChild>
+      <RowButton hasArrow={isSubmenu} {...rest} />
+    </RadixContextMenu.ContextMenuTriggerItem>
+  )
+}

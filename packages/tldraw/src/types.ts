@@ -92,7 +92,6 @@ export interface TDSnapshot {
     showCloneHandles: boolean
   }
   appState: {
-    selectedStyle: ShapeStyles
     currentStyle: ShapeStyles
     currentPageId: string
     pages: Pick<TLPage<TDShape, TDBinding>, 'id' | 'name' | 'childIndex'>[]

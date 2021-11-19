@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { DMCheckboxItem, DMDivider, DMSubMenu } from '~components/DropdownMenu'
+import { DMCheckboxItem, DMDivider, DMSubMenu } from '~components/Primitives/DropdownMenu'
 import { useTldrawApp } from '~hooks'
 import type { TDSnapshot } from '~types'
 
