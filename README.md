@@ -1,5 +1,5 @@
 <div style="text-align: center; transform: scale(.5);">
-  <img src="card-repo.png"/>
+  <img src="./assets/tldraw.png"/>
 </div>
 
 Welcome to the [tldraw](https://tldraw.com) monorepo. Here you'll find the source code for [@tldraw/tldraw](https://www.npmjs.com/package/@tldraw/tldraw), [@tldraw/core](https://www.npmjs.com/package/@tldraw/core), and the tldraw.com website.
@@ -27,17 +27,27 @@ This repository is a monorepo containing two packages:
 - [**examples/core-example-advanced**](https://github.com/tldraw/tldraw/tree/main/examples/core-example-advanced) is a second example for `@tldraw/core`.
 - [**examples/tldraw-example**](https://github.com/tldraw/tldraw/tree/main/examples/tldraw-example) is an example for `@tldraw/tldraw`.
 
+## Sponsors
+
+Thanks to our corporate sponsors:
+
+<a href="https://sentry.io"><img src="./assets/sentry.svg"></img></a>
+
+<a href="https://vercel.com/?utm_source=team-slug&utm_campaign=oss"><img src="./assets/vercel.svg"></img></a>
+
+...and to our [individual sponsors](https://github.com/sponsors/steveruizok#sponsors)!
+
+## Discussion
+
+Want to connect? Visit the [Discord channel](https://discord.gg/SBBEVCA4PG).
+
 ## Contribution
 
-See the [contributing guide](/CONTRIBUTING.md).
+Interested in contributing? See the [contributing guide](/CONTRIBUTING.md).
 
 ## Support
 
 Need help? Please [open an issue](https://github.com/tldraw/tldraw/issues/new) for support.
-
-## Discussion
-
-Want to connect with other devs? Visit the [Discord channel](https://discord.gg/SBBEVCA4PG).
 
 ## License
 
