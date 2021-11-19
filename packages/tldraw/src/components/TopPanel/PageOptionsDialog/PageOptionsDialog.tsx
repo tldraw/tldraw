@@ -9,6 +9,7 @@ import { Divider } from '~components/Primitives/Divider'
 import { IconButton } from '~components/Primitives/IconButton/IconButton'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { breakpoints } from '~components/breakpoints'
+import { preventEvent } from '~components/preventEvent'
 
 const canDeleteSelector = (s: TDSnapshot) => {
   return Object.keys(s.document.pages).length > 1
@@ -134,9 +135,12 @@ export const StyledDialogOverlay = styled(Dialog.Overlay, {
   height: '100%',
 })
 
-function DialogAction({ ...rest }: RowButtonProps & { onSelect: (e: Event) => void }) {
+function DialogAction({
+  onSelect,
+  ...rest
+}: RowButtonProps & { onSelect: (e: React.SyntheticEvent<HTMLButtonElement, Event>) => void }) {
   return (
-    <Dialog.Action asChild>
+    <Dialog.Action asChild onClick={onSelect} onSelect={onSelect}>
       <RowButton {...rest} />
     </Dialog.Action>
   )
