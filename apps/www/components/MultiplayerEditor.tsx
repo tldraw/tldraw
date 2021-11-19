@@ -38,7 +38,15 @@ export default function MultiplayerEditor({
 
 // Inner Editor
 
-function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: boolean }) {
+function Editor({
+  roomId,
+  isUser,
+  isSponsor,
+}: {
+  roomId: string
+  isUser: boolean
+  isSponsor: boolean
+}) {
   const [docId] = React.useState(() => Utils.uniqueId())
 
   const [app, setApp] = React.useState<TldrawApp>()
@@ -175,7 +183,7 @@ function Editor({ roomId, isSponsor }: { roomId: string; isUser; isSponsor: bool
         showPages={false}
         showSponsorLink={isSponsor}
         onSignIn={isSponsor ? undefined : onSignIn}
-        onSignOut={onSignOut}
+        onSignOut={isUser ? onSignOut : undefined}
         {...fileSystemEvents}
       />
     </div>

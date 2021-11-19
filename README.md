@@ -8,6 +8,14 @@ Welcome to the [tldraw](https://tldraw.com) monorepo. Here you'll find the sourc
 
 💕 Love this project? Consider [becoming a sponsor](https://github.com/sponsors/steveruizok?frequency=recurring&sponsor=steveruizok).
 
+Thanks to our corporate sponsors:
+
+<a href="https://sentry.io"><img src="./assets/sentry.svg"></img></a>
+
+<a href="https://vercel.com/?utm_source=team-slug&utm_campaign=oss"><img src="./assets/vercel.svg"></img></a>
+
+...and to our [individual sponsors](https://github.com/sponsors/steveruizok#sponsors)!
+
 ## Contents
 
 This repository is a monorepo containing two packages:
@@ -26,16 +34,6 @@ This repository is a monorepo containing two packages:
 - [**examples/core-example**](https://github.com/tldraw/tldraw/tree/main/examples/core-example) is a simple example for `@tldraw/core`.
 - [**examples/core-example-advanced**](https://github.com/tldraw/tldraw/tree/main/examples/core-example-advanced) is a second example for `@tldraw/core`.
 - [**examples/tldraw-example**](https://github.com/tldraw/tldraw/tree/main/examples/tldraw-example) is an example for `@tldraw/tldraw`.
-
-## Sponsors
-
-Thanks to our corporate sponsors:
-
-<a href="https://sentry.io"><img src="./assets/sentry.svg"></img></a>
-
-<a href="https://vercel.com/?utm_source=team-slug&utm_campaign=oss"><img src="./assets/vercel.svg"></img></a>
-
-...and to our [individual sponsors](https://github.com/sponsors/steveruizok#sponsors)!
 
 ## Discussion
 
