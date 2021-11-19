@@ -247,7 +247,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @protected
    * @returns The final state
    */
-  protected cleanup = (state: TDSnapshot, prev: TDSnapshot): TDSnapshot => {
+  protected cleanup = (
+    state: TDSnapshot,
+    prev: TDSnapshot,
+    patch: Patch<TDSnapshot>
+  ): TDSnapshot => {
     const next = { ...state }
 
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
@@ -412,19 +416,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         ...next.room.users[next.room.userId],
         point: this.currentPoint,
         selectedIds: currentPageState.selectedIds,
-      }
-    }
-
-    // Apply selected style change, if any. This is the style shown in
-    // the style menu.
-    const newSelectedStyle = TLDR.getSelectedStyle(next, currentPageId)
-
-    // Until we can work out the correct logic for deciding whether or not to
-    // update the selected style, do a string comparison. Yuck!
-    if (JSON.stringify(newSelectedStyle) !== JSON.stringify(prev.appState.selectedStyle)) {
-      next.appState = {
-        ...next.appState,
-        selectedStyle: newSelectedStyle,
       }
     }
 
@@ -2169,18 +2160,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param ids The ids of the shapes to change (defaults to selection).
    */
   style = (style: Partial<ShapeStyles>, ids = this.selectedIds): this => {
-    if (ids.length === 0) {
-      this.patchState(
-        {
-          appState: {
-            selectedStyle: style,
-          },
-        },
-        'changed_style'
-      )
-      return this
-    }
-
     return this.setState(Commands.styleShapes(this, ids, style))
   }
 
@@ -2869,7 +2848,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       currentPageId: 'page',
       pages: [{ id: 'page', name: 'page', childIndex: 1 }],
       currentStyle: defaultStyle,
-      selectedStyle: defaultStyle,
       isToolLocked: false,
       isStyleOpen: false,
       isEmptyCanvas: false,

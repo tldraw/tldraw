@@ -268,7 +268,7 @@ function AlignDistributeSubMenu({
     <RadixContextMenu.Root dir="ltr">
       <CMTriggerButton isSubmenu>Align / Distribute</CMTriggerButton>
       <RadixContextMenu.Content asChild sideOffset={2} alignOffset={-2}>
-        <StyledGridContent selectedStyle={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}>
+        <StyledGridContent numberOfSelected={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}>
           <CMIconButton onClick={alignLeft}>
             <AlignLeftIcon />
           </CMIconButton>
@@ -313,7 +313,7 @@ function AlignDistributeSubMenu({
 const StyledGridContent = styled(MenuContent, {
   display: 'grid',
   variants: {
-    selectedStyle: {
+    numberOfSelected: {
       threeOrMore: {
         gridTemplateColumns: 'repeat(5, auto)',
       },
