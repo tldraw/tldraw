@@ -18,8 +18,8 @@ import {
 import { CMRowButton } from './CMRowButton'
 import { CMIconButton } from './CMIconButton'
 import { CMTriggerButton } from './CMTriggerButton'
-import { Divider } from '~components/Divider'
-import { MenuContent } from '~components/MenuContent'
+import { Divider } from '~components/Primitives/Divider'
+import { MenuContent } from '~components/Primitives/MenuContent'
 
 const has1SelectedIdsSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length > 0

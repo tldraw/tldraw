@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ContextMenuItem } from '@radix-ui/react-context-menu'
-import { RowButton, RowButtonProps } from '~components/RowButton'
+import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
 
 export const CMRowButton = ({ ...rest }: RowButtonProps) => {
   return (

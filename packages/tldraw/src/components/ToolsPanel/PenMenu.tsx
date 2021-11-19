@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { Panel } from '~components/Panel'
-import { ToolButton } from '~components/ToolButton'
+import { Panel } from '~components/Primitives/Panel'
+import { ToolButton } from '~components/Primitives/ToolButton'
 import { TDShapeType, TDToolType } from '~types'
 import { useTldrawApp } from '~hooks'
 import { Pencil1Icon } from '@radix-ui/react-icons'
-import { Tooltip } from '~components/Tooltip'
+import { Tooltip } from '~components/Primitives/Tooltip'
 
 interface ShapesMenuProps {
   activeTool: TDToolType

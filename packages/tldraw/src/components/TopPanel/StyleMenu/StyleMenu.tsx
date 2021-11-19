@@ -2,7 +2,12 @@ import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { strokes, fills, defaultStyle } from '~state/shapes/shared/shape-styles'
 import { useTldrawApp } from '~hooks'
-import { DMCheckboxItem, DMContent, DMRadioItem, DMTriggerIcon } from '~components/DropdownMenu'
+import {
+  DMCheckboxItem,
+  DMContent,
+  DMRadioItem,
+  DMTriggerIcon,
+} from '~components/Primitives/DropdownMenu'
 import {
   CircleIcon,
   DashDashedIcon,
@@ -12,12 +17,12 @@ import {
   SizeLargeIcon,
   SizeMediumIcon,
   SizeSmallIcon,
-} from '~components/icons'
-import { ToolButton } from '~components/ToolButton'
+} from '~components/Primitives/icons'
+import { ToolButton } from '~components/Primitives/ToolButton'
 import { TDSnapshot, ColorStyle, DashStyle, SizeStyle, ShapeStyles } from '~types'
 import { styled } from '~styles'
 import { breakpoints } from '~components/breakpoints'
-import { Divider } from '~components/Divider'
+import { Divider } from '~components/Primitives/Divider'
 import { preventEvent } from '~components/preventEvent'
 
 const currentStyleSelector = (s: TDSnapshot) => s.appState.currentStyle

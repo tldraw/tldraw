@@ -1,14 +1,14 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { PlusIcon, CheckIcon } from '@radix-ui/react-icons'
-import { PageOptionsDialog } from './PageOptionsDialog'
+import { PageOptionsDialog } from '../PageOptionsDialog'
 import { styled } from '~styles'
 import { useTldrawApp } from '~hooks'
 import type { TDSnapshot } from '~types'
-import { DMContent, DMDivider } from '~components/DropdownMenu'
-import { SmallIcon } from '~components/SmallIcon'
-import { RowButton } from '~components/RowButton'
-import { ToolButton } from '~components/ToolButton'
+import { DMContent, DMDivider } from '~components/Primitives/DropdownMenu'
+import { SmallIcon } from '~components/Primitives/SmallIcon'
+import { RowButton } from '~components/Primitives/RowButton'
+import { ToolButton } from '~components/Primitives/ToolButton'
 
 const sortedSelector = (s: TDSnapshot) =>
   Object.values(s.document.pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))

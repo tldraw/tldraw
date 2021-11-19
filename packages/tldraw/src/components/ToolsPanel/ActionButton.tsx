@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Tooltip } from '~components/Tooltip/Tooltip'
+import { Tooltip } from '~components/Primitives/Tooltip/Tooltip'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
@@ -28,10 +28,10 @@ import {
   StretchVerticallyIcon,
   BoxIcon,
 } from '@radix-ui/react-icons'
-import { DMContent } from '~components/DropdownMenu'
-import { Divider } from '~components/Divider'
-import { TrashIcon } from '~components/icons'
-import { ToolButton } from '~components/ToolButton'
+import { DMContent } from '~components/Primitives/DropdownMenu'
+import { Divider } from '~components/Primitives/Divider'
+import { TrashIcon } from '~components/Primitives/icons'
+import { ToolButton } from '~components/Primitives/ToolButton'
 
 const selectedShapesCountSelector = (s: TDSnapshot) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length

@@ -1,6 +1,6 @@
 import { DotFilledIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
-import { IconButton } from '~components/IconButton/IconButton'
+import { IconButton } from '~components/Primitives/IconButton/IconButton'
 import { styled } from '~styles'
 
 interface FocusButtonProps {

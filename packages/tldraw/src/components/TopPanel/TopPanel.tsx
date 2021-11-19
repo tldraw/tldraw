@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { Menu } from './Menu'
+import { Menu } from './Menu/Menu'
 import { styled } from '~styles'
 import { PageMenu } from './PageMenu'
 import { ZoomMenu } from './ZoomMenu'
 import { StyleMenu } from './StyleMenu'
-import { Panel } from '~components/Panel'
+import { Panel } from '~components/Primitives/Panel'
 
 interface TopPanelProps {
   readOnly: boolean
