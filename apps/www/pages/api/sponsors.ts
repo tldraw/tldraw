@@ -88,5 +88,9 @@ export default async function GetSponsors(req: NextApiRequest, res: NextApiRespo
   //       `)}
   // </div>`
 
-  res.status(200).setHeader('Content-Type', 'image/svg+xml').send(svgImage)
+  res
+    .status(200)
+    .setHeader('Cache-Control', 'max-age=604800')
+    .setHeader('Content-Type', 'image/svg+xml')
+    .send(svgImage)
 }
