@@ -735,7 +735,7 @@ export class TLDR {
     TLDR.updateParents(data, pageId, parentToUpdateIds)
   }
 
-  static getSelectedStyle(data: TDSnapshot, pageId: string): ShapeStyles | false {
+  static getSelectedStyle(data: TDSnapshot, pageId: string): ShapeStyles {
     const { currentStyle } = data.appState
 
     const page = data.document.pages[pageId]

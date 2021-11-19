@@ -424,16 +424,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
     }
 
-    // Apply selected style change, if any
+    // Apply selected style change, if any. This is the style shown in
+    // the style menu.
+    const newSelectedStyle = TLDR.getSelectedStyle(next, currentPageId)
 
-    if (didChangeStyle) {
-      const newSelectedStyle = TLDR.getSelectedStyle(next, currentPageId)
-
-      if (newSelectedStyle) {
-        next.appState = {
-          ...next.appState,
-          selectedStyle: newSelectedStyle,
-        }
+    // Until we can work out the correct logic for deciding whether or not to
+    // update the selected style, do a string comparison. Yuck!
+    if (JSON.stringify(newSelectedStyle) !== JSON.stringify(prev.appState.selectedStyle)) {
+      next.appState = {
+        ...next.appState,
+        selectedStyle: newSelectedStyle,
       }
     }
 
