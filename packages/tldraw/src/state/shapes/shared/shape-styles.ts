@@ -1,5 +1,5 @@
 import { Utils } from '@tldraw/core'
-import { Theme, ColorStyle, DashStyle, ShapeStyles, SizeStyle, FontStyle } from '~types'
+import { Theme, ColorStyle, DashStyle, ShapeStyles, SizeStyle, FontStyle, AlignStyle } from '~types'
 
 const canvasLight = '#fafafa'
 
@@ -182,4 +182,5 @@ export const defaultStyle: ShapeStyles = {
 export const defaultTextStyle: ShapeStyles = {
   ...defaultStyle,
   font: FontStyle.Script,
+  textAlign: AlignStyle.Start,
 }

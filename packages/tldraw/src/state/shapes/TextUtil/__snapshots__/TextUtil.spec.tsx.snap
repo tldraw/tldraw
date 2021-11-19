@@ -14,9 +14,11 @@ Object {
   "style": Object {
     "color": "black",
     "dash": "draw",
+    "font": "script",
     "isFilled": false,
     "scale": 1,
     "size": "small",
+    "textAlign": "start",
   },
   "text": " ",
   "type": "text",

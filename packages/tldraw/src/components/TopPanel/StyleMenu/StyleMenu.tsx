@@ -19,11 +19,25 @@ import {
   SizeSmallIcon,
 } from '~components/Primitives/icons'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { TDSnapshot, ColorStyle, DashStyle, SizeStyle, ShapeStyles, FontStyle } from '~types'
+import {
+  TDSnapshot,
+  ColorStyle,
+  DashStyle,
+  SizeStyle,
+  ShapeStyles,
+  FontStyle,
+  AlignStyle,
+} from '~types'
 import { styled } from '~styles'
 import { breakpoints } from '~components/breakpoints'
 import { Divider } from '~components/Primitives/Divider'
 import { preventEvent } from '~components/preventEvent'
+import {
+  TextAlignCenterIcon,
+  TextAlignJustifyIcon,
+  TextAlignLeftIcon,
+  TextAlignRightIcon,
+} from '@radix-ui/react-icons'
 
 const currentStyleSelector = (s: TDSnapshot) => s.appState.currentStyle
 const selectedIdsSelector = (s: TDSnapshot) =>
@@ -31,17 +45,24 @@ const selectedIdsSelector = (s: TDSnapshot) =>
 
 const STYLE_KEYS = Object.keys(defaultTextStyle) as (keyof ShapeStyles)[]
 
-const DASHES = {
+const DASH_ICONS = {
   [DashStyle.Draw]: <DashDrawIcon />,
   [DashStyle.Solid]: <DashSolidIcon />,
   [DashStyle.Dashed]: <DashDashedIcon />,
   [DashStyle.Dotted]: <DashDottedIcon />,
 }
 
-const SIZES = {
+const SIZE_ICONS = {
   [SizeStyle.Small]: <SizeSmallIcon />,
   [SizeStyle.Medium]: <SizeMediumIcon />,
   [SizeStyle.Large]: <SizeLargeIcon />,
+}
+
+const ALIGN_ICONS = {
+  [AlignStyle.Start]: <TextAlignLeftIcon />,
+  [AlignStyle.Middle]: <TextAlignCenterIcon />,
+  [AlignStyle.End]: <TextAlignRightIcon />,
+  [AlignStyle.Justify]: <TextAlignJustifyIcon />,
 }
 
 const themeSelector = (s: TDSnapshot) => (s.settings.isDarkMode ? 'dark' : 'light')
@@ -122,6 +143,10 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
     app.style({ font: value as FontStyle })
   }, [])
 
+  const handleTextAlignChange = React.useCallback((value: string) => {
+    app.style({ textAlign: value as AlignStyle })
+  }, [])
+
   return (
     <DropdownMenu.Root dir="ltr">
       <DMTriggerIcon>
@@ -137,29 +162,27 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
               fill={fills[theme][displayedStyle.color as ColorStyle]}
             />
           )}
-          {DASHES[displayedStyle.dash]}
+          {DASH_ICONS[displayedStyle.dash]}
         </OverlapIcons>
       </DMTriggerIcon>
       <DMContent>
         <StyledRow variant="tall">
           <span>Color</span>
           <ColorGrid>
-            {Object.keys(strokes.light).map((colorStyle: string) => (
-              <DropdownMenu.Item key={colorStyle} onSelect={preventEvent} asChild>
+            {Object.keys(strokes.light).map((style: string) => (
+              <DropdownMenu.Item key={style} onSelect={preventEvent} asChild>
                 <ToolButton
                   variant="icon"
-                  isActive={displayedStyle.color === colorStyle}
-                  onClick={() => app.style({ color: colorStyle as ColorStyle })}
+                  isActive={displayedStyle.color === style}
+                  onClick={() => app.style({ color: style as ColorStyle })}
                 >
                   <CircleIcon
                     size={18}
                     strokeWidth={2.5}
                     fill={
-                      displayedStyle.isFilled
-                        ? fills.light[colorStyle as ColorStyle]
-                        : 'transparent'
+                      displayedStyle.isFilled ? fills.light[style as ColorStyle] : 'transparent'
                     }
-                    stroke={strokes.light[colorStyle as ColorStyle]}
+                    stroke={strokes.light[style as ColorStyle]}
                   />
                 </ToolButton>
               </DropdownMenu.Item>
@@ -170,15 +193,15 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
         <StyledRow>
           Dash
           <StyledGroup dir="ltr" value={displayedStyle.dash} onValueChange={handleDashChange}>
-            {Object.values(DashStyle).map((dashStyle) => (
+            {Object.values(DashStyle).map((style) => (
               <DMRadioItem
-                key={dashStyle}
-                isActive={dashStyle === displayedStyle.dash}
-                value={dashStyle}
+                key={style}
+                isActive={style === displayedStyle.dash}
+                value={style}
                 onSelect={preventEvent}
                 bp={breakpoints}
               >
-                {DASHES[dashStyle as DashStyle]}
+                {DASH_ICONS[style as DashStyle]}
               </DMRadioItem>
             ))}
           </StyledGroup>
@@ -195,7 +218,7 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
                 onSelect={preventEvent}
                 bp={breakpoints}
               >
-                {SIZES[sizeStyle as SizeStyle]}
+                {SIZE_ICONS[sizeStyle as SizeStyle]}
               </DMRadioItem>
             ))}
           </StyledGroup>
@@ -219,6 +242,26 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
                     bp={breakpoints}
                   >
                     <FontIcon fontStyle={fontStyle}>Aa</FontIcon>
+                  </DMRadioItem>
+                ))}
+              </StyledGroup>
+            </StyledRow>
+            <StyledRow>
+              Align
+              <StyledGroup
+                dir="ltr"
+                value={displayedStyle.textAlign}
+                onValueChange={handleTextAlignChange}
+              >
+                {Object.values(AlignStyle).map((style) => (
+                  <DMRadioItem
+                    key={style}
+                    isActive={style === displayedStyle.textAlign}
+                    value={style}
+                    onSelect={preventEvent}
+                    bp={breakpoints}
+                  >
+                    {ALIGN_ICONS[style]}
                   </DMRadioItem>
                 ))}
               </StyledGroup>
@@ -269,7 +312,7 @@ export const StyledRow = styled('div', {
   fontFamily: '$ui',
   fontWeight: 400,
   fontSize: '$1',
-  padding: '0 0 0 $3',
+  padding: '$1 0 $1 $3',
   borderRadius: 4,
   userSelect: 'none',
   margin: 0,
@@ -293,6 +336,7 @@ export const StyledRow = styled('div', {
 const StyledGroup = styled(DropdownMenu.DropdownMenuRadioGroup, {
   display: 'flex',
   flexDirection: 'row',
+  gap: '$1',
 })
 
 const OverlapIcons = styled('div', {
