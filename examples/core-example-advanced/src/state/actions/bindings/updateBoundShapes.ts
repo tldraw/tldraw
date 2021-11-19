@@ -27,12 +27,14 @@ export const updateBoundShapes: Action = (data) => {
     const boundHandle = fromShape.handles[binding.handleId]
     const intersection = getBoundHandlePoint(data, fromShape, toShape, boundHandle.id)
 
-    if (!Vec.isEqual(boundHandle.point, intersection)) {
-      boundHandle.point = Vec.sub(intersection, fromShape.point)
-      const handles = Object.values(fromShape.handles)
-      const offset = Utils.getCommonTopLeft(handles.map((handle) => handle.point))
-      fromShape.point = Vec.add(fromShape.point, offset)
-      handles.forEach((handle) => (handle.point = Vec.sub(handle.point, offset)))
+    if (intersection) {
+      if (!Vec.isEqual(boundHandle.point, intersection)) {
+        boundHandle.point = Vec.sub(intersection, fromShape.point)
+        const handles = Object.values(fromShape.handles)
+        const offset = Utils.getCommonTopLeft(handles.map((handle) => handle.point))
+        fromShape.point = Vec.add(fromShape.point, offset)
+        handles.forEach((handle) => (handle.point = Vec.sub(handle.point, offset)))
+      }
     }
   }
 
