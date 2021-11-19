@@ -250,8 +250,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   protected cleanup = (state: TDSnapshot, prev: TDSnapshot): TDSnapshot => {
     const next = { ...state }
 
-    let didChangeStyle = next.appState.selectedStyle !== prev.appState.selectedStyle
-
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
     if (next.document !== prev.document) {
       Object.entries(next.document.pages).forEach(([pageId, page]) => {
@@ -276,15 +274,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
             if (!shape) {
               parentId = prevPage.shapes[id]?.parentId
-              if (!didChangeStyle) {
-                didChangeStyle = true
-              }
               delete page.shapes[id]
             } else {
-              if (!didChangeStyle && shape.style !== prevPage?.shapes[id]?.style) {
-                didChangeStyle = true
-              }
-
               parentId = shape.parentId
             }
 
