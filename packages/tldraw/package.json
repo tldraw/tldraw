@@ -48,7 +48,7 @@
     "@radix-ui/react-id": "^0.1.1",
     "@radix-ui/react-radio-group": "^0.1.1",
     "@radix-ui/react-tooltip": "^0.1.1",
-    "@stitches/react": "^1.2.5",
+    "@stitches/react": "1.2.6-0",
     "@tldraw/core": "latest",
     "@tldraw/intersect": "latest",
     "@tldraw/vec": "latest",
