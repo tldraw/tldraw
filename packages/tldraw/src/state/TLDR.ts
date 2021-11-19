@@ -753,6 +753,7 @@ export class TLDR {
 
     for (const shapeStyle of shapeStyles) {
       const styles = Object.keys(currentStyle) as (keyof ShapeStyles)[]
+
       styles.forEach((key) => {
         if (overrides.has(key)) return
         if (commonStyle[key] === undefined) {
