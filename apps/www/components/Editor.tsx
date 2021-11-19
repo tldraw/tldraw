@@ -11,7 +11,7 @@ interface EditorProps {
   isSponsor?: boolean
 }
 
-export default function Editor({ id = 'home', isSponsor = false }: EditorProps) {
+export default function Editor({ id = 'home', isUser = false, isSponsor = false }: EditorProps) {
   const handleMount = React.useCallback((app: TldrawApp) => {
     window.app = app
   }, [])
@@ -39,7 +39,7 @@ export default function Editor({ id = 'home', isSponsor = false }: EditorProps) 
         onPersist={handlePersist}
         showSponsorLink={!isSponsor}
         onSignIn={isSponsor ? undefined : onSignIn}
-        onSignOut={onSignOut}
+        onSignOut={isUser ? onSignOut : undefined}
         {...fileSystemEvents}
       />
     </div>
