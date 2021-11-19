@@ -37,6 +37,9 @@ export function useCanvasEvents() {
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+
+      inputs.activePointer = undefined
+
       if (!inputs.pointerIsValid(e)) return
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, 'canvas')

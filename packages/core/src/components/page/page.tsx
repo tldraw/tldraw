@@ -7,7 +7,7 @@ import { BoundsBg } from '~components/bounds/bounds-bg'
 import { Handles } from '~components/handles'
 import { ShapeNode } from '~components/shape'
 import { ShapeIndicator } from '~components/shape-indicator'
-import type { TLShapeUtil } from '~shape-utils'
+import type { TLShapeUtil } from '~TLShapeUtil'
 
 interface PageProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
