@@ -14,6 +14,7 @@ import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { useFileSystemHandlers } from '~hooks'
 import { HeartIcon } from '~components/Primitives/icons/HeartIcon'
 import { preventEvent } from '~components/preventEvent'
+import { DiscordIcon } from '~components/Primitives/icons'
 
 interface MenuProps {
   showSponsorLink: boolean
@@ -154,6 +155,14 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
             Twitter
             <SmallIcon>
               <TwitterLogoIcon />
+            </SmallIcon>
+          </DMItem>
+        </a>
+        <a href="https://discord.gg/SBBEVCA4PG" target="_blank" rel="nofollow">
+          <DMItem>
+            Discord
+            <SmallIcon>
+              <DiscordIcon />
             </SmallIcon>
           </DMItem>
         </a>
