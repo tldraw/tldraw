@@ -47,7 +47,7 @@ export const machine = createState({
             SELECTED_ALL: 'selectAllShapes',
             DESELECTED_ALL: 'deselectAllShapes',
             CANCELLED: ['deselectAllShapes', 'updateBoundShapes'],
-            DELETED: ['deleteSelectedShapes', 'updateBoundShapes'],
+            DELETED: ['deleteSelectedShapes', 'addToHistory'],
             UNDO: 'undo',
             REDO: 'redo',
             HOVERED_SHAPE: 'setHoveredShape',
