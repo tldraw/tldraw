@@ -46,7 +46,7 @@ export default function Sponsorware(): JSX.Element {
               target="_blank"
               rel="noopener noreferrer"
             >
-              sponsor me on Github
+              sponsor me on GitHub
             </a>{' '}
             (at any level) and sign in below.
           </p>
@@ -74,7 +74,7 @@ export default function Sponsorware(): JSX.Element {
             ) : (
               <>
                 <StyledButton variant="primary" onClick={() => signin('github')}>
-                  {loading ? 'Loading...' : 'Sign in With Github'}
+                  {loading ? 'Loading...' : 'Sign in with GitHub'}
                 </StyledButton>
                 <StyledDetail>Already a sponsor? Just sign in to visit the app.</StyledDetail>
               </>

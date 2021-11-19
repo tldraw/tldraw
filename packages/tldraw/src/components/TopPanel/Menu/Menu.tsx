@@ -144,7 +144,7 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
         <DMDivider dir="ltr" />
         <a href="https://github.com/Tldraw/Tldraw" target="_blank" rel="nofollow">
           <DMItem>
-            Github
+            GitHub
             <SmallIcon>
               <GitHubLogoIcon />
             </SmallIcon>
