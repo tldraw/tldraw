@@ -16,6 +16,9 @@ Thanks to our corporate sponsors:
 
 ...and to our [individual sponsors](https://github.com/sponsors/steveruizok#sponsors)!
 
+
+<!-- sponsors --><!-- sponsors -->
+
 ## Contents
 
 This repository is a monorepo containing two packages:
