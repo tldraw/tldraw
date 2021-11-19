@@ -51,7 +51,7 @@ export default async function GetSponsors(req: NextApiRequest, res: NextApiRespo
   const results = (
     sponsorInfo.data.viewer.sponsorshipsAsMaintainer.edges as QueryResult[]
   ).map<SponsorResult>((edge) => ({
-    url: edge.node.sponsorEntity.avatarUrl?.replaceAll('&', '&amp;') ?? '',
+    url: edge.node.sponsorEntity.avatarUrl?.replace(/&/g, '&amp;') ?? '',
     login: edge.node.sponsorEntity.login,
   }))
 
