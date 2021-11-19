@@ -172,6 +172,8 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     () => {
       if (!canHandleEvent()) return
 
+      console.log('Hello')
+
       if (app.session) {
         app.cancelSession()
       } else {

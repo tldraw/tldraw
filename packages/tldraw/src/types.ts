@@ -401,10 +401,18 @@ export enum FontSize {
   ExtraLarge = 'extraLarge',
 }
 
+export enum FontStyle {
+  Script = 'script',
+  Sans = 'sans',
+  Serif = 'erif',
+  Mono = 'mono',
+}
+
 export type ShapeStyles = {
   color: ColorStyle
   size: SizeStyle
   dash: DashStyle
+  font?: FontStyle
   isFilled?: boolean
   scale?: number
 }

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { strokes, fills, defaultStyle } from '~state/shapes/shared/shape-styles'
+import { strokes, fills, defaultTextStyle } from '~state/shapes/shared/shape-styles'
 import { useTldrawApp } from '~hooks'
 import {
   DMCheckboxItem,
@@ -19,7 +19,7 @@ import {
   SizeSmallIcon,
 } from '~components/Primitives/icons'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { TDSnapshot, ColorStyle, DashStyle, SizeStyle, ShapeStyles } from '~types'
+import { TDSnapshot, ColorStyle, DashStyle, SizeStyle, ShapeStyles, FontStyle } from '~types'
 import { styled } from '~styles'
 import { breakpoints } from '~components/breakpoints'
 import { Divider } from '~components/Primitives/Divider'
@@ -29,7 +29,7 @@ const currentStyleSelector = (s: TDSnapshot) => s.appState.currentStyle
 const selectedIdsSelector = (s: TDSnapshot) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds
 
-const STYLE_KEYS = Object.keys(defaultStyle) as (keyof ShapeStyles)[]
+const STYLE_KEYS = Object.keys(defaultTextStyle) as (keyof ShapeStyles)[]
 
 const DASHES = {
   [DashStyle.Draw]: <DashDrawIcon />,
@@ -44,12 +44,19 @@ const SIZES = {
   [SizeStyle.Large]: <SizeLargeIcon />,
 }
 
-const themeSelector = (data: TDSnapshot) => (data.settings.isDarkMode ? 'dark' : 'light')
+const themeSelector = (s: TDSnapshot) => (s.settings.isDarkMode ? 'dark' : 'light')
+
+const showTextStylesSelector = (s: TDSnapshot) => {
+  const pageId = s.appState.currentPageId
+  const page = s.document.pages[pageId]
+  return s.document.pageStates[pageId].selectedIds.some((id) => 'text' in page.shapes[id])
+}
 
 export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
   const app = useTldrawApp()
 
   const theme = app.useStore(themeSelector)
+  const showTextStyles = app.useStore(showTextStylesSelector)
 
   const currentStyle = app.useStore(currentStyleSelector)
   const selectedIds = app.useStore(selectedIdsSelector)
@@ -109,6 +116,10 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
 
   const handleSizeChange = React.useCallback((value: string) => {
     app.style({ size: value as SizeStyle })
+  }, [])
+
+  const handleFontChange = React.useCallback((value: string) => {
+    app.style({ font: value as FontStyle })
   }, [])
 
   return (
@@ -193,6 +204,27 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
         <DMCheckboxItem checked={!!displayedStyle.isFilled} onCheckedChange={handleToggleFilled}>
           Fill
         </DMCheckboxItem>
+        {showTextStyles && (
+          <>
+            <Divider />
+            <StyledRow>
+              Font
+              <StyledGroup dir="ltr" value={displayedStyle.font} onValueChange={handleFontChange}>
+                {Object.values(FontStyle).map((fontStyle) => (
+                  <DMRadioItem
+                    key={fontStyle}
+                    isActive={fontStyle === displayedStyle.font}
+                    value={fontStyle}
+                    onSelect={preventEvent}
+                    bp={breakpoints}
+                  >
+                    <FontIcon fontStyle={fontStyle}>Aa</FontIcon>
+                  </DMRadioItem>
+                ))}
+              </StyledGroup>
+            </StyledRow>
+          </>
+        )}
       </DMContent>
     </DropdownMenu.Root>
   )
@@ -268,5 +300,30 @@ const OverlapIcons = styled('div', {
   '& > *': {
     gridColumn: 1,
     gridRow: 1,
+  },
+})
+
+const FontIcon = styled('div', {
+  width: 32,
+  height: 32,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '$3',
+  variants: {
+    fontStyle: {
+      [FontStyle.Script]: {
+        fontFamily: 'Caveat Brush',
+      },
+      [FontStyle.Sans]: {
+        fontFamily: 'Recursive',
+      },
+      [FontStyle.Serif]: {
+        fontFamily: 'Georgia',
+      },
+      [FontStyle.Mono]: {
+        fontFamily: 'Recursive Mono',
+      },
+    },
   },
 })

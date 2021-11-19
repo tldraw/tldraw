@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
-import { defaultStyle } from '../shared/shape-styles'
+import { defaultTextStyle } from '../shared/shape-styles'
 import { StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
 import { getBoundsRectangle, TextAreaUtils } from '../shared'
 import { TDShapeUtil } from '../TDShapeUtil'
@@ -35,7 +35,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
         size: [200, 200],
         text: '',
         rotation: 0,
-        style: defaultStyle,
+        style: defaultTextStyle,
       },
       props
     )

@@ -2,7 +2,7 @@
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
 import { defaultStyle, getShapeStyle, getFontStyle } from '../shared/shape-styles'
-import { TextShape, TDMeta, TDShapeType, TransformInfo } from '~types'
+import { TextShape, TDMeta, TDShapeType, TransformInfo, FontStyle } from '~types'
 import { TextAreaUtils } from '../shared'
 import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'

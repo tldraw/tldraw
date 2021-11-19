@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Patch, StateManager } from 'rko'
+import { StateManager } from 'rko'
 import { Vec } from '@tldraw/vec'
 import {
   TLBoundsEventHandler,
@@ -247,11 +247,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @protected
    * @returns The final state
    */
-  protected cleanup = (
-    state: TDSnapshot,
-    prev: TDSnapshot,
-    patch: Patch<TDSnapshot>
-  ): TDSnapshot => {
+  protected cleanup = (state: TDSnapshot, prev: TDSnapshot): TDSnapshot => {
     const next = { ...state }
 
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
@@ -2064,7 +2060,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const shapesToUpdate = shapes.filter((shape) => pageShapes[shape.id])
     if (shapesToUpdate.length === 0) return this
     return this.setState(
-      Commands.update(this, shapesToUpdate, this.currentPageId),
+      Commands.updateShapes(this, shapesToUpdate, this.currentPageId),
       'updated_shapes'
     )
   }
@@ -2079,7 +2075,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const shapesToUpdate = shapes.filter((shape) => pageShapes[shape.id])
     if (shapesToUpdate.length === 0) return this
     return this.patchState(
-      Commands.update(this, shapesToUpdate, this.currentPageId).after,
+      Commands.updateShapes(this, shapesToUpdate, this.currentPageId).after,
       'updated_shapes'
     )
   }
@@ -2331,6 +2327,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   toggleDecoration = (handleId: string, ids = this.selectedIds): this => {
     if (ids.length === 0 || !(handleId === 'start' || handleId === 'end')) return this
     return this.setState(Commands.toggleShapesDecoration(this, ids, handleId))
+  }
+
+  /**
+   * Set the props of one or more shapes
+   * @param props The props to set on the shapes.
+   * @param ids The ids of the shapes to set props on.
+   */
+  setShapeProps = <T extends TDShape>(props: Partial<T>, ids = this.selectedIds) => {
+    return this.setState(Commands.setShapesProps(this, ids, props))
   }
 
   /**
@@ -2800,12 +2805,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   getShapeUtil = TLDR.getShapeUtil
 
-  static version = 13
+  static version = 14
 
   static defaultDocument: TDDocument = {
     id: 'doc',
     name: 'New Document',
-    version: 13,
+    version: 14,
     pages: {
       page: {
         id: 'page',
