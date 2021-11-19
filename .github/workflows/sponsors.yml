@@ -1,8 +1,8 @@
 name: Generate Sponsors README
 on:
-  push:
-    branches:
-      - main
+  schedule:
+    - cron: 30 15 * * 0-6
+    
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -14,3 +14,10 @@ jobs:
         with:
           token: ${{ secrets.PAT }}
           file: 'README.md'
+          marker: 'real-sponsors'
+          template: '<a href="https://github.com/sponsors/steveruizok"><img src="https://github.com/{{{ login }}}.png" width="32px" alt="" /></a>'
+      - name: Deploy to GitHub Pages 🚀
+        uses: JamesIves/github-pages-deploy-action@4.1.1
+        with:
+          branch: main
+          folder: '.'
