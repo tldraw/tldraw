@@ -1,23 +1,26 @@
-name: Generate Sponsors README
+name: publish-sponsors
 on:
   schedule:
     - cron: 30 15 * * 0-6
-    
+
 jobs:
-  deploy:
+  generate-sponsors:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v2
+
       - name: Generate Sponsors 💖
-        uses: JamesIves/github-sponsors-readme-action@1.0.5
+        uses: JamesIves/github-sponsors-readme-action@releases/v1
         with:
           token: ${{ secrets.PAT }}
-          file: 'README.md'
           marker: 'real-sponsors'
-          template: '<a href="https://github.com/sponsors/steveruizok"><img src="https://github.com/{{{ login }}}.png" width="32px" alt="" /></a>'
-      - name: Deploy to GitHub Pages 🚀
+          file: 'README.md'
+          template: '<a href="https://github.com/{{{ login }}}"><img src="https://github.com/{{{ login }}}.png" width="40px" alt="" /></a>'
+          minimum: 500
+
+      - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@4.1.1
         with:
-          branch: main
+          branch: dev
           folder: '.'
