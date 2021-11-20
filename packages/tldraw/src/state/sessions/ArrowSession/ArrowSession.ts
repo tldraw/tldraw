@@ -88,14 +88,14 @@ export class ArrowSession extends BaseSession {
 
     let delta = Vec.sub(currentPoint, handles[handleId].point)
 
-    if (shiftKey) {
-      const A = handles[handleId === 'start' ? 'end' : 'start'].point
-      const B = handles[handleId].point
-      const C = Vec.add(B, delta)
-      const angle = Vec.angle(A, C)
-      const adjusted = Vec.rotWith(C, A, Utils.snapAngleToSegments(angle, 24) - angle)
-      delta = Vec.add(delta, Vec.sub(adjusted, C))
-    }
+    // if (shiftKey) {
+    //   const A = handles[handleId === 'start' ? 'end' : 'start'].point
+    //   const B = handles[handleId].point
+    //   const C = Vec.add(B, delta)
+    //   const angle = Vec.angle(A, C)
+    //   const adjusted = Vec.rotWith(C, A, Utils.snapAngleToSegments(angle, 24) - angle)
+    //   delta = Vec.add(delta, Vec.sub(adjusted, C))
+    // }
 
     const handle = {
       ...handles[handleId],
