@@ -51,11 +51,74 @@
 				]
 			}
 		],
+		"keybindings": [
+			{
+				"key": "cmd+numpad_add",
+				"title": "Zoom In",
+				"command": "tldraw.tldr.zoomIn",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "shift+cmd+=",
+				"title": "Zoom In",
+				"command": "tldraw.tldr.zoomIn",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "cmd+=",
+				"title": "Zoom In",
+				"command": "tldraw.tldr.zoomIn",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "cmd+numpad_subtract",
+				"title": "Zoom Out",
+				"command": "tldraw.tldr.zoomOut",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "shift+cmd+-",
+				"title": "Zoom Out",
+				"command": "tldraw.tldr.zoomOut",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "cmd+-",
+				"title": "Zoom Out",
+				"command": "tldraw.tldr.zoomOut",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "cmd+numpad0",
+				"title": "Zoom Out",
+				"command": "tldraw.tldr.zoomReset",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			}
+		],
 		"commands": [
 			{
 				"command": "tldraw.tldr.new",
-				"title": "New tldraw File",
+				"title": "New File",
 				"category": "tldraw"
+			},
+			{
+				"command": "tldraw.tldr.zoomIn",
+				"title": "Zoom In",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"command": "tldraw.tldr.zoomOut",
+				"title": "Zoom Out",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
 			}
 		]
 	},

@@ -229,7 +229,6 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     'ctrl+=,⌘+=',
     (e) => {
       if (!canHandleEvent()) return
-
       app.zoomIn()
       e.preventDefault()
     },
